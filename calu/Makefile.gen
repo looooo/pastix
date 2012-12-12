@@ -11,7 +11,7 @@
 #  NOTE: this file is removed from the release. So, it also take cares
 #  of all the rules that we don't want to appear in the release
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Mathieu Faverge
 # @date 2010-11-15
 #
@@ -75,7 +75,7 @@ printSF90:
 
 # Rule to create the Makefile.src in each directory
 Makefile.src: $(CODEGEN) $(CODEGENSUBS) Makefile
-	@echo "--- Generate ${PWD}/Makefile"
+	@echo "--- Generate ${PWD}/Makefile.src"
 	@echo "CHDR = \\"        		                > $@
 	@$(PYTHON) $(CODEGEN) -f " $(ZHDR)" -o -p "c"    	>> $@
 	@echo                                    		>> $@

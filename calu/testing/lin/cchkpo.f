@@ -397,8 +397,8 @@
 *
                   ANORM = CLANHE( '1', UPLO, N, A, LDA, RWORK )
                   SRNAMT = 'CPOCON'
-                  CALL CPOCON( UPLO, N, AFAC, LDA, ANORM, RCOND, WORK,
-     $                         RWORK, INFO )
+                  CALL PLASMA_CPOCON( PLASMA_UPLO, N, AFAC, LDA, ANORM,
+     $                 RCOND, INFO )
 *
 *                 Check error code from CPOCON.
 *

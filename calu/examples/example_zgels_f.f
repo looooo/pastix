@@ -1,7 +1,7 @@
       PROGRAM EXAMPLE_ZGELS_F
 *     
 *********************************************************************
-*     PLASMA example routine (version 2.4.6)                        
+*     PLASMA example routine (version 2.5.0)                        
 *     Author: Bilel Hadri                                           
 *     Release Date: November, 15th 2010                             
 *     PLASMA is a software package provided by Univ. of Tennessee,  

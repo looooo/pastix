@@ -5,7 +5,7 @@
 #  PLASMA is a software package provided by Univ. of Tennessee,
 #  Univ. of California Berkeley and Univ. of Colorado Denver
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Bilel Hadri
 # @author Hatem Ltaief
 # @date 2010-11-15
@@ -19,6 +19,7 @@ ZHDR=	testing_zmain.h
 
 ZSRC=	testing_zmain.c 	\
 	testing_zgesv.c 	\
+	testing_zgesv_incpiv.c 	\
 	testing_zgetri.c 	\
 	testing_zgesvd.c 	\
 	testing_zgels.c 	\
@@ -101,3 +102,5 @@ stesting : testing_smain.h $(SOBJ)
 	$(LOADER) $(LDFLAGS) $(SOBJ) -o $@ $(LIB)
 
 .PHONY: clean cleanall
+
+.SECONDARY: $(ALLOBJ)

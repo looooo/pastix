@@ -9,7 +9,7 @@
  * QUARK is a software package provided by Univ. of Tennessee,
  * Univ. of California Berkeley and Univ. of Colorado Denver.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Asim YarKhan
  * @date 2010-11-15
  *
@@ -273,6 +273,7 @@ static void quark_remove_completed_task_and_check_for_ready(Quark *quark, Task *
 static void quark_process_completed_tasks(Quark *quark);
 static void quark_address_set_node_free( void* data );
 static inline void quark_fatal_error(const char *func_name, char* msg_text);
+static void quark_address_set_node_wait(Quark *quark, Address_Set_Node *address_set_node);
 
 /* External functions, mostly implemented in quarkos.c */
 int quark_setaffinity(int rank);
@@ -1329,6 +1330,21 @@ unsigned long long QUARK_Execute_Task(Quark * quark, void (*function) (Quark *),
         QUARK_Task_Pack_Arg( quark, task, arg_size, arg_ptr, arg_flags );
     }
     va_end(varg_list);
+
+    /* For each dependency, wait till it is synced and empty */
+    icl_list_t *dep_node;
+    for (dep_node = icl_list_first(task->dependency_list);
+         dep_node != NULL &&  dep_node->data!=NULL;
+         dep_node = icl_list_next(task->dependency_list, dep_node)) {
+        Dependency *dep = (Dependency *)dep_node->data;
+        pthread_mutex_lock_address_set( &quark->address_set_mutex );
+        Address_Set_Node *address_set_node = (Address_Set_Node *)icl_hash_find( quark->address_set, dep->address );
+        pthread_mutex_unlock_address_set( &quark->address_set_mutex );
+        if ( address_set_node != NULL ) {
+            dep->address_set_node_ptr = address_set_node;
+            quark_address_set_node_wait( quark, address_set_node );
+        }
+    }
 
     int thread_rank = QUARK_Thread_Rank(quark);
     Worker *worker = quark->worker[thread_rank];
@@ -2638,4 +2654,27 @@ void QUARK_DOT_DAG_Enable( Quark *quark, int enable )
     }
 }
 
+/* **************************************************************************** */
+/**
+ * Called internally, from the master thread.  Wait/work till the
+ * address_set_node is empty, that is, it has no more dependencies
+ * waiting to use it.  If this is called by something other than the
+ * master thread, we may have problems.  Originally created for use is
+ * via the QUARK_Execute_Task function.
+ */
+static void quark_address_set_node_wait( Quark *quark, Address_Set_Node *address_set_node )
+{
+    int this_asn_still_has_tasks = 1;
+    int myrank = QUARK_Thread_Rank( quark );
+    while ( this_asn_still_has_tasks ) {
+        pthread_mutex_lock_wrap( &address_set_node->asn_mutex );
+        if ( icl_list_first(address_set_node->waiting_deps) == NULL ) 
+            this_asn_still_has_tasks = 0;
+        pthread_mutex_unlock_wrap( &address_set_node->asn_mutex );
+        if ( this_asn_still_has_tasks ) {
+            quark_process_completed_tasks( quark );
+            quark_work_main_loop( quark->worker[myrank] );
+        }
+    }
+}
 /* **************************************************************************** */

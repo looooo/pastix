@@ -9,7 +9,7 @@
  * This file provides the init and conclude functions for 
  * EZTrace module.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c d s

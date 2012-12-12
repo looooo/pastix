@@ -359,7 +359,7 @@ triplets is terminated by sending a 0 as the argument size.  The
 argument flag can be one of \verb|VALUE|, \verb|INPUT|, \verb|OUTPUT|,
 \verb|INOUT|, \verb|NODEP| and \verb|SCRATCH|.  These denote different
 ways that the argument is going to be used by \verb|function|.  Here,
-we describe meaning of \verb|VALUE| and \verb|INOUT|.  The other
+we describe the meaning of \verb|VALUE| and \verb|INOUT|.  The other
 argument flags will be described later in this guide.
 \begin{description}
 \item[]\verb|VALUE| The parameter data is copied to the QUARK task and
@@ -375,7 +375,7 @@ dependencies for the data arguments (\verb|arg_1|, \verb|arg_2|, ...)
 are satisfied.
 
 \paragraph{Finalizing QUARK}
-When the user is done with inserting all their tasks, they will need
+When the user is done with inserting all their tasks, they will need to
 call \verb|QUARK_Delete| to wait for the QUARK runtime to finish
 executing any remaining tasks and release the QUARK data structures.
 All the spawned worker threads will also be finalized by this call.
@@ -643,7 +643,7 @@ skipped.
 
 \subsection{Multi-threaded Tasks}
 Under certain circumstances it can be beneficial to assign multiple
-thread to a single task.  One example of this is in the panel
+threads to a single task.  One example of this is in the panel
 factorization step of LU factorization.  Since this task deals with
 the entire panel, it can become a bottleneck for the execution unless
 multiple threads are assigned to it.  QUARK will call the task
@@ -665,7 +665,7 @@ and cannot be stolen and executed by other threads.
 
 \subsection{Locking Tasks to Threads}
 For the developer who knows best, it is possible to lock tasks to
-threads, This may be done if there is strong cache benefit of forcing
+threads. This may be done if there is a strong cache benefit of forcing
 a certain set of tasks to run on some specific thread (or core).  When
 a task is locked to a thread, it cannot be stolen or reassigned to
 another thread.

@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Hatem Ltaief
  * @author Mathieu Faverge
  * @author Dulceneia Becker
@@ -268,9 +268,9 @@ void QUARK_CORE_zttlqt(Quark *quark, Quark_Task_Flags *task_flags,
         sizeof(int),                        &m,     VALUE,
         sizeof(int),                        &n,     VALUE,
         sizeof(int),                        &ib,    VALUE,
-        sizeof(PLASMA_Complex64_t)*nb*nb,    A1,            INOUT|QUARK_REGION_D|QUARK_REGION_L,
+        sizeof(PLASMA_Complex64_t)*nb*nb,    A1,            INOUT/*|QUARK_REGION_D|QUARK_REGION_L*/,
         sizeof(int),                        &lda1,  VALUE,
-        sizeof(PLASMA_Complex64_t)*nb*nb,    A2,            INOUT|QUARK_REGION_D|QUARK_REGION_L|LOCALITY,
+        sizeof(PLASMA_Complex64_t)*nb*nb,    A2,            INOUT/*|QUARK_REGION_D|QUARK_REGION_L*/|LOCALITY,
         sizeof(int),                        &lda2,  VALUE,
         sizeof(PLASMA_Complex64_t)*ib*nb,    T,             OUTPUT,
         sizeof(int),                        &ldt,   VALUE,

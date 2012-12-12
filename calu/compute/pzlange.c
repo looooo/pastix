@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Emmanuel Agullo
  * @author Mathieu Faverge
  * @date 2010-11-15
@@ -293,11 +293,12 @@ void plasma_pzlange_quark(PLASMA_enum norm, PLASMA_desc A, double *work, double 
     plasma_context_t *plasma;
     Quark_Task_Flags task_flags = Quark_Task_Flags_Initializer;
 
+    double* lwork;
     int X, X1, X2, Y, Y1, Y2;
     int ldam;
     int m, n, k;
     int szeW;
-    double* lwork;
+    int nbworker = 1;
 
     plasma = plasma_context_self();
     if (sequence->status != PLASMA_SUCCESS)
@@ -423,7 +424,7 @@ void plasma_pzlange_quark(PLASMA_enum norm, PLASMA_desc A, double *work, double 
                 Y1 = n == 0      ?  A.j       %A.nb   : 0;
                 Y2 = n == A.nt-1 ? (A.j+A.n-1)%A.nb+1 : A.nb;
                 Y = Y2 - Y1;
-                k++;
+                k++; nbworker++;
                 QUARK_CORE_zgessq_f1(
                     plasma->quark, &task_flags,
                     X, Y,
@@ -436,7 +437,7 @@ void plasma_pzlange_quark(PLASMA_enum norm, PLASMA_desc A, double *work, double 
         }
         QUARK_CORE_dplssq(
             plasma->quark, &task_flags,
-            PLASMA_SIZE+1, lwork, result );
+            min(nbworker, PLASMA_SIZE+1), lwork, result );
 
         QUARK_CORE_free(plasma->quark, &task_flags, lwork, szeW*sizeof(double));
         break;

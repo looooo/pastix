@@ -6,7 +6,7 @@
 #  PLASMA is a software package provided by Univ. of Tennessee,
 #  Univ. of California Berkeley and Univ. of Colorado Denver
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Asim YarKhan
 # @date 2010-11-15
 #
@@ -27,6 +27,8 @@ set( plasma_compute_ZSRC_BASE
         gecfi2.c gecfi.c getmi.c
         plrnt.c plgsy.c
         gesvd.c gebrd.c
+        gecon.c pocon.c
+        geqp3.c
 )
 set( plasma_compute_PZSRC_BASE
         gelqf.c geqrf.c potrf.c trtri.c lauum.c
@@ -39,8 +41,9 @@ set( plasma_compute_PZSRC_BASE
         plrnt.c plgsy.c
         getrf_reclap.c getrf_rectil.c laswp.c laswpc.c
         barrier.c
-        gerbb.c
-        gbrdb.c
+ 	gebrd_ge2tb.c gebrd_tb2bd.c
+	larft_blgtrd.c
+	geqp3.c
 )
 
 # Start with some manually setup sources

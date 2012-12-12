@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author ???
  * @author Mathieu Faverge
  * @author Dulceneia Becker
@@ -137,7 +137,7 @@ Test(int64_t n, int *iparam) {
     K    = iparam[IPARAM_K];
     NRHS = K;
     (void)M;(void)N;(void)K;(void)NRHS;
-    
+
     if ( (n < 0) || (thrdnbr < 0 ) ) {
         if (gnuplot) {
             printf( "set title '%d_NUM_THREADS: ", thrdnbr );
@@ -192,13 +192,13 @@ Test(int64_t n, int *iparam) {
     sumgf  = 0.0;
     sumgf2 = 0.0;
     sumt   = 0.0;
-    
+
     for (iter = 0; iter < niter; iter++)
     {
         if( iter == 0 ) {
-          if ( iparam[IPARAM_TRACE] ) 
+          if ( iparam[IPARAM_TRACE] )
             iparam[IPARAM_TRACE] = 2;
-          if ( iparam[IPARAM_DAG] ) 
+          if ( iparam[IPARAM_DAG] )
             iparam[IPARAM_DAG] = 2;
 
           RunTest( iparam, dparam, &(t[iter]));
@@ -208,7 +208,7 @@ Test(int64_t n, int *iparam) {
         }
         else
             RunTest( iparam, dparam, &(t[iter]));
-        
+
         gflops = flops / t[iter];
 
         sumt   += t[iter];
@@ -221,7 +221,7 @@ Test(int64_t n, int *iparam) {
 
     if ( iparam[IPARAM_CHECK] )
         printf( "%9.3f %9.2f %9.2f %8.5e %8.5e %8.5e %8.5e %8.5e\n",
-                sumt/niter, gflops, sd, dparam[IPARAM_RES], dparam[IPARAM_ANORM], dparam[IPARAM_XNORM], dparam[IPARAM_BNORM], 
+                sumt/niter, gflops, sd, dparam[IPARAM_RES], dparam[IPARAM_ANORM], dparam[IPARAM_XNORM], dparam[IPARAM_BNORM],
                 dparam[IPARAM_RES] / n / eps / (dparam[IPARAM_ANORM] * dparam[IPARAM_XNORM] + dparam[IPARAM_BNORM] ));
     else
         printf( "%9.3f %9.2f %9.2f\n", sumt/niter, gflops, sd );
@@ -312,20 +312,23 @@ static void
 show_help(char *prog_name) {
     printf( "Usage:\n%s [options]\n\n", prog_name );
     printf( "Options are:\n"
-            "  --threads=C      Number of threads (default: 1)\n"
-            "  --[no]check      Check result (default: nocheck)\n"
-            "  --[no]warmup     Perform a warmup run to pre-load libraries (default: warmup)\n"
-            "  --[no]dyn        Enable/Disable dynamic scheduling (default: nodyn)\n"
-#if defined(PLASMA_EZTRACE)     
-            "  --[no]trace      Enable/Disable trace generation (default: notrace)\n"
-#endif                          
-            "  --[no]dag        Enable/Disable DAG generation (default: nodag)\n"
-            "                   Generates a dot_dag_file.dot file.\n"
+            "  --help           Show this help\n"
+            "\n"
+            "  --threads=X      Number of CPU workers (default: _SC_NPROCESSORS_ONLN)\n"
+            "\n"
             "  --[a]sync        Enable/Disable synchronous calls in wrapper function such as POTRI. (default: async)\n"
+            "  --[no]check      Check result (default: nocheck)\n"
+            "  --[no]inv        Check on inverse (default: noinv)\n"
+            "  --[no]warmup     Perform a warmup run to pre-load libraries (default: warmup)\n"
+#if defined(PLASMA_EZTRACE)
+            "  --[no]trace      Enable/Disable trace generation (default: notrace)\n"
+#endif
+            "  --[no]dag        Enable/Disable DAG generation (default: nodag)\n"
+            "                   Generates a dot_dag_file.dot.\n"
+            "  --[no]atun       Activate autotuning (default: noatun) [Deprecated]\n"
             "  --inplace        Enable layout conversion inplace for lapack interface timers (default: enable)\n"
             "  --outplace       Enable layout conversion out of place for lapack interface timers (default: disable)\n"
-            /*"  --[no]atun       Activate autotuning (default: noatun)\n"*/
-            "\n"                
+            "\n"
             "  --n_range=R      Range of N values\n"
             "                   with R=Start:Stop:Step (default: 500:5000:500)\n"
             "  --m=X            dimension (M) of the matrices (default: N)\n"
@@ -336,16 +339,19 @@ show_help(char *prog_name) {
             "\n"
             "  --niter=N        Number of iterations performed for each test (default: 1)\n"
             "\n"
+            "  --rhblk=N        If N > 0, enable Householder mode for QR and LQ factorization\n"
+            "                   N is the size of each subdomain (default: 0)\n"
+            "\n"
             " Options specific to the conversion format timings xgetri and xgecfi:\n"
             "  --ifmt           Input format. (default: 0)\n"
             "  --ofmt           Output format. (default: 1)\n"
             "                   The possible values are:\n"
-            "                     0 - PlasmaCM, Column major\n"
-            "                     1 - PlasmaCCRB, Column-Colum rectangular block\n"
-            "                     2 - PlasmaCRRB, Column-Row rectangular block\n"
-            "                     3 - PlasmaRCRB, Row-Colum rectangular block\n"
-            "                     4 - PlasmaRRRB, Row-Row rectangular block\n"
-            "                     5 - PlasmaRM, Row Major\n"
+            "                     0 - MorseCM, Column major\n"
+            "                     1 - MorseCCRB, Column-Colum rectangular block\n"
+            "                     2 - MorseCRRB, Column-Row rectangular block\n"
+            "                     3 - MorseRCRB, Row-Colum rectangular block\n"
+            "                     4 - MorseRRRB, Row-Row rectangular block\n"
+            "                     5 - MorseRM, Row Major\n"
             "  --thrdbypb       Number of threads per subproblem for inplace transformation (default: 1)\n"
             "\n");
 }
@@ -354,7 +360,7 @@ show_help(char *prog_name) {
 static void
 print_header(char *prog_name, int * iparam) {
     _PREC    eps = _LAMCH( 'e' );
-    printf( "#\n" 
+    printf( "#\n"
             "# PLASMA %d.%d.%d, %s\n"
             "# Nb threads: %d\n"
             "# NB:         %d\n"
@@ -367,7 +373,7 @@ print_header(char *prog_name, int * iparam) {
             prog_name,
             iparam[IPARAM_THRDNBR],
             iparam[IPARAM_NB],
-            iparam[IPARAM_IB], 
+            iparam[IPARAM_IB],
             eps );
     if  (iparam[IPARAM_CHECK] )
         printf( "#     M       N  K/NRHS   seconds   Gflop/s Deviation"
@@ -419,9 +425,6 @@ main(int argc, char *argv[]) {
     iparam[IPARAM_TRACE         ] = 0;
     iparam[IPARAM_DAG           ] = 0;
     iparam[IPARAM_ASYNC         ] = 1;
-    iparam[IPARAM_MX            ] = -1;
-    iparam[IPARAM_NX            ] = -1;
-    iparam[IPARAM_RHBLK         ] = 0;
     iparam[IPARAM_MX            ] = -1;
     iparam[IPARAM_NX            ] = -1;
     iparam[IPARAM_RHBLK         ] = 0;
@@ -490,12 +493,6 @@ main(int argc, char *argv[]) {
             sscanf( strchr( argv[i], '=' ) + 1, "%d", &(iparam[IPARAM_NX]) );
         } else if (startswith( argv[i], "--rhblk=" )) {
             sscanf( strchr( argv[i], '=' ) + 1, "%d", &(iparam[IPARAM_RHBLK]) );
-        } else if (startswith( argv[i], "--mx=" )) {
-            sscanf( strchr( argv[i], '=' ) + 1, "%d", &(iparam[IPARAM_MX]) );
-        } else if (startswith( argv[i], "--nx=" )) {
-            sscanf( strchr( argv[i], '=' ) + 1, "%d", &(iparam[IPARAM_NX]) );
-        } else if (startswith( argv[i], "--rhblk=" )) {
-            sscanf( strchr( argv[i], '=' ) + 1, "%d", &(iparam[IPARAM_RHBLK]) );
         } else if (startswith( argv[i], "--inplace" )) {
             iparam[IPARAM_INPLACE] = PLASMA_INPLACE;
         } else if (startswith( argv[i], "--outplace" )) {
@@ -509,7 +506,7 @@ main(int argc, char *argv[]) {
     mx = iparam[IPARAM_MX];
     nx = iparam[IPARAM_NX];
 
-    /* Initialize Plasma */ 
+    /* Initialize Plasma */
     PLASMA_Init( iparam[IPARAM_THRDNBR] );
 
     if ( iparam[IPARAM_SCHEDULER] )
@@ -533,7 +530,7 @@ main(int argc, char *argv[]) {
         PLASMA_Set(PLASMA_HOUSEHOLDER_MODE, PLASMA_TREE_HOUSEHOLDER);
         PLASMA_Set(PLASMA_HOUSEHOLDER_SIZE, iparam[IPARAM_RHBLK]);
     }
-    
+
     /* Layout conversion */
     PLASMA_Set(PLASMA_TRANSLATION_MODE, iparam[IPARAM_INPLACE]);
 
@@ -543,7 +540,7 @@ main(int argc, char *argv[]) {
 
     Test( -1, iparam ); /* print header */
     for (i = start; i <= stop; i += step)
-    {        
+    {
         if ( nx > 0 ) {
             iparam[IPARAM_M] = i;
             iparam[IPARAM_N] = max(1, i/nx);

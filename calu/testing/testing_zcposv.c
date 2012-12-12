@@ -8,7 +8,7 @@
  *
  * @brief Test mixed precision solution with iterative refinement routine PLASMA_zcposv
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Emmanuel Agullo
  * @author Mathieu Faverge
  * @date 2010-11-15

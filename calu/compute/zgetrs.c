@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @author Mathieu Faverge
  * @date 2010-11-15
@@ -87,7 +87,7 @@ int PLASMA_zgetrs(PLASMA_enum trans, int N, int NRHS,
         return PLASMA_ERR_NOT_INITIALIZED;
     }
     /* Check input arguments */
-    if ( (trans != PlasmaNoTrans) && 
+    if ( (trans != PlasmaNoTrans) &&
          (trans != PlasmaTrans)   &&
          (trans != PlasmaConjTrans)) {
         plasma_error("PLASMA_zgetrs", "illegal value of trans");

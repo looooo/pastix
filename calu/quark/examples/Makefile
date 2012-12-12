@@ -8,7 +8,7 @@
 # This is the makefile for the dynamic scheduler component used by
 # PLASMA
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Asim YarKhan
 # @date 2010-11-15
 #

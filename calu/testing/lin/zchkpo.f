@@ -397,8 +397,8 @@
 *
                   ANORM = ZLANHE( '1', UPLO, N, A, LDA, RWORK )
                   SRNAMT = 'ZPOCON'
-                  CALL ZPOCON( UPLO, N, AFAC, LDA, ANORM, RCOND, WORK,
-     $                         RWORK, INFO )
+                  CALL PLASMA_ZPOCON( PLASMA_UPLO, N, AFAC, LDA, ANORM,
+     $                 RCOND, INFO )
 *
 *                 Check error code from ZPOCON.
 *

@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> s d c
@@ -34,7 +34,7 @@ void plasma_pzlaswpc_quark(PLASMA_desc B, int *IPIV, int inc,
         return;
     QUARK_Task_Flag_Set(&task_flags, TASK_SEQUENCE, (intptr_t)sequence->quark_sequence);
 
-    if ( inc > 0 ) 
+    if ( inc > 0 )
     {
         for (n = 0; n < B.nt; n++) {
             tempj = n * B.nb;
@@ -43,15 +43,15 @@ void plasma_pzlaswpc_quark(PLASMA_desc B, int *IPIV, int inc,
 
             for (m = 0; m < B.mt; m++) {
                 tempmm = m == B.mt-1 ? B.m - m * B.mb : B.mb;
-                
+
                 QUARK_CORE_zlaswpc_ontile(
                     plasma->quark, &task_flags,
                     plasma_desc_submatrix(B, m*B.mb, tempj, tempmm, tempn),
                     B(m, n), 1, tempnn, IPIV(n), inc, B(m, B.nt-1) );
             }
         }
-    } 
-    else 
+    }
+    else
     {
         for (n = B.nt-1; n > -1; n--) {
             tempj = n * B.nb;
@@ -60,12 +60,12 @@ void plasma_pzlaswpc_quark(PLASMA_desc B, int *IPIV, int inc,
 
             for (m = 0; m < B.mt; m++) {
                 tempmm = m == B.mt-1 ? B.m - m * B.mb : B.mb;
-                
+
                 QUARK_CORE_zlaswpc_ontile(
                     plasma->quark, &task_flags,
                     plasma_desc_submatrix(B, m*B.mb, tempj, tempmm, tempn),
                     B(m, n), 1, tempnn, IPIV(n), inc, B(m, 0) );
             }
         }
-    } 
+    }
 }

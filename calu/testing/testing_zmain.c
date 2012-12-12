@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -25,21 +25,24 @@
 int   IONE     = 1;
 int   ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
 
-int   format[6]= { PlasmaCM, PlasmaRM, PlasmaCCRB, PlasmaCRRB, PlasmaRCRB, PlasmaRRRB };
-int   side[2]  = { PlasmaLeft,    PlasmaRight };
-int   uplo[2]  = { PlasmaUpper,   PlasmaLower };
-int   diag[2]  = { PlasmaNonUnit, PlasmaUnit  };
-int   trans[3] = { PlasmaNoTrans, PlasmaTrans, PlasmaConjTrans };
+int   format[6] = { PlasmaRM, PlasmaCM, PlasmaCCRB, PlasmaCRRB, PlasmaRCRB, PlasmaRRRB };
+int   side[2]   = { PlasmaLeft,    PlasmaRight };
+int   uplo[2]   = { PlasmaUpper,   PlasmaLower };
+int   diag[2]   = { PlasmaNonUnit, PlasmaUnit  };
+int   trans[3]  = { PlasmaNoTrans, PlasmaTrans, PlasmaConjTrans };
 int   itype[3]  = { 1, 2, 3 };
 int   storev[2] = { PlasmaRowwise, PlasmaColumnwise };
+int   norm[4]   = { PlasmaMaxNorm, PlasmaOneNorm, PlasmaInfNorm, PlasmaFrobeniusNorm };
 
-char *formatstr[6]= { "CM", "RM", "CCRB", "CRRB", "RCRB", "RRRB"};
+
+char *formatstr[6]= { "RM", "CM", "CCRB", "CRRB", "RCRB", "RRRB"};
 char *sidestr[2]  = { "Left ", "Right" };
 char *uplostr[2]  = { "Upper", "Lower" };
 char *diagstr[2]  = { "NonUnit", "Unit   " };
 char *transstr[3] = { "N", "T", "H" };
-char *itypestr[3]  = { "inv(U')xAxinv(U) or inv(L)xAxinv(L')", "UxAxU' or L'xAxL", "UxAxU' or L'xAxL" };
-char *storevstr[2] = { "Rowwise", "Columnwise" };
+char *itypestr[3] = { "inv(U')xAxinv(U) or inv(L)xAxinv(L')", "UxAxU' or L'xAxL", "UxAxU' or L'xAxL" };
+char *storevstr[2]= { "Rowwise", "Columnwise" };
+char *normstr[4]  = { "Max", "One", "Inf", "Fro" };
 
 #define map_cm(m, n, i, j)   ((i) + (j) * (m))
 #define map_rm(m, n, i, j)   ((i) * (n) + (j))
@@ -122,7 +125,7 @@ int map_RRRB(int m, int n, int mb, int nb, int i, int j) {
             return ( m*n0  + (n-n0)*m0                      + map_rm( m%mb, n%nb, i%mb, j%nb) );
 }
 
-void *formatmap[6] = {  map_CM, map_RM, map_CCRB, map_CRRB, map_RCRB, map_RRRB };
+void *formatmap[6] = {  map_RM, map_CM, map_CCRB, map_CRRB, map_RCRB, map_RRRB };
 
 int main (int argc, char **argv)
 {
@@ -190,6 +193,8 @@ int main (int argc, char **argv)
         info = testing_zposv( argc, argv );
     } else if ( strcmp(func, "GELS") == 0 ) {
         info = testing_zgels( argc, argv );
+    } else if ( strcmp(func, "GESV_INCPIV") == 0 ) {
+        info = testing_zgesv_incpiv( argc, argv );
     } else if ( strcmp(func, "GESV") == 0 ) {
         info = testing_zgesv( argc, argv );
     /*

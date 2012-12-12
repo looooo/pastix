@@ -10,7 +10,7 @@
 #define _NAME  "PLASMA_zgecfi"
 /* See Lawn 41 page 120 */
 #define _FMULS (0.0)
-#define _FADDS (M * N * sizeof(_TYPE))
+#define _FADDS (M * N * sizeof(double))
 
 #include "./timing.c"
 

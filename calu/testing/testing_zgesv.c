@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Bilel Hadri
  * @author Hatem Ltaief
  * @author Matheiu Faverge
@@ -150,7 +150,11 @@ BLAS_dfpinfo(enum blas_cmach_type cmach) {
   return 0.0;
 }
 
-static int check_solution(int, int , PLASMA_Complex64_t *, int, PLASMA_Complex64_t *, PLASMA_Complex64_t *, int, double);
+static int check_solution(int, int , PLASMA_Complex64_t *, int,
+                          PLASMA_Complex64_t *, PLASMA_Complex64_t *, int, double);
+static int check_estimator(PLASMA_enum, int, PLASMA_Complex64_t *, int,
+                           PLASMA_Complex64_t *, double, double,
+                           double);
 
 int testing_zgesv(int argc, char **argv)
 {
@@ -170,7 +174,7 @@ int testing_zgesv(int argc, char **argv)
     int LDB   = atoi(argv[3]);
     double eps;
     int info_solution;
-    int i,j;
+    int i,j,n;
     int LDAxN = LDA*N;
     int LDBxNRHS = LDB*NRHS;
 
@@ -193,13 +197,13 @@ int testing_zgesv(int argc, char **argv)
     */
 
     /* Initialize A1 and A2 Matrix */
-    LAPACKE_zlarnv_work(IONE, ISEED, LDAxN, A1);
+    LAPACKE_zlarnv_work(1, ISEED, LDAxN, A1);
     for ( i = 0; i < N; i++)
         for (  j = 0; j < N; j++)
             A2[LDA*j+i] = A1[LDA*j+i];
 
     /* Initialize B1 and B2 */
-    LAPACKE_zlarnv_work(IONE, ISEED, LDBxNRHS, B1);
+    LAPACKE_zlarnv_work(1, ISEED, LDBxNRHS, B1);
     for ( i = 0; i < N; i++)
         for ( j = 0; j < NRHS; j++)
             B2[LDB*j+i] = B1[LDB*j+i];
@@ -221,7 +225,7 @@ int testing_zgesv(int argc, char **argv)
 
     if ((info_solution == 0)){
         printf("***************************************************\n");
-        printf(" ---- TESTING ZGESV ...................... PASSED !\n");
+        printf(" ---- TESTING ZGESV ............................. PASSED !\n");
         printf("***************************************************\n");
     }
     else{
@@ -235,13 +239,13 @@ int testing_zgesv(int argc, char **argv)
     */
 
     /* Initialize A1 and A2  */
-    LAPACKE_zlarnv_work(IONE, ISEED, LDAxN, A1);
+    LAPACKE_zlarnv_work(1, ISEED, LDAxN, A1);
     for ( i = 0; i < N; i++)
         for (  j = 0; j < N; j++)
             A2[LDA*j+i] = A1[LDA*j+i];
 
     /* Initialize B1 and B2 */
-    LAPACKE_zlarnv_work(IONE, ISEED, LDBxNRHS, B1);
+    LAPACKE_zlarnv_work(1, ISEED, LDBxNRHS, B1);
     for ( i = 0; i < N; i++)
         for ( j = 0; j < NRHS; j++)
             B2[LDB*j+i] = B1[LDB*j+i];
@@ -264,7 +268,7 @@ int testing_zgesv(int argc, char **argv)
 
     if ((info_solution == 0)){
         printf("***************************************************\n");
-        printf(" ---- TESTING ZGETRF + ZGETRS ............ PASSED !\n");
+        printf(" ---- TESTING ZGETRF + ZGETRS ................... PASSED !\n");
         printf("***************************************************\n");
     }
     else{
@@ -274,17 +278,17 @@ int testing_zgesv(int argc, char **argv)
     }
 
     /*-------------------------------------------------------------
-    *  TESTING ZGETRF + ZTRSMPL + ZTRSM
+    *  TESTING ZGETRF + ZLASWP + ZTRSM + ZTRSM
     */
 
     /* Initialize A1 and A2  */
-    LAPACKE_zlarnv_work(IONE, ISEED, LDAxN, A1);
+    LAPACKE_zlarnv_work(1, ISEED, LDAxN, A1);
     for ( i = 0; i < N; i++)
         for (  j = 0; j < N; j++)
             A2[LDA*j+i] = A1[LDA*j+i];
 
     /* Initialize B1 and B2 */
-    LAPACKE_zlarnv_work(IONE, ISEED, LDBxNRHS, B1);
+    LAPACKE_zlarnv_work(1, ISEED, LDBxNRHS, B1);
     for ( i = 0; i < N; i++)
         for ( j = 0; j < NRHS; j++)
             B2[LDB*j+i] = B1[LDB*j+i];
@@ -320,7 +324,34 @@ int testing_zgesv(int argc, char **argv)
         printf("**************************************************\n");
     }
 
-    free(A1); free(A2); free(B1); free(B2); free(IPIV); 
+    /*-------------------------------------------------------------
+     *  TESTING ZGECON on the last call
+     */
+    for (n=1; n<3; n++)
+    {
+        double Anorm = PLASMA_zlange( norm[n], N, N, A1, LDA );
+        double Acond;
+
+        info_solution = PLASMA_zgecon(norm[n], N, A2, LDA, Anorm, &Acond);
+
+        if ( info_solution == 0 ) {
+            info_solution = check_estimator(norm[n], N, A1, LDA, A2, Anorm, Acond, eps);
+        } else {
+            printf(" PLASMA_zgecon returned info = %d\n", info_solution );
+        }
+        if ((info_solution == 0)){
+            printf("***************************************************\n");
+            printf(" ---- TESTING ZGETRF + ZGECON(%s) .............. PASSED !\n", normstr[n]);
+            printf("***************************************************\n");
+        }
+        else{
+            printf("**************************************************\n");
+            printf(" - TESTING ZGETRF + ZGECON(%s) ... FAILED !\n", normstr[n]);
+            printf("**************************************************\n");
+        }
+    }
+
+    free(A1); free(A2); free(B1); free(B2); free(IPIV);
 
     return 0;
 }
@@ -365,3 +396,44 @@ static int check_solution(int N, int NRHS, PLASMA_Complex64_t *A1, int LDA, PLAS
     free(work);
     return info_solution;
 }
+
+/*------------------------------------------------------------------------
+ *  Check the accuracy of the condition estimator
+ */
+
+static int check_estimator(PLASMA_enum norm, int N, PLASMA_Complex64_t *A1, int LDA,
+                           PLASMA_Complex64_t *A2, double Anorm, double Acond,
+                           double eps)
+{
+    int info_solution;
+    double result, Acond_lapack;
+    double invcond, invcond_lapack;
+
+    info_solution = LAPACKE_zgecon(LAPACK_COL_MAJOR, lapack_const(norm), N, A2, LDA, Anorm, &Acond_lapack);
+
+    if ( info_solution != 0 ) {
+        printf(" PLASMA_zgecon returned info = %d\n", info_solution );
+        return info_solution;
+    }
+
+    invcond_lapack = 1. / ( Acond_lapack );
+    invcond        = 1. / ( Acond );
+
+    printf("============\n");
+    printf("Checking the condition number \n");
+    printf("-- Acond_plasma = %e, Acond_lapack = %e \n"
+           "-- Ainvcond_plasma = %e, Ainvcond_lapack = %e \n",
+           Acond, Acond_lapack, invcond, invcond_lapack );
+
+    result = fabs( Acond_lapack - Acond ) / eps;
+    if ( result > 60. ) {
+        printf("-- The solution is suspicious ! \n");
+        info_solution = 1;
+     }
+    else{
+        printf("-- The solution is CORRECT ! \n");
+        info_solution = 0;
+    }
+    return info_solution;
+}
+

@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Hatem Ltaief
  * @author Mathieu Faverge
  * @author Piotr Luszczek
@@ -415,7 +415,7 @@ CORE_zgetrf_rectil_rec(const PLASMA_desc A, int *IPIV, int *info,
     PLASMA_Complex64_t zone  = 1.0;
     PLASMA_Complex64_t mzone = -1.0;
     PLASMA_Complex64_t tmp1;
-    PLASMA_Complex64_t tmp2;
+    PLASMA_Complex64_t tmp2 = 0.;
     PLASMA_Complex64_t pivval;
     PLASMA_Complex64_t *Atop, *Atop2, *U, *L;
     double             abstmp1;

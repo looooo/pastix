@@ -35,7 +35,9 @@
 *     .. Local Scalars ..
       CHARACTER*2        C2
       INTEGER            I, INFO, J
-      REAL               ANRM, CCOND, RCOND
+      REAL               ANRM
+*     REAL               CCOND
+      REAL               RCOND
 *     ..
 *     .. Local Arrays ..
       INTEGER            IP( NMAX ), IW( NMAX )
@@ -90,17 +92,21 @@
          IP( J ) = J
          IW( J ) = J
    20 CONTINUE
+      ANRM = 1.
       OK = .TRUE.
 *
+*     Test error exits of the routines that use the LU decomposition
+*     of a general matrix.
+*
       IF( LSAMEN( 2, C2, 'GE' ) ) THEN
+*
+*        SGETRF_INCPIV
+*
 *
 *        ALLOCATE L and IPIV
 *
          CALL PLASMA_ALLOC_WORKSPACE_SGETRF_INCPIV(
      $        2, 1, HL, HPIV, INFO )
-*
-*        Test error exits of the routines that use the LU decomposition
-*        of a general matrix.
 *
 *        SGETRF
 *
@@ -144,8 +150,7 @@
          CALL PLASMA_DEALLOC_HANDLE( HL, INFO )
          CALL PLASMA_DEALLOC_HANDLE( HPIV, INFO )
 *
-*        LAPACK Interface
-*        SGETRF
+*        SGETRF PP
 *
          SRNAMT = 'SGETRF'
          INFOT = 1
@@ -157,6 +162,16 @@
          INFOT = 4
          CALL PLASMA_SGETRF( 2, 1, A, 1, IP, INFO )
          CALL CHKXER( 'SGETRF', INFOT, NOUT, INFO, OK )
+*
+*        SGETRI
+*
+         SRNAMT = 'SGETRI'
+         INFOT = 1
+         CALL PLASMA_SGETRI( -1, A, 1, IP, INFO )
+         CALL CHKXER( 'SGETRI', INFOT, NOUT, INFO, OK )
+         INFOT = 3
+         CALL PLASMA_SGETRI( 2, A, 1, IP, INFO )
+         CALL CHKXER( 'SGETRI', INFOT, NOUT, INFO, OK )
 *
 *        SGETRS
 *
@@ -180,7 +195,22 @@
          CALL PLASMA_SGETRS( PLASMANOTRANS, 2, 1, A, 2, IP, 
      $        B, 1, INFO )
          CALL CHKXER( 'SGETRS', INFOT, NOUT, INFO, OK )
-
+*
+*        SGECON
+*
+         SRNAMT = 'SGECON'
+         INFOT = 1
+         CALL PLASMA_SGECON( '/', 0, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'SGECON', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_SGECON( PLASMAONENORM, -1, A, 1, ANRM, RCOND,
+     $        INFO )
+         CALL CHKXER( 'SGECON', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_SGECON( PLASMAONENORM, 2, A, 1, ANRM, RCOND,
+     $        INFO )
+         CALL CHKXER( 'SGECON', INFOT, NOUT, INFO, OK )
+*
       ENDIF
 *
 *     Print a summary line.

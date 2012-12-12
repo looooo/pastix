@@ -5,7 +5,7 @@
 #  PLASMA is a software package provided by Univ. of Tennessee,
 #  Univ. of California Berkeley and Univ. of Colorado Denver
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Mathieu Faverge
 # @date 2010-11-15
 #
@@ -52,7 +52,8 @@ ZSRC=	time_zgemm.c 		\
 	time_zhegv_tile.c	\
 	time_zgesvd_tile.c	\
 	time_zgetrf_reclap.c	\
-	time_zgetrf_rectil.c
+	time_zgetrf_rectil.c	\
+	time_zgeqp3.c		\
 
 ZSRC=	time_zgesv.c 		\
 	time_zgetrf.c 		\
@@ -109,3 +110,5 @@ png: time_dgesv time_zgesv
 	./time_dgesv --gnuplot-png | tee timeplot.gpt ; gnuplot timeplot.gpt
 
 .PHONY: all clean
+
+.SECONDARY: $(ALLOBJ)

@@ -29,8 +29,7 @@
 /*--------------------------------------------------------------
  * Check the pemv
  */
-static int check_solution(
-                          PLASMA_enum trans, PLASMA_enum storev, 
+static int check_solution(PLASMA_enum trans, PLASMA_enum storev, 
                           int M, int N, int L,
                           PLASMA_Complex64_t alpha, PLASMA_Complex64_t *A, int LDA,
                                                     PLASMA_Complex64_t *X, int INCX,
@@ -98,7 +97,11 @@ int testing_zpemv(int argc, char **argv)
     int i, j, k, t;
     int nbtests = 0;
     int nfails = 0;
-    int m, l, storev, incx, incy;
+    int storev;
+    int l = 0;
+    int m = n;
+    int incx = 1;
+    int incy = 1;
     char *cstorev;
     double rnorm;
     double eps = LAPACKE_dlamch_work('e');

@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Emmanuel Agullo
  * @author Mathieu Faverge
  * @date 2010-11-15
@@ -26,10 +26,6 @@
 
 #undef REAL
 #define COMPLEX
-
-int   norm[4]    = { PlasmaMaxNorm, PlasmaOneNorm, PlasmaInfNorm, PlasmaFrobeniusNorm };
-char *normstr[4] = { "Max", "One", "Inf", "Fro" };
-
 
 int testing_zlange(int argc, char **argv)
 {
@@ -51,7 +47,7 @@ int testing_zlange(int argc, char **argv)
 
     PLASMA_Complex64_t *A    = (PLASMA_Complex64_t *)malloc(LDAxN*sizeof(PLASMA_Complex64_t));
     double             *work = (double*) malloc(max(M,N)*sizeof(double));
-    double normplasma, normlapack;
+    double normplasma, normlapack, result;
 
     eps = LAPACKE_dlamch_work('e');
 
@@ -73,38 +69,76 @@ int testing_zlange(int argc, char **argv)
 
     /* PLASMA ZLANGE */
     for(n=0; n<4; n++) {
-        normplasma = PLASMA_zlange(norm[n], M, N, A, LDA, work);
+        normplasma = PLASMA_zlange(norm[n], M, N, A, LDA);
         normlapack = LAPACKE_zlange_work(LAPACK_COL_MAJOR, lapack_const(norm[n]), M, N, A, LDA, work);
-        
+
         printf("Lapack %e, Plasma %e\n", normlapack, normplasma);
-        
+
+        result = fabs(normplasma - normlapack) / (normlapack * eps);
+        switch(norm[n]) {
+        case PlasmaMaxNorm:
+            /* result should be perfectly equal */
+            break;
+        case PlasmaInfNorm:
+            /* Sum order on the line can differ */
+            result = result / (double)N;
+            break;
+        case PlasmaOneNorm:
+            /* Sum order on the column can differ */
+            result = result / (double)M;
+            break;
+        case PlasmaFrobeniusNorm:
+            /* Sum oreder on every element can differ */
+            result = result / ((double)M * (double)N);
+            break;
+        }
+
         printf("***************************************************\n");
-        if ( abs(normlapack-normplasma) < eps ) {
+        if ( result < 1. ) {
             printf(" ---- TESTING ZLANGE (%s)............... PASSED !\n", normstr[n]);
         }
         else {
             printf(" - TESTING ZLANGE (%s)... FAILED !\n", normstr[n]);
         }
         printf("***************************************************\n");
-    }      
+    }
 
     /* PLASMA ZLANSY */
     for(n=0; n<4; n++) {
         for(u=0; u<2; u++) {
-            normplasma = PLASMA_zlansy(norm[n], uplo[u], min(M,N), A, LDA, work);
+            normplasma = PLASMA_zlansy(norm[n], uplo[u], min(M,N), A, LDA);
             normlapack = LAPACKE_zlansy_work(LAPACK_COL_MAJOR, lapack_const(norm[n]), lapack_const(uplo[u]), min(M,N), A, LDA, work);
-        
+
             printf("Lapack %e, Plasma %e\n", normlapack, normplasma);
-            
+
+            result = fabs(normplasma - normlapack) / (normlapack * eps);
+            switch(norm[n]) {
+            case PlasmaMaxNorm:
+                /* result should be perfectly equal */
+                break;
+            case PlasmaInfNorm:
+                /* Sum order on the line can differ */
+                result = result / (double)N;
+                break;
+            case PlasmaOneNorm:
+                /* Sum order on the column can differ */
+                result = result / (double)M;
+                break;
+            case PlasmaFrobeniusNorm:
+                /* Sum oreder on every element can differ */
+                result = result / ((double)M * (double)N);
+                break;
+            }
+
             printf("***************************************************\n");
-            if ( abs(normlapack-normplasma) < eps ) {
+            if ( result < 1. ) {
                 printf(" ---- TESTING ZLANSY (%s, %s)......... PASSED !\n", normstr[n], uplostr[u]);
             }
             else {
                 printf(" - TESTING ZLANSY (%s, %s)... FAILED !\n", normstr[n], uplostr[u]);
             }
             printf("***************************************************\n");
-        }      
+        }
     }
 
 #ifdef COMPLEX
@@ -118,20 +152,39 @@ int testing_zlange(int argc, char **argv)
 
     for(n=0; n<4; n++) {
         for(u=0; u<2; u++) {
-            normplasma = PLASMA_zlanhe(norm[n], uplo[u], min(M,N), A, LDA, work);
+            normplasma = PLASMA_zlanhe(norm[n], uplo[u], min(M,N), A, LDA);
             normlapack = LAPACKE_zlanhe_work(LAPACK_COL_MAJOR, lapack_const(norm[n]), lapack_const(uplo[u]), min(M,N), A, LDA, work);
-        
+
             printf("Lapack %e, Plasma %e\n", normlapack, normplasma);
-            
+
+            result = fabs(normplasma - normlapack) / (normlapack * eps);
+            switch(norm[n]) {
+            case PlasmaMaxNorm:
+                /* result should be perfectly equal */
+                break;
+            case PlasmaInfNorm:
+                /* Sum order on the line can differ */
+                result = result / (double)N;
+                break;
+            case PlasmaOneNorm:
+                /* Sum order on the column can differ */
+                result = result / (double)M;
+                break;
+            case PlasmaFrobeniusNorm:
+                /* Sum oreder on every element can differ */
+                result = result / ((double)M * (double)N);
+                break;
+            }
+
             printf("***************************************************\n");
-            if ( abs(normlapack-normplasma) < eps ) {
+            if ( result < 1. ) {
                 printf(" ---- TESTING ZLANHE (%s, %s)......... PASSED !\n", normstr[n], uplostr[u]);
             }
             else {
                 printf(" - TESTING ZLANHE (%s, %s)... FAILED !\n", normstr[n], uplostr[u]);
             }
             printf("***************************************************\n");
-        }      
+        }
     }
 #endif
 

@@ -35,12 +35,16 @@
 *     .. Local Scalars ..
       CHARACTER*2        C2
       INTEGER            I, INFO, J
-      REAL               ANRM, CCOND, RCOND
+      REAL               ANRM
+*     REAL               CCOND
+      REAL               RCOND
 *     ..
 *     .. Local Arrays ..
       INTEGER            IP( NMAX )
       INTEGER            HL( 2 ), HPIV( 2 )
-      REAL               R( NMAX ), R1( NMAX ), R2( NMAX )
+*     REAL               R( NMAX )
+      REAL               R1( NMAX )
+      REAL               R2( NMAX )
       COMPLEX            A( NMAX, NMAX ), AF( NMAX, NMAX ), B( NMAX ),
      $                   W( 2*NMAX ), X( NMAX )
 *     ..
@@ -90,12 +94,16 @@
          X( J ) = 0.
          IP( J ) = J
    20 CONTINUE
+      ANRM = 1.
       OK = .TRUE.
 *
 *     Test error exits of the routines that use the LU decomposition
 *     of a general matrix.
 *
       IF( LSAMEN( 2, C2, 'GE' ) ) THEN
+*
+*        CGETRF_INCPIV
+*
 *
 *        ALLOCATE L and IPIV
 *
@@ -144,8 +152,7 @@
          CALL PLASMA_DEALLOC_HANDLE( HL, INFO )
          CALL PLASMA_DEALLOC_HANDLE( HPIV, INFO )
 *
-*        LAPACK Interface
-*        CGETRF
+*        CGETRF PP
 *
          SRNAMT = 'CGETRF'
          INFOT = 1
@@ -157,6 +164,16 @@
          INFOT = 4
          CALL PLASMA_CGETRF( 2, 1, A, 1, IP, INFO )
          CALL CHKXER( 'CGETRF', INFOT, NOUT, INFO, OK )
+*
+*        CGETRI
+*
+         SRNAMT = 'CGETRI'
+         INFOT = 1
+         CALL PLASMA_CGETRI( -1, A, 1, IP, INFO )
+         CALL CHKXER( 'CGETRI', INFOT, NOUT, INFO, OK )
+         INFOT = 3
+         CALL PLASMA_CGETRI( 2, A, 1, IP, INFO )
+         CALL CHKXER( 'CGETRI', INFOT, NOUT, INFO, OK )
 *
 *        CGETRS
 *
@@ -181,6 +198,21 @@
          CALL PLASMA_CGETRS( PLASMANOTRANS, 2, 1, A, 2, IP,
      $        B, 1, INFO )
          CALL CHKXER( 'CGETRS', INFOT, NOUT, INFO, OK )
+*
+*        CGECON
+*
+         SRNAMT = 'CGECON'
+         INFOT = 1
+         CALL PLASMA_CGECON( '/', 0, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'CGECON', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_CGECON( PLASMAONENORM, -1, A, 1, ANRM, RCOND,
+     $        INFO )
+         CALL CHKXER( 'CGECON', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_CGECON( PLASMAONENORM, 2, A, 1, ANRM, RCOND,
+     $        INFO )
+         CALL CHKXER( 'CGECON', INFOT, NOUT, INFO, OK )
 *
       ENDIF
 *

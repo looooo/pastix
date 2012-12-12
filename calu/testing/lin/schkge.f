@@ -50,7 +50,7 @@
 *          The number of values of NB contained in the vector NBVAL.
 *
 *  NBVAL   (input) INTEGER array, dimension (NBVAL)
-*          The values of the blocksize NB.
+*          The values of the tile size NB.
 *
 *  IBVAL   (input) INTEGER array, dimension (NBVAL)
 *          The values of the inner block size IB.
@@ -106,21 +106,20 @@
       PARAMETER          ( NTYPES = 11 )
       INTEGER            NTESTS
       PARAMETER          ( NTESTS = 8 )
-*     ONLY NOTRANS SUPPORTED !!!      
       INTEGER            NTRAN
-      PARAMETER          ( NTRAN = 1 )
+      PARAMETER          ( NTRAN = 2 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            TRFCON, ZEROT
       CHARACTER          DIST, NORM, TRANS, TYPE, XTYPE
       CHARACTER*3        PATH
-      INTEGER            I, IM, IMAT, IB, IN, INB, INFO, IOFF, IRHS,
-     $                   ITRAN, IZERO, K, KL, KU, LDA, LWORK, M, MODE,
-     $                   N, NB, NERRS, NFAIL, NIMAT, NRHS, NRUN, NT
+      INTEGER            I, IM, IMAT, IN, INB, INFO, IOFF, IRHS, ITRAN,
+     $                   IZERO, K, KL, KU, LDA, LWORK, M, MODE, N, NB,
+     $                   NERRS, NFAIL, NIMAT, NRHS, NRUN, NT, IB,
+     $                   PLASMA_TRANS, PLASMA_NORM
       REAL               AINVNM, ANORM, ANORMI, ANORMO, CNDNUM, DUMMY,
      $                   RCOND, RCONDC, RCONDI, RCONDO
-      INTEGER            HL( 2 ), HPIV( 2 )
-      INTEGER            PLASMA_TRANS
+*     INTEGER            HL( 2 ), HPIV( 2 )
 *     ..
 *     .. Local Arrays ..
       CHARACTER          TRANSS( NTRAN )
@@ -133,7 +132,7 @@
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           ALAERH, ALAHD, ALASUM, SERRGE, SGECON, SGERFS,
-     $                   SGET02, SGET04, SGETRF,
+     $                   SGET01, SGET02, SGET03, SGET04, SGETRF,
      $                   SGETRI, SGETRS, SLACPY, SLARHS, SLASET, SLATB4,
      $                   SLATMS, XLAENV
 *     ..
@@ -151,9 +150,9 @@
 *     ..
 *     .. Data statements ..
       DATA               ISEEDY / 1988, 1989, 1990, 1991 / ,
-*     $                   TRANSS / 'N', 'T', 'C' /
-     $                   TRANSS / 'N' /
-     $                   PLASMA_TRANSS / PLASMANOTRANS /
+     $                   TRANSS / 'N', 'T' / ,
+     $                   PLASMA_TRANSS / PLASMANOTRANS, PLASMATRANS /
+*    TODO: Add support of conjtrans = trans in real
 *     ..
 *     .. Executable Statements ..
 *
@@ -249,6 +248,12 @@
                   IZERO = 0
                END IF
 *
+*              These lines, if used in place of the calls in the DO 60
+*              loop, cause the code to bomb on a Sun SPARCstation.
+*
+*               ANORMO = SLANGE( 'O', M, N, A, LDA, RWORK )
+*               ANORMI = SLANGE( 'I', M, N, A, LDA, RWORK )
+*
 *              Do for each blocksize in NBVAL
 *
                DO 90 INB = 1, NNB
@@ -263,16 +268,17 @@
 *
 *                 ALLOCATE HL and HPIV
 *
-c$$$                  CALL PLASMA_ALLOC_WORKSPACE_SGETRF_INCPIV( 
+c$$$                  CALL PLASMA_ALLOC_WORKSPACE_SGETRF_INCPIV(
 c$$$     $                 M, N, HL, HPIV, INFO )
 *
 *                 Compute the LU factorization of the matrix.
 *
                   CALL SLACPY( 'Full', M, N, A, LDA, AFAC, LDA )
+
                   SRNAMT = 'SGETRF'
-c$$$                  CALL PLASMA_SGETRF_INCPIV( M, N, AFAC, LDA, HL, HPIV, 
+c$$$                  CALL PLASMA_SGETRF_INCPIV( M, N, AFAC, LDA, HL, HPIV,
 c$$$     $                 INFO )
-                  CALL PLASMA_SGETRF( M, N, AFAC, LDA, IWORK, 
+                  CALL PLASMA_SGETRF( M, N, AFAC, LDA, IWORK,
      $                 INFO )
 *
 *                 Check error code from SGETRF.
@@ -281,10 +287,58 @@ c$$$     $                 INFO )
      $               CALL ALAERH( PATH, 'SGETRF', INFO, IZERO, ' ', M,
      $                            N, -1, -1, NB, IMAT, NFAIL, NERRS,
      $                            NOUT )
-                  TRFCON = .FALSE.
                   NT = 0
+                  TRFCON = .FALSE.
 *
-                  IF( M.NE.N .OR. INFO.NE.0 ) THEN
+*+    TEST 1
+*                 Reconstruct matrix from factors and compute residual.
+*                 We do the test only if info .ne. 0 contrary to Lapack
+*                 which does it in any case
+*
+                  IF( INFO .EQ. 0 ) THEN
+                     CALL SLACPY( 'Full', M, N, AFAC, LDA, AINV, LDA )
+                     CALL SGET01( M, N, A, LDA, AINV, LDA, IWORK, RWORK,
+     $                    RESULT( 1 ) )
+                     NT = NT+1
+                  END IF
+*
+*+    TEST 2
+*                 Form the inverse if the factorization was successful
+*                 and compute the residual.
+*
+                  IF( M.EQ.N .AND. INFO.EQ.0 ) THEN
+                     CALL SLACPY( 'Full', N, N, AFAC, LDA, AINV, LDA )
+                     SRNAMT = 'SGETRI'
+                     NRHS = NSVAL( 1 )
+                     LWORK = NMAX*MAX( 3, NRHS )
+                     CALL PLASMA_SGETRI( N, AINV, LDA, IWORK, INFO )
+*
+*                    Check error code from ZGETRI.
+*
+                     IF( INFO.NE.0 )
+     $                  CALL ALAERH( PATH, 'SGETRI', INFO, 0, ' ', N, N,
+     $                               -1, -1, NB, IMAT, NFAIL, NERRS,
+     $                               NOUT )
+*
+*                    Compute the residual for the matrix times its
+*                    inverse.  Also compute the 1-norm condition number
+*                    of A.
+*
+                     CALL SGET03( N, A, LDA, AINV, LDA, WORK, LDA,
+     $                            RWORK, RCONDO, RESULT( 2 ) )
+                     ANORMO = SLANGE( 'O', M, N, A, LDA, RWORK )
+*
+*                    Compute the infinity-norm condition number of A.
+*
+                     ANORMI = SLANGE( 'I', M, N, A, LDA, RWORK )
+                     AINVNM = SLANGE( 'I', N, N, AINV, LDA, RWORK )
+                     IF( ANORMI.LE.ZERO .OR. AINVNM.LE.ZERO ) THEN
+                        RCONDI = ONE
+                     ELSE
+                        RCONDI = ( ONE / ANORMI ) / AINVNM
+                     END IF
+                     NT = NT+1
+                  ELSE
 *
 *                    Do only the condition estimate if INFO > 0.
 *
@@ -315,6 +369,8 @@ c$$$     $                 INFO )
 *
 *                  IF( INB.GT.1 .OR. M.NE.N )
 *     $               GO TO 90
+                  IF( M.NE.N )
+     $               GO TO 90
                   IF( TRFCON )
      $               GO TO 70
 *
@@ -342,10 +398,10 @@ c$$$     $                 INFO )
 *
                         CALL SLACPY( 'Full', N, NRHS, B, LDA, X, LDA )
                         SRNAMT = 'SGETRS'
-c$$$                        CALL PLASMA_SGETRS_INCPIV( PLASMA_TRANS, N, 
+c$$$                        CALL PLASMA_SGETRS_INCPIV( PLASMA_TRANS, N,
 c$$$     $                       NRHS, AFAC, LDA, HL, HPIV,
 c$$$     $                       X, LDA, INFO )
-                        CALL PLASMA_SGETRS( PLASMA_TRANS, N, 
+                        CALL PLASMA_SGETRS( PLASMA_TRANS, N,
      $                       NRHS, AFAC, LDA, IWORK,
      $                       X, LDA, INFO )
 *
@@ -374,8 +430,8 @@ c$$$     $                       X, LDA, INFO )
                            IF( RESULT( K ).GE.THRESH ) THEN
                               IF( NFAIL.EQ.0 .AND. NERRS.EQ.0 )
      $                           CALL ALAHD( NOUT, PATH )
-                              WRITE( NOUT, FMT = 9998 )TRANS, N, NRHS,
-     $                           IMAT, K, RESULT( K )
+                              WRITE( NOUT, FMT = 9998 )TRANS, N, NB,
+     $                              NRHS, IMAT, K, RESULT( K )
                               NFAIL = NFAIL + 1
                            END IF
    40                   CONTINUE
@@ -384,6 +440,51 @@ c$$$     $                       X, LDA, INFO )
    60             CONTINUE
 *
    70             CONTINUE
+*
+*+    TEST 8
+*                    Get an estimate of RCOND = 1/CNDNUM.
+*
+                  DO 80 ITRAN = 1, 2
+                     IF( ITRAN.EQ.1 ) THEN
+                        ANORM = ANORMO
+                        RCONDC = RCONDO
+                        NORM = 'O'
+                        PLASMA_NORM = PlasmaOneNorm
+                     ELSE
+                        ANORM = ANORMI
+                        RCONDC = RCONDI
+                        NORM = 'I'
+                        PLASMA_NORM = PlasmaInfNorm
+                     END IF
+                     SRNAMT = 'SGECON'
+                     CALL PLASMA_SGECON( PLASMA_NORM, N, AFAC, LDA,
+     $                    ANORM, RCOND, INFO )
+*
+*                       Check error code from SGECON.
+*
+                     IF( INFO.NE.0 )
+     $                  CALL ALAERH( PATH, 'SGECON', INFO, 0, NORM, N,
+     $                               N, -1, -1, -1, IMAT, NFAIL, NERRS,
+     $                               NOUT )
+*
+*                       This line is needed on a Sun SPARCstation.
+*
+                     DUMMY = RCOND
+*
+                     RESULT( 8 ) = SGET06( RCOND, RCONDC )
+*
+*                    Print information about the tests that did not pass
+*                    the threshold.
+*
+                     IF( RESULT( 8 ).GE.THRESH ) THEN
+                        IF( NFAIL.EQ.0 .AND. NERRS.EQ.0 )
+     $                     CALL ALAHD( NOUT, PATH )
+                        WRITE( NOUT, FMT = 9997 )NORM, N, IMAT, 8,
+     $                     RESULT( 8 )
+                        NFAIL = NFAIL + 1
+                     END IF
+                     NRUN = NRUN + 1
+   80             CONTINUE
 *
 *                 DEALLOCATE HL and HPIV
 *
@@ -400,8 +501,8 @@ c$$$                  CALL PLASMA_DEALLOC_HANDLE( HPIV, INFO )
 *
  9999 FORMAT( ' M = ', I5, ', N =', I5, ', NB =', I4, ', type ', I2,
      $      ', test(', I2, ') =', G12.5 )
- 9998 FORMAT( ' TRANS=''', A1, ''', N =', I5, ', NRHS=', I3, ', type ',
-     $      I2, ', test(', I2, ') =', G12.5 )
+ 9998 FORMAT( ' TRANS=''', A1, ''', N =', I5, ', NB =', I4 ,',
+     $      NRHS=', I3, ',type ', I2, ', test(', I2, ') =', G12.5 )
  9997 FORMAT( ' NORM =''', A1, ''', N =', I5, ',', 10X, ' type ', I2,
      $      ', test(', I2, ') =', G12.5 )
       RETURN

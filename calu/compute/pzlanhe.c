@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Emmanuel Agullo
  * @author Mathieu Faverge
  * @date 2010-11-15
@@ -353,11 +353,12 @@ void plasma_pzlanhe_quark(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc A, dou
     plasma_context_t *plasma;
     Quark_Task_Flags task_flags = Quark_Task_Flags_Initializer;
 
+    double* lwork;
     int X, X1, X2, Y, Y1;
     int ldam;
     int m, n, k;
     int szeW, pos;
-    double* lwork;
+    int nbworker = 1;
 
     plasma = plasma_context_self();
     if (sequence->status != PLASMA_SUCCESS)
@@ -503,7 +504,7 @@ void plasma_pzlanhe_quark(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc A, dou
         szeW = 2*(PLASMA_SIZE+1);
         lwork = (double*)plasma_shared_alloc(plasma, szeW, PlasmaRealDouble);
 
-        for(m = 0; m < PLASMA_SIZE+1; m++) {
+        for(m = 0; m <= PLASMA_SIZE; m++) {
             lwork[2*m  ] = 0.;
             lwork[2*m+1] = 1.;
         }
@@ -515,7 +516,7 @@ void plasma_pzlanhe_quark(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc A, dou
             X = X2 - X1;
             ldam = BLKLDD(A, m);
 
-            k++;
+            k++; nbworker++;
             QUARK_CORE_zhessq_f1(
                 plasma->quark, &task_flags,
                 uplo, X,
@@ -533,7 +534,7 @@ void plasma_pzlanhe_quark(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc A, dou
                     Y1 = n == 0 ? A.j%A.nb : 0;
                     Y = A.nb - Y1;
 
-                    k++;
+                    k++; nbworker++;
                     QUARK_CORE_zgessq_f1(
                         plasma->quark, &task_flags,
                         X, Y,
@@ -560,7 +561,7 @@ void plasma_pzlanhe_quark(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc A, dou
                 for(n = m+1; n < A.mt; n++) {
                     Y = n == A.nt-1 ? (A.j+A.n-1)%A.nb+1 : A.nb;
 
-                    k++;
+                    k++; nbworker++;
                     QUARK_CORE_zgessq_f1(
                         plasma->quark, &task_flags,
                         X, Y,
@@ -583,7 +584,7 @@ void plasma_pzlanhe_quark(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc A, dou
         }
         QUARK_CORE_dplssq(
             plasma->quark, &task_flags,
-            PLASMA_SIZE+1, lwork, result );
+            min(nbworker, PLASMA_SIZE+1), lwork, result );
 
         QUARK_CORE_free(plasma->quark, &task_flags, lwork, szeW*sizeof(double));
     default:;

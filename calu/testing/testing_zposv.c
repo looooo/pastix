@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Bilel Hadri, Hatem Ltaief
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -124,7 +124,7 @@ BLAS_dfpinfo(enum blas_cmach_type cmach) {
     l = 128;
     m = -125;
   } else {
-    t = 53; 
+    t = 53;
     l = 1024;
     m = -1021;
   }
@@ -150,6 +150,9 @@ BLAS_dfpinfo(enum blas_cmach_type cmach) {
 
 static int check_factorization(int, PLASMA_Complex64_t*, PLASMA_Complex64_t*, int, int , double);
 static int check_solution(int, int, PLASMA_Complex64_t*, int, PLASMA_Complex64_t*, PLASMA_Complex64_t*, int, double);
+static int check_estimator(PLASMA_enum, int, PLASMA_Complex64_t *, int,
+                           PLASMA_Complex64_t *, double, double,
+                           double);
 
 int testing_zposv(int argc, char **argv)
 {
@@ -169,9 +172,8 @@ int testing_zposv(int argc, char **argv)
     int NRHS  = atoi(argv[2]);
     int LDB   = atoi(argv[3]);
     double eps;
-    int uplo;
     int info_solution, info_factorization;
-    int trans1, trans2;
+    int u, trans1, trans2;
 
     PLASMA_Complex64_t *A1   = (PLASMA_Complex64_t *)malloc(LDA*N*sizeof(PLASMA_Complex64_t));
     PLASMA_Complex64_t *A2   = (PLASMA_Complex64_t *)malloc(LDA*N*sizeof(PLASMA_Complex64_t));
@@ -186,133 +188,160 @@ int testing_zposv(int argc, char **argv)
 
     eps = BLAS_dfpinfo( blas_eps );
 
-    uplo = PlasmaUpper;
-    trans1 = uplo == PlasmaUpper ? PlasmaConjTrans : PlasmaNoTrans;
-    trans2 = uplo == PlasmaUpper ? PlasmaNoTrans : PlasmaConjTrans;
-    
-    /*-------------------------------------------------------------
-    *  TESTING ZPOSV
-    */
+    for(u=0; u<2; u++) {
 
-    /* Initialize A1 and A2 for Symmetric Positif Matrix */
-    PLASMA_zplghe( (double)N, N, A1, LDA, 51 );
-    PLASMA_zlacpy( PlasmaUpperLower, N, N, A1, LDA, A2, LDA );
+        trans1 = uplo[u] == PlasmaUpper ? PlasmaConjTrans : PlasmaNoTrans;
+        trans2 = uplo[u] == PlasmaUpper ? PlasmaNoTrans : PlasmaConjTrans;
 
-    /* Initialize B1 and B2 */
-    PLASMA_zplrnt( N, NRHS, B1, LDB, 371 );
-    PLASMA_zlacpy( PlasmaUpperLower, N, NRHS, B1, LDB, B2, LDB );
+        /*-------------------------------------------------------------
+         *  TESTING ZPOSV
+         */
 
-    printf("\n");
-    printf("------ TESTS FOR PLASMA ZPOSV ROUTINE -------  \n");
-    printf("            Size of the Matrix %d by %d\n", N, N);
-    printf("\n");
-    printf(" The matrix A is randomly generated for each test.\n");
-    printf("============\n");
-    printf(" The relative machine precision (eps) is to be %e \n", eps);
-    printf(" Computational tests pass if scaled residuals are less than 60.\n");
+        /* Initialize A1 and A2 for Symmetric Positif Matrix */
+        PLASMA_zplghe( (double)N, N, A1, LDA, 51 );
+        PLASMA_zlacpy( PlasmaUpperLower, N, N, A1, LDA, A2, LDA );
 
-    /* PLASMA ZPOSV */
-    PLASMA_zposv(uplo, N, NRHS, A2, LDA, B2, LDB);
+        /* Initialize B1 and B2 */
+        PLASMA_zplrnt( N, NRHS, B1, LDB, 371 );
+        PLASMA_zlacpy( PlasmaUpperLower, N, NRHS, B1, LDB, B2, LDB );
 
-    /* Check the factorization and the solution */
-    info_factorization = check_factorization( N, A1, A2, LDA, uplo, eps);
-    info_solution = check_solution(N, NRHS, A1, LDA, B1, B2, LDB, eps);
+        printf("\n");
+        printf("------ TESTS FOR PLASMA ZPOSV ROUTINE -------  \n");
+        printf("            Size of the Matrix %d by %d\n", N, N);
+        printf("\n");
+        printf(" The matrix A is randomly generated for each test.\n");
+        printf("============\n");
+        printf(" The relative machine precision (eps) is to be %e \n", eps);
+        printf(" Computational tests pass if scaled residuals are less than 60.\n");
 
-    if ( (info_solution == 0) && (info_factorization == 0) ) {
-        printf("***************************************************\n");
-        printf(" ---- TESTING ZPOSV ...................... PASSED !\n");
-        printf("***************************************************\n");
+        /* PLASMA ZPOSV */
+        PLASMA_zposv(uplo[u], N, NRHS, A2, LDA, B2, LDB);
+
+        /* Check the factorization and the solution */
+        info_factorization = check_factorization( N, A1, A2, LDA, uplo[u], eps);
+        info_solution = check_solution(N, NRHS, A1, LDA, B1, B2, LDB, eps);
+
+        if ( (info_solution == 0) && (info_factorization == 0) ) {
+            printf("***************************************************\n");
+            printf(" ---- TESTING ZPOSV(%s) ...................... PASSED !\n", uplostr[u]);
+            printf("***************************************************\n");
+        }
+        else {
+            printf("***************************************************\n");
+            printf(" - TESTING ZPOSV(%s) ... FAILED !\n", uplostr[u]);
+            printf("***************************************************\n");
+        }
+
+        /*-------------------------------------------------------------
+         *  TESTING ZPOTRF + ZPOTRS
+         */
+
+        /* Initialize A1 and A2 for Symmetric Positif Matrix */
+        PLASMA_zplghe( (double)N, N, A1, LDA, 51 );
+        PLASMA_zlacpy( PlasmaUpperLower, N, N, A1, LDA, A2, LDA );
+
+        /* Initialize B1 and B2 */
+        PLASMA_zplrnt( N, NRHS, B1, LDB, 371 );
+        PLASMA_zlacpy( PlasmaUpperLower, N, NRHS, B1, LDB, B2, LDB );
+
+        /* Plasma routines */
+        PLASMA_zpotrf(uplo[u], N, A2, LDA);
+        PLASMA_zpotrs(uplo[u], N, NRHS, A2, LDA, B2, LDB);
+
+        printf("\n");
+        printf("------ TESTS FOR PLASMA ZPOTRF + ZPOTRS ROUTINE -------  \n");
+        printf("            Size of the Matrix %d by %d\n", N, N);
+        printf("\n");
+        printf(" The matrix A is randomly generated for each test.\n");
+        printf("============\n");
+        printf(" The relative machine precision (eps) is to be %e \n", eps);
+        printf(" Computational tests pass if scaled residuals are less than 60.\n");
+
+        /* Check the factorization and the solution */
+        info_factorization = check_factorization( N, A1, A2, LDA, uplo[u], eps);
+        info_solution = check_solution(N, NRHS, A1, LDA, B1, B2, LDB, eps);
+
+        if ((info_solution == 0)&(info_factorization == 0)){
+            printf("***************************************************\n");
+            printf(" ---- TESTING ZPOTRF + ZPOTRS (%s)............ PASSED !\n", uplostr[u]);
+            printf("***************************************************\n");
+        }
+        else{
+            printf("****************************************************\n");
+            printf(" - TESTING ZPOTRF + ZPOTRS (%s)... FAILED !\n", uplostr[u]);
+            printf("****************************************************\n");
+        }
+
+        /*-------------------------------------------------------------
+         *  TESTING ZPOTRF + ZPTRSM + ZTRSM
+         */
+
+        /* Initialize A1 and A2 for Symmetric Positif Matrix */
+        PLASMA_zplghe( (double)N, N, A1, LDA, 51 );
+        PLASMA_zlacpy( PlasmaUpperLower, N, N, A1, LDA, A2, LDA );
+
+        /* Initialize B1 and B2 */
+        PLASMA_zplrnt( N, NRHS, B1, LDB, 371 );
+        PLASMA_zlacpy( PlasmaUpperLower, N, NRHS, B1, LDB, B2, LDB );
+
+        /* PLASMA routines */
+        PLASMA_zpotrf(uplo[u], N, A2, LDA);
+        PLASMA_ztrsm(PlasmaLeft, uplo[u], trans1, PlasmaNonUnit,
+                     N, NRHS, 1.0, A2, LDA, B2, LDB);
+        PLASMA_ztrsm(PlasmaLeft, uplo[u], trans2, PlasmaNonUnit,
+                     N, NRHS, 1.0, A2, LDA, B2, LDB);
+
+        printf("\n");
+        printf("------ TESTS FOR PLASMA ZPOTRF + ZTRSM + ZTRSM  ROUTINE -------  \n");
+        printf("            Size of the Matrix %d by %d\n", N, N);
+        printf("\n");
+        printf(" The matrix A is randomly generated for each test.\n");
+        printf("============\n");
+        printf(" The relative machine precision (eps) is to be %e \n", eps);
+        printf(" Computational tests pass if scaled residuals are less than 60.\n");
+
+        /* Check the factorization and the solution */
+        info_factorization = check_factorization( N, A1, A2, LDA, uplo[u], eps);
+        info_solution = check_solution(N, NRHS, A1, LDA, B1, B2, LDB, eps);
+
+        if ((info_solution == 0)&(info_factorization == 0)){
+            printf("***************************************************\n");
+            printf(" ---- TESTING ZPOTRF + ZTRSM + ZTRSM (%s)..... PASSED !\n", uplostr[u]);
+            printf("***************************************************\n");
+        }
+        else{
+            printf("***************************************************\n");
+            printf(" - TESTING ZPOTRF + ZTRSM + ZTRSM (%s)... FAILED !\n", uplostr[u]);
+            printf("***************************************************\n");
+        }
+
+        /*-------------------------------------------------------------
+         *  TESTING ZPOCON on the last call
+         */
+        {
+            double Anorm = PLASMA_zlanhe( PlasmaOneNorm, uplo[u], N, A1, LDA );
+            double Acond;
+
+            info_solution = PLASMA_zpocon(uplo[u], N, A2, LDA, Anorm, &Acond);
+            if ( info_solution == 0 ) {
+                info_solution = check_estimator(uplo[u], N, A1, LDA, A2, Anorm, Acond, eps);
+            } else {
+                printf(" PLASMA_zpocon returned info = %d\n", info_solution );
+            }
+            if ((info_solution == 0)){
+                printf("***************************************************\n");
+                printf(" ---- TESTING ZPOTRF + ZPOCON (%s) ........... PASSED !\n", uplostr[u]);
+                printf("***************************************************\n");
+            }
+            else{
+                printf("**************************************************\n");
+                printf(" - TESTING ZPOTRF + ZPOCON (%s) ... FAILED !\n", uplostr[u]);
+                printf("**************************************************\n");
+            }
+        }
     }
-    else {
-        printf("***************************************************\n");
-        printf(" - TESTING ZPOSV ... FAILED !\n");
-        printf("***************************************************\n");
-    }
 
-    /*-------------------------------------------------------------
-    *  TESTING ZPOTRF + ZPOTRS
-    */
-
-    /* Initialize A1 and A2 for Symmetric Positif Matrix */
-    PLASMA_zplghe( (double)N, N, A1, LDA, 51 );
-    PLASMA_zlacpy( PlasmaUpperLower, N, N, A1, LDA, A2, LDA );
-
-    /* Initialize B1 and B2 */
-    PLASMA_zplrnt( N, NRHS, B1, LDB, 371 );
-    PLASMA_zlacpy( PlasmaUpperLower, N, NRHS, B1, LDB, B2, LDB );
-
-    /* Plasma routines */
-    PLASMA_zpotrf(uplo, N, A2, LDA);
-    PLASMA_zpotrs(uplo, N, NRHS, A2, LDA, B2, LDB);
-
-    printf("\n");
-    printf("------ TESTS FOR PLASMA ZPOTRF + ZPOTRS ROUTINE -------  \n");
-    printf("            Size of the Matrix %d by %d\n", N, N);
-    printf("\n");
-    printf(" The matrix A is randomly generated for each test.\n");
-    printf("============\n");
-    printf(" The relative machine precision (eps) is to be %e \n", eps);
-    printf(" Computational tests pass if scaled residuals are less than 60.\n");
-
-    /* Check the factorization and the solution */
-    info_factorization = check_factorization( N, A1, A2, LDA, uplo, eps);
-    info_solution = check_solution(N, NRHS, A1, LDA, B1, B2, LDB, eps);
-
-    if ((info_solution == 0)&(info_factorization == 0)){
-        printf("***************************************************\n");
-        printf(" ---- TESTING ZPOTRF + ZPOTRS ............ PASSED !\n");
-        printf("***************************************************\n");
-    }
-    else{
-        printf("****************************************************\n");
-        printf(" - TESTING ZPOTRF + ZPOTRS ... FAILED !\n");
-        printf("****************************************************\n");
-    }
-
-    /*-------------------------------------------------------------
-    *  TESTING ZPOTRF + ZPTRSM + ZTRSM
-    */
-
-    /* Initialize A1 and A2 for Symmetric Positif Matrix */
-    PLASMA_zplghe( (double)N, N, A1, LDA, 51 );
-    PLASMA_zlacpy( PlasmaUpperLower, N, N, A1, LDA, A2, LDA );
-
-    /* Initialize B1 and B2 */
-    PLASMA_zplrnt( N, NRHS, B1, LDB, 371 );
-    PLASMA_zlacpy( PlasmaUpperLower, N, NRHS, B1, LDB, B2, LDB );
-
-    /* PLASMA routines */
-    PLASMA_zpotrf(uplo, N, A2, LDA);
-    PLASMA_ztrsm(PlasmaLeft, uplo, trans1, PlasmaNonUnit, 
-                 N, NRHS, 1.0, A2, LDA, B2, LDB);
-    PLASMA_ztrsm(PlasmaLeft, uplo, trans2, PlasmaNonUnit, 
-                 N, NRHS, 1.0, A2, LDA, B2, LDB);
-
-    printf("\n");
-    printf("------ TESTS FOR PLASMA ZPOTRF + ZTRSM + ZTRSM  ROUTINE -------  \n");
-    printf("            Size of the Matrix %d by %d\n", N, N);
-    printf("\n");
-    printf(" The matrix A is randomly generated for each test.\n");
-    printf("============\n");
-    printf(" The relative machine precision (eps) is to be %e \n", eps);
-    printf(" Computational tests pass if scaled residuals are less than 60.\n");
-
-    /* Check the factorization and the solution */
-    info_factorization = check_factorization( N, A1, A2, LDA, uplo, eps);
-    info_solution = check_solution(N, NRHS, A1, LDA, B1, B2, LDB, eps);
-
-    if ((info_solution == 0)&(info_factorization == 0)){
-        printf("***************************************************\n");
-        printf(" ---- TESTING ZPOTRF + ZTRSM + ZTRSM ..... PASSED !\n");
-        printf("***************************************************\n");
-    }
-    else{
-        printf("***************************************************\n");
-        printf(" - TESTING ZPOTRF + ZTRSM + ZTRSM ... FAILED !\n");
-        printf("***************************************************\n");
-    }
-
-    free(A1); free(A2); free(B1); free(B2); 
+    free(A1); free(A2); free(B1); free(B2);
 
     return 0;
 }
@@ -421,3 +450,44 @@ static int check_solution(int N, int NRHS, PLASMA_Complex64_t *A1, int LDA, PLAS
 
     return info_solution;
 }
+
+
+/*------------------------------------------------------------------------
+ *  Check the accuracy of the condition estimator
+ */
+static int check_estimator(PLASMA_enum uplo, int N, PLASMA_Complex64_t *A1, int LDA,
+                           PLASMA_Complex64_t *A2, double Anorm, double Acond,
+                           double eps)
+{
+    int info_solution;
+    double result, Acond_lapack;
+    double invcond, invcond_lapack;
+
+    info_solution = LAPACKE_zpocon(LAPACK_COL_MAJOR, lapack_const(uplo), N, A2, LDA, Anorm, &Acond_lapack);
+
+    if ( info_solution != 0 ) {
+        printf(" PLASMA_zgecon returned info = %d\n", info_solution );
+        return info_solution;
+    }
+
+    invcond_lapack = 1. / ( Acond_lapack );
+    invcond        = 1. / ( Acond );
+
+    printf("============\n");
+    printf("Checking the condition number \n");
+    printf("-- Acond_plasma = %e, Acond_lapack = %e \n"
+           "-- Ainvcond_plasma = %e, Ainvcond_lapack = %e \n",
+           Acond, Acond_lapack, invcond, invcond_lapack );
+
+    result = fabs( Acond_lapack - Acond ) / eps;
+    if ( result > 60. ) {
+        printf("-- The solution is suspicious ! \n");
+        info_solution = 1;
+     }
+    else{
+        printf("-- The solution is CORRECT ! \n");
+        info_solution = 0;
+    }
+    return info_solution;
+}
+

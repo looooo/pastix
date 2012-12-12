@@ -333,7 +333,7 @@ print '!
 !  PLASMA is a software package provided by Univ. of Tennessee,
 !  Univ. of California Berkeley and Univ. of Colorado Denver
 !
-! @version 2.4.6
+! @version 2.5.0
 ! @author Numerical Algorithms Group
 ! @author Mathieu Faverge
 ! @date 2011-12-15

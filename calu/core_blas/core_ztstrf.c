@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Hatem Ltaief
  * @author Mathieu Faverge
  * @author Jakub Kurzak
@@ -69,7 +69,7 @@
  * @param[in,out] WORK
  *
  * @param[in] LDWORK
- *         The dimension of the array WORK.
+ *         The leading dimension of the array WORK.
  *
  * @param[out] INFO
  *

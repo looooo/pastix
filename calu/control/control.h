@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @date 2010-11-15
  *
@@ -27,7 +27,11 @@ extern "C" {
  *  Internal routines
  **/
 void  plasma_barrier_init(plasma_context_t *plasma);
+void  plasma_barrier_finalize(plasma_context_t *plasma);
 void  plasma_barrier(plasma_context_t *plasma);
+void  plasma_barrier_bw_init(plasma_context_t *plasma);
+void  plasma_barrier_bw_finalize(plasma_context_t *plasma);
+void  plasma_barrier_bw(plasma_context_t *plasma);
 void *plasma_parallel_section(void *plasma);
 int   plasma_setaffinity(int rank);
 int   plasma_unsetaffinity();

@@ -8,7 +8,7 @@
  *
  * @brief Test mixed precision least squares problem with iterative refinement.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Emmanuel Agullo
  * @date 2010-11-15
  * @precisions mixed zc -> ds

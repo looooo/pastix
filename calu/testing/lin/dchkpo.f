@@ -398,8 +398,8 @@
 *
                   ANORM = DLANSY( '1', UPLO, N, A, LDA, RWORK )
                   SRNAMT = 'DPOCON'
-                  CALL DPOCON( UPLO, N, AFAC, LDA, ANORM, RCOND, WORK,
-     $                         IWORK, INFO )
+                  CALL PLASMA_DPOCON( PLASMA_UPLO, N, AFAC, LDA, ANORM,
+     $                 RCOND, INFO )
 *
 *                 Check error code from DPOCON.
 *

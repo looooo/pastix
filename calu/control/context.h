@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @date 2010-11-15
  *
@@ -59,15 +59,15 @@ typedef struct plasma_context_struct {
     int rhblock;    // block size for tree-based (reduction) Householder
 
     /* Barrier implementation */
-#ifdef BUSY_WAITING
+    /* Busy waiting version */
     volatile int barrier_in[CONTEXT_THREADS_MAX];
     volatile int barrier_out[CONTEXT_THREADS_MAX];
-#else
+
+    /* Conditional version */
     int volatile    barrier_id;             /*+ ID of the barrier                     +*/
     int volatile    barrier_nblocked_thrds; /*+ Number of threads lock in the barrier +*/
     pthread_mutex_t barrier_synclock;       /*+ mutex for the barrier                 +*/
     pthread_cond_t  barrier_synccond;       /*+ condition for the barrier             +*/
-#endif
 
     /* Static scheduler implementation */
     int ss_ld;                  // static scheduler progress table leading dimension

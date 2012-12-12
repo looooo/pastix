@@ -9,7 +9,7 @@
  * This file provides the functions to generate the trace
  * in function of the events.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -364,6 +364,11 @@ eztrace_convert_coreblas_init()
         COREBLAS_INIT_EVENT(COREBLAS_SYGST, "sygst",  GTG_RANDOM    );
         COREBLAS_INIT_EVENT(COREBLAS_HERFB, "herfb",  GTG_RANDOM    );
         COREBLAS_INIT_EVENT(COREBLAS_SYRFB, "syrfb",  GTG_RANDOM    );
+        COREBLAS_INIT_EVENT(COREBLAS_LARFG,        "larfg",      GTG_BLUE     );
+        COREBLAS_INIT_EVENT(COREBLAS_GEQP3_NORMS,  "qp3_norms",  GTG_YELLOW   );
+        COREBLAS_INIT_EVENT(COREBLAS_GEQP3_PIVOT,  "qp3_pivot",  GTG_REDBLOOD );
+        COREBLAS_INIT_EVENT(COREBLAS_GEQP3_UPDATE, "qp3_update", GTG_GREEN    );
+        COREBLAS_INIT_EVENT(COREBLAS_SETVAR,       "setvar",     GTG_ORANGE   );
 
         coreblas_array_initialized = 1;
     }

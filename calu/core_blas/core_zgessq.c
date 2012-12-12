@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -19,7 +19,6 @@
 #define COMPLEX
 
 #define UPDATE( __nb, __value )                                         \
-    __value = fabs(*ptr);                                               \
     if (__value != 0. ){                                                \
         if ( *scale < __value ) {                                       \
             *sumsq = __nb + (*sumsq) * ( *scale / __value ) * ( *scale / __value ); \

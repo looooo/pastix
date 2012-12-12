@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Hatem Ltaief
  * @author Jakub Kurzak
  * @date 2010-11-15
@@ -167,7 +167,7 @@ int PLASMA_zunglq(int M, int N, int K,
  * @param[in] T
  *          Auxiliary factorization data, computed by PLASMA_zgelqf.
  *
- * @param[out] B
+ * @param[out] Q
  *          On exit, the M-by-N matrix Q.
  *
  *******************************************************************************
@@ -185,7 +185,7 @@ int PLASMA_zunglq(int M, int N, int K,
  * @sa PLASMA_zgelqf_Tile
  *
  ******************************************************************************/
-int PLASMA_zunglq_Tile(PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B)
+int PLASMA_zunglq_Tile(PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *Q)
 {
     plasma_context_t *plasma;
     PLASMA_sequence *sequence = NULL;
@@ -198,7 +198,7 @@ int PLASMA_zunglq_Tile(PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B)
         return PLASMA_ERR_NOT_INITIALIZED;
     }
     plasma_sequence_create(plasma, &sequence);
-    PLASMA_zunglq_Tile_Async(A, T, B, sequence, &request);
+    PLASMA_zunglq_Tile_Async(A, T, Q, sequence, &request);
     plasma_dynamic_sync();
     status = sequence->status;
     plasma_sequence_destroy(plasma, sequence);

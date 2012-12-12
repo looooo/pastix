@@ -194,30 +194,30 @@ which is cause a linker error. To prevent this from happening, the "-nofor_main"
 Fortran 90 Interfaces
 ---------------------
 
-It is now possible to call PLASMA from modern Fortran, making use of the Fortran 2003 
+It is now possible to call PLASMA from modern Fortran, making use of the Fortran 2003
 C interoperability features.
 
 The benefits of using the Fortran 90 interfaces over the old-style Fortran 77 interfaces are:
-	* Compile-time argument checking.
-	* Native and transparent handling of pointer arguments - arrays, descriptors and handles.
-	* A clean interface between Fortran and C.
-	
+        * Compile-time argument checking.
+        * Native and transparent handling of pointer arguments - arrays, descriptors and handles.
+        * A clean interface between Fortran and C.
+
 In order to build the Fortran 90 interfaces add the following to your make.inc file: PLASMA_F90 = 1
 
 To call PLASMA via the interfaces, 'Use PLASMA' in your Fortran code.
 
 Arguments such as descriptors and handles required by the PLASMA tiled and asynchronous interfaces
-are passed as type(c_ptr), which is part of the Fortran 2003 ISO C bingings module 
+are passed as type(c_ptr), which is part of the Fortran 2003 ISO C bingings module
 (so you will also need to 'Use iso_c_binding').
 
 For the LAPACK-style interfaces, arrays should be passed in as normal.
 
-Four examples of using the Fortran 90 interfaces are given, which show how to use the module, 
-call auxiliary functions such as initializing PLASMA and setting options, perform tasks such 
+Four examples of using the Fortran 90 interfaces are given, which show how to use the module,
+call auxiliary functions such as initializing PLASMA and setting options, perform tasks such
 as allocating workspace and translating between layouts, and calling a computational routine:
-example_sgebrd.f90            - single precision real bi-diagonal reduction using LAPACK-syle 
+example_sgebrd.f90            - single precision real bi-diagonal reduction using LAPACK-syle
                                 interface.
-example_dgetrs_tile_async.f90 - double precision real factorizaion followed by linear solve 
+example_dgetrs_tile_async.f90 - double precision real factorizaion followed by linear solve
                                 using the tiled, asynchronous interface.
 example_cgeqrf_tile.f90 - single precision complex QR factorization using the tiled interface.
 example_zgetrf_tile.f90 - double precision complex LU factorization using the tiled interface.
@@ -225,8 +225,8 @@ example_zgetrf_tile.f90 - double precision complex LU factorization using the ti
 
 The interfaces can be found in the 'control' directory:
 
-plasma_f90.f90  plasma_cf90.F90  plasma_df90.F90  plasma_dsf90.F90  
-plasma_sf90.F90  plasma_zcf90.F90  plasma_zf90.F90 
+plasma_f90.f90  plasma_cf90.F90  plasma_df90.F90  plasma_dsf90.F90
+plasma_sf90.F90  plasma_zcf90.F90  plasma_zf90.F90
 
 * Please check the subroutine wrappers (following the 'contains' statement in each module) to see
 the interfaces for the routines to call from your Fortran.
@@ -273,34 +273,31 @@ Publications
 
 A number of technical reports were written during the development of PLASMA
 and published as http://www.netlib.org/lapack/lawns/downloads/[LAPACK  Working  Notes]
-by the  University  of Tennessee.
-Almost all of these reports later appeared as journal articles.
+by the  University  of Tennessee. Almost all of these reports later appeared as journal articles.
+To make a reference to PLASMA you can cite the following publications:
 
-One convenient way to make a reference to PLASMA is to cite
-http://icl.cs.utk.edu/projectsfiles/plasma/pdf/users_guide.pdf[PLASMA Users' Guide, Version 2.3],
-also available as a http://www.netlib.org/lapack/lawnspdf/lawnXXX.pdf[LAPACK Working Note XXX]
-and a http://www.cs.utk.edu/~library/TechReports/2010/ut-cs-XX-XXX.pdf[Technical Report UT-CS-XX-XXX].
-The following BibTeX entry can be used for LaTeX documents:
+***************************************
+_Emmanuel Agullo, Alfredo Buttari, Jack Dongarra, Mathieu Faverge, Bilel Hadri,
+Azzam Haidar, Jakub Kurzak, Julien Langou, Hatem Ltaief, Piotr Luszczek, Asim YarKhan_ +
+*http://icl.cs.utk.edu/projectsfiles/plasma/pdf/users_guide.pdf[PLASMA Users' Guide]* +
+_Electrical Engineering and Computer Science Department_ +
+_Univesity of Tennessee_
+***************************************
 
---------------------------
-@TECHREPORT{plasma_users_guide,
-    author       = {{Dongarra}, J. and {Kurzak}, J. and {Langou}, J. and
-                    {Langou}, J. and {Ltaief), H. and {Luszczek}, P. and
-                    {YarKhan}, A. and {Alvaro}, W. and {Faverge}, M. and
-                    {Haidar}, A. and {Hoffman}, J. and {Agullo}, E. and
-                    {Buttari}, A. and {Hadri}, B.},
-    title        = {{PLASMA} Users' Guide, Version 2.3},
-    institution  = {Electrical Engineering and Computer Science Department,
-                    Univesity of Tennessee},
-    year         = {2010},
-    type         = {technical report},
-    number       = {UT-CS-XX-XXX},
-    address      = {Knoxville, Tennessee 37996},
-    month        = {September},
-    note         = {},
-    key          = {},
-}
---------------------------
+***************************************
+_Alfredo Buttari, Julien Langou, Jakub Kurzak, Jack Dongarra_ +
+*A class of parallel tiled linear algebra algorithms for multicore architectures* +
+_Parallel Computing 35 (2009) 38-53_ +
+_http://dx.doi.org/10.1016/j.parco.2008.10.002[DOI: 10.1016/j.parco.2008.10.002]_
+***************************************
+
+***************************************
+_Emmanuel Agullo, Jim Demmel, Jack Dongarra, Bilel Hadri, Jakub Kurzak, Julien Langou,
+Hatem Ltaief, Piotr Luszczek, Stanimire Tomov_ +
+*Numerical linear algebra on emerging architectures: The PLASMA and MAGMA projects* +
+_2009 Journal of Physics: Conference Series 180 012037_ +
+_http://dx.doi.org/10.1088/1742-6596/180/1/012037[DOI: 10.1088/1742-6596/180/1/012037]_
+***************************************
 
 Funding
 -------

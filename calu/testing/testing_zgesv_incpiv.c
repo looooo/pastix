@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Bilel Hadri, Hatem Ltaief
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -176,7 +176,7 @@ int testing_zgesv_incpiv(int argc, char **argv)
     PLASMA_Complex64_t *A2 = (PLASMA_Complex64_t *)malloc(LDA*N*(sizeof*A2));
     PLASMA_Complex64_t *B1 = (PLASMA_Complex64_t *)malloc(LDB*NRHS*(sizeof*B1));
     PLASMA_Complex64_t *B2 = (PLASMA_Complex64_t *)malloc(LDB*NRHS*(sizeof*B2));
-    PLASMA_Complex64_t *L;
+    PLASMA_desc *L;
     int *IPIV;
 
     /* Check if unable to allocate memory */

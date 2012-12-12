@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  *
@@ -27,6 +27,7 @@
 #define DAG_CORE_GEADD  DAG_SET_PROPERTIES( "GEADD" , "white"   )
 #define DAG_CORE_GELQT  DAG_SET_PROPERTIES( "GELQT" , "green"   )
 #define DAG_CORE_GEMM   DAG_SET_PROPERTIES( "GEMM"  , "yellow"  )
+#define DAG_CORE_GEMV   DAG_SET_PROPERTIES( "GEMV"  , "blue"    )
 #define DAG_CORE_GEQRT  DAG_SET_PROPERTIES( "GEQRT" , "green"   )
 #define DAG_CORE_GESSM  DAG_SET_PROPERTIES( "GESSM" , "cyan"    )
 #define DAG_CORE_GETRF  DAG_SET_PROPERTIES( "GETRF" , "green"   )

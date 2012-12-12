@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Azzam Haidar
  * @date 2011-05-15
  * @precisions normal z -> c d s
@@ -79,77 +79,100 @@
 #pragma weak CORE_ztrdalg = PCORE_ztrdalg
 #define CORE_ztrdalg PCORE_ztrdalg
 #endif
-void CORE_ztrdalg(PLASMA_enum uplo, int N, int NB,
-                  const PLASMA_desc *pA, PLASMA_Complex64_t *V, PLASMA_Complex64_t *TAU,
-                  int i, int j, int m, int grsiz)
+void CORE_ztrdalg(PLASMA_enum        uplo,
+                        int n,
+                        int nb,
+                        PLASMA_Complex64_t *A,
+                        int lda,
+                        PLASMA_Complex64_t *V,
+                        PLASMA_Complex64_t *TAU,
+                        int Vblksiz, int wantz, 
+                        int grsiz, int lcsweep, int id, int blksweep,
+                        PLASMA_Complex64_t *work)
 {
-    int    k, shift=3;
-    int    myid, colpt, stind, edind, blklastind, stepercol;
-    size_t eltsize;
-    PLASMA_desc A = *pA;
+  int i, blkid, st, ed, sweepid;
+  int nbtiles = plasma_ceildiv(n,nb);
+  int KDM1  =  nb-1;
 
-    eltsize = plasma_element_size(A.dtyp);
 
-    k = shift / grsiz;
-    stepercol = (k*grsiz == shift) ? k : k+1;
-    for (k = 0; k < grsiz; k++){
-        myid = (i-j)*(stepercol*grsiz) +(m-1)*grsiz + k+1;
-        if(myid%2 ==0) {
-            colpt      = (myid/2) * NB + 1 + j - 1;
-            stind      = colpt - NB + 1;
-            edind      = min(colpt, N);
-            blklastind = colpt;
-        } else {
-            colpt      = ((myid+1)/2)*NB + 1 +j -1 ;
-            stind      = colpt-NB+1;
-            edind      = min(colpt,N);
-            if( (stind>=edind-1) && (edind==N) )
-                blklastind = N;
-            else
-                blklastind = 0;
-        }
+  /* code for all tiles */
+  for (i = 0; i < grsiz ; i++) {
+     blkid = id+i;
+     st    = min(blkid*nb+lcsweep+1, n-1);
+     ed    = min(st+KDM1, n-1);
+     sweepid = blksweep*nb + lcsweep;
+     /*printf("  COUCOU voici n %5d   nb %5d  sweepid %d   st %5d  ed %5d lcsweep %5d   id %5d   blkid %5d\n",n, nb,sweepid, st, ed,lcsweep, id, blkid);*/
 
-        if( myid == 1 )
-           CORE_zhbelr(uplo, N, &A, V, TAU, stind, edind, eltsize);
-        else if(myid%2 == 0)
-           CORE_zhbrce(uplo, N, &A, V, TAU, stind, edind, eltsize);
-        else /*if(myid%2 == 1)*/
-           CORE_zhblrx(uplo, N, &A, V, TAU, stind, edind, eltsize);
 
-        if(blklastind >= (N-1))  break;
-    }
+     if((st == ed) && (sweepid != n-2) ) /* quick return in case of last tile */
+        return;
+
+     if(blkid==blksweep){
+        CORE_zhbtype1cb(n, nb, A, lda, V, TAU, st, ed, sweepid, Vblksiz, wantz, work);     
+     }else{
+        CORE_zhbtype3cb(n, nb, A, lda, V, TAU, st, ed, sweepid, Vblksiz, wantz, work);     
+     }
+     /*printf("n %d  nb %d sweepid %d  myid %d   st %d  ed %d \n",n,nb,sweepid,blkid*2+1,st,ed);*/
+
+     if(id!=(nbtiles-1)) {
+         CORE_zhbtype2cb(n, nb, A, lda, V, TAU, st, ed, sweepid, Vblksiz, wantz, work);
+         /*printf("n %d  nb %d sweepid %d  myid %d   st %d  ed %d \n",n,nb,sweepid,blkid*2+1+1,st,ed);*/
+     }
+
+
+  }
+
 }
 
 /***************************************************************************//**
  *
  **/
+#define A(m_)    (A + (lda * nb * (m_))) 
 void QUARK_CORE_ztrdalg(Quark *quark, Quark_Task_Flags *task_flags,
                         PLASMA_enum uplo,
-                        int N, int NB,
-                        const PLASMA_desc *A,
+                        int n,
+                        int nb,
+                        PLASMA_Complex64_t *A,
+                        int lda,
                         PLASMA_Complex64_t *V,
                         PLASMA_Complex64_t *TAU,
-                        int i, int j, int m, int grsiz, int BAND,
-                        const int *PCOL, const int *ACOL, int *MCOL)
+                        int Vblksiz, int wantz, 
+                        int grsiz, int lcsweep, int id, int blksweep)
 {
-    QUARK_Insert_Task(quark, CORE_ztrdalg_quark,   task_flags,
-        sizeof(int),               &uplo,               VALUE,
-        sizeof(int),                  &N,               VALUE,
-        sizeof(int),                 &NB,               VALUE,
-        sizeof(PLASMA_desc),           A,               NODEP,
-        sizeof(PLASMA_Complex64_t),    V,               NODEP,
-        sizeof(PLASMA_Complex64_t),    TAU,               NODEP,
-        sizeof(int),                  &i,               VALUE,
-        sizeof(int),                  &j,               VALUE,
-        sizeof(int),                  &m,               VALUE,
-        sizeof(int),              &grsiz,               VALUE,
-        sizeof(int),                PCOL,               INPUT,
-        sizeof(int),                ACOL,               INPUT,
-        sizeof(int),                MCOL,               OUTPUT | LOCALITY,
-        0);
+  Quark_Task *MYTASK;
+  int ii, cur_id,  nbtiles    = plasma_ceildiv(n,nb);
 
+           /*printf("coucou from quark function id %d    lcsweep %d    blksweep %d   grsiz %d  nbtiles %d\n", id, lcsweep, blksweep, grsiz, nbtiles);*/
+           MYTASK = QUARK_Task_Init( quark, CORE_ztrdalg_quark,   task_flags);
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(PLASMA_enum),          &uplo,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),                     &n,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),                    &nb,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(PLASMA_Complex64_t),       A,               NODEP );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),                   &lda,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(PLASMA_Complex64_t),       V,               NODEP );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(PLASMA_Complex64_t),     TAU,               NODEP );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),               &Vblksiz,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),                 &wantz,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),                 &grsiz,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),               &lcsweep,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),                    &id,               VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(int),               &blksweep,              VALUE );
+           QUARK_Task_Pack_Arg(quark, MYTASK,  sizeof(PLASMA_Complex64_t)*nb,     NULL,           SCRATCH);
+
+           QUARK_Task_Pack_Arg(quark, MYTASK, sizeof(PLASMA_Complex64_t),    A(id),           INOUT );
+           if( id<(nbtiles-1) )
+              QUARK_Task_Pack_Arg(quark, MYTASK, sizeof(PLASMA_Complex64_t),    A(id+1),           INOUT );
+
+           cur_id = id;
+           for (ii = 1; ii < grsiz ; ii++) {
+                cur_id = cur_id+1;
+                if( cur_id<(nbtiles-1) )
+                   QUARK_Task_Pack_Arg(quark, MYTASK, sizeof(PLASMA_Complex64_t),    A(cur_id+1),           INOUT );
+           }
+
+           QUARK_Insert_Task_Packed(quark, MYTASK);
 }
-
+#undef A
 /***************************************************************************//**
  *
  **/
@@ -159,13 +182,21 @@ void QUARK_CORE_ztrdalg(Quark *quark, Quark_Task_Flags *task_flags,
 #endif
 void CORE_ztrdalg_quark(Quark *quark)
 {
-    PLASMA_desc *pA;
-    PLASMA_Complex64_t *V;
-    PLASMA_Complex64_t *TAU;
-    int    uplo;
-    int    N, NB;
-    int    i, j, m, grsiz;
+    PLASMA_enum         uplo;
+    int                    n;
+    int                   nb;
+    PLASMA_Complex64_t    *A;
+    int                  lda;
+    PLASMA_Complex64_t    *V;
+    PLASMA_Complex64_t  *TAU;
+    int              Vblksiz;
+    int                wantz;
+    int                grsiz;
+    int              lcsweep;
+    int                   id;
+    int             blksweep;
+    PLASMA_Complex64_t *work;
 
-    quark_unpack_args_10(quark, uplo, N, NB, pA, V, TAU, i, j, m, grsiz);
-    CORE_ztrdalg(uplo, N, NB, pA, V, TAU, i, j, m, grsiz);
+    quark_unpack_args_14(quark, uplo, n, nb, A, lda, V, TAU, Vblksiz, wantz, grsiz, lcsweep, id, blksweep, work);
+    CORE_ztrdalg(uplo, n, nb, A, lda, V, TAU, Vblksiz, wantz, grsiz, lcsweep, id, blksweep, work);
 }

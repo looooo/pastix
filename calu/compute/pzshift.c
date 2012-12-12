@@ -6,11 +6,11 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- *  This work is the implementation of an inplace transformation 
- *  based on the GKK algorithm by Gustavson, Karlsson, Kagstrom 
+ *  This work is the implementation of an inplace transformation
+ *  based on the GKK algorithm by Gustavson, Karlsson, Kagstrom
  *  and its fortran implementation.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  *
@@ -69,7 +69,7 @@
  ******************************************************************************/
 int plasma_zshift(plasma_context_t *plasma, int m, int n, PLASMA_Complex64_t *A,
                   int nprob, int me, int ne, int L,
-                  PLASMA_sequence *sequence, PLASMA_request *request) 
+                  PLASMA_sequence *sequence, PLASMA_request *request)
 {
     int *leaders = NULL;
     int ngrp, thrdbypb, thrdtot, nleaders;
@@ -98,112 +98,93 @@ int plasma_zshift(plasma_context_t *plasma, int m, int n, PLASMA_Complex64_t *A,
         return PLASMA_SUCCESS;
     }
 
+    /* Get all the cycles leaders and length
+     * They are the same for each independent problem (each panel) */
     GKK_getLeaderNbr(me, ne, &nleaders, &leaders);
-    nleaders *= 3;
 
     if (PLASMA_SCHEDULING == PLASMA_STATIC_SCHEDULING) {
         int *Tp      = NULL;
-        int i, ipb;
+        int i, ip;
         int owner;
+        int *static_leaders;
+        int nprob_per_grp = (nprob+ngrp-1)/ngrp;
 
-        Tp = (int *)plasma_shared_alloc(plasma, thrdtot, PlasmaInteger);
-        for (i=0; i<thrdtot; i++)
+        Tp = (int *)plasma_shared_alloc(plasma, thrdbypb, PlasmaInteger);
+        for (i=0; i<thrdbypb; i++)
             Tp[i] = 0;
 
-        ipb = 0;
-        
-        /* First part with coarse parallelism */
-        if (nprob > ngrp) {
-            ipb = (nprob / ngrp)*ngrp;
-        
-            /* loop over leader */
-            if (thrdbypb > 1) {
-                for (i=0; i<nleaders; i+=3) {
+        static_leaders = (int *)plasma_shared_alloc(plasma, nleaders*nprob_per_grp*4, PlasmaInteger);
+        for (i=0; i<nleaders; i++) {
+            static_leaders[i*4  ] = leaders[i*3];
+            static_leaders[i*4+1] = leaders[i*3+1];
+            static_leaders[i*4+2] = -1;
+            static_leaders[i*4+3] = -1;
+        }
+        for (ip=1; ip<nprob_per_grp; ip++) {
+            memcpy(static_leaders + nleaders * 4 * ip,
+                   static_leaders, nleaders * 4 * sizeof(int));
+        }
+
+        /* loop over leader */
+        if (thrdbypb > 1) {
+            int *tmp = static_leaders;
+            for (ip=0; ip<nprob_per_grp; ip++) {
+                for (i=0; i<nleaders; i++) {
                     /* assign this cycle to a thread */
                     owner = minloc(thrdbypb, Tp);
-                
-                    /* assign it to owner */
-                    Tp[owner] = Tp[owner] + leaders[i+1] * L;
-                    leaders[i+2] = owner;
-                }
-            
-                GKK_BalanceLoad(thrdbypb, Tp, leaders, nleaders, L);
-            }
-            else {
-                for (i=0; i<nleaders; i+=3) {
-                    Tp[0] = Tp[0] + leaders[i+1] * L;
-                    leaders[i+2] = 0;
-                }
-            }
 
-            /* shift in parallel */
-            for (i=0; i< (nprob/ngrp); i++) {
-                plasma_static_call_9(plasma_pzshift,
-                                     int,                 me,
-                                     int,                 ne,
-                                     int,                 L,
-                                     PLASMA_Complex64_t*, &(A[i*ngrp*me*ne*L]),
-                                     int *,               leaders,
-                                     int,                 nleaders,
-                                     int,                 thrdbypb,
-                                     PLASMA_sequence*,    sequence,
-                                     PLASMA_request*,     request);
+                    /* assign it to owner */
+                    Tp[owner] = Tp[owner] + tmp[1] * L;
+                    tmp[2] = owner;
+                    tmp[3] = ip;
+                    tmp += 4;
+                }
+            }
+            /* GKK_BalanceLoad(thrdbypb, Tp, static_leaders, */
+            /*                 nleaders, L); */
+        }
+        else {
+            int *tmp = static_leaders;
+            for (ip=0; ip<nprob_per_grp; ip++) {
+                for (i=0; i<nleaders; i++) {
+                    tmp[2] = 0;
+                    tmp[3] = ip;
+                    tmp += 4;
+                }
             }
         }
-    
-        /* Second part with fine parallelism */
-        if (ipb < nprob) {
-            for (i=0; i<thrdtot; i++)
-                Tp[i] = 0;
-        
-            if (thrdtot > 1) {
-                /* loop over leader */
-                for (i=0; i<nleaders; i+=3) {
-                    /* assign this cycle to a thread */
-                    owner = minloc(thrdtot, Tp);
-                
-                    /* assign it to owner */
-                    Tp[owner] = Tp[owner] + leaders[i+1] * L;
-                    leaders[i+2] = owner;
-                }
-                GKK_BalanceLoad(thrdtot, Tp, leaders, nleaders, L);
-            }
-            else {
-                for (i=0; i<nleaders; i+=3) {
-                    Tp[0] = Tp[0] + leaders[i+1] * L;
-                    leaders[i+2] = 0;
-                }
-            }
-        
-            /* shift in parallel */
-            for (i=ipb; i<nprob; i++) {
-                plasma_static_call_9(plasma_pzshift,
-                                     int,                 me,
-                                     int,                 ne,
-                                     int,                 L,
-                                     PLASMA_Complex64_t*, &(A[i*me*ne*L]),
-                                     int *,               leaders,
-                                     int,                 nleaders,
-                                     int,                 thrdtot,
-                                     PLASMA_sequence*,    sequence,
-                                     PLASMA_request*,     request);
-            }
-        }
+        nleaders = 4 * nprob_per_grp * nleaders;
 
-        plasma_shared_free(plasma, Tp);
-    }
-    /* Dynamic scheduling */
-    else {
-        plasma_dynamic_call_9(plasma_pzshift,
+        /* shift in parallel */
+        plasma_static_call_10(plasma_pzshift,
                               int,                 me,
                               int,                 ne,
                               int,                 L,
                               PLASMA_Complex64_t*, A,
-                              int *,               leaders,
+                              int *,               static_leaders,
                               int,                 nleaders,
                               int,                 nprob,
+                              int,                 thrdbypb,
                               PLASMA_sequence*,    sequence,
                               PLASMA_request*,     request);
+
+        plasma_shared_free(plasma, Tp);
+        plasma_shared_free(plasma, static_leaders);
+    }
+    /* Dynamic scheduling */
+    else {
+        nleaders *= 3;
+        plasma_dynamic_call_10(plasma_pzshift,
+                               int,                 me,
+                               int,                 ne,
+                               int,                 L,
+                               PLASMA_Complex64_t*, A,
+                               int *,               leaders,
+                               int,                 nleaders,
+                               int,                 nprob,
+                               int,                 thrdbypb,
+                               PLASMA_sequence*,    sequence,
+                               PLASMA_request*,     request);
     }
 
     free(leaders);
@@ -228,20 +209,21 @@ int plasma_zshift(plasma_context_t *plasma, int m, int n, PLASMA_Complex64_t *A,
  * [in] n
  *         Number of columns of matrix A
  *
+ * [in] L
+ *         Size of chunk to use for transformation
+ *
  * [in,out] A
  *         Matrix of size L*m*n
  *
+ * [in] leaders
+ *         Array of 4-tuple (cycle leader, cycle length, owner, pb id)
+ *
+ * [in] nleaders
+ *         Number of cycle leaders * 4 * Number of problem per group
+ *         Size of the leaders array.
+ *
  * [in] nprob
- *         Number of parallel and independant problems
- *
- * [in] me
- *         Number of rows of the problem
- *
- * [in] ne
- *         Number of columns in the problem
- *
- * [in] L
- *         Size of chunk to use for transformation
+ *         Total Number of parallel and independant problems
  *
  * [in] sequence
  *          Identifies the sequence of function calls that this call belongs to
@@ -255,52 +237,36 @@ void plasma_pzshift(plasma_context_t *plasma) {
     PLASMA_sequence *sequence;
     PLASMA_request *request;
     PLASMA_Complex64_t *A, *Al, *W;
-    int     locrnk, myrank;
-    int     i, x, snix, cl, iprob;
-    int     n, m, L, nleaders, thrdbypb;
+    int     myrank;
+    int     i, iprob;
+    int     n, m, L, nprob, nleaders, thrdbypb;
+    int     locgrp, locrnk, ngrp;
     int    *leaders;
-    int64_t s, q;
-    
-    plasma_unpack_args_9(m, n, L, A, leaders, nleaders, thrdbypb, sequence, request);
+
+    plasma_unpack_args_10(m, n, L, A, leaders, nleaders, nprob, thrdbypb, sequence, request);
     if (sequence->status != PLASMA_SUCCESS)
         return;
 
-    myrank   = PLASMA_RANK;
-    locrnk   = myrank % thrdbypb;
-    iprob    = myrank / thrdbypb;
+    myrank = PLASMA_RANK;
+    locrnk = myrank % thrdbypb;
+    locgrp = myrank / thrdbypb;
+    ngrp   = PLASMA_SIZE / thrdbypb;
 
-    q  = m * n - 1;
-    Al = &(A[iprob*m*n*L]);
-    
     W = (PLASMA_Complex64_t*)plasma_private_alloc(plasma, L, PlasmaComplexDouble);
 
     /* shift cycles in parallel. */
     /* each thread shifts the cycles it owns. */
-    for(i=0; i<nleaders; i+=3) {
+    for(i=0; i<nleaders; i+=4) {
         if( leaders[i+2] == locrnk ) {
-            /* cycle #i belongs to this thread, so shift it */
-            memcpy(W, &(Al[leaders[i]*L]), L*sizeof(PLASMA_Complex64_t));
-            CORE_zshiftw(leaders[i], leaders[i+1], m, n, L, Al, W);
-        }
-        else if( leaders[i+2] == -2 ) {
-            /* cycle #i has been split, so shift in parallel */
-            x  = leaders[i+1] / thrdbypb;
-            cl = x;
-            if( locrnk == 0 ) {
-                cl = leaders[i+1] - x * (thrdbypb - 1);
-            }
-            s    = leaders[i];
-            snix = (s * modpow(n, locrnk*x, m * n - 1)) % q;
-            
-            /* copy the block at s*n^(thid*x) (snix) */
-            memcpy(W, &(Al[snix*L]), L*sizeof(PLASMA_Complex64_t));
 
-            /* wait for peers to finish copy their block. */
-            plasma_barrier(plasma);
+            iprob = leaders[i+3] * ngrp + locgrp;
 
-            /* shift the linear array. */
-            if( cl > 0 ) {
-                CORE_zshiftw(snix, cl, m, n, L, Al, W);
+            if ( iprob < nprob ) {
+                Al = &(A[iprob*m*n*L]);
+
+                /* cycle #i belongs to this thread, so shift it */
+                memcpy(W, &(Al[leaders[i]*L]), L*sizeof(PLASMA_Complex64_t));
+                CORE_zshiftw(leaders[i], leaders[i+1], m, n, L, Al, W);
             }
         }
     }
@@ -309,15 +275,16 @@ void plasma_pzshift(plasma_context_t *plasma) {
 }
 
 
-void plasma_pzshift_quark(int m, int n, int L, PLASMA_Complex64_t *A, 
-                          int *leaders, int nleaders, int nprob,
-                          PLASMA_sequence *sequence, PLASMA_request *request) 
+void plasma_pzshift_quark(int m, int n, int L, PLASMA_Complex64_t *A,
+                          int *leaders, int nleaders, int nprob, int thrdbypb,
+                          PLASMA_sequence *sequence, PLASMA_request *request)
 {
     plasma_context_t   *plasma;
     Quark_Task_Flags    task_flags = Quark_Task_Flags_Initializer;
     PLASMA_Complex64_t *Al;
     int     i, iprob, size;
-    
+    (void)thrdbypb;
+
     plasma = plasma_context_self();
     if (sequence->status != PLASMA_SUCCESS)
         return;
@@ -352,5 +319,3 @@ void plasma_pzshift_quark(int m, int n, int L, PLASMA_Complex64_t *A,
                           0);
     }
 }
-
-

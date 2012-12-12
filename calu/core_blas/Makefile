@@ -5,7 +5,7 @@
 #  PLASMA is a software package provided by Univ. of Tennessee,
 #  Univ. of California Berkeley and Univ. of Colorado Denver
 #
-# @version 2.4.6
+# @version 2.5.0
 # @date 2010-11-15
 #
 ###
@@ -42,9 +42,13 @@ ZSRC=	core_zgeqrt.c core_ztsqrt.c core_ztsmqr.c               \
 	core_ztsmlq_hetra1.c core_ztsmlq_corner.c               \
         core_zparfb.c core_zpamm.c core_zpemv.c			\
 	core_zhbtype1cb.c core_zhbtype2cb.c core_zhbtype3cb.c 	\
-	core_zlarfy.c core_zlatro.c core_zlarfb_gemm.c          \
-	core_zgetf2_nopiv.c core_zgetrf_nopiv.c			\
-	core_zlacpy_pivot.c
+	core_zlarfy.c core_zlatro.c core_zlarfb_gemm.c		\
+	core_zgemv.c core_zgemv_tile.c core_zgemm_tile.c	\
+	core_zsetvar.c		\
+	core_zgeqp3_larfg.c	\
+	core_zgeqp3_norms.c	\
+	core_zgeqp3_pivot.c	\
+	core_zgeqp3_update.c	\
 
 ZSRC=	core_zgetrf_incpiv.c core_ztstrf.c core_zgessm.c core_zssssm.c \
 	core_zgemm.c  core_zsymm.c  core_zsyrk.c core_ztrsm.c   \

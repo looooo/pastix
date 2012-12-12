@@ -5,7 +5,7 @@
 #  PLASMA is a software package provided by Univ. of Tennessee,
 #  Univ. of California Berkeley and Univ. of Colorado Denver
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Asim YarKhan
 # @date 2010-11-15
 #
@@ -16,8 +16,8 @@ cmake_minimum_required( VERSION 2.6 )
 set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 
 set( PLASMA_VERSION_MAJOR "2" )
-set( PLASMA_VERSION_MINOR "4" )
-set( PLASMA_VERSION_PATCH "6" )
+set( PLASMA_VERSION_MINOR "5" )
+set( PLASMA_VERSION_PATCH "0" )
 set( PLASMA_VERSION "${PLASMA_VERSION_MAJOR}.${PLASMA_VERSION_MINOR}.${PLASMA_VERSION_PATCH}" )
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)

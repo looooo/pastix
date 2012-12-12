@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Azzam Haidar
  * @author Hatem Ltaief
  * @date 2010-11-15
@@ -20,6 +20,7 @@
 
 #include <lapacke.h>
 #include "common.h"
+
 /***************************************************************************//**
  *
  * @ingroup PLASMA_Complex64_t
@@ -113,7 +114,7 @@ int PLASMA_zheevd(PLASMA_enum jobz, PLASMA_enum uplo, int N,
         plasma_error("PLASMA_zheevd", "PLASMA not initialized");
         return PLASMA_ERR_NOT_INITIALIZED;
     }
-    
+
     /* Check input arguments */
     if (jobz != PlasmaNoVec && jobz != PlasmaVec) {
         plasma_error("PLASMA_zheevd", "illegal value of jobz");
@@ -135,7 +136,7 @@ int PLASMA_zheevd(PLASMA_enum jobz, PLASMA_enum uplo, int N,
         plasma_error("PLASMA_zheevd", "illegal value of LDQ");
         return -9;
     }
-    
+
     /* Quick return */
     if (N == 0)
         return PLASMA_SUCCESS;
@@ -156,7 +157,7 @@ int PLASMA_zheevd(PLASMA_enum jobz, PLASMA_enum uplo, int N,
         plasma_zooplap2tile( descA, A, NB, NB, LDA, N, 0, 0, N, N, sequence, &request,
                              plasma_desc_mat_free(&(descA)) );
     } else {
-        plasma_ziplap2tile( descA, A, NB, NB, LDA, N, 0, 0, N, N, 
+        plasma_ziplap2tile( descA, A, NB, NB, LDA, N, 0, 0, N, N,
                             sequence, &request);
     }
 
@@ -250,7 +251,7 @@ int PLASMA_zheevd(PLASMA_enum jobz, PLASMA_enum uplo, int N,
  *
  ******************************************************************************/
 int PLASMA_zheevd_Tile(PLASMA_enum jobz, PLASMA_enum uplo,
-                      PLASMA_desc *A, double *W, 
+                      PLASMA_desc *A, double *W,
                       PLASMA_desc *T, PLASMA_Complex64_t *Q, int LDQ)
 {
     plasma_context_t *plasma;
@@ -353,7 +354,7 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
     PLASMA_desc descA;
     PLASMA_desc descT;
     PLASMA_desc descQ;
-    PLASMA_Complex64_t *AB;  
+    PLASMA_Complex64_t *AB;
     double *E;
     int N;
     int NB;
@@ -433,7 +434,7 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
      * with a two-stage approach.
      */
     /*=======================================
-     *  calling Reduction to BAND 
+     *  calling Reduction to BAND
      *  then convert matrix to band form
      *=======================================*/
     plasma_dynamic_call_5(plasma_pzhetrd_he2hb,
@@ -458,14 +459,14 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
         return status;
     }
     /*=======================================
-     *  END of calling Reduction to BAND 
+     *  END of calling Reduction to BAND
      *=======================================*/
     /*=======================================
      *  calling bulge chasing
      *=======================================*/
     PLASMA_Complex64_t *TAU2 = NULL;
-    PLASMA_Complex64_t *V2 = NULL; 
-    PLASMA_Complex64_t *T2 = NULL; 
+    PLASMA_Complex64_t *V2 = NULL;
+    PLASMA_Complex64_t *T2 = NULL;
     int Vblksiz, blkcnt, LDT, LDV;
     int WANTZ   = 0;
     int blguplo = PlasmaLower;
@@ -474,12 +475,12 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
         WANTZ=0;
     else
         WANTZ=2;
-    /* Vblksiz correspond to the blocking used when applying V2 to the matrix Q 
+    /* Vblksiz correspond to the blocking used when applying V2 to the matrix Q
      * it is similar to IB in LAPACK ZUNMQR.
      * blkcnt is the number of losange or tile of Vs */
-    /* Note that in case PlamaVec requested, the V2 and T2 are stored by the 
+    /* Note that in case PlamaVec requested, the V2 and T2 are stored by the
      * bulgechasing function in a special format:
-     * for V2s: it store the V2(LDV,Vblksiz) of each losange in a tile storage meaning 
+     * for V2s: it store the V2(LDV,Vblksiz) of each losange in a tile storage meaning
      * that V2_1 is stored then V2_2,..., V2_blkcnt.
      * blkcnt is the number of losange.
      * */
@@ -500,7 +501,7 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
         memset(TAU2, 0,     blkcnt*Vblksiz*sizeof(PLASMA_Complex64_t));
         memset(V2,   0, LDV*blkcnt*Vblksiz*sizeof(PLASMA_Complex64_t));
         memset(T2,   0, LDT*blkcnt*Vblksiz*sizeof(PLASMA_Complex64_t));
-    } 
+    }
     else {
         TAU2   = (PLASMA_Complex64_t *) plasma_shared_alloc(plasma, 2*N, PlasmaComplexDouble);
         V2     = (PLASMA_Complex64_t *) plasma_shared_alloc(plasma, 2*N, PlasmaComplexDouble);
@@ -510,11 +511,11 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
             plasma_shared_free(plasma, V2);
             return PLASMA_ERR_OUT_OF_RESOURCES;
         }
-        memset(TAU2, 0, 2*N*sizeof(PLASMA_Complex64_t));        
-        memset(V2,   0, 2*N*sizeof(PLASMA_Complex64_t));  
+        memset(TAU2, 0, 2*N*sizeof(PLASMA_Complex64_t));
+        memset(V2,   0, 2*N*sizeof(PLASMA_Complex64_t));
     }
 
-    plasma_static_call_13(plasma_pzhetrd_hb2st,
+    plasma_parallel_call_13(plasma_pzhetrd_hb2st,
         PLASMA_enum,         blguplo,
         int,                 N,
         int,                 NB,
@@ -528,9 +529,12 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
         int,                 WANTZ,
         PLASMA_sequence*,    sequence,
         PLASMA_request*,     request);
-    /* WARNING: If zhetrd is implemented through a dynamic call, don't
-     * forget to synchronize */
-    /* plasma_dynamic_sync();*/
+    /*
+     * Synchronization for dynamic call to zhetrd_hb2st before
+     * to compute eigenvalues
+     */
+    plasma_dynamic_sync();
+
     /*=======================================
      *  END of calling bulge chasing
      *=======================================*/
@@ -561,11 +565,11 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
     /*=======================================
      *  END of calling eigensolver
      *=======================================*/
-    if (jobz == PlasmaVec){ 
+    if (jobz == PlasmaVec){
         /*=======================================
          *  apply Q2 from the bulge
          *=======================================*/
-        /* compute T2 */    
+        /* compute T2 */
         plasma_static_call_8(plasma_pzlarft_blgtrd,
             int,                 N,
             int,                 NB,
@@ -593,7 +597,7 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
          *  apply Q1 from the reduction to band
          *=======================================*/
         /* CASE NB>N, Q1 doesn't need to be applied, only bulge chasing has been done */
-        if( NB < N ){ 
+        if( NB < N ){
             if ( PLASMA_TRANSLATION == PLASMA_OUTOFPLACE ) {
                 plasma_zooplap2tile( descQ, Q, NB, NB, LDQ, N, 0, 0, N, N, sequence, request, plasma_desc_mat_free(&(descQ)) );
             } else {
@@ -601,7 +605,7 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
             }
 
             /* Accumulate the transformations from the first stage */
-            if(uplo==PlasmaLower){   
+            if(uplo==PlasmaLower){
                 plasma_dynamic_call_7(plasma_pzunmqr,
                     PLASMA_enum, PlasmaLeft,
                     PLASMA_enum, PlasmaNoTrans,
@@ -610,7 +614,7 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
                     PLASMA_desc, plasma_desc_submatrix(descT, descT.mb, 0, descT.m-descT.mb, descT.n-descT.nb),
                     PLASMA_sequence*, sequence,
                     PLASMA_request*, request);
-         
+
             }
             else {
                 plasma_dynamic_call_7(plasma_pzunmlq,
@@ -632,9 +636,9 @@ int PLASMA_zheevd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo,
                 plasma_dynamic_sync();
             }
         } /* END of ( NB < N ) */
-    } 
+    }
     if( jobz == PlasmaVec )
-        plasma_shared_free(plasma, T2); 
+        plasma_shared_free(plasma, T2);
     plasma_shared_free(plasma, V2);
     plasma_shared_free(plasma, TAU2);
     plasma_shared_free(plasma, E);

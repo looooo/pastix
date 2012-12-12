@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c
@@ -56,10 +56,6 @@
  * @param[in] LDA
  *          The leading dimension of the array A. LDA >= max(1,N).
  *
- * @param[in] work
- *          double precision array of dimension PLASMA_SIZE is
- *          PLASMA_STATIC_SCHEDULING is used, and NULL otherwise.
- *
  *******************************************************************************
  *
  * @return
@@ -75,7 +71,7 @@
  *
  ******************************************************************************/
 double PLASMA_zlanhe(PLASMA_enum norm, PLASMA_enum uplo, int N,
-                     PLASMA_Complex64_t *A, int LDA, double *work)
+                     PLASMA_Complex64_t *A, int LDA)
 {
     int NB;
     int status;
@@ -134,7 +130,7 @@ double PLASMA_zlanhe(PLASMA_enum norm, PLASMA_enum uplo, int N,
     }
 
     /* Call the tile interface */
-    PLASMA_zlanhe_Tile_Async(norm, uplo, &descA, work, &value, sequence, &request);
+    PLASMA_zlanhe_Tile_Async(norm, uplo, &descA, &value, sequence, &request);
 
     if ( PLASMA_TRANSLATION == PLASMA_OUTOFPLACE ) {
         plasma_dynamic_sync();
@@ -176,10 +172,6 @@ double PLASMA_zlanhe(PLASMA_enum norm, PLASMA_enum uplo, int N,
  *          if UPLO = 'L', the lower triangle of A is overwritten with
  *          the lower triangle of the product L' * L.
  *
- * @param[in] work
- *          double precision array of dimension PLASMA_SIZE is
- *          PLASMA_STATIC_SCHEDULING is used, and NULL otherwise.
- *
  *******************************************************************************
  *
  * @return
@@ -194,7 +186,7 @@ double PLASMA_zlanhe(PLASMA_enum norm, PLASMA_enum uplo, int N,
  * @sa PLASMA_slanhe_Tile
  *
  ******************************************************************************/
-double PLASMA_zlanhe_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *work)
+double PLASMA_zlanhe_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A)
 {
     plasma_context_t *plasma;
     PLASMA_sequence *sequence = NULL;
@@ -207,7 +199,7 @@ double PLASMA_zlanhe_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, do
         return PLASMA_ERR_NOT_INITIALIZED;
     }
     plasma_sequence_create(plasma, &sequence);
-    PLASMA_zlanhe_Tile_Async(norm, uplo, A, work, &value, sequence, &request);
+    PLASMA_zlanhe_Tile_Async(norm, uplo, A, &value, sequence, &request);
     plasma_dynamic_sync();
     plasma_sequence_destroy(plasma, sequence);
     return value;
@@ -239,10 +231,11 @@ double PLASMA_zlanhe_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, do
  * @sa PLASMA_slanhe_Tile_Async
  *
  ******************************************************************************/
-int PLASMA_zlanhe_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *work, double *value,
+int PLASMA_zlanhe_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *value,
                              PLASMA_sequence *sequence, PLASMA_request *request)
 {
     PLASMA_desc descA;
+    double *work = NULL;
     plasma_context_t *plasma;
 
     plasma = plasma_context_self();
@@ -291,6 +284,14 @@ int PLASMA_zlanhe_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A,
         return PLASMA_SUCCESS;
     }
 
+    if (PLASMA_SCHEDULING == PLASMA_STATIC_SCHEDULING) {
+        if (norm == PlasmaFrobeniusNorm) {
+            work = plasma_shared_alloc(plasma, 2*PLASMA_SIZE, PlasmaRealDouble );
+        } else {
+            work = plasma_shared_alloc(plasma,   PLASMA_SIZE, PlasmaRealDouble );
+        }
+    }
+
     plasma_parallel_call_7(plasma_pzlanhe,
         PLASMA_enum, norm,
         PLASMA_enum, uplo,
@@ -299,6 +300,9 @@ int PLASMA_zlanhe_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A,
         double*, value,
         PLASMA_sequence*, sequence,
         PLASMA_request*, request);
+
+    if (work != NULL)
+        plasma_shared_free( plasma, work );
 
     return PLASMA_SUCCESS;
 }

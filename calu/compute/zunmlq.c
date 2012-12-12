@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Hatem Ltaief
  * @author Jakub Kurzak
  * @author Dulceneia Becker
@@ -20,9 +20,19 @@
  *
  * @ingroup PLASMA_Complex64_t
  *
- *  PLASMA_zunmlq - overwrites the general M-by-N matrix C with Q*C, where Q is an orthogonal
- *  matrix (unitary in the complex case) defined as the product of elementary reflectors returned
- *  by PLASMA_zgelqf. Q is of order M.
+ *  PLASMA_zunmlq - Overwrites the general complex M-by-N matrix C with
+ * 
+ *                  SIDE = 'L'     SIDE = 'R'
+ *  TRANS = 'N':      Q * C          C * Q
+ *  TRANS = 'C':      Q**H * C       C * Q**H
+ * 
+ *  where Q is a complex unitary matrix defined as the product of k
+ *  elementary reflectors
+ * 
+ *        Q = H(1) H(2) . . . H(k)
+ * 
+ *  as returned by PLASMA_zgeqrf. Q is of order M if SIDE = PlasmaLeft
+ *  and of order N if SIDE = PlasmaRight.
  *
  *******************************************************************************
  *
@@ -30,13 +40,11 @@
  *          Intended usage:
  *          = PlasmaLeft:  apply Q or Q**H from the left;
  *          = PlasmaRight: apply Q or Q**H from the right.
- *          Currently only PlasmaLeft is supported.
  *
  * @param[in] trans
  *          Intended usage:
  *          = PlasmaNoTrans:   no transpose, apply Q;
  *          = PlasmaConjTrans: conjugate transpose, apply Q**H.
- *          Currently only PlasmaConjTrans is supported.
  *
  * @param[in] M
  *          The number of rows of the matrix C. M >= 0.
@@ -46,7 +54,8 @@
  *
  * @param[in] K
  *          The number of rows of elementary tile reflectors whose product defines the matrix Q.
- *          M >= K >= 0.
+ *          If side == PlasmaLeft,  M >= K >= 0.
+ *          If side == PlasmaRight, N >= K >= 0.
  *
  * @param[in] A
  *          Details of the LQ factorization of the original matrix A as returned by PLASMA_zgelqf.
@@ -57,11 +66,11 @@
  * @param[in] descT
  *          Auxiliary factorization data, computed by PLASMA_zgelqf.
  *
- * @param[in,out] B
- *          On entry, the M-by-N matrix B.
- *          On exit, B is overwritten by Q*B or Q**H*B.
+ * @param[in,out] C
+ *          On entry, the M-by-N matrix C.
+ *          On exit, C is overwritten by Q*C or Q**H*C.
  *
- * @param[in] LDB
+ * @param[in] LDC
  *          The leading dimension of the array C. LDC >= max(1,M).
  *
  *******************************************************************************
@@ -83,14 +92,14 @@
 int PLASMA_zunmlq(PLASMA_enum side, PLASMA_enum trans, int M, int N, int K,
                   PLASMA_Complex64_t *A, int LDA,
                   PLASMA_desc *descT,
-                  PLASMA_Complex64_t *B, int LDB)
+                  PLASMA_Complex64_t *C, int LDC)
 {
     int NB, An;
     int status;
     plasma_context_t *plasma;
     PLASMA_sequence *sequence = NULL;
     PLASMA_request request = PLASMA_REQUEST_INITIALIZER;
-    PLASMA_desc descA, descB;
+    PLASMA_desc descA, descC;
 
     plasma = plasma_context_self();
     if (plasma == NULL) {
@@ -104,11 +113,11 @@ int PLASMA_zunmlq(PLASMA_enum side, PLASMA_enum trans, int M, int N, int K,
         An = N;
 
     /* Check input arguments */
-    if ( (side != PlasmaLeft) && (side != PlasmaRight) ) {
+    if ((side != PlasmaLeft) && (side != PlasmaRight)) {
         plasma_error("PLASMA_zunmlq", "illegal value of side");
         return -1;
     }
-    if ( (trans != PlasmaConjTrans) && (trans != PlasmaNoTrans) ){
+    if ((trans != PlasmaConjTrans) && (trans != PlasmaNoTrans)){
         plasma_error("PLASMA_zunmlq", "illegal value of trans");
         return -2;
     }
@@ -128,12 +137,12 @@ int PLASMA_zunmlq(PLASMA_enum side, PLASMA_enum trans, int M, int N, int K,
         plasma_error("PLASMA_zunmlq", "illegal value of LDA");
         return -7;
     }
-    if (LDB < max(1, M)) {
-        plasma_error("PLASMA_zunmlq", "illegal value of LDB");
+    if (LDC < max(1, M)) {
+        plasma_error("PLASMA_zunmlq", "illegal value of LDC");
         return -10;
     }
     /* Quick return - currently NOT equivalent to LAPACK's:
-     * CALL DLASET( 'Full', MAX( M, N ), NRHS, ZERO, ZERO, B, LDB ) */
+     * CALL DLASET( 'Full', MAX( M, N ), NRHS, ZERO, ZERO, C, LDC ) */
     if (min(M, min(N, K)) == 0)
         return PLASMA_SUCCESS;
 
@@ -151,27 +160,27 @@ int PLASMA_zunmlq(PLASMA_enum side, PLASMA_enum trans, int M, int N, int K,
     if ( PLASMA_TRANSLATION == PLASMA_OUTOFPLACE ) {
         plasma_zooplap2tile( descA, A, NB, NB, LDA, An, 0, 0, K, An, sequence, &request,
                              plasma_desc_mat_free(&(descA)) );
-        plasma_zooplap2tile( descB, B, NB, NB, LDB, N,  0, 0, M, N,   sequence, &request,
-                             plasma_desc_mat_free(&(descA)); plasma_desc_mat_free(&(descB)));
+        plasma_zooplap2tile( descC, C, NB, NB, LDC, N, 0, 0, M,  N, sequence, &request,
+                             plasma_desc_mat_free(&(descA)); plasma_desc_mat_free(&(descC)));
     } else {
         plasma_ziplap2tile( descA, A, NB, NB, LDA, An, 0, 0, K, An,
                             sequence, &request);
-        plasma_ziplap2tile( descB, B, NB, NB, LDB, N,  0, 0, M, N,
+        plasma_ziplap2tile( descC, C, NB, NB, LDC, N, 0, 0, M,  N,
                             sequence, &request);
     }
 
     /* Call the tile interface */
     PLASMA_zunmlq_Tile_Async(
-        side, trans, &descA, descT, &descB, sequence, &request);
+        side, trans, &descA, descT, &descC, sequence, &request);
 
     if ( PLASMA_TRANSLATION == PLASMA_OUTOFPLACE ) {
-        plasma_zooptile2lap( descB, B, NB, NB, LDB, N,  sequence, &request);
+        plasma_zooptile2lap( descC, C, NB, NB, LDC, N,  sequence, &request);
         plasma_dynamic_sync();
         plasma_desc_mat_free(&descA);
-        plasma_desc_mat_free(&descB);
+        plasma_desc_mat_free(&descC);
     } else {
-        plasma_ziptile2lap( descA, A, NB, NB, LDA, An,  sequence, &request);
-        plasma_ziptile2lap( descB, B, NB, NB, LDB, N,  sequence, &request);
+        plasma_ziptile2lap( descA, A, NB, NB, LDA, An, sequence, &request);
+        plasma_ziptile2lap( descC, C, NB, NB, LDC, N,  sequence, &request);
         plasma_dynamic_sync();
     }
 
@@ -209,9 +218,9 @@ int PLASMA_zunmlq(PLASMA_enum side, PLASMA_enum trans, int M, int N, int K,
  * @param[in] T
  *          Auxiliary factorization data, computed by PLASMA_zgelqf.
  *
- * @param[in,out] B
- *          On entry, the M-by-N matrix B.
- *          On exit, B is overwritten by Q*B or Q**H*B.
+ * @param[in,out] C
+ *          On entry, the M-by-N matrix C.
+ *          On exit, C is overwritten by Q*C or Q**H*C.
  *
  *******************************************************************************
  *
@@ -229,7 +238,7 @@ int PLASMA_zunmlq(PLASMA_enum side, PLASMA_enum trans, int M, int N, int K,
  *
  ******************************************************************************/
 int PLASMA_zunmlq_Tile(PLASMA_enum side, PLASMA_enum trans,
-                       PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B)
+                       PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *C)
 {
     plasma_context_t *plasma;
     PLASMA_sequence *sequence = NULL;
@@ -242,7 +251,7 @@ int PLASMA_zunmlq_Tile(PLASMA_enum side, PLASMA_enum trans,
         return PLASMA_ERR_NOT_INITIALIZED;
     }
     plasma_sequence_create(plasma, &sequence);
-    PLASMA_zunmlq_Tile_Async(side, trans, A, T, B, sequence, &request);
+    PLASMA_zunmlq_Tile_Async(side, trans, A, T, C, sequence, &request);
     plasma_dynamic_sync();
     status = sequence->status;
     plasma_sequence_destroy(plasma, sequence);
@@ -277,12 +286,12 @@ int PLASMA_zunmlq_Tile(PLASMA_enum side, PLASMA_enum trans,
  *
  ******************************************************************************/
 int PLASMA_zunmlq_Tile_Async(PLASMA_enum side, PLASMA_enum trans,
-                             PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B,
+                             PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *C,
                              PLASMA_sequence *sequence, PLASMA_request *request)
 {
     PLASMA_desc descA;
     PLASMA_desc descT;
-    PLASMA_desc descB;
+    PLASMA_desc descC;
     plasma_context_t *plasma;
 
     plasma = plasma_context_self();
@@ -317,25 +326,25 @@ int PLASMA_zunmlq_Tile_Async(PLASMA_enum side, PLASMA_enum trans,
     } else {
         descT = *T;
     }
-    if (plasma_desc_check(B) != PLASMA_SUCCESS) {
+    if (plasma_desc_check(C) != PLASMA_SUCCESS) {
         plasma_error("PLASMA_zunmlq_Tile", "invalid third descriptor");
         return plasma_request_fail(sequence, request, PLASMA_ERR_ILLEGAL_VALUE);
     } else {
-        descB = *B;
+        descC = *C;
     }
     /* Check input arguments */
-    if (descA.nb != descA.mb || descB.nb != descB.mb) {
+    if (descA.nb != descA.mb || descC.nb != descC.mb) {
         plasma_error("PLASMA_zunmlq_Tile", "only square tiles supported");
         return plasma_request_fail(sequence, request, PLASMA_ERR_ILLEGAL_VALUE);
     }
-    if ( (side != PlasmaLeft) && (side != PlasmaRight) ) {
+    if ((side != PlasmaLeft) && (side != PlasmaRight)) {
         return plasma_request_fail(sequence, request, PLASMA_ERR_ILLEGAL_VALUE);
     }
-    if ( (trans != PlasmaConjTrans) && (trans != PlasmaNoTrans) ){
+    if ((trans != PlasmaConjTrans) && (trans != PlasmaNoTrans)){
         return plasma_request_fail(sequence, request, PLASMA_ERR_ILLEGAL_VALUE);
     }
     /* Quick return - currently NOT equivalent to LAPACK's:
-     * CALL DLASET( 'Full', MAX( M, N ), NRHS, ZERO, ZERO, B, LDB ) */
+     * CALL DLASET( 'Full', MAX( M, N ), NRHS, ZERO, ZERO, C, LDC ) */
 /*
     if (min(M, min(N, K)) == 0)
         return PLASMA_SUCCESS;
@@ -347,7 +356,7 @@ int PLASMA_zunmlq_Tile_Async(PLASMA_enum side, PLASMA_enum trans,
                 PLASMA_enum, side,
                 PLASMA_enum, trans,
                 PLASMA_desc, descA,
-                PLASMA_desc, descB,
+                PLASMA_desc, descC,
                 PLASMA_desc, descT,
                 PLASMA_sequence*, sequence,
                 PLASMA_request*, request);
@@ -356,7 +365,7 @@ int PLASMA_zunmlq_Tile_Async(PLASMA_enum side, PLASMA_enum trans,
                 PLASMA_enum, side,
                 PLASMA_enum, trans,
                 PLASMA_desc, descA,
-                PLASMA_desc, descB,
+                PLASMA_desc, descC,
                 PLASMA_desc, descT,
                 PLASMA_sequence*, sequence,
                 PLASMA_request*, request);
@@ -367,7 +376,7 @@ int PLASMA_zunmlq_Tile_Async(PLASMA_enum side, PLASMA_enum trans,
             PLASMA_enum, side,
             PLASMA_enum, trans,
             PLASMA_desc, descA,
-            PLASMA_desc, descB,
+            PLASMA_desc, descC,
             PLASMA_desc, descT,
             PLASMA_enum, PLASMA_RHBLK,
             PLASMA_sequence*, sequence,

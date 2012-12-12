@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> s d c
@@ -258,8 +258,8 @@ int PLASMA_zlaswpc_Tile_Async(PLASMA_desc *A, int K1, int K2, int *IPIV, int INC
         descA = *A;
     }
 
-    if ( (K1 != 1) || (K2 != descA.m) ) {
-        plasma_error("PLASMA_zlaswpc_Tile", "invalid K1 or K2 (1..M is the only interval supported right now)");
+    if ( (K1 != 1) || (K2 != descA.n) ) {
+        plasma_error("PLASMA_zlaswpc_Tile", "invalid K1 or K2 (1..N is the only interval supported right now)");
         return plasma_request_fail(sequence, request, PLASMA_ERR_ILLEGAL_VALUE);
     }
 

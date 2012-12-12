@@ -38,7 +38,9 @@
       REAL               ANRM, RCOND
 *     ..
 *     .. Local Arrays ..
-      REAL               R( NMAX ), R1( NMAX ), R2( NMAX )
+*     REAL               R( NMAX )
+      REAL               R1( NMAX )
+      REAL               R2( NMAX )
       COMPLEX            A( NMAX, NMAX ), AF( NMAX, NMAX ), B( NMAX ),
      $                   W( 2*NMAX ), X( NMAX )
 *     ..
@@ -109,6 +111,19 @@
          CALL PLASMA_CPOTRF( PLASMAUPPER, 2, A, 1, INFO )
          CALL CHKXER( 'CPOTRF', INFOT, NOUT, INFO, OK )
 *
+*        CPOTRI
+*
+         SRNAMT = 'CPOTRI'
+         INFOT = 1
+         CALL PLASMA_CPOTRI( '/', 0, A, 1, INFO )
+         CALL CHKXER( 'CPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_CPOTRI( PLASMAUPPER, -1, A, 1, INFO )
+         CALL CHKXER( 'CPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_CPOTRI( PLASMAUPPER, 2, A, 1, INFO )
+         CALL CHKXER( 'CPOTRI', INFOT, NOUT, INFO, OK )
+*
 *        CPOTRS
 *
          SRNAMT = 'CPOTRS'
@@ -126,6 +141,22 @@
          CALL CHKXER( 'CPOTRS', INFOT, NOUT, INFO, OK )
          INFOT = 7
          CALL PLASMA_CPOTRS( PLASMAUPPER, 2, 1, A, 2, B, 1, INFO )
+*
+*        CPOCON
+*
+         SRNAMT = 'CPOCON'
+         INFOT = 1
+         CALL PLASMA_CPOCON( '/', 0, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'CPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_CPOCON( PLASMAUPPER, -1, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'CPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_CPOCON( PLASMAUPPER, 2, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'CPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 5
+         CALL PLASMA_CPOCON( PLASMAUPPER, 1, A, 1, -ANRM, RCOND, INFO )
+         CALL CHKXER( 'CPOCON', INFOT, NOUT, INFO, OK )
       END IF
 *
 *     Print a summary line.

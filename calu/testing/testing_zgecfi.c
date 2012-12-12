@@ -10,7 +10,7 @@
  *  conversion based on the GKK algorithm by Gustavson, Karlsson,
  *  Kagstrom.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  *
@@ -121,8 +121,8 @@ int testing_zgecfi(int argc, char **argv){
     for(i=0; i<36; i++) {
         memcpy(B, A, size);
 
-        f1 = conversions[i][0]-PlasmaCM;
-        f2 = conversions[i][1]-PlasmaCM;
+        f1 = conversions[i][0]-PlasmaRM;
+        f2 = conversions[i][1]-PlasmaRM;
         
         printf(" - TESTING ZGECFI (%4s => %4s) ...", formatstr[f1], formatstr[f2] );
 

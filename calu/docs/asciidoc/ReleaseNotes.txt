@@ -73,8 +73,20 @@ Summary of Current Features
 New Features by Release
 -----------------------
 
+=== 2.5.0, November, 2012 ===
+
+* Introduce condition estimators for General and Positive Definite cases (xGECON, xPOCON)
+
+* Fix recurring with lapack release number in plasma-installer
+
+* Fix out-of-order computation in QR/LQ factorization that were causing numerical issues with dynamic scheduling
+
+* Fix many comments in the Doxygen documentation
+
+* Correct some performance issues with in-place layout translation
+
 === 2.4.6, August 20th, 2012 ===
-    
+
 * Add eigenvectors support in eigensolvers for symmetric/hermitian
   problems and generalized problems.
 
@@ -85,7 +97,7 @@ New Features by Release
 * Add all Fortran90 for mixed precision routines.
 
 * Add all Fortran90 wrappers to tile interface and asynchronous
-  interface. Thanks to NAG for providing those wrappers. 
+  interface. Thanks to NAG for providing those wrappers.
 
 * Add 4 examples with Fortran90 interface.
 
@@ -104,9 +116,9 @@ New Features by Release
   allocation has been changed to match those requirements and all
   functions PLASMA_Alloc_Workspace_XXXXX_Tile are now deprecated and
   users are encouraged to move to the PLASMA_Alloc_Workspace_XXXXX version.
-  
+
 === 2.4.5, November 22nd, 2011 ===
-    
+
 * Add LU inversion functions: PLASMA_zgetri, PLASMA_zgetri_Tile and
   PLASMA_zgetri_Tile_Async using the recursive parallel panel
   implementation of LU factorization.
@@ -125,7 +137,7 @@ New Features by Release
 === 2.4.2, September 14th, 2011 ===
 
 * New version of quark removing active waiting and allowing user to
-  bind tasks to set of cores. 
+  bind tasks to set of cores.
 
 * Installer: Fix compatibility issues between plasma-installer and
   PGI compiler reported on Kraken by A. Bouteiller.
@@ -151,7 +163,7 @@ New Features by Release
 
 * Unbind threads in PLASMA_Finalize to avoid problem of binding in
   OpenMP section following PLASMA calls (still possible on Mac and AIX
-  without hwloc). 
+  without hwloc).
   A better fix is to create the OpenMP thread in the user code before
   any call to PLASMA thanks to a fake parallel section.
 

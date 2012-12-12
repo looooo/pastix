@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @date 2010-11-15
  *
@@ -117,14 +117,14 @@ extern double creal(PLASMA_Complex64_t z);
 /** ****************************************************************************
  *  Tile matrix descriptor
  *
- *  Matrices are stored in a contiguous data chunk containning in order
+ *  Matrices are stored in a contiguous data chunk containing in order
  *  A11, A21, A12, A22 with :
  *
  *           n1      n2
  *      +----------+---+
  *      |          |   |    With m1 = lm - (lm%mb)
  *      |          |   |         m2 = lm%mb
- *  m1  |    A11   |A12|         n1 = ln - (ln%mb)
+ *  m1  |    A11   |A12|         n1 = ln - (ln%nb)
  *      |          |   |         n2 = ln%nb
  *      |          |   |
  *      +----------+---+

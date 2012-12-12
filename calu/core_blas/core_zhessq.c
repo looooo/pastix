@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c
@@ -19,7 +19,6 @@
 #define COMPLEX
 
 #define UPDATE( __nb, __value )                                         \
-    __value = fabs(*ptr);                                               \
     if (__value != 0. ){                                                \
         if ( *scale < __value ) {                                       \
             *sumsq = __nb + (*sumsq) * ( *scale / __value ) * ( *scale / __value ); \
@@ -166,6 +165,15 @@ void QUARK_CORE_zhessq_f1( Quark *quark, Quark_Task_Flags *task_flags,
     DAG_CORE_LASSQ;
 
     if ( (fake == scale) && (paramF & GATHERV) ) {
+        QUARK_Insert_Task(quark, CORE_zhessq_quark, task_flags,
+            sizeof(PLASMA_enum),              &uplo, VALUE,
+            sizeof(int),                      &n,    VALUE,
+            sizeof(PLASMA_Complex64_t)*lda*n, A,         INPUT,
+            sizeof(int),                      &lda,  VALUE,
+            sizeof(double)*1,                 scale,     INOUT | paramF,
+            sizeof(double)*1,                 sumsq,     INOUT,
+            0);
+    } else {
         QUARK_Insert_Task(quark, CORE_zhessq_f1_quark, task_flags,
             sizeof(PLASMA_enum),              &uplo, VALUE,
             sizeof(int),                      &n,    VALUE,
@@ -174,15 +182,6 @@ void QUARK_CORE_zhessq_f1( Quark *quark, Quark_Task_Flags *task_flags,
             sizeof(double)*1,                 scale,     INOUT,
             sizeof(double)*1,                 sumsq,     INOUT,
             sizeof(double)*szeF,              fake,      paramF,
-            0);
-    } else {
-        QUARK_Insert_Task(quark, CORE_zhessq_quark, task_flags,
-            sizeof(PLASMA_enum),              &uplo, VALUE,
-            sizeof(int),                      &n,    VALUE,
-            sizeof(PLASMA_Complex64_t)*lda*n, A,         INPUT,
-            sizeof(int),                      &lda,  VALUE,
-            sizeof(double)*1,                 scale,     INOUT | paramF,
-            sizeof(double)*1,                 sumsq,     INOUT,
             0);
     }
 }

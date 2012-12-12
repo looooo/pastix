@@ -5,7 +5,7 @@ includedir=${prefix}/include
 
 Name: plasma
 Description: Parallel Linear Algebra for Scalable Multi-core Architectures 
-Version: 2.4.6
+Version: 2.5.0
 Requires.private: 
 Cflags: -I__PREFIX/include __INCLUDE_EXT
 Libs: -L__PREFIX/lib -lplasma -lcoreblas -lquark __LIBEXT

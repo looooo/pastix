@@ -396,8 +396,8 @@
 *
                   ANORM = SLANSY( '1', UPLO, N, A, LDA, RWORK )
                   SRNAMT = 'SPOCON'
-                  CALL SPOCON( UPLO, N, AFAC, LDA, ANORM, RCOND, WORK,
-     $                         IWORK, INFO )
+                  CALL PLASMA_SPOCON( PLASMA_UPLO, N, AFAC, LDA, ANORM,
+     $                 RCOND, INFO )
 *
 *                 Check error code from SPOCON.
 *

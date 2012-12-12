@@ -60,7 +60,7 @@ RunTest(int *iparam, double *dparam, real_Double_t *t_)
         free( X );
       }
 
-    /* Allocate Workspace */
+    /* Free Workspace */
     PLASMA_Dealloc_Handle_Tile( &T );
     free( A );
 

@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @author Mathieu Faverge
  * @date 2010-11-15
@@ -40,7 +40,7 @@
 
 
 /** ****************************************************************************
- *  Determine if weak symbol are allowed 
+ *  Determine if weak symbols are allowed 
  */
 #if defined(linux) || defined(__linux) || defined(__linux__)
 #if defined(__GNUC_EXCL__) || defined(__GNUC__) 

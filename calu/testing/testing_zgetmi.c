@@ -10,7 +10,7 @@
  *  conversion based on the GKK algorithm by Gustavson, Karlsson,
  *  Kagstrom.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  *

@@ -8,7 +8,7 @@
  *
  * LU with Partial pivoting.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @author Hatem Ltaief
  * @date 2009-11-15

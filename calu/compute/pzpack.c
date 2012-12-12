@@ -10,7 +10,7 @@
  *  based on the GKK algorithm by Gustavson, Karlsson, Kagstrom
  *  and its fortran implementation.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  *
@@ -62,7 +62,7 @@ void plasma_pzpack(plasma_context_t *plasma)
     PLASMA_sequence *sequence;
     PLASMA_request *request;
     int m, n, m0;
-    int i, m1, size, rank, start, end, bs, mod;
+    int i, m1, size, rank, start, bs, mod;
 
     plasma_unpack_args_6(m, n, A, m0, sequence, request);
     if (sequence->status != PLASMA_SUCCESS)
@@ -92,21 +92,51 @@ void plasma_pzpack(plasma_context_t *plasma)
     CORE_zlacpy( PlasmaUpperLower, m0, bs, &(A[(int64_t)start*m+m1]), m, W, m0 );
 
     /* Pack A */
-    end = ((n-1) / size) * size + 1;
-    for(i=rank+1; i<end; i+=size) {
-        memcpy( Wl, &(A[i*m]), m1*sizeof(PLASMA_Complex64_t));
-        plasma_barrier(plasma);
-        memcpy( &(A[i*m1]), Wl, m1*sizeof(PLASMA_Complex64_t));
+#if defined(IPT_USE_BUSYWAITING)
+    {
+        int end;
+        
+        end = ((n-1) / size) * size + 1;
+        for(i=rank+1; i<end; i+=size) {
+            memcpy( Wl, &(A[i*m]), m1*sizeof(PLASMA_Complex64_t));
+            plasma_barrier_bw(plasma);
+            memcpy( &(A[i*m1]), Wl, m1*sizeof(PLASMA_Complex64_t));
+        }
+        
+        if ( rank < (n - end)) {
+            i = end + rank;
+            memcpy( Wl, &(A[i*m]), m1*sizeof(PLASMA_Complex64_t));
+            plasma_barrier_bw(plasma);
+            memcpy( &(A[i*m1]), Wl, m1*sizeof(PLASMA_Complex64_t));
+        }
+        else
+            plasma_barrier_bw(plasma);
     }
 
-    if ( rank < (n - end)) {
-        i = end + rank;
-        memcpy( Wl, &(A[i*m]), m1*sizeof(PLASMA_Complex64_t));
-        plasma_barrier(plasma);
-        memcpy( &(A[i*m1]), Wl, m1*sizeof(PLASMA_Complex64_t));
+#else
+    {
+        int j;
+
+        ss_init(n, 1, 0);
+        ss_cond_set( 0, 0, 1 );
+
+        for(i=rank+1; i<n; i+=size) {
+            memcpy( Wl, &(A[i*m]), m1*sizeof(PLASMA_Complex64_t));
+
+            ss_cond_set( i, 0, 1 );
+            
+            j = (i * m1) /  m ;
+            ss_cond_wait( j, 0, 1 );
+            j++;
+            if (j < n)
+                ss_cond_wait(j, 0, 1);
+            
+            memcpy( &(A[i*m1]), Wl, m1*sizeof(PLASMA_Complex64_t));
+        }
+
+        ss_finalize();
     }
-    else
-        plasma_barrier(plasma);
+#endif
 
     /* Restore leftover pieces */
     CORE_zlacpy( PlasmaUpperLower, m0, bs, W, m0, &(A[(int64_t)m1*n+start*m0]), m0 );
@@ -157,7 +187,7 @@ void plasma_pzunpack(plasma_context_t *plasma)
     PLASMA_sequence *sequence;
     PLASMA_request *request;
     int m, n, m0;
-    int i, m1, size, rank, start, end, bs, mod;
+    int i, m1, size, rank, start, bs, mod;
 
     plasma_unpack_args_6(m, n, A, m0, sequence, request);
     if (sequence->status != PLASMA_SUCCESS)
@@ -187,21 +217,49 @@ void plasma_pzunpack(plasma_context_t *plasma)
     CORE_zlacpy( PlasmaUpperLower, m0, bs, &(A[(int64_t)m1*n+start*m0]), m0, W, m0 );
 
     /* Unpack A */
-    end = ((n-1) % size) ;
-    for(i=n-1-rank; i>end; i-=size) {
-        memcpy( Wl, &(A[i*m1]), m1*sizeof(PLASMA_Complex64_t));
-        plasma_barrier(plasma);
-        memcpy( &(A[i*m]), Wl, m1*sizeof(PLASMA_Complex64_t));
+#if defined(IPT_USE_BUSYWAITING)
+    {
+        int end;
+        
+        end = ((n-1) % size) ;
+        for(i=n-1-rank; i>end; i-=size) {
+            memcpy( Wl, &(A[i*m1]), m1*sizeof(PLASMA_Complex64_t));
+            plasma_barrier_bw(plasma);
+            memcpy( &(A[i*m]), Wl, m1*sizeof(PLASMA_Complex64_t));
+        }
+        
+        if ( rank < end ) {
+            i = rank+1;
+            memcpy( Wl, &(A[i*m1]), m1*sizeof(PLASMA_Complex64_t));
+            plasma_barrier_bw(plasma);
+            memcpy( &(A[i*m]), Wl, m1*sizeof(PLASMA_Complex64_t));
+        }
+        else
+            plasma_barrier_bw(plasma);
     }
+#else
+    {
+        int j, j1, j2;
+        
+        ss_init(n, 1, 0);
+        ss_cond_set( 0, 0, 1 );
 
-    if ( rank < end ) {
-        i = rank+1;
-        memcpy( Wl, &(A[i*m1]), m1*sizeof(PLASMA_Complex64_t));
-        plasma_barrier(plasma);
-        memcpy( &(A[i*m]), Wl, m1*sizeof(PLASMA_Complex64_t));
+        for(i=n-1-rank; i>0; i-=size) {
+            memcpy( Wl, &(A[i*m1]), m1*sizeof(PLASMA_Complex64_t));
+
+            ss_cond_set( i, 0, 1 );
+            
+            j1 =  (i     * m     ) /  m1 ;
+            j2 = (((i+1) * m - m0) /  m1) + 1 ;
+            for(j = j1; j<j2 && j<n; j++)
+                ss_cond_wait( j, 0, 1 );
+
+            memcpy( &(A[i*m]), Wl, m1*sizeof(PLASMA_Complex64_t));
+        }
+        
+        ss_finalize();
     }
-    else
-        plasma_barrier(plasma);
+#endif
 
     /* Restore leftover pieces */
     CORE_zlacpy( PlasmaUpperLower, m0, bs, W, m0, &(A[(int64_t)start*m+m1]), m );

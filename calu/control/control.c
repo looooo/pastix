@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @date 2010-11-15
  *
@@ -27,19 +27,10 @@
  **/
 void plasma_barrier_init(plasma_context_t *plasma)
 {
-#ifdef BUSY_WAITING
-    int core;
-
-    for (core = 0; core < CONTEXT_THREADS_MAX; core++) {
-        plasma->barrier_in[core] = 0;
-        plasma->barrier_out[core] = 0;
-    }
-#else
     plasma->barrier_id = 0;
     plasma->barrier_nblocked_thrds = 0;
     pthread_mutex_init(&(plasma->barrier_synclock), NULL);
     pthread_cond_init( &(plasma->barrier_synccond), NULL);
-#endif
 }
 
 /***************************************************************************//**
@@ -47,10 +38,8 @@ void plasma_barrier_init(plasma_context_t *plasma)
  **/
 void plasma_barrier_finalize(plasma_context_t *plasma)
 {
-#ifndef BUSY_WAITING
     pthread_mutex_destroy(&(plasma->barrier_synclock));
     pthread_cond_destroy( &(plasma->barrier_synccond));
-#endif
 }
 
 /***************************************************************************//**
@@ -58,26 +47,6 @@ void plasma_barrier_finalize(plasma_context_t *plasma)
  **/
 void plasma_barrier(plasma_context_t *plasma)
 {
-#ifdef BUSY_WAITING
-    int core;
-
-    if (PLASMA_RANK == 0) {
-        for (core = 1; core < PLASMA_SIZE; core++)
-            while (plasma->barrier_in[core] == 0);
-
-        for (core = 1; core < PLASMA_SIZE; core++)
-            plasma->barrier_in[core] = 0;
-
-        for (core = 1; core < PLASMA_SIZE; core++)
-            plasma->barrier_out[core] = 1;
-    }
-    else
-    {
-        plasma->barrier_in[PLASMA_RANK] = 1;
-        while (plasma->barrier_out[PLASMA_RANK] == 0);
-        plasma->barrier_out[PLASMA_RANK] = 0;
-    }
-#else
     int id;
 
     pthread_mutex_lock(&(plasma->barrier_synclock));
@@ -91,7 +60,52 @@ void plasma_barrier(plasma_context_t *plasma)
     while (id == plasma->barrier_id)
         pthread_cond_wait(&(plasma->barrier_synccond), &(plasma->barrier_synclock));
     pthread_mutex_unlock(&(plasma->barrier_synclock));
-#endif
+}
+
+/***************************************************************************//**
+ *  Busy-waiting barrier initialization
+ **/
+void plasma_barrier_bw_init(plasma_context_t *plasma)
+{
+    int core;
+
+    for (core = 0; core < CONTEXT_THREADS_MAX; core++) {
+        plasma->barrier_in[core] = 0;
+        plasma->barrier_out[core] = 0;
+    }
+}
+
+/***************************************************************************//**
+ *  Busy-waiting barrier finalize
+ **/
+void plasma_barrier_bw_finalize(plasma_context_t *plasma)
+{
+}
+
+/***************************************************************************//**
+ *  Busy-waiting barrier
+ **/
+void plasma_barrier_bw(plasma_context_t *plasma)
+{
+    int core;
+    int size = PLASMA_SIZE;
+
+    if (PLASMA_RANK == 0) {
+        for (core = 1; core < size; core++)
+            while (plasma->barrier_in[core] == 0);
+
+        for (core = 1; core < size; core++)
+            plasma->barrier_in[core] = 0;
+
+        for (core = 1; core < size; core++)
+            plasma->barrier_out[core] = 1;
+    }
+    else
+    {
+        plasma->barrier_in[PLASMA_RANK] = 1;
+        while (plasma->barrier_out[PLASMA_RANK] == 0);
+        plasma->barrier_out[PLASMA_RANK] = 0;
+    }
 }
 
 /***************************************************************************//**
@@ -229,8 +243,9 @@ int PLASMA_Init_Affinity(int cores, int *coresbind)
     while ( ((plasma->world_size)%(plasma->group_size)) != 0 ) 
         (plasma->group_size)--;
 
-    /* Initialize barrier */
+    /* Initialize barriers */
     plasma_barrier_init(plasma);
+    plasma_barrier_bw_init(plasma);
 
     /* Initialize default thread attributes */
     status = pthread_attr_init(&plasma->thread_attr);
@@ -330,6 +345,7 @@ int PLASMA_Finalize()
         }
     }
     plasma_barrier_finalize(plasma);
+    plasma_barrier_bw_finalize(plasma);
 
     /* Unbind main thread */
     plasma_unsetaffinity();

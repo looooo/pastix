@@ -38,7 +38,9 @@
       DOUBLE PRECISION   ANRM, RCOND
 *     ..
 *     .. Local Arrays ..
-      DOUBLE PRECISION   R( NMAX ), R1( NMAX ), R2( NMAX )
+*     DOUBLE PRECISION   R( NMAX )
+      DOUBLE PRECISION   R1( NMAX )
+      DOUBLE PRECISION   R2( NMAX )
       COMPLEX*16         A( NMAX, NMAX ), AF( NMAX, NMAX ), B( NMAX ),
      $                   W( 2*NMAX ), X( NMAX )
 *     ..
@@ -111,6 +113,19 @@
          CALL PLASMA_ZPOTRF( PLASMAUPPER, 2, A, 1, INFO )
          CALL CHKXER( 'ZPOTRF', INFOT, NOUT, INFO, OK )
 *
+*        ZPOTRI
+*
+         SRNAMT = 'ZPOTRI'
+         INFOT = 1
+         CALL PLASMA_ZPOTRI( '/', 0, A, 1, INFO )
+         CALL CHKXER( 'ZPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_ZPOTRI( PLASMAUPPER, -1, A, 1, INFO )
+         CALL CHKXER( 'ZPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_ZPOTRI( PLASMAUPPER, 2, A, 1, INFO )
+         CALL CHKXER( 'ZPOTRI', INFOT, NOUT, INFO, OK )
+*
 *        ZPOTRS
 *
          SRNAMT = 'ZPOTRS'
@@ -128,6 +143,22 @@
          CALL CHKXER( 'ZPOTRS', INFOT, NOUT, INFO, OK )
          INFOT = 7
          CALL PLASMA_ZPOTRS( PLASMAUPPER, 2, 1, A, 2, B, 1, INFO )
+*
+*        ZPOCON
+*
+         SRNAMT = 'ZPOCON'
+         INFOT = 1
+         CALL PLASMA_ZPOCON( '/', 0, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'ZPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_ZPOCON( PLASMAUPPER, -1, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'ZPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_ZPOCON( PLASMAUPPER, 2, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'ZPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 5
+         CALL PLASMA_ZPOCON( PLASMAUPPER, 1, A, 1, -ANRM, RCOND, INFO )
+         CALL CHKXER( 'ZPOCON', INFOT, NOUT, INFO, OK )
       END IF
 *
 *     Print a summary line.

@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -44,6 +44,7 @@ extern int side[2];
 extern int diag[2];
 extern int itype[3];
 extern int storev[2];
+extern int norm[4];
 
 extern char *formatstr[6];
 extern char *transstr[3];
@@ -52,6 +53,7 @@ extern char *sidestr[2];
 extern char *diagstr[2];
 extern char *itypestr[3];
 extern char *storevstr[2];
+extern char *normstr[4];
 
 extern void *formatmap[6];
 
@@ -76,6 +78,7 @@ int testing_zpemv(int argc, char **argv);
 int testing_zposv(int argc, char **argv);
 int testing_zgels(int argc, char **argv);
 int testing_zgesv(int argc, char **argv);
+int testing_zgesv_incpiv(int argc, char **argv);
 
 int testing_zpotri(int argc, char **argv);
 int testing_zgetri(int argc, char **argv);

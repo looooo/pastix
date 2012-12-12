@@ -6,7 +6,7 @@
 !  PLASMA is a software package provided by Univ. of Tennessee,
 !  Univ. of California Berkeley and Univ. of Colorado Denver
 !
-! @version 2.4.6
+! @version 2.5.0
 ! @author Bilel Hadri
 ! @author Mathieu Faverge
 ! @date 2010-11-15
@@ -28,10 +28,10 @@
 !********************************************************************
 !   PLASMA constants - CBLAS & LAPACK
 !
-      integer PlasmaCM, PlasmaRM, PlasmaCCRB
+      integer PlasmaRM, PlasmaCM, PlasmaCCRB
       integer PlasmaCRRB, PlasmaRCRB, PlasmaRRRB
-      parameter ( PlasmaCM         = 101 )
-      parameter ( PlasmaRM         = 102 )
+      parameter ( PlasmaRM         = 101 )
+      parameter ( PlasmaCM         = 102 )
       parameter ( PlasmaCCRB       = 103 )
       parameter ( PlasmaCRRB       = 104 )
       parameter ( PlasmaRCRB       = 105 )

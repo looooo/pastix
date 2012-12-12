@@ -8,7 +8,7 @@
  *
  * @brief Example for solving overdetermined or underdetemined linear systems
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Bilel Hadri
  * @date 2010-11-15
  * @precisions normal z -> c d s

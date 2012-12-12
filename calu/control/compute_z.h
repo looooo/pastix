@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @author Mathieu Faverge
  * @date 2010-11-15
@@ -130,6 +130,11 @@ void plasma_pzgebrd_ge2tb_quark(PLASMA_desc A, PLASMA_desc T, PLASMA_sequence *s
 void plasma_pzgelqf_quark(PLASMA_desc A, PLASMA_desc T, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzgelqfrh_quark(PLASMA_desc A, PLASMA_desc T, int BS, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzgemm_quark(PLASMA_enum transA, PLASMA_enum transB, PLASMA_Complex64_t alpha, PLASMA_desc A, PLASMA_desc B, PLASMA_Complex64_t beta, PLASMA_desc C, PLASMA_sequence *sequence, PLASMA_request *request);
+
+void plasma_pzgeqp3_quark( PLASMA_desc A, int *jpvt, PLASMA_Complex64_t *tau,
+                           PLASMA_Complex64_t *work, double *rwork,
+                           PLASMA_sequence *sequence, PLASMA_request *request );
+
 void plasma_pzgeqrf_quark(PLASMA_desc A, PLASMA_desc T, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzgeqrfrh_quark(PLASMA_desc A, PLASMA_desc T, int BS, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzgerbh_quark(PLASMA_desc A, PLASMA_desc T, PLASMA_sequence *sequence, PLASMA_request *request);
@@ -146,6 +151,7 @@ void plasma_pzherk_quark(PLASMA_enum uplo, PLASMA_enum trans, double alpha, PLAS
 void plasma_pzher2k_quark(PLASMA_enum uplo, PLASMA_enum trans, PLASMA_Complex64_t alpha, PLASMA_desc A, PLASMA_desc B, double beta, PLASMA_desc C, PLASMA_sequence *sequence, PLASMA_request *request);
 #endif
 void plasma_pzhetrd_he2hb_quark(PLASMA_enum uplo, PLASMA_desc A, PLASMA_desc T, PLASMA_sequence *sequence, PLASMA_request *request);
+void plasma_pzhetrd_hb2st_quark(PLASMA_enum uplo, int N, int NB, int Vblksiz, PLASMA_Complex64_t *A, int LDA, PLASMA_Complex64_t *V, PLASMA_Complex64_t *TAU, double *D, double *E, int WANTZ, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzlacpy_quark(PLASMA_enum uplo, PLASMA_desc A, PLASMA_desc B, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzlag2c_quark(PLASMA_desc A, PLASMA_desc SB, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzlange_quark(PLASMA_enum norm, PLASMA_desc A, double *work, double *result, PLASMA_sequence *sequence, PLASMA_request *request);
@@ -162,7 +168,7 @@ void plasma_pzplghe_quark(double bump, PLASMA_desc A, unsigned long long int see
 void plasma_pzplgsy_quark(PLASMA_Complex64_t bump, PLASMA_desc A, unsigned long long int seed, PLASMA_sequence *sequence, PLASMA_request *request );
 void plasma_pzplrnt_quark(PLASMA_desc A, unsigned long long int seed, PLASMA_sequence *sequence, PLASMA_request *request );
 void plasma_pzpotrf_quark(PLASMA_enum uplo, PLASMA_desc A, PLASMA_sequence *sequence, PLASMA_request *request);
-void plasma_pzshift_quark(int, int, int, PLASMA_Complex64_t *, int *, int, int, PLASMA_sequence*, PLASMA_request*);
+void plasma_pzshift_quark(int, int, int, PLASMA_Complex64_t *, int *, int, int, int, PLASMA_sequence*, PLASMA_request*);
 void plasma_pzsymm_quark(PLASMA_enum side, PLASMA_enum uplo, PLASMA_Complex64_t alpha, PLASMA_desc A, PLASMA_desc B, PLASMA_Complex64_t beta, PLASMA_desc C, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzsyrk_quark(PLASMA_enum uplo, PLASMA_enum trans, PLASMA_Complex64_t alpha, PLASMA_desc A, PLASMA_Complex64_t beta,  PLASMA_desc C, PLASMA_sequence *sequence, PLASMA_request *request);
 void plasma_pzsyr2k_quark(PLASMA_enum uplo, PLASMA_enum trans, PLASMA_Complex64_t alpha, PLASMA_desc A, PLASMA_desc B, PLASMA_Complex64_t beta, PLASMA_desc C, PLASMA_sequence *sequence, PLASMA_request *request);

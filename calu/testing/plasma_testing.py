@@ -3,20 +3,20 @@
 
 
 ###############################################################################
-# plasma_testing.py  [nbcores] 
+# plasma_testing.py  [nbcores]
 #  nbcores is a optional argument to give the number of cores to run the testing
 # Example:
-#     ./plasma_testing.py 
+#     ./plasma_testing.py
 #                 No argument, so will run on half of the core if the machine has more than 2 cores
 #     ./plama_testing.py nbcores
-#                 Will run on nbcores 
+#                 Will run on nbcores
 ###############################################################################
 
-from subprocess import Popen, STDOUT, PIPE 
+from subprocess import Popen, STDOUT, PIPE
 import os, sys, math
 import getopt
 
-# Linux Unix and MacOS: 
+# Linux Unix and MacOS:
 if hasattr(os, "sysconf"):
    if os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"):
            ncpus_av = os.sysconf("SC_NPROCESSORS_ONLN")
@@ -31,9 +31,9 @@ else:
    ncpus=ncpus_av
 
 try:
-   opts, args = getopt.getopt(sys.argv[1:], "hnc:s:", 
+   opts, args = getopt.getopt(sys.argv[1:], "hnc:s:",
                               ["help", "cores=", "sched="])
-   
+
 except getopt.error, msg:
    print msg
    print "for help use --help"
@@ -53,12 +53,12 @@ for o, a in opts:
    else:
       if o in ( '-c', '--ncores' ):
          ncpus = a
-      elif o in ( '-s' , '--sched' ): 
+      elif o in ( '-s' , '--sched' ):
          if a == "0" :
             sched = 0
          else:
             sched = 1
-      elif o in ( '-n' , '--noexec' ): 
+      elif o in ( '-n' , '--noexec' ):
          execution=0
 
 # Add current directory to the path for subshells of this shell
@@ -93,7 +93,7 @@ def local_popen( f, cmdline ):
                print line,
          if found == 0:
             print cmdline.split()[0] + " " + cmdline.split()[3] + ": FAILED(Unexpected error)"
-            
+
    f.flush();
    return 0
 
@@ -115,7 +115,7 @@ print "-- Scheduling mode: ",
 if (sched == 0):
    print "Static"
 else:
-   print "Dynamic" 
+   print "Dynamic"
 
 dtypes = (
 ("s", "d", "c", "z"),
@@ -147,10 +147,12 @@ for dtype in range(4):
   test3 = local_popen(f, cmdbase + " TRMM"  + " -2.0 600 500 650 625")
   test4 = local_popen(f, cmdbase + " SYMM"  + " 1.0 -2.0 600 500 650 625 700")
   test5 = local_popen(f, cmdbase + " SYRK"  + " 1.0 -2.0 600 500 650 625")
+  test6 = local_popen(f, cmdbase + " SYR2K" + " 1.0 -2.0 600 500 650 625 613")
 
   if letter in ( "c", "z" ) :
-     test101 = local_popen(f, "%stesting " % letter + str(ncpus) + " " + str(sched) + " HEMM" + " 1.0 -2.0 600 500 650 625 600")
-     test102 = local_popen(f, "%stesting " % letter + str(ncpus) + " " + str(sched) + " HERK" + " 1.0 -2.0 600 500 650 625")
+     test101 = local_popen(f, cmdbase + " HEMM" + " 1.0 -2.0 600 500 650 625 600")
+     test102 = local_popen(f, cmdbase + " HERK" + " 1.0 -2.0 600 500 650 625")
+     test103 = local_popen(f, cmdbase + " HER2K" + " 1.0 -2.0 600 500 650 625 613")
 
   test20 = local_popen(f, cmdbase + " POSV"  + " 500 600 25 700")
   test21 = local_popen(f, cmdbase + " POTRI" + " 500 600")
@@ -159,12 +161,13 @@ for dtype in range(4):
   test24 = local_popen(f, cmdbase + " GELS"  + " 0 400 800 825 25 810")
   test25 = local_popen(f, cmdbase + " GELS"  + " 1 400 800 825 25 810 4")
   test26 = local_popen(f, cmdbase + " GESV"  + " 800 825 25 810")
-  test27 = local_popen(f, cmdbase + " GETRI" + " 800 825")
-  test28 = local_popen(f, cmdbase + " GESVD" + " 0 825 800 855")
-  test29 = local_popen(f, cmdbase + " GESVD" + " 0 800 825 810")
-  test30 = local_popen(f, cmdbase + " HEGV"  + " 800 825 810")
-  test31 = local_popen(f, cmdbase + " HEEV"  + " 800 825")
-  test32 = local_popen(f, cmdbase + " HEGST" + " 800 825 810")
+  test27 = local_popen(f, cmdbase + " GESV_INCPIV"  + " 800 825 25 810")
+  test28 = local_popen(f, cmdbase + " GETRI" + " 800 825")
+  test29 = local_popen(f, cmdbase + " GESVD" + " 0 825 800 855")
+  test30 = local_popen(f, cmdbase + " GESVD" + " 0 800 825 810")
+  test31 = local_popen(f, cmdbase + " HEGV"  + " 800 825 810")
+  test32 = local_popen(f, cmdbase + " HEEV"  + " 800 825")
+  test33 = local_popen(f, cmdbase + " HEGST" + " 800 825 810")
   sys.stdout.flush()
 
 print " "

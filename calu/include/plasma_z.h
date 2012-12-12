@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @author Hatem Ltaief
  * @author Mathieu Faverge
@@ -29,10 +29,18 @@ extern "C" {
  *  Declarations of math functions (LAPACK layout) - alphabetical order
  **/
 int PLASMA_zgebrd(int M, int N, PLASMA_Complex64_t *A, int LDA, double *D, double *E, PLASMA_desc *descT);
+int PLASMA_zgecon(PLASMA_enum norm, int N, PLASMA_Complex64_t *A, int LDA, double anorm, double *rcond);
+int PLASMA_zpocon(PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA, double anorm, double *rcond);
 int PLASMA_zgelqf(int M, int N, PLASMA_Complex64_t *A, int LDA, PLASMA_desc *descT);
 int PLASMA_zgelqs(int M, int N, int NRHS, PLASMA_Complex64_t *A, int LDA, PLASMA_desc *descT, PLASMA_Complex64_t *B, int LDB);
 int PLASMA_zgels(PLASMA_enum trans, int M, int N, int NRHS, PLASMA_Complex64_t *A, int LDA, PLASMA_desc *descT, PLASMA_Complex64_t *B, int LDB);
 int PLASMA_zgemm(PLASMA_enum transA, PLASMA_enum transB, int M, int N, int K, PLASMA_Complex64_t alpha, PLASMA_Complex64_t *A, int LDA, PLASMA_Complex64_t *B, int LDB, PLASMA_Complex64_t beta, PLASMA_Complex64_t *C, int LDC);
+
+int PLASMA_zgeqp3( int M, int N,
+                   PLASMA_Complex64_t *A, int LDA,
+                   int *jpvt, PLASMA_Complex64_t *tau,
+                   PLASMA_Complex64_t *work, double *rwork );
+
 int PLASMA_zgeqrf(int M, int N, PLASMA_Complex64_t *A, int LDA, PLASMA_desc *descT);
 int PLASMA_zgeqrs(int M, int N, int NRHS, PLASMA_Complex64_t *A, int LDA, PLASMA_desc *descT, PLASMA_Complex64_t *B, int LDB);
 int PLASMA_zgesv(int N, int NRHS, PLASMA_Complex64_t *A, int LDA, int *IPIV, PLASMA_Complex64_t *B, int LDB);
@@ -55,11 +63,11 @@ int PLASMA_zhegvd(PLASMA_enum itype, PLASMA_enum jobz, PLASMA_enum uplo, int N, 
 int PLASMA_zhegst(PLASMA_enum itype, PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA, PLASMA_Complex64_t *B, int LDB);
 int PLASMA_zhetrd(PLASMA_enum jobz, PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA, double *D, double *E, PLASMA_desc *descT, PLASMA_Complex64_t *Q, int LDQ);
 int PLASMA_zlacpy(PLASMA_enum uplo, int M, int N, PLASMA_Complex64_t *A, int LDA, PLASMA_Complex64_t *B, int LDB);
-double PLASMA_zlange(PLASMA_enum norm, int M, int N, PLASMA_Complex64_t *A, int LDA, double *work);
+double PLASMA_zlange(PLASMA_enum norm, int M, int N, PLASMA_Complex64_t *A, int LDA);
 #ifdef COMPLEX
-double PLASMA_zlanhe(PLASMA_enum norm, PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA, double *work);
+double PLASMA_zlanhe(PLASMA_enum norm, PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA);
 #endif
-double PLASMA_zlansy(PLASMA_enum norm, PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA, double *work);
+double PLASMA_zlansy(PLASMA_enum norm, PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA);
 int PLASMA_zlaset(PLASMA_enum uplo, int M, int N, PLASMA_Complex64_t alpha, PLASMA_Complex64_t beta, PLASMA_Complex64_t *A, int LDA);
 int PLASMA_zlaswp(int N, PLASMA_Complex64_t *A, int LDA, int K1, int K2, int *IPIV, int INCX);
 int PLASMA_zlaswpc(int N, PLASMA_Complex64_t *A, int LDA, int K1, int K2, int *IPIV, int INCX);
@@ -93,10 +101,17 @@ int PLASMA_zgetmi(int m, int n, PLASMA_Complex64_t *A, PLASMA_enum fin, int mb, 
  *  Declarations of math functions (tile layout) - alphabetical order
  **/
 int PLASMA_zgebrd_Tile(PLASMA_desc *A, double *D, double *E, PLASMA_desc *T);
+int PLASMA_zgecon_Tile(PLASMA_enum norm, PLASMA_desc *A, double anorm, double *rcond);
+int PLASMA_zpocon_Tile(PLASMA_enum uplo, PLASMA_desc *A, double anorm, double *rcond);
 int PLASMA_zgelqf_Tile(PLASMA_desc *A, PLASMA_desc *T);
 int PLASMA_zgelqs_Tile(PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B);
 int PLASMA_zgels_Tile(PLASMA_enum trans, PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B);
 int PLASMA_zgemm_Tile(PLASMA_enum transA, PLASMA_enum transB, PLASMA_Complex64_t alpha, PLASMA_desc *A, PLASMA_desc *B, PLASMA_Complex64_t beta, PLASMA_desc *C);
+
+int PLASMA_zgeqp3_Tile( PLASMA_desc *A,
+                        int *jpvt, PLASMA_Complex64_t *tau,
+                        PLASMA_Complex64_t *work, double *rwork );
+
 int PLASMA_zgeqrf_Tile(PLASMA_desc *A, PLASMA_desc *T);
 int PLASMA_zgeqrs_Tile(PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B);
 int PLASMA_zgesv_Tile(PLASMA_desc *A, int *IPIV, PLASMA_desc *B);
@@ -119,11 +134,11 @@ int PLASMA_zhegvd_Tile(PLASMA_enum itype, PLASMA_enum jobz, PLASMA_enum uplo, PL
 int PLASMA_zhegst_Tile(PLASMA_enum itype, PLASMA_enum uplo, PLASMA_desc *A, PLASMA_desc *B);
 int PLASMA_zhetrd_Tile(PLASMA_enum jobz, PLASMA_enum uplo, PLASMA_desc *A, double *D, double *E, PLASMA_desc *T, PLASMA_Complex64_t *Q, int LDQ);
 int PLASMA_zlacpy_Tile(PLASMA_enum uplo, PLASMA_desc *A, PLASMA_desc *B);
-double PLASMA_zlange_Tile(PLASMA_enum norm, PLASMA_desc *A, double *work);
+double PLASMA_zlange_Tile(PLASMA_enum norm, PLASMA_desc *A);
 #ifdef COMPLEX
-double PLASMA_zlanhe_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *work);
+double PLASMA_zlanhe_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A);
 #endif
-double PLASMA_zlansy_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *work);
+double PLASMA_zlansy_Tile(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A);
 int PLASMA_zlaset_Tile(PLASMA_enum uplo, PLASMA_Complex64_t alpha, PLASMA_Complex64_t beta, PLASMA_desc *A);
 int PLASMA_zlaswp_Tile(PLASMA_desc *A, int K1, int K2, int *IPIV, int INCX);
 int PLASMA_zlaswpc_Tile(PLASMA_desc *A, int K1, int K2, int *IPIV, int INCX);
@@ -154,10 +169,17 @@ int PLASMA_zunmqr_Tile(PLASMA_enum side, PLASMA_enum trans, PLASMA_desc *A, PLAS
  *  Declarations of math functions (tile layout, asynchronous execution) - alphabetical order
  **/
 int PLASMA_zgebrd_Tile_Async(PLASMA_desc *A, double *D, double *E, PLASMA_desc *T, PLASMA_sequence *sequence, PLASMA_request *request);
+int PLASMA_zgecon_Tile_Async(PLASMA_enum norm, PLASMA_desc *A, double anorm, double *rcond, PLASMA_sequence *sequence, PLASMA_request *request);
+int PLASMA_zpocon_Tile_Async(PLASMA_enum uplo, PLASMA_desc *A, double anorm, double *rcond, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zgelqf_Tile_Async(PLASMA_desc *A, PLASMA_desc *T, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zgelqs_Tile_Async(PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zgels_Tile_Async(PLASMA_enum trans, PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zgemm_Tile_Async(PLASMA_enum transA, PLASMA_enum transB, PLASMA_Complex64_t alpha, PLASMA_desc *A, PLASMA_desc *B, PLASMA_Complex64_t beta, PLASMA_desc *C, PLASMA_sequence *sequence, PLASMA_request *request);
+
+int PLASMA_zgeqp3_Tile_Async( PLASMA_desc *A, int *jpvt, PLASMA_Complex64_t *tau,
+                              PLASMA_Complex64_t *work, double *rwork,
+                              PLASMA_sequence *sequence, PLASMA_request *request );
+
 int PLASMA_zgeqrf_Tile_Async(PLASMA_desc *A, PLASMA_desc *T, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zgeqrs_Tile_Async(PLASMA_desc *A, PLASMA_desc *T, PLASMA_desc *B, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zgesv_Tile_Async(PLASMA_desc *A, int *IPIV, PLASMA_desc *B, PLASMA_sequence *sequence, PLASMA_request *request);
@@ -180,11 +202,11 @@ int PLASMA_zhegvd_Tile_Async(PLASMA_enum itype, PLASMA_enum jobz, PLASMA_enum up
 int PLASMA_zhegst_Tile_Async(PLASMA_enum itype, PLASMA_enum uplo, PLASMA_desc *A, PLASMA_desc *B, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zhetrd_Tile_Async(PLASMA_enum jobz, PLASMA_enum uplo, PLASMA_desc *A, double *D, double *E, PLASMA_desc *T, PLASMA_Complex64_t *Q, int LDQ, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zlacpy_Tile_Async(PLASMA_enum uplo, PLASMA_desc *A, PLASMA_desc *B, PLASMA_sequence *sequence, PLASMA_request *request);
-int PLASMA_zlange_Tile_Async(PLASMA_enum norm, PLASMA_desc *A, double *work, double *value, PLASMA_sequence *sequence, PLASMA_request *request);
+int PLASMA_zlange_Tile_Async(PLASMA_enum norm, PLASMA_desc *A, double *value, PLASMA_sequence *sequence, PLASMA_request *request);
 #ifdef COMPLEX
-int PLASMA_zlanhe_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *work, double *value, PLASMA_sequence *sequence, PLASMA_request *request);
+int PLASMA_zlanhe_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *value, PLASMA_sequence *sequence, PLASMA_request *request);
 #endif
-int PLASMA_zlansy_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *work, double *value, PLASMA_sequence *sequence, PLASMA_request *request);
+int PLASMA_zlansy_Tile_Async(PLASMA_enum norm, PLASMA_enum uplo, PLASMA_desc *A, double *value, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zlaset_Tile_Async(PLASMA_enum uplo, PLASMA_Complex64_t alpha, PLASMA_Complex64_t beta, PLASMA_desc *A, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zlaswp_Tile_Async(PLASMA_desc *A, int K1, int K2, int *IPIV, int INCX, PLASMA_sequence *sequence, PLASMA_request *request);
 int PLASMA_zlaswpc_Tile_Async(PLASMA_desc *A, int K1, int K2, int *IPIV, int INCX, PLASMA_sequence *sequence, PLASMA_request *request);

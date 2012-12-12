@@ -8,7 +8,7 @@
 # This file set all the common variables used by all Makefile of
 # the project thanks to make.inc
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Mathieu Faverge
 # @date 2010-11-15
 #

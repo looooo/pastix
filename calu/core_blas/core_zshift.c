@@ -10,7 +10,7 @@
  *  based on the GKK algorithm by Gustavson, Karlsson, Kagstrom
  *  and its fortran implementation.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  *
@@ -65,7 +65,8 @@
 #endif
 void CORE_zshiftw(int s, int cl, int m, int n, int L, PLASMA_Complex64_t *A, PLASMA_Complex64_t *W) {
     int64_t k, k1;
-    int     i, j, q, kL, k1L;
+    int     i, q, kL, k1L;
+    size_t  chunk_size = L*sizeof(PLASMA_Complex64_t);
 
     q = m * n - 1;
     k = s;
@@ -78,9 +79,7 @@ void CORE_zshiftw(int s, int cl, int m, int n, int L, PLASMA_Complex64_t *A, PLA
             kL  = k *L;
             k1L = k1*L;
 
-            for(j=0; j<L; j++) {
-                A[kL+j] = A[k1L+j];
-            }
+            memcpy( A+kL, A+k1L, chunk_size);
             k = k1;
         }
     }
@@ -93,13 +92,12 @@ void CORE_zshiftw(int s, int cl, int m, int n, int L, PLASMA_Complex64_t *A, PLA
             /* A(k*L:k*L+L-1) = A(k1*L:k1*L+L-1) */
             kL  = k *L;
             k1L = k1*L;
-            for (j=0; j<L; j++) {
-                A[kL+j] = A[k1L+j];
-            }
+            memcpy( A+kL, A+k1L, chunk_size);
             k = k1;
         }
     }
-    memcpy(&(A[k*L]), W, L*sizeof(PLASMA_Complex64_t));
+    kL = k*L;
+    memcpy(A+kL, W, chunk_size);
 }
 
 /***************************************************************************//**

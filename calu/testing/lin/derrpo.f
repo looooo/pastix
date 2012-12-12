@@ -2,7 +2,6 @@
 *
       INCLUDE 'plasmaf.h'
 *
-*
 *  -- LAPACK test routine (version 3.1) --
 *     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
 *     November 2006
@@ -87,12 +86,13 @@
          X( J ) = 0.D0
          IW( J ) = J
    20 CONTINUE
+      ANRM = 1.D0
       OK = .TRUE.
 *
-      IF( LSAMEN( 2, C2, 'PO' ) ) THEN
+*     Test error exits of the routines that use the Cholesky
+*     decomposition of a Symmetric positive definite matrix.
 *
-*        Test error exits of the routines that use the Cholesky
-*        decomposition of a symmetric positive definite matrix.
+      IF( LSAMEN( 2, C2, 'PO' ) ) THEN
 *
 *        DPOTRF
 *
@@ -106,6 +106,19 @@
          INFOT = 4
          CALL PLASMA_DPOTRF( PLASMAUPPER, 2, A, 1, INFO )
          CALL CHKXER( 'DPOTRF', INFOT, NOUT, INFO, OK )
+*
+*        DPOTRI
+*
+         SRNAMT = 'DPOTRI'
+         INFOT = 1
+         CALL PLASMA_DPOTRI( '/', 0, A, 1, INFO )
+         CALL CHKXER( 'DPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_DPOTRI( PLASMAUPPER, -1, A, 1, INFO )
+         CALL CHKXER( 'DPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_DPOTRI( PLASMAUPPER, 2, A, 1, INFO )
+         CALL CHKXER( 'DPOTRI', INFOT, NOUT, INFO, OK )
 *
 *        DPOTRS
 *
@@ -124,7 +137,22 @@
          CALL CHKXER( 'DPOTRS', INFOT, NOUT, INFO, OK )
          INFOT = 7
          CALL PLASMA_DPOTRS( PLASMAUPPER, 2, 1, A, 2, B, 1, INFO )
-         CALL CHKXER( 'DPOTRS', INFOT, NOUT, INFO, OK )
+*
+*        DPOCON
+*
+         SRNAMT = 'DPOCON'
+         INFOT = 1
+         CALL PLASMA_DPOCON( '/', 0, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'DPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_DPOCON( PLASMAUPPER, -1, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'DPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_DPOCON( PLASMAUPPER, 2, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'DPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 5
+         CALL PLASMA_DPOCON( PLASMAUPPER, 1, A, 1, -ANRM, RCOND, INFO )
+         CALL CHKXER( 'DPOCON', INFOT, NOUT, INFO, OK )
       END IF
 *
 *     Print a summary line.

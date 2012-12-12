@@ -613,7 +613,7 @@ module plasma_z
       end interface
 
       interface
-         function PLASMA_zlange_c(norm,M,N,A,LDA,work) &
+         function PLASMA_zlange_c(norm,M,N,A,LDA) &
           & bind(c, name='PLASMA_zlange')
             use iso_c_binding
             implicit none
@@ -623,13 +623,12 @@ module plasma_z
             integer(kind=c_int), value :: N
             type(c_ptr), value :: A
             integer(kind=c_int), value :: LDA
-            type(c_ptr), value :: work
           end function PLASMA_zlange_c
       end interface
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
       interface
-         function PLASMA_zlanhe_c(norm,uplo,N,A,LDA,work) &
+         function PLASMA_zlanhe_c(norm,uplo,N,A,LDA) &
           & bind(c, name='PLASMA_zlanhe')
             use iso_c_binding
             implicit none
@@ -639,13 +638,12 @@ module plasma_z
             integer(kind=c_int), value :: N
             type(c_ptr), value :: A
             integer(kind=c_int), value :: LDA
-            type(c_ptr), value :: work
           end function PLASMA_zlanhe_c
       end interface
 #endif
 
       interface
-         function PLASMA_zlansy_c(norm,uplo,N,A,LDA,work) &
+         function PLASMA_zlansy_c(norm,uplo,N,A,LDA) &
           & bind(c, name='PLASMA_zlansy')
             use iso_c_binding
             implicit none
@@ -655,7 +653,6 @@ module plasma_z
             integer(kind=c_int), value :: N
             type(c_ptr), value :: A
             integer(kind=c_int), value :: LDA
-            type(c_ptr), value :: work
           end function PLASMA_zlansy_c
       end interface
 
@@ -1400,20 +1397,19 @@ module plasma_z
       end interface
 
       interface
-         function PLASMA_zlange_Tile_c(norm,A,work) &
+         function PLASMA_zlange_Tile_c(norm,A) &
           & bind(c, name='PLASMA_zlange_Tile')
             use iso_c_binding
             implicit none
             real(kind=c_double) :: PLASMA_zlange_Tile_c
             integer(kind=c_int), value :: norm
             type(c_ptr), value :: A
-            type(c_ptr), value :: work
           end function PLASMA_zlange_Tile_c
       end interface
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
       interface
-         function PLASMA_zlanhe_Tile_c(norm,uplo,A,work) &
+         function PLASMA_zlanhe_Tile_c(norm,uplo,A) &
           & bind(c, name='PLASMA_zlanhe_Tile')
             use iso_c_binding
             implicit none
@@ -1421,13 +1417,12 @@ module plasma_z
             integer(kind=c_int), value :: norm
             integer(kind=c_int), value :: uplo
             type(c_ptr), value :: A
-            type(c_ptr), value :: work
           end function PLASMA_zlanhe_Tile_c
       end interface
 #endif
 
       interface
-         function PLASMA_zlansy_Tile_c(norm,uplo,A,work) &
+         function PLASMA_zlansy_Tile_c(norm,uplo,A) &
           & bind(c, name='PLASMA_zlansy_Tile')
             use iso_c_binding
             implicit none
@@ -1435,7 +1430,6 @@ module plasma_z
             integer(kind=c_int), value :: norm
             integer(kind=c_int), value :: uplo
             type(c_ptr), value :: A
-            type(c_ptr), value :: work
           end function PLASMA_zlansy_Tile_c
       end interface
 
@@ -2151,14 +2145,13 @@ module plasma_z
       end interface
 
       interface
-         function PLASMA_zlange_Tile_Async_c(norm,A,work,value,sequence,request) &
+         function PLASMA_zlange_Tile_Async_c(norm,A,value,sequence,request) &
           & bind(c, name='PLASMA_zlange_Tile_Async')
             use iso_c_binding
             implicit none
             integer(kind=c_int) :: PLASMA_zlange_Tile_Async_c
             integer(kind=c_int), value :: norm
             type(c_ptr), value :: A
-            type(c_ptr), value :: work
             type(c_ptr), value :: value
             type(c_ptr), value :: sequence
             type(c_ptr), value :: request
@@ -2167,7 +2160,7 @@ module plasma_z
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
       interface
-         function PLASMA_zlanhe_Tile_Async_c(norm,uplo,A,work,value,sequence,request) &
+         function PLASMA_zlanhe_Tile_Async_c(norm,uplo,A,value,sequence,request) &
           & bind(c, name='PLASMA_zlanhe_Tile_Async')
             use iso_c_binding
             implicit none
@@ -2175,7 +2168,6 @@ module plasma_z
             integer(kind=c_int), value :: norm
             integer(kind=c_int), value :: uplo
             type(c_ptr), value :: A
-            type(c_ptr), value :: work
             type(c_ptr), value :: value
             type(c_ptr), value :: sequence
             type(c_ptr), value :: request
@@ -2184,7 +2176,7 @@ module plasma_z
 #endif
 
       interface
-         function PLASMA_zlansy_Tile_Async_c(norm,uplo,A,work,value,sequence,request) &
+         function PLASMA_zlansy_Tile_Async_c(norm,uplo,A,value,sequence,request) &
           & bind(c, name='PLASMA_zlansy_Tile_Async')
             use iso_c_binding
             implicit none
@@ -2192,7 +2184,6 @@ module plasma_z
             integer(kind=c_int), value :: norm
             integer(kind=c_int), value :: uplo
             type(c_ptr), value :: A
-            type(c_ptr), value :: work
             type(c_ptr), value :: value
             type(c_ptr), value :: sequence
             type(c_ptr), value :: request
@@ -3161,45 +3152,42 @@ module plasma_z
          info = PLASMA_zhetrd_c(jobz,uplo,N,c_loc(A),LDA,c_loc(D),c_loc(E),descT,c_loc(Q),LDQ)
       end subroutine PLASMA_zhetrd
 
-      function PLASMA_zlange(norm,M,N,A,LDA,work)
+      function PLASMA_zlange(norm,M,N,A,LDA)
          use iso_c_binding
          implicit none
          real(kind=c_double) :: PLASMA_zlange
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          integer(kind=c_int), intent(in) :: LDA
          integer(kind=c_int), intent(in) :: M
          integer(kind=c_int), intent(in) :: N
          complex(kind=c_double_complex), intent(in), target :: A(LDA,*)
-         PLASMA_zlange = PLASMA_zlange_c(norm,M,N,c_loc(A),LDA,c_loc(work))
+         PLASMA_zlange = PLASMA_zlange_c(norm,M,N,c_loc(A),LDA)
       end function PLASMA_zlange
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-      function PLASMA_zlanhe(norm,uplo,N,A,LDA,work)
+      function PLASMA_zlanhe(norm,uplo,N,A,LDA)
          use iso_c_binding
          implicit none
          real(kind=c_double) :: PLASMA_zlanhe
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          integer(kind=c_int), intent(in) :: uplo
          integer(kind=c_int), intent(in) :: LDA
          integer(kind=c_int), intent(in) :: N
          complex(kind=c_double_complex), intent(in), target :: A(LDA,*)
-         PLASMA_zlanhe = PLASMA_zlanhe_c(norm,uplo,N,c_loc(A),LDA,c_loc(work))
+         PLASMA_zlanhe = PLASMA_zlanhe_c(norm,uplo,N,c_loc(A),LDA)
       end function PLASMA_zlanhe
 #endif
 
-      function PLASMA_zlansy(norm,uplo,N,A,LDA,work)
+      function PLASMA_zlansy(norm,uplo,N,A,LDA)
          use iso_c_binding
          implicit none
          real(kind=c_double) :: PLASMA_zlansy
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          integer(kind=c_int), intent(in) :: uplo
          integer(kind=c_int), intent(in) :: LDA
          integer(kind=c_int), intent(in) :: N
          complex(kind=c_double_complex), intent(inout), target :: A(LDA,*)
-         PLASMA_zlansy = PLASMA_zlansy_c(norm,uplo,N,c_loc(A),LDA,c_loc(work))
+         PLASMA_zlansy = PLASMA_zlansy_c(norm,uplo,N,c_loc(A),LDA)
       end function PLASMA_zlansy
 
       subroutine PLASMA_zlaswp(N,A,LDA,K1,K2,IPIV,INCX,info)
@@ -3874,38 +3862,35 @@ module plasma_z
          info = PLASMA_zhetrd_Tile_c(jobz,uplo,A,c_loc(D),c_loc(E),T,c_loc(Q),LDQ)
       end subroutine PLASMA_zhetrd_Tile
 
-      function PLASMA_zlange_Tile(norm,A,work)
+      function PLASMA_zlange_Tile(norm,A)
          use iso_c_binding
          implicit none
          real(kind=c_double) :: PLASMA_zlange_Tile
          integer(kind=c_int), intent(in) :: norm
          type(c_ptr), value :: A ! Arg managed by PLASMA: opaque to Fortran
-         real(kind=c_double), intent(inout), target :: work(*)
-         PLASMA_zlange_Tile = PLASMA_zlange_Tile_c(norm,A,c_loc(work))
+         PLASMA_zlange_Tile = PLASMA_zlange_Tile_c(norm,A)
        end function PLASMA_zlange_Tile
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-      function PLASMA_zlanhe_Tile(norm,uplo,A,work)
+      function PLASMA_zlanhe_Tile(norm,uplo,A)
          use iso_c_binding
          implicit none
          real(kind=c_double) :: PLASMA_zlanhe_Tile
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          integer(kind=c_int), intent(in) :: uplo
          type(c_ptr), value :: A ! Arg managed by PLASMA: opaque to Fortran
-         PLASMA_zlanhe_Tile = PLASMA_zlanhe_Tile_c(norm,uplo,A,c_loc(work))
+         PLASMA_zlanhe_Tile = PLASMA_zlanhe_Tile_c(norm,uplo,A)
       end function PLASMA_zlanhe_Tile
 #endif
 
-      function PLASMA_zlansy_Tile(norm,uplo,A,work)
+      function PLASMA_zlansy_Tile(norm,uplo,A)
          use iso_c_binding
          implicit none
          real(kind=c_double) :: PLASMA_zlansy_Tile
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          integer(kind=c_int), intent(in) :: uplo
          type(c_ptr), value :: A ! Arg managed by PLASMA: opaque to Fortran
-         PLASMA_zlansy_Tile = PLASMA_zlansy_Tile_c(norm,uplo,A,c_loc(work))
+         PLASMA_zlansy_Tile = PLASMA_zlansy_Tile_c(norm,uplo,A)
       end function PLASMA_zlansy_Tile
 
       subroutine PLASMA_zlaswp_Tile(A,K1,K2,IPIV,INCX,info)
@@ -4200,31 +4185,29 @@ module plasma_z
          info = PLASMA_zgetri_Tile_Async_c(A,c_loc(IPIV),W,sequence,request)
       end subroutine PLASMA_zgetri_Tile_Async
 
-      subroutine PLASMA_zlange_Tile_Async(norm,A,work,value,sequence,request,info)
+      subroutine PLASMA_zlange_Tile_Async(norm,A,value,sequence,request,info)
          use iso_c_binding
          implicit none
          integer(kind=c_int) :: info
          real(kind=c_double), intent(out), target :: value
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          type(c_ptr), value :: A ! Arg managed by PLASMA: opaque to Fortran
          type(c_ptr), value :: request ! Arg managed by PLASMA: opaque to Fortran
          type(c_ptr), value :: sequence ! Arg managed by PLASMA: opaque to Fortran
-         info = PLASMA_zlange_Tile_Async_c(norm,A,c_loc(work),c_loc(value),sequence,request)
+         info = PLASMA_zlange_Tile_Async_c(norm,A,c_loc(value),sequence,request)
       end subroutine PLASMA_zlange_Tile_Async
 
-      subroutine PLASMA_zlansy_Tile_Async(norm,uplo,A,work,value,sequence,request,info)
+      subroutine PLASMA_zlansy_Tile_Async(norm,uplo,A,value,sequence,request,info)
          use iso_c_binding
          implicit none
          integer(kind=c_int) :: info
          real(kind=c_double), intent(out), target :: value
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          integer(kind=c_int), intent(in) :: uplo
          type(c_ptr), value :: A ! Arg managed by PLASMA: opaque to Fortran
          type(c_ptr), value :: request ! Arg managed by PLASMA: opaque to Fortran
          type(c_ptr), value :: sequence ! Arg managed by PLASMA: opaque to Fortran
-         info = PLASMA_zlansy_Tile_Async_c(norm,uplo,A,c_loc(work),c_loc(value),sequence,request)
+         info = PLASMA_zlansy_Tile_Async_c(norm,uplo,A,c_loc(value),sequence,request)
       end subroutine PLASMA_zlansy_Tile_Async
 
       subroutine PLASMA_zgebrd_Tile_Async(A,D,E,T,sequence,request,info)
@@ -4584,18 +4567,17 @@ module plasma_z
       end subroutine PLASMA_zhetrd_Tile_Async
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-      subroutine PLASMA_zlanhe_Tile_Async(norm,uplo,A,work,value,sequence,request,info)
+      subroutine PLASMA_zlanhe_Tile_Async(norm,uplo,A,value,sequence,request,info)
          use iso_c_binding
          implicit none
          integer(kind=c_int), intent(out) :: info
-         real(kind=c_double), intent(inout), target :: work(*)
          integer(kind=c_int), intent(in) :: norm
          integer(kind=c_int), intent(in) :: uplo
          integer(kind=c_int), intent(out), target :: value
          type(c_ptr), value :: A ! Arg managed by PLASMA: opaque to Fortran
          type(c_ptr), value :: sequence ! Arg managed by PLASMA: opaque to Fortran
          type(c_ptr), value :: request ! Arg managed by PLASMA: opaque to Fortran
-         info = PLASMA_zlanhe_Tile_Async_c(norm,uplo,A,c_loc(work),c_loc(value),sequence,request)
+         info = PLASMA_zlanhe_Tile_Async_c(norm,uplo,A,c_loc(value),sequence,request)
       end subroutine PLASMA_zlanhe_Tile_Async
 #endif
 

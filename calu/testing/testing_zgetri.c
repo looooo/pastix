@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Hatem Ltaief
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -113,7 +113,6 @@ static int check_factorization(int N, PLASMA_Complex64_t *A1, PLASMA_Complex64_t
     int info_factorization;
     double Rnorm, Anorm, Xnorm, Bnorm, result;
     PLASMA_Complex64_t alpha, beta;
-    double *work = (double *)malloc(N*sizeof(double));
 
     alpha = 1.0;
     beta  = -1.0;
@@ -126,14 +125,14 @@ static int check_factorization(int N, PLASMA_Complex64_t *A1, PLASMA_Complex64_t
 
     PLASMA_zgetrs( PlasmaNoTrans, N, 1, A2, LDA, IPIV, x, LDA );
 
-    Xnorm = PLASMA_zlange(PlasmaInfNorm, N, 1, x,  LDA, work);
-    Anorm = PLASMA_zlange(PlasmaInfNorm, N, N, A1, LDA, work);
-    Bnorm = PLASMA_zlange(PlasmaInfNorm, N, 1, b,  LDA, work);
+    Xnorm = PLASMA_zlange(PlasmaInfNorm, N, 1, x,  LDA);
+    Anorm = PLASMA_zlange(PlasmaInfNorm, N, N, A1, LDA);
+    Bnorm = PLASMA_zlange(PlasmaInfNorm, N, 1, b,  LDA);
 
     PLASMA_zgemm( PlasmaNoTrans, PlasmaNoTrans, N, 1, N, 
                   alpha, A1, LDA, x, LDA, beta, b, LDA);
     
-    Rnorm = PLASMA_zlange(PlasmaInfNorm, N, 1, b, LDA, work);
+    Rnorm = PLASMA_zlange(PlasmaInfNorm, N, 1, b, LDA);
 
     if (getenv("PLASMA_TESTING_VERBOSE"))
       printf( "||A||_oo=%f\n||X||_oo=%f\n||B||_oo=%f\n||A X - B||_oo=%e\n", Anorm, Xnorm, Bnorm, Rnorm );
@@ -151,7 +150,7 @@ static int check_factorization(int N, PLASMA_Complex64_t *A1, PLASMA_Complex64_t
         printf("-- The factorization is CORRECT ! \n");
         info_factorization = 0;
     }
-    free(x); free(b); free(work);
+    free(x); free(b);
 
     return info_factorization;
 }
@@ -167,7 +166,6 @@ static int check_inverse(int N, PLASMA_Complex64_t *A1, PLASMA_Complex64_t *A2, 
     int i;
     double Rnorm, Anorm, Ainvnorm, result;
     PLASMA_Complex64_t alpha, beta, zone;
-    double *W = (double *)malloc(N*sizeof(double));
     PLASMA_Complex64_t *work = (PLASMA_Complex64_t *)malloc(N*N*sizeof(PLASMA_Complex64_t));
 
     alpha = -1.0;
@@ -180,9 +178,9 @@ static int check_inverse(int N, PLASMA_Complex64_t *A1, PLASMA_Complex64_t *A2, 
     for(i=0; i<N; i++)
         *(work+i+i*N) = *(work+i+i*N) + zone;
 
-    Rnorm    = PLASMA_zlange(PlasmaInfNorm, N, N, work, N,   W);
-    Anorm    = PLASMA_zlange(PlasmaInfNorm, N, N, A1,   LDA, W);
-    Ainvnorm = PLASMA_zlange(PlasmaInfNorm, N, N, A2,   LDA, W);
+    Rnorm    = PLASMA_zlange(PlasmaInfNorm, N, N, work, N);
+    Anorm    = PLASMA_zlange(PlasmaInfNorm, N, N, A1,   LDA);
+    Ainvnorm = PLASMA_zlange(PlasmaInfNorm, N, N, A2,   LDA);
 
     if (getenv("PLASMA_TESTING_VERBOSE"))
       printf( "||A||_1=%f\n||Ainv||_1=%f\n||Id - A*Ainv||_1=%e\n", Anorm, Ainvnorm, Rnorm );
@@ -201,7 +199,6 @@ static int check_inverse(int N, PLASMA_Complex64_t *A1, PLASMA_Complex64_t *A2, 
         info_inverse = 0;
     }
 
-    free(W);
     free(work);
 
     return info_inverse;

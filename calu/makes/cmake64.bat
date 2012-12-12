@@ -5,7 +5,7 @@ REM #
 REM #  PLASMA is a software package provided by Univ. of Tennessee,
 REM #  Univ. of California Berkeley and Univ. of Colorado Denver
 REM #
-REM # @version 2.4.6
+REM # @version 2.5.0
 REM # @author Piotr Luszczek
 REM # @date 2010-11-15
 REM #

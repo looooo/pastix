@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  *
@@ -121,6 +121,11 @@ enum coreblas_ev_code_e {
     COREBLAS_SYGST,
     COREBLAS_HERFB,
     COREBLAS_SYRFB,
+    COREBLAS_LARFG,
+    COREBLAS_GEQP3_NORMS,
+    COREBLAS_GEQP3_PIVOT,
+    COREBLAS_GEQP3_UPDATE,
+    COREBLAS_SETVAR,
     COREBLAS_NBMAX_EVENTS,
 };
 

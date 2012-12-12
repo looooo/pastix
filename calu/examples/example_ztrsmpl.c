@@ -9,7 +9,7 @@
  * @brief Example for solving a system of linear equations using 
  *        LU factorization and PLASMA_ztrsmpl routine
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Bilel Hadri
  * @date 2010-11-15
  * @precisions normal z -> c d s

@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -152,6 +152,8 @@ int CORE_zlaswp_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int i
 
     /* Change i1 to C notation */
     i1--;
+
+    /* Check parameters */
     if ( descA.nt > 1 ) {
         coreblas_error(1, "Illegal value of descA.nt");
         return -1;
@@ -160,7 +162,7 @@ int CORE_zlaswp_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int i
         coreblas_error(2, "Illegal value of i1");
         return -2;
     }
-    if ( (i2 < i1) || (i2 > descA.m) ) {
+    if ( (i2 <= i1) || (i2 > descA.m) ) {
         coreblas_error(3, "Illegal value of i2");
         return -3;
     }
@@ -169,8 +171,8 @@ int CORE_zlaswp_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int i
         return -3;
     }
 
-    it = i1 / descA.mb;
     if (inc > 0) {
+        it = i1 / descA.mb;
         A1 = A(it, 0);
         lda1 = BLKLDD(descA, 0);
 
@@ -188,8 +190,9 @@ int CORE_zlaswp_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int i
     }
     else
     {
+        it = (i2-1) / descA.mb;
         A1 = A(it, 0);
-        lda1 = BLKLDD(descA, descA.mt-1);
+        lda1 = BLKLDD(descA, it);
 
         i1--;
         ipiv = &ipiv[(1-i2)*inc];
@@ -455,15 +458,19 @@ int CORE_zlaswpc_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int 
     PLASMA_Complex64_t *A1;
     int lda;
 
+    /* Change i1 to C notation */
+    i1--;
+
+    /* Check parameters */
     if ( descA.mt > 1 ) {
         coreblas_error(1, "Illegal value of descA.mt");
         return -1;
     }
-    if ( i1 < 1 ) {
+    if ( i1 < 0 ) {
         coreblas_error(2, "Illegal value of i1");
         return -2;
     }
-    if ( (i2 < i1) || (i2 > descA.n) ) {
+    if ( (i2 <= i1) || (i2 > descA.n) ) {
         coreblas_error(3, "Illegal value of i2");
         return -3;
     }
@@ -474,8 +481,8 @@ int CORE_zlaswpc_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int 
 
     lda = BLKLDD(descA, 0);
 
-    it = i1 / descA.nb;
     if (inc > 0) {
+        it = i1 / descA.nb;
         A1 = A(0, it);
 
         for (j = i1-1; j < i2; ++j, ipiv+=inc) {
@@ -491,8 +498,10 @@ int CORE_zlaswpc_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int 
     }
     else
     {
+        it = (i2-1) / descA.mb;
         A1 = A(0, it);
-        i1 -= 2;
+
+        i1--;
         ipiv = &ipiv[(1-i2)*inc];
         for (j = i2-1; j > i1; --j, ipiv+=inc) {
             ip = (*ipiv) - descA.j - 1;

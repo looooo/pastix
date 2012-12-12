@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> s d c
@@ -56,7 +56,8 @@
  *
  * @param[in] LDA
  *          The leading dimension of the array A. LDA must be at least
- *          max( 1, N ), otherwise LDA must be at least max( 1, K ).
+ *          max( 1, N ) if trans == PlasmaNoTrans, otherwise LDA must
+ *          be at least max( 1, K ).
  *
  * @param[in] beta
  *          beta specifies the scalar beta

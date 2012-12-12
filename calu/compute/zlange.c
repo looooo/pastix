@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> s d c
@@ -56,11 +56,6 @@
  * @param[in] LDA
  *          The leading dimension of the array A. LDA >= max(1,M).
  *
- * @param[in] work
- *          double precision array of dimension (MAX(1,LWORK)), where
- *          LWORK >= M when NORM = PlasmaInfNorm; otherwise, WORK is
- *          not referenced.
- *
  *******************************************************************************
  *
  * @return
@@ -76,7 +71,7 @@
  *
  ******************************************************************************/
 double PLASMA_zlange(PLASMA_enum norm, int M, int N,
-                     PLASMA_Complex64_t *A, int LDA, double *work)
+                     PLASMA_Complex64_t *A, int LDA)
 {
     int NB;
     int status;
@@ -135,7 +130,7 @@ double PLASMA_zlange(PLASMA_enum norm, int M, int N,
     }
 
     /* Call the tile interface */
-    PLASMA_zlange_Tile_Async(norm, &descA, work, &value, sequence, &request);
+    PLASMA_zlange_Tile_Async(norm, &descA, &value, sequence, &request);
 
     if ( PLASMA_TRANSLATION == PLASMA_OUTOFPLACE ) {
         plasma_dynamic_sync();
@@ -173,11 +168,6 @@ double PLASMA_zlange(PLASMA_enum norm, int M, int N,
  *          if UPLO = 'L', the lower triangle of A is overwritten with
  *          the lower triangle of the product L' * L.
  *
- * @param[in] work
- *          double precision array of dimension (MAX(1,LWORK)), where
- *          LWORK >= M when NORM = PlasmaInfNorm; otherwise, WORK is
- *          not referenced.
- *
  *******************************************************************************
  *
  * @return
@@ -192,7 +182,7 @@ double PLASMA_zlange(PLASMA_enum norm, int M, int N,
  * @sa PLASMA_slange_Tile
  *
  ******************************************************************************/
-double PLASMA_zlange_Tile(PLASMA_enum norm, PLASMA_desc *A, double *work)
+double PLASMA_zlange_Tile(PLASMA_enum norm, PLASMA_desc *A)
 {
     plasma_context_t *plasma;
     PLASMA_sequence *sequence = NULL;
@@ -205,7 +195,7 @@ double PLASMA_zlange_Tile(PLASMA_enum norm, PLASMA_desc *A, double *work)
         return PLASMA_ERR_NOT_INITIALIZED;
     }
     plasma_sequence_create(plasma, &sequence);
-    PLASMA_zlange_Tile_Async(norm, A, work, &value, sequence, &request);
+    PLASMA_zlange_Tile_Async(norm, A, &value, sequence, &request);
     plasma_dynamic_sync();
     plasma_sequence_destroy(plasma, sequence);
     return value;
@@ -237,10 +227,11 @@ double PLASMA_zlange_Tile(PLASMA_enum norm, PLASMA_desc *A, double *work)
  * @sa PLASMA_slange_Tile_Async
  *
  ******************************************************************************/
-int PLASMA_zlange_Tile_Async(PLASMA_enum norm, PLASMA_desc *A, double *work, double *value,
+int PLASMA_zlange_Tile_Async(PLASMA_enum norm, PLASMA_desc *A, double *value,
                              PLASMA_sequence *sequence, PLASMA_request *request)
 {
     PLASMA_desc descA;
+    double *work = NULL;
     plasma_context_t *plasma;
 
     plasma = plasma_context_self();
@@ -285,6 +276,14 @@ int PLASMA_zlange_Tile_Async(PLASMA_enum norm, PLASMA_desc *A, double *work, dou
         return PLASMA_SUCCESS;
     }
 
+    if (PLASMA_SCHEDULING == PLASMA_STATIC_SCHEDULING) {
+        if (norm == PlasmaFrobeniusNorm) {
+            work = plasma_shared_alloc(plasma, 2*PLASMA_SIZE, PlasmaRealDouble );
+        } else {
+            work = plasma_shared_alloc(plasma,   PLASMA_SIZE, PlasmaRealDouble );
+        }
+    }
+
     plasma_parallel_call_6(plasma_pzlange,
         PLASMA_enum, norm,
         PLASMA_desc, descA,
@@ -292,6 +291,9 @@ int PLASMA_zlange_Tile_Async(PLASMA_enum norm, PLASMA_desc *A, double *work, dou
         double*, value,
         PLASMA_sequence*, sequence,
         PLASMA_request*, request);
+
+    if (work != NULL)
+        plasma_shared_free( plasma, work );
 
     return PLASMA_SUCCESS;
 }

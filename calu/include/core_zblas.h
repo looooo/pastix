@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Jakub Kurzak
  * @author Hatem Ltaief
  * @author Mathieu Faverge
@@ -54,6 +54,31 @@ void CORE_zgemm(PLASMA_enum transA, PLASMA_enum transB,
                 PLASMA_Complex64_t alpha, const PLASMA_Complex64_t *A, int LDA,
                                           const PLASMA_Complex64_t *B, int LDB,
                 PLASMA_Complex64_t beta,        PLASMA_Complex64_t *C, int LDC);
+void CORE_zgemm_tile(PLASMA_enum transA, PLASMA_enum transB,
+                     int M, int N, int K,
+                     const PLASMA_Complex64_t *alpha, const PLASMA_Complex64_t *A, int LDA,
+                                                      const PLASMA_Complex64_t *B, int LDB,
+                     const PLASMA_Complex64_t *beta,        PLASMA_Complex64_t *C, int LDC);
+void CORE_zgemv(PLASMA_enum trans, int M, int N,
+                PLASMA_Complex64_t alpha, const PLASMA_Complex64_t *A, int LDA,
+                                          const PLASMA_Complex64_t *x, int incx,
+                PLASMA_Complex64_t beta,        PLASMA_Complex64_t *y, int incy);
+void CORE_zgemv_tile(PLASMA_enum trans, int M, int N,
+                     const PLASMA_Complex64_t *alpha, const PLASMA_Complex64_t *A, int LDA,
+                                                      const PLASMA_Complex64_t *x, int incx,
+                     const PLASMA_Complex64_t *beta,        PLASMA_Complex64_t *y, int incy);
+void CORE_zgeqp3_larfg( PLASMA_desc A, int ii, int jj, int i, int j,
+                        PLASMA_Complex64_t *tau, PLASMA_Complex64_t *beta );
+void CORE_zgeqp3_norms( PLASMA_desc A, double *norms1, double *norms2 );
+void CORE_zgeqp3_pivot( PLASMA_desc A, PLASMA_Complex64_t *F, int ldf,
+                        int jj, int k, int *jpvt,
+                        double *norms1, double *norms2 );
+void CORE_zgeqp3_update( const PLASMA_Complex64_t *Ajj, int lda1,
+                         PLASMA_Complex64_t       *Ajk, int lda2,
+                         const PLASMA_Complex64_t *Fk,  int ldf,
+                         int k, int j, int nb,
+                         double *norms1, const double *norms2,
+                         int *info );
 int  CORE_zgeqrt(int M, int N, int IB,
                  PLASMA_Complex64_t *A, int LDA,
                  PLASMA_Complex64_t *T, int LDT,
@@ -212,6 +237,7 @@ void CORE_zplgsy(PLASMA_Complex64_t bump, int m, int n, PLASMA_Complex64_t *A, i
 void CORE_zplrnt(int m, int n, PLASMA_Complex64_t *A, int lda,
                  int bigM, int m0, int n0, unsigned long long int seed );
 void CORE_zpotrf(PLASMA_enum uplo, int N, PLASMA_Complex64_t *A, int LDA, int *INFO);
+void CORE_zsetvar(const PLASMA_Complex64_t *alpha, PLASMA_Complex64_t *x);
 void CORE_zshift(int s, int m, int n, int L,
                  PLASMA_Complex64_t *A);
 void CORE_zshiftw(int s, int cl, int m, int n, int L,
@@ -243,9 +269,16 @@ void CORE_zswpab(int i, int n1, int n2,
                  PLASMA_Complex64_t *A, PLASMA_Complex64_t *work);
 int  CORE_zswptr_ontile(PLASMA_desc descA, int i1, int i2, const int *ipiv, int inc,
                         const PLASMA_Complex64_t *Akk, int ldak);
-void CORE_ztrdalg(PLASMA_enum uplo, int N, int NB,
-                  const PLASMA_desc *pA, PLASMA_Complex64_t *V, PLASMA_Complex64_t *TAU,
-                  int i, int j, int m, int grsiz);
+void CORE_ztrdalg(PLASMA_enum        uplo,
+                        int n,
+                        int nb,
+                        PLASMA_Complex64_t *A,
+                        int lda,
+                        PLASMA_Complex64_t *V,
+                        PLASMA_Complex64_t *TAU,
+                        int Vblksiz, int wantz, 
+                        int grsiz, int lcsweep, int id, int blksweep,
+                        PLASMA_Complex64_t *work);
 void CORE_ztrmm(PLASMA_enum side, PLASMA_enum uplo,
                 PLASMA_enum transA, PLASMA_enum diag,
                 int M, int N,
@@ -426,6 +459,46 @@ void QUARK_CORE_zgemm_p3(Quark *quark, Quark_Task_Flags *task_flags,
                          PLASMA_Complex64_t alpha, const PLASMA_Complex64_t *A, int lda,
                          const PLASMA_Complex64_t *B, int ldb,
                          PLASMA_Complex64_t beta, PLASMA_Complex64_t **C, int ldc);
+void QUARK_CORE_zgemm_tile(Quark *quark, Quark_Task_Flags *task_flags,
+                           PLASMA_enum transA, PLASMA_enum transB,
+                           int m, int n, int k, int nb,
+                           const PLASMA_Complex64_t *alpha, const PLASMA_Complex64_t *A, int lda,
+                                                            const PLASMA_Complex64_t *B, int ldb,
+                           const PLASMA_Complex64_t *beta,        PLASMA_Complex64_t *C, int ldc,
+                           const PLASMA_Complex64_t *Alock,
+                           const PLASMA_Complex64_t *Block,
+                           const PLASMA_Complex64_t *Clock);
+void QUARK_CORE_zgemv(Quark *quark, Quark_Task_Flags *task_flags,
+                      PLASMA_enum trans, int m, int n,
+                      PLASMA_Complex64_t alpha, const PLASMA_Complex64_t *A, int lda,
+                                                const PLASMA_Complex64_t *x, int incx,
+                      PLASMA_Complex64_t beta,        PLASMA_Complex64_t *y, int incy);
+void QUARK_CORE_zgemv_tile(Quark *quark, Quark_Task_Flags *task_flags,
+                           PLASMA_enum trans,
+                           int m, int n,
+                           const PLASMA_Complex64_t *alpha, const PLASMA_Complex64_t *A, int lda,
+                                                            const PLASMA_Complex64_t *x, int incx,
+                           const PLASMA_Complex64_t *beta,        PLASMA_Complex64_t *y, int incy,
+                           const PLASMA_Complex64_t *Alock,
+                           const PLASMA_Complex64_t *xlock,
+                           const PLASMA_Complex64_t *ylock);
+void QUARK_CORE_zgeqp3_larfg(Quark *quark, Quark_Task_Flags *task_flags,
+                             PLASMA_desc A, int ii, int jj, int i, int j,
+                             PLASMA_Complex64_t *tau, PLASMA_Complex64_t *beta );
+void QUARK_CORE_zgeqp3_norms( Quark *quark, Quark_Task_Flags *task_flags,
+                              PLASMA_desc A, double *norms1, double *norms2 );
+void QUARK_CORE_zgeqp3_pivot( Quark *quark, Quark_Task_Flags *task_flags,
+                              PLASMA_desc A,
+                              PLASMA_Complex64_t *F, int ldf,
+                              int jj, int k, int *jpvt,
+                              double *norms1, double *norms2 );
+void QUARK_CORE_zgeqp3_update( Quark *quark, Quark_Task_Flags *task_flags,
+                               PLASMA_Complex64_t *Ajj, int lda1,
+                               PLASMA_Complex64_t *Ajk, int lda2,
+                               PLASMA_Complex64_t *Fk,  int ldf,
+                               int k, int j, int nb,
+                               double *norms1, const double *norms2,
+                               PLASMA_sequence *sequence, PLASMA_request *request );
 void QUARK_CORE_zgeqrt(Quark *quark, Quark_Task_Flags *task_flags,
                        int m, int n, int ib, int nb,
                        PLASMA_Complex64_t *A, int lda,
@@ -585,6 +658,9 @@ void QUARK_CORE_zpotrf(Quark *quark, Quark_Task_Flags *task_flags,
                        PLASMA_Complex64_t *A, int lda,
                        PLASMA_sequence *sequence, PLASMA_request *request,
                        int iinfo);
+void QUARK_CORE_zsetvar(Quark *quark, Quark_Task_Flags *task_flags,
+                        const PLASMA_Complex64_t *alpha, PLASMA_Complex64_t *x,
+                        PLASMA_Complex64_t *Alock);
 void QUARK_CORE_zshift( Quark *quark, Quark_Task_Flags *task_flags,
                         int s, int m, int n, int L,
                         PLASMA_Complex64_t *A);
@@ -628,12 +704,14 @@ void QUARK_CORE_zswptr_ontile(Quark *quark, Quark_Task_Flags *task_flags,
                               const PLASMA_Complex64_t *Akk, int ldak);
 void QUARK_CORE_ztrdalg(Quark *quark, Quark_Task_Flags *task_flags,
                         PLASMA_enum uplo,
-                        int N, int NB,
-                        const PLASMA_desc *A,
-                        PLASMA_Complex64_t *C,
-                        PLASMA_Complex64_t *S,
-                        int i, int j, int m, int grsiz, int BAND,
-                        const int *PCOL, const int *ACOL, int *MCOL);
+                        int n,
+                        int nb,
+                        PLASMA_Complex64_t *A,
+                        int lda,
+                        PLASMA_Complex64_t *V,
+                        PLASMA_Complex64_t *TAU,
+                        int Vblksiz, int wantz, 
+                        int grsiz, int lcsweep, int id, int blksweep);
 void QUARK_CORE_ztrmm(Quark *quark, Quark_Task_Flags *task_flags,
                       PLASMA_enum side, PLASMA_enum uplo, PLASMA_enum transA, PLASMA_enum diag,
                       int m, int n, int nb,
@@ -769,6 +847,13 @@ void CORE_zgeadd_quark(Quark *quark);
 void CORE_zbrdalg_quark(Quark *quark);
 void CORE_zgelqt_quark(Quark *quark);
 void CORE_zgemm_quark(Quark *quark);
+void CORE_zgemm_tile_quark(Quark *quark);
+void CORE_zgemv_quark(Quark *quark);
+void CORE_zgemv_tile_quark(Quark *quark);
+void CORE_zgeqp3_larfg_quark(Quark *quark);
+void CORE_zgeqp3_norms_quark(Quark *quark);
+void CORE_zgeqp3_pivot_quark(Quark *quark);
+void CORE_zgeqp3_update_quark(Quark *quark);
 void CORE_zgeqrt_quark(Quark *quark);
 void CORE_zgessm_quark(Quark *quark);
 void CORE_zgessq_quark(Quark *quark);
@@ -809,6 +894,7 @@ void CORE_zplgsy_quark(Quark *quark);
 void CORE_zplrnt_quark(Quark *quark);
 void CORE_zplssq_quark(Quark *quark);
 void CORE_zpotrf_quark(Quark *quark);
+void CORE_zsetvar_quark(Quark *quark);
 void CORE_zshift_quark(Quark *quark);
 void CORE_zshiftw_quark(Quark *quark);
 void CORE_zssssm_quark(Quark *quark);
@@ -838,7 +924,6 @@ void CORE_zttmlq_quark(Quark *quark);
 void CORE_zttlqt_quark(Quark *quark);
 void CORE_zunmlq_quark(Quark *quark);
 void CORE_zunmqr_quark(Quark *quark);
-
 void CORE_zlaswp_quark(Quark* quark);
 void CORE_zlaswp_f2_quark(Quark* quark);
 void CORE_zlaswp_ontile_quark(Quark *quark);

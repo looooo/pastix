@@ -15,8 +15,8 @@
 *     ..
 *     .. Array Arguments ..
       LOGICAL            DOTYPE( * )
-      INTEGER            IWORK( * ), MVAL( * ), NBVAL( * ), NSVAL( * ),
-     $                   IBVAL( * ), NVAL( * )
+      INTEGER            IBVAL( * ), IWORK( * ), MVAL( * ), NBVAL( * ),
+     $                   NSVAL( * ), NVAL( * )
       REAL               RWORK( * )
       COMPLEX            A( * ), AFAC( * ), AINV( * ), B( * ),
      $                   WORK( * ), X( * ), XACT( * )
@@ -51,7 +51,7 @@
 *          The number of values of NB contained in the vector NBVAL.
 *
 *  NBVAL   (input) INTEGER array, dimension (NBVAL)
-*          The values of the blocksize NB.
+*          The values of the tile size NB.
 *
 *  IBVAL   (input) INTEGER array, dimension (NBVAL)
 *          The values of the inner block size IB.
@@ -61,10 +61,6 @@
 *
 *  NSVAL   (input) INTEGER array, dimension (NNS)
 *          The values of the number of right hand sides NRHS.
-*
-*  NRHS    (input) INTEGER
-*          The number of right hand side vectors to be generated for
-*          each linear system.
 *
 *  THRESH  (input) REAL
 *          The threshold value for the test ratios.  A result is
@@ -112,8 +108,7 @@
       INTEGER            NTESTS
       PARAMETER          ( NTESTS = 8 )
       INTEGER            NTRAN
-*     ONLY NOTRANS SUPPORTED !!!      
-      PARAMETER          ( NTRAN = 1 )
+      PARAMETER          ( NTRAN = 3 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            TRFCON, ZEROT
@@ -122,10 +117,10 @@
       INTEGER            I, IM, IMAT, IN, INB, INFO, IOFF, IRHS, ITRAN,
      $                   IZERO, K, KL, KU, LDA, LWORK, M, MODE, N, NB,
      $                   NERRS, NFAIL, NIMAT, NRHS, NRUN, NT, IB,
-     $                   PLASMA_TRANS
+     $                   PLASMA_TRANS, PLASMA_NORM
       REAL               AINVNM, ANORM, ANORMI, ANORMO, CNDNUM, DUMMY,
      $                   RCOND, RCONDC, RCONDI, RCONDO
-c$$$      INTEGER            HL( 2 ), HPIV( 2 )
+*     INTEGER            HL( 2 ), HPIV( 2 )
 *     ..
 *     .. Local Arrays ..
       CHARACTER          TRANSS( NTRAN )
@@ -133,8 +128,8 @@ c$$$      INTEGER            HL( 2 ), HPIV( 2 )
       REAL               RESULT( NTESTS )
 *     ..
 *     .. External Functions ..
-      REAL               CLANGE, SGET06
-      EXTERNAL           CLANGE, SGET06
+      REAL               SGET06, CLANGE
+      EXTERNAL           SGET06, CLANGE
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           ALAERH, ALAHD, ALASUM, CERRGE, CGECON, CGERFS,
@@ -156,9 +151,9 @@ c$$$      INTEGER            HL( 2 ), HPIV( 2 )
 *     ..
 *     .. Data statements ..
       DATA               ISEEDY / 1988, 1989, 1990, 1991 / ,
-*     $                   TRANSS / 'N', 'T', 'C' /
-     $                   TRANSS / 'N' /
-     $                   PLASMA_TRANSS / PLASMANOTRANS /
+     $                   TRANSS / 'N', 'T', 'C' / ,
+     $                   PLASMA_TRANSS / PLASMANOTRANS, PLASMATRANS,
+     $                                   PLASMACONJTRANS /
 *     ..
 *     .. Executable Statements ..
 *
@@ -264,8 +259,8 @@ c$$$      INTEGER            HL( 2 ), HPIV( 2 )
 *
                DO 90 INB = 1, NNB
                   NB = NBVAL( INB )
-                  CALL XLAENV( 1, NB )
                   IB = IBVAL( INB )
+                  CALL XLAENV( 1, NB )
                   IF ( (MAX(M, N) / 25) .GT. NB ) THEN
                      GOTO 90
                   END IF
@@ -274,17 +269,18 @@ c$$$      INTEGER            HL( 2 ), HPIV( 2 )
 *
 *                 ALLOCATE HL and HPIV
 *
-c$$$                  CALL PLASMA_ALLOC_WORKSPACE_CGETRF_INCPIV( 
+c$$$                  CALL PLASMA_ALLOC_WORKSPACE_CGETRF_INCPIV(
 c$$$     $                 M, N, HL, HPIV, INFO )
 *
 *                 Compute the LU factorization of the matrix.
 *
                   CALL CLACPY( 'Full', M, N, A, LDA, AFAC, LDA )
+
                   SRNAMT = 'CGETRF'
-c$$$                  CALL PLASMA_CGETRF_INCPIV( M, N, AFAC, LDA, HL, 
-c$$$     $                 HPIV, INFO )
-                  CALL PLASMA_CGETRF( M, N, AFAC, LDA, 
-     $                 IWORK, INFO )
+c$$$                  CALL PLASMA_CGETRF_INCPIV( M, N, AFAC, LDA, HL, HPIV,
+c$$$     $                 INFO )
+                  CALL PLASMA_CGETRF( M, N, AFAC, LDA, IWORK,
+     $                 INFO )
 *
 *                 Check error code from CGETRF.
 *
@@ -292,10 +288,58 @@ c$$$     $                 HPIV, INFO )
      $               CALL ALAERH( PATH, 'CGETRF', INFO, IZERO, ' ', M,
      $                            N, -1, -1, NB, IMAT, NFAIL, NERRS,
      $                            NOUT )
-                  TRFCON = .FALSE.
                   NT = 0
+                  TRFCON = .FALSE.
 *
-                  IF( M.NE.N .OR. INFO.GT.0 ) THEN
+*+    TEST 1
+*                 Reconstruct matrix from factors and compute residual.
+*                 We do the test only if info .ne. 0 contrary to Lapack
+*                 which does it in any case
+*
+                  IF( INFO .EQ. 0 ) THEN
+                     CALL CLACPY( 'Full', M, N, AFAC, LDA, AINV, LDA )
+                     CALL CGET01( M, N, A, LDA, AINV, LDA, IWORK, RWORK,
+     $                    RESULT( 1 ) )
+                     NT = NT+1
+                  END IF
+*
+*+    TEST 2
+*                 Form the inverse if the factorization was successful
+*                 and compute the residual.
+*
+                  IF( M.EQ.N .AND. INFO.EQ.0 ) THEN
+                     CALL CLACPY( 'Full', N, N, AFAC, LDA, AINV, LDA )
+                     SRNAMT = 'CGETRI'
+                     NRHS = NSVAL( 1 )
+                     LWORK = NMAX*MAX( 3, NRHS )
+                     CALL PLASMA_CGETRI( N, AINV, LDA, IWORK, INFO )
+*
+*                    Check error code from ZGETRI.
+*
+                     IF( INFO.NE.0 )
+     $                  CALL ALAERH( PATH, 'CGETRI', INFO, 0, ' ', N, N,
+     $                               -1, -1, NB, IMAT, NFAIL, NERRS,
+     $                               NOUT )
+*
+*                    Compute the residual for the matrix times its
+*                    inverse.  Also compute the 1-norm condition number
+*                    of A.
+*
+                     CALL CGET03( N, A, LDA, AINV, LDA, WORK, LDA,
+     $                            RWORK, RCONDO, RESULT( 2 ) )
+                     ANORMO = CLANGE( 'O', M, N, A, LDA, RWORK )
+*
+*                    Compute the infinity-norm condition number of A.
+*
+                     ANORMI = CLANGE( 'I', M, N, A, LDA, RWORK )
+                     AINVNM = CLANGE( 'I', N, N, AINV, LDA, RWORK )
+                     IF( ANORMI.LE.ZERO .OR. AINVNM.LE.ZERO ) THEN
+                        RCONDI = ONE
+                     ELSE
+                        RCONDI = ( ONE / ANORMI ) / AINVNM
+                     END IF
+                     NT = NT+1
+                  ELSE
 *
 *                    Do only the condition estimate if INFO > 0.
 *
@@ -326,6 +370,8 @@ c$$$     $                 HPIV, INFO )
 *
 *                  IF( INB.GT.1 .OR. M.NE.N )
 *     $               GO TO 90
+                  IF( M.NE.N )
+     $               GO TO 90
                   IF( TRFCON )
      $               GO TO 70
 *
@@ -353,10 +399,10 @@ c$$$     $                 HPIV, INFO )
 *
                         CALL CLACPY( 'Full', N, NRHS, B, LDA, X, LDA )
                         SRNAMT = 'CGETRS'
-c$$$                        CALL PLASMA_CGETRS_INCPIV( PLASMA_TRANS, N, 
+c$$$                        CALL PLASMA_CGETRS_INCPIV( PLASMA_TRANS, N,
 c$$$     $                       NRHS, AFAC, LDA, HL, HPIV,
 c$$$     $                       X, LDA, INFO )
-                        CALL PLASMA_CGETRS( PLASMA_TRANS, N, 
+                        CALL PLASMA_CGETRS( PLASMA_TRANS, N,
      $                       NRHS, AFAC, LDA, IWORK,
      $                       X, LDA, INFO )
 *
@@ -386,7 +432,7 @@ c$$$     $                       X, LDA, INFO )
                               IF( NFAIL.EQ.0 .AND. NERRS.EQ.0 )
      $                           CALL ALAHD( NOUT, PATH )
                               WRITE( NOUT, FMT = 9998 )TRANS, N, NB,
-     $                           NRHS, IMAT, K, RESULT( K )
+     $                              NRHS, IMAT, K, RESULT( K )
                               NFAIL = NFAIL + 1
                            END IF
    40                   CONTINUE
@@ -396,13 +442,57 @@ c$$$     $                       X, LDA, INFO )
 *
    70             CONTINUE
 *
+*+    TEST 8
+*                    Get an estimate of RCOND = 1/CNDNUM.
+*
+                  DO 80 ITRAN = 1, 2
+                     IF( ITRAN.EQ.1 ) THEN
+                        ANORM = ANORMO
+                        RCONDC = RCONDO
+                        NORM = 'O'
+                        PLASMA_NORM = PlasmaOneNorm
+                     ELSE
+                        ANORM = ANORMI
+                        RCONDC = RCONDI
+                        NORM = 'I'
+                        PLASMA_NORM = PlasmaInfNorm
+                     END IF
+                     SRNAMT = 'CGECON'
+                     CALL PLASMA_CGECON( PLASMA_NORM, N, AFAC, LDA,
+     $                    ANORM, RCOND, INFO )
+*
+*                       Check error code from CGECON.
+*
+                     IF( INFO.NE.0 )
+     $                  CALL ALAERH( PATH, 'CGECON', INFO, 0, NORM, N,
+     $                               N, -1, -1, -1, IMAT, NFAIL, NERRS,
+     $                               NOUT )
+*
+*                       This line is needed on a Sun SPARCstation.
+*
+                     DUMMY = RCOND
+*
+                     RESULT( 8 ) = SGET06( RCOND, RCONDC )
+*
+*                    Print information about the tests that did not pass
+*                    the threshold.
+*
+                     IF( RESULT( 8 ).GE.THRESH ) THEN
+                        IF( NFAIL.EQ.0 .AND. NERRS.EQ.0 )
+     $                     CALL ALAHD( NOUT, PATH )
+                        WRITE( NOUT, FMT = 9997 )NORM, N, IMAT, 8,
+     $                     RESULT( 8 )
+                        NFAIL = NFAIL + 1
+                     END IF
+                     NRUN = NRUN + 1
+   80             CONTINUE
+*
 *                 DEALLOCATE HL and HPIV
 *
 c$$$                  CALL PLASMA_DEALLOC_HANDLE( HL, INFO )
 c$$$                  CALL PLASMA_DEALLOC_HANDLE( HPIV, INFO )
    90          CONTINUE
   100       CONTINUE
-*
   110    CONTINUE
   120 CONTINUE
 *
@@ -412,8 +502,8 @@ c$$$                  CALL PLASMA_DEALLOC_HANDLE( HPIV, INFO )
 *
  9999 FORMAT( ' M = ', I5, ', N =', I5, ', NB =', I4, ', type ', I2,
      $      ', test(', I2, ') =', G12.5 )
- 9998 FORMAT( ' TRANS=''', A1, ''', N =', I5, ', NB =', I4, ', 
-     $NRHS=', I3, ', type ', I2, ', test(', I2, ') =', G12.5 )
+ 9998 FORMAT( ' TRANS=''', A1, ''', N =', I5, ', NB =', I4 ,',
+     $      NRHS=', I3, ',type ', I2, ', test(', I2, ') =', G12.5 )
  9997 FORMAT( ' NORM =''', A1, ''', N =', I5, ',', 10X, ' type ', I2,
      $      ', test(', I2, ') =', G12.5 )
       RETURN

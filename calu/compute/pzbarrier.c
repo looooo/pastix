@@ -8,7 +8,7 @@
  *
  * Barrier for algorithm mixing computation on tile/panel.
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Mathieu Faverge
  * @date 2009-11-15
  *

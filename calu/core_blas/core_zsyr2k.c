@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Hatem Ltaief
  * @author Mathieu Faverge
  * @author Jakub Kurzak
@@ -89,5 +89,6 @@ void CORE_zsyr2k_quark(Quark *quark)
     int ldc;
 
     quark_unpack_args_12(quark, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
-    CORE_zsyr2k(uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    cblas_zsyr2k(CblasColMajor, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans,
+                 n, k, CBLAS_SADDR(alpha), A, lda, B, ldb, CBLAS_SADDR(beta), C, ldc);
 }

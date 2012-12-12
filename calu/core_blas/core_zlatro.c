@@ -6,7 +6,7 @@
  *  PLASMA is a software package provided by Univ. of Tennessee,
  *  Univ. of California Berkeley and Univ. of Colorado Denver
  *
- * @version 2.4.6
+ * @version 2.5.0
  * @author Azzam Haidar
  * @date 2010-11-15
  * @precisions normal z -> c d s
@@ -40,22 +40,31 @@
  *          = PlasmaConjTrans: B is the conjugate transpose of A.
  *
  * @param[in] M
- *         Number of rows of the matrix A and number of columns of the matrix B.
+ *         Number of rows of the matrix A and number of columns of the matrix B, if trans == Pasma[Conj]Trans.
+ *         Number of rows of the matrix A and the matrix B, if trans == PasmaNoTrans.
  *
  * @param[in] N
- *         Number of columns of the matrix A and number of rows of the matrix B.
+ *         Number of columns of the matrix A and number of rows of the matrix B, if trans == Pasma[Conj]Trans.
+ *         Number of columns of the matrix A and of the matrix B, if trans == PlasmaNoTrans.
  *
  * @param[in] A
- *         Matrix of size LDA-by-N.
+ *         Matrix of size LDA-by-N, if trans == Pasma[Conj]Trans.
+ *         Matrix of size LDA-by-M, if trans == PasmaNoTrans.
  *
  * @param[in] LDA
- *         The leading dimension of the array A. LDA >= max(1,M)
+ *         The leading dimension of the array A.
+ *         LDA >= max(1,M), if trans == Pasma[Conj]Trans.
+ *         LDA >= max(1,N), if trans == PasmaNoTrans.
  *
  * @param[out] B
- *         Matrix of size LDB-by-M.
+ *         Matrix of size LDB-by-M, if trans == Pasma[Conj]Trans.
+ *         Matrix of size LDB-by-N, if trans == PasmaNoTrans.
  *
  * @param[in] LDB
- *         The leading dimension of the array B. LDB >= max(1,N)
+ *         The leading dimension of the array B.
+ *         LDB >= max(1,N), if trans == Pasma[Conj]Trans.
+ *         LDB >= max(1,M), if trans == PasmaNoTrans.
+ *
  *
  *******************************************************************************
  *
@@ -76,7 +85,7 @@ int CORE_zlatro(PLASMA_enum uplo, PLASMA_enum trans,
     int i, j;
 
     /* Check input arguments */
-    if ((uplo != PlasmaUpper) && (uplo != PlasmaLower)) {
+    if ((uplo != PlasmaUpper) && (uplo != PlasmaLower) && (uplo != PlasmaUpperLower) ) {
         coreblas_error(1, "Illegal value of uplo");
         return -1;
     }

@@ -89,12 +89,13 @@
          X( J ) = 0.
          IW( J ) = J
    20 CONTINUE
+      ANRM = 1.
       OK = .TRUE.
 *
-      IF( LSAMEN( 2, C2, 'PO' ) ) THEN
+*     Test error exits of the routines that use the Cholesky
+*     decomposition of a Symmetric positive definite matrix.
 *
-*        Test error exits of the routines that use the Cholesky
-*        decomposition of a symmetric positive definite matrix.
+      IF( LSAMEN( 2, C2, 'PO' ) ) THEN
 *
 *        SPOTRF
 *
@@ -108,6 +109,19 @@
          INFOT = 4
          CALL PLASMA_SPOTRF( PLASMAUPPER, 2, A, 1, INFO )
          CALL CHKXER( 'SPOTRF', INFOT, NOUT, INFO, OK )
+*
+*        SPOTRI
+*
+         SRNAMT = 'SPOTRI'
+         INFOT = 1
+         CALL PLASMA_SPOTRI( '/', 0, A, 1, INFO )
+         CALL CHKXER( 'SPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_SPOTRI( PLASMAUPPER, -1, A, 1, INFO )
+         CALL CHKXER( 'SPOTRI', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_SPOTRI( PLASMAUPPER, 2, A, 1, INFO )
+         CALL CHKXER( 'SPOTRI', INFOT, NOUT, INFO, OK )
 *
 *        SPOTRS
 *
@@ -126,7 +140,22 @@
          CALL CHKXER( 'SPOTRS', INFOT, NOUT, INFO, OK )
          INFOT = 7
          CALL PLASMA_SPOTRS( PLASMAUPPER, 2, 1, A, 2, B, 1, INFO )
-         CALL CHKXER( 'SPOTRS', INFOT, NOUT, INFO, OK )
+*
+*        SPOCON
+*
+         SRNAMT = 'SPOCON'
+         INFOT = 1
+         CALL PLASMA_SPOCON( '/', 0, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'SPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 2
+         CALL PLASMA_SPOCON( PLASMAUPPER, -1, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'SPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 4
+         CALL PLASMA_SPOCON( PLASMAUPPER, 2, A, 1, ANRM, RCOND, INFO )
+         CALL CHKXER( 'SPOCON', INFOT, NOUT, INFO, OK )
+         INFOT = 5
+         CALL PLASMA_SPOCON( PLASMAUPPER, 1, A, 1, -ANRM, RCOND, INFO )
+         CALL CHKXER( 'SPOCON', INFOT, NOUT, INFO, OK )
       END IF
 *
 *     Print a summary line.

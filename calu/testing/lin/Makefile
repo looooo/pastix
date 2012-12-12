@@ -5,7 +5,7 @@
 #  PLASMA is a software package provided by Univ. of Tennessee,
 #  Univ. of California Berkeley and Univ. of Colorado Denver
 #
-# @version 2.4.6
+# @version 2.5.0
 # @author Bilel Hadri
 # @author Hatem Ltaief
 # @date 2010-11-15
@@ -26,9 +26,8 @@ DZLNTST= dlaord.o
 SLINTST = schkaa.o \
    schkge.o serrge.o sdrvge.o \
    serrvx.o \
-   sget02.o sget04.o sget06.o \
+   sget01.o sget02.o sget03.o sget04.o sget06.o \
    schkpo.o serrpo.o sdrvpo.o \
-   sposvx.o spotri.o sporfs.o \
    spot01.o spot02.o spot03.o spot05.o \
    sdrvls.o serrls.o \
    schkqr.o serrqr.o \
@@ -36,19 +35,14 @@ SLINTST = schkaa.o \
    schklq.o serrlq.o \
    slqt01.o slqt02.o slqt03.o \
    slarhs.o slatb4.o sgennd.o \
-   sgeequ.o slaqge.o \
-   spoequ.o slaqsy.o spocon.o slacn2.o slatrs.o slabad.o srscl.o \
-   slascl.o slaset.o slatms.o slartg.o slatm1.o slarnd.o slarot.o \
+   slatms.o slatm1.o slarnd.o slarot.o \
    slaror.o slagsy.o slagge.o slaran.o \
-   slauum.o strtri.o \
-   slauu2.o strti2.o \
 
 DLINTST = dchkaa.o \
    dchkge.o derrge.o ddrvge.o \
    derrvx.o \
-   dget02.o dget04.o dget06.o \
+   dget01.o dget02.o dget03.o dget04.o dget06.o \
    dchkpo.o derrpo.o ddrvpo.o \
-   dposvx.o dpotri.o dporfs.o \
    dpot01.o dpot02.o dpot03.o dpot05.o \
    ddrvls.o derrls.o \
    dchkqr.o derrqr.o \
@@ -56,19 +50,14 @@ DLINTST = dchkaa.o \
    dchklq.o derrlq.o \
    dlqt01.o dlqt02.o dlqt03.o \
    dlarhs.o dlatb4.o dgennd.o \
-   dgeequ.o dlaqge.o \
-   dpoequ.o dlaqsy.o dpocon.o dlacn2.o dlatrs.o dlabad.o drscl.o \
-   dlascl.o dlaset.o dlatms.o dlartg.o dlatm1.o dlarnd.o dlarot.o \
+   dlatms.o dlartg.o dlatm1.o dlarnd.o dlarot.o \
    dlaror.o dlagsy.o dlagge.o dlaran.o \
-   dlauum.o dtrtri.o \
-   dlauu2.o dtrti2.o \
 
 CLINTST = cchkaa.o \
    cchkge.o cerrge.o cdrvge.o \
    cerrvx.o \
-   cget02.o cget04.o \
+   cget01.o cget02.o cget03.o cget04.o \
    cchkpo.o cerrpo.o cdrvpo.o \
-   cposvx.o cpotri.o cporfs.o \
    cpot01.o cpot02.o cpot03.o cpot05.o \
    cdrvls.o cerrls.o \
    cchkqr.o cerrqr.o \
@@ -76,22 +65,16 @@ CLINTST = cchkaa.o \
    cchklq.o cerrlq.o \
    clqt01.o clqt02.o clqt03.o \
    clarhs.o clatb4.o cgennd.o \
-   cgeequ.o claqge.o \
-   cpoequ.o claqsy.o cpocon.o clacn2.o clatrs.o csrscl.o \
-   clascl.o claset.o clatms.o clartg.o clatm1.o clarnd.o clarot.o clanhe.o claqhe.o \
+   clatms.o clartg.o clatm1.o clarnd.o clarot.o \
    claror.o clagsy.o clagge.o  \
    claipd.o csbmv.o \
-   clauum.o ctrtri.o \
-   clauu2.o ctrti2.o \
-   cspmv.o csymv.o \
-   sget06.o slabad.o slaran.o slarnd.o slascl.o slatm1.o scsum1.o icmax1.o \
+   sget06.o slaran.o slarnd.o slatm1.o \
 
 ZLINTST = zchkaa.o \
    zchkge.o zerrge.o zdrvge.o \
    zerrvx.o \
-   zget02.o zget04.o \
+   zget01.o zget02.o zget03.o zget04.o \
    zchkpo.o zerrpo.o zdrvpo.o \
-   zposvx.o zpotri.o zporfs.o \
    zpot01.o zpot02.o zpot03.o zpot05.o \
    zdrvls.o zerrls.o \
    zchkqr.o zerrqr.o \
@@ -99,15 +82,10 @@ ZLINTST = zchkaa.o \
    zchklq.o zerrlq.o \
    zlqt01.o zlqt02.o zlqt03.o \
    zlarhs.o zlatb4.o zgennd.o \
-   zgeequ.o zlaqge.o \
-   zpoequ.o zlaqsy.o zpocon.o zlacn2.o zlatrs.o zdrscl.o \
-   zlascl.o zlaset.o zlatms.o zlartg.o zlatm1.o zlarnd.o zlarot.o zlanhe.o zlaqhe.o \
+   zlatms.o zlartg.o zlatm1.o zlarnd.o zlarot.o \
    zlaror.o zlagsy.o zlagge.o  \
    zlaipd.o zsbmv.o \
-   zlauum.o ztrtri.o \
-   zlauu2.o ztrti2.o \
-   zspmv.o zsymv.o \
-   dget06.o dlabad.o dlaran.o dlarnd.o dlascl.o dlatm1.o dzsum1.o izmax1.o \
+   dget06.o dlaran.o dlarnd.o dlatm1.o \
 
 all:  	$(LIBCOREBLAS) $(LIBPLASMA) $(QUARKDIR)/libquark.a 	\
 	single double complex complex16
@@ -117,7 +95,7 @@ double: xlintstd
 complex: xlintstc
 complex16: xlintstz
 
-xlintsts xlintstd xlintstc xlintstz : $(LIBCOREBLAS) $(LIBPLASMA) $(QUARKDIR)/libquark.a 
+xlintsts xlintstd xlintstc xlintstz : $(LIBCOREBLAS) $(LIBPLASMA) $(QUARKDIR)/libquark.a
 
 xlintsts : $(ALINTST) $(SLINTST) $(SCLNTST)
 	       $(LOADER) $(LDFLAGS) $(ALINTST) $(SLINTST) $(SCLNTST) $(LIB) -o $@
@@ -158,5 +136,5 @@ zchkaa.o: zchkaa.f
 	$(FC) $(FFLAGS) $(INC) -c $< -o $@
 .f.o:
 	$(FC) $(FFLAGS) $(INC) -c $< -o $@
-.o:  
-	$(LOADER) $(LDFLAGS) $(INC) $< -o $@ $(LIB) 
+.o:
+	$(LOADER) $(LDFLAGS) $(INC) $< -o $@ $(LIB)

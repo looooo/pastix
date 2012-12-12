@@ -55,7 +55,7 @@ RunTest(int *iparam, double *dparam, real_Double_t *t_)
                                            &(dparam[IPARAM_ANORM]), 
                                            &(dparam[IPARAM_BNORM]), 
                                            &(dparam[IPARAM_XNORM]));
-        free(C2);
+        free(A); free(B); free(C); free(C2);
     }
 
     PASTE_CODE_FREE_MATRIX( descA );
