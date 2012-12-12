@@ -1,0 +1,132 @@
+
+%%% bige:flamewn33:09 -> Bientinesi:2009:SDS,
+%%% blkd:parco:09 -> Buttari:2009:CPT,
+%%% cawc:sisc:08 -> Castaldo:2008:RFP,
+%%% dehs:nlaa:95 -> Demmel:1995:SBF
+%%% higham:02 -> Higham:2002:ASN,
+
+
+
+%%%   PLASMA Users' Guide bib file. 
+%%%   We follow Higham's bib file style.
+%%%   See: "http://www.ma.man.ac.uk/~higham/asna/acc-stab-num-alg-2ed.bib"
+
+@String{j-CCPE = "Concurrency Computat.: Pract. Exper."}
+@String{j-JNLAA = "Journal of Numerical Linear Algebra with Applications"}
+@String{j-PAR-COMP = "Parallel Comput."}
+@String{j-SISC = "SIAM J. Sci. Comput."}
+
+@String{pub-OUP = "Oxford University Press"}
+@String{pub-SIAM = "Society for Industrial and Applied Mathematics"}
+@String{pub-SIAM:adr = "Philadelphia, PA, USA"}
+
+@String{inst-CS-U-Tenn = "Department of Computer Science, University of Tennessee"}
+@String{inst-CS-U-Tenn:adr = "Knoxville, TN, USA"}
+
+@Preamble{"\def\noopsort#1{}" # "\def\l{\char32l}" #
+                 "\def\v#1{{\accent20 #1}} \let\^^_=\v" #
+                 "\def\hbk{hardback}" # "\def\pbk{paperback}"}
+
+@inproceedings{Agullo:2009:CS1,
+  author =       "Emmanuel Agullo and Bilel Hadri and Hatem Ltaief and Jack Dongarra",
+  title =        "Comparative study of one-sided factorizations with multiple software packages on multi-core hardware",
+  booktitle =    "Proceedings of SC'09: International Conference for High Performance Computing, Networking, Storage and Analysis, Portland, Oregon, USA, Nov. 14-20",
+  year =         2009,
+  DOI =          "http://doi.acm.org/10.1145/1654059.1654080",
+}
+
+@techreport{Bientinesi:2009:SDS,
+  author =       "Paolo Bientinesi and Robert A. van de Geijn",
+  title =        "The science of deriving stability analyses",
+  institution =  "{FLAME} Working Note \#33",
+  year =         2009,
+}
+
+@article{Buttari:2009:PTQ,
+  author =       "Alfredo Buttari and Julien Langou and Jakub Kurzak and Jack Dongarra",
+  title =        "Parallel tiled {QR} factorization for multicore architectures",
+  journal =      j-CCPE,
+  volume =       20,
+  number =       13,
+  pages =        "1573--1590",
+  year =         2008,
+  DOI =          "http://dx.doi.org/10.1002/cpe.1301",
+}
+
+@article{Buttari:2009:CPT,
+  author =       "Alfredo Buttari and Julien Langou and Jakub Kurzak and Jack Dongarra",
+  title =        "A class of parallel tiled linear algebra algorithms for multicore architectures",
+  journal =      j-PARCO, 
+  volume =       35,
+  pages =        "38--53",
+  year =         2009,
+  DOI =          "http://dx.doi.org/10.1016/j.parco.2008.10.002",
+}
+
+@article{Castaldo:2008:RFP,
+  author =       "Anthony M. Castaldo and R. Clint Whaley and Anthony T. Chronopoulos",
+  title =        "Reducing floating point error in dot product using the superblock family of algorithms",
+  journal =      j-SISC,
+  volume =       31,
+  number =       2,
+  pages =        "1156--1174",
+  year =         2008,
+  DOI =          "http://dx.doi.org/10.1137/070679946",
+}
+
+@article{Demmel:1995:SBF,
+  author =       "James W. Demmel and Nicholas J. Higham and Robert S. Schreiber",
+  title =        "Stability of Block {$LU$} Factorization",
+  journal =      j-NLAA,
+  volume =       "2",
+  number =       "2",
+  pages =        "173--190",
+  year =         "1995",
+  DOI =          "http://dx.doi.org/10.1002/nla.1680020208",
+}
+
+@Book{Higham:2002:ASN,
+  author =       "Nicholas J. Higham",
+  title =        "Accuracy and Stability of Numerical Algorithms",
+  publisher =    pub-SIAM,
+  address =      pub-SIAM:adr,
+  edition =      "Second",
+  year =         "2002",
+  pages =        "xxx+680",
+  ISBN =         "0-89871-521-0"
+}
+
+@Book{Wilkinson:1963:REA,
+  author =       "J. H. Wilkinson",
+  title =        "Rounding Errors in Algebraic Processes",
+  publisher =    "Notes on Applied Science No. 32, Her Majesty's Stationery Office",
+  address =      "London",
+  year =         "1963",
+  pages =        "vi+161",
+  note =         "Also published by Prentice-Hall, Englewood Cliffs, NJ,
+                 USA. Reprinted by Dover, New York, 1994",
+  ISBN =         "0-486-67999-3",
+}
+
+@Book{Wilkinson:1965:AEP,
+  author =       "J. H. Wilkinson",
+  title =        "The Algebraic Eigenvalue Problem",
+  publisher =    pub-OUP,
+  year =         "1965",
+  pages =        "xviii+662",
+  ISBN =         "0-19-853403-5 (\hbk), 0-19-853418-3 (\pbk)",
+}
+
+@techreport{Blackford:1992:IGL,
+  author =       "Susan Blackford and Jack Dongarra",
+  title =        "Installation Guide for {LAPACK}",
+  institution =  inst-CS-U-Tenn,
+  address =      inst-CS-U-Tenn:adr,
+  type =         "Technical Report",
+  number =       "CS-92-151",
+  month =        MAR,
+  year =         1992,
+  pages =        "147",
+  note =         "LAPACK Working Note 41",
+  URL =          "http://www.netlib.org/lapack/lawnspdf/lawn41.pdf",
+}

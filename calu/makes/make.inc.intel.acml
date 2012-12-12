@@ -1,0 +1,51 @@
+###
+#
+# @file make.inc.intel.acml
+#
+#  PLASMA is a software package provided by Univ. of Tennessee,
+#  Univ. of California Berkeley and Univ. of Colorado Denver
+#
+# @version 2.4.6
+# @author Piotr Luszczek
+# @author Mathieu Faverge
+# @date 2010-11-15
+#
+###
+#
+# OS:       Linux
+# Compiler: ICC
+# BLAS:     ACML
+#
+###
+
+# PLASMA install directory (./install by default)
+#prefix      = /path/to/install/directory
+
+# Compilers, linker/loader, archiver, options
+CC          = icc
+FC          = ifort
+LOADER      = $(FC)
+
+ARCH        = ar
+ARCHFLAGS   = cr
+RANLIB      = ranlib
+
+CFLAGS      = -O2 -DADD_ -diag-disable vec
+FFLAGS      = -O2 -diag-disable vec
+LDFLAGS     = -nofor_main
+
+# Enable/Disable F90 compilation
+PLASMA_F90 = 0
+
+# BLAS library
+LIBBLAS     = -L/path/to/acml4.3.0_ifort/ifort64/lib -lacml
+
+# CBLAS library
+LIBCBLAS    = -L/path/to/cblas/lib/ -lcblas
+
+# LAPACK and TMG library (LAPACK is included in ACML)
+LIBLAPACK   = -L/path/to/lapack_acml/lib/ -ltmg
+
+# LAPACK C Wrapper library
+INCCLAPACK  = -I/path/to/lapacke/include
+LIBCLAPACK  = -L/path/to/lapacke/lib -llapacke

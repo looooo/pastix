@@ -1,0 +1,37 @@
+###
+#
+# @file make.inc.example
+#
+#  PLASMA is a software package provided by Univ. of Tennessee,
+#  Univ. of California Berkeley and Univ. of Colorado Denver
+#
+# @version 2.4.6
+# @author Julie Langou
+# @author Mathieu Faverge
+# @date 2010-11-15
+#
+###
+
+# Those variables have to be changed accordingly!
+# Compilers, linker/loaders, the archiver, and their options.
+
+CC        = icc
+FC        = ifort
+LOADER    = ifort
+
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+
+CFLAGS    = -O2 -DADD_ -diag-disable vec
+FFLAGS    = -O2 -fltconsistency -fp_port
+LDFLAGS   = -O2 -nofor_main
+
+# Blas Library
+LIBBLAS     = -L/path/to/externallibs/lib -lrefblas
+# CBlas library
+LIBCBLAS    = -L/path/to/externallibs/lib -lcblas
+# lapack and tmg library (lapack is included in acml)
+LIBLAPACK   = -L/path/to/externallibs/lib -ltmg -llapack
+INCCLAPACK  = -I/path/to/externallibs/include
+LIBCLAPACK  = -L/path/to/externallibs/lib -llapack_cwrapper

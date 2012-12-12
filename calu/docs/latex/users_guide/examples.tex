@@ -1,0 +1,202 @@
+%##################################################################################################
+
+\chapter{Use of PLASMA and Examples}
+
+\section{Fortran 90 Interfaces}
+
+It is possible to call PLASMA from modern Fortran, making use of the
+Fortran 2003 C interoperability features. 
+
+The benefits of using the Fortran 90 interfaces over the old-style Fortran 77 interfaces are:
+\begin{itemize}
+\item Compile-time argument checking.
+\item Native and transparent handling of pointer arguments - arrays, descriptors and handles.
+\item A clean interface between Fortran and C.
+\end{itemize}
+	
+In order to build the Fortran 90 interfaces add the following to your
+make.inc file: \verb+PLASMA_F90 = 1+
+
+To call PLASMA via the interfaces, '\texttt{Use PLASMA}' in your Fortran code.
+
+Arguments such as descriptors and handles required by the PLASMA tiled
+and asynchronous interfaces are passed as \texttt{type(c\_ptr)}, which
+is part of the Fortran 2003 ISO C bingings module  
+(so you will also need to '\texttt{Use iso\_c\_binding}').
+
+For the LAPACK-style interfaces, arrays should be passed in as normal.
+
+Four examples of using the Fortran 90 interfaces are given, which show how to use the module, 
+call auxiliary functions such as initializing PLASMA and setting options, perform tasks such 
+as allocating workspace and translating between layouts, and calling a computational routine:
+\begin{description}
+\item[\texttt{example\_sgebrd.f90}:] single precision real bi-diagonal
+  reduction using LAPACK-syle interface. 
+\item[\texttt{example\_dgetrs\_tile\_async.f90:}] double precision
+  real factorizaion followed by linear solve using the tiled,
+  asynchronous interface. 
+\item[\texttt{example\_cgeqrf\_tile.f90}:] single precision complex QR
+  factorization using the tiled interface. 
+\item[\texttt{example\_zgetrf\_tile.f90}:] double precision complex LU
+  factorization using the tiled interface. 
+\end{description}
+
+The interfaces can be found in the '\texttt{control}' directory:
+\texttt{plasma\_f90.f90, plasma\_sf90.F90, plasma\_df90.F90,
+  plasma\_cf90.F90, plasma\_zf90.F90, plasma\_dsf90.F90 \& plasma\_zcf90.F90}
+
+Please check the subroutine wrappers (following the '\texttt{contains}' statement in each module) to see
+the interfaces for the routines to call from your Fortran.
+
+
+%###################################################################################################
+\section{Examples}
+In the \texttt{./examples} directory, you will find simple example codes to call
+the PLASMA\_[sdcz]gels, PLASMA\_[sdcz]gesv and PLASMA\_[sdcz]posv routines from
+a C program or from a Fortran program.  In this section we further explain the necessary
+steps for a correct use of these PLASMA routines.
+
+\section{\texttt{PLASMA\_dgesv} example}
+
+Before calling the PLASMA routine \texttt{PLASMA\_dgesv}, some initialization steps 
+are required.
+
+Firstly, we set the dimension of the problem $Ax=B$.  In our example, the
+coefficient matrix $A$ is 10-by-10, and the right-hand side matrix $B$ 10-by-5.
+We also allocate the memory space required for these two matrices.
+\begin{verbatim}
+in C:
+   int N = 10;
+   int NRHS = 5;
+   int NxN = N*N;
+   int NxNRHS = N*NRHS;
+   double *A = (double *)malloc(NxN*sizeof(double));
+   double *B = (double *)malloc(NxNRHS*sizeof(double));
+in Fortran:
+      INTEGER           N, NRHS
+      PARAMETER         ( N = 10 )
+      PARAMETER         ( NRHS = 5 )
+      DOUBLE PRECISION  A( N, N ), B( N, NRHS )
+\end{verbatim}
+
+Secondly, we initialize the matrix $A$ and $B$ with random values.  Since we
+cruelly lack imagination, we use the LAPACK function \texttt{dlarnv} for this
+task.  For a starter, you are welcome to change the values in the matrix.
+Remember that the interface of \texttt{PLASMA\_dgesv} uses column major format.
+\begin{verbatim}
+in C:
+   int IONE=1;
+   int ISEED[4] = {0,0,0,1};   /* initial seed for dlarnv() */
+   /* Initialize A */
+   dlarnv(&IONE, ISEED, &NxN, A);
+   /* Initialize B */
+   dlarnv(&IONE, ISEED, &NxNRHS, B);
+in Fortran:
+      INTEGER           I
+      INTEGER           ISEED( 4 )
+      EXTERNAL          DLARNV
+      DO  I = 1, 4
+          ISEED( I ) = 1
+      ENDDO
+!--   Initialization of the matrix
+      CALL DLARNV( 1, ISEED, N*N, A )
+
+!--   Initialization of the RHS
+      CALL DLARNV( 1, ISEED, N*NRHS, B )
+\end{verbatim}
+
+Thirdly, we initialize PLASMA by calling the \texttt{PLASMA\_Init} routine.
+The variable \texttt{cores} specifies the number of cores PLASMA will use.
+\begin{verbatim}
+in C:
+   int cores = 2;
+    /* Plasma Initialize */
+   INFO = PLASMA_Init(cores);
+in Fortran:
+      INTEGER     CORES
+      PARAMETER   ( CORES = 2 )
+      INTEGER     INFO
+      EXTERNAL    PLASMA_INIT
+! --  Initialize Plasma
+      CALL PLASMA_INIT( CORES, INFO )
+\end{verbatim}
+
+Before we can call \texttt{PLASMA\_dgesv}, we need to allocate some workspace
+necessary for the \texttt{PLASMA\_dgesv} routine to operate.
+In PLASMA, each routine has its own routine to allocate its specific workspace arrays. Those
+routines are all defined in the \texttt{workspace.c} file. Their names are of
+the kind \texttt{PLASMA\_Alloc\_Workspace\_} with the name of the associated
+routine in lower case for C and \texttt{PLASMA\_ALLOC\_WORKSPACE\_} with the
+name of the associated routine in upper case for Fortran. You will also need to
+check the interface since they are different from one routine to the other.
+For the \texttt{PLASMA\_dgesv} routine, two arrays need to be initialized,
+the workspace (here it is called \texttt{L} in the C code and \texttt{HL} in
+the Fortran Code) and the pivots (here it is called \texttt{IPIV} in the C code
+and \texttt{HIPIV} in the Fortran Code). Note that in C, you need to use
+standard pointers; while in Fortran, you need to use handle defined as an array
+of two elements of \texttt{INTEGER*4}.
+\begin{verbatim}
+in C:
+   double *L;
+   int *IPIV;
+   PLASMA_Alloc_Workspace_dgesv(N, &L, &IPIV);
+in Fortran:
+      INTEGER*4         HL( 2 ), HPIV( 2 )
+      EXTERNAL          PLASMA_ALLOC_WORKSPACE_DGESV
+! --  Allocate L and IPIV
+      CALL PLASMA_ALLOC_WORKSPACE_DGESV( N, HL, HPIV, INFO )
+\end{verbatim}
+
+Finally, 
+ we can call the
+\texttt{PLASMA\_dgesv} routine. You can report to
+the header of the routine for a complete description of the arguments. The
+description is also available online in the PLASMA routine description html
+page:
+\texttt{\url{http://icl.cs.utk.edu/projectsfiles/plasma/html/routine.html}}. As
+in LAPACK, PLASMA is returning a return variable, \texttt{INFO}, that indicates if the
+exit was successful or not. A successful exit is indicated by \texttt{INFO} equal to \texttt{0}.
+In a case of \texttt{INFO} different from \texttt{0}, the value of
+\texttt{INFO} should help you to understand the reason of the failure. (See the return
+value section in the above cited documentation.)
+\begin{verbatim}
+in C:
+   /* Solve the problem */
+   INFO = PLASMA_dgesv(N, NRHS, A, N, L, IPIV, B, N);
+   if (INFO < 0)
+       printf("-- Error in DGESV example ! \n");
+   else
+       printf("-- Run successful ! \n");
+in Fortran:
+! --  Perform the LU solve
+      CALL PLASMA_DGESV( N, NRHS, A, N, HL, HPIV, B, N, INFO )
+      IF ( INFO < 0 ) THEN
+          WRITE(*,*) " -- Error in DGESV example !"
+      ELSE
+          WRITE(*,*) " -- Run successful !"
+      ENDIF
+
+\end{verbatim}
+
+Before exiting the program, we need to free the resource used by
+our arrays and finalize PLASMA.
+To deallocate the C array, a simple call to \texttt{free} is needed 
+whereas in Fortran, PLASMA provides the 
+routine \texttt{PLASMA\_DEALLOC\_HANDLE} to do so.
+\texttt{PLASMA\_Finalize} call will free all the internal allocated variables and finalize PLASMA.
+\begin{verbatim}
+in C:
+   /* Deallocate L and IPIV */
+   free(L); free(IPIV);
+   /* Plasma Finalize */
+   INFO = PLASMA_Finalize();
+in Fortran:
+! --  Deallocate L and IPIV
+      CALL PLASMA_DEALLOC_HANDLE( HL, INFO )
+      CALL PLASMA_DEALLOC_HANDLE( HPIV, INFO )
+!--   Finalize Plasma
+      CALL PLASMA_FINALIZE( INFO )
+\end{verbatim}
+
+
+

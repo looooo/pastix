@@ -1,0 +1,281 @@
+#/////////////////// P /// L /// A /// S /// M /// A //////////////////
+#/// PLASMA is a software package provided by Univ. of Tennessee,  ///
+#/// Univ. of California Berkeley and Univ. of Colorado Denver     ///
+#//////////////////////////////////////////////////////////////////////
+
+# To include this file in various CMakeLists.txt
+# INCLUDE( ${CMAKE_SOURCE_DIR}/GenerateZDCS.cmake OPTIONAL )
+
+FIND_PACKAGE( PythonInterp )
+
+# Macro to generate different precisons ( S, D, C from Z )
+# This will only happen if the conversion script exists, and the python interpretor is found.
+# Otherwise the compilation will transparently take place
+MACRO ( PLASMA_GEN_ZSDC wdir zsrc sout dout cout )
+  IF ( EXISTS ${CMAKE_SOURCE_DIR}/tools/codegen.py AND PYTHONINTERP_FOUND )
+      SET ( GENSCRIPT ${CMAKE_SOURCE_DIR}/tools/codegen.py )
+      ADD_CUSTOM_COMMAND (
+        OUTPUT ${CMAKE_SOURCE_DIR}/${wdir}/${sout} ${CMAKE_SOURCE_DIR}/${wdir}/${dout} ${CMAKE_SOURCE_DIR}/${wdir}/${cout}
+        COMMAND ${PYTHON_EXECUTABLE} ${GENSCRIPT} --file ${CMAKE_SOURCE_DIR}/${wdir}/${zsrc}
+        DEPENDS ${CMAKE_SOURCE_DIR}/${wdir}/${zsrc}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/${wdir}
+      )
+  ENDIF( )
+ENDMACRO( )
+
+
+# Macro to generate different precisons for the iterative refinement routines ( ZC to DS )
+# This will only happen if the conversion script exists, and the python interpretor is found.
+# Otherwise the compilation will transparently take place
+MACRO ( PLASMA_GEN_ZC wdir zcsrc dsout )
+  IF ( EXISTS ${CMAKE_SOURCE_DIR}/tools/codegen.py AND PYTHONINTERP_FOUND )
+      SET ( GENSCRIPT ${CMAKE_SOURCE_DIR}/tools/codegen.py )
+      ADD_CUSTOM_COMMAND (
+        OUTPUT ${CMAKE_SOURCE_DIR}/${wdir}/${dsout}
+        COMMAND ${PYTHON_EXECUTABLE} ${GENSCRIPT} --file ${CMAKE_SOURCE_DIR}/${wdir}/${zcsrc} ${CMAKE_SOURCE_DIR}/${wdir}/${dsout}
+        DEPENDS ${CMAKE_SOURCE_DIR}/${wdir}/${zcsrc}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/${wdir}
+      )
+  ENDIF( )
+ENDMACRO( )
+
+
+# Generate in core_blas
+# (cd core_blas/ && ls core_z* ) | sed 's|core_z||'
+set( CORE_BLAS_FILES
+      geqrt tsqrt tsmqr tsrfb
+        gelqt tslqt tsmlq
+                      ttqrt ttmqr ttrfb
+                      ttlqt ttmlq
+        getrf_incpiv tstrf gessm ssssm
+        potrf trtri lauum
+        gemm  symm  syrk trsm
+        trmm  geadd  syr2k
+        lacpy lange lansy
+        ### core_dzasum unmqr unmlq
+        ### hemm  herk  lanhe her2k
+        ## lag2c
+        swpab getrip shift
+        plrnt plgsy ### plghe
+        laswp getrf
+        getrf_rectil getrf_reclap
+        laset laset2
+        ### herfb hegst
+        larfx_tbrd trdalg brdalg
+        hbelr hbrce hblrx
+        gbelr gbrce gblrx
+        ## tsmqr_hetra1
+        tsmqr_corner
+        ### tsmlq_hetra1
+        tsmlq_corner
+        parfb pamm pemv
+)
+foreach( file ${CORE_BLAS_FILES} )
+  PLASMA_GEN_ZSDC( core_blas core_z${file}.c core_c${file}.c core_d${file}.c core_s${file}.c )
+endforeach()
+PLASMA_GEN_ZSDC( core_blas core_dzasum.c core_sasum.c core_dasum.c core_scasum.c )
+PLASMA_GEN_ZSDC( core_blas core_zunmqr.c core_sormqr.c core_dormqr.c core_cunmqr.c )
+PLASMA_GEN_ZSDC( core_blas core_zunmlq.c core_sormlq.c core_dormlq.c core_cunmlq.c )
+PLASMA_GEN_ZSDC( core_blas core_zherfb.c core_ssyrfb.c core_dsyrfb.c core_cherfb.c  )
+PLASMA_GEN_ZSDC( core_blas core_zhegst.c core_ssygst.c core_dsygst.c core_chegst.c )
+PLASMA_GEN_ZSDC( core_blas core_ztsmqr_hetra1.c core_stsmqr_sytra1.c core_dtsmqr_sytra1.c core_ctsmqr_hetra1.c )
+PLASMA_GEN_ZSDC( core_blas core_ztsmlq_hetra1.c core_stsmlq_sytra1.c core_dtsmlq_sytra1.c core_ctsmlq_hetra1.c )
+PLASMA_GEN_ZC( core_blas core_zhemm.c core_chemm.c )
+PLASMA_GEN_ZC( core_blas core_zherk.c core_cherk.c )
+PLASMA_GEN_ZC( core_blas core_zher2k.c core_cher2k.c )
+PLASMA_GEN_ZC( core_blas core_zlanhe.c core_clanhe.c )
+PLASMA_GEN_ZC( core_blas core_zplghe.c core_cplghe.c )
+PLASMA_GEN_ZC( core_blas core_zlag2c.c core_dlag2s.c )
+
+
+# Generate in examples
+# (cd examples/ && ls example_z* ) | sed 's|example_z||'
+set( EXAMPLES_FILES gelqf.c gelqs.c gels.c gels_f.f geqrf.c geqrs.c
+gesv.c gesv_f.f getrs.c posv.c posv_f.f potrf.c potrs.c trsm.c
+trsmpl.c )
+foreach( file ${EXAMPLES_FILES} )
+  PLASMA_GEN_ZSDC( examples example_z${file} example_c${file} example_d${file} example_s${file} )
+endforeach()
+PLASMA_GEN_ZSDC( examples example_zunmqr.c example_sormqr.c example_dormqr.c example_cunmqr.c )
+PLASMA_GEN_ZSDC( examples example_zunmlq.c example_sormlq.c example_dormlq.c example_cunmlq.c )
+
+
+# Generate in includes
+PLASMA_GEN_ZSDC( include plasma_z.h plasma_s.h plasma_d.h plasma_c.h )
+PLASMA_GEN_ZSDC( include core_zblas.h core_sblas.h core_dblas.h core_cblas.h )
+PLASMA_GEN_ZC( include plasma_zc.h plasma_ds.h )
+PLASMA_GEN_ZC( include core_zcblas.h core_dsblas.h )
+
+
+# Generate in control
+PLASMA_GEN_ZSDC( control plasma_zf77.c plasma_sf77.c plasma_df77.c plasma_cf77.c )
+PLASMA_GEN_ZSDC( control compute_z.h compute_d.h compute_c.h compute_s.h )
+PLASMA_GEN_ZSDC( control workspace_z.c workspace_s.c workspace_d.c workspace_c.c )
+######## PLASMA_GEN_ZSDC( control workspace_z.h workspace_s.h workspace_d.h workspace_c.h )
+PLASMA_GEN_ZSDC( control pztile.c pstile.c pdtile.c pctile.c )
+PLASMA_GEN_ZSDC( control ztile.c stile.c dtile.c ctile.c )
+
+
+# Generate in compute
+# The Z files
+# (cd compute/ && ls z*.c ) | sed 's|z||'
+set( plasma_compute_ZSRC_BASE
+     gels.c  gelqf.c gelqs.c geqrf.c geqrs.c
+     gesv_incpiv.c getrf_incpiv.c getrs_incpiv.c
+     gesv.c  getrf.c getrs.c laswp.c laswpc.c
+     posv.c  potrf.c potrs.c
+     trsm.c  gemm.c  symm.c syrk.c syr2k.c trsmpl.c trsmrv.c
+     potri.c trtri.c lauum.c trmm.c
+     getri.c
+     lange.c lansy.c laset.c lacpy.c
+     gecfi2.h
+     gecfi2.c gecfi.c getmi.c
+     plrnt.c plgsy.c
+     gesvd.c gebrd.c
+)
+foreach( file ${plasma_compute_ZSRC_BASE} )
+  PLASMA_GEN_ZSDC( compute z${file} c${file} d${file} s${file} )
+endforeach()
+# Rest of PZ files
+set( COMPUTE_PZ_FILES
+        gelqf.c geqrf.c potrf.c trtri.c lauum.c
+        gelqfrh.c geqrfrh.c
+        trsm.c  gemm.c  symm.c  syrk.c syr2k.c  trsmpl.c trsmrv.c
+        lange.c lansy.c
+        lacpy.c geadd.c  getrf_incpiv.c trmm.c
+        laset.c laset2.c
+        pack.c shift.c getmi2.c
+        plrnt.c plgsy.c
+        getrf_reclap.c getrf_rectil.c laswp.c laswpc.c
+        barrier.c
+        gerbb.c
+        gbrdb.c
+)
+foreach( file ${COMPUTE_PZ_FILES} )
+  PLASMA_GEN_ZSDC( compute pz${file} pc${file} pd${file} ps${file} )
+endforeach()
+# All the other Z files
+PLASMA_GEN_ZSDC( compute pzunglq.c psorglq.c pdorglq.c pcunglq.c )
+PLASMA_GEN_ZSDC( compute pzungqr.c psorgqr.c pdorgqr.c pcungqr.c )
+PLASMA_GEN_ZSDC( compute pzunmlq.c psormlq.c pdormlq.c pcunmlq.c )
+PLASMA_GEN_ZSDC( compute pzunmqr.c psormqr.c pdormqr.c pcunmqr.c )
+PLASMA_GEN_ZSDC( compute pzunmqrrh.c psormqrrh.c pdormqrrh.c pcunmqrrh.c )
+PLASMA_GEN_ZSDC( compute pzunmlqrh.c psormlqrh.c pdormlqrh.c pcunmlqrh.c )
+PLASMA_GEN_ZSDC( compute pzungqrrh.c psorgqrrh.c pdorgqrrh.c pcungqrrh.c )
+PLASMA_GEN_ZSDC( compute pzunglqrh.c psorglqrh.c pdorglqrh.c pcunglqrh.c )
+PLASMA_GEN_ZSDC( compute zunglq.c sorglq.c dorglq.c cunglq.c )
+PLASMA_GEN_ZSDC( compute zungqr.c sorgqr.c dorgqr.c cungqr.c )
+PLASMA_GEN_ZSDC( compute zunmlq.c sormlq.c dormlq.c cunmlq.c )
+PLASMA_GEN_ZSDC( compute zunmqr.c sormqr.c dormqr.c cunmqr.c )
+PLASMA_GEN_ZSDC( compute zplghe.c cplghe.c dplgsy.c splgsy.c )
+PLASMA_GEN_ZSDC( compute pzplghe.c pcplghe.c pdplgsy.c psplgsy.c )
+PLASMA_GEN_ZSDC( compute pzherbt.c pcherbt.c pdsyrbt.c pssyrbt.c )
+PLASMA_GEN_ZSDC( compute pzhegst.c pchegst.c pdsygst.c pssygst.c )
+PLASMA_GEN_ZSDC( compute pzhbrdt.c pchbrdt.c pdsbrdt.c pssbrdt.c )
+PLASMA_GEN_ZSDC( compute zhegv.c ssygv.c dsygv.c chegv.c )
+PLASMA_GEN_ZSDC( compute zheev.c ssyev.c dsyev.c cheev.c )
+PLASMA_GEN_ZSDC( compute zhegst.c ssygst.c dsygst.c chegst.c )
+PLASMA_GEN_ZSDC( compute zhetrd.c ssytrd.c dsytrd.c chetrd.c )
+# Generate ds from zc in compute
+PLASMA_GEN_ZC( compute zcgesv.c dsgesv.c )
+PLASMA_GEN_ZC( compute zcposv.c dsposv.c )
+PLASMA_GEN_ZC( compute pzlag2c.c pdlag2s.c )
+PLASMA_GEN_ZC( compute pclag2z.c pslag2d.c )
+PLASMA_GEN_ZC( compute zcgels.c dsgels.c )
+PLASMA_GEN_ZC( compute zcungesv.c dsungesv.c )
+PLASMA_GEN_ZC( compute zhemm.c chemm.c )
+PLASMA_GEN_ZC( compute zherk.c cherk.c )
+PLASMA_GEN_ZC( compute zher2k.c cher2k.c )
+PLASMA_GEN_ZC( compute pzherk.c pcherk.c )
+PLASMA_GEN_ZC( compute pzher2k.c pcher2k.c )
+PLASMA_GEN_ZC( compute pzhemm.c pchemm.c )
+PLASMA_GEN_ZC( compute pzlanhe.c pclanhe.c )
+PLASMA_GEN_ZC( compute zlanhe.c clanhe.c )
+
+
+
+# Generate in testing
+# (cd testing/ && ls testing_z*.c ) | grep -v testing_zc | sed 's|testing_z||'
+set( testing_NAMES
+        main
+        gesv
+        getri
+        gesvd
+        gels
+        posv
+        potri
+        gemm
+#        heev
+#        hegst
+#        hegv
+        syrk
+        syr2k
+        symm
+        trsm
+        trmm
+        lange
+##      herk
+##      her2k
+##      hemm
+        gecfi
+        getmi
+##      cposv
+##      cgesv
+##      cungesv
+        pemv
+)
+foreach( file ${testing_NAMES} )
+  PLASMA_GEN_ZSDC( testing testing_z${file}.c testing_c${file}.c testing_d${file}.c testing_s${file}.c )
+endforeach()
+PLASMA_GEN_ZSDC( testing testing_zmain.h testing_cmain.h testing_dmain.h testing_smain.h )
+PLASMA_GEN_ZC( testing testing_zcgesv.c testing_dsgesv.c )
+PLASMA_GEN_ZC( testing testing_zcposv.c testing_dsposv.c )
+PLASMA_GEN_ZC( testing testing_zcgels.c testing_dsgels.c )
+PLASMA_GEN_ZC( testing testing_zcungesv.c testing_dsungesv.c )
+PLASMA_GEN_ZC( testing testing_zherk.c testing_cherk.c )
+PLASMA_GEN_ZC( testing testing_zher2k.c testing_cher2k.c )
+PLASMA_GEN_ZC( testing testing_zhemm.c testing_chemm.c )
+PLASMA_GEN_ZSDC( testing testing_zheev.c testing_cheev.c testing_dsyev.c testing_ssyev.c )
+PLASMA_GEN_ZSDC( testing testing_zhegst.c testing_chegst.c testing_dsygst.c testing_ssygst.c )
+PLASMA_GEN_ZSDC( testing testing_zhegv.c testing_chegv.c testing_dsygv.c testing_ssygv.c )
+
+
+# Generate in timing
+#  (cd timing/ && ls time_z*.c ) | sed 's|time_z||'
+set( timing_NAMES
+        gemm
+        posv
+        potrf
+        gesv
+        getrf
+        gesv_incpiv
+        getrf_incpiv
+        gels
+        geqrf
+        gemm_tile
+        posv_tile
+        potrf_tile
+        potri_tile
+        gesv_tile
+        getrf_tile
+        gesv_incpiv_tile
+        getrf_incpiv_tile
+        gels_tile
+        geqrf_tile
+        geqrfrh_tile
+        gelqfrh_tile
+        gecfi
+#       heev_tile
+#       hegv_tile
+        gesvd_tile
+        lapack2tile
+        getrf_reclap
+        getrf_rectil
+)
+foreach( file ${timing_NAMES} )
+  PLASMA_GEN_ZSDC( timing time_z${file}.c time_c${file}.c time_d${file}.c time_s${file}.c )
+endforeach()
+PLASMA_GEN_ZSDC( timing zauxiliary.c cauxiliary.c dauxiliary.c sauxiliary.c )
+PLASMA_GEN_ZSDC( timing zauxiliary.h cauxiliary.h dauxiliary.h sauxiliary.h )
+PLASMA_GEN_ZSDC( timing time_zheev_tile.c time_cheev_tile.c time_dsyev_tile.c time_ssyev_tile.c )
+PLASMA_GEN_ZSDC( timing time_zhegv_tile.c time_chegv_tile.c time_dsygv_tile.c time_ssygv_tile.c )

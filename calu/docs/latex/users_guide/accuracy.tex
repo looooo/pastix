@@ -1,0 +1,142 @@
+%##################################################################################################
+
+\chapter{Accuracy and Stability}
+\newtheorem{theorem}{Theorem}[section]
+
+%###################################################################################################
+
+
+We present backward stability results of the algorithms used in PLASMA.
+Backward stability is a concept developed by Wilkinson in~\cite{Wilkinson:1963:REA,Wilkinson:1965:AEP}.
+For more general discussion on accuracy and stability of numerical algorithms, we refer the users to Higham~\cite{Higham:2002:ASN}.
+We follow Higham's notation and methodology here; in fact, we mainly present his results.
+
+\section{Notations}
+\begin{itemize}
+\item We assume the same floating-point system as Higham~\cite{Higham:2002:ASN}. His
+assumptions are fulfilled by the IEEE standard. The unit round-off is $u$
+which is about $1.11\times 10^{-16}$ for double.
+
+\item The absolute value notation $|\cdot|$ is extended from scalar to matrices
+where matrix $|A|$ denotes the matrix with $(i,j)$ entry $|a_{ij}|$.
+
+\item Inequalities between matrices hold componentwise. If we write $A<B$,
+this means that for any $i$ and any $j$,
+$a_{ij}<b_{ij}$ ($A$ and $B$ are of the same size).
+
+\item If $nu<1$, we define $\gamma_n \equiv \frac{nu}{1-nu}$.
+
+\item Computed quantities are represented with an overline or with the $fl(\cdot)$ notation.
+
+\item Inequality with $|\cdot|$ can be converted to norms easily. (See \cite[Lem.6.6]{Higham:2002:ASN}.)
+\end{itemize}
+
+\section{Peculiarity of the Error Analysis of the Tile Algorithms}
+
+Numerical linear algebra algorithms rely at their roots on inner products.
+A widely used result of error analysis of the inner product is given in Theorem~\ref{theorem:jl--1} 
+\begin{theorem}\emph{(Higham, \cite[Eq.(3.5)]{Higham:2002:ASN})}
+\label{theorem:jl--1}
+Given $x$ and $y$, two vectors of size $n$, 
+if $x^Ty$ is evaluated in floating-point arithmetic, then, 
+no matter what the order of evaluation, we have
+\begin{equation*}
+| x^T y - fl( x^T y ) | \leq \gamma_n |x |^T |y |.
+\end{equation*}
+\end{theorem}
+While there exists a variety of implementations and interesting research that
+aim to reduce errors in inner products (see for
+example~\cite[chapter~3~and~4]{Higham:2002:ASN}), we note that
+Theorem~\ref{theorem:jl--1}
+ is given independently of the order of evaluation in the inner
+products.  The motivation for being independent of the order of evaluation is
+that inner products are performed by optimized libraries which use
+associativity of the addition for grouping the operations in order to obtain
+parallelism and data locality in matrix-matrix multiplications.
+
+Theorem~\ref{theorem:jl--2} presents a remark from Higham.
+Higham notes that one can significantly reduce the error bound of an inner
+product by accumulating it in pieces (which is indeed what an optimized BLAS library would do
+to obtain performance).
+\begin{theorem}\emph{(Higham, \cite[\S3.1]{Higham:2002:ASN})}
+\label{theorem:jl--2}
+Given $x$ and $y$, two vectors of size $n$, 
+if $x^Ty$ is evaluated in floating-point arithmetic
+ by accumulating the inner product in $k$ pieces of size $n/k$,
+then, we have
+\begin{equation*}
+| x^T y - fl( x^T y ) | \leq \gamma_{n/k+k-1} |x |^T |y |.
+\end{equation*}
+\end{theorem}
+Theorem~\ref{theorem:jl--2} has been used by
+Castaldo, Whaley, and Chronopoulos~\cite{Castaldo:2008:RFP} to improve the 
+error bound in matrix-matrix multiplications.
+
+The peculiarity of tile algorithms is that they explicitly work on small pieces of data
+and therefore, benefit in general from a {\em better} error bounds than their LAPACK counterparts.
+
+\section{Tile Cholesky Factorization}
+
+The Cholesky factorization algorithm in PLASMA performs the same operations than any version of the Cholesky.
+The organization of the operations in the inner products might be different from one algorithm to the other.
+The error analysis is however essentially the same for all the algorithms.
+
+Theorem~\ref{theorem:jl--3} presents Higham's result for the Cholesky factorization.
+\begin{theorem}\emph{(Higham, \cite[Th.10.3]{Higham:2002:ASN})}
+\label{theorem:jl--3}
+If Cholesky factorization applied to the symmetric positive definite matrix $A\in \mathbb{R}^{n\times n}$ runs to completion then the computed 
+factor $\overline{R}$ satisfies 
+\begin{equation*}
+\overline{R}^T \overline{R} = A + \Delta A, \quad \textmd{where } | \Delta A | \leq \gamma_{n+1} |\overline{R}^T||\overline{R}|.
+\end{equation*}
+\end{theorem}
+
+Following Higham's proof, we note that Higham's Equation (10.4) can be tighten in our case
+since we know that the inner product are accumulated within tiles of size $b$. The $\gamma_i$ term becomes
+$\gamma_{i/b+b-1}$ and we obtain the improved error bound given in
+Theorem~\ref{theorem:jl--4}.
+\begin{theorem}
+\label{theorem:jl--4}
+If {\em Tile Cholesky factorization} applied to the symmetric positive definite matrix $A\in \mathbb{R}^{n\times n}$ runs to completion then the computed 
+factors $\overline{R}$ satisfies 
+\begin{equation*}
+\overline{R}^T \overline{R} = A + \Delta A, \quad \textmd{where } | \Delta A | \leq \gamma_{n/b+b} |\overline{R}^T||\overline{R}|.
+\end{equation*}
+\end{theorem}
+We note that the error bound could even be made smaller by taking into account the inner blocking used in the Cholesky factorization of each tile.
+
+Higham explains how to relate the backward error of the factorization
+with the backward error of the solution of a symmetric positive definite linear system of equations.
+
+\section{Tile Householder QR Factorization}
+
+The {\em Tile Householder QR} is backward stable since it is obtained through a product of backward stable transformations.
+One can obtain a tighter error bound with tile algorithms than with standard ones.
+
+Higham explains how to relate the backward error of the factorization
+with the backward error of the solution of a linear least squares.
+
+\section{Tile LU Factorization}
+
+\begin{theorem}\emph{(Bientinesi and van de Geijn, \cite[Th.6.5]{Bientinesi:2009:SDS})}
+Given $A\in \mathbb{R}^{n\times n}$, assume that the blocked right-looking algorithm in Fig. 6.1 completes.
+Then the computed factors $\overline{L}$ and $\overline{U}$ are such that 
+\begin{equation*}
+\label{theorem:jl--5}
+\overline{L}\overline{U} =  A + \Delta A, \quad \textmd{where } | \Delta A | \leq \gamma_{\frac{n}{b}+b} \left( | A | + |\overline{L}||\overline{U}| \right).
+\end{equation*}
+\end{theorem}
+
+We note that Bientinesi and van de Geijn do not consider permutations.
+
+Higham explains how to relate the backward error of the factorization
+with the backward error of the solution of a linear system of equations.
+
+{\bf Words of cautions:} It is important to note that Theorem~\ref{theorem:jl--5} does not state that the algorithm is stable.
+For the algorithm to be stable, we need to have
+\begin{equation*}
+ |\overline{L}||\overline{U}| \sim | A |.
+\end{equation*}
+Whether this is the case or not, this is still an ongoing research topic.
+Therefore, we recommend users to manipulate \texttt{PLASMA\_dgesv} with care.
+In case of doubt, it is better to use  \texttt{PLASMA\_dgels}.

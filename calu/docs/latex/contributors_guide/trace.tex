@@ -1,0 +1,155 @@
+%###################################################################################################
+
+\chapter{Traces in PLASMA}
+
+This chapter explains how generate execution traces within PLASMA and
+how to modify the library to add some informations in traces.  
+In PLASMA, traces can be automatically generated to record all calls
+to coreblas functions with static scheduling as with dynamic
+scheduling. During execution a binary trace will be generated, that
+will be converted post-execution in the format of your choice: OTF, Tau or
+Paje. 
+
+\section{Requirements}
+
+Traces in PLASMA relies on several external libraries:
+\begin{description}
+   \item[{\sc FxT}:] Fast Kernel/User Tracing. This library provides an efficient
+     support for recording traces.\newline
+     \url{http://savannah.nongnu.org/projects/fkt/}
+   \item[{\sc GTG}:] Generic Trace Generator aims at providing a simple and
+    generic interface for generating execution traces in several formats
+    (OTF, Paje, \dots).\newline
+    \url{https://gforge.inria.fr/projects/gtg/}
+  \item[{\sc EZTrace}:] EZTrace is a tool that aims at generating
+    automatically execution trace from HPC (High Performance Computing)
+    programs.\newline
+    \url{http://eztrace.gforge.inria.fr/}
+\end{description}
+ 
+Adding to these libraries, two other are optional regarding the
+tarce format you want to generate:
+\begin{description}
+\item[{\sc OTF}:] OpenTraceFormat (OTF) is an API specification and
+  library implementation of a scalable trace file format, developed at
+  TU Dresden in partnership with ParaTools with funding from Lawrence
+  Livermore National Laboratory and released under the BSD open source
+  license. The intent of OTF is to provide an open source means of
+  efficiently reading and writing up to gigabytes of trace data from
+  thousands of processes.\newline
+  \url{http://www.tu-dresden.de/zih/otf}
+\item[{\sc TAU}:] Tuning and Analysis Utilities is a portable profiling
+  and tracing toolkit for performance analysis of parallel programs
+  written in Fortran, C, C++, Java, Python.\newline
+  {\bf Remark:} Tau is actually work in progress in GTG and can not be used
+  for now in PLASMA.\newline
+  \url{http://www.cs.uoregon.edu/research/tau/}
+\end{description}
+
+Three different visualizer can be used to go through the traces:
+\begin{description}
+\item[{\sc ViTE}:] Visual Trace Explorer that is able to read Paje,
+  OTF and TAU format.\newline
+  \url{http://vite.gforge.inria.fr/}
+\item[{\sc Vampir}:] Vampir provides an easy to use analysis framework
+  which enables developers to quickly display program behavior at any
+  level of detail. Vampir reads the OTF format.\newline 
+  \url{http://www.vampir.eu/}
+\end{description}
+
+\section{Usage}
+
+This section describes the different steps to generate traces, once
+the libraries have been installed and more expecially on x86\_64
+architectures available at ICL. We will consider in the following that
+the libraries have been installed in the directory: \texttt{/opt/eztrace}.
+
+\begin{enumerate}
+\item Be sure you have set up you environnment correctly, to have
+  access to the header files and libraries:
+\begin{verbatim}
+export PATH=$PATH:/opt/eztrace/bin
+export LD_RUN_PATH=$LD_RUN_PATH:/opt/eztrace/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/eztrace/lib
+export INCLUDE_PATH=$INCLUDE_PATH:/opt/eztrace/include
+\end{verbatim}
+
+On ICL clusters, you can directly use the following command:
+\begin{verbatim}
+source /home/mfaverge/trace/opt/trace_env.sh
+\end{verbatim}
+
+\item Update your \texttt{make.inc}. 
+
+\begin{verbatim}
+PLASMA_TRACE = 1
+EZT_DIR = /opt/eztrace
+# You need to specified the following directories 
+# if they are different from the previous one
+#GTG_DIR = /opt/gtg  
+#FXT_DIR = /opt/FxT
+\end{verbatim}
+
+On ICL clusters, you can use:
+\begin{verbatim}
+EZT_DIR = /home/mfaverge/trace/opt
+\end{verbatim}
+
+\item Compile and/or link your program.
+
+\item Run the test/timing as usual:
+\begin{verbatim}
+% ./time_dpotrf
+Starting EZTrace... done
+#   N NRHS threads seconds   Gflop/s Deviation
+ 1000    1    16     0.018     18.18      0.00
+Stopping EZTrace... saving trace  /tmp/mfaverge_eztrace_log_rank_1
+\end{verbatim}
+
+\item You now need to convert the binary file obtained in one format
+  readable by your preferred visualizer. Firstly, you need to specify
+  where to find the library to interpret the events generated during
+  the execution.
+\begin{verbatim}
+export EZTRACE_LIBRARY_PATH=$PLASMA_DIR/lib
+\end{verbatim}
+
+Secondly, you convert your file with EZTrace:
+\begin{verbatim}
+% eztrace_convert -t PAJE -o potrf /tmp/mfaverge_eztrace_log_rank_1
+\end{verbatim}
+
+\end{enumerate}
+
+
+\subsection{FAQ}
+\begin{itemize}
+\item \textit{My traces are unreadable and contain too many events. How can I
+  limit the venet to coreblas functions?}\newline
+
+  EZTrace allows you to produce events for 4 differents modules: PThread, OpenMP, MPI and
+  coreblas that are all activated by default. You can select a subset
+  of them with \texttt{EZTRACE\_TRACE}. For PLASMA, the most
+  common use will be:
+\begin{verbatim}
+export EZTRACE_TRACE="coreblas"
+\end{verbatim}
+ 
+\item \textit{How can I change the output directory?}\newline
+  By default, the generated file in \texttt{/tmp} directory with the
+  name \texttt{username\_eztrace\_log\_rankX} where username is
+  replaced by your username, and X by the rank number of the MPI process.
+  The directory where output is stored can be changed with the
+  following line:
+\begin{verbatim}
+export EZTRACE_TRACE_DIR=$HOME/traces
+\end{verbatim}
+
+\end{itemize}
+
+\section{How to add a kernel?}
+
+\section{Advanced usage}
+
+
+%###################################################################################################

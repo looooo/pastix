@@ -1,0 +1,143 @@
+%##################################################################################################
+
+\chapter{Troubleshooting}
+\label{sec:trouble}
+%##################################################################################################
+
+\section{Wrong Results}
+
+PLASMA is a software package distributed in source code, subject to different hardware / software
+configurations.
+PLASMA may deliver wrong numerical results due to a number of problems outside of PLASMA, such as:
+\begin{itemize}
+\item aggressive compiler optimizations violating code correctness,
+\item aggressive compiler optimizations violating IEEE floating point standard,
+\item hardware floating point arithmetic implementations violating IEEE standard,
+\item ABI differences between compilers, if mixing compilers,
+\item aggressive optimizations in BLAS implementations,
+\item bugs in BLAS implementations.
+\end{itemize}
+
+PLASMA is distributed with an installer with the intention to spare the user the process
+of setting up compilation and linking options.
+Nevertheless, it might become necessary for the user to do so.
+In such circumstances, the following recommendations should be followed.
+
+When building PLASMA, it is recommended that dangerous compiler optimizations are avoided and
+instead flags enforcing IEEE compliance are used.
+It is generally recommended that ``-O2'' optimization level is used and not higher.
+Users are strongly cautioned against using different compilers for PLASMA and BLAS
+when building BLAS from source code.
+Users are also strongly advices to pay attention to the linking sequence and follow
+vendor recommendations, when vendor BLAS is used.
+
+PLASMA software is tested daily by running a subset of LAPACK testing suite.
+Each pass involves hundreds of thousands of tests including both test for numerical results,
+as well as tests for detection of input errors, such as invalid input parameters.
+Currently the hardware / software configurations (in different combinations) known to pass
+all the tests include the following architectures:
+
+\subsection{Linux machine: Intel x86-64}
+% ZOOT TESTINGS BUILDBOT
+\begin{tabular}{| c | c | c | c | c |}
+\hline
+C compiler & Fortran compiler & BLAS                & testing     &  testing/lin \\ 
+\hline \hline
+GNU gcc	4.1.2      & GNU gfortran 4.1.2    & ATLAS 3.8.1         &       PASSED      &       PASSED                  \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & GotoBLAS 1.24       &       PASSED      & info error:        160        \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & GotoBLAS 2          &       PASSED      & numerical failure: 1 (SPO)    \\
+                   &                       &                     &       PASSED      & info error:        160        \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & Intel MKL 11.0      &       PASSED      &       PASSED                  \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & Reference BLAS      &       PASSED      &       PASSED                  \\ \hline
+Intel icc 11.0     & Intel ifort 11.0      & ATLAS 3.8.1         &       PASSED      &       PASSED                  \\ \hline
+Intel icc 11.0     & Intel ifort 11.0      & GotoBLAS 1.24       &       PASSED      & numerical failure: 87 (CPO, ZPO)   \\
+                   &                       &                     &       PASSED      & illegal error:     0          \\ 
+                   &                       &                     &       PASSED      & info error:        188        \\ \hline
+Intel icc 11.0     & Intel ifort 11.0      & GotoBLAS 2          &       PASSED      & numerical failure: 87 (CPO, ZPO)   \\
+                   &                       &                     &       PASSED      & illegal error:     0          \\ 
+                   &                       &                     &       PASSED      & info error:        188        \\ \hline
+Intel icc 11.0     & Intel ifort 11.0      & Intel MKL 11.0      &       PASSED      &       PASSED                  \\ \hline
+Intel icc 11.0     & Intel ifort 11.0      & Reference BLAS      &       PASSED      &       PASSED                  \\ \hline
+\end{tabular} 
+
+\subsection{Linux machine: Intel 32}
+\begin{tabular}{| c | c | c | c | c |}
+\hline
+C compiler & Fortran compiler & BLAS                 & testing     &  testing/lin \\ 
+\hline \hline
+% LAPTOP HATEM
+GNU gcc 4.3.3  & GNU gfortran 4.3.3    & Reference BLAS        &       PASSED      &       PASSED              \\ \hline
+GNU gcc 4.3.3  & GNU gfortran 4.3.3    & Intel MKL 10.1        &       PASSED      &       PASSED              \\ \hline
+GNU gcc 4.3.3  & GNU gfortran 4.3.3    & ATLAS 3.8.1           &       PASSED      &       PASSED              \\ \hline
+GNU gcc 4.3.3  & GNU gfortran 4.3.3    & GotoBLAS 1.24         &       PASSED      &       ERROR               \\ \hline
+Intel icc 11.0 & Intel ifort 11.0      & Reference BLAS        &       PASSED      &       PASSED              \\ \hline
+Intel icc 11.0 & Intel ifort 11.0      & Intel MKL 10.1        &       PASSED      &       PASSED              \\ \hline
+Intel icc 11.0 & Intel ifort 11.0      & ATLAS 3.8.1           &       PASSED      &       PASSED              \\ \hline
+Intel icc 11.0 & Intel ifort 11.0      & GotoBLAS 1.24         &       PASSED      &       ERROR               \\ \hline
+\hline
+\end{tabular} 
+
+\subsection{Linux machine: Intel Itanium}
+\begin{tabular}{| c | c | c | c | c |}
+\hline
+C compiler & Fortran compiler & BLAS                 & testing     &  testing/lin \\ 
+\hline \hline
+% ANAKA BUILDBOT
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & Reference BLAS  &      PASSED       &       PASSED      \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & GotoBLAS        &      PASSED       &       PASSED      \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & GotoBLAS 2      &      PASSED       &       PASSED      \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & MKL             &      PASSED       &       PASSED      \\ \hline
+Intel icc 11.1     & Intel icc ifort 11.1  & MKL             &      PASSED       &       PASSED      \\ \hline
+% HP03 BUILDBOT
+Intel icc 11.1     & Intel icc ifort 11.1  & Reference BLAS  &      PASSED       &       PASSED      \\ \hline
+\hline
+\end{tabular} 
+
+\subsection{Linux machine: AMD Opteron}
+\begin{tabular}{| c | c | c | c | c |}
+\hline
+C compiler & Fortran compiler & BLAS                 & testing     &  testing/lin \\ 
+\hline \hline
+% TORC10 BUILDBOT
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & Reference BLAS  &      PASSED       &       PASSED      \\ \hline
+GNU gcc 4.1.2      & GNU gfortran 4.1.2    & ACML 14.3.0     &      PASSED       &       PASSED      \\ \hline
+% MARVIN.CS.UH.EDU HATEM AMD Opteron Processor 846
+PATHSCALE pathcc  2.5 & PATHSCALE pathf90 2.5 & INTEL MKL 10.0.1 &  PASSED       &       PASSED      \\ \hline
+% medusa.tlc2.uh.edu HATEM AMD Opteron Processor 242
+PORTLAND pgcc 8.0-6 & PORTLAND pgf90 8.0-6 &  Reference BLAS &  PASSED       &       PASSED      \\ \hline
+\hline
+\end{tabular} 
+
+\subsection{Linux machine: IBM Power6}
+\begin{tabular}{| c | c | c | c | c |}
+\hline
+C compiler & Fortran compiler & BLAS                 & testing     &  testing/lin \\ 
+\hline \hline
+% BLUEGRASS
+GNU gcc 4.3.1      & GNU gfortran 4.3.2    & Reference BLAS  &      PASSED       &       PASSED      \\ \hline
+GNU gcc 4.3.1      & GNU gfortran 4.3.2    & ATLAS           &      PASSED       &       PASSED      \\ \hline
+GNU gcc 4.3.1      & GNU gfortran 4.3.2    & ACML            &      PASSED       &       PASSED      \\ \hline
+\end{tabular} 
+
+\subsection{Non-Linux machine}
+\begin{tabular}{| c | c | c | c | c | c |}
+\hline
+Machine &   C compiler & Fortran compiler & BLAS                 & testing     &  testing/lin \\  
+\hline \hline
+% SNOW JULIE
+MAC OS/X Snow Leopard & GNU gcc 4.3.0 & GNU gfortran 4.3.0 & Reference BLAS     &      PASSED       &       PASSED      \\ \hline
+MAC OS/X Snow Leopard & GNU gcc 4.3.0 & GNU gfortran 4.3.0 & Veclib framework   &      PASSED       &       PASSED      \\ \hline
+% VARGAS EMMANUEL
+AIX 5.3          & IBM XLC 10.1  & IBM XLF 12.1       & ESSL 4.3           &      PASSED       &       PASSED      \\ \hline
+\end{tabular} 
+
+
+Currently the hardware / software configurations known to fail PLASMA tests are:
+\begin{itemize}
+\item Intel x86-64, GCC, GFORTAN, Goto BLAS,
+\item Intel x86-64, GCC, GFORTAN, Goto BLAS 2,
+\item Intel x86-64, ICC, IFORT, Goto BLAS,
+\item Intel x86-64, ICC, IFORT, Goto BLAS 2.
+\end{itemize}
+
+%###################################################################################################

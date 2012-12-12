@@ -1,0 +1,51 @@
+###
+#
+# @file make.inc.intel.mkl_x86
+#
+#  PLASMA is a software package provided by Univ. of Tennessee,
+#  Univ. of California Berkeley and Univ. of Colorado Denver
+#
+# @version 2.4.6
+# @author Piotr Luszczek
+# @author Mathieu Faverge
+# @date 2010-11-15
+#
+###
+#
+# OS:       Linux x86 (32)
+# Compiler: ICC
+# BLAS:     MKL
+#
+###
+
+# PLASMA install directory (./install by default)
+#prefix      = /path/to/install/directory
+
+# Compilers, linker/loader, archiver, options
+CC          = icc
+FC          = ifort
+LOADER      = $(FC)
+
+ARCH        = ar
+ARCHFLAGS   = cr
+RANLIB      = ranlib
+
+CFLAGS      = -O2 -DADD_ -diag-disable vec
+FFLAGS      = -O2 -diag-disable vec
+LDFLAGS     = -nofor_main
+
+# Enable/Disable F90 compilation
+PLASMA_F90 = 0
+
+# BLAS library
+LIBBLAS     = -L/path/to/l_cproc_p_xx.x.xxx/mkl/lib/32 -lmkl_intel -lmkl_sequential -lmkl_core -lguide
+
+# CBLAS library
+# CBLAS is included in MKL
+
+# LAPACK and TMG library
+# LAPACK and TMG are included in MKL
+
+# LAPACK C Wrapper library
+INCCLAPACK  = -I/path/to/lapacke/include
+LIBCLAPACK  = -L/path/to/lapacke/lib -llapacke

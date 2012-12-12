@@ -1,0 +1,199 @@
+%###################################################################################################
+
+\chapter{Comments}
+
+% @version 2.4.6
+% @author  Wes Alvaro <alvaro@eecs.utk.edu>
+% @date    2010-11-15
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{API Routines}
+
+Doxygen comments are used to comment these routines to automatically generate documentation (Reference Guide).  These comments must be constructed in such a way that they are consistent with the other comments in the source.
+
+\subsection{Grouping Computational Routines}
+A routine should belong to a certain group that will cause those routines of the same group to be collected into a single Doxygen Module.  This is done with the Doxygen command {\tt @ingroup}
+
+\subsubsection{Precision}
+For the most part, routines are grouped by precision.  This allows code generated from another source to not require any special rules.
+
+\begin{tabular}{l|l}
+\hline
+Routine Precision & Doxygen Group Command \\
+\hline
+{\tt PLASMA\_Complex64\_t} & {\tt @ingroup PLASMA\_Complex64\_t} \\
+{\tt PLASMA\_Complex32\_t} & {\tt @ingroup PLASMA\_Complex32\_t} \\
+{\tt double} & {\tt @ingroup double} \\
+{\tt float} & {\tt @ingroup float}
+\end{tabular}
+
+\subsubsection{Expert Interface - Asynchronous / Synchronous}
+Special groups must be used for the expert API (the individual tile routines) interface consisting of Asynchronous and Synchronous functions.  These groups should also abide by the precision grouping from the previous section.
+
+\begin{tabular}{l|l}
+\hline
+Interface & Doxygen Group Command \\
+\hline
+{\tt ...\_Tile} & {\tt @ingroup PLASMA\_Complex64\_t\_Tile} \\
+{\tt ...\_Tile\_Async} & {\tt @ingroup PLASMA\_Complex64\_t\_Tile\_Async} \\
+\end{tabular}
+
+\subsection{Grouping Other Routines}
+These routines include all of the other routines, specifically those internal to the working of PLASMA.
+
+\subsubsection{User Routines (Auxiliary)}
+Any routine that the user should have access to falls into this category.  These routines are usually prefixed with a {\tt PLASMA\_}.  These routines' documentation {\textbf is} generated for the reference manual.  All of these routines are placed in the group {\tt Auxiliary}. See section \ref{comments:example} for an example.
+
+\subsubsection{Developer Routines (Control)}
+Any routine that the user should \textbf{not} have access to falls into this category.  These routines' documentation \textbf{is not} generated for the reference manual.  All of these routines are currently placed in the unused group {\tt Control}. \\
+\textbf{Note:} While these routines are not documented for the end user, they should still be well done for your fellow developers.
+
+\subsection{Routine Documentation with \LaTeX Math}
+\label{comments:latex}
+The next section of comments for the routine may include the normal comments in addition to being able to take advantage of Doxygen's ability to parse \LaTeX math.  You can insert \LaTeX by using the Doxygen commands \textbackslash\$, \textbackslash\lbrack, and \textbackslash\rbrack.
+
+\begin{tabular}{l|l}
+\hline
+\LaTeX Math Syntax & Doxygen \LaTeX Math Command \\
+\hline
+{\tt \$A\textbackslash times x = b\$} & {\tt  \textbackslash\$A\textbackslash times x = b\textbackslash\$} \\
+{\tt \textbackslash\lbrack A\textbackslash times x = b\textbackslash\rbrack} & {\tt \textbackslash\lbrack A\textbackslash times x = b\textbackslash\rbrack}
+\end{tabular}
+
+\subsection{Routine Parameters}
+Parameters should be specified with the following simple syntax:
+
+\begin{tabular}{l|c|l}
+\hline
+Parameter Name & Properties & Doxygen Parameter Syntax \\
+\hline
+\multirow{2}{*}{A} & {\tt double*} & {\tt @param[in,out] A} \\
+  & input/output & \\ \hline
+\multirow{2}{*}{x} & {\tt int} & {\tt @param[in] x} \\
+  & input &
+\end{tabular}
+
+The next line should be an indented description of the parameters role. This description can span multiple lines and can contain \LaTeX formulas according to \ref{comments:latex}.
+
+\subsection{Return Values}
+The next section of the comments is/are the return value(s) of the routine. See the structure section (\ref{comments:summary}) for reference on how to construct the return value comments. \\
+{\textbf Note:} The return value in the documentation must not contain spaces.
+
+
+\subsection{See Also Section}
+For a given routine the ``See also'' section includes the following routines:
+
+\begin{enumerate}
+\item The same precision, different interfaces \\
+		(...\_Tile, ...\_Tile\_Async),
+\item The same interface, different precisions \\
+		(PLASMA\_z..., PLASMA\_c..., PLASMA\_d..., PLASMA\_s...),
+\item the same precision, the same interface, related routines \\
+		(e.g., the solve routine for a corresponding factorization routine).
+\end{enumerate}
+
+The ``See also'' section for the PLASMA\_zgetrf() routine can serve as an example:
+\begin{verbatim}
+ *******************************************************************************
+ *
+ * @sa PLASMA_zgetrf_Tile
+ * @sa PLASMA_zgetrf_Tile_Async
+ * @sa PLASMA_cgetrf
+ * @sa PLASMA_dgetrf
+ * @sa PLASMA_sgetrf
+ * @sa PLASMA_zgetrs
+ *
+ ******************************************************************************/
+\end{verbatim}
+
+\subsection{File Comments}
+Each file should have a block of comments at the top of it indicating its purpose, author(s), version, and date.  The segment below is an example of how this should be done:
+\begin{verbatim}
+/**
+ *
+ * @file auxiliary.c
+ *
+ *  PLASMA auxiliary routines
+ *  PLASMA is a software package provided by Univ. of Tennessee,
+ *  Univ. of California Berkeley and Univ. of Colorado Denver
+ *
+ * @version 2.4.6
+ * @author Jakub Kurzak
+ * @author Piotr Luszczek
+ * @author Emmanuel Agullo
+ * @date 2010-11-15
+ *
+ **/
+\end{verbatim}
+
+\pagebreak
+\subsection{Comment Section Structure Summary}
+\label{comments:summary}
+Comment sections should have a very specific structure. In general, the structure is such:
+\begin{verbatim}
+/** *********************************** ... (80 Columns wide)
+ *
+ * @ingroup <GROUP-NAME>
+ *
+ * <ROUTINE-NAME> - <DESCRIPTION>
+ *
+ ************************************** ...
+ *
+ * @param[in]     <PARAMETER-NAME>
+ *    <DESCRIPTION>
+ * @param[out]    <PARAMETER-NAME>
+ *    <DESCRIPTION>
+ * @param[in,out] <PARAMETER-NAME>
+ *    <DESCRIPTION>
+ *
+ ************************************** ...
+ *
+ * @return <DESCRIPTION>
+ *    \retval <VALUE> <DESCRIPTION>
+ *    \retval <VALUE> <DESCRIPTION>     
+ *
+ ************************************** ...
+ *
+ * @sa <SEE-ALSO>
+ *
+ **************************************/
+\end{verbatim}
+
+{\textbf Note:} Descriptions can span multiple lines. \\
+{\textbf Note:} A line should begin with a $<$SPACE$><$ASTERISK$>$ \\
+{\textbf Note:} Sections should be separated with $<$SPACE$><$ASTERISK$\times 79>$ \\
+{\textbf Note:} The comment sections should begin with: \\
+$<$SPACE$><$ASTERISK$\times 2><$SPACE$><$ASTERISK$\times 76>$
+
+\pagebreak
+
+\subsection{An Actual Example : PLASMA\_Version}
+\label{comments:example}
+\begin{verbatim}
+/** ****************************************************************************
+ *
+ * @ingroup Auxiliary
+ *
+ *  PLASMA_Version - Reports PLASMA version number.
+ *
+ *******************************************************************************
+ *
+ * @param[out] ver_major
+ *          PLASMA major version number.
+ *
+ * @param[out] ver_minor
+ *          PLASMA minor version number.
+ *
+ * @param[out] ver_micro
+ *          PLASMA micro version number.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PLASMA_SUCCESS successful exit
+ *
+ ******************************************************************************/
+\end{verbatim}
+
+%###################################################################################################

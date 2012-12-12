@@ -1,0 +1,213 @@
+%##################################################################################################
+
+\chapter{Essentials}
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\section{PLASMA}
+
+PLASMA is a software library, currently implemented using the FORTRAN and C programming languages,
+and providing interfaces for FORTRAN and C.
+It has been designed to be efficient on {\em homogeneous} multicore processors and \mbox{multi-socket}
+systems of multicore processors. The name PLASMA is an acronym for {\em Parallel Linear Algebra
+Software for Multi-core Architectures}.
+
+PLASMA project website is located at:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma}
+\end{link_url}
+
+PLASMA software can be downloaded from:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/software/}
+\end{link_url}
+
+PLASMA users' forum is located at:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/forum/}
+\end{link_url}
+and can be used to post general questions and comments as well as to report technical problems.
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Problems that PLASMA Can Solve}
+
+PLASMA can solve dense systems of linear equations and linear least squares problems and associated
+computations such as matrix factorizations.
+Unlike LAPACK, currently PLASMA does not solve eigenvalue or singular value problems and does not
+support band matrices.
+Similarly to LAPACK, PLASMA does not support general sparse matrices.
+For all supported types of computation the same functionality is provided for real and complex
+matrices in single precision and double precision.
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Computers for which PLASMA is Suitable}
+
+PLASMA is designed to give high efficiency on homogeneous multicore processors and \mbox{multi-socket}
+systems of multicore processors. As of today, the majority of such systems are \mbox{on-chip} symmetric
+multiprocessors with classic \mbox{\em super-scalar} processors as their building blocks (x86 and alike)
+augmented with \mbox{short-vector} SIMD extensions (SSE and alike).
+A parallel software project MAGMA (Matrix Algebra on GPU and Multicore
+Architectures), is being developed to address the needs of
+heterogeneous (hybrid) systems, equipped with hardware accelerators,
+such as GPUs.
+\begin{link_url}
+\url{http://icl.cs.utk.edu/magma}
+\end{link_url}
+The name MAGMA is an acronym for
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{PLASMA versus LAPACK and ScaLAPACK}
+
+PLASMA has been designed to supercede LAPACK (and eventually ScaLAPACK), principally by restructuring the software
+to achieve much greater efficiency, where possible, on modern computers based on multicore processors.
+PLASMA also relies on new or improved algorithms.
+
+Currently, PLASMA does not serve as a complete replacement of LAPACK due to limited functionality.
+Specifically, PLASMA does not support band matrices and does not solve eigenvalue and singular
+value problems.
+At this point, PLASMA does not replace ScaLAPACK as software for distributed memory computers, since it
+only supports \mbox{shared-memory} machines.
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Error handling}
+
+At the highest level (LAPACK interfaces), PLASMA reports errors through the
+INFO integer parameter in the same manner as the LAPACK subroutines. 
+INFO$<0$ means that there is an invalid argument in the calling sequence and no
+computation has been performed; INFO$=0$ means that the computation has been
+performed and no error has been issued; while INFO$>0$ means that a numerical
+error has occured (e.g., no convergence in an eigensolver) or the input data is
+(numerically) invalid (e.g., in xPOSV, the input matrix is not positive
+definite). In any event, PLASMA returns the same INFO parameter as LAPACK.
+When a numerical error is detected (INFO$>0$), the computation aborts as soon
+as possible which implies that, in this case,
+two different executions may very well have the current data in various states.
+While the output state of LAPACK is predictible and
+reproducible in the occurence of a numerical error, the one of PLASMA is not.
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{PLASMA and the BLAS}
+
+LAPACK routines are written so that as much as possible of the computation is performed by calls
+to the Basic Linear Algebra Subroutines (BLAS).
+Highly efficient \mbox{machine-specific} implementations of the BLAS are available for most modern
+processors, including \mbox{multi-threaded} implementations.
+
+The parallel algorithms in PLASMA are built using a small set of sequential routines as building
+blocks.
+These routines are referred to as {\em core BLAS}.
+Ideally, these routines would be implemented through monolithic \mbox{machine-specific} code, utilizing
+to the maximum \mbox{a single} processing core (through the use of \mbox{short-vector} SIMD extensions
+and appropriate cache and register blocking).
+
+However, such \mbox{machine-specific} implementations are extremely
+labor-intensive and covering the entire spectrum of available
+architectures is not feasible.
+Instead, the core BLAS routines are built in a somewhat suboptimal fashion, by using the
+``standard'' BLAS routines as building blocks.
+For that reason, just like LAPACK, PLASMA requires a highly optimized implementation of the BLAS
+in order to deliver good performance.
+
+Although the BLAS are not part of either PLASMA or LAPACK, FORTRAN code for the
+BLAS is distributed with LAPACK, or can be obtained separately from Netlib:
+\begin{link_url}
+\url{http://www.netlib.org/blas/blas.tgz}
+\end{link_url}
+However, it has to be emphasized that this code is only the ``reference implementation'' (the definition
+of the BLAS) and cannot be expected to deliver good performance. On most of today's machines it will
+deliver performance an order of magnitude lower than that of optimized BLAS.
+
+For information on available optimized BLAS libraries, as well as other \mbox{BLAS-related} questions,
+please refer to the BLAS FAQ:
+\begin{link_url}
+\url{http://www.netlib.org/blas/faq.html}
+\end{link_url}
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Availability of PLASMA}
+
+PLASMA is distributed in source code and is, for the most part, meant to be compiled from source
+on the host system.
+In certain cases, a \mbox{pre-built} binary may be provided along with the source code.
+Such packages, built by the PLASMA developers, will be provided as separate archives on the
+PLASMA download page:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/software/}
+\end{link_url}
+The PLASMA team does not reserve exclusive right to provide such packages. They can be provided
+by other individuals or institutions.
+However, in case of problems with binary distributions acquired from other places, the provider
+needs to be asked for support rather than PLASMA developers.
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Commercial Use of PLASMA}
+
+PLASMA is a freely available software package.
+Thus it can be included in commercial packages.
+The PLASMA team asks only that proper credit be given by citing this users' guide as the official
+reference for PLASMA.
+
+Like all software, this package is copyrighted. It is not trademarked.
+However, if modifications are made that affect the interface,
+functionality, or accuracy of the resulting software, the name of the
+routine should be changed and the modifications to the software should
+be noted in the modifier's documentation.
+
+The PLASMA team will gladly answer questions regarding this software.
+If modifications are made to the software, however, it is the responsibility of the individual or
+institution who modified the routine to provide support.
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Installation of PLASMA}
+
+A PLASMA installer is available at:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/software/}
+\end{link_url}
+Further details are provided in the  chapter \ref{install} \texttt{Installing PLASMA}.
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Documentation of PLASMA}
+
+PLASMA package comes with a variety of pdf and html documentation.
+\begin{itemize}
+	\item The PLASMA Users Guide (this document)
+	\item The PLASMA README
+	\item The PLASMA Installation Guide
+	\item The PLASMA Routine Description
+	\item The PLASMA and Tau Guide
+	\item The PLASMA Routine browsing
+\end{itemize}
+You will find all of these in the documentation section on the PLASMA website \url{http://icl.cs.utk.edu/plasma}.
+
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Support for PLASMA}
+
+PLASMA has been thoroughly tested before release, using multiple
+combinations of machine architectures, compilers and BLAS libraries.
+The PLASMA project supports the package in the sense that reports of errors or poor performance
+will gain immediate attention from the developers. Such reports -- and also descriptions of interesting
+applications and other comments -- should be posted to the PLASMA users' forum:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/forum/}
+\end{link_url}
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Funding}
+
+The PLASMA project is funded in part by the National Science Foundation, U.~S. Department of Energy,
+Microsoft Corporation, and The MathWorks Inc.
+
+%###################################################################################################

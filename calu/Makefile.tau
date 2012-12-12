@@ -1,0 +1,82 @@
+###
+#
+# @file Makefile.tau
+#
+#  PLASMA is a software package provided by Univ. of Tennessee,
+#  Univ. of California Berkeley and Univ. of Colorado Denver
+#
+# @version 2.4.6
+# @author Wesley Alvaro
+# @date 2010-11-15
+#
+###
+
+PDT = http://www.cs.uoregon.edu/research/paracomp/pdtoolkit/Download/pdt_latest.tar.gz
+TAU = http://www.cs.uoregon.edu/research/paracomp/tau/tauprofile/dist/tau_latest.tar.gz
+SLOG2 = ftp://ftp.mcs.anl.gov/pub/mpi/slog2/slog2rte.tar.gz
+
+PREFIX = profile_components
+
+profile: tau make.inc-tau slog2
+	export TAU_MAKEFILE=`realpath ./tau-install/x86_64/lib/Makefile.tau-pthread-pdt-profile-trace` && \
+	export PATH=`realpath ./tau-install/x86_64/bin`:${PATH} && \
+	make
+
+make.inc-tau:
+	perl -i-no_tau -p -e"s/^\s*CC\s*=.*/CC=tau_cc\.sh/g" make.inc
+	perl -i -p -e"s/^\s*FC\s*=.*/FC=tau_f90\.sh/g" make.inc
+	mv make.inc make.inc-tau
+	ln -s make.inc-tau make.inc
+
+$(PREFIX)_pdt-latest.tar.gz:
+	wget $(PDT) -O $(PREFIX)_pdt-latest.tar.gz
+
+$(PREFIX)_tau-latest.tar.gz:
+	wget $(TAU) -O $(PREFIX)_tau-latest.tar.gz
+
+$(PREFIX)_pdt-latest: $(PREFIX)_pdt-latest.tar.gz
+	tar -xzf $(PREFIX)_pdt-latest.tar.gz
+	mv pdt* $(PREFIX)_pdt-latest
+
+$(PREFIX)_tau-latest: $(PREFIX)_tau-latest.tar.gz
+	tar -xzf $(PREFIX)_tau-latest.tar.gz
+	mv tau* $(PREFIX)_tau-latest
+
+pdt: $(PREFIX)_pdt-latest
+	mkdir -p pdt-install
+	cd $(PREFIX)_pdt-latest && \
+	configure -prefix=`realpath \`pwd\`/../pdt-install` -compdir=build && \
+	make && \
+	make install
+	ln -s $(PREFIX)_pdt-latest pdt
+
+tau: pdt $(PREFIX)_tau-latest
+	mkdir -p tau-install
+	cd $(PREFIX)_tau-latest && \
+	configure -prefix=`realpath \`pwd\`/../tau-install` -pdtcompdir=build \
+		-pdt=`realpath \`pwd\`/../pdt-install` \
+		-cc=$(CC) -c++=$(CC) -fortran=$(FC) \
+		-pthread -slog2 -TRACE -PROFILE && \
+	make && \
+	make install
+	ln -s $(PREFIX)_tau-latest tau
+
+slog2:
+	wget $(SLOG2) -O $(PREFIX)_slog2rte.tar.gz
+	tar -xzf $(PREFIX)_slog2rte.tar.gz
+	mv slog* $(PREFIX)_slog2rte
+	ln -s $(PREFIX)_slog2rte slog2
+
+cleanprof:
+	\rm -rf pdt $(PREFIX)_pdt-latest pdt-install
+	\rm -rf tau $(PREFIX)_tau-latest tau-install
+	\rm -rf slog2 $(PREFIX)_slog2rte
+	\rm -rf make.inc-tau
+	\rm -rf make.inc
+	cp make.inc-no_tau make.inc
+	\rm -rf make.inc-no_tau
+
+realcleanprof: cleanprof
+	\rm -rf $(PREFIX)*
+
+.PHONY: profile cleanprof realcleanprof

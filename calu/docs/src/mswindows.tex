@@ -1,0 +1,218 @@
+\documentclass[letterpaper]{article}
+
+\usepackage{mathptmx}
+\usepackage[scaled=.92]{helvet}
+
+\usepackage{url}
+\urlstyle{sf}
+\usepackage{xspace}
+
+\usepackage[margin=1in]{geometry}
+
+\newcommand\ilc[1]{\textsf{#1}}
+
+\newcommand\Win{Windows\texttrademark\xspace}
+
+\begin{document}
+\title{Porting PLASMA to Windows Environment}
+\author{Piotr Luszczek}
+\date{June 16, 2009}
+\maketitle
+
+\begin{abstract}
+Porting PLASMA to \Win.
+\end{abstract}
+
+\section{Historical Notes}
+CPM and MS DOS
+
+Pascal (nil's), C/C++, and .NET in Windows
+
+Buisness (the moat paradigm) vs. Software Engineering (Hungarian notation, underscores, etc.)
+vs. Backwards compatiblity
+
+End of line characters (UNIX, Windows, Mac). No problem for compilers?
+
+Versions: major MS-DOS versions: 3, 5, 6, 7;
+major client Windows versions: 1, 2, 3, 3.1, 3.11, 95, 98, ME, XP, Vista, Windows 7
+major server Windows versions: NT, 2000, 2003, 2008 (Longhorn)
+major Windows XP variants: home, professional, media center
+major Windows Vista variants: starter, home basic, home premium, business, enterprise, ultimate
+major embedded Windows: CE, Mobile
+major HPC Windows: CCS1, CCS2 (binary compatible)
+hardware versions: 32-bit and 64-bit
+Service packs count: XP -- 3, Vista -- 2
+
+MSDN Docs (mostly) go back to Windows 2000 Professianal.
+
+All of a sudden the number of Linux distributions doesn't seem so overwhelming.
+
+Old features are virtualized in newer versions of Windows: MS-DOS mode is virtualized
+in Windows XP. Windows 7 comes with virtual XP mode (Windows XP Mode). If application
+has to be run in virtual mode then its performance is not as good. This is especially
+important for libraries: if they use old features then all the applications that
+depened on them will have to run in virtual mode.
+
+\section{Development Tools}
+
+\subsection{Compilers}
+Microsoft: \ilc{cl}
+Intel: \ilc{icl}
+Intel Fortran: \ilc{ifort} (name mangling: default, options:adding underscore)
+Microsoft linker: lib, link
+PGI: pgcc
+
+\subsection{Source Control}
+nmake: use of backslash for separating folders and file names in paths;
+inclusion of spaces with double quation mark
+
+SUA
+
+PGI nm (doesn't recognize Intel compilers symbols)
+
+Cygwin's \ilc{strings}
+
+\section{Language Features}
+Complex numbers: Micosoft uses \ilc{\_Complex} in one of its header files
+to define a data type returned from a function. Can \ilc{complex} be used?
+Bool
+C++'s one-line comments
+
+GNU C extensions
+
+Assembly directives (PGI C and Goto BLAS)
+
+\section{Predefined Symbols}
+\_WIN32 -- IL32
+\_WIN64 -- LLP64
+\_\_cplusplus
+\_\_STDC\_\_
+\_MSC\_VER
+
+\section{Function Calling Conventions}
+Declaring functions as:
+\_\_cdecl (/Gd option for Intel C compiler; default in Visual Studio; prepends \_ to function names)
+\_\_stdcall (WINAPI) (for thread's start function) (/Gz option for Intel compiler)
+\_\_fastcall (/Gr option for Intel C compiler)
+\_\_clrcall (CLR declaration for code callable from CLR)
+How does it depend on the compiler. What does it mean: arguments in registers/stack, return value, \ldots
+
+Unlike Win32, Win64 has only one calling convention
+
+The default: \ldots
+
+\section{Library Types}
+Library versioning and DLL hell
+Declaring a function as DLL-export, DLL-import. It's necessary so when
+the library is built the linker doesn't complain about unresolved symbols.
+
+\section{Programming Libraries}
+Threading: mutexes (initializers), cond vars, attributes.
+
+BLAS: MKL (static), ACML (static), Goto (requires PGI for compilation)
+
+setting of:
+MKL\_NUM\_THREADS
+MKL\_DOMAIN\_NUM\_THREADS
+OMP\_NUM\_THREADS
+GOTO\_NUM\_THREADS
+ACML\_NUM\_THREADS
+ATLAS\_NUM\_THREADS
+PLASMA\_NUM\_THREADS
+NUMBER\_OF\_PROCESSORS
+BLAS\_NUM\_THREADS
+in virtual command-line window. environment variables vs. API calls to set thread count
+for BLAS
+
+\section{Command Line}
+Command Line is not equivalent to shell in \Win.
+
+SUA Interix (?)
+
+\subsection{Paths, Folders, Program options}
+In Unix, / (slash) separates path components. In Windows, it is \textbackslash (back-slash)
+but / (slash) is also accepted. It may sometimes be ambiguous becase / (slash)
+is also used to for specifying program options when using command line.
+
+Separating paths in various environment variables such as PATH requires : (colon)
+in Unix and ; (semi-colon) in Windows.
+
+Special characters, such as spaces, need to be enclosed with double quotes in Windows.
+
+\section{Third Party Portability}
+Mozilla's NPR (Netscape Portable Runtime)
+Apache runtime
+pthread-win32 from Red Hat Inc.
+
+\section{Cygwin and MinGW}
+Perl, Python and friends. Also can be used with Microsoft tools.
+
+Useful commands and applications:
+\begin{itemize}
+\item strings (to replace Unix nm),
+\item GNU implementation of make,
+\item Python to generate multiple precisions,
+\item rxvt for better terminal emulator (middle button support, etc.),
+\end{itemize}
+
+\section{WINE}
+Cross compilation environment for accuracy testing purposes. Performance might
+be off although Firefox runs faster under WINE than natively on Linux.
+No support for 64-bit Windows, though.
+
+\section{Deployment}
+Setup.exe
+Plasma.msi (automatically generated by Cmake)
+Visual Studio Project file
+Additional bindings: C++, C\#, .NET.
+Windows Help file: if we ship PDF with clickable links is should be just as good.
+
+\section{Performance}
+As in Linux, it is possible to run Win32 apps on top of Win64.
+Performance will suffer, though.
+
+\section{TO-DO}
+Ideas, promises from Wes' presentation for Microsoft visit on Jan 31, 2009.
+
+\section{Implementation Details}
+No changes to PLASMA code but instead a rudimentary implementation of pthreads.
+PLASMA uses very little of pthreads.
+
+Assumption: only one function called from \ilc{pthread\_create()}, otherwise
+the function has to be declared as WINAPI.
+
+Conditional variables don't need pthread\_cond\_singal() -- only pthread\_cond\_broadcast().
+
+\section{Resources}
+\url{http://msdn.microsoft.com/en-us/library/default.aspx}
+\url{http://www.opengroup.org/onlinepubs/009695399/}
+\url{http://sources.redhat.com/pthreads-win32/}
+\url{http://www.cs.wustl.edu/~schmidt/win32-cv-1.html}
+
+\end{document}
+
+Microsoft Windows versions
+
+Below is a listing of each of the different versions of Microsoft Windows and their associated versions. In earlier releases of Windows (95 & 98) this was helpful for knowing what release of Windows you had and what it did and did not supported. For additional information about how to to determine what version of Windows you're running
+Version 	Windows Revision
+Windows 2000 5.00.2195 	Windows 2000 Workstation
+Windows 3.0 	Windows 3.0
+Windows 3.1 	Windows 3.1
+Windows 3.11 	Windows for workgroups Windows 3.11
+Windows 95 4.00.950 	Original release of Windows 95.
+Windows 95 4.00.950 A 	Original release of Windows 95 with Service Pack 1 or OEM Service Release 1.
+Windows 95 4.00.950 B 	Second release of Windows 95 / OSR2 (Has Fat32).
+Windows 95 4.00.950 C 	Second release of Windows 95 / OSR2 with FAT32, USB and AGP support.
+Windows 98 4.10.1691 	Beta Release of Windows 98
+Windows 98 4.10.1998 	Original release of Windows 98
+Windows 98 4.10.2222A 	Windows 98 Second edition
+Windows CE 3.0 	Windows CE 3.0
+Windows CE 2.1 	Windows CE 2.1
+Windows CE 2.0 	Windows CE 2.0
+Windows CE 1.0 	Windows CE 1.0
+Windows ME 4.90.3000 	Original release of Windows ME.
+Windows NT 3.51.1057 	Windows NT  Server Version 3.51
+Windows NT 3.51.1057 	Windows NT Workstation Version 3.51
+Windows NT 4.00.1381 	Windows NT 4.0 Workstation.
+Windows XP 5.1.2600 	Windows XP (Name of type of XP, e.g. Home Edition, Professional, Media Center Edition)
+Windows Vista 	Windows Vista (Name of type of Vista, e.g. Windows Vista Home Basic)

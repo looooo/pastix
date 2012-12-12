@@ -1,0 +1,83 @@
+%##################################################################################################
+
+\chapter{PLASMA Testing Suite}
+
+%###################################################################################################
+There are two distinct sets of test programs for PLASMA routines,
+simple test programs written in C and advanced test programs written
+in Fortran.  These programs test the linear equation routines
+(eigensystem routines are not yet available) in each data type
+single, double, complex, and double complex (sdcz).
+
+\section{Simple Test Programs}
+In the \texttt{testing} directory, you will find simple C codes which
+test the \texttt{PLASMA\_[sdcz]gels}, \texttt{PLASMA\_[sdcz]gesv},
+\texttt{PLASMA\_[sdcz]posv} routines as well as routines using iterative refinement 
+for LU factorization using random matrices.  Each solving routine is
+also tested using different scenarios. For instance, testing complex
+least square problems on tall matrices is done by a single call to
+\texttt{PLASMA\_zgels} as well as successive calls to \texttt{PLASMA\_zgeqrf},
+\texttt{PLASMA\_zunmqr} and \texttt{PLASMA\_ztrsm}.
+
+A python script \texttt{plasma\_testing.py} runs all testing routines
+in all precisions. This script can take the number of cores to run the 
+testing as a parameter, the default being half of the cores available.
+
+A brief summary is printed out on the screen as the testing procedure runs. A detailed summary is written
+in \texttt{testing\_results.txt} at the end of the testing phase and
+can be sent the PLASMA development group if any 
+failures are encountered (see Section~\ref{sec:contact}).
+
+Each test can also also be run individually. The usage of each test is
+shown by typing the desired  
+testing program without any arguments. For example:
+\begin{verbatim}
+> ./testing_cgesv 
+ Proper Usage is : ./testing_cgesv ncores N LDA NRHS LDB with 
+ - ncores : number of cores 
+ - N : the size of the matrix 
+ - LDA : leading dimension of the matrix A 
+ - NRHS : number of RHS 
+ - LDB : leading dimension of the matrix B 
+\end{verbatim}
+
+\section{Advanced Test Programs}
+In the \texttt{testing/lin} directory, you will find Fortran codes which check
+the \texttt{PLASMA\_[sdcz]gels}, \texttt{PLASMA\_[sdcz]gesv} and \texttt{PLASMA\_[sdcz]posv} routines. 
+This allows us to check not only the correctness of the routines but also the PLASMA 
+Fortran interface. This test suite has been taken from LAPACK 3.2 with
+necessary modifications to safely integrate PLASMA routine calls.
+
+There is also a python script called \texttt{lapack\_testing.py} which tests all routines
+in all precisions. A brief summary is printed out on the screen as the testing procedure runs. A detailed summary is written
+in \texttt{testing\_results.txt} at the end of the testing procedure and can be sent to us if any 
+failures are encountered (see Section~\ref{sec:contact}).
+
+Each test can also be run individually.  For single, double, complex,
+and double complex precision tests, the calls are respectively:
+\begin{verbatim}
+xlintsts < stest.in > stest.out
+xlintstd < dtest.in > dtest.out
+xlintstc < ctest.in > ctest.out
+xlintstz < ztest.in > ztest.out
+\end{verbatim}
+
+For more information
+on the test programs and how to modify the input files, please refer to LAPACK Working
+Note 41~\cite{Blackford:1992:IGL}.
+
+\section{Send the Results to Tennessee}
+\label{sec:contact}
+You made it! You have now finished installing and testing PLASMA. If
+you encountered failures in any phase of the installing or testing
+ process, please consult Chapter~\ref{sec:trouble} as well as the \texttt{README} 
+file located in the root directory of your PLASMA installation.
+If the suggestions do not fix your problem, please feel free to send a post 
+in the PLASMA users' forum \url{http://icl.cs.utk.edu/plasma/forum/}.
+
+Tell us the type of machine on which the tests were run, the version of the operating
+system, the compiler and compiler options that were used, and details of the BLAS library
+or libraries that you used. You should also include a copy of the output file in which the
+failure occurs.
+We encourage you to make the PLASMA library available to your users and provide us
+with feedback from their experiences.

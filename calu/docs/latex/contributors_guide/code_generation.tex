@@ -1,0 +1,277 @@
+%###################################################################################################
+
+\chapter{Code Generation}
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Introduction}
+
+\PLASMA uses code generation to streamline the writing of similar code for multiple data
+types. This has been done in the past: NAG Fortran tools were used for LAPACK development
+and Clint Whaley's Extract for ATLAS and BLACS. Other solutions include use of C
+preprocessor in Goto BLAS and m4 macros in the p4 messaging system that eventually
+became the basis of the MPICH 1.
+
+After looking at these tools, the \PLASMA team decided to use a simpler solution:
+a custom Python script that resides in \texttt{tools/codegen.py}
+
+\section{Basic Usage}
+The usual workflow for \PLASMA team when developing a new computational routine is
+as follows:
+\begin{enumerate}
+\item Write and debug the routine using double precision real data type using arbitrary
+tools (editors, compilers, etc.) without worrying about \PLASMA's development tools.
+\item Convert the double precision real routine so it works with double precision complex
+data type.
+\item Use the \PLASMA's code generation script to generate single and double precision
+real versions and single precision complex version.
+\item Compare the result of conversion with the initial version done in step 1.
+\end{enumerate}
+
+Of course, this is a typical workflow so there may be others that are equally good.
+However, as a rule \PLASMA team only maintains double precision complex version
+of all the computational routines: the remaining three are automatically generated
+with the code generation script.
+
+The code generation step is done through the various Makefiles using
+the \texttt{generate} rule and a simple line stating what conversions 
+are to be done in the file comments.  The file's header comments should include a
+directive~\ref{codegen:header} like this:
+\begin{verbatim}
+@precisions normal z -> c d s
+\end{verbatim}
+A typical invocation of the script is:
+\begin{verbatim}
+./codegen.py -f core_zblas.c
+\end{verbatim}
+As a result of the above command three files will be generated:
+\begin{verbatim}
+core\_sblas.c
+core\_dblas.c
+core\_cblas.c
+\end{verbatim}
+
+\section{Advanced Usage}
+By taking advantage of precision generation in your functions, many intelligent compilation
+features are uncovered.  This section addresses several tricks that can be applied to your code
+to reduce the amount of code written and thusly, debugged.
+
+The header directive~\ref{codegen:header} from above can even be adapted to allow conversions of any kind.  For example,
+mixed precision files take advantage of this by using a different directive:
+\begin{verbatim}
+@precisions mixed zc -> ds
+\end{verbatim}
+
+\subsection{Complex Value Passing with \texttt{CBLAS\_SADDR}}
+The \texttt{CBLAS\_SADDR()} macro helps in dealing with old C code such as CBLAS that
+passes real scalars by value and complex scalars by address. Consider the matrix-matrix
+multiply routines:
+\begin{verbatim}
+double real_alpha = 1.0;
+double _Complex complex_alpha = 1.0:
+
+/* pass by value */
+cblas_dgemm(col_major, trans, trans, M, N, K, real_alpha, ... );
+
+/* pass by address */
+cblas_zgemm(col_major, trans, trans, M, N, K, &complex_alpha, ... );
+\end{verbatim}
+
+The double precision complex code in \PLASMA looks like this:
+\begin{verbatim}
+PLASMA_Complex64_t alpha = 1.0:
+
+cblas_zgemm( ..., CBLAS_SADDR(alpha), ... );
+\end{verbatim}
+The code generation script will:
+\begin{enumerate}
+\item change \texttt{PLASMA\_Complex64\_t} to \texttt{PLASMA\_Complex32\_t}
+for single precision complex version of the code.
+\item change \texttt{PLASMA\_Complex64\_t} to \texttt{double}
+for double precision real version of the code and will remove \texttt{CBLAS\_SADDR}.
+\item change \texttt{PLASMA\_Complex64\_t} to \texttt{float}
+for single precision real version of the code and will remove \texttt{CBLAS\_SADDR}.
+\end{enumerate}
+
+\texttt{CBLAS\_SADDR} is defined as a single argument macro that returns an address
+of its argument so it will do the right thing for both complex versions of the code.
+
+\subsection{Conditional Code Generation}
+It is possible to generate code conditionally. For example Hermitian routines
+only make sense for complex data type:
+\begin{verbatim}
+#ifdef COMPLEX
+void CORE_zherk(int uplo, int trans,
+                int N, int K,
+                double alpha, PLASMA_Complex64_t *A, int LDA,
+                double beta, PLASMA_Complex64_t *C, int LDC)
+{
+/* ... */
+}
+#endif
+\end{verbatim}
+
+On the other hand, routines specific to floating-point arithmetic make
+sense only for real data types. When code generation occurs, {\tt \#ifdef COMPLEX}
+becomes {\tt \#ifdef REAL}.  More importantly, this feature requires the following
+lines in the original double precision complex version:
+\begin{verbatim}
+#undef REAL
+#define COMPLEX
+\end{verbatim}
+After generation, these two lines become:
+\begin{verbatim}
+#undef COMPLEX
+#define REAL
+\end{verbatim}
+So that this code works to conditionally inserting logic for real data types:
+\begin{verbatim}
+#ifdef REAL
+double
+BLAS_dfpinfo(enum blas_cmach_type cmach)
+{
+/* ... */
+}
+#endif
+\end{verbatim}
+
+\subsection{Code Dependent on Data Type}
+Sometimes, the code for different data types needs to be different.
+This can be coded in plain C without any preprocessor intervention.
+Here is a sample:
+\begin{verbatim}
+if (sizeof(PLASMA_Complex64_t) == sizeof(double))
+  tmult = 1; /* testing with real data types */
+else
+  tmult = 2; /* testing with complex data types */
+\end{verbatim}
+For complex versions the \texttt{else} branch of the \texttt{if}
+statement is used but the compiler and \texttt{tmult} is set
+to \texttt{2}. For single precision real version the code generating
+script will produce:
+\begin{verbatim}
+if (sizeof(float) == sizeof(float))
+  tmult = 1; /* testing with real data types */
+else
+  tmult = 2; /* testing with complex data types */
+\end{verbatim}
+and \texttt{tmult} will be set to \texttt{1}.
+For double precision real version the code generating
+script will produce:
+\begin{verbatim}
+if (sizeof(double) == sizeof(double))
+  tmult = 1; /* testing with real data types */
+else
+  tmult = 2; /* testing with complex data types */
+\end{verbatim}
+and \texttt{tmult} will be set to \texttt{1} as well.
+
+Introduction of \texttt{if} statements might have adverse effects
+on performance. But modern compilers will likely remove the above
+\texttt{if} statements because their conditional expression is known
+compiled time.  If preferred, the same can be accomplished \textit{with} the
+preprocessor using a technique similar to the previously mentioned method. 
+In example:
+\begin{verbatim}
+#define DCOMPLEX
+#ifdef DCOMPLEX
+...
+#endif
+\end{verbatim}
+or, similarly:
+\begin{verbatim}
+#define DCOMPLEX 1
+if(DCOMPLEX){
+	...
+}
+\end{verbatim}
+Both of the above examples require only a single simple rule be added 
+to the code generator substitution module~\ref{codegen:module}:
+\begin{verbatim}
+('SINGLE','DOUBLE','COMPLEX','DCOMPLEX')
+\end{verbatim}
+
+\section{Specifying Code Generation in Files}
+\label{codegen:header}
+A special keyword is used to enable code generation in your files.  A single line 
+will indicate not only that generation is required, but what kind(s) of generation,
+and which types should be done. 
+\subsection{Forward Example}
+The indicator line has a very specific structure
+(explained in section \ref{codegen:headerdescription}).  The indicator line should be 
+included in a front-closed comment line.
+%% KEYWORD CONV_TYPE[,CONV\_TYPE]* ORIGIN\_TYPE -> OUTPUT\_TYPE[ OUTPUT\_TYPE]*
+\begin{verbatim}
+KEYWORD CONV_TYPE[,CONV_TYPE]* ORIGIN_TYPE -> OUTPUT_TYPE[ OUTPUT_TYPE]*
+@precisions normal z -> c d s
+@precisions normal,specialz z -> c
+\end{verbatim}
+The first line is the normal conversion line.  The second line uses a special conversion {\tt specialz}
+and only goes from double complex to single complex.
+\subsection{Header Description}
+\label{codegen:headerdescription}
+\begin{description}
+\item[KEYWORD]
+The keyword is {\tt @precisions} to work within Doxygen comments.
+\item[CONV\_TYPE]
+You can specify one or more conversion sets to be used.
+\item[ORIGIN\_TYPE]
+This is the origin type to use as the search needle for replacements. There can only be one.
+\item[OUTPUT\_TYPE]
+There can be one or more of these specified.  These are the precisions used as the output.
+For each entry, either zero or one file will be generated. This is dependent on some replacement
+causing a change in the original filename.
+\end{description}
+
+\section{Code Generator Substitution Module}
+\label{codegen:module}
+The substitution module specifies the rule types and substitutions for each
+of the precision types during generation.  This module is called {\tt subs.py}
+and is located in the {\tt tools} directory.  
+\subsection{Forward Example}
+Modules have a very specific structure
+(explained in section \ref{codegen:moddescription}):
+\begin{verbatim}
+subs = {
+  'all' : [ ## Special key
+            ## Changes are applied to all applicable conversions automatically
+    [None,None]
+  ],
+  'mixed' : [
+    ['zc','ds'],
+    ('PLASMA_Complex64_t','double'),
+    ('PLASMA_Complex32_t','float'),
+    ## This is a deletion on conversion from zc -> ds
+    ('COMPLEXONLY',''), 
+  ],
+  'normal' : [
+    ['s','d','c','z'],
+    ('float','double','PLASMA_Complex32_t','PLASMA_Complex64_t'),
+    ## There is no replacement here from z -> d
+    ('NOTDOUBLE',None,'NOTDOUBLE','DOUBLE'), 
+  ],
+}
+\end{verbatim}
+
+
+\subsection{Description of Members}
+\label{codegen:moddescription}
+\begin{description}
+\item[subs]
+A dictionary listing all of the replacement types.
+\item[subs['all']]
+This is a special set of replacements executed on {\em all} files matching types in {\tt subs['all'][0]}.
+\item[subs[x] or CONVERSION\_TYPE]
+These are special sets of replacemnts for designation in the file generation header.
+\item[subs[x][0]]
+This is a special list specifying the conversion types.  These types are those used in the
+header specification. For example this may be {\tt ['z','c','d','s']}.
+\item[subs[x][1:n]]
+These are tuples that are replacements made during generation.  They can be {\tt ''}, {\tt None}, or any
+regular expression string.  These replacements are done using Python's regular expression engine.
+If the replacement value is {\tt ''}, then the search needle is deleted from the haystack.
+If the replacement value is {\tt None}, then no replacement is made.
+
+\end{description}
+
+	

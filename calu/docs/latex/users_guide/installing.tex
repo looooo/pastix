@@ -1,0 +1,325 @@
+%##################################################################################################
+
+\chapter{Installing PLASMA\label{install}}
+
+%###################################################################################################
+
+The requirements for installing PLASMA on a UNIX\textsuperscript{TM} system are
+a C compiler, a Fortran compiler and several external libraries:
+\begin{itemize}
+\item a BLAS library
+\item a CBLAS library
+\item a LAPACK library
+\item a Matrix generation library (TMG from LAPACK)
+\item a C wrapper for LAPACK library
+\item and the availability of the \textsf{pthread}
+library.
+\item The HWLoc library is also strongly recommended but not absolutely required. (\url{http://www.open-mpi.org/projects/hwloc/})
+\end{itemize}
+Several BLAS libraries include directly a part of this
+requirements. You can refer to the table \ref{tab:extlibs} to see what
+is provided by your BLAS library. 
+For requirement and instructions on Microsoft Windows\textsuperscript{TM}
+see Section~\ref{sec:wininstall}.
+Before PLASMA can be built or tested, you must define all machine-specific parameters
+for the architecture on which you are installing PLASMA.
+All machine-specific parameters are contained in the file
+\texttt{make.inc}. Some examples are provided in the \texttt{makes}
+directory. 
+To ease the installation process, we provide an installer which can
+download the missing libraries from NetLib, install them and generate
+the required machine-specific \texttt{make.inc} file. Users 
+are strongly encouraged to use it.
+
+\begin{table}[!htb]
+  \centering
+  \caption{External libraries provided by BLAS}
+  \label{tab:extlibs}  
+  
+  \begin{tabular}{| l | c | c | c | c | c |}
+    \hline
+    \bf{BLAS Library}& \bf{BLAS} & \bf{CBLAS} & \bf{LAPACK}   & \bf{TMG} & \bf{LAPACK C Wrapper} \\
+    \hline
+    AMD ACML         &    X      &     -      &       X       &     -    &       -               \\
+    \hline
+    ATLAS            &    X      &     X      &       -       &     -    &       -               \\
+    \hline
+    GotoBLAS         &    X      &     -      &       -       &     -    &       -               \\
+    \hline
+    GotoBLAS2        &    X      &     X\footnote{Depends on your Makefile.rule}      &       X       &     -    &       -   \\
+    \hline
+    IBM ESSL         &    X      &     -      &    With CCI\footnote{\url{http://www.netlib.org/lapack/essl/}} &     -    &       -               \\
+    \hline
+    Intel MKL        &    X      &     X      &       X       &     X    &       -               \\
+    \hline                                                                       
+    refblas          &    X      &     X      &       -       &     -    &       -               \\
+    \hline
+    Veclib (Mac OS/X)&    \multicolumn{5}{c|}{Veclib is actually not supported}                  \\
+    \hline
+  \end{tabular}
+
+\end{table}
+
+
+\section{Getting the PLASMA Installer}
+
+The PLASMA installer is a set of python scripts developed to ease
+the installation of the PLASMA library and of its requirements. It can
+automatically download, configure and compile the PLASMA library
+including the libraries required by PLASMA.
+
+It is available on PLASMA download page:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/software/}
+\end{link_url}
+
+\section{PLASMA Installer Flags}
+
+Here's a list of the flags that can be used to provide the installer
+with information about the system, for example, the C and Fortran
+compilers, the location of a local BLAS library, or whether the
+reference BLAS needs to be downloaded.
+
+\begin{verbatim}
+./setup.py
+
+   -h or --help
+          display this help and exit
+
+   --prefix=[DIR] 
+          install files in DIR [./install]
+
+   --build=[DIR] 
+          libraries are built in DIR [./build]
+          Contains log, downloads and builds.
+
+   --cc=[CMD] 
+          the C compiler. [cc]
+
+   --fc=[CMD] 
+          the Fortran compiler. [gfortran]
+
+   --cflags=[FLAGS] 
+          the flags for the C compiler [-02]
+
+   --fflags=[FLAGS] 
+          the flags for the Fortran compiler [-O2]
+
+   --ldflags_c=[flags] 
+          loader flags when main program is in C. Some
+          compilers (e.g. PGI) require different
+          options when linking C main programs to
+          Fortran subroutines and vice-versa
+
+   --ldflags_fc=[flags] 
+          loader flags when main program is in
+          Fortran. Some compilers (e.g. PGI) require
+          different options when linking Fortran main
+          programs to C subroutines and vice-versa.
+          If not set, ldflags_fc = ldflags_c.
+
+   --make=[CMD] 
+          the make command [make]
+
+   --blaslib=[LIB] 
+          a BLAS library
+
+   --cblaslib=[LIB] 
+          a CBLAS library
+
+   --lapacklib=[LIB] 
+          a Lapack library
+
+   --lapclib=[DIR] 
+          path to a LAPACK C wrapper.
+
+   --downblas 
+          Download and install reference BLAS.
+
+   --downcblas 
+          Download and install reference CBLAS.
+
+   --downlapack 
+          Download and install reference LAPACK.
+
+   --downlapc 
+          Download and install reference LAPACK C Wrapper.
+
+   --downall 
+          Download and install all missing external libraries.
+           If you don't have access to wget or no network
+          connection, you can provide the following packages
+          in the directory builddir/download:
+     http://netlib.org/blas/blas.tgz
+     http://www.netlib.org/blas/blast-forum/cblas.tgz
+     http://www.netlib.org/lapack/lapack.tgz
+     http://icl.cs.utk.edu/projectsfiles/plasma/pubs/lapack_cwrapper.tgz
+     http://icl.cs.utk.edu/projectsfiles/plasma/pubs/plasma.tar.gz
+
+   --[no]testing 
+          enables/disables the testings. All externals
+          libraries are required and tested if enabled.
+          Enable by default.
+
+   --nbcores 
+          The number of cores to be used by the testing. [2]
+
+   --clean 
+          cleans up the installer directory.
+\end{verbatim}
+
+The installer will set the following environment variables 
+\begin{verbatim}
+	OMP_NUM_THREADS=1
+	GOTO_NUM_THREADS=1
+	MKL_NUM_THREADS=1
+\end{verbatim}
+in order to disable multithreading within BLAS. \textbf{IMPORTANT} Do
+not forget to set those environment variables for any further usage of
+the PLASMA libraries.  
+
+\section{PLASMA Installer Usage}
+
+For an installation with {\bf gcc, gfortran and reference BLAS}
+\begin{verbatim}
+./setup.py --cc gcc --fc gfortran --downblas
+\end{verbatim}
+
+For an installation with {\bf ifort, icc and MKL} (em64t architecture)
+\begin{verbatim}
+./setup.py --cc icc --fc ifort --blaslib="-lmkl_em64t -lguide"
+\end{verbatim}
+
+%% For an installation with {\bf gcc, gfortran and Veclib} (Mac OS/X)
+%% \begin{verbatim}
+%% ./setup.py --cc gcc --fc gfortran --blaslib="-framework veclib"
+%% \end{verbatim}
+
+For an installation with {\bf gcc, gfortran, ATLAS}
+\begin{verbatim}
+./setup.py --cc gcc --fc gfortran --blaslib="-lf77blas -lcblas -latlas"
+\end{verbatim}
+
+For an installation with {\bf gcc, gfortran, goto BLAS and 4 cores}
+\begin{verbatim}
+./setup.py --cc gcc --fc gfortran --blaslib="-lgoto" --nbcores=4
+\end{verbatim}
+
+For an installation with {\bf xlc, xlf, essl and 8 cores}
+\begin{verbatim}
+./setup.py --cc xlc --fc xlf --blaslib="-lessl" --nbcores=8
+\end{verbatim}
+
+
+\section{PLASMA Installer Support}
+
+Please note that this is an alpha version of the installer and, even though
+it has been tested on a wide set of systems, it may not work. If you
+encounter a problem, your feedback would be greatly appreciated and
+would be very useful for improving the quality of this installer.
+Please submit your complaints and suggestions to the PLASMA forum:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/forum/}
+\end{link_url}
+              
+\section{Tips and Tricks\label{tips}}
+
+\subsection{Tests are slow}
+If the installer is asked to automatically download and install a BLAS
+library (using the \texttt{--downblas} flag), the reference BLAS from
+Netlib is installed and very low performance is to be expected.  It is
+strongly recommended that you use an optimized BLAS library (such as
+ATLAS, Cray Scientific Library, HP MLIB, Intel MKL, GotoBLAS, IBM ESSL,
+VecLib etc.) and provide its location
+through the \texttt{--blaslib} flag.
+
+\subsection{Installing BLAS on a Mac}
+Optimized BLAS are available using \texttt{VecLib} if you install the
+Xcode developer package provided with your Mac OS installation CD.  On
+MAC OS/X you may be required to add the following flag.
+\begin{verbatim}
+--ccflags="-I/usr/include/sys/"
+\end{verbatim}
+
+\subsection{Processors with Hyper-threading}
+The PLASMA installer cannot detect if you have hyper-threading enabled
+on your machine, if you don’t use HWLoc library. In this case, we
+advise you to limit the number of cores for the initial testing of the
+PLASMA library to half the numbers of cores available if you do not
+know your exact architecture.  Using hyper-threading will cause the
+PLASMA testing to hang.  When using PLASMA, the number of cores should
+not exceed the number of actual compute cores (ignore cores appearing
+due to hyper-threading).
+
+\subsection{Problems with Downloading}
+If the required packages cannot be automatically downloaded (for
+example, because no network connection is available on the
+installation system),
+you can obtain them from the following URLs and place
+them in the build subdirectory of the installer  (if the directory does not exist, create
+it):
+\begin{description}
+\item[BLAS] Reference BLAS written in Fortran can be obtained from
+\begin{link_url}
+\url{http://netlib.org/blas/blas.tgz}
+\end{link_url}
+\item[PLASMA] The PLASMA source code is available via a link on the download page:
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/software/}
+\end{link_url}
+\end{description}
+
+
+\section{PLASMA under Windows}
+\label{sec:wininstall}
+We provide installer packages for 32-bit and 64-bit binaries on
+Windows available from the PLASMA web site.  
+\begin{link_url}
+\url{http://icl.cs.utk.edu/plasma/software/}
+\end{link_url}
+These Windows packages are created using Intel C and Fortran compilers
+using multi-threaded static linkage, and the packages should include
+all required redistributable libraries.  The binaries included in this
+distribution link the PLASMA libraries with Intel MKL BLAS in order to
+provide basic functionality tests.  However, any BLAS library should
+be usable with the PLASMA libraries.
+
+\subsection{Using the Windows PLASMA binary package}
+Using the PLASMA libraries requires at least a C99 or C++ compiler and a
+BLAS implementation.  The \texttt{examples} directory contains several examples
+of using PLASMA's linear algebra functions and a simplified makefile
+(\texttt{Makefile.nmake}).  This file provides guidance on how to
+compile and link C or Fortran code using several different compilers
+(Microsoft Visual C, Intel C, Intel Fortran) and different BLAS
+libraries (Intel MKL, AMD ACML) in 32- or 64-bit floating-point precisions.
+The examples in \texttt{Makefile.nmake} will have to be adjusted to the
+appropriate locations of the compilers and libraries.
+
+You \textbf{need} to make sure that the BLAS libraries are being used
+in a sequential mode, either by linking with a sequential version of the
+BLAS libraries, or by setting the appropriate environment variable for
+that library.  PLASMA manages the parallelism on a machine and it will
+cause substantial performance degradation and a possible hang of the code
+if the BLAS calls are also running in parallel.
+
+\subsection{Building PLASMA libraries}
+Rebuilding the PLASMA libraries should not be required, but if you
+wish to do so, the tested build environment uses Intel C and Fortran
+compilers, Intel MKL BLAS, and the CMake build system.  This build
+enforces an out-of-source build to avoid clobbering pre-existing
+files.  The following example commands show how the build might be
+done from a command shell window where the path has been setup for the appropriate
+(either 32-bit or 64-bit) Intel environment.
+\begin{verbatim}
+mkdir BUILD
+cd BUILD
+cmake -DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icl 
+      -DCMAKE_CXX_COMPILER=icl -G "NMake Makefiles" ..
+nmake
+\end{verbatim}
+
+Native threading API (as supplied with modern Windows systems starting
+with Windows 2000) is used to provide parallelism within the PLASMA code.
+Wrapper functions translate any PLASMA threading calls into native Windows
+thread calls.  For example, the \textsf{\_beginthreadex()} function is called
+to spawn PLASMA threads.

@@ -1,0 +1,98 @@
+%##################################################################################################
+
+\documentclass[11pt,letterpaper]{report}
+\input{../latex_common.tex}
+\begin{document}
+
+%//////////////////////////////////////////////////////////////////////////////////////////////////
+
+\thispagestyle{empty}
+\begin{flushright}
+\sf
+\noindent
+{\Huge\textbf{PLASMA Users' Guide}}
+\rule[-1ex]{\textwidth}{5pt}\\[2.5ex]
+{\Large\textbf{Parallel Linear Algebra Software for Multicore Architectures}} \\
+\vspace{0.1in}
+{\Large{Version 2.3}} \\
+\vspace{0.1in}
+{September 4th, 2010} \\
+\vspace{0.1in}
+{LAPACK Working Note XXX} \\
+\vspace{0.1in}
+{Technical Report UT-CS-XX-XXX} \\
+\vspace{0.5in}
+
+\noindent
+Electrical Engineering and Computer Science \\
+\textbf{University of Tennessee}
+\vspace{0.2in}
+
+\noindent
+Mathematical \& Statistical Sciences \\
+\textbf{University of Colorado Denver}
+\vspace{0.2in}
+
+\noindent
+Electrical Engineering and Computer Science \\
+\textbf{University of California at Berkeley}
+\vspace{1.3in}
+
+\noindent
+\textcolor{white}{alphabetically}
+\textcolor{white}{PIs:}
+Jack Dongarra \\
+Jakub Kurzak \\
+Julien Langou \\
+
+\textcolor{white}{core developers:}
+Julie Langou \\
+Hatem Ltaief \\
+Piotr Luszczek \\
+Asim YarKhan \\
+
+\textcolor{white}{newcomers and students:}
+Wesley Alvaro \\
+Mathieu Faverge \\
+Azzam Haidar \\
+Joshua Hoffman \\
+
+\textcolor{white}{past developers:}
+Emmanuel Agullo \\
+Alfredo Buttari \\
+Bilel Hadri \\
+
+\end{flushright}
+
+%//////////////////////////////////////////////////////////////////////////////////////////////////
+
+\tableofcontents
+\pagenumbering{roman}
+\pagestyle{fancy}
+\setlength\parindent{0in}
+\setlength\parskip{0.1in}
+\sloppy
+\rm
+
+%//////////////////////////////////////////////////////////////////////////////////////////////////
+
+\input{preface}
+\input{essentials}
+\input{fundamentals}
+%\input{contents}
+\input{installing}
+\input{testing}
+\input{examples}
+\input{performance}
+\input{accuracy}
+%\input{documentation}
+\input{troubleshooting}
+
+%//////////////////////////////////////////////////////////////////////////////////////////////////
+
+\bibliographystyle{unsrt}
+\bibliography{users_guide}
+
+%##################################################################################################
+
+\end{document}

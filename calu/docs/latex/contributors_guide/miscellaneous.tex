@@ -1,0 +1,19 @@
+%###################################################################################################
+
+\chapter{Miscellaneous}
+
+%///////////////////////////////////////////////////////////////////////////////////////////////////
+
+\section{Constants}
+
+PLASMA defines a few constant parameters, such as {\em PlasmaTrans, PlasmaNoTrans, PlasmaUpper,
+PlasmaLower}, etc., equivalent of CBLAS and LAPACK parameters. The naming and numbering of these
+parameters follow the one of the CBLAS from Netlib (\url{http://www.netlib.org/blas/blast-forum/cblas.tgz})
+and the C Interface to LAPACK from Netlib (\url{http://www.netlib.org/lapack/lapwrapc/}).
+
+PLASMA includes a macro, {\em lapack\_const()}, which takes PLASMA's (integer) constants and returns
+LAPACK's (string) constants. From the standpoint of LAPACK, only the first letter of each string is significant.
+Nevertheless, the macro returns meaningful strings, such as {\em ``No transpose'', ``Transpose'', ``Upper'',
+``Lower''), etc.
+
+%###################################################################################################

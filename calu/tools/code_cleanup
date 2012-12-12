@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# delete all trailing tabs and spaces from the end of each line
+{ rm $1 && awk '{sub(/[ \t]+$/, "");print}' > $1; } < $1
+
+# replace all leading tabs with four spaces in the front of each line
+{ rm $1 && awk '{gsub(/\t/,"    ");print}' > $1; } < $1
+
+# delete all leading blank lines at the top of the file
+{ rm $1 && sed '/./,$!d' > $1; } < $1
+
+# delete all trailing blank lines at the end of the file
+{ rm $1 && sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > $1; } < $1

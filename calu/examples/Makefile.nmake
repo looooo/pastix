@@ -1,0 +1,200 @@
+# ///////////////////////////// P /// L /// A /// S /// M /// A /////////////////////////////// 
+# ///                    PLASMA example routines (version 2.3.0)                            ///
+# ///                    Release Date: November, 15th 2010                                  ///
+# ///                    PLASMA is a software package provided by Univ. of Tennessee,       ///
+# ///                    Univ. of California Berkeley and Univ. of Colorado Denver          /// 
+# ///////////////////////////////////////////////////////////////////////////////////////////// 
+
+## Example using PLASMA libraries.  Please edit file to set the
+## compilers, paths and BLAS libraries correctly
+
+## NOTE: If you use the prebuilt PLASMA binary distribution for
+## Windows, the BLAS library that you link with must expose Fortran
+## routines using the UPPERCASE convention (/DUPCASE flag for PLASMA).
+
+## For example, the Fortran dgemm function must be accessible using
+## the funtion name DGEMM.  This is because the PLASMA binary
+## distribution is built using that assumption, since it is supported
+## by Intel MKL BLAS, ACML BLAS, GotoBLAS and can be supported by the
+## reference BLAS.  If you need to use a BLAS library that does not
+## support the UPPERCASE Fortran names convention, you will need to
+## rebuild PLASMA.
+
+## The reference versions of LAPACK and BLAS libraries can be used
+## here for simple, low performance, testing usage (included in binary
+## distribution)
+
+## You will also need to provide the LAPACKE libraries and
+## headers (included in binary distribution)
+
+## Location of PLASMA include headers and libraries
+PLASMA_INCLUDES = -I../include -I../quark
+PLASMA_LIBDIR = ../lib
+
+## LAPACK CWRAPPER include directory and library
+LAPACKE_INCLUDES = -I../include
+LAPACKE_LIBS = lapacke.lib
+
+## BLAS CWRAPPER include directory and library
+BLAS_CWRAPPER_INCLUDES = -I../include
+CBLAS_CWRAPPER_LIBS = ../lib/blas_cwrapper.lib
+
+INCLUDES = $(PLASMA_INCLUDES) $(LAPACKE_INCLUDES) $(BLAS_CWRAPPER_INCLUDES)
+
+# CHOOSE C COMPILER
+## Use MS C++ compiler; Force C++ mode for files
+CC = cl
+CFLAGS = /TP /EHsc /O2 /DUPCASE $(INCLUDES) /MT
+## Use Intel C compiler with C99 mode
+# CC = icl
+# CFLAGS = /Qstd=c99  /W1 $(INCLUDES) /O2 /MT /DUPCASE
+
+## CHOOSE FORTRAN COMPILER
+## Intel Fortran compiler;
+# FC = ifort
+# FFLAGS = /W1 /fpp /fltconsistency $(INCLUDES) /O2 /MT /DUPCASE
+
+## CHOOSE MATH LIBRARIES (64 bit examples here) AND REQUIRED SUPPORT LIBS (e.g. MATGEN.lib) 
+## Intel MKL BLAS, 64 bit, single threaded
+# BLAS = /LIBPATH:"/Program Files/Intel/MKL/10.0.4.023/em64t/lib" mkl_lapack.lib mkl_intel_lp64.lib mkl_sequential.lib mkl_core.lib
+## AMD ACML, single threaded, 64 bit
+# BLAS = MATGEN.lib c:/AMD/acml4.3.0/ifort64/lib/MT/libacml.lib
+## Reference LAPACK 3.1.1, MATGEN and BLAS libraries, single threaded, 64 bit (included with binary distribution)
+## Please check http://icl.cs.utk.edu/lapack-for-windows/ for updated versions.
+BLAS = MATGEN.lib LAPACK.lib BLAS.lib 
+
+## CHOOSE MATH LIBRARIES (32 bit examples here) AND REQUIRED SUPPORT LIBS (e.g. MATGEN.lib) 
+## Intel MKL BLAS, 64 bit, single threaded
+# BLAS = /LIBPATH:"/Program Files/Intel/MKL/10.0.4.023/ia32/lib" mkl_intel_c.lib mkl_sequential.lib mkl_core.lib
+## AMD ACML, single threaded, 64 bit
+# BLAS = MATGEN.lib /LIBPATH:/AMD/acml4.3.0/ifort32/lib libacml.lib
+## Reference LAPACK 3.1.1, MATGEN and BLAS libraries, single threaded, 32 bit (included with binary distribution)
+## Please check http://icl.cs.utk.edu/lapack-for-windows/ for updated versions.
+# BLAS = MATGEN.lib LAPACK.lib BLAS.lib 
+
+
+### The following should compile ACML in really wierd mixed library usage
+###   cl /MT  /TP /EHsc /O2 /DUPCASE -I../include -I../quark -I../include -I../include example_zgesv.c -link /LIBPATH:../lib plasma.lib coreblas.lib quark.lib lapacke.lib  blas_cwrapper.lib MATGEN.lib -LIBPATH:c:/AMD/acml4.4.0/ifort64/lib libacml.lib libcmt.lib msvcrt.lib /FORCE:MULTIPLE
+
+## CHOOSE LINK COMMAND
+## Standard MS CL linker
+LINKER = cl /MT
+LDFLAGS = -link $(LDFLAGS) /FORCE:MULTIPLE /LIBPATH:$(PLASMA_LIBDIR) plasma.lib coreblas.lib quark.lib $(LAPACKE_LIBS) $(LAPACK_LIBS) $(CBLAS_CWRAPPER_LIBS) $(BLAS) libirc.lib libmmt.lib /nodefaultlib:MSVCRT.lib
+
+##################################################
+
+C_EXAMPLES = \
+example_cgelqf.exe example_dgesv.exe  example_spotrf.exe \
+example_cgelqs.exe example_dgetrs.exe example_spotrs.exe \
+example_cgels.exe  example_dormlq.exe example_strsm.exe \
+example_cgeqrf.exe example_dormqr.exe example_strsmpl.exe \
+example_cgeqrs.exe example_dposv.exe  example_zgelqf.exe \
+example_cgesv.exe  example_dpotrf.exe example_zgelqs.exe \
+example_cgetrs.exe example_dpotrs.exe example_zgels.exe \
+example_cposv.exe  example_dtrsm.exe  example_zgeqrf.exe \
+example_cpotrf.exe example_dtrsmpl.exe example_zgeqrs.exe \
+example_cpotrs.exe example_sgelqf.exe example_zgesv.exe \
+example_ctrsm.exe  example_sgelqs.exe example_zgetrs.exe \
+example_ctrsmpl.exe example_sgels.exe  example_zposv.exe \
+example_cunmlq.exe example_sgeqrf.exe example_zpotrf.exe \
+example_cunmqr.exe example_sgeqrs.exe example_zpotrs.exe \
+example_dgelqf.exe example_sgesv.exe  example_ztrsm.exe \
+example_dgelqs.exe example_sgetrs.exe example_ztrsmpl.exe \
+example_dgels.exe  example_sormlq.exe example_zunmlq.exe \
+example_dgeqrf.exe example_sormqr.exe example_zunmqr.exe \
+example_dgeqrs.exe example_sposv.exe
+
+F_EXAMPLES =  \
+example_cgels_f.exe example_dgesv_f.exe example_sposv_f.exe \
+example_cgesv_f.exe example_dposv_f.exe example_zgels_f.exe \
+example_cposv_f.exe example_sgels_f.exe example_zgesv_f.exe \
+example_dgels_f.exe example_sgesv_f.exe example_zposv_f.exe 
+
+default: c_examples
+
+all: c_examples f_examples
+
+c_examples: $(C_EXAMPLES)
+f_examples: $(F_EXAMPLES)
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $*.c
+
+.f.obj:
+	$(FC) $(FFLAGS) -c $<
+
+.obj.exe:
+	$(LINKER) $< $(LDFLAGS)
+
+example_cgelqf.exe: example_cgelqf.obj
+example_dgesv.exe: example_dgesv.obj
+example_spotrf.exe: example_spotrf.obj
+example_cgelqs.exe: example_cgelqs.obj
+example_dgetrs.exe: example_dgetrs.obj
+example_spotrs.exe: example_spotrs.obj
+example_cgels.exe: example_cgels.obj
+example_dormlq.exe: example_dormlq.obj
+example_strsm.exe: example_strsm.obj
+example_cgeqrf.exe: example_cgeqrf.obj
+example_dormqr.exe: example_dormqr.obj
+example_strsmpl.exe: example_strsmpl.obj
+example_cgeqrs.exe: example_cgeqrs.obj
+example_dposv.exe: example_dposv.obj
+example_zgelqf.exe: example_zgelqf.obj
+example_cgesv.exe: example_cgesv.obj
+example_dpotrf.exe: example_dpotrf.obj
+example_zgelqs.exe: example_zgelqs.obj
+example_cgetrs.exe: example_cgetrs.obj
+example_dpotrs.exe: example_dpotrs.obj
+example_zgels.exe: example_zgels.obj
+example_cposv.exe: example_cposv.obj
+example_dtrsm.exe: example_dtrsm.obj
+example_zgeqrf.exe: example_zgeqrf.obj
+example_cpotrf.exe: example_cpotrf.obj
+example_dtrsmpl.exe: example_dtrsmpl.obj
+example_zgeqrs.exe: example_zgeqrs.obj
+example_cpotrs.exe: example_cpotrs.obj
+example_sgelqf.exe: example_sgelqf.obj
+example_zgesv.exe: example_zgesv.obj
+example_ctrsm.exe: example_ctrsm.obj
+example_sgelqs.exe: example_sgelqs.obj
+example_zgetrs.exe: example_zgetrs.obj
+example_ctrsmpl.exe: example_ctrsmpl.obj
+example_sgels.exe: example_sgels.obj
+example_zposv.exe: example_zposv.obj
+example_cunmlq.exe: example_cunmlq.obj
+example_sgeqrf.exe: example_sgeqrf.obj
+example_zpotrf.exe: example_zpotrf.obj
+example_cunmqr.exe: example_cunmqr.obj
+example_sgeqrs.exe: example_sgeqrs.obj
+example_zpotrs.exe: example_zpotrs.obj
+example_dgelqf.exe: example_dgelqf.obj
+example_sgesv.exe: example_sgesv.obj
+example_ztrsm.exe: example_ztrsm.obj
+example_dgelqs.exe: example_dgelqs.obj
+example_sgetrs.exe: example_sgetrs.obj
+example_ztrsmpl.exe: example_ztrsmpl.obj
+example_dgels.exe: example_dgels.obj
+example_sormlq.exe: example_sormlq.obj
+example_zunmlq.exe: example_zunmlq.obj
+example_dgeqrf.exe: example_dgeqrf.obj
+example_sormqr.exe: example_sormqr.obj
+example_zunmqr.exe: example_zunmqr.obj
+example_dgeqrs.exe: example_dgeqrs.obj
+example_sposv.exe: example_sposv.obj
+
+example_cgels_f.exe: example_cgels_f.obj
+example_dgesv_f.exe: example_dgesv_f.obj
+example_sposv_f.exe: example_sposv_f.obj
+example_cgesv_f.exe: example_cgesv_f.obj
+example_dposv_f.exe: example_dposv_f.obj
+example_zgels_f.exe: example_zgels_f.obj
+example_cposv_f.exe: example_cposv_f.obj
+example_sgels_f.exe: example_sgels_f.obj
+example_zgesv_f.exe: example_zgesv_f.obj
+example_dgels_f.exe: example_dgels_f.obj
+example_sgesv_f.exe: example_sgesv_f.obj
+example_zposv_f.exe: example_zposv_f.obj
+
+clean:
+	del *.obj *.pdb *.manifest $(C_EXAMPLES) $(F_EXAMPLES)

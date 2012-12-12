@@ -1,0 +1,20 @@
+%##################################################################################################
+
+\chapter{Contents of PLASMA}
+
+%###################################################################################################
+
+PLASMA provides routines to solve dense general systems of linear equations,
+symmetric positive definite systems of linear equations and linear least squares
+problems, using LU, Cholesky, QR and LQ factorizations. Real arithmetic and complex
+arithmetic are supported in both single precision and double precision.
+
+PLASMA has been designed to supercede LAPACK and ScaLAPACK, principally by
+restructuring the software to achieve much greater efficiency, where possible,
+on modern computers based on multicore processors. PLASMA also relies on new or
+improved algorithms. Currently, however, PLASMA does not serve as a complete
+replacement of LAPACK due to limited functionality. Specifically, PLASMA does
+not support band matrices and does not solve eigenvalue and singular value
+problems. Also, PLASMA does not replace ScaLAPACK as software for distributed
+memory computers, since it only supports shared-memory machines.
+

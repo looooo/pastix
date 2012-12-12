@@ -1,0 +1,45 @@
+PLASMA ToDo List
+================
+
+Scheduler Specific
+------------------
+* Polish synchronization
+  ** Make sure that locking is not excessive
+  ** Make sure that variables are not volatile if not necessary
+* Find the right criteria for renaming
+  ** Performance close to out-of-place for codes with anti-dependencies
+  ** No performance impact for codes without anti-dependencies
+* Look into the performance of loop reversal (ACCUMULATOR)
+* Implement a work stealing policy which does not significantly deteriorate data reuse
+* Consider lock-less implementations of data structures (hash, list)
+
+Imminent
+--------
+
+* Implement new functionality using the dynamic scheduler
+  ** "communication avoiding" QR/LQ factorization
+  ** matrix inversion using Cholesky, LU and QR
+
+Short Term
+----------
+
+* GPU support
+  ** development of CUDA kernels at the granularity of thread block per tile
+  ** integration of GPU kernels with the dynamic scheduler
+
+* Modular and extendable system for testing, timing and autotuning
+  ** simple template for adding a new routine
+  ** small number of executables (ideally one)
+  ** precision generation for multiple precisions
+
+Long Term
+---------
+
+* Mechanism for multithreaded library interoperability
+  ** sharing of threads between, e.g., PLASMA and multithreaded BLAS
+
+* Development of a front-end for coding linear algebra algorithms
+  ** SMPSs-like extensions for annotating tasks and simplifying task queuing
+  ** extensions for easily accessing elements of matrices stored in tile format
+
+* Development of SVD and Eigenvalue routines

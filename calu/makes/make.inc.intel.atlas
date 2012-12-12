@@ -1,0 +1,51 @@
+###
+#
+# @file make.inc.intel.atlas
+#
+#  PLASMA is a software package provided by Univ. of Tennessee,
+#  Univ. of California Berkeley and Univ. of Colorado Denver
+#
+# @version 2.4.6
+# @author Piotr Luszczek
+# @author Mathieu Faverge
+# @date 2010-11-15
+#
+###
+#
+# OS:       Linux
+# Compiler: ICC
+# BLAS :    ATLAS
+#
+###
+
+# PLASMA install directory (./install by default)
+#prefix      = /path/to/install/directory
+
+# Compilers, linker/loader, archiver, options
+CC          = icc
+FC          = ifort
+LOADER      = $(FC)
+
+ARCH        = ar
+ARCHFLAGS   = cr
+RANLIB      = ranlib
+
+CFLAGS      = -O2 -DADD_ -diag-disable vec
+FFLAGS      = -O2 -diag-disable vec
+LDFLAGS     = -nofor_main
+
+# Enable/Disable F90 compilation
+PLASMA_F90 = 0
+
+# BLAS library
+LIBBLAS     = -L/path/to/atlas_icc/lib -lf77blas -lcblas -latlas
+
+# CBLAS library
+LIBCBLAS    = -L/path/to/atlas_icc/lib/ -lcblas
+
+# LAPACK and TMG library
+LIBLAPACK   = -L/path/to/lapack_atlas_icc/lib/ -ltmg -llapack
+
+# LAPACK C Wrapper library
+INCCLAPACK  = -I/path/to/lapacke/include
+LIBCLAPACK  = -L/path/to/lapacke/lib -llapacke

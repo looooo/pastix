@@ -1,0 +1,103 @@
+%###################################################################################################
+
+\chapter*{Preface}
+
+PLASMA version 1.0 was released in November 2008 as a prototype software providing
+\mbox{\em proof-of-concept} implementation of a linear equations solver based on LU factorization,
+SPD linear equations solver based on Cholesky factorization and least squares problem solver based
+on QR and LQ factorizations, with support for real arithmetic in double precision only.
+The publication of this Users' Guide coincides with the September 2010 release of version 2.3 of
+PLASMA, with the following set of features:
+
+\begin{description}
+\item[Linear Equation Solvers:]
+Fast routines for solving dense systems of linear equations, symmetric positive systems
+of linear equations and least square problems using a class of {\em tile algorithms} for
+LU, Cholesky, QR and LQ factorizations.
+
+\item[\mbox{Mixed-Precision} Solvers:]
+\mbox{Mixed-precision} routines exploiting the speed advantage of single precision
+by factorizing the matrix in single precision and using iterative refinement to achieve
+``full'' double precision accuracy.
+
+\item[Tall and Skinny Factorization Routines:]
+Fast QR adn LQ factorization routines, closely related to a class of algorithms known as
+{\em communication avoiding}, for factorizing matrices of heavily rectangular shape,
+commonly referred to as {\em tall and skinny} matrices.
+
+\item[Q Matrix Generation and Application Routines:]
+Routines for implicit multiplication by the Q matrix resulting from the QR or LQ factorization
+(application of the Householder reflectors) and routines for explicit generation of the Q
+matrix (application of the Householder reflectors to an identity matrix).
+
+\item[Matrix Inversion Routines:]
+Fast routines for explicitly generating an \mbox{in-place} inverse of a matrix by
+pipelining different stages of the computation using a dynamic scheduler with the
+capability of data renaming for elimination of \mbox{anti-dependencies}.
+
+\item[Tile Level 3 BLAS Routines:]
+All Level 3 BLAS routines for matrices stored by tiles, the native storage format of PLASMA.
+
+\item[Layout Translation Routines:]
+Routines for efficient parallel \mbox{out-of-place} translation between the cannonical
+\mbox{column-major} layout and the native PLASMA tile layout, as well as routines for
+parallel and \mbox{cache-efficient} \mbox{in-place} translation (although more constrained
+than the former one).
+
+\item[Multiple Precision Support:]
+Support for real arithmetic and complex arithmetic in single precision and double precision
+(Z, D, C, S). Also, support for \mbox{mixed-precision} routines in real arithmetic and complex
+arithmetic (ZC, DS).
+
+\item[Flexible Interfaces:]
+Three different interfaces with different levels of complexity and user's controll over the
+operations: {\em basic interface} accepting matrices in cannonical \mbox{column-major} layout,
+{\em tile interface} accepting matrices in tile layout and {\em tile asynchronous interface}
+accepting matrices in tile layout and providing \mbox{non-blocking} computational calls.
+
+\item[Workspace Allocation Routines:]
+Convenient set of routines to handle workspace allocation where necessary, e.g., for passing
+auxiliary data from the factorization routine to the solve routine.
+Internal workspace allocation wherever possible.
+
+\item[Rigorous Error Handling:]
+Error codes closely following those returned by LAPACK for both illegal values of input
+parameters and numerical defficiencies of the input matrices.
+
+\item[Testing Suite:]
+A set of tests derived from the LAPACK testing suite to exhaustively test the numerical routines
+under normal conditions, as well as in the presence of illegal arguments and numerically deficient
+matrices. Also a separate set of fast ``sanity'' tests.
+
+\item[Timing Suite:]
+A simple set of timing codes for measuring the performance of the basic interface and the tile
+interface.
+
+\item[Usage Examples:]
+A set of usage examples for all routines in all precisions, ideal for quick cutting and pasting
+into user's code.
+
+\item[Extensive Documentation:]
+Extensive documentation in the form of PDF manuals (Users' Guide, Reference Manual, TAU Guide,
+Contributors' Guide), condensed ASCII and HTML files (README, LICENSE, Release Notes), an online
+API Routine Reference and an online source code browser.
+
+\item[Installer:]
+Convenient Python installer for installation of PLASMA and all its software dependencies,
+including: BLAS, CBLAS, LAPACK and LAPACK C Wrapper.
+\end{description}
+
+The current PLASMA release also implements many important software engineering practices,
+including:
+
+\begin{itemize}
+    \item Thread safety,
+    \item Support for Make and CMake build systems,
+    \item Extensive comments in the source code using the Doxygen system,
+    \item Support for multiple Unix OSes, as well as Microsoft Windows through a thin
+          OS interaction layer,
+    \item Clear software stack built from standard components, such as BLAS, CBLAS,
+          LAPACK and LAPACK C Wrapper.
+\end{itemize}
+
+%###################################################################################################
