@@ -12,6 +12,7 @@
  * @precisions normal z -> c d s
  *
  **/
+#include <math.h>
 #include <lapacke.h>
 #include "common.h"
 
@@ -19,7 +20,7 @@
  *
  * @ingroup CORE_PLASMA_Complex64_t
  *
- *  CORE_zgetrf_nopiv computes an LU factorization of a general diagonal dominant 
+ *  CORE_zgetrf_nopiv computes an LU factorization of a general diagonal dominant
  *  M-by-N matrix A witout pivoting.
  *
  *  The factorization has the form
@@ -68,7 +69,7 @@
  *              to solve a system of equations.
  *
  ******************************************************************************/
-int CORE_zgetf2_nopiv(int M, int N, 
+int CORE_zgetf2_nopiv(int M, int N,
                 PLASMA_Complex64_t *A, int LDA)
 {
     PLASMA_Complex64_t mzone = (PLASMA_Complex64_t)-1.0;
@@ -115,11 +116,11 @@ int CORE_zgetf2_nopiv(int M, int N,
             info = i;
             goto end;
         }
-        
+
         if ( i < k ) {
             /* Update trailing submatrix */
-            cblas_zgeru(CblasColMajor, 
-                        M-i-1, N-i-1, CBLAS_SADDR(mzone), 
+            cblas_zgeru(CblasColMajor,
+                        M-i-1, N-i-1, CBLAS_SADDR(mzone),
                         &A[LDA* i   +i+1], 1,
                         &A[LDA*(i+1)+i  ], LDA,
                         &A[LDA*(i+1)+i+1], LDA);
