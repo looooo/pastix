@@ -62,7 +62,7 @@
 int PLASMA_zgetrf_nopiv(int M, int N,
                   PLASMA_Complex64_t *A, int LDA)
 {
-    int NB, NBNB;
+    int NB;
     int status;
     PLASMA_desc descA ;
     plasma_context_t *plasma;
@@ -99,8 +99,7 @@ int PLASMA_zgetrf_nopiv(int M, int N,
     }
 
     /* Set NT & NTRHS */
-    NB   = PLASMA_NB;
-    NBNB = NB*NB;
+    NB = PLASMA_NB;
 
     plasma_sequence_create(plasma, &sequence);
 
