@@ -1,0 +1,588 @@
+cmake_minimum_required (VERSION 2.8)
+project (PASTIX C CXX Fortran)
+
+include(CMakeDependentOption)
+
+# The current version number
+set (PASTIX_VERSION_MAJOR 5)
+set (PASTIX_VERSION_MINOR 1)
+set (PASTIX_VERSION_MICRO 0)
+
+# # CTest system
+# SET(DART_TESTING_TIMEOUT 120)
+# enable_testing()
+# include(CTest)
+# enable_testing()
+
+### Misc options
+option(BUILD_SHARED_LIBS
+  "Build shared libraries" OFF)
+option(BUILD_64bits
+  "Build 64 bits mode" ON)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo and MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
+### Distributed engine parameters
+option(PASTIX_WITH_MPI
+  "Build PaStiX for distributed memory with MPI" OFF)
+
+### GPU engine parameters
+option(PASTIX_WITH_CUDA
+  "Enable GPU support using CUDA kernels" OFF)
+
+# Precisions generated
+if(NOT PASTIX_PRECISIONS)
+  set(PASTIX_PRECISIONS "s;d;c;z" CACHE STRING "The precisions to compile in PaSTiX (accepts a colon separated list of s;d;c;z)" FORCE)
+else()
+  set(PASTIX_PRECISIONS "${PASTIX_PRECISIONS}" CACHE STRING "The precisions to compile in PaSTiX (accepts a colon separated list of s;d;c;z)" FORCE)
+endif()
+
+# cmake modules setup
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
+include (CMakeDetermineSystem)
+include (CheckCCompilerFlag)
+include (CheckFunctionExists)
+include (CheckSymbolExists)
+include (CheckIncludeFiles)
+
+#
+# check the capabilities of the system we are building for
+#
+
+#
+# Check we are using the reentrant version of xlc/xlf if used
+STRING(REGEX MATCH ".*xlc$" _match_xlc ${CMAKE_C_COMPILER})
+IF (_match_xlc)
+     MESSAGE(ERROR "Please use the thread-safe version of the xlc compiler (xlc_r)")
+ENDIF (_match_xlc)
+STRING(REGEX MATCH ".*xlf$" _match_xlf ${CMAKE_Fortran_COMPILER})
+IF (_match_xlf)
+     MESSAGE(ERROR "Please use the thread-safe version of the xlf compiler (xlf_r)")
+ENDIF (_match_xlf)
+
+# Fortran tricks (BLAS library require to link with fortran linker, while main in in C)
+STRING(REGEX MATCH "Intel" _match_intel ${CMAKE_Fortran_COMPILER_ID})
+IF (_match_intel)
+     MESSAGE(STATUS "Add -nofor_main to the Fortran linker.")
+     SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} -nofor_main")
+ENDIF (_match_intel)
+
+STRING(REGEX MATCH "PGI$" _match_pgi ${CMAKE_Fortran_COMPILER_ID})
+IF (_match_pgi)
+    MESSAGE(STATUS "Add -Mnomain to the Fortran linker.")
+    SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} -Mnomain -Bstatic")
+ENDIF (_match_pgi)
+
+STRING(REGEX MATCH "XL" _match_xlc ${CMAKE_C_COMPILER_ID})
+IF (_match_xlc AND BUILD_64bits)
+     MESSAGE(STATUS "Add -q64 to the C compiler/linker.")
+     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -q64")
+ENDIF (_match_xlc AND BUILD_64bits)
+
+STRING(REGEX MATCH "XL$" _match_xlf ${CMAKE_Fortran_COMPILER_ID})
+IF (_match_xlf)
+  SET(arch_flags "-q32")
+  IF(BUILD_64bits)
+     SET(arch_flags "-q64")
+  ENDIF(BUILD_64bits)
+  MESSAGE(STATUS "Add ${arch_flags} and -nofor_main to the Fortran linker.")
+  SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} ${arch_flags} -nofor_main")
+ENDIF (_match_xlf)
+
+#
+# check for the CPU we build for
+#
+MESSAGE(STATUS "Building for target ${CMAKE_SYSTEM_PROCESSOR}")
+STRING(REGEX MATCH "(i.86-*)|(athlon-*)|(pentium-*)" _mach_x86 ${CMAKE_SYSTEM_PROCESSOR})
+IF (_mach_x86)
+    MESSAGE(STATUS "Found target for X86")
+    SET(ARCH_X86 1)
+ENDIF (_mach_x86)
+
+STRING(REGEX MATCH "(x86_64-*)|(X86_64-*)|(AMD64-*)|(amd64-*)" _mach_x86_64 ${CMAKE_SYSTEM_PROCESSOR})
+IF (_mach_x86_64)
+    MESSAGE(STATUS "Found target X86_64")
+    SET(ARCH_X86_64 1)
+ENDIF (_mach_x86_64)
+
+STRING(REGEX MATCH "(ppc-*)|(powerpc-*)" _mach_ppc ${CMAKE_SYSTEM_PROCESSOR})
+IF (_mach_ppc)
+    MESSAGE(STATUS "Found target for PPC")
+    SET(ARCH_PPC 1)
+ENDIF (_mach_ppc)
+
+#
+# Fix the building system for 32 or 64 bits.
+#
+# On MAC OS X there is a easy solution, by setting the
+# CMAKE_OSX_ARCHITECTURES to a subset of the following values:
+# ppc;ppc64;i386;x86_64.
+# On Linux this is a little bit tricky. We have to check that the
+# compiler supports the -m32/-m64 flags as well as the linker.
+# Once this issue resolved the CMAKE_C_FLAGS and CMAKE_C_LDFLAGS
+# have to be updated accordingly.
+#
+# TODO: Same trick for the Fortran compiler...
+#       no idea how to correctly detect if the required/optional
+#          libraries are in the correct format.
+#
+set(SAVE_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+if (BUILD_64bits)
+  if( _match_xlc)
+    set( ARCH_BUILD "-q64" )
+  else (_match_xlc)
+    set( ARCH_BUILD "-m64" )
+  endif(_match_xlc)
+else (BUILD_64bits)
+  if( _match_xlc)
+    set( ARCH_BUILD "-q32" )
+  else (_match_xlc)
+    set( ARCH_BUILD "-m32" )
+  endif(_match_xlc)
+endif (BUILD_64bits)
+
+set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${ARCH_BUILD}")
+check_c_compiler_flag(${ARCH_BUILD} C_M32or64)
+
+if (C_M32or64)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH_BUILD}")
+  set(CMAKE_C_LDFLAGS "${CMAKE_C_LDFLAGS} ${ARCH_BUILD}")
+  set(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} ${ARCH_BUILD}")
+else (C_M32or64)
+  set(CMAKE_REQUIRED_FLAGS "${SAVE_CMAKE_REQUIRED_FLAGS}")
+endif (C_M32or64)
+unset( SAVE_CMAKE_REQUIRED_FLAGS )
+
+#
+# Check compiler flags and capabilities
+#
+IF( NOT _match_xlc )
+  CHECK_C_COMPILER_FLAG( "-std=c99" HAVE_STD_C99)
+  IF( HAVE_STD_C99 )
+    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99" )
+  ENDIF( HAVE_STD_C99 )
+ELSE( NOT _match_xlc )
+  CHECK_C_COMPILER_FLAG( "-qlanglvl=extc99" HAVE_STD_C99)
+  IF( HAVE_STD_C99 )
+    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qlanglvl=extc99" )
+  ENDIF( HAVE_STD_C99 )
+ENDIF( NOT _match_xlc )
+
+# Set warnings for debug builds
+CHECK_C_COMPILER_FLAG( "-Wall" HAVE_WALL )
+IF( HAVE_WALL )
+    SET( C_WFLAGS "${C_WFLAGS} -Wall" )
+ENDIF( HAVE_WALL )
+CHECK_C_COMPILER_FLAG( "-Wextra" HAVE_WEXTRA )
+IF( HAVE_WEXTRA )
+    SET( C_WFLAGS "${C_WFLAGS} -Wextra" )
+ENDIF( HAVE_WEXTRA )
+# flags for the overly verbose icc
+CHECK_C_COMPILER_FLAG( "-wd424" HAVE_WD )
+IF( HAVE_WD )
+    # 424: checks for duplicate ";"
+    # 981: every volatile triggers a "unspecified evaluation order", obnoxious
+    #      but might be useful for some debugging sessions.
+    # 1419: warning about extern functions being declared in .c
+    #       files
+    # 1572: cuda compares floats with 0.0f.
+    SET( C_WFLAGS "${C_WFLAGS} -wd424 -wd981 -wd1419 -wd1572" )
+ENDIF( HAVE_WD )
+CHECK_C_COMPILER_FLAG( "-g3" HAVE_G3 )
+IF( HAVE_G3 )
+    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g3 ${C_WFLAGS}" )
+ELSE()
+    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g ${C_WFLAGS}" )
+ENDIF( HAVE_G3)
+SET( CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} ${C_WFLAGS}" )
+SET( CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG" )
+
+#
+# Threads and Atomics
+#
+
+# include (cmake_modules/CheckAtomicIntrinsic.cmake)
+# if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+#   set( MAC_OS_X 1 CACHE INTERNAL "Compile on MAC OS X")
+# endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+
+find_package(Threads)
+if(Threads_FOUND)
+  set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${CMAKE_THREAD_LIBS_INIT}")
+  check_function_exists(pthread_create HAVE_PTHREAD)
+  if(HAVE_PTHREAD)
+    list(APPEND EXTRA_LIBS ${CMAKE_THREAD_LIBS_INIT})
+  endif(HAVE_PTHREAD)
+endif(Threads_FOUND)
+
+check_function_exists(sched_setaffinity HAVE_SCHED_SETAFFINITY)
+if( NOT HAVE_SCHED_SETAFFINITY )
+  check_library_exists(rt sched_setaffinity "" HAVE_SCHED_SETAFFINITY)
+endif( NOT HAVE_SCHED_SETAFFINITY )
+
+#
+# timeval, timespec, realtime clocks, etc
+#
+include(CheckStructHasMember)
+check_struct_has_member("struct timespec" tv_nsec time.h HAVE_TIMESPEC_TV_NSEC)
+if( NOT HAVE_TIMESPEC_TV_NSEC )
+  add_definitions(-D_GNU_SOURCE)
+  check_struct_has_member("struct timespec" tv_nsec time.h HAVE_TIMESPEC_TV_NSEC)
+endif( NOT HAVE_TIMESPEC_TV_NSEC )
+check_library_exists(rt clock_gettime "" HAVE_CLOCK_GETTIME)
+if( HAVE_CLOCK_GETTIME )
+  list(APPEND EXTRA_LIBS rt)
+endif( HAVE_CLOCK_GETTIME )
+
+#
+# stdlib, stdio, string, getopt, etc
+#
+check_include_files(stdarg.h HAVE_STDARG_H)
+# va_copy is special as it is not required to be a function.
+# if (HAVE_STDARG_H)
+#   check_c_source_compiles("
+#       #include <stdarg.h>
+#       int main(void) {
+#           va_list a, b;
+#           va_copy(a, b);
+#           return 0;
+#       }"
+#       HAVE_VA_COPY
+#       )
+
+#   if (NOT HAVE_VA_COPY)
+#     check_c_source_compiles("
+#         #include <stdarg.h>
+#         int main(void) {
+#             va_list a, b;
+#             __va_copy(a, b);
+#             return 0;
+#         }"
+#         HAVE_UNDERSCORE_VA_COPY
+#         )
+#   endif (NOT HAVE_VA_COPY)
+# endif (HAVE_STDARG_H)
+# check_function_exists(asprintf HAVE_ASPRINTF)
+# check_function_exists(vasprintf HAVE_VASPRINTF)
+check_include_files(getopt.h HAVE_GETOPT_H)
+check_include_files(unistd.h HAVE_UNISTD_H)
+check_function_exists(getopt_long HAVE_GETOPT_LONG)
+check_include_files(errno.h HAVE_ERRNO_H)
+check_include_files(stddef.h HAVE_STDDEF_H)
+check_function_exists(getrusage HAVE_GETRUSAGE)
+check_include_files(limits.h HAVE_LIMITS_H)
+check_include_files(string.h HAVE_STRING_H)
+check_include_files(complex.h HAVE_COMPLEX_H)
+
+#
+# Find optional packages
+#
+find_package(HWLOC)
+set(HAVE_HWLOC ${HWLOC_FOUND})
+if( HWLOC_FOUND )
+  # list(APPEND EXTRA_SOURCES src/dague_hwloc.c)
+  # list(APPEND EXTRA_LIBS ${HWLOC_LIBRARIES})
+  # include_directories( ${HWLOC_INCLUDE_DIRS} )
+endif (HWLOC_FOUND)
+
+if (PASTIX_WITH_MPI)
+  find_package(MPI REQUIRED)
+  set(HAVE_MPI ${MPI_FOUND})
+  if (MPI_FOUND)
+    include_directories( ${MPI_INCLUDE_PATH} )
+  endif (MPI_FOUND)
+endif (PASTIX_WITH_MPI)
+
+#
+# Check to see if support for MPI 2.0 is available
+#
+if (MPI_FOUND)
+  set(saved_include "${CMAKE_REQUIRED_INCLUDES}" )
+  set(saved_libs    "${CMAKE_REQUIRED_LIBRARIES}")
+  set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${MPI_C_INCLUDE_PATH}")
+  set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${MPI_C_LIBRARIES}")
+  check_function_exists(MPI_Type_create_resized HAVE_MPI_20)
+  set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
+  set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
+endif (MPI_FOUND)
+
+if( PASTIX_WITH_CUDA )
+  find_package(CUDA)
+  set(HAVE_CUDA ${CUDA_FOUND})
+  if (CUDA_FOUND)
+    if(CUDA_VERSION VERSION_LESS "3.0")
+      set(CUDA_HOST_COMPILATION_CPP OFF)
+    endif(CUDA_VERSION VERSION_LESS "3.0")
+    set(CUDA_BUILD_EMULATION OFF)
+    include_directories(${CUDA_INCLUDE_DIRS})
+    set(saved_include "${CMAKE_REQUIRED_INCLUDES}")
+    set(saved_libs    "${CMAKE_REQUIRED_LIBRARIES}")
+    set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${CUDA_INCLUDE_DIRS}")
+    set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${CUDA_LIBRARIES}")
+    if(CUDA_VERSION VERSION_LESS "4.0")
+      set(DAGUE_HAVE_PEER_DEVICE_MEMORY_ACCESS 0)
+    else()
+      check_function_exists(cuDeviceCanAccessPeer DAGUE_HAVE_PEER_DEVICE_MEMORY_ACCESS)
+    endif()
+    set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
+    set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
+  endif (CUDA_FOUND)
+endif( PASTIX_WITH_CUDA )
+
+# if (DAGUE_PROF_PAPI)
+#   find_package(PAPI REQUIRED)
+#   set(HAVE_PAPI ${PAPI_FOUND})
+#   if (PAPI_FOUND)
+#     list(APPEND EXTRA_SOURCES src/papime.c)
+#     list(APPEND EXTRA_LIBS ${PAPI_LIBRARY})
+#     include_directories( ${PAPI_INCLUDE_DIR} )
+#   endif (PAPI_FOUND)
+# endif (DAGUE_PROF_PAPI)
+
+
+# #
+# # If AYUDAME support is enabled it means we need to deal with weak symbols. On
+# # MAC OS X we need to add a special linker flag or the applications will not
+# # compile correctly.
+# #
+# find_package(AYUDAME QUIET)
+# set(HAVE_AYUDAME ${AYUDAME_FOUND})
+# if(AYUDAME_FOUND)
+#   include_directories( ${AYUDAME_INCLUDE_DIR} )
+#   if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+#     message(STATUS "Add '-undefined dynamic_lookup' to the linking flags")
+#     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -undefined dynamic_lookup")
+#     SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} -undefined dynamic_lookup")
+#   endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+# endif(AYUDAME_FOUND)
+
+#
+##
+###
+# Finished detecting the system, lets do our own things now
+###
+##
+#
+# set(PROJECT_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
+# include_directories(BEFORE "${PROJECT_INCLUDE_DIR}")
+
+STRING(COMPARE EQUAL ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} PROJECT_COMPILE_INPLACE)
+if(NOT PROJECT_COMPILE_INPLACE)
+  include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+endif(NOT PROJECT_COMPILE_INPLACE)
+
+#Configuration header
+# configure_file (
+#   "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix/config.h.in"
+#   "${PROJECT_INCLUDE_DIR}/pastix/config.h")
+install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pastix)
+
+# # pkg-config file
+# configure_file (
+#   "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix.pc.in"
+#   "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc")
+# install(FILES "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc" DESTINATION lib/pkgconfig)
+
+add_definitions(-DFORCE_NOMPI)
+#add_definitions(-DFORCE_NOSMP)
+add_definitions(-DWITH_SCOTCH)
+add_definitions(-DWITH_HWLOC)
+add_definitions(-DDOF_CONSTANT)
+
+# integers
+add_definitions(-DFORCE_INT64)
+add_definitions(-DINTSSIZE64)
+add_definitions(-DPREC_DOUBLE)
+add_definitions(-DFORCE_DOUBLE)
+add_definitions(-DX_ARCHi686_pc_linux)
+
+execute_process(COMMAND "./myversion.sh" OUTPUT_VARIABLE PASTIX_VERSION)
+set(TOTO "-DVERSION=\"toto\"" )
+add_definitions(${TOTO})
+
+#
+# Build matrix drivers library
+#
+add_subdirectory(tools)
+add_subdirectory(matrix_drivers)
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kass")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
+include_directories("/opt/scotch/int64/include")
+
+macro(solver_rules _output_files _sources_files)
+  foreach(_source_file ${_sources_files})
+
+    string(REGEX REPLACE "^(.*).c$" "\\1" _prefix "${_source_file}")
+
+    add_custom_command(OUTPUT ${_prefix}_he.c COMMAND cp ${_source_file} ${_prefix}_he.c DEPENDS ${_source_file} )
+    add_custom_command(OUTPUT ${_prefix}_sy.c COMMAND cp ${_source_file} ${_prefix}_sy.c DEPENDS ${_source_file} )
+    add_custom_command(OUTPUT ${_prefix}_po.c COMMAND cp ${_source_file} ${_prefix}_po.c DEPENDS ${_source_file} )
+    add_custom_command(OUTPUT ${_prefix}_ge.c COMMAND cp ${_source_file} ${_prefix}_ge.c DEPENDS ${_source_file} )
+
+    set_source_files_properties(${_prefix}_he.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN -DHERMITIAN" )
+    set_source_files_properties(${_prefix}_sy.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN" )
+    set_source_files_properties(${_prefix}_po.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN" )
+    set_source_files_properties(${_prefix}_ge.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN -DSOPALIN_LU" )
+
+    list(APPEND ${_output_files}
+      ${_prefix}_he.c
+      ${_prefix}_sy.c
+      ${_prefix}_po.c
+      ${_prefix}_ge.c
+      )
+
+  endforeach()
+endmacro()
+
+set(generated_files "")
+solver_rules( generated_files
+  "sopalin/sopalin3d.c;sopalin/csc_intern_compute.c"
+)
+
+#
+# Build the pastix library
+# Create the define for Pastix sources that will be updated in each
+# subdrectory
+#
+set(PASTIX_LIB_SRCS
+  common/common.c
+  common/common_error.c
+  common/common_integer.c
+  common/common_memory.c
+  common/trace.c
+#
+  blend/assemblyGener.c
+  blend/blend.c
+  blend/blend_symbol_cost.c
+  blend/blendctrl.c
+  blend/bulles.c
+  blend/cost.c
+  blend/costfunc.c
+  blend/distribPart.c
+  blend/elimin.c
+  blend/eliminfunc.c
+  blend/extendVector.c
+  blend/extrastruct.c
+  blend/fanboth2.c
+  blend/param_blend.c
+  blend/partbuild.c
+  blend/queue.c
+  blend/simu.c
+  blend/smart_cblk_split.c
+  blend/solverMatrixGen.c
+  blend/solverRealloc.c
+  blend/solver_check.c
+  blend/solver_io.c
+  blend/splitfunc.c
+  blend/splitpart.c
+  blend/splitpartlocal.c
+  blend/symbolrand.c
+  blend/task.c
+  blend/write_ps.c
+#
+  fax/symbol_compact.c
+  fax/symbol_costi.c
+  fax/symbol_fax.c
+  fax/symbol_fax_graph.c
+  fax/symbol_faxi.c
+  fax/symbol_faxi_graph.c
+#
+  kass/amalgamate.c
+  kass/find_supernodes.c
+  kass/ifax.c
+  kass/kass.c
+  kass/KSupernodes.c
+  kass/SF_Direct.c
+  kass/SF_level.c
+  kass/sort_row.c
+  kass/sparRow.c
+#
+  order/order.c
+  order/order_base.c
+  order/order_check.c
+  order/order_io.c
+  # order/order.c
+  # order/order_base.c
+  # order/order_io.c
+  # order/order_compute_scotch.c
+  # order/order_compute_metis.c
+  # order/order_compute_io.c
+  # order/pastix_task_order.c
+#
+  sopalin/bordi.c
+  sopalin/sopalin_thread.c
+#  sopalin/compute_context_nbr.c
+  sopalin/coefinit.c
+  sopalin/csc_intern_build.c
+  sopalin/csc_intern_io.c
+  sopalin/csc_intern_solve.c
+  sopalin/csc_intern_updown.c
+  sopalin/csc_utils.c
+  sopalin/cscd_utils.c
+  sopalin/cscd_utils_fortran.c
+  sopalin/debug_dump.c
+  sopalin/ooc.c
+  sopalin/pastix.c
+  sopalin/pastix_fortran.c
+  sopalin/sopalin_init.c
+  sopalin/sopalin_option.c
+#  sopalin/sparse_gemm_cpu.c
+  sopalin/tools.c
+#  sopalin/murge.c
+#  sopalin/csc_intern_old.c
+#  sopalin/compute_diag.c
+#  sopalin/compute_gemdm.c
+#  sopalin/compute_trsm.c
+#  sopalin/contrib.c
+#  sopalin/MURGE_GetLocalElementList.c
+#  sopalin/murge_pastix_fortran.c
+#  sopalin/raff.c
+#  sopalin/scaling.c
+#  sopalin/sopalin_compute.c
+#  sopalin/sopalin_sendrecv.c
+#  sopalin/starpu_kernels.c
+#  sopalin/starpu_pastix_sched_policy.c
+#  sopalin/starpu_submit_tasks.c
+#  sopalin/starpu_updo.c
+#  sopalin/starpu_updo_kernels.c
+#  sopalin/updo.c
+#  sopalin/updo_sendrecv.c
+#  sopalin/variable_csc.c
+#  sopalin/zgetrf_stapiv_gpu.c
+#  sopalin/zhetrf_stapiv_gpu.c
+#  sopalin/zpotrf_stapiv_gpu.c
+#  sopalin/zsytrf_stapiv_gpu.c
+#
+  symbol/dof.c
+  symbol/dof_io.c
+  symbol/symbol_base.c
+  symbol/symbol.c
+  symbol/symbol_check.c
+  symbol/symbol_cost.c
+  symbol/symbol_draw.c
+  symbol/symbol_io.c
+  symbol/symbol_keep.c
+  symbol/symbol_level.c
+  symbol/symbol_levf.c
+  symbol/symbol_nonzeros.c
+  symbol/symboltops.c
+  symbol/symbol_tree.c
+#
+  ${generated_files}
+  )
+
+add_library(pastix
+  ${PASTIX_LIB_SRCS})
+
+install(TARGETS pastix ARCHIVE DESTINATION lib)
+
+add_subdirectory(example)
