@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "elimin.h"
 #include "cost.h"
 #include "extendVector.h"

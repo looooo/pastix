@@ -47,7 +47,7 @@
 
 #define SYMBOL_COSTI
 
-#include "common_pastix.h"
+#include "common.h"
 #include "dof.h"
 #include "symbol.h"
 #include "symbol_costi.h"

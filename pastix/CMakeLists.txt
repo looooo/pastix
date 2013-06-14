@@ -364,8 +364,8 @@ endif( PASTIX_WITH_CUDA )
 ###
 ##
 #
-# set(PROJECT_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
-# include_directories(BEFORE "${PROJECT_INCLUDE_DIR}")
+set(PROJECT_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
+include_directories(BEFORE "${PROJECT_INCLUDE_DIR}")
 
 STRING(COMPARE EQUAL ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} PROJECT_COMPILE_INPLACE)
 if(NOT PROJECT_COMPILE_INPLACE)
@@ -373,9 +373,9 @@ if(NOT PROJECT_COMPILE_INPLACE)
 endif(NOT PROJECT_COMPILE_INPLACE)
 
 #Configuration header
-# configure_file (
-#   "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix/config.h.in"
-#   "${PROJECT_INCLUDE_DIR}/pastix/config.h")
+configure_file (
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix/config.h.in"
+  "${PROJECT_INCLUDE_DIR}/pastix/config.h")
 install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pastix)
 
 # # pkg-config file
@@ -393,6 +393,7 @@ add_definitions(-DDOF_CONSTANT)
 # integers
 add_definitions(-DFORCE_INT64)
 add_definitions(-DINTSSIZE64)
+add_definitions(-DPASTIX_INT64)
 add_definitions(-DPREC_DOUBLE)
 add_definitions(-DFORCE_DOUBLE)
 add_definitions(-DX_ARCHi686_pc_linux)
@@ -404,9 +405,10 @@ add_definitions(${TOTO})
 #
 # Build matrix drivers library
 #
-add_subdirectory(tools)
+#add_subdirectory(tools)
 add_subdirectory(matrix_drivers)
 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
@@ -454,11 +456,10 @@ solver_rules( generated_files
 # subdrectory
 #
 set(PASTIX_LIB_SRCS
-  common/common.c
-  common/common_error.c
-  common/common_integer.c
-  common/common_memory.c
-  common/trace.c
+  common/errors.c
+  common/integer.c
+  common/memory.c
+#  common/trace.c
 #
   blend/assemblyGener.c
   blend/blend.c

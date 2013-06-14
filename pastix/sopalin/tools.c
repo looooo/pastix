@@ -10,7 +10,7 @@
 #include <mpi.h>
 #endif
 
-#include "common_pastix.h"
+#include "common.h"
 #include "sopalin_compute.h"
 #include "tools.h"
 

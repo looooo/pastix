@@ -20,7 +20,7 @@
 #  include <mpi.h>
 #endif
 
-#include "common_pastix.h"
+#include "common.h"
 #include "out.h"
 #ifdef PASTIX_EZTRACE
 #include "pastix_eztrace.h"

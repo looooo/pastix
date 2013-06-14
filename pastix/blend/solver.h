@@ -71,8 +71,8 @@ typedef struct SolverCblk_  {
 #endif
   PASTIX_INT                       procdiag;             /*+ Processor owner of diagonal block      +*/
   PASTIX_INT                       cblkdiag;             /*+ Column block owner of diagonal block   +*/
-  PASTIX_FLOAT * restrict          coeftab;              /*+ Coefficients access vector             +*/
-  PASTIX_FLOAT * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
+  pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
+  pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
 } SolverCblk; 
 
 /*+ Solver block structure. +*/

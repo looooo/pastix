@@ -46,7 +46,7 @@
 */
 #define DOF_IO
 
-#include "common_pastix.h"
+#include "common.h"
 #include "dof.h"
 
 /****************************************/

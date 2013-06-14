@@ -5,62 +5,8 @@
  *
  */
 #include <stdio.h>
-#include <math.h>
-
-#ifdef FORCE_NOMPI
-#include "pastix_nompi.h"
-#else
-#include <mpi.h>
-#endif
-#include <stdlib.h>
-#include <sys/types.h>
-#include <stdint.h>
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-
-#else  /* X_ARCHalpha_compaq_osf1 */
-
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
-#include "pastix.h"
-#include "cscd_utils.h"
-#include "string.h"
-
-#include "common_drivers.h"
+#include "common.h"
 #include "read_matrix.h"
-#include "rsaread.h"
-#include "hbread.h"
-#include "mmread.h"
-#include "mmdread.h"
-#include "cccread.h"
-#include "olafread.h"
-#include "chbread.h"
-#include "cscdread.h"
-#include "peerread.h"
-#include "threefilesread.h"
-#include "laplacian.h"
-#include "petscread.h"
-#ifdef FDUPROS
-#include "fdupread.h"
-#endif
-#ifdef __INTEL_COMPILER
-/* remark #1419: external declaration in primary source file */
-#pragma warning(disable:1419)
-#endif
 
 /*
  * Function: read_matrix_common
@@ -324,7 +270,7 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
       send[1] = 0;
       if (*ncol != 0 && *rhs == NULL)
         send[1] = 1;
-      MPI_Allreduce(send, recv, 2, MPI_PASTIX_INT, MPI_SUM, pastix_comm);
+      MPI_Allreduce(send, recv, 2, MPI_pastix_int_t, MPI_SUM, pastix_comm);
       N = recv[0];
       if (recv[1] > 0)
         {
@@ -358,8 +304,8 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
   if ( driver_type != LAPLACIAN && driver_type != CSCD &&
        driver_type != FDUP_DIST && driver_type != MMD)
     {
-      MPI_Bcast(ncol,1,MPI_PASTIX_INT,0,pastix_comm);
-      MPI_Bcast(&nnz,1,MPI_PASTIX_INT,0,pastix_comm);
+      MPI_Bcast(ncol,1,MPI_pastix_int_t,0,pastix_comm);
+      MPI_Bcast(&nnz,1,MPI_pastix_int_t,0,pastix_comm);
 
       if (mpid!=0)
         {
@@ -370,8 +316,8 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
           *type   = (char *)  malloc(4*sizeof(char));
         }
 
-      MPI_Bcast(*colptr, *ncol+1, MPI_PASTIX_INT,   0, pastix_comm);
-      MPI_Bcast(*rows,    nnz,    MPI_PASTIX_INT,   0, pastix_comm);
+      MPI_Bcast(*colptr, *ncol+1, MPI_pastix_int_t,   0, pastix_comm);
+      MPI_Bcast(*rows,    nnz,    MPI_pastix_int_t,   0, pastix_comm);
       MPI_Bcast(*values,  nnz,    MPI_PASTIX_FLOAT, 0, pastix_comm);
       MPI_Bcast(*rhs,    *ncol,   MPI_PASTIX_FLOAT, 0, pastix_comm);
       MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm);

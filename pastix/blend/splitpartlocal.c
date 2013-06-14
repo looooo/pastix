@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "queue.h"
 #include "extendVector.h"
 #include "cand.h"

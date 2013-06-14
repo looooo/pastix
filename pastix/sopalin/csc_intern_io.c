@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "csc.h"
 #include "csc_intern_io.h"
 

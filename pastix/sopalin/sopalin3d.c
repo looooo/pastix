@@ -61,7 +61,7 @@
 #endif /* X_INCLUDE_ESSL */
 
 #include <signal.h>
-#include "common_pastix.h"
+#include "common.h"
 #include "tools.h"
 #ifdef PASTIX_EZTRACE
 #include "pastix_eztrace.h"

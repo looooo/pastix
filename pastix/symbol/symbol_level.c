@@ -44,7 +44,7 @@
 
 #define SYMBOL_LEVEL
 
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 #include "order.h"
 #include "fax.h"

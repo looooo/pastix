@@ -1,6 +1,6 @@
-/* 
+/*
    File: cccread.c
-   
+
    Reads file in ccc format.
 
  */
@@ -11,7 +11,6 @@
 #include <stdint.h>
 
 #ifdef FORCE_NOMPI
-#include "pastix_nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -49,7 +48,7 @@
   File format is like :
   > Ncol Nnzero
 
-  
+
   Parameters:
     infile - File to read from.
     Nrow   - Number of rows
@@ -57,11 +56,11 @@
     Nnzero - Number of non zeros
     Type   - Type of the matrix
  */
-void cccReadHeader(FILE         *infile, 
-		   pastix_int_t *Nrow, 
-		   pastix_int_t *Ncol, 
-		   pastix_int_t *Nnzero, 
-		   char         *Type)
+void cccReadHeader(FILE         *infile,
+                   pastix_int_t *Nrow,
+                   pastix_int_t *Ncol,
+                   pastix_int_t *Nnzero,
+                   char         *Type)
 {
   long temp1,temp2;
   if (2 != fscanf(infile, "%ld %ld\n", &temp1, &temp2))
@@ -83,12 +82,12 @@ void cccReadHeader(FILE         *infile,
 }
 
 
-/* 
+/*
    Function: cccRead
-   
+
    Reads Matrix in ccc format.
 
-   Header format is described in <cccReadHeader>, 
+   Header format is described in <cccReadHeader>,
    "filename"/hfile contains columns
    Enf of the matrix is in three files in CSC format :
    "filename"/ifile contains Ncol columns,
@@ -101,20 +100,20 @@ void cccReadHeader(FILE         *infile,
      Ncol     - Number of columns
      Nnzero   - Number of non zeros
      col      - Index of first element of each column in *row* and *val*
-     row      -	Row of eah element				       
-     val      -	Value of each element				       
-     Type     -	Type of the matrix				       
-     RhsType  -	Type of the right hand side.			       
+     row      -	Row of eah element
+     val      -	Value of each element
+     Type     -	Type of the matrix
+     RhsType  -	Type of the right hand side.
 */
-void cccRead(char const      *filename, 
-	     pastix_int_t    *Nrow, 
-	     pastix_int_t    *Ncol, 
-	     pastix_int_t    *Nnzero, 
-	     pastix_int_t   **col, 
-	     pastix_int_t   **row, 
-	     pastix_float_t **val, 
-	     char           **Type, 
-	     char           **RhsType)
+void cccRead(char const      *filename,
+             pastix_int_t    *Nrow,
+             pastix_int_t    *Ncol,
+             pastix_int_t    *Nnzero,
+             pastix_int_t   **col,
+             pastix_int_t   **row,
+             pastix_float_t **val,
+             char           **Type,
+             char           **RhsType)
 {
   FILE *infile,*infile1,*infile2;
   pastix_int_t iter,size,i=0,ii=0;
@@ -128,7 +127,7 @@ void cccRead(char const      *filename,
   *RhsType = (char *) malloc(4*sizeof(char));
   (*RhsType)[0] = '\0';
 
-#ifndef TYPE_COMPLEX 
+#ifndef TYPE_COMPLEX
   fprintf(stderr, "\nWARNING: This drivers reads complex matrices, imaginary part will be dropped\n\n");
 #endif
 
@@ -143,11 +142,11 @@ void cccRead(char const      *filename,
   fclose(infile);
 
   printf("Nrow %ld Ncol %ld Nnzero %ld\n", (long)*Nrow, (long)*Ncol, (long)*Nnzero);
-  
+
   (*col) = (pastix_int_t *) malloc((*Ncol+1)*sizeof(pastix_int_t));
   (*row) = (pastix_int_t *) malloc((*Nnzero)*sizeof(pastix_int_t));
   (*val) = (pastix_float_t *) malloc((*Nnzero)*sizeof(pastix_float_t));
- 
+
   if (((*col) == NULL) || ((*row) == NULL) || ((*val) == NULL))
     fprintf(stderr, "cccRead : Not enough memory for \n");
 
@@ -162,10 +161,10 @@ void cccRead(char const      *filename,
     {
       long temp;
       if (1 != fscanf(infile, "%ld", &temp))
-	{
-	  fprintf(stderr, "ERROR: Reading Matrix\n");
-	  exit(1);
-	}
+        {
+          fprintf(stderr, "ERROR: Reading Matrix\n");
+          exit(1);
+        }
       (*col)[iter]=(pastix_int_t)temp;
     }
   fclose(infile);
@@ -190,50 +189,50 @@ void cccRead(char const      *filename,
       EXIT(MOD_SI,FILE_ERR);
     }
 
-  
+
   for (iter=0; iter<size; iter++)
     {
       long x;
       if (1 != fscanf(infile1, "%ld", &x))
-	{
-	  fprintf(stderr, "ERROR: Reading Matrix\n");
-	  exit(1);
-	}
+        {
+          fprintf(stderr, "ERROR: Reading Matrix\n");
+          exit(1);
+        }
 
 #ifdef SYMPART
       if (iter+1>=(*col)[ii+1])
-	{
-	  (*col)[ii+1]=i+1;
-	  ii++;
-	}
-      if ((pastix_int_t)x>=ii+1) 
-	{
-	  (*row)[i] = (pastix_int_t)x;
-	}
+        {
+          (*col)[ii+1]=i+1;
+          ii++;
+        }
+      if ((pastix_int_t)x>=ii+1)
+        {
+          (*row)[i] = (pastix_int_t)x;
+        }
 #else
       (*row)[iter] = (pastix_int_t)x;
 #endif
       if (2 != fscanf(infile2, "%lf %lf", &temp1, &temp2))
-	{
-	  fprintf(stderr, "ERROR: Reading Matrix\n");
-	  exit(1);
-	}
+        {
+          fprintf(stderr, "ERROR: Reading Matrix\n");
+          exit(1);
+        }
 
 #ifdef SYMPART
       if ((pastix_int_t)x>=ii+1)
-	{
+        {
 #if (defined X_ARCHalpha_compaq_osf1)
 #ifdef TYPE_COMPLEX
-	  (*val)[i] = PASTIX_FLOAT(temp1,temp2);
+          (*val)[i] = PASTIX_FLOAT(temp1,temp2);
 #else
-	  (*val)[i] =(pastix_float_t)temp1;
+          (*val)[i] =(pastix_float_t)temp1;
 #endif
 #else
-	  (*val)[i] = (pastix_float_t)temp1;
-	  (*val)[i] += ((pastix_float_t)temp2)*I;
+          (*val)[i] = (pastix_float_t)temp1;
+          (*val)[i] += ((pastix_float_t)temp2)*I;
 #endif
-	  i++;
-	}
+          i++;
+        }
 #else
       (*val)[iter] = (pastix_float_t)temp1;
       (*val)[iter] += ((pastix_float_t)temp2)*I;

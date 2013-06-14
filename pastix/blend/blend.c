@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "out.h"
 #include "dof.h"
 #include "ftgt.h"

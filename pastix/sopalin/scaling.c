@@ -10,7 +10,7 @@
 #include <mpi.h>
 #endif
 
-#include "common_pastix.h"
+#include "common.h"
 #include "csc.h"
 #include "queue.h"
 #include "bulles.h"

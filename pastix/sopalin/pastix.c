@@ -30,13 +30,13 @@
 #endif
 
 #ifdef METIS
-#  include "metis.h" /* must be before common_pastix */
+#  include "metis.h" /* must be before common */
 #  ifdef ASSERT
 #    undef ASSERT
 #  endif
 #endif
 
-#include "common_pastix.h"
+#include "common.h"
 #include "tools.h"
 #include "sopalin_define.h"
 #ifdef WITH_STARPU

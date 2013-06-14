@@ -77,7 +77,7 @@ typedef enum driver_type_enum driver_type_t;
 #  define MTX_ISRHS(a) ((a)[0]!='\0')
 #endif
 
-#ifdef PASTIX_INT_T_AND_SO_ON
+#ifdef pastix_int_t_T_AND_SO_ON
 /*
  * Function: read_matrix
  *
@@ -151,7 +151,7 @@ int z_read_matrix(char            *filename,
                   MPI_Comm         pastix_comm);
 #endif
 
-#ifdef PASTIX_INT_T_AND_SO_ON
+#ifdef pastix_int_t_T_AND_SO_ON
 /*
  * Function: dread_matrix
  *
@@ -253,7 +253,7 @@ int c_comparcouple(const void *a, const void *b);
 int z_comparcouple(const void *a, const void *b);
 #endif
 
-#ifdef PASTIX_INT_T_AND_SO_ON
+#ifdef pastix_int_t_T_AND_SO_ON
 /*
  *  Function: checkStrucSym
  *

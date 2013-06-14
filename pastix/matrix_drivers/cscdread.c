@@ -10,7 +10,6 @@
 #include <stdint.h>
 
 #ifdef FORCE_NOMPI
-#include "pastix_nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -273,7 +272,7 @@ cscdRead(char const      *dirname,
   if (vectsize    == NULL) fprintf(stderr, "[P%d] Erreur : alloc vectsize\n",    myrank);
   if (vectsizercv == NULL) fprintf(stderr, "[P%d] Erreur : alloc vectsizercv\n", myrank);
 
-  MPI_Allreduce(vectsize, vectsizercv, nbproc, MPI_PASTIX_INT, MPI_SUM, pastix_comm);
+  MPI_Allreduce(vectsize, vectsizercv, nbproc, MPI_pastix_int_t, MPI_SUM, pastix_comm);
   for (i=0; i<myrank; i++)
     offset += vectsizercv[i];
 

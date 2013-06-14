@@ -13,7 +13,7 @@
 /*+********************************************************+*/
 
 
-#include "common_pastix.h"
+#include "common.h"
 
 /*
 **  The type and structure definitions.

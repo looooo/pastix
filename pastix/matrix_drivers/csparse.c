@@ -1,20 +1,20 @@
 
-static PASTIX_INT cs_tol (PASTIX_INT i, PASTIX_INT j, PASTIX_FLOAT aij, void *tol)
+static pastix_int_t cs_tol (pastix_int_t i, pastix_int_t j, PASTIX_FLOAT aij, void *tol)
 {
   return (fabs (aij) > *((PASTIX_FLOAT *) tol)) ;
 }
 
-PASTIX_INT cs_droptol (cs *A, PASTIX_FLOAT tol)
+pastix_int_t cs_droptol (cs *A, PASTIX_FLOAT tol)
 {
   return (cs_fkeep (A, &cs_tol, &tol)) ;    /* keep all large entries */
 }
 
-static PASTIX_INT cs_nonzero (PASTIX_INT i, PASTIX_INT j, PASTIX_FLOAT aij, void *other)
+static pastix_int_t cs_nonzero (pastix_int_t i, pastix_int_t j, PASTIX_FLOAT aij, void *other)
 {
   return (aij != 0) ;
 }
 
-PASTIX_INT cs_dropzeros (cs *A)
+pastix_int_t cs_dropzeros (cs *A)
 {
   return (cs_fkeep (A, &cs_nonzero, NULL)) ;/* keep all nonzero entries */
 }
@@ -22,13 +22,13 @@ PASTIX_INT cs_dropzeros (cs *A)
 /* C = alpha*A + beta*B */
 cs *cs_add ( const cs *A, const cs *B, PASTIX_FLOAT alpha, PASTIX_FLOAT beta )
 {
-  PASTIX_INT p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values ;
+  pastix_int_t p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values ;
   PASTIX_FLOAT *x, *Bx, *Cx ;
   cs *C ;
   if (!A || !B) return (NULL) ;/* check inputs */
   m = A->m ; anz = A->p [A->n] ;
   n = B->n ; Bp = B->p ; Bx = B->x ; bnz = Bp [n] ;
-  w = cs_calloc (m, sizeof (PASTIX_INT)) ;
+  w = cs_calloc (m, sizeof (pastix_int_t)) ;
   values = (A->x != NULL) && (Bx != NULL) ;
   x = values ? cs_malloc (m, sizeof (PASTIX_FLOAT)) : NULL ;
   C = cs_spalloc (m, n, anz + bnz, values, 0) ;
@@ -47,13 +47,13 @@ cs *cs_add ( const cs *A, const cs *B, PASTIX_FLOAT alpha, PASTIX_FLOAT beta )
 }
 
 /* removes duplicate entries from A */
-PASTIX_INT cs_dupl (cs *A)
+pastix_int_t cs_dupl (cs *A)
 {
-  PASTIX_INT i, j, p, q, nz = 0, n, m, *Ap, *Ai, *w ;
+  pastix_int_t i, j, p, q, nz = 0, n, m, *Ap, *Ai, *w ;
   PASTIX_FLOAT *Ax ;
   if (!A) return (0) ;/* check inputs */
   m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
-  w = cs_malloc (m, sizeof (PASTIX_INT)) ;/* get workspace */
+  w = cs_malloc (m, sizeof (pastix_int_t)) ;/* get workspace */
   if (!w) return (0) ;/* out of memory */
   for (i = 0 ; i < m ; i++) w [i] = -1 ;/* row i not yet seen */
   for (j = 0 ; j < n ; j++)
@@ -81,7 +81,7 @@ PASTIX_INT cs_dupl (cs *A)
 }
 
 /* add an entry to a triplet matrix; return 1 if ok, 0 otherwise */
-PASTIX_INT cs_entry (cs *T, PASTIX_INT i, PASTIX_INT j, PASTIX_FLOAT x)
+pastix_int_t cs_entry (cs *T, pastix_int_t i, pastix_int_t j, PASTIX_FLOAT x)
 {
   if (!T || (T->nz >= T->nzmax && !cs_sprealloc (T, 2*(T->nzmax)))) return(0);
   if (T->x) T->x [T->nz] = x ;
@@ -93,10 +93,10 @@ PASTIX_INT cs_entry (cs *T, PASTIX_INT i, PASTIX_INT j, PASTIX_FLOAT x)
 }
 
 /* drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1 */
-PASTIX_INT cs_fkeep (cs *A, PASTIX_INT (*fkeep) (PASTIX_INT, PASTIX_INT, PASTIX_FLOAT, void *), void *other)
+pastix_int_t cs_fkeep (cs *A, pastix_int_t (*fkeep) (pastix_int_t, pastix_int_t, PASTIX_FLOAT, void *), void *other)
 {
-  PASTIX_INT baseval = 1 ;
-  PASTIX_INT j, p, nz = 0, n, *Ap, *Ai ;
+  pastix_int_t baseval = 1 ;
+  pastix_int_t j, p, nz = 0, n, *Ap, *Ai ;
   PASTIX_FLOAT *Ax ;
   if (!A || !fkeep) return (-1) ;    /* check inputs */
   n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
@@ -119,9 +119,9 @@ PASTIX_INT cs_fkeep (cs *A, PASTIX_INT (*fkeep) (PASTIX_INT, PASTIX_INT, PASTIX_
 }
 
 /* y = A*x+y */
-PASTIX_INT cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y)
+pastix_int_t cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y)
 {
-  PASTIX_INT p, j, n, *Ap, *Ai ;
+  pastix_int_t p, j, n, *Ap, *Ai ;
   PASTIX_FLOAT *Ax ;
   if (!A || !x || !y) return (0) ;    /* check inputs */
   n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
@@ -139,13 +139,13 @@ PASTIX_INT cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y)
 /* C = A*B */
 cs *cs_multiply (const cs *A, const cs *B)
 {
-  PASTIX_INT p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values, *Bi ;
+  pastix_int_t p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values, *Bi ;
   PASTIX_FLOAT *x, *Bx, *Cx ;
   cs *C ;
   if (!A || !B) return (NULL) ;/* check inputs */
   m = A->m ; anz = A->p [A->n] ;
   n = B->n ; Bp = B->p ; Bi = B->i ; Bx = B->x ; bnz = Bp [n] ;
-  w = cs_calloc (m, sizeof (PASTIX_INT)) ;
+  w = cs_calloc (m, sizeof (pastix_int_t)) ;
   values = (A->x != NULL) && (Bx != NULL) ;
   x = values ? cs_malloc (m, sizeof (PASTIX_FLOAT)) : NULL ;
   C = cs_spalloc (m, n, anz + bnz, values, 0) ;
@@ -173,7 +173,7 @@ cs *cs_multiply (const cs *A, const cs *B)
 /* 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum */
 PASTIX_FLOAT cs_norm (const cs *A)
 {
-  PASTIX_INT p, j, n, *Ap ;
+  pastix_int_t p, j, n, *Ap ;
   PASTIX_FLOAT *Ax,  norm = 0, s ;
   if (!A || !A->x) return (-1) ;/* check inputs */
   n = A->n ; Ap = A->p ; Ax = A->x ;
@@ -186,9 +186,9 @@ PASTIX_FLOAT cs_norm (const cs *A)
 }
 
 /* C = A(P,Q) where P and Q are permutations of 0..m-1 and 0..n-1. */
-cs *cs_permute (const cs *A, const PASTIX_INT *Pinv, const PASTIX_INT *Q, PASTIX_INT values)
+cs *cs_permute (const cs *A, const pastix_int_t *Pinv, const pastix_int_t *Q, pastix_int_t values)
 {
-  PASTIX_INT p, j, k, nz = 0, m, n, *Ap, *Ai, *Cp, *Ci ;
+  pastix_int_t p, j, k, nz = 0, m, n, *Ap, *Ai, *Cp, *Ci ;
   PASTIX_FLOAT *Cx, *Ax ;
   cs *C ;
   if (!A) return (NULL) ;/* check inputs */
@@ -211,26 +211,26 @@ cs *cs_permute (const cs *A, const PASTIX_INT *Pinv, const PASTIX_INT *Q, PASTIX
 }
 
 /* Pinv = P', or P = Pinv' */
-PASTIX_INT *cs_pinv (PASTIX_INT const *P, PASTIX_INT n)
+pastix_int_t *cs_pinv (pastix_int_t const *P, pastix_int_t n)
 {
-  PASTIX_INT k, *Pinv ;
+  pastix_int_t k, *Pinv ;
   if (!P) return (NULL) ;/* P = NULL denotes identity */
-  Pinv = cs_malloc (n, sizeof (PASTIX_INT)) ;/* allocate resuult */
+  Pinv = cs_malloc (n, sizeof (pastix_int_t)) ;/* allocate resuult */
   if (!Pinv) return (NULL) ;/* out of memory */
   for (k = 0 ; k < n ; k++) Pinv [P [k]] = k ;/* invert the permutation */
   return (Pinv) ;/* return result */
 }
 
 /* C = A' */
-cs *cs_transpose (const cs *A, PASTIX_INT values)
+cs *cs_transpose (const cs *A, pastix_int_t values)
 {
-  PASTIX_INT p, q, j, *Cp, *Ci, n, m, *Ap, *Ai, *w ;
+  pastix_int_t p, q, j, *Cp, *Ci, n, m, *Ap, *Ai, *w ;
   PASTIX_FLOAT *Cx, *Ax ;
   cs *C ;
   if (!A) return (NULL) ;
   m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
   C = cs_spalloc (n, m, Ap [n], values && Ax, 0) ;   /* allocate result */
-  w = cs_calloc (m, sizeof (PASTIX_INT)) ;
+  w = cs_calloc (m, sizeof (pastix_int_t)) ;
   if (!C || !w) return (cs_done (C, w, NULL, 0)) ;   /* out of memory */
   Cp = C->p ; Ci = C->i ; Cx = C->x ;
   for (p = 0 ; p < Ap [n] ; p++) w [Ai [p]]++ ;   /* row counts */
@@ -249,13 +249,13 @@ cs *cs_transpose (const cs *A, PASTIX_INT values)
 /* C = compressed-column form of a triplet matrix T */
 cs *cs_triplet (const cs *T)
 {
-  PASTIX_INT m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj ;
+  pastix_int_t m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj ;
   PASTIX_FLOAT *Cx, *Tx ;
   cs *C ;
   if (!T) return (NULL) ;/* check inputs */
   m = T->m ; n = T->n ; Ti = T->i ; Tj = T->p ; Tx = T->x ; nz = T->nz ;
   C = cs_spalloc (m, n, nz, Tx != NULL, 0) ;/* allocate result */
-  w = cs_calloc (n, sizeof (PASTIX_INT)) ;/* get workspace */
+  w = cs_calloc (n, sizeof (pastix_int_t)) ;/* get workspace */
   if (!C || !w) return (cs_done (C, w, NULL, 0)) ;/* out of memory */
   Cp = C->p ; Ci = C->i ; Cx = C->x ;
   for (k = 0 ; k < nz ; k++) w [Tj [k]]++ ;/* column counts */
@@ -269,10 +269,10 @@ cs *cs_triplet (const cs *T)
 }
 
 /* x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse */
-PASTIX_INT cs_scatter (const cs *A, PASTIX_INT j, PASTIX_FLOAT beta, PASTIX_INT *w, PASTIX_FLOAT *x, PASTIX_INT mark,
-		cs *C, PASTIX_INT nz)
+pastix_int_t cs_scatter (const cs *A, pastix_int_t j, PASTIX_FLOAT beta, pastix_int_t *w, PASTIX_FLOAT *x, pastix_int_t mark,
+		cs *C, pastix_int_t nz)
 {
-  PASTIX_INT i, p, *Ap, *Ai, *Ci ;
+  pastix_int_t i, p, *Ap, *Ai, *Ci ;
   PASTIX_FLOAT *Ax ;
   if (!A || !w || !C) return (-1) ;/* ensure inputs are valid */
   Ap = A->p ; Ai = A->i ; Ax = A->x ; Ci = C->i ;
@@ -291,9 +291,9 @@ PASTIX_INT cs_scatter (const cs *A, PASTIX_INT j, PASTIX_FLOAT beta, PASTIX_INT 
 }
 
 /* p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c */
-PASTIX_INT cs_cumsum (PASTIX_INT *p, PASTIX_INT *c, PASTIX_INT n)
+pastix_int_t cs_cumsum (pastix_int_t *p, pastix_int_t *c, pastix_int_t n)
 {
-  PASTIX_INT i, nz = 0 ;
+  pastix_int_t i, nz = 0 ;
   if (!p || !c) return (-1) ;    /* check inputs */
   for (i = 0 ; i < n ; i++)
     {
@@ -306,13 +306,13 @@ PASTIX_INT cs_cumsum (PASTIX_INT *p, PASTIX_INT *c, PASTIX_INT n)
 }
 
 /* wrapper for malloc */
-void *cs_malloc (PASTIX_INT n, size_t size)
+void *cs_malloc (pastix_int_t n, size_t size)
 {
   return (CS_OVERFLOW (n,size) ? NULL : malloc (CS_MAX (n,1) * size)) ;
 }
 
 /* wrapper for calloc */
-void *cs_calloc (PASTIX_INT n, size_t size)
+void *cs_calloc (pastix_int_t n, size_t size)
 {
   return (CS_OVERFLOW (n,size) ? NULL : calloc (CS_MAX (n,1), size)) ;
 }
@@ -325,10 +325,10 @@ void *cs_free (void *p)
 }
 
 /* wrapper for realloc */
-void *cs_realloc (void *p, PASTIX_INT n, size_t size, PASTIX_INT *ok)
+void *cs_realloc (void *p, pastix_int_t n, size_t size, pastix_int_t *ok)
 {
   void *p2 ;
-  *ok = !CS_OVERFLOW (n,size) ;    /* guard against PASTIX_INT overflow */
+  *ok = !CS_OVERFLOW (n,size) ;    /* guard against pastix_int_t overflow */
   if (!(*ok)) return (p) ;    /* p unchanged if n too large */
   p2 = realloc (p, CS_MAX (n,1) * size) ; /* realloc the block */
   *ok = (p2 != NULL) ;
@@ -336,7 +336,7 @@ void *cs_realloc (void *p, PASTIX_INT n, size_t size, PASTIX_INT *ok)
 }
 
 /* allocate a sparse matrix (triplet form or compressed-column form) */
-cs *cs_spalloc (PASTIX_INT m, PASTIX_INT n, PASTIX_INT nzmax, PASTIX_INT values, PASTIX_INT triplet)
+cs *cs_spalloc (pastix_int_t m, pastix_int_t n, pastix_int_t nzmax, pastix_int_t values, pastix_int_t triplet)
 {
   cs *A = cs_calloc (1, sizeof (cs)) ;    /* allocate the cs struct */
   if (!A) return (NULL) ;    /* out of memory */
@@ -344,20 +344,20 @@ cs *cs_spalloc (PASTIX_INT m, PASTIX_INT n, PASTIX_INT nzmax, PASTIX_INT values,
   A->n = n ;
   A->nzmax = nzmax = CS_MAX (nzmax, 1) ;
   A->nz = triplet ? 0 : -1 ;    /* allocate triplet or comp.col */
-  A->p = cs_malloc (triplet ? nzmax : n+1, sizeof (PASTIX_INT)) ;
-  A->i = cs_malloc (nzmax, sizeof (PASTIX_INT)) ;
+  A->p = cs_malloc (triplet ? nzmax : n+1, sizeof (pastix_int_t)) ;
+  A->i = cs_malloc (nzmax, sizeof (pastix_int_t)) ;
   A->x = values ? cs_malloc (nzmax, sizeof (PASTIX_FLOAT)) : NULL ;
   return ((!A->p || !A->i || (values && !A->x)) ? cs_spfree (A) : A) ;
 }
 
 /* change the max # of entries sparse matrix */
-PASTIX_INT cs_sprealloc (cs *A, PASTIX_INT nzmax)
+pastix_int_t cs_sprealloc (cs *A, pastix_int_t nzmax)
 {
-  PASTIX_INT ok, oki, okj = 1, okx = 1 ;
+  pastix_int_t ok, oki, okj = 1, okx = 1 ;
   if (!A) return (0) ;
   nzmax = (nzmax <= 0) ? (A->p [A->n]) : nzmax ;
-  A->i = cs_realloc (A->i, nzmax, sizeof (PASTIX_INT), &oki) ;
-  if (A->nz >= 0) A->p = cs_realloc (A->p, nzmax, sizeof (PASTIX_INT), &okj) ;
+  A->i = cs_realloc (A->i, nzmax, sizeof (pastix_int_t), &oki) ;
+  if (A->nz >= 0) A->p = cs_realloc (A->p, nzmax, sizeof (pastix_int_t), &okj) ;
   if (A->x) A->x = cs_realloc (A->x, nzmax, sizeof (PASTIX_FLOAT), &okx) ;
   ok = (oki && okj && okx) ;
   if (ok) A->nzmax = nzmax ;
@@ -375,7 +375,7 @@ cs *cs_spfree (cs *A)
 }
 
 /* free workspace and return a sparse matrix result */
-cs *cs_done (cs *C, void *w, void *x, PASTIX_INT ok)
+cs *cs_done (cs *C, void *w, void *x, pastix_int_t ok)
 {
   cs_free (w) ;/* free workspace */
   cs_free (x) ;

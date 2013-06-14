@@ -44,7 +44,7 @@
 
 #define SYMBOL
 
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 
 /******************************************/

@@ -6,64 +6,64 @@
 
 typedef struct cs_sparse    /* matrix in compressed-column or triplet form */
 {
-  PASTIX_INT nzmax ;    /* maximum number of entries */
-  PASTIX_INT m ;    /* number of rows */
-  PASTIX_INT n ;    /* number of columns */
-  PASTIX_INT *p ;    /* column poINTers (size n+1) or col indices (size nzmax) */
-  PASTIX_INT *i ;    /* row indices, size nzmax */
+  pastix_int_t nzmax ;    /* maximum number of entries */
+  pastix_int_t m ;    /* number of rows */
+  pastix_int_t n ;    /* number of columns */
+  pastix_int_t *p ;    /* column poINTers (size n+1) or col indices (size nzmax) */
+  pastix_int_t *i ;    /* row indices, size nzmax */
   PASTIX_FLOAT *x ;    /* numerical values, size nzmax */
-  PASTIX_INT nz ;    /* # of entries in triplet matrix, -1 for compressed-col */
+  pastix_int_t nz ;    /* # of entries in triplet matrix, -1 for compressed-col */
 } cs ;
 
 /* keep all large entries */
-PASTIX_INT cs_droptol (cs *A, PASTIX_FLOAT tol) ;
+pastix_int_t cs_droptol (cs *A, PASTIX_FLOAT tol) ;
 /* keep all nonzero entries */
-PASTIX_INT cs_dropzeros (cs *A) ;
+pastix_int_t cs_dropzeros (cs *A) ;
 /* C = alpha*A + beta*B */
 cs *cs_add (const cs *A, const cs *B, PASTIX_FLOAT alpha, PASTIX_FLOAT beta) ;
 /* removes duplicate entries from A */
-PASTIX_INT cs_dupl (cs *A) ;
+pastix_int_t cs_dupl (cs *A) ;
 /* add an entry to a triplet matrix; return 1 if ok, 0 otherwise */
-PASTIX_INT cs_entry (cs *T, PASTIX_INT i, PASTIX_INT j, PASTIX_FLOAT x) ;
+pastix_int_t cs_entry (cs *T, pastix_int_t i, pastix_int_t j, PASTIX_FLOAT x) ;
 /* drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1 */
-PASTIX_INT cs_fkeep (cs *A, PASTIX_INT (*fkeep) (PASTIX_INT, PASTIX_INT, PASTIX_FLOAT, void *), void *other) ;
+pastix_int_t cs_fkeep (cs *A, pastix_int_t (*fkeep) (pastix_int_t, pastix_int_t, PASTIX_FLOAT, void *), void *other) ;
 /* y = A*x+y */
-PASTIX_INT cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y) ;
+pastix_int_t cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y) ;
 /* C = A*B */
 cs *cs_multiply (const cs *A, const cs *B) ;
 /* 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum */
 PASTIX_FLOAT cs_norm (const cs *A) ;
 /* C = A(P,Q) where P and Q are permutations of 0..m-1 and 0..n-1. */
-cs *cs_permute (const cs *A, const PASTIX_INT *P, const PASTIX_INT *Q, PASTIX_INT values) ;
+cs *cs_permute (const cs *A, const pastix_int_t *P, const pastix_int_t *Q, pastix_int_t values) ;
 /* Pinv = P', or P = Pinv' */
-PASTIX_INT *cs_pinv (const PASTIX_INT *P, PASTIX_INT n) ;
+pastix_int_t *cs_pinv (const pastix_int_t *P, pastix_int_t n) ;
 /* C = A' */
-cs *cs_transpose (const cs *A, PASTIX_INT values) ;
+cs *cs_transpose (const cs *A, pastix_int_t values) ;
 /* C = compressed-column form of a triplet matrix T */
 cs *cs_triplet (const cs *T) ;
 /* x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse */
-PASTIX_INT cs_scatter (const cs *A, PASTIX_INT j, PASTIX_FLOAT beta, PASTIX_INT *w, PASTIX_FLOAT *x, PASTIX_INT mark,
-                cs *C, PASTIX_INT nz) ;
+pastix_int_t cs_scatter (const cs *A, pastix_int_t j, PASTIX_FLOAT beta, pastix_int_t *w, PASTIX_FLOAT *x, pastix_int_t mark,
+                cs *C, pastix_int_t nz) ;
 /* p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c */
-PASTIX_INT cs_cumsum (PASTIX_INT *p, PASTIX_INT *c, PASTIX_INT n) ;
+pastix_int_t cs_cumsum (pastix_int_t *p, pastix_int_t *c, pastix_int_t n) ;
 
 /* utilities */
 /* wrapper for malloc */
-void *cs_malloc (PASTIX_INT n, size_t size) ;
+void *cs_malloc (pastix_int_t n, size_t size) ;
 /* wrapper for calloc */
-void *cs_calloc (PASTIX_INT n, size_t size) ;
+void *cs_calloc (pastix_int_t n, size_t size) ;
 /* wrapper for free */
 void *cs_free (void *p) ;
 /* wrapper for realloc */
-void *cs_realloc (void *p, PASTIX_INT n, size_t size, PASTIX_INT *ok) ;
+void *cs_realloc (void *p, pastix_int_t n, size_t size, pastix_int_t *ok) ;
 /* allocate a sparse matrix (triplet form or compressed-column form) */
-cs *cs_spalloc (PASTIX_INT m, PASTIX_INT n, PASTIX_INT nzmax, PASTIX_INT values, PASTIX_INT triplet) ;
+cs *cs_spalloc (pastix_int_t m, pastix_int_t n, pastix_int_t nzmax, pastix_int_t values, pastix_int_t triplet) ;
 /* change the max # of entries sparse matrix */
-PASTIX_INT cs_sprealloc (cs *A, PASTIX_INT nzmax) ;
+pastix_int_t cs_sprealloc (cs *A, pastix_int_t nzmax) ;
 /* free a sparse matrix */
 cs *cs_spfree (cs *A) ;
 /* free workspace and return a sparse matrix result */
-cs *cs_done (cs *C, void *w, void *x, PASTIX_INT ok) ;
+cs *cs_done (cs *C, void *w, void *x, pastix_int_t ok) ;
 
 #define CS_MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define CS_MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -71,4 +71,4 @@ cs *cs_done (cs *C, void *w, void *x, PASTIX_INT ok) ;
 #define CS_UNFLIP(i) (((i) < 0) ? CS_FLIP(i) : (i))
 #define CS_MARKED(Ap,j) (Ap [j] < 0)
 #define CS_MARK(Ap,j) { Ap [j] = CS_FLIP (Ap [j]) ; }
-#define CS_OVERFLOW(n,size) (n > INT_MAX / (PASTIX_INT) size)
+#define CS_OVERFLOW(n,size) (n > INT_MAX / (pastix_int_t) size)

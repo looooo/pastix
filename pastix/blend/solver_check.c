@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"

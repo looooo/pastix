@@ -2,7 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "extendVector.h"
 
 PASTIX_INT * extendint_Init(ExtendVectorINT *vec, PASTIX_INT size)

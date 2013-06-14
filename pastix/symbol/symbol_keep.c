@@ -42,7 +42,7 @@
 
 #define SYMBOL_KEEP
 
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 
 /***************************/

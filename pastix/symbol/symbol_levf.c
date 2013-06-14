@@ -45,7 +45,7 @@
 
 #define SYMBOL_LEVF
 
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 
 /******************************************/

@@ -4,7 +4,7 @@
   Contains functions to manage CSC
 
  */
-#include "common_pastix.h"
+#include "common.h"
 #include "csc_utils.h"
 
 #include "sparRow.h"

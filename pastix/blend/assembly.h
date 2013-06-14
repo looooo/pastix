@@ -19,7 +19,7 @@
 #define ASSEMBLY_H
 
 #ifdef CXREF_DOC
-#include "common_pastix.h"
+#include "common.h"
 #endif /* CXREF_DOC */
 
 /*

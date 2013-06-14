@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "cost.h"
 #include "symbol.h"
 #include "extrastruct.h"

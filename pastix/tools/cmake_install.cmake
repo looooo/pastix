@@ -1,4 +1,4 @@
-# Install script for directory: /home/mathieu/INRIA/ricard/branches/cmake-v2/tools
+# Install script for directory: /home/mathieu/svn/mateo70/pastix/tools
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)

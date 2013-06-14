@@ -57,7 +57,7 @@
 #define SYMBOL_FAX
 #define SYMBOL_FAX_GRAPH
 
-#include "common_pastix.h"
+#include "common.h"
 #ifdef WITH_SCOTCH
 #ifdef FORCE_NOMPI
 #include "nompi.h"

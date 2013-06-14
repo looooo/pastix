@@ -55,7 +55,7 @@
 #define SYMBOL_FAXI
 #define SYMBOL_FAXI_INCLUDED
 
-#include "common_pastix.h"
+#include "common.h"
 #ifdef WITH_SCOTCH
 #ifdef DISTRIBUTED
 #include <mpi.h>

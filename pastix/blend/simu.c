@@ -2,7 +2,7 @@
 #include <strings.h>
 #include <math.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "ftgt.h"
 #include "symbol.h"
 #include "cand.h"

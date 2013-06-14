@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "common_pastix.h"
+#include "common.h"
 #include "find_supernodes.h"
 
 /** local function **/

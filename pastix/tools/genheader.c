@@ -6,7 +6,7 @@
  * Used by makefile
  ****************************************/
 
-#include "common_pastix.h"
+#include "common.h"
 #include <errno.h>
 
 #include <string.h>

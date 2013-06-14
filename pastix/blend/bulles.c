@@ -2,7 +2,7 @@
 #include <math.h>
 #include <assert.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "queue.h"
 #include "bulles.h"
 

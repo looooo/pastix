@@ -5,7 +5,7 @@
  */
 #include <stdio.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "order.h"
 #include "csc.h"
 #include "symbol.h"

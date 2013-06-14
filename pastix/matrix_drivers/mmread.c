@@ -12,7 +12,6 @@
 #include <stdint.h>
 
 #ifdef FORCE_NOMPI
-#include "pastix_nompi.h"
 #else
 #include <mpi.h>
 #endif

@@ -1,4 +1,4 @@
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 #include "cost.h"
 #include "extrastruct.h"

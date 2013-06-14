@@ -9,7 +9,7 @@
 #include <mpi.h>
 #endif
 
-#include "common_pastix.h"
+#include "common.h"
 #include "queue.h"
 #include "bulles.h"
 #include "sopalin_thread.h"
@@ -32,7 +32,7 @@
 #endif
 
 
-#include "common_pastix.h"
+#include "common.h"
 #include "tools.h"
 #ifdef PASTIX_EZTRACE
 #include "pastix_eztrace.h"

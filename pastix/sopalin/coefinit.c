@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "common_pastix.h"
+#include "common.h"
 #ifndef FORCE_NOSMP
 #  include <pthread.h>
 #endif

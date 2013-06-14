@@ -37,7 +37,7 @@ typedef struct UpDownCblk_  {
 
 typedef struct UpDownVector_ {
   UpDownCblk *              cblktab;              /*+ Array of solver column blocks      +*/
-  PASTIX_FLOAT *                   sm2xtab;              /*+ Unknown vector                     +*/
+  pastix_float_t *                   sm2xtab;              /*+ Unknown vector                     +*/
   PASTIX_INT                       sm2xmax;              /*+ Maximum of coefficients per unknown vector +*/
   PASTIX_INT                       sm2xsze;              /*+ Size of sm2xtab                    +*/
   PASTIX_INT                       sm2xnbr;              /*+ Number of sm2x                     +*/

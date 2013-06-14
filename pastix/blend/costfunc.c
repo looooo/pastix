@@ -4,7 +4,7 @@
 #include <strings.h>
 #include <assert.h>
 #include <math.h>
-#include "common_pastix.h"
+#include "common.h"
 #include "dof.h"
 #include "cost.h"
 #include "ftgt.h"

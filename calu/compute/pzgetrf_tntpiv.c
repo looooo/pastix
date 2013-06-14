@@ -20,8 +20,9 @@
 #include "common.h"
 
 #define A(m,n)    (BLKADDR(A, PLASMA_Complex64_t, m, n))
-#define Acpy(__m) (BLKADDR(W, PLASMA_Complex64_t, (__m), 0))
 #define IPIV(k)    (&(IPIV[(int64_t)A.mb*(int64_t)(k)]))
+
+#define Acpy(__m, __k) (BLKADDR(W, PLASMA_Complex64_t, (__m), (__k)))
 #define RANK(__m, __k) (&(Wi[(int64_t)W.mb*(int64_t)(__m) + (int64_t)W.lm*(__k)]))
 
 void plasma_pzgetrf_rectil_panel_quark(plasma_context_t *plasma,
@@ -30,9 +31,10 @@ void plasma_pzgetrf_rectil_panel_quark(plasma_context_t *plasma,
                                        Quark_Task_Flags *task_flags,
                                        PLASMA_sequence *sequence, PLASMA_request *request)
 {
-    while ( ((*panel_thread_count * 4 * A.mb) > A.m)
-            && (*panel_thread_count > 1) ) {
-        *panel_thread_count--;
+    while ( (((*panel_thread_count) * 4 * A.mb) > A.m ) &&
+            ( (*panel_thread_count) > 1) )
+    {
+        (*panel_thread_count)--;
         QUARK_Task_Flag_Set(task_flags, TASK_THREAD_COUNT, *panel_thread_count );
     }
 
@@ -43,16 +45,59 @@ void plasma_pzgetrf_rectil_panel_quark(plasma_context_t *plasma,
         *panel_thread_count );
 }
 
+static inline void plasma_pzgetrf_tntpiv_1section_quark(
+    plasma_context_t *plasma,
+    int M, int N, PLASMA_Complex64_t *P, int ldp, int *piv,
+    PLASMA_desc A, int *rank_in,
+    PLASMA_Complex64_t *B, int ldb,
+    Quark_Task_Flags *task_flags,
+    PLASMA_sequence *sequence, PLASMA_request *request)
+{
+    int tempmm;
+    int ldam;
+    int m;
+
+    /* If this is the first time, we need to copy the data in lapack layout */
+    if (piv_in[0] = 0) {
+        for (m = 0; m < A.mt; m++) {
+            tempmm = m == A.mt-1 ? A.m - m*A.mb : A.mb;
+            ldam = BLKLDD(A, m);
+
+            QUARK_CORE_zlacpy_f1(
+                plasma->quark, task_flags,
+                PlasmaUpperLower,
+                tempmm, A.n, A.mb,
+                A(m, 0), ldam,
+                P + m * A.mb, ldp,
+                P, ldp * A.nb, OUTPUT | GATHERV );
+        }
+    }
+
+    /* Factorize the new panel */
+    QUARK_CORE_zgetrf(
+        plasma->quark, task_flags,
+        M, N, A.mb,
+        P, ldp, piv,
+        sequence, request,
+        0, A.i );
+
+    QUARK_CORE_zlaepv(
+        plasma->quark, task_flags, A,
+        1, min(M, N), piv, rank_in,
+        B, ldb );
+}
+
 void plasma_pzgetrf_tntpiv_panel_quark(plasma_context_t *plasma,
                                        PLASMA_desc A, int *IPIV,
                                        PLASMA_desc W, int *Wi,
                                        Quark_Task_Flags *task_flags,
                                        PLASMA_sequence *sequence, PLASMA_request *request)
 {
-    int tempkm, tempmm, tempnn, tempr;
+    int tempkm, tempmm, tempr;
     int tempm, nexti, pos;
     int ldak, ldam;
     int round, round_size = 4;
+    int max_round_size = 4;
     int prev_round_size = 1;
     int curr_round_size = 4;
     int next_round_size = curr_round_size * round_size;
@@ -61,24 +106,31 @@ void plasma_pzgetrf_tntpiv_panel_quark(plasma_context_t *plasma,
     tempkm = min(A.m, A.mb);
     ldak = BLKLDD(A, 0);
 
-    /* Create a first copy of the panel */
-    for (m = 0; m < A.mt; m++) {
-        tempmm = m == A.mt-1 ? A.m - m*A.mb : A.mb;
-        ldam = BLKLDD(A, m);
-        i   = m / round_size;
-        pos = m % round_size;
+    int nbdom    = (A.mt + max_round_size - 1) / max_round_size;
+    int *domsizes = (int*)malloc(nbdom * sizeof(int));
 
-        QUARK_CORE_zlacpy_f1(
-            plasma->quark, task_flags,
-            PlasmaUpperLower,
-            tempmm, A.n, A.mb,
-            A(m, 0), ldam,
-            Acpy(i) + pos*A.mb, W.mb,
-            Acpy(i), W.mb*W.nb, OUTPUT | GATHERV );
+    round_size = A.mt / nbdom;
+
+    for(d=0; d<nbdom; d++) {
+        if (d < (A.mt % round_size))
+            domsizes[d] = round_size + 1;
+        else
+            domsizes[d] = round_size;
     }
+
+    for(d=0, m=0; d<nbdom; m+=domsizes[d], d++ ){
+
+        plasma_pzgetrf_tntpiv_1section_quark(
+            plasma,
+            int M, A.n, Acpy( , round%2), W.mb, IPIV(k+d),
+            plasma_desc_submatrix(A, 0, 0, ), RANK(, round%2),
+            PLASMA_Complex64_t *B, int ldb,
+            task_flags, sequence, request)
+        
 
     round = 0;
     while ( ((A.mt - 1) / curr_round_size) > 0 ) {
+
         /* Let's submit all the factorizations */
         for (m=0, i=0; m<A.mt; m+=curr_round_size, i++) {
 
@@ -179,7 +231,6 @@ void plasma_pzgetrf_tntpiv_panel_quark(plasma_context_t *plasma,
                 A(m, 0), ldam);
     }
 }
-
 /*
  * W is a workspace in tile layout with tile of size max_round_size*A.mb -by- A.nb
  * Wi is an integer workspace to store the rank of the lines involved in each round.
@@ -193,7 +244,7 @@ void plasma_pzgetrf_tntpiv_quark(PLASMA_desc A, int *IPIV,
                                  PLASMA_desc W, int *Wi,
                                  PLASMA_sequence *sequence, PLASMA_request *request)
 {
-    int i, k, m, n, minmnt;
+    int k, m, n, minmnt;
     plasma_context_t *plasma;
     int tempkm, tempkn, tempmm, tempnn;
     int tempm, tempk;
@@ -293,9 +344,10 @@ void plasma_pzgetrf_tntpiv_quark(PLASMA_desc A, int *IPIV,
             /* Compare ipiv */
             for( i=0; i< min(tempm, tempkn); i++ ) {
                 if (piv[i] != (IPIV(k)[i]-tempk) ) {
-                    printf("IPIV[%d] = %d - %d (%e - %e)\n", tempk+i, IPIV(k)[i], piv[i]+tempk,
+                    printf("IPIV[%d] = %d - %d (%e - %e)\n", tempk+i,
+                           IPIV(k)[i], piv[i]+tempk,
                            A(k, k)[ i * (A.mb+1) ],
-                           A0 + (tempk + i) * (A.m + 1) );
+                           *(A0 + (tempk + i) * (A.m + 1)) );
                     ok = 0;
                 }
             }

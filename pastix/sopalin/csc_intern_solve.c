@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "csc.h"
 #include "symbol.h"
 #include "ftgt.h"

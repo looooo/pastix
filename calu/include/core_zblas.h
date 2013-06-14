@@ -966,6 +966,12 @@ void QUARK_CORE_zlacpy_pivot(Quark *quark, Quark_Task_Flags *task_flags,
 void CORE_zlacpy_f1_quark(Quark *quark);
 void CORE_zlacpy_pivot_quark(Quark *quark);
 
+ void CORE_zlaepv_quark(Quark *quark);
+
+void QUARK_CORE_zlaepv(Quark *quark, Quark_Task_Flags *task_flags,
+                       const PLASMA_desc descA,
+                       int k1, int k2, int *ipiv, int *rankin,
+                       PLASMA_Complex64_t *B, int ldb);
 
 #ifdef __cplusplus
 }

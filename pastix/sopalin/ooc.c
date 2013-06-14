@@ -22,7 +22,7 @@
 #include <mpi.h>
 #endif
 
-#include "common_pastix.h"
+#include "common.h"
 #include "out.h"
 #include "ftgt.h"
 #include "symbol.h"

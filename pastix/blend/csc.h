@@ -1,6 +1,6 @@
 #ifndef CSC_H
 #define CSC_H
-#include "common_pastix.h"
+#include "common.h"
 
 /* Section: Macros */
 /*
@@ -181,7 +181,7 @@ struct CscMatrix_ {
   PASTIX_INT         cscfnbr;
   CscFormat * cscftab;
   PASTIX_INT       * rowtab;
-  PASTIX_FLOAT     * valtab;
+  pastix_float_t     * valtab;
   char         type;
 };
 /*

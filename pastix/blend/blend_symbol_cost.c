@@ -3,7 +3,7 @@
 #include <strings.h>
 #include <assert.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 #include "dof.h"
 #include "perf.h"

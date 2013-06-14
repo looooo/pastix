@@ -27,8 +27,7 @@ int CORE_zlacpy_pivot( const PLASMA_desc descA,
                        PLASMA_Complex64_t *A, int lda,
                        int init)
 {
-    int minMN = min(descA.m, descA.n);
-    int i, ip, it, ir, ld, end;
+    int i, ip, it, ir, ld;
     int *ro = rankout;
 
     /* Init rankin if first step */
@@ -105,4 +104,76 @@ void CORE_zlacpy_pivot_quark(Quark *quark)
 
     quark_unpack_args_10(quark, descA, k1, k2, ipiv, rankin, rankout, A, lda, pos, init);
     CORE_zlacpy_pivot(descA, k1, k2, ipiv, rankin, rankout+pos, A+pos, lda, init );
+}
+
+#if defined(PLASMA_HAVE_WEAK)
+#pragma weak CORE_zlaepv = PCORE_zlaepv
+#define CORE_zlaepv PCORE_zlaepv
+#endif
+int CORE_zlaepv( const PLASMA_desc descA,
+                 int k1, int k2, int *ipiv, int *rankin,
+                 PLASMA_Complex64_t *B, int ldb)
+{
+    int i, ip, it, ir, ld;
+
+    for(i=k1-1; i<k2; i++, piv++) {
+        ip = (*piv)-1;
+        *piv = rankin[ ip ];
+        rankin[ ip ] = rankin[ i ];
+
+        ip = (*piv) - 1 - A.i;
+        it = ip / descA.mb;
+        ir = ip % descA.mb;
+        ld = BLKLDD(descA, it);
+        cblas_zcopy(descA.n, A(it, 0) + ir, ld,
+                             B + i,         ldb );
+    }
+
+    return PLASMA_SUCCESS;
+}
+
+/***************************************************************************//**
+ *
+ **/
+void QUARK_CORE_zlaepv(Quark *quark, Quark_Task_Flags *task_flags,
+                       PLASMA_desc descA,
+                       int k1, int k2, int *ipiv, int *rankin,
+                       PLASMA_Complex64_t *B, int ldb)
+{
+    Quark_Task *task;
+    int m;
+
+    DAG_SET_PROPERTIES( "CPY_PIV"  , "white"   );
+    task = QUARK_Task_Init( quark, CORE_zlaepv_quark, task_flags );
+    QUARK_Task_Pack_Arg( quark, task, sizeof(PLASMA_desc),                     &descA, VALUE);
+    QUARK_Task_Pack_Arg( quark, task, sizeof(int),                             &k1,    VALUE);
+    QUARK_Task_Pack_Arg( quark, task, sizeof(int),                             &k2,    VALUE);
+    QUARK_Task_Pack_Arg( quark, task, sizeof(int)*descA.n,                      ipiv,      INOUT );
+    QUARK_Task_Pack_Arg( quark, task, sizeof(int)*descA.m,                      rankin,    INOUT );
+    QUARK_Task_Pack_Arg( quark, task, sizeof(PLASMA_Complex64_t)*ldb*descA.nb,  B,         OUTPUT);
+    QUARK_Task_Pack_Arg( quark, task, sizeof(int),                             &ldb,   VALUE);
+
+    for( m = 0; m < descA.mt; m++ ) {
+        QUARK_Task_Pack_Arg( quark, task, sizeof(PLASMA_Complex64_t)*descA.mb*descA.nb, A(m,0), INPUT );
+    }
+    QUARK_Insert_Task_Packed( quark, task );
+}
+
+/***************************************************************************//**
+ *
+ **/
+#if defined(PLASMA_HAVE_WEAK)
+#pragma weak CORE_zlaepv_quark = PCORE_zlaepv_quark
+#define CORE_zlaepv_quark PCORE_zlaepv_quark
+#endif
+void CORE_zlaepv_quark(Quark *quark)
+{
+    PLASMA_desc descA;
+    int k1, k2;
+    int *ipiv;
+    PLASMA_Complex64_t *B;
+    int ldb;
+
+    quark_unpack_args_6(quark, descA, k1, k2, ipiv, rankin, B, ldb);
+    CORE_zlaepv(descA, k1, k2, ipiv, rankin, B, ldb );
 }

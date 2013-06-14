@@ -34,7 +34,7 @@
 #ifndef SYMBOL_FAXI_INCLUDED                      /* Can be included by faxi_graph.c */
 #define SYMBOL_FAXI
 
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 #include "order.h"
 #include "fax.h"

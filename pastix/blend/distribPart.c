@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "common_pastix.h"
+#include "common.h"
 #include "symbol.h"
 #include "extendVector.h"
 #include "queue.h"

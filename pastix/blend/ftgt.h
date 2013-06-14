@@ -19,7 +19,7 @@
 #define FTGT_H
 
 #ifdef CXREF_DOC
-#include "common_pastix.h"
+#include "common.h"
 #endif /* CXREF_DOC */
 
 
@@ -78,13 +78,13 @@ typedef enum {
 
 typedef struct FanInTarget_ {
   PASTIX_INT                       infotab[MAXINFO];     /*+ Fanintarget descriptor (size MAXINFO) +*/
-  PASTIX_FLOAT *                   coeftab;              /*+ Fanintarget vector access             +*/
+  pastix_float_t *                   coeftab;              /*+ Fanintarget vector access             +*/
 } FanInTarget;
 
 typedef struct BlockCoeff_ 
 {
   PASTIX_INT              infotab[BCOFINFO];
-  volatile PASTIX_FLOAT * coeftab; /* blocktarget coeff vector if != NULL envoi possible */
+  volatile pastix_float_t * coeftab; /* blocktarget coeff vector if != NULL envoi possible */
   PASTIX_INT              sendcnt; /* number of blocktarget send, if == 0 free coeftab */
 } BlockCoeff;
 
