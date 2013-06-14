@@ -1,0 +1,45 @@
+#ifndef _PASTIX_CONFIG_H_
+#define _PASTIX_CONFIG_H_
+
+#define PASTIX_VERSION_MAJOR @PASTIX_VERSION_MAJOR@
+#define PASTIX_VERSION_MINOR @PASTIX_VERSION_MINOR@
+#define PASTIX_VERSION_MICRO @PASTIX_VERSION_MICRO@
+
+#cmakedefine PASTIX_WITH_MPI
+#cmakedefine PASTIX_WITH_CUDA
+
+/* system */
+#cmakedefine HAVE_PTHREAD
+#cmakedefine HAVE_SCHED_SETAFFINITY
+#cmakedefine HAVE_CLOCK_GETTIME
+/* #cmakedefine HAVE_ASPRINTF */
+/* #cmakedefine HAVE_VASPRINTF */
+#cmakedefine HAVE_STDARG_H
+#cmakedefine HAVE_UNISTD_H
+#cmakedefine HAVE_VA_COPY
+#cmakedefine HAVE_UNDERSCORE_VA_COPY
+#cmakedefine HAVE_GETOPT_LONG
+#cmakedefine HAVE_GETRUSAGE
+#cmakedefine HAVE_GETOPT_H
+#cmakedefine HAVE_ERRNO_H
+#cmakedefine HAVE_STDDEF_H
+#cmakedefine HAVE_LIMITS_H
+#cmakedefine HAVE_STRING_H
+#cmakedefine HAVE_COMPLEX_H
+
+#cmakedefine ARCH_X86
+#cmakedefine ARCH_X86_64
+#cmakedefine ARCH_PPC
+#cmakedefine MAC_OS_X
+
+/* Optional packages */
+#cmakedefine HAVE_HWLOC
+#cmakedefine HAVE_HWLOC_BITMAP
+#cmakedefine HAVE_HWLOC_PARENT_MEMBER
+#cmakedefine HAVE_HWLOC_CACHE_ATTR
+#cmakedefine HAVE_HWLOC_OBJ_PU
+
+#cmakedefine HAVE_SCOTCH
+#cmakedefine HAVE_METIS
+
+#endif  /* _PASTIX_CONFIG_H_ */
