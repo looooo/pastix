@@ -30,22 +30,22 @@ typedef struct BlendCtrl_ {
   BlendParam        *option;
   netperf           *perfptr;
 
-  PASTIX_INT                clustnum;      /*+ Local cluster ID                       +*/
-  PASTIX_INT                clustnbr;      /*+ Number of MPI process                  +*/
-  PASTIX_INT                procnbr;       /*+ Number total of processors             +*/
-  PASTIX_INT                proclocnbr;    /*+ Number of processors for one clustnum  +*/
-  PASTIX_INT                thrdnbr;       /*+ Number total of threads                +*/
-  PASTIX_INT                thrdlocnbr;    /*+ Number of threads for one clustnum     +*/
-  PASTIX_INT                cudanbr;       /*+ Number of cuda device for one clustnum +*/
-  PASTIX_INT                bublnbr;       /*+ Number of threads for one clustnum     +*/
-  PASTIX_INT               *proc2clust;    /*+ proc2clust[i] = cluster of proc i      +*/
+  pastix_int_t                clustnum;      /*+ Local cluster ID                       +*/
+  pastix_int_t                clustnbr;      /*+ Number of MPI process                  +*/
+  pastix_int_t                procnbr;       /*+ Number total of processors             +*/
+  pastix_int_t                proclocnbr;    /*+ Number of processors for one clustnum  +*/
+  pastix_int_t                thrdnbr;       /*+ Number total of threads                +*/
+  pastix_int_t                thrdlocnbr;    /*+ Number of threads for one clustnum     +*/
+  pastix_int_t                cudanbr;       /*+ Number of cuda device for one clustnum +*/
+  pastix_int_t                bublnbr;       /*+ Number of threads for one clustnum     +*/
+  pastix_int_t               *proc2clust;    /*+ proc2clust[i] = cluster of proc i      +*/
   BubbleTree        *btree;         /*+ arbre de bulles +*/
   EliminGraph       *egraph;        /*+ the elimination graph (only in vertex) +*/
   EliminTree        *etree;         /*+ the elimination tree                   +*/
   CostMatrix        *costmtx;       /*+ the cost bounded to each cblk and blok +*/
   Cand              *candtab;       /*+ processor candidate tab                +*/
   Queue             *lheap;         /*+ Use to order leaves                    +*/
-  ExtendVectorINT   *intvec;        /*+ vector of PASTIX_INT used by several routines.
+  ExtendVectorINT   *intvec;        /*+ vector of pastix_int_t used by several routines.
                                      The aim of this variable is to avoid
                                      repetedly memAlloc and memFree call      +*/
   ExtendVectorINT   *intvec2;       /*+ Another one                            +*/
@@ -60,8 +60,8 @@ typedef struct BlendCtrl_ {
 #define SMPNUM(clust) ( (clust*(ctrl->procnbr/ctrl->clustnbr)) / ctrl->option->procnbr)
 
 
-PASTIX_INT      blendCtrlInit (BlendCtrl *, PASTIX_INT, PASTIX_INT, PASTIX_INT, PASTIX_INT, BlendParam *);
+pastix_int_t      blendCtrlInit (BlendCtrl *, pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t, BlendParam *);
 void     blendCtrlExit (BlendCtrl *);
-void     perfcluster2  (PASTIX_INT procsrc, PASTIX_INT procdst, PASTIX_INT sync_comm_nbr, 
+void     perfcluster2  (pastix_int_t procsrc, pastix_int_t procdst, pastix_int_t sync_comm_nbr, 
 			netperf *np, BlendCtrl *ctrl);
 

@@ -43,7 +43,7 @@ void splitPart(SymbolMatrix *symbmtx,
                BlendCtrl    *ctrl,
                const Dof    *dofptr)
 {
-    PASTIX_INT i;
+    pastix_int_t i;
     ExtraSymbolMatrix *extrasymb;
     ExtraCostMatrix   *extracost;
 
@@ -74,11 +74,11 @@ void splitPart(SymbolMatrix *symbmtx,
       setTreeCostLevel(ctrl->candtab, ctrl->etree, ctrl->costmtx);
 
     /* initialize spt[tab] */
-    MALLOC_INTERN(extrasymb->sptcblk,      symbmtx->cblknbr, PASTIX_INT);
-    MALLOC_INTERN(extrasymb->sptcbnb,      symbmtx->cblknbr, PASTIX_INT);
-    MALLOC_INTERN(extrasymb->sptblok,      symbmtx->bloknbr, PASTIX_INT);
-    MALLOC_INTERN(extrasymb->sptblnb,      symbmtx->bloknbr, PASTIX_INT);
-    MALLOC_INTERN(extrasymb->subtreeblnbr, symbmtx->cblknbr, PASTIX_INT);
+    MALLOC_INTERN(extrasymb->sptcblk,      symbmtx->cblknbr, pastix_int_t);
+    MALLOC_INTERN(extrasymb->sptcbnb,      symbmtx->cblknbr, pastix_int_t);
+    MALLOC_INTERN(extrasymb->sptblok,      symbmtx->bloknbr, pastix_int_t);
+    MALLOC_INTERN(extrasymb->sptblnb,      symbmtx->bloknbr, pastix_int_t);
+    MALLOC_INTERN(extrasymb->subtreeblnbr, symbmtx->cblknbr, pastix_int_t);
 
     /* set spt* array to -1 ,
        positive or null value means cblk/blok has been splitted
@@ -91,7 +91,7 @@ void splitPart(SymbolMatrix *symbmtx,
 
     for(i=0;i<symbmtx->bloknbr;i++)
         extrasymb->sptblok[i] = -1;
-    bzero(extrasymb->sptblnb, symbmtx->bloknbr * sizeof(PASTIX_INT));
+    bzero(extrasymb->sptblnb, symbmtx->bloknbr * sizeof(pastix_int_t));
 
     extrasymb->curcblk = 0;
     extrasymb->curblok = 0;
@@ -177,7 +177,7 @@ void splitPart(SymbolMatrix *symbmtx,
       SCOTCH_Num     *parttab;
       SCOTCH_Strat    stratptr;
       FILE           *archfile;
-      PASTIX_INT             vertnbr;
+      pastix_int_t             vertnbr;
 
       /* Construction du graph scotch */
       tree2graph(ctrl->etree, ctrl->costmtx, &graphptr);
@@ -185,7 +185,7 @@ void splitPart(SymbolMatrix *symbmtx,
       SCOTCH_graphData(&graphptr, NULL, &vertnbr, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
       ASSERT((ctrl->etree->nodenbr == vertnbr), MOD_BLEND);
 
-      MALLOC_INTERN(parttab, ctrl->etree->nodenbr, PASTIX_INT);
+      MALLOC_INTERN(parttab, ctrl->etree->nodenbr, pastix_int_t);
 
       /* Init strat */
       SCOTCH_stratInit(&stratptr);    /* Strategy for sub-architecture computation */
@@ -226,10 +226,10 @@ void splitPart(SymbolMatrix *symbmtx,
 #endif
 }
 
-void printTree(FILE *stream, const EliminTree *etree, PASTIX_INT rootnum)
+void printTree(FILE *stream, const EliminTree *etree, pastix_int_t rootnum)
 {
   int i, sonsnbr;
-  PASTIX_INT son;
+  pastix_int_t son;
 
   sonsnbr = etree->nodetab[rootnum].sonsnbr;
 
@@ -252,9 +252,9 @@ void setTreeLevel(Cand *candtab, const EliminTree *etree)
   setSubtreeLevel(ROOT(etree), candtab, etree);
 }
 
-void setSubtreeLevel(PASTIX_INT rootnum, Cand *candtab, const EliminTree *etree)
+void setSubtreeLevel(pastix_int_t rootnum, Cand *candtab, const EliminTree *etree)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
     {
       candtab[TSON(etree, rootnum, i)].treelevel = candtab[rootnum].treelevel -1;
@@ -272,9 +272,9 @@ void setTreeCostLevel(Cand *candtab, const EliminTree *etree, const CostMatrix *
   setSubtreeCostLevel(ROOT(etree), candtab, etree, costmtx);
 }
 
-void setSubtreeCostLevel(PASTIX_INT rootnum, Cand *candtab, const EliminTree *etree, const CostMatrix *costmtx)
+void setSubtreeCostLevel(pastix_int_t rootnum, Cand *candtab, const EliminTree *etree, const CostMatrix *costmtx)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
     {
       candtab[TSON(etree, rootnum, i)].costlevel = candtab[rootnum].costlevel - costmtx->cblktab[rootnum].total;
@@ -283,9 +283,9 @@ void setSubtreeCostLevel(PASTIX_INT rootnum, Cand *candtab, const EliminTree *et
 }
 
 
-void setDistribType(const PASTIX_INT cblknbr, SymbolMatrix *symbptr, Cand *candtab, const PASTIX_INT level2D)
+void setDistribType(const pastix_int_t cblknbr, SymbolMatrix *symbptr, Cand *candtab, const pastix_int_t level2D)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   (void)symbptr;
 
   for(i=0;i<cblknbr;i++)
@@ -302,14 +302,14 @@ void setDistribType(const PASTIX_INT cblknbr, SymbolMatrix *symbptr, Cand *candt
     }
 }
 
-PASTIX_INT PERF_limit_2D(PASTIX_INT procnbr, PASTIX_INT bloklimit)
+pastix_int_t PERF_limit_2D(pastix_int_t procnbr, pastix_int_t bloklimit)
 {
   return bloklimit*procnbr;
 }
 
-void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmtx, PASTIX_INT rootnum, const BlendCtrl *ctrl, PASTIX_INT distrib_type)
+void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmtx, pastix_int_t rootnum, const BlendCtrl *ctrl, pastix_int_t distrib_type)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   if(distrib_type == D1)
     {
@@ -319,11 +319,11 @@ void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmt
     }
   else
     {
-      PASTIX_INT candnbr; /* , bloknbr; */
+      pastix_int_t candnbr; /* , bloknbr; */
 
       candnbr = ctrl->candtab[rootnum].lcandnum - ctrl->candtab[rootnum].fcandnum+1;
 
-      if(candnbr > (PASTIX_INT)ctrl->option->ratiolimit)
+      if(candnbr > (pastix_int_t)ctrl->option->ratiolimit)
          {
           ctrl->candtab[rootnum].distrib = D2;
           for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
@@ -359,15 +359,15 @@ void splitOnProcs(SymbolMatrix      *symbmtx,
                   ExtraCostMatrix   *extracost,
                   BlendCtrl         *ctrl,
                   const Dof         *dofptr,
-                  PASTIX_INT                cblknum,
-                  PASTIX_INT                procnbr)
+                  pastix_int_t                cblknum,
+                  pastix_int_t                procnbr)
 {
-    PASTIX_INT i;
-    PASTIX_INT blas_min_col;
-    PASTIX_INT blas_max_col;
-    PASTIX_INT pas;
-    PASTIX_INT *seq;
-    PASTIX_INT nseq;
+    pastix_int_t i;
+    pastix_int_t blas_min_col;
+    pastix_int_t blas_max_col;
+    pastix_int_t pas;
+    pastix_int_t *seq;
+    pastix_int_t nseq;
 
 
     /* if only one proc : no need to split */
@@ -422,7 +422,7 @@ void splitOnProcs(SymbolMatrix      *symbmtx,
       }
     else
       {
-        PASTIX_INT abs = ctrl->option->abs;
+        pastix_int_t abs = ctrl->option->abs;
         if(procnbr > ctrl->option->ratiolimit)
           {
             abs *= 2; /* Increase abs for 2D */
@@ -514,13 +514,13 @@ void  splitCblk(SymbolMatrix      *symbmtx,
                 ExtraCostMatrix   *extracost,
                 BlendCtrl         *ctrl,
                 const Dof         *dofptr,
-                PASTIX_INT         cblknum,
-                PASTIX_INT         nseq,
-                PASTIX_INT        *seq)
+                pastix_int_t         cblknum,
+                pastix_int_t         nseq,
+                pastix_int_t        *seq)
 {
-    PASTIX_INT i, j, s;
-    PASTIX_INT bloknbr      = 0;
-    PASTIX_INT splitbloknbr = 0;
+    pastix_int_t i, j, s;
+    pastix_int_t bloknbr      = 0;
+    pastix_int_t splitbloknbr = 0;
 
     /**no need to split **/
     if(nseq == 1)
@@ -621,8 +621,8 @@ void  splitCblk(SymbolMatrix      *symbmtx,
       can have been splitted before because of our top-down tree strategy **/
     for(i=0;i<ctrl->egraph->verttab[cblknum].innbr;i++)
       {
-        PASTIX_INT sptbloknbr; /* number of splitted bloks resulting */
-        PASTIX_INT bloknum;
+        pastix_int_t sptbloknbr; /* number of splitted bloks resulting */
+        pastix_int_t bloknum;
         bloknum = ctrl->egraph->inbltab[ctrl->egraph->verttab[cblknum].innum+i];
 
         ASSERTDBG(symbmtx->bloktab[bloknum].cblknum == cblknum,MOD_BLEND);
@@ -706,7 +706,7 @@ void propMappTree(SymbolMatrix      *symbmtx,
                   const Dof         *dofptr)
 {
   double isocost;
-  PASTIX_INT pr;
+  pastix_int_t pr;
   double *cost_remain = NULL;
 
   MALLOC_INTERN(cost_remain, ctrl->procnbr, double);
@@ -750,18 +750,18 @@ void propMappSubtree(SymbolMatrix      *symbmtx,
                      ExtraCostMatrix   *extracost,
                      BlendCtrl         *ctrl,
                      const Dof         *dofptr,
-                     PASTIX_INT                rootnum,
-                     PASTIX_INT                fcandnum,
-                     PASTIX_INT                lcandnum,
-                     PASTIX_INT                cluster,
+                     pastix_int_t                rootnum,
+                     pastix_int_t                fcandnum,
+                     pastix_int_t                lcandnum,
+                     pastix_int_t                cluster,
                      double            *cost_remain)
 {
-  PASTIX_INT p;
-  PASTIX_INT candnbr;
-  PASTIX_INT fcand = 0;
-  PASTIX_INT lcand = 0;
-  PASTIX_INT i;
-  PASTIX_INT sonsnbr;
+  pastix_int_t p;
+  pastix_int_t candnbr;
+  pastix_int_t fcand = 0;
+  pastix_int_t lcand = 0;
+  pastix_int_t i;
+  pastix_int_t sonsnbr;
   int nbthrdbyproc;
   double isocost;
   double aspt_cost;
@@ -966,18 +966,18 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
                        ExtraCostMatrix   *extracost,
                        BlendCtrl         *ctrl,
                        const Dof         *dofptr,
-                       PASTIX_INT                rootnum,
-                       PASTIX_INT                fcandnum,
-                       PASTIX_INT                lcandnum,
-                       PASTIX_INT                cluster,
+                       pastix_int_t                rootnum,
+                       pastix_int_t                fcandnum,
+                       pastix_int_t                lcandnum,
+                       pastix_int_t                cluster,
                        double            *cost_remain)
 {
-  PASTIX_INT p;
-  PASTIX_INT candnbr;
-  PASTIX_INT fcand = 0;
-  PASTIX_INT lcand = 0;
-  PASTIX_INT i;
-  PASTIX_INT sonsnbr;
+  pastix_int_t p;
+  pastix_int_t candnbr;
+  pastix_int_t fcand = 0;
+  pastix_int_t lcand = 0;
+  pastix_int_t i;
+  pastix_int_t sonsnbr;
   double isocost;
   double bspt_cost;
   double aspt_cost;
@@ -1094,7 +1094,7 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
       /* Cost of the root node in the subtree */
       soncost    = -ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].total;
 
-      queueAdd2(queue_tree, i, cumul_cost, (PASTIX_INT)soncost);
+      queueAdd2(queue_tree, i, cumul_cost, (pastix_int_t)soncost);
       bspt_cost += cumul_cost;
     }
 
@@ -1196,10 +1196,10 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
 
 void propMappSubtreeOn1P(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb, ExtraCostMatrix *extracost,
                          BlendCtrl *ctrl, const Dof * dofptr,
-                         PASTIX_INT rootnum, PASTIX_INT fcandnum, PASTIX_INT lcandnum, PASTIX_INT cluster)
+                         pastix_int_t rootnum, pastix_int_t fcandnum, pastix_int_t lcandnum, pastix_int_t cluster)
 {
-  PASTIX_INT i;
-  PASTIX_INT sonsnbr;
+  pastix_int_t i;
+  pastix_int_t sonsnbr;
 
   ctrl->candtab[rootnum].fcandnum = fcandnum;
   ctrl->candtab[rootnum].lcandnum = lcandnum;
@@ -1221,9 +1221,9 @@ void propMappSubtreeOn1P(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb, Ex
   return;
 }
 
-void subtreeSetCand(PASTIX_INT procnum, PASTIX_INT rootnum, BlendCtrl *ctrl, double rcost)
+void subtreeSetCand(pastix_int_t procnum, pastix_int_t rootnum, BlendCtrl *ctrl, double rcost)
 {
-    PASTIX_INT i;
+    pastix_int_t i;
 
     ctrl->candtab[rootnum].fcandnum = procnum;
     ctrl->candtab[rootnum].lcandnum = procnum;
@@ -1232,10 +1232,10 @@ void subtreeSetCand(PASTIX_INT procnum, PASTIX_INT rootnum, BlendCtrl *ctrl, dou
         subtreeSetCand(procnum, TSON(ctrl->etree, rootnum, i), ctrl, rcost);
 }
 
-double maxProcCost(double *proc_cost, PASTIX_INT procnbr)
+double maxProcCost(double *proc_cost, pastix_int_t procnbr)
 {
     double maxcost = 0;
-    PASTIX_INT p;
+    pastix_int_t p;
     for(p=0;p<procnbr;p++)
         if(proc_cost[p]>maxcost)
             maxcost = proc_cost[p];
@@ -1246,7 +1246,7 @@ void propMappTreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof *dofp
 {
   double *cost_remain = NULL;
   double isocost;
-  PASTIX_INT p;
+  pastix_int_t p;
   MALLOC_INTERN(cost_remain, ctrl->clustnbr, double);
   isocost = ctrl->costmtx->cblktab[ROOT(ctrl->etree)].subtree / ctrl->clustnbr;
 
@@ -1259,13 +1259,13 @@ void propMappTreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof *dofp
 }
 
 void propMappSubtreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof * dofptr,
-                            PASTIX_INT rootnum, PASTIX_INT fcandnum, PASTIX_INT lcandnum, double *cost_remain)
+                            pastix_int_t rootnum, pastix_int_t fcandnum, pastix_int_t lcandnum, double *cost_remain)
 {
-  PASTIX_INT p;
-  PASTIX_INT procnbr;
-  PASTIX_INT fcand = 0;
-  PASTIX_INT lcand = 0;
-  PASTIX_INT i;
+  pastix_int_t p;
+  pastix_int_t procnbr;
+  pastix_int_t fcand = 0;
+  pastix_int_t lcand = 0;
+  pastix_int_t i;
   double isocost;
   double aspt_cost;
   double cumul_cost;
@@ -1459,13 +1459,13 @@ void propMappSubtreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof * 
 }
 
 /*+ Recompute cost of cblk which some odb have been splitted, return new total cost - old total cost +*/
-double blokUpdateCost(PASTIX_INT bloknum, PASTIX_INT cblknum, CostMatrix *costmtx, ExtraCostMatrix *extracost, const SymbolMatrix *symbmtx, const ExtraSymbolMatrix *extrasymb, BlendCtrl *ctrl, const Dof * dofptr)
+double blokUpdateCost(pastix_int_t bloknum, pastix_int_t cblknum, CostMatrix *costmtx, ExtraCostMatrix *extracost, const SymbolMatrix *symbmtx, const ExtraSymbolMatrix *extrasymb, BlendCtrl *ctrl, const Dof * dofptr)
 {
-    PASTIX_INT L, h, g;
-    PASTIX_INT s;
+    pastix_int_t L, h, g;
+    pastix_int_t s;
     double oldcost, newcost;
 #ifndef DOF_CONSTANT
-    PASTIX_INT i;
+    pastix_int_t i;
 #endif
 
     ASSERTDBG(extrasymb->sptblok[bloknum] >= 0,MOD_BLEND);
@@ -1517,10 +1517,10 @@ double blokUpdateCost(PASTIX_INT bloknum, PASTIX_INT cblknum, CostMatrix *costmt
 }
 
 
-PASTIX_INT countBlok(PASTIX_INT cblknum, SymbolMatrix *symbptr, PASTIX_INT blcolmin)
+pastix_int_t countBlok(pastix_int_t cblknum, SymbolMatrix *symbptr, pastix_int_t blcolmin)
 {
-  PASTIX_INT i;
-  PASTIX_INT bloknbr;
+  pastix_int_t i;
+  pastix_int_t bloknbr;
   double delta;
   double stride = 0;
   delta = (double)(symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum+1);
@@ -1531,15 +1531,15 @@ PASTIX_INT countBlok(PASTIX_INT cblknum, SymbolMatrix *symbptr, PASTIX_INT blcol
   stride = ceil(stride/blcolmin);
   /*fprintf(stdout, "delta %g stride %g blcolmin %ld \n", delta, stride, blcolmin); */
   bloknbr = 0;
-  bloknbr += (PASTIX_INT) (((delta + 1)*delta)/2);
-  bloknbr += (PASTIX_INT) (stride*delta);
+  bloknbr += (pastix_int_t) (((delta + 1)*delta)/2);
+  bloknbr += (pastix_int_t) (stride*delta);
 
   return bloknbr;
 }
 
-PASTIX_INT setSubtreeBlokNbr(PASTIX_INT rootnum, const EliminTree *etree, SymbolMatrix *symbptr, ExtraSymbolMatrix *extrasymb, PASTIX_INT blcolmin)
+pastix_int_t setSubtreeBlokNbr(pastix_int_t rootnum, const EliminTree *etree, SymbolMatrix *symbptr, ExtraSymbolMatrix *extrasymb, pastix_int_t blcolmin)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   extrasymb->subtreeblnbr[rootnum] =  countBlok(rootnum, symbptr, blcolmin);
   /*fprintf(stdout, "Rootnum %ld bloknbr %ld \n", rootnum, extrasymb->blnbtab[rootnum]);*/
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
@@ -1549,10 +1549,10 @@ PASTIX_INT setSubtreeBlokNbr(PASTIX_INT rootnum, const EliminTree *etree, Symbol
 
 
 
-PASTIX_INT check_candidat(SymbolMatrix *symbmtx, BlendCtrl *ctrl)
+pastix_int_t check_candidat(SymbolMatrix *symbmtx, BlendCtrl *ctrl)
 {
-  PASTIX_INT i, j;
-  PASTIX_INT facecblknum;
+  pastix_int_t i, j;
+  pastix_int_t facecblknum;
   for(i=0;i<symbmtx->cblknbr;i++)
     {
       for(j= symbmtx->cblktab[i].bloknum; j < symbmtx->cblktab[i+1].bloknum;j++)

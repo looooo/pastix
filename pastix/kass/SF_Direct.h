@@ -16,5 +16,5 @@
 
 #ifndef SF_DIRECT_
 #define SF_DIRECT_
-void SF_Direct(csptr A, PASTIX_INT cblknbr, PASTIX_INT *rangtab, PASTIX_INT *treetab, csptr P);
+void SF_Direct(csptr A, pastix_int_t cblknbr, pastix_int_t *rangtab, pastix_int_t *treetab, csptr P);
 #endif

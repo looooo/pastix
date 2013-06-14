@@ -32,45 +32,45 @@
 #define DRUNK                       4
 
 typedef struct Task_ {
-  PASTIX_INT                       taskid;               /*+ COMP_1D DIAG E1 E2                                     +*/
-  PASTIX_INT                       prionum;              /*+ Priority value for the factorization                   +*/
-  PASTIX_INT                       prionum2;             /*+ Priority value for solve steps                         +*/
-  PASTIX_INT                       cblknum;              /*+ Attached column block                                  +*/
-  PASTIX_INT                       bloknum;              /*+ Attached block                                         +*/
-  PASTIX_INT volatile              ftgtcnt;              /*+ Number of fan-in targets                               +*/
-  PASTIX_INT volatile              ctrbcnt;              /*+ Total number of contributions                          +*/
+  pastix_int_t                       taskid;               /*+ COMP_1D DIAG E1 E2                                     +*/
+  pastix_int_t                       prionum;              /*+ Priority value for the factorization                   +*/
+  pastix_int_t                       prionum2;             /*+ Priority value for solve steps                         +*/
+  pastix_int_t                       cblknum;              /*+ Attached column block                                  +*/
+  pastix_int_t                       bloknum;              /*+ Attached block                                         +*/
+  pastix_int_t volatile              ftgtcnt;              /*+ Number of fan-in targets                               +*/
+  pastix_int_t volatile              ctrbcnt;              /*+ Total number of contributions                          +*/
   volatile BlockTarget *    btagptr;              /*+ si non local, pointeur sur la structure (NB reception) +*/
-  PASTIX_INT                       indnum;               /*+ For E2 (COMP_1D), index of ftgt (>0) else if local = -taskdest
+  pastix_int_t                       indnum;               /*+ For E2 (COMP_1D), index of ftgt (>0) else if local = -taskdest
                                                       For DIAG and E1 , index of btag (>0) if there is a
 						      local one it must be the first of the chain of local E1   +*/
-  PASTIX_INT                       tasknext;             /*+ chainage des E1 ou E2, si fin = -1 => liberer les btagptr +*/
-  PASTIX_INT                       taskmstr;             /*+ Master task for E1 or E2 tasks                         +*/
+  pastix_int_t                       tasknext;             /*+ chainage des E1 ou E2, si fin = -1 => liberer les btagptr +*/
+  pastix_int_t                       taskmstr;             /*+ Master task for E1 or E2 tasks                         +*/
                                                   /*+ Index of DIAG (or first E1) task for E1                +*/
                                                   /*+ Index of E1 (or first E2) task for E2                  +*/
 #if (defined PASTIX_DYNSCHED) || (defined TRACE_SOPALIN)
-  PASTIX_INT                       threadid;             /*+ Index of the bubble which contains the task +*/
-  PASTIX_INT                       cand;		  /*+ Thread candidate in static version          +*/
+  pastix_int_t                       threadid;             /*+ Index of the bubble which contains the task +*/
+  pastix_int_t                       cand;		  /*+ Thread candidate in static version          +*/
 #endif
 #ifdef TRACE_SOPALIN
-  PASTIX_INT                       fcandnum;             /*+ First thread candidate                      +*/
-  PASTIX_INT                       lcandnum;		  /*+ Last thread candidate                       +*/
-  PASTIX_INT                       id;                   /*+ Global cblknum of the attached column block +*/
+  pastix_int_t                       fcandnum;             /*+ First thread candidate                      +*/
+  pastix_int_t                       lcandnum;		  /*+ Last thread candidate                       +*/
+  pastix_int_t                       id;                   /*+ Global cblknum of the attached column block +*/
 #endif
 } Task;
 
 /*+ Solver column block structure. +*/
 
 typedef struct SolverCblk_  {
-  PASTIX_INT                       fcolnum;              /*+ First column index                     +*/
-  PASTIX_INT                       lcolnum;              /*+ Last column index (inclusive)          +*/
-  PASTIX_INT                       bloknum;              /*+ First block in column (diagonal)       +*/
-  PASTIX_INT                       stride;               /*+ Column block stride                    +*/
-  PASTIX_INT			    color;		  /*+ Color of column block (PICL trace)     +*/
+  pastix_int_t                       fcolnum;              /*+ First column index                     +*/
+  pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)          +*/
+  pastix_int_t                       bloknum;              /*+ First block in column (diagonal)       +*/
+  pastix_int_t                       stride;               /*+ Column block stride                    +*/
+  pastix_int_t			    color;		  /*+ Color of column block (PICL trace)     +*/
 #ifdef STARPU_GET_TASK_CTX
-  PASTIX_INT                       ctx;                  /*+ Context given to StarPU                +*/
+  pastix_int_t                       ctx;                  /*+ Context given to StarPU                +*/
 #endif
-  PASTIX_INT                       procdiag;             /*+ Processor owner of diagonal block      +*/
-  PASTIX_INT                       cblkdiag;             /*+ Column block owner of diagonal block   +*/
+  pastix_int_t                       procdiag;             /*+ Processor owner of diagonal block      +*/
+  pastix_int_t                       cblkdiag;             /*+ Column block owner of diagonal block   +*/
   pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
   pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
 } SolverCblk; 
@@ -78,61 +78,61 @@ typedef struct SolverCblk_  {
 /*+ Solver block structure. +*/
 
 typedef struct SolverBlok_ {
-  PASTIX_INT                       frownum;              /*+ First row index            +*/
-  PASTIX_INT                       lrownum;              /*+ Last row index (inclusive) +*/
-  PASTIX_INT                       cblknum;              /*+ Facing column block        +*/
-  PASTIX_INT                       levfval;              /*+ Level-of-fill value        +*/
-  PASTIX_INT                       coefind;              /*+ Index in coeftab           +*/
+  pastix_int_t                       frownum;              /*+ First row index            +*/
+  pastix_int_t                       lrownum;              /*+ Last row index (inclusive) +*/
+  pastix_int_t                       cblknum;              /*+ Facing column block        +*/
+  pastix_int_t                       levfval;              /*+ Level-of-fill value        +*/
+  pastix_int_t                       coefind;              /*+ Index in coeftab           +*/
 } SolverBlok;
 
 /*+ Solver matrix structure. +*/
 
 typedef struct SolverMatrix_ {
-  PASTIX_INT                       baseval;              /*+ Base value for numberings                 +*/
-  PASTIX_INT                       nodenbr;              /*+ Number of nodes in matrix                 +*/
-  PASTIX_INT                       cblknbr;              /*+ Number of column blocks                   +*/
-  PASTIX_INT                       bloknbr;              /*+ Number of blocks                          +*/
+  pastix_int_t                       baseval;              /*+ Base value for numberings                 +*/
+  pastix_int_t                       nodenbr;              /*+ Number of nodes in matrix                 +*/
+  pastix_int_t                       cblknbr;              /*+ Number of column blocks                   +*/
+  pastix_int_t                       bloknbr;              /*+ Number of blocks                          +*/
   SolverCblk * restrict     cblktab;              /*+ Array of solver column blocks             +*/
   SolverBlok * restrict     bloktab;              /*+ Array of solver blocks                    +*/
-  PASTIX_INT                       coefnbr;              /*+ Number of coefficients                    +*/
+  pastix_int_t                       coefnbr;              /*+ Number of coefficients                    +*/
 
-  PASTIX_INT                       ftgtnbr;              /*+ Number of fanintargets                    +*/
-  PASTIX_INT                       ftgtcnt;              /*+ Number of fanintargets to receive         +*/
+  pastix_int_t                       ftgtnbr;              /*+ Number of fanintargets                    +*/
+  pastix_int_t                       ftgtcnt;              /*+ Number of fanintargets to receive         +*/
   FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
 
-  PASTIX_INT                       coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
-  PASTIX_INT                       bpftmax;              /*+ Maximum of block size for btag to receive +*/
-  PASTIX_INT                       cpftmax;              /*+ Maximum of block size for ftgt to receive +*/
-  PASTIX_INT                       nbftmax;              /*+ Maximum block number in ftgt              +*/
-  PASTIX_INT                       arftmax;              /*+ Maximum block area in ftgt                +*/
+  pastix_int_t                       coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
+  pastix_int_t                       bpftmax;              /*+ Maximum of block size for btag to receive +*/
+  pastix_int_t                       cpftmax;              /*+ Maximum of block size for ftgt to receive +*/
+  pastix_int_t                       nbftmax;              /*+ Maximum block number in ftgt              +*/
+  pastix_int_t                       arftmax;              /*+ Maximum block area in ftgt                +*/
 
-  PASTIX_INT                       clustnum;             /*+ current processor number                  +*/
-  PASTIX_INT                       clustnbr;             /*+ number of processors                      +*/
-  PASTIX_INT                       procnbr;              /*+ Number of physical processor used         +*/
-  PASTIX_INT                       thrdnbr;              /*+ Number of local computation threads       +*/
-  PASTIX_INT                       bublnbr;              /*+ Number of local computation threads       +*/
+  pastix_int_t                       clustnum;             /*+ current processor number                  +*/
+  pastix_int_t                       clustnbr;             /*+ number of processors                      +*/
+  pastix_int_t                       procnbr;              /*+ Number of physical processor used         +*/
+  pastix_int_t                       thrdnbr;              /*+ Number of local computation threads       +*/
+  pastix_int_t                       bublnbr;              /*+ Number of local computation threads       +*/
   BubbleTree  * restrict    btree;                /*+ Bubbles tree                              +*/
 
   BlockTarget * restrict    btagtab;              /*+ Blocktarget access vector                 +*/
-  PASTIX_INT                       btagnbr;              /*+ Number of Blocktargets                    +*/
-  PASTIX_INT                       btgsnbr;              /*+ Number of Blocktargets to send            +*/
-  PASTIX_INT                       btgrnbr;              /*+ Number of Blocktargets to recv            +*/
+  pastix_int_t                       btagnbr;              /*+ Number of Blocktargets                    +*/
+  pastix_int_t                       btgsnbr;              /*+ Number of Blocktargets to send            +*/
+  pastix_int_t                       btgrnbr;              /*+ Number of Blocktargets to recv            +*/
   BlockCoeff  * restrict    bcoftab;              /*+ BlockCoeff access vector                  +*/
-  PASTIX_INT                       bcofnbr;
+  pastix_int_t                       bcofnbr;
 
-  PASTIX_INT                       indnbr;
-  PASTIX_INT * restrict            indtab;
+  pastix_int_t                       indnbr;
+  pastix_int_t * restrict            indtab;
   Task * restrict           tasktab;              /*+ Task access vector                        +*/
-  PASTIX_INT                       tasknbr;              /*+ Number of Tasks                           +*/
-  PASTIX_INT **                    ttsktab;              /*+ Task access vector by thread              +*/
-  PASTIX_INT *                     ttsknbr;              /*+ Number of tasks by thread                 +*/
+  pastix_int_t                       tasknbr;              /*+ Number of Tasks                           +*/
+  pastix_int_t **                    ttsktab;              /*+ Task access vector by thread              +*/
+  pastix_int_t *                     ttsknbr;              /*+ Number of tasks by thread                 +*/
 
-  PASTIX_INT *                     proc2clust;           /*+ proc -> cluster                           +*/
-  PASTIX_INT                       gridldim;             /*+ Dimensions of the virtual processors      +*/
-  PASTIX_INT                       gridcdim;             /*+ grid if dense end block                   +*/
+  pastix_int_t *                     proc2clust;           /*+ proc -> cluster                           +*/
+  pastix_int_t                       gridldim;             /*+ Dimensions of the virtual processors      +*/
+  pastix_int_t                       gridcdim;             /*+ grid if dense end block                   +*/
   UpDownVector              updovct;              /*+ UpDown vector                             +*/
 #ifdef STARPU_GET_TASK_CTX
-  PASTIX_INT                       starpu_subtree_nbr;
+  pastix_int_t                       starpu_subtree_nbr;
 #endif
 } SolverMatrix;
 

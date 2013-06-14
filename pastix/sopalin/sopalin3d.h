@@ -71,25 +71,25 @@ typedef struct SopalinParam_ {
   double     epsilonraff;     /*+ epsilon to stop reffinement                      +*/
   double     rberror;         /*+ ||r||/||b||                                      +*/
   double     espilondiag;     /*+ epsilon critere for diag control                 +*/
-  PASTIX_FLOAT     *b;               /*+ b vector (RHS and solution)                      +*/
-  PASTIX_FLOAT     *transcsc;        /*+ transpose csc                                    +*/
-  PASTIX_INT        itermax;         /*+ max number of iteration                          +*/
-  PASTIX_INT        diagchange;      /*+ number of change of diag                         +*/
-  PASTIX_INT        gmresim;         /*+ Krylov subspace size for GMRES                   +*/
-  PASTIX_INT        fakefact;        /*+ Flag indicating if we want fake factorisation    +*/
-  PASTIX_INT        usenocsc;        /*+ Flag indicating if we want to use the intern CSC +*/
+  pastix_float_t     *b;               /*+ b vector (RHS and solution)                      +*/
+  pastix_float_t     *transcsc;        /*+ transpose csc                                    +*/
+  pastix_int_t        itermax;         /*+ max number of iteration                          +*/
+  pastix_int_t        diagchange;      /*+ number of change of diag                         +*/
+  pastix_int_t        gmresim;         /*+ Krylov subspace size for GMRES                   +*/
+  pastix_int_t        fakefact;        /*+ Flag indicating if we want fake factorisation    +*/
+  pastix_int_t        usenocsc;        /*+ Flag indicating if we want to use the intern CSC +*/
   int        factotype;       /*+ Type of factorization                            +*/
   int        symmetric;       /*+ Symmetric                                        +*/
   MPI_Comm   pastix_comm;     /*+ MPI communicator                                 +*/
   int        type_comm;       /*+ Communication mode                               +*/
   int        nbthrdcomm;      /*+ Communication's thread number                    +*/
-  PASTIX_INT       *iparm;           /*+ In/Out integer parameters                        +*/
+  pastix_int_t       *iparm;           /*+ In/Out integer parameters                        +*/
   double    *dparm;           /*+ In/Out float parameters                          +*/
   int       *bindtab;         /*+ Define where to bin threads                      +*/
   int        stopthrd;        /*+ Boolean for communication thread controlling     +*/
   int        schur;           /*+ If API_YES won't compute last diag               +*/
-  PASTIX_INT        n;               /*+ size of the matrix                               +*/
-  PASTIX_INT        gN;
+  pastix_int_t        n;               /*+ size of the matrix                               +*/
+  pastix_int_t        gN;
 } SopalinParam;
 
 /************************************************/
@@ -123,34 +123,34 @@ typedef struct Pastix_Allreduce_ {
 typedef struct Thread_Data_ {
   Clock            sop_clk;                  /*+ Clock                                               +*/
   Clock            sop_clk_comm;             /*+ Communication clock                                 +*/
-  PASTIX_INT              nbpivot;                  /*+ Number of pivoting performed                        +*/
-  PASTIX_INT              flag_bind;                /*+ Indicate if threads are binded on processors        +*/
+  pastix_int_t              nbpivot;                  /*+ Number of pivoting performed                        +*/
+  pastix_int_t              flag_bind;                /*+ Indicate if threads are binded on processors        +*/
 #ifdef TRYLOCK
-  PASTIX_INT              ptbusy;                   /*+ Number of mutexes in use                            +*/
-  PASTIX_INT              ptfree;                   /*+ Nomber of free mutexes                              +*/
-  PASTIX_INT              ptwait;                   /*+ Nombre de cond_wait appele                          +*/
+  pastix_int_t              ptbusy;                   /*+ Number of mutexes in use                            +*/
+  pastix_int_t              ptfree;                   /*+ Nomber of free mutexes                              +*/
+  pastix_int_t              ptwait;                   /*+ Nombre de cond_wait appele                          +*/
 #endif
-  PASTIX_INT              firstbloktab;             /*+ First block index to compute stride in maxbloktab   +*/
-  PASTIX_INT              stridebloktab;            /*+ Temporary tabulars maxblokttab's stride copy        +*/
-  PASTIX_FLOAT           *maxbloktab1;              /*+ Temporary tabular to add contributions              +*/
-  PASTIX_FLOAT           *maxbloktab2;              /*+ Temporary tabular to add contributions (for LU)     +*/
+  pastix_int_t              firstbloktab;             /*+ First block index to compute stride in maxbloktab   +*/
+  pastix_int_t              stridebloktab;            /*+ Temporary tabulars maxblokttab's stride copy        +*/
+  pastix_float_t           *maxbloktab1;              /*+ Temporary tabular to add contributions              +*/
+  pastix_float_t           *maxbloktab2;              /*+ Temporary tabular to add contributions (for LU)     +*/
   MPI_Request     *send_block_requests;      /*+ sent blocks requests                                +*/
-  PASTIX_INT             *send_block_target;        /*+ sent blocks targets                                 +*/
+  pastix_int_t             *send_block_target;        /*+ sent blocks targets                                 +*/
   MPI_Request     *send_fanin_requests;      /*+ sent fanins requests                                +*/
 #if (!defined NO_MPI_TYPE)
   MPI_Datatype    *send_fanin_mpitypes;      /*+ sent fanins mpi types                               +*/
-  PASTIX_INT            **send_fanin_infotab;       /*+ sent fanins mpi types                               +*/
+  pastix_int_t            **send_fanin_infotab;       /*+ sent fanins mpi types                               +*/
 #endif /* not NO_MPI_TYPE */
-  PASTIX_INT             *send_fanin_target;        /*+ sent fanins targets                                 +*/
-  PASTIX_INT            **send_fanin_target_extra;  /*+ extra sent fanin targets                            +*/
+  pastix_int_t             *send_fanin_target;        /*+ sent fanins targets                                 +*/
+  pastix_int_t            **send_fanin_target_extra;  /*+ extra sent fanin targets                            +*/
 #ifdef TEST_IRECV
   MPI_Request     *recv_fanin_request;       /*+ receiving fanin requests                            +*/
   MPI_Request     *recv_block_request;       /*+ receiving blocks requests                           +*/
   void           **recv_fanin_buffer;        /*+ fanin reception buffers                             +*/
   void           **recv_block_buffer;        /*+ blocks reception buffers                            +*/
 #endif
-  PASTIX_INT              maxsrequest_fanin;        /*+ Maximum number of send requests used                +*/
-  PASTIX_INT              maxsrequest_block;        /*+ Maximum number of send requests used                +*/
+  pastix_int_t              maxsrequest_fanin;        /*+ Maximum number of send requests used                +*/
+  pastix_int_t              maxsrequest_block;        /*+ Maximum number of send requests used                +*/
 #ifndef FORCE_NOMPI
   MPI_Status      *srteststatus;
   int             *srtestindices;
@@ -165,8 +165,8 @@ typedef struct Thread_Data_ {
   int             *gtabtype;                 /*+ Size of the data to send                            +*/
   void           **send_fanin_buffer;        /*+ Fanins sending buffers                              +*/
   void           **send_block_buffer;        /*+ Blocks sending buffers                              +*/
-  PASTIX_INT             *send_fanin_buffer_size;   /*+ Fanins sending buffers size                         +*/
-  PASTIX_INT             *send_block_buffer_size;   /*+ Blocks sending buffers size                         +*/
+  pastix_int_t             *send_fanin_buffer_size;   /*+ Fanins sending buffers size                         +*/
+  pastix_int_t             *send_block_buffer_size;   /*+ Blocks sending buffers size                         +*/
 #endif /* NO_MPI_TYPE */
 #ifdef TRACE_SOPALIN
   FILE            *tracefile;                /*+ Tracing file for the solver                         +*/
@@ -174,12 +174,12 @@ typedef struct Thread_Data_ {
   int              traceid;                  /*+ Flag indicating if trace is active                  +*/
 #endif
 #ifdef COMPACT_SMX
-  PASTIX_INT             stridebloktab2;
+  pastix_int_t             stridebloktab2;
 #endif /* COMPACT_SMX */
 #ifdef PASTIX_DYNSCHED
-  PASTIX_INT             esp;
+  pastix_int_t             esp;
 #ifndef PASTIX_DYNSCHED_WITH_TREE
-  PASTIX_INT            *tabtravel;
+  pastix_int_t            *tabtravel;
 #endif
 #endif
 } Thread_Data_t;
@@ -199,17 +199,17 @@ struct Sopalin_Data_ {
   Thread_Data_t  **thread_data;              /*+ Threads data                       +*/
   Queue           *fanintgtsendqueue;        /*+ Fanins to send queue               +*/
   Queue           *blocktgtsendqueue;        /*+ Blocks to send queue               +*/
-  PASTIX_INT             *taskmark;                 /*+ Task marking for 2D                +*/
+  pastix_int_t             *taskmark;                 /*+ Task marking for 2D                +*/
 #ifdef TRACE_SOPALIN
   FILE            *tracefile;                /*+ Tracing file for the solver        +*/
   double           timestamp;                /*+ Original time for trace            +*/
 #endif
 #if (defined COMPUTE_ALLOC) || (defined STATS_SOPALIN)
-  PASTIX_INT              current_alloc;            /*+ Current allocated memory           +*/
+  pastix_int_t              current_alloc;            /*+ Current allocated memory           +*/
 #endif
 #ifdef ALLOC_FTGT
-  PASTIX_INT              max_alloc;                /*+ Maximum allocated memory           +*/
-  PASTIX_INT              alloc_init;               /*+ Initial allocated memory           +*/
+  pastix_int_t              max_alloc;                /*+ Maximum allocated memory           +*/
+  pastix_int_t              alloc_init;               /*+ Initial allocated memory           +*/
 #ifdef STATS_SOPALIN
   pthread_mutex_t  mutex_alloc;              /*+ Mutex on allocated memory variable +*/
 #endif
@@ -219,11 +219,11 @@ struct Sopalin_Data_ {
   double volatile  stop;                     /*+ Flag to stop threads on refinement  +*/
   double volatile  berr;                     /*+ Error in refinement                 +*/
   double volatile  lberr;                    /*+ Last error in refinement            +*/
-  PASTIX_INT    volatile  raffnbr;                  /*+ Number of iterations in refinement  +*/
-  PASTIX_INT    volatile  count_iter;               /*+ Number of iterations in refinement  +*/
-  PASTIX_INT    volatile  flag_gmres;               /*+ Flag to continue in static pivoting +*/
-  PASTIX_INT    volatile  gmresout_flag;            /*+ Flag for GMRES outter loop          +*/
-  PASTIX_INT    volatile  gmresin_flag;             /*+ Flag for GMRES inner loop           +*/
+  pastix_int_t    volatile  raffnbr;                  /*+ Number of iterations in refinement  +*/
+  pastix_int_t    volatile  count_iter;               /*+ Number of iterations in refinement  +*/
+  pastix_int_t    volatile  flag_gmres;               /*+ Flag to continue in static pivoting +*/
+  pastix_int_t    volatile  gmresout_flag;            /*+ Flag for GMRES outter loop          +*/
+  pastix_int_t    volatile  gmresin_flag;             /*+ Flag for GMRES inner loop           +*/
   double volatile  gmresro;                  /*+ Norm of GMRES residue               +*/
 #endif
 #ifdef SMP_SOPALIN
@@ -244,8 +244,8 @@ struct Sopalin_Data_ {
   Pastix_Allreduce_t allreduce;              /*+ Data structure for MPi_Allreduce                 +*/
   Queue             *sendqueue;              /*+ Ready to send data queue                         +*/
 #ifdef STORAGE
-  PASTIX_FLOAT           *grhs;                     /*+ Data storage tabular                             +*/
-  volatile PASTIX_INT    *flagtab;                  /*+ Indicate received cblk in up step                +*/
+  pastix_float_t           *grhs;                     /*+ Data storage tabular                             +*/
+  volatile pastix_int_t    *flagtab;                  /*+ Indicate received cblk in up step                +*/
   pthread_mutex_t *mutex_flagtab;            /*+ Mutex on flagtab                                 +*/
   pthread_cond_t  *cond_flagtab;             /*+ cond on flagtab                                  +*/
 #endif
@@ -257,8 +257,8 @@ struct Sopalin_Data_ {
 #ifdef PASTIX_DYNSCHED
   pthread_mutex_t *tasktab_mutex;            /*+ +*/
   pthread_cond_t  *tasktab_cond;             /*+ +*/
-  volatile PASTIX_INT    *tasktab_indice;           /*+ +*/
-  volatile PASTIX_INT    *tasktab_nbthrd;           /*+ +*/
+  volatile pastix_int_t    *tasktab_indice;           /*+ +*/
+  volatile pastix_int_t    *tasktab_nbthrd;           /*+ +*/
   Queue           *taskqueue;                /*+ +*/
 #endif
 #ifdef OOC
@@ -277,22 +277,22 @@ struct Sopalin_Data_ {
 
 #ifdef WITH_STARPU
 struct starpu_trf_data_ {
-  PASTIX_INT              cblknum;
+  pastix_int_t              cblknum;
 #ifdef STARPU_SUBMIT_READY
-  PASTIX_INT              tasknum;
+  pastix_int_t              tasknum;
 #endif
   Sopalin_Data_t * sopalin_data;
 };
 typedef struct starpu_trf_data_ starpu_trf_data_t;
 
 struct starpu_gemm_data_ {
-  PASTIX_INT              cblknum;
+  pastix_int_t              cblknum;
 #ifdef STARPU_SUBMIT_READY
-  PASTIX_INT              tasknum;
+  pastix_int_t              tasknum;
 #endif
-  PASTIX_INT              bloknum;
-  PASTIX_INT              fcblknum;
-  PASTIX_INT              nblocs;
+  pastix_int_t              bloknum;
+  pastix_int_t              fcblknum;
+  pastix_int_t              nblocs;
   Sopalin_Data_t * sopalin_data;
   int           ** d_blocktab;
 };
@@ -348,7 +348,7 @@ typedef struct starpu_gemm_data_ starpu_gemm_data_t;
 #define ge_pivot_thread               PASTIX_PREFIX_F(ge_pivot_thread)
 #define ge_gmres_thread               PASTIX_PREFIX_F(ge_gmres_thread)
 #define ge_grad_thread                PASTIX_PREFIX_F(ge_grad_thread)
-void    ge_sopalin_launch            (SolverMatrix *, SopalinParam *, PASTIX_INT cas);
+void    ge_sopalin_launch            (SolverMatrix *, SopalinParam *, pastix_int_t cas);
 void    ge_sopalin_thread            (SolverMatrix *, SopalinParam *);
 void    ge_sopalin_updo_thread       (SolverMatrix *, SopalinParam *);
 void    ge_sopalin_updo_gmres_thread (SolverMatrix *, SopalinParam *);
@@ -369,7 +369,7 @@ void    ge_grad_thread               (SolverMatrix *, SopalinParam *);
 #define sy_pivot_thread               PASTIX_PREFIX_F(sy_pivot_thread)
 #define sy_gmres_thread               PASTIX_PREFIX_F(sy_gmres_thread)
 #define sy_grad_thread                PASTIX_PREFIX_F(sy_grad_thread)
-void    sy_sopalin_launch            (SolverMatrix *, SopalinParam *, PASTIX_INT cas);
+void    sy_sopalin_launch            (SolverMatrix *, SopalinParam *, pastix_int_t cas);
 void    sy_sopalin_thread            (SolverMatrix *, SopalinParam *);
 void    sy_sopalin_updo_thread       (SolverMatrix *, SopalinParam *);
 void    sy_sopalin_updo_gmres_thread (SolverMatrix *, SopalinParam *);
@@ -390,7 +390,7 @@ void    sy_grad_thread               (SolverMatrix *, SopalinParam *);
 #define he_pivot_thread               PASTIX_PREFIX_F(he_pivot_thread)
 #define he_gmres_thread               PASTIX_PREFIX_F(he_gmres_thread)
 #define he_grad_thread                PASTIX_PREFIX_F(he_grad_thread)
-void    he_sopalin_launch            (SolverMatrix *, SopalinParam *, PASTIX_INT cas);
+void    he_sopalin_launch            (SolverMatrix *, SopalinParam *, pastix_int_t cas);
 void    he_sopalin_thread            (SolverMatrix *, SopalinParam *);
 void    he_sopalin_updo_thread       (SolverMatrix *, SopalinParam *);
 void    he_sopalin_updo_gmres_thread (SolverMatrix *, SopalinParam *);
@@ -411,7 +411,7 @@ void    he_grad_thread               (SolverMatrix *, SopalinParam *);
 #define po_pivot_thread               PASTIX_PREFIX_F(po_pivot_thread)
 #define po_gmres_thread               PASTIX_PREFIX_F(po_gmres_thread)
 #define po_grad_thread                PASTIX_PREFIX_F(po_grad_thread)
-void    po_sopalin_launch            (SolverMatrix *, SopalinParam *, PASTIX_INT cas);
+void    po_sopalin_launch            (SolverMatrix *, SopalinParam *, pastix_int_t cas);
 void    po_sopalin_thread            (SolverMatrix *, SopalinParam *);
 void    po_sopalin_updo_thread       (SolverMatrix *, SopalinParam *);
 void    po_sopalin_updo_gmres_thread (SolverMatrix *, SopalinParam *);

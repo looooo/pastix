@@ -5,7 +5,7 @@
 #include "param_blend.h"
 
 /* we set default option */
-PASTIX_INT blendParamInit(BlendParam *param)
+pastix_int_t blendParamInit(BlendParam *param)
 {
   param->hpf_filename     = NULL;
   param->trace_filename   = "traceBlend.trf";

@@ -62,12 +62,12 @@ symbolKeepInit (
 SymbolKeep * restrict const keepptr,              /*+ Keep structure to initialize  +*/
 const SymbolMatrix * const  symbptr)              /*+ Symbol structure to work from +*/
 {
-  PASTIX_INT                 levfmax;                    /* Maximum level of fill     */
-  PASTIX_INT                 nupdmax;                    /* Maximum number of updates */
-  PASTIX_INT                 ctrimax;
-  PASTIX_INT                 ctromax;
-  PASTIX_INT                 hghtmax;
-  PASTIX_INT                 bloknum;
+  pastix_int_t                 levfmax;                    /* Maximum level of fill     */
+  pastix_int_t                 nupdmax;                    /* Maximum number of updates */
+  pastix_int_t                 ctrimax;
+  pastix_int_t                 ctromax;
+  pastix_int_t                 hghtmax;
+  pastix_int_t                 bloknum;
 
   memSet (keepptr, 0, sizeof (SymbolKeep));
 
@@ -150,8 +150,8 @@ void *                      dataptr)              /*+ Parameters for addition fu
 {
   SymbolKeepBlok * restrict kblktax;              /* Based access to keep block array */
   unsigned char * restrict           keeptax;
-  PASTIX_INT                       cblknum;
-  PASTIX_INT                       bloknum;
+  pastix_int_t                       cblknum;
+  pastix_int_t                       bloknum;
 
   kblktax = keepptr->kblktab - symbptr->baseval;
   keeptax = keepptr->keeptab - symbptr->baseval;
@@ -182,8 +182,8 @@ void *                      dataptr)              /*+ Parameters for addition fu
 {
   SymbolKeepBlok * restrict kblktax;              /* Based access to keep block array */
   unsigned char * restrict           keeptax;
-  PASTIX_INT                       cblknum;
-  PASTIX_INT                       bloknum;
+  pastix_int_t                       cblknum;
+  pastix_int_t                       bloknum;
 
   kblktax = keepptr->kblktab - symbptr->baseval;
   keeptax = keepptr->keeptab - symbptr->baseval;
@@ -211,9 +211,9 @@ const SymbolMatrix * const  symbptr)              /*+ Symbol structure to consid
 {
   SymbolKeepBlok * restrict kblktax;              /* Based access to keep block array              */
   SymbolCblk * restrict     cblktax;              /* Based access to column block array            */
-  PASTIX_INT                       cblknum;              /* Based number of current column block          */
+  pastix_int_t                       cblknum;              /* Based number of current column block          */
   SymbolBlok * restrict     bloktax;              /* Based access to incomplete block array        */
-  PASTIX_INT                       bloknum;              /* Based number of current first free block slot */
+  pastix_int_t                       bloknum;              /* Based number of current first free block slot */
 
   for (bloknum = 0; bloknum < symbptr->bloknbr; bloknum ++) { /* Reset parameter fields */
     keepptr->kblktab[bloknum].levfval = symbptr->bloktab[bloknum].levfval;
@@ -229,10 +229,10 @@ const SymbolMatrix * const  symbptr)              /*+ Symbol structure to consid
   for (cblknum = symbptr->baseval; cblknum < symbptr->baseval + symbptr->cblknbr - 1; cblknum ++) { /* Update pass (+ 3-loop pass, with forward contributions) */
 
     for (bloknum = cblktax[cblknum].bloknum + 1; ; bloknum ++) { /* For all existing off-diagonal blocks */
-      PASTIX_INT                 levffac;
-      PASTIX_INT                 blokctr;
-      PASTIX_INT                 blokfac;
-      PASTIX_INT                 nupdfac;
+      pastix_int_t                 levffac;
+      pastix_int_t                 blokctr;
+      pastix_int_t                 blokfac;
+      pastix_int_t                 nupdfac;
 
 #ifdef SYMBOL_DEBUG
       if (bloknum >= cblktax[cblknum + 1].bloknum) { /* Should not happen */
@@ -272,7 +272,7 @@ const SymbolMatrix * const  symbptr)              /*+ Symbol structure to consid
         }
 
         for ( ; ; ) {
-          PASTIX_INT                 nupdval;            /* Number of updates of block(s) to be created */
+          pastix_int_t                 nupdval;            /* Number of updates of block(s) to be created */
 
           nupdval = 1 + ((kblktax[blokctr].nupdval > nupdfac) ? kblktax[blokctr].nupdval : nupdfac); /* Compute number of updates */
 
@@ -295,7 +295,7 @@ const SymbolMatrix * const  symbptr)              /*+ Symbol structure to consid
 
   for (cblknum = symbptr->cblknbr - 1; cblknum >= 0; cblknum --) { /* Fill heights */
     if (symbptr->cblktab[cblknum + 1].bloknum - symbptr->cblktab[cblknum].bloknum > 1) { /* If extra-diagonal block present */
-      PASTIX_INT                 hghtval;
+      pastix_int_t                 hghtval;
 
       hghtval = kblktax[cblktax[bloktax[symbptr->cblktab[cblknum].bloknum + 1].cblknum].bloknum].hghtval + 1;
 
@@ -324,17 +324,17 @@ SymbolKeep * const          keepptr,              /*+ Keep structure to fill    
 const SymbolMatrix * const  symbptr,              /*+ Symbol matrix to consider              +*/
 int                      (* funcptr) (const SymbolKeepBlok * const, void * const),
 void *                      dataptr,              /*+ Parameters for filtering function      +*/
-const PASTIX_INT                   cblkmin,              /*+ Minimum column block index to consider +*/
-const PASTIX_INT                   cblknbr)              /*+ Number of column blocks to consider    +*/
+const pastix_int_t                   cblkmin,              /*+ Minimum column block index to consider +*/
+const pastix_int_t                   cblknbr)              /*+ Number of column blocks to consider    +*/
 {
   if (cblknbr > 1) {                              /* If more than one column block, perform recursion */
-    PASTIX_INT                 cmednum;
+    pastix_int_t                 cmednum;
     double * restrict   levftmp;
     double * restrict   nupdtmp;
     double * restrict   ctritmp;
     double * restrict   ctrotmp;
     double * restrict   hghttmp;
-    PASTIX_INT                 i;
+    pastix_int_t                 i;
 
     if (memAllocGroup ((void **)
         &levftmp, (size_t) ((keepptr->levfmax + 1) * sizeof (double)),
@@ -367,7 +367,7 @@ const PASTIX_INT                   cblknbr)              /*+ Number of column bl
   else {                                          /* Single column block */
     const SymbolKeepBlok * restrict kblktax;
     const SymbolBlok * restrict     bloktax;
-    PASTIX_INT                             bloknum;
+    pastix_int_t                             bloknum;
     double                          cblksiz;
 
     cblksiz  = (double) (symbptr->cblktab[cblkmin - symbptr->baseval].lcolnum - symbptr->cblktab[cblkmin - symbptr->baseval].fcolnum + 1);
@@ -423,15 +423,15 @@ SymbolMatrix * restrict const symbptr)            /*+ Symbol structure to purge 
 {
   unsigned char * restrict           keeptax;              /* Based access to keep block flag array */
   SymbolBlok *              bloktax;
-  PASTIX_INT                       cblknum;
-  PASTIX_INT                       bloknew;
+  pastix_int_t                       cblknum;
+  pastix_int_t                       bloknew;
 
   keeptax = keepptr->keeptab - symbptr->baseval;
   bloktax = symbptr->bloktab - symbptr->baseval;
 
   for (cblknum = 0, bloknew = symbptr->baseval;
        cblknum < symbptr->cblknbr; cblknum ++) {
-    PASTIX_INT                       bloknum;
+    pastix_int_t                       bloknum;
 
     for (bloknum = symbptr->cblktab[cblknum].bloknum,
          symbptr->cblktab[cblknum].bloknum = bloknew;
@@ -468,14 +468,14 @@ static
 int
 symbolKeepView2 (
 const double * const        dataptr,              /*+ Data field to write       +*/
-const PASTIX_INT                   datanbr,              /*+ Number of data fields     +*/
+const pastix_int_t                   datanbr,              /*+ Number of data fields     +*/
 const double                datamax,              /*+ Sum of all of block data  +*/
 const char * const          nameptr,              /*+ Base name for output file +*/
 const char * const          commptr)              /*+ Comment string            +*/
 {
   FILE *                      fileptr;
   double                      datasum;
-  PASTIX_INT                         i;
+  pastix_int_t                         i;
 
   if ((fileptr = fopen (nameptr, "w")) == NULL) {
     errorPrint ("symbolKeepView2: cannot open output file");

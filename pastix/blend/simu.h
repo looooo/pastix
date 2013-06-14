@@ -22,10 +22,10 @@ typedef struct SimuTimer_ {
 } SimuTimer;
 
 typedef struct SimuCluster_ {
-  PASTIX_INT                fprocnum;
-  PASTIX_INT                lprocnum;
+  pastix_int_t                fprocnum;
+  pastix_int_t                lprocnum;
   ExtendVectorINT  * ftgtsend;         /*+ ftgt send by this proc (one vector per processor       +*/
-  PASTIX_INT prionum;
+  pastix_int_t prionum;
 } SimuCluster;
 
 typedef struct SimuProc_ {
@@ -33,52 +33,52 @@ typedef struct SimuProc_ {
   Queue            * taskheap;         /*+ heap of cblk that all contrib have been receveive      +*/
   Queue            * taskheap2;        /*+ queue of cblk ordered by treelevel                     +*/
 
-  PASTIX_INT                prionum;          /*+ Current priority to assign to a cblk mapp on this proc +*/
+  pastix_int_t                prionum;          /*+ Current priority to assign to a cblk mapp on this proc +*/
   ExtendVectorINT  * tasktab;
 } SimuProc;
 
 typedef struct SimuFtgt_ {
   FanInTarget           ftgt;             /*+ the ftgt structures info                              +*/
-  PASTIX_INT                   clustnum;         /*+ the cluster that send the ftgt                        +*/
+  pastix_int_t                   clustnum;         /*+ the cluster that send the ftgt                        +*/
   SimuTimer             timerecv;         /*+ time the ftgt will be receive                         +*/
   double                costsend;         /*+ time for the ftgt go from procsrc to procdest         +*/
   double                costadd;          /*+ cost to add the ftgt to its cblk destination          +*/
 } SimuFtgt;        
 
 typedef struct SimuBlockTarget_ {
-  PASTIX_INT           prionum;
-  PASTIX_INT           taskid;
-  PASTIX_INT           bloksrc;
-  PASTIX_INT           cblkdest;
-  PASTIX_INT           frownum;
-  PASTIX_INT           lrownum;
+  pastix_int_t           prionum;
+  pastix_int_t           taskid;
+  pastix_int_t           bloksrc;
+  pastix_int_t           cblkdest;
+  pastix_int_t           frownum;
+  pastix_int_t           lrownum;
 } SimuBlockTarget;
 
 typedef struct SimuBlok_ {
-  PASTIX_INT                   tasknum;          /*+ Number of the task                                     +*/
-  PASTIX_INT                   ftgtnum;          /*+ index of the first ftgt destinated to this cblk 
+  pastix_int_t                   tasknum;          /*+ Number of the task                                     +*/
+  pastix_int_t                   ftgtnum;          /*+ index of the first ftgt destinated to this cblk 
 					    in the ftgttab. This index is also used to find
 					    the first cblk timer (one per cand proc) in the
 					    timetab                                                +*/
-  PASTIX_INT                   ctrbcnt;          /*+ counter for contributions remaining                    +*/
-  PASTIX_INT                   ctrbnbr;          /*+ OIMBE temporaire sert juste pour DRUNK                 +*/
+  pastix_int_t                   ctrbcnt;          /*+ counter for contributions remaining                    +*/
+  pastix_int_t                   ctrbnbr;          /*+ OIMBE temporaire sert juste pour DRUNK                 +*/
     
 } SimuBlok;
 
 
 typedef struct SimuTask_ {
-  PASTIX_INT                   taskid;           /*+ identification of the task type                        +*/
-  PASTIX_INT                   prionum;          /*+ priority of the task                                   +*/
-  PASTIX_INT                   cblknum;          /*+ Number of the cblknum the task deals with              +*/
-  PASTIX_INT                   bloknum;          /*+ number of the block that the task deals with           +*/
-  PASTIX_INT                   bloknum2;         
-  PASTIX_INT                   facebloknum;      /*+ Number of the facing block for E2                      +*/  
+  pastix_int_t                   taskid;           /*+ identification of the task type                        +*/
+  pastix_int_t                   prionum;          /*+ priority of the task                                   +*/
+  pastix_int_t                   cblknum;          /*+ Number of the cblknum the task deals with              +*/
+  pastix_int_t                   bloknum;          /*+ number of the block that the task deals with           +*/
+  pastix_int_t                   bloknum2;         
+  pastix_int_t                   facebloknum;      /*+ Number of the facing block for E2                      +*/  
   SimuTimer             time;             /*+ Time the task is ready if it doesn't need message      +*/   
-  PASTIX_INT                   mesglen;         /*+ Time to send the block target                          +*/
+  pastix_int_t                   mesglen;         /*+ Time to send the block target                          +*/
   double                cost;             /*+ Cost of the task                                       +*/
-  PASTIX_INT                   ctrbcnt;          /* nbr ftgt + le btgt (+ E1 pret si E2) */
-  PASTIX_INT                   ftgtcnt;          /* nbr of contrib from fan-in target                       +*/
-  PASTIX_INT                   tasknext;         /* chainage des E1 ou E2, si fin = -1 => liberer les btagptr */
+  pastix_int_t                   ctrbcnt;          /* nbr ftgt + le btgt (+ E1 pret si E2) */
+  pastix_int_t                   ftgtcnt;          /* nbr of contrib from fan-in target                       +*/
+  pastix_int_t                   tasknext;         /* chainage des E1 ou E2, si fin = -1 => liberer les btagptr */
 } SimuTask;
 
 /* task type allowed*/
@@ -92,24 +92,24 @@ typedef struct SimuTask_ {
 
 
 typedef struct SimuCblk_ {
-  PASTIX_INT                   ctrbcnt;          /*+ counter for contributions remaining                    +*/
+  pastix_int_t                   ctrbcnt;          /*+ counter for contributions remaining                    +*/
 } SimuCblk;
 
 
 typedef struct SimuCtrl_ {
-  PASTIX_INT                   cblknbr;          /*+ Number of cblk                                          +*/
-  PASTIX_INT                   ftgtprio;         /*+ Priority to assign to current ftgts                     +*/
-  PASTIX_INT                   tasknbr;          /*+ Number of tasks                                         +*/
-  PASTIX_INT                   ftgtcnt;          /*+ Number of received communication                        +*/
+  pastix_int_t                   cblknbr;          /*+ Number of cblk                                          +*/
+  pastix_int_t                   ftgtprio;         /*+ Priority to assign to current ftgts                     +*/
+  pastix_int_t                   tasknbr;          /*+ Number of tasks                                         +*/
+  pastix_int_t                   ftgtcnt;          /*+ Number of received communication                        +*/
   SimuTask         *    tasktab;          /*+ SimuTask vector                                         +*/
   SimuProc         *    proctab;          /*+ Virtual processor tab                                   +*/
   SimuCluster      *    clustab;          /*+ Virtual cluster tab                                     +*/
-  PASTIX_INT              *    ownetab;          /*+ Vector containing the distribution of the diagonal blok +*/
-  PASTIX_INT              *    blprtab;          /*+ Vector containing the distribution of the blok          +*/
+  pastix_int_t              *    ownetab;          /*+ Vector containing the distribution of the diagonal blok +*/
+  pastix_int_t              *    blprtab;          /*+ Vector containing the distribution of the blok          +*/
   SimuCblk         *    cblktab;          /*+ SimuCblk vector                                         +*/
   SimuBlok         *    bloktab;          /*+ SimuBlok vector                                         +*/
   SimuFtgt         *    ftgttab;          /*+ Vector containing the fan in target                     +*/
-  PASTIX_INT                   ftgtnbr;
+  pastix_int_t                   ftgtnbr;
   SimuTimer        *    tasktimetab;      /*+ Vector containing a timer for each cand proc on each task +*/
   SimuTimer        *    ftgttimetab;      /*+ Vector containing a timer for each cluster on each ftgt  +*/
 } SimuCtrl;
@@ -122,10 +122,10 @@ typedef struct SimuCtrl_ {
 #define static 
 #endif
 
-PASTIX_INT                 simuInit        (SimuCtrl *, SymbolMatrix *, PASTIX_INT, PASTIX_INT, PASTIX_INT, PASTIX_INT, Cand *);
-PASTIX_INT                 simuRealloc     (SimuCtrl *, PASTIX_INT, PASTIX_INT);
-void                simuExit        (SimuCtrl *, PASTIX_INT, PASTIX_INT, PASTIX_INT);
-PASTIX_INT                 compTimer       (SimuTimer *, SimuTimer *);
+pastix_int_t                 simuInit        (SimuCtrl *, SymbolMatrix *, pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t, Cand *);
+pastix_int_t                 simuRealloc     (SimuCtrl *, pastix_int_t, pastix_int_t);
+void                simuExit        (SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t);
+pastix_int_t                 compTimer       (SimuTimer *, SimuTimer *);
 void                timerAdd        (SimuTimer *, double);
 double              timerVal        (SimuTimer *);
 void                timerSet        (SimuTimer *, double);

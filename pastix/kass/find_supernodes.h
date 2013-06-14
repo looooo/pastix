@@ -13,8 +13,8 @@
 #ifndef FIND_SUPERNODES_H
 #define FIND_SUPERNODES_H
 
-void  find_supernodes(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *perm, PASTIX_INT *iperm, 
-		      PASTIX_INT *snodenbr, PASTIX_INT *snodetab, PASTIX_INT *treetab);
+void  find_supernodes(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_int_t *perm, pastix_int_t *iperm, 
+		      pastix_int_t *snodenbr, pastix_int_t *snodetab, pastix_int_t *treetab);
 
 #endif
 

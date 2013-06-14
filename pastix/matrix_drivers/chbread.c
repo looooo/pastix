@@ -366,7 +366,7 @@ void chbRead(char const      *filename,
 		{
 #ifdef TYPE_COMPLEX
 #if (defined X_ARCHalpha_compaq_osf1)
-		  (*val)[(count-1)/2] += PASTIX_FLOAT(0.0, atof(element));
+		  (*val)[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
 		  (*val)[(count-1)/2] += (pastix_float_t)atof(element)*I;
 #endif
@@ -442,7 +442,7 @@ void chbRead(char const      *filename,
 		    {
 #ifdef TYPE_COMPLEX
 #if (defined X_ARCHalpha_compaq_osf1)
-		      (*rhs)[(count-1)/2] += PASTIX_FLOAT(0.0, atof(element));
+		      (*rhs)[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
 		      (*rhs)[(count-1)/2] += (pastix_float_t)atof(element)*I;
 #endif
@@ -499,7 +499,7 @@ void chbRead(char const      *filename,
 			{
 #ifdef TYPE_COMPLEX
 #if (defined X_ARCHalpha_compaq_osf1)
-			  rhs2[(count-1)/2] += PASTIX_FLOAT(0.0, atof(element));
+			  rhs2[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
 			  rhs2[(count-1)/2] += (pastix_float_t)atof(element)*I;
 #endif

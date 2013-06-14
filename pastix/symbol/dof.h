@@ -54,10 +54,10 @@
     which holds the base value.             +*/
 
 typedef struct Dof_ {
-  PASTIX_INT                       baseval;              /*+ Base value for indexing                                       +*/
-  PASTIX_INT                       nodenbr;              /*+ Number of nodes in DOF array                                  +*/
-  PASTIX_INT                       noddval;              /*+ DOF value for every node (if noddtab == NULL, 0 else)         +*/
-  PASTIX_INT * restrict            noddtab;              /*+ Array of node->first DOF indexes (if noddval == 0) [+1,based] +*/
+  pastix_int_t                       baseval;              /*+ Base value for indexing                                       +*/
+  pastix_int_t                       nodenbr;              /*+ Number of nodes in DOF array                                  +*/
+  pastix_int_t                       noddval;              /*+ DOF value for every node (if noddtab == NULL, 0 else)         +*/
+  pastix_int_t * restrict            noddtab;              /*+ Array of node->first DOF indexes (if noddval == 0) [+1,based] +*/
 } Dof;
 
 /*
@@ -72,9 +72,9 @@ int                         dofInit             (Dof * const deofptr);
 void                        dofExit             (Dof * const deofptr);
 int                         dofLoad             (Dof * const deofptr, FILE * const stream);
 int                         dofSave             (const Dof * const deofptr, FILE * const stream);
-void                        dofConstant         (Dof * const deofptr, const PASTIX_INT baseval, const PASTIX_INT nodenbr, const PASTIX_INT noddval);
+void                        dofConstant         (Dof * const deofptr, const pastix_int_t baseval, const pastix_int_t nodenbr, const pastix_int_t noddval);
 #ifdef GRAPH_H
-int                         dofGraph            (Dof * const deofptr, const Graph * const grafptr, const PASTIX_INT, const PASTIX_INT * const peritab);
+int                         dofGraph            (Dof * const deofptr, const Graph * const grafptr, const pastix_int_t, const pastix_int_t * const peritab);
 #endif /* GRAPH_H */
 
 #undef static

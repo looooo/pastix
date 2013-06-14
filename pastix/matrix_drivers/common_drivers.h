@@ -117,23 +117,23 @@
 
 #ifdef FORGET_TYPE
 #undef pastix_float_t
-#undef MPI_PASTIX_FLOAT
+#undef MPI_pastix_float_t
 
 #ifdef PREC_DOUBLE
 #ifdef TYPE_COMPLEX
 #define pastix_float_t complex double
-#define MPI_PASTIX_FLOAT MPI_DOUBLE_COMPLEX
+#define MPI_pastix_float_t MPI_DOUBLE_COMPLEX
 #else
 #define pastix_float_t double
-#define MPI_PASTIX_FLOAT MPI_DOUBLE
+#define MPI_pastix_float_t MPI_DOUBLE
 #endif
 #else /* PREC_DOUBLE */
 #ifdef TYPE_COMPLEX
 #define pastix_float_t complex float
-#define MPI_PASTIX_FLOAT MPI_COMPLEX
+#define MPI_pastix_float_t MPI_COMPLEX
 #else
 #define pastix_float_t float
-#define MPI_PASTIX_FLOAT MPI_FLOAT
+#define MPI_pastix_float_t MPI_FLOAT
 #endif
 #endif
 

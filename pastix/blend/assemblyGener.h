@@ -16,10 +16,10 @@
 #endif
 
 #ifdef OLD_ASSEMBLY
-void       assemblyGener(Assembly1D *, PASTIX_INT, const SymbolMatrix *, const PASTIX_INT *);
+void       assemblyGener(Assembly1D *, pastix_int_t, const SymbolMatrix *, const pastix_int_t *);
 #else
-void assemblyGener(PASTIX_INT clustnum, Assembly1D *assemb1D, Assembly2D *assemb2D, PASTIX_INT clustnbr, const SymbolMatrix *symbmtx, const PASTIX_INT *blprtab, BlendCtrl *ctrl, const Dof * const dofptr);
-static void symbolGener(PASTIX_INT clustnum, const PASTIX_INT *cblklocalnum1D, PASTIX_INT bloknbr1D, PASTIX_INT cblknbr1D, const PASTIX_INT *cbprtab, const SymbolMatrix *symbmtx, SymbolMatrix *symb1D, const Dof * const dofptr);
+void assemblyGener(pastix_int_t clustnum, Assembly1D *assemb1D, Assembly2D *assemb2D, pastix_int_t clustnbr, const SymbolMatrix *symbmtx, const pastix_int_t *blprtab, BlendCtrl *ctrl, const Dof * const dofptr);
+static void symbolGener(pastix_int_t clustnum, const pastix_int_t *cblklocalnum1D, pastix_int_t bloknbr1D, pastix_int_t cblknbr1D, const pastix_int_t *cbprtab, const SymbolMatrix *symbmtx, SymbolMatrix *symb1D, const Dof * const dofptr);
 #endif
 
 #undef static

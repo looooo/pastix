@@ -34,13 +34,13 @@
  */
 void Csc2solv_cblk(const CscMatrix *cscmtx,
                    SolverMatrix    *datacode,
-                   PASTIX_FLOAT           *trandcsc,
-                   PASTIX_INT              itercblk)
+                   pastix_float_t           *trandcsc,
+                   pastix_int_t              itercblk)
 {
-  PASTIX_INT itercoltab;
-  PASTIX_INT iterbloc;
-  PASTIX_INT coefindx;
-  PASTIX_INT iterval;
+  pastix_int_t itercoltab;
+  pastix_int_t iterbloc;
+  pastix_int_t coefindx;
+  pastix_int_t iterval;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> Csc2solv \n");

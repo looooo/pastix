@@ -1,15 +1,15 @@
 
-static pastix_int_t cs_tol (pastix_int_t i, pastix_int_t j, PASTIX_FLOAT aij, void *tol)
+static pastix_int_t cs_tol (pastix_int_t i, pastix_int_t j, pastix_float_t aij, void *tol)
 {
-  return (fabs (aij) > *((PASTIX_FLOAT *) tol)) ;
+  return (fabs (aij) > *((pastix_float_t *) tol)) ;
 }
 
-pastix_int_t cs_droptol (cs *A, PASTIX_FLOAT tol)
+pastix_int_t cs_droptol (cs *A, pastix_float_t tol)
 {
   return (cs_fkeep (A, &cs_tol, &tol)) ;    /* keep all large entries */
 }
 
-static pastix_int_t cs_nonzero (pastix_int_t i, pastix_int_t j, PASTIX_FLOAT aij, void *other)
+static pastix_int_t cs_nonzero (pastix_int_t i, pastix_int_t j, pastix_float_t aij, void *other)
 {
   return (aij != 0) ;
 }
@@ -20,17 +20,17 @@ pastix_int_t cs_dropzeros (cs *A)
 }
 
 /* C = alpha*A + beta*B */
-cs *cs_add ( const cs *A, const cs *B, PASTIX_FLOAT alpha, PASTIX_FLOAT beta )
+cs *cs_add ( const cs *A, const cs *B, pastix_float_t alpha, pastix_float_t beta )
 {
   pastix_int_t p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values ;
-  PASTIX_FLOAT *x, *Bx, *Cx ;
+  pastix_float_t *x, *Bx, *Cx ;
   cs *C ;
   if (!A || !B) return (NULL) ;/* check inputs */
   m = A->m ; anz = A->p [A->n] ;
   n = B->n ; Bp = B->p ; Bx = B->x ; bnz = Bp [n] ;
   w = cs_calloc (m, sizeof (pastix_int_t)) ;
   values = (A->x != NULL) && (Bx != NULL) ;
-  x = values ? cs_malloc (m, sizeof (PASTIX_FLOAT)) : NULL ;
+  x = values ? cs_malloc (m, sizeof (pastix_float_t)) : NULL ;
   C = cs_spalloc (m, n, anz + bnz, values, 0) ;
   if (!C || !w || (values && !x)) return (cs_done (C, w, x, 0)) ;
   Cp = C->p ; Ci = C->i ; Cx = C->x ;
@@ -50,7 +50,7 @@ cs *cs_add ( const cs *A, const cs *B, PASTIX_FLOAT alpha, PASTIX_FLOAT beta )
 pastix_int_t cs_dupl (cs *A)
 {
   pastix_int_t i, j, p, q, nz = 0, n, m, *Ap, *Ai, *w ;
-  PASTIX_FLOAT *Ax ;
+  pastix_float_t *Ax ;
   if (!A) return (0) ;/* check inputs */
   m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
   w = cs_malloc (m, sizeof (pastix_int_t)) ;/* get workspace */
@@ -81,7 +81,7 @@ pastix_int_t cs_dupl (cs *A)
 }
 
 /* add an entry to a triplet matrix; return 1 if ok, 0 otherwise */
-pastix_int_t cs_entry (cs *T, pastix_int_t i, pastix_int_t j, PASTIX_FLOAT x)
+pastix_int_t cs_entry (cs *T, pastix_int_t i, pastix_int_t j, pastix_float_t x)
 {
   if (!T || (T->nz >= T->nzmax && !cs_sprealloc (T, 2*(T->nzmax)))) return(0);
   if (T->x) T->x [T->nz] = x ;
@@ -93,11 +93,11 @@ pastix_int_t cs_entry (cs *T, pastix_int_t i, pastix_int_t j, PASTIX_FLOAT x)
 }
 
 /* drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1 */
-pastix_int_t cs_fkeep (cs *A, pastix_int_t (*fkeep) (pastix_int_t, pastix_int_t, PASTIX_FLOAT, void *), void *other)
+pastix_int_t cs_fkeep (cs *A, pastix_int_t (*fkeep) (pastix_int_t, pastix_int_t, pastix_float_t, void *), void *other)
 {
   pastix_int_t baseval = 1 ;
   pastix_int_t j, p, nz = 0, n, *Ap, *Ai ;
-  PASTIX_FLOAT *Ax ;
+  pastix_float_t *Ax ;
   if (!A || !fkeep) return (-1) ;    /* check inputs */
   n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
   for (j = 0 ; j < n ; j++)
@@ -119,10 +119,10 @@ pastix_int_t cs_fkeep (cs *A, pastix_int_t (*fkeep) (pastix_int_t, pastix_int_t,
 }
 
 /* y = A*x+y */
-pastix_int_t cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y)
+pastix_int_t cs_gaxpy (const cs *A, const pastix_float_t *x, pastix_float_t *y)
 {
   pastix_int_t p, j, n, *Ap, *Ai ;
-  PASTIX_FLOAT *Ax ;
+  pastix_float_t *Ax ;
   if (!A || !x || !y) return (0) ;    /* check inputs */
   n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
   for (j = 0 ; j < n ; j++)
@@ -140,14 +140,14 @@ pastix_int_t cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y)
 cs *cs_multiply (const cs *A, const cs *B)
 {
   pastix_int_t p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values, *Bi ;
-  PASTIX_FLOAT *x, *Bx, *Cx ;
+  pastix_float_t *x, *Bx, *Cx ;
   cs *C ;
   if (!A || !B) return (NULL) ;/* check inputs */
   m = A->m ; anz = A->p [A->n] ;
   n = B->n ; Bp = B->p ; Bi = B->i ; Bx = B->x ; bnz = Bp [n] ;
   w = cs_calloc (m, sizeof (pastix_int_t)) ;
   values = (A->x != NULL) && (Bx != NULL) ;
-  x = values ? cs_malloc (m, sizeof (PASTIX_FLOAT)) : NULL ;
+  x = values ? cs_malloc (m, sizeof (pastix_float_t)) : NULL ;
   C = cs_spalloc (m, n, anz + bnz, values, 0) ;
   if (!C || !w || (values && !x)) return (cs_done (C, w, x, 0)) ;
   Cp = C->p ;
@@ -171,10 +171,10 @@ cs *cs_multiply (const cs *A, const cs *B)
 }
 
 /* 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum */
-PASTIX_FLOAT cs_norm (const cs *A)
+pastix_float_t cs_norm (const cs *A)
 {
   pastix_int_t p, j, n, *Ap ;
-  PASTIX_FLOAT *Ax,  norm = 0, s ;
+  pastix_float_t *Ax,  norm = 0, s ;
   if (!A || !A->x) return (-1) ;/* check inputs */
   n = A->n ; Ap = A->p ; Ax = A->x ;
   for (j = 0 ; j < n ; j++)
@@ -189,7 +189,7 @@ PASTIX_FLOAT cs_norm (const cs *A)
 cs *cs_permute (const cs *A, const pastix_int_t *Pinv, const pastix_int_t *Q, pastix_int_t values)
 {
   pastix_int_t p, j, k, nz = 0, m, n, *Ap, *Ai, *Cp, *Ci ;
-  PASTIX_FLOAT *Cx, *Ax ;
+  pastix_float_t *Cx, *Ax ;
   cs *C ;
   if (!A) return (NULL) ;/* check inputs */
   m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
@@ -225,7 +225,7 @@ pastix_int_t *cs_pinv (pastix_int_t const *P, pastix_int_t n)
 cs *cs_transpose (const cs *A, pastix_int_t values)
 {
   pastix_int_t p, q, j, *Cp, *Ci, n, m, *Ap, *Ai, *w ;
-  PASTIX_FLOAT *Cx, *Ax ;
+  pastix_float_t *Cx, *Ax ;
   cs *C ;
   if (!A) return (NULL) ;
   m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
@@ -250,7 +250,7 @@ cs *cs_transpose (const cs *A, pastix_int_t values)
 cs *cs_triplet (const cs *T)
 {
   pastix_int_t m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj ;
-  PASTIX_FLOAT *Cx, *Tx ;
+  pastix_float_t *Cx, *Tx ;
   cs *C ;
   if (!T) return (NULL) ;/* check inputs */
   m = T->m ; n = T->n ; Ti = T->i ; Tj = T->p ; Tx = T->x ; nz = T->nz ;
@@ -269,11 +269,11 @@ cs *cs_triplet (const cs *T)
 }
 
 /* x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse */
-pastix_int_t cs_scatter (const cs *A, pastix_int_t j, PASTIX_FLOAT beta, pastix_int_t *w, PASTIX_FLOAT *x, pastix_int_t mark,
+pastix_int_t cs_scatter (const cs *A, pastix_int_t j, pastix_float_t beta, pastix_int_t *w, pastix_float_t *x, pastix_int_t mark,
 		cs *C, pastix_int_t nz)
 {
   pastix_int_t i, p, *Ap, *Ai, *Ci ;
-  PASTIX_FLOAT *Ax ;
+  pastix_float_t *Ax ;
   if (!A || !w || !C) return (-1) ;/* ensure inputs are valid */
   Ap = A->p ; Ai = A->i ; Ax = A->x ; Ci = C->i ;
   for (p = Ap [j] ; p < Ap [j+1] ; p++)
@@ -346,7 +346,7 @@ cs *cs_spalloc (pastix_int_t m, pastix_int_t n, pastix_int_t nzmax, pastix_int_t
   A->nz = triplet ? 0 : -1 ;    /* allocate triplet or comp.col */
   A->p = cs_malloc (triplet ? nzmax : n+1, sizeof (pastix_int_t)) ;
   A->i = cs_malloc (nzmax, sizeof (pastix_int_t)) ;
-  A->x = values ? cs_malloc (nzmax, sizeof (PASTIX_FLOAT)) : NULL ;
+  A->x = values ? cs_malloc (nzmax, sizeof (pastix_float_t)) : NULL ;
   return ((!A->p || !A->i || (values && !A->x)) ? cs_spfree (A) : A) ;
 }
 
@@ -358,7 +358,7 @@ pastix_int_t cs_sprealloc (cs *A, pastix_int_t nzmax)
   nzmax = (nzmax <= 0) ? (A->p [A->n]) : nzmax ;
   A->i = cs_realloc (A->i, nzmax, sizeof (pastix_int_t), &oki) ;
   if (A->nz >= 0) A->p = cs_realloc (A->p, nzmax, sizeof (pastix_int_t), &okj) ;
-  if (A->x) A->x = cs_realloc (A->x, nzmax, sizeof (PASTIX_FLOAT), &okx) ;
+  if (A->x) A->x = cs_realloc (A->x, nzmax, sizeof (pastix_float_t), &okx) ;
   ok = (oki && okj && okx) ;
   if (ok) A->nzmax = nzmax ;
   return (ok) ;

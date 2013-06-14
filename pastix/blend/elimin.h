@@ -19,18 +19,18 @@
 
 /*+ The node structure. +*/
 typedef struct TreeNode_ {
-  PASTIX_INT                       sonsnbr;              /*+ Number of sons                          +*/
-  PASTIX_INT                       fathnum;              /*+ index of the father node                +*/
-  PASTIX_INT                       fsonnum;              /*+ index of first son                      +*/
+  pastix_int_t                       sonsnbr;              /*+ Number of sons                          +*/
+  pastix_int_t                       fathnum;              /*+ index of the father node                +*/
+  pastix_int_t                       fsonnum;              /*+ index of first son                      +*/
 } TreeNode;
 
 /*+ The elimination tree. +*/
 
 typedef struct EliminTree_ {
-  PASTIX_INT                       baseval;              /*+ Base value for numberings         +*/
-  PASTIX_INT                       nodenbr;              /*+ Number of nodes                   +*/
+  pastix_int_t                       baseval;              /*+ Base value for numberings         +*/
+  pastix_int_t                       nodenbr;              /*+ Number of nodes                   +*/
   TreeNode   *              nodetab;              /*+ Array of node          [+1,based] +*/
-  PASTIX_INT        *              sonstab;              /*+ Sons index of nodes               +*/  
+  pastix_int_t        *              sonstab;              /*+ Sons index of nodes               +*/  
 } EliminTree;
 
 
@@ -39,16 +39,16 @@ typedef struct EliminTree_ {
     Out-edges can be found with the symbol matrix data +*/
 /* OIMBE innbr ne sert pas necessairement !*/
 typedef struct EliminVertex_ {
-  PASTIX_INT                       innum;                /*+ index of first in-bloc            +*/
-  PASTIX_INT                       innbr;                /*+ number of in-blocs                +*/   
+  pastix_int_t                       innum;                /*+ index of first in-bloc            +*/
+  pastix_int_t                       innbr;                /*+ number of in-blocs                +*/   
 } EliminVertex;
 
 typedef struct EliminGraph_ {
-  PASTIX_INT                       baseval;              /*+ Base value for numberings         +*/
-  PASTIX_INT                       vertnbr;              /*+ number of vertex in the graph     +*/
+  pastix_int_t                       baseval;              /*+ Base value for numberings         +*/
+  pastix_int_t                       vertnbr;              /*+ number of vertex in the graph     +*/
   EliminVertex   *          verttab;              /*+ Array of vertex                   +*/           
-  PASTIX_INT            *          inbltab;              /*+ Array of in-blocs index           +*/
-  PASTIX_INT            *          ownetab;              /*+ Array of cbl owner bloc           +*/           
+  pastix_int_t            *          inbltab;              /*+ Array of in-blocs index           +*/
+  pastix_int_t            *          ownetab;              /*+ Array of cbl owner bloc           +*/           
 } EliminGraph;
 
 /*
@@ -58,14 +58,14 @@ typedef struct EliminGraph_ {
 #ifndef STRUCT_ELIMINTREE
 #define static
 #endif
-PASTIX_INT                         egraphInit        (EliminGraph *);
+pastix_int_t                         egraphInit        (EliminGraph *);
 void                        egraphExit        (EliminGraph *);
-PASTIX_INT                         egraphLoad        (EliminGraph *, FILE *);
-PASTIX_INT                         egraphSave        (EliminGraph *, FILE *);
-PASTIX_INT                         treeInit          (EliminTree *);
+pastix_int_t                         egraphLoad        (EliminGraph *, FILE *);
+pastix_int_t                         egraphSave        (EliminGraph *, FILE *);
+pastix_int_t                         treeInit          (EliminTree *);
 void                        treeExit          (EliminTree *);
-PASTIX_INT                         treeLoad          (EliminTree *, FILE *);
-PASTIX_INT                         treeSave          (EliminTree *, FILE *);
+pastix_int_t                         treeLoad          (EliminTree *, FILE *);
+pastix_int_t                         treeSave          (EliminTree *, FILE *);
 void                        treePlot          (EliminTree *, FILE *);
 
 #undef static

@@ -153,10 +153,10 @@
     blocksize - size of block wanted.
 */
 void orderSplit (Order * const ordeptr,
-                 PASTIX_INT           blocksize)
+                 pastix_int_t           blocksize)
 {
-  PASTIX_INT *rangtmp = NULL;
-  PASTIX_INT i,j,k,cblktmp=0;
+  pastix_int_t *rangtmp = NULL;
+  pastix_int_t i,j,k,cblktmp=0;
 
   for (i=0;i<ordeptr->cblknbr;i++)
     {
@@ -165,7 +165,7 @@ void orderSplit (Order * const ordeptr,
         cblktmp++;
     }
 
-  MALLOC_INTERN(rangtmp, cblktmp+1, PASTIX_INT);
+  MALLOC_INTERN(rangtmp, cblktmp+1, pastix_int_t);
 
   rangtmp[0]=ordeptr->rangtab[0];
   j=1;
@@ -210,18 +210,18 @@ void orderSplit (Order * const ordeptr,
 void orderSplit2 (Order        * const ordeptr,
                   SCOTCH_Graph * const grphptr,
                   double               rho,
-                  PASTIX_INT                  bsmin)
+                  pastix_int_t                  bsmin)
 {
-  PASTIX_INT *rangtmp   = NULL;
-  PASTIX_INT *blocksize = NULL;
-  PASTIX_INT i,j,k,kk,cblktmp=0;
+  pastix_int_t *rangtmp   = NULL;
+  pastix_int_t *blocksize = NULL;
+  pastix_int_t i,j,k,kk,cblktmp=0;
   double n;
 
-  PASTIX_INT                   baseval;
-  PASTIX_INT                   vertnbr;
-  PASTIX_INT *                 verttab;
-  PASTIX_INT                   edgenbr;
-  PASTIX_INT *                 edgetab;
+  pastix_int_t                   baseval;
+  pastix_int_t                   vertnbr;
+  pastix_int_t *                 verttab;
+  pastix_int_t                   edgenbr;
+  pastix_int_t *                 edgetab;
 
   SCOTCH_graphData (grphptr,
                     (SCOTCH_Num *) &baseval,
@@ -232,7 +232,7 @@ void orderSplit2 (Order        * const ordeptr,
                     (SCOTCH_Num **)&edgetab,
                     NULL);
 
-  MALLOC_INTERN(blocksize, ordeptr->cblknbr, PASTIX_INT);
+  MALLOC_INTERN(blocksize, ordeptr->cblknbr, pastix_int_t);
 
   for (i=0;i<ordeptr->cblknbr;i++)
     {
@@ -240,7 +240,7 @@ void orderSplit2 (Order        * const ordeptr,
       blocksize[i]=0;
       for (j=ordeptr->rangtab[i];j<ordeptr->rangtab[i+1];j++)
         {
-          PASTIX_INT jj,max=0;
+          pastix_int_t jj,max=0;
           jj=ordeptr->peritab[j];
           for (k=verttab[jj];k<verttab[jj+1];k++)
             {
@@ -252,7 +252,7 @@ void orderSplit2 (Order        * const ordeptr,
         }
       blocksize[i]++;
       n=(double)(ordeptr->rangtab[i+1]-ordeptr->rangtab[i]);
-      blocksize[i]=(PASTIX_INT)(2.0*rho*((double)(blocksize[i]))/(1.0+sqrt((2.0*n-1.0)*(2.0*n-1.0)-8.0*((double)(blocksize[i]))))-1.0);
+      blocksize[i]=(pastix_int_t)(2.0*rho*((double)(blocksize[i]))/(1.0+sqrt((2.0*n-1.0)*(2.0*n-1.0)-8.0*((double)(blocksize[i]))))-1.0);
       if (blocksize[i]<bsmin)
         blocksize[i]=bsmin;
       if (blocksize[i]>ordeptr->rangtab[i+1]-ordeptr->rangtab[i])
@@ -267,7 +267,7 @@ void orderSplit2 (Order        * const ordeptr,
         cblktmp++;
     }
 
-  MALLOC_INTERN(rangtmp, cblktmp+1, PASTIX_INT);
+  MALLOC_INTERN(rangtmp, cblktmp+1, pastix_int_t);
 
   rangtmp[0]=ordeptr->rangtab[0];
   j=1;
@@ -310,16 +310,16 @@ void orderSplit3 (Order        * const ordeptr,
                   SCOTCH_Graph * const grphptr,
                   SymbolMatrix * const matrsymb)
 {
-  PASTIX_INT i,j,cblknum,bloknum,nodenbr;
-  PASTIX_INT *mark1   = NULL;
-  PASTIX_INT *rangtmp = NULL;
-  PASTIX_INT cblktmp=0;
+  pastix_int_t i,j,cblknum,bloknum,nodenbr;
+  pastix_int_t *mark1   = NULL;
+  pastix_int_t *rangtmp = NULL;
+  pastix_int_t cblktmp=0;
 
-  PASTIX_INT                   baseval;
-  PASTIX_INT                   vertnbr;
-  PASTIX_INT *                 verttab;
-  PASTIX_INT                   edgenbr;
-  PASTIX_INT *                 edgetab;
+  pastix_int_t                   baseval;
+  pastix_int_t                   vertnbr;
+  pastix_int_t *                 verttab;
+  pastix_int_t                   edgenbr;
+  pastix_int_t *                 edgetab;
 
   /*
   for (i=0;i<=ordeptr->cblknbr;i++)
@@ -337,7 +337,7 @@ void orderSplit3 (Order        * const ordeptr,
                     NULL);
 
   nodenbr=ordeptr->rangtab[ordeptr->cblknbr];
-  MALLOC_INTERN(mark1, nodenbr+1, PASTIX_INT);
+  MALLOC_INTERN(mark1, nodenbr+1, pastix_int_t);
   for (i=0;i<=nodenbr;i++)
     mark1[i]=0;
 
@@ -360,7 +360,7 @@ void orderSplit3 (Order        * const ordeptr,
 
   for (i=0;i<nodenbr;i++)
     if (mark1[i]==1) cblktmp++;
-  MALLOC_INTERN(rangtmp, cblktmp+1, PASTIX_INT);
+  MALLOC_INTERN(rangtmp, cblktmp+1, pastix_int_t);
   j=0;
   for (i=0;i<nodenbr;i++)
     if (mark1[i]==1) rangtmp[j++]=i;
@@ -393,12 +393,12 @@ void orderSplit3 (Order        * const ordeptr,
  */
 void symbolSplit (SymbolMatrix * matrsymb)
 {
-  PASTIX_INT i,j,iter,add,cblknum,bloknum,num,frownum,lrownum;
+  pastix_int_t i,j,iter,add,cblknum,bloknum,num,frownum,lrownum;
   SymbolBlok *bloktmp   = NULL;
   SymbolCblk *cblktmp   = NULL;
-  PASTIX_INT        *node2cblk = NULL;
+  pastix_int_t        *node2cblk = NULL;
 
-  MALLOC_INTERN(node2cblk, matrsymb->nodenbr, PASTIX_INT);
+  MALLOC_INTERN(node2cblk, matrsymb->nodenbr, pastix_int_t);
   for (i=0;i<matrsymb->cblknbr+1;i++)
     for (j=matrsymb->cblktab[i].fcolnum;j<=matrsymb->cblktab[i].lcolnum;j++)
       node2cblk[j]=i;
@@ -494,7 +494,7 @@ void
 symbolRustine (SymbolMatrix *       matrsymb,
                SymbolMatrix * const matrsymb2)
 {
-  PASTIX_INT i,iter,add,cblknum,bloknum,bloknum2;
+  pastix_int_t i,iter,add,cblknum,bloknum,bloknum2;
   SymbolBlok *bloktmp = NULL;
   SymbolCblk *cblktmp = NULL;
 
@@ -603,8 +603,8 @@ symbolRustine (SymbolMatrix *       matrsymb,
 */
 typedef struct KeepParam_ {
   SymbolKeep * restrict     keepptr;              /*+ Reference to keepdat for access   +*/
-  PASTIX_INT                       levfmax;              /*+ Inclusive maximum level of fill   +*/
-  PASTIX_INT                       ctrimin;              /*+ Minimum output contribution value +*/
+  pastix_int_t                       levfmax;              /*+ Inclusive maximum level of fill   +*/
+  pastix_int_t                       ctrimin;              /*+ Minimum output contribution value +*/
 } KeepParam;
 
 /* ********************************************
@@ -749,7 +749,7 @@ static int blokColor (const SymbolMatrix * const  symbptr,              /*+ Symb
 {
   const SymbolKeep * restrict     keepptr;
   const SymbolKeepBlok * restrict kblkptr;
-  PASTIX_INT                             bloknum;
+  pastix_int_t                             bloknum;
 
   keepptr = (SymbolKeep *) dataptr;
   bloknum = blokptr - symbptr->bloktab;
@@ -832,8 +832,8 @@ static void symbolCostn2(const SymbolCblk * const cblktax,
                          const unsigned char       * const keeptab,
                          double           * const nnzptr,
                          double           * const opcptr,
-                         const PASTIX_INT                cblkmin,
-                         const PASTIX_INT                cblknbr);
+                         const pastix_int_t                cblkmin,
+                         const pastix_int_t                cblknbr);
 
 /*
    Function: symbolCostn
@@ -894,14 +894,14 @@ static void symbolCostn2 (
                           const unsigned char * const                keeptax,
                           double * restrict const           nnzptr,
                           double * restrict const           opcptr,
-                          const PASTIX_INT                         cblkmin,
-                          const PASTIX_INT                         cblknbr)
+                          const pastix_int_t                         cblkmin,
+                          const pastix_int_t                         cblknbr)
 {
-  PASTIX_INT                 bloknum;                    /* Number of current extra-diagonal block             */
-  PASTIX_INT                 cmednum;                    /* Median column block number                         */
-  PASTIX_INT                 cfacnum;                    /* Number of facing column block                      */
-  PASTIX_INT                 cdofnbr;                    /* Number of DOFs in column block (l_k)               */
-  PASTIX_INT                 rdofsum;                    /* Number of DOFs in all row blocks (g_{ki} or g_{k}) */
+  pastix_int_t                 bloknum;                    /* Number of current extra-diagonal block             */
+  pastix_int_t                 cmednum;                    /* Median column block number                         */
+  pastix_int_t                 cfacnum;                    /* Number of facing column block                      */
+  pastix_int_t                 cdofnbr;                    /* Number of DOFs in column block (l_k)               */
+  pastix_int_t                 rdofsum;                    /* Number of DOFs in all row blocks (g_{ki} or g_{k}) */
   double              nnzval;                     /* Number of non-zeroes in subtree                    */
   double              opcval;                     /* Operation count in subtree                         */
 
@@ -917,8 +917,8 @@ static void symbolCostn2 (
     *opcptr += opcval;
   }
   else {                                          /* Single column block                              */
-    PASTIX_INT                 rdounbr;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
-    PASTIX_INT                 rdousum;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
+    pastix_int_t                 rdounbr;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
+    pastix_int_t                 rdousum;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
 
     cdofnbr = noddVal (deofptr, cblktax[cblkmin].lcolnum + 1) -
               noddVal (deofptr, cblktax[cblkmin].fcolnum);
@@ -941,7 +941,7 @@ static void symbolCostn2 (
 
       cfacnum = bloktax[bloknum].cblknum;
       do {
-        PASTIX_INT                 rdofblk;              /* Number of DOFs in local block */
+        pastix_int_t                 rdofblk;              /* Number of DOFs in local block */
 
         if (keeptax[bloknum] == 0)                /* Skip dropped blocks */
           continue;
@@ -989,25 +989,25 @@ void bordi(int            alpha,
            Order        * orderptr)
 {
   SymbolKeep          keepdat;
-  PASTIX_INT                 baseval;                    /* Graph base value              */
-  PASTIX_INT                 vertnbr;                    /* Number of vertices in graph   */
-  PASTIX_INT                 edgenbr;                    /* Number of edges in graph      */
-  PASTIX_INT *               verttab;
-  PASTIX_INT *               edgetab;
+  pastix_int_t                 baseval;                    /* Graph base value              */
+  pastix_int_t                 vertnbr;                    /* Number of vertices in graph   */
+  pastix_int_t                 edgenbr;                    /* Number of edges in graph      */
+  pastix_int_t *               verttab;
+  pastix_int_t *               edgetab;
   double              grafnnz;                    /* Number of symmetric non-zeros */
   Dof                 matrdeof;                   /* Matrix DOF structure          */
   double              matrnnz;                    /* Non-zeroes                    */
   double              matrnnzmax;                 /* Maximum non-zeroes            */
   double              matropc;                    /* Operation count               */
   double              matropcmax;                 /* Maximum operation count       */
-  PASTIX_INT                 leafnbr;                    /* Number of leaves              */
-  PASTIX_INT                 heigmin;                    /* Minimum height                */
-  PASTIX_INT                 heigmax;                    /* Maximum height                */
+  pastix_int_t                 leafnbr;                    /* Number of leaves              */
+  pastix_int_t                 heigmin;                    /* Minimum height                */
+  pastix_int_t                 heigmax;                    /* Maximum height                */
   double              heigavg;                    /* Average height                */
   double              heigdlt;                    /* Deviation                     */
-/*   PASTIX_INT                 levfnum;                    /\* Current level of fill         *\/ */
-  PASTIX_INT                 bloksum;                    /* Accumulated number of blocks  */
-  PASTIX_INT                 bloknum;
+/*   pastix_int_t                 levfnum;                    /\* Current level of fill         *\/ */
+  pastix_int_t                 bloksum;                    /* Accumulated number of blocks  */
+  pastix_int_t                 bloknum;
   Clock               runtime[3];                 /* Timing variables                       */
   double              fillrat;                    /* Fill ratio : 0.0 -> NNZA ; 1.0 -> NNZL */
 /*   int                 i; */
@@ -1135,7 +1135,7 @@ void bordi(int            alpha,
 
   {
     KeepParam           kpardat;
-    PASTIX_INT                 levfnum;
+    pastix_int_t                 levfnum;
     double              nnzsum;
     double              fillsiz;                  /* Resulting size to achieve */
 
@@ -1143,7 +1143,7 @@ void bordi(int            alpha,
 
 #ifndef PATCH_HENON_BLEND
     {
-      PASTIX_INT                 cblknum;
+      pastix_int_t                 cblknum;
 
       for (cblknum = 0; cblknum < symbptr->cblknbr; cblknum ++) {
         if (symbptr->cblktab[cblknum + 1].bloknum - symbptr->cblktab[cblknum].bloknum >= 2) /* If extra-diagonal present              */
@@ -1156,14 +1156,14 @@ void bordi(int            alpha,
     symbolKeepInit (&keepdat, symbptr);         /* All blocks selected at initialization time */
 
     {
-      PASTIX_INT                 cblknum;
+      pastix_int_t                 cblknum;
       long                bloknbr;
       long                blokkep;
 
       blokkep =
         bloknbr = symbptr->cblknbr;
       for (cblknum = 0; cblknum < symbptr->cblknbr; cblknum ++) {
-        PASTIX_INT                 bloklst;
+        pastix_int_t                 bloklst;
 
         bloklst = symbptr->cblktab[cblknum].bloknum - symbptr->baseval; /* Last is diagonal block */
 
@@ -1209,14 +1209,14 @@ void bordi(int            alpha,
     symbolKeepCompute (&keepdat, symbptr);      /* Re-compute block parameters                                */
 
     {
-      PASTIX_INT                 cblknum;
+      pastix_int_t                 cblknum;
       long                bloknbr;
       long                blokkep;
 
       blokkep =
       bloknbr = symbptr->cblknbr;
       for (cblknum = 0; cblknum < symbptr->cblknbr; cblknum ++) {
-        PASTIX_INT                 bloklst;
+        pastix_int_t                 bloklst;
 
         bloklst = symbptr->cblktab[cblknum].bloknum - symbptr->baseval; /* Last is diagonal block */
 
@@ -1241,7 +1241,7 @@ void bordi(int            alpha,
 
 #ifdef DEADCODE
     {
-      PASTIX_INT                 ctrinum;
+      pastix_int_t                 ctrinum;
 
       symbolKeepHisto (&keepdat, symbptr, keepFuncH1, &kpardat); /* Compute histograms for (levfval == levfnum) */
       sprintf (buftab2, "%s_colv", buftab1);        /* Output histograms for these blocks                         */
@@ -1260,15 +1260,15 @@ void bordi(int            alpha,
       symbolKeepCompute (&keepdat, symbptr);      /* Re-compute block parameters for remaining blocks   */
 
       {
-        PASTIX_INT                 cblknum;
-        PASTIX_INT                 bloknum;
+        pastix_int_t                 cblknum;
+        pastix_int_t                 bloknum;
         long                bloknbr;
         long                blokkep;
 
         blokkep =
           bloknbr = symbptr->cblknbr;
         for (cblknum = 0; cblknum < symbptr->cblknbr; cblknum ++) {
-          PASTIX_INT                 bloklst;
+          pastix_int_t                 bloklst;
 
           bloklst = symbptr->cblktab[cblknum].bloknum - symbptr->baseval; /* Last is diagonal block */
 

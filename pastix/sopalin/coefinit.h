@@ -29,8 +29,8 @@
 void CoefMatrix_Allocate (SopalinParam    *sopar,
 			  SolverMatrix    *datacode,
 			  pthread_mutex_t *mutex,
-			  PASTIX_INT              factotype, 
-			  PASTIX_INT              me);
+			  pastix_int_t              factotype, 
+			  pastix_int_t              me);
 
 /*
   Function: CoefMatrix_Init
@@ -47,9 +47,9 @@ void CoefMatrix_Allocate (SopalinParam    *sopar,
 */
 void CoefMatrix_Init     (SolverMatrix         *datacode, 
 			  sopthread_barrier_t  *barrier, 
-			  PASTIX_INT                   me,
-			  PASTIX_INT                  *iparm, 
-			  PASTIX_FLOAT               **transcsc, 
+			  pastix_int_t                   me,
+			  pastix_int_t                  *iparm, 
+			  pastix_float_t               **transcsc, 
 			  Sopalin_Data_t       *sopalin_data);
 
 /*
@@ -66,7 +66,7 @@ void CoefMatrix_Init     (SolverMatrix         *datacode,
 */  
 void CoefMatrix_Free     (SopalinParam *sopar,
 			  SolverMatrix *datacode, 
-			  PASTIX_INT           factotype);
+			  pastix_int_t           factotype);
 
 
 #endif /* COEFINIT_H */

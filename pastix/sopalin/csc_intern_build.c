@@ -72,12 +72,12 @@
                                                                         \
     for (index=0; index<solvmtx->cblknbr; index++)                      \
     {                                                                   \
-      PASTIX_INT fcolnum = solvmtx->cblktab[index].fcolnum;                    \
-      PASTIX_INT lcolnum = solvmtx->cblktab[index].lcolnum;                    \
+      pastix_int_t fcolnum = solvmtx->cblktab[index].fcolnum;                    \
+      pastix_int_t lcolnum = solvmtx->cblktab[index].lcolnum;                    \
       CSC_COLNBR(thecsc,index) = (lcolnum - fcolnum+1);                 \
                                                                         \
       MALLOC_INTERN(CSC_COLTAB(thecsc,index),                           \
-                    CSC_COLNBR(thecsc,index)+1, PASTIX_INT);                   \
+                    CSC_COLNBR(thecsc,index)+1, pastix_int_t);                   \
                                                                         \
       if ((fcolnum)%dof != 0)                                           \
         errorPrint("dof doesn't divide fcolnum");                       \
@@ -121,8 +121,8 @@
 #define CSC_ALLOC do {                                            \
                                                                   \
     /* Puting values */                                           \
-    MALLOC_INTERN(CSC_ROWTAB(thecsc), strdcol, PASTIX_INT);              \
-    MALLOC_INTERN(CSC_VALTAB(thecsc), strdcol, PASTIX_FLOAT);            \
+    MALLOC_INTERN(CSC_ROWTAB(thecsc), strdcol, pastix_int_t);              \
+    MALLOC_INTERN(CSC_VALTAB(thecsc), strdcol, pastix_float_t);            \
                                                                   \
     if (transcsc != NULL)                                         \
     {                                                             \
@@ -135,14 +135,14 @@
       }                                                           \
       else                                                        \
       {                                                           \
-        MALLOC_INTERN(*transcsc, strdcol, PASTIX_FLOAT);                 \
-        MALLOC_INTERN(trowtab, strdcol, PASTIX_INT);                     \
-        MALLOC_INTERN(trscltb, solvmtx->cblknbr, PASTIX_INT *);          \
+        MALLOC_INTERN(*transcsc, strdcol, pastix_float_t);                 \
+        MALLOC_INTERN(trowtab, strdcol, pastix_int_t);                     \
+        MALLOC_INTERN(trscltb, solvmtx->cblknbr, pastix_int_t *);          \
                                                                   \
         for (index=0; index<solvmtx->cblknbr; index++)            \
         {                                                         \
           MALLOC_INTERN(trscltb[index],                           \
-                        CSC_COLNBR(thecsc,index)+1, PASTIX_INT);         \
+                        CSC_COLNBR(thecsc,index)+1, pastix_int_t);         \
           for (iter=0; iter<(CSC_COLNBR(thecsc,index)+1); iter++) \
           {                                                       \
             trscltb[index][iter] = CSC_COL(thecsc,index,iter);    \
@@ -172,18 +172,18 @@
 static inline
 void _set_csc_row_val(const SolverMatrix *solvmtx,
                       CscMatrix          *thecsc,
-                      PASTIX_INT          itercblk,
-                      PASTIX_INT          therow,
-                      PASTIX_INT          thecol,
-                      PASTIX_INT          dof,
-                      PASTIX_INT          iterdofcol,
-                      PASTIX_INT          iterdofrow,
-                      PASTIX_INT          iter,
-                      PASTIX_INT          colidx,
-                      PASTIX_INT          strdcol,
-                      PASTIX_FLOAT       *val) {
-  PASTIX_INT fcolnum = solvmtx->cblktab[itercblk].fcolnum;
-  PASTIX_INT validx  = (iter-1)*dof*dof + iterdofcol*dof + iterdofrow;
+                      pastix_int_t          itercblk,
+                      pastix_int_t          therow,
+                      pastix_int_t          thecol,
+                      pastix_int_t          dof,
+                      pastix_int_t          iterdofcol,
+                      pastix_int_t          iterdofrow,
+                      pastix_int_t          iter,
+                      pastix_int_t          colidx,
+                      pastix_int_t          strdcol,
+                      pastix_float_t       *val) {
+  pastix_int_t fcolnum = solvmtx->cblktab[itercblk].fcolnum;
+  pastix_int_t validx  = (iter-1)*dof*dof + iterdofcol*dof + iterdofrow;
 
   colidx = CSC_COL(thecsc, itercblk, thecol - fcolnum);
 
@@ -202,8 +202,8 @@ void _set_csc_row_val(const SolverMatrix *solvmtx,
 }
 
 #define SET_CSC_ROW_VAL_CONJ(itercblk, therow, thecol, val) do {    \
-    PASTIX_INT fcolnum = solvmtx->cblktab[itercblk].fcolnum;               \
-    PASTIX_INT validx  = (iter-1)*dof*dof + iterdofcol*dof + iterdofrow;   \
+    pastix_int_t fcolnum = solvmtx->cblktab[itercblk].fcolnum;               \
+    pastix_int_t validx  = (iter-1)*dof*dof + iterdofcol*dof + iterdofrow;   \
                                                                     \
     colidx = CSC_COL(thecsc, itercblk, thecol - fcolnum);           \
                                                                     \
@@ -234,9 +234,9 @@ void _set_csc_row_val(const SolverMatrix *solvmtx,
  *                        *
  ******************************************************************************/
 #define SET_TRANS_ROW_VAL(itercblk, therow, thecol, val) do {     \
-    PASTIX_INT fcolnum = solvmtx->cblktab[itercblk].fcolnum;             \
-    PASTIX_INT trsidx  = trscltb[itercblk][therow-fcolnum];              \
-    PASTIX_INT validx  = (iter-1)*dof*dof + iterdofcol*dof + iterdofrow; \
+    pastix_int_t fcolnum = solvmtx->cblktab[itercblk].fcolnum;             \
+    pastix_int_t trsidx  = trscltb[itercblk][therow-fcolnum];              \
+    pastix_int_t validx  = (iter-1)*dof*dof + iterdofcol*dof + iterdofrow; \
                                                                   \
     (*transcsc)[trsidx] = val[validx];                            \
     trowtab[trsidx] = thecol;                                     \
@@ -257,9 +257,9 @@ void _set_csc_row_val(const SolverMatrix *solvmtx,
     {                                                           \
       for (iter=0; iter<CSC_COLNBR(thecsc,index); iter++)       \
       {                                                         \
-        PASTIX_INT   *t = &(CSC_FROW(thecsc,index,iter));              \
-        PASTIX_FLOAT *v = &(CSC_FVAL(thecsc,index,iter));              \
-        PASTIX_INT    n = CSC_COL(thecsc,index,iter+1)-                \
+        pastix_int_t   *t = &(CSC_FROW(thecsc,index,iter));              \
+        pastix_float_t *v = &(CSC_FVAL(thecsc,index,iter));              \
+        pastix_int_t    n = CSC_COL(thecsc,index,iter+1)-                \
           CSC_COL(thecsc,index,iter);                           \
         void * sortptr[2];                                      \
         sortptr[0] = t;                                         \
@@ -275,10 +275,10 @@ void _set_csc_row_val(const SolverMatrix *solvmtx,
         {                                                       \
           for (iter=0; iter<CSC_COLNBR(thecsc,index); iter++)   \
           {                                                     \
-            PASTIX_INT   *t = &(trowtab[CSC_COL(thecsc,index,iter)]);  \
-            PASTIX_FLOAT *v = &((*transcsc)[CSC_COL(thecsc,            \
+            pastix_int_t   *t = &(trowtab[CSC_COL(thecsc,index,iter)]);  \
+            pastix_float_t *v = &((*transcsc)[CSC_COL(thecsc,            \
                                              index,iter)]);     \
-            PASTIX_INT n;                                              \
+            pastix_int_t n;                                              \
             void * sortptr[2];                                  \
                                                                 \
             n = CSC_COL(thecsc,index,iter+1) -                  \
@@ -323,34 +323,34 @@ void _set_csc_row_val(const SolverMatrix *solvmtx,
  ******************************************************************************/
 void CscOrdistrib(CscMatrix          *thecsc,
                   char               *Type,
-                  PASTIX_FLOAT             **transcsc,
+                  pastix_float_t             **transcsc,
                   const Order        *ord,
-                  PASTIX_INT                 Nrow,
-                  PASTIX_INT                 Ncol,
-                  PASTIX_INT                 Nnzero,
-                  PASTIX_INT                *colptr,
-                  PASTIX_INT                *rowind,
-                  PASTIX_FLOAT              *val,
-                  PASTIX_INT                 forcetrans,
+                  pastix_int_t                 Nrow,
+                  pastix_int_t                 Ncol,
+                  pastix_int_t                 Nnzero,
+                  pastix_int_t                *colptr,
+                  pastix_int_t                *rowind,
+                  pastix_float_t              *val,
+                  pastix_int_t                 forcetrans,
                   const SolverMatrix *solvmtx,
-                  PASTIX_INT                 procnum,
-                  PASTIX_INT                 dof)
+                  pastix_int_t                 procnum,
+                  pastix_int_t                 dof)
 {
-  PASTIX_INT   index, itercol, newcol, iter, rowp1,colidx;
-  PASTIX_INT   itercblk;
-  PASTIX_INT   itercblk2;
-  PASTIX_INT  *globcoltab = NULL;
-  PASTIX_INT   strdcol    = 0;
-  PASTIX_INT **trscltb    = NULL;
-  PASTIX_INT  *trowtab    = NULL;
-  PASTIX_INT  *cachetab   = NULL;
-  PASTIX_INT   therow;
-  PASTIX_INT   iterdofrow;
-  PASTIX_INT   iterdofcol;
-  PASTIX_INT   nodeidx;
-  PASTIX_INT   colsize;
+  pastix_int_t   index, itercol, newcol, iter, rowp1,colidx;
+  pastix_int_t   itercblk;
+  pastix_int_t   itercblk2;
+  pastix_int_t  *globcoltab = NULL;
+  pastix_int_t   strdcol    = 0;
+  pastix_int_t **trscltb    = NULL;
+  pastix_int_t  *trowtab    = NULL;
+  pastix_int_t  *cachetab   = NULL;
+  pastix_int_t   therow;
+  pastix_int_t   iterdofrow;
+  pastix_int_t   iterdofcol;
+  pastix_int_t   nodeidx;
+  pastix_int_t   colsize;
   /* To use common macro with CscdOrdistrib */
-  PASTIX_INT  *g2l        = NULL;
+  pastix_int_t  *g2l        = NULL;
   (void)Nrow; (void)Nnzero; (void)procnum;
 
 #ifdef CSC_LOG
@@ -358,7 +358,7 @@ void CscOrdistrib(CscMatrix          *thecsc,
 #endif
   thecsc->type = Type[1];
   /* Global coltab */
-  MALLOC_INTERN(globcoltab,Ncol+1, PASTIX_INT);
+  MALLOC_INTERN(globcoltab,Ncol+1, pastix_int_t);
 
   /* globcoltab will contain the number of element in each column
    of the symetrized matrix in the new ordering */
@@ -422,7 +422,7 @@ void CscOrdistrib(CscMatrix          *thecsc,
   CSC_ALLOC;
 
   /* Tab: contain the column block number or -1 if not local */
-  MALLOC_INTERN(cachetab, (Ncol+1)*dof, PASTIX_INT);
+  MALLOC_INTERN(cachetab, (Ncol+1)*dof, pastix_int_t);
   for (itercol=0; itercol<(Ncol+1)*dof; itercol++)
     cachetab[itercol] = -1;
   for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++)
@@ -554,11 +554,11 @@ void CscOrdistrib(CscMatrix          *thecsc,
  *                                                                            *
  * Fill in *thecsc* CSC matrix in column block representation.                *
  *                                                                            *
- * - Construct cachetab (sizeof(PASTIX_INT)*globalNbCol) which will contain        *
+ * - Construct cachetab (sizeof(pastix_int_t)*globalNbCol) which will contain        *
  *   the column block wich will own each column (internal numerotation),      *
  *   or -1 if not local                   *
  *                        *
- * - Build newcoltab (sizeof(PASTIX_INT)*globalNbCol) which will contain the         *
+ * - Build newcoltab (sizeof(pastix_int_t)*globalNbCol) which will contain the         *
  *   coltab corresponding to the local internal CSCd.             *
  *   This CSCd correspond to the given CSCd adding upper part in        *
  *   Symmetric matrix.                    *
@@ -617,60 +617,60 @@ void CscOrdistrib(CscMatrix          *thecsc,
  ******************************************************************************/
 void CscdOrdistrib(CscMatrix          *thecsc,
                    char               *Type,
-                   PASTIX_FLOAT             **transcsc,
+                   pastix_float_t             **transcsc,
                    const Order        *ord,
-                   PASTIX_INT                 Ncol,
-                   PASTIX_INT                *colptr,
-                   PASTIX_INT                *rowind,
-                   PASTIX_FLOAT              *val,
-                   PASTIX_INT                *l2g,
-                   PASTIX_INT                 gNcol,
-                   PASTIX_INT                *g2l,
-                   PASTIX_INT                 forcetrans,
+                   pastix_int_t                 Ncol,
+                   pastix_int_t                *colptr,
+                   pastix_int_t                *rowind,
+                   pastix_float_t              *val,
+                   pastix_int_t                *l2g,
+                   pastix_int_t                 gNcol,
+                   pastix_int_t                *g2l,
+                   pastix_int_t                 forcetrans,
                    const SolverMatrix *solvmtx,
-                   PASTIX_INT                 procnum,
-                   PASTIX_INT                 dof,
+                   pastix_int_t                 procnum,
+                   pastix_int_t                 dof,
                    MPI_Comm            comm)
 {
-  PASTIX_INT          index;
-  PASTIX_INT          itercol;
-  PASTIX_INT          newcol;
-  PASTIX_INT          loccol;
-  PASTIX_INT          iter;
-  PASTIX_INT          rowp1;
-  PASTIX_INT          colidx;
-  PASTIX_INT          itercblk;
-  PASTIX_INT          itercblk2;
-  PASTIX_INT          strdcol     = 0;
-  PASTIX_INT        **trscltb     = NULL;
-  PASTIX_INT         *trowtab     = NULL;
-  PASTIX_INT         *cachetab    = NULL;
+  pastix_int_t          index;
+  pastix_int_t          itercol;
+  pastix_int_t          newcol;
+  pastix_int_t          loccol;
+  pastix_int_t          iter;
+  pastix_int_t          rowp1;
+  pastix_int_t          colidx;
+  pastix_int_t          itercblk;
+  pastix_int_t          itercblk2;
+  pastix_int_t          strdcol     = 0;
+  pastix_int_t        **trscltb     = NULL;
+  pastix_int_t         *trowtab     = NULL;
+  pastix_int_t         *cachetab    = NULL;
   int          commSize;
-  PASTIX_INT          proc;
-  PASTIX_INT         *tosend      = NULL;
+  pastix_int_t          proc;
+  pastix_int_t         *tosend      = NULL;
   MPI_Request *tosend_req  = NULL;
   MPI_Request *tosend_creq = NULL;
   MPI_Request *tosend_rreq = NULL;
   MPI_Request *tosend_vreq = NULL;
-  PASTIX_INT         *torecv      = NULL;
+  pastix_int_t         *torecv      = NULL;
   MPI_Request *torecv_req  = NULL;
-  PASTIX_INT         *tosend_cnt  = NULL;
-  PASTIX_INT        **tosend_col  = NULL;
-  PASTIX_INT        **tosend_row  = NULL;
-  PASTIX_FLOAT      **tosend_val  = NULL;
-  PASTIX_INT        **torecv_col  = NULL;
-  PASTIX_INT        **torecv_row  = NULL;
-  PASTIX_FLOAT      **torecv_val  = NULL;
-  PASTIX_INT         *newcoltab   = NULL;
-  PASTIX_INT          owner;
-  PASTIX_INT          therow;
+  pastix_int_t         *tosend_cnt  = NULL;
+  pastix_int_t        **tosend_col  = NULL;
+  pastix_int_t        **tosend_row  = NULL;
+  pastix_float_t      **tosend_val  = NULL;
+  pastix_int_t        **torecv_col  = NULL;
+  pastix_int_t        **torecv_row  = NULL;
+  pastix_float_t      **torecv_val  = NULL;
+  pastix_int_t         *newcoltab   = NULL;
+  pastix_int_t          owner;
+  pastix_int_t          therow;
 #ifndef FORCE_NOMPI
   MPI_Status   status;
 #endif
-  PASTIX_INT          iterdofrow;
-  PASTIX_INT          iterdofcol;
-  PASTIX_INT          nodeidx;
-  PASTIX_INT          colsize;
+  pastix_int_t          iterdofrow;
+  pastix_int_t          iterdofcol;
+  pastix_int_t          nodeidx;
+  pastix_int_t          colsize;
   (void)comm;
 
 #ifdef CSC_LOG
@@ -688,7 +688,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   TEST_MPI("MPI_Comm_size");
 
   /* tosend will count the number of coefficient to send */
-  MALLOC_INTERN(tosend, commSize, PASTIX_INT);
+  MALLOC_INTERN(tosend, commSize, pastix_int_t);
   for (proc = 0; proc < commSize; proc++)
     tosend[proc] = 0;
   MALLOC_INTERN(tosend_req,  commSize, MPI_Request);
@@ -697,7 +697,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   MALLOC_INTERN(tosend_vreq, commSize, MPI_Request);
 
   /* cachetab: contain the column block or -1 if not local */
-  MALLOC_INTERN(cachetab, (gNcol+1)*dof, PASTIX_INT);
+  MALLOC_INTERN(cachetab, (gNcol+1)*dof, pastix_int_t);
   for (itercol=0; itercol< (gNcol+1)*dof; itercol++)
     cachetab[itercol] = -1;
   for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++)
@@ -712,7 +712,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
   /* newcoltab will contain the number of element in each column
    of the symetrized matrix in the new ordering */
-  MALLOC_INTERN(newcoltab, gNcol+1, PASTIX_INT);
+  MALLOC_INTERN(newcoltab, gNcol+1, pastix_int_t);
 
   for(index=0; index<(gNcol+1); index++)
     newcoltab[index] = 0;
@@ -746,7 +746,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   }
 
   /* Will recv information about what will be received from other processors */
-  MALLOC_INTERN(torecv, commSize, PASTIX_INT);
+  MALLOC_INTERN(torecv, commSize, pastix_int_t);
   for (proc = 0; proc < commSize; proc++)
     torecv[proc] = 0;
 
@@ -767,18 +767,18 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
   /* Will contains values from other processors to add to the local
    internal CSCD */
-  MALLOC_INTERN(tosend_col, commSize, PASTIX_INT*);
-  MALLOC_INTERN(tosend_row, commSize, PASTIX_INT*);
-  MALLOC_INTERN(tosend_val, commSize, PASTIX_FLOAT*);
-  MALLOC_INTERN(tosend_cnt, commSize, PASTIX_INT);
+  MALLOC_INTERN(tosend_col, commSize, pastix_int_t*);
+  MALLOC_INTERN(tosend_row, commSize, pastix_int_t*);
+  MALLOC_INTERN(tosend_val, commSize, pastix_float_t*);
+  MALLOC_INTERN(tosend_cnt, commSize, pastix_int_t);
 
   for (proc = 0; proc < commSize; proc++)
   {
     if (proc != procnum && tosend[proc] > 0)
     {
-      MALLOC_INTERN(tosend_col[proc], tosend[proc], PASTIX_INT);
-      MALLOC_INTERN(tosend_row[proc], tosend[proc], PASTIX_INT);
-      MALLOC_INTERN(tosend_val[proc], tosend[proc]*dof*dof, PASTIX_FLOAT);
+      MALLOC_INTERN(tosend_col[proc], tosend[proc], pastix_int_t);
+      MALLOC_INTERN(tosend_row[proc], tosend[proc], pastix_int_t);
+      MALLOC_INTERN(tosend_val[proc], tosend[proc]*dof*dof, pastix_float_t);
     }
     tosend_cnt[proc] = 0;
   }
@@ -815,7 +815,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
           memcpy(&(tosend_val[owner][tosend_cnt[owner]*dof*dof]),
                  &(val[(iter-1)*dof*dof]),
-                 sizeof(PASTIX_FLOAT)*dof*dof);
+                 sizeof(pastix_float_t)*dof*dof);
           tosend_cnt[owner]++;
         }
       }
@@ -857,16 +857,16 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   memFree_null(torecv_req);
 
   /* Receiving information from other processors and updating newcoltab */
-  MALLOC_INTERN(torecv_col, commSize, PASTIX_INT*);
-  MALLOC_INTERN(torecv_row, commSize, PASTIX_INT*);
-  MALLOC_INTERN(torecv_val, commSize, PASTIX_FLOAT*);
+  MALLOC_INTERN(torecv_col, commSize, pastix_int_t*);
+  MALLOC_INTERN(torecv_row, commSize, pastix_int_t*);
+  MALLOC_INTERN(torecv_val, commSize, pastix_float_t*);
   for (proc = 0; proc < commSize; proc++)
   {
     if (proc != procnum && torecv[proc] > 0 )
     {
-      MALLOC_INTERN(torecv_col[proc], torecv[proc], PASTIX_INT);
-      MALLOC_INTERN(torecv_row[proc], torecv[proc], PASTIX_INT);
-      MALLOC_INTERN(torecv_val[proc], torecv[proc]*dof*dof, PASTIX_FLOAT);
+      MALLOC_INTERN(torecv_col[proc], torecv[proc], pastix_int_t);
+      MALLOC_INTERN(torecv_row[proc], torecv[proc], pastix_int_t);
+      MALLOC_INTERN(torecv_val[proc], torecv[proc]*dof*dof, pastix_float_t);
       CALL_MPI MPI_Recv(torecv_col[proc], torecv[proc], COMM_INT,
                         proc, 1, comm, &status );
       TEST_MPI("MPI_Recv");
@@ -1152,7 +1152,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
  ******************************************************************************/
 void CscExit(CscMatrix *thecsc)
 {
-  PASTIX_INT itercscf;
+  pastix_int_t itercscf;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscExit \n");

@@ -24,22 +24,22 @@ typedef struct SparRow {
     | for all matrices in CSR format 
     |---------------------------------------------*/
 
-  PASTIX_INT      n;
-  PASTIX_INT     *nnzrow; /* length of each row                               */
+  pastix_int_t      n;
+  pastix_int_t     *nnzrow; /* length of each row                               */
   double **ma;     /* pointer-to-pointer to store nonzero entries      */
-  PASTIX_INT    **ja;     /* pointer-to-pointer to store column indices       */
-  PASTIX_INT      inarow; /* This flag means the matrix has been allocated as 
+  pastix_int_t    **ja;     /* pointer-to-pointer to store column indices       */
+  pastix_int_t      inarow; /* This flag means the matrix has been allocated as 
 		      a single block of memory; it must be desallocated 
 		      in consequence                                   */
-  PASTIX_INT     *jatab;  /* Used if inarow == 1 to store the the matrix in 
+  pastix_int_t     *jatab;  /* Used if inarow == 1 to store the the matrix in 
 		      two contigue block of memory                     */
   double  *matab;
 } SparMat;
 
 
-PASTIX_INT initCS (csptr amat, PASTIX_INT len);
-PASTIX_INT cleanCS(csptr amat);
-PASTIX_INT CSnnz  (csptr mat);
-PASTIX_INT CS_Perm(csptr mat, PASTIX_INT *perm);
+pastix_int_t initCS (csptr amat, pastix_int_t len);
+pastix_int_t cleanCS(csptr amat);
+pastix_int_t CSnnz  (csptr mat);
+pastix_int_t CS_Perm(csptr mat, pastix_int_t *perm);
 
 #endif

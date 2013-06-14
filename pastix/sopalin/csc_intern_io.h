@@ -25,7 +25,7 @@
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-PASTIX_INT CscSave(const CscMatrix * const cscptr, 
+pastix_int_t CscSave(const CscMatrix * const cscptr, 
 	    FILE            * const stream);
 
 /*
@@ -37,7 +37,7 @@ PASTIX_INT CscSave(const CscMatrix * const cscptr,
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-PASTIX_INT CscBSave(const CscMatrix * const cscptr, 
+pastix_int_t CscBSave(const CscMatrix * const cscptr, 
 	     FILE            * const stream);
 
 /* 
@@ -58,7 +58,7 @@ PASTIX_INT CscBSave(const CscMatrix * const cscptr,
      cscprt - the internal CSCd structure to load.
      stream - the FILE to write into, open in read mode. 
 */
-PASTIX_INT CscLoad(CscMatrix * cscptr, 
+pastix_int_t CscLoad(CscMatrix * cscptr, 
 	    FILE      * stream);
 
 /*
@@ -70,7 +70,7 @@ PASTIX_INT CscLoad(CscMatrix * cscptr,
     cscprt - the internal CSCd structure to load.
     stream - the FILE to write into, open in read mode. 
 */
-PASTIX_INT CscBLoad(CscMatrix * cscptr, 
+pastix_int_t CscBLoad(CscMatrix * cscptr, 
 	     FILE      * stream);
 
 #endif /* CSC_INTERN_IO_H */

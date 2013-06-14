@@ -82,30 +82,30 @@ void updo_thread ( SolverMatrix *datacode, SopalinParam *sopaparam )
 void* up_down_smp ( void *arg )
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t               me           = argument->me;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
   SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   Thread_Data_t    *thread_data  = sopalin_data->thread_data[me];
   /* Taille et buffer de communication (inutilisé si thread comm) */
   void *            updo_buffer      = NULL;
-  PASTIX_INT               updo_buffer_size = 0;
-  PASTIX_FLOAT            *ga,*gb,*gc;
-  PASTIX_INT               i,ii,j,size,sizea,stride;
+  pastix_int_t               updo_buffer_size = 0;
+  pastix_float_t            *ga,*gb,*gc;
+  pastix_int_t               i,ii,j,size,sizea,stride;
   int               init;
 #ifdef DEP_SMX
-  PASTIX_INT               count_cblk;
+  pastix_int_t               count_cblk;
 #endif
 #ifndef STORAGE
-  PASTIX_INT               count;
+  pastix_int_t               count;
 #else
   int               itersmx;
-  PASTIX_FLOAT            *lgb;
-  PASTIX_FLOAT            *lgrhs;
+  pastix_float_t            *lgb;
+  pastix_float_t            *lgrhs;
 #endif
 #ifdef PASTIX_DYNSCHED
-  PASTIX_INT               itasktab, itasktab2, nblevel;
-  PASTIX_INT               l;
+  pastix_int_t               itasktab, itasktab2, nblevel;
+  pastix_int_t               l;
   int              *indbubble = NULL;
 #else
   Queue             cblreadyqueue;
@@ -127,14 +127,14 @@ void* up_down_smp ( void *arg )
   MONOTHREAD_BEGIN
   if (sopalin_data->sopar->iparm[IPARM_TRANSPOSE_SOLVE] == API_YES)
     {
-      PASTIX_INT itercblk;
-      PASTIX_INT iun = 1;
-      PASTIX_FLOAT * tmp;
+      pastix_int_t itercblk;
+      pastix_int_t iun = 1;
+      pastix_float_t * tmp;
 
       /* U <- 1/diag(U) * U */
       for (itercblk=0; itercblk<SYMB_CBLKNBR; itercblk++)
         {
-          PASTIX_INT col;
+          pastix_int_t col;
 
           stride = SOLV_STRIDE(itercblk);
           for (col = 0;
@@ -143,10 +143,10 @@ void* up_down_smp ( void *arg )
             {
               if (stride-(col+1) > 0)
                 {
-                  PASTIX_FLOAT d  = ((PASTIX_FLOAT)1.)/SOLV_UCOEFTAB(itercblk)[
+                  pastix_float_t d  = ((pastix_float_t)1.)/SOLV_UCOEFTAB(itercblk)[
                     SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
                     col*(stride+1)];
-                  PASTIX_FLOAT *v = &(SOLV_UCOEFTAB(itercblk)[
+                  pastix_float_t *v = &(SOLV_UCOEFTAB(itercblk)[
                                  SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
                                  col*(stride+1)+1]);
                   SOPALIN_SCAL(stride-(col+1), d, v, iun);
@@ -157,7 +157,7 @@ void* up_down_smp ( void *arg )
       /* L <-  L * diag(U) */
       for (itercblk=0; itercblk<SYMB_CBLKNBR; itercblk++)
         {
-          PASTIX_INT col;
+          pastix_int_t col;
           stride = SOLV_STRIDE(itercblk);
           for (col = 0;
                col < SYMB_LCOLNUM(itercblk)-SYMB_FCOLNUM(itercblk)+1;
@@ -165,10 +165,10 @@ void* up_down_smp ( void *arg )
             {
               if (stride-(col+1) > 0)
                 {
-                  PASTIX_FLOAT d  = SOLV_COEFTAB(itercblk)[
+                  pastix_float_t d  = SOLV_COEFTAB(itercblk)[
                     SOLV_COEFIND(SYMB_BLOKNUM(itercblk))+
                     col*(stride+1)];
-                  PASTIX_FLOAT *v = &(SOLV_COEFTAB(itercblk)[
+                  pastix_float_t *v = &(SOLV_COEFTAB(itercblk)[
                                  SOLV_COEFIND(SYMB_BLOKNUM(itercblk))+
                                  col*(stride+1)+1]);
                   SOPALIN_SCAL(stride-(col+1), d, v, iun);
@@ -206,8 +206,8 @@ void* up_down_smp ( void *arg )
   if (THREAD_COMM_OFF)
     {
       /* Initialisation buffer communication */
-      updo_buffer_size = UPDOWN_SIZETAB*sizeof(PASTIX_INT)+
-        UPDOWN_SM2XMAX*sizeof(PASTIX_FLOAT)*UPDOWN_SM2XNBR;
+      updo_buffer_size = UPDOWN_SIZETAB*sizeof(pastix_int_t)+
+        UPDOWN_SM2XMAX*sizeof(pastix_float_t)*UPDOWN_SM2XNBR;
 
       MALLOC_INTERN(updo_buffer, updo_buffer_size, char);
 
@@ -227,7 +227,7 @@ void* up_down_smp ( void *arg )
   for (i=0;i<SYMB_CBLKNBR;i++)
     for (j=0;j<SYMB_LCOLNUM(i)-SYMB_FCOLNUM(i)+1;j++)
     {
-      UPDOWN_SM2XTAB[UPDOWN_SM2XIND(i)+j] += 3.0*(PASTIX_FLOAT)SYMB_NODENBR;
+      UPDOWN_SM2XTAB[UPDOWN_SM2XIND(i)+j] += 3.0*(pastix_float_t)SYMB_NODENBR;
     }
 #endif /* UPDO_DEADCODE */
 
@@ -293,7 +293,7 @@ void* up_down_smp ( void *arg )
 
       for (i=0;i<datacode->ttsknbr[bubnum];i++)
       {
-        PASTIX_INT task = datacode->ttsktab[bubnum][i];
+        pastix_int_t task = datacode->ttsktab[bubnum][i];
         if (!UPDOWN_CTRBCNT(task))
         {
           queueAdd(&(sopalin_data->taskqueue[bubnum]), task, ((double)TASK_PRIONUM(task)));
@@ -368,7 +368,7 @@ void* up_down_smp ( void *arg )
   itasktab  = me;
   itasktab2 = me;
   while(1){
-    PASTIX_INT stolen, bloknum;
+    pastix_int_t stolen, bloknum;
     ii = API_CALL(sopalin_dynsched_getNexTask)( sopalin_data, datacode, thread_data,
                                                 &itasktab, &itasktab2, &bloknum, me );
 
@@ -589,7 +589,7 @@ void* up_down_smp ( void *arg )
 
         if (SYMB_CBLKNUM(j)>0)
         {
-          PASTIX_INT cblknum = SYMB_CBLKNUM(j);
+          pastix_int_t cblknum = SYMB_CBLKNUM(j);
           if (sopalin_data->sopar->iparm[IPARM_SCHUR] == API_YES &&
               SYMB_LCOLNUM(cblknum) == sopalin_data->sopar->gN*sopalin_data->sopar->iparm[IPARM_DOF_NBR]-1)
             continue;
@@ -656,7 +656,7 @@ void* up_down_smp ( void *arg )
 #  ifndef FORCE_NOMPI
         else
         {
-          PASTIX_INT infotab[UPDOWN_SIZETAB];
+          pastix_int_t infotab[UPDOWN_SIZETAB];
           int tabsize[2];
 
           if (sopalin_data->sopar->iparm[IPARM_SCHUR] == API_YES &&
@@ -687,15 +687,15 @@ void* up_down_smp ( void *arg )
 
           if (FANIN_COEFTAB(SOLV_FTGTIND(j)) == NULL)
           {
-            PASTIX_INT k;
+            pastix_int_t k;
             MALLOC_INTERN(FANIN_COEFTAB(SOLV_FTGTIND(j)),
-                          tabsize[1], PASTIX_FLOAT);
+                          tabsize[1], pastix_float_t);
             for (k=0; k<tabsize[1]; k++)
               FANIN_COEFTAB(SOLV_FTGTIND(j))[k] = fzero;
           }
 #    ifdef MEMORY_USAGE
           ASSERTDBG(((unsigned long)(*(((double*)FANIN_COEFTAB(SOLV_FTGTIND(j)))-1))) ==
-                    sizeof(PASTIX_FLOAT) * UPDOWN_SM2XNBR *
+                    sizeof(pastix_float_t) * UPDOWN_SM2XNBR *
                     (FANIN_LCOLNUM(SOLV_FTGTIND(j)) - FANIN_FCOLNUM(SOLV_FTGTIND(j)) + 1)
                     , MOD_SOPALIN);
 #    endif
@@ -769,11 +769,11 @@ void* up_down_smp ( void *arg )
         gb     =&(UPDOWN_SM2XTAB[UPDOWN_SM2XIND(i)]);
         stride = SOLV_STRIDE(i);
         size   = SYMB_LCOLNUM(i)-SYMB_FCOLNUM(i)+1;
-        PASTIX_INT jdiag;
-        PASTIX_INT kdiag;
+        pastix_int_t jdiag;
+        pastix_int_t kdiag;
         for (jdiag=0;jdiag<UPDOWN_SM2XNBR;jdiag++)
         {
-          PASTIX_INT dec = jdiag*UPDOWN_SM2XSZE;
+          pastix_int_t dec = jdiag*UPDOWN_SM2XSZE;
           for (kdiag=0;kdiag<size;kdiag++)
             gb[dec+kdiag] /= ga[kdiag+kdiag*stride];
         }
@@ -864,8 +864,8 @@ void* up_down_smp ( void *arg )
 #      ifdef PASTIX_DYNSCHED
     while (bubnum != -1)
     {
-      PASTIX_INT fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
-      PASTIX_INT lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
+      pastix_int_t fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
+      pastix_int_t lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
       for (ii=(me-fcandnum);ii < datacode->ttsknbr[bubnum]; ii+=(lcandnum-fcandnum+1))
 #      else
     for (ii=0; ii < datacode->ttsknbr[bubnum]; ii++)
@@ -898,7 +898,7 @@ void* up_down_smp ( void *arg )
 
       for (j=0;j<UPDOWN_SM2XNBR;j++)
       {
-        PASTIX_INT k, dec = j*UPDOWN_SM2XSZE;
+        pastix_int_t k, dec = j*UPDOWN_SM2XSZE;
         for (k=0;k<size;k++)
           gb[dec+k] /= ga[k+k*stride];
       }
@@ -992,7 +992,7 @@ void* up_down_smp ( void *arg )
       {
         for (i=0;i<datacode->ttsknbr[bubnum];i++)
         {
-          PASTIX_INT task = datacode->ttsktab[bubnum][i];
+          pastix_int_t task = datacode->ttsktab[bubnum][i];
           queueAdd(&(sopalin_data->taskqueue[bubnum]), task, -((double)TASK_PRIONUM(task)));
           if (task > (SOLV_TASKNBR-1))
             errorPrint("Pb task trop grand\n");
@@ -1257,7 +1257,7 @@ void* up_down_smp ( void *arg )
         /* if the contribution is local */
         else
         {
-          PASTIX_INT infotab[UPDOWN_SIZETAB];
+          pastix_int_t infotab[UPDOWN_SIZETAB];
 
           infotab[0] = SYMB_FCOLNUM(i);
           infotab[1] = SYMB_LCOLNUM(i);
@@ -1268,8 +1268,8 @@ void* up_down_smp ( void *arg )
                count<UPDOWN_LISTPTR(UPDOWN_GCBLK2LIST(infotab[2])+1);
                count++)
           {
-            PASTIX_INT kk = UPDOWN_LISTCBLK(count);
-            PASTIX_INT k  = UPDOWN_LISTBLOK(count);
+            pastix_int_t kk = UPDOWN_LISTCBLK(count);
+            pastix_int_t k  = UPDOWN_LISTBLOK(count);
 
             ASSERTDBG((SYMB_FROWNUM(k)>=infotab[0]) &&
                       (SYMB_LROWNUM(k)<=infotab[1]),MOD_SOPALIN);
@@ -1407,9 +1407,9 @@ void* up_down_smp ( void *arg )
 #  ifdef SOPALIN_LU
   if (sopalin_data->sopar->iparm[IPARM_TRANSPOSE_SOLVE] == API_YES)
     {
-      PASTIX_INT itercblk;
-      PASTIX_INT iun = 1;
-      PASTIX_FLOAT * tmp;
+      pastix_int_t itercblk;
+      pastix_int_t iun = 1;
+      pastix_float_t * tmp;
       for (itercblk=0; itercblk<SYMB_CBLKNBR; itercblk++)
         {
           tmp = SOLV_COEFTAB(itercblk);
@@ -1420,7 +1420,7 @@ void* up_down_smp ( void *arg )
       /* U <- diag(u) * U */
       for (itercblk=0; itercblk<SYMB_CBLKNBR; itercblk++)
         {
-          PASTIX_INT col;
+          pastix_int_t col;
           stride = SOLV_STRIDE(itercblk);
           for (col = 0;
                col < SYMB_LCOLNUM(itercblk)-SYMB_FCOLNUM(itercblk)+1;
@@ -1428,10 +1428,10 @@ void* up_down_smp ( void *arg )
             {
               if (stride-(col+1) > 0)
                 {
-                  PASTIX_FLOAT d = SOLV_UCOEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
+                  pastix_float_t d = SOLV_UCOEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
                                                     col*(stride+1)];
 
-                  PASTIX_FLOAT *v = &(SOLV_UCOEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
+                  pastix_float_t *v = &(SOLV_UCOEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
                                                        col*(stride+1)+1]);
                   SOPALIN_SCAL(stride-(col+1), d, v, iun);
                 }
@@ -1441,7 +1441,7 @@ void* up_down_smp ( void *arg )
       /* L <- L * 1/diag(U) */
       for (itercblk=0; itercblk<SYMB_CBLKNBR; itercblk++)
         {
-          PASTIX_INT col;
+          pastix_int_t col;
           stride = SOLV_STRIDE(itercblk);
           for (col = 0;
                col < SYMB_LCOLNUM(itercblk)-SYMB_FCOLNUM(itercblk)+1;
@@ -1449,9 +1449,9 @@ void* up_down_smp ( void *arg )
             {
               if (stride-(col+1) > 0)
                 {
-                  PASTIX_FLOAT d = ((PASTIX_FLOAT)1.)/SOLV_COEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
+                  pastix_float_t d = ((pastix_float_t)1.)/SOLV_COEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
                                                                col*(stride+1)];
-                  PASTIX_FLOAT *v = &(SOLV_COEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
+                  pastix_float_t *v = &(SOLV_COEFTAB(itercblk)[SOLV_COEFIND(SYMB_BLOKNUM(itercblk)) +
                                                       col*(stride+1)+1]);
                   SOPALIN_SCAL(stride-(col+1), d, v, iun);
                 }

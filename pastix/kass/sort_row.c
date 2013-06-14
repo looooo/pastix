@@ -15,7 +15,7 @@ void sort_row(csptr P)
   /* This function sort all the row of a symbolic matrix (just the pattern) by ascending indices */
   /* This is done in place                                                                       */
   /***********************************************************************************************/
-  PASTIX_INT i;
+  pastix_int_t i;
   
   for(i=0;i<P->n;i++)
     if(P->nnzrow[i] > 1)

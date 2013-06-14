@@ -16,33 +16,33 @@
 #undef DEBUG_BLEND
 
 /** reduction is the percentage of the total AUB size that we do not want to violate **/
-PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
+pastix_int_t Malt2(SolverMatrix *solvmtx, double reduction)
 {
-  const PASTIX_INT fanFixSize = sizeof(FanInTarget);
-  PASTIX_INT p, procdst;
-  PASTIX_INT i, j, cursor=0;
-  PASTIX_INT accessnbr=0;
-  PASTIX_INT *ftgtsizetab   = NULL;
-  PASTIX_INT *ftgtaccesstab = NULL;
-  PASTIX_INT *extraftgtcurtab   = NULL;
-  PASTIX_INT *extraftgtfirtab   = NULL;
-  PASTIX_INT extracursor    = 0;
-  PASTIX_INT totalftgtsize = 0;
-  PASTIX_INT *ftgtsendnbr  = NULL;
-  PASTIX_INT *ftgtcursor   = NULL;
-  PASTIX_INT **ftgtsendtab = NULL;
-  PASTIX_INT allocmem; /* the allocated memory */
-  PASTIX_INT maxmem; /* the max memory       */
-  PASTIX_INT maxalloc = 0;
-  PASTIX_INT overmem = 0;  /* the excedent memmory that can't be overlap by fanboth */
-  PASTIX_INT extraftgtnbr = 0; /* the number of extra fan in target */
+  const pastix_int_t fanFixSize = sizeof(FanInTarget);
+  pastix_int_t p, procdst;
+  pastix_int_t i, j, cursor=0;
+  pastix_int_t accessnbr=0;
+  pastix_int_t *ftgtsizetab   = NULL;
+  pastix_int_t *ftgtaccesstab = NULL;
+  pastix_int_t *extraftgtcurtab   = NULL;
+  pastix_int_t *extraftgtfirtab   = NULL;
+  pastix_int_t extracursor    = 0;
+  pastix_int_t totalftgtsize = 0;
+  pastix_int_t *ftgtsendnbr  = NULL;
+  pastix_int_t *ftgtcursor   = NULL;
+  pastix_int_t **ftgtsendtab = NULL;
+  pastix_int_t allocmem; /* the allocated memory */
+  pastix_int_t maxmem; /* the max memory       */
+  pastix_int_t maxalloc = 0;
+  pastix_int_t overmem = 0;  /* the excedent memmory that can't be overlap by fanboth */
+  pastix_int_t extraftgtnbr = 0; /* the number of extra fan in target */
   ExtraFtgt *extraftgttab = NULL;
   FanInTarget *newftgttab = NULL;
-  PASTIX_INT *newnumtab          = NULL;
+  pastix_int_t *newnumtab          = NULL;
 #ifdef DEBUG_BLEND
-  PASTIX_INT debugaccess = 0;
-  PASTIX_INT *debugnew2old = NULL;
-  PASTIX_INT *debugtab = NULL;
+  pastix_int_t debugaccess = 0;
+  pastix_int_t *debugnew2old = NULL;
+  pastix_int_t *debugtab = NULL;
 #endif
 
   Queue partialFtgtInd; /** The index of the partial ftgt in the ftgttab **/
@@ -50,19 +50,19 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
   Queue taskQueue; /* the task ordered by priority */
   Queue latestQueue; /* the ftgt ind ordered by the latest updatest order **/
   Queue toSendQueue; /* the ftgt fully aggregated but not sent ordered by decraesing size */ 
-  PASTIX_INT *senttab =  NULL; /** The table to know is an ftgt is already sent **/
+  pastix_int_t *senttab =  NULL; /** The table to know is an ftgt is already sent **/
 
   
   
-  MALLOC_INTERN(ftgtsendnbr, solvmtx->clustnbr, PASTIX_INT);
-  MALLOC_INTERN(ftgtcursor,  solvmtx->clustnbr, PASTIX_INT);
-  MALLOC_INTERN(ftgtsendtab, solvmtx->clustnbr, PASTIX_INT *);
+  MALLOC_INTERN(ftgtsendnbr, solvmtx->clustnbr, pastix_int_t);
+  MALLOC_INTERN(ftgtcursor,  solvmtx->clustnbr, pastix_int_t);
+  MALLOC_INTERN(ftgtsendtab, solvmtx->clustnbr, pastix_int_t *);
 #ifdef DEBUG_BLEND
-  MALLOC_INTERN(debugtab,    solvmtx->ftgtnbr,  PASTIX_INT);
+  MALLOC_INTERN(debugtab,    solvmtx->ftgtnbr,  pastix_int_t);
 #endif
-  MALLOC_INTERN(senttab,     solvmtx->ftgtnbr,  PASTIX_INT); 
+  MALLOC_INTERN(senttab,     solvmtx->ftgtnbr,  pastix_int_t); 
 
-  bzero(senttab, sizeof(PASTIX_INT)*solvmtx->ftgtnbr);
+  bzero(senttab, sizeof(pastix_int_t)*solvmtx->ftgtnbr);
   queueInit(&partialFtgtInd, solvmtx->ftgtnbr/2 + 1);
   queueInit(&partialFtgtExtraInd , solvmtx->ftgtnbr/2 + 1);
   queueInit(&taskQueue , solvmtx->tasknbr);
@@ -74,8 +74,8 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
   /** Compute the size in octets of fan in target **/
   /** And compute the send queues                 **/
   /** Be carefull fan in target are already expanded **/
-  MALLOC_INTERN(ftgtsizetab, solvmtx->ftgtnbr, PASTIX_INT);
-  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(PASTIX_INT));
+  MALLOC_INTERN(ftgtsizetab, solvmtx->ftgtnbr, pastix_int_t);
+  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(pastix_int_t));
  
   for(i=0;i<solvmtx->ftgtnbr;i++)
     {
@@ -88,10 +88,10 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
   for(p=0;p<solvmtx->clustnbr;p++)
     if(ftgtsendnbr[p] > 0)
       {
-	MALLOC_INTERN(ftgtsendtab[p], ftgtsendnbr[p], PASTIX_INT);
+	MALLOC_INTERN(ftgtsendtab[p], ftgtsendnbr[p], pastix_int_t);
       }
   /** Compute the maxmimum memory allowed to AUB allocations **/
-  maxmem = (PASTIX_INT)(((float)reduction*totalftgtsize)/100);
+  maxmem = (pastix_int_t)(((float)reduction*totalftgtsize)/100);
   fprintf(stdout, "Total AUB allocations %ld Coef Allocation %ld pourcentage of AUB/Coef %g \n", 
 	  (long)totalftgtsize, (long)(solvmtx->coefnbr*sizeof(double)), ((float)totalftgtsize)/(solvmtx->coefnbr*sizeof(double))*100 );
   
@@ -102,7 +102,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 	accessnbr++;
       if(solvmtx->tasktab[i].taskid == COMP_1D)
 	{
-	  PASTIX_INT odb_nbr;
+	  pastix_int_t odb_nbr;
 	  odb_nbr = solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].bloknum - solvmtx->tasktab[i].bloknum -1;
 	  for(j=solvmtx->tasktab[i].indnum;j<solvmtx->tasktab[i].indnum + (odb_nbr*(odb_nbr+1))/2;j++)
 	    if(solvmtx->indtab[j] >= 0) 
@@ -111,7 +111,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
     }
 #ifdef DEBUG_BLEND
   {
-    PASTIX_INT debugaccess = 0;
+    pastix_int_t debugaccess = 0;
     for(i=0;i<solvmtx->ftgtnbr;i++)
       debugaccess += solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR];
 
@@ -122,7 +122,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 #endif
 
   /** Fill the ftgt access tab **/
-  MALLOC_INTERN(ftgtaccesstab, accessnbr+1, PASTIX_INT);
+  MALLOC_INTERN(ftgtaccesstab, accessnbr+1, pastix_int_t);
   queueClear(&taskQueue);
   for(i=0;i<solvmtx->tasknbr;i++)
     queueAdd(&taskQueue, i, (double)(solvmtx->tasktab[i].prionum));
@@ -137,7 +137,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 	}
       if(solvmtx->tasktab[i].taskid == COMP_1D)
 	{
-	  PASTIX_INT odb_nbr;
+	  pastix_int_t odb_nbr;
 	  odb_nbr = solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].bloknum - solvmtx->tasktab[i].bloknum -1;
 	  for(j=solvmtx->tasktab[i].indnum;j<solvmtx->tasktab[i].indnum + (odb_nbr*(odb_nbr+1))/2;j++)
 	    if(solvmtx->indtab[j] >= 0) 
@@ -152,7 +152,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 #endif
   
   /** Fill the ftgt send queues **/
-  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(PASTIX_INT));
+  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(pastix_int_t));
   for(i=0;i<solvmtx->ftgtnbr;i++)
     {
       ftgtsendtab[solvmtx->ftgttab[i].infotab[FTGT_PROCDST]][ftgtsendnbr[solvmtx->ftgttab[i].infotab[FTGT_PROCDST]]] = i;
@@ -162,12 +162,12 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
   /** Walk through the ftgt **/
   MALLOC_INTERN(extraftgttab, accessnbr, ExtraFtgt);
 
-  MALLOC_INTERN(extraftgtcurtab, solvmtx->ftgtnbr, PASTIX_INT);
-  MALLOC_INTERN(extraftgtfirtab, solvmtx->ftgtnbr, PASTIX_INT);
-  memset(extraftgtcurtab, -1, solvmtx->ftgtnbr*sizeof(PASTIX_INT));
-  memset(extraftgtfirtab, -1, solvmtx->ftgtnbr*sizeof(PASTIX_INT));
+  MALLOC_INTERN(extraftgtcurtab, solvmtx->ftgtnbr, pastix_int_t);
+  MALLOC_INTERN(extraftgtfirtab, solvmtx->ftgtnbr, pastix_int_t);
+  memset(extraftgtcurtab, -1, solvmtx->ftgtnbr*sizeof(pastix_int_t));
+  memset(extraftgtfirtab, -1, solvmtx->ftgtnbr*sizeof(pastix_int_t));
 
-  bzero(ftgtcursor, solvmtx->clustnbr*sizeof(PASTIX_INT));
+  bzero(ftgtcursor, solvmtx->clustnbr*sizeof(pastix_int_t));
   allocmem = 0;
   extraftgtnbr = 0;
   cursor = 0;
@@ -176,7 +176,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
       /*fprintf(stdout, "%ld     %ld \n", (long)i, (long)allocmem);*/
       if(solvmtx->ftgttab[ftgtaccesstab[i]].infotab[FTGT_CTRBCNT] == solvmtx->ftgttab[ftgtaccesstab[i]].infotab[FTGT_CTRBNBR])
 	{
-	  PASTIX_INT nextaccess;
+	  pastix_int_t nextaccess;
 	  allocmem += ftgtsizetab[ftgtaccesstab[i]];
 
 
@@ -278,7 +278,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
   /* For avoid side effect */
   queueAdd(&partialFtgtInd, solvmtx->ftgtnbr, (double)(solvmtx->ftgtnbr));
   MALLOC_INTERN(newftgttab, solvmtx->ftgtnbr + extracursor, FanInTarget);
-  MALLOC_INTERN(newnumtab,  solvmtx->ftgtnbr, PASTIX_INT);
+  MALLOC_INTERN(newnumtab,  solvmtx->ftgtnbr, pastix_int_t);
   cursor = 0;
   j = 0;
   for(i=0;i<solvmtx->ftgtnbr;i++)
@@ -326,13 +326,13 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 #ifdef DEBUG_BLEND
   /*fprintf(stdout, "Newftgttab constructed \n" );*/
   ASSERT(queueSize(&partialFtgtInd) == 1,MOD_BLEND);
-  MALLOC_INTERN(debugnew2old, solvmtx->ftgtnbr+extracursor, PASTIX_INT);
-  /*memSet(debugnew2old, -1, sizeof(PASTIX_INT)*(solvmtx->ftgtnbr+extracursor));*/
+  MALLOC_INTERN(debugnew2old, solvmtx->ftgtnbr+extracursor, pastix_int_t);
+  /*memSet(debugnew2old, -1, sizeof(pastix_int_t)*(solvmtx->ftgtnbr+extracursor));*/
   for(i=0;i<solvmtx->ftgtnbr+extracursor;i++)
     debugnew2old[i] = -1;
   for(i=0;i<solvmtx->ftgtnbr;i++)
     debugnew2old[newnumtab[i]] = i;
-  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(PASTIX_INT));
+  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(pastix_int_t));
 #endif
   for(i=0;i<solvmtx->ftgtnbr;i++)
       extraftgtcurtab[i] = extraftgtfirtab[i];
@@ -351,9 +351,9 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
   for(p=0;p<solvmtx->clustnbr;p++)
     if(ftgtsendnbr[p] > 0)
       {
-	MALLOC_INTERN(ftgtsendtab[p], ftgtsendnbr[p], PASTIX_INT);
+	MALLOC_INTERN(ftgtsendtab[p], ftgtsendnbr[p], pastix_int_t);
       }
-  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(PASTIX_INT));
+  bzero(ftgtsendnbr,  solvmtx->clustnbr*sizeof(pastix_int_t));
   for(i=0;i<solvmtx->ftgtnbr;i++)
     {
       ftgtsendtab[solvmtx->ftgttab[i].infotab[FTGT_PROCDST]][ftgtsendnbr[solvmtx->ftgttab[i].infotab[FTGT_PROCDST]]] = i;
@@ -378,7 +378,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
     queueAdd(&taskQueue, i, (double)(solvmtx->tasktab[i].prionum));
   while(queueSize(&taskQueue)>0)
     {
-      PASTIX_INT oldindnum;
+      pastix_int_t oldindnum;
       i = queueGet(&taskQueue);
 #ifdef DEBUG_BLEND
       fprintf(stdout, "S: task %ld prionum %ld \n", (long)i, (long)solvmtx->tasktab[i].prionum);
@@ -448,7 +448,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 	}
       if(solvmtx->tasktab[i].taskid == COMP_1D)
 	{
-	  PASTIX_INT odb_nbr;
+	  pastix_int_t odb_nbr;
 	  odb_nbr = solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].bloknum - solvmtx->tasktab[i].bloknum -1;
 	  for(j=solvmtx->tasktab[i].indnum;j<solvmtx->tasktab[i].indnum + (odb_nbr*(odb_nbr+1))/2;j++)
 	    if(solvmtx->indtab[j] >= 0) 
@@ -536,7 +536,7 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 
 #ifdef DEBUG_BLEND
   {
-    PASTIX_INT debugaccess = 0;
+    pastix_int_t debugaccess = 0;
     for(i=0;i<solvmtx->ftgtnbr;i++)
       debugaccess += solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR];
 
@@ -581,10 +581,10 @@ PASTIX_INT Malt2(SolverMatrix *solvmtx, double reduction)
 
 }
 
-PASTIX_INT getFtgtInd2(SolverMatrix *solvmtx, PASTIX_INT *senttab, Queue *toSendQueue, Queue *latestQueue)
+pastix_int_t getFtgtInd2(SolverMatrix *solvmtx, pastix_int_t *senttab, Queue *toSendQueue, Queue *latestQueue)
 {
-  PASTIX_INT ftgtnum = -1;
-  PASTIX_INT ind;
+  pastix_int_t ftgtnum = -1;
+  pastix_int_t ind;
   while(queueSize(toSendQueue)>0)
     {
       ind = queueGet(toSendQueue);
@@ -618,10 +618,10 @@ PASTIX_INT getFtgtInd2(SolverMatrix *solvmtx, PASTIX_INT *senttab, Queue *toSend
   return ftgtnum;
 }
 
-PASTIX_INT getFtgtNextAccess(PASTIX_INT ind, PASTIX_INT accessnbr, PASTIX_INT *ftgtaccesstab)
+pastix_int_t getFtgtNextAccess(pastix_int_t ind, pastix_int_t accessnbr, pastix_int_t *ftgtaccesstab)
 {
-  PASTIX_INT i;
-  PASTIX_INT maxind = -1;
+  pastix_int_t i;
+  pastix_int_t maxind = -1;
   for(i=ind;i<accessnbr;i++)
     {
       if(ftgtaccesstab[i] == ftgtaccesstab[ind])

@@ -32,7 +32,7 @@
 void *ooc_thread(void * arg);
 
 /* Init / Clean */
-int ooc_init          (Sopalin_Data_t * sopalin_data, PASTIX_INT limit);
+int ooc_init          (Sopalin_Data_t * sopalin_data, pastix_int_t limit);
 int ooc_exit          (Sopalin_Data_t * sopalin_data);
 
 /* Step */
@@ -42,13 +42,13 @@ int ooc_defreeze      (Sopalin_Data_t * sopalin_data);
 int ooc_set_step      (Sopalin_Data_t * sopalin_data, int step);
 
 /* Cblk */
-int ooc_wait_for_cblk (Sopalin_Data_t * sopalin_data, PASTIX_INT cblk, int me);
-int ooc_hack_load     (Sopalin_Data_t * sopalin_data, PASTIX_INT cblk, int me);
-int ooc_save_coef     (Sopalin_Data_t * sopalin_data, PASTIX_INT task, PASTIX_INT cblk, int me);
+int ooc_wait_for_cblk (Sopalin_Data_t * sopalin_data, pastix_int_t cblk, int me);
+int ooc_hack_load     (Sopalin_Data_t * sopalin_data, pastix_int_t cblk, int me);
+int ooc_save_coef     (Sopalin_Data_t * sopalin_data, pastix_int_t task, pastix_int_t cblk, int me);
 
 void ooc_receiving    (Sopalin_Data_t * sopalin_data);
 void ooc_received     (Sopalin_Data_t * sopalin_data);
-void ooc_wait_task    (Sopalin_Data_t * sopalin_data, PASTIX_INT task, int me);
+void ooc_wait_task    (Sopalin_Data_t * sopalin_data, pastix_int_t task, int me);
 #else /* OOC */
 
 #define OOC_RECEIVING 
@@ -74,9 +74,9 @@ void ooc_wait_task    (Sopalin_Data_t * sopalin_data, PASTIX_INT task, int me);
 
 #ifdef OOC_FTGT
 /* Ftgt */
-int ooc_wait_for_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me);
-int ooc_reset_ftgt    (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me);
-int ooc_save_ftgt     (Sopalin_Data_t * sopalin_data, PASTIX_INT tasknum, PASTIX_INT ftgtnum, int me);
+int ooc_wait_for_ftgt (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me);
+int ooc_reset_ftgt    (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me);
+int ooc_save_ftgt     (Sopalin_Data_t * sopalin_data, pastix_int_t tasknum, pastix_int_t ftgtnum, int me);
 
 #else
 

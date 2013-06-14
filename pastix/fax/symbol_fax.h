@@ -64,8 +64,8 @@
     for block merge with blocks of left columns. +*/
 
 typedef struct SymbolFaxTlok_ {
-  PASTIX_INT                       frownum;              /*+ First row index            +*/
-  PASTIX_INT                       lrownum;              /*+ Last row index (inclusive) +*/
-  PASTIX_INT                       cblknum;              /*+ Facing column block        +*/
-  PASTIX_INT                       nextnum;              /*+ Index of next block        +*/
+  pastix_int_t                       frownum;              /*+ First row index            +*/
+  pastix_int_t                       lrownum;              /*+ Last row index (inclusive) +*/
+  pastix_int_t                       cblknum;              /*+ Facing column block        +*/
+  pastix_int_t                       nextnum;              /*+ Index of next block        +*/
 } SymbolFaxTlok;

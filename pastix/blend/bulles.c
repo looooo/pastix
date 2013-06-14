@@ -121,10 +121,10 @@ void Bubble_Free(BubbleTree *btree)
 
 */
 int Bubble_Add(BubbleTree * btree, 
-	       PASTIX_INT          fcandnum, 
-	       PASTIX_INT          lcandnum, 
+	       pastix_int_t          fcandnum, 
+	       pastix_int_t          lcandnum, 
 	       double       costlevel, 
-	       PASTIX_INT          treelevel){
+	       pastix_int_t          treelevel){
 
   int i;
 
@@ -261,8 +261,8 @@ void Bubble_Print(const BubbleTree * btree,
                   double totalcost, 
 		  FILE *out)
 {
-  PASTIX_INT i;
-  PASTIX_INT fprocnum, lprocnum;
+  pastix_int_t i;
+  pastix_int_t fprocnum, lprocnum;
   double percent;
   double *subtrees_costs = (double*)malloc( btree->nodenbr * sizeof(double) );
   memset( subtrees_costs, 0, btree->nodenbr * sizeof(double) );

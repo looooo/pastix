@@ -46,13 +46,13 @@ double CscNorm1(const CscMatrix *cscmtx,
 #define CscbMAx API_CALL(CscbMAx)
 void CscbMAx(Sopalin_Data_t       *sopalin_data,
              int                   me,
-             volatile PASTIX_FLOAT       *r,
-             const volatile PASTIX_FLOAT *b,
+             volatile pastix_float_t       *r,
+             const volatile pastix_float_t *b,
              const CscMatrix      *cscmtx,
              const UpDownVector   *updovct,
              const SolverMatrix   *solvmtx,
              MPI_Comm              comm,
-             PASTIX_INT                   transpose);
+             pastix_int_t                   transpose);
 
 
 /*
@@ -75,13 +75,13 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
 #define CscAxPb API_CALL(CscAxPb)
 void CscAxPb(Sopalin_Data_t     *sopalin_data,
              int                 me,
-             PASTIX_FLOAT              *r,
-             const PASTIX_FLOAT        *b,
+             pastix_float_t              *r,
+             const pastix_float_t        *b,
              const CscMatrix    *cscmtx,
              const UpDownVector *updovct,
              const SolverMatrix *solvmtx,
              MPI_Comm            comm,
-             PASTIX_INT                 transpose);
+             pastix_int_t                 transpose);
 
 
 /*
@@ -103,10 +103,10 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
 #define CscBerr API_CALL(CscBerr)
 void CscBerr(Sopalin_Data_t *sopalin_data,
              int            me,
-             const PASTIX_FLOAT   *r,
-             const PASTIX_FLOAT   *s,
-             const PASTIX_INT      colnbr,
-             const PASTIX_INT      smxnbr,
+             const pastix_float_t   *r,
+             const pastix_float_t   *s,
+             const pastix_int_t      colnbr,
+             const pastix_int_t      smxnbr,
              double        *berr,
              MPI_Comm       comm);
 
@@ -132,10 +132,10 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
 #define CscNormErr API_CALL(CscNormErr)
 double CscNormErr(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile PASTIX_FLOAT *r,
-                  const volatile PASTIX_FLOAT *b,
-                  const PASTIX_INT             colnbr,
-                  const PASTIX_INT             smxnbr,
+                  const volatile pastix_float_t *r,
+                  const volatile pastix_float_t *b,
+                  const pastix_int_t             colnbr,
+                  const pastix_int_t             smxnbr,
                   MPI_Comm              comm);
 
 /*
@@ -161,12 +161,12 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
 void CscAx(Sopalin_Data_t       *sopalin_data,
            int                   me,
            const CscMatrix      *cscmtx,
-           const volatile PASTIX_FLOAT *p,
-           volatile PASTIX_FLOAT       *x,
+           const volatile pastix_float_t *p,
+           volatile pastix_float_t       *x,
            const SolverMatrix   *solvmtx,
            const UpDownVector   *updovct,
            MPI_Comm              comm,
-           PASTIX_INT                   transpose);
+           pastix_int_t                   transpose);
 
 /*
  * Function: CscGradAlpha
@@ -192,12 +192,12 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
 #define CscGradAlpha API_CALL(CscGradAlpha)
 void CscGradAlpha(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile PASTIX_FLOAT *r,
-                  const volatile PASTIX_FLOAT *z,
-                  const volatile PASTIX_FLOAT *x,
-                  const volatile PASTIX_FLOAT *p,
-                  PASTIX_INT                   colnbr,
-                  PASTIX_INT                   smxnbr,
+                  const volatile pastix_float_t *r,
+                  const volatile pastix_float_t *z,
+                  const volatile pastix_float_t *x,
+                  const volatile pastix_float_t *p,
+                  pastix_int_t                   colnbr,
+                  pastix_int_t                   smxnbr,
                   double               *alpha,
                   MPI_Comm              comm);
 
@@ -222,11 +222,11 @@ void CscGradAlpha(Sopalin_Data_t       *sopalin_data,
 #define CscGradBeta API_CALL(CscGradBeta)
 void CscGradBeta(Sopalin_Data_t       *sopalin_data,
                  int                   me,
-                 const volatile PASTIX_FLOAT *r,
-                 const volatile PASTIX_FLOAT *z,
-                 PASTIX_INT                   colnbr,
-                 PASTIX_INT                   smxnbr,
-                 PASTIX_FLOAT               *beta,
+                 const volatile pastix_float_t *r,
+                 const volatile pastix_float_t *z,
+                 pastix_int_t                   colnbr,
+                 pastix_int_t                   smxnbr,
+                 pastix_float_t               *beta,
                  MPI_Comm              comm);
 
 /*
@@ -248,10 +248,10 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
 #define CscGmresBeta API_CALL(CscGmresBeta)
 void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile PASTIX_FLOAT *r,
-                  const volatile PASTIX_FLOAT *z,
-                  PASTIX_INT                   colnbr,
-                  PASTIX_INT                   smxnbr,
+                  const volatile pastix_float_t *r,
+                  const volatile pastix_float_t *z,
+                  pastix_int_t                   colnbr,
+                  pastix_int_t                   smxnbr,
                   double               *beta,
                   MPI_Comm              comm);
 #endif /* CSC_INTERN_COMPUTE_H */

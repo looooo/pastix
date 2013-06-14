@@ -292,7 +292,7 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
                 }
             }
           RHS_recv  = (pastix_float_t *) malloc((N)*sizeof(pastix_float_t));
-          MPI_Allreduce(RHS, RHS_recv, N, MPI_PASTIX_FLOAT, MPI_SUM, pastix_comm);
+          MPI_Allreduce(RHS, RHS_recv, N, MPI_pastix_float_t, MPI_SUM, pastix_comm);
           free(RHS);
           *rhs = (pastix_float_t *) malloc((*ncol)*sizeof(pastix_float_t));
 
@@ -318,8 +318,8 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
 
       MPI_Bcast(*colptr, *ncol+1, MPI_pastix_int_t,   0, pastix_comm);
       MPI_Bcast(*rows,    nnz,    MPI_pastix_int_t,   0, pastix_comm);
-      MPI_Bcast(*values,  nnz,    MPI_PASTIX_FLOAT, 0, pastix_comm);
-      MPI_Bcast(*rhs,    *ncol,   MPI_PASTIX_FLOAT, 0, pastix_comm);
+      MPI_Bcast(*values,  nnz,    MPI_pastix_float_t, 0, pastix_comm);
+      MPI_Bcast(*rhs,    *ncol,   MPI_pastix_float_t, 0, pastix_comm);
       MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm);
   }
 

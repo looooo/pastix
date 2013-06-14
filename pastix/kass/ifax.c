@@ -11,14 +11,14 @@
 #include "ifax.h"
 
 
-void ifax(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT levelk, PASTIX_INT  cblknbr, PASTIX_INT *rangtab, PASTIX_INT *perm, PASTIX_INT *iperm, SymbolMatrix *symbmtx)
+void ifax(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_int_t levelk, pastix_int_t  cblknbr, pastix_int_t *rangtab, pastix_int_t *perm, pastix_int_t *iperm, SymbolMatrix *symbmtx)
 {
-  PASTIX_INT i, j, k;
-  PASTIX_INT ii, ind, cblk;
-  PASTIX_INT nnzL;
-  PASTIX_INT *cblkflag  = NULL;
-  PASTIX_INT *tmpj      = NULL;
-  PASTIX_INT *node2cblk = NULL;
+  pastix_int_t i, j, k;
+  pastix_int_t ii, ind, cblk;
+  pastix_int_t nnzL;
+  pastix_int_t *cblkflag  = NULL;
+  pastix_int_t *tmpj      = NULL;
+  pastix_int_t *node2cblk = NULL;
   csptr qmat;
   csptr P;
 
@@ -31,9 +31,9 @@ void ifax(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT levelk, PASTI
   initCS(qmat, cblknbr);
   
 
-  MALLOC_INTERN(cblkflag,  cblknbr, PASTIX_INT);
-  MALLOC_INTERN(node2cblk, n,       PASTIX_INT);
-  MALLOC_INTERN(tmpj,      cblknbr, PASTIX_INT);
+  MALLOC_INTERN(cblkflag,  cblknbr, pastix_int_t);
+  MALLOC_INTERN(node2cblk, n,       pastix_int_t);
+  MALLOC_INTERN(tmpj,      cblknbr, pastix_int_t);
   
   /** Fill the node2cblk vector **/
   for(k=0;k<cblknbr;k++)
@@ -44,8 +44,8 @@ void ifax(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT levelk, PASTI
 
   /**** Build the quotient graph ****/
   /*** NOTE : We build the symmetrized matrix !!***/
-  bzero(cblkflag, sizeof(PASTIX_INT)*cblknbr);
-  bzero(tmpj, sizeof(PASTIX_INT)*cblknbr);
+  bzero(cblkflag, sizeof(pastix_int_t)*cblknbr);
+  bzero(tmpj, sizeof(pastix_int_t)*cblknbr);
   for(k=0;k<cblknbr;k++)
     {
       cblkflag[k] = 1;
@@ -75,8 +75,8 @@ void ifax(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT levelk, PASTI
 
 
       qmat->nnzrow[k] = ind;
-      MALLOC_INTERN(qmat->ja[k], ind, PASTIX_INT);
-      memcpy(qmat->ja[k], tmpj, sizeof(PASTIX_INT)*ind);
+      MALLOC_INTERN(qmat->ja[k], ind, pastix_int_t);
+      memcpy(qmat->ja[k], tmpj, sizeof(pastix_int_t)*ind);
       qmat->ma[k] = NULL;
     }
 

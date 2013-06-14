@@ -7,32 +7,32 @@
 
 */
 
-void API_CALL(factor_diag)  (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT c);
-void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT c);
-void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT c, PASTIX_INT b1, PASTIX_INT b2, PASTIX_INT usediag);
-void API_CALL(add_contrib_local)      (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT b1,PASTIX_INT b2,PASTIX_INT c,PASTIX_INT b3,PASTIX_INT cbl);
-void API_CALL(add_contrib_target)     (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT b1,PASTIX_INT b2,PASTIX_INT task,PASTIX_INT t);
+void API_CALL(factor_diag)  (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c);
+void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c);
+void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c, pastix_int_t b1, pastix_int_t b2, pastix_int_t usediag);
+void API_CALL(add_contrib_local)      (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1,pastix_int_t b2,pastix_int_t c,pastix_int_t b3,pastix_int_t cbl);
+void API_CALL(add_contrib_target)     (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1,pastix_int_t b2,pastix_int_t task,pastix_int_t t);
 
 /*
  * Compute tasks
  */
-void API_CALL(compute_diag)  (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
-void API_CALL(compute_1d)    (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
-void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task, PASTIX_INT i, PASTIX_INT b2);
-void API_CALL(compute_e1)    (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
-void API_CALL(compute_e2)    (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
-void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, PASTIX_INT task);
+void API_CALL(compute_diag)  (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_1d)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task, pastix_int_t i, pastix_int_t b2);
+void API_CALL(compute_e1)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_e2)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, pastix_int_t task);
 
 #include "./compute_gemdm.c"
 #include "./compute_diag.c"
 #include "./compute_trsm.c"
 
 #if (defined COMM_REORDER) || (defined PASTIX_DYNSCHED)
-void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, PASTIX_INT task)
+void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, pastix_int_t task)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
-  PASTIX_INT            btagnum, sendcnt;
-  PASTIX_INT            dest, i;
+  pastix_int_t            btagnum, sendcnt;
+  pastix_int_t            dest, i;
 
   /* Add communication in adapted tasks list */
   /* And add local tasks in lists */
@@ -51,7 +51,7 @@ void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, PASTIX
     {
       MUTEX_LOCK(&(sopalin_data->mutex_comm));
       queueAdd2(sopalin_data->sendqueue, btagnum,
-                (double)(-(dest+1)), (PASTIX_INT)BTAG_PRIONUM(btagnum));
+                (double)(-(dest+1)), (pastix_int_t)BTAG_PRIONUM(btagnum));
       MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
     }
   else
@@ -66,9 +66,9 @@ void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, PASTIX
 #ifdef PASTIX_DYNSCHED
     else
   {
-    PASTIX_INT j;
-    PASTIX_INT firsttask = BTAG_TASKDST(btagnum);
-    PASTIX_INT localtask = firsttask;
+    pastix_int_t j;
+    pastix_int_t firsttask = BTAG_TASKDST(btagnum);
+    pastix_int_t localtask = firsttask;
 
     MUTEX_LOCK(&(sopalin_data->mutex_task[localtask]));
     if ((!TASK_CTRBCNT(localtask))
@@ -131,10 +131,10 @@ void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, PASTIX
  * Task to factorize the diagonal block
  */
 void API_CALL(compute_diag)(Sopalin_Data_t *sopalin_data,
-        PASTIX_INT             me,
-        PASTIX_INT             task)
+        pastix_int_t             me,
+        pastix_int_t             task)
 {
-  PASTIX_INT            c;
+  pastix_int_t            c;
   SolverMatrix  *datacode    = sopalin_data->datacode;
 #ifdef TRACE_SOPALIN
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
@@ -161,20 +161,20 @@ void API_CALL(compute_diag)(Sopalin_Data_t *sopalin_data,
   /* if not last diag, we copy the factorized diagonal block for local and remote task */
   if (SOLV_INDTAB[TASK_INDNUM(task)] != -1)
   {
-    PASTIX_INT N      = SYMB_LCOLNUM(c) - SYMB_FCOLNUM(c) + 1;
-    PASTIX_INT offset = SOLV_COEFIND(SYMB_BLOKNUM(c));
-    PASTIX_INT size   = N * N;
-    PASTIX_INT stride = SOLV_STRIDE(c);
-    PASTIX_FLOAT *ga = NULL;
-    PASTIX_FLOAT *gc = NULL;
+    pastix_int_t N      = SYMB_LCOLNUM(c) - SYMB_FCOLNUM(c) + 1;
+    pastix_int_t offset = SOLV_COEFIND(SYMB_BLOKNUM(c));
+    pastix_int_t size   = N * N;
+    pastix_int_t stride = SOLV_STRIDE(c);
+    pastix_float_t *ga = NULL;
+    pastix_float_t *gc = NULL;
 #ifdef SOPALIN_LU
-    PASTIX_FLOAT *gc2;
+    pastix_float_t *gc2;
 
-    MALLOC_INTERN(gc, 2*size, PASTIX_FLOAT);
+    MALLOC_INTERN(gc, 2*size, pastix_float_t);
     STATS_ADD( 2*size );
     gc2 = gc + size;
 #else
-    MALLOC_INTERN(gc,   size, PASTIX_FLOAT);
+    MALLOC_INTERN(gc,   size, pastix_float_t);
     STATS_ADD( size );
 #endif
     print_debug(DBG_SOPALIN_ALLOC,
@@ -237,15 +237,15 @@ void API_CALL(compute_diag)(Sopalin_Data_t *sopalin_data,
  * The result is stored in a temporary buffer to be added part
  * by part to the target cblk
  */
-void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT c, PASTIX_INT b1, PASTIX_INT b2, PASTIX_INT usediag)
+void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c, pastix_int_t b1, pastix_int_t b2, pastix_int_t usediag)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  PASTIX_FLOAT         *gaik, *gb, *gc;
+  pastix_float_t         *gaik, *gb, *gc;
 #ifdef CHOL_SOPALIN
-  PASTIX_FLOAT         *gajk;
+  pastix_float_t         *gajk;
 #endif
-  PASTIX_INT            dima, dimi, dimj, stride, k;
+  pastix_int_t            dima, dimi, dimj, stride, k;
   (void)b2; (void)gb; (void)usediag;
 
   gb = thread_data->maxbloktab1; /* C in U for LU, B for LDLt */
@@ -305,7 +305,7 @@ void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, PASTIX_INT 
   if ( usediag == 1 )
   {
   int ldw = SOLV_COEFMAX;
-  PASTIX_FLOAT *D = &(SOLV_UCOEFTAB(c)[SOLV_COEFIND(SYMB_BLOKNUM(c))]);
+  pastix_float_t *D = &(SOLV_UCOEFTAB(c)[SOLV_COEFIND(SYMB_BLOKNUM(c))]);
   gb = &(SOLV_COEFTAB(c)[SOLV_COEFIND(b1)]);
 
   API_CALL(CORE_gemdm)(PastixNoTrans,
@@ -358,13 +358,13 @@ void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, PASTIX_INT 
    cbl          - Column block facing b1
 
  */
-void API_CALL(add_contrib_local)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT b1, PASTIX_INT b2, PASTIX_INT c, PASTIX_INT b3, PASTIX_INT cbl)
+void API_CALL(add_contrib_local)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1, pastix_int_t b2, pastix_int_t c, pastix_int_t b3, pastix_int_t cbl)
 {
-  PASTIX_INT frownum, lrownum, ofrownum, olrownum;
-  PASTIX_INT dimi, dimj, stridea, strideb, step, k;
-  PASTIX_FLOAT *ga,*gb;
+  pastix_int_t frownum, lrownum, ofrownum, olrownum;
+  pastix_int_t dimi, dimj, stridea, strideb, step, k;
+  pastix_float_t *ga,*gb;
 #ifdef SOPALIN_LU
-  PASTIX_FLOAT *ga2, *gb2;
+  pastix_float_t *ga2, *gb2;
 #endif /* SOPALIN_LU */
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
@@ -444,7 +444,7 @@ void API_CALL(add_contrib_local)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PA
 #endif
   do {
 #ifdef DEBUG_SOPALIN_NAPA
-    PASTIX_INT trace = 0;
+    pastix_int_t trace = 0;
     /* il peut y avoir plusieurs cibles partielles */
     if (!flag)
       {
@@ -567,10 +567,10 @@ void API_CALL(add_contrib_local)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PA
 #endif
 }
 
-void API_CALL(add_contrib_target)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT b1,PASTIX_INT b2, PASTIX_INT task, PASTIX_INT t)
+void API_CALL(add_contrib_target)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1,pastix_int_t b2, pastix_int_t task, pastix_int_t t)
 {
-  PASTIX_INT dimi,dimj,stridea,strideb,step,k;
-  PASTIX_FLOAT *ga,*gb;
+  pastix_int_t dimi,dimj,stridea,strideb,step,k;
+  pastix_float_t *ga,*gb;
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   (void)task;
@@ -585,20 +585,20 @@ void API_CALL(add_contrib_target)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, P
   ooc_wait_for_ftgt(sopalin_data, t, me);
 
   ASSERTDBG(((unsigned long)(*(((double*)FANIN_COEFTAB(t))-1))) ==
-            sizeof(PASTIX_FLOAT) * ((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) * (FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1)   *
+            sizeof(pastix_float_t) * ((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) * (FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1)   *
                                     ((sopalin_data->sopar->factotype == API_FACT_LU)?2:1))
             , MOD_SOPALIN);
 #else
   if (FANIN_COEFTAB(t)==NULL)
     {
-      PASTIX_INT j;
-      PASTIX_INT ftgtsize = (FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1)
+      pastix_int_t j;
+      pastix_int_t ftgtsize = (FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1)
         *(FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1);
 #ifdef SOPALIN_LU
       ftgtsize *= 2;
 #endif
 
-      MALLOC_INTERN(FANIN_COEFTAB(t), ftgtsize, PASTIX_FLOAT);
+      MALLOC_INTERN(FANIN_COEFTAB(t), ftgtsize, pastix_float_t);
       for (j=0;j<ftgtsize;j++)
         FANIN_COEFTAB(t)[j] = fzero;
 
@@ -680,13 +680,13 @@ void API_CALL(add_contrib_target)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, P
 #ifdef COMM_REORDER
   if (FANIN_CTRBCNT(t) == 0)
     {
-      PASTIX_INT dest = FANIN_PROCDST(t);
+      pastix_int_t dest = FANIN_PROCDST(t);
       MUTEX_UNLOCK(&(sopalin_data->mutex_fanin[t]));
       if (THREAD_FUNNELED_ON)
         {
           MUTEX_LOCK(&(sopalin_data->mutex_comm));
           queueAdd2(sopalin_data->sendqueue, t,
-                    (double)(dest+1), (PASTIX_INT)FANIN_PRIONUM(t));
+                    (double)(dest+1), (pastix_int_t)FANIN_PRIONUM(t));
           MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
         }
       else
@@ -714,7 +714,7 @@ void API_CALL(add_contrib_target)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, P
    task         - Task number
 
 */
-void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task)
+void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
 #if defined(TRACE_SOPALIN) || defined(PASTIX_DYNSCHED)
@@ -723,20 +723,20 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
 #ifdef PASTIX_DYNSCHED
   int            esp         = sopalin_data->sopar->iparm[IPARM_ESP];
   int            esparam     = sopalin_data->sopar->iparm[IPARM_ESP_THRESHOLD];
-  PASTIX_INT     t;
+  pastix_int_t     t;
 #endif
-  PASTIX_INT            c, fblknum, lblknum;
-  PASTIX_INT            i, ii, jj, n;
-  PASTIX_INT            dimb, dimb2;
+  pastix_int_t            c, fblknum, lblknum;
+  pastix_int_t            i, ii, jj, n;
+  pastix_int_t            dimb, dimb2;
 #ifdef OOC
-  PASTIX_INT            tooc;
+  pastix_int_t            tooc;
 #endif
 
   c = TASK_CBLKNUM(task);
 
   if (sopalin_data->sopar->schur == API_YES)
   {
-    PASTIX_INT lN = sopalin_data->sopar->gN * sopalin_data->sopar->iparm[IPARM_DOF_NBR] - 1;
+    pastix_int_t lN = sopalin_data->sopar->gN * sopalin_data->sopar->iparm[IPARM_DOF_NBR] - 1;
     if ( SYMB_LCOLNUM(c) == lN )
       return;
   }
@@ -784,11 +784,11 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
     if (esp && (dimb2*dimb  > esparam) )
 #endif
     {
-      PASTIX_INT prionum;
+      pastix_int_t prionum;
 #ifdef ESP_WRITE
-      PASTIX_INT tid = TASK_THREADID(-t);
+      pastix_int_t tid = TASK_THREADID(-t);
 #else
-      PASTIX_INT tid = TASK_THREADID(task);
+      pastix_int_t tid = TASK_THREADID(task);
 #endif
       if (t > 0) {
         prionum = (double)(FANIN_PRIONUM(t));
@@ -802,7 +802,7 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
        * target task to avoid to delay all the tasks at the same
        * moment, creating conflicts to acces the mutex
        */
-      prionum = (PASTIX_INT)floor( (( 2.* prionum + TASK_PRIONUM(task)) / 3.) - 1. );
+      prionum = (pastix_int_t)floor( (( 2.* prionum + TASK_PRIONUM(task)) / 3.) - 1. );
 
       MUTEX_LOCK(&(sopalin_data->tasktab_mutex[tid]));
       queueAdd2(&(sopalin_data->taskqueue[tid]), TASK_TASK2ESP(task), prionum, i);
@@ -832,16 +832,16 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
        STATE_L2_COMP1D, task);
 }
 
-void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task, PASTIX_INT i, PASTIX_INT b2)
+void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task, pastix_int_t i, pastix_int_t b2)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
 #ifdef TRACE_SOPALIN
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #endif
-  PASTIX_INT            j, t, fblknum, lblknum, n, usediag = 0;
-  PASTIX_INT            c           = TASK_CBLKNUM(task);
+  pastix_int_t            j, t, fblknum, lblknum, n, usediag = 0;
+  pastix_int_t            c           = TASK_CBLKNUM(task);
 #ifdef OOC
-  PASTIX_INT            tooc;
+  pastix_int_t            tooc;
 #endif
 
   fblknum = SYMB_BLOKNUM(c); /* Be careful, not the same fblknum than in comp1d[plus] */
@@ -884,7 +884,7 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTI
     t = SOLV_INDTAB[TASK_INDNUM(task)+(n++)];
     if (t < 0)
   {
-    PASTIX_INT b;
+    pastix_int_t b;
     /* if the contribution is local */
 #ifdef NAPA_SOPALIN
     /* if the contribution really exist */
@@ -932,7 +932,7 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTI
     if (((!TASK_CTRBCNT(-t)) && (sopalin_data->taskmark[-t] == -1)) &&
       (!((TASK_TASKID(-t) == E1) && ((TASK_BTAGPTR(-t) == NULL) || (RTASK_COEFTAB(-t) == NULL)))))
     {
-      PASTIX_INT iter;
+      pastix_int_t iter;
 
 #if (DBG_PASTIX_DYNSCHED > 0)
       ASSERTDBG(sopalin_data->taskmark[-t] == -1, MOD_SOPALIN);
@@ -992,7 +992,7 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTI
 
   if (THREAD_FUNNELED_OFF)
     {
-      PASTIX_INT dest;
+      pastix_int_t dest;
       for (dest=0;dest<SOLV_PROCNBR;dest++)
         {
           if (dest == SOLV_PROCNUM) continue;
@@ -1006,12 +1006,12 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTI
 /****************************************************************************/
 
 static inline
-void API_CALL(compute_cleane1e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task)
+void API_CALL(compute_cleane1e2)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task)
 {
   SolverMatrix *datacode = sopalin_data->datacode;
   (void)me;
 #ifdef STATS_SOPALIN
-  PASTIX_INT size = (RTASK_LROWNUM(task) - RTASK_FROWNUM(task) + 1)
+  pastix_int_t size = (RTASK_LROWNUM(task) - RTASK_FROWNUM(task) + 1)
        * (RTASK_LCOLNUM(task) - RTASK_FCOLNUM(task) + 1);
 #ifdef SOPALIN_LU
   size *= 2;
@@ -1070,7 +1070,7 @@ void API_CALL(compute_cleane1e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PA
 /* COMPUTE TASK E1                                                          */
 /****************************************************************************/
 
-void API_CALL(compute_e1)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task)
+void API_CALL(compute_e1)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task)
 {
 #if defined(FLAG_ASSERT) || defined(PASTIX_DEBUG) || defined(TRACE_SOPALIN)
   SolverMatrix  *datacode    = sopalin_data->datacode;
@@ -1140,13 +1140,13 @@ void API_CALL(compute_e1)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
 /* COMPUTE TASK E2                                                          */
 /****************************************************************************/
 
-void API_CALL(compute_e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task)
+void API_CALL(compute_e2)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task)
 {
-  PASTIX_INT c, b2, dima, dimi, dimj, stride, stridec, t;
-  PASTIX_INT offsetC, offsetA;
-  PASTIX_FLOAT         *gaik, *gajk, *gc;
+  pastix_int_t c, b2, dima, dimi, dimj, stride, stridec, t;
+  pastix_int_t offsetC, offsetA;
+  pastix_float_t         *gaik, *gajk, *gc;
 #ifdef SOPALIN_LU
-  PASTIX_FLOAT         *gaik2, *gajk2, *gc2;
+  pastix_float_t         *gaik2, *gajk2, *gc2;
 #endif
   SolverMatrix  *datacode    = sopalin_data->datacode;
 #ifdef TRACE_SOPALIN
@@ -1171,7 +1171,7 @@ void API_CALL(compute_e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
   ASSERTDBG(RTASK_COEFTAB(task),MOD_SOPALIN);
 
   offsetA = SOLV_COEFIND(b2);
-  gajk = (PASTIX_FLOAT *)RTASK_COEFTAB(task);
+  gajk = (pastix_float_t *)RTASK_COEFTAB(task);
   gaik = &(SOLV_COEFTAB(c)[offsetA]);
 
   /* vertical dimension */
@@ -1195,8 +1195,8 @@ void API_CALL(compute_e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
   t = SOLV_INDTAB[TASK_INDNUM(task)];
   if ( t < 0 )
   {
-    PASTIX_INT cbl = TASK_CBLKNUM(-t);
-    PASTIX_INT b3  = TASK_BLOKNUM(-t);
+    pastix_int_t cbl = TASK_CBLKNUM(-t);
+    pastix_int_t b3  = TASK_BLOKNUM(-t);
 
     /* gaij is local */
     print_debug(DBG_SOPALIN_E2, "add local\n");
@@ -1265,7 +1265,7 @@ void API_CALL(compute_e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
     if ( ( (!TASK_CTRBCNT(-t)) && (sopalin_data->taskmark[-t] == -1) ) &&
     (!((TASK_TASKID(-t) == E1) && ((TASK_BTAGPTR(-t) == NULL) || (RTASK_COEFTAB(-t) == NULL)))))
   {
-    PASTIX_INT i;
+    pastix_int_t i;
 
 #if (DBG_PASTIX_DYNSCHED > 0)
     ASSERTDBG(sopalin_data->taskmark[-t] == -1, MOD_SOPALIN);
@@ -1302,19 +1302,19 @@ void API_CALL(compute_e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
     print_debug(DBG_OOC_FTGT, "WAIT %4d %4d\n", (int)t, (int) task);
     ooc_wait_for_ftgt(sopalin_data, t, me);
     ASSERTDBG(((unsigned long)(*(((double*)FANIN_COEFTAB(t))-1))) ==
-        sizeof(PASTIX_FLOAT)*((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) * (FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1)   *
+        sizeof(pastix_float_t)*((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) * (FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1)   *
                  ((sopalin_data->sopar->factotype == API_FACT_LU)?2:1))
         , MOD_SOPALIN);
 #else
     if (FANIN_COEFTAB(t) == NULL)
   {
-    PASTIX_INT j;
-    PASTIX_INT ftgtsize = stridec*(FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1);
+    pastix_int_t j;
+    pastix_int_t ftgtsize = stridec*(FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1);
 
 #ifdef SOPALIN_LU
       ftgtsize *= 2;
 #endif
-    MALLOC_INTERN(FANIN_COEFTAB(t), ftgtsize, PASTIX_FLOAT);
+    MALLOC_INTERN(FANIN_COEFTAB(t), ftgtsize, pastix_float_t);
 
     for (j=0;j<ftgtsize;j++)
     FANIN_COEFTAB(t)[j] = fzero;
@@ -1393,13 +1393,13 @@ void API_CALL(compute_e2)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_IN
 #ifdef COMM_REORDER
     if (FANIN_CTRBCNT(t) == 0)
   {
-    PASTIX_INT dest = FANIN_PROCDST(t);
+    pastix_int_t dest = FANIN_PROCDST(t);
     MUTEX_UNLOCK(&(sopalin_data->mutex_fanin[t]));
   if (THREAD_FUNNELED_ON)
     {
       MUTEX_LOCK(&(sopalin_data->mutex_comm));
       queueAdd2(sopalin_data->sendqueue, t,
-                (double)(dest+1), (PASTIX_INT)FANIN_PRIONUM(t));
+                (double)(dest+1), (pastix_int_t)FANIN_PRIONUM(t));
       MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
     }
   else

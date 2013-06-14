@@ -31,13 +31,13 @@
  *
  * Define: COEFTAB_TYPE
  *
- * Type allocated in coeftab: PASTIX_FLOAT *
+ * Type allocated in coeftab: pastix_float_t *
  *
  * Define: COEFTAB_SIZE
  *
  * Size of the array coeftab: number of column blocks
  */
-#define COEFTAB_TYPE PASTIX_FLOAT *
+#define COEFTAB_TYPE pastix_float_t *
 #define COEFTAB_SIZE SYMB_CBLKNBR
 
 #include "sopalin_thread.h"
@@ -74,12 +74,12 @@
 void CoefMatrix_Allocate(SopalinParam    *sopar,
                          SolverMatrix    *datacode,
                          pthread_mutex_t *mutex,
-                         PASTIX_INT              factotype,
-                         PASTIX_INT              me)
+                         pastix_int_t              factotype,
+                         pastix_int_t              me)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 #ifndef OOC
-  PASTIX_INT itercblk, coefnbr;
+  pastix_int_t itercblk, coefnbr;
 #endif
 #ifdef WITH_STARPU
   /* For CUDA devices we have no allocation (yet?) */
@@ -89,14 +89,14 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
 #ifndef OOC
   {
     /* On ne passe pas ici en OOC */
-    PASTIX_INT bubnum  = me;
-    PASTIX_INT task;
+    pastix_int_t bubnum  = me;
+    pastix_int_t task;
 
 #  ifdef PASTIX_DYNSCHED
     while (bubnum != -1)
       {
-        PASTIX_INT fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
-        PASTIX_INT lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
+        pastix_int_t fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
+        pastix_int_t lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
         for (i=(me-fcandnum);i < datacode->ttsknbr[bubnum]; i+=(lcandnum-fcandnum+1))
 #  else
     for (i=0; i < datacode->ttsknbr[bubnum]; i++)
@@ -113,7 +113,7 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
             datacode->cblktab[itercblk].procdiag = me;
             if (SOLV_COEFTAB(itercblk) == NULL)
               { /* If not NULL it should be the schur */
-                MALLOC_INTERN(SOLV_COEFTAB(itercblk), coefnbr, PASTIX_FLOAT);
+                MALLOC_INTERN(SOLV_COEFTAB(itercblk), coefnbr, pastix_float_t);
               }
           }
         else if ( SOLV_COEFIND(TASK_BLOKNUM(task)) == 0 )
@@ -122,7 +122,7 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
             datacode->cblktab[itercblk].procdiag = me;
             if (SOLV_COEFTAB(itercblk) == NULL)
               {
-                MALLOC_INTERN(SOLV_COEFTAB(itercblk), coefnbr, PASTIX_FLOAT);
+                MALLOC_INTERN(SOLV_COEFTAB(itercblk), coefnbr, pastix_float_t);
               }
             MUTEX_UNLOCK(mutex);
           }
@@ -145,14 +145,14 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
 #ifndef OOC
       {
         /* On ne passe pas ici en OOC */
-        PASTIX_INT bubnum  = me;
-        PASTIX_INT task;
+        pastix_int_t bubnum  = me;
+        pastix_int_t task;
 
 #  ifdef PASTIX_DYNSCHED
         while (bubnum != -1)
           {
-            PASTIX_INT fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
-            PASTIX_INT lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
+            pastix_int_t fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
+            pastix_int_t lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
             for (i=(me-fcandnum); i < datacode->ttsknbr[bubnum]; i+=(lcandnum-fcandnum+1))
 #  else
         for (i=0; i < datacode->ttsknbr[bubnum]; i++)
@@ -178,7 +178,7 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
                                                     SYMB_FCOLNUM(itercblk) + 1);
               }
 
-            MALLOC_INTERN(SOLV_UCOEFTAB(itercblk), coefnbr, PASTIX_FLOAT);
+            MALLOC_INTERN(SOLV_UCOEFTAB(itercblk), coefnbr, pastix_float_t);
           }
 
 #  ifdef PASTIX_DYNSCHED
@@ -206,14 +206,14 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
  */
 void CoefMatrix_Init(SolverMatrix         *datacode,
                      sopthread_barrier_t  *barrier,
-                     PASTIX_INT                   me,
-                     PASTIX_INT                  *iparm,
-                     PASTIX_FLOAT               **transcsc,
+                     pastix_int_t                   me,
+                     pastix_int_t                  *iparm,
+                     pastix_float_t               **transcsc,
                      Sopalin_Data_t       *sopalin_data)
 {
 
-  PASTIX_INT j, itercblk;
-  PASTIX_INT i, coefnbr;
+  pastix_int_t j, itercblk;
+  pastix_int_t i, coefnbr;
 
 #ifdef WITH_STARPU
   /* For CUDA devices we have no allocation (yet?) */
@@ -225,20 +225,20 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
   if (iparm[IPARM_FILL_MATRIX] == API_NO)
   {
     /* Remplissage par bloc */
-    PASTIX_INT bubnum  = me;
+    pastix_int_t bubnum  = me;
 #ifdef PASTIX_DYNSCHED
     while (bubnum != -1)
     {
-      PASTIX_INT fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
-      PASTIX_INT lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
+      pastix_int_t fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
+      pastix_int_t lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
       for (i=(me-fcandnum);i < datacode->ttsknbr[bubnum]; i+=(lcandnum-fcandnum+1))
 #else
         for (i=0; i < datacode->ttsknbr[bubnum]; i++)
 #endif /* PASTIX_DYNSCHED */
 
         {
-          PASTIX_INT task;
-          PASTIX_INT k = i;
+          pastix_int_t task;
+          pastix_int_t k = i;
 #ifdef OOC
           /* En OOC, on inverse la boucle pour conserver les premiers blocs en mémoire */
           k = datacode->ttsknbr[bubnum]-i-1;
@@ -314,17 +314,17 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
   {
 
     /* deadcode */
-    PASTIX_INT itercol;
+    pastix_int_t itercol;
 
     /* Initialisation de la matrice à 0 et 1 ou 2 */
-    PASTIX_INT task;
-    PASTIX_INT bubnum  = me;
+    pastix_int_t task;
+    pastix_int_t bubnum  = me;
 
 #ifdef PASTIX_DYNSCHED
     while (bubnum != -1)
     {
-      PASTIX_INT fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
-      PASTIX_INT lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
+      pastix_int_t fcandnum = datacode->btree->nodetab[bubnum].fcandnum;
+      pastix_int_t lcandnum = datacode->btree->nodetab[bubnum].lcandnum;
       for (i=(me-fcandnum);i < datacode->ttsknbr[bubnum]; i+=(lcandnum-fcandnum+1))
 #else
         for (i=0; i < datacode->ttsknbr[bubnum]; i++)
@@ -381,19 +381,19 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
     /* if we are on a diagonal bloc */
     if (SYMB_FCOLNUM(itercblk) == SYMB_FROWNUM(SYMB_BLOKNUM(itercblk)))
     {
-      PASTIX_INT index  = SOLV_COEFIND(SYMB_BLOKNUM(itercblk));
-      PASTIX_INT size   = SYMB_LCOLNUM(itercblk) - SYMB_FCOLNUM(itercblk) + 1;
-      PASTIX_INT stride = SOLV_STRIDE(itercblk);
+      pastix_int_t index  = SOLV_COEFIND(SYMB_BLOKNUM(itercblk));
+      pastix_int_t size   = SYMB_LCOLNUM(itercblk) - SYMB_FCOLNUM(itercblk) + 1;
+      pastix_int_t stride = SOLV_STRIDE(itercblk);
 
       for (itercol=0; itercol<size; itercol++)
       {
         /* On s'assure que la matrice est diagonale dominante */
-        SOLV_COEFTAB(itercblk)[index+itercol*stride+itercol] = (PASTIX_FLOAT) (UPDOWN_GNODENBR*UPDOWN_GNODENBR);
+        SOLV_COEFTAB(itercblk)[index+itercol*stride+itercol] = (pastix_float_t) (UPDOWN_GNODENBR*UPDOWN_GNODENBR);
       }
       /* copie de la partie de block diag de U dans L */
       if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
       {
-        PASTIX_INT iterrow;
+        pastix_int_t iterrow;
         for (itercol=0; itercol<size; itercol++)
         {
           for (iterrow=itercol+1; iterrow<size; iterrow++)
@@ -448,9 +448,9 @@ if (iparm[IPARM_FREE_CSCPASTIX] == API_CSC_FREE)
  */
 void CoefMatrix_Free(SopalinParam *sopar,
                      SolverMatrix *datacode,
-                     PASTIX_INT           factotype)
+                     pastix_int_t           factotype)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   if ( (factotype == API_FACT_LU)
        || ( (factotype == API_FACT_LDLT) && sopar->iparm[IPARM_ESP]) )

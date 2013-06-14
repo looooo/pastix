@@ -25,25 +25,25 @@
 void eliminGraphBuild(const SymbolMatrix *symbmtx, 
 		      EliminGraph        *egraph)
 {
-    PASTIX_INT i, j;
-    PASTIX_INT *tmp = NULL;
-    PASTIX_INT cursor;
+    pastix_int_t i, j;
+    pastix_int_t *tmp = NULL;
+    pastix_int_t cursor;
 
-    MALLOC_INTERN(tmp, symbmtx->cblknbr, PASTIX_INT);
-    bzero(tmp, symbmtx->cblknbr * sizeof(PASTIX_INT));
+    MALLOC_INTERN(tmp, symbmtx->cblknbr, pastix_int_t);
+    bzero(tmp, symbmtx->cblknbr * sizeof(pastix_int_t));
   
     egraph->vertnbr = symbmtx->cblknbr;
     MALLOC_INTERN(egraph->verttab, egraph->vertnbr, EliminVertex);
     if((symbmtx->bloknbr - symbmtx->cblknbr)>0)
       {
 	MALLOC_INTERN(egraph->inbltab, 
-		      symbmtx->bloknbr - symbmtx->cblknbr, PASTIX_INT);
+		      symbmtx->bloknbr - symbmtx->cblknbr, pastix_int_t);
       }
     else
       {
-	MALLOC_INTERN(egraph->inbltab, 1, PASTIX_INT);
+	MALLOC_INTERN(egraph->inbltab, 1, pastix_int_t);
       }
-    MALLOC_INTERN(egraph->ownetab, symbmtx->bloknbr, PASTIX_INT);
+    MALLOC_INTERN(egraph->ownetab, symbmtx->bloknbr, pastix_int_t);
 
     /** initialize verttab **/
     for(i=0;i < egraph->vertnbr;i++)
@@ -119,15 +119,15 @@ void eliminTreeBuild(const SymbolMatrix *symbmtx, BlendCtrl *ctrl)
 
 void etreeBuild(EliminTree *etree, const SymbolMatrix *symbmtx)
 {
-    PASTIX_INT i;
-    PASTIX_INT totalsonsnbr;
-    PASTIX_INT sonstabcur;
-    PASTIX_INT *tmp = NULL;
+    pastix_int_t i;
+    pastix_int_t totalsonsnbr;
+    pastix_int_t sonstabcur;
+    pastix_int_t *tmp = NULL;
     etree->nodenbr = symbmtx->cblknbr;
     MALLOC_INTERN(etree->nodetab, etree->nodenbr, TreeNode);
-    MALLOC_INTERN(tmp,            etree->nodenbr, PASTIX_INT);
+    MALLOC_INTERN(tmp,            etree->nodenbr, pastix_int_t);
 
-    bzero(tmp, etree->nodenbr * sizeof(PASTIX_INT));
+    bzero(tmp, etree->nodenbr * sizeof(pastix_int_t));
     /*+ initialize the structure fields +*/
     for(i=0;i < symbmtx->cblknbr;i++)
 	{
@@ -161,11 +161,11 @@ void etreeBuild(EliminTree *etree, const SymbolMatrix *symbmtx)
 
     if(totalsonsnbr>0)
       {
-	MALLOC_INTERN(etree->sonstab, totalsonsnbr, PASTIX_INT);
+	MALLOC_INTERN(etree->sonstab, totalsonsnbr, pastix_int_t);
       }
     else
       {
-	MALLOC_INTERN(etree->sonstab, 1,            PASTIX_INT);
+	MALLOC_INTERN(etree->sonstab, 1,            pastix_int_t);
       }
 	    
    
@@ -193,10 +193,10 @@ void etreeBuild(EliminTree *etree, const SymbolMatrix *symbmtx)
 }
 
 
-PASTIX_INT treeLeaveNbr(const EliminTree *etree)
+pastix_int_t treeLeaveNbr(const EliminTree *etree)
 {
-    PASTIX_INT i;
-    PASTIX_INT leavenbr;
+    pastix_int_t i;
+    pastix_int_t leavenbr;
     leavenbr = 0;
     for(i=0;i<etree->nodenbr;i++)
 	if(etree->nodetab[i].sonsnbr == 0)
@@ -205,11 +205,11 @@ PASTIX_INT treeLeaveNbr(const EliminTree *etree)
     return leavenbr;
 }
     
-PASTIX_INT treeLevel(const EliminTree *etree)
+pastix_int_t treeLevel(const EliminTree *etree)
 {
-    PASTIX_INT maxlevel;
-    PASTIX_INT nodelevel;
-    PASTIX_INT i;
+    pastix_int_t maxlevel;
+    pastix_int_t nodelevel;
+    pastix_int_t i;
     maxlevel = 0;
     for(i=0;i<etree->nodenbr;i++)
 	{
@@ -221,9 +221,9 @@ PASTIX_INT treeLevel(const EliminTree *etree)
     return maxlevel;
 }
 
-PASTIX_INT nodeTreeLevel(PASTIX_INT nodenum, const EliminTree *etree)
+pastix_int_t nodeTreeLevel(pastix_int_t nodenum, const EliminTree *etree)
 {
-    PASTIX_INT level;
+    pastix_int_t level;
     
     level = 1;
     if(nodenum == ROOT(etree))

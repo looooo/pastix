@@ -13,6 +13,6 @@
 #ifndef COMPACT_GRAPH_H
 #define COMPACT_GRAPH_H
 
-void compact_graph(csptr P, PASTIX_INT *snodenbr, PASTIX_INT *snodetab, PASTIX_INT *iperm);
+void compact_graph(csptr P, pastix_int_t *snodenbr, pastix_int_t *snodetab, pastix_int_t *iperm);
 
 #endif

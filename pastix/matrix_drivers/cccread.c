@@ -223,7 +223,7 @@ void cccRead(char const      *filename,
         {
 #if (defined X_ARCHalpha_compaq_osf1)
 #ifdef TYPE_COMPLEX
-          (*val)[i] = PASTIX_FLOAT(temp1,temp2);
+          (*val)[i] = pastix_float_t(temp1,temp2);
 #else
           (*val)[i] =(pastix_float_t)temp1;
 #endif

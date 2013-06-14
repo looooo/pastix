@@ -73,13 +73,13 @@ symbolLoad (
 SymbolMatrix * const        symbptr,
 FILE * const                stream)
 {
-  PASTIX_INT                 versval;
-  PASTIX_INT                 baseval;
-  PASTIX_INT                 nodenbr;
-  PASTIX_INT                 cblknbr;
-  PASTIX_INT                 cblknum;
-  PASTIX_INT                 bloknbr;
-  PASTIX_INT                 bloknum;
+  pastix_int_t                 versval;
+  pastix_int_t                 baseval;
+  pastix_int_t                 nodenbr;
+  pastix_int_t                 cblknbr;
+  pastix_int_t                 cblknum;
+  pastix_int_t                 bloknbr;
+  pastix_int_t                 bloknum;
 
   if ((intLoad (stream, &versval) +               /* Read header */
        intLoad (stream, &cblknbr) +

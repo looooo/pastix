@@ -3,10 +3,10 @@
 
 #define updo_up_WaitCtrb_storage API_CALL(updo_up_WaitCtrb_storage)
 void updo_up_WaitCtrb_storage  ( Sopalin_Data_t *sopalin_data,
-                                 PASTIX_INT             updo_buffer_size,
+                                 pastix_int_t             updo_buffer_size,
                                  void           *updo_buffer,
-                                 PASTIX_INT             me,
-                                 PASTIX_INT             i);
+                                 pastix_int_t             me,
+                                 pastix_int_t             i);
 
 #  define send_waitall      API_CALL(send_waitall)
 #  define send_waitall_down API_CALL(send_waitall_down)
@@ -18,16 +18,16 @@ void updo_up_WaitCtrb_storage  ( Sopalin_Data_t *sopalin_data,
 #  define send_testall_down API_CALL(send_testall_down)
 #  define send_testall_up   API_CALL(send_testall_up)
 
-void send_free_down    ( Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT s_index );
-void send_free_up      ( Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT s_index );
-void send_testall_down ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
-void send_testall_up   ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
-void send_waitall      ( Sopalin_Data_t *sopalin_data, PASTIX_INT me,
-                         void (*funcfree)(Sopalin_Data_t*, PASTIX_INT, PASTIX_INT) );
-void send_waitall_down ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
-void send_waitall_up   ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
-int  send_waitone_down ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
-int  send_waitone_up   ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
+void send_free_down    ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t s_index );
+void send_free_up      ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t s_index );
+void send_testall_down ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
+void send_testall_up   ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
+void send_waitall      ( Sopalin_Data_t *sopalin_data, pastix_int_t me,
+                         void (*funcfree)(Sopalin_Data_t*, pastix_int_t, pastix_int_t) );
+void send_waitall_down ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
+void send_waitall_up   ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
+int  send_waitone_down ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
+int  send_waitone_up   ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
 
 #ifdef PASTIX_UPDO_ISEND
 
@@ -36,10 +36,10 @@ int  send_waitone_up   ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
 #  define wait_all_downsend API_CALL(wait_all_downsend)
 #  define wait_all_upsend   API_CALL(wait_all_upsend)
 
-void test_all_downsend ( Sopalin_Data_t *sopalin_data, PASTIX_INT me, int tag );
-void test_all_upsend   ( Sopalin_Data_t *sopalin_data, PASTIX_INT me, int tag );
-void wait_all_downsend ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
-void wait_all_upsend   ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
+void test_all_downsend ( Sopalin_Data_t *sopalin_data, pastix_int_t me, int tag );
+void test_all_upsend   ( Sopalin_Data_t *sopalin_data, pastix_int_t me, int tag );
+void wait_all_downsend ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
+void wait_all_upsend   ( Sopalin_Data_t *sopalin_data, pastix_int_t me );
 
 #endif
 
@@ -54,24 +54,24 @@ void wait_all_upsend   ( Sopalin_Data_t *sopalin_data, PASTIX_INT me );
 
 /* /\* Thread de communication *\/ */
 /* void* API_CALL(updo_thread_comm)(void * arg){ return NULL; } */
-int  probe_updown ( MPI_Comm, PASTIX_INT );
+int  probe_updown ( MPI_Comm, pastix_int_t );
 
 #  ifndef STORAGE
 void updo_up_WaitCtrb_nostorage ( Sopalin_Data_t *sopalin_data,
-                                  PASTIX_INT, void *, PASTIX_INT, PASTIX_INT );
+                                  pastix_int_t, void *, pastix_int_t, pastix_int_t );
 #  endif
 
 /* Réceptions des comms MPI */
 static inline
-void updo_down_send ( Sopalin_Data_t *sopalin_data, PASTIX_INT, PASTIX_INT, PASTIX_INT );
+void updo_down_send ( Sopalin_Data_t *sopalin_data, pastix_int_t, pastix_int_t, pastix_int_t );
 static inline
 void updo_down_recv ( Sopalin_Data_t *sopalin_data, void *,
-                      MPI_Status, PASTIX_INT);
+                      MPI_Status, pastix_int_t);
 static inline
-void updo_up_send   ( Sopalin_Data_t *sopalin_data, PASTIX_INT, PASTIX_INT, PASTIX_INT);
+void updo_up_send   ( Sopalin_Data_t *sopalin_data, pastix_int_t, pastix_int_t, pastix_int_t);
 static inline
 void updo_up_recv   ( Sopalin_Data_t *sopalin_data, void *,
-                      MPI_Status, PASTIX_INT);
+                      MPI_Status, pastix_int_t);
 
 /* Thread de communication */
 #  define updo_thread_comm API_CALL(updo_thread_comm)
@@ -80,12 +80,12 @@ void* updo_thread_comm ( void * );
 
 #else /* FORCE_NOMPI */
 void updo_up_WaitCtrb_nostorage ( Sopalin_Data_t *sopalin_data,
-                                  PASTIX_INT buf_size, void *buf,
-                                  PASTIX_INT me, PASTIX_INT i)
+                                  pastix_int_t buf_size, void *buf,
+                                  pastix_int_t me, pastix_int_t i)
 {
   (void)sopalin_data; (void)buf_size; (void)buf; (void)me; (void)i;
 }
-int  probe_updown ( MPI_Comm comm, PASTIX_INT tag )
+int  probe_updown ( MPI_Comm comm, pastix_int_t tag )
 {
   (void)comm; (void)tag;
   return 0;

@@ -22,22 +22,22 @@
 #endif
 
 void              distribPart              (SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
-static void       taskExec_DIAG            (PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
-static void       taskExec_E1              (PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
-static void       taskExec_E2              (PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
-static void       taskExec_COMP1D          (PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
-static void       computeTaskReceiveTime   (const PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
-static double      computeTaskOnProcReadyTime(PASTIX_INT, PASTIX_INT, SimuCtrl *, BlendCtrl *, Queue *);
-static PASTIX_INT        getNextTaskNextProc      (SimuCtrl *, BlendCtrl *, PASTIX_INT *);
-static PASTIX_INT        comp_int                 (const PASTIX_INT *, const PASTIX_INT *);
-static PASTIX_INT        getNextProc              (SimuProc *, PASTIX_INT);
-static PASTIX_INT        getTaskUnmapped          (Queue *, Queue *, SimuCtrl *);
-static PASTIX_INT        getCostLowerTask         (SimuCtrl *, BlendCtrl *, PASTIX_INT *);
-static PASTIX_INT        chooseCand               (PASTIX_INT, SimuCtrl *, BlendCtrl *);
+static void       taskExec_DIAG            (pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
+static void       taskExec_E1              (pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
+static void       taskExec_E2              (pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
+static void       taskExec_COMP1D          (pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
+static void       computeTaskReceiveTime   (const pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
+static double      computeTaskOnProcReadyTime(pastix_int_t, pastix_int_t, SimuCtrl *, BlendCtrl *, Queue *);
+static pastix_int_t        getNextTaskNextProc      (SimuCtrl *, BlendCtrl *, pastix_int_t *);
+static pastix_int_t        comp_int                 (const pastix_int_t *, const pastix_int_t *);
+static pastix_int_t        getNextProc              (SimuProc *, pastix_int_t);
+static pastix_int_t        getTaskUnmapped          (Queue *, Queue *, SimuCtrl *);
+static pastix_int_t        getCostLowerTask         (SimuCtrl *, BlendCtrl *, pastix_int_t *);
+static pastix_int_t        chooseCand               (pastix_int_t, SimuCtrl *, BlendCtrl *);
 static void       computeBlockCtrbNbr      (SimuCtrl *, SymbolMatrix *, BlendCtrl *);
-static void       updateFtgtStruct         (PASTIX_INT, PASTIX_INT, PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *);
-static void       queueReorder             (PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *ctrl);
-static void       queueCostReorder         (PASTIX_INT, SimuCtrl *, BlendCtrl *ctrl);
-static void       setClusterTime           (PASTIX_INT, SimuCtrl *);
-static void       putInReadyQueue          (PASTIX_INT, PASTIX_INT, SymbolMatrix *, SimuCtrl *, BlendCtrl *);
+static void       updateFtgtStruct         (pastix_int_t, pastix_int_t, pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *);
+static void       queueReorder             (pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *ctrl);
+static void       queueCostReorder         (pastix_int_t, SimuCtrl *, BlendCtrl *ctrl);
+static void       setClusterTime           (pastix_int_t, SimuCtrl *);
+static void       putInReadyQueue          (pastix_int_t, pastix_int_t, SymbolMatrix *, SimuCtrl *, BlendCtrl *);
 #undef static

@@ -13,7 +13,7 @@
 /*
    Function: cmp_colrow
 
-   Used for qsort to sort arrays of PASTIX_INT following their first element.
+   Used for qsort to sort arrays of pastix_int_t following their first element.
 
    Returns the difference between the first element of *p1* and
    the first element of *p2*
@@ -25,7 +25,7 @@
 int
 cmp_colrow(const void *p1, const void *p2)
 {
-  return ((* (PASTIX_INT * const *) p1) - (*(PASTIX_INT * const *) p2));
+  return ((* (pastix_int_t * const *) p1) - (*(pastix_int_t * const *) p2));
 }
 /*
   Function: csc_symgraph
@@ -48,8 +48,8 @@ cmp_colrow(const void *p1, const void *p2)
     newa  - Value of each element,can be NULL
 
  */
-int csc_symgraph(PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    PASTIX_FLOAT * a,
-                 PASTIX_INT *newn, PASTIX_INT **newia, PASTIX_INT **newja, PASTIX_FLOAT **newa)
+int csc_symgraph(pastix_int_t n,     pastix_int_t * ia,    pastix_int_t * ja,    pastix_float_t * a,
+                 pastix_int_t *newn, pastix_int_t **newia, pastix_int_t **newja, pastix_float_t **newa)
 {
   return csc_symgraph_int(n, ia, ja, a, newn, newia, newja, newa, API_NO);
 }
@@ -73,22 +73,22 @@ int csc_symgraph(PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    PASTI
     newa        - Value of each element,can be NULL
     malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
-int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    PASTIX_FLOAT * a,
-                      PASTIX_INT *newn, PASTIX_INT **newia, PASTIX_INT **newja, PASTIX_FLOAT **newa,
+int csc_symgraph_int (pastix_int_t n,     pastix_int_t * ia,    pastix_int_t * ja,    pastix_float_t * a,
+                      pastix_int_t *newn, pastix_int_t **newia, pastix_int_t **newja, pastix_float_t **newa,
                       int malloc_flag)
 {
-  PASTIX_INT * nbrEltCol = NULL; /* nbrEltCol[i] = Number of elt to add in column i */
-  PASTIX_INT * cia       = NULL; /* ia of diff between good CSC and bad CSC */
-  PASTIX_INT * cja       = NULL; /* ja of diff between good CSC and bad CSC */
-  PASTIX_INT   nbr2add;          /* Number of elt to add */
-  PASTIX_INT   itercol, iterrow, iterrow2; /* iterators */
-  PASTIX_INT   l = ia[n] -1;
-  PASTIX_INT   newl;
+  pastix_int_t * nbrEltCol = NULL; /* nbrEltCol[i] = Number of elt to add in column i */
+  pastix_int_t * cia       = NULL; /* ia of diff between good CSC and bad CSC */
+  pastix_int_t * cja       = NULL; /* ja of diff between good CSC and bad CSC */
+  pastix_int_t   nbr2add;          /* Number of elt to add */
+  pastix_int_t   itercol, iterrow, iterrow2; /* iterators */
+  pastix_int_t   l = ia[n] -1;
+  pastix_int_t   newl;
 
   /* Ncol=Nrow don't need change */
   *newn = n;
 
-  MALLOC_INTERN(nbrEltCol, n, PASTIX_INT);
+  MALLOC_INTERN(nbrEltCol, n, pastix_int_t);
   /* !! Need check for malloc */
 
   /* Init nbrEltCol */
@@ -132,7 +132,7 @@ int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    
   /* Compute number of element to add */
   /* And cia=ia part of csc of element to add */
   /* kind of a diff between the corrected one and the original CSC */
-  MALLOC_INTERN(cia, n+1, PASTIX_INT);
+  MALLOC_INTERN(cia, n+1, pastix_int_t);
   /* !! Need checking good alloc) */
   nbr2add=0;
   for (itercol=0;itercol<n;itercol++)
@@ -147,7 +147,7 @@ int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    
     {
       /* Build cja */
       /* like cia, cja is ja part of diff CSC */
-      MALLOC_INTERN(cja, nbr2add, PASTIX_INT);
+      MALLOC_INTERN(cja, nbr2add, pastix_int_t);
       /* !! again we need check of memAlloc */
 
       /* We walkthrough again the csc */
@@ -174,7 +174,7 @@ int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    
                   if (flag==0)
                     {
                       /* We don't find (j,i) so put in diff CSC (cia,cja,0) */
-                      PASTIX_INT index=ja[iterrow]-1;
+                      pastix_int_t index=ja[iterrow]-1;
                       /* cia[index] = index to put in cja the elt */
                       cja[cia[index]] = itercol+1;
                       (cia[index])++;
@@ -198,18 +198,18 @@ int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    
       if (malloc_flag == API_NO)
         {
           /* Ici on a des malloc car le free est externe */
-          MALLOC_EXTERN(*newia, n+1, PASTIX_INT);
-          MALLOC_EXTERN(*newja, newl, PASTIX_INT);
+          MALLOC_EXTERN(*newia, n+1, pastix_int_t);
+          MALLOC_EXTERN(*newja, newl, pastix_int_t);
           if (a != NULL)
-            MALLOC_EXTERN(*newa, newl, PASTIX_FLOAT);
+            MALLOC_EXTERN(*newa, newl, pastix_float_t);
         }
       else
         {
           /* Ici on a des memAlloc car le free est interne */
-          MALLOC_INTERN(*newia, n+1, PASTIX_INT);
-          MALLOC_INTERN(*newja, newl, PASTIX_INT);
+          MALLOC_INTERN(*newia, n+1, pastix_int_t);
+          MALLOC_INTERN(*newja, newl, pastix_int_t);
           if (a != NULL)
-            MALLOC_INTERN(*newa, newl, PASTIX_FLOAT);
+            MALLOC_INTERN(*newa, newl, pastix_float_t);
         }
       iterrow2 = 0; /* iterator of the CSC diff */
       for (itercol=0; itercol<n; itercol++)
@@ -257,23 +257,23 @@ int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    
       if (malloc_flag == API_NO)
         {
           /* ici on a des mallocs car le free est externe */
-          MALLOC_EXTERN(*newia, n+1, PASTIX_INT);
-          MALLOC_EXTERN(*newja, l, PASTIX_INT);
+          MALLOC_EXTERN(*newia, n+1, pastix_int_t);
+          MALLOC_EXTERN(*newja, l, pastix_int_t);
           if (a != NULL)
-            MALLOC_EXTERN(*newa, l, PASTIX_FLOAT);
+            MALLOC_EXTERN(*newa, l, pastix_float_t);
         }
       else
         {
           /* ici on a des memAllocs car le free est interne */
-          MALLOC_INTERN(*newia, n+1, PASTIX_INT);
-          MALLOC_INTERN(*newja, l,   PASTIX_INT);
+          MALLOC_INTERN(*newia, n+1, pastix_int_t);
+          MALLOC_INTERN(*newja, l,   pastix_int_t);
           if (a != NULL)
-            MALLOC_INTERN(*newa, l, PASTIX_FLOAT);
+            MALLOC_INTERN(*newa, l, pastix_float_t);
         }
-      memcpy((*newia), ia, (n+1)*sizeof(PASTIX_INT));
-      memcpy((*newja), ja, l * sizeof(PASTIX_INT));
+      memcpy((*newia), ia, (n+1)*sizeof(pastix_int_t));
+      memcpy((*newja), ja, l * sizeof(pastix_int_t));
       if (a != NULL)
-        memcpy((*newa) , a , l * sizeof(PASTIX_FLOAT));
+        memcpy((*newa) , a , l * sizeof(pastix_float_t));
     }
   memFree_null(cia);
 
@@ -296,14 +296,14 @@ int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    
     Returns:
       ia and ja tabulars modified.
 */
-void csc_noDiag(PASTIX_INT baseval, PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a)
+void csc_noDiag(pastix_int_t baseval, pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a)
 {
-  PASTIX_INT i, j;
-  PASTIX_INT indj;
-  PASTIX_INT *old_ia = NULL;
+  pastix_int_t i, j;
+  pastix_int_t indj;
+  pastix_int_t *old_ia = NULL;
 
-  MALLOC_INTERN(old_ia, n+1, PASTIX_INT)
-  memcpy(old_ia, ia, sizeof(PASTIX_INT)*(n+1));
+  MALLOC_INTERN(old_ia, n+1, pastix_int_t)
+  memcpy(old_ia, ia, sizeof(pastix_int_t)*(n+1));
 
   ASSERT(ia[0]==baseval,MOD_SOPALIN);
 
@@ -355,20 +355,20 @@ void csc_noDiag(PASTIX_INT baseval, PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja
     API_YES - If the matrix contained no double or was successfully corrected.
     API_NO  - Otherwise.
 */
-int csc_check_doubles(PASTIX_INT      n,
-                      PASTIX_INT   *  colptr,
-                      PASTIX_INT   ** rows,
-                      PASTIX_FLOAT ** values,
+int csc_check_doubles(pastix_int_t      n,
+                      pastix_int_t   *  colptr,
+                      pastix_int_t   ** rows,
+                      pastix_float_t ** values,
                       int      dof,
                       int      flag,
                       int      flagalloc)
 {
-  PASTIX_INT     i,j,k,d;
+  pastix_int_t     i,j,k,d;
   int     doubles = 0;
-  PASTIX_INT   * tmprows = NULL;
-  PASTIX_FLOAT * tmpvals = NULL;
-  PASTIX_INT     index = 0;
-  PASTIX_INT     lastindex = 0;
+  pastix_int_t   * tmprows = NULL;
+  pastix_float_t * tmpvals = NULL;
+  pastix_int_t     index = 0;
+  pastix_int_t     lastindex = 0;
 
   ASSERT(values == NULL || dof > 0, MOD_SOPALIN);
   ASSERT(flag == API_NO || flag == API_YES, MOD_SOPALIN);
@@ -409,20 +409,20 @@ int csc_check_doubles(PASTIX_INT      n,
       colptr[n] = lastindex+1;
       if (flagalloc == API_NO)
         {
-          MALLOC_EXTERN(tmprows, lastindex, PASTIX_INT);
+          MALLOC_EXTERN(tmprows, lastindex, pastix_int_t);
           if (values != NULL)
-            MALLOC_EXTERN(tmpvals, lastindex*dof*dof, PASTIX_FLOAT);
+            MALLOC_EXTERN(tmpvals, lastindex*dof*dof, pastix_float_t);
         }
       else
         {
-          MALLOC_INTERN(tmprows, lastindex, PASTIX_INT);
+          MALLOC_INTERN(tmprows, lastindex, pastix_int_t);
           if (values != NULL)
-            MALLOC_INTERN(tmpvals, lastindex*dof*dof, PASTIX_FLOAT);
+            MALLOC_INTERN(tmpvals, lastindex*dof*dof, pastix_float_t);
         }
 
-      memcpy(tmprows, *rows,   lastindex*sizeof(PASTIX_INT));
+      memcpy(tmprows, *rows,   lastindex*sizeof(pastix_int_t));
       if (values != NULL)
-        memcpy(tmpvals, *values, lastindex*dof*dof*sizeof(PASTIX_FLOAT));
+        memcpy(tmpvals, *values, lastindex*dof*dof*sizeof(pastix_float_t));
       if (flagalloc == API_NO)
         {
           free(*rows);
@@ -469,24 +469,24 @@ int csc_check_doubles(PASTIX_INT      n,
     alloc    - indicate if allocation on CSC uses internal malloc.
     dof      - Number of degrees of freedom.
 */
-int csc_checksym(PASTIX_INT      n,
-                 PASTIX_INT     *colptr,
-                 PASTIX_INT    **rows,
-                 PASTIX_FLOAT  **values,
+int csc_checksym(pastix_int_t      n,
+                 pastix_int_t     *colptr,
+                 pastix_int_t    **rows,
+                 pastix_float_t  **values,
                  int      correct,
                  int      alloc,
                  int      dof)
 {
-  PASTIX_INT            i,j,k,l,d;
-  PASTIX_INT            index1;
-  PASTIX_INT            index2;
+  pastix_int_t            i,j,k,l,d;
+  pastix_int_t            index1;
+  pastix_int_t            index2;
   int            found;
-  PASTIX_INT            toaddsize;
-  PASTIX_INT            toaddcnt;
-  PASTIX_INT         *  toadd      = NULL;
-  PASTIX_INT         *  tmpcolptr  = NULL;
-  PASTIX_INT         *  tmprows    = NULL;
-  PASTIX_FLOAT       *  tmpvals    = NULL;
+  pastix_int_t            toaddsize;
+  pastix_int_t            toaddcnt;
+  pastix_int_t         *  toadd      = NULL;
+  pastix_int_t         *  tmpcolptr  = NULL;
+  pastix_int_t         *  tmprows    = NULL;
+  pastix_float_t       *  tmpvals    = NULL;
 
   /* For all local column C,
      For all row R in the column C,
@@ -530,15 +530,15 @@ int csc_checksym(PASTIX_INT      n,
                       if (toaddsize == 0)
                         {
                           toaddsize = n/2;
-                          MALLOC_INTERN(toadd, 2*toaddsize, PASTIX_INT);
+                          MALLOC_INTERN(toadd, 2*toaddsize, pastix_int_t);
                         }
                       if (toaddcnt >= toaddsize)
                         {
                           toaddsize += toaddsize/2 + 1;
                           if (NULL ==
                               (toadd =
-                               (PASTIX_INT*)memRealloc(toadd,
-                                                2*toaddsize*sizeof(PASTIX_INT))))
+                               (pastix_int_t*)memRealloc(toadd,
+                                                2*toaddsize*sizeof(pastix_int_t))))
                             MALLOC_ERROR("toadd");
                         }
                       toadd[2*toaddcnt]     = (*rows)[j];
@@ -557,21 +557,21 @@ int csc_checksym(PASTIX_INT      n,
       intSort2asc1(toadd, toaddcnt);
       /* Correct here is API_YES, otherwise we would have return EXIT_FAILURE
          Or toaddcnt == 0*/
-      MALLOC_INTERN(tmpcolptr, n + 1, PASTIX_INT);
+      MALLOC_INTERN(tmpcolptr, n + 1, pastix_int_t);
       if (alloc == API_NO)
         {
-          MALLOC_EXTERN(tmprows, colptr[n]-1 + toaddcnt, PASTIX_INT);
+          MALLOC_EXTERN(tmprows, colptr[n]-1 + toaddcnt, pastix_int_t);
           if (values != NULL)
             {
-              MALLOC_EXTERN(tmpvals, colptr[n]-1 + toaddcnt, PASTIX_FLOAT);
+              MALLOC_EXTERN(tmpvals, colptr[n]-1 + toaddcnt, pastix_float_t);
             }
         }
       else
         {
-          MALLOC_INTERN(tmprows, colptr[n]-1 + toaddcnt, PASTIX_INT);
+          MALLOC_INTERN(tmprows, colptr[n]-1 + toaddcnt, pastix_int_t);
           if (values != NULL)
             {
-              MALLOC_INTERN(tmpvals, colptr[n]-1 + toaddcnt, PASTIX_FLOAT);
+              MALLOC_INTERN(tmpvals, colptr[n]-1 + toaddcnt, pastix_float_t);
             }
         }
       /* Build tmpcolptr
@@ -626,7 +626,7 @@ int csc_checksym(PASTIX_INT      n,
       tmpcolptr[n] = index2+1;
       ASSERT((tmpcolptr[n] - 1) == (colptr[n] - 1 + toaddcnt), MOD_SOPALIN);
 
-      memcpy(colptr, tmpcolptr, (n+1)*sizeof(PASTIX_INT));
+      memcpy(colptr, tmpcolptr, (n+1)*sizeof(pastix_int_t));
       memFree_null(tmpcolptr);
       memFree_null(toadd);
       if (alloc == API_NO)
@@ -667,12 +667,12 @@ int csc_checksym(PASTIX_INT      n,
     a     - Values of non zeros of the matrix.
     cperm - Permutation to perform
 */
-void CSC_colPerm(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_INT *cperm)
+void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_int_t *cperm)
 {
-  PASTIX_INT i, k;
-  PASTIX_INT   *newja = NULL;
-  PASTIX_INT   *newia = NULL;
-  PASTIX_FLOAT *newa  = NULL;
+  pastix_int_t i, k;
+  pastix_int_t   *newja = NULL;
+  pastix_int_t   *newia = NULL;
+  pastix_float_t *newa  = NULL;
   int numflag, numflag2;
 
   numflag = ia[0];
@@ -698,9 +698,9 @@ void CSC_colPerm(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, 
         cperm[i]--;
     }
 
-  MALLOC_INTERN(newia, n+1,   PASTIX_INT);
-  MALLOC_INTERN(newja, ia[n], PASTIX_INT);
-  MALLOC_INTERN(newa,  ia[n], PASTIX_FLOAT);
+  MALLOC_INTERN(newia, n+1,   pastix_int_t);
+  MALLOC_INTERN(newja, ia[n], pastix_int_t);
+  MALLOC_INTERN(newa,  ia[n], pastix_float_t);
 
 
   newia[0] = 0;
@@ -731,14 +731,14 @@ void CSC_colPerm(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, 
 #ifdef DEBUG_KASS
       ASSERT(newia[k+1]-newia[k] == ia[i+1]-ia[i], MOD_KASS);
 #endif
-      memcpy(newja + newia[k], ja + ia[i], sizeof(PASTIX_INT)*(ia[i+1]-ia[i]));
-      memcpy(newa + newia[k], a + ia[i], sizeof(PASTIX_FLOAT)*(ia[i+1]-ia[i]));
+      memcpy(newja + newia[k], ja + ia[i], sizeof(pastix_int_t)*(ia[i+1]-ia[i]));
+      memcpy(newa + newia[k], a + ia[i], sizeof(pastix_float_t)*(ia[i+1]-ia[i]));
 
     }
 
-  memCpy(ia, newia, sizeof(PASTIX_INT)*(n+1));
-  memCpy(ja, newja, sizeof(PASTIX_INT)*ia[n]);
-  memCpy(a, newa, sizeof(PASTIX_FLOAT)*ia[n]);
+  memCpy(ia, newia, sizeof(pastix_int_t)*(n+1));
+  memCpy(ja, newja, sizeof(pastix_int_t)*ia[n]);
+  memCpy(a, newa, sizeof(pastix_float_t)*ia[n]);
 
   memFree(newia);
   memFree(newja);
@@ -757,11 +757,11 @@ void CSC_colPerm(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, 
 
   Moved from kass, only used in MC64
 */
-void CSC_colScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_FLOAT *dcol)
+void CSC_colScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *dcol)
 {
-  PASTIX_INT i, j;
+  pastix_int_t i, j;
   int numflag;
-  PASTIX_FLOAT d;
+  pastix_float_t d;
   numflag = ia[0];
 
   if(numflag == 1)
@@ -786,9 +786,9 @@ void CSC_colScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a,
 
   Moved from kass, only used in MC64
 */
-void CSC_rowScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_FLOAT *drow)
+void CSC_rowScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *drow)
 {
-  PASTIX_INT i, j;
+  pastix_int_t i, j;
   int numflag;
   numflag = ia[0];
 
@@ -824,9 +824,9 @@ void CSC_rowScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a,
 #ifndef CSC_sort
 #error "This function must be renamed via preprocessor."
 #endif
-void CSC_sort(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a)
+void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   int numflag;
   void * sortptr[2];
   numflag = ia[0];
@@ -863,9 +863,9 @@ void CSC_sort(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a)
     ia - First index of each column in *ja*
     n  - Number of columns
 */
-void CSC_Fnum2Cnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n)
+void CSC_Fnum2Cnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
 {
-  PASTIX_INT i, j;
+  pastix_int_t i, j;
   for(i=0;i<=n;i++)
     ia[i]--;
 
@@ -885,9 +885,9 @@ void CSC_Fnum2Cnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n)
     ia - First index of each column in *ja*
     n  - Number of columns
 */
-void CSC_Cnum2Fnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n)
+void CSC_Cnum2Fnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
 {
-  PASTIX_INT i, j;
+  pastix_int_t i, j;
 
   for(i=0;i<n;i++)
     for(j=ia[i];j<ia[i+1];j++)
@@ -911,29 +911,29 @@ void CSC_Cnum2Fnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n)
     revperm                  - Reverse permutation tabular.
     criteria                 - Value beside which a number is said null.
 */
-int CSC_buildZerosAndNonZerosGraphs(PASTIX_INT     n,
-                                    PASTIX_INT    *colptr,
-                                    PASTIX_INT    *rows,
-                                    PASTIX_FLOAT  *values,
-                                    PASTIX_INT    *n_nz,
-                                    PASTIX_INT   **colptr_nz,
-                                    PASTIX_INT   **rows_nz,
-                                    PASTIX_INT    *n_z,
-                                    PASTIX_INT   **colptr_z,
-                                    PASTIX_INT   **rows_z,
-                                    PASTIX_INT    *perm,
-                                    PASTIX_INT    *revperm,
+int CSC_buildZerosAndNonZerosGraphs(pastix_int_t     n,
+                                    pastix_int_t    *colptr,
+                                    pastix_int_t    *rows,
+                                    pastix_float_t  *values,
+                                    pastix_int_t    *n_nz,
+                                    pastix_int_t   **colptr_nz,
+                                    pastix_int_t   **rows_nz,
+                                    pastix_int_t    *n_z,
+                                    pastix_int_t   **colptr_z,
+                                    pastix_int_t   **rows_z,
+                                    pastix_int_t    *perm,
+                                    pastix_int_t    *revperm,
                                     double  criteria)
 {
-  PASTIX_INT  itercol;
-  PASTIX_INT  iterrow;
+  pastix_int_t  itercol;
+  pastix_int_t  iterrow;
 
-  PASTIX_INT  ncoefszeros  = 0;
-  PASTIX_INT  ncoefsnzeros = 0;
-  PASTIX_INT  itercol_nz   = 0;
-  PASTIX_INT  itercol_z    = 0;
+  pastix_int_t  ncoefszeros  = 0;
+  pastix_int_t  ncoefsnzeros = 0;
+  pastix_int_t  itercol_nz   = 0;
+  pastix_int_t  itercol_z    = 0;
   int  seen;
-  PASTIX_INT  cntrows;
+  pastix_int_t  cntrows;
 
   for (itercol = 0; itercol <n; itercol++)
     {
@@ -1013,8 +1013,8 @@ int CSC_buildZerosAndNonZerosGraphs(PASTIX_INT     n,
   for(itercol = 0; itercol < n; itercol++)
     revperm[perm[itercol]-1] = itercol + 1;
 
-  MALLOC_INTERN(*colptr_nz, *n_nz + 1, PASTIX_INT);
-  MALLOC_INTERN(*rows_nz, ncoefsnzeros, PASTIX_INT);
+  MALLOC_INTERN(*colptr_nz, *n_nz + 1, pastix_int_t);
+  MALLOC_INTERN(*rows_nz, ncoefsnzeros, pastix_int_t);
   cntrows = 0;
   for (itercol = 0; itercol <*n_nz; itercol++)
     {
@@ -1032,8 +1032,8 @@ int CSC_buildZerosAndNonZerosGraphs(PASTIX_INT     n,
     }
   (*colptr_nz)[*n_nz] = cntrows+1;
 
-  MALLOC_INTERN(*colptr_z, *n_z + 1, PASTIX_INT);
-  MALLOC_INTERN(*rows_z, ncoefszeros, PASTIX_INT);
+  MALLOC_INTERN(*colptr_z, *n_z + 1, pastix_int_t);
+  MALLOC_INTERN(*rows_z, ncoefszeros, pastix_int_t);
   cntrows = 0;
   for (itercol = 0; itercol <*n_z; itercol++)
     {
@@ -1068,21 +1068,21 @@ int CSC_buildZerosAndNonZerosGraphs(PASTIX_INT     n,
     perm         - permutation tabular.
     revperm      - reverse permutation tabular.
 */
-int CSC_isolate(PASTIX_INT     n,
-                PASTIX_INT    *colptr,
-                PASTIX_INT    *rows,
-                PASTIX_INT     n_isolate,
-                PASTIX_INT    *isolate_list,
-                PASTIX_INT    *perm,
-                PASTIX_INT    *revperm)
+int CSC_isolate(pastix_int_t     n,
+                pastix_int_t    *colptr,
+                pastix_int_t    *rows,
+                pastix_int_t     n_isolate,
+                pastix_int_t    *isolate_list,
+                pastix_int_t    *perm,
+                pastix_int_t    *revperm)
 {
-  PASTIX_INT  itercol;
-  PASTIX_INT  iterrow;
+  pastix_int_t  itercol;
+  pastix_int_t  iterrow;
 
-  PASTIX_INT  iter_isolate  = 0;
-  PASTIX_INT  iter_non_isolate  = 0;
-  PASTIX_INT *tmpcolptr = NULL;
-  PASTIX_INT *tmprows   = NULL;
+  pastix_int_t  iter_isolate  = 0;
+  pastix_int_t  iter_non_isolate  = 0;
+  pastix_int_t *tmpcolptr = NULL;
+  pastix_int_t *tmprows   = NULL;
 
   if (n_isolate == 0)
     {
@@ -1108,8 +1108,8 @@ int CSC_isolate(PASTIX_INT     n,
   ASSERT(iter_non_isolate == n - n_isolate, MOD_SOPALIN);
   ASSERT(iter_isolate == n_isolate, MOD_SOPALIN);
 
-  MALLOC_INTERN(tmpcolptr, n - n_isolate + 1,       PASTIX_INT);
-  memset(tmpcolptr, 0, (n - n_isolate + 1)*sizeof(PASTIX_INT));
+  MALLOC_INTERN(tmpcolptr, n - n_isolate + 1,       pastix_int_t);
+  memset(tmpcolptr, 0, (n - n_isolate + 1)*sizeof(pastix_int_t));
 
   for(itercol = 0; itercol < n; itercol++)
     perm[revperm[itercol]] = itercol;
@@ -1139,7 +1139,7 @@ int CSC_isolate(PASTIX_INT     n,
   for (itercol = 0; itercol <n - n_isolate; itercol++)
     tmpcolptr[itercol+1] += tmpcolptr[itercol];
 
-  MALLOC_INTERN(tmprows,   tmpcolptr[n- n_isolate]-1, PASTIX_INT);
+  MALLOC_INTERN(tmprows,   tmpcolptr[n- n_isolate]-1, pastix_int_t);
   for (itercol = 0; itercol <n; itercol++)
     {
       if (perm[itercol] < n - n_isolate)
@@ -1168,8 +1168,8 @@ int CSC_isolate(PASTIX_INT     n,
 
 
   ASSERT(colptr[n] >= tmpcolptr[n-n_isolate], MOD_SOPALIN);
-  memcpy(colptr, tmpcolptr, (n-n_isolate + 1)*sizeof(PASTIX_INT));
-  memcpy(rows,   tmprows,   (colptr[n-n_isolate]-1)*sizeof(PASTIX_INT));
+  memcpy(colptr, tmpcolptr, (n-n_isolate + 1)*sizeof(pastix_int_t));
+  memcpy(rows,   tmprows,   (colptr[n-n_isolate]-1)*sizeof(pastix_int_t));
 
   memFree_null(tmpcolptr);
   memFree_null(tmprows);
@@ -1194,15 +1194,15 @@ int CSC_isolate(PASTIX_INT     n,
     NO_ERR
 
 */
-int csc_save(PASTIX_INT      n,
-             PASTIX_INT    * colptr,
-             PASTIX_INT    * rows,
-             PASTIX_FLOAT  * values,
+int csc_save(pastix_int_t      n,
+             pastix_int_t    * colptr,
+             pastix_int_t    * rows,
+             pastix_float_t  * values,
              int      dof,
              FILE   * outfile)
 {
 
-  PASTIX_INT i;
+  pastix_int_t i;
   fprintf(outfile, "%ld %ld %d\n", (long)n, (long)dof, ((values == NULL)?0:1));
   /* Copie du colptr */
   for (i=0; i<n+1; i++)
@@ -1258,10 +1258,10 @@ int csc_save(PASTIX_INT      n,
     NO_ERR
 
 */
-int csc_load(PASTIX_INT    *  n,
-             PASTIX_INT    ** colptr,
-             PASTIX_INT    ** rows,
-             PASTIX_FLOAT  ** values,
+int csc_load(pastix_int_t    *  n,
+             pastix_int_t    ** colptr,
+             pastix_int_t    ** rows,
+             pastix_float_t  ** values,
              int    *  dof,
              FILE   *  infile)
 {
@@ -1271,16 +1271,16 @@ int csc_load(PASTIX_INT    *  n,
 #ifdef TYPE_COMPLEX
   double tmpflt5, tmpflt6, tmpflt7, tmpflt8;
 #endif
-  PASTIX_INT i;
+  pastix_int_t i;
   if (3 != fscanf(infile, "%ld %ld %d\n", &tmp1, &tmp2, &hasval)){
     errorPrint("CSCD badly formated");
     return EXIT_FAILURE;
   }
-  *n   = (PASTIX_INT)tmp1;
+  *n   = (pastix_int_t)tmp1;
   *dof = (int)tmp2;
   /* Copie de IA */
   *colptr = NULL;
-  MALLOC_INTERN(*colptr, *n+1, PASTIX_INT);
+  MALLOC_INTERN(*colptr, *n+1, pastix_int_t);
   for (i=0; i<*n+1+1-4; i+=4)
     {
       if (4 != fscanf(infile, "%ld %ld %ld %ld", &tmp1, &tmp2, &tmp3, &tmp4)){
@@ -1327,7 +1327,7 @@ int csc_load(PASTIX_INT    *  n,
 
   /* Copie de JA */
   (*rows) = NULL;
-  MALLOC_INTERN(*rows, (*colptr)[*n]-(*colptr)[0], PASTIX_INT);
+  MALLOC_INTERN(*rows, (*colptr)[*n]-(*colptr)[0], pastix_int_t);
   for (i=0; i< (*colptr)[*n]-(*colptr)[0]+1-4; i+=4)
     {
       if (4 != fscanf(infile, "%ld %ld %ld %ld", &tmp1, &tmp2, &tmp3, &tmp4)){
@@ -1377,7 +1377,7 @@ int csc_load(PASTIX_INT    *  n,
     {
       (*values) = NULL;
 
-      MALLOC_INTERN(*values,  (*colptr)[*n]-(*colptr)[0], PASTIX_FLOAT);
+      MALLOC_INTERN(*values,  (*colptr)[*n]-(*colptr)[0], pastix_float_t);
 
       for (i=0; i< (*colptr)[*n]-(*colptr)[0]+1-4; i+=4)
         {
@@ -1388,20 +1388,20 @@ int csc_load(PASTIX_INT    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
-          (*values)[i+1] = (PASTIX_FLOAT)(tmpflt3 + I * tmpflt4);
-          (*values)[i+2] = (PASTIX_FLOAT)(tmpflt5 + I * tmpflt6);
-          (*values)[i+3] = (PASTIX_FLOAT)(tmpflt7 + I * tmpflt8);
+          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*values)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
+          (*values)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
+          (*values)[i+3] = (pastix_float_t)(tmpflt7 + I * tmpflt8);
 #else
           if (4 != fscanf(infile, "%lg %lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*values)[i+1] = (PASTIX_FLOAT)tmpflt2;
-          (*values)[i+2] = (PASTIX_FLOAT)tmpflt3;
-          (*values)[i+3] = (PASTIX_FLOAT)tmpflt4;
+          (*values)[i  ] = (pastix_float_t)tmpflt1;
+          (*values)[i+1] = (pastix_float_t)tmpflt2;
+          (*values)[i+2] = (pastix_float_t)tmpflt3;
+          (*values)[i+3] = (pastix_float_t)tmpflt4;
 #endif
         }
       switch ( (*colptr)[*n]-(*colptr)[0] - i )
@@ -1414,18 +1414,18 @@ int csc_load(PASTIX_INT    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
-          (*values)[i+1] = (PASTIX_FLOAT)(tmpflt3 + I * tmpflt4);
-          (*values)[i+2] = (PASTIX_FLOAT)(tmpflt5 + I * tmpflt6);
+          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*values)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
+          (*values)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
 #else
           if (3 != fscanf(infile, "%lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*values)[i+1] = (PASTIX_FLOAT)tmpflt2;
-          (*values)[i+2] = (PASTIX_FLOAT)tmpflt3;
+          (*values)[i  ] = (pastix_float_t)tmpflt1;
+          (*values)[i+1] = (pastix_float_t)tmpflt2;
+          (*values)[i+2] = (pastix_float_t)tmpflt3;
 #endif
           break;
         case 2:
@@ -1435,16 +1435,16 @@ int csc_load(PASTIX_INT    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
-          (*values)[i+1] = (PASTIX_FLOAT)(tmpflt3 + I * tmpflt4);
+          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*values)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
 #else
           if (2 != fscanf(infile, "%lg %lg",
                           &tmpflt1, &tmpflt2)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*values)[i+1] = (PASTIX_FLOAT)tmpflt2;
+          (*values)[i  ] = (pastix_float_t)tmpflt1;
+          (*values)[i+1] = (pastix_float_t)tmpflt2;
 #endif
           break;
         case 1:
@@ -1454,14 +1454,14 @@ int csc_load(PASTIX_INT    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
+          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
 #else
           if (1 != fscanf(infile, "%lg",
                           &tmpflt1)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (PASTIX_FLOAT)tmpflt1;
+          (*values)[i  ] = (pastix_float_t)tmpflt1;
 #endif
           break;
         }

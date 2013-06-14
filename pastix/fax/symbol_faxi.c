@@ -108,36 +108,36 @@
 */
 int
 symbolFaxi (SymbolMatrix * const        symbptr,
-            const PASTIX_INT                   vertnbr,
-            const PASTIX_INT                   edgenbr,
-            const PASTIX_INT                   baseval,
+            const pastix_int_t                   vertnbr,
+            const pastix_int_t                   edgenbr,
+            const pastix_int_t                   baseval,
             void * const                ngbdptr,
-            PASTIX_INT                         ngbfrst (void * const, const PASTIX_INT),
-            PASTIX_INT                         ngbnext (void * const),
-            PASTIX_INT                         ngbdegr (void * const, const PASTIX_INT),
+            pastix_int_t                         ngbfrst (void * const, const pastix_int_t),
+            pastix_int_t                         ngbnext (void * const),
+            pastix_int_t                         ngbdegr (void * const, const pastix_int_t),
             const Order * const         ordeptr,
-            const PASTIX_INT                   levfmax)
+            const pastix_int_t                   levfmax)
 #endif /* SYMBOL_FAXI_INCLUDED */
 {
-  PASTIX_INT                       vertnum;              /* Vertex number of current column                   */
-  PASTIX_INT                       vertend;              /* Current end vertex number                         */
-  const PASTIX_INT * restrict      permtax;              /* Based access to direct permutation array          */
-  const PASTIX_INT * restrict      peritax;              /* Based access to inverse permutation array         */
-  const PASTIX_INT * restrict      rangtax;              /* Based access to column block range array          */
-  PASTIX_INT * restrict            ctrbtax;              /* Based access to array of contribution chains      */
+  pastix_int_t                       vertnum;              /* Vertex number of current column                   */
+  pastix_int_t                       vertend;              /* Current end vertex number                         */
+  const pastix_int_t * restrict      permtax;              /* Based access to direct permutation array          */
+  const pastix_int_t * restrict      peritax;              /* Based access to inverse permutation array         */
+  const pastix_int_t * restrict      rangtax;              /* Based access to column block range array          */
+  pastix_int_t * restrict            ctrbtax;              /* Based access to array of contribution chains      */
   SymbolCblk * restrict     cblktax;              /* Based access to column block array                */
-  PASTIX_INT                       cblknum;              /* Based number of current column block              */
-  PASTIX_INT                       cblkctr;              /* Based number of current contributing column block */
+  pastix_int_t                       cblknum;              /* Based number of current column block              */
+  pastix_int_t                       cblkctr;              /* Based number of current contributing column block */
   SymbolBlok * restrict     bloktax;              /* Based access to incomplete block array            */
-  PASTIX_INT                       bloknum;              /* Based number of current first free block slot     */
-  PASTIX_INT                       blokmax;              /* Maximum number of blocks in array                 */
+  pastix_int_t                       bloknum;              /* Based number of current first free block slot     */
+  pastix_int_t                       blokmax;              /* Maximum number of blocks in array                 */
   SymbolFaxiTlok * restrict tloktab;              /* Beginning of array of temporary blocks            */
-  PASTIX_INT                       ctrbsum;              /* Number of contributing blocks for column block    */
-  PASTIX_INT * restrict            sorttab;              /* Beginning of sort area                            */
-  PASTIX_INT                       sortnbr;              /* Number of vertices in sort area and hash table    */
-  PASTIX_INT * restrict            hashtab;              /* Hash vertex table                                 */
-  PASTIX_INT                       hashmsk;              /* Mask for access to hash table                     */
-  PASTIX_INT                       colend;               /* Column number of vertex neighbor                  */
+  pastix_int_t                       ctrbsum;              /* Number of contributing blocks for column block    */
+  pastix_int_t * restrict            sorttab;              /* Beginning of sort area                            */
+  pastix_int_t                       sortnbr;              /* Number of vertices in sort area and hash table    */
+  pastix_int_t * restrict            hashtab;              /* Hash vertex table                                 */
+  pastix_int_t                       hashmsk;              /* Mask for access to hash table                     */
+  pastix_int_t                       colend;               /* Column number of vertex neighbor                  */
 
   permtax = ordeptr->permtab - baseval;           /* Compute array bases */
   peritax = ordeptr->peritab - baseval;
@@ -146,11 +146,11 @@ symbolFaxi (SymbolMatrix * const        symbptr,
   blokmax  = ordeptr->cblknbr * (2 + edgenbr / vertnbr) + 2; /* Estimate size of initial block array */
 
   {     /* Allocate arrays for factoring   */
-    PASTIX_INT        * ctrbtab = NULL; /* Array for contribution chaining */
+    pastix_int_t        * ctrbtab = NULL; /* Array for contribution chaining */
     SymbolCblk * cblktab = NULL; /* Column block array              */
     SymbolBlok * bloktab = NULL; /* Incomplete block array          */
 
-    MALLOC_INTERN(ctrbtab, ordeptr->cblknbr,     PASTIX_INT);
+    MALLOC_INTERN(ctrbtab, ordeptr->cblknbr,     pastix_int_t);
     MALLOC_INTERN(cblktab, ordeptr->cblknbr + 1, SymbolCblk);
     MALLOC_INTERN(bloktab, blokmax,              SymbolBlok);
 
@@ -158,23 +158,23 @@ symbolFaxi (SymbolMatrix * const        symbptr,
     bloktax = bloktab - baseval;
     ctrbtax = ctrbtab - baseval;
 
-    memset (ctrbtab, ~0, ordeptr->cblknbr * sizeof (PASTIX_INT)); /* Initialize column block contributions link array */
+    memset (ctrbtab, ~0, ordeptr->cblknbr * sizeof (pastix_int_t)); /* Initialize column block contributions link array */
   }
 
   bloknum = baseval;
   for (cblknum = baseval; cblknum < baseval + ordeptr->cblknbr; cblknum ++) { /* For all column blocks */
-    PASTIX_INT                 colnum;                   /* Number of current column [based]                  */
-    PASTIX_INT                 colmax;                   /* Maximum column index for current column block     */
+    pastix_int_t                 colnum;                   /* Number of current column [based]                  */
+    pastix_int_t                 colmax;                   /* Maximum column index for current column block     */
 
     {                                             /* Compute offsets and check for array size */
-      PASTIX_INT                 degrsum;
-      PASTIX_INT                 hashsiz;
-      PASTIX_INT                 hashmax;
-      PASTIX_INT                 ctrbtmp;
-      PASTIX_INT                 sortoft;                /* Offset of sort array                   */
-      PASTIX_INT                 tlokoft;                /* Offset of temporary block array        */
-      PASTIX_INT                 tlndoft;                /* Offset of end of temporary block array */
-      PASTIX_INT                 tlokmax;
+      pastix_int_t                 degrsum;
+      pastix_int_t                 hashsiz;
+      pastix_int_t                 hashmax;
+      pastix_int_t                 ctrbtmp;
+      pastix_int_t                 sortoft;                /* Offset of sort array                   */
+      pastix_int_t                 tlokoft;                /* Offset of temporary block array        */
+      pastix_int_t                 tlndoft;                /* Offset of end of temporary block array */
+      pastix_int_t                 tlokmax;
 
       colnum = rangtax[cblknum];
       colmax = rangtax[cblknum + 1];              /* Get maximum column value */
@@ -198,9 +198,9 @@ symbolFaxi (SymbolMatrix * const        symbptr,
 
       tlokmax = degrsum + ctrbsum;
       sortoft = tlokmax * sizeof (SymbolBlok);
-      if ((hashsiz * (PASTIX_INT)sizeof(PASTIX_INT)) > sortoft)     /* Compute offset of sort area */
-        sortoft = (hashsiz * sizeof (PASTIX_INT));
-      tlokoft = sortoft + degrsum * sizeof (PASTIX_INT); /* Compute offset of temporary block area */
+      if ((hashsiz * (pastix_int_t)sizeof(pastix_int_t)) > sortoft)     /* Compute offset of sort area */
+        sortoft = (hashsiz * sizeof (pastix_int_t));
+      tlokoft = sortoft + degrsum * sizeof (pastix_int_t); /* Compute offset of temporary block area */
       tlndoft = tlokoft + tlokmax * sizeof (SymbolFaxiTlok); /* Compute end of area         */
 
       if (((unsigned char *) (bloktax + bloknum) + tlndoft) > /* If not enough room */
@@ -221,16 +221,16 @@ symbolFaxi (SymbolMatrix * const        symbptr,
         bloktax = bloktmp - baseval;
       }
 
-      hashtab = (PASTIX_INT *)            (bloktax + bloknum);
-      sorttab = (PASTIX_INT *)            ((unsigned char *) hashtab + sortoft);
+      hashtab = (pastix_int_t *)            (bloktax + bloknum);
+      sorttab = (pastix_int_t *)            ((unsigned char *) hashtab + sortoft);
       tloktab = (SymbolFaxiTlok *) ((unsigned char *) hashtab + tlokoft);
 
-      memset (hashtab, ~0, hashsiz * sizeof (PASTIX_INT)); /* Initialize hash table */
+      memset (hashtab, ~0, hashsiz * sizeof (pastix_int_t)); /* Initialize hash table */
     }
 
     sortnbr = 0;                                  /* No vertices yet                 */
     for (colnum = rangtax[cblknum]; colnum < colmax; colnum ++) { /* For all columns */
-      PASTIX_INT                 hashnum;
+      pastix_int_t                 hashnum;
 
       vertnum = peritax[colnum];                  /* Get associated vertex       */
       SYMBOL_FAXI_ITERATOR (ngbdptr, vertnum, vertend) /* For all adjacent edges */
@@ -242,7 +242,7 @@ symbolFaxi (SymbolMatrix * const        symbptr,
 
         for (hashnum = (colend * SYMBOL_FAXI_HASHPRIME) & hashmsk; ; /* Search end column in hash table */
              hashnum = (hashnum + 1) & hashmsk) {
-          PASTIX_INT *               hashptr;
+          pastix_int_t *               hashptr;
 
           hashptr = hashtab + hashnum;            /* Point to hash slot           */
           if (*hashptr == colend)                 /* If end column in hash table  */
@@ -260,7 +260,7 @@ symbolFaxi (SymbolMatrix * const        symbptr,
 
     cblkctr = cblknum;
     if (ctrbtax[cblknum] == ~0) {                 /* If column is not to be updated */
-      PASTIX_INT                 sortnum;
+      pastix_int_t                 sortnum;
 
       bloktax[bloknum].frownum = cblktax[cblknum].fcolnum; /* Build diagonal block */
       bloktax[bloknum].lrownum = cblktax[cblknum].lcolnum;
@@ -272,8 +272,8 @@ symbolFaxi (SymbolMatrix * const        symbptr,
 
         colend = sorttab[sortnum];
         if (colend >= rangtax[cblkctr + 1]) {     /* If column block number to be found */
-          PASTIX_INT                 cblktmm;            /* Median value                       */
-          PASTIX_INT                 cblktmx;            /* Maximum value                      */
+          pastix_int_t                 cblktmm;            /* Median value                       */
+          pastix_int_t                 cblktmx;            /* Maximum value                      */
 
           for (cblkctr ++,                        /* Find new column block by dichotomy */
                cblktmx = ordeptr->cblknbr + baseval;
@@ -297,9 +297,9 @@ symbolFaxi (SymbolMatrix * const        symbptr,
       }
     }
     else {                                        /* Column will be updated           */
-      PASTIX_INT                 sortnum;                /* Current index in sort array      */
-      PASTIX_INT                 tloknum;                /* Current index on temporary block */
-      PASTIX_INT                 tlokfre;                /* Index of first free block        */
+      pastix_int_t                 sortnum;                /* Current index in sort array      */
+      pastix_int_t                 tloknum;                /* Current index on temporary block */
+      pastix_int_t                 tlokfre;                /* Index of first free block        */
 
       tloktab[0].nextnum = 1;                     /* Dummy temporary block for insertion */
       tloknum            = 1;
@@ -308,8 +308,8 @@ symbolFaxi (SymbolMatrix * const        symbptr,
 
         colend = sorttab[sortnum];
         if (colend >= rangtax[cblkctr + 1]) {     /* If column block number to be found */
-          PASTIX_INT                 cblktmm;            /* Median value                       */
-          PASTIX_INT                 cblktmx;            /* Maximum value                      */
+          pastix_int_t                 cblktmm;            /* Median value                       */
+          pastix_int_t                 cblktmx;            /* Maximum value                      */
 
           for (cblkctr ++,                        /* Find new column block by dichotomy */
                cblktmx = ordeptr->cblknbr + baseval;
@@ -342,9 +342,9 @@ symbolFaxi (SymbolMatrix * const        symbptr,
       tloktab[tloknum].nextnum = ~0;              /* Set end of free chain */
 
       for (cblkctr = ctrbtax[cblknum]; cblkctr != ~0; cblkctr = ctrbtax[cblkctr]) { /* Follow chain */
-        PASTIX_INT                 blokctr;              /* Current index of contributing column block     */
-        PASTIX_INT                 levffac;              /* Minimum level of fill over facing block(s)     */
-        PASTIX_INT                 tloklst;              /* Index of previous temporary block              */
+        pastix_int_t                 blokctr;              /* Current index of contributing column block     */
+        pastix_int_t                 levffac;              /* Minimum level of fill over facing block(s)     */
+        pastix_int_t                 tloklst;              /* Index of previous temporary block              */
 
         blokctr = cblktax[cblkctr].bloknum + 1;   /* Get index of first extra-diagonal block                 */
         levffac = bloktax[blokctr].levfval;       /* Get level of fill of first extra-diagonal block         */
@@ -358,9 +358,9 @@ symbolFaxi (SymbolMatrix * const        symbptr,
         tloknum = tloktab[0].nextnum;             /* Current is first extra-diagonal block */
 
         for ( ; blokctr < cblktax[cblkctr + 1].bloknum; blokctr ++) { /* For all blocks in contributing column block   */
-          PASTIX_INT                 frownum;            /* Current first and last rows of contributing block(s) to be merged */
-          PASTIX_INT                 lrownum;
-          PASTIX_INT                 levfval;            /* Level of fill of block(s) to be created */
+          pastix_int_t                 frownum;            /* Current first and last rows of contributing block(s) to be merged */
+          pastix_int_t                 lrownum;
+          pastix_int_t                 levfval;            /* Level of fill of block(s) to be created */
 
           frownum = bloktax[blokctr].frownum;     /* Get extents of block to merge */
           lrownum = bloktax[blokctr].lrownum;

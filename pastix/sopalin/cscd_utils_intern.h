@@ -12,7 +12,7 @@
   Returns: a + b
  */
 static inline
-PASTIX_FLOAT add_two_floats(PASTIX_FLOAT a, PASTIX_FLOAT b)
+pastix_float_t add_two_floats(pastix_float_t a, pastix_float_t b)
 {
   return a + b;
 }
@@ -29,7 +29,7 @@ PASTIX_FLOAT add_two_floats(PASTIX_FLOAT a, PASTIX_FLOAT b)
   Returns: a
  */
 static inline
-PASTIX_FLOAT keep_first(PASTIX_FLOAT a, PASTIX_FLOAT b)
+pastix_float_t keep_first(pastix_float_t a, pastix_float_t b)
 {
   (void)b;
   return a;
@@ -47,7 +47,7 @@ PASTIX_FLOAT keep_first(PASTIX_FLOAT a, PASTIX_FLOAT b)
   Returns: b
  */
 static inline
-PASTIX_FLOAT keep_last(PASTIX_FLOAT a, PASTIX_FLOAT b)
+pastix_float_t keep_last(pastix_float_t a, pastix_float_t b)
 {
   (void)a;
   return b;
@@ -66,7 +66,7 @@ PASTIX_FLOAT keep_last(PASTIX_FLOAT a, PASTIX_FLOAT b)
   Returns: MAX(a,b)
  */
 static inline
-PASTIX_FLOAT get_max(PASTIX_FLOAT a, PASTIX_FLOAT b)
+pastix_float_t get_max(pastix_float_t a, pastix_float_t b)
 {
   return MAX(a,b);
 }
@@ -83,7 +83,7 @@ PASTIX_FLOAT get_max(PASTIX_FLOAT a, PASTIX_FLOAT b)
   Returns: MIN(a,b)
  */
 static inline
-PASTIX_FLOAT get_min(PASTIX_FLOAT a, PASTIX_FLOAT b)
+pastix_float_t get_min(pastix_float_t a, pastix_float_t b)
 {
   return MIN(a,b);
 }
@@ -91,10 +91,10 @@ PASTIX_FLOAT get_min(PASTIX_FLOAT a, PASTIX_FLOAT b)
 
 
 
-int cscd_addlocal_int(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , PASTIX_FLOAT *  a   , PASTIX_INT * l2g,
-                      PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja, PASTIX_FLOAT *  adda, PASTIX_INT * addl2g,
-                      PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, PASTIX_FLOAT ** newa,
-                      PASTIX_FLOAT (*add_fct)(PASTIX_FLOAT , PASTIX_FLOAT), int dof, int malloc_flag);
+int cscd_addlocal_int(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   , pastix_int_t * l2g,
+                      pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda, pastix_int_t * addl2g,
+                      pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
+                      pastix_float_t (*add_fct)(pastix_float_t , pastix_float_t), int dof, int malloc_flag);
 
 /*
  * Function: cscd_redispatch_int
@@ -130,13 +130,13 @@ int cscd_addlocal_int(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja  
  *   EXIT_SUCCESS - If all goes well
  *   EXIT_FAILURE - If commsize = 1 and *n* != *dn* or *l2g* != *dl2g*.
  */
-int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PASTIX_FLOAT *   a, PASTIX_FLOAT *  rhs,  PASTIX_INT nrhs, PASTIX_INT *   l2g,
-                        PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, PASTIX_FLOAT ** da, PASTIX_FLOAT ** drhs, PASTIX_INT *  dl2g,
-                        int  malloc_flag, MPI_Comm comm, PASTIX_INT dof);
+int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a, pastix_float_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
+                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da, pastix_float_t ** drhs, pastix_int_t *  dl2g,
+                        int  malloc_flag, MPI_Comm comm, pastix_int_t dof);
 
-int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *        ja, PASTIX_FLOAT *     a,
-                      PASTIX_INT * newn, PASTIX_INT **  newia, PASTIX_INT **    newja, PASTIX_FLOAT ** newa,
-                      PASTIX_INT *  l2g, MPI_Comm comm, int malloc_flag);
+int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t *        ja, pastix_float_t *     a,
+                      pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
+                      pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag);
 
 
 /*
@@ -159,11 +159,11 @@ int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *     
     dof      - Number of degrees of freedom.
     comm     - MPI communicator
  */
-int cscd_build_g2l(PASTIX_INT       ncol,
-                   PASTIX_INT      *loc2glob,
+int cscd_build_g2l(pastix_int_t       ncol,
+                   pastix_int_t      *loc2glob,
                    MPI_Comm  comm,
-                   PASTIX_INT      *gN,
-                   PASTIX_INT     **g2l);
+                   pastix_int_t      *gN,
+                   pastix_int_t     **g2l);
 /*
    Function: cscd_noDiag
 
@@ -179,7 +179,7 @@ int cscd_build_g2l(PASTIX_INT       ncol,
      l2g         - local 2 global column numbers for first cscd
 
 */
-int cscd_noDiag(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT * a, PASTIX_INT * l2g);
+int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, pastix_int_t * l2g);
 
 
 /*
@@ -197,11 +197,11 @@ int cscd_noDiag(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT * a, 
     dof      - Number of degrees of freedom.
     comm     - MPI communicator
 */
-int cscd_checksym(PASTIX_INT      n,
-                  PASTIX_INT     *colptr,
-                  PASTIX_INT    **rows,
-                  PASTIX_FLOAT  **values,
-                  PASTIX_INT     *l2g,
+int cscd_checksym(pastix_int_t      n,
+                  pastix_int_t     *colptr,
+                  pastix_int_t    **rows,
+                  pastix_float_t  **values,
+                  pastix_int_t     *l2g,
                   int      correct,
                   int      alloc,
                   int      dof,
@@ -236,11 +236,11 @@ int cscd_checksym(PASTIX_INT      n,
  *      ndof        - Number of degree of freedom per node.
  *      intern_flag - Decide if malloc will use internal or external macros.
  */
-void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PASTIX_FLOAT * lavals,
-                   PASTIX_FLOAT * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-                   PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, PASTIX_FLOAT **gavals,
-                   PASTIX_FLOAT **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-                   PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof, int intern_flag);
+void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_float_t * lavals,
+                   pastix_float_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+                   pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_float_t **gavals,
+                   pastix_float_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+                   pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof, int intern_flag);
 
 /*
   Function: cscd_redispatch_scotch
@@ -264,7 +264,7 @@ void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PAS
     EXIT_SUCCESS if already well distributed, 2 if redistributed
 
  */
-int cscd_redispatch_scotch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PASTIX_FLOAT *   a, PASTIX_INT *   l2g,
-                           PASTIX_INT *dn, PASTIX_INT ** dia, PASTIX_INT ** dja, PASTIX_FLOAT ** da, PASTIX_INT ** dl2g,
+int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a, pastix_int_t *   l2g,
+                           pastix_int_t *dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da, pastix_int_t ** dl2g,
                            MPI_Comm comm);
 #endif /* CSCD_UTILS_INTERN_H */

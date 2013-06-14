@@ -102,14 +102,14 @@ symbolFaxGraph (SymbolMatrix       * const symbptr,
 		const SCOTCH_Graph * const grafptr,
 		const Order        * const ordeptr)
 {
-  PASTIX_INT                   baseval;
-  PASTIX_INT                   vertnbr;
-  PASTIX_INT *                 verttab;
-  const PASTIX_INT * restrict  verttax;
-  PASTIX_INT                   edgenbr;
-  PASTIX_INT                   edgenum;
-  PASTIX_INT *                 edgetab;
-  const PASTIX_INT * restrict  edgetax;
+  pastix_int_t                   baseval;
+  pastix_int_t                   vertnbr;
+  pastix_int_t *                 verttab;
+  const pastix_int_t * restrict  verttax;
+  pastix_int_t                   edgenbr;
+  pastix_int_t                   edgenum;
+  pastix_int_t *                 edgetab;
+  const pastix_int_t * restrict  edgetax;
 
   SCOTCH_graphData (grafptr, 
 		    (SCOTCH_Num *)&baseval, 
@@ -150,17 +150,17 @@ int symbolFaxDgraph(SCOTCH_Dgraph * dgraph,
 		    MPI_Comm pastix_comm)
 {
 
-  PASTIX_INT            baseval;
-  PASTIX_INT            vertglobalnbr;
-  PASTIX_INT            vertlocalnbr;
-  PASTIX_INT            vertmaxnbr;
-  PASTIX_INT            vertgstnbr;
-  PASTIX_INT           *vertlocaltab;
-  PASTIX_INT            edgelocalnbr;
-  PASTIX_INT            edgeglobalnbr;
-  PASTIX_INT            edgemaxnbr;
-  PASTIX_INT           *edgelocaltab;
-  PASTIX_INT           *edgeghosttab;
+  pastix_int_t            baseval;
+  pastix_int_t            vertglobalnbr;
+  pastix_int_t            vertlocalnbr;
+  pastix_int_t            vertmaxnbr;
+  pastix_int_t            vertgstnbr;
+  pastix_int_t           *vertlocaltab;
+  pastix_int_t            edgelocalnbr;
+  pastix_int_t            edgeglobalnbr;
+  pastix_int_t            edgemaxnbr;
+  pastix_int_t           *edgelocaltab;
+  pastix_int_t           *edgeghosttab;
   
 
   SCOTCH_dgraphData   (dgraph,

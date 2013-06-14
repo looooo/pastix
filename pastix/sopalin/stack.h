@@ -2,8 +2,8 @@
 #define STACK_H
 
 typedef struct faststack {
-  PASTIX_INT  pos;
-  PASTIX_INT *tab;
+  pastix_int_t  pos;
+  pastix_int_t *tab;
 } faststack_t;
 
 #define FASTSTACK_INIT(s)   {(s).pos = 0; (s).tab[0] = -1; }

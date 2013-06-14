@@ -27,7 +27,7 @@ typedef struct CostCblk_ {
 
 typedef struct CostBlok_ {
   double                    contrib; /*+ Cost of contrib bounded to this blok                  +*/
-  PASTIX_INT                       linenbr; /*+ Number of no empty line above the blok (blok include) +*/
+  pastix_int_t                       linenbr; /*+ Number of no empty line above the blok (blok include) +*/
 } CostBlok;
 
 typedef struct CostMatrix_ {
@@ -42,9 +42,9 @@ typedef struct CostMatrix_ {
 #ifndef COST
 #define static
 #endif
-PASTIX_INT                         costInit            (CostMatrix *);
+pastix_int_t                         costInit            (CostMatrix *);
 void                        costExit            (CostMatrix *);
-PASTIX_INT                         costLoad            (CostMatrix *, FILE *);
-PASTIX_INT                         costSave            (CostMatrix *, FILE *);
+pastix_int_t                         costLoad            (CostMatrix *, FILE *);
+pastix_int_t                         costSave            (CostMatrix *, FILE *);
 
 #undef static

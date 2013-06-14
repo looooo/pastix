@@ -16,19 +16,19 @@
  * breadth-first search algorithm starting from the actual node and
  * not from the root of the tree.
  */
-static inline PASTIX_INT
+static inline pastix_int_t
 API_CALL(sopalin_dynsched_getNexTask)(Sopalin_Data_t *sopalin_data,
                                       SolverMatrix   *datacode,
                                       Thread_Data_t  *thread_data,
-                                      PASTIX_INT *itaskptr,
-                                      PASTIX_INT *itaskptr2,
-                                      PASTIX_INT *bloknum,
-                                      PASTIX_INT me)
+                                      pastix_int_t *itaskptr,
+                                      pastix_int_t *itaskptr2,
+                                      pastix_int_t *bloknum,
+                                      pastix_int_t me)
 {
-  PASTIX_INT itasktab = *itaskptr;
+  pastix_int_t itasktab = *itaskptr;
   int position;
-  PASTIX_INT itasktab2;
-  PASTIX_INT i, restart;
+  pastix_int_t itasktab2;
+  pastix_int_t i, restart;
 
  debd:
 
@@ -70,18 +70,18 @@ API_CALL(sopalin_dynsched_getNexTask)(Sopalin_Data_t *sopalin_data,
 /*
  * Standard version, the stealing algorithm go up into the tree to find work
  */
-static inline PASTIX_INT
+static inline pastix_int_t
 API_CALL(sopalin_dynsched_getNexTask)(Sopalin_Data_t *sopalin_data,
                                       SolverMatrix   *datacode,
                                       Thread_Data_t  *thread_data,
-                                      PASTIX_INT *itaskptr,
-                                      PASTIX_INT *itaskptr2,
-                                      PASTIX_INT *bloknum,
-                                      PASTIX_INT me)
+                                      pastix_int_t *itaskptr,
+                                      pastix_int_t *itaskptr2,
+                                      pastix_int_t *bloknum,
+                                      pastix_int_t me)
 {
-  PASTIX_INT itasktab = *itaskptr;
-  PASTIX_INT itasktab2;
-  PASTIX_INT i;
+  pastix_int_t itasktab = *itaskptr;
+  pastix_int_t itasktab2;
+  pastix_int_t i;
 
  deb:
   /* If there is nothing to do at our level, we just climb the tree */

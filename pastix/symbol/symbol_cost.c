@@ -106,15 +106,15 @@ const SymbolBlok * restrict const bloktax,        /*+ Based access to bloktab   
 const Dof * restrict const        deofptr,        /*+ DOF structure associated with the matrix +*/
 double * restrict const           nnzptr,         /*+ Size of the structure, to be filled      +*/
 double * restrict const           opcptr,         /*+ Operation count, to be filled            +*/
-const PASTIX_INT                         cblkmin,        /*+ Minimum column block index to consider   +*/
-const PASTIX_INT                         cblknbr)        /*+ Number of column blocks to consider      +*/
+const pastix_int_t                         cblkmin,        /*+ Minimum column block index to consider   +*/
+const pastix_int_t                         cblknbr)        /*+ Number of column blocks to consider      +*/
 {
-  PASTIX_INT                 bloknum;                    /* Number of current extra-diagonal block             */
-  PASTIX_INT                 cmednum;                    /* Median column block number                         */
-  PASTIX_INT                 cfacnum;                    /* Number of facing column block                      */
-  PASTIX_INT                 cdofnbr;                    /* Number of DOFs in column block (l_k)               */
-  PASTIX_INT                 rdofnbr;                    /* Number of DOFs in row blocks (h_{ki})              */
-  PASTIX_INT                 rdofsum;                    /* Number of DOFs in all row blocks (g_{ki} or g_{k}) */
+  pastix_int_t                 bloknum;                    /* Number of current extra-diagonal block             */
+  pastix_int_t                 cmednum;                    /* Median column block number                         */
+  pastix_int_t                 cfacnum;                    /* Number of facing column block                      */
+  pastix_int_t                 cdofnbr;                    /* Number of DOFs in column block (l_k)               */
+  pastix_int_t                 rdofnbr;                    /* Number of DOFs in row blocks (h_{ki})              */
+  pastix_int_t                 rdofsum;                    /* Number of DOFs in all row blocks (g_{ki} or g_{k}) */
   double              nnzval;                     /* Number of non-zeroes in subtree                    */
   double              opcval;                     /* Operation count in subtree                         */
 

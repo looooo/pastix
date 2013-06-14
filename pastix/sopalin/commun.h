@@ -15,37 +15,37 @@
 
 #define SIZEMAX 1000
 
-PASTIX_FLOAT vecbuf1[SIZEMAX];
-PASTIX_FLOAT vecbuf2[SIZEMAX];
-PASTIX_FLOAT matbuf1[SIZEMAX][SIZEMAX];
-PASTIX_FLOAT matbuf2[SIZEMAX][SIZEMAX];
-PASTIX_FLOAT matbuf3[SIZEMAX][SIZEMAX];
-PASTIX_FLOAT matppf1[SIZEMAX*SIZEMAX];
-PASTIX_FLOAT matppf2[SIZEMAX*SIZEMAX];
+pastix_float_t vecbuf1[SIZEMAX];
+pastix_float_t vecbuf2[SIZEMAX];
+pastix_float_t matbuf1[SIZEMAX][SIZEMAX];
+pastix_float_t matbuf2[SIZEMAX][SIZEMAX];
+pastix_float_t matbuf3[SIZEMAX][SIZEMAX];
+pastix_float_t matppf1[SIZEMAX*SIZEMAX];
+pastix_float_t matppf2[SIZEMAX*SIZEMAX];
 
 void init_commun();
-void init_vecteur(PASTIX_INT n,PASTIX_FLOAT *v,PASTIX_FLOAT new[SIZEMAX],PASTIX_INT inc);
-void end_vecteur(PASTIX_INT n,PASTIX_FLOAT *v,PASTIX_FLOAT new[SIZEMAX],PASTIX_INT inc);
-void init_matrice(char *t,PASTIX_INT n,PASTIX_INT m,PASTIX_FLOAT *a,PASTIX_FLOAT new[SIZEMAX][SIZEMAX],PASTIX_INT lda);
-void end_matrice(char *t,PASTIX_INT n,PASTIX_INT m,PASTIX_FLOAT *a,PASTIX_FLOAT new[SIZEMAX][SIZEMAX],PASTIX_INT lda);
+void init_vecteur(pastix_int_t n,pastix_float_t *v,pastix_float_t new[SIZEMAX],pastix_int_t inc);
+void end_vecteur(pastix_int_t n,pastix_float_t *v,pastix_float_t new[SIZEMAX],pastix_int_t inc);
+void init_matrice(char *t,pastix_int_t n,pastix_int_t m,pastix_float_t *a,pastix_float_t new[SIZEMAX][SIZEMAX],pastix_int_t lda);
+void end_matrice(char *t,pastix_int_t n,pastix_int_t m,pastix_float_t *a,pastix_float_t new[SIZEMAX][SIZEMAX],pastix_int_t lda);
 
-void init_vecteur(PASTIX_INT n,PASTIX_FLOAT *v,PASTIX_FLOAT new[SIZEMAX],PASTIX_INT inc)
+void init_vecteur(pastix_int_t n,pastix_float_t *v,pastix_float_t new[SIZEMAX],pastix_int_t inc)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   for (i=0;i<n;i++)
     new[i]=v[i*inc];
 }
 
-void end_vecteur(PASTIX_INT n,PASTIX_FLOAT *v,PASTIX_FLOAT new[SIZEMAX],PASTIX_INT inc)
+void end_vecteur(pastix_int_t n,pastix_float_t *v,pastix_float_t new[SIZEMAX],pastix_int_t inc)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   for (i=0;i<n;i++)
     v[i*inc]=new[i];
 }
 
-void init_matrice(char *t,PASTIX_INT n,PASTIX_INT m,PASTIX_FLOAT *a,PASTIX_FLOAT new[SIZEMAX][SIZEMAX],PASTIX_INT lda)
+void init_matrice(char *t,pastix_int_t n,pastix_int_t m,pastix_float_t *a,pastix_float_t new[SIZEMAX][SIZEMAX],pastix_int_t lda)
 {
-  PASTIX_INT i,j;
+  pastix_int_t i,j;
   for (i=0;i<n;i++)
     for (j=0;j<m;j++)
       if (*t=='N')
@@ -54,9 +54,9 @@ void init_matrice(char *t,PASTIX_INT n,PASTIX_INT m,PASTIX_FLOAT *a,PASTIX_FLOAT
 	new[i][j]=a[i+j*lda];
 }
 
-void end_matrice(char *t,PASTIX_INT n,PASTIX_INT m,PASTIX_FLOAT *a,PASTIX_FLOAT new[SIZEMAX][SIZEMAX],PASTIX_INT lda)
+void end_matrice(char *t,pastix_int_t n,pastix_int_t m,pastix_float_t *a,pastix_float_t new[SIZEMAX][SIZEMAX],pastix_int_t lda)
 {
-  PASTIX_INT i,j;
+  pastix_int_t i,j;
   for (i=0;i<n;i++)
     for (j=0;j<m;j++)
       if (*t=='N')

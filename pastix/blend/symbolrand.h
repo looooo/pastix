@@ -11,7 +11,7 @@
 /************************************************************/
 
 #define static
-PASTIX_INT hazard(PASTIX_INT a, PASTIX_INT b);
-void symbolRand(SymbolMatrix *symbmtx, PASTIX_INT h1, PASTIX_INT h2);
+pastix_int_t hazard(pastix_int_t a, pastix_int_t b);
+void symbolRand(SymbolMatrix *symbmtx, pastix_int_t h1, pastix_int_t h2);
 
 #undef static

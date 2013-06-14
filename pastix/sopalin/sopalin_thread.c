@@ -78,10 +78,10 @@
  */
 
 void sopalin_launch_thread(void * sopalin_data_ref,
-                           PASTIX_INT procnum, PASTIX_INT procnbr, void *ptr, PASTIX_INT verbose,
-                           PASTIX_INT calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
-                           PASTIX_INT comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-                           PASTIX_INT ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data){
+                           pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
+                           pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
+                           pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
+                           pastix_int_t ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data){
   sopthread_data_t  d_comm;
   sopthread_data_t  d_ooc;
   sopthread_data_t  d_calc;
@@ -149,17 +149,17 @@ void sopalin_launch_thread(void * sopalin_data_ref,
 #ifndef PASTIX_BUBBLESCHED
 
 void sopalin_launch_thread(void * sopalin_data_ref,
-                           PASTIX_INT procnum, PASTIX_INT procnbr, void *ptr, PASTIX_INT verbose,
-                           PASTIX_INT calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
-                           PASTIX_INT comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-                           PASTIX_INT ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data)
+                           pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
+                           pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
+                           pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
+                           pastix_int_t ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data)
 {
   sopthread_data_t *d       = NULL;
   pthread_t        *calltab = NULL;
-  PASTIX_INT               i;
-  PASTIX_INT               ret;
-  PASTIX_INT               thrdnbr;
-  PASTIX_INT               thrdnbr_wo_ooc;
+  pastix_int_t               i;
+  pastix_int_t               ret;
+  pastix_int_t               thrdnbr;
+  pastix_int_t               thrdnbr_wo_ooc;
   Sopalin_Data_t   *sopalin_data = sopalin_data_ref;
   (void)procnbr; (void)ptr;
 
@@ -272,10 +272,10 @@ void sopalin_launch_thread(void * sopalin_data_ref,
 /**********************************************/
 #else
 void sopalin_launch_thread(void * sopalin_data_ref,
-                           PASTIX_INT procnum, PASTIX_INT procnbr, void *ptr, PASTIX_INT verbose,
-                           PASTIX_INT calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
-                           PASTIX_INT comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-                           PASTIX_INT ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data){
+                           pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
+                           pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
+                           pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
+                           pastix_int_t ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data){
   char             *name;
   pthread_t        *calltab;
   marcel_bubble_t  *bubbletab;
@@ -470,7 +470,7 @@ void sopalin_launch_thread(void * sopalin_data_ref,
 /**********************************************/
 /*        Bind des threads sur les procs      */
 /**********************************************/
-PASTIX_INT sopalin_bindthread(PASTIX_INT cpu)
+pastix_int_t sopalin_bindthread(pastix_int_t cpu)
 {
 #ifdef MARCEL
 

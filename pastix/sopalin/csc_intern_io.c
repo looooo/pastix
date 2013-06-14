@@ -36,13 +36,13 @@
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-PASTIX_INT CscSave(const CscMatrix * const cscptr, 
+pastix_int_t CscSave(const CscMatrix * const cscptr, 
 	    FILE            * const stream)
 {
-  PASTIX_INT iter=0;
-  PASTIX_INT iter2=0;
-  PASTIX_INT valnbr;
-  PASTIX_INT o=0;
+  pastix_int_t iter=0;
+  pastix_int_t iter2=0;
+  pastix_int_t valnbr;
+  pastix_int_t o=0;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscSave \n");
@@ -83,18 +83,18 @@ PASTIX_INT CscSave(const CscMatrix * const cscptr,
 }
 
 #define CscSaveIJV PASTIX_EXTERN_F(CscSaveIJV)
-PASTIX_INT CscSaveIJV(const CscMatrix * const cscptr,
+pastix_int_t CscSaveIJV(const CscMatrix * const cscptr,
 	       const SolverMatrix     *solvmtx,
-	       PASTIX_INT                    *l2g,
-	       PASTIX_INT                    *peritab,
-	       PASTIX_INT                     dof,
+	       pastix_int_t                    *l2g,
+	       pastix_int_t                    *peritab,
+	       pastix_int_t                     dof,
 	       FILE            * const stream)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT iterval, indcol, colstart, colend;
-  PASTIX_INT indcblk;
-  PASTIX_INT o=0;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t iterval, indcol, colstart, colend;
+  pastix_int_t indcblk;
+  pastix_int_t o=0;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscSave \n");
@@ -140,24 +140,24 @@ PASTIX_INT CscSaveIJV(const CscMatrix * const cscptr,
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-PASTIX_INT CscBSave(const CscMatrix * const cscptr, 
+pastix_int_t CscBSave(const CscMatrix * const cscptr, 
 	     FILE            * const stream)
 {
-  PASTIX_INT iter=0;
-  PASTIX_INT valnbr;
-  PASTIX_INT o=0;
+  pastix_int_t iter=0;
+  pastix_int_t valnbr;
+  pastix_int_t o=0;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscBSave \n");
 #endif
   
-  fwrite(&(CSC_FNBR(cscptr)),sizeof(PASTIX_INT), 1, stream);
+  fwrite(&(CSC_FNBR(cscptr)),sizeof(pastix_int_t), 1, stream);
 
   for (iter=0; iter < CSC_FNBR(cscptr); iter++)
     {
-      fwrite(&(CSC_COLNBR(cscptr,iter)), sizeof(PASTIX_INT), 1, stream); 
+      fwrite(&(CSC_COLNBR(cscptr,iter)), sizeof(pastix_int_t), 1, stream); 
 
-      fwrite(CSC_COLTAB(cscptr,iter), sizeof(PASTIX_INT),
+      fwrite(CSC_COLTAB(cscptr,iter), sizeof(pastix_int_t),
 	     (CSC_COLNBR(cscptr,iter)+1), stream);
     }
 
@@ -165,8 +165,8 @@ PASTIX_INT CscBSave(const CscMatrix * const cscptr,
 
   for (iter=0; iter < valnbr ;iter++)
     {
-      fwrite(&(CSC_ROW(cscptr,iter)), sizeof(PASTIX_INT), 1, stream);
-      fwrite(&(CSC_VAL(cscptr,iter)), sizeof(PASTIX_FLOAT), 1,stream);
+      fwrite(&(CSC_ROW(cscptr,iter)), sizeof(pastix_int_t), 1, stream);
+      fwrite(&(CSC_VAL(cscptr,iter)), sizeof(pastix_float_t), 1,stream);
     }
 
 #ifdef CSC_LOG
@@ -194,12 +194,12 @@ PASTIX_INT CscBSave(const CscMatrix * const cscptr,
      cscprt - the internal CSCd structure to load.
      stream - the FILE to write into, open in read mode. 
 */
-PASTIX_INT CscLoad(CscMatrix * cscptr, 
+pastix_int_t CscLoad(CscMatrix * cscptr, 
 	    FILE      * stream)
 {
-  PASTIX_INT iter=0;
-  PASTIX_INT iter2=0;
-  PASTIX_INT valnbr;
+  pastix_int_t iter=0;
+  pastix_int_t iter2=0;
+  pastix_int_t valnbr;
   long temp;
 
 #ifdef CSC_LOG
@@ -226,7 +226,7 @@ PASTIX_INT CscLoad(CscMatrix * cscptr,
       
       MALLOC_INTERN(CSC_COLTAB(cscptr,iter), 
 		    CSC_COLNBR(cscptr,iter)+1, 
-		    PASTIX_INT);
+		    pastix_int_t);
       
       for (iter2=0; iter2<CSC_COLNBR(cscptr,iter)+1; iter2++)
 	{
@@ -242,8 +242,8 @@ PASTIX_INT CscLoad(CscMatrix * cscptr,
   
   valnbr = CSC_VALNBR(cscptr);
 
-  MALLOC_INTERN(CSC_ROWTAB(cscptr), valnbr, PASTIX_INT);
-  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, PASTIX_FLOAT);
+  MALLOC_INTERN(CSC_ROWTAB(cscptr), valnbr, pastix_int_t);
+  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, pastix_float_t);
 
   for (iter=0; iter < valnbr; iter++)
     {
@@ -262,9 +262,9 @@ PASTIX_INT CscLoad(CscMatrix * cscptr,
 	}
 
 #if (defined X_ARCHalpha_compaq_osf1)
-	CSC_VAL(cscptr,iter) = PASTIX_FLOAT (tempreal, tempimag);
+	CSC_VAL(cscptr,iter) = pastix_float_t (tempreal, tempimag);
 #else
-	CSC_VAL(cscptr,iter) = (PASTIX_FLOAT) tempreal+( (PASTIX_FLOAT) tempimag)*I;
+	CSC_VAL(cscptr,iter) = (pastix_float_t) tempreal+( (pastix_float_t) tempimag)*I;
 #endif
       }
 #else
@@ -292,41 +292,41 @@ PASTIX_INT CscLoad(CscMatrix * cscptr,
     cscprt - the internal CSCd structure to load.
     stream - the FILE to write into, open in read mode. 
 */
-PASTIX_INT CscBLoad(CscMatrix * cscptr, 
+pastix_int_t CscBLoad(CscMatrix * cscptr, 
 	     FILE      * stream)
 {
-  PASTIX_INT iter=0;
-  PASTIX_INT valnbr;
+  pastix_int_t iter=0;
+  pastix_int_t valnbr;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscBLoad \n");
 #endif
 
-  PASTIX_FREAD(&(CSC_FNBR(cscptr)), sizeof(PASTIX_INT), 1, stream);
+  PASTIX_FREAD(&(CSC_FNBR(cscptr)), sizeof(pastix_int_t), 1, stream);
 
   MALLOC_INTERN(CSC_FTAB(cscptr), CSC_FNBR(cscptr), CscFormat);
 
   for (iter=0; iter < CSC_FNBR(cscptr); iter++)
     {
-      PASTIX_FREAD(&(CSC_COLNBR(cscptr,iter)), sizeof(PASTIX_INT), 1, stream);
+      PASTIX_FREAD(&(CSC_COLNBR(cscptr,iter)), sizeof(pastix_int_t), 1, stream);
 
       MALLOC_INTERN(CSC_COLTAB(cscptr,iter),
 		    CSC_COLNBR(cscptr,iter)+1, 
-		    PASTIX_INT);
+		    pastix_int_t);
 
-      PASTIX_FREAD(CSC_COLTAB(cscptr,iter), sizeof(PASTIX_INT),
+      PASTIX_FREAD(CSC_COLTAB(cscptr,iter), sizeof(pastix_int_t),
 	    (CSC_COLNBR(cscptr,iter)+1), stream);
     }
 
   valnbr = CSC_VALNBR(cscptr);
 
-  MALLOC_INTERN(CSC_ROWTAB(cscptr), valnbr, PASTIX_INT);
-  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, PASTIX_FLOAT);
+  MALLOC_INTERN(CSC_ROWTAB(cscptr), valnbr, pastix_int_t);
+  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, pastix_float_t);
 
   for (iter=0; iter < valnbr; iter++)
     {
-      PASTIX_FREAD(&(CSC_ROW(cscptr,iter)), sizeof(PASTIX_INT), 1, stream);
-      PASTIX_FREAD(&(CSC_VAL(cscptr,iter)), sizeof(PASTIX_FLOAT), 1, stream);
+      PASTIX_FREAD(&(CSC_ROW(cscptr,iter)), sizeof(pastix_int_t), 1, stream);
+      PASTIX_FREAD(&(CSC_VAL(cscptr,iter)), sizeof(pastix_float_t), 1, stream);
     }
 
 #ifdef CSC_LOG

@@ -25,15 +25,15 @@
 
 */
 struct csc_data_ {
-  PASTIX_INT     n;
-  PASTIX_INT   * colptr;
-  PASTIX_INT   * rows;
-  PASTIX_FLOAT * values;
-  PASTIX_FLOAT * rhs;
-  PASTIX_INT     nrhs;
-  PASTIX_INT   * perm;
-  PASTIX_INT   * l2g;
-  PASTIX_INT     dof;
+  pastix_int_t     n;
+  pastix_int_t   * colptr;
+  pastix_int_t   * rows;
+  pastix_float_t * values;
+  pastix_float_t * rhs;
+  pastix_int_t     nrhs;
+  pastix_int_t   * perm;
+  pastix_int_t   * l2g;
+  pastix_int_t     dof;
 };
 
 /*
@@ -44,16 +44,16 @@ struct csc_data_ {
 typedef struct csc_data_ csc_data_t;
 
 void FORTRAN_CALL(csc_dispatch_fortran)(csc_data_t ** csc_data,
-                                        PASTIX_INT         *gN,
-                                        PASTIX_INT         *gcolptr,
-                                        PASTIX_INT         *grow,
-                                        PASTIX_FLOAT       *gavals,
-                                        PASTIX_FLOAT       *grhs,
-                                        PASTIX_INT         *gperm,
-                                        PASTIX_INT         *ginvp,
+                                        pastix_int_t         *gN,
+                                        pastix_int_t         *gcolptr,
+                                        pastix_int_t         *grow,
+                                        pastix_float_t       *gavals,
+                                        pastix_float_t       *grhs,
+                                        pastix_int_t         *gperm,
+                                        pastix_int_t         *ginvp,
                                         int         *dispatch,
-                                        PASTIX_INT         *newn,
-                                        PASTIX_INT         *newnnz,
+                                        pastix_int_t         *newn,
+                                        pastix_int_t         *newnnz,
                                         MPI_Fint    *fortran_comm)
 {
   MPI_Comm        pastix_comm;
@@ -80,54 +80,54 @@ void FORTRAN_CALL(csc_dispatch_fortran)(csc_data_t ** csc_data,
 }
 
 void FORTRAN_CALL(csc_dispatch_fortran_end)(csc_data_t ** csc_data,
-                                            PASTIX_INT         *lcolptr,
-                                            PASTIX_INT         *lrow,
-                                            PASTIX_FLOAT       *lavals,
-                                            PASTIX_FLOAT       *lrhs,
-                                            PASTIX_FLOAT       *lperm,
-                                            PASTIX_INT         *l2g)
+                                            pastix_int_t         *lcolptr,
+                                            pastix_int_t         *lrow,
+                                            pastix_float_t       *lavals,
+                                            pastix_float_t       *lrhs,
+                                            pastix_float_t       *lperm,
+                                            pastix_int_t         *l2g)
 {
-  PASTIX_INT nnz = 0;
+  pastix_int_t nnz = 0;
   if ((*csc_data)->colptr != NULL) {
     nnz = (*csc_data)->colptr[(*csc_data)->n]-1;
-    memcpy(lcolptr, (*csc_data)->colptr, (1+(*csc_data)->n)*sizeof(PASTIX_INT));
+    memcpy(lcolptr, (*csc_data)->colptr, (1+(*csc_data)->n)*sizeof(pastix_int_t));
     free((*csc_data)->colptr);
   }
   if ((*csc_data)->rows != NULL) {
-    memcpy(lrow,    (*csc_data)->rows,   nnz*sizeof(PASTIX_INT));
+    memcpy(lrow,    (*csc_data)->rows,   nnz*sizeof(pastix_int_t));
     free((*csc_data)->rows);
   }
   if ((*csc_data)->values != NULL) {
-    memcpy(lavals,  (*csc_data)->values,   nnz*sizeof(PASTIX_FLOAT));
+    memcpy(lavals,  (*csc_data)->values,   nnz*sizeof(pastix_float_t));
     free((*csc_data)->values);
   }
   if ((*csc_data)->rhs != NULL) {
-    memcpy(lrhs, (*csc_data)->rhs, (*csc_data)->n*sizeof(PASTIX_FLOAT));
+    memcpy(lrhs, (*csc_data)->rhs, (*csc_data)->n*sizeof(pastix_float_t));
     free((*csc_data)->rhs);
   }
   if ((*csc_data)->perm != NULL) {
-    memcpy(lperm, (*csc_data)->perm, (*csc_data)->n*sizeof(PASTIX_INT));
+    memcpy(lperm, (*csc_data)->perm, (*csc_data)->n*sizeof(pastix_int_t));
     free((*csc_data)->perm);
   }
   if ((*csc_data)->l2g != NULL) {
-    memcpy(l2g, (*csc_data)->l2g, (*csc_data)->n*sizeof(PASTIX_INT));
+    memcpy(l2g, (*csc_data)->l2g, (*csc_data)->n*sizeof(pastix_int_t));
     free((*csc_data)->l2g);
   }
 }
 
 void FORTRAN_CALL(cscd_redispatch_fortran)(csc_data_t ** csc_data,
-                                           PASTIX_INT         * n,
-                                           PASTIX_INT         * ia,
-                                           PASTIX_INT         * ja,
-                                           PASTIX_FLOAT       * a,
-                                           PASTIX_FLOAT       * rhs,
-                                           PASTIX_INT         * nrhs,
-                                           PASTIX_INT         * l2g,
-                                           PASTIX_INT         * newn,
-                                           PASTIX_INT         * newl2g,
-                                           PASTIX_INT         * newnnz,
+                                           pastix_int_t         * n,
+                                           pastix_int_t         * ia,
+                                           pastix_int_t         * ja,
+                                           pastix_float_t       * a,
+                                           pastix_float_t       * rhs,
+                                           pastix_int_t         * nrhs,
+                                           pastix_int_t         * l2g,
+                                           pastix_int_t         * newn,
+                                           pastix_int_t         * newl2g,
+                                           pastix_int_t         * newnnz,
                                            MPI_Fint    * fortran_comm,
-                                           PASTIX_INT         * dof,
+                                           pastix_int_t         * dof,
                                            int         * ierr)
 {
 
@@ -152,28 +152,28 @@ void FORTRAN_CALL(cscd_redispatch_fortran)(csc_data_t ** csc_data,
 }
 
 void FORTRAN_CALL(cscd_redispatch_fortran_end)(csc_data_t ** csc_data,
-                                               PASTIX_INT         *dcolptr,
-                                               PASTIX_INT         *drow,
-                                               PASTIX_FLOAT       *davals,
-                                               PASTIX_FLOAT       *drhs)
+                                               pastix_int_t         *dcolptr,
+                                               pastix_int_t         *drow,
+                                               pastix_float_t       *davals,
+                                               pastix_float_t       *drhs)
 {
-  PASTIX_INT nnz = 0;
+  pastix_int_t nnz = 0;
   if ((*csc_data)->colptr != NULL) {
     nnz = (*csc_data)->colptr[(*csc_data)->n]-1;
-    memcpy(dcolptr, (*csc_data)->colptr, (1+(*csc_data)->n)*sizeof(PASTIX_INT));
+    memcpy(dcolptr, (*csc_data)->colptr, (1+(*csc_data)->n)*sizeof(pastix_int_t));
     free((*csc_data)->colptr);
   }
   if ((*csc_data)->rows != NULL) {
-    memcpy(drow,    (*csc_data)->rows,   nnz*sizeof(PASTIX_INT));
+    memcpy(drow,    (*csc_data)->rows,   nnz*sizeof(pastix_int_t));
     free((*csc_data)->rows);
   }
   if ((*csc_data)->values != NULL) {
     memcpy(davals,  (*csc_data)->values,
-           (*csc_data)->dof*(*csc_data)->dof*nnz*sizeof(PASTIX_FLOAT));
+           (*csc_data)->dof*(*csc_data)->dof*nnz*sizeof(pastix_float_t));
     free((*csc_data)->values);
   }
   if ((*csc_data)->rhs != NULL) {
-    memcpy(drhs, (*csc_data)->rhs, (*csc_data)->nrhs*(*csc_data)->n*sizeof(PASTIX_FLOAT));
+    memcpy(drhs, (*csc_data)->rhs, (*csc_data)->nrhs*(*csc_data)->n*sizeof(pastix_float_t));
     free((*csc_data)->rhs);
   }
   memFree_null(*csc_data);

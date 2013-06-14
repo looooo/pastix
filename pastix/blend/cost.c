@@ -6,7 +6,7 @@
 
 
 
-PASTIX_INT costInit(CostMatrix *costmtx)
+pastix_int_t costInit(CostMatrix *costmtx)
 {
     costmtx->cblktab = NULL;
     costmtx->bloktab = NULL;

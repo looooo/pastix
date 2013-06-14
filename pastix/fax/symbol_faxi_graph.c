@@ -87,16 +87,16 @@ symbolFaxiGraph (
 SymbolMatrix       * const  symbptr, /*+ Symbolic block matrix [based]              +*/
 const SCOTCH_Graph * const  grafptr, /*+ Matrix adjacency structure [based]         +*/
 const Order        * const  ordeptr, /*+ Matrix ordering                            +*/
-const PASTIX_INT                   levfmax) /*+ Inclusive maximum level of fill for blocks +*/
+const pastix_int_t                   levfmax) /*+ Inclusive maximum level of fill for blocks +*/
 {
-  PASTIX_INT                   baseval;
-  PASTIX_INT                   vertnbr;
-  PASTIX_INT *                 verttab;
-  const PASTIX_INT * restrict  verttax;
-  PASTIX_INT                   edgenbr;
-  PASTIX_INT                   edgenum;
-  PASTIX_INT *                 edgetab;
-  const PASTIX_INT * restrict  edgetax;
+  pastix_int_t                   baseval;
+  pastix_int_t                   vertnbr;
+  pastix_int_t *                 verttab;
+  const pastix_int_t * restrict  verttax;
+  pastix_int_t                   edgenbr;
+  pastix_int_t                   edgenum;
+  pastix_int_t *                 edgetab;
+  const pastix_int_t * restrict  edgetax;
 
   SCOTCH_graphData (grafptr, 
 		    (SCOTCH_Num *)&baseval, 

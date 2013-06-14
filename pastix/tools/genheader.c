@@ -14,8 +14,8 @@
 /*
   Program: genheader
 
-  Generate headers (for fortran and C ) setting PASTIX_INT and
-  MPI_PASTIX_INT maccros to the correct value.
+  Generate headers (for fortran and C ) setting pastix_int_t and
+  MPI_pastix_int_t maccros to the correct value.
 
   Parameters:
   argc - must be 3
@@ -38,8 +38,8 @@ int main (int argc, char ** argv)
   char * argument  = NULL;
   FILE * file      = NULL;
   int    cplx      = 0;
-  int    realsize  = (int)(sizeof(PASTIX_FLOAT)/sizeof(unsigned char));
-  int    intsize   = (int)(sizeof(PASTIX_INT)/sizeof(unsigned char));
+  int    realsize  = (int)(sizeof(pastix_float_t)/sizeof(unsigned char));
+  int    intsize   = (int)(sizeof(pastix_int_t)/sizeof(unsigned char));
 #ifdef INTSSIZE64
   int    sintsize  = (int)(sizeof(int64_t)/sizeof(unsigned char));
 #else
@@ -47,7 +47,7 @@ int main (int argc, char ** argv)
 #endif
 #ifdef TYPE_COMPLEX
   cplx     = 1;
-  realsize = (int)(sizeof(PASTIX_FLOAT)/sizeof(unsigned char)/2);
+  realsize = (int)(sizeof(pastix_float_t)/sizeof(unsigned char)/2);
 #endif
 
   if (argc != 9)
@@ -87,26 +87,26 @@ int main (int argc, char ** argv)
     /* #endif */
 
     fprintf(file,
-            "#ifndef PASTIX_INT_T_AND_SO_ON\n"
-            "#define PASTIX_INT_T_AND_SO_ON\n");
+            "#ifndef pastix_int_t_T_AND_SO_ON\n"
+            "#define pastix_int_t_T_AND_SO_ON\n");
 #ifdef FORCE_LONG
     fprintf(file, "typedef long          pastix_int_t;\n");
     fprintf(file, "typedef unsigned long pastix_uint_t;\n");
-    fprintf(file, "#  define MPI_PASTIX_INT   MPI_LONG\n");
+    fprintf(file, "#  define MPI_pastix_int_t   MPI_LONG\n");
 #else
 #ifdef FORCE_INT32
     fprintf(file, "typedef int32_t       pastix_int_t;\n");
     fprintf(file, "typedef uint32_t      pastix_uint_t;\n");
-    fprintf(file, "#  define MPI_PASTIX_INT   MPI_INTEGER4\n");
+    fprintf(file, "#  define MPI_pastix_int_t   MPI_INTEGER4\n");
 #else
 #ifdef FORCE_INT64
     fprintf(file, "typedef int64_t       pastix_int_t;\n");
     fprintf(file, "typedef uint64_t      pastix_uint_t;\n");
-    fprintf(file, "#  define MPI_PASTIX_INT   MPI_INTEGER8\n");
+    fprintf(file, "#  define MPI_pastix_int_t   MPI_INTEGER8\n");
 #else
     fprintf(file, "typedef int           pastix_int_t;\n");
     fprintf(file, "typedef unsigned int  pastix_uint_t;\n");
-    fprintf(file, "#  define MPI_PASTIX_INT   MPI_INT\n");
+    fprintf(file, "#  define MPI_pastix_int_t   MPI_INT\n");
 #endif
 #endif
 #endif
@@ -125,13 +125,13 @@ int main (int argc, char ** argv)
       "#    else\n"
       "       typedef double complex pastix_float_t;\n"
       "#    endif\n");
-    fprintf(file, "#    define MPI_PASTIX_FLOAT MPI_DOUBLE_COMPLEX\n");
-    fprintf(file, "#    define PASTIX_FLOAT            pastix_float_t\n");
+    fprintf(file, "#    define MPI_pastix_float_t MPI_DOUBLE_COMPLEX\n");
+    fprintf(file, "#    define pastix_float_t            pastix_float_t\n");
     fprintf(file, "#  endif\n");
 #else
     fprintf(file, "typedef double pastix_float_t;\n");
-    fprintf(file, "#  define MPI_PASTIX_FLOAT MPI_DOUBLE\n");
-    fprintf(file, "#  define PASTIX_FLOAT            pastix_float_t\n");
+    fprintf(file, "#  define MPI_pastix_float_t MPI_DOUBLE\n");
+    fprintf(file, "#  define pastix_float_t            pastix_float_t\n");
 #endif
 #else
 #ifdef TYPE_COMPLEX
@@ -148,16 +148,16 @@ int main (int argc, char ** argv)
       "#    else\n"
       "#      typedef float complex pastix_float_t;\n"
       "#    endif\n");
-    fprintf(file, "#    define MPI_PASTIX_FLOAT MPI_COMPLEX\n");
-    fprintf(file, "#    define PASTIX_FLOAT            pastix_float_t\n");
+    fprintf(file, "#    define MPI_pastix_float_t MPI_COMPLEX\n");
+    fprintf(file, "#    define pastix_float_t            pastix_float_t\n");
     fprintf(file, "#  endif\n");
 #else
     fprintf(file, "typedef float pastix_float_t;\n");
-    fprintf(file, "#  define MPI_PASTIX_FLOAT MPI_FLOAT\n");
-    fprintf(file, "#  define PASTIX_FLOAT            pastix_float_t\n");
+    fprintf(file, "#  define MPI_pastix_float_t MPI_FLOAT\n");
+    fprintf(file, "#  define pastix_float_t            pastix_float_t\n");
 #endif
 #endif
-    fprintf(file, "#  define PASTIX_INT              pastix_int_t\n");
+    fprintf(file, "#  define pastix_int_t              pastix_int_t\n");
     fprintf(file, "#  define PASTIX_UINT             pastix_uint_t\n");
 #ifdef FORCE_NOMPI
     fprintf(file, "#  ifdef  MPI_Comm\n");
@@ -165,7 +165,7 @@ int main (int argc, char ** argv)
     fprintf(file, "#  endif\n");
     fprintf(file, "#  define MPI_Comm int\n");
 #endif
-    fprintf(file, "#endif /* PASTIX_INT_T_AND_SO_ON */\n");
+    fprintf(file, "#endif /* pastix_int_t_T_AND_SO_ON */\n");
 
     fclose(file);
   }
@@ -174,27 +174,27 @@ int main (int argc, char ** argv)
     /* Fortran header */
     file = fopen (header_f,"w");
 
-    fprintf(file, "#define PASTIX_INT_KIND    %d\n",
-            (int)(sizeof(PASTIX_INT)/sizeof(unsigned char)));
+    fprintf(file, "#define pastix_int_t_KIND    %d\n",
+            (int)(sizeof(pastix_int_t)/sizeof(unsigned char)));
     fprintf(file, "#define pastix_int_t       INTEGER(kind=%d)\n",
-            (int)(sizeof(PASTIX_INT)/sizeof(unsigned char)));
+            (int)(sizeof(pastix_int_t)/sizeof(unsigned char)));
     fprintf(file, "#define pastix_uint_t      unsigned INTEGER(kind=%d)\n",
-            (int)(sizeof(PASTIX_INT)/sizeof(unsigned char)));
+            (int)(sizeof(pastix_int_t)/sizeof(unsigned char)));
     fprintf(file, "#define pastix_data_ptr_t  INTEGER(kind=%d)\n",
-            (int)(sizeof(PASTIX_INT*)/sizeof(unsigned char)));
-    fprintf(file, "#define MPI_PASTIX_INT     MPI_INTEGER%d\n",
-            (int)(sizeof(PASTIX_INT)/sizeof(unsigned char)));
+            (int)(sizeof(pastix_int_t*)/sizeof(unsigned char)));
+    fprintf(file, "#define MPI_pastix_int_t     MPI_INTEGER%d\n",
+            (int)(sizeof(pastix_int_t)/sizeof(unsigned char)));
 
 #ifdef TYPE_COMPLEX
     fprintf(file, "#define pastix_float_t     COMPLEX(kind=%d)\n",
-            (int)(sizeof(PASTIX_FLOAT)/sizeof(unsigned char)/2));
-    fprintf(file, "#define MPI_PASTIX_FLOAT   MPI_COMPLEX%d\n",
-            (int)(sizeof(PASTIX_FLOAT)/sizeof(unsigned char)));
+            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)/2));
+    fprintf(file, "#define MPI_pastix_float_t   MPI_COMPLEX%d\n",
+            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)));
 #else
     fprintf(file, "#define pastix_float_t     REAL(kind=%d)\n",
-            (int)(sizeof(PASTIX_FLOAT)/sizeof(unsigned char)));
-    fprintf(file, "#define MPI_PASTIX_FLOAT   MPI_REAL%d\n",
-            (int)(sizeof(PASTIX_FLOAT)/sizeof(unsigned char)));
+            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)));
+    fprintf(file, "#define MPI_pastix_float_t   MPI_REAL%d\n",
+            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)));
 #endif
 
     fclose(file);

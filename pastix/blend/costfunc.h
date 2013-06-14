@@ -19,24 +19,24 @@
 
 void            costMatrixBuild       (CostMatrix *, const SymbolMatrix *, const Dof *);
 void            costMatrixCorrect     (CostMatrix *, const SymbolMatrix *, Cand * candtab,  const Dof *);
-double          subtreeUpdateCost     (PASTIX_INT, CostMatrix *, const EliminTree *);
-double          subtreeUpdateCostLocal(PASTIX_INT, const BlendCtrl *, const SymbolMatrix *, const SimuCtrl *, const Dof *, PASTIX_INT);
-double          cblkComputeCost       (PASTIX_INT, CostMatrix *, const SymbolMatrix *, const Dof *);
-double          cblkComputeCost2D     (PASTIX_INT, CostMatrix *, const SymbolMatrix *, const Dof *);
+double          subtreeUpdateCost     (pastix_int_t, CostMatrix *, const EliminTree *);
+double          subtreeUpdateCostLocal(pastix_int_t, const BlendCtrl *, const SymbolMatrix *, const SimuCtrl *, const Dof *, pastix_int_t);
+double          cblkComputeCost       (pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
+double          cblkComputeCost2D     (pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
 				 		   
 /** 2D **/			 	   
-double          DIAGCost              (PASTIX_INT);
-double          E1Cost                (PASTIX_INT, PASTIX_INT);
-double          E2Cost                (PASTIX_INT, PASTIX_INT, PASTIX_INT);
+double          DIAGCost              (pastix_int_t);
+double          E1Cost                (pastix_int_t, pastix_int_t);
+double          E2Cost                (pastix_int_t, pastix_int_t, pastix_int_t);
 				 		   
-static double   computeCost           (PASTIX_INT, PASTIX_INT);
-static double   contribCompCost       (PASTIX_INT, PASTIX_INT, PASTIX_INT);
-static double   contribAddCost        (PASTIX_INT, PASTIX_INT);
-double          costFtgtSend          (PASTIX_INT, PASTIX_INT, FanInTarget *, BlendCtrl *,  const Dof *);
+static double   computeCost           (pastix_int_t, pastix_int_t);
+static double   contribCompCost       (pastix_int_t, pastix_int_t, pastix_int_t);
+static double   contribAddCost        (pastix_int_t, pastix_int_t);
+double          costFtgtSend          (pastix_int_t, pastix_int_t, FanInTarget *, BlendCtrl *,  const Dof *);
 				 		   
 double          costFtgtAdd           (FanInTarget *, const Dof *);
-double          cblkMaxCost           (PASTIX_INT, const CostMatrix *);
-double          totalCost             (PASTIX_INT, const CostMatrix *);
+double          cblkMaxCost           (pastix_int_t, const CostMatrix *);
+double          totalCost             (pastix_int_t, const CostMatrix *);
 void            printSolverInfo       (FILE *, const SolverMatrix *, const SymbolMatrix *, const Dof * const dofptr);
 double          memorySpaceCost       (const SolverMatrix *);
 static double   solverSpaceCost       (const SolverMatrix *);

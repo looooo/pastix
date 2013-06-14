@@ -25,9 +25,9 @@
 #  ifdef SOPALIN_LU
 
 static inline
-void API_CALL(kernel_trsm)(PASTIX_INT m, PASTIX_INT n,
-               PASTIX_FLOAT *dL, PASTIX_FLOAT *dU, PASTIX_INT ldd,
-               PASTIX_FLOAT *L,  PASTIX_FLOAT *U,  PASTIX_INT ldl )
+void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
+               pastix_float_t *dL, pastix_float_t *dU, pastix_int_t ldd,
+               pastix_float_t *L,  pastix_float_t *U,  pastix_int_t ldl )
 {
   SOPALIN_TRSM("R", "U", "N", "N", m, n,
                fun, dL, ldd, L, ldl);
@@ -39,9 +39,9 @@ void API_CALL(kernel_trsm)(PASTIX_INT m, PASTIX_INT n,
 #  else
 
 static inline
-void API_CALL(kernel_trsm)(PASTIX_INT m, PASTIX_INT n,
-               PASTIX_FLOAT *dL, PASTIX_INT ldd,
-               PASTIX_FLOAT *L,  PASTIX_INT ldl )
+void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
+               pastix_float_t *dL, pastix_int_t ldd,
+               pastix_float_t *L,  pastix_int_t ldl )
 {
   SOPALIN_TRSM("R", "L",
                "T",
@@ -53,11 +53,11 @@ void API_CALL(kernel_trsm)(PASTIX_INT m, PASTIX_INT n,
 #else
 
 static inline
-void API_CALL(kernel_trsm)(PASTIX_INT m, PASTIX_INT n,
-               PASTIX_FLOAT *dL, PASTIX_INT ldd,
-               PASTIX_FLOAT *L,  PASTIX_FLOAT *L2, PASTIX_INT ldl )
+void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
+               pastix_float_t *dL, pastix_int_t ldd,
+               pastix_float_t *L,  pastix_float_t *L2, pastix_int_t ldl )
 {
-  PASTIX_INT k;
+  pastix_int_t k;
 #ifdef HERMITIAN
   SOPALIN_TRSM("R", "L",
                "C",
@@ -72,7 +72,7 @@ void API_CALL(kernel_trsm)(PASTIX_INT m, PASTIX_INT n,
 
   for (k=0; k<n; k++)
   {
-    PASTIX_FLOAT alpha;
+    pastix_float_t alpha;
 # ifdef COMPUTE
     ASSERTDBG(dL[k+k*ldd] != 0., MOD_SOPALIN);
     alpha = fun / dL[k+k*ldd];
@@ -95,18 +95,18 @@ void API_CALL(kernel_trsm)(PASTIX_INT m, PASTIX_INT n,
  *   c            - Block column id
  *
  */
-void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT c)
+void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
-  PASTIX_FLOAT *dL, *L;
+  pastix_float_t *dL, *L;
 #ifdef SOPALIN_LU
-  PASTIX_FLOAT *dU, *U;
+  pastix_float_t *dU, *U;
 #endif
 #ifndef CHOL_SOPALIN
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  PASTIX_FLOAT *L2;
+  pastix_float_t *L2;
 #endif
-  PASTIX_INT dima, dimb, stride, offsetD, offsetED;
+  pastix_int_t dima, dimb, stride, offsetD, offsetED;
   (void)me;
 
   offsetD  = SOLV_COEFIND(SYMB_BLOKNUM(c));
@@ -151,14 +151,14 @@ void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX
  *   task         - Task id
  *
  */
-void API_CALL(factor_trsm2d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task)
+void API_CALL(factor_trsm2d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
-  PASTIX_FLOAT *dL, *L, *L2;
+  pastix_float_t *dL, *L, *L2;
 #ifdef SOPALIN_LU
-  PASTIX_FLOAT *dU, *U, *U2;
+  pastix_float_t *dU, *U, *U2;
 #endif
-  PASTIX_INT c, b, dima, dimb, stride, offsetED, size;
+  pastix_int_t c, b, dima, dimb, stride, offsetED, size;
   (void)me;
 
   c = TASK_CBLKNUM(task);
@@ -168,7 +168,7 @@ void API_CALL(factor_trsm2d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX
 
   /* Address of diagonal block */
   /* Even if the data is local dL = RTASK_COEFTAB */
-  dL = (PASTIX_FLOAT *)RTASK_COEFTAB(task);
+  dL = (pastix_float_t *)RTASK_COEFTAB(task);
 
   /* Adress of extra-diagonal block */
   L = &(SOLV_COEFTAB(c)[offsetED]);
@@ -187,7 +187,7 @@ void API_CALL(factor_trsm2d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX
 #else
   size = dima * dimb;
 #endif
-  MALLOC_INTERN(L2, size, PASTIX_FLOAT);
+  MALLOC_INTERN(L2, size, pastix_float_t);
 
   print_debug(DBG_SOPALIN_ALLOC, "alloc block coeff %x\n",
         (unsigned int)(intptr_t)L2);

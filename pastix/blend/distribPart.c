@@ -47,10 +47,10 @@
 void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
 {
 
-    PASTIX_INT             i, j, b;
-    PASTIX_INT             cblknum, bloknum;
-    /*PASTIX_INT             c;*/
-    PASTIX_INT             pr;
+    pastix_int_t             i, j, b;
+    pastix_int_t             cblknum, bloknum;
+    /*pastix_int_t             c;*/
+    pastix_int_t             pr;
     Queue           q;
 
     /** this queue is used to sort ftgt in receive order in cblkTimeFtgtAdd **/
@@ -354,12 +354,12 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
 
 }
 
-void taskExec_DIAG(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+void taskExec_DIAG(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
 {
-  PASTIX_INT i;
-  PASTIX_INT pr;
-  PASTIX_INT cblknum, bloknum;
-  PASTIX_INT procnum;
+  pastix_int_t i;
+  pastix_int_t pr;
+  pastix_int_t cblknum, bloknum;
+  pastix_int_t procnum;
   bloknum = simuctrl->tasktab[tasknum].bloknum;
   cblknum = simuctrl->tasktab[tasknum].cblknum;
   procnum = simuctrl->blprtab[bloknum];
@@ -421,11 +421,11 @@ void taskExec_DIAG(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl
 
 }
 
-void taskExec_E1(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+void taskExec_E1(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
 {
- PASTIX_INT i;
- PASTIX_INT cblknum, bloknum;
- PASTIX_INT procnum;
+ pastix_int_t i;
+ pastix_int_t cblknum, bloknum;
+ pastix_int_t procnum;
  (void)dofptr;
 
  bloknum = simuctrl->tasktab[tasknum].bloknum;
@@ -508,16 +508,16 @@ void taskExec_E1(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, 
    }
 }
 
-void taskExec_E2(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+void taskExec_E2(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
 {
-  PASTIX_INT bloknum;
-  PASTIX_INT facebloknum;
-  PASTIX_INT facetasknum;
-  PASTIX_INT ftgtnum;
-  PASTIX_INT procnum;
-  /*PASTIX_INT clustnum;*/
-  PASTIX_INT local;  /** if == 1 facing block is local **/
-  PASTIX_INT pr;
+  pastix_int_t bloknum;
+  pastix_int_t facebloknum;
+  pastix_int_t facetasknum;
+  pastix_int_t ftgtnum;
+  pastix_int_t procnum;
+  /*pastix_int_t clustnum;*/
+  pastix_int_t local;  /** if == 1 facing block is local **/
+  pastix_int_t pr;
 
   bloknum = simuctrl->tasktab[tasknum].bloknum;
   procnum = simuctrl->blprtab[bloknum];
@@ -525,7 +525,7 @@ void taskExec_E2(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, 
 #if defined(TRACE_SOPALIN)
   if(ctrl->option->tracegen)
     {
-      PASTIX_INT cblknum = simuctrl->tasktab[tasknum].cblknum;
+      pastix_int_t cblknum = simuctrl->tasktab[tasknum].cblknum;
       trace_begin_task2(ctrl->tracefile, timerVal(TIMER(procnum)),
                         procnum/(ctrl->procnbr/ctrl->clustnbr), /* Numero de proc */
                         procnum%(ctrl->procnbr/ctrl->clustnbr), /* Numero de thread */
@@ -604,18 +604,18 @@ void taskExec_E2(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, 
     }
 }
 
-void taskExec_COMP1D(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
 {
-    PASTIX_INT          i, j;
-    PASTIX_INT          pr;
-    PASTIX_INT          cblknum;
-    PASTIX_INT          facebloknum;
-    PASTIX_INT          facecblknum;
-    PASTIX_INT          local;
-    PASTIX_INT          facetasknum;
-    PASTIX_INT          ftgtnum;
-    PASTIX_INT          procnum;
-    /*PASTIX_INT          clustnum;*/
+    pastix_int_t          i, j;
+    pastix_int_t          pr;
+    pastix_int_t          cblknum;
+    pastix_int_t          facebloknum;
+    pastix_int_t          facecblknum;
+    pastix_int_t          local;
+    pastix_int_t          facetasknum;
+    pastix_int_t          ftgtnum;
+    pastix_int_t          procnum;
+    /*pastix_int_t          clustnum;*/
     SimuProc     *proc;
     CostMatrix   *costmtx;
 
@@ -812,7 +812,7 @@ void taskExec_COMP1D(PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuct
       }
 }
 
-void computeTaskReceiveTime(const PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+void computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
 {
   /*-------------------------------------------------------------------------/
   / Compute the time the cblk would have RECEIVED and ADDED                  /
@@ -820,14 +820,14 @@ void computeTaskReceiveTime(const PASTIX_INT tasknum, SymbolMatrix *symbptr, Sim
   / !! These times not include add time for fan in target !!                 /
   /--------------------------------------------------------------------------*/
 
-  PASTIX_INT i, j;
+  pastix_int_t i, j;
   double lftgttime = 0;
   double sftgttime = 0;
-  PASTIX_INT   lftgtnum  = -1;
-  PASTIX_INT   cblknum;
-  PASTIX_INT   bloknum;
-  PASTIX_INT   clustsrc;
-  PASTIX_INT   clustdst;
+  pastix_int_t   lftgtnum  = -1;
+  pastix_int_t   cblknum;
+  pastix_int_t   bloknum;
+  pastix_int_t   clustsrc;
+  pastix_int_t   clustdst;
 
   bloknum = simuctrl->tasktab[tasknum].bloknum;
   cblknum = simuctrl->tasktab[tasknum].cblknum;
@@ -930,7 +930,7 @@ void computeTaskReceiveTime(const PASTIX_INT tasknum, SymbolMatrix *symbptr, Sim
 }
 
 
-PASTIX_INT comp_int(const PASTIX_INT * a, const PASTIX_INT * b)
+pastix_int_t comp_int(const pastix_int_t * a, const pastix_int_t * b)
 {
     if(a[0]>b[0])
         return 1;
@@ -942,11 +942,11 @@ PASTIX_INT comp_int(const PASTIX_INT * a, const PASTIX_INT * b)
 }
 
 /* OIMBE utiliser un tas pour getNextProc --> cout log(P) au lieu de P */
-PASTIX_INT getNextProc(SimuProc *proctab, PASTIX_INT procnbr)
+pastix_int_t getNextProc(SimuProc *proctab, pastix_int_t procnbr)
 {
     double min;
-    PASTIX_INT pr;
-    PASTIX_INT procnum = -1;
+    pastix_int_t pr;
+    pastix_int_t procnum = -1;
 
     min = (double)INTVALMAX;
     for(pr=0;pr<procnbr;pr++)
@@ -958,9 +958,9 @@ PASTIX_INT getNextProc(SimuProc *proctab, PASTIX_INT procnbr)
     return procnum;
 }
 
-PASTIX_INT getTaskUnmapped(Queue *q1, Queue *q2, SimuCtrl *simuctrl)
+pastix_int_t getTaskUnmapped(Queue *q1, Queue *q2, SimuCtrl *simuctrl)
 {
-    PASTIX_INT next = -1;
+    pastix_int_t next = -1;
     while(queueSize(q2)>0)
         {
             next = queueGet(q2);
@@ -1027,20 +1027,20 @@ end:
 }
 
 
-PASTIX_INT getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, PASTIX_INT *procnumptr)
+pastix_int_t getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, pastix_int_t *procnumptr)
 {
   /*----------------------------------------------------------------------------------------------------/
   /  Get the next task and the next proc in order that they are the first that can compute something    /
   /  On return : earlier task index                                                                     /
   /----------------------------------------------------------------------------------------------------*/
 
-  PASTIX_INT p;
-  PASTIX_INT procnum = -1;
-  PASTIX_INT tasknum;
+  pastix_int_t p;
+  pastix_int_t procnum = -1;
+  pastix_int_t tasknum;
   double earlytimeready = INTVALMAX;
   double earlyproctimer = INTVALMAX;
   double timeready;
-  PASTIX_INT earlytask = -1;
+  pastix_int_t earlytask = -1;
 
   /** Find the earlier task in the processor heaps **/
   for(p=0;p<ctrl->procnbr;p++)
@@ -1108,12 +1108,12 @@ PASTIX_INT getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, PASTIX_INT *
   return earlytask;
 }
 
-void queueReorder(PASTIX_INT t, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
+void queueReorder(pastix_int_t t, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
 {
-  PASTIX_INT tasknum;
-  PASTIX_INT cblknum;
-  PASTIX_INT facingcblk;
-  PASTIX_INT procnum;
+  pastix_int_t tasknum;
+  pastix_int_t cblknum;
+  pastix_int_t facingcblk;
+  pastix_int_t procnum;
 
   /*for(procnum = ctrl->candtab[simuctrl->tasktab[t].cblknum].fcandnum;procnum<=ctrl->candtab[simuctrl->tasktab[t].cblknum].lcandnum;procnum++)*/
       {
@@ -1164,9 +1164,9 @@ void queueReorder(PASTIX_INT t, SymbolMatrix *symbptr, SimuCtrl *simuctrl, Blend
 
 void computeBlockCtrbNbr(SimuCtrl *simuctrl, SymbolMatrix *symbptr, BlendCtrl *ctrl)
 {
-  PASTIX_INT i, j, k;
-  PASTIX_INT facebloknum;
-  PASTIX_INT cursor;
+  pastix_int_t i, j, k;
+  pastix_int_t facebloknum;
+  pastix_int_t cursor;
   SimuTask *task;
   for(i=0;i<symbptr->cblknbr;i++)
     {
@@ -1243,7 +1243,7 @@ void computeBlockCtrbNbr(SimuCtrl *simuctrl, SymbolMatrix *symbptr, BlendCtrl *c
 
 }
 
-void updateFtgtStruct(PASTIX_INT bloknum, PASTIX_INT bloknum2, PASTIX_INT ftgtnum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
+void updateFtgtStruct(pastix_int_t bloknum, pastix_int_t bloknum2, pastix_int_t ftgtnum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
 {
   SymbolBlok * blokptr;
   SymbolBlok * blokptr2;
@@ -1268,7 +1268,7 @@ void updateFtgtStruct(PASTIX_INT bloknum, PASTIX_INT bloknum2, PASTIX_INT ftgtnu
 
 
 
-void putInReadyQueue(PASTIX_INT procnum, PASTIX_INT tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
+void putInReadyQueue(pastix_int_t procnum, pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
 {
   /*---------------------------------------------------------/
   / This function according to the ready date of a task      /
@@ -1278,9 +1278,9 @@ void putInReadyQueue(PASTIX_INT procnum, PASTIX_INT tasknum, SymbolMatrix *symbp
   / priorities in the elimination tree                       /
   /---------------------------------------------------------*/
   double ready_date = 0.0;
-  PASTIX_INT bloknum;
-  PASTIX_INT cblknum;
-  PASTIX_INT facingcblk;
+  pastix_int_t bloknum;
+  pastix_int_t cblknum;
+  pastix_int_t facingcblk;
 
   bloknum = simuctrl->tasktab[tasknum].bloknum;
   cblknum = simuctrl->tasktab[tasknum].cblknum;

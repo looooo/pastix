@@ -36,9 +36,9 @@
  */
 void dump1(Order *ord,
            FILE  *stream,
-           PASTIX_INT    colnbr)
+           pastix_int_t    colnbr)
 {
-  PASTIX_INT iter;
+  pastix_int_t iter;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> dump1 \n");
@@ -66,14 +66,14 @@ void dump1(Order *ord,
  */
 void dump2(const SolverMatrix * datacode,
            const CscMatrix    * cscmtx,
-           PASTIX_FLOAT              *trandcsc,
+           pastix_float_t              *trandcsc,
            FILE               *stream)
 {
   /* Transforme une csc en ij valeur */
-  PASTIX_INT itercblk;
-  PASTIX_INT itercoltab;
-  PASTIX_INT iterval;
-  PASTIX_INT itercol;
+  pastix_int_t itercblk;
+  pastix_int_t itercoltab;
+  pastix_int_t iterval;
+  pastix_int_t itercol;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> dump2 \n");
@@ -142,11 +142,11 @@ void dump2(const SolverMatrix * datacode,
 void dump3(const SolverMatrix *datacode,
            FILE               *stream)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT iterbloc;
-  PASTIX_INT iterrow;
-  PASTIX_INT coefindx;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t iterbloc;
+  pastix_int_t iterrow;
+  pastix_int_t coefindx;
   /*   SolverMatrix * datacode = sopalin_data->datacode; */
 #ifdef CSC_LOG
   fprintf(stdout, "-> dump3 \n");
@@ -255,11 +255,11 @@ void dump3_LU(const SolverMatrix * datacode,
               FILE               * streamL,
               FILE               * streamU)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT iterbloc;
-  PASTIX_INT iterrow;
-  PASTIX_INT coefindx;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t iterbloc;
+  pastix_int_t iterrow;
+  pastix_int_t coefindx;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> dump3 (LU)\n");
@@ -382,10 +382,10 @@ void dump3_LU(const SolverMatrix * datacode,
 void dump4(const SolverMatrix *datacode,
            FILE               *stream)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT iterbloc;
-  PASTIX_INT itercolc;
-  PASTIX_INT itercola;
+  pastix_int_t itercblk;
+  pastix_int_t iterbloc;
+  pastix_int_t itercolc;
+  pastix_int_t itercola;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> dump4 \n");
@@ -450,11 +450,11 @@ void dump4(const SolverMatrix *datacode,
 void dump5(const SolverMatrix *datacode,
            FILE               *stream)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT iterupdo;
-  PASTIX_INT itercolo;
+  pastix_int_t itercblk;
+  pastix_int_t iterupdo;
+  pastix_int_t itercolo;
 #ifdef MULT_SMX
-  PASTIX_INT itersmx;
+  pastix_int_t itersmx;
 #endif
 
 #ifdef CSC_LOG
@@ -517,13 +517,13 @@ void dump6(const SolverMatrix *datacode,
            FILE               *streamL,
            FILE               *streamU)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT iterbloc;
-  PASTIX_INT itercolo;
-  PASTIX_INT iterline;
-  PASTIX_INT coefindx;
-  PASTIX_INT stride;
-  PASTIX_INT i,j;
+  pastix_int_t itercblk;
+  pastix_int_t iterbloc;
+  pastix_int_t itercolo;
+  pastix_int_t iterline;
+  pastix_int_t coefindx;
+  pastix_int_t stride;
+  pastix_int_t i,j;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> dump6 \n");
@@ -593,11 +593,11 @@ void dump6(const SolverMatrix *datacode,
  *   stream - FILE * opened in write mode.
  *   nbr    - Size of the vector v.
  */
-void dump7(PASTIX_FLOAT *v,
+void dump7(pastix_float_t *v,
            FILE  *stream,
-           PASTIX_INT    colnbr)
+           pastix_int_t    colnbr)
 {
-  PASTIX_INT iter;
+  pastix_int_t iter;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> dump7 \n");

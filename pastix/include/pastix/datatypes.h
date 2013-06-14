@@ -22,13 +22,13 @@
 /** ****************************************************************************
  * Integers
  **/
-#if defined(PASTIX_INT64)
+#if defined(pastix_int_t64)
 
 typedef int64_t  pastix_int_t;
 typedef uint64_t pastix_uint_t;
 #define PASTIX_MPI_INT MPI_INTEGER8
 
-#elif defined(PASTIX_INT32)
+#elif defined(pastix_int_t32)
 
 typedef int32_t  pastix_int_t;
 typedef uint32_t pastix_uint_t;

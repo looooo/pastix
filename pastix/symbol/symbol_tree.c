@@ -69,32 +69,32 @@ int
 symbolTree (
 const SymbolMatrix * const  symbptr,              /*+ Symbolic matrix to evaluate              +*/
 const Dof * const           deofptr,              /*+ DOF structure associated with the matrix +*/
-PASTIX_INT * const                 leafnbrptr,           /*+ Number of leaves in elimination tree     +*/
-PASTIX_INT * const                 heigminptr,           /*+ Minimum leaf height in elimination tree  +*/
-PASTIX_INT * const                 heigmaxptr,           /*+ Maximum leaf height in elimination tree  +*/
+pastix_int_t * const                 leafnbrptr,           /*+ Number of leaves in elimination tree     +*/
+pastix_int_t * const                 heigminptr,           /*+ Minimum leaf height in elimination tree  +*/
+pastix_int_t * const                 heigmaxptr,           /*+ Maximum leaf height in elimination tree  +*/
 double * const              heigavgptr,           /*+ Average leaf height in elimination tree  +*/
 double * const              heigdltptr)           /*+ Deviation of heights                     +*/
 {
   const SymbolCblk *  cblktnd;                    /* End of column block array */
   const SymbolCblk *  cblkptr;                    /* Pointer to current        */
   const SymbolBlok *  bloktax;                    /* Based access to bloktab   */
-  PASTIX_INT                 nodenum;                    /* Number of current node    */
+  pastix_int_t                 nodenum;                    /* Number of current node    */
   unsigned char *              leaftab;                    /* Flag array                */
   unsigned char *              leaftax;                    /* Based access to leaftab   */
   unsigned char *              leafptr;                    /* Pointer to current        */
-  PASTIX_INT                 leafnbr;                    /* Number of leaves          */
-  PASTIX_INT *               heigtab;                    /* Array of node heights     */
-  PASTIX_INT *               heigtax;                    /* Based access to heigtab   */
-  PASTIX_INT *               heigtnd;                    /* End of height array       */
-  PASTIX_INT *               heigptr;                    /* Pointer to current        */
-  PASTIX_INT                 heigval;                    /* Current height value      */
-  PASTIX_INT                 heigmin;
-  PASTIX_INT                 heigmax;
+  pastix_int_t                 leafnbr;                    /* Number of leaves          */
+  pastix_int_t *               heigtab;                    /* Array of node heights     */
+  pastix_int_t *               heigtax;                    /* Based access to heigtab   */
+  pastix_int_t *               heigtnd;                    /* End of height array       */
+  pastix_int_t *               heigptr;                    /* Pointer to current        */
+  pastix_int_t                 heigval;                    /* Current height value      */
+  pastix_int_t                 heigmin;
+  pastix_int_t                 heigmax;
   double              heigsum;
   double              heigavg;
   double              heigdlt;
 
-  if (((heigtab = (PASTIX_INT *) memAlloc (symbptr->nodenbr * sizeof (PASTIX_INT) + symbptr->cblknbr * sizeof (unsigned char))) == NULL)) {
+  if (((heigtab = (pastix_int_t *) memAlloc (symbptr->nodenbr * sizeof (pastix_int_t) + symbptr->cblknbr * sizeof (unsigned char))) == NULL)) {
     errorPrint ("symbolTree: out of memory");
     return     (1);
   }
@@ -102,7 +102,7 @@ double * const              heigdltptr)           /*+ Deviation of heights      
 
   memSet (leaftab, 0, symbptr->cblknbr * sizeof (unsigned char));
 #ifdef SYMBOL_DEBUG
-  memSet (heigtab, ~0, symbptr->nodenbr * sizeof (PASTIX_INT));
+  memSet (heigtab, ~0, symbptr->nodenbr * sizeof (pastix_int_t));
 #endif /* SYMBOL_DEBUG */
 
   leaftax = leaftab          - symbptr->baseval;

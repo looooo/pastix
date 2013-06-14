@@ -51,10 +51,10 @@
     rangtab[0] = vnodbas.                      +*/
 
 typedef struct Order_ {
-  PASTIX_INT                       cblknbr;              /*+ Number of column blocks             +*/
-  PASTIX_INT *                     rangtab;              /*+ Column block range array [based,+1] +*/
-  PASTIX_INT *                     permtab;              /*+ Permutation array [based]           +*/
-  PASTIX_INT *                     peritab;              /*+ Inverse permutation array [based]   +*/
+  pastix_int_t                       cblknbr;              /*+ Number of column blocks             +*/
+  pastix_int_t *                     rangtab;              /*+ Column block range array [based,+1] +*/
+  pastix_int_t *                     permtab;              /*+ Permutation array [based]           +*/
+  pastix_int_t *                     peritab;              /*+ Inverse permutation array [based]   +*/
 } Order;
 
 /*
@@ -69,27 +69,27 @@ int                         orderInit           (Order * const ordeptr);
 void                        orderExit           (Order * const ordeptr);
 int                         orderLoad           (Order * const ordeptr, FILE * const stream);
 int                         orderSave           (const Order * const ordeptr, FILE * const stream);
-void                        orderBase           (Order * restrict const ordeptr, const PASTIX_INT baseval);
+void                        orderBase           (Order * restrict const ordeptr, const pastix_int_t baseval);
 
 int                         orderCheck          (const Order * const ordeptr);
 
-int                         orderGrid2          (Order * const ordeptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT baseval, const PASTIX_INT xlim, const PASTIX_INT ylim);
-int                         orderGrid2C         (Order * const ordeptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT baseval, const PASTIX_INT xlim, const PASTIX_INT ylim);
-int                         orderGrid3          (Order * const ordeptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT znbr, const PASTIX_INT baseval, const PASTIX_INT xlim, const PASTIX_INT ylim, const PASTIX_INT zlim);
-int                         orderGrid3C         (Order * const ordeptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT znbr, const PASTIX_INT baseval, const PASTIX_INT xlim, const PASTIX_INT ylim, const PASTIX_INT zlim);
+int                         orderGrid2          (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim);
+int                         orderGrid2C         (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim);
+int                         orderGrid3          (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim, const pastix_int_t zlim);
+int                         orderGrid3C         (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim, const pastix_int_t zlim);
 
 #if  (defined SCOTCH_SEQSCOTCH || defined SCOTCH_H || defined SCOTCH_PTSCOTCH || defined PTSCOTCH_H)
 int                         orderGraph          (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr);
-int                         orderGraphList      (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const PASTIX_INT listnbr, const PASTIX_INT * restrict const listtab);
+int                         orderGraphList      (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab);
 int                         orderGraphStrat     (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const char * restrict const);
-int                         orderGraphListStrat (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const PASTIX_INT listnbr, const PASTIX_INT * restrict const listtab, const char * const);
+int                         orderGraphListStrat (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab, const char * const);
 #endif
 
 #ifdef MESH_H
 int                         orderMesh           (Order * restrict const ordeptr, const Mesh * restrict const meshptr);
-int                         orderMeshList       (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const PASTIX_INT listnbr, const PASTIX_INT * restrict const listtab);
+int                         orderMeshList       (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab);
 int                         orderMeshStrat      (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const char * const);
-int                         orderMeshListStrat  (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const PASTIX_INT listnbr, const PASTIX_INT * restrict const listtab, const char * const);
+int                         orderMeshListStrat  (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab, const char * const);
 #endif /* MESH_H */
 
 #undef static

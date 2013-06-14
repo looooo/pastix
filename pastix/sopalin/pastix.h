@@ -44,7 +44,7 @@ typedef struct pastix_data_t pastix_data_t;
 /*
  * MULTIPLE_TYPE_DEFINE
  *
- * Automaticaly generate function for each PASTIX_FLOAT type.
+ * Automaticaly generate function for each pastix_float_t type.
  *
  * This macro is fitted for function not taking floating points arguments.
  */
@@ -63,7 +63,7 @@ typedef struct pastix_data_t pastix_data_t;
 /*
  * MULTIPLE_TYPE_DEFINE_F
  *
- * Automaticaly generate function for each PASTIX_FLOAT type.
+ * Automaticaly generate function for each pastix_float_t type.
  *
  * This macro is fitted for function taking floating points arguments.
  */
@@ -89,7 +89,7 @@ typedef struct pastix_data_t pastix_data_t;
   functype d_ ## funcname funcargs_d;
 #endif
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 
 /*
  * Group: Main PaStiX functions
@@ -186,33 +186,33 @@ typedef struct pastix_data_t pastix_data_t;
  *   >  perm, invp, rhs, 1, iparm, dparm);
  */
 void pastix(pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-            PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-            PASTIX_FLOAT *avals, PASTIX_INT *perm, PASTIX_INT *invp, PASTIX_FLOAT *b, PASTIX_INT rhs,
-            PASTIX_INT *iparm, double *dparm);
+            pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+            pastix_float_t *avals, pastix_int_t *perm, pastix_int_t *invp, pastix_float_t *b, pastix_int_t rhs,
+            pastix_int_t *iparm, double *dparm);
 #endif
 MULTIPLE_TYPE_DEFINE_F(void, pastix,
                        ( pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                         PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                         float *avals, PASTIX_INT *perm, PASTIX_INT *invp, float *b, PASTIX_INT rhs,
-                         PASTIX_INT *iparm, double *dparm),
+                         pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                         float *avals, pastix_int_t *perm, pastix_int_t *invp, float *b, pastix_int_t rhs,
+                         pastix_int_t *iparm, double *dparm),
 
                        ( pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                         PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                         double *avals, PASTIX_INT *perm, PASTIX_INT *invp,
-                         double *b, PASTIX_INT rhs,
-                         PASTIX_INT *iparm, double *dparm),
+                         pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                         double *avals, pastix_int_t *perm, pastix_int_t *invp,
+                         double *b, pastix_int_t rhs,
+                         pastix_int_t *iparm, double *dparm),
 
                        ( pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                         PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                         COMPLEX *avals, PASTIX_INT *perm, PASTIX_INT *invp,
-                         COMPLEX *b, PASTIX_INT rhs, PASTIX_INT *iparm, double *dparm),
+                         pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                         COMPLEX *avals, pastix_int_t *perm, pastix_int_t *invp,
+                         COMPLEX *b, pastix_int_t rhs, pastix_int_t *iparm, double *dparm),
 
                        ( pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                         PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                         DCOMPLEX *avals, PASTIX_INT *perm, PASTIX_INT *invp,
-                         DCOMPLEX *b, PASTIX_INT rhs, PASTIX_INT *iparm, double *dparm))
+                         pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                         DCOMPLEX *avals, pastix_int_t *perm, pastix_int_t *invp,
+                         DCOMPLEX *b, pastix_int_t rhs, pastix_int_t *iparm, double *dparm))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Function: dpastix
  *
@@ -333,35 +333,35 @@ MULTIPLE_TYPE_DEFINE_F(void, pastix,
  *   >
  */
 void dpastix(pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-             PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-             PASTIX_FLOAT *avals, PASTIX_INT * loc2glob, PASTIX_INT *perm, PASTIX_INT *invp,
-             PASTIX_FLOAT *b, PASTIX_INT rhs, PASTIX_INT *iparm, double *dparm);
+             pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+             pastix_float_t *avals, pastix_int_t * loc2glob, pastix_int_t *perm, pastix_int_t *invp,
+             pastix_float_t *b, pastix_int_t rhs, pastix_int_t *iparm, double *dparm);
 #endif
 MULTIPLE_TYPE_DEFINE_F(void, dpastix,
                        (pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                        PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                        float *avals, PASTIX_INT * loc2glob, PASTIX_INT *perm, PASTIX_INT *invp,
-                        float *b, PASTIX_INT rhs, PASTIX_INT *iparm,
+                        pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                        float *avals, pastix_int_t * loc2glob, pastix_int_t *perm, pastix_int_t *invp,
+                        float *b, pastix_int_t rhs, pastix_int_t *iparm,
                         double *dparm),
 
                        (pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                        PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                        double *avals, PASTIX_INT * loc2glob, PASTIX_INT *perm, PASTIX_INT *invp,
-                        double *b, PASTIX_INT rhs, PASTIX_INT *iparm,
+                        pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                        double *avals, pastix_int_t * loc2glob, pastix_int_t *perm, pastix_int_t *invp,
+                        double *b, pastix_int_t rhs, pastix_int_t *iparm,
                         double *dparm),
 
                        (pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                        PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                        COMPLEX *avals, PASTIX_INT * loc2glob, PASTIX_INT *perm, PASTIX_INT *invp,
-                        COMPLEX *b, PASTIX_INT rhs, PASTIX_INT *iparm,
+                        pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                        COMPLEX *avals, pastix_int_t * loc2glob, pastix_int_t *perm, pastix_int_t *invp,
+                        COMPLEX *b, pastix_int_t rhs, pastix_int_t *iparm,
                         double *dparm),
 
                        (pastix_data_t **pastix_data, MPI_Comm pastix_comm,
-                        PASTIX_INT n, PASTIX_INT *colptr, PASTIX_INT *row,
-                        DCOMPLEX *avals, PASTIX_INT * loc2glob, PASTIX_INT *perm, PASTIX_INT *invp,
-                        DCOMPLEX *b, PASTIX_INT rhs, PASTIX_INT *iparm,
+                        pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
+                        DCOMPLEX *avals, pastix_int_t * loc2glob, pastix_int_t *perm, pastix_int_t *invp,
+                        DCOMPLEX *b, pastix_int_t rhs, pastix_int_t *iparm,
                         double *dparm))
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Group: Thread functions
  */
@@ -379,11 +379,11 @@ MULTIPLE_TYPE_DEFINE_F(void, dpastix,
     thrdnbr     - Nombre de threads / Taille du tableau
     bindtab     - Tableau de correspondance entre chaque thread et coeur de la machine
 */
-void pastix_bindThreads(pastix_data_t *pastix_data, PASTIX_INT thrdnbr, PASTIX_INT *bindtab);
+void pastix_bindThreads(pastix_data_t *pastix_data, pastix_int_t thrdnbr, pastix_int_t *bindtab);
 #endif
 MULTIPLE_TYPE_DEFINE(void, pastix_bindThreads,
-                     (pastix_data_t *pastix_data, PASTIX_INT thrdnbr, PASTIX_INT *bindtab))
-#if (defined PASTIX_FLOAT)
+                     (pastix_data_t *pastix_data, pastix_int_t thrdnbr, pastix_int_t *bindtab))
+#if (defined pastix_float_t)
 /*
  * Group: Checking the matrix.
  */
@@ -415,32 +415,32 @@ MULTIPLE_TYPE_DEFINE(void, pastix_bindThreads,
  *                 (NULL if not distributed).
  *   dof         - Number of degrees of freedom.
  */
-PASTIX_INT pastix_checkMatrix(MPI_Comm pastix_comm, PASTIX_INT verb, PASTIX_INT flagsym, PASTIX_INT flagcor,
-                       PASTIX_INT n, PASTIX_INT **colptr, PASTIX_INT **row, PASTIX_FLOAT **avals,
-                       PASTIX_INT **loc2glob, PASTIX_INT dof);
+pastix_int_t pastix_checkMatrix(MPI_Comm pastix_comm, pastix_int_t verb, pastix_int_t flagsym, pastix_int_t flagcor,
+                       pastix_int_t n, pastix_int_t **colptr, pastix_int_t **row, pastix_float_t **avals,
+                       pastix_int_t **loc2glob, pastix_int_t dof);
 #endif
-MULTIPLE_TYPE_DEFINE_F(PASTIX_INT, pastix_checkMatrix,
-                       (MPI_Comm pastix_comm, PASTIX_INT verb,
-                        PASTIX_INT flagsym, PASTIX_INT flagcor,
-                        PASTIX_INT n, PASTIX_INT **colptr, PASTIX_INT **row, float **avals,
-                        PASTIX_INT **loc2glob, PASTIX_INT dof),
+MULTIPLE_TYPE_DEFINE_F(pastix_int_t, pastix_checkMatrix,
+                       (MPI_Comm pastix_comm, pastix_int_t verb,
+                        pastix_int_t flagsym, pastix_int_t flagcor,
+                        pastix_int_t n, pastix_int_t **colptr, pastix_int_t **row, float **avals,
+                        pastix_int_t **loc2glob, pastix_int_t dof),
 
-                       (MPI_Comm pastix_comm, PASTIX_INT verb,
-                        PASTIX_INT flagsym, PASTIX_INT flagcor,
-                        PASTIX_INT n, PASTIX_INT **colptr, PASTIX_INT **row, double **avals,
-                        PASTIX_INT **loc2glob, PASTIX_INT dof),
+                       (MPI_Comm pastix_comm, pastix_int_t verb,
+                        pastix_int_t flagsym, pastix_int_t flagcor,
+                        pastix_int_t n, pastix_int_t **colptr, pastix_int_t **row, double **avals,
+                        pastix_int_t **loc2glob, pastix_int_t dof),
 
-                       (MPI_Comm pastix_comm, PASTIX_INT verb,
-                        PASTIX_INT flagsym, PASTIX_INT flagcor,
-                        PASTIX_INT n, PASTIX_INT **colptr, PASTIX_INT **row, COMPLEX **avals,
-                        PASTIX_INT **loc2glob, PASTIX_INT dof),
+                       (MPI_Comm pastix_comm, pastix_int_t verb,
+                        pastix_int_t flagsym, pastix_int_t flagcor,
+                        pastix_int_t n, pastix_int_t **colptr, pastix_int_t **row, COMPLEX **avals,
+                        pastix_int_t **loc2glob, pastix_int_t dof),
 
-                       (MPI_Comm pastix_comm, PASTIX_INT verb,
-                        PASTIX_INT flagsym, PASTIX_INT flagcor,
-                        PASTIX_INT n, PASTIX_INT **colptr, PASTIX_INT **row, DCOMPLEX **avals,
-                        PASTIX_INT **loc2glob, PASTIX_INT dof))
+                       (MPI_Comm pastix_comm, pastix_int_t verb,
+                        pastix_int_t flagsym, pastix_int_t flagcor,
+                        pastix_int_t n, pastix_int_t **colptr, pastix_int_t **row, DCOMPLEX **avals,
+                        pastix_int_t **loc2glob, pastix_int_t dof))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Group: Getting solver distribution.
  */
@@ -457,12 +457,12 @@ MULTIPLE_TYPE_DEFINE_F(PASTIX_INT, pastix_checkMatrix,
   Returns:
     Number of local nodes/columns in new distribution.
  */
-PASTIX_INT pastix_getLocalNodeNbr(pastix_data_t ** pastix_data);
+pastix_int_t pastix_getLocalNodeNbr(pastix_data_t ** pastix_data);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalNodeNbr,
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getLocalNodeNbr,
                      (pastix_data_t ** pastix_data))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
   Function: pastix_getLocalNodeLst
 
@@ -474,12 +474,12 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalNodeNbr,
     pastix_data - Data used for a step by step execution.
     nodelst     - An array where to write the list of local nodes/columns.
  */
-PASTIX_INT pastix_getLocalNodeLst(pastix_data_t ** pastix_data, PASTIX_INT * nodelst);
+pastix_int_t pastix_getLocalNodeLst(pastix_data_t ** pastix_data, pastix_int_t * nodelst);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalNodeLst,
-                     (pastix_data_t ** pastix_data, PASTIX_INT * nodelst))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getLocalNodeLst,
+                     (pastix_data_t ** pastix_data, pastix_int_t * nodelst))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
   Function: pastix_getLocalUnknownNbr
 
@@ -492,11 +492,11 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalNodeLst,
   Returns:
     Number of local unknowns/columns in new distribution.
  */
-PASTIX_INT pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data);
+pastix_int_t pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalUnknownNbr,
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getLocalUnknownNbr,
                      (pastix_data_t ** pastix_data))
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
   Function: pastix_getLocalUnknownLst
 
@@ -508,12 +508,12 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalUnknownNbr,
     pastix_data - Data used for a step by step execution.
     unknownlst     - An array where to write the list of local unknowns/columns.
  */
-PASTIX_INT pastix_getLocalUnknownLst(pastix_data_t ** pastix_data, PASTIX_INT * unknownlst);
+pastix_int_t pastix_getLocalUnknownLst(pastix_data_t ** pastix_data, pastix_int_t * unknownlst);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalUnknownLst,
-                     (pastix_data_t ** pastix_data, PASTIX_INT * unknownlst))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getLocalUnknownLst,
+                     (pastix_data_t ** pastix_data, pastix_int_t * unknownlst))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 
 
 /*
@@ -534,16 +534,16 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getLocalUnknownLst,
     n           - Number of unknowns.
     list        - List of unknowns.
 */
-PASTIX_INT pastix_setSchurUnknownList(pastix_data_t * pastix_data,
-             PASTIX_INT  n,
-             PASTIX_INT *list);
+pastix_int_t pastix_setSchurUnknownList(pastix_data_t * pastix_data,
+             pastix_int_t  n,
+             pastix_int_t *list);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_setSchurUnknownList,
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_setSchurUnknownList,
                      (pastix_data_t * pastix_data,
-                      PASTIX_INT  n,
-                      PASTIX_INT *list))
+                      pastix_int_t  n,
+                      pastix_int_t *list))
 
-#ifdef PASTIX_FLOAT
+#ifdef pastix_float_t
 /*
   Function: pastix_getSchurLocalNodeNbr
 
@@ -558,12 +558,12 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_setSchurUnknownList,
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, PASTIX_INT * nodeNbr);
+pastix_int_t pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, pastix_int_t * nodeNbr);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalNodeNbr,
-                     (pastix_data_t * pastix_data, PASTIX_INT * nodeNbr))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getSchurLocalNodeNbr,
+                     (pastix_data_t * pastix_data, pastix_int_t * nodeNbr))
 
-#ifdef PASTIX_FLOAT
+#ifdef pastix_float_t
 /*
   Function: pastix_getSchurLocalUnkownNbr
 
@@ -578,13 +578,13 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalNodeNbr,
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data,
-                                  PASTIX_INT * unknownNbr);
+pastix_int_t pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data,
+                                  pastix_int_t * unknownNbr);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalUnkownNbr,
-                     (pastix_data_t * pastix_data, PASTIX_INT * unknownNbr))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getSchurLocalUnkownNbr,
+                     (pastix_data_t * pastix_data, pastix_int_t * unknownNbr))
 
-#ifdef PASTIX_FLOAT
+#ifdef pastix_float_t
 /*
   Function: pastix_getSchurLocalNodeList
 
@@ -599,12 +599,12 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalUnkownNbr,
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, PASTIX_INT * nodes);
+pastix_int_t pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, pastix_int_t * nodes);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalNodeList,
-                     (pastix_data_t * pastix_data, PASTIX_INT * nodes))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getSchurLocalNodeList,
+                     (pastix_data_t * pastix_data, pastix_int_t * nodes))
 
-#ifdef PASTIX_FLOAT
+#ifdef pastix_float_t
 /*
   Function: pastix_getSchurLocalUnkownList
 
@@ -619,13 +619,13 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalNodeList,
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data,
-                                    PASTIX_INT * unknowns);
+pastix_int_t pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data,
+                                    pastix_int_t * unknowns);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalUnknownList,
-                     (pastix_data_t * pastix_data, PASTIX_INT * unknowns))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, pastix_getSchurLocalUnknownList,
+                     (pastix_data_t * pastix_data, pastix_int_t * unknowns))
 
-#ifdef PASTIX_FLOAT
+#ifdef pastix_float_t
 /*
   Function: pastix_setSchurArray
 
@@ -640,15 +640,15 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, pastix_getSchurLocalUnknownList,
 
   TODO: Error management.
 */
-PASTIX_INT pastix_setSchurArray(pastix_data_t * pastix_data, PASTIX_FLOAT * array);
+pastix_int_t pastix_setSchurArray(pastix_data_t * pastix_data, pastix_float_t * array);
 #endif
-MULTIPLE_TYPE_DEFINE_F(PASTIX_INT, pastix_setSchurArray,
+MULTIPLE_TYPE_DEFINE_F(pastix_int_t, pastix_setSchurArray,
                        (pastix_data_t * pastix_data, float * array),
                        (pastix_data_t * pastix_data, double * array),
                        (pastix_data_t * pastix_data, COMPLEX * array),
                        (pastix_data_t * pastix_data, DCOMPLEX * array))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
   Function: pastix_getSchur
 
@@ -662,17 +662,17 @@ MULTIPLE_TYPE_DEFINE_F(PASTIX_INT, pastix_setSchurArray,
     schur - Array to fill-in with Schur complement.
 
 */
-PASTIX_INT pastix_getSchur(pastix_data_t * pastix_data,
-                    PASTIX_FLOAT * schur);
+pastix_int_t pastix_getSchur(pastix_data_t * pastix_data,
+                    pastix_float_t * schur);
 
 #endif
-MULTIPLE_TYPE_DEFINE_F(PASTIX_INT, pastix_getSchur,
+MULTIPLE_TYPE_DEFINE_F(pastix_int_t, pastix_getSchur,
                        (pastix_data_t * pastix_data, float * schur),
                        (pastix_data_t * pastix_data, double * schur),
                        (pastix_data_t * pastix_data, COMPLEX * schur),
                        (pastix_data_t * pastix_data, DCOMPLEX* schur))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 
 
 /*
@@ -688,12 +688,12 @@ MULTIPLE_TYPE_DEFINE_F(PASTIX_INT, pastix_getSchur,
     iparm - tabular of IPARM_SIZE integer parameters.
     dparm - tabular of DPARM_SIZE double parameters.
 */
-void pastix_initParam(PASTIX_INT    *iparm,
+void pastix_initParam(pastix_int_t    *iparm,
                       double *dparm);
 #endif
-MULTIPLE_TYPE_DEFINE(void, pastix_initParam, (PASTIX_INT    *iparm,
+MULTIPLE_TYPE_DEFINE(void, pastix_initParam, (pastix_int_t    *iparm,
                                               double *dparm))
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Group: About Scaling.
  *
@@ -721,9 +721,9 @@ MULTIPLE_TYPE_DEFINE(void, pastix_initParam, (PASTIX_INT    *iparm,
  *                     are used in this case),
  *                 API_NO otherwise
  */
-void pastix_unscale ( pastix_data_t *pastix_data, PASTIX_INT sym);
-#endif /* PASTIX_FLOAT */
-MULTIPLE_TYPE_DEFINE(void, pastix_unscale, ( pastix_data_t *pastix_data, PASTIX_INT sym))
+void pastix_unscale ( pastix_data_t *pastix_data, pastix_int_t sym);
+#endif /* pastix_float_t */
+MULTIPLE_TYPE_DEFINE(void, pastix_unscale, ( pastix_data_t *pastix_data, pastix_int_t sym))
 
 unsigned long pastix_getMemoryUsage(void);
 MULTIPLE_TYPE_DEFINE(unsigned long, pastix_getMemoryUsage, (void))

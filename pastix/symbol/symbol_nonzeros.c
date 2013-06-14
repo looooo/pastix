@@ -71,11 +71,11 @@ symbolNonzeros (
 const SymbolMatrix * const  symbptr,              /*+ Symbolic matrix to evaluate +*/
 FILE * const                stream)               /*+ Output file                 +*/
 {
-  PASTIX_INT                   cblknum;                  /* Number of current column block */
+  pastix_int_t                   cblknum;                  /* Number of current column block */
   SymbolBlok * restrict bloktax;                  /* Based pointer to block array   */
-  PASTIX_INT                   bloknum;                  /* Number of current block        */
-  PASTIX_INT                   colnum;
-  PASTIX_INT                   rownum;
+  pastix_int_t                   bloknum;                  /* Number of current block        */
+  pastix_int_t                   colnum;
+  pastix_int_t                   rownum;
 
   bloktax = symbptr->bloktab - symbptr->baseval;
 

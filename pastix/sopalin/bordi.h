@@ -24,7 +24,7 @@
     blocksize - size of block wanted.
 */
 void orderSplit (Order * const ordeptr, 
-		 PASTIX_INT           blocksize);
+		 pastix_int_t           blocksize);
 
 #if (defined SCOTCH_SEQSCOTCH || defined SCOTCH_H || defined SCOTCH_PTSCOTCH || defined PTSCOTCH_H)
 /* 
@@ -45,7 +45,7 @@ void orderSplit (Order * const ordeptr,
 void orderSplit2 (Order        * const ordeptr, 
 		  SCOTCH_Graph * const grphptr, 
 		  double               rho, 
-		  PASTIX_INT                  bsmin);
+		  pastix_int_t                  bsmin);
 
 /*
   Function: orderSplit3

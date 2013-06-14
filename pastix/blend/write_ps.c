@@ -65,15 +65,15 @@ void ps_close(FILE *out)
 
 
 /* imprime la matrice creuse en post-script */
-void ps_write_matrix(SymbolMatrix *symbmtx, FILE *out, PASTIX_INT *page)
+void ps_write_matrix(SymbolMatrix *symbmtx, FILE *out, pastix_int_t *page)
 {
-    PASTIX_INT p;
-    PASTIX_INT i;
+    pastix_int_t p;
+    pastix_int_t i;
     double alpha, beta;
     double a, b;
     double s;
     double gray_owner;
-    PASTIX_INT ncol;
+    pastix_int_t ncol;
 
     ncol= symbmtx->nodenbr;
 
@@ -148,8 +148,8 @@ void ps_write_matrix(SymbolMatrix *symbmtx, FILE *out, PASTIX_INT *page)
 
 
 /* imprime l'arbre d'elimination en post-script */
-void ps_write_tree(const CostMatrix *costmtx, const EliminTree *etree, FILE *out, PASTIX_INT *page)
-     /* PASTIX_INT (*ps_draw_node)(FILE *out, cbl c, cbls allcbls, double s, double x, double y) */
+void ps_write_tree(const CostMatrix *costmtx, const EliminTree *etree, FILE *out, pastix_int_t *page)
+     /* pastix_int_t (*ps_draw_node)(FILE *out, cbl c, cbls allcbls, double s, double x, double y) */
 {
   fprintf(out, "%%%%Page: %ld %ld \n", (long)*page, (long)*page); (*page)++;
   fprintf(out, "%% Elimination Tree (color by Layer)\n");
@@ -163,13 +163,13 @@ void ps_write_tree(const CostMatrix *costmtx, const EliminTree *etree, FILE *out
 }
 
 
-double ps_rec_write_tree(PASTIX_INT nodenum, const CostMatrix *costmtx, const EliminTree *etree, FILE *out,
-                            void (*ps_draw_node)(FILE *out, PASTIX_INT nodenum, const CostMatrix *costmtx,
+double ps_rec_write_tree(pastix_int_t nodenum, const CostMatrix *costmtx, const EliminTree *etree, FILE *out,
+                            void (*ps_draw_node)(FILE *out, pastix_int_t nodenum, const CostMatrix *costmtx,
                                                 const EliminTree *etree, double s,
                                                 double x, double y))
 {
-  static PASTIX_INT cx;
-  PASTIX_INT nodelevel;
+  static pastix_int_t cx;
+  pastix_int_t nodelevel;
   double pos=0, lpos=0, rpos=0;
   double s, sy;
 
@@ -240,7 +240,7 @@ double ps_rec_write_tree(PASTIX_INT nodenum, const CostMatrix *costmtx, const El
   return pos;
 }
 
-void ps_draw_node_num(FILE *out, PASTIX_INT nodenum, const CostMatrix *costmtx, const EliminTree *etree,
+void ps_draw_node_num(FILE *out, pastix_int_t nodenum, const CostMatrix *costmtx, const EliminTree *etree,
                         double s, double x, double y)
 {
   double ss;
@@ -265,8 +265,8 @@ void ps_draw_node_num(FILE *out, PASTIX_INT nodenum, const CostMatrix *costmtx, 
 
 
 /* imprime l'arbre d'elimination en post-script */
-void ps_write_tree_owner(PASTIX_INT *ownertab, const CostMatrix *costmtx, const EliminTree *etree, FILE *out, PASTIX_INT *page)
-     /* PASTIX_INT (*ps_draw_node)(FILE *out, cbl c, cbls allcbls, double s, double x, double y) */
+void ps_write_tree_owner(pastix_int_t *ownertab, const CostMatrix *costmtx, const EliminTree *etree, FILE *out, pastix_int_t *page)
+     /* pastix_int_t (*ps_draw_node)(FILE *out, cbl c, cbls allcbls, double s, double x, double y) */
 {
   fprintf(out, "%%%%Page: %ld %ld \n", (long)*page, (long)*page); (*page)++;
   fprintf(out, "%% Elimination Tree (color by Layer)\n");
@@ -280,13 +280,13 @@ void ps_write_tree_owner(PASTIX_INT *ownertab, const CostMatrix *costmtx, const 
 }
 
 
-double ps_rec_write_tree_owner(PASTIX_INT nodenum, PASTIX_INT *ownertab, const CostMatrix *costmtx, const EliminTree *etree, FILE *out,
-                            void (*ps_draw_node)(FILE *out, PASTIX_INT nodenum, PASTIX_INT procnum, const CostMatrix *costmtx,
+double ps_rec_write_tree_owner(pastix_int_t nodenum, pastix_int_t *ownertab, const CostMatrix *costmtx, const EliminTree *etree, FILE *out,
+                            void (*ps_draw_node)(FILE *out, pastix_int_t nodenum, pastix_int_t procnum, const CostMatrix *costmtx,
                                                 const EliminTree *etree, double s,
                                                 double x, double y))
 {
-  static PASTIX_INT cx;
-  PASTIX_INT nodelevel;
+  static pastix_int_t cx;
+  pastix_int_t nodelevel;
   double pos=0, lpos=0, rpos=0;
   double s, sy;
 
@@ -369,7 +369,7 @@ double ps_rec_write_tree_owner(PASTIX_INT nodenum, PASTIX_INT *ownertab, const C
 
 
 
-void ps_draw_node_owner(FILE *out, PASTIX_INT nodenum, PASTIX_INT procnum, const CostMatrix *costmtx, const EliminTree *etree,
+void ps_draw_node_owner(FILE *out, pastix_int_t nodenum, pastix_int_t procnum, const CostMatrix *costmtx, const EliminTree *etree,
                         double s, double x, double y)
 {
   double ss;

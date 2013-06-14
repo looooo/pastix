@@ -14,6 +14,6 @@
 #ifndef KSUPERNODES_H
 #define KSUPERNODES_H
 
-void KSupernodes(csptr P, double rat, PASTIX_INT snodenbr, PASTIX_INT *snodetab, PASTIX_INT *cblknbr, PASTIX_INT **rangtab);
+void KSupernodes(csptr P, double rat, pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *cblknbr, pastix_int_t **rangtab);
 
 #endif

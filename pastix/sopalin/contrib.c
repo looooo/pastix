@@ -12,7 +12,7 @@
 #define inline
 #endif
 
-static inline void API_CALL(wait_contrib_comp_1d)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT i){
+static inline void API_CALL(wait_contrib_comp_1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t i){
 
   SolverMatrix  *datacode    = sopalin_data->datacode;
 #ifdef TRACE_SOPALIN
@@ -60,14 +60,14 @@ static inline void API_CALL(wait_contrib_comp_1d)(Sopalin_Data_t *sopalin_data, 
 
 static inline
 void API_CALL(wait_contrib_comp_2d)(Sopalin_Data_t *sopalin_data,
-                                    PASTIX_INT me, PASTIX_INT i){
+                                    pastix_int_t me, pastix_int_t i){
 
   SolverMatrix  *datacode    = sopalin_data->datacode;
 #ifdef TRACE_SOPALIN
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #endif
 #ifdef SMP_SOPALIN
-  PASTIX_INT            firsttask   = TASK_MASTER(i);
+  pastix_int_t            firsttask   = TASK_MASTER(i);
 #endif
 
   /* Attente contribution locale et MPI */

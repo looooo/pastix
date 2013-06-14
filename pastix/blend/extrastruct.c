@@ -9,7 +9,7 @@
 
 
 
-PASTIX_INT extrasymbolInit(ExtraSymbolMatrix *extrasymb)
+pastix_int_t extrasymbolInit(ExtraSymbolMatrix *extrasymb)
 {
   extrasymb->baseval = 0;
   extrasymb->addcblk = 0;
@@ -42,7 +42,7 @@ void extrasymbolExit(ExtraSymbolMatrix *extrasymb)
   memFree_null(extrasymb);
 }
 
-PASTIX_INT extracostInit(ExtraCostMatrix *extracost)
+pastix_int_t extracostInit(ExtraCostMatrix *extracost)
 {
     extracost->cblktab = NULL;
     extracost->bloktab = NULL;

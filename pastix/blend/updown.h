@@ -22,14 +22,14 @@
 /*+ UpDown block structure. +*/
 
 typedef struct UpDownCblk_  {
-  PASTIX_INT                       sm2xind;              /*+ Index in the rhs local vector of the unknowns corresponding to the diag blok +*/
-  PASTIX_INT *                     browproctab;          /*+ Brow                               +*/
-  PASTIX_INT *                     browcblktab;          /*+ Brow                               +*/
-  PASTIX_INT                       browprocnbr;          /*+ Brow size                          +*/
-  PASTIX_INT                       msgnbr;               /*+ Number of messages                 +*/
-  PASTIX_INT volatile              msgcnt;               /*+ Number of messages                 +*/
-  PASTIX_INT                       ctrbnbr;              /*+ Number of contributions            +*/
-  PASTIX_INT volatile              ctrbcnt;              /*+ Number of contributions            +*/
+  pastix_int_t                       sm2xind;              /*+ Index in the rhs local vector of the unknowns corresponding to the diag blok +*/
+  pastix_int_t *                     browproctab;          /*+ Brow                               +*/
+  pastix_int_t *                     browcblktab;          /*+ Brow                               +*/
+  pastix_int_t                       browprocnbr;          /*+ Brow size                          +*/
+  pastix_int_t                       msgnbr;               /*+ Number of messages                 +*/
+  pastix_int_t volatile              msgcnt;               /*+ Number of messages                 +*/
+  pastix_int_t                       ctrbnbr;              /*+ Number of contributions            +*/
+  pastix_int_t volatile              ctrbcnt;              /*+ Number of contributions            +*/
 } UpDownCblk;
 
 
@@ -38,23 +38,23 @@ typedef struct UpDownCblk_  {
 typedef struct UpDownVector_ {
   UpDownCblk *              cblktab;              /*+ Array of solver column blocks      +*/
   pastix_float_t *                   sm2xtab;              /*+ Unknown vector                     +*/
-  PASTIX_INT                       sm2xmax;              /*+ Maximum of coefficients per unknown vector +*/
-  PASTIX_INT                       sm2xsze;              /*+ Size of sm2xtab                    +*/
-  PASTIX_INT                       sm2xnbr;              /*+ Number of sm2x                     +*/
-  PASTIX_INT *                     gcblk2list;           /*+ Global cblknum -> index in listptr +*/
-  PASTIX_INT                       gcblk2listnbr;        /*+ Size of gcblk2list                 +*/
-  PASTIX_INT *                     listptr;              /*+ Index in list                      +*/
-  PASTIX_INT                       listptrnbr;           /*+ Size of listptr                    +*/
-  PASTIX_INT *                     listcblk;             /*+ List of cblk in a same row         +*/
-  PASTIX_INT *                     listblok;             /*+ List of blok in a same row         +*/
-  PASTIX_INT                       listnbr;              /*+ Size of list                       +*/
-  PASTIX_INT *                     loc2glob;             /*+ Local cblknum -> global cblknum    +*/
-  PASTIX_INT                       loc2globnbr;          /*+ Size of loc2glob                   +*/
-  PASTIX_INT *                     lblk2gcblk;           /*+ Local blok -> global facing cblk   +*/
-  PASTIX_INT                       gcblknbr;             /*+ total number of cblk               +*/
-  PASTIX_INT                       gnodenbr;             /*+ total number of nodes              +*/
-  PASTIX_INT                       downmsgnbr;           /*+ Nb messages receive during down    +*/
-  PASTIX_INT                       upmsgnbr;             /*+ Nb messages receive during up      +*/
+  pastix_int_t                       sm2xmax;              /*+ Maximum of coefficients per unknown vector +*/
+  pastix_int_t                       sm2xsze;              /*+ Size of sm2xtab                    +*/
+  pastix_int_t                       sm2xnbr;              /*+ Number of sm2x                     +*/
+  pastix_int_t *                     gcblk2list;           /*+ Global cblknum -> index in listptr +*/
+  pastix_int_t                       gcblk2listnbr;        /*+ Size of gcblk2list                 +*/
+  pastix_int_t *                     listptr;              /*+ Index in list                      +*/
+  pastix_int_t                       listptrnbr;           /*+ Size of listptr                    +*/
+  pastix_int_t *                     listcblk;             /*+ List of cblk in a same row         +*/
+  pastix_int_t *                     listblok;             /*+ List of blok in a same row         +*/
+  pastix_int_t                       listnbr;              /*+ Size of list                       +*/
+  pastix_int_t *                     loc2glob;             /*+ Local cblknum -> global cblknum    +*/
+  pastix_int_t                       loc2globnbr;          /*+ Size of loc2glob                   +*/
+  pastix_int_t *                     lblk2gcblk;           /*+ Local blok -> global facing cblk   +*/
+  pastix_int_t                       gcblknbr;             /*+ total number of cblk               +*/
+  pastix_int_t                       gnodenbr;             /*+ total number of nodes              +*/
+  pastix_int_t                       downmsgnbr;           /*+ Nb messages receive during down    +*/
+  pastix_int_t                       upmsgnbr;             /*+ Nb messages receive during up      +*/
 } UpDownVector;
 
 #endif /* UPDOWN_H */

@@ -109,9 +109,9 @@ Dof * const                 deofptr)
 void
 dofConstant (
 Dof * const                 deofptr,
-const PASTIX_INT                   baseval,
-const PASTIX_INT                   nodenbr,
-const PASTIX_INT                   noddval)
+const pastix_int_t                   baseval,
+const pastix_int_t                   nodenbr,
+const pastix_int_t                   noddval)
 {
   deofptr->baseval = baseval;
   deofptr->nodenbr = nodenbr;
@@ -134,13 +134,13 @@ int
 dofGraph (
 Dof * const                 deofptr,              /*+ DOF index array to build [based]            +*/
 const SCOTCH_Graph * const         grafptr,              /*+ Matrix adjacency structure [based]          +*/
-const PASTIX_INT                   deofval,              /*+ DOFs per node if no graph vertex load array +*/
-const PASTIX_INT * const           peritab)              /*+ Inverse vertex->node permutation array      +*/
+const pastix_int_t                   deofval,              /*+ DOFs per node if no graph vertex load array +*/
+const pastix_int_t * const           peritab)              /*+ Inverse vertex->node permutation array      +*/
 {
-  PASTIX_INT                 baseval;
-  PASTIX_INT                 vertnbr;
-  PASTIX_INT *               velotab;
-  PASTIX_INT                 edgenbr;
+  pastix_int_t                 baseval;
+  pastix_int_t                 vertnbr;
+  pastix_int_t *               velotab;
+  pastix_int_t                 edgenbr;
   (void)peritab;
 
   SCOTCH_graphData (grafptr,
@@ -164,14 +164,14 @@ const PASTIX_INT * const           peritab)              /*+ Inverse vertex->nod
     deofptr->noddtab = NULL;                      /* No DOF array */
     deofptr->noddval = deofval;
 #else /* DOF_CONSTANT */
-    const PASTIX_INT * restrict  velotax;                /* Based access to grafptr->velotab  */
-    PASTIX_INT                   nodenum;                /* Number of current node            */
-    PASTIX_INT *                 noddtnd;                /* Pointer to end of DOF index array */
-    PASTIX_INT *                 noddptr;                /* Pointer to current DOF index      */
-    const PASTIX_INT *           periptr;
+    const pastix_int_t * restrict  velotax;                /* Based access to grafptr->velotab  */
+    pastix_int_t                   nodenum;                /* Number of current node            */
+    pastix_int_t *                 noddtnd;                /* Pointer to end of DOF index array */
+    pastix_int_t *                 noddptr;                /* Pointer to current DOF index      */
+    const pastix_int_t *           periptr;
 
     deofptr->noddval = 0;                         /* DOF values are not constant */
-    if ((deofptr->noddtab = (PASTIX_INT *) memAlloc ((vertnbr + 1) * sizeof (PASTIX_INT))) == NULL) {
+    if ((deofptr->noddtab = (pastix_int_t *) memAlloc ((vertnbr + 1) * sizeof (pastix_int_t))) == NULL) {
       errorPrint ("dofGraph: out of memory");
       return     (1);
     }

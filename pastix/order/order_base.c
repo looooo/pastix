@@ -63,12 +63,12 @@
 void
 orderBase (
 Order * restrict const      ordeptr,              /*+ Ordering structure +*/
-const PASTIX_INT                   baseval)              /*+ New base value     +*/
+const pastix_int_t                   baseval)              /*+ New base value     +*/
 {
-  PASTIX_INT               baseadj;                      /* Base adjust */
-  PASTIX_INT               cblknum;
-  PASTIX_INT               vertnbr;
-  PASTIX_INT               vertnum;
+  pastix_int_t               baseadj;                      /* Base adjust */
+  pastix_int_t               cblknum;
+  pastix_int_t               vertnbr;
+  pastix_int_t               vertnum;
 
   if (ordeptr->rangtab == NULL)                   /* Cannot know old base if range array not provided */
     return;

@@ -16,9 +16,9 @@
 */
 
 typedef struct ExtendVectorINT_ {
-    PASTIX_INT          vecsize;
-    PASTIX_INT          eltnbr;          /*+ number of elements +*/
-    PASTIX_INT    *     inttab;          /*+ array of PASTIX_INT       +*/
+    pastix_int_t          vecsize;
+    pastix_int_t          eltnbr;          /*+ number of elements +*/
+    pastix_int_t    *     inttab;          /*+ array of pastix_int_t       +*/
 } ExtendVectorINT;
 
 
@@ -30,12 +30,12 @@ typedef struct ExtendVectorINT_ {
 #define static
 #endif
 
-PASTIX_INT                     *extendint_Init    (ExtendVectorINT *, PASTIX_INT);
+pastix_int_t                     *extendint_Init    (ExtendVectorINT *, pastix_int_t);
 void                     extendint_Exit    (ExtendVectorINT *);
-void                     extendint_Add     (ExtendVectorINT *, PASTIX_INT);
-PASTIX_INT                      extendint_Size    (ExtendVectorINT *);
-PASTIX_INT                      extendint_Read    (ExtendVectorINT *, PASTIX_INT);
+void                     extendint_Add     (ExtendVectorINT *, pastix_int_t);
+pastix_int_t                      extendint_Size    (ExtendVectorINT *);
+pastix_int_t                      extendint_Read    (ExtendVectorINT *, pastix_int_t);
 void                     extendint_Clear   (ExtendVectorINT *);
-void                     extendint_ToSize  (PASTIX_INT, ExtendVectorINT *);
+void                     extendint_ToSize  (pastix_int_t, ExtendVectorINT *);
 void                     extendint_incr    (ExtendVectorINT *);
 #undef static

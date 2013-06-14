@@ -15,16 +15,16 @@
 #ifndef FANBOTH
 #define static
 typedef struct {
-  PASTIX_INT ctrbnbr; /*+ number of contribution of the partial ftgt +*/ 
-  PASTIX_INT ctrbcnt; 
-  PASTIX_INT prionum; /*+ Priority of the partial ftgt +*/
-  PASTIX_INT indnum;  /*+ index where the ftgt must be insert in the initial ftgttab +*/
-  PASTIX_INT ftgtnum; /*+ Index of the initial ftgt from which is issue the partial ftgt +*/
-  PASTIX_INT ftgtnewnum; /*+ index of the ftgt in the final ftgttab +*/
-  PASTIX_INT next;    /*+ Chain to the next partial ftgt of the initial ftgt +*/
+  pastix_int_t ctrbnbr; /*+ number of contribution of the partial ftgt +*/ 
+  pastix_int_t ctrbcnt; 
+  pastix_int_t prionum; /*+ Priority of the partial ftgt +*/
+  pastix_int_t indnum;  /*+ index where the ftgt must be insert in the initial ftgttab +*/
+  pastix_int_t ftgtnum; /*+ Index of the initial ftgt from which is issue the partial ftgt +*/
+  pastix_int_t ftgtnewnum; /*+ index of the ftgt in the final ftgttab +*/
+  pastix_int_t next;    /*+ Chain to the next partial ftgt of the initial ftgt +*/
 } ExtraFtgt;
-PASTIX_INT Malt2(SolverMatrix *, double);
-PASTIX_INT getFtgtInd2(SolverMatrix *, PASTIX_INT *, Queue *, Queue *);
-PASTIX_INT getFtgtNextAccess(PASTIX_INT ind, PASTIX_INT ftgtaccessnbr, PASTIX_INT *ftgtaccesstab);
+pastix_int_t Malt2(SolverMatrix *, double);
+pastix_int_t getFtgtInd2(SolverMatrix *, pastix_int_t *, Queue *, Queue *);
+pastix_int_t getFtgtNextAccess(pastix_int_t ind, pastix_int_t ftgtaccessnbr, pastix_int_t *ftgtaccesstab);
 #undef static
 #endif

@@ -4,24 +4,24 @@
 /* Handle received data */
 #define recv_handle_fanin API_CALL(recv_handle_fanin)
 #define recv_handle_block API_CALL(recv_handle_block)
-void  recv_handle_fanin (Sopalin_Data_t *, PASTIX_INT, void *buffer,
+void  recv_handle_fanin (Sopalin_Data_t *, pastix_int_t, void *buffer,
                          MPI_Status status, int elected);
-void  recv_handle_block (Sopalin_Data_t *, PASTIX_INT, void *buffer,
+void  recv_handle_block (Sopalin_Data_t *, pastix_int_t, void *buffer,
                          MPI_Status status, int elected);
 
 /* Wait for one reception */
 #define recv_waitone_fanin API_CALL(recv_waitone_fanin)
 #define recv_waitone_block API_CALL(recv_waitone_block)
 #define recv_waitone_fob   API_CALL(recv_waitone_fob)
-void  recv_waitone_fanin(Sopalin_Data_t *, PASTIX_INT, PASTIX_INT tag);
-void  recv_waitone_block(Sopalin_Data_t *, PASTIX_INT, PASTIX_INT tag);
-void  recv_waitone_fob  (Sopalin_Data_t *, PASTIX_INT);
+void  recv_waitone_fanin(Sopalin_Data_t *, pastix_int_t, pastix_int_t tag);
+void  recv_waitone_block(Sopalin_Data_t *, pastix_int_t, pastix_int_t tag);
+void  recv_waitone_fob  (Sopalin_Data_t *, pastix_int_t);
 
 /* Test reception */
 #define recv_testone_fob API_CALL(recv_testone_fob)
 #define recv_testall_fab API_CALL(recv_testall_fab)
-void  recv_testone_fob  (Sopalin_Data_t *, PASTIX_INT);
-void  recv_testall_fab  (Sopalin_Data_t *, PASTIX_INT);
+void  recv_testone_fob  (Sopalin_Data_t *, pastix_int_t);
+void  recv_testall_fab  (Sopalin_Data_t *, pastix_int_t);
 
 /*************************************/
 /*          SEND FUNCTIONS           */
@@ -29,20 +29,20 @@ void  recv_testall_fab  (Sopalin_Data_t *, PASTIX_INT);
 /* Send one communication */
 #define send_one_fanin API_CALL(send_one_fanin)
 #define send_one_block API_CALL(send_one_block)
-int   send_one_fanin    (Sopalin_Data_t *, PASTIX_INT, PASTIX_INT t);
-int   send_one_block    (Sopalin_Data_t *, PASTIX_INT, PASTIX_INT t);
+int   send_one_fanin    (Sopalin_Data_t *, pastix_int_t, pastix_int_t t);
+int   send_one_block    (Sopalin_Data_t *, pastix_int_t, pastix_int_t t);
 
 /* Send all available communications */
 #define send_all_fanin API_CALL(send_all_fanin)
 #define send_all_block API_CALL(send_all_block)
-void  send_all_fanin    (Sopalin_Data_t *, PASTIX_INT, PASTIX_INT dest);
-void  send_all_block    (Sopalin_Data_t *, PASTIX_INT);
+void  send_all_fanin    (Sopalin_Data_t *, pastix_int_t, pastix_int_t dest);
+void  send_all_block    (Sopalin_Data_t *, pastix_int_t);
 
 /* Free data structure associate with send request */
 #define send_free_fanin API_CALL(send_free_fanin)
 #define send_free_block API_CALL(send_free_block)
-void  send_free_fanin   (Sopalin_Data_t *, PASTIX_INT, PASTIX_INT s_index);
-void  send_free_block   (Sopalin_Data_t *, PASTIX_INT, PASTIX_INT s_index);
+void  send_free_fanin   (Sopalin_Data_t *, pastix_int_t, pastix_int_t s_index);
+void  send_free_block   (Sopalin_Data_t *, pastix_int_t, pastix_int_t s_index);
 
 /* Test and wait send requests */
 #define send_testall       API_CALL(send_testall)
@@ -54,20 +54,20 @@ void  send_free_block   (Sopalin_Data_t *, PASTIX_INT, PASTIX_INT s_index);
 #define send_waitone_block API_CALL(send_waitone_block)
 #define send_waitall_fab   API_CALL(send_waitall_fab)
 void  send_testall      (Sopalin_Data_t *,
-                         PASTIX_INT, void (*funcfree)(Sopalin_Data_t*,
-                                               PASTIX_INT, PASTIX_INT));
-void  send_testall_fanin(Sopalin_Data_t *, PASTIX_INT);
-void  send_testall_block(Sopalin_Data_t *, PASTIX_INT);
-void  send_testall_fab  (Sopalin_Data_t *, PASTIX_INT);
-int   send_waitone      (Sopalin_Data_t *, PASTIX_INT,
-                         void (*funcfree)(Sopalin_Data_t*, PASTIX_INT, PASTIX_INT));
-int   send_waitone_fanin(Sopalin_Data_t *, PASTIX_INT);
-int   send_waitone_block(Sopalin_Data_t *, PASTIX_INT);
-void  send_waitall_fab  (Sopalin_Data_t *, PASTIX_INT);
+                         pastix_int_t, void (*funcfree)(Sopalin_Data_t*,
+                                               pastix_int_t, pastix_int_t));
+void  send_testall_fanin(Sopalin_Data_t *, pastix_int_t);
+void  send_testall_block(Sopalin_Data_t *, pastix_int_t);
+void  send_testall_fab  (Sopalin_Data_t *, pastix_int_t);
+int   send_waitone      (Sopalin_Data_t *, pastix_int_t,
+                         void (*funcfree)(Sopalin_Data_t*, pastix_int_t, pastix_int_t));
+int   send_waitone_fanin(Sopalin_Data_t *, pastix_int_t);
+int   send_waitone_block(Sopalin_Data_t *, pastix_int_t);
+void  send_waitall_fab  (Sopalin_Data_t *, pastix_int_t);
 
 /* Test all receive and send requests */
 #define rcsd_testall_fab API_CALL(rcsd_testall_fab)
-void  rcsd_testall_fab  (Sopalin_Data_t *, PASTIX_INT);
+void  rcsd_testall_fab  (Sopalin_Data_t *, pastix_int_t);
 
 /* Fonction pour thread de comm */
 #define sendrecv_smp API_CALL(sendrecv_smp)
@@ -86,46 +86,46 @@ void* sendrecv_smp(void *arg);
 #define rcsd_testall_fab   API_CALL(rcsd_testall_fab)
 #define sendrecv_smp       API_CALL(sendrecv_smp)
 void  recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
-                         PASTIX_INT me, PASTIX_INT tag)
+                         pastix_int_t me, pastix_int_t tag)
 {
   (void)sopalin_data; (void)me; (void)tag;
 }
 void  recv_waitone_block(Sopalin_Data_t *sopalin_data,
-                         PASTIX_INT me, PASTIX_INT tag)
+                         pastix_int_t me, pastix_int_t tag)
 {
   (void)sopalin_data; (void)me; (void)tag;
 }
-void  recv_waitone_fob  (Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void  recv_waitone_fob  (Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   (void)sopalin_data; (void)me;
 }
-void  recv_testone_fob  (Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void  recv_testone_fob  (Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   (void)sopalin_data; (void)me;
 }
-void  recv_testall_fab  (Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void  recv_testall_fab  (Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   (void)sopalin_data; (void)me;
 }
-void  send_all_fanin    (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT dest)
+void  send_all_fanin    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t dest)
 {
   (void)sopalin_data; (void)me; (void)dest;
 }
-void  send_all_block    (Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void  send_all_block    (Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   (void)sopalin_data; (void)me;
 }
-void  send_free_fanin   (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT s_index)
+void  send_free_fanin   (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t s_index)
 {
   (void)sopalin_data; (void)me; (void)s_index;
 }
 
-void  send_free_block   (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT s_index)
+void  send_free_block   (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t s_index)
 {
   (void)sopalin_data; (void)me; (void)s_index;
 }
 
-void  rcsd_testall_fab  (Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void  rcsd_testall_fab  (Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   (void)sopalin_data; (void)me;
 }
@@ -151,7 +151,7 @@ void* sendrecv_smp(void *arg){ (void)arg; return NULL;}
  */
 void
 recv_handle_fanin(Sopalin_Data_t *sopalin_data,
-                  PASTIX_INT             me,
+                  pastix_int_t             me,
                   void           *recv_buffer,
                   MPI_Status      status,
                   int             elected)
@@ -161,47 +161,47 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #  endif
   void  *buffer      = recv_buffer;
-  PASTIX_FLOAT *ga,  *gb;
+  pastix_float_t *ga,  *gb;
 #  ifdef SOPALIN_LU
-  PASTIX_FLOAT *ga2, *gb2;
+  pastix_float_t *ga2, *gb2;
 #  endif
-  PASTIX_INT    packnbr, pack, ind;
-  PASTIX_INT    ctrbnbr, taskdst, cblkdst, blokdst, stride, str, dimi, dimj;
-  PASTIX_INT    fcolnum, lcolnum, frownum, lrownum, size, ofrownum, olrownum;
+  pastix_int_t    packnbr, pack, ind;
+  pastix_int_t    ctrbnbr, taskdst, cblkdst, blokdst, stride, str, dimi, dimj;
+  pastix_int_t    fcolnum, lcolnum, frownum, lrownum, size, ofrownum, olrownum;
   int    flag = 0;
 
   print_debug(DBG_SOPALIN_RECV,"%ld: receive fanin target\n",(long)me);
 
-  size = PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+PACKAREA*sizeof(PASTIX_FLOAT);
+  size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
 
-  taskdst = ((PASTIX_INT*)buffer)[FTGT_TASKDST];
-  packnbr = ((PASTIX_INT*)buffer)[FTGT_PRIONUM];
+  taskdst = ((pastix_int_t*)buffer)[FTGT_TASKDST];
+  packnbr = ((pastix_int_t*)buffer)[FTGT_PRIONUM];
 
   trace_begin_task(thread_data->tracefile,
                    SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
                    STATE_L2_RECVF, taskdst);
   trace_recv(thread_data->tracefile,
              SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, status.MPI_SOURCE,
-             COMM_FANIN, taskdst, 0, ((PASTIX_INT*)buffer)[FTGT_IDTRACE]);
+             COMM_FANIN, taskdst, 0, ((pastix_int_t*)buffer)[FTGT_IDTRACE]);
 
   /* Loop on all ftgt */
   for (pack=0;pack<packnbr;pack++)
     {
       /* add fanintarget */
-      ctrbnbr = ((PASTIX_INT*)buffer)[FTGT_CTRBNBR];
-      taskdst = ((PASTIX_INT*)buffer)[FTGT_TASKDST];
-      blokdst = ((PASTIX_INT*)buffer)[FTGT_BLOKDST];
-      fcolnum = ((PASTIX_INT*)buffer)[FTGT_FCOLNUM];
-      lcolnum = ((PASTIX_INT*)buffer)[FTGT_LCOLNUM];
-      frownum = ((PASTIX_INT*)buffer)[FTGT_FROWNUM];
-      lrownum = ((PASTIX_INT*)buffer)[FTGT_LROWNUM];
+      ctrbnbr = ((pastix_int_t*)buffer)[FTGT_CTRBNBR];
+      taskdst = ((pastix_int_t*)buffer)[FTGT_TASKDST];
+      blokdst = ((pastix_int_t*)buffer)[FTGT_BLOKDST];
+      fcolnum = ((pastix_int_t*)buffer)[FTGT_FCOLNUM];
+      lcolnum = ((pastix_int_t*)buffer)[FTGT_LCOLNUM];
+      frownum = ((pastix_int_t*)buffer)[FTGT_FROWNUM];
+      lrownum = ((pastix_int_t*)buffer)[FTGT_LROWNUM];
       dimj    = lcolnum - fcolnum + 1;
       dimi    = lrownum - frownum + 1;
 
 #  ifdef DRUNK_SOPALIN
       if (taskdst == -DRUNK)
         {
-          PASTIX_INT c;
+          pastix_int_t c;
 
           /* find cblkdst without taskdst */
           taskdst = SOLV_TASKNBR-1;
@@ -242,7 +242,7 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
       ga2 = &(SOLV_UCOEFTAB(cblkdst)[ind]);
 #  endif
 
-      gb  =(PASTIX_FLOAT *)(((char *) buffer) + MAXINFO*sizeof(PASTIX_INT));
+      gb  =(pastix_float_t *)(((char *) buffer) + MAXINFO*sizeof(pastix_int_t));
 
       print_debug(DBG_SOPALIN_RECV,
                   "%ld: Recv fanintarget\n"
@@ -250,17 +250,17 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
                   " fcolnum lcolnum frownum lrownum (cblkdst)\n"
                   "%ld: %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld (%ld)\n",
                   (long)me, (long)me, (long)me, (long)ctrbnbr,
-                  (long)((PASTIX_INT*)buffer)[FTGT_CTRBCNT],
-                  (long)((PASTIX_INT*)buffer)[FTGT_PROCDST],
+                  (long)((pastix_int_t*)buffer)[FTGT_CTRBCNT],
+                  (long)((pastix_int_t*)buffer)[FTGT_PROCDST],
                   (long)taskdst, (long)blokdst,
-                  (long)((PASTIX_INT*)buffer)[FTGT_PRIONUM],
+                  (long)((pastix_int_t*)buffer)[FTGT_PRIONUM],
                   (long)fcolnum, (long)lcolnum,
                   (long)frownum, (long)lrownum, (long)cblkdst);
 
       /* pas de test possible sur prionum (=packnbr) */
 #  ifdef EXACT_THREAD
       if (THREAD_COMM_OFF)
-        ASSERTDBG(me==((PASTIX_INT*)buffer)[FTGT_PROCDST]%SOLV_THRDNBR,MOD_SOPALIN);
+        ASSERTDBG(me==((pastix_int_t*)buffer)[FTGT_PROCDST]%SOLV_THRDNBR,MOD_SOPALIN);
 #  endif
       ASSERTDBG((SYMB_FCOLNUM(cblkdst)<=fcolnum) &&
                 (SYMB_LCOLNUM(cblkdst)>=lcolnum),MOD_SOPALIN);
@@ -274,7 +274,7 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
       flag = 1;
       do {
 
-        PASTIX_INT trace = 0;
+        pastix_int_t trace = 0;
 
         /* il peut y avoir plusieurs cibles partielles */
         if (!flag)
@@ -323,9 +323,9 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
 #    ifdef SOPALIN_LU
         ga2 = &(SOLV_UCOEFTAB(cblkdst)[ind]);
 #    endif
-        gb  = (PASTIX_FLOAT *) ( ((char *) buffer)
-                          + MAXINFO*sizeof(PASTIX_INT)
-                          +(frownum-ofrownum)*sizeof(PASTIX_FLOAT));
+        gb  = (pastix_float_t *) ( ((char *) buffer)
+                          + MAXINFO*sizeof(pastix_int_t)
+                          +(frownum-ofrownum)*sizeof(pastix_float_t));
 
         if (trace)
           {
@@ -377,7 +377,7 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
                      ( (TASK_BTAGPTR(taskdst) == NULL) ||
                        (RTASK_COEFTAB(taskdst) == NULL)))))
               {
-                PASTIX_INT i;
+                pastix_int_t i;
 
                 ASSERTDBG(TASK_TASKID(taskdst) != E2, MOD_SOPALIN);
 
@@ -426,9 +426,9 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
 
       /* Next contribution */
 #ifdef SOPALIN_LU
-      buffer = ((char *) buffer)+MAXINFO*sizeof(PASTIX_INT)+str*dimj*sizeof(PASTIX_FLOAT)*2;
+      buffer = ((char *) buffer)+MAXINFO*sizeof(pastix_int_t)+str*dimj*sizeof(pastix_float_t)*2;
 #else
-      buffer = ((char *) buffer)+MAXINFO*sizeof(PASTIX_INT)+str*dimj*sizeof(PASTIX_FLOAT);
+      buffer = ((char *) buffer)+MAXINFO*sizeof(pastix_int_t)+str*dimj*sizeof(pastix_float_t);
 #endif
 
       print_debug(DBG_SOPALIN_RECV, "%ld: fin ajout fanin target\n",(long)me);
@@ -465,7 +465,7 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
  */
 void
 recv_handle_block(Sopalin_Data_t *sopalin_data,
-                  PASTIX_INT             me,
+                  pastix_int_t             me,
                   void           *buffer,
                   MPI_Status      status,
                   int             elected)
@@ -476,29 +476,29 @@ recv_handle_block(Sopalin_Data_t *sopalin_data,
 #endif
   BlockTarget   *btag;
   BlockCoeff    *bcof;
-  PASTIX_INT            task, size, bloksize, taskcnt, taskcntT;
-  PASTIX_INT            btprionum, bttaskdst, btprocdst, bttaskcnt;
-  PASTIX_INT            bcfrownum, bclrownum, bcfcolnum, bclcolnum;
+  pastix_int_t            task, size, bloksize, taskcnt, taskcntT;
+  pastix_int_t            btprionum, bttaskdst, btprocdst, bttaskcnt;
+  pastix_int_t            bcfrownum, bclrownum, bcfcolnum, bclcolnum;
 
   print_debug(DBG_SOPALIN_RECV,"%ld: receive block target\n", (long)me);
 
-  size = sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO)+sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX;
+  size = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
 
   /* build blocktarget */
   MALLOC_INTERN(btag, 1, BlockTarget);
   MALLOC_INTERN(bcof, 1, BlockCoeff);
 
-  btprionum = btag->infotab[BTAG_PRIONUM] = ((PASTIX_INT*)buffer)[BTAG_PRIONUM];
-  bttaskdst = btag->infotab[BTAG_TASKDST] = ((PASTIX_INT*)buffer)[BTAG_TASKDST];
-  btprocdst = btag->infotab[BTAG_PROCDST] = ((PASTIX_INT*)buffer)[BTAG_PROCDST];
-  bttaskcnt = btag->infotab[BTAG_TASKCNT] = ((PASTIX_INT*)buffer)[BTAG_TASKCNT];
+  btprionum = btag->infotab[BTAG_PRIONUM] = ((pastix_int_t*)buffer)[BTAG_PRIONUM];
+  bttaskdst = btag->infotab[BTAG_TASKDST] = ((pastix_int_t*)buffer)[BTAG_TASKDST];
+  btprocdst = btag->infotab[BTAG_PROCDST] = ((pastix_int_t*)buffer)[BTAG_PROCDST];
+  bttaskcnt = btag->infotab[BTAG_TASKCNT] = ((pastix_int_t*)buffer)[BTAG_TASKCNT];
   btag->bcofptr = bcof;
 
   btag->bcofptr->sendcnt = LOCAL_ALLOC_BTAG; /* need a mark to be free */
-  bcfrownum = btag->bcofptr->infotab[BCOF_FROWNUM] = ((PASTIX_INT*)buffer)[BTAGINFO+BCOF_FROWNUM];
-  bclrownum = btag->bcofptr->infotab[BCOF_LROWNUM] = ((PASTIX_INT*)buffer)[BTAGINFO+BCOF_LROWNUM];
-  bcfcolnum = btag->bcofptr->infotab[BCOF_FCOLNUM] = ((PASTIX_INT*)buffer)[BTAGINFO+BCOF_FCOLNUM];
-  bclcolnum = btag->bcofptr->infotab[BCOF_LCOLNUM] = ((PASTIX_INT*)buffer)[BTAGINFO+BCOF_LCOLNUM];
+  bcfrownum = btag->bcofptr->infotab[BCOF_FROWNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_FROWNUM];
+  bclrownum = btag->bcofptr->infotab[BCOF_LROWNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_LROWNUM];
+  bcfcolnum = btag->bcofptr->infotab[BCOF_FCOLNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_FCOLNUM];
+  bclcolnum = btag->bcofptr->infotab[BCOF_LCOLNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_LCOLNUM];
 
   bloksize = (bclrownum - bcfrownum + 1)*
     (bclcolnum - bcfcolnum + 1);
@@ -509,7 +509,7 @@ recv_handle_block(Sopalin_Data_t *sopalin_data,
 
   trace_recv(thread_data->tracefile,
              SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, status.MPI_SOURCE,
-             COMM_BLOCK, bttaskdst, bloksize, ((PASTIX_INT*)buffer)[BTAG_IDTRACE]);
+             COMM_BLOCK, bttaskdst, bloksize, ((pastix_int_t*)buffer)[BTAG_IDTRACE]);
 
   print_debug(DBG_SOPALIN_RECV,
               "%ld: Recv blocktarget\n"
@@ -528,13 +528,13 @@ recv_handle_block(Sopalin_Data_t *sopalin_data,
 #ifndef PASTIX_DYNSCHED
   ASSERTDBG((btprocdst/SOLV_THRDNBR) == SOLV_PROCNUM,     MOD_SOPALIN);
 #endif
-  MALLOC_INTERN(btag->bcofptr->coeftab, bloksize, PASTIX_FLOAT);
+  MALLOC_INTERN(btag->bcofptr->coeftab, bloksize, pastix_float_t);
 
   STATS_ADD(bloksize);
 
   memcpy((void *) btag->bcofptr->coeftab,
-         (void *) (((char *) buffer)+(BTAGINFO+BCOFINFO)*sizeof(PASTIX_FLOAT)),
-         bloksize*sizeof(PASTIX_FLOAT));
+         (void *) (((char *) buffer)+(BTAGINFO+BCOFINFO)*sizeof(pastix_float_t)),
+         bloksize*sizeof(pastix_float_t));
 
   /* link  blocktarget -> tasks */
   task = bttaskdst;
@@ -560,7 +560,7 @@ recv_handle_block(Sopalin_Data_t *sopalin_data,
            ( (TASK_BTAGPTR(task) == NULL) ||
              (RTASK_COEFTAB(task) == NULL)))))
     {
-      PASTIX_INT i = TASK_THREADID(task);
+      pastix_int_t i = TASK_THREADID(task);
 
 #  ifdef PASTIX_DYNSCHED
       ASSERTDBG(sopalin_data->taskmark[task] == -1, MOD_SOPALIN);
@@ -600,7 +600,7 @@ recv_handle_block(Sopalin_Data_t *sopalin_data,
           (!((TASK_TASKID(task) == E2) && ((TASK_BTAGPTR(task) == NULL) ||
                                            (RTASK_COEFTAB(task) == NULL)))))
         {
-          PASTIX_INT i = TASK_THREADID(task);
+          pastix_int_t i = TASK_THREADID(task);
 
 #  if (DBG_PASTIX_DYNSCHED > 0)
           ASSERTDBG(sopalin_data->taskmark[task] == -1, MOD_SOPALIN);
@@ -652,8 +652,8 @@ recv_handle_block(Sopalin_Data_t *sopalin_data,
  */
 void
 recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
-                   PASTIX_INT             me,
-                   PASTIX_INT             tag)
+                   pastix_int_t             me,
+                   pastix_int_t             tag)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
@@ -673,7 +673,7 @@ recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
 #else /* TEST_IRECV */
 
   {
-    PASTIX_INT size;
+    pastix_int_t size;
 
     /* sinon on prepare le mpi_recv */
     tag = TAG_FANIN;
@@ -686,7 +686,7 @@ recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
 #  endif
       }
 
-    size = PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+PACKAREA*sizeof(PASTIX_FLOAT);
+    size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
     OOC_RECEIVING;
     CALL_MPI MPI_Recv(thread_data->recv_buffer, size, MPI_BYTE,
                       MPI_ANY_SOURCE, tag, PASTIX_COMM, &status);
@@ -713,8 +713,8 @@ recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
  */
 void
 recv_waitone_block(Sopalin_Data_t *sopalin_data,
-                   PASTIX_INT             me,
-                   PASTIX_INT             tag)
+                   pastix_int_t             me,
+                   pastix_int_t             tag)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
@@ -734,7 +734,7 @@ recv_waitone_block(Sopalin_Data_t *sopalin_data,
 #else /*TEST_IRECV */
 
   {
-    PASTIX_INT size;
+    pastix_int_t size;
 
     tag = TAG_BLOCK;
     if (THREAD_COMM_OFF)
@@ -745,7 +745,7 @@ recv_waitone_block(Sopalin_Data_t *sopalin_data,
         tag = SEPFB + tag;
 #  endif
       }
-    size = sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO) + sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX;
+    size = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO) + sizeof(pastix_float_t)*SOLV_BPFTMAX;
     CALL_MPI MPI_Recv(thread_data->recv_buffer, size, MPI_BYTE,
                       MPI_ANY_SOURCE, tag, PASTIX_COMM, &status);
     TEST_MPI("MPI_Recv");
@@ -771,7 +771,7 @@ recv_waitone_block(Sopalin_Data_t *sopalin_data,
  */
 void
 recv_waitone_fob(Sopalin_Data_t *sopalin_data,
-                 PASTIX_INT             me)
+                 pastix_int_t             me)
 {
   print_debug(DBG_SOPALIN_RECV, "%ld: recv_waitone_fob\n",(long)me);
 
@@ -835,11 +835,11 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
     SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status     status;
-    PASTIX_INT            size;
-    size = MAX(PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+
-               PACKAREA*sizeof(PASTIX_FLOAT),
-               sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO)+
-               sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX);
+    pastix_int_t            size;
+    size = MAX(PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
+               PACKAREA*sizeof(pastix_float_t),
+               sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+
+               sizeof(pastix_float_t)*SOLV_BPFTMAX);
 
 
     /* Test one fanin */
@@ -863,11 +863,11 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status     status;
     int            elected     = 0;
-    PASTIX_INT            size;
-    size = MAX(PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+
-               PACKAREA*sizeof(PASTIX_FLOAT),
-               sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO)+
-               sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX);
+    pastix_int_t            size;
+    size = MAX(PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
+               PACKAREA*sizeof(pastix_float_t),
+               sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+
+               sizeof(pastix_float_t)*SOLV_BPFTMAX);
 
 
     CALL_MPI MPI_Recv(thread_data->recv_buffer, size, MPI_BYTE,
@@ -906,7 +906,7 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
  *    me           - Thread number
  *
  */
-void recv_testone_fob(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   print_debug(DBG_SOPALIN_RECV, "%ld: recv_testone_fob\n",(long)me);
 
@@ -1036,7 +1036,7 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
  */
 void
 recv_testall_fab(Sopalin_Data_t *sopalin_data,
-                 PASTIX_INT             me)
+                 pastix_int_t             me)
 {
 
   print_debug(DBG_SOPALIN_RECV, "%ld: recv_testall_fab\n",(long)me);
@@ -1171,21 +1171,21 @@ recv_testall_fab(Sopalin_Data_t *sopalin_data,
  */
 int
 send_one_fanin ( Sopalin_Data_t *sopalin_data,
-                 PASTIX_INT             me,
-                 PASTIX_INT             t)
+                 pastix_int_t             me,
+                 pastix_int_t             t)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   Queue         *sendqueue;
-  PASTIX_INT            id_req  = 0;
-  PASTIX_INT            packnbr = 0;
-  PASTIX_INT            tdeb, tag;
-  PASTIX_INT           *extra; /* contient la liste supplementaire
+  pastix_int_t            id_req  = 0;
+  pastix_int_t            packnbr = 0;
+  pastix_int_t            tdeb, tag;
+  pastix_int_t           *extra; /* contient la liste supplementaire
                          * des fanintgt a liberer */
-  PASTIX_INT            sum_pack;
+  pastix_int_t            sum_pack;
 #ifdef NO_MPI_TYPE
-  PASTIX_INT            iter;
-  PASTIX_INT            copied;
+  pastix_int_t            iter;
+  pastix_int_t            copied;
 #else  /* NO_MPI_TYPE */
   MPI_Datatype   newtype;
 #endif /* NO_MPI_TYPE  */
@@ -1221,8 +1221,8 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
 
   /* Type of each vector */
 #ifdef NO_MPI_TYPE
-  thread_data->gtabtype[packnbr]   = sizeof(PASTIX_INT);
-  thread_data->gtabtype[packnbr+1] = sizeof(PASTIX_FLOAT);
+  thread_data->gtabtype[packnbr]   = sizeof(pastix_int_t);
+  thread_data->gtabtype[packnbr+1] = sizeof(pastix_float_t);
 #else /* NO_MPI_TYPE */
   thread_data->gtabtype[packnbr]   = COMM_INT;
   thread_data->gtabtype[packnbr+1] = COMM_FLOAT;
@@ -1233,7 +1233,7 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
   MUTEX_LOCK(&(sopalin_data->mutex_fanin[t]));
   ooc_wait_for_ftgt(sopalin_data, t, me);
   ASSERTDBG(((unsigned long)(*(((double*)FANIN_COEFTAB(t))-1))) ==
-            sizeof(PASTIX_FLOAT)*((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) *
+            sizeof(pastix_float_t)*((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) *
                            (FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1) *
                            ((sopalin_data->sopar->factotype ==
                              API_FACT_LU)?2:1))
@@ -1285,13 +1285,13 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
       if ((FANIN_PROCDST(tdeb) == FANIN_PROCDST(t)) &&
           (FANIN_TASKDST(tdeb) == FANIN_TASKDST(t)) &&
           (!(FANIN_CTRBCNT(t))) && ((packnbr/2)<(PACKMAX-1)))
-        MALLOC_INTERN(extra, PACKMAX, PASTIX_INT);
+        MALLOC_INTERN(extra, PACKMAX, pastix_int_t);
 
       while ((FANIN_PROCDST(tdeb) == FANIN_PROCDST(t)) &&
              (FANIN_TASKDST(tdeb) == FANIN_TASKDST(t)) &&
              (!(FANIN_CTRBCNT(t))) && ((packnbr/2)<(PACKMAX-1)))
         {
-          PASTIX_INT next;
+          pastix_int_t next;
 
           MUTEX_UNLOCK(&(sopalin_data->mutex_fanin[t]));
           next = (FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1)*
@@ -1333,8 +1333,8 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
           sum_pack += thread_data->gtabsize[packnbr+1];
 
 #ifdef NO_MPI_TYPE
-          thread_data->gtabtype[packnbr]   = sizeof(PASTIX_INT);
-          thread_data->gtabtype[packnbr+1] = sizeof(PASTIX_FLOAT);
+          thread_data->gtabtype[packnbr]   = sizeof(pastix_int_t);
+          thread_data->gtabtype[packnbr+1] = sizeof(pastix_float_t);
 #else /* NO_MPI_TYPE */
           thread_data->gtabtype[packnbr]   = COMM_INT;
           thread_data->gtabtype[packnbr+1] = COMM_FLOAT;
@@ -1345,7 +1345,7 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
           MUTEX_LOCK(&(sopalin_data->mutex_fanin[t]));
           ooc_wait_for_ftgt(sopalin_data, t, me);
           ASSERTDBG(((unsigned long)(*(((double*)FANIN_COEFTAB(t))-1))) ==
-                    sizeof(PASTIX_FLOAT)*((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) *
+                    sizeof(pastix_float_t)*((FANIN_LROWNUM(t)-FANIN_FROWNUM(t)+1) *
                                    (FANIN_LCOLNUM(t)-FANIN_FCOLNUM(t)+1)   *
                                    ((sopalin_data->sopar->factotype == API_FACT_LU)?2:1))
                     , MOD_SOPALIN);
@@ -1510,24 +1510,24 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
  */
 int
 send_one_block(Sopalin_Data_t *sopalin_data,
-               PASTIX_INT             me,
-               PASTIX_INT             t)
+               pastix_int_t             me,
+               pastix_int_t             t)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   int            tabsize[3];
 #ifdef NO_MPI_TYPE
   void *         taboffs[3];
-  int            tabtype[3]  = {sizeof(PASTIX_INT),sizeof(PASTIX_INT),sizeof(PASTIX_FLOAT)};
-  PASTIX_INT            copied;
-  PASTIX_INT            iter;
+  int            tabtype[3]  = {sizeof(pastix_int_t),sizeof(pastix_int_t),sizeof(pastix_float_t)};
+  pastix_int_t            copied;
+  pastix_int_t            iter;
 #else /* NO_MPI_TYPE */
   MPI_Aint       taboffs[3];
   MPI_Datatype   tabtype[3]  = {COMM_INT,COMM_INT,COMM_FLOAT};
   MPI_Datatype   newtype;
 #endif /* NO_MPI_TYPE */
-  PASTIX_INT tag;
-  PASTIX_INT id_req;
+  pastix_int_t tag;
+  pastix_int_t id_req;
 
   print_debug(DBG_SOPALIN_SEND, "%ld: Send blocktarget\n"
               "%ld: prionum taskdst procdst taskcnt frownum"
@@ -1676,8 +1676,8 @@ send_one_block(Sopalin_Data_t *sopalin_data,
  */
 void
 send_all_fanin(Sopalin_Data_t *sopalin_data,
-               PASTIX_INT             me,
-               PASTIX_INT             dest)
+               pastix_int_t             me,
+               pastix_int_t             dest)
 {
   if (THREAD_FUNNELED_ON)
     {
@@ -1705,7 +1705,7 @@ send_all_fanin(Sopalin_Data_t *sopalin_data,
           while ( (flag) &&
                   (queueSize(&(sopalin_data->fanintgtsendqueue[dest]))))
             {
-              PASTIX_INT t = queueRead(&(sopalin_data->fanintgtsendqueue[dest]));
+              pastix_int_t t = queueRead(&(sopalin_data->fanintgtsendqueue[dest]));
 
               print_debug(DBG_SOPALIN_SEND,
                           "send dest %ld fanintarget %ld\n",(long)dest,(long)t);
@@ -1753,7 +1753,7 @@ send_all_fanin(Sopalin_Data_t *sopalin_data,
  */
 void
 send_all_block ( Sopalin_Data_t *sopalin_data,
-                 PASTIX_INT             me)
+                 pastix_int_t             me)
 {
   if (THREAD_FUNNELED_ON)
     {
@@ -1784,7 +1784,7 @@ send_all_block ( Sopalin_Data_t *sopalin_data,
           while ( (flag) &&
                   (queueSize(&(sopalin_data->blocktgtsendqueue[dest]))) )
             {
-              PASTIX_INT t = queueRead(&(sopalin_data->blocktgtsendqueue[dest]));
+              pastix_int_t t = queueRead(&(sopalin_data->blocktgtsendqueue[dest]));
 
               print_debug(DBG_SOPALIN_SEND,
                           "send dest %ld blocktarget %ld bcofptr %x (ready %x)"
@@ -1833,15 +1833,15 @@ send_all_block ( Sopalin_Data_t *sopalin_data,
  */
 void
 send_free_fanin ( Sopalin_Data_t *sopalin_data,
-                  PASTIX_INT             me,
-                  PASTIX_INT             s_index)
+                  pastix_int_t             me,
+                  pastix_int_t             s_index)
 {
 #if ((!defined OOC_FTGT) || defined PASTIX_DEBUG )
   SolverMatrix  *datacode    = sopalin_data->datacode;
 #endif
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  PASTIX_INT f = 0;
-  PASTIX_INT i;
+  pastix_int_t f = 0;
+  pastix_int_t i;
 
   i = thread_data->send_fanin_target[s_index];
   print_debug(DBG_SOPALIN_SEND, "->send_free_fanin %ld \n", (long)i);
@@ -1904,12 +1904,12 @@ send_free_fanin ( Sopalin_Data_t *sopalin_data,
  */
 void
 send_free_block(Sopalin_Data_t *sopalin_data,
-                PASTIX_INT             me,
-                PASTIX_INT             s_index)
+                pastix_int_t             me,
+                pastix_int_t             s_index)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  PASTIX_INT            i           = thread_data->send_block_target[s_index];
+  pastix_int_t            i           = thread_data->send_block_target[s_index];
 
   BTAG_SENDCNT(i)--;
   ASSERTDBG(BTAG_SENDCNT(i)>=0,MOD_SOPALIN);
@@ -1941,8 +1941,8 @@ send_free_block(Sopalin_Data_t *sopalin_data,
  *   void
  */
 /*********************************/
-void send_testall ( Sopalin_Data_t *sopalin_data, PASTIX_INT me,
-                    void (*funcfree)(Sopalin_Data_t*, PASTIX_INT, PASTIX_INT))
+void send_testall ( Sopalin_Data_t *sopalin_data, pastix_int_t me,
+                    void (*funcfree)(Sopalin_Data_t*, pastix_int_t, pastix_int_t))
 {
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   int            i;
@@ -2005,7 +2005,7 @@ void send_testall ( Sopalin_Data_t *sopalin_data, PASTIX_INT me,
 #endif /* PASTIX_TERA */
 }
 
-void send_testall_fanin(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void send_testall_fanin(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   send_testall(sopalin_data, me, send_free_fanin);
   return;
@@ -2023,7 +2023,7 @@ void send_testall_fanin(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
  *   void
  */
 /*********************************/
-void send_testall_block ( Sopalin_Data_t *sopalin_data, PASTIX_INT me )
+void send_testall_block ( Sopalin_Data_t *sopalin_data, pastix_int_t me )
 {
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 
@@ -2067,7 +2067,7 @@ void send_testall_block ( Sopalin_Data_t *sopalin_data, PASTIX_INT me )
   {
     MPI_Status s_status;
     int        s_flag;
-    PASTIX_INT        j;
+    pastix_int_t        j;
 
     for(j=0; j<thread_data->maxsrequest_block; j++)
       {
@@ -2100,7 +2100,7 @@ void send_testall_block ( Sopalin_Data_t *sopalin_data, PASTIX_INT me )
  *   void
  */
 /*********************************/
-void send_testall_fab(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void send_testall_fab(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   send_testall_fanin(sopalin_data, me);
   send_testall_block(sopalin_data, me);
@@ -2118,8 +2118,8 @@ void send_testall_fab(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
  *   void
  */
 /*********************************/
-int send_waitone ( Sopalin_Data_t *sopalin_data, PASTIX_INT me,
-                   void (*funcfree)(Sopalin_Data_t*, PASTIX_INT, PASTIX_INT) )
+int send_waitone ( Sopalin_Data_t *sopalin_data, pastix_int_t me,
+                   void (*funcfree)(Sopalin_Data_t*, pastix_int_t, pastix_int_t) )
 {
 #if (defined TEST_ISEND) && (defined SMP_SOPALIN)
   SolverMatrix  *datacode    = sopalin_data->datacode;
@@ -2165,7 +2165,7 @@ int send_waitone ( Sopalin_Data_t *sopalin_data, PASTIX_INT me,
   return req;
 }
 
-int send_waitone_fanin(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+int send_waitone_fanin(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   return send_waitone(sopalin_data, me, send_free_fanin);
 }
@@ -2182,7 +2182,7 @@ int send_waitone_fanin(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
  *   void
  */
 /*********************************/
-int send_waitone_block ( Sopalin_Data_t *sopalin_data, PASTIX_INT me )
+int send_waitone_block ( Sopalin_Data_t *sopalin_data, pastix_int_t me )
 {
 #if (defined TEST_ISEND) && (defined SMP_SOPALIN)
   SolverMatrix  *datacode    = sopalin_data->datacode;
@@ -2239,15 +2239,15 @@ int send_waitone_block ( Sopalin_Data_t *sopalin_data, PASTIX_INT me )
  *   void
  */
 /*********************************/
-void send_waitall_fab(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void send_waitall_fab(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   MPI_Status     s_status;
   int            i;
 
 #ifdef FORCE_CONSO
-  PASTIX_INT        nb_envois_fanin = 0;
-  PASTIX_INT        nb_envois_block = 0;
+  pastix_int_t        nb_envois_fanin = 0;
+  pastix_int_t        nb_envois_block = 0;
   int        s_flag          = 0;
 
   while((nb_envois_fanin != thread_data->maxsrequest_fanin) ||
@@ -2325,7 +2325,7 @@ void send_waitall_fab(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
  *   void
  */
 /*********************************/
-void rcsd_testall_fab(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void rcsd_testall_fab(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
 #ifdef TEST_ISEND
   /* Test des envois */
@@ -2361,14 +2361,14 @@ void* sendrecv_smp ( void *arg )
       int               tag_fanin, tag_block;
       int               nbrequest   = 1;
       int               nbrequesttot= 1;
-      PASTIX_INT               size[2];
+      pastix_int_t               size[2];
       int               i;
       int               init;
       int               flag, wait;
       int               nbsend, nbsend_fanin, nbsend_block;
       int               nbrecv, nbrecv_block;
-      PASTIX_INT               save_ftgtcnt = -1;
-      PASTIX_INT               ftgt, key;
+      pastix_int_t               save_ftgtcnt = -1;
+      pastix_int_t               ftgt, key;
       double            dest;
       int               nb_proc_end = 1;
 
@@ -2393,8 +2393,8 @@ void* sendrecv_smp ( void *arg )
       /***********************************/
 
       /* Taille des buffers de réception */
-      size[0] = PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+PACKAREA*sizeof(PASTIX_FLOAT);
-      size[1] = sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO)+sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX;
+      size[0] = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
+      size[1] = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
 
 #ifdef THREAD_COMM_MULTIPLE
       nbrequest = MAX(SOLV_PROCNBR-1, 1);

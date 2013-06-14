@@ -22,10 +22,10 @@
 /* #include "assert.h" */
 #include "splitfunc.h"
 
-PASTIX_INT splitSeqCblk2D( PASTIX_INT cblknum, PASTIX_INT procnbr, const SymbolMatrix * symbptr, const ExtraSymbolMatrix * extrasymbptr, const Dof * dofptr, const BlendCtrl * ctrl,
-                    PASTIX_INT (*P)(PASTIX_INT, PASTIX_INT, const SymbolMatrix *,const ExtraSymbolMatrix *, const Dof *, PASTIX_INT, const BlendCtrl *) )
+pastix_int_t splitSeqCblk2D( pastix_int_t cblknum, pastix_int_t procnbr, const SymbolMatrix * symbptr, const ExtraSymbolMatrix * extrasymbptr, const Dof * dofptr, const BlendCtrl * ctrl,
+                    pastix_int_t (*P)(pastix_int_t, pastix_int_t, const SymbolMatrix *,const ExtraSymbolMatrix *, const Dof *, pastix_int_t, const BlendCtrl *) )
 {
-  PASTIX_INT a, c;
+  pastix_int_t a, c;
   a = 1;
   c = symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum + 1;
 
@@ -51,27 +51,27 @@ PASTIX_INT splitSeqCblk2D( PASTIX_INT cblknum, PASTIX_INT procnbr, const SymbolM
 
 #if 0
 /** Basic criterion based on broadness of cblk **/
-PASTIX_INT P1D(PASTIX_INT cblknum, PASTIX_INT procnbr, const SymbolMatrix *symbptr, const ExtraSymbolMatrix * const extrasymbptr, const Dof * dofptr, PASTIX_INT nseq, const BlendCtrl * ctrl)
+pastix_int_t P1D(pastix_int_t cblknum, pastix_int_t procnbr, const SymbolMatrix *symbptr, const ExtraSymbolMatrix * const extrasymbptr, const Dof * dofptr, pastix_int_t nseq, const BlendCtrl * ctrl)
 {
-  PASTIX_INT delta = symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum + 1;
+  pastix_int_t delta = symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum + 1;
   if( dofptr->noddval*delta/nseq >= ctrl->option->blcolmin )
     return 1;
   return 0;
 }
 
 /** Criterion based on overhead du to the splitting **/
-PASTIX_INT P2D(PASTIX_INT cblknum, PASTIX_INT procnbr, const SymbolMatrix * symbptr, const ExtraSymbolMatrix * const extrasymbptr, const Dof * dofptr, PASTIX_INT nseq, const BlendCtrl * ctrl)
+pastix_int_t P2D(pastix_int_t cblknum, pastix_int_t procnbr, const SymbolMatrix * symbptr, const ExtraSymbolMatrix * const extrasymbptr, const Dof * dofptr, pastix_int_t nseq, const BlendCtrl * ctrl)
 {
-  PASTIX_INT bloknbr;
-  PASTIX_INT sbloknbr;
+  pastix_int_t bloknbr;
+  pastix_int_t sbloknbr;
   SymbolBlok *bloktab  = NULL;
   SymbolBlok *sbloktab = NULL;
-  PASTIX_INT        *indtab  = NULL;
+  pastix_int_t        *indtab  = NULL;
   double cost1;
   double cost2;
 
 
-  PASTIX_INT k;
+  pastix_int_t k;
 
   /* Number of blocks */
   bloknbr = cblkNbr(cblknum, symbptr, extrasymbptr);
@@ -92,7 +92,7 @@ PASTIX_INT P2D(PASTIX_INT cblknum, PASTIX_INT procnbr, const SymbolMatrix * symb
 #endif
 
   /** give the structure of splitted cblk (it is not repercuted on the symbol matrix) **/
-  MALLOC_INTERN(indtab,   nseq+1,   PASTIX_INT);
+  MALLOC_INTERN(indtab,   nseq+1,   pastix_int_t);
   MALLOC_INTERN(sbloktab, sbloknbr, SymbolBlok);
 
   virtualSplit(nseq, bloknbr, bloktab, indtab, sbloktab);
@@ -122,12 +122,12 @@ PASTIX_INT P2D(PASTIX_INT cblknum, PASTIX_INT procnbr, const SymbolMatrix * symb
 
 /** OIMBE TO DO: le calcul total du cout splitter peut etre bp plus rapide en groupant
   les calculs sur les odb dans les cblk decouper **/
-void virtualSplit(PASTIX_INT nseq, PASTIX_INT bloknbr, const SymbolBlok * src_bloktab,
-                         PASTIX_INT *indtab, SymbolBlok * dest_bloktab)
+void virtualSplit(pastix_int_t nseq, pastix_int_t bloknbr, const SymbolBlok * src_bloktab,
+                         pastix_int_t *indtab, SymbolBlok * dest_bloktab)
 {
-  PASTIX_INT k;
-  PASTIX_INT i;
-  PASTIX_INT step;
+  pastix_int_t k;
+  pastix_int_t i;
+  pastix_int_t step;
 
   /** Index of splitted cblk in dest_bloktab **/
   /* + a virtual extra end cblk */
@@ -168,10 +168,10 @@ void virtualSplit(PASTIX_INT nseq, PASTIX_INT bloknbr, const SymbolBlok * src_bl
 }
 
 /** Assure that cblkComputeCost and cblkCost compute the same things !!!! **/
-double cblkCost(PASTIX_INT bloknbr, const SymbolBlok * bloktab, const Dof * dofptr)
+double cblkCost(pastix_int_t bloknbr, const SymbolBlok * bloktab, const Dof * dofptr)
 {
-    PASTIX_INT l, h, g;
-    PASTIX_INT k;
+    pastix_int_t l, h, g;
+    pastix_int_t k;
     double total_cost = 0;
     double compute_cost = 0;
     double send_cost    = 0;
@@ -217,10 +217,10 @@ double cblkCost(PASTIX_INT bloknbr, const SymbolBlok * bloktab, const Dof * dofp
     return total_cost;
 }
 
-PASTIX_INT cblkNbr(PASTIX_INT cblknum,  const SymbolMatrix * symbptr, const ExtraSymbolMatrix * extrasymbptr)
+pastix_int_t cblkNbr(pastix_int_t cblknum,  const SymbolMatrix * symbptr, const ExtraSymbolMatrix * extrasymbptr)
 {
-  PASTIX_INT bloknbr = 0;
-  PASTIX_INT i;
+  pastix_int_t bloknbr = 0;
+  pastix_int_t i;
   for(i=symbptr->cblktab[cblknum].bloknum;i<symbptr->cblktab[cblknum+1].bloknum;i++)
     {
       if(extrasymbptr->sptblnb[i]>1)
@@ -231,11 +231,11 @@ PASTIX_INT cblkNbr(PASTIX_INT cblknum,  const SymbolMatrix * symbptr, const Extr
   return bloknbr;
 }
 
-void build_cblk(PASTIX_INT cblknum, const SymbolMatrix * symbptr, const ExtraSymbolMatrix * extrasymbptr, SymbolBlok *bloktab)
+void build_cblk(pastix_int_t cblknum, const SymbolMatrix * symbptr, const ExtraSymbolMatrix * extrasymbptr, SymbolBlok *bloktab)
 {
-  PASTIX_INT i;
-  PASTIX_INT blokcur = 0;
-  PASTIX_INT sptnbr;
+  pastix_int_t i;
+  pastix_int_t blokcur = 0;
+  pastix_int_t sptnbr;
   for(i=symbptr->cblktab[cblknum].bloknum;i<symbptr->cblktab[cblknum+1].bloknum;i++)
     {
       if(extrasymbptr->sptblok[i]>=0)

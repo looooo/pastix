@@ -88,7 +88,7 @@ int
 symbolCosti (const SymbolMatrix * const  symbptr,
 	     const Dof * const           deofptr,
 	     const SymbolCostType        typeval,
-	     const PASTIX_INT                   levfval,
+	     const pastix_int_t                   levfval,
 	     double * const              nnzptr,
 	     double * const              opcptr)
 {
@@ -133,17 +133,17 @@ void
 symbolCosti2 (const SymbolCblk * restrict const cblktax,
 	      const SymbolBlok * restrict const bloktax,
 	      const Dof * restrict const        deofptr,
-	      const PASTIX_INT                         levfval,
+	      const pastix_int_t                         levfval,
 	      double * restrict const           nnzptr,
 	      double * restrict const           opcptr,
-	      const PASTIX_INT                         cblkmin,
-	      const PASTIX_INT                         cblknbr)
+	      const pastix_int_t                         cblkmin,
+	      const pastix_int_t                         cblknbr)
 {
-  PASTIX_INT                 bloknum;                    /* Number of current extra-diagonal block             */
-  PASTIX_INT                 cmednum;                    /* Median column block number                         */
-  PASTIX_INT                 cfacnum;                    /* Number of facing column block                      */
-  PASTIX_INT                 cdofnbr;                    /* Number of DOFs in column block (l_k)               */
-  PASTIX_INT                 rdofsum;                    /* Number of DOFs in all row blocks (g_{ki} or g_{k}) */
+  pastix_int_t                 bloknum;                    /* Number of current extra-diagonal block             */
+  pastix_int_t                 cmednum;                    /* Median column block number                         */
+  pastix_int_t                 cfacnum;                    /* Number of facing column block                      */
+  pastix_int_t                 cdofnbr;                    /* Number of DOFs in column block (l_k)               */
+  pastix_int_t                 rdofsum;                    /* Number of DOFs in all row blocks (g_{ki} or g_{k}) */
   double              nnzval;                     /* Number of non-zeroes in subtree                    */
   double              opcval;                     /* Operation count in subtree                         */
 
@@ -159,9 +159,9 @@ symbolCosti2 (const SymbolCblk * restrict const cblktax,
     *opcptr += opcval;
   }
   else {                                          /* Single column block                              */
-    PASTIX_INT                 levffac;                  /* Minimum level of fill over facing block(s)       */
-    PASTIX_INT                 rdounbr;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
-    PASTIX_INT                 rdousum;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
+    pastix_int_t                 levffac;                  /* Minimum level of fill over facing block(s)       */
+    pastix_int_t                 rdounbr;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
+    pastix_int_t                 rdousum;                  /* Number of DOFs in undropped row blocks (h'_{ki}) */
 
     cdofnbr = noddVal (deofptr, cblktax[cblkmin].lcolnum + 1) -
               noddVal (deofptr, cblktax[cblkmin].fcolnum);
@@ -195,7 +195,7 @@ symbolCosti2 (const SymbolCblk * restrict const cblktax,
 
       cfacnum = bloktax[bloknum].cblknum;
       do {
-        PASTIX_INT                 rdofblk;              /* Number of DOFs in local block */
+        pastix_int_t                 rdofblk;              /* Number of DOFs in local block */
 
         if (bloktax[bloknum].levfval > levfval)   /* Skip dropped blocks */
           continue;

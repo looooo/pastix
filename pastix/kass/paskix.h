@@ -14,11 +14,11 @@
 /*
 **  The function prototypes.
 */
-void CSC_Fnum2Cnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n);
-void CSC_Cnum2Fnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n);
+void CSC_Fnum2Cnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n);
+void CSC_Cnum2Fnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n);
 
-void CSC_rowPerm(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_INT *rperm);
-void CSC_colPerm(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_INT *cperm);
-void CSC_colScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_FLOAT *dcol);
-void CSC_rowScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_FLOAT *drow);
-void CSC_sort(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a);
+void CSC_rowPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_int_t *rperm);
+void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_int_t *cperm);
+void CSC_colScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *dcol);
+void CSC_rowScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *drow);
+void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a);

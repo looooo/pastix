@@ -17,9 +17,9 @@
 
 void                        eliminGraphBuild  (const SymbolMatrix *, EliminGraph *);
 void                        eliminTreeBuild   (const SymbolMatrix *, BlendCtrl *);
-PASTIX_INT                         treeLeaveNbr      (const EliminTree *);
-PASTIX_INT                         treeLevel         (const EliminTree *);
-PASTIX_INT                         nodeTreeLevel     (PASTIX_INT, const EliminTree *);
+pastix_int_t                         treeLeaveNbr      (const EliminTree *);
+pastix_int_t                         treeLevel         (const EliminTree *);
+pastix_int_t                         nodeTreeLevel     (pastix_int_t, const EliminTree *);
 static void                 etreeBuild        (EliminTree *, const SymbolMatrix *);
 
 #undef static

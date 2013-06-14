@@ -27,18 +27,18 @@ typedef struct ExtraCostMatrix_ {
 
 
 typedef struct ExtraSymbolMatrix_ {
-  PASTIX_INT                       baseval;              /*+ Base value for numberings                    +*/
-  PASTIX_INT                       addcblk;              /*+ Number of cblk created                       +*/
-  PASTIX_INT                       addblok;              /*+ Number of blok created                       +*/
-  PASTIX_INT        *              sptcblk;              /*+ Index for splitted cblk in the cblktab       +*/
-  PASTIX_INT        *              sptcbnb;              /*+ Number of splitted cblk for a cblk           +*/
-  PASTIX_INT        *              sptblok;              /*+ Index for splitted blok in the bloktab       +*/
-  PASTIX_INT        *              sptblnb;              /*+ Number of splitted blok for a blok           +*/
-  PASTIX_INT        *              subtreeblnbr;         /*+ Number of blok in the subtree                +*/
-  PASTIX_INT                       curcblk;              /*+ Cursor for cblktab                           +*/
-  PASTIX_INT                       sizcblk;              /*+ Size of allocated cblktab                    +*/
-  PASTIX_INT                       curblok;              /*+ Cursor for bloktab                           +*/
-  PASTIX_INT                       sizblok;              /*+ Size of allocated bloktab                    +*/
+  pastix_int_t                       baseval;              /*+ Base value for numberings                    +*/
+  pastix_int_t                       addcblk;              /*+ Number of cblk created                       +*/
+  pastix_int_t                       addblok;              /*+ Number of blok created                       +*/
+  pastix_int_t        *              sptcblk;              /*+ Index for splitted cblk in the cblktab       +*/
+  pastix_int_t        *              sptcbnb;              /*+ Number of splitted cblk for a cblk           +*/
+  pastix_int_t        *              sptblok;              /*+ Index for splitted blok in the bloktab       +*/
+  pastix_int_t        *              sptblnb;              /*+ Number of splitted blok for a blok           +*/
+  pastix_int_t        *              subtreeblnbr;         /*+ Number of blok in the subtree                +*/
+  pastix_int_t                       curcblk;              /*+ Cursor for cblktab                           +*/
+  pastix_int_t                       sizcblk;              /*+ Size of allocated cblktab                    +*/
+  pastix_int_t                       curblok;              /*+ Cursor for bloktab                           +*/
+  pastix_int_t                       sizblok;              /*+ Size of allocated bloktab                    +*/
   SymbolCblk *              cblktab;              /*+ Array of column blocks [+1,based]            +*/
   SymbolBlok *              bloktab;              /*+ Array of blocks [based]                      +*/
 } ExtraSymbolMatrix;
@@ -52,14 +52,14 @@ typedef struct ExtraSymbolMatrix_ {
 #endif
 void                        extra_inc_cblk           (ExtraSymbolMatrix *, ExtraCostMatrix *);
 void                        extra_inc_blok           (ExtraSymbolMatrix *, ExtraCostMatrix *);
-PASTIX_INT                         extrasymbolInit          (ExtraSymbolMatrix *);
+pastix_int_t                         extrasymbolInit          (ExtraSymbolMatrix *);
 void                        extrasymbolExit          (ExtraSymbolMatrix *);
-PASTIX_INT                         extrasymbolLoad          (ExtraSymbolMatrix *, FILE *);
-PASTIX_INT                         extrasymbolSave          (ExtraSymbolMatrix *, FILE *);
-PASTIX_INT                         extracostInit            (ExtraCostMatrix *);
+pastix_int_t                         extrasymbolLoad          (ExtraSymbolMatrix *, FILE *);
+pastix_int_t                         extrasymbolSave          (ExtraSymbolMatrix *, FILE *);
+pastix_int_t                         extracostInit            (ExtraCostMatrix *);
 void                        extracostExit            (ExtraCostMatrix *);
-PASTIX_INT                         extracostLoad            (ExtraCostMatrix *, FILE *);
-PASTIX_INT                         extracostSave            (ExtraCostMatrix *, FILE *);
+pastix_int_t                         extracostLoad            (ExtraCostMatrix *, FILE *);
+pastix_int_t                         extracostSave            (ExtraCostMatrix *, FILE *);
 
 #undef static
 

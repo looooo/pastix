@@ -67,16 +67,16 @@ void* pivotstatique_smp ( void *arg )
   double            t1           = 0;
   double            t2           = 0;
   double            t3           = 0;
-  PASTIX_FLOAT * volatile  lub          = NULL;
-  PASTIX_FLOAT * volatile  lur          = NULL;
-  PASTIX_FLOAT * volatile  lur2         = NULL;
+  pastix_float_t * volatile  lub          = NULL;
+  pastix_float_t * volatile  lur          = NULL;
+  pastix_float_t * volatile  lur2         = NULL;
   double            tmp_berr     = 0.0;
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
   SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t               me           = argument->me;
   int               iter         = 0;
 
   MONOTHREAD_BEGIN;
@@ -87,9 +87,9 @@ void* pivotstatique_smp ( void *arg )
           fprintf(stdout, OUT_ITERRAFF_PIVOT);
         }
     }
-  MALLOC_INTERN(lub,  UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(lur,  UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(lur2, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
+  MALLOC_INTERN(lub,  UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(lur,  UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(lur2, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
 
   SOPALIN_COPY(UPDOWN_SM2XNBR*UPDOWN_SM2XSZE,sopar->b,iun,lub,iun);
 
@@ -100,9 +100,9 @@ void* pivotstatique_smp ( void *arg )
   MONOTHREAD_END;
   SYNCHRO_THREAD;
 
-  lur  = (PASTIX_FLOAT *)sopalin_data->ptr_raff[0];
-  lub  = (PASTIX_FLOAT *)sopalin_data->ptr_raff[1];
-  lur2 = (PASTIX_FLOAT *)sopalin_data->ptr_raff[2];
+  lur  = (pastix_float_t *)sopalin_data->ptr_raff[0];
+  lub  = (pastix_float_t *)sopalin_data->ptr_raff[1];
+  lur2 = (pastix_float_t *)sopalin_data->ptr_raff[2];
 
   RAFF_CLOCK_INIT;
 
@@ -304,29 +304,29 @@ void* API_CALL(gmres_smp)(void *arg)
   SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
-  PASTIX_INT               me           = argument->me;
-  PASTIX_FLOAT          *  gmrestemp    = NULL;
-  volatile PASTIX_INT      gmresim      = 0;
-  volatile PASTIX_INT      gmresmaxits  = 0;
-  PASTIX_FLOAT          *  gmresb       = NULL;
-  PASTIX_FLOAT          ** gmresvv      = NULL;
-  PASTIX_FLOAT          ** gmreshh      = NULL;
-  PASTIX_FLOAT          *  gmresc       = NULL;
-  PASTIX_FLOAT          *  gmress       = NULL;
-  PASTIX_FLOAT          *  gmresrs      = NULL;
-  PASTIX_FLOAT          ** gmresw       = NULL;
-  PASTIX_FLOAT             gmresalpha;
-  volatile PASTIX_INT      gmresincx    = 0;
-  volatile PASTIX_INT      gmresiters   = 0;
-  PASTIX_FLOAT          *  gmreswk1;
-  PASTIX_FLOAT          *  gmreswk2     = NULL;
-  PASTIX_FLOAT             gmrest;
+  pastix_int_t               me           = argument->me;
+  pastix_float_t          *  gmrestemp    = NULL;
+  volatile pastix_int_t      gmresim      = 0;
+  volatile pastix_int_t      gmresmaxits  = 0;
+  pastix_float_t          *  gmresb       = NULL;
+  pastix_float_t          ** gmresvv      = NULL;
+  pastix_float_t          ** gmreshh      = NULL;
+  pastix_float_t          *  gmresc       = NULL;
+  pastix_float_t          *  gmress       = NULL;
+  pastix_float_t          *  gmresrs      = NULL;
+  pastix_float_t          ** gmresw       = NULL;
+  pastix_float_t             gmresalpha;
+  volatile pastix_int_t      gmresincx    = 0;
+  volatile pastix_int_t      gmresiters   = 0;
+  pastix_float_t          *  gmreswk1;
+  pastix_float_t          *  gmreswk2     = NULL;
+  pastix_float_t             gmrest;
   volatile double   gmreseps     = 0;
   volatile double   gmresnormb;
   double            gmresnormb2;
-  volatile PASTIX_INT      gmresi1      = 0;
-  volatile PASTIX_INT i=0;
-  PASTIX_INT j,ii,k;
+  volatile pastix_int_t      gmresi1      = 0;
+  volatile pastix_int_t i=0;
+  pastix_int_t j,ii,k;
   double beta;
 
   gmresim     = sopar->gmresim;     /* ? */
@@ -354,27 +354,27 @@ void* API_CALL(gmres_smp)(void *arg)
           fprintf(stdout, OUT_ITERRAFF_GMRES);
         }
     }
-  MALLOC_INTERN(gmrestemp,  UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(gmresb,     UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(gmresc,     gmresim,        PASTIX_FLOAT);
-  MALLOC_INTERN(gmress,     gmresim,        PASTIX_FLOAT);
-  MALLOC_INTERN(gmresrs,    gmresim+1,      PASTIX_FLOAT);
-  MALLOC_INTERN(gmresvv,    gmresim+1,      PASTIX_FLOAT*);
-  MALLOC_INTERN(gmreshh,    gmresim,        PASTIX_FLOAT*);
-  MALLOC_INTERN(gmresw,     gmresim,        PASTIX_FLOAT*);
+  MALLOC_INTERN(gmrestemp,  UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(gmresb,     UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(gmresc,     gmresim,        pastix_float_t);
+  MALLOC_INTERN(gmress,     gmresim,        pastix_float_t);
+  MALLOC_INTERN(gmresrs,    gmresim+1,      pastix_float_t);
+  MALLOC_INTERN(gmresvv,    gmresim+1,      pastix_float_t*);
+  MALLOC_INTERN(gmreshh,    gmresim,        pastix_float_t*);
+  MALLOC_INTERN(gmresw,     gmresim,        pastix_float_t*);
 
   SOPALIN_COPY(UPDOWN_SM2XSZE, sopar->b, iun, gmresb, iun);
 
   /* Allocation des tableaux */
   for(i=0; i<(gmresim+1); i++)
     {
-      MALLOC_INTERN(gmresvv[i], UPDOWN_SM2XSZE, PASTIX_FLOAT);
+      MALLOC_INTERN(gmresvv[i], UPDOWN_SM2XSZE, pastix_float_t);
     }
 
   for (i=0; i<gmresim; i++)
     {
-      MALLOC_INTERN(gmreshh[i], gmresim+1,      PASTIX_FLOAT);
-      MALLOC_INTERN(gmresw[i],  UPDOWN_SM2XSZE, PASTIX_FLOAT);
+      MALLOC_INTERN(gmreshh[i], gmresim+1,      pastix_float_t);
+      MALLOC_INTERN(gmresw[i],  UPDOWN_SM2XSZE, pastix_float_t);
     }
 
   sopalin_data->gmresout_flag = 1;
@@ -407,14 +407,14 @@ void* API_CALL(gmres_smp)(void *arg)
 
   MONOTHREAD_END;
   SYNCHRO_THREAD;
-  gmrestemp  = (PASTIX_FLOAT *) sopalin_data->ptr_raff[0];
-  gmresb     = (PASTIX_FLOAT *) sopalin_data->ptr_raff[1];
-  gmresvv    = (PASTIX_FLOAT **)sopalin_data->ptr_raff[2];
-  gmreshh    = (PASTIX_FLOAT **)sopalin_data->ptr_raff[3];
-  gmresc     = (PASTIX_FLOAT *) sopalin_data->ptr_raff[4];
-  gmress     = (PASTIX_FLOAT *) sopalin_data->ptr_raff[5];
-  gmresrs    = (PASTIX_FLOAT *) sopalin_data->ptr_raff[6];
-  gmresw     = (PASTIX_FLOAT **)sopalin_data->ptr_raff[7];
+  gmrestemp  = (pastix_float_t *) sopalin_data->ptr_raff[0];
+  gmresb     = (pastix_float_t *) sopalin_data->ptr_raff[1];
+  gmresvv    = (pastix_float_t **)sopalin_data->ptr_raff[2];
+  gmreshh    = (pastix_float_t **)sopalin_data->ptr_raff[3];
+  gmresc     = (pastix_float_t *) sopalin_data->ptr_raff[4];
+  gmress     = (pastix_float_t *) sopalin_data->ptr_raff[5];
+  gmresrs    = (pastix_float_t *) sopalin_data->ptr_raff[6];
+  gmresw     = (pastix_float_t **)sopalin_data->ptr_raff[7];
   /* On s'assure que tous les threads aient bien gmresnormb correct */
   gmresnormb = (double)(*((double*)sopalin_data->ptr_raff[8]));
 
@@ -471,20 +471,20 @@ void* API_CALL(gmres_smp)(void *arg)
 #endif
 
       SYNCHRO_THREAD;
-      if ((double)ABS_FLOAT((PASTIX_FLOAT)sopalin_data->gmresro) <=
+      if ((double)ABS_FLOAT((pastix_float_t)sopalin_data->gmresro) <=
           sopar->epsilonraff)
         {
           sopalin_data->gmresout_flag = 0;
           break;
         }
 
-      gmrest = (PASTIX_FLOAT)(1.0/sopalin_data->gmresro);
+      gmrest = (pastix_float_t)(1.0/sopalin_data->gmresro);
 
       MONOTHREAD_BEGIN;
 
       SOPALIN_SCAL(UPDOWN_SM2XSZE, gmrest, gmresvv[0], gmresincx);
 
-      gmresrs[0] = (PASTIX_FLOAT)sopalin_data->gmresro;
+      gmresrs[0] = (pastix_float_t)sopalin_data->gmresro;
       sopalin_data->gmresin_flag = 1;
 
       MONOTHREAD_END;
@@ -555,7 +555,7 @@ void* API_CALL(gmres_smp)(void *arg)
                           (long)me, __LINE__, beta);
               MONOTHREAD_END;
 
-              gmreshh[i][j] = (PASTIX_FLOAT)beta;
+              gmreshh[i][j] = (pastix_float_t)beta;
             }
 
 #ifdef SMP_RAFF
@@ -595,7 +595,7 @@ void* API_CALL(gmres_smp)(void *arg)
           MONOTHREAD_BEGIN;
 #endif
 
-          gmrest = (PASTIX_FLOAT)sqrt(beta);
+          gmrest = (pastix_float_t)sqrt(beta);
 
           gmreshh[i][gmresi1] = gmrest;
 
@@ -613,8 +613,8 @@ void* API_CALL(gmres_smp)(void *arg)
                 {
                   gmrest = gmreshh[i][j-1];
 #ifdef CPLX
-                  gmreshh[i][j-1] = (PASTIX_FLOAT)conj(gmresc[j-1])*gmrest +
-                    (PASTIX_FLOAT)conj(gmress[j-1])*gmreshh[i][j];
+                  gmreshh[i][j-1] = (pastix_float_t)conj(gmresc[j-1])*gmrest +
+                    (pastix_float_t)conj(gmress[j-1])*gmreshh[i][j];
 #else /* CPLX */
                   gmreshh[i][j-1] =  gmresc[j-1]*gmrest +
                     gmress[j-1]*gmreshh[i][j];
@@ -624,22 +624,22 @@ void* API_CALL(gmres_smp)(void *arg)
                 }
             }
 #ifdef CPLX
-          gmrest = (PASTIX_FLOAT)csqrt(ABS_FLOAT(gmreshh[i][i]*gmreshh[i][i])+
+          gmrest = (pastix_float_t)csqrt(ABS_FLOAT(gmreshh[i][i]*gmreshh[i][i])+
                                 gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
 #else
-          gmrest = (PASTIX_FLOAT)sqrt(gmreshh[i][i]*gmreshh[i][i]+
+          gmrest = (pastix_float_t)sqrt(gmreshh[i][i]*gmreshh[i][i]+
                                gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
 #endif
           if (ABS_FLOAT(gmrest) <= sopar->epsilonraff)
-            gmrest = (PASTIX_FLOAT)sopar->epsilonraff;
+            gmrest = (pastix_float_t)sopar->epsilonraff;
 
           gmresc[i] = gmreshh[i][i]/gmrest;
           gmress[i] = gmreshh[i][gmresi1]/gmrest;
           gmresrs[gmresi1] = -gmress[i]*gmresrs[i];
 
 #ifdef CPLX
-          gmresrs[i] = (PASTIX_FLOAT)conj(gmresc[i])*gmresrs[i];
-          gmreshh[i][i] = (PASTIX_FLOAT)conj(gmresc[i])*gmreshh[i][i] +
+          gmresrs[i] = (pastix_float_t)conj(gmresc[i])*gmresrs[i];
+          gmreshh[i][i] = (pastix_float_t)conj(gmresc[i])*gmreshh[i][i] +
             gmress[i]*gmreshh[i][gmresi1];
 #else
           gmresrs[i] = gmresc[i]*gmresrs[i];
@@ -798,19 +798,19 @@ void* API_CALL(grad_smp)(void *arg)
   SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
-  PASTIX_INT               me           = argument->me;
-  PASTIX_INT               i;
+  pastix_int_t               me           = argument->me;
+  pastix_int_t               i;
 
-  PASTIX_FLOAT * gradb = NULL;
-  PASTIX_FLOAT * gradr = NULL;
-  PASTIX_FLOAT * gradp = NULL;
-  PASTIX_FLOAT * gradz = NULL;
-  PASTIX_FLOAT * grad2 = NULL;
+  pastix_float_t * gradb = NULL;
+  pastix_float_t * gradr = NULL;
+  pastix_float_t * gradp = NULL;
+  pastix_float_t * gradz = NULL;
+  pastix_float_t * grad2 = NULL;
 
   /* Alpha et Beta ne sont utilisés que par le thread 0 */
-  PASTIX_FLOAT *alpha = NULL;
-  PASTIX_FLOAT *beta  = NULL;
-  PASTIX_FLOAT   tmp_flt;
+  pastix_float_t *alpha = NULL;
+  pastix_float_t *beta  = NULL;
+  pastix_float_t   tmp_flt;
   MONOTHREAD_BEGIN;
   if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
     {
@@ -819,13 +819,13 @@ void* API_CALL(grad_smp)(void *arg)
           fprintf(stdout, OUT_ITERRAFF_GRAD);
         }
     }
-  MALLOC_INTERN(gradb, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(gradr, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(gradp, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(gradz, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(grad2, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, PASTIX_FLOAT);
-  MALLOC_INTERN(alpha, UPDOWN_SM2XNBR               , PASTIX_FLOAT);
-  MALLOC_INTERN(beta,  UPDOWN_SM2XNBR               , PASTIX_FLOAT);
+  MALLOC_INTERN(gradb, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(gradr, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(gradp, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(gradz, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(grad2, UPDOWN_SM2XNBR*UPDOWN_SM2XSZE, pastix_float_t);
+  MALLOC_INTERN(alpha, UPDOWN_SM2XNBR               , pastix_float_t);
+  MALLOC_INTERN(beta,  UPDOWN_SM2XNBR               , pastix_float_t);
 
   SOPALIN_COPY(UPDOWN_SM2XSZE*UPDOWN_SM2XNBR,sopar->b,iun,gradb,iun);
 
@@ -842,11 +842,11 @@ void* API_CALL(grad_smp)(void *arg)
   sopalin_data->ptr_raff[4] = (void *)grad2;
   MONOTHREAD_END;
   SYNCHRO_THREAD;
-  gradb = (PASTIX_FLOAT *)sopalin_data->ptr_raff[0];
-  gradp = (PASTIX_FLOAT *)sopalin_data->ptr_raff[1];
-  gradr = (PASTIX_FLOAT *)sopalin_data->ptr_raff[2];
-  gradz = (PASTIX_FLOAT *)sopalin_data->ptr_raff[3];
-  grad2 = (PASTIX_FLOAT *)sopalin_data->ptr_raff[4];
+  gradb = (pastix_float_t *)sopalin_data->ptr_raff[0];
+  gradp = (pastix_float_t *)sopalin_data->ptr_raff[1];
+  gradr = (pastix_float_t *)sopalin_data->ptr_raff[2];
+  gradz = (pastix_float_t *)sopalin_data->ptr_raff[3];
+  grad2 = (pastix_float_t *)sopalin_data->ptr_raff[4];
 
   RAFF_CLOCK_INIT;
 
@@ -945,7 +945,7 @@ void* API_CALL(grad_smp)(void *arg)
 
 #ifdef MULT_SMX_RAFF
       {
-        PASTIX_INT itersmx;
+        pastix_int_t itersmx;
         for(itersmx=0; itersmx<UPDOWN_SM2XNBR;itersmx++)
           {
             alpha[itersmx]=beta[itersmx]/alpha[itersmx];
@@ -964,35 +964,35 @@ void* API_CALL(grad_smp)(void *arg)
       /* x = x+alphap */
 #ifdef MULT_SMX_RAFF
       {
-        PASTIX_INT itersmx;
+        pastix_int_t itersmx;
         for(itersmx=0; itersmx<UPDOWN_SM2XNBR;itersmx++)
           {
-            tmp_flt = (PASTIX_FLOAT) alpha[itersmx];
+            tmp_flt = (pastix_float_t) alpha[itersmx];
             SOPALIN_AXPY(UPDOWN_SM2XSZE, tmp_flt,
                          gradp+(itersmx*UPDOWN_SM2XSZE),iun,
                          UPDOWN_SM2XTAB+(itersmx*UPDOWN_SM2XSZE),iun);
           }
       }
 #else
-      tmp_flt = (PASTIX_FLOAT) alpha[0];
+      tmp_flt = (pastix_float_t) alpha[0];
       SOPALIN_AXPY(UPDOWN_SM2XSZE, tmp_flt,gradp,iun,UPDOWN_SM2XTAB,iun);
 #endif
 
       /* r = r-alphaAp */
 #ifdef MULT_SMX_RAFF
       {
-        PASTIX_INT itersmx;
+        pastix_int_t itersmx;
 
         for(itersmx=0; itersmx<UPDOWN_SM2XNBR;itersmx++)
           {
-            tmp_flt = (PASTIX_FLOAT)-alpha[itersmx];
+            tmp_flt = (pastix_float_t)-alpha[itersmx];
             SOPALIN_AXPY(UPDOWN_SM2XSZE, tmp_flt,
                          grad2+(itersmx*UPDOWN_SM2XSZE),iun,
                          gradr+(itersmx*UPDOWN_SM2XSZE),iun);
           }
       }
 #else
-      tmp_flt = (PASTIX_FLOAT)-alpha[0];
+      tmp_flt = (pastix_float_t)-alpha[0];
       SOPALIN_AXPY(UPDOWN_SM2XSZE, tmp_flt,grad2,iun,gradr,iun);
 #endif
 
@@ -1040,7 +1040,7 @@ void* API_CALL(grad_smp)(void *arg)
 
 #ifdef MULT_SMX_RAFF
       {
-        PASTIX_INT itersmx;
+        pastix_int_t itersmx;
         for(itersmx=0; itersmx<UPDOWN_SM2XNBR;itersmx++)
           {
             beta[itersmx]=alpha[itersmx]/beta[itersmx];
@@ -1053,7 +1053,7 @@ void* API_CALL(grad_smp)(void *arg)
       /* p = z+beta p */
 #ifdef MULT_SMX_RAFF
       {
-        PASTIX_INT itersmx;
+        pastix_int_t itersmx;
         for (itersmx=0; itersmx<UPDOWN_SM2XNBR; itersmx++)
           {
             tmp_flt = beta[itersmx];
@@ -1064,7 +1064,7 @@ void* API_CALL(grad_smp)(void *arg)
       SOPALIN_GEAM("N","N",UPDOWN_SM2XSZE,UPDOWN_SM2XNBR, fun,
                    gradz, UPDOWN_SM2XSZE, gradp, UPDOWN_SM2XSZE);
 #else
-      tmp_flt = (PASTIX_FLOAT)beta[0];
+      tmp_flt = (pastix_float_t)beta[0];
       SOPALIN_SCAL(UPDOWN_SM2XSZE,beta[0],gradp,iun);
       SOPALIN_AXPY(UPDOWN_SM2XSZE,fun,gradz,iun,gradp,iun);
 #endif

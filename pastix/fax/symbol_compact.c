@@ -63,15 +63,15 @@ int
 symbolCompact (SymbolMatrix * const        symbptr)
 {
   SymbolBlok *              bloktax;
-  PASTIX_INT                       cblknum;
-  PASTIX_INT                       bloknew;
+  pastix_int_t                       cblknum;
+  pastix_int_t                       bloknew;
 
   bloktax = symbptr->bloktab - symbptr->baseval;
 
   for (cblknum = 0, bloknew = symbptr->baseval;
        cblknum < symbptr->cblknbr; cblknum ++) {
-    PASTIX_INT                       bloknum;
-    PASTIX_INT                       bloklst;
+    pastix_int_t                       bloknum;
+    pastix_int_t                       bloklst;
 
     bloknum = symbptr->cblktab[cblknum].bloknum;  /* Update block index in column block array */
     symbptr->cblktab[cblknum].bloknum = bloknew;

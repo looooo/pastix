@@ -1,8 +1,8 @@
 /*== Creation/Destruction de CSC ==*/
 
 /******************************************************************************/
-/* void CscHbRead(CscMatrix *thecsc, char *Type, char *RhsType, PASTIX_FLOAT **rhs,  */
-/*                PASTIX_FLOAT **rhs2, const Order *ord, const char *rsaname)        */
+/* void CscHbRead(CscMatrix *thecsc, char *Type, char *RhsType, pastix_float_t **rhs,  */
+/*                pastix_float_t **rhs2, const Order *ord, const char *rsaname)        */
 /*                                                                            */
 /* Lecture de la csc a partir d'un fichier au format HB et permutation a      */
 /* partir du vecteur permutation fournit par Scotch                           */
@@ -23,11 +23,11 @@
 
 /* !!!!!!!!!!!!!FONCTION INUTILISEE !!!!!!!! */
 void CscOrder(CscMatrix *thecsc,
-	      char *Type, char *RhsType, PASTIX_FLOAT **transcsc,
-	      PASTIX_FLOAT **rhs, PASTIX_FLOAT **rhs2,
+	      char *Type, char *RhsType, pastix_float_t **transcsc,
+	      pastix_float_t **rhs, pastix_float_t **rhs2,
 	      const Order *ord,
-	      PASTIX_INT Nrow, PASTIX_INT Ncol, PASTIX_INT Nnzero, 
-	      PASTIX_INT *colptr, PASTIX_INT *rowind, PASTIX_FLOAT *val, PASTIX_INT forcetrans);
+	      pastix_int_t Nrow, pastix_int_t Ncol, pastix_int_t Nnzero, 
+	      pastix_int_t *colptr, pastix_int_t *rowind, pastix_float_t *val, pastix_int_t forcetrans);
 
 /*== Distribution/Remplissage ==*/
 /******************************************************************************/
@@ -41,7 +41,7 @@ void CscOrder(CscMatrix *thecsc,
 /* cscdist : csc locale                                                       */
 /******************************************************************************/
 void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
-		CscMatrix *cscdist, const PASTIX_FLOAT *transcsc, PASTIX_FLOAT **trandcsc);
+		CscMatrix *cscdist, const pastix_float_t *transcsc, pastix_float_t **trandcsc);
 
 /*== Divers ==*/
 /******************************************************************************/
@@ -54,12 +54,12 @@ void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
 /******************************************************************************/
 void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp);
 
-void CscScaling2(char *Type, PASTIX_INT Ncol, PASTIX_INT *col, PASTIX_INT *row, PASTIX_FLOAT *val, PASTIX_FLOAT *rhs, PASTIX_FLOAT *rhs2);
-void CscScaling(CscMatrix *cscmtx, PASTIX_FLOAT *transcsc, PASTIX_FLOAT *rhs1, PASTIX_FLOAT *rhs2);
+void CscScaling2(char *Type, pastix_int_t Ncol, pastix_int_t *col, pastix_int_t *row, pastix_float_t *val, pastix_float_t *rhs, pastix_float_t *rhs2);
+void CscScaling(CscMatrix *cscmtx, pastix_float_t *transcsc, pastix_float_t *rhs1, pastix_float_t *rhs2);
 
 /******************************************************************************/
 /* void CscVerifUpdown(const UpDownVector *updovct,                           */
-/*                     const SymbolMatrix *symbmtx; const PASTIX_FLOAT *rhs2)        */
+/*                     const SymbolMatrix *symbmtx; const pastix_float_t *rhs2)        */
 /*                                                                            */
 /* Verification entre le second membre fournit dans le fichier HB et le second*/
 /* membre calcule.                                                            */
@@ -69,20 +69,20 @@ void CscScaling(CscMatrix *cscmtx, PASTIX_FLOAT *transcsc, PASTIX_FLOAT *rhs1, P
 /* rhs2 : vecteur second membre solution fournit dans le fichier HB           */
 /******************************************************************************/
 void CscVerifUpdown(const UpDownVector *updovct, const SymbolMatrix *symbmtx,
-		    const PASTIX_FLOAT *rhs2);
+		    const pastix_float_t *rhs2);
 
 /******************************************************************************/
 /* void CscUpDown(UpDownVector *updovct, const SymbolMatrix *symbmtx,         */
-/*                const PASTIX_FLOAT *rhs)                                           */
+/*                const pastix_float_t *rhs)                                           */
 /*                                                                            */
 /* Remplissage du vector second membre a partir de celui fournit dans le      */
 /* fichier HB.                                                                */
 /*                                                                            */
 /******************************************************************************/
 void CscUpdown(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
-	       const PASTIX_FLOAT *rhs);
+	       const pastix_float_t *rhs);
 void CscUpdown2(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
-		const PASTIX_FLOAT *rhs);
+		const pastix_float_t *rhs);
 
 
 
@@ -95,4 +95,4 @@ void CscUpdown2(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
 /******************************************************************************/
 void CscDiagDom(CscMatrix *cscmtx);
 
-PASTIX_INT CscStrucSym(CscMatrix *cscmtx);
+pastix_int_t CscStrucSym(CscMatrix *cscmtx);

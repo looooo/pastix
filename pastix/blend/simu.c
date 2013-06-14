@@ -12,14 +12,14 @@
 
 #define TIMEBASE 10.0
 
-PASTIX_INT simuInit(SimuCtrl *simuctrl, SymbolMatrix *symbptr, PASTIX_INT clustnbr, PASTIX_INT procnbr,
-             PASTIX_INT cblknbr, PASTIX_INT bloknbr, Cand *candtab)
+pastix_int_t simuInit(SimuCtrl *simuctrl, SymbolMatrix *symbptr, pastix_int_t clustnbr, pastix_int_t procnbr,
+             pastix_int_t cblknbr, pastix_int_t bloknbr, Cand *candtab)
 {
-    PASTIX_INT i, j;
-    PASTIX_INT p;
-    PASTIX_INT ftgtcur;
-    PASTIX_INT candnbr;
-    PASTIX_INT step;
+    pastix_int_t i, j;
+    pastix_int_t p;
+    pastix_int_t ftgtcur;
+    pastix_int_t candnbr;
+    pastix_int_t step;
 
     simuctrl->cblknbr  = cblknbr;
     simuctrl->ftgtprio = 0;
@@ -55,8 +55,8 @@ PASTIX_INT simuInit(SimuCtrl *simuctrl, SymbolMatrix *symbptr, PASTIX_INT clustn
       }
     simuctrl->clustab[clustnbr-1].lprocnum = procnbr-1;
 
-    MALLOC_INTERN(simuctrl->ownetab, cblknbr, PASTIX_INT);
-    MALLOC_INTERN(simuctrl->blprtab, bloknbr, PASTIX_INT);
+    MALLOC_INTERN(simuctrl->ownetab, cblknbr, pastix_int_t);
+    MALLOC_INTERN(simuctrl->blprtab, bloknbr, pastix_int_t);
 
     /* affect a negative value to cblk not mapped */
     for(i=0;i<cblknbr;i++)
@@ -101,7 +101,7 @@ PASTIX_INT simuInit(SimuCtrl *simuctrl, SymbolMatrix *symbptr, PASTIX_INT clustn
               timerSet(&(simuctrl->ftgttab[i].timerecv), 0.0);
               simuctrl->ftgttab[i].costsend = 0.0;
               simuctrl->ftgttab[i].costadd  = 0.0;
-              bzero(simuctrl->ftgttab[i].ftgt.infotab,MAXINFO*sizeof(PASTIX_INT));
+              bzero(simuctrl->ftgttab[i].ftgt.infotab,MAXINFO*sizeof(pastix_int_t));
               simuctrl->ftgttab[i].ftgt.infotab[FTGT_FCOLNUM] = INTVALMAX;
               simuctrl->ftgttab[i].ftgt.infotab[FTGT_FROWNUM] = INTVALMAX;
               simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR] = 0;
@@ -119,9 +119,9 @@ PASTIX_INT simuInit(SimuCtrl *simuctrl, SymbolMatrix *symbptr, PASTIX_INT clustn
 }
 
 
-PASTIX_INT simuRealloc(SimuCtrl *simuctrl, PASTIX_INT procnbr, PASTIX_INT thrdlocnbr)
+pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t thrdlocnbr)
 {
-    PASTIX_INT i;
+    pastix_int_t i;
 
     /* Free processor structure */
     for(i=0;i<procnbr;i++)
@@ -146,9 +146,9 @@ PASTIX_INT simuRealloc(SimuCtrl *simuctrl, PASTIX_INT procnbr, PASTIX_INT thrdlo
     return 1;
 }
 
-void simuExit(SimuCtrl *simuctrl, PASTIX_INT clustnbr, PASTIX_INT procnbr, PASTIX_INT thrdlocnbr)
+void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, pastix_int_t thrdlocnbr)
 {
-    PASTIX_INT i,j;
+    pastix_int_t i,j;
     (void)thrdlocnbr; (void)procnbr;
 
 #ifndef PASTIX_DYNSCHED
@@ -193,7 +193,7 @@ void simuExit(SimuCtrl *simuctrl, PASTIX_INT clustnbr, PASTIX_INT procnbr, PASTI
 }
 
 
-PASTIX_INT compTimer(SimuTimer *t1, SimuTimer *t2)
+pastix_int_t compTimer(SimuTimer *t1, SimuTimer *t2)
 {
     /** Return 1 if t1 < t2 **/
     /** 0 in other cases **/

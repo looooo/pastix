@@ -122,7 +122,7 @@
 #endif
 
 
-/*static PASTIX_INT iterator;*/
+/*static pastix_int_t iterator;*/
 #define DO_ITER_MAX 10
 /*#define DO_ITER(x) {for(iterator=0;iterator<DO_ITER_MAX;iterator++){(x);}}*/
 #define DO_ITER(x) {if (SOLV_PROCNBR > 1) {(x);};}
@@ -141,22 +141,22 @@
    int: iun
    Integer 1
 */
-static PASTIX_INT   iun   = 1;
-/* static PASTIX_INT izero=0; */
+static pastix_int_t   iun   = 1;
+/* static pastix_int_t izero=0; */
 /*
   float: fun
   Floating point   1.0
 */
 #ifdef CPLX
-static PASTIX_FLOAT fun   = 1.0+0.0*I;
+static pastix_float_t fun   = 1.0+0.0*I;
 #else
-static PASTIX_FLOAT fun   = 1.0;
+static pastix_float_t fun   = 1.0;
 #endif
 /*
   Float: fzero
   Floating point   0.0
 */
-static PASTIX_FLOAT fzero = 0.0;
+static pastix_float_t fzero = 0.0;
 
 
 #else /* COMPUTE */
@@ -242,7 +242,7 @@ int err_mpi;
 void  dump_all                 (SolverMatrix *, CscMatrix * cscmtx, int);
 void  init_struct_sopalin      (Sopalin_Data_t *sopalin_data, SolverMatrix *m,
                                 SopalinParam *sopar);
-void  sopalin_launch           (SolverMatrix *m, SopalinParam *sopaparam, PASTIX_INT cas);
+void  sopalin_launch           (SolverMatrix *m, SopalinParam *sopaparam, pastix_int_t cas);
 void* sopalin_updo_comm        (void *arg);
 void  sopalin_thread           (SolverMatrix *m, SopalinParam *sopaparam);
 void* sopalin_smp              (void *arg);
@@ -352,11 +352,11 @@ void dump_all(SolverMatrix *datacode,
 /****************************************************************************/
 
 /* Section : Computation routines prototypes */
-void API_CALL(compute_diag)  (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
-void API_CALL(compute_1d)    (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
-void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task, PASTIX_INT i, PASTIX_INT b2);
-void API_CALL(compute_e1)    (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
-void API_CALL(compute_e2)    (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT task);
+void API_CALL(compute_diag)  (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_1d)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task, pastix_int_t i, pastix_int_t b2);
+void API_CALL(compute_e1)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_e2)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
 
 #include "./sopalin_compute.c"
 
@@ -419,9 +419,9 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
                           SopalinParam   *sopar)
 {
   MPI_Comm pastix_comm = PASTIX_COMM;
-  PASTIX_INT      i;
+  pastix_int_t      i;
 #if (defined DEADCODE) && !(defined ALLOC_FTGT)
-  PASTIX_INT j;
+  pastix_int_t j;
 #endif
 
   if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
@@ -491,32 +491,32 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
 #ifdef ALLOC_FTGT
   {
         double factor = 0.0;
-        PASTIX_INT    alloc_init =
-          SYMB_CBLKNBR*3*sizeof(PASTIX_INT)+
-          SYMB_BLOKNBR*3*sizeof(PASTIX_INT)+
-          SYMB_CBLKNBR*1*sizeof(PASTIX_INT)+
-          SYMB_BLOKNBR*1*sizeof(PASTIX_INT)+
+        pastix_int_t    alloc_init =
+          SYMB_CBLKNBR*3*sizeof(pastix_int_t)+
+          SYMB_BLOKNBR*3*sizeof(pastix_int_t)+
+          SYMB_CBLKNBR*1*sizeof(pastix_int_t)+
+          SYMB_BLOKNBR*1*sizeof(pastix_int_t)+
           SOLV_TASKNBR  *sizeof(Task)+
           SOLV_FTGTNBR  *sizeof(FanInTarget)+
-          SOLV_COEFNBR  *sizeof(PASTIX_FLOAT)+
+          SOLV_COEFNBR  *sizeof(pastix_float_t)+
           SOLV_BTAGNBR  *sizeof(BlockTarget)+
           SOLV_BCOFNBR  *sizeof(BlockCoeff)+
-          SOLV_INDNBR   *sizeof(PASTIX_INT);
+          SOLV_INDNBR   *sizeof(pastix_int_t);
 
         factor = 100.0 / (double)alloc_init;
         (void)factor;
         printf("symbol.cblk %12ld %2.2lf %%\n",
-           (long)  (SYMB_CBLKNBR*3*sizeof(PASTIX_INT)),
-           (double)(SYMB_CBLKNBR*3*sizeof(PASTIX_INT))*factor);
+           (long)  (SYMB_CBLKNBR*3*sizeof(pastix_int_t)),
+           (double)(SYMB_CBLKNBR*3*sizeof(pastix_int_t))*factor);
         printf("symbol.blok %12ld %2.2lf %%\n",
-           (long)  (SYMB_BLOKNBR*3*sizeof(PASTIX_INT)),
-           (double)(SYMB_BLOKNBR*3*sizeof(PASTIX_INT))*factor);
+           (long)  (SYMB_BLOKNBR*3*sizeof(pastix_int_t)),
+           (double)(SYMB_BLOKNBR*3*sizeof(pastix_int_t))*factor);
         printf("solver.cblk %12ld %2.2lf %%\n",
-           (long)  (SYMB_CBLKNBR*1*sizeof(PASTIX_INT)),
-           (double)(SYMB_CBLKNBR*1*sizeof(PASTIX_INT))*factor);
+           (long)  (SYMB_CBLKNBR*1*sizeof(pastix_int_t)),
+           (double)(SYMB_CBLKNBR*1*sizeof(pastix_int_t))*factor);
         printf("solver.blok %12ld %2.2lf %%\n",
-           (long)  (SYMB_BLOKNBR*1*sizeof(PASTIX_INT)),
-           (double)(SYMB_BLOKNBR*1*sizeof(PASTIX_INT))*factor);
+           (long)  (SYMB_BLOKNBR*1*sizeof(pastix_int_t)),
+           (double)(SYMB_BLOKNBR*1*sizeof(pastix_int_t))*factor);
         printf("solver.task %12ld %2.2lf %%\n",
            (long)  (SOLV_TASKNBR*1*sizeof(Task)),
            (double)(SOLV_TASKNBR*1*sizeof(Task))*factor);
@@ -524,8 +524,8 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
            (long)  (SOLV_FTGTNBR*1*sizeof(FanInTarget)),
            (double)(SOLV_FTGTNBR*1*sizeof(FanInTarget))*factor);
         printf("solver.coef %12ld %2.2lf %%\n",
-           (long)  (SOLV_COEFNBR*1*sizeof(PASTIX_FLOAT)),
-           (double)(SOLV_COEFNBR*1*sizeof(PASTIX_FLOAT))*factor);
+           (long)  (SOLV_COEFNBR*1*sizeof(pastix_float_t)),
+           (double)(SOLV_COEFNBR*1*sizeof(pastix_float_t))*factor);
         printf("solver.btag %12ld %2.2lf %%\n",
            (long)  (SOLV_BTAGNBR*1*sizeof(BlockTarget)),
            (double)(SOLV_BTAGNBR*1*sizeof(BlockTarget))*factor);
@@ -533,8 +533,8 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
            (long)  (SOLV_BCOFNBR*1*sizeof(BlockCoeff)),
            (double)(SOLV_BCOFNBR*1*sizeof(BlockCoeff))*factor);
         printf("solver.ind  %12ld %2.2lf %%\n",
-           (long)  (SOLV_INDNBR *1*sizeof(PASTIX_INT)),
-           (double)(SOLV_INDNBR *1*sizeof(PASTIX_INT))*factor);
+           (long)  (SOLV_INDNBR *1*sizeof(pastix_int_t)),
+           (double)(SOLV_INDNBR *1*sizeof(pastix_int_t))*factor);
   }
 #endif
 
@@ -576,7 +576,7 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
 
   for (i=0;i<SOLV_FTGTNBR;i++)
     {
-      PASTIX_INT ftgtsize;
+      pastix_int_t ftgtsize;
       (void)ftgtsize;
 
 #ifdef DEBUG_SOPALIN_INIT
@@ -594,7 +594,7 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
       FANIN_COEFTAB(i) = NULL;
 #endif
 #else
-      MALLOC_INTERN(FANIN_COEFTAB(i), ftgtsize, PASTIX_FLOAT);
+      MALLOC_INTERN(FANIN_COEFTAB(i), ftgtsize, pastix_float_t);
       for (j=0;j<ftgtsize;j++)
         FANIN_COEFTAB(i)[j] = 0.0;
 #endif
@@ -635,26 +635,26 @@ void* sopalin_smp(void *arg)
   SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   Thread_Data_t    *thread_data;
-  PASTIX_INT               me           = argument->me;
-  PASTIX_INT               i            = 0;
+  pastix_int_t               me           = argument->me;
+  pastix_int_t               i            = 0;
 #ifndef PASTIX_DYNSCHED
-  PASTIX_INT               ii           = 0;
+  pastix_int_t               ii           = 0;
 #endif
-  PASTIX_INT               nbpivotT     = 0;
+  pastix_int_t               nbpivotT     = 0;
   int               init;
   double            mintime, maxtime;
-/*   PASTIX_INT               cptinv = 0; */
+/*   pastix_int_t               cptinv = 0; */
 #if (!(defined FORCE_NOMPI))
   MPI_Comm          pastix_comm = PASTIX_COMM;
 #ifdef TEST_IRECV
-  PASTIX_INT               size;
+  pastix_int_t               size;
 #endif
 #endif
 
 #if (defined PASTIX_DYNSCHED)
-  PASTIX_INT bloknum;
-  PASTIX_INT itasktab  = me;
-  PASTIX_INT itasktab2 = me;
+  pastix_int_t bloknum;
+  pastix_int_t itasktab  = me;
+  pastix_int_t itasktab2 = me;
   int stolen = 0;
 #endif
 
@@ -682,7 +682,7 @@ void* sopalin_smp(void *arg)
   print_debug(DBG_SOPALIN_MAIN, "----- %2d : END init sopalin smp\n", (int)me);
 
 #ifdef TEST_IRECV
-  size = PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+PACKAREA*sizeof(PASTIX_FLOAT);
+  size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
   for (i=0;i<MAX_R_REQUESTS;i++)
     {
       CALL_MPI MPI_Irecv(thread_data->recv_fanin_buffer[i],size,MPI_BYTE,
@@ -690,7 +690,7 @@ void* sopalin_smp(void *arg)
                          &(thread_data->recv_fanin_request[i]));
       TEST_MPI("MPI_Irecv");
     }
-  size=sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO)+sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX;
+  size=sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
   for (i=0;i<MAX_R_REQUESTS;i++)
     {
       CALL_MPI MPI_Irecv(thread_data->recv_block_buffer[i],size,MPI_BYTE,MPI_ANY_SOURCE,
@@ -1109,8 +1109,8 @@ if (THREAD_FUNNELED_OFF)
   sopar->iparm[IPARM_INERTIA] = -1;
 #if (!defined TYPE_COMPLEX) && (!defined CHOL_SOPALIN) && (!defined OOC)
   {
-        PASTIX_FLOAT *ga;
-        PASTIX_INT c, k, stride, size, inertia;
+        pastix_float_t *ga;
+        pastix_int_t c, k, stride, size, inertia;
         inertia=0;
         for (c=0;c<SYMB_CBLKNBR;c++)
           {
@@ -1155,12 +1155,12 @@ if (THREAD_FUNNELED_OFF)
                   overhead,
                   (overhead - 1.0) * 100.0);
           {
-        PASTIX_INT    tmp_max_alloc = sopalin_data->max_alloc;
-        PASTIX_INT    tmp_coefnbr   = SOLV_COEFNBR;
-        PASTIX_INT    max_max_alloc = 0;
-        PASTIX_INT    max_coefnbr   = 0;
-        PASTIX_INT    sum_max_alloc = 0;
-        PASTIX_INT    sum_coefnbr   = 0;
+        pastix_int_t    tmp_max_alloc = sopalin_data->max_alloc;
+        pastix_int_t    tmp_coefnbr   = SOLV_COEFNBR;
+        pastix_int_t    max_max_alloc = 0;
+        pastix_int_t    max_coefnbr   = 0;
+        pastix_int_t    sum_max_alloc = 0;
+        pastix_int_t    sum_coefnbr   = 0;
         double overhead2;
 
         MyMPI_Allreduce(&tmp_max_alloc,&max_max_alloc,1,COMM_INT,MPI_MAX,pastix_comm);
@@ -1245,7 +1245,7 @@ void *sopalin_updo_comm ( void *arg )
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
   SolverMatrix     *datacode     = sopalin_data->datacode;
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t               me           = argument->me;
   if (THREAD_COMM_ON)
     {
       /* Thread_Data_t    *thread_data  = sopalin_data->thread_data[me]; */
@@ -1400,7 +1400,7 @@ void* API_CALL(sopalin_updo_smp)(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t               me           = argument->me;
 
   API_CALL(sopalin_smp)(argument);
   if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
@@ -1478,7 +1478,7 @@ void* API_CALL(sopalin_updo_gmres_smp)(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t               me           = argument->me;
 
   API_CALL(sopalin_smp)(argument);
   if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
@@ -1558,7 +1558,7 @@ void* API_CALL(sopalin_updo_grad_smp)(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t               me           = argument->me;
 
   API_CALL(sopalin_smp)(argument);
   if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
@@ -1637,7 +1637,7 @@ void* API_CALL(sopalin_updo_pivot_smp)(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t               me           = argument->me;
 
   API_CALL(sopalin_smp)(argument);
   if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
@@ -1706,7 +1706,7 @@ void API_CALL(sopalin_updo_pivot_thread)(SolverMatrix *m, SopalinParam *sopapara
  */
 void API_CALL(sopalin_launch)(SolverMatrix *m,
                                   SopalinParam *sopaparam,
-                                  PASTIX_INT cas)
+                                  pastix_int_t cas)
 {
   Backup b;
   Sopalin_Data_t *sopalin_data = NULL;

@@ -22,16 +22,16 @@
 
 /*+ Processor candidate group to own a column blok      +*/
 typedef struct Cand_{
-  PASTIX_INT treelevel;    /*+ Level of the cblk in the elimination tree (deepness from the root) +*/
+  pastix_int_t treelevel;    /*+ Level of the cblk in the elimination tree (deepness from the root) +*/
   double costlevel; /*+ Cost from root to node +*/
-  PASTIX_INT fcandnum;     /*+ first processor number of this candidate group  +*/
-  PASTIX_INT lcandnum;     /*+ last processor number of this candidate group   +*/
-  PASTIX_INT fccandnum;    /*+ first cluster number of the cluster candidate group +*/
-  PASTIX_INT lccandnum;    /*+ last cluster number of the cluster candidate group +*/
-  PASTIX_INT distrib;      /*+ type of the distribution +*/
-  PASTIX_INT cluster;      /*+ TRUE if cand are clusters (bubble number) +*/
+  pastix_int_t fcandnum;     /*+ first processor number of this candidate group  +*/
+  pastix_int_t lcandnum;     /*+ last processor number of this candidate group   +*/
+  pastix_int_t fccandnum;    /*+ first cluster number of the cluster candidate group +*/
+  pastix_int_t lccandnum;    /*+ last cluster number of the cluster candidate group +*/
+  pastix_int_t distrib;      /*+ type of the distribution +*/
+  pastix_int_t cluster;      /*+ TRUE if cand are clusters (bubble number) +*/
 #if defined(TRACE_SOPALIN) || defined(PASTIX_DYNSCHED)
-  PASTIX_INT cand;         /*+ TRUE if cand are clusters (bubble number) +*/
+  pastix_int_t cand;         /*+ TRUE if cand are clusters (bubble number) +*/
 #endif
 } Cand;
 

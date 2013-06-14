@@ -24,46 +24,46 @@ typedef struct BlendParam_ {
   char * trace_filename;        /*+ file name for Paragraph traces  +*/
   char * ps_filename;           /*+ file name for matrix postscript +*/
   
-  PASTIX_INT    hpf;             /*+ gener an HPF distribution file                                    +*/
-  PASTIX_INT    tracegen ;       /*+ gener a simulated Paragraph execution trace file                  +*/
-  PASTIX_INT    ps ;             /*+ gener a post-script of symbol matrix and elimination tree         +*/
-  PASTIX_INT    assembly;        /*+ Gener the info structure needed to assemble                       +*/
+  pastix_int_t    hpf;             /*+ gener an HPF distribution file                                    +*/
+  pastix_int_t    tracegen ;       /*+ gener a simulated Paragraph execution trace file                  +*/
+  pastix_int_t    ps ;             /*+ gener a post-script of symbol matrix and elimination tree         +*/
+  pastix_int_t    assembly;        /*+ Gener the info structure needed to assemble                       +*/
   char * solvmtx_filename;/*+ name of solver matrix files (in sequential mode                   +*/ 
-  PASTIX_INT    sequentiel;      /*+ Exec blend in sequentiel mode -> all solver matrix files generated+*/
-  PASTIX_INT    count_ops ;      /*+ print costs in term of number of elementary operations            +*/
-  PASTIX_INT    debug ;          /*+ make some check at certains execution points                      +*/
-  PASTIX_INT    timer;           /*+ print execution time                                              +*/
-  PASTIX_INT    recover;         /*+ take acount of a recover time estimation for ftgt                 +*/  
-  PASTIX_INT    blcolmin ;       /*+ minimun number of column for a good use of BLAS primitives        +*/
-  PASTIX_INT    blcolmax;
-  PASTIX_INT    blblokmin ;      /*+ size of blockage for a good use of BLAS primitives  in 2D distribution +*/
-  PASTIX_INT    blblokmax;
-  PASTIX_INT    abs;             /*+ adaptative block size: := 0 all block are cut to blcolmin else try to make (ncand*abs) column +*/ 
-  PASTIX_INT    leader;          /*+ Processor leader for not parallele task (ex: gener assembly1D     +*/
-  PASTIX_INT    allcand;         /*+ All processor are candidat for a splitted cblk                    +*/
-  PASTIX_INT    nocrossproc;     /*+ Crossing processor forbiden in the splitting phase                +*/
-  PASTIX_INT    forceE2;
-  PASTIX_INT    level2D;         /*+ number of level to treat with a 2D distribution                   +*/
-  PASTIX_INT    candcorrect;   
-  PASTIX_INT    clusterprop;     /*+ Proportionnal mapping with clustering for upper layers            +*/
-  PASTIX_INT    costlevel;       /*+ Calcul du cout de chaque sous arbre dans candtab                  +*/
-  PASTIX_INT    autolevel;       /*+ Level to shift 1D to 2D is automaticly computed                   +*/
-  PASTIX_INT    malt_limit;      /*+ Limit for AUB memory allocations    (in octets)                   +*/
-  PASTIX_INT    smpnbr;          /*+ Number of smp node                                                +*/
-  PASTIX_INT    procnbr;         /*+ Number of physical processors in a smp node                       +*/
+  pastix_int_t    sequentiel;      /*+ Exec blend in sequentiel mode -> all solver matrix files generated+*/
+  pastix_int_t    count_ops ;      /*+ print costs in term of number of elementary operations            +*/
+  pastix_int_t    debug ;          /*+ make some check at certains execution points                      +*/
+  pastix_int_t    timer;           /*+ print execution time                                              +*/
+  pastix_int_t    recover;         /*+ take acount of a recover time estimation for ftgt                 +*/  
+  pastix_int_t    blcolmin ;       /*+ minimun number of column for a good use of BLAS primitives        +*/
+  pastix_int_t    blcolmax;
+  pastix_int_t    blblokmin ;      /*+ size of blockage for a good use of BLAS primitives  in 2D distribution +*/
+  pastix_int_t    blblokmax;
+  pastix_int_t    abs;             /*+ adaptative block size: := 0 all block are cut to blcolmin else try to make (ncand*abs) column +*/ 
+  pastix_int_t    leader;          /*+ Processor leader for not parallele task (ex: gener assembly1D     +*/
+  pastix_int_t    allcand;         /*+ All processor are candidat for a splitted cblk                    +*/
+  pastix_int_t    nocrossproc;     /*+ Crossing processor forbiden in the splitting phase                +*/
+  pastix_int_t    forceE2;
+  pastix_int_t    level2D;         /*+ number of level to treat with a 2D distribution                   +*/
+  pastix_int_t    candcorrect;   
+  pastix_int_t    clusterprop;     /*+ Proportionnal mapping with clustering for upper layers            +*/
+  pastix_int_t    costlevel;       /*+ Calcul du cout de chaque sous arbre dans candtab                  +*/
+  pastix_int_t    autolevel;       /*+ Level to shift 1D to 2D is automaticly computed                   +*/
+  pastix_int_t    malt_limit;      /*+ Limit for AUB memory allocations    (in octets)                   +*/
+  pastix_int_t    smpnbr;          /*+ Number of smp node                                                +*/
+  pastix_int_t    procnbr;         /*+ Number of physical processors in a smp node                       +*/
   double ratiolimit;  
-  PASTIX_INT    dense_endblock;   /*+ Treat the square right lower part of the matrix as a dense matrix+*/  
-  PASTIX_INT    ooc;              /*+ To use the out of core version of Pastix                         +*/
-  PASTIX_INT    ricar;            /*+ If set to 1 then use blend dedicated to ricar                    +*/
+  pastix_int_t    dense_endblock;   /*+ Treat the square right lower part of the matrix as a dense matrix+*/  
+  pastix_int_t    ooc;              /*+ To use the out of core version of Pastix                         +*/
+  pastix_int_t    ricar;            /*+ If set to 1 then use blend dedicated to ricar                    +*/
   double oocmemlimit;      /*+ limit of physical memory for ooc                                 +*/
-  PASTIX_INT   *iparm;            /*+ In/Out Integer parameters +*/
+  pastix_int_t   *iparm;            /*+ In/Out Integer parameters +*/
   double *dparm;           /*+ In/Out Float parameters   +*/
-  PASTIX_INT     n;               /*+ Size of the matrix        +*/  
+  pastix_int_t     n;               /*+ Size of the matrix        +*/  
 } BlendParam;
 
 
 
 
-PASTIX_INT      blendParamInit(BlendParam *);
+pastix_int_t      blendParamInit(BlendParam *);
 void     blendParamExit(BlendParam *);
 

@@ -49,41 +49,41 @@
 /*#define SCOTCH_SNODE*/ /*CA MARCHE PAS POUR ILUK  */
 
 
-extern double nnz(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
-extern double recursive_sum(PASTIX_INT a, PASTIX_INT b,
-                            double (*fval)(PASTIX_INT, const SymbolMatrix *, const Dof *),
+extern double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
+extern double recursive_sum(pastix_int_t a, pastix_int_t b,
+                            double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
                             const SymbolMatrix * symbmtx, const Dof * dofptr);
 
-void kass_symbol(csptr mat, PASTIX_INT levelk, double rat,
-                  PASTIX_INT *perm, PASTIX_INT *iperm, PASTIX_INT snodenbr, PASTIX_INT *snodetab, PASTIX_INT *streetab,
-                  PASTIX_INT *cblknbr, PASTIX_INT **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm);
-void Build_SymbolMatrix(csptr P, PASTIX_INT cblknbr, PASTIX_INT *rangtab, SymbolMatrix *symbmtx);
+void kass_symbol(csptr mat, pastix_int_t levelk, double rat,
+                  pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *streetab,
+                  pastix_int_t *cblknbr, pastix_int_t **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm);
+void Build_SymbolMatrix(csptr P, pastix_int_t cblknbr, pastix_int_t *rangtab, SymbolMatrix *symbmtx);
 void Patch_SymbolMatrix(SymbolMatrix *symbmtx);
 
 void kass(int            levelk,
           int            rat,
           SymbolMatrix * symbptr,
-          PASTIX_INT            baseval,
-          PASTIX_INT            vertnbr,
-          PASTIX_INT            edgenbr,
-          PASTIX_INT          * verttab,
-          PASTIX_INT          * edgetab,
+          pastix_int_t            baseval,
+          pastix_int_t            vertnbr,
+          pastix_int_t            edgenbr,
+          pastix_int_t          * verttab,
+          pastix_int_t          * edgetab,
           Order        * orderptr,
           MPI_Comm       pastix_comm)
 {
-  PASTIX_INT snodenbr;
-  PASTIX_INT *snodetab   = NULL;
-  PASTIX_INT *treetab    = NULL;
-  PASTIX_INT *ia         = NULL;
-  PASTIX_INT *ja         = NULL;
-  PASTIX_INT i, j, n;
-  PASTIX_INT ind;
+  pastix_int_t snodenbr;
+  pastix_int_t *snodetab   = NULL;
+  pastix_int_t *treetab    = NULL;
+  pastix_int_t *ia         = NULL;
+  pastix_int_t *ja         = NULL;
+  pastix_int_t i, j, n;
+  pastix_int_t ind;
   csptr mat;
-  PASTIX_INT *tmpj       = NULL;
-  PASTIX_INT *perm       = NULL;
-  PASTIX_INT *iperm      = NULL;
-  PASTIX_INT newcblknbr;
-  PASTIX_INT *newrangtab = NULL;
+  pastix_int_t *tmpj       = NULL;
+  pastix_int_t *perm       = NULL;
+  pastix_int_t *iperm      = NULL;
+  pastix_int_t newcblknbr;
+  pastix_int_t *newrangtab = NULL;
   Dof dofstr;
   Clock timer1;
   double nnzS;
@@ -124,14 +124,14 @@ void kass(int            levelk,
         orderptr->peritab[i]--;
     }
 
-  MALLOC_INTERN(treetab, n, PASTIX_INT);
+  MALLOC_INTERN(treetab, n, pastix_int_t);
 #ifndef SCOTCH_SNODE
   /*if(rat != -1 )*/
     {
       /***** FIND THE SUPERNODE PARTITION FROM SCRATCH ********/
 
       /*** Find the supernodes of the direct factorization  ***/
-      MALLOC_INTERN(snodetab, n+1, PASTIX_INT);
+      MALLOC_INTERN(snodetab, n+1, pastix_int_t);
 
 
       clockInit(&timer1);
@@ -148,8 +148,8 @@ void kass(int            levelk,
     {
       /***** USE THE SUPERNODE PARTITION OF SCOTCH  ********/
       snodenbr = orderptr->cblknbr;
-      MALLOC_INTERN(snodetab, n+1, PASTIX_INT);
-      memCpy(snodetab, orderptr->rangtab, sizeof(PASTIX_INT)*(snodenbr+1));
+      MALLOC_INTERN(snodetab, n+1, pastix_int_t);
+      memCpy(snodetab, orderptr->rangtab, sizeof(pastix_int_t)*(snodenbr+1));
       print_one("Number of column block found in scotch (direct) %ld \n", (long)snodenbr);
 
     }
@@ -160,10 +160,10 @@ void kass(int            levelk,
   /****************************************/
     MALLOC_INTERN(mat, 1, struct SparRow);
   initCS(mat, n);
-  MALLOC_INTERN(tmpj, n, PASTIX_INT);
+  MALLOC_INTERN(tmpj, n, pastix_int_t);
   /**** Convert and permute the matrix in sparrow form  ****/
   /**** The diagonal is not present in the CSR matrix, we have to put it in the matrix ***/
-  bzero(tmpj, sizeof(PASTIX_INT)*n);
+  bzero(tmpj, sizeof(pastix_int_t)*n);
   for(i=0;i<n;i++)
     {
       /*** THE GRAPH DOES NOT CONTAIN THE DIAGONAL WE ADD IT ***/
@@ -173,8 +173,8 @@ void kass(int            levelk,
         tmpj[ind++] = ja[j];
 
       mat->nnzrow[i] = ind;
-      MALLOC_INTERN(mat->ja[i], ind, PASTIX_INT);
-      memCpy(mat->ja[i], tmpj, sizeof(PASTIX_INT)*ind);
+      MALLOC_INTERN(mat->ja[i], ind, pastix_int_t);
+      memCpy(mat->ja[i], tmpj, sizeof(pastix_int_t)*ind);
       mat->ma[i] = NULL;
     }
   CS_Perm(mat, perm);
@@ -241,7 +241,7 @@ void kass(int            levelk,
 
 }
 
-void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PASTIX_INT *iperm, PASTIX_INT snodenbr, PASTIX_INT *snodetab, PASTIX_INT *streetab, PASTIX_INT *cblknbr, PASTIX_INT **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm)
+void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *streetab, pastix_int_t *cblknbr, pastix_int_t **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm)
 {
   /**************************************************************************************/
   /* This function computes a symbolic factorization ILU(k) given a CSR matrix and an   */
@@ -250,11 +250,11 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
   /* NOTE: the CSC matrix is given symmetrized and without the diagonal                 */
   /**************************************************************************************/
 
-  PASTIX_INT i, j;
-  PASTIX_INT nnzL;
-  PASTIX_INT *iperm2  = NULL;
-  PASTIX_INT *treetab = NULL;
-  PASTIX_INT n;
+  pastix_int_t i, j;
+  pastix_int_t nnzL;
+  pastix_int_t *iperm2  = NULL;
+  pastix_int_t *treetab = NULL;
+  pastix_int_t n;
   csptr P;
   Clock timer1;
   int procnum;
@@ -262,7 +262,7 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
   MPI_Comm_rank(pastix_comm,&procnum);
 
   n = mat->n;
-  MALLOC_INTERN(iperm2, n, PASTIX_INT);
+  MALLOC_INTERN(iperm2, n, pastix_int_t);
 
   /*compact_graph(mat, NULL, NULL, NULL);*/
 
@@ -289,7 +289,7 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
       nnzL = 0;
       for(i=0;i<P->n;i++)
         {
-          PASTIX_INT ncol;
+          pastix_int_t ncol;
           ncol = snodetab[i+1]-snodetab[i];
           nnzL += (ncol*(ncol+1))/2;
 #ifdef DEBUG_KASS
@@ -342,7 +342,7 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
         assert(0); /** do not have treetab with this version of Scotch **/
 #endif
 
-      MALLOC_INTERN(treetab, P->n, PASTIX_INT);
+      MALLOC_INTERN(treetab, P->n, pastix_int_t);
       for(j=0;j<snodenbr;j++)
         {
           for(i=snodetab[j];i<snodetab[j+1]-1;i++)
@@ -364,7 +364,7 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
       memFree(treetab);
       for(i=0;i<n;i++)
         iperm2[i] = iperm[iperm2[i]];
-      memcpy(iperm, iperm2, sizeof(PASTIX_INT)*n);
+      memcpy(iperm, iperm2, sizeof(pastix_int_t)*n);
       for(i=0;i<n;i++)
         perm[iperm[i]] = i;
 #endif
@@ -380,7 +380,7 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
         /** iperm2 is the iperm vector of P **/
         for(i=0;i<n;i++)
           iperm2[i] = iperm[iperm2[i]];
-        memcpy(iperm, iperm2, sizeof(PASTIX_INT)*n);
+        memcpy(iperm, iperm2, sizeof(pastix_int_t)*n);
         for(i=0;i<n;i++)
           perm[iperm[i]] = i;
       }
@@ -388,8 +388,8 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
       {
         fprintf(stderr, "RAT = 0 SKIP amalgamation \n");
         *cblknbr = snodenbr;
-        MALLOC_INTERN(*rangtab, snodenbr+1, PASTIX_INT);
-        memcpy(*rangtab, snodetab, sizeof(PASTIX_INT)*(snodenbr+1));
+        MALLOC_INTERN(*rangtab, snodenbr+1, pastix_int_t);
+        memcpy(*rangtab, snodetab, sizeof(pastix_int_t)*(snodenbr+1));
         }*/
   }
 
@@ -415,23 +415,23 @@ void kass_symbol(csptr mat, PASTIX_INT levelk, double rat, PASTIX_INT *perm, PAS
 
 
 
-void  Build_SymbolMatrix(csptr P, PASTIX_INT cblknbr, PASTIX_INT *rangtab, SymbolMatrix *symbmtx)
+void  Build_SymbolMatrix(csptr P, pastix_int_t cblknbr, pastix_int_t *rangtab, SymbolMatrix *symbmtx)
 {
-  PASTIX_INT i, j, k, l;
-  PASTIX_INT cblknum;
-  PASTIX_INT ind;
-  PASTIX_INT    *tmpj      = NULL;
+  pastix_int_t i, j, k, l;
+  pastix_int_t cblknum;
+  pastix_int_t ind;
+  pastix_int_t    *tmpj      = NULL;
   double *tmpa      = NULL;
-  PASTIX_INT    *node2cblk = NULL;
-  PASTIX_INT    *ja        = NULL;
-  PASTIX_INT n;
+  pastix_int_t    *node2cblk = NULL;
+  pastix_int_t    *ja        = NULL;
+  pastix_int_t n;
 
   n = rangtab[cblknbr];
 
   /**** First we transform the P matrix to find the block ****/
-  MALLOC_INTERN(tmpj, n, PASTIX_INT);
+  MALLOC_INTERN(tmpj, n, pastix_int_t);
   MALLOC_INTERN(tmpa, n, double);
-  MALLOC_INTERN(node2cblk, n, PASTIX_INT);
+  MALLOC_INTERN(node2cblk, n, pastix_int_t);
 
 
   for(k=0;k<cblknbr;k++)
@@ -469,9 +469,9 @@ void  Build_SymbolMatrix(csptr P, PASTIX_INT cblknbr, PASTIX_INT *rangtab, Symbo
 
       memFree(P->ja[i]);
       P->nnzrow[i] = ind;
-      MALLOC_INTERN(P->ja[i], ind, PASTIX_INT);
+      MALLOC_INTERN(P->ja[i], ind, pastix_int_t);
       MALLOC_INTERN(P->ma[i], ind, double);
-      memCpy(P->ja[i], tmpj, sizeof(PASTIX_INT)*ind);
+      memCpy(P->ja[i], tmpj, sizeof(pastix_int_t)*ind);
       memCpy(P->ma[i], tmpa, sizeof(double)*ind);
 
     }
@@ -488,7 +488,7 @@ void  Build_SymbolMatrix(csptr P, PASTIX_INT cblknbr, PASTIX_INT *rangtab, Symbo
       assert(P->nnzrow[i] > 0);
 
       if(P->ma[i][0] != (double)(rangtab[k+1]-rangtab[k]))
-        print_one("Cblk %ld ma %ld rg %ld \n", k, (PASTIX_INT)P->ma[i][0],rangtab[k+1]-rangtab[k]);
+        print_one("Cblk %ld ma %ld rg %ld \n", k, (pastix_int_t)P->ma[i][0],rangtab[k+1]-rangtab[k]);
 
       assert(P->ma[i][0] == (double)(rangtab[k+1]-rangtab[k]));
     }
@@ -519,7 +519,7 @@ void  Build_SymbolMatrix(csptr P, PASTIX_INT cblknbr, PASTIX_INT *rangtab, Symbo
         {
           j = P->ja[l][i];
           symbmtx->bloktab[ind].frownum = j;
-          symbmtx->bloktab[ind].lrownum = j+(PASTIX_INT)(P->ma[l][i])-1;
+          symbmtx->bloktab[ind].lrownum = j+(pastix_int_t)(P->ma[l][i])-1;
           symbmtx->bloktab[ind].cblknum = node2cblk[j];
           symbmtx->bloktab[ind].levfval = 0;
           ind++;
@@ -550,9 +550,9 @@ void  Build_SymbolMatrix(csptr P, PASTIX_INT cblknbr, PASTIX_INT *rangtab, Symbo
 
 void Patch_SymbolMatrix(SymbolMatrix *symbmtx)
 {
-  PASTIX_INT i,j, k;
-  PASTIX_INT vroot;
-  PASTIX_INT        *father     = NULL; /** For the cblk of the symbol matrix **/
+  pastix_int_t i,j, k;
+  pastix_int_t vroot;
+  pastix_int_t        *father     = NULL; /** For the cblk of the symbol matrix **/
   SymbolBlok *newbloktab = NULL;
   SymbolCblk *cblktab    = NULL;
   SymbolBlok *bloktab    = NULL;
@@ -562,7 +562,7 @@ void Patch_SymbolMatrix(SymbolMatrix *symbmtx)
   cblktab = symbmtx->cblktab;
   bloktab = symbmtx->bloktab;
 
-  MALLOC_INTERN(father, symbmtx->cblknbr, PASTIX_INT);
+  MALLOC_INTERN(father, symbmtx->cblknbr, pastix_int_t);
   MALLOC_INTERN(newbloktab, symbmtx->bloknbr + symbmtx->cblknbr, SymbolBlok);
 
   MALLOC_INTERN(Q, 1, struct SparRow);
@@ -577,7 +577,7 @@ void Patch_SymbolMatrix(SymbolMatrix *symbmtx)
   /* Allocate nFacingBlok integer for each diagonal blok */
   for(i=0;i<symbmtx->cblknbr;i++)
     {
-      MALLOC_INTERN(Q->ja[i], Q->nnzrow[i], PASTIX_INT);
+      MALLOC_INTERN(Q->ja[i], Q->nnzrow[i], pastix_int_t);
       Q->ma[i] = NULL;
     }
 
@@ -629,7 +629,7 @@ void Patch_SymbolMatrix(SymbolMatrix *symbmtx)
   k = 0;
   for(i=0;i<symbmtx->cblknbr-1;i++)
     {
-      PASTIX_INT odb, fbloknum;
+      pastix_int_t odb, fbloknum;
 
       fbloknum = cblktab[i].bloknum;
       memCpy(newbloktab+k, bloktab + fbloknum, sizeof(SymbolBlok));

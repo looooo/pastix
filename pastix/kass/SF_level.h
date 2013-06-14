@@ -16,5 +16,5 @@
 
 #ifndef SF_LEVEL_
 #define SF_LEVEL_
-long SF_level(PASTIX_INT job, csptr A, PASTIX_INT level, csptr P);
+long SF_level(pastix_int_t job, csptr A, pastix_int_t level, csptr P);
 #endif

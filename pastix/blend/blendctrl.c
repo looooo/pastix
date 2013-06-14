@@ -20,7 +20,7 @@
 #include "perf.h"
 
 
-/*void perfcluster(PASTIX_INT procsrc, PASTIX_INT procdst, netperf *np, BlendCtrl *ctrl)
+/*void perfcluster(pastix_int_t procsrc, pastix_int_t procdst, netperf *np, BlendCtrl *ctrl)
 {
 #ifdef DEBUG_BLEND
   ASSERT(procsrc>=0 && procsrc < ctrl->procnbr,MOD_BLEND);
@@ -49,7 +49,7 @@
 }
 */
 
-void perfcluster2(PASTIX_INT clustsrc, PASTIX_INT clustdst, PASTIX_INT sync_comm_nbr, netperf *np, BlendCtrl *ctrl)
+void perfcluster2(pastix_int_t clustsrc, pastix_int_t clustdst, pastix_int_t sync_comm_nbr, netperf *np, BlendCtrl *ctrl)
 {
 #ifdef DEBUG_BLEND
   ASSERT(clustsrc>=0 && clustsrc < ctrl->clustnbr,MOD_BLEND);
@@ -130,14 +130,14 @@ void perfcluster2(PASTIX_INT clustsrc, PASTIX_INT clustdst, PASTIX_INT sync_comm
   
 }
 
-PASTIX_INT blendCtrlInit(BlendCtrl *ctrl,
-                  PASTIX_INT clustnbr,
-                  PASTIX_INT thrdlocnbr,
-                  PASTIX_INT cudanbr,
-                  PASTIX_INT clustnum,
+pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
+                  pastix_int_t clustnbr,
+                  pastix_int_t thrdlocnbr,
+                  pastix_int_t cudanbr,
+                  pastix_int_t clustnum,
                   BlendParam *param)
 {
-    PASTIX_INT i;
+    pastix_int_t i;
 
     ctrl->option  = param;
     MALLOC_INTERN(ctrl->perfptr, 1, netperf);
@@ -182,7 +182,7 @@ PASTIX_INT blendCtrlInit(BlendCtrl *ctrl,
     ctrl->bublnbr = ctrl->thrdlocnbr;
 
     /* Tableau d'affectation de processeur par processus MPI */
-    MALLOC_INTERN(ctrl->proc2clust, ctrl->procnbr, PASTIX_INT);
+    MALLOC_INTERN(ctrl->proc2clust, ctrl->procnbr, pastix_int_t);
     for(i=0;i<ctrl->procnbr;i++)
       ctrl->proc2clust[i] = CLUSTNUM(i);
 

@@ -60,6 +60,6 @@
 #define static
 #endif
 
-static void                 symbolCosti2        (const SymbolCblk * const cblktax, const SymbolBlok * const bloktax, const Dof * const deofptr, const PASTIX_INT levfval, double * const nnzptr, double * const opcptr, const PASTIX_INT cblkmin, const PASTIX_INT cblknbr);
+static void                 symbolCosti2        (const SymbolCblk * const cblktax, const SymbolBlok * const bloktax, const Dof * const deofptr, const pastix_int_t levfval, double * const nnzptr, double * const opcptr, const pastix_int_t cblkmin, const pastix_int_t cblknbr);
 
 #undef static

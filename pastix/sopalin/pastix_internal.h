@@ -4,8 +4,8 @@
  * Header for function internal to pastix.c
  *
  */
-#ifndef PASTIX_INTERNAL_H
-#define PASTIX_INTERNAL_H
+#ifndef pastix_int_tERNAL_H
+#define pastix_int_tERNAL_H
 /*
  * Function: pastix_fake_fillin_csc
  *
@@ -25,13 +25,13 @@
 #define pastix_fake_fillin_csc PASTIX_PREFIX_F(pastix_fake_fillin_csc)
 int pastix_fake_fillin_csc( pastix_data_t *pastix_data,
                             MPI_Comm       pastix_comm,
-                            PASTIX_INT            n,
-                            PASTIX_INT           *colptr,
-                            PASTIX_INT           *row,
-                            PASTIX_FLOAT         *avals,
-                            PASTIX_FLOAT         *b,
-                            PASTIX_INT            nrhs,
-                            PASTIX_INT           *loc2glob);
+                            pastix_int_t            n,
+                            pastix_int_t           *colptr,
+                            pastix_int_t           *row,
+                            pastix_float_t         *avals,
+                            pastix_float_t         *b,
+                            pastix_int_t            nrhs,
+                            pastix_int_t           *loc2glob);
 
 /*
  *  Function: pastix_fillin_csc
@@ -52,13 +52,13 @@ int pastix_fake_fillin_csc( pastix_data_t *pastix_data,
 #define pastix_fillin_csc PASTIX_PREFIX_F(pastix_fillin_csc)
 int pastix_fillin_csc( pastix_data_t *pastix_data,
                        MPI_Comm       pastix_comm,
-                       PASTIX_INT            n,
-                       PASTIX_INT           *colptr,
-                       PASTIX_INT           *row,
-                       PASTIX_FLOAT         *avals,
-                       PASTIX_FLOAT         *b,
-                       PASTIX_INT            nrhs,
-                       PASTIX_INT           *loc2glob);
+                       pastix_int_t            n,
+                       pastix_int_t           *colptr,
+                       pastix_int_t           *row,
+                       pastix_float_t         *avals,
+                       pastix_float_t         *b,
+                       pastix_int_t            nrhs,
+                       pastix_int_t           *loc2glob);
 
 
 /*
@@ -89,17 +89,17 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
  *   dof         - Number of degrees of freedom.
  *   flagalloc   - indicate if allocation on CSC uses internal malloc.
  */
-PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
-                           PASTIX_INT      verb,
-                           PASTIX_INT      flagsym,
-                           PASTIX_INT      flagcor,
-                           PASTIX_INT      n,
-                           PASTIX_INT    **colptr,
-                           PASTIX_INT    **row,
-                           PASTIX_FLOAT  **avals,
-                           PASTIX_INT    **loc2glob,
-                           PASTIX_INT      dof,
-                           PASTIX_INT      flagalloc);
+pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
+                           pastix_int_t      verb,
+                           pastix_int_t      flagsym,
+                           pastix_int_t      flagcor,
+                           pastix_int_t      n,
+                           pastix_int_t    **colptr,
+                           pastix_int_t    **row,
+                           pastix_float_t  **avals,
+                           pastix_int_t    **loc2glob,
+                           pastix_int_t      dof,
+                           pastix_int_t      flagalloc);
 
 /*
  * Function: pastix_welcome_print
@@ -113,8 +113,8 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
  *
  */
 void pastix_welcome_print(pastix_data_t *pastix_data,
-                          PASTIX_INT           *colptr,
-                          PASTIX_INT            ln);
+                          pastix_int_t           *colptr,
+                          pastix_int_t            ln);
 
 /*
  * Function: pastix_task_clean
@@ -140,7 +140,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
  */
 void pastix_task_init(pastix_data_t **pastix_data,
                       MPI_Comm        pastix_comm,
-                      PASTIX_INT            *iparm,
+                      pastix_int_t            *iparm,
                       double         *dparm);
 
 /*
@@ -152,10 +152,10 @@ void pastix_task_init(pastix_data_t **pastix_data,
  * iparm - tabular of IPARM_SIZE integer parameters.
  * dparm - tabular of DPARM_SIZE double parameters.
  */
-void pastix_initParam(PASTIX_INT    *iparm,
+void pastix_initParam(pastix_int_t    *iparm,
                       double *dparm);
 
 
 
 
-#endif /* not PASTIX_INTERNAL_H */
+#endif /* not pastix_int_tERNAL_H */

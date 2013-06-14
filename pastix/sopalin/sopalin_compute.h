@@ -6,7 +6,7 @@
  * Sensible to those defines :
  *   PREC_DOUBLE    - Determine if coefficients are doubles or not.
  *   TYPE_COMPLEX   - Determine if coefficients are complex or not.
- *   PASTIX_INT            - Defined in common_pastix.h to determine integer type.
+ *   pastix_int_t            - Defined in common_pastix.h to determine integer type.
  *   CBLAS          - Determine if we want to use cblas or not.
  *   DEBUG_NAN      - If we want to check for NaN values in BLAS operartions,
  *                    must be used with DBG_SOPALIN_NAN set to 1.
@@ -27,7 +27,7 @@
  *  Define: BLAS_INT
  *  integer to use in blas calls.
  */
-#define BLAS_INT PASTIX_INT
+#define BLAS_INT pastix_int_t
 
 /*
  Define: BLAS macros
@@ -178,9 +178,9 @@ extern void GER(BLAS_INT * m, BLAS_INT * n, BLAS_FLOAT * x, BLAS_FLOAT * a,
 #endif /* not X_INCLUDE_ESSL */
 
 void dim_dgeam(char *transa,char *transb,
-               PASTIX_INT m,PASTIX_INT n,PASTIX_FLOAT alpha,
-               PASTIX_FLOAT *a, PASTIX_INT lda,
-               PASTIX_FLOAT *b,PASTIX_INT ldb);
+               pastix_int_t m,pastix_int_t n,pastix_float_t alpha,
+               pastix_float_t *a, pastix_int_t lda,
+               pastix_float_t *b,pastix_int_t ldb);
 
 
 
@@ -202,21 +202,21 @@ void dim_dgeam(char *transa,char *transb,
  */
 #ifdef X_INCLUDE_ESSL
 #  define SOPALIN_GEAM(i,j,m,n,x,a,u,b,v) do {  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n*m);            \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*m);            \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n*m);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*m);            \
     GEADD((BLAS_FLOAT *) a,u,i,                 \
           (BLAS_FLOAT *) b,v,j,                 \
           (BLAS_FLOAT *) b,v,m,n);              \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*m);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*m);            \
   } while (0)
 
 #else
 /* Pb pas de truc d'addition C=A+B */
 #  define SOPALIN_GEAM(i,j,m,n,x,a,u,b,v) do {  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n*m);            \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*m);            \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n*m);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*m);            \
     dim_dgeam(i,j,m,n,x,a,u,b,v);               \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*m);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*m);            \
   } while (0)
 #endif
 
@@ -237,20 +237,20 @@ void dim_dgeam(char *transa,char *transb,
  */
 #ifdef X_INCLUDE_ESSL
 #  define SOPALIN_GESM(i,j,m,n,x,a,u,b,v) do {  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), m*n);            \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), m*n);            \
+    TAB_CHECK_NAN(((pastix_float_t*)a), m*n);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), m*n);            \
     GESUB((BLAS_FLOAT *)b,v,j,                  \
           (BLAS_FLOAT *)a,u,i,                  \
           (BLAS_FLOAT *)b,v,m,n);               \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), m*n);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), m*n);            \
   } while (0)
 #else
 /* Pb pas de truc de soustraction C=A-B */
 #  define SOPALIN_GESM(i,j,m,n,x,a,u,b,v) do {  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), m*n);            \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), m*n);            \
+    TAB_CHECK_NAN(((pastix_float_t*)a), m*n);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), m*n);            \
     dim_dgeam(i,j,m,n,-(x),a,u,b,v);            \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), m*n);            \
+    TAB_CHECK_NAN(((pastix_float_t*)b), m*n);            \
   } while (0)
 #endif
 /*
@@ -271,7 +271,7 @@ void dim_dgeam(char *transa,char *transb,
 #ifdef BLAS_USE_COPY
 #  define SOPALIN_COPY(n,x,u,y,v) {             \
     memcpy((void *)(y), (void *)(x),            \
-           ((PASTIX_INT)(n))*sizeof(PASTIX_FLOAT));           \
+           ((pastix_int_t)(n))*sizeof(pastix_float_t));           \
   }
 #else /* BLAS_USE_COPY */
 
@@ -279,12 +279,12 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT varin = (BLAS_INT)(n);             \
     BLAS_INT variu = (BLAS_INT)(u);             \
     BLAS_INT variv = (BLAS_INT)(v);             \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)x), n);              \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)y), n);              \
+    TAB_CHECK_NAN(((pastix_float_t*)x), n);              \
+    TAB_CHECK_NAN(((pastix_float_t*)y), n);              \
     COPY(&varin,                                \
          (BLAS_FLOAT*)(x), &variu,              \
          (BLAS_FLOAT*)(y), &variv);             \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)y), n);              \
+    TAB_CHECK_NAN(((pastix_float_t*)y), n);              \
   }
 #endif /* BLAS_USE_COPY */
 
@@ -306,7 +306,7 @@ void dim_dgeam(char *transa,char *transb,
  */
 #define SOPALIN_LACPY(m, n, A, lda, B, ldb)                     \
   {                                                             \
-    PASTIX_INT k;                                                      \
+    pastix_int_t k;                                                      \
     for (k=0; k<(n); k++)                                       \
     {                                                           \
       SOPALIN_COPY(m, &(A[k*(lda)]), iun, &(B[k*(ldb)]), iun);  \
@@ -331,7 +331,7 @@ void dim_dgeam(char *transa,char *transb,
  */
 #ifdef BLAS_USE_SCAL
 #  define SOPALIN_SCAL(n,a,x,u) {               \
-    PASTIX_INT i; PASTIX_FLOAT *pt,*p=(x);                    \
+    pastix_int_t i; pastix_float_t *pt,*p=(x);                    \
     for((pt)=(p+n);(p)<(pt);)                   \
       *((p)++)*= (a);                           \
   }
@@ -339,11 +339,11 @@ void dim_dgeam(char *transa,char *transb,
 #  define SOPALIN_SCAL(n,a,x,u) {                                   \
     BLAS_INT varin     = (BLAS_INT)(n);                             \
     BLAS_INT variu     = (BLAS_INT)(u);                             \
-    PASTIX_FLOAT    float_tmp = a;                                         \
+    pastix_float_t    float_tmp = a;                                         \
     BLAS_FLOAT varia   = *((BLAS_FLOAT*) ((void*)(&(float_tmp))));  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)x), n);                                  \
+    TAB_CHECK_NAN(((pastix_float_t*)x), n);                                  \
     SCAL(&varin, &varia, (BLAS_FLOAT*)(x), &variu);                 \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)x), n);                                  \
+    TAB_CHECK_NAN(((pastix_float_t*)x), n);                                  \
   }
 #endif
 
@@ -373,20 +373,20 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT   varin     = (BLAS_INT)(n);                         \
     BLAS_INT   variu     = (BLAS_INT)(u);                         \
     BLAS_INT   variv     = (BLAS_INT)(v);                         \
-    PASTIX_FLOAT      float_tmp = x;                                     \
+    pastix_float_t      float_tmp = x;                                     \
     BLAS_FLOAT varix     = *((BLAS_FLOAT*)((void*)&(float_tmp))); \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), m*n);                              \
+    TAB_CHECK_NAN(((pastix_float_t*)b), m*n);                              \
     if ( *s == 'L' || *s == 'l' ) {                               \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)a), m*m);                            \
+      TAB_CHECK_NAN(((pastix_float_t*)a), m*m);                            \
     }                                                             \
     else {                                                        \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n*n);                            \
+      TAB_CHECK_NAN(((pastix_float_t*)a), n*n);                            \
     }                                                             \
     TRSM((s), (p), (t), (d), &varim, &varin,                      \
          &varix, (BLAS_FLOAT*)(a), &variu,                        \
          (BLAS_FLOAT*)(b), &variv);                               \
                                                                   \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), m*n);                              \
+    TAB_CHECK_NAN(((pastix_float_t*)b), m*n);                              \
   }
 
 /*
@@ -409,14 +409,14 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT varin = (BLAS_INT)(n);                         \
     BLAS_INT variu = (BLAS_INT)(u);                         \
     BLAS_INT variv = (BLAS_INT)(v);                         \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n*n);                        \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n);                          \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n*n);                        \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n);                          \
                                                             \
     TRSV((p), (t), (d), &varin,                             \
          (BLAS_FLOAT*)(a), &variu,                          \
          (BLAS_FLOAT*)(b), &variv);                         \
                                                             \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n);                          \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n);                          \
   }
 
 /*
@@ -446,23 +446,23 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT   variu = (BLAS_INT)(u);                                 \
     BLAS_INT   variv = (BLAS_INT)(v);                                 \
     BLAS_INT   variw = (BLAS_INT)(w);                                 \
-    PASTIX_FLOAT      float_tmp;                                             \
+    pastix_float_t      float_tmp;                                             \
     BLAS_FLOAT varix;                                                 \
     BLAS_FLOAT variy;                                                 \
     float_tmp = x;                                                    \
     varix     = *((BLAS_FLOAT*) ((void*)&(float_tmp)));               \
     float_tmp = y;                                                    \
     variy     = *((BLAS_FLOAT*) ((void*)&(float_tmp)));               \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), k*m);                                  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), k*n);                                  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)c), m*n);                                  \
+    TAB_CHECK_NAN(((pastix_float_t*)a), k*m);                                  \
+    TAB_CHECK_NAN(((pastix_float_t*)b), k*n);                                  \
+    TAB_CHECK_NAN(((pastix_float_t*)c), m*n);                                  \
                                                                       \
     GEMM((i), (j), &varim, &varin, &varik, &varix,                    \
          (BLAS_FLOAT*)(a), &variu,                                    \
          (BLAS_FLOAT*)(b), &variv, &variy,                            \
          (BLAS_FLOAT*)(c), &variw);                                   \
                                                                       \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)c), m*n);                                  \
+    TAB_CHECK_NAN(((pastix_float_t*)c), m*n);                                  \
   }
 
 #define SOPALIN_GEMV(i,m,n,x,a,u,b,v,y,c,w) {           \
@@ -471,7 +471,7 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT   variu = (BLAS_INT)(u);                   \
     BLAS_INT   variv = (BLAS_INT)(v);                   \
     BLAS_INT   variw = (BLAS_INT)(w);                   \
-    PASTIX_FLOAT      float_tmp;                               \
+    pastix_float_t      float_tmp;                               \
     BLAS_FLOAT varix;                                   \
     BLAS_FLOAT variy;                                   \
     float_tmp = x;                                      \
@@ -479,24 +479,24 @@ void dim_dgeam(char *transa,char *transb,
     float_tmp = y;                                      \
     variy     = *((BLAS_FLOAT*) ((void*)&(float_tmp))); \
                                                         \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), m*n);                    \
+    TAB_CHECK_NAN(((pastix_float_t*)a), m*n);                    \
     if (*i == 'N' || *i == 'n')   {                     \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n);                    \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)c), m);                    \
+      TAB_CHECK_NAN(((pastix_float_t*)b), n);                    \
+      TAB_CHECK_NAN(((pastix_float_t*)c), m);                    \
     }                                                   \
     else {                                              \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)b), m);                    \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)c), n);                    \
+      TAB_CHECK_NAN(((pastix_float_t*)b), m);                    \
+      TAB_CHECK_NAN(((pastix_float_t*)c), n);                    \
     }                                                   \
     GEMV((i), &varim, &varin, &varix,                   \
          (BLAS_FLOAT*)(a), &variu,                      \
          (BLAS_FLOAT*)(b), &variv,                      \
          &variy, (BLAS_FLOAT*)(c), &variw);             \
     if (*i == 'N' || *i == 'n')   {                     \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)c), m);                    \
+      TAB_CHECK_NAN(((pastix_float_t*)c), m);                    \
     }                                                   \
     else {                                              \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)c), n);                    \
+      TAB_CHECK_NAN(((pastix_float_t*)c), n);                    \
     }                                                   \
   }
 
@@ -505,14 +505,14 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT   varin     = (BLAS_INT)(n);                          \
     BLAS_INT   varix     = (BLAS_INT)(ix);                         \
     BLAS_INT   variy     = (BLAS_INT)(iy);                         \
-    PASTIX_FLOAT      float_tmp = a;                                      \
+    pastix_float_t      float_tmp = a;                                      \
     BLAS_FLOAT varia     = *((BLAS_FLOAT*) ((void*)&(float_tmp))); \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)x), n);                                 \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)y), n);                                 \
+    TAB_CHECK_NAN(((pastix_float_t*)x), n);                                 \
+    TAB_CHECK_NAN(((pastix_float_t*)y), n);                                 \
     AXPY(&varin, &varia,                                           \
          (BLAS_FLOAT*)(x), &varix,                                 \
          (BLAS_FLOAT*)(y), &variy);                                \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)y), n);                                 \
+    TAB_CHECK_NAN(((pastix_float_t*)y), n);                                 \
   }
 
 #ifdef CPLX
@@ -520,54 +520,54 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT   varin     = (BLAS_INT)(n);                               \
     BLAS_INT   variu     = (BLAS_INT)(u);                               \
     BLAS_INT   variv     = (BLAS_INT)(v);                               \
-    PASTIX_FLOAT      float_tmp = x;                                           \
+    pastix_float_t      float_tmp = x;                                           \
     BLAS_FLOAT varix     = *((BLAS_FLOAT*) ((void*)&(float_tmp)));      \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                                    \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n);                                      \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                                    \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n);                                      \
     GER(&varin, &varin, &varix,                                         \
         (BLAS_FLOAT*)(a), &variu,                                       \
         (BLAS_FLOAT*)(a), &variu,                                       \
         (BLAS_FLOAT*)(b), &variv);                                      \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                                    \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                                    \
   }
 #  define SOPALIN_HER(i,n,x,a,u,b,v) {                               \
     BLAS_INT   varin = (BLAS_INT)(n);                                \
     BLAS_INT   variu = (BLAS_INT)(u);                                \
     BLAS_INT   variv = (BLAS_INT)(v);                                \
     BLAS_REAL  varix = (BLAS_REAL)(x);                               \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                                 \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n);                                   \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                                 \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n);                                   \
     SYR((i), &varin, &varix,                                         \
         (BLAS_FLOAT*)(a), &variu,                                    \
         (BLAS_FLOAT*)(b), &variv);                                   \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                                 \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                                 \
   }
 #else  /* CPLX */
 #  define SOPALIN_SYR(i,n,x,a,u,b,v) {                            \
     BLAS_INT varin     = (BLAS_INT)(n);                           \
     BLAS_INT variu     = (BLAS_INT)(u);                           \
     BLAS_INT variv     = (BLAS_INT)(v);                           \
-    PASTIX_FLOAT    float_tmp = x;                                       \
+    pastix_float_t    float_tmp = x;                                       \
     BLAS_FLOAT varix   = *((BLAS_FLOAT*) ((void*)&(float_tmp)));  \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                              \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n);                                \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                              \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n);                                \
     SYR((i), &varin, &varix,                                      \
         (BLAS_FLOAT*)(a), &variu,                                 \
         (BLAS_FLOAT*)(b), &variv);                                \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                              \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                              \
   }
 #  define SOPALIN_HER(i,n,x,a,u,b,v) {                             \
     BLAS_INT   varin     = (BLAS_INT)(n);                          \
     BLAS_INT   variu     = (BLAS_INT)(u);                          \
     BLAS_INT   variv     = (BLAS_INT)(v);                          \
-    PASTIX_FLOAT      float_tmp = x;                                      \
+    pastix_float_t      float_tmp = x;                                      \
     BLAS_FLOAT varix     = *((BLAS_FLOAT*) ((void*)&(float_tmp))); \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                               \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n);                                 \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                               \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n);                                 \
     SYR((i), &varin, &varix,                                       \
         (BLAS_FLOAT*)(a), &variu,                                  \
         (BLAS_FLOAT*)(b), &variv);                                 \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                               \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                               \
   }
 #endif
 #define SOPALIN_SYRK(i,t,n,k,x,a,u,y,b,v) {            \
@@ -577,17 +577,17 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT   variv = (BLAS_INT)(v);                  \
     BLAS_REAL  varix = (BLAS_REAL) (x);                \
     BLAS_REAL  variy = (BLAS_REAL) (y);                \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                   \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                   \
     if (*t == 'N' || *t == 'N') {                      \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)a), k*n);                 \
+      TAB_CHECK_NAN(((pastix_float_t*)a), k*n);                 \
     }                                                  \
     else {                                             \
-      TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n*k);                 \
+      TAB_CHECK_NAN(((pastix_float_t*)a), n*k);                 \
     }                                                  \
     SYRK((i), (t), &varin, &varik, &varix,             \
          (BLAS_FLOAT*)(a), &variu,                     \
          &variy, (BLAS_FLOAT*)(b), &variv);            \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n*n);                   \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n*n);                   \
   }
 
 #define SOPALIN_GER(m,n,x,a,u,b,v,c,w) {                                \
@@ -596,15 +596,15 @@ void dim_dgeam(char *transa,char *transb,
     BLAS_INT variu     = (BLAS_INT)(u);                                 \
     BLAS_INT variv     = (BLAS_INT)(v);                                 \
     BLAS_INT variw     = (BLAS_INT)(w);                                 \
-    PASTIX_FLOAT    float_tmp = x;                                             \
+    pastix_float_t    float_tmp = x;                                             \
     BLAS_FLOAT varix   = *((BLAS_FLOAT*) ((void*)&(float_tmp)));        \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)c), n*m);                                    \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)a), n);                                      \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)b), n);                                      \
+    TAB_CHECK_NAN(((pastix_float_t*)c), n*m);                                    \
+    TAB_CHECK_NAN(((pastix_float_t*)a), n);                                      \
+    TAB_CHECK_NAN(((pastix_float_t*)b), n);                                      \
     GER(&varim, &varin, &varix, (BLAS_FLOAT*)(a), &variu,               \
         (BLAS_FLOAT*)(b), &variv,                                       \
         (BLAS_FLOAT*)(c), &variw);                                      \
-    TAB_CHECK_NAN(((PASTIX_FLOAT*)c), n*m);                                    \
+    TAB_CHECK_NAN(((pastix_float_t*)c), n*m);                                    \
   }
 
 #define SOPALIN_POF(i,a,u,n)  POF((i), (a), (u), (n))

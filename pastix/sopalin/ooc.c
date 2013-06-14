@@ -121,7 +121,7 @@
 #endif
 
 #define CHECK_HACK_QUEUE {                                              \
-    PASTIX_INT cblk;                                                           \
+    pastix_int_t cblk;                                                           \
     MUTEX_LOCK(&ooc->mutex_toload);                                     \
     while (queueSize(&ooc->toload) > 0)                                 \
       {                                                                 \
@@ -208,12 +208,12 @@ struct ooc_thread_ {
    ooc structure
  */
 struct ooc_ {
-  PASTIX_INT                   id;                   /*+ id for saving files                                          +*/
+  pastix_int_t                   id;                   /*+ id for saving files                                          +*/
   int                   stop;                 /*+ indicated when the thread should die                         +*/
   int                   threadnbr;            /*+ ooc thrdnbr                                                  +*/
   struct ooc_thread_ ** ooc_thread;           /*+ struct local for each thread                                 +*/
   unsigned long         global_limit;         /*+ Limit ask by user                                            +*/
-  PASTIX_INT                   allocated;            /*+ OOC allocated memory                                         +*/
+  pastix_int_t                   allocated;            /*+ OOC allocated memory                                         +*/
   pthread_mutex_t      *mutex_cblk;           /*+ Mutex for each cblk                                          +*/
   pthread_cond_t       *cond_cblk;            /*+ Cond for each cblk                                           +*/
   int                   max_cblk_size;        /*+ Max size of a cblk                                           +*/
@@ -223,14 +223,14 @@ struct ooc_ {
   struct ooc_count_    *hitftgttab;           /*+ count for ftgt                                               +*/
   struct ooc_count_    *hackedftgt;           /*+ Number of hacked accessed for ftgt                           +*/
   struct ooc_count_    *hasbeensaved;         /*+ indicate if cblk has been saved after factorisation finished +*/
-  PASTIX_INT                  *tasktab;              /*+ Ordered task tabular                                         +*/
+  pastix_int_t                  *tasktab;              /*+ Ordered task tabular                                         +*/
   Queue                 queue;                /*+ queue of cblk to free                                        +*/
   pthread_mutex_t       mutex_queue;          /*+ mutex on the queue of cblk to free                           +*/
   pthread_cond_t        cond_queue;           /*+ con for the queue of cblk to free                            +*/
   Queue                 toload;               /*+ Queue of block column not taken into account in loops        +*/
   pthread_mutex_t       mutex_toload;         /*+ mutex on the queue of cblk to load                           +*/
   pthread_cond_t        cond_toload;          /*+ cond on the queue of cblk to load                            +*/
-  PASTIX_INT                   frozen;               /*+ Used to stop loadings temporatly                             +*/
+  pastix_int_t                   frozen;               /*+ Used to stop loadings temporatly                             +*/
   pthread_mutex_t       mutex_frozen;         /*+ Mutex on frozen                                              +*/
   pthread_cond_t        cond_frozen;          /*+ Cond on frozen                                               +*/
   int                   current_step;         /*+ Current computing step for computing threads                 +*/
@@ -242,21 +242,21 @@ struct ooc_ {
 #ifdef OOC_DETECT_DEADLOCKS
   volatile int          threads_waiting;      /*+ Number of thread waiting for queue to be fill-in             +*/
   pthread_mutex_t       mutex_thrd_wting;     /*+ mutex corresponding to threads_waiting                       +*/
-  PASTIX_INT                  *blocks_waited_for;    /*+ Blocks computing threads are waiting for                     +*/
-  PASTIX_INT                   lastloaded;           /*+ Last block loaded                                            +*/
+  pastix_int_t                  *blocks_waited_for;    /*+ Blocks computing threads are waiting for                     +*/
+  pastix_int_t                   lastloaded;           /*+ Last block loaded                                            +*/
 #endif
   int                   threads_receiving;    /*+ Number of thread waiting for a contribution                  +*/
   pthread_mutex_t       mutex_thrd_rcving;    /*+ mutex corresponding to threads_receiving                     +*/
   pthread_mutex_t       mutex_step;           /*+ mutex on the current_step variable                           +*/
   pthread_cond_t        cond_step;            /*+ cond for the current_step variable                           +*/
-  PASTIX_INT                   cblkloaded;           /*+ Number of blocks loaded                                      +*/
-  PASTIX_INT                   ftgtloaded;           /*+ Number of blocks loaded                                      +*/
+  pastix_int_t                   cblkloaded;           /*+ Number of blocks loaded                                      +*/
+  pastix_int_t                   ftgtloaded;           /*+ Number of blocks loaded                                      +*/
 #ifdef OOC_FTGT
   pthread_mutex_t       mutex_allocated;      /*+ mutex on allocation                                          +*/
-  PASTIX_INT                  *fanin_ctrbcnt;        /*+ Ordered task tabular                                         +*/
+  pastix_int_t                  *fanin_ctrbcnt;        /*+ Ordered task tabular                                         +*/
 #endif
 #ifdef OOC_PERCENT_COEFTAB
-  PASTIX_INT                   coeftabsize;          /*+ size of the coeftab                                          +*/
+  pastix_int_t                   coeftabsize;          /*+ size of the coeftab                                          +*/
 #endif
 #ifdef OOC_CLOCK
   double                *time_waiting;        /*+ time spent waiting for a block                               +*/
@@ -272,31 +272,31 @@ struct ooc_ {
    section: Out-Of-core functions
  */
 /* internal functions declarations */
-struct ooc_thread_ * get_ooc_thread      (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum);
+struct ooc_thread_ * get_ooc_thread      (Sopalin_Data_t * sopalin_data, pastix_int_t cblknum);
 int                  ooc_init_thread     (Sopalin_Data_t * sopalin_data, int threadnum);
 int                  ooc_clock_get       (Sopalin_Data_t * sopalin_data, Clock * clk, int computing_thread);
-int                  ooc_do_save_coef    (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me);
-int                  ooc_do_load_coef    (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me);
-int                  ooc_allocate        (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me);
+int                  ooc_do_save_coef    (Sopalin_Data_t * sopalin_data, pastix_int_t cblknum, int me);
+int                  ooc_do_load_coef    (Sopalin_Data_t * sopalin_data, pastix_int_t cblknum, int me);
+int                  ooc_allocate        (Sopalin_Data_t * sopalin_data, pastix_int_t cblknum, int me);
 #ifdef OOC_FTGT
-int                  ooc_do_load_ftgt    (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me);
-int                  ooc_remove_ftgt     (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me);
-int                  ooc_allocate_ftgt   (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me);
-int                  ooc_do_save_ftgt    (Sopalin_Data_t * sopalin_data, PASTIX_INT indbloc, int me);
+int                  ooc_do_load_ftgt    (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me);
+int                  ooc_remove_ftgt     (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me);
+int                  ooc_allocate_ftgt   (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me);
+int                  ooc_do_save_ftgt    (Sopalin_Data_t * sopalin_data, pastix_int_t indbloc, int me);
 #else
 #define              ooc_do_load_ftgt(sopalin_data, ftgtnum, me) 1
 #define              ooc_do_save_ftgt(sopalin_data, indbloc, me) 1
 #define              ooc_remove_ftgt(sopalin_data, ftgtnum, me)
 #define              ooc_allocate_ftgt(sopalin_data, ftgtnum, me);
 #endif
-void                 reduceMem           (Sopalin_Data_t * sopalin_data, PASTIX_INT size_wanted, int me);
-void                 cblkNextAccess      (Sopalin_Data_t * sopalin_data, PASTIX_INT tasknum, PASTIX_INT cblknum,
-            int computing_thread, PASTIX_INT *key1, PASTIX_INT *key2);
-PASTIX_INT                  cblkAndContribSize  (Sopalin_Data_t * sopalin_data, PASTIX_INT task);
-PASTIX_INT                  updo_init_mem       (Sopalin_Data_t * sopalin_data );
-PASTIX_INT                  updo_init_smp_mem   (Sopalin_Data_t * sopalin_data );
-PASTIX_INT                  sopalin_init_smp_mem(Sopalin_Data_t * sopalin_data);
-PASTIX_INT                  raff_mem            (Sopalin_Data_t * sopalin_data);
+void                 reduceMem           (Sopalin_Data_t * sopalin_data, pastix_int_t size_wanted, int me);
+void                 cblkNextAccess      (Sopalin_Data_t * sopalin_data, pastix_int_t tasknum, pastix_int_t cblknum,
+            int computing_thread, pastix_int_t *key1, pastix_int_t *key2);
+pastix_int_t                  cblkAndContribSize  (Sopalin_Data_t * sopalin_data, pastix_int_t task);
+pastix_int_t                  updo_init_mem       (Sopalin_Data_t * sopalin_data );
+pastix_int_t                  updo_init_smp_mem   (Sopalin_Data_t * sopalin_data );
+pastix_int_t                  sopalin_init_smp_mem(Sopalin_Data_t * sopalin_data);
+pastix_int_t                  raff_mem            (Sopalin_Data_t * sopalin_data);
 int                  recursive_mkdir     (char * path, mode_t mode);
 
 
@@ -318,19 +318,19 @@ int                  recursive_mkdir     (char * path, mode_t mode);
                     (depending of what is asked)
      Exit program - if load wasn't succesfull.
 */
-int ooc_prefetch(Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum,
+int ooc_prefetch(Sopalin_Data_t * sopalin_data, pastix_int_t cblknum,
                  int me, int priority)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT            limitsze;
+  pastix_int_t            limitsze;
   int            ret;
 
   print_debug(DBG_OOC_TRACE_V2,"->ooc_prefetch %ld\n", (long)cblknum);
 #ifdef OOC_DETECT_DEADLOCKS
   ooc->lastloaded = cblknum;
 #endif
-  limitsze = CBLKSIZE(cblknum)*sizeof(PASTIX_FLOAT) + (priority*ooc->max_cblk_size);
+  limitsze = CBLKSIZE(cblknum)*sizeof(pastix_float_t) + (priority*ooc->max_cblk_size);
 
   pthread_mutex_lock(&(ooc->mutex_frozen));
   while ((ooc->frozen == SOLV_THRDNBR) && (ooc->stop != 1))
@@ -425,13 +425,13 @@ int ooc_prefetch(Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum,
                     (depending of what is asked)
      Exit program - if load wasn't succesfull.
 */
-int ooc_prefetch_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum,
+int ooc_prefetch_ftgt(Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum,
                       int me, int priority)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT            ftgtsize = FTGTSIZE(ftgtnum)*sizeof(PASTIX_FLOAT);
-  PASTIX_INT            limitsze;
+  pastix_int_t            ftgtsize = FTGTSIZE(ftgtnum)*sizeof(pastix_float_t);
+  pastix_int_t            limitsze;
   int            ret;
 
   print_debug(DBG_OOC_TRACE_V2,"->ooc_prefetch_ftgt %ld\n", (long)ftgtnum);
@@ -528,8 +528,8 @@ int ooc_coefMatrixInit(Sopalin_Data_t * sopalin_data, int ooc_threadnum)
 {
   SolverMatrix *datacode = sopalin_data->datacode;
   ooc_t        *ooc      = sopalin_data->ooc;
-  PASTIX_INT           task;
-  PASTIX_INT           cblknum;
+  pastix_int_t           task;
+  pastix_int_t           cblknum;
 
   print_debug(DBG_OOC_TRACE_V1,"->ooc_coefMatrixInit\n");
 
@@ -570,12 +570,12 @@ int ooc_sopalin(Sopalin_Data_t * sopalin_data, int ooc_threadnum)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT i;
-  PASTIX_INT task1;
-  PASTIX_INT task;
-  PASTIX_INT cblknum;
-  PASTIX_INT bloknum;
-  PASTIX_INT n;
+  pastix_int_t i;
+  pastix_int_t task1;
+  pastix_int_t task;
+  pastix_int_t cblknum;
+  pastix_int_t bloknum;
+  pastix_int_t n;
   int ret = EXIT_SUCCESS;
 
   print_debug(DBG_OOC_TRACE_V1,"->ooc_sopalin\n");
@@ -618,7 +618,7 @@ int ooc_sopalin(Sopalin_Data_t * sopalin_data, int ooc_threadnum)
               else
                 {
 #ifdef OOC_FTGT
-                  PASTIX_INT bloknum2;
+                  pastix_int_t bloknum2;
 
       /* Fanin target */
                   for (bloknum2=bloknum;
@@ -707,10 +707,10 @@ int ooc_updo(Sopalin_Data_t * sopalin_data, int ooc_threadnum)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT task;
-  PASTIX_INT cblknum;
+  pastix_int_t task;
+  pastix_int_t cblknum;
   int ret = EXIT_SUCCESS;
-  PASTIX_INT i;
+  pastix_int_t i;
 
   print_debug(DBG_OOC_TRACE_V1,"->ooc_updo\n");
 
@@ -719,7 +719,7 @@ int ooc_updo(Sopalin_Data_t * sopalin_data, int ooc_threadnum)
     {
       for (task=0;task<SOLV_TASKNBR;task++)
         {
-          PASTIX_INT j,c,n,t;
+          pastix_int_t j,c,n,t;
           c = TASK_CBLKNUM(task);
           n = 0;
           for (i=SYMB_BLOKNUM(c)+1;i<SYMB_BLOKNUM(c+1);i++)
@@ -757,7 +757,7 @@ int ooc_updo(Sopalin_Data_t * sopalin_data, int ooc_threadnum)
 
 #ifdef OOC_FTGT
       {
-        PASTIX_INT bloknum;
+        pastix_int_t bloknum;
         for (bloknum=SYMB_BLOKNUM(cblknum)+1;
              bloknum<SYMB_BLOKNUM(cblknum+1);
              bloknum++)
@@ -880,13 +880,13 @@ void * ooc_thread(void * arg)
      EXIT         - if not enough memory.
 
 */
-int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
+int ooc_init(Sopalin_Data_t * sopalin_data, pastix_int_t limit)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc;
-  PASTIX_INT            i,j,me, cblknum, task;
-  PASTIX_INT            total_size;
-  PASTIX_INT            secondsize;
+  pastix_int_t            i,j,me, cblknum, task;
+  pastix_int_t            total_size;
+  pastix_int_t            secondsize;
   char           str[STR_SIZE];
   Queue          taskqueue;
 
@@ -927,7 +927,7 @@ int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
 #endif
 
   /* Allocation and fill in of the ordered task tab used for ooc prefetches */
-  MALLOC_INTERN(ooc->tasktab, SOLV_TASKNBR, PASTIX_INT);
+  MALLOC_INTERN(ooc->tasktab, SOLV_TASKNBR, pastix_int_t);
   /* fill-in */
   queueInit(&taskqueue, SOLV_TASKNBR);
   for (task = 0; task < SOLV_TASKNBR; task++)
@@ -967,7 +967,7 @@ int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
   /* Mutex on threads_waiting */
 #ifdef OOC_DETECT_DEADLOCKS
   pthread_mutex_init(&(ooc->mutex_thrd_wting), NULL);
-  MALLOC_INTERN(ooc->blocks_waited_for, SOLV_THRDNBR, PASTIX_INT);
+  MALLOC_INTERN(ooc->blocks_waited_for, SOLV_THRDNBR, pastix_int_t);
   for (i = 0; i < SOLV_THRDNBR; i++)
     ooc->blocks_waited_for[i] = SYMB_CBLKNBR+1;
 #endif
@@ -1054,11 +1054,11 @@ int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
   /*set max cblk size */
   total_size = 0;
   {
-    PASTIX_INT maxsize = 0;
+    pastix_int_t maxsize = 0;
     secondsize = 0;
     for (cblknum = 0 ; cblknum < SYMB_CBLKNBR; cblknum++)
     {
-      PASTIX_INT cblksize = CBLKSIZE(cblknum);
+      pastix_int_t cblksize = CBLKSIZE(cblknum);
       if ( cblksize > maxsize )
         {
           secondsize = maxsize;
@@ -1066,8 +1066,8 @@ int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
         }
       total_size += cblksize;
     }
-    total_size *= sizeof(PASTIX_FLOAT);
-    ooc->max_cblk_size = maxsize * sizeof(PASTIX_FLOAT);
+    total_size *= sizeof(pastix_float_t);
+    ooc->max_cblk_size = maxsize * sizeof(pastix_float_t);
   }
 
   if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
@@ -1078,7 +1078,7 @@ int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
   ooc->coeftabsize = total_size;
 #ifdef OOC_FTGT
   for (i = 0; i < SOLV_FTGTNBR; i ++)
-    ooc->coeftabsize += FACTO_FTGTSIZE(i)*sizeof(PASTIX_FLOAT);
+    ooc->coeftabsize += FACTO_FTGTSIZE(i)*sizeof(pastix_float_t);
 #endif
 #endif
 
@@ -1125,7 +1125,7 @@ int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
   pthread_mutex_init(&(ooc->mutex_allocated), NULL);
 
   /* Copy of fanin ctrbcnt */
-  MALLOC_INTERN(ooc->fanin_ctrbcnt, SOLV_FTGTNBR, PASTIX_INT);
+  MALLOC_INTERN(ooc->fanin_ctrbcnt, SOLV_FTGTNBR, pastix_int_t);
   for (i=0;i<SOLV_FTGTNBR;i++)
     ooc->fanin_ctrbcnt[i] = FANIN_CTRBCNT(i);
 #endif
@@ -1151,7 +1151,7 @@ int ooc_init(Sopalin_Data_t * sopalin_data, PASTIX_INT limit)
 #endif
       )
     {
-      PASTIX_INT min_mem = (ooc->max_cblk_size + (LOW)*secondsize) *
+      pastix_int_t min_mem = (ooc->max_cblk_size + (LOW)*secondsize) *
         SOLV_THRDNBR + secondsize;
 
       NOT_ENOUGH_MEM;
@@ -1197,7 +1197,7 @@ int ooc_exit (Sopalin_Data_t * sopalin_data)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT            i;
+  pastix_int_t            i;
   int            me;
 
   print_debug(DBG_OOC_TRACE_V1,"->ooc_exit\n");
@@ -1340,12 +1340,12 @@ int ooc_init_thread (Sopalin_Data_t * sopalin_data, int me)
    Returns:
      EXIT_SUCCESS
  */
-int ooc_save_coef(Sopalin_Data_t * sopalin_data, PASTIX_INT tasknum,
-                  PASTIX_INT cblknum, int me)
+int ooc_save_coef(Sopalin_Data_t * sopalin_data, pastix_int_t tasknum,
+                  pastix_int_t cblknum, int me)
 {
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT key1;
-  PASTIX_INT key2      = 0;
+  pastix_int_t key1;
+  pastix_int_t key2      = 0;
   int save      = 1;
 
   print_debug(DBG_OOC_TRACE_V2,"[%d]->ooc_save_coef %d\n",
@@ -1408,18 +1408,18 @@ int ooc_save_coef(Sopalin_Data_t * sopalin_data, PASTIX_INT tasknum,
      EXIT_FAILURE_FILE_OPENING       - error opening file
      EXIT_FAILURE                    - error writing
  */
-int ooc_do_save_coef (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum,
+int ooc_do_save_coef (Sopalin_Data_t * sopalin_data, pastix_int_t cblknum,
                       int ooc_threadnum)
 {
   SolverMatrix       * datacode   = sopalin_data->datacode;
   ooc_t              * ooc        = sopalin_data->ooc;
   char                 str[STR_SIZE];
   int                  fd;
-  PASTIX_INT                  coefnbr;
-  PASTIX_INT                  ret;
-  PASTIX_INT                  written;
-  PASTIX_INT                  towrite;
-  PASTIX_INT                  saved;
+  pastix_int_t                  coefnbr;
+  pastix_int_t                  ret;
+  pastix_int_t                  written;
+  pastix_int_t                  towrite;
+  pastix_int_t                  saved;
 #ifdef OOC_CLOCK
   Clock                 clk;
 #endif
@@ -1435,7 +1435,7 @@ int ooc_do_save_coef (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum,
     }
 
   coefnbr = CBLKSIZE(cblknum);
-  towrite = coefnbr*sizeof(PASTIX_FLOAT);
+  towrite = coefnbr*sizeof(pastix_float_t);
   /* in updown, no need to write coef on disk */
   if (!(ooc->current_step > OOCSTEP_SOPALIN) ||
       !(HASBEENSAVED(cblknum) == 1))
@@ -1600,12 +1600,12 @@ int ooc_do_save_coef (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum,
    Returns:
      EXIT_SUCCESS
  */
-int ooc_save_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT tasknum, PASTIX_INT ftgtnum,
+int ooc_save_ftgt(Sopalin_Data_t * sopalin_data, pastix_int_t tasknum, pastix_int_t ftgtnum,
                   int me)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT            key1, key2;
+  pastix_int_t            key1, key2;
 
   print_debug(DBG_OOC_TRACE_V2,"->ooc_save_ftgt %d\n",(int)ftgtnum);
 
@@ -1645,7 +1645,7 @@ int ooc_save_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT tasknum, PASTIX_INT 
      EXIT_SUCCESS                    - deleted or file doesn't exist
      EXIT_FAILURE                    - couldn't delete
  */
-int ooc_remove_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
+int ooc_remove_ftgt (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me)
 {
   ooc_t     * ooc      = sopalin_data->ooc;
   char        str[STR_SIZE];
@@ -1689,21 +1689,21 @@ int ooc_remove_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
    Returns:
      EXIT_SUCCESS                    - done succesfully
  */
-int ooc_reset_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
+int ooc_reset_ftgt (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me)
 {
   SolverMatrix  *datacode = sopalin_data->datacode;
   ooc_t         *ooc      = sopalin_data->ooc;
-  PASTIX_INT            j, oldsize, newsize, newsize2;
+  pastix_int_t            j, oldsize, newsize, newsize2;
 
   /* Warning: on considere qu'on est forcement en memory_usage donc
    * l'octet précédent le pointeur contient la taille allouee */
-  oldsize  = (PASTIX_INT)*((double*)FANIN_COEFTAB(ftgtnum)-1);
+  oldsize  = (pastix_int_t)*((double*)FANIN_COEFTAB(ftgtnum)-1);
 
   newsize2 = SOLVE_FTGTSIZE(ftgtnum);
-  newsize  = SOLVE_FTGTSIZE(ftgtnum)*sizeof(PASTIX_FLOAT);
+  newsize  = SOLVE_FTGTSIZE(ftgtnum)*sizeof(pastix_float_t);
 
-  ASSERTDBG(((oldsize == FACTO_FTGTSIZE(ftgtnum)*sizeof(PASTIX_FLOAT)) ||
-             (oldsize == SOLVE_FTGTSIZE(ftgtnum)*sizeof(PASTIX_FLOAT))), MOD_SOPALIN);
+  ASSERTDBG(((oldsize == FACTO_FTGTSIZE(ftgtnum)*sizeof(pastix_float_t)) ||
+             (oldsize == SOLVE_FTGTSIZE(ftgtnum)*sizeof(pastix_float_t))), MOD_SOPALIN);
 
   print_debug(DBG_OOC_TRACE_V2,
               "->ooc_reset_ftgt %d (old %d new %d)(%d blocks %d allocated)\n",
@@ -1726,7 +1726,7 @@ int ooc_reset_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
           memFree_null(FANIN_COEFTAB(ftgtnum));
           ooc->allocated -= oldsize;
 
-          MALLOC_INTERN(FANIN_COEFTAB(ftgtnum), newsize2, PASTIX_FLOAT);
+          MALLOC_INTERN(FANIN_COEFTAB(ftgtnum), newsize2, pastix_float_t);
           ooc->allocated += newsize;
           MUTEX_UNLOCK_ALLOC;
         }
@@ -1769,16 +1769,16 @@ int ooc_reset_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
      EXIT_FAILURE_FILE_OPENING       - error opening file
      EXIT_FAILURE                    - error writing
  */
-int ooc_do_save_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum,
+int ooc_do_save_ftgt (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum,
                       int ooc_threadnum)
 {
   SolverMatrix       * datacode = sopalin_data->datacode;
   ooc_t              * ooc      = sopalin_data->ooc;
   char                 str[STR_SIZE];
   int                  fd;
-  PASTIX_INT                  ret;
-  PASTIX_INT                  written;
-  PASTIX_INT                  towrite;
+  pastix_int_t                  ret;
+  pastix_int_t                  written;
+  pastix_int_t                  towrite;
 
   print_debug(DBG_OOC_TRACE_V2,
               "->ooc_do_save_ftgt %d (%d blocks %d allocated)\n",
@@ -1807,7 +1807,7 @@ int ooc_do_save_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum,
 #endif
 
   /* writing the file : write only during facto */
-  towrite = FACTO_FTGTSIZE(ftgtnum)*sizeof(PASTIX_FLOAT);
+  towrite = FACTO_FTGTSIZE(ftgtnum)*sizeof(pastix_float_t);
   written = 0;
   while ( written < towrite )
     {
@@ -1859,18 +1859,18 @@ int ooc_do_save_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum,
      EXIT_FAILURE_FILE_OPENING       - error opening file
      EXIT_FAILURE                    - error writing
  */
-int ooc_do_load_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
+int ooc_do_load_ftgt (Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me)
 {
   SolverMatrix       * datacode   = sopalin_data->datacode;
   ooc_t              * ooc      = sopalin_data->ooc;
   struct stat          stFileInfo;
   char                 str[STR_SIZE];
   int                  fd;
-  PASTIX_INT                  toread;
-  PASTIX_INT                  rd = 0;
-  PASTIX_INT                  ret;
-  PASTIX_INT                  j;
-  PASTIX_INT                  coefnbr;
+  pastix_int_t                  toread;
+  pastix_int_t                  rd = 0;
+  pastix_int_t                  ret;
+  pastix_int_t                  j;
+  pastix_int_t                  coefnbr;
 
   print_debug(DBG_OOC_TRACE_V2,"->ooc_do_load_ftgt %d (%d allocated)\n",
               (int)ftgtnum, (int)ooc->allocated );
@@ -1903,7 +1903,7 @@ int ooc_do_load_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
       break;
     case EXIT_SUCCESS :
       coefnbr = FTGTSIZE(ftgtnum);
-      toread  = coefnbr*sizeof(PASTIX_FLOAT);
+      toread  = coefnbr*sizeof(pastix_float_t);
 
       /* reading the file */
       sprintf(str,"%s/pastix_ftgt_%d/%d",OOC_DIR,(int)ooc->id,(int)ftgtnum);
@@ -1977,7 +1977,7 @@ int ooc_do_load_ftgt (Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
    Returns:
      EXIT_SUCCESS
  */
-int ooc_wait_for_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT ftgt, int me)
+int ooc_wait_for_ftgt(Sopalin_Data_t * sopalin_data, pastix_int_t ftgt, int me)
 {
   SolverMatrix *datacode = sopalin_data->datacode;
   ooc_t        * ooc     = sopalin_data->ooc;
@@ -2063,11 +2063,11 @@ int ooc_wait_for_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT ftgt, int me)
      EXIT_FAILURE_OUT_OF_MEMORY - No more memory
      EXIT_FAILURE_CBLK_NOT_NULL - fanin target buffer not *NULL*
  */
-int ooc_allocate_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
+int ooc_allocate_ftgt(Sopalin_Data_t * sopalin_data, pastix_int_t ftgtnum, int me)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT            size;
+  pastix_int_t            size;
   print_debug(DBG_OOC_TRACE_V2,"%d:%d ->ooc_allocate_ftgt %d \n",
               (int)SOLV_PROCNUM, (int)me, (int)ftgtnum);
 
@@ -2077,10 +2077,10 @@ int ooc_allocate_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
       return EXIT_FAILURE_CBLK_NOT_NULL;
     }
 
-  size = FTGTSIZE(ftgtnum)*sizeof(PASTIX_FLOAT);
+  size = FTGTSIZE(ftgtnum)*sizeof(pastix_float_t);
 
   MUTEX_LOCK_ALLOC;
-  MALLOC_INTERN(FANIN_COEFTAB(ftgtnum), FTGTSIZE(ftgtnum), PASTIX_FLOAT);
+  MALLOC_INTERN(FANIN_COEFTAB(ftgtnum), FTGTSIZE(ftgtnum), pastix_float_t);
   /* allocated is already protected above */
   ooc->allocated += size;
   MUTEX_UNLOCK_ALLOC;
@@ -2110,18 +2110,18 @@ int ooc_allocate_ftgt(Sopalin_Data_t * sopalin_data, PASTIX_INT ftgtnum, int me)
      EXIT_FAILURE_FILE_OPENING       - error opening file
      EXIT_FAILURE                    - error writing
  */
-int ooc_do_load_coef (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me)
+int ooc_do_load_coef (Sopalin_Data_t * sopalin_data, pastix_int_t cblknum, int me)
 {
   SolverMatrix       * datacode   = sopalin_data->datacode;
   ooc_t              * ooc        = sopalin_data->ooc;
   struct stat          stFileInfo;
   char                 str[STR_SIZE];
   int                  fd;
-  PASTIX_INT                  coefnbr;
-  PASTIX_INT                  toread;
-  PASTIX_INT                  rd = 0;
-  PASTIX_INT                  ret;
-  PASTIX_INT                  j;
+  pastix_int_t                  coefnbr;
+  pastix_int_t                  toread;
+  pastix_int_t                  rd = 0;
+  pastix_int_t                  ret;
+  pastix_int_t                  j;
 #ifdef OOC_CLOCK
   Clock clk;
 #endif
@@ -2159,7 +2159,7 @@ int ooc_do_load_coef (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me)
     case EXIT_SUCCESS :
 
       coefnbr = CBLKSIZE(cblknum);
-      toread  = coefnbr * sizeof(PASTIX_FLOAT);
+      toread  = coefnbr * sizeof(pastix_float_t);
 
       /* reading the file */
       sprintf(str,"%s/pastix_coef_%d/%d",OOC_DIR,(int)ooc->id,(int)cblknum);
@@ -2303,12 +2303,12 @@ int ooc_do_load_coef (Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me)
      EXIT_FAILURE_OUT_OF_MEMORY - No more memory
      EXIT_FAILURE_CBLK_NOT_NULL - Column block not *NULL*
  */
-int ooc_allocate(Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me)
+int ooc_allocate(Sopalin_Data_t * sopalin_data, pastix_int_t cblknum, int me)
 {
   SolverMatrix *datacode = sopalin_data->datacode;
   ooc_t        *ooc      = sopalin_data->ooc;
-  PASTIX_INT           coefnbr  = CBLKSIZE(cblknum);
-  PASTIX_INT           size     = coefnbr*sizeof(PASTIX_FLOAT);
+  pastix_int_t           coefnbr  = CBLKSIZE(cblknum);
+  pastix_int_t           size     = coefnbr*sizeof(pastix_float_t);
 
   print_debug(DBG_OOC_TRACE_V2,"->ooc_allocate %d (%d blocks)\n",
               (int)cblknum, (int)ooc->cblkloaded);
@@ -2317,7 +2317,7 @@ int ooc_allocate(Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me)
     return EXIT_FAILURE_CBLK_NOT_NULL;
 
   MUTEX_LOCK_ALLOC;
-  MALLOC_INTERN(SOLV_COEFTAB(cblknum), coefnbr, PASTIX_FLOAT);
+  MALLOC_INTERN(SOLV_COEFTAB(cblknum), coefnbr, pastix_float_t);
 
   /* WARNING : allocated*/
   ooc->allocated += size;
@@ -2334,7 +2334,7 @@ int ooc_allocate(Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me)
         }
 
       MUTEX_LOCK_ALLOC;
-      MALLOC_INTERN(SOLV_UCOEFTAB(cblknum), coefnbr, PASTIX_FLOAT);
+      MALLOC_INTERN(SOLV_UCOEFTAB(cblknum), coefnbr, pastix_float_t);
 
       ooc->allocated += size;
       MUTEX_UNLOCK_ALLOC;
@@ -2361,7 +2361,7 @@ int ooc_allocate(Sopalin_Data_t * sopalin_data, PASTIX_INT cblknum, int me)
    Returns:
      EXIT_SUCCESS
  */
-int ooc_wait_for_cblk(Sopalin_Data_t * sopalin_data, PASTIX_INT cblk, int me)
+int ooc_wait_for_cblk(Sopalin_Data_t * sopalin_data, pastix_int_t cblk, int me)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
@@ -2482,16 +2482,16 @@ int ooc_stop_thread(Sopalin_Data_t * sopalin_data)
    Returns:
      Next access number.
 */
-void cblkNextAccess(Sopalin_Data_t *sopalin_data, PASTIX_INT task, PASTIX_INT cblk,
+void cblkNextAccess(Sopalin_Data_t *sopalin_data, pastix_int_t task, pastix_int_t cblk,
                     int comp_thread,
-                    PASTIX_INT * key1, PASTIX_INT *key2)
+                    pastix_int_t * key1, pastix_int_t *key2)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT n;
-  PASTIX_INT cblknum;
-  PASTIX_INT bloknum;
-  PASTIX_INT gcblk;
+  pastix_int_t n;
+  pastix_int_t cblknum;
+  pastix_int_t bloknum;
+  pastix_int_t gcblk;
   int step;
 
   step  = ooc->current_step;
@@ -2648,13 +2648,13 @@ void cblkNextAccess(Sopalin_Data_t *sopalin_data, PASTIX_INT task, PASTIX_INT cb
    Returns:
      void
  */
-void reduceMem(Sopalin_Data_t * sopalin_data, PASTIX_INT size_wanted, int me)
+void reduceMem(Sopalin_Data_t * sopalin_data, pastix_int_t size_wanted, int me)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;
-  PASTIX_INT            indbloc;
+  pastix_int_t            indbloc;
 #ifdef OOC_DETECT_DEADLOCKS
-  PASTIX_INT            i;
+  pastix_int_t            i;
 #endif
 
   print_debug(DBG_OOC_TRACE_V2,"->reduceMem %d %d %d\n",
@@ -2740,12 +2740,12 @@ void reduceMem(Sopalin_Data_t * sopalin_data, PASTIX_INT size_wanted, int me)
                 }
               MUTEX_UNLOCK(&(ooc->mutex_thrd_wting));
 
-              PASTIX_INT min_mem = size_wanted;
+              pastix_int_t min_mem = size_wanted;
 
               MUTEX_UNLOCK(&(ooc->mutex_queue));
 #ifdef DEBUG_OOC
               {
-                PASTIX_INT i;
+                pastix_int_t i;
                 fprintf(stderr, "CBLK chargés  : ");
                 for (i=0; i< SYMB_CBLKNBR; i++)
                   {
@@ -2865,7 +2865,7 @@ int recursive_mkdir(char * path, mode_t mode)
     me           - Computing thread asking for cblk to be loaded.
 
 */
-int ooc_hack_load(Sopalin_Data_t *sopalin_data, PASTIX_INT cblknum, int me)
+int ooc_hack_load(Sopalin_Data_t *sopalin_data, pastix_int_t cblknum, int me)
 {
   ooc_t        * ooc      = sopalin_data->ooc;
 
@@ -2929,7 +2929,7 @@ void ooc_received(Sopalin_Data_t * sopalin_data)
   MUTEX_UNLOCK(&(ooc->mutex_thrd_rcving));
 }
 
-void ooc_wait_task(Sopalin_Data_t * sopalin_data, PASTIX_INT task, int me)
+void ooc_wait_task(Sopalin_Data_t * sopalin_data, pastix_int_t task, int me)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   ooc_t        * ooc      = sopalin_data->ooc;

@@ -40,10 +40,10 @@
      b      - Matrix b.
      ldb    - Stride between 2 columns of b.
 */
-void dim_dgeam(char *transa,char *transb,PASTIX_INT m,PASTIX_INT n,PASTIX_FLOAT alpha,PASTIX_FLOAT *a,
-               PASTIX_INT lda,PASTIX_FLOAT *b,PASTIX_INT ldb)
+void dim_dgeam(char *transa,char *transb,pastix_int_t m,pastix_int_t n,pastix_float_t alpha,pastix_float_t *a,
+               pastix_int_t lda,pastix_float_t *b,pastix_int_t ldb)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   if (*transa=='N')
     {
@@ -51,7 +51,7 @@ void dim_dgeam(char *transa,char *transb,PASTIX_INT m,PASTIX_INT n,PASTIX_FLOAT 
         for (i=0;i<n;i++)
           {
 #ifdef CPLX
-          {SOPALIN_AXPY(m,alpha,(PASTIX_FLOAT *) &(a[i*lda]),1, (PASTIX_FLOAT *) &(b[i*ldb]),1);}
+          {SOPALIN_AXPY(m,alpha,(pastix_float_t *) &(a[i*lda]),1, (pastix_float_t *) &(b[i*ldb]),1);}
 #else
           {SOPALIN_AXPY(m,alpha,&(a[i*lda]),1,&(b[i*ldb]),1);}
 #endif
@@ -60,7 +60,7 @@ void dim_dgeam(char *transa,char *transb,PASTIX_INT m,PASTIX_INT n,PASTIX_FLOAT 
         for (i=0;i<n;i++)
           {
 #ifdef CPLX
-          {SOPALIN_AXPY(m,alpha,(PASTIX_FLOAT *) &(a[i*lda]),1, (PASTIX_FLOAT *) &(b[i]),ldb);}
+          {SOPALIN_AXPY(m,alpha,(pastix_float_t *) &(a[i*lda]),1, (pastix_float_t *) &(b[i]),ldb);}
 #else
           {SOPALIN_AXPY(m,alpha,&(a[i*lda]),1,&(b[i]),ldb);}
 #endif
@@ -72,7 +72,7 @@ void dim_dgeam(char *transa,char *transb,PASTIX_INT m,PASTIX_INT n,PASTIX_FLOAT 
         for (i=0;i<n;i++)
           {
 #ifdef CPLX
-          {SOPALIN_AXPY(m,alpha,(PASTIX_FLOAT *) &(a[i]),lda, (PASTIX_FLOAT *) &(b[i*ldb]),1);}
+          {SOPALIN_AXPY(m,alpha,(pastix_float_t *) &(a[i]),lda, (pastix_float_t *) &(b[i*ldb]),1);}
 #else
           {SOPALIN_AXPY(m,alpha,&(a[i]),lda,&(b[i*ldb]),1);}
 #endif
@@ -81,7 +81,7 @@ void dim_dgeam(char *transa,char *transb,PASTIX_INT m,PASTIX_INT n,PASTIX_FLOAT 
         for (i=0;i<n;i++)
           {
 #ifdef CPLX
-          {SOPALIN_AXPY(m,alpha,(PASTIX_FLOAT *) &(a[i]),lda, (PASTIX_FLOAT *) &(b[i]),ldb);}
+          {SOPALIN_AXPY(m,alpha,(pastix_float_t *) &(a[i]),lda, (pastix_float_t *) &(b[i]),ldb);}
 #else
           {SOPALIN_AXPY(m,alpha,&(a[i]),lda,&(b[i]),ldb);}
 #endif
@@ -172,9 +172,9 @@ void FreeMpiType(void)
  */
 void mysum(void *in, void *inout, int *len, MPI_Datatype *dptr)
 {
-  PASTIX_INT i;
-  PASTIX_FLOAT *a = (PASTIX_FLOAT *) in;
-  PASTIX_FLOAT *b = (PASTIX_FLOAT *) inout;
+  pastix_int_t i;
+  pastix_float_t *a = (pastix_float_t *) in;
+  pastix_float_t *b = (pastix_float_t *) inout;
   (void)dptr;
 
   for (i=0; i<*len; ++i)

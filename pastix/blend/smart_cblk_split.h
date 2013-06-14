@@ -3,11 +3,11 @@
 
 int smart_cblk_split(BlendCtrl      * ctrl,
 		     SymbolMatrix   * symbmtx, 
-		     PASTIX_INT       cblknum,
-		     PASTIX_INT       procnbr,
-		     PASTIX_INT       blas_min_col,
-		     PASTIX_INT       blas_max_col,
-		     PASTIX_INT     * nseq,
-		     PASTIX_INT    ** seq);
+		     pastix_int_t       cblknum,
+		     pastix_int_t       procnbr,
+		     pastix_int_t       blas_min_col,
+		     pastix_int_t       blas_max_col,
+		     pastix_int_t     * nseq,
+		     pastix_int_t    ** seq);
 
 #endif /* SMART_CBLK_SPLIT_H */

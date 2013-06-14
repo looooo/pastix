@@ -58,34 +58,34 @@
 /*+ The column block structure. +*/
 
 typedef struct SymbolCblk_ {
-  PASTIX_INT                       fcolnum;              /*+ First column index               +*/
-  PASTIX_INT                       lcolnum;              /*+ Last column index (inclusive)    +*/
-  PASTIX_INT                       bloknum;              /*+ First block in column (diagonal) +*/
+  pastix_int_t                       fcolnum;              /*+ First column index               +*/
+  pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)    +*/
+  pastix_int_t                       bloknum;              /*+ First block in column (diagonal) +*/
 #ifdef STARPU_GET_TASK_CTX
-  PASTIX_INT                       ctx;
+  pastix_int_t                       ctx;
 #endif
 } SymbolCblk;
 
 /*+ The column block structure. +*/
 
 typedef struct SymbolBlok_ {
-  PASTIX_INT                       frownum;              /*+ First row index            +*/
-  PASTIX_INT                       lrownum;              /*+ Last row index (inclusive) +*/
-  PASTIX_INT                       cblknum;              /*+ Facing column block        +*/
-  PASTIX_INT                       levfval;              /*+ Level-of-fill value        +*/
+  pastix_int_t                       frownum;              /*+ First row index            +*/
+  pastix_int_t                       lrownum;              /*+ Last row index (inclusive) +*/
+  pastix_int_t                       cblknum;              /*+ Facing column block        +*/
+  pastix_int_t                       levfval;              /*+ Level-of-fill value        +*/
 } SymbolBlok;
 
 /*+ The symbolic block matrix. +*/
 
 typedef struct SymbolMatrix_ {
-  PASTIX_INT                       baseval;              /*+ Base value for numberings         +*/
-  PASTIX_INT                       cblknbr;              /*+ Number of column blocks           +*/
-  PASTIX_INT                       bloknbr;              /*+ Number of blocks                  +*/
+  pastix_int_t                       baseval;              /*+ Base value for numberings         +*/
+  pastix_int_t                       cblknbr;              /*+ Number of column blocks           +*/
+  pastix_int_t                       bloknbr;              /*+ Number of blocks                  +*/
   SymbolCblk * restrict     cblktab;              /*+ Array of column blocks [+1,based] +*/
   SymbolBlok * restrict     bloktab;              /*+ Array of blocks [based]           +*/
-  PASTIX_INT                       nodenbr;              /*+ Number of nodes in matrix         +*/
+  pastix_int_t                       nodenbr;              /*+ Number of nodes in matrix         +*/
 #ifdef STARPU_GET_TASK_CTX
-  PASTIX_INT                       starpu_subtree_nbr;
+  pastix_int_t                       starpu_subtree_nbr;
 #endif
 } SymbolMatrix;
 
@@ -101,19 +101,19 @@ typedef enum SymbolCostType_ {
    for the yet unselected blocks.           */
 
 typedef struct SymbolKeepBlok_ {
-  PASTIX_INT                       levfval;              /*+ Values for incomplete factorisation +*/
-  PASTIX_INT                       nupdval;
-  PASTIX_INT                       ctrival;
-  PASTIX_INT                       ctroval;
-  PASTIX_INT                       hghtval;
+  pastix_int_t                       levfval;              /*+ Values for incomplete factorisation +*/
+  pastix_int_t                       nupdval;
+  pastix_int_t                       ctrival;
+  pastix_int_t                       ctroval;
+  pastix_int_t                       hghtval;
 } SymbolKeepBlok;
 
 typedef struct SymbolKeep_ {
-  PASTIX_INT                       levfmax;              /*+ Maximum values for incomplete fax +*/
-  PASTIX_INT                       nupdmax;
-  PASTIX_INT                       ctrimax;
-  PASTIX_INT                       ctromax;
-  PASTIX_INT                       hghtmax;
+  pastix_int_t                       levfmax;              /*+ Maximum values for incomplete fax +*/
+  pastix_int_t                       nupdmax;
+  pastix_int_t                       ctrimax;
+  pastix_int_t                       ctromax;
+  pastix_int_t                       hghtmax;
   unsigned char * restrict           keeptab;              /*+ Flag array for kept blocks      +*/
   SymbolKeepBlok * restrict kblktab;              /*+ Block parameter array           +*/
   double * restrict         levftab;              /*+ Area arrays for selected blocks +*/
@@ -129,7 +129,7 @@ typedef struct SymbolKeep_ {
 
 int  symbolInit          (SymbolMatrix * const symbptr);
 void symbolExit          (SymbolMatrix * const symbptr);
-void symbolBase          (SymbolMatrix * const symbptr, const PASTIX_INT baseval);
+void symbolBase          (SymbolMatrix * const symbptr, const pastix_int_t baseval);
 void symbolRealloc       (SymbolMatrix * const symbptr);
 int  symbolLoad          (SymbolMatrix * const symbptr, FILE * const stream);
 int  symbolSave          (const SymbolMatrix * const symbptr, FILE * const stream);
@@ -139,15 +139,15 @@ int  symbolDrawFunc      (const SymbolMatrix * const symbptr,
 			  int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
 			  int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
 			  void * const, FILE * const stream);
-void symbolDrawColor     (const PASTIX_INT labl, float color[]);
+void symbolDrawColor     (const pastix_int_t labl, float color[]);
 #ifdef DOF_H
 int  symbolCost          (const SymbolMatrix * const symbptr, const Dof * const deofptr,
 			  const SymbolCostType typeval, double * const nnzptr, double * const opcptr);
 int  symbolCosti         (const SymbolMatrix * const symbptr, const Dof * const deofptr,
-			  const SymbolCostType typeval, const PASTIX_INT levfval, double * const nnzptr, double * const opcptr);
-int  symbolLevf          (const SymbolMatrix * const symbptr, PASTIX_INT * const levfmax, PASTIX_INT ** const levftab);
+			  const SymbolCostType typeval, const pastix_int_t levfval, double * const nnzptr, double * const opcptr);
+int  symbolLevf          (const SymbolMatrix * const symbptr, pastix_int_t * const levfmax, pastix_int_t ** const levftab);
 int  symbolTree          (const SymbolMatrix * const symbptr, const Dof * const deofptr,
-			  PASTIX_INT * const leafnbr, PASTIX_INT * const heigmin, PASTIX_INT * const heigmax,
+			  pastix_int_t * const leafnbr, pastix_int_t * const heigmin, pastix_int_t * const heigmax,
 			  double * const heigavg, double * const heigdlt);
 int  symbolNonzeros      (const SymbolMatrix * const symbptr, FILE * const stream);
 #endif /* DOF_H */

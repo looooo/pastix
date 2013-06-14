@@ -13,13 +13,13 @@
 #define PlasmaRight 142
 #include "flops.h"
 
-double flops_zgetrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
-double flops_dgetrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
-double flops_zpotrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
-double flops_dpotrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
+double flops_zgetrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
+double flops_dgetrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
+double flops_zpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
+double flops_dpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
 
 
-void symbCost(PASTIX_INT *iparm, double *dparm, const SymbolMatrix * symbmtx, const Dof * dofptr)
+void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
   double flops = 0.;
   printf("SymbolCost: number of operations Cholesky %g \n",
@@ -35,7 +35,7 @@ void symbCost(PASTIX_INT *iparm, double *dparm, const SymbolMatrix * symbmtx, co
   printf("SymbolCost: number of non-zero   %g \n",
           recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
 
-  set_iparm(iparm, IPARM_NNZEROS,   (PASTIX_INT)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
+  set_iparm(iparm, IPARM_NNZEROS,   (pastix_int_t)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
 
   if ( iparm[IPARM_FACTORIZATION] == API_FACT_LU ) {
     if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
@@ -59,7 +59,7 @@ void symbCost(PASTIX_INT *iparm, double *dparm, const SymbolMatrix * symbmtx, co
 
 
 
-double recursive_sum(PASTIX_INT a, PASTIX_INT b, double (*fval)(PASTIX_INT, const SymbolMatrix *, const Dof *),
+double recursive_sum(pastix_int_t a, pastix_int_t b, double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
                      const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
   if(a != b)
@@ -69,8 +69,8 @@ double recursive_sum(PASTIX_INT a, PASTIX_INT b, double (*fval)(PASTIX_INT, cons
   return fval(a, symbmtx, dofptr);
 }
 
-double crout_2t(PASTIX_INT cblknum, const SymbolMatrix *symbmtx, const Dof * dofptr)
-{ PASTIX_INT i;
+double crout_2t(pastix_int_t cblknum, const SymbolMatrix *symbmtx, const Dof * dofptr)
+{ pastix_int_t i;
   double gk = 0;
   double lk = 0;
 
@@ -86,8 +86,8 @@ double crout_2t(PASTIX_INT cblknum, const SymbolMatrix *symbmtx, const Dof * dof
 }
 
 
-double crout_3t(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ PASTIX_INT i;
+double crout_3t(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+{ pastix_int_t i;
   double gk = 0;
   double lk = 0;
 
@@ -103,8 +103,8 @@ double crout_3t(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * do
 }
 
 
-double crout_hyb(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ PASTIX_INT i;
+double crout_hyb(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+{ pastix_int_t i;
   double gk = 0;
   double lk = 0;
 
@@ -119,8 +119,8 @@ double crout_hyb(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * d
 
 }
 
-double cholesky(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ PASTIX_INT i;
+double cholesky(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+{ pastix_int_t i;
   double gk = 0;
   double lk = 0;
 #ifdef DOF_CONSTANT
@@ -139,8 +139,8 @@ double cholesky(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * do
 /* Number of non zero  extradiagonal terms */
 /*******************************************/
 
-double nnz(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ PASTIX_INT i;
+double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+{ pastix_int_t i;
   double gk = 0;
   double lk = 0;
 #ifdef DOF_CONSTANT
@@ -158,10 +158,10 @@ double nnz(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 }
 
 
-double crout_blok(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+double crout_blok(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
     double l, h, g;
-    PASTIX_INT k;
+    pastix_int_t k;
     double nbops = 0;
     h=0;
     /** we need the height of cblk non empty lines  and the broadness
@@ -199,10 +199,10 @@ double crout_blok(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * 
     return nbops;
 }
 
-double flops_zgetrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+double flops_zgetrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
   double M, N, K;
-  PASTIX_INT k;
+  pastix_int_t k;
   double nbops = 0.;
 
   /*
@@ -249,10 +249,10 @@ double flops_zgetrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof 
   return nbops;
 }
 
-double flops_dgetrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+double flops_dgetrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
   double M, N, K;
-  PASTIX_INT k;
+  pastix_int_t k;
   double nbops = 0.;
 
   /*
@@ -299,10 +299,10 @@ double flops_dgetrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof 
   return nbops;
 }
 
-double flops_zpotrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+double flops_zpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
   double M, N, K;
-  PASTIX_INT k;
+  pastix_int_t k;
   double nbops = 0.;
 
   /*
@@ -349,10 +349,10 @@ double flops_zpotrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof 
   return nbops;
 }
 
-double flops_dpotrf(PASTIX_INT cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
+double flops_dpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
   double M, N, K;
-  PASTIX_INT k;
+  pastix_int_t k;
   double nbops = 0.;
 
   /*

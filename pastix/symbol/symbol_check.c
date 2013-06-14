@@ -73,14 +73,14 @@ int
 symbolCheck (
 const SymbolMatrix * const  symbptr)
 {
-  PASTIX_INT                         baseval;            /* Base value                           */
+  pastix_int_t                         baseval;            /* Base value                           */
   const SymbolCblk * restrict cblktax;            /* Based access to cblktab              */
-  PASTIX_INT                         cblkmax;            /* Maximum column block index           */
-  PASTIX_INT                         cblknum;            /* Based number of current column block */
+  pastix_int_t                         cblkmax;            /* Maximum column block index           */
+  pastix_int_t                         cblknum;            /* Based number of current column block */
   const SymbolBlok * restrict bloktax;            /* Based access to bloktab              */
-  PASTIX_INT                         blokmax;            /* Maximum block index                  */
-  PASTIX_INT                         bloknum;            /* Based number of current block        */
-  PASTIX_INT                         nodemax;            /* Maximum node index                   */
+  pastix_int_t                         blokmax;            /* Maximum block index                  */
+  pastix_int_t                         bloknum;            /* Based number of current block        */
+  pastix_int_t                         nodemax;            /* Maximum node index                   */
 
   baseval = symbptr->baseval;
   cblktax = symbptr->cblktab - baseval;

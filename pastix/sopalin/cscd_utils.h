@@ -31,7 +31,7 @@
 /*
  * MULTIPLE_TYPE_DEFINE
  *
- * Automaticaly generate function for each PASTIX_FLOAT type.
+ * Automaticaly generate function for each pastix_float_t type.
  *
  * This macro is fitted for function not taking floating points arguments.
  */
@@ -50,7 +50,7 @@
 /*
  * MULTIPLE_TYPE_DEFINE_F
  *
- * Automaticaly generate function for each PASTIX_FLOAT type.
+ * Automaticaly generate function for each pastix_float_t type.
  *
  * This macro is fitted for function taking floating points arguments.
  */
@@ -112,7 +112,7 @@ enum CSC_DISPATCH_OP {
 typedef enum CSC_DISPATCH_OP CSCD_DISPATCH_OP_t;
 
 /* Section: Functions */
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  *  Function: csc_dispatch
  *
@@ -135,36 +135,36 @@ typedef enum CSC_DISPATCH_OP CSCD_DISPATCH_OP_t;
  *     dispatch          - choose how to dispatch the csc
  *     pastix_comm       - PaStiX MPI communicator.
  */
-void csc_dispatch(PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PASTIX_FLOAT *  gavals,
-                  PASTIX_FLOAT *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                  PASTIX_INT *lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, PASTIX_FLOAT ** lavals,
-                  PASTIX_FLOAT ** lrhs, PASTIX_INT ** lperm,
-                  PASTIX_INT **loc2glob, int dispatch, MPI_Comm pastix_comm);
+void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_float_t *  gavals,
+                  pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                  pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_float_t ** lavals,
+                  pastix_float_t ** lrhs, pastix_int_t ** lperm,
+                  pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm);
 #endif
 MULTIPLE_TYPE_DEFINE_F(void,
                        csc_dispatch,
-                       (PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, float *  gavals,
-                        float *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT *lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, float ** lavals,
-                        float ** lrhs, PASTIX_INT ** lperm,
-                        PASTIX_INT **loc2glob, int dispatch, MPI_Comm pastix_comm),
-                       (PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, double *  gavals,
-                        double *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT *lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, double ** lavals,
-                        double ** lrhs, PASTIX_INT ** lperm,
-                        PASTIX_INT **loc2glob, int dispatch, MPI_Comm pastix_comm),
-                       (PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, COMPLEX *  gavals,
-                        COMPLEX *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT *lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, COMPLEX ** lavals,
-                        COMPLEX ** lrhs, PASTIX_INT ** lperm,
-                        PASTIX_INT **loc2glob, int dispatch, MPI_Comm pastix_comm),
-                       (PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, DCOMPLEX *  gavals,
-                        DCOMPLEX *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT *lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, DCOMPLEX ** lavals,
-                        DCOMPLEX ** lrhs, PASTIX_INT ** lperm,
-                        PASTIX_INT **loc2glob, int dispatch, MPI_Comm pastix_comm))
+                       (pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, float *  gavals,
+                        float *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, float ** lavals,
+                        float ** lrhs, pastix_int_t ** lperm,
+                        pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm),
+                       (pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, double *  gavals,
+                        double *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, double ** lavals,
+                        double ** lrhs, pastix_int_t ** lperm,
+                        pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm),
+                       (pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, COMPLEX *  gavals,
+                        COMPLEX *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, COMPLEX ** lavals,
+                        COMPLEX ** lrhs, pastix_int_t ** lperm,
+                        pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm),
+                       (pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, DCOMPLEX *  gavals,
+                        DCOMPLEX *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, DCOMPLEX ** lavals,
+                        DCOMPLEX ** lrhs, pastix_int_t ** lperm,
+                        pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Function: csc_cyclic_distribution
  *
@@ -178,12 +178,12 @@ MULTIPLE_TYPE_DEFINE_F(void,
  * Return:
  *   owner of the column (column%commSize)
  */
-PASTIX_INT csc_cyclic_distribution(PASTIX_INT column, PASTIX_INT columnnbr, MPI_Comm pastix_comm);
+pastix_int_t csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm);
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, csc_cyclic_distribution,
-                     (PASTIX_INT column, PASTIX_INT columnnbr, MPI_Comm pastix_comm))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, csc_cyclic_distribution,
+                     (pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Function: csc_simple_distribution
  *
@@ -198,13 +198,13 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, csc_cyclic_distribution,
  * Return:
  *   owner of the column (column/commSize)
  */
-PASTIX_INT csc_simple_distribution(PASTIX_INT column, PASTIX_INT columnnbr, MPI_Comm pastix_comm);
+pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm);
 
 #endif
-MULTIPLE_TYPE_DEFINE(PASTIX_INT, csc_simple_distribution,
-                     (PASTIX_INT column, PASTIX_INT columnnbr, MPI_Comm pastix_comm))
+MULTIPLE_TYPE_DEFINE(pastix_int_t, csc_simple_distribution,
+                     (pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Function: cscd_symgraph
  *
@@ -222,16 +222,16 @@ MULTIPLE_TYPE_DEFINE(PASTIX_INT, csc_simple_distribution,
  *   l2g         - global number of each local column.
  *   malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
-int cscd_symgraph(PASTIX_INT      n, PASTIX_INT *     ia, PASTIX_INT *     ja, PASTIX_FLOAT *     a,
-                  PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, PASTIX_FLOAT ** newa,
-                  PASTIX_INT *     l2g,  MPI_Comm comm);
+int cscd_symgraph(pastix_int_t      n, pastix_int_t *     ia, pastix_int_t *     ja, pastix_float_t *     a,
+                  pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
+                  pastix_int_t *     l2g,  MPI_Comm comm);
 #endif
 MULTIPLE_TYPE_DEFINE(int, cscd_symgraph,
-                     (PASTIX_INT      n, PASTIX_INT *     ia, PASTIX_INT *     ja, float *     a,
-                      PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, float ** newa,
-                      PASTIX_INT *     l2g,  MPI_Comm comm))
+                     (pastix_int_t      n, pastix_int_t *     ia, pastix_int_t *     ja, float *     a,
+                      pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, float ** newa,
+                      pastix_int_t *     l2g,  MPI_Comm comm))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Function: cscd_addlocal
  *
@@ -256,32 +256,32 @@ MULTIPLE_TYPE_DEFINE(int, cscd_symgraph,
  *   dof         - Number of degrees of freedom.
  */
 
-int cscd_addlocal(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , PASTIX_FLOAT *  a   , PASTIX_INT * l2g,
-      PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja, PASTIX_FLOAT *  adda, PASTIX_INT * addl2g,
-      PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, PASTIX_FLOAT ** newa, CSCD_OPERATIONS_t OP, int dof);
+int cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   , pastix_int_t * l2g,
+      pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda, pastix_int_t * addl2g,
+      pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa, CSCD_OPERATIONS_t OP, int dof);
 #endif
 MULTIPLE_TYPE_DEFINE_F(int, cscd_addlocal,
-                       (PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , float *  a   , PASTIX_INT * l2g,
-                        PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja, float *  adda, PASTIX_INT * addl2g,
-                        PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, float ** newa, CSCD_OPERATIONS_t OP, int dof),
-                       (PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , double *  a   , PASTIX_INT * l2g,
-                        PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja, double *  adda, PASTIX_INT * addl2g,
-                        PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, double ** newa, CSCD_OPERATIONS_t OP, int dof),
-                       (PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja,
-                        COMPLEX *  a   , PASTIX_INT * l2g,
-                        PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja,
-                        COMPLEX *  adda, PASTIX_INT * addl2g,
-                        PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja,
+                       (pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , float *  a   , pastix_int_t * l2g,
+                        pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, float *  adda, pastix_int_t * addl2g,
+                        pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, float ** newa, CSCD_OPERATIONS_t OP, int dof),
+                       (pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , double *  a   , pastix_int_t * l2g,
+                        pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, double *  adda, pastix_int_t * addl2g,
+                        pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, double ** newa, CSCD_OPERATIONS_t OP, int dof),
+                       (pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja,
+                        COMPLEX *  a   , pastix_int_t * l2g,
+                        pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja,
+                        COMPLEX *  adda, pastix_int_t * addl2g,
+                        pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja,
                         COMPLEX ** newa, CSCD_OPERATIONS_t OP, int dof),
-                       (PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja,
-                        DCOMPLEX *  a   , PASTIX_INT * l2g,
-                        PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja,
-                        DCOMPLEX *  adda, PASTIX_INT * addl2g,
-                        PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja,
+                       (pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja,
+                        DCOMPLEX *  a   , pastix_int_t * l2g,
+                        pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja,
+                        DCOMPLEX *  adda, pastix_int_t * addl2g,
+                        pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja,
                         DCOMPLEX ** newa, CSCD_OPERATIONS_t OP, int dof))
 
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /**
  *   Function: csc2cscd
  *
@@ -306,35 +306,35 @@ MULTIPLE_TYPE_DEFINE_F(int, cscd_addlocal,
  *     linvp    - local part of the reverse permutation tabular (output).
  *     loc2glob - global numbers of local columns (before permutation).
  */
-void  csc2cscd(PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PASTIX_FLOAT *  gavals,
-               PASTIX_FLOAT *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-               PASTIX_INT lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, PASTIX_FLOAT ** lavals,
-               PASTIX_FLOAT ** lrhs, PASTIX_INT ** lperm, PASTIX_INT ** linvp,
-               PASTIX_INT *loc2glob);
+void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_float_t *  gavals,
+               pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+               pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_float_t ** lavals,
+               pastix_float_t ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+               pastix_int_t *loc2glob);
 #endif
 MULTIPLE_TYPE_DEFINE_F(void,  csc2cscd,
-                       (PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, float *  gavals,
-                        float *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, float ** lavals,
-                        float ** lrhs, PASTIX_INT ** lperm, PASTIX_INT ** linvp,
-                        PASTIX_INT *loc2glob),
-                       (PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, double *  gavals,
-                        double *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, double ** lavals,
-                        double ** lrhs, PASTIX_INT ** lperm, PASTIX_INT ** linvp,
-                        PASTIX_INT *loc2glob),
-                       (PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, COMPLEX *  gavals,
-                        COMPLEX *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, COMPLEX ** lavals,
-                        COMPLEX ** lrhs, PASTIX_INT ** lperm, PASTIX_INT ** linvp,
-                        PASTIX_INT *loc2glob),
-                       (PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, DCOMPLEX *  gavals,
-                        DCOMPLEX *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                        PASTIX_INT lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, DCOMPLEX ** lavals,
-                        DCOMPLEX ** lrhs, PASTIX_INT ** lperm, PASTIX_INT ** linvp,
-                        PASTIX_INT *loc2glob))
+                       (pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, float *  gavals,
+                        float *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, float ** lavals,
+                        float ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+                        pastix_int_t *loc2glob),
+                       (pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, double *  gavals,
+                        double *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, double ** lavals,
+                        double ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+                        pastix_int_t *loc2glob),
+                       (pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, COMPLEX *  gavals,
+                        COMPLEX *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, COMPLEX ** lavals,
+                        COMPLEX ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+                        pastix_int_t *loc2glob),
+                       (pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, DCOMPLEX *  gavals,
+                        DCOMPLEX *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                        pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, DCOMPLEX ** lavals,
+                        DCOMPLEX ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+                        pastix_int_t *loc2glob))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /**
  *   Function: cscd2csc
  *
@@ -362,35 +362,35 @@ MULTIPLE_TYPE_DEFINE_F(void,  csc2cscd,
  *
  */
 
-void  cscd2csc(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PASTIX_FLOAT * lavals,
-               PASTIX_FLOAT * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-               PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, PASTIX_FLOAT **gavals,
-               PASTIX_FLOAT **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-               PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof);
+void  cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_float_t * lavals,
+               pastix_float_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+               pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_float_t **gavals,
+               pastix_float_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+               pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof);
 #endif
 MULTIPLE_TYPE_DEFINE_F(void,  cscd2csc,
-                       (PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, float * lavals,
-                        float * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-                        PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, float **gavals,
-                        float **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-                        PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof),
-                       (PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, double * lavals,
-                        double * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-                        PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, double **gavals,
-                        double **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-                        PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof),
-                       (PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, COMPLEX * lavals,
-                        COMPLEX * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-                        PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, COMPLEX **gavals,
-                        COMPLEX **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-                        PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof),
-                       (PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, DCOMPLEX * lavals,
-                        DCOMPLEX * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-                        PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, DCOMPLEX **gavals,
-                        DCOMPLEX **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-                        PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof))
+                       (pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, float * lavals,
+                        float * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+                        pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, float **gavals,
+                        float **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+                        pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof),
+                       (pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, double * lavals,
+                        double * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+                        pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, double **gavals,
+                        double **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+                        pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof),
+                       (pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, COMPLEX * lavals,
+                        COMPLEX * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+                        pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, COMPLEX **gavals,
+                        COMPLEX **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+                        pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof),
+                       (pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, DCOMPLEX * lavals,
+                        DCOMPLEX * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+                        pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, DCOMPLEX **gavals,
+                        DCOMPLEX **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+                        pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  * Function: cscd_redispatch
  *
@@ -425,35 +425,35 @@ MULTIPLE_TYPE_DEFINE_F(void,  cscd2csc,
  *   EXIT_SUCCESS - If all goes well
  *   EXIT_FAILURE - If commsize = 1 and *n* != *dn* or *l2g* != *dl2g*.
  */
-int cscd_redispatch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PASTIX_FLOAT *   a,
-                    PASTIX_FLOAT *  rhs,  PASTIX_INT nrhs, PASTIX_INT *   l2g,
-                    PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, PASTIX_FLOAT ** da,
-                    PASTIX_FLOAT ** drhs,  PASTIX_INT *  dl2g,
-                    MPI_Comm comm, PASTIX_INT dof);
+int cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
+                    pastix_float_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
+                    pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
+                    pastix_float_t ** drhs,  pastix_int_t *  dl2g,
+                    MPI_Comm comm, pastix_int_t dof);
 #endif
 MULTIPLE_TYPE_DEFINE_F(int, cscd_redispatch,
-                       (PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, float *   a,
-                        float *  rhs,  PASTIX_INT nrhs,   PASTIX_INT *   l2g,
-                        PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, float ** da,
-                        float ** drhs,  PASTIX_INT *  dl2g,
-                        MPI_Comm comm, PASTIX_INT dof),
-                       (PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, double *   a,
-                        double *  rhs,  PASTIX_INT nrhs,   PASTIX_INT *   l2g,
-                        PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, double ** da,
-                        double ** drhs,  PASTIX_INT *  dl2g,
-                        MPI_Comm comm, PASTIX_INT dof),
-                       (PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, COMPLEX *   a,
-                        COMPLEX *  rhs,  PASTIX_INT nrhs,   PASTIX_INT *   l2g,
-                        PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, COMPLEX ** da,
-                        COMPLEX ** drhs,  PASTIX_INT *  dl2g,
-                        MPI_Comm comm, PASTIX_INT dof),
-                       (PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, DCOMPLEX *   a,
-                        DCOMPLEX *  rhs,  PASTIX_INT nrhs,   PASTIX_INT *   l2g,
-                        PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, DCOMPLEX ** da,
-                        DCOMPLEX ** drhs,  PASTIX_INT *  dl2g,
-                        MPI_Comm comm, PASTIX_INT dof))
+                       (pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, float *   a,
+                        float *  rhs,  pastix_int_t nrhs,   pastix_int_t *   l2g,
+                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, float ** da,
+                        float ** drhs,  pastix_int_t *  dl2g,
+                        MPI_Comm comm, pastix_int_t dof),
+                       (pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, double *   a,
+                        double *  rhs,  pastix_int_t nrhs,   pastix_int_t *   l2g,
+                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, double ** da,
+                        double ** drhs,  pastix_int_t *  dl2g,
+                        MPI_Comm comm, pastix_int_t dof),
+                       (pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, COMPLEX *   a,
+                        COMPLEX *  rhs,  pastix_int_t nrhs,   pastix_int_t *   l2g,
+                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, COMPLEX ** da,
+                        COMPLEX ** drhs,  pastix_int_t *  dl2g,
+                        MPI_Comm comm, pastix_int_t dof),
+                       (pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, DCOMPLEX *   a,
+                        DCOMPLEX *  rhs,  pastix_int_t nrhs,   pastix_int_t *   l2g,
+                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, DCOMPLEX ** da,
+                        DCOMPLEX ** drhs,  pastix_int_t *  dl2g,
+                        MPI_Comm comm, pastix_int_t dof))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  *  Function: cscd_save
  *
@@ -478,20 +478,20 @@ MULTIPLE_TYPE_DEFINE_F(int, cscd_redispatch,
  *    filename    - name of the files.
  *    comm        - MPI communicator
  */
-int cscd_save(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT * a, PASTIX_FLOAT * rhs, PASTIX_INT* l2g,
+int cscd_save(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, pastix_float_t * rhs, pastix_int_t* l2g,
               int dof, const char * filename, MPI_Comm comm);
 #endif
 MULTIPLE_TYPE_DEFINE_F(int, cscd_save,
-                       (PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, float * a, float * rhs, PASTIX_INT* l2g,
+                       (pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, float * a, float * rhs, pastix_int_t* l2g,
                         int dof, const char * filename, MPI_Comm comm),
-                       (PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, double * a, double * rhs, PASTIX_INT* l2g,
+                       (pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, double * a, double * rhs, pastix_int_t* l2g,
                         int dof, const char * filename, MPI_Comm comm),
-                       (PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, COMPLEX * a, COMPLEX * rhs,
-                        PASTIX_INT* l2g,  int dof,  const char * filename, MPI_Comm comm),
-                       (PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, DCOMPLEX * a, DCOMPLEX * rhs,
-                        PASTIX_INT* l2g,  int dof,  const char * filename, MPI_Comm comm))
+                       (pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, COMPLEX * a, COMPLEX * rhs,
+                        pastix_int_t* l2g,  int dof,  const char * filename, MPI_Comm comm),
+                       (pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, DCOMPLEX * a, DCOMPLEX * rhs,
+                        pastix_int_t* l2g,  int dof,  const char * filename, MPI_Comm comm))
 
-#if (defined PASTIX_FLOAT)
+#if (defined pastix_float_t)
 /*
  *  Function: cscd_load
  *
@@ -508,19 +508,19 @@ MULTIPLE_TYPE_DEFINE_F(int, cscd_save,
  *    filename    - name of the files.
  *    comm        - MPI communicator
  */
-int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT ** a, PASTIX_FLOAT ** rhs, PASTIX_INT ** l2g,
+int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_float_t ** a, pastix_float_t ** rhs, pastix_int_t ** l2g,
               const char * filename, MPI_Comm mpi_comm);
 #endif
 MULTIPLE_TYPE_DEFINE_F(int, cscd_load,
-                       (PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, float ** a, float ** rhs, PASTIX_INT ** l2g,
+                       (pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, float ** a, float ** rhs, pastix_int_t ** l2g,
                         const char * filename, MPI_Comm mpi_comm),
-                       (PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, double ** a, double ** rhs,
-                        PASTIX_INT ** l2g, const char * filename, MPI_Comm mpi_comm),
-                       (PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, COMPLEX ** a,
-                        COMPLEX ** rhs, PASTIX_INT ** l2g, const char * filename,
+                       (pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, double ** a, double ** rhs,
+                        pastix_int_t ** l2g, const char * filename, MPI_Comm mpi_comm),
+                       (pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, COMPLEX ** a,
+                        COMPLEX ** rhs, pastix_int_t ** l2g, const char * filename,
                         MPI_Comm mpi_comm),
-                       (PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, DCOMPLEX ** a,
-                        DCOMPLEX ** rhs, PASTIX_INT ** l2g, const char * filename,
+                       (pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, DCOMPLEX ** a,
+                        DCOMPLEX ** rhs, pastix_int_t ** l2g, const char * filename,
                         MPI_Comm mpi_comm))
 
 #undef MULTIPLE_TYPE_DEFINE_F

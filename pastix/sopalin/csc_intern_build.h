@@ -33,29 +33,29 @@
 */
 void CscOrdistrib(CscMatrix          *thecsc, 
 		  char               *Type, 
-		  PASTIX_FLOAT             **transcsc,
+		  pastix_float_t             **transcsc,
 		  const Order        *ord, 
-		  PASTIX_INT                 Nrow, 
-		  PASTIX_INT                 Ncol,
-		  PASTIX_INT                 Nnzero, 
-		  PASTIX_INT                *colptr, 
-		  PASTIX_INT                *rowind, 
-		  PASTIX_FLOAT              *val, 
-		  PASTIX_INT                 forcetrans,
+		  pastix_int_t                 Nrow, 
+		  pastix_int_t                 Ncol,
+		  pastix_int_t                 Nnzero, 
+		  pastix_int_t                *colptr, 
+		  pastix_int_t                *rowind, 
+		  pastix_float_t              *val, 
+		  pastix_int_t                 forcetrans,
 		  const SolverMatrix *symbmtx, 
-		  PASTIX_INT                 procnum, 
-		  PASTIX_INT                 dof);
+		  pastix_int_t                 procnum, 
+		  pastix_int_t                 dof);
 
 /*
   Function: CscdOrdistrib
 
   Fill in *thecsc* CSC matrix in column block representation.
 
-  - Construct cachetab (sizeof(PASTIX_INT)*globalNbCol) which will contain
+  - Construct cachetab (sizeof(pastix_int_t)*globalNbCol) which will contain
   the column block wich will own each column (internal numerotation), 
   or -1 if not local 
 
-  - Build newcoltab (sizeof(PASTIX_INT)*globalNbCol) which will contain the 
+  - Build newcoltab (sizeof(pastix_int_t)*globalNbCol) which will contain the 
   coltab corresponding to the local internal CSCd.
   This CSCd correspond to the given CSCd adding upper part in Symmetric matrix.
   Also count number of triples (i,j,v) to send to each other processors.
@@ -109,19 +109,19 @@ void CscOrdistrib(CscMatrix          *thecsc,
 */
 void CscdOrdistrib(CscMatrix          *thecsc, 
 		   char               *Type, 
-		   PASTIX_FLOAT             **transcsc,
+		   pastix_float_t             **transcsc,
 		   const Order        *ord, 
-		   PASTIX_INT                 Ncol,
-		   PASTIX_INT                *colptr, 
-		   PASTIX_INT                *rowind, 
-		   PASTIX_FLOAT              *val, 
-		   PASTIX_INT                *l2g,
-		   PASTIX_INT                 gNcol,
-		   PASTIX_INT                *g2l,
-		   PASTIX_INT                 forcetrans,
+		   pastix_int_t                 Ncol,
+		   pastix_int_t                *colptr, 
+		   pastix_int_t                *rowind, 
+		   pastix_float_t              *val, 
+		   pastix_int_t                *l2g,
+		   pastix_int_t                 gNcol,
+		   pastix_int_t                *g2l,
+		   pastix_int_t                 forcetrans,
 		   const SolverMatrix *symbmtx, 
-		   PASTIX_INT                 procnum,
-		   PASTIX_INT                 dof,
+		   pastix_int_t                 procnum,
+		   pastix_int_t                 dof,
 		   MPI_Comm            comm);
 
 /* 

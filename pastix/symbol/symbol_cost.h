@@ -35,6 +35,6 @@
 #define static
 #endif
 
-static void                 symbolCost2         (const SymbolCblk * const cblktax, const SymbolBlok * const bloktax, const Dof * const deofptr, double * const nnzptr, double * const opcptr, const PASTIX_INT cblkmin, const PASTIX_INT cblknbr);
+static void                 symbolCost2         (const SymbolCblk * const cblktax, const SymbolBlok * const bloktax, const Dof * const deofptr, double * const nnzptr, double * const opcptr, const pastix_int_t cblkmin, const pastix_int_t cblknbr);
 
 #undef static

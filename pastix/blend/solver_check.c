@@ -28,13 +28,13 @@
 
 void solverCheck(SolverMatrix *solvmtx)
 {
-    PASTIX_INT i, j, k = 0;
-    PASTIX_INT cblknum, bloknum, ftgtnum;
-    PASTIX_INT indnum, tasknum, btagnum;
-/*     PASTIX_INT stride; */
+    pastix_int_t i, j, k = 0;
+    pastix_int_t cblknum, bloknum, ftgtnum;
+    pastix_int_t indnum, tasknum, btagnum;
+/*     pastix_int_t stride; */
     Task *task = NULL;
-    PASTIX_INT  *sendcnt = NULL;
-    PASTIX_INT total;
+    pastix_int_t  *sendcnt = NULL;
+    pastix_int_t total;
     
 
     BlockCoeff *bcofptr = NULL;
@@ -81,7 +81,7 @@ void solverCheck(SolverMatrix *solvmtx)
 			      {
 			      case COMP_1D:
 				{
-				  PASTIX_INT facebloknum, facecblknum;
+				  pastix_int_t facebloknum, facecblknum;
 				  facecblknum = solvmtx->bloktab[j].cblknum;
 				  ASSERT(facecblknum >= 0,MOD_BLEND);
 				  ASSERT(facecblknum == solvmtx->tasktab[tasknum].cblknum,MOD_BLEND);
@@ -104,7 +104,7 @@ void solverCheck(SolverMatrix *solvmtx)
 			      case DIAG:
 			      case E1:
 				{
-				  PASTIX_INT facecblknum;
+				  pastix_int_t facecblknum;
 				  facecblknum = solvmtx->bloktab[j].cblknum;
 				  ASSERT(facecblknum == solvmtx->tasktab[tasknum].cblknum,MOD_BLEND);
 				  ASSERT(solvmtx->bloktab[k].frownum >= solvmtx->bloktab[solvmtx->tasktab[tasknum].bloknum].frownum,MOD_BLEND);
@@ -256,7 +256,7 @@ void solverCheck(SolverMatrix *solvmtx)
     /**To check the send counter of ftgt and btag **/
     if (solvmtx->bcofnbr != 0)
       {
-	MALLOC_INTERN(sendcnt, solvmtx->bcofnbr, PASTIX_INT);
+	MALLOC_INTERN(sendcnt, solvmtx->bcofnbr, pastix_int_t);
       }
     for(i=0;i<solvmtx->bcofnbr;i++)
       sendcnt[i] = solvmtx->bcoftab[i].sendcnt;
@@ -296,9 +296,9 @@ void solverCheck(SolverMatrix *solvmtx)
 
 #ifdef DEBUG_BLEND
     {
-      PASTIX_INT * flag;
-      MALLOC_INTERN(flag, solvmtx->tasknbr, PASTIX_INT);
-      bzero(flag, sizeof(PASTIX_INT)*solvmtx->tasknbr);
+      pastix_int_t * flag;
+      MALLOC_INTERN(flag, solvmtx->tasknbr, pastix_int_t);
+      bzero(flag, sizeof(pastix_int_t)*solvmtx->tasknbr);
       
       for(i=0;i<solvmtx->bublnbr;i++)
 	for(j=0;j<solvmtx->ttsknbr[i];j++)

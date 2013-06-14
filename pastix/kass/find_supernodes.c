@@ -18,11 +18,11 @@
 #include "find_supernodes.h"
 
 /** local function **/
-void  post_order(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *T,  PASTIX_INT *perm, PASTIX_INT *iperm);
-void compute_subtree_size(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *perm, PASTIX_INT *iperm, PASTIX_INT *T);
-void compute_elimination_tree(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *perm, PASTIX_INT *iperm, PASTIX_INT *father);
+void  post_order(pastix_int_t n, pastix_int_t *father, pastix_int_t *T,  pastix_int_t *perm, pastix_int_t *iperm);
+void compute_subtree_size(pastix_int_t n, pastix_int_t *father, pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t *T);
+void compute_elimination_tree(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t *father);
 
-void  find_supernodes(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *perm, PASTIX_INT *iperm, PASTIX_INT *snodenbr, PASTIX_INT *snodetab, PASTIX_INT *treetab)
+void  find_supernodes(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t *snodenbr, pastix_int_t *snodetab, pastix_int_t *treetab)
 {
   /********************************************************************************************/
   /* This function computes the supernodal partition of a reordered matrix.                   */
@@ -51,22 +51,22 @@ void  find_supernodes(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *
   /*             elimination tree                                                             */
   /********************************************************************************************/
 
-  PASTIX_INT *father     = NULL; /** father[i] is the father of node i in he elimination tree of A **/
-  PASTIX_INT *T          = NULL; /** T[j] is the number of node in the subtree rooted in node j in
+  pastix_int_t *father     = NULL; /** father[i] is the father of node i in he elimination tree of A **/
+  pastix_int_t *T          = NULL; /** T[j] is the number of node in the subtree rooted in node j in
                               the elimination tree of A **/
-  PASTIX_INT *S          = NULL; /** S[i] is the number of sons for node i in the elimination tree **/
-  PASTIX_INT *isleaf     = NULL;
-  PASTIX_INT *prev_rownz = NULL;
-  PASTIX_INT i, j, k;
-  PASTIX_INT pi, pj;
-  PASTIX_INT dad;
+  pastix_int_t *S          = NULL; /** S[i] is the number of sons for node i in the elimination tree **/
+  pastix_int_t *isleaf     = NULL;
+  pastix_int_t *prev_rownz = NULL;
+  pastix_int_t i, j, k;
+  pastix_int_t pi, pj;
+  pastix_int_t dad;
 
 
-  MALLOC_INTERN(T,          n, PASTIX_INT);
-  MALLOC_INTERN(S,          n, PASTIX_INT);
-  MALLOC_INTERN(father,     n, PASTIX_INT);
-  MALLOC_INTERN(isleaf,     n, PASTIX_INT);
-  MALLOC_INTERN(prev_rownz, n, PASTIX_INT);
+  MALLOC_INTERN(T,          n, pastix_int_t);
+  MALLOC_INTERN(S,          n, pastix_int_t);
+  MALLOC_INTERN(father,     n, pastix_int_t);
+  MALLOC_INTERN(isleaf,     n, pastix_int_t);
+  MALLOC_INTERN(prev_rownz, n, pastix_int_t);
 #ifdef DEBUG_BLEND
   assert(ia[0] == 0);
 #endif
@@ -80,7 +80,7 @@ void  find_supernodes(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *
       assert(perm[i] < n);
     }
 
-  bzero(S, sizeof(PASTIX_INT)*n);
+  bzero(S, sizeof(pastix_int_t)*n);
   for(i=0;i<n;i++)
     S[perm[i]]++;
 
@@ -106,8 +106,8 @@ void  find_supernodes(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *
   compute_subtree_size(n, father, perm, iperm, T);
 
 
-  bzero(isleaf, sizeof(PASTIX_INT)*n);
-  bzero(prev_rownz, sizeof(PASTIX_INT)*n);
+  bzero(isleaf, sizeof(pastix_int_t)*n);
+  bzero(prev_rownz, sizeof(pastix_int_t)*n);
 
 
   for(j=0;j<n;j++)
@@ -129,7 +129,7 @@ void  find_supernodes(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *
 
 
   /*** Compute the number of sons of each node in the elimination tree ***/
-  bzero(S, sizeof(PASTIX_INT)*n);
+  bzero(S, sizeof(pastix_int_t)*n);
   for(i=0;i<n;i++)
     if(father[i] != i)
       S[father[i]]++;
@@ -193,7 +193,7 @@ void  find_supernodes(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *
 }
 
 
-void  post_order(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *T,  PASTIX_INT *perm, PASTIX_INT *iperm)
+void  post_order(pastix_int_t n, pastix_int_t *father, pastix_int_t *T,  pastix_int_t *perm, pastix_int_t *iperm)
 {
   /********************************************************************************/
   /* This function compute the post order of the elimination tree given on entry  */
@@ -208,8 +208,8 @@ void  post_order(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *T,  PASTIX_INT *p
   /* On return :                                                                  */
   /* perm, iperm : permutation and inverse permutation vector of the postorder    */
   /********************************************************************************/
-  PASTIX_INT i;
-  PASTIX_INT j, k, t;
+  pastix_int_t i;
+  pastix_int_t j, k, t;
 
 
   /*** First compute the number of node in the subtree rooted in node i ***/
@@ -262,7 +262,7 @@ void  post_order(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *T,  PASTIX_INT *p
       assert(perm[i] < n);
     }
 
-  bzero(iperm, sizeof(PASTIX_INT)*n);
+  bzero(iperm, sizeof(pastix_int_t)*n);
   for(i=0;i<n;i++)
     iperm[perm[i]]++;
 
@@ -286,19 +286,19 @@ void  post_order(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *T,  PASTIX_INT *p
 
 
 
-void compute_subtree_size(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *perm, PASTIX_INT *iperm, PASTIX_INT *T)
+void compute_subtree_size(pastix_int_t n, pastix_int_t *father, pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t *T)
 {
   /********************************************/
   /*  Compute the size of each subtree given  */
   /*  the number of the father of each node   */
   /********************************************/
-  PASTIX_INT k, i;
+  pastix_int_t k, i;
   (void)perm;
 
   /*** OIMBE pas la peine d'utiliser un tas; il suffit de parcourir iperm pour assurer
        de toujours traiter un fils avant son pere ***/
 
-  bzero(T, sizeof(PASTIX_INT)*n);
+  bzero(T, sizeof(pastix_int_t)*n);
 
   for(k=0;k<n;k++)
     {
@@ -312,7 +312,7 @@ void compute_subtree_size(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *perm, PA
 
 #ifdef DEBUG_BLEND
  {
-   PASTIX_INT sum;
+   pastix_int_t sum;
    sum = 0;
    for(i=0;i<n;i++)
      if(father[i] == i)
@@ -329,7 +329,7 @@ void compute_subtree_size(PASTIX_INT n, PASTIX_INT *father, PASTIX_INT *perm, PA
 
 
 
-void compute_elimination_tree(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT *perm, PASTIX_INT *iperm, PASTIX_INT *father)
+void compute_elimination_tree(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t *father)
 {
   /******************************************************************************/
   /* Compute the elimination tree of a matrix A (without computing the symbolic */
@@ -343,21 +343,21 @@ void compute_elimination_tree(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PAST
   /* If node i is a root then father[i] = i                                     */
   /* NOTE : father is allocated at a size of n interger on input                */
   /******************************************************************************/
-  PASTIX_INT i, j, k;
-  PASTIX_INT node;
-  PASTIX_INT vroot;
+  pastix_int_t i, j, k;
+  pastix_int_t node;
+  pastix_int_t vroot;
 
   /** Optim **/
-  PASTIX_INT flag, ind;
-  PASTIX_INT *jrev = NULL;
-  PASTIX_INT *jf   = NULL;
+  pastix_int_t flag, ind;
+  pastix_int_t *jrev = NULL;
+  pastix_int_t *jf   = NULL;
 
 
-  MALLOC_INTERN(jrev, n, PASTIX_INT);
+  MALLOC_INTERN(jrev, n, pastix_int_t);
   for(i=0;i<n;i++)
     jrev[i] = -1;
-  MALLOC_INTERN(jf, n, PASTIX_INT);
-  bzero(jf, sizeof(PASTIX_INT)*n);
+  MALLOC_INTERN(jf, n, pastix_int_t);
+  bzero(jf, sizeof(pastix_int_t)*n);
 
   for(i=0;i<n;i++)
     father[i] = -1;

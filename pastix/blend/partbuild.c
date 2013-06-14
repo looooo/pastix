@@ -34,16 +34,16 @@ void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
                CostMatrix *costmtx, ExtraCostMatrix *extracost,
                BlendCtrl *ctrl, const Dof * dofptr)
 {
-    PASTIX_INT i, j, k, s;
-    PASTIX_INT curbloknum;
-    PASTIX_INT sptbloknum;
-    PASTIX_INT *newnum      = NULL;
-    PASTIX_INT *extranewnum = NULL;
+    pastix_int_t i, j, k, s;
+    pastix_int_t curbloknum;
+    pastix_int_t sptbloknum;
+    pastix_int_t *newnum      = NULL;
+    pastix_int_t *extranewnum = NULL;
     SymbolMatrix *tmp;
     CostMatrix   *tmp2;
     Cand         *tmp3;
     Cand         *candtab;
-    PASTIX_INT    facing_splitted_cnt = 0;
+    pastix_int_t    facing_splitted_cnt = 0;
 
     /* No splitted cblk: partition remains the same */
     if(extrasymb->curcblk == 0)
@@ -83,8 +83,8 @@ void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
     candtab = ctrl->candtab;
 
     /** we use sptcbnb to get new num of cblk in the new symbolic matrix **/
-    MALLOC_INTERN(newnum, tmp->cblknbr+1, PASTIX_INT);
-    memcpy(&(newnum[1]), extrasymb->sptcbnb, tmp->cblknbr * sizeof(PASTIX_INT));
+    MALLOC_INTERN(newnum, tmp->cblknbr+1, pastix_int_t);
+    memcpy(&(newnum[1]), extrasymb->sptcbnb, tmp->cblknbr * sizeof(pastix_int_t));
     newnum[0] = 0;
     for(i=1;i < tmp->cblknbr+1;i++)
         newnum[i] += newnum[i-1];
@@ -98,7 +98,7 @@ void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
 
     /** Now, we use sptcblk and newind to get the new decomp number of all cblk owned
         by the extra symbolic matrix **/
-    MALLOC_INTERN(extranewnum, extrasymb->curcblk, PASTIX_INT);
+    MALLOC_INTERN(extranewnum, extrasymb->curcblk, pastix_int_t);
     for(i=0;i<tmp->cblknbr;i++)
         if(extrasymb->sptcblk[i]>=0)
             for(j=0;j<extrasymb->sptcbnb[i];j++)

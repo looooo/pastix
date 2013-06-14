@@ -64,24 +64,24 @@
 int
 symbolLevf (
 const SymbolMatrix * const  symbptr,              /*+ Symbolic matrix to evaluate                +*/
-PASTIX_INT * const                 levfmax,              /*+ Maximum level of fill                      +*/
-PASTIX_INT ** const                levfptr)              /*+ Array of number of blocks at level of fill +*/
+pastix_int_t * const                 levfmax,              /*+ Maximum level of fill                      +*/
+pastix_int_t ** const                levfptr)              /*+ Array of number of blocks at level of fill +*/
 {
-  PASTIX_INT * restrict      levftab;                    /* Array of level of fill counts */
-  PASTIX_INT                 levfmac;                    /* Current maximum level of fill */
-  PASTIX_INT                 bloknum;                    /* Number of current block       */
+  pastix_int_t * restrict      levftab;                    /* Array of level of fill counts */
+  pastix_int_t                 levfmac;                    /* Current maximum level of fill */
+  pastix_int_t                 bloknum;                    /* Number of current block       */
 
   if (levfptr != NULL) {                          /* If level of fill distribution wanted */
-    if ((levftab = (PASTIX_INT *) memAlloc (symbptr->cblknbr * sizeof (PASTIX_INT))) == NULL) {
+    if ((levftab = (pastix_int_t *) memAlloc (symbptr->cblknbr * sizeof (pastix_int_t))) == NULL) {
       errorPrint ("symbolLevf: out of memory");
       return     (1);
     }
 
-    memSet (levftab, 0, symbptr->cblknbr * sizeof (PASTIX_INT));
+    memSet (levftab, 0, symbptr->cblknbr * sizeof (pastix_int_t));
 
     levfmac = 0;
     for (bloknum = 0; bloknum < symbptr->bloknbr; bloknum ++) {
-      PASTIX_INT                 levfval;
+      pastix_int_t                 levfval;
 
       levfval = symbptr->bloktab[bloknum].levfval;
 
@@ -98,12 +98,12 @@ PASTIX_INT ** const                levfptr)              /*+ Array of number of 
         levfmac = levfval;
     }
 
-    *levfptr = (PASTIX_INT *) memRealloc (levftab, (levfmac + 1) * sizeof (PASTIX_INT));
+    *levfptr = (pastix_int_t *) memRealloc (levftab, (levfmac + 1) * sizeof (pastix_int_t));
   }
   else {                                          /* Only maximum level of fill wanted */
     levfmac = 0;
     for (bloknum = 0; bloknum < symbptr->bloknbr; bloknum ++) {
-      PASTIX_INT                 levfval;
+      pastix_int_t                 levfval;
 
       levfval = symbptr->bloktab[bloknum].levfval;
       if (levfval > levfmac)

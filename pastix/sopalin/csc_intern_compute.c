@@ -46,8 +46,8 @@
   Floating point constant equal to one.
 */
 #ifdef SMP_RAFF
-static PASTIX_INT   iun   = 1;
-static PASTIX_FLOAT fun   = 1.0;
+static pastix_int_t   iun   = 1;
+static pastix_float_t fun   = 1.0;
 #endif
 
 #ifdef DEBUG_RAFF
@@ -91,9 +91,9 @@ static PASTIX_FLOAT fun   = 1.0;
 double CscNorm1(const CscMatrix *cscmtx,
                 MPI_Comm         comm)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT iterval;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t iterval;
   double themax=0;
 #ifndef INOUT_ALLREDUCE
   double themax2;
@@ -112,8 +112,8 @@ double CscNorm1(const CscMatrix *cscmtx,
            itercol<CSC_COLNBR(cscmtx, itercblk);
            itercol++)
         {
-          PASTIX_INT colvalidx = CSC_COL(cscmtx, itercblk, itercol);
-          PASTIX_INT ncolvalidx = CSC_COL(cscmtx, itercblk, itercol+1);
+          pastix_int_t colvalidx = CSC_COL(cscmtx, itercblk, itercol);
+          pastix_int_t ncolvalidx = CSC_COL(cscmtx, itercblk, itercol+1);
           double sum41=0;
 
           for (iterval=colvalidx;
@@ -158,16 +158,16 @@ int CscGather_X(Sopalin_Data_t        *sopalin_data,
                 const UpDownVector    *updovct,
                 const SolverMatrix    *datacode,
                 MPI_Comm               comm,
-                const volatile PASTIX_FLOAT * x,
-                PASTIX_FLOAT                * tmpx,
-                PASTIX_FLOAT                **tmpx2)
+                const volatile pastix_float_t * x,
+                pastix_float_t                * tmpx,
+                pastix_float_t                **tmpx2)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT indcblk, indcol;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t indcblk, indcol;
 #ifdef SMP_RAFF
-  PASTIX_INT iterttsk;
-  PASTIX_INT iter;
+  pastix_int_t iterttsk;
+  pastix_int_t iter;
 #endif
   (void)comm;
 
@@ -183,7 +183,7 @@ int CscGather_X(Sopalin_Data_t        *sopalin_data,
           indcblk = UPDOWN_SM2XIND(itercblk);
           for (itercol=0; itercol<CSC_COLNBR(cscmtx,itercblk); itercol++)
             {
-              PASTIX_INT indcolglob = SYMB_FCOLNUM(itercblk)+itercol;
+              pastix_int_t indcolglob = SYMB_FCOLNUM(itercblk)+itercol;
               indcol   = indcblk+itercol;
               tmpx[indcolglob] = x[indcol];
             }
@@ -215,7 +215,7 @@ int CscGather_X(Sopalin_Data_t        *sopalin_data,
   sopalin_data->ptr_csc[0] = (void *)(*tmpx2);
   MONOTHREAD_END;
   SYNCHRO_THREAD;
-  (*tmpx2) = (PASTIX_FLOAT *)sopalin_data->ptr_csc[0];
+  (*tmpx2) = (pastix_float_t *)sopalin_data->ptr_csc[0];
 #endif /* SMP_RAFF */
   return NO_ERR;
 }
@@ -241,30 +241,30 @@ int CscGather_X(Sopalin_Data_t        *sopalin_data,
 static inline
 int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
                        int                   me,
-                       const volatile PASTIX_FLOAT *x,
-                       PASTIX_FLOAT                *atx,
+                       const volatile pastix_float_t *x,
+                       pastix_float_t                *atx,
                        const CscMatrix      *cscmtx,
                        const UpDownVector   *updovct,
                        const SolverMatrix   *datacode,
                        MPI_Comm              comm)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT iterval;
-  PASTIX_INT colstart, colend;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t iterval;
+  pastix_int_t colstart, colend;
 #ifdef SMP_RAFF
-  PASTIX_INT iterttsk;
+  pastix_int_t iterttsk;
 #endif
 
-  PASTIX_FLOAT * tmpx;
-  PASTIX_FLOAT * tmpx2 = NULL;
-  MALLOC_INTERN(tmpx, updovct->gnodenbr, PASTIX_FLOAT);
-  memset(tmpx, 0, updovct->gnodenbr*sizeof(PASTIX_FLOAT));
+  pastix_float_t * tmpx;
+  pastix_float_t * tmpx2 = NULL;
+  MALLOC_INTERN(tmpx, updovct->gnodenbr, pastix_float_t);
+  memset(tmpx, 0, updovct->gnodenbr*sizeof(pastix_float_t));
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tmpx2 = tmpx;
 #else
-  MALLOC_INTERN(tmpx2, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tmpx2, updovct->gnodenbr, pastix_float_t);
 #endif
   MONOTHREAD_END;
 
@@ -289,7 +289,7 @@ int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
 
               for (iterval=colstart; iterval<colend; iterval++)
                 {
-                  PASTIX_INT indcolglob = SYMB_FCOLNUM(itercblk)+itercol;
+                  pastix_int_t indcolglob = SYMB_FCOLNUM(itercblk)+itercol;
                   atx[indcolglob] +=
                     ABS_FLOAT(CSC_VAL(cscmtx,iterval)) *
                     ABS_FLOAT(tmpx2[CSC_ROW(cscmtx,iterval)]);
@@ -332,29 +332,29 @@ int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
 static inline
 int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile PASTIX_FLOAT *x,
-                  PASTIX_FLOAT                *atx,
+                  const volatile pastix_float_t *x,
+                  pastix_float_t                *atx,
                   const CscMatrix      *cscmtx,
                   const UpDownVector   *updovct,
                   const SolverMatrix   *datacode,
                   MPI_Comm              comm)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT iterval;
-  PASTIX_INT colstart, colend;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t iterval;
+  pastix_int_t colstart, colend;
 #ifdef SMP_RAFF
-  PASTIX_INT iterttsk;
+  pastix_int_t iterttsk;
 #endif
-  PASTIX_FLOAT * tmpx;
-  PASTIX_FLOAT * tmpx2 = NULL;
-  MALLOC_INTERN(tmpx, updovct->gnodenbr, PASTIX_FLOAT);
-  memset(tmpx, 0, updovct->gnodenbr*sizeof(PASTIX_FLOAT));
+  pastix_float_t * tmpx;
+  pastix_float_t * tmpx2 = NULL;
+  MALLOC_INTERN(tmpx, updovct->gnodenbr, pastix_float_t);
+  memset(tmpx, 0, updovct->gnodenbr*sizeof(pastix_float_t));
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tmpx2 = tmpx;
 #else
-  MALLOC_INTERN(tmpx2, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tmpx2, updovct->gnodenbr, pastix_float_t);
 #endif
   MONOTHREAD_END;
 
@@ -379,7 +379,7 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
 
               for (iterval=colstart; iterval<colend; iterval++)
                 {
-                  PASTIX_INT indcolglob = SYMB_FCOLNUM(itercblk)+itercol;
+                  pastix_int_t indcolglob = SYMB_FCOLNUM(itercblk)+itercol;
                   atx[indcolglob] +=
                     CSC_VAL(cscmtx,iterval) *
                     tmpx2[CSC_ROW(cscmtx,iterval)];
@@ -418,29 +418,29 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
  */
 void CscbMAx(Sopalin_Data_t       *sopalin_data,
              int                   me,
-             volatile PASTIX_FLOAT       *r,
-             const volatile PASTIX_FLOAT *b,
+             volatile pastix_float_t       *r,
+             const volatile pastix_float_t *b,
              const CscMatrix      *cscmtx,
              const UpDownVector   *updovct,
              const SolverMatrix   *solvmtx,
              MPI_Comm              comm,
-             PASTIX_INT                   transpose)
+             pastix_int_t                   transpose)
 {
   SolverMatrix * datacode;
-  PASTIX_FLOAT * tempy  = NULL;
-  PASTIX_FLOAT * tempy2 = NULL;
+  pastix_float_t * tempy  = NULL;
+  pastix_float_t * tempy2 = NULL;
 
 
-  PASTIX_INT itertempy = 0;
-  PASTIX_INT itercblk  = 0;
-  PASTIX_INT itercol   = 0;
-  PASTIX_INT iterval   = 0;
-  PASTIX_INT colstart, colend;
-  PASTIX_INT itersmx;
-  PASTIX_INT indcblk, indcol;
+  pastix_int_t itertempy = 0;
+  pastix_int_t itercblk  = 0;
+  pastix_int_t itercol   = 0;
+  pastix_int_t iterval   = 0;
+  pastix_int_t colstart, colend;
+  pastix_int_t itersmx;
+  pastix_int_t indcblk, indcol;
 #ifdef SMP_RAFF
-  PASTIX_INT iter;
-  PASTIX_INT iterttsk;
+  pastix_int_t iter;
+  pastix_int_t iterttsk;
 #endif
 
 #ifdef CSC_LOG
@@ -449,13 +449,13 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
   datacode = sopalin_data->datacode;
 
   /* Vecteur local a chaque thread */
-  MALLOC_INTERN(tempy, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
 
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tempy2 = tempy;
 #else
-  MALLOC_INTERN(tempy2, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_float_t);
 #endif
   MONOTHREAD_END;
 
@@ -534,7 +534,7 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
       sopalin_data->ptr_csc[0] = (void *)tempy2;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      tempy2 = (PASTIX_FLOAT *)sopalin_data->ptr_csc[0];
+      tempy2 = (pastix_float_t *)sopalin_data->ptr_csc[0];
 
       for (iterttsk=0; iterttsk<SOLV_TTSKNBR; iterttsk++)
         {
@@ -544,7 +544,7 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
             {
 #endif /* SMP_RAFF */
 
-              PASTIX_INT iterdval = updovct->cblktab[itercblk].sm2xind +
+              pastix_int_t iterdval = updovct->cblktab[itercblk].sm2xind +
                 itersmx*updovct->sm2xsze;
 
               for (iterval=0; iterval<CSC_COLNBR(cscmtx,itercblk); iterval++)
@@ -598,28 +598,28 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
  */
 void CscAxPb(Sopalin_Data_t     *sopalin_data,
              int                 me,
-             PASTIX_FLOAT              *r,
-             const PASTIX_FLOAT        *b,
+             pastix_float_t              *r,
+             const pastix_float_t        *b,
              const CscMatrix    *cscmtx,
              const UpDownVector *updovct,
              const SolverMatrix *solvmtx,
              MPI_Comm            comm,
-             PASTIX_INT                 transpose)
+             pastix_int_t                 transpose)
 {
   SolverMatrix * datacode;
-  PASTIX_FLOAT * tempy  = NULL;
-  PASTIX_FLOAT * tempy2 = NULL;
+  pastix_float_t * tempy  = NULL;
+  pastix_float_t * tempy2 = NULL;
 
-  PASTIX_INT itertempy = 0;
-  PASTIX_INT itercblk  = 0;
-  PASTIX_INT itercol   = 0;
-  PASTIX_INT iterval   = 0;
-  PASTIX_INT colstart, colend;
-  PASTIX_INT itersmx;
-  PASTIX_INT indcblk, indcol;
+  pastix_int_t itertempy = 0;
+  pastix_int_t itercblk  = 0;
+  pastix_int_t itercol   = 0;
+  pastix_int_t iterval   = 0;
+  pastix_int_t colstart, colend;
+  pastix_int_t itersmx;
+  pastix_int_t indcblk, indcol;
 #ifdef SMP_RAFF
-  PASTIX_INT iterttsk;
-  PASTIX_INT iter;
+  pastix_int_t iterttsk;
+  pastix_int_t iter;
 #endif
 
 #ifdef CSC_LOG
@@ -629,13 +629,13 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
   datacode = sopalin_data->datacode;
 
   /* vecteurs temporaires locaux */
-  MALLOC_INTERN(tempy, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
 
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tempy2 = tempy;
 #else
-  MALLOC_INTERN(tempy2, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_float_t);
 #endif
   MONOTHREAD_END;
 
@@ -724,7 +724,7 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
       sopalin_data->ptr_csc[0] = (void *)tempy2;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      tempy2 = (PASTIX_FLOAT *)sopalin_data->ptr_csc[0];
+      tempy2 = (pastix_float_t *)sopalin_data->ptr_csc[0];
 
       for (iterttsk=0; iterttsk<SOLV_TTSKNBR; iterttsk++)
         {
@@ -734,7 +734,7 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
             {
 #endif /* SMP_RAFF */
 
-              PASTIX_INT iterdval = updovct->cblktab[itercblk].sm2xind +
+              pastix_int_t iterdval = updovct->cblktab[itercblk].sm2xind +
                 itersmx*updovct->sm2xsze;
 
               for (iterval=0; iterval<CSC_COLNBR(cscmtx, itercblk); iterval++)
@@ -785,19 +785,19 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
 */
 void CscBerr(Sopalin_Data_t *sopalin_data,
              int            me,
-             const PASTIX_FLOAT   *r,
-             const PASTIX_FLOAT   *s,
-             const PASTIX_INT      colnbr,
-             const PASTIX_INT      smxnbr,
+             const pastix_float_t   *r,
+             const pastix_float_t   *s,
+             const pastix_int_t      colnbr,
+             const pastix_int_t      smxnbr,
              double        *berr,
              MPI_Comm       comm)
 {
   SolverMatrix *  datacode;
-  PASTIX_INT first,  last;
-  PASTIX_INT first2, last2;
-  PASTIX_INT step;
-  PASTIX_INT iter;
-  PASTIX_INT itersmx;
+  pastix_int_t first,  last;
+  pastix_int_t first2, last2;
+  pastix_int_t step;
+  pastix_int_t iter;
+  pastix_int_t itersmx;
   double berrmax = 0.0;
   double berr2;
   (void)comm;
@@ -813,7 +813,7 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
   sopalin_data->common_flt[0] = 0.0;
   MONOTHREAD_END;
   SYNCHRO_THREAD;
-  step  = (PASTIX_INT)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
 #else
   step  = colnbr;
 #endif
@@ -887,18 +887,18 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
 */
 double CscNormErr(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile PASTIX_FLOAT *r,
-                  const volatile PASTIX_FLOAT *b,
-                  const PASTIX_INT             colnbr,
-                  const PASTIX_INT             smxnbr,
+                  const volatile pastix_float_t *r,
+                  const volatile pastix_float_t *b,
+                  const pastix_int_t             colnbr,
+                  const pastix_int_t             smxnbr,
                   MPI_Comm              comm)
 {
   SolverMatrix *datacode;
-  PASTIX_INT first,  last;
-  PASTIX_INT first2, last2;
-  PASTIX_INT iter;
-  PASTIX_INT itersmx;
-  PASTIX_INT step;
+  pastix_int_t first,  last;
+  pastix_int_t first2, last2;
+  pastix_int_t iter;
+  pastix_int_t itersmx;
+  pastix_int_t step;
   double rnormax = 0.0;
   double bnormax = 1.0;
   double rnorm = 0.0;
@@ -916,7 +916,7 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
   datacode  = sopalin_data->datacode;
 
 #ifdef SMP_RAFF
-  step  = (PASTIX_INT)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
 #else
   step  = colnbr;
 #endif
@@ -1012,27 +1012,27 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
 void CscAx(Sopalin_Data_t       *sopalin_data,
            int                   me,
            const CscMatrix      *cscmtx,
-           const volatile PASTIX_FLOAT *p,
-           volatile PASTIX_FLOAT       *x,
+           const volatile pastix_float_t *p,
+           volatile pastix_float_t       *x,
            const SolverMatrix   *solvmtx,
            const UpDownVector   *updovct,
            MPI_Comm              comm,
-           PASTIX_INT                   transpose)
+           pastix_int_t                   transpose)
 {
   SolverMatrix * datacode;
-  PASTIX_FLOAT * tempy  = NULL;
-  PASTIX_FLOAT * tempy2 = NULL;
+  pastix_float_t * tempy  = NULL;
+  pastix_float_t * tempy2 = NULL;
 
-  PASTIX_INT itertempy = 0;
-  PASTIX_INT itercblk  = 0;
-  PASTIX_INT itercol   = 0;
-  PASTIX_INT iterval   = 0;
-  PASTIX_INT colstart, colend;
-  PASTIX_INT itersmx;
-  PASTIX_INT indcblk, indcol;
+  pastix_int_t itertempy = 0;
+  pastix_int_t itercblk  = 0;
+  pastix_int_t itercol   = 0;
+  pastix_int_t iterval   = 0;
+  pastix_int_t colstart, colend;
+  pastix_int_t itersmx;
+  pastix_int_t indcblk, indcol;
 #ifdef SMP_RAFF
-  PASTIX_INT iterttsk;
-  PASTIX_INT iter;
+  pastix_int_t iterttsk;
+  pastix_int_t iter;
 #endif
 
 #ifdef CSC_LOG
@@ -1041,12 +1041,12 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
   datacode = sopalin_data->datacode;
 
   /* vecteurs temporaires locaux */
-  MALLOC_INTERN(tempy, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tempy2 = tempy;
 #else
-  MALLOC_INTERN(tempy2, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_float_t);
 #endif
   MONOTHREAD_END;
 
@@ -1114,10 +1114,10 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
       {
         FILE *rafffile;
         char  rafffilename[30];
-        static PASTIX_INT toto = 0;
+        static pastix_int_t toto = 0;
         sprintf(rafffilename, "CscAxtempy%ld.%ld",(long) toto,me);
         rafffile = fopen(rafffilename, "w");
-        dump7((PASTIX_FLOAT *)tempy,rafffile,updovct->gnodenbr);
+        dump7((pastix_float_t *)tempy,rafffile,updovct->gnodenbr);
         fclose(rafffile);
 
         SYNCHRO_THREAD;
@@ -1146,10 +1146,10 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
       {
         FILE *rafffile;
         char  rafffilename[10];
-        static PASTIX_INT toto = 0;
+        static pastix_int_t toto = 0;
         sprintf(rafffilename, "CscAx%ld.%ld",(long) toto,(long) SOLV_PROCNUM);
         rafffile = fopen(rafffilename, "w");
-        dump7((PASTIX_FLOAT *)tempy2,rafffile,updovct->gnodenbr);
+        dump7((pastix_float_t *)tempy2,rafffile,updovct->gnodenbr);
         fclose(rafffile);
         toto++;
       }
@@ -1159,7 +1159,7 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
       sopalin_data->ptr_csc[0] = (void *)tempy2;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      tempy2 = (PASTIX_FLOAT *)sopalin_data->ptr_csc[0];
+      tempy2 = (pastix_float_t *)sopalin_data->ptr_csc[0];
 
       for (iterttsk=0; iterttsk<SOLV_TTSKNBR; iterttsk++)
         {
@@ -1168,7 +1168,7 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
           for (itercblk=0; itercblk<CSC_FNBR(cscmtx); itercblk++)
             {
 #endif /* SMP_RAFF */
-              PASTIX_INT iterdval = updovct->cblktab[itercblk].sm2xind +
+              pastix_int_t iterdval = updovct->cblktab[itercblk].sm2xind +
                 itersmx*updovct->sm2xsze;
 
               for (iterval=0; iterval<CSC_COLNBR(cscmtx, itercblk); iterval++)
@@ -1220,20 +1220,20 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
 */
 void CscGradAlpha(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile PASTIX_FLOAT *r,
-                  const volatile PASTIX_FLOAT *z,
-                  const volatile PASTIX_FLOAT *x,
-                  const volatile PASTIX_FLOAT *p,
-                  PASTIX_INT                   colnbr,
-                  PASTIX_INT                   smxnbr,
+                  const volatile pastix_float_t *r,
+                  const volatile pastix_float_t *z,
+                  const volatile pastix_float_t *x,
+                  const volatile pastix_float_t *p,
+                  pastix_int_t                   colnbr,
+                  pastix_int_t                   smxnbr,
                   double               *alpha,
                   MPI_Comm              comm)
 {
   SolverMatrix *datacode;
-  PASTIX_INT first,  last;
-  PASTIX_INT step;
-  PASTIX_INT itersmx;
-  PASTIX_INT iter     = 0;
+  pastix_int_t first,  last;
+  pastix_int_t step;
+  pastix_int_t itersmx;
+  pastix_int_t iter     = 0;
   double up    = 0.0;
   double down  = 0.0;
 #ifndef INOUT_ALLREDUCE
@@ -1251,7 +1251,7 @@ void CscGradAlpha(Sopalin_Data_t       *sopalin_data,
 #ifdef NOSMP_RAFF
   step  = colnbr;
 #else
-  step  = (PASTIX_INT)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
 #endif
   first = me * step;
   last  = MIN(colnbr, (me+1) * step);
@@ -1326,22 +1326,22 @@ void CscGradAlpha(Sopalin_Data_t       *sopalin_data,
 */
 void CscGradBeta(Sopalin_Data_t       *sopalin_data,
                  int                   me,
-                 const volatile PASTIX_FLOAT *r,
-                 const volatile PASTIX_FLOAT *z,
-                 PASTIX_INT                   colnbr,
-                 PASTIX_INT                   smxnbr,
-                 PASTIX_FLOAT                *beta,
+                 const volatile pastix_float_t *r,
+                 const volatile pastix_float_t *z,
+                 pastix_int_t                   colnbr,
+                 pastix_int_t                   smxnbr,
+                 pastix_float_t                *beta,
                  MPI_Comm              comm)
 {
   SolverMatrix *datacode;
-  PASTIX_INT first,  last;
-  PASTIX_INT first2, last2;
-  PASTIX_INT step;
-  PASTIX_INT itersmx;
-  PASTIX_INT iter  = 0;
-  PASTIX_FLOAT up  = 0.0;
+  pastix_int_t first,  last;
+  pastix_int_t first2, last2;
+  pastix_int_t step;
+  pastix_int_t itersmx;
+  pastix_int_t iter  = 0;
+  pastix_float_t up  = 0.0;
 #ifndef INOUT_ALLREDUCE
-  PASTIX_FLOAT up2 = 0.0;
+  pastix_float_t up2 = 0.0;
 #endif
   (void)comm;
 
@@ -1352,7 +1352,7 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
   datacode  = sopalin_data->datacode;
 
 #ifdef SMP_RAFF
-  step  = (PASTIX_INT)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
 #else
   step  = colnbr;
 #endif
@@ -1418,19 +1418,19 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
 */
 void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile PASTIX_FLOAT *r,
-                  const volatile PASTIX_FLOAT *z,
-                  PASTIX_INT                   colnbr,
-                  PASTIX_INT                   smxnbr,
+                  const volatile pastix_float_t *r,
+                  const volatile pastix_float_t *z,
+                  pastix_int_t                   colnbr,
+                  pastix_int_t                   smxnbr,
                   double               *beta,
                   MPI_Comm              comm)
 {
   SolverMatrix *  datacode;
-  PASTIX_INT   first,  last;
-  PASTIX_INT   first2, last2;
-  PASTIX_INT   step;
-  PASTIX_INT   itersmx;
-  PASTIX_INT   iter = 0;
+  pastix_int_t   first,  last;
+  pastix_int_t   first2, last2;
+  pastix_int_t   step;
+  pastix_int_t   itersmx;
+  pastix_int_t   iter = 0;
   double up   = 0.0;
 #ifndef INOUT_ALLREDUCE
   double up2  = 0.0;
@@ -1447,17 +1447,17 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
     MONOTHREAD_BEGIN;
     FILE *rafffile;
     char  rafffilename[30];
-    static PASTIX_INT toto = 0;
+    static pastix_int_t toto = 0;
     sprintf(rafffilename, "CscGmresBetar%ld.%ld",
             (long) toto,(long) SOLV_PROCNUM);
     rafffile = fopen(rafffilename, "w");
-    dump7((PASTIX_FLOAT *)r,rafffile,colnbr);
+    dump7((pastix_float_t *)r,rafffile,colnbr);
     fclose(rafffile);
 
     sprintf(rafffilename, "CscGmresBetaz%ld.%ld",
             (long) toto,(long) SOLV_PROCNUM);
     rafffile = fopen(rafffilename, "w");
-    dump7((PASTIX_FLOAT *)z,rafffile,colnbr);
+    dump7((pastix_float_t *)z,rafffile,colnbr);
     fclose(rafffile);
     toto++;
     MONOTHREAD_END;
@@ -1465,7 +1465,7 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
 #endif
 
 #ifdef SMP_RAFF
-  step  = (PASTIX_INT)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
 #else
   step  = colnbr;
 #endif

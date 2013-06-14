@@ -25,22 +25,22 @@
 #include "KSupernodes.h"
 
 
-PASTIX_INT  Merge_Cost(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight);
-PASTIX_INT  col_match(PASTIX_INT n1, PASTIX_INT *ja1, PASTIX_INT n2, PASTIX_INT *ja2);
-void col_merge(PASTIX_INT n1, PASTIX_INT *ja1, PASTIX_INT n2, PASTIX_INT *ja2, PASTIX_INT *n, PASTIX_INT *ja );
+pastix_int_t  Merge_Cost(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight);
+pastix_int_t  col_match(pastix_int_t n1, pastix_int_t *ja1, pastix_int_t n2, pastix_int_t *ja2);
+void col_merge(pastix_int_t n1, pastix_int_t *ja1, pastix_int_t n2, pastix_int_t *ja2, pastix_int_t *n, pastix_int_t *ja );
 
-void KSupernodes(csptr P, double rat, PASTIX_INT snodenbr, PASTIX_INT *snodetab, PASTIX_INT *cblknbr, PASTIX_INT **rangtab)
+void KSupernodes(csptr P, double rat, pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *cblknbr, pastix_int_t **rangtab)
 {
   /**********************************************************************/
   /* Find the supernodes in ILU(k) with a global fill-in tolerance of   */
   /* rat                                                                */
   /**********************************************************************/
-  PASTIX_INT i, j, k, ind;
-  PASTIX_INT *nnzadd    = NULL;
-  PASTIX_INT *prevcol   = NULL;
-  PASTIX_INT *colweight = NULL;
+  pastix_int_t i, j, k, ind;
+  pastix_int_t *nnzadd    = NULL;
+  pastix_int_t *prevcol   = NULL;
+  pastix_int_t *colweight = NULL;
   double key;
-  PASTIX_INT *tmpj      = NULL;
+  pastix_int_t *tmpj      = NULL;
 
   Queue heap;
   long fillmax, fill;
@@ -48,10 +48,10 @@ void KSupernodes(csptr P, double rat, PASTIX_INT snodenbr, PASTIX_INT *snodetab,
 
   fillmax = (long)(CSnnz(P)*rat);
   queueInit(&heap, 2*P->n);
-  MALLOC_INTERN(colweight, P->n,   PASTIX_INT);
-  MALLOC_INTERN(prevcol,   P->n+1, PASTIX_INT);
-  MALLOC_INTERN(nnzadd,    P->n,   PASTIX_INT);
-  MALLOC_INTERN(tmpj,      P->n,   PASTIX_INT);
+  MALLOC_INTERN(colweight, P->n,   pastix_int_t);
+  MALLOC_INTERN(prevcol,   P->n+1, pastix_int_t);
+  MALLOC_INTERN(nnzadd,    P->n,   pastix_int_t);
+  MALLOC_INTERN(tmpj,      P->n,   pastix_int_t);
   
   for(k=0;k<snodenbr;k++)
     {
@@ -193,8 +193,8 @@ void KSupernodes(csptr P, double rat, PASTIX_INT snodenbr, PASTIX_INT *snodetab,
        /** Merge supernode i and supernode j **/
        col_merge(P->nnzrow[i], P->ja[i], P->nnzrow[j], P->ja[j], &ind, tmpj);
        P->nnzrow[i] = ind;
-       P->ja[i] = (PASTIX_INT *)realloc(P->ja[i], sizeof(PASTIX_INT)*ind);
-       memcpy(P->ja[i], tmpj, sizeof(PASTIX_INT)*ind);
+       P->ja[i] = (pastix_int_t *)realloc(P->ja[i], sizeof(pastix_int_t)*ind);
+       memcpy(P->ja[i], tmpj, sizeof(pastix_int_t)*ind);
 
        assert(P->nnzrow[j]>0);
 
@@ -261,7 +261,7 @@ void KSupernodes(csptr P, double rat, PASTIX_INT snodenbr, PASTIX_INT *snodetab,
        ind++;
    
    *cblknbr = ind;
-   MALLOC_INTERN(*rangtab, ind+1, PASTIX_INT);
+   MALLOC_INTERN(*rangtab, ind+1, pastix_int_t);
    ind = 0;
    k = 0;
    while(ind<P->n)
@@ -316,10 +316,10 @@ void KSupernodes(csptr P, double rat, PASTIX_INT snodenbr, PASTIX_INT *snodetab,
 
 
 
-PASTIX_INT col_match(PASTIX_INT n1, PASTIX_INT *ja1, PASTIX_INT n2, PASTIX_INT *ja2)
+pastix_int_t col_match(pastix_int_t n1, pastix_int_t *ja1, pastix_int_t n2, pastix_int_t *ja2)
 {
-  PASTIX_INT i1, i2;
-  PASTIX_INT matched;
+  pastix_int_t i1, i2;
+  pastix_int_t matched;
   i1 = 0;
   i2 = 0;
   matched = 0;
@@ -350,9 +350,9 @@ PASTIX_INT col_match(PASTIX_INT n1, PASTIX_INT *ja1, PASTIX_INT n2, PASTIX_INT *
 }
 
 
-void col_merge(PASTIX_INT n1, PASTIX_INT *ja1, PASTIX_INT n2, PASTIX_INT *ja2, PASTIX_INT *n, PASTIX_INT *ja )
+void col_merge(pastix_int_t n1, pastix_int_t *ja1, pastix_int_t n2, pastix_int_t *ja2, pastix_int_t *n, pastix_int_t *ja )
 {
-  PASTIX_INT i1, i2, i;
+  pastix_int_t i1, i2, i;
   
   i1 = 0;
   i2 = 0;
@@ -402,11 +402,11 @@ void col_merge(PASTIX_INT n1, PASTIX_INT *ja1, PASTIX_INT n2, PASTIX_INT *ja2, P
 
 
 
-PASTIX_INT Merge_Cost(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight)
+pastix_int_t Merge_Cost(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight)
 {
-  PASTIX_INT i1, n1, i2, n2;
-  PASTIX_INT *ja1, *ja2;
-  PASTIX_INT cost;
+  pastix_int_t i1, n1, i2, n2;
+  pastix_int_t *ja1, *ja2;
+  pastix_int_t cost;
 
 
 

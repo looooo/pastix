@@ -12,16 +12,16 @@
 /* #include "assert.h" */
 #include "solverRealloc.h"
 
-void setBcofPtr(SolverMatrix *solvptr, const PASTIX_INT * bcofind)
+void setBcofPtr(SolverMatrix *solvptr, const pastix_int_t * bcofind)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   for(i=0;i<solvptr->btagnbr;i++)
     solvptr->btagtab[i].bcofptr = &(solvptr->bcoftab[bcofind[i]]);
 }
 
 void setLocalBtagPtr(SolverMatrix *solvptr)
 {
-  PASTIX_INT i, task, taskcnt;
+  pastix_int_t i, task, taskcnt;
 
   for (i=0; i<solvptr->btagnbr; i++)
     {
@@ -79,10 +79,10 @@ void setLocalBtagPtr(SolverMatrix *solvptr)
 }
 
 /*+ Realloc the solver matrix in a contiguous way +*/
-void solverRealloc(SolverMatrix *solvmtx, PASTIX_INT *bcofind)
+void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
 {
     SolverMatrix *tmp;
-    PASTIX_INT i;
+    pastix_int_t i;
 
     MALLOC_INTERN(tmp, 1, SolverMatrix);
     /** copy general info **/
@@ -140,25 +140,25 @@ void solverRealloc(SolverMatrix *solvmtx, PASTIX_INT *bcofind)
       }
     /** copy infotab of fan intarget **/
     /*for(i=0;i<tmp->ftgtnbr;i++)
-      memCpy(solvmtx->ftgttab[i].infotab, tmp->ftgttab[i].infotab, MAXINFO*sizeof(PASTIX_INT));*/
+      memCpy(solvmtx->ftgttab[i].infotab, tmp->ftgttab[i].infotab, MAXINFO*sizeof(pastix_int_t));*/
 
     /** Copy indtab **/
-    MALLOC_INTERN(solvmtx->indtab, solvmtx->indnbr, PASTIX_INT);
-    memCpy(solvmtx->indtab, tmp->indtab, solvmtx->indnbr*sizeof(PASTIX_INT));
+    MALLOC_INTERN(solvmtx->indtab, solvmtx->indnbr, pastix_int_t);
+    memCpy(solvmtx->indtab, tmp->indtab, solvmtx->indnbr*sizeof(pastix_int_t));
 
 
     /** Copy ttsktab & ttsknbr **/
     if (solvmtx->bublnbr>0)
       {
-        MALLOC_INTERN(solvmtx->ttsknbr, solvmtx->bublnbr, PASTIX_INT);
-        memCpy(solvmtx->ttsknbr, tmp->ttsknbr, solvmtx->bublnbr*sizeof(PASTIX_INT));
-        MALLOC_INTERN(solvmtx->ttsktab, solvmtx->bublnbr, PASTIX_INT*);
+        MALLOC_INTERN(solvmtx->ttsknbr, solvmtx->bublnbr, pastix_int_t);
+        memCpy(solvmtx->ttsknbr, tmp->ttsknbr, solvmtx->bublnbr*sizeof(pastix_int_t));
+        MALLOC_INTERN(solvmtx->ttsktab, solvmtx->bublnbr, pastix_int_t*);
         for (i=0;i<solvmtx->bublnbr;i++)
           {
             solvmtx->ttsktab[i] = NULL;
-            MALLOC_INTERN(solvmtx->ttsktab[i], solvmtx->ttsknbr[i], PASTIX_INT);
+            MALLOC_INTERN(solvmtx->ttsktab[i], solvmtx->ttsknbr[i], pastix_int_t);
             memCpy(solvmtx->ttsktab[i], tmp->ttsktab[i],
-                   solvmtx->ttsknbr[i]*sizeof(PASTIX_INT));
+                   solvmtx->ttsknbr[i]*sizeof(pastix_int_t));
           }
       }
     else
@@ -167,9 +167,9 @@ void solverRealloc(SolverMatrix *solvmtx, PASTIX_INT *bcofind)
         solvmtx->ttsktab = NULL;
       }
 
-    MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, PASTIX_INT);
+    MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
     memCpy(solvmtx->proc2clust, tmp->proc2clust,
-           solvmtx->procnbr * sizeof(PASTIX_INT));
+           solvmtx->procnbr * sizeof(pastix_int_t));
 
     /** Free the former solver matrix **/
     solverExit(tmp);
@@ -186,7 +186,7 @@ void solverRealloc(SolverMatrix *solvmtx, PASTIX_INT *bcofind)
 
 void solverExit(SolverMatrix *solvmtx)
 {
-    PASTIX_INT i;
+    pastix_int_t i;
 
     /** Free arrays of solvmtx **/
     if(solvmtx->cblktab)

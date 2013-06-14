@@ -22,7 +22,7 @@
  */
 void dump1(Order *ord,
 	   FILE  *stream, 
-	   PASTIX_INT    colnbr);
+	   pastix_int_t    colnbr);
 
 
 /*
@@ -37,7 +37,7 @@ void dump1(Order *ord,
  */
 void dump2(const SolverMatrix * datacode,
            CscMatrix          * cscmtx,
-	   PASTIX_FLOAT              * trandcsc,
+	   pastix_float_t              * trandcsc,
 	   FILE               *stream);
 
 
@@ -127,8 +127,8 @@ void dump6(const SolverMatrix *datacode,
     stream - FILE * opened in write mode.
     nbr    - Size of the vector v.
 */
-void dump7(PASTIX_FLOAT *v, 
+void dump7(pastix_float_t *v, 
 	   FILE  *stream, 
-	   PASTIX_INT    colnbr);
+	   pastix_int_t    colnbr);
 
 #endif /* DEBUG_DUMP_H */

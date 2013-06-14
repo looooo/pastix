@@ -41,7 +41,7 @@ void splitPartLocal(BlendCtrl *ctrl, SimuCtrl * simuctrl,
 {
 
   double *bubble_cost = NULL;
-  PASTIX_INT     i, j, size;
+  pastix_int_t     i, j, size;
 
   /* Reset the cost of non local computation and update cost of local ones
    * In the resulting tree, the sons are sorted by decreasing
@@ -127,11 +127,11 @@ static inline void
 assignNodeToBubble(BlendCtrl *ctrl,
                    const SymbolMatrix *symbmtx,
                    const SimuCtrl * simuctrl,
-                   PASTIX_INT rootnum,
-                   PASTIX_INT bubblenum)
+                   pastix_int_t rootnum,
+                   pastix_int_t bubblenum)
 {
-  PASTIX_INT i, j;
-  PASTIX_INT tasknum;
+  pastix_int_t i, j;
+  pastix_int_t tasknum;
   tasknum = simuctrl->bloktab[symbmtx->cblktab[rootnum].bloknum].tasknum;
   ASSERTDBG(tasknum != -1, MOD_BLEND);
 
@@ -196,15 +196,15 @@ assignNodeToBubble(BlendCtrl *ctrl,
 }
 
 void propMappSubtreeLocalNC(BlendCtrl *ctrl, const SymbolMatrix *symbmtx,
-                            const SimuCtrl * simuctrl, PASTIX_INT rootnum,
-                            PASTIX_INT fcandnum, PASTIX_INT lcandnum, double *bubble_cost)
+                            const SimuCtrl * simuctrl, pastix_int_t rootnum,
+                            pastix_int_t fcandnum, pastix_int_t lcandnum, double *bubble_cost)
 {
-  PASTIX_INT i, ison, son;
-  PASTIX_INT candnbr;
-  PASTIX_INT nbmtsons = 0;
-  PASTIX_INT fcand = 0;
-  PASTIX_INT sonsnbr;
-  PASTIX_INT bubblenum;
+  pastix_int_t i, ison, son;
+  pastix_int_t candnbr;
+  pastix_int_t nbmtsons = 0;
+  pastix_int_t fcand = 0;
+  pastix_int_t sonsnbr;
+  pastix_int_t bubblenum;
   double sonscost, cost, isocost;
 
   candnbr = lcandnum - fcandnum + 1;
@@ -335,7 +335,7 @@ end:
      * on only one candidate
      */
 #ifdef TOP_BUBBLES
-        PASTIX_INT bubblenum_save = bubblenum;
+        pastix_int_t bubblenum_save = bubblenum;
 #endif
     if ( nbmtsons < sonsnbr &&
          ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, nbmtsons)].subtree > 0.0 )
@@ -384,10 +384,10 @@ end:
 
 void propMappSubtreeLocalOn1P(BlendCtrl *ctrl, const SymbolMatrix *symbmtx,
                               const SimuCtrl *simuctrl,
-                              PASTIX_INT rootnum, PASTIX_INT bubblenum)
+                              pastix_int_t rootnum, pastix_int_t bubblenum)
 {
-  PASTIX_INT i;
-  PASTIX_INT sonsnbr;
+  pastix_int_t i;
+  pastix_int_t sonsnbr;
 
   /* Si le sous-arbre est traité par un autre processus MPI */
   if (ctrl->costmtx->cblktab[rootnum].subtree == 0.0)
@@ -521,7 +521,7 @@ static inline void updateCosts(const BubbleTree * btree,
                                const double     * bcost,
                                double *subtrees_costs)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   memset( subtrees_costs, 0, btree->nodenbr * sizeof(double) );
   for (i=0; i<btree->nodenbr; i++) {
@@ -541,8 +541,8 @@ void splitPartLocalUpdate(const BlendCtrl *ctrl,
                           double          *bcost,
                           const double     totalcost)
 {
-  PASTIX_INT i, father, size;
-  PASTIX_INT fprocnum, lprocnum;
+  pastix_int_t i, father, size;
+  pastix_int_t fprocnum, lprocnum;
   double percent, percenttgt;
   double *subtrees_costs = (double*)malloc( btree->nodenbr * sizeof(double) );
   updateCosts( btree, bcost, subtrees_costs );
@@ -561,9 +561,9 @@ void splitPartLocalUpdate(const BlendCtrl *ctrl,
 
       size = queueSize( btree->nodetab[i].taskheap );
       if ( percent > percenttgt && size > 0) {
-        PASTIX_INT j;
+        pastix_int_t j;
         double key1, cost;
-        PASTIX_INT value;
+        pastix_int_t value;
         Queue *tmpqueue;
 
         MALLOC_INTERN(tmpqueue, 1, Queue);

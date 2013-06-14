@@ -18,7 +18,7 @@
 
 void splitPartLocal          (BlendCtrl *, SimuCtrl *, SymbolMatrix *, const Dof *);
 void propMappTreeLocal       (BlendCtrl *, const SymbolMatrix *symbmtx, const SimuCtrl *, double *);
-void propMappSubtreeLocalNC  (BlendCtrl *, const SymbolMatrix *symbmtx, const SimuCtrl *, PASTIX_INT, PASTIX_INT, PASTIX_INT, double *);
-void propMappSubtreeLocalOn1P(BlendCtrl *, const SymbolMatrix *symbmtx, const SimuCtrl *, PASTIX_INT, PASTIX_INT);
+void propMappSubtreeLocalNC  (BlendCtrl *, const SymbolMatrix *symbmtx, const SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t, double *);
+void propMappSubtreeLocalOn1P(BlendCtrl *, const SymbolMatrix *symbmtx, const SimuCtrl *, pastix_int_t, pastix_int_t);
 
 #endif

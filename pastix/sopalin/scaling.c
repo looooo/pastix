@@ -28,7 +28,7 @@
 
 static int iun = 1;
 
-void CscMatrix_RowMult(CscMatrix *csc, PASTIX_FLOAT *scaletab) {
+void CscMatrix_RowMult(CscMatrix *csc, pastix_float_t *scaletab) {
   int k, col, i, index;
   index = 0;
   for(k=0; k<CSC_FNBR(csc); k++)
@@ -44,7 +44,7 @@ void CscMatrix_RowMult(CscMatrix *csc, PASTIX_FLOAT *scaletab) {
     }
 }
 
-void CscMatrix_ColMult(CscMatrix *csc, PASTIX_FLOAT *scaletab) {
+void CscMatrix_ColMult(CscMatrix *csc, pastix_float_t *scaletab) {
   int k, col, colsize, colbegin, colnum;
   colnum = 0;
   for(k=0; k<CSC_FNBR(csc); k++)
@@ -59,9 +59,9 @@ void CscMatrix_ColMult(CscMatrix *csc, PASTIX_FLOAT *scaletab) {
     }
 }
 
-void SolverMatrix_RowMult(SolverMatrix *datacode, PASTIX_FLOAT *scaletab, int lu) {
+void SolverMatrix_RowMult(SolverMatrix *datacode, pastix_float_t *scaletab, int lu) {
   int k, bloknum, i, colspan, stride, first_row;
-  PASTIX_FLOAT *ptr;
+  pastix_float_t *ptr;
 
 
   for(k=0; k<SYMB_CBLKNBR; k++)
@@ -83,9 +83,9 @@ void SolverMatrix_RowMult(SolverMatrix *datacode, PASTIX_FLOAT *scaletab, int lu
     }
 }
 
-void SolverMatrix_ColMult(SolverMatrix *datacode, PASTIX_FLOAT *scaletab, int lu) {
+void SolverMatrix_ColMult(SolverMatrix *datacode, pastix_float_t *scaletab, int lu) {
   int k, colspan, stride, first_col, m;
-  PASTIX_FLOAT *ptr;
+  pastix_float_t *ptr;
 
 
   for(k=0; k<SYMB_CBLKNBR; k++)
@@ -104,9 +104,9 @@ void SolverMatrix_ColMult(SolverMatrix *datacode, PASTIX_FLOAT *scaletab, int lu
     }
 }
 
-void SolverMatrix_DiagMult(SolverMatrix *datacode, PASTIX_FLOAT *scaletab) {
+void SolverMatrix_DiagMult(SolverMatrix *datacode, pastix_float_t *scaletab) {
   int bloknum, stride, colspan, k, i;
-  PASTIX_FLOAT *ptr, *scalptr;
+  pastix_float_t *ptr, *scalptr;
 
   for(k=0; k<SYMB_CBLKNBR; k++)
     {
@@ -126,7 +126,7 @@ void SolverMatrix_DiagMult(SolverMatrix *datacode, PASTIX_FLOAT *scaletab) {
 
 /* Unscale the CscMatrix (which is not factorized) */
 /* symmetric case */
-void CscMatrix_Unscale_Sym(CscMatrix *cscmtx, PASTIX_FLOAT *scaletab, PASTIX_FLOAT *iscaletab) {
+void CscMatrix_Unscale_Sym(CscMatrix *cscmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
   (void)scaletab;
   CscMatrix_RowMult(cscmtx, iscaletab);
   CscMatrix_ColMult(cscmtx, iscaletab);
@@ -134,7 +134,7 @@ void CscMatrix_Unscale_Sym(CscMatrix *cscmtx, PASTIX_FLOAT *scaletab, PASTIX_FLO
 
 /* Unscale the CscMatrix (which is not factorized) */
 /* unsymmetric case */
-void CscMatrix_Unscale_Unsym(CscMatrix *cscmtx, PASTIX_FLOAT *scalerowtab, PASTIX_FLOAT *iscalerowtab, PASTIX_FLOAT *scalecoltab, PASTIX_FLOAT *iscalecoltab) {
+void CscMatrix_Unscale_Unsym(CscMatrix *cscmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
   (void)scalerowtab; (void)scalecoltab;
   CscMatrix_RowMult(cscmtx, iscalerowtab);
   CscMatrix_ColMult(cscmtx, iscalecoltab);
@@ -142,7 +142,7 @@ void CscMatrix_Unscale_Unsym(CscMatrix *cscmtx, PASTIX_FLOAT *scalerowtab, PASTI
 
 /* Unscale the factorized SolverMatrix */
 /* symmetric case */
-void SolverMatrix_Unscale_Sym(SolverMatrix *solvmtx, PASTIX_FLOAT *scaletab, PASTIX_FLOAT *iscaletab) {
+void SolverMatrix_Unscale_Sym(SolverMatrix *solvmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
   SolverMatrix_RowMult(solvmtx, iscaletab, LOW);
   SolverMatrix_ColMult(solvmtx, scaletab, LOW);
 
@@ -152,7 +152,7 @@ void SolverMatrix_Unscale_Sym(SolverMatrix *solvmtx, PASTIX_FLOAT *scaletab, PAS
 
 /* Unscale the factorized SolverMatrix */
 /* unsymmetric case */
-void SolverMatrix_Unscale_Unsym(SolverMatrix *solvmtx, PASTIX_FLOAT *scalerowtab, PASTIX_FLOAT *iscalerowtab, PASTIX_FLOAT *scalecoltab, PASTIX_FLOAT *iscalecoltab) {
+void SolverMatrix_Unscale_Unsym(SolverMatrix *solvmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
   (void)scalecoltab;
   SolverMatrix_RowMult(solvmtx, iscalerowtab, LOW);
   SolverMatrix_ColMult(solvmtx, scalerowtab,  LOW);
@@ -165,7 +165,7 @@ void SolverMatrix_Unscale_Unsym(SolverMatrix *solvmtx, PASTIX_FLOAT *scalerowtab
 /* (the SolverMatrix is factorized but the CscMatrix not) */
 /* symmetric case */
 void Matrix_Unscale_Sym(pastix_data_t * pastix_data,
-                        SolverMatrix *solvmtx, PASTIX_FLOAT *scaletab, PASTIX_FLOAT *iscaletab) {
+                        SolverMatrix *solvmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
   SolverMatrix_Unscale_Sym(solvmtx, scaletab, iscaletab);
   CscMatrix_Unscale_Sym(&(pastix_data->cscmtx), scaletab, iscaletab);
 }
@@ -174,7 +174,7 @@ void Matrix_Unscale_Sym(pastix_data_t * pastix_data,
 /* (the SolverMatrix is factorized but the CscMatrix not) */
 /* unsymmetric case */
 void Matrix_Unscale_Unsym(pastix_data_t * pastix_data,
-                          SolverMatrix *solvmtx, PASTIX_FLOAT *scalerowtab, PASTIX_FLOAT *iscalerowtab, PASTIX_FLOAT *scalecoltab, PASTIX_FLOAT *iscalecoltab) {
+                          SolverMatrix *solvmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
   SolverMatrix_Unscale_Unsym(solvmtx, scalerowtab, iscalerowtab, scalecoltab, iscalecoltab);
   CscMatrix_Unscale_Unsym(&(pastix_data->cscmtx), scalerowtab, iscalerowtab, scalecoltab, iscalecoltab);
 }

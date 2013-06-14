@@ -1,8 +1,8 @@
 /*== Creation/Destruction de CSC ==*/
 
 /******************************************************************************/
-/* void CscOrder(CscMatrix *thecsc, char *Type, char *RhsType, PASTIX_FLOAT **rhs,  */
-/*                PASTIX_FLOAT **rhs2, const Order *ord, ...)                        */
+/* void CscOrder(CscMatrix *thecsc, char *Type, char *RhsType, pastix_float_t **rhs,  */
+/*                pastix_float_t **rhs2, const Order *ord, ...)                        */
 /*                                                                            */
 /* Construction de la csc a partir de col/row/val et permutation a            */
 /* partir du vecteur permutation fournit par Scotch                           */
@@ -22,19 +22,19 @@
 
 /* !!! FONCTION INUTILISEE !!! */
 void CscOrder(CscMatrix *thecsc,
-	      char *Type, char *RhsType, PASTIX_FLOAT **transcsc,
-	      PASTIX_FLOAT **rhs, PASTIX_FLOAT **rhs2,
+	      char *Type, char *RhsType, pastix_float_t **transcsc,
+	      pastix_float_t **rhs, pastix_float_t **rhs2,
 	      const Order *ord, 
-	      PASTIX_INT Nrow, PASTIX_INT Ncol, PASTIX_INT Nnzero, 
-	      PASTIX_INT *colptr, PASTIX_INT *rowind, PASTIX_FLOAT *val, PASTIX_INT forcetrans)
+	      pastix_int_t Nrow, pastix_int_t Ncol, pastix_int_t Nnzero, 
+	      pastix_int_t *colptr, pastix_int_t *rowind, pastix_float_t *val, pastix_int_t forcetrans)
 {
   char *crhs=NULL; /* 2nd member vector */
   char *crhs2=NULL; /* solution vector */ 
 
-  PASTIX_INT index,itercol,iter,newcol,colidx, rowp1; 
-  PASTIX_INT valnbr=0;
-  PASTIX_INT *trscltb=NULL; /* coltab for transpose csc */
-  PASTIX_INT *trowtab=NULL; /* rowtab for transpose csc */
+  pastix_int_t index,itercol,iter,newcol,colidx, rowp1; 
+  pastix_int_t valnbr=0;
+  pastix_int_t *trscltb=NULL; /* coltab for transpose csc */
+  pastix_int_t *trowtab=NULL; /* rowtab for transpose csc */
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscOrder \n");
@@ -46,7 +46,7 @@ void CscOrder(CscMatrix *thecsc,
   if (CSC_FTAB(thecsc) == NULL)
     errorPrint( "CscHbRead : Not enough memory for CSC_FTAB\n");
   CSC_COLNBR(thecsc,0) = Ncol;
-  CSC_COLTAB(thecsc,0) = (PASTIX_INT *) memAlloc((Ncol+1)*sizeof(PASTIX_INT));
+  CSC_COLTAB(thecsc,0) = (pastix_int_t *) memAlloc((Ncol+1)*sizeof(pastix_int_t));
   if (CSC_COLTAB(thecsc,0) == NULL)
     errorPrint( "CscHbRead : Not enough memory for CSC_COLTAB\n");
 
@@ -56,20 +56,20 @@ void CscOrder(CscMatrix *thecsc,
   if (Type[1] == 'S')
     {
       /* Symetric */
-      CSC_ROWTAB(thecsc) = (PASTIX_INT*) memAlloc(2*Nnzero*sizeof(PASTIX_INT));
+      CSC_ROWTAB(thecsc) = (pastix_int_t*) memAlloc(2*Nnzero*sizeof(pastix_int_t));
       if (CSC_ROWTAB(thecsc) == NULL)
 	errorPrint( "CscHbRead : Not enough memory for CSC_ROWTAB\n");
-      CSC_VALTAB(thecsc) = (PASTIX_FLOAT*) memAlloc(2*Nnzero*sizeof(PASTIX_FLOAT));
+      CSC_VALTAB(thecsc) = (pastix_float_t*) memAlloc(2*Nnzero*sizeof(pastix_float_t));
       if (CSC_VALTAB(thecsc) == NULL)
 	errorPrint( "CscHbRead : Not enough memory for CSC_VALTAB\n");
       if (forcetrans)
 	{
 	  printf("Force transpose on symetric...\n");
 
-	  (*transcsc) = (PASTIX_FLOAT *) memAlloc(2*Nnzero*sizeof(PASTIX_FLOAT));
+	  (*transcsc) = (pastix_float_t *) memAlloc(2*Nnzero*sizeof(pastix_float_t));
 	  if ((*transcsc) == NULL)
 	    errorPrint( "CscHbRead : Not enough memory for (*transcsc)\n");
-	  trowtab = (PASTIX_INT *) memAlloc(2*Nnzero*sizeof(PASTIX_INT));
+	  trowtab = (pastix_int_t *) memAlloc(2*Nnzero*sizeof(pastix_int_t));
 	  if (trowtab == NULL)
 	    errorPrint( "CscHbRead : Not enough memory for trowtab\n");
 	}
@@ -77,17 +77,17 @@ void CscOrder(CscMatrix *thecsc,
   else
     {
       /* Unsymmetric */
-      CSC_ROWTAB(thecsc) = (PASTIX_INT*) memAlloc(Nnzero*sizeof(PASTIX_INT));
+      CSC_ROWTAB(thecsc) = (pastix_int_t*) memAlloc(Nnzero*sizeof(pastix_int_t));
       if (CSC_ROWTAB(thecsc) == NULL)
 	errorPrint( "CscHbRead : Not enough memory for CSC_ROWTAB\n");
-      CSC_VALTAB(thecsc) = (PASTIX_FLOAT*) memAlloc(Nnzero*sizeof(PASTIX_FLOAT));
+      CSC_VALTAB(thecsc) = (pastix_float_t*) memAlloc(Nnzero*sizeof(pastix_float_t));
       if (CSC_VALTAB(thecsc) == NULL)
 	errorPrint( "CscHbRead : Not enough memory for CSC_VALTAB\n");
       
-      (*transcsc) = (PASTIX_FLOAT *) memAlloc(Nnzero*sizeof(PASTIX_FLOAT));
+      (*transcsc) = (pastix_float_t *) memAlloc(Nnzero*sizeof(pastix_float_t));
       if ((*transcsc) == NULL)
 	errorPrint( "CscHbRead : Not enough memory for (*transcsc)\n");
-      trowtab = (PASTIX_INT *) memAlloc(Nnzero*sizeof(PASTIX_INT));
+      trowtab = (pastix_int_t *) memAlloc(Nnzero*sizeof(pastix_int_t));
       if (trowtab == NULL)
 	errorPrint( "CscHbRead : Not enough memory for trowtab\n");
     }
@@ -123,7 +123,7 @@ void CscOrder(CscMatrix *thecsc,
 
   if ((*transcsc) != NULL)
     {
-      trscltb = (PASTIX_INT *) memAlloc((Ncol+1)*sizeof(PASTIX_INT));
+      trscltb = (pastix_int_t *) memAlloc((Ncol+1)*sizeof(pastix_int_t));
       if (trscltb == NULL)
 	errorPrint( "CscHbRead : not enough memory for trscltb\n");
       for (index=0; index<(Ncol+1); index++)
@@ -139,7 +139,7 @@ void CscOrder(CscMatrix *thecsc,
     {
       for (iter=colptr[itercol]; iter<colptr[itercol+1]; iter++)
 	{
-	  PASTIX_INT therow;
+	  pastix_int_t therow;
 
 	  rowp1 = rowind[iter-1] -1;
 	  newcol = ord->permtab[itercol];
@@ -197,7 +197,7 @@ void CscOrder(CscMatrix *thecsc,
       printf("Not yet implemented\n");
       EXIT(MOD_SI,NOTIMPLEMENTED_ERR);
 
-      (*rhs) = (PASTIX_FLOAT*) memAlloc(Ncol*sizeof(PASTIX_FLOAT));
+      (*rhs) = (pastix_float_t*) memAlloc(Ncol*sizeof(pastix_float_t));
       if ((*rhs) == NULL)
 	errorPrint( "CscHbRead : Not enough memory for rhs\n");
       
@@ -209,7 +209,7 @@ void CscOrder(CscMatrix *thecsc,
       if (RhsType[2] == 'X')
 	{
 	  /* Vector Solution */
-	  (*rhs2) = (PASTIX_FLOAT*) memAlloc(Ncol*sizeof(PASTIX_FLOAT));
+	  (*rhs2) = (pastix_float_t*) memAlloc(Ncol*sizeof(pastix_float_t));
 	  if ((*rhs2) == NULL)
 	    errorPrint( "CscHbRead : not enough memory for rhs2\n");
 
@@ -242,17 +242,17 @@ void CscOrder(CscMatrix *thecsc,
   for (index = 0; index < Ncol; index++)
     {
       /* bubble sort between coltab[index2] and coltab[index2+1] */
-      PASTIX_INT *t = &(CSC_FROW(thecsc,0,index));
-      PASTIX_FLOAT *v = &(CSC_FVAL(thecsc,0,index));
-      PASTIX_INT n = CSC_COL(thecsc,0,index+1) - CSC_COL(thecsc,0,index);
+      pastix_int_t *t = &(CSC_FROW(thecsc,0,index));
+      pastix_float_t *v = &(CSC_FVAL(thecsc,0,index));
+      pastix_int_t n = CSC_COL(thecsc,0,index+1) - CSC_COL(thecsc,0,index);
 	
-      PASTIX_INT i,j;
+      pastix_int_t i,j;
       for (i=0; i<n; i++)
 	for (j=0; j<n-i-1; j++)
 	  if (t[j] > t[j+1])
 	    {
-	      PASTIX_INT tempt = t[j+1];
-	      PASTIX_FLOAT tempv = v[j+1];
+	      pastix_int_t tempt = t[j+1];
+	      pastix_float_t tempv = v[j+1];
 	      
 	      t[j+1] = t[j];
 	      v[j+1] = v[j];
@@ -265,18 +265,18 @@ void CscOrder(CscMatrix *thecsc,
     {
       for (index=0; index<Ncol; index++)
 	{
-	  PASTIX_INT *t = &(trowtab[CSC_COL(thecsc,0,index)]);
-	  PASTIX_FLOAT *v = &((*transcsc)[CSC_COL(thecsc,0,index)]);
+	  pastix_int_t *t = &(trowtab[CSC_COL(thecsc,0,index)]);
+	  pastix_float_t *v = &((*transcsc)[CSC_COL(thecsc,0,index)]);
 	  
-	  PASTIX_INT n = CSC_COL(thecsc,0,index+1) - CSC_COL(thecsc,0,index);
-	  PASTIX_INT i,j;
+	  pastix_int_t n = CSC_COL(thecsc,0,index+1) - CSC_COL(thecsc,0,index);
+	  pastix_int_t i,j;
 	  
 	  for (i=0; i<n; i++)
 	    for (j=0; j<n-i-1; j++)
 	      if (t[j] > t[j+1])
 		{
-		  PASTIX_INT tempt = t[j+1];
-		  PASTIX_FLOAT tempv = v[j+1];
+		  pastix_int_t tempt = t[j+1];
+		  pastix_float_t tempv = v[j+1];
 		  
 		  t[j+1] = t[j];
 		  v[j+1] = v[j];
@@ -294,8 +294,8 @@ void CscOrder(CscMatrix *thecsc,
 /*== Distribution/Remplissage ==*/
 /******************************************************************************/
 /* void CscDistrib(SymbolMatrix *symbmtx, CscMatrix *cscmtx,                  */
-/*                 CscMatrix *cscdist, const PASTIX_FLOAT *transcsc,                 */
-/*		   PASTIX_FLOAT **trandcsc)                                          */
+/*                 CscMatrix *cscdist, const pastix_float_t *transcsc,                 */
+/*		   pastix_float_t **trandcsc)                                          */
 /*                                                                            */
 /* Distribution de la csc                                                     */
 /*                                                                            */
@@ -307,13 +307,13 @@ void CscOrder(CscMatrix *thecsc,
 /******************************************************************************/
 /* !!! FONCTION INUTILISEE !!! */
 void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
-		CscMatrix * cscdist, const PASTIX_FLOAT *transcsc, PASTIX_FLOAT **trandcsc)
+		CscMatrix * cscdist, const pastix_float_t *transcsc, pastix_float_t **trandcsc)
 {
-  PASTIX_INT iterckcd=0; /* iter for cblk in csc(d) */
-  PASTIX_INT itercol; /* iter for coltab */
-  PASTIX_INT strdcol=0; /* stride for col */
-  PASTIX_INT itervald=0; /* iter for valtab rowtab */
-  PASTIX_INT itervalg=0;
+  pastix_int_t iterckcd=0; /* iter for cblk in csc(d) */
+  pastix_int_t itercol; /* iter for coltab */
+  pastix_int_t strdcol=0; /* stride for col */
+  pastix_int_t itervald=0; /* iter for valtab rowtab */
+  pastix_int_t itervalg=0;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscDistrib \n");
@@ -332,7 +332,7 @@ void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
       CSC_COLNBR(cscdist,iterckcd) =
 	symbmtx->cblktab[iterckcd].lcolnum-symbmtx->cblktab[iterckcd].fcolnum+1;
       CSC_COLTAB(cscdist,iterckcd) =
-	(PASTIX_INT *) memAlloc((CSC_COLNBR(cscdist,iterckcd)+1)*sizeof(PASTIX_INT));
+	(pastix_int_t *) memAlloc((CSC_COLNBR(cscdist,iterckcd)+1)*sizeof(pastix_int_t));
       if (CSC_COLTAB(cscdist,iterckcd) == NULL)
 	errorPrint( "CscDistrib : Not enough memory for CSC_COLTAB\n");
 
@@ -349,17 +349,17 @@ void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
     }
 
   /* Remplissage des valtabs et rowtabs */
-  CSC_ROWTAB(cscdist) = (PASTIX_INT *) memAlloc(strdcol*sizeof(PASTIX_INT));
+  CSC_ROWTAB(cscdist) = (pastix_int_t *) memAlloc(strdcol*sizeof(pastix_int_t));
   if (CSC_ROWTAB(cscdist) == NULL)
     errorPrint( "CscDistrib : Not enough memory for CSC_ROWTAB\n");
-  CSC_VALTAB(cscdist) = (PASTIX_FLOAT *) memAlloc(strdcol*sizeof(PASTIX_FLOAT));
+  CSC_VALTAB(cscdist) = (pastix_float_t *) memAlloc(strdcol*sizeof(pastix_float_t));
   if (CSC_VALTAB(cscdist) == NULL)
     errorPrint( "CscDistrib : Not enough memory for CSC_VALTAB\n");
 
   if (transcsc != NULL)
     {
       /* Rua */
-      (*trandcsc) = (PASTIX_FLOAT *) memAlloc(strdcol*sizeof(PASTIX_FLOAT));
+      (*trandcsc) = (pastix_float_t *) memAlloc(strdcol*sizeof(pastix_float_t));
       if ((*trandcsc) == NULL)
 	errorPrint( "CscDistrib : Not enough memory for trandcsc\n");
     }
@@ -397,7 +397,7 @@ void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
 
 
 /******************************************************************************/
-/* void Csc2solv(CscMatrix *cscmtx, SolverMatrix *solvmtx, PASTIX_FLOAT *trandcsc)   */
+/* void Csc2solv(CscMatrix *cscmtx, SolverMatrix *solvmtx, pastix_float_t *trandcsc)   */
 /*                                                                            */
 /* Remplit la solvermatrix locale a partir de la csc locale, pour la partie   */
 /* on utiliser la transpose de la csc globale qui est lu a partir d'un fichier*/
@@ -409,10 +409,10 @@ void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
 /* !!! FONCTION INUTILISEE !!! */
 void Csc2symb(const CscMatrix *cscmtx, SymbolMatrix *symbmtx)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercoltab;
-  PASTIX_INT iterbloc;
-  PASTIX_INT iterval;
+  pastix_int_t itercblk;
+  pastix_int_t itercoltab;
+  pastix_int_t iterbloc;
+  pastix_int_t iterval;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> Csc2symb \n");
@@ -480,13 +480,13 @@ void Csc2symb(const CscMatrix *cscmtx, SymbolMatrix *symbmtx)
 /* !!! FONCTION INUTILISEE !!! */
 void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp)
 {
-  PASTIX_INT itercscf;
-  PASTIX_INT itercol;
-  PASTIX_INT valnbr;
-  PASTIX_INT colcur;
-  PASTIX_INT iterval;
-  PASTIX_INT rowcur;
-  PASTIX_INT iterval2;
+  pastix_int_t itercscf;
+  pastix_int_t itercol;
+  pastix_int_t valnbr;
+  pastix_int_t colcur;
+  pastix_int_t iterval;
+  pastix_int_t rowcur;
+  pastix_int_t iterval2;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscTrans \n");
@@ -504,7 +504,7 @@ void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp)
     {
       CSC_COLNBR(csctrp,itercscf) = CSC_COLNBR(cscmtx,itercscf);
       CSC_COLTAB(csctrp,itercscf) =
-	(PASTIX_INT *) memAlloc((CSC_COLNBR(csctrp,itercscf)+1)*sizeof(PASTIX_INT));
+	(pastix_int_t *) memAlloc((CSC_COLNBR(csctrp,itercscf)+1)*sizeof(pastix_int_t));
       if (CSC_COLTAB(csctrp,itercscf) == NULL)
 	errorPrint( "CscTrans : Not enough memory for CSC_COLTAB\n");
       
@@ -519,10 +519,10 @@ void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp)
   /* Allocation du valtab et rowtab */
   valnbr = CSC_VALNBR(cscmtx);
   printf("valnbr = %ld\n", (long)valnbr);
-  CSC_ROWTAB(csctrp) = (PASTIX_INT *) memAlloc(valnbr*sizeof(PASTIX_INT));
+  CSC_ROWTAB(csctrp) = (pastix_int_t *) memAlloc(valnbr*sizeof(pastix_int_t));
   if (CSC_ROWTAB(csctrp) == NULL)
     errorPrint( "CscTrans : Not enough memory for CSC_ROWTAB\n");
-  CSC_VALTAB(csctrp) = (PASTIX_FLOAT *) memAlloc(valnbr*sizeof(PASTIX_FLOAT));
+  CSC_VALTAB(csctrp) = (pastix_float_t *) memAlloc(valnbr*sizeof(pastix_float_t));
   if (CSC_VALTAB(csctrp) == NULL)
     errorPrint( "CscTrans : Not enough memory for CSC_VALTAB\n");
 
@@ -540,8 +540,8 @@ void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp)
 	       iterval < CSC_COL(cscmtx,itercscf,itercol+1);
 	       iterval++)
 	    {
-	      PASTIX_INT cont = 0;
-	      PASTIX_INT itercscf2 = 0;
+	      pastix_int_t cont = 0;
+	      pastix_int_t itercscf2 = 0;
 
 	      rowcur = CSC_ROW(cscmtx,iterval);
 
@@ -582,7 +582,7 @@ void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp)
 	   itercol < (CSC_COLNBR(csctrp,itercscf));
 	   itercol++)
 	{
-	  PASTIX_INT rowidx = CSC_COL(csctrp,itercscf,itercol);
+	  pastix_int_t rowidx = CSC_COL(csctrp,itercscf,itercol);
 	  CSC_COL(csctrp,itercscf,itercol) = rowcur;
 	  rowcur = rowidx;
 	}
@@ -594,23 +594,23 @@ void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp)
 }
 
 /* !!! FONCTION INUTILISEE !!! */
-void CscScaling2(char *Type, PASTIX_INT Ncol, PASTIX_INT *col, PASTIX_INT *row, PASTIX_FLOAT *val, PASTIX_FLOAT *rhs, PASTIX_FLOAT *rhs2)
+void CscScaling2(char *Type, pastix_int_t Ncol, pastix_int_t *col, pastix_int_t *row, pastix_float_t *val, pastix_float_t *rhs, pastix_float_t *rhs2)
 {
-  PASTIX_INT itercol;
-  PASTIX_INT iterval;
-  PASTIX_FLOAT *rowscal;
-  PASTIX_FLOAT *colscal;
-  const PASTIX_INT flag = (Type[1] != 'S');
+  pastix_int_t itercol;
+  pastix_int_t iterval;
+  pastix_float_t *rowscal;
+  pastix_float_t *colscal;
+  const pastix_int_t flag = (Type[1] != 'S');
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscScaling2 \n");
 #endif
 
   if (flag)
-    rowscal = (PASTIX_FLOAT *) memAlloc(Ncol*sizeof(PASTIX_FLOAT));
+    rowscal = (pastix_float_t *) memAlloc(Ncol*sizeof(pastix_float_t));
   else
     rowscal = NULL;
-  colscal = (PASTIX_FLOAT *) memAlloc(Ncol*sizeof(PASTIX_FLOAT));
+  colscal = (pastix_float_t *) memAlloc(Ncol*sizeof(pastix_float_t));
 
   if (flag)
     if (rowscal == NULL)
@@ -666,8 +666,8 @@ void CscScaling2(char *Type, PASTIX_INT Ncol, PASTIX_INT *col, PASTIX_INT *row, 
 }
 
 /******************************************************************************/
-/* void CscScaling(CscMatrix *cscmtx, PASTIX_FLOAT *transcsc,                        */
-/*                 PASTIX_FLOAT *rhs, PASTIX_FLOAT *rhs2)                                   */
+/* void CscScaling(CscMatrix *cscmtx, pastix_float_t *transcsc,                        */
+/*                 pastix_float_t *rhs, pastix_float_t *rhs2)                                   */
 /*                                                                            */
 /* Scaling                                                                    */
 /*                                                                            */
@@ -677,20 +677,20 @@ void CscScaling2(char *Type, PASTIX_INT Ncol, PASTIX_INT *col, PASTIX_INT *row, 
 /* rhs2 : solution                                                            */
 /******************************************************************************/
 /* !!! FONCTION INUTILISEE !!! */
-void CscScaling(CscMatrix *cscmtx, PASTIX_FLOAT *transcsc, PASTIX_FLOAT *rhs, PASTIX_FLOAT *rhs2)
+void CscScaling(CscMatrix *cscmtx, pastix_float_t *transcsc, pastix_float_t *rhs, pastix_float_t *rhs2)
 {
-  const PASTIX_INT itercscf=0;
-  PASTIX_INT itercol;
-  PASTIX_INT iterval;
-  PASTIX_FLOAT *rowscal;
-  PASTIX_FLOAT *colscal;
+  const pastix_int_t itercscf=0;
+  pastix_int_t itercol;
+  pastix_int_t iterval;
+  pastix_float_t *rowscal;
+  pastix_float_t *colscal;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscScaling \n");
 #endif
   
-  rowscal = (PASTIX_FLOAT *) memAlloc(CSC_COLNBR(cscmtx,0)*sizeof(PASTIX_FLOAT));
-  colscal = (PASTIX_FLOAT *) memAlloc(CSC_COLNBR(cscmtx,0)*sizeof(PASTIX_FLOAT));
+  rowscal = (pastix_float_t *) memAlloc(CSC_COLNBR(cscmtx,0)*sizeof(pastix_float_t));
+  colscal = (pastix_float_t *) memAlloc(CSC_COLNBR(cscmtx,0)*sizeof(pastix_float_t));
   
   for (itercol=0; itercol<CSC_COLNBR(cscmtx,itercscf); itercol++)
     {
@@ -740,11 +740,11 @@ void CscScaling(CscMatrix *cscmtx, PASTIX_FLOAT *transcsc, PASTIX_FLOAT *rhs, PA
 
 /* !!! FONCTION INUTILISEE !!! */
 void CscVerifUpdown(const UpDownVector *updovct, const SymbolMatrix *symbmtx,
-		    const PASTIX_FLOAT *rhs2)
+		    const pastix_float_t *rhs2)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT itersm2x;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t itersm2x;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscVerifUpdown \n");
@@ -776,11 +776,11 @@ void CscVerifUpdown(const UpDownVector *updovct, const SymbolMatrix *symbmtx,
 
 /* !!! FONCTION INUTILISEE !!! */
 void CscUpdown(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
-	       const PASTIX_FLOAT *rhs)
+	       const pastix_float_t *rhs)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT itersm2x;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t itersm2x;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscUpdown \n");
@@ -805,11 +805,11 @@ void CscUpdown(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
 
 /* !!! FONCTION INUTILISEE !!! */
 void CscUpdown2(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
-		const PASTIX_FLOAT *rhs)
+		const pastix_float_t *rhs)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT itersm2x;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t itersm2x;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscUpdown2 \n");
@@ -836,8 +836,8 @@ void Csc2updown_new(Sopalin_Data_t * sopalin_data, int me, const CscMatrix *cscm
 		    /*const*/ SymbolMatrix *symbmtx, int n, MPI_Comm comm)
 {
   SolverMatrix * datacode;
-  PASTIX_FLOAT *tempy;
-  PASTIX_INT    i;
+  pastix_float_t *tempy;
+  pastix_int_t    i;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> Csc2updown_new \n");
@@ -847,16 +847,16 @@ void Csc2updown_new(Sopalin_Data_t * sopalin_data, int me, const CscMatrix *cscm
 
   MONOTHREAD_BEGIN;
 
-  if (!(tempy = (PASTIX_FLOAT *)memAlloc(updovct->gnodenbr*sizeof(PASTIX_FLOAT)))) MALLOC_ERROR("tempy");
+  if (!(tempy = (pastix_float_t *)memAlloc(updovct->gnodenbr*sizeof(pastix_float_t)))) MALLOC_ERROR("tempy");
   sopalin_data->ptr_raff[0] = (void *)tempy;
 
   for (i=0;i<updovct->gnodenbr;i++)
-    tempy[i] = (PASTIX_FLOAT)i;
+    tempy[i] = (pastix_float_t)i;
   MONOTHREAD_END;
 
   SYNCHRO_THREAD;
 
-  tempy = (PASTIX_FLOAT *)sopalin_data->ptr_raff[0];
+  tempy = (pastix_float_t *)sopalin_data->ptr_raff[0];
 
   CscAx(sopalin_data, me, cscmtx, tempy, updovct->sm2xtab, symbmtx, updovct, comm);
 
@@ -879,11 +879,11 @@ void Csc2updown_new(Sopalin_Data_t * sopalin_data, int me, const CscMatrix *cscm
 /* !!! INUTILISEE, non testee !!! */
 void CscDiagDom(CscMatrix *cscmtx)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercoltab;
-  PASTIX_INT iterval;
-  PASTIX_INT itercol=0;
-  PASTIX_INT diag=0;
+  pastix_int_t itercblk;
+  pastix_int_t itercoltab;
+  pastix_int_t iterval;
+  pastix_int_t itercol=0;
+  pastix_int_t diag=0;
   double sum41;
 
 #ifdef CSC_LOG
@@ -918,14 +918,14 @@ void CscDiagDom(CscMatrix *cscmtx)
 }
 
 /* !!! INUTILISEE, non testee !!! */
-PASTIX_INT CscStrucSym(CscMatrix *cscmtx)
+pastix_int_t CscStrucSym(CscMatrix *cscmtx)
 {
   /* csc_fnbr = 1 */
-  PASTIX_INT itercblk=0;
-  PASTIX_INT itercoltab;
-  PASTIX_INT iterval;
-  PASTIX_INT iterval2;
-  PASTIX_INT result=1;
+  pastix_int_t itercblk=0;
+  pastix_int_t itercoltab;
+  pastix_int_t iterval;
+  pastix_int_t iterval2;
+  pastix_int_t result=1;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> CscStrucSym \n");
@@ -941,8 +941,8 @@ PASTIX_INT CscStrucSym(CscMatrix *cscmtx)
 	{
 	  if (CSC_ROW(cscmtx,iterval) != itercoltab)
 	    {
-	      PASTIX_INT rowidx=CSC_ROW(cscmtx, iterval);
-	      PASTIX_INT flag=0;
+	      pastix_int_t rowidx=CSC_ROW(cscmtx, iterval);
+	      pastix_int_t flag=0;
 	      
 	      for(iterval2=CSC_COL(cscmtx,itercblk,rowidx);
 		  iterval2<CSC_COL(cscmtx,itercblk,rowidx+1);

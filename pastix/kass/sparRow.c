@@ -9,7 +9,7 @@
 #include "sparRow.h"
 
 
-PASTIX_INT initCS(csptr amat, PASTIX_INT len)
+pastix_int_t initCS(csptr amat, pastix_int_t len)
 {
 /*---------------------------------------------------------------------- 
 | Initialize SparRow structs.
@@ -35,12 +35,12 @@ PASTIX_INT initCS(csptr amat, PASTIX_INT len)
    amat->inarow = 0;
    if(len > 0)
      {
-       MALLOC_INTERN(amat->nnzrow, len, PASTIX_INT);
-       MALLOC_INTERN(amat->ja,     len, PASTIX_INT *);
+       MALLOC_INTERN(amat->nnzrow, len, pastix_int_t);
+       MALLOC_INTERN(amat->ja,     len, pastix_int_t *);
        MALLOC_INTERN(amat->ma,     len, double *);
 
-       bzero( amat->nnzrow, sizeof(PASTIX_INT)*len);
-       bzero( amat->ja, sizeof(PASTIX_INT *)*len);
+       bzero( amat->nnzrow, sizeof(pastix_int_t)*len);
+       bzero( amat->ja, sizeof(pastix_int_t *)*len);
        bzero( amat->ma, sizeof(double *)*len);
        amat->jatab = NULL;
        amat->matab = NULL;
@@ -58,7 +58,7 @@ PASTIX_INT initCS(csptr amat, PASTIX_INT len)
 }
 
 
-PASTIX_INT cleanCS(csptr amat)
+pastix_int_t cleanCS(csptr amat)
 {
 /*----------------------------------------------------------------------
 | Free up memory allocated for SparRow structs.
@@ -69,7 +69,7 @@ PASTIX_INT cleanCS(csptr amat)
 |     len   =  size of matrix
 |--------------------------------------------------------------------*/
    /*	*/
-  PASTIX_INT i; 
+  pastix_int_t i; 
   if (amat == NULL) return 0;
   /*if (amat->n < 1) return 0;*/
 
@@ -105,14 +105,14 @@ PASTIX_INT cleanCS(csptr amat)
 }
 
 
-PASTIX_INT CSnnz(csptr mat)
+pastix_int_t CSnnz(csptr mat)
 {
   /*-----------------------------------/
   / Return number of non zero entries  /
   / in a matrix in SparRow format      /
   /-----------------------------------*/
-  PASTIX_INT nnz;
-  PASTIX_INT i;
+  pastix_int_t nnz;
+  pastix_int_t i;
 
   nnz = 0;
   for(i=0;i<mat->n;i++)
@@ -121,7 +121,7 @@ PASTIX_INT CSnnz(csptr mat)
   return nnz;
 }
 
-PASTIX_INT CS_RowPerm(csptr mat, PASTIX_INT *perm)
+pastix_int_t CS_RowPerm(csptr mat, pastix_int_t *perm)
 {
 /*----------------------------------------------------------------------
 |
@@ -144,18 +144,18 @@ PASTIX_INT CS_RowPerm(csptr mat, PASTIX_INT *perm)
 |             0   --> successful return.
 |             1   --> memory allocation error.
 |---------------------------------------------------------------------*/
-  PASTIX_INT **addj = NULL;
-  PASTIX_INT * nnz  = NULL;
-  PASTIX_INT i, size;
+  pastix_int_t **addj = NULL;
+  pastix_int_t * nnz  = NULL;
+  pastix_int_t i, size;
   double **addm = NULL;
 
    size = mat->n;
    if(size == 0)
      return 0;
 
-   MALLOC_INTERN(addj, size, PASTIX_INT *);
+   MALLOC_INTERN(addj, size, pastix_int_t *);
    MALLOC_INTERN(addm, size, double *);
-   MALLOC_INTERN(nnz,  size, PASTIX_INT);
+   MALLOC_INTERN(nnz,  size, pastix_int_t);
 
    for (i=0; i<size; i++) {
       addj[perm[i]] = mat->ja[i];
@@ -175,7 +175,7 @@ PASTIX_INT CS_RowPerm(csptr mat, PASTIX_INT *perm)
 /*------- end of rperm ------------------------------------------------- 
 |---------------------------------------------------------------------*/
 
-PASTIX_INT CS_ColPerm(csptr mat, PASTIX_INT *perm) 
+pastix_int_t CS_ColPerm(csptr mat, pastix_int_t *perm) 
 {
 /*----------------------------------------------------------------------
 |
@@ -196,9 +196,9 @@ PASTIX_INT CS_ColPerm(csptr mat, PASTIX_INT *perm)
 | (mat) = A P stored in SparRow format.
 |
 |---------------------------------------------------------------------*/
-   PASTIX_INT i, j,  size, *aja;
-   PASTIX_INT *newj = NULL;
-   PASTIX_INT maxrow;
+   pastix_int_t i, j,  size, *aja;
+   pastix_int_t *newj = NULL;
+   pastix_int_t maxrow;
    size = mat->n;
    if(size == 0)
      return 0;
@@ -211,7 +211,7 @@ PASTIX_INT CS_ColPerm(csptr mat, PASTIX_INT *perm)
    if(maxrow == 0)
      return 0;
 
-   MALLOC_INTERN(newj, maxrow, PASTIX_INT);
+   MALLOC_INTERN(newj, maxrow, pastix_int_t);
 
    for (i=0; i<size; i++) {
       aja = mat->ja[i];
@@ -227,7 +227,7 @@ PASTIX_INT CS_ColPerm(csptr mat, PASTIX_INT *perm)
 }
 /*------- end of cperm ------------------------------------------------- 
 |---------------------------------------------------------------------*/
-PASTIX_INT CS_Perm(csptr mat, PASTIX_INT *perm) 
+pastix_int_t CS_Perm(csptr mat, pastix_int_t *perm) 
 {
 /*----------------------------------------------------------------------
 |

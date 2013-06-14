@@ -3,17 +3,17 @@
 #define PastixConjTrans 113
 
 int API_CALL(CORE_gemdm)(int transA, int transB,
-                         PASTIX_INT M, PASTIX_INT N, PASTIX_INT K,
-                         PASTIX_FLOAT alpha, PASTIX_FLOAT *A, int LDA,
-                         PASTIX_FLOAT *B, int LDB,
-                         PASTIX_FLOAT beta, PASTIX_FLOAT *C, int LDC,
-                         PASTIX_FLOAT *D, int incD,
-                         PASTIX_FLOAT *WORK, int LWORK)
+                         pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                         pastix_float_t alpha, pastix_float_t *A, int LDA,
+                         pastix_float_t *B, int LDB,
+                         pastix_float_t beta, pastix_float_t *C, int LDC,
+                         pastix_float_t *D, int incD,
+                         pastix_float_t *WORK, int LWORK)
 {
     static int iun = 1;
-    PASTIX_INT j; /*, Am, Bm;*/
-    PASTIX_FLOAT delta;
-    PASTIX_FLOAT *wD, *w;
+    pastix_int_t j; /*, Am, Bm;*/
+    pastix_float_t delta;
+    pastix_float_t *wD, *w;
     char *tA = ( transA == PastixNoTrans ) ? "N" 
         : (( transA == PastixTrans ) ? "T" : "C" );
     char *tB = ( transB == PastixNoTrans ) ? "N" 

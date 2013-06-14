@@ -22,8 +22,8 @@
     newa  - Value of each element,can be NULL    
 
  */
-int csc_symgraph(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, 
-		 PASTIX_INT *newn, PASTIX_INT **newia, PASTIX_INT **newja, PASTIX_FLOAT **newa);
+int csc_symgraph(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, 
+		 pastix_int_t *newn, pastix_int_t **newia, pastix_int_t **newja, pastix_float_t **newa);
 
 
 
@@ -46,8 +46,8 @@ int csc_symgraph(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a,
     newa        - Value of each element,can be NULL    
     malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
-int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    PASTIX_FLOAT * a, 
-		      PASTIX_INT *newn, PASTIX_INT **newia, PASTIX_INT **newja, PASTIX_FLOAT **newa, 
+int csc_symgraph_int (pastix_int_t n,     pastix_int_t * ia,    pastix_int_t * ja,    pastix_float_t * a, 
+		      pastix_int_t *newn, pastix_int_t **newia, pastix_int_t **newja, pastix_float_t **newa, 
 		      int malloc_flag);
 
 
@@ -67,7 +67,7 @@ int csc_symgraph_int (PASTIX_INT n,     PASTIX_INT * ia,    PASTIX_INT * ja,    
     Returns:
       ia and ja tabulars modified.
 */
-void csc_noDiag(PASTIX_INT baseval, PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a);
+void csc_noDiag(pastix_int_t baseval, pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a);
 
 /*
   Function: csc_check_doubles
@@ -92,10 +92,10 @@ void csc_noDiag(PASTIX_INT baseval, PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja
     API_YES - If the matrix contained no double or was successfully corrected.
     API_NO  - Otherwise.
 */
-int csc_check_doubles(PASTIX_INT      n,
-		      PASTIX_INT   *  colptr,
-		      PASTIX_INT   ** rows,
-		      PASTIX_FLOAT ** values, 
+int csc_check_doubles(pastix_int_t      n,
+		      pastix_int_t   *  colptr,
+		      pastix_int_t   ** rows,
+		      pastix_float_t ** values, 
 		      int      dof,
 		      int      flag,
 		      int      flagalloc);
@@ -126,21 +126,21 @@ int csc_check_doubles(PASTIX_INT      n,
     alloc    - indicate if allocation on CSC uses internal malloc. 
     dof      - Number of degrees of freedom.
 */
-int csc_checksym(PASTIX_INT      n, 
-		 PASTIX_INT     *colptr, 
-		 PASTIX_INT    **rows, 
-		 PASTIX_FLOAT  **values, 
+int csc_checksym(pastix_int_t      n, 
+		 pastix_int_t     *colptr, 
+		 pastix_int_t    **rows, 
+		 pastix_float_t  **values, 
 		 int      correct,
 		 int      alloc,
 		 int      dof);
 
-void CSC_colPerm(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_INT *cperm);
-void CSC_colScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_FLOAT *dcol);
-void CSC_rowScale(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a, PASTIX_FLOAT *drow);
+void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_int_t *cperm);
+void CSC_colScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *dcol);
+void CSC_rowScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *drow);
 
-void CSC_sort(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT *a);
-void CSC_Fnum2Cnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n);
-void CSC_Cnum2Fnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n);
+void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a);
+void CSC_Fnum2Cnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n);
+void CSC_Cnum2Fnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n);
 
 /*
   Function: CSC_buildZerosAndNonZerosGraphs
@@ -157,18 +157,18 @@ void CSC_Cnum2Fnum(PASTIX_INT *ja, PASTIX_INT *ia, PASTIX_INT n);
     revperm                  - Reverse permutation tabular.
     criteria                 - Value beside which a number is said null.
 */
-int CSC_buildZerosAndNonZerosGraphs(PASTIX_INT     n,
-				    PASTIX_INT    *colptr,
-				    PASTIX_INT    *rows,
-				    PASTIX_FLOAT  *values,
-				    PASTIX_INT    *n_nz,
-				    PASTIX_INT   **colptr_nz,
-				    PASTIX_INT   **rows_nz,
-				    PASTIX_INT    *n_z,
-				    PASTIX_INT   **colptr_z,
-				    PASTIX_INT   **rows_z,
-				    PASTIX_INT    *perm, 
-				    PASTIX_INT    *revperm,
+int CSC_buildZerosAndNonZerosGraphs(pastix_int_t     n,
+				    pastix_int_t    *colptr,
+				    pastix_int_t    *rows,
+				    pastix_float_t  *values,
+				    pastix_int_t    *n_nz,
+				    pastix_int_t   **colptr_nz,
+				    pastix_int_t   **rows_nz,
+				    pastix_int_t    *n_z,
+				    pastix_int_t   **colptr_z,
+				    pastix_int_t   **rows_z,
+				    pastix_int_t    *perm, 
+				    pastix_int_t    *revperm,
 				    double  criteria);
 
 /*
@@ -183,13 +183,13 @@ int CSC_buildZerosAndNonZerosGraphs(PASTIX_INT     n,
     n_isolate    - Number of unknow to isolate.
     isolate_list - List of unknown to isolate.
 */
-int CSC_isolate(PASTIX_INT     n,
-		PASTIX_INT    *colptr,
-		PASTIX_INT    *rows,
-		PASTIX_INT     n_isolate,
-		PASTIX_INT    *isolate_list,
-		PASTIX_INT    *perm,
-		PASTIX_INT    *revperm);
+int CSC_isolate(pastix_int_t     n,
+		pastix_int_t    *colptr,
+		pastix_int_t    *rows,
+		pastix_int_t     n_isolate,
+		pastix_int_t    *isolate_list,
+		pastix_int_t    *perm,
+		pastix_int_t    *revperm);
 
 
 /*
@@ -209,10 +209,10 @@ int CSC_isolate(PASTIX_INT     n,
     NO_ERR
   
 */
-int csc_save(PASTIX_INT      n,
-	     PASTIX_INT    * colptr,
-	     PASTIX_INT    * rows,
-	     PASTIX_FLOAT  * values,
+int csc_save(pastix_int_t      n,
+	     pastix_int_t    * colptr,
+	     pastix_int_t    * rows,
+	     pastix_float_t  * values,
 	     int      dof,
 	     FILE   * outfile);
 /*
@@ -234,10 +234,10 @@ int csc_save(PASTIX_INT      n,
     NO_ERR
   
 */
-int csc_load(PASTIX_INT    *  n,
-	     PASTIX_INT    ** colptr,
-	     PASTIX_INT    ** rows,
-	     PASTIX_FLOAT  ** values,
+int csc_load(pastix_int_t    *  n,
+	     pastix_int_t    ** colptr,
+	     pastix_int_t    ** rows,
+	     pastix_float_t  ** values,
 	     int    *  dof,
 	     FILE   *  infile);
 

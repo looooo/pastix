@@ -19,17 +19,17 @@
 
 FILE    *       ps_open(char *);
 void            ps_close(FILE *);
-void            ps_write_matrix(SymbolMatrix *, FILE *, PASTIX_INT *);
-void            ps_write_tree(const CostMatrix *, const EliminTree *, FILE *, PASTIX_INT *);
-static double    ps_rec_write_tree(PASTIX_INT , const CostMatrix *, const EliminTree *, FILE *,
-			    void (*ps_draw_node)(FILE *,PASTIX_INT ,const CostMatrix *, const EliminTree *,double ,double ,double )
+void            ps_write_matrix(SymbolMatrix *, FILE *, pastix_int_t *);
+void            ps_write_tree(const CostMatrix *, const EliminTree *, FILE *, pastix_int_t *);
+static double    ps_rec_write_tree(pastix_int_t , const CostMatrix *, const EliminTree *, FILE *,
+			    void (*ps_draw_node)(FILE *,pastix_int_t ,const CostMatrix *, const EliminTree *,double ,double ,double )
 				  );
-static void     ps_draw_node_num(FILE *, PASTIX_INT , const CostMatrix *,const EliminTree *, double , double , double );
-void            ps_write_tree_owner(PASTIX_INT *,const CostMatrix *, const EliminTree *, FILE *, PASTIX_INT *);
-static double    ps_rec_write_tree_owner(PASTIX_INT , PASTIX_INT *, const CostMatrix *, const EliminTree *, FILE *,
-			    void (*ps_draw_node)(FILE *,PASTIX_INT, PASTIX_INT, const CostMatrix *, const EliminTree *,double ,double ,double )
+static void     ps_draw_node_num(FILE *, pastix_int_t , const CostMatrix *,const EliminTree *, double , double , double );
+void            ps_write_tree_owner(pastix_int_t *,const CostMatrix *, const EliminTree *, FILE *, pastix_int_t *);
+static double    ps_rec_write_tree_owner(pastix_int_t , pastix_int_t *, const CostMatrix *, const EliminTree *, FILE *,
+			    void (*ps_draw_node)(FILE *,pastix_int_t, pastix_int_t, const CostMatrix *, const EliminTree *,double ,double ,double )
 				  );
-static void     ps_draw_node_owner(FILE *, PASTIX_INT, PASTIX_INT, const CostMatrix *,const EliminTree *, double , double , double );
+static void     ps_draw_node_owner(FILE *, pastix_int_t, pastix_int_t, const CostMatrix *,const EliminTree *, double , double , double );
 
 
 

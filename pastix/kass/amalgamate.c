@@ -48,18 +48,18 @@
 
 #define print_one(fmt, ...)    if( procnum == 0) fprintf(stdout, fmt, ##__VA_ARGS__)
 
-extern void UnionSet(PASTIX_INT *set1, PASTIX_INT n1, PASTIX_INT *set2, PASTIX_INT n2, PASTIX_INT *set, PASTIX_INT *n);
+extern void UnionSet(pastix_int_t *set1, pastix_int_t n1, pastix_int_t *set2, pastix_int_t n2, pastix_int_t *set, pastix_int_t *n);
 
-double cblk_time_fact (PASTIX_INT n, PASTIX_INT *ja, PASTIX_INT colnbr);
-double cblk_time_solve(PASTIX_INT n, PASTIX_INT *ja, PASTIX_INT colnbr);
-PASTIX_INT    merge_cost(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight);
-double merge_gain(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight, PASTIX_INT *tmp);
-void   merge_col (PASTIX_INT a, PASTIX_INT b, csptr P);
-void   get_son(PASTIX_INT node, PASTIX_INT *sonindex, PASTIX_INT *sontab, PASTIX_INT *colweight, PASTIX_INT *ns, PASTIX_INT *list);
+double cblk_time_fact (pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
+double cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
+pastix_int_t    merge_cost(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight);
+double merge_gain(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight, pastix_int_t *tmp);
+void   merge_col (pastix_int_t a, pastix_int_t b, csptr P);
+void   get_son(pastix_int_t node, pastix_int_t *sonindex, pastix_int_t *sontab, pastix_int_t *colweight, pastix_int_t *ns, pastix_int_t *list);
 
 
 
-void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, PASTIX_INT *treetab, PASTIX_INT *cblknbr, PASTIX_INT **rangtab, PASTIX_INT *nodetab, MPI_Comm pastix_comm)
+void amalgamate(double rat, csptr P, pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *treetab, pastix_int_t *cblknbr, pastix_int_t **rangtab, pastix_int_t *nodetab, MPI_Comm pastix_comm)
 {
   /********************************************************************/
   /* amagamate takes a supernode graph (P,colwgt) and performs some   */
@@ -75,22 +75,22 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
      matrix P */
   /********************************************************************/
 
-  PASTIX_INT *nnzadd    = NULL;
-  PASTIX_INT *sonindex  = NULL;
+  pastix_int_t *nnzadd    = NULL;
+  pastix_int_t *sonindex  = NULL;
 
-  PASTIX_INT *sontab    = NULL;
-  PASTIX_INT *treetab2  = NULL; /** The treetab is updated as amalgamation comes
+  pastix_int_t *sontab    = NULL;
+  pastix_int_t *treetab2  = NULL; /** The treetab is updated as amalgamation comes
                              along **/
-  PASTIX_INT *tmp       = NULL;
-  PASTIX_INT *tmp2      = NULL;
-  PASTIX_INT *newnum    = NULL;
-  PASTIX_INT i,j,k,ind;
-  PASTIX_INT father;
-  PASTIX_INT cblknum;
-  PASTIX_INT *colweight = NULL;
+  pastix_int_t *tmp       = NULL;
+  pastix_int_t *tmp2      = NULL;
+  pastix_int_t *newnum    = NULL;
+  pastix_int_t i,j,k,ind;
+  pastix_int_t father;
+  pastix_int_t cblknum;
+  pastix_int_t *colweight = NULL;
   double *gain   = NULL;
-  PASTIX_INT toto;
-  PASTIX_INT n, nn;
+  pastix_int_t toto;
+  pastix_int_t n, nn;
   double rat_cblk;
   int blas_gain = 0;
 
@@ -139,7 +139,7 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
 #endif
 
   /*** Set the weight of each column ***/
-  MALLOC_INTERN(colweight, n, PASTIX_INT);
+  MALLOC_INTERN(colweight, n, pastix_int_t);
   if(snodetab == NULL)
     {
       for(i=0;i<n;i++)
@@ -203,12 +203,12 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
 
 
 
-  MALLOC_INTERN(treetab2, n, PASTIX_INT);
-  MALLOC_INTERN(nnzadd,   n, PASTIX_INT);
+  MALLOC_INTERN(treetab2, n, pastix_int_t);
+  MALLOC_INTERN(nnzadd,   n, pastix_int_t);
   MALLOC_INTERN(gain,     n, double);
-  memCpy(treetab2, treetab, sizeof(PASTIX_INT)*n);
-  MALLOC_INTERN(tmp,  nn, PASTIX_INT);
-  MALLOC_INTERN(tmp2, nn, PASTIX_INT);
+  memCpy(treetab2, treetab, sizeof(pastix_int_t)*n);
+  MALLOC_INTERN(tmp,  nn, pastix_int_t);
+  MALLOC_INTERN(tmp2, nn, pastix_int_t);
 
 #ifdef DEBUG_KASS
   key = 0.0;
@@ -223,7 +223,7 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
   /*** Compute the son list of each supernode ***/
   /**********************************************/
   /*** Compute the number of sons of each cblk ***/
-  bzero(tmp, sizeof(PASTIX_INT)*n);
+  bzero(tmp, sizeof(pastix_int_t)*n);
   for(i=0;i<n-1;i++)
     if(treetab2[i] >= 0) /** IF THIS SNODE IS NOT A ROOT **/
       tmp[treetab2[i]]++;
@@ -232,8 +232,8 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
   for(i=0;i<n;i++)
     ind += tmp[i];
 
-  MALLOC_INTERN(sonindex, n+1, PASTIX_INT);
-  MALLOC_INTERN(sontab,   ind, PASTIX_INT);
+  MALLOC_INTERN(sonindex, n+1, pastix_int_t);
+  MALLOC_INTERN(sontab,   ind, pastix_int_t);
   ind = 0;
   for(i=0;i<n;i++)
     {
@@ -242,7 +242,7 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
     }
   sonindex[n] = ind;
 
-  bzero(tmp, sizeof(PASTIX_INT)*n);
+  bzero(tmp, sizeof(pastix_int_t)*n);
 
   for(i=0;i<n-1;i++)
     {
@@ -389,7 +389,7 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
        i = queueGet2(&heap, &key, NULL);
 
 
-       /*if(nnzadd[i] != (PASTIX_INT)key || colweight[i] <= 0)*/
+       /*if(nnzadd[i] != (pastix_int_t)key || colweight[i] <= 0)*/
        if(gain[i] != key || colweight[i] <= 0)
          continue;
 
@@ -513,7 +513,7 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
 
   /** tmp will be the newnum of node i in the rangtab **/
   newnum = tmp;
-  bzero(newnum, sizeof(PASTIX_INT)*n);
+  bzero(newnum, sizeof(pastix_int_t)*n);
   k = 0;
   for(i=0;i<n;i++)
     if(colweight[i] > 0)
@@ -523,8 +523,8 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
   print_one("Number of cblk after amal = %ld \n", (long)*cblknbr);
 #endif
 
-  MALLOC_INTERN(*rangtab, k+1, PASTIX_INT);
-  bzero(*rangtab, sizeof(PASTIX_INT)*(k+1));
+  MALLOC_INTERN(*rangtab, k+1, pastix_int_t);
+  bzero(*rangtab, sizeof(pastix_int_t)*(k+1));
 
   for(i=0;i<n;i++)
     if(colweight[i] > 0)
@@ -583,14 +583,14 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
 
   /** check the iperm vector (nodetab) **/
  {
-   PASTIX_INT *flag;
+   pastix_int_t *flag;
    fprintf(stderr, "Cblknbr = %ld NN = %ld \n", *cblknbr, (long)nn);
    ASSERT( (*rangtab)[*cblknbr] == nn, MOD_KASS);
 
-   MALLOC_INTERN(flag, nn, PASTIX_INT);
+   MALLOC_INTERN(flag, nn, pastix_int_t);
 
 
-   bzero(flag, sizeof(PASTIX_INT)*nn);
+   bzero(flag, sizeof(pastix_int_t)*nn);
    for(i=0;i<nn;i++)
      {
        ASSERT(nodetab[i] >= 0 && nodetab[i] < nn, MOD_KASS);
@@ -633,7 +633,7 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
 
   for(i=0;i<P->n;i++)
     {
-      PASTIX_INT *ja;
+      pastix_int_t *ja;
       ja = P->ja[i];
       for(j=0;j<P->nnzrow[i];j++)
         ja[j] = tmp[ja[j]];
@@ -690,11 +690,11 @@ void amalgamate(double rat, csptr P, PASTIX_INT snodenbr, PASTIX_INT *snodetab, 
 
 
 
-PASTIX_INT merge_cost(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight)
+pastix_int_t merge_cost(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight)
 {
-  PASTIX_INT i1, n1, i2, n2;
-  PASTIX_INT *ja1, *ja2;
-  PASTIX_INT cost;
+  pastix_int_t i1, n1, i2, n2;
+  pastix_int_t *ja1, *ja2;
+  pastix_int_t cost;
 
   ja1 = P->ja[a];
   ja2 = P->ja[b];
@@ -757,11 +757,11 @@ PASTIX_INT merge_cost(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight
 }
 
 
-void get_son(PASTIX_INT node, PASTIX_INT *sonindex, PASTIX_INT *sontab, PASTIX_INT *colweight, PASTIX_INT *ns, PASTIX_INT *list)
+void get_son(pastix_int_t node, pastix_int_t *sonindex, pastix_int_t *sontab, pastix_int_t *colweight, pastix_int_t *ns, pastix_int_t *list)
 {
-  PASTIX_INT i, s;
-  PASTIX_INT nss;
-  PASTIX_INT ind;
+  pastix_int_t i, s;
+  pastix_int_t nss;
+  pastix_int_t ind;
   ind = 0;
   for(i=sonindex[node];i<sonindex[node+1];i++)
     {
@@ -779,12 +779,12 @@ void get_son(PASTIX_INT node, PASTIX_INT *sonindex, PASTIX_INT *sontab, PASTIX_I
 }
 
 
-void  merge_col(PASTIX_INT a, PASTIX_INT b, csptr P)
+void  merge_col(pastix_int_t a, pastix_int_t b, csptr P)
 {
-  PASTIX_INT i, i1, i2;
-  PASTIX_INT n1, n2;
-  PASTIX_INT *ja1, *ja2;
-  PASTIX_INT *ja = NULL;
+  pastix_int_t i, i1, i2;
+  pastix_int_t n1, n2;
+  pastix_int_t *ja1, *ja2;
+  pastix_int_t *ja = NULL;
 
 
   ja1 = P->ja[a];
@@ -793,7 +793,7 @@ void  merge_col(PASTIX_INT a, PASTIX_INT b, csptr P)
   n2 = P->nnzrow[b];
 
 
-  MALLOC_INTERN(ja, n1+n2, PASTIX_INT);
+  MALLOC_INTERN(ja, n1+n2, pastix_int_t);
 
   i1 = 0;
   i2 = 0;
@@ -859,9 +859,9 @@ void  merge_col(PASTIX_INT a, PASTIX_INT b, csptr P)
   /*fprintf(stderr, "E2: realloc i = %ld  \n", (long)i);*/
 
 
-  /*P->ja[b] = (PASTIX_INT *)realloc(ja, sizeof(PASTIX_INT)*i);*/
-  MALLOC_INTERN(P->ja[b], i, PASTIX_INT);
-  memCpy(P->ja[b], ja, sizeof(PASTIX_INT)*i);
+  /*P->ja[b] = (pastix_int_t *)realloc(ja, sizeof(pastix_int_t)*i);*/
+  MALLOC_INTERN(P->ja[b], i, pastix_int_t);
+  memCpy(P->ja[b], ja, sizeof(pastix_int_t)*i);
   memFree(ja);
 
   /*fprintf(stderr, "DONE2 i1 %ld i2 %ld n1 %ld n2 %ld \n", (long)i1, (long)i2, (long)n1, (long)n2);*/
@@ -869,10 +869,10 @@ void  merge_col(PASTIX_INT a, PASTIX_INT b, csptr P)
 }
 
 
-double merge_gain(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight, PASTIX_INT *tmp)
+double merge_gain(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight, pastix_int_t *tmp)
 {
   double costa, costb, costm;
-  PASTIX_INT nm;
+  pastix_int_t nm;
 
   costa = CBLKTIME(P->nnzrow[a], P->ja[a], colweight[a]);
   costb = CBLKTIME(P->nnzrow[b], P->ja[b], colweight[b]);
@@ -893,15 +893,15 @@ double merge_gain(PASTIX_INT a, PASTIX_INT b, csptr P, PASTIX_INT *colweight, PA
 }
 
 
-double cblk_time_fact(PASTIX_INT n, PASTIX_INT *ja, PASTIX_INT colnbr)
+double cblk_time_fact(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
 {
   /*******************************************/
   /* Compute the time to compute a cblk      */
   /* according to the BLAS modelization      */
   /*******************************************/
   double cost;
-  PASTIX_INT i;
-  PASTIX_INT L, G, H;
+  pastix_int_t i;
+  pastix_int_t L, G, H;
 
   /** The formula are based on the costfunc.c in blend **/
   /** @@@ OIMBE: il faudra faire les DOF_CONSTANT ***/
@@ -938,10 +938,10 @@ double cblk_time_fact(PASTIX_INT n, PASTIX_INT *ja, PASTIX_INT colnbr)
 }
 
 
-double cblk_time_solve(PASTIX_INT n, PASTIX_INT *ja, PASTIX_INT colnbr)
+double cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
 {
   double cost;
-  PASTIX_INT L;
+  pastix_int_t L;
   (void)ja;
 
   L = colnbr;

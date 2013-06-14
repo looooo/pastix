@@ -74,16 +74,16 @@ int
 symbolLevel (
 SymbolMatrix * const        dstsymbptr,           /*+ New symbolic block matrix [based] +*/
 const SymbolMatrix * const  srcsymbptr,           /*+ Old symbolic block matrix [based] +*/
-const PASTIX_INT                   levfval)              /*+ Cut-off level of fill             +*/
+const pastix_int_t                   levfval)              /*+ Cut-off level of fill             +*/
 {
-  PASTIX_INT                         baseval;            /* Base value                             */
-  PASTIX_INT                         cblknum;            /* Based number of current column block   */
+  pastix_int_t                         baseval;            /* Base value                             */
+  pastix_int_t                         cblknum;            /* Based number of current column block   */
   const SymbolCblk * restrict srccblktax;         /* Based access to old column block array */
   SymbolCblk * restrict       dstcblktax;         /* Based access to new column block array */
   const SymbolBlok * restrict srcbloktax;         /* Based access to old block array        */
   SymbolBlok * restrict       dstbloktax;         /* Based access to new block array        */
-  PASTIX_INT                         srcbloknum;         /* Based number of current old block      */
-  PASTIX_INT                         dstbloknum;         /* Based number of current new block      */
+  pastix_int_t                         srcbloknum;         /* Based number of current old block      */
+  pastix_int_t                         dstbloknum;         /* Based number of current new block      */
 
   if (((dstsymbptr->cblktab = (SymbolCblk *) memAlloc ((srcsymbptr->cblknbr + 1) * sizeof (SymbolCblk))) == NULL) ||
       ((dstsymbptr->bloktab = (SymbolBlok *) memAlloc ( srcsymbptr->bloknbr      * sizeof (SymbolBlok))) == NULL)) {

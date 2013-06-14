@@ -23,7 +23,7 @@
 
 
 
-long SF_level(PASTIX_INT job, csptr A, PASTIX_INT level, csptr P)
+long SF_level(pastix_int_t job, csptr A, pastix_int_t level, csptr P)
 {
   /***********************************************************************************************/
   /* This function computes the non zero pattern of the levelized incomplete factor              */
@@ -45,22 +45,22 @@ long SF_level(PASTIX_INT job, csptr A, PASTIX_INT level, csptr P)
   /*   1) This algorithm has been implemented according to the paper of David Hysom and          */
   /*     Alex Pothen : Level-based Incomplete LU factorization: Graph Model and Algorithm        */
   /***********************************************************************************************/
-  PASTIX_INT *visited = NULL;
-  PASTIX_INT *length  = NULL;
-  PASTIX_INT *stack   = NULL;
-  PASTIX_INT *adj     = NULL;
-  PASTIX_INT *ja      = NULL;
-  PASTIX_INT used;
-  PASTIX_INT h, i,j,k, t;
+  pastix_int_t *visited = NULL;
+  pastix_int_t *length  = NULL;
+  pastix_int_t *stack   = NULL;
+  pastix_int_t *adj     = NULL;
+  pastix_int_t *ja      = NULL;
+  pastix_int_t used;
+  pastix_int_t h, i,j,k, t;
   long nnz;
 
   if(A->n == 0)
     return 0;
   /** Allocated the working array **/
-  MALLOC_INTERN(visited, A->n, PASTIX_INT);
-  MALLOC_INTERN(length,  A->n, PASTIX_INT);
-  MALLOC_INTERN(stack,   A->n, PASTIX_INT);
-  MALLOC_INTERN(ja,      A->n, PASTIX_INT);
+  MALLOC_INTERN(visited, A->n, pastix_int_t);
+  MALLOC_INTERN(length,  A->n, pastix_int_t);
+  MALLOC_INTERN(stack,   A->n, pastix_int_t);
+  MALLOC_INTERN(ja,      A->n, pastix_int_t);
   nnz = 0;
 
   /** Initialized visited ***/
@@ -119,15 +119,15 @@ long SF_level(PASTIX_INT job, csptr A, PASTIX_INT level, csptr P)
           break;
         case 1:
           P->ja[i] = P->ja[0] + nnz;
-          memcpy(P->ja[i], ja, sizeof(PASTIX_INT)*k);
+          memcpy(P->ja[i], ja, sizeof(pastix_int_t)*k);
           break;
         case 2:
           P->nnzrow[i] = k;
 #ifdef DEBUG_KASS
           assert(k>0);
 #endif
-          MALLOC_INTERN(P->ja[i], k, PASTIX_INT);
-          memcpy(P->ja[i], ja, sizeof(PASTIX_INT)*k);
+          MALLOC_INTERN(P->ja[i], k, pastix_int_t);
+          memcpy(P->ja[i], ja, sizeof(pastix_int_t)*k);
           break;
         }
       nnz += k;
@@ -141,7 +141,7 @@ long SF_level(PASTIX_INT job, csptr A, PASTIX_INT level, csptr P)
     {
       /*fprintf(stderr, "NNZ in the triangular factor L = %ld \n", nnz);*/
       P->inarow = 1;
-      MALLOC_INTERN(P->jatab, nnz, PASTIX_INT);
+      MALLOC_INTERN(P->jatab, nnz, pastix_int_t);
       P->ja[0] = P->jatab;
 
       P->matab = NULL;

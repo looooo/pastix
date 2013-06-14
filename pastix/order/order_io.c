@@ -65,14 +65,14 @@ orderLoad (
 Order * const               ordeptr,
 FILE * const                stream)
 {
-  PASTIX_INT               versval;                      /* Version number */
-  PASTIX_INT               cblknbr;
-  PASTIX_INT               cblknum;
-  PASTIX_INT               vertnbr;
-  PASTIX_INT               vertnum;
-  PASTIX_INT               vertnnd;
-  PASTIX_INT *             permtax;
-  PASTIX_INT *             peritax;
+  pastix_int_t               versval;                      /* Version number */
+  pastix_int_t               cblknbr;
+  pastix_int_t               cblknum;
+  pastix_int_t               vertnbr;
+  pastix_int_t               vertnum;
+  pastix_int_t               vertnnd;
+  pastix_int_t *             permtax;
+  pastix_int_t *             peritax;
   int               i;
 
   if ((intLoad (stream, &versval) +
@@ -84,9 +84,9 @@ FILE * const                stream)
     return     (1);
   }
 
-  if (((ordeptr->rangtab = (PASTIX_INT *) memAlloc ((cblknbr + 1) * sizeof (PASTIX_INT))) == NULL) ||
-      ((ordeptr->permtab = (PASTIX_INT *) memAlloc (vertnbr       * sizeof (PASTIX_INT))) == NULL) ||
-      ((ordeptr->peritab = (PASTIX_INT *) memAlloc (vertnbr       * sizeof (PASTIX_INT))) == NULL)) {
+  if (((ordeptr->rangtab = (pastix_int_t *) memAlloc ((cblknbr + 1) * sizeof (pastix_int_t))) == NULL) ||
+      ((ordeptr->permtab = (pastix_int_t *) memAlloc (vertnbr       * sizeof (pastix_int_t))) == NULL) ||
+      ((ordeptr->peritab = (pastix_int_t *) memAlloc (vertnbr       * sizeof (pastix_int_t))) == NULL)) {
     errorPrint ("orderLoad: out of memory");
     orderExit  (ordeptr);
     orderInit  (ordeptr);
@@ -129,9 +129,9 @@ orderSave (
 const Order * const         ordeptr,
 FILE * const                stream)
 {
-  PASTIX_INT               vertnbr;
-  PASTIX_INT               vertnum;
-  PASTIX_INT               cblknum;
+  pastix_int_t               vertnbr;
+  pastix_int_t               vertnum;
+  pastix_int_t               cblknum;
   int               o;
 
   if (ordeptr->rangtab == NULL) {

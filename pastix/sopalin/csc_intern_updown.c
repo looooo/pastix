@@ -55,15 +55,15 @@
  */
 void CscUpdownRhs(UpDownVector       *updovct,
                   const SolverMatrix *solvmtx,
-                  const PASTIX_FLOAT        *rhs,
-                  const PASTIX_INT          *invp,
+                  const pastix_float_t        *rhs,
+                  const pastix_int_t          *invp,
                   int                 dof)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT itersm2x;
-  PASTIX_INT indice;
-  PASTIX_INT i;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t itersm2x;
+  pastix_int_t indice;
+  pastix_int_t i;
 
   print_debug(DBG_CSC_LOG, "-> CscUpdownRhs \n");
 
@@ -102,17 +102,17 @@ void CscUpdownRhs(UpDownVector       *updovct,
  */
 void CscdUpdownRhs(UpDownVector       *updovct,
                    const SolverMatrix *solvmtx,
-                   const PASTIX_FLOAT        *rhs,
-                   const PASTIX_INT          *invp,
-                   const PASTIX_INT          *g2l,
-                   const PASTIX_INT           ln,
+                   const pastix_float_t        *rhs,
+                   const pastix_int_t          *invp,
+                   const pastix_int_t          *g2l,
+                   const pastix_int_t           ln,
                    int                 dof)
 {
-  PASTIX_INT itercblk;
-  PASTIX_INT itercol;
-  PASTIX_INT itersm2x;
-  PASTIX_INT indice;
-  PASTIX_INT i;
+  pastix_int_t itercblk;
+  pastix_int_t itercol;
+  pastix_int_t itersm2x;
+  pastix_int_t indice;
+  pastix_int_t i;
 
   print_debug(DBG_CSC_LOG, "-> CscdUpdownRhs \n");
 
@@ -153,26 +153,26 @@ void CscdUpdownRhs(UpDownVector       *updovct,
  */
 void CscRhsUpdown(const UpDownVector *updovct,
                   const SolverMatrix *solvmtx,
-                  PASTIX_FLOAT              *rhs,
-                  const PASTIX_INT           ncol,
-                  const PASTIX_INT          *invp,
+                  pastix_float_t              *rhs,
+                  const pastix_int_t           ncol,
+                  const pastix_int_t          *invp,
                   const int           dof,
                   const int           rhsmaking,
                   MPI_Comm            comm)
 {
-  PASTIX_INT    iter;
-  PASTIX_INT    itercblk;
-  PASTIX_INT    itersm2x;
-  PASTIX_INT    itercol;
-  PASTIX_INT    indice, i;
-  PASTIX_INT    size = updovct->sm2xnbr*ncol*dof;
-  PASTIX_FLOAT *rhs2 = NULL;
+  pastix_int_t    iter;
+  pastix_int_t    itercblk;
+  pastix_int_t    itersm2x;
+  pastix_int_t    itercol;
+  pastix_int_t    indice, i;
+  pastix_int_t    size = updovct->sm2xnbr*ncol*dof;
+  pastix_float_t *rhs2 = NULL;
   (void)comm;
 
 #ifdef INOUT_ALLREDUCE
   rhs2 = rhs;
 #else
-  MALLOC_INTERN(rhs2, size, PASTIX_FLOAT);
+  MALLOC_INTERN(rhs2, size, pastix_float_t);
 #endif
 
   print_debug(DBG_CSC_LOG, "-> CscRhsUpdown \n");
@@ -251,18 +251,18 @@ void CscRhsUpdown(const UpDownVector *updovct,
  */
 void CscdRhsUpdown(const UpDownVector *updovct,
                    const SolverMatrix *solvmtx,
-                   PASTIX_FLOAT              *x,
-                   const PASTIX_INT           ncol,
-                   const PASTIX_INT          *g2l,
-                   const PASTIX_INT          *invp,
+                   pastix_float_t              *x,
+                   const pastix_int_t           ncol,
+                   const pastix_int_t          *g2l,
+                   const pastix_int_t          *invp,
                    int                 dof,
                    MPI_Comm            comm)
 {
-  PASTIX_INT iter;
-  PASTIX_INT itercblk;
-  PASTIX_INT itersm2x;
-  PASTIX_INT itercol;
-  PASTIX_INT size = updovct->sm2xnbr*ncol*dof;
+  pastix_int_t iter;
+  pastix_int_t itercblk;
+  pastix_int_t itersm2x;
+  pastix_int_t itercol;
+  pastix_int_t size = updovct->sm2xnbr*ncol*dof;
   (void)comm;
 
   print_debug(DBG_CSC_LOG, "-> CscdRhsUpdown \n");
@@ -279,7 +279,7 @@ void CscdRhsUpdown(const UpDownVector *updovct,
            itercol<solvmtx->cblktab[itercblk].lcolnum+1;
            itercol++)
         {
-          PASTIX_INT i;
+          pastix_int_t i;
           for (i=0; i<updovct->sm2xnbr; i++)
             {
               x[(g2l[invp[(itercol-itercol%dof)/dof]] - 1)*dof +
@@ -312,25 +312,25 @@ void Csc2updown(const CscMatrix    *cscmtx,
                 int                 mode,
                 MPI_Comm            comm)
 {
-  PASTIX_INT    itercblk;
-  PASTIX_INT    itercol;
-  PASTIX_INT    itertempy;
-  PASTIX_INT    iterval;
-  PASTIX_INT    itersmx;
-  PASTIX_INT    cblknbr;
-  PASTIX_FLOAT *smb   = NULL;
-  PASTIX_FLOAT *tempy = NULL;
+  pastix_int_t    itercblk;
+  pastix_int_t    itercol;
+  pastix_int_t    itertempy;
+  pastix_int_t    iterval;
+  pastix_int_t    itersmx;
+  pastix_int_t    cblknbr;
+  pastix_float_t *smb   = NULL;
+  pastix_float_t *tempy = NULL;
   (void)comm;
 
   print_debug(DBG_CSC_LOG, "-> Csc2updown \n");
 
   cblknbr = solvmtx->cblknbr;
 
-  MALLOC_INTERN(tempy, updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
 #ifdef INOUT_ALLREDUCE
   smb = tempy;
 #else
-  MALLOC_INTERN(smb,   updovct->gnodenbr, PASTIX_FLOAT);
+  MALLOC_INTERN(smb,   updovct->gnodenbr, pastix_float_t);
 #endif
 
   print_debug(DBG_CSC_LOG, "nodenbr=%ld\n",(long)updovct->gnodenbr);
@@ -347,23 +347,23 @@ void Csc2updown(const CscMatrix    *cscmtx,
 
       for (itercblk=0; itercblk < cblknbr; itercblk++)
         {
-          PASTIX_INT colnbr   = solvmtx->cblktab[itercblk].lcolnum - solvmtx->cblktab[itercblk].fcolnum +1;
+          pastix_int_t colnbr   = solvmtx->cblktab[itercblk].lcolnum - solvmtx->cblktab[itercblk].fcolnum +1;
 
           for (itercol=0; itercol < colnbr; itercol++)
             {
-              PASTIX_INT colvalidx  = CSC_COL(cscmtx,itercblk,itercol);
-              PASTIX_INT ncolvalidx = CSC_COL(cscmtx,itercblk,itercol+1);
+              pastix_int_t colvalidx  = CSC_COL(cscmtx,itercblk,itercol);
+              pastix_int_t ncolvalidx = CSC_COL(cscmtx,itercblk,itercol+1);
 
               for (iterval=colvalidx; iterval<ncolvalidx; iterval++)
                 {
                   switch (mode)
                     {
                     case API_RHS_1:
-                      tempy[CSC_ROW(cscmtx,iterval)] += (PASTIX_FLOAT)(itersmx+SMX_SOL)*CSC_VAL(cscmtx,iterval);
+                      tempy[CSC_ROW(cscmtx,iterval)] += (pastix_float_t)(itersmx+SMX_SOL)*CSC_VAL(cscmtx,iterval);
                       break;
                     case API_RHS_I:
                       tempy[CSC_ROW(cscmtx,iterval)] +=
-                        ((PASTIX_FLOAT)(solvmtx->cblktab[itercblk].fcolnum+itercol))*
+                        ((pastix_float_t)(solvmtx->cblktab[itercblk].fcolnum+itercol))*
                         CSC_VAL(cscmtx,iterval);
                       break;
                     }
@@ -376,7 +376,7 @@ void Csc2updown(const CscMatrix    *cscmtx,
 
       for (itercblk=0; itercblk<CSC_FNBR(cscmtx); itercblk++)
         {
-          PASTIX_INT iterdval = updovct->cblktab[itercblk].sm2xind+itersmx*updovct->sm2xsze;
+          pastix_int_t iterdval = updovct->cblktab[itercblk].sm2xind+itersmx*updovct->sm2xsze;
 
           for (iterval=0; iterval<CSC_COLNBR(cscmtx,itercblk); iterval++)
             {
@@ -413,10 +413,10 @@ void Csc2updown_X0(UpDownVector *updovct,
                    int mode,
                    MPI_Comm comm)
 {
-  PASTIX_INT  itercblk;
-  PASTIX_INT  iterval;
-  PASTIX_INT  itersmx;
-  PASTIX_INT  cblknbr = solvmtx->cblknbr;
+  pastix_int_t  itercblk;
+  pastix_int_t  iterval;
+  pastix_int_t  itersmx;
+  pastix_int_t  cblknbr = solvmtx->cblknbr;
   (void)comm;
 
   print_debug(DBG_CSC_LOG, "-> Csc2updown_X0 \n");
@@ -426,21 +426,21 @@ void Csc2updown_X0(UpDownVector *updovct,
     {
       for (itercblk=0; itercblk < cblknbr; itercblk++)
         {
-          PASTIX_INT colnbr   = solvmtx->cblktab[itercblk].lcolnum - solvmtx->cblktab[itercblk].fcolnum +1;
-          PASTIX_INT iterdval = updovct->cblktab[itercblk].sm2xind+itersmx*updovct->sm2xsze;
+          pastix_int_t colnbr   = solvmtx->cblktab[itercblk].lcolnum - solvmtx->cblktab[itercblk].fcolnum +1;
+          pastix_int_t iterdval = updovct->cblktab[itercblk].sm2xind+itersmx*updovct->sm2xsze;
 
           for (iterval=0; iterval < colnbr; iterval++)
             {
               switch (mode)
                 {
                 case API_RHS_0:
-                  updovct->sm2xtab[iterdval+iterval] = (PASTIX_FLOAT)0.0;
+                  updovct->sm2xtab[iterdval+iterval] = (pastix_float_t)0.0;
                   break;
                 case API_RHS_1:
-                  updovct->sm2xtab[iterdval+iterval] = (PASTIX_FLOAT)SMX_SOL;
+                  updovct->sm2xtab[iterdval+iterval] = (pastix_float_t)SMX_SOL;
                   break;
                 case API_RHS_I:
-                  updovct->sm2xtab[iterdval+iterval] = ((PASTIX_FLOAT)(solvmtx->cblktab[itercblk].fcolnum+iterval));
+                  updovct->sm2xtab[iterdval+iterval] = ((pastix_float_t)(solvmtx->cblktab[itercblk].fcolnum+iterval));
                   break;
 
                 }

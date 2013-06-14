@@ -50,16 +50,16 @@
 #ifndef csc_dispatch
 #  error "redefinition required"
 #endif
-void csc_dispatch(PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PASTIX_FLOAT *  gavals,
-                  PASTIX_FLOAT *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-                  PASTIX_INT *lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow, PASTIX_FLOAT ** lavals,
-                  PASTIX_FLOAT ** lrhs, PASTIX_INT ** lperm,
-                  PASTIX_INT **loc2glob, int dispatch, MPI_Comm pastix_comm)
+void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_float_t *  gavals,
+                  pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                  pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_float_t ** lavals,
+                  pastix_float_t ** lrhs, pastix_int_t ** lperm,
+                  pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   int rank, comm_size;
-  PASTIX_INT index;
-  PASTIX_INT rowindex;
+  pastix_int_t index;
+  pastix_int_t rowindex;
   (void)pastix_comm;
   (void)ginvp;
 
@@ -72,12 +72,12 @@ void csc_dispatch(PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PAS
     (*lN)++;
 
   /* Ici on a des malloc parce que le free est externe */
-  MALLOC_EXTERN((*lcolptr), (*lN + 1), PASTIX_INT);
-  MALLOC_EXTERN((*lrhs),    (*lN),     PASTIX_FLOAT);
+  MALLOC_EXTERN((*lcolptr), (*lN + 1), pastix_int_t);
+  MALLOC_EXTERN((*lrhs),    (*lN),     pastix_float_t);
   if (gperm != NULL)
-    MALLOC_EXTERN((*lperm), (*lN), PASTIX_INT);
+    MALLOC_EXTERN((*lperm), (*lN), pastix_int_t);
 
-  MALLOC_EXTERN((*loc2glob), (*lN), PASTIX_INT);
+  MALLOC_EXTERN((*loc2glob), (*lN), pastix_int_t);
 
   index    = 0;
   rowindex = 1;
@@ -105,8 +105,8 @@ void csc_dispatch(PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PAS
     case CSC_DISP_SIMPLE:
     default:
       {
-        PASTIX_INT ideb;
-        PASTIX_INT ifin;
+        pastix_int_t ideb;
+        pastix_int_t ifin;
         ideb = rank * (gN / comm_size) + MIN(gN%comm_size, rank);
         ifin = ideb + (*lN);
 
@@ -131,8 +131,8 @@ void csc_dispatch(PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PAS
   (*lcolptr )[*lN] = rowindex;
   if ((*lcolptr)[(*lN)]-1 > 0)
     {
-      MALLOC_EXTERN(*lrow,   (*lcolptr)[(*lN)]-1, PASTIX_INT);
-      MALLOC_EXTERN(*lavals, (*lcolptr)[(*lN)]-1, PASTIX_FLOAT);
+      MALLOC_EXTERN(*lrow,   (*lcolptr)[(*lN)]-1, pastix_int_t);
+      MALLOC_EXTERN(*lavals, (*lcolptr)[(*lN)]-1, pastix_float_t);
     }
   else
     {
@@ -142,14 +142,14 @@ void csc_dispatch(PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PAS
 
   for (i = 0; i < *lN; i++)
     {
-      PASTIX_INT iG = (*loc2glob)[i];
+      pastix_int_t iG = (*loc2glob)[i];
 
       memcpy(&(*lrow)[(*lcolptr)[i]-1],
              &grow[gcolptr[iG-1]-1],
-             (gcolptr[iG] - gcolptr[iG-1])* sizeof(PASTIX_INT));
+             (gcolptr[iG] - gcolptr[iG-1])* sizeof(pastix_int_t));
       memcpy(&(*lavals)[(*lcolptr)[i]-1],
              &gavals[gcolptr[iG-1]-1],
-             (gcolptr[iG] - gcolptr[iG-1])* sizeof(PASTIX_FLOAT));
+             (gcolptr[iG] - gcolptr[iG-1])* sizeof(pastix_float_t));
     }
 }
 
@@ -169,7 +169,7 @@ void csc_dispatch(PASTIX_INT  gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow, PAS
 #ifndef csc_cyclic_distribution
 #  error "redefinition required"
 #endif
-PASTIX_INT csc_cyclic_distribution(PASTIX_INT column, PASTIX_INT columnnbr, MPI_Comm pastix_comm)
+pastix_int_t csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm)
 {
   int commSize;
   (void)pastix_comm;
@@ -194,14 +194,14 @@ PASTIX_INT csc_cyclic_distribution(PASTIX_INT column, PASTIX_INT columnnbr, MPI_
  * Return:
  *   owner of the column (column*commSize/columnnbr)
  */
-PASTIX_INT csc_simple_distribution(PASTIX_INT column, PASTIX_INT columnnbr, MPI_Comm pastix_comm)
+pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm)
 {
   int commSize;
   (void)pastix_comm;
 
   MPI_Comm_size(pastix_comm,&commSize);
 
-  return (PASTIX_INT)floor((double)column*(double)commSize/(double)columnnbr);
+  return (pastix_int_t)floor((double)column*(double)commSize/(double)columnnbr);
 }
 
 
@@ -229,18 +229,18 @@ PASTIX_INT csc_simple_distribution(PASTIX_INT column, PASTIX_INT columnnbr, MPI_
 #ifndef cscd_build_g2l
 #  error "redefinition required"
 #endif
-int cscd_build_g2l(PASTIX_INT       ncol,
-                   PASTIX_INT      *loc2glob,
+int cscd_build_g2l(pastix_int_t       ncol,
+                   pastix_int_t      *loc2glob,
                    MPI_Comm  comm,
-                   PASTIX_INT      *gN,
-                   PASTIX_INT     **g2l)
+                   pastix_int_t      *gN,
+                   pastix_int_t     **g2l)
 {
   int commRank;
   int commSize;
   int i,j;
-  PASTIX_INT ig;
-  PASTIX_INT nrecv;
-  PASTIX_INT *l2grecv = NULL;
+  pastix_int_t ig;
+  pastix_int_t nrecv;
+  pastix_int_t *l2grecv = NULL;
   (void)comm;
 
   MPI_Comm_rank(comm, &commRank);
@@ -249,7 +249,7 @@ int cscd_build_g2l(PASTIX_INT       ncol,
   if (*gN == -1) /* Needed for MURGE_ProductSetGlobalNodeNbr */
     MPI_Allreduce(&ncol, gN, 1, COMM_INT, MPI_SUM, comm);
 
-  MALLOC_INTERN(*g2l, *gN, PASTIX_INT);
+  MALLOC_INTERN(*g2l, *gN, pastix_int_t);
   for(ig=0; ig < *gN; ig++)
     (*g2l)[ig] = -commSize;
 
@@ -276,7 +276,7 @@ int cscd_build_g2l(PASTIX_INT       ncol,
           MPI_Bcast(&nrecv,      1, COMM_INT, i, comm);
           if (nrecv > 0)
             {
-              MALLOC_INTERN(l2grecv, nrecv, PASTIX_INT);
+              MALLOC_INTERN(l2grecv, nrecv, pastix_int_t);
               MPI_Bcast(l2grecv, nrecv, COMM_INT, i, comm);
 
               for(j = 0; j < nrecv; j++)
@@ -335,11 +335,11 @@ int cscd_build_g2l(PASTIX_INT       ncol,
 #ifndef cscd_checksym
 #  error "redefinition required"
 #endif
-int cscd_checksym(PASTIX_INT      n,
-                  PASTIX_INT     *colptr,
-                  PASTIX_INT    **rows,
-                  PASTIX_FLOAT  **values,
-                  PASTIX_INT     *l2g,
+int cscd_checksym(pastix_int_t      n,
+                  pastix_int_t     *colptr,
+                  pastix_int_t    **rows,
+                  pastix_float_t  **values,
+                  pastix_int_t     *l2g,
                   int      correct,
                   int      alloc,
                   int      dof,
@@ -348,30 +348,30 @@ int cscd_checksym(PASTIX_INT      n,
   int            commSize;
   int            proc;
   int            commRank;
-  PASTIX_INT            gN         = -1;
-  PASTIX_INT            i,j,k,l;
+  pastix_int_t            gN         = -1;
+  pastix_int_t            i,j,k,l;
   int            found;
   int            sym;
   int            all_sym;
-  PASTIX_INT         *  g2l        = NULL;
-  PASTIX_INT         *  nbtosend   = NULL;
-  PASTIX_INT            toaddsize[2];
-  PASTIX_INT         *  toadd      = NULL;
-  PASTIX_INT         *  tmpcolptr  = NULL;
-  PASTIX_INT         *  tmprows    = NULL;
-  PASTIX_INT         *  newcolptr  = NULL;
-  PASTIX_INT         *  newrows    = NULL;
-  PASTIX_FLOAT       *  newvalues  = NULL;
-  PASTIX_INT         *  tosendsize = NULL;
-  PASTIX_INT         ** tosend     = NULL;
-  PASTIX_INT         *  torecvsize = NULL;
-  PASTIX_INT         ** torecv     = NULL;
+  pastix_int_t         *  g2l        = NULL;
+  pastix_int_t         *  nbtosend   = NULL;
+  pastix_int_t            toaddsize[2];
+  pastix_int_t         *  toadd      = NULL;
+  pastix_int_t         *  tmpcolptr  = NULL;
+  pastix_int_t         *  tmprows    = NULL;
+  pastix_int_t         *  newcolptr  = NULL;
+  pastix_int_t         *  newrows    = NULL;
+  pastix_float_t       *  newvalues  = NULL;
+  pastix_int_t         *  tosendsize = NULL;
+  pastix_int_t         ** tosend     = NULL;
+  pastix_int_t         *  torecvsize = NULL;
+  pastix_int_t         ** torecv     = NULL;
   MPI_Request *  requests   = NULL;
 
 #ifndef FORCE_NOMPI
   MPI_Status     status;
 #endif
-  PASTIX_INT            column;
+  pastix_int_t            column;
 
   MPI_Comm_size(comm,&commSize);
   MPI_Comm_rank(comm,&commRank);
@@ -379,15 +379,15 @@ int cscd_checksym(PASTIX_INT      n,
   /* Build the g2l vector */
   cscd_build_g2l(n, l2g, comm, &gN, &g2l);
 
-  MALLOC_INTERN(nbtosend,   commSize, PASTIX_INT);
-  MALLOC_INTERN(tosendsize, commSize, PASTIX_INT);
-  MALLOC_INTERN(tosend,     commSize, PASTIX_INT*);
+  MALLOC_INTERN(nbtosend,   commSize, pastix_int_t);
+  MALLOC_INTERN(tosendsize, commSize, pastix_int_t);
+  MALLOC_INTERN(tosend,     commSize, pastix_int_t*);
   for (i = 0; i < commSize; i++)
     {
       nbtosend[i]   = 0;
       tosendsize[i] = n / (2*commSize);
       if (i != commRank)
-        MALLOC_INTERN(tosend[i], 2*tosendsize[i], PASTIX_INT);
+        MALLOC_INTERN(tosend[i], 2*tosendsize[i], pastix_int_t);
     }
 
   toaddsize[0] = 0;
@@ -430,15 +430,15 @@ int cscd_checksym(PASTIX_INT      n,
                     if (toaddsize[1] == 0)
                       {
                         toaddsize[1] = n/(2*commSize);
-                        MALLOC_INTERN(toadd, 2*toaddsize[1], PASTIX_INT);
+                        MALLOC_INTERN(toadd, 2*toaddsize[1], pastix_int_t);
                       }
                     if (toaddsize[0] >= toaddsize[1])
                       {
                         toaddsize[1] += toaddsize[1]/2 + 1;
                         if (NULL ==
                             (toadd =
-                             (PASTIX_INT*)memRealloc(toadd,
-                                              2*toaddsize[1]*sizeof(PASTIX_INT))))
+                             (pastix_int_t*)memRealloc(toadd,
+                                              2*toaddsize[1]*sizeof(pastix_int_t))))
                           MALLOC_ERROR("toadd");
 
                       }
@@ -463,8 +463,8 @@ int cscd_checksym(PASTIX_INT      n,
                 tosendsize[proc] += tosendsize[proc]/2 +1;
                 if (NULL ==
                     (tosend[proc] =
-                     (PASTIX_INT*)memRealloc(tosend[proc],
-                                      2*tosendsize[proc]*sizeof(PASTIX_INT))))
+                     (pastix_int_t*)memRealloc(tosend[proc],
+                                      2*tosendsize[proc]*sizeof(pastix_int_t))))
                   MALLOC_ERROR("tosend[proc]");
                 if (nbtosend[proc] >= tosendsize[proc])
                   errorPrint("cscd_checksym : should'nt happen");
@@ -494,7 +494,7 @@ int cscd_checksym(PASTIX_INT      n,
   /*
    * If Local symmetry id good
    */
-  MALLOC_INTERN(torecvsize, commSize, PASTIX_INT);
+  MALLOC_INTERN(torecvsize, commSize, pastix_int_t);
   MALLOC_INTERN(requests, commSize, MPI_Request);
 
   /* We Send and receive list of couples each processor should have */
@@ -516,12 +516,12 @@ int cscd_checksym(PASTIX_INT      n,
     }
   }
 
-  MALLOC_INTERN(torecv, commSize, PASTIX_INT*);
+  MALLOC_INTERN(torecv, commSize, pastix_int_t*);
 
   for (i = 0; i < commSize; i++) {
     torecv[i] = NULL;
     if (i != commRank) {
-      MALLOC_INTERN(torecv[i], torecvsize[i]*2, PASTIX_INT);
+      MALLOC_INTERN(torecv[i], torecvsize[i]*2, pastix_int_t);
     }
   }
   for (i = 0; i < commSize; i++) {
@@ -591,15 +591,15 @@ int cscd_checksym(PASTIX_INT      n,
                     if (toaddsize[1] == 0)
                       {
                         toaddsize[1] = n/(2*commSize);
-                        MALLOC_INTERN(toadd, 2*toaddsize[1], PASTIX_INT);
+                        MALLOC_INTERN(toadd, 2*toaddsize[1], pastix_int_t);
                       }
                     if (toaddsize[0] >= toaddsize[1])
                       {
                         toaddsize[1] += toaddsize[1]/2 + 1;
                         if (NULL ==
                             (toadd =
-                             (PASTIX_INT*)memRealloc(toadd,
-                                              2*toaddsize[1]*sizeof(PASTIX_INT))))
+                             (pastix_int_t*)memRealloc(toadd,
+                                              2*toaddsize[1]*sizeof(pastix_int_t))))
                           MALLOC_ERROR("toadd");
 
                       }
@@ -627,7 +627,7 @@ int cscd_checksym(PASTIX_INT      n,
   if (correct == API_YES && toaddsize[0] > 0)
     {
 
-      MALLOC_INTERN(tmpcolptr, n + 1, PASTIX_INT);
+      MALLOC_INTERN(tmpcolptr, n + 1, pastix_int_t);
 
       /* Build tmpcolptr
 
@@ -657,7 +657,7 @@ int cscd_checksym(PASTIX_INT      n,
           return EXIT_FAILURE;
         }
 
-      MALLOC_INTERN(tmprows, tmpcolptr[n] - 1, PASTIX_INT);
+      MALLOC_INTERN(tmprows, tmpcolptr[n] - 1, pastix_int_t);
       for (i = 0; i <  toaddsize[0]; i++)
         {
           tmprows[tmpcolptr[g2l[toadd[2*i]-1]-1]-1] = toadd[2*i+1];
@@ -697,7 +697,7 @@ int cscd_checksym(PASTIX_INT      n,
         }
       memFree_null(tmpcolptr);
       memFree_null(tmprows);
-      memcpy(colptr, newcolptr, (n+1)*sizeof(PASTIX_INT));
+      memcpy(colptr, newcolptr, (n+1)*sizeof(pastix_int_t));
       if (alloc == API_NO)
         {
           free(newcolptr);
@@ -751,9 +751,9 @@ int cscd_checksym(PASTIX_INT      n,
 #ifndef cscd_symgraph
 #  error "redefinition required"
 #endif
-int cscd_symgraph(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *        ja, PASTIX_FLOAT *     a,
-                  PASTIX_INT * newn, PASTIX_INT **  newia, PASTIX_INT **    newja, PASTIX_FLOAT ** newa,
-                  PASTIX_INT *  l2g, MPI_Comm comm)
+int cscd_symgraph(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t *        ja, pastix_float_t *     a,
+                  pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
+                  pastix_int_t *  l2g, MPI_Comm comm)
 {
   return cscd_symgraph_int(n,    ia,    ja,    a,
                            newn, newia, newja, newa,
@@ -785,34 +785,34 @@ int cscd_symgraph(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *        j
 #ifndef cscd_symgraph_int
 #  error "redefinition required"
 #endif
-int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *        ja, PASTIX_FLOAT *     a,
-                      PASTIX_INT * newn, PASTIX_INT **  newia, PASTIX_INT **    newja, PASTIX_FLOAT ** newa,
-                      PASTIX_INT *  l2g, MPI_Comm comm, int malloc_flag)
+int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t *        ja, pastix_float_t *     a,
+                      pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
+                      pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag)
 {
   int            commSize;
   int            proc;
   int            commRank;
-  PASTIX_INT            gN     = -1;
-  PASTIX_INT            i,j,k,l;
+  pastix_int_t            gN     = -1;
+  pastix_int_t            i,j,k,l;
   int            found;
-  PASTIX_INT         *  nbtosend   = NULL;
-  PASTIX_INT         *  tosendsize = NULL;
-  PASTIX_INT         ** tosend     = NULL;
-  PASTIX_INT         *  torecvsize = NULL;
-  PASTIX_INT         ** torecv     = NULL;
+  pastix_int_t         *  nbtosend   = NULL;
+  pastix_int_t         *  tosendsize = NULL;
+  pastix_int_t         ** tosend     = NULL;
+  pastix_int_t         *  torecvsize = NULL;
+  pastix_int_t         ** torecv     = NULL;
   MPI_Request *  requests   = NULL;
 #ifndef FORCE_NOMPI
   MPI_Status     status;
 #endif
-  PASTIX_INT         *  toadd      = NULL;
-  PASTIX_INT         *  added      = NULL;
-  PASTIX_INT            tmpn;
-  PASTIX_INT         *  tmpia      = NULL;
-  PASTIX_INT         *  tmpja      = NULL;
-  PASTIX_INT         *  tmpl2g     = NULL;
-  PASTIX_INT         *  g2l        = NULL;
-  PASTIX_INT            colnum;
-  PASTIX_INT            rownum;
+  pastix_int_t         *  toadd      = NULL;
+  pastix_int_t         *  added      = NULL;
+  pastix_int_t            tmpn;
+  pastix_int_t         *  tmpia      = NULL;
+  pastix_int_t         *  tmpja      = NULL;
+  pastix_int_t         *  tmpl2g     = NULL;
+  pastix_int_t         *  g2l        = NULL;
+  pastix_int_t            colnum;
+  pastix_int_t            rownum;
 
   MPI_Comm_size(comm,&commSize);
   MPI_Comm_rank(comm,&commRank);
@@ -822,18 +822,18 @@ int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *     
   /* Build the g2l vector */
   cscd_build_g2l(n, l2g, comm, &gN, &g2l);
 
-  MALLOC_INTERN(nbtosend,   commSize, PASTIX_INT);
-  MALLOC_INTERN(tosendsize, commSize, PASTIX_INT);
-  MALLOC_INTERN(tosend,     commSize, PASTIX_INT*);
+  MALLOC_INTERN(nbtosend,   commSize, pastix_int_t);
+  MALLOC_INTERN(tosendsize, commSize, pastix_int_t);
+  MALLOC_INTERN(tosend,     commSize, pastix_int_t*);
   for (i = 0; i < commSize; i++)
     {
       nbtosend[i]   = 0;
       tosendsize[i] = n/(2*commSize);
       if (i != commRank)
-        MALLOC_INTERN(tosend[i], 2*tosendsize[i], PASTIX_INT);
+        MALLOC_INTERN(tosend[i], 2*tosendsize[i], pastix_int_t);
     }
 
-  MALLOC_INTERN(toadd, n, PASTIX_INT);
+  MALLOC_INTERN(toadd, n, pastix_int_t);
   for (i = 0; i < n; i++)
     toadd[i] = 0;
 
@@ -891,8 +891,8 @@ int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *     
                 tosendsize[proc] += tosendsize[proc]/2 +1;
                 if (NULL ==
                     (tosend[proc] =
-                     (PASTIX_INT*)memRealloc(tosend[proc],
-                                      2*tosendsize[proc]*sizeof(PASTIX_INT))))
+                     (pastix_int_t*)memRealloc(tosend[proc],
+                                      2*tosendsize[proc]*sizeof(pastix_int_t))))
                   MALLOC_ERROR("tosend[proc]");
                 if (nbtosend[proc] >= tosendsize[proc])
                   errorPrint("cscd_checksym : should'nt happen");
@@ -905,7 +905,7 @@ int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *     
 
   memFree_null(tosendsize);
 
-  MALLOC_INTERN(torecvsize, commSize, PASTIX_INT);
+  MALLOC_INTERN(torecvsize, commSize, pastix_int_t);
   MALLOC_INTERN(requests,   commSize, MPI_Request);
 
   for (i = 0; i < commSize; i++) {
@@ -932,11 +932,11 @@ int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *     
     }
   }
 
-  MALLOC_INTERN(torecv, commSize, PASTIX_INT*);
+  MALLOC_INTERN(torecv, commSize, pastix_int_t*);
 
   for (i = 0; i < commSize; i++) {
     if (i != commRank && torecvsize[i] > 0) {
-      MALLOC_INTERN(torecv[i], torecvsize[i]*2, PASTIX_INT);
+      MALLOC_INTERN(torecv[i], torecvsize[i]*2, pastix_int_t);
     }
   }
 
@@ -985,16 +985,16 @@ int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *     
   memFree_null(tosend);
 
   tmpn  = n;
-  MALLOC_INTERN(tmpia, tmpn+1, PASTIX_INT);
+  MALLOC_INTERN(tmpia, tmpn+1, pastix_int_t);
   tmpia[0] = 1;
   for (i = 0; i < n ; i++) {
     tmpia[i+1] = tmpia[i] + toadd[i];
   }
   memFree_null(toadd);
 
-  MALLOC_INTERN(tmpja, tmpia[tmpn]-1, PASTIX_INT);
+  MALLOC_INTERN(tmpja, tmpia[tmpn]-1, pastix_int_t);
 
-  MALLOC_INTERN(added, n, PASTIX_INT);
+  MALLOC_INTERN(added, n, pastix_int_t);
   for (i = 0; i < n; i++)
     added[i] = 0;
 
@@ -1093,11 +1093,11 @@ int cscd_symgraph_int(PASTIX_INT      n, PASTIX_INT *      ia, PASTIX_INT *     
 #ifndef cscd_addlocal
 #  error "redefinition required"
 #endif
-int cscd_addlocal(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , PASTIX_FLOAT *  a   ,
-                  PASTIX_INT * l2g,
-                  PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja, PASTIX_FLOAT *  adda,
-                  PASTIX_INT * addl2g,
-                  PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, PASTIX_FLOAT ** newa,
+int cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   ,
+                  pastix_int_t * l2g,
+                  pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda,
+                  pastix_int_t * addl2g,
+                  pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
                   CSCD_OPERATIONS_t OP, int dof)
 {
 
@@ -1137,14 +1137,14 @@ int cscd_addlocal(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , P
 
 
 #define searchInList(n, list, list_size, index){  \
-    PASTIX_INT min = 0;                                  \
-    PASTIX_INT max = list_size-1;                        \
+    pastix_int_t min = 0;                                  \
+    pastix_int_t max = list_size-1;                        \
     if  (list_size == 0) {                        \
       index = -1;                                 \
     }                                             \
     else {                                        \
       while (1) {                                 \
-        PASTIX_INT cursor = (max +min)/2;                \
+        pastix_int_t cursor = (max +min)/2;                \
         if ((list)[cursor] == n)                  \
           {                                       \
             index = cursor;                       \
@@ -1206,16 +1206,16 @@ int cscd_addlocal(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , P
 #ifndef cscd_addlocal_int
 #  error "redefinition required"
 #endif
-int cscd_addlocal_int(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja   , PASTIX_FLOAT *  a   ,
-                      PASTIX_INT * l2g,
-                      PASTIX_INT   addn, PASTIX_INT *  addia, PASTIX_INT *  addja, PASTIX_FLOAT *  adda,
-                      PASTIX_INT * addl2g,
-                      PASTIX_INT * newn, PASTIX_INT ** newia, PASTIX_INT ** newja, PASTIX_FLOAT ** newa,
-                      PASTIX_FLOAT (*add_fct)(PASTIX_FLOAT , PASTIX_FLOAT), int dof,
+int cscd_addlocal_int(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   ,
+                      pastix_int_t * l2g,
+                      pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda,
+                      pastix_int_t * addl2g,
+                      pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
+                      pastix_float_t (*add_fct)(pastix_float_t , pastix_float_t), int dof,
                       int malloc_flag)
 {
-  PASTIX_INT   i,j,k,l;
-  PASTIX_INT   i2;
+  pastix_int_t   i,j,k,l;
+  pastix_int_t   i2;
   int   baseval = ia[0];
   int   iterdof;
   int   val_flag;
@@ -1229,7 +1229,7 @@ int cscd_addlocal_int(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja  
     val_flag = 0;
 
   *newn = n;
-  MALLOC_INTOREXTERN((*newia), (n+1), PASTIX_INT, malloc_flag);
+  MALLOC_INTOREXTERN((*newia), (n+1), pastix_int_t, malloc_flag);
 
   i2 = 0;
   (*newia)[0]=baseval;
@@ -1245,9 +1245,9 @@ int cscd_addlocal_int(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja  
           /* Add coefficient from addia wich are not in ia */
           for (j = addia[i2] - baseval; j < addia[i2+1] - baseval; j++)
             {
-              PASTIX_INT index;
-              PASTIX_INT *searchTab = &(ja[ia[i] - baseval]);
-              PASTIX_INT searchTabSize = ia[i+1] - ia[i];
+              pastix_int_t index;
+              pastix_int_t *searchTab = &(ja[ia[i] - baseval]);
+              pastix_int_t searchTabSize = ia[i+1] - ia[i];
               searchInList(addja[j], searchTab, searchTabSize, index);
               if (index < 0)
                 {
@@ -1261,20 +1261,20 @@ int cscd_addlocal_int(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja  
   /* Allocation of newja */
   print_debug(DBG_CSCD, "allocation %ld\n", (long)(*newia)[n]-baseval);
   if (((*newia)[n]-baseval) > 0)
-    MALLOC_INTOREXTERN((*newja), ((*newia)[n]-baseval), PASTIX_INT, malloc_flag);
+    MALLOC_INTOREXTERN((*newja), ((*newia)[n]-baseval), pastix_int_t, malloc_flag);
   if (val_flag == 1)
     {
-      MALLOC_INTOREXTERN((*newa), ((*newia)[n]-baseval)*dof*dof, PASTIX_FLOAT,
+      MALLOC_INTOREXTERN((*newa), ((*newia)[n]-baseval)*dof*dof, pastix_float_t,
                          malloc_flag);
 
     }
   if (val_flag == 1)
     {
-      memset(*newa,  0, ((*newia)[n]-baseval)*dof*dof*sizeof(PASTIX_FLOAT));
+      memset(*newa,  0, ((*newia)[n]-baseval)*dof*dof*sizeof(pastix_float_t));
     }
-  memset(*newja, 0, ((*newia)[n]-baseval)*sizeof(PASTIX_INT));
+  memset(*newja, 0, ((*newia)[n]-baseval)*sizeof(pastix_int_t));
 
-  PASTIX_INT maxj,maxk,maxl;
+  pastix_int_t maxj,maxk,maxl;
   for (i = 0; i < n; i++)
     {
       searchInList(l2g[i], addl2g, addn, i2);
@@ -1403,10 +1403,10 @@ int cscd_addlocal_int(PASTIX_INT   n   , PASTIX_INT *  ia   , PASTIX_INT *  ja  
 #ifndef cscd_redispatch_scotch
 #  error "redefinition required"
 #endif
-int cscd_redispatch_scotch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PASTIX_FLOAT *   a,
-                           PASTIX_INT *   l2g,
-                           PASTIX_INT *dn, PASTIX_INT ** dia, PASTIX_INT ** dja, PASTIX_FLOAT ** da,
-                           PASTIX_INT ** dl2g,
+int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
+                           pastix_int_t *   l2g,
+                           pastix_int_t *dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
+                           pastix_int_t ** dl2g,
                            MPI_Comm comm)
 {
 #ifdef FORCE_NOMPI
@@ -1415,32 +1415,32 @@ int cscd_redispatch_scotch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja,
   (void)comm;
   return EXIT_SUCCESS;
 #else /* FORCE_NOMPI */
-  PASTIX_INT i,j;
+  pastix_int_t i,j;
   int           OK = 0;
   int           OKRecv = 0;
-  PASTIX_INT           gn;
-  PASTIX_INT           tmpn;
-  PASTIX_INT         * tmpia  = NULL;
-  PASTIX_INT         * tmpja  = NULL;
-  PASTIX_FLOAT       * tmpa   = NULL;
-  PASTIX_INT         * tmpia2 = NULL;
-  PASTIX_INT         * tmpja2 = NULL;
-  PASTIX_FLOAT       * tmpa2  = NULL;
-  PASTIX_INT           start;
-  PASTIX_INT           end;
-  PASTIX_INT           size;
-  PASTIX_INT         * newloc2globssize = NULL;
-  PASTIX_INT        ** newloc2globs     = NULL;
-  PASTIX_INT        ** colptr2send      = NULL;
-  PASTIX_INT        ** rows2send        = NULL;
-  PASTIX_FLOAT      ** values2send      = NULL;
+  pastix_int_t           gn;
+  pastix_int_t           tmpn;
+  pastix_int_t         * tmpia  = NULL;
+  pastix_int_t         * tmpja  = NULL;
+  pastix_float_t       * tmpa   = NULL;
+  pastix_int_t         * tmpia2 = NULL;
+  pastix_int_t         * tmpja2 = NULL;
+  pastix_float_t       * tmpa2  = NULL;
+  pastix_int_t           start;
+  pastix_int_t           end;
+  pastix_int_t           size;
+  pastix_int_t         * newloc2globssize = NULL;
+  pastix_int_t        ** newloc2globs     = NULL;
+  pastix_int_t        ** colptr2send      = NULL;
+  pastix_int_t        ** rows2send        = NULL;
+  pastix_float_t      ** values2send      = NULL;
   MPI_Request * requests_size    = NULL;
   MPI_Request * requests_col     = NULL;
   MPI_Request * requests_row     = NULL;
   MPI_Request * requests_val     = NULL;
   MPI_Status    status;
   MPI_Status    status2;
-  PASTIX_INT           toreceive;
+  pastix_int_t           toreceive;
   int           commSize;
   int           rank;
 
@@ -1461,42 +1461,42 @@ int cscd_redispatch_scotch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja,
     {
     simply_copy:
       *dn = n;
-      MALLOC_INTERN(*dia, n+1, PASTIX_INT);
-      memcpy(*dia,ia,(n+1)*sizeof(PASTIX_INT));
-      MALLOC_INTERN(*dl2g, n, PASTIX_INT);
-      memcpy(*dl2g,l2g,n*sizeof(PASTIX_INT));
-      MALLOC_INTERN(*dja, ia[n]-1, PASTIX_INT);
-      memcpy(*dja,ja,(ia[n]-1)*sizeof(PASTIX_INT));
+      MALLOC_INTERN(*dia, n+1, pastix_int_t);
+      memcpy(*dia,ia,(n+1)*sizeof(pastix_int_t));
+      MALLOC_INTERN(*dl2g, n, pastix_int_t);
+      memcpy(*dl2g,l2g,n*sizeof(pastix_int_t));
+      MALLOC_INTERN(*dja, ia[n]-1, pastix_int_t);
+      memcpy(*dja,ja,(ia[n]-1)*sizeof(pastix_int_t));
       if (NULL != a)
         {
-          MALLOC_INTERN(*da, ia[n]-1, PASTIX_FLOAT);
-          memcpy(*da,a,(ia[n]-1)*sizeof(PASTIX_FLOAT));
+          MALLOC_INTERN(*da, ia[n]-1, pastix_float_t);
+          memcpy(*da,a,(ia[n]-1)*sizeof(pastix_float_t));
         }
 
       return EXIT_SUCCESS;
     }
 
   /* Build all newloc2globs on all processors */
-  MALLOC_INTERN(newloc2globssize, commSize, PASTIX_INT );
-  MALLOC_INTERN(newloc2globs,     commSize, PASTIX_INT*);
+  MALLOC_INTERN(newloc2globssize, commSize, pastix_int_t );
+  MALLOC_INTERN(newloc2globs,     commSize, pastix_int_t*);
   gn = 0;
   MPI_Allreduce(&n, &gn, 1, COMM_INT, MPI_SUM, comm);
   for (i = 0; i < commSize; i++)
     {
-      start = (PASTIX_INT)floor((double)i*(double)gn/(double)commSize)+1;
-      end   = (PASTIX_INT)floor((double)(i+1)*(double)gn/(double)commSize);
+      start = (pastix_int_t)floor((double)i*(double)gn/(double)commSize)+1;
+      end   = (pastix_int_t)floor((double)(i+1)*(double)gn/(double)commSize);
       newloc2globssize[i] = end - start +1;
 
-      MALLOC_INTERN(newloc2globs[i], newloc2globssize[i], PASTIX_INT);
+      MALLOC_INTERN(newloc2globs[i], newloc2globssize[i], pastix_int_t);
 
       for (j = 0; j < newloc2globssize[i]; j++)
         newloc2globs[i][j] = j+start;
     }
 
   /* Create one CSCD for each proc */
-  MALLOC_INTERN(colptr2send, commSize, PASTIX_INT*);
-  MALLOC_INTERN(rows2send,   commSize, PASTIX_INT*);
-  MALLOC_INTERN(values2send, commSize, PASTIX_FLOAT*);
+  MALLOC_INTERN(colptr2send, commSize, pastix_int_t*);
+  MALLOC_INTERN(rows2send,   commSize, pastix_int_t*);
+  MALLOC_INTERN(values2send, commSize, pastix_float_t*);
 
   for (i = 0; i < commSize; i++)
     {
@@ -1514,7 +1514,7 @@ int cscd_redispatch_scotch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja,
   /* Sending informations to all proc */
   for (i = 0; i < commSize; i++)
     {
-      MALLOC_INTERN(colptr2send[i], newloc2globssize[i]+1, PASTIX_INT);
+      MALLOC_INTERN(colptr2send[i], newloc2globssize[i]+1, pastix_int_t);
       for (j = 0; j < newloc2globssize[i]+1; j++)
         colptr2send[i][j] = 1;
 
@@ -1568,16 +1568,16 @@ int cscd_redispatch_scotch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja,
       if (size > 0)
         {
           /* Adding contribution CSCD to local CSCD */
-          MALLOC_INTERN(tmpia, newloc2globssize[rank]+1, PASTIX_INT);
+          MALLOC_INTERN(tmpia, newloc2globssize[rank]+1, pastix_int_t);
           MPI_Recv( tmpia, (int)(newloc2globssize[rank]+1), COMM_INT,
                     status.MPI_SOURCE, TAG_COL, comm, &status2);
 
-          MALLOC_INTERN(tmpja, size, PASTIX_INT);
+          MALLOC_INTERN(tmpja, size, pastix_int_t);
           MPI_Recv( tmpja, size, COMM_INT,  status.MPI_SOURCE, TAG_ROW, comm,
                     &status2);
           if (a != NULL)
             {
-              MALLOC_INTERN(tmpa, size, PASTIX_FLOAT);
+              MALLOC_INTERN(tmpa, size, pastix_float_t);
               MPI_Recv( tmpa, size, COMM_FLOAT, status.MPI_SOURCE, TAG_VAL,
                         comm, &status2);
             }
@@ -1687,11 +1687,11 @@ int cscd_redispatch_scotch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja,
 #ifndef cscd_redispatch
 #  error "redefinition required"
 #endif
-int cscd_redispatch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PASTIX_FLOAT *   a,
-                    PASTIX_FLOAT *  rhs,  PASTIX_INT nrhs, PASTIX_INT *   l2g,
-                    PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, PASTIX_FLOAT ** da,
-                    PASTIX_FLOAT ** drhs, PASTIX_INT *  dl2g,
-                    MPI_Comm comm, PASTIX_INT dof)
+int cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
+                    pastix_float_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
+                    pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
+                    pastix_float_t ** drhs, pastix_int_t *  dl2g,
+                    MPI_Comm comm, pastix_int_t dof)
 {
   return cscd_redispatch_int(n,  ia,  ja,  a,  rhs,  nrhs, l2g,
                              dn, dia, dja, da, drhs, dl2g,
@@ -1739,11 +1739,11 @@ int cscd_redispatch(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PASTIX
 #ifndef cscd_redispatch_int
 #  error "redefinition required"
 #endif
-int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PASTIX_FLOAT *   a,
-                        PASTIX_FLOAT *  rhs,  PASTIX_INT nrhs, PASTIX_INT *   l2g,
-                        PASTIX_INT  dn, PASTIX_INT ** dia, PASTIX_INT ** dja, PASTIX_FLOAT ** da,
-                        PASTIX_FLOAT ** drhs, PASTIX_INT *  dl2g,
-                        int  malloc_flag, MPI_Comm comm, PASTIX_INT dof)
+int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
+                        pastix_float_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
+                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
+                        pastix_float_t ** drhs, pastix_int_t *  dl2g,
+                        int  malloc_flag, MPI_Comm comm, pastix_int_t dof)
 {
 #ifdef FORCE_NOMPI
   (void)n; (void)ia; (void)ja; (void)a; (void)rhs; (void)nrhs; (void)l2g;
@@ -1751,26 +1751,26 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
   (void)malloc_flag; (void)comm; (void)dof;
   return NO_ERR;
 #else /* FORCE_NOMPI */
-  PASTIX_INT i,j;
-  PASTIX_INT           globidx;
-  PASTIX_INT           locidx;
-  PASTIX_INT           tmpn;
-  PASTIX_INT         * tmpia  = NULL;
-  PASTIX_INT         * tmpja  = NULL;
-  PASTIX_FLOAT       * tmpa   = NULL;
-  PASTIX_FLOAT       * tmprhs = NULL;
-  PASTIX_INT         * tmpia2 = NULL;
-  PASTIX_INT         * tmpja2   = NULL;
-  PASTIX_FLOAT       * tmpa2  = NULL;
-  PASTIX_INT           size;
-  PASTIX_INT         * sizep                 = NULL;
-  PASTIX_INT         * newloc2globssize      = NULL;
-  PASTIX_INT         * newloc2globssize_recv = NULL;
-  PASTIX_INT        ** newloc2globs          = NULL;
-  PASTIX_INT        ** colptr2send           = NULL;
-  PASTIX_INT        ** rows2send             = NULL;
-  PASTIX_FLOAT      ** values2send           = NULL;
-  PASTIX_FLOAT      ** rhs2send              = NULL;
+  pastix_int_t i,j;
+  pastix_int_t           globidx;
+  pastix_int_t           locidx;
+  pastix_int_t           tmpn;
+  pastix_int_t         * tmpia  = NULL;
+  pastix_int_t         * tmpja  = NULL;
+  pastix_float_t       * tmpa   = NULL;
+  pastix_float_t       * tmprhs = NULL;
+  pastix_int_t         * tmpia2 = NULL;
+  pastix_int_t         * tmpja2   = NULL;
+  pastix_float_t       * tmpa2  = NULL;
+  pastix_int_t           size;
+  pastix_int_t         * sizep                 = NULL;
+  pastix_int_t         * newloc2globssize      = NULL;
+  pastix_int_t         * newloc2globssize_recv = NULL;
+  pastix_int_t        ** newloc2globs          = NULL;
+  pastix_int_t        ** colptr2send           = NULL;
+  pastix_int_t        ** rows2send             = NULL;
+  pastix_float_t      ** values2send           = NULL;
+  pastix_float_t      ** rhs2send              = NULL;
   MPI_Request * requests_size         = NULL;
   MPI_Request * requests_col          = NULL;
   MPI_Request * requests_row          = NULL;
@@ -1778,7 +1778,7 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
   MPI_Request * requests_rhs          = NULL;
   MPI_Status    status;
   MPI_Status    status2;
-  PASTIX_INT           toreceive;
+  pastix_int_t           toreceive;
   int           commSize;
   int           rank;
   int           flags[2];
@@ -1809,25 +1809,25 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
             return BADPARAMETER_ERR;
           }
 
-      MALLOC_INTOREXTERN(*dia, n+1, PASTIX_INT, malloc_flag);
-      memcpy(*dia,ia,(n+1)*sizeof(PASTIX_INT));
-      MALLOC_INTOREXTERN(*dja, ia[n]-1, PASTIX_INT, malloc_flag);
-      memcpy(*dja,ja,(ia[n]-1)*sizeof(PASTIX_INT));
+      MALLOC_INTOREXTERN(*dia, n+1, pastix_int_t, malloc_flag);
+      memcpy(*dia,ia,(n+1)*sizeof(pastix_int_t));
+      MALLOC_INTOREXTERN(*dja, ia[n]-1, pastix_int_t, malloc_flag);
+      memcpy(*dja,ja,(ia[n]-1)*sizeof(pastix_int_t));
       if (flags_recv[0] == 1)
         {
-          MALLOC_INTOREXTERN(*da, (ia[n]-1)*dof*dof, PASTIX_FLOAT, malloc_flag);
-          memcpy(*da,a,(ia[n]-1)*sizeof(PASTIX_FLOAT)*dof*dof);
+          MALLOC_INTOREXTERN(*da, (ia[n]-1)*dof*dof, pastix_float_t, malloc_flag);
+          memcpy(*da,a,(ia[n]-1)*sizeof(pastix_float_t)*dof*dof);
         }
       if (flags_recv[1] == 1)
         {
-          MALLOC_INTOREXTERN(*drhs, n*nrhs*dof, PASTIX_FLOAT, malloc_flag);
-          memcpy(*drhs,rhs,n*nrhs*sizeof(PASTIX_FLOAT)*dof);
+          MALLOC_INTOREXTERN(*drhs, n*nrhs*dof, pastix_float_t, malloc_flag);
+          memcpy(*drhs,rhs,n*nrhs*sizeof(pastix_float_t)*dof);
         }
       return NO_ERR;
     }
 
   /* Build all newloc2globs on all processors */
-  MALLOC_INTERN(newloc2globssize, commSize + 1, PASTIX_INT );
+  MALLOC_INTERN(newloc2globssize, commSize + 1, pastix_int_t );
 
   for (i = 0; i < rank+1; i++)
     newloc2globssize[i] = 0;
@@ -1837,7 +1837,7 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
   /* Construct newloc2globssize
    * It will contain start of each dl2g in newloc2globs
    */
-  MALLOC_INTERN(newloc2globssize_recv, commSize + 1, PASTIX_INT );
+  MALLOC_INTERN(newloc2globssize_recv, commSize + 1, pastix_int_t );
   MPI_Allreduce(newloc2globssize, newloc2globssize_recv, commSize+1,
                 COMM_INT, MPI_SUM, comm);
   memFree_null(newloc2globssize);
@@ -1846,14 +1846,14 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
   /* Construct newloc2globs
    * It will contains all dl2g in one tabular
    */
-  MALLOC_INTERN(newloc2globs, commSize, PASTIX_INT*);
+  MALLOC_INTERN(newloc2globs, commSize, pastix_int_t*);
   for (i = 0; i < commSize; i++)
     {
       if (rank != i)
         {
           newloc2globs[i] = NULL;
           MALLOC_INTERN(newloc2globs[i],
-                        newloc2globssize[i+1] - newloc2globssize[i], PASTIX_INT);
+                        newloc2globssize[i+1] - newloc2globssize[i], pastix_int_t);
           for (j = 0; j < newloc2globssize[i+1] - newloc2globssize[i]; j++)
             newloc2globs[i][j] = 0;
         }
@@ -1865,12 +1865,12 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
                 COMM_INT, i, comm);
     }
   /* Create one CSCD for each proc */
-  MALLOC_INTERN(colptr2send, commSize, PASTIX_INT*);
-  MALLOC_INTERN(rows2send,   commSize, PASTIX_INT*);
+  MALLOC_INTERN(colptr2send, commSize, pastix_int_t*);
+  MALLOC_INTERN(rows2send,   commSize, pastix_int_t*);
   if (flags_recv[0] == 1)
-    MALLOC_INTERN(values2send, commSize, PASTIX_FLOAT*);
+    MALLOC_INTERN(values2send, commSize, pastix_float_t*);
   if (flags_recv[1] == 1)
-    MALLOC_INTERN(rhs2send,    commSize, PASTIX_FLOAT*);
+    MALLOC_INTERN(rhs2send,    commSize, pastix_float_t*);
 
   for (i = 0; i < commSize; i++)
     {
@@ -1882,7 +1882,7 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
         rhs2send[i]    = NULL;
     }
 
-  MALLOC_INTERN(sizep,         commSize, PASTIX_INT);
+  MALLOC_INTERN(sizep,         commSize, pastix_int_t);
   MALLOC_INTERN(requests_size, commSize, MPI_Request);
   MALLOC_INTERN(requests_col,  commSize, MPI_Request);
   MALLOC_INTERN(requests_row,  commSize, MPI_Request);
@@ -1895,7 +1895,7 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
   for (i = 0; i < commSize; i++)
     {
       MALLOC_INTERN(colptr2send[i],
-                    newloc2globssize[i+1] - newloc2globssize[i] + 1, PASTIX_INT);
+                    newloc2globssize[i+1] - newloc2globssize[i] + 1, pastix_int_t);
       for (j = 0; j < newloc2globssize[i+1] - newloc2globssize[i] + 1; j++)
         colptr2send[i][j] = 1;
 
@@ -1930,12 +1930,12 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
 
       if (flags_recv[1] == 1 && i != rank)
         {
-          PASTIX_INT newrhs_size = (newloc2globssize[i+1] - newloc2globssize[i]);
+          pastix_int_t newrhs_size = (newloc2globssize[i+1] - newloc2globssize[i]);
           MALLOC_INTERN(rhs2send[i],
                         dof*nrhs*newrhs_size,
-                        PASTIX_FLOAT);
+                        pastix_float_t);
           memset(rhs2send[i], 0,
-                 dof*nrhs*newrhs_size*sizeof(PASTIX_FLOAT));
+                 dof*nrhs*newrhs_size*sizeof(pastix_float_t));
           for (j = 0; j < newloc2globssize[i+1] - newloc2globssize[i]; j++)
             {
               int iter_rhs;
@@ -1945,7 +1945,7 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
                   searchInList(globidx, l2g, n, locidx);
                   if (locidx >= 0)
                     {
-                      PASTIX_INT k;
+                      pastix_int_t k;
                       for (k = 0; k< dof; k++)
                         rhs2send[i][dof*(j+iter_rhs*newrhs_size)+k] =
                           rhs[dof*(locidx+iter_rhs*n)+k];
@@ -1983,7 +1983,7 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
             }
           if (flags_recv[1] == 1)
             {
-              PASTIX_INT newrhs_size = (newloc2globssize[i+1] - newloc2globssize[i]);
+              pastix_int_t newrhs_size = (newloc2globssize[i+1] - newloc2globssize[i]);
               MPI_Isend(rhs2send[i], nrhs*newrhs_size*dof,
                         COMM_FLOAT, i, TAG_RHS, comm, &requests_rhs[i]);
             }
@@ -1995,9 +1995,9 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
   /* Receive and add to local CSCD */
   if (flags_recv[1] == 1)
     {
-      PASTIX_INT iter_rhs;
-      MALLOC_INTOREXTERN(*drhs, dn*nrhs*dof, PASTIX_FLOAT, malloc_flag);
-      MALLOC_INTERN(tmprhs, dn*nrhs*dof, PASTIX_FLOAT);
+      pastix_int_t iter_rhs;
+      MALLOC_INTOREXTERN(*drhs, dn*nrhs*dof, pastix_float_t, malloc_flag);
+      MALLOC_INTERN(tmprhs, dn*nrhs*dof, pastix_float_t);
       for (i = 0; i < dn*nrhs*dof; i++)
         (*drhs)[i] = 0;
 
@@ -2010,7 +2010,7 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
               searchInList(globidx, l2g, n, locidx);
               if (locidx >= 0)
                 {
-                  PASTIX_INT k;
+                  pastix_int_t k;
                   for (k = 0; k< dof; k++)
                     (*drhs)[dof*(j + iter_rhs*dn)+k] = rhs[dof*(locidx + iter_rhs*n)+k];
                 }
@@ -2026,17 +2026,17 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
           /* Adding contribution CSCD to local CSCD */
           MALLOC_INTERN(tmpia,
                         newloc2globssize[rank+1] - newloc2globssize[rank]+1,
-                        PASTIX_INT);
+                        pastix_int_t);
           MPI_Recv( tmpia, (newloc2globssize[rank+1] -
                             newloc2globssize[rank] + 1),
                     COMM_INT,
                     status.MPI_SOURCE, TAG_COL, comm, &status2);
-          MALLOC_INTERN(tmpja, size, PASTIX_INT);
+          MALLOC_INTERN(tmpja, size, pastix_int_t);
           MPI_Recv( tmpja, size, COMM_INT,  status.MPI_SOURCE,
                     TAG_ROW, comm, &status2);
           if (flags_recv[0] == 1)
             {
-              MALLOC_INTERN(tmpa, dof*dof*size, PASTIX_FLOAT);
+              MALLOC_INTERN(tmpa, dof*dof*size, pastix_float_t);
               MPI_Recv( tmpa, dof*dof*size, COMM_FLOAT, status.MPI_SOURCE,
                         TAG_VAL, comm, &status2);
             }
@@ -2076,14 +2076,14 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
 
       if (flags_recv[1] == 1)
         {
-          PASTIX_INT iter_rhs;
+          pastix_int_t iter_rhs;
           MPI_Recv(tmprhs, dof*dn*nrhs, COMM_FLOAT, MPI_ANY_SOURCE, TAG_RHS,
                    comm, &status);
           for (iter_rhs = 0; iter_rhs < nrhs; iter_rhs++)
             {
               for (j = 0; j < dn; j++)
                 {
-                  PASTIX_INT k;
+                  pastix_int_t k;
                   for (k = 0; k< dof; k++)
                     (*drhs)[dof*(j + iter_rhs*dn)+k] += tmprhs[dof*(j + iter_rhs*dn)+k];
                 }
@@ -2189,11 +2189,11 @@ int cscd_redispatch_int(PASTIX_INT   n, PASTIX_INT *   ia, PASTIX_INT *   ja, PA
 #ifndef cscd2csc
 #  error "redefinition required"
 #endif
-void  cscd2csc(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PASTIX_FLOAT * lavals,
-               PASTIX_FLOAT * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-               PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, PASTIX_FLOAT **gavals,
-               PASTIX_FLOAT **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-               PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof)
+void  cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_float_t * lavals,
+               pastix_float_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+               pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_float_t **gavals,
+               pastix_float_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+               pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof)
 {
   cscd2csc_int(lN, lcolptr, lrow, lavals,
                lrhs, lperm, linvp,
@@ -2230,43 +2230,43 @@ void  cscd2csc(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PASTIX_
 #ifndef cscd2csc_int
 #  error "redefinition required"
 #endif
-void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PASTIX_FLOAT * lavals,
-                   PASTIX_FLOAT * lrhs, PASTIX_INT * lperm, PASTIX_INT * linvp,
-                   PASTIX_INT *gN, PASTIX_INT ** gcolptr, PASTIX_INT **grow, PASTIX_FLOAT **gavals,
-                   PASTIX_FLOAT **grhs, PASTIX_INT **gperm, PASTIX_INT **ginvp,
-                   PASTIX_INT *loc2glob, MPI_Comm pastix_comm, PASTIX_INT ndof, int intern_flag)
+void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_float_t * lavals,
+                   pastix_float_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+                   pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_float_t **gavals,
+                   pastix_float_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+                   pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof, int intern_flag)
 {
-  PASTIX_INT      i,j;
+  pastix_int_t      i,j;
   int      rank;
   int      commSize;
-  PASTIX_INT      index;
-  PASTIX_INT    * AllLocalN   = NULL;
-  PASTIX_INT   ** AllColptr   = NULL;
-  PASTIX_INT   ** AllRow      = NULL;
-  PASTIX_INT   ** AllLoc2glob = NULL;
-  PASTIX_FLOAT ** AllAvals    = NULL;
-  PASTIX_FLOAT ** AllRhs      = NULL;
-  PASTIX_INT   ** AllPerm     = NULL;
-  /*   PASTIX_INT   ** AllInvp; */
+  pastix_int_t      index;
+  pastix_int_t    * AllLocalN   = NULL;
+  pastix_int_t   ** AllColptr   = NULL;
+  pastix_int_t   ** AllRow      = NULL;
+  pastix_int_t   ** AllLoc2glob = NULL;
+  pastix_float_t ** AllAvals    = NULL;
+  pastix_float_t ** AllRhs      = NULL;
+  pastix_int_t   ** AllPerm     = NULL;
+  /*   pastix_int_t   ** AllInvp; */
   int      proc;
   (void)pastix_comm; (void)linvp;
 
   MPI_Comm_rank(pastix_comm,&rank);
   MPI_Comm_size(pastix_comm,&commSize);
 
-  MALLOC_INTERN(AllLocalN,   commSize, PASTIX_INT );
-  MALLOC_INTERN(AllColptr,   commSize, PASTIX_INT*);
-  MALLOC_INTERN(AllRow,      commSize, PASTIX_INT*);
-  MALLOC_INTERN(AllLoc2glob, commSize, PASTIX_INT*);
+  MALLOC_INTERN(AllLocalN,   commSize, pastix_int_t );
+  MALLOC_INTERN(AllColptr,   commSize, pastix_int_t*);
+  MALLOC_INTERN(AllRow,      commSize, pastix_int_t*);
+  MALLOC_INTERN(AllLoc2glob, commSize, pastix_int_t*);
 
   if (gavals != NULL)
-    MALLOC_INTERN(AllAvals, commSize, PASTIX_FLOAT*);
+    MALLOC_INTERN(AllAvals, commSize, pastix_float_t*);
 
   if (grhs != NULL)
-    MALLOC_INTERN(AllRhs, commSize, PASTIX_FLOAT*);
+    MALLOC_INTERN(AllRhs, commSize, pastix_float_t*);
 
   if (gperm != NULL)
-    MALLOC_INTERN(AllPerm, commSize, PASTIX_INT*);
+    MALLOC_INTERN(AllPerm, commSize, pastix_int_t*);
 
   for (i = 0; i < commSize; i++)
     {
@@ -2287,21 +2287,21 @@ void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PAS
       MPI_Bcast(&AllLocalN[i] , 1, COMM_INT, i, pastix_comm);
       if (rank != i)
         {
-          MALLOC_INTERN(AllColptr[i],   AllLocalN[i]+1, PASTIX_INT);
-          MALLOC_INTERN(AllLoc2glob[i], AllLocalN[i],   PASTIX_INT);
+          MALLOC_INTERN(AllColptr[i],   AllLocalN[i]+1, pastix_int_t);
+          MALLOC_INTERN(AllLoc2glob[i], AllLocalN[i],   pastix_int_t);
           if (grhs != NULL)
-            MALLOC_INTERN(AllRhs[i], ndof*AllLocalN[i], PASTIX_FLOAT);
+            MALLOC_INTERN(AllRhs[i], ndof*AllLocalN[i], pastix_float_t);
 
           if (gperm != NULL)
-            MALLOC_INTERN(AllPerm[i], AllLocalN[i], PASTIX_INT);
+            MALLOC_INTERN(AllPerm[i], AllLocalN[i], pastix_int_t);
         }
 
       MPI_Bcast(AllColptr[i], AllLocalN[i]+1, COMM_INT  , i, pastix_comm);
       if (rank != i)
         {
-          MALLOC_INTERN(AllRow[i], AllColptr[i][AllLocalN[i]]-1, PASTIX_INT);
+          MALLOC_INTERN(AllRow[i], AllColptr[i][AllLocalN[i]]-1, pastix_int_t);
           if (gavals != NULL)
-            MALLOC_INTERN(AllAvals[i], ndof*ndof*(AllColptr[i][AllLocalN[i]]-1), PASTIX_FLOAT);
+            MALLOC_INTERN(AllAvals[i], ndof*ndof*(AllColptr[i][AllLocalN[i]]-1), pastix_float_t);
         }
 
       MPI_Bcast(AllRow[i], AllColptr[i][AllLocalN[i]]-1,
@@ -2327,7 +2327,7 @@ void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PAS
       *gN += AllLocalN[i];
     }
 
-  MALLOC_INTOREXTERN(*gcolptr, ((*gN)+1), PASTIX_INT, intern_flag);
+  MALLOC_INTOREXTERN(*gcolptr, ((*gN)+1), pastix_int_t, intern_flag);
   /* Fill in gcolptr */
   (*gcolptr)[0] = 1;
   for (i = 0; i < (*gN); i++)
@@ -2345,15 +2345,15 @@ void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PAS
 
         }
     }
-  MALLOC_INTOREXTERN(*grow, (*gcolptr)[(*gN)]-1, PASTIX_INT, intern_flag);
+  MALLOC_INTOREXTERN(*grow, (*gcolptr)[(*gN)]-1, pastix_int_t, intern_flag);
   if (gavals != NULL)
-    MALLOC_INTOREXTERN(*gavals, ndof*ndof*((*gcolptr)[(*gN)]-1), PASTIX_FLOAT, intern_flag);
+    MALLOC_INTOREXTERN(*gavals, ndof*ndof*((*gcolptr)[(*gN)]-1), pastix_float_t, intern_flag);
   if (grhs != NULL)
-    MALLOC_INTOREXTERN(*grhs, *gN*ndof, PASTIX_FLOAT, intern_flag);
+    MALLOC_INTOREXTERN(*grhs, *gN*ndof, pastix_float_t, intern_flag);
   if (gperm != NULL)
     {
-      MALLOC_INTOREXTERN(*gperm, *gN, PASTIX_INT, intern_flag);
-      MALLOC_INTOREXTERN(*ginvp, *gN, PASTIX_INT, intern_flag);
+      MALLOC_INTOREXTERN(*gperm, *gN, pastix_int_t, intern_flag);
+      MALLOC_INTOREXTERN(*ginvp, *gN, pastix_int_t, intern_flag);
     }
 
   /* Fill-in grow, gavals, grhs, gperm and ginvp*/
@@ -2363,11 +2363,11 @@ void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PAS
         {
           memcpy(&(*grow)[(*gcolptr)[AllLoc2glob[proc][i]-1]-1],
                  &AllRow[proc][AllColptr[proc][i]-1],
-                 (AllColptr[proc][i+1] - AllColptr[proc][i])*sizeof(PASTIX_INT));
+                 (AllColptr[proc][i+1] - AllColptr[proc][i])*sizeof(pastix_int_t));
           if (gavals != NULL)
             memcpy(&(*gavals)[(*gcolptr)[AllLoc2glob[proc][i]-1]-1],
                    &AllAvals[proc][AllColptr[proc][i]-1],
-                   ndof*ndof*(AllColptr[proc][i+1] - AllColptr[proc][i])*sizeof(PASTIX_FLOAT));
+                   ndof*ndof*(AllColptr[proc][i+1] - AllColptr[proc][i])*sizeof(pastix_float_t));
           if (grhs != NULL)
             for (j = 0; j < ndof; j++)
               (*grhs)[ndof*(AllLoc2glob[proc][i]-1)+j]  = AllRhs[proc][ndof*i+j];
@@ -2448,31 +2448,31 @@ void  cscd2csc_int(PASTIX_INT  lN, PASTIX_INT *  lcolptr, PASTIX_INT * lrow, PAS
 #ifndef csc2cscd
 #  error "redefinition required"
 #endif
-void  csc2cscd(PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow,
-               PASTIX_FLOAT *  gavals, PASTIX_FLOAT *  grhs, PASTIX_INT *  gperm, PASTIX_INT *  ginvp,
-               PASTIX_INT lN, PASTIX_INT ** lcolptr, PASTIX_INT ** lrow,
-               PASTIX_FLOAT ** lavals, PASTIX_FLOAT ** lrhs, PASTIX_INT ** lperm, PASTIX_INT ** linvp,
-               PASTIX_INT *loc2glob)
+void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
+               pastix_float_t *  gavals, pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+               pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow,
+               pastix_float_t ** lavals, pastix_float_t ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+               pastix_int_t *loc2glob)
 {
-  PASTIX_INT   i;
+  pastix_int_t   i;
   (void)gN; (void)ginvp; (void)linvp;
 
   if (grhs != NULL)
     {
-      MALLOC_INTERN(*lrhs, lN, PASTIX_FLOAT);
+      MALLOC_INTERN(*lrhs, lN, pastix_float_t);
       for (i = 0; i < lN; i++)
         (*lrhs )[i] = grhs [loc2glob[i]];
     }
   if (gperm != NULL)
     {
-      MALLOC_INTERN(*lperm, lN, PASTIX_INT);
+      MALLOC_INTERN(*lperm, lN, pastix_int_t);
       for (i = 0; i < lN; i++)
         {
           (*lperm)[i] = gperm[loc2glob[i]];
         }
     }
 
-  MALLOC_INTERN(*lcolptr, lN+1, PASTIX_INT);
+  MALLOC_INTERN(*lcolptr, lN+1, pastix_int_t);
   (*lcolptr)[0] = 1;
   for (i = 0; i < lN; i++)
     {
@@ -2480,19 +2480,19 @@ void  csc2cscd(PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow,
         gcolptr[loc2glob[i]] - gcolptr[loc2glob[i]-1];
     }
 
-  MALLOC_INTERN(*lrow, (*lcolptr)[lN]-1, PASTIX_INT);
+  MALLOC_INTERN(*lrow, (*lcolptr)[lN]-1, pastix_int_t);
   if (gavals != NULL)
-    MALLOC_INTERN(*lavals, (*lcolptr)[lN]-1, PASTIX_FLOAT);
+    MALLOC_INTERN(*lavals, (*lcolptr)[lN]-1, pastix_float_t);
 
   for (i = 0; i < lN; i++)
     {
       memcpy(&((*lrow)  [(*lcolptr)[i]-1]),
              &(  grow  [gcolptr[loc2glob[i]-1]-1]),
-             (gcolptr[loc2glob[i]] - gcolptr[loc2glob[i]-1])*sizeof (PASTIX_INT));
+             (gcolptr[loc2glob[i]] - gcolptr[loc2glob[i]-1])*sizeof (pastix_int_t));
       if (gavals != NULL)
         memcpy(&((*lavals)[(*lcolptr)[i]-1]),
                &(  gavals[gcolptr[loc2glob[i]-1]]),
-               (gcolptr[loc2glob[i]] - gcolptr[loc2glob[i]-1])*sizeof(PASTIX_FLOAT));
+               (gcolptr[loc2glob[i]] - gcolptr[loc2glob[i]-1])*sizeof(pastix_float_t));
     }
 
 
@@ -2517,12 +2517,12 @@ void  csc2cscd(PASTIX_INT gN, PASTIX_INT *  gcolptr, PASTIX_INT *  grow,
 #ifndef cscd_noDiag
 #  error "redefinition required"
 #endif
-int cscd_noDiag(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT * a, PASTIX_INT * l2g)
+int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, pastix_int_t * l2g)
 {
-  PASTIX_INT     i;
-  PASTIX_INT     j;
-  PASTIX_INT     previous_index = 0;
-  PASTIX_INT     index          = 0;
+  pastix_int_t     i;
+  pastix_int_t     j;
+  pastix_int_t     previous_index = 0;
+  pastix_int_t     index          = 0;
 
   print_debug(DBG_CSCD, "->cscd_noDiag\n");
   /* for all local column i */
@@ -2578,12 +2578,12 @@ int cscd_noDiag(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_FLOAT * a, 
 #ifndef cscd_save
 #  error "redefinition required"
 #endif
-int cscd_save(PASTIX_INT          n,
-              PASTIX_INT        * ia,
-              PASTIX_INT        * ja,
-              PASTIX_FLOAT      * a,
-              PASTIX_FLOAT      * rhs,
-              PASTIX_INT        * l2g,
+int cscd_save(pastix_int_t          n,
+              pastix_int_t        * ia,
+              pastix_int_t        * ja,
+              pastix_float_t      * a,
+              pastix_float_t      * rhs,
+              pastix_int_t        * l2g,
               int          dof,
               const char * filename,
               MPI_Comm     comm)
@@ -2592,7 +2592,7 @@ int cscd_save(PASTIX_INT          n,
   char   file[64];
   char   file2[64];
   int    myrank, nbproc;
-  PASTIX_INT    i, j, k, l, vertglb = 0;
+  pastix_int_t    i, j, k, l, vertglb = 0;
   (void)comm;
 
   MPI_Comm_rank(comm, &myrank);
@@ -2832,14 +2832,14 @@ int cscd_save(PASTIX_INT          n,
 #ifndef cscd_load
 #  error "redefinition required"
 #endif
-int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT ** a, PASTIX_FLOAT ** rhs,
-              PASTIX_INT ** l2g, const char * filename, MPI_Comm mpi_comm)
+int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_float_t ** a, pastix_float_t ** rhs,
+              pastix_int_t ** l2g, const char * filename, MPI_Comm mpi_comm)
 {
   FILE * infile;
   char   file[64];
   int    myrank, nbproc;
   int    nbprocexpected;
-  PASTIX_INT    i;
+  pastix_int_t    i;
   int    valbool = 0;
   int    rhsbool = 0;
   long   tmp1,tmp2,tmp3,tmp4;
@@ -2897,7 +2897,7 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
 
   /* Copie de Loc2Glob */
   *l2g = NULL;
-  MALLOC_INTERN(*l2g, *n, PASTIX_INT);
+  MALLOC_INTERN(*l2g, *n, pastix_int_t);
   for (i=0; i<*n-4+1; i+=4)
     {
       if (4 != fscanf(infile, "%ld %ld %ld %ld", &tmp1, &tmp2, &tmp3, &tmp4)){
@@ -2943,7 +2943,7 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
 
   /* Copie de IA */
   *ia = NULL;
-  MALLOC_INTERN(*ia, *n+1, PASTIX_INT);
+  MALLOC_INTERN(*ia, *n+1, pastix_int_t);
   for (i=0; i<*n+1+1-4; i+=4)
     {
       if (4 != fscanf(infile, "%ld %ld %ld %ld", &tmp1, &tmp2, &tmp3, &tmp4)){
@@ -2990,7 +2990,7 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
 
   /* Copie de JA */
   (*ja) = NULL;
-  MALLOC_INTERN(*ja, nnz, PASTIX_INT);
+  MALLOC_INTERN(*ja, nnz, pastix_int_t);
   for (i=0; i<nnz+1-4; i+=4)
     {
       if (4 != fscanf(infile, "%ld %ld %ld %ld", &tmp1, &tmp2, &tmp3, &tmp4)){
@@ -3039,7 +3039,7 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
   if (valbool)
     {
       (*a) = NULL;
-      MALLOC_INTERN(*a, nnz, PASTIX_FLOAT);
+      MALLOC_INTERN(*a, nnz, pastix_float_t);
 
       for (i=0; i<nnz+1-4; i+=4)
         {
@@ -3050,20 +3050,20 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
-          (*a)[i+1] = (PASTIX_FLOAT)(tmpflt3 + I * tmpflt4);
-          (*a)[i+2] = (PASTIX_FLOAT)(tmpflt5 + I * tmpflt6);
-          (*a)[i+3] = (PASTIX_FLOAT)(tmpflt7 + I * tmpflt8);
+          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*a)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
+          (*a)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
+          (*a)[i+3] = (pastix_float_t)(tmpflt7 + I * tmpflt8);
 #else
           if (4 != fscanf(infile, "%lf %lf %lf %lf",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*a)[i+1] = (PASTIX_FLOAT)tmpflt2;
-          (*a)[i+2] = (PASTIX_FLOAT)tmpflt3;
-          (*a)[i+3] = (PASTIX_FLOAT)tmpflt4;
+          (*a)[i  ] = (pastix_float_t)tmpflt1;
+          (*a)[i+1] = (pastix_float_t)tmpflt2;
+          (*a)[i+2] = (pastix_float_t)tmpflt3;
+          (*a)[i+3] = (pastix_float_t)tmpflt4;
 #endif
         }
       switch (nnz - i )
@@ -3076,18 +3076,18 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
-          (*a)[i+1] = (PASTIX_FLOAT)(tmpflt3 + I * tmpflt4);
-          (*a)[i+2] = (PASTIX_FLOAT)(tmpflt5 + I * tmpflt6);
+          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*a)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
+          (*a)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
 #else
           if (3 != fscanf(infile, "%lf %lf %lf",
                           &tmpflt1, &tmpflt2, &tmpflt3)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*a)[i+1] = (PASTIX_FLOAT)tmpflt2;
-          (*a)[i+2] = (PASTIX_FLOAT)tmpflt3;
+          (*a)[i  ] = (pastix_float_t)tmpflt1;
+          (*a)[i+1] = (pastix_float_t)tmpflt2;
+          (*a)[i+2] = (pastix_float_t)tmpflt3;
 #endif
           break;
         case 2:
@@ -3097,16 +3097,16 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
-          (*a)[i+1] = (PASTIX_FLOAT)(tmpflt3 + I * tmpflt4);
+          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*a)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
 #else
           if (2 != fscanf(infile, "%lf %lf",
                           &tmpflt1, &tmpflt2)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*a)[i+1] = (PASTIX_FLOAT)tmpflt2;
+          (*a)[i  ] = (pastix_float_t)tmpflt1;
+          (*a)[i+1] = (pastix_float_t)tmpflt2;
 #endif
           break;
         case 1:
@@ -3116,14 +3116,14 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)(tmpflt1 + I * tmpflt2);
+          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
 #else
           if (1 != fscanf(infile, "%lf",
                           &tmpflt1)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (PASTIX_FLOAT)tmpflt1;
+          (*a)[i  ] = (pastix_float_t)tmpflt1;
 #endif
           break;
         }
@@ -3132,7 +3132,7 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
   if (rhsbool)
     {
       (*rhs) = NULL;
-      MALLOC_INTERN(*rhs, *n, PASTIX_FLOAT);
+      MALLOC_INTERN(*rhs, *n, pastix_float_t);
       for (i=0; i<*n+1-4; i+=4)
         {
           if (4 != fscanf(infile, "%lf %lf %lf %lf",
@@ -3141,10 +3141,10 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*rhs)[i+1] = (PASTIX_FLOAT)tmpflt2;
-          (*rhs)[i+2] = (PASTIX_FLOAT)tmpflt3;
-          (*rhs)[i+3] = (PASTIX_FLOAT)tmpflt4;
+          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
+          (*rhs)[i+1] = (pastix_float_t)tmpflt2;
+          (*rhs)[i+2] = (pastix_float_t)tmpflt3;
+          (*rhs)[i+3] = (pastix_float_t)tmpflt4;
         }
 
       switch (*n - i)
@@ -3156,9 +3156,9 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*rhs)[i+1] = (PASTIX_FLOAT)tmpflt2;
-          (*rhs)[i+2] = (PASTIX_FLOAT)tmpflt3;
+          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
+          (*rhs)[i+1] = (pastix_float_t)tmpflt2;
+          (*rhs)[i+2] = (pastix_float_t)tmpflt3;
           break;
         case 2:
           if (2 != fscanf(infile, "%lf %lf", &tmpflt1, &tmpflt2)){
@@ -3166,8 +3166,8 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (PASTIX_FLOAT)tmpflt1;
-          (*rhs)[i+1] = (PASTIX_FLOAT)tmpflt2;
+          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
+          (*rhs)[i+1] = (pastix_float_t)tmpflt2;
           break;
         case 1:
           if (1 != fscanf(infile, "%lf", &tmpflt1)){
@@ -3175,7 +3175,7 @@ int cscd_load(PASTIX_INT *n, PASTIX_INT ** ia, PASTIX_INT ** ja, PASTIX_FLOAT **
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (PASTIX_FLOAT)tmpflt1;
+          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
           break;
         }
 

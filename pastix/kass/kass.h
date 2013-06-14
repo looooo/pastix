@@ -16,15 +16,15 @@
 void kass(int            levelk, 
 	  int            rat, 
 	  SymbolMatrix * symbptr, 
-	  PASTIX_INT            baseval,
-	  PASTIX_INT            vertnbr, 
-	  PASTIX_INT            edgenbr, 
-	  PASTIX_INT          * verttab,
-	  PASTIX_INT          * edgetab, 
+	  pastix_int_t            baseval,
+	  pastix_int_t            vertnbr, 
+	  pastix_int_t            edgenbr, 
+	  pastix_int_t          * verttab,
+	  pastix_int_t          * edgetab, 
 	  Order        * orderptr, 
 	  MPI_Comm       pastix_comm);
 
 /* void kass(int alpha, int rat, SymbolMatrix * symbptr, Graph * graphptr, Order * orderptr, MPI_Comm pastix_comm); */
 
-void ifax(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT levelk, PASTIX_INT  cblknbr, PASTIX_INT *rangtab, PASTIX_INT *perm, PASTIX_INT *iperm, SymbolMatrix *symbmtx);
+void ifax(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_int_t levelk, pastix_int_t  cblknbr, pastix_int_t *rangtab, pastix_int_t *perm, pastix_int_t *iperm, SymbolMatrix *symbmtx);
 

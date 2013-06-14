@@ -27,7 +27,7 @@
 */
 void Csc2solv_cblk(const CscMatrix *cscmtx, 
 		   SolverMatrix    *solvmtx, 
-		   PASTIX_FLOAT           *trandcsc, 
-		   PASTIX_INT              itercblk);
+		   pastix_float_t           *trandcsc, 
+		   pastix_int_t              itercblk);
 
 #endif /* CSC_INTERN_SOLVE_H */

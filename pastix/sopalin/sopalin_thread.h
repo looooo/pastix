@@ -41,10 +41,10 @@ typedef struct sopthread_data {
  *   ooc_data      - Parameters for *ooc_routine*.
  */
 void sopalin_launch_thread(void *sopalin_data,
-                           PASTIX_INT procnum, PASTIX_INT procnbr, void *ptr, PASTIX_INT verbose,
-			   PASTIX_INT calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
-			   PASTIX_INT comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-			   PASTIX_INT ooc_thrdnbr,  void * (*ooc_routine) (void *), void *ooc_data);
+                           pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
+			   pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
+			   pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
+			   pastix_int_t ooc_thrdnbr,  void * (*ooc_routine) (void *), void *ooc_data);
 
 /*
   Function: sopalin_launch_comm
@@ -67,7 +67,7 @@ void sopalin_launch_comm(int nbthrdcomm, void * (*comm_routine)(void *), void *d
   Parameters:
     cpu - Processor to bind to.
  */
-PASTIX_INT  sopalin_bindthread(PASTIX_INT);
+pastix_int_t  sopalin_bindthread(pastix_int_t);
 
 /* Version SMP */
 #ifndef FORCE_NOSMP
@@ -121,8 +121,8 @@ typedef struct sopthread_barrier {
  */
 #ifdef TRYLOCK
 /*
-PASTIX_INT *ptbusy,*ptfree;
-PASTIX_INT *ptwait;
+pastix_int_t *ptbusy,*ptfree;
+pastix_int_t *ptwait;
 */
 #define MUTEX_LOCK(x)   if (pthread_mutex_trylock(x)) {thread_data->ptbusy;pthread_mutex_lock(x);} \
                         else thread_data->ptfree++

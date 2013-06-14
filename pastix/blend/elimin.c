@@ -6,7 +6,7 @@
 #include "elimin.h"
 
 
-PASTIX_INT egraphInit(EliminGraph *egraph)
+pastix_int_t egraphInit(EliminGraph *egraph)
 {
   egraph->baseval = 0;
   egraph->vertnbr = 0;
@@ -25,7 +25,7 @@ void egraphExit(EliminGraph *egraph)
 }
 
 
-PASTIX_INT treeInit(EliminTree *etree)
+pastix_int_t treeInit(EliminTree *etree)
 {
   etree->baseval = 0;
   etree->nodenbr = 0;
@@ -44,7 +44,7 @@ void treeExit(EliminTree *etree)
 
 void treePlot(EliminTree *etree, FILE *out)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   fprintf(out,
 	  "digraph G {\n"

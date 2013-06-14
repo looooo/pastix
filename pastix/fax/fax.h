@@ -62,27 +62,27 @@
 #endif
 
 int                         symbolCompact       (SymbolMatrix * const symbptr);
-int                         symbolFax           (SymbolMatrix * const symbptr, const PASTIX_INT vertnbr, const PASTIX_INT edgenbr, const PASTIX_INT baseval, void * const ngbdptr, PASTIX_INT ngbfrst (void * const, const PASTIX_INT), PASTIX_INT ngbnext (void * const), PASTIX_INT ngbdegr (void * const, const PASTIX_INT), const Order * const ordeptr);
+int                         symbolFax           (SymbolMatrix * const symbptr, const pastix_int_t vertnbr, const pastix_int_t edgenbr, const pastix_int_t baseval, void * const ngbdptr, pastix_int_t ngbfrst (void * const, const pastix_int_t), pastix_int_t ngbnext (void * const), pastix_int_t ngbdegr (void * const, const pastix_int_t), const Order * const ordeptr);
 #if  (defined SCOTCH_SEQSCOTCH || defined SCOTCH_H || defined SCOTCH_PTSCOTCH || defined PTSCOTCH_H)
 int                         symbolFaxGraph      (SymbolMatrix * const symbptr, const SCOTCH_Graph * const grafptr, const Order * const ordeptr);
 #endif /* GRAPH_H */
-int                         symbolFaxGrid2C     (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT baseval, const Order * const ordeptr);
-int                         symbolFaxGrid2D     (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT baseval, const Order * const ordeptr);
-int                         symbolFaxGrid2E     (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT baseval, const Order * const ordeptr);
-int                         symbolFaxGrid3C     (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT znbr, const PASTIX_INT baseval, const Order * const ordeptr);
-int                         symbolFaxGrid3D     (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT znbr, const PASTIX_INT baseval, const Order * const ordeptr);
-int                         symbolFaxGrid3E     (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT znbr, const PASTIX_INT baseval, const Order * const ordeptr);
+int                         symbolFaxGrid2C     (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const Order * const ordeptr);
+int                         symbolFaxGrid2D     (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const Order * const ordeptr);
+int                         symbolFaxGrid2E     (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const Order * const ordeptr);
+int                         symbolFaxGrid3C     (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const Order * const ordeptr);
+int                         symbolFaxGrid3D     (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const Order * const ordeptr);
+int                         symbolFaxGrid3E     (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const Order * const ordeptr);
 #ifdef MESH_H
 int                         symbolFaxMesh       (SymbolMatrix * const symbptr, const Mesh * const meshptr, const Order * const ordeptr);
 #endif /* MESH_H */
 
-int                         symbolFaxi          (SymbolMatrix * const symbptr, const PASTIX_INT vertnbr, const PASTIX_INT edgenbr, const PASTIX_INT baseval, void * const ngbdptr, PASTIX_INT ngbfrst (void * const, const PASTIX_INT), PASTIX_INT ngbnext (void * const), PASTIX_INT ngbdegr (void * const, const PASTIX_INT), const Order * const ordeptr, const PASTIX_INT levfmax);
+int                         symbolFaxi          (SymbolMatrix * const symbptr, const pastix_int_t vertnbr, const pastix_int_t edgenbr, const pastix_int_t baseval, void * const ngbdptr, pastix_int_t ngbfrst (void * const, const pastix_int_t), pastix_int_t ngbnext (void * const), pastix_int_t ngbdegr (void * const, const pastix_int_t), const Order * const ordeptr, const pastix_int_t levfmax);
 #if  (defined SCOTCH_SEQSCOTCH || defined SCOTCH_H || defined SCOTCH_PTSCOTCH || defined PTSCOTCH_H)
-int                         symbolFaxiGraph     (SymbolMatrix * const symbptr, const SCOTCH_Graph * const grafptr, const Order * const ordeptr, const PASTIX_INT levfmax);
+int                         symbolFaxiGraph     (SymbolMatrix * const symbptr, const SCOTCH_Graph * const grafptr, const Order * const ordeptr, const pastix_int_t levfmax);
 #endif /* GRAPH_H */
-int                         symbolFaxiGrid2D    (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT baseval, const Order * const ordeptr, const PASTIX_INT levfmax);
-int                         symbolFaxiGrid2E    (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT baseval, const Order * const ordeptr, const PASTIX_INT levfmax);
-int                         symbolFaxiGrid3D    (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT znbr, const PASTIX_INT baseval, const Order * const ordeptr, const PASTIX_INT levfmax);
-int                         symbolFaxiGrid3E    (SymbolMatrix * const symbptr, const PASTIX_INT xnbr, const PASTIX_INT ynbr, const PASTIX_INT znbr, const PASTIX_INT baseval, const Order * const ordeptr, const PASTIX_INT levfmax);
+int                         symbolFaxiGrid2D    (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const Order * const ordeptr, const pastix_int_t levfmax);
+int                         symbolFaxiGrid2E    (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const Order * const ordeptr, const pastix_int_t levfmax);
+int                         symbolFaxiGrid3D    (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const Order * const ordeptr, const pastix_int_t levfmax);
+int                         symbolFaxiGrid3E    (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const Order * const ordeptr, const pastix_int_t levfmax);
 
 #undef static

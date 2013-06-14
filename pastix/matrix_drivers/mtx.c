@@ -650,7 +650,7 @@ void cccRead(char const * filename, pastix_int_t *Nrow, pastix_int_t *Ncol, past
 	{
 #if (defined X_ARCHalpha_compaq_osf1)
 #ifdef CPLX
-	  (*val)[i] = PASTIX_FLOAT(temp1,temp2);
+	  (*val)[i] = pastix_float_t(temp1,temp2);
 #else
 	  (*val)[i] = temp1;
 #endif
@@ -1203,7 +1203,7 @@ void chbRead(char const *filename, pastix_int_t *Nrow, pastix_int_t *Ncol, pasti
 		  if (count % 2)
 		    {
 #if (defined X_ARCHalpha_compaq_osf1)
-		      (*rhs)[(count-1)/2] += PASTIX_FLOAT(0.0, atof(element));
+		      (*rhs)[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
 		      (*rhs)[(count-1)/2] += atof(element)*I;
 #endif
@@ -1263,7 +1263,7 @@ void chbRead(char const *filename, pastix_int_t *Nrow, pastix_int_t *Ncol, pasti
 		      if (count % 2)
 			{
 #if (defined X_ARCHalpha_compaq_osf1)
-			  rhs2[(count-1)/2] += PASTIX_FLOAT(0.0, atof(element));
+			  rhs2[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
 			  rhs2[(count-1)/2] += atof(element)*I;
 #endif

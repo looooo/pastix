@@ -33,8 +33,8 @@
      b      - Matrix b.
      ldb    - Stride between 2 columns of b.
 */
-void         dim_dgeam(char *transa, char *transb, PASTIX_INT m, PASTIX_INT n, PASTIX_FLOAT alpha,
-		       PASTIX_FLOAT *a, PASTIX_INT lda, PASTIX_FLOAT *b, PASTIX_INT ldb);
+void         dim_dgeam(char *transa, char *transb, pastix_int_t m, pastix_int_t n, pastix_float_t alpha,
+		       pastix_float_t *a, pastix_int_t lda, pastix_float_t *b, pastix_int_t ldb);
 
 /* 
    Function: GetMpiType

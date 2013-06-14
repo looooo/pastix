@@ -26,15 +26,15 @@
 #define DimTrans           API_CALL(DimTrans)
 #define factor_diag        API_CALL(factor_diag)
 
-void PASTIX_getrf       ( PASTIX_FLOAT *A, PASTIX_INT m, PASTIX_INT n, PASTIX_INT lda, PASTIX_INT *npvt, double crit );
-void PASTIX_potrf       ( PASTIX_FLOAT *A, PASTIX_INT n,        PASTIX_INT lda, PASTIX_INT *npvt, double crit );
-void PASTIX_sytrf       ( PASTIX_FLOAT *A, PASTIX_INT n,        PASTIX_INT lda, PASTIX_INT *npvt, double crit );
-void PASTIX_hetrf       ( PASTIX_FLOAT *A, PASTIX_INT n,        PASTIX_INT lda, PASTIX_INT *npvt, double crit );
-void PASTIX_getrf_block ( PASTIX_FLOAT *A, PASTIX_INT m, PASTIX_INT n, PASTIX_INT lda, PASTIX_INT *npvt, double crit );
-void PASTIX_potrf_block ( PASTIX_FLOAT *A, PASTIX_INT n,        PASTIX_INT lda, PASTIX_INT *npvt, double crit );
-void PASTIX_sytrf_block ( PASTIX_FLOAT *A, PASTIX_INT n,        PASTIX_INT lda, PASTIX_INT *npvt, double crit, PASTIX_FLOAT * tmp4   );
-void PASTIX_hetrf_block ( PASTIX_FLOAT *A, PASTIX_INT n,        PASTIX_INT lda, PASTIX_INT *npvt, double crit, PASTIX_FLOAT * tmp4   );
-void DimTrans           ( PASTIX_FLOAT *A, PASTIX_INT lda, PASTIX_INT size, PASTIX_FLOAT *B );
+void PASTIX_getrf       ( pastix_float_t *A, pastix_int_t m, pastix_int_t n, pastix_int_t lda, pastix_int_t *npvt, double crit );
+void PASTIX_potrf       ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit );
+void PASTIX_sytrf       ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit );
+void PASTIX_hetrf       ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit );
+void PASTIX_getrf_block ( pastix_float_t *A, pastix_int_t m, pastix_int_t n, pastix_int_t lda, pastix_int_t *npvt, double crit );
+void PASTIX_potrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit );
+void PASTIX_sytrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit, pastix_float_t * tmp4   );
+void PASTIX_hetrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit, pastix_float_t * tmp4   );
+void DimTrans           ( pastix_float_t *A, pastix_int_t lda, pastix_int_t size, pastix_float_t *B );
 
 
 /****************************************************************************/
@@ -42,7 +42,7 @@ void DimTrans           ( PASTIX_FLOAT *A, PASTIX_INT lda, PASTIX_INT size, PAST
 /****************************************************************************/
 
 #define TALIGNF (pa,n,lda,pb) {                 \
-    PASTIX_INT i,l; PASTIX_FLOAT *pt,*p1,*p2;                 \
+    pastix_int_t i,l; pastix_float_t *pt,*p1,*p2;                 \
     p1= (pa); p2= (pb); l= (lda)+1;             \
     for (i=(n);i>0;i--) {                       \
       for (pt=p1+i;p1<pt;)                      \
@@ -50,7 +50,7 @@ void DimTrans           ( PASTIX_FLOAT *A, PASTIX_INT lda, PASTIX_INT size, PAST
       p1+=l-i; } }
 
 #define TALIGNB (pa,n,lda,pb) {                 \
-    PASTIX_INT i,l; PASTIX_FLOAT *pt,*p1,*p2;                 \
+    pastix_int_t i,l; pastix_float_t *pt,*p1,*p2;                 \
     p1= (pa); p2=(pb); l=(lda)+1;               \
     for (i=(n);i>0;i--) {                       \
       for (pt=p1+i;p1<pt;)                      \
@@ -58,7 +58,7 @@ void DimTrans           ( PASTIX_FLOAT *A, PASTIX_INT lda, PASTIX_INT size, PAST
       p1+=l-i; } }
 
 /*
-#define TALIGNF (pa,n,lda,pb) {PASTIX_INT i,j,k=0;\
+#define TALIGNF (pa,n,lda,pb) {pastix_int_t i,j,k=0;\
   for (j=0;j<n;j++)\
   for (i=j;i<n;i++)\
   {\
@@ -66,7 +66,7 @@ void DimTrans           ( PASTIX_FLOAT *A, PASTIX_INT lda, PASTIX_INT size, PAST
   k=k+1;\
   }}\
 
-#define TALIGNB (pa,n,lda,pb) {PASTIX_INT i,j,k=(n*(n+1))/2-1;\
+#define TALIGNB (pa,n,lda,pb) {pastix_int_t i,j,k=(n*(n+1))/2-1;\
   for (j=n-1;j>=0;j--)\
   for (i=n-1;i>=j;i--)\
   {\
@@ -91,10 +91,10 @@ void DimTrans           ( PASTIX_FLOAT *A, PASTIX_INT lda, PASTIX_INT size, PAST
  *
  */
 void
-PASTIX_potrf (PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbpivot, double critere)
+PASTIX_potrf (pastix_float_t * A, pastix_int_t n, pastix_int_t stride, pastix_int_t *nbpivot, double critere)
 {
-  PASTIX_INT k;
-  PASTIX_FLOAT *tmp,*tmp1;
+  pastix_int_t k;
+  pastix_float_t *tmp,*tmp1;
 
   for (k=0;k<n;k++)
     {
@@ -102,14 +102,14 @@ PASTIX_potrf (PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbp
 #ifdef USE_CSC
       if (ABS_FLOAT(*tmp)<critere)
         {
-          (*tmp) = (PASTIX_FLOAT)critere;
+          (*tmp) = (pastix_float_t)critere;
           (*nbpivot)++;
         }
 #endif
 #ifdef TYPE_COMPLEX
-      *tmp = (PASTIX_FLOAT)csqrt(*tmp);
+      *tmp = (pastix_float_t)csqrt(*tmp);
 #else
-      *tmp = (PASTIX_FLOAT)sqrt(*tmp);
+      *tmp = (pastix_float_t)sqrt(*tmp);
       if (*tmp < 0)
         {
           errorPrint ("Negative diagonal term\n");
@@ -138,13 +138,13 @@ PASTIX_potrf (PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbp
  *    critere - Pivoting threshold.
  */
 void
-PASTIX_potrf_block (PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbpivot,
+PASTIX_potrf_block (pastix_float_t * A, pastix_int_t n, pastix_int_t stride, pastix_int_t *nbpivot,
                     double critere)
 {
-  PASTIX_FLOAT *tmp,*tmp1,*tmp2;
-  PASTIX_INT    k, blocknbr, blocksize, matrixsize;
+  pastix_float_t *tmp,*tmp1,*tmp2;
+  pastix_int_t    k, blocknbr, blocksize, matrixsize;
 
-  blocknbr = (PASTIX_INT)ceil((double)n/(double)MAXSIZEOFBLOCKS);
+  blocknbr = (pastix_int_t)ceil((double)n/(double)MAXSIZEOFBLOCKS);
   for (k=0; k<blocknbr; k++)
     {
       blocksize = MIN (MAXSIZEOFBLOCKS,n-k*MAXSIZEOFBLOCKS);
@@ -190,10 +190,10 @@ PASTIX_potrf_block (PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_IN
  *    critere - Pivoting threshold.
  */
 void
-PASTIX_sytrf ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbpivot, double critere)
+PASTIX_sytrf ( pastix_float_t * A, pastix_int_t n, pastix_int_t stride, pastix_int_t *nbpivot, double critere)
 {
-  PASTIX_INT k;
-  PASTIX_FLOAT *tmp,*tmp1;
+  pastix_int_t k;
+  pastix_float_t *tmp,*tmp1;
 
   for (k=0;k<n;k++)
     {
@@ -201,7 +201,7 @@ PASTIX_sytrf ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nb
 #ifdef USE_CSC
       if (ABS_FLOAT(*tmp)<critere)
         {
-          (*tmp) = (PASTIX_FLOAT)critere;
+          (*tmp) = (pastix_float_t)critere;
           (*nbpivot)++;
         }
 #endif
@@ -229,14 +229,14 @@ PASTIX_sytrf ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nb
  *    critere - Pivoting threshold.
  */
 void
-PASTIX_sytrf_block ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbpivot,
-                     double critere, PASTIX_FLOAT * tmp4)
+PASTIX_sytrf_block ( pastix_float_t * A, pastix_int_t n, pastix_int_t stride, pastix_int_t *nbpivot,
+                     double critere, pastix_float_t * tmp4)
 {
-  PASTIX_INT k,blocknbr,blocksize,matrixsize,col;
-  PASTIX_FLOAT *tmp,*tmp1,*tmp2;
-  PASTIX_FLOAT alpha;
+  pastix_int_t k,blocknbr,blocksize,matrixsize,col;
+  pastix_float_t *tmp,*tmp1,*tmp2;
+  pastix_float_t alpha;
 
-  blocknbr = (PASTIX_INT)ceil((double)n/(double)MAXSIZEOFBLOCKS);
+  blocknbr = (pastix_int_t)ceil((double)n/(double)MAXSIZEOFBLOCKS);
   for (k=0;k<blocknbr;k++)
     {
       blocksize = MIN (MAXSIZEOFBLOCKS,n-k*MAXSIZEOFBLOCKS);
@@ -293,10 +293,10 @@ PASTIX_sytrf_block ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_I
  *    critere - Pivoting threshold.
  */
 void
-PASTIX_hetrf ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbpivot, double critere)
+PASTIX_hetrf ( pastix_float_t * A, pastix_int_t n, pastix_int_t stride, pastix_int_t *nbpivot, double critere)
 {
-  PASTIX_INT k;
-  PASTIX_FLOAT *tmp,*tmp1;
+  pastix_int_t k;
+  pastix_float_t *tmp,*tmp1;
 
   for (k=0;k<n;k++)
     {
@@ -304,7 +304,7 @@ PASTIX_hetrf ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nb
 #ifdef USE_CSC
       if (ABS_FLOAT(*tmp)<critere)
         {
-          (*tmp) = (PASTIX_FLOAT)critere;
+          (*tmp) = (pastix_float_t)critere;
           (*nbpivot)++;
         }
 #endif
@@ -332,14 +332,14 @@ PASTIX_hetrf ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nb
  *    critere - Pivoting threshold.
  */
 void
-PASTIX_hetrf_block ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbpivot,
-                     double critere, PASTIX_FLOAT * tmp4)
+PASTIX_hetrf_block ( pastix_float_t * A, pastix_int_t n, pastix_int_t stride, pastix_int_t *nbpivot,
+                     double critere, pastix_float_t * tmp4)
 {
-  PASTIX_INT k,blocknbr,blocksize,matrixsize,col;
-  PASTIX_FLOAT *tmp,*tmp1,*tmp2;
-  PASTIX_FLOAT alpha;
+  pastix_int_t k,blocknbr,blocksize,matrixsize,col;
+  pastix_float_t *tmp,*tmp1,*tmp2;
+  pastix_float_t alpha;
 
-  blocknbr = (PASTIX_INT)ceil((double)n/(double)MAXSIZEOFBLOCKS);
+  blocknbr = (pastix_int_t)ceil((double)n/(double)MAXSIZEOFBLOCKS);
   for (k=0;k<blocknbr;k++)
     {
       blocksize = MIN (MAXSIZEOFBLOCKS,n-k*MAXSIZEOFBLOCKS);
@@ -399,12 +399,12 @@ PASTIX_hetrf_block ( PASTIX_FLOAT * A, PASTIX_INT n, PASTIX_INT stride, PASTIX_I
  *    critere - Pivoting threshold.
  */
 void
-PASTIX_getrf ( PASTIX_FLOAT *A, PASTIX_INT m, PASTIX_INT n, PASTIX_INT stride, PASTIX_INT *nbpivot,
+PASTIX_getrf ( pastix_float_t *A, pastix_int_t m, pastix_int_t n, pastix_int_t stride, pastix_int_t *nbpivot,
                double critere)
 {
-  PASTIX_INT j;
-  PASTIX_FLOAT *tmp;
-  PASTIX_FLOAT *tmp1;
+  pastix_int_t j;
+  pastix_float_t *tmp;
+  pastix_float_t *tmp1;
 
   for (j=0; j<MIN(m,n); j++)
     {
@@ -413,7 +413,7 @@ PASTIX_getrf ( PASTIX_FLOAT *A, PASTIX_INT m, PASTIX_INT n, PASTIX_INT stride, P
 #ifdef USE_CSC
       if (ABS_FLOAT(*tmp) < critere)
         {
-          (*tmp) = (PASTIX_FLOAT)critere;
+          (*tmp) = (pastix_float_t)critere;
           (*nbpivot)++;
         }
 #endif
@@ -432,7 +432,7 @@ PASTIX_getrf ( PASTIX_FLOAT *A, PASTIX_INT m, PASTIX_INT n, PASTIX_INT stride, P
 #ifdef USE_CSC
   if (ABS_FLOAT(*tmp) < critere)
     {
-      (*tmp) = (PASTIX_FLOAT)critere;
+      (*tmp) = (pastix_float_t)critere;
       (*nbpivot)++;
     }
 #endif
@@ -453,13 +453,13 @@ PASTIX_getrf ( PASTIX_FLOAT *A, PASTIX_INT m, PASTIX_INT n, PASTIX_INT stride, P
  *    critere - Pivoting threshold.
  */
 void
-PASTIX_getrf_block (PASTIX_FLOAT *A, PASTIX_INT rows, PASTIX_INT cols, PASTIX_INT stride, PASTIX_INT *nbpivot,
+PASTIX_getrf_block (pastix_float_t *A, pastix_int_t rows, pastix_int_t cols, pastix_int_t stride, pastix_int_t *nbpivot,
                     double critere)
 {
-  PASTIX_INT    k,blocknbr,blocksize,matsize;
-  PASTIX_FLOAT *tmp,*tmp1,*tmp2,*tmp3;
+  pastix_int_t    k,blocknbr,blocksize,matsize;
+  pastix_float_t *tmp,*tmp1,*tmp2,*tmp3;
 
-  blocknbr = (PASTIX_INT)ceil((double)cols/(double)MAXSIZEOFBLOCKS);
+  blocknbr = (pastix_int_t)ceil((double)cols/(double)MAXSIZEOFBLOCKS);
   for (k=0;k<blocknbr;k++)
     {
       blocksize = MIN (MAXSIZEOFBLOCKS,cols-k*MAXSIZEOFBLOCKS);
@@ -488,9 +488,9 @@ PASTIX_getrf_block (PASTIX_FLOAT *A, PASTIX_INT rows, PASTIX_INT cols, PASTIX_IN
 }
 
 void
-DimTrans (PASTIX_FLOAT *A, PASTIX_INT stride, PASTIX_INT size, PASTIX_FLOAT *B)
+DimTrans (pastix_float_t *A, pastix_int_t stride, pastix_int_t size, pastix_float_t *B)
 {
-  PASTIX_INT i,j;
+  pastix_int_t i,j;
 
   for (i=0; i<size; i++)
     {
@@ -505,13 +505,13 @@ DimTrans (PASTIX_FLOAT *A, PASTIX_INT stride, PASTIX_INT size, PASTIX_FLOAT *B)
 /*
  * Factorization of diagonal block
  */
-void factor_diag (Sopalin_Data_t *sopalin_data, PASTIX_INT me, PASTIX_INT c)
+void factor_diag (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c)
 {
 
-  PASTIX_INT    size,stride;
-  PASTIX_FLOAT *ga = NULL;
+  pastix_int_t    size,stride;
+  pastix_float_t *ga = NULL;
 #ifdef SOPALIN_LU
-  PASTIX_FLOAT *gb = NULL;
+  pastix_float_t *gb = NULL;
 #endif
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];

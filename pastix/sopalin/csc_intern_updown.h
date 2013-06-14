@@ -23,8 +23,8 @@
  */
 void CscUpdownRhs(UpDownVector       *updovct,
 		  const SolverMatrix *symbmtx, 
-		  const PASTIX_FLOAT        *rhs, 
-		  const PASTIX_INT          *perm,
+		  const pastix_float_t        *rhs, 
+		  const pastix_int_t          *perm,
 		  int                 dof);
 
 /*
@@ -42,10 +42,10 @@ void CscUpdownRhs(UpDownVector       *updovct,
  */
 void CscdUpdownRhs(UpDownVector       *updovct,
 		   const SolverMatrix *symbmtx, 
-		   const PASTIX_FLOAT        *rhs, 
-		   const PASTIX_INT          *invp,
-		   const PASTIX_INT          *g2l,
-		   const PASTIX_INT           ln,
+		   const pastix_float_t        *rhs, 
+		   const pastix_int_t          *invp,
+		   const pastix_int_t          *g2l,
+		   const pastix_int_t           ln,
 		   int                 dof);
 
 /*
@@ -64,9 +64,9 @@ void CscdUpdownRhs(UpDownVector       *updovct,
  */
 void CscRhsUpdown(const UpDownVector *updovct, 
 		  const SolverMatrix *symbmtx, 
-		  PASTIX_FLOAT              *rhs, 
-		  const PASTIX_INT           ncol,
-		  const PASTIX_INT          *invp,
+		  pastix_float_t              *rhs, 
+		  const pastix_int_t           ncol,
+		  const pastix_int_t          *invp,
 		  const int           dof, 
 		  const int           rhsmaking, 
 		  MPI_Comm            comm);
@@ -90,10 +90,10 @@ void CscRhsUpdown(const UpDownVector *updovct,
  */
 void CscdRhsUpdown(const UpDownVector *updovct, 
 		   const SolverMatrix *symbmtx, 
-		   PASTIX_FLOAT              *x,
-		   const PASTIX_INT           ncol, 
-		   const PASTIX_INT          *g2l,
-		   const PASTIX_INT          *invp,
+		   pastix_float_t              *x,
+		   const pastix_int_t           ncol, 
+		   const pastix_int_t          *g2l,
+		   const pastix_int_t          *invp,
 		   int                 dof,  
 		   MPI_Comm            comm);
 

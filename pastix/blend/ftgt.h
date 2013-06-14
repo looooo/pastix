@@ -77,21 +77,21 @@ typedef enum {
 /*+ Fanintarget structure +*/
 
 typedef struct FanInTarget_ {
-  PASTIX_INT                       infotab[MAXINFO];     /*+ Fanintarget descriptor (size MAXINFO) +*/
+  pastix_int_t                       infotab[MAXINFO];     /*+ Fanintarget descriptor (size MAXINFO) +*/
   pastix_float_t *                   coeftab;              /*+ Fanintarget vector access             +*/
 } FanInTarget;
 
 typedef struct BlockCoeff_ 
 {
-  PASTIX_INT              infotab[BCOFINFO];
+  pastix_int_t              infotab[BCOFINFO];
   volatile pastix_float_t * coeftab; /* blocktarget coeff vector if != NULL envoi possible */
-  PASTIX_INT              sendcnt; /* number of blocktarget send, if == 0 free coeftab */
+  pastix_int_t              sendcnt; /* number of blocktarget send, if == 0 free coeftab */
 } BlockCoeff;
 
 
 /*+ BlockTarget structure +*/
 typedef struct BlockTarget_ {
-  PASTIX_INT           infotab[BTAGINFO];
+  pastix_int_t           infotab[BTAGINFO];
   BlockCoeff*   bcofptr; /* index of the blockCoeff                        */
 } BlockTarget;
 

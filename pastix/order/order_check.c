@@ -66,12 +66,12 @@ int
 orderCheck (
 const Order * restrict const  ordeptr)
 {
-  PASTIX_INT                   baseval;                  /* Node base value            */
-  PASTIX_INT                   vnodmax;                  /* Maximum node value         */
-  PASTIX_INT                   vnodnum;                  /* Number of current node     */
-  PASTIX_INT                   rangnum;                  /* Current column block index */
-  const PASTIX_INT * restrict  peritax;                  /* Based access to peritab    */
-  const PASTIX_INT * restrict  permtax;                  /* Based access to permtab    */
+  pastix_int_t                   baseval;                  /* Node base value            */
+  pastix_int_t                   vnodmax;                  /* Maximum node value         */
+  pastix_int_t                   vnodnum;                  /* Number of current node     */
+  pastix_int_t                   rangnum;                  /* Current column block index */
+  const pastix_int_t * restrict  peritax;                  /* Based access to peritab    */
+  const pastix_int_t * restrict  permtax;                  /* Based access to permtab    */
 
   if (ordeptr->cblknbr < 0) {
     errorPrint ("orderCheck: invalid nunber of column blocks");
@@ -100,7 +100,7 @@ const Order * restrict const  ordeptr)
 
   for (vnodnum = baseval;
        vnodnum <= vnodmax; vnodnum ++) {
-    PASTIX_INT                   vnodold;
+    pastix_int_t                   vnodold;
 
     vnodold = peritax[vnodnum];
     if ((vnodold < baseval) ||

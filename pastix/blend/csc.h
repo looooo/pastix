@@ -154,8 +154,8 @@
 	      the row and value arrays.
 */
 struct CscFormat_ {
-  PASTIX_INT   colnbr;
-  PASTIX_INT * coltab;
+  pastix_int_t   colnbr;
+  pastix_int_t * coltab;
 };
 
 /*
@@ -178,9 +178,9 @@ typedef struct CscFormat_ CscFormat;
     type    - 'S' for symmetric, 'H' for hermitian, U for unsymmetric.
 */
 struct CscMatrix_ {
-  PASTIX_INT         cscfnbr;
+  pastix_int_t         cscfnbr;
   CscFormat * cscftab;
-  PASTIX_INT       * rowtab;
+  pastix_int_t       * rowtab;
   pastix_float_t     * valtab;
   char         type;
 };

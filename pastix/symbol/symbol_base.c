@@ -63,11 +63,11 @@
 void
 symbolBase (
 SymbolMatrix * const        symbptr,              /*+ Symbol structure +*/
-const PASTIX_INT                   baseval)              /*+ New base value   +*/
+const pastix_int_t                   baseval)              /*+ New base value   +*/
 {
-  PASTIX_INT               baseadj;                      /* Base adjust */
-  PASTIX_INT               cblknum;
-  PASTIX_INT               bloknum;
+  pastix_int_t               baseadj;                      /* Base adjust */
+  pastix_int_t               cblknum;
+  pastix_int_t               bloknum;
 
   baseadj = baseval - symbptr->baseval;           /* Set base adjust     */
   if (baseadj == 0)                               /* If base already set */

@@ -239,7 +239,7 @@ int main (int argc, char **argv)
   rhssaved = malloc(ncol*sizeof(pastix_float_t));
   memcpy(rhssaved, rhs, ncol*sizeof(pastix_float_t));
 #ifndef FORCE_NOMPI
-  MPI_Allreduce(&ncol, &globn, 1, MPI_PASTIX_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&ncol, &globn, 1, MPI_pastix_int_t, MPI_SUM, MPI_COMM_WORLD);
 #else
   globn = ncol;
 #endif
@@ -255,7 +255,7 @@ int main (int argc, char **argv)
   {
     pastix_float_t * rhssaved_g_rcv;
     rhssaved_g_rcv = malloc(globn*sizeof(pastix_float_t));
-    MPI_Allreduce(rhssaved_g, rhssaved_g_rcv, globn, MPI_PASTIX_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(rhssaved_g, rhssaved_g_rcv, globn, MPI_pastix_float_t, MPI_SUM, MPI_COMM_WORLD);
     free(rhssaved_g);
     rhssaved_g = rhssaved_g_rcv;
   }

@@ -72,7 +72,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
                   int             fact)
 {
   SolverMatrix *datacode;
-  PASTIX_INT           i, j, task;
+  pastix_int_t           i, j, task;
 
   /* Initialize global var */
   if (m != NULL)
@@ -234,7 +234,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
                     pthread_cond_t);
       MALLOC_INTERN(sopalin_data->tasktab_indice,
                     SOLV_BUBLNBR,
-                    PASTIX_INT);
+                    pastix_int_t);
 
       for (i=0; i<SOLV_BUBLNBR; i++)
         {
@@ -402,7 +402,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 
       /* mark task first btag */
       MALLOC_INTERN(sopalin_data->taskmark,
-                    SOLV_TASKNBR, PASTIX_INT);
+                    SOLV_TASKNBR, pastix_int_t);
 
       for (i=0;i<SOLV_TASKNBR;i++)
         sopalin_data->taskmark[i]=-1;
@@ -410,7 +410,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       for (i=0;i<SOLV_TASKNBR;i++)
         if (sopalin_data->taskmark[i]==-1)
           {
-            PASTIX_INT mintask,minprio;
+            pastix_int_t mintask,minprio;
             sopalin_data->taskmark[i] = 0;
             task   = i;
             mintask = i;
@@ -451,8 +451,8 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       for (i=0;i<UPDOWN_GCBLKNBR;i++)
         pthread_cond_init(&(sopalin_data->cond_flagtab[i]), NULL);
 
-      MALLOC_INTERN(sopalin_data->grhs,    UPDOWN_GNODENBR*UPDOWN_SM2XNBR, PASTIX_FLOAT);
-      MALLOC_INTERN(sopalin_data->flagtab, UPDOWN_GCBLKNBR,                PASTIX_INT);
+      MALLOC_INTERN(sopalin_data->grhs,    UPDOWN_GNODENBR*UPDOWN_SM2XNBR, pastix_float_t);
+      MALLOC_INTERN(sopalin_data->flagtab, UPDOWN_GCBLKNBR,                pastix_int_t);
 
 #endif /* STORAGE */
 
@@ -471,7 +471,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       /* SYMB_CBLKNUM(x)=indice de la fanin en negatif */
       for (task=0;task<SOLV_TASKNBR;task++)
         {
-          PASTIX_INT c,n,t;
+          pastix_int_t c,n,t;
           c = TASK_CBLKNUM(task);
           n = 0;
           for (i=SYMB_BLOKNUM(c)+1;i<SYMB_BLOKNUM(c+1);i++)
@@ -537,7 +537,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 /*********************************/
 void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
   SolverMatrix *datacode = sopalin_data->datacode;
 
   if (step == 1)
@@ -754,12 +754,12 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
  */
 /*********************************/
 
-void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int init)
+void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, int init)
 {
   Thread_Data_t *thread_data;
   SolverMatrix  *datacode = sopalin_data->datacode;
   SopalinParam  *sopar    = sopalin_data->sopar;
-  PASTIX_INT            i;
+  pastix_int_t            i;
 
   if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
     print_one("%s", OUT2_SOP_BINITL);
@@ -903,7 +903,7 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
   thread_data->maxbloktab1 = NULL;
   thread_data->maxbloktab2 = NULL;
 #ifdef COMPACT_SMX
-  MALLOC_INTERN(thread_data->maxbloktab2, SOLV_COEFMAX, PASTIX_FLOAT);
+  MALLOC_INTERN(thread_data->maxbloktab2, SOLV_COEFMAX, pastix_float_t);
 #endif
 
   /* Données et buffers d'envoi */
@@ -951,24 +951,24 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
       if (INIT_COMPUTE & init)
         {
           /* work block initialization */
-          MALLOC_INTERN(thread_data->maxbloktab1, SOLV_COEFMAX, PASTIX_FLOAT);
-          memset(thread_data->maxbloktab1, 0, SOLV_COEFMAX*sizeof(PASTIX_FLOAT));
-          MALLOC_INTERN(thread_data->maxbloktab2, SOLV_COEFMAX, PASTIX_FLOAT);
-          memset(thread_data->maxbloktab2, 0, SOLV_COEFMAX*sizeof(PASTIX_FLOAT));
+          MALLOC_INTERN(thread_data->maxbloktab1, SOLV_COEFMAX, pastix_float_t);
+          memset(thread_data->maxbloktab1, 0, SOLV_COEFMAX*sizeof(pastix_float_t));
+          MALLOC_INTERN(thread_data->maxbloktab2, SOLV_COEFMAX, pastix_float_t);
+          memset(thread_data->maxbloktab2, 0, SOLV_COEFMAX*sizeof(pastix_float_t));
         }
 
       /* Donnes pour les envois */
       if ((INIT_SEND & init) && (SOLV_PROCNBR > 1))
         {
           MALLOC_INTERN(thread_data->send_block_requests,     MAX_S_REQUESTS, MPI_Request);
-          MALLOC_INTERN(thread_data->send_block_target,       MAX_S_REQUESTS, PASTIX_INT);
+          MALLOC_INTERN(thread_data->send_block_target,       MAX_S_REQUESTS, pastix_int_t);
           MALLOC_INTERN(thread_data->send_fanin_requests,     MAX_S_REQUESTS, MPI_Request);
-          MALLOC_INTERN(thread_data->send_fanin_target,       MAX_S_REQUESTS, PASTIX_INT);
-          MALLOC_INTERN(thread_data->send_fanin_target_extra, MAX_S_REQUESTS, PASTIX_INT*);
+          MALLOC_INTERN(thread_data->send_fanin_target,       MAX_S_REQUESTS, pastix_int_t);
+          MALLOC_INTERN(thread_data->send_fanin_target_extra, MAX_S_REQUESTS, pastix_int_t*);
 #if (!defined NO_MPI_TYPE)
           MALLOC_INTERN(thread_data->send_fanin_mpitypes,     MAX_S_REQUESTS,
                         MPI_Datatype);
-          MALLOC_INTERN(thread_data->send_fanin_infotab,      MAX_S_REQUESTS, PASTIX_INT*);
+          MALLOC_INTERN(thread_data->send_fanin_infotab,      MAX_S_REQUESTS, pastix_int_t*);
 #endif
 
           if (PACKMAX!=0)
@@ -982,9 +982,9 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
               MALLOC_INTERN(thread_data->gtabtype, 2*PACKMAX, int);
 
               MALLOC_INTERN(thread_data->send_fanin_buffer,      MAX_S_REQUESTS, void *);
-              MALLOC_INTERN(thread_data->send_fanin_buffer_size, MAX_S_REQUESTS, PASTIX_INT);
+              MALLOC_INTERN(thread_data->send_fanin_buffer_size, MAX_S_REQUESTS, pastix_int_t);
               MALLOC_INTERN(thread_data->send_block_buffer,      MAX_S_REQUESTS, void *);
-              MALLOC_INTERN(thread_data->send_block_buffer_size, MAX_S_REQUESTS, PASTIX_INT);
+              MALLOC_INTERN(thread_data->send_block_buffer_size, MAX_S_REQUESTS, pastix_int_t);
 #endif /* NO_MPI_TYPE */
             }
 
@@ -1006,20 +1006,20 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
         {
 #ifndef TEST_IRECV
           MALLOC_INTERN(thread_data->recv_buffer,
-                        MAX(PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+
+                        MAX(PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
                             /* XL: apparently area is missing with dof
 			     *     so I multiply by DOF...*/
 			    sopalin_data->sopar->iparm[IPARM_DOF_NBR]*
-			    PACKAREA*sizeof(PASTIX_FLOAT),
-                            sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO)+
-                            sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX),
+			    PACKAREA*sizeof(pastix_float_t),
+                            sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+
+                            sizeof(pastix_float_t)*SOLV_BPFTMAX),
                         char);
 #else
 
           if (MAX_R_REQUESTS)
             {
-              PASTIX_INT sizef = PACKMAX*(sizeof(PASTIX_INT)*MAXINFO)+PACKAREA*sizeof(PASTIX_FLOAT);
-              PASTIX_INT sizeb = sizeof(PASTIX_INT)*(BTAGINFO+BCOFINFO)+sizeof(PASTIX_FLOAT)*SOLV_BPFTMAX;
+              pastix_int_t sizef = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
+              pastix_int_t sizeb = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
 
               MALLOC_INTERN(thread_data->recv_fanin_request, MAX_R_REQUESTS, MPI_Request);
               MALLOC_INTERN(thread_data->recv_block_request, MAX_R_REQUESTS, MPI_Request);
@@ -1043,8 +1043,8 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
 #endif
 #if (defined PASTIX_DYNSCHED)
           {
-            PASTIX_INT bubnum  = me;
-            PASTIX_INT bubnum2 = me;
+            pastix_int_t bubnum  = me;
+            pastix_int_t bubnum2 = me;
 
             while (bubnum != -1)
               {
@@ -1053,7 +1053,7 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
                 {
                   for (i=0;i<datacode->ttsknbr[bubnum];i++)
                     {
-                      PASTIX_INT task = datacode->ttsktab[bubnum][i];
+                      pastix_int_t task = datacode->ttsktab[bubnum][i];
                       if ((!TASK_CTRBCNT(task)) &&
                           ((TASK_TASKID(task) == COMP_1D) || (TASK_TASKID(task) == DIAG)))
                         {
@@ -1079,18 +1079,18 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
              * Create the ordered list where to steal jobs
              */
             {
-              PASTIX_INT *visited = NULL;
-              PASTIX_INT position = 0;
-              PASTIX_INT father, son, j, bubnum = me;
+              pastix_int_t *visited = NULL;
+              pastix_int_t position = 0;
+              pastix_int_t father, son, j, bubnum = me;
               faststack_t stack;
 
               thread_data->tabtravel = NULL;
 
-              MALLOC_INTERN(stack.tab,              sopalin_data->datacode->btree->nodenbr+1, PASTIX_INT);
-              MALLOC_INTERN(visited,                sopalin_data->datacode->btree->nodenbr,   PASTIX_INT);
-              MALLOC_INTERN(thread_data->tabtravel, sopalin_data->datacode->thrdnbr,   PASTIX_INT);
+              MALLOC_INTERN(stack.tab,              sopalin_data->datacode->btree->nodenbr+1, pastix_int_t);
+              MALLOC_INTERN(visited,                sopalin_data->datacode->btree->nodenbr,   pastix_int_t);
+              MALLOC_INTERN(thread_data->tabtravel, sopalin_data->datacode->thrdnbr,   pastix_int_t);
 
-              memset( thread_data->tabtravel, 0, sopalin_data->datacode->thrdnbr * sizeof(PASTIX_INT) );
+              memset( thread_data->tabtravel, 0, sopalin_data->datacode->thrdnbr * sizeof(pastix_int_t) );
 
               FASTSTACK_INIT(stack);
 
@@ -1190,9 +1190,9 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
           MALLOC_INTERN(thread_data->gtabtype, UPDOWN_SM2XNBR+1, int);
 #else /* NO_MPI_TYPE */
           MALLOC_INTERN(thread_data->send_fanin_mpitypes, maxsrequest, MPI_Datatype);
-          MALLOC_INTERN(thread_data->send_fanin_infotab, maxsrequest, PASTIX_INT*);
-          memset(thread_data->send_fanin_infotab, 0, maxsrequest*sizeof(PASTIX_INT*));
-          MALLOC_INTERN(thread_data->send_fanin_target, maxsrequest,      PASTIX_INT);
+          MALLOC_INTERN(thread_data->send_fanin_infotab, maxsrequest, pastix_int_t*);
+          memset(thread_data->send_fanin_infotab, 0, maxsrequest*sizeof(pastix_int_t*));
+          MALLOC_INTERN(thread_data->send_fanin_target, maxsrequest,      pastix_int_t);
           MALLOC_INTERN(thread_data->gtaboffs,          UPDOWN_SM2XNBR+1, MPI_Aint);
           MALLOC_INTERN(thread_data->gtabtype,          UPDOWN_SM2XNBR+1, MPI_Datatype);
 #endif /* NO_MPI_TYPE */
@@ -1269,12 +1269,12 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me, int fact, int
  *   void
  */
 /*********************************/
-void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
+void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #ifdef TEST_IRECV
-  PASTIX_INT i;
+  pastix_int_t i;
 #endif
 
 #ifdef OOC
@@ -1383,7 +1383,7 @@ void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, PASTIX_INT me)
 /*********************************/
 void sopalin_backup(SolverMatrix *datacode, Backup *b)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   print_debug(DBG_SOPALIN_ALLOC, "Backup Solver...\n");
 
@@ -1393,8 +1393,8 @@ void sopalin_backup(SolverMatrix *datacode, Backup *b)
 
   if (SOLV_TASKNBR)
     {
-      MALLOC_INTERN(b->task_ctrbcnt, SOLV_TASKNBR, PASTIX_INT);
-      MALLOC_INTERN(b->task_ftgtcnt, SOLV_TASKNBR, PASTIX_INT);
+      MALLOC_INTERN(b->task_ctrbcnt, SOLV_TASKNBR, pastix_int_t);
+      MALLOC_INTERN(b->task_ftgtcnt, SOLV_TASKNBR, pastix_int_t);
     }
   for (i=0;i<SOLV_TASKNBR;i++)
     {
@@ -1404,8 +1404,8 @@ void sopalin_backup(SolverMatrix *datacode, Backup *b)
 
   if (SOLV_FTGTNBR)
     {
-      MALLOC_INTERN(b->fanin_ctrbnbr, SOLV_FTGTNBR, PASTIX_INT);
-      MALLOC_INTERN(b->fanin_prionum, SOLV_FTGTNBR, PASTIX_INT);
+      MALLOC_INTERN(b->fanin_ctrbnbr, SOLV_FTGTNBR, pastix_int_t);
+      MALLOC_INTERN(b->fanin_prionum, SOLV_FTGTNBR, pastix_int_t);
     }
   for (i=0;i<SOLV_FTGTNBR;i++)
     {
@@ -1414,21 +1414,21 @@ void sopalin_backup(SolverMatrix *datacode, Backup *b)
     }
 
   if (SOLV_BTAGNBR)
-    MALLOC_INTERN(b->btagtaskcnt, SOLV_BTAGNBR, PASTIX_INT);
+    MALLOC_INTERN(b->btagtaskcnt, SOLV_BTAGNBR, pastix_int_t);
   for (i=0;i<SOLV_BTAGNBR;i++)
     {
       b->btagtaskcnt[i] = BTAG_TASKCNT(i);
     }
 
   if (SOLV_BCOFNBR)
-    MALLOC_INTERN(b->bcofsendcnt, SOLV_BCOFNBR, PASTIX_INT);
+    MALLOC_INTERN(b->bcofsendcnt, SOLV_BCOFNBR, pastix_int_t);
   for (i=0;i<SOLV_BCOFNBR;i++)
     {
       b->bcofsendcnt[i] = SOLV_BCOFTAB[i].sendcnt;
     }
 
   if (SYMB_BLOKNBR)
-    MALLOC_INTERN(b->symbol_cblknum, SYMB_BLOKNBR, PASTIX_INT);
+    MALLOC_INTERN(b->symbol_cblknum, SYMB_BLOKNBR, pastix_int_t);
   for (i=0;i<SYMB_BLOKNBR;i++)
     b->symbol_cblknum[i] = SYMB_CBLKNUM(i);
 
@@ -1452,7 +1452,7 @@ void sopalin_backup(SolverMatrix *datacode, Backup *b)
 /*********************************/
 void sopalin_restore(SolverMatrix *datacode, Backup *b)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   print_debug(DBG_SOPALIN_ALLOC, "Restore Solver...\n");
 
@@ -1521,7 +1521,7 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b)
 
   /* Restauration des pointeurs sur les btags pour step-by-step */
   {
-    PASTIX_INT task;
+    pastix_int_t task;
 
     for (i=0; i<datacode->tasknbr; i++)
       datacode->tasktab[i].btagptr = NULL;
@@ -1560,18 +1560,18 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b)
 /*********************************/
 void solve_backup(SolverMatrix *datacode, BackupSolve_t *b)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   print_debug(DBG_UPDO,"Backup Solver...\n");
 
   if (SOLV_FTGTNBR)
     {
-      MALLOC_INTERN(b->fanin_ctrbnbr, SOLV_FTGTNBR, PASTIX_INT);
+      MALLOC_INTERN(b->fanin_ctrbnbr, SOLV_FTGTNBR, pastix_int_t);
     }
   for (i=0;i<SOLV_FTGTNBR;i++)
     b->fanin_ctrbnbr[i] = FANIN_CTRBNBR(i);
 
-  MALLOC_INTERN(b->symbol_cblknum, SYMB_BLOKNBR, PASTIX_INT);
+  MALLOC_INTERN(b->symbol_cblknum, SYMB_BLOKNBR, pastix_int_t);
   for (i=0;i<SYMB_BLOKNBR;i++)
     b->symbol_cblknum[i] = SYMB_CBLKNUM(i);
 
@@ -1594,7 +1594,7 @@ void solve_backup(SolverMatrix *datacode, BackupSolve_t *b)
 /*********************************/
 void solve_restore(SolverMatrix *datacode, BackupSolve_t *b)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   print_debug(DBG_UPDO, "Restore Solver...\n");
 

@@ -11,28 +11,28 @@ typedef struct cs_sparse    /* matrix in compressed-column or triplet form */
   pastix_int_t n ;    /* number of columns */
   pastix_int_t *p ;    /* column poINTers (size n+1) or col indices (size nzmax) */
   pastix_int_t *i ;    /* row indices, size nzmax */
-  PASTIX_FLOAT *x ;    /* numerical values, size nzmax */
+  pastix_float_t *x ;    /* numerical values, size nzmax */
   pastix_int_t nz ;    /* # of entries in triplet matrix, -1 for compressed-col */
 } cs ;
 
 /* keep all large entries */
-pastix_int_t cs_droptol (cs *A, PASTIX_FLOAT tol) ;
+pastix_int_t cs_droptol (cs *A, pastix_float_t tol) ;
 /* keep all nonzero entries */
 pastix_int_t cs_dropzeros (cs *A) ;
 /* C = alpha*A + beta*B */
-cs *cs_add (const cs *A, const cs *B, PASTIX_FLOAT alpha, PASTIX_FLOAT beta) ;
+cs *cs_add (const cs *A, const cs *B, pastix_float_t alpha, pastix_float_t beta) ;
 /* removes duplicate entries from A */
 pastix_int_t cs_dupl (cs *A) ;
 /* add an entry to a triplet matrix; return 1 if ok, 0 otherwise */
-pastix_int_t cs_entry (cs *T, pastix_int_t i, pastix_int_t j, PASTIX_FLOAT x) ;
+pastix_int_t cs_entry (cs *T, pastix_int_t i, pastix_int_t j, pastix_float_t x) ;
 /* drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1 */
-pastix_int_t cs_fkeep (cs *A, pastix_int_t (*fkeep) (pastix_int_t, pastix_int_t, PASTIX_FLOAT, void *), void *other) ;
+pastix_int_t cs_fkeep (cs *A, pastix_int_t (*fkeep) (pastix_int_t, pastix_int_t, pastix_float_t, void *), void *other) ;
 /* y = A*x+y */
-pastix_int_t cs_gaxpy (const cs *A, const PASTIX_FLOAT *x, PASTIX_FLOAT *y) ;
+pastix_int_t cs_gaxpy (const cs *A, const pastix_float_t *x, pastix_float_t *y) ;
 /* C = A*B */
 cs *cs_multiply (const cs *A, const cs *B) ;
 /* 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum */
-PASTIX_FLOAT cs_norm (const cs *A) ;
+pastix_float_t cs_norm (const cs *A) ;
 /* C = A(P,Q) where P and Q are permutations of 0..m-1 and 0..n-1. */
 cs *cs_permute (const cs *A, const pastix_int_t *P, const pastix_int_t *Q, pastix_int_t values) ;
 /* Pinv = P', or P = Pinv' */
@@ -42,7 +42,7 @@ cs *cs_transpose (const cs *A, pastix_int_t values) ;
 /* C = compressed-column form of a triplet matrix T */
 cs *cs_triplet (const cs *T) ;
 /* x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse */
-pastix_int_t cs_scatter (const cs *A, pastix_int_t j, PASTIX_FLOAT beta, pastix_int_t *w, PASTIX_FLOAT *x, pastix_int_t mark,
+pastix_int_t cs_scatter (const cs *A, pastix_int_t j, pastix_float_t beta, pastix_int_t *w, pastix_float_t *x, pastix_int_t mark,
                 cs *C, pastix_int_t nz) ;
 /* p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c */
 pastix_int_t cs_cumsum (pastix_int_t *p, pastix_int_t *c, pastix_int_t n) ;

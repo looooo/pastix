@@ -23,42 +23,42 @@
 #endif
 
 void  splitPart     (SymbolMatrix *, BlendCtrl *, const Dof *);
-PASTIX_INT   check_candidat(SymbolMatrix *, BlendCtrl *);
+pastix_int_t   check_candidat(SymbolMatrix *, BlendCtrl *);
 
 void        setTreeLevel         (Cand *, const EliminTree *);
 void        setTreeCostLevel     (Cand *, const EliminTree *, const CostMatrix *);
-static void setSubtreeLevel      (PASTIX_INT, Cand *, const EliminTree *);
-static void setSubtreeCostLevel  (PASTIX_INT, Cand *, const EliminTree *, const CostMatrix *);
-static void setDistribType       (const PASTIX_INT, SymbolMatrix *, Cand *, const PASTIX_INT);
-static void setSubtreeDistribType(const SymbolMatrix *, const CostMatrix *, PASTIX_INT , const BlendCtrl *, PASTIX_INT);
+static void setSubtreeLevel      (pastix_int_t, Cand *, const EliminTree *);
+static void setSubtreeCostLevel  (pastix_int_t, Cand *, const EliminTree *, const CostMatrix *);
+static void setDistribType       (const pastix_int_t, SymbolMatrix *, Cand *, const pastix_int_t);
+static void setSubtreeDistribType(const SymbolMatrix *, const CostMatrix *, pastix_int_t , const BlendCtrl *, pastix_int_t);
 
 static void splitOnProcs    (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, 
-			     const Dof *, PASTIX_INT, PASTIX_INT);
+			     const Dof *, pastix_int_t, pastix_int_t);
 static void splitCblk       (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, 
-			     const Dof *, PASTIX_INT, PASTIX_INT, PASTIX_INT *);
+			     const Dof *, pastix_int_t, pastix_int_t, pastix_int_t *);
 
-static void printTree          (FILE*, const EliminTree *, PASTIX_INT);
+static void printTree          (FILE*, const EliminTree *, pastix_int_t);
 static void propMappTree       (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *);
 static void propMappSubtree    (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *,
-				PASTIX_INT, PASTIX_INT, PASTIX_INT, PASTIX_INT, double *);
+				pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t, double *);
 static void propMappSubtreeNC  (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *,
-				PASTIX_INT, PASTIX_INT, PASTIX_INT, PASTIX_INT, double *);
+				pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t, double *);
 static void propMappSubtreeOn1P(SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *,
-				PASTIX_INT, PASTIX_INT, PASTIX_INT, PASTIX_INT);
+				pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t);
 
 static void propMappTreeNoSplit    (SymbolMatrix *, BlendCtrl *, const Dof *);
-static void propMappSubtreeNoSplit (SymbolMatrix *, BlendCtrl *, const Dof *, PASTIX_INT, PASTIX_INT, PASTIX_INT, double *);
+static void propMappSubtreeNoSplit (SymbolMatrix *, BlendCtrl *, const Dof *, pastix_int_t, pastix_int_t, pastix_int_t, double *);
 
 
-static double maxProcCost     (double *, PASTIX_INT);
-static void   subtreeSetCand  (PASTIX_INT, PASTIX_INT, BlendCtrl *, double);
-static double blokUpdateCost  (PASTIX_INT, PASTIX_INT, CostMatrix *, ExtraCostMatrix *, const SymbolMatrix *, 
+static double maxProcCost     (double *, pastix_int_t);
+static void   subtreeSetCand  (pastix_int_t, pastix_int_t, BlendCtrl *, double);
+static double blokUpdateCost  (pastix_int_t, pastix_int_t, CostMatrix *, ExtraCostMatrix *, const SymbolMatrix *, 
 			       const ExtraSymbolMatrix *, BlendCtrl *, const Dof *);
 
-static PASTIX_INT    countBlok            (PASTIX_INT, SymbolMatrix *, PASTIX_INT);
-static PASTIX_INT    setSubtreeBlokNbr    (PASTIX_INT, const EliminTree *, SymbolMatrix *, ExtraSymbolMatrix *, PASTIX_INT);
-static void   clusterCandCorrect   (PASTIX_INT, Cand *, const EliminTree *, BlendCtrl *);
-static void   setClusterCand       (PASTIX_INT, Cand *, const EliminTree *, PASTIX_INT, PASTIX_INT);
+static pastix_int_t    countBlok            (pastix_int_t, SymbolMatrix *, pastix_int_t);
+static pastix_int_t    setSubtreeBlokNbr    (pastix_int_t, const EliminTree *, SymbolMatrix *, ExtraSymbolMatrix *, pastix_int_t);
+static void   clusterCandCorrect   (pastix_int_t, Cand *, const EliminTree *, BlendCtrl *);
+static void   setClusterCand       (pastix_int_t, Cand *, const EliminTree *, pastix_int_t, pastix_int_t);
 
 #undef static
 

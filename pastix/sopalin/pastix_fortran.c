@@ -100,11 +100,11 @@
  *
  */
 struct pastix_check_data_ {
-  PASTIX_INT     n;
-  PASTIX_INT     nnz;
-  PASTIX_INT   * colptr;
-  PASTIX_INT   * rows;
-  PASTIX_FLOAT * values;
+  pastix_int_t     n;
+  pastix_int_t     nnz;
+  pastix_int_t   * colptr;
+  pastix_int_t   * rows;
+  pastix_float_t * values;
 };
 /*
  * Typedef: pastix_check_data_t
@@ -140,15 +140,15 @@ typedef struct pastix_check_data_ pastix_check_data_t;
 #define pastix_fortran PASTIX_EXTERN_F(pastix_fortran)
 void pastix_fortran ( void     *pastix_data,
                       MPI_Fint *fortran_comm,
-                      PASTIX_INT      *n,
-                      PASTIX_INT      *colptr,
-                      PASTIX_INT      *row,
-                      PASTIX_FLOAT    *avals,
-                      PASTIX_INT      *perm,
-                      PASTIX_INT      *invp,
-                      PASTIX_FLOAT    *b,
-                      PASTIX_INT      *rhs,
-                      PASTIX_INT      *iparm,
+                      pastix_int_t      *n,
+                      pastix_int_t      *colptr,
+                      pastix_int_t      *row,
+                      pastix_float_t    *avals,
+                      pastix_int_t      *perm,
+                      pastix_int_t      *invp,
+                      pastix_float_t    *b,
+                      pastix_int_t      *rhs,
+                      pastix_int_t      *iparm,
                       double   *dparm )
 {
   pastix_data_t **pastix_data2;
@@ -178,15 +178,15 @@ FORTRAN_NAME(PASTIX_FORTRAN,
              pastix_fortran,
              ( void     *pastix_data,
                MPI_Fint *fortran_comm,
-               PASTIX_INT      *n,
-               PASTIX_INT      *colptr,
-               PASTIX_INT      *row,
-               PASTIX_FLOAT    *avals,
-               PASTIX_INT      *perm,
-               PASTIX_INT      *invp,
-               PASTIX_FLOAT    *b,
-               PASTIX_INT      *rhs,
-               PASTIX_INT      *iparm,
+               pastix_int_t      *n,
+               pastix_int_t      *colptr,
+               pastix_int_t      *row,
+               pastix_float_t    *avals,
+               pastix_int_t      *perm,
+               pastix_int_t      *invp,
+               pastix_float_t    *b,
+               pastix_int_t      *rhs,
+               pastix_int_t      *iparm,
                double   *dparm ),
              ( pastix_data,
                fortran_comm,
@@ -227,16 +227,16 @@ FORTRAN_NAME(PASTIX_FORTRAN,
 #define dpastix_fortran PASTIX_EXTERN_F(dpastix_fortran)
 void dpastix_fortran ( void     *pastix_data,
                        MPI_Fint *fortran_comm,
-                       PASTIX_INT      *n,
-                       PASTIX_INT      *colptr,
-                       PASTIX_INT      *row,
-                       PASTIX_FLOAT    *avals,
-                       PASTIX_INT      *loc2glob,
-                       PASTIX_INT      *perm,
-                       PASTIX_INT      *invp,
-                       PASTIX_FLOAT    *b,
-                       PASTIX_INT      *rhs,
-                       PASTIX_INT      *iparm,
+                       pastix_int_t      *n,
+                       pastix_int_t      *colptr,
+                       pastix_int_t      *row,
+                       pastix_float_t    *avals,
+                       pastix_int_t      *loc2glob,
+                       pastix_int_t      *perm,
+                       pastix_int_t      *invp,
+                       pastix_float_t    *b,
+                       pastix_int_t      *rhs,
+                       pastix_int_t      *iparm,
                        double   *dparm )
 {
   pastix_data_t **pastix_data2;
@@ -265,16 +265,16 @@ FORTRAN_NAME(DPASTIX_FORTRAN,
              dpastix_fortran,
              ( void     *pastix_data,
                MPI_Fint *fortran_comm,
-               PASTIX_INT      *n,
-               PASTIX_INT      *colptr,
-               PASTIX_INT      *row,
-               PASTIX_FLOAT    *avals,
-               PASTIX_INT      *loc2glob,
-               PASTIX_INT      *perm,
-               PASTIX_INT      *invp,
-               PASTIX_FLOAT    *b,
-               PASTIX_INT      *rhs,
-               PASTIX_INT      *iparm,
+               pastix_int_t      *n,
+               pastix_int_t      *colptr,
+               pastix_int_t      *row,
+               pastix_float_t    *avals,
+               pastix_int_t      *loc2glob,
+               pastix_int_t      *perm,
+               pastix_int_t      *invp,
+               pastix_float_t    *b,
+               pastix_int_t      *rhs,
+               pastix_int_t      *iparm,
                double   *dparm ),
              ( pastix_data,
                fortran_comm,
@@ -302,8 +302,8 @@ FORTRAN_NAME(DPASTIX_FORTRAN,
  */
 #define pastix_fortran_bindthreads PASTIX_EXTERN_F(pastix_fortran_bindthreads)
 void pastix_fortran_bindthreads ( void *pastix_data,
-                                  PASTIX_INT  *thrdnbr,
-                                  PASTIX_INT  *bindtab )
+                                  pastix_int_t  *thrdnbr,
+                                  pastix_int_t  *bindtab )
 {
   pastix_bindThreads (*((pastix_data_t**)pastix_data), *thrdnbr, bindtab);
 }
@@ -311,8 +311,8 @@ void pastix_fortran_bindthreads ( void *pastix_data,
 FORTRAN_NAME(PASTIX_FORTRAN_BINDTHREADS,
              pastix_fortran_bindthreads,
              ( void *pastix_data,
-               PASTIX_INT  *thrdnbr,
-               PASTIX_INT  *bindtab ),
+               pastix_int_t  *thrdnbr,
+               pastix_int_t  *bindtab ),
              ( pastix_data,
                thrdnbr,
                bindtab ))
@@ -343,20 +343,20 @@ FORTRAN_NAME(PASTIX_FORTRAN_BINDTHREADS,
 #define pastix_fortran_checkmatrix PASTIX_EXTERN_F(pastix_fortran_checkmatrix)
 void pastix_fortran_checkmatrix ( pastix_check_data_t **data_check,
                                   MPI_Fint             *fortran_comm,
-                                  PASTIX_INT                  *verb,
-                                  PASTIX_INT                  *flagsym,
-                                  PASTIX_INT                  *flagcor,
-                                  PASTIX_INT                  *n,
-                                  PASTIX_INT                  *colptr,
-                                  PASTIX_INT                  *row,
-                                  PASTIX_FLOAT                *avals,
-                                  PASTIX_INT                  *loc2glob,
-                                  PASTIX_INT                  *dof)
+                                  pastix_int_t                  *verb,
+                                  pastix_int_t                  *flagsym,
+                                  pastix_int_t                  *flagcor,
+                                  pastix_int_t                  *n,
+                                  pastix_int_t                  *colptr,
+                                  pastix_int_t                  *row,
+                                  pastix_float_t                *avals,
+                                  pastix_int_t                  *loc2glob,
+                                  pastix_int_t                  *dof)
 {
   MPI_Comm        pastix_comm;
-  PASTIX_INT            *tmprows;
-  PASTIX_FLOAT          *tmpvalues;
-  PASTIX_INT             nnz;
+  pastix_int_t            *tmprows;
+  pastix_float_t          *tmpvalues;
+  pastix_int_t             nnz;
   (void)fortran_comm;
 
   pastix_comm = MPI_Comm_f2c(*fortran_comm);
@@ -365,10 +365,10 @@ void pastix_fortran_checkmatrix ( pastix_check_data_t **data_check,
   if (*flagcor == API_YES)
     {
       MALLOC_INTERN(*data_check, 1, struct pastix_check_data_);
-      MALLOC_EXTERN((*data_check)->rows,   nnz,        PASTIX_INT);
-      MALLOC_EXTERN((*data_check)->values, nnz*(*dof), PASTIX_FLOAT);
-      memcpy((*data_check)->rows,   row,   nnz*sizeof(PASTIX_INT));
-      memcpy((*data_check)->values, avals, nnz*(*dof)*sizeof(PASTIX_FLOAT));
+      MALLOC_EXTERN((*data_check)->rows,   nnz,        pastix_int_t);
+      MALLOC_EXTERN((*data_check)->values, nnz*(*dof), pastix_float_t);
+      memcpy((*data_check)->rows,   row,   nnz*sizeof(pastix_int_t));
+      memcpy((*data_check)->values, avals, nnz*(*dof)*sizeof(pastix_float_t));
       tmprows   = (*data_check)->rows;
       tmpvalues = (*data_check)->values;
       (*data_check)->colptr=colptr;
@@ -388,8 +388,8 @@ void pastix_fortran_checkmatrix ( pastix_check_data_t **data_check,
     {
       if (colptr[*n]-1 == nnz)
         {
-          memcpy(row,   tmprows,   nnz*sizeof(PASTIX_INT));
-          memcpy(avals, tmpvalues, nnz*(*dof)*sizeof(PASTIX_FLOAT));
+          memcpy(row,   tmprows,   nnz*sizeof(pastix_int_t));
+          memcpy(avals, tmpvalues, nnz*(*dof)*sizeof(pastix_float_t));
           free(tmprows);
           free(tmpvalues);
           memFree_null(*data_check);
@@ -412,15 +412,15 @@ FORTRAN_NAME( PASTIX_FORTRAN_CHECKMATRIX,
               pastix_fortran_checkmatrix,
               ( pastix_check_data_t **data_check,
                 MPI_Fint             *fortran_comm,
-                PASTIX_INT                  *verb,
-                PASTIX_INT                  *flagsym,
-                PASTIX_INT                  *flagcor,
-                PASTIX_INT                  *n,
-                PASTIX_INT                  *colptr,
-                PASTIX_INT                  *row,
-                PASTIX_FLOAT                *avals,
-                PASTIX_INT                  *loc2glob,
-                PASTIX_INT                  *dof ),
+                pastix_int_t                  *verb,
+                pastix_int_t                  *flagsym,
+                pastix_int_t                  *flagcor,
+                pastix_int_t                  *n,
+                pastix_int_t                  *colptr,
+                pastix_int_t                  *row,
+                pastix_float_t                *avals,
+                pastix_int_t                  *loc2glob,
+                pastix_int_t                  *dof ),
               ( data_check,
                 fortran_comm,
                 verb,
@@ -447,17 +447,17 @@ FORTRAN_NAME( PASTIX_FORTRAN_CHECKMATRIX,
  */
 #define pastix_fortran_checkmatrix_end PASTIX_EXTERN_F(pastix_fortran_checkmatrix_end)
 void pastix_fortran_checkmatrix_end ( pastix_check_data_t **data_check,
-                                      PASTIX_INT                  *verb,
-                                      PASTIX_INT                  *row,
-                                      PASTIX_FLOAT                *avals,
-                                      PASTIX_INT                  *dof )
+                                      pastix_int_t                  *verb,
+                                      pastix_int_t                  *row,
+                                      pastix_float_t                *avals,
+                                      pastix_int_t                  *dof )
 {
   (void)verb;
   /* pas de checkmatrix_end si pas de duplicates */
   ASSERT(*data_check!=NULL,MOD_SOPALIN);
 
-  memcpy(row,   (*data_check)->rows,   (*data_check)->nnz*sizeof(PASTIX_INT));
-  memcpy(avals, (*data_check)->values, (*data_check)->nnz*(*dof)*sizeof(PASTIX_FLOAT));
+  memcpy(row,   (*data_check)->rows,   (*data_check)->nnz*sizeof(pastix_int_t));
+  memcpy(avals, (*data_check)->values, (*data_check)->nnz*(*dof)*sizeof(pastix_float_t));
   free((*data_check)->rows);
   free((*data_check)->values);
   memFree_null(*data_check);
@@ -466,10 +466,10 @@ void pastix_fortran_checkmatrix_end ( pastix_check_data_t **data_check,
 FORTRAN_NAME( PASTIX_FORTRAN_CHECKMATRIX_END,
               pastix_fortran_checkmatrix_end,
               ( pastix_check_data_t **data_check,
-                PASTIX_INT                  *verb,
-                PASTIX_INT                  *row,
-                PASTIX_FLOAT                *avals,
-                PASTIX_INT                  *dof ),
+                pastix_int_t                  *verb,
+                pastix_int_t                  *row,
+                pastix_float_t                *avals,
+                pastix_int_t                  *dof ),
               ( data_check,
                 verb,
                 row,
@@ -486,7 +486,7 @@ FORTRAN_NAME( PASTIX_FORTRAN_CHECKMATRIX_END,
  *   nodenbr     - pastix_int_t where to write node number.
  */
 void pastix_fortran_getlocalnodenbr ( pastix_data_t ** pastix_data,
-                                      PASTIX_INT            * nodenbr )
+                                      pastix_int_t            * nodenbr )
 {
   *nodenbr = pastix_getLocalNodeNbr(pastix_data);
 }
@@ -494,7 +494,7 @@ void pastix_fortran_getlocalnodenbr ( pastix_data_t ** pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_GETLOCALNODENBR,
               pastix_fortran_getlocalnodenbr,
               ( pastix_data_t ** pastix_data,
-                PASTIX_INT            * nodenbr ),
+                pastix_int_t            * nodenbr ),
               ( pastix_data,
                 nodenbr ))
 /*
@@ -510,7 +510,7 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETLOCALNODENBR,
  *   nodelst     - An array where to write the list of local nodes/columns.
  */
 void pastix_fortran_getlocalnodelst ( pastix_data_t **pastix_data,
-                                     PASTIX_INT            *nodelst )
+                                     pastix_int_t            *nodelst )
 {
   pastix_getLocalNodeLst(pastix_data, nodelst);
 }
@@ -518,7 +518,7 @@ void pastix_fortran_getlocalnodelst ( pastix_data_t **pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_GETLOCALNODELST,
               pastix_fortran_getlocalnodelst,
               ( pastix_data_t **pastix_data,
-                PASTIX_INT            *nodelst ),
+                pastix_int_t            *nodelst ),
               ( pastix_data,
                 nodelst ))
 /*
@@ -548,15 +548,15 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETLOCALNODELST,
  *   OP          - Operation to manage common CSCD coefficients.
  *   dof         - Number of degrees of freedom.
  */
-void cscd_addlocal_fortran ( PASTIX_INT   n,
-                             PASTIX_INT *  ia,    PASTIX_INT *  ja,    PASTIX_FLOAT *  a,
-                             PASTIX_INT * l2g,
-                             PASTIX_INT   addn,
-                             PASTIX_INT *  addia, PASTIX_INT *  addja, PASTIX_FLOAT *  adda,
-                             PASTIX_INT * addl2g,
-                             PASTIX_INT * newn,
-                             PASTIX_INT ** newia, PASTIX_INT ** newja, PASTIX_FLOAT ** newa,
-                             PASTIX_INT * OP, PASTIX_INT dof )
+void cscd_addlocal_fortran ( pastix_int_t   n,
+                             pastix_int_t *  ia,    pastix_int_t *  ja,    pastix_float_t *  a,
+                             pastix_int_t * l2g,
+                             pastix_int_t   addn,
+                             pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda,
+                             pastix_int_t * addl2g,
+                             pastix_int_t * newn,
+                             pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
+                             pastix_int_t * OP, pastix_int_t dof )
 {
   cscd_addlocal(n   , ia   , ja   , a   ,  l2g,
                 addn, addia, addja, adda,  addl2g,
@@ -564,15 +564,15 @@ void cscd_addlocal_fortran ( PASTIX_INT   n,
 }
 FORTRAN_NAME( CSCD_ADDLOCAL_FORTRAN,
               cscd_addlocal_fortran,
-              ( PASTIX_INT   n,
-                PASTIX_INT *  ia,    PASTIX_INT *  ja,    PASTIX_FLOAT *  a,
-                PASTIX_INT * l2g,
-                PASTIX_INT   addn,
-                PASTIX_INT *  addia, PASTIX_INT *  addja, PASTIX_FLOAT *  adda,
-                PASTIX_INT * addl2g,
-                PASTIX_INT * newn,
-                PASTIX_INT ** newia, PASTIX_INT ** newja, PASTIX_FLOAT ** newa,
-                PASTIX_INT * OP, PASTIX_INT dof ),
+              ( pastix_int_t   n,
+                pastix_int_t *  ia,    pastix_int_t *  ja,    pastix_float_t *  a,
+                pastix_int_t * l2g,
+                pastix_int_t   addn,
+                pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda,
+                pastix_int_t * addl2g,
+                pastix_int_t * newn,
+                pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
+                pastix_int_t * OP, pastix_int_t dof ),
               ( n, ia, ja, a, l2g,
                 addn, addia, addja, adda, addl2g,
                 newn, newia, newja, newa, OP, dof ))
@@ -588,9 +588,9 @@ FORTRAN_NAME( CSCD_ADDLOCAL_FORTRAN,
  *   ierr        - error value.
  */
 void pastix_fortran_setschurunknownlist (void * pastix_data,
-                                         PASTIX_INT *n,
-                                         PASTIX_INT *list,
-                                         PASTIX_INT *ierr)
+                                         pastix_int_t *n,
+                                         pastix_int_t *list,
+                                         pastix_int_t *ierr)
 {
   pastix_data_t **pastix_data2;
   pastix_data2 = pastix_data;
@@ -602,9 +602,9 @@ void pastix_fortran_setschurunknownlist (void * pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_SETSCHURUNKNOWNLIST,
               pastix_fortran_setschurunknownlist,
               (void * pastix_data,
-               PASTIX_INT *n,
-               PASTIX_INT *list,
-               PASTIX_INT *ierr),
+               pastix_int_t *n,
+               pastix_int_t *list,
+               pastix_int_t *ierr),
               (pastix_data,
                n,
                list,
@@ -623,8 +623,8 @@ FORTRAN_NAME( PASTIX_FORTRAN_SETSCHURUNKNOWNLIST,
  *   ierr        - error value.
  */
 void pastix_fortran_getschur ( void          * pastix_data,
-                               PASTIX_FLOAT         * schur,
-                               PASTIX_INT           * ierr )
+                               pastix_float_t         * schur,
+                               pastix_int_t           * ierr )
 {
 
   pastix_data_t **pastix_data2;
@@ -636,8 +636,8 @@ void pastix_fortran_getschur ( void          * pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_GETSCHUR,
               pastix_fortran_getschur,
               ( void          * pastix_data,
-                PASTIX_FLOAT         * schur,
-                PASTIX_INT           * ierr ),
+                pastix_float_t         * schur,
+                pastix_int_t           * ierr ),
               ( pastix_data,
                 schur,
                 ierr ))
@@ -659,8 +659,8 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHUR,
  * TODO: Error management.
  */
 void pastix_fortran_getschurlocalnodenbr ( void * pastix_data,
-                                           PASTIX_INT * nodeNbr,
-                                           PASTIX_INT * ierr )
+                                           pastix_int_t * nodeNbr,
+                                           pastix_int_t * ierr )
 {
   pastix_data_t **pastix_data2;
   pastix_data2 = pastix_data;
@@ -672,8 +672,8 @@ void pastix_fortran_getschurlocalnodenbr ( void * pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALNODENBR,
               pastix_fortran_getschurlocalnodenbr,
               ( void * pastix_data,
-                PASTIX_INT * nodeNbr,
-                PASTIX_INT * ierr ),
+                pastix_int_t * nodeNbr,
+                pastix_int_t * ierr ),
               ( pastix_data,
                 nodeNbr,
                 ierr ))
@@ -695,8 +695,8 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALNODENBR,
  * TODO: Error management.
  */
 void pastix_fortran_getschurlocalunknownnbr ( void * pastix_data,
-                                              PASTIX_INT  * unknownNbr,
-                                              PASTIX_INT  * ierr )
+                                              pastix_int_t  * unknownNbr,
+                                              pastix_int_t  * ierr )
 {
   pastix_data_t **pastix_data2;
   pastix_data2 = pastix_data;
@@ -708,8 +708,8 @@ void pastix_fortran_getschurlocalunknownnbr ( void * pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALUNKNOWNNBR,
               pastix_fortran_getschurlocalunknownnbr,
               ( void * pastix_data,
-                PASTIX_INT  * unknownNbr,
-                PASTIX_INT  * ierr ),
+                pastix_int_t  * unknownNbr,
+                pastix_int_t  * ierr ),
               ( pastix_data,
                 unknownNbr,
                 ierr ))
@@ -731,8 +731,8 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALUNKNOWNNBR,
  * TODO: Error management.
  */
 void pastix_fortran_getschurlocalnodelist ( void * pastix_data,
-                                            PASTIX_INT  * nodes,
-                                            PASTIX_INT  * ierr )
+                                            pastix_int_t  * nodes,
+                                            pastix_int_t  * ierr )
 {
   pastix_data_t **pastix_data2;
   pastix_data2 = pastix_data;
@@ -743,8 +743,8 @@ void pastix_fortran_getschurlocalnodelist ( void * pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALNODELIST,
               pastix_fortran_getschurlocalnodelist,
               ( void * pastix_data,
-                PASTIX_INT  * nodes,
-                PASTIX_INT  * ierr ),
+                pastix_int_t  * nodes,
+                pastix_int_t  * ierr ),
               ( pastix_data,
                 nodes,
                 ierr ))
@@ -766,8 +766,8 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALNODELIST,
  * TODO: Error management.
  */
 void pastix_fortran_getschurlocalunknownlist (void * pastix_data,
-                                              PASTIX_INT  * unknowns,
-                                              PASTIX_INT  * ierr)
+                                              pastix_int_t  * unknowns,
+                                              pastix_int_t  * ierr)
 {
   pastix_data_t **pastix_data2;
   pastix_data2 = pastix_data;
@@ -778,8 +778,8 @@ void pastix_fortran_getschurlocalunknownlist (void * pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALUNKNOWNLIST,
               pastix_fortran_getschurlocalunknownlist,
               (void * pastix_data,
-               PASTIX_INT  * unknowns,
-               PASTIX_INT  * ierr),
+               pastix_int_t  * unknowns,
+               pastix_int_t  * ierr),
               (pastix_data,
                unknowns,
                ierr))
@@ -801,8 +801,8 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALUNKNOWNLIST,
  * TODO: Error management.
  */
 void pastix_fortran_setschurarray ( void  * pastix_data,
-                                    PASTIX_FLOAT * array,
-                                    PASTIX_INT   * ierr )
+                                    pastix_float_t * array,
+                                    pastix_int_t   * ierr )
 {
   pastix_data_t **pastix_data2;
   pastix_data2 = pastix_data;
@@ -812,8 +812,8 @@ void pastix_fortran_setschurarray ( void  * pastix_data,
 FORTRAN_NAME( PASTIX_FORTRAN_SETSCHURARRAY,
               pastix_fortran_setschurarray,
               ( void  * pastix_data,
-                PASTIX_FLOAT * array,
-                PASTIX_INT   * ierr ),
+                pastix_float_t * array,
+                pastix_int_t   * ierr ),
               ( pastix_data,
                 array,
                 ierr ))

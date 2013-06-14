@@ -26,16 +26,16 @@
 /* #include "splitpart.h" */
 
 struct PASTIX_interval_s {
-  PASTIX_INT start;
-  PASTIX_INT end;
-  PASTIX_INT nFacingBlocks;
+  pastix_int_t start;
+  pastix_int_t end;
+  pastix_int_t nFacingBlocks;
 };
 typedef struct PASTIX_interval_s PASTIX_interval_t;
 
 struct PASTIX_partition_s {
   PASTIX_interval_t * part;
-  PASTIX_INT          size;
-  PASTIX_INT          max_size;
+  pastix_int_t          size;
+  pastix_int_t          max_size;
 };
 typedef struct PASTIX_partition_s PASTIX_partition_t;
 
@@ -53,9 +53,9 @@ int cmp_interval(const void *p1, const void *p2)
 
 static inline
 int add_interval(PASTIX_partition_t * p,
-                 PASTIX_INT s,
-                 PASTIX_INT e,
-                 PASTIX_INT n)
+                 pastix_int_t s,
+                 pastix_int_t e,
+                 pastix_int_t n)
 {
   ASSERTDBG(e  >= s, MOD_BLEND);
   p->part[p->size].start = s;
@@ -66,9 +66,9 @@ int add_interval(PASTIX_partition_t * p,
 }
 
 static inline
-int init_partition(PASTIX_INT size,
-                   PASTIX_INT start,
-                   PASTIX_INT end,
+int init_partition(pastix_int_t size,
+                   pastix_int_t start,
+                   pastix_int_t end,
                    PASTIX_partition_t * p)
 {
   p->size = 0;
@@ -101,11 +101,11 @@ int deinit_partition(PASTIX_partition_t * p)
   } while (0)
 
 static inline
-int insert_in_partition(PASTIX_INT start,
-                        PASTIX_INT end,
+int insert_in_partition(pastix_int_t start,
+                        pastix_int_t end,
                         PASTIX_partition_t *p)
 {
-  PASTIX_INT i,j, tmp;
+  pastix_int_t i,j, tmp;
 
   tmp = p->max_size-1;
   p->part[tmp].start = start;
@@ -138,7 +138,7 @@ int insert_in_partition(PASTIX_INT start,
                    *         B
                    *       ----    ----
                    */
-                  PASTIX_INT k = p->part[i].end;
+                  pastix_int_t k = p->part[i].end;
                   /* split B in A inter B and B \ A */
                   /* B \ A */
                   add_interval(p, my_inter->end+1, k, p->part[i].nFacingBlocks);
@@ -335,18 +335,18 @@ int insert_in_partition(PASTIX_INT start,
 
 int smart_cblk_split(BlendCtrl      * ctrl,
                      SymbolMatrix   * symbmtx,
-                     PASTIX_INT       cblknum,
-                     PASTIX_INT       procnbr,
-                     PASTIX_INT       blas_min_col,
-                     PASTIX_INT       blas_max_col,
-                     PASTIX_INT     * nseq,
-                     PASTIX_INT    ** seq)
+                     pastix_int_t       cblknum,
+                     pastix_int_t       procnbr,
+                     pastix_int_t       blas_min_col,
+                     pastix_int_t       blas_max_col,
+                     pastix_int_t     * nseq,
+                     pastix_int_t    ** seq)
 {
-  PASTIX_INT   i;
+  pastix_int_t   i;
   PASTIX_partition_t part;
-  PASTIX_INT   block_size;
-  PASTIX_INT   block_size_min;
-  PASTIX_INT   block_size_max;
+  pastix_int_t   block_size;
+  pastix_int_t   block_size_min;
+  pastix_int_t   block_size_max;
 
   /* in the worst case we have 2*blocknbr+1 intervals */
   init_partition(2*ctrl->egraph->verttab[cblknum].innbr+1,
@@ -356,7 +356,7 @@ int smart_cblk_split(BlendCtrl      * ctrl,
 
   for(i=0;i<ctrl->egraph->verttab[cblknum].innbr;i++)
     {
-      PASTIX_INT bloknum;
+      pastix_int_t bloknum;
       bloknum = ctrl->egraph->inbltab[ctrl->egraph->verttab[cblknum].innum+i];
 
       ASSERTDBG(symbmtx->bloktab[bloknum].cblknum == cblknum, MOD_BLEND);
@@ -386,7 +386,7 @@ int smart_cblk_split(BlendCtrl      * ctrl,
     }
   else
     {
-      PASTIX_INT abs = ctrl->option->abs;
+      pastix_int_t abs = ctrl->option->abs;
       if(procnbr > ctrl->option->ratiolimit)
         {
           abs *= 2; /* Increase abs for 2D */
@@ -413,7 +413,7 @@ int smart_cblk_split(BlendCtrl      * ctrl,
   if (block_size_min == 0) block_size_min++;
 
   {
-    PASTIX_INT start, end;
+    pastix_int_t start, end;
     start = part.part[0].start;
     /* maximum number of entries */
     (*nseq) = (symbmtx->cblktab[cblknum].lcolnum -
@@ -432,8 +432,8 @@ int smart_cblk_split(BlendCtrl      * ctrl,
         if (part.part[i].nFacingBlocks == 0)
           {
             /* we cut all the interval with size ~block_size */
-            PASTIX_INT blocknbr;
-            PASTIX_INT average_size;
+            pastix_int_t blocknbr;
+            pastix_int_t average_size;
             blocknbr = (end-start)/block_size;
             average_size = (end-start)/blocknbr;
 

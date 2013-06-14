@@ -27,11 +27,11 @@
 void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
                const Dof * dofptr, EliminGraph *egraph, BlendCtrl *ctrl)
 {
-  PASTIX_INT i, j, k;
-  PASTIX_INT tasknbr = 0;
-  PASTIX_INT odb_nbr;
-  PASTIX_INT L, h, g;
-  PASTIX_INT firstE1task, firstE2task;
+  pastix_int_t i, j, k;
+  pastix_int_t tasknbr = 0;
+  pastix_int_t odb_nbr;
+  pastix_int_t L, h, g;
+  pastix_int_t firstE1task, firstE2task;
   (void)egraph;
 
   SimuTask *task = NULL;
@@ -151,7 +151,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
               task++;
               firstE2task = tasknbr;
               {
-                PASTIX_INT lastbloknum;
+                pastix_int_t lastbloknum;
                 lastbloknum = 0;
                 for(k=j;k<symbptr->cblktab[i+1].bloknum;k++)
                   {
@@ -219,9 +219,9 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
 }
 
 /** Get face block for task E2 **/
-PASTIX_INT getFaceBlockE2(PASTIX_INT startsearch, PASTIX_INT bloksrc, PASTIX_INT bloknum, const SymbolMatrix *symbptr, int ricar)
+pastix_int_t getFaceBlockE2(pastix_int_t startsearch, pastix_int_t bloksrc, pastix_int_t bloknum, const SymbolMatrix *symbptr, int ricar)
 {
-  PASTIX_INT i;
+  pastix_int_t i;
 
   if(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum)
     startsearch = symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;
@@ -268,7 +268,7 @@ PASTIX_INT getFaceBlockE2(PASTIX_INT startsearch, PASTIX_INT bloksrc, PASTIX_INT
 
 }
 
-double taskSendCost(SimuTask *taskptr, const PASTIX_INT clustsrc, const PASTIX_INT clustdst, BlendCtrl *ctrl)
+double taskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)
 {
 #ifdef DEBUG_BLEND
   ASSERT(clustsrc>=0 && clustsrc < ctrl->clustnbr,MOD_BLEND);

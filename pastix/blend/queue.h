@@ -4,7 +4,7 @@
 /**                                                        **/
 /**   AUTHORS    : Pascal HENON                            **/
 /**                                                        **/
-/**   FUNCTION   : queue of PASTIX_INT that sorts elements        **/
+/**   FUNCTION   : queue of pastix_int_t that sorts elements        **/
 /**                in ascending way according to a         **/
 /**                pastix_float_t key                               **/
 /**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
@@ -20,29 +20,29 @@
 */
 
 typedef struct Queue_ {
-  PASTIX_INT        size;                  /*+ Allocated memory size             +*/ 
-  PASTIX_INT        used;                  /*+ Number of element in the queue    +*/
-  PASTIX_INT    *   elttab;                /*+ Array of the element              +*/
+  pastix_int_t        size;                  /*+ Allocated memory size             +*/ 
+  pastix_int_t        used;                  /*+ Number of element in the queue    +*/
+  pastix_int_t    *   elttab;                /*+ Array of the element              +*/
   double *   keytab;                /*+ Array of keys                     +*/
-  PASTIX_INT    *   keytab2;               /*+ Another array of keys             +*/
+  pastix_int_t    *   keytab2;               /*+ Another array of keys             +*/
 } Queue;
 
 
 #define static
 
-int     queueInit       (Queue *, PASTIX_INT size);
+int     queueInit       (Queue *, pastix_int_t size);
 void    queueExit       (Queue *);
 Queue * queueCopy       (Queue *dst, Queue *src);
-void    queueAdd        (Queue *, PASTIX_INT, double);
-void    queueAdd2       (Queue *, PASTIX_INT, double, PASTIX_INT);
-PASTIX_INT     queueGet        (Queue *);
-PASTIX_INT     queueSize       (Queue *);
+void    queueAdd        (Queue *, pastix_int_t, double);
+void    queueAdd2       (Queue *, pastix_int_t, double, pastix_int_t);
+pastix_int_t     queueGet        (Queue *);
+pastix_int_t     queueSize       (Queue *);
 void    queueClear      (Queue *);
-PASTIX_INT     queueRead       (Queue *);
-PASTIX_INT     queueGet2       (Queue *, double *, PASTIX_INT *);
-int     queuePossess    (Queue *, PASTIX_INT);
+pastix_int_t     queueRead       (Queue *);
+pastix_int_t     queueGet2       (Queue *, double *, pastix_int_t *);
+int     queuePossess    (Queue *, pastix_int_t);
 void    queuePrint      (Queue *);
 
-static PASTIX_INT compWith2keys(Queue *, PASTIX_INT, PASTIX_INT);
+static pastix_int_t compWith2keys(Queue *, pastix_int_t, pastix_int_t);
 #undef static
 #endif

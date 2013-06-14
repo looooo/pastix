@@ -98,8 +98,8 @@ void solverBlend(SolverMatrix *solvmtx,
     FILE      *ps_file       = NULL;
     Clock      timer_all;
     Clock      timer_current;
-    PASTIX_INT       *bcofind       = NULL;
-    PASTIX_INT        page          = 0;
+    pastix_int_t       *bcofind       = NULL;
+    pastix_int_t        page          = 0;
 
     /* initialisation of the control structure */
     MALLOC_INTERN(ctrl, 1, BlendCtrl);
@@ -528,7 +528,7 @@ void solverBlend(SolverMatrix *solvmtx,
           }
         if(ctrl->option->malt_limit >= 0)
           {
-            PASTIX_INT maxalloc;
+            pastix_int_t maxalloc;
             /*	maxalloc = Malt(solvmtx, INTVALMAX);
                 fprintf(stderr, "Maxalloc for AUB = %ld\n", (long)maxalloc);*/
             maxalloc = Malt2(solvmtx, (float)ctrl->option->malt_limit);

@@ -87,7 +87,7 @@ static float                symbolDrawColorTab[16][3] = {
 
 void
 symbolDrawColor (
-const PASTIX_INT                   labl,
+const pastix_int_t                   labl,
 float                       color[])
 {
   color[0] = (float) symbolDrawColorTab[(labl - 1) % 16][0];
@@ -111,8 +111,8 @@ int                         (* offdfunc) (const SymbolMatrix * const, const Symb
 void * const                dataptr,              /* Data structure for block coloring */
 FILE * const                stream)
 {
-  PASTIX_INT                 cblknum;                    /* Number of current column block */
-  PASTIX_INT                 bloknum;                    /* Number of current block        */
+  pastix_int_t                 cblknum;                    /* Number of current column block */
+  pastix_int_t                 bloknum;                    /* Number of current block        */
   time_t              picttime;                   /* Creation time                  */
   double              pictsize;                   /* Number of distinct coordinates */
   int                 o;
@@ -145,7 +145,7 @@ FILE * const                stream)
   fprintf (stream, "0 0\n");                      /* Output fake column block */
   for (cblknum = 0, bloknum = 0; cblknum < symbptr->cblknbr; cblknum ++) {
     float               coloval[3];               /* Color of diagonal block and previous color */
-    PASTIX_INT                 blokend;                  /* Number of end block for column             */
+    pastix_int_t                 blokend;                  /* Number of end block for column             */
 
     coloval[0] =
     coloval[1] =

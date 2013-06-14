@@ -8,10 +8,10 @@
 #include "symbol.h"
 #include "symbolrand.h"
 
-PASTIX_INT hazard(PASTIX_INT a, PASTIX_INT b)
+pastix_int_t hazard(pastix_int_t a, pastix_int_t b)
 {
   float r;
-  PASTIX_INT h;
+  pastix_int_t h;
 
 #ifdef DEBUG_BLEND
   ASSERT(b>=a,MOD_BLEND);
@@ -23,7 +23,7 @@ PASTIX_INT hazard(PASTIX_INT a, PASTIX_INT b)
   ASSERT(r<=1,MOD_BLEND);
 #endif
 
-  h = (PASTIX_INT) (a + floor( r*(b-a)+0.5) );
+  h = (pastix_int_t) (a + floor( r*(b-a)+0.5) );
 
 #ifdef DEBUG_BLEND
   ASSERT(h >= a,MOD_BLEND);
@@ -33,16 +33,16 @@ PASTIX_INT hazard(PASTIX_INT a, PASTIX_INT b)
 }
 
 
-void symbolRand(SymbolMatrix *symbmtx, PASTIX_INT h1, PASTIX_INT h2)
+void symbolRand(SymbolMatrix *symbmtx, pastix_int_t h1, pastix_int_t h2)
 {
   
-  PASTIX_INT i, j;
-  PASTIX_INT bloknbr;
-  PASTIX_INT odb;
-  PASTIX_INT blok2erase;
-  PASTIX_INT bloknum;
-  PASTIX_INT erasednbr;
-  PASTIX_INT rabotednbr;
+  pastix_int_t i, j;
+  pastix_int_t bloknbr;
+  pastix_int_t odb;
+  pastix_int_t blok2erase;
+  pastix_int_t bloknum;
+  pastix_int_t erasednbr;
+  pastix_int_t rabotednbr;
 
 
   SymbolCblk *cblktab = NULL;
@@ -132,7 +132,7 @@ void symbolRand(SymbolMatrix *symbmtx, PASTIX_INT h1, PASTIX_INT h2)
     ASSERT(symbmtx->cblktab[i+1].bloknum - symbmtx->cblktab[i].bloknum > 1,MOD_BLEND);
   for(i=0;i<symbmtx->bloknbr;i++)
     {
-      PASTIX_INT cblknum;
+      pastix_int_t cblknum;
       cblknum = symbmtx->bloktab[i].cblknum;
       ASSERT(symbmtx->cblktab[cblknum].fcolnum <=  symbmtx->bloktab[i].frownum,MOD_BLEND);
       ASSERT(symbmtx->cblktab[cblknum].lcolnum >=  symbmtx->bloktab[i].lrownum,MOD_BLEND);

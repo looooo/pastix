@@ -23,25 +23,25 @@
 #include "SF_Direct.h"
 
 
-void UnionSet(PASTIX_INT *set1, PASTIX_INT n1, PASTIX_INT *set2, PASTIX_INT n2, PASTIX_INT *set, PASTIX_INT *n);
+void UnionSet(pastix_int_t *set1, pastix_int_t n1, pastix_int_t *set2, pastix_int_t n2, pastix_int_t *set, pastix_int_t *n);
 
-void SF_Direct(csptr A, PASTIX_INT cblknbr, PASTIX_INT *rangtab, PASTIX_INT *treetab, csptr P)
+void SF_Direct(csptr A, pastix_int_t cblknbr, pastix_int_t *rangtab, pastix_int_t *treetab, csptr P)
 {
   /********************************************************/
   /* This function computes the direct factor nnz pattern */
   /* of a matrix A given the supernode partition          */
   /********************************************************/
-  PASTIX_INT i,j,k;
-  PASTIX_INT ind, nnznbr, father;
-  PASTIX_INT *tmpj      = NULL;
-  PASTIX_INT *tmp       = NULL;
-  PASTIX_INT *tmp2      = NULL;
-  PASTIX_INT *ja        = NULL;
-  PASTIX_INT *node2cblk = NULL;
+  pastix_int_t i,j,k;
+  pastix_int_t ind, nnznbr, father;
+  pastix_int_t *tmpj      = NULL;
+  pastix_int_t *tmp       = NULL;
+  pastix_int_t *tmp2      = NULL;
+  pastix_int_t *ja        = NULL;
+  pastix_int_t *node2cblk = NULL;
 
-  MALLOC_INTERN(tmpj,      A->n, PASTIX_INT);
-  MALLOC_INTERN(tmp,       A->n, PASTIX_INT);
-  MALLOC_INTERN(node2cblk, A->n, PASTIX_INT);
+  MALLOC_INTERN(tmpj,      A->n, pastix_int_t);
+  MALLOC_INTERN(tmp,       A->n, pastix_int_t);
+  MALLOC_INTERN(node2cblk, A->n, pastix_int_t);
 
 
   for(k=0;k<cblknbr;k++)
@@ -85,8 +85,8 @@ void SF_Direct(csptr A, PASTIX_INT cblknbr, PASTIX_INT *rangtab, PASTIX_INT *tre
       ASSERT(nnznbr > 0, MOD_KASS);
 #endif
       P->nnzrow[k] = nnznbr;
-      MALLOC_INTERN(P->ja[k], nnznbr, PASTIX_INT);
-      memCpy(P->ja[k], tmpj, sizeof(PASTIX_INT)*nnznbr);
+      MALLOC_INTERN(P->ja[k], nnznbr, pastix_int_t);
+      memCpy(P->ja[k], tmpj, sizeof(pastix_int_t)*nnznbr);
       P->ma[k]=NULL;
     }
 
@@ -121,8 +121,8 @@ void SF_Direct(csptr A, PASTIX_INT cblknbr, PASTIX_INT *rangtab, PASTIX_INT *tre
 	  UnionSet(P->ja[k]+i, P->nnzrow[k]-i, P->ja[father], P->nnzrow[father], tmpj, &nnznbr);
 
 	  memFree(P->ja[father]);
-	  MALLOC_INTERN(P->ja[father], nnznbr, PASTIX_INT);
-	  memCpy(P->ja[father], tmpj, sizeof(PASTIX_INT)*nnznbr);
+	  MALLOC_INTERN(P->ja[father], nnznbr, pastix_int_t);
+	  memCpy(P->ja[father], tmpj, sizeof(pastix_int_t)*nnznbr);
 	  P->nnzrow[father] = nnznbr;
 	}
     }
@@ -131,7 +131,7 @@ void SF_Direct(csptr A, PASTIX_INT cblknbr, PASTIX_INT *rangtab, PASTIX_INT *tre
 #ifdef DEBUG_KASS
   for(i=0;i<cblknbr;i++)
     {
-      PASTIX_INT j;
+      pastix_int_t j;
       ASSERT(P->nnzrow[i] >= rangtab[i+1]-rangtab[i], MOD_KASS);
       k = 0;
       for(j=rangtab[i]; j < rangtab[i+1];j++)
@@ -171,14 +171,14 @@ void SF_Direct(csptr A, PASTIX_INT cblknbr, PASTIX_INT *rangtab, PASTIX_INT *tre
 }
 
 
-void UnionSet(PASTIX_INT *set1, PASTIX_INT n1, PASTIX_INT *set2, PASTIX_INT n2, PASTIX_INT *set, PASTIX_INT *n)
+void UnionSet(pastix_int_t *set1, pastix_int_t n1, pastix_int_t *set2, pastix_int_t n2, pastix_int_t *set, pastix_int_t *n)
 {
   /********************************************************/
   /* Compute the union of two sorted set                  */
   /* set must have a big enough size to contain the union */
   /* i.e n1+n2                                            */
   /********************************************************/
-  PASTIX_INT ind, ind1, ind2;
+  pastix_int_t ind, ind1, ind2;
 
   ind = 0;
   ind1 = 0;
@@ -186,7 +186,7 @@ void UnionSet(PASTIX_INT *set1, PASTIX_INT n1, PASTIX_INT *set2, PASTIX_INT n2, 
 
 #ifdef DEBUG_KASS
  {
-   PASTIX_INT i;
+   pastix_int_t i;
    for(i=0;i<n1-1;i++)
      ASSERT(set1[i] < set1[i+1], MOD_KASS);
    for(i=0;i<n2-1;i++)

@@ -301,14 +301,14 @@
  * iparm - tabular of IPARM_SIZE integer parameters.
  * dparm - tabular of DPARM_SIZE double parameters.
  */
-void pastix_initParam(PASTIX_INT    *iparm,
+void pastix_initParam(pastix_int_t    *iparm,
                       double *dparm)
 {
 #ifdef PASTIX_LOG
   fprintf(stdout, "-> api_init\n");
 #endif
 
-  PASTIX_INT i;
+  pastix_int_t i;
   for (i=0; i<IPARM_SIZE; i++)
     iparm[i] = 0;
 
@@ -436,28 +436,28 @@ void pastix_initParam(PASTIX_INT    *iparm,
   commRank - MPI rank
   comm     - MPI communicator
 */
-int redispatch_rhs(PASTIX_INT      n,
-                   PASTIX_FLOAT   *rhs,
-                   PASTIX_INT      nrhs,
-                   PASTIX_INT     *l2g,
-                   PASTIX_INT      newn,
-                   PASTIX_FLOAT   *newrhs,
-                   PASTIX_INT     *newl2g,
+int redispatch_rhs(pastix_int_t      n,
+                   pastix_float_t   *rhs,
+                   pastix_int_t      nrhs,
+                   pastix_int_t     *l2g,
+                   pastix_int_t      newn,
+                   pastix_float_t   *newrhs,
+                   pastix_int_t     *newl2g,
                    int      commSize,
                    int      commRank,
                    MPI_Comm comm,
-                   PASTIX_INT dof)
+                   pastix_int_t dof)
 {
-  PASTIX_INT           i,j, irhs;
+  pastix_int_t           i,j, irhs;
 #ifndef FORCE_NOMPI
   MPI_Status    status;
 #endif
-  PASTIX_INT           gN = -1;
-  PASTIX_INT          *g2l;
-  PASTIX_INT         **count;
+  pastix_int_t           gN = -1;
+  pastix_int_t          *g2l;
+  pastix_int_t         **count;
   MPI_Request * requests = NULL;
-  PASTIX_INT   ** toSendIdx;
-  PASTIX_FLOAT ** toSendValues;
+  pastix_int_t   ** toSendIdx;
+  pastix_float_t ** toSendValues;
 
   cscd_build_g2l(newn,
                  newl2g,
@@ -466,10 +466,10 @@ int redispatch_rhs(PASTIX_INT      n,
                  &g2l);
 
   /* allocate counter */
-  MALLOC_INTERN(count, commSize, PASTIX_INT*);
+  MALLOC_INTERN(count, commSize, pastix_int_t*);
   for (i = 0; i < commSize; i++)
     {
-      MALLOC_INTERN(count[i], commSize, PASTIX_INT);
+      MALLOC_INTERN(count[i], commSize, pastix_int_t);
       for (j = 0; j < commSize; j++)
         count[i][j] = 0;
     }
@@ -480,8 +480,8 @@ int redispatch_rhs(PASTIX_INT      n,
   */
   for (i = 0; i < n; i++)
     {
-      PASTIX_INT globalidx = l2g[i];
-      PASTIX_INT localidx  = g2l[globalidx-1];
+      pastix_int_t globalidx = l2g[i];
+      pastix_int_t localidx  = g2l[globalidx-1];
       if ( localidx > 0) {
         count[commRank][commRank] ++;
       }
@@ -494,18 +494,18 @@ int redispatch_rhs(PASTIX_INT      n,
   for (i = 0; i < commSize; i++)
     MPI_Bcast(count[i], commSize, COMM_INT, i, comm);
 
-  MALLOC_INTERN(toSendIdx, commSize, PASTIX_INT *);
-  MALLOC_INTERN(toSendValues, commSize, PASTIX_FLOAT *);
+  MALLOC_INTERN(toSendIdx, commSize, pastix_int_t *);
+  MALLOC_INTERN(toSendValues, commSize, pastix_float_t *);
   for (irhs = 0; irhs < nrhs; irhs++)
     {
       /* Send data */
       for (i = 0; i < commSize; i++)
         {
           if (i != commRank) {
-            MALLOC_INTERN(toSendIdx[i], count[commRank][i], PASTIX_INT);
-            MALLOC_INTERN(toSendValues[i], count[commRank][i]*dof, PASTIX_FLOAT);
-            memset(toSendIdx[i], 0, count[commRank][i]*sizeof(PASTIX_INT));
-            memset(toSendValues[i], 0, count[commRank][i]*sizeof(PASTIX_FLOAT)*dof);
+            MALLOC_INTERN(toSendIdx[i], count[commRank][i], pastix_int_t);
+            MALLOC_INTERN(toSendValues[i], count[commRank][i]*dof, pastix_float_t);
+            memset(toSendIdx[i], 0, count[commRank][i]*sizeof(pastix_int_t));
+            memset(toSendValues[i], 0, count[commRank][i]*sizeof(pastix_float_t)*dof);
           }
         }
 
@@ -514,15 +514,15 @@ int redispatch_rhs(PASTIX_INT      n,
 
       for (i = 0; i < n; i++)
         {
-          PASTIX_INT globalidx = l2g[i];
-          PASTIX_INT localidx  = g2l[globalidx-1];
+          pastix_int_t globalidx = l2g[i];
+          pastix_int_t localidx  = g2l[globalidx-1];
           if ( localidx > 0) {
-            PASTIX_INT d;
+            pastix_int_t d;
             for (d = 0; d < dof; d++)
               newrhs[dof*(irhs*newn + localidx-1)+d] = rhs[dof*(irhs*n+i)+d];
           }
           else {
-            PASTIX_INT d;
+            pastix_int_t d;
             toSendIdx[-localidx][count[commRank][-localidx]] = globalidx;
             for (d = 0; d < dof; d++)
               toSendValues[-localidx][dof*count[commRank][-localidx]+d] =
@@ -548,10 +548,10 @@ int redispatch_rhs(PASTIX_INT      n,
         {
           if (commRank != i)
             {
-              PASTIX_INT   * tmpIdx;
-              PASTIX_FLOAT * tmpValues;
-              MALLOC_INTERN(tmpIdx, count[i][commRank], PASTIX_INT);
-              MALLOC_INTERN(tmpValues, count[i][commRank]*dof, PASTIX_FLOAT);
+              pastix_int_t   * tmpIdx;
+              pastix_float_t * tmpValues;
+              MALLOC_INTERN(tmpIdx, count[i][commRank], pastix_int_t);
+              MALLOC_INTERN(tmpValues, count[i][commRank]*dof, pastix_float_t);
 
               MPI_Recv(tmpIdx, count[i][commRank], COMM_INT,
                        i, TAG_RHS, comm, &status);
@@ -559,7 +559,7 @@ int redispatch_rhs(PASTIX_INT      n,
                        i, TAG_RHS2, comm, &status);
               for (j= 0; j < count[i][commRank]; j++)
                 {
-                  PASTIX_INT d;
+                  pastix_int_t d;
                   for (d = 0; d < dof; d++)
                     newrhs[dof*(irhs*newn+g2l[tmpIdx[j]-1]-1)+d] = tmpValues[dof*j+d];
                 }
@@ -604,15 +604,15 @@ int redispatch_rhs(PASTIX_INT      n,
   pastix_comm - MPI communicator.
 */
 int buildUpdoVect(pastix_data_t *pastix_data,
-                  PASTIX_INT           *loc2glob,
-                  PASTIX_FLOAT         *b,
+                  pastix_int_t           *loc2glob,
+                  pastix_float_t         *b,
                   MPI_Comm       pastix_comm)
 {
-  PASTIX_INT           * iparm    = pastix_data->iparm;
+  pastix_int_t           * iparm    = pastix_data->iparm;
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
   Order         * ordemesh = &(pastix_data->ordemesh);
-  PASTIX_INT             procnum  = pastix_data->procnum;
-  PASTIX_INT           * invp     = ordemesh->peritab;
+  pastix_int_t             procnum  = pastix_data->procnum;
+  pastix_int_t           * invp     = ordemesh->peritab;
   (void)loc2glob;
 
   /* Rhs taking from b */
@@ -698,12 +698,12 @@ int buildUpdoVect(pastix_data_t *pastix_data,
   loc2glob - global index of local columns.
 */
 
-void global2localrhs(PASTIX_INT     lN,
-                     PASTIX_FLOAT *lrhs,
-                     PASTIX_FLOAT *grhs,
-                     PASTIX_INT   *loc2glob)
+void global2localrhs(pastix_int_t     lN,
+                     pastix_float_t *lrhs,
+                     pastix_float_t *grhs,
+                     pastix_int_t   *loc2glob)
 {
-  PASTIX_INT   i;
+  pastix_int_t   i;
 
   for (i = 0; i < lN; i++)
     lrhs[i] = grhs [loc2glob[i]-1];
@@ -721,12 +721,12 @@ void global2localrhs(PASTIX_INT     lN,
   gperm    - global permutation tabular.
   loc2glob - global index of local columns.
 */
-void global2localperm(PASTIX_INT  lN,
-                      PASTIX_INT *lperm,
-                      PASTIX_INT *gperm,
-                      PASTIX_INT *loc2glob)
+void global2localperm(pastix_int_t  lN,
+                      pastix_int_t *lperm,
+                      pastix_int_t *gperm,
+                      pastix_int_t *loc2glob)
 {
-  PASTIX_INT   i;
+  pastix_int_t   i;
   for (i = 0; i < lN; i++)
     {
       lperm[i] = gperm[loc2glob[i]-1];
@@ -744,10 +744,10 @@ void global2localperm(PASTIX_INT  lN,
    Returns:
    SolverMatrix size.
 */
-PASTIX_INT sizeofsolver(SolverMatrix *solvptr, PASTIX_INT *iparm)
+pastix_int_t sizeofsolver(SolverMatrix *solvptr, pastix_int_t *iparm)
 {
-  PASTIX_INT result=sizeof(SolverMatrix);
-  PASTIX_INT iter;
+  pastix_int_t result=sizeof(SolverMatrix);
+  pastix_int_t iter;
 
   /* symbol */
   result += solvptr->cblknbr*sizeof(SymbolCblk);
@@ -759,16 +759,16 @@ PASTIX_INT sizeofsolver(SolverMatrix *solvptr, PASTIX_INT *iparm)
   result += solvptr->ftgtnbr*sizeof(FanInTarget);
   result += solvptr->btagnbr*sizeof(BlockTarget);
   result += solvptr->bcofnbr*sizeof(BlockTarget);
-  result += solvptr->indnbr *sizeof(PASTIX_INT);
+  result += solvptr->indnbr *sizeof(pastix_int_t);
 
   /* task */
   result += solvptr->tasknbr*sizeof(Task);
-  result += solvptr->thrdnbr*sizeof(PASTIX_INT);
+  result += solvptr->thrdnbr*sizeof(pastix_int_t);
   for (iter=0; iter<solvptr->thrdnbr; iter++)
     {
-      result += solvptr->ttsknbr[iter]*sizeof(PASTIX_INT);
+      result += solvptr->ttsknbr[iter]*sizeof(pastix_int_t);
     }
-  result += solvptr->procnbr*sizeof(PASTIX_INT);
+  result += solvptr->procnbr*sizeof(pastix_int_t);
 
   /* Pour l'instant uniquement si on est en 1d */
   if (iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
@@ -777,13 +777,13 @@ PASTIX_INT sizeofsolver(SolverMatrix *solvptr, PASTIX_INT *iparm)
       result += solvptr->cblknbr      *sizeof(UpDownCblk);
       for (iter=0; iter<solvptr->cblknbr; iter++)
         {
-          result += 2*solvptr->updovct.cblktab[iter].browprocnbr*sizeof(PASTIX_INT);
+          result += 2*solvptr->updovct.cblktab[iter].browprocnbr*sizeof(pastix_int_t);
         }
-      result += solvptr->updovct.gcblk2listnbr*sizeof(PASTIX_INT);
-      result += solvptr->updovct.listptrnbr   *sizeof(PASTIX_INT);
-      result += 2*solvptr->updovct.listnbr    *sizeof(PASTIX_INT);
-      result += solvptr->updovct.loc2globnbr  *sizeof(PASTIX_INT);
-      result += solvptr->bloknbr              *sizeof(PASTIX_INT);
+      result += solvptr->updovct.gcblk2listnbr*sizeof(pastix_int_t);
+      result += solvptr->updovct.listptrnbr   *sizeof(pastix_int_t);
+      result += 2*solvptr->updovct.listnbr    *sizeof(pastix_int_t);
+      result += solvptr->updovct.loc2globnbr  *sizeof(pastix_int_t);
+      result += solvptr->bloknbr              *sizeof(pastix_int_t);
     }
 
   return result;
@@ -802,7 +802,7 @@ PASTIX_INT sizeofsolver(SolverMatrix *solvptr, PASTIX_INT *iparm)
  */
 void pastix_task_init(pastix_data_t **pastix_data,
                       MPI_Comm        pastix_comm,
-                      PASTIX_INT            *iparm,
+                      pastix_int_t            *iparm,
                       double         *dparm)
 {
 
@@ -940,7 +940,7 @@ void pastix_task_init(pastix_data_t **pastix_data,
   iparm       - integer paréameters.
   pastix_comm - PaStiX MPI communicator
 */
-void pastix_print_memory_usage(PASTIX_INT      *iparm,
+void pastix_print_memory_usage(pastix_int_t      *iparm,
                                MPI_Comm  pastix_comm)
 {
   unsigned long smem[2], rmem[2];
@@ -982,14 +982,14 @@ void pastix_print_memory_usage(PASTIX_INT      *iparm,
  *
  */
 void pastix_welcome_print(pastix_data_t *pastix_data,
-                          PASTIX_INT           *colptr,
-                          PASTIX_INT            ln)
+                          pastix_int_t           *colptr,
+                          pastix_int_t            ln)
 {
-  PASTIX_INT    * iparm = pastix_data->iparm;
+  pastix_int_t    * iparm = pastix_data->iparm;
   double * dparm = pastix_data->dparm;
-  PASTIX_INT      gN    = 0;
-  PASTIX_INT      lNnz  = 0;
-  PASTIX_INT      gNnz  = 0;
+  pastix_int_t      gN    = 0;
+  pastix_int_t      lNnz  = 0;
+  pastix_int_t      gNnz  = 0;
 
   if (colptr != NULL)
     lNnz = colptr[ln]-colptr[0];
@@ -1045,10 +1045,10 @@ void pastix_welcome_print(pastix_data_t *pastix_data,
 int pastix_order_save(Order        * ordemesh,
                       SCOTCH_Graph * grafmesh,
                       int            procnum,
-                      PASTIX_INT            ncol,
-                      PASTIX_INT          * colptr,
-                      PASTIX_INT          * rows,
-                      PASTIX_INT            strategy)
+                      pastix_int_t            ncol,
+                      pastix_int_t          * colptr,
+                      pastix_int_t          * rows,
+                      pastix_int_t            strategy)
 {
   FILE             * stream;
   int                retval     = NO_ERR;
@@ -1107,10 +1107,10 @@ int pastix_order_save(Order        * ordemesh,
 int pastix_order_load(Order        *  ordemesh,
                       SCOTCH_Graph *  grafmesh,
                       int             procnum,
-                      PASTIX_INT          *  ncol,
-                      PASTIX_INT          ** colptr,
-                      PASTIX_INT          ** rows,
-                      PASTIX_INT             strategy,
+                      pastix_int_t          *  ncol,
+                      pastix_int_t          ** colptr,
+                      pastix_int_t          ** rows,
+                      pastix_int_t             strategy,
                       MPI_Comm        comm)
 {
   FILE             * stream;
@@ -1153,12 +1153,12 @@ int pastix_order_load(Order        *  ordemesh,
       MPI_Bcast(ncol, 1, COMM_INT, 0, comm);
       if (procnum != 0)
         {
-          MALLOC_INTERN((*colptr), *ncol+1, PASTIX_INT);
+          MALLOC_INTERN((*colptr), *ncol+1, pastix_int_t);
         }
       MPI_Bcast(*colptr, *ncol+1, COMM_INT, 0, comm);
       if  (procnum != 0)
         {
-          MALLOC_INTERN(*rows, (*colptr)[*ncol]-(*colptr)[0], PASTIX_INT);
+          MALLOC_INTERN(*rows, (*colptr)[*ncol]-(*colptr)[0], pastix_int_t);
         }
       MPI_Bcast(*rows, (*colptr)[*ncol]-(*colptr)[0], COMM_INT, 0, comm);
     }
@@ -1180,11 +1180,11 @@ int pastix_order_load(Order        *  ordemesh,
   rows        - Row number of each non zeros.
 */
 int pastix_order_prepare_csc(pastix_data_t * pastix_data,
-                             PASTIX_INT             n,
-                             PASTIX_INT           * colptr,
-                             PASTIX_INT           * rows)
+                             pastix_int_t             n,
+                             pastix_int_t           * colptr,
+                             pastix_int_t           * rows)
 {
-  PASTIX_INT * iparm;
+  pastix_int_t * iparm;
   int procnum;
 
   iparm   = pastix_data->iparm;
@@ -1192,17 +1192,17 @@ int pastix_order_prepare_csc(pastix_data_t * pastix_data,
   /* Allocate a copy of col, row */
   pastix_data->bmalcolrow = 1;
   pastix_data->n2   = n;
-  MALLOC_INTERN(pastix_data->col2, (n+1),         PASTIX_INT);
-  MALLOC_INTERN(pastix_data->row2, (colptr[n]-1), PASTIX_INT);
-  memcpy((void*) pastix_data->col2,(void*)colptr,        (n+1)*sizeof(PASTIX_INT));
-  memcpy((void*) pastix_data->row2,(void*)rows,  (colptr[n]-1)*sizeof(PASTIX_INT));
+  MALLOC_INTERN(pastix_data->col2, (n+1),         pastix_int_t);
+  MALLOC_INTERN(pastix_data->row2, (colptr[n]-1), pastix_int_t);
+  memcpy((void*) pastix_data->col2,(void*)colptr,        (n+1)*sizeof(pastix_int_t));
+  memcpy((void*) pastix_data->row2,(void*)rows,  (colptr[n]-1)*sizeof(pastix_int_t));
 
   /* Symmetrize the graph */
   if (iparm[IPARM_SYM] == API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER)
     {
-      PASTIX_INT tmpn;
-      PASTIX_INT *tmpcol;
-      PASTIX_INT *tmprow;
+      pastix_int_t tmpn;
+      pastix_int_t *tmpcol;
+      pastix_int_t *tmprow;
 
       if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
         print_onempi("%s", OUT_SYMGRAPH);
@@ -1258,28 +1258,28 @@ int pastix_order_prepare_csc(pastix_data_t * pastix_data,
 */
 int pastix_task_scotch(pastix_data_t **pastix_data,
                        MPI_Comm        pastix_comm,
-                       PASTIX_INT             n,
-                       PASTIX_INT            *colptr,
-                       PASTIX_INT            *row,
-                       PASTIX_INT            *perm,
-                       PASTIX_INT            *invp)
+                       pastix_int_t             n,
+                       pastix_int_t            *colptr,
+                       pastix_int_t            *row,
+                       pastix_int_t            *perm,
+                       pastix_int_t            *invp)
 {
-  PASTIX_INT              * iparm       = (*pastix_data)->iparm;
-  PASTIX_INT             ** col2;
-  PASTIX_INT             ** row2;
+  pastix_int_t              * iparm       = (*pastix_data)->iparm;
+  pastix_int_t             ** col2;
+  pastix_int_t             ** row2;
 #ifdef WITH_SCOTCH
   SCOTCH_Graph     * grafmesh;
   SCOTCH_Strat       stratdat;
   char               strat[550];
-  PASTIX_INT               *colptr_schur  = NULL;
-  PASTIX_INT               *rows_schur    = NULL;
-  PASTIX_INT               *perm_schur    = NULL;
-  PASTIX_INT               *revperm_schur = NULL;
+  pastix_int_t               *colptr_schur  = NULL;
+  pastix_int_t               *rows_schur    = NULL;
+  pastix_int_t               *perm_schur    = NULL;
+  pastix_int_t               *revperm_schur = NULL;
 #endif
   Order            * ordemesh;
   Clock              timer1;
-  PASTIX_INT                procnum;
-  PASTIX_INT                iter;
+  pastix_int_t                procnum;
+  pastix_int_t                iter;
   int                retval     = NO_ERR;
   int                retval_rcv;
 
@@ -1320,9 +1320,9 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
   orderInit(ordemesh);
   if (iparm[IPARM_ORDERING] != API_ORDER_LOAD )
     {
-      MALLOC_INTERN(ordemesh->permtab, n,     PASTIX_INT);
-      MALLOC_INTERN(ordemesh->peritab, n,     PASTIX_INT);
-      MALLOC_INTERN(ordemesh->rangtab, n + 1, PASTIX_INT);
+      MALLOC_INTERN(ordemesh->permtab, n,     pastix_int_t);
+      MALLOC_INTERN(ordemesh->peritab, n,     pastix_int_t);
+      MALLOC_INTERN(ordemesh->rangtab, n + 1, pastix_int_t);
     }
   (*pastix_data)->malord=1;
 
@@ -1343,7 +1343,7 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
       {
         int ret;
 
-        if (sizeof(PASTIX_INT) != sizeof(SCOTCH_Num))
+        if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num))
           {
             errorPrint("Inconsistent integer type\n");
             retval = INTEGER_TYPE_ERR;
@@ -1366,12 +1366,12 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
             iparm[IPARM_ISOLATE_ZEROS] == API_YES)
           {
 
-            MALLOC_INTERN(colptr_schur, n+1, PASTIX_INT);
-            MALLOC_INTERN(rows_schur, (*col2)[n]-1, PASTIX_INT);
-            memcpy(colptr_schur, *col2, (n+1)*sizeof(PASTIX_INT));
-            memcpy(rows_schur,   *row2, ((*col2)[n] - 1)*sizeof(PASTIX_INT));
-            MALLOC_INTERN(perm_schur, n, PASTIX_INT);
-            MALLOC_INTERN(revperm_schur, n, PASTIX_INT);
+            MALLOC_INTERN(colptr_schur, n+1, pastix_int_t);
+            MALLOC_INTERN(rows_schur, (*col2)[n]-1, pastix_int_t);
+            memcpy(colptr_schur, *col2, (n+1)*sizeof(pastix_int_t));
+            memcpy(rows_schur,   *row2, ((*col2)[n] - 1)*sizeof(pastix_int_t));
+            MALLOC_INTERN(perm_schur, n, pastix_int_t);
+            MALLOC_INTERN(revperm_schur, n, pastix_int_t);
             CSC_isolate(n,
                         colptr_schur,
                         rows_schur,
@@ -1462,7 +1462,7 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
             if (iparm[IPARM_SCHUR] == API_YES ||
                 iparm[IPARM_ISOLATE_ZEROS] == API_YES)
               {
-                PASTIX_INT *tmpperm = NULL;
+                pastix_int_t *tmpperm = NULL;
                 /* Compute graph ordering */
                 ret =
                   SCOTCH_graphOrderList(grafmesh,
@@ -1493,10 +1493,10 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
                     ASSERT(perm_schur[iter] < n, MOD_SOPALIN);
                     ASSERT(perm_schur[iter] > -1, MOD_SOPALIN);
                   }
-                MALLOC_INTERN(tmpperm, n, PASTIX_INT);
+                MALLOC_INTERN(tmpperm, n, pastix_int_t);
                 for(iter = 0; iter < n; iter++)
                   tmpperm[iter] = ordemesh->permtab[perm_schur[iter]];
-                memcpy(ordemesh->permtab, tmpperm, n*sizeof(PASTIX_INT));
+                memcpy(ordemesh->permtab, tmpperm, n*sizeof(pastix_int_t));
                 memFree_null(tmpperm);
                 memFree_null(perm_schur);
                 for(iter = 0; iter < n; iter++)
@@ -1553,13 +1553,13 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
 
         /* Redimensionnement de rangtab a cblknbr */
         ordemesh->rangtab =
-          (PASTIX_INT *) memRealloc (ordemesh->rangtab,
-                              (ordemesh->cblknbr + 1)*sizeof (PASTIX_INT));
+          (pastix_int_t *) memRealloc (ordemesh->rangtab,
+                              (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
 
 #  ifdef FORGET_PARTITION
         {
           memFree_null(ordemesh->rangtab);
-          MALLOC_INTERN(ordemesh->rangtab, n+1, PASTIX_INT);
+          MALLOC_INTERN(ordemesh->rangtab, n+1, pastix_int_t);
           for (iter=0;iter<n+1;iter++)
             ordemesh->rangtab[iter] = iter;
           ordemesh->cblknbr = n;
@@ -1580,13 +1580,13 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
       break;
 #else /* METIS */
       {
-        PASTIX_INT  itervert;
-        PASTIX_INT  baseval;
-        PASTIX_INT  opt[8];
+        pastix_int_t  itervert;
+        pastix_int_t  baseval;
+        pastix_int_t  opt[8];
 
         baseval = 1;
 
-        if (sizeof(PASTIX_INT) != sizeof(int))
+        if (sizeof(pastix_int_t) != sizeof(int))
           {
             errorPrint("Inconsistent integer type\n");
             retval = INTEGER_TYPE_ERR;
@@ -1627,8 +1627,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
        */
     case API_ORDER_PERSONAL:
 
-      memcpy(ordemesh->permtab, perm, n*sizeof(PASTIX_INT));
-      memcpy(ordemesh->peritab, invp, n*sizeof(PASTIX_INT));
+      memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
+      memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
 
       for (iter=0; iter<n+1; iter++)
         ordemesh->rangtab[iter] = iter;
@@ -1688,8 +1688,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
    */
   if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL)
     {
-      memcpy(perm, ordemesh->permtab, n*sizeof(PASTIX_INT));
-      memcpy(invp, ordemesh->peritab, n*sizeof(PASTIX_INT));
+      memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
+      memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
     }
 
   iparm[IPARM_START_TASK]++;
@@ -1720,15 +1720,15 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
   pastix_comm  - MPI communicator.
 */
 int dpastix_order_prepare_cscd(pastix_data_t * pastix_data,
-                               PASTIX_INT             n,
-                               PASTIX_INT           * colptr,
-                               PASTIX_INT           * rows,
-                               PASTIX_INT           * loc2glob,
+                               pastix_int_t             n,
+                               pastix_int_t           * colptr,
+                               pastix_int_t           * rows,
+                               pastix_int_t           * loc2glob,
                                MPI_Comm        pastix_comm)
 {
-  PASTIX_INT   gN;
-  PASTIX_INT * iparm;
-  PASTIX_INT   i;
+  pastix_int_t   gN;
+  pastix_int_t * iparm;
+  pastix_int_t   i;
   int   OK, OKRecv;
   int * alln         = NULL;
   int   nlocal;
@@ -1745,12 +1745,12 @@ int dpastix_order_prepare_cscd(pastix_data_t * pastix_data,
     }
   /* Copy the cscd */
   pastix_data->n2 = n;
-  MALLOC_INTERN(pastix_data->col2, n+1, PASTIX_INT);
-  memcpy(pastix_data->col2, colptr, (n+1)*sizeof(PASTIX_INT));
-  MALLOC_INTERN(pastix_data->loc2glob2, n, PASTIX_INT);
-  memcpy((pastix_data->loc2glob2), loc2glob, n*sizeof(PASTIX_INT));
-  MALLOC_INTERN(pastix_data->row2, colptr[n]-1, PASTIX_INT);
-  memcpy(pastix_data->row2, rows, (colptr[n]-1)*sizeof(PASTIX_INT));
+  MALLOC_INTERN(pastix_data->col2, n+1, pastix_int_t);
+  memcpy(pastix_data->col2, colptr, (n+1)*sizeof(pastix_int_t));
+  MALLOC_INTERN(pastix_data->loc2glob2, n, pastix_int_t);
+  memcpy((pastix_data->loc2glob2), loc2glob, n*sizeof(pastix_int_t));
+  MALLOC_INTERN(pastix_data->row2, colptr[n]-1, pastix_int_t);
+  memcpy(pastix_data->row2, rows, (colptr[n]-1)*sizeof(pastix_int_t));
 
   gN = 0;
   MPI_Allreduce(&n, &gN, 1, COMM_INT, MPI_SUM, pastix_comm);
@@ -1762,9 +1762,9 @@ int dpastix_order_prepare_cscd(pastix_data_t * pastix_data,
       /* Build non oriented graph */
       /* build non symmetric csc from symmetric csc */
       /*maillage global*/
-      PASTIX_INT *tmpia;
-      PASTIX_INT *tmpja;
-      PASTIX_INT  tmpn;
+      pastix_int_t *tmpia;
+      pastix_int_t *tmpja;
+      pastix_int_t  tmpn;
 
       cscd_symgraph_int(pastix_data->n2,   pastix_data->col2,  pastix_data->row2 , NULL,
                         &tmpn, &tmpia, &tmpja, NULL,
@@ -1822,14 +1822,14 @@ int dpastix_order_prepare_cscd(pastix_data_t * pastix_data,
           for (i = 0; i < n; i++)
             pastix_data->loc2glob2[i] = displs[pastix_data->procnum]+1+i;
 
-          MALLOC_INTERN(pastix_data->PTS_peritab, gN, PASTIX_INT);
+          MALLOC_INTERN(pastix_data->PTS_peritab, gN, pastix_int_t);
           MPI_Allgatherv(loc2glob, n, COMM_INT,
                          pastix_data->PTS_peritab, alln, displs, COMM_INT,
                          pastix_comm);
 
           memFree_null(displs);
           memFree_null(alln);
-          MALLOC_INTERN(pastix_data->PTS_permtab, gN, PASTIX_INT);
+          MALLOC_INTERN(pastix_data->PTS_permtab, gN, pastix_int_t);
           for (i = 0; i < gN; i++)
             pastix_data->PTS_permtab[pastix_data->PTS_peritab[i]-1] = i+1;
 
@@ -1874,39 +1874,39 @@ int dpastix_order_prepare_cscd(pastix_data_t * pastix_data,
 */
 int dpastix_task_scotch(pastix_data_t ** pastix_data,
                         MPI_Comm         pastix_comm,
-                        PASTIX_INT              n,
-                        PASTIX_INT            * colptr,
-                        PASTIX_INT            * row,
-                        PASTIX_INT            * perm,
-                        PASTIX_INT            * invp,
-                        PASTIX_INT            * loc2glob)
+                        pastix_int_t              n,
+                        pastix_int_t            * colptr,
+                        pastix_int_t            * row,
+                        pastix_int_t            * perm,
+                        pastix_int_t            * invp,
+                        pastix_int_t            * loc2glob)
 {
 #  ifndef WITH_SCOTCH
   errorPrint("Distributed PaStiX calls only works with -DWITH_SCOTCH");
   RETURN_ERROR(BADPARAMETER_ERR);
 #  else
-  PASTIX_INT              * iparm       = (*pastix_data)->iparm;
-  PASTIX_INT              * n2;
-  PASTIX_INT             ** col2;
-  PASTIX_INT             ** row2;
-  PASTIX_INT             ** loc2glob2;
+  pastix_int_t              * iparm       = (*pastix_data)->iparm;
+  pastix_int_t              * n2;
+  pastix_int_t             ** col2;
+  pastix_int_t             ** row2;
+  pastix_int_t             ** loc2glob2;
   SCOTCH_Graph     * grafmesh;
   SCOTCH_Dordering * ordedat;
   SCOTCH_Ordering    ordering;
   SCOTCH_Dgraph    * dgraph;
   SCOTCH_Strat       stratdat;
   Order            * ordemesh;
-  PASTIX_INT                gN;
+  pastix_int_t                gN;
   Clock              timer1;
   char               strat[550];
-  PASTIX_INT                i;
-  PASTIX_INT                procnum;
+  pastix_int_t                i;
+  pastix_int_t                procnum;
   int                retval     = NO_ERR;
   int                retval_rcv;
 
   print_debug(DBG_STEP,"-> pastix_task_scotch\n");
 
-  if (sizeof(PASTIX_INT) != sizeof(SCOTCH_Num))
+  if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num))
     {
       errorPrint("Inconsistent integer type\n");
       RETURN_ERROR(INTEGER_TYPE_ERR);
@@ -2075,9 +2075,9 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
       gN = 0;
       MPI_Allreduce(&n, &gN, 1, COMM_INT, MPI_SUM, pastix_comm);
 
-      MALLOC_INTERN(ordemesh->rangtab, gN+1, PASTIX_INT);
-      MALLOC_INTERN(ordemesh->permtab, gN,   PASTIX_INT);
-      MALLOC_INTERN(ordemesh->peritab, gN,   PASTIX_INT);
+      MALLOC_INTERN(ordemesh->rangtab, gN+1, pastix_int_t);
+      MALLOC_INTERN(ordemesh->permtab, gN,   pastix_int_t);
+      MALLOC_INTERN(ordemesh->peritab, gN,   pastix_int_t);
 
       (*pastix_data)->malord=1;
 
@@ -2120,9 +2120,9 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
 
       if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
         {
-          PASTIX_INT nsave;
-          PASTIX_INT * colptrsave = NULL;
-          PASTIX_INT * rowsave    = NULL;
+          pastix_int_t nsave;
+          pastix_int_t * colptrsave = NULL;
+          pastix_int_t * rowsave    = NULL;
           if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE_CSC))
             {
               cscd2csc_int((*pastix_data)->n2, (*pastix_data)->col2, (*pastix_data)->row2, NULL,
@@ -2151,9 +2151,9 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
 
 #    ifdef FORGET_PARTITION
       {
-        PASTIX_INT iter;
+        pastix_int_t iter;
         memFree_null(ordemesh->rangtab);
-        MALLOC_INTERN(ordemesh->rangtab, n+1, PASTIX_INT);
+        MALLOC_INTERN(ordemesh->rangtab, n+1, pastix_int_t);
         for (iter=0;iter<n+1;iter++)
           ordemesh->rangtab[iter]=iter;
         ordemesh->cblknbr=n;
@@ -2163,11 +2163,11 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
       break;
     case API_ORDER_PERSONAL:
       {
-        PASTIX_INT iter;
-        PASTIX_INT * tmpperm = NULL;
+        pastix_int_t iter;
+        pastix_int_t * tmpperm = NULL;
         gN = 0;
         MPI_Allreduce(&n, &gN, 1, COMM_INT, MPI_SUM, pastix_comm);
-        MALLOC_INTERN(tmpperm, gN, PASTIX_INT);
+        MALLOC_INTERN(tmpperm, gN, pastix_int_t);
         /* Clean ordering if it exists */
         if ((*pastix_data)->malord)
           {
@@ -2181,15 +2181,15 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
         gN = 0;
         MPI_Allreduce(&n, &gN, 1, COMM_INT, MPI_SUM, pastix_comm);
 
-        MALLOC_INTERN(ordemesh->rangtab, gN+1, PASTIX_INT);
-        memset(ordemesh->rangtab, 0,(gN+1)*sizeof(PASTIX_INT));
-        MALLOC_INTERN(ordemesh->permtab, gN,   PASTIX_INT);
-        MALLOC_INTERN(ordemesh->peritab, gN,   PASTIX_INT);
+        MALLOC_INTERN(ordemesh->rangtab, gN+1, pastix_int_t);
+        memset(ordemesh->rangtab, 0,(gN+1)*sizeof(pastix_int_t));
+        MALLOC_INTERN(ordemesh->permtab, gN,   pastix_int_t);
+        MALLOC_INTERN(ordemesh->peritab, gN,   pastix_int_t);
 
         (*pastix_data)->malord=1;
 
-        memset(tmpperm, 0, gN*sizeof(PASTIX_INT));
-        memset(ordemesh->permtab, 0, gN*sizeof(PASTIX_INT));
+        memset(tmpperm, 0, gN*sizeof(pastix_int_t));
+        memset(ordemesh->permtab, 0, gN*sizeof(pastix_int_t));
         for (iter = 0; iter < n; iter++)
           tmpperm[loc2glob[iter]-1] = perm[iter]-1;
 
@@ -2206,9 +2206,9 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
       }
     case API_ORDER_LOAD:
       {
-        PASTIX_INT   nload;
-        PASTIX_INT * colptrload;
-        PASTIX_INT * rowload;
+        pastix_int_t   nload;
+        pastix_int_t * colptrload;
+        pastix_int_t * rowload;
 
 
         pastix_order_load(ordemesh,
@@ -2255,24 +2255,24 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
 
 */
 void pastix_task_fax(pastix_data_t ** pastix_data, MPI_Comm pastix_comm,
-                     PASTIX_INT * perm, PASTIX_INT * invp, int flagWinvp)
+                     pastix_int_t * perm, pastix_int_t * invp, int flagWinvp)
 {
-  PASTIX_INT           * iparm      =   (*pastix_data)->iparm;
+  pastix_int_t           * iparm      =   (*pastix_data)->iparm;
   Order         * ordemesh   = &((*pastix_data)->ordemesh);
 #ifdef WITH_SCOTCH
   SCOTCH_Graph  * grafmesh   = &((*pastix_data)->grafmesh);
 #endif
-  PASTIX_INT             procnum    =   (*pastix_data)->procnum;;
+  pastix_int_t             procnum    =   (*pastix_data)->procnum;;
   FILE          * stream;
 #ifdef DISTRIBUTED
-  PASTIX_INT           * PTS_perm     = (*pastix_data)->PTS_permtab;
-  PASTIX_INT           * PTS_rev_perm = (*pastix_data)->PTS_peritab;
-  PASTIX_INT           * tmpperm      = NULL;
-  PASTIX_INT           * tmpperi      = NULL;
-  PASTIX_INT             gN;
-  PASTIX_INT             i;
+  pastix_int_t           * PTS_perm     = (*pastix_data)->PTS_permtab;
+  pastix_int_t           * PTS_rev_perm = (*pastix_data)->PTS_peritab;
+  pastix_int_t           * tmpperm      = NULL;
+  pastix_int_t           * tmpperi      = NULL;
+  pastix_int_t             gN;
+  pastix_int_t             i;
 #endif
-  PASTIX_INT             n;
+  pastix_int_t             n;
 
   if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
     print_onempi("%s", OUT_STEP_FAX);
@@ -2345,9 +2345,9 @@ void pastix_task_fax(pastix_data_t ** pastix_data, MPI_Comm pastix_comm,
 
           if(iparm[IPARM_LEVEL_OF_FILL] == -1)
             {
-              PASTIX_INT nkass;
-              PASTIX_INT * colptrkass;
-              PASTIX_INT * rowkass;
+              pastix_int_t nkass;
+              pastix_int_t * colptrkass;
+              pastix_int_t * rowkass;
 
               if (iparm[IPARM_GRAPHDIST] == API_YES)
                 {
@@ -2402,9 +2402,9 @@ void pastix_task_fax(pastix_data_t ** pastix_data, MPI_Comm pastix_comm,
         }
       else /* iparm[IPARM_INCOMPLETE] != API_NO */
         {
-          PASTIX_INT nkass;
-          PASTIX_INT * colptrkass;
-          PASTIX_INT * rowkass;
+          pastix_int_t nkass;
+          pastix_int_t * colptrkass;
+          pastix_int_t * rowkass;
 
           if (iparm[IPARM_GRAPHDIST] == API_YES)
             {
@@ -2457,8 +2457,8 @@ void pastix_task_fax(pastix_data_t ** pastix_data, MPI_Comm pastix_comm,
         {
           gN = n;
 
-          MALLOC_INTERN(tmpperm, gN, PASTIX_INT);
-          MALLOC_INTERN(tmpperi, gN, PASTIX_INT);
+          MALLOC_INTERN(tmpperm, gN, pastix_int_t);
+          MALLOC_INTERN(tmpperi, gN, pastix_int_t);
           for (i = 0; i < gN; i++)
             tmpperm[i] = ordemesh->permtab[PTS_perm[i]-1];
 
@@ -2481,8 +2481,8 @@ void pastix_task_fax(pastix_data_t ** pastix_data, MPI_Comm pastix_comm,
             errorPrintW("perm and invp can be modified during symbolic factorization.");
 
 
-      memcpy(perm, ordemesh->permtab, n*sizeof(PASTIX_INT));
-      memcpy(invp, ordemesh->peritab, n*sizeof(PASTIX_INT));
+      memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
+      memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
 
       if ((*pastix_data)->bmalcolrow == 1)
         {
@@ -2536,14 +2536,14 @@ void pastix_task_fax(pastix_data_t ** pastix_data, MPI_Comm pastix_comm,
   flagWinvp   - flag to indicate if we have to print warning concerning perm and invp modification.
 
 */
-void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, PASTIX_INT n,
-                      PASTIX_INT * perm, PASTIX_INT * loc2glob, int flagWinvp)
+void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_int_t n,
+                      pastix_int_t * perm, pastix_int_t * loc2glob, int flagWinvp)
 {
-  PASTIX_INT   * gperm   = NULL;
-  PASTIX_INT   * ginvp   = NULL;
-  PASTIX_INT     gN;
-  PASTIX_INT     my_n;
-  PASTIX_INT   * my_perm = NULL;
+  pastix_int_t   * gperm   = NULL;
+  pastix_int_t   * ginvp   = NULL;
+  pastix_int_t     gN;
+  pastix_int_t     my_n;
+  pastix_int_t   * my_perm = NULL;
   (void)pastix_comm;
 
   /* Note: for AUTOSPLI_COMM
@@ -2564,7 +2564,7 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, PASTIX_I
     {
       if (my_n != n)
         {
-          MALLOC_INTERN(my_perm, my_n, PASTIX_INT);
+          MALLOC_INTERN(my_perm, my_n, pastix_int_t);
           perm = my_perm;
           if (pastix_data->procnum == 0)
             errorPrintW("User's perm array is invalid and will be unusable with IPARM_AUTOSPLIT_COMM");
@@ -2574,8 +2574,8 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, PASTIX_I
         {
           gN = 0;
           MPI_Allreduce(&my_n, &gN, 1, COMM_INT, MPI_SUM, pastix_data->inter_node_comm);
-          MALLOC_INTERN(gperm, gN, PASTIX_INT);
-          MALLOC_INTERN(ginvp, gN, PASTIX_INT);
+          MALLOC_INTERN(gperm, gN, pastix_int_t);
+          MALLOC_INTERN(ginvp, gN, pastix_int_t);
         }
       pastix_task_fax(&pastix_data, pastix_data->inter_node_comm,
                       gperm, ginvp, flagWinvp);
@@ -2606,9 +2606,9 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, PASTIX_I
            ( pastix_data->iparm[IPARM_INCOMPLETE] == API_YES &&
              pastix_data->iparm[IPARM_GRAPHDIST] == API_YES ) )
         {
-          PASTIX_INT nkass;
-          PASTIX_INT * colptrkass;
-          PASTIX_INT * rowkass;
+          pastix_int_t nkass;
+          pastix_int_t * colptrkass;
+          pastix_int_t * rowkass;
 
           CSC_sort(pastix_data->n2, pastix_data->col2, pastix_data->row2, NULL);
 
@@ -2659,10 +2659,10 @@ void pastix_task_blend(pastix_data_t **pastix_data,
   Assembly1D     assemb1D;
   Assembly2D     assemb2D;
   int            procnbr  = (*pastix_data)->inter_node_procnbr;
-  PASTIX_INT           *iparm    = (*pastix_data)->iparm;
+  pastix_int_t           *iparm    = (*pastix_data)->iparm;
   double        *dparm    = (*pastix_data)->dparm;
   SolverMatrix  *solvmatr = &((*pastix_data)->solvmatr);
-  PASTIX_INT            procnum  = (*pastix_data)->inter_node_procnum;;
+  pastix_int_t            procnum  = (*pastix_data)->inter_node_procnum;;
   (void)pastix_comm;
 
   /* Si on refait blend on doit jeter nos ancien coefs */
@@ -2762,7 +2762,7 @@ void pastix_task_blend(pastix_data_t **pastix_data,
     }
   if ((iparm[IPARM_VERBOSE] > API_VERBOSE_NO))
     {
-      PASTIX_INT solversize = sizeofsolver(solvmatr, iparm);
+      pastix_int_t solversize = sizeofsolver(solvmatr, iparm);
 
       fprintf(stdout,SOLVMTX_WITHOUT_CO,  (int)procnum, (double)MEMORY_WRITE(solversize),
               MEMORY_UNIT_WRITE(solversize));
@@ -2770,14 +2770,14 @@ void pastix_task_blend(pastix_data_t **pastix_data,
     }
   if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
     {
-      PASTIX_INT sizeL = solvmatr->coefnbr;
-      PASTIX_INT sizeG = 0;
+      pastix_int_t sizeL = solvmatr->coefnbr;
+      pastix_int_t sizeG = 0;
 
       MPI_Reduce(&sizeL, &sizeG, 1, COMM_INT, MPI_MAX, 0, pastix_comm);
 
       if (procnum == 0)
         {
-          sizeG *= sizeof(PASTIX_FLOAT);
+          sizeG *= sizeof(pastix_float_t);
           if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
             sizeG *= 2;
 
@@ -2815,7 +2815,7 @@ void pastix_task_blend(pastix_data_t **pastix_data,
 static inline
 int sopalin_check_param(pastix_data_t *pastix_data)
 {
-  PASTIX_INT           * iparm    = pastix_data->iparm;
+  pastix_int_t           * iparm    = pastix_data->iparm;
   int             ret      = NO_ERR;
   int             ret_recv = NO_ERR;
 
@@ -2853,7 +2853,7 @@ static inline
 int pastix_check_param(pastix_data_t * pastix_data, int rhsnbr)
 {
   int ret = NO_ERR, ret_recv;
-  PASTIX_INT * iparm = pastix_data->iparm;
+  pastix_int_t * iparm = pastix_data->iparm;
 
   if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD_CSC) ||
       PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD_GRAPH))
@@ -2936,30 +2936,30 @@ int pastix_check_param(pastix_data_t * pastix_data, int rhsnbr)
  */
 int pastix_fake_fillin_csc( pastix_data_t *pastix_data,
                             MPI_Comm       pastix_comm,
-                            PASTIX_INT     n,
-                            PASTIX_INT    *colptr,
-                            PASTIX_INT    *row,
-                            PASTIX_FLOAT  *avals,
-                            PASTIX_FLOAT  *b,
-                            PASTIX_INT     nrhs,
-                            PASTIX_INT    *loc2glob)
+                            pastix_int_t     n,
+                            pastix_int_t    *colptr,
+                            pastix_int_t    *row,
+                            pastix_float_t  *avals,
+                            pastix_float_t  *b,
+                            pastix_int_t     nrhs,
+                            pastix_int_t    *loc2glob)
 {
 #  ifdef DISTRIBUTED
-  PASTIX_INT     *iparm    = pastix_data->iparm;
-  PASTIX_INT     *l_colptr = NULL;
-  PASTIX_INT     *l_row    = NULL;
-  PASTIX_FLOAT   *l_val    = NULL;
-  PASTIX_INT     *l_l2g    = NULL;
-  PASTIX_FLOAT   *l_b      = NULL;
-  PASTIX_INT      l_n      = 0;
+  pastix_int_t     *iparm    = pastix_data->iparm;
+  pastix_int_t     *l_colptr = NULL;
+  pastix_int_t     *l_row    = NULL;
+  pastix_float_t   *l_val    = NULL;
+  pastix_int_t     *l_l2g    = NULL;
+  pastix_float_t   *l_b      = NULL;
+  pastix_int_t      l_n      = 0;
   int             mal_l_l2g = API_NO;
   int             mal_l_b   = API_NO;
   int             OK       = 0;
   int             OK_RECV  = 0;
   int             retval = NO_ERR;
   int             retval_recv;
-  PASTIX_INT      iter;
-  PASTIX_INT      gN = -1;
+  pastix_int_t      iter;
+  pastix_int_t      gN = -1;
   (void)pastix_comm; (void)nrhs;
 
   if (iparm[IPARM_GRAPHDIST] == API_YES)
@@ -3077,25 +3077,25 @@ int pastix_fake_fillin_csc( pastix_data_t *pastix_data,
  */
 int pastix_fillin_csc( pastix_data_t *pastix_data,
                        MPI_Comm       pastix_comm,
-                       PASTIX_INT            n,
-                       PASTIX_INT           *colptr,
-                       PASTIX_INT           *row,
-                       PASTIX_FLOAT         *avals,
-                       PASTIX_FLOAT         *b,
-                       PASTIX_INT            nrhs,
-                       PASTIX_INT           *loc2glob)
+                       pastix_int_t            n,
+                       pastix_int_t           *colptr,
+                       pastix_int_t           *row,
+                       pastix_float_t         *avals,
+                       pastix_float_t         *b,
+                       pastix_int_t            nrhs,
+                       pastix_int_t           *loc2glob)
 {
-  PASTIX_INT            *iparm    = pastix_data->iparm;
+  pastix_int_t            *iparm    = pastix_data->iparm;
   SolverMatrix   *solvmatr = &(pastix_data->solvmatr);
   Order          *ordemesh = &(pastix_data->ordemesh);
-  PASTIX_INT            *l_colptr = NULL;
-  PASTIX_INT            *l_row    = NULL;
-  PASTIX_FLOAT          *l_val    = NULL;
-  PASTIX_INT            *l_l2g    = loc2glob;
-  PASTIX_FLOAT          *l_b      = NULL;
-  PASTIX_INT             l_n      = n;
-  PASTIX_FLOAT         **transcsc = NULL;
-  PASTIX_INT             procnum  = pastix_data->procnum;
+  pastix_int_t            *l_colptr = NULL;
+  pastix_int_t            *l_row    = NULL;
+  pastix_float_t          *l_val    = NULL;
+  pastix_int_t            *l_l2g    = loc2glob;
+  pastix_float_t          *l_b      = NULL;
+  pastix_int_t             l_n      = n;
+  pastix_float_t         **transcsc = NULL;
+  pastix_int_t             procnum  = pastix_data->procnum;
   int             malcsc   = 0;
   int             forcetr  = 0;
   char            Type[4];
@@ -3109,8 +3109,8 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
   int             OK_RECV  = 0;
   int             retval = NO_ERR;
   int             retval_recv;
-  PASTIX_INT             iter;
-  PASTIX_INT             gN = -1;
+  pastix_int_t             iter;
+  pastix_int_t             gN = -1;
 
   if (iparm[IPARM_GRAPHDIST] == API_YES)
     {
@@ -3121,7 +3121,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
         {
           /* Test que la cscd utilisateur correspond a la cscd pastix */
           l_n = pastix_getLocalNodeNbr(&pastix_data);
-          MALLOC_INTERN(l_l2g, l_n, PASTIX_INT);
+          MALLOC_INTERN(l_l2g, l_n, pastix_int_t);
           if (l_l2g != NULL) mal_l_l2g = API_YES;
           pastix_getLocalNodeLst(&pastix_data, l_l2g);
 
@@ -3319,7 +3319,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
       if (iparm[IPARM_SCHUR] == API_YES && pastix_data->schur_tab_set == API_YES)
         {
           SolverMatrix * datacode = &(pastix_data->solvmatr);
-          PASTIX_INT            cblk;
+          pastix_int_t            cblk;
 
           if (SOLV_TASKNBR > 0)
             {
@@ -3342,7 +3342,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
       if (iparm[IPARM_SCHUR] == API_YES && pastix_data->schur_tab_set == API_YES)
         {
           SolverMatrix * datacode = &(pastix_data->solvmatr);
-          PASTIX_INT            cblk;
+          pastix_int_t            cblk;
 
           if (SOLV_TASKNBR > 0)
             {
@@ -3380,24 +3380,24 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
 */
 int pastix_task_sopalin( pastix_data_t *pastix_data,
                          MPI_Comm       pastix_comm,
-                         PASTIX_INT            n,
-                         PASTIX_INT           *colptr,
-                         PASTIX_INT           *row,
-                         PASTIX_FLOAT         *avals,
-                         PASTIX_FLOAT         *b,
-                         PASTIX_INT            rhsnbr,
-                         PASTIX_INT           *loc2glob)
+                         pastix_int_t            n,
+                         pastix_int_t           *colptr,
+                         pastix_int_t           *row,
+                         pastix_float_t         *avals,
+                         pastix_float_t         *b,
+                         pastix_int_t            rhsnbr,
+                         pastix_int_t           *loc2glob)
 {
   long            spivot, rpivot;
   double          sfacttime, rfacttime;
   double          ssolvtime,rsolvtime;
   double          srafftime,rrafftime;
-  PASTIX_INT           * iparm    = pastix_data->iparm;
+  pastix_int_t           * iparm    = pastix_data->iparm;
   double        * dparm    = pastix_data->dparm;
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
   Order         * ordemesh = &(pastix_data->ordemesh);
   SopalinParam  * sopar    = &(pastix_data->sopar);
-  PASTIX_INT             procnum  = pastix_data->inter_node_procnum;
+  pastix_int_t             procnum  = pastix_data->inter_node_procnum;
   int             ret = 0;
 
   print_debug(DBG_STEP, "->API_TASK_NUMFACT\n");
@@ -3557,7 +3557,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
           solvmatr->updovct.sm2xnbr = rhsnbr;
           MALLOC_INTERN(solvmatr->updovct.sm2xtab,
                         solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                        PASTIX_FLOAT);
+                        pastix_float_t);
 
           pastix_data->malsmx=1;
 
@@ -3581,10 +3581,10 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
               /* Only 1 rhs is saved in sopar->b */
               if (sopar->b == NULL)
                 {
-                  MALLOC_INTERN(sopar->b, solvmatr->updovct.sm2xsze, PASTIX_FLOAT);
+                  MALLOC_INTERN(sopar->b, solvmatr->updovct.sm2xsze, pastix_float_t);
                 }
               memcpy(sopar->b, solvmatr->updovct.sm2xtab,
-                     solvmatr->updovct.sm2xsze*sizeof(PASTIX_FLOAT));
+                     solvmatr->updovct.sm2xsze*sizeof(pastix_float_t));
             }
 
           switch(iparm[IPARM_FACTORIZATION])
@@ -3649,7 +3649,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
           solvmatr->updovct.sm2xnbr = 1;
           MALLOC_INTERN(solvmatr->updovct.sm2xtab,
                         solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                        PASTIX_FLOAT);
+                        pastix_float_t);
           pastix_data->malsmx=1;
 
           buildUpdoVect(pastix_data,
@@ -3667,10 +3667,10 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
             {
               MALLOC_INTERN(sopar->b,
                             solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                            PASTIX_FLOAT);
+                            pastix_float_t);
             }
           memcpy(sopar->b, solvmatr->updovct.sm2xtab,
-                 solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze*sizeof(PASTIX_FLOAT));
+                 solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze*sizeof(pastix_float_t));
         }
 
       sopar->itermax     = iparm[IPARM_ITERMAX];
@@ -3875,17 +3875,17 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
 */
 void pastix_task_updown(pastix_data_t *pastix_data,
                         MPI_Comm       pastix_comm,
-                        PASTIX_INT            n,
-                        PASTIX_FLOAT         *b,
-                        PASTIX_INT            rhsnbr,
-                        PASTIX_INT           *loc2glob)
+                        pastix_int_t            n,
+                        pastix_float_t         *b,
+                        pastix_int_t            rhsnbr,
+                        pastix_int_t           *loc2glob)
 {
-  PASTIX_INT           * iparm    = pastix_data->iparm;
+  pastix_int_t           * iparm    = pastix_data->iparm;
   double        * dparm    = pastix_data->dparm;
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
   SopalinParam  * sopar    = &(pastix_data->sopar);
   Order         * ordemesh = &(pastix_data->ordemesh);
-  PASTIX_INT             procnum  = pastix_data->procnum;
+  pastix_int_t             procnum  = pastix_data->procnum;
   double          ssolvtime,rsolvtime;
 
   print_debug(DBG_STEP,"-> pastix_task_updown\n");
@@ -3936,7 +3936,7 @@ void pastix_task_updown(pastix_data_t *pastix_data,
   solvmatr->updovct.sm2xnbr = rhsnbr;
   MALLOC_INTERN(solvmatr->updovct.sm2xtab,
                 solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                PASTIX_FLOAT);
+                pastix_float_t);
 
   pastix_data->malsmx=1;
 
@@ -3951,10 +3951,10 @@ void pastix_task_updown(pastix_data_t *pastix_data,
       /* Only 1 rhs is saved in sopar->b */
       if (sopar->b == NULL)
         {
-          MALLOC_INTERN(sopar->b, solvmatr->updovct.sm2xsze, PASTIX_FLOAT);
+          MALLOC_INTERN(sopar->b, solvmatr->updovct.sm2xsze, pastix_float_t);
         }
       memcpy(sopar->b, solvmatr->updovct.sm2xtab,
-             solvmatr->updovct.sm2xsze*sizeof(PASTIX_FLOAT));
+             solvmatr->updovct.sm2xsze*sizeof(pastix_float_t));
 
       sopar->iparm = iparm;
       sopar->dparm = dparm;
@@ -4031,19 +4031,19 @@ void pastix_task_updown(pastix_data_t *pastix_data,
 */
 void pastix_task_raff(pastix_data_t *pastix_data,
                       MPI_Comm       pastix_comm,
-                      PASTIX_INT            n,
-                      PASTIX_FLOAT         *b,
-                      PASTIX_INT            rhsnbr,
-                      PASTIX_INT           *loc2glob)
+                      pastix_int_t            n,
+                      pastix_float_t         *b,
+                      pastix_int_t            rhsnbr,
+                      pastix_int_t           *loc2glob)
 {
-  PASTIX_INT           * iparm    = pastix_data->iparm;
+  pastix_int_t           * iparm    = pastix_data->iparm;
   double        * dparm    = pastix_data->dparm;
   SopalinParam  * sopar    = &(pastix_data->sopar);
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
   Order         * ordemesh = &(pastix_data->ordemesh);
   double          srafftime,rrafftime;
-  PASTIX_INT             procnum  = pastix_data->procnum;;
-  PASTIX_FLOAT         * tmp;
+  pastix_int_t             procnum  = pastix_data->procnum;;
+  pastix_float_t         * tmp;
 
   print_debug(DBG_STEP, "->pastix_task_raff\n");
  #ifndef PASTIX_UPDO_ISEND
@@ -4089,7 +4089,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
         {
           MALLOC_INTERN(sopar->b,
                         solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                        PASTIX_FLOAT);
+                        pastix_float_t);
         }
 
       tmp = solvmatr->updovct.sm2xtab;
@@ -4207,8 +4207,8 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 void pastix_task_clean(pastix_data_t **pastix_data,
                        MPI_Comm        pastix_comm)
 {
-  PASTIX_INT             i;
-  PASTIX_INT           * iparm    = (*pastix_data)->iparm;
+  pastix_int_t             i;
+  pastix_int_t           * iparm    = (*pastix_data)->iparm;
   Order         * ordemesh = &((*pastix_data)->ordemesh);
   SopalinParam  * sopar    = &((*pastix_data)->sopar);
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
@@ -4240,7 +4240,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
       if (iparm[IPARM_SCHUR] == API_YES && (*pastix_data)->schur_tab_set == API_YES)
         {
           SolverMatrix * datacode = &((*pastix_data)->solvmatr);
-          PASTIX_INT            cblk;
+          pastix_int_t            cblk;
 
           if (SOLV_TASKNBR > 0)
             {
@@ -4420,7 +4420,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
   printf("CLEAN FIN\n");
 }
 
-void pastix_unscale(pastix_data_t *pastix_data, PASTIX_INT sym) {
+void pastix_unscale(pastix_data_t *pastix_data, pastix_int_t sym) {
 #ifndef FORCE_MPI
   int size;
   MPI_Comm_size(pastix_data->pastix_comm, &size);
@@ -4571,15 +4571,15 @@ void pastix_unscale(pastix_data_t *pastix_data, PASTIX_INT sym) {
  */
 void pastix(pastix_data_t **pastix_data,
             MPI_Comm        pastix_comm,
-            PASTIX_INT             n,
-            PASTIX_INT            *colptr,
-            PASTIX_INT            *row,
-            PASTIX_FLOAT          *avals,
-            PASTIX_INT            *perm,
-            PASTIX_INT            *invp,
-            PASTIX_FLOAT          *b,
-            PASTIX_INT             rhs,
-            PASTIX_INT            *iparm,
+            pastix_int_t             n,
+            pastix_int_t            *colptr,
+            pastix_int_t            *row,
+            pastix_float_t          *avals,
+            pastix_int_t            *perm,
+            pastix_int_t            *invp,
+            pastix_float_t          *b,
+            pastix_int_t             rhs,
+            pastix_int_t            *iparm,
             double         *dparm)
 {
   int flagWinvp = 1;
@@ -4655,26 +4655,26 @@ void pastix(pastix_data_t **pastix_data,
 
 #ifdef SEPARATE_ZEROS
     {
-      PASTIX_INT  n_nz       = 0;
-      PASTIX_INT *colptr_nz  = NULL;
-      PASTIX_INT *rows_nz    = NULL;
-      PASTIX_INT  n_z        = 0;
-      PASTIX_INT *colptr_z   = NULL;
-      PASTIX_INT *rows_z     = NULL;
-      PASTIX_INT *permz      = NULL;
-      PASTIX_INT *revpermz      = NULL;
+      pastix_int_t  n_nz       = 0;
+      pastix_int_t *colptr_nz  = NULL;
+      pastix_int_t *rows_nz    = NULL;
+      pastix_int_t  n_z        = 0;
+      pastix_int_t *colptr_z   = NULL;
+      pastix_int_t *rows_z     = NULL;
+      pastix_int_t *permz      = NULL;
+      pastix_int_t *revpermz      = NULL;
       int  ret;
       Order *ordemesh = &((*pastix_data)->ordemesh);
       Order *order    = NULL;
-      PASTIX_INT  iter;
+      pastix_int_t  iter;
 
       MALLOC_INTERN(order, 1, Order);
       orderInit(order);
-      MALLOC_INTERN(order->rangtab, n+1, PASTIX_INT);
-      MALLOC_INTERN(order->permtab, n,   PASTIX_INT);
+      MALLOC_INTERN(order->rangtab, n+1, pastix_int_t);
+      MALLOC_INTERN(order->permtab, n,   pastix_int_t);
 
-      MALLOC_INTERN(permz, n, PASTIX_INT);
-      MALLOC_INTERN(revpermz, n, PASTIX_INT);
+      MALLOC_INTERN(permz, n, pastix_int_t);
+      MALLOC_INTERN(revpermz, n, pastix_int_t);
 
       CSC_buildZerosAndNonZerosGraphs(n,
                                       colptr,
@@ -4709,7 +4709,7 @@ void pastix(pastix_data_t **pastix_data,
             order->permtab[revpermz[iter]-1] = ordemesh->permtab[iter];
           memcpy(order->rangtab,
                  ordemesh->rangtab,
-                 (ordemesh->cblknbr +1)*sizeof(PASTIX_INT));
+                 (ordemesh->cblknbr +1)*sizeof(pastix_int_t));
           order->cblknbr = ordemesh->cblknbr;
           iparm[IPARM_START_TASK]--;
           fprintf(stdout, ":: Scotch on zeros\n");
@@ -4740,7 +4740,7 @@ void pastix(pastix_data_t **pastix_data,
                 iparm[IPARM_ERROR_NUMBER] = ret;
                 WAIT_AND_RETURN;
               }
-          MALLOC_INTERN(order->peritab, n,   PASTIX_INT);
+          MALLOC_INTERN(order->peritab, n,   pastix_int_t);
           for (iter = 0; iter < n; iter++)
             {
               ASSERT(order->permtab[iter] < n, MOD_SOPALIN);
@@ -4781,9 +4781,9 @@ void pastix(pastix_data_t **pastix_data,
       {
         if (iparm[IPARM_ISOLATE_ZEROS] == API_YES)
           {
-            PASTIX_INT itercol;
-            PASTIX_INT iterrow;
-            PASTIX_INT iterschur = 0;
+            pastix_int_t itercol;
+            pastix_int_t iterrow;
+            pastix_int_t iterschur = 0;
             int found;
 
             (*pastix_data)->nschur=0;
@@ -4809,7 +4809,7 @@ void pastix(pastix_data_t **pastix_data,
               }
             MALLOC_INTERN((*pastix_data)->listschur,
                           (*pastix_data)->nschur,
-                          PASTIX_INT);
+                          pastix_int_t);
             for (itercol = 0; itercol < n; itercol++)
               {
                 found = API_NO;
@@ -4957,7 +4957,7 @@ void pastix(pastix_data_t **pastix_data,
              intern distribution */                             \
             if (b_int == NULL)                                  \
               {                                                 \
-                MALLOC_INTERN(b_int, ncol_int*rhs, PASTIX_FLOAT);      \
+                MALLOC_INTERN(b_int, ncol_int*rhs, pastix_float_t);      \
                 (*pastix_data)->b_int = b_int;                  \
               }                                                 \
             redispatch_rhs(n,                                   \
@@ -5029,26 +5029,26 @@ void pastix(pastix_data_t **pastix_data,
 #endif
 void dpastix(pastix_data_t **pastix_data,
              MPI_Comm        pastix_comm,
-             PASTIX_INT             n,
-             PASTIX_INT            *colptr,
-             PASTIX_INT            *row,
-             PASTIX_FLOAT          *avals,
-             PASTIX_INT            *loc2glob,
-             PASTIX_INT            *perm,
-             PASTIX_INT            *invp,
-             PASTIX_FLOAT          *b,
-             PASTIX_INT             rhs,
-             PASTIX_INT            *iparm,
+             pastix_int_t             n,
+             pastix_int_t            *colptr,
+             pastix_int_t            *row,
+             pastix_float_t          *avals,
+             pastix_int_t            *loc2glob,
+             pastix_int_t            *perm,
+             pastix_int_t            *invp,
+             pastix_float_t          *b,
+             pastix_int_t             rhs,
+             pastix_int_t            *iparm,
              double         *dparm)
 {
 #ifdef DISTRIBUTED
   int    flagWinvp               = 1;
-  PASTIX_INT    ncol_int                = 0;
-  PASTIX_INT   *l2g_int                 = NULL;
-  PASTIX_FLOAT *b_int                   = NULL;
+  pastix_int_t    ncol_int                = 0;
+  pastix_int_t   *l2g_int                 = NULL;
+  pastix_float_t *b_int                   = NULL;
   int    ret                     = NO_ERR;
   int    ret_rcv                 = NO_ERR;
-  PASTIX_INT    gN                      = -1;
+  pastix_int_t    gN                      = -1;
   int    rhs_need_redispatch     = API_NO;
   int    rhsHasBeenRedistributed = API_NO;
   int    mayNeedReturnSol        = API_NO;
@@ -5290,10 +5290,10 @@ void dpastix(pastix_data_t **pastix_data,
              iparm[IPARM_START_TASK] == API_TASK_REFINE ) &&
            iparm[IPARM_CSCD_CORRECT] == API_NO )
         {
-          PASTIX_INT my_n;
-          PASTIX_INT * my_l2g = NULL;
+          pastix_int_t my_n;
+          pastix_int_t * my_l2g = NULL;
           int OK, OK_RECV;
-          PASTIX_INT iter;
+          pastix_int_t iter;
           /* Test que la cscd utilisateur correspond a la cscd pastix */
           my_n = pastix_getLocalNodeNbr(pastix_data);
 
@@ -5307,7 +5307,7 @@ void dpastix(pastix_data_t **pastix_data,
               if ((*pastix_data)->l2g_int) {
                 my_l2g = (*pastix_data)->l2g_int;
               } else {
-                MALLOC_INTERN(my_l2g, my_n, PASTIX_INT);
+                MALLOC_INTERN(my_l2g, my_n, pastix_int_t);
                 pastix_getLocalNodeLst(pastix_data, my_l2g);
               }
               for (iter = 0; iter < my_n; iter++)
@@ -5419,7 +5419,7 @@ void dpastix(pastix_data_t **pastix_data,
   bindtab     - Tableau de correspondance entre chaque thread et coeur de la machine
 */
 
-void pastix_bindThreads ( pastix_data_t *pastix_data, PASTIX_INT thrdnbr, PASTIX_INT *bindtab)
+void pastix_bindThreads ( pastix_data_t *pastix_data, pastix_int_t thrdnbr, pastix_int_t *bindtab)
 {
   int i;
 
@@ -5484,26 +5484,26 @@ void pastix_bindThreads ( pastix_data_t *pastix_data, PASTIX_INT thrdnbr, PASTIX
  *   dof         - Number of degrees of freedom.
  *   flagalloc   - indicate if allocation on CSC uses internal malloc.
  */
-PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
-                           PASTIX_INT      verb,
-                           PASTIX_INT      flagsym,
-                           PASTIX_INT      flagcor,
-                           PASTIX_INT      n,
-                           PASTIX_INT    **colptr,
-                           PASTIX_INT    **row,
-                           PASTIX_FLOAT  **avals,
-                           PASTIX_INT    **loc2glob,
-                           PASTIX_INT      dof,
-                           PASTIX_INT      flagalloc)
+pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
+                           pastix_int_t      verb,
+                           pastix_int_t      flagsym,
+                           pastix_int_t      flagcor,
+                           pastix_int_t      n,
+                           pastix_int_t    **colptr,
+                           pastix_int_t    **row,
+                           pastix_float_t  **avals,
+                           pastix_int_t    **loc2glob,
+                           pastix_int_t      dof,
+                           pastix_int_t      flagalloc)
 {
   int  procnum;
   int  ret;
   int  OK;
   int  OK_RECV;
-  PASTIX_INT  old;
-  PASTIX_INT  i;
-  PASTIX_INT  l2g_sum_n[2];
-  PASTIX_INT  l2g_sum_n_reduced[2];
+  pastix_int_t  old;
+  pastix_int_t  i;
+  pastix_int_t  l2g_sum_n[2];
+  pastix_int_t  l2g_sum_n_reduced[2];
 
   MPI_Comm_rank(pastix_comm, &procnum);
 
@@ -5528,8 +5528,8 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
 
   if (loc2glob != NULL)
     {
-      PASTIX_INT l2g_OK;
-      PASTIX_INT l2g_OK_rcv;
+      pastix_int_t l2g_OK;
+      pastix_int_t l2g_OK_rcv;
       l2g_sum_n[0] = 0;
       l2g_sum_n[1] = n;
       l2g_OK       = 0;
@@ -5621,13 +5621,13 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
         }
     }
   {
-    PASTIX_INT cnt_lower     = 0;
-    PASTIX_INT cnt_upper     = 0;
-    PASTIX_INT cnt_diag      = 0;
-    PASTIX_INT cnt_num_zeros = 0;
-    PASTIX_INT globn         = n;
-    PASTIX_INT itercol;
-    PASTIX_INT iterrow;
+    pastix_int_t cnt_lower     = 0;
+    pastix_int_t cnt_upper     = 0;
+    pastix_int_t cnt_diag      = 0;
+    pastix_int_t cnt_num_zeros = 0;
+    pastix_int_t globn         = n;
+    pastix_int_t itercol;
+    pastix_int_t iterrow;
 
     for (itercol = 0; itercol < n; itercol ++)
       {
@@ -5660,8 +5660,8 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
 
     if (loc2glob != NULL)
       {
-        PASTIX_INT send_data[5];
-        PASTIX_INT recv_data[5];
+        pastix_int_t send_data[5];
+        pastix_int_t recv_data[5];
 
         send_data[0] = cnt_lower;
         send_data[1] = cnt_upper;
@@ -5691,10 +5691,10 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
           flagsym == API_SYM_HER ) &&
         flagcor == API_YES)
       {
-        PASTIX_INT index = 0;
-        PASTIX_INT lastindex = 0;
-        PASTIX_INT   * tmprows;
-        PASTIX_FLOAT * tmpvals;
+        pastix_int_t index = 0;
+        pastix_int_t lastindex = 0;
+        pastix_int_t   * tmprows;
+        pastix_float_t * tmpvals;
         errorPrintW("Upper and lower part given on a symmetric matrix, dropping upper");
         for (itercol = 0; itercol < n; itercol++)
           {
@@ -5716,14 +5716,14 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
             lastindex = index;
           }
         (*colptr)[n] = lastindex+1;
-        MALLOC_EXTERN(tmprows, lastindex, PASTIX_INT);
-        memcpy(tmprows, (*row),   lastindex*sizeof(PASTIX_INT));
+        MALLOC_EXTERN(tmprows, lastindex, pastix_int_t);
+        memcpy(tmprows, (*row),   lastindex*sizeof(pastix_int_t));
         free((*row));
         (*row) = tmprows;
         if (avals != NULL)
           {
-            MALLOC_EXTERN(tmpvals, lastindex, PASTIX_FLOAT);
-            memcpy(tmpvals, (*avals), lastindex*sizeof(PASTIX_FLOAT));
+            MALLOC_EXTERN(tmpvals, lastindex, pastix_float_t);
+            memcpy(tmpvals, (*avals), lastindex*sizeof(pastix_float_t));
             free((*avals));
             (*avals) = tmpvals;
           }
@@ -5745,7 +5745,7 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
   /* Pre-conditionnement mc64 */
 #ifdef SCALING
 #  ifdef MC64
-  if (sizeof(int) != sizeof(PASTIX_INT))
+  if (sizeof(int) != sizeof(pastix_int_t))
     {
       errorPrint("MC64 only works with classical integers\n");
       RETURN_ERROR(INTEGER_TYPE_ERR);
@@ -5758,29 +5758,29 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
 
   if ((flagcor == API_YES) && (iparm[IPARM_MC64] == 1))
     {
-      PASTIX_INT    job;
-      PASTIX_INT    m      = n;
-      PASTIX_INT    ne     = (*colptr)[n]-1;
-      PASTIX_INT    num;
-      PASTIX_INT   *p, *ip;
-      PASTIX_INT    liw    = 3*m+2*n+ne;
-      PASTIX_INT   *iw;
-      PASTIX_INT    ldw    = n+3*m+ne;
-      PASTIX_INT    nicntl = 10;
-      PASTIX_INT    ncntl  = 10;
-      PASTIX_INT   *icntl;
-      PASTIX_INT    info;
-      PASTIX_FLOAT *dw;
-      PASTIX_FLOAT *cntl;
+      pastix_int_t    job;
+      pastix_int_t    m      = n;
+      pastix_int_t    ne     = (*colptr)[n]-1;
+      pastix_int_t    num;
+      pastix_int_t   *p, *ip;
+      pastix_int_t    liw    = 3*m+2*n+ne;
+      pastix_int_t   *iw;
+      pastix_int_t    ldw    = n+3*m+ne;
+      pastix_int_t    nicntl = 10;
+      pastix_int_t    ncntl  = 10;
+      pastix_int_t   *icntl;
+      pastix_int_t    info;
+      pastix_float_t *dw;
+      pastix_float_t *cntl;
 
       print_onempi("%s", "Preconditioning...\n");
 
-      MALLOC_INTERN(p,     m,      PASTIX_INT);
-      MALLOC_INTERN(ip,    m,      PASTIX_INT);
-      MALLOC_INTERN(iw,    liw,    PASTIX_INT);
-      MALLOC_INTERN(dw,    ldw,    PASTIX_FLOAT);
-      MALLOC_INTERN(icntl, nicntl, PASTIX_INT);
-      MALLOC_INTERN(cntl,  ncntl,  PASTIX_FLOAT);
+      MALLOC_INTERN(p,     m,      pastix_int_t);
+      MALLOC_INTERN(ip,    m,      pastix_int_t);
+      MALLOC_INTERN(iw,    liw,    pastix_int_t);
+      MALLOC_INTERN(dw,    ldw,    pastix_float_t);
+      MALLOC_INTERN(icntl, nicntl, pastix_int_t);
+      MALLOC_INTERN(cntl,  ncntl,  pastix_float_t);
 
       for (i=0;i<m;i++)
         {
@@ -5935,11 +5935,11 @@ PASTIX_INT pastix_checkMatrix_int(MPI_Comm pastix_comm,
   Returns:
   Number of local nodes/columns in new distribution.
 */
-PASTIX_INT pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data)
+pastix_int_t pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data)
 {
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
-  PASTIX_INT index;
-  PASTIX_INT nodenbr;
+  pastix_int_t index;
+  pastix_int_t nodenbr;
 
   nodenbr = 0;
   if ((*pastix_data)->intra_node_procnum == 0)
@@ -5962,11 +5962,11 @@ PASTIX_INT pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data)
   Returns:
   Number of local nodes/columns in new distribution.
 */
-PASTIX_INT pastix_getLocalNodeNbr(pastix_data_t ** pastix_data)
+pastix_int_t pastix_getLocalNodeNbr(pastix_data_t ** pastix_data)
 {
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
-  PASTIX_INT index;
-  PASTIX_INT nodenbr;
+  pastix_int_t index;
+  pastix_int_t nodenbr;
 
   nodenbr = 0;
   if ((*pastix_data)->intra_node_procnum == 0)
@@ -5981,8 +5981,8 @@ PASTIX_INT pastix_getLocalNodeNbr(pastix_data_t ** pastix_data)
 int
 cmpint(const void *p1, const void *p2)
 {
-  const PASTIX_INT *a = (const PASTIX_INT *)p1;
-  const PASTIX_INT *b = (const PASTIX_INT *)p2;
+  const pastix_int_t *a = (const pastix_int_t *)p1;
+  const pastix_int_t *b = (const pastix_int_t *)p2;
 
   return (int) *a - *b;
 }
@@ -5997,15 +5997,15 @@ cmpint(const void *p1, const void *p2)
   pastix_data - Data used for a step by step execution.
   nodelst     - An array where to write the list of local nodes/columns.
 */
-PASTIX_INT pastix_getLocalUnknownLst(pastix_data_t **pastix_data,
-                              PASTIX_INT            *nodelst)
+pastix_int_t pastix_getLocalUnknownLst(pastix_data_t **pastix_data,
+                              pastix_int_t            *nodelst)
 {
 
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
   Order         * ordemesh = &((*pastix_data)->ordemesh);
-  PASTIX_INT index;
-  PASTIX_INT index2;
-  PASTIX_INT index3;
+  pastix_int_t index;
+  pastix_int_t index2;
+  pastix_int_t index3;
   int dof = (*pastix_data)->iparm[IPARM_DOF_NBR];
 
   index3 = 0;
@@ -6017,7 +6017,7 @@ PASTIX_INT pastix_getLocalUnknownLst(pastix_data_t **pastix_data,
              index2++)
           nodelst[index3++] = dof*ordemesh->peritab[(index2-index2%dof)/dof]+1+index2%dof;
       }
-  qsort(nodelst, index3, sizeof(PASTIX_INT), cmpint);
+  qsort(nodelst, index3, sizeof(pastix_int_t), cmpint);
 
   return NO_ERR;
 }
@@ -6034,15 +6034,15 @@ PASTIX_INT pastix_getLocalUnknownLst(pastix_data_t **pastix_data,
   pastix_data - Data used for a step by step execution.
   nodelst     - An array where to write the list of local nodes/columns.
 */
-PASTIX_INT pastix_getLocalNodeLst(pastix_data_t **pastix_data,
-                           PASTIX_INT            *nodelst)
+pastix_int_t pastix_getLocalNodeLst(pastix_data_t **pastix_data,
+                           pastix_int_t            *nodelst)
 {
 
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
   Order         * ordemesh = &((*pastix_data)->ordemesh);
-  PASTIX_INT index;
-  PASTIX_INT index2;
-  PASTIX_INT index3;
+  pastix_int_t index;
+  pastix_int_t index2;
+  pastix_int_t index3;
   int dof = (*pastix_data)->iparm[IPARM_DOF_NBR];
 
   index3 = 0;
@@ -6054,7 +6054,7 @@ PASTIX_INT pastix_getLocalNodeLst(pastix_data_t **pastix_data,
              index2+=dof)
           nodelst[index3++] = ordemesh->peritab[index2/dof]+1;
       }
-  qsort(nodelst, index3, sizeof(PASTIX_INT), cmpint);
+  qsort(nodelst, index3, sizeof(pastix_int_t), cmpint);
 
   return NO_ERR;
 }
@@ -6070,9 +6070,9 @@ PASTIX_INT pastix_getLocalNodeLst(pastix_data_t **pastix_data,
   n           - Number of unknowns.
   list        - List of unknowns.
 */
-PASTIX_INT pastix_setSchurUnknownList(pastix_data_t * pastix_data,
-                               PASTIX_INT  n,
-                               PASTIX_INT *list)
+pastix_int_t pastix_setSchurUnknownList(pastix_data_t * pastix_data,
+                               pastix_int_t  n,
+                               pastix_int_t *list)
 {
   if (pastix_data == NULL)
     return STEP_ORDER_ERR;
@@ -6081,8 +6081,8 @@ PASTIX_INT pastix_setSchurUnknownList(pastix_data_t * pastix_data,
     return BADPARAMETER_ERR;
 
   pastix_data->nschur = n;
-  MALLOC_INTERN(pastix_data->listschur, n, PASTIX_INT);
-  memcpy(pastix_data->listschur, list, n*sizeof(PASTIX_INT));
+  MALLOC_INTERN(pastix_data->listschur, n, pastix_int_t);
+  memcpy(pastix_data->listschur, list, n*sizeof(pastix_int_t));
   return NO_ERR;
 }
 /*
@@ -6099,11 +6099,11 @@ PASTIX_INT pastix_setSchurUnknownList(pastix_data_t * pastix_data,
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, PASTIX_INT * nodeNbr)
+pastix_int_t pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, pastix_int_t * nodeNbr)
 {
   SolverMatrix * datacode = &(pastix_data->solvmatr);
   int            owner = API_NO;
-  PASTIX_INT            cblk;
+  pastix_int_t            cblk;
 
   if (SOLV_TASKNBR > 0)
     {
@@ -6140,11 +6140,11 @@ PASTIX_INT pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, PASTIX_INT *
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data, PASTIX_INT * unknownNbr)
+pastix_int_t pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data, pastix_int_t * unknownNbr)
 {
   SolverMatrix * datacode = &(pastix_data->solvmatr);
   int            owner = API_NO;
-  PASTIX_INT            cblk;
+  pastix_int_t            cblk;
 
   if (SOLV_TASKNBR > 0)
     {
@@ -6183,15 +6183,15 @@ PASTIX_INT pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data, PASTIX_INT
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, PASTIX_INT * nodes)
+pastix_int_t pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, pastix_int_t * nodes)
 {
   SolverMatrix * datacode = NULL;
   Order        * ordemesh = NULL;
   int            owner = API_NO;
-  PASTIX_INT            cblk;
-  PASTIX_INT            intern_index;
-  PASTIX_INT            dof;
-  PASTIX_INT            intern_index_dof;
+  pastix_int_t            cblk;
+  pastix_int_t            intern_index;
+  pastix_int_t            dof;
+  pastix_int_t            intern_index_dof;
   datacode = &(pastix_data->solvmatr);
   ordemesh = &(pastix_data->ordemesh);
 
@@ -6207,7 +6207,7 @@ PASTIX_INT pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, PASTIX_INT 
 
   if (owner == API_YES)
     {
-      PASTIX_INT iter;
+      pastix_int_t iter;
       for (iter = 0; iter < SYMB_LCOLNUM(cblk) - SYMB_FCOLNUM(cblk) + 1; iter+=pastix_data->iparm[IPARM_DOF_NBR])
         {
           intern_index = iter + SYMB_FCOLNUM(cblk);
@@ -6235,15 +6235,15 @@ PASTIX_INT pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, PASTIX_INT 
 
   TODO: Error management.
 */
-PASTIX_INT pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data, PASTIX_INT * unknowns)
+pastix_int_t pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data, pastix_int_t * unknowns)
 {
   SolverMatrix * datacode = NULL;
   Order        * ordemesh = NULL;
   int            owner = API_NO;
-  PASTIX_INT            cblk;
-  PASTIX_INT            intern_index;
-  PASTIX_INT            dof;
-  PASTIX_INT            intern_index_dof;
+  pastix_int_t            cblk;
+  pastix_int_t            intern_index;
+  pastix_int_t            dof;
+  pastix_int_t            intern_index_dof;
   datacode = &(pastix_data->solvmatr);
   ordemesh = &(pastix_data->ordemesh);
 
@@ -6259,7 +6259,7 @@ PASTIX_INT pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data, PASTIX_I
 
   if (owner == API_YES)
     {
-      PASTIX_INT iter;
+      pastix_int_t iter;
       for (iter = 0; iter < SYMB_LCOLNUM(cblk) - SYMB_FCOLNUM(cblk) + 1; iter++)
         {
           intern_index = iter + SYMB_FCOLNUM(cblk);
@@ -6287,7 +6287,7 @@ PASTIX_INT pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data, PASTIX_I
 
   TODO: Error management.
 */
-PASTIX_INT pastix_setSchurArray(pastix_data_t * pastix_data, PASTIX_FLOAT * array)
+pastix_int_t pastix_setSchurArray(pastix_data_t * pastix_data, pastix_float_t * array)
 {
   pastix_data->schur_tab = array;
   pastix_data->schur_tab_set = API_YES;
@@ -6306,14 +6306,14 @@ PASTIX_INT pastix_setSchurArray(pastix_data_t * pastix_data, PASTIX_FLOAT * arra
   schur - Array to fill-in with Schur complement.
 
 */
-PASTIX_INT pastix_getSchur(pastix_data_t * pastix_data,
-                    PASTIX_FLOAT * schur)
+pastix_int_t pastix_getSchur(pastix_data_t * pastix_data,
+                    pastix_float_t * schur)
 {
   SolverMatrix * datacode = &(pastix_data->solvmatr);
   int            owner = API_NO;
-  PASTIX_INT            send[2];
-  PASTIX_INT            recv[2];
-  PASTIX_INT            cblk;
+  pastix_int_t            send[2];
+  pastix_int_t            recv[2];
+  pastix_int_t            cblk;
 
   if (SOLV_TASKNBR > 0)
     {
@@ -6327,8 +6327,8 @@ PASTIX_INT pastix_getSchur(pastix_data_t * pastix_data,
 
   if (owner == API_YES)
     {
-      PASTIX_INT coefnbr  = SOLV_STRIDE(cblk) * (SYMB_LCOLNUM(cblk) - SYMB_FCOLNUM(cblk) + 1);
-      memcpy(schur, SOLV_COEFTAB(cblk), coefnbr*sizeof(PASTIX_FLOAT));
+      pastix_int_t coefnbr  = SOLV_STRIDE(cblk) * (SYMB_LCOLNUM(cblk) - SYMB_FCOLNUM(cblk) + 1);
+      memcpy(schur, SOLV_COEFTAB(cblk), coefnbr*sizeof(pastix_float_t));
       send[0] = coefnbr;
       send[1] = SOLV_PROCNUM;
 
@@ -6371,16 +6371,16 @@ PASTIX_INT pastix_getSchur(pastix_data_t * pastix_data,
  *                 (NULL if not distributed).
  *   dof         - Number of degrees of freedom.
  */
-PASTIX_INT pastix_checkMatrix(MPI_Comm pastix_comm,
-                       PASTIX_INT      verb,
-                       PASTIX_INT      flagsym,
-                       PASTIX_INT      flagcor,
-                       PASTIX_INT      n,
-                       PASTIX_INT    **colptr,
-                       PASTIX_INT    **row,
-                       PASTIX_FLOAT  **avals,
-                       PASTIX_INT    **loc2glob,
-                       PASTIX_INT      dof)
+pastix_int_t pastix_checkMatrix(MPI_Comm pastix_comm,
+                       pastix_int_t      verb,
+                       pastix_int_t      flagsym,
+                       pastix_int_t      flagcor,
+                       pastix_int_t      n,
+                       pastix_int_t    **colptr,
+                       pastix_int_t    **row,
+                       pastix_float_t  **avals,
+                       pastix_int_t    **loc2glob,
+                       pastix_int_t      dof)
 {
   return pastix_checkMatrix_int(pastix_comm,
                                 verb,

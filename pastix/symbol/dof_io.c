@@ -67,9 +67,9 @@ dofSave (
 const Dof * const           deofptr,
 FILE * const                stream)
 {
-  const PASTIX_INT *         noddtnd;
-  const PASTIX_INT *         noddptr;
-  PASTIX_INT                 noddnum;
+  const pastix_int_t *         noddtnd;
+  const pastix_int_t *         noddptr;
+  pastix_int_t                 noddnum;
   int                 o;
 
   o = (fprintf (stream, "0\n%ld\t%ld\t%ld\n\n",   /* Write file header */

@@ -16,5 +16,5 @@
 
 #ifndef IFAX_
 #define IFAX_
-void ifax(PASTIX_INT n, PASTIX_INT *ia, PASTIX_INT *ja, PASTIX_INT levelk, PASTIX_INT  cblknbr, PASTIX_INT *rangtab, PASTIX_INT *perm, PASTIX_INT *iperm, SymbolMatrix *symbmtx);
+void ifax(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_int_t levelk, pastix_int_t  cblknbr, pastix_int_t *rangtab, pastix_int_t *perm, pastix_int_t *iperm, SymbolMatrix *symbmtx);
 #endif
