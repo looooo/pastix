@@ -14,11 +14,11 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
     pastix_int_t j; /*, Am, Bm;*/
     pastix_float_t delta;
     pastix_float_t *wD, *w;
-    char *tA = ( transA == PastixNoTrans ) ? "N" 
+    char *tA = ( transA == PastixNoTrans ) ? "N"
         : (( transA == PastixTrans ) ? "T" : "C" );
-    char *tB = ( transB == PastixNoTrans ) ? "N" 
+    char *tB = ( transB == PastixNoTrans ) ? "N"
         : (( transB == PastixTrans ) ? "T" : "C" );
-    
+
     /* Am = (transA == PastixNoTrans ) ? M : K; */
     /* Bm = (transB == PastixNoTrans ) ? K : N; */
 
@@ -64,9 +64,9 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
         fprintf(stderr, "CORE_gemdm: Illegal value of LWORK\n");
         return -17;
     }
-    
+
     /* Quick return */
-    if (M == 0 || N == 0 || 
+    if (M == 0 || N == 0 ||
         ((alpha == 0.0 || K == 0) && beta == 1.0) ) {
         return 0;
     }
@@ -81,8 +81,8 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
 
     /*
      * transA == PastixNoTrans
-     */ 
-    if ( transA == PastixNoTrans ) 
+     */
+    if ( transA == PastixNoTrans )
     {
         /* WORK = A * D */
       for (j=0; j<K; j++, wD++) {
@@ -90,15 +90,15 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
             SOPALIN_COPY(M, &A[LDA*j], iun, &w[M*j], iun);
             SOPALIN_SCAL(M, delta,          &w[M*j], iun);
         }
-        
+
         /* C = alpha * WORK * op(B) + beta * C */
-        SOPALIN_GEMM( "N", tB, 
-                      M, N, K, 
-                      alpha, w, M, 
-                             B, LDB, 
+        SOPALIN_GEMM( "N", tB,
+                      M, N, K,
+                      alpha, w, M,
+                             B, LDB,
                       beta,  C, LDC);
-    }        
-    else 
+    }
+    else
     {
         if ( transB == PastixNoTrans ) /* Worst case*/
         {
@@ -111,12 +111,12 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
 
             /* C = alpha * op(A) * WORK' + beta * C */
             SOPALIN_GEMM(tA, "T",
-                         M, N, K, 
-                         alpha, A, LDA, 
+                         M, N, K,
+                         alpha, A, LDA,
                                 w, N,
                          beta,  C, LDC);
         }
-        else 
+        else
         {
 #ifdef COMPLEX
             /* if ( transB == PastixConjTrans ) */
@@ -139,12 +139,12 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
                     SOPALIN_SCAL(N, delta,          &w[N*j], iun);
                 }
             }
-        
+
             /* C = alpha * op(A) * WORK + beta * C */
             SOPALIN_GEMM(tA, "N",
-                         M, N, K, 
-                         alpha, A, LDA, 
-                                w, N, 
+                         M, N, K,
+                         alpha, A, LDA,
+                                w, N,
                          beta,  C, LDC);
         }
     }

@@ -4,11 +4,6 @@
  * Several operations on CSCD.
  *
  */
-#ifdef FORCE_NOMPI
-#else
-#  include <mpi.h>
-#endif
-
 #include "common.h"
 #include "tools.h"
 #include "cscd_utils.h"

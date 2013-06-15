@@ -24,14 +24,12 @@
 
 #define ALPHA_LEVFK
 
-#include <assert.h>
 #include "common.h"
 #ifdef WITH_SCOTCH
 #ifdef DISTRIBUTED
-#include <mpi.h>
-#include "ptscotch.h"
+#include <ptscotch.h>
 #else
-#include "scotch.h"
+#include <scotch.h>
 #endif
 #endif
 #include "dof.h"

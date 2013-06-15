@@ -4,10 +4,6 @@
   Interface to the PaStiX API functions.
 
  */
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
 #include "common.h"
 #include "cscd_utils.h"
 

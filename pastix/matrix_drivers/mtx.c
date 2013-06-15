@@ -6,53 +6,9 @@
 #include <math.h>
 #include <sys/types.h>
 
+#include "pastix.h"
 #include "mmio.h"
 #include "iohb.h"
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
-#include "pastix.h"
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-
-#ifndef USE_CXX
-
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-
-#define ABS_FLOAT(x) abs(x)
-#endif /* USE_CXX */
-
-#else /*X_ARCHalpha_compaq_osf1*/
-#include <complex.h>
-#ifdef    PREC_DOUBLE
-#define ABS_FLOAT(x) cabs(x)
-#else  /* PREC_DOUBLE */
-#define ABS_FLOAT(x) cabsf(x)
-#endif /* PREC_DOUBLE */
-
-#endif /* X_ARCHalpha_compaq_osf1 */
-#else /* TYPE_COMPLEX */
-
-
-#ifdef PREC_DOUBLE
-#define ABS_FLOAT(x) fabs(x)
-#else /* PREC_DOUBLE */
-#define ABS_FLOAT(x) fabsf(x)
-#endif /* FORCEDOUBLE */
-
-#endif /* TYPE_COMPLEX */
-
 #include "mtx.h"
 
 

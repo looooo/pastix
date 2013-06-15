@@ -50,7 +50,6 @@
 #include "common.h"
 #ifdef WITH_SCOTCH
 #ifdef DISTRIBUTED
-#include <mpi.h>
 #include "ptscotch.h"
 #else
 #include "scotch.h"

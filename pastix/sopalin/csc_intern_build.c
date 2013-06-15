@@ -8,15 +8,6 @@
  *                                                                            *
  ******************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
 #include "tools.h"
 #include "order.h"
@@ -26,7 +17,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-
 #include "sopalin_define.h"
 #include "csc_intern_build.h"
 

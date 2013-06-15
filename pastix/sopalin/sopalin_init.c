@@ -14,11 +14,6 @@
 #    include <mach/mach_init.h>
 #  endif
 #endif
-#ifdef FORCE_NOMPI
-#else
-#  include <mpi.h>
-#endif
-
 #include "common.h"
 #include "out.h"
 #ifdef PASTIX_EZTRACE
@@ -860,24 +855,24 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
                     MONOTHREAD_BEGIN;
                     int *tab2 = NULL;
                     if (SOLV_PROCNUM == 0)
-                      MALLOC_INTERN(tab2,  SOLV_THRDNBR*SOLV_PROCNBR, int);
+                        MALLOC_INTERN(tab2,  SOLV_THRDNBR*SOLV_PROCNBR, int);
 
                     MPI_Gather ( (void*)tab,  SOLV_THRDNBR, MPI_INT,
                                  tab2,        SOLV_THRDNBR, MPI_INT,
                                  0, PASTIX_COMM );
 
-                    /* if (SOLV_PROCNUM == 0){ */
-                    /*   FILE *out; */
-                    /*   int  jl; */
-                    /*   OUT_OPENFILEINDIR(sopar->iparm, out, "threadbinding.txt", "w"); */
-                    /*   fprintf(out, "# Proc Thread Core\n"); */
-                    /*   for(il=0; il < SOLV_PROCNBR; il++) */
-                    /*     for(jl=0; jl < SOLV_THRDNBR; jl++) */
-                    /*       fprintf(out, "%ld %ld %ld\n", (long)il, (long)jl, (long)tab2[jl]); */
-                    /*   OUT_CLOSEFILEINDIR(out); */
+                    if (SOLV_PROCNUM == 0){
+                      /* FILE *out; */
+                      /* int  jl; */
+                      /* OUT_OPENFILEINDIR(sopar->iparm, out, "threadbinding.txt", "w"); */
+                      /* fprintf(out, "# Proc Thread Core\n"); */
+                      /* for(il=0; il < SOLV_PROCNBR; il++) */
+                      /*   for(jl=0; jl < SOLV_THRDNBR; jl++) */
+                      /*     fprintf(out, "%ld %ld %ld\n", (long)il, (long)jl, (long)tab2[jl]); */
+                      /* OUT_CLOSEFILEINDIR(out); */
 
-                    /*   memFree_null(tab2); */
-                    /* } */
+                      memFree_null(tab2);
+                    }
                     memFree_null(tab);
                     MONOTHREAD_END;
                   }

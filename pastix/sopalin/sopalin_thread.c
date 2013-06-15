@@ -3,11 +3,6 @@
 #endif
 #include <pthread.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
 #include "queue.h"
 #include "bulles.h"

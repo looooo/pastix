@@ -39,7 +39,32 @@
 #cmakedefine HAVE_HWLOC_CACHE_ATTR
 #cmakedefine HAVE_HWLOC_OBJ_PU
 
-#cmakedefine HAVE_SCOTCH
-#cmakedefine HAVE_METIS
+/* Ordering options */
+#cmakedefine PASTIX_ORDERING_SCOTCH
+#cmakedefine PASTIX_ORDERING_METIS
+
+/* Datatypes used */
+#cmakedefine PASTIX_INT64
+
+#if defined(PASTIX_INT64)
+#define FORCE_INT64
+#define INTSSIZE64
+#endif
+
+#define FORCE_DOUBLE
+#define PREC_DOUBLE
+
+#if defined(PASTIX_WITH_MPI)
+#define HAVE_MPI
+#undef  FORCE_NOMPI
+#else
+#undef  HAVE_MPI
+#define FORCE_NOMPI
+#endif
+
+#if defined(PASTIX_ORDERING_SCOTCH)
+#define HAVE_SCOTCH
+#define WITH_SCOTCH
+#endif
 
 #endif  /* _PASTIX_CONFIG_H_ */

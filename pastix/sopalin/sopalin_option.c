@@ -7,12 +7,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
 #include "out.h"
 #include "sopalin_define.h"

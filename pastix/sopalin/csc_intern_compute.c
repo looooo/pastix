@@ -4,16 +4,8 @@
   Functions computing operations on the CSC.
 
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
+#include <pthread.h>
 #include "tools.h"
 #include "order.h"
 #include "csc.h"
@@ -22,7 +14,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-
 #include "sopalin_define.h"
 #include "sopalin_time.h"
 #include "sopalin_thread.h"

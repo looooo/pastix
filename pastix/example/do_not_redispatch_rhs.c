@@ -12,12 +12,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#ifndef FORCE_NOMPI
-#include <mpi.h>
-#else
-#define MPI_COMM_WORLD 0
-#endif
-#include <complex.h>
 /* to access functions from the libpastix, respect this order */
 #include "pastix.h"
 #include "cscd_utils.h"

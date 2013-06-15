@@ -4,11 +4,6 @@
   Some tools used in sopalin.
 
  */
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
 #include "sopalin_compute.h"
 #include "tools.h"

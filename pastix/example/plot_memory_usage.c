@@ -12,10 +12,6 @@
 #include <sys/time.h>
 #include <time.h>
 #include <pthread.h>
-#ifndef FORCE_NOMPI
-#include <mpi.h>
-#endif
-#include <complex.h>
 /* to access functions from the libpastix, respect this order */
 #include "pastix.h"
 #include "read_matrix.h"

@@ -6,28 +6,17 @@
   Construct UpDownVector such as X[i] = 1, or X[i] = i.
 
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
+#include <pthread.h>
 #include "tools.h"
 #include "order.h"
 #include "csc.h"
 #include "updown.h"
-
-
 #include "ftgt.h"
 #include "updown.h"
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-
 #include "csc_intern_updown.h"
 
 #ifdef DEBUG_RAFF

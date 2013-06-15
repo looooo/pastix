@@ -3,8 +3,6 @@
  *
  * Functions to dump informations on disk.
  */
-#include <stdio.h>
-
 #include "common.h"
 #include "order.h"
 #include "csc.h"
@@ -14,7 +12,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-
 #include "sopalin_acces.h"
 
 #ifdef DEBUG_RAFF

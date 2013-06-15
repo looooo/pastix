@@ -5,15 +5,9 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include "common.h"
 #ifndef FORCE_NOSMP
 #  include <pthread.h>
-#endif
-#ifdef FORCE_NOMPI
-#else
-#  include <mpi.h>
 #endif
 #include "sopalin_define.h"
 #include "dof.h"
@@ -24,21 +18,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-
-/*
- * Section: Defines
- *
- * Define: COEFTAB_TYPE
- *
- * Type allocated in coeftab: pastix_float_t *
- *
- * Define: COEFTAB_SIZE
- *
- * Size of the array coeftab: number of column blocks
- */
-#define COEFTAB_TYPE pastix_float_t *
-#define COEFTAB_SIZE SYMB_CBLKNBR
-
 #include "sopalin_thread.h"
 #include "stack.h"
 #include "sopalin3d.h"

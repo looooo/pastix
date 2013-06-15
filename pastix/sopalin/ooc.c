@@ -6,9 +6,8 @@
    date: April 2008
 */
 
+#include "common.h"
 #if (defined OOC) || (defined OOC_FTGT)
-#include <stdlib.h>
-#include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -16,12 +15,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-#include "common.h"
 #include "out.h"
 #include "ftgt.h"
 #include "symbol.h"
@@ -37,7 +30,6 @@
 #ifdef OOC_NOCOEFINIT
 #include "csc_intern_solve.h"
 #endif
-/* #include "pastix.h" */
 #include "ooc.h"
 
 #ifndef OOC_DIR

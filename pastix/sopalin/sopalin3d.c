@@ -49,11 +49,6 @@
 #include <assert.h>
 #include <pthread.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #ifdef X_INCLUDE_ESSL
 #include <essl.h>
 /*#include <pessl.h>*/

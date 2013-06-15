@@ -39,7 +39,32 @@
 #define HAVE_HWLOC_CACHE_ATTR
 #define HAVE_HWLOC_OBJ_PU
 
-/* #undef HAVE_SCOTCH */
-/* #undef HAVE_METIS */
+/* Ordering options */
+#define PASTIX_ORDERING_SCOTCH
+/* #undef PASTIX_ORDERING_METIS */
+
+/* Datatypes used */
+#define PASTIX_INT64
+
+#if defined(PASTIX_INT64)
+#define FORCE_INT64
+#define INTSSIZE64
+#endif
+
+#define FORCE_DOUBLE
+#define PREC_DOUBLE
+
+#if defined(PASTIX_WITH_MPI)
+#define HAVE_MPI
+#undef  FORCE_NOMPI
+#else
+#undef  HAVE_MPI
+#define FORCE_NOMPI
+#endif
+
+#if defined(PASTIX_ORDERING_SCOTCH)
+#define HAVE_SCOTCH
+#define WITH_SCOTCH
+#endif
 
 #endif  /* _PASTIX_CONFIG_H_ */

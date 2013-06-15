@@ -8,13 +8,10 @@
  *   Xavier  LACOSTE  - lacoste@labri.fr
  *   Pierre  RAMET    - ramet@labri.fr
  */
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+
+#include "common.h"
 #include <string.h>
-#ifdef MARCEL
-#  include <pthread.h>
-#endif
+#include <pthread.h>
 #ifdef WITH_SEM_BARRIER
 #  include <semaphore.h>
 #  include <fcntl.h>
@@ -23,19 +20,10 @@
 #endif
 #include <sys/stat.h>
 
-#ifdef FORCE_NOMPI
-#else
-#  include <mpi.h>
-#endif
-
 #ifdef METIS
 #  include "metis.h" /* must be before common */
-#  ifdef ASSERT
-#    undef ASSERT
-#  endif
 #endif
 
-#include "common.h"
 #include "tools.h"
 #include "sopalin_define.h"
 #ifdef WITH_STARPU
@@ -49,7 +37,6 @@
 #    include <scotch.h>
 #  endif /* DISTRIBUTED */
 #endif /* WITH_SCOTCH */
-
 
 #include "dof.h"
 #include "ftgt.h"
@@ -1343,9 +1330,10 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
 
         if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num))
           {
-            errorPrint("Inconsistent integer type\n");
-            retval = INTEGER_TYPE_ERR;
-            break;
+              errorPrint("Inconsistent integer type %lu != %lu\n",
+                         sizeof(pastix_int_t), sizeof(SCOTCH_Num));
+              retval = INTEGER_TYPE_ERR;
+              break;
           }
 
         /* On nettoie grafmesh et col2/row2 si ils sont déja alloués */
@@ -1586,7 +1574,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
 
         if (sizeof(pastix_int_t) != sizeof(int))
           {
-            errorPrint("Inconsistent integer type\n");
+              errorPrint("Inconsistent integer type %lu != %lu\n",
+                         sizeof(pastix_int_t), sizeof(SCOTCH_Num));
             retval = INTEGER_TYPE_ERR;
             break;
           }
@@ -1906,7 +1895,8 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
 
   if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num))
     {
-      errorPrint("Inconsistent integer type\n");
+              errorPrint("Inconsistent integer type %lu != %lu\n",
+                         sizeof(pastix_int_t), sizeof(SCOTCH_Num));
       return INTEGER_TYPE_ERR;
     }
   grafmesh  = &((*pastix_data)->grafmesh);

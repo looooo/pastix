@@ -16,17 +16,10 @@
 #include <string.h>
 #include <assert.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
-/* #include "symbol.h" */
 #include "queue.h"
 #include "perf.h"
 #include "sparRow.h"
-/* #include "sort_row.h" */
 #include "amalgamate.h"
 
 /*#define BLAS_GAIN*/    /** Amalgamation use the best ratio time/nnzadd

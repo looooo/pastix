@@ -31,6 +31,14 @@ option(PASTIX_WITH_MPI
 option(PASTIX_WITH_CUDA
   "Enable GPU support using CUDA kernels" OFF)
 
+option(PASTIX_ORDERING_SCOTCH
+  "Enable Scotch Ordering" ON)
+option(PASTIX_ORDERING_METIS
+  "Enable Metis ordering"  OFF)
+
+option(PASTIX_INT64
+  "Choose between int32 and int64 for integer representation" ON)
+
 # Precisions generated
 if(NOT PASTIX_PRECISIONS)
   set(PASTIX_PRECISIONS "s;d;c;z" CACHE STRING "The precisions to compile in PaSTiX (accepts a colon separated list of s;d;c;z)" FORCE)
@@ -384,18 +392,7 @@ install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pasti
 #   "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc")
 # install(FILES "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc" DESTINATION lib/pkgconfig)
 
-add_definitions(-DFORCE_NOMPI)
-#add_definitions(-DFORCE_NOSMP)
-add_definitions(-DWITH_SCOTCH)
-add_definitions(-DWITH_HWLOC)
 add_definitions(-DDOF_CONSTANT)
-
-# integers
-add_definitions(-DFORCE_INT64)
-add_definitions(-DINTSSIZE64)
-add_definitions(-DPASTIX_INT64)
-add_definitions(-DPREC_DOUBLE)
-add_definitions(-DFORCE_DOUBLE)
 add_definitions(-DX_ARCHi686_pc_linux)
 
 execute_process(COMMAND "./myversion.sh" OUTPUT_VARIABLE PASTIX_VERSION)

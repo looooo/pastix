@@ -27,20 +27,20 @@
 
   Part of a parallel direct block solver.
   This is the block symbolic factorization
-  routine for graphs.               
+  routine for graphs.
 
-  symbolFaxGraph() could have called   
-  symbolFax() in the regular way, as   
+  symbolFaxGraph() could have called
+  symbolFax() in the regular way, as
   do all of the grid-like factorization
-  routines. However, for efficiency    
-  reasons, we have decided to inline   
+  routines. However, for efficiency
+  reasons, we have decided to inline
   symbolFax(), to avoid a function call
-  for every arc.                       
+  for every arc.
 
-  Authors: 
+  Authors:
     Francois PELLEGRINI
 
-  Dates: 
+  Dates:
     Version 0.0 - from 22 jul 1998 to 29 sep 1998
     Version 0.2 - from 08 may 2000 to 09 may 2000
     Version 1.0 - from 01 jun 2002 to 03 jun 2002
@@ -59,10 +59,6 @@
 
 #include "common.h"
 #ifdef WITH_SCOTCH
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
 #ifdef DISTRIBUTED
 #include "ptscotch.h"
 #else
@@ -81,7 +77,7 @@
 
 /*
   Function: symbolFaxGraph
-  
+
   This routine computes the block symbolic
   factorization of the given matrix graph
   according to the given vertex ordering.
@@ -98,8 +94,8 @@
 
 int
 symbolFaxGraph (SymbolMatrix       * const symbptr,
-		const SCOTCH_Graph * const grafptr,
-		const Order        * const ordeptr)
+                const SCOTCH_Graph * const grafptr,
+                const Order        * const ordeptr)
 {
   pastix_int_t                   baseval;
   pastix_int_t                   vertnbr;
@@ -110,14 +106,14 @@ symbolFaxGraph (SymbolMatrix       * const symbptr,
   pastix_int_t *                 edgetab;
   const pastix_int_t * restrict  edgetax;
 
-  SCOTCH_graphData (grafptr, 
-		    (SCOTCH_Num *)&baseval, 
-		    (SCOTCH_Num *)&vertnbr, 
-		    (SCOTCH_Num **)&verttab, 
-		    NULL, NULL, NULL, 
-		    (SCOTCH_Num *)&edgenbr, 
-		    (SCOTCH_Num **)&edgetab, 
-		    NULL);
+  SCOTCH_graphData (grafptr,
+                    (SCOTCH_Num *)&baseval,
+                    (SCOTCH_Num *)&vertnbr,
+                    (SCOTCH_Num **)&verttab,
+                    NULL, NULL, NULL,
+                    (SCOTCH_Num *)&edgenbr,
+                    (SCOTCH_Num **)&edgetab,
+                    NULL);
 
   verttax = verttab - baseval;
   edgetax = edgetab - baseval;
@@ -130,23 +126,23 @@ symbolFaxGraph (SymbolMatrix       * const symbptr,
 
 #define SYMBOL_FAX_VERTEX_DEGREE(ngbdptr, vertnum)	\
   (verttax[(vertnum) + 1] - verttax[(vertnum)])
-  
+
   {
 #define SYMBOL_FAX_INCLUDED
 #include "symbol_fax.c"
   }
 }
-  
+
 #ifdef DISTRIBUTED
 
 /*
   Function: symbolFaxDgraph
-  
+
   Unused
 
 +*/
-int symbolFaxDgraph(SCOTCH_Dgraph * dgraph, 
-		    MPI_Comm pastix_comm)
+int symbolFaxDgraph(SCOTCH_Dgraph * dgraph,
+                    MPI_Comm pastix_comm)
 {
 
   pastix_int_t            baseval;
@@ -160,25 +156,25 @@ int symbolFaxDgraph(SCOTCH_Dgraph * dgraph,
   pastix_int_t            edgemaxnbr;
   pastix_int_t           *edgelocaltab;
   pastix_int_t           *edgeghosttab;
-  
+
 
   SCOTCH_dgraphData   (dgraph,
-		       (SCOTCH_Num *)&baseval,
-		       (SCOTCH_Num *)&vertglobalnbr,
-		       (SCOTCH_Num *)&vertlocalnbr,
-		       (SCOTCH_Num *)&vertmaxnbr,
-		       (SCOTCH_Num *)&vertgstnbr,
-		       (SCOTCH_Num **)&vertlocaltab,
-		       NULL,
-		       NULL,
-		       NULL,
-		       (SCOTCH_Num *)&edgelocalnbr,
-		       (SCOTCH_Num *)&edgeglobalnbr,
-		       (SCOTCH_Num *)&edgemaxnbr,
-		       (SCOTCH_Num **)&edgelocaltab,
-		       (SCOTCH_Num **)&edgeghosttab,
-		       NULL,
-		       &pastix_comm);
+                       (SCOTCH_Num *)&baseval,
+                       (SCOTCH_Num *)&vertglobalnbr,
+                       (SCOTCH_Num *)&vertlocalnbr,
+                       (SCOTCH_Num *)&vertmaxnbr,
+                       (SCOTCH_Num *)&vertgstnbr,
+                       (SCOTCH_Num **)&vertlocaltab,
+                       NULL,
+                       NULL,
+                       NULL,
+                       (SCOTCH_Num *)&edgelocalnbr,
+                       (SCOTCH_Num *)&edgeglobalnbr,
+                       (SCOTCH_Num *)&edgemaxnbr,
+                       (SCOTCH_Num **)&edgelocaltab,
+                       (SCOTCH_Num **)&edgeghosttab,
+                       NULL,
+                       &pastix_comm);
 
 
   return EXIT_SUCCESS;

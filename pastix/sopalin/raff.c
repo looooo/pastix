@@ -444,8 +444,8 @@ void* API_CALL(gmres_smp)(void *arg)
       /* wk2 = b - A*x */
       for (j=0; j<UPDOWN_SM2XSZE; j++)
         {
-	  gmresvv[0][j] = gmresb[j] - gmresvv[0][j];
-	}
+          gmresvv[0][j] = gmresb[j] - gmresvv[0][j];
+        }
       MONOTHREAD_END;
 
 #ifdef SMP_RAFF
@@ -588,7 +588,7 @@ void* API_CALL(gmres_smp)(void *arg)
 
           MONOTHREAD_BEGIN;
           print_debug(DBG_RAFF_GMRES,"   %ld: line %d beta %.20g\n", (long)me,
-		      __LINE__, beta);
+                      __LINE__, beta);
           MONOTHREAD_END;
 
 #ifdef SMP_RAFF
@@ -1086,7 +1086,7 @@ void* API_CALL(grad_smp)(void *arg)
       MONOTHREAD_BEGIN;
       sopalin_data->stop = tmp;
       print_debug(DBG_RAFF_GRAD, "raff.c:%d: %ld stop %g\n",__LINE__, (long)me, sopalin_data->stop);
-      
+
       if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
         {
           double sst, rst = 0.0;

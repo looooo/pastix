@@ -16,11 +16,6 @@
 #include <string.h>
 #include <assert.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 #include "common.h"
 #include "dof.h"
 #include "symbol.h"

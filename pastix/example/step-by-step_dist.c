@@ -12,9 +12,6 @@
 #include <math.h>
 #include <string.h>
 #include <complex.h>
-#ifndef FORCE_NOMPI
-#include <mpi.h>
-#endif
 /* to access functions from the libpastix, respect this order */
 #include "pastix.h"
 #include "cscd_utils.h"
