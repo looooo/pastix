@@ -207,7 +207,7 @@ int main (int argc, char **argv)
   rhssaved = malloc(ncol*sizeof(pastix_float_t));
   memcpy(rhssaved, rhs, ncol*sizeof(pastix_float_t));
 #ifndef FORCE_NOMPI
-  MPI_Allreduce(&ncol, &globn, 1, MPI_pastix_int_t, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&ncol, &globn, 1, PASTIX_MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 #else
   globn = ncol;
 #endif
