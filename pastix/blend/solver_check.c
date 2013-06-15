@@ -285,7 +285,7 @@ void solverCheck(SolverMatrix *solvmtx)
     /** Test the task partition on the thread of the cluster **/
     total = 0;
     for(i=0;i<solvmtx->bublnbr;i++){
-      printf("i = %d, ttsknbr = %d\n", i, solvmtx->ttsknbr[i]);
+        printf("i = %d, ttsknbr = %d\n", (int)i, (int)(solvmtx->ttsknbr[i]));
       total += solvmtx->ttsknbr[i];
     }
     if(total != solvmtx->tasknbr)
