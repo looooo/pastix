@@ -81,7 +81,7 @@ void extra_inc_blok(ExtraSymbolMatrix *extrasymb, ExtraCostMatrix *extracost)
 			  CostBlok);
 	    /*fprintf(stderr, "Size %ld curblok %ld NewSize %ld \n", extrasymb->sizblok, extrasymb->curblok, (extrasymb->sizblok + extrasymb->sizblok/2 +1));
 	    ASSERT( extracost->bloktab != NULL,MOD_BLEND);*/
-	    memCpy(extracost->bloktab, tmp2, sizeof(CostBlok)*extrasymb->curblok);
+	    memcpy(extracost->bloktab, tmp2, sizeof(CostBlok)*extrasymb->curblok);
 
 	    extrasymb->sizblok = extrasymb->sizblok + extrasymb->sizblok/2 + 1;
 	    memFree_null(tmp);

@@ -516,5 +516,5 @@ symbolFaxi (SymbolMatrix * const        symbptr,
   }
 #endif /* FAX_DEBUG */
 
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }

@@ -5,7 +5,6 @@
  *
  */
 #ifdef FORCE_NOMPI
-#  include "nompi.h"
 #else
 #  include <mpi.h>
 #endif
@@ -23,6 +22,93 @@
 #define TAG_RHS    6
 #define TAG_SIZE2  7
 #define TAG_COUPLE 8
+
+/*
+  Function: add_two_floats
+
+  Adds two integers.
+
+  Parameters :
+    a - first integer
+    b - second integer
+
+  Returns: a + b
+ */
+static
+pastix_float_t add_two_floats(pastix_float_t a, pastix_float_t b)
+{
+  return a + b;
+}
+
+/*
+  Function: keep_first
+
+  Returns first integer.
+
+  Parameters :
+    a - first integer
+    b - second integer
+
+  Returns: a
+ */
+static
+pastix_float_t keep_first(pastix_float_t a, pastix_float_t b)
+{
+  (void)b;
+  return a;
+}
+
+/*
+  Function: keep_last
+
+  Returns last integer.
+
+  Parameters :
+    a - first integer
+    b - second integer
+
+  Returns: b
+ */
+static
+pastix_float_t keep_last(pastix_float_t a, pastix_float_t b)
+{
+  (void)a;
+  return b;
+}
+
+/*
+  Function: get_max
+
+  Returns maximum value from two integers.
+
+  Parameters :
+    a - first integer
+    b - second integer
+
+  Returns: MAX(a,b)
+ */
+static
+pastix_float_t get_max(pastix_float_t a, pastix_float_t b)
+{
+  return MAX(a,b);
+}
+
+/*
+  Function: get_min
+
+  Returns minimum value from two integers.
+
+  Parameters :
+    a - first integer
+    b - second integer
+
+  Returns: MIN(a,b)
+ */
+static
+pastix_float_t get_min(pastix_float_t a, pastix_float_t b)
+{
+  return MIN(a,b);
+}
 
 /*
  *  Function: csc_dispatch
@@ -247,7 +333,7 @@ int cscd_build_g2l(pastix_int_t       ncol,
   MPI_Comm_size(comm, &commSize);
 
   if (*gN == -1) /* Needed for MURGE_ProductSetGlobalNodeNbr */
-    MPI_Allreduce(&ncol, gN, 1, COMM_INT, MPI_SUM, comm);
+    MPI_Allreduce(&ncol, gN, 1, PASTIX_MPI_INT, MPI_SUM, comm);
 
   MALLOC_INTERN(*g2l, *gN, pastix_int_t);
   for(ig=0; ig < *gN; ig++)
@@ -260,10 +346,10 @@ int cscd_build_g2l(pastix_int_t       ncol,
           nrecv   = ncol;
           l2grecv = loc2glob;
 
-          MPI_Bcast(&nrecv,      1, COMM_INT, i, comm);
+          MPI_Bcast(&nrecv,      1, PASTIX_MPI_INT, i, comm);
           if (nrecv > 0)
             {
-              MPI_Bcast(l2grecv, nrecv, COMM_INT, i, comm);
+              MPI_Bcast(l2grecv, nrecv, PASTIX_MPI_INT, i, comm);
 
               for(j = 0; j < nrecv; j++)
                 {
@@ -273,11 +359,11 @@ int cscd_build_g2l(pastix_int_t       ncol,
         }
       else
         {
-          MPI_Bcast(&nrecv,      1, COMM_INT, i, comm);
+          MPI_Bcast(&nrecv,      1, PASTIX_MPI_INT, i, comm);
           if (nrecv > 0)
             {
               MALLOC_INTERN(l2grecv, nrecv, pastix_int_t);
-              MPI_Bcast(l2grecv, nrecv, COMM_INT, i, comm);
+              MPI_Bcast(l2grecv, nrecv, PASTIX_MPI_INT, i, comm);
 
               for(j = 0; j < nrecv; j++)
                 {
@@ -500,13 +586,13 @@ int cscd_checksym(pastix_int_t      n,
   /* We Send and receive list of couples each processor should have */
   for (i = 0; i < commSize; i++) {
     if (i != commRank) {
-      MPI_Isend(&nbtosend[i], 1, COMM_INT, i, i+100*commRank,
+      MPI_Isend(&nbtosend[i], 1, PASTIX_MPI_INT, i, i+100*commRank,
                 comm, &requests[i]);
     }
   }
   for (i = 0; i < commSize; i++) {
     if (i != commRank) {
-      MPI_Recv(&torecvsize[i], 1, COMM_INT, i, commRank + i * 100,
+      MPI_Recv(&torecvsize[i], 1, PASTIX_MPI_INT, i, commRank + i * 100,
                comm, &status);
     }
   }
@@ -526,13 +612,13 @@ int cscd_checksym(pastix_int_t      n,
   }
   for (i = 0; i < commSize; i++) {
     if (i != commRank) {
-      MPI_Isend(tosend[i], 2*nbtosend[i], COMM_INT, i , i+100*commRank,
+      MPI_Isend(tosend[i], 2*nbtosend[i], PASTIX_MPI_INT, i , i+100*commRank,
                 comm, &requests[i]);
     }
   }
   for (i = 0; i < commSize; i++) {
     if (i != commRank) {
-      MPI_Recv(torecv[i], 2*torecvsize[i], COMM_INT, i, commRank + i * 100,
+      MPI_Recv(torecv[i], 2*torecvsize[i], PASTIX_MPI_INT, i, commRank + i * 100,
                comm, &status);
     }
   }
@@ -911,7 +997,7 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
   for (i = 0; i < commSize; i++) {
     if (i != commRank) {
       MPI_Isend(&nbtosend[i],         /* buffer            */
-                1, COMM_INT, i,       /* count, type, dest */
+                1, PASTIX_MPI_INT, i,       /* count, type, dest */
                 TAG_SIZE2,            /* tag               */
                 comm, &requests[i]);  /* comm, request     */
     }
@@ -920,7 +1006,7 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
   for (i = 0; i < commSize; i++) {
     if (i != commRank) {
       MPI_Recv(&torecvsize[i],        /* buffer            */
-               1, COMM_INT, i,                /* count, type, dest */
+               1, PASTIX_MPI_INT, i,                /* count, type, dest */
                TAG_SIZE2,             /* tag               */
                comm, &status);        /* comm, request     */
     }
@@ -944,7 +1030,7 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
     if (i != commRank && nbtosend[i] > 0) {
       MPI_Isend(tosend[i],            /* buffer            */
                 2*nbtosend[i],        /* count             */
-                COMM_INT, i ,         /* type, dest        */
+                PASTIX_MPI_INT, i ,         /* type, dest        */
                 TAG_COUPLE,           /* tag               */
                 comm, &requests[i]);  /* comm, request     */
     }
@@ -954,7 +1040,7 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
     if (i != commRank && torecvsize[i] > 0) {
       MPI_Recv(torecv[i],             /* buffer            */
                2*torecvsize[i],       /* count             */
-               COMM_INT, i,           /* type, dest        */
+               PASTIX_MPI_INT, i,           /* type, dest        */
                TAG_COUPLE,            /* tag               */
                comm, &status);        /* comm, request     */
     }
@@ -1480,7 +1566,7 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
   MALLOC_INTERN(newloc2globssize, commSize, pastix_int_t );
   MALLOC_INTERN(newloc2globs,     commSize, pastix_int_t*);
   gn = 0;
-  MPI_Allreduce(&n, &gn, 1, COMM_INT, MPI_SUM, comm);
+  MPI_Allreduce(&n, &gn, 1, PASTIX_MPI_INT, MPI_SUM, comm);
   for (i = 0; i < commSize; i++)
     {
       start = (pastix_int_t)floor((double)i*(double)gn/(double)commSize)+1;
@@ -1546,12 +1632,12 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
       if (i != rank)
         {
           size = colptr2send[i][newloc2globssize[i]]-1;
-          MPI_Isend(&size, 1, COMM_INT, i, TAG_SIZE, comm, &requests_size[i]);
+          MPI_Isend(&size, 1, PASTIX_MPI_INT, i, TAG_SIZE, comm, &requests_size[i]);
           if (size > 0)
             {
-              MPI_Isend(colptr2send[i], newloc2globssize[i]+1, COMM_INT,    i,
+              MPI_Isend(colptr2send[i], newloc2globssize[i]+1, PASTIX_MPI_INT,    i,
                         TAG_COL, comm, &requests_col[i]);
-              MPI_Isend(rows2send[i],   size,                  COMM_INT,    i,
+              MPI_Isend(rows2send[i],   size,                  PASTIX_MPI_INT,    i,
                         TAG_ROW, comm, &requests_row[i]);
               if (a != NULL)
                 MPI_Isend(values2send[i], size,                  COMM_FLOAT, i,
@@ -1564,16 +1650,16 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
 
   while(toreceive > 0)
     {
-      MPI_Recv(&size, 1, COMM_INT, MPI_ANY_SOURCE, TAG_SIZE, comm, &status);
+      MPI_Recv(&size, 1, PASTIX_MPI_INT, MPI_ANY_SOURCE, TAG_SIZE, comm, &status);
       if (size > 0)
         {
           /* Adding contribution CSCD to local CSCD */
           MALLOC_INTERN(tmpia, newloc2globssize[rank]+1, pastix_int_t);
-          MPI_Recv( tmpia, (int)(newloc2globssize[rank]+1), COMM_INT,
+          MPI_Recv( tmpia, (int)(newloc2globssize[rank]+1), PASTIX_MPI_INT,
                     status.MPI_SOURCE, TAG_COL, comm, &status2);
 
           MALLOC_INTERN(tmpja, size, pastix_int_t);
-          MPI_Recv( tmpja, size, COMM_INT,  status.MPI_SOURCE, TAG_ROW, comm,
+          MPI_Recv( tmpja, size, PASTIX_MPI_INT,  status.MPI_SOURCE, TAG_ROW, comm,
                     &status2);
           if (a != NULL)
             {
@@ -1681,7 +1767,7 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
  *   comm        - MPI communicator
  *
  * Returns:
- *   NO_ERR           - If all goes well
+ *   PASTIX_SUCCESS           - If all goes well
  *   BADPARAMETER_ERR - If commsize = 1 and *n* != *dn* or *l2g* != *dl2g*.
  */
 #ifndef cscd_redispatch
@@ -1749,7 +1835,7 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
   (void)n; (void)ia; (void)ja; (void)a; (void)rhs; (void)nrhs; (void)l2g;
   (void)dn; (void)dia; (void)dja; (void)da; (void)drhs; (void)dl2g;
   (void)malloc_flag; (void)comm; (void)dof;
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 #else /* FORCE_NOMPI */
   pastix_int_t i,j;
   pastix_int_t           globidx;
@@ -1823,7 +1909,7 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
           MALLOC_INTOREXTERN(*drhs, n*nrhs*dof, pastix_float_t, malloc_flag);
           memcpy(*drhs,rhs,n*nrhs*sizeof(pastix_float_t)*dof);
         }
-      return NO_ERR;
+      return PASTIX_SUCCESS;
     }
 
   /* Build all newloc2globs on all processors */
@@ -1839,7 +1925,7 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
    */
   MALLOC_INTERN(newloc2globssize_recv, commSize + 1, pastix_int_t );
   MPI_Allreduce(newloc2globssize, newloc2globssize_recv, commSize+1,
-                COMM_INT, MPI_SUM, comm);
+                PASTIX_MPI_INT, MPI_SUM, comm);
   memFree_null(newloc2globssize);
   newloc2globssize = newloc2globssize_recv;
 
@@ -1862,7 +1948,7 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
           newloc2globs[i] = dl2g;
         }
       MPI_Bcast(newloc2globs[i], newloc2globssize[i+1] - newloc2globssize[i],
-                COMM_INT, i, comm);
+                PASTIX_MPI_INT, i, comm);
     }
   /* Create one CSCD for each proc */
   MALLOC_INTERN(colptr2send, commSize, pastix_int_t*);
@@ -1969,14 +2055,14 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
         {
           size     = newloc2globssize[i+1] - newloc2globssize[i];
           sizep[i] = colptr2send[i][size]-1;
-          MPI_Isend(&sizep[i], 1, COMM_INT, i, TAG_SIZE, comm,
+          MPI_Isend(&sizep[i], 1, PASTIX_MPI_INT, i, TAG_SIZE, comm,
                     &requests_size[i]);
           if (sizep[i] > 0)
             {
               MPI_Isend(colptr2send[i], size+1,
-                        COMM_INT, i, TAG_COL, comm, &requests_col[i]);
+                        PASTIX_MPI_INT, i, TAG_COL, comm, &requests_col[i]);
               MPI_Isend(rows2send[i],   sizep[i],
-                        COMM_INT, i, TAG_ROW, comm, &requests_row[i]);
+                        PASTIX_MPI_INT, i, TAG_ROW, comm, &requests_row[i]);
               if (flags_recv[0] == 1)
                 MPI_Isend(values2send[i], sizep[i]*dof*dof,
                           COMM_FLOAT, i, TAG_VAL, comm, &requests_val[i]);
@@ -2020,7 +2106,7 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
   while(toreceive > 0)
     {
       size = 0;
-      MPI_Recv( &size, 1, COMM_INT, MPI_ANY_SOURCE, TAG_SIZE, comm, &status);
+      MPI_Recv( &size, 1, PASTIX_MPI_INT, MPI_ANY_SOURCE, TAG_SIZE, comm, &status);
       if (size > 0)
         {
           /* Adding contribution CSCD to local CSCD */
@@ -2029,10 +2115,10 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
                         pastix_int_t);
           MPI_Recv( tmpia, (newloc2globssize[rank+1] -
                             newloc2globssize[rank] + 1),
-                    COMM_INT,
+                    PASTIX_MPI_INT,
                     status.MPI_SOURCE, TAG_COL, comm, &status2);
           MALLOC_INTERN(tmpja, size, pastix_int_t);
-          MPI_Recv( tmpja, size, COMM_INT,  status.MPI_SOURCE,
+          MPI_Recv( tmpja, size, PASTIX_MPI_INT,  status.MPI_SOURCE,
                     TAG_ROW, comm, &status2);
           if (flags_recv[0] == 1)
             {
@@ -2154,7 +2240,7 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
   if (flags_recv[1] == 1)
     memFree_null(requests_rhs);
 
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 #endif
 }
 
@@ -2284,7 +2370,7 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
           AllLoc2glob[i] = loc2glob;
         }
 
-      MPI_Bcast(&AllLocalN[i] , 1, COMM_INT, i, pastix_comm);
+      MPI_Bcast(&AllLocalN[i] , 1, PASTIX_MPI_INT, i, pastix_comm);
       if (rank != i)
         {
           MALLOC_INTERN(AllColptr[i],   AllLocalN[i]+1, pastix_int_t);
@@ -2296,7 +2382,7 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
             MALLOC_INTERN(AllPerm[i], AllLocalN[i], pastix_int_t);
         }
 
-      MPI_Bcast(AllColptr[i], AllLocalN[i]+1, COMM_INT  , i, pastix_comm);
+      MPI_Bcast(AllColptr[i], AllLocalN[i]+1, PASTIX_MPI_INT  , i, pastix_comm);
       if (rank != i)
         {
           MALLOC_INTERN(AllRow[i], AllColptr[i][AllLocalN[i]]-1, pastix_int_t);
@@ -2305,10 +2391,10 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
         }
 
       MPI_Bcast(AllRow[i], AllColptr[i][AllLocalN[i]]-1,
-                COMM_INT, i, pastix_comm);
-      MPI_Bcast(AllLoc2glob[i], AllLocalN[i], COMM_INT, i, pastix_comm);
+                PASTIX_MPI_INT, i, pastix_comm);
+      MPI_Bcast(AllLoc2glob[i], AllLocalN[i], PASTIX_MPI_INT, i, pastix_comm);
       if (gperm != NULL) {
-        MPI_Bcast(AllPerm[i], AllLocalN[i], COMM_INT, i, pastix_comm);
+        MPI_Bcast(AllPerm[i], AllLocalN[i], PASTIX_MPI_INT, i, pastix_comm);
       }
 
       if (grhs != NULL) {
@@ -2598,7 +2684,7 @@ int cscd_save(pastix_int_t          n,
   MPI_Comm_rank(comm, &myrank);
   MPI_Comm_size(comm, &nbproc);
 
-  MPI_Allreduce(&n, &vertglb, 1, COMM_INT, MPI_SUM, comm);
+  MPI_Allreduce(&n, &vertglb, 1, PASTIX_MPI_INT, MPI_SUM, comm);
 
   if (filename == NULL)
     sprintf(file, "cscd_matrix");

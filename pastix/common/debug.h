@@ -50,12 +50,12 @@
 #define DBG_SOPALIN_RECV        0
 
 
-/* updown */		        
+/* updown */
 #define DBG_SOPALIN_UPDO        0
 #define DBG_SOPALIN_UP          0
 #define DBG_SOPALIN_DOWN        0
 
-/* OOC */		        
+/* OOC */
 #define DBG_OOC_TRACE_V1        0
 #define DBG_OOC_TRACE_V2        0
 #define DBG_OOC_DEBUG           0
@@ -75,8 +75,8 @@
 
 /*
   Macro: print_debug
-  
-  Prints debugging message if PASTIX_DEBUG is defined and if the 
+
+  Prints debugging message if PASTIX_DEBUG is defined and if the
   debug flag is the to 1.
  */
 #ifdef PASTIX_DEBUG

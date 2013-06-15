@@ -38,7 +38,8 @@
 /**                                                        **/
 /************************************************************/
 
-#define ORDER_H
+#ifndef _ORDER_H_
+#define _ORDER_H_
 
 /*
 **  The type and structure definitions.
@@ -92,4 +93,4 @@ int                         orderMeshStrat      (Order * restrict const ordeptr,
 int                         orderMeshListStrat  (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab, const char * const);
 #endif /* MESH_H */
 
-#undef static
+#endif /* _ORDER_H_ */

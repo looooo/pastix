@@ -9,31 +9,6 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 #include "pastix.h"
 #include "common_drivers.h"
 #include "cscdread.h"
@@ -272,7 +247,7 @@ cscdRead(char const      *dirname,
   if (vectsize    == NULL) fprintf(stderr, "[P%d] Erreur : alloc vectsize\n",    myrank);
   if (vectsizercv == NULL) fprintf(stderr, "[P%d] Erreur : alloc vectsizercv\n", myrank);
 
-  MPI_Allreduce(vectsize, vectsizercv, nbproc, MPI_pastix_int_t, MPI_SUM, pastix_comm);
+  MPI_Allreduce(vectsize, vectsizercv, nbproc, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
   for (i=0; i<myrank; i++)
     offset += vectsizercv[i];
 

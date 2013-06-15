@@ -4,9 +4,31 @@
  * Definition of a global function to read all type of matrices.
  *
  */
+#include <stdlib.h>
 #include <stdio.h>
-#include "common.h"
+#include <string.h>
+#include "pastix.h"
 #include "read_matrix.h"
+#include "common_drivers.h"
+#include "get_options.h"
+
+/* #include "cccread.h" */
+/* #include "chbread.h" */
+#include "cscdread.h"
+/* #include "csparse.h" */
+/* #include "fdupread.h" */
+/* #include "hbread.h" */
+/* #include "iohb.h" */
+#include "laplacian.h"
+#include "mmdread.h"
+/* //#include "mmio.h" */
+/* #include "mmread.h" */
+#include "mtx.h"
+/* #include "olafread.h" */
+/* #include "peerread.h" */
+#include "petscread.h"
+/* #include "rsaread.h" */
+#include "threefilesread.h"
 
 /*
  * Function: read_matrix_common
@@ -270,7 +292,7 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
       send[1] = 0;
       if (*ncol != 0 && *rhs == NULL)
         send[1] = 1;
-      MPI_Allreduce(send, recv, 2, MPI_pastix_int_t, MPI_SUM, pastix_comm);
+      MPI_Allreduce(send, recv, 2, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
       N = recv[0];
       if (recv[1] > 0)
         {
@@ -292,7 +314,7 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
                 }
             }
           RHS_recv  = (pastix_float_t *) malloc((N)*sizeof(pastix_float_t));
-          MPI_Allreduce(RHS, RHS_recv, N, MPI_pastix_float_t, MPI_SUM, pastix_comm);
+          MPI_Allreduce(RHS, RHS_recv, N, PASTIX_MPI_FLOAT, MPI_SUM, pastix_comm);
           free(RHS);
           *rhs = (pastix_float_t *) malloc((*ncol)*sizeof(pastix_float_t));
 
@@ -304,8 +326,8 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
   if ( driver_type != LAPLACIAN && driver_type != CSCD &&
        driver_type != FDUP_DIST && driver_type != MMD)
     {
-      MPI_Bcast(ncol,1,MPI_pastix_int_t,0,pastix_comm);
-      MPI_Bcast(&nnz,1,MPI_pastix_int_t,0,pastix_comm);
+      MPI_Bcast(ncol,1,PASTIX_MPI_INT,0,pastix_comm);
+      MPI_Bcast(&nnz,1,PASTIX_MPI_INT,0,pastix_comm);
 
       if (mpid!=0)
         {
@@ -316,10 +338,10 @@ int read_matrix_common(char            *filename,    pastix_int_t    *ncol,
           *type   = (char *)  malloc(4*sizeof(char));
         }
 
-      MPI_Bcast(*colptr, *ncol+1, MPI_pastix_int_t,   0, pastix_comm);
-      MPI_Bcast(*rows,    nnz,    MPI_pastix_int_t,   0, pastix_comm);
-      MPI_Bcast(*values,  nnz,    MPI_pastix_float_t, 0, pastix_comm);
-      MPI_Bcast(*rhs,    *ncol,   MPI_pastix_float_t, 0, pastix_comm);
+      MPI_Bcast(*colptr, *ncol+1, PASTIX_MPI_INT,   0, pastix_comm);
+      MPI_Bcast(*rows,    nnz,    PASTIX_MPI_INT,   0, pastix_comm);
+      MPI_Bcast(*values,  nnz,    PASTIX_MPI_FLOAT, 0, pastix_comm);
+      MPI_Bcast(*rhs,    *ncol,   PASTIX_MPI_FLOAT, 0, pastix_comm);
       MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm);
   }
 
@@ -365,30 +387,30 @@ int read_matrix(char            *filename,    pastix_int_t    *ncol,
       return ret;
   }
 
-  if (driver_type == CSCD || driver_type == FDUP_DIST || driver_type == MMD)
-    {
-      pastix_int_t    gn;
-      pastix_int_t   *gcolptr;
-      pastix_int_t   *grow;
-      pastix_float_t *gavals;
-      pastix_float_t *grhs;
+  /* if (driver_type == CSCD || driver_type == FDUP_DIST || driver_type == MMD) */
+  /*   { */
+  /*     pastix_int_t    gn; */
+  /*     pastix_int_t   *gcolptr; */
+  /*     pastix_int_t   *grow; */
+  /*     pastix_float_t *gavals; */
+  /*     pastix_float_t *grhs; */
 
-      PASTIX_EXTERN(cscd2csc)(*ncol,*colptr,  *rows, *values, *rhs,  NULL, NULL,
-                              &gn,  &gcolptr, &grow, &gavals, &grhs, NULL, NULL,
-                              loc2glob, pastix_comm, 1);
+  /*     PASTIX_EXTERN(cscd2csc)(*ncol,*colptr,  *rows, *values, *rhs,  NULL, NULL, */
+  /*                             &gn,  &gcolptr, &grow, &gavals, &grhs, NULL, NULL, */
+  /*                             loc2glob, pastix_comm, 1); */
 
-      free(*colptr);
-      free(*rows);
-      free(*values);
-      free(*rhs);
-      free(loc2glob);
-      *ncol   = gn;
-      *colptr = gcolptr;
-      *rows   = grow;
-      *values = gavals;
-      *rhs    = grhs;
+  /*     free(*colptr); */
+  /*     free(*rows); */
+  /*     free(*values); */
+  /*     free(*rhs); */
+  /*     free(loc2glob); */
+  /*     *ncol   = gn; */
+  /*     *colptr = gcolptr; */
+  /*     *rows   = grow; */
+  /*     *values = gavals; */
+  /*     *rhs    = grhs; */
 
-    }
+  /*   } */
 
   return EXIT_SUCCESS;
 }
@@ -434,30 +456,30 @@ int dread_matrix(char            *filename,    pastix_int_t    *ncol,
         return ret;
   }
 
-  if (driver_type != CSCD && driver_type != FDUP_DIST && driver_type != MMD)
-    {
+  /* if (driver_type != CSCD && driver_type != FDUP_DIST && driver_type != MMD) */
+  /*   { */
 
-      pastix_int_t    lN;
-      pastix_int_t   *lcolptr;
-      pastix_int_t   *lrow;
-      pastix_float_t *lavals;
-      pastix_float_t *lrhs;
+  /*     pastix_int_t    lN; */
+  /*     pastix_int_t   *lcolptr; */
+  /*     pastix_int_t   *lrow; */
+  /*     pastix_float_t *lavals; */
+  /*     pastix_float_t *lrhs; */
 
-      PASTIX_EXTERN(csc_dispatch)(*ncol, *colptr,  *rows, *values, *rhs,  NULL, NULL,
-                                  &lN,   &lcolptr, &lrow, &lavals, &lrhs, NULL,
-                                  loc2glob, CSC_DISP_SIMPLE, MPI_COMM_WORLD);
+  /*     PASTIX_EXTERN(csc_dispatch)(*ncol, *colptr,  *rows, *values, *rhs,  NULL, NULL, */
+  /*                                 &lN,   &lcolptr, &lrow, &lavals, &lrhs, NULL, */
+  /*                                 loc2glob, CSC_DISP_SIMPLE, MPI_COMM_WORLD); */
 
-      memFree_null(*colptr);
-      memFree_null(*rows);
-      memFree_null(*values);
-      memFree_null(*rhs);
+  /*     memFree_null(*colptr); */
+  /*     memFree_null(*rows); */
+  /*     memFree_null(*values); */
+  /*     memFree_null(*rhs); */
 
-      *ncol   = lN;
-      *colptr = lcolptr;
-      *rows   = lrow;
-      *values = lavals;
-      *rhs    = lrhs;
-    }
+  /*     *ncol   = lN; */
+  /*     *colptr = lcolptr; */
+  /*     *rows   = lrow; */
+  /*     *values = lavals; */
+  /*     *rhs    = lrhs; */
+  /*   } */
 
   return EXIT_SUCCESS;
 }
@@ -578,11 +600,12 @@ void checkStrucSym(pastix_int_t     n,
 
   fprintf(stderr, "nbrlostelt %ld maxvalue %e \n", (long) nbrlostelt, maxvalue);
 
-  if (nbrlostelt!=0)
-  {
-    /* repair csc to have symmetric pattern */
-    if (!(tablostelt = (couple *) malloc(nbrlostelt*sizeof(couple))))
-      MALLOC_ERROR("tablostelt");
+  if (nbrlostelt!=0) {
+      /* repair csc to have symmetric pattern */
+      if (!(tablostelt = (couple *) malloc(nbrlostelt*sizeof(couple)))) {
+          fprintf(stderr, "Error in allocation of tablostelt\n");
+          exit(-1);
+      }
 
     nbrlostelt=0;
 
@@ -618,11 +641,11 @@ void checkStrucSym(pastix_int_t     n,
     /* rebuild good format */
     tempnz = (*nz)+nbrlostelt;
     if (!(tempcol = (pastix_int_t *) malloc(n*sizeof(pastix_int_t))))
-      MALLOC_ERROR("tempcol");
+        MALLOC_ERROR("tempcol");
     if (!(temprow = (pastix_int_t *) malloc(tempnz*sizeof(pastix_int_t))))
-      MALLOC_ERROR("temprow");
+        MALLOC_ERROR("temprow");
     if (!(tempval = (pastix_float_t *) malloc(tempnz*sizeof(pastix_float_t))))
-      MALLOC_ERROR("tempval");
+        MALLOC_ERROR("tempval");
 
     iterlost = 0;
     tempcol[0] = (*colptr)[0];
@@ -651,9 +674,9 @@ void checkStrucSym(pastix_int_t     n,
       tempcol[itercol+1] = (*colptr)[itercol+1]+iterlost;
     }
     *nz=tempnz;
-    memFree_null((*colptr));
-    memFree_null((*row));
-    memFree_null((*avals));
+    free((*colptr));*colptr = NULL;
+    free((*row));   *row    = NULL;
+    free((*avals)); *avals  = NULL;
     *colptr=tempcol;
     *row=temprow;
     *avals=tempval;

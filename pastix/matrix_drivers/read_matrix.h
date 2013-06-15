@@ -4,26 +4,6 @@
  * Definition of a global function to read all type of matrices.
  *
  */
-
-#ifndef _GLIBCXX_HAVE_COMPLEX_H
-#  define _GLIBCXX_HAVE_COMPLEX_H 0
-#endif
-
-#ifdef   __cplusplus
-#  if (_GLIBCXX_HAVE_COMPLEX_H == 1 || defined __STD_COMPLEX || defined _STLP_template_complex)
-#    define  COMPLEX  std::complex<float>
-#    define  DCOMPLEX std::complex<double>
-#  endif
-#else /* not __cplusplus */
-#  if (defined _COMPLEX_H || defined _H_COMPLEX || defined __COMPLEX__)
-#    define  COMPLEX float complex
-#    define  DCOMPLEX double complex
-#  endif
-#endif /* not __cplusplus */
-
-#if (defined _COMPLEX_H || defined _H_COMPLEX || defined __COMPLEX__ || _GLIBCXX_HAVE_COMPLEX_H == 1 || defined __STD_COMPLEX || defined _STLP_template_complex)
-#  define PASTIX_HAS_COMPLEX
-#endif
 /*
  * typedef: driver_type_enum
  *
@@ -77,7 +57,8 @@ typedef enum driver_type_enum driver_type_t;
 #  define MTX_ISRHS(a) ((a)[0]!='\0')
 #endif
 
-#ifdef pastix_int_t_T_AND_SO_ON
+int api_str_to_int(char * string, int * value);
+
 /*
  * Function: read_matrix
  *
@@ -107,51 +88,7 @@ int read_matrix(char            *filename,
                 char           **rhstype,
                 driver_type_t    driver_type,
                 MPI_Comm         pastix_comm);
-#endif
-int s_read_matrix(char            *filename,
-                  pastix_int_t    *ncol,
-                  pastix_int_t   **colptr,
-                  pastix_int_t   **row,
-                  float **values,
-                  float **rhs,
-                  char           **type,
-                  char           **rhstype,
-                  driver_type_t    driver_type,
-                  MPI_Comm         pastix_comm);
-int d_read_matrix(char            *filename,
-                  pastix_int_t    *ncol,
-                  pastix_int_t   **colptr,
-                  pastix_int_t   **row,
-                  double **values,
-                  double **rhs,
-                  char           **type,
-                  char           **rhstype,
-                  driver_type_t    driver_type,
-                  MPI_Comm         pastix_comm);
-#ifdef PASTIX_HAS_COMPLEX
-int c_read_matrix(char            *filename,
-                  pastix_int_t    *ncol,
-                  pastix_int_t   **colptr,
-                  pastix_int_t   **row,
-                  COMPLEX **values,
-                  COMPLEX **rhs,
-                  char           **type,
-                  char           **rhstype,
-                  driver_type_t    driver_type,
-                  MPI_Comm         pastix_comm);
-int z_read_matrix(char            *filename,
-                  pastix_int_t    *ncol,
-                  pastix_int_t   **colptr,
-                  pastix_int_t   **row,
-                  DCOMPLEX **values,
-                  DCOMPLEX **rhs,
-                  char           **type,
-                  char           **rhstype,
-                  driver_type_t    driver_type,
-                  MPI_Comm         pastix_comm);
-#endif
 
-#ifdef pastix_int_t_T_AND_SO_ON
 /*
  * Function: dread_matrix
  *
@@ -182,54 +119,7 @@ int dread_matrix(char            *filename,
                  char           **rhstype,
                  driver_type_t    driver_type,
                  MPI_Comm         pastix_comm);
-#endif
-int s_dread_matrix(char            *filename,
-                   pastix_int_t    *ncol,
-                   pastix_int_t   **colptr,
-                   pastix_int_t   **rows,
-                   pastix_int_t   **loc2glob,
-                   float **values,
-                   float **rhs,
-                   char           **type,
-                   char           **rhstype,
-                   driver_type_t    driver_type,
-                   MPI_Comm         pastix_comm);
-int d_dread_matrix(char            *filename,
-                   pastix_int_t    *ncol,
-                   pastix_int_t   **colptr,
-                   pastix_int_t   **rows,
-                   pastix_int_t   **loc2glob,
-                   double **values,
-                   double **rhs,
-                   char           **type,
-                   char           **rhstype,
-                   driver_type_t    driver_type,
-                   MPI_Comm         pastix_comm);
-#ifdef PASTIX_HAS_COMPLEX
-int c_dread_matrix(char            *filename,
-                   pastix_int_t    *ncol,
-                   pastix_int_t   **colptr,
-                   pastix_int_t   **rows,
-                   pastix_int_t   **loc2glob,
-                   COMPLEX **values,
-                   COMPLEX **rhs,
-                   char           **type,
-                   char           **rhstype,
-                   driver_type_t    driver_type,
-                   MPI_Comm         pastix_comm);
-int z_dread_matrix(char            *filename,
-                   pastix_int_t    *ncol,
-                   pastix_int_t   **colptr,
-                   pastix_int_t   **rows,
-                   pastix_int_t   **loc2glob,
-                   DCOMPLEX **values,
-                   DCOMPLEX **rhs,
-                   char           **type,
-                   char           **rhstype,
-                   driver_type_t    driver_type,
-                   MPI_Comm         pastix_comm);
 
-#endif
 /*
  *  Function: comparcouple
  *
@@ -246,14 +136,7 @@ int z_dread_matrix(char            *filename,
  *    1  - else
  */
 int comparcouple(const void *a, const void *b);
-int s_comparcouple(const void *a, const void *b);
-int d_comparcouple(const void *a, const void *b);
-#ifdef PASTIX_HAS_COMPLEX
-int c_comparcouple(const void *a, const void *b);
-int z_comparcouple(const void *a, const void *b);
-#endif
 
-#ifdef pastix_int_t_T_AND_SO_ON
 /*
  *  Function: checkStrucSym
  *
@@ -271,30 +154,5 @@ void checkStrucSym(pastix_int_t     n,
                    pastix_int_t   **colptr,
                    pastix_int_t   **row,
                    pastix_float_t **avals);
-#endif
-void s_checkStrucSym(pastix_int_t     n,
-                     pastix_int_t    *nz,
-                     pastix_int_t   **colptr,
-                     pastix_int_t   **row,
-                     float **avals);
-void d_checkStrucSym(pastix_int_t     n,
-                     pastix_int_t    *nz,
-                     pastix_int_t   **colptr,
-                     pastix_int_t   **row,
-                     double **avals);
-#ifdef PASTIX_HAS_COMPLEX
-void c_checkStrucSym(pastix_int_t     n,
-                     pastix_int_t    *nz,
-                     pastix_int_t   **colptr,
-                     pastix_int_t   **row,
-                     COMPLEX **avals);
-void z_checkStrucSym(pastix_int_t     n,
-                     pastix_int_t    *nz,
-                     pastix_int_t   **colptr,
-                     pastix_int_t   **row,
-                     DCOMPLEX **avals);
-#endif
-#undef PASTIX_HAS_COMPLEX
-#undef COMPLEX
-#undef DCOMPLEX
+
 #endif /* not READ_MATRIX_H */

@@ -10,32 +10,10 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 #include "pastix.h"
 #include "common_drivers.h"
 #include "fdupread.h"
+
 #ifdef FDUPROS
 /*
   Function: driverFdupros
@@ -45,15 +23,15 @@
 
 */
 void driverFdupros(char const      *filename,
-		   pastix_int_t    *Nrow,
-		   pastix_int_t    *Ncol,
-		   pastix_int_t    *Nnzero,
-		   pastix_int_t   **col,
-		   pastix_int_t   **row,
-		   pastix_float_t **val,
-		   pastix_float_t **rhs,
-		   char           **Type,
-		   char           **RhsType)
+                   pastix_int_t    *Nrow,
+                   pastix_int_t    *Ncol,
+                   pastix_int_t    *Nnzero,
+                   pastix_int_t   **col,
+                   pastix_int_t   **row,
+                   pastix_float_t **val,
+                   pastix_float_t **rhs,
+                   char           **Type,
+                   char           **RhsType)
 {
 
   double        *tmpval;
@@ -76,7 +54,7 @@ void driverFdupros(char const      *filename,
   (*Type)[1]='S';
   (*Type)[2]='A';
   (*Type)[3]='\0';
-    
+
   (*RhsType)[0]='\0';
   filename2 = (char *)malloc((strlen(filename)+20)*sizeof(char));
   sprintf(filename2, "%s/MATA01", filename);
@@ -100,9 +78,9 @@ void driverFdupros(char const      *filename,
   fread(&tmpint2, sizeof(int), 1, fp);
   tmpcoord = (int*) malloc(2*(*Nnzero)*sizeof(int));
   printf("COORD - %d %d\n", tmpint1, tmpint2);
-  
+
   fread(tmpcoord, sizeof(int), 2*(*Nnzero), fp);
-  
+
   fclose(fp);
 
   if (NULL == ((*col) = (pastix_int_t *)malloc(sizeof(pastix_int_t)*((*Nrow)+1))))
@@ -135,10 +113,10 @@ void driverFdupros(char const      *filename,
       oneval = (pastix_float_t)(tmpval[i]);
       index = (*col)[onecol-1]-1;
       if (index >= *Nnzero)
-	{
-	  fprintf(stdout, "onecol %ld Ncol %ld index %ld, *Nnzero %ld\n", onecol, *Ncol, index, *Nnzero);
-	  exit(1);
-	}
+        {
+          fprintf(stdout, "onecol %ld Ncol %ld index %ld, *Nnzero %ld\n", onecol, *Ncol, index, *Nnzero);
+          exit(1);
+        }
       (*val)[index] = oneval;
       (*row)[index] = onerow;
       (*col)[onecol-1] = index+1+1;
@@ -152,16 +130,16 @@ void driverFdupros(char const      *filename,
 
   free(tmpcoord);
   printf("FDuprosDriver: Nrow=%ld Ncol=%ld Nnzero=%ld\n",
-	 (long)*Nrow,(long)*Ncol,(long)*Nnzero);
+         (long)*Nrow,(long)*Ncol,(long)*Nnzero);
 
   if (NULL == ((*rhs) =
-	       (pastix_float_t *)malloc(sizeof(pastix_float_t)*(*Nrow))))
+               (pastix_float_t *)malloc(sizeof(pastix_float_t)*(*Nrow))))
     MALLOC_ERROR("rhs");
   if (*Nnzero < *Nrow)
     {
       free(tmpval);
       if (NULL == ((tmpval) =
-		   (double *)malloc(sizeof(double)*(*Nrow))));
+                   (double *)malloc(sizeof(double)*(*Nrow))));
     }
 
   sprintf(filename2, "%s/ZRHS01", filename);
@@ -186,17 +164,17 @@ void driverFdupros(char const      *filename,
 
 */
 void driverFdupros_dist(char const      *filename,
-			pastix_int_t    *Nrow,
-			pastix_int_t    *Ncol,
-			pastix_int_t    *Nnzero,
-			pastix_int_t   **col,
-			pastix_int_t   **row,
-			pastix_int_t   **loc2glob,
-			pastix_float_t **val,
-			pastix_float_t **rhs,
-			char           **Type,
-			char           **RhsType,
-			MPI_Comm         pastix_comm)
+                        pastix_int_t    *Nrow,
+                        pastix_int_t    *Ncol,
+                        pastix_int_t    *Nnzero,
+                        pastix_int_t   **col,
+                        pastix_int_t   **row,
+                        pastix_int_t   **loc2glob,
+                        pastix_float_t **val,
+                        pastix_float_t **rhs,
+                        char           **Type,
+                        char           **RhsType,
+                        MPI_Comm         pastix_comm)
 {
 
   double        *tmpval;
@@ -234,7 +212,7 @@ void driverFdupros_dist(char const      *filename,
   fread(&tmpint2, sizeof(int), 1, fp);
   fread(&tmpint3, sizeof(int), 1, fp);
   fread(&tmpint4, sizeof(int), 1, fp);
-  
+
   tmpval   = (double*)malloc(tmpint4*sizeof(double));
 
   fread(tmpval, sizeof(double), tmpint4, fp);
@@ -258,15 +236,15 @@ void driverFdupros_dist(char const      *filename,
   fclose(fp);
 
   if (NULL == ((*col) =
-	       (pastix_int_t *)malloc(sizeof(pastix_int_t)*((*Nrow)+1))))
+               (pastix_int_t *)malloc(sizeof(pastix_int_t)*((*Nrow)+1))))
     MALLOC_ERROR("col");
   if (NULL == ((*row) = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(*Nnzero))))
     MALLOC_ERROR("row");
   if (NULL == ((*loc2glob) =
-	       (pastix_int_t *)malloc(sizeof(pastix_int_t)*(*Nrow))))
+               (pastix_int_t *)malloc(sizeof(pastix_int_t)*(*Nrow))))
     MALLOC_ERROR("loc2glob");
   if (NULL == ((*val) =
-	       (pastix_float_t *)malloc(sizeof(pastix_float_t)*(*Nnzero))))
+               (pastix_float_t *)malloc(sizeof(pastix_float_t)*(*Nnzero))))
     MALLOC_ERROR("val");
 
   for ( i = 0; i < *Ncol+1; i++)
@@ -283,11 +261,11 @@ void driverFdupros_dist(char const      *filename,
   for ( i = 1; i < *Nnzero; i++)
     {
       if ((*loc2glob)[index] != tmpcoord[(*Nnzero)+i])
-	{
-	  index++;
-	  (*col)[index] = i+1;
-	  (*loc2glob)[index] = tmpcoord[(*Nnzero)+i];
-	}
+        {
+          index++;
+          (*col)[index] = i+1;
+          (*loc2glob)[index] = tmpcoord[(*Nnzero)+i];
+        }
       tmpcoord[(*Nnzero)+i] = index+1;
     }
   (*col)[*Ncol] = *Nnzero;
@@ -298,18 +276,18 @@ void driverFdupros_dist(char const      *filename,
       onerow = tmpcoord[i];
       oneval = (pastix_float_t)(tmpval[i]);
       if (onecol > *Ncol)
-	{
-	  fprintf(stdout, "%ld: %ld %ld %ld\n", 
-		  (long)rank, (long)i, (long)onecol, (long)(*Ncol));
-	  exit(1);
-	}
+        {
+          fprintf(stdout, "%ld: %ld %ld %ld\n",
+                  (long)rank, (long)i, (long)onecol, (long)(*Ncol));
+          exit(1);
+        }
       index = (*col)[onecol-1]-1;
       if (index >= *Nnzero)
-	{
-	  fprintf(stdout, "%ld: onecol %ld index %ld, *Nnzero %ld\n", 
-		  (long)rank, (long)onecol, (long)index, (long)(*Nnzero));
-	  exit(1);
-	}
+        {
+          fprintf(stdout, "%ld: onecol %ld index %ld, *Nnzero %ld\n",
+                  (long)rank, (long)onecol, (long)index, (long)(*Nnzero));
+          exit(1);
+        }
 
       (*val)[index] = oneval;
       (*row)[index] = onerow;
@@ -325,16 +303,16 @@ void driverFdupros_dist(char const      *filename,
   free(tmpcoord);
 
   if (NULL == ((*rhs) =
-	       (pastix_float_t *)malloc(sizeof(pastix_float_t)*(*Nrow))))
+               (pastix_float_t *)malloc(sizeof(pastix_float_t)*(*Nrow))))
     MALLOC_ERROR("rhs");
 
   if (*Nnzero < *Nrow)
     {
       free(tmpval);
       if (NULL == ((tmpval) =
-		   (double *)malloc(sizeof(double)*(*Nrow))));
+                   (double *)malloc(sizeof(double)*(*Nrow))));
     }
-  
+
   sprintf(filename2, "%s/ZRHS%4.4d", filename, rank);
   fp = fopen(filename2, "rb");
 
@@ -346,6 +324,6 @@ void driverFdupros_dist(char const      *filename,
     (*rhs)[i] = (pastix_float_t)(tmpval[i]);
 
   free(tmpval);
-  
+
 }
-#endif 
+#endif

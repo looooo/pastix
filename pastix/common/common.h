@@ -24,18 +24,15 @@
 #define _COMMON_H_
 
 #include "pastix.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-
 #include "debug.h"
 #include "out.h"
 #include "memory.h"
 #include "integer.h"
 #include "timing.h"
+#include "trace.h"
 #include "../order/order.h"
-#include "pastixstr.h"
+//#include "pastixstr.h"
+#include "redefine_functions.h"
 
 /********************************************************************
  * Errors functions
@@ -46,10 +43,10 @@ void errorPrintW(const char * const, ...);
 
 /*
   Macro: EXIT
-  
+
   Set IPARM_ERROR_NUMBER  to module+error, dumps parameters and exit.
 
-  Parameters: 
+  Parameters:
     module - Module where the error occurs.
     error  - Value to set IPARM_ERROR_NUMBER to.
 */
@@ -104,4 +101,4 @@ void errorPrintW(const char * const, ...);
       }                                         \
   }
 
-#endif /* _PASTIX_H_ */
+#endif /* _COMMON_H_ */

@@ -193,7 +193,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
 
   /** Copy the vector used to get a cluster number from a processor number **/
   MALLOC_INTERN(solvmtx->proc2clust, ctrl->procnbr, pastix_int_t);
-  memCpy(solvmtx->proc2clust, ctrl->proc2clust, sizeof(pastix_int_t)*ctrl->procnbr);
+  memcpy(solvmtx->proc2clust, ctrl->proc2clust, sizeof(pastix_int_t)*ctrl->procnbr);
 
   /** Initialize pointer **/
   proc2clust = ctrl->proc2clust;
@@ -1496,31 +1496,31 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     ASSERT(bcofind[i]>=0,MOD_BLEND);
 #endif
 
-  if ( (ctrl->option->leader == clustnum) && (ctrl->option->tracegen == 1))
-    {
-      FILE *out;
-      pastix_int_t   width, height;
-      pastix_int_t   cblk, blok, fblok, lblok;
+  /* if ( (ctrl->option->leader == clustnum) && (ctrl->option->tracegen == 1)) */
+  /*   { */
+  /*     FILE *out; */
+  /*     pastix_int_t   width, height; */
+  /*     pastix_int_t   cblk, blok, fblok, lblok; */
 
-      OUT_OPENFILEINDIR(ctrl->option->iparm, out, "blocksizerepartition", "w");
-      fprintf(out, "# cblknum bloknum width height array\n");
+  /*     OUT_OPENFILEINDIR(ctrl->option->iparm, out, "blocksizerepartition", "w"); */
+  /*     fprintf(out, "# cblknum bloknum width height array\n"); */
 
-      for(cblk=0; cblk< solvmtx->cblknbr; cblk++)
-      {
-          width = (solvmtx->cblktab[cblk].lcolnum - solvmtx->cblktab[cblk].fcolnum + 1); /* * dofptr->noddval;*/
+  /*     for(cblk=0; cblk< solvmtx->cblknbr; cblk++) */
+  /*     { */
+  /*         width = (solvmtx->cblktab[cblk].lcolnum - solvmtx->cblktab[cblk].fcolnum + 1); /\* * dofptr->noddval;*\/ */
 
-          fblok = solvmtx->cblktab[cblk].bloknum;
-          lblok = solvmtx->cblktab[cblk+1].bloknum;
+  /*         fblok = solvmtx->cblktab[cblk].bloknum; */
+  /*         lblok = solvmtx->cblktab[cblk+1].bloknum; */
 
-          for(blok = fblok; blok < lblok; blok++)
-          {
-              height = (solvmtx->bloktab[blok].lrownum - solvmtx->bloktab[blok].frownum + 1);/* * dofptr->noddval;*/
-              fprintf(out, "%ld %ld %ld %ld %ld\n",
-                      (long)cblk, (long)blok, (long)width, (long)height, (long)(width*height));
-          }
-      }
-      OUT_CLOSEFILEINDIR(out);
-    }
+  /*         for(blok = fblok; blok < lblok; blok++) */
+  /*         { */
+  /*             height = (solvmtx->bloktab[blok].lrownum - solvmtx->bloktab[blok].frownum + 1);/\* * dofptr->noddval;*\/ */
+  /*             fprintf(out, "%ld %ld %ld %ld %ld\n", */
+  /*                     (long)cblk, (long)blok, (long)width, (long)height, (long)(width*height)); */
+  /*         } */
+  /*     } */
+  /*     OUT_CLOSEFILEINDIR(out); */
+  /*   } */
 
   return bcofind;
 }

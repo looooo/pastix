@@ -291,7 +291,7 @@ pastix_int_t Malt2(SolverMatrix *solvmtx, double reduction)
 	  ASSERT( extraftgttab[j].indnum == i,MOD_BLEND);
 #endif
 	  /*fprintf(stdout, "Add Partial %ld at %ld before Ftgt %ld \n", (long)j, (long)cursor, (long)i);*/
-	  /*memCpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[extraftgttab[j].ftgtnum]), sizeof(FanInTarget));*/
+	  /*memcpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[extraftgttab[j].ftgtnum]), sizeof(FanInTarget));*/
 	  newftgttab[cursor].infotab[FTGT_PROCDST] = solvmtx->ftgttab[extraftgttab[j].ftgtnum].infotab[FTGT_PROCDST];
 	  newftgttab[cursor].infotab[FTGT_TASKDST] = solvmtx->ftgttab[extraftgttab[j].ftgtnum].infotab[FTGT_TASKDST];
 	  newftgttab[cursor].infotab[FTGT_BLOKDST] = solvmtx->ftgttab[extraftgttab[j].ftgtnum].infotab[FTGT_BLOKDST];
@@ -307,7 +307,7 @@ pastix_int_t Malt2(SolverMatrix *solvmtx, double reduction)
 	  extraftgttab[j].ftgtnewnum = cursor;
 	  cursor++;
 	}
-      /*memCpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[i]), sizeof(FanInTarget));*/
+      /*memcpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[i]), sizeof(FanInTarget));*/
       
       newftgttab[cursor].infotab[FTGT_PROCDST] = solvmtx->ftgttab[i].infotab[FTGT_PROCDST];
       newftgttab[cursor].infotab[FTGT_TASKDST] = solvmtx->ftgttab[i].infotab[FTGT_TASKDST];
@@ -327,7 +327,7 @@ pastix_int_t Malt2(SolverMatrix *solvmtx, double reduction)
   /*fprintf(stdout, "Newftgttab constructed \n" );*/
   ASSERT(queueSize(&partialFtgtInd) == 1,MOD_BLEND);
   MALLOC_INTERN(debugnew2old, solvmtx->ftgtnbr+extracursor, pastix_int_t);
-  /*memSet(debugnew2old, -1, sizeof(pastix_int_t)*(solvmtx->ftgtnbr+extracursor));*/
+  /*memset(debugnew2old, -1, sizeof(pastix_int_t)*(solvmtx->ftgtnbr+extracursor));*/
   for(i=0;i<solvmtx->ftgtnbr+extracursor;i++)
     debugnew2old[i] = -1;
   for(i=0;i<solvmtx->ftgtnbr;i++)

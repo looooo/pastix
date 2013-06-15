@@ -60,7 +60,7 @@ int
 orderInit (
 Order * const               ordeptr)
 {
-  memSet (ordeptr, 0, sizeof (Order));
+  memset (ordeptr, 0, sizeof (Order));
 
   return (0);
 }
@@ -83,6 +83,6 @@ Order * const               ordeptr)
     memFree (ordeptr->peritab);
 
 #ifdef ORDER_DEBUG
-  memSet (ordeptr, ~0, sizeof (Order));
+  memset (ordeptr, ~0, sizeof (Order));
 #endif /* ORDER_DEBUG */
 }

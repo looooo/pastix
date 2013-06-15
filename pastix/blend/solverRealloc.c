@@ -86,13 +86,13 @@ void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
 
     MALLOC_INTERN(tmp, 1, SolverMatrix);
     /** copy general info **/
-    memCpy(tmp, solvmtx, sizeof(SolverMatrix));
+    memcpy(tmp, solvmtx, sizeof(SolverMatrix));
 
     /**OIMBE il faudra faire le REALLOC pour ooc ! **/
 
     /** Copy tasktab **/
     MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr, Task);
-    memCpy(solvmtx->tasktab, tmp->tasktab, solvmtx->tasknbr*sizeof(Task));
+    memcpy(solvmtx->tasktab, tmp->tasktab, solvmtx->tasknbr*sizeof(Task));
 #ifdef DEBUG_BLEND
     for(i=0;i<solvmtx->tasknbr;i++)
       ASSERT((solvmtx->tasktab[i].btagptr == NULL), MOD_BLEND);
@@ -100,18 +100,18 @@ void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
 
     /** Copy cblktab and bloktab **/
     MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
-    memCpy(solvmtx->cblktab, tmp->cblktab,
+    memcpy(solvmtx->cblktab, tmp->cblktab,
            (solvmtx->cblknbr+1)*sizeof(SolverCblk));
 
     MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr, SolverBlok);
-    memCpy(solvmtx->bloktab, tmp->bloktab,
+    memcpy(solvmtx->bloktab, tmp->bloktab,
            solvmtx->bloknbr*sizeof(SolverBlok));
 
     /** Copy BlockTarget tab **/
     if(solvmtx->btagnbr>0)
       {
         MALLOC_INTERN(solvmtx->btagtab, solvmtx->btagnbr, BlockTarget);
-        memCpy(solvmtx->btagtab, tmp->btagtab,
+        memcpy(solvmtx->btagtab, tmp->btagtab,
                solvmtx->btagnbr*sizeof(BlockTarget));
       }
     else
@@ -123,7 +123,7 @@ void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
     if(solvmtx->bcofnbr>0)
       {
         MALLOC_INTERN(solvmtx->bcoftab, solvmtx->bcofnbr, BlockCoeff);
-        memCpy(solvmtx->bcoftab, tmp->bcoftab,
+        memcpy(solvmtx->bcoftab, tmp->bcoftab,
                solvmtx->bcofnbr*sizeof(BlockCoeff));
       }
     else
@@ -135,29 +135,29 @@ void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
     if (solvmtx->ftgtnbr != 0)
       {
         MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, FanInTarget);
-        memCpy(solvmtx->ftgttab, tmp->ftgttab,
+        memcpy(solvmtx->ftgttab, tmp->ftgttab,
                solvmtx->ftgtnbr*sizeof(FanInTarget));
       }
     /** copy infotab of fan intarget **/
     /*for(i=0;i<tmp->ftgtnbr;i++)
-      memCpy(solvmtx->ftgttab[i].infotab, tmp->ftgttab[i].infotab, MAXINFO*sizeof(pastix_int_t));*/
+      memcpy(solvmtx->ftgttab[i].infotab, tmp->ftgttab[i].infotab, MAXINFO*sizeof(pastix_int_t));*/
 
     /** Copy indtab **/
     MALLOC_INTERN(solvmtx->indtab, solvmtx->indnbr, pastix_int_t);
-    memCpy(solvmtx->indtab, tmp->indtab, solvmtx->indnbr*sizeof(pastix_int_t));
+    memcpy(solvmtx->indtab, tmp->indtab, solvmtx->indnbr*sizeof(pastix_int_t));
 
 
     /** Copy ttsktab & ttsknbr **/
     if (solvmtx->bublnbr>0)
       {
         MALLOC_INTERN(solvmtx->ttsknbr, solvmtx->bublnbr, pastix_int_t);
-        memCpy(solvmtx->ttsknbr, tmp->ttsknbr, solvmtx->bublnbr*sizeof(pastix_int_t));
+        memcpy(solvmtx->ttsknbr, tmp->ttsknbr, solvmtx->bublnbr*sizeof(pastix_int_t));
         MALLOC_INTERN(solvmtx->ttsktab, solvmtx->bublnbr, pastix_int_t*);
         for (i=0;i<solvmtx->bublnbr;i++)
           {
             solvmtx->ttsktab[i] = NULL;
             MALLOC_INTERN(solvmtx->ttsktab[i], solvmtx->ttsknbr[i], pastix_int_t);
-            memCpy(solvmtx->ttsktab[i], tmp->ttsktab[i],
+            memcpy(solvmtx->ttsktab[i], tmp->ttsktab[i],
                    solvmtx->ttsknbr[i]*sizeof(pastix_int_t));
           }
       }
@@ -168,7 +168,7 @@ void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
       }
 
     MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
-    memCpy(solvmtx->proc2clust, tmp->proc2clust,
+    memcpy(solvmtx->proc2clust, tmp->proc2clust,
            solvmtx->procnbr * sizeof(pastix_int_t));
 
     /** Free the former solver matrix **/
@@ -241,7 +241,7 @@ void solverInit(SolverMatrix *solvmtx)
   solvmtx->cpftmax = 0;
   solvmtx->bpftmax = 0;
   solvmtx->coefmax = 0;
-  memSet(solvmtx, 0, sizeof (SolverMatrix));
+  memset(solvmtx, 0, sizeof (SolverMatrix));
 
 
   solvmtx->baseval = 0;

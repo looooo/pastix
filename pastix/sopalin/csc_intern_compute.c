@@ -9,7 +9,6 @@
 #include <pthread.h>
 
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -217,7 +216,7 @@ int CscGather_X(Sopalin_Data_t        *sopalin_data,
   SYNCHRO_THREAD;
   (*tmpx2) = (pastix_float_t *)sopalin_data->ptr_csc[0];
 #endif /* SMP_RAFF */
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }
 /*
  * Function: CscAtx_norm_thread
@@ -307,7 +306,7 @@ int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
   MONOTHREAD_END;
 #endif
   memFree_null(tmpx);
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }
 
 /*
@@ -398,7 +397,7 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
 #endif
   memFree_null(tmpx);
 
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }
 /*
  * Function: CscbMAx

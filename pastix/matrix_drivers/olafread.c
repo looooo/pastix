@@ -1,39 +1,13 @@
 /*
   File: olafread.c
-  
+
   Driver for the olaf matrix format.
  */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
 
 #include "pastix.h"
 #include "common_drivers.h"
@@ -41,7 +15,7 @@
 
 /*
   Function: olafReadHeader
-  
+
   Reads header from file *infile*
 
   header format is :
@@ -52,16 +26,16 @@
 
   Parameters:
     infile - File to read from
-    Nrow   - Number of rows	
-    Ncol   - Number of columns	
+    Nrow   - Number of rows
+    Ncol   - Number of columns
     Nnzero - Number of non zeros
-    Type   - Type of the matrix 
+    Type   - Type of the matrix
  */
 void olafReadHeader(FILE         *infile,
-		    pastix_int_t *Nrow, 
-		    pastix_int_t *Ncol, 
-		    pastix_int_t *Nnzero, 
-		    char         *Type)
+                    pastix_int_t *Nrow,
+                    pastix_int_t *Ncol,
+                    pastix_int_t *Nnzero,
+                    char         *Type)
 {
   long temp1;
   if (1 != fscanf(infile, "%ld\n", &temp1))
@@ -88,9 +62,9 @@ void olafReadHeader(FILE         *infile,
 
   Reads a matrix in olaf format.
 
-  Header format is described in <olafReadHeader>, 
+  Header format is described in <olafReadHeader>,
   Olaf files contains :
-  colptr, row and avals in the CSC format 
+  colptr, row and avals in the CSC format
   > colptr[0]
   > colptr[1]
   >....
@@ -100,7 +74,7 @@ void olafReadHeader(FILE         *infile,
   > avals[0]
   > avals[1]
   > ...
-  
+
 
   Parameters:
     filename - Path to the directory containing hfile, ifile, jfile and afile
@@ -108,21 +82,21 @@ void olafReadHeader(FILE         *infile,
     Ncol     - Number of columns
     Nnzero   - Number of non zeros
     col      - Index of first element of each column in *row* and *val*
-    row      -	Row of eah element				       
-    val      -	Value of each element				       
-    Type     -	Type of the matrix				       
+    row      -	Row of eah element
+    val      -	Value of each element
+    Type     -	Type of the matrix
     RhsType  -	Type of the right hand side.
  */
-void olafRead(char const      *filename, 
-	      pastix_int_t    *Nrow, 
-	      pastix_int_t    *Ncol, 
-	      pastix_int_t    *Nnzero, 
-	      pastix_int_t   **col, 
-	      pastix_int_t   **row, 
-	      pastix_float_t **val, 
-	      char           **Type, 
-	      char           **RhsType, 
-	      pastix_float_t **rhs)
+void olafRead(char const      *filename,
+              pastix_int_t    *Nrow,
+              pastix_int_t    *Ncol,
+              pastix_int_t    *Nnzero,
+              pastix_int_t   **col,
+              pastix_int_t   **row,
+              pastix_float_t **val,
+              char           **Type,
+              char           **RhsType,
+              pastix_float_t **rhs)
 {
   FILE *infile;
   pastix_int_t iter,size;
@@ -135,7 +109,7 @@ void olafRead(char const      *filename,
   (*RhsType)[1] = 'A';
   (*RhsType)[2] = 'A';
 
-#ifdef TYPE_COMPLEX 
+#ifdef TYPE_COMPLEX
   fprintf(stderr, "\nWARNING: This drivers reads non complex matrices, imaginary part will be 0\n\n");
 #endif
 
@@ -143,40 +117,40 @@ void olafRead(char const      *filename,
   if (infile==NULL)
     {
       fprintf(stderr,"cannot load %s\n", "olafcsr");
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
   olafReadHeader(infile, Nrow, Ncol, Nnzero, *Type);
 
   printf("Nrow %ld Ncol %ld Nnzero %ld\n", (long)*Nrow, (long)*Ncol, (long)*Nnzero);
-  
+
   (*col) = (pastix_int_t *) malloc((*Ncol+1)*sizeof(pastix_int_t));
   (*row) = (pastix_int_t *) malloc((*Nnzero)*sizeof(pastix_int_t));
   (*val) = (pastix_float_t *) malloc((*Nnzero)*sizeof(pastix_float_t));
   (*rhs) = (pastix_float_t *) malloc((*Ncol)*sizeof(pastix_float_t));
- 
+
   if (((*col) == NULL) || ((*row) == NULL) || ((*val) == NULL) || ((*rhs) == NULL))
     fprintf(stderr, "olafRead : Not enough memory for \n");
 
   for (iter=0; iter<(*Ncol+1); iter++)
     {
       if (1 != fscanf(infile, "%ld", &temp1))
-	{
-	  fprintf(stderr, "ERROR: Reading matrix header\n");
-	  exit(1);
-	}
+        {
+          fprintf(stderr, "ERROR: Reading matrix header\n");
+          exit(1);
+        }
 
       (*col)[iter] = (pastix_int_t)temp1;
     }
 
   size=*Nnzero;
-  
+
   for (iter=0; iter<size; iter++)
     {
       if (1 != fscanf(infile, "%ld", &temp1))
-	{
-	  fprintf(stderr, "ERROR: Reading matrix header\n");
-	  exit(1);
-	}
+        {
+          fprintf(stderr, "ERROR: Reading matrix header\n");
+          exit(1);
+        }
 
       (*row)[iter] = (pastix_int_t)temp1;
     }
@@ -184,10 +158,10 @@ void olafRead(char const      *filename,
   for (iter=0; iter<size; iter++)
     {
       if (1 != fscanf(infile, "%lf", &temp2))
-	{
-	  fprintf(stderr, "ERROR: Reading matrix header\n");
-	  exit(1);
-	}
+        {
+          fprintf(stderr, "ERROR: Reading matrix header\n");
+          exit(1);
+        }
 
       (*val)[iter] = (pastix_float_t)temp2;
     }
@@ -198,16 +172,16 @@ void olafRead(char const      *filename,
   if (infile==NULL)
     {
       fprintf(stderr,"cannot load %s\n", "olafrhs");
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
 
   for (iter=0; iter<(*Ncol); iter++)
     {
       if (1 != fscanf(infile, "%lf", &temp2))
-	{
-	  fprintf(stderr, "ERROR: Reading matrix header\n");
-	  exit(1);
-	}
+        {
+          fprintf(stderr, "ERROR: Reading matrix header\n");
+          exit(1);
+        }
 
       (*rhs)[iter] = (pastix_float_t)temp2;
     }

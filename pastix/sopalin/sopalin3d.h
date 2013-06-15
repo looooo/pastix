@@ -121,8 +121,8 @@ typedef struct Pastix_Allreduce_ {
    These datas do not need to be protected by mutexes.
  */
 typedef struct Thread_Data_ {
-  Clock            sop_clk;                  /*+ Clock                                               +*/
-  Clock            sop_clk_comm;             /*+ Communication clock                                 +*/
+  double            sop_clk;                  /*+ Clock                                               +*/
+  double            sop_clk_comm;             /*+ Communication clock                                 +*/
   pastix_int_t              nbpivot;                  /*+ Number of pivoting performed                        +*/
   pastix_int_t              flag_bind;                /*+ Indicate if threads are binded on processors        +*/
 #ifdef TRYLOCK

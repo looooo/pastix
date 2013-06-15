@@ -13,7 +13,6 @@
 #include <pthread.h>
 
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -756,10 +755,10 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   {
     if (proc != procnum)
     {
-      CALL_MPI MPI_Isend(&tosend[proc], 1, COMM_INT, proc, 0,
+      CALL_MPI MPI_Isend(&tosend[proc], 1, PASTIX_MPI_INT, proc, 0,
                          comm, &tosend_req[proc]);
       TEST_MPI("Isend");
-      CALL_MPI MPI_Irecv(&torecv[proc], 1, COMM_INT, proc, 0,
+      CALL_MPI MPI_Irecv(&torecv[proc], 1, PASTIX_MPI_INT, proc, 0,
                          comm, &torecv_req[proc]);
       TEST_MPI("Irecv");
     }
@@ -838,10 +837,10 @@ void CscdOrdistrib(CscMatrix          *thecsc,
       if (tosend_cnt[proc] > 0)
       {
         CALL_MPI MPI_Isend(tosend_col[proc], (int)(tosend_cnt[proc]),
-                           COMM_INT, proc, 1, comm, &tosend_creq[proc]);
+                           PASTIX_MPI_INT, proc, 1, comm, &tosend_creq[proc]);
         TEST_MPI("MPI_Isend");
         CALL_MPI MPI_Isend(tosend_row[proc], (int)(tosend_cnt[proc]),
-                           COMM_INT, proc, 2, comm, &tosend_rreq[proc]);
+                           PASTIX_MPI_INT, proc, 2, comm, &tosend_rreq[proc]);
         TEST_MPI("MPI_Isend");
         CALL_MPI MPI_Isend(tosend_val[proc],
                            (int)(tosend_cnt[proc]*dof*dof),
@@ -867,10 +866,10 @@ void CscdOrdistrib(CscMatrix          *thecsc,
       MALLOC_INTERN(torecv_col[proc], torecv[proc], pastix_int_t);
       MALLOC_INTERN(torecv_row[proc], torecv[proc], pastix_int_t);
       MALLOC_INTERN(torecv_val[proc], torecv[proc]*dof*dof, pastix_float_t);
-      CALL_MPI MPI_Recv(torecv_col[proc], torecv[proc], COMM_INT,
+      CALL_MPI MPI_Recv(torecv_col[proc], torecv[proc], PASTIX_MPI_INT,
                         proc, 1, comm, &status );
       TEST_MPI("MPI_Recv");
-      CALL_MPI MPI_Recv(torecv_row[proc], torecv[proc], COMM_INT,
+      CALL_MPI MPI_Recv(torecv_row[proc], torecv[proc], PASTIX_MPI_INT,
                         proc, 2, comm, &status );
       TEST_MPI("MPI_Recv");
       CALL_MPI MPI_Recv(torecv_val[proc], torecv[proc]*dof*dof, COMM_FLOAT,

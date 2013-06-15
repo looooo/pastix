@@ -86,12 +86,12 @@ void Csc2solv_cblk(const CscMatrix *cscmtx,
                       }
                   }
                 else printf("ILU: csc2solv drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n",
-                            (long)datacode->symbmtx.cblktab[itercblk].fcolnum+
+                            (long)datacode->cblktab[itercblk].fcolnum+
                             (long)itercoltab,(long)itercoltab,
                             (long)CSC_ROW(cscmtx,iterval),(long)iterval,
                             (long)itercblk,
-                            (long)datacode->symbmtx.cblktab[itercblk].fcolnum,
-                            (long)datacode->symbmtx.cblktab[itercblk].lcolnum);
+                            (long)datacode->cblktab[itercblk].fcolnum,
+                            (long)datacode->cblktab[itercblk].lcolnum);
               }
           }
       }

@@ -5,7 +5,6 @@
 #include <pthread.h>
 
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -53,7 +52,7 @@ void CscMatrix_ColMult(CscMatrix *csc, pastix_float_t *scaletab) {
         {
           colsize = CSC_COL(csc,k,col+1) - CSC_COL(csc,k,col);
           colbegin = CSC_COL(csc,k,col);
-    SOPALIN_SCAL(colsize, scaletab[colnum], &CSC_VAL(csc,colbegin), iun);
+          SOPALIN_SCAL(colsize, scaletab[colnum], &CSC_VAL(csc,colbegin), iun);
           colnum++;
         }
     }

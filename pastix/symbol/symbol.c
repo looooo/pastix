@@ -68,7 +68,7 @@ int
 symbolInit (
 SymbolMatrix * const        symbptr)
 {
-  memSet (symbptr, 0, sizeof (SymbolMatrix));
+  memset (symbptr, 0, sizeof (SymbolMatrix));
 #ifdef STARPU_GET_TASK_CTX
   symbptr->starpu_subtree_nbr=1;
 #endif
@@ -110,13 +110,13 @@ SymbolMatrix * const        symbptr)
 
   if ((cblktab = (SymbolCblk *) memAlloc ((symbptr->cblknbr + 1) * sizeof (SymbolCblk))) == NULL)
     return;                                       /* Cannot move smallest array */
-  memCpy  (cblktab, symbptr->cblktab, (symbptr->cblknbr + 1) * sizeof (SymbolCblk));
+  memcpy  (cblktab, symbptr->cblktab, (symbptr->cblknbr + 1) * sizeof (SymbolCblk));
   memFree (symbptr->cblktab);                     /* Move column block array */
   symbptr->cblktab = cblktab;
 
   if ((bloktab = (SymbolBlok *) memAlloc (symbptr->bloknbr * sizeof (SymbolBlok))) == NULL)
     return;                                       /* Cannot move array */
-  memCpy  (bloktab, symbptr->bloktab, symbptr->bloknbr * sizeof (SymbolBlok));
+  memcpy  (bloktab, symbptr->bloktab, symbptr->bloknbr * sizeof (SymbolBlok));
   memFree (symbptr->bloktab);                     /* Move column block array */
   symbptr->bloktab = bloktab;
 }

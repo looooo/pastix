@@ -37,7 +37,7 @@
 #include "common_drivers.h"
 #include "rsaread.h"
 
-    
+
 /*
   Function: rsaReadHeader
 
@@ -52,12 +52,12 @@
     RhsType  - Type of the right hand side
 
 */
-void rsaReadHeader(char const   *filename, 
-		   pastix_int_t *Nrow, 
-		   pastix_int_t *Ncol, 
-		   pastix_int_t *Nnzero, 
-		   char         *Type, 
-		   char         *RhsType) 
+void rsaReadHeader(char const   *filename,
+                   pastix_int_t *Nrow,
+                   pastix_int_t *Ncol,
+                   pastix_int_t *Nnzero,
+                   char         *Type,
+                   char         *RhsType)
 {
 #ifdef USE_NOFORTRAN
   fprintf(stderr, "ERROR: rsaread is a fortran driver.\n\tPlease recompile without -DUSE_NOFORTRAN.\n");
@@ -103,7 +103,7 @@ void rsaReadHeader(char const   *filename,
   Function: rsaRead
 
   Read matrix using wreadmtc fortran driver defined in skitf.f.
-  The return matrix is in CSC format, 
+  The return matrix is in CSC format,
   Nrow is equal to Ncol or you should get an error.
 
   Parameters:
@@ -117,15 +117,15 @@ void rsaReadHeader(char const   *filename,
     Type     - Type of the matrix
     RhsType  - Type of the right hand side.
  */
-void rsaRead(char const      *filename, 
-	     pastix_int_t    *Nrow, 
-	     pastix_int_t    *Ncol, 
-	     pastix_int_t    *Nnzero, 
-	     pastix_int_t   **col, 
-	     pastix_int_t   **row, 
-	     pastix_float_t **val, 
-	     char           **Type, 
-	     char           **RhsType)
+void rsaRead(char const      *filename,
+             pastix_int_t    *Nrow,
+             pastix_int_t    *Ncol,
+             pastix_int_t    *Nnzero,
+             pastix_int_t   **col,
+             pastix_int_t   **row,
+             pastix_float_t **val,
+             char           **Type,
+             char           **RhsType)
 {
 #ifdef USE_NOFORTRAN
   fprintf(stderr, "ERROR: rsaread is a fortran driver.\n\tPlease recompile without -DUSE_NOFORTRAN.\n");
@@ -150,8 +150,8 @@ void rsaRead(char const      *filename,
   *Type = (char *) malloc(4*sizeof(char));
   *RhsType = (char *) malloc(4*sizeof(char));
 
-  
-#ifdef TYPE_COMPLEX 
+
+#ifdef TYPE_COMPLEX
   fprintf(stderr, "\nWARNING: This drivers reads non complex matrices, imaginary part will be 0\n\n");
 #endif
 
@@ -193,7 +193,7 @@ void rsaRead(char const      *filename,
     base = 1;
   else
     base = 0;
-    
+
   for (i=0;i<tmpNrow+1;i++) (*col)[i]=(pastix_int_t)(tmpcol[i] + base);
   for (i=0;i<tmpNnzero;i++) (*row)[i]=(pastix_int_t)(tmprow[i] + base);
 #ifdef TYPE_COMPLEX

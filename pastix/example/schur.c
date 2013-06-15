@@ -167,7 +167,7 @@ int main (int argc, char **argv)
   pastix(&pastix_data, MPI_COMM_WORLD,
          ncol, colptr, rows, values,
          perm, invp, rhs, 1, iparm, dparm);
-  if (NO_ERR != pastix_setSchurUnknownList(pastix_data,
+  if (PASTIX_SUCCESS != pastix_setSchurUnknownList(pastix_data,
                                            nschur,
                                            schurlist))
     return EXIT_FAILURE;

@@ -1,20 +1,16 @@
-#ifndef PASTIX_STR_H
-#define PASTIX_STR_H
+#ifndef _PASTIX_STR_H_
+#define _PASTIX_STR_H_
 
-#ifndef SOPALIN_3D_H
-#error "sopalin3d.h must be included before pastixstr.h"
-#endif
+#include "order.h"
+#include "sopalin3d.h"
 
-#ifndef ORDER_H
-#error "order.h must be included before pastixstr.h"
-#endif
 /*
    struct: pastix_data_t
 
    Structure used to store datas for a step by step execution.
 */
 
-struct pastix_data_t {
+struct pastix_data_s {
   SolverMatrix     solvmatr;         /*+ Matrix informations                                                 +*/
   CscMatrix	   cscmtx;	     /*+ Compress Sparse Column matrix                                       +*/
   SymbolMatrix    *symbmtx;          /*+ Symbol Matrix                                                       +*/
@@ -80,4 +76,4 @@ struct pastix_data_t {
   pastix_int_t              pastix_id;        /*+ Id of the pastix instance (PID of first MPI task)                   +*/
 };
 
-#endif /* PASTIX_STR_H */
+#endif /* _PASTIX_STR_H_ */

@@ -5,7 +5,6 @@
  *
  */
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -170,7 +169,7 @@ void pastix_fortran ( void     *pastix_data,
 #endif
 
   pastix(pastix_data2, pastix_comm, *n, colptr, row, avals,
-   perm, invp, b, *rhs, iparm, dparm);
+         perm, invp, b, *rhs, iparm, dparm);
 
 }
 
@@ -654,7 +653,7 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHUR,
  *   ierr        - error value.
  *
  * Returns:
- *   NO_ERR      - For the moment
+ *   PASTIX_SUCCESS      - For the moment
  *
  * TODO: Error management.
  */
@@ -690,7 +689,7 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALNODENBR,
  *   unknownNbr  - (out) Number of nodes in schur (local).
  *
  * Returns:
- *   NO_ERR      - For the moment
+ *   PASTIX_SUCCESS      - For the moment
  *
  * TODO: Error management.
  */
@@ -726,7 +725,7 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALUNKNOWNNBR,
  *   ierr        - error value.
  *
  * Returns:
- *   NO_ERR      - For the moment
+ *   PASTIX_SUCCESS      - For the moment
  *
  * TODO: Error management.
  */
@@ -761,7 +760,7 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALNODELIST,
  *   ierr        - error value.
  *
  * Returns:
- *   NO_ERR      - For the moment
+ *   PASTIX_SUCCESS      - For the moment
  *
  * TODO: Error management.
  */
@@ -796,7 +795,7 @@ FORTRAN_NAME( PASTIX_FORTRAN_GETSCHURLOCALUNKNOWNLIST,
  *   ierr        - error value.
  *
  * Returns:
- *   NO_ERR      - For the moment
+ *   PASTIX_SUCCESS      - For the moment
  *
  * TODO: Error management.
  */

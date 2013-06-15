@@ -1,8 +1,8 @@
 #include "csc_intern_compute.h"
 
-#define RAFF_CLOCK_INIT {clockInit(&raff_clk);clockStart(&raff_clk);}
-#define RAFF_CLOCK_STOP {clockStop(&(raff_clk));}
-#define RAFF_CLOCK_GET  clockVal(&(raff_clk))
+#define RAFF_CLOCK_INIT {clockInit(raff_clk);clockStart(raff_clk);}
+#define RAFF_CLOCK_STOP {clockStop((raff_clk));}
+#define RAFF_CLOCK_GET  clockVal((raff_clk))
 
 /* #define DEBUG_RAFF */
 
@@ -62,7 +62,7 @@ void grad_thread (SolverMatrix *datacode, SopalinParam *sopaparam);
  */
 void* pivotstatique_smp ( void *arg )
 {
-  Clock             raff_clk;
+  double            raff_clk;
   double            t0           = 0;
   double            t1           = 0;
   double            t2           = 0;
@@ -294,7 +294,7 @@ void* pivotstatique_smp ( void *arg )
 */
 void* API_CALL(gmres_smp)(void *arg)
 {
-  Clock             raff_clk;
+  double            raff_clk;
   double            t0 = 0;
   double            t1 = 0;
   double            t2 = 0;
@@ -787,7 +787,7 @@ void* API_CALL(gmres_smp)(void *arg)
 */
 void* API_CALL(grad_smp)(void *arg)
 {
-  Clock             raff_clk;
+  double            raff_clk;
   double            t0 = 0;
   double            t1 = 0;
   double            t2 = 0;
@@ -1086,7 +1086,7 @@ void* API_CALL(grad_smp)(void *arg)
       MONOTHREAD_BEGIN;
       sopalin_data->stop = tmp;
       print_debug(DBG_RAFF_GRAD, "raff.c:%d: %ld stop %g\n",__LINE__, (long)me, sopalin_data->stop);
-
+      
       if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
         {
           double sst, rst = 0.0;

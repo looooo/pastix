@@ -50,7 +50,6 @@
 #include <pthread.h>
 
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -1087,14 +1086,14 @@ if (THREAD_FUNNELED_OFF)
   sopar->diagchange = nbpivotT;
 
   /* Calcul du temps de facto */
-  mintime = thread_data->sop_clk.time[0];
-  maxtime = thread_data->sop_clk.time[1];
+  //mintime = thread_data->sop_clk.time[0];
+  maxtime = thread_data->sop_clk;
   for(i=1; i<SOLV_THRDNBR; i++)
-        {
-          mintime = MIN(sopalin_data->thread_data[i]->sop_clk.time[0], mintime);
-          maxtime = MAX(sopalin_data->thread_data[i]->sop_clk.time[1], maxtime);
-        }
-  sopar->dparm[DPARM_FACT_TIME] = (maxtime - mintime);
+  {
+      //mintime = MIN(sopalin_data->thread_data[i]->sop_clk.time[0], mintime);
+      maxtime = MAX(sopalin_data->thread_data[i]->sop_clk, maxtime);
+  }
+  sopar->dparm[DPARM_FACT_TIME] = maxtime; /*(maxtime - mintime);*/
 
   /* WARNING : Don't put one (All)Reduce before thread synchronization FACTOEND */
   if (THREAD_COMM_ON)
@@ -1121,7 +1120,7 @@ if (THREAD_FUNNELED_OFF)
           if (ga[k+k*stride]>fzero) inertia++;
           }
         MyMPI_Allreduce(&inertia,&(sopar->iparm[IPARM_INERTIA]),1,
-                        COMM_INT,MPI_SUM,pastix_comm);
+                        PASTIX_MPI_INT,MPI_SUM,pastix_comm);
   }
 #endif
 
@@ -1133,7 +1132,7 @@ if (THREAD_FUNNELED_OFF)
           thread_data->esp += sopalin_data->thread_data[i]->esp;
         }
           MyMPI_Reduce(&(thread_data->esp), &(sopar->iparm[IPARM_ESP_NBTASKS]), 1,
-                   COMM_INT, MPI_SUM, 0, pastix_comm);
+                   PASTIX_MPI_INT, MPI_SUM, 0, pastix_comm);
         }
 #endif
 
@@ -1163,10 +1162,10 @@ if (THREAD_FUNNELED_OFF)
         pastix_int_t    sum_coefnbr   = 0;
         double overhead2;
 
-        MyMPI_Allreduce(&tmp_max_alloc,&max_max_alloc,1,COMM_INT,MPI_MAX,pastix_comm);
-        MyMPI_Allreduce(&tmp_coefnbr,  &max_coefnbr,  1,COMM_INT,MPI_MAX,pastix_comm);
-        MyMPI_Allreduce(&tmp_max_alloc,&sum_max_alloc,1,COMM_INT,MPI_SUM,pastix_comm);
-        MyMPI_Allreduce(&tmp_coefnbr,  &sum_coefnbr,  1,COMM_INT,MPI_SUM,pastix_comm);
+        MyMPI_Allreduce(&tmp_max_alloc,&max_max_alloc,1,PASTIX_MPI_INT,MPI_MAX,pastix_comm);
+        MyMPI_Allreduce(&tmp_coefnbr,  &max_coefnbr,  1,PASTIX_MPI_INT,MPI_MAX,pastix_comm);
+        MyMPI_Allreduce(&tmp_max_alloc,&sum_max_alloc,1,PASTIX_MPI_INT,MPI_SUM,pastix_comm);
+        MyMPI_Allreduce(&tmp_coefnbr,  &sum_coefnbr,  1,PASTIX_MPI_INT,MPI_SUM,pastix_comm);
 
         overhead2 = (double)(max_max_alloc+max_coefnbr)/(double)(max_coefnbr);
         print_one("Maximum number of terms allocated\t Cblk+Ftgt : %10ld,\t Cblk : %10ld,\t Overhead : %.2lf (%.2lf%%)\n",

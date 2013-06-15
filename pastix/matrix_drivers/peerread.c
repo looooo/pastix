@@ -1,5 +1,5 @@
 /* File: peerread.c
- 
+
   Reads a matrix in PEER format.
 
  */
@@ -9,39 +9,15 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 #include "pastix.h"
 #include "common_drivers.h"
 #include "peerread.h"
 
 /*
   Function: peerRead
-  
+
   Reads a matrix in PEER format.
-  
+
   first file contain :
   > NumberOfFiles
   > file1
@@ -60,26 +36,26 @@
 
   Parameters:
     filename - Path to file to read from
-    Nrow     - Number of rows						 
-    Ncol     - Number of columns					 
-    Nnzero,  - Number of non zeros					 
-    col      - Index of first element of each column in *row* and *val* 
-    row      - Row of eah element				       	 
-    val      - Value of each element				       	 
-    Type     - Type of the matrix				       	 
-    RhsType  - Type of the right-hand-side.			         
+    Nrow     - Number of rows
+    Ncol     - Number of columns
+    Nnzero,  - Number of non zeros
+    col      - Index of first element of each column in *row* and *val*
+    row      - Row of eah element
+    val      - Value of each element
+    Type     - Type of the matrix
+    RhsType  - Type of the right-hand-side.
     rhs      - right-hand-side term(s)
 */
-void peerRead(char const      *filename, 
-	      pastix_int_t    *Nrow, 
-	      pastix_int_t    *Ncol, 
-	      pastix_int_t    *Nnzero, 
-	      pastix_int_t   **col, 
-	      pastix_int_t   **row, 
-	      pastix_float_t **val, 
-	      char           **Type, 
-	      char           **RhsType, 
-	      pastix_float_t **rhs)
+void peerRead(char const      *filename,
+              pastix_int_t    *Nrow,
+              pastix_int_t    *Ncol,
+              pastix_int_t    *Nnzero,
+              pastix_int_t   **col,
+              pastix_int_t   **row,
+              pastix_float_t **val,
+              char           **Type,
+              char           **RhsType,
+              pastix_float_t **rhs)
 {
   FILE *infile;
   pastix_int_t iterfile;
@@ -105,7 +81,7 @@ void peerRead(char const      *filename,
   (*RhsType)[3] = '\0';
 
 
-#ifdef TYPE_COMPLEX 
+#ifdef TYPE_COMPLEX
   fprintf(stderr, "\nWARNING: This drivers reads non complex matrices, imaginary part will be 0\n\n");
 #endif
 
@@ -126,16 +102,16 @@ void peerRead(char const      *filename,
       sscanf(line, "%s", filenametab[iterfile]);
     }
   fclose(infile);
-  
+
   /* Calcul nnz global */
   for (iterfile=0; iterfile<filenamenumber; iterfile++)
     {
       infile = fopen(filenametab[iterfile], "r");
       if (infile==NULL)
-	{
-	  fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
-	  exit(EXIT_FAILURE);
-	}
+        {
+          fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
+          exit(EXIT_FAILURE);
+        }
       FGETS(line, BUFSIZ, infile);
       sscanf(line, "%ld%ld", &tempint1,&tempint2);
       *Nrow = tempint1;
@@ -146,7 +122,7 @@ void peerRead(char const      *filename,
       nzlocal = tempint1;
       fprintf(stderr, "nzlocal %ld\n", (long) nzlocal);
       fclose(infile);
-    
+
       *Nnzero += nzlocal;
     }
   *Ncol = *Nrow;
@@ -171,13 +147,13 @@ void peerRead(char const      *filename,
   for (iterfile=0; iterfile<filenamenumber; iterfile++)
     {
       pastix_int_t iterelt;
-      
+
       infile = fopen(filenametab[iterfile], "r");
       if (infile==NULL)
-	{
-	  fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
-	  exit(EXIT_FAILURE);
-	}
+        {
+          fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
+          exit(EXIT_FAILURE);
+        }
       FGETS(line,BUFSIZ,infile);
       sscanf(line, "%ld%ld", &tempint1, &tempint2);
       *Nrow = tempint1;
@@ -188,151 +164,151 @@ void peerRead(char const      *filename,
 
       /* read col */
       for (iterelt=0; iterelt<rowlocal+1+1-nbreltperline;iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4);
-	  (*col)[iterelt+rowglobal]   = (pastix_int_t)tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = (pastix_int_t)tempint2+nzglobal;
-	  (*col)[iterelt+rowglobal+2] = (pastix_int_t)tempint3+nzglobal;
-	  (*col)[iterelt+rowglobal+3] = (pastix_int_t)tempint4+nzglobal;
-	  iterelt+=3;
-	}
-      
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4);
+          (*col)[iterelt+rowglobal]   = (pastix_int_t)tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = (pastix_int_t)tempint2+nzglobal;
+          (*col)[iterelt+rowglobal+2] = (pastix_int_t)tempint3+nzglobal;
+          (*col)[iterelt+rowglobal+3] = (pastix_int_t)tempint4+nzglobal;
+          iterelt+=3;
+        }
+
       switch (rowlocal-iterelt+1)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld",&tempint1);
-	  (*col)[iterelt+rowglobal] += (pastix_int_t)tempint1+nzglobal;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld", &tempint1, &tempint2);
-	  (*col)[iterelt+rowglobal]   = (pastix_int_t)tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = (pastix_int_t)tempint2+nzglobal;
-	  iterelt+=2;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
-	  (*col)[iterelt+rowglobal]   = (pastix_int_t)tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = (pastix_int_t)tempint2+nzglobal;
-	  (*col)[iterelt+rowglobal+2] = (pastix_int_t)tempint3+nzglobal;
-	  iterelt+=3;
-	  break;
-	}
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld",&tempint1);
+          (*col)[iterelt+rowglobal] += (pastix_int_t)tempint1+nzglobal;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld", &tempint1, &tempint2);
+          (*col)[iterelt+rowglobal]   = (pastix_int_t)tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = (pastix_int_t)tempint2+nzglobal;
+          iterelt+=2;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
+          (*col)[iterelt+rowglobal]   = (pastix_int_t)tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = (pastix_int_t)tempint2+nzglobal;
+          (*col)[iterelt+rowglobal+2] = (pastix_int_t)tempint3+nzglobal;
+          iterelt+=3;
+          break;
+        }
 
 
       /* read row */
       for (iterelt=0; iterelt<nzlocal+1-nbreltperline; iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld", &tempint1,&tempint2,&tempint3,&tempint4);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
-	  (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
-	  iterelt+=3;
-	}
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld", &tempint1,&tempint2,&tempint3,&tempint4);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
+          (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
+          iterelt+=3;
+        }
       switch (nzlocal-iterelt)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld",&tempint1);
-	  (*row)[iterelt+nzglobal] = (pastix_int_t)tempint1;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld", &tempint1, &tempint2);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  iterelt+=2;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
-	  iterelt+=3;
-	  break;
-	}
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld",&tempint1);
+          (*row)[iterelt+nzglobal] = (pastix_int_t)tempint1;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld", &tempint1, &tempint2);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          iterelt+=2;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
+          iterelt+=3;
+          break;
+        }
 
       /* read val */
       for (iterelt=0; iterelt<nzlocal+1-nbreltperline; iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3,&tempfloat4);
-	  (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
-	  (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
-	  (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
-	  (*val)[iterelt+nzglobal+3] = (pastix_float_t)tempfloat4;
-	  iterelt+=3;
-	}
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3,&tempfloat4);
+          (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
+          (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
+          (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
+          (*val)[iterelt+nzglobal+3] = (pastix_float_t)tempfloat4;
+          iterelt+=3;
+        }
       switch (nzlocal-iterelt)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf",&tempfloat1);
-	  (*val)[iterelt+nzglobal] = (pastix_float_t)tempfloat1;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
-	  (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
-	  (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
-	  iterelt+=2;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
-	  (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
-	  (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
-	  (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
-	  iterelt+=3;
-	  break;
-	}
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf",&tempfloat1);
+          (*val)[iterelt+nzglobal] = (pastix_float_t)tempfloat1;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
+          (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
+          (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
+          iterelt+=2;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
+          (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
+          (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
+          (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
+          iterelt+=3;
+          break;
+        }
       nzglobal += nzlocal;
 
       /* read rhs */
       for (iterelt=0; iterelt<rowlocal+1-nbreltperline; iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3,&tempfloat4);
-	  (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
-	  (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
-	  (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
-	  (*rhs)[iterelt+rowglobal+3] = (pastix_float_t)tempfloat4;
-	  iterelt+=3;
-	}
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3,&tempfloat4);
+          (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
+          (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
+          (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
+          (*rhs)[iterelt+rowglobal+3] = (pastix_float_t)tempfloat4;
+          iterelt+=3;
+        }
 
       switch (rowlocal-iterelt)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf",&tempfloat1);
-	  (*rhs)[iterelt+rowglobal] = (pastix_float_t)tempfloat1;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
-	  (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
-	  (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
-	  iterelt++;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
-	  (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
-	  (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
-	  (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
-	  iterelt++;
-	  break;
-	}
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf",&tempfloat1);
+          (*rhs)[iterelt+rowglobal] = (pastix_float_t)tempfloat1;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
+          (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
+          (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
+          iterelt++;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
+          (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
+          (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
+          (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
+          iterelt++;
+          break;
+        }
       rowglobal += rowlocal;
 
       fclose(infile);
@@ -342,9 +318,9 @@ void peerRead(char const      *filename,
 
 /*
   Function: peerRead2
-  
+
   Reads a matrix in PEER format.
-  
+
   first file contain :
   > NumberOfFiles
   > file1
@@ -362,26 +338,26 @@ void peerRead(char const      *filename,
 
   Parameters:
     filename - Path to file to read from
-    Nrow     - Number of rows						 
-    Ncol     - Number of columns					 
-    Nnzero,  - Number of non zeros					 
-    col      - Index of first element of each column in *row* and *val* 
-    row      - Row of eah element				       	 
-    val      - Value of each element				       	 
-    Type     - Type of the matrix				       	 
-    RhsType  - Type of the right-hand-side.			         
+    Nrow     - Number of rows
+    Ncol     - Number of columns
+    Nnzero,  - Number of non zeros
+    col      - Index of first element of each column in *row* and *val*
+    row      - Row of eah element
+    val      - Value of each element
+    Type     - Type of the matrix
+    RhsType  - Type of the right-hand-side.
     rhs      - right-hand-side term(s)
 */
-void peerRead2(char const      *filename, 
-	       pastix_int_t    *Nrow, 
-	       pastix_int_t    *Ncol, 
-	       pastix_int_t    *Nnzero, 
-	       pastix_int_t   **col, 
-	       pastix_int_t   **row, 
-	       pastix_float_t **val, 
-	       char           **Type, 
-	       char           **RhsType, 
-	       pastix_float_t **rhs)
+void peerRead2(char const      *filename,
+               pastix_int_t    *Nrow,
+               pastix_int_t    *Ncol,
+               pastix_int_t    *Nnzero,
+               pastix_int_t   **col,
+               pastix_int_t   **row,
+               pastix_float_t **val,
+               char           **Type,
+               char           **RhsType,
+               pastix_float_t **rhs)
 {
   FILE *infile;
   pastix_int_t iterfile;
@@ -411,7 +387,7 @@ void peerRead2(char const      *filename,
   if (infile==NULL)
     {
       fprintf(stderr,"cannot load %s\n", filename);
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
   FGETS(line, BUFSIZ, infile);
   sscanf(line, "%ld", &filenamenumber); /* Read number of filename */
@@ -423,16 +399,16 @@ void peerRead2(char const      *filename,
       sscanf(line, "%s", filenametab[iterfile]);
     }
   fclose(infile);
-  
+
   /* Calcul nnz global */
   for (iterfile=0; iterfile<filenamenumber; iterfile++)
     {
       infile = fopen(filenametab[iterfile], "r");
       if (infile==NULL)
-	{
-	  fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
-	  EXIT(MOD_SI,FILE_ERR);
-	}
+        {
+          fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
+          exit(-1);
+        }
       FGETS(line, BUFSIZ, infile);
       sscanf(line, "%ld %ld %ld",&tempint1,&tempint2,&tempint3);
       *Nrow = (pastix_int_t)tempint1;
@@ -464,13 +440,13 @@ void peerRead2(char const      *filename,
   for (iterfile=0; iterfile<filenamenumber; iterfile++)
     {
       pastix_int_t iterelt;
-      
+
       infile = fopen(filenametab[iterfile], "r");
       if (infile==NULL)
-	{
-	  fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
-	  EXIT(MOD_SI,FILE_ERR);
-	}
+        {
+          fprintf(stderr,"cannot load %s\n", filenametab[iterfile]);
+          exit(-1);
+        }
       FGETS(line,BUFSIZ,infile);
       sscanf(line, "%ld %ld %ld", &tempint1, &tempint2, &tempint3);
       *Nrow = (pastix_int_t)tempint1;
@@ -479,191 +455,191 @@ void peerRead2(char const      *filename,
 
       /* read col */
       for (iterelt=0; iterelt<rowlocal+1+1-nbreltperline;iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4, &tempint5, &tempint6);
-	  (*col)[iterelt+rowglobal] = tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
-	  (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
-	  (*col)[iterelt+rowglobal+3] = tempint4+nzglobal;
-	  (*col)[iterelt+rowglobal+4] = tempint5+nzglobal;
-	  (*col)[iterelt+rowglobal+5] = tempint6+nzglobal;
-	  iterelt+=5;
-	}
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4, &tempint5, &tempint6);
+          (*col)[iterelt+rowglobal] = tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
+          (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
+          (*col)[iterelt+rowglobal+3] = tempint4+nzglobal;
+          (*col)[iterelt+rowglobal+4] = tempint5+nzglobal;
+          (*col)[iterelt+rowglobal+5] = tempint6+nzglobal;
+          iterelt+=5;
+        }
       switch (rowlocal-iterelt+1)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld",&tempint1);
-	  (*col)[iterelt+rowglobal] += tempint1+nzglobal;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld", &tempint1, &tempint2);
-	  (*col)[iterelt+rowglobal] = tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
-	  iterelt+=2;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
-	  (*col)[iterelt+rowglobal] = tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
-	  (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
-	  iterelt+=3;
-	  break;
-	case 4:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4);
-	  (*col)[iterelt+rowglobal] = tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
-	  (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
-	  (*col)[iterelt+rowglobal+3] = tempint4+nzglobal;
-	  iterelt+=4;
-	  break;
-	case 5:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4, &tempint5);
-	  (*col)[iterelt+rowglobal] = tempint1+nzglobal;
-	  (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
-	  (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
-	  (*col)[iterelt+rowglobal+3] = tempint4+nzglobal;
-	  (*col)[iterelt+rowglobal+4] = tempint5+nzglobal;
-	  iterelt+=5;
-	  break;
-	}
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld",&tempint1);
+          (*col)[iterelt+rowglobal] += tempint1+nzglobal;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld", &tempint1, &tempint2);
+          (*col)[iterelt+rowglobal] = tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
+          iterelt+=2;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
+          (*col)[iterelt+rowglobal] = tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
+          (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
+          iterelt+=3;
+          break;
+        case 4:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4);
+          (*col)[iterelt+rowglobal] = tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
+          (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
+          (*col)[iterelt+rowglobal+3] = tempint4+nzglobal;
+          iterelt+=4;
+          break;
+        case 5:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4, &tempint5);
+          (*col)[iterelt+rowglobal] = tempint1+nzglobal;
+          (*col)[iterelt+rowglobal+1] = tempint2+nzglobal;
+          (*col)[iterelt+rowglobal+2] = tempint3+nzglobal;
+          (*col)[iterelt+rowglobal+3] = tempint4+nzglobal;
+          (*col)[iterelt+rowglobal+4] = tempint5+nzglobal;
+          iterelt+=5;
+          break;
+        }
 
       /* read row */
       for (iterelt=0; iterelt<nzlocal+1-nbreltperline; iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld %ld %ld", &tempint1,&tempint2,&tempint3,&tempint4,&tempint5,&tempint6);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
-	  (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
-	  (*row)[iterelt+nzglobal+4] = (pastix_int_t)tempint5;
-	  (*row)[iterelt+nzglobal+5] = (pastix_int_t)tempint6;
-	  iterelt+=5;
-	}
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld %ld %ld", &tempint1,&tempint2,&tempint3,&tempint4,&tempint5,&tempint6);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
+          (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
+          (*row)[iterelt+nzglobal+4] = (pastix_int_t)tempint5;
+          (*row)[iterelt+nzglobal+5] = (pastix_int_t)tempint6;
+          iterelt+=5;
+        }
       switch (nzlocal-iterelt)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld",&tempint1);
-	  (*row)[iterelt+nzglobal] = (pastix_int_t)tempint1;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld", &tempint1, &tempint2);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  iterelt+=2;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
-	  iterelt+=3;
-	  break;
-	case 4:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
-	  (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
-	  iterelt+=4;
-	  break;
-	case 5:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%ld %ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4, &tempint5);
-	  (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
-	  (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
-	  (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
-	  (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
-	  (*row)[iterelt+nzglobal+4] = (pastix_int_t)tempint5;
-	  iterelt+=5;
-	  break;
-	}
-      
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld",&tempint1);
+          (*row)[iterelt+nzglobal] = (pastix_int_t)tempint1;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld", &tempint1, &tempint2);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          iterelt+=2;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
+          iterelt+=3;
+          break;
+        case 4:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
+          (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
+          iterelt+=4;
+          break;
+        case 5:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%ld %ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4, &tempint5);
+          (*row)[iterelt+nzglobal]   = (pastix_int_t)tempint1;
+          (*row)[iterelt+nzglobal+1] = (pastix_int_t)tempint2;
+          (*row)[iterelt+nzglobal+2] = (pastix_int_t)tempint3;
+          (*row)[iterelt+nzglobal+3] = (pastix_int_t)tempint4;
+          (*row)[iterelt+nzglobal+4] = (pastix_int_t)tempint5;
+          iterelt+=5;
+          break;
+        }
+
       nbreltperline=3; /* nbr of elt per line */
-      
+
       /* read val */
       for (iterelt=0; iterelt<nzlocal+1-nbreltperline; iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
-	  (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
-	  (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
-	  (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
-	  iterelt+=2;
-	}
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
+          (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
+          (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
+          (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
+          iterelt+=2;
+        }
       switch (nzlocal-iterelt)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf",&tempfloat1);
-	  (*val)[iterelt+nzglobal] = (pastix_float_t)tempfloat1;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
-	  (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
-	  (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
-	  iterelt+=2;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
-	  (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
-	  (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
-	  (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
-	  iterelt+=3;
-	  break;
-	}
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf",&tempfloat1);
+          (*val)[iterelt+nzglobal] = (pastix_float_t)tempfloat1;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
+          (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
+          (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
+          iterelt+=2;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
+          (*val)[iterelt+nzglobal]   = (pastix_float_t)tempfloat1;
+          (*val)[iterelt+nzglobal+1] = (pastix_float_t)tempfloat2;
+          (*val)[iterelt+nzglobal+2] = (pastix_float_t)tempfloat3;
+          iterelt+=3;
+          break;
+        }
       nzglobal += nzlocal;
 
       /* read rhs */
       for (iterelt=0; iterelt<rowlocal+1-nbreltperline; iterelt++)
-	{
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
-	  (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
-	  (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
-	  (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
-	  iterelt+=2;
-	}
+        {
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
+          (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
+          (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
+          (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
+          iterelt+=2;
+        }
 
       switch (rowlocal-iterelt)
-	{
-	case 1:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf",&tempfloat1);
-	  (*rhs)[iterelt+rowglobal] = (pastix_float_t)tempfloat1;
-	  iterelt++;
-	  break;
-	case 2:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
-	  (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
-	  (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
-	  iterelt++;
-	  break;
-	case 3:
-	  FGETS(line,BUFSIZ,infile);
-	  sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
-	  (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
-	  (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
-	  (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
-	  iterelt++;
-	  break;
-	}
+        {
+        case 1:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf",&tempfloat1);
+          (*rhs)[iterelt+rowglobal] = (pastix_float_t)tempfloat1;
+          iterelt++;
+          break;
+        case 2:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf",&tempfloat1,&tempfloat2);
+          (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
+          (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
+          iterelt++;
+          break;
+        case 3:
+          FGETS(line,BUFSIZ,infile);
+          sscanf(line,"%Lf %Lf %Lf",&tempfloat1,&tempfloat2,&tempfloat3);
+          (*rhs)[iterelt+rowglobal]   = (pastix_float_t)tempfloat1;
+          (*rhs)[iterelt+rowglobal+1] = (pastix_float_t)tempfloat2;
+          (*rhs)[iterelt+rowglobal+2] = (pastix_float_t)tempfloat3;
+          iterelt++;
+          break;
+        }
       rowglobal += rowlocal;
 
       fclose(infile);

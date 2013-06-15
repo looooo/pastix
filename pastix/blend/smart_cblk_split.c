@@ -330,7 +330,7 @@ int insert_in_partition(pastix_int_t start,
   /* Those ones didn't match any other interval */
   for (i = tmp; i < p->max_size; i++)
     add_interval(p, p->part[i].start, p->part[i].end, 1);
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }
 
 int smart_cblk_split(BlendCtrl      * ctrl,

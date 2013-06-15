@@ -3,11 +3,6 @@
 #undef UPDOWN_SM2XMAX
 #define UPDOWN_SM2XMAX 4096
 */
-#ifdef PASTIX_EZTRACE
-#  include "pastix_eztrace.h"
-#else /* not PASTIX_EZTRACE */
-#  include "trace.h"
-#endif /* not PASTIX_EZTRACE */
 
 /* ??? Attention a TASK_PRIONUM en 2D                 */
 /* ??? Attention free apres Isend                     */

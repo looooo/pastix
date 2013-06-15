@@ -577,4 +577,19 @@ enum pastix_error_e {
 };
 
 /* **************************************** */
+
+static inline void set_iparm(pastix_int_t *iparm, enum IPARM_ACCESS offset, pastix_int_t value)
+{
+    if (iparm != NULL) iparm[offset] = (pastix_int_t)value;
+}
+
+static inline void set_dparm(double *dparm, enum DPARM_ACCESS offset, double value)
+{
+    if (dparm != NULL) dparm[offset] = (double)value;
+}
+
+void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);
+int  api_dparmreader(char * filename, double       *dparmtab);
+int  api_iparmreader(char * filename, pastix_int_t *iparmtab);
+
 #endif /* _PASTIX_API_H_ */

@@ -1,3 +1,6 @@
+#ifndef _GET_OPTIONS_H_
+#define _GET_OPTIONS_H_
+
 /*
   File: get_options.h
 
@@ -111,3 +114,5 @@ int get_idparm(int            argc,
                char         **argv,
                pastix_int_t  *iparm,
                double        *dparm);
+
+#endif

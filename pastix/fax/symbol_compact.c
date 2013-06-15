@@ -55,7 +55,7 @@
     symbptr - The symbol matrix
 
   Returns:
-    NO_ERR - on success.
+    PASTIX_SUCCESS - on success.
     !0     - on error.
 +*/
 
@@ -104,5 +104,5 @@ symbolCompact (SymbolMatrix * const        symbptr)
   }
 #endif /* FAX_DEBUG */
 
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }

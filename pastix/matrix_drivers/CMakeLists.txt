@@ -4,8 +4,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../sopalin")
 # api_str_to_int
 add_custom_command(
   OUTPUT  api_str_to_int.c
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../tools/genapi.sh ${CMAKE_CURRENT_SOURCE_DIR}/../common/api.h api_str_to_int.c
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../common/api.h
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../tools/genapi.sh ${CMAKE_CURRENT_SOURCE_DIR}/../include/pastix/api.h api_str_to_int.c
+  DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/../tools/genapi.sh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/pastix/api.h
 )
 
 set(MTXDRIVER_LIB_SRCS
@@ -30,6 +32,9 @@ set(MTXDRIVER_LIB_SRCS
   laplacian.c
   api_str_to_int.c
 )
+
+set_source_files_properties(mmio.c PROPERTIES COMPILE_FLAGS "-std=c99" )
+set_source_files_properties(read_matrix.c PROPERTIES COMPILE_FLAGS "-std=c99" )
 
 add_library(read_matrix
   ${MTXDRIVER_LIB_SRCS}

@@ -315,7 +315,7 @@ void updo_down_send ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_
   send_buffer_size = tabsize[0] * tabtype[0] +
     tabsize[1] * tabtype[1];
 #  else /* NO_MPI_TYPE */
-  tabtype[0] = COMM_INT;
+  tabtype[0] = PASTIX_MPI_INT;
   tabtype[1] = COMM_FLOAT;
 
   CALL_MPI MPI_Address(infotab,&(taboffs[0]));
@@ -931,7 +931,7 @@ void updo_up_send ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t 
 
 #  else  /* NO_MPI_TYPE */
 
-  tabtype[0] = COMM_INT;
+  tabtype[0] = PASTIX_MPI_INT;
 
   CALL_MPI MPI_Address(infotab,&(taboffs[0]));
   TEST_MPI("MPI_Address");

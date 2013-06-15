@@ -1,11 +1,15 @@
+#ifndef _MTX_H_
+#define _MTX_H_
+
 #include <stdio.h>
 
-#define MTX_ISSYM(a) (a)[1]=='S'
-#define MTX_ISHER(a) (a)[1]=='H'
-#define MTX_ISCOM(a) (a)[0]=='C'
-#define MTX_ISRHX(a) (a)[2]=='X'
-#define MTX_ISRHS(a) (a)[0]!='\0'
-
+#ifndef MTX_ISSYM
+#define MTX_ISSYM(a) ( (a)[1] == 'S'  )
+#define MTX_ISHER(a) ( (a)[1] == 'H'  )
+#define MTX_ISCOM(a) ( (a)[0] == 'C'  )
+#define MTX_ISRHX(a) ( (a)[2] == 'X'  )
+#define MTX_ISRHS(a) ( (a)[0] != '\0' )
+#endif
 
 void MatrixMarketRead(char const *filename, pastix_int_t *Nrow, pastix_int_t *Ncol, pastix_int_t *Nnzero, pastix_int_t **col, pastix_int_t **row, pastix_float_t **val, char **Type, char **RhsType);
 void mumpsReadHeader(FILE *infile, pastix_int_t *Nrow, pastix_int_t *Ncol, pastix_int_t *Nnzero, char *Type);
@@ -39,3 +43,5 @@ void driverFdupros(char const *filename, pastix_int_t *Nrow, pastix_int_t *Ncol,
 		   pastix_float_t ** rhs, char **Type, char **RhsType);
 
 #include "csparse.h"
+
+#endif

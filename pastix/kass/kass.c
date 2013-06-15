@@ -17,7 +17,6 @@
 #include <assert.h>
 
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -85,7 +84,7 @@ void kass(int            levelk,
   pastix_int_t newcblknbr;
   pastix_int_t *newrangtab = NULL;
   Dof dofstr;
-  Clock timer1;
+  double timer1 = 0.;
   double nnzS;
   int procnum;
   (void)edgenbr;
@@ -134,11 +133,11 @@ void kass(int            levelk,
       MALLOC_INTERN(snodetab, n+1, pastix_int_t);
 
 
-      clockInit(&timer1);
-      clockStart(&timer1);
+      clockInit(timer1);
+      clockStart(timer1);
       find_supernodes(n, ia, ja, perm, iperm, &snodenbr, snodetab, treetab);
-      clockStop(&timer1);
-      print_one("Time to find the supernode (direct) %.3g s \n", clockVal(&timer1));
+      clockStop(timer1);
+      print_one("Time to find the supernode (direct) %.3g s \n", clockVal(timer1));
 
       /*memfree(treetab);*/
       print_one("Number of supernode for direct factorization %ld \n", (long)snodenbr);
@@ -149,7 +148,7 @@ void kass(int            levelk,
       /***** USE THE SUPERNODE PARTITION OF SCOTCH  ********/
       snodenbr = orderptr->cblknbr;
       MALLOC_INTERN(snodetab, n+1, pastix_int_t);
-      memCpy(snodetab, orderptr->rangtab, sizeof(pastix_int_t)*(snodenbr+1));
+      memcpy(snodetab, orderptr->rangtab, sizeof(pastix_int_t)*(snodenbr+1));
       print_one("Number of column block found in scotch (direct) %ld \n", (long)snodenbr);
 
     }
@@ -174,7 +173,7 @@ void kass(int            levelk,
 
       mat->nnzrow[i] = ind;
       MALLOC_INTERN(mat->ja[i], ind, pastix_int_t);
-      memCpy(mat->ja[i], tmpj, sizeof(pastix_int_t)*ind);
+      memcpy(mat->ja[i], tmpj, sizeof(pastix_int_t)*ind);
       mat->ma[i] = NULL;
     }
   CS_Perm(mat, perm);
@@ -256,7 +255,7 @@ void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm,
   pastix_int_t *treetab = NULL;
   pastix_int_t n;
   csptr P;
-  Clock timer1;
+  double timer1 = 0.;
   int procnum;
 
   MPI_Comm_rank(pastix_comm,&procnum);
@@ -270,8 +269,8 @@ void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm,
   MALLOC_INTERN(P, 1, struct SparRow);
   initCS(P, n);
   print_one("Level of fill = %ld\nAmalgamation ratio = %d \n", (long)levelk, (int)(rat*100));
-  clockInit(&timer1);
-  clockStart(&timer1);
+  clockInit(timer1);
+  clockStart(timer1);
 
   if(levelk == -1)
     {
@@ -281,8 +280,8 @@ void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm,
              is active) ***/
       SF_Direct(mat, snodenbr, snodetab, streetab, P);
 
-      clockStop(&timer1);
-      print_one("Time to compute scalar symbolic direct factorization  %.3g s \n", clockVal(&timer1));
+      clockStop(timer1);
+      print_one("Time to compute scalar symbolic direct factorization  %.3g s \n", clockVal(timer1));
 #ifdef DEBUG_KASS
       print_one("non-zeros in P = %ld \n", (long)CSnnz(P));
 #endif
@@ -309,9 +308,9 @@ void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm,
       /***** FACTORISATION INCOMPLETE *******/
       nnzL = SF_level(2, mat, levelk, P);
 
-      clockStop(&timer1);
+      clockStop(timer1);
       print_one("Time to compute scalar symbolic factorization of ILU(%ld) %.3g s \n",
-              (long)levelk, clockVal(&timer1));
+              (long)levelk, clockVal(timer1));
 
     }
   print_one("Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
@@ -322,8 +321,8 @@ void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm,
   /** Sort the rows of the symbolic matrix */
   sort_row(P);
 
-  clockInit(&timer1);
-  clockStart(&timer1);
+  clockInit(timer1);
+  clockStart(timer1);
 
   if(levelk != -1)
     {
@@ -393,8 +392,8 @@ void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm,
         }*/
   }
 
-  clockStop(&timer1);
-  print_one("Time to compute the amalgamation of supernodes %.3g s\n", clockVal(&timer1));
+  clockStop(timer1);
+  print_one("Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer1));
 
   print_one("Number of cblk in the amalgamated symbol matrix = %ld \n", (long)*cblknbr);
 
@@ -471,8 +470,8 @@ void  Build_SymbolMatrix(csptr P, pastix_int_t cblknbr, pastix_int_t *rangtab, S
       P->nnzrow[i] = ind;
       MALLOC_INTERN(P->ja[i], ind, pastix_int_t);
       MALLOC_INTERN(P->ma[i], ind, double);
-      memCpy(P->ja[i], tmpj, sizeof(pastix_int_t)*ind);
-      memCpy(P->ma[i], tmpa, sizeof(double)*ind);
+      memcpy(P->ja[i], tmpj, sizeof(pastix_int_t)*ind);
+      memcpy(P->ma[i], tmpa, sizeof(double)*ind);
 
     }
 
@@ -632,7 +631,7 @@ void Patch_SymbolMatrix(SymbolMatrix *symbmtx)
       pastix_int_t odb, fbloknum;
 
       fbloknum = cblktab[i].bloknum;
-      memCpy(newbloktab+k, bloktab + fbloknum, sizeof(SymbolBlok));
+      memcpy(newbloktab+k, bloktab + fbloknum, sizeof(SymbolBlok));
       cblktab[i].bloknum = k;
       k++;
       odb = cblktab[i+1].bloknum-fbloknum;
@@ -654,13 +653,13 @@ void Patch_SymbolMatrix(SymbolMatrix *symbmtx)
 
       if( odb > 1)
         {
-          memCpy(newbloktab +k, bloktab + fbloknum+1, sizeof(SymbolBlok)*(odb-1));
+          memcpy(newbloktab +k, bloktab + fbloknum+1, sizeof(SymbolBlok)*(odb-1));
           k+=odb-1;
         }
 
     }
   /** Copy the last one **/
-  memCpy(newbloktab+k, bloktab + symbmtx->cblktab[symbmtx->cblknbr-1].bloknum, sizeof(SymbolBlok));
+  memcpy(newbloktab+k, bloktab + symbmtx->cblktab[symbmtx->cblknbr-1].bloknum, sizeof(SymbolBlok));
   cblktab[symbmtx->cblknbr-1].bloknum = k;
   k++;
   /** Virtual cblk **/
@@ -673,7 +672,7 @@ void Patch_SymbolMatrix(SymbolMatrix *symbmtx)
   symbmtx->bloknbr = k;
   memFree(symbmtx->bloktab);
   MALLOC_INTERN(symbmtx->bloktab, k, SymbolBlok);
-  memCpy( symbmtx->bloktab, newbloktab, sizeof(SymbolBlok)*symbmtx->bloknbr);
+  memcpy( symbmtx->bloktab, newbloktab, sizeof(SymbolBlok)*symbmtx->bloknbr);
   /*  virtual cblk to avoid side effect in the loops on cblk bloks */
   cblktab[symbmtx->cblknbr].bloknum = k;
 

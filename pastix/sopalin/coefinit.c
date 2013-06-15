@@ -12,7 +12,6 @@
 #  include <pthread.h>
 #endif
 #ifdef FORCE_NOMPI
-#  include "nompi.h"
 #else
 #  include <mpi.h>
 #endif

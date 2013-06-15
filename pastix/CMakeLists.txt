@@ -485,7 +485,7 @@ set(PASTIX_LIB_SRCS
   blend/solver_io.c
   blend/splitfunc.c
   blend/splitpart.c
-  blend/splitpartlocal.c
+#  blend/splitpartlocal.c
   blend/symbolrand.c
   blend/task.c
   blend/write_ps.c
@@ -531,7 +531,7 @@ set(PASTIX_LIB_SRCS
   sopalin/cscd_utils.c
   sopalin/cscd_utils_fortran.c
   sopalin/debug_dump.c
-  sopalin/ooc.c
+#  sopalin/ooc.c
   sopalin/pastix.c
   sopalin/pastix_fortran.c
   sopalin/sopalin_init.c

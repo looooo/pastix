@@ -4,7 +4,6 @@
 #include <pthread.h>
 
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -37,7 +36,7 @@
 #ifdef PASTIX_EZTRACE
 #include "pastix_eztrace.h"
 #else
-#include "trace.h"
+//#include "trace.h"
 #endif
 #include "sopalin_define.h"
 #include "symbol.h"

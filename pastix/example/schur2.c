@@ -173,7 +173,7 @@ int main (int argc, char **argv)
   pastix(&pastix_data, MPI_COMM_WORLD,
          ncol, colptr, rows, values,
          perm, invp, rhs, 1, iparm, dparm);
-  if (NO_ERR != pastix_setSchurUnknownList(pastix_data,
+  if (PASTIX_SUCCESS != pastix_setSchurUnknownList(pastix_data,
                                            nschur,
                                            schurlist))
     {
@@ -233,7 +233,7 @@ int main (int argc, char **argv)
   /*   Get Schur local distribution          */
   /*******************************************/
 
-  if (NO_ERR != pastix_getSchurLocalNodeNbr(pastix_data, &nschur_local_col))
+  if (PASTIX_SUCCESS != pastix_getSchurLocalNodeNbr(pastix_data, &nschur_local_col))
     {
       fprintf(stderr, "Error in pastix_getSchurLocalNodesNbr");
       return EXIT_FAILURE;
@@ -246,7 +246,7 @@ int main (int argc, char **argv)
       fprintf(stderr, "Error in memmorry allocation");
       return EXIT_FAILURE;
     }
-  if (NO_ERR != pastix_getSchurLocalNodeList(pastix_data, schur_local_col))
+  if (PASTIX_SUCCESS != pastix_getSchurLocalNodeList(pastix_data, schur_local_col))
     {
       fprintf(stderr, "Error in pastix_getSchurLocalNodes");
       return EXIT_FAILURE;
@@ -258,7 +258,7 @@ int main (int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-  if (NO_ERR != pastix_setSchurArray(pastix_data, schur))
+  if (PASTIX_SUCCESS != pastix_setSchurArray(pastix_data, schur))
     {
       fprintf(stderr, "Error in pastix_setSchurArray");
       return EXIT_FAILURE;

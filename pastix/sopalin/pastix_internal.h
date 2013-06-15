@@ -4,8 +4,8 @@
  * Header for function internal to pastix.c
  *
  */
-#ifndef pastix_int_tERNAL_H
-#define pastix_int_tERNAL_H
+#ifndef PASTIX_INT_TERNAL_H
+#define PASTIX_INT_TERNAL_H
 /*
  * Function: pastix_fake_fillin_csc
  *

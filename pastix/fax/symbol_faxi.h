@@ -24,7 +24,7 @@
 #ifndef SYMBOL_H
 #include "symbol.h"
 #endif /* SYMBOL_H */
-#ifndef ORDER_H
+#ifndef _ORDER_H_
 #include "order.h"
 #endif /* ORDER_H */
 #ifndef FAX_H

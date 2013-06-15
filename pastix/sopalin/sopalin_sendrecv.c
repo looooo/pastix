@@ -1224,7 +1224,7 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
   thread_data->gtabtype[packnbr]   = sizeof(pastix_int_t);
   thread_data->gtabtype[packnbr+1] = sizeof(pastix_float_t);
 #else /* NO_MPI_TYPE */
-  thread_data->gtabtype[packnbr]   = COMM_INT;
+  thread_data->gtabtype[packnbr]   = PASTIX_MPI_INT;
   thread_data->gtabtype[packnbr+1] = COMM_FLOAT;
 #endif /* NO_MPI_TYPE */
 
@@ -1336,7 +1336,7 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
           thread_data->gtabtype[packnbr]   = sizeof(pastix_int_t);
           thread_data->gtabtype[packnbr+1] = sizeof(pastix_float_t);
 #else /* NO_MPI_TYPE */
-          thread_data->gtabtype[packnbr]   = COMM_INT;
+          thread_data->gtabtype[packnbr]   = PASTIX_MPI_INT;
           thread_data->gtabtype[packnbr+1] = COMM_FLOAT;
 #endif /* NO_MPI_TYPE */
 
@@ -1523,7 +1523,7 @@ send_one_block(Sopalin_Data_t *sopalin_data,
   pastix_int_t            iter;
 #else /* NO_MPI_TYPE */
   MPI_Aint       taboffs[3];
-  MPI_Datatype   tabtype[3]  = {COMM_INT,COMM_INT,COMM_FLOAT};
+  MPI_Datatype   tabtype[3]  = {PASTIX_MPI_INT,PASTIX_MPI_INT,COMM_FLOAT};
   MPI_Datatype   newtype;
 #endif /* NO_MPI_TYPE */
   pastix_int_t tag;

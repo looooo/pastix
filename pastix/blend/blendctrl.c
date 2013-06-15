@@ -33,7 +33,7 @@
       np->bandwidth = 0;
       return;
     }
-    
+
   if(CLUSTNUM(procsrc) == CLUSTNUM(procdst))
   {
       np->startup   = TIME_STARTUP_1;
@@ -64,70 +64,70 @@ void perfcluster2(pastix_int_t clustsrc, pastix_int_t clustdst, pastix_int_t syn
       np->bandwidth = 0;
       return;
     }
-  
-      
+
+
   if(SMPNUM(clustsrc) == SMPNUM(clustdst))
     {
-      
+
       /*fprintf(stderr, "MPI_SHARED for %ld \n", (long)sync_comm_nbr);*/
       if(sync_comm_nbr <=2)
-	{
-	  np->startup   = SHARED_STARTUP_1;
-	  np->bandwidth = SHARED_BANDWIDTH_1;
-	  return;
-	}
+        {
+          np->startup   = SHARED_STARTUP_1;
+          np->bandwidth = SHARED_BANDWIDTH_1;
+          return;
+        }
       if(sync_comm_nbr<=4)
-	{
-	  np->startup   = SHARED_STARTUP_2;
-	  np->bandwidth = SHARED_BANDWIDTH_2;
-	  return;
-	}
+        {
+          np->startup   = SHARED_STARTUP_2;
+          np->bandwidth = SHARED_BANDWIDTH_2;
+          return;
+        }
       if(sync_comm_nbr<=8)
-	{
-	  np->startup   = SHARED_STARTUP_4;
-	  np->bandwidth = SHARED_BANDWIDTH_4;
-	  return;
-	}
+        {
+          np->startup   = SHARED_STARTUP_4;
+          np->bandwidth = SHARED_BANDWIDTH_4;
+          return;
+        }
       if(sync_comm_nbr > 8)
-	{
-	  /*fprintf(stdout, "intra %ld extra %ld\n", intra, extra);*/
-	  np->startup   = SHARED_STARTUP_8;
-	  np->bandwidth = SHARED_BANDWIDTH_8;
-	  return;
-	}
-      
+        {
+          /*fprintf(stdout, "intra %ld extra %ld\n", intra, extra);*/
+          np->startup   = SHARED_STARTUP_8;
+          np->bandwidth = SHARED_BANDWIDTH_8;
+          return;
+        }
+
     }
   else
     {
       /*fprintf(stderr, "MPI for %ld \n", (long)sync_comm_nbr);*/
       /*      extra++;*/
       if(sync_comm_nbr<=2)
-	{
-	  np->startup   = CLUSTER_STARTUP_1;
-	  np->bandwidth = CLUSTER_BANDWIDTH_1;
-	  return;
-	}
+        {
+          np->startup   = CLUSTER_STARTUP_1;
+          np->bandwidth = CLUSTER_BANDWIDTH_1;
+          return;
+        }
       if(sync_comm_nbr<=4)
-	{
-	  np->startup   = CLUSTER_STARTUP_2;
-	  np->bandwidth = CLUSTER_BANDWIDTH_2;
-	  return;
-	}
+        {
+          np->startup   = CLUSTER_STARTUP_2;
+          np->bandwidth = CLUSTER_BANDWIDTH_2;
+          return;
+        }
       if(sync_comm_nbr<=8)
-	{
-	  np->startup   = CLUSTER_STARTUP_4;
-	  np->bandwidth = CLUSTER_BANDWIDTH_4;
-	  return;
-	}
+        {
+          np->startup   = CLUSTER_STARTUP_4;
+          np->bandwidth = CLUSTER_BANDWIDTH_4;
+          return;
+        }
       if(sync_comm_nbr > 8)
-	{
-	  /*fprintf(stdout, "intra %ld extra %ld\n", intra, extra);*/
-	  np->startup   = CLUSTER_STARTUP_8;
-	  np->bandwidth = CLUSTER_BANDWIDTH_8;
-	  return;
-	}
+        {
+          /*fprintf(stdout, "intra %ld extra %ld\n", intra, extra);*/
+          np->startup   = CLUSTER_STARTUP_8;
+          np->bandwidth = CLUSTER_BANDWIDTH_8;
+          return;
+        }
     }
-  
+
 }
 
 pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
@@ -141,32 +141,32 @@ pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
 
     ctrl->option  = param;
     MALLOC_INTERN(ctrl->perfptr, 1, netperf);
-    
+
     /* Nombre et numéro de processus MPI */
     ctrl->clustnbr   = clustnbr;
     ctrl->clustnum   = clustnum;
     ctrl->cudanbr    = cudanbr;
 
 #ifdef PASTIX_DYNSCHED
-    /* Le nombre de coeur par cpu est est donné par iparm[IPARM_CPU_BY_NODE] 
+    /* Le nombre de coeur par cpu est est donné par iparm[IPARM_CPU_BY_NODE]
        et a defaut par sysconf(_SC_NPROCESSORS_ONLN)                          */
     if (ctrl->option->iparm[IPARM_CPU_BY_NODE] != 0)
       ctrl->option->procnbr = ctrl->option->iparm[IPARM_CPU_BY_NODE];
 
     /* Calcul du nombre de cpu total a notre disposition */
     if (ctrl->option->smpnbr)
-      ctrl->procnbr = ctrl->option->procnbr * ctrl->option->smpnbr; 
+      ctrl->procnbr = ctrl->option->procnbr * ctrl->option->smpnbr;
     else
-      ctrl->procnbr = ctrl->option->procnbr * clustnbr; 
+      ctrl->procnbr = ctrl->option->procnbr * clustnbr;
 
     /* Cas ou on a moins de proc que de processus MPI */
     if (ctrl->clustnbr > ctrl->procnbr)
       {
-	errorPrintW("blenctrlinit: plus de processus MPI que de processeurs disponible");
- 	ctrl->procnbr = ctrl->clustnbr;
-/* 	ctrl->option->procnbr = (int)ceil((double)ctrl->procnbr / (double)ctrl->option->smpnbr); */
+        errorPrintW("blenctrlinit: plus de processus MPI que de processeurs disponible");
+        ctrl->procnbr = ctrl->clustnbr;
+/*      ctrl->option->procnbr = (int)ceil((double)ctrl->procnbr / (double)ctrl->option->smpnbr); */
       }
-    
+
     /* Nombre de processeurs utilisés pour un processus MPI */
     /* et nombre de threads demandés pour un processus MPI  */
     ctrl->proclocnbr = ctrl->procnbr / ctrl->clustnbr;
@@ -177,7 +177,7 @@ pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
     ctrl->thrdlocnbr = thrdlocnbr;
     ctrl->procnbr    = ctrl->proclocnbr * ctrl->clustnbr;
 #endif
- 
+
     ctrl->thrdnbr = ctrl->thrdlocnbr * clustnbr;
     ctrl->bublnbr = ctrl->thrdlocnbr;
 
@@ -189,13 +189,13 @@ pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
     ctrl->egraph  = NULL;
     ctrl->etree   = NULL;
     ctrl->costmtx = NULL;
-    ctrl->candtab = NULL;     
-    MALLOC_INTERN(ctrl->lheap, 1, Queue); 
+    ctrl->candtab = NULL;
+    MALLOC_INTERN(ctrl->lheap, 1, Queue);
     queueInit(ctrl->lheap, 1000);
     MALLOC_INTERN(ctrl->intvec, 1, ExtendVectorINT);
     MALLOC_INTERN(ctrl->intvec2, 1, ExtendVectorINT);
-    if(param->tracegen)
-      OUT_OPENFILEINDIR(param->iparm, ctrl->tracefile, param->trace_filename, "w");
+    /* if(param->tracegen) */
+    /*   OUT_OPENFILEINDIR(param->iparm, ctrl->tracefile, param->trace_filename, "w"); */
 
 #ifdef PASTIX_DYNSCHED
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
@@ -206,8 +206,8 @@ pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
 
 void blendCtrlExit(BlendCtrl *ctrl)
 {
-  if(ctrl->option->tracegen)
-    OUT_CLOSEFILEINDIR(ctrl->tracefile);
+  /* if(ctrl->option->tracegen) */
+  /*   OUT_CLOSEFILEINDIR(ctrl->tracefile); */
   if(ctrl->perfptr)
     memFree_null(ctrl->perfptr);
   queueExit(ctrl->lheap);
@@ -224,4 +224,3 @@ void blendCtrlExit(BlendCtrl *ctrl)
 
   memFree_null(ctrl);
 }
-

@@ -214,28 +214,14 @@ Fri Aug 15 16:29:47 EDT 1997
 #endif
 /*---------------------------------------------------------------------*/
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "pastix.h"
+#include "read_matrix.h"
+#include "common_drivers.h"
 #include "iohb.h"
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<math.h>
-#ifdef X_ARCHi686_mac
-#  include<malloc/malloc.h>
-#else /* X_ARCHi686_mac */
-#  ifdef __FreeBSD__
-#    include            <stdlib.h>
-#  else /* not __FreeBSD__ */
-#    include            <malloc.h>
-#  endif /* not __FreeBSD__ */
-#endif /* X_ARCHi686_mac */
 
-#define FGETS(line, BUFSIZ, infile) {					\
-  if (NULL == fgets(line, BUFSIZ, infile))				\
-    {									\
-      fprintf(stderr, "ERROR: %s:%d fgets\n", __FILE__, __LINE__);	\
-      exit(1);								\
-    }									\
-  }
 char* substr(const char* S, const int pos, const int len);
 void upcase(char* S);
 void IOHBTerminate(char* message);

@@ -52,9 +52,9 @@
  * PowerPC architectures don't support malloc(0). This function
  * prints a warning when it happens to avoid segfault.
  */
-static inline void *pastix_protected_malloc( size_t size,
-					     char *filename,
-					     int line )
+static inline void *pastix_malloc_func( size_t size,
+                                        char *filename,
+                                        int line )
 {
     if (size > 0) {
 	return malloc(size);
@@ -71,32 +71,67 @@ static inline void *pastix_protected_malloc( size_t size,
 #  define memAlloc(size) malloc(size)
 #endif
 
-#define memFree(ptr) free(ptr)
+#define memFree(ptr) free((void*)(ptr))
 #define memFree_null(ptr) do			\
 	{					\
 	    memFree( ptr );			\
 	    (ptr) = NULL;			\
 	} while(0)
 
-/* #ifdef MEMORY_USAGE */
-/* void *         memAlloc_func       (size_t,char*,int); */
-/* void *         memRealloc_func     (void *, size_t, char*, int); */
-/* #  define memRealloc(ptr,size)                          \ */
-/*   memRealloc_func(ptr, size, __FILE__, __LINE__) */
-
-/* void           memFree             (void *); */
-/* unsigned long  memAllocGetCurrent  (void); */
-/* unsigned long  memAllocGetMax      (void); */
-/* void           memAllocTraceReset  (void); */
-/* #else */
-/* void *         mymalloc            (size_t,char*,int); */
-/* #endif /\* MEMORY_USAGE *\/ */
-/* void *         memAllocGroup       (void **, ...); */
-/* void *         memReallocGroup     (void *, ...); */
-/* void *         memOffset           (void *, ...); */
-
 #define MALLOC_INTERN(ptr, size, type)		\
     ptr = (type*)memAlloc((size) * sizeof(type))
 
+#define MALLOC_EXTERN(ptr, size, type)		\
+    ptr = (type*)malloc((size) * sizeof(type))
+
+#define MALLOC_ERROR( _str_ )                                           \
+    {                                                                   \
+        fprintf(stderr, "%s allocation (line=%d,file=%s)\n",(_str_),__LINE__,__FILE__); \
+        exit(-1);                                                       \
+    }
+
+/*
+ * Macro: MALLOC_INTOREXTERN
+ *
+ * Choose between <MALLOC_INTERN> and <MALLOC_EXTERN>
+ * following flag_int.
+ *
+ * Parameters:
+ *   ptr      - address where to allocate.
+ *   size     - Number of elements to allocate.
+ *   types    - Type of the elements to allocate.
+ *   flag_int - API_YES for internal allocation, API_NO for external.
+ */
+#define MALLOC_INTOREXTERN(ptr, size, type, flag_int) \
+  do {                                                \
+    if (flag_int == API_YES)                          \
+      {                                               \
+        MALLOC_INTERN(ptr, size, type);               \
+      }                                               \
+    else                                              \
+      {                                               \
+        MALLOC_EXTERN(ptr, size, type);               \
+      }                                               \
+  } while (0)
+
+#define FREE_NULL_INTOREXT(ptr, flag_int)         \
+  do {                                            \
+    if (flag_int == API_YES)                      \
+      {                                           \
+        memFree_null(ptr);                        \
+      }                                           \
+    else                                          \
+      {                                           \
+        free(ptr);                                \
+        ptr = NULL;                               \
+      }                                           \
+  } while (0)
+
+void *memAlloc(size_t size);
+//void  memFree(void *ptr);
+//void *memRealloc(void *ptr, size_t size);
+#define memRealloc realloc
+void *memAllocGroup  (void **, ...);
+void *memReallocGroup(void *, ...);
 
 #endif /* _MEMORY_H_ */

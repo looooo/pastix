@@ -152,7 +152,7 @@ void virtualSplit(pastix_int_t nseq, pastix_int_t bloknbr, const SymbolBlok * sr
       i++;
       /* The odbs remain the same */
       if(bloknbr>1)
-        memCpy(&(dest_bloktab[i+indtab[k]]), &(src_bloktab[1]), sizeof(SymbolBlok)*(bloknbr-1));
+        memcpy(&(dest_bloktab[i+indtab[k]]), &(src_bloktab[1]), sizeof(SymbolBlok)*(bloknbr-1));
     }
   /*fprintf(stdout, "CBlok Orig \n");
   for(i=0;i<bloknbr;i++)
@@ -244,7 +244,7 @@ void build_cblk(pastix_int_t cblknum, const SymbolMatrix * symbptr, const ExtraS
 #ifdef DEBUG_BLEND
           ASSERT(sptnbr>0,MOD_BLEND);
 #endif
-          memCpy(&(bloktab[blokcur]), &(extrasymbptr->bloktab[extrasymbptr->sptblok[i]]), sptnbr*sizeof(SymbolBlok));
+          memcpy(&(bloktab[blokcur]), &(extrasymbptr->bloktab[extrasymbptr->sptblok[i]]), sptnbr*sizeof(SymbolBlok));
           blokcur += sptnbr;
         }
       else

@@ -100,9 +100,9 @@ double * const              heigdltptr)           /*+ Deviation of heights      
   }
   leaftab = (unsigned char *) (heigtab + symbptr->nodenbr);
 
-  memSet (leaftab, 0, symbptr->cblknbr * sizeof (unsigned char));
+  memset (leaftab, 0, symbptr->cblknbr * sizeof (unsigned char));
 #ifdef SYMBOL_DEBUG
-  memSet (heigtab, ~0, symbptr->nodenbr * sizeof (pastix_int_t));
+  memset (heigtab, ~0, symbptr->nodenbr * sizeof (pastix_int_t));
 #endif /* SYMBOL_DEBUG */
 
   leaftax = leaftab          - symbptr->baseval;

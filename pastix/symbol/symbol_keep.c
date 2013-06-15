@@ -69,7 +69,7 @@ const SymbolMatrix * const  symbptr)              /*+ Symbol structure to work f
   pastix_int_t                 hghtmax;
   pastix_int_t                 bloknum;
 
-  memSet (keepptr, 0, sizeof (SymbolKeep));
+  memset (keepptr, 0, sizeof (SymbolKeep));
 
   if (memAllocGroup ((void **)
                      &keepptr->keeptab, (size_t) (symbptr->bloknbr * sizeof (unsigned char)),
@@ -77,7 +77,7 @@ const SymbolMatrix * const  symbptr)              /*+ Symbol structure to work f
     errorPrint ("symbolKeepInit: out of memory (1)");
     return     (1);
   }
-  memSet (keepptr->keeptab, 1, symbptr->bloknbr); /* All blocks are kept at first */
+  memset (keepptr->keeptab, 1, symbptr->bloknbr); /* All blocks are kept at first */
 
   symbolKeepCompute (keepptr, symbptr);           /* Compute parameters of full factorization */
 
@@ -343,11 +343,11 @@ const pastix_int_t                   cblknbr)              /*+ Number of column 
         &ctrotmp, (size_t) ((keepptr->ctromax + 1) * sizeof (double)),
         &hghttmp, (size_t) ((keepptr->hghtmax + 1) * sizeof (double)), NULL) == NULL)
       return;
-    memSet (levftmp, 0, (keepptr->levfmax + 1) * sizeof (double));
-    memSet (nupdtmp, 0, (keepptr->nupdmax + 1) * sizeof (double));
-    memSet (ctritmp, 0, (keepptr->ctrimax + 1) * sizeof (double));
-    memSet (ctrotmp, 0, (keepptr->ctromax + 1) * sizeof (double));
-    memSet (hghttmp, 0, (keepptr->hghtmax + 1) * sizeof (double));
+    memset (levftmp, 0, (keepptr->levfmax + 1) * sizeof (double));
+    memset (nupdtmp, 0, (keepptr->nupdmax + 1) * sizeof (double));
+    memset (ctritmp, 0, (keepptr->ctrimax + 1) * sizeof (double));
+    memset (ctrotmp, 0, (keepptr->ctromax + 1) * sizeof (double));
+    memset (hghttmp, 0, (keepptr->hghtmax + 1) * sizeof (double));
 
     cmednum = cblknbr / 2;
     symbolKeepHisto2 (keepptr, symbptr, funcptr, dataptr, cblkmin, cmednum);
@@ -398,11 +398,11 @@ const SymbolMatrix * const  symbptr,              /*+ Symbol matrix to consider 
 int                      (* funcptr) (const SymbolKeepBlok * const, void * const),
 void *                      dataptr)              /*+ Parameters for addition function +*/
 {
-  memSet (keepptr->levftab, 0, (keepptr->levfmax + 1) * sizeof (double));
-  memSet (keepptr->nupdtab, 0, (keepptr->nupdmax + 1) * sizeof (double));
-  memSet (keepptr->ctritab, 0, (keepptr->ctrimax + 1) * sizeof (double));
-  memSet (keepptr->ctrotab, 0, (keepptr->ctromax + 1) * sizeof (double));
-  memSet (keepptr->hghttab, 0, (keepptr->hghtmax + 1) * sizeof (double));
+  memset (keepptr->levftab, 0, (keepptr->levfmax + 1) * sizeof (double));
+  memset (keepptr->nupdtab, 0, (keepptr->nupdmax + 1) * sizeof (double));
+  memset (keepptr->ctritab, 0, (keepptr->ctrimax + 1) * sizeof (double));
+  memset (keepptr->ctrotab, 0, (keepptr->ctromax + 1) * sizeof (double));
+  memset (keepptr->hghttab, 0, (keepptr->hghtmax + 1) * sizeof (double));
 
   symbolKeepHisto2 (keepptr, symbptr, funcptr, dataptr, symbptr->baseval, symbptr->cblknbr);
 

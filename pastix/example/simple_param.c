@@ -136,7 +136,7 @@ int main (int argc, char **argv)
    *    - to have only the lower triangular part in symmetric case
    *    - to have a graph with a symmetric structure in unsymmetric case
    */
-  if (NO_ERR != pastix_checkMatrix(MPI_COMM_WORLD, verbosemode,
+  if (PASTIX_SUCCESS != pastix_checkMatrix(MPI_COMM_WORLD, verbosemode,
                                    mat_type,
                                    API_YES,
                                    ncol, &colptr, &rows, &values, NULL, 1))

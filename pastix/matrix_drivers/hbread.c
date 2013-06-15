@@ -9,38 +9,14 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 #include "pastix.h"
 #include "common_drivers.h"
 #include "hbread.h"
 #include "iohb.h"
+
 /*
   Function: HBRead
-   
+
   Interface to the Harwell-Boeing driver in C (iohb.c)
 
   Parameters
@@ -49,20 +25,20 @@
     Ncol     - Number of columns
     Nnzero   - Number of non zeros
     col      - Index of first element of each column in *row* and *val*
-    row      - Row of eah element				       
-    val      - Value of each element				       
-    Type     - Type of the matrix				       
-    RhsType  - Type of the right hand side.			       
+    row      - Row of eah element
+    val      - Value of each element
+    Type     - Type of the matrix
+    RhsType  - Type of the right hand side.
  */
-void HBRead(char const      *filename, 
-	    pastix_int_t    *Nrow, 
-	    pastix_int_t    *Ncol, 
-	    pastix_int_t    *Nnzero, 
-	    pastix_int_t   **col, 
-	    pastix_int_t   **row, 
-	    pastix_float_t **val, 
-	    char           **Type, 
-	    char           **RhsType)
+void HBRead(char const      *filename,
+            pastix_int_t    *Nrow,
+            pastix_int_t    *Ncol,
+            pastix_int_t    *Nnzero,
+            pastix_int_t   **col,
+            pastix_int_t   **row,
+            pastix_float_t **val,
+            char           **Type,
+            char           **RhsType)
 {
   int      i;
   int      nrhs;
@@ -71,7 +47,7 @@ void HBRead(char const      *filename,
   int      tmpNnzero;
   int     *tmpcol;
   int     *tmprow;
-  int      Nrow2; 
+  int      Nrow2;
   int      Ncol2;
   int      Nnzero2;
   double  *tmpval;
@@ -87,7 +63,7 @@ void HBRead(char const      *filename,
   *Nnzero = Nnzero2;
 
 /*   fprintf(stderr,"Matrix in file %s is %ld x %ld, with %ld nonzeros with type %s;\n", */
-/* 	  filename, (long)*Nrow, (long)*Ncol, (long)*Nnzero, *Type); */
+/*        filename, (long)*Nrow, (long)*Ncol, (long)*Nnzero, *Type); */
 /*   fprintf(stderr,"%d right-hand-side(s) available.\n",nrhs); */
 
 /*   printf("RSA: Nrow=%ld Ncol=%ld Nnzero=%ld\n",(long)*Nrow,(long)*Ncol,(long)*Nnzero); */

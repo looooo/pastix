@@ -77,7 +77,7 @@ pastix_int_t ** const                levfptr)              /*+ Array of number o
       return     (1);
     }
 
-    memSet (levftab, 0, symbptr->cblknbr * sizeof (pastix_int_t));
+    memset (levftab, 0, symbptr->cblknbr * sizeof (pastix_int_t));
 
     levfmac = 0;
     for (bloknum = 0; bloknum < symbptr->bloknbr; bloknum ++) {

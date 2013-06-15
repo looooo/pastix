@@ -302,7 +302,7 @@ void csc_noDiag(pastix_int_t baseval, pastix_int_t n, pastix_int_t *ia, pastix_i
   pastix_int_t indj;
   pastix_int_t *old_ia = NULL;
 
-  MALLOC_INTERN(old_ia, n+1, pastix_int_t)
+  MALLOC_INTERN(old_ia, n+1, pastix_int_t);
   memcpy(old_ia, ia, sizeof(pastix_int_t)*(n+1));
 
   ASSERT(ia[0]==baseval,MOD_SOPALIN);
@@ -539,7 +539,7 @@ int csc_checksym(pastix_int_t      n,
                               (toadd =
                                (pastix_int_t*)memRealloc(toadd,
                                                 2*toaddsize*sizeof(pastix_int_t))))
-                            MALLOC_ERROR("toadd");
+                              MALLOC_ERROR("toadd");
                         }
                       toadd[2*toaddcnt]     = (*rows)[j];
                       toadd[2*toaddcnt + 1] = i+1;
@@ -736,9 +736,9 @@ void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_floa
 
     }
 
-  memCpy(ia, newia, sizeof(pastix_int_t)*(n+1));
-  memCpy(ja, newja, sizeof(pastix_int_t)*ia[n]);
-  memCpy(a, newa, sizeof(pastix_float_t)*ia[n]);
+  memcpy(ia, newia, sizeof(pastix_int_t)*(n+1));
+  memcpy(ja, newja, sizeof(pastix_int_t)*ia[n]);
+  memcpy(a, newa, sizeof(pastix_float_t)*ia[n]);
 
   memFree(newia);
   memFree(newja);
@@ -972,7 +972,7 @@ int CSC_buildZerosAndNonZerosGraphs(pastix_int_t     n,
   fprintf(stdout, "n_nz %ld\n", (long)*n_nz);
   ASSERT(*n_z+*n_nz == n, MOD_SOPALIN);
   if (*n_z == 0 || *n_nz == 0)
-    return NO_ERR;
+    return PASTIX_SUCCESS;
 
   for (itercol = 0; itercol <n; itercol++)
     {
@@ -1051,7 +1051,7 @@ int CSC_buildZerosAndNonZerosGraphs(pastix_int_t     n,
     }
   (*colptr_z)[*n_z] = cntrows+1;
 
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }
 
 /*
@@ -1087,7 +1087,7 @@ int CSC_isolate(pastix_int_t     n,
   if (n_isolate == 0)
     {
       errorPrintW("No schur complement\n");
-      return NO_ERR;
+      return PASTIX_SUCCESS;
     }
   intSort1asc1(isolate_list, n_isolate);
 
@@ -1174,7 +1174,7 @@ int CSC_isolate(pastix_int_t     n,
   memFree_null(tmpcolptr);
   memFree_null(tmprows);
 
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }
 
 /*
@@ -1191,7 +1191,7 @@ int CSC_isolate(pastix_int_t     n,
     outfile - Output stream.
 
   Return:
-    NO_ERR
+    PASTIX_SUCCESS
 
 */
 int csc_save(pastix_int_t      n,
@@ -1235,7 +1235,7 @@ int csc_save(pastix_int_t      n,
         }
       if ((i-1)%4 !=3) fprintf(outfile, "\n");
     }
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 
 }
 
@@ -1255,7 +1255,7 @@ int csc_save(pastix_int_t      n,
     outfile - Output stream.
 
   Return:
-    NO_ERR
+    PASTIX_SUCCESS
 
 */
 int csc_load(pastix_int_t    *  n,
@@ -1466,5 +1466,5 @@ int csc_load(pastix_int_t    *  n,
           break;
         }
     }
-  return NO_ERR;
+  return PASTIX_SUCCESS;
 }

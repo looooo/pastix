@@ -171,7 +171,7 @@ void assemblyGener(pastix_int_t clustnum, Assembly1D *assemb1D, Assembly2D *asse
 
     /** Fill assemb1D->blprtab:  ATTENTION for the 1D distribution blprtab means cbprtab **/
     MALLOC_INTERN(assemb1D->blprtab, symbmtx->cblknbr, pastix_int_t);
-    memCpy(assemb1D->blprtab, cbprtab, sizeof(pastix_int_t)*symbmtx->cblknbr);
+    memcpy(assemb1D->blprtab, cbprtab, sizeof(pastix_int_t)*symbmtx->cblknbr);
 
 
     /** Fill nocbtab **/

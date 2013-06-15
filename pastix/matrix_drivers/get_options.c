@@ -10,37 +10,11 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <stdint.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
+#include <string.h>
 
 #include "pastix.h"
-#include "common_drivers.h"
 #include "read_matrix.h"
 #include "get_options.h"
-#include "api_str_to_int.h"
-#include <string.h>
 
 int api_iparmreader(char * filename, pastix_int_t *iparmtab);
 int api_dparmreader(char * filename, double *dparmtab);

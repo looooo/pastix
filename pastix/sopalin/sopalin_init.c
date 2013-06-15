@@ -15,7 +15,6 @@
 #  endif
 #endif
 #ifdef FORCE_NOMPI
-#  include "nompi.h"
 #else
 #  include <mpi.h>
 #endif
@@ -25,7 +24,7 @@
 #ifdef PASTIX_EZTRACE
 #include "pastix_eztrace.h"
 #else
-#include "trace.h"
+//#include "trace.h"
 #endif
 #include "sopalin_define.h"
 #include "symbol.h"
@@ -495,18 +494,18 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       TEST_MPI("MPI_Barrier");
       sopalin_data->timestamp = clockGet();
 
-      if (SOLV_PROCNBR < 100 )
-        {
-          char filename[12];
-          sprintf(filename,"traceGen.%02d", (int)SOLV_PROCNUM);
-          filename[11] = '\0';
-          OUT_OPENFILEINDIR(sopaparam->iparm, sopalin_data->tracefile, filename, "w");
-        }
-      else
-        {
-          errorPrint("Trace impossible car trop de proc.");
-          EXIT(MOD_SOPALIN, BADPARAMETER_ERR);
-        }
+      /* if (SOLV_PROCNBR < 100 ) */
+      /*   { */
+      /*     char filename[12]; */
+      /*     sprintf(filename,"traceGen.%02d", (int)SOLV_PROCNUM); */
+      /*     filename[11] = '\0'; */
+      /*     OUT_OPENFILEINDIR(sopaparam->iparm, sopalin_data->tracefile, filename, "w"); */
+      /*   } */
+      /* else */
+      /*   { */
+      /*     errorPrint("Trace impossible car trop de proc."); */
+      /*     EXIT(MOD_SOPALIN, BADPARAMETER_ERR); */
+      /*   } */
 
       memAllocTrace(sopalin_data->tracefile, sopalin_data->timestamp, SOLV_PROCNUM);
 
@@ -704,7 +703,7 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
       if (sopalin_data->grhs != NULL)
         memFree_null(sopalin_data->grhs);
       if (sopalin_data->flagtab != NULL)
-        memFree_null(sopalin_data->flagtab);
+          memFree_null(sopalin_data->flagtab);
 
       /* Allocate pthread_cond structures */
       if (sopalin_data->cond_flagtab != NULL)
@@ -723,11 +722,11 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
       if (sopalin_data->ptr_csc != NULL)
         memFree_null(sopalin_data->ptr_csc);
 
-#ifdef TRACE_SOPALIN
-      trace_finish(sopalin_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, -1);
-      memAllocUntrace();
-      OUT_CLOSEFILEINDIR(sopalin_data->tracefile);
-#endif
+/* #ifdef TRACE_SOPALIN */
+/*       trace_finish(sopalin_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, -1); */
+/*       memAllocUntrace(); */
+/*       OUT_CLOSEFILEINDIR(sopalin_data->tracefile); */
+/* #endif */
     }
 }
 
@@ -867,18 +866,18 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
                                  tab2,        SOLV_THRDNBR, MPI_INT,
                                  0, PASTIX_COMM );
 
-                    if (SOLV_PROCNUM == 0){
-                      FILE *out;
-                      int  jl;
-                      OUT_OPENFILEINDIR(sopar->iparm, out, "threadbinding.txt", "w");
-                      fprintf(out, "# Proc Thread Core\n");
-                      for(il=0; il < SOLV_PROCNBR; il++)
-                        for(jl=0; jl < SOLV_THRDNBR; jl++)
-                          fprintf(out, "%ld %ld %ld\n", (long)il, (long)jl, (long)tab2[jl]);
-                      OUT_CLOSEFILEINDIR(out);
+                    /* if (SOLV_PROCNUM == 0){ */
+                    /*   FILE *out; */
+                    /*   int  jl; */
+                    /*   OUT_OPENFILEINDIR(sopar->iparm, out, "threadbinding.txt", "w"); */
+                    /*   fprintf(out, "# Proc Thread Core\n"); */
+                    /*   for(il=0; il < SOLV_PROCNBR; il++) */
+                    /*     for(jl=0; jl < SOLV_THRDNBR; jl++) */
+                    /*       fprintf(out, "%ld %ld %ld\n", (long)il, (long)jl, (long)tab2[jl]); */
+                    /*   OUT_CLOSEFILEINDIR(out); */
 
-                      memFree_null(tab2);
-                    }
+                    /*   memFree_null(tab2); */
+                    /* } */
                     memFree_null(tab);
                     MONOTHREAD_END;
                   }
@@ -1235,8 +1234,8 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
               mode = "w";
             }
         }
-      OUT_OPENFILEINDIR(sopar->iparm, thread_data->tracefile, filename, mode);
-      trace_start(thread_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me);
+      /* OUT_OPENFILEINDIR(sopar->iparm, thread_data->tracefile, filename, mode); */
+      /* trace_start(thread_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me); */
     }
   else
     {
@@ -1349,14 +1348,14 @@ void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me)
     }
 #endif
 
-#ifdef TRACE_SOPALIN
-  if (thread_data->tracefile != NULL)
-    {
-      trace_finish(thread_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me);
-      OUT_CLOSEFILEINDIR(thread_data->tracefile);
-      thread_data->tracefile = NULL;
-    }
-#endif
+/* #ifdef TRACE_SOPALIN */
+/*   if (thread_data->tracefile != NULL) */
+/*     { */
+/*       trace_finish(thread_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me); */
+/*       OUT_CLOSEFILEINDIR(thread_data->tracefile); */
+/*       thread_data->tracefile = NULL; */
+/*     } */
+/* #endif */
 
   return;
 }

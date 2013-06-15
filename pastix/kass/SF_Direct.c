@@ -86,7 +86,7 @@ void SF_Direct(csptr A, pastix_int_t cblknbr, pastix_int_t *rangtab, pastix_int_
 #endif
       P->nnzrow[k] = nnznbr;
       MALLOC_INTERN(P->ja[k], nnznbr, pastix_int_t);
-      memCpy(P->ja[k], tmpj, sizeof(pastix_int_t)*nnznbr);
+      memcpy(P->ja[k], tmpj, sizeof(pastix_int_t)*nnznbr);
       P->ma[k]=NULL;
     }
 
@@ -122,7 +122,7 @@ void SF_Direct(csptr A, pastix_int_t cblknbr, pastix_int_t *rangtab, pastix_int_
 
 	  memFree(P->ja[father]);
 	  MALLOC_INTERN(P->ja[father], nnznbr, pastix_int_t);
-	  memCpy(P->ja[father], tmpj, sizeof(pastix_int_t)*nnznbr);
+	  memcpy(P->ja[father], tmpj, sizeof(pastix_int_t)*nnznbr);
 	  P->nnzrow[father] = nnznbr;
 	}
     }

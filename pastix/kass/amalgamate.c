@@ -17,7 +17,6 @@
 #include <assert.h>
 
 #ifdef FORCE_NOMPI
-#include "nompi.h"
 #else
 #include <mpi.h>
 #endif
@@ -206,7 +205,7 @@ void amalgamate(double rat, csptr P, pastix_int_t snodenbr, pastix_int_t *snodet
   MALLOC_INTERN(treetab2, n, pastix_int_t);
   MALLOC_INTERN(nnzadd,   n, pastix_int_t);
   MALLOC_INTERN(gain,     n, double);
-  memCpy(treetab2, treetab, sizeof(pastix_int_t)*n);
+  memcpy(treetab2, treetab, sizeof(pastix_int_t)*n);
   MALLOC_INTERN(tmp,  nn, pastix_int_t);
   MALLOC_INTERN(tmp2, nn, pastix_int_t);
 
@@ -861,7 +860,7 @@ void  merge_col(pastix_int_t a, pastix_int_t b, csptr P)
 
   /*P->ja[b] = (pastix_int_t *)realloc(ja, sizeof(pastix_int_t)*i);*/
   MALLOC_INTERN(P->ja[b], i, pastix_int_t);
-  memCpy(P->ja[b], ja, sizeof(pastix_int_t)*i);
+  memcpy(P->ja[b], ja, sizeof(pastix_int_t)*i);
   memFree(ja);
 
   /*fprintf(stderr, "DONE2 i1 %ld i2 %ld n1 %ld n2 %ld \n", (long)i1, (long)i2, (long)n1, (long)n2);*/

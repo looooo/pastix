@@ -1008,7 +1008,7 @@ void bordi(int            alpha,
 /*   pastix_int_t                 levfnum;                    /\* Current level of fill         *\/ */
   pastix_int_t                 bloksum;                    /* Accumulated number of blocks  */
   pastix_int_t                 bloknum;
-  Clock               runtime[3];                 /* Timing variables                       */
+  double              runtime[3];                 /* Timing variables                       */
   double              fillrat;                    /* Fill ratio : 0.0 -> NNZA ; 1.0 -> NNZL */
 /*   int                 i; */
   char                buftab1[1024];
@@ -1030,8 +1030,8 @@ void bordi(int            alpha,
   {
     SymbolMatrix    symbptr2;
 
-    clockInit  (&runtime[0]);
-    clockStart (&runtime[0]);
+    clockInit  (runtime[0]);
+    clockStart (runtime[0]);
 
     symbolInit      (&symbptr2);
     symbolFaxGraph  (&symbptr2, graphptr, orderptr);
@@ -1049,7 +1049,7 @@ void bordi(int            alpha,
     orderCheck      (orderptr);
     symbolExit      (&symbptr2);
 
-    clockStop  (&runtime[0]);
+    clockStop  (runtime[0]);
   }
 
   dofInit     (&matrdeof);
@@ -1057,8 +1057,8 @@ void bordi(int            alpha,
 
   symbolInit      (symbptr);
 
-  clockInit  (&runtime[1]);
-  clockStart (&runtime[1]);
+  clockInit  (runtime[1]);
+  clockStart (runtime[1]);
 
 #ifdef ALPHA_LEVFK
   printf("symbolFaxiGraph with k=%ld\n",(long)alpha);
@@ -1068,15 +1068,15 @@ void bordi(int            alpha,
   symbolFaxiGraph (symbptr, graphptr, orderptr);
 #endif
 
-  clockStop  (&runtime[1]);
+  clockStop  (runtime[1]);
 
   symbolCheck(symbptr);
 
   {
     SymbolMatrix    symbptr3;
 
-    clockInit  (&runtime[2]);
-    clockStart (&runtime[2]);
+    clockInit  (runtime[2]);
+    clockStart (runtime[2]);
 
     symbolInit      (&symbptr3);
     symbolFaxGraph  (&symbptr3, graphptr, orderptr);
@@ -1097,7 +1097,7 @@ void bordi(int            alpha,
 
     symbolExit      (&symbptr3);
 
-    clockStop  (&runtime[2]);
+    clockStop  (runtime[2]);
   }
 
   symbolCheck (symbptr);
@@ -1120,9 +1120,9 @@ void bordi(int            alpha,
   printf ("B\tLeafnbr=%6ld\nB\tTree hmin=%ld\thmax=%ld\thavg=%6.2f\thdlt=%4.2f\n",
           (long) leafnbr, (long) heigmin, (long) heigmax, heigavg, (double) (heigdlt * 100.0));
 
-  fprintf(stderr,"SF time (prepar) %lf\n",clockVal(&runtime[0]));
-  fprintf(stderr,"SF time (QGifax) %lf\n",clockVal(&runtime[1]));
-  fprintf(stderr,"SF time (bricol) %lf\n",clockVal(&runtime[2]));
+  fprintf(stderr,"SF time (prepar) %lf\n",clockVal(runtime[0]));
+  fprintf(stderr,"SF time (QGifax) %lf\n",clockVal(runtime[1]));
+  fprintf(stderr,"SF time (bricol) %lf\n",clockVal(runtime[2]));
 
 #ifdef ALPHA_LEVFK
   return;

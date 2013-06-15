@@ -11,33 +11,8 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 /* must be before complex definition */
 #include "mmio.h"
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 /* must be after complex definition */
 #include "pastix.h"
 #include "common_drivers.h"
@@ -95,7 +70,7 @@ void MatrixMarketRead(char const      *filename,
   if (file==NULL)
   {
     fprintf(stderr,"cannot load %s\n", filename);
-    EXIT(MOD_SI,FILE_ERR);
+    exit(-1);
   }
 
   if (mm_read_banner(file, &matcode) != 0)
@@ -148,7 +123,7 @@ void MatrixMarketRead(char const      *filename,
   if ((tempcol==NULL) || (temprow == NULL) || (tempval == NULL))
   {
     fprintf(stderr, "MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)*Nnzero);
-    EXIT(MOD_SI,OUTOFMEMORY_ERR);
+    exit(-1);
   }
 
   /* Remplissage */
@@ -206,7 +181,7 @@ void MatrixMarketRead(char const      *filename,
   if (((*col)==NULL) || ((*row) == NULL) || ((*val) == NULL))
   {
     fprintf(stderr, "MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)*Nnzero);
-    EXIT(MOD_SI,OUTOFMEMORY_ERR);
+    exit(-1);
   }
 
   /* Detection de la base */

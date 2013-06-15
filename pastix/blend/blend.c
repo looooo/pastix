@@ -96,8 +96,8 @@ void solverBlend(SolverMatrix *solvmtx,
     BlendCtrl *ctrl;
     SimuCtrl  *simuctrl;
     FILE      *ps_file       = NULL;
-    Clock      timer_all;
-    Clock      timer_current;
+    double     timer_all     = 0.;
+    double     timer_current = 0.;
     pastix_int_t       *bcofind       = NULL;
     pastix_int_t        page          = 0;
 
@@ -113,12 +113,11 @@ void solverBlend(SolverMatrix *solvmtx,
         EXIT(MOD_BLEND,INTERNAL_ERR);
       }
 
-    clockInit(&timer_all);
-    clockInit(&timer_current);
-    if(ctrl->option->timer)
-        {
-            clockStart(&timer_all);
-        }
+    clockInit(timer_all);
+    clockInit(timer_current);
+    if(ctrl->option->timer) {
+        clockStart(timer_all);
+    }
 
     if(ctrl->option->ps)
         {
@@ -183,8 +182,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
 
     if(ctrl->option->leader == clustnum &&
@@ -199,8 +198,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockStop(&timer_current);
-            printf("--Graph build at time: %g --\n", clockVal(&timer_current));
+            clockStop(timer_current);
+            printf("--Graph build at time: %g --\n", clockVal(timer_current));
         }
 
 
@@ -211,8 +210,8 @@ void solverBlend(SolverMatrix *solvmtx,
         fprintf(stdout, OUT_BLEND_COSTMATRIX);
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
 
     /** Build the cost matrix from the symbolic partition **/
@@ -220,8 +219,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockStop(&timer_current);
-            printf("--Cost Matrix build at time: %g --\n", clockVal(&timer_current));
+            clockStop(timer_current);
+            printf("--Cost Matrix build at time: %g --\n", clockVal(timer_current));
         }
 
     MALLOC_INTERN(ctrl->etree, 1, EliminTree);
@@ -231,8 +230,8 @@ void solverBlend(SolverMatrix *solvmtx,
         fprintf(stdout, OUT_BLEND_ELIMTREE);
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
 
     /** Build the elimination tree from the symbolic partition **/
@@ -240,8 +239,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockStop(&timer_current);
-            printf("--Tree build at time: %g --\n", clockVal(&timer_current));
+            clockStop(timer_current);
+            printf("--Tree build at time: %g --\n", clockVal(timer_current));
         }
 
 
@@ -260,8 +259,8 @@ void solverBlend(SolverMatrix *solvmtx,
         fprintf(stdout, "Spliting initial partition \n");
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
 
     /** repartitioning of the initial symbolic factorization
@@ -269,18 +268,19 @@ void solverBlend(SolverMatrix *solvmtx,
       each colum bloc **/
     splitPart(symbmtx, ctrl, dofptr);
 
-    if ( (ctrl->option->leader == clustnum) && (ctrl->option->tracegen == 1))
-      {
-        FILE *out;
-        OUT_OPENFILEINDIR(ctrl->option->iparm, out, "elimintree.dot", "w");
-        treePlot(ctrl->etree, out);
-        OUT_CLOSEFILEINDIR(out);
-      }
+    //TODO
+    /* if ( (ctrl->option->leader == clustnum) && (ctrl->option->tracegen == 1)) */
+    /*   { */
+    /*     FILE *out; */
+    /*     OUT_OPENFILEINDIR(ctrl->option->iparm, out, "elimintree.dot", "w"); */
+    /*     treePlot(ctrl->etree, out); */
+    /*     OUT_CLOSEFILEINDIR(out); */
+    /*   } */
 
     if(ctrl->option->timer)
       {
-        clockStop(&timer_current);
-        printf("--Split build at time: %g --\n", clockVal(&timer_current));
+        clockStop(timer_current);
+        printf("--Split build at time: %g --\n", clockVal(timer_current));
       }
 
 #ifdef DEBUG_BLEND
@@ -319,8 +319,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
     /** the former graph can't be used any more **/
     egraphExit(ctrl->egraph);
@@ -338,14 +338,14 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockStop(&timer_current);
-            printf("--Graph build at time: %g --\n", clockVal(&timer_current));
+            clockStop(timer_current);
+            printf("--Graph build at time: %g --\n", clockVal(timer_current));
         }
 
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
 
     /* initialize simu structure control */
@@ -364,15 +364,15 @@ void solverBlend(SolverMatrix *solvmtx,
       fprintf(stdout, OUT_BLEND_NBTASK, (long)simuctrl->tasknbr);
     if(ctrl->option->timer)
       {
-        clockStop(&timer_current);
-        printf("--Task built at time: %g --\n", clockVal(&timer_current));
+        clockStop(timer_current);
+        printf("--Task built at time: %g --\n", clockVal(timer_current));
       }
 
     /** Distribution Phase **/
     if(ctrl->option->timer)
       {
-        clockInit(&timer_current);
-        clockStart(&timer_current);
+        clockInit(timer_current);
+        clockStart(timer_current);
       }
 
 #ifdef DEBUG_BLEND
@@ -386,8 +386,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockStop(&timer_current);
-            printf("--Distribution computed at time: %g --\n", clockVal(&timer_current));
+            clockStop(timer_current);
+            printf("--Distribution computed at time: %g --\n", clockVal(timer_current));
         }
 
     if(ctrl->option->assembly)
@@ -395,8 +395,8 @@ void solverBlend(SolverMatrix *solvmtx,
         /** Gener the Assembly structures **/
         if(ctrl->option->timer)
           {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
           }
 
         if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
@@ -412,8 +412,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
         if(ctrl->option->timer)
           {
-            clockStop(&timer_current);
-            printf("--Assembly computed at time: %g --\n", clockVal(&timer_current));
+            clockStop(timer_current);
+            printf("--Assembly computed at time: %g --\n", clockVal(timer_current));
           }
       }
 
@@ -421,8 +421,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
 
     /** repartitioning of the initial symbolic factorization
@@ -433,8 +433,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
       {
-        clockStop(&timer_current);
-        printf("--Split build at time: %g --\n", clockVal(&timer_current));
+        clockStop(timer_current);
+        printf("--Split build at time: %g --\n", clockVal(timer_current));
       }
 
 #endif
@@ -450,8 +450,8 @@ void solverBlend(SolverMatrix *solvmtx,
       i.e. relative bloc numbering **/
     if(ctrl->option->timer)
         {
-            clockInit(&timer_current);
-            clockStart(&timer_current);
+            clockInit(timer_current);
+            clockStart(timer_current);
         }
 
     if(ctrl->option->sequentiel)
@@ -478,8 +478,8 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->timer)
         {
-            clockStop(&timer_current);
-            printf("--SolverMatrix computed at time: %g --\n", clockVal(&timer_current));
+            clockStop(timer_current);
+            printf("--SolverMatrix computed at time: %g --\n", clockVal(timer_current));
         }
 
     /*if(ctrl->option->count_ops)
@@ -494,9 +494,9 @@ void solverBlend(SolverMatrix *solvmtx,
     /** Time end **/
     if(ctrl->option->timer)
       {
-        clockStop(&timer_all);
-        printf("---- Total execution at time: %g ----\n",clockVal(&timer_all));
-        set_dparm(option->dparm, DPARM_ANALYZE_TIME, clockVal(&timer_all));
+        clockStop(timer_all);
+        printf("---- Total execution at time: %g ----\n",clockVal(timer_all));
+        set_dparm(option->dparm, DPARM_ANALYZE_TIME, clockVal(timer_all));
       }
 
     /** Free allocated memory **/

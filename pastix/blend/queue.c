@@ -14,32 +14,32 @@
   Function: QueueInit
 
   Allocate the queue array
-  
+
   Parameters:
     q    - The queue to initialize
     size - The initial size of the queue.
 
   Return:
-    NO_ERR - If all goes well.
+    PASTIX_SUCCESS - If all goes well.
 */
 int queueInit(Queue *q,
-	      pastix_int_t    size)
+              pastix_int_t    size)
 {
     q->size = size;
     q->used = 0;
     if (q->size != 0)
       {
-	MALLOC_INTERN(q->elttab,  size, pastix_int_t);
-	MALLOC_INTERN(q->keytab,  size, double);
-	MALLOC_INTERN(q->keytab2, size, pastix_int_t);
+        MALLOC_INTERN(q->elttab,  size, pastix_int_t);
+        MALLOC_INTERN(q->keytab,  size, double);
+        MALLOC_INTERN(q->keytab2, size, pastix_int_t);
       }
     else
       {
-	q->elttab  = NULL;
-	q->keytab  = NULL;
-	q->keytab2 = NULL;
+        q->elttab  = NULL;
+        q->keytab  = NULL;
+        q->keytab2 = NULL;
       }
-    return NO_ERR;
+    return PASTIX_SUCCESS;
 }
 /*
   Function: queueCopy
@@ -54,8 +54,8 @@ int queueInit(Queue *q,
     The copy address or NULL if the destination
     or the source is NULL.
 */
-Queue * queueCopy(Queue *dst, 
-		  Queue *src)
+Queue * queueCopy(Queue *dst,
+                  Queue *src)
 {
   if(src == NULL || dst == NULL)
     return NULL;
@@ -104,9 +104,9 @@ void queueExit(Queue *q)
     elt - the element to add.
     key - The key associated to the element.
 */
-void queueAdd(Queue *q, 
-	      pastix_int_t    elt, 
-	      double key)
+void queueAdd(Queue *q,
+              pastix_int_t    elt,
+              double key)
 {
   queueAdd2(q, elt, key, 0);
 }
@@ -125,10 +125,10 @@ void queueAdd(Queue *q,
     key  - The double key associated to the element.
     key2 - The integer key associated to the element.
 */
-void queueAdd2(Queue *q, 
-	       pastix_int_t    elt,
-	       double key, 
-	       pastix_int_t    key2)
+void queueAdd2(Queue *q,
+               pastix_int_t    elt,
+               double key,
+               pastix_int_t    key2)
 {
     pastix_int_t i;
     pastix_int_t   swap_elt;
@@ -141,28 +141,28 @@ void queueAdd2(Queue *q,
 
     /** Allocate more space if necessary **/
     if(q->size == q->used)
-	{
-	    tmp  = q->elttab;
-	    tmp2 = q->keytab;
-	    tmp3 = q->keytab2;
-	    /* OIMBE Realloc ?? */
-	    MALLOC_INTERN(q->elttab, q->size*2+1, pastix_int_t);
-	    memcpy(q->elttab, tmp, q->size * sizeof(pastix_int_t));
+        {
+            tmp  = q->elttab;
+            tmp2 = q->keytab;
+            tmp3 = q->keytab2;
+            /* OIMBE Realloc ?? */
+            MALLOC_INTERN(q->elttab, q->size*2+1, pastix_int_t);
+            memcpy(q->elttab, tmp, q->size * sizeof(pastix_int_t));
 
-	    MALLOC_INTERN(q->keytab, q->size*2+1, double);
-	    memcpy(q->keytab, tmp2, q->size * sizeof(double));
+            MALLOC_INTERN(q->keytab, q->size*2+1, double);
+            memcpy(q->keytab, tmp2, q->size * sizeof(double));
 
-	    MALLOC_INTERN(q->keytab2, q->size*2+1, pastix_int_t);
-	    memcpy(q->keytab2, tmp3, q->size * sizeof(pastix_int_t));
+            MALLOC_INTERN(q->keytab2, q->size*2+1, pastix_int_t);
+            memcpy(q->keytab2, tmp3, q->size * sizeof(pastix_int_t));
 
-	    q->size = q->size*2 +1;
-	    if (tmp != NULL)
-	      memFree_null(tmp);
-	    if (tmp2 != NULL)
-	      memFree_null(tmp2);
-	    if (tmp3 != NULL)
-	      memFree_null(tmp3);
-	}
+            q->size = q->size*2 +1;
+            if (tmp != NULL)
+              memFree_null(tmp);
+            if (tmp2 != NULL)
+              memFree_null(tmp2);
+            if (tmp3 != NULL)
+              memFree_null(tmp3);
+        }
 
     q->elttab[q->used] = elt;
     q->keytab[q->used] = key;
@@ -170,32 +170,32 @@ void queueAdd2(Queue *q,
     q->used++;
     i = q->used;
 
-    while( (i>1) 
-	   &&  compWith2keys(q, i-1, i/2-1))
-	{
-	    swap_elt = q->elttab[i-1];
-	    swap_key = q->keytab[i-1];
-	    swap_key2 = q->keytab2[i-1];
-	    q->elttab[i-1] = q->elttab[i/2-1];
-	    q->keytab[i-1] = q->keytab[i/2-1];
-	    q->keytab2[i-1] = q->keytab2[i/2-1];
+    while( (i>1)
+           &&  compWith2keys(q, i-1, i/2-1))
+        {
+            swap_elt = q->elttab[i-1];
+            swap_key = q->keytab[i-1];
+            swap_key2 = q->keytab2[i-1];
+            q->elttab[i-1] = q->elttab[i/2-1];
+            q->keytab[i-1] = q->keytab[i/2-1];
+            q->keytab2[i-1] = q->keytab2[i/2-1];
 
-	    q->elttab[i/2-1] = swap_elt;
-	    q->keytab[i/2-1] = swap_key;
-	    q->keytab2[i/2-1] = swap_key2;
-	    i=i/2;
-	}
+            q->elttab[i/2-1] = swap_elt;
+            q->keytab[i/2-1] = swap_key;
+            q->keytab2[i/2-1] = swap_key2;
+            i=i/2;
+        }
 }
 
 /*
   Function: queueGet
 
-  Get next element of the queue and 
+  Get next element of the queue and
   remove it from the queue.
 
-  Parameters: 
+  Parameters:
     q - The queue from which user wants an element.
-    
+
   Returns:
     The element if it was found, or -1 if it wasn't.
 */
@@ -211,51 +211,51 @@ pastix_int_t queueGet(Queue *q)
       return -1;
 
     return_elt = q->elttab[0];
-    
+
     q->elttab[0]  = q->elttab[q->used-1];
     q->keytab[0]  = q->keytab[q->used-1];
     q->keytab2[0] = q->keytab2[q->used-1];
     q->used--;
-    
+
     i=1;
-    
+
     while(i <= (q->used/2))
-	{
-	    if( (2*i == q->used)
-		|| compWith2keys(q, 2*i-1, 2*i))     /*(q->keytab[2*i-1] < q->keytab[2*i]))*/
-		{
-		    j = 2*i;
-		}
-	    else
-		{
-		    j = 2*i+1;
-		}
-	    if (!compWith2keys(q, i-1, j-1))         /*(q->keytab[i-1] >= q->keytab[j-1])*/
-		{
-		    swap_elt = q->elttab[i-1];
-		    swap_key = q->keytab[i-1];
-		    swap_key2 = q->keytab2[i-1];
+        {
+            if( (2*i == q->used)
+                || compWith2keys(q, 2*i-1, 2*i))     /*(q->keytab[2*i-1] < q->keytab[2*i]))*/
+                {
+                    j = 2*i;
+                }
+            else
+                {
+                    j = 2*i+1;
+                }
+            if (!compWith2keys(q, i-1, j-1))         /*(q->keytab[i-1] >= q->keytab[j-1])*/
+                {
+                    swap_elt = q->elttab[i-1];
+                    swap_key = q->keytab[i-1];
+                    swap_key2 = q->keytab2[i-1];
 
-		    q->elttab[i-1]  = q->elttab[j-1];
-		    q->keytab[i-1]  = q->keytab[j-1];
-		    q->keytab2[i-1] = q->keytab2[j-1];
+                    q->elttab[i-1]  = q->elttab[j-1];
+                    q->keytab[i-1]  = q->keytab[j-1];
+                    q->keytab2[i-1] = q->keytab2[j-1];
 
-		    q->elttab[j-1] = swap_elt;
-		    q->keytab[j-1] = swap_key;
-		    q->keytab2[j-1] = swap_key2;
-		    
-		    i=j;
-		}
-	    else
-		break;
-	}
+                    q->elttab[j-1] = swap_elt;
+                    q->keytab[j-1] = swap_key;
+                    q->keytab2[j-1] = swap_key2;
+
+                    i=j;
+                }
+            else
+                break;
+        }
     return return_elt;
 }
 
 
 /*
   Function: queueSize
- 
+
   Compute the size of a queue.
 
   Parameters:
@@ -279,8 +279,8 @@ void queueClear(Queue *q)
 /*
   Function: queueRead
 
-  Read the next element that 'll be given by queueGet 
-  but not suppress it from the queue 
+  Read the next element that 'll be given by queueGet
+  but not suppress it from the queue
 
   Parameters:
     q - The queue.
@@ -303,17 +303,17 @@ pastix_int_t queueRead(Queue *q)
     elt1 - index of the first element in the queue.
     elt2 - index of the second element in the queue.
 */
-pastix_int_t compWith2keys(Queue *q, 
-		  pastix_int_t    elt1, 
-		  pastix_int_t    elt2)
+pastix_int_t compWith2keys(Queue *q,
+                  pastix_int_t    elt1,
+                  pastix_int_t    elt2)
 {
   /* if elt1 < elt2 return 1  */
   /* if elt1 = elt2 return 0  */
   /* if elt1 > elt2 return 0 */
-  
+
   if(q->keytab[elt1] < q->keytab[elt2])
     return 1;
-  if(q->keytab[elt1] > q->keytab[elt2]) 
+  if(q->keytab[elt1] > q->keytab[elt2])
     return 0;
   if(q->keytab2[elt1] < q->keytab2[elt2])
     return 1;
@@ -323,7 +323,7 @@ pastix_int_t compWith2keys(Queue *q,
   Function: queueGet2
 
   Get next element of the queue and remove it from the queue.
-  
+
   Parameters:
     q    - The queue.
     key  - The first key (double) of the element.
@@ -332,9 +332,9 @@ pastix_int_t compWith2keys(Queue *q,
   Returns:
     The element, or -1 if not found.
 */
-pastix_int_t queueGet2(Queue  *q,  
-	      double *key, 
-	      pastix_int_t    *key2)
+pastix_int_t queueGet2(Queue  *q,
+              double *key,
+              pastix_int_t    *key2)
 {
     pastix_int_t i, j;
     pastix_int_t return_elt;
@@ -353,39 +353,39 @@ pastix_int_t queueGet2(Queue  *q,
     q->keytab[0]  = q->keytab[q->used-1];
     q->keytab2[0] = q->keytab2[q->used-1];
     q->used--;
-    
+
     i=1;
-    
+
     while(i <= (q->used/2))
-	{
-	    if( (2*i == q->used)
-		|| compWith2keys(q, 2*i-1, 2*i))     /*(q->keytab[2*i-1] < q->keytab[2*i]))*/
-		{
-		    j = 2*i;
-		}
-	    else
- 		{
-		    j = 2*i+1;
-		}
-	    if (!compWith2keys(q, i-1, j-1))         /*(q->keytab[i-1] >= q->keytab[j-1])*/
-		{
-		    swap_elt = q->elttab[i-1];
-		    swap_key = q->keytab[i-1];
-		    swap_key2 = q->keytab2[i-1];
+        {
+            if( (2*i == q->used)
+                || compWith2keys(q, 2*i-1, 2*i))     /*(q->keytab[2*i-1] < q->keytab[2*i]))*/
+                {
+                    j = 2*i;
+                }
+            else
+                {
+                    j = 2*i+1;
+                }
+            if (!compWith2keys(q, i-1, j-1))         /*(q->keytab[i-1] >= q->keytab[j-1])*/
+                {
+                    swap_elt = q->elttab[i-1];
+                    swap_key = q->keytab[i-1];
+                    swap_key2 = q->keytab2[i-1];
 
-		    q->elttab[i-1]  = q->elttab[j-1];
-		    q->keytab[i-1]  = q->keytab[j-1];
-		    q->keytab2[i-1] = q->keytab2[j-1];
+                    q->elttab[i-1]  = q->elttab[j-1];
+                    q->keytab[i-1]  = q->keytab[j-1];
+                    q->keytab2[i-1] = q->keytab2[j-1];
 
-		    q->elttab[j-1] = swap_elt;
-		    q->keytab[j-1] = swap_key;
-		    q->keytab2[j-1] = swap_key2;
-		    
-		    i=j;
-		}
-	    else
-		break;
-	}
+                    q->elttab[j-1] = swap_elt;
+                    q->keytab[j-1] = swap_key;
+                    q->keytab2[j-1] = swap_key2;
+
+                    i=j;
+                }
+            else
+                break;
+        }
 
     return return_elt;
 }
@@ -402,8 +402,8 @@ pastix_int_t queueGet2(Queue  *q,
     API_YES - if the element was found.
     API_NO  - if the element was not found.
 */
-int queuePossess(Queue * q, 
-		 pastix_int_t     elt ){
+int queuePossess(Queue * q,
+                 pastix_int_t     elt ){
   pastix_int_t i;
   for (i = 0; i < q->used; i++)
     if (q->elttab[i] == elt)
@@ -414,7 +414,7 @@ int queuePossess(Queue * q,
 
 /*
   Function: queueInit
-  
+
   Print a queue entries to standar error output.
 
   Parameters:
@@ -425,9 +425,9 @@ void queuePrint(Queue *q)
   pastix_int_t i;
   fprintf(stderr, "Queue :");
   for (i = 0; i < q->used; i++)
-    fprintf(stderr, "(%d %f %d) ", 
-	    (int)q->elttab[i], 
-	    (double)q->keytab[i], 
-	    (int)q->keytab2[i] );
+    fprintf(stderr, "(%d %f %d) ",
+            (int)q->elttab[i],
+            (double)q->keytab[i],
+            (int)q->keytab2[i] );
   fprintf(stderr, "\n");
 }

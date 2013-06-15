@@ -10,30 +10,6 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 #include "pastix.h"
 #include "common_drivers.h"
 #include "cccread.h"
@@ -136,7 +112,7 @@ void cccRead(char const      *filename,
   if (infile==NULL)
     {
       fprintf(stderr,"cannot load %s\n", "hfile");
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
   cccReadHeader(infile, Nrow, Ncol, Nnzero, *Type);
   fclose(infile);
@@ -155,7 +131,7 @@ void cccRead(char const      *filename,
   if (infile==NULL)
     {
       fprintf(stderr,"cannot load %s\n", "ifile");
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
   for (iter=0; iter<(*Ncol+1); iter++)
     {
@@ -179,14 +155,14 @@ void cccRead(char const      *filename,
   if (infile1==NULL)
     {
       fprintf(stderr,"cannot load %s\n", "jfile");
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
   sprintf(filename2, "%s/afile", filename);
   infile2 = fopen(filename2, "r");
   if (infile2==NULL)
     {
       fprintf(stderr,"cannot load %s\n", "afile");
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
 
 

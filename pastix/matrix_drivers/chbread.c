@@ -4,11 +4,11 @@
   Read a matrix in chb format.
 
   Matrix can be complex or not.
-  
-  If the matrix is complex and TYPE_COMPLEX is not defined, 
+
+  If the matrix is complex and TYPE_COMPLEX is not defined,
   imaginary part will be dropped.
 
-  If the matrix is real and TYPE_COMPLEX is defined, the 
+  If the matrix is real and TYPE_COMPLEX is defined, the
   imaginary part will be 0.
 */
 #include <stdlib.h>
@@ -16,34 +16,17 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 #include "pastix.h"
 #include "common_drivers.h"
 #include "chbread.h"
 
+#ifndef MTX_ISSYM
+#define MTX_ISSYM(a) ( (a)[1] == 'S'  )
+#define MTX_ISHER(a) ( (a)[1] == 'H'  )
+#define MTX_ISCOM(a) ( (a)[0] == 'C'  )
+#define MTX_ISRHX(a) ( (a)[2] == 'X'  )
+#define MTX_ISRHS(a) ( (a)[0] != '\0' )
+#endif
 
 /*
   Function: chbReadHeader
@@ -53,7 +36,7 @@
   header format is:
   > title 73-80 Key
   > 1-14 totcrd 15-28 ptrcrd 29-42 indcrd 43-56 valcrd 57-70 rhscrd
-  > 1-3 mxtype 15-28 nrow 29-42 ncol 43-56 nnzero 57-70 neltvl 
+  > 1-3 mxtype 15-28 nrow 29-42 ncol 43-56 nnzero 57-70 neltvl
   > 1-16 ptrfmt 17-32 indfmt 33-52 valfmt 53-72 rhsfmt
   > 1  2 rhstyp 3  15-28 nrhs 29-42 nrhsix
 
@@ -64,7 +47,7 @@
     Ncol    - Number of columns in the matrix
     Nnzero  - Number of non zeros in the matrix
     Nrhs    - Number of right-hand-side terms
-    Ptrfmt  - 
+    Ptrfmt  -
     Indfmt  -
     Valfmt  -
     Rhsfmt  -
@@ -75,21 +58,21 @@
     RhsType - Type of right-hand-side term(s)
 
  */
-void chbReadHeader(FILE         *infile, 
-		   char         *Type, 
-		   pastix_int_t *Nrow, 
-		   pastix_int_t *Ncol, 
-		   pastix_int_t *Nnzero, 
-		   pastix_int_t *Nrhs, 
-		   char         *Ptrfmt, 
-		   char         *Indfmt, 
-		   char         *Valfmt, 
-		   char         *Rhsfmt, 
-		   pastix_int_t *Ptrcrd, 
-		   pastix_int_t *Indcrd, 
-		   pastix_int_t *Valcrd, 
-		   pastix_int_t *Rhscrd,  
-		   char         *RhsType)
+void chbReadHeader(FILE         *infile,
+                   char         *Type,
+                   pastix_int_t *Nrow,
+                   pastix_int_t *Ncol,
+                   pastix_int_t *Nnzero,
+                   pastix_int_t *Nrhs,
+                   char         *Ptrfmt,
+                   char         *Indfmt,
+                   char         *Valfmt,
+                   char         *Rhsfmt,
+                   pastix_int_t *Ptrcrd,
+                   pastix_int_t *Indcrd,
+                   pastix_int_t *Valcrd,
+                   pastix_int_t *Rhscrd,
+                   char         *RhsType)
 {
   char line[BUFSIZ];
   long totcrd;
@@ -99,7 +82,7 @@ void chbReadHeader(FILE         *infile,
   /* first line */
   /* 1-72 title 73-80 Key */
   FGETS(line, BUFSIZ, infile);
-  
+
   /* Seconde line */
   /* 1-14 totcrd 15-28 ptrcrd 29-42 indcrd 43-56 valcrd 57-70 rhscrd */
   FGETS(line, BUFSIZ ,infile);
@@ -159,10 +142,10 @@ void chbReadHeader(FILE         *infile,
   columnFormat
   (rhsFormat)
   then the columns,
-  the rows, 
+  the rows,
   the values,
   (the rhs)
-  
+
 
   Parameters:
     filename - Path to the file to read from
@@ -170,24 +153,24 @@ void chbReadHeader(FILE         *infile,
     Ncol     - Number of columns
     Nnzero   - Number of non zeros
     col      - Index of first element of each column in *row* and *val*
-    row      - Row of eah element				       	
-    val      - Value of each element				       	
-    Type     - Type of the matrix				       	
-    RhsType  - Type of the right-hand-side terms.			       	
+    row      - Row of eah element
+    val      - Value of each element
+    Type     - Type of the matrix
+    RhsType  - Type of the right-hand-side terms.
     rhs      - right-hand-side term(s)
 
 
  */
-void chbRead(char const      *filename, 
-	     pastix_int_t    *Nrow, 
-	     pastix_int_t    *Ncol, 
-	     pastix_int_t    *Nnzero, 
-	     pastix_int_t   **col, 
-	     pastix_int_t   **row,
-	     pastix_float_t **val, 
-	     char           **Type, 
-	     char           **RhsType, 
-	     pastix_float_t **rhs)
+void chbRead(char const      *filename,
+             pastix_int_t    *Nrow,
+             pastix_int_t    *Ncol,
+             pastix_int_t    *Nnzero,
+             pastix_int_t   **col,
+             pastix_int_t   **row,
+             pastix_float_t **val,
+             char           **Type,
+             char           **RhsType,
+             pastix_float_t **rhs)
 {
   FILE *infile;
   pastix_int_t Nrhs;
@@ -210,16 +193,16 @@ void chbRead(char const      *filename,
 
   *Type = (char *) malloc(4*sizeof(char));
   *RhsType = (char *) malloc(4*sizeof(char));
-  
+
   infile = fopen(filename, "r");
   if (infile==NULL)
     {
       fprintf(stderr,"cannot load %s\n", filename);
-      EXIT(MOD_SI,FILE_ERR);
+      exit(-1);
     }
-  
+
   chbReadHeader(infile, *Type, Nrow, Ncol, Nnzero, &Nrhs, Ptrfmt, Indfmt, Valfmt, Rhsfmt,
-		&Ptrcrd, &Indcrd, &Valcrd, &Rhscrd, *RhsType);
+                &Ptrcrd, &Indcrd, &Valcrd, &Rhscrd, *RhsType);
   printf("CHB: Nrow=%ld Ncol=%ld Nnzero=%ld\n",(long)*Nrow,(long)*Ncol,(long)*Nnzero);
 
   chbParseRfmt(Valfmt, &Valperline, &Valwidth, &Valprec, &Valflag);
@@ -235,7 +218,7 @@ void chbRead(char const      *filename,
   if (element == NULL)
     {
       fprintf(stderr, "chbRead : Not enough memory for element\n");
-      EXIT(MOD_SI,OUTOFMEMORY_ERR);
+      exit(-1);
     }
   element[Ptrwidth] = '\0';
 
@@ -243,7 +226,7 @@ void chbRead(char const      *filename,
   if ((*col) == NULL)
     {
       fprintf(stderr, "chbRead : Not enough memory for *col\n");
-      EXIT(MOD_SI,OUTOFMEMORY_ERR);
+      exit(-1);
     }
 
   count = 0;
@@ -254,24 +237,24 @@ void chbRead(char const      *filename,
       colcur = Ptrflag;
 
       for (item=0; item<Ptrperline; item++)
-	{
-	  if (count > (*Ncol))
-	    break;
+        {
+          if (count > (*Ncol))
+            break;
 
-	  strncpy(element, line+colcur, Ptrwidth);
-	  (*col)[count] = atoi(element);
+          strncpy(element, line+colcur, Ptrwidth);
+          (*col)[count] = atoi(element);
 
-	  /*
-	    if ((iter==0) || (iter==1))
-	    {
-	    fprintf(stderr, "count %ld element %s col %ld\n",
-	    count,element, (*col)[count]);
-	    }
-	  */
-	  count++;
-	  colcur += Ptrwidth;
+          /*
+            if ((iter==0) || (iter==1))
+            {
+            fprintf(stderr, "count %ld element %s col %ld\n",
+            count,element, (*col)[count]);
+            }
+          */
+          count++;
+          colcur += Ptrwidth;
 
-	}
+        }
     }
   memFree_null(element);
 
@@ -279,7 +262,7 @@ void chbRead(char const      *filename,
   if (element == NULL)
     {
       fprintf(stderr, "chbRead : Not enough memory for element\n");
-      EXIT(MOD_SI,OUTOFMEMORY_ERR);
+      exit(-1);
     }
   element[Indwidth] = '\0';
 
@@ -287,7 +270,7 @@ void chbRead(char const      *filename,
   if ((*row) == NULL)
     {
       fprintf(stderr, "chbRead : Not enough memory for *row\n");
-      EXIT(MOD_SI,OUTOFMEMORY_ERR);
+      exit(-1);
     }
 
   count = 0;
@@ -297,23 +280,23 @@ void chbRead(char const      *filename,
 
       colcur = Indflag;
       for (item=0; item<Indperline; item++)
-	{
-	  if (count == (*Nnzero))
-	    break;
+        {
+          if (count == (*Nnzero))
+            break;
 
-	  strncpy(element, line+colcur, Indwidth);
-	  (*row)[count] = atoi(element);
+          strncpy(element, line+colcur, Indwidth);
+          (*row)[count] = atoi(element);
 
-	  /*
-	    if ((iter==0) || (iter==1))
-	    {
-	    fprintf(stderr, "count %ld element %s row %ld\n",
-	    count, element, (*row)[count]);
-	    }
-	  */
-	  count++;
-	  colcur += Indwidth;
-	}
+          /*
+            if ((iter==0) || (iter==1))
+            {
+            fprintf(stderr, "count %ld element %s row %ld\n",
+            count, element, (*row)[count]);
+            }
+          */
+          count++;
+          colcur += Indwidth;
+        }
     }
   memFree_null(element);
 
@@ -322,15 +305,15 @@ void chbRead(char const      *filename,
   if (element == NULL)
     {
       fprintf(stderr, "ChbRead : Not enough memory for element\n");
-      EXIT(MOD_SI,OUTOFMEMORY_ERR);
+      exit(-1);
     }
   element[Valwidth] = '\0';
-  
+
   (*val) = (pastix_float_t *) malloc((*Nnzero)*sizeof(pastix_float_t));
   if ((*val) == NULL)
     {
       fprintf(stderr, "chbRead : Not enough memory for *val\n");
-      EXIT(MOD_SI,OUTOFMEMORY_ERR);
+      exit(-1);
     }
 
   count = 0;
@@ -340,51 +323,51 @@ void chbRead(char const      *filename,
 
       colcur = 0;
       for (item=0; item<Valperline; item++)
-	{
-	  if (MTX_ISCOM(*Type))
-	    {
-	      if (count == 2*(*Nnzero))
-		break;
-	    }
-	  else
-	    {
-	      if (count == (*Nnzero))
-		break;
-	    }
+        {
+          if (MTX_ISCOM(*Type))
+            {
+              if (count == 2*(*Nnzero))
+                break;
+            }
+          else
+            {
+              if (count == (*Nnzero))
+                break;
+            }
 
-	  strncpy(element, line+colcur, Valwidth);
-	  if (Valflag == 'D')
-	    if (strchr(element, 'D') != NULL)
-	      *(strchr(element, 'D')) = 'E';
+          strncpy(element, line+colcur, Valwidth);
+          if (Valflag == 'D')
+            if (strchr(element, 'D') != NULL)
+              *(strchr(element, 'D')) = 'E';
 
 
 
-	  if (MTX_ISCOM(*Type))
-	    {	
+          if (MTX_ISCOM(*Type))
+            {
 
-	      if (count %2)
-		{
+              if (count %2)
+                {
 #ifdef TYPE_COMPLEX
 #if (defined X_ARCHalpha_compaq_osf1)
-		  (*val)[(count-1)/2] += pastix_float_t(0.0, atof(element));
+                  (*val)[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
-		  (*val)[(count-1)/2] += (pastix_float_t)atof(element)*I;
+                  (*val)[(count-1)/2] += (pastix_float_t)atof(element)*I;
 #endif
 #endif
-		}
-	      else
-		{
-		  (*val)[count/2] = (pastix_float_t)atof(element);
-		}
-	    }
-	  else
-	    {
-	      (*val)[count] = (pastix_float_t)atof(element);
-	    }
+                }
+              else
+                {
+                  (*val)[count/2] = (pastix_float_t)atof(element);
+                }
+            }
+          else
+            {
+              (*val)[count] = (pastix_float_t)atof(element);
+            }
 
-	  count++;
-	  colcur += Valwidth;
-	}
+          count++;
+          colcur += Valwidth;
+        }
     }
   memFree_null(element);
   fprintf(stderr, "Bufsiz %d\n", BUFSIZ);
@@ -394,136 +377,136 @@ void chbRead(char const      *filename,
       pastix_int_t nbline = Rhscrd;
 
       if (MTX_ISRHX(*RhsType))
-	nbline = Rhscrd/2;
+        nbline = Rhscrd/2;
 
       element = (char *) malloc(Rhswidth+1);
       if (element == NULL)
-	{
-	  fprintf(stderr, "ChbRead : Not enough memory for element\n");
-	  EXIT(MOD_SI,OUTOFMEMORY_ERR);
-	}
+        {
+          fprintf(stderr, "ChbRead : Not enough memory for element\n");
+          exit(-1);
+        }
       element[Rhswidth] = '\0';
 
       if (MTX_ISRHX(*RhsType))
-	(*rhs) = (pastix_float_t *) malloc(2*(*Ncol)*sizeof(pastix_float_t));
+        (*rhs) = (pastix_float_t *) malloc(2*(*Ncol)*sizeof(pastix_float_t));
       else
-	(*rhs) = (pastix_float_t *) malloc((*Ncol)*sizeof(pastix_float_t));
+        (*rhs) = (pastix_float_t *) malloc((*Ncol)*sizeof(pastix_float_t));
       if ((*rhs) == NULL)
-	{
-	  fprintf(stderr, "chbRead : Not enough memory for *rhs\n");
-          EXIT(MOD_SI,OUTOFMEMORY_ERR);
-	}
+        {
+          fprintf(stderr, "chbRead : Not enough memory for *rhs\n");
+          exit(-1);
+        }
 
       count = 0;
       for (iter=0; iter<nbline; iter++)
-	{
-	  FGETS(line, BUFSIZ, infile);
+        {
+          FGETS(line, BUFSIZ, infile);
 
-	  colcur=0;
-	  for (item=0; item<Rhsperline; item++)
-	    {
-	      if (MTX_ISCOM(*Type))
-		{
-		  if (count == 2*(*Ncol))
-		    break;
-		}
-	      else
-		{
-		  if (count == (*Ncol))
-		    break;
-		}
+          colcur=0;
+          for (item=0; item<Rhsperline; item++)
+            {
+              if (MTX_ISCOM(*Type))
+                {
+                  if (count == 2*(*Ncol))
+                    break;
+                }
+              else
+                {
+                  if (count == (*Ncol))
+                    break;
+                }
 
-	      strncpy(element, line+colcur, Rhswidth);
+              strncpy(element, line+colcur, Rhswidth);
 
 
-	      if (MTX_ISCOM(*Type))
-		{
-		  if (count % 2)
-		    {
+              if (MTX_ISCOM(*Type))
+                {
+                  if (count % 2)
+                    {
 #ifdef TYPE_COMPLEX
 #if (defined X_ARCHalpha_compaq_osf1)
-		      (*rhs)[(count-1)/2] += pastix_float_t(0.0, atof(element));
+                      (*rhs)[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
-		      (*rhs)[(count-1)/2] += (pastix_float_t)atof(element)*I;
+                      (*rhs)[(count-1)/2] += (pastix_float_t)atof(element)*I;
 #endif
 #endif
-		    }
-		  else
-		    {
-		      (*rhs)[count/2] = (pastix_float_t)atof(element);
-		    }
-		}
-	      else
-		{
-		  (*rhs)[count] = (pastix_float_t)atof(element);
-		}
+                    }
+                  else
+                    {
+                      (*rhs)[count/2] = (pastix_float_t)atof(element);
+                    }
+                }
+              else
+                {
+                  (*rhs)[count] = (pastix_float_t)atof(element);
+                }
 
-	      count++;
-	      colcur += Rhswidth;
-	    }
-	}
+              count++;
+              colcur += Rhswidth;
+            }
+        }
 
       if (MTX_ISRHX(*RhsType))
-	{
-	  rhs2 = &(*rhs)[*Ncol];
-	  if (rhs2 == NULL)
-	    {
-	      fprintf(stderr, "chbRead : Not enough memory for *rhs2\n");
-	      EXIT(MOD_SI,OUTOFMEMORY_ERR);
-	    }
+        {
+          rhs2 = &(*rhs)[*Ncol];
+          if (rhs2 == NULL)
+            {
+              fprintf(stderr, "chbRead : Not enough memory for *rhs2\n");
+              exit(-1);
+            }
 
-	  count = 0;
-	  for (iter=0; iter<nbline; iter++)
-	    {
-	      FGETS(line, BUFSIZ, infile);
+          count = 0;
+          for (iter=0; iter<nbline; iter++)
+            {
+              FGETS(line, BUFSIZ, infile);
 
-	      colcur = 0;
-	      for (item=0; item<Rhsperline; item++)
-		{
-		  if (MTX_ISCOM(*Type))
-		    {
-		      if (count == 2*(*Ncol))
-			break;
-		    }
-		  else
-		    {
-		      if (count == (*Ncol))
-			break;
-		    }
+              colcur = 0;
+              for (item=0; item<Rhsperline; item++)
+                {
+                  if (MTX_ISCOM(*Type))
+                    {
+                      if (count == 2*(*Ncol))
+                        break;
+                    }
+                  else
+                    {
+                      if (count == (*Ncol))
+                        break;
+                    }
 
-		  strncpy(element, line+colcur, Rhswidth);
+                  strncpy(element, line+colcur, Rhswidth);
 
-		  if (MTX_ISCOM(*Type))
-		    {
-		      if (count % 2)
-			{
+                  if (MTX_ISCOM(*Type))
+                    {
+                      if (count % 2)
+                        {
 #ifdef TYPE_COMPLEX
 #if (defined X_ARCHalpha_compaq_osf1)
-			  rhs2[(count-1)/2] += pastix_float_t(0.0, atof(element));
+                          rhs2[(count-1)/2] += pastix_float_t(0.0, atof(element));
 #else
-			  rhs2[(count-1)/2] += (pastix_float_t)atof(element)*I;
+                          rhs2[(count-1)/2] += (pastix_float_t)atof(element)*I;
 #endif
 #endif
-			}
-		      else
-			{
-			  rhs2[count/2] = (pastix_float_t)atof(element);
-			}
-		    }
-		  else
-		    {
-		      rhs2[count] = (pastix_float_t)atof(element);
-		    }
+                        }
+                      else
+                        {
+                          rhs2[count/2] = (pastix_float_t)atof(element);
+                        }
+                    }
+                  else
+                    {
+                      rhs2[count] = (pastix_float_t)atof(element);
+                    }
 
-		  count++;
-		  colcur += Rhswidth;
-		}
-	    }
-	}
+                  count++;
+                  colcur += Rhswidth;
+                }
+            }
+        }
       else
-	{
-	  rhs2 = NULL;
-	}
+        {
+          rhs2 = NULL;
+        }
       memFree_null(element);
     }
   else
@@ -531,7 +514,7 @@ void chbRead(char const      *filename,
       (*rhs) = NULL;
       rhs2 = NULL;
     }
-  
+
   fclose(infile);
 }
 
@@ -545,67 +528,67 @@ void chbRead(char const      *filename,
   Function: hbParseRfmt
 
   CHB float format parser
-  
+
   Format is like :
-  > (3(1P,E25.16)) 
+  > (3(1P,E25.16))
   or
   > (1P,3E25.16)
-  or 
+  or
   > (1P3E25.16)
-  or 
+  or
   > (3E25.16)
-  or 
+  or
   > (3E25)
   for perline = 3, format = E, width = 25 and prec = 16
 
 
   Parameters:
     fmt      - format to parse
-    perline  - number of element per line 
-    width    - 
+    perline  - number of element per line
+    width    -
     prec     - Precision
-    flag     - 
+    flag     -
 */
 void chbParseRfmt(char *fmt, pastix_int_t *perline, pastix_int_t *width, pastix_int_t *prec, char *flag)
 {
   myupcase(fmt);
-  
+
   if (strchr(fmt,'E') != NULL)
     {
       *flag = 'E';
     }
   else if (strchr(fmt,'D') != NULL)
-    { 
+    {
       *flag = 'D';
     }
   else if (strchr(fmt,'F') != NULL)
-    { 
+    {
       *flag = 'F';
     }
 
   if (strchr(fmt,'P') != NULL)
     {
       if (strchr(fmt,'P')[1] == ',')
-	{
-	  if (strchr(fmt,'P')[2] == *flag)
-	    {
-	      /* (3(1P,E24.16)) */
-/* 	      mysubstr2(fmt, '(', *flag, perline); */
- 	      mysubstr2(fmt, '(', '(', perline); /* XL : A mon avis c'est plutôt ça... */
-	    }
-	  else
-	    {
-	      /* (1P,3E25.16E3) */
-	      mysubstr2(fmt, ',', *flag, perline);
-	    }
-	}
+        {
+          if (strchr(fmt,'P')[2] == *flag)
+            {
+              /* (3(1P,E24.16)) */
+/*            mysubstr2(fmt, '(', *flag, perline); */
+              mysubstr2(fmt, '(', '(', perline); /* XL : A mon avis c'est plutôt ça... */
+            }
+          else
+            {
+              /* (1P,3E25.16E3) */
+              mysubstr2(fmt, ',', *flag, perline);
+            }
+        }
 
       else
-	mysubstr2(fmt, 'P', *flag, perline);
+        mysubstr2(fmt, 'P', *flag, perline);
     }
   else
     mysubstr2(fmt, '(', *flag, perline);
-  
+
   if ( strchr(fmt,'.') )
     {
       mysubstr2(fmt, '.', ')', prec);
@@ -626,9 +609,9 @@ void chbParseRfmt(char *fmt, pastix_int_t *perline, pastix_int_t *width, pastix_
   > (perlineIwidth) or (X,perlineIwidth)
   Parameters:
     fmt      - format to parse
-    perline  - number of element per line 
-    width    - 
-    flag     - 
+    perline  - number of element per line
+    width    -
+    flag     -
 */
 void chbParseIfmt(char *fmt, pastix_int_t *perline, pastix_int_t *width, pastix_int_t *flag)
 {
@@ -641,17 +624,17 @@ void chbParseIfmt(char *fmt, pastix_int_t *perline, pastix_int_t *width, pastix_
       mysubstr2(fmt, ',', 'I', perline);
       mysubstr2(fmt, 'I', ')', width);
       if (strchr(fmt, 'X'))
-	{
-	  *flag=1;
-	}
+        {
+          *flag=1;
+        }
     }
   else
     {
       mysubstr2(fmt, '(', 'I', perline);
       mysubstr2(fmt, 'I', ')', width);
       if (strchr(fmt, 'X'))
-	{
-	  *flag=1;
-	}
+        {
+          *flag=1;
+        }
     }
 }

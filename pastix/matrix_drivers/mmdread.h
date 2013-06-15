@@ -24,7 +24,6 @@
  *   RhsType  - Type of the right-hand-side.
  *
  */
-#define DistributedMatrixMarketRead PASTIX_PREFIX(DistributedMatrixMarketRead)
 void DistributedMatrixMarketRead(char const      *filename,
                                  pastix_int_t    *Ncol,
                                  pastix_int_t    *Nrow,

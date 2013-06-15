@@ -24,12 +24,6 @@
 #endif /* X_INCLUDE_ESSL */
 
 /*
- *  Define: BLAS_INT
- *  integer to use in blas calls.
- */
-#define BLAS_INT pastix_int_t
-
-/*
  Define: BLAS macros
 
  Defines to set the correct blas depending on the

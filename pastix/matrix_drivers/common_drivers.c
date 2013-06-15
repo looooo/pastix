@@ -3,36 +3,17 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
-
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
 #include <stdlib.h>
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
+#include <ctype.h>
 
 #include "pastix.h"
-#include "common_drivers.h"
-
-#ifdef __INTEL_COMPILER
-/* Ignore icc remark : "external declaration in primary source file" */
-#pragma warning(disable:1419)
-#endif
-
-/* Trouver une solution plus propre pour cette 
-   déclarer fonction interne de la libpastix */
-
-#include<ctype.h>
 
 /*
   Function: myupcase
 
   Rewrites *s* to upper case.
-  
-  Parameters: 
+
+  Parameters:
     s - string to rexwrite in upcase.
 */
 void myupcase(char *S)
@@ -51,7 +32,7 @@ void myupcase(char *S)
   Function:  mysubstr
 
   Copy len element, from *S[pos]* in *s*.
-  
+
   Parameters:
     s   - destination
     S   - Source
@@ -72,7 +53,7 @@ void mysubstr(char *s, const char *S, const pastix_int_t pos, const pastix_int_t
   Function:  mysubstr2
 
   Copy the number placed between a and b in fmt.
-  
+
   Parameters:
     fmt - String in which there is a and b
     a   - first element
@@ -89,9 +70,10 @@ void mysubstr2(const char *fmt, const char a, const char b, pastix_int_t *val)
   if (tmp == NULL)
     {
       fprintf(stderr, "mysubstr2 : Not enough memory for tmp\n");
-      EXIT(MOD_SI,OUTOFMEMORY_ERR);
+      exit( -1 );
     }
   mysubstr(tmp, fmt, strchr(fmt, a) - fmt +1, len);
   *val = atoi(tmp);
-  memFree_null(tmp);
+  free(tmp);
+  tmp = NULL;
 }

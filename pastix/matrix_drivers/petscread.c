@@ -11,33 +11,8 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#ifdef FORCE_NOMPI
-#else
-#include <mpi.h>
-#endif
-
 /* must be before complex definition */
 #include "mmio.h"
-
-#ifdef TYPE_COMPLEX
-#if (defined X_ARCHalpha_compaq_osf1)
-#ifndef USE_CXX
-#ifndef   _RWSTD_HEADER_REQUIRES_HPP
-#include <complex>
-#else  /* _RWSTD_HEADER_REQUIRES_HPP */
-#include <complex.hpp>
-#endif /* _RWSTD_HEADER_REQUIRES_HPP */
-#endif /* USE_CXX */
-#else  /* X_ARCHalpha_compaq_osf1 */
-#include <complex.h>
-#endif /* X_ARCHalpha_compaq_osf1 */
-#endif /* TYPE_COMPLEX */
-
-
-#ifdef X_ARCHsun
-#include <inttypes.h>
-#endif
-
 /* must be after complex definition */
 #include "pastix.h"
 #include "common_drivers.h"
@@ -137,7 +112,7 @@ void PETScRead(char const      *filename,
   if (file==NULL)
   {
     fprintf(stderr,"cannot load %s\n", filename);
-    EXIT(MOD_SI,FILE_ERR);
+    exit(-1);
   }
   fseek(file, 0, SEEK_END);
   fileLen = ftell(file);
@@ -147,7 +122,7 @@ void PETScRead(char const      *filename,
   if (!buffer)
   {
     fprintf(stderr, "Error in PETScRead : Not enough memory\n");
-    EXIT(MOD_SI,OUTOFMEMORY_ERR);
+    exit(-1);
   }
 
   rc = fread(buffer, fileLen, 1, file);
@@ -163,7 +138,7 @@ void PETScRead(char const      *filename,
   if (i != 1211216)
   {
     fprintf(stderr, "Error in PETScRead : Incorrect file header\n");
-    EXIT(MOD_SI,FILE_RR);
+    exit(-1);
   }
 
 
@@ -176,17 +151,17 @@ void PETScRead(char const      *filename,
     fprintf(stderr, "Error in PETScRead : Incorrect size of file (%ld != %ld) \n",
 	    (long)(fileLen*sizeof(char)),
 	    (long)(1*sizeof(char)+(3+(*Nrow)+(*Nnzero))*sizeof(int)+(*Nnzero)*sizeof(pastix_float_t)));
-    EXIT(MOD_SI,FILE_RR);
+    exit(-1);
   }
   if (*Nnzero == -1)
   {
     fprintf(stderr, "Error in PETScRead : Full matrices not supported\n");
-    EXIT(MOD_SI,FILE_ERR);
+    exit(-1);
   }
   if (*Nrow != *Ncol)
   {
     fprintf(stderr, "Error in PETScRead : Non square matrices not supported\n");
-    EXIT(MOD_SI,FILE_ERR);
+    exit(-1);
   }
 
   tempcol = (int *) malloc((*Nnzero)*sizeof(int));
@@ -222,7 +197,7 @@ void PETScRead(char const      *filename,
   if (((*col)==NULL) || ((*row) == NULL) || ((*val) == NULL))
   {
     fprintf(stderr, "petscread : Not enough memory (Nnzero %ld)\n",(long)*Nnzero);
-    EXIT(MOD_SI,OUTOFMEMORY_ERR);
+    exit(-1);
   }
 
   baseval=1; /* Attention on base a 1 */
