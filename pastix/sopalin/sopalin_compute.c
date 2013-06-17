@@ -1072,12 +1072,11 @@ void API_CALL(compute_cleane1e2)(Sopalin_Data_t *sopalin_data, pastix_int_t me, 
 
 void API_CALL(compute_e1)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task)
 {
-#if defined(FLAG_ASSERT) || defined(PASTIX_DEBUG) || defined(TRACE_SOPALIN)
   SolverMatrix  *datacode    = sopalin_data->datacode;
-#endif
 #ifdef TRACE_SOPALIN
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #endif
+  (void)datacode;
 
   /*
    * Check parameters

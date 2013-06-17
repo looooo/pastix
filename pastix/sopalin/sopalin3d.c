@@ -1184,7 +1184,7 @@ if (THREAD_FUNNELED_OFF)
   sopalin_clean(sopalin_data, 1);
 
 #ifdef PASTIX_DUMP_FACTO
-API_CALL(dump_all)(datacode, sopar->cscmtx, DUMP_SOLV);
+  API_CALL(dump_all)(datacode, sopar->cscmtx, DUMP_SOLV);
 #endif
 
   /* Fin des threads de comms et d'OOC */
