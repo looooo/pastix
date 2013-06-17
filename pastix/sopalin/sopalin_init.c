@@ -249,7 +249,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       ooc_init(sopalin_data, sopalin_data->sopar->iparm[IPARM_OOC_LIMIT]);
 #endif
 
-#ifndef WITH_HWLOC
+#ifndef HAVE_HWLOC
 #  ifdef PASTIX_GET_SCHED_AFFINITY
       {
 	int k,len, mpisize, nbproc;
@@ -317,7 +317,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 	  }
       }
 #  endif /* PASTIX_GET_SCHED_AFFINITY */
-#endif /* not WITH_HWLOC */
+#endif /* not HAVE_HWLOC */
     }
 
   /* Fin initialisation Commune */
@@ -709,7 +709,7 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
         }
 
 #endif
-#if (!defined WITH_HWLOC && defined PASTIX_GET_SCHED_AFFINITY )
+#if (!defined HAVE_HWLOC && defined PASTIX_GET_SCHED_AFFINITY )
       memFree_null(sopalin_data->allowed_cpus);
 #endif
       if (sopalin_data->common_flt != NULL)
@@ -811,7 +811,7 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
                 if (thread_data->flag_bind == 1)
                   {
                     /* Calcul du proc sur lequel binder le thread */
-#if ( defined WITH_HWLOC || !defined PASTIX_GET_SCHED_AFFINITY )
+#if ( defined HAVE_HWLOC || !defined PASTIX_GET_SCHED_AFFINITY )
 		    cpu = (me + SOLV_PROCNUM * SOLV_THRDNBR)%nbproc;
 #else
 		    cpu = sopalin_data->allowed_cpus[me];

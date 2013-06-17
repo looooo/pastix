@@ -264,7 +264,7 @@ struct Sopalin_Data_ {
 #ifdef OOC
   ooc_t           *ooc;                      /*+ Data structure needed for Out-of-core            +*/
 #endif
-#ifndef WITH_HWLOC
+#ifndef HAVE_HWLOC
 #  ifdef PASTIX_GET_SCHED_AFFINITY
   int             *allowed_cpus;             /*+ List of authorized CPUs for binding +*/
   int             ncore_avail;               /*+ number of cores available +*/

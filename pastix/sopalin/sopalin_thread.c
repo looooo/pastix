@@ -45,7 +45,7 @@
 #include "stack.h"
 #include "sopalin3d.h"
 
-#ifdef WITH_HWLOC
+#ifdef HAVE_HWLOC
 #include <hwloc.h>
 #endif
 
@@ -476,7 +476,7 @@ pastix_int_t sopalin_bindthread(pastix_int_t cpu)
 
 #else /* Dans les autres cas on se preoccupe de l'archi */
 
-#ifdef WITH_HWLOC
+#ifdef HAVE_HWLOC
   {
     hwloc_topology_t topology; /* Topology object */
     hwloc_obj_t      obj;      /* Hwloc object    */
@@ -528,7 +528,7 @@ pastix_int_t sopalin_bindthread(pastix_int_t cpu)
     /* Destroy topology object.  */
     hwloc_topology_destroy(topology);
   }
-#else /* WITH_HWLOC */
+#else /* HAVE_HWLOC */
 #ifdef X_ARCHpower_ibm_aix
   {
     tid_t self_ktid = thread_self ();
@@ -577,7 +577,7 @@ pastix_int_t sopalin_bindthread(pastix_int_t cpu)
   }
 #endif /* X_ARCHi686_mac */
 #endif /* X_ACHIxxx      */
-#endif /* WITH_HWLOC     */
+#endif /* HAVE_HWLOC     */
 #endif /* MARCEL         */
 
   return cpu;
