@@ -104,7 +104,7 @@ static inline double clockGet(void)
 #endif
 #endif /* defined(HAVE_MPI) */
 
-#define clockInit(clk)  do {} while(0)
+#define clockInit(clk)  do { clk = clockGet(); } while(0)
 #define clockVal(clk)   (clk)
 
 #define clockStart(clk) do { clk = clockGet(); } while(0)
