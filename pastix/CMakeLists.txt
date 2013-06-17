@@ -430,7 +430,7 @@ macro(solver_rules _output_files _sources_files)
     set_source_files_properties(${_prefix}_he.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN -DHERMITIAN" )
     set_source_files_properties(${_prefix}_sy.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN" )
     set_source_files_properties(${_prefix}_po.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN" )
-    set_source_files_properties(${_prefix}_ge.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN -DSOPALIN_LU" )
+    set_source_files_properties(${_prefix}_ge.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN -DSOPALIN_LU" )
 
     list(APPEND ${_output_files}
       ${_prefix}_he.c
