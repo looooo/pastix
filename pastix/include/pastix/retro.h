@@ -19,7 +19,7 @@
   } while (0)
 
 #define CONJ_FLOAT(val) (val)
-#define ABS_FLOAT(val) abs(val)
+#define ABS_FLOAT(val)  fabs(val)
 
 #define BLAS_INT int
 #define BLAS_REAL double
@@ -47,6 +47,5 @@
 #define FLOAT_TYPE_ERR      PASTIX_ERR_FLOAT_TYPE
 #define STEP_ORDER_ERR      PASTIX_ERR_STEP_ORDER
 #define MPI_ERR             PASTIX_ERR_MPI
-
 
 #endif
