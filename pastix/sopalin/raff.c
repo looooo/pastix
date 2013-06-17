@@ -2,7 +2,8 @@
 
 #define RAFF_CLOCK_INIT {clockInit(raff_clk);clockStart(raff_clk);}
 #define RAFF_CLOCK_STOP {clockStop((raff_clk));}
-#define RAFF_CLOCK_GET  clockVal((raff_clk))
+#define RAFF_CLOCK_GET  clockGet()
+/*clockVal((raff_clk))*/
 
 /* #define DEBUG_RAFF */
 
@@ -274,8 +275,8 @@ void* pivotstatique_smp ( void *arg )
 #endif
 
   RAFF_CLOCK_STOP;
-  print_debug(DBG_SOPALIN_RAFF, "%d : refinement time %lf\n", (int)me, RAFF_CLOCK_GET);
-  set_dparm(sopar->dparm, DPARM_RAFF_TIME, RAFF_CLOCK_GET);
+  print_debug(DBG_SOPALIN_RAFF, "%d : refinement time %lf\n", (int)me, clockVal((raff_clk)));
+  set_dparm(sopar->dparm, DPARM_RAFF_TIME, clockVal((raff_clk)));
 
   MONOTHREAD_END;
   SYNCHRO_THREAD;
@@ -766,9 +767,9 @@ void* API_CALL(gmres_smp)(void *arg)
 
   RAFF_CLOCK_STOP;
   print_debug(DBG_RAFF_GMRES, "%d : refinement time %lf, %d iters, norm %lg =%lg/%lg \n",
-              (int)me, RAFF_CLOCK_GET, (int)gmresiters,  (double)(sopalin_data->gmresro/gmresnormb),
+              (int)me, clockVal((raff_clk)), (int)gmresiters,  (double)(sopalin_data->gmresro/gmresnormb),
               (double)(sopalin_data->gmresro), (double)gmresnormb);
-  set_dparm(sopar->dparm, DPARM_RAFF_TIME, RAFF_CLOCK_GET);
+  set_dparm(sopar->dparm, DPARM_RAFF_TIME, clockVal((raff_clk)));
 
   MONOTHREAD_END;
 
@@ -1145,7 +1146,7 @@ void* API_CALL(grad_smp)(void *arg)
 #endif
 
   RAFF_CLOCK_STOP;
-  set_dparm(sopar->dparm, DPARM_RAFF_TIME, RAFF_CLOCK_GET);
+  set_dparm(sopar->dparm, DPARM_RAFF_TIME, clockVal((raff_clk)));
 
   MONOTHREAD_END;
 
