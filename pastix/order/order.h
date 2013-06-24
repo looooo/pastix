@@ -78,5 +78,23 @@ int pastix_task_order(pastix_data_t *pastix_data,
                       pastix_int_t  *perm,
                       pastix_int_t  *invp);
 
+
+
+int pastix_task_scotch(pastix_data_t **pastix_data,
+                       MPI_Comm        pastix_comm,
+                       pastix_int_t             n,
+                       pastix_int_t            *colptr,
+                       pastix_int_t            *row,
+                       pastix_int_t            *perm,
+                       pastix_int_t            *invp);
+int dpastix_task_scotch(pastix_data_t ** pastix_data,
+                        MPI_Comm         pastix_comm,
+                        pastix_int_t              n,
+                        pastix_int_t            * colptr,
+                        pastix_int_t            * row,
+                        pastix_int_t            * perm,
+                        pastix_int_t            * invp,
+                        pastix_int_t            * loc2glob);
+
 #endif /* ORDER_H */
 

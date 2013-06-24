@@ -173,146 +173,7 @@
 */
 #define print_onempi(fmt, ...) if(procnum == 0) fprintf(stdout, fmt, __VA_ARGS__)
 
-#ifdef WITH_SCOTCH
-/*
-  Function: pastix_order_save
 
-  Save ordering structures on disk.
-
-  Parameters:
-  ordemesh - Scotch ordering structure to save.
-  grafmesh - Scotch Graph structure to save.
-  ncol     - Number of column in the CSC
-  colptr   - starting index of each column in row
-  rows     - row of each element.
-  values   - value of each element.
-  strategy - IO strategy.
-
-*/
-int pastix_order_save(Order        * ordemesh,
-                      SCOTCH_Graph * grafmesh,
-                      int            procnum,
-                      pastix_int_t            ncol,
-                      pastix_int_t          * colptr,
-                      pastix_int_t          * rows,
-                      pastix_int_t            strategy)
-{
-  FILE             * stream;
-  int                retval     = PASTIX_SUCCESS;
-#  ifndef WITH_SCOTCH
-  errorPrint("Saving strategy needs to compile PaStiX with -DWITH_SCOTCH");
-  retval = BADPARAMETER_ERR;
-
-#  else
-  if (procnum == 0)
-    {
-      PASTIX_FOPEN(stream, "ordergen","w");
-      if (orderSave (ordemesh, stream) != 0)
-        {
-          errorPrint ("cannot save order");
-          retval = INTERNAL_ERR;
-        }
-      fclose(stream);
-      if (PASTIX_MASK_ISTRUE(strategy, API_IO_SAVE_GRAPH))
-        {
-          PASTIX_FOPEN(stream, "graphgen","w");
-          if (SCOTCH_graphSave (grafmesh, stream) != 0)
-            {
-              errorPrint ("cannot save graph");
-              retval = INTERNAL_ERR;
-            }
-          fclose(stream);
-        }
-      if (PASTIX_MASK_ISTRUE(strategy, API_IO_SAVE_CSC))
-        {
-          PASTIX_FOPEN(stream, "cscgen","w");
-          retval = csc_save(ncol, colptr, rows, NULL, 1, stream);
-          fclose(stream);
-        }
-    }
-#  endif
-  return retval;
-}
-
-
-/*
-  Function: pastix_order_load
-  Load ordering structures from disk.
-
-  Parameters:
-  ordemesh - Scotch ordering structure to save.
-  grafmesh - Scotch Graph structure to save.
-  ncol     - Number of column in the CSC
-  colptr   - starting index of each column in row
-  rows     - row of each element.
-  values   - value of each element.
-  startegy - IO strategy.
-  comm     - MPI communicator.
-
-
-*/
-int pastix_order_load(Order        *  ordemesh,
-                      SCOTCH_Graph *  grafmesh,
-                      int             procnum,
-                      pastix_int_t          *  ncol,
-                      pastix_int_t          ** colptr,
-                      pastix_int_t          ** rows,
-                      pastix_int_t             strategy,
-                      MPI_Comm        comm)
-{
-  FILE             * stream;
-  int                retval     = PASTIX_SUCCESS;
-  int                dof;
-  (void)comm;
-
-#  ifndef WITH_SCOTCH
-  errorPrint("Loading strategy needs to compile PaStiX with -DWITH_SCOTCH");
-  retval = BADPARAMETER_ERR;
-  break;
-#  else
-
-  /* Load scotch result */
-
-  if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_GRAPH))
-    {
-      PASTIX_FOPEN(stream, "graphname","r");
-      if (SCOTCH_graphLoad(grafmesh, stream, 0, 0) != 0) {
-        errorPrint ("test: cannot load mesh");
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
-      }
-      fclose (stream);
-    }
-  PASTIX_FOPEN(stream, "ordername", "r");
-  if (orderLoad(ordemesh, stream) != 0)
-    {
-      errorPrint("test: cannot load order");
-      EXIT(MOD_SOPALIN,INTERNAL_ERR);
-    }
-  fclose(stream);
-  if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_CSC))
-    {
-      if (procnum == 0)
-        {
-          PASTIX_FOPEN(stream, "cscname","r");
-          retval = csc_load(ncol, colptr, rows, NULL, &dof, stream);
-          fclose(stream);
-        }
-      MPI_Bcast(ncol, 1, PASTIX_MPI_INT, 0, comm);
-      if (procnum != 0)
-        {
-          MALLOC_INTERN((*colptr), *ncol+1, pastix_int_t);
-        }
-      MPI_Bcast(*colptr, *ncol+1, PASTIX_MPI_INT, 0, comm);
-      if  (procnum != 0)
-        {
-          MALLOC_INTERN(*rows, (*colptr)[*ncol]-(*colptr)[0], pastix_int_t);
-        }
-      MPI_Bcast(*rows, (*colptr)[*ncol]-(*colptr)[0], PASTIX_MPI_INT, 0, comm);
-    }
-#  endif
-  return retval;
-}
-#endif
 /*
   Function: pastix_order_prepare_csc
 
@@ -429,6 +290,7 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
   pastix_int_t                iter;
   int                retval     = PASTIX_SUCCESS;
   int                retval_rcv;
+  (void)pastix_comm;
 
 #ifdef WITH_SCOTCH
   grafmesh  = &((*pastix_data)->grafmesh);
@@ -782,17 +644,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
        * Load ordering with Scotch Format
        */
     case API_ORDER_LOAD:
-#ifdef WITH_SCOTCH
-      pastix_order_load(ordemesh,
-                        grafmesh,
-                        procnum,
-                        &((*pastix_data)->n2),
-                        &((*pastix_data)->col2),
-                        &((*pastix_data)->row2),
-                        iparm[IPARM_IO_STRATEGY],
-                        pastix_comm);
-#endif
-      break;
+        orderLoadFiles( *pastix_data );
+        break;
 
     default:
       errorPrint("Ordering not available");
@@ -812,20 +665,11 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
 
   /* Save i/o strategy */
   if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
-    {
-
-#ifdef WITH_SCOTCH
-      retval = pastix_order_save(ordemesh,
-                                 grafmesh,
-                                 procnum,
-                                 (*pastix_data)->n2,
-                                 (*pastix_data)->col2,
-                                 (*pastix_data)->row2,
-                                 iparm[IPARM_IO_STRATEGY]);
+  {
+      retval = orderSaveFiles( *pastix_data );
       if (retval != PASTIX_SUCCESS)
         return retval;
-#endif
-    }
+  }
 
   /*
    * Return the ordering to user
@@ -1271,22 +1115,15 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
                            (*pastix_data)->loc2glob2, pastix_comm, iparm[IPARM_DOF_NBR], API_YES);
             }
 
-          retval = pastix_order_save(ordemesh,
-                                     grafmesh,
-                                     procnum,
-                                     nsave,
-                                     colptrsave,
-                                     rowsave,
-                                     iparm[IPARM_IO_STRATEGY]);
+          retval = orderSaveFiles( *pastix_data );
           if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE_CSC))
-            {
+          {
               memFree_null(colptrsave);
               memFree_null(rowsave);
-            }
+          }
           if (retval != PASTIX_SUCCESS)
-            break;
+              break;
         }
-
 
 #    ifdef FORGET_PARTITION
       {
@@ -1342,22 +1179,10 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
         break;
       }
     case API_ORDER_LOAD:
-      {
-        pastix_int_t   nload;
-        pastix_int_t * colptrload;
-        pastix_int_t * rowload;
-
-
-        pastix_order_load(ordemesh,
-                          grafmesh,
-                          procnum,
-                          &(nload),
-                          &(colptrload),
-                          &(rowload),
-                          iparm[IPARM_IO_STRATEGY],
-                          pastix_comm);
+    {
+        orderLoadFiles( pastix_data );
         break;
-      }
+    }
 
     default:
       errorPrint("Ordering not available with distributed interface");
