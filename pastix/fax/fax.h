@@ -51,15 +51,12 @@
 /**                                                        **/
 /************************************************************/
 
-#define FAX_H
+#ifndef _FAX_H_
+#define _FAX_H_
 
 /*
 **  The function prototypes.
 */
-
-#ifndef FAX
-#define static
-#endif
 
 int                         symbolCompact       (SymbolMatrix * const symbptr);
 int                         symbolFax           (SymbolMatrix * const symbptr, const pastix_int_t vertnbr, const pastix_int_t edgenbr, const pastix_int_t baseval, void * const ngbdptr, pastix_int_t ngbfrst (void * const, const pastix_int_t), pastix_int_t ngbnext (void * const), pastix_int_t ngbdegr (void * const, const pastix_int_t), const Order * const ordeptr);
@@ -85,4 +82,10 @@ int                         symbolFaxiGrid2E    (SymbolMatrix * const symbptr, c
 int                         symbolFaxiGrid3D    (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const Order * const ordeptr, const pastix_int_t levfmax);
 int                         symbolFaxiGrid3E    (SymbolMatrix * const symbptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const Order * const ordeptr, const pastix_int_t levfmax);
 
-#undef static
+
+void pastix_task_symbfact(pastix_data_t *pastix_data,
+                          pastix_int_t  *perm,
+                          pastix_int_t  *invp,
+                          int flagWinvp);
+
+#endif /* _FAX_H_ */

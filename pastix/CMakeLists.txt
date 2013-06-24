@@ -487,6 +487,7 @@ set(PASTIX_LIB_SRCS
   blend/task.c
   blend/write_ps.c
 #
+  fax/pastix_task_symbfact.c
   fax/symbol_compact.c
   fax/symbol_costi.c
   fax/symbol_fax.c
@@ -508,9 +509,9 @@ set(PASTIX_LIB_SRCS
   order/pastix_task_scotch.c
   order/order.c
   order/order_base.c
-  #order/order_compute_io.c
   order/order_io.c
   order/order_check.c
+  order/order_compute_io.c
   # order/order.c
   # order/order_base.c
   # order/order_io.c
