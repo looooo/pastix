@@ -16,12 +16,8 @@
 /**                                                        **/
 /************************************************************/
 
+#ifndef FTGT_H
 #define FTGT_H
-
-#ifdef CXREF_DOC
-#include "common.h"
-#endif /* CXREF_DOC */
-
 
 /*
 **  The type and structure definitions.
@@ -81,7 +77,7 @@ typedef struct FanInTarget_ {
   pastix_float_t *                   coeftab;              /*+ Fanintarget vector access             +*/
 } FanInTarget;
 
-typedef struct BlockCoeff_ 
+typedef struct BlockCoeff_
 {
   pastix_int_t              infotab[BCOFINFO];
   volatile pastix_float_t * coeftab; /* blocktarget coeff vector if != NULL envoi possible */
@@ -95,3 +91,4 @@ typedef struct BlockTarget_ {
   BlockCoeff*   bcofptr; /* index of the blockCoeff                        */
 } BlockTarget;
 
+#endif /* FTGT_H */

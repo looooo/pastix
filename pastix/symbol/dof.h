@@ -43,6 +43,7 @@
 /**                                                        **/
 /************************************************************/
 
+#ifndef DOF_H
 #define DOF_H
 
 /*
@@ -90,3 +91,5 @@ int                         dofGraph            (Dof * const deofptr, const Grap
 #define noddVal(deofptr,nodenum)    (((deofptr)->noddtab != NULL) ? (deofptr)->noddtab[(deofptr)->baseval + (nodenum)] : ((deofptr)->baseval + (deofptr)->noddval * ((nodenum) - (deofptr)->baseval)))
 #define noddDlt(deofptr,nodenum)    (((deofptr)->noddtab != NULL) ? ((deofptr)->noddtab[(deofptr)->baseval + (nodenum) + 1] - (deofptr)->noddtab[(deofptr)->baseval + (nodenum)]) : (deofptr)->noddval)
 #endif /* DOF_CONSTANT */
+
+#endif /* DOF_H */

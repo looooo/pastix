@@ -136,31 +136,31 @@ int  symbolSave          (const SymbolMatrix * const symbptr, FILE * const strea
 int  symbolCheck         (const SymbolMatrix * const symbptr);
 int  symbolDraw          (const SymbolMatrix * const symbptr, FILE * const stream);
 int  symbolDrawFunc      (const SymbolMatrix * const symbptr,
-			  int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
-			  int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
-			  void * const, FILE * const stream);
+                          int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
+                          int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
+                          void * const, FILE * const stream);
 void symbolDrawColor     (const pastix_int_t labl, float color[]);
 #ifdef DOF_H
 int  symbolCost          (const SymbolMatrix * const symbptr, const Dof * const deofptr,
-			  const SymbolCostType typeval, double * const nnzptr, double * const opcptr);
+                          const SymbolCostType typeval, double * const nnzptr, double * const opcptr);
 int  symbolCosti         (const SymbolMatrix * const symbptr, const Dof * const deofptr,
-			  const SymbolCostType typeval, const pastix_int_t levfval, double * const nnzptr, double * const opcptr);
+                          const SymbolCostType typeval, const pastix_int_t levfval, double * const nnzptr, double * const opcptr);
 int  symbolLevf          (const SymbolMatrix * const symbptr, pastix_int_t * const levfmax, pastix_int_t ** const levftab);
 int  symbolTree          (const SymbolMatrix * const symbptr, const Dof * const deofptr,
-			  pastix_int_t * const leafnbr, pastix_int_t * const heigmin, pastix_int_t * const heigmax,
-			  double * const heigavg, double * const heigdlt);
+                          pastix_int_t * const leafnbr, pastix_int_t * const heigmin, pastix_int_t * const heigmax,
+                          double * const heigavg, double * const heigdlt);
 int  symbolNonzeros      (const SymbolMatrix * const symbptr, FILE * const stream);
 #endif /* DOF_H */
 
 int  symbolKeepInit      (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr);
 void symbolKeepExit      (SymbolKeep * restrict const keepptr);
 void symbolKeepAdd       (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr,
-			  int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
+                          int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
 void symbolKeepDel       (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr,
-			  int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
+                          int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
 int  symbolKeepCompute   (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr);
 int  symbolKeepHisto     (SymbolKeep * const keepptr, const SymbolMatrix * const,
-			  int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
+                          int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
 int  symbolKeepPurge     (SymbolKeep * restrict const keepptr, SymbolMatrix * restrict const symbptr);
 int  symbolKeepView      (const SymbolKeep * const keepptr, const double nnzlmax, const char * const nameptr);
 
