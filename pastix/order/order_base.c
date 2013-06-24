@@ -41,9 +41,6 @@
 /*
 **  The defines and includes.
 */
-
-#define ORDER
-
 #include "common.h"
 #include "order.h"
 
@@ -61,32 +58,31 @@
 */
 
 void
-orderBase (
-Order * restrict const      ordeptr,              /*+ Ordering structure +*/
-const pastix_int_t                   baseval)              /*+ New base value     +*/
+orderBase (Order * restrict const ordeptr,   /*+ Ordering structure +*/
+	   const pastix_int_t     baseval)   /*+ New base value     +*/
 {
-  pastix_int_t               baseadj;                      /* Base adjust */
-  pastix_int_t               cblknum;
-  pastix_int_t               vertnbr;
-  pastix_int_t               vertnum;
+    pastix_int_t baseadj;                    /* Base adjust */
+    pastix_int_t cblknum;
+    pastix_int_t vertnbr;
+    pastix_int_t vertnum;
 
-  if (ordeptr->rangtab == NULL)                   /* Cannot know old base if range array not provided */
-    return;
+    if (ordeptr->rangtab == NULL)            /* Cannot know old base if range array not provided */
+	return;
 
-  baseadj = baseval - ordeptr->rangtab[0];        /* Set base adjust     */
-  if (baseadj == 0)                               /* If base already set */
-    return;
+    baseadj = baseval - ordeptr->rangtab[0]; /* Set base adjust     */
+    if (baseadj == 0)                        /* If base already set */
+	return;
 
-  for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++)
-    ordeptr->rangtab[cblknum] += baseadj;
+    for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++)
+	ordeptr->rangtab[cblknum] += baseadj;
 
-  vertnbr = ordeptr->rangtab[ordeptr->cblknbr] - ordeptr->rangtab[0];
-  if (ordeptr->permtab != NULL) {
-    for (vertnum = 0; vertnum < vertnbr; vertnum ++)
-      ordeptr->permtab[vertnum] += baseadj;
-  }
-  if (ordeptr->peritab != NULL) {
-    for (vertnum = 0; vertnum < vertnbr; vertnum ++)
-      ordeptr->peritab[vertnum] += baseadj;
-  }
+    vertnbr = ordeptr->rangtab[ordeptr->cblknbr] - ordeptr->rangtab[0];
+    if (ordeptr->permtab != NULL) {
+	for (vertnum = 0; vertnum < vertnbr; vertnum ++)
+	    ordeptr->permtab[vertnum] += baseadj;
+    }
+    if (ordeptr->peritab != NULL) {
+	for (vertnum = 0; vertnum < vertnbr; vertnum ++)
+	    ordeptr->peritab[vertnum] += baseadj;
+    }
 }

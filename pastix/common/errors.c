@@ -23,18 +23,18 @@
 */
 /*
   File: errors.c
-  
+
   Part of a parallel direct block solver.
-  
+
   This module handles errors.
 
-  Authors: 
-  Mathieu Faverge    - faverge@labri.fr     
+  Authors:
+  Mathieu Faverge    - faverge@labri.fr
   Xavier  Lacoste    - lacoste@labri.fr
   Pierre  Ramet      - ramet@labri.fr
 
-  
-  Dates: 
+
+  Dates:
   Version 0.0  - from 08 may 1998
   to   02 oct 1998
 */
@@ -43,9 +43,9 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "common.h" 
+#include "common.h"
 
-/* 
+/*
    Group: Variables
 
    string: errorProgName
@@ -55,18 +55,18 @@ static char errorProgName[32] = "";
 
 /*
   Group: Functions
-  
+
   The error handling routines.
 
 */
 
 
-/* 
+/*
    Function: errorProg
-   
+
    This routine sets the program name for
    error reporting.
-   
+
    Parameters:
    progstr - Name of the program, will be truncated to 29 characters.
 
@@ -96,8 +96,8 @@ void errorProg (const char * const progstr)
   VOID - in all cases.
 */
 
-void errorPrint (const char * const errstr,             
-		 ...)
+void errorPrint (const char * const errstr,
+                 ...)
 {
     va_list             errlist;                    /* Argument list of the call */
 
@@ -109,24 +109,24 @@ void errorPrint (const char * const errstr,
     fflush   (stderr);                              /* In case it has been set to buffered mode */
 }
 
-/* 
+/*
    Funciton: errorPrintW
 
    This routine prints a warning message with
    a variable number of arguments, as printf ()
    does.
-   
+
    Parameters:
    warnstr - Format for the warning to print.
-   ...     - arguments depending on the format, 
+   ...     - arguments depending on the format,
    printf-like variable argument list.
 
    Returns:
    VOID - in all cases.
 */
 
-void errorPrintW (const char * const warnstr,            
-		  ...)
+void errorPrintW (const char * const warnstr,
+                  ...)
 {
     va_list             errlist;                    /* Argument list of the call */
 

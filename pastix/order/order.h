@@ -26,6 +26,7 @@
 /**   NAME       : order.h                                 **/
 /**                                                        **/
 /**   AUTHORS    : Francois PELLEGRINI                     **/
+/**                Mathieu FAVERGE                         **/
 /**                                                        **/
 /**   FUNCTION   : Part of a parallel direct block solver. **/
 /**                These lines are the data declarations   **/
@@ -37,9 +38,8 @@
 /**                                 to     22 apr 2004     **/
 /**                                                        **/
 /************************************************************/
-
-#ifndef _ORDER_H_
-#define _ORDER_H_
+#ifndef ORDER_H
+#define ORDER_H
 
 /*
 **  The type and structure definitions.
@@ -52,45 +52,31 @@
     rangtab[0] = vnodbas.                      +*/
 
 typedef struct Order_ {
-  pastix_int_t                       cblknbr;              /*+ Number of column blocks             +*/
-  pastix_int_t *                     rangtab;              /*+ Column block range array [based,+1] +*/
-  pastix_int_t *                     permtab;              /*+ Permutation array [based]           +*/
-  pastix_int_t *                     peritab;              /*+ Inverse permutation array [based]   +*/
+  pastix_int_t  cblknbr;              /*+ Number of column blocks             +*/
+  pastix_int_t *rangtab;              /*+ Column block range array [based,+1] +*/
+  pastix_int_t *permtab;              /*+ Permutation array [based]           +*/
+  pastix_int_t *peritab;              /*+ Inverse permutation array [based]   +*/
 } Order;
 
 /*
 **  The function prototypes.
 */
 
-#ifndef ORDER
-#define static
-#endif
+int  orderInit (      Order *          const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
+void orderExit (      Order *          const ordeptr);
+int  orderLoad (      Order *          const ordeptr, FILE * const stream);
+int  orderSave (const Order *          const ordeptr, FILE * const stream);
+void orderBase (      Order * restrict const ordeptr, const pastix_int_t baseval);
+int  orderCheck(const Order *          const ordeptr);
 
-int                         orderInit           (Order * const ordeptr);
-void                        orderExit           (Order * const ordeptr);
-int                         orderLoad           (Order * const ordeptr, FILE * const stream);
-int                         orderSave           (const Order * const ordeptr, FILE * const stream);
-void                        orderBase           (Order * restrict const ordeptr, const pastix_int_t baseval);
+int orderComputeScotch(pastix_data_t *pastix_data);
+int orderComputeMetis( pastix_data_t *pastix_data);
+int orderLoadFiles(    pastix_data_t *pastix_data);
+int orderSaveFiles(    pastix_data_t *pastix_data);
 
-int                         orderCheck          (const Order * const ordeptr);
+int pastix_task_order(pastix_data_t *pastix_data,
+                      pastix_int_t  *perm,
+                      pastix_int_t  *invp);
 
-int                         orderGrid2          (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim);
-int                         orderGrid2C         (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim);
-int                         orderGrid3          (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim, const pastix_int_t zlim);
-int                         orderGrid3C         (Order * const ordeptr, const pastix_int_t xnbr, const pastix_int_t ynbr, const pastix_int_t znbr, const pastix_int_t baseval, const pastix_int_t xlim, const pastix_int_t ylim, const pastix_int_t zlim);
+#endif /* ORDER_H */
 
-#if  (defined SCOTCH_SEQSCOTCH || defined SCOTCH_H || defined SCOTCH_PTSCOTCH || defined PTSCOTCH_H)
-int                         orderGraph          (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr);
-int                         orderGraphList      (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab);
-int                         orderGraphStrat     (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const char * restrict const);
-int                         orderGraphListStrat (Order * restrict const ordeptr, const SCOTCH_Graph * restrict const grafptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab, const char * const);
-#endif
-
-#ifdef MESH_H
-int                         orderMesh           (Order * restrict const ordeptr, const Mesh * restrict const meshptr);
-int                         orderMeshList       (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab);
-int                         orderMeshStrat      (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const char * const);
-int                         orderMeshListStrat  (Order * restrict const ordeptr, const Mesh * restrict const meshptr, const pastix_int_t listnbr, const pastix_int_t * restrict const listtab, const char * const);
-#endif /* MESH_H */
-
-#endif /* _ORDER_H_ */

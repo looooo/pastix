@@ -37,15 +37,7 @@
 /**                                 to     28 feb 2004     **/
 /**                                                        **/
 /************************************************************/
-
-/*
-**  The defines and includes.
-*/
-
-#define ORDER_IO
-
 #include "common.h"
-#include "order.h"
 
 /***********************************/
 /*                                 */
@@ -61,59 +53,51 @@
 +*/
 
 int
-orderLoad (
-Order * const               ordeptr,
-FILE * const                stream)
+orderLoad (Order * const ordeptr,
+	   FILE  * const stream)
 {
-  pastix_int_t               versval;                      /* Version number */
-  pastix_int_t               cblknbr;
-  pastix_int_t               cblknum;
-  pastix_int_t               vertnbr;
-  pastix_int_t               vertnum;
-  pastix_int_t               vertnnd;
-  pastix_int_t *             permtax;
-  pastix_int_t *             peritax;
-  int               i;
+    pastix_int_t  versval;                      /* Version number */
+    pastix_int_t  cblknbr;
+    pastix_int_t  cblknum;
+    pastix_int_t  vertnbr;
+    pastix_int_t  vertnum;
+    pastix_int_t  vertnnd;
+    pastix_int_t *permtax;
+    pastix_int_t *peritax;
+    int           i;
 
-  if ((intLoad (stream, &versval) +
-       intLoad (stream, &cblknbr) +
-       intLoad (stream, &vertnbr) != 3) ||
-      (versval != 0)                    ||
-      (cblknbr > vertnbr)) {
-    errorPrint ("orderLoad: bad input (1)");
-    return     (1);
-  }
+    if ((intLoad (stream, &versval) +
+	 intLoad (stream, &cblknbr) +
+	 intLoad (stream, &vertnbr) != 3) ||
+	(versval != 0)                    ||
+	(cblknbr > vertnbr)) {
+	errorPrint ("orderLoad: bad input (1)");
+	return     (1);
+    }
 
-  if (((ordeptr->rangtab = (pastix_int_t *) memAlloc ((cblknbr + 1) * sizeof (pastix_int_t))) == NULL) ||
-      ((ordeptr->permtab = (pastix_int_t *) memAlloc (vertnbr       * sizeof (pastix_int_t))) == NULL) ||
-      ((ordeptr->peritab = (pastix_int_t *) memAlloc (vertnbr       * sizeof (pastix_int_t))) == NULL)) {
-    errorPrint ("orderLoad: out of memory");
-    orderExit  (ordeptr);
-    orderInit  (ordeptr);
-    return     (1);
-  }
-  ordeptr->cblknbr = cblknbr;
+    orderInit(ordeptr, cblknbr, vertnbr);
+    ordeptr->cblknbr = cblknbr;
 
-  for (cblknum = 0, i = 1; (i == 1) && (cblknum <= cblknbr); cblknum ++) /* Read column-block data */
-    i = intLoad (stream, &ordeptr->rangtab[cblknum]);
+    for (cblknum = 0, i = 1; (i == 1) && (cblknum <= cblknbr); cblknum ++) /* Read column-block data */
+	i = intLoad (stream, &ordeptr->rangtab[cblknum]);
 
-  for (vertnum = 0; (i == 1) && (vertnum < vertnbr); vertnum ++) /* Read direct permutation */
-    i = intLoad (stream, &ordeptr->permtab[vertnum]);
+    for (vertnum = 0; (i == 1) && (vertnum < vertnbr); vertnum ++) /* Read direct permutation */
+	i = intLoad (stream, &ordeptr->permtab[vertnum]);
 
-  if (i != 1) {
-    errorPrint ("orderLoad: bad input (2)");
-    orderExit  (ordeptr);
-    orderInit  (ordeptr);
-    return     (1);
-  }
+    if (i != 1) {
+	errorPrint ("orderLoad: bad input (2)");
+	orderExit  (ordeptr);
+	memset( ordeptr, 0, sizeof(Order));
+	return     (1);
+    }
 
-  permtax = ordeptr->permtab - ordeptr->rangtab[0];
-  peritax = ordeptr->peritab - ordeptr->rangtab[0];
-  for (vertnum = ordeptr->rangtab[0], vertnnd = vertnum + vertnbr; /* Build inverse permutation */
-       vertnum < vertnnd; vertnum ++)
-    peritax[permtax[vertnum]] = vertnum;
+    permtax = ordeptr->permtab - ordeptr->rangtab[0];
+    peritax = ordeptr->peritab - ordeptr->rangtab[0];
+    for (vertnum = ordeptr->rangtab[0], vertnnd = vertnum + vertnbr; /* Build inverse permutation */
+	 vertnum < vertnnd; vertnum ++)
+	peritax[permtax[vertnum]] = vertnum;
 
-  return (0);
+    return (0);
 }
 
 /*+ This routine saves the given
@@ -125,50 +109,49 @@ FILE * const                stream)
 +*/
 
 int
-orderSave (
-const Order * const         ordeptr,
-FILE * const                stream)
+orderSave (const Order * const ordeptr,
+	   FILE * const        stream)
 {
-  pastix_int_t               vertnbr;
-  pastix_int_t               vertnum;
-  pastix_int_t               cblknum;
-  int               o;
+    pastix_int_t vertnbr;
+    pastix_int_t vertnum;
+    pastix_int_t cblknum;
+    int          o;
 
-  if (ordeptr->rangtab == NULL) {
-    errorPrint ("orderSave: cannot save ordering without column block data");
-    return     (1);
-  }
-  if (ordeptr->permtab == NULL) {
-    errorPrint ("orderSave: cannot save ordering without direct permutation data");
-    return     (1);
-  }
+    if (ordeptr->rangtab == NULL) {
+	errorPrint ("orderSave: cannot save ordering without column block data");
+	return     (1);
+    }
+    if (ordeptr->permtab == NULL) {
+	errorPrint ("orderSave: cannot save ordering without direct permutation data");
+	return     (1);
+    }
 
-  vertnbr = ordeptr->rangtab[ordeptr->cblknbr] -  /* Get number of nodes */
-            ordeptr->rangtab[0];
+    vertnbr = ordeptr->rangtab[ordeptr->cblknbr] -  /* Get number of nodes */
+	ordeptr->rangtab[0];
 
-  if (fprintf (stream, "0\n%ld\t%ld\n",
-               (long) ordeptr->cblknbr,
-               (long) vertnbr) == EOF) {
-    errorPrint ("orderSave: bad output (1)");
-    return     (1);
-  }
+    if (fprintf (stream, "0\n%ld\t%ld\n",
+		 (long) ordeptr->cblknbr,
+		 (long) vertnbr) == EOF) {
+	errorPrint ("orderSave: bad output (1)");
+	return     (1);
+    }
 
-  for (cblknum = 0, o = 1; (o == 1) && (cblknum < ordeptr->cblknbr); cblknum ++) { /* Save column-block range array */
+    for (cblknum = 0, o = 1; (o == 1) && (cblknum < ordeptr->cblknbr); cblknum ++) { /* Save column-block range array */
+	o = intSave (stream, ordeptr->rangtab[cblknum]);
+	putc (((cblknum & 7) == 7) ? '\n' : '\t', stream);
+    }
     o = intSave (stream, ordeptr->rangtab[cblknum]);
-    putc (((cblknum & 7) == 7) ? '\n' : '\t', stream);
-  }
-  o = intSave (stream, ordeptr->rangtab[cblknum]);
-  putc ('\n', stream);
+    putc ('\n', stream);
 
-  for (vertnum = 0; (o == 1) && (vertnum < (vertnbr - 1)); vertnum ++) { /* Save direct permutation */
+    for (vertnum = 0; (o == 1) && (vertnum < (vertnbr - 1)); vertnum ++) { /* Save direct permutation */
+	o = intSave (stream, ordeptr->permtab[vertnum]);
+	putc (((vertnum & 7) == 7) ? '\n' : '\t', stream);
+    }
     o = intSave (stream, ordeptr->permtab[vertnum]);
-    putc (((vertnum & 7) == 7) ? '\n' : '\t', stream);
-  }
-  o = intSave (stream, ordeptr->permtab[vertnum]);
-  putc ('\n', stream);
+    putc ('\n', stream);
 
-  if (o != 1)
-    errorPrint ("orderSave: bad output (2)");
+    if (o != 1)
+	errorPrint ("orderSave: bad output (2)");
 
-  return (1 - o);
+    return (1 - o);
 }

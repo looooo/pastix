@@ -39,8 +39,6 @@
 **  The defines and includes.
 */
 
-#define ORDER
-
 #include "common.h"
 #include "order.h"
 
@@ -56,13 +54,17 @@
 ** - 0  : in all cases.
 */
 
-int
-orderInit (
-Order * const               ordeptr)
+int orderInit ( Order * const ordeptr,
+                pastix_int_t cblknbr,
+                pastix_int_t vertnbr)
 {
-  memset (ordeptr, 0, sizeof (Order));
+    memset(ordeptr, 0, sizeof(Order));
 
-  return (0);
+    MALLOC_INTERN(ordeptr->permtab, vertnbr,   pastix_int_t);
+    MALLOC_INTERN(ordeptr->peritab, vertnbr,   pastix_int_t);
+    MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
+
+    return PASTIX_SUCCESS;
 }
 
 /* This routine frees the contents
@@ -71,18 +73,16 @@ Order * const               ordeptr)
 ** - VOID  : in all cases.
 */
 
-void
-orderExit (
-Order * const               ordeptr)
+void orderExit (Order * const ordeptr)
 {
-  if (ordeptr->rangtab != NULL)
-    memFree (ordeptr->rangtab);
-  if (ordeptr->permtab != NULL)
-    memFree (ordeptr->permtab);
-  if (ordeptr->peritab != NULL)
-    memFree (ordeptr->peritab);
+    if (ordeptr->rangtab != NULL)
+        memFree_null (ordeptr->rangtab);
+    if (ordeptr->permtab != NULL)
+        memFree_null (ordeptr->permtab);
+    if (ordeptr->peritab != NULL)
+        memFree_null (ordeptr->peritab);
 
 #ifdef ORDER_DEBUG
-  memset (ordeptr, ~0, sizeof (Order));
+    memSet (ordeptr, ~0, sizeof (Order));
 #endif /* ORDER_DEBUG */
 }

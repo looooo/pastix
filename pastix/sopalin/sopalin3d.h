@@ -61,37 +61,6 @@ enum SOPALIN_TASK {
 /************************************************/
 /*         Parametres de sopalin                */
 /************************************************/
-/*
-  struct: SopalinParam_
-
-  Parameters for factorisation, updown and reffinement.
- */
-typedef struct SopalinParam_ {
-  CscMatrix *cscmtx;          /*+ Compress Sparse Column matrix                    +*/
-  double     epsilonraff;     /*+ epsilon to stop reffinement                      +*/
-  double     rberror;         /*+ ||r||/||b||                                      +*/
-  double     espilondiag;     /*+ epsilon critere for diag control                 +*/
-  pastix_float_t     *b;               /*+ b vector (RHS and solution)                      +*/
-  pastix_float_t     *transcsc;        /*+ transpose csc                                    +*/
-  pastix_int_t        itermax;         /*+ max number of iteration                          +*/
-  pastix_int_t        diagchange;      /*+ number of change of diag                         +*/
-  pastix_int_t        gmresim;         /*+ Krylov subspace size for GMRES                   +*/
-  pastix_int_t        fakefact;        /*+ Flag indicating if we want fake factorisation    +*/
-  pastix_int_t        usenocsc;        /*+ Flag indicating if we want to use the intern CSC +*/
-  int        factotype;       /*+ Type of factorization                            +*/
-  int        symmetric;       /*+ Symmetric                                        +*/
-  MPI_Comm   pastix_comm;     /*+ MPI communicator                                 +*/
-  int        type_comm;       /*+ Communication mode                               +*/
-  int        nbthrdcomm;      /*+ Communication's thread number                    +*/
-  pastix_int_t       *iparm;           /*+ In/Out integer parameters                        +*/
-  double    *dparm;           /*+ In/Out float parameters                          +*/
-  int       *bindtab;         /*+ Define where to bin threads                      +*/
-  int        stopthrd;        /*+ Boolean for communication thread controlling     +*/
-  int        schur;           /*+ If API_YES won't compute last diag               +*/
-  pastix_int_t        n;               /*+ size of the matrix                               +*/
-  pastix_int_t        gN;
-} SopalinParam;
-
 /************************************************/
 /*  Structure pour le AllReduce Funneled        */
 /************************************************/

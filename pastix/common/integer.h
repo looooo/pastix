@@ -28,7 +28,6 @@ int          intSave     (FILE * const, const pastix_int_t);
 void         intAscn     (pastix_int_t * restrict const, const pastix_int_t, const pastix_int_t);
 void         intPerm     (pastix_int_t * restrict const, const pastix_int_t);
 void         intRandInit (void);
-pastix_int_t intRandVal  (pastix_int_t);
 void         intSort1asc1(void * const, const pastix_int_t);
 void         intSort2asc1(void * const, const pastix_int_t);
 void         intSort2asc2(void * const, const pastix_int_t);

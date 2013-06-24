@@ -504,16 +504,16 @@ set(PASTIX_LIB_SRCS
   kass/sort_row.c
   kass/sparRow.c
 #
+  #order/pastix_task_order.c
+  order/pastix_task_scotch.c
   order/order.c
   order/order_base.c
-  order/order_check.c
+  #order/order_compute_io.c
   order/order_io.c
+  order/order_check.c
   # order/order.c
   # order/order_base.c
   # order/order_io.c
-  # order/order_compute_scotch.c
-  # order/order_compute_metis.c
-  # order/order_compute_io.c
   # order/pastix_task_order.c
 #
   sopalin/bordi.c
@@ -577,6 +577,18 @@ set(PASTIX_LIB_SRCS
 #
   ${generated_files}
   )
+
+# if(PASTIX_ORDERING_SCOTCH AND HAVE_SCOTCH)
+#   set(PASTIX_LIB_SRCS
+#     ${PASTIX_LIB_SRCS}
+#     order/order_compute_scotch.c
+#     )
+# endif()
+# if(PASTIX_ORDERING_METIS AND HAVE_METIS)
+#   list(APPEND PASTIX_LIB_SRCS
+#     order/order_compute_metis.c
+#     )
+# endif()
 
 add_library(pastix
   ${PASTIX_LIB_SRCS})

@@ -31,7 +31,7 @@
 #include "timing.h"
 #include "trace.h"
 #include "../order/order.h"
-//#include "pastixstr.h"
+#include "pastixdata.h"
 #include "redefine_functions.h"
 
 /********************************************************************
