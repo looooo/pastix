@@ -488,12 +488,12 @@ set(PASTIX_LIB_SRCS
   blend/write_ps.c
 #
   fax/pastix_task_symbfact.c
-  fax/symbol_compact.c
-  fax/symbol_costi.c
-  fax/symbol_fax.c
   fax/symbol_fax_graph.c
-  fax/symbol_faxi.c
-  fax/symbol_faxi_graph.c
+#  fax/symbol_compact.c
+#  fax/symbol_costi.c
+#  fax/symbol_fax.c
+#  fax/symbol_faxi.c
+#  fax/symbol_faxi_graph.c
 #
   kass/amalgamate.c
   kass/find_supernodes.c
@@ -517,7 +517,7 @@ set(PASTIX_LIB_SRCS
   # order/order_io.c
   # order/pastix_task_order.c
 #
-  sopalin/bordi.c
+#  sopalin/bordi.c
   sopalin/sopalin_thread.c
 #  sopalin/compute_context_nbr.c
   sopalin/coefinit.c
@@ -575,6 +575,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_nonzeros.c
   symbol/symboltops.c
   symbol/symbol_tree.c
+  symbol/symbol_rustine.c
 #
   ${generated_files}
   )
