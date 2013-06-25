@@ -88,4 +88,12 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
                           pastix_int_t  *invp,
                           int flagWinvp);
 
+int
+symbolFaxGraph2 (SymbolMatrix * const symbptr,
+                 pastix_int_t   baseval,
+                 pastix_int_t   vertnbr,
+                 pastix_int_t * verttab,
+                 pastix_int_t   edgenbr,
+                 pastix_int_t * edgetab,
+                 const Order  * const ordeptr);
 #endif /* _FAX_H_ */

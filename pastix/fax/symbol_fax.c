@@ -171,13 +171,13 @@
 
 int
 symbolFax (SymbolMatrix * const   symbptr,
-           const pastix_int_t              vertnbr,
-           const pastix_int_t              edgenbr,
-           const pastix_int_t              baseval,
+           const pastix_int_t     vertnbr,
+           const pastix_int_t     edgenbr,
+           const pastix_int_t     baseval,
            void * const           ngbdptr,
-           pastix_int_t                    ngbfrst (void * const, const pastix_int_t),
-           pastix_int_t                    ngbnext (void * const),
-           pastix_int_t                    ngbdegr (void * const, const pastix_int_t),
+           pastix_int_t           ngbfrst (void * const, const pastix_int_t),
+           pastix_int_t           ngbnext (void * const),
+           pastix_int_t           ngbdegr (void * const, const pastix_int_t),
            const Order * const    ordeptr)
 #endif /* SYMBOL_FAX_INCLUDED */
 {
@@ -187,13 +187,13 @@ symbolFax (SymbolMatrix * const   symbptr,
   const pastix_int_t * restrict      peritax;  /* Based access to inverse permutation array         */
   const pastix_int_t * restrict      rangtax;  /* Based access to column block range array          */
   pastix_int_t * restrict            ctrbtax;  /* Based access to array of contribution chains      */
-  SymbolCblk * restrict     cblktax;  /* Based access to column block array                */
+  SymbolCblk * restrict              cblktax;  /* Based access to column block array                */
   pastix_int_t                       cblknum;  /* Based number of current column block              */
   pastix_int_t                       cblkctr;  /* Based number of current contributing column block */
-  SymbolBlok * restrict     bloktax;  /* Based access to block array                       */
+  SymbolBlok * restrict              bloktax;  /* Based access to block array                       */
   pastix_int_t                       bloknum;  /* Based number of current first free block slot     */
   pastix_int_t                       blokmax;  /* Maximum number of blocks in array                 */
-  SymbolFaxTlok * restrict  tloktab;  /* Beginning of array of temporary blocks            */
+  SymbolFaxTlok * restrict           tloktab;  /* Beginning of array of temporary blocks            */
   pastix_int_t                       ctrbsum;  /* Number of contributing blocks for column block    */
   pastix_int_t * restrict            sorttab;  /* Beginning of sort area                            */
   pastix_int_t                       sortnbr;  /* Number of vertices in sort area and hash table    */

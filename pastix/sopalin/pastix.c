@@ -786,7 +786,7 @@ pastix_int_t sizeofsolver(SolverMatrix *solvptr, pastix_int_t *iparm)
  */
 void pastix_task_init(pastix_data_t **pastix_data,
                       MPI_Comm        pastix_comm,
-                      pastix_int_t            *iparm,
+                      pastix_int_t   *iparm,
                       double         *dparm)
 {
 

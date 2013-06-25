@@ -307,9 +307,17 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
             (iparm[IPARM_LEVEL_OF_FILL] != -1    ))
         {
 #ifdef HAVE_SCOTCH
-            symbolFaxGraph(pastix_data->symbmtx,
-                           &(pastix_data->grafmesh),
-                           ordemesh);
+            fprintf(stderr, "============I'M HERE===================\n");
+            /* symbolFaxGraph(pastix_data->symbmtx, */
+            /*                &(pastix_data->grafmesh), */
+            /*                ordemesh); */
+            symbolFaxGraph2(pastix_data->symbmtx,
+                            pastix_data->col2[0],
+                            pastix_data->n2,
+                            pastix_data->col2,
+                            pastix_data->col2[pastix_data->n2]-1,
+                            pastix_data->row2,
+                            ordemesh);
 #endif
         } else {
 

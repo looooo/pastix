@@ -133,51 +133,43 @@ symbolFaxGraph (SymbolMatrix       * const symbptr,
   }
 }
 
-#ifdef DISTRIBUTED
-
-/*
-  Function: symbolFaxDgraph
-
-  Unused
-
-+*/
-int symbolFaxDgraph(SCOTCH_Dgraph * dgraph,
-                    MPI_Comm pastix_comm)
+int
+symbolFaxGraph2 (SymbolMatrix * const symbptr,
+                 pastix_int_t   baseval,
+                 pastix_int_t   vertnbr,
+                 pastix_int_t * verttab,
+                 pastix_int_t   edgenbr,
+                 pastix_int_t * edgetab,
+                 const Order  * const ordeptr)
 {
+  const pastix_int_t * restrict  verttax;
+  pastix_int_t                   edgenum;
+  const pastix_int_t * restrict  edgetax;
 
-  pastix_int_t            baseval;
-  pastix_int_t            vertglobalnbr;
-  pastix_int_t            vertlocalnbr;
-  pastix_int_t            vertmaxnbr;
-  pastix_int_t            vertgstnbr;
-  pastix_int_t           *vertlocaltab;
-  pastix_int_t            edgelocalnbr;
-  pastix_int_t            edgeglobalnbr;
-  pastix_int_t            edgemaxnbr;
-  pastix_int_t           *edgelocaltab;
-  pastix_int_t           *edgeghosttab;
+  /* SCOTCH_graphData (grafptr, */
+  /*                   (SCOTCH_Num *)&baseval, */
+  /*                   (SCOTCH_Num *)&vertnbr, */
+  /*                   (SCOTCH_Num **)&verttab, */
+  /*                   NULL, NULL, NULL, */
+  /*                   (SCOTCH_Num *)&edgenbr, */
+  /*                   (SCOTCH_Num **)&edgetab, */
+  /*                   NULL); */
 
+  verttax = verttab - baseval;
+  edgetax = edgetab - baseval;
 
-  SCOTCH_dgraphData   (dgraph,
-                       (SCOTCH_Num *)&baseval,
-                       (SCOTCH_Num *)&vertglobalnbr,
-                       (SCOTCH_Num *)&vertlocalnbr,
-                       (SCOTCH_Num *)&vertmaxnbr,
-                       (SCOTCH_Num *)&vertgstnbr,
-                       (SCOTCH_Num **)&vertlocaltab,
-                       NULL,
-                       NULL,
-                       NULL,
-                       (SCOTCH_Num *)&edgelocalnbr,
-                       (SCOTCH_Num *)&edgeglobalnbr,
-                       (SCOTCH_Num *)&edgemaxnbr,
-                       (SCOTCH_Num **)&edgelocaltab,
-                       (SCOTCH_Num **)&edgeghosttab,
-                       NULL,
-                       &pastix_comm);
+#define SYMBOL_FAX_ITERATOR(ngbdptr, vertnum, vertend)	\
+  for (edgenum = verttax[vertnum];			\
+       edgenum < verttax[vertnum + 1];			\
+       edgenum ++) {					\
+    vertend = edgetax[edgenum];
 
+#define SYMBOL_FAX_VERTEX_DEGREE(ngbdptr, vertnum)	\
+  (verttax[(vertnum) + 1] - verttax[(vertnum)])
 
-  return EXIT_SUCCESS;
+  {
+#define SYMBOL_FAX_INCLUDED
+#include "symbol_fax.c"
+  }
 }
-#endif /* DISTRIBUTED */
 #endif /* WITH_SCOTCH */
