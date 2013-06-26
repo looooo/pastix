@@ -21,37 +21,9 @@
 #  endif /* DISTRIBUTED */
 #endif /* WITH_SCOTCH */
 
-#include "dof.h"
-#include "ftgt.h"
-#include "symbol.h"
-#include "csc.h"
-#include "updown.h"
-#include "queue.h"
-#include "bulles.h"
-#include "solver.h"
-#include "assembly.h"
-#include "param_blend.h"
-#include "order.h"
 #include "kass.h"
-#include "blend.h"
-#include "solverRealloc.h"
-#include "sopalin_thread.h"
-#include "stack.h"
-#include "sopalin3d.h"
-#include "sopalin_init.h"
-#include "sopalin_option.h"
-#include "csc_intern_updown.h"
-#include "csc_intern_build.h"
-#include "coefinit.h"
-#include "out.h"
-#include "pastix_internal.h"
-
 #include "csc_utils.h"
-#include "cscd_utils.h"
 #include "cscd_utils_intern.h"
-#include "bordi.h"
-#include "sopalin_acces.h"
-#include "perf.h"
 #include "fax.h"
 
 void pastix_task_fax(pastix_data_t *pastix_data,
@@ -281,6 +253,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
 #endif /* COMPACT_SMX */
             }
 
+            // TODO: Check but the two folowing tests could be removed now
             /* Force Kass for Personal and Metis ordering */
             if ((iparm[IPARM_ORDERING] == API_ORDER_PERSONAL) ||
                 (iparm[IPARM_ORDERING] == API_ORDER_METIS)    )
@@ -306,19 +279,13 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         if ((iparm[IPARM_INCOMPLETE]    == API_NO) &&
             (iparm[IPARM_LEVEL_OF_FILL] != -1    ))
         {
-#ifdef HAVE_SCOTCH
-            fprintf(stderr, "============I'M HERE===================\n");
-            /* symbolFaxGraph(pastix_data->symbmtx, */
-            /*                &(pastix_data->grafmesh), */
-            /*                ordemesh); */
-            symbolFaxGraph2(pastix_data->symbmtx,
-                            pastix_data->col2[0],
-                            pastix_data->n2,
-                            pastix_data->col2,
-                            pastix_data->col2[pastix_data->n2]-1,
-                            pastix_data->row2,
-                            ordemesh);
-#endif
+            symbolFaxGraph(pastix_data->symbmtx,                   /* Symbol Matrix   */
+                           pastix_data->col2[0],                   /* baseval         */
+                           pastix_data->n2,                        /* Number of nodes */
+                           pastix_data->col2,                      /* Nodes list      */
+                           pastix_data->col2[pastix_data->n2]-1,   /* Number of edges */
+                           pastix_data->row2,                      /* Edges list      */
+                           ordemesh);
         } else {
 
             pastix_int_t  nkass;
@@ -410,16 +377,14 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         {
             if (pastix_data->col2      != NULL) memFree_null(pastix_data->col2);
             if (pastix_data->row2      != NULL) memFree_null(pastix_data->row2);
-#ifdef DISTRIBUTED
             if (pastix_data->loc2glob2 != NULL) memFree_null(pastix_data->loc2glob2);
-#endif
             pastix_data->bmalcolrow = 0;
         }
-#ifdef WITH_SCOTCH
+#if defined(HAVE_SCOTCH)
         if (pastix_data->malgrf)
         {
             SCOTCH_graphExit(&(pastix_data->grafmesh));
-            pastix_data->malgrf=0;
+            pastix_data->malgrf = 0;
         }
 #endif
     } /* not API_IO_LOAD */

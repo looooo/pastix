@@ -58,12 +58,6 @@
 #define SYMBOL_FAX_GRAPH
 
 #include "common.h"
-#ifdef WITH_SCOTCH
-#ifdef DISTRIBUTED
-#include "ptscotch.h"
-#else
-#include "scotch.h"
-#endif
 #include "symbol.h"
 #include "order.h"
 #include "fax.h"
@@ -84,7 +78,11 @@
 
   Parameters:
     symbptr - Symbolic block matrix [based]
-    grafptr - Matrix adjacency structure [based]
+    baseval - Base numbering value (0 or 1)
+    vertnbr - Vertices number
+    verttab - Vertices list
+    edgenbr - Edges number
+    edgetab - Edges list
     ordeptr - Matrix ordering
 
   Returns:
@@ -93,27 +91,17 @@
 +*/
 
 int
-symbolFaxGraph (SymbolMatrix       * const symbptr,
-                const SCOTCH_Graph * const grafptr,
-                const Order        * const ordeptr)
+symbolFaxGraph(SymbolMatrix * const symbptr,
+               pastix_int_t   baseval,
+               pastix_int_t   vertnbr,
+               pastix_int_t * verttab,
+               pastix_int_t   edgenbr,
+               pastix_int_t * edgetab,
+               const Order  * const ordeptr)
 {
-  pastix_int_t                   baseval;
-  pastix_int_t                   vertnbr;
-  pastix_int_t *                 verttab;
   const pastix_int_t * restrict  verttax;
-  pastix_int_t                   edgenbr;
   pastix_int_t                   edgenum;
-  pastix_int_t *                 edgetab;
   const pastix_int_t * restrict  edgetax;
-
-  SCOTCH_graphData (grafptr,
-                    (SCOTCH_Num *)&baseval,
-                    (SCOTCH_Num *)&vertnbr,
-                    (SCOTCH_Num **)&verttab,
-                    NULL, NULL, NULL,
-                    (SCOTCH_Num *)&edgenbr,
-                    (SCOTCH_Num **)&edgetab,
-                    NULL);
 
   verttax = verttab - baseval;
   edgetax = edgetab - baseval;
@@ -132,44 +120,3 @@ symbolFaxGraph (SymbolMatrix       * const symbptr,
 #include "symbol_fax.c"
   }
 }
-
-int
-symbolFaxGraph2 (SymbolMatrix * const symbptr,
-                 pastix_int_t   baseval,
-                 pastix_int_t   vertnbr,
-                 pastix_int_t * verttab,
-                 pastix_int_t   edgenbr,
-                 pastix_int_t * edgetab,
-                 const Order  * const ordeptr)
-{
-  const pastix_int_t * restrict  verttax;
-  pastix_int_t                   edgenum;
-  const pastix_int_t * restrict  edgetax;
-
-  /* SCOTCH_graphData (grafptr, */
-  /*                   (SCOTCH_Num *)&baseval, */
-  /*                   (SCOTCH_Num *)&vertnbr, */
-  /*                   (SCOTCH_Num **)&verttab, */
-  /*                   NULL, NULL, NULL, */
-  /*                   (SCOTCH_Num *)&edgenbr, */
-  /*                   (SCOTCH_Num **)&edgetab, */
-  /*                   NULL); */
-
-  verttax = verttab - baseval;
-  edgetax = edgetab - baseval;
-
-#define SYMBOL_FAX_ITERATOR(ngbdptr, vertnum, vertend)	\
-  for (edgenum = verttax[vertnum];			\
-       edgenum < verttax[vertnum + 1];			\
-       edgenum ++) {					\
-    vertend = edgetax[edgenum];
-
-#define SYMBOL_FAX_VERTEX_DEGREE(ngbdptr, vertnum)	\
-  (verttax[(vertnum) + 1] - verttax[(vertnum)])
-
-  {
-#define SYMBOL_FAX_INCLUDED
-#include "symbol_fax.c"
-  }
-}
-#endif /* WITH_SCOTCH */

@@ -62,9 +62,7 @@
 #include "order.h"
 #include "fax.h"
 #include "symbol_fax.h"
-#endif /* SYMBOL_FAX_INCLUDED */
 
-#ifndef SYMBOL_FAX_INCLUDED
 /*
   Macro: SYMBOL_FAX_ITERATOR
 
