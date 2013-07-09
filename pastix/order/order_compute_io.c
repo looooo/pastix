@@ -29,13 +29,20 @@ int orderLoadFiles(pastix_data_t *pastix_data)
     int   retval = PASTIX_SUCCESS;
     int   strategy = iparm[IPARM_IO_STRATEGY];
 
+    PASTIX_FOPEN(stream, "ordername", "r");
+    if (orderLoad(ordemesh, stream) != 0)
+    {
+        errorPrint("test: cannot load order");
+        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
+    }
+    fclose(stream);
+
     /* Load graph if required */
 #if defined(HAVE_SCOTCH)
-    if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_GRAPH)) {
-        SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
-
+    if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_GRAPH))
+    {
         PASTIX_FOPEN(stream, "graphname", "r");
-        if (SCOTCH_graphLoad(grafmesh, stream, 0, 0) != 0) {
+        if (SCOTCH_graphLoad(&(ordemesh->grafmesh), stream, 0, 0) != 0) {
             errorPrint ("test: cannot load mesh");
             EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
         }
@@ -43,21 +50,20 @@ int orderLoadFiles(pastix_data_t *pastix_data)
     }
 #endif
 
-    PASTIX_FOPEN(stream, "ordername", "r");
-    if (orderLoad(ordemesh, stream) != 0) {
-        errorPrint("test: cannot load order");
-        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
-    }
-    fclose(stream);
-
-    if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_CSC)) {
+    if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_CSC))
+    {
         pastix_int_t ncol = 0;
         pastix_int_t *colptr, *rows;
         int dof = 1;
 
+        if (pastix_data->col2      != NULL) memFree_null(pastix_data->col2);
+        if (pastix_data->row2      != NULL) memFree_null(pastix_data->row2);
+        if (pastix_data->loc2glob2 != NULL) memFree_null(pastix_data->loc2glob2);
+        pastix_data->bmalcolrow = 0;
+
         if (procnum == 0) {
-            PASTIX_FOPEN(stream, "cscname","r");
             //TODO
+            PASTIX_FOPEN(stream, "cscname","r");
             retval = csc_load(&ncol, &colptr, &rows, NULL, &dof, stream);
             fclose(stream);
         }
@@ -82,6 +88,8 @@ int orderLoadFiles(pastix_data_t *pastix_data)
         pastix_data->n2   = ncol;
         pastix_data->col2 = colptr;
         pastix_data->row2 = rows;
+
+        pastix_data->bmalcolrow = 1;
     }
     return retval;
 }
@@ -104,11 +112,10 @@ int orderSaveFiles(pastix_data_t *pastix_data)
         fclose(stream);
 
 #if defined(HAVE_SCOTCH)
-        if (PASTIX_MASK_ISTRUE(strategy, API_IO_SAVE_GRAPH)) {
-            SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
-
+        if (PASTIX_MASK_ISTRUE(strategy, API_IO_SAVE_GRAPH))
+        {
             PASTIX_FOPEN(stream, "graphgen", "w");
-            if (SCOTCH_graphSave (grafmesh, stream) != 0) {
+            if (SCOTCH_graphSave (&(ordemesh->grafmesh), stream) != 0) {
                 errorPrint ("cannot save graph");
                 retval = PASTIX_ERR_INTERNAL;
             }
