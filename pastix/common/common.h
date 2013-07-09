@@ -24,6 +24,8 @@
 #define _COMMON_H_
 
 #include "pastix.h"
+#include <unistd.h>
+#include <assert.h>
 #include "debug.h"
 #include "out.h"
 #include "memory.h"
