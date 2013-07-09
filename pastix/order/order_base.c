@@ -1,88 +1,61 @@
-/* Copyright INRIA 2004
-**
-** This file is part of the Scotch distribution.
-**
-** The Scotch distribution is libre/free software; you can
-** redistribute it and/or modify it under the terms of the
-** GNU Lesser General Public License as published by the
-** Free Software Foundation; either version 2.1 of the
-** License, or (at your option) any later version.
-**
-** The Scotch distribution is distributed in the hope that
-** it will be useful, but WITHOUT ANY WARRANTY; without even
-** the implied warranty of MERCHANTABILITY or FITNESS FOR A
-** PARTICULAR PURPOSE. See the GNU Lesser General Public
-** License for more details.
-**
-** You should have received a copy of the GNU Lesser General
-** Public License along with the Scotch distribution; if not,
-** write to the Free Software Foundation, Inc.,
-** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-**
-** $Id: order_base.c 2 2004-06-02 14:05:03Z ramet $
-*/
-/************************************************************/
-/**                                                        **/
-/**   NAME       : order_base.c                            **/
-/**                                                        **/
-/**   AUTHORS    : Francois PELLEGRINI                     **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                These lines hold the base changing      **/
-/**                routine for the ordering structure.     **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 06 oct 2003     **/
-/**                                 to     06 oct 2003     **/
-/**                # Version 2.0  : from : 21 apr 2004     **/
-/**                                 to     21 apr 2004     **/
-/**                                                        **/
-/************************************************************/
-
-/*
-**  The defines and includes.
-*/
+/**
+ *
+ * @file order_base.c
+ *
+ *  PaStiX order routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * Contains function to adjust the base value of the ordering.
+ *
+ * @version 5.1.0
+ * @author Francois Pellegrini
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
 #include "order.h"
 
-/***********************************/
-/*                                 */
-/* The ordering handling routines. */
-/*                                 */
-/***********************************/
-
-/* This routine sets the base of the
-** given ordering structure to the given
-** base value.
-** It returns:
-** - VOID  : in all cases.
-*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * orderBase - This routine sets the base of the given ordering structure to the
+ * given base value.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] ordeptr
+ *          The ordering to rebase.
+ *
+ * @param[in] baseval
+ *          The base value to be used.
+ *
+ *******************************************************************************/
 void
-orderBase (Order * restrict const ordeptr,   /*+ Ordering structure +*/
-	   const pastix_int_t     baseval)   /*+ New base value     +*/
+orderBase (Order *      const ordeptr,
+	   pastix_int_t       baseval)
 {
     pastix_int_t baseadj;                    /* Base adjust */
     pastix_int_t cblknum;
-    pastix_int_t vertnbr;
     pastix_int_t vertnum;
 
-    if (ordeptr->rangtab == NULL)            /* Cannot know old base if range array not provided */
+    baseadj = baseval - ordeptr->baseval; /* Set base adjust     */
+    if (baseadj == 0)                     /* If base already set */
 	return;
 
-    baseadj = baseval - ordeptr->rangtab[0]; /* Set base adjust     */
-    if (baseadj == 0)                        /* If base already set */
-	return;
+    if (ordeptr->rangtab != NULL) {
+        for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++)
+            ordeptr->rangtab[cblknum] += baseadj;
+    }
 
-    for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++)
-	ordeptr->rangtab[cblknum] += baseadj;
-
-    vertnbr = ordeptr->rangtab[ordeptr->cblknbr] - ordeptr->rangtab[0];
     if (ordeptr->permtab != NULL) {
-	for (vertnum = 0; vertnum < vertnbr; vertnum ++)
+	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++)
 	    ordeptr->permtab[vertnum] += baseadj;
     }
     if (ordeptr->peritab != NULL) {
-	for (vertnum = 0; vertnum < vertnbr; vertnum ++)
+	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++)
 	    ordeptr->peritab[vertnum] += baseadj;
     }
 }
