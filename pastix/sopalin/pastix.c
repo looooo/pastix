@@ -31,11 +31,11 @@
 #endif
 
 #ifdef WITH_SCOTCH
-#  ifdef    DISTRIBUTED
+#  ifdef    PASTIX_DISTRIBUTED
 #    include <ptscotch.h>
 #  else
 #    include <scotch.h>
-#  endif /* DISTRIBUTED */
+#  endif /* PASTIX_DISTRIBUTED */
 #endif /* WITH_SCOTCH */
 
 #include "dof.h"
@@ -619,7 +619,7 @@ int buildUpdoVect(pastix_data_t *pastix_data,
                            invp,
                            (int)iparm[IPARM_DOF_NBR]);
             }
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
           else
             {
               CscdUpdownRhs(&(solvmatr->updovct),
@@ -630,7 +630,7 @@ int buildUpdoVect(pastix_data_t *pastix_data,
                             pastix_data->n,
                             (int)iparm[IPARM_DOF_NBR]);
             }
-#endif /* DISTRIBUTED */
+#endif /* PASTIX_DISTRIBUTED */
         }
     }
   /* Generate rhs */
@@ -798,9 +798,6 @@ void pastix_task_init(pastix_data_t **pastix_data,
   /* Initialisation des champs de la structure */
   (*pastix_data)->n                = -1;
   (*pastix_data)->bmalcolrow       = 0;
-#ifdef WITH_SCOTCH
-  (*pastix_data)->malgrf           = 0;
-#endif
   (*pastix_data)->malord           = 0;
   (*pastix_data)->malcsc           = 0;
   (*pastix_data)->malsmx           = 0;
@@ -842,7 +839,7 @@ void pastix_task_init(pastix_data_t **pastix_data,
   (*pastix_data)->row2             = NULL;
   (*pastix_data)->cscInternFilled  = API_NO;
 
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   (*pastix_data)->loc2glob2        = NULL;
   (*pastix_data)->malrhsd_int      = API_NO;
   (*pastix_data)->l2g_int          = NULL;
@@ -1315,7 +1312,7 @@ int pastix_fake_fillin_csc( pastix_data_t *pastix_data,
                             pastix_int_t     nrhs,
                             pastix_int_t    *loc2glob)
 {
-#  ifdef DISTRIBUTED
+#  ifdef PASTIX_DISTRIBUTED
   pastix_int_t     *iparm    = pastix_data->iparm;
   pastix_int_t     *l_colptr = NULL;
   pastix_int_t     *l_row    = NULL;
@@ -1475,7 +1472,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
   int             mal_l_b   = API_NO;
   (void)pastix_comm;
   (void)nrhs;
-#  ifdef DISTRIBUTED
+#  ifdef PASTIX_DISTRIBUTED
   int             OK       = 0;
   int             OK_RECV  = 0;
   int             retval = PASTIX_SUCCESS;
@@ -1535,15 +1532,15 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
         fprintf(stdout,OUT_REDIS_CSC);
 
       /* redistributing cscd with correct local to global correspondance */
-      clockInit(&clk);
-      clockStart(&clk);
+      clockInit(clk);
+      clockStart(clk);
       retval = cscd_redispatch_int(  n,    colptr,    row,  avals,    b, nrhs, loc2glob,
                                      l_n, &l_colptr, &l_row, &l_val, &l_b, l_l2g,
                                      API_YES, pastix_comm, iparm[IPARM_DOF_NBR]);
-      clockStop(&(clk));
+      clockStop((clk));
 
       if (iparm[IPARM_VERBOSE] >= API_VERBOSE_YES)
-        print_onempi(OUT_REDISCSCDTIME, (double)clockVal(&clk));
+        print_onempi(OUT_REDISCSCDTIME, (double)clockVal(clk));
 
       MPI_Allreduce(&retval, &retval_recv, 1, MPI_INT, MPI_MAX, pastix_comm);
       if (retval_recv != PASTIX_SUCCESS)
@@ -1553,7 +1550,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
       mal_l_b = API_YES;
     }
   else
-#  endif /* DISTRIBUTED */
+#  endif /* PASTIX_DISTRIBUTED */
     {
       /* the user CSCd is correctly distributed,
          only the pointers to the user CSCd arrays are used.
@@ -1573,7 +1570,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
       l_b      = b;
     }
 
-#  ifdef DISTRIBUTED
+#  ifdef PASTIX_DISTRIBUTED
   if (pastix_data->mal_l2g_int == API_YES)
     memFree_null(pastix_data->l2g_int);
   if (pastix_data->malrhsd_int == API_YES)
@@ -1642,7 +1639,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
                        l_row, l_val, forcetr,
                        solvmatr, procnum, iparm[IPARM_DOF_NBR]);
         }
-#  ifdef DISTRIBUTED
+#  ifdef PASTIX_DISTRIBUTED
       else
         {
           /* Build internal CSCD from user CSCD */
@@ -1655,7 +1652,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
                         forcetr, solvmatr, procnum,
                         iparm[IPARM_DOF_NBR], pastix_data->inter_node_comm);
         }
-#  endif /* DISTRIBUTED */
+#  endif /* PASTIX_DISTRIBUTED */
       pastix_data->malcsc = 1;
 
       /* Libération de la csc interne temporaire */
@@ -1801,7 +1798,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
       pastix_fillin_csc(pastix_data, (pastix_data)->pastix_comm, n,
                         colptr, row, avals, b, rhsnbr, loc2glob);
     }
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   else
     {
       pastix_data->l2g_int = loc2glob;
@@ -1823,7 +1820,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
   sopar->iparm       = iparm;
   sopar->dparm       = dparm;
   sopar->schur       = iparm[IPARM_SCHUR];
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   sopar->n           = pastix_data->ncol_int;
   MPI_Allreduce(&(pastix_data->ncol_int), &sopar->gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
 #else
@@ -1933,7 +1930,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
           pastix_data->malsmx=1;
 
           buildUpdoVect(pastix_data,
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
                         pastix_data->l2g_int,
                         pastix_data->b_int,
 #else
@@ -2024,7 +2021,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
           pastix_data->malsmx=1;
 
           buildUpdoVect(pastix_data,
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
                         pastix_data->l2g_int,
                         pastix_data->b_int,
 #else
@@ -2119,7 +2116,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
                            pastix_comm);
             }
         }
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
       else
         {
           CscdRhsUpdown(&(solvmatr->updovct),
@@ -2364,7 +2361,7 @@ void pastix_task_updown(pastix_data_t *pastix_data,
                            iparm[IPARM_RHS_MAKING],
                            pastix_comm);
             }
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
           else
             {
               CscdRhsUpdown(&(solvmatr->updovct),
@@ -2539,7 +2536,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                    iparm[IPARM_RHS_MAKING],
                    pastix_comm);
     }
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   else
     {
       CscdRhsUpdown(&(solvmatr->updovct),
@@ -2591,7 +2588,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
   (void)pastix_comm;
 
   print_debug(DBG_STEP, "->pastix_task_clean\n");
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   if ((*pastix_data)->mal_l2g_int == API_YES)
     memFree_null((*pastix_data)->l2g_int   );
 
@@ -2758,7 +2755,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
 
   if ((*pastix_data)->listschur != NULL)
     memFree_null((*pastix_data)->listschur);
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   if ((*pastix_data)->glob2loc != NULL)
     memFree_null((*pastix_data)->glob2loc);
 #endif
@@ -3412,7 +3409,7 @@ void dpastix(pastix_data_t **pastix_data,
              pastix_int_t            *iparm,
              double         *dparm)
 {
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   int    flagWinvp               = 1;
   pastix_int_t    ncol_int                = 0;
   pastix_int_t   *l2g_int                 = NULL;
@@ -3603,7 +3600,7 @@ void dpastix(pastix_data_t **pastix_data,
               pastix_fake_fillin_csc(*pastix_data, pastix_comm, n,
                                      colptr, row, avals, b, rhs, loc2glob);
             }
-#  ifdef DISTRIBUTED
+#  ifdef PASTIX_DISTRIBUTED
           else
             {
               (*pastix_data)->l2g_int = loc2glob;
@@ -3769,9 +3766,9 @@ void dpastix(pastix_data_t **pastix_data,
   (void)pastix_data; (void)pastix_comm; (void)n; (void)colptr; (void)row;
   (void)avals; (void)loc2glob; (void)perm; (void)invp; (void)b; (void)rhs;
   (void)iparm; (void)dparm;
-  errorPrint("To use dpastix please compile with -DDISTRIBUTED");
+  errorPrint("To use dpastix please compile with -DPASTIX_DISTRIBUTED");
   iparm[IPARM_ERROR_NUMBER] = BAD_DEFINE_ERR;
-#endif /* DISTRIBUTED */
+#endif /* PASTIX_DISTRIBUTED */
 }
 
 
