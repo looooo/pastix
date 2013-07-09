@@ -72,7 +72,7 @@
 
 /* Common functions */
 #define api_dumparm        PASTIX_PREFIX_F(api_dumparm)
-#define clockGet           PASTIX_PREFIX_F(clockGet)
+//#define clockGet           PASTIX_PREFIX_F(clockGet)
 #define errorPrint         PASTIX_PREFIX(errorPrint)
 #define errorPrintW        PASTIX_PREFIX(errorPrintW)
 #define errorProg          PASTIX_PREFIX(errorProg)
