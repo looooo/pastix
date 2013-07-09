@@ -47,8 +47,8 @@ cmp_colrow(const void *p1, const void *p2)
     newa  - Value of each element,can be NULL
 
  */
-int csc_symgraph(pastix_int_t n,     pastix_int_t * ia,    pastix_int_t * ja,    pastix_float_t * a,
-                 pastix_int_t *newn, pastix_int_t **newia, pastix_int_t **newja, pastix_float_t **newa)
+int csc_symgraph(pastix_int_t n, const pastix_int_t * ia, const pastix_int_t * ja, const pastix_float_t * a,
+                 pastix_int_t *newn,   pastix_int_t **newia,    pastix_int_t **newja,    pastix_float_t **newa)
 {
   return csc_symgraph_int(n, ia, ja, a, newn, newia, newja, newa, API_NO);
 }
@@ -72,7 +72,7 @@ int csc_symgraph(pastix_int_t n,     pastix_int_t * ia,    pastix_int_t * ja,   
     newa        - Value of each element,can be NULL
     malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
-int csc_symgraph_int (pastix_int_t n,     pastix_int_t * ia,    pastix_int_t * ja,    pastix_float_t * a,
+int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_t * ja, const pastix_float_t * a,
                       pastix_int_t *newn, pastix_int_t **newia, pastix_int_t **newja, pastix_float_t **newa,
                       int malloc_flag)
 {
@@ -295,7 +295,7 @@ int csc_symgraph_int (pastix_int_t n,     pastix_int_t * ia,    pastix_int_t * j
     Returns:
       ia and ja tabulars modified.
 */
-void csc_noDiag(pastix_int_t baseval, pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a)
+void csc_noDiag(pastix_int_t baseval, pastix_int_t n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_float_t *a)
 {
   pastix_int_t i, j;
   pastix_int_t indj;
@@ -327,9 +327,10 @@ void csc_noDiag(pastix_int_t baseval, pastix_int_t n, pastix_int_t *ia, pastix_i
     }
   ia[n] = indj+baseval;
 
+  assert( ia[n] <= old_ia[n] );
+
   /*fprintf(stdout, "NNZ without diag = %ld \n", ia[n]);*/
   memFree_null(old_ia);
-
 }
 
 /*
