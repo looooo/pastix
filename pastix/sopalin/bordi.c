@@ -26,7 +26,7 @@
 
 #include "common.h"
 #ifdef WITH_SCOTCH
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
 #include <ptscotch.h>
 #else
 #include <scotch.h>

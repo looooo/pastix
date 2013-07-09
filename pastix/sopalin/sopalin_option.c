@@ -104,7 +104,7 @@ void sopalin_option(void){
 #ifdef OOC
   ooc   =  1;
 #endif
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
   dist = 1;
 #endif
 
