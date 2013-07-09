@@ -37,12 +37,8 @@ typedef struct Order_ {
     pastix_int_t *peritab;   /*< Inverse permutation array [based]   +*/
     pastix_int_t *rangtab;   /*< Column block range array [based,+1] +*/
 #if defined(HAVE_SCOTCH)
-    SCOTCH_Graph     grafmesh;           /*+ Graph                                                               +*/
-    int              malgrf;             /*+ boolean indicating if grafmesh has been allocated                   +*/
-#endif
-#if defined(HAVE_PTSCOTCH)
-    SCOTCH_Dordering ordedat;            /*+ distributed scotch order                                            +*/
-    SCOTCH_Dgraph    dgraph;
+    SCOTCH_Graph  grafmesh;  /*< Graph                                             +*/
+    int           malgrf;    /*< boolean indicating if grafmesh has been allocated +*/
 #endif
 } Order;
 
@@ -81,22 +77,6 @@ int pastix_task_order(pastix_data_t *pastix_data,
                       pastix_int_t  *loc2glob,
                       pastix_int_t  *perm,
                       pastix_int_t  *invp);
-
-int pastix_task_scotch(pastix_data_t **pastix_data,
-                       MPI_Comm        pastix_comm,
-                       pastix_int_t             n,
-                       pastix_int_t            *colptr,
-                       pastix_int_t            *row,
-                       pastix_int_t            *perm,
-                       pastix_int_t            *invp);
-int dpastix_task_scotch(pastix_data_t ** pastix_data,
-                        MPI_Comm         pastix_comm,
-                        pastix_int_t              n,
-                        pastix_int_t            * colptr,
-                        pastix_int_t            * row,
-                        pastix_int_t            * perm,
-                        pastix_int_t            * invp,
-                        pastix_int_t            * loc2glob);
 
 #endif /* _ORDER_H_ */
 

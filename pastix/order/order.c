@@ -15,6 +15,12 @@
  **/
 #include "common.h"
 #include "order.h"
+#if defined(HAVE_SCOTCH)
+#include <scotch.h>
+#endif
+#if defined(HAVE_PTSCOTCH)
+#include <ptscotch.h>
+#endif
 
 /**
  *******************************************************************************
@@ -57,6 +63,11 @@ int orderInit ( Order * const ordeptr,
         MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
     }
 
+#if defined(HAVE_SCOTCH)
+    SCOTCH_graphInit( &(ordeptr->grafmesh) );
+    ordeptr->malgrf = 1;
+#endif
+
     return PASTIX_SUCCESS;
 }
 
@@ -81,6 +92,13 @@ void orderExit (Order * const ordeptr)
         memFree_null (ordeptr->permtab);
     if (ordeptr->peritab != NULL)
         memFree_null (ordeptr->peritab);
+
+#if defined(HAVE_SCOTCH)
+    if (ordeptr->malgrf) {
+        SCOTCH_graphExit( &(ordeptr->grafmesh) );
+        ordeptr->malgrf = 0;
+    }
+#endif
 
     memset(ordeptr, 0, sizeof(Order) );
 }
