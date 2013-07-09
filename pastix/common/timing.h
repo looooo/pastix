@@ -110,7 +110,7 @@ static inline double clockGet(void)
 #define clockStart(clk) do { clk = clockGet(); } while(0)
 #define clockStop(clk)  do { clk = clockGet() - (clk); } while(0)
 
-#if (HAVE_MPI)
+#if defined(HAVE_MPI)
 #define clockSyncStart(clk, comm) do {          \
         MPI_Barrier(comm);                      \
         clk = clockGet(); } while(0)
