@@ -8,6 +8,10 @@ add_executable(simple
   simple.c
 )
 
-
 target_link_libraries( simple
     pastix read_matrix refblas scotch scotcherr hwloc pthread m )
+
+if (PASTIX_WITH_MPI)
+  target_link_libraries( simple
+    ${MPI_LIBRARIES} )
+endif()
