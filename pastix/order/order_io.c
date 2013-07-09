@@ -1,60 +1,47 @@
-/* Copyright INRIA 2004
-**
-** This file is part of the Scotch distribution.
-**
-** The Scotch distribution is libre/free software; you can
-** redistribute it and/or modify it under the terms of the
-** GNU Lesser General Public License as published by the
-** Free Software Foundation; either version 2.1 of the
-** License, or (at your option) any later version.
-**
-** The Scotch distribution is distributed in the hope that
-** it will be useful, but WITHOUT ANY WARRANTY; without even
-** the implied warranty of MERCHANTABILITY or FITNESS FOR A
-** PARTICULAR PURPOSE. See the GNU Lesser General Public
-** License for more details.
-**
-** You should have received a copy of the GNU Lesser General
-** Public License along with the Scotch distribution; if not,
-** write to the Free Software Foundation, Inc.,
-** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-**
-** $Id: order_io.c 2 2004-06-02 14:05:03Z ramet $
-*/
-/************************************************************/
-/**                                                        **/
-/**   NAME       : order_io.c                              **/
-/**                                                        **/
-/**   AUTHORS    : Francois PELLEGRINI                     **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                These lines are the input/output        **/
-/**                routines for the ordering structure.    **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 04 jan 1999     **/
-/**                                 to     05 jan 1999     **/
-/**                # Version 2.0  : from : 28 feb 2004     **/
-/**                                 to     28 feb 2004     **/
-/**                                                        **/
-/************************************************************/
+/**
+ *
+ * @file order_io.c
+ *
+ *  PaStiX order routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * Contains functions to read/write the order structure from/to the disk.
+ *
+ * @version 5.1.0
+ * @author Francois Pellegrini
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
+#include "order.h"
 
-/***********************************/
-/*                                 */
-/* The ordering handling routines. */
-/*                                 */
-/***********************************/
-
-/*+ This routine reads the given ordering
-*** structure from the given stream.
-*** It returns:
-*** - 0   : on success.
-*** - !0  : on error.
-+*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering_internal
+ *
+ * orderLoad - This routine reads the given ordering structure from the given
+ * stream.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] ordeptr
+ *          The ordering structure to fill in.
+ *
+ * @param[in] stream
+ *          The stream where to read the informations.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCESS on successful exit.
+ *          \retval PASTIX_ERR_FILE if a problem occurs during the read.
+ *
+ *******************************************************************************/
 int
 orderLoad (Order * const ordeptr,
-	   FILE  * const stream)
+           FILE  * const stream)
 {
     pastix_int_t  versval;                      /* Version number */
     pastix_int_t  cblknbr;
@@ -67,50 +54,66 @@ orderLoad (Order * const ordeptr,
     int           i;
 
     if ((intLoad (stream, &versval) +
-	 intLoad (stream, &cblknbr) +
-	 intLoad (stream, &vertnbr) != 3) ||
-	(versval != 0)                    ||
-	(cblknbr > vertnbr)) {
-	errorPrint ("orderLoad: bad input (1)");
-	return     (1);
+         intLoad (stream, &cblknbr) +
+         intLoad (stream, &vertnbr) != 3) ||
+        (versval != 0)                    ||
+        (cblknbr > vertnbr)) {
+        errorPrint ("orderLoad: bad input (1)");
+        return PASTIX_ERR_FILE;
     }
 
-    orderInit(ordeptr, cblknbr, vertnbr);
+    orderInit(ordeptr, vertnbr, cblknbr);
+    ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
 
     for (cblknum = 0, i = 1; (i == 1) && (cblknum <= cblknbr); cblknum ++) /* Read column-block data */
-	i = intLoad (stream, &ordeptr->rangtab[cblknum]);
+        i = intLoad (stream, &ordeptr->rangtab[cblknum]);
 
     for (vertnum = 0; (i == 1) && (vertnum < vertnbr); vertnum ++) /* Read direct permutation */
-	i = intLoad (stream, &ordeptr->permtab[vertnum]);
+        i = intLoad (stream, &ordeptr->permtab[vertnum]);
 
     if (i != 1) {
-	errorPrint ("orderLoad: bad input (2)");
-	orderExit  (ordeptr);
-	memset( ordeptr, 0, sizeof(Order));
-	return     (1);
+        errorPrint ("orderLoad: bad input (2)");
+        orderExit  (ordeptr);
+        return PASTIX_ERR_FILE;
     }
 
     permtax = ordeptr->permtab - ordeptr->rangtab[0];
     peritax = ordeptr->peritab - ordeptr->rangtab[0];
     for (vertnum = ordeptr->rangtab[0], vertnnd = vertnum + vertnbr; /* Build inverse permutation */
-	 vertnum < vertnnd; vertnum ++)
-	peritax[permtax[vertnum]] = vertnum;
+         vertnum < vertnnd; vertnum ++)
+        peritax[permtax[vertnum]] = vertnum;
 
-    return (0);
+    return PASTIX_SUCCESS;
 }
 
-/*+ This routine saves the given
-*** ordering structure to the
-*** given stream.
-*** It returns:
-*** - 0   : on success.
-*** - !0  : on error.
-+*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering_internal
+ *
+ * orderSave - This routine writes the given ordering structure to the given
+ * stream.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] ordeptr
+ *          The ordering structure to dump to disk.
+ *
+ * @param[in] stream
+ *          The stream where to write the ordering.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCESS on successful exit.
+ *          \retval PASTIX_ERR_BADPARAMETER if the ordeptr structure is incorrect.
+ *          \retval PASTIX_ERR_FILE if a problem occurs during the write.
+ *
+ *******************************************************************************/
 int
 orderSave (const Order * const ordeptr,
-	   FILE * const        stream)
+           FILE * const        stream)
 {
     pastix_int_t vertnbr;
     pastix_int_t vertnum;
@@ -118,40 +121,42 @@ orderSave (const Order * const ordeptr,
     int          o;
 
     if (ordeptr->rangtab == NULL) {
-	errorPrint ("orderSave: cannot save ordering without column block data");
-	return     (1);
+        errorPrint ("orderSave: cannot save ordering without column block data");
+        return PASTIX_ERR_BADPARAMETER;
     }
     if (ordeptr->permtab == NULL) {
-	errorPrint ("orderSave: cannot save ordering without direct permutation data");
-	return     (1);
+        errorPrint ("orderSave: cannot save ordering without direct permutation data");
+        return PASTIX_ERR_BADPARAMETER;
     }
 
     vertnbr = ordeptr->rangtab[ordeptr->cblknbr] -  /* Get number of nodes */
-	ordeptr->rangtab[0];
+        ordeptr->rangtab[0];
 
     if (fprintf (stream, "0\n%ld\t%ld\n",
-		 (long) ordeptr->cblknbr,
-		 (long) vertnbr) == EOF) {
-	errorPrint ("orderSave: bad output (1)");
-	return     (1);
+                 (long) ordeptr->cblknbr,
+                 (long) vertnbr) == EOF) {
+        errorPrint ("orderSave: bad output (1)");
+        return PASTIX_ERR_FILE;
     }
 
     for (cblknum = 0, o = 1; (o == 1) && (cblknum < ordeptr->cblknbr); cblknum ++) { /* Save column-block range array */
-	o = intSave (stream, ordeptr->rangtab[cblknum]);
-	putc (((cblknum & 7) == 7) ? '\n' : '\t', stream);
+        o = intSave (stream, ordeptr->rangtab[cblknum]);
+        putc (((cblknum & 7) == 7) ? '\n' : '\t', stream);
     }
     o = intSave (stream, ordeptr->rangtab[cblknum]);
     putc ('\n', stream);
 
     for (vertnum = 0; (o == 1) && (vertnum < (vertnbr - 1)); vertnum ++) { /* Save direct permutation */
-	o = intSave (stream, ordeptr->permtab[vertnum]);
-	putc (((vertnum & 7) == 7) ? '\n' : '\t', stream);
+        o = intSave (stream, ordeptr->permtab[vertnum]);
+        putc (((vertnum & 7) == 7) ? '\n' : '\t', stream);
     }
     o = intSave (stream, ordeptr->permtab[vertnum]);
     putc ('\n', stream);
 
-    if (o != 1)
-	errorPrint ("orderSave: bad output (2)");
+    if (o != 1) {
+        errorPrint ("orderSave: bad output (2)");
+        return PASTIX_ERR_FILE;
+    }
 
-    return (1 - o);
+    return PASTIX_SUCESS;
 }
