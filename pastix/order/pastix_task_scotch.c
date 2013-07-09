@@ -11,11 +11,11 @@
 
 #include "common.h"
 #ifdef WITH_SCOTCH
-#  ifdef    DISTRIBUTED
+#  ifdef    PASTIX_DISTRIBUTED
 #    include <ptscotch.h>
 #  else
 #    include <scotch.h>
-#  endif /* DISTRIBUTED */
+#  endif /* PASTIX_DISTRIBUTED */
 #endif /* WITH_SCOTCH */
 
 #include "dof.h"
@@ -50,6 +50,11 @@
 #include "bordi.h"
 #include "sopalin_acces.h"
 #include "perf.h"
+
+void global2localperm(pastix_int_t  lN,
+                      pastix_int_t *lperm,
+                      pastix_int_t *gperm,
+                      pastix_int_t *loc2glob);
 
 /* define pour l'affichage */
 #define SCOTCH_STRAT_DIRECT                                             \
@@ -266,17 +271,16 @@ int pastix_order_prepare_csc(pastix_data_t * pastix_data,
 */
 int pastix_task_scotch(pastix_data_t **pastix_data,
                        MPI_Comm        pastix_comm,
-                       pastix_int_t             n,
-                       pastix_int_t            *colptr,
-                       pastix_int_t            *row,
-                       pastix_int_t            *perm,
-                       pastix_int_t            *invp)
+                       pastix_int_t    n,
+                       pastix_int_t   *colptr,
+                       pastix_int_t   *row,
+                       pastix_int_t   *perm,
+                       pastix_int_t   *invp)
 {
   pastix_int_t              * iparm       = (*pastix_data)->iparm;
-  pastix_int_t             ** col2;
-  pastix_int_t             ** row2;
+  pastix_int_t             * col2;
+  pastix_int_t             * row2;
 #ifdef WITH_SCOTCH
-  SCOTCH_Graph     * grafmesh;
   SCOTCH_Strat       stratdat;
   char               strat[550];
   pastix_int_t               *colptr_schur  = NULL;
@@ -292,27 +296,14 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
   int                retval_rcv;
   (void)pastix_comm;
 
-#ifdef WITH_SCOTCH
-  grafmesh  = &((*pastix_data)->grafmesh);
-#endif
   ordemesh  = &((*pastix_data)->ordemesh);
   procnum   =   (*pastix_data)->procnum;
-
-  col2      = &((*pastix_data)->col2);
-  row2      = &((*pastix_data)->row2);
 
   print_debug(DBG_STEP,"-> pastix_task_scotch\n");
   if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
     print_onempi("%s", OUT_STEP_ORDER);
 
-  if ((*pastix_data)->bmalcolrow == 1)
-    {
-      if ((*col2)      != NULL) memFree_null(*col2);
-      if ((*row2)      != NULL) memFree_null(*row2);
-      (*pastix_data)->bmalcolrow = 0;
-    }
-
-  /* Clean ordering if it exists */
+  /* Clean ordering/graph if it exists */
   if ((*pastix_data)->malord)
     {
       orderExit(ordemesh);
@@ -321,14 +312,13 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
 
   /* Prepare a copy of user's CSC */
   if (!(PASTIX_MASK_ISTRUE(iparm[IPARM_ORDERING], API_ORDER_LOAD)))
-    pastix_order_prepare_csc(*pastix_data, n, colptr, row);
+      orderPrepareCSC( *pastix_data, n, colptr, row, NULL );
 
+  col2 = (*pastix_data)->col2;
+  row2 = (*pastix_data)->row2;
 
   if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
     print_onempi("%s", OUT_ORDERINIT);
-
-  orderInit(ordemesh, n, n);
-  (*pastix_data)->malord=1;
 
   clockInit(timer1);
   clockStart(timer1);
@@ -344,234 +334,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
       retval = BADPARAMETER_ERR;
       break;
 #else
-      {
-        int ret;
-
-        if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num))
-          {
-              errorPrint("Inconsistent integer type %lu != %lu\n",
-                         sizeof(pastix_int_t), sizeof(SCOTCH_Num));
-              retval = INTEGER_TYPE_ERR;
-              break;
-          }
-
-        /* On nettoie grafmesh et col2/row2 si ils sont déja alloués */
-        if ((*pastix_data)->malgrf == 1)
-          {
-            SCOTCH_graphExit(grafmesh);
-            (*pastix_data)->malgrf = 0;
-          }
-
-        /* construction du graphe */
-        print_debug(DBG_SCOTCH, "> SCOTCH_graphInit <\n");
-        SCOTCH_graphInit(grafmesh);
-
-        print_debug(DBG_SCOTCH, "> SCOTCH_graphBuild <\n");
-        if (iparm[IPARM_SCHUR] == API_YES ||
-            iparm[IPARM_ISOLATE_ZEROS] == API_YES)
-          {
-
-            MALLOC_INTERN(colptr_schur, n+1, pastix_int_t);
-            MALLOC_INTERN(rows_schur, (*col2)[n]-1, pastix_int_t);
-            memcpy(colptr_schur, *col2, (n+1)*sizeof(pastix_int_t));
-            memcpy(rows_schur,   *row2, ((*col2)[n] - 1)*sizeof(pastix_int_t));
-            MALLOC_INTERN(perm_schur, n, pastix_int_t);
-            MALLOC_INTERN(revperm_schur, n, pastix_int_t);
-            CSC_isolate(n,
-                        colptr_schur,
-                        rows_schur,
-                        (*pastix_data)->nschur,
-                        (*pastix_data)->listschur,
-                        perm_schur,
-                        revperm_schur);
-
-            memFree_null(revperm_schur);
-
-            if (SCOTCH_graphBuild(grafmesh,                                   /* Graph to build     */
-                                  1,                                          /* baseval            */
-                                  n-(*pastix_data)->nschur,                   /* Number of vertices */
-                                  (SCOTCH_Num*)colptr_schur,                  /* Vertex array       */
-                                  NULL,
-                                  NULL,                                       /* Array of vertex weights (DOFs) */
-                                  NULL,
-                                  (colptr_schur[n-(*pastix_data)->nschur]-1), /* Number of arcs     */
-                                  (SCOTCH_Num*)rows_schur,                    /* Edge array         */
-                                  NULL))
-              {
-                errorPrint("pastix : graphBuildGraph");
-                EXIT(MOD_SOPALIN,INTERNAL_ERR);
-              }
-          }
-        else
-          {
-            if (SCOTCH_graphBuild(grafmesh,       /* Graph to build     */
-                                  1,              /* baseval            */
-                                  n,              /* Number of vertices */
-                                  (SCOTCH_Num*)*col2,          /* Vertex array       */
-                                  NULL,
-                                  NULL,           /* Array of vertex weights (DOFs) */
-                                  NULL,
-                                  ((*col2)[n]-1), /* Number of arcs     */
-                                  (SCOTCH_Num*)*row2,          /* Edge array         */
-                                  NULL))
-              {
-                errorPrint("pastix : graphBuildGraph");
-                EXIT(MOD_SOPALIN,INTERNAL_ERR);
-              }
-          }
-        (*pastix_data)->malgrf=1;
-
-        print_debug(DBG_SCOTCH, "> SCOTCH_graphCheck <\n");
-        if (SCOTCH_graphCheck(grafmesh))
-          {
-            errorPrint("pastix : graphCheck");
-            EXIT(MOD_SOPALIN,INTERNAL_ERR);
-          }
-
-        SCOTCH_stratInit(&stratdat);
-        SCOTCH_graphBase(grafmesh, 0);
-
-        if (iparm[IPARM_DEFAULT_ORDERING] == API_YES) /* default ordering */
-          {
-            if (iparm[IPARM_INCOMPLETE] == API_NO)
-              {
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-                  print_onempi("%s", "Scotch direct strategy\n");
-                sprintf(strat, SCOTCH_STRAT_DIRECT);
-              }
-            else
-              {
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-                  print_onempi("%s", "Scotch incomplete strategy\n");
-                sprintf(strat, SCOTCH_STRAT_INCOMP);
-              }
-          }
-        else /* personal ordering */
-          {
-            sprintf(strat, SCOTCH_STRAT_PERSO,
-                    (long) iparm[IPARM_ORDERING_SWITCH_LEVEL],
-                    (long) iparm[IPARM_ORDERING_CMIN],
-                    (long) iparm[IPARM_ORDERING_CMAX],
-                    ((float)iparm[IPARM_ORDERING_FRAT])/100,
-                    (long) iparm[IPARM_ORDERING_SWITCH_LEVEL],
-                    (long) iparm[IPARM_ORDERING_CMIN],
-                    (long) iparm[IPARM_ORDERING_CMAX],
-                    ((float)iparm[IPARM_ORDERING_FRAT])/100);
-            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-              print_onempi("Scotch personal strategy |%s|\n", strat);
-          }
-
-        ret = SCOTCH_stratGraphOrder (&stratdat, strat);
-        if (ret == 0)
-          {
-            if (iparm[IPARM_SCHUR] == API_YES ||
-                iparm[IPARM_ISOLATE_ZEROS] == API_YES)
-              {
-                pastix_int_t *tmpperm = NULL;
-                /* Compute graph ordering */
-                ret =
-                  SCOTCH_graphOrderList(grafmesh,
-                                        (SCOTCH_Num)(n-(*pastix_data)->nschur),
-                                        (SCOTCH_Num *) NULL,
-                                        &stratdat,
-                                        (SCOTCH_Num *)  ordemesh->permtab,
-                                        (SCOTCH_Num *)  ordemesh->peritab,
-                                        (SCOTCH_Num *) &ordemesh->cblknbr,
-                                        (SCOTCH_Num *)  ordemesh->rangtab,
-                                        NULL);
-
-                /* Ajouter la permutation du Schur au permtab/peritab
-                   Et un bloc au rangtab.
-                */
-                memFree_null(colptr_schur);
-                memFree_null(rows_schur);
-                ordemesh->rangtab[ordemesh->cblknbr+1] = n;
-                ordemesh->cblknbr++;
-
-                for(iter = n-(*pastix_data)->nschur; iter < n; iter++)
-                  ordemesh->permtab[iter] = iter;
-
-                for(iter = 0; iter < n; iter++)
-                  {
-                    ASSERT(ordemesh->permtab[iter] < n, MOD_SOPALIN);
-                    ASSERT(ordemesh->permtab[iter] > -1, MOD_SOPALIN);
-                    ASSERT(perm_schur[iter] < n, MOD_SOPALIN);
-                    ASSERT(perm_schur[iter] > -1, MOD_SOPALIN);
-                  }
-                MALLOC_INTERN(tmpperm, n, pastix_int_t);
-                for(iter = 0; iter < n; iter++)
-                  tmpperm[iter] = ordemesh->permtab[perm_schur[iter]];
-                memcpy(ordemesh->permtab, tmpperm, n*sizeof(pastix_int_t));
-                memFree_null(tmpperm);
-                memFree_null(perm_schur);
-                for(iter = 0; iter < n; iter++)
-                  ordemesh->peritab[ordemesh->permtab[iter]] = iter;
-                for(iter = 0; iter < n; iter++)
-                  {
-                    ASSERT(ordemesh->peritab[iter] < n, MOD_SOPALIN);
-                    ASSERT(ordemesh->peritab[iter] > -1, MOD_SOPALIN);
-                  }
-                /* rebuild graph for fax */
-                if ((*pastix_data)->malgrf == 1)
-                  {
-                    SCOTCH_graphExit(grafmesh);
-                    (*pastix_data)->malgrf = 0;
-                  }
-                if (SCOTCH_graphBuild(grafmesh,       /* Graph to build     */
-                                      1,              /* baseval            */
-                                      n,              /* Number of vertices */
-                                      (SCOTCH_Num*)*col2,          /* Vertex array       */
-                                      NULL,
-                                      NULL,           /* Array of vertex weights (DOFs) */
-                                      NULL,
-                                      ((*col2)[n]-1), /* Number of arcs     */
-                                      (SCOTCH_Num*)*row2,          /* Edge array         */
-                                      NULL))
-                  {
-                    errorPrint("pastix : graphBuildGraph");
-                    EXIT(MOD_SOPALIN,INTERNAL_ERR);
-                  }
-                (*pastix_data)->malgrf = 1;
-                SCOTCH_graphBase(grafmesh, 0);
-              }
-            else
-              {
-                /* Compute graph ordering */
-                ret = SCOTCH_graphOrderList (grafmesh,
-                                             (SCOTCH_Num)   n,
-                                             (SCOTCH_Num *) NULL,
-                                             &stratdat,
-                                             (SCOTCH_Num *)  ordemesh->permtab,
-                                             (SCOTCH_Num *)  ordemesh->peritab,
-                                             (SCOTCH_Num *) &ordemesh->cblknbr,
-                                             (SCOTCH_Num *)  ordemesh->rangtab,
-                                             NULL);
-              }
-          }
-        SCOTCH_stratExit (&stratdat);
-        if (ret != 0) {           /* If something failed in Scotch */
-          orderExit (ordemesh);    /* Free ordering arrays          */
-          memset(ordemesh, 0, sizeof(Order));
-          retval = INTERNAL_ERR;
-          break;
-        }
-
-        /* Redimensionnement de rangtab a cblknbr */
-        ordemesh->rangtab =
-          (pastix_int_t *) memRealloc (ordemesh->rangtab,
-                              (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
-
-#  ifdef FORGET_PARTITION
-        {
-          memFree_null(ordemesh->rangtab);
-          MALLOC_INTERN(ordemesh->rangtab, n+1, pastix_int_t);
-          for (iter=0;iter<n+1;iter++)
-            ordemesh->rangtab[iter] = iter;
-          ordemesh->cblknbr = n;
-        }
-#  endif
-      }
-#endif /* WITH_SCOTCH */
+      orderComputeScotch( *pastix_data );
+#endif
       break;
 
 
@@ -590,6 +354,7 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
         pastix_int_t  opt[8];
 
         baseval = 1;
+        orderInit(ordemesh, n, 0);
 
         if (sizeof(pastix_int_t) != sizeof(int))
           {
@@ -618,12 +383,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
 
         /*METIS_NodeND(&n,verttab,edgetab,&baseval,opt,
           ordemesh->permtab,ordemesh->peritab);*/
-        METIS_NodeND(&n, *col2, *row2, &baseval,
+        METIS_NodeND(&n, col2, row2, &baseval,
                      opt, ordemesh->peritab, ordemesh->permtab);
-
-        for (itervert=0; itervert<n+1; itervert++)
-          ordemesh->rangtab[itervert] = itervert;
-        ordemesh->cblknbr = n;
       }
 #endif /* METIS */
       break;
@@ -632,13 +393,14 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
        * Personal Ordering
        */
     case API_ORDER_PERSONAL:
+    {
+        orderInit(ordemesh, n, 0);
+        memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
+        memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
 
-      memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
-      memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
-
-      for (iter=0; iter<n+1; iter++)
-        ordemesh->rangtab[iter] = iter;
-      break;
+        orderLoadFiles( *pastix_data );
+    }
+    break;
 
       /*
        * Load ordering with Scotch Format
@@ -653,10 +415,13 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
       break;
     }
 
+  fprintf(stderr, "The number of supernodes found is %ld\n", ordemesh->cblknbr );
+
   MPI_Allreduce(&retval, &retval_rcv, 1, MPI_INT, MPI_MAX, pastix_comm);
   if (retval_rcv != PASTIX_SUCCESS)
     return retval_rcv;
 
+  (*pastix_data)->malord = 1;
   orderBase(ordemesh, 0);
 
   clockStop(timer1);
@@ -684,7 +449,7 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
   return PASTIX_SUCCESS;
 }
 
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
 /*
   Function: dpastix_order_prepare_cscd
 
@@ -900,10 +665,10 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
                          sizeof(pastix_int_t), sizeof(SCOTCH_Num));
       return INTEGER_TYPE_ERR;
     }
-  grafmesh  = &((*pastix_data)->grafmesh);
-  ordedat   = &((*pastix_data)->ordedat);
-  dgraph    = &((*pastix_data)->dgraph);
   ordemesh  = &((*pastix_data)->ordemesh);
+  grafmesh  = &(ordemesh->grafmesh);
+  ordedat   = &(ordemesh->ordedat);
+  dgraph    = &(ordemesh->dgraph);
   procnum   =   (*pastix_data)->procnum;
   n2        = &((*pastix_data)->n2);
   col2      = &((*pastix_data)->col2);
@@ -915,10 +680,10 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
 
   /* On nettoie grafmesh et col2/row2 si ils sont déja alloués */
 #    ifdef WITH_SCOTCH
-  if ((*pastix_data)->malgrf == 1)
+  if (ordemesh->malgrf == 1)
     {
-      SCOTCH_graphExit(grafmesh);
-      (*pastix_data)->malgrf = 0;
+      SCOTCH_graphExit(&(ordemesh->grafmesh));
+      ordemesh->malgrf = 0;
     }
 #    endif
   if ((*pastix_data)->bmalcolrow == 1)
@@ -969,7 +734,7 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
           errorPrint("SCOTCH_dgraphBuild");
           EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
-      (*pastix_data)->malgrf = 1;
+      ordemesh->malgrf = 1;
 
       print_debug(DBG_SCOTCH, "> SCOTCH_dgraphCheck <\n");
       if (SCOTCH_dgraphCheck(dgraph))
@@ -1093,12 +858,12 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
       global2localperm(n, perm, ((*pastix_data)->ordemesh).permtab, loc2glob);
       /* Gathering graph */
       print_debug(DBG_SCOTCH, "> SCOTCH_dgraphGather <\n");
-      SCOTCH_dgraphGather (dgraph, grafmesh);
+      SCOTCH_dgraphGather (dgraph, &(ordemesh->grafmesh));
       SCOTCH_dgraphCorderExit(dgraph, &ordering);
       SCOTCH_dgraphOrderExit(dgraph, ordedat);
       SCOTCH_dgraphExit(dgraph);
 
-      SCOTCH_graphBase(grafmesh, 0);
+      SCOTCH_graphBase(&(ordemesh->grafmesh), 0);
       orderBase(ordemesh, 0);
 
       if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
@@ -1161,7 +926,6 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
         (*pastix_data)->malord=1;
 
         memset(ordemesh->permtab, 0, gN   *sizeof(pastix_int_t));
-        memset(ordemesh->rangtab, 0,(gN+1)*sizeof(pastix_int_t));
 
         memset(tmpperm, 0, gN*sizeof(pastix_int_t));
         for (iter = 0; iter < n; iter++)
@@ -1171,16 +935,11 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
         for (iter = 0; iter < gN; iter++)
           ordemesh->peritab[ordemesh->permtab[iter]] = iter;
 
-        for (iter=0; iter<gN+1; iter++)
-          ordemesh->rangtab[iter] = iter;
-        ordemesh->cblknbr = n;
-
-
         break;
       }
     case API_ORDER_LOAD:
     {
-        orderLoadFiles( pastix_data );
+        orderLoadFiles( *pastix_data );
         break;
     }
 
@@ -1200,4 +959,4 @@ int dpastix_task_scotch(pastix_data_t ** pastix_data,
 #  endif /* WITH_SCOTCH */
   return PASTIX_SUCCESS;
 }
-#endif /* DISTRIBUTED */
+#endif /* PASTIX_DISTRIBUTED */
