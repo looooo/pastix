@@ -5,19 +5,6 @@
 #include <assert.h>
 #include <sys/stat.h>
 
-#define NO_MPI            /** To disable all communications within the local
-                              solver_matrix building (used to run blend in sequential mode **/
-
-#ifndef NO_MPI
-#ifdef FORCE_NOMPI
-#include "nompi.h"
-#else
-#include <mpi.h>
-#endif
-#else
-#define MPI_Comm int
-#endif
-
 #include "common.h"
 #include "dof.h"
 #include "cost.h"
@@ -1601,86 +1588,3 @@ void allSolverMatrixSave(const char *filename, const SymbolMatrix * symbptr, con
 
 }
 
-#ifndef NO_MPI
-#error "Il faut passer le communicateur en parametre"
-void working_array_boundaries(SolverMatrix *solvmtx, MPI_Comm pastix_comm)
-{
-  pastix_int_t i, j, k;
-  pastix_int_t indnum;
-  pastix_int_t cblknum, ftgtnum;
-  pastix_int_t proc_id;   /** My processor id **/
-  pastix_int_t procnbr;  /** The number of processors **/
-
-  SymbolMatrix *symbmtx;
-  pastix_int_t arftmax, nbftmax;
-
-  symbmtx = &(solvmtx->symbmtx);
-
-  MPI_Comm_size(pastix_comm, &procnbr);
-  MPI_Comm_rank(pastix_comm, &proc_id);
-
-  solvmtx->nbftmax = 0;
-  solvmtx->arftmax = 0;
-
-
-
-  /******************************************************/
-  /* Compute the local arftmax and local nbftmax        */
-  /* NOTE: these variables must be used only for 1D     */
-  /******************************************************/
-  /********************************************************************************************************/
-  /** Find nbftmax (Maximum number of ftgt in a COMP_1D) and arftmax (max sum of ftgt size in a COMP_1D) **/
-  /********************************************************************************************************/
-  for(i=0;i<solvmtx->tasknbr;i++)
-    {
-      if(solvmtx->tasktab[i].taskid == COMP_1D)
-        {
-          cblknum = solvmtx->tasktab[i].cblknum;
-          indnum = solvmtx->tasktab[i].indnum;
-
-          for(j=symbmtx->cblktab[cblknum].bloknum+1; j < symbmtx->cblktab[cblknum+1].bloknum ;j++)
-            {
-              nbftmax = 0;
-              arftmax = 0;
-              for(k=j; k < symbmtx->cblktab[cblknum+1].bloknum ;k++)
-                {
-                  ftgtnum = solvmtx->indtab[indnum];
-                  if(ftgtnum >= 0) /** Real ftgt otherwise local add **/
-                    {
-                      nbftmax++;
-                      arftmax += (solvmtx->ftgttab[ftgtnum].infotab[FTGT_LCOLNUM]-solvmtx->ftgttab[ftgtnum].infotab[FTGT_FCOLNUM]+1)*
-                        (solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM]-solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM]+1);
-                    }
-                  indnum++;
-                }
-
-              if(nbftmax > solvmtx->nbftmax)
-                solvmtx->nbftmax = nbftmax;
-
-              if(arftmax > solvmtx->arftmax)
-                solvmtx->arftmax = arftmax;
-
-            }
-        }
-    }
-
-  /** Gather nbftmax  and compute max **/
-
-  nbftmax  = solvmtx->nbftmax;
-  arftmax = solvmtx->arftmax;
-
-  fprintf(stderr, "Proc %ld : nbftmax %ld arftmax %ld \n", (long)proc_id, (long)nbftmax, (long)arftmax);
-
-  MPI_Reduce(&nbftmax, &(solvmtx->nbftmax), 1, COMM_INT, MPI_MAX, 0,  pastix_comm);
-  MPI_Bcast( &(solvmtx->nbftmax), 1, COMM_INT, 0,  pastix_comm);
-  /** Gather arftmax  and compute max **/
-
-  MPI_Reduce(&arftmax, &(solvmtx->arftmax), 1, COMM_INT, MPI_MAX, 0,  pastix_comm);
-  MPI_Bcast( &(solvmtx->arftmax), 1, COMM_INT, 0,  pastix_comm);
-
-  fprintf(stderr, "Proc %ld : GLOBAL MAX nbftmax %ld arftmax %ld \n", (long)proc_id, (long)solvmtx->nbftmax, (long)solvmtx->arftmax);
-
-
-
-}
-#endif
