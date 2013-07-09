@@ -112,49 +112,32 @@ void kass(int            levelk,
       for(i=0;i<n;i++)
         for(j=ia[i];j<ia[i+1];j++)
           ja[j]--;
-      for(i=0;i<n;i++)
-        orderptr->permtab[i]--;
-      for(i=0;i<n;i++)
-        orderptr->peritab[i]--;
     }
+  orderBase( orderptr, 0 );
 
   MALLOC_INTERN(treetab, n, pastix_int_t);
 #ifndef SCOTCH_SNODE
-  /*if(rat != -1 )*/
     {
-      /***** FIND THE SUPERNODE PARTITION FROM SCRATCH ********/
-
-      /*** Find the supernodes of the direct factorization  ***/
-      MALLOC_INTERN(snodetab, n+1, pastix_int_t);
-
-
-      clockInit(timer1);
-      clockStart(timer1);
-      find_supernodes(n, ia, ja, perm, iperm, &snodenbr, snodetab, treetab);
-      clockStop(timer1);
-      print_one("Time to find the supernode (direct) %.3g s \n", clockVal(timer1));
-
-      /*memfree(treetab);*/
-      print_one("Number of supernode for direct factorization %ld \n", (long)snodenbr);
-    }
-#else
-  /*else*/
-    {
-      /***** USE THE SUPERNODE PARTITION OF SCOTCH  ********/
-      snodenbr = orderptr->cblknbr;
-      MALLOC_INTERN(snodetab, n+1, pastix_int_t);
-      memcpy(snodetab, orderptr->rangtab, sizeof(pastix_int_t)*(snodenbr+1));
-      print_one("Number of column block found in scotch (direct) %ld \n", (long)snodenbr);
-
+        /* TODO: The rangtab should be initialized just after perm, invp generation */
+        /***** FIND THE SUPERNODE PARTITION FROM SCRATCH ********/
+        clockInit(timer1);
+        clockStart(timer1);
+        orderFindSupernodes( n, ia, ja, orderptr, treetab );
+        clockStop(timer1);
+        print_one("Time to find the supernode (direct) %.3g s \n", clockVal(timer1));
     }
 #endif
+
+    snodenbr = orderptr->cblknbr;
+    snodetab = orderptr->rangtab;
+    fprintf(stderr, "Number of supernodes found for direct factorization %ld \n", (long)snodenbr);
 
   /****************************************/
   /*  Convert the graph                   */
   /****************************************/
     MALLOC_INTERN(mat, 1, struct SparRow);
-  initCS(mat, n);
-  MALLOC_INTERN(tmpj, n, pastix_int_t);
+    initCS(mat, n);
+    MALLOC_INTERN(tmpj, n, pastix_int_t);
   /**** Convert and permute the matrix in sparrow form  ****/
   /**** The diagonal is not present in the CSR matrix, we have to put it in the matrix ***/
   bzero(tmpj, sizeof(pastix_int_t)*n);
@@ -230,7 +213,6 @@ void kass(int            levelk,
 #endif
   memFree(snodetab);
   orderptr->cblknbr = newcblknbr;
-  memFree(orderptr->rangtab);
   orderptr->rangtab = newrangtab;
 
 }
