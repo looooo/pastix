@@ -469,7 +469,8 @@ enum API_ORDER {
   API_ORDER_SCOTCH    = 0,
   API_ORDER_METIS     = 1,
   API_ORDER_PERSONAL  = 2,
-  API_ORDER_LOAD      = 3
+  API_ORDER_LOAD      = 3,
+  API_ORDER_PTSCOTCH  = 4
 };
 
 /*
