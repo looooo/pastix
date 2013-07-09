@@ -32,9 +32,9 @@ int orderLoadFiles(pastix_data_t *pastix_data)
     /* Load graph if required */
 #if defined(HAVE_SCOTCH)
     if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_GRAPH)) {
-        SCOTCH_Graph *grafmesh = &(pastix_data->grafmesh);
+        SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
 
-        PASTIX_FOPEN(stream, "graphname","r");
+        PASTIX_FOPEN(stream, "graphname", "r");
         if (SCOTCH_graphLoad(grafmesh, stream, 0, 0) != 0) {
             errorPrint ("test: cannot load mesh");
             EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
@@ -105,7 +105,7 @@ int orderSaveFiles(pastix_data_t *pastix_data)
 
 #if defined(HAVE_SCOTCH)
         if (PASTIX_MASK_ISTRUE(strategy, API_IO_SAVE_GRAPH)) {
-            SCOTCH_Graph *grafmesh = &(pastix_data->grafmesh);
+            SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
 
             PASTIX_FOPEN(stream, "graphgen", "w");
             if (SCOTCH_graphSave (grafmesh, stream) != 0) {
