@@ -55,11 +55,9 @@
 #define _FAX_H_
 
 int symbolFaxGraph(SymbolMatrix * const symbptr,
-                   pastix_int_t   baseval,
-                   pastix_int_t   vertnbr,
-                   pastix_int_t * verttab,
-                   pastix_int_t   edgenbr,
-                   pastix_int_t * edgetab,
+                   const pastix_int_t   vertnbr,
+                   const pastix_int_t * verttab,
+                   const pastix_int_t * edgetab,
                    const Order  * const ordeptr);
 
 void pastix_task_symbfact(pastix_data_t *pastix_data,
