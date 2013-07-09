@@ -21,26 +21,23 @@
 **
 ** $Id: symbol_fax_graph.c 285 2005-03-10 10:25:31Z pelegrin $
 */
+/**
+ *
+ * @file symbol_fax_graph.c
+ *
+ *  PaStiX symbolic factorization routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * Part of a parallel direct block solver.  This is the block symbolic
+ * factorization routine for graphs.
+ *
+ * @version 5.1.0
+ * @author Francois Pellegrini
+ * @date 2013-06-24
+ *
 
-/*
-  File: symbol_fax_graph.c
-
-  Part of a parallel direct block solver.
-  This is the block symbolic factorization
-  routine for graphs.
-
-  symbolFaxGraph() could have called
-  symbolFax() in the regular way, as
-  do all of the grid-like factorization
-  routines. However, for efficiency
-  reasons, we have decided to inline
-  symbolFax(), to avoid a function call
-  for every arc.
-
-  Authors:
-    Francois PELLEGRINI
-
-  Dates:
+   Dates:
     Version 0.0 - from 22 jul 1998 to 29 sep 1998
     Version 0.2 - from 08 may 2000 to 09 may 2000
     Version 1.0 - from 01 jun 2002 to 03 jun 2002
@@ -48,75 +45,81 @@
     Version 2.0 - from 21 mar 2003 to 21 mar 2003
     Version 3.0 - from 02 mar 2004 to 02 mar 2004
 
-*/
-
-/*
-**  The defines and includes.
-*/
-
-#define SYMBOL_FAX
-#define SYMBOL_FAX_GRAPH
-
+ **/
 #include "common.h"
 #include "symbol.h"
 #include "order.h"
 #include "fax.h"
 #include "symbol_fax.h"
-
-/***********************************/
-/*                                 */
-/* Symbolic factorization routine. */
-/*                                 */
-/***********************************/
-
-/*
-  Function: symbolFaxGraph
-
-  This routine computes the block symbolic
-  factorization of the given matrix graph
-  according to the given vertex ordering.
-
-  Parameters:
-    symbptr - Symbolic block matrix [based]
-    baseval - Base numbering value (0 or 1)
-    vertnbr - Vertices number
-    verttab - Vertices list
-    edgenbr - Edges number
-    edgetab - Edges list
-    ordeptr - Matrix ordering
-
-  Returns:
-    0  - on success.
-    !0 - on error.
-+*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolFaxGraph - This routine computes the block symbolic factorization of
+ * the given matrix graph according to the given vertex ordering.
+ *
+ * symbolFaxGraph() could have called symbolFax() in the regular way, as do all
+ * of the grid-like factorization routines. However, for efficiency reasons, we
+ * have decided to inline symbolFax(), to avoid a function call for every arc.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] symbptr
+ *          The symbolic matrix structure to fill in.
+ *
+ * @param[in] vertnbr
+ *          The number of vertices.
+ *
+ * @param[in] verttab
+ *          Array of size vertnbr+1
+ *          The array of indirection to the edgetab for each vertex.
+ *          edgetab[ verttab[i] ] to edgetab[ verttab[i+1] are the edges of the
+ *          ith vertex.
+ *
+ * @param[in] edgetab
+ *          Array of size edgenbr = verttab[vertnbr] - verttab[0]. The array of edges.
+ *          edgetab[ verttab[i]   - verttab[0] ] to
+ *          edgetab[ verttab[i+1] - verttab[0] ] are the edges of the ith vertex.
+ *
+ * @param[in] ordeptr
+ *          The ordering structure that contains the permutation and inverse
+ *          permutation vector, as weel as the list of supernodes.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval 0 on success.
+ *          \retval !0 on failure.
+ *
+ *******************************************************************************/
 int
-symbolFaxGraph(SymbolMatrix * const symbptr,
-               pastix_int_t   baseval,
-               pastix_int_t   vertnbr,
-               pastix_int_t * verttab,
-               pastix_int_t   edgenbr,
-               pastix_int_t * edgetab,
-               const Order  * const ordeptr)
+symbolFaxGraph(       SymbolMatrix * const symbptr,
+                      pastix_int_t         vertnbr,
+                const pastix_int_t *       verttab,
+                const pastix_int_t *       edgetab,
+                const Order        * const ordeptr)
 {
-  const pastix_int_t * restrict  verttax;
-  pastix_int_t                   edgenum;
-  const pastix_int_t * restrict  edgetax;
+    pastix_int_t baseval = verttab[0];
+    pastix_int_t edgenbr = verttab[vertnbr] - baseval;
+    const pastix_int_t * verttax;
+    pastix_int_t         edgenum;
+    const pastix_int_t * edgetax;
 
-  verttax = verttab - baseval;
-  edgetax = edgetab - baseval;
+    verttax = verttab - baseval;
+    edgetax = edgetab - baseval;
 
 #define SYMBOL_FAX_ITERATOR(ngbdptr, vertnum, vertend)	\
-  for (edgenum = verttax[vertnum];			\
-       edgenum < verttax[vertnum + 1];			\
-       edgenum ++) {					\
-    vertend = edgetax[edgenum];
+    for (edgenum = verttax[vertnum];			\
+         edgenum < verttax[vertnum + 1];                \
+         edgenum ++) {					\
+        vertend = edgetax[edgenum];
 
 #define SYMBOL_FAX_VERTEX_DEGREE(ngbdptr, vertnum)	\
-  (verttax[(vertnum) + 1] - verttax[(vertnum)])
+    (verttax[(vertnum) + 1] - verttax[(vertnum)])
 
-  {
+    {
 #define SYMBOL_FAX_INCLUDED
 #include "symbol_fax.c"
-  }
+    }
 }
