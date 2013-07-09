@@ -1,5 +1,30 @@
+/**
+ *
+ * @file pastix_task_symbfact.c
+ *
+ *  PaStiX symbolic factorizations routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * Contains wrapper to the symolic factorization step.
+ * Affetcted by the compilation time options:
+ *    - PASTIX_SYMBOL_FORCELOAD: Force to load the symbol matrix from file
+ *    - PASTIX_SYMBOL_DUMP_SYMBMTX: Dump the symbol matrix in a postscript file.
+ *    - COMPACT_SMX: Optimization for solve step (TODO: check if not obsolete)
+ *    - FORGET_PARTITION: Force to forget the precomputed partition
+ *
+ * @version 5.1.0
+ * @author Xavier Lacoste
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ * @precisions normal z -> s d c
+ *
+ **/
+
 /*
- Function: pastix_task_fax
+    Fileunction: pastix_task_fax
 
  Symbolic factorisation.
 
@@ -14,11 +39,11 @@
  */
 #include "common.h"
 #ifdef WITH_SCOTCH
-#  ifdef    DISTRIBUTED
+#  ifdef    PASTIX_DISTRIBUTED
 #    include <ptscotch.h>
 #  else
 #    include <scotch.h>
-#  endif /* DISTRIBUTED */
+#  endif /* PASTIX_DISTRIBUTED */
 #endif /* WITH_SCOTCH */
 
 #include "kass.h"
@@ -26,17 +51,13 @@
 #include "cscd_utils_intern.h"
 #include "fax.h"
 
-void pastix_task_fax(pastix_data_t *pastix_data,
-                     MPI_Comm pastix_comm,
-                     pastix_int_t * perm,
-                     pastix_int_t * invp,
-                     int flagWinvp)
-{
-    (void)pastix_comm;
-    pastix_task_symbfact(pastix_data, perm, invp, flagWinvp);
-}
+void global2localperm(pastix_int_t  lN,
+                      pastix_int_t *lperm,
+                      pastix_int_t *gperm,
+                      pastix_int_t *loc2glob);
 
-#ifdef DISTRIBUTED
+
+#ifdef PASTIX_DISTRIBUTED
 /*
  Function: dpastix_task_fax
 
@@ -61,7 +82,7 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_i
     pastix_int_t   * my_perm = NULL;
     (void)pastix_comm;
 
-    /* Note: for AUTOSPLI_COMM
+    /* Note: for AUTOSPLIT_COMM
      *
      * perm is given by user, of size n,
      * we have to allocate it so that fax can write into it,
@@ -92,9 +113,14 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_i
             MALLOC_INTERN(gperm, gN, pastix_int_t);
             MALLOC_INTERN(ginvp, gN, pastix_int_t);
         }
-        pastix_task_fax(pastix_data, pastix_data->inter_node_comm,
 
-                        gperm, ginvp, flagWinvp);
+        {
+            MPI_Comm tmpcomm = pastix_data->pastix_comm;
+            pastix_data->pastix_comm = pastix_data->inter_node_comm;
+            pastix_task_symbfact( pastix_data,
+                                  gperm, ginvp, flagWinvp);
+            pastix_data->pastix_comm = tmpcomm;
+        }
 
         if (my_n == n)
         {
@@ -133,11 +159,7 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_i
                          NULL, NULL, NULL,
                          &nkass, &colptrkass, &rowkass, NULL,
                          NULL, NULL, NULL,
-#ifdef DISTRIBUTED
                          pastix_data->loc2glob2,
-#else
-                         NULL,
-#endif
                          pastix_data->pastix_comm, pastix_data->iparm[IPARM_DOF_NBR], API_YES);
             memFree_null(colptrkass);
             memFree_null(rowkass);
@@ -147,9 +169,7 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_i
         {
             if (pastix_data->col2      != NULL) memFree_null(pastix_data->col2);
             if (pastix_data->row2      != NULL) memFree_null(pastix_data->row2);
-#ifdef DISTRIBUTED
             if (pastix_data->loc2glob2 != NULL) memFree_null(pastix_data->loc2glob2);
-#endif
             pastix_data->bmalcolrow = 0;
         }
 
@@ -158,17 +178,16 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_i
 
 #endif
 /*
- Function: pastix_task_fax
+ Function: pastix_task_symbfact
 
  Symbolic factorisation.
 
  Parameters:
  pastix_data - PaStiX data structure
- pastix_comm - PaStiX MPI communicator
- n           - Size of the matrix
  perm        - permutation tabular
  invp        - reverse permutation tabular
- flagWinvp   - flag to indicate if we have to print warning concerning perm and invp modification.
+ flagWinvp   - flag to indicate if we have to print warning concerning perm and
+               invp modification.
 
  */
 void pastix_task_symbfact(pastix_data_t *pastix_data,
@@ -184,18 +203,14 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     int            retval = PASTIX_SUCCESS;
     int            retval_rcv;
 
-/* #ifdef WITH_SCOTCH */
-/*     SCOTCH_Graph  * grafmesh   = &(pastix_data->grafmesh); */
-/* #endif */
-/*     FILE          * stream; */
-/* #ifdef DISTRIBUTED */
-/*     PASTIX_INT           * PTS_perm     = pastix_data->PTS_permtab; */
-/*     PASTIX_INT           * PTS_rev_perm = pastix_data->PTS_peritab; */
-/*     PASTIX_INT           * tmpperm      = NULL; */
-/*     PASTIX_INT           * tmpperi      = NULL; */
-/*     PASTIX_INT             gN; */
-/*     PASTIX_INT             i; */
-/* #endif */
+#ifdef PASTIX_DISTRIBUTED
+    PASTIX_INT           * PTS_perm     = pastix_data->PTS_permtab;
+    PASTIX_INT           * PTS_rev_perm = pastix_data->PTS_peritab;
+    PASTIX_INT           * tmpperm      = NULL;
+    PASTIX_INT           * tmpperi      = NULL;
+    PASTIX_INT             gN;
+    PASTIX_INT             i;
+#endif
 
     n        =   pastix_data->n;
     ordemesh = &(pastix_data->ordemesh);
@@ -206,7 +221,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         pastix_print(procnum, 0, "%s", OUT_STEP_FAX);
 
     /* Force Load of symbmtx */
-#if defined(ONLY_LOAD_SYMBMTX)
+#if defined(PASTIX_SYMBOL_FORCELOAD)
     iparm[IPARM_IO_STRATEGY] = API_IO_LOAD;
 #endif
 
@@ -225,7 +240,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         FILE *stream;
 
         /* Load symbol */
-        PASTIX_FOPEN(stream, "symbname","r");
+        PASTIX_FOPEN(stream, "symbname", "r" );
         symbolLoad( pastix_data->symbmtx, stream );
         fclose(stream);
 
@@ -240,7 +255,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     /* not API_IO_LOAD */
     else
     {
-        n = ordemesh->rangtab[ordemesh->cblknbr];
+        assert(ordemesh->rangtab[ordemesh->cblknbr] == n);
 
         /* Check correctness of parameters */
         {
@@ -253,8 +268,26 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
 #endif /* COMPACT_SMX */
             }
 
-            // TODO: Check but the two folowing tests could be removed now
-            /* Force Kass for Personal and Metis ordering */
+            /*
+             * Force the symbolic factorization to be done through Kass if
+             * Scotch has not been used for the ordering, and then the rangtab
+             * array of ordemesh is not initialized.
+             */
+
+            if ( ordemesh->rangtab == NULL )
+            {
+                if ((procnum == 0) && (iparm[IPARM_LEVEL_OF_FILL] != -1))
+                    errorPrintW("Force Kass to be used to generate the supernode list.");
+                iparm[IPARM_LEVEL_OF_FILL] = -1;
+            }
+
+            /*
+             * Force the symbolic factorization to be done through Kass if
+             * Scotch has not been used for the ordering, because the rangtab
+             * array of ordemesh is not correctly initialized in the following
+             * cases
+             */
+            /* Personal and Metis ordering */
             if ((iparm[IPARM_ORDERING] == API_ORDER_PERSONAL) ||
                 (iparm[IPARM_ORDERING] == API_ORDER_METIS)    )
             {
@@ -279,15 +312,14 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         if ((iparm[IPARM_INCOMPLETE]    == API_NO) &&
             (iparm[IPARM_LEVEL_OF_FILL] != -1    ))
         {
-            symbolFaxGraph(pastix_data->symbmtx,                   /* Symbol Matrix   */
-                           pastix_data->col2[0],                   /* baseval         */
-                           pastix_data->n2,                        /* Number of nodes */
-                           pastix_data->col2,                      /* Nodes list      */
-                           pastix_data->col2[pastix_data->n2]-1,   /* Number of edges */
-                           pastix_data->row2,                      /* Edges list      */
+            symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
+                           pastix_data->n2,      /* Number of nodes */
+                           pastix_data->col2,    /* Nodes list      */
+                           pastix_data->row2,    /* Edges list      */
                            ordemesh);
-        } else {
-
+        }
+        else
+        {
             pastix_int_t  nkass;
             pastix_int_t *colptrkass;
             pastix_int_t *rowkass;
@@ -340,7 +372,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
 
         symbolBase(pastix_data->symbmtx,0);
 
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
         if (PTS_perm != NULL)
         {
             gN = n;
@@ -361,7 +393,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
             memFree_null(PTS_perm);
             memFree_null(PTS_rev_perm);
         }
-#endif /* DISTRIBUTED */
+#endif /* PASTIX_DISTRIBUTED */
 
         /* WARNING : perm and invp can now be modified during symbolic factorization ??? */
         if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
@@ -381,10 +413,10 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
             pastix_data->bmalcolrow = 0;
         }
 #if defined(HAVE_SCOTCH)
-        if (pastix_data->malgrf)
+        if (ordemesh->malgrf)
         {
-            SCOTCH_graphExit(&(pastix_data->grafmesh));
-            pastix_data->malgrf = 0;
+            SCOTCH_graphExit(&(ordemesh->grafmesh));
+            ordemesh->malgrf = 0;
         }
 #endif
     } /* not API_IO_LOAD */
@@ -400,7 +432,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         fclose(stream);
     }
 
-#ifdef DUMP_SYMBOLMATRIX
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     if (pastix_data->procnum == 0)
     {
         FILE *stream;
