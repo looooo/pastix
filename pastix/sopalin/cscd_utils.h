@@ -121,9 +121,9 @@ pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr
  *   l2g         - global number of each local column.
  *   malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
-int cscd_symgraph(pastix_int_t      n, pastix_int_t *     ia, pastix_int_t *     ja, pastix_float_t *     a,
+int cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_float_t *a,
                   pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
-                  pastix_int_t *     l2g,  MPI_Comm comm);
+                  const pastix_int_t *     l2g,  MPI_Comm comm);
 /*
  * Function: cscd_addlocal
  *

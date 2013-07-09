@@ -1,7 +1,7 @@
 #ifndef CSCD_UTILS_INTERN_H
 #define CSCD_UTILS_INTERN_H
-int cscd_addlocal_int(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   , pastix_int_t * l2g,
-                      pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda, pastix_int_t * addl2g,
+int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pastix_int_t *  ja   , const pastix_float_t *  a   , const pastix_int_t * l2g,
+                      pastix_int_t   addn, const pastix_int_t *  addia, const pastix_int_t *  addja, const pastix_float_t *  adda, const pastix_int_t * addl2g,
                       pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
                       pastix_float_t (*add_fct)(pastix_float_t , pastix_float_t), int dof, int malloc_flag);
 
@@ -43,9 +43,9 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
                         pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da, pastix_float_t ** drhs, pastix_int_t *  dl2g,
                         int  malloc_flag, MPI_Comm comm, pastix_int_t dof);
 
-int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t *        ja, pastix_float_t *     a,
-                      pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
-                      pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag);
+int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_float_t *a,
+                      pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **  newja, pastix_float_t ** newa,
+                      const pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag);
 
 
 /*
@@ -69,7 +69,7 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
     comm     - MPI communicator
  */
 int cscd_build_g2l(pastix_int_t       ncol,
-                   pastix_int_t      *loc2glob,
+                   const pastix_int_t      *loc2glob,
                    MPI_Comm  comm,
                    pastix_int_t      *gN,
                    pastix_int_t     **g2l);
@@ -88,7 +88,7 @@ int cscd_build_g2l(pastix_int_t       ncol,
      l2g         - local 2 global column numbers for first cscd
 
 */
-int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, pastix_int_t * l2g);
+int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, const pastix_int_t * l2g);
 
 
 /*

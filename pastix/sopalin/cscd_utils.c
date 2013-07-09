@@ -310,11 +310,11 @@ pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr
 #ifndef cscd_build_g2l
 #  error "redefinition required"
 #endif
-int cscd_build_g2l(pastix_int_t       ncol,
-                   pastix_int_t      *loc2glob,
-                   MPI_Comm  comm,
-                   pastix_int_t      *gN,
-                   pastix_int_t     **g2l)
+int cscd_build_g2l(pastix_int_t        ncol,
+                   const pastix_int_t *loc2glob,
+                   MPI_Comm            comm,
+                   pastix_int_t       *gN,
+                   pastix_int_t      **g2l)
 {
   int commRank;
   int commSize;
@@ -339,16 +339,15 @@ int cscd_build_g2l(pastix_int_t       ncol,
       if (commRank == i)
         {
           nrecv   = ncol;
-          l2grecv = loc2glob;
 
           MPI_Bcast(&nrecv,      1, PASTIX_MPI_INT, i, comm);
           if (nrecv > 0)
             {
-              MPI_Bcast(l2grecv, nrecv, PASTIX_MPI_INT, i, comm);
+                MPI_Bcast((void*)loc2glob, nrecv, PASTIX_MPI_INT, i, comm);
 
               for(j = 0; j < nrecv; j++)
                 {
-                  (*g2l)[l2grecv[j]-1] = j+1;
+                  (*g2l)[loc2glob[j]-1] = j+1;
                 }
             }
         }
@@ -832,9 +831,9 @@ int cscd_checksym(pastix_int_t      n,
 #ifndef cscd_symgraph
 #  error "redefinition required"
 #endif
-int cscd_symgraph(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t *        ja, pastix_float_t *     a,
+int cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_float_t *     a,
                   pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
-                  pastix_int_t *  l2g, MPI_Comm comm)
+                  const pastix_int_t *  l2g, MPI_Comm comm)
 {
   return cscd_symgraph_int(n,    ia,    ja,    a,
                            newn, newia, newja, newa,
@@ -866,9 +865,9 @@ int cscd_symgraph(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t *   
 #ifndef cscd_symgraph_int
 #  error "redefinition required"
 #endif
-int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t *        ja, pastix_float_t *     a,
+int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const pastix_int_t *        ja, const pastix_float_t *     a,
                       pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
-                      pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag)
+                      const pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag)
 {
   int            commSize;
   int            proc;
@@ -890,7 +889,6 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
   pastix_int_t            tmpn;
   pastix_int_t         *  tmpia      = NULL;
   pastix_int_t         *  tmpja      = NULL;
-  pastix_int_t         *  tmpl2g     = NULL;
   pastix_int_t         *  g2l        = NULL;
   pastix_int_t            colnum;
   pastix_int_t            rownum;
@@ -1080,7 +1078,6 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
     added[i] = 0;
 
   /* On ajoute les elements recus */
-  tmpl2g = l2g;
   for (i = 0; i < commSize ; i++){
     if (i != commRank) {
       for (j = 0; j < torecvsize[i]; j++)
@@ -1134,7 +1131,7 @@ int cscd_symgraph_int(pastix_int_t      n, pastix_int_t *      ia, pastix_int_t 
   memFree_null(added);
   /* On ajoute les 2 cscd */
   cscd_addlocal_int(n   , ia   , ja   , a   , l2g,
-                    tmpn, tmpia, tmpja, NULL, tmpl2g,
+                    tmpn, tmpia, tmpja, NULL, l2g,
                     newn, newia, newja, newa, &add_two_floats, 1, malloc_flag);
   memFree_null(tmpia);
   memFree_null(tmpja);
@@ -1287,10 +1284,10 @@ int cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja
 #ifndef cscd_addlocal_int
 #  error "redefinition required"
 #endif
-int cscd_addlocal_int(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   ,
-                      pastix_int_t * l2g,
-                      pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda,
-                      pastix_int_t * addl2g,
+int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pastix_int_t *  ja   , const pastix_float_t *  a   ,
+                      const pastix_int_t * l2g,
+                      pastix_int_t   addn, const pastix_int_t *  addia, const pastix_int_t *  addja, const pastix_float_t *  adda,
+                      const pastix_int_t * addl2g,
                       pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
                       pastix_float_t (*add_fct)(pastix_float_t , pastix_float_t), int dof,
                       int malloc_flag)
@@ -1327,7 +1324,7 @@ int cscd_addlocal_int(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *
           for (j = addia[i2] - baseval; j < addia[i2+1] - baseval; j++)
             {
               pastix_int_t index;
-              pastix_int_t *searchTab = &(ja[ia[i] - baseval]);
+              const pastix_int_t *searchTab = &(ja[ia[i] - baseval]);
               pastix_int_t searchTabSize = ia[i+1] - ia[i];
               searchInList(addja[j], searchTab, searchTabSize, index);
               if (index < 0)
@@ -2598,7 +2595,7 @@ void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
 #ifndef cscd_noDiag
 #  error "redefinition required"
 #endif
-int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, pastix_int_t * l2g)
+int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, const pastix_int_t * l2g)
 {
   pastix_int_t     i;
   pastix_int_t     j;
