@@ -1,78 +1,78 @@
-/* Copyright INRIA 2004
-**
-** This file is part of the Scotch distribution.
-**
-** The Scotch distribution is libre/free software; you can
-** redistribute it and/or modify it under the terms of the
-** GNU Lesser General Public License as published by the
-** Free Software Foundation; either version 2.1 of the
-** License, or (at your option) any later version.
-**
-** The Scotch distribution is distributed in the hope that
-** it will be useful, but WITHOUT ANY WARRANTY; without even
-** the implied warranty of MERCHANTABILITY or FITNESS FOR A
-** PARTICULAR PURPOSE. See the GNU Lesser General Public
-** License for more details.
-**
-** You should have received a copy of the GNU Lesser General
-** Public License along with the Scotch distribution; if not,
-** write to the Free Software Foundation, Inc.,
-** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-**
-** $Id: order.c 2 2004-06-02 14:05:03Z ramet $
-*/
-/************************************************************/
-/**                                                        **/
-/**   NAME       : order.c                                 **/
-/**                                                        **/
-/**   AUTHORS    : Francois PELLEGRINI                     **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                This module computes orderings.         **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 20 aug 1998     **/
-/**                                 to     24 sep 1998     **/
-/**                                                        **/
-/************************************************************/
-
-/*
-**  The defines and includes.
-*/
-
+/**
+ *
+ * @file order.c
+ *
+ *  PaStiX order routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * Contains functions to init/clean the order structure.
+ *
+ * @version 5.1.0
+ * @author Francois Pellegrini
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
 #include "order.h"
 
-/***********************************/
-/*                                 */
-/* The ordering handling routines. */
-/*                                 */
-/***********************************/
-
-/* This routine initializes the given
-** ordering structure.
-** It returns:
-** - 0  : in all cases.
-*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * orderInit - Initialize the order structure. The base value is set to 0 by
+ * default.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] ordeptr
+ *          The data structure to initialize.
+ *
+ * @param[in] vertnbr
+ *          The number of nodes, this is the size of the internal permtab and
+ *          peritab arrays.
+ *
+ * @param[in] cblknbr
+ *          The number of supernodes. The internal rangtab array is of size
+ *          cblknbr+1.
+ *          If cblknbr == 0, rangtab is not allocated.
+ *
+ *******************************************************************************/
 int orderInit ( Order * const ordeptr,
-                pastix_int_t cblknbr,
-                pastix_int_t vertnbr)
+                pastix_int_t vertnbr,
+                pastix_int_t cblknbr)
 {
     memset(ordeptr, 0, sizeof(Order));
 
-    MALLOC_INTERN(ordeptr->permtab, vertnbr,   pastix_int_t);
-    MALLOC_INTERN(ordeptr->peritab, vertnbr,   pastix_int_t);
-    MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
+    ordeptr->vertnbr = vertnbr;
+    ordeptr->cblknbr = cblknbr;
+
+    if (vertnbr != 0) {
+        MALLOC_INTERN(ordeptr->permtab, vertnbr, pastix_int_t);
+        MALLOC_INTERN(ordeptr->peritab, vertnbr, pastix_int_t);
+    }
+
+    if (cblknbr != 0) {
+        MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
+    }
 
     return PASTIX_SUCCESS;
 }
 
-/* This routine frees the contents
-** of the given ordering.
-** It returns:
-** - VOID  : in all cases.
-*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * orderExit - Free the arrays initialized in the order structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] ordeptr
+ *          The data structure to clean.
+ *
+ *******************************************************************************/
 void orderExit (Order * const ordeptr)
 {
     if (ordeptr->rangtab != NULL)
@@ -82,7 +82,5 @@ void orderExit (Order * const ordeptr)
     if (ordeptr->peritab != NULL)
         memFree_null (ordeptr->peritab);
 
-#ifdef ORDER_DEBUG
-    memSet (ordeptr, ~0, sizeof (Order));
-#endif /* ORDER_DEBUG */
+    memset(ordeptr, 0, sizeof(Order) );
 }
