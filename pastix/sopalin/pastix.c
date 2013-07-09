@@ -3202,9 +3202,12 @@ void pastix(pastix_data_t **pastix_data,
               }
 
           }
-        if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data,
-                                                (*pastix_data)->inter_node_comm,
-                                                n, colptr, row, perm, invp)))
+        /* if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data, */
+        /*                                         (*pastix_data)->inter_node_comm, */
+        /*                                         n, colptr, row, perm, invp))) */
+        // TODO: (*pastix_data)->inter_node_comm,
+        if (PASTIX_SUCCESS != (ret = pastix_task_order( *pastix_data,
+                                                        n, colptr, row, NULL, perm, invp)))
           {
             iparm[IPARM_ERROR_NUMBER] = ret;
             WAIT_AND_RETURN;
@@ -3495,11 +3498,38 @@ void dpastix(pastix_data_t **pastix_data,
   if (iparm[IPARM_START_TASK] == API_TASK_ORDERING) /* scotch task */
     {
 
+      /* if (iparm[IPARM_GRAPHDIST] == API_YES) */
+      /*   { */
+      /*     if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data, pastix_comm, */
+      /*                                              n, colptr, row, */
+      /*                                              perm, invp, loc2glob))) */
+      /*       { */
+      /*         errorPrint("Error in ordering task\n"); */
+      /*         iparm[IPARM_ERROR_NUMBER] = ret; */
+      /*         return; */
+      /*       } */
+      /*   } */
+      /* else */
+      /*   { */
+      /*     if ((*pastix_data)->intra_node_procnum == 0) { */
+      /*       if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data, */
+      /*                                               (*pastix_data)->inter_node_comm, */
+      /*                                               n, colptr, row, */
+      /*                                               perm, invp))) */
+      /*         { */
+      /*           errorPrint("Error in ordering task\n"); */
+      /*           iparm[IPARM_ERROR_NUMBER] = ret; */
+      /*         } */
+      /*     } */
+      /*     SYNC_IPARM; */
+      /*     if (iparm[IPARM_ERROR_NUMBER] != PASTIX_SUCCESS) */
+      /*       return; */
+      /*   } */
       if (iparm[IPARM_GRAPHDIST] == API_YES)
         {
-          if (PASTIX_SUCCESS != (ret = dpastix_task_scotch(pastix_data, pastix_comm,
-                                                   n, colptr, row,
-                                                   perm, invp, loc2glob)))
+          if (PASTIX_SUCCESS != (ret = pastix_task_order(*pastix_data,
+                                                         n, colptr, row, loc2glob,
+                                                         perm, invp)))
             {
               errorPrint("Error in ordering task\n");
               iparm[IPARM_ERROR_NUMBER] = ret;
@@ -3509,10 +3539,9 @@ void dpastix(pastix_data_t **pastix_data,
       else
         {
           if ((*pastix_data)->intra_node_procnum == 0) {
-            if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data,
-                                                    (*pastix_data)->inter_node_comm,
-                                                    n, colptr, row,
-                                                    perm, invp)))
+            if (PASTIX_SUCCESS != (ret = pastix_task_scotch(*pastix_data,
+                                                            n, colptr, row, NULL,
+                                                            perm, invp)))
               {
                 errorPrint("Error in ordering task\n");
                 iparm[IPARM_ERROR_NUMBER] = ret;
