@@ -42,9 +42,19 @@
 /* Ordering options */
 #cmakedefine PASTIX_ORDERING_SCOTCH
 #cmakedefine PASTIX_ORDERING_METIS
+#cmakedefine PASTIX_ORDERING_PTSCOTCH
+
+/* Symbolic factorization options */
+#cmakedefine PASTIX_SYMBOL_FORCELOAD
+#cmakedefine PASTIX_SYMBOL_DUMP_SYMBMTX
+
+#cmakedefine FORGET_PARTITION
+#cmakedefine COMPACT_SMX
 
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
+#cmakedefine PASTIX_DISTRIBUTED
+
 
 #if defined(PASTIX_INT64)
 #define FORCE_INT64
@@ -65,6 +75,10 @@
 #if defined(PASTIX_ORDERING_SCOTCH)
 #define HAVE_SCOTCH
 #define WITH_SCOTCH
+#endif
+
+#if defined(PASTIX_ORDERING_PTSCOTCH)
+#define HAVE_PTSCOTCH
 #endif
 
 #endif  /* _PASTIX_CONFIG_H_ */
