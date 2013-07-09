@@ -67,7 +67,7 @@ int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_
     Returns:
       ia and ja tabulars modified.
 */
-void csc_noDiag(pastix_int_t baseval, pastix_int_t n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_float_t *a);
+void csc_noDiag(pastix_int_t baseval, pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a);
 
 /*
   Function: csc_check_doubles
