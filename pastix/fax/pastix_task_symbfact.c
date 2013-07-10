@@ -212,9 +212,9 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     PASTIX_INT             i;
 #endif
 
-    n        =   pastix_data->n;
-    ordemesh = &(pastix_data->ordemesh);
-    procnum  =   pastix_data->procnum;
+    n        = pastix_data->n;
+    ordemesh = pastix_data->ordemesh;
+    procnum  = pastix_data->procnum;
 
     print_debug(DBG_STEP, "-> pastix_task_symbfact\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)

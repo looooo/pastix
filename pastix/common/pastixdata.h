@@ -76,7 +76,7 @@ struct pastix_data_s {
                                          /*+ (index of first element of each col in row and values tabulars)     +*/
     pastix_int_t    *row2;               /*+ tabular containing row number of each element of                    +*/
     pastix_int_t    *loc2glob2;          /*+ local2global column number                                          +*/
-    Order            ordemesh;           /*+ Order                                                               +*/
+    Order           *ordemesh;           /*+ Order                                                               +*/
     SymbolMatrix    *symbmtx;            /*+ Symbol Matrix                                                       +*/
 
     SolverMatrix     solvmatr;           /*+ Matrix informations                                                 +*/

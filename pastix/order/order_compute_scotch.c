@@ -23,7 +23,7 @@
 
 int orderComputeScotch(pastix_data_t *pastix_data)
 {
-    Order        *ordemesh = &(pastix_data->ordemesh);
+    Order        *ordemesh = pastix_data->ordemesh;
     SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
     SCOTCH_Strat  stratdat;
     char          strat[1024];
@@ -58,8 +58,7 @@ int orderComputeScotch(pastix_data_t *pastix_data)
         /* Allocate separate pointers for shur complement */
         MALLOC_INTERN(colptr_schur, n+1,   pastix_int_t);
         MALLOC_INTERN(rows_schur,   nnz,   pastix_int_t);
-        MALLOC_INTERN(perm_schur,   n,     pastix_int_t);
-        MALLOC_INTERN(invp_schur,   n,     pastix_int_t);
+        MALLOC_INTERN(perm_schur,   n,     pastix_int_t);        MALLOC_INTERN(invp_schur,   n,     pastix_int_t);
 
         /* Backup colptr and rows */
         memcpy(colptr_schur, colptr, (n+1)*sizeof(pastix_int_t));

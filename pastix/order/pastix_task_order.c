@@ -64,18 +64,20 @@ int pastix_task_order(pastix_data_t *pastix_data,
     int            retval = PASTIX_SUCCESS;
     int            retval_rcv;
 
-    ordemesh = &(pastix_data->ordemesh);
-    procnum  =   pastix_data->procnum;
+    /* Clean ordering if it exists */
+    if (pastix_data->ordemesh != NULL) {
+        orderExit(pastix_data->ordemesh);
+    } else {
+        MALLOC_INTERN( pastix_data->ordemesh, 1, Order );
+    }
+
+    ordemesh = pastix_data->ordemesh;
+    procnum  = pastix_data->procnum;
+    orderInit( ordemesh, 0, 0 );
 
     print_debug(DBG_STEP, "-> pastix_task_order\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print(procnum, 0, "%s", OUT_STEP_ORDER);
-
-    /* Clean ordering if it exists */
-    if (pastix_data->malord) {
-        orderExit(ordemesh);
-        pastix_data->malord = 0;
-    }
 
     /*
      * Prepare a copy of user's CSC

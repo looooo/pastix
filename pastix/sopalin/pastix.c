@@ -489,7 +489,7 @@ int buildUpdoVect(pastix_data_t *pastix_data,
 {
   pastix_int_t           * iparm    = pastix_data->iparm;
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
-  Order         * ordemesh = &(pastix_data->ordemesh);
+  Order         * ordemesh = pastix_data->ordemesh;
   pastix_int_t             procnum  = pastix_data->procnum;
   pastix_int_t           * invp     = ordemesh->peritab;
   (void)loc2glob;
@@ -1350,7 +1350,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
 {
   pastix_int_t            *iparm    = pastix_data->iparm;
   SolverMatrix   *solvmatr = &(pastix_data->solvmatr);
-  Order          *ordemesh = &(pastix_data->ordemesh);
+  Order          *ordemesh = pastix_data->ordemesh;
   pastix_int_t            *l_colptr = NULL;
   pastix_int_t            *l_row    = NULL;
   pastix_float_t          *l_val    = NULL;
@@ -1658,7 +1658,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
   pastix_int_t           * iparm    = pastix_data->iparm;
   double        * dparm    = pastix_data->dparm;
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
-  Order         * ordemesh = &(pastix_data->ordemesh);
+  Order         * ordemesh = pastix_data->ordemesh;
   SopalinParam  * sopar    = &(pastix_data->sopar);
   pastix_int_t             procnum  = pastix_data->inter_node_procnum;
   int             ret = 0;
@@ -2147,7 +2147,7 @@ void pastix_task_updown(pastix_data_t *pastix_data,
   double        * dparm    = pastix_data->dparm;
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
   SopalinParam  * sopar    = &(pastix_data->sopar);
-  Order         * ordemesh = &(pastix_data->ordemesh);
+  Order         * ordemesh = pastix_data->ordemesh;
   pastix_int_t             procnum  = pastix_data->procnum;
   double          ssolvtime,rsolvtime;
 
@@ -2303,7 +2303,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
   double        * dparm    = pastix_data->dparm;
   SopalinParam  * sopar    = &(pastix_data->sopar);
   SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
-  Order         * ordemesh = &(pastix_data->ordemesh);
+  Order         * ordemesh = pastix_data->ordemesh;
   double          srafftime,rrafftime;
   pastix_int_t             procnum  = pastix_data->procnum;;
   pastix_float_t         * tmp;
@@ -2472,7 +2472,6 @@ void pastix_task_clean(pastix_data_t **pastix_data,
 {
   pastix_int_t             i;
   pastix_int_t           * iparm    = (*pastix_data)->iparm;
-  Order         * ordemesh = &((*pastix_data)->ordemesh);
   SopalinParam  * sopar    = &((*pastix_data)->sopar);
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
 #ifdef PASTIX_DEBUG
@@ -2592,10 +2591,10 @@ void pastix_task_clean(pastix_data_t **pastix_data,
   }
 #endif
 
-  if ((*pastix_data)->malord)
+  if ((*pastix_data)->ordemesh != NULL)
     {
-      orderExit(ordemesh);
-      (*pastix_data)->malord=0;
+        orderExit((*pastix_data)->ordemesh);
+        (*pastix_data)->ordemesh = NULL;
     }
 
   if ((*pastix_data)->malcsc)
@@ -2927,7 +2926,7 @@ void pastix(pastix_data_t **pastix_data,
       pastix_int_t *permz      = NULL;
       pastix_int_t *revpermz      = NULL;
       int  ret;
-      Order *ordemesh = &((*pastix_data)->ordemesh);
+      Order *ordemesh = (*pastix_data)->ordemesh;
       Order *order    = NULL;
       pastix_int_t  iter;
 
@@ -3395,7 +3394,7 @@ void dpastix(pastix_data_t **pastix_data,
 
       /* if (iparm[IPARM_GRAPHDIST] == API_YES) */
       /*   { */
-      /*     if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data, pastix_comm, */
+      /*     if (PASTIX_SUCCESS != (ret = dpastix_task_scotch(pastix_data, pastix_comm, */
       /*                                              n, colptr, row, */
       /*                                              perm, invp, loc2glob))) */
       /*       { */
@@ -3434,9 +3433,9 @@ void dpastix(pastix_data_t **pastix_data,
       else
         {
           if ((*pastix_data)->intra_node_procnum == 0) {
-            if (PASTIX_SUCCESS != (ret = pastix_task_scotch(*pastix_data,
-                                                            n, colptr, row, NULL,
-                                                            perm, invp)))
+              if (PASTIX_SUCCESS != (ret = pastix_task_order(*pastix_data,
+                                                             n, colptr, row, NULL,
+                                                             perm, invp)))
               {
                 errorPrint("Error in ordering task\n");
                 iparm[IPARM_ERROR_NUMBER] = ret;
@@ -4294,7 +4293,7 @@ pastix_int_t pastix_getLocalUnknownLst(pastix_data_t **pastix_data,
 {
 
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
-  Order         * ordemesh = &((*pastix_data)->ordemesh);
+  Order         * ordemesh = (*pastix_data)->ordemesh;
   pastix_int_t index;
   pastix_int_t index2;
   pastix_int_t index3;
@@ -4331,7 +4330,7 @@ pastix_int_t pastix_getLocalNodeLst(pastix_data_t **pastix_data,
 {
 
   SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
-  Order         * ordemesh = &((*pastix_data)->ordemesh);
+  Order         * ordemesh = (*pastix_data)->ordemesh;
   pastix_int_t index;
   pastix_int_t index2;
   pastix_int_t index3;
@@ -4485,7 +4484,7 @@ pastix_int_t pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, pastix_in
   pastix_int_t            dof;
   pastix_int_t            intern_index_dof;
   datacode = &(pastix_data->solvmatr);
-  ordemesh = &(pastix_data->ordemesh);
+  ordemesh = pastix_data->ordemesh;
 
   if (SOLV_TASKNBR > 0)
     {
@@ -4537,7 +4536,7 @@ pastix_int_t pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data, pastix
   pastix_int_t            dof;
   pastix_int_t            intern_index_dof;
   datacode = &(pastix_data->solvmatr);
-  ordemesh = &(pastix_data->ordemesh);
+  ordemesh = pastix_data->ordemesh;
 
   if (SOLV_TASKNBR > 0)
     {

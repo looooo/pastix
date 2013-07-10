@@ -22,9 +22,9 @@
 
 int orderLoadFiles(pastix_data_t *pastix_data)
 {
-    pastix_int_t *iparm    =   pastix_data->iparm;
-    Order        *ordemesh = &(pastix_data->ordemesh);
-    pastix_int_t  procnum  =   pastix_data->procnum;
+    pastix_int_t *iparm    = pastix_data->iparm;
+    Order        *ordemesh = pastix_data->ordemesh;
+    pastix_int_t  procnum  = pastix_data->procnum;
     FILE *stream;
     int   retval = PASTIX_SUCCESS;
     int   strategy = iparm[IPARM_IO_STRATEGY];
@@ -96,9 +96,9 @@ int orderLoadFiles(pastix_data_t *pastix_data)
 
 int orderSaveFiles(pastix_data_t *pastix_data)
 {
-    pastix_int_t *iparm    =   pastix_data->iparm;
-    Order        *ordemesh = &(pastix_data->ordemesh);
-    pastix_int_t  procnum  =   pastix_data->procnum;
+    pastix_int_t *iparm    = pastix_data->iparm;
+    Order        *ordemesh = pastix_data->ordemesh;
+    pastix_int_t  procnum  = pastix_data->procnum;
     FILE *stream;
     int   retval = PASTIX_SUCCESS;
     int   strategy = iparm[IPARM_IO_STRATEGY];
