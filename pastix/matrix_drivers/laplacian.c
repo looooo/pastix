@@ -48,7 +48,7 @@ int genlaplacian(pastix_int_t     n,
   pastix_int_t i;
   pastix_int_t j;
 
-  *nnzeros = 3*n - 2;
+  *nnzeros = 2*n - 1;
   *ia      = NULL;
   *ja      = NULL;
   *avals   = NULL;
