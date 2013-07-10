@@ -481,6 +481,9 @@ set(PASTIX_LIB_SRCS
   order/order_prepare_csc.c
   #
   fax/symbol_fax_graph.c
+  #
+  csc/csc_isolate.c
+  #
 
 # Files that still require some changes
 
