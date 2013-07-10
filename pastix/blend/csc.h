@@ -179,10 +179,10 @@ typedef struct CscFormat_ CscFormat;
 */
 struct CscMatrix_ {
   pastix_int_t         cscfnbr;
-  CscFormat * cscftab;
+  CscFormat          * cscftab;
   pastix_int_t       * rowtab;
   pastix_float_t     * valtab;
-  char         type;
+  char                 type;
 };
 /*
   Type: CscMatrix
@@ -190,4 +190,5 @@ struct CscMatrix_ {
   See <CscMatrix_> structure.
 */
 typedef struct CscMatrix_ CscMatrix;
+
 #endif /* CSC_H */
