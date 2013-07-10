@@ -254,6 +254,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
             pastix_data->n2   = csc.n;
             pastix_data->col2 = csc.colptr;
             pastix_data->row2 = csc.rows;
+            pastix_data->loc2glob2 = csc.loc2glob;
         }
     }
     /* not API_IO_LOAD */
