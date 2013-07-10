@@ -21,7 +21,7 @@
 #include "scotch_strats.h"
 #include "cscd_utils_intern.h"
 
-int orderComputePTScotch(pastix_data_t *pastix_data)
+int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
 {
     SCOTCH_Dordering ordedat;
     SCOTCH_Ordering  ordering;
@@ -48,10 +48,10 @@ int orderComputePTScotch(pastix_data_t *pastix_data)
         return INTEGER_TYPE_ERR;
     }
 
-    gN     = pastix_data->gN;
-    n      = pastix_data->n2;
-    colptr = pastix_data->col2;
-    rows   = pastix_data->row2;
+    gN     = csc->gN;
+    n      = csc->n;
+    colptr = csc->colptr;
+    rows   = csc->rows;
     nnz    = colptr[n] - 1;
 
     /* Build distributed graph */
@@ -63,7 +63,7 @@ int orderComputePTScotch(pastix_data_t *pastix_data)
                              colptr[0],    /* baseval */
                              n,            /* number of local vertices */
                              n,            /* Maximum number of local vertices     */
-                             col2,
+                             colptr,
                              NULL,
                              NULL,         /* Local vertex load array (if any)     */
                              NULL,         /* Local vertex label array (if any)    */
@@ -158,7 +158,6 @@ int orderComputePTScotch(pastix_data_t *pastix_data)
 
     orderInit(ordemesh, gN, gN);
     memset( ordemesh->rangtab, 0, (gN+1)*sizeof(pastix_int_t));
-    pastix_data->malord = 1;
 
     SCOTCH_dgraphCorderInit (&dgraph,
                              &ordering,

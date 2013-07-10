@@ -20,7 +20,7 @@
 #endif
 #include "csc_utils.h"
 
-int orderLoadFiles(pastix_data_t *pastix_data)
+int orderLoadFiles( pastix_data_t *pastix_data, pastix_csc_t *csc )
 {
     pastix_int_t *iparm    = pastix_data->iparm;
     Order        *ordemesh = pastix_data->ordemesh;
@@ -56,10 +56,9 @@ int orderLoadFiles(pastix_data_t *pastix_data)
         pastix_int_t *colptr, *rows;
         int dof = 1;
 
-        if (pastix_data->col2      != NULL) memFree_null(pastix_data->col2);
-        if (pastix_data->row2      != NULL) memFree_null(pastix_data->row2);
-        if (pastix_data->loc2glob2 != NULL) memFree_null(pastix_data->loc2glob2);
-        pastix_data->bmalcolrow = 0;
+        if (csc->colptr   != NULL) memFree_null(csc->colptr);
+        if (csc->rows     != NULL) memFree_null(csc->rows);
+        if (csc->loc2glob != NULL) memFree_null(csc->loc2glob);
 
         if (procnum == 0) {
             //TODO
@@ -85,16 +84,16 @@ int orderLoadFiles(pastix_data_t *pastix_data)
         MPI_Bcast(rows, colptr[ncol]-colptr[0], PASTIX_MPI_INT,
                   0, pastix_data->pastix_comm);
 
-        pastix_data->n2   = ncol;
-        pastix_data->col2 = colptr;
-        pastix_data->row2 = rows;
-
-        pastix_data->bmalcolrow = 1;
+        csc->n        = ncol;
+        csc->gN       = ncol;
+        csc->colptr   = colptr;
+        csc->rows     = rows;
+        csc->loc2glob = NULL;
     }
     return retval;
 }
 
-int orderSaveFiles(pastix_data_t *pastix_data)
+int orderSaveFiles( pastix_data_t *pastix_data )
 {
     pastix_int_t *iparm    = pastix_data->iparm;
     Order        *ordemesh = pastix_data->ordemesh;

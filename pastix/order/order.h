@@ -15,6 +15,7 @@
 #ifndef _ORDER_H_
 #define _ORDER_H_
 
+#include "toto_csc.h"
 #if defined(HAVE_SCOTCH)
 #include <scotch.h>
 #endif
@@ -53,10 +54,12 @@ int  orderSave (const Order * const ordeptr, FILE * const stream);
 void orderBase (      Order * const ordeptr, pastix_int_t baseval);
 int  orderCheck(const Order * const ordeptr);
 
-int orderComputeScotch(pastix_data_t *pastix_data);
-int orderComputeMetis( pastix_data_t *pastix_data);
-int orderLoadFiles(    pastix_data_t *pastix_data);
-int orderSaveFiles(    pastix_data_t *pastix_data);
+int orderComputeScotch(   pastix_data_t *pastix_data, const pastix_csc_t *csc );
+int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc );
+int orderComputeMetis(    pastix_data_t *pastix_data, const pastix_csc_t *csc );
+int orderLoadFiles(       pastix_data_t *pastix_data,       pastix_csc_t *csc );
+
+int orderSaveFiles( pastix_data_t *pastix_data );
 
 int orderPrepareCSC(pastix_data_t *pastix_data,
                     pastix_int_t   n,

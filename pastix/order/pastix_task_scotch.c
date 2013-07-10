@@ -221,6 +221,7 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
                        pastix_int_t   *perm,
                        pastix_int_t   *invp)
 {
+          pastix_csc_t csc;
   pastix_int_t              * iparm       = (*pastix_data)->iparm;
   Order            * ordemesh;
   double             timer1;
@@ -229,19 +230,20 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
   int                retval_rcv;
   (void)pastix_comm;
 
-  ordemesh = (*pastix_data)->ordemesh;
   procnum  = (*pastix_data)->procnum;
 
   print_debug(DBG_STEP,"-> pastix_task_scotch\n");
   if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
     print_onempi("%s", OUT_STEP_ORDER);
 
-  /* Clean ordering/graph if it exists */
-  if ((*pastix_data)->malord)
-    {
-      orderExit(ordemesh);
-      (*pastix_data)->malord=0;
-    }
+  /* Clean ordering if it exists */
+  if ((*pastix_data)->ordemesh != NULL) {
+      orderExit((*pastix_data)->ordemesh);
+  } else {
+      MALLOC_INTERN( (*pastix_data)->ordemesh, 1, Order );
+  }
+  ordemesh = (*pastix_data)->ordemesh;
+  orderInit( ordemesh, 0, 0 );
 
   /* Prepare a copy of user's CSC */
   if (!(PASTIX_MASK_ISTRUE(iparm[IPARM_ORDERING], API_ORDER_LOAD)))
@@ -264,10 +266,18 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
       retval = BADPARAMETER_ERR;
       break;
 #else
-      orderComputeScotch( *pastix_data );
+      {
+          csc.gN       = (*pastix_data)->gN;
+          csc.n        = (*pastix_data)->n2;
+          csc.colptr   = (*pastix_data)->col2;
+          csc.rows     = (*pastix_data)->row2;
+          csc.loc2glob = (*pastix_data)->loc2glob2;
+          
+          assert( 0 );
+          orderComputeScotch( *pastix_data, &csc );
+      }
 #endif
       break;
-
 
       /*
        *  METIS ordering
@@ -328,7 +338,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
         memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
         memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
 
-        orderLoadFiles( *pastix_data );
+        assert( 0 );
+        orderLoadFiles( *pastix_data, &csc );
     }
     break;
 
@@ -336,7 +347,8 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
        * Load ordering with Scotch Format
        */
     case API_ORDER_LOAD:
-        orderLoadFiles( *pastix_data );
+        assert( 0 );
+        orderLoadFiles( *pastix_data, &csc );
         break;
 
     default:
@@ -351,7 +363,6 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
   if (retval_rcv != PASTIX_SUCCESS)
     return retval_rcv;
 
-  (*pastix_data)->malord = 1;
   orderBase(ordemesh, 0);
 
   clockStop(timer1);

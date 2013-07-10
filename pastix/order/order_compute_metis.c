@@ -16,28 +16,27 @@
  *                  to   06 jun 2002
  */
 #include "common.h"
-#if defined(HAVE_METIS)
 #include <metis.h>
 
-int orderComputeMetis(pastix_data_t *pastix_data)
+int orderComputeMetis( pastix_data_t *pastix_data, pastix_csc_t *csc )
 {
     pastix_int_t *iparm    =   pastix_data->iparm;
     Order        *ordemesh = &(pastix_data->ordemesh);
     pastix_int_t  itervert;
-    idx_t baseval = 1;
+    idx_t baseval = csc->colptr[0];
     idx_t opt[8];
 
     if ( sizeof(pastix_int_t) != sizeof(idx_t)) {
-	errorPrint("Inconsistent integer type between PaStiX and Metis\n");
-	return INTEGER_TYPE_ERR;
+        errorPrint("Inconsistent integer type between PaStiX and Metis\n");
+        return INTEGER_TYPE_ERR;
     }
-    
+
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-	pastix_print(procnum, 0, "%s", "Ordering: calling metis...\n");
+        pastix_print(procnum, 0, "%s", "Ordering: calling metis...\n");
 
     /* call METIS and fill ordemesh (provide a partition) */
     opt[OPTION_PTYPE  ] = (iparm[IPARM_DEFAULT_ORDERING] == API_YES) ? 0 : 1;
-    
+
     /* TODO: Check without this first line that reset to 0 if default */
     opt[OPTION_PTYPE  ] = 0;
     opt[OPTION_CTYPE  ] = iparm[IPARM_ORDERING_SWITCH_LEVEL];
@@ -50,11 +49,11 @@ int orderComputeMetis(pastix_data_t *pastix_data)
 
     /*METIS_NodeND(&n,verttab,edgetab,&baseval,opt,
       ordemesh->permtab,ordemesh->peritab);*/
-    METIS_NodeND(&n, pastix_data->col2, pastix_data->row2, &baseval,
-		 opt, ordemesh->peritab, ordemesh->permtab);
+    METIS_NodeND( &n, csc->colptr, csc->rows, &baseval,
+                  opt, ordemesh->peritab, ordemesh->permtab);
 
     for (itervert=0; itervert<n+1; itervert++)
-	ordemesh->rangtab[itervert] = itervert;
+        ordemesh->rangtab[itervert] = itervert;
     ordemesh->cblknbr = n;
 
     return NO_ERR;
