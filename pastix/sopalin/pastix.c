@@ -691,9 +691,8 @@ void pastix_task_init(pastix_data_t **pastix_data,
   memset( *pastix_data, 0, sizeof(pastix_data_t) );
 
   /* Initialisation des champs de la structure */
-  (*pastix_data)->n                = -1;
+  (*pastix_data)->n2               = -1;
   (*pastix_data)->bmalcolrow       = 0;
-  (*pastix_data)->malord           = 0;
   (*pastix_data)->malcsc           = 0;
   (*pastix_data)->malsmx           = 0;
   (*pastix_data)->malslv           = 0;
@@ -743,9 +742,10 @@ void pastix_task_init(pastix_data_t **pastix_data,
   (*pastix_data)->PTS_permtab      = NULL;
   (*pastix_data)->PTS_peritab      = NULL;
 #endif
+  (*pastix_data)->schur_n          = 0;
+  (*pastix_data)->schur_list       = NULL;
   (*pastix_data)->schur_tab        = NULL;
   (*pastix_data)->schur_tab_set    = API_NO;
-  (*pastix_data)->listschur        = NULL;
 
   (*pastix_data)->solvmatr.updovct.cblktab    = NULL;
   (*pastix_data)->solvmatr.updovct.lblk2gcblk = NULL;
@@ -2647,8 +2647,8 @@ void pastix_task_clean(pastix_data_t **pastix_data,
   if ((*pastix_data)->sopar.bindtab != NULL)
     memFree_null((*pastix_data)->sopar.bindtab);
 
-  if ((*pastix_data)->listschur != NULL)
-    memFree_null((*pastix_data)->listschur);
+  if ((*pastix_data)->schur_list != NULL)
+    memFree_null((*pastix_data)->schur_list);
 #ifdef PASTIX_DISTRIBUTED
   if ((*pastix_data)->glob2loc != NULL)
     memFree_null((*pastix_data)->glob2loc);
@@ -2894,7 +2894,7 @@ void pastix(pastix_data_t **pastix_data,
       }
     }
 
-  (*pastix_data)->n  = n;
+  (*pastix_data)->n2 = n;
 
   if (PASTIX_SUCCESS != (ret = pastix_check_param(*pastix_data, rhs)))
     {
@@ -3048,7 +3048,7 @@ void pastix(pastix_data_t **pastix_data,
             pastix_int_t iterschur = 0;
             int found;
 
-            (*pastix_data)->nschur=0;
+            (*pastix_data)->schur_n = 0;
             for (itercol = 0; itercol < n; itercol++)
               {
                 found = API_NO;
@@ -3058,7 +3058,7 @@ void pastix(pastix_data_t **pastix_data,
                       {
                         if (ABS_FLOAT(avals[iterrow]) < dparm[DPARM_EPSILON_REFINEMENT])
                           {
-                            (*pastix_data)->nschur++;
+                            (*pastix_data)->schur_n++;
                           }
                         found = API_YES;
                         break;
@@ -3066,11 +3066,11 @@ void pastix(pastix_data_t **pastix_data,
                   }
                 if (found == API_NO)
                   {
-                    (*pastix_data)->nschur++;
+                    (*pastix_data)->schur_n++;
                   }
               }
-            MALLOC_INTERN((*pastix_data)->listschur,
-                          (*pastix_data)->nschur,
+            MALLOC_INTERN((*pastix_data)->schur_list,
+                          (*pastix_data)->schur_n,
                           pastix_int_t);
             for (itercol = 0; itercol < n; itercol++)
               {
@@ -3081,7 +3081,7 @@ void pastix(pastix_data_t **pastix_data,
                       {
                         if (ABS_FLOAT(avals[iterrow]) < dparm[DPARM_EPSILON_REFINEMENT])
                           {
-                            (*pastix_data)->listschur[iterschur] = itercol+1;
+                            (*pastix_data)->schur_list[iterschur] = itercol+1;
                             iterschur++;
                           }
                         found = API_YES;
@@ -3090,7 +3090,7 @@ void pastix(pastix_data_t **pastix_data,
                   }
                 if (found == API_NO)
                   {
-                    (*pastix_data)->listschur[iterschur] = itercol+1;
+                    (*pastix_data)->schur_list[iterschur] = itercol+1;
                     iterschur++;
                   }
               }
@@ -3108,7 +3108,7 @@ void pastix(pastix_data_t **pastix_data,
           }
         if (iparm[IPARM_ISOLATE_ZEROS] == API_YES)
           {
-            memFree_null((*pastix_data)->listschur);
+            memFree_null((*pastix_data)->schur_list);
           }
       }
     if (iparm[IPARM_END_TASK]<API_TASK_SYMBFACT) {
@@ -4371,9 +4371,9 @@ pastix_int_t pastix_setSchurUnknownList(pastix_data_t * pastix_data,
   if (n == 0 || list == NULL)
     return BADPARAMETER_ERR;
 
-  pastix_data->nschur = n;
-  MALLOC_INTERN(pastix_data->listschur, n, pastix_int_t);
-  memcpy(pastix_data->listschur, list, n*sizeof(pastix_int_t));
+  pastix_data->schur_n = n;
+  MALLOC_INTERN(pastix_data->schur_list, n, pastix_int_t);
+  memcpy(pastix_data->schur_list, list, n*sizeof(pastix_int_t));
   return PASTIX_SUCCESS;
 }
 /*
