@@ -68,16 +68,23 @@ typedef struct SopalinParam_ {
 */
 
 struct pastix_data_s {
-    pastix_int_t    *iparm;              /*+ Store integer parameters (input/output)                             +*/
-    double          *dparm;              /*+ Store floating parameters (input/output)                            +*/
-    pastix_int_t     gN;                 /*+ Global number of columns without DoF                                +*/
-    pastix_int_t     n2;                 /*+ Local number of columns without DoF                                 +*/
-    pastix_int_t    *col2;               /*+ column tabular for the CSC matrix                                   +*/
-                                         /*+ (index of first element of each col in row and values tabulars)     +*/
-    pastix_int_t    *row2;               /*+ tabular containing row number of each element of                    +*/
-    pastix_int_t    *loc2glob2;          /*+ local2global column number                                          +*/
-    Order           *ordemesh;           /*+ Order                                                               +*/
-    SymbolMatrix    *symbmtx;            /*+ Symbol Matrix                                                       +*/
+    pastix_int_t    *iparm;              /*< Store integer parameters (input/output)                             +*/
+    double          *dparm;              /*< Store floating parameters (input/output)                            +*/
+
+    pastix_int_t     gN;                 /*< Global number of columns without DoF                                +*/
+    pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
+    pastix_int_t    *col2;               /*< column tabular for the CSC matrix                                   +*/
+                                         /*< (index of first element of each col in row and values tabulars)     +*/
+    pastix_int_t    *row2;               /*< tabular containing row number of each element of                    +*/
+    pastix_int_t    *loc2glob2;          /*< local2global column number                                          +*/
+
+    Order           *ordemesh;           /*< Ordering structure                                                  +*/
+    SymbolMatrix    *symbmtx;            /*< Symbol Matrix                                                       +*/
+
+    pastix_int_t     schur_n;            /*< Number of entries for the Schur complement                          +*/
+    pastix_int_t    *schur_list;         /*< List of entries for the schur complement                            +*/
+    pastix_int_t     zeros_n;            /*< Number of diagonal entries considered as zeros                      +*/
+    pastix_int_t    *zeros_list;         /*< List of diagonal entries considered as zeros                        +*/
 
     SolverMatrix     solvmatr;           /*+ Matrix informations                                                 +*/
     CscMatrix        cscmtx;             /*+ Compress Sparse Column matrix                                       +*/
@@ -94,10 +101,7 @@ struct pastix_data_s {
     int              mal_l2g_int;
     pastix_float_t  *b_int;              /*+ Local part of the right-hand-side                                   +*/
 #endif /* PASTIX_DISTRIBUTED */
-    pastix_int_t     n;                  /*+ local column number                                                 +*/
-    /*+  the CSC matrix, ordered by column.                                 +*/
     int              bmalcolrow;         /*+ boolean indicating if col2 ans row2 have been allocated             +*/
-    int              malord;             /*+ boolean indicating if ordemesh has been allocated                   +*/
     int              malcsc;             /*+ boolean indicating if solvmatr->cscmtx has beek allocated           +*/
     int              malsmx;             /*+ boolean indicating if solvmatr->updovct.sm2xtab has been allocated  +*/
     int              malslv;             /*+ boolean indicating if solvmatr has been allocated                   +*/
@@ -112,8 +116,6 @@ struct pastix_data_s {
     int              inter_node_procnbr; /*+ Number of MPI tasks in node_comm                                    +*/
     int              inter_node_procnum; /*+ Local MPI rank in node_comm                                         +*/
     int             *bindtab;            /*+ Tabular giving for each thread a CPU to bind it too                 +*/
-    pastix_int_t     nschur;             /*+ Number of entries for the Schur complement.                         +*/
-    pastix_int_t    *listschur;          /*+ List of entries for the schur complement.                           +*/
     pastix_float_t  *schur_tab;
     pastix_int_t     schur_tab_set;
     int              cscInternFilled;
