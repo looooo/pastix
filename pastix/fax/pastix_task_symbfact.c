@@ -212,7 +212,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     PASTIX_INT             i;
 #endif
 
-    n        = pastix_data->n;
+    n        = pastix_data->n2;
     ordemesh = pastix_data->ordemesh;
     procnum  = pastix_data->procnum;
 
@@ -249,7 +249,11 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
 
         /* Load ordering if not already defined */
         if (ordemesh == NULL) {
-            orderLoadFiles( pastix_data );
+            pastix_csc_t csc;
+            orderLoadFiles( pastix_data, &csc );
+            pastix_data->n2   = csc.n;
+            pastix_data->col2 = csc.colptr;
+            pastix_data->row2 = csc.rows;
         }
     }
     /* not API_IO_LOAD */
