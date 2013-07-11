@@ -19,16 +19,46 @@
 #include "csc_utils.h"
 #include "cscd_utils_intern.h"
 
-int cscIsolate(       pastix_int_t   n,
-                const pastix_int_t  *colptr,
-                const pastix_int_t  *rows,
-                      pastix_int_t   isolate_n,
-                      pastix_int_t  *isolate_list,
-                      pastix_int_t **new_colptr,
-                      pastix_int_t **new_rows,
-                      pastix_int_t **new_perm,
-                      pastix_int_t **new_invp );
+int orderAddIsolate( Order        *ordemesh,
+                     pastix_int_t  new_n,
+                     pastix_int_t *perm )
+{
+    Order ordesave;
+    pastix_int_t i, ip;
+    pastix_int_t n       = ordemesh->vertnbr;
+    pastix_int_t cblknbr = ordemesh->cblknbr;
+    int          baseval = ordemesh->baseval;
 
+    assert( n <= new_n );
+
+    /* Quick return */
+    if ( n == new_n )
+        return PASTIX_SUCCESS;
+
+    memcpy( &ordesave, ordemesh, sizeof(Order) );
+    orderInit( ordemesh, new_n, cblknbr + 1 );
+    ordemesh->baseval = baseval;
+
+    for(i=0; i< new_n; i++) {
+        ip = perm[i];
+        if (ip < n-baseval)
+            ordemesh->permtab[i] = ordesave.permtab[ ip ];
+        else
+            ordemesh->permtab[i] = ip+baseval;
+    }
+    for(i=0; i<new_n; i++) {
+        ip = ordemesh->permtab[i] - baseval;
+        assert( (ip > -1) && (ip < new_n) );
+        ordemesh->peritab[ip] = i + baseval;
+    }
+
+    /* Copy the cblknbr+1 first element of old rangtab and add last element */
+    memcpy( &(ordemesh->rangtab), &(ordesave.rangtab), ordemesh->cblknbr * sizeof(pastix_int_t) );
+    ordemesh->rangtab[ ordemesh->cblknbr ] = new_n + baseval;
+
+    orderExit( &ordesave );
+    return PASTIX_SUCCESS;
+}
 
 /*
   Function: pastix_task_order
@@ -81,7 +111,6 @@ int pastix_task_order(pastix_data_t *pastix_data,
     Order        *ordemesh;
     Clock         timer;
     int           procnum;
-    int           rebuild_graph = 0;
     int           retval = PASTIX_SUCCESS;
     int           retval_rcv;
 
@@ -237,9 +266,9 @@ int pastix_task_order(pastix_data_t *pastix_data,
          */
     case API_ORDER_LOAD:
         retval = orderLoadFiles( pastix_data, &csc );
-        pastix_data->n2   = csc.n;
-        pastix_data->col2 = csc.colptr;
-        pastix_data->row2 = csc.rows;
+        pastix_data->n2        = csc.n;
+        pastix_data->col2      = csc.colptr;
+        pastix_data->row2      = csc.rows;
         pastix_data->loc2glob2 = csc.loc2glob;
         break;
 
@@ -255,34 +284,11 @@ int pastix_task_order(pastix_data_t *pastix_data,
     if ((iparm[IPARM_ISOLATE_ZEROS] == API_YES) &&
         (pastix_data->zeros_n > 0) )
     {
-        Order ordesave;
-        pastix_int_t i, ip;
+        orderAddIsolate( ordemesh, schur_n, zeros_perm );
 
-        memcpy( &ordesave, ordemesh, sizeof(Order) );
-        orderInit( ordemesh, schur_n, ordesave.cblknbr + 1 );
-
-        for(i=0; i<schur_n; i++) {
-            ip = zeros_perm[i];
-            if (ip < zeros_n)
-                ordemesh->permtab[i] = ordesave.permtab[ ip ];
-            else
-                ordemesh->permtab[i] = ip;
-        }
-        for(i=0; i<schur_n; i++) {
-            ordemesh->peritab[ordemesh->permtab[i]] = i;
-        }
-
-        for(i = 0; i < schur_n; i++)
-        {
-            assert(ordemesh->peritab[i] < schur_n );
-            assert(ordemesh->peritab[i] > -1);
-        }
-
-        memcpy( &(ordemesh->rangtab), &(ordesave.rangtab), ordemesh->cblknbr * sizeof(pastix_int_t) );
-        ordemesh->rangtab[ ordemesh->cblknbr ] = schur_n;
-
-        orderExit( &ordesave );
-        rebuild_graph = 1;
+        if ( zeros_colptr != schur_colptr ) { memFree_null( zeros_colptr ); }
+        if ( zeros_rows   != schur_rows   ) { memFree_null( zeros_rows   ); }
+        if ( zeros_perm   != NULL         ) { memFree_null( zeros_perm   ); }
     }
 
     /*
@@ -291,66 +297,11 @@ int pastix_task_order(pastix_data_t *pastix_data,
     if ((iparm[IPARM_SCHUR] == API_YES) &&
         (pastix_data->schur_n > 0) )
     {
-        Order ordesave;
-        pastix_int_t i, ip;
+        orderAddIsolate( ordemesh, n, schur_perm );
 
-        memcpy( &ordesave, ordemesh, sizeof(Order) );
-        orderInit( ordemesh, n, ordesave.cblknbr + 1 );
-
-        for(i=0; i<n; i++) {
-            ip = schur_perm[i];
-            if (ip < schur_n)
-                ordemesh->permtab[i] = ordesave.permtab[ ip ];
-            else
-                ordemesh->permtab[i] = ip;
-        }
-        for(i=0; i<n; i++) {
-            ordemesh->peritab[ordemesh->permtab[i]] = i;
-        }
-
-        for(i = 0; i < n; i++)
-        {
-            assert(ordemesh->peritab[i] < n );
-            assert(ordemesh->peritab[i] > -1);
-        }
-
-        memcpy( &(ordemesh->rangtab), &(ordesave.rangtab), ordemesh->cblknbr * sizeof(pastix_int_t) );
-        ordemesh->rangtab[ ordemesh->cblknbr ] = n;
-
-        orderExit( &ordesave );
-        rebuild_graph = 1;
-    }
-
-    /*
-     * Rebuild the graph for fax if required
-     */
-    if ( rebuild_graph )
-    {
-#if defined(HAVE_SCOTCH)
-        SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
-        if (ordemesh->malgrf == 1)
-        {
-            SCOTCH_graphExit(grafmesh);
-            ordemesh->malgrf = 0;
-        }
-
-        if (SCOTCH_graphBuild(grafmesh,             /* Graph to build     */
-                              pastix_data->col2[0], /* baseval            */
-                              pastix_data->n2,      /* Number of vertices */
-                              pastix_data->col2,    /* Vertex array       */
-                              NULL,
-                              NULL,                 /* Array of vertex weights (DOFs) */
-                              NULL,
-                              (pastix_data->col2)[n]-pastix_data->col2[0], /* Number of arcs     */
-                              pastix_data->row2,    /* Edge array         */
-                              NULL))
-        {
-            errorPrint("pastix : graphBuildGraph");
-            EXIT(MOD_SOPALIN,INTERNAL_ERR);
-        }
-        ordemesh->malgrf = 1;
-        SCOTCH_graphBase(grafmesh, 0);
-#endif
+        if ( schur_colptr != pastix_data->col2 ) { memFree_null( schur_colptr ); }
+        if ( schur_rows   != pastix_data->row2 ) { memFree_null( schur_rows   ); }
+        if ( schur_perm   != NULL              ) { memFree_null( schur_perm   ); }
     }
 
     /* Reduce the error code */

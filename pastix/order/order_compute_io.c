@@ -15,9 +15,6 @@
  *                  to   06 jun 2002
  */
 #include "common.h"
-#if defined(HAVE_SCOTCH)
-#include <scotch.h>
-#endif
 #include "csc_utils.h"
 
 int orderLoadFiles( pastix_data_t *pastix_data, pastix_csc_t *csc )
@@ -36,19 +33,6 @@ int orderLoadFiles( pastix_data_t *pastix_data, pastix_csc_t *csc )
         EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
     }
     fclose(stream);
-
-    /* Load graph if required */
-#if defined(HAVE_SCOTCH)
-    if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_GRAPH))
-    {
-        PASTIX_FOPEN(stream, "graphname", "r");
-        if (SCOTCH_graphLoad(&(ordemesh->grafmesh), stream, 0, 0) != 0) {
-            errorPrint ("test: cannot load mesh");
-            EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
-        }
-        fclose (stream);
-    }
-#endif
 
     if (PASTIX_MASK_ISTRUE(strategy, API_IO_LOAD_CSC))
     {
@@ -110,17 +94,6 @@ int orderSaveFiles( pastix_data_t *pastix_data )
         }
         fclose(stream);
 
-#if defined(HAVE_SCOTCH)
-        if (PASTIX_MASK_ISTRUE(strategy, API_IO_SAVE_GRAPH))
-        {
-            PASTIX_FOPEN(stream, "graphgen", "w");
-            if (SCOTCH_graphSave (&(ordemesh->grafmesh), stream) != 0) {
-                errorPrint ("cannot save graph");
-                retval = PASTIX_ERR_INTERNAL;
-            }
-            fclose(stream);
-        }
-#endif
         if (PASTIX_MASK_ISTRUE(strategy, API_IO_SAVE_CSC)) {
             PASTIX_FOPEN(stream, "cscgen", "w");
             // TODO

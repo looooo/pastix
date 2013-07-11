@@ -10,17 +10,12 @@
  *
  * @version 5.1.0
  * @author Francois Pellegrini
+ * @author Mathieu Faverge
  * @date 2013-06-24
  *
  **/
 #include "common.h"
 #include "order.h"
-#if defined(HAVE_SCOTCH)
-#include <scotch.h>
-#endif
-#if defined(HAVE_PTSCOTCH)
-#include <ptscotch.h>
-#endif
 
 /**
  *******************************************************************************
@@ -33,7 +28,9 @@
  *******************************************************************************
  *
  * @param[in,out] ordeptr
- *          The data structure to initialize.
+ *          The data structure is set to 0 and then initialize.
+ *          Need to call orderExit to release the memory first if required to
+ *          prevent memory leak.
  *
  * @param[in] vertnbr
  *          The number of nodes, this is the size of the internal permtab and
@@ -59,14 +56,9 @@ int orderInit ( Order * const ordeptr,
         MALLOC_INTERN(ordeptr->peritab, vertnbr, pastix_int_t);
     }
 
-    if (cblknbr != 0) {
+     if (cblknbr != 0) {
         MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
     }
-
-#if defined(HAVE_SCOTCH)
-    SCOTCH_graphInit( &(ordeptr->grafmesh) );
-    ordeptr->malgrf = 1;
-#endif
 
     return PASTIX_SUCCESS;
 }
@@ -81,7 +73,8 @@ int orderInit ( Order * const ordeptr,
  *******************************************************************************
  *
  * @param[in,out] ordeptr
- *          The data structure to clean.
+ *          The data structure to clean. All arrays of the structure are freed
+ *          and the structure is set to 0.
  *
  *******************************************************************************/
 void orderExit (Order * const ordeptr)
@@ -92,13 +85,6 @@ void orderExit (Order * const ordeptr)
         memFree_null (ordeptr->permtab);
     if (ordeptr->peritab != NULL)
         memFree_null (ordeptr->peritab);
-
-#if defined(HAVE_SCOTCH)
-    if (ordeptr->malgrf) {
-        SCOTCH_graphExit( &(ordeptr->grafmesh) );
-        ordeptr->malgrf = 0;
-    }
-#endif
 
     memset(ordeptr, 0, sizeof(Order) );
 }

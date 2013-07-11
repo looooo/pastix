@@ -16,12 +16,6 @@
 #define _ORDER_H_
 
 #include "toto_csc.h"
-#if defined(HAVE_SCOTCH)
-#include <scotch.h>
-#endif
-#if defined(HAVE_PTSCOTCH)
-#include <ptscotch.h>
-#endif
 
 /**
  *******************************************************************************
@@ -37,10 +31,6 @@ typedef struct Order_ {
     pastix_int_t *permtab;   /*< Permutation array [based]           +*/
     pastix_int_t *peritab;   /*< Inverse permutation array [based]   +*/
     pastix_int_t *rangtab;   /*< Column block range array [based,+1] +*/
-#if defined(HAVE_SCOTCH)
-    SCOTCH_Graph  grafmesh;  /*< Graph                                             +*/
-    int           malgrf;    /*< boolean indicating if grafmesh has been allocated +*/
-#endif
 } Order;
 
 

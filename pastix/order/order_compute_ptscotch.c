@@ -28,7 +28,7 @@ int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
     SCOTCH_Dgraph    dgraph;
 
     Order        *ordemesh = &(pastix_data->ordemesh);
-    SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
+    SCOTCH_Graph  grafmesh;
     SCOTCH_Strat  stratdat;
     char          strat[1024];
     pastix_int_t *colptr, *colptr_schur;

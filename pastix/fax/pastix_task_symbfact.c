@@ -406,7 +406,6 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
                 if (procnum == 0)
                     errorPrintW("perm and invp can be modified during symbolic factorization.");
 
-
         memcpy(perm, ordemesh->permtab, n*sizeof(PASTIX_INT));
         memcpy(invp, ordemesh->peritab, n*sizeof(PASTIX_INT));
 
@@ -417,13 +416,6 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
             if (pastix_data->loc2glob2 != NULL) memFree_null(pastix_data->loc2glob2);
             pastix_data->bmalcolrow = 0;
         }
-#if defined(HAVE_SCOTCH)
-        if (ordemesh->malgrf)
-        {
-            SCOTCH_graphExit(&(ordemesh->grafmesh));
-            ordemesh->malgrf = 0;
-        }
-#endif
     } /* not API_IO_LOAD */
 
     /*

@@ -34,8 +34,8 @@
  *
  *******************************************************************************/
 void
-orderBase (Order *      const ordeptr,
-	   pastix_int_t       baseval)
+orderBase (Order * const ordeptr,
+	   pastix_int_t  baseval)
 {
     pastix_int_t baseadj;                    /* Base adjust */
     pastix_int_t cblknum;

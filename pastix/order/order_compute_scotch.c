@@ -24,7 +24,7 @@
 int orderComputeScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
 {
     Order        *ordemesh = pastix_data->ordemesh;
-    SCOTCH_Graph *grafmesh = &(ordemesh->grafmesh);
+    SCOTCH_Graph  grafmesh;
     SCOTCH_Strat  stratdat;
     char          strat[1024];
     pastix_int_t *colptr;
@@ -50,12 +50,13 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
     orderInit(ordemesh, n, n);
+    SCOTCH_graphInit( &grafmesh );
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
-    if (SCOTCH_graphBuild(grafmesh,       /* Graph to build     */
+    if (SCOTCH_graphBuild(&grafmesh,      /* Graph to build     */
                           1,              /* baseval            */
                           n,              /* Number of vertices */
-                          colptr,   /* Vertex array       */
+                          colptr,         /* Vertex array       */
                           NULL,
                           NULL,           /* Array of vertex weights (DOFs) */
                           NULL,
@@ -68,11 +69,11 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
         }
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphCheck <\n");
-    if (SCOTCH_graphCheck(grafmesh)) {
+    if (SCOTCH_graphCheck(&grafmesh)) {
         errorPrint("pastix: graphCheck");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
-    SCOTCH_graphBase(grafmesh, 0);
+    SCOTCH_graphBase(&grafmesh, 0);
 
     /* The graph is build, let's compute the ordering */
     SCOTCH_stratInit(&stratdat);
@@ -111,7 +112,7 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
     ret = SCOTCH_stratGraphOrder (&stratdat, strat);
     if (ret == 0) {
         /* Compute graph ordering */
-        ret = SCOTCH_graphOrderList(grafmesh,
+        ret = SCOTCH_graphOrderList(&grafmesh,
                                     (SCOTCH_Num)   n,
                                     (SCOTCH_Num *) NULL,
                                     &stratdat,
