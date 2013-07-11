@@ -58,8 +58,8 @@ int orderPrepareCSC(pastix_data_t *pastix_data,
                     const pastix_int_t  *loc2glob);
 
 void orderFindSupernodes( pastix_int_t  n,
-                          pastix_int_t *ia,
-                          pastix_int_t *ja,
+                          const pastix_int_t *ia,
+                          const pastix_int_t *ja,
                           Order * const ordeptr,
                           pastix_int_t *treetab );
 
