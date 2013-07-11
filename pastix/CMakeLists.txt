@@ -486,6 +486,7 @@ set(PASTIX_LIB_SRCS
   fax/symbol_fax_graph.c
   #
   csc/csc_isolate.c
+  csc/csc_base.c
   #
 
 # Files that still require some changes
@@ -653,3 +654,9 @@ if(BUILD_DOCUMENTATION)
     COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile
     SOURCES ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile )
 endif()
+
+
+#-- Add a custom target to run Doxygen when ever the project is built
+add_custom_target (tagstoto
+  COMMAND etags ${PASTIX_LIB_SRCS}
+  DEPENDS ${PASTIX_LIB_SRCS} )
