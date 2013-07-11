@@ -86,8 +86,9 @@
  *******************************************************************************
  *
  * @return
- *          \retval 0 on success.
- *          \retval !0 on failure.
+ *          \retval PASTIX_SUCCESS on success.
+ *          \retval PASTIX_ERR_ALLOC if allocation went wrong.
+ *          \retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
  *
  *******************************************************************************/
 /*
