@@ -148,9 +148,9 @@ void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_i
              ( pastix_data->iparm[IPARM_INCOMPLETE] == API_YES &&
                pastix_data->iparm[IPARM_GRAPHDIST] == API_YES ) )
         {
-            pastix_int_t nkass;
-            pastix_int_t * colptrkass;
-            pastix_int_t * rowkass;
+            pastix_int_t  nkass;
+            pastix_int_t *colptrkass;
+            pastix_int_t *rowkass;
 
             CSC_sort(pastix_data->n2, pastix_data->col2, pastix_data->row2, NULL);
 
@@ -260,119 +260,109 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     /* not API_IO_LOAD */
     else
     {
-        assert(ordemesh->rangtab[ordemesh->cblknbr] == n);
+        pastix_int_t  nfax;
+        pastix_int_t *colptrfax;
+        pastix_int_t *rowfax;
 
         /* Check correctness of parameters */
+        if (iparm[IPARM_INCOMPLETE] == API_NO)
         {
-            if (iparm[IPARM_INCOMPLETE] == API_NO)
-            {
 #ifdef COMPACT_SMX
-                if (procnum == 0)
-                    errorPrintW("COMPACT_SMX only works with incomplete factorisation, forcing incomplete factorisation.");
-                iparm[IPARM_INCOMPLETE] = API_YES;
+            if (procnum == 0)
+                errorPrintW("COMPACT_SMX only works with incomplete factorisation, forcing incomplete factorisation.");
+            iparm[IPARM_INCOMPLETE] = API_YES;
 #endif /* COMPACT_SMX */
-            }
-
-            /*
-             * Force the symbolic factorization to be done through Kass if
-             * Scotch has not been used for the ordering, and then the rangtab
-             * array of ordemesh is not initialized.
-             */
-
-            if ( ordemesh->rangtab == NULL )
-            {
-                if ((procnum == 0) && (iparm[IPARM_LEVEL_OF_FILL] != -1))
-                    errorPrintW("Force Kass to be used to generate the supernode list.");
-                iparm[IPARM_LEVEL_OF_FILL] = -1;
-            }
-
-            /*
-             * Force the symbolic factorization to be done through Kass if
-             * Scotch has not been used for the ordering, because the rangtab
-             * array of ordemesh is not correctly initialized in the following
-             * cases
-             */
-            /* Personal and Metis ordering */
-            if ((iparm[IPARM_ORDERING] == API_ORDER_PERSONAL) ||
-                (iparm[IPARM_ORDERING] == API_ORDER_METIS)    )
-            {
-                if ((procnum == 0) && (iparm[IPARM_LEVEL_OF_FILL] != -1))
-                    errorPrintW("metis or personal ordering can't be used without kass, forced use of kass.");
-                iparm[IPARM_LEVEL_OF_FILL] = -1;
-            }
-
-#if defined(FORGET_PARTITION)
-            /* Force Kass for FORGET PARTITION */
-            {
-                if ((procnum == 0) && (iparm[IPARM_LEVEL_OF_FILL] != -1))
-                    errorPrintW("FORGET_PARTITION can't be used without kass, forced use of kass.");
-                iparm[IPARM_LEVEL_OF_FILL] = -1;
-            }
-#endif
         }
         /* End of parameters check */
 
-        symbolInit(pastix_data->symbmtx);
-
-        if ((iparm[IPARM_INCOMPLETE]    == API_NO) &&
-            (iparm[IPARM_LEVEL_OF_FILL] != -1    ))
+        /*
+         * Fax works with centralized interface, we convert the cscd to csc if required
+         */
+        if (iparm[IPARM_GRAPHDIST] == API_YES)
         {
-            symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
-                           pastix_data->n2,      /* Number of nodes */
-                           pastix_data->col2,    /* Nodes list      */
-                           pastix_data->row2,    /* Edges list      */
-                           ordemesh);
+            CSC_sort( pastix_data->n2,
+                      pastix_data->col2,
+                      pastix_data->row2,
+                      NULL);
+
+            cscd2csc_int( pastix_data->n2,
+                          pastix_data->col2,
+                          pastix_data->row2,
+                          NULL, NULL, NULL, NULL,
+                          &nfax, &colptrfax, &rowfax,
+                          NULL, NULL, NULL, NULL,
+                          pastix_data->loc2glob2,
+                          pastix_data->pastix_comm,
+                          iparm[IPARM_DOF_NBR], API_YES);
         }
         else
         {
-            pastix_int_t  nkass;
-            pastix_int_t *colptrkass;
-            pastix_int_t *rowkass;
+            nfax      = pastix_data->n2;
+            colptrfax = pastix_data->col2;
+            rowfax    = pastix_data->row2;
+        }
 
-            if (iparm[IPARM_GRAPHDIST] == API_YES)
+        symbolInit(pastix_data->symbmtx);
+
+        /*
+         * The amalgamate supernodes partition has been found with (PT-)Scotch,
+         * we use it to generate the symbol matrix structure.
+         */
+        if ( (iparm[IPARM_INCOMPLETE]    == API_NO) &&
+             (iparm[IPARM_LEVEL_OF_FILL] != -1    ) &&
+             (ordemesh->rangtab != NULL) )
+        {
+            symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
+                           nfax,                 /* Number of nodes */
+                           colptrfax,            /* Nodes list      */
+                           rowfax,               /* Edges list      */
+                           ordemesh);
+        }
+        /*
+         * The amalgamate supernodes partition doesn't not exist. (PT-)Scotch
+         * has not been used, ILU(k) factorization is performed or we dropped
+         * the partition found by Scotch.
+         * We use Kass to generate both the amalgamate supernode partition and
+         * the symbol matrix stucture.
+         */
+        else
+        {
+            fprintf(stderr, "HELLO I'm GOING THROUGH NEW KASS\n");
+            if (0)
             {
-                CSC_sort( pastix_data->n2,
-                          pastix_data->col2,
-                          pastix_data->row2,
-                          NULL);
-
-                cscd2csc_int( pastix_data->n2,
-                              pastix_data->col2,
-                              pastix_data->row2,
-                              NULL, NULL, NULL, NULL,
-                              &nkass, &colptrkass, &rowkass,
-                              NULL, NULL, NULL, NULL,
-                              pastix_data->loc2glob2,
-                              pastix_data->pastix_comm,
-                              iparm[IPARM_DOF_NBR], API_YES);
-
-                CSC_Fnum2Cnum(rowkass,
-                              colptrkass,
-                              nkass);
+                kass(iparm[IPARM_LEVEL_OF_FILL],
+                     iparm[IPARM_AMALGAMATION_LEVEL],
+                     pastix_data->symbmtx,
+                     colptrfax[0],/* baseval*/
+                     nfax,
+                     colptrfax[nfax]-1,
+                     colptrfax,
+                     rowfax,
+                     ordemesh,
+                     pastix_data->pastix_comm);
             }
             else
             {
-                nkass      = pastix_data->n2;
-                colptrkass = pastix_data->col2;
-                rowkass    = pastix_data->row2;
-            }
+                pastix_csc_t csc;
+                csc.n      = nfax;
+                csc.colptr = colptrfax;
+                csc.rows   = rowfax;
+                csc.loc2glob = NULL;
 
-            kass(iparm[IPARM_LEVEL_OF_FILL],
-                 iparm[IPARM_AMALGAMATION_LEVEL],
-                 pastix_data->symbmtx,
-                 colptrkass[0],/* baseval*/
-                 nkass,
-                 colptrkass[nkass]-1,
-                 colptrkass,
-                 rowkass,
-                 ordemesh,
-                 pastix_data->pastix_comm);
-
-            if (iparm[IPARM_GRAPHDIST] == API_YES)
-            {
-                memFree_null(colptrkass);
-                memFree_null(rowkass);
+                kass2(iparm[IPARM_INCOMPLETE],
+                      iparm[IPARM_LEVEL_OF_FILL],
+                      iparm[IPARM_AMALGAMATION_LEVEL],
+                      pastix_data->symbmtx,
+                      &csc,
+                      ordemesh,
+                      pastix_data->pastix_comm);
             }
+        }
+
+        if (iparm[IPARM_GRAPHDIST] == API_YES)
+        {
+            memFree_null(colptrfax);
+            memFree_null(rowfax);
         }
 
         symbolBase(pastix_data->symbmtx,0);
@@ -402,7 +392,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
 
         /* WARNING : perm and invp can now be modified during symbolic factorization ??? */
         if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-            if ( flagWinvp)
+            if (flagWinvp)
                 if (procnum == 0)
                     errorPrintW("perm and invp can be modified during symbolic factorization.");
 
