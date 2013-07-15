@@ -15,7 +15,7 @@
 #ifndef _ORDER_H_
 #define _ORDER_H_
 
-#include "toto_csc.h"
+#include "graph.h"
 
 /**
  *******************************************************************************
@@ -33,7 +33,6 @@ typedef struct Order_ {
     pastix_int_t *rangtab;   /*< Column block range array [based,+1] +*/
 } Order;
 
-
 /*
  * The function prototypes.
  */
@@ -44,11 +43,11 @@ int  orderSave (const Order * const ordeptr, FILE * const stream);
 void orderBase (      Order * const ordeptr, pastix_int_t baseval);
 int  orderCheck(const Order * const ordeptr);
 
-int orderComputeScotch(   pastix_data_t *pastix_data, const pastix_csc_t *csc );
-int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc );
-int orderComputeMetis(    pastix_data_t *pastix_data, const pastix_csc_t *csc );
-int orderLoadFiles(       pastix_data_t *pastix_data,       pastix_csc_t *csc );
+int orderComputeScotch(   pastix_data_t *pastix_data, const pastix_graph_t *graph );
+int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_graph_t *graph );
+int orderComputeMetis(    pastix_data_t *pastix_data, const pastix_graph_t *graph );
 
+int orderLoadFiles( pastix_data_t *pastix_data );
 int orderSaveFiles( pastix_data_t *pastix_data );
 
 int orderPrepareCSC(pastix_data_t *pastix_data,
@@ -62,6 +61,10 @@ void orderFindSupernodes( pastix_int_t  n,
                           const pastix_int_t *ja,
                           Order * const ordeptr,
                           pastix_int_t *treetab );
+
+int orderAddIsolate( Order        *ordemesh,
+                     pastix_int_t  new_n,
+                     const pastix_int_t *perm );
 
 int pastix_task_order(pastix_data_t *pastix_data,
                       pastix_int_t   n,

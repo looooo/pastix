@@ -429,7 +429,7 @@ add_subdirectory(matrix_drivers)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kass")
@@ -476,17 +476,21 @@ solver_rules( generated_files
 #
 set(PASTIX_LIB_SRCS
 # Files that are fully converted
+  #
+  graph/graph_base.c
+  graph/graph_io.c
+  graph/graph_isolate.c
+  graph/graph_prepare.c
+  graph/graph_symmetrize.c
+  #
   order/order.c
+  order/order_add_isolate.c
   order/order_base.c
   order/order_check.c
   order/order_find_supernodes.c
   order/order_io.c
-  order/order_prepare_csc.c
   #
   fax/symbol_fax_graph.c
-  #
-  csc/csc_isolate.c
-  csc/csc_base.c
   #
 
 # Files that still require some changes
@@ -545,7 +549,8 @@ set(PASTIX_LIB_SRCS
   kass/find_supernodes.c
   kass/ifax.c
   kass/kass.c
-  kass/KSupernodes.c
+  kass/kass_direct.c
+#  kass/KSupernodes.c
   kass/SF_Direct.c
   kass/SF_level.c
   kass/sort_row.c

@@ -149,7 +149,7 @@ compute_post_order(      pastix_int_t n,
     {
         i = iperm[k];
         perm[i] = T[father[i]]; /** We MUST HAVE father[i] == i for a root ! **/
-        T[father[i]]-= T[i];
+        T[father[i]] -= T[i];
         T[i] = perm[i]-1;
         assert(perm[father[i]] >= perm[i]);
     }

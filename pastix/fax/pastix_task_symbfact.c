@@ -195,13 +195,14 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
                           pastix_int_t  *invp,
                           int flagWinvp)
 {
-    pastix_int_t  *iparm = pastix_data->iparm;
-    Order         *ordemesh;
-    pastix_int_t   n;
-    Clock          timer;
-    int            procnum;
-    int            retval = PASTIX_SUCCESS;
-    int            retval_rcv;
+    pastix_int_t   *iparm = pastix_data->iparm;
+    pastix_graph_t *graph = pastix_data->csc;
+    Order          *ordemesh;
+    pastix_int_t    n;
+    Clock           timer;
+    int             procnum;
+    int             retval = PASTIX_SUCCESS;
+    int             retval_rcv;
 
 #ifdef PASTIX_DISTRIBUTED
     PASTIX_INT           * PTS_perm     = pastix_data->PTS_permtab;
@@ -212,7 +213,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     PASTIX_INT             i;
 #endif
 
-    n        = pastix_data->n2;
+    n        = graph->n;
     ordemesh = pastix_data->ordemesh;
     procnum  = pastix_data->procnum;
 
@@ -239,6 +240,17 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     {
         FILE *stream;
 
+        /* Load graph if not already defined */
+        /* if (ordemesh == NULL) { */
+        /*     pastix_csc_t csc; */
+        /*     orderLoadFiles( pastix_data ); */
+        /* } */
+
+        /* Load ordering if not already defined */
+        if (ordemesh == NULL) {
+            orderLoadFiles( pastix_data );
+        }
+
         /* Load symbol */
         PASTIX_FOPEN(stream, "symbname", "r" );
         symbolLoad( pastix_data->symbmtx, stream );
@@ -247,15 +259,6 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         /* Rebase to 0 */
         symbolBase( pastix_data->symbmtx, 0 );
 
-        /* Load ordering if not already defined */
-        if (ordemesh == NULL) {
-            pastix_csc_t csc;
-            orderLoadFiles( pastix_data, &csc );
-            pastix_data->n2   = csc.n;
-            pastix_data->col2 = csc.colptr;
-            pastix_data->row2 = csc.rows;
-            pastix_data->loc2glob2 = csc.loc2glob;
-        }
     }
     /* not API_IO_LOAD */
     else
@@ -280,26 +283,26 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
          */
         if (iparm[IPARM_GRAPHDIST] == API_YES)
         {
-            CSC_sort( pastix_data->n2,
-                      pastix_data->col2,
-                      pastix_data->row2,
+            CSC_sort( graph->n,
+                      graph->colptr,
+                      graph->rows,
                       NULL);
 
-            cscd2csc_int( pastix_data->n2,
-                          pastix_data->col2,
-                          pastix_data->row2,
+            cscd2csc_int( graph->n,
+                          graph->colptr,
+                          graph->rows,
                           NULL, NULL, NULL, NULL,
                           &nfax, &colptrfax, &rowfax,
                           NULL, NULL, NULL, NULL,
-                          pastix_data->loc2glob2,
+                          graph->loc2glob,
                           pastix_data->pastix_comm,
                           iparm[IPARM_DOF_NBR], API_YES);
         }
         else
         {
-            nfax      = pastix_data->n2;
-            colptrfax = pastix_data->col2;
-            rowfax    = pastix_data->row2;
+            nfax      = graph->n;
+            colptrfax = graph->colptr;
+            rowfax    = graph->rows;
         }
 
         symbolInit(pastix_data->symbmtx);
@@ -328,32 +331,18 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         else
         {
             fprintf(stderr, "HELLO I'm GOING THROUGH NEW KASS\n");
-            if (0)
             {
-                kass(iparm[IPARM_LEVEL_OF_FILL],
-                     iparm[IPARM_AMALGAMATION_LEVEL],
-                     pastix_data->symbmtx,
-                     colptrfax[0],/* baseval*/
-                     nfax,
-                     colptrfax[nfax]-1,
-                     colptrfax,
-                     rowfax,
-                     ordemesh,
-                     pastix_data->pastix_comm);
-            }
-            else
-            {
-                pastix_csc_t csc;
-                csc.n      = nfax;
-                csc.colptr = colptrfax;
-                csc.rows   = rowfax;
-                csc.loc2glob = NULL;
+                pastix_graph_t tmpgraph;
+                tmpgraph.n      = nfax;
+                tmpgraph.colptr = colptrfax;
+                tmpgraph.rows   = rowfax;
+                tmpgraph.loc2glob = NULL;
 
                 kass2(iparm[IPARM_INCOMPLETE],
                       iparm[IPARM_LEVEL_OF_FILL],
                       iparm[IPARM_AMALGAMATION_LEVEL],
                       pastix_data->symbmtx,
-                      &csc,
+                      &tmpgraph,
                       ordemesh,
                       pastix_data->pastix_comm);
             }
@@ -398,15 +387,13 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
 
         memcpy(perm, ordemesh->permtab, n*sizeof(PASTIX_INT));
         memcpy(invp, ordemesh->peritab, n*sizeof(PASTIX_INT));
-
-        if (pastix_data->bmalcolrow == 1)
-        {
-            if (pastix_data->col2      != NULL) memFree_null(pastix_data->col2);
-            if (pastix_data->row2      != NULL) memFree_null(pastix_data->row2);
-            if (pastix_data->loc2glob2 != NULL) memFree_null(pastix_data->loc2glob2);
-            pastix_data->bmalcolrow = 0;
-        }
     } /* not API_IO_LOAD */
+
+    if (pastix_data->csc != NULL)
+    {
+        graphClean( pastix_data->csc );
+        pastix_data->csc = NULL;
+    }
 
     /*
      * Save the symbolic factorization

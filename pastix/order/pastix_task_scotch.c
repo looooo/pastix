@@ -221,117 +221,109 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
                        pastix_int_t   *perm,
                        pastix_int_t   *invp)
 {
-          pastix_csc_t csc;
-  pastix_int_t              * iparm       = (*pastix_data)->iparm;
-  Order            * ordemesh;
-  double             timer1;
-  pastix_int_t                procnum;
-  int                retval     = PASTIX_SUCCESS;
-  int                retval_rcv;
-  (void)pastix_comm;
+    pastix_int_t              * iparm       = (*pastix_data)->iparm;
+    Order            * ordemesh;
+    double             timer1;
+    pastix_int_t                procnum;
+    int                retval     = PASTIX_SUCCESS;
+    int                retval_rcv;
+    (void)pastix_comm;
 
-  procnum  = (*pastix_data)->procnum;
+    procnum  = (*pastix_data)->procnum;
 
-  print_debug(DBG_STEP,"-> pastix_task_scotch\n");
-  if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-    print_onempi("%s", OUT_STEP_ORDER);
+    print_debug(DBG_STEP,"-> pastix_task_scotch\n");
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        print_onempi("%s", OUT_STEP_ORDER);
 
-  /* Clean ordering if it exists */
-  if ((*pastix_data)->ordemesh != NULL) {
-      orderExit((*pastix_data)->ordemesh);
-  } else {
-      MALLOC_INTERN( (*pastix_data)->ordemesh, 1, Order );
-  }
-  ordemesh = (*pastix_data)->ordemesh;
-  orderInit( ordemesh, 0, 0 );
+    /* Clean ordering if it exists */
+    if ((*pastix_data)->ordemesh != NULL) {
+        orderExit((*pastix_data)->ordemesh);
+    } else {
+        MALLOC_INTERN( (*pastix_data)->ordemesh, 1, Order );
+    }
+    ordemesh = (*pastix_data)->ordemesh;
+    orderInit( ordemesh, 0, 0 );
 
-  /* Prepare a copy of user's CSC */
-  if (!(PASTIX_MASK_ISTRUE(iparm[IPARM_ORDERING], API_ORDER_LOAD)))
-      orderPrepareCSC( *pastix_data, n, colptr, row, NULL );
+    /* Prepare a copy of user's CSC */
+    if (!(PASTIX_MASK_ISTRUE(iparm[IPARM_ORDERING], API_ORDER_LOAD)))
+        orderPrepareCSC( *pastix_data, n, colptr, row, NULL );
 
-  if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-    print_onempi("%s", OUT_ORDERINIT);
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+        print_onempi("%s", OUT_ORDERINIT);
 
-  clockInit(timer1);
-  clockStart(timer1);
+    clockInit(timer1);
+    clockStart(timer1);
 
-  switch (iparm[IPARM_ORDERING])
+    switch (iparm[IPARM_ORDERING])
     {
-      /*
-       * Scotch Ordering
-       */
+        /*
+         * Scotch Ordering
+         */
     case API_ORDER_SCOTCH:
 #ifndef WITH_SCOTCH
-      errorPrint("Scotch ordering needs to compile PaStiX with -DWITH_SCOTCH");
-      retval = BADPARAMETER_ERR;
-      break;
+        errorPrint("Scotch ordering needs to compile PaStiX with -DWITH_SCOTCH");
+        retval = BADPARAMETER_ERR;
+        break;
 #else
-      {
-          csc.gN       = (*pastix_data)->gN;
-          csc.n        = (*pastix_data)->n2;
-          csc.colptr   = (*pastix_data)->col2;
-          csc.rows     = (*pastix_data)->row2;
-          csc.loc2glob = (*pastix_data)->loc2glob2;
-          
-          assert( 0 );
-          orderComputeScotch( *pastix_data, &csc );
-      }
+        {
+            orderComputeScotch( *pastix_data, (*pastix_data)->csc );
+        }
 #endif
-      break;
+        break;
 
-      /*
-       *  METIS ordering
-       */
+        /*
+         *  METIS ordering
+         */
     case API_ORDER_METIS:
 #ifndef METIS
-      errorPrint("Metis ordering needs to compile PaStiX with -DMETIS");
-      retval = BADPARAMETER_ERR;
-      break;
+        errorPrint("Metis ordering needs to compile PaStiX with -DMETIS");
+        retval = BADPARAMETER_ERR;
+        break;
 #else /* METIS */
-      {
-        pastix_int_t  itervert;
-        pastix_int_t  baseval;
-        pastix_int_t  opt[8];
+        {
+            pastix_int_t  itervert;
+            pastix_int_t  baseval;
+            pastix_int_t  opt[8];
 
-        baseval = 1;
-        orderInit(ordemesh, n, 0);
+            baseval = 1;
+            orderInit(ordemesh, n, 0);
 
-        if (sizeof(pastix_int_t) != sizeof(int))
-          {
-              errorPrint("Inconsistent integer type %lu != %lu\n",
-                         sizeof(pastix_int_t), sizeof(SCOTCH_Num));
-            retval = INTEGER_TYPE_ERR;
-            break;
-          }
+            if (sizeof(pastix_int_t) != sizeof(int))
+            {
+                errorPrint("Inconsistent integer type %lu != %lu\n",
+                           sizeof(pastix_int_t), sizeof(SCOTCH_Num));
+                retval = INTEGER_TYPE_ERR;
+                break;
+            }
 
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-          print_onempi("%s", "calling metis...\n");
+            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                print_onempi("%s", "calling metis...\n");
 
-        /* call METIS and fill ordemesh (provide a partition) */
-        opt[OPTION_PTYPE  ] = (iparm[IPARM_DEFAULT_ORDERING]==API_YES)?0:1;
+            /* call METIS and fill ordemesh (provide a partition) */
+            opt[OPTION_PTYPE  ] = (iparm[IPARM_DEFAULT_ORDERING]==API_YES)?0:1;
 
-        /* TODO: tester sans cette ligne... 0 if default */
-        opt[OPTION_PTYPE  ] = 0;
+            /* TODO: tester sans cette ligne... 0 if default */
+            opt[OPTION_PTYPE  ] = 0;
 
-        opt[OPTION_CTYPE  ] = iparm[IPARM_ORDERING_SWITCH_LEVEL];
-        opt[OPTION_ITYPE  ] = iparm[IPARM_ORDERING_CMIN];
-        opt[OPTION_RTYPE  ] = iparm[IPARM_ORDERING_CMAX];
-        opt[OPTION_DBGLVL ] = iparm[IPARM_ORDERING_FRAT];
-        opt[OPTION_OFLAGS ] = iparm[IPARM_STATIC_PIVOTING];
-        opt[OPTION_PFACTOR] = iparm[IPARM_METIS_PFACTOR];
-        opt[OPTION_NSEPS  ] = iparm[IPARM_NNZEROS];
+            opt[OPTION_CTYPE  ] = iparm[IPARM_ORDERING_SWITCH_LEVEL];
+            opt[OPTION_ITYPE  ] = iparm[IPARM_ORDERING_CMIN];
+            opt[OPTION_RTYPE  ] = iparm[IPARM_ORDERING_CMAX];
+            opt[OPTION_DBGLVL ] = iparm[IPARM_ORDERING_FRAT];
+            opt[OPTION_OFLAGS ] = iparm[IPARM_STATIC_PIVOTING];
+            opt[OPTION_PFACTOR] = iparm[IPARM_METIS_PFACTOR];
+            opt[OPTION_NSEPS  ] = iparm[IPARM_NNZEROS];
 
-        /*METIS_NodeND(&n,verttab,edgetab,&baseval,opt,
-          ordemesh->permtab,ordemesh->peritab);*/
-        METIS_NodeND(&n, col2, row2, &baseval,
-                     opt, ordemesh->peritab, ordemesh->permtab);
-      }
+            /*METIS_NodeND(&n,verttab,edgetab,&baseval,opt,
+             ordemesh->permtab,ordemesh->peritab);*/
+            METIS_NodeND(&n, col2, row2, &baseval,
+                         opt, ordemesh->peritab, ordemesh->permtab);
+        }
 #endif /* METIS */
-      break;
+        break;
 
-      /*
-       * Personal Ordering
-       */
+        /*
+         * Personal Ordering
+         */
     case API_ORDER_PERSONAL:
     {
         orderInit(ordemesh, n, 0);
@@ -339,53 +331,53 @@ int pastix_task_scotch(pastix_data_t **pastix_data,
         memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
 
         assert( 0 );
-        orderLoadFiles( *pastix_data, &csc );
+        orderLoadFiles( *pastix_data );
     }
     break;
 
-      /*
-       * Load ordering with Scotch Format
-       */
+    /*
+     * Load ordering with Scotch Format
+     */
     case API_ORDER_LOAD:
         assert( 0 );
-        orderLoadFiles( *pastix_data, &csc );
+        orderLoadFiles( *pastix_data );
         break;
 
     default:
-      errorPrint("Ordering not available");
-      retval = BADPARAMETER_ERR;
-      break;
+        errorPrint("Ordering not available");
+        retval = BADPARAMETER_ERR;
+        break;
     }
 
-  fprintf(stderr, "The number of supernodes found is %ld\n", ordemesh->cblknbr );
+    fprintf(stderr, "The number of supernodes found is %ld\n", ordemesh->cblknbr );
 
-  MPI_Allreduce(&retval, &retval_rcv, 1, MPI_INT, MPI_MAX, pastix_comm);
-  if (retval_rcv != PASTIX_SUCCESS)
-    return retval_rcv;
+    MPI_Allreduce(&retval, &retval_rcv, 1, MPI_INT, MPI_MAX, pastix_comm);
+    if (retval_rcv != PASTIX_SUCCESS)
+        return retval_rcv;
 
-  orderBase(ordemesh, 0);
+    orderBase(ordemesh, 0);
 
-  clockStop(timer1);
-  if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-    print_onempi(TIME_COMPUTE_ORDERING,clockVal(timer1));
+    clockStop(timer1);
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+        print_onempi(TIME_COMPUTE_ORDERING,clockVal(timer1));
 
-  /* Save i/o strategy */
-  if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
-  {
-      retval = orderSaveFiles( *pastix_data );
-      if (retval != PASTIX_SUCCESS)
-        return retval;
-  }
-
-  /*
-   * Return the ordering to user
-   */
-  if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL)
+    /* Save i/o strategy */
+    if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
     {
-      memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
-      memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
+        retval = orderSaveFiles( *pastix_data );
+        if (retval != PASTIX_SUCCESS)
+            return retval;
     }
 
-  iparm[IPARM_START_TASK]++;
-  return PASTIX_SUCCESS;
+    /*
+     * Return the ordering to user
+     */
+    if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL)
+    {
+        memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
+        memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
+    }
+
+    iparm[IPARM_START_TASK]++;
+    return PASTIX_SUCCESS;
 }

@@ -692,7 +692,6 @@ void pastix_task_init(pastix_data_t **pastix_data,
 
   /* Initialisation des champs de la structure */
   (*pastix_data)->n2               = -1;
-  (*pastix_data)->bmalcolrow       = 0;
   (*pastix_data)->malcsc           = 0;
   (*pastix_data)->malsmx           = 0;
   (*pastix_data)->malslv           = 0;
@@ -729,12 +728,9 @@ void pastix_task_init(pastix_data_t **pastix_data,
   (*pastix_data)->sopar.transcsc   = NULL;
   (*pastix_data)->sopar.stopthrd   = API_NO;
   (*pastix_data)->bindtab          = NULL;
-  (*pastix_data)->col2             = NULL;
-  (*pastix_data)->row2             = NULL;
   (*pastix_data)->cscInternFilled  = API_NO;
 
 #ifdef PASTIX_DISTRIBUTED
-  (*pastix_data)->loc2glob2        = NULL;
   (*pastix_data)->malrhsd_int      = API_NO;
   (*pastix_data)->l2g_int          = NULL;
   (*pastix_data)->mal_l2g_int      = API_NO;

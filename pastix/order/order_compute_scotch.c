@@ -21,7 +21,7 @@
 #include "cscd_utils_intern.h"
 
 
-int orderComputeScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
+int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
 {
     Order        *ordemesh = pastix_data->ordemesh;
     SCOTCH_Graph  grafmesh;

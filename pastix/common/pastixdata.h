@@ -71,13 +71,9 @@ struct pastix_data_s {
     pastix_int_t    *iparm;              /*< Store integer parameters (input/output)                             +*/
     double          *dparm;              /*< Store floating parameters (input/output)                            +*/
 
+    pastix_graph_t  *csc;
     pastix_int_t     gN;                 /*< Global number of columns without DoF                                +*/
     pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
-    pastix_int_t    *col2;               /*< column tabular for the CSC matrix                                   +*/
-                                         /*< (index of first element of each col in row and values tabulars)     +*/
-    pastix_int_t    *row2;               /*< tabular containing row number of each element of                    +*/
-    pastix_int_t    *loc2glob2;          /*< local2global column number                                          +*/
-
     Order           *ordemesh;           /*< Ordering structure                                                  +*/
     SymbolMatrix    *symbmtx;            /*< Symbol Matrix                                                       +*/
 
@@ -101,7 +97,6 @@ struct pastix_data_s {
     int              mal_l2g_int;
     pastix_float_t  *b_int;              /*+ Local part of the right-hand-side                                   +*/
 #endif /* PASTIX_DISTRIBUTED */
-    int              bmalcolrow;         /*+ boolean indicating if col2 ans row2 have been allocated             +*/
     int              malcsc;             /*+ boolean indicating if solvmatr->cscmtx has beek allocated           +*/
     int              malsmx;             /*+ boolean indicating if solvmatr->updovct.sm2xtab has been allocated  +*/
     int              malslv;             /*+ boolean indicating if solvmatr has been allocated                   +*/

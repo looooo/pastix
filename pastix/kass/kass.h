@@ -24,13 +24,13 @@ void kass(int            levelk,
 	  Order        * orderptr, 
 	  MPI_Comm       pastix_comm);
 
-int kass2(int            ilu,
-          int            levelk,
-          int            rat,
-          SymbolMatrix * symbmtx,
-          pastix_csc_t * csc,
-          Order        * orderptr,
-          MPI_Comm       pastix_comm);
+int kass2(int             ilu,
+          int             levelk,
+          int             rat,
+          SymbolMatrix   *symbmtx,
+          pastix_graph_t *graph,
+          Order          *orderptr,
+          MPI_Comm        pastix_comm);
 
 /* void kass(int alpha, int rat, SymbolMatrix * symbptr, Graph * graphptr, Order * orderptr, MPI_Comm pastix_comm); */
 
