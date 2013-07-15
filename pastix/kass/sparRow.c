@@ -78,10 +78,10 @@ pastix_int_t cleanCS(csptr amat)
       if(amat->n > 0) /** The sparse part has not been deallocated **/
 	{
 	  for (i=0; i<amat->n; i++) {
-	    if (amat->nnzrow[i] > 0) {
+              //	    if (amat->nnzrow[i] > 0) {
 	      if (amat->ma[i]) memFree_null(amat->ma[i]);
 	      if (amat->ja[i]) memFree_null(amat->ja[i]);
-	    }
+              //	    }
 	  }	
 	}
     }
