@@ -2594,7 +2594,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
   if ((*pastix_data)->ordemesh != NULL)
     {
         orderExit((*pastix_data)->ordemesh);
-        (*pastix_data)->ordemesh = NULL;
+        memFree_null( (*pastix_data)->ordemesh );
     }
 
   if ((*pastix_data)->malcsc)
