@@ -47,7 +47,6 @@ void cscBase( pastix_csc_t *csc,
     if (csc->colptr != NULL) {
         for (i = 0; i <= n; i++) {
             csc->colptr[i]   += baseadj;
-            csc->loc2glob[i] += baseadj;
         }
     }
     if (csc->rows != NULL) {
@@ -55,5 +54,10 @@ void cscBase( pastix_csc_t *csc,
             csc->rows[i] += baseadj;
     }
 
+    if (csc->loc2glob != NULL) {
+        for (i = 0; i < n; i++) {
+            csc->loc2glob[i] += baseadj;
+        }
+    }
     return;
 }
