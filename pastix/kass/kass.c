@@ -217,7 +217,9 @@ void kass(int            levelk,
 
 }
 
-void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm, pastix_int_t *iperm, pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *streetab, pastix_int_t *cblknbr, pastix_int_t **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm)
+void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm, pastix_int_t *iperm,
+                 pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *streetab,
+                 pastix_int_t *cblknbr, pastix_int_t **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm)
 {
   /**************************************************************************************/
   /* This function computes a symbolic factorization ILU(k) given a CSR matrix and an   */
