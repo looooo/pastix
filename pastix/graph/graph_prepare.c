@@ -102,7 +102,7 @@ graphSort( pastix_graph_t *graph )
         pastix_int_t frow = ia[itercol]   - baseval;
         pastix_int_t lrow = ia[itercol+1] - baseval;
 
-        intSort1asc1( (ja+frow), (lrow-frow));
+        intSort1asc1( (ja+frow), (lrow-frow) );
     }
 }
 
