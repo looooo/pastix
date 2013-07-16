@@ -77,6 +77,10 @@
 #define WITH_SCOTCH
 #endif
 
+#if defined(PASTIX_ORDERING_METIS)
+#define HAVE_METIS
+#endif
+
 #if defined(PASTIX_ORDERING_PTSCOTCH)
 #define HAVE_PTSCOTCH
 #endif
