@@ -397,6 +397,8 @@ orderFindSupernodes(       pastix_int_t  n,
     for(i=0;i<n;i++) {
         assert(perm[i] >= 0);
         assert(perm[i] < n);
+        assert(invp[i] >= 0);
+        assert(invp[i] < n);
     }
 
     bzero(S, sizeof(pastix_int_t)*n);
