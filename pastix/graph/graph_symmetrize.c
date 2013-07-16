@@ -222,7 +222,5 @@ int graphSymmetrize_int( pastix_int_t n,
     newgraph->rows     = newja;
     newgraph->loc2glob = NULL;
 
-    graphBase( newgraph, 1 );
-
     return EXIT_SUCCESS;
 }

@@ -24,8 +24,6 @@ struct pastix_graph_s {
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global */
 };
 
-typedef struct pastix_graph_s pastix_graph_t;
-
 void graphLoad( const pastix_data_t  *pastix_data,
                 pastix_graph_t *graph );
 void graphSave( const pastix_data_t  *pastix_data,

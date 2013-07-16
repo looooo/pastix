@@ -55,6 +55,24 @@ void graphNoDiag( pastix_graph_t *graph )
     // graph->rows = memRealloc( graph->rows, (ia[0]-baseval) * sizeof(pastix_int_t) );
 }
 
+void graphSort( pastix_graph_t *graph )
+{
+    pastix_int_t *ia = graph->colptr;
+    pastix_int_t *ja = graph->rows;
+    pastix_int_t  n = graph->n;
+    pastix_int_t  itercol;
+    int baseval = ia[0];
+
+    /* Sort in place each subset */
+    for (itercol=0;itercol<n;itercol++)
+    {
+        pastix_int_t frow = ia[itercol]   - baseval;
+        pastix_int_t lrow = ia[itercol+1] - baseval;
+
+        intSort1asc1( (ja+frow), (lrow-frow));
+    }
+}
+
 /**
  *******************************************************************************
  *
@@ -95,6 +113,8 @@ void graphNoDiag( pastix_graph_t *graph )
  *          On exit, the pointer to the allocated graph structure is returned.
  *          The graph can then be used with ordering and symbol factorization
  *          tools.
+ *          The graph is symmetrized without diagonal elements and rows array is
+ *          sorted.
  *
  *******************************************************************************
  *
@@ -131,6 +151,8 @@ int graphPrepare(      pastix_data_t   *pastix_data,
          * Centralized graph
          */
         if (loc2glob == NULL) {
+            tmpgraph->gN = n;
+
             if ((iparm[IPARM_SYM] == API_SYM_YES) ||
                 (iparm[IPARM_SYM] == API_SYM_HER) )
             {
@@ -146,14 +168,14 @@ int graphPrepare(      pastix_data_t   *pastix_data,
                 MALLOC_INTERN(tmpgraph->rows,   nnz,   pastix_int_t);
                 memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
                 memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
+
+                graphSort( tmpgraph );
             }
 
             if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
                 pastix_print(procnum, 0, "%s", OUT_NODIAG);
 
             graphNoDiag( tmpgraph );
-
-            tmpgraph->gN = n;
         }
 #if defined(PASTIX_DISTRIBUTED)
         /*
@@ -253,6 +275,8 @@ int graphPrepare(      pastix_data_t   *pastix_data,
         assert(loc2glob == NULL );
 #endif
     }
+
+    graphBase( tmpgraph, 1 );
 
     *graph = tmpgraph;
     return PASTIX_SUCCESS;

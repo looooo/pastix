@@ -14,6 +14,7 @@
  *
  **/
 #include "common.h"
+#include "graph.h"
 #include "csc_utils.h"
 
 /**
