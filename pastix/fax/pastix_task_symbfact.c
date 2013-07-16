@@ -38,6 +38,8 @@
 
  */
 #include "common.h"
+#include "graph.h"
+#include "order.h"
 #ifdef WITH_SCOTCH
 #  ifdef    PASTIX_DISTRIBUTED
 #    include <ptscotch.h>
@@ -240,15 +242,11 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     {
         FILE *stream;
 
-        /* Load graph if not already defined */
-        /* if (ordemesh == NULL) { */
-        /*     pastix_csc_t csc; */
-        /*     orderLoadFiles( pastix_data ); */
-        /* } */
-
         /* Load ordering if not already defined */
         if (ordemesh == NULL) {
-            orderLoadFiles( pastix_data );
+            MALLOC_INTERN( pastix_data->ordemesh, 1, Order );
+            orderLoad( pastix_data->ordemesh, NULL );
+            ordemesh = pastix_data->ordemesh;
         }
 
         /* Load symbol */
@@ -283,11 +281,6 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
          */
         if (iparm[IPARM_GRAPHDIST] == API_YES)
         {
-            CSC_sort( graph->n,
-                      graph->colptr,
-                      graph->rows,
-                      NULL);
-
             cscd2csc_int( graph->n,
                           graph->colptr,
                           graph->rows,
@@ -330,22 +323,20 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
          */
         else
         {
-            fprintf(stderr, "HELLO I'm GOING THROUGH NEW KASS\n");
-            {
-                pastix_graph_t tmpgraph;
-                tmpgraph.n      = nfax;
-                tmpgraph.colptr = colptrfax;
-                tmpgraph.rows   = rowfax;
-                tmpgraph.loc2glob = NULL;
+            pastix_graph_t tmpgraph;
+            tmpgraph.gN     = nfax;
+            tmpgraph.n      = nfax;
+            tmpgraph.colptr = colptrfax;
+            tmpgraph.rows   = rowfax;
+            tmpgraph.loc2glob = NULL;
 
-                kass2(iparm[IPARM_INCOMPLETE],
-                      iparm[IPARM_LEVEL_OF_FILL],
-                      iparm[IPARM_AMALGAMATION_LEVEL],
-                      pastix_data->symbmtx,
-                      &tmpgraph,
-                      ordemesh,
-                      pastix_data->pastix_comm);
-            }
+            kass2(iparm[IPARM_INCOMPLETE],
+                  iparm[IPARM_LEVEL_OF_FILL],
+                  iparm[IPARM_AMALGAMATION_LEVEL],
+                  pastix_data->symbmtx,
+                  &tmpgraph,
+                  ordemesh,
+                  pastix_data->pastix_comm);
         }
 
         if (iparm[IPARM_GRAPHDIST] == API_YES)
