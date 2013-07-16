@@ -1,62 +1,104 @@
-/*
- *  File: order_compute_scotch.c
+/**
  *
- *  Wrapper to compute the ordering with Scotch Library.
+ * @file order_compute_ptscotch.c
  *
- *  Authors:
- *    Mathieu  Faverge    - faverge@labri.fr
- *    Xavier   LACOSTE    - lacoste@labri.fr
- *    Pierre   RAMET      - ramet@labri.fr
+ *  PaStiX order routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
- *  Dates:
- *    Version 0.0 - from 08 may 1998
- *                  to   08 jan 2001
- *    Version 1.0 - from 06 jun 2002
- *                  to   06 jun 2002
- */
+ * Contains functions to perform ordering with PT-Scotch library.
+ *
+ * @version 5.1.0
+ * @author Xavier Lacoste
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
+#include "graph.h"
+#include "order.h"
 #include <scotch.h>
 #include <ptscotch.h>
-#include "csc_utils.h"
 #include "scotch_strats.h"
 #include "cscd_utils_intern.h"
 
-int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
+void global2localperm(pastix_int_t  lN,
+                      pastix_int_t *lperm,
+                      pastix_int_t *gperm,
+                      pastix_int_t *loc2glob);
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * orderComputePTScotch - Compute the ordering of the graph given as parameter
+ * with PT-Scotch library.
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, IPARM_ORDERING_DEFAULT, IPARM_SCOTCH_SWITCH_LEVEL,
+ *   IPARM_SCOTCH_CMIN, IPARM_SCOTCH_CMAX, IPARM_SCOTCH_FRAT
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *          On exit, the field oerdemesh is initialize with the result of the
+ *          ordering realized by Scotch.
+ *
+ * @param[in] graph
+ *          The graph prepared by graphPrepare function on which wwe want to
+ *          perform the ordering.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ *          \retval PASTIX_ERR_INTEGER_TYPE if Scotch integer type is not the
+ *                  same size as PaStiX ones.
+ *          \retval PASTIX_ERR_INTERNAL if an error occurs internally to Scotch.
+ *
+ *******************************************************************************/
+int
+orderComputePTScotch(       pastix_data_t  *pastix_data,
+                      const pastix_graph_t *graph )
 {
     SCOTCH_Dordering ordedat;
     SCOTCH_Ordering  ordering;
     SCOTCH_Dgraph    dgraph;
-
-    Order        *ordemesh = &(pastix_data->ordemesh);
-    SCOTCH_Graph  grafmesh;
-    SCOTCH_Strat  stratdat;
-    char          strat[1024];
-    pastix_int_t *colptr, *colptr_schur;
-    pastix_int_t *rows, *rows_schur;
-    pastix_int_t *perm_schur, *invp_schur;
+    SCOTCH_Strat     stratdat;
+#if defined(PERSONAL_PTSCOTCH_STRATEGY)
+    char             strat[1024];
+#endif
+    MPI_Comm      pastix_comm;
+    Order        *ordemesh = pastix_data->ordemesh;
+    Clock         timer;
+    pastix_int_t *colptr;
+    pastix_int_t *rows;
     pastix_int_t *iparm = pastix_data->iparm;
     pastix_int_t  procnum;
-    pastix_int_t n;
-    pastix_int_t nnz;
-    int ret;
+    pastix_int_t  n, gN, nnz;
 
-    procnum   = pastix_data->procnum;
+    procnum     = pastix_data->procnum;
+    pastix_comm = pastix_data->pastix_comm;
 
     /* Check integer compatibility */
     if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
-        errorPrint("Inconsistent integer type\n");
-        return INTEGER_TYPE_ERR;
+        errorPrint("orderComputePTScotch: Inconsistent integer type between Pastix and PT-Scotch\n");
+        return PASTIX_ERR_INTEGER_TYPE;
     }
 
-    gN     = csc->gN;
-    n      = csc->n;
-    colptr = csc->colptr;
-    rows   = csc->rows;
+    gN     = graph->gN;
+    n      = graph->n;
+    colptr = graph->colptr;
+    rows   = graph->rows;
     nnz    = colptr[n] - 1;
 
     /* Build distributed graph */
     print_debug(DBG_SCOTCH, "> SCOTCH_dgraphInit <\n");
-    SCOTCH_dgraphInit(dgraph, pastix_comm);
+    SCOTCH_dgraphInit(&dgraph, pastix_comm);
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
     if ( SCOTCH_dgraphBuild (&dgraph,
@@ -72,13 +114,13 @@ int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
                              rows,         /* Local edge array                     */
                              NULL,         /* Ghost edge array (if any); not const */
                              NULL))
-        {
-            errorPrint("SCOTCH_dgraphBuild");
-            EXIT(MOD_SOPALIN,INTERNAL_ERR);
-        }
+    {
+        errorPrint("SCOTCH_dgraphBuild");
+        EXIT(MOD_SOPALIN,INTERNAL_ERR);
+    }
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_dgraphCheck <\n");
-    if (SCOTCH_dgraphCheck(&dgraf)) {
+    if (SCOTCH_dgraphCheck(&dgraph)) {
         errorPrint("pastix: SCOTCH_dgraphCheck");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
@@ -90,7 +132,11 @@ int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
+    /*
+     * Create Strategy string for Scotch
+     */
     /* TODO : Add default strategies for PT-Scotch */
+#if defined(PERSONAL_PTSCOTCH_STRATEGY)
     if (iparm[IPARM_DEFAULT_ORDERING] == API_YES)
     {
         if (iparm[IPARM_INCOMPLETE] == API_NO)
@@ -111,29 +157,30 @@ int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
                 ((float)iparm[IPARM_ORDERING_FRAT])/100.);
 
         if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-            print_onempi("PT-Scotch Strategy |%s|\n", strat);
+            pastix_print(procnum, 0, "PT-Scotch Strategy |%s|\n", strat);
     }
 
-    clockStart(timer1);
+    print_debug(DBG_SCOTCH, "> SCOTCH_stratDgraphOrder <\n");
+    if (SCOTCH_stratDgraphOrder(&stratdat, strat))
+    {
+        errorPrint("pastix : SCOTCH_stratDgraphOrder");
+        EXIT(MOD_SOPALIN,INTERNAL_ERR);
+    }
+#else
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        pastix_print(procnum, 0, "PaStiX works only with PT-Scotch default strategy %s", "");
+#endif
 
-    /*    print_debug(DBG_SCOTCH, "> SCOTCH_stratDgraphOrder <\n"); */
-    /*    if (SCOTCH_stratDgraphOrder(&stratdat, strat)) */
-    /*      { */
-    /*        errorPrint("pastix : SCOTCH_stratDgraphOrder"); */
-    /*        EXIT(MOD_SOPALIN,INTERNAL_ERR); */
-    /*      } */
-    if (procnum == 0 && iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-        errorPrintW("PaStiX works only with PT-Scotch default strategy");
-
+    clockStart(timer);
     print_debug(DBG_SCOTCH, "> SCOTCH_dgraphOrderInit <\n");
-    if (0 != SCOTCH_dgraphOrderInit(dgraph, ordedat))
+    if (0 != SCOTCH_dgraphOrderInit(&dgraph, &ordedat))
     {
         errorPrint("pastix : SCOTCH_dgraphOrderInit");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
     print_debug(DBG_SCOTCH, "> SCOTCH_dgraphOrderCompute <\n");
-    if (0 != SCOTCH_dgraphOrderCompute(dgraph, ordedat, &stratdat))
+    if (0 != SCOTCH_dgraphOrderCompute(&dgraph, &ordedat, &stratdat))
     {
         errorPrint("pastix : SCOTCH_dgraphOrderCompute");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
@@ -148,13 +195,6 @@ int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
     /*    errorPrint("pastix : SCOTCH_dgraphOrderPerm"); */
     /*    EXIT(MOD_SOPALIN,INTERNAL_ERR); */
     /*  } */
-
-    clockStop(timer1);
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-        print_onempi(TIME_COMPUTE_ORDERING, clockVal(timer1));
-
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-        print_onempi("%s", OUT_ORDERINIT);
 
     orderInit(ordemesh, gN, gN);
     memset( ordemesh->rangtab, 0, (gN+1)*sizeof(pastix_int_t));
@@ -179,22 +219,18 @@ int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_csc_t *csc )
     MPI_Bcast( ordemesh->permtab, gN,                    PASTIX_MPI_INT, 0, pastix_comm);
     MPI_Bcast( ordemesh->peritab, gN,                    PASTIX_MPI_INT, 0, pastix_comm);
 
-    global2localperm(n, perm, ((*pastix_data)->ordemesh).permtab, loc2glob);
-
-    /* Gathering graph */
-    print_debug(DBG_SCOTCH, "> SCOTCH_dgraphGather <\n");
-    SCOTCH_dgraphGather( &dgraph, &(ordemesh->grafmesh) );
     SCOTCH_dgraphCorderExit( &dgraph, &ordering );
-    SCOTCH_dgraphOrderExit( &dgraph, ordedat );
+    SCOTCH_dgraphOrderExit( &dgraph, &ordedat );
     SCOTCH_dgraphExit( &dgraph );
 
-    SCOTCH_graphBase(&(ordemesh->grafmesh), 0);
     orderBase(ordemesh, 0);
 
-#if defined(FORGET_PARTITION)
-    ordemesh->cblknbr = 0;
-    if (ordemesh->rangtab != NULL) memFree_null(ordemesh->rangtab);
-#endif
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+        pastix_print(procnum, 0, TIME_COMPUTE_ORDERING, clockVal(timer));
+
+    clockStop(timer);
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+        pastix_print(procnum, 0, "%s", OUT_ORDERINIT);
 
     return PASTIX_SUCCESS;
 }
