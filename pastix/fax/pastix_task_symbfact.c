@@ -251,6 +251,9 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
         memcpy(invp, ordemesh->peritab, n*sizeof(PASTIX_INT));
     } /* not API_IO_LOAD */
 
+    /*
+     * The graph is not useful anymore, we clean it
+     */
     if (pastix_data->csc != NULL)
     {
         graphClean( pastix_data->csc );
