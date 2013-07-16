@@ -165,4 +165,6 @@ orderBase (Order * const ordeptr,
 	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++)
 	    ordeptr->peritab[vertnum] += baseadj;
     }
+
+    ordeptr->baseval = baseval;
 }
