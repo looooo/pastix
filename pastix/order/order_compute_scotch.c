@@ -15,11 +15,12 @@
  *                  to   06 jun 2002
  */
 #include "common.h"
+#include "graph.h"
+#include "order.h"
 #include <scotch.h>
 #include "scotch_strats.h"
 #include "csc_utils.h"
 #include "cscd_utils_intern.h"
-
 
 int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
 {

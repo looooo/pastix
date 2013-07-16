@@ -16,8 +16,8 @@
  *                  to   06 jun 2002
  */
 #include "common.h"
-#include "csc_utils.h"
-#include "cscd_utils_intern.h"
+#include "graph.h"
+#include "order.h"
 
 /*
   Function: pastix_task_order
