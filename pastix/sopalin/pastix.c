@@ -539,7 +539,7 @@ int buildUpdoVect(pastix_data_t *pastix_data,
                             b,
                             invp,
                             pastix_data->glob2loc,
-                            pastix_data->n,
+                            pastix_data->n2,
                             (int)iparm[IPARM_DOF_NBR]);
             }
 #endif /* PASTIX_DISTRIBUTED */
@@ -3258,7 +3258,7 @@ void dpastix(pastix_data_t **pastix_data,
           }
 
     }
-  (*pastix_data)->n  = n;
+  (*pastix_data)->n2 = n;
 
 
   if (PASTIX_SUCCESS != (ret = pastix_check_param(*pastix_data, rhs)))
@@ -3310,24 +3310,12 @@ void dpastix(pastix_data_t **pastix_data,
    * Fax : Facto symbolic
    */
   if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT) /* Fax task */
-    {
-      if (iparm[IPARM_GRAPHDIST] == API_YES)
-        {
-          dpastix_task_fax(*pastix_data,
-                           (*pastix_data)->inter_node_comm,
-                           n, perm, loc2glob, flagWinvp);
-        }
-      else
-        {
-          if ((*pastix_data)->intra_node_procnum == 0)
-            {
-              pastix_task_symbfact( *pastix_data,
-                                    /*(*pastix_data)->inter_node_comm,*/
-                                    perm, invp, flagWinvp);
-            }
-        }
+  {
+      pastix_task_symbfact( *pastix_data,
+                            perm, invp,
+                            flagWinvp);
       SYNC_IPARM;
-    }
+  }
 
   if (iparm[IPARM_END_TASK]<API_TASK_ANALYSE)
     return;

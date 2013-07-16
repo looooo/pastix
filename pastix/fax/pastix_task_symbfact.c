@@ -53,132 +53,6 @@
 #include "cscd_utils_intern.h"
 #include "fax.h"
 
-void global2localperm(pastix_int_t  lN,
-                      pastix_int_t *lperm,
-                      pastix_int_t *gperm,
-                      pastix_int_t *loc2glob);
-
-
-#ifdef PASTIX_DISTRIBUTED
-/*
- Function: dpastix_task_fax
-
- Symbolic factorisation.
-
- Parameters:
- pastix_data - PaStiX data structure
- pastix_comm - PaStiX MPI communicator
- n           - Size of the local matrix
- perm        - local permutation tabular
- loc2glob    - Global number of local columns (NULL if not ditributed)
- flagWinvp   - flag to indicate if we have to print warning concerning perm and invp modification.
-
- */
-void dpastix_task_fax(pastix_data_t *pastix_data, MPI_Comm pastix_comm, pastix_int_t n,
-                      pastix_int_t * perm, pastix_int_t * loc2glob, int flagWinvp)
-{
-    pastix_int_t   * gperm   = NULL;
-    pastix_int_t   * ginvp   = NULL;
-    pastix_int_t     gN;
-    pastix_int_t     my_n;
-    pastix_int_t   * my_perm = NULL;
-    (void)pastix_comm;
-
-    /* Note: for AUTOSPLIT_COMM
-     *
-     * perm is given by user, of size n,
-     * we have to allocate it so that fax can write into it,
-     * only written, data can be anything...
-     *
-     * loc2glob is also given by user and we need
-     * a gathered one to build gperm from perm returned by fax.
-     *
-     * Anyway perm can't be used by user as it does not correspond to
-     * the columns it gaves us. We just need to allocate data to write trash.
-     */
-    MPI_Allreduce(&n, &my_n, 1, PASTIX_MPI_INT, MPI_SUM,
-                  pastix_data->intra_node_comm);
-    if (pastix_data->intra_node_procnum == 0)
-    {
-        if (my_n != n)
-        {
-            MALLOC_INTERN(my_perm, my_n, pastix_int_t);
-            perm = my_perm;
-            if (pastix_data->procnum == 0)
-                errorPrintW("User's perm array is invalid and will be unusable with IPARM_AUTOSPLIT_COMM");
-        }
-
-        if (!(PASTIX_MASK_ISTRUE(pastix_data->iparm[IPARM_IO_STRATEGY], API_IO_LOAD)))
-        {
-            gN = 0;
-            MPI_Allreduce(&my_n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_data->inter_node_comm);
-            MALLOC_INTERN(gperm, gN, pastix_int_t);
-            MALLOC_INTERN(ginvp, gN, pastix_int_t);
-        }
-
-        {
-            MPI_Comm tmpcomm = pastix_data->pastix_comm;
-            pastix_data->pastix_comm = pastix_data->inter_node_comm;
-            pastix_task_symbfact( pastix_data,
-                                  gperm, ginvp, flagWinvp);
-            pastix_data->pastix_comm = tmpcomm;
-        }
-
-        if (my_n == n)
-        {
-            if (!(PASTIX_MASK_ISTRUE(pastix_data->iparm[IPARM_IO_STRATEGY], API_IO_LOAD)))
-            {
-                /* permtab may have been changed */
-                global2localperm(my_n, perm, gperm, loc2glob);
-
-                memFree_null(gperm);
-                memFree_null(ginvp);
-            }
-        }
-        else
-        {
-            memFree_null(my_perm);
-        }
-    }
-    else
-    {
-        if ( ( pastix_data->iparm[IPARM_INCOMPLETE] == API_NO &&
-               ( pastix_data->iparm[IPARM_ORDERING] == API_ORDER_PERSONAL ||
-                 pastix_data->iparm[IPARM_ORDERING] == API_ORDER_METIS ||
-                 pastix_data->iparm[IPARM_LEVEL_OF_FILL] == -1) &&
-               pastix_data->iparm[IPARM_GRAPHDIST] == API_YES ) ||
-             ( pastix_data->iparm[IPARM_INCOMPLETE] == API_YES &&
-               pastix_data->iparm[IPARM_GRAPHDIST] == API_YES ) )
-        {
-            pastix_int_t  nkass;
-            pastix_int_t *colptrkass;
-            pastix_int_t *rowkass;
-
-            CSC_sort(pastix_data->n2, pastix_data->col2, pastix_data->row2, NULL);
-
-            cscd2csc_int(pastix_data->n2, pastix_data->col2, pastix_data->row2,
-                         NULL,
-                         NULL, NULL, NULL,
-                         &nkass, &colptrkass, &rowkass, NULL,
-                         NULL, NULL, NULL,
-                         pastix_data->loc2glob2,
-                         pastix_data->pastix_comm, pastix_data->iparm[IPARM_DOF_NBR], API_YES);
-            memFree_null(colptrkass);
-            memFree_null(rowkass);
-        }
-
-        if (pastix_data->bmalcolrow == 1)
-        {
-            if (pastix_data->col2      != NULL) memFree_null(pastix_data->col2);
-            if (pastix_data->row2      != NULL) memFree_null(pastix_data->row2);
-            if (pastix_data->loc2glob2 != NULL) memFree_null(pastix_data->loc2glob2);
-            pastix_data->bmalcolrow = 0;
-        }
-
-    }
-}
-
-#endif
 /*
  Function: pastix_task_symbfact
 
@@ -201,10 +75,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
     pastix_graph_t *graph = pastix_data->csc;
     Order          *ordemesh;
     pastix_int_t    n;
-    Clock           timer;
     int             procnum;
-    int             retval = PASTIX_SUCCESS;
-    int             retval_rcv;
 
 #ifdef PASTIX_DISTRIBUTED
     PASTIX_INT           * PTS_perm     = pastix_data->PTS_permtab;

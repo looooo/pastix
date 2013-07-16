@@ -15,6 +15,9 @@
  **/
 #include "common.h"
 #include "graph.h"
+#if defined(PASTIX_DISTRIBUTED)
+#include "cscd_utils_intern.h"
+#endif
 
 /**
  *******************************************************************************
@@ -216,26 +219,26 @@ graphPrepare(      pastix_data_t   *pastix_data,
          */
         else
         {
-            MPI_Comm      pastix_comm = pastix_data->pastix_comm;
-            pastix_int_t  gN = 0;
+            MPI_Comm     pastix_comm = pastix_data->pastix_comm;
+            pastix_int_t gN = 0;
             int copy_l2g = 1;
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
             if (iparm[IPARM_SYM]==API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER) {
-                graphd_symgraph_int(n, colptr, rows, NULL,
-                                    &(tmpgraph->n),
-                                    &(tmpgraph->colptr),
-                                    &(tmpgraph->rows), NULL,
-                                    loc2glob,
-                                    pastix_comm, API_YES );
+                cscd_symgraph_int(n, colptr, rows, NULL,
+                                  &(tmpgraph->n),
+                                  &(tmpgraph->colptr),
+                                  &(tmpgraph->rows), NULL,
+                                  loc2glob,
+                                  pastix_comm, API_YES );
                 assert( n == tmpgraph->n );
             }
 
-            graphd_noDiag(tmpgraph->n,
-                          tmpgraph->colptr,
-                          tmpgraph->rows,
-                          NULL,
-                          loc2glob);
+            cscd_noDiag(tmpgraph->n,
+                        tmpgraph->colptr,
+                        tmpgraph->rows,
+                        NULL,
+                        loc2glob);
 
             /* Create contiguous partitions for ordering tools */
             {
