@@ -487,7 +487,6 @@ set(PASTIX_LIB_SRCS
   graph/graph_base.c
   graph/graph_io.c
   graph/graph_isolate.c
-  graph/graph_prepare.c
   graph/graph_symmetrize.c
   #
   order/order.c
@@ -507,6 +506,7 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
 
   order/pastix_task_order.c
+  graph/graph_prepare.c
 #
 #
   blend/assemblyGener.c
