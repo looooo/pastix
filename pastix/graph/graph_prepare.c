@@ -65,8 +65,9 @@ graphNoDiag( pastix_graph_t *graph )
     }
     ia[0] = indj;
 
-    // TODO: proper realloc with internal malloc
-    // graph->rows = memRealloc( graph->rows, (ia[0]-baseval) * sizeof(pastix_int_t) );
+    graph->rows =
+        (pastix_int_t *) memRealloc ( graph->rows,
+                                      (ia[0]-baseval)*sizeof (pastix_int_t));
 }
 
 /**

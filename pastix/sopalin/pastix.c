@@ -26,13 +26,17 @@
 #include "compute_context_nbr.h"
 #endif
 
-#ifdef WITH_SCOTCH
+#ifdef HAVE_SCOTCH
 #  ifdef    PASTIX_DISTRIBUTED
 #    include <ptscotch.h>
 #  else
 #    include <scotch.h>
 #  endif /* PASTIX_DISTRIBUTED */
 #endif /* WITH_SCOTCH */
+
+#if defined(HAVE_METIS)
+#include <metis.h>
+#endif
 
 #include "dof.h"
 #include "ftgt.h"
@@ -205,13 +209,30 @@ void pastix_initParam(pastix_int_t    *iparm,
   iparm[IPARM_GRAPHDIST]             = API_YES;             /* Specify if the given graph is distributed or not     */
   iparm[IPARM_AMALGAMATION_LEVEL]    = 5;                   /* Amalgamation level                                   */
   iparm[IPARM_ORDERING]              = API_ORDER_SCOTCH;    /* Choose ordering                                      */
-  iparm[IPARM_DEFAULT_ORDERING]      = API_YES;             /* Use default ordering parameters with scotch or metis */
+  iparm[IPARM_ORDERING_DEFAULT]      = API_YES;             /* Use default ordering parameters with scotch or metis */
+
+  /* Scotch default */
   iparm[IPARM_ORDERING_SWITCH_LEVEL] = 120;                 /* Ordering switch level    (see Scotch User's Guide)   */
   iparm[IPARM_ORDERING_CMIN]         = 0;                   /* Ordering cmin parameter  (see Scotch User's Guide)   */
   iparm[IPARM_ORDERING_CMAX]         = 100000;              /* Ordering cmax parameter  (see Scotch User's Guide)   */
   iparm[IPARM_ORDERING_FRAT]         = 8;                   /* Ordering frat parameter  (see Scotch User's Guide)   */
+
+  /* Metis default */
+#if defined(HAVE_METIS)
+  iparm[IPARM_METIS_CTYPE   ] = METIS_CTYPE_SHEM;
+  iparm[IPARM_METIS_RTYPE   ] = METIS_RTYPE_SEP1SIDED;
+#endif
+  iparm[IPARM_METIS_NO2HOP  ] = 0;
+  iparm[IPARM_METIS_NSEPS   ] = 1;
+  iparm[IPARM_METIS_NITER   ] = 10;
+  iparm[IPARM_METIS_UFACTOR ] = 200;
+  iparm[IPARM_METIS_COMPRESS] = 1;
+  iparm[IPARM_METIS_CCORDER ] = 0;
+  iparm[IPARM_METIS_PFACTOR ] = 0;
+  iparm[IPARM_METIS_SEED    ] = 3452;
+  iparm[IPARM_METIS_DBGLVL  ] = 0;
+
   iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
-  iparm[IPARM_METIS_PFACTOR]         = 0;                   /* Metis pfactor                                        */
   iparm[IPARM_NNZEROS]               = 0;                   /* memory space for coefficients                        */
   iparm[IPARM_ALLOCATED_TERMS]       = 0;                   /* number of non zero in factorized sparse matrix       */
   iparm[IPARM_MIN_BLOCKSIZE]         = 60;                  /* min blocksize                                        */

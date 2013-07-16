@@ -1,31 +1,66 @@
-/*
- *  File: order_compute_scotch.c
+/**
  *
- *  Wrapper to compute the ordering with Scotch Library.
+ * @file order_compute_scotch.c
  *
- *  Authors:
- *    Mathieu  Faverge    - faverge@labri.fr
- *    Xavier   LACOSTE    - lacoste@labri.fr
- *    Pierre   RAMET      - ramet@labri.fr
+ *  PaStiX order routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
- *  Dates:
- *    Version 0.0 - from 08 may 1998
- *                  to   08 jan 2001
- *    Version 1.0 - from 06 jun 2002
- *                  to   06 jun 2002
- */
+ * Contains functions to perform ordering with Scotch library.
+ *
+ * @version 5.1.0
+ * @author Xavier Lacoste
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
 #include "graph.h"
 #include "order.h"
 #include <scotch.h>
 #include "scotch_strats.h"
-#include "csc_utils.h"
-#include "cscd_utils_intern.h"
 
-int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * orderComputeScotch - Compute the ordering of the graph given as parameter
+ * with Scotch library.
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, IPARM_ORDERING_DEFAULT, IPARM_SCOTCH_SWITCH_LEVEL,
+ *   IPARM_SCOTCH_CMIN, IPARM_SCOTCH_CMAX, IPARM_SCOTCH_FRAT
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *          On exit, the field oerdemesh is initialize with the result of the
+ *          ordering realized by Scotch.
+ *
+ * @param[in] graph
+ *          The graph prepared by graphPrepare function on which wwe want to
+ *          perform the ordering.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ *          \retval PASTIX_ERR_INTEGER_TYPE if Scotch integer type is not the
+ *                  same size as PaStiX ones.
+ *          \retval PASTIX_ERR_INTERNAL if an error occurs internally to Scotch.
+ *
+ *******************************************************************************/
+int
+orderComputeScotch(       pastix_data_t  *pastix_data,
+                    const pastix_graph_t *graph )
 {
     Order        *ordemesh = pastix_data->ordemesh;
-    SCOTCH_Graph  grafmesh;
+    SCOTCH_Graph  scotchgraph;
     SCOTCH_Strat  stratdat;
     char          strat[1024];
     pastix_int_t *colptr;
@@ -41,20 +76,20 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
     /* Check integer compatibility */
     if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
         errorPrint("Inconsistent integer type\n");
-        return INTEGER_TYPE_ERR;
+        return PASTIX_ERR_INTEGER_TYPE;
     }
 
-    n      = csc->n;
-    colptr = csc->colptr;
-    rows   = csc->rows;
+    n      = graph->n;
+    colptr = graph->colptr;
+    rows   = graph->rows;
     nnz    = colptr[n] - 1;
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
     orderInit(ordemesh, n, n);
-    SCOTCH_graphInit( &grafmesh );
+    SCOTCH_graphInit( &scotchgraph );
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
-    if (SCOTCH_graphBuild(&grafmesh,      /* Graph to build     */
+    if (SCOTCH_graphBuild(&scotchgraph,   /* Graph to build     */
                           1,              /* baseval            */
                           n,              /* Number of vertices */
                           colptr,         /* Vertex array       */
@@ -62,7 +97,7 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
                           NULL,           /* Array of vertex weights (DOFs) */
                           NULL,
                           nnz,            /* Number of arcs     */
-                          rows,     /* Edge array         */
+                          rows,           /* Edge array         */
                           NULL))
         {
             errorPrint("pastix : graphBuildGraph");
@@ -70,11 +105,11 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
         }
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphCheck <\n");
-    if (SCOTCH_graphCheck(&grafmesh)) {
+    if (SCOTCH_graphCheck(&scotchgraph)) {
         errorPrint("pastix: graphCheck");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
-    SCOTCH_graphBase(&grafmesh, 0);
+    SCOTCH_graphBase(&scotchgraph, 0);
 
     /* The graph is build, let's compute the ordering */
     SCOTCH_stratInit(&stratdat);
@@ -113,7 +148,7 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
     ret = SCOTCH_stratGraphOrder (&stratdat, strat);
     if (ret == 0) {
         /* Compute graph ordering */
-        ret = SCOTCH_graphOrderList(&grafmesh,
+        ret = SCOTCH_graphOrderList(&scotchgraph,
                                     (SCOTCH_Num)   n,
                                     (SCOTCH_Num *) NULL,
                                     &stratdat,
@@ -126,9 +161,11 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
     }
 
     SCOTCH_stratExit (&stratdat);
+    SCOTCH_graphExit( &scotchgraph );
+
     if (ret != 0) {           /* If something failed in Scotch */
         orderExit (ordemesh);    /* Free ordering arrays          */
-        return INTERNAL_ERR;
+        return PASTIX_ERR_INTERNAL;
     }
 
 #if defined(FORGET_PARTITION)
@@ -141,5 +178,5 @@ int orderComputeScotch( pastix_data_t *pastix_data, const pastix_graph_t *csc )
                                      (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
 #endif
 
-    return NO_ERR;
+    return PASTIX_SUCCESS;
 }

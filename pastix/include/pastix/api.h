@@ -36,13 +36,26 @@
    IPARM_GRAPHDIST             - Specify if the given graph is distributed or not         Default: API_YES             IN
    IPARM_AMALGAMATION_LEVEL    - Amalgamation level                                       Default: 5                   IN
    IPARM_ORDERING              - Choose ordering                                          Default: API_ORDER_SCOTCH    IN
-   IPARM_DEFAULT_ORDERING      - Use default ordering parameters with \scotch{} or \metis{} Default: API_YES             IN
-   IPARM_ORDERING_SWITCH_LEVEL - Ordering switch level    (see \scotch{} User's Guide)    Default: 120                 IN
-   IPARM_ORDERING_CMIN         - Ordering cmin parameter  (see \scotch{} User's Guide)    Default: 0                   IN
-   IPARM_ORDERING_CMAX         - Ordering cmax parameter  (see \scotch{} User's Guide)    Default: 100000              IN
-   IPARM_ORDERING_FRAT         - Ordering frat parameter  (see \scotch{} User's Guide)    Default: 8                   IN
+   IPARM_ORDERING_DEFAULT      - Use default ordering parameters with \scotch{} or \metis{} Default: API_YES           IN
+
+   IPARM_SCOTCH_SWITCH_LEVEL   - Ordering switch level    (see \scotch{} User's Guide)    Default: 120                 IN
+   IPARM_SCOTCH_CMIN           - Ordering cmin parameter  (see \scotch{} User's Guide)    Default: 0                   IN
+   IPARM_SCOTCH_CMAX           - Ordering cmax parameter  (see \scotch{} User's Guide)    Default: 100000              IN
+   IPARM_SCOTCH_FRAT           - Ordering frat parameter  (see \scotch{} User's Guide)    Default: 8                   IN
+
+   IPARM_METIS_CTYPE           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: METIS_CTYPE_SHEM       IN
+   IPARM_METIS_RTYPE           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: METIS_RTYPE_SEP1SIDED  IN
+   IPARM_METIS_NO2HOP          - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 0                      IN
+   IPARM_METIS_NSEPS           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 1                      IN
+   IPARM_METIS_NITER           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 10                     IN
+   IPARM_METIS_UFACTOR         - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 200                    IN
+   IPARM_METIS_COMPRESS        - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 1                      IN
+   IPARM_METIS_CCORDER         - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 0                      IN
+   IPARM_METIS_PFACTOR         - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 0                      IN
+   IPARM_METIS_SEED            - \metis{} parameters (see \metis{} Manual)                                                      Default: 3452                   IN
+   IPARM_METIS_DBGLVL          - \metis{} parameters (see \metis{} Manual)                                                      Default: 0                      IN
+
    IPARM_STATIC_PIVOTING       - Static pivoting                                          Default: -                   OUT
-   IPARM_METIS_PFACTOR         - \metis{} pfactor                                         Default: 0                   IN
    IPARM_NNZEROS               - Number of nonzero entries in the factorized matrix       Default: -                   OUT
    IPARM_ALLOCATED_TERMS       - Maximum memory allocated for matrix terms                Default: -                   OUT
    IPARM_BASEVAL               - Baseval used for the matrix                              Default: 0                   IN
@@ -107,13 +120,12 @@ enum IPARM_ACCESS {
   IPARM_GRAPHDIST               = 12,
   IPARM_AMALGAMATION_LEVEL      = 13,
   IPARM_ORDERING                = 14,
-  IPARM_DEFAULT_ORDERING        = 15,
-  IPARM_ORDERING_SWITCH_LEVEL   = 16,
-  IPARM_ORDERING_CMIN           = 17,
-  IPARM_ORDERING_CMAX           = 18,
-  IPARM_ORDERING_FRAT           = 19,
+  IPARM_ORDERING_DEFAULT        = 15,
+  IPARM_SCOTCH_SWITCH_LEVEL     = 16,
+  IPARM_SCOTCH_CMIN             = 17,
+  IPARM_SCOTCH_CMAX             = 18,
+  IPARM_SCOTCH_FRAT             = 19,
   IPARM_STATIC_PIVOTING         = 20,
-  IPARM_METIS_PFACTOR           = 21,
   IPARM_NNZEROS                 = 22,
   IPARM_ALLOCATED_TERMS         = 23,
   IPARM_BASEVAL                 = 24,
@@ -160,8 +172,32 @@ enum IPARM_ACCESS {
   IPARM_TRANSPOSE_SOLVE         = 65,
   IPARM_STARPU_CTX_DEPTH        = 66,
   IPARM_STARPU_CTX_NBR          = 67,
-  IPARM_SIZE                    = 128  /* Need to be greater or equal to 64 for backward compatibility */
+
+  IPARM_METIS_CTYPE,
+  IPARM_METIS_RTYPE,
+  IPARM_METIS_NO2HOP,
+  IPARM_METIS_NSEPS,
+  IPARM_METIS_NITER,
+  IPARM_METIS_UFACTOR,
+  IPARM_METIS_COMPRESS,
+  IPARM_METIS_CCORDER,
+  IPARM_METIS_PFACTOR,
+  IPARM_METIS_SEED,
+  IPARM_METIS_DBGLVL,
+
+  IPARM_SIZE
 };
+
+
+/*
+ * Backward compatibility
+ */
+#define IPARM_DEFAULT_ORDERING      IPARM_ORDERING_DEFAULT
+#define IPARM_ORDERING_SWITCH_LEVEL IPARM_SCOTCH_SWITCH_LEVEL
+#define IPARM_ORDERING_CMIN         IPARM_SCOTCH_CMIN
+#define IPARM_ORDERING_CMAX         IPARM_SCOTCH_CMAX
+#define IPARM_ORDERING_FRAT         IPARM_SCOTCH_FRAT
+
 
 /* Acces au tableau dparm */
 /*
