@@ -19,15 +19,7 @@
 #include "sparRow.h"
 #include "SF_Direct.h"
 
-
-void UnionSet(pastix_int_t *set1,
-              pastix_int_t  n1,
-              pastix_int_t *set2,
-              pastix_int_t  n2,
-              pastix_int_t *set,
-              pastix_int_t *n);
-
-pastix_int_t SF_Direct(csptr A,
+pastix_int_t SF_Direct(const csptr A,
                              pastix_int_t  cblknbr,
                        const pastix_int_t *rangtab,
                              pastix_int_t *treetab,
@@ -71,7 +63,9 @@ pastix_int_t SF_Direct(csptr A,
                 j++;
 
             /** Realise la fusion de 2 listes triees croissantes **/
-            UnionSet(tmpj, nnznbr, A->ja[i]+j, A->nnzrow[i]-j, tmp, &ind);
+            ind = pastix_intset_union( nnznbr,         tmpj,
+                                       A->nnzrow[i]-j, A->ja[i]+j,
+                                       tmp);
 
             /** echange tmpj et le resultat de la fusion **/
             nnznbr = ind;
@@ -118,7 +112,9 @@ pastix_int_t SF_Direct(csptr A,
              if(i == P->nnzrow[k])
              continue;*/
 
-            UnionSet(P->ja[k]+i, P->nnzrow[k]-i, P->ja[father], P->nnzrow[father], tmpj, &nnznbr);
+            nnznbr = pastix_intset_union( P->nnzrow[k]-i, P->ja[k]+i,
+                                          P->nnzrow[father], P->ja[father],
+                                          tmpj );
 
             memFree(P->ja[father]);
             MALLOC_INTERN(P->ja[father], nnznbr, pastix_int_t);
@@ -153,8 +149,10 @@ pastix_int_t SF_Direct(csptr A,
             for(ind = j+1;ind < A->nnzrow[i];ind++)
                 assert(A->ja[i][ind] > A->ja[i][ind-1]);
 
+            ind = pastix_intset_union( P->nnzrow[k],   P->ja[k],
+                                       A->nnzrow[i]-j, A->ja[i]+j,
+                                       tmp );
 
-            UnionSet(P->ja[k], P->nnzrow[k], A->ja[i]+j, A->nnzrow[i]-j, tmp, &ind);
             if(ind > P->nnzrow[k])
                 fprintf(stderr, "k=%ld [%ld %ld]  i=%ld ind %ld nnz %ld \n",
                         (long)k, (long)rangtab[k], (long)rangtab[k+1], (long)i, (long)ind, (long)P->nnzrow[k]);
@@ -190,74 +188,3 @@ pastix_int_t SF_Direct(csptr A,
 }
 
 
-void UnionSet(pastix_int_t *set1, pastix_int_t n1, pastix_int_t *set2, pastix_int_t n2, pastix_int_t *set, pastix_int_t *n)
-{
-    /********************************************************/
-    /* Compute the union of two sorted set                  */
-    /* set must have a big enough size to contain the union */
-    /* i.e n1+n2                                            */
-    /********************************************************/
-    pastix_int_t ind, ind1, ind2;
-
-    ind = 0;
-    ind1 = 0;
-    ind2 = 0;
-
-#ifdef DEBUG_KASS
-    {
-        pastix_int_t i;
-        for(i=0;i<n1-1;i++)
-            ASSERT(set1[i] < set1[i+1], MOD_KASS);
-        for(i=0;i<n2-1;i++)
-            ASSERT(set2[i] < set2[i+1], MOD_KASS);
-    }
-#endif
-
-    while(ind1 < n1 && ind2 < n2)
-    {
-        if(set1[ind1] == set2[ind2])
-        {
-            set[ind] = set1[ind1];
-            ind++;
-            ind1++;
-            ind2++;
-            continue;
-        }
-
-        if(set1[ind1] < set2[ind2])
-        {
-            set[ind] = set1[ind1];
-            ind++;
-            ind1++;
-            continue;
-        }
-
-        if(set1[ind1] > set2[ind2])
-        {
-            set[ind] = set2[ind2];
-            ind++;
-            ind2++;
-            continue;
-        }
-    }
-
-    while(ind1 < n1)
-    {
-        set[ind] = set1[ind1];
-        ind++;
-        ind1++;
-    }
-    while(ind2 < n2)
-    {
-        set[ind] = set2[ind2];
-        ind++;
-        ind2++;
-    }
-#ifdef DEBUG_KASS
-    ASSERT(ind <= ind1 +ind2, MOD_KASS);
-    ASSERT(ind >= MAX(ind1, ind2), MOD_KASS);
-#endif
-
-
-    *n = ind;
-}

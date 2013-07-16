@@ -40,8 +40,6 @@
 
 #define print_one(fmt, ...)    if( procnum == 0) fprintf(stdout, fmt, ##__VA_ARGS__)
 
-extern void UnionSet(pastix_int_t *set1, pastix_int_t n1, pastix_int_t *set2, pastix_int_t n2, pastix_int_t *set, pastix_int_t *n);
-
 double cblk_time_fact (pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
 double cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
 pastix_int_t    merge_cost(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight);
@@ -869,7 +867,9 @@ double merge_gain(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweig
   costa = CBLKTIME(P->nnzrow[a], P->ja[a], colweight[a]);
   costb = CBLKTIME(P->nnzrow[b], P->ja[b], colweight[b]);
 
-  UnionSet(P->ja[a], P->nnzrow[a], P->ja[b], P->nnzrow[b], tmp, &nm);
+  nm = pastix_intset_union( P->nnzrow[a], P->ja[a],
+                            P->nnzrow[b], P->ja[b],
+                            tmp);
 
   costm = CBLKTIME(nm, tmp, colweight[a] + colweight[b]);
 

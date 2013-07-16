@@ -23,7 +23,7 @@
 
 
 
-long SF_level(pastix_int_t job, csptr A, pastix_int_t level, csptr P)
+long SF_level(pastix_int_t job, const csptr A, pastix_int_t level, csptr P)
 {
   /***********************************************************************************************/
   /* This function computes the non zero pattern of the levelized incomplete factor              */
