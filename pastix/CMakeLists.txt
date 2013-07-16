@@ -484,9 +484,9 @@ solver_rules( generated_files
 set(PASTIX_LIB_SRCS
 # Files that are fully converted
   #
-  graph/graph_base.c
-  graph/graph_io.c
+  graph/graph.c
   graph/graph_isolate.c
+  graph/graph_prepare.c
   graph/graph_symmetrize.c
   #
   order/order.c
@@ -506,7 +506,7 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
 
   order/pastix_task_order.c
-  graph/graph_prepare.c
+  graph/graph_io.c
 #
 #
   blend/assemblyGener.c

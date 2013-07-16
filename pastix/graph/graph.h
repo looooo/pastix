@@ -32,12 +32,11 @@ void graphSave( const pastix_data_t  *pastix_data,
 void graphBase(  pastix_graph_t *graph, int baseval );
 void graphClean( pastix_graph_t *graph );
 
-int graphSymmetrize_int( pastix_int_t n,
-                         const pastix_int_t *ia,
-                         const pastix_int_t *ja,
-                         const pastix_int_t *loc2glob,
-                         pastix_graph_t *newgraph,
-                         int malloc_flag );
+int  graphSymmetrize(       pastix_int_t    n,
+                      const pastix_int_t   *ia,
+                      const pastix_int_t   *ja,
+                      const pastix_int_t   *loc2glob,
+                            pastix_graph_t *newgraph );
 
 int  graphPrepare(      pastix_data_t   *pastix_data,
                         pastix_int_t     n,

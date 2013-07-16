@@ -1,6 +1,6 @@
 /**
  *
- * @file graph_prepare.h
+ * @file graph_prepare.c
  *
  *  PaStiX graph routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -8,18 +8,32 @@
  *
  * @version 5.1.0
  * @author Xavier Lacoste
+ * @author Pierre Ramet
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
  **/
 #include "common.h"
 #include "graph.h"
-#include "csc_utils.h"
-#if defined(PASTIX_DISTRIBUTED)
-#include "cscd_utils_intern.h"
-#endif
 
-void graphNoDiag( pastix_graph_t *graph )
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * graphNoDiag - This routine removes the diagonal edges from a centralized
+ * graph.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] graph
+ *          On entry, the pointer to the graph structure with possible diagonal
+ *          edges (i,i).
+ *          On exit, all entries of type (i,i) are removed from the graph.
+ *
+ *******************************************************************************/
+void
+graphNoDiag( pastix_graph_t *graph )
 {
     pastix_int_t  i, j, indj;
     pastix_int_t  n   = graph->n;
@@ -55,7 +69,25 @@ void graphNoDiag( pastix_graph_t *graph )
     // graph->rows = memRealloc( graph->rows, (ia[0]-baseval) * sizeof(pastix_int_t) );
 }
 
-void graphSort( pastix_graph_t *graph )
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * graphSort - This routine sortes the subarray of edges of each vertex in a
+ * centralized graph. WARNING: the sort is always performed, so be carefull to
+ * not call this routine when it is not required.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] graph
+ *          On entry, the pointer to the graph structure.
+ *          On exit, the same graph with subarrays of edges sorted by ascending
+ *          order.
+ *
+ *******************************************************************************/
+void
+graphSort( pastix_graph_t *graph )
 {
     pastix_int_t *ia = graph->colptr;
     pastix_int_t *ja = graph->rows;
@@ -119,16 +151,17 @@ void graphSort( pastix_graph_t *graph )
  *******************************************************************************
  *
  * @return
- *          \retval 0 on success.
+ *          \retval PASTIX_SUCCESS on success.
  *          \retval !0 on failure.
  *
  *******************************************************************************/
-int graphPrepare(      pastix_data_t   *pastix_data,
-                       pastix_int_t     n,
-                 const pastix_int_t    *colptr,
-                 const pastix_int_t    *rows,
-                 const pastix_int_t    *loc2glob,
-                       pastix_graph_t **graph )
+int
+graphPrepare(      pastix_data_t   *pastix_data,
+                   pastix_int_t     n,
+             const pastix_int_t    *colptr,
+             const pastix_int_t    *rows,
+             const pastix_int_t    *loc2glob,
+                   pastix_graph_t **graph )
 {
     pastix_graph_t *tmpgraph  = NULL;
     pastix_int_t *iparm   = pastix_data->iparm;
@@ -156,8 +189,7 @@ int graphPrepare(      pastix_data_t   *pastix_data,
             if ((iparm[IPARM_SYM] == API_SYM_YES) ||
                 (iparm[IPARM_SYM] == API_SYM_HER) )
             {
-                graphSymmetrize_int( n, colptr, rows, loc2glob,
-                                     tmpgraph, API_YES );
+                graphSymmetrize( n, colptr, rows, loc2glob, tmpgraph );
                 assert( n == tmpgraph->n );
             }
             else

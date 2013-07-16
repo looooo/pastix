@@ -1,6 +1,6 @@
 /**
  *
- * @file graph_isolate.h
+ * @file graph_isolate.c
  *
  *  PaStiX graph routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -20,8 +20,8 @@
  *
  * @ingroup pastix_graph
  *
- * graphIsolate - This routine isolate a subset of vertices from a given graph, and
- * return a new GRAPH cleaned from those vertices.
+ * graphIsolate - This routine isolate a subset of vertices from a given graph,
+ * and return a new GRAPH cleaned from those vertices.
  *
  *******************************************************************************
  *

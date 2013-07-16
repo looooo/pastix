@@ -128,7 +128,7 @@ orderExit (Order * const ordeptr)
  *          The ordering to rebase.
  *
  * @param[in] baseval
- *          The base value to be used.
+ *          The base value to be used (needs to be 0 or 1).
  *
  *******************************************************************************/
 void
@@ -141,10 +141,13 @@ orderBase (Order * const ordeptr,
 
     /* Parameter checks */
     if ( ordeptr == NULL ) {
+        errorPrint("orderBase: ordeptr pointer is NULL");
         return;
     }
     if ( (baseval != 0) &&
-         (baseval != 1) ) {
+         (baseval != 1) )
+    {
+        errorPrint("orderBase: baseval is incorrect, must be 0 or 1");
         return;
     }
 

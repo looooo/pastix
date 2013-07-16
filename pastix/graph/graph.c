@@ -1,6 +1,6 @@
 /**
  *
- * @file graph_base.c
+ * @file graph.c
  *
  *  PaStiX graph routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,

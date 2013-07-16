@@ -15,7 +15,6 @@
  **/
 #include "common.h"
 #include "graph.h"
-#include "csc_utils.h"
 
 /**
  *******************************************************************************
@@ -26,39 +25,39 @@
  *
  *******************************************************************************
  *
- * @param[in] pastix_data
- *          The pointer to the solver instance to get options as rank,
- *          communicators, ...
+ * @param[in] n
+ *          The number of vertex of the original graph.
  *
- * @param[in,out] graph
- *          The graph structure to store the loaded graph.
+ * @param[in] ia
+ *          Array of size n+1
+ *          Index of first edge for each vertex in ja array.
+ *
+ * @param[in] ja
+ *          Array of size nnz = ia[n] - ia[0].
+ *          Edges for each vertex.
+ *
+ * @param[in] loc2glob
+ *          Array of size n
+ *          Global numbering of each local vertex.
+ *
+ * @param[in,out] newgraph
+ *          The initialized graph structure where the symmetrized graph will be
+ *          stored.
+ *          The allocated data must be freed with graphClean.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on success.
+ *          \retval PASTIX_ERR_ALLOC if allocation went wrong.
+ *          \retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
  *
  *******************************************************************************/
-/*
-  Function: csc_symgraph_int
-
-
-  Modify the CSC to a symetric graph one.
-  Don't use it on a lower symetric CSC
-  it would give you all the CSC upper + lower.
-
-  Parameters:
-    n           - Number of columns/vertices
-    ia          - Starting index of each column in *ja* and *a*
-    ja          - Row index of each element
-    a           - Value of each element,can be NULL
-    newn        - New number of column
-    newia       - Starting index of each column in *ja* and *a*
-    newja       - Row index of each element
-    newa        - Value of each element,can be NULL
-    malloc_flag - flag to indicate if function call is intern to pastix or extern.
- */
-int graphSymmetrize_int( pastix_int_t n,
-                         const pastix_int_t *ia,
-                         const pastix_int_t *ja,
-                         const pastix_int_t *loc2glob,
-                         pastix_graph_t *newgraph,
-                         int malloc_flag )
+int graphSymmetrize(       pastix_int_t    n,
+                     const pastix_int_t   *ia,
+                     const pastix_int_t   *ja,
+                     const pastix_int_t   *loc2glob,
+                           pastix_graph_t *newgraph )
 {
     pastix_int_t *nbrEltCol = NULL; /* nbrEltCol[i] = Number of elt to add in column i */
     pastix_int_t  itercol, iterrow, iterrow2; /* iterators */
@@ -69,7 +68,6 @@ int graphSymmetrize_int( pastix_int_t n,
     (void)loc2glob;
 
     MALLOC_INTERN(nbrEltCol, n, pastix_int_t);
-    /* !! Need check for malloc */
 
     /* Init nbrEltCol */
     for (itercol=0; itercol<n; itercol++)
@@ -115,12 +113,7 @@ int graphSymmetrize_int( pastix_int_t n,
     }
 
     /* Let's compute the new ia in C numbering */
-    if (malloc_flag == API_YES) {
-        MALLOC_INTERN(newia, n+1, pastix_int_t);
-    }
-    else {
-        MALLOC_EXTERN(newia, n+1, pastix_int_t);
-    }
+    MALLOC_INTERN(newia, n+1, pastix_int_t);
 
     newia[0] = ia[0];
     for (itercol=0;itercol<n;itercol++)
@@ -132,12 +125,7 @@ int graphSymmetrize_int( pastix_int_t n,
     nnz = newia[n] - baseval;
 
     /* Let's build the new ja */
-    if (malloc_flag == API_YES) {
-        MALLOC_INTERN(newja, nnz, pastix_int_t);
-    }
-    else {
-        MALLOC_EXTERN(newja, nnz, pastix_int_t);
-    }
+    MALLOC_INTERN(newja, nnz, pastix_int_t);
 
     if ( newia[n] > ia[n])
     {
