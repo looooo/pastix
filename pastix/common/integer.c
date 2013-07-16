@@ -673,3 +673,82 @@ intRandReset (void)
 #undef INTSORTSWAP
 #undef INTSORTCMP
 #undef INTSORTNTAB
+
+pastix_int_t
+pastix_intset_union(       pastix_int_t  n1,
+                     const pastix_int_t *set1,
+                           pastix_int_t  n2,
+                     const pastix_int_t *set2,
+                           pastix_int_t *set )
+{
+    /********************************************************/
+    /* Compute the union of two sorted set                  */
+    /* set must have a big enough size to contain the union */
+    /* i.e n1+n2                                            */
+    /********************************************************/
+    const pastix_int_t *end1, *end2;
+    pastix_int_t n;
+
+    n  = 0;
+    end1 = set1 + n1;
+    end2 = set2 + n2;
+
+#if defined(PASTIX_DEBUG_COMMON)
+    {
+        pastix_int_t i;
+        for(i=1;i<n1;i++)
+            assert( set1[i-1] < set1[i] );
+        for(i=1;i<n2;i++)
+            assert( set2[i-1] < set2[i] );
+    }
+#endif
+
+    while((set1 < end1) && (set2 < end2))
+    {
+        if( *set1 == *set2)
+        {
+            *set = *set1;
+            set1++;
+            set2++;
+        }
+        else if( *set1 < *set2 )
+        {
+            *set = *set1;
+            set1++;
+        }
+        else if( *set1 > *set2 )
+        {
+            *set = *set2;
+            set2++;
+        }
+        else
+        {
+            assert(0);
+        }
+
+        n++;
+        set++;
+    }
+
+    while( set1 < end1 )
+    {
+        *set = *set1;
+        n++;
+        set++;
+        set1++;
+    }
+    while( set2 < end2 )
+    {
+        *set = *set2;
+        n++;
+        set++;
+        set2++;
+    }
+
+#if defined(PASTIX_DEBUG_COMMON)
+    assert( (n >= n1) || (n >= n2) );
+    assert( n <= (n1 + n2) );
+#endif
+
+    return n;
+}

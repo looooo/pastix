@@ -110,6 +110,13 @@ void qsort2SmallIntAsc(void ** const pbase,
                        const pastix_int_t     total_elems);
 
 
+pastix_int_t
+pastix_intset_union(       pastix_int_t  n1,
+                     const pastix_int_t *set1,
+                           pastix_int_t  n2,
+                     const pastix_int_t *set2,
+                           pastix_int_t *set );
+
 static inline pastix_int_t pastix_imin( pastix_int_t a, pastix_int_t b) {
     return ( a < b ) ? a : b;
 }
