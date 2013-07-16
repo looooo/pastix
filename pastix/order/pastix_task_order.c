@@ -245,7 +245,7 @@ int pastix_task_order(pastix_data_t *pastix_data,
             /* memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t)); */
             /* memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t)); */
 
-            orderLoadFiles( pastix_data );
+            orderLoad( ordemesh, NULL );
             memFree_null( ordemesh->rangtab );
             ordemesh->cblknbr = 0;
         }
@@ -255,7 +255,7 @@ int pastix_task_order(pastix_data_t *pastix_data,
          * Load ordering
          */
     case API_ORDER_LOAD:
-        retval = orderLoadFiles( pastix_data );
+        retval = orderLoad( ordemesh, NULL );
         break;
 
     default:
@@ -306,7 +306,10 @@ int pastix_task_order(pastix_data_t *pastix_data,
 
     /* Save i/o strategy */
     if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE)) {
-        retval = orderSaveFiles( pastix_data );
+        if (procnum == 0) {
+            retval = orderSave( ordemesh, NULL );
+        }
+        /* TODO: synchro of retval */
         if (retval != PASTIX_SUCCESS)
             return retval;
     }

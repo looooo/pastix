@@ -19,7 +19,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering_internal
+ * @ingroup pastix_ordering
  *
  * orderCheck - This routine checks the correctness of the ordering stucture.
  *
@@ -45,12 +45,18 @@ orderCheck (const Order * const  ordeptr)
     const pastix_int_t * peritax;                  /* Based access to peritab    */
     const pastix_int_t * permtax;                  /* Based access to permtab    */
 
+    /* Parameter checks */
+    if ( ordeptr == NULL ) {
+        errorPrint ("orderCheck: invalid ordeptr pointer");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
     if (ordeptr->cblknbr < 0) {
         errorPrint ("orderCheck: invalid nunber of column blocks");
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    baseval = ordeptr->baseval;                  /* Get base value */
+    baseval = ordeptr->baseval;
     if (baseval < 0) {
         errorPrint ("orderCheck: invalid vertex node base number");
         return PASTIX_ERR_BADPARAMETER;
@@ -58,15 +64,17 @@ orderCheck (const Order * const  ordeptr)
 
     assert(baseval == ordeptr->rangtab[0]);
 
-    peritax = ordeptr->peritab - baseval;           /* Set based accesses */
+    peritax = ordeptr->peritab - baseval; /* Set based accesses */
     vnodmax = ordeptr->rangtab[ordeptr->cblknbr] - 1;
 
     assert(vnodmax == ordeptr->vertnbr);
 
-    for (rangnum = 0; rangnum < ordeptr->cblknbr; rangnum ++) {
+    for (rangnum = 0; rangnum < ordeptr->cblknbr; rangnum ++)
+    {
         if ((ordeptr->rangtab[rangnum] <  baseval) ||
             (ordeptr->rangtab[rangnum] >  vnodmax) ||
-            (ordeptr->rangtab[rangnum] >= ordeptr->rangtab[rangnum + 1])) {
+            (ordeptr->rangtab[rangnum] >= ordeptr->rangtab[rangnum + 1]))
+        {
             errorPrint ("orderCheck: invalid range array");
             return PASTIX_ERR_BADPARAMETER;
         }
@@ -75,13 +83,15 @@ orderCheck (const Order * const  ordeptr)
     permtax = ordeptr->permtab - baseval;
 
     for (vnodnum = baseval;
-         vnodnum <= vnodmax; vnodnum ++) {
-        pastix_int_t                   vnodold;
+         vnodnum <= vnodmax; vnodnum ++)
+    {
+        pastix_int_t vnodold;
 
         vnodold = peritax[vnodnum];
         if ((vnodold < baseval) ||
             (vnodold > vnodmax) ||
-            (permtax[vnodold] != vnodnum)) {
+            (permtax[vnodold] != vnodnum))
+        {
             errorPrint ("orderCheck: invalid permutation arrays");
             return PASTIX_ERR_BADPARAMETER;
         }

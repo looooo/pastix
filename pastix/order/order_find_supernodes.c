@@ -164,9 +164,8 @@ compute_post_order(      pastix_int_t n,
     /** Check the permutation vector **/
     for(i=0;i<n;i++)
     {
-        /*fprintf(stderr, "(%d = %d) ", i, perm[i]);*/
         assert(perm[i] >= 0);
-        assert(perm[i] < n);
+        assert(perm[i] <  n);
     }
 
     bzero(iperm, sizeof(pastix_int_t)*n);

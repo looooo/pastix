@@ -38,8 +38,6 @@ typedef struct Order_ {
  */
 int  orderInit (      Order * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
 void orderExit (      Order * const ordeptr);
-int  orderLoad (      Order * const ordeptr, FILE * const stream);
-int  orderSave (const Order * const ordeptr, FILE * const stream);
 void orderBase (      Order * const ordeptr, pastix_int_t baseval);
 int  orderCheck(const Order * const ordeptr);
 
@@ -47,8 +45,8 @@ int orderComputeScotch(   pastix_data_t *pastix_data, const pastix_graph_t *grap
 int orderComputePTScotch( pastix_data_t *pastix_data, const pastix_graph_t *graph );
 int orderComputeMetis(    pastix_data_t *pastix_data, const pastix_graph_t *graph );
 
-int orderLoadFiles( pastix_data_t *pastix_data );
-int orderSaveFiles( pastix_data_t *pastix_data );
+int orderLoad(       Order * const ordeptr, char *filename );
+int orderSave( const Order * const ordeptr, char *filename );
 
 int orderPrepareCSC(pastix_data_t *pastix_data,
                     pastix_int_t   n,

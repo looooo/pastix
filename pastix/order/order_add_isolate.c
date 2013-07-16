@@ -1,15 +1,16 @@
 /**
  *
- * @file order_base.c
+ * @file order_add_isolate.c
  *
  *  PaStiX order routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * Contains function to adjust the base value of the ordering.
+ * Contains function to add subset of isolated vertices.
  *
  * @version 5.1.0
- * @author Francois Pellegrini
+ * @author Xavier Lacoste
+ * @author Mathieu Faverge
  * @date 2013-06-24
  *
  **/
@@ -22,7 +23,8 @@
  * @ingroup pastix_ordering
  *
  * orderAddIsolate - This routine combines two pemutation arrays when a subset
- * of vertices has been isolated from the original graph.
+ * of vertices has been isolated from the original graph through graphIsolate
+ * function.
  *
  *******************************************************************************
  *
@@ -38,25 +40,55 @@
  *          the graph. this permutation will be combined with the one stored in
  *          ordemesh to generate a permutation array for the full graph.
  *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ *
+ *******************************************************************************
+ *
+ * @sa graphIsolate
+ *
  *******************************************************************************/
-int orderAddIsolate( Order        *ordemesh,
-                     pastix_int_t  new_n,
-                     const pastix_int_t *perm )
+int
+orderAddIsolate(       Order        *ordemesh,
+                       pastix_int_t  new_n,
+                 const pastix_int_t *perm )
 {
     Order ordesave;
     pastix_int_t i, ip;
-    pastix_int_t n       = ordemesh->vertnbr;
-    pastix_int_t cblknbr = ordemesh->cblknbr;
-    int          baseval = ordemesh->baseval;
+    pastix_int_t n;
+    pastix_int_t cblknbr;
+    int baseval, rc;
 
-    assert( n <= new_n );
+    /* Parameter checks */
+    if ( ordemesh == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( new_n < ordemesh->vertnbr ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( perm == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    n       = ordemesh->vertnbr;
+    cblknbr = ordemesh->cblknbr;
+    baseval = ordemesh->baseval;
 
     /* Quick return */
     if ( n == new_n )
         return PASTIX_SUCCESS;
 
+    assert( n <= new_n );
+
     memcpy( &ordesave, ordemesh, sizeof(Order) );
-    orderInit( ordemesh, new_n, cblknbr + 1 );
+    rc = orderInit( ordemesh, new_n, cblknbr + 1 );
+    if (rc != PASTIX_SUCCESS)
+        return rc;
+
     ordemesh->baseval = baseval;
 
     for(i=0; i< new_n; i++) {

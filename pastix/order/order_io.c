@@ -10,6 +10,9 @@
  *
  * @version 5.1.0
  * @author Francois Pellegrini
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @author Mathieu Faverge
  * @date 2013-06-24
  *
  **/
@@ -21,7 +24,7 @@
  *
  * @ingroup pastix_ordering_internal
  *
- * orderLoad - This routine reads the given ordering structure from the given
+ * ordering_load - This routine reads the given ordering structure from the given
  * stream.
  *
  *******************************************************************************
@@ -39,11 +42,11 @@
  *          \retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
-int
-orderLoad (Order * const ordeptr,
-           FILE  * const stream)
+static inline int
+ordering_load(Order * const ordeptr,
+              FILE  * const stream)
 {
-    pastix_int_t  versval;                      /* Version number */
+    pastix_int_t  versval;
     pastix_int_t  cblknbr;
     pastix_int_t  cblknum;
     pastix_int_t  vertnbr;
@@ -90,9 +93,79 @@ orderLoad (Order * const ordeptr,
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_ordering
+ *
+ * orderLoad - This routine load an ordering from a file.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] ordemesh
+ *          The initialized ordering structure to fill in.
+ *
+ * @param[in] filename
+ *          The filename where to find the ordering.  If filename == NULL, we
+ *          look for the environment variable PASTIX_FILE_ORDER.  If
+ *          PASTIX_FILE_ORDER is not defined, we read in the default file
+ *          "ordername".
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCESS on successful exit.
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_FILE if a problem occurs during the read.
+ *
+ *******************************************************************************/
+int orderLoad( Order *ordemesh,
+               char  *filename )
+{
+    FILE  *stream;
+    int rc = PASTIX_SUCCESS;
+    int env = 0;
+
+    /* Parameter checks */
+    if ( ordemesh == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /*
+     * Get the environment variable as second option
+     */
+    if ( filename == NULL ) {
+        filename = pastix_getenv( "PASTIX_FILE_ORDER" );
+        env = 1;
+    }
+
+    /*
+     * Get the default name as third option
+     */
+    if ( filename == NULL ) {
+        pastix_cleanenv( filename );
+        env = 0;
+        filename = "ordername";
+    }
+
+    PASTIX_FOPEN(stream, filename, "r");
+    rc = ordering_load(ordemesh, stream);
+    if (rc != PASTIX_SUCCESS)
+    {
+        errorPrint("test: cannot load order");
+        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
+    }
+    fclose(stream);
+
+    if (env) {
+        pastix_cleanenv( filename );
+    }
+
+    return rc;
+}
+/**
+ *******************************************************************************
+ *
  * @ingroup pastix_ordering_internal
  *
- * orderSave - This routine writes the given ordering structure to the given
+ * ordering_save - This routine writes the given ordering structure to the given
  * stream.
  *
  *******************************************************************************
@@ -111,9 +184,9 @@ orderLoad (Order * const ordeptr,
  *          \retval PASTIX_ERR_FILE if a problem occurs during the write.
  *
  *******************************************************************************/
-int
-orderSave (const Order * const ordeptr,
-           FILE * const        stream)
+static inline int
+ordering_save(const Order * const ordeptr,
+              FILE * const        stream)
 {
     pastix_int_t vertnbr;
     pastix_int_t vertnum;
@@ -131,6 +204,9 @@ orderSave (const Order * const ordeptr,
 
     vertnbr = ordeptr->rangtab[ordeptr->cblknbr] -  /* Get number of nodes */
         ordeptr->rangtab[0];
+
+    assert( vertnbr == ordeptr->vertnbr );
+    assert( ordeptr->rangtab[0] == ordeptr->baseval );
 
     if (fprintf (stream, "0\n%ld\t%ld\n",
                  (long) ordeptr->cblknbr,
@@ -159,4 +235,74 @@ orderSave (const Order * const ordeptr,
     }
 
     return PASTIX_SUCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * orderSave - This routine save an ordering to a file.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ordemesh
+ *          The initialized ordering structure to save.
+ *
+ * @param[in] filename
+ *          The filename where to save the ordering.  If filename == NULL, we
+ *          look for the environment variable PASTIX_FILE_ORDER.  If
+ *          PASTIX_FILE_ORDER is not defined, we read in the default file
+ *          "ordergen".
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCESS on successful exit.
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_FILE if a problem occurs during the read.
+ *
+ *******************************************************************************/
+int orderSave( const Order * const ordemesh,
+               char  *filename )
+{
+    FILE *stream;
+    int rc = PASTIX_SUCCESS;
+    int env = 0;
+
+    /* Parameter checks */
+    if ( ordemesh == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /*
+     * Get the environment variable as second option
+     */
+    if ( filename == NULL ) {
+        filename = pastix_getenv( "PASTIX_FILE_ORDER" );
+        env = 1;
+    }
+
+    /*
+     * Get the default name as third option
+     */
+    if ( filename == NULL ) {
+        pastix_cleanenv( filename );
+        env = 0;
+        filename = "ordergen";
+    }
+
+    PASTIX_FOPEN(stream, filename, "w");
+    rc = ordering_save(ordemesh, stream);
+    if (rc != PASTIX_SUCCESS )
+    {
+        errorPrint ("cannot save order");
+    }
+    fclose(stream);
+
+    if (env) {
+        pastix_cleanenv( filename );
+    }
+
+    return rc;
 }
