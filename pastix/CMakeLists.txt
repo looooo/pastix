@@ -494,6 +494,7 @@ set(PASTIX_LIB_SRCS
   order/order_check.c
   order/order_find_supernodes.c
   order/order_io.c
+  order/pastix_task_order.c
   #
   fax/symbol_fax_graph.c
   #
@@ -505,7 +506,6 @@ set(PASTIX_LIB_SRCS
   common/memory.c
 #  common/trace.c
 
-  order/pastix_task_order.c
   graph/graph_io.c
 #
 #
@@ -619,6 +619,13 @@ set(PASTIX_LIB_SRCS
   ${generated_files}
   )
 
+set(PASTIX_ALL_SRCS
+  ${PASTIX_LIB_SRCS}
+  order/order_compute_scotch.c
+  order/order_compute_ptscotch.c
+  order/order_compute_metis.c
+)
+
 if(PASTIX_ORDERING_SCOTCH)# AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
@@ -651,6 +658,14 @@ if(BUILD_DOCUMENTATION)
     message(FATAL_ERROR
       "Doxygen is needed to build the documentation. Please install it correctly")
   endif()
+
+  set(PASTIX_DOX_SRCS )
+  foreach( _file ${PASTIX_ALL_SRCS} )
+    set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
+  endforeach()
+
+  message(STATUS "${PASTIX_DOX_SRCS}")
+
   #-- Configure the Template Doxyfile for our specific project
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/Doxyfile.in
                  ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile @ONLY IMMEDIATE )
@@ -658,10 +673,11 @@ if(BUILD_DOCUMENTATION)
   add_custom_target (docs
     COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile
     SOURCES ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile )
+
 endif()
 
 
 #-- Add a custom target to run Doxygen when ever the project is built
 add_custom_target (tagstoto
-  COMMAND etags ${PASTIX_LIB_SRCS}
-  DEPENDS ${PASTIX_LIB_SRCS} )
+  COMMAND etags ${PASTIX_ALL_SRCS}
+  DEPENDS ${PASTIX_ALL_SRCS} )
