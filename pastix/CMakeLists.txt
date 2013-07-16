@@ -437,7 +437,14 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
-include_directories("/opt/scotch/int64/include")
+
+if (PASTIX_ORDERING_SCOTCH)
+  include_directories("/opt/scotch/int64/include")
+endif()
+
+if (PASTIX_ORDERING_METIS)
+  include_directories("/opt/metis/include")
+endif()
 
 macro(solver_rules _output_files _sources_files)
   foreach(_source_file ${_sources_files})
@@ -485,7 +492,6 @@ set(PASTIX_LIB_SRCS
   #
   order/order.c
   order/order_add_isolate.c
-  order/order_base.c
   order/order_check.c
   order/order_find_supernodes.c
   order/order_io.c
@@ -501,12 +507,6 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
 
   order/pastix_task_order.c
-  order/pastix_task_scotch.c
-  order/order_compute_io.c
-  # order/order.c
-  # order/order_base.c
-  # order/order_io.c
-  # order/pastix_task_order.c
 #
 #
   blend/assemblyGener.c
@@ -631,7 +631,7 @@ if(PASTIX_ORDERING_PTSCOTCH)# AND HAVE_SCOTCH)
     order/order_compute_ptscotch.c
     )
 endif()
-if(PASTIX_ORDERING_METIS AND HAVE_METIS)
+if(PASTIX_ORDERING_METIS) # AND HAVE_METIS)
   list(APPEND PASTIX_LIB_SRCS
     order/order_compute_metis.c
     )
