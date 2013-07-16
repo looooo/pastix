@@ -71,7 +71,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
     pastix_int_t nnz;
     int ret;
 
-    procnum   = pastix_data->procnum;
+    procnum = pastix_data->procnum;
 
     /* Check integer compatibility */
     if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {

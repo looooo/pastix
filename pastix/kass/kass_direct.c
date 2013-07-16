@@ -76,7 +76,7 @@ int kass2(int            ilu,
 
     /* Check parameters correctness */
     if ( (orderptr->rangtab != NULL) && (ilu == API_NO ) ) {
-        errorPrintW("Kass cannot be called for with Direct factorization and supernodes already found");
+        errorPrintW("Kass cannot be called for Direct factorization and with supernodes already found");
         return PASTIX_ERR_BADPARAMETER;
     }
 
