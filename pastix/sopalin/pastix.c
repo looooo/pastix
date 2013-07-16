@@ -20,10 +20,6 @@
 #endif
 #include <sys/stat.h>
 
-#ifdef METIS
-#  include "metis.h" /* must be before common */
-#endif
-
 #include "tools.h"
 #include "sopalin_define.h"
 #ifdef WITH_STARPU
@@ -2840,365 +2836,251 @@ void pastix(pastix_data_t **pastix_data,
             pastix_int_t            *iparm,
             double         *dparm)
 {
-  int flagWinvp = 1;
-  int ret = PASTIX_SUCCESS;
+    int flagWinvp = 1;
+    int ret = PASTIX_SUCCESS;
 #ifdef FIX_SCOTCH /* Pour le debug au cines */
-  _SCOTCHintRandInit();
+    _SCOTCHintRandInit();
 #endif
 
-  iparm[IPARM_GRAPHDIST] = API_NO;
+    iparm[IPARM_GRAPHDIST] = API_NO;
 
-  if (iparm[IPARM_MODIFY_PARAMETER] == API_NO) /* init task */
+    if (iparm[IPARM_MODIFY_PARAMETER] == API_NO) /* init task */
     {
-      /* init with default for iparm & dparm */
-      pastix_initParam(iparm, dparm);
-      iparm[IPARM_GRAPHDIST] = API_NO;
-      return;
+        /* init with default for iparm & dparm */
+        pastix_initParam(iparm, dparm);
+        iparm[IPARM_GRAPHDIST] = API_NO;
+        return;
     }
-  /*
-   * Init : create pastix_data structure if it's first time
-   */
-  if (*pastix_data == NULL)
+    /*
+     * Init : create pastix_data structure if it's first time
+     */
+    if (*pastix_data == NULL)
     {
-      /* Need to be set to -1 in every cases */
-      iparm[IPARM_OOC_ID] = -1;
+        /* Need to be set to -1 in every cases */
+        iparm[IPARM_OOC_ID] = -1;
 
-      /* Allocation de la structure pastix_data qd on rentre dans
+        /* Allocation de la structure pastix_data qd on rentre dans
          pastix pour la première fois */
-      pastix_task_init(pastix_data, pastix_comm, iparm, dparm);
-      if ((*pastix_data)->intra_node_procnum == 0) {
-        /* Affichage des options */
-        pastix_welcome_print(*pastix_data, colptr, n);
+        pastix_task_init(pastix_data, pastix_comm, iparm, dparm);
+        if ((*pastix_data)->intra_node_procnum == 0) {
 
-        /* multiple RHS see MRHS_ALLOC */
-        if ( ((*pastix_data)->procnum == 0)  && (rhs!=1)  &&
-             iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-          errorPrintW("multiple right-hand-side not tested...");
+            /* Affichage des options */
+            pastix_welcome_print(*pastix_data, colptr, n);
 
-        /* Matrix verification */
-        if (iparm[IPARM_MATRIX_VERIFICATION] == API_YES)
-          if ( PASTIX_SUCCESS != (ret = pastix_checkMatrix((*pastix_data)->inter_node_comm,
-                                                   iparm[IPARM_VERBOSE], iparm[IPARM_SYM],
-                                                   API_NO, n, &colptr, &row,
-                                                   (avals == NULL)?NULL:(&avals),
-                                                   NULL, iparm[IPARM_DOF_NBR])))
-            {
-              errorPrint("The matrix is not in the correct format");
-              iparm[IPARM_ERROR_NUMBER] = ret;
-              return;
-            }
-      }
-    }
+            /* multiple RHS see MRHS_ALLOC */
+            if ( ((*pastix_data)->procnum == 0)  && (rhs!=1)  &&
+                 iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                errorPrintW("multiple right-hand-side not tested...");
 
-  (*pastix_data)->n2 = n;
-
-  if (PASTIX_SUCCESS != (ret = pastix_check_param(*pastix_data, rhs)))
-    {
-      iparm[IPARM_ERROR_NUMBER] = ret;
-      return;
-    }
-
-
-  if ((*pastix_data)->intra_node_procnum == 0) {
-    /* only master node do computations */
-    if (iparm[IPARM_END_TASK]<API_TASK_ORDERING) {
-      WAIT_AND_RETURN;
-    }
-
-    /* On n'affiche pas le warning si on enchaine scotch et fax */
-    if ( (iparm[IPARM_START_TASK] <= API_TASK_ORDERING)
-         && (iparm[IPARM_END_TASK] >= API_TASK_SYMBFACT)) {
-      flagWinvp = 0;
-    }
-
-#ifdef SEPARATE_ZEROS
-    {
-      pastix_int_t  n_nz       = 0;
-      pastix_int_t *colptr_nz  = NULL;
-      pastix_int_t *rows_nz    = NULL;
-      pastix_int_t  n_z        = 0;
-      pastix_int_t *colptr_z   = NULL;
-      pastix_int_t *rows_z     = NULL;
-      pastix_int_t *permz      = NULL;
-      pastix_int_t *revpermz      = NULL;
-      int  ret;
-      Order *ordemesh = (*pastix_data)->ordemesh;
-      Order *order    = NULL;
-      pastix_int_t  iter;
-
-      MALLOC_INTERN(order, 1, Order);
-      orderInit(order);
-      MALLOC_INTERN(order->rangtab, n+1, pastix_int_t);
-      MALLOC_INTERN(order->permtab, n,   pastix_int_t);
-
-      MALLOC_INTERN(permz, n, pastix_int_t);
-      MALLOC_INTERN(revpermz, n, pastix_int_t);
-
-      CSC_buildZerosAndNonZerosGraphs(n,
-                                      colptr,
-                                      row,
-                                      avals,
-                                      &n_nz,
-                                      &colptr_nz,
-                                      &rows_nz,
-                                      &n_z,
-                                      &colptr_z,
-                                      &rows_z,
-                                      permz,
-                                      revpermz,
-                                      dparm[DPARM_EPSILON_MAGN_CTRL]);
-
-      if (n_z != 0 && n_nz != 0)
-        {
-          fprintf(stdout, ":: Scotch on non zeros\n");
-          /*
-           * Scotch : Ordering
-           */
-          if (iparm[IPARM_START_TASK] == API_TASK_ORDERING) /* scotch task */
-            if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data,
-                                                    (*pastix_data)->inter_node_comm,
-                                                    n_nz, colptr_nz, rows_nz,
-                                                    perm, invp)))
-              {
-                iparm[IPARM_ERROR_NUMBER] = ret;
-                WAIT_AND_RETURN;
-              }
-          for (iter = 0; iter < n_nz; iter++)
-            order->permtab[revpermz[iter]-1] = ordemesh->permtab[iter];
-          memcpy(order->rangtab,
-                 ordemesh->rangtab,
-                 (ordemesh->cblknbr +1)*sizeof(pastix_int_t));
-          order->cblknbr = ordemesh->cblknbr;
-          iparm[IPARM_START_TASK]--;
-          fprintf(stdout, ":: Scotch on zeros\n");
-          if (iparm[IPARM_START_TASK] == API_TASK_ORDERING) /* scotch task */
-            if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data,
-                                                    (*pastix_data)->inter_node_comm,
-                                                    n_z, colptr_z, rows_z,
-                                                    perm, invp)))
-              {
-                iparm[IPARM_ERROR_NUMBER] = ret;
-                WAIT_AND_RETURN;
-              }
-
-          for (iter = 0; iter < n_z; iter++)
-            order->permtab[revpermz[n_nz+iter]-1] = n_nz+ordemesh->permtab[iter];
-
-          for (iter = 0; iter < ordemesh->cblknbr+1; iter++)
-            order->rangtab[order->cblknbr+iter] = order->rangtab[order->cblknbr] +
-              ordemesh->rangtab[iter];
-
-          iparm[IPARM_START_TASK]--;
-
-          if (iparm[IPARM_START_TASK] == API_TASK_ORDERING) /* scotch task */
-            if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data,
-                                                            (*pastix_data)->inter_node_comm,
-                                                            n, colptr, row, perm, invp)))
-              {
-                iparm[IPARM_ERROR_NUMBER] = ret;
-                WAIT_AND_RETURN;
-              }
-          MALLOC_INTERN(order->peritab, n,   pastix_int_t);
-          for (iter = 0; iter < n; iter++)
-            {
-              ASSERT(order->permtab[iter] < n, MOD_SOPALIN);
-              ASSERT(order->permtab[iter]  >= 0, MOD_SOPALIN);
-            }
-          for (iter = 0; iter < n; iter++)
-            order->peritab[order->permtab[iter]]=iter;
-          for (iter = 0; iter < n; iter++)
-            {
-              ASSERT(order->peritab[iter] < n, MOD_SOPALIN);
-              ASSERT(order->peritab[iter]  >= 0, MOD_SOPALIN);
-            }
-          memFree_null(ordemesh->rangtab);
-          memFree_null(ordemesh->permtab);
-          memFree_null(ordemesh->peritab);
-          memcpy(ordemesh, order, sizeof(Order));
-          memFree_null(order);
-          memFree_null(colptr_nz);
-          memFree_null(colptr_z);
-          memFree_null(rows_nz);
-          memFree_null(rows_z);
+            /* Matrix verification */
+            if (iparm[IPARM_MATRIX_VERIFICATION] == API_YES)
+                if ( PASTIX_SUCCESS != (ret = pastix_checkMatrix((*pastix_data)->inter_node_comm,
+                                                                 iparm[IPARM_VERBOSE], iparm[IPARM_SYM],
+                                                                 API_NO, n, &colptr, &row,
+                                                                 (avals == NULL)?NULL:(&avals),
+                                                                 NULL, iparm[IPARM_DOF_NBR])))
+                {
+                    errorPrint("The matrix is not in the correct format");
+                    iparm[IPARM_ERROR_NUMBER] = ret;
+                    return;
+                }
         }
     }
-#endif /* SEPARATE_ZEROS */
 
-    if (iparm[IPARM_ISOLATE_ZEROS] == API_YES &&
-        iparm[IPARM_SCHUR] == API_YES)
-      {
-        errorPrint("Schur complement is incompatible with diagonal zeros isolation.");
-        iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-        WAIT_AND_RETURN;
-      }
+    (*pastix_data)->n2 = n;
 
-    /*
-     * Scotch : Ordering
-     */
-    if (iparm[IPARM_START_TASK] == API_TASK_ORDERING) /* scotch task */
-      {
-        if (iparm[IPARM_ISOLATE_ZEROS] == API_YES)
-          {
-            pastix_int_t itercol;
-            pastix_int_t iterrow;
-            pastix_int_t iterschur = 0;
-            int found;
+    if (PASTIX_SUCCESS != (ret = pastix_check_param(*pastix_data, rhs)))
+    {
+        iparm[IPARM_ERROR_NUMBER] = ret;
+        return;
+    }
 
-            (*pastix_data)->schur_n = 0;
-            for (itercol = 0; itercol < n; itercol++)
-              {
-                found = API_NO;
-                for (iterrow = colptr[itercol]-1; iterrow <  colptr[itercol+1]-1; iterrow++)
-                  {
-                    if (row[iterrow]-1 == itercol)
-                      {
-                        if (ABS_FLOAT(avals[iterrow]) < dparm[DPARM_EPSILON_REFINEMENT])
-                          {
-                            (*pastix_data)->schur_n++;
-                          }
-                        found = API_YES;
-                        break;
-                      }
-                  }
-                if (found == API_NO)
-                  {
-                    (*pastix_data)->schur_n++;
-                  }
-              }
-            MALLOC_INTERN((*pastix_data)->schur_list,
-                          (*pastix_data)->schur_n,
-                          pastix_int_t);
-            for (itercol = 0; itercol < n; itercol++)
-              {
-                found = API_NO;
-                for (iterrow = colptr[itercol]-1; iterrow <  colptr[itercol+1]-1; iterrow++)
-                  {
-                    if (row[iterrow]-1 == itercol)
-                      {
-                        if (ABS_FLOAT(avals[iterrow]) < dparm[DPARM_EPSILON_REFINEMENT])
-                          {
-                            (*pastix_data)->schur_list[iterschur] = itercol+1;
-                            iterschur++;
-                          }
-                        found = API_YES;
-                        break;
-                      }
-                  }
-                if (found == API_NO)
-                  {
-                    (*pastix_data)->schur_list[iterschur] = itercol+1;
-                    iterschur++;
-                  }
-              }
 
-          }
-        /* if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data, */
-        /*                                         (*pastix_data)->inter_node_comm, */
-        /*                                         n, colptr, row, perm, invp))) */
-        // TODO: (*pastix_data)->inter_node_comm,
-        if (PASTIX_SUCCESS != (ret = pastix_task_order( *pastix_data,
-                                                        n, colptr, row, NULL, perm, invp)))
-          {
-            iparm[IPARM_ERROR_NUMBER] = ret;
+    if ((*pastix_data)->intra_node_procnum == 0) {
+        /* only master node do computations */
+        if (iparm[IPARM_END_TASK]<API_TASK_ORDERING) {
             WAIT_AND_RETURN;
-          }
-        if (iparm[IPARM_ISOLATE_ZEROS] == API_YES)
-          {
-            memFree_null((*pastix_data)->schur_list);
-          }
-      }
-    if (iparm[IPARM_END_TASK]<API_TASK_SYMBFACT) {
-      WAIT_AND_RETURN;
-    }
+        }
 
-    /*
-     * Fax : Facto symbolic
-     */
-    if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT) /* Fax task */
-        pastix_task_symbfact( *pastix_data, perm, invp, flagWinvp );
+        /* On n'affiche pas le warning si on enchaine scotch et fax */
+        if ( (iparm[IPARM_START_TASK] <= API_TASK_ORDERING)
+             && (iparm[IPARM_END_TASK] >= API_TASK_SYMBFACT)) {
+            flagWinvp = 0;
+        }
 
-    if (iparm[IPARM_END_TASK]<API_TASK_ANALYSE) {
-      WAIT_AND_RETURN;
-    }
+        if (iparm[IPARM_ISOLATE_ZEROS] == API_YES &&
+            iparm[IPARM_SCHUR] == API_YES)
+        {
+            errorPrint("Schur complement is incompatible with diagonal zeros isolation.");
+            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
+            WAIT_AND_RETURN;
+        }
 
-    /*
-     * Blend : Scheduling
-     */
-    if (iparm[IPARM_START_TASK] == API_TASK_ANALYSE) /* Blend task */
-      pastix_task_blend(pastix_data, (*pastix_data)->inter_node_comm);
+        /*
+         * Scotch : Ordering
+         */
+        if (iparm[IPARM_START_TASK] == API_TASK_ORDERING) /* scotch task */
+        {
+            if (iparm[IPARM_ISOLATE_ZEROS] == API_YES)
+            {
+                pastix_int_t itercol;
+                pastix_int_t iterrow;
+                pastix_int_t iterzeros = 0;
+                int found;
 
-    if (iparm[IPARM_END_TASK]<API_TASK_NUMFACT) {
-      WAIT_AND_RETURN;
-    }
+                (*pastix_data)->zeros_n = 0;
+                for (itercol = 0; itercol < n; itercol++)
+                {
+                    found = API_NO;
+                    for (iterrow = colptr[itercol]-1; iterrow <  colptr[itercol+1]-1; iterrow++)
+                    {
+                        if (row[iterrow]-1 == itercol)
+                        {
+                            if (ABS_FLOAT(avals[iterrow]) < dparm[DPARM_EPSILON_REFINEMENT])
+                            {
+                                (*pastix_data)->zeros_n++;
+                            }
+                            found = API_YES;
+                            break;
+                        }
+                    }
+                    if (found == API_NO)
+                    {
+                        (*pastix_data)->zeros_n++;
+                    }
+                }
+                MALLOC_INTERN((*pastix_data)->zeros_list,
+                              (*pastix_data)->zeros_n,
+                              pastix_int_t);
+                for (itercol = 0; itercol < n; itercol++)
+                {
+                    found = API_NO;
+                    for (iterrow = colptr[itercol]-1; iterrow <  colptr[itercol+1]-1; iterrow++)
+                    {
+                        if (row[iterrow]-1 == itercol)
+                        {
+                            if (ABS_FLOAT(avals[iterrow]) < dparm[DPARM_EPSILON_REFINEMENT])
+                            {
+                                (*pastix_data)->zeros_list[iterzeros] = itercol+1;
+                                iterzeros++;
+                            }
+                            found = API_YES;
+                            break;
+                        }
+                    }
+                    if (found == API_NO)
+                    {
+                        (*pastix_data)->zeros_list[iterzeros] = itercol+1;
+                        iterzeros++;
+                    }
+                }
+            }
+
+            // TODO: (*pastix_data)->inter_node_comm,
+            if (PASTIX_SUCCESS != (ret = pastix_task_order( *pastix_data,
+                                                            n, colptr, row, NULL, perm, invp)))
+            {
+                iparm[IPARM_ERROR_NUMBER] = ret;
+                WAIT_AND_RETURN;
+            }
+            if (iparm[IPARM_ISOLATE_ZEROS] == API_YES)
+            {
+                memFree_null((*pastix_data)->zeros_list);
+            }
+        }
+
+        if (iparm[IPARM_END_TASK]<API_TASK_SYMBFACT) {
+            WAIT_AND_RETURN;
+        }
+
+        /*
+         * Fax : Facto symbolic
+         */
+        if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT) /* Fax task */
+            pastix_task_symbfact( *pastix_data, perm, invp, flagWinvp );
+
+        if (iparm[IPARM_END_TASK] < API_TASK_ANALYSE) {
+            WAIT_AND_RETURN;
+        }
+
+        /*
+         * Blend : Scheduling
+         */
+        if (iparm[IPARM_START_TASK] == API_TASK_ANALYSE) /* Blend task */
+            pastix_task_blend(pastix_data, (*pastix_data)->inter_node_comm);
+
+        if (iparm[IPARM_END_TASK]<API_TASK_NUMFACT) {
+            WAIT_AND_RETURN;
+        }
 
 #if defined(PROFILE) && defined(MARCEL)
-    profile_activate(FUT_ENABLE, MARCEL_PROF_MASK, 0);
-    marcel_printf("DEBUT profil marcel\n");
+        profile_activate(FUT_ENABLE, MARCEL_PROF_MASK, 0);
+        marcel_printf("DEBUT profil marcel\n");
 #endif
 
-    /*
-     * Sopalin : Factorisation
-     */
-    if (iparm[IPARM_START_TASK] == API_TASK_NUMFACT) /* Sopalin task */
-      {
-        ret = pastix_task_sopalin(*pastix_data,
-                                  (*pastix_data)->inter_node_comm, n,
-                                  colptr, row, avals, b, rhs, NULL);
+        /*
+         * Sopalin : Factorisation
+         */
+        if (iparm[IPARM_START_TASK] == API_TASK_NUMFACT) /* Sopalin task */
+        {
+            ret = pastix_task_sopalin(*pastix_data,
+                                      (*pastix_data)->inter_node_comm, n,
+                                      colptr, row, avals, b, rhs, NULL);
 
 
-        MPI_Bcast(&ret, 1, MPI_INT, 0, (*pastix_data)->inter_node_comm);
-        if (PASTIX_SUCCESS != ret) {
-          iparm[IPARM_ERROR_NUMBER] = ret;
-          WAIT_AND_RETURN;
+            MPI_Bcast(&ret, 1, MPI_INT, 0, (*pastix_data)->inter_node_comm);
+            if (PASTIX_SUCCESS != ret) {
+                iparm[IPARM_ERROR_NUMBER] = ret;
+                WAIT_AND_RETURN;
+            }
         }
-      }
-    if (iparm[IPARM_END_TASK]<iparm[IPARM_START_TASK]) {
-      WAIT_AND_RETURN;
-    }
+        if (iparm[IPARM_END_TASK]<iparm[IPARM_START_TASK]) {
+            WAIT_AND_RETURN;
+        }
 
-    /*
-     * Updo : solve
-     */
-    if (iparm[IPARM_START_TASK] == API_TASK_SOLVE) /* Updown task */
-      {
-        /* For thread comm */
-        (*pastix_data)->sopar.stopthrd = API_YES;
-        pastix_task_updown(*pastix_data, (*pastix_data)->inter_node_comm,
-                           n, b, rhs, NULL);
-        /* For thread comm */
-        (*pastix_data)->sopar.stopthrd = API_NO;
-      }
-    if (iparm[IPARM_END_TASK]<API_TASK_REFINE) {
-      WAIT_AND_RETURN;
-    }
+        /*
+         * Updo : solve
+         */
+        if (iparm[IPARM_START_TASK] == API_TASK_SOLVE) /* Updown task */
+        {
+            /* For thread comm */
+            (*pastix_data)->sopar.stopthrd = API_YES;
+            pastix_task_updown(*pastix_data, (*pastix_data)->inter_node_comm,
+                               n, b, rhs, NULL);
+            /* For thread comm */
+            (*pastix_data)->sopar.stopthrd = API_NO;
+        }
+        if (iparm[IPARM_END_TASK]<API_TASK_REFINE) {
+            WAIT_AND_RETURN;
+        }
 
-    /*
-     * Raff
-     */
-    if (iparm[IPARM_START_TASK] == API_TASK_REFINE) /* Refinement task */
-      {
-        pastix_task_raff(*pastix_data, (*pastix_data)->inter_node_comm,
-                         n, b, rhs, NULL);
-      }
-    if (iparm[IPARM_END_TASK]<API_TASK_CLEAN) {
-      WAIT_AND_RETURN;
-    }
+        /*
+         * Raff
+         */
+        if (iparm[IPARM_START_TASK] == API_TASK_REFINE) /* Refinement task */
+        {
+            pastix_task_raff(*pastix_data, (*pastix_data)->inter_node_comm,
+                             n, b, rhs, NULL);
+        }
+        if (iparm[IPARM_END_TASK]<API_TASK_CLEAN) {
+            WAIT_AND_RETURN;
+        }
 
-    /*
-     * Clean
-     */
-  } /* (*pastix_data)->intra_node_procnum == 0 */
+        /*
+         * Clean
+         */
+    } /* (*pastix_data)->intra_node_procnum == 0 */
 
-  SYNC_IPARM;
-  if (iparm[IPARM_END_TASK]<API_TASK_CLEAN)
-    return;
+    SYNC_IPARM;
+    if (iparm[IPARM_END_TASK]<API_TASK_CLEAN)
+        return;
 
-  if (iparm[IPARM_START_TASK] == API_TASK_CLEAN)
-    pastix_task_clean(pastix_data, pastix_comm);
+    if (iparm[IPARM_START_TASK] == API_TASK_CLEAN)
+        pastix_task_clean(pastix_data, pastix_comm);
 
 #if defined(PROFILE) && defined(MARCEL)
-  profile_stop();
-  marcel_printf("FIN profil marcel\n");
+    profile_stop();
+    marcel_printf("FIN profil marcel\n");
 #endif
 }
 
@@ -3387,61 +3269,18 @@ void dpastix(pastix_data_t **pastix_data,
    */
   if (iparm[IPARM_START_TASK] == API_TASK_ORDERING) /* scotch task */
     {
-
-      /* if (iparm[IPARM_GRAPHDIST] == API_YES) */
-      /*   { */
-      /*     if (PASTIX_SUCCESS != (ret = dpastix_task_scotch(pastix_data, pastix_comm, */
-      /*                                              n, colptr, row, */
-      /*                                              perm, invp, loc2glob))) */
-      /*       { */
-      /*         errorPrint("Error in ordering task\n"); */
-      /*         iparm[IPARM_ERROR_NUMBER] = ret; */
-      /*         return; */
-      /*       } */
-      /*   } */
-      /* else */
-      /*   { */
-      /*     if ((*pastix_data)->intra_node_procnum == 0) { */
-      /*       if (PASTIX_SUCCESS != (ret = pastix_task_scotch(pastix_data, */
-      /*                                               (*pastix_data)->inter_node_comm, */
-      /*                                               n, colptr, row, */
-      /*                                               perm, invp))) */
-      /*         { */
-      /*           errorPrint("Error in ordering task\n"); */
-      /*           iparm[IPARM_ERROR_NUMBER] = ret; */
-      /*         } */
-      /*     } */
-      /*     SYNC_IPARM; */
-      /*     if (iparm[IPARM_ERROR_NUMBER] != PASTIX_SUCCESS) */
-      /*       return; */
-      /*   } */
-      if (iparm[IPARM_GRAPHDIST] == API_YES)
-        {
-          if (PASTIX_SUCCESS != (ret = pastix_task_order(*pastix_data,
-                                                         n, colptr, row, loc2glob,
-                                                         perm, invp)))
+        if ((*pastix_data)->intra_node_procnum == 0) {
+            if (PASTIX_SUCCESS != (ret = pastix_task_order(*pastix_data,
+                                                           n, colptr, row, loc2glob,
+                                                           perm, invp)))
             {
-              errorPrint("Error in ordering task\n");
-              iparm[IPARM_ERROR_NUMBER] = ret;
-              return;
-            }
-        }
-      else
-        {
-          if ((*pastix_data)->intra_node_procnum == 0) {
-              if (PASTIX_SUCCESS != (ret = pastix_task_order(*pastix_data,
-                                                             n, colptr, row, NULL,
-                                                             perm, invp)))
-              {
                 errorPrint("Error in ordering task\n");
                 iparm[IPARM_ERROR_NUMBER] = ret;
-              }
-          }
-          SYNC_IPARM;
-          if (iparm[IPARM_ERROR_NUMBER] != PASTIX_SUCCESS)
-            return;
+            }
         }
-
+        SYNC_IPARM;
+        if (iparm[IPARM_ERROR_NUMBER] != PASTIX_SUCCESS)
+            return;
     }
   if (iparm[IPARM_END_TASK]<API_TASK_SYMBFACT)
     return;
