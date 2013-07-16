@@ -563,5 +563,18 @@ void pastix_unscale ( pastix_data_t *pastix_data, pastix_int_t sym);
 unsigned long pastix_getMemoryUsage(void);
 unsigned long pastix_getMaxMemoryUsage(void);
 
+struct pastix_graph_s;
+typedef struct pastix_graph_s pastix_graph_t;
+
+struct Order_;
+typedef struct Order_ Order;
+
+int pastix_task_order(pastix_data_t *pastix_data,
+                      pastix_int_t   n,
+                      pastix_int_t  *colptr,
+                      pastix_int_t  *row,
+                      pastix_int_t  *loc2glob,
+                      pastix_int_t  *perm,
+                      pastix_int_t  *invp);
 
 #endif /* _PASTIX_H_ */
