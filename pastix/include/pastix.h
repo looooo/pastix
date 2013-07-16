@@ -571,9 +571,9 @@ typedef struct Order_ Order;
 
 int pastix_task_order(pastix_data_t *pastix_data,
                       pastix_int_t   n,
-                      pastix_int_t  *colptr,
-                      pastix_int_t  *row,
-                      pastix_int_t  *loc2glob,
+                      const pastix_int_t  *colptr,
+                      const pastix_int_t  *row,
+                      const pastix_int_t  *loc2glob,
                       pastix_int_t  *perm,
                       pastix_int_t  *invp);
 
