@@ -32,7 +32,6 @@
 #include "integer.h"
 #include "timing.h"
 #include "trace.h"
-#include "../order/order.h"
 #include "pastixdata.h"
 #include "redefine_functions.h"
 
@@ -103,4 +102,39 @@ void errorPrintW(const char * const, ...);
       }                                         \
   }
 
+/*
+ * Get environment variable
+ */
+#if defined PASTIX_OS_WINDOWS
+
+static inline char * pastix_getenv( char *var ) {
+    char *str;
+    int len = 512;
+    int rc;
+    str = (char*)malloc(len * sizeof(char));
+    rc = GetEnvironmentVariable(var, str, len);
+    if (rc == 0) {
+        free(str);
+        str = NULL;
+    }
+    return str;
+}
+
+static inline void pastix_cleanenv( char *str ) {
+    if (str != NULL) free(str);
+}
+
+#else /* Other OS systems */
+
+static inline char * pastix_getenv( char *var ) {
+    return getenv( var );
+}
+
+static inline void pastix_cleanenv( char *str ) {
+    (void)str;
+}
+
+#endif
+
 #endif /* _COMMON_H_ */
+
