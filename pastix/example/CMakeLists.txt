@@ -14,12 +14,22 @@ set(PASTIX_EXAMPLES_LIBRARIES
 
 if (PASTIX_ORDERING_SCOTCH)
   link_directories(/opt/scotch/int64/lib)
+
+  if (PASTIX_ORDERING_PTSCOTCH)
+    set(PASTIX_EXAMPLES_LIBRARIES
+      ${PASTIX_EXAMPLES_LIBRARIES}
+      ptscotch
+      ptscotcherr
+      )
+  endif()
+
   set(PASTIX_EXAMPLES_LIBRARIES
     ${PASTIX_EXAMPLES_LIBRARIES}
     scotch
     scotcherr
     )
 endif()
+
 
 if (PASTIX_ORDERING_METIS)
   link_directories(/opt/metis/lib)

@@ -438,7 +438,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
-if (PASTIX_ORDERING_SCOTCH)
+if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
   include_directories("/opt/scotch/int64/include")
 endif()
 
@@ -626,13 +626,13 @@ set(PASTIX_ALL_SRCS
   order/order_compute_metis.c
 )
 
-if(PASTIX_ORDERING_SCOTCH)# AND HAVE_SCOTCH)
+if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_scotch.c
     )
 endif()
-if(PASTIX_ORDERING_PTSCOTCH)# AND HAVE_SCOTCH)
+if(PASTIX_ORDERING_PTSCOTCH) # AND HAVE_PTSCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_ptscotch.c
@@ -663,8 +663,6 @@ if(BUILD_DOCUMENTATION)
   foreach( _file ${PASTIX_ALL_SRCS} )
     set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
   endforeach()
-
-  message(STATUS "${PASTIX_DOX_SRCS}")
 
   #-- Configure the Template Doxyfile for our specific project
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/Doxyfile.in
