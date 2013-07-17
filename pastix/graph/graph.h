@@ -20,6 +20,7 @@ struct pastix_graph_s {
     pastix_int_t  gN;        /*< Global number of vertices                    */
     pastix_int_t  n;         /*< Number of local vertices                     */
     pastix_int_t *colptr;    /*< List of indirections to rows for each vertex */
+    pastix_int_t *nnz;       /*< Number of edges for each vertex              */
     pastix_int_t *rows;      /*< List of edges for each vertex                */
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global */
 };
@@ -55,4 +56,7 @@ int  graphIsolate(       pastix_int_t   n,
                          pastix_int_t **new_perm,
                          pastix_int_t **new_invp );
 
+int graphApplyPerm( const pastix_graph_t *graphA,
+                    const pastix_int_t   *perm,
+                          pastix_graph_t *graphPA );
 #endif /* _GRAPH_H_ */

@@ -46,9 +46,10 @@ void graphClean( pastix_graph_t *graph )
         return;
     }
 
-    memFree_null( graph->colptr);
-    memFree_null( graph->rows);
-    if (graph->loc2glob != NULL) { memFree_null( graph->loc2glob);}
+    memFree_null(graph->colptr);
+    memFree_null(graph->rows);
+    if (graph->nnz      != NULL) { memFree_null( graph->nnz      );}
+    if (graph->loc2glob != NULL) { memFree_null( graph->loc2glob );}
 
     memFree_null( graph );
     return;

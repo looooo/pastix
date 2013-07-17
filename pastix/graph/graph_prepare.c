@@ -52,6 +52,8 @@ graphNoDiag( pastix_graph_t *graph )
         {
             /* If diagonal element, we skip it */
             if ( (ja[0]-baseval) == i ) {
+                if (graph->nnz != NULL)
+                    graph->nnz[i]--;
                 continue;
             }
             /* Otherwise we save it */
