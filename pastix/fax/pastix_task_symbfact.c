@@ -198,6 +198,7 @@ void pastix_task_symbfact(pastix_data_t *pastix_data,
             tmpgraph.gN     = nfax;
             tmpgraph.n      = nfax;
             tmpgraph.colptr = colptrfax;
+            tmpgraph.nnz    = NULL;
             tmpgraph.rows   = rowfax;
             tmpgraph.loc2glob = NULL;
 
