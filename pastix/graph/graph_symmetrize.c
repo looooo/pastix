@@ -121,17 +121,6 @@ int graphSymmetrize(       pastix_int_t    n,
         newia[itercol+1] = newia[itercol] + ia[itercol+1] - ia[itercol] + nbrEltCol[itercol];
     }
 
-    /*
-     * Update nnz if existing
-     */
-    if (newgraph->nnz != NULL)
-    {
-        for (itercol=0;itercol<n;itercol++)
-        {
-            newgraph->nnz[itercol] = newia[itercol+1] - newia[itercol];
-        }
-    }
-
     assert( newia[n] >= ia[n] );
     nnz = newia[n] - baseval;
 

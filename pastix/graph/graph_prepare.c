@@ -52,8 +52,6 @@ graphNoDiag( pastix_graph_t *graph )
         {
             /* If diagonal element, we skip it */
             if ( (ja[0]-baseval) == i ) {
-                if (graph->nnz != NULL)
-                    graph->nnz[i]--;
                 continue;
             }
             /* Otherwise we save it */
@@ -72,7 +70,7 @@ graphNoDiag( pastix_graph_t *graph )
 
     graph->rows =
         (pastix_int_t *) memRealloc ( graph->rows,
-                                      (ia[0]-baseval)*sizeof (pastix_int_t));
+                                      (ia[0]-baseval)*sizeof (pastix_int_t) );
 }
 
 /**
@@ -189,14 +187,21 @@ graphPrepare(      pastix_data_t   *pastix_data,
         /*
          * Centralized graph
          */
-        if (loc2glob == NULL) {
+        if (loc2glob == NULL)
+        {
             tmpgraph->gN = n;
 
-            if ((iparm[IPARM_SYM] == API_SYM_YES) ||
-                (iparm[IPARM_SYM] == API_SYM_HER) )
+            /*
+             * TODO: change test for requirement from the user to correct his
+             * mistakes
+             */
+            if ( (iparm[IPARM_SYM] == API_SYM_YES) ||
+                 (iparm[IPARM_SYM] == API_SYM_HER) )
             {
                 graphSymmetrize( n, colptr, rows, loc2glob, tmpgraph );
                 assert( n == tmpgraph->n );
+
+                fprintf(stderr, "SY - N=%ld, NNZ=%ld\n", n, colptr[n] - colptr[0]);
             }
             else
             {
@@ -206,6 +211,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 MALLOC_INTERN(tmpgraph->rows,   nnz,   pastix_int_t);
                 memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
                 memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
+
+                fprintf(stderr, "GE - N=%ld, NNZ=%ld\n", n, nnz);
 
                 graphSort( tmpgraph );
             }
