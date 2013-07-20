@@ -545,7 +545,10 @@ set(PASTIX_LIB_SRCS
 #  fax/symbol_faxi.c
 #  fax/symbol_faxi_graph.c
 #
+  kass/kass_genPA.c
+  kass/kass_build_symbol.c
   kass/amalgamate.c
+  kass/amalgamate2.c
   kass/find_supernodes.c
   kass/ifax.c
   kass/kass.c

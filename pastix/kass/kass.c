@@ -26,7 +26,6 @@
 #include "sparRow.h"
 #include "sort_row.h"
 #include "SF_level.h"
-#include "SF_Direct.h"
 
 #include "compact_graph.h"
 #include "amalgamate.h"
@@ -54,340 +53,340 @@ void kass_symbol(csptr mat, pastix_int_t levelk, double rat,
 void Build_SymbolMatrix(csptr P, pastix_int_t cblknbr, pastix_int_t *rangtab, SymbolMatrix *symbmtx);
 void Patch_SymbolMatrix(SymbolMatrix *symbmtx);
 
-void kass(int            levelk,
-          int            rat,
-          SymbolMatrix * symbptr,
-          pastix_int_t            baseval,
-          pastix_int_t            vertnbr,
-          pastix_int_t            edgenbr,
-          pastix_int_t          * verttab,
-          pastix_int_t          * edgetab,
-          Order        * orderptr,
-          MPI_Comm       pastix_comm)
-{
-  pastix_int_t snodenbr;
-  pastix_int_t *snodetab   = NULL;
-  pastix_int_t *treetab    = NULL;
-  pastix_int_t *ia         = NULL;
-  pastix_int_t *ja         = NULL;
-  pastix_int_t i, j, n;
-  pastix_int_t ind;
-  csptr mat;
-  pastix_int_t *tmpj       = NULL;
-  pastix_int_t *perm       = NULL;
-  pastix_int_t *iperm      = NULL;
-  pastix_int_t newcblknbr;
-  pastix_int_t *newrangtab = NULL;
-  Dof dofstr;
-  double timer1 = 0.;
-  double nnzS;
-  int procnum;
-  (void)edgenbr;
+/* void kass(int            levelk, */
+/*           int            rat, */
+/*           SymbolMatrix * symbptr, */
+/*           pastix_int_t            baseval, */
+/*           pastix_int_t            vertnbr, */
+/*           pastix_int_t            edgenbr, */
+/*           pastix_int_t          * verttab, */
+/*           pastix_int_t          * edgetab, */
+/*           Order        * orderptr, */
+/*           MPI_Comm       pastix_comm) */
+/* { */
+/*   pastix_int_t snodenbr; */
+/*   pastix_int_t *snodetab   = NULL; */
+/*   pastix_int_t *treetab    = NULL; */
+/*   pastix_int_t *ia         = NULL; */
+/*   pastix_int_t *ja         = NULL; */
+/*   pastix_int_t i, j, n; */
+/*   pastix_int_t ind; */
+/*   csptr mat; */
+/*   pastix_int_t *tmpj       = NULL; */
+/*   pastix_int_t *perm       = NULL; */
+/*   pastix_int_t *iperm      = NULL; */
+/*   pastix_int_t newcblknbr; */
+/*   pastix_int_t *newrangtab = NULL; */
+/*   Dof dofstr; */
+/*   double timer1 = 0.; */
+/*   double nnzS; */
+/*   int procnum; */
+/*   (void)edgenbr; */
 
-  MPI_Comm_rank(pastix_comm,&procnum);
+/*   MPI_Comm_rank(pastix_comm,&procnum); */
 
-#ifdef DEBUG_KASS
-  print_one("--- kass begin ---\n");
-#endif
-/*   graphData (graphptr,  */
-/*           (SCOTCH_Num * )&baseval,  */
-/*           (SCOTCH_Num * )&vertnbr,  */
-/*           (SCOTCH_Num **)&verttab,  */
-/*           NULL, NULL, NULL,  */
-/*           (SCOTCH_Num * )&edgenbr,  */
-/*           (SCOTCH_Num **)&edgetab,  */
-/*           NULL); */
+/* #ifdef DEBUG_KASS */
+/*   print_one("--- kass begin ---\n"); */
+/* #endif */
+/* /\*   graphData (graphptr,  *\/ */
+/* /\*           (SCOTCH_Num * )&baseval,  *\/ */
+/* /\*           (SCOTCH_Num * )&vertnbr,  *\/ */
+/* /\*           (SCOTCH_Num **)&verttab,  *\/ */
+/* /\*           NULL, NULL, NULL,  *\/ */
+/* /\*           (SCOTCH_Num * )&edgenbr,  *\/ */
+/* /\*           (SCOTCH_Num **)&edgetab,  *\/ */
+/* /\*           NULL); *\/ */
 
-  n = vertnbr;
-  ia = verttab;
-  ja = edgetab;
-  perm = orderptr->permtab;
-  iperm = orderptr->peritab;
+/*   n = vertnbr; */
+/*   ia = verttab; */
+/*   ja = edgetab; */
+/*   perm = orderptr->permtab; */
+/*   iperm = orderptr->peritab; */
 
-  /*** Convert Fortran to C numbering ***/
-  if(baseval == 1)
-    {
-      for(i=0;i<=n;i++)
-          ia[i]--;
-      for(i=0;i<n;i++)
-        for(j=ia[i];j<ia[i+1];j++)
-          ja[j]--;
-    }
-  orderBase( orderptr, 0 );
+/*   /\*** Convert Fortran to C numbering ***\/ */
+/*   if(baseval == 1) */
+/*     { */
+/*       for(i=0;i<=n;i++) */
+/*           ia[i]--; */
+/*       for(i=0;i<n;i++) */
+/*         for(j=ia[i];j<ia[i+1];j++) */
+/*           ja[j]--; */
+/*     } */
+/*   orderBase( orderptr, 0 ); */
 
-  MALLOC_INTERN(treetab, n, pastix_int_t);
-#ifndef SCOTCH_SNODE
-    {
-        /* TODO: The rangtab should be initialized just after perm, invp generation */
-        /***** FIND THE SUPERNODE PARTITION FROM SCRATCH ********/
-        clockInit(timer1);
-        clockStart(timer1);
-        orderFindSupernodes( n, ia, ja, orderptr, treetab );
-        clockStop(timer1);
-        print_one("Time to find the supernode (direct) %.3g s \n", clockVal(timer1));
-    }
-#endif
+/*   MALLOC_INTERN(treetab, n, pastix_int_t); */
+/* #ifndef SCOTCH_SNODE */
+/*     { */
+/*         /\* TODO: The rangtab should be initialized just after perm, invp generation *\/ */
+/*         /\***** FIND THE SUPERNODE PARTITION FROM SCRATCH ********\/ */
+/*         clockInit(timer1); */
+/*         clockStart(timer1); */
+/*         orderFindSupernodes( n, ia, ja, orderptr, treetab ); */
+/*         clockStop(timer1); */
+/*         print_one("Time to find the supernode (direct) %.3g s \n", clockVal(timer1)); */
+/*     } */
+/* #endif */
 
-    snodenbr = orderptr->cblknbr;
-    snodetab = orderptr->rangtab;
-    fprintf(stderr, "Number of supernodes found for direct factorization %ld \n", (long)snodenbr);
+/*     snodenbr = orderptr->cblknbr; */
+/*     snodetab = orderptr->rangtab; */
+/*     fprintf(stderr, "Number of supernodes found for direct factorization %ld \n", (long)snodenbr); */
 
-  /****************************************/
-  /*  Convert the graph                   */
-  /****************************************/
-    MALLOC_INTERN(mat, 1, struct SparRow);
-    initCS(mat, n);
-    MALLOC_INTERN(tmpj, n, pastix_int_t);
-  /**** Convert and permute the matrix in sparrow form  ****/
-  /**** The diagonal is not present in the CSR matrix, we have to put it in the matrix ***/
-  bzero(tmpj, sizeof(pastix_int_t)*n);
-  for(i=0;i<n;i++)
-    {
-      /*** THE GRAPH DOES NOT CONTAIN THE DIAGONAL WE ADD IT ***/
-      tmpj[0] = i;
-      ind = 1;
-      for(j=ia[i];j<ia[i+1];j++)
-        tmpj[ind++] = ja[j];
+/*   /\****************************************\/ */
+/*   /\*  Convert the graph                   *\/ */
+/*   /\****************************************\/ */
+/*     MALLOC_INTERN(mat, 1, struct SparRow); */
+/*     initCS(mat, n); */
+/*     MALLOC_INTERN(tmpj, n, pastix_int_t); */
+/*   /\**** Convert and permute the matrix in sparrow form  ****\/ */
+/*   /\**** The diagonal is not present in the CSR matrix, we have to put it in the matrix ***\/ */
+/*   bzero(tmpj, sizeof(pastix_int_t)*n); */
+/*   for(i=0;i<n;i++) */
+/*     { */
+/*       /\*** THE GRAPH DOES NOT CONTAIN THE DIAGONAL WE ADD IT ***\/ */
+/*       tmpj[0] = i; */
+/*       ind = 1; */
+/*       for(j=ia[i];j<ia[i+1];j++) */
+/*         tmpj[ind++] = ja[j]; */
 
-      mat->nnzrow[i] = ind;
-      MALLOC_INTERN(mat->ja[i], ind, pastix_int_t);
-      memcpy(mat->ja[i], tmpj, sizeof(pastix_int_t)*ind);
-      mat->ma[i] = NULL;
-    }
-  CS_Perm(mat, perm);
-  /*** Reorder the matrix ***/
-  sort_row(mat);
-  memFree(tmpj);
-
-
-  /***** COMPUTE THE SYMBOL MATRIX OF ILU(K) WITH AMALGAMATION *****/
-  kass_symbol(mat, levelk, (double)(rat)/100.0, perm,
-              iperm, snodenbr, snodetab, treetab, &newcblknbr, &newrangtab,
-              symbptr, pastix_comm);
+/*       mat->nnzrow[i] = ind; */
+/*       MALLOC_INTERN(mat->ja[i], ind, pastix_int_t); */
+/*       memcpy(mat->ja[i], tmpj, sizeof(pastix_int_t)*ind); */
+/*       mat->ma[i] = NULL; */
+/*     } */
+/*   CS_Perm(mat, perm); */
+/*   /\*** Reorder the matrix ***\/ */
+/*   sort_row(mat); */
+/*   memFree(tmpj); */
 
 
-  cleanCS(mat);
-  memFree(mat);
-  memFree(treetab);
-
-  dofInit(&dofstr);
-  dofConstant(&dofstr, 0, symbptr->nodenbr, 1);
-  nnzS =  recursive_sum(0, symbptr->cblknbr-1, nnz, symbptr, &dofstr);
-  print_one("Number of non zero in the non patched symbol matrix = %g, fillrate1 %.3g \n",
-            nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
-  dofExit(&dofstr);
+/*   /\***** COMPUTE THE SYMBOL MATRIX OF ILU(K) WITH AMALGAMATION *****\/ */
+/*   kass_symbol(mat, levelk, (double)(rat)/100.0, perm, */
+/*               iperm, snodenbr, snodetab, treetab, &newcblknbr, &newrangtab, */
+/*               symbptr, pastix_comm); */
 
 
-  if(symbolCheck(symbptr) != 0)
-    {
-      errorPrint("SymbolCheck after kass_symbol.");
-      ASSERT(0, MOD_KASS);
-    }
+/*   cleanCS(mat); */
+/*   memFree(mat); */
+/*   memFree(treetab); */
+
+/*   dofInit(&dofstr); */
+/*   dofConstant(&dofstr, 0, symbptr->nodenbr, 1); */
+/*   nnzS =  recursive_sum(0, symbptr->cblknbr-1, nnz, symbptr, &dofstr); */
+/*   print_one("Number of non zero in the non patched symbol matrix = %g, fillrate1 %.3g \n", */
+/*             nnzS+n, (nnzS+n)/(ia[n]/2.0 +n)); */
+/*   dofExit(&dofstr); */
 
 
-
-  if(levelk != -1)
-    {
-      /********************************************************/
-      /** ADD BLOCKS IN ORDER TO GET A REAL ELIMINATION TREE **/
-      /********************************************************/
-      Patch_SymbolMatrix(symbptr);
-    }
+/*   if(symbolCheck(symbptr) != 0) */
+/*     { */
+/*       errorPrint("SymbolCheck after kass_symbol."); */
+/*       ASSERT(0, MOD_KASS); */
+/*     } */
 
 
 
-  dofInit(&dofstr);
-  dofConstant(&dofstr, 0, symbptr->nodenbr, 1);
-  nnzS =  recursive_sum(0, symbptr->cblknbr-1, nnz, symbptr, &dofstr);
-
-  dofExit(&dofstr);
-  print_one("Number of block in final symbol matrix = %ld \n", (long)symbptr->bloknbr);
-  print_one("Number of non zero in final symbol matrix = %g, fillrate2 %.3g \n",  nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
-  if(symbolCheck(symbptr) != 0)
-    {
-      errorPrint("SymbolCheck after Patch_SymbolMatrix.");
-      ASSERT(0, MOD_KASS);
-    }
-#ifdef DEBUG_KASS
-  print_one("--- kass end ---\n");
-#endif
-  memFree(snodetab);
-  orderptr->cblknbr = newcblknbr;
-  orderptr->rangtab = newrangtab;
-
-}
-
-void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm, pastix_int_t *iperm,
-                 pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *streetab,
-                 pastix_int_t *cblknbr, pastix_int_t **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm)
-{
-  /**************************************************************************************/
-  /* This function computes a symbolic factorization ILU(k) given a CSR matrix and an   */
-  /* ordering. Then it computes a block partition of the factor to get BLAS3            */
-  /* efficiency                                                                         */
-  /* NOTE: the CSC matrix is given symmetrized and without the diagonal                 */
-  /**************************************************************************************/
-
-  pastix_int_t i, j;
-  pastix_int_t nnzL;
-  pastix_int_t *iperm2  = NULL;
-  pastix_int_t *treetab = NULL;
-  pastix_int_t n;
-  csptr P;
-  double timer1 = 0.;
-  int procnum;
-
-  MPI_Comm_rank(pastix_comm,&procnum);
-
-  n = mat->n;
-  MALLOC_INTERN(iperm2, n, pastix_int_t);
-
-  /*compact_graph(mat, NULL, NULL, NULL);*/
-
-  /*** Compute the ILU(k) pattern of the quotient matrix ***/
-  MALLOC_INTERN(P, 1, struct SparRow);
-  initCS(P, n);
-  print_one("Level of fill = %ld\nAmalgamation ratio = %d \n", (long)levelk, (int)(rat*100));
-  clockInit(timer1);
-  clockStart(timer1);
-
-  if(levelk == -1)
-    {
-
-      /***** FACTORISATION DIRECT *******/
-      /***** (Re)compute also the streetab (usefull when SCOTCH_SNODE
-             is active) ***/
-      SF_Direct(mat, snodenbr, snodetab, streetab, P);
-
-      clockStop(timer1);
-      print_one("Time to compute scalar symbolic direct factorization  %.3g s \n", clockVal(timer1));
-#ifdef DEBUG_KASS
-      print_one("non-zeros in P = %ld \n", (long)CSnnz(P));
-#endif
-      nnzL = 0;
-      for(i=0;i<P->n;i++)
-        {
-          pastix_int_t ncol;
-          ncol = snodetab[i+1]-snodetab[i];
-          nnzL += (ncol*(ncol+1))/2;
-#ifdef DEBUG_KASS
-          ASSERT(P->nnzrow[i] >= ncol, MOD_KASS);
-          if(P->nnzrow[i] >= n)
-            fprintf(stderr,"P->nnzrow[%ld] = %ld \n", (long)i, (long)P->nnzrow[i]);
-          ASSERT(P->nnzrow[i] < n, MOD_KASS);
-#endif
-          nnzL += (P->nnzrow[i]-ncol)*ncol;
-        }
-#ifdef DEBUG_KASS
-      print_one("NNZL = %ld \n", (long)nnzL);
-#endif
-    }
-  else
-    {
-      /***** FACTORISATION INCOMPLETE *******/
-      nnzL = SF_level(2, mat, levelk, P);
-
-      clockStop(timer1);
-      print_one("Time to compute scalar symbolic factorization of ILU(%ld) %.3g s \n",
-              (long)levelk, clockVal(timer1));
-
-    }
-  print_one("Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
-            (long)( CSnnz(mat) + n)/2, (long)nnzL, (double)nnzL/(double)( (CSnnz(mat)+n)/2.0 ));
+/*   if(levelk != -1) */
+/*     { */
+/*       /\********************************************************\/ */
+/*       /\** ADD BLOCKS IN ORDER TO GET A REAL ELIMINATION TREE **\/ */
+/*       /\********************************************************\/ */
+/*       Patch_SymbolMatrix(symbptr); */
+/*     } */
 
 
 
-  /** Sort the rows of the symbolic matrix */
-  sort_row(P);
+/*   dofInit(&dofstr); */
+/*   dofConstant(&dofstr, 0, symbptr->nodenbr, 1); */
+/*   nnzS =  recursive_sum(0, symbptr->cblknbr-1, nnz, symbptr, &dofstr); */
 
-  clockInit(timer1);
-  clockStart(timer1);
+/*   dofExit(&dofstr); */
+/*   print_one("Number of block in final symbol matrix = %ld \n", (long)symbptr->bloknbr); */
+/*   print_one("Number of non zero in final symbol matrix = %g, fillrate2 %.3g \n",  nnzS+n, (nnzS+n)/(ia[n]/2.0 +n)); */
+/*   if(symbolCheck(symbptr) != 0) */
+/*     { */
+/*       errorPrint("SymbolCheck after Patch_SymbolMatrix."); */
+/*       ASSERT(0, MOD_KASS); */
+/*     } */
+/* #ifdef DEBUG_KASS */
+/*   print_one("--- kass end ---\n"); */
+/* #endif */
+/*   memFree(snodetab); */
+/*   orderptr->cblknbr = newcblknbr; */
+/*   orderptr->rangtab = newrangtab; */
 
-  if(levelk != -1)
-    {
+/* } */
 
-      /********************************/
-      /** Compute the "k-supernodes" **/
-      /********************************/
+/* void kass_symbol(csptr mat, pastix_int_t levelk, double rat, pastix_int_t *perm, pastix_int_t *iperm, */
+/*                  pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *streetab, */
+/*                  pastix_int_t *cblknbr, pastix_int_t **rangtab, SymbolMatrix *symbmtx, MPI_Comm pastix_comm) */
+/* { */
+/*   /\**************************************************************************************\/ */
+/*   /\* This function computes a symbolic factorization ILU(k) given a CSR matrix and an   *\/ */
+/*   /\* ordering. Then it computes a block partition of the factor to get BLAS3            *\/ */
+/*   /\* efficiency                                                                         *\/ */
+/*   /\* NOTE: the CSC matrix is given symmetrized and without the diagonal                 *\/ */
+/*   /\**************************************************************************************\/ */
 
-#ifdef KS
-      assert(levelk >= 0);
-      KSupernodes(P, rat, snodenbr, snodetab, cblknbr, rangtab);
-#else
+/*   pastix_int_t i, j; */
+/*   pastix_int_t nnzL; */
+/*   pastix_int_t *iperm2  = NULL; */
+/*   pastix_int_t *treetab = NULL; */
+/*   pastix_int_t n; */
+/*   csptr P; */
+/*   double timer1 = 0.; */
+/*   int procnum; */
 
-#ifdef SCOTCH_SNODE
-      if(rat == -1)
-        assert(0); /** do not have treetab with this version of Scotch **/
-#endif
+/*   MPI_Comm_rank(pastix_comm,&procnum); */
 
-      MALLOC_INTERN(treetab, P->n, pastix_int_t);
-      for(j=0;j<snodenbr;j++)
-        {
-          for(i=snodetab[j];i<snodetab[j+1]-1;i++)
-            treetab[i] = i+1;
+/*   n = mat->n; */
+/*   MALLOC_INTERN(iperm2, n, pastix_int_t); */
 
-          /*** Version generale ****/
-          if(streetab[j] == -1 || streetab[j] == j)
-            treetab[i] = -1;
-          else
-            treetab[i]=snodetab[streetab[j]];
-          /*** Version restricted inside the supernode (like KSupernodes) ***/
-          /*treetab[snodetab[j+1]-1] = -1;*/  /** this should give the same results than
-                                                  KSupernodes **/
-        }
+/*   /\*compact_graph(mat, NULL, NULL, NULL);*\/ */
 
-      /** NEW ILUK + DIRECT **/
-      amalgamate(rat, P, -1, NULL, treetab, cblknbr, rangtab, iperm2, pastix_comm);
+/*   /\*** Compute the ILU(k) pattern of the quotient matrix ***\/ */
+/*   MALLOC_INTERN(P, 1, struct SparRow); */
+/*   initCS(P, n); */
+/*   print_one("Level of fill = %ld\nAmalgamation ratio = %d \n", (long)levelk, (int)(rat*100)); */
+/*   clockInit(timer1); */
+/*   clockStart(timer1); */
 
-      memFree(treetab);
-      for(i=0;i<n;i++)
-        iperm2[i] = iperm[iperm2[i]];
-      memcpy(iperm, iperm2, sizeof(pastix_int_t)*n);
-      for(i=0;i<n;i++)
-        perm[iperm[i]] = i;
-#endif
-    }
-  else{
+/*   if(levelk == -1) */
+/*     { */
 
+/*       /\***** FACTORISATION DIRECT *******\/ */
+/*       /\***** (Re)compute also the streetab (usefull when SCOTCH_SNODE */
+/*              is active) ***\/ */
+/*       SF_Direct(mat, snodenbr, snodetab, streetab, P); */
 
-    /*if(0)*/
-      {
-        amalgamate(rat, P, snodenbr, snodetab, streetab, cblknbr,
-                   rangtab, iperm2, pastix_comm);
+/*       clockStop(timer1); */
+/*       print_one("Time to compute scalar symbolic direct factorization  %.3g s \n", clockVal(timer1)); */
+/* #ifdef DEBUG_KASS */
+/*       print_one("non-zeros in P = %ld \n", (long)CSnnz(P)); */
+/* #endif */
+/*       nnzL = 0; */
+/*       for(i=0;i<P->n;i++) */
+/*         { */
+/*           pastix_int_t ncol; */
+/*           ncol = snodetab[i+1]-snodetab[i]; */
+/*           nnzL += (ncol*(ncol+1))/2; */
+/* #ifdef DEBUG_KASS */
+/*           ASSERT(P->nnzrow[i] >= ncol, MOD_KASS); */
+/*           if(P->nnzrow[i] >= n) */
+/*             fprintf(stderr,"P->nnzrow[%ld] = %ld \n", (long)i, (long)P->nnzrow[i]); */
+/*           ASSERT(P->nnzrow[i] < n, MOD_KASS); */
+/* #endif */
+/*           nnzL += (P->nnzrow[i]-ncol)*ncol; */
+/*         } */
+/* #ifdef DEBUG_KASS */
+/*       print_one("NNZL = %ld \n", (long)nnzL); */
+/* #endif */
+/*     } */
+/*   else */
+/*     { */
+/*       /\***** FACTORISATION INCOMPLETE *******\/ */
+/*       nnzL = SF_level(2, mat, levelk, P); */
 
-        /** iperm2 is the iperm vector of P **/
-        for(i=0;i<n;i++)
-          iperm2[i] = iperm[iperm2[i]];
-        memcpy(iperm, iperm2, sizeof(pastix_int_t)*n);
-        for(i=0;i<n;i++)
-          perm[iperm[i]] = i;
-      }
-      /*else
-      {
-        fprintf(stderr, "RAT = 0 SKIP amalgamation \n");
-        *cblknbr = snodenbr;
-        MALLOC_INTERN(*rangtab, snodenbr+1, pastix_int_t);
-        memcpy(*rangtab, snodetab, sizeof(pastix_int_t)*(snodenbr+1));
-        }*/
-  }
+/*       clockStop(timer1); */
+/*       print_one("Time to compute scalar symbolic factorization of ILU(%ld) %.3g s \n", */
+/*               (long)levelk, clockVal(timer1)); */
 
-  clockStop(timer1);
-  print_one("Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer1));
-
-  print_one("Number of cblk in the amalgamated symbol matrix = %ld \n", (long)*cblknbr);
-
-
-  Build_SymbolMatrix(P, *cblknbr, *rangtab, symbmtx);
+/*     } */
+/*   print_one("Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n", */
+/*             (long)( CSnnz(mat) + n)/2, (long)nnzL, (double)nnzL/(double)( (CSnnz(mat)+n)/2.0 )); */
 
 
-  print_one("Number of block in the non patched symbol matrix = %ld \n", (long)symbmtx->bloknbr);
+
+/*   /\** Sort the rows of the symbolic matrix *\/ */
+/*   sort_row(P); */
+
+/*   clockInit(timer1); */
+/*   clockStart(timer1); */
+
+/*   if(levelk != -1) */
+/*     { */
+
+/*       /\********************************\/ */
+/*       /\** Compute the "k-supernodes" **\/ */
+/*       /\********************************\/ */
+
+/* #ifdef KS */
+/*       assert(levelk >= 0); */
+/*       KSupernodes(P, rat, snodenbr, snodetab, cblknbr, rangtab); */
+/* #else */
+
+/* #ifdef SCOTCH_SNODE */
+/*       if(rat == -1) */
+/*         assert(0); /\** do not have treetab with this version of Scotch **\/ */
+/* #endif */
+
+/*       MALLOC_INTERN(treetab, P->n, pastix_int_t); */
+/*       for(j=0;j<snodenbr;j++) */
+/*         { */
+/*           for(i=snodetab[j];i<snodetab[j+1]-1;i++) */
+/*             treetab[i] = i+1; */
+
+/*           /\*** Version generale ****\/ */
+/*           if(streetab[j] == -1 || streetab[j] == j) */
+/*             treetab[i] = -1; */
+/*           else */
+/*             treetab[i]=snodetab[streetab[j]]; */
+/*           /\*** Version restricted inside the supernode (like KSupernodes) ***\/ */
+/*           /\*treetab[snodetab[j+1]-1] = -1;*\/  /\** this should give the same results than */
+/*                                                   KSupernodes **\/ */
+/*         } */
+
+/*       /\** NEW ILUK + DIRECT **\/ */
+/*       amalgamate(rat, P, -1, NULL, treetab, cblknbr, rangtab, iperm2, pastix_comm); */
+
+/*       memFree(treetab); */
+/*       for(i=0;i<n;i++) */
+/*         iperm2[i] = iperm[iperm2[i]]; */
+/*       memcpy(iperm, iperm2, sizeof(pastix_int_t)*n); */
+/*       for(i=0;i<n;i++) */
+/*         perm[iperm[i]] = i; */
+/* #endif */
+/*     } */
+/*   else{ */
 
 
-  memFree(iperm2);
-  cleanCS(P);
-  memFree(P);
+/*     /\*if(0)*\/ */
+/*       { */
+/*         amalgamate(rat, P, snodenbr, snodetab, streetab, cblknbr, */
+/*                    rangtab, iperm2, pastix_comm); */
 
-}
+/*         /\** iperm2 is the iperm vector of P **\/ */
+/*         for(i=0;i<n;i++) */
+/*           iperm2[i] = iperm[iperm2[i]]; */
+/*         memcpy(iperm, iperm2, sizeof(pastix_int_t)*n); */
+/*         for(i=0;i<n;i++) */
+/*           perm[iperm[i]] = i; */
+/*       } */
+/*       /\*else */
+/*       { */
+/*         fprintf(stderr, "RAT = 0 SKIP amalgamation \n"); */
+/*         *cblknbr = snodenbr; */
+/*         MALLOC_INTERN(*rangtab, snodenbr+1, pastix_int_t); */
+/*         memcpy(*rangtab, snodetab, sizeof(pastix_int_t)*(snodenbr+1)); */
+/*         }*\/ */
+/*   } */
+
+/*   clockStop(timer1); */
+/*   print_one("Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer1)); */
+
+/*   print_one("Number of cblk in the amalgamated symbol matrix = %ld \n", (long)*cblknbr); */
+
+
+/*   Build_SymbolMatrix(P, *cblknbr, *rangtab, symbmtx); */
+
+
+/*   print_one("Number of block in the non patched symbol matrix = %ld \n", (long)symbmtx->bloknbr); */
+
+
+/*   memFree(iperm2); */
+/*   cleanCS(P); */
+/*   memFree(P); */
+
+/* } */
 
 
 

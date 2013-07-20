@@ -49,7 +49,15 @@ void   get_son(pastix_int_t node, pastix_int_t *sonindex, pastix_int_t *sontab, 
 
 
 
-void amalgamate(double rat, csptr P, pastix_int_t snodenbr, pastix_int_t *snodetab, pastix_int_t *treetab, pastix_int_t *cblknbr, pastix_int_t **rangtab, pastix_int_t *nodetab, MPI_Comm pastix_comm)
+void amalgamate(double rat,
+                csptr P,
+                pastix_int_t   snodenbr,
+                pastix_int_t  *snodetab,
+                pastix_int_t  *treetab,
+                pastix_int_t  *cblknbr,
+                pastix_int_t **rangtab,
+                pastix_int_t  *nodetab,
+                MPI_Comm pastix_comm )
 {
   /********************************************************************/
   /* amagamate takes a supernode graph (P,colwgt) and performs some   */
