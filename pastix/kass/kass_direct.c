@@ -19,17 +19,8 @@
 #include "common.h"
 #include "dof.h"
 #include "symbol.h"
-/* #include "symbol_cost.h" */
 #include "order.h"
 #include "fax.h"
-/* #include "ifax.h" */
-#include "sparRow.h"
-#include "sort_row.h"
-#include "SF_level.h"
-
-#include "compact_graph.h"
-#include "amalgamate.h"
-#include "find_supernodes.h"
 #include "kass.h"
 
 #define print_one(fmt, ...)    if( procnum == 0) fprintf(stdout, fmt, __VA_ARGS__)
@@ -38,9 +29,6 @@ extern double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof 
 extern double recursive_sum(pastix_int_t a, pastix_int_t b,
                             double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
                             const SymbolMatrix * symbmtx, const Dof * dofptr);
-
-void Build_SymbolMatrix(csptr P, pastix_int_t cblknbr, pastix_int_t *rangtab, SymbolMatrix *symbmtx);
-void Patch_SymbolMatrix(SymbolMatrix *symbmtx);
 
 int kass2(int            ilu,
           int            levelk,
@@ -55,9 +43,7 @@ int kass2(int            ilu,
     pastix_int_t *snodetab   = NULL;
     pastix_int_t *streetab    = NULL;
     pastix_int_t *ia         = NULL;
-    pastix_int_t *ja         = NULL;
     pastix_int_t  i, j, n;
-    csptr mat;
     pastix_int_t *perm;
     pastix_int_t *invp;
     pastix_int_t *invp2;
@@ -103,7 +89,6 @@ int kass2(int            ilu,
 
     n  = csc->n;
     ia = csc->colptr;
-    ja = csc->rows;
     perm     = orderptr->permtab;
     invp     = orderptr->peritab;
     snodenbr = orderptr->cblknbr;
@@ -114,46 +99,9 @@ int kass2(int            ilu,
     kass_csrInit( n, &graphPA );
     kass_csrGenPA( csc, perm, &graphPA );
 
-    /*
-     Copy the csc in a new format that split each row in a sub array, with an
-     extra array that stores the nnz number.  Use the fact that the CSC is
-     symmetrized, so CSC = CSR format.
-     */
-    {
-        pastix_int_t *tmpj = NULL;
-        pastix_int_t  ind;
-
-        MALLOC_INTERN(mat, 1, struct SparRow);
-        initCS(mat, n);
-        MALLOC_INTERN(tmpj, n, pastix_int_t);
-        /**** Convert and permute the matrix in sparrow form  ****/
-        /**** The diagonal is not present in the CSR matrix, we have to put it in the matrix ***/
-        bzero(tmpj, sizeof(pastix_int_t)*n);
-        for(i=0;i<n;i++) {
-            /*** THE GRAPH DOES NOT CONTAIN THE DIAGONAL WE ADD IT ***/
-            tmpj[0] = i;
-            ind = 1;
-            for(j=ia[i];j<ia[i+1];j++)
-                tmpj[ind++] = ja[j];
-
-            mat->nnzrow[i] = ind;
-            MALLOC_INTERN(mat->ja[i], ind, pastix_int_t);
-            memcpy(mat->ja[i], tmpj, sizeof(pastix_int_t)*ind);
-            mat->ma[i] = NULL;
-        }
-        CS_Perm(mat, perm);
-        /*** Reorder the matrix ***/
-        sort_row(mat);
-        memFree(tmpj);
-    }
-
     {
         pastix_int_t nnzL;
-        csptr P;
 
-        /*** Compute the ILU(k) pattern of the quotient matrix ***/
-        MALLOC_INTERN(P, 1, struct SparRow);
-        initCS(P, n);
         pastix_print(procnum, 0,
                      "Level of fill = %ld\n"
                      "Amalgamation ratio = %d \n",
@@ -182,26 +130,24 @@ int kass2(int            ilu,
         else
         {
             clockStart(timer);
-            nnzL = SF_level(2, mat, levelk, P);
+            nnzL = SF_level(&graphPA, levelk, &graphL);
             clockStop(timer);
             pastix_print(procnum, 0,
                          "Time to compute scalar symbolic factorization of ILU(%ld) %.3g s\n",
                          (long)levelk, clockVal(timer));
         }
-        pastix_print(procnum, 0,
-                     "Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
-                     (long)( CSnnz(mat) + n)/2, (long)nnzL, (double)nnzL/(double)( (CSnnz(mat)+n)/2.0 ));
+
+        pastix_int_t nnzA = ( kass_csrGetNNZ( &graphPA ) + n ) / 2;
+        pastix_print( procnum, 0,
+                      "Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
+                      (long)nnzA, (long)nnzL, (double)nnzL / (double)nnzA );
 
 
         kass_csrClean( &graphPA );
-        cleanCS(mat);
-        memFree(mat);
 
         /*
          * Sort the rows of the symbolic matrix
          */
-        sort_row(P);
-
         MALLOC_INTERN(invp2, n, pastix_int_t);
 
         clockStart(timer);
@@ -222,7 +168,7 @@ int kass2(int            ilu,
 
             assert(streetab != NULL);
 
-            MALLOC_INTERN(treetab, P->n, pastix_int_t);
+            MALLOC_INTERN(treetab, graphL.n, pastix_int_t);
             for(j=0;j<snodenbr;j++)
             {
                 for(i=snodetab[j]; i<snodetab[j+1]-1; i++)
@@ -241,10 +187,11 @@ int kass2(int            ilu,
             }
 
             /* NEW ILUK + DIRECT */
-            amalgamate( (double)rat / 100.,
-                        P, -1, NULL, treetab,
-                        &newcblknbr, &newrangtab,
-                        invp2, pastix_comm );
+            amalgamate2( (double)rat / 100.,
+                         &graphL, nnzL,
+                         -1, NULL, treetab,
+                         &newcblknbr, &newrangtab,
+                         invp2, pastix_comm );
 
             memFree(treetab);
         }
@@ -268,8 +215,7 @@ int kass2(int            ilu,
         pastix_print(procnum, 0, "Number of block in the non patched symbol matrix = %ld \n", (long)symbmtx->bloknbr);
 
         memFree(invp2);
-        cleanCS(P);
-        memFree(P);
+        kass_csrClean( &graphL );
     }
 
     if (streetab != NULL ) memFree(streetab);
