@@ -43,6 +43,9 @@ pastix_int_t SF_Direct(const kass_csr_t   *graphA,
                        const pastix_int_t *rangtab,
                              pastix_int_t *treetab,
                              kass_csr_t   *graphL );
+pastix_int_t SF_level( const kass_csr_t   *graphA,
+                             pastix_int_t  level,
+                             kass_csr_t   *graphL);
 
 void amalgamate2(double rat,
                  kass_csr_t    *graphL,

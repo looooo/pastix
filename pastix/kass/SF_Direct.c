@@ -180,5 +180,3 @@ SF_Direct(const kass_csr_t   *graphA,
     }
     return nnz;
 }
-
-

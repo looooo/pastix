@@ -10,147 +10,115 @@
 /**                                                        **/
 /**                                                        **/
 /************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
 #include "common.h"
-/* #include "symbol.h" */
+#include "kass.h"
 
-#include "sparRow.h"
-#include "SF_level.h"
-
-
-
-long SF_level(pastix_int_t job, const csptr A, pastix_int_t level, csptr P)
+pastix_int_t
+SF_level( const kass_csr_t   *graphA,
+                pastix_int_t  level,
+                kass_csr_t   *graphL)
 {
-  /***********************************************************************************************/
-  /* This function computes the non zero pattern of the levelized incomplete factor              */
-  /* for a sparse lower triangular                                                               */
-  /* matrix in CSC format.  This pattern is exact iff the matrix has a SYMMETRIC non zero        */
-  /* structure.                                                                                  */
-  /* On entry:                                                                                   */
-  /* job : = 0 alloc the matrix ; =1 fill the indices of the sparse pattern  =2 alloc (not cont) */
-  /*       and fill the coefficients                                                             */
-  /* A : pointer to the matrix                                                                   */
-  /* level : level desired for the ilu(k) factorization                                          */
-  /* P   : an empty csr matrix (initialized with dimension n)                                    */
-  /* On return:                                                                                  */
-  /*     P : a csr matrix containing the non zero pattern of the factorized matrix               */
-  /*         the memory for the numerical values is allocated and initialized to zero            */
-  /*     The total number of nnz in the lower part is returned                                   */
-  /*                                                                                             */
-  /* NOTE:                                                                                       */
-  /*   1) This algorithm has been implemented according to the paper of David Hysom and          */
-  /*     Alex Pothen : Level-based Incomplete LU factorization: Graph Model and Algorithm        */
-  /***********************************************************************************************/
-  pastix_int_t *visited = NULL;
-  pastix_int_t *length  = NULL;
-  pastix_int_t *stack   = NULL;
-  pastix_int_t *adj     = NULL;
-  pastix_int_t *ja      = NULL;
-  pastix_int_t used;
-  pastix_int_t h, i,j,k, t;
-  long nnz;
+    /***********************************************************************************************/
+    /* This function computes the non zero pattern of the levelized incomplete factor              */
+    /* for a sparse lower triangular                                                               */
+    /* matrix in CSC format.  This pattern is exact iff the matrix has a SYMMETRIC non zero        */
+    /* structure.                                                                                  */
+    /* On entry:                                                                                   */
+    /* job : = 0 alloc the matrix ; =1 fill the indices of the sparse pattern  =2 alloc (not cont) */
+    /*       and fill the coefficients                                                             */
+    /* A : pointer to the matrix                                                                   */
+    /* level : level desired for the ilu(k) factorization                                          */
+    /* P   : an empty csr matrix (initialized with dimension n)                                    */
+    /* On return:                                                                                  */
+    /*     P : a csr matrix containing the non zero pattern of the factorized matrix               */
+    /*         the memory for the numerical values is allocated and initialized to zero            */
+    /*     The total number of nnz in the lower part is returned                                   */
+    /*                                                                                             */
+    /* NOTE:                                                                                       */
+    /*   1) This algorithm has been implemented according to the paper of David Hysom and          */
+    /*     Alex Pothen : Level-based Incomplete LU factorization: Graph Model and Algorithm        */
+    /***********************************************************************************************/
+    pastix_int_t *visited = NULL;
+    pastix_int_t *length  = NULL;
+    pastix_int_t *stack   = NULL;
+    pastix_int_t *adj     = NULL;
+    pastix_int_t *ja      = NULL;
+    pastix_int_t used;
+    pastix_int_t h, i,j,k, t;
+    long nnz;
 
-  if(A->n == 0)
-    return 0;
-  /** Allocated the working array **/
-  MALLOC_INTERN(visited, A->n, pastix_int_t);
-  MALLOC_INTERN(length,  A->n, pastix_int_t);
-  MALLOC_INTERN(stack,   A->n, pastix_int_t);
-  MALLOC_INTERN(ja,      A->n, pastix_int_t);
-  nnz = 0;
+    if(graphA->n == 0)
+        return 0;
 
-  /** Initialized visited ***/
-  for(j=0;j<A->n;j++)
+    /** Allocated the working array **/
+    MALLOC_INTERN(visited, graphA->n, pastix_int_t);
+    MALLOC_INTERN(length,  graphA->n, pastix_int_t);
+    MALLOC_INTERN(stack,   graphA->n, pastix_int_t);
+    MALLOC_INTERN(ja,      graphA->n, pastix_int_t);
+    nnz = 0;
+
+    /** Initialized visited ***/
+    for(j=0;j<graphA->n;j++)
     {
-      visited[j] = -1;
-      length[j] = 0;
+        visited[j] = -1;
+        length[j]  = 0;
     }
 
-
-  /** Apply GS_Urow for each row **/
-  for(i=0;i<A->n;i++)
+    /** Apply GS_Urow for each row **/
+    kass_csrInit( graphA->n, graphL );
+    for(i=0;i<graphA->n;i++)
     {
-      used = 0; /** Reset the stack number of elements **/
-      stack[0] = i;
-      used++;
-      length[i] = 0;
-      visited[i] = i;
+        /** Reset the stack number of elements **/
+        stack[0] = i;
+        used = 1;
 
-      ja[0] = i; /** Put the diagonal term **/
-      k=1;
-      /** BFS phase **/
-      while(used > 0)
+        length[i]  = 0;
+        visited[i] = i;
+
+        ja[0] = i; /** Put the diagonal term **/
+        k = 1;
+        /** BFS phase **/
+        while(used > 0)
         {
-
-          used--;
-          h = stack[used];
-          adj = A->ja[h];
-          for(j=0;j<A->nnzrow[h];j++)
+            used--;
+            h   = stack[used];
+            adj = graphA->rows[h];
+            for(j=0;j<graphA->nnz[h];j++)
             {
-              t = adj[j];
-              if(visited[t] != i)
+                t = adj[j];
+                if(visited[t] != i)
                 {
-                  visited[t] = i;
-                  if(t<i && length[h] < level)
+                    visited[t] = i;
+                    if( (t < i) && (length[h] < level) )
                     {
-
-                      stack[used] = t;
-                      used++;
-                      length[t] = length[h]+1;
+                        stack[used] = t;
+                        used++;
+                        length[t] = length[h]+1;
                     }
-                  if(t>i)
+                    if( t > i )
                     {
-                      ja[k++] = t;
+                        ja[k++] = t;
                     }
                 }
-
             }
         }
 
-      /*** allocate the new row and fill it ***/
-      switch(job)
-        {
-        case 0:
-          P->nnzrow[i] = k;
-          break;
-        case 1:
-          P->ja[i] = P->ja[0] + nnz;
-          memcpy(P->ja[i], ja, sizeof(pastix_int_t)*k);
-          break;
-        case 2:
-          P->nnzrow[i] = k;
-#ifdef DEBUG_KASS
-          assert(k>0);
-#endif
-          MALLOC_INTERN(P->ja[i], k, pastix_int_t);
-          memcpy(P->ja[i], ja, sizeof(pastix_int_t)*k);
-          break;
-        }
-      nnz += k;
-    }
-  memFree_null(ja);
-  memFree_null(visited);
-  memFree_null(length);
-  memFree_null(stack);
+        assert( k > 0 );
 
-  if(job == 0)
-    {
-      /*fprintf(stderr, "NNZ in the triangular factor L = %ld \n", nnz);*/
-      P->inarow = 1;
-      MALLOC_INTERN(P->jatab, nnz, pastix_int_t);
-      P->ja[0] = P->jatab;
+        graphL->nnz[i] = k;
+        MALLOC_INTERN(graphL->rows[i], k, pastix_int_t);
+        memcpy(graphL->rows[i], ja, k * sizeof(pastix_int_t));
 
-      P->matab = NULL;
-      P->ma[0] = NULL;
+        intSort1asc1( graphL->rows[i],
+                      graphL->nnz[i]);
 
-      ASSERT(P->ja[0] != NULL,MOD_BLEND);
-      /*ASSERT(P->ma[0] != NULL,MOD_BLEND);*/
-
+        nnz += k;
     }
 
-  return nnz;
+    memFree_null(ja);
+    memFree_null(visited);
+    memFree_null(length);
+    memFree_null(stack);
+
+    return nnz;
 }
