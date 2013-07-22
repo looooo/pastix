@@ -25,8 +25,6 @@
 /* #include "ifax.h" */
 #include "sparRow.h"
 #include "sort_row.h"
-#include "SF_level.h"
-
 #include "compact_graph.h"
 #include "amalgamate.h"
 #include "find_supernodes.h"
