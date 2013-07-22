@@ -49,6 +49,7 @@ int kass2(int            ilu,
     pastix_int_t *invp2;
     pastix_int_t  newcblknbr;
     pastix_int_t *newrangtab = NULL;
+    pastix_int_t  nnzA, nnzL;
     Dof dofstr;
     Clock timer;
     double nnzS;
@@ -66,7 +67,7 @@ int kass2(int            ilu,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    /*** Convert Fortran to C numbering ***/
+    /* Convert Fortran to C numbering */
     graphBase( csc, 0 );
     orderBase( orderptr, 0 );
 
@@ -74,7 +75,7 @@ int kass2(int            ilu,
      * If the supernode partition is not provided by the ordering library,
      * we compute it from scratch.
      * If we do incomplete factorization, we drop the supernode factorization
-     * given by Scotch and recompute the partition.
+     * given by Scotch and recompute a new one.
      */
     if ( (orderptr->rangtab == NULL) || (ilu == API_YES ) )
     {
@@ -94,138 +95,127 @@ int kass2(int            ilu,
     snodenbr = orderptr->cblknbr;
     snodetab = orderptr->rangtab;
 
-    /****************************************/
-    /*  Convert the graph                   */
+    /* Create the graph of P A */
     kass_csrInit( n, &graphPA );
     kass_csrGenPA( csc, perm, &graphPA );
 
+    pastix_print(procnum, 0,
+                 "Level of fill = %ld\n"
+                 "Amalgamation ratio = %d \n",
+                 (long)levelk, rat);
+
+    /*
+     * Compute the L graph
+     */
+    /* Direct Factorization */
+    if((ilu == API_NO) || (levelk == -1))
     {
-        pastix_int_t nnzL;
-
-        pastix_print(procnum, 0,
-                     "Level of fill = %ld\n"
-                     "Amalgamation ratio = %d \n",
-                     (long)levelk, rat);
-
         /*
-         * Direct Factorization
+         * (Re)compute the streetab
          */
-        if((ilu == API_NO) || (levelk == -1))
-        {
-            /*
-             * (Re)compute the streetab
-             */
-            if (streetab == NULL) { MALLOC_INTERN( streetab, n, pastix_int_t ); }
-
-            clockStart(timer);
-            nnzL = SF_Direct(&graphPA, snodenbr, snodetab, streetab, &graphL );
-            clockStop(timer);
-            pastix_print(procnum, 0,
-                         "Time to compute scalar symbolic direct factorization  %.3g s\n",
-                         clockVal(timer));
-        }
-        /*
-         * ILU(k) Factorization
-         */
-        else
-        {
-            clockStart(timer);
-            nnzL = SF_level(&graphPA, levelk, &graphL);
-            clockStop(timer);
-            pastix_print(procnum, 0,
-                         "Time to compute scalar symbolic factorization of ILU(%ld) %.3g s\n",
-                         (long)levelk, clockVal(timer));
-        }
-
-        pastix_int_t nnzA = ( kass_csrGetNNZ( &graphPA ) + n ) / 2;
-        pastix_print( procnum, 0,
-                      "Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
-                      (long)nnzA, (long)nnzL, (double)nnzL / (double)nnzA );
-
-
-        kass_csrClean( &graphPA );
-
-        /*
-         * Sort the rows of the symbolic matrix
-         */
-        MALLOC_INTERN(invp2, n, pastix_int_t);
+        if (streetab == NULL) { MALLOC_INTERN( streetab, n, pastix_int_t ); }
 
         clockStart(timer);
-        if((ilu == API_NO) || (levelk == -1))
-        {
-            amalgamate2( (double)rat / 100.,
-                         &graphL, nnzL,
-                         snodenbr, snodetab, streetab,
-                         &newcblknbr, &newrangtab,
-                         invp2, pastix_comm );
-        }
-        else
-        {
-            /*
-             * Compute the "k-supernodes"
-             */
-            pastix_int_t *treetab;
-
-            assert(streetab != NULL);
-
-            MALLOC_INTERN(treetab, graphL.n, pastix_int_t);
-            for(j=0;j<snodenbr;j++)
-            {
-                for(i=snodetab[j]; i<snodetab[j+1]-1; i++)
-                    treetab[i] = i+1;
-
-                /* Generic version */
-                if( (streetab[j] == -1) ||
-                    (streetab[j] == j ) )
-                {
-                    treetab[i] = -1;
-                }
-                else
-                {
-                    treetab[i] = snodetab[streetab[j]];
-                }
-            }
-
-            /* NEW ILUK + DIRECT */
-            amalgamate2( (double)rat / 100.,
-                         &graphL, nnzL,
-                         -1, NULL, treetab,
-                         &newcblknbr, &newrangtab,
-                         invp2, pastix_comm );
-
-            memFree(treetab);
-        }
-
-        /* invp2 is the invp vector of P */
-        for(i=0;i<n;i++)
-            invp2[i] = invp[invp2[i]];
-
-        memcpy(invp, invp2, sizeof(pastix_int_t)*n);
-        for(i=0;i<n;i++)
-            perm[invp[i]] = i;
-
+        nnzL = SF_Direct(&graphPA, snodenbr, snodetab, streetab, &graphL );
         clockStop(timer);
+        pastix_print(procnum, 0,
+                     "Time to compute scalar symbolic direct factorization  %.3g s\n",
+                     clockVal(timer));
+    }
+    /* ILU(k) Factorization */
+    else
+    {
+        pastix_int_t *treetab;
 
-        pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
-        pastix_print(procnum, 0, "Number of cblk in the amalgamated symbol matrix = %ld \n", (long)newcblknbr);
+        clockStart(timer);
+        nnzL = SF_level(&graphPA, levelk, &graphL);
+        clockStop(timer);
+        pastix_print(procnum, 0,
+                     "Time to compute scalar symbolic factorization of ILU(%ld) %.3g s\n",
+                     (long)levelk, clockVal(timer));
 
-        //Build_SymbolMatrix(P, newcblknbr, newrangtab, symbmtx);
-        kassBuildSymbol( &graphL, newcblknbr, newrangtab, symbmtx );
 
-        pastix_print(procnum, 0, "Number of block in the non patched symbol matrix = %ld \n", (long)symbmtx->bloknbr);
+        /*
+         * Compute the "k-supernodes"
+         */
+        assert(streetab != NULL);
 
-        memFree(invp2);
-        kass_csrClean( &graphL );
+        MALLOC_INTERN(treetab, graphL.n, pastix_int_t);
+        memcpy( treetab, streetab, graphL.n * sizeof(pastix_int_t) );
+        for(j=0;j<snodenbr;j++)
+        {
+            for(i=snodetab[j]; i<snodetab[j+1]-1; i++)
+                streetab[i] = i+1;
+
+            /* Generic version */
+            if( (treetab[j] == -1) ||
+                (treetab[j] == j ) )
+            {
+                streetab[i] = -1;
+            }
+            else
+            {
+                streetab[i] = snodetab[treetab[j]];
+            }
+        }
+
+        memFree(treetab);
+        snodenbr = -1;
+        snodetab = NULL;
     }
 
+    nnzA = ( kass_csrGetNNZ( &graphPA ) + n ) / 2;
+    kass_csrClean( &graphPA );
+
+    pastix_print( procnum, 0,
+                  "Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
+                  (long)nnzA, (long)nnzL, (double)nnzL / (double)nnzA );
+
+    /*
+     * Amalgamate the blocks
+     */
+    clockStart(timer);
+    MALLOC_INTERN(invp2, n, pastix_int_t);
+
+    amalgamate2( (double)rat / 100.,
+                 &graphL, nnzL,
+                 snodenbr, snodetab, streetab,
+                 &newcblknbr, &newrangtab,
+                 invp2, pastix_comm );
+
+    if( orderptr->rangtab != NULL ) {
+        memFree(orderptr->rangtab);
+        orderptr->cblknbr = 0;
+    }
     if (streetab != NULL ) memFree(streetab);
 
-    dofInit(&dofstr);
-    dofConstant(&dofstr, 0, symbmtx->nodenbr, 1);
-    nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, &dofstr);
-    print_one("Number of non zero in the non patched symbol matrix = %g, fillrate1 %.3g \n",
-              nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
-    dofExit(&dofstr);
+    /* invp2 is the invp vector of P */
+    for(i=0;i<n;i++)
+        invp2[i] = invp[invp2[i]];
+
+    memcpy(invp, invp2, sizeof(pastix_int_t)*n);
+    for(i=0;i<n;i++)
+        perm[invp[i]] = i;
+    memFree(invp2);
+    clockStop(timer);
+
+    pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
+    pastix_print(procnum, 0, "Number of cblk in the amalgamated symbol matrix = %ld \n", (long)newcblknbr);
+
+    /* Let's build the symbol matrix */
+    kassBuildSymbol( &graphL, newcblknbr, newrangtab, symbmtx );
+    kass_csrClean( &graphL );
+
+    pastix_print(procnum, 0, "Number of block in the non patched symbol matrix = %ld \n", (long)symbmtx->bloknbr);
+
+    {
+        dofInit(&dofstr);
+        dofConstant(&dofstr, 0, symbmtx->nodenbr, 1);
+        nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, &dofstr);
+        print_one("Number of non zero in the non patched symbol matrix = %g, fillrate1 %.3g \n",
+                  nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
+        dofExit(&dofstr);
+    }
 
     if(symbolCheck(symbmtx) != 0) {
         errorPrint("SymbolCheck after kass_symbol.");
@@ -235,26 +225,24 @@ int kass2(int            ilu,
     /********************************************************/
     /** ADD BLOCKS IN ORDER TO GET A REAL ELIMINATION TREE **/
     /********************************************************/
-    //Patch_SymbolMatrix(symbmtx);
-    kassPatchSymbol( symbmtx );
+    if (levelk != -1)
+        kassPatchSymbol( symbmtx );
 
-    dofInit(&dofstr);
-    dofConstant(&dofstr, 0, symbmtx->nodenbr, 1);
-    nnzS =  recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, &dofstr);
-    dofExit(&dofstr);
+    {
+        dofInit(&dofstr);
+        dofConstant(&dofstr, 0, symbmtx->nodenbr, 1);
+        nnzS =  recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, &dofstr);
+        dofExit(&dofstr);
 
-    print_one("Number of block in final symbol matrix = %ld \n", (long)symbmtx->bloknbr);
-    print_one("Number of non zero in final symbol matrix = %g, fillrate2 %.3g \n",  nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
+        print_one("Number of block in final symbol matrix = %ld \n", (long)symbmtx->bloknbr);
+        print_one("Number of non zero in final symbol matrix = %g, fillrate2 %.3g \n",  nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
+    }
+
     if( symbolCheck(symbmtx) != 0 ) {
         errorPrint("SymbolCheck after Patch_SymbolMatrix.");
         ASSERT(0, MOD_KASS);
     }
 
-#ifdef DEBUG_KASS
-    print_one("--- kass end ---\n");
-#endif
-
-    memFree(snodetab);
     orderptr->cblknbr = newcblknbr;
     orderptr->rangtab = newrangtab;
 }
