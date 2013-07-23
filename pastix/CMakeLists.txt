@@ -549,15 +549,15 @@ set(PASTIX_LIB_SRCS
   kass/kass_build_symbol.c
   kass/amalgamate.c
   kass/amalgamate2.c
-  kass/find_supernodes.c
-  kass/ifax.c
-  kass/kass.c
+#  kass/find_supernodes.c
+#  kass/ifax.c
+#  kass/kass.c
   kass/kass_direct.c
 #  kass/KSupernodes.c
   kass/SF_Direct.c
   kass/SF_level.c
-  kass/sort_row.c
-  kass/sparRow.c
+#  kass/sort_row.c
+#  kass/sparRow.c
 #
 #  sopalin/bordi.c
   sopalin/sopalin_thread.c

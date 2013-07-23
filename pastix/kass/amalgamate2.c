@@ -39,12 +39,8 @@
 
 #define INFINI 10e6
 
-#define print_one(fmt, ...)    if( procnum == 0) fprintf(stdout, fmt, ##__VA_ARGS__)
-
 double cblk_time_fact (pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
 double cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
-double merge_gain(pastix_int_t a, pastix_int_t b, csptr P, pastix_int_t *colweight, pastix_int_t *tmp);
-void   merge_col (pastix_int_t a, pastix_int_t b, csptr P);
 void   get_son(pastix_int_t node, pastix_int_t *sonindex, pastix_int_t *sontab, pastix_int_t *colweight, pastix_int_t *ns, pastix_int_t *list);
 
 static inline pastix_int_t
