@@ -6,8 +6,6 @@
  */
 #include "common.h"
 #include "csc_utils.h"
-#include "sparRow.h"
-#include "sort_row.h"
 
 /*
    Function: cmp_colrow

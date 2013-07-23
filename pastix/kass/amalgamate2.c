@@ -20,8 +20,6 @@
 #include "kass.h"
 #include "queue.h"
 #include "perf.h"
-#include "sparRow.h"
-#include "amalgamate.h"
 
 /*#define BLAS_GAIN*/    /** Amalgamation use the best ratio time/nnzadd
                          to merge cblk **/

@@ -539,25 +539,13 @@ set(PASTIX_LIB_SRCS
   blend/write_ps.c
 #
   fax/pastix_task_symbfact.c
-#  fax/symbol_compact.c
-#  fax/symbol_costi.c
-#  fax/symbol_fax.c
-#  fax/symbol_faxi.c
-#  fax/symbol_faxi_graph.c
-#
   kass/kass_genPA.c
   kass/kass_build_symbol.c
   kass/amalgamate.c
   kass/amalgamate2.c
-#  kass/find_supernodes.c
-#  kass/ifax.c
-#  kass/kass.c
   kass/kass_direct.c
-#  kass/KSupernodes.c
   kass/SF_Direct.c
   kass/SF_level.c
-#  kass/sort_row.c
-#  kass/sparRow.c
 #
 #  sopalin/bordi.c
   sopalin/sopalin_thread.c
