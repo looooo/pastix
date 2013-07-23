@@ -36,10 +36,6 @@
  *          Array of size nnz = colptr[n] - colptr[0].
  *          Rows of each non zero entries.
  *
- * @param[in] loc2glob
- *          Array of size n
- *          Global numbering of each local vertex.
- *
  * @param[in] isolate_n
  *          The number of columns to isolate from the original GRAPH matrix.
  *

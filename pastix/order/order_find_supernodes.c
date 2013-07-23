@@ -114,7 +114,7 @@ static inline void
 compute_post_order(      pastix_int_t n,
                    const pastix_int_t *father,
                          pastix_int_t *perm,
-                         pastix_int_t *iperm,
+                         pastix_int_t *invp,
                          pastix_int_t *T)
 {
     pastix_int_t i;
@@ -123,7 +123,7 @@ compute_post_order(      pastix_int_t n,
     /*
      * First compute the number of node in the subtree rooted in node i
      */
-    compute_subtree_size(n, father, iperm, T);
+    compute_subtree_size(n, father, invp, T);
 
     /*
      * When multiple roots are present we have to compute the start index of
@@ -131,7 +131,7 @@ compute_post_order(      pastix_int_t n,
      */
     t = 0;
     for(k=0;k<n;k++) {
-        i = iperm[k];
+        i = invp[k];
         if(father[i] == i) {
             /** This is a root **/
             j = T[i];
@@ -147,7 +147,7 @@ compute_post_order(      pastix_int_t n,
 
     for(k=n-1;k>=0;k--)
     {
-        i = iperm[k];
+        i = invp[k];
         perm[i] = T[father[i]]; /** We MUST HAVE father[i] == i for a root ! **/
         T[father[i]] -= T[i];
         T[i] = perm[i]-1;
@@ -168,13 +168,13 @@ compute_post_order(      pastix_int_t n,
         assert(perm[i] <  n);
     }
 
-    bzero(iperm, sizeof(pastix_int_t)*n);
+    bzero(invp, sizeof(pastix_int_t)*n);
     for(i=0;i<n;i++)
-        iperm[perm[i]]++;
+        invp[perm[i]]++;
 
     k = 0;
     for(i=0;i<n;i++)
-        if(iperm[i] != 1)
+        if(invp[i] != 1)
             k++;
     if(k>0)
         errorPrint("Number of errors in perm vector in postorder %ld", (long)k);
@@ -182,10 +182,10 @@ compute_post_order(      pastix_int_t n,
 #endif
 
     /*
-     * Compute the iperm vector
+     * Compute the invp vector
      */
     for(i=0; i<n; i++)
-        iperm[perm[i]] = i;
+        invp[perm[i]] = i;
 }
 
 /**
@@ -229,7 +229,7 @@ compute_elimination_tree(      pastix_int_t n,
                          const pastix_int_t *ia,
                          const pastix_int_t *ja,
                          const pastix_int_t *perm,
-                         const pastix_int_t *iperm,
+                         const pastix_int_t *invp,
                                pastix_int_t *father)
 {
     pastix_int_t i, j, k;
@@ -254,7 +254,7 @@ compute_elimination_tree(      pastix_int_t n,
     for(i=0;i<n;i++)
     {
         ind = 0;
-        node = iperm[i];
+        node = invp[i];
         for(j=ia[node];j<ia[node+1];j++)
         {
 
@@ -333,7 +333,7 @@ compute_elimination_tree(      pastix_int_t n,
  *          Array of size ia[n].
  *          The list of edges in the given CSC (In C numbering)
  *
- * @param[out] orderptr
+ * @param[out] ordeptr
  *          Pointer to a Order structure, that will be initialized by the routine.
  *          On entry:
  *            orderptr->permtab: the original permutation vector for the the
