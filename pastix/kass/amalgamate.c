@@ -86,7 +86,7 @@ double cblk_time_fact(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
   G = n-L;
 #define CHOLESKY
 #ifndef CHOLESKY
-  cost =(double)(L*PERF_COPY(L)+ PERF_PPF(L) + PERF_TRSM(L, G) + L*PERF_SCAL(G)
+  cost = (double)(L*PERF_COPY(L)+ PERF_PPF(L) + PERF_TRSM(L, G) + L*PERF_SCAL(G)
                   + L*PERF_COPY(G));
 #else
   cost = (double)(PERF_POF(L) + PERF_TRSM(L, G)) ;
