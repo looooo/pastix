@@ -30,13 +30,14 @@ extern double recursive_sum(pastix_int_t a, pastix_int_t b,
                             double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
                             const SymbolMatrix * symbmtx, const Dof * dofptr);
 
-int kass2(int            ilu,
-          int            levelk,
-          int            rat,
-          SymbolMatrix * symbmtx,
-          pastix_graph_t * csc,
-          Order        * orderptr,
-          MPI_Comm       pastix_comm)
+int
+kass(int             ilu,
+     int             levelk,
+     int             rat,
+     SymbolMatrix   *symbmtx,
+     pastix_graph_t *csc,
+     Order          *orderptr,
+     MPI_Comm        pastix_comm)
 {
     kass_csr_t graphPA, graphL;
     pastix_int_t snodenbr;
@@ -177,12 +178,12 @@ int kass2(int            ilu,
     clockStart(timer);
     MALLOC_INTERN(invp2, n, pastix_int_t);
 
-    amalgamate2( (double)rat / 100.,
-                 &graphL, nnzL,
-                 snodenbr, snodetab, streetab,
-                 &newcblknbr, &newrangtab,
-                 invp2, pastix_comm );
-
+    amalgamate( (double)rat / 100.,
+                &graphL, nnzL,
+                snodenbr, snodetab, streetab,
+                &newcblknbr, &newrangtab,
+                invp2, pastix_comm );
+    
     if( orderptr->rangtab != NULL ) {
         memFree(orderptr->rangtab);
         orderptr->cblknbr = 0;
@@ -245,4 +246,6 @@ int kass2(int            ilu,
 
     orderptr->cblknbr = newcblknbr;
     orderptr->rangtab = newrangtab;
+
+    return PASTIX_SUCCESS;
 }

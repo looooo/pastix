@@ -143,16 +143,16 @@ amalgamate_merge_col(pastix_int_t  a,
     memcpy(P->rows[b], tmp, n*sizeof(pastix_int_t));
 }
 
-void amalgamate2(double rat,
-                 kass_csr_t    *graphL,
-                 pastix_int_t   nnzL,
-                 pastix_int_t   snodenbr,
-                 pastix_int_t  *snodetab,
-                 pastix_int_t  *treetab,
-                 pastix_int_t  *cblknbr,
-                 pastix_int_t **rangtab,
-                 pastix_int_t  *nodetab,
-                 MPI_Comm pastix_comm )
+void amalgamate(double rat,
+                kass_csr_t    *graphL,
+                pastix_int_t   nnzL,
+                pastix_int_t   snodenbr,
+                pastix_int_t  *snodetab,
+                pastix_int_t  *treetab,
+                pastix_int_t  *cblknbr,
+                pastix_int_t **rangtab,
+                pastix_int_t  *nodetab,
+                MPI_Comm pastix_comm )
 {
     /********************************************************************/
     /* amagamate takes a supernode graph (P,colwgt) and performs some   */

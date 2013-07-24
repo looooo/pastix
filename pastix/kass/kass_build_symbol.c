@@ -144,7 +144,6 @@ void
 kassPatchSymbol( SymbolMatrix *symbmtx )
 {
     pastix_int_t  i, j, k;
-    pastix_int_t  vroot;
     pastix_int_t *father     = NULL; /** For the cblk of the symbol matrix **/
     SymbolBlok *newbloktab = NULL;
     SymbolCblk *cblktab    = NULL;
