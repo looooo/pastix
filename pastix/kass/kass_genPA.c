@@ -70,8 +70,8 @@ kass_csrCompact( kass_csr_t *csr )
             assert( j < i );
             csr->nnz[j]  = csr->nnz[i];
             csr->rows[j] = csr->rows[i];
-            csr->nnz[i]    = 0;
-            csr->rows[i]   = NULL;
+            csr->nnz[i]  = 0;
+            csr->rows[i] = NULL;
             j++;
         }
     }

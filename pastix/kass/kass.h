@@ -37,20 +37,20 @@ void         kassBuildSymbol(kass_csr_t   *P,
                              SymbolMatrix *symbmtx);
 void         kassPatchSymbol( SymbolMatrix *symbmtx );
 
-pastix_int_t SF_Direct(const kass_csr_t   *graphA,
-                             pastix_int_t  cblknbr,
-                       const pastix_int_t *rangtab,
-                             pastix_int_t *treetab,
-                             kass_csr_t   *graphL );
-pastix_int_t SF_level( const kass_csr_t   *graphA,
-                             pastix_int_t  level,
-                             kass_csr_t   *graphL);
+pastix_int_t symbFactDirect(const kass_csr_t *graphA,
+                                  pastix_int_t  cblknbr,
+                            const pastix_int_t *rangtab,
+                                  pastix_int_t *treetab,
+                            kass_csr_t   *graphL);
+pastix_int_t symbFactLevel( const kass_csr_t   *graphA,
+                                  pastix_int_t  level,
+                                  kass_csr_t   *graphL);
 
-void amalgamate(double rat,
+void amalgamate(double rat_cblk, double rat_blas,
                 kass_csr_t    *graphL,
                 pastix_int_t   nnzL,
                 pastix_int_t   snodenbr,
-                pastix_int_t  *snodetab,
+                const pastix_int_t  *snodetab,
                 pastix_int_t  *treetab,
                 pastix_int_t  *cblknbr,
                 pastix_int_t **rangtab,

@@ -68,7 +68,7 @@ kassBuildSymbol(      kass_csr_t   *P,
 
             tmp[ind++] = ja[j];
             tmp[ind++] = ja[l-1];
-            assert( ja[l-1] == ja[j] + (l-j-1) );
+            assert( (ja[l-1] - ja[j] + 1 ) == (l-j) );
 
             j = l;
         }
@@ -90,7 +90,7 @@ kassBuildSymbol(      kass_csr_t   *P,
     {
         assert( P->nnz[k] > 0 );
         assert( P->rows[k][0] == rangtab[k]   );
-        assert( P->rows[k][0] == rangtab[k+1] );
+        assert( (P->rows[k][1] - P->rows[k][0] + 1 ) == (rangtab[k+1] - rangtab[k]) );
     }
 #endif
 
@@ -124,7 +124,7 @@ kassBuildSymbol(      kass_csr_t   *P,
             assert( node2cblk[j] == node2cblk[ P->rows[k][i+1] ] );
         }
 
-#ifdef DEBUG_KASS
+#if defined(PASTIX_DEBUG_SYMBOL)
         assert(symbmtx->bloktab[symbmtx->cblktab[k].bloknum].frownum == symbmtx->cblktab[k].fcolnum);
         assert(symbmtx->bloktab[symbmtx->cblktab[k].bloknum].lrownum == symbmtx->cblktab[k].lcolnum);
         assert(symbmtx->bloktab[symbmtx->cblktab[k].bloknum].cblknum == k);
@@ -228,7 +228,7 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
             newbloktab[k].frownum = cblktab[ father[i] ].fcolnum;
             newbloktab[k].lrownum = cblktab[ father[i] ].fcolnum; /** OIMBE try lcolnum **/
             newbloktab[k].cblknum = father[i];
-#ifdef DEBUG_KASS
+#if defined(PASTIX_DEBUG_SYMBOL)
             if(father[i] != i)
                 assert(cblktab[father[i]].fcolnum > cblktab[i].lcolnum);
 #endif
@@ -253,7 +253,7 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
     /** Virtual cblk **/
     symbmtx->cblktab[symbmtx->cblknbr].bloknum = k;
 
-#ifdef DEBUG_KASS
+#if defined(PASTIX_DEBUG_SYMBOL)
     assert(k >= symbmtx->bloknbr);
     assert(k < symbmtx->cblknbr+symbmtx->bloknbr);
 #endif
