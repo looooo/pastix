@@ -298,7 +298,8 @@ compute_elimination_tree(      pastix_int_t n,
     {
         if(perm[i] > perm[father[i]])
         {
-            fprintf(stderr, "Node %ld perm=%ld Father %ld perm=%ld \n", (long)i, (long)perm[i], (long)father[i], (long)perm[father[i]]);
+            fprintf(stderr, "Node %ld perm=%ld Father %ld perm=%ld \n",
+                    (long)i, (long)perm[i], (long)father[i], (long)perm[father[i]]);
             assert(perm[i] <= perm[father[i]]);
         }
     }
