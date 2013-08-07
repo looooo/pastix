@@ -114,7 +114,7 @@ kass(int             ilu,
         if (streetab == NULL) { MALLOC_INTERN( streetab, n, pastix_int_t ); }
 
         clockStart(timer);
-        nnzL = symbFactDirect( &graphPA, snodenbr, snodetab, streetab, &graphL );
+        nnzL = kassFactDirect( &graphPA, snodenbr, snodetab, streetab, &graphL );
         clockStop(timer);
         pastix_print(procnum, 0,
                      "Time to compute scalar symbolic direct factorization  %.3g s\n",
@@ -124,7 +124,7 @@ kass(int             ilu,
     else
     {
         clockStart(timer);
-        nnzL = symbFactLevel( &graphPA, levelk, &graphL );
+        nnzL = kassFactLevel( &graphPA, levelk, &graphL );
         clockStop(timer);
         pastix_print(procnum, 0,
                      "Time to compute scalar symbolic factorization of ILU(%ld) %.3g s\n",

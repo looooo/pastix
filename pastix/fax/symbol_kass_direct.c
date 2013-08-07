@@ -1,6 +1,6 @@
 /**
  *
- * @file symbfact_direct.c
+ * @file symbol_kass_direct.c
  *
  *  PaStiX symbolic factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -23,7 +23,7 @@
  *
  * @ingroup pastix_symbfact
  *
- * symbFactDirect - This function computes the non zero pattern of the direct
+ * kassFactDirect - This function computes the non zero pattern of the direct
  * factorization of a matrix A, given the supernode partition associated.
  *
  *******************************************************************************
@@ -57,7 +57,7 @@
  *******************************************************************************/
 
 pastix_int_t
-symbFactDirect(const kass_csr_t   *graphA,
+kassFactDirect(const kass_csr_t   *graphA,
                      pastix_int_t  cblknbr,
                const pastix_int_t *rangtab,
                      pastix_int_t *treetab,

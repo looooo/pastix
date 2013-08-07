@@ -23,7 +23,7 @@
  *
  * @ingroup pastix_symbfact
  *
- * symbFactLevel - This function computes the non zero pattern of the levelized
+ * kassFactLevel - This function computes the non zero pattern of the levelized
  * incomplete factor for a sparse lower triangular matrix in CSC format. This
  * pattern is exact iff the matrix has a SYMMETRIC non zero structure.
  *
@@ -52,7 +52,7 @@
  *
  *******************************************************************************/
 pastix_int_t
-symbFactLevel( const kass_csr_t   *graphA,
+kassFactLevel( const kass_csr_t   *graphA,
                      pastix_int_t  level,
                      kass_csr_t   *graphL)
 {

@@ -498,8 +498,8 @@ set(PASTIX_LIB_SRCS
   #
   fax/amalgamate.c
   fax/symbol_fax_graph.c
-  fax/symbfact_direct.c
-  fax/symbfact_level.c
+  fax/symbol_kass_direct.c
+  fax/symbol_kass_level.c
   #
 
 # Files that still require some changes

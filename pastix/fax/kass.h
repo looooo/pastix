@@ -37,12 +37,12 @@ void         kassBuildSymbol(kass_csr_t   *P,
                              SymbolMatrix *symbmtx);
 void         kassPatchSymbol( SymbolMatrix *symbmtx );
 
-pastix_int_t symbFactDirect(const kass_csr_t *graphA,
+pastix_int_t kassFactDirect(const kass_csr_t *graphA,
                                   pastix_int_t  cblknbr,
                             const pastix_int_t *rangtab,
                                   pastix_int_t *treetab,
                             kass_csr_t   *graphL);
-pastix_int_t symbFactLevel( const kass_csr_t   *graphA,
+pastix_int_t kassFactLevel( const kass_csr_t   *graphA,
                                   pastix_int_t  level,
                                   kass_csr_t   *graphL);
 
