@@ -100,8 +100,8 @@ symbolKass(int             ilu,
 
     pastix_print(procnum, 0,
                  "Level of fill = %ld\n"
-                 "Amalgamation ratio = %d \n",
-                 (long)levelk, rat);
+                 "Amalgamation ratio: cblk = %d, blas = %d\n",
+                 (long)levelk, rat_cblk, rat_blas);
 
     /*
      * Compute the graph of the factorized matrix L
@@ -176,8 +176,8 @@ symbolKass(int             ilu,
     clockStart(timer);
     MALLOC_INTERN(invp2, n, pastix_int_t);
 
-    amalgamate( (double)rat / 100.,
-                (double)rat / 100.,
+    amalgamate( (double)rat_cblk / 100.,
+                (double)rat_blas / 100.,
                 &graphL, nnzL,
                 snodenbr, snodetab, streetab,
                 &newcblknbr, &newrangtab,
