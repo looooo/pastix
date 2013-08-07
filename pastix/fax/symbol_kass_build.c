@@ -169,7 +169,10 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
     /* Allocate nFacingBlok integer for each diagonal blok */
     for(i=0;i<symbmtx->cblknbr;i++)
     {
-        MALLOC_INTERN(Q.rows[i], Q.nnz[i], pastix_int_t);
+        if ( Q.nnz[i] > 0 )
+            MALLOC_INTERN(Q.rows[i], Q.nnz[i], pastix_int_t);
+        else
+            Q.rows[i] = NULL;
     }
 
     memset( Q.nnz, 0, symbmtx->cblknbr * sizeof(pastix_int_t) );
