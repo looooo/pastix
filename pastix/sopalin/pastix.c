@@ -3018,7 +3018,7 @@ void pastix(pastix_data_t **pastix_data,
          * Fax : Facto symbolic
          */
         if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT) /* Fax task */
-            pastix_task_symbfact( *pastix_data, perm, invp, flagWinvp );
+            pastix_task_symbfact( *pastix_data, perm, invp );
 
         if (iparm[IPARM_END_TASK] < API_TASK_ANALYSE) {
             WAIT_AND_RETURN;
@@ -3312,8 +3312,7 @@ void dpastix(pastix_data_t **pastix_data,
   if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT) /* Fax task */
   {
       pastix_task_symbfact( *pastix_data,
-                            perm, invp,
-                            flagWinvp);
+                            perm, invp );
       SYNC_IPARM;
   }
 
