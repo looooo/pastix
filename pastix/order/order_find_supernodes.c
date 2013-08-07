@@ -346,7 +346,7 @@ compute_elimination_tree(      pastix_int_t n,
  *            orderptr->rangtab: Contains the first element of each
  *                supernode. rangtab[i] is the first element of the ith
  *                supernode.
- *            orderptr->permtab: the inverse permutation vector for the
+ *            orderptr->permtab: the permutation vector for the
  *                postorder of the nodes in the elimination tree.
  *            orderptr->permtab: the inverse permutation vector for the
  *                postorder of the nodes in the elimination tree.
@@ -393,7 +393,7 @@ orderFindSupernodes(       pastix_int_t  n,
     MALLOC_INTERN(T,          n+1, pastix_int_t);
 
 #if defined(PASTIX_DEBUG_ORDERING)
-    /** Check the permutation vector **/
+    /** Check that the permutation vector is 0 based **/
     for(i=0;i<n;i++) {
         assert(perm[i] >= 0);
         assert(perm[i] < n);
