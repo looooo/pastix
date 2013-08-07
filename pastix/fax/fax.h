@@ -60,9 +60,4 @@ int symbolFaxGraph(SymbolMatrix * const symbptr,
                    const pastix_int_t * edgetab,
                    const Order  * const ordeptr);
 
-void pastix_task_symbfact(pastix_data_t *pastix_data,
-                          pastix_int_t  *perm,
-                          pastix_int_t  *invp,
-                          int flagWinvp);
-
 #endif /* _FAX_H_ */
