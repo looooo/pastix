@@ -54,7 +54,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @ingroup pastix_symbfact
  *
  * symbolFaxGraph - This routine computes the block symbolic factorization of
  * the given matrix graph according to the given vertex ordering.

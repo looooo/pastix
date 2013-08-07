@@ -128,11 +128,14 @@ symbFactDirect(const kass_csr_t   *graphA,
 
 #if defined(PASTIX_DEBUG_SYMBOL)
         /* Check that the first elements are the diagonal ones */
-        ind = 0;
-        assert(nnznbr >= (rangtab[k+1]-rangtab[k]));
-        for(j=rangtab[k]; j<rangtab[k+1]; j++)
-            assert(tmpj[ind++] == j);
-        assert(nnznbr > 0, MOD_KASS);
+        {
+            pastix_int_t ind;
+            ind = 0;
+            assert(nnznbr >= (rangtab[k+1]-rangtab[k]));
+            for(j=rangtab[k]; j<rangtab[k+1]; j++)
+                assert(tmpj[ind++] == j);
+            assert(nnznbr > 0);
+        }
 #endif
 
         /* Update graphL */
@@ -144,7 +147,6 @@ symbFactDirect(const kass_csr_t   *graphA,
     /* Compute the symbolic factorization */
     for(k=0;k<cblknbr;k++)
     {
-        /*father = treetab[k];*/
         i = 0;
         ja = graphL->rows[k];
         while( (i < graphL->nnz[k]) && (node2cblk[ja[i]] <= k) )
@@ -154,7 +156,6 @@ symbFactDirect(const kass_csr_t   *graphA,
             father = node2cblk[ja[i]];
         else
             father = -1;
-
         treetab[k] = father;
 
         /* Merge son's nodes into father's list */
@@ -171,28 +172,30 @@ symbFactDirect(const kass_csr_t   *graphA,
         }
     }
 
-
 #if defined(PASTIX_DEBUG_SYMBOL)
     /* Check that all terms of A are in the pattern */
-    for(k=0;k<cblknbr;k++)
     {
-        /* Put the diagonal elements (A does not contains them) */
-        for(i=rangtab[k];i<rangtab[k+1];i++)
+        pastix_int_t ind;
+        for(k=0;k<cblknbr;k++)
         {
-            j = 0;
-            while( (j < graphA->nnz[i]) && (graphA->rows[i][j] < i) )
-                j++;
+            /* Put the diagonal elements (A does not contains them) */
+            for(i=rangtab[k];i<rangtab[k+1];i++)
+            {
+                j = 0;
+                while( (j < graphA->nnz[i]) && (graphA->rows[i][j] < i) )
+                    j++;
 
-            for(ind = j; ind < graphA->nnz[i]; ind++)
-                assert(graphA->rows[i][ind] >= i);
-            for(ind = j+1; ind < graphA->nnz[i]; ind++)
-                assert(graphA->rows[i][ind] > graphA->rows[i][ind-1]);
+                for(ind = j; ind < graphA->nnz[i]; ind++)
+                    assert(graphA->rows[i][ind] >= i);
+                for(ind = j+1; ind < graphA->nnz[i]; ind++)
+                    assert(graphA->rows[i][ind] > graphA->rows[i][ind-1]);
 
-            ind = pastix_intset_union( graphL->nnz[k],   graphL->rowsgraph[k],
-                                       graphA->nnz[i]-j, graphA->rowsgraph[i]+j,
-                                       tmp );
+                ind = pastix_intset_union( graphL->nnz[k],   graphL->rows[k],
+                                           graphA->nnz[i]-j, graphA->rows[i]+j,
+                                           tmp );
 
-            assert(ind <= graphL->nnz[k]);
+                assert(ind <= graphL->nnz[k]);
+            }
         }
     }
 #endif
