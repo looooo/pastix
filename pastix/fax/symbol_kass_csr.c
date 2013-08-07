@@ -1,6 +1,6 @@
 /**
  *
- * @file kass_genPA.c
+ * @file symbol_kass_csr.c
  *
  *  PaStiX symbolic factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -16,6 +16,23 @@
 #include "graph.h"
 #include "kass.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * kass_csrInit - Initialize the data structure by doing the first allocations
+ * within the structure and initializing the fields.
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The size of the graph that needs to be initialized.
+ *
+ * @param[out] csr
+ *          The graph to initialize.
+ *
+ *******************************************************************************/
 void
 kass_csrInit( pastix_int_t n, kass_csr_t *csr )
 {
@@ -28,6 +45,19 @@ kass_csrInit( pastix_int_t n, kass_csr_t *csr )
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * kass_csrClean - Free the data store in the structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] csr
+ *          The graph to clean.
+ *
+ *******************************************************************************/
 void
 kass_csrClean( kass_csr_t *csr )
 {
@@ -41,17 +71,55 @@ kass_csrClean( kass_csr_t *csr )
     memFree_null( csr->nnz  );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * kass_csrGetNNZ - Computes the number of non zero entries in the graph with
+ * the following formula: nnz = sum( i=0..n, nnz[n] )
+ * The formula must be post computed to adapt to presence of diagonal elements
+ * or not, and to the symmetry of the graph.
+ *
+ *******************************************************************************
+ *
+ * @param[in] csr
+ *          The graph on which the number of non zero entries is computed.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval The number of non zero entries.
+ *
+ *******************************************************************************/
 pastix_int_t
-kass_csrGetNNZ( kass_csr_t *csr )
+kass_csrGetNNZ( const kass_csr_t *csr )
 {
     pastix_int_t i, nnz;
-    nnz  = 0;
+    nnz = 0;
     for(i=0; i< csr->n; i++) {
         nnz += csr->nnz[i];
     }
     return nnz;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * kass_csrCompact - Compact a acompressed graph. All nodes with no non zero
+ * entries are removed from the graph, the allocated space is not adjusted.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] csr
+ *          The graph to compact.
+ *          On entry, graph which might contain nodes with no non zero entries.
+ *          On exit, all those nodes are suppressed and the compressed graph is
+ *          returned.
+ *
+ *******************************************************************************/
 void
 kass_csrCompact( kass_csr_t *csr )
 {
@@ -84,30 +152,20 @@ kass_csrCompact( kass_csr_t *csr )
  *
  * @ingroup pastix_graph
  *
- * graphApplyPerm - Generate the graph of P*A from the graph of A and the
+ * kass_csrGenPA - Generate the graph of P*A from the graph of A and the
  * permutation vector.
  *
  *******************************************************************************
  *
- * @param[in] n
- *          The number of vertex of the original graph.
+ * @param[in] graphA
+ *          The original graph Aon which the permutation will be applied.
  *
- * @param[in] ia
- *          Array of size n+1
- *          Index of first edge for each vertex in ja array.
+ * @param[in] perm
+ *          Integer array of size graphA->n. Contains the permutation to apply to A.
  *
- * @param[in] ja
- *          Array of size nnz = ia[n] - ia[0].
- *          Edges for each vertex.
- *
- * @param[in] loc2glob
- *          Array of size n
- *          Global numbering of each local vertex.
- *
- * @param[in,out] newgraph
- *          The initialized graph structure where the symmetrized graph will be
- *          stored.
- *          The allocated data must be freed with graphClean.
+ * @param[in,out] graphPA
+ *          On entry, the initialized graph with size graphA->n.
+ *          On exit, contains the graph of P A.
  *
  *******************************************************************************
  *
@@ -161,5 +219,5 @@ kass_csrGenPA( const pastix_graph_t *graphA,
         intSort1asc1( graphPA->rows[ip],
                       graphPA->nnz[ip]);
     }
-    return EXIT_SUCCESS;
+    return PASTIX_SUCCESS;
 }
