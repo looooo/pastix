@@ -1,6 +1,6 @@
 /**
  *
- * @file scotch_strat.c
+ * @file scotch_strats.h
  *
  *  PaStiX order routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
