@@ -577,4 +577,8 @@ int pastix_task_order(pastix_data_t *pastix_data,
                       pastix_int_t  *perm,
                       pastix_int_t  *invp);
 
+int pastix_task_symbfact(pastix_data_t *pastix_data,
+                         pastix_int_t  *perm,
+                         pastix_int_t  *invp);
+
 #endif /* _PASTIX_H_ */
