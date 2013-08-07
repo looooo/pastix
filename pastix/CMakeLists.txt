@@ -542,9 +542,9 @@ set(PASTIX_LIB_SRCS
   blend/write_ps.c
 #
   fax/pastix_task_symbfact.c
-  kass/kass_genPA.c
-  kass/kass_build_symbol.c
-  kass/kass_direct.c
+  fax/symbol_kass_csr.c
+  fax/symbol_kass_build.c
+  fax/symbol_kass.c
 #
 #  sopalin/bordi.c
   sopalin/sopalin_thread.c
