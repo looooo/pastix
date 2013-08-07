@@ -226,46 +226,38 @@ pastix_int_t getFaceBlockE2(pastix_int_t startsearch, pastix_int_t bloksrc, past
   if(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum)
     startsearch = symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;
 
-  ASSERT(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum,MOD_BLEND);
-
+  assert(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum);
 
   /*#ifndef NAPA*/
   if(ricar == 0)
-    {
+  {
       /*for(i=symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)*/
       for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
-        if(symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].frownum)
-          break;
-
-#ifdef DEBUG_BLEND
-      ASSERT(symbptr->bloktab[i].frownum <= symbptr->bloktab[bloknum].frownum
-             && symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].lrownum,MOD_BLEND);
-#endif
-
+          if(symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].frownum)
+              break;
+      
+      assert( (symbptr->bloktab[i].frownum <= symbptr->bloktab[bloknum].frownum) &&
+              (symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].lrownum) );
+      
       return i;
-    }
-    /*#else*/
-
-
+  }
+  /*#else*/
+  
   /*for(i=symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)*/
   for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
-    {
+  {
       if( (symbptr->bloktab[bloknum].frownum >= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].lrownum)
-         || (symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].lrownum <= symbptr->bloktab[i].lrownum)
-         || (symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].lrownum)
-         )
-        return i;  /** We found the first block that matches **/
+          || (symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].lrownum <= symbptr->bloktab[i].lrownum)
+          || (symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].lrownum)
+          )
+          return i;  /** We found the first block that matches **/
       if(symbptr->bloktab[bloknum].lrownum < symbptr->bloktab[i].frownum)
-        {
+      {
           return -1;
-        }
-
-    }
+      }
+  }
   return -1;
   /*#endif*/
-
-
-
 }
 
 double taskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)

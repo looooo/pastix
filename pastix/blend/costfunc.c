@@ -26,7 +26,6 @@
 #include "simu.h"
 #include "costfunc.h"
 
-
 #define BLEND_CHOLESKY /** LLt version **/
 
 void   subtreeSetNullCost    (pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const SimuCtrl *,  pastix_int_t);
@@ -544,6 +543,61 @@ void printSolverInfo(FILE *out, const SolverMatrix * solvmtx, const SymbolMatrix
   fprintf(out,   " %ld : Total Memory space               : %g  Octs\n", (long)procnum, totalspace); 
 }
 
+
+
+double cblk_time_fact(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
+{
+  /*******************************************/
+  /* Compute the time to compute a cblk      */
+  /* according to the BLAS modelization      */
+  /*******************************************/
+  double cost;
+  pastix_int_t i;
+  pastix_int_t L, G, H;
+
+  /** The formula are based on the costfunc.c in blend **/
+  /** @@@ OIMBE: il faudra faire les DOF_CONSTANT ***/
+
+  L = colnbr; /* Size of diagonal block        */
+  G = n-L;    /* Number of extra-diagonal rows */
+
+#define CHOLESKY
+#ifndef CHOLESKY
+  cost = (double)(L*PERF_COPY(L)+ PERF_PPF(L) + PERF_TRSM(L, G) + L*PERF_SCAL(G)
+                  + L*PERF_COPY(G));
+#else
+  cost = (double)( PERF_POF(L) + PERF_TRSM(L, G) );
+#endif
+
+  /** Contributions **/
+  i = colnbr;
+  while(i < n)
+  {
+      H = 1;
+      i++;
+      while((i<n) && (ja[i] == ja[i-1]+1))
+      {
+          i++;
+          H++;
+      }
+      cost += (double)(PERF_GEMM(G, H, L));
+      G -= H;
+  }
+  return cost;
+}
+
+
+double cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
+{
+    double cost;
+    pastix_int_t L;
+    (void)ja;
+
+    L = colnbr;
+
+    cost = (double)PERF_TRSV(L) + (double) PERF_GEMV(L, n-L);
+    return cost;
+}
 
 
 
