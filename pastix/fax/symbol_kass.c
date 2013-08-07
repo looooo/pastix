@@ -22,8 +22,6 @@
 #include "fax.h"
 #include "kass.h"
 
-#define print_one(fmt, ...)    if( procnum == 0) fprintf(stdout, fmt, __VA_ARGS__)
-
 extern double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
 extern double recursive_sum(pastix_int_t a, pastix_int_t b,
                             double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
