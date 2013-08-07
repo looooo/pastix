@@ -125,7 +125,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
     pastix_int_t   *zeros_colptr;
     pastix_int_t   *zeros_rows;
     pastix_int_t   *zeros_perm;
-    pastix_int_t   *iparm = pastix_data->iparm;
+    pastix_int_t   *iparm;
     pastix_graph_t  subgraph;
     pastix_graph_t *graph;
     Order          *ordemesh;
@@ -139,6 +139,25 @@ pastix_task_order(      pastix_data_t *pastix_data,
     /*
      * Check parameters
      */
+    if (pastix_data == NULL) {
+        errorPrint("pastix_task_order: wrong pastix_data parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (colptr == NULL) {
+        errorPrint("pastix_task_order: wrong colptr parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (rows == NULL) {
+        errorPrint("pastix_task_order: wrong rows parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    iparm = pastix_data->iparm;
+
+    /* if ( !(iparam[IPARAM_STEPS_DONE] & API_TASK_INIT) ) { */
+    /*     errorPrint("pastix_task_order: Init step should be performed before calling this function"); */
+    /*     return PASTIX_ERR_BADPARAMETER; */
+    /* } */
+
     if ((iparm[IPARM_SCHUR] == API_YES) &&
         (pastix_data->schur_n > 0) )
     {
@@ -382,6 +401,15 @@ pastix_task_order(      pastix_data_t *pastix_data,
         if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
         if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
     }
+
+    /* Invalidate following steps, and add order step to the ones performed */
+    /* iparam[IPARAM_STEPS_DONE] &= ~( API_TASK_SYMBFACT | */
+    /*                                 API_TASK_ANALYSE  | */
+    /*                                 API_TASK_NUMFACT  | */
+    /*                                 API_TASK_SOLVE    | */
+    /*                                 API_TASK_REFINE   | */
+    /*                                 API_TASK_CLEAN    ); */
+    /* iparam[IPARAM_STEPS_DONE] |= API_TASK_ORDER; */
 
     iparm[IPARM_START_TASK]++;
     return PASTIX_SUCCESS;
