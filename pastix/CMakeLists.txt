@@ -497,6 +497,8 @@ set(PASTIX_LIB_SRCS
   order/pastix_task_order.c
   #
   fax/symbol_fax_graph.c
+  fax/symbfact_direct.c
+  fax/symbfact_level.c
   #
 
 # Files that still require some changes
@@ -544,8 +546,6 @@ set(PASTIX_LIB_SRCS
   kass/amalgamate.c
   kass/amalgamate2.c
   kass/kass_direct.c
-  kass/SF_Direct.c
-  kass/SF_level.c
 #
 #  sopalin/bordi.c
   sopalin/sopalin_thread.c
