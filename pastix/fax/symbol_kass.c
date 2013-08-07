@@ -31,13 +31,14 @@ extern double recursive_sum(pastix_int_t a, pastix_int_t b,
                             const SymbolMatrix * symbmtx, const Dof * dofptr);
 
 int
-kass(int             ilu,
-     int             levelk,
-     int             rat,
-     SymbolMatrix   *symbmtx,
-     pastix_graph_t *csc,
-     Order          *orderptr,
-     MPI_Comm        pastix_comm)
+symbolKass(int             ilu,
+           int             levelk,
+           int             rat_cblk,
+           int             rat_blas,
+           SymbolMatrix   *symbmtx,
+           pastix_graph_t *csc,
+           Order          *orderptr,
+           MPI_Comm        pastix_comm)
 {
     kass_csr_t graphPA, graphL;
     pastix_int_t snodenbr;

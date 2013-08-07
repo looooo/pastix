@@ -57,12 +57,13 @@ void amalgamate(double rat_cblk, double rat_blas,
                 pastix_int_t  *nodetab,
                 MPI_Comm pastix_comm );
 
-int kass(int             ilu,
-         int             levelk,
-         int             rat,
-         SymbolMatrix   *symbmtx,
-         pastix_graph_t *graph,
-         Order          *orderptr,
-         MPI_Comm        pastix_comm);
+int symbolKass(int             ilu,
+               int             levelk,
+               int             rat_cblk,
+               int             rat_blas,
+               SymbolMatrix   *symbmtx,
+               pastix_graph_t *graph,
+               Order          *orderptr,
+               MPI_Comm        pastix_comm);
 
 #endif
