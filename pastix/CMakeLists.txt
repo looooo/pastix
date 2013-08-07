@@ -496,6 +496,7 @@ set(PASTIX_LIB_SRCS
   order/order_io.c
   order/pastix_task_order.c
   #
+  fax/amalgamate.c
   fax/symbol_fax_graph.c
   fax/symbfact_direct.c
   fax/symbfact_level.c
@@ -543,8 +544,6 @@ set(PASTIX_LIB_SRCS
   fax/pastix_task_symbfact.c
   kass/kass_genPA.c
   kass/kass_build_symbol.c
-  kass/amalgamate.c
-  kass/amalgamate2.c
   kass/kass_direct.c
 #
 #  sopalin/bordi.c
