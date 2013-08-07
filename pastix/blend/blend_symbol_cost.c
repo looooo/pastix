@@ -59,7 +59,8 @@ void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, 
 
 
 
-double recursive_sum(pastix_int_t a, pastix_int_t b, double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
+double recursive_sum(pastix_int_t a, pastix_int_t b,
+                     double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
                      const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
   if(a != b)
@@ -140,20 +141,22 @@ double cholesky(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * 
 /*******************************************/
 
 double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ pastix_int_t i;
-  double gk = 0;
-  double lk = 0;
+{
+    pastix_int_t i;
+    pastix_int_t noddval = ( dofptr == NULL ) ? 1 : dofptr->noddval;
+    double gk = 0;
+    double lk = 0;
+
 #ifdef DOF_CONSTANT
-  /* lk is the dimension of the diagonal blok */
-  lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /* lk is the dimension of the diagonal blok */
+    lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
 
-  /* gk is the height of off-diag bloks */
-  for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
-    gk +=(double)( symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
+    /* gk is the height of off-diag bloks */
+    for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
+        gk +=(double)( symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
 
-
-
-  return( lk*(dofptr->noddval)*(lk*(dofptr->noddval)+1)/2 + gk*(dofptr->noddval)*lk*(dofptr->noddval) - lk*(dofptr->noddval));
+    return( lk*noddval*(lk*noddval+1)/2 +
+            gk*noddval*lk*noddval - lk*noddval);
 #endif
 }
 

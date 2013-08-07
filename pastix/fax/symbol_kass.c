@@ -17,7 +17,6 @@
 #include <assert.h>
 
 #include "common.h"
-#include "dof.h"
 #include "symbol.h"
 #include "order.h"
 #include "fax.h"
@@ -52,7 +51,6 @@ symbolKass(int             ilu,
     pastix_int_t  newcblknbr;
     pastix_int_t *newrangtab = NULL;
     pastix_int_t  nnzA, nnzL;
-    Dof dofstr;
     Clock timer;
     double nnzS;
     int procnum;
@@ -213,12 +211,8 @@ symbolKass(int             ilu,
     /** ADD BLOCKS IN ORDER TO GET A REAL ELIMINATION TREE **/
     /********************************************************/
     if (levelk != -1) {
-        {
-            dofInit(&dofstr);
-            dofConstant(&dofstr, 0, symbmtx->nodenbr, 1);
-            nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, &dofstr);
-            dofExit(&dofstr);
-        }
+        nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, NULL);
+
         pastix_print(procnum, 0, "Number of block in the non patched symbol matrix = %ld \n",
                      (long)symbmtx->bloknbr);
         pastix_print(procnum, 0, "Number of non zero in the non patched symbol matrix = %g, fillrate1 %.3g \n",
@@ -233,13 +227,7 @@ symbolKass(int             ilu,
         kassPatchSymbol( symbmtx );
     }
 
-    {
-        dofInit(&dofstr);
-        dofConstant(&dofstr, 0, symbmtx->nodenbr, 1);
-        nnzS =  recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, &dofstr);
-        dofExit(&dofstr);
-
-    }
+    nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, NULL);
 
     pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
     pastix_print(procnum, 0, "Number of cblk in the amalgamated symbol matrix = %ld \n", (long)newcblknbr);
