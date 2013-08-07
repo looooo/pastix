@@ -1,25 +1,21 @@
-
-/************************************************************/
-/**                                                        **/
-/**   NAME       : kass.c                                  **/
-/**                                                        **/
-/**   AUTHOR     : Pascal HENON                            **/
-/**                                                        **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 10/02/2006      **/
-/**                                                        **/
-/**                                                        **/
-/************************************************************/
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
+/**
+ *
+ * @file symbol_kass.c
+ *
+ *  PaStiX symbolic factorization routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 5.1.0
+ * @author Pascal Henon
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
 #include "symbol.h"
 #include "order.h"
-#include "fax.h"
+#include "graph.h"
 #include "kass.h"
 
 extern double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
@@ -27,11 +23,66 @@ extern double recursive_sum(pastix_int_t a, pastix_int_t b,
                             double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
                             const SymbolMatrix * symbmtx, const Dof * dofptr);
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbfact
+ *
+ * symbolKass - This function generateds the symbol matrix when an ibomplete
+ * factorization will be performed or the supernode partition doesn't exists or
+ * has been destroyed.
+ * The symbol matrix and the supernode partition associated are returned.
+ * See after for the different parameters.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ilu
+ *          = API_YES: incomplete factorization will be performed.
+ *          = API_NO : direct factorization will be performed.
+ *
+ * @param[in] levelk
+ *          Unused if ilu == API_NO.
+ *          = k >= 0: symbol matrix for ILU(k) factorization will be generated.
+ *          = < 0: symbol matrix for direct factorization will be generated.
+ *
+ * @param[in] rat_cblk
+ *          Must be >= 0. Fill ratio that limits the amalgamation process based
+ *          on the graph structure.
+ *
+ * @param[in] rat_blas
+ *          Must be >= rat_cblk. Fill ratio that limits the amalgamation process
+ *          that merges blocks in order to reduce the BLAS computational time
+ *          (see amalgamate() for further informations).
+ *
+ * @param[in,out] symbmtx
+ *          The symbol matrix structure to construct. On entry, the initialized
+ *          structure (see symbolInit()). On exit, the symbol matrix generated
+ *          after the amalgamation process.
+ *
+ * @param[in,out] csc
+ *          The original csc for which the symbol matrix needs to be generated.
+ *          Rebase to C numbering on exit.
+ *
+ * @param[in,out] orderptr
+ *          The oder structure that contains the perm and invp array generated
+ *          by the ordering step. The supernode partition might be initialized
+ *          or not.
+ *          On exit, it is rebased to c numbering and contains the updated
+ *          perm/invp arrays as well as the supernode partition.
+ *
+ * @param[in] pastix_comm
+ *          The PaStiX instance communicator.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on success.
+ *          \retval PASTIX_ERR_ALLOC if allocation went wrong.
+ *          \retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
+ *
+ *******************************************************************************/
 int
-symbolKass(int             ilu,
-           int             levelk,
-           int             rat_cblk,
-           int             rat_blas,
+symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
            SymbolMatrix   *symbmtx,
            pastix_graph_t *csc,
            Order          *orderptr,
@@ -58,7 +109,23 @@ symbolKass(int             ilu,
     /* Check parameters correctness */
     if ( (orderptr->rangtab != NULL) && (ilu == API_NO ) )
     {
-        errorPrintW("Kass cannot be called for Direct factorization and with supernodes already found");
+        errorPrintW("symbolKass cannot be called for Direct factorization with supernodes already found");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( (ilu == API_NO) || (levelk < 0) ) {
+        /* Forces levelk to -1 */
+        levelk = -1;
+    }
+    if ( symbmtx == NULL ) {
+        errorPrintW("symbolKass: wrong parameter symbmtx");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( csc == NULL ) {
+        errorPrintW("symbolKass: wrong parameter csc");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( orderptr == NULL ) {
+        errorPrintW("symbolKass: wrong parameter orderptr");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -205,9 +272,7 @@ symbolKass(int             ilu,
     kassBuildSymbol( &graphL, newcblknbr, newrangtab, symbmtx );
     kass_csrClean( &graphL );
 
-    /********************************************************/
-    /** ADD BLOCKS IN ORDER TO GET A REAL ELIMINATION TREE **/
-    /********************************************************/
+    /* Pacth the symbol matrix to have a real elimination tree */
     if (levelk != -1) {
         nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, NULL);
 

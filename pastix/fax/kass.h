@@ -1,17 +1,17 @@
-/************************************************************/
-/**                                                        **/
-/**   NAME       : kass.h                                  **/
-/**                                                        **/
-/**   AUTHORS    : Pascal HENON                            **/
-/**                                                        **/
-/**   FUNCTION   : Compute a block structure of the factor **/
-/**                obtained by a ILU(k) factorization      **/
-/**                                                        **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 30/01/2006      **/
-/**                                 to                     **/
-/**                                                        **/
-/************************************************************/
+/**
+ *
+ * @file kass.h
+ *
+ *  PaStiX symbol factorization routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 5.1.0
+ * @author Pascal Henon
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #ifndef _KASS_H_
 #define _KASS_H_
 
@@ -25,7 +25,7 @@ typedef struct kass_csr_s kass_csr_t;
 void         kass_csrInit(   pastix_int_t n,
                              kass_csr_t *csr );
 void         kass_csrClean(  kass_csr_t *csr );
-pastix_int_t kass_csrGetNNZ( kass_csr_t *csr );
+pastix_int_t kass_csrGetNNZ( const kass_csr_t *csr );
 int          kass_csrGenPA(  const pastix_graph_t *graphA,
                              const pastix_int_t   *perm,
                              kass_csr_t *graphPA );

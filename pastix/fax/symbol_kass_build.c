@@ -1,6 +1,6 @@
 /**
  *
- * @file kass_build_symbol.c
+ * @file symbol_kass_build.c
  *
  *  PaStiX symbolic factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -13,9 +13,35 @@
  *
  **/
 #include "common.h"
-#include "graph.h"
+#include "symbol.h"
 #include "kass.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbfact
+ *
+ * kassBuildSymbol - Create the symbol matrix from the graph of the non zero
+ * pattern of the factorized matrix and the supernode partition.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] P
+ *          The non zero pattern of the factorized matrix. WARNING: on exit, the graph is destroyed.
+ *
+ * @param[in] cblknbr
+ *          The number of supernode. Must be equal to P->n.
+ *
+ * @param[in] rangtab
+ *          Integer array of size cblknbr+1.
+ *          Containes the supernode partition of the graph.
+ *
+ * @param[out] symbmtx
+ *          On entry, an initialized structure of symbol matrix (see symbolInit()).
+ *          On exit, contains the symbol matrix associated to the graph P and
+ *          the supernode partition given.
+ *
+ *******************************************************************************/
 void
 kassBuildSymbol(      kass_csr_t   *P,
                       pastix_int_t  cblknbr,
@@ -42,6 +68,7 @@ kassBuildSymbol(      kass_csr_t   *P,
         for(i=rangtab[k];i<rangtab[k+1];i++)
             node2cblk[i] = k;
 
+    /* Let's update P to store all the couples (frownum,lrownum) in rows arrays */
     for(k=0; k<cblknbr; k++)
     {
         assert( P->nnz[k] >= (rangtab[k+1]-rangtab[k]) );
@@ -140,6 +167,24 @@ kassBuildSymbol(      kass_csr_t   *P,
     memFree(node2cblk);
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbfact
+ *
+ * kassPatchSymbol - Patch the symbol matrix to add blocks in order to get a
+ * real elimination tree. This function is called when ILU(k) factorization is
+ * performed and the kassBuildSymbol() function might have returned a symbol
+ * matrix that doesn't provide a real elimination tree.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] symbmtx
+ *          On entry, a generated symbol matrix with kassBuildSymbol() for example.
+ *          On exit, the patched symbol matrix with extra blocks to have a real
+ *          elimination tree.
+ *
+ *******************************************************************************/
 void
 kassPatchSymbol( SymbolMatrix *symbmtx )
 {

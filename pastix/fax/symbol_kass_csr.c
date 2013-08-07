@@ -19,7 +19,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
+ * @ingroup pastix_symbfact
  *
  * kass_csrInit - Initialize the data structure by doing the first allocations
  * within the structure and initializing the fields.
@@ -48,7 +48,7 @@ kass_csrInit( pastix_int_t n, kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
+ * @ingroup pastix_symbfact
  *
  * kass_csrClean - Free the data store in the structure.
  *
@@ -74,7 +74,7 @@ kass_csrClean( kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
+ * @ingroup pastix_symbfact
  *
  * kass_csrGetNNZ - Computes the number of non zero entries in the graph with
  * the following formula: nnz = sum( i=0..n, nnz[n] )
@@ -106,7 +106,7 @@ kass_csrGetNNZ( const kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
+ * @ingroup pastix_symbfact
  *
  * kass_csrCompact - Compact a acompressed graph. All nodes with no non zero
  * entries are removed from the graph, the allocated space is not adjusted.
@@ -150,7 +150,7 @@ kass_csrCompact( kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
+ * @ingroup pastix_symbfact
  *
  * kass_csrGenPA - Generate the graph of P*A from the graph of A and the
  * permutation vector.

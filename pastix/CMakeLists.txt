@@ -498,6 +498,8 @@ set(PASTIX_LIB_SRCS
   #
   fax/amalgamate.c
   fax/symbol_fax_graph.c
+  fax/symbol_kass.c
+  fax/symbol_kass_build.c
   fax/symbol_kass_csr.c
   fax/symbol_kass_direct.c
   fax/symbol_kass_level.c
@@ -543,8 +545,6 @@ set(PASTIX_LIB_SRCS
   blend/write_ps.c
 #
   fax/pastix_task_symbfact.c
-  fax/symbol_kass_build.c
-  fax/symbol_kass.c
 #
 #  sopalin/bordi.c
   sopalin/sopalin_thread.c
