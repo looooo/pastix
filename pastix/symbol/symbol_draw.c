@@ -49,6 +49,7 @@
 
 #define SYMBOL_DRAW
 
+#include <time.h>
 #include "common.h"
 #include "symbol.h"
 #include "symbol_draw.h"
