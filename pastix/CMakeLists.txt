@@ -503,6 +503,7 @@ set(PASTIX_LIB_SRCS
   fax/symbol_kass_csr.c
   fax/symbol_kass_direct.c
   fax/symbol_kass_level.c
+  fax/pastix_task_symbfact.c
   #
 
 # Files that still require some changes
@@ -511,10 +512,11 @@ set(PASTIX_LIB_SRCS
   common/integer.c
   common/memory.c
 #  common/trace.c
-
   graph/graph_io.c
 #
-#
+  blend/elimin_graph.c
+  blend/elimin_tree.c
+  blend/pastix_task_analyse.c
   blend/assemblyGener.c
   blend/blend.c
   blend/blend_symbol_cost.c
@@ -523,8 +525,6 @@ set(PASTIX_LIB_SRCS
   blend/cost.c
   blend/costfunc.c
   blend/distribPart.c
-  blend/elimin.c
-  blend/eliminfunc.c
   blend/extendVector.c
   blend/extrastruct.c
   blend/fanboth2.c
@@ -542,9 +542,8 @@ set(PASTIX_LIB_SRCS
 #  blend/splitpartlocal.c
   blend/symbolrand.c
   blend/task.c
-  blend/write_ps.c
+#  blend/write_ps.c
 #
-  fax/pastix_task_symbfact.c
 #
 #  sopalin/bordi.c
   sopalin/sopalin_thread.c

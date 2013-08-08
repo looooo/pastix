@@ -22,7 +22,6 @@
 #include "simu.h"
 #include "costfunc.h"
 #include "partbuild.h"
-/* #include "eliminfunc.h" */
 /* #include "splitpart.h" */
 
 struct PASTIX_interval_s {

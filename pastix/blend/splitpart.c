@@ -22,7 +22,6 @@
 #include "simu.h"
 #include "costfunc.h"
 #include "partbuild.h"
-#include "eliminfunc.h"
 #include "splitpart.h"
 
 #define CROSS_TOLERANCE 0.1
@@ -84,7 +83,7 @@ void splitPart(SymbolMatrix *symbmtx,
        positive or null value means cblk/blok has been splitted
        the value is, in this case the index in the extra- cblk/blok -tab */
     for(i=0;i<symbmtx->cblknbr;i++)
-        {
+    {
             extrasymb->sptcblk[i] = -1;
             extrasymb->sptcbnb[i] =  1;
         }
@@ -115,7 +114,7 @@ void splitPart(SymbolMatrix *symbmtx,
         propMappTreeNoSplit(symbmtx, ctrl, dofptr);
         setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->option->level2D);
         costMatrixCorrect(ctrl->costmtx, symbmtx, ctrl->candtab, dofptr);
-        subtreeUpdateCost(ROOT(ctrl->etree), ctrl->costmtx, ctrl->etree);
+        subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
       }
 
     /* Repartition symbolic matrix using proportionnal mapping method */
@@ -126,9 +125,9 @@ void splitPart(SymbolMatrix *symbmtx,
     /** set the distribution type (1D or 2D) for cblk **/
     if(ctrl->option->autolevel)
       {
-        /*setSubtreeBlokNbr(ROOT(ctrl->etree), ctrl->etree, symbmtx, extrasymb, ctrl->option->blcolmin);
-          fprintf(stdout, "Total blok %ld \n", extrasymb->subtreeblnbr[ROOT(ctrl->etree)]);*/
-        setSubtreeDistribType(symbmtx, ctrl->costmtx, ROOT(ctrl->etree), ctrl, D2);
+        /*setSubtreeBlokNbr(eTreeRoot(ctrl->etree), ctrl->etree, symbmtx, extrasymb, ctrl->option->blcolmin);
+          fprintf(stdout, "Total blok %ld \n", extrasymb->subtreeblnbr[eTreeRoot(ctrl->etree)]);*/
+        setSubtreeDistribType(symbmtx, ctrl->costmtx, eTreeRoot(ctrl->etree), ctrl, D2);
       }
     else
       setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->option->level2D);
@@ -144,13 +143,13 @@ void splitPart(SymbolMatrix *symbmtx,
 
     if(ctrl->option->candcorrect)
       {
-        treeExit(ctrl->etree);
+        eTreeExit(ctrl->etree);
         MALLOC_INTERN(ctrl->etree, 1, EliminTree);
-        treeInit(ctrl->etree);
-        eliminTreeBuild(symbmtx, ctrl);
+        eTreeInit(ctrl->etree);
+        eTreeBuild(ctrl->etree, symbmtx);
 
         costMatrixCorrect(ctrl->costmtx, symbmtx, ctrl->candtab, dofptr);
-        subtreeUpdateCost(ROOT(ctrl->etree), ctrl->costmtx, ctrl->etree);
+        subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
         propMappTreeNoSplit(symbmtx, ctrl, dofptr);
         setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->option->level2D);
       }
@@ -158,10 +157,12 @@ void splitPart(SymbolMatrix *symbmtx,
     /**************************/
     /** Reset the tree level **/
     /**************************/
-    treeExit(ctrl->etree);
+    eTreeExit(ctrl->etree);
     MALLOC_INTERN(ctrl->etree, 1, EliminTree);
-    treeInit(ctrl->etree);
-    eliminTreeBuild(symbmtx, ctrl);
+    eTreeInit(ctrl->etree);
+    eTreeBuild(ctrl->etree, symbmtx);
+
+    subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
     setTreeLevel(ctrl->candtab, ctrl->etree);
     if(ctrl->option->costlevel)
       setTreeCostLevel(ctrl->candtab, ctrl->etree, ctrl->costmtx);
@@ -169,45 +170,7 @@ void splitPart(SymbolMatrix *symbmtx,
     extrasymbolExit(extrasymb);
     extracostExit(extracost);
 
-#ifdef SEB
-    {
-      SCOTCH_Graph    graphptr;
-      SCOTCH_Mapping  mappptr;
-      SCOTCH_Arch     archptr;
-      SCOTCH_Num     *parttab;
-      SCOTCH_Strat    stratptr;
-      FILE           *archfile;
-      pastix_int_t             vertnbr;
-
-      /* Construction du graph scotch */
-      tree2graph(ctrl->etree, ctrl->costmtx, &graphptr);
-
-      SCOTCH_graphData(&graphptr, NULL, &vertnbr, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-      ASSERT((ctrl->etree->nodenbr == vertnbr), MOD_BLEND);
-
-      MALLOC_INTERN(parttab, ctrl->etree->nodenbr, pastix_int_t);
-
-      /* Init strat */
-      SCOTCH_stratInit(&stratptr);    /* Strategy for sub-architecture computation */
-      SCOTCH_stratGraphMap (&stratptr, "b{job=t,map=t,poli=S,strat=m{type=h,vert=80,low=h{pass=10}f{bal=0.0005,move=80},asc=b{bnd=d{pass=40}f{bal=0.005,move=80},org=f{bal=0.005,move=80}}}|m{type=h,vert=80,low=h{pass=10}f{bal=0.0005,move=80},asc=b{bnd=d{pass=100}f{bal=0.005,move=80},org=f{bal=0.005,move=80}}}}");
-
-      /* Arch init */
-      SCOTCH_archInit(&archptr);
-      archfile = fopen("arch.tgt", "r");
-      SCOTCH_archLoad(&archptr, archfile);
-
-      /* Appel a ta fonction */
-      SCOTCH_graphMapInit(&graphptr, &mappptr, &archptr, parttab);
-
-      SCOTCH_graphMapCompute(&graphptr, &mappptr, &stratptr);
-
-      /* Ecrasement des candidats */
-      SetCandtab(ctrl->candtab, parttab, ctrl->etree->nodenbr);
-
-    }
-#endif
-
-    /* printTree(stderr, ctrl->etree, ROOT(ctrl->etree)); */
+    /* printTree(stderr, ctrl->etree, eTreeRoot(ctrl->etree)); */
 
     /*------------------------------------------------/
     /    Set the cluster candidat according to the    /
@@ -235,12 +198,12 @@ void printTree(FILE *stream, const EliminTree *etree, pastix_int_t rootnum)
 
   fprintf(stream, "Rootnum %ld %d\n", (long)rootnum, sonsnbr);
   for(i=0;i<sonsnbr;i++)
-    fprintf(stream,"       (%4ld)\n",  (long)TSON(etree, rootnum, i));
+    fprintf(stream,"       (%4ld)\n",  (long)eTreeSonI(etree, rootnum, i));
   /*     fprintf(stdout, "\n"); */
 
   for(i=0;i<sonsnbr;i++)
     {
-      son = TSON(etree, rootnum, i);
+      son = eTreeSonI(etree, rootnum, i);
       if (etree->nodetab[son].sonsnbr)
         printTree(stream, etree, son);
     }
@@ -248,8 +211,8 @@ void printTree(FILE *stream, const EliminTree *etree, pastix_int_t rootnum)
 
 void setTreeLevel(Cand *candtab, const EliminTree *etree)
 {
-  candtab[ROOT(etree)].treelevel = -1;
-  setSubtreeLevel(ROOT(etree), candtab, etree);
+  candtab[eTreeRoot(etree)].treelevel = -1;
+  setSubtreeLevel(eTreeRoot(etree), candtab, etree);
 }
 
 void setSubtreeLevel(pastix_int_t rootnum, Cand *candtab, const EliminTree *etree)
@@ -257,8 +220,8 @@ void setSubtreeLevel(pastix_int_t rootnum, Cand *candtab, const EliminTree *etre
   pastix_int_t i;
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
     {
-      candtab[TSON(etree, rootnum, i)].treelevel = candtab[rootnum].treelevel -1;
-      setSubtreeLevel(TSON(etree, rootnum, i), candtab, etree);
+      candtab[eTreeSonI(etree, rootnum, i)].treelevel = candtab[rootnum].treelevel -1;
+      setSubtreeLevel(eTreeSonI(etree, rootnum, i), candtab, etree);
     }
 }
 
@@ -268,8 +231,8 @@ void setSubtreeLevel(pastix_int_t rootnum, Cand *candtab, const EliminTree *etre
 
 void setTreeCostLevel(Cand *candtab, const EliminTree *etree, const CostMatrix *costmtx)
 {
-  candtab[ROOT(etree)].costlevel = -1.0;
-  setSubtreeCostLevel(ROOT(etree), candtab, etree, costmtx);
+  candtab[eTreeRoot(etree)].costlevel = -1.0;
+  setSubtreeCostLevel(eTreeRoot(etree), candtab, etree, costmtx);
 }
 
 void setSubtreeCostLevel(pastix_int_t rootnum, Cand *candtab, const EliminTree *etree, const CostMatrix *costmtx)
@@ -277,8 +240,8 @@ void setSubtreeCostLevel(pastix_int_t rootnum, Cand *candtab, const EliminTree *
   pastix_int_t i;
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
     {
-      candtab[TSON(etree, rootnum, i)].costlevel = candtab[rootnum].costlevel - costmtx->cblktab[rootnum].total;
-      setSubtreeCostLevel(TSON(etree, rootnum, i), candtab, etree, costmtx);
+      candtab[eTreeSonI(etree, rootnum, i)].costlevel = candtab[rootnum].costlevel - costmtx->cblktab[rootnum].total;
+      setSubtreeCostLevel(eTreeSonI(etree, rootnum, i), candtab, etree, costmtx);
     }
 }
 
@@ -315,7 +278,7 @@ void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmt
     {
       ctrl->candtab[rootnum].distrib = D1;
       for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
-        setSubtreeDistribType(symbptr, costmtx, TSON(ctrl->etree, rootnum, i), ctrl, D1);
+        setSubtreeDistribType(symbptr, costmtx, eTreeSonI(ctrl->etree, rootnum, i), ctrl, D1);
     }
   else
     {
@@ -327,7 +290,7 @@ void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmt
          {
           ctrl->candtab[rootnum].distrib = D2;
           for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
-            setSubtreeDistribType(symbptr, costmtx, TSON(ctrl->etree, rootnum, i),  ctrl, D2);
+            setSubtreeDistribType(symbptr, costmtx, eTreeSonI(ctrl->etree, rootnum, i),  ctrl, D2);
         }
       else
         {
@@ -338,7 +301,7 @@ void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmt
 
           ctrl->candtab[rootnum].distrib = D1;
           for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
-            setSubtreeDistribType(symbptr, costmtx, TSON(ctrl->etree, rootnum, i),  ctrl, D1);
+            setSubtreeDistribType(symbptr, costmtx, eTreeSonI(ctrl->etree, rootnum, i),  ctrl, D1);
         }
     }
 }
@@ -711,7 +674,7 @@ void propMappTree(SymbolMatrix      *symbmtx,
 
   MALLOC_INTERN(cost_remain, ctrl->procnbr, double);
 
-  isocost = ctrl->costmtx->cblktab[ROOT(ctrl->etree)].subtree / ctrl->procnbr;
+  isocost = ctrl->costmtx->cblktab[eTreeRoot(ctrl->etree)].subtree / ctrl->procnbr;
 
   /* compute cost to get in the elimination tree for each processor */
   for(pr=0;pr<ctrl->procnbr;pr++)
@@ -719,11 +682,11 @@ void propMappTree(SymbolMatrix      *symbmtx,
 
   if (!ctrl->option->nocrossproc)
     propMappSubtree(symbmtx, extrasymb, extracost, ctrl, dofptr,
-                    ROOT(ctrl->etree), 0, ctrl->procnbr-1,
+                    eTreeRoot(ctrl->etree), 0, ctrl->procnbr-1,
                     NOCLUSTER, cost_remain);
   else
     propMappSubtreeNC(symbmtx, extrasymb, extracost, ctrl, dofptr,
-                      ROOT(ctrl->etree), 0, ctrl->procnbr-1,
+                      eTreeRoot(ctrl->etree), 0, ctrl->procnbr-1,
                       NOCLUSTER, cost_remain);
 }
 
@@ -853,7 +816,7 @@ void propMappSubtree(SymbolMatrix      *symbmtx,
     fprintf(stdout, " ]\n");
     fprintf(stdout, " Sons ");
     for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
-      fprintf(stdout, " [%ld, %g] ", (long)i, ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree);
+      fprintf(stdout, " [%ld, %g] ", (long)i, ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree);
     fprintf(stdout, "\n");
   }
 #endif
@@ -867,7 +830,7 @@ void propMappSubtree(SymbolMatrix      *symbmtx,
     {
 
       /** Cost in the current subtree to be mapped **/
-      cumul_cost = ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree;
+      cumul_cost = ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree;
 
 
       /** Are we to take the last processor used in the previous sons ?
@@ -890,7 +853,7 @@ void propMappSubtree(SymbolMatrix      *symbmtx,
               fcand = lcand ;
               MALLOC_INTERN(sub_cost_remain, lcand-fcand+1, double);
               sub_cost_remain[0] = cost_remain[fcand];
-              propMappSubtree(symbmtx, extrasymb, extracost, ctrl, dofptr, TSON(ctrl->etree, rootnum, i),
+              propMappSubtree(symbmtx, extrasymb, extracost, ctrl, dofptr, eTreeSonI(ctrl->etree, rootnum, i),
                               fcandnum+fcand, fcandnum+lcand, cluster, sub_cost_remain);
               cost_remain[fcand] -= cumul_cost;
               continue;
@@ -936,7 +899,7 @@ void propMappSubtree(SymbolMatrix      *symbmtx,
         }
 
       /* go on to subtree */
-      propMappSubtree(symbmtx, extrasymb, extracost, ctrl, dofptr, TSON(ctrl->etree, rootnum, i),
+      propMappSubtree(symbmtx, extrasymb, extracost, ctrl, dofptr, eTreeSonI(ctrl->etree, rootnum, i),
                       fcandnum+fcand, fcandnum+lcand, cluster, sub_cost_remain);
 
     }
@@ -1067,7 +1030,7 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
     fprintf(stdout, " ]\n");
     fprintf(stdout, " Sons ");
     for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
-      fprintf(stdout, " [%ld, %g] ", i, ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree);
+      fprintf(stdout, " [%ld, %g] ", i, ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree);
     fprintf(stdout, "\n");
   }
 #endif
@@ -1089,10 +1052,10 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
     {
 
       /** Cost in the current subtree to be mapped **/
-      cumul_cost = -ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree;
+      cumul_cost = -ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree;
 
       /* Cost of the root node in the subtree */
-      soncost    = -ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].total;
+      soncost    = -ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].total;
 
       queueAdd2(queue_tree, i, cumul_cost, (pastix_int_t)soncost);
       bspt_cost += cumul_cost;
@@ -1105,13 +1068,13 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
       i = queueGet(queue_tree);
 
       /** Cost in the current subtree to be mapped **/
-      cumul_cost = ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree;
+      cumul_cost = ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree;
 
       if (cumul_cost < cost_remain[fcand]){
         /* No more split subtree */
         cost_remain[fcand] -= cumul_cost;
         propMappSubtreeOn1P(symbmtx, extrasymb, extracost, ctrl, dofptr,
-                            TSON(ctrl->etree, rootnum, i), fcandnum+fcand, fcandnum+fcand, cluster);
+                            eTreeSonI(ctrl->etree, rootnum, i), fcandnum+fcand, fcandnum+fcand, cluster);
         break;
       }
 
@@ -1156,7 +1119,7 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
         }
 
       /* go on to subtree */
-      propMappSubtreeNC(symbmtx, extrasymb, extracost, ctrl, dofptr, TSON(ctrl->etree, rootnum, i),
+      propMappSubtreeNC(symbmtx, extrasymb, extracost, ctrl, dofptr, eTreeSonI(ctrl->etree, rootnum, i),
                         fcandnum+fcand, fcandnum+lcand, cluster, sub_cost_remain);
 
       if (lcand < candnbr - 1)
@@ -1176,10 +1139,10 @@ void propMappSubtreeNC(SymbolMatrix      *symbmtx,
       fcand = queueGet(queue_proc);
 
       /** Cost in the current subtree to be mapped **/
-      cumul_cost = ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree;
+      cumul_cost = ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree;
 
       propMappSubtreeOn1P(symbmtx, extrasymb, extracost, ctrl, dofptr,
-                          TSON(ctrl->etree, rootnum, i), fcandnum+fcand, fcandnum+fcand, cluster);
+                          eTreeSonI(ctrl->etree, rootnum, i), fcandnum+fcand, fcandnum+fcand, cluster);
 
       cost_remain[fcand] -= cumul_cost;
       queueAdd(queue_proc, fcand, -cost_remain[fcand]);
@@ -1216,7 +1179,7 @@ void propMappSubtreeOn1P(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb, Ex
   /* Fill queue subtree order by cost descending */
   for(i=0;i<sonsnbr;i++)
     propMappSubtreeOn1P(symbmtx, extrasymb, extracost, ctrl, dofptr,
-                        TSON(ctrl->etree, rootnum, i), fcandnum, lcandnum, cluster);
+                        eTreeSonI(ctrl->etree, rootnum, i), fcandnum, lcandnum, cluster);
 
   return;
 }
@@ -1229,7 +1192,7 @@ void subtreeSetCand(pastix_int_t procnum, pastix_int_t rootnum, BlendCtrl *ctrl,
     ctrl->candtab[rootnum].lcandnum = procnum;
     ctrl->candtab[rootnum].cluster  = NOCLUSTER;
     for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
-        subtreeSetCand(procnum, TSON(ctrl->etree, rootnum, i), ctrl, rcost);
+        subtreeSetCand(procnum, eTreeSonI(ctrl->etree, rootnum, i), ctrl, rcost);
 }
 
 double maxProcCost(double *proc_cost, pastix_int_t procnbr)
@@ -1248,13 +1211,13 @@ void propMappTreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof *dofp
   double isocost;
   pastix_int_t p;
   MALLOC_INTERN(cost_remain, ctrl->clustnbr, double);
-  isocost = ctrl->costmtx->cblktab[ROOT(ctrl->etree)].subtree / ctrl->clustnbr;
+  isocost = ctrl->costmtx->cblktab[eTreeRoot(ctrl->etree)].subtree / ctrl->clustnbr;
 
   /* compute cost to get in the elimination tree for each processor */
   for(p=0;p<ctrl->clustnbr;p++)
     cost_remain[p] = isocost;
 
-  propMappSubtreeNoSplit(symbmtx, ctrl, dofptr, ROOT(ctrl->etree), 0, ctrl->clustnbr-1, cost_remain);
+  propMappSubtreeNoSplit(symbmtx, ctrl, dofptr, eTreeRoot(ctrl->etree), 0, ctrl->clustnbr-1, cost_remain);
 
 }
 
@@ -1312,7 +1275,7 @@ void propMappSubtreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof * 
   isocost = ctrl->costmtx->cblktab[rootnum].total;
   while(ctrl->etree->nodetab[rootnum].sonsnbr == 1)
     {
-      rootnum = TSON(ctrl->etree, rootnum, 0);
+      rootnum = eTreeSonI(ctrl->etree, rootnum, 0);
       isocost += ctrl->costmtx->cblktab[rootnum].total;
       if(ctrl->option->allcand)
         {
@@ -1343,7 +1306,6 @@ void propMappSubtreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof * 
 
   /* Cost remaining in the descendance of the treenode after split*/
   aspt_cost = ctrl->costmtx->cblktab[rootnum].subtree - ctrl->costmtx->cblktab[rootnum].total;
-
 
   /* if the proc cand has reached its cost to get
      forget it (only the first and last proc in this group
@@ -1379,7 +1341,7 @@ void propMappSubtreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof * 
     fprintf(stdout, " ]\n");
     fprintf(stdout, " Sons ");
     for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
-      fprintf(stdout, " [%ld, %g] ", i, ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree);
+      fprintf(stdout, " [%ld, %g] ", i, ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree);
     fprintf(stdout, "\n");
     fprintf(stdout, "Espilon %g \n", epsilon);
   }*/
@@ -1389,7 +1351,7 @@ void propMappSubtreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof * 
   for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
     {
       /** Cost in the current subtree to be mapped **/
-      cumul_cost = ctrl->costmtx->cblktab[TSON(ctrl->etree, rootnum, i)].subtree;
+      cumul_cost = ctrl->costmtx->cblktab[eTreeSonI(ctrl->etree, rootnum, i)].subtree;
 
 
       /** Are we to take the last processor used in the previous sons ?
@@ -1448,7 +1410,7 @@ void propMappSubtreeNoSplit(SymbolMatrix *symbmtx, BlendCtrl *ctrl, const Dof * 
 
       /*fprintf(stdout, "Cand proc [%ld %ld] for son %ld\n", fcandnum+fcand, fcandnum+lcand, i);*/
       /* go on to subtree */
-      propMappSubtreeNoSplit(symbmtx, ctrl, dofptr, TSON(ctrl->etree, rootnum, i),
+      propMappSubtreeNoSplit(symbmtx, ctrl, dofptr, eTreeSonI(ctrl->etree, rootnum, i),
                              fcandnum+fcand, fcandnum+lcand, sub_cost_remain);
 
 
@@ -1543,7 +1505,7 @@ pastix_int_t setSubtreeBlokNbr(pastix_int_t rootnum, const EliminTree *etree, Sy
   extrasymb->subtreeblnbr[rootnum] =  countBlok(rootnum, symbptr, blcolmin);
   /*fprintf(stdout, "Rootnum %ld bloknbr %ld \n", rootnum, extrasymb->blnbtab[rootnum]);*/
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-     extrasymb->subtreeblnbr[rootnum] += setSubtreeBlokNbr(TSON(etree, rootnum, i), etree, symbptr, extrasymb, blcolmin);
+     extrasymb->subtreeblnbr[rootnum] += setSubtreeBlokNbr(eTreeSonI(etree, rootnum, i), etree, symbptr, extrasymb, blcolmin);
   return extrasymb->subtreeblnbr[rootnum];
 }
 

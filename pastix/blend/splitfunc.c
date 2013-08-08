@@ -17,7 +17,6 @@
 #include "simu.h"
 #include "costfunc.h"
 /* #include "assembly.h" */
-/* #include "eliminfunc.h" */
 /* #include "splitpart.h" */
 /* #include "assert.h" */
 #include "splitfunc.h"

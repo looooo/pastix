@@ -21,40 +21,41 @@ double flops_dpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Do
 
 void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
-  double flops = 0.;
-  printf("SymbolCost: number of operations Cholesky %g \n",
-          recursive_sum(0, symbmtx->cblknbr-1, cholesky, symbmtx, dofptr));
-  printf("SymbolCost: number of operations Crout2t  %g \n",
-          recursive_sum(0, symbmtx->cblknbr-1, crout_2t, symbmtx, dofptr));
-  printf("SymbolCost: number of operations Crout3t  %g \n",
-          recursive_sum(0, symbmtx->cblknbr-1, crout_3t, symbmtx, dofptr));
-  printf("SymbolCost: number of operations CroutHyb %g \n",
-          recursive_sum(0, symbmtx->cblknbr-1, crout_hyb, symbmtx, dofptr));
-  printf("SymbolCost: number of operations CroutHyb blok %g \n",
-          recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
-  printf("SymbolCost: number of non-zero   %g \n",
-          recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
+    double flops = 0.;
+    printf("SymbolCost: number of operations Cholesky %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, cholesky, symbmtx, dofptr));
+    printf("SymbolCost: number of operations Crout2t  %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_2t, symbmtx, dofptr));
+    printf("SymbolCost: number of operations Crout3t  %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_3t, symbmtx, dofptr));
+    printf("SymbolCost: number of operations CroutHyb %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_hyb, symbmtx, dofptr));
+    printf("SymbolCost: number of operations CroutHyb blok %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
+    printf("SymbolCost: number of non-zero   %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
 
-  set_iparm(iparm, IPARM_NNZEROS,   (pastix_int_t)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
+    set_iparm(iparm, IPARM_NNZEROS,   (pastix_int_t)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
 
-  if ( iparm[IPARM_FACTORIZATION] == API_FACT_LU ) {
-    if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
-         (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
-      flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zgetrf, symbmtx, dofptr);
+    if ( iparm[IPARM_FACTORIZATION] == API_FACT_LU ) {
+        if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
+             (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zgetrf, symbmtx, dofptr);
+        }
+        else {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dgetrf, symbmtx, dofptr);
+        }
+    } else {
+        if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
+             (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zpotrf, symbmtx, dofptr);
+        }
+        else {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dpotrf, symbmtx, dofptr);
+        }
     }
-    else {
-      flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dgetrf, symbmtx, dofptr);
-    }
-  } else {
-    if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
-         (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
-      flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zpotrf, symbmtx, dofptr);
-    }
-    else {
-      flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dpotrf, symbmtx, dofptr);
-    }
-  }
-  set_dparm(dparm, DPARM_FACT_FLOPS, flops);
+    printf("SymbolCost: number of operations with new formula %g \n", flops );
+    set_dparm(dparm, DPARM_FACT_FLOPS, flops);
 }
 
 
@@ -71,69 +72,85 @@ double recursive_sum(pastix_int_t a, pastix_int_t b,
 }
 
 double crout_2t(pastix_int_t cblknum, const SymbolMatrix *symbmtx, const Dof * dofptr)
-{ pastix_int_t i;
-  double gk = 0;
-  double lk = 0;
+{
+    pastix_int_t i;
+    double gk = 0;
+    double lk = 0;
 
-  /* lk is the dimension of the diagonal blok */
-  lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /* lk is the dimension of the diagonal blok */
+    lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    lk = lk * dofptr->noddval;
 
-  /* gk is the height of off-diag bloks */
-  for(i=symbmtx->cblktab[cblknum].bloknum+1; i<symbmtx->cblktab[cblknum+1].bloknum; i++)
-    gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
+    /* gk is the height of off-diag bloks */
+    for(i=symbmtx->cblktab[cblknum].bloknum+1; i<symbmtx->cblktab[cblknum+1].bloknum; i++)
+        gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
 
-  return( (2*lk*(dofptr->noddval)*lk*(dofptr->noddval)*lk*(dofptr->noddval) + (6*gk*(dofptr->noddval)+3)*lk*(dofptr->noddval)*lk*(dofptr->noddval) + (6*gk*(dofptr->noddval)*gk*(dofptr->noddval)+6*gk*(dofptr->noddval)-5)*lk*(dofptr->noddval))/6);
+    gk = gk * dofptr->noddval;
+
+    return( (2*lk*lk*lk + (6*gk+3)*lk*lk + (6*gk*gk+6*gk-5)*lk)/6);
 
 }
 
 
 double crout_3t(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ pastix_int_t i;
-  double gk = 0;
-  double lk = 0;
+{
+    pastix_int_t i;
+    double gk = 0;
+    double lk = 0;
 
-  /* lk is the dimension of the diagonal blok */
-  lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /* lk is the dimension of the diagonal blok */
+    lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    lk = lk * dofptr->noddval;
 
-  /* gk is the height of off-diag bloks */
-  for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
-    gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
+    /* gk is the height of off-diag bloks */
+    for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
+        gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
 
-  return( (lk*(dofptr->noddval)*lk*(dofptr->noddval)*lk*(dofptr->noddval) + (3*gk*(dofptr->noddval)+1)*lk*(dofptr->noddval)*lk*(dofptr->noddval) + (3*gk*(dofptr->noddval)*gk*(dofptr->noddval)-2+2*gk*(dofptr->noddval))*lk*(dofptr->noddval))/2 );
+    gk = gk * dofptr->noddval;
+
+    return( (lk*lk*lk + (3*gk+1)*lk*lk + (3*gk*gk-2+2*gk)*lk)/2 );
 
 }
 
 
 double crout_hyb(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ pastix_int_t i;
-  double gk = 0;
-  double lk = 0;
+{
+    pastix_int_t i;
+    double gk = 0;
+    double lk = 0;
 
-  /* lk is the dimension of the diagonal blok */
-  lk =(double)( symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /* lk is the dimension of the diagonal blok */
+    lk =(double)( symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    lk = lk * dofptr->noddval;
 
-  /* gk is the height of off-diag bloks */
-  for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
-    gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
+    /* gk is the height of off-diag bloks */
+    for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
+        gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
 
-  return( (lk*(dofptr->noddval)*lk*(dofptr->noddval)*lk*(dofptr->noddval) + 3*(gk*(dofptr->noddval)+1)*lk*(dofptr->noddval)*lk*(dofptr->noddval) + (3*gk*(dofptr->noddval)*gk*(dofptr->noddval) -4 + 6*gk*(dofptr->noddval))*lk*(dofptr->noddval))/3 );
+    gk = gk * dofptr->noddval;
 
+    return( (lk*lk*lk + 3*(gk+1)*lk*lk + (3*gk*gk -4 + 6*gk)*lk)/3 );
 }
 
 double cholesky(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{ pastix_int_t i;
-  double gk = 0;
-  double lk = 0;
-#ifdef DOF_CONSTANT
-  /* lk is the dimension of the diagonal blok */
-  lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+{
+    pastix_int_t i;
+    double gk = 0;
+    double lk = 0;
 
-  /* gk is the height of off-diag bloks */
-  for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
-    gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
+    /* lk is the dimension of the diagonal blok */
+    lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    lk = lk * dofptr->noddval;
 
-  return( (2*lk*(dofptr->noddval)*lk*(dofptr->noddval)*lk*(dofptr->noddval) + (6*gk*(dofptr->noddval)-3)*lk*(dofptr->noddval)*lk*(dofptr->noddval) +(6*gk*(dofptr->noddval)*gk*(dofptr->noddval)+1-6*gk*(dofptr->noddval))*lk*(dofptr->noddval))/6 );
-#endif
+    /* gk is the height of off-diag bloks */
+    for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
+        gk += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
+
+    gk = gk * dofptr->noddval;
+
+    return( (  2*lk*lk*lk +
+               (6*gk-3)*lk*lk +
+               (6*gk   *gk + 1-6*gk)*lk) /6 );
 }
 
 /*******************************************/
@@ -147,257 +164,275 @@ double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofpt
     double gk = 0;
     double lk = 0;
 
-#ifdef DOF_CONSTANT
     /* lk is the dimension of the diagonal blok */
     lk = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    lk = lk * noddval;
 
     /* gk is the height of off-diag bloks */
     for(i=symbmtx->cblktab[cblknum].bloknum+1;i<symbmtx->cblktab[cblknum+1].bloknum;i++)
         gk +=(double)( symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum +1);
 
-    return( lk*noddval*(lk*noddval+1)/2 +
-            gk*noddval*lk*noddval - lk*noddval);
-#endif
+    gk = gk * noddval;
+
+    return( lk*(lk+1)/2 + gk*lk - lk);
 }
 
 
 double crout_blok(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
-    double l, h, g;
+    double M, N, K;
     pastix_int_t k;
     double nbops = 0;
-    h=0;
-    /** we need the height of cblk non empty lines  and the broadness
-      of the cbl to compute the local compute cost **/
-    l = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
-    g = 0;
-    for(k=symbmtx->cblktab[cblknum].bloknum;k<symbmtx->cblktab[cblknum+1].bloknum;k++)
-      g += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
 
-    /** retrieve diag height so let g be the odb non empty lines height **/
-    g -= l;
+    /*
+     * Size of the factorization kernel (square)
+     */
+    N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
 
-    /** compute the local compute cost **/
-#ifdef DEBUG_BLEND
-    ASSERT(l>0,MOD_BLEND);
-#endif
+    /*
+     * Height of the TRSM to which apply the TRSM
+     */
+    M = 0;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    {
+        M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+    }
+
+    assert( N > 0 );
 
 #ifdef DOF_CONSTANT
-    nbops = (double)(OPS_PPF(l*(dofptr->noddval)));
-    if(g>0)
-      nbops += (double)(OPS_TRSM(l*(dofptr->noddval),g*(dofptr->noddval))) + l*(double)(OPS_SCAL(g*(dofptr->noddval)));
+    N *= (double)dofptr->noddval;
+    M *= (double)dofptr->noddval;
+#endif
 
-    /** compute for each odb its contribution compute cost and add cost **/
-    for(k=symbmtx->cblktab[cblknum].bloknum+1;k<symbmtx->cblktab[cblknum+1].bloknum;k++)
-      {
-        h = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
-        /* g is the odb lines number above this odb (odb lines include)*/
-        nbops += /*l*(double)(OPS_SCAL(g)) +*/(double)(OPS_GEMM(l*(dofptr->noddval),g*(dofptr->noddval),h*(dofptr->noddval))) + (double)(OPS_GEAM(g*(dofptr->noddval),h*(dofptr->noddval)));
-#ifdef DEBUG_BLEND
-        ASSERT(nbops>=0,MOD_BLEND);
+    nbops = FLOPS_DSYTRF(N);
+    if( M > 0 )
+        nbops += FLOPS_DTRSM( PlasmaRight, M, N ) + N * (double)(OPS_SCAL(M));
+
+    /*
+     * Compute the cost of each GEMM
+     */
+    K = N;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    {
+        N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+
+#ifdef DOF_CONSTANT
+        N *= (double)dofptr->noddval;
 #endif
-        g -= h;
-      }
-#endif
+
+        nbops += /*K * (double)(OPS_SCAL(M)) + */
+            FLOPS_DGEMM( M, N, K ) +
+            (double)(OPS_GEAM( M, N ));
+
+        M -= N;
+    }
+
     return nbops;
 }
 
 double flops_zgetrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
-  double M, N, K;
-  pastix_int_t k;
-  double nbops = 0.;
+    double M, N, K;
+    pastix_int_t k;
+    double nbops = 0.;
 
-  /*
-   * Size of the factorization kernel (square)
-   */
-  N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /*
+     * Size of the factorization kernel (square)
+     */
+    N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
 
-  /*
-   * Height of the TRSM to which apply the TRSM
-   */
-  M = 0;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Height of the TRSM to which apply the TRSM
+     */
+    M = 0;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
     }
 
 #ifdef DOF_CONSTANT
-  N *= (double)dofptr->noddval;
-  M *= (double)dofptr->noddval;
+    N *= (double)dofptr->noddval;
+    M *= (double)dofptr->noddval;
 #endif
 
-  nbops  = FLOPS_ZGETRF( N, N );
-  nbops += 2. * FLOPS_ZTRSM( PlasmaRight, M, N );
+    nbops  = FLOPS_ZGETRF( N, N );
+    if( M > 0 )
+        nbops += 2. * FLOPS_ZTRSM( PlasmaRight, M, N );
 
-  /*
-   * Compute the cost of each GEMM
-   */
-  K = N;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Compute the cost of each GEMM
+     */
+    K = N;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
 
 #ifdef DOF_CONSTANT
-      N *= (double)dofptr->noddval;
+        N *= (double)dofptr->noddval;
 #endif
 
-      nbops += 2. * FLOPS_ZGEMM( M, N, K );
+        nbops += 2. * FLOPS_ZGEMM( M, N, K );
 
-      M -= N;
+        M -= N;
     }
 
-  return nbops;
+    return nbops;
 }
 
 double flops_dgetrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
-  double M, N, K;
-  pastix_int_t k;
-  double nbops = 0.;
+    double M, N, K;
+    pastix_int_t k;
+    double nbops = 0.;
 
-  /*
-   * Size of the factorization kernel (square)
-   */
-  N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /*
+     * Size of the factorization kernel (square)
+     */
+    N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
 
-  /*
-   * Height of the TRSM to which apply the TRSM
-   */
-  M = 0;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Height of the TRSM to which apply the TRSM
+     */
+    M = 0;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
     }
 
 #ifdef DOF_CONSTANT
-  N *= (double)dofptr->noddval;
-  M *= (double)dofptr->noddval;
+    N *= (double)dofptr->noddval;
+    M *= (double)dofptr->noddval;
 #endif
 
-  nbops  = FLOPS_DGETRF( N, N );
-  nbops += 2. * FLOPS_DTRSM( PlasmaRight, M, N );
+    nbops  = FLOPS_DGETRF( N, N );
+    if( M > 0 )
+        nbops += 2. * FLOPS_DTRSM( PlasmaRight, M, N );
 
-  /*
-   * Compute the cost of each GEMM
-   */
-  K = N;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Compute the cost of each GEMM
+     */
+    K = N;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
 
 #ifdef DOF_CONSTANT
-      N *= (double)dofptr->noddval;
+        N *= (double)dofptr->noddval;
 #endif
 
-      nbops += 2. * FLOPS_DGEMM( M, N, K );
+        nbops += 2. * FLOPS_DGEMM( M, N, K );
 
-      M -= N;
+        M -= N;
     }
 
-  return nbops;
+    return nbops;
 }
 
 double flops_zpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
-  double M, N, K;
-  pastix_int_t k;
-  double nbops = 0.;
+    double M, N, K;
+    pastix_int_t k;
+    double nbops = 0.;
 
-  /*
-   * Size of the factorization kernel (square)
-   */
-  N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /*
+     * Size of the factorization kernel (square)
+     */
+    N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
 
-  /*
-   * Height of the TRSM to which apply the TRSM
-   */
-  M = 0;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Height of the TRSM to which apply the TRSM
+     */
+    M = 0;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
     }
 
 #ifdef DOF_CONSTANT
-  N *= (double)dofptr->noddval;
-  M *= (double)dofptr->noddval;
+    N *= (double)dofptr->noddval;
+    M *= (double)dofptr->noddval;
 #endif
 
-  nbops  = FLOPS_ZPOTRF( N );
-  nbops += FLOPS_ZTRSM( PlasmaRight, M, N );
+    nbops  = FLOPS_ZPOTRF( N );
+    if( M > 0 )
+        nbops += FLOPS_ZTRSM( PlasmaRight, M, N );
 
-  /*
-   * Compute the cost of each GEMM
-   */
-  K = N;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Compute the cost of each GEMM
+     */
+    K = N;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
 
 #ifdef DOF_CONSTANT
-      N *= (double)dofptr->noddval;
+        N *= (double)dofptr->noddval;
 #endif
 
-      nbops += FLOPS_ZGEMM( M, N, K );
+        nbops += FLOPS_ZGEMM( M, N, K );
 
-      M -= N;
+        M -= N;
     }
 
-  return nbops;
+    return nbops;
 }
 
 double flops_dpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
-  double M, N, K;
-  pastix_int_t k;
-  double nbops = 0.;
+    double M, N, K;
+    pastix_int_t k;
+    double nbops = 0.;
 
-  /*
-   * Size of the factorization kernel (square)
-   */
-  N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    /*
+     * Size of the factorization kernel (square)
+     */
+    N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
 
-  /*
-   * Height of the TRSM to which apply the TRSM
-   */
-  M = 0;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Height of the TRSM to which apply the TRSM
+     */
+    M = 0;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
     }
 
 #ifdef DOF_CONSTANT
-  N *= (double)dofptr->noddval;
-  M *= (double)dofptr->noddval;
+    N *= (double)dofptr->noddval;
+    M *= (double)dofptr->noddval;
 #endif
 
-  nbops  = FLOPS_DPOTRF( N );
-  nbops += FLOPS_DTRSM( PlasmaRight, M, N );
+    nbops  = FLOPS_DPOTRF( N );
+    if( M > 0 )
+        nbops += FLOPS_DTRSM( PlasmaRight, M, N );
 
-  /*
-   * Compute the cost of each GEMM
-   */
-  K = N;
-  for(k = symbmtx->cblktab[cblknum].bloknum+1;
-      k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    /*
+     * Compute the cost of each GEMM
+     */
+    K = N;
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-      N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
 
 #ifdef DOF_CONSTANT
-      N *= (double)dofptr->noddval;
+        N *= (double)dofptr->noddval;
 #endif
 
-      nbops += FLOPS_DGEMM( M, N, K );
+        nbops += FLOPS_DGEMM( M, N, K );
 
-      M -= N;
+        M -= N;
     }
 
-  return nbops;
+    return nbops;
 }

@@ -13,7 +13,7 @@ pastix_int_t blendParamInit(BlendParam *param)
   param->ps_filename      = "matrix.ps";
   param->hpf              = 0;
   param->tracegen         = 0;
-  param->ps               = 0;
+  param->ps               = 1;
   param->assembly         = 0;
   param->solvmtx_filename = "solvmtx.";
   param->sequentiel       = 0;

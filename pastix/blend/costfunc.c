@@ -60,7 +60,7 @@ double subtreeUpdateCost(pastix_int_t rootnum, CostMatrix *costmtx, const Elimin
   pastix_int_t i;
   costmtx->cblktab[rootnum].subtree = costmtx->cblktab[rootnum].total;
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-    costmtx->cblktab[rootnum].subtree += subtreeUpdateCost(TSON(etree, rootnum, i), costmtx, etree);
+    costmtx->cblktab[rootnum].subtree += subtreeUpdateCost(eTreeSonI(etree, rootnum, i), costmtx, etree);
   return costmtx->cblktab[rootnum].subtree;
 }
 
@@ -98,14 +98,14 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
       (candtab[rootnum].lccandnum >= clustnum))
     {
       for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-	costmtx->cblktab[rootnum].subtree += subtreeUpdateCostLocal(TSON(etree, rootnum, i), ctrl, 
+	costmtx->cblktab[rootnum].subtree += subtreeUpdateCostLocal(eTreeSonI(etree, rootnum, i), ctrl, 
 								    symbmtx, simuctrl, dofptr, clustnum);
     }
 #ifdef DEBUG_BLEND
   else
     {
       for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-	subtreeSetNullCost(TSON(etree, rootnum, i), ctrl, 
+	subtreeSetNullCost(eTreeSonI(etree, rootnum, i), ctrl, 
 			   symbmtx, simuctrl, clustnum);
     }
 #endif
@@ -122,7 +122,7 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
       queueInit(queue_tree, sonsnbr);
       for(i=0;i<sonsnbr;i++)
       {
-          son = TSON(etree, rootnum, i);
+          son = eTreeSonI(etree, rootnum, i);
               
           /** Cost in the current subtree to be mapped **/
           cumul_cost = -ctrl->costmtx->cblktab[son].subtree;
@@ -135,7 +135,7 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
 
       for(i=0;i<sonsnbr;i++)
       {
-          TSON(etree, rootnum, i) = queueGet(queue_tree);
+          eTreeSonI(etree, rootnum, i) = queueGet(queue_tree);
       }
       queueExit(queue_tree);
       memFree(queue_tree);
@@ -143,8 +143,8 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
 
       for(i=1;i<sonsnbr;i++)
       {
-          assert( ctrl->costmtx->cblktab[TSON(etree, rootnum, i)].subtree 
-                  <= ctrl->costmtx->cblktab[TSON(etree, rootnum, i-1)].subtree );
+          assert( ctrl->costmtx->cblktab[eTreeSonI(etree, rootnum, i)].subtree 
+                  <= ctrl->costmtx->cblktab[eTreeSonI(etree, rootnum, i-1)].subtree );
       }
   }
 
@@ -166,7 +166,7 @@ void subtreeSetNullCost(pastix_int_t rootnum, const BlendCtrl * ctrl,
   costmtx->cblktab[rootnum].total   = 0.0;
   costmtx->cblktab[rootnum].subtree = 0.0;
   for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-    subtreeSetNullCost(TSON(etree, rootnum, i), ctrl, symbmtx, simuctrl, clustnum);
+    subtreeSetNullCost(eTreeSonI(etree, rootnum, i), ctrl, symbmtx, simuctrl, clustnum);
   
   return;
 }

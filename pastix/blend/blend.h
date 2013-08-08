@@ -44,8 +44,6 @@
  */
 void          solverBlend(SolverMatrix * solvmtx,
                           SymbolMatrix * symbmtx,
-                          Assembly1D   * assemb1D,
-                          Assembly2D   * assemb2D,
                           int            clustnbr,
                           int            thrdlocnbr,
                           int            cudanbr,

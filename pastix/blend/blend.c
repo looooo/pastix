@@ -35,15 +35,12 @@
 #include "cand.h"
 #include "param_blend.h"
 #include "blendctrl.h"
-#include "eliminfunc.h"
 #include "splitpart.h"
 #include "write_ps.h"
 #include "simu.h"
 #include "costfunc.h"
 #include "splitpartlocal.h"
 #include "distribPart.h"
-#include "assembly.h"
-#include "assemblyGener.h"
 #include "solverMatrixGen.h"
 #include "solver_check.h"
 #include "symbol_cost.h"
@@ -73,8 +70,6 @@
  *
  * Parameters:
  *   solvmtx    - Solver matrix structure.
- *   assemb1D   -
- *   assemb2D   -
  *   clustnbr   - Number of MPI processes.
  *   thrdlocnbr - Number of threads.
  *   cudanbr    - Number of cuda devices.
@@ -84,8 +79,6 @@
  */
 void solverBlend(SolverMatrix *solvmtx,
                  SymbolMatrix *symbmtx,
-                 Assembly1D   *assemb1D,
-                 Assembly2D   *assemb2D,
                  int           clustnbr,
                  int           thrdlocnbr,
                  int           cudanbr,
@@ -95,258 +88,170 @@ void solverBlend(SolverMatrix *solvmtx,
 {
     BlendCtrl *ctrl;
     SimuCtrl  *simuctrl;
-    FILE      *ps_file       = NULL;
     double     timer_all     = 0.;
     double     timer_current = 0.;
     pastix_int_t       *bcofind       = NULL;
-    pastix_int_t        page          = 0;
 
     /* initialisation of the control structure */
     MALLOC_INTERN(ctrl, 1, BlendCtrl);
     blendCtrlInit(ctrl, clustnbr, thrdlocnbr, cudanbr, clustnum, option);
 
     if(clustnum >= clustnbr)
-      {
+    {
         errorPrint("solverBlend parameter clustnum(%ld) is greater"
                    " than clustnbr(%ld).",
                    (long) clustnum, (long) clustnbr);
         EXIT(MOD_BLEND,INTERNAL_ERR);
-      }
-
-    clockInit(timer_all);
-    clockInit(timer_current);
-    if(ctrl->option->timer) {
-        clockStart(timer_all);
     }
 
-    if(ctrl->option->ps)
-        {
-            ps_file = ps_open(ctrl->option->ps_filename);
-            page = 1;
-        }
+    clockStart(timer_all);
 
-    if ((ctrl->option->leader == clustnum) &&
-        (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
-      {
-        fprintf(stdout, OUT_CLUSTNBR, (long)clustnbr);
-        fprintf(stdout, OUT_PROCNBR,  (long)ctrl->proclocnbr);
-        fprintf(stdout, OUT_THRDNBR,  (long)ctrl->thrdlocnbr);
-      }
+    pastix_print( clustnum, 0,
+                  OUT_CLUSTNBR "" OUT_PROCNBR "" OUT_THRDNBR,
+                  (long)clustnbr, (long)ctrl->proclocnbr, (long)ctrl->thrdlocnbr);
 
-    /* Blend */
-    symbolRealloc(symbmtx);
-    symbolBase(symbmtx,0);
-    symbolCheck(symbmtx);
+    /* Get the symbmtx ready */
+    {
+        symbolRealloc(symbmtx);
+        symbolBase(symbmtx, 0);
+        symbolCheck(symbmtx);
 
-    /* Rustine */
+        /* Rustine */
 #define RUSTINE
 #ifdef RUSTINE
-    printf("Debut Rustine\n");
-    symbolRustine(symbmtx, symbmtx);
-    printf("Fin Rustine\n");
+        symbolRustine(symbmtx, symbmtx);
 #endif
+    }
 
-
-#ifdef DEBUG_BLEND
     /** Verify the coherence of the initial symbol matrix **/
     if(ctrl->option->debug)
-      {
-        if ((ctrl->option->leader == clustnum) &&
-            (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
-          fprintf(stdout, OUT_BLEND_CHKSMBMTX);
+    {
+        pastix_print( clustnum, 0, OUT_BLEND_CHKSMBMTX );
         symbolCheck(symbmtx);
-      }
-#endif
+    }
 
     /** OOC works only with 1D structures **/
     if(ctrl->option->ooc)
-      {
+    {
         if ((ctrl->option->leader == clustnum) &&
             (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
-          fprintf(stdout, "Force 1D distribution because of OOC \n");
+            fprintf(stdout, "Force 1D distribution because of OOC \n");
         ctrl->option->ratiolimit = INTVALMAX;
         ctrl->option->malt_limit = -1;
-      }
+    }
 
     if(ctrl->option->count_ops && ctrl->option->leader == clustnum)
-      symbCost(option->iparm, option->dparm, symbmtx, dofptr);
+        symbCost(option->iparm, option->dparm, symbmtx, dofptr);
 
-    if(ctrl->option->ps && symbmtx->nodenbr <= 961)
-      {
-            if(ctrl->option->leader == clustnum &&
-               ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-                fprintf(stdout, "Genering a symbolic matrix draw in Post-Script format \n");
-            ps_write_matrix(symbmtx, ps_file, &page);
-      }
+    /* build the elimination graph from the symbolic partition */
+    {
+        pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
+        clockStart(timer_current);
 
+        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
+        eGraphInit(ctrl->egraph);
+        eGraphBuild(ctrl->egraph, symbmtx);
 
-    if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
+    }
 
-    if(ctrl->option->leader == clustnum &&
-       ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, OUT_BLEND_ELIMGRAPH);
-    MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
+    /* Build the elimination tree from the symbolic partition */
+    {
+        pastix_print( clustnum, 0, OUT_BLEND_ELIMTREE );
+        clockStart(timer_current);
 
-    egraphInit(ctrl->egraph);
+        MALLOC_INTERN(ctrl->etree, 1, EliminTree);
+        eTreeInit(ctrl->etree);
+        eTreeBuild(ctrl->etree, symbmtx);
 
-    /** build the elimination graph from the symbolic partition **/
-    eliminGraphBuild(symbmtx, ctrl->egraph);
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "--Tree build at time: %g --\n", clockVal(timer_current));
+    }
 
-    if(ctrl->option->timer)
-        {
-            clockStop(timer_current);
-            printf("--Graph build at time: %g --\n", clockVal(timer_current));
-        }
+    /* Build the cost matrix from the symbolic partition */
+    {
+        pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX );
+        clockStart(timer_current);
 
+        MALLOC_INTERN(ctrl->costmtx, 1, CostMatrix);
+        costInit(ctrl->costmtx);
+        costMatrixBuild(ctrl->costmtx, symbmtx, dofptr);
 
-    MALLOC_INTERN(ctrl->costmtx, 1, CostMatrix);
-    costInit(ctrl->costmtx);
-    if(ctrl->option->leader == clustnum &&
-       ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, OUT_BLEND_COSTMATRIX);
-    if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
+        /* Compute costs for all nodes */
+        subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
+        if(ctrl->option->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+            fprintf(stdout, "Total cost of the elimination tree %g \n",
+                    ctrl->costmtx->cblktab[eTreeRoot(ctrl->etree)].subtree);
 
-    /** Build the cost matrix from the symbolic partition **/
-    costMatrixBuild(ctrl->costmtx, symbmtx, dofptr);
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "--Cost Matrix build at time: %g --\n", clockVal(timer_current));
+    }
 
-    if(ctrl->option->timer)
-        {
-            clockStop(timer_current);
-            printf("--Cost Matrix build at time: %g --\n", clockVal(timer_current));
-        }
+    /*
+     * Partitioning of the initial symbolic factorization and processing of
+     * candidate processors group for each colum bloc
+     */
+    {
+        pastix_print( clustnum, 0, "Spliting initial partition \n" );
+        clockStart(timer_current);
 
-    MALLOC_INTERN(ctrl->etree, 1, EliminTree);
-    treeInit(ctrl->etree);
-    if(ctrl->option->leader == clustnum &&
-       ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, OUT_BLEND_ELIMTREE);
-    if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
+        splitPart(symbmtx, ctrl, dofptr);
 
-    /** Build the elimination tree from the symbolic partition **/
-    eliminTreeBuild(symbmtx, ctrl);
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "--Split build at time: %g --\n", clockVal(timer_current));
+    }
 
-    if(ctrl->option->timer)
-        {
-            clockStop(timer_current);
-            printf("--Tree build at time: %g --\n", clockVal(timer_current));
-        }
-
-
-    if(ctrl->option->ps)
-        {
-            if(ctrl->option->leader == clustnum &&
-               ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-                fprintf(stdout, "Genering an elimination tree draw in Post-Script format \n");
-            ps_write_tree(ctrl->costmtx, ctrl->etree, ps_file, &page);
-        }
-
-
-
-    if(ctrl->option->leader == clustnum &&
-       ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, "Spliting initial partition \n");
-    if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
-
-    /** repartitioning of the initial symbolic factorization
-      and processing of candidate processors group for
-      each colum bloc **/
-    splitPart(symbmtx, ctrl, dofptr);
+#if defined(PASTIX_DEBUG_BLEND)
+    /** Verify the coherence of the new symbol matrix **/
+    symbolCheck(symbmtx);
+#endif
 
     //TODO
     /* if ( (ctrl->option->leader == clustnum) && (ctrl->option->tracegen == 1)) */
     /*   { */
     /*     FILE *out; */
     /*     OUT_OPENFILEINDIR(ctrl->option->iparm, out, "elimintree.dot", "w"); */
-    /*     treePlot(ctrl->etree, out); */
+    /*     eTreeGenDot(ctrl->etree, out); */
     /*     OUT_CLOSEFILEINDIR(out); */
     /*   } */
 
-    if(ctrl->option->timer)
-      {
-        clockStop(timer_current);
-        printf("--Split build at time: %g --\n", clockVal(timer_current));
-      }
+    if(ctrl->option->count_ops && (ctrl->option->leader == clustnum))
+        symbCost(option->iparm, option->dparm, symbmtx, dofptr);
 
-#ifdef DEBUG_BLEND
-    /** Verify the coherence of the new symbol matrix **/
-    if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO &&
-       ctrl->option->debug)
-      {
-        if (ctrl->option->leader == clustnum)
-          fprintf(stdout, "\n Checking the new symbol matrix \n");
-        symbolCheck(symbmtx);
-      }
+    pastix_print( clustnum, 0, "** New Partition: cblknbr=  %ld     bloknbr=  %ld     ratio=%f ** \n",
+                  (long)symbmtx->cblknbr, (long)symbmtx->bloknbr,
+                  (float)symbmtx->bloknbr/(float)symbmtx->cblknbr);
+
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    {
+        FILE *stream;
+        PASTIX_FOPEN(stream, "symbolblend.eps", "w");
+        symbolDraw(symbmtx,
+                   stream);
+        fclose(stream);
+    }
 #endif
 
-    if(ctrl->option->count_ops && ctrl->option->leader == clustnum)
-      symbCost(option->iparm, option->dparm, symbmtx, dofptr);
+    /* Re-build the new elimination graph from the new symbolic partition */
+    {
+        pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH2 );
+        clockStart(timer_current);
 
-    if ((ctrl->option->leader == clustnum) &&
-        (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
-      fprintf(stdout, "** New Partition: cblknbr=  %ld     bloknbr=  %ld     ratio=%f ** \n",
-              (long)symbmtx->cblknbr, (long)symbmtx->bloknbr,
-              (float)symbmtx->bloknbr/(float)symbmtx->cblknbr);
+        eGraphExit(ctrl->egraph);
+        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
+        eGraphInit(ctrl->egraph);
+        eGraphBuild(ctrl->egraph, symbmtx);
 
-    if(ctrl->option->ps && (symbmtx->nodenbr <= 961))
-      {
-        if(ctrl->option->leader == clustnum &&
-           ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-          fprintf(stdout, "Genering a symbolic matrix draw in Post-Script format \n");
-        ps_write_matrix(symbmtx, ps_file, &page);
-      }
-
-    if(ctrl->option->count_ops &&
-       ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO &&
-       ctrl->option->leader == clustnum)
-      fprintf(stdout, "Factorization of the new symbol matrix by Crout blok algo takes : %g \n",
-              recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr ));
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
+    }
 
     if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
-    /** the former graph can't be used any more **/
-    egraphExit(ctrl->egraph);
-    /** Build a new one on the new symbol matrix **/
-
-    if( ctrl->option->leader == clustnum &&
-        ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, OUT_BLEND_ELIMGRAPH2);
-    MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
-
-    egraphInit(ctrl->egraph);
-
-    /** build the elimination graph from the symbolic partition **/
-    eliminGraphBuild(symbmtx, ctrl->egraph);
-
-    if(ctrl->option->timer)
-        {
-            clockStop(timer_current);
-            printf("--Graph build at time: %g --\n", clockVal(timer_current));
-        }
-
-    if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
+    {
+        clockInit(timer_current);
+        clockStart(timer_current);
+    }
 
     /* initialize simu structure control */
     MALLOC_INTERN(simuctrl, 1, SimuCtrl);
@@ -361,19 +266,19 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if( ctrl->option->leader == clustnum &&
         ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-      fprintf(stdout, OUT_BLEND_NBTASK, (long)simuctrl->tasknbr);
+        fprintf(stdout, OUT_BLEND_NBTASK, (long)simuctrl->tasknbr);
     if(ctrl->option->timer)
-      {
+    {
         clockStop(timer_current);
         printf("--Task built at time: %g --\n", clockVal(timer_current));
-      }
+    }
 
     /** Distribution Phase **/
     if(ctrl->option->timer)
-      {
+    {
         clockInit(timer_current);
         clockStart(timer_current);
-      }
+    }
 
 #ifdef DEBUG_BLEND
     ASSERT(check_candidat(symbmtx, ctrl)>=0,MOD_BLEND);
@@ -385,190 +290,158 @@ void solverBlend(SolverMatrix *solvmtx,
     distribPart(symbmtx, simuctrl, ctrl, dofptr);
 
     if(ctrl->option->timer)
-        {
-            clockStop(timer_current);
-            printf("--Distribution computed at time: %g --\n", clockVal(timer_current));
-        }
-
-    if(ctrl->option->assembly)
-      {
-        /** Gener the Assembly structures **/
-        if(ctrl->option->timer)
-          {
-            clockInit(timer_current);
-            clockStart(timer_current);
-          }
-
-        if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-          {
-            fprintf(stdout, "%ld : Genering assembly structure \n", (long)clustnum);
-          }
-
-#ifdef OLD_ASSEMBLY
-        assemblyGener(assemb, ctrl->procnbr, symbmtx, simuctrl->ownetab);
-#else
-        assemblyGener(clustnum, assemb1D, assemb2D, clustnbr, symbmtx, simuctrl->blprtab, ctrl, dofptr);
-#endif
-
-        if(ctrl->option->timer)
-          {
-            clockStop(timer_current);
-            printf("--Assembly computed at time: %g --\n", clockVal(timer_current));
-          }
-      }
+    {
+        clockStop(timer_current);
+        printf("--Distribution computed at time: %g --\n", clockVal(timer_current));
+    }
 
 #ifdef PASTIX_DYNSCHED /* 2 eme passe de splitpart */
 
     if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
+    {
+        clockInit(timer_current);
+        clockStart(timer_current);
+    }
 
     /** repartitioning of the initial symbolic factorization
-        and processing of candidate processors group for
-        each colum bloc **/
+     and processing of candidate processors group for
+     each colum bloc **/
 
     splitPartLocal(ctrl, simuctrl, symbmtx, dofptr);
 
     if(ctrl->option->timer)
-      {
+    {
         clockStop(timer_current);
         printf("--Split build at time: %g --\n", clockVal(timer_current));
-      }
+    }
 
 #endif
 
     /** Free some memory **/
     costExit(ctrl->costmtx);
-    treeExit(ctrl->etree);
-
-    if(ctrl->option->ps)
-        ps_close(ps_file);
+    eTreeExit(ctrl->etree);
 
     /** gener the final solverMarix for this processor
-      i.e. relative bloc numbering **/
+     i.e. relative bloc numbering **/
     if(ctrl->option->timer)
-        {
-            clockInit(timer_current);
-            clockStart(timer_current);
-        }
+    {
+        clockInit(timer_current);
+        clockStart(timer_current);
+    }
 
     if(ctrl->option->sequentiel)
-      {
+    {
         if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-          fprintf(stdout, "%ld : Genering all SolverMatrix files \n", (long)clustnum);
+            fprintf(stdout, "%ld : Genering all SolverMatrix files \n", (long)clustnum);
         allSolverMatrixSave(ctrl->option->solvmtx_filename,  symbmtx, simuctrl, ctrl, dofptr);
-      }
+    }
     else
-      {
+    {
         if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-          fprintf(stdout, "%ld : Genering final SolverMatrix \n", (long)clustnum);
+            fprintf(stdout, "%ld : Genering final SolverMatrix \n", (long)clustnum);
         if (ctrl->option->iparm[IPARM_DOF_COST] != 0) {
-          Dof dofstr;
-          dofInit(&dofstr);
-          dofConstant(&dofstr, 0, symbmtx->nodenbr, ctrl->option->iparm[IPARM_DOF_NBR]);
-          bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, &dofstr);
-          dofExit(&dofstr);
+            Dof dofstr;
+            dofInit(&dofstr);
+            dofConstant(&dofstr, 0, symbmtx->nodenbr, ctrl->option->iparm[IPARM_DOF_NBR]);
+            bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, &dofstr);
+            dofExit(&dofstr);
         }
         else{
-          bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
+            bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
         }
-      }
+    }
 
     if(ctrl->option->timer)
-        {
-            clockStop(timer_current);
-            printf("--SolverMatrix computed at time: %g --\n", clockVal(timer_current));
-        }
+    {
+        clockStop(timer_current);
+        printf("--SolverMatrix computed at time: %g --\n", clockVal(timer_current));
+    }
 
     /*if(ctrl->option->count_ops)
-      {
-        printSolverInfo(stderr, solvmtx, dofptr);
-      }*/
+     {
+     printSolverInfo(stderr, solvmtx, dofptr);
+     }*/
 
     if( ctrl->option->leader == clustnum &&
         ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-      fprintf(stdout, "** End of Partition & Distribution phase ** \n");
+        fprintf(stdout, "** End of Partition & Distribution phase ** \n");
 
     /** Time end **/
     if(ctrl->option->timer)
-      {
+    {
         clockStop(timer_all);
         printf("---- Total execution at time: %g ----\n",clockVal(timer_all));
         set_dparm(option->dparm, DPARM_ANALYZE_TIME, clockVal(timer_all));
-      }
+    }
 
     /** Free allocated memory **/
     simuExit(simuctrl, ctrl->clustnbr, ctrl->procnbr, ctrl->bublnbr);
-
-    /*costExit(ctrl->costmtx);*/
-    egraphExit(ctrl->egraph);
+    eGraphExit(ctrl->egraph);
 
     if(ctrl->option->debug)
-      {
+    {
         if(!ctrl->option->sequentiel)
-          setBcofPtr(solvmtx, bcofind);
+            setBcofPtr(solvmtx, bcofind);
         if( ctrl->option->leader == clustnum &&
             ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-          fprintf(stdout, OUT_BLEND_CHKSOLVER);
+            fprintf(stdout, OUT_BLEND_CHKSOLVER);
         solverCheck(solvmtx);
-      }
+    }
 
     if(!ctrl->option->sequentiel)
-      {
+    {
         /***************************************
          * Malt : Moderate AmaLgamaTion        *
          ***************************************/
         if( ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO &&
             ctrl->option->malt_limit >= 0)
-          {
+        {
             fprintf(stdout, "** Malt  phase ** \n");
             fprintf(stdout, "** Attemp to reduce  AUB memmory to a limit of %ld percents ** \n", (long)ctrl->option->malt_limit);
-          }
+        }
         if(ctrl->option->malt_limit >= 0)
-          {
+        {
             pastix_int_t maxalloc;
             /*	maxalloc = Malt(solvmtx, INTVALMAX);
-                fprintf(stderr, "Maxalloc for AUB = %ld\n", (long)maxalloc);*/
+             fprintf(stderr, "Maxalloc for AUB = %ld\n", (long)maxalloc);*/
             maxalloc = Malt2(solvmtx, (float)ctrl->option->malt_limit);
             fprintf(stdout, "Max of Memory allocation %ld Bytes\n", (long)maxalloc);
             if(ctrl->option->debug)
-              solverCheck(solvmtx);
-          }
-      }
+                solverCheck(solvmtx);
+        }
+    }
 
 
     /***************************************
      * Realloc Memory in a contiguous way  *
      ***************************************/
     if(!ctrl->option->sequentiel)
-      {
+    {
         blendCtrlExit(ctrl);
         printf("Contiguous reallocation of the solverMatrix ...\n");
         solverRealloc(solvmtx, bcofind);
         printf("Done \n");
-      }
+    }
     else
-      {
+    {
         /** Set the bcofptr in the block targets **/
         /** It is already done in solverRealloc if option sequentiel is active **/
         setBcofPtr(solvmtx, bcofind);
 
         /** Set the local btagptr **/
         setLocalBtagPtr(solvmtx);
-      }
+    }
 
 #ifdef DEBUG_BLEND
     if (leader == clustnum)
-      fprintf(stdout, OUT_BLEND_CHKSOLVER);
+        fprintf(stdout, OUT_BLEND_CHKSOLVER);
     if (option->ricar) {
-      if (leader == clustnum)
-        errorPrintW("No solverMatrix checking in incomplete factorisation.");
+        if (leader == clustnum)
+            errorPrintW("No solverMatrix checking in incomplete factorisation.");
     }else {
-      solverCheck(solvmtx);
+        solverCheck(solvmtx);
     }
 #endif
     if (bcofind != NULL)
-      memFree_null(bcofind);
+        memFree_null(bcofind);
 }
