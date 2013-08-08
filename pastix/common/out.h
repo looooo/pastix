@@ -137,6 +137,6 @@
 /*
  * Macro to decide who prints information
  */
-#define pastix_print(mpirank, thrdrank, fmt, ...) do { if((mpirank == 0) && (thrdrank == 0)) fprintf(stdout, fmt, __VA_ARGS__); } while(0)
+#define pastix_print(mpirank, thrdrank, fmt, ...) do { if((mpirank == 0) && (thrdrank == 0)) fprintf(stdout, fmt, ##__VA_ARGS__); } while(0)
 
 #endif /* _OUT_H_ */
