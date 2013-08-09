@@ -14,10 +14,6 @@
 /************************************************************/
 #ifndef SPLITPART_H
 
-#define CLUSTER 1
-#define NOCLUSTER 0
-
-
 #define static
 
 #endif
@@ -25,10 +21,6 @@
 void  splitPart     (SymbolMatrix *, BlendCtrl *, const Dof *);
 pastix_int_t   check_candidat(SymbolMatrix *, BlendCtrl *);
 
-void        setTreeLevel         (Cand *, const EliminTree *);
-void        setTreeCostLevel     (Cand *, const EliminTree *, const CostMatrix *);
-static void setSubtreeLevel      (pastix_int_t, Cand *, const EliminTree *);
-static void setSubtreeCostLevel  (pastix_int_t, Cand *, const EliminTree *, const CostMatrix *);
 static void setDistribType       (const pastix_int_t, SymbolMatrix *, Cand *, const pastix_int_t);
 static void setSubtreeDistribType(const SymbolMatrix *, const CostMatrix *, pastix_int_t , const BlendCtrl *, pastix_int_t);
 
@@ -51,7 +43,6 @@ static void propMappSubtreeNoSplit (SymbolMatrix *, BlendCtrl *, const Dof *, pa
 
 
 static double maxProcCost     (double *, pastix_int_t);
-static void   subtreeSetCand  (pastix_int_t, pastix_int_t, BlendCtrl *, double);
 static double blokUpdateCost  (pastix_int_t, pastix_int_t, CostMatrix *, ExtraCostMatrix *, const SymbolMatrix *, 
 			       const ExtraSymbolMatrix *, BlendCtrl *, const Dof *);
 
