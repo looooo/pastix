@@ -104,6 +104,26 @@ eTreeGenDot(const EliminTree *etree, FILE *out)
 }
 
 void
+eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
+{
+    int i, sonsnbr;
+    pastix_int_t son;
+
+    sonsnbr = etree->nodetab[ rootnum ].sonsnbr;
+
+    fprintf(stream, "Rootnum %ld %d\n", (long)rootnum, sonsnbr);
+    for(i=0;i<sonsnbr;i++)
+        fprintf(stream,"       (%4ld)\n",  (long)eTreeSonI(etree, rootnum, i));
+
+    for(i=0;i<sonsnbr;i++)
+    {
+        son = eTreeSonI(etree, rootnum, i);
+        if (etree->nodetab[son].sonsnbr)
+            eTreePrint(etree, stream, son);
+    }
+}
+
+void
 eTreeBuild(EliminTree *etree, const SymbolMatrix *symbmtx)
 {
     pastix_int_t i;

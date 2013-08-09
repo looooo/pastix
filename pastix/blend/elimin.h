@@ -61,6 +61,7 @@ void          eGraphBuild(EliminGraph *, const SymbolMatrix *);
 pastix_int_t  eTreeInit      (      EliminTree *);
 void          eTreeExit      (      EliminTree *);
 void          eTreeGenDot    (const EliminTree *, FILE *);
+void          eTreePrint     (const EliminTree *, FILE *, pastix_int_t );
 pastix_int_t  eTreeLeavesNbr (const EliminTree *);
 pastix_int_t  eTreeLevel     (const EliminTree *);
 pastix_int_t  eTreeNodeLevel (const EliminTree *, pastix_int_t );
