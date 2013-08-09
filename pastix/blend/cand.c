@@ -103,10 +103,10 @@ candSetClusterCand( Cand *candtab,
     pastix_int_t i;
 
     for(i=0; i<cblknbr; i++) {
-        assert( candtab[i].fccandnum >= 0 );
-        assert( candtab[i].lccandnum >= 0 );
-        assert( candtab[i].fccandnum < coresnbr );
-        assert( candtab[i].lccandnum < coresnbr );
+        assert( candtab[i].fcandnum >= 0 );
+        assert( candtab[i].lcandnum >= 0 );
+        assert( candtab[i].fcandnum < coresnbr );
+        assert( candtab[i].lcandnum < coresnbr );
         candtab[i].fccandnum = core2clust[ candtab[i].fcandnum ];
         candtab[i].lccandnum = core2clust[ candtab[i].lcandnum ];
     }
