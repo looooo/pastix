@@ -13,6 +13,9 @@
 /**                                                        **/
 /************************************************************/
 
+#ifndef _CAND_H_
+#define _CAND_H_
+
 /*
 **  The type and structure definitions.
 */
@@ -20,10 +23,13 @@
 #define D2 1
 #define DENSE 3
 
+#define CLUSTER 1
+#define NOCLUSTER 0
+
 /*+ Processor candidate group to own a column blok      +*/
 typedef struct Cand_{
+  double       costlevel;    /*+ Cost from root to node +*/
   pastix_int_t treelevel;    /*+ Level of the cblk in the elimination tree (deepness from the root) +*/
-  double costlevel; /*+ Cost from root to node +*/
   pastix_int_t fcandnum;     /*+ first processor number of this candidate group  +*/
   pastix_int_t lcandnum;     /*+ last processor number of this candidate group   +*/
   pastix_int_t fccandnum;    /*+ first cluster number of the cluster candidate group +*/
@@ -35,3 +41,22 @@ typedef struct Cand_{
 #endif
 } Cand;
 
+void candInit           ( Cand *candtab,
+                          pastix_int_t cblknbr );
+void candSetTreelevel   ( Cand *candtab,
+                          const EliminTree *etree );
+void candSetCostlevel   ( Cand *candtab,
+                          const EliminTree *etree,
+                          const CostMatrix *costmtx);
+void candSetSubCandidate( Cand *candtab,
+                          const EliminTree *etree,
+                          pastix_int_t rootnum,
+                          pastix_int_t procnum );
+int  candCheck          ( Cand *candtab,
+                          SymbolMatrix *symbmtx );
+void candSetClusterCand ( Cand *candtab,
+                          pastix_int_t  cblknbr,
+                          pastix_int_t *core2clust,
+                          pastix_int_t  coresnbr );
+
+#endif
