@@ -517,6 +517,7 @@ set(PASTIX_LIB_SRCS
   blend/cand.c
   blend/elimin_graph.c
   blend/elimin_tree.c
+  blend/propmap.c
   blend/pastix_task_analyse.c
   blend/assemblyGener.c
   blend/blend.c
