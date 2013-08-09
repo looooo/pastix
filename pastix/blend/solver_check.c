@@ -9,12 +9,12 @@
 #include "csc.h"
 #include "updown.h"
 #include "solver.h"
+#include "elimin.h"
+#include "cost.h"
 #include "cand.h"
 #include "extendVector.h"
 #include "simu.h"
 #include "dof.h"
-#include "elimin.h"
-#include "cost.h"
 /* #include "extrastruct.h" */
 /* #include "param_comm.h" */
 #include "param_blend.h"

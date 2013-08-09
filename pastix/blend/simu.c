@@ -5,6 +5,8 @@
 #include "common.h"
 #include "ftgt.h"
 #include "symbol.h"
+#include "elimin.h"
+#include "cost.h"
 #include "cand.h"
 #include "queue.h"
 #include "extendVector.h"
