@@ -104,11 +104,19 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
 
-    print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphCheck <\n");
-    if (SCOTCH_graphCheck(&scotchgraph)) {
-        errorPrint("pastix: graphCheck");
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
+#if defined(PASTIX_DEBUG_ORDERING)
+    {
+        Clock timer;
+        clockStart(timer);
+        print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphCheck <\n");
+        if (SCOTCH_graphCheck(&scotchgraph)) {
+            errorPrint("pastix: graphCheck");
+            EXIT(MOD_SOPALIN,INTERNAL_ERR);
+        }
+        clockStop(timer);
+        pastix_print( procnum, 0, "SCOTCH_graphCheck done in %lf second\n", clockVal(timer) );
     }
+#endif
     SCOTCH_graphBase(&scotchgraph, 0);
 
     /* The graph is build, let's compute the ordering */
