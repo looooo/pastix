@@ -42,6 +42,7 @@ typedef struct BlendParam_ {
   pastix_int_t    leader;          /*+ Processor leader for not parallele task (ex: gener assembly1D     +*/
   pastix_int_t    allcand;         /*+ All processor are candidat for a splitted cblk                    +*/
   pastix_int_t    nocrossproc;     /*+ Crossing processor forbiden in the splitting phase                +*/
+  pastix_int_t    split;           /*+ Split cblk during proportional mapping algorithm                  +*/
   pastix_int_t    forceE2;
   pastix_int_t    level2D;         /*+ number of level to treat with a 2D distribution                   +*/
   pastix_int_t    candcorrect;   

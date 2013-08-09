@@ -28,6 +28,7 @@ pastix_int_t blendParamInit(BlendParam *param)
   param->leader           = 0;
   param->allcand          = 0;
   param->nocrossproc      = 0;
+  param->split            = 1;
   param->forceE2          = 0;
   param->level2D          = 100000000;
   param->candcorrect      = 0;
