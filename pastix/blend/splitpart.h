@@ -18,6 +18,17 @@
 
 #endif
 
+void propMappTree( BlendCtrl         *ctrl,
+                   EliminTree        *etree,
+                   Cand              *candtab,
+                   CostMatrix        *costmtx,
+                   SymbolMatrix      *symbmtx,
+                   const Dof         *dofptr,
+                   ExtraSymbolMatrix *extrasymb,
+                   ExtraCostMatrix   *extracost,
+                   pastix_int_t       procnbr,
+                   int split, int nocrossproc, int allcand );
+
 void  splitPart     (SymbolMatrix *, BlendCtrl *, const Dof *);
 pastix_int_t   check_candidat(SymbolMatrix *, BlendCtrl *);
 
@@ -30,17 +41,6 @@ static void splitCblk       (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatri
 			     const Dof *, pastix_int_t, pastix_int_t, pastix_int_t *);
 
 static void printTree          (FILE*, const EliminTree *, pastix_int_t);
-static void propMappTree       (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *);
-static void propMappSubtree    (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *,
-				pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t, double *);
-static void propMappSubtreeNC  (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *,
-				pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t, double *);
-static void propMappSubtreeOn1P(SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *,
-				pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t);
-
-static void propMappTreeNoSplit    (SymbolMatrix *, BlendCtrl *, const Dof *);
-static void propMappSubtreeNoSplit (SymbolMatrix *, BlendCtrl *, const Dof *, pastix_int_t, pastix_int_t, pastix_int_t, double *);
-
 
 static double maxProcCost     (double *, pastix_int_t);
 static double blokUpdateCost  (pastix_int_t, pastix_int_t, CostMatrix *, ExtraCostMatrix *, const SymbolMatrix *, 
