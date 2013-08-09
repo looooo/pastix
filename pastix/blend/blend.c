@@ -92,16 +92,26 @@ void solverBlend(SolverMatrix *solvmtx,
     double     timer_current = 0.;
     pastix_int_t       *bcofind       = NULL;
 
-    /* initialisation of the control structure */
+    /* Initialisation of the control structure */
     MALLOC_INTERN(ctrl, 1, BlendCtrl);
     blendCtrlInit(ctrl, clustnbr, thrdlocnbr, cudanbr, clustnum, option);
 
+    /* Check parameters */
     if(clustnum >= clustnbr)
     {
         errorPrint("solverBlend parameter clustnum(%ld) is greater"
                    " than clustnbr(%ld).",
                    (long) clustnum, (long) clustnbr);
         EXIT(MOD_BLEND,INTERNAL_ERR);
+    }
+    if(ctrl->option->ooc)
+    {
+        /* OOC works only with 1D structures */
+        if ((ctrl->option->leader == clustnum) &&
+            (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
+            fprintf(stdout, "Force 1D distribution because of OOC \n");
+        ctrl->option->ratiolimit = INTVALMAX;
+        ctrl->option->malt_limit = -1;
     }
 
     clockStart(timer_all);
@@ -128,16 +138,6 @@ void solverBlend(SolverMatrix *solvmtx,
     {
         pastix_print( clustnum, 0, OUT_BLEND_CHKSMBMTX );
         symbolCheck(symbmtx);
-    }
-
-    /** OOC works only with 1D structures **/
-    if(ctrl->option->ooc)
-    {
-        if ((ctrl->option->leader == clustnum) &&
-            (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
-            fprintf(stdout, "Force 1D distribution because of OOC \n");
-        ctrl->option->ratiolimit = INTVALMAX;
-        ctrl->option->malt_limit = -1;
     }
 
     if(ctrl->option->count_ops && ctrl->option->leader == clustnum)
@@ -258,7 +258,7 @@ void solverBlend(SolverMatrix *solvmtx,
     simuInit(simuctrl, symbmtx, ctrl->clustnbr, ctrl->procnbr,
              symbmtx->cblknbr, symbmtx->bloknbr, ctrl->candtab);
 
-    /** Build tasks **/
+    /* Build tasks */
     if( ctrl->option->leader == clustnum &&
         ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, OUT_BLEND_TASKGRAPH);
@@ -273,7 +273,7 @@ void solverBlend(SolverMatrix *solvmtx,
         printf("--Task built at time: %g --\n", clockVal(timer_current));
     }
 
-    /** Distribution Phase **/
+    /* Distribution Phase */
     if(ctrl->option->timer)
     {
         clockInit(timer_current);
