@@ -514,6 +514,7 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
   graph/graph_io.c
 #
+  blend/cand.c
   blend/elimin_graph.c
   blend/elimin_tree.c
   blend/pastix_task_analyse.c
