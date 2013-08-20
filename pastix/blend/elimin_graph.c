@@ -74,8 +74,8 @@ eGraphBuild( EliminGraph        *egraph,
     }
 
     /*
-     * Compute deg in for each Vertex.
-     * Rq innbr start at -1 because diag blok cause one extra in-edge
+     * Compute the input degree for each vertex.
+     * Remark: innbr start at -1 because diag blok causes one extra in-edge
      */
     for(i=0;i<symbmtx->bloknbr;i++)
     {
