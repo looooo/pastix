@@ -14,8 +14,14 @@
 
 #define TIMEBASE 10.0
 
-pastix_int_t simuInit(SimuCtrl *simuctrl, SymbolMatrix *symbptr, pastix_int_t clustnbr, pastix_int_t procnbr,
-                      pastix_int_t cblknbr, pastix_int_t bloknbr, Cand *candtab)
+pastix_int_t
+simuInit( SimuCtrl     *simuctrl,
+          SymbolMatrix *symbptr,
+          pastix_int_t  clustnbr,
+          pastix_int_t  procnbr,
+          pastix_int_t  cblknbr,
+          pastix_int_t  bloknbr,
+          Cand         *candtab)
 {
     pastix_int_t i, j;
     pastix_int_t p;

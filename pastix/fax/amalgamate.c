@@ -303,6 +303,10 @@ amalgamate_merge_col(pastix_int_t  a,
  *          The solve cost is used for ILU(k) factorization and the
  *          factorization cost for direct factorization.
  *
+ * @param[in] nnzL
+ *          The number of non zero entries in the matrix described by graphL,
+ *          usually computed through kassFactLevel() or kassFactDirect().
+ *
  * @param[in,out] graphL
  *          The graph of the matrix L to amalgamate. On exit, the compressed
  *          graph is returned (not the quotient graph !!)
@@ -344,7 +348,7 @@ amalgamate(double rat_cblk, double rat_blas,
                  pastix_int_t  *cblknbr,
                  pastix_int_t **rangtab,
                  pastix_int_t  *nodetab,
-                 MPI_Comm pastix_comm )
+                 MPI_Comm       pastix_comm )
 {
     double (*cblktime)(pastix_int_t, pastix_int_t *, pastix_int_t);
 
