@@ -1,12 +1,12 @@
 /**
  *
- * @file elimin_tree.c
+ * @file propmap.c
  *
  *  PaStiX analyse routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * Contains basic functions to manipulate elimination tree structure.
+ * Contains routines to perform proportional mapping algorithm.
  *
  * @version 5.1.0
  * @author Pascal Henon
@@ -28,11 +28,8 @@
 
 #define CROSS_TOLERANCE 0.1
 
-double  subtreeUpdateCost     (pastix_int_t, CostMatrix *, const EliminTree *);
-
 typedef struct propmap_s {
     const EliminTree   *etree;
-    const CostMatrix   *costmtx;
     const SymbolMatrix *symbmtx;
     const Dof          *dofptr;
     Cand               *candtab;
@@ -117,12 +114,12 @@ propMappSubtree( propmap_t    *pmptr,
     }
 
     /* Work that each processor is intended to get from this treenode */
-    isocost = pmptr->costmtx->cblktab[rootnum].total / candnbr;
+    isocost = pmptr->etree->nodetab[rootnum].total / candnbr;
     for(p=0;p<candnbr;p++)
         cost_remain[p] -= isocost;
 
     /* Get cost remaining in the descendance of the treenode */
-    aspt_cost = pmptr->costmtx->cblktab[rootnum].subtree - pmptr->costmtx->cblktab[rootnum].total;
+    aspt_cost = pmptr->etree->nodetab[rootnum].subtree - pmptr->etree->nodetab[rootnum].total;
 
     /*
      * If the first and last candidate have already received more work that they
@@ -165,10 +162,10 @@ propMappSubtree( propmap_t    *pmptr,
         double soncost;
 
         /* Cost in the current subtree to be mapped */
-        cumul_cost = -pmptr->costmtx->cblktab[eTreeSonI(pmptr->etree, rootnum, i)].subtree;
+        cumul_cost = -pmptr->etree->nodetab[eTreeSonI(pmptr->etree, rootnum, i)].subtree;
 
         /* Cost of the root node in the subtree */
-        soncost    = -pmptr->costmtx->cblktab[eTreeSonI(pmptr->etree, rootnum, i)].total;
+        soncost    = -pmptr->etree->nodetab[eTreeSonI(pmptr->etree, rootnum, i)].total;
 
         queueAdd2(queue_tree, i, cumul_cost, (pastix_int_t)soncost);
     }
@@ -324,7 +321,6 @@ propMappSubtree( propmap_t    *pmptr,
 void
 propMappTree( Cand               *candtab,
               const EliminTree   *etree,
-              const CostMatrix   *costmtx,
               const SymbolMatrix *symbmtx,
               const Dof          *dofptr,
               pastix_int_t        candnbr,
@@ -337,7 +333,7 @@ propMappTree( Cand               *candtab,
 
     /* Prepare the initial cost_remain array */
     MALLOC_INTERN(cost_remain, candnbr, double);
-    isocost = costmtx->cblktab[ eTreeRoot(etree) ].subtree / candnbr;
+    isocost = etree->nodetab[ eTreeRoot(etree) ].subtree / candnbr;
 
     for(p=0; p<candnbr; p++)
         cost_remain[p] = isocost;
@@ -345,7 +341,6 @@ propMappTree( Cand               *candtab,
     /* Prepare the stucture */
     pmdata.candtab     = candtab;
     pmdata.etree       = etree;
-    pmdata.costmtx     = costmtx;
     pmdata.symbmtx     = symbmtx;
     pmdata.dofptr      = dofptr;
     pmdata.candnbr     = candnbr;

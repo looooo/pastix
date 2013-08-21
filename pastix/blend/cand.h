@@ -56,4 +56,9 @@ void candSetClusterCand ( Cand *candtab,
                           pastix_int_t *core2clust,
                           pastix_int_t  coresnbr );
 
+void candBuild( Cand               *candtab,
+                EliminTree         *etree,
+                const SymbolMatrix *symbmtx,
+                const CostMatrix   *costmtx );
+
 #endif

@@ -30,7 +30,8 @@
 void   subtreeSetNullCost    (pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const SimuCtrl *,  pastix_int_t);
 double cblkComputeCost2DLocal(pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const Dof *, const SimuCtrl *);
 
-/*+ Compute cost time  for each cblk and contribution of blok in the matrix +*/
+/*+ Compute cost time for blok in the matrix +*/
+/* Diagonal block contains time of factorization + TRSM of the CBLK */
 void costMatrixBuild(CostMatrix *costmtx, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
     pastix_int_t i;
@@ -282,6 +283,9 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
     }
     else
         costmtx->cblktab[cblknum].compute = 0;
+
+    costmtx->bloktab[ symbmtx->cblktab[cblknum].bloknum ].contrib = costmtx->cblktab[cblknum].compute;
+
     /** compute for each odb its contribution compute cost and add cost **/
     contribsum = 0.;
     for(k=symbmtx->cblktab[cblknum].bloknum+1;k<symbmtx->cblktab[cblknum+1].bloknum;k++)
@@ -303,6 +307,7 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
         g -= h;
     }
     costmtx->cblktab[cblknum].total = costmtx->cblktab[cblknum].compute + contribsum;
+
 
 #ifdef DEBUG_BLEND
     {

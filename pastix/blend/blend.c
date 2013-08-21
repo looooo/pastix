@@ -111,6 +111,35 @@ void solverBlend(BlendCtrl    *ctrl,
         pastix_print( clustnum, 0, "--Tree build at time: %g --\n", clockVal(timer_current));
     }
 
+    /* Build the cost matrix from the symbolic partition */
+    {
+        pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX );
+        clockStart(timer_current);
+
+        MALLOC_INTERN(ctrl->costmtx, 1, CostMatrix);
+        costInit(ctrl->costmtx);
+        costMatrixBuild(ctrl->costmtx, symbmtx, dofptr);
+
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "-- Cost Matrix build at time:          %g\n",
+                      clockVal(timer_current));
+    }
+
+    /* Build the candtab array to store candidate information on each cblk */
+    {
+        MALLOC_INTERN(ctrl->candtab, symbmtx->cblknbr, Cand);
+        candInit( ctrl->candtab, symbmtx->cblknbr );
+
+        /* Initialize costs in elimination tree and candtab array */
+        candBuild( ctrl->candtab,
+                   ctrl->etree,
+                   symbmtx,
+                   ctrl->costmtx );
+
+        pastix_print( clustnum, 0, "-- Total cost of the elimination tree: %g\n",
+                      ctrl->etree->nodetab[ eTreeRoot(ctrl->etree) ].subtree);
+    }
+
     /* Build the elimination graph from the symbolic partition */
     {
         pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
@@ -122,25 +151,6 @@ void solverBlend(BlendCtrl    *ctrl,
 
         clockStop(timer_current);
         pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
-    }
-
-    /* Build the cost matrix from the symbolic partition */
-    {
-        pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX );
-        clockStart(timer_current);
-
-        MALLOC_INTERN(ctrl->costmtx, 1, CostMatrix);
-        costInit(ctrl->costmtx);
-        costMatrixBuild(ctrl->costmtx, symbmtx, dofptr);
-
-        /* Compute costs for all nodes */
-        subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
-        if(ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-            fprintf(stdout, "Total cost of the elimination tree %g \n",
-                    ctrl->costmtx->cblktab[eTreeRoot(ctrl->etree)].subtree);
-
-        clockStop(timer_current);
-        pastix_print( clustnum, 0, "--Cost Matrix build at time: %g --\n", clockVal(timer_current));
     }
 
     /*

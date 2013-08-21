@@ -137,3 +137,52 @@ candCheck( Cand *candtab, SymbolMatrix *symbmtx )
     }
     return 1;
 }
+
+
+static inline double
+candSubTreeBuild( pastix_int_t        rootnum,
+                  Cand               *candtab,
+                  EliminTree         *etree,
+                  const SymbolMatrix *symbmtx,
+                  const CostMatrix   *costmtx )
+{
+    double cost;
+    pastix_int_t i, son, bloknum;
+
+    /* Compute cost of current node */
+    cost = 0.;
+    for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
+         bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
+    {
+        cost += costmtx->bloktab[ bloknum ].contrib;
+    }
+    etree->nodetab[ rootnum ].total   = cost;
+    etree->nodetab[ rootnum ].subtree = cost;
+
+    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    {
+        son = eTreeSonI(etree, rootnum, i);
+        candtab[ son ].treelevel = candtab[ rootnum ].treelevel - 1;
+        candtab[ son ].costlevel = candtab[ rootnum ].costlevel - cost;
+
+        etree->nodetab[ rootnum ].subtree +=
+            candSubTreeBuild( son, candtab, etree, symbmtx, costmtx );
+    }
+
+    return etree->nodetab[ rootnum ].subtree;
+}
+
+void
+candBuild( Cand               *candtab,
+           EliminTree         *etree,
+           const SymbolMatrix *symbmtx,
+           const CostMatrix   *costmtx )
+{
+    pastix_int_t root = eTreeRoot(etree);
+
+    /* Let's start with the root */
+    candtab[ root ].costlevel = -1.0;
+    candtab[ root ].treelevel = -1;
+
+    candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
+}

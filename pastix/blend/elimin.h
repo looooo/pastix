@@ -14,46 +14,48 @@
 /************************************************************/
 
 /*
-**  The type and structure definitions.
-*/
+ **  The type and structure definitions.
+ */
 
 /*+ The node structure. +*/
 typedef struct eTreeNode_ {
-  pastix_int_t   sonsnbr;              /*+ Number of sons                          +*/
-  pastix_int_t   fathnum;              /*+ index of the father node                +*/
-  pastix_int_t   fsonnum;              /*+ index of first son                      +*/
+    double         total;   /* Cost of the treenode only (compute + send) */
+    double         subtree; /* Cost of the subtree (included total)       */
+    pastix_int_t   sonsnbr; /* Number of sons                             */
+    pastix_int_t   fathnum; /* index of the father node                   */
+    pastix_int_t   fsonnum; /* index of first son                         */
 } TreeNode;
 
 /*+ The elimination tree. +*/
 
 typedef struct EliminTree_ {
-  pastix_int_t   baseval;              /*+ Base value for numberings         +*/
-  pastix_int_t   nodenbr;              /*+ Number of nodes                   +*/
-  TreeNode     * nodetab;              /*+ Array of node          [+1,based] +*/
-  pastix_int_t * sonstab;              /*+ Sons index of nodes               +*/
+    pastix_int_t   baseval;              /*+ Base value for numberings         +*/
+    pastix_int_t   nodenbr;              /*+ Number of nodes                   +*/
+    TreeNode     * nodetab;              /*+ Array of node          [+1,based] +*/
+    pastix_int_t * sonstab;              /*+ Sons index of nodes               +*/
 } EliminTree;
 
 
 /*+ The elimination graph. +*/
 /*+ we only need the in-edges between graph vertex
-    Out-edges can be found with the symbol matrix data +*/
+ Out-edges can be found with the symbol matrix data +*/
 /* OIMBE innbr ne sert pas necessairement !*/
 typedef struct EliminVertex_ {
-  pastix_int_t   innum;                /*+ index of first in-bloc            +*/
-  pastix_int_t   innbr;                /*+ number of in-blocs                +*/
+    pastix_int_t   innum;                /*+ index of first in-bloc            +*/
+    pastix_int_t   innbr;                /*+ number of in-blocs                +*/
 } EliminVertex;
 
 typedef struct EliminGraph_ {
-  pastix_int_t   baseval;              /*+ Base value for numberings         +*/
-  pastix_int_t   vertnbr;              /*+ number of vertex in the graph     +*/
-  EliminVertex * verttab;              /*+ Array of vertex                   +*/
-  pastix_int_t * inbltab;              /*+ Array of in-blocs index           +*/
-  pastix_int_t * ownetab;              /*+ Array of cbl owner bloc           +*/
+    pastix_int_t   baseval;              /*+ Base value for numberings         +*/
+    pastix_int_t   vertnbr;              /*+ number of vertex in the graph     +*/
+    EliminVertex * verttab;              /*+ Array of vertex                   +*/
+    pastix_int_t * inbltab;              /*+ Array of in-blocs index           +*/
+    pastix_int_t * ownetab;              /*+ Array of cbl owner bloc           +*/
 } EliminGraph;
 
 /*
-**  The function prototypes.
-*/
+ **  The function prototypes.
+ */
 pastix_int_t  eGraphInit (EliminGraph *);
 void          eGraphExit (EliminGraph *);
 void          eGraphBuild(EliminGraph *, const SymbolMatrix *);

@@ -20,7 +20,6 @@
 
 void propMappTree( Cand               *candtab,
                    const EliminTree   *etree,
-                   const CostMatrix   *costmtx,
                    const SymbolMatrix *symbmtx,
                    const Dof          *dofptr,
                    pastix_int_t        procnbr,
