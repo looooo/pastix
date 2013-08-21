@@ -36,9 +36,6 @@ typedef struct Cand_{
   pastix_int_t lccandnum;    /*+ last cluster number of the cluster candidate group +*/
   pastix_int_t distrib;      /*+ type of the distribution +*/
   pastix_int_t cluster;      /*+ TRUE if cand are clusters (bubble number) +*/
-#if defined(TRACE_SOPALIN) || defined(PASTIX_DYNSCHED)
-  pastix_int_t cand;         /*+ TRUE if cand are clusters (bubble number) +*/
-#endif
 } Cand;
 
 void candInit           ( Cand *candtab,

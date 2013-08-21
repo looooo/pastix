@@ -45,7 +45,7 @@ candSetSubTreelevel( Cand *candtab, const EliminTree *etree, pastix_int_t rootnu
     for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
     {
         son = eTreeSonI(etree, rootnum, i);
-        candtab[ son ].treelevel = candtab[rootnum].treelevel -1;
+        candtab[ son ].treelevel = candtab[rootnum].treelevel - 1;
         candSetSubTreelevel(candtab, etree, son );
     }
 }

@@ -145,9 +145,6 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
 
         /* Ajout de la tache a la file du proc pour version standard */
         extendint_Add(simuctrl->proctab[pr].tasktab, i);
-#if defined(TRACE_SOPALIN) || defined(PASTIX_DYNSCHED)
-        ctrl->candtab[simuctrl->tasktab[i].cblknum].cand = pr;
-#endif
 
         /* Sauvegarde du processus MPI devant executer la tache pour version MARCEL */
         if ((simuctrl->tasktab[i].taskid == DIAG)

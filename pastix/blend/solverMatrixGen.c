@@ -525,7 +525,6 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
 
 #if (defined PASTIX_DYNSCHED) || (defined TRACE_SOPALIN)
             solvmtx->tasktab[jloc].threadid = p;
-            solvmtx->tasktab[jloc].cand     = ctrl->candtab[simuctrl->tasktab[j].cblknum].cand;
 #endif
 #ifdef TRACE_SOPALIN
             solvmtx->tasktab[jloc].fcandnum = ctrl->candtab[simuctrl->tasktab[j].cblknum].fcandnum;

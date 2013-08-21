@@ -244,10 +244,6 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
           Csc2solv_cblk(sopalin_data->sopar->cscmtx, datacode, *transcsc, itercblk);
 
           ooc_save_coef(sopalin_data, task, itercblk, me);
-
-#if defined(PASTIX_DYNSCHED) || defined(TRACE_SOPALIN)
-          TASK_CAND(task) = me;
-#endif
         }
 
 #ifdef PASTIX_DYNSCHED

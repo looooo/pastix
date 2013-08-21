@@ -49,7 +49,6 @@ typedef struct Task_ {
                                                   /*+ Index of E1 (or first E2) task for E2                  +*/
 #if (defined PASTIX_DYNSCHED) || (defined TRACE_SOPALIN)
   pastix_int_t                       threadid;             /*+ Index of the bubble which contains the task +*/
-  pastix_int_t                       cand;		  /*+ Thread candidate in static version          +*/
 #endif
 #ifdef TRACE_SOPALIN
   pastix_int_t                       fcandnum;             /*+ First thread candidate                      +*/

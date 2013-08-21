@@ -132,7 +132,6 @@
 #define TASK_THREADID(x)  datacode->tasktab[x].threadid
 #define TASK_COLOR(x)     datacode->tasktab[x].threadid
 #define TASK_PROC(x)      SOLV_PROCDIAG(TASK_CBLKNUM(x))
-#define TASK_CAND(x)      datacode->tasktab[x].cand
 
 #define RTASK_PRIONUM(x)  datacode->tasktab[x].btagptr->infotab[BTAG_PRIONUM]
 #define RTASK_TASKDST(x)  datacode->tasktab[x].btagptr->infotab[BTAG_TASKDST]
