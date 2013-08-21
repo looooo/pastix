@@ -262,7 +262,7 @@ void solverBlend(SolverMatrix *solvmtx,
     if( ctrl->option->leader == clustnum &&
         ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, OUT_BLEND_TASKGRAPH);
-    taskBuild(simuctrl, symbmtx, ctrl->candtab, dofptr, ctrl->egraph, ctrl);
+    taskBuild(simuctrl, symbmtx, ctrl->candtab, dofptr, ctrl);
 
     if( ctrl->option->leader == clustnum &&
         ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)

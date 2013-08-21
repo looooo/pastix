@@ -21,7 +21,7 @@
 #ifndef TASK
 #define static
 #endif
-void        taskBuild          (SimuCtrl *, SymbolMatrix *, Cand *, const Dof *, EliminGraph *, BlendCtrl *);
-pastix_int_t         getFaceBlockE2     (pastix_int_t, pastix_int_t, pastix_int_t, const SymbolMatrix *, int);
-double       taskSendCost       (SimuTask *, const pastix_int_t, const pastix_int_t, BlendCtrl *);  
+void           taskBuild          (SimuCtrl *, SymbolMatrix *, Cand *, const Dof *, BlendCtrl *);
+pastix_int_t   getFaceBlockE2     (pastix_int_t, pastix_int_t, pastix_int_t, const SymbolMatrix *, int);
+double         taskSendCost       (SimuTask *, const pastix_int_t, const pastix_int_t, BlendCtrl *);
 #undef static

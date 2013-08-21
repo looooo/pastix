@@ -25,14 +25,13 @@
 #include "task.h"
 
 void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
-               const Dof * dofptr, EliminGraph *egraph, BlendCtrl *ctrl)
+               const Dof * dofptr, BlendCtrl *ctrl)
 {
     pastix_int_t i, j, k;
     pastix_int_t tasknbr = 0;
     pastix_int_t odb_nbr;
     pastix_int_t L, h, g;
     pastix_int_t firstE1task, firstE2task;
-    (void)egraph;
 
     SimuTask *task = NULL;
     /** Count number of task **/
