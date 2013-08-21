@@ -18,16 +18,14 @@
 */
 
 typedef struct CostCblk_ {
-  double                     send;    /* Communication cost                         */
   double                     compute; /* Compute cost                               */
   double                     total;   /* Cost of the treenode only (compute + send) */
   double                     subtree; /* Cost of the subtree (included total)       */
-
 } CostCblk;
 
 typedef struct CostBlok_ {
   double                    contrib; /*+ Cost of contrib bounded to this blok                  +*/
-  pastix_int_t                       linenbr; /*+ Number of no empty line above the blok (blok include) +*/
+  pastix_int_t              linenbr; /*+ Number of no empty line above the blok (blok include) +*/
 } CostBlok;
 
 typedef struct CostMatrix_ {
