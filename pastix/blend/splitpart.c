@@ -49,16 +49,6 @@ void splitPart(SymbolMatrix *symbmtx,
     MALLOC_INTERN(extracost, 1, ExtraCostMatrix);
     extracostInit(extracost);
 
-    /* Initialize candtab */
-    MALLOC_INTERN(ctrl->candtab, symbmtx->cblknbr, Cand);
-    candInit( ctrl->candtab, symbmtx->cblknbr );
-
-    /** set tree level of each cblk **/
-    /** OIMBE le faire apres partbuild **/
-    candSetTreelevel(ctrl->candtab, ctrl->etree);
-    if(ctrl->costlevel)
-        candSetCostlevel(ctrl->candtab, ctrl->etree, ctrl->costmtx);
-
     /* initialize spt[tab] */
     MALLOC_INTERN(extrasymb->sptcblk,      symbmtx->cblknbr, pastix_int_t);
     MALLOC_INTERN(extrasymb->sptcbnb,      symbmtx->cblknbr, pastix_int_t);
@@ -97,16 +87,12 @@ void splitPart(SymbolMatrix *symbmtx,
         fprintf(stdout, "   Using proportionnal mapping \n");
 
     /* Repartition symbolic matrix using proportionnal mapping method */
-    propMappTree( ctrl,
+    propMappTree( ctrl->candtab,
                   ctrl->etree,
-                  ctrl->candtab,
                   ctrl->costmtx,
                   symbmtx,
                   dofptr,
-                  extrasymb,
-                  extracost,
                   ctrl->total_nbcores,
-                  0,
                   ctrl->nocrossproc,
                   ctrl->allcand );
 
@@ -615,8 +601,6 @@ double blokUpdateCost(pastix_int_t bloknum, pastix_int_t cblknum, CostMatrix *co
         g -= h;
     }
 
-
-    costmtx->cblktab[cblknum].send  += newcost - oldcost;
 
     if(ctrl->candtab[cblknum].distrib == D1)
         costmtx->cblktab[cblknum].total += newcost - oldcost;

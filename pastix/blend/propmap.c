@@ -31,18 +31,14 @@
 double  subtreeUpdateCost     (pastix_int_t, CostMatrix *, const EliminTree *);
 
 typedef struct propmap_s {
-    BlendCtrl         *ctrl;
-    EliminTree        *etree;
-    Cand              *candtab;
-    CostMatrix        *costmtx;
-    SymbolMatrix      *symbmtx;
-    const Dof         *dofptr;
-    ExtraSymbolMatrix *extrasymb;
-    ExtraCostMatrix   *extracost;
-    pastix_int_t       procnbr;
-    int                split;
-    int                nocrossproc;
-    int                allcand;
+    const EliminTree   *etree;
+    const CostMatrix   *costmtx;
+    const SymbolMatrix *symbmtx;
+    const Dof          *dofptr;
+    Cand               *candtab;
+    pastix_int_t        candnbr;
+    int                 nocrossproc;
+    int                 allcand;
 } propmap_t;
 
 static inline void
@@ -58,19 +54,6 @@ propMappSubtreeOn1P( propmap_t   *pmptr,
     pmptr->candtab[rootnum].fcandnum = fcandnum;
     pmptr->candtab[rootnum].lcandnum = lcandnum;
     pmptr->candtab[rootnum].cluster  = cluster;
-
-    /* Split the treenode */
-    if ( pmptr->split ) {
-        splitOnProcs( pmptr->symbmtx,
-                      pmptr->extrasymb,
-                      pmptr->extracost,
-                      pmptr->ctrl,
-                      pmptr->dofptr,
-                      rootnum, 1);
-
-        /* Correct the subtree cost */
-        subtreeUpdateCost(rootnum, pmptr->costmtx, pmptr->etree);
-    }
 
     /* Recursively apply the affectation to the sons */
     sonsnbr = pmptr->etree->nodetab[rootnum].sonsnbr;
@@ -116,7 +99,7 @@ propMappSubtree( propmap_t    *pmptr,
     if(pmptr->allcand)
     {
         pmptr->candtab[rootnum].fcandnum = 0;
-        pmptr->candtab[rootnum].lcandnum = pmptr->procnbr - 1;
+        pmptr->candtab[rootnum].lcandnum = pmptr->candnbr - 1;
         pmptr->candtab[rootnum].cluster  = cluster;
     }
     else
@@ -124,21 +107,12 @@ propMappSubtree( propmap_t    *pmptr,
         pmptr->candtab[rootnum].fcandnum = fcandnum;
         pmptr->candtab[rootnum].lcandnum = lcandnum;
         pmptr->candtab[rootnum].cluster  = cluster;
-
     }
 
-    /* This treenode is a leave, split it and return */
+    /* This treenode is a leave, return */
     if(pmptr->etree->nodetab[rootnum].sonsnbr == 0)
     {
         memFree_null(cost_remain);
-        if ( pmptr->split ) {
-            splitOnProcs( pmptr->symbmtx,
-                          pmptr->extrasymb,
-                          pmptr->extracost,
-                          pmptr->ctrl,
-                          pmptr->dofptr,
-                          rootnum, candnbr );
-        }
         return;
     }
 
@@ -147,20 +121,7 @@ propMappSubtree( propmap_t    *pmptr,
     for(p=0;p<candnbr;p++)
         cost_remain[p] -= isocost;
 
-    /* Split the treenode */
-    if ( pmptr->split ) {
-        splitOnProcs( pmptr->symbmtx,
-                      pmptr->extrasymb,
-                      pmptr->extracost,
-                      pmptr->ctrl,
-                      pmptr->dofptr,
-                      rootnum, candnbr );
-
-        /* Correct the subtree cost */
-        subtreeUpdateCost(rootnum, pmptr->costmtx, pmptr->etree);
-    }
-
-    /* Get after split cost remaining in the descendance of the treenode */
+    /* Get cost remaining in the descendance of the treenode */
     aspt_cost = pmptr->costmtx->cblktab[rootnum].subtree - pmptr->costmtx->cblktab[rootnum].total;
 
     /*
@@ -177,12 +138,12 @@ propMappSubtree( propmap_t    *pmptr,
     assert(fcand < candnbr);
     assert(candnbr > 1);
 
-    /* Make sure that the sum of cost_remain in used proc is at least equals to after split cost */
+    /* Make sure that the sum of cost_remain in used proc is at least equals to aspt_cost */
     cumul_cost = 0;
     for(i=fcand; i<candnbr; i++)
         cumul_cost += cost_remain[i];
 
-    if (cumul_cost > aspt_cost) {
+    if (cumul_cost < aspt_cost) {
         double ratio = aspt_cost / cumul_cost;
         for(i=fcand; i<candnbr; i++)
             cost_remain[i] *= ratio;
@@ -190,19 +151,6 @@ propMappSubtree( propmap_t    *pmptr,
 
     /* Compute the minimun participation rate of a candidat processor */
     epsilon = (CROSS_TOLERANCE * cumul_cost ) / (double)candnbr;
-
-#ifdef DEBUG_BLEND_SPLIT
-    {
-        fprintf(stdout, "Rootnum %ld fproc %ld lproc %ld [ ", (long)rootnum, (long)fcandnum, (long)lcandnum);
-        for(p=0;p<candnbr;p++)
-            fprintf(stdout, "%g ", cost_remain[p]);
-        fprintf(stdout, " ]\n");
-        fprintf(stdout, " Sons ");
-        for(i=0;i<pmptr->etree->nodetab[rootnum].sonsnbr;i++)
-            fprintf(stdout, " [%ld, %g] ", (long)i, pmptr->costmtx->cblktab[eTreeSonI(pmptr->etree, rootnum, i)].subtree);
-        fprintf(stdout, "\n");
-    }
-#endif
 
     /*
      * Compute the cand group for each proc
@@ -374,16 +322,13 @@ propMappSubtree( propmap_t    *pmptr,
 }
 
 void
-propMappTree( BlendCtrl         *ctrl,
-              EliminTree        *etree,
-              Cand              *candtab,
-              CostMatrix        *costmtx,
-              SymbolMatrix      *symbmtx,
-              const Dof         *dofptr,
-              ExtraSymbolMatrix *extrasymb,
-              ExtraCostMatrix   *extracost,
-              pastix_int_t       procnbr,
-              int split, int nocrossproc, int allcand )
+propMappTree( Cand               *candtab,
+              const EliminTree   *etree,
+              const CostMatrix   *costmtx,
+              const SymbolMatrix *symbmtx,
+              const Dof          *dofptr,
+              pastix_int_t        candnbr,
+              int nocrossproc, int allcand )
 {
     propmap_t pmdata;
     pastix_int_t p;
@@ -391,27 +336,23 @@ propMappTree( BlendCtrl         *ctrl,
     double isocost;
 
     /* Prepare the initial cost_remain array */
-    MALLOC_INTERN(cost_remain, procnbr, double);
-    isocost = costmtx->cblktab[ eTreeRoot(etree) ].subtree / procnbr;
+    MALLOC_INTERN(cost_remain, candnbr, double);
+    isocost = costmtx->cblktab[ eTreeRoot(etree) ].subtree / candnbr;
 
-    for(p=0; p<procnbr; p++)
+    for(p=0; p<candnbr; p++)
         cost_remain[p] = isocost;
 
     /* Prepare the stucture */
-    pmdata.ctrl        = ctrl;
-    pmdata.etree       = etree;
     pmdata.candtab     = candtab;
+    pmdata.etree       = etree;
     pmdata.costmtx     = costmtx;
     pmdata.symbmtx     = symbmtx;
     pmdata.dofptr      = dofptr;
-    pmdata.extrasymb   = extrasymb;
-    pmdata.extracost   = extracost;
-    pmdata.procnbr     = procnbr;
-    pmdata.split       = split;
+    pmdata.candnbr     = candnbr;
     pmdata.nocrossproc = nocrossproc;
     pmdata.allcand     = allcand;
 
     propMappSubtree( &pmdata, eTreeRoot(etree),
-                     0, procnbr-1,
+                     0, candnbr-1,
                      NOCLUSTER, cost_remain);
 }

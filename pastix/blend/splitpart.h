@@ -18,16 +18,13 @@
 
 #endif
 
-void propMappTree( BlendCtrl         *ctrl,
-                   EliminTree        *etree,
-                   Cand              *candtab,
-                   CostMatrix        *costmtx,
-                   SymbolMatrix      *symbmtx,
-                   const Dof         *dofptr,
-                   ExtraSymbolMatrix *extrasymb,
-                   ExtraCostMatrix   *extracost,
-                   pastix_int_t       procnbr,
-                   int split, int nocrossproc, int allcand );
+void propMappTree( Cand               *candtab,
+                   const EliminTree   *etree,
+                   const CostMatrix   *costmtx,
+                   const SymbolMatrix *symbmtx,
+                   const Dof          *dofptr,
+                   pastix_int_t        procnbr,
+                   int nocrossproc, int allcand );
 
 void  splitPart     (SymbolMatrix *, BlendCtrl *, const Dof *);
 pastix_int_t   check_candidat(SymbolMatrix *, BlendCtrl *);
