@@ -1,6 +1,5 @@
 /************************************************************/
 /**                                                        **/
-/**   NAME       : param_blend.h                           **/
 /**                                                        **/
 /**   AUTHORS    : Pascal HENON                            **/
 /**                                                        **/
@@ -27,41 +26,74 @@ typedef struct netperf_ {
 
 /*+ Structure containing the structure passed through the blend primitives +*/
 typedef struct BlendCtrl_ {
-  BlendParam        *option;
-  netperf           *perfptr;
+    pastix_int_t    count_ops ;      /*+ Print costs in term of number of elementary operations            +*/
+    pastix_int_t    debug ;          /*+ Make additional checks after each step                            +*/
+    pastix_int_t    timer;           /*+ Print execution times                                             +*/
+    pastix_int_t    ooc;             /*+ Enable the out-of-core version of Pastix (Option unused for now)  +*/
+    pastix_int_t    ricar;           /*+ Enable the ILU(k) dedicated steps                                 +*/
+    pastix_int_t    leader;          /*+ Leader for sequential tasks                                       +*/
 
-  pastix_int_t                clustnum;      /*+ Local cluster ID                       +*/
-  pastix_int_t                clustnbr;      /*+ Number of MPI process                  +*/
-  pastix_int_t                procnbr;       /*+ Number total of processors             +*/
-  pastix_int_t                proclocnbr;    /*+ Number of processors for one clustnum  +*/
-  pastix_int_t                thrdnbr;       /*+ Number total of threads                +*/
-  pastix_int_t                thrdlocnbr;    /*+ Number of threads for one clustnum     +*/
-  pastix_int_t                cudanbr;       /*+ Number of cuda device for one clustnum +*/
-  pastix_int_t                bublnbr;       /*+ Number of threads for one clustnum     +*/
-  pastix_int_t               *proc2clust;    /*+ proc2clust[i] = cluster of proc i      +*/
-  BubbleTree        *btree;         /*+ arbre de bulles +*/
-  EliminGraph       *egraph;        /*+ the elimination graph (only in vertex) +*/
-  EliminTree        *etree;         /*+ the elimination tree                   +*/
-  CostMatrix        *costmtx;       /*+ the cost bounded to each cblk and blok +*/
-  Cand              *candtab;       /*+ processor candidate tab                +*/
-  Queue             *lheap;         /*+ Use to order leaves                    +*/
-  ExtendVectorINT   *intvec;        /*+ vector of pastix_int_t used by several routines.
-                                     The aim of this variable is to avoid
-                                     repetedly memAlloc and memFree call      +*/
-  ExtendVectorINT   *intvec2;       /*+ Another one                            +*/
-  FILE              *tracefile;
+    /* Proportional Mapping */
+    pastix_int_t    allcand;         /*+ All processors are candidate for each cblk                        +*/
+    pastix_int_t    nocrossproc;     /*+ Forbid a processor to be candidate in two
+                                      different branches shared with different partners                 +*/
+    pastix_int_t    costlevel;       /*+ Enable/disable computation and use of subtree cost                +*/
+
+    /* Spliting options */
+    pastix_int_t    blcolmin ;       /*+ Minimun number of columns for a good use of BLAS primitives       +*/
+    pastix_int_t    blcolmax;        /*+ Maximum number of columns for a good use of BLAS primitives       +*/
+    pastix_int_t    abs;             /*+ Adaptative block size:
+                                      - 0, all block are cut to blcolmin
+                                      - >0, try to make (ncand*abs) cblk                              +*/
+
+    /* 2D */
+    pastix_int_t    autolevel;       /*+ Level to shift 1D to 2D is automaticly computed                   +*/
+    pastix_int_t    level2D;         /*+ number of level to treat with a 2D distribution                   +*/
+    double          ratiolimit;
+    pastix_int_t    blblokmin ;      /*+ Minimum blocking size in 2D distribution                          +*/
+    pastix_int_t    blblokmax;       /*+ Maximum blocking size in 2D distribution                          +*/
+
+    /* Architecture */
+    pastix_int_t    clustnum;        /*+ Id of current MPI process                                         +*/
+    pastix_int_t    clustnbr;        /*+ Number of MPI processes                                           +*/
+    pastix_int_t    total_nbcores;   /*+ Total number of physical cores used for the simulation            +*/
+    pastix_int_t    total_nbthrds;   /*+ Total number of threads used for the simulation                   +*/
+    pastix_int_t    local_nbcores;   /*+ Local number of physical cores used by the current MPI process    +*/
+    pastix_int_t    local_nbthrds;   /*+ Local number of threads used by the current MPI process           +*/
+    pastix_int_t    local_nbctxts;   /*+ Local number of contexts (used for dynamic scheduler and runtimes)+*/
+    pastix_int_t   *clust2smp;       /*+ clust2smp[i] = SMP node on which i_th MPI
+                                         process is running, if multiple MPI processes per node            +*/
+    pastix_int_t   *core2clust;      /*+ core2clust[i] = cluster owning the core i                         +*/
+
+    pastix_int_t   *iparm;           /*+ In/Out Integer parameters +*/
+    double         *dparm;           /*+ In/Out Float parameters   +*/
+
+    BubbleTree        *btree;         /*+ arbre de bulles +*/
+    EliminGraph       *egraph;        /*+ the elimination graph (only in vertex) +*/
+    EliminTree        *etree;         /*+ the elimination tree                   +*/
+    CostMatrix        *costmtx;       /*+ the cost bounded to each cblk and blok +*/
+    Cand              *candtab;       /*+ processor candidate tab                +*/
+    Queue             *lheap;         /*+ Use to order leaves                    +*/
+    ExtendVectorINT   *intvec;        /*+ vector of pastix_int_t used by several routines.
+                                       The aim of this variable is to avoid
+                                       repetedly memAlloc and memFree call      +*/
+    ExtendVectorINT   *intvec2;       /*+ Another one                            +*/
+    FILE              *tracefile;
 } BlendCtrl;
 
+void  blendCtrlInit (BlendCtrl *ctrl,
+                             pastix_int_t  clustnum,
+                             pastix_int_t  clustnbr,
+                             pastix_int_t  local_procnbr,
+                             pastix_int_t  local_thrdnbr,
+                             pastix_int_t *param);
 
+void blendCtrlExit (BlendCtrl *);
 
-/* Calcul le numero du process MPI */
-#define CLUSTNUM(proc) (proc/(ctrl->procnbr/ctrl->clustnbr))
-/* Calcul le noeud SMP sur lequel se trouve le process MPI si plusieurs par noeud SMP */
-#define SMPNUM(clust) ( (clust*(ctrl->procnbr/ctrl->clustnbr)) / ctrl->option->procnbr)
-
-
-pastix_int_t      blendCtrlInit (BlendCtrl *, pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t, BlendParam *);
-void     blendCtrlExit (BlendCtrl *);
-void     perfcluster2  (pastix_int_t procsrc, pastix_int_t procdst, pastix_int_t sync_comm_nbr, 
-			netperf *np, BlendCtrl *ctrl);
+void getCommunicationCosts( BlendCtrl *ctrl,
+                            pastix_int_t clustsrc,
+                            pastix_int_t clustdst,
+                            pastix_int_t sync_comm_nbr,
+                            double *startup,
+                            double *bandwidth);
 

@@ -17,7 +17,6 @@
 #include "dof.h"
 /* #include "extrastruct.h" */
 /* #include "param_comm.h" */
-#include "param_blend.h"
 #include "blendctrl.h"
 /* #include "perf.h" */
 /* #include "costfunc.h" */

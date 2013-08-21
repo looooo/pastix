@@ -15,7 +15,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "extendVector.h"
-#include "param_blend.h"
 #include "blendctrl.h"
 #include "csc.h"
 #include "updown.h"
@@ -37,7 +36,7 @@ void costMatrixBuild(CostMatrix *costmtx, const SymbolMatrix * symbmtx, const Do
   pastix_int_t i;
   MALLOC_INTERN(costmtx->cblktab, symbmtx->cblknbr, CostCblk);
   MALLOC_INTERN(costmtx->bloktab, symbmtx->bloknbr, CostBlok);
-  
+
   for(i=0;i<symbmtx->cblknbr;i++)
     cblkComputeCost(i, costmtx, symbmtx, dofptr);
 }
@@ -54,7 +53,7 @@ void costMatrixCorrect(CostMatrix *costmtx, const SymbolMatrix *symbmtx, Cand * 
 }
 
 
-/*+ Summ the subtree cost node ; do not recompute node cost +*/  
+/*+ Summ the subtree cost node ; do not recompute node cost +*/
 double subtreeUpdateCost(pastix_int_t rootnum, CostMatrix *costmtx, const EliminTree *etree)
 {
   pastix_int_t i;
@@ -65,9 +64,9 @@ double subtreeUpdateCost(pastix_int_t rootnum, CostMatrix *costmtx, const Elimin
 }
 
 
-/*+ Summ the subtree cost local node ; do not recompute node cost +*/  
-double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, const SymbolMatrix *symbmtx, 
-			      const SimuCtrl *simuctrl, const Dof * dofptr,  pastix_int_t clustnum)
+/*+ Summ the subtree cost local node ; do not recompute node cost +*/
+double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, const SymbolMatrix *symbmtx,
+                              const SimuCtrl *simuctrl, const Dof * dofptr,  pastix_int_t clustnum)
 {
 
   CostMatrix *costmtx = ctrl->costmtx;
@@ -80,9 +79,9 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
     {
       /* Subtree is not local */
       if (candtab[rootnum].cluster != clustnum)
-	{
-	  costmtx->cblktab[rootnum].total = 0.0;
-	}
+        {
+          costmtx->cblktab[rootnum].total = 0.0;
+        }
       /* If not, we don't touch the cost */
     }
   /* 2D */
@@ -91,27 +90,27 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
       /* Update cost */
       costmtx->cblktab[rootnum].total = cblkComputeCost2DLocal(rootnum, ctrl, symbmtx, dofptr, simuctrl);
     }
-  
+
   costmtx->cblktab[rootnum].subtree = costmtx->cblktab[rootnum].total;
 
   if ((candtab[rootnum].fccandnum <= clustnum) &&
       (candtab[rootnum].lccandnum >= clustnum))
     {
       for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-	costmtx->cblktab[rootnum].subtree += subtreeUpdateCostLocal(eTreeSonI(etree, rootnum, i), ctrl, 
-								    symbmtx, simuctrl, dofptr, clustnum);
+        costmtx->cblktab[rootnum].subtree += subtreeUpdateCostLocal(eTreeSonI(etree, rootnum, i), ctrl,
+                                                                    symbmtx, simuctrl, dofptr, clustnum);
     }
 #ifdef DEBUG_BLEND
   else
     {
       for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-	subtreeSetNullCost(eTreeSonI(etree, rootnum, i), ctrl, 
-			   symbmtx, simuctrl, clustnum);
+        subtreeSetNullCost(eTreeSonI(etree, rootnum, i), ctrl,
+                           symbmtx, simuctrl, clustnum);
     }
 #endif
 
   /* Sort the sons by decreasing order */
-  { 
+  {
       pastix_int_t son, i, sonsnbr;
       double cumul_cost, soncost;
       Queue *queue_tree;
@@ -123,13 +122,13 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
       for(i=0;i<sonsnbr;i++)
       {
           son = eTreeSonI(etree, rootnum, i);
-              
+
           /** Cost in the current subtree to be mapped **/
           cumul_cost = -ctrl->costmtx->cblktab[son].subtree;
-          
+
           /* Cost of the root node in the subtree */
           soncost    = -ctrl->costmtx->cblktab[son].total;
-          
+
           queueAdd2(queue_tree, son, cumul_cost, soncost);
       }
 
@@ -143,7 +142,7 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
 
       for(i=1;i<sonsnbr;i++)
       {
-          assert( ctrl->costmtx->cblktab[eTreeSonI(etree, rootnum, i)].subtree 
+          assert( ctrl->costmtx->cblktab[eTreeSonI(etree, rootnum, i)].subtree
                   <= ctrl->costmtx->cblktab[eTreeSonI(etree, rootnum, i-1)].subtree );
       }
   }
@@ -152,23 +151,23 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
   return costmtx->cblktab[rootnum].subtree;
 }
 
-void subtreeSetNullCost(pastix_int_t rootnum, const BlendCtrl * ctrl, 
-			const SymbolMatrix *symbmtx, const SimuCtrl *simuctrl, 
-			pastix_int_t clustnum)
+void subtreeSetNullCost(pastix_int_t rootnum, const BlendCtrl * ctrl,
+                        const SymbolMatrix *symbmtx, const SimuCtrl *simuctrl,
+                        pastix_int_t clustnum)
 {
-  CostMatrix *costmtx = ctrl->costmtx;
-  EliminTree *etree   = ctrl->etree;
-  pastix_int_t         i;
-  
-  ASSERT(ctrl->candtab[rootnum].cluster != clustnum, MOD_BLEND);
-  ASSERT(ctrl->proc2clust[simuctrl->blprtab[symbmtx->cblktab[rootnum].bloknum]] != clustnum, MOD_BLEND);
-  
-  costmtx->cblktab[rootnum].total   = 0.0;
-  costmtx->cblktab[rootnum].subtree = 0.0;
-  for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-    subtreeSetNullCost(eTreeSonI(etree, rootnum, i), ctrl, symbmtx, simuctrl, clustnum);
-  
-  return;
+    CostMatrix *costmtx = ctrl->costmtx;
+    EliminTree *etree   = ctrl->etree;
+    pastix_int_t         i;
+
+    assert(ctrl->candtab[rootnum].cluster != clustnum);
+    assert(ctrl->core2clust[ simuctrl->blprtab[symbmtx->cblktab[rootnum].bloknum] ] != clustnum );
+
+    costmtx->cblktab[rootnum].total   = 0.0;
+    costmtx->cblktab[rootnum].subtree = 0.0;
+    for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
+        subtreeSetNullCost(eTreeSonI(etree, rootnum, i), ctrl, symbmtx, simuctrl, clustnum);
+
+    return;
 }
 
 double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbptr, const Dof * dofptr)
@@ -186,17 +185,17 @@ double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const Symbol
       h *= (dofptr)->noddval;
       cost += E1Cost(L, h);
       for(j=i;j<symbptr->cblktab[cblknum+1].bloknum;j++)
-	{
+        {
 
-	  g = symbptr->bloktab[j].lrownum - symbptr->bloktab[j].frownum + 1;
-	  g *= (dofptr)->noddval;
-	  cost += E2Cost(L, h, g);
+          g = symbptr->bloktab[j].lrownum - symbptr->bloktab[j].frownum + 1;
+          g *= (dofptr)->noddval;
+          cost += E2Cost(L, h, g);
 #ifdef DEBUG_BLEND
-	  ASSERT(L > 0,MOD_BLEND);
-	  ASSERT(h > 0,MOD_BLEND);
-	  ASSERT(g > 0,MOD_BLEND);
+          ASSERT(L > 0,MOD_BLEND);
+          ASSERT(h > 0,MOD_BLEND);
+          ASSERT(g > 0,MOD_BLEND);
 #endif
-	}
+        }
     }
 #ifdef DEBUG_BLEND
 /*  ASSERT(cost >= 0,MOD_BLEND);*/
@@ -204,8 +203,8 @@ double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const Symbol
   costmtx->cblktab[cblknum].total = cost;
   return cost;
 }
-	
-double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, const SymbolMatrix *symbptr, 
+
+double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, const SymbolMatrix *symbptr,
                               const Dof * dofptr, const SimuCtrl *simuctrl)
 {
   double      cost = 0.0;
@@ -214,14 +213,14 @@ double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, cons
 
   L  = (symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum + 1);
   L *= (dofptr)->noddval;
-  
+
   /*  if (simuctrl->bloktab[symbptr->cblktab[cblknum].bloknum].tasknum != -1)*/
-  if (ctrl->proc2clust[simuctrl->blprtab[symbptr->cblktab[cblknum].bloknum]] == ctrl->clustnum)
+  if ( ctrl->core2clust[simuctrl->blprtab[symbptr->cblktab[cblknum].bloknum]] == ctrl->clustnum)
     cost = DIAGCost(L);
-  
+
   for(i=symbptr->cblktab[cblknum].bloknum+1;i<symbptr->cblktab[cblknum+1].bloknum;i++)
     {
-      if (ctrl->proc2clust[simuctrl->blprtab[i]] != ctrl->clustnum)
+      if (ctrl->core2clust[simuctrl->blprtab[i]] != ctrl->clustnum)
         continue;
 
       h     = symbptr->bloktab[i].lrownum - symbptr->bloktab[i].frownum + 1;
@@ -236,7 +235,7 @@ double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, cons
         }
     }
   return cost;
-}  
+}
 
 /*+ Compute cost of the cblk, return total cost +*/
 
@@ -248,8 +247,8 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 #ifndef DOF_CONSTANT
     pastix_int_t i;
 #endif
-    
-    /** we need the height of cblk non empty lines  and the broadness 
+
+    /** we need the height of cblk non empty lines  and the broadness
       of the cbl to compute the local compute cost **/
 #ifdef DOF_CONSTANT
     l = (symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1)*(dofptr)->noddval;
@@ -263,23 +262,23 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
     for(k=symbmtx->cblktab[cblknum].bloknum;k<symbmtx->cblktab[cblknum+1].bloknum;k++)
       {
 #ifdef  DOF_CONSTANT
-	g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*(dofptr)->noddval;
+        g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*(dofptr)->noddval;
 #else
-	for(i=symbmtx->bloktab[k].frownum;i<=symbmtx->bloktab[k].lrownum;i++)
-	  g+= noddDlt(dofptr, i);
+        for(i=symbmtx->bloktab[k].frownum;i<=symbmtx->bloktab[k].lrownum;i++)
+          g+= noddDlt(dofptr, i);
 #endif
       }
 
 
     costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr = g;
-    
+
     /** retrieve diag height so let g be the odb non empty lines height **/
     g -= l;
 
     /** compute the local compute cost **/
     if(l!=0)
       {
-	costmtx->cblktab[cblknum].compute = computeCost(l, g);
+        costmtx->cblktab[cblknum].compute = computeCost(l, g);
       }
     else
       costmtx->cblktab[cblknum].compute = 0;
@@ -288,40 +287,40 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
     for(k=symbmtx->cblktab[cblknum].bloknum+1;k<symbmtx->cblktab[cblknum+1].bloknum;k++)
       {
 #ifdef  DOF_CONSTANT
-	h = (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*(dofptr)->noddval;
+        h = (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*(dofptr)->noddval;
 #endif
 
-	/* g is the odb lines number above this odb (odb lines include)*/
-	costmtx->bloktab[k].linenbr     = g;
-	/*if(l!=0 && h != 0 && g != 0)*/
-	costmtx->bloktab[k].contrib     = contribCompCost(l, h, g);
-	/*else
-	  costmtx->bloktab[k].contrib     = 0;*/
-	/*if(h != 0 && g != 0)*/
-	costmtx->bloktab[k].contrib    += contribAddCost(h, g);
+        /* g is the odb lines number above this odb (odb lines include)*/
+        costmtx->bloktab[k].linenbr     = g;
+        /*if(l!=0 && h != 0 && g != 0)*/
+        costmtx->bloktab[k].contrib     = contribCompCost(l, h, g);
+        /*else
+          costmtx->bloktab[k].contrib     = 0;*/
+        /*if(h != 0 && g != 0)*/
+        costmtx->bloktab[k].contrib    += contribAddCost(h, g);
 
-	costmtx->cblktab[cblknum].send += costmtx->bloktab[k].contrib;
-	g -= h;
+        costmtx->cblktab[cblknum].send += costmtx->bloktab[k].contrib;
+        g -= h;
       }
-    costmtx->cblktab[cblknum].total = costmtx->cblktab[cblknum].compute 
+    costmtx->cblktab[cblknum].total = costmtx->cblktab[cblknum].compute
                                           + costmtx->cblktab[cblknum].send;
 
 #ifdef DEBUG_BLEND
    {
       pastix_int_t stride=0;
       double cost2=0;
-     
+
       for(k=symbmtx->cblktab[cblknum].bloknum; k<symbmtx->cblktab[cblknum+1].bloknum;k++)
-	stride += symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1;
+        stride += symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1;
       ASSERT( costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr == stride * dofptr->noddval,MOD_BLEND);
-    
+
       ASSERT(costmtx->cblktab[cblknum].total > 0,MOD_BLEND);
-      cost2 = cblkCost(symbmtx->cblktab[cblknum+1].bloknum -  symbmtx->cblktab[cblknum].bloknum, 
-		       &(symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum]), 
-		       dofptr);
+      cost2 = cblkCost(symbmtx->cblktab[cblknum+1].bloknum -  symbmtx->cblktab[cblknum].bloknum,
+                       &(symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum]),
+                       dofptr);
       /* Values should be equals but we accept the machine computational error */
-      ASSERT(costmtx->cblktab[cblknum].total - cost2 < 10e-15, 
-	     MOD_BLEND);
+      ASSERT(costmtx->cblktab[cblknum].total - cost2 < 10e-15,
+             MOD_BLEND);
 
     }
 #endif
@@ -339,7 +338,7 @@ double computeCost(pastix_int_t L, pastix_int_t g_total)
 {
   double total = 0;
   total =(double)(L*PERF_COPY(L)+ PERF_PPF(L) + PERF_TRSM(L, g_total) + L*PERF_SCAL(g_total)
-		 + L*PERF_COPY(g_total)); 
+                 + L*PERF_COPY(g_total));
   return (total>0)?total:0;
 }
 #else
@@ -366,7 +365,7 @@ double contribCompCost(pastix_int_t L, pastix_int_t h, pastix_int_t g)
   if(total>1)
     return 0.99;*/
 #endif
-  
+
   return (total>0)?total:0;
 }
 
@@ -377,44 +376,44 @@ double contribAddCost(pastix_int_t h, pastix_int_t g)
   ASSERT(h>=0,MOD_BLEND);
   ASSERT(g>0,MOD_BLEND);
 #endif
-  
+
   total = (double)(PERF_GEAM(g, h));
 
   return (total>0)?total:0;
 }
 
 
-double costFtgtSend(pastix_int_t clustsrc, pastix_int_t sync_comm_nbr, FanInTarget *ftgt, BlendCtrl *ctrl, const Dof * dofptr)
+double costFtgtSend(pastix_int_t clustsrc,
+                    pastix_int_t sync_comm_nbr,
+                    FanInTarget *ftgt,
+                    BlendCtrl *ctrl,
+                    const Dof * dofptr)
 {
   pastix_int_t ddl_coefnbr = 0;
   pastix_int_t ddl_delta   = 0;
+  pastix_int_t clustdst    = ctrl->core2clust[ftgt->infotab[FTGT_PROCDST]];
+  double startup, bandwidth;
 
-  if(clustsrc == ctrl->proc2clust[ftgt->infotab[FTGT_PROCDST]])
+  if( clustsrc == clustdst )
     return 0.0;
 
+  assert( clustsrc >= 0 );
 
-#ifdef DEBUG_BLEND
-  ASSERT(clustsrc >= 0,MOD_BLEND);
-  /*if(procsrc < 0)
-    fprintf(stdout, "Procsrc %ld procdest %ld \n", (long)procsrc, (long)ftgt->infotab[FTGT_PROCDST]);*/
-#endif
 #ifdef DOF_CONSTANT
   ddl_delta   = (ftgt->infotab[FTGT_LCOLNUM]-ftgt->infotab[FTGT_FCOLNUM]+1)*dofptr->noddval;
-/*  ddl_coefnbr = (ftgt->indtab[ftgt->infotab[FTGT_BLOKNBR]]*(dofptr->noddval))*ddl_delta;*/
+  /*  ddl_coefnbr = (ftgt->indtab[ftgt->infotab[FTGT_BLOKNBR]]*(dofptr->noddval))*ddl_delta;*/
   ddl_coefnbr = (ftgt->infotab[FTGT_LROWNUM] -  ftgt->infotab[FTGT_FROWNUM]+1)*ddl_delta*dofptr->noddval;
 #else
   /** Oimbe Pas implemente **/
   fprintf(stderr, "costFtgtSend not implemented for the case dof non constant \n");
   EXIT(MOD_BLEND,NOTIMPLEMENTED_ERR);
 #endif
-#ifdef DEBUG_BLEND
-  ASSERT(ddl_coefnbr > 0,MOD_BLEND);
-#endif
-  perfcluster2(clustsrc, ctrl->proc2clust[ftgt->infotab[FTGT_PROCDST]], sync_comm_nbr, ctrl->perfptr, ctrl);
 
-  return (ctrl->perfptr->startup 
-	  + ctrl->perfptr->bandwidth * (ddl_coefnbr*sizeof(double) + MAXINFO * sizeof(pastix_int_t)));
+  assert(ddl_coefnbr > 0);
 
+  getCommunicationCosts( ctrl, clustsrc, clustdst, sync_comm_nbr, &startup, &bandwidth);
+
+  return (startup + bandwidth * (ddl_coefnbr*sizeof(double) + MAXINFO * sizeof(pastix_int_t)));
 }
 
 double costFtgtAdd(FanInTarget *ftgt, const Dof * dofptr)
@@ -447,7 +446,7 @@ double DIAGCost(pastix_int_t L)
 double E1Cost(pastix_int_t L, pastix_int_t g)
 {
   return (double)(PERF_TRSM(L, g) + L*PERF_SCAL(g)
-		 + L*PERF_COPY(g));
+                 + L*PERF_COPY(g));
 }
 double E2Cost(pastix_int_t L, pastix_int_t h, pastix_int_t g)
 {
@@ -478,8 +477,8 @@ double cblkMaxCost(pastix_int_t cblknbr, const CostMatrix *costmtx)
     double maxcost;
     maxcost = 0;
     for(i=0;i< cblknbr;i++)
-	if(costmtx->cblktab[i].total > maxcost)
-	    maxcost = costmtx->cblktab[i].total;
+        if(costmtx->cblktab[i].total > maxcost)
+            maxcost = costmtx->cblktab[i].total;
     return maxcost;
 }
 
@@ -490,10 +489,10 @@ double totalCost(pastix_int_t cblknbr, const CostMatrix *costmtx)
     pastix_int_t i;
     double total=0;
     for(i=0;i<cblknbr;i++)
-	total += costmtx->cblktab[i].total;
+        total += costmtx->cblktab[i].total;
     return total;
 }
-    
+
 
 double memorySpaceCost(const SolverMatrix *solvmtx)
 {
@@ -534,13 +533,13 @@ void printSolverInfo(FILE *out, const SolverMatrix * solvmtx, const SymbolMatrix
   pastix_int_t procnum = solvmtx->clustnum;
   double totalspace = memorySpaceCost(solvmtx);
   fprintf(out,   " %ld : Number of operations             : %g \n", (long)procnum,
-	  recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
+          recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
   fprintf(out,   " %ld : Number of Column Bloks           : %ld \n", (long)procnum, (long)symbmtx->cblknbr);
   fprintf(out,   " %ld : Number of Bloks                  : %ld \n", (long)procnum, (long)symbmtx->bloknbr);
   fprintf(out,   " %ld : Number of Non Null Coeff         : %ld --> %g Octs \n",
-	  (long)procnum, (long)solvmtx->coefnbr, (double)solvmtx->coefnbr*sizeof(double));
+          (long)procnum, (long)solvmtx->coefnbr, (double)solvmtx->coefnbr*sizeof(double));
   fprintf(out,   " %ld : ExtraStructure Memory Space      : %g Octs \n", (long)procnum, totalspace - (double)solvmtx->coefnbr*sizeof(double));
-  fprintf(out,   " %ld : Total Memory space               : %g  Octs\n", (long)procnum, totalspace); 
+  fprintf(out,   " %ld : Total Memory space               : %g  Octs\n", (long)procnum, totalspace);
 }
 
 
@@ -598,6 +597,3 @@ double cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
     cost = (double)PERF_TRSV(L) + (double) PERF_GEMV(L, n-L);
     return cost;
 }
-
-
-

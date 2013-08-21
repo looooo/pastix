@@ -16,8 +16,12 @@
  **/
 #include "common.h"
 #include "order.h"
-#include "param_blend.h"
 #include "perf.h"
+#include "elimin.h"
+#include "cost.h"
+#include "cand.h"
+#include "extendVector.h"
+#include "blendctrl.h"
 #include "blend.h"
 
 pastix_int_t sizeofsolver(SolverMatrix *solvptr, pastix_int_t *iparm);
@@ -35,7 +39,7 @@ pastix_int_t sizeofsolver(SolverMatrix *solvptr, pastix_int_t *iparm);
 void pastix_task_blend(pastix_data_t *pastix_data)
 {
     Dof            dofstr;
-    BlendParam     blendpar;
+    BlendCtrl      ctrl;
     MPI_Comm       pastix_comm = pastix_data->inter_node_comm;
     pastix_int_t   procnbr  = pastix_data->inter_node_procnbr;
     pastix_int_t   procnum  = pastix_data->inter_node_procnum;
@@ -57,16 +61,16 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     dofConstant(&dofstr, 0, pastix_data->symbmtx->nodenbr,
                 ((iparm[IPARM_DOF_COST] == 0)?iparm[IPARM_DOF_NBR]:iparm[IPARM_DOF_COST]));
 
-    blendParamInit( &blendpar, procnum, iparm );
-    blendpar.dparm = dparm;
+    blendCtrlInit( &ctrl, procnum, procnbr,
+                   iparm[IPARM_THREAD_NBR], iparm[IPARM_THREAD_NBR], iparm );
+    ctrl.dparm = dparm;
 
 #ifdef FORCE_NOSMP
     iparm[IPARM_THREAD_NBR] = 1;
 #endif
 
-    solverBlend(solvmatr, pastix_data->symbmtx,
-                procnbr, iparm[IPARM_THREAD_NBR], iparm[IPARM_CUDA_NBR],
-                procnum, &blendpar, &dofstr );
+    solverBlend( &ctrl, solvmatr, pastix_data->symbmtx, &dofstr );
+    blendCtrlExit(&ctrl);
 
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);

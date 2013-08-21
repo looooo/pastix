@@ -10,213 +10,210 @@
 #include "cand.h"
 #include "queue.h"
 #include "bulles.h"
-#include "param_blend.h"
-/* #include "param_comm.h" */
-/* #include "symbol.h" */
-/* #include "ftgt.h" */
-/* #include "simu.h" */
-/* #include "assert.h" */
 #include "blendctrl.h"
 #include "perf.h"
 
-
-/*void perfcluster(pastix_int_t procsrc, pastix_int_t procdst, netperf *np, BlendCtrl *ctrl)
+void getCommunicationCosts( BlendCtrl   *ctrl,
+                            pastix_int_t clustsrc,
+                            pastix_int_t clustdst,
+                            pastix_int_t sync_comm_nbr,
+                            double      *startup,
+                            double      *bandwidth)
 {
-#ifdef DEBUG_BLEND
-  ASSERT(procsrc>=0 && procsrc < ctrl->procnbr,MOD_BLEND);
-  ASSERT(procdst>=0 && procdst < ctrl->procnbr,MOD_BLEND);
-#endif
+    assert((clustsrc >= 0) && (clustsrc < ctrl->clustnbr));
+    assert((clustdst >= 0) && (clustdst < ctrl->clustnbr));
+    assert((sync_comm_nbr > 0) && (sync_comm_nbr <= ctrl->clustnbr));
 
-  if(procsrc == procdst)
+    if(clustsrc == clustdst)
     {
-      np->startup   = 0;
-      np->bandwidth = 0;
-      return;
+        *startup   = 0.;
+        *bandwidth = 0.;
+        return;
     }
 
-  if(CLUSTNUM(procsrc) == CLUSTNUM(procdst))
-  {
-      np->startup   = TIME_STARTUP_1;
-      np->bandwidth = TIME_BANDWIDTH_1;
-      return;
-    }
-  else
+    /* Shared Memory */
+    if( ctrl->clust2smp[clustsrc] == ctrl->clust2smp[clustdst] )
     {
-      np->startup   = CLUSTER_STARTUP_1;
-      np->bandwidth = CLUSTER_BANDWIDTH_1;
-      return;
+        switch (sync_comm_nbr)
+        {
+        case 1:
+        case 2:
+            *startup   = SHARED_STARTUP_1;
+            *bandwidth = SHARED_BANDWIDTH_1;
+            return;
+        case 3:
+        case 4:
+            *startup   = SHARED_STARTUP_2;
+            *bandwidth = SHARED_BANDWIDTH_2;
+            return;
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+            *startup   = SHARED_STARTUP_4;
+            *bandwidth = SHARED_BANDWIDTH_4;
+            return;
+        default:
+            *startup   = SHARED_STARTUP_8;
+            *bandwidth = SHARED_BANDWIDTH_8;
+            return;
+        }
+    }
+    else
+    {
+        switch (sync_comm_nbr)
+        {
+        case 1:
+        case 2:
+            *startup   = CLUSTER_STARTUP_1;
+            *bandwidth = CLUSTER_BANDWIDTH_1;
+            return;
+        case 3:
+        case 4:
+            *startup   = CLUSTER_STARTUP_2;
+            *bandwidth = CLUSTER_BANDWIDTH_2;
+            return;
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+            *startup   = CLUSTER_STARTUP_4;
+            *bandwidth = CLUSTER_BANDWIDTH_4;
+            return;
+        default:
+            *startup   = CLUSTER_STARTUP_8;
+            *bandwidth = CLUSTER_BANDWIDTH_8;
+            return;
+        }
     }
 }
-*/
 
-void perfcluster2(pastix_int_t clustsrc, pastix_int_t clustdst, pastix_int_t sync_comm_nbr, netperf *np, BlendCtrl *ctrl)
-{
-#ifdef DEBUG_BLEND
-  ASSERT(clustsrc>=0 && clustsrc < ctrl->clustnbr,MOD_BLEND);
-  ASSERT(clustdst>=0 && clustdst < ctrl->clustnbr,MOD_BLEND);
-  ASSERT(sync_comm_nbr>0 && sync_comm_nbr <= ctrl->clustnbr,MOD_BLEND);
-#endif
-
-
-  if(clustsrc == clustdst)
-    {
-      np->startup   = 0;
-      np->bandwidth = 0;
-      return;
-    }
-
-
-  if(SMPNUM(clustsrc) == SMPNUM(clustdst))
-    {
-
-      /*fprintf(stderr, "MPI_SHARED for %ld \n", (long)sync_comm_nbr);*/
-      if(sync_comm_nbr <=2)
-        {
-          np->startup   = SHARED_STARTUP_1;
-          np->bandwidth = SHARED_BANDWIDTH_1;
-          return;
-        }
-      if(sync_comm_nbr<=4)
-        {
-          np->startup   = SHARED_STARTUP_2;
-          np->bandwidth = SHARED_BANDWIDTH_2;
-          return;
-        }
-      if(sync_comm_nbr<=8)
-        {
-          np->startup   = SHARED_STARTUP_4;
-          np->bandwidth = SHARED_BANDWIDTH_4;
-          return;
-        }
-      if(sync_comm_nbr > 8)
-        {
-          /*fprintf(stdout, "intra %ld extra %ld\n", intra, extra);*/
-          np->startup   = SHARED_STARTUP_8;
-          np->bandwidth = SHARED_BANDWIDTH_8;
-          return;
-        }
-
-    }
-  else
-    {
-      /*fprintf(stderr, "MPI for %ld \n", (long)sync_comm_nbr);*/
-      /*      extra++;*/
-      if(sync_comm_nbr<=2)
-        {
-          np->startup   = CLUSTER_STARTUP_1;
-          np->bandwidth = CLUSTER_BANDWIDTH_1;
-          return;
-        }
-      if(sync_comm_nbr<=4)
-        {
-          np->startup   = CLUSTER_STARTUP_2;
-          np->bandwidth = CLUSTER_BANDWIDTH_2;
-          return;
-        }
-      if(sync_comm_nbr<=8)
-        {
-          np->startup   = CLUSTER_STARTUP_4;
-          np->bandwidth = CLUSTER_BANDWIDTH_4;
-          return;
-        }
-      if(sync_comm_nbr > 8)
-        {
-          /*fprintf(stdout, "intra %ld extra %ld\n", intra, extra);*/
-          np->startup   = CLUSTER_STARTUP_8;
-          np->bandwidth = CLUSTER_BANDWIDTH_8;
-          return;
-        }
-    }
-
-}
-
-pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
-                  pastix_int_t clustnbr,
-                  pastix_int_t thrdlocnbr,
-                  pastix_int_t cudanbr,
-                  pastix_int_t clustnum,
-                  BlendParam *param)
+void
+blendCtrlInit(BlendCtrl    *ctrl,
+              pastix_int_t  procnum,
+              pastix_int_t  procnbr,
+              pastix_int_t  local_coresnbr,
+              pastix_int_t  local_thrdsnbr,
+              pastix_int_t *iparm)
 {
     pastix_int_t i;
 
-    ctrl->option  = param;
-    MALLOC_INTERN(ctrl->perfptr, 1, netperf);
+    /* Initialize options */
+    ctrl->count_ops = 1;
+    ctrl->debug     = 0;
+    ctrl->timer     = 1;
+    ctrl->ooc       = 0;
+    ctrl->ricar     = iparm[IPARM_INCOMPLETE];
+    ctrl->leader           = 0;
 
-    /* Nombre et numéro de processus MPI */
-    ctrl->clustnbr   = clustnbr;
-    ctrl->clustnum   = clustnum;
-    ctrl->cudanbr    = cudanbr;
+    /* Proportional Mapping options */
+    ctrl->allcand     = 0;
+    ctrl->nocrossproc = 0;
+    ctrl->costlevel   = 1;
 
-#ifdef PASTIX_DYNSCHED
-    /* Le nombre de coeur par cpu est est donné par iparm[IPARM_CPU_BY_NODE]
-       et a defaut par sysconf(_SC_NPROCESSORS_ONLN)                          */
-    if (ctrl->option->iparm[IPARM_CPU_BY_NODE] != 0)
-      ctrl->option->procnbr = ctrl->option->iparm[IPARM_CPU_BY_NODE];
+    /* Spliting options */
+    ctrl->blcolmin = 60;
+    ctrl->blcolmax = 120;
+    ctrl->blcolmin = iparm[IPARM_MIN_BLOCKSIZE];
+    ctrl->blcolmax = iparm[IPARM_MAX_BLOCKSIZE];
+    ctrl->abs      = iparm[IPARM_ABS];
+    if(ctrl->blcolmin > ctrl->blcolmax)
+    {
+        errorPrint("Parameter error : blocksize max < blocksize min (cf. iparm.txt).");
+        assert(ctrl->blcolmin <= ctrl->blcolmax);
+    }
 
-    /* Calcul du nombre de cpu total a notre disposition */
-    if (ctrl->option->smpnbr)
-      ctrl->procnbr = ctrl->option->procnbr * ctrl->option->smpnbr;
+    /* 2D options */
+    ctrl->autolevel  = 0;
+    ctrl->level2D    = 100000000;
+    ctrl->level2D    = iparm[IPARM_DISTRIBUTION_LEVEL];
+    ctrl->ratiolimit = 0.0;
+    ctrl->ratiolimit = (double)(iparm[IPARM_DISTRIBUTION_LEVEL]);
+    ctrl->blblokmin  = 90;
+    ctrl->blblokmax  = 140;
+    ctrl->blblokmin  = iparm[IPARM_MIN_BLOCKSIZE];
+    ctrl->blblokmax  = iparm[IPARM_MAX_BLOCKSIZE];
+    /* OOC works only with 1D structures */
+    if(ctrl->ooc)
+    {
+        pastix_print( procnum, 0, "Force 1D distribution because of OOC \n" );
+        ctrl->ratiolimit = INTVALMAX;
+    }
+
+    if (ctrl->autolevel)
+        printf("ratiolimit=%lf\n",ctrl->ratiolimit);
     else
-      ctrl->procnbr = ctrl->option->procnbr * clustnbr;
+        printf("level2D=%ld\n", (long) ctrl->level2D);
 
-    /* Cas ou on a moins de proc que de processus MPI */
-    if (ctrl->clustnbr > ctrl->procnbr)
-      {
-        errorPrintW("blenctrlinit: plus de processus MPI que de processeurs disponible");
-        ctrl->procnbr = ctrl->clustnbr;
-/*      ctrl->option->procnbr = (int)ceil((double)ctrl->procnbr / (double)ctrl->option->smpnbr); */
-      }
+    /* Save iparm for other options */
+    ctrl->iparm = iparm;
 
-    /* Nombre de processeurs utilisés pour un processus MPI */
-    /* et nombre de threads demandés pour un processus MPI  */
-    ctrl->proclocnbr = ctrl->procnbr / ctrl->clustnbr;
-    ctrl->thrdlocnbr = thrdlocnbr;
-#else
+    /*
+     * Initialize architecture description
+     */
 
-    ctrl->proclocnbr = thrdlocnbr;
-    ctrl->thrdlocnbr = thrdlocnbr;
-    ctrl->procnbr    = ctrl->proclocnbr * ctrl->clustnbr;
-#endif
+    /* Id and number of MPI processes */
+    ctrl->clustnum = procnum;
+    ctrl->clustnbr = procnbr;
 
-    ctrl->thrdnbr = ctrl->thrdlocnbr * clustnbr;
-    ctrl->bublnbr = ctrl->thrdlocnbr;
+    /* Local informations */
+    ctrl->local_nbcores = local_coresnbr;
+    ctrl->local_nbthrds = local_thrdsnbr;
+    ctrl->local_nbctxts = ctrl->local_nbthrds;
 
-    /* Tableau d'affectation de processeur par processus MPI */
-    MALLOC_INTERN(ctrl->proc2clust, ctrl->procnbr, pastix_int_t);
-    for(i=0;i<ctrl->procnbr;i++)
-      ctrl->proc2clust[i] = CLUSTNUM(i);
+    /* Total information (should require a MPI_Reduce if different informations on each node) */
+    ctrl->total_nbcores = ctrl->local_nbcores * procnbr;
+    ctrl->total_nbthrds = ctrl->local_nbthrds * procnbr;
+
+    /* Create the array of associativity bewteen MPI process ids and SMP node ids */
+    /* Rq: We could use a MPI reduction for irregular pattern                     */
+    /* TODO: insert back the number of MPI processes per node                     */
+    MALLOC_INTERN(ctrl->clust2smp, ctrl->clustnbr, pastix_int_t);
+    for(i=0; i < ctrl->clustnbr; i++)
+        ctrl->clust2smp[i] = i;
+
+    /* Create the array of associativity bewteen core ids and MPI process ids */
+    /* Rq: We could use a MPI reduction for irregular pattern             */
+    MALLOC_INTERN(ctrl->core2clust, ctrl->total_nbcores, pastix_int_t);
+    for(i=0; i < ctrl->total_nbcores; i++)
+        ctrl->core2clust[i] = i / ctrl->local_nbcores;
 
     ctrl->egraph  = NULL;
     ctrl->etree   = NULL;
     ctrl->costmtx = NULL;
     ctrl->candtab = NULL;
+
     MALLOC_INTERN(ctrl->lheap, 1, Queue);
     queueInit(ctrl->lheap, 1000);
-    MALLOC_INTERN(ctrl->intvec, 1, ExtendVectorINT);
+
+    MALLOC_INTERN(ctrl->intvec,  1, ExtendVectorINT);
     MALLOC_INTERN(ctrl->intvec2, 1, ExtendVectorINT);
+    extendint_Init(ctrl->intvec,  10);
+    extendint_Init(ctrl->intvec2, 10);
 
 #ifdef PASTIX_DYNSCHED
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
 #endif
-    return ( (extendint_Init(ctrl->intvec, 10) != NULL) && (extendint_Init(ctrl->intvec2, 10) != NULL));
+
+    return;
 }
 
 
 void blendCtrlExit(BlendCtrl *ctrl)
 {
-  if(ctrl->perfptr)
-    memFree_null(ctrl->perfptr);
-  queueExit(ctrl->lheap);
-  memFree_null(ctrl->lheap);
-  extendint_Exit(ctrl->intvec);
-  memFree_null(ctrl->intvec);
-  extendint_Exit(ctrl->intvec2);
-  memFree_null(ctrl->intvec2);
+    queueExit(ctrl->lheap);
+    memFree_null(ctrl->lheap);
 
-  if(ctrl->proc2clust)
-    memFree_null(ctrl->proc2clust);
-  if(ctrl->candtab)
-    memFree_null(ctrl->candtab);
+    extendint_Exit(ctrl->intvec);
+    memFree_null(ctrl->intvec);
 
-  memFree_null(ctrl);
+    extendint_Exit(ctrl->intvec2);
+    memFree_null(ctrl->intvec2);
+
+    if(ctrl->clust2smp)
+        memFree_null(ctrl->clust2smp);
+    if(ctrl->core2clust)
+        memFree_null(ctrl->core2clust);
+    if(ctrl->candtab)
+        memFree_null(ctrl->candtab);
 }

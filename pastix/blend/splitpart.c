@@ -11,7 +11,6 @@
 #include "extrastruct.h"
 #include "extendVector.h"
 #include "cand.h"
-#include "param_blend.h"
 #include "queue.h"
 #include "bulles.h"
 #include "blendctrl.h"
@@ -57,7 +56,7 @@ void splitPart(SymbolMatrix *symbmtx,
     /** set tree level of each cblk **/
     /** OIMBE le faire apres partbuild **/
     candSetTreelevel(ctrl->candtab, ctrl->etree);
-    if(ctrl->option->costlevel)
+    if(ctrl->costlevel)
         candSetCostlevel(ctrl->candtab, ctrl->etree, ctrl->costmtx);
 
     /* initialize spt[tab] */
@@ -93,8 +92,8 @@ void splitPart(SymbolMatrix *symbmtx,
     MALLOC_INTERN(extracost->bloktab, symbmtx->bloknbr/3 + 1, CostBlok);
 
 
-    if((ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) &&
-       (ctrl->option->leader == ctrl->clustnum))
+    if((ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) &&
+       (ctrl->leader == ctrl->clustnum))
         fprintf(stdout, "   Using proportionnal mapping \n");
 
     /* Repartition symbolic matrix using proportionnal mapping method */
@@ -106,22 +105,22 @@ void splitPart(SymbolMatrix *symbmtx,
                   dofptr,
                   extrasymb,
                   extracost,
-                  ctrl->procnbr,
+                  ctrl->total_nbcores,
                   0,
-                  ctrl->option->nocrossproc,
-                  ctrl->option->allcand );
+                  ctrl->nocrossproc,
+                  ctrl->allcand );
 
     assert( candCheck( ctrl->candtab, symbmtx ) );
 
     /** set the distribution type (1D or 2D) for cblk **/
-    if(ctrl->option->autolevel)
+    if(ctrl->autolevel)
     {
-        /*setSubtreeBlokNbr(eTreeRoot(ctrl->etree), ctrl->etree, symbmtx, extrasymb, ctrl->option->blcolmin);
+        /*setSubtreeBlokNbr(eTreeRoot(ctrl->etree), ctrl->etree, symbmtx, extrasymb, ctrl->blcolmin);
          fprintf(stdout, "Total blok %ld \n", extrasymb->subtreeblnbr[eTreeRoot(ctrl->etree)]);*/
         setSubtreeDistribType(symbmtx, ctrl->costmtx, eTreeRoot(ctrl->etree), ctrl, D2);
     }
     else
-        setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->option->level2D);
+        setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->level2D);
 
     /* Rebuild the symbolic matrix */
     partBuild(symbmtx, extrasymb, ctrl->costmtx, extracost, ctrl, dofptr);
@@ -138,7 +137,7 @@ void splitPart(SymbolMatrix *symbmtx,
 
     subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
     candSetTreelevel(ctrl->candtab, ctrl->etree);
-    if(ctrl->option->costlevel)
+    if(ctrl->costlevel)
         candSetCostlevel(ctrl->candtab, ctrl->etree, ctrl->costmtx);
 
     extrasymbolExit(extrasymb);
@@ -148,10 +147,10 @@ void splitPart(SymbolMatrix *symbmtx,
 
     /* Set the cluster candidat according to the processor candidats */
     candSetClusterCand( ctrl->candtab, symbmtx->cblknbr,
-                        ctrl->proc2clust, ctrl->procnbr );
+                        ctrl->core2clust, ctrl->total_nbcores );
 
 #ifdef DEBUG_BLEND
-    if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if(ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, " New Cost of the Matrix %g \n", totalCost(symbmtx->cblknbr, ctrl->costmtx));
 #endif
 }
@@ -192,7 +191,7 @@ void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmt
 
         candnbr = ctrl->candtab[rootnum].lcandnum - ctrl->candtab[rootnum].fcandnum+1;
 
-        if(candnbr > (pastix_int_t)ctrl->option->ratiolimit)
+        if(candnbr > (pastix_int_t)ctrl->ratiolimit)
         {
             ctrl->candtab[rootnum].distrib = D2;
             for(i=0;i<ctrl->etree->nodetab[rootnum].sonsnbr;i++)
@@ -200,7 +199,7 @@ void setSubtreeDistribType(const SymbolMatrix *symbptr, const CostMatrix *costmt
         }
         else
         {
-            if (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+            if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
                 fprintf(stdout, "level %ld procnbr %ld subtreework %g \n",
                         (long)-ctrl->candtab[rootnum].treelevel, (long)candnbr,
                         costmtx->cblktab[rootnum].subtree);
@@ -246,15 +245,15 @@ void splitOnProcs(SymbolMatrix      *symbmtx,
 
 
     /* Compute minimun broadness for splitting this cblk */
-    if(procnbr > ctrl->option->ratiolimit)
+    if(procnbr > ctrl->ratiolimit)
     {
-        blas_min_col = ctrl->option->blblokmin;
-        blas_max_col = ctrl->option->blblokmax;
+        blas_min_col = ctrl->blblokmin;
+        blas_max_col = ctrl->blblokmax;
     }
     else
     {
-        blas_min_col = ctrl->option->blcolmin;
-        blas_max_col = ctrl->option->blcolmax;
+        blas_min_col = ctrl->blcolmin;
+        blas_max_col = ctrl->blcolmax;
     }
 
 
@@ -292,8 +291,8 @@ void splitOnProcs(SymbolMatrix      *symbmtx,
     }
     else
     {
-        pastix_int_t abs = ctrl->option->abs;
-        if(procnbr > ctrl->option->ratiolimit)
+        pastix_int_t abs = ctrl->abs;
+        if(procnbr > ctrl->ratiolimit)
         {
             abs *= 2; /* Increase abs for 2D */
         }
@@ -411,7 +410,7 @@ void  splitCblk(SymbolMatrix      *symbmtx,
     /*
      * XL: For Schur complement we keep the last column block.as full
      */
-    if (!(ctrl->option->iparm[IPARM_SCHUR] == API_YES &&
+    if (!(ctrl->iparm[IPARM_SCHUR] == API_YES &&
           symbmtx->cblktab[cblknum].lcolnum == symbmtx->nodenbr -1))
     {
         /** mark the cblk to be splitted **/

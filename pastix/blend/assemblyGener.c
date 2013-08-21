@@ -15,7 +15,6 @@
 #include "queue.h"
 #include "bulles.h"
 /* #include "simu.h" */
-#include "param_blend.h"
 #include "blendctrl.h"
 #include "assembly.h"
 #include "assemblyGener.h"
@@ -193,7 +192,7 @@ void assemblyGener(pastix_int_t clustnum, Assembly1D *assemb1D, Assembly2D *asse
       }
     memFree(localnbr);
 
-    if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if(ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
       {
         /*** Estimated amount of non local block ***/
         nlcoefnbr = 0;

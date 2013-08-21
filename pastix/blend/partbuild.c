@@ -14,7 +14,6 @@
 #include "cand.h"
 #include "queue.h"
 #include "bulles.h"
-#include "param_blend.h"
 #include "blendctrl.h"
 #include "csc.h"
 #include "updown.h"
@@ -68,7 +67,7 @@ void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
     symbmtx->cblknbr += extrasymb->addcblk;
     symbmtx->bloknbr += extrasymb->addblok;
 
-    if (ctrl->option->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+    if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
       {
         fprintf(stdout, "Number of column blocks created by splitting : %d\n", (int)(extrasymb->addcblk));
         fprintf(stdout, "Number of blocks creating by splitting       : %d\n", (int)(extrasymb->addblok));
@@ -262,7 +261,7 @@ void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
         }
 
 
-    if (ctrl->option->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+    if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
       {
         double        block_height_sum = 0.0;
         double        cblk_width_sum = 0.0;

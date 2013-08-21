@@ -1,6 +1,5 @@
 /************************************************************/
 /**                                                        **/
-/**   NAME       : param_blend.h                           **/
 /**                                                        **/
 /**   AUTHORS    : Pascal HENON                            **/
 /**                                                        **/
@@ -26,8 +25,6 @@ typedef struct BlendParam_ {
     pastix_int_t    ooc;             /*+ Enable the out-of-core version of Pastix (Option unused for now)  +*/
     pastix_int_t    ricar;           /*+ Enable the ILU(k) dedicated steps                                 +*/
     pastix_int_t    leader;          /*+ Leader for sequential tasks                                       +*/
-    pastix_int_t    smpnbr;          /*+ Number of smp node                                                +*/
-    pastix_int_t    procnbr;         /*+ Number of physical processors in a smp node                       +*/
 
     /* Proportional Mapping */
     pastix_int_t    allcand;         /*+ All processors are candidate for each cblk                        +*/
@@ -49,8 +46,26 @@ typedef struct BlendParam_ {
     pastix_int_t    blblokmin ;      /*+ Minimum blocking size in 2D distribution                          +*/
     pastix_int_t    blblokmax;       /*+ Maximum blocking size in 2D distribution                          +*/
 
+    /* Architecture */
+    pastix_int_t    clustnum;        /*+ Id of current MPI process                                         +*/
+    pastix_int_t    clustnbr;        /*+ Number of MPI processes                                           +*/
+    pastix_int_t    total_nbcores;   /*+ Total number of physical cores used for the simulation            +*/
+    pastix_int_t    total_nbthreads; /*+ Total number of threads used for the simulation                   +*/
+    pastix_int_t    local_nbcores;   /*+ Local number of physical cores used by the current MPI process    +*/
+    pastix_int_t    local_nbthrds; /*+ Local number of threads used by the current MPI process           +*/
+    pastix_int_t    local_nbctxt;    /*+ Local number of contexts (used for dynamic scheduler and runtimes)+*/
+
+    pastix_int_t    locprocnbr;    /*+ Number of processors for one clustnum  +*/
+    pastix_int_t    locthrdnbr;    /*+ Number of threads for one clustnum     +*/
+    pastix_int_t    procnbr;       /*+ Number total of processors             +*/
+    pastix_int_t    thrdnbr;       /*+ Number total of threads                +*/
+    pastix_int_t    bublnbr;       /*+ Number of threads for one clustnum     +*/
+
+    pastix_int_t      *proc2clust;    /*+ proc2clust[i] = cluster of proc i      +*/
+
     pastix_int_t   *iparm;           /*+ In/Out Integer parameters +*/
     double         *dparm;           /*+ In/Out Float parameters   +*/
+
 } BlendParam;
 
 pastix_int_t blendParamInit(BlendParam *, pastix_int_t, pastix_int_t *);

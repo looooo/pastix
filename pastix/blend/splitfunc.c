@@ -3,7 +3,6 @@
 #include "cost.h"
 #include "extrastruct.h"
 #include "dof.h"
-#include "param_blend.h"
 #include "elimin.h"
 #include "cand.h"
 #include "queue.h"

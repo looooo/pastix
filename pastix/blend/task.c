@@ -12,7 +12,6 @@
 #include "simu.h"
 #include "dof.h"
 #include "bulles.h"
-#include "param_blend.h"
 #include "blendctrl.h"
 #include "csc.h"
 #include "updown.h"
@@ -164,7 +163,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
                         task->ftgtcnt = 0;
                         task->ctrbcnt = 0;
                         task->bloknum2 = j;
-                        task->facebloknum = getFaceBlockE2(lastbloknum, j, k, symbptr, ctrl->option->ricar);
+                        task->facebloknum = getFaceBlockE2(lastbloknum, j, k, symbptr, ctrl->ricar);
                         lastbloknum = task->facebloknum;
                         task->cost = E2Cost(L, h, g);
                         timerSet(&(task->time), 0.0);
@@ -261,18 +260,14 @@ pastix_int_t getFaceBlockE2(pastix_int_t startsearch, pastix_int_t bloksrc, past
 
 double taskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)
 {
-#ifdef DEBUG_BLEND
-    ASSERT(clustsrc>=0 && clustsrc < ctrl->clustnbr,MOD_BLEND);
-    ASSERT(clustdst>=0 && clustdst < ctrl->clustnbr,MOD_BLEND);
+    double startup, bandwidth;
 
-#endif
-    if(clustsrc == clustdst)
-        return 0.0;
+    getCommunicationCosts( ctrl, clustsrc, clustdst,
+                           ctrl->candtab[taskptr->cblknum].lccandnum -
+                           ctrl->candtab[taskptr->cblknum].fccandnum + 1,
+                           &startup, &bandwidth );
 
-    perfcluster2(clustsrc, clustdst, ctrl->candtab[taskptr->cblknum].lccandnum-ctrl->candtab[taskptr->cblknum].fccandnum+1,ctrl->perfptr, ctrl);
+    assert( taskptr->taskid != COMP_1D );
 
-#ifdef DEBUG_BLEND
-    ASSERT(taskptr->taskid != COMP_1D,MOD_BLEND);
-#endif
-    return (ctrl->perfptr->startup + ctrl->perfptr->bandwidth * taskptr->mesglen);
+    return (startup + bandwidth * taskptr->mesglen);
 }

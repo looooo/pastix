@@ -15,7 +15,6 @@
 #include "cost.h"
 #include "elimin.h"
 #include "bulles.h"
-#include "param_blend.h"
 #include "blendctrl.h"
 #include "dof.h"
 #include "csc.h"
@@ -54,7 +53,7 @@ void splitPartLocal(BlendCtrl *ctrl, SimuCtrl * simuctrl,
     setTreeCostLevel(ctrl->candtab, ctrl->etree, ctrl->costmtx);
 
   /* Initialisation de la structure de d'arbre de bulles */
-  Bubble_InitTree(ctrl->btree, ctrl->thrdlocnbr);
+  Bubble_InitTree(ctrl->btree, ctrl->local_nbthrds);
 
   MALLOC_INTERN(bubble_cost, ctrl->btree->nodemax, double);
   for (i=0; i< ctrl->btree->nodemax; i++)
@@ -120,7 +119,7 @@ void propMappTreeLocal(BlendCtrl *ctrl, const SymbolMatrix *symbmtx,
                        const SimuCtrl * simuctrl, double * bubble_cost)
 {
   propMappSubtreeLocalNC(ctrl, symbmtx, simuctrl, ROOT(ctrl->etree),
-                         0, ctrl->thrdlocnbr-1, bubble_cost);
+                         0, ctrl->local_nbthrds-1, bubble_cost);
 }
 
 static inline void
@@ -425,15 +424,15 @@ int VerifTaskRepartition(BlendCtrl *ctrl, SimuCtrl * simuctrl){
         int nbfin=0, nberror;
         Queue ** copyqueue = NULL;
 
-        MALLOC_INTERN(indice,    ctrl->proclocnbr, int);
-        MALLOC_INTERN(fin,       ctrl->thrdlocnbr, int);
-        MALLOC_INTERN(value,     ctrl->thrdlocnbr, int);
-        MALLOC_INTERN(copyqueue, ctrl->thrdlocnbr, Queue*);
+        MALLOC_INTERN(indice,    ctrl->local_nbcores, int);
+        MALLOC_INTERN(fin,       ctrl->local_nbthrds, int);
+        MALLOC_INTERN(value,     ctrl->local_nbthrds, int);
+        MALLOC_INTERN(copyqueue, ctrl->local_nbthrds, Queue*);
 
         for (i=0; i<ctrl->procnbr; i++)
           indice[i] = 0;
 
-        for (i=0; i<ctrl->thrdlocnbr; i++){
+        for (i=0; i<ctrl->local_nbthrds; i++){
           fin[i] = 1;
           value[i] = -1;
           MALLOC_INTERN(copyqueue[i], 1, Queue);
@@ -441,9 +440,9 @@ int VerifTaskRepartition(BlendCtrl *ctrl, SimuCtrl * simuctrl){
                                    ctrl->btree->nodetab[i].taskheap);
         }
 
-        while (nbfin < ctrl->thrdlocnbr ){
+        while (nbfin < ctrl->local_nbthrds ){
 
-          for (i=0; i<ctrl->thrdlocnbr ; i++){
+          for (i=0; i<ctrl->local_nbthrds ; i++){
             if (fin[i] && value[i] < 0)
               {
                 if (queueSize(copyqueue[i]) > 0)
@@ -456,7 +455,7 @@ int VerifTaskRepartition(BlendCtrl *ctrl, SimuCtrl * simuctrl){
               }
           }
 
-          if (!(nbfin<ctrl->thrdlocnbr))
+          if (!(nbfin<ctrl->local_nbthrds))
             break;
 
           printf("tasktab ");
@@ -468,7 +467,7 @@ int VerifTaskRepartition(BlendCtrl *ctrl, SimuCtrl * simuctrl){
           printf("\n");
 
           printf("queue ");
-          for (i=0; i<ctrl->thrdlocnbr; i++)
+          for (i=0; i<ctrl->local_nbthrds; i++)
             printf("%d ", value[i]);
           printf("\n");
 
@@ -476,7 +475,7 @@ int VerifTaskRepartition(BlendCtrl *ctrl, SimuCtrl * simuctrl){
           for(i=simuctrl->clustab[ctrl->clustnum].fprocnum;
               i<simuctrl->clustab[ctrl->clustnum].lprocnum+1; i++)
             {
-              for(j=0; j<ctrl->thrdlocnbr; j++)
+              for(j=0; j<ctrl->local_nbthrds; j++)
                 {
                   if (value[j] != -1 &&
                       indice[i] < extendint_Size(simuctrl->proctab[i].tasktab) &&
@@ -492,7 +491,7 @@ int VerifTaskRepartition(BlendCtrl *ctrl, SimuCtrl * simuctrl){
                 }
             }
 
-          if (!(nberror < ctrl->proclocnbr*ctrl->thrdlocnbr)){
+          if (!(nberror < ctrl->local_nbcores*ctrl->local_nbthrds)){
             printf("tasktab ");
             for(i=simuctrl->clustab[ctrl->clustnum].fprocnum;
                 i<simuctrl->clustab[ctrl->clustnum].lprocnum+1; i++)
@@ -501,12 +500,12 @@ int VerifTaskRepartition(BlendCtrl *ctrl, SimuCtrl * simuctrl){
             printf("\n");
 
             printf("queue ");
-            for (i=0; i<ctrl->thrdlocnbr; i++)
+            for (i=0; i<ctrl->local_nbthrds; i++)
               printf("%d ", value[i]);
             printf("\n");
 
           }
-          ASSERT(nberror < ctrl->procnbr*ctrl->thrdlocnbr, MOD_BLEND);
+          ASSERT(nberror < ctrl->procnbr*ctrl->local_nbthrds, MOD_BLEND);
 
         }
       }

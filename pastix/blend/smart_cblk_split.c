@@ -11,7 +11,6 @@
 #include "extrastruct.h"
 #include "extendVector.h"
 #include "cand.h"
-#include "param_blend.h"
 #include "queue.h"
 #include "bulles.h"
 #include "blendctrl.h"
@@ -385,8 +384,8 @@ int smart_cblk_split(BlendCtrl      * ctrl,
     }
   else
     {
-      pastix_int_t abs = ctrl->option->abs;
-      if(procnbr > ctrl->option->ratiolimit)
+      pastix_int_t abs = ctrl->abs;
+      if(procnbr > ctrl->ratiolimit)
         {
           abs *= 2; /* Increase abs for 2D */
         }

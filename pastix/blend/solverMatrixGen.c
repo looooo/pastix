@@ -19,7 +19,6 @@
 #include "elimin.h"
 #include "cand.h"
 #include "simu.h"
-#include "param_blend.h"
 #include "blendctrl.h"
 #include "solver_check.h"
 #include "task.h"
@@ -62,7 +61,7 @@ void build_smx(UpDownVector          *updovct,
 #ifdef DOF_CONSTANT
         delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
         /*if(cbprtab[i] == ctrl->procnum)*/
-        if(ctrl->proc2clust[blprtab[symbptr->cblktab[i].bloknum]] == ctrl->clustnum)
+        if(ctrl->core2clust[blprtab[symbptr->cblktab[i].bloknum]] == ctrl->clustnum)
             localXnbr += delta;
         Xnbr += delta;
 #else
@@ -105,7 +104,7 @@ void build_smx(UpDownVector          *updovct,
     j = 0;
     for(i=0;i<symbptr->cblknbr;i++)
         /*if(cbprtab[i] == ctrl->procnum)*/
-        if(ctrl->proc2clust[blprtab[symbptr->cblktab[i].bloknum]] == ctrl->clustnum)
+        if(ctrl->core2clust[blprtab[symbptr->cblktab[i].bloknum]] == ctrl->clustnum)
         {
             delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
 
@@ -167,23 +166,23 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
 #endif
     solvmtx->clustnum = ctrl->clustnum;
     solvmtx->clustnbr = ctrl->clustnbr;
-    solvmtx->procnbr  = ctrl->procnbr;
-    solvmtx->thrdnbr  = ctrl->thrdlocnbr;
-    solvmtx->bublnbr  = ctrl->bublnbr;
+    solvmtx->procnbr  = ctrl->total_nbcores;
+    solvmtx->thrdnbr  = ctrl->local_nbthrds;
+    solvmtx->bublnbr  = ctrl->local_nbctxts;
     solvmtx->ftgtcnt  = simuctrl->ftgtcnt;
 
-    if (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
     {
         fprintf(stdout, "NUMBER of THREAD %ld \n", (long) solvmtx->thrdnbr );
         fprintf(stdout, "NUMBER of BUBBLE %ld \n", (long) solvmtx->bublnbr );
     }
 
     /** Copy the vector used to get a cluster number from a processor number **/
-    MALLOC_INTERN(solvmtx->proc2clust, ctrl->procnbr, pastix_int_t);
-    memcpy(solvmtx->proc2clust, ctrl->proc2clust, sizeof(pastix_int_t)*ctrl->procnbr);
+    MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
+    memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
 
     /** Initialize pointer **/
-    proc2clust = ctrl->proc2clust;
+    proc2clust = ctrl->core2clust;
 
     /** Be sure initialized **/
     solvmtx->cpftmax = 0;
@@ -409,7 +408,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                     c <= ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum; c++)
                     for(j = simuctrl->tasktab[i].bloknum+1;
                         j < symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum; j++)
-                        if(ctrl->proc2clust[blprtab[j]]==c)
+                        if(proc2clust[blprtab[j]]==c)
                         {
                             flaglocal = 1;
                             btagnbr++;
@@ -425,7 +424,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                     c <= ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum; c++)
                     for(j = simuctrl->tasktab[i].bloknum;
                         j < symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum; j++)
-                        if(ctrl->proc2clust[blprtab[j]]==c)
+                        if(proc2clust[blprtab[j]]==c)
                         {
                             btagnbr++;
                             break;
@@ -658,7 +657,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                     facebloknum = 0;
                     for(j=bloknum;j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
                     {
-                        facebloknum = getFaceBlockE2(facebloknum, bloknum, j, symbmtx, ctrl->option->ricar);
+                        facebloknum = getFaceBlockE2(facebloknum, bloknum, j, symbmtx, ctrl->ricar);
                         /*#ifdef NAPA*/
                         if(facebloknum >= 0)
                         {
@@ -712,7 +711,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                         c <= ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum; c++)
                         for(bloknum = simuctrl->tasktab[i].bloknum+1;
                             bloknum < symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum; bloknum++)
-                            if(ctrl->proc2clust[blprtab[bloknum]]==c)
+                            if(proc2clust[blprtab[bloknum]]==c)
                             {
                                 flaglocal = 1;
                                 /*solvmtx->btagtab[btagnbr].bcofnum  = bcofnbr;*/
@@ -733,7 +732,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                                     ASSERTDBG(simuctrl->tasktab[cursor].taskid == E1,MOD_BLEND);
 
                                     cursor = simuctrl->tasktab[cursor].tasknext;
-                                    if(ctrl->proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
+                                    if(proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
                                     {
                                         solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]++;
                                         if(simuctrl->tasktab[cursor].prionum < min)
@@ -755,7 +754,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                                     pastix_int_t taskcnt;
                                     taskcnt = 1;
                                     for(j=bloknum+1; j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
-                                        if(ctrl->proc2clust[blprtab[j]]==c)
+                                        if(proc2clust[blprtab[j]]==c)
                                             taskcnt++;
                                     ASSERT(taskcnt == solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT],MOD_BLEND);
                                 }
@@ -768,7 +767,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                                     while(simuctrl->tasktab[cursor].tasknext != simuctrl->bloktab[bloknum].tasknum)
                                     {
                                         cursor = simuctrl->tasktab[cursor].tasknext;
-                                        if(ctrl->proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
+                                        if(proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
                                             tnbr++;
                                     }
                                     if(tnbr != solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT])
@@ -807,7 +806,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                  */
                 {
                     bloknum = symbmtx->cblktab[simuctrl->tasktab[i].cblknum].bloknum;
-                    if(ctrl->proc2clust[blprtab[bloknum]] == clustnum)
+                    if(proc2clust[blprtab[bloknum]] == clustnum)
                     {
                         solvmtx->tasktab[tasknum].taskmstr = tasklocalnum[simuctrl->bloktab[bloknum].tasknum];
                     }
@@ -833,7 +832,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
 
                 for(c=ctrl->candtab[simuctrl->tasktab[i].cblknum].fccandnum; c<=ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum;c++)
                     for(bloknum=simuctrl->tasktab[i].bloknum;bloknum<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;bloknum++)
-                        if(ctrl->proc2clust[blprtab[bloknum]]==c)
+                        if(proc2clust[blprtab[bloknum]]==c)
                         {
 #ifdef DEBUG_BLEND
                             pastix_int_t debug = 1;
@@ -855,7 +854,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                             solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT] = 1;
                             while(cursor!= i+bloknum-simuctrl->tasktab[i].bloknum+1)
                             {
-                                if(ctrl->proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
+                                if(proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
                                 {
                                     solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]++;
                                     ASSERTDBG(simuctrl->tasktab[cursor].taskid == E2,MOD_BLEND);
@@ -881,17 +880,17 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                                 pastix_int_t taskcnt;
                                 taskcnt = 1;
                                 for(j=bloknum+1; j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
-                                    if(ctrl->proc2clust[blprtab[j]]==c)
+                                    if(proc2clust[blprtab[j]]==c)
                                         taskcnt++;
                                 ASSERT(taskcnt == solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT],MOD_BLEND);
                             }
                             /*solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]  = 1;
                              for(j=bloknum+1; j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
-                             if(ctrl->proc2clust[blprtab[j]]==c)
+                             if(proc2clust[blprtab[j]]==c)
                              solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]++;*/
 
 
-                            ASSERT(ctrl->proc2clust[ min_procdst ] == c ,MOD_BLEND);
+                            ASSERT(proc2clust[ min_procdst ] == c ,MOD_BLEND);
                             if(debug != solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT])
                                 fprintf(stdout, " debug %ld taskcnt %ld \n", (long)debug, (long)solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]);
 #endif
@@ -918,7 +917,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                  */
             {
                 bloknum = simuctrl->tasktab[i].bloknum2;
-                if(ctrl->proc2clust[blprtab[bloknum]] == clustnum)
+                if(proc2clust[blprtab[bloknum]] == clustnum)
                 {
                     solvmtx->tasktab[tasknum].taskmstr = tasklocalnum[simuctrl->bloktab[bloknum].tasknum];
                 }
@@ -981,7 +980,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
      */
     solvmtx->btgsnbr = 0;
     solvmtx->btgrnbr = 0;
-    if (ctrl->option->level2D != 0)
+    if (ctrl->level2D != 0)
     {
         /* link local btag (blend ???) (attention pb en SMP ???) */
         /* and compute the number of block to send */
@@ -1046,7 +1045,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
 
         solvmtx->coefmax = 0;
 
-        if (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_YES) {
+        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_YES) {
             for(i=0;i<solvmtx->tasknbr;i++) {
                 if(solvmtx->tasktab[i].taskid == COMP_1D) {
                     delta = 0;
@@ -1127,7 +1126,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
             }
         }
 
-        if (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_YES) {
+        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_YES) {
             fprintf(stderr, "New suggested coefmax = %ld (%ld x %ld)\n",
                     (long)solvmtx->coefmax, (long)max_m, (long)max_n );
             /* First compute the maximum size of contribution block */
@@ -1148,7 +1147,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
 
                 n = solvmtx->cblktab[i].lcolnum - solvmtx->cblktab[i].fcolnum+1;
                 delta = n * 64;
-                if (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_YES)
+                if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_YES)
                     fprintf(stderr, "Max diagblock on shur = %ld (%ld x %ld)\n",
                             (long)delta, (long)n, (long)64 );
             }
@@ -1161,7 +1160,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     for(i=0;i<simuctrl->ftgtnbr;i++)
     {
         if((simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0))
-            /*&& (ctrl->proc2clust[simuctrl->ftgttab[i].ftgt.infotab[FTGT_PROCDST]] == clustnum))*/
+            /*&& (proc2clust[simuctrl->ftgttab[i].ftgt.infotab[FTGT_PROCDST]] == clustnum))*/
         {
             coefnbr = (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LCOLNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FCOLNUM] + 1)*dofptr->noddval * (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LROWNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FROWNUM] + 1)*dofptr->noddval;
             if(coefnbr > solvmtx->cpftmax)
@@ -1216,7 +1215,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     }
 
 
-    if (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, "COEFMAX %ld CPFTMAX %ld BPFTMAX %ld NBFTMAX %ld ARFTMAX %ld \n", (long)solvmtx->coefmax, (long)solvmtx->cpftmax,
                 (long)solvmtx->bpftmax, (long)solvmtx->nbftmax, (long)solvmtx->arftmax);
 
@@ -1228,7 +1227,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     /****************************************/
 
     /* Pour l'instant uniquement si on est en 1d */
-    if (ctrl->option->level2D == 0)
+    if (ctrl->level2D == 0)
     {
 
         /** The initial symbol matrix is not expanded **/

@@ -36,20 +36,15 @@
  *   assemb1D   -
  *   assemb2D   -
  *   clustnbr   - Number of MPI processes.
- *   thrdlocnbr - Number of threads.
- *   cudanbr    - Number of cuda devices.
+ *   local_nbthrds - Number of threads.
  *   clustnum   - Processor ID number.
  *   option     - Blend parameters.
  *   dofptr     -
  */
-void          solverBlend(SolverMatrix * solvmtx,
-                          SymbolMatrix * symbmtx,
-                          int            clustnbr,
-                          int            thrdlocnbr,
-                          int            cudanbr,
-                          int            clusnum,
-                          BlendParam   * option,
-                          const Dof    * dofptr);
+void solverBlend(BlendCtrl    *ctrl,
+                 SolverMatrix *solvmtx,
+                 SymbolMatrix *symbmtx,
+                 const Dof    *dofptr);
 
 
 #endif /* BLEND_H */

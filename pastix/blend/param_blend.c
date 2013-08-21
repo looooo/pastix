@@ -3,7 +3,6 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "param_blend.h"
 
 /* we set default option */
 pastix_int_t blendParamInit(BlendParam  *param,

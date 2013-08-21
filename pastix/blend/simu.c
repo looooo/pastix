@@ -127,7 +127,7 @@ simuInit( SimuCtrl     *simuctrl,
 }
 
 
-pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t thrdlocnbr)
+pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t local_nbthrds)
 {
     pastix_int_t i;
 
@@ -144,8 +144,8 @@ pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t 
     memFree_null(simuctrl->proctab);
 
     /** Initialisation for local thread **/
-    MALLOC_INTERN(simuctrl->proctab, thrdlocnbr, SimuProc);
-    for(i=0;i<thrdlocnbr;i++)
+    MALLOC_INTERN(simuctrl->proctab, local_nbthrds, SimuProc);
+    for(i=0;i<local_nbthrds;i++)
     {
         MALLOC_INTERN(simuctrl->proctab[i].tasktab, 1, ExtendVectorINT);
         /* On initialise pas les vecteur d'entier, car il nous faudrait la structure d'arbre de bulles */
@@ -154,10 +154,10 @@ pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t 
     return 1;
 }
 
-void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, pastix_int_t thrdlocnbr)
+void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, pastix_int_t local_nbthrds)
 {
     pastix_int_t i,j;
-    (void)thrdlocnbr; (void)procnbr;
+    (void)local_nbthrds; (void)procnbr;
 
 #ifndef PASTIX_DYNSCHED
     for(i=0;i<procnbr;i++)
@@ -170,7 +170,7 @@ void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, p
         memFree_null(simuctrl->proctab[i].tasktab);
     }
 #else
-    for(i=0;i<thrdlocnbr;i++)
+    for(i=0;i<local_nbthrds;i++)
     {
         extendint_Exit(simuctrl->proctab[i].tasktab);
         memFree_null(simuctrl->proctab[i].tasktab);

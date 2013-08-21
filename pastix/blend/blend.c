@@ -33,7 +33,6 @@
 #include "extrastruct.h"
 #include "extendVector.h"
 #include "cand.h"
-#include "param_blend.h"
 #include "blendctrl.h"
 #include "splitpart.h"
 #include "write_ps.h"
@@ -70,31 +69,18 @@
  *
  * Parameters:
  *   solvmtx    - Solver matrix structure.
- *   clustnbr   - Number of MPI processes.
- *   thrdlocnbr - Number of threads.
- *   cudanbr    - Number of cuda devices.
- *   clustnum   - Processor ID number.
- *   option     - Blend parameters.
- *   dofptr     -
  */
-void solverBlend(SolverMatrix *solvmtx,
+void solverBlend(BlendCtrl    *ctrl,
+                 SolverMatrix *solvmtx,
                  SymbolMatrix *symbmtx,
-                 int           clustnbr,
-                 int           thrdlocnbr,
-                 int           cudanbr,
-                 int           clustnum,
-                 BlendParam   *option,
                  const Dof    *dofptr)
 {
-    BlendCtrl *ctrl;
-    SimuCtrl  *simuctrl;
-    double     timer_all     = 0.;
-    double     timer_current = 0.;
-    pastix_int_t       *bcofind       = NULL;
-
-    /* Initialisation of the control structure */
-    MALLOC_INTERN(ctrl, 1, BlendCtrl);
-    blendCtrlInit(ctrl, clustnbr, thrdlocnbr, cudanbr, clustnum, option);
+    SimuCtrl     *simuctrl;
+    double        timer_all     = 0.;
+    double        timer_current = 0.;
+    pastix_int_t *bcofind       = NULL;
+    pastix_int_t  clustnum = ctrl->clustnum;
+    pastix_int_t  clustnbr = ctrl->clustnbr;
 
     /* Check parameters */
     if(clustnum >= clustnbr)
@@ -109,17 +95,17 @@ void solverBlend(SolverMatrix *solvmtx,
 
     pastix_print( clustnum, 0,
                   OUT_CLUSTNBR "" OUT_PROCNBR "" OUT_THRDNBR,
-                  (long)clustnbr, (long)ctrl->proclocnbr, (long)ctrl->thrdlocnbr);
+                  (long)clustnbr, (long)ctrl->local_nbcores, (long)ctrl->local_nbthrds);
 
     /** Verify the coherence of the initial symbol matrix **/
-    if(ctrl->option->debug)
+    if(ctrl->debug)
     {
         pastix_print( clustnum, 0, OUT_BLEND_CHKSMBMTX );
         symbolCheck(symbmtx);
     }
 
-    if(ctrl->option->count_ops && ctrl->option->leader == clustnum)
-        symbCost(option->iparm, option->dparm, symbmtx, dofptr);
+    if(ctrl->count_ops && ctrl->leader == clustnum)
+        symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
 
     /* build the elimination graph from the symbolic partition */
     {
@@ -158,7 +144,7 @@ void solverBlend(SolverMatrix *solvmtx,
 
         /* Compute costs for all nodes */
         subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
-        if(ctrl->option->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        if(ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
             fprintf(stdout, "Total cost of the elimination tree %g \n",
                     ctrl->costmtx->cblktab[eTreeRoot(ctrl->etree)].subtree);
 
@@ -186,16 +172,16 @@ void solverBlend(SolverMatrix *solvmtx,
 #endif
 
     //TODO
-    /* if ( (ctrl->option->leader == clustnum) && (ctrl->option->tracegen == 1)) */
+    /* if ( (ctrl->leader == clustnum) && (ctrl->tracegen == 1)) */
     /*   { */
     /*     FILE *out; */
-    /*     OUT_OPENFILEINDIR(ctrl->option->iparm, out, "elimintree.dot", "w"); */
+    /*     OUT_OPENFILEINDIR(ctrl->iparm, out, "elimintree.dot", "w"); */
     /*     eTreeGenDot(ctrl->etree, out); */
     /*     OUT_CLOSEFILEINDIR(out); */
     /*   } */
 
-    if(ctrl->option->count_ops && (ctrl->option->leader == clustnum))
-        symbCost(option->iparm, option->dparm, symbmtx, dofptr);
+    if(ctrl->count_ops && (ctrl->leader == clustnum))
+        symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
 
     pastix_print( clustnum, 0, "** New Partition: cblknbr=  %ld     bloknbr=  %ld     ratio=%f ** \n",
                   (long)symbmtx->cblknbr, (long)symbmtx->bloknbr,
@@ -225,7 +211,7 @@ void solverBlend(SolverMatrix *solvmtx,
         pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
     }
 
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockInit(timer_current);
         clockStart(timer_current);
@@ -233,26 +219,28 @@ void solverBlend(SolverMatrix *solvmtx,
 
     /* initialize simu structure control */
     MALLOC_INTERN(simuctrl, 1, SimuCtrl);
-    simuInit(simuctrl, symbmtx, ctrl->clustnbr, ctrl->procnbr,
+    simuInit(simuctrl, symbmtx,
+             ctrl->clustnbr,
+             ctrl->total_nbcores,
              symbmtx->cblknbr, symbmtx->bloknbr, ctrl->candtab);
 
     /* Build tasks */
-    if( ctrl->option->leader == clustnum &&
-        ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if( ctrl->leader == clustnum &&
+        ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, OUT_BLEND_TASKGRAPH);
     taskBuild(simuctrl, symbmtx, ctrl->candtab, dofptr, ctrl);
 
-    if( ctrl->option->leader == clustnum &&
-        ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if( ctrl->leader == clustnum &&
+        ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, OUT_BLEND_NBTASK, (long)simuctrl->tasknbr);
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockStop(timer_current);
         printf("--Task built at time: %g --\n", clockVal(timer_current));
     }
 
     /* Distribution Phase */
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockInit(timer_current);
         clockStart(timer_current);
@@ -262,12 +250,12 @@ void solverBlend(SolverMatrix *solvmtx,
     ASSERT(check_candidat(symbmtx, ctrl)>=0,MOD_BLEND);
 #endif
 
-    if((ctrl->option->leader == clustnum) &&
-       (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
+    if((ctrl->leader == clustnum) &&
+       (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
         fprintf(stdout, OUT_BLEND_DISTPART);
     distribPart(symbmtx, simuctrl, ctrl, dofptr);
 
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockStop(timer_current);
         printf("--Distribution computed at time: %g --\n", clockVal(timer_current));
@@ -275,7 +263,7 @@ void solverBlend(SolverMatrix *solvmtx,
 
 #ifdef PASTIX_DYNSCHED /* 2 eme passe de splitpart */
 
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockInit(timer_current);
         clockStart(timer_current);
@@ -287,7 +275,7 @@ void solverBlend(SolverMatrix *solvmtx,
 
     splitPartLocal(ctrl, simuctrl, symbmtx, dofptr);
 
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockStop(timer_current);
         printf("--Split build at time: %g --\n", clockVal(timer_current));
@@ -301,18 +289,18 @@ void solverBlend(SolverMatrix *solvmtx,
 
     /** gener the final solverMarix for this processor
      i.e. relative bloc numbering **/
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockInit(timer_current);
         clockStart(timer_current);
     }
 
-    if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if(ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, "%ld : Genering final SolverMatrix \n", (long)clustnum);
-    if (ctrl->option->iparm[IPARM_DOF_COST] != 0) {
+    if (ctrl->iparm[IPARM_DOF_COST] != 0) {
         Dof dofstr;
         dofInit(&dofstr);
-        dofConstant(&dofstr, 0, symbmtx->nodenbr, ctrl->option->iparm[IPARM_DOF_NBR]);
+        dofConstant(&dofstr, 0, symbmtx->nodenbr, ctrl->iparm[IPARM_DOF_NBR]);
         bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, &dofstr);
         dofExit(&dofstr);
     }
@@ -320,39 +308,39 @@ void solverBlend(SolverMatrix *solvmtx,
         bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
     }
 
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockStop(timer_current);
         printf("--SolverMatrix computed at time: %g --\n", clockVal(timer_current));
     }
 
-    /*if(ctrl->option->count_ops)
+    /*if(ctrl->count_ops)
      {
      printSolverInfo(stderr, solvmtx, dofptr);
      }*/
 
-    if( ctrl->option->leader == clustnum &&
-        ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if( ctrl->leader == clustnum &&
+        ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, "** End of Partition & Distribution phase ** \n");
 
     /** Time end **/
-    if(ctrl->option->timer)
+    if(ctrl->timer)
     {
         clockStop(timer_all);
         printf("---- Total execution at time: %g ----\n",clockVal(timer_all));
-        set_dparm(option->dparm, DPARM_ANALYZE_TIME, clockVal(timer_all));
+        set_dparm(ctrl->dparm, DPARM_ANALYZE_TIME, clockVal(timer_all));
     }
 
     /** Free allocated memory **/
-    simuExit(simuctrl, ctrl->clustnbr, ctrl->procnbr, ctrl->bublnbr);
+    simuExit(simuctrl, ctrl->clustnbr, ctrl->total_nbcores, ctrl->local_nbctxts);
     eGraphExit(ctrl->egraph);
 
-    if(ctrl->option->debug)
+    if(ctrl->debug)
     {
         setBcofPtr(solvmtx, bcofind);
 
-        if( ctrl->option->leader == clustnum &&
-            ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+        if( ctrl->leader == clustnum &&
+            ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
             fprintf(stdout, OUT_BLEND_CHKSOLVER);
         solverCheck(solvmtx);
     }
@@ -360,7 +348,6 @@ void solverBlend(SolverMatrix *solvmtx,
     /***************************************
      * Realloc Memory in a contiguous way  *
      ***************************************/
-    blendCtrlExit(ctrl);
     printf("Contiguous reallocation of the solverMatrix ...\n");
     solverRealloc(solvmtx, bcofind);
     printf("Done \n");
@@ -368,7 +355,7 @@ void solverBlend(SolverMatrix *solvmtx,
 #ifdef DEBUG_BLEND
     if (leader == clustnum)
         fprintf(stdout, OUT_BLEND_CHKSOLVER);
-    if (option->ricar) {
+    if (ctrl->ricar) {
         if (leader == clustnum)
             errorPrintW("No solverMatrix checking in incomplete factorisation.");
     }else {

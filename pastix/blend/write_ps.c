@@ -11,7 +11,6 @@
 #include "elimin.h"
 #include "extendVector.h"
 #include "cand.h"
-#include "param_blend.h"
 #include "queue.h"
 #include "bulles.h"
 /* #include "extrastruct.h" */
