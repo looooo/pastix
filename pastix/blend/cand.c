@@ -88,7 +88,6 @@ candSetSubCandidate( Cand *candtab,
 
     candtab[rootnum].fcandnum = procnum;
     candtab[rootnum].lcandnum = procnum;
-    candtab[rootnum].cluster  = NOCLUSTER;
 
     for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
         candSetSubCandidate( candtab, etree, eTreeSonI(etree, rootnum, i), procnum );
