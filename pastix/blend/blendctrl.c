@@ -194,8 +194,6 @@ pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
     queueInit(ctrl->lheap, 1000);
     MALLOC_INTERN(ctrl->intvec, 1, ExtendVectorINT);
     MALLOC_INTERN(ctrl->intvec2, 1, ExtendVectorINT);
-    /* if(param->tracegen) */
-    /*   OUT_OPENFILEINDIR(param->iparm, ctrl->tracefile, param->trace_filename, "w"); */
 
 #ifdef PASTIX_DYNSCHED
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
@@ -206,8 +204,6 @@ pastix_int_t blendCtrlInit(BlendCtrl *ctrl,
 
 void blendCtrlExit(BlendCtrl *ctrl)
 {
-  /* if(ctrl->option->tracegen) */
-  /*   OUT_CLOSEFILEINDIR(ctrl->tracefile); */
   if(ctrl->perfptr)
     memFree_null(ctrl->perfptr);
   queueExit(ctrl->lheap);

@@ -981,7 +981,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
      */
     solvmtx->btgsnbr = 0;
     solvmtx->btgrnbr = 0;
-    if (ctrl->option->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
+    if (ctrl->option->level2D != 0)
     {
         /* link local btag (blend ???) (attention pb en SMP ???) */
         /* and compute the number of block to send */
@@ -1228,7 +1228,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     /****************************************/
 
     /* Pour l'instant uniquement si on est en 1d */
-    if (ctrl->option->iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
+    if (ctrl->option->level2D == 0)
     {
 
         /** The initial symbol matrix is not expanded **/

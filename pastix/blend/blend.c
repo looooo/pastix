@@ -104,14 +104,6 @@ void solverBlend(SolverMatrix *solvmtx,
                    (long) clustnum, (long) clustnbr);
         EXIT(MOD_BLEND,INTERNAL_ERR);
     }
-    if(ctrl->option->ooc)
-    {
-        /* OOC works only with 1D structures */
-        if ((ctrl->option->leader == clustnum) &&
-            (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
-            fprintf(stdout, "Force 1D distribution because of OOC \n");
-        ctrl->option->ratiolimit = INTVALMAX;
-    }
 
     clockStart(timer_all);
 

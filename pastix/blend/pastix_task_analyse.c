@@ -57,36 +57,7 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     dofConstant(&dofstr, 0, pastix_data->symbmtx->nodenbr,
                 ((iparm[IPARM_DOF_COST] == 0)?iparm[IPARM_DOF_NBR]:iparm[IPARM_DOF_COST]));
 
-    blendParamInit(&blendpar);
-    blendpar.n         = pastix_data->n2;
-    blendpar.smpnbr    = iparm[IPARM_NB_SMP_NODE_USED];
-    blendpar.ricar     = iparm[IPARM_INCOMPLETE];
-    blendpar.abs       = iparm[IPARM_ABS];
-    blendpar.blcolmin  = iparm[IPARM_MIN_BLOCKSIZE];
-    blendpar.blcolmax  = iparm[IPARM_MAX_BLOCKSIZE];
-    blendpar.blblokmin = iparm[IPARM_MIN_BLOCKSIZE];
-    blendpar.blblokmax = iparm[IPARM_MAX_BLOCKSIZE];
-
-    if(blendpar.blcolmin > blendpar.blcolmax)
-    {
-        errorPrint("Parameter error : blocksize max < blocksize min (cf. iparm.txt).");
-        ASSERT(blendpar.blcolmin <=  blendpar.blcolmax, MOD_SOPALIN);
-    }
-
-    blendpar.level2D    = iparm[IPARM_DISTRIBUTION_LEVEL];
-    blendpar.ratiolimit = (double)(iparm[IPARM_DISTRIBUTION_LEVEL]);
-
-    if (blendpar.autolevel)
-        printf("ratiolimit=%lf\n",blendpar.ratiolimit);
-    else
-        printf("level2D=%ld\n", (long) blendpar.level2D);
-
-#ifdef TRACE_SOPALIN
-    if (procnum == 0)
-        blendpar.tracegen = 1;
-#endif
-
-    blendpar.iparm = iparm;
+    blendParamInit( &blendpar, procnum, iparm );
     blendpar.dparm = dparm;
 
 #ifdef FORCE_NOSMP
@@ -96,6 +67,7 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     solverBlend(solvmatr, pastix_data->symbmtx,
                 procnbr, iparm[IPARM_THREAD_NBR], iparm[IPARM_CUDA_NBR],
                 procnum, &blendpar, &dofstr );
+
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
     pastix_data->malslv = 1;

@@ -97,25 +97,6 @@ void splitPart(SymbolMatrix *symbmtx,
        (ctrl->option->leader == ctrl->clustnum))
         fprintf(stdout, "   Using proportionnal mapping \n");
 
-    if(ctrl->option->candcorrect)
-    {
-        propMappTree( ctrl,
-                      ctrl->etree,
-                      ctrl->candtab,
-                      ctrl->costmtx,
-                      symbmtx,
-                      dofptr,
-                      extrasymb,
-                      extracost,
-                      ctrl->procnbr,
-                      0, /* No split */
-                      ctrl->option->nocrossproc,
-                      ctrl->option->allcand );
-        setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->option->level2D);
-        costMatrixCorrect(ctrl->costmtx, symbmtx, ctrl->candtab, dofptr);
-        subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
-    }
-
     /* Repartition symbolic matrix using proportionnal mapping method */
     propMappTree( ctrl,
                   ctrl->etree,
@@ -126,7 +107,7 @@ void splitPart(SymbolMatrix *symbmtx,
                   extrasymb,
                   extracost,
                   ctrl->procnbr,
-                  ctrl->option->split,
+                  0,
                   ctrl->option->nocrossproc,
                   ctrl->option->allcand );
 
@@ -142,38 +123,10 @@ void splitPart(SymbolMatrix *symbmtx,
     else
         setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->option->level2D);
 
-    /** For a dense end block **/
-    if(ctrl->option->dense_endblock)
-        ctrl->candtab[symbmtx->cblknbr-1].distrib = DENSE;
-
     /* Rebuild the symbolic matrix */
     partBuild(symbmtx, extrasymb, ctrl->costmtx, extracost, ctrl, dofptr);
 
     assert( candCheck( ctrl->candtab, symbmtx ) );
-
-    if(ctrl->option->candcorrect)
-    {
-        eTreeExit(ctrl->etree);
-        MALLOC_INTERN(ctrl->etree, 1, EliminTree);
-        eTreeInit(ctrl->etree);
-        eTreeBuild(ctrl->etree, symbmtx);
-
-        costMatrixCorrect(ctrl->costmtx, symbmtx, ctrl->candtab, dofptr);
-        subtreeUpdateCost(eTreeRoot(ctrl->etree), ctrl->costmtx, ctrl->etree);
-        propMappTree( ctrl,
-                      ctrl->etree,
-                      ctrl->candtab,
-                      ctrl->costmtx,
-                      symbmtx,
-                      dofptr,
-                      extrasymb,
-                      extracost,
-                      ctrl->procnbr,
-                      0, /* No split */
-                      ctrl->option->nocrossproc,
-                      ctrl->option->allcand );
-        setDistribType(symbmtx->cblknbr, symbmtx, ctrl->candtab, ctrl->option->level2D);
-    }
 
     /**************************/
     /** Reset the tree level **/
@@ -459,7 +412,7 @@ void  splitCblk(SymbolMatrix      *symbmtx,
      * XL: For Schur complement we keep the last column block.as full
      */
     if (!(ctrl->option->iparm[IPARM_SCHUR] == API_YES &&
-          symbmtx->cblktab[cblknum].lcolnum == ctrl->option->n -1))
+          symbmtx->cblktab[cblknum].lcolnum == symbmtx->nodenbr -1))
     {
         /** mark the cblk to be splitted **/
         /** NB odb of this cblk don't need to be marked

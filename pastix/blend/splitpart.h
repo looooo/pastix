@@ -48,7 +48,6 @@ static double blokUpdateCost  (pastix_int_t, pastix_int_t, CostMatrix *, ExtraCo
 
 static pastix_int_t    countBlok            (pastix_int_t, SymbolMatrix *, pastix_int_t);
 static pastix_int_t    setSubtreeBlokNbr    (pastix_int_t, const EliminTree *, SymbolMatrix *, ExtraSymbolMatrix *, pastix_int_t);
-static void   clusterCandCorrect   (pastix_int_t, Cand *, const EliminTree *, BlendCtrl *);
 static void   setClusterCand       (pastix_int_t, Cand *, const EliminTree *, pastix_int_t, pastix_int_t);
 
 #undef static

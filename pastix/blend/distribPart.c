@@ -1232,13 +1232,6 @@ void computeBlockCtrbNbr(SimuCtrl *simuctrl, SymbolMatrix *symbptr, BlendCtrl *c
         }
         task++;
     }
-
-    if(ctrl->option->forceE2)
-        for(i=0;i<simuctrl->tasknbr;i++)
-            if(simuctrl->tasktab[i].taskid == E2)
-                for(j=simuctrl->tasktab[i].bloknum+1;j<symbptr->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
-                    simuctrl->bloktab[j].ctrbcnt++;
-
 }
 
 void updateFtgtStruct(pastix_int_t bloknum, pastix_int_t bloknum2, pastix_int_t ftgtnum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
