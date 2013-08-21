@@ -491,7 +491,7 @@ pastix_int_t sopalin_bindthread(pastix_int_t cpu)
         /* Get last one.  */
         obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu);
         if (!obj) {
-            fprintf(stderr, "Failed to bind the thread !!!\n");
+            fprintf(stderr, "Failed to get the %d core for binding !!!\n", (int)cpu);
 
             /* Destroy topology object.  */
             hwloc_topology_destroy(topology);
