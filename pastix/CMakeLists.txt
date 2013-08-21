@@ -519,7 +519,7 @@ set(PASTIX_LIB_SRCS
   blend/elimin_tree.c
   blend/propmap.c
   blend/pastix_task_analyse.c
-  blend/assemblyGener.c
+#  blend/assemblyGener.c
   blend/blend.c
   blend/blend_symbol_cost.c
   blend/blendctrl.c
@@ -530,7 +530,7 @@ set(PASTIX_LIB_SRCS
   blend/extendVector.c
   blend/extrastruct.c
   blend/fanboth2.c
-  blend/param_blend.c
+#  blend/param_blend.c
   blend/partbuild.c
   blend/queue.c
   blend/simu.c
@@ -599,10 +599,10 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_cost.c
   symbol/symbol_draw.c
   symbol/symbol_io.c
-  symbol/symbol_keep.c
-  symbol/symbol_level.c
-  symbol/symbol_levf.c
-  symbol/symbol_nonzeros.c
+#  symbol/symbol_keep.c
+#  symbol/symbol_level.c
+#  symbol/symbol_levf.c
+#  symbol/symbol_nonzeros.c
 #  symbol/symboltops.c
   symbol/symbol_tree.c
   symbol/symbol_rustine.c
@@ -611,9 +611,31 @@ set(PASTIX_LIB_SRCS
   )
 
 set(PASTIX_ALL_SRCS
-  ${PASTIX_LIB_SRCS}
+  #
+  graph/graph.c
+  graph/graph_isolate.c
+  graph/graph_prepare.c
+  graph/graph_symmetrize.c
+  #
+  order/order.c
+  order/order_add_isolate.c
+  order/order_check.c
+  order/order_find_supernodes.c
+  order/order_io.c
+  order/pastix_task_order.c
+  #
+  fax/amalgamate.c
+  fax/symbol_fax_graph.c
+  fax/symbol_kass.c
+  fax/symbol_kass_build.c
+  fax/symbol_kass_csr.c
+  fax/symbol_kass_direct.c
+  fax/symbol_kass_level.c
+  fax/pastix_task_symbfact.c
+  #
+#  ${PASTIX_LIB_SRCS}
   order/order_compute_scotch.c
-  order/order_compute_ptscotch.c
+  #order/order_compute_ptscotch.c
   order/order_compute_metis.c
 )
 
