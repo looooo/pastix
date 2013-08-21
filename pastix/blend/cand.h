@@ -23,6 +23,14 @@
 #define D2 1
 #define DENSE 3
 
+typedef enum cblktype_e {
+    CBLK_1D,
+    CBLK_SPLIT,
+    CBLK_H,
+    CBLK_DENSE,
+    CBLK_SHUR
+} cblktype_t;
+
 #define CLUSTER   1
 #define NOCLUSTER 0
 
@@ -36,6 +44,7 @@ typedef struct Cand_{
     pastix_int_t lccandnum;    /*+ last cluster number of the cluster candidate group +*/
     pastix_int_t distrib;      /*+ type of the distribution +*/
     pastix_int_t cluster;      /*+ Cluster id on which the task will be executed +*/
+    cblktype_t   cblktype;     /*+ type of the distribution +*/
 } Cand;
 
 void candInit           ( Cand *candtab,
