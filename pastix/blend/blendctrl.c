@@ -88,7 +88,7 @@ void getCommunicationCosts( BlendCtrl   *ctrl,
     }
 }
 
-void
+int
 blendCtrlInit(BlendCtrl    *ctrl,
               pastix_int_t  procnum,
               pastix_int_t  procnbr,
@@ -98,9 +98,51 @@ blendCtrlInit(BlendCtrl    *ctrl,
 {
     pastix_int_t i;
 
+    /* Check parameters */
+    if( ctrl == NULL )
+    {
+        errorPrint("blendCtrlInit: Illegal ctrl parameter\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( procnum < 0 )
+    {
+        errorPrint("blendCtrlInit: Illegal procnum parameter\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( procnbr < 1 )
+    {
+        errorPrint("blendCtrlInit: Illegal procnbr parameter\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( local_coresnbr < 1 )
+    {
+        errorPrint("blendCtrlInit: Illegal local_coresnbr parameter\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( local_thrdsnbr < 1 )
+    {
+        errorPrint("blendCtrlInit: Illegal local_thrdsnbr parameter\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( procnum >= procnbr )
+    {
+        errorPrint("blendCtrlInit: Incompatible values of procnum(%d) and procnbr (%d)\n",
+                   (int) procnum, (int) procnbr);
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( ctrl == NULL )
+    {
+        errorPrint("blendCtrlInit: Illegal ctrl parameter\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
     /* Initialize options */
     ctrl->count_ops = 1;
+#if defined(PASTIX_DEBUG_BLEND)
+    ctrl->debug     = 1;
+#else
     ctrl->debug     = 0;
+#endif
     ctrl->timer     = 1;
     ctrl->ooc       = 0;
     ctrl->ricar     = iparm[IPARM_INCOMPLETE];
@@ -195,7 +237,7 @@ blendCtrlInit(BlendCtrl    *ctrl,
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
 #endif
 
-    return;
+    return PASTIX_SUCCESS;
 }
 
 

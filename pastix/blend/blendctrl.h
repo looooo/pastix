@@ -81,12 +81,12 @@ typedef struct BlendCtrl_ {
     FILE              *tracefile;
 } BlendCtrl;
 
-void  blendCtrlInit (BlendCtrl *ctrl,
-                             pastix_int_t  clustnum,
-                             pastix_int_t  clustnbr,
-                             pastix_int_t  local_procnbr,
-                             pastix_int_t  local_thrdnbr,
-                             pastix_int_t *param);
+int  blendCtrlInit (BlendCtrl *ctrl,
+                    pastix_int_t  clustnum,
+                    pastix_int_t  clustnbr,
+                    pastix_int_t  local_procnbr,
+                    pastix_int_t  local_thrdnbr,
+                    pastix_int_t *param);
 
 void blendCtrlExit (BlendCtrl *);
 

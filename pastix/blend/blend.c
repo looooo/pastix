@@ -82,22 +82,13 @@ void solverBlend(BlendCtrl    *ctrl,
     pastix_int_t  clustnum = ctrl->clustnum;
     pastix_int_t  clustnbr = ctrl->clustnbr;
 
-    /* Check parameters */
-    if(clustnum >= clustnbr)
-    {
-        errorPrint("solverBlend parameter clustnum(%ld) is greater"
-                   " than clustnbr(%ld).",
-                   (long) clustnum, (long) clustnbr);
-        EXIT(MOD_BLEND,INTERNAL_ERR);
-    }
-
     clockStart(timer_all);
 
     pastix_print( clustnum, 0,
                   OUT_CLUSTNBR "" OUT_PROCNBR "" OUT_THRDNBR,
                   (long)clustnbr, (long)ctrl->local_nbcores, (long)ctrl->local_nbthrds);
 
-    /** Verify the coherence of the initial symbol matrix **/
+    /* Verify the coherence of the initial symbol matrix */
     if(ctrl->debug)
     {
         pastix_print( clustnum, 0, OUT_BLEND_CHKSMBMTX );
@@ -106,19 +97,6 @@ void solverBlend(BlendCtrl    *ctrl,
 
     if(ctrl->count_ops && ctrl->leader == clustnum)
         symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
-
-    /* build the elimination graph from the symbolic partition */
-    {
-        pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
-        clockStart(timer_current);
-
-        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
-        eGraphInit(ctrl->egraph);
-        eGraphBuild(ctrl->egraph, symbmtx);
-
-        clockStop(timer_current);
-        pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
-    }
 
     /* Build the elimination tree from the symbolic partition */
     {
@@ -131,6 +109,19 @@ void solverBlend(BlendCtrl    *ctrl,
 
         clockStop(timer_current);
         pastix_print( clustnum, 0, "--Tree build at time: %g --\n", clockVal(timer_current));
+    }
+
+    /* Build the elimination graph from the symbolic partition */
+    {
+        pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
+        clockStart(timer_current);
+
+        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
+        eGraphInit(ctrl->egraph);
+        eGraphBuild(ctrl->egraph, symbmtx);
+
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
     }
 
     /* Build the cost matrix from the symbolic partition */
