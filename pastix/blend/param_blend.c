@@ -16,7 +16,6 @@ pastix_int_t blendParamInit(BlendParam *param)
   param->ps               = 1;
   param->assembly         = 0;
   param->solvmtx_filename = "solvmtx.";
-  param->sequentiel       = 0;
   param->count_ops        = 1;
   param->debug            = 0;
   param->timer            = 1;
@@ -35,7 +34,6 @@ pastix_int_t blendParamInit(BlendParam *param)
   param->clusterprop      = 0;
   param->costlevel        = 1;
   param->autolevel        = 0;
-  param->malt_limit       = -1;
   param->smpnbr           = 0;
   /* On suppose que tous les noeuds smp utilisés ont la même configuration */
   param->procnbr          = sysconf(_SC_NPROCESSORS_ONLN);
@@ -45,7 +43,7 @@ pastix_int_t blendParamInit(BlendParam *param)
   param->oocmemlimit      = 4e7;
   param->abs              = 4;
   param->ricar            = 0;
-  
+
   return 1;
 }
 
@@ -57,5 +55,3 @@ void blendParamExit(BlendParam *param)
   memFree_null(param->solvmtx_filename);
   memFree_null(param);
 }
-
-

@@ -80,7 +80,6 @@ void pastix_task_blend(pastix_data_t *pastix_data)
         printf("ratiolimit=%lf\n",blendpar.ratiolimit);
     else
         printf("level2D=%ld\n", (long) blendpar.level2D);
-    printf("malt_limit=%ld\n", (long) blendpar.malt_limit);
 
 #ifdef TRACE_SOPALIN
     if (procnum == 0)

@@ -111,7 +111,6 @@ void solverBlend(SolverMatrix *solvmtx,
             (ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
             fprintf(stdout, "Force 1D distribution because of OOC \n");
         ctrl->option->ratiolimit = INTVALMAX;
-        ctrl->option->malt_limit = -1;
     }
 
     clockStart(timer_all);
@@ -329,26 +328,17 @@ void solverBlend(SolverMatrix *solvmtx,
         clockStart(timer_current);
     }
 
-    if(ctrl->option->sequentiel)
-    {
-        if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            fprintf(stdout, "%ld : Genering all SolverMatrix files \n", (long)clustnum);
-        allSolverMatrixSave(ctrl->option->solvmtx_filename,  symbmtx, simuctrl, ctrl, dofptr);
+    if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+        fprintf(stdout, "%ld : Genering final SolverMatrix \n", (long)clustnum);
+    if (ctrl->option->iparm[IPARM_DOF_COST] != 0) {
+        Dof dofstr;
+        dofInit(&dofstr);
+        dofConstant(&dofstr, 0, symbmtx->nodenbr, ctrl->option->iparm[IPARM_DOF_NBR]);
+        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, &dofstr);
+        dofExit(&dofstr);
     }
-    else
-    {
-        if(ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            fprintf(stdout, "%ld : Genering final SolverMatrix \n", (long)clustnum);
-        if (ctrl->option->iparm[IPARM_DOF_COST] != 0) {
-            Dof dofstr;
-            dofInit(&dofstr);
-            dofConstant(&dofstr, 0, symbmtx->nodenbr, ctrl->option->iparm[IPARM_DOF_NBR]);
-            bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, &dofstr);
-            dofExit(&dofstr);
-        }
-        else{
-            bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
-        }
+    else{
+        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
     }
 
     if(ctrl->option->timer)
@@ -380,57 +370,21 @@ void solverBlend(SolverMatrix *solvmtx,
 
     if(ctrl->option->debug)
     {
-        if(!ctrl->option->sequentiel)
-            setBcofPtr(solvmtx, bcofind);
+        setBcofPtr(solvmtx, bcofind);
+
         if( ctrl->option->leader == clustnum &&
             ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
             fprintf(stdout, OUT_BLEND_CHKSOLVER);
         solverCheck(solvmtx);
     }
 
-    if(!ctrl->option->sequentiel)
-    {
-        /***************************************
-         * Malt : Moderate AmaLgamaTion        *
-         ***************************************/
-        if( ctrl->option->iparm[IPARM_VERBOSE]>API_VERBOSE_NO &&
-            ctrl->option->malt_limit >= 0)
-        {
-            fprintf(stdout, "** Malt  phase ** \n");
-            fprintf(stdout, "** Attemp to reduce  AUB memmory to a limit of %ld percents ** \n", (long)ctrl->option->malt_limit);
-        }
-        if(ctrl->option->malt_limit >= 0)
-        {
-            pastix_int_t maxalloc;
-            /*	maxalloc = Malt(solvmtx, INTVALMAX);
-             fprintf(stderr, "Maxalloc for AUB = %ld\n", (long)maxalloc);*/
-            maxalloc = Malt2(solvmtx, (float)ctrl->option->malt_limit);
-            fprintf(stdout, "Max of Memory allocation %ld Bytes\n", (long)maxalloc);
-            if(ctrl->option->debug)
-                solverCheck(solvmtx);
-        }
-    }
-
-
     /***************************************
      * Realloc Memory in a contiguous way  *
      ***************************************/
-    if(!ctrl->option->sequentiel)
-    {
-        blendCtrlExit(ctrl);
-        printf("Contiguous reallocation of the solverMatrix ...\n");
-        solverRealloc(solvmtx, bcofind);
-        printf("Done \n");
-    }
-    else
-    {
-        /** Set the bcofptr in the block targets **/
-        /** It is already done in solverRealloc if option sequentiel is active **/
-        setBcofPtr(solvmtx, bcofind);
-
-        /** Set the local btagptr **/
-        setLocalBtagPtr(solvmtx);
-    }
+    blendCtrlExit(ctrl);
+    printf("Contiguous reallocation of the solverMatrix ...\n");
+    solverRealloc(solvmtx, bcofind);
+    printf("Done \n");
 
 #ifdef DEBUG_BLEND
     if (leader == clustnum)
