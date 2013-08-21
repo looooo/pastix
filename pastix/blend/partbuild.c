@@ -128,7 +128,6 @@ void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
                     /* no need to copy subtree cost, we'll have to update it */
                     costmtx->cblktab[newnum[i]].total     = tmp2->cblktab[i].total;
                     costmtx->cblktab[newnum[i]].compute   = tmp2->cblktab[i].compute;
-                    costmtx->cblktab[newnum[i]].send      = tmp2->cblktab[i].send;
 
                     candtab[newnum[i]].treelevel = tmp3[i].treelevel;
                     candtab[newnum[i]].costlevel = tmp3[i].costlevel;
@@ -249,8 +248,6 @@ void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
 
     costmtx->cblktab[symbmtx->cblknbr].total   = 0;
     costmtx->cblktab[symbmtx->cblknbr].compute = 0;
-    costmtx->cblktab[symbmtx->cblknbr].send    = 0;
-
 
     /** we have to compute the cost of a splitted cblk **/
     for(i=0;i<tmp->cblknbr;i++)
