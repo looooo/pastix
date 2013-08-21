@@ -164,4 +164,9 @@ int  symbolKeepHisto     (SymbolKeep * const keepptr, const SymbolMatrix * const
 int  symbolKeepPurge     (SymbolKeep * restrict const keepptr, SymbolMatrix * restrict const symbptr);
 int  symbolKeepView      (const SymbolKeep * const keepptr, const double nnzlmax, const char * const nameptr);
 
+
+void symbolRustine (SymbolMatrix *       matrsymb,
+                    SymbolMatrix * const matrsymb2);
+
+
 #endif /* SYMBOL_H */

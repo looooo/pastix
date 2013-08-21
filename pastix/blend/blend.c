@@ -119,19 +119,6 @@ void solverBlend(SolverMatrix *solvmtx,
                   OUT_CLUSTNBR "" OUT_PROCNBR "" OUT_THRDNBR,
                   (long)clustnbr, (long)ctrl->proclocnbr, (long)ctrl->thrdlocnbr);
 
-    /* Get the symbmtx ready */
-    {
-        symbolRealloc(symbmtx);
-        symbolBase(symbmtx, 0);
-        symbolCheck(symbmtx);
-
-        /* Rustine */
-#define RUSTINE
-#ifdef RUSTINE
-        symbolRustine(symbmtx, symbmtx);
-#endif
-    }
-
     /** Verify the coherence of the initial symbol matrix **/
     if(ctrl->option->debug)
     {

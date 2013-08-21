@@ -74,20 +74,6 @@ void orderSplit3 (Order        * const ordeptr,
  */
 void symbolSplit (SymbolMatrix * matrsymb);
 
-/*
-  Function: symbolRustine
-
-  DESCRIPTION TO FILL
-
-  Parameters:
-    matrsymb  - Symbol matrix
-    matrsymb2 - Symbol matrix
- */
-void
-symbolRustine (SymbolMatrix *       matrsymb, 
-	       SymbolMatrix * const matrsymb2);
-
-
 /* *********************************************
    Functions: These are the cost functions.
 

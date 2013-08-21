@@ -22,41 +22,41 @@ symbolRustine (SymbolMatrix *       matrsymb,
     MALLOC_INTERN(cblktmp, matrsymb->cblknbr+1,                 SymbolCblk);
     for (i=0;i<matrsymb->cblknbr+1;i++)
     {
-        cblktmp[i].fcolnum=matrsymb->cblktab[i].fcolnum;
-        cblktmp[i].lcolnum=matrsymb->cblktab[i].lcolnum;
-        cblktmp[i].bloknum=matrsymb->cblktab[i].bloknum;
+        cblktmp[i].fcolnum = matrsymb->cblktab[i].fcolnum;
+        cblktmp[i].lcolnum = matrsymb->cblktab[i].lcolnum;
+        cblktmp[i].bloknum = matrsymb->cblktab[i].bloknum;
     }
 
     iter=0,add=0;
     for (cblknum=0;cblknum<matrsymb->cblknbr-1;cblknum++)
     {
         /* recopier le bloc diagonal */
-        bloknum=matrsymb->cblktab[cblknum].bloknum;
-        bloktmp[iter].frownum=matrsymb->bloktab[bloknum].frownum;
-        bloktmp[iter].lrownum=matrsymb->bloktab[bloknum].lrownum;
-        bloktmp[iter].cblknum=matrsymb->bloktab[bloknum].cblknum;
-        bloktmp[iter].levfval=matrsymb->bloktab[bloknum].levfval;
+        bloknum = matrsymb->cblktab[cblknum].bloknum;
+        bloktmp[iter].frownum = matrsymb->bloktab[bloknum].frownum;
+        bloktmp[iter].lrownum = matrsymb->bloktab[bloknum].lrownum;
+        bloktmp[iter].cblknum = matrsymb->bloktab[bloknum].cblknum;
+        bloktmp[iter].levfval = matrsymb->bloktab[bloknum].levfval;
         iter++;
 
-        bloknum=matrsymb->cblktab[cblknum].bloknum+1;
-        bloknum2=matrsymb2->cblktab[cblknum].bloknum+1;
+        bloknum  = matrsymb->cblktab[cblknum].bloknum+1;
+        bloknum2 = matrsymb2->cblktab[cblknum].bloknum+1;
 
-        if (bloknum==matrsymb->cblktab[cblknum+1].bloknum)
+        if (bloknum == matrsymb->cblktab[cblknum+1].bloknum)
         {
             /* pas d'extra diag */
-            if (matrsymb==matrsymb2)
+            if (matrsymb == matrsymb2)
             {
                 add++;
 #ifdef RUSTIN_ADD_NEXT_CBLK
-                bloktmp[iter].frownum=matrsymb->cblktab[cblknum+1].fcolnum;
-                bloktmp[iter].lrownum=matrsymb->cblktab[cblknum+1].fcolnum;
-                bloktmp[iter].cblknum=cblknum+1;
+                bloktmp[iter].frownum = matrsymb->cblktab[cblknum+1].fcolnum;
+                bloktmp[iter].lrownum = matrsymb->cblktab[cblknum+1].fcolnum;
+                bloktmp[iter].cblknum = cblknum+1;
 #else
-                bloktmp[iter].frownum=matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
-                bloktmp[iter].lrownum=matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
-                bloktmp[iter].cblknum=matrsymb->cblknbr-1;
+                bloktmp[iter].frownum = matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
+                bloktmp[iter].lrownum = matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
+                bloktmp[iter].cblknum = matrsymb->cblknbr-1;
 #endif
-                bloktmp[iter].levfval=matrsymb->bloktab[bloknum].levfval;
+                bloktmp[iter].levfval = matrsymb->bloktab[bloknum].levfval;
                 printf("add blok dans cblk %ld : %ld %ld %ld\n",(long)cblknum,
                        (long)bloktmp[iter].frownum,(long)bloktmp[iter].lrownum,
                        (long)bloktmp[iter].cblknum);
@@ -89,7 +89,8 @@ symbolRustine (SymbolMatrix *       matrsymb,
             }
 
             /* on recopie tous les blocs extra du bloc-colonne */
-            for (bloknum=matrsymb->cblktab[cblknum].bloknum+1;bloknum<matrsymb->cblktab[cblknum+1].bloknum;bloknum++)
+            for (bloknum = matrsymb->cblktab[cblknum].bloknum+1;
+                 bloknum < matrsymb->cblktab[cblknum+1].bloknum; bloknum++)
             {
                 bloktmp[iter].frownum = matrsymb->bloktab[bloknum].frownum;
                 bloktmp[iter].lrownum = matrsymb->bloktab[bloknum].lrownum;
@@ -99,20 +100,20 @@ symbolRustine (SymbolMatrix *       matrsymb,
             }
         }
 
-        cblktmp[cblknum+1].bloknum+=add;
+        cblktmp[cblknum+1].bloknum += add;
     }
 
-    bloktmp[iter].frownum=matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
-    bloktmp[iter].lrownum=matrsymb->cblktab[matrsymb->cblknbr-1].lcolnum;
-    bloktmp[iter].cblknum=matrsymb->cblknbr-1;
-    bloktmp[iter].levfval=0;
+    bloktmp[iter].frownum = matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
+    bloktmp[iter].lrownum = matrsymb->cblktab[matrsymb->cblknbr-1].lcolnum;
+    bloktmp[iter].cblknum = matrsymb->cblknbr-1;
+    bloktmp[iter].levfval = 0;
     cblktmp[matrsymb->cblknbr].bloknum+=add;
 
     memFree_null(matrsymb->bloktab);
     memFree_null(matrsymb->cblktab);
-    matrsymb->bloktab=bloktmp;
-    matrsymb->cblktab=cblktmp;
-    matrsymb->bloknbr+=add;
+    matrsymb->bloktab = bloktmp;
+    matrsymb->cblktab = cblktmp;
+    matrsymb->bloknbr += add;
     ASSERT(add<matrsymb->cblknbr,MOD_SOPALIN);
 }
 
