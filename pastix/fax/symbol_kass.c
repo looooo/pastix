@@ -266,7 +266,6 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     for(i=0;i<n;i++)
         perm[invp[i]] = i;
     memFree(invp2);
-    clockStop(timer);
 
     /* Let's build the symbol matrix */
     kassBuildSymbol( &graphL, newcblknbr, newrangtab, symbmtx );
@@ -292,6 +291,7 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
 
     nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, NULL);
 
+    clockStop(timer);
     pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
     pastix_print(procnum, 0, "Number of cblk in the amalgamated symbol matrix = %ld \n", (long)newcblknbr);
     pastix_print(procnum, 0, "Number of block in final symbol matrix = %ld \n",

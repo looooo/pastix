@@ -152,19 +152,6 @@ int  symbolTree          (const SymbolMatrix * const symbptr, const Dof * const 
 int  symbolNonzeros      (const SymbolMatrix * const symbptr, FILE * const stream);
 #endif /* DOF_H */
 
-int  symbolKeepInit      (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr);
-void symbolKeepExit      (SymbolKeep * restrict const keepptr);
-void symbolKeepAdd       (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr,
-                          int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
-void symbolKeepDel       (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr,
-                          int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
-int  symbolKeepCompute   (SymbolKeep * restrict const keepptr, const SymbolMatrix * const symbptr);
-int  symbolKeepHisto     (SymbolKeep * const keepptr, const SymbolMatrix * const,
-                          int (* funcptr) (const SymbolKeepBlok * const, void * const), void * dataptr);
-int  symbolKeepPurge     (SymbolKeep * restrict const keepptr, SymbolMatrix * restrict const symbptr);
-int  symbolKeepView      (const SymbolKeep * const keepptr, const double nnzlmax, const char * const nameptr);
-
-
 void symbolRustine (SymbolMatrix *       matrsymb,
                     SymbolMatrix * const matrsymb2);
 

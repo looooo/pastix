@@ -305,6 +305,20 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         pastix_data->csc = NULL;
     }
 
+    /* Rebase to 0 */
+    symbolBase( pastix_data->symbmtx, 0 );
+
+    /* Rustine to be sure we have a tree
+     * TODO: check difference with kassSymbolPatch */
+#define RUSTINE
+#ifdef RUSTINE
+    symbolRustine( pastix_data->symbmtx,
+                   pastix_data->symbmtx );
+#endif
+
+    /* Realign data structure */
+    symbolRealloc( pastix_data->symbmtx );
+
     /*
      * Save the symbolic factorization
      */
@@ -331,19 +345,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         fclose(stream);
     }
 #endif
-
-    /* Rebase to 0 */
-    symbolBase( pastix_data->symbmtx, 0 );
-
-    /* Rustine to be sure we have a tree */
-#define RUSTINE
-#ifdef RUSTINE
-    symbolRustine( pastix_data->symbmtx,
-                   pastix_data->symbmtx );
-#endif
-
-    /* Realign data structure */
-    symbolRealloc( pastix_data->symbmtx );
 
     iparm[IPARM_START_TASK]++;
 
