@@ -335,6 +335,16 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
 
+    /* Rustine to be sure we have a tree */
+#define RUSTINE
+#ifdef RUSTINE
+    symbolRustine( pastix_data->symbmtx,
+                   pastix_data->symbmtx );
+#endif
+
+    /* Realign data structure */
+    symbolRealloc( pastix_data->symbmtx );
+
     iparm[IPARM_START_TASK]++;
 
     return PASTIX_SUCCESS;

@@ -27,7 +27,8 @@
  *******************************************************************************
  *
  * @param[in,out] P
- *          The non zero pattern of the factorized matrix. WARNING: on exit, the graph is destroyed.
+ *          The non zero pattern of the factorized matrix. WARNING: on exit, the
+ *          graph is destroyed.
  *
  * @param[in] cblknbr
  *          The number of supernode. Must be equal to P->n.
