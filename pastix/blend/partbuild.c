@@ -22,265 +22,270 @@
 #include "costfunc.h"
 #include "partbuild.h"
 
-
 /*+
-  Make a new SymbolMatrix and CostMatrix from the former ones
-  and the Extra ones (that contains splitted bloks)
-  +*/
+ Make a new SymbolMatrix and CostMatrix from the former ones
+ and the Extra ones (that contains splitted bloks)
+ +*/
 /* OIMBE : retravailler partBuild avec des memcpy */
 
-void partBuild(SymbolMatrix *symbmtx, ExtraSymbolMatrix *extrasymb,
-               CostMatrix *costmtx, ExtraCostMatrix *extracost,
-               BlendCtrl *ctrl, const Dof * dofptr)
+void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
+                ExtraSymbolMatrix *extrasymb,
+                ExtraCostMatrix *extracost,
+                SymbolMatrix *newsymb,
+                CostMatrix   *newcost,
+                Cand        **candtab )
 {
-    pastix_int_t i, j, k, s;
-    pastix_int_t curbloknum;
-    pastix_int_t sptbloknum;
+    pastix_int_t  i, j, k, s;
+    pastix_int_t  curbloknum;
+    pastix_int_t  sptbloknum;
     pastix_int_t *newnum      = NULL;
     pastix_int_t *extranewnum = NULL;
-    SymbolMatrix *tmp;
-    CostMatrix   *tmp2;
-    Cand         *tmp3;
-    Cand         *candtab;
-    pastix_int_t    facing_splitted_cnt = 0;
+    pastix_int_t  facing_splitted_cnt = 0;
+
+    SymbolMatrix *oldsymb;
+    CostMatrix   *oldcost;
+    Cand         *oldcand = *candtab;
+    Cand         *newcand;
 
     /* No splitted cblk: partition remains the same */
-    if(extrasymb->curcblk == 0)
+    fprintf( stderr, "Number of generated block is %ld\n", extrasymb->curcblk );
+    if(extrasymb->curcblk == 0) {
         return;
-
-    MALLOC_INTERN(tmp,  1, SymbolMatrix);
-    MALLOC_INTERN(tmp2, 1, CostMatrix);
-    symbolInit(tmp);
-    costInit(tmp2);
-
-    tmp->baseval  = symbmtx->baseval;
-    tmp->cblknbr  = symbmtx->cblknbr;
-    tmp->bloknbr  = symbmtx->bloknbr;
-    tmp->cblktab  = symbmtx->cblktab;
-    tmp->bloktab  = symbmtx->bloktab;
-
-    tmp2->cblktab = costmtx->cblktab;
-    tmp2->bloktab = costmtx->bloktab;
-
-    tmp3  = ctrl->candtab;
-
-    symbmtx->cblknbr += extrasymb->addcblk;
-    symbmtx->bloknbr += extrasymb->addblok;
+    }
 
     if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-      {
+    {
         fprintf(stdout, "Number of column blocks created by splitting : %d\n", (int)(extrasymb->addcblk));
         fprintf(stdout, "Number of blocks creating by splitting       : %d\n", (int)(extrasymb->addblok));
-      }
-    /** allocate space for the new matrix **/
-    MALLOC_INTERN(symbmtx->cblktab, symbmtx->cblknbr+1, SymbolCblk);
-    MALLOC_INTERN(symbmtx->bloktab, symbmtx->bloknbr,   SymbolBlok);
-    MALLOC_INTERN(costmtx->cblktab, symbmtx->cblknbr+1, CostCblk);
-    MALLOC_INTERN(costmtx->bloktab, symbmtx->bloknbr,   CostBlok);
-    MALLOC_INTERN(ctrl->candtab,    symbmtx->cblknbr,   Cand);
+    }
 
-    candtab = ctrl->candtab;
+    /* Allocate new symbol */
+    MALLOC_INTERN(oldsymb, 1, SymbolMatrix);
+    memcpy( oldsymb, newsymb, sizeof(SymbolMatrix) );
 
-    /** we use sptcbnb to get new num of cblk in the new symbolic matrix **/
-    MALLOC_INTERN(newnum, tmp->cblknbr+1, pastix_int_t);
-    memcpy(&(newnum[1]), extrasymb->sptcbnb, tmp->cblknbr * sizeof(pastix_int_t));
+    newsymb->cblknbr = oldsymb->cblknbr + extrasymb->addcblk;
+    newsymb->bloknbr = oldsymb->bloknbr + extrasymb->addblok;
+    MALLOC_INTERN(newsymb->cblktab, newsymb->cblknbr+1, SymbolCblk);
+    MALLOC_INTERN(newsymb->bloktab, newsymb->bloknbr,   SymbolBlok);
+    memset( newsymb->bloktab, 0, newsymb->bloknbr * sizeof(SymbolBlok) );
+
+    /* Allocate new CostMatrix */
+    MALLOC_INTERN(oldcost, 1, CostMatrix);
+    memcpy( oldcost, newcost, sizeof(CostMatrix) );
+
+    costInit(newcost);
+    MALLOC_INTERN(newcost->bloktab, newsymb->bloknbr, CostBlok);
+
+    /* Allocate new candtab */
+    MALLOC_INTERN(newcand, newsymb->cblknbr, Cand);
+    memset( newcand, 0, newsymb->cblknbr * sizeof(Cand) );
+
+    /*
+     * We use the sptcbnb array to get the new numbering of the former cblk
+     * in the new symbolic matrix
+     * newnum[i+1] becomes the new number of the first cblk generated from the
+     * split of former cblk number i.
+     */
+    MALLOC_INTERN(newnum, oldsymb->cblknbr, pastix_int_t);
+    memcpy(newnum+1, extrasymb->sptcbnb, (oldsymb->cblknbr-1) * sizeof(pastix_int_t));
     newnum[0] = 0;
-    for(i=1;i < tmp->cblknbr+1;i++)
+    for(i=1; i<oldsymb->cblknbr; i++) {
         newnum[i] += newnum[i-1];
-    /** newnum[i] is the new decomp number of the first splitted cblk from former
-        cblk number i**/
-#ifdef DEBUB_BLEND
-    for(i=0;i<tmp->cblknbr;i++)
-        ASSERT((newnum[i]>=0) && (newnum[i]<symbmtx->cblknbr),MOD_BLEND);
-#endif
+        assert( (newnum[i] >= 0) && (newnum[i] < newsymb->cblknbr) );
+        assert( newnum[i] > newnum[i-1] );
+    }
 
-
-    /** Now, we use sptcblk and newind to get the new decomp number of all cblk owned
-        by the extra symbolic matrix **/
+    /*
+     * Now, we use sptcblk and newnum to get the new numbering of all generated
+     * cblk owned by the extra symbolic matrix
+     */
     MALLOC_INTERN(extranewnum, extrasymb->curcblk, pastix_int_t);
-    for(i=0;i<tmp->cblknbr;i++)
-        if(extrasymb->sptcblk[i]>=0)
-            for(j=0;j<extrasymb->sptcbnb[i];j++)
+    for(i=0; i<oldsymb->cblknbr; i++)
+    {
+        if(extrasymb->sptcblk[i] >= 0)
+        {
+            for(j=0; j<extrasymb->sptcbnb[i]; j++) {
                 extranewnum[extrasymb->sptcblk[i]+j] = newnum[i]+j;
-    /** extranewnum[i] is the decomp number of the cblk[i] of the extra symbolic
-        matrix */
+                assert( (extranewnum[extrasymb->sptcblk[i]+j] >= 0) &&
+                        (extranewnum[extrasymb->sptcblk[i]+j] < newsymb->cblknbr) );
+                assert( extranewnum[extrasymb->sptcblk[i]+j] >= newnum[i] );
+            }
+        }
+    }
 
-#ifdef DEBUB_BLEND
-    for(i=0;i<extrasymb->curcblk;i++)
-        ASSERT((extranewnum[i]>=0) && (extranewnum[i]<symbmtx->cblknbr),MOD_BLEND);
-#endif
-
-
-
-    /** fill the new symbolic matrix resulting from splitting of the former one **/
+    /* Fill in the new symbolic matrix resulting from the splitting of the former one */
     curbloknum = 0;
-    for(i=0;i<tmp->cblknbr;i++)
+    for(i=0; i<oldsymb->cblknbr; i++)
+    {
+        pastix_int_t newcblknum;
+
+        if(extrasymb->sptcblk[i] < 0) /* not a splitted cblk */
         {
-            if(extrasymb->sptcblk[i] < 0) /* not a splitted cblk */
+            newcblknum = newnum[i];
+            assert( newcblknum < newsymb->cblknbr );
+            newsymb->cblktab[newcblknum].fcolnum = oldsymb->cblktab[i].fcolnum;
+            newsymb->cblktab[newcblknum].lcolnum = oldsymb->cblktab[i].lcolnum;
+            newsymb->cblktab[newcblknum].bloknum = curbloknum;
+
+            memcpy( newcand + newcblknum, oldcand + i, sizeof(Cand) );
+
+            for( j = oldsymb->cblktab[i].bloknum;
+                 j < oldsymb->cblktab[i+1].bloknum; j++ )
+            {
+                /*
+                 * Not a splitted blok, so its facing diag is not splitted
+                 * NB: even if a blok is not splitted while its facing cblk is
+                 * splitted , it's considered as splitted
+                 */
+                if(extrasymb->sptblok[j] < 0)
                 {
-                    symbmtx->cblktab[newnum[i]].fcolnum = tmp->cblktab[i].fcolnum;
-                    symbmtx->cblktab[newnum[i]].lcolnum = tmp->cblktab[i].lcolnum;
-                    symbmtx->cblktab[newnum[i]].bloknum = curbloknum;
-#ifdef STARPU_GET_TASK_CTX
-                    symbmtx->cblktab[newnum[i]].ctx     = tmp->cblktab[i].ctx;
-#endif
+                    pastix_int_t fcblknum = oldsymb->bloktab[j].cblknum;
+                    assert( fcblknum < oldsymb->cblknbr );
+                    fcblknum = newnum[ fcblknum ];
+                    newsymb->bloktab[curbloknum].frownum = oldsymb->bloktab[j].frownum;
+                    newsymb->bloktab[curbloknum].lrownum = oldsymb->bloktab[j].lrownum;
+                    newsymb->bloktab[curbloknum].cblknum = fcblknum;
+                    newsymb->bloktab[curbloknum].levfval = oldsymb->bloktab[j].levfval;
 
-                    /* no need to copy subtree cost, we'll have to update it */
-                    costmtx->cblktab[newnum[i]].total     = tmp2->cblktab[i].total;
-                    costmtx->cblktab[newnum[i]].compute   = tmp2->cblktab[i].compute;
+                    assert( (fcblknum >= 0) &&
+                            (fcblknum < newsymb->cblknbr) );
 
-                    candtab[newnum[i]].treelevel = tmp3[i].treelevel;
-                    candtab[newnum[i]].costlevel = tmp3[i].costlevel;
-
-                    candtab[newnum[i]].fcandnum  = tmp3[i].fcandnum;
-                    candtab[newnum[i]].lcandnum  = tmp3[i].lcandnum;
-                    candtab[newnum[i]].cluster   = tmp3[i].cluster;
-                    candtab[newnum[i]].distrib   = tmp3[i].distrib;
-
-
-                    for(j=tmp->cblktab[i].bloknum; j<tmp->cblktab[i+1].bloknum;j++)
-                        {
-                            if(extrasymb->sptblok[j] < 0) /* not a splitted blok
-                                                             so its facing diag is not splitted */
-                                /* NB: even if a blok is not splitted while its facing cblk is
-                                   splitted , it's considered as splitted */
-                                {
-                                    symbmtx->bloktab[curbloknum].frownum = tmp->bloktab[j].frownum;
-                                    symbmtx->bloktab[curbloknum].lrownum = tmp->bloktab[j].lrownum;
-                                    symbmtx->bloktab[curbloknum].cblknum = newnum[tmp->bloktab[j].cblknum];
-#ifdef DEBUG_BLEND
-                                    ASSERT((newnum[tmp->bloktab[j].cblknum] >=0)&&(newnum[tmp->bloktab[j].cblknum] <= symbmtx->cblknbr),MOD_BLEND);
-#endif
-                                    costmtx->bloktab[curbloknum].contrib = tmp2->bloktab[j].contrib;
-                                    costmtx->bloktab[curbloknum].linenbr = tmp2->bloktab[j].linenbr;
-                                    curbloknum++;
-                                }
-                            else      /* splitted blok in a non splitted cblk
-                                         -> the facing diagblok is splitted */
-                                {
-                                    facing_splitted_cnt += extrasymb->sptblnb[j]-1;
-                                    for(k=extrasymb->sptblok[j];k < extrasymb->sptblok[j]+extrasymb->sptblnb[j];k++)
-                                        {
-                                            symbmtx->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
-                                            symbmtx->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
-                                            symbmtx->bloktab[curbloknum].cblknum = extranewnum[extrasymb->bloktab[k].cblknum];
-#ifdef DEBUG_BLEND
-                                            ASSERT((extranewnum[extrasymb->bloktab[k].cblknum] >=0)&&(extranewnum[extrasymb->bloktab[k].cblknum] <= symbmtx->cblknbr),MOD_BLEND);
-#endif
-                                            costmtx->bloktab[curbloknum].contrib = extracost->bloktab[k].contrib;
-                                            costmtx->bloktab[curbloknum].linenbr = extracost->bloktab[k].linenbr;
-
-                                            curbloknum++;
-                                        }
-                                }
-                        }
+                    newcost->bloktab[curbloknum].contrib = oldcost->bloktab[j].contrib;
+                    newcost->bloktab[curbloknum].linenbr = oldcost->bloktab[j].linenbr;
+                    curbloknum++;
                 }
-            else    /* splitted cblk */
+                /* Splitted blok in a non splitted cblk -> the facing diagblok is splitted */
+                else
                 {
-                    for(j=extrasymb->sptcblk[i]; j < extrasymb->sptcblk[i]+extrasymb->sptcbnb[i];j++)
-                        {
-                            symbmtx->cblktab[extranewnum[j]].fcolnum = extrasymb->cblktab[j].fcolnum;
-                            symbmtx->cblktab[extranewnum[j]].lcolnum = extrasymb->cblktab[j].lcolnum;
-#ifdef STARPU_GET_TASK_CTX
-                            symbmtx->cblktab[extranewnum[j]].ctx = extrasymb->cblktab[j].ctx;
-#endif
-                            symbmtx->cblktab[extranewnum[j]].bloknum = curbloknum;
+                    facing_splitted_cnt += extrasymb->sptblnb[j]-1;
+                    for(k = extrasymb->sptblok[j];
+                        k < extrasymb->sptblok[j] + extrasymb->sptblnb[j]; k++)
+                    {
+                        pastix_int_t fcblknum = extranewnum[ extrasymb->bloktab[k].cblknum ];
+                        newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
+                        newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
+                        newsymb->bloktab[curbloknum].cblknum = fcblknum;
+                        newsymb->bloktab[curbloknum].levfval = extrasymb->bloktab[k].levfval;
 
-                            candtab[extranewnum[j]].treelevel = tmp3[i].treelevel;
-                            candtab[extranewnum[j]].costlevel = tmp3[i].costlevel;
-                            candtab[extranewnum[j]].fcandnum  = tmp3[i].fcandnum;
-                            candtab[extranewnum[j]].lcandnum  = tmp3[i].lcandnum;
-                            candtab[extranewnum[j]].cluster   = tmp3[i].cluster;
-                            candtab[extranewnum[j]].distrib   = tmp3[i].distrib;
+                        assert( (fcblknum >= 0) &&
+                                (fcblknum < newsymb->cblknbr) );
 
-                            /** treat blok created by splitting of the diag blok **/
-                            for(k=extrasymb->cblktab[j].bloknum;
-                                k < (extrasymb->cblktab[j].bloknum +extrasymb->sptcblk[i] +extrasymb->sptcbnb[i]-j);k++)
-                                {
-                                    symbmtx->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
-                                    symbmtx->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
-                                    symbmtx->bloktab[curbloknum].cblknum = extranewnum[extrasymb->bloktab[k].cblknum];
-#ifdef DEBUG_BLEND
-                                    ASSERT(symbmtx->bloktab[curbloknum].frownum >= extrasymb->cblktab[extrasymb->bloktab[k].cblknum].fcolnum,MOD_BLEND);
-                                    ASSERT(symbmtx->bloktab[curbloknum].lrownum <= extrasymb->cblktab[extrasymb->bloktab[k].cblknum].lcolnum,MOD_BLEND);
-#endif
-                                    curbloknum++;
-                                }
+                        newcost->bloktab[curbloknum].contrib = extracost->bloktab[k].contrib;
+                        newcost->bloktab[curbloknum].linenbr = extracost->bloktab[k].linenbr;
 
-                            sptbloknum = k;
-                            for(k=tmp->cblktab[i].bloknum+1;k<tmp->cblktab[i+1].bloknum;k++)
-                                {
-                                    if(extrasymb->sptblok[k]<0)
-                                        {
-                                            symbmtx->bloktab[curbloknum].frownum = tmp->bloktab[k].frownum;
-                                            symbmtx->bloktab[curbloknum].lrownum = tmp->bloktab[k].lrownum;
-                                            symbmtx->bloktab[curbloknum].cblknum = newnum[extrasymb->bloktab[sptbloknum].cblknum];
-                                            sptbloknum++;
-                                            curbloknum++;
-                                        }
-                                    else
-                                        {
-                                            facing_splitted_cnt += extrasymb->sptblnb[k]-1;
-                                            for(s=extrasymb->sptblok[k];s<extrasymb->sptblok[k]+extrasymb->sptblnb[k];s++)
-                                                {
-                                                    symbmtx->bloktab[curbloknum].frownum = extrasymb->bloktab[s].frownum;
-                                                    symbmtx->bloktab[curbloknum].lrownum = extrasymb->bloktab[s].lrownum;
-                                                    symbmtx->bloktab[curbloknum].cblknum = extranewnum[extrasymb->bloktab[s].cblknum];
-                                                    sptbloknum++;
-                                                    curbloknum++;
-                                                }
-                                        }
-                                }
+                        curbloknum++;
+                    }
+                }
+            }
+        }
+        /* Splitted cblk */
+        else
+        {
+            for(j = extrasymb->sptcblk[i];
+                j < extrasymb->sptcblk[i] + extrasymb->sptcbnb[i]; j++)
+            {
+                newcblknum = extranewnum[j];
+                assert( newcblknum < newsymb->cblknbr );
 
-                        }
+                newsymb->cblktab[newcblknum].fcolnum = extrasymb->cblktab[j].fcolnum;
+                newsymb->cblktab[newcblknum].lcolnum = extrasymb->cblktab[j].lcolnum;
+                newsymb->cblktab[newcblknum].bloknum = curbloknum;
 
+                memcpy( newcand + newcblknum, oldcand + i, sizeof(Cand) );
+
+                /* Treat blok created by splitting of the diag blok */
+                for(k = extrasymb->cblktab[j].bloknum;
+                    k <(extrasymb->cblktab[j].bloknum + extrasymb->sptcblk[i] + extrasymb->sptcbnb[i] - j); k++)
+                {
+                    pastix_int_t fcblknum = extrasymb->bloktab[k].cblknum;
+                    newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
+                    newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
+                    newsymb->bloktab[curbloknum].cblknum = extranewnum[fcblknum];
+                    newsymb->bloktab[curbloknum].levfval = extrasymb->bloktab[k].levfval;
+
+                    assert(newsymb->bloktab[curbloknum].frownum >= extrasymb->cblktab[fcblknum].fcolnum);
+                    assert(newsymb->bloktab[curbloknum].lrownum <= extrasymb->cblktab[fcblknum].lcolnum);
+
+                    curbloknum++;
                 }
 
+                sptbloknum = k;
+                for(k = oldsymb->cblktab[i].bloknum+1;
+                    k < oldsymb->cblktab[i+1].bloknum; k++)
+                {
+                    if(extrasymb->sptblok[k] < 0)
+                    {
+                        pastix_int_t fcblknum = extrasymb->bloktab[sptbloknum].cblknum;
+                        assert( fcblknum < oldsymb->cblknbr );
+                        fcblknum = newnum[ fcblknum ];
+                        newsymb->bloktab[curbloknum].frownum = oldsymb->bloktab[k].frownum;
+                        newsymb->bloktab[curbloknum].lrownum = oldsymb->bloktab[k].lrownum;
+                        newsymb->bloktab[curbloknum].cblknum = fcblknum;
+                        newsymb->bloktab[curbloknum].levfval = oldsymb->bloktab[k].levfval;
+                        sptbloknum++;
+                        curbloknum++;
+                    }
+                    else
+                    {
+                        facing_splitted_cnt += extrasymb->sptblnb[k]-1;
+                        for(s=extrasymb->sptblok[k];s<extrasymb->sptblok[k]+extrasymb->sptblnb[k];s++)
+                        {
+                            pastix_int_t fcblknum = extranewnum[extrasymb->bloktab[s].cblknum];
+                            newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[s].frownum;
+                            newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[s].lrownum;
+                            newsymb->bloktab[curbloknum].cblknum = fcblknum;
+                            newsymb->bloktab[curbloknum].levfval = extrasymb->bloktab[s].levfval;
+                            sptbloknum++;
+                            curbloknum++;
+                        }
+                    }
+                }
+            }
         }
+    }
 
-#ifdef DEBUG_BLEND
-    ASSERT(curbloknum == symbmtx->bloknbr,MOD_BLEND);
-#endif
-    /* virtual cblk to avoid side effect in the loops on cblk bloks */
-    symbmtx->cblktab[symbmtx->cblknbr].fcolnum = symbmtx->cblktab[symbmtx->cblknbr-1].lcolnum+1;
-    symbmtx->cblktab[symbmtx->cblknbr].lcolnum = symbmtx->cblktab[symbmtx->cblknbr-1].lcolnum+1;
-    symbmtx->cblktab[symbmtx->cblknbr].bloknum = curbloknum;
+    assert(curbloknum == newsymb->bloknbr);
 
-    costmtx->cblktab[symbmtx->cblknbr].total   = 0;
-    costmtx->cblktab[symbmtx->cblknbr].compute = 0;
+    /* Virtual cblk to avoid side effect in the loops on cblk bloks */
+    newsymb->cblktab[newsymb->cblknbr].fcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
+    newsymb->cblktab[newsymb->cblknbr].lcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
+    newsymb->cblktab[newsymb->cblknbr].bloknum = curbloknum;
 
-    /** we have to compute the cost of a splitted cblk **/
-    for(i=0;i<tmp->cblknbr;i++)
-        {
-            if(extrasymb->sptcblk[i] >= 0) /* not a splitted cblk */
-                for(j=extrasymb->sptcblk[i]; j < extrasymb->sptcblk[i]+extrasymb->sptcbnb[i];j++)
-                    cblkComputeCost(extranewnum[j], costmtx, symbmtx, dofptr);
-        }
-
+    /* TODO: update on the fly */
+    /* We have to compute the cost of a splitted cblk */
+    for(i=0; i<newsymb->cblknbr; i++)
+    {
+        cblkComputeCost(i, newcost, newsymb, dofptr);
+    }
 
     if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-      {
+    {
         double        block_height_sum = 0.0;
         double        cblk_width_sum = 0.0;
-        for (j = 0; j < symbmtx->cblknbr; j++)
-          {
-            cblk_width_sum += (double)(symbmtx->cblktab[j].lcolnum - symbmtx->cblktab[j].fcolnum + 1);
+        for (j = 0; j < newsymb->cblknbr; j++)
+        {
+            cblk_width_sum += (double)(newsymb->cblktab[j].lcolnum - newsymb->cblktab[j].fcolnum + 1);
 
-            for (i = symbmtx->cblktab[j].bloknum+1; i < symbmtx->cblktab[j+1].bloknum; i++)
-              {
-                block_height_sum += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum + 1);
-              }
-          }
-        fprintf(stdout, "Average cblk size : %g\n", cblk_width_sum/symbmtx->cblknbr);
-        fprintf(stdout, "Average extra diagonal block height : %g\n", block_height_sum/(symbmtx->bloknbr-symbmtx->cblknbr));
+            for (i = newsymb->cblktab[j].bloknum+1; i < newsymb->cblktab[j+1].bloknum; i++)
+            {
+                block_height_sum += (double)(newsymb->bloktab[i].lrownum - newsymb->bloktab[i].frownum + 1);
+            }
+        }
+        fprintf(stdout, "Average cblk size : %g\n", cblk_width_sum/newsymb->cblknbr);
+        fprintf(stdout, "Average extra diagonal block height : %g\n", block_height_sum/(newsymb->bloknbr-newsymb->cblknbr));
         fprintf(stdout, "Number of blocks created due to facing block splitting : %d\n", (int)facing_splitted_cnt);
-      }
+    }
 
-    /** Free memory **/
     memFree_null(newnum);
     memFree_null(extranewnum);
-    symbolExit(tmp);
-    memFree_null(tmp);
-    costExit(tmp2);
-    memFree_null(tmp3);
+
+    /* Free old versions */
+    symbolCheck(newsymb);
+    symbolExit(oldsymb);
+    memFree_null(oldsymb);
+    costExit(oldcost);
+    memFree_null(oldcand);
+
+    *candtab = newcand;
+    return;
 }

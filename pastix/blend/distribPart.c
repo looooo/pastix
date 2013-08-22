@@ -43,7 +43,10 @@
 /******** VERIFIER clustdst et clustsrc dans costFtgtSend et taskSendCost *******/
 /******** VERIFIER clustdst et clustsrc dans costFtgtSend et taskSendCost *******/
 
-void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+void distribPart(SymbolMatrix *symbptr,
+                 SimuCtrl *simuctrl,
+                 BlendCtrl *ctrl,
+                 const Dof * dofptr)
 {
 
     pastix_int_t             i, j, b;
@@ -74,13 +77,13 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
     {
         if(simuctrl->cblktab[i].ctrbcnt == 0) /* if cblk is a leave */
         {
-            ASSERTDBG(ctrl->candtab[i].treelevel < 0,MOD_BLEND);
+            assert(ctrl->candtab[i].treelevel < 0);
             if(ctrl->costlevel)
-                ASSERTDBG(ctrl->candtab[i].costlevel < 0,MOD_BLEND);
-            ASSERTDBG(simuctrl->tasktab[simuctrl->bloktab[symbptr->cblktab[i].bloknum].tasknum].taskid == COMP_1D
-                      || simuctrl->tasktab[simuctrl->bloktab[symbptr->cblktab[i].bloknum].tasknum].taskid == DIAG,MOD_BLEND);
+                assert(ctrl->candtab[i].costlevel < 0);
+            assert(simuctrl->tasktab[simuctrl->bloktab[symbptr->cblktab[i].bloknum].tasknum].taskid == COMP_1D
+                      || simuctrl->tasktab[simuctrl->bloktab[symbptr->cblktab[i].bloknum].tasknum].taskid == DIAG);
             if(simuctrl->tasktab[simuctrl->bloktab[symbptr->cblktab[i].bloknum].tasknum].taskid == COMP_1D)
-                ASSERTDBG(ctrl->candtab[i].distrib == D1,MOD_BLEND);
+                assert(ctrl->candtab[i].distrib == D1);
 
             for(pr=ctrl->candtab[i].fcandnum;pr<=ctrl->candtab[i].lcandnum;pr++)
                 putInReadyQueue(pr, simuctrl->bloktab[symbptr->cblktab[i].bloknum].tasknum,
@@ -108,9 +111,9 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
         {
 
             if(simuctrl->tasktab[i].taskid != COMP_1D)
-                ASSERTDBG(simuctrl->blprtab[bloknum]<0,MOD_BLEND);
+                assert(simuctrl->blprtab[bloknum]<0);
             else
-                ASSERTDBG(simuctrl->ownetab[cblknum]<0,MOD_BLEND);
+                assert(simuctrl->ownetab[cblknum]<0);
 
             /***** Set processor owners *****/
             switch(simuctrl->tasktab[i].taskid)
@@ -134,7 +137,7 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
             }
         }
         else
-            ASSERTDBG(simuctrl->blprtab[bloknum] >= 0,MOD_BLEND);
+            assert(simuctrl->blprtab[bloknum] >= 0);
 
         simuctrl->tasktab[i].prionum = simuctrl->clustab[ctrl->core2clust[pr]].prionum;
         simuctrl->clustab[ctrl->core2clust[pr]].prionum++;
@@ -146,7 +149,7 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
         if ((simuctrl->tasktab[i].taskid == DIAG)
             || (simuctrl->tasktab[i].taskid == COMP_1D))
         {
-            ASSERTDBG(simuctrl->tasktab[i].cblknum < symbptr->cblknbr, MOD_BLEND);
+            assert(simuctrl->tasktab[i].cblknum < symbptr->cblknbr);
             ctrl->candtab[simuctrl->tasktab[i].cblknum].cluster = ctrl->core2clust[pr];
         }
 
@@ -204,7 +207,7 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
                     simuctrl->ftgtprio++;
                 }
                 else
-                    ASSERTDBG(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum,MOD_BLEND);
+                    assert(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum);
 
                 break;
 
@@ -244,7 +247,7 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
 
                 }
                 else
-                    ASSERTDBG(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum,MOD_BLEND);
+                    assert(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum);
 
                 break;
             default:
@@ -340,7 +343,7 @@ void distribPart(SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, con
             EXIT(MOD_BLEND,INTERNAL_ERR);
         }
     for(i=0;i<symbptr->bloknbr;i++)
-        ASSERTDBG(simuctrl->blprtab[i]>=0,MOD_BLEND);
+        assert(simuctrl->blprtab[i]>=0);
 #endif
 }
 
@@ -394,7 +397,7 @@ void taskExec_DIAG(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuct
                 putInReadyQueue(pr, simuctrl->bloktab[i].tasknum, symbptr, simuctrl, ctrl);
             }
           
-            ASSERTDBG(simuctrl->bloktab[i].tasknum < simuctrl->tasknbr,MOD_BLEND);
+            assert(simuctrl->bloktab[i].tasknum < simuctrl->tasknbr);
         }
     }
 
@@ -445,13 +448,13 @@ void taskExec_E1(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl
      /---------------------------------------------------------------------*/
     for(i=symbptr->cblktab[cblknum].bloknum+1;i<=bloknum;i++)
     {
-        ASSERTDBG(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].taskid == E2,MOD_BLEND);
-        ASSERTDBG(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].bloknum == bloknum,MOD_BLEND);
-        ASSERTDBG(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].bloknum2 == i,MOD_BLEND);
+        assert(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].taskid == E2);
+        assert(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].bloknum == bloknum);
+        assert(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].bloknum2 == i);
 
         if(simuctrl->blprtab[i] < 0) /** Task E2 of a block not yet mapped **/
         {
-            ASSERTDBG(timerVal(&(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].time)) == 0,MOD_BLEND);
+            assert(timerVal(&(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].time)) == 0);
             timerSet(&(simuctrl->tasktab[simuctrl->bloktab[i].tasknum + bloknum - i+1].time), timerVal(TIMER(procnum)));
         }
         else
@@ -480,10 +483,10 @@ void taskExec_E1(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl
 
             putInReadyQueue(simuctrl->blprtab[i], tasknum + i-bloknum+1, symbptr, simuctrl, ctrl);
         }
-        ASSERTDBG(tasknum + i-bloknum + 1< simuctrl->tasknbr,MOD_BLEND);
-        ASSERTDBG(simuctrl->tasktab[tasknum + i-bloknum+1].taskid == E2,MOD_BLEND);
-        ASSERTDBG(simuctrl->tasktab[tasknum + i-bloknum+1].bloknum == i,MOD_BLEND);
-        ASSERTDBG(simuctrl->tasktab[tasknum + i-bloknum+1].bloknum2 == bloknum,MOD_BLEND);
+        assert(tasknum + i-bloknum + 1< simuctrl->tasknbr);
+        assert(simuctrl->tasktab[tasknum + i-bloknum+1].taskid == E2);
+        assert(simuctrl->tasktab[tasknum + i-bloknum+1].bloknum == i);
+        assert(simuctrl->tasktab[tasknum + i-bloknum+1].bloknum2 == bloknum);
     }
 
     /* if(ctrl->tracegen) */
@@ -534,8 +537,8 @@ void taskExec_E2(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl
     facebloknum = simuctrl->tasktab[tasknum].facebloknum;
     facetasknum = simuctrl->bloktab[facebloknum].tasknum;
 
-    ASSERTDBG(simuctrl->tasktab[facetasknum].taskid != E2,MOD_BLEND);
-    ASSERTDBG(simuctrl->tasktab[facetasknum].bloknum == facebloknum,MOD_BLEND);
+    assert(simuctrl->tasktab[facetasknum].taskid != E2);
+    assert(simuctrl->tasktab[facetasknum].bloknum == facebloknum);
 
     /** Is the facing task local or not **/
     if(ctrl->candtab[simuctrl->tasktab[facetasknum].cblknum].fccandnum
@@ -579,7 +582,7 @@ void taskExec_E2(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl
             putInReadyQueue(pr, facetasknum, symbptr, simuctrl, ctrl);
         }
 
-        ASSERTDBG(facetasknum < simuctrl->tasknbr,MOD_BLEND);
+        assert(facetasknum < simuctrl->tasknbr);
     }
 
     /* if(ctrl->tracegen) */
@@ -618,7 +621,7 @@ void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simu
     if (procnum < ctrl->candtab[cblknum].fcandnum || procnum > ctrl->candtab[cblknum].lcandnum)
         fprintf(stderr, "procnum : %ld, fcandnum : %ld, lcandnum : %ld\n",
                 (long)procnum, (long)ctrl->candtab[cblknum].fcandnum, (long)ctrl->candtab[cblknum].lcandnum);
-    ASSERT(procnum >= ctrl->candtab[cblknum].fcandnum && procnum <= ctrl->candtab[cblknum].lcandnum,MOD_BLEND);
+    assert(procnum >= ctrl->candtab[cblknum].fcandnum && procnum <= ctrl->candtab[cblknum].lcandnum);
 #endif
 
     /* if(ctrl->tracegen) */
@@ -635,9 +638,11 @@ void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simu
     /*   } */
 
     /** Add time for factorizatoin of the diag blok and repercution on the off diag bloks **/
-    timerAdd(&(proc->timer), costmtx->cblktab[cblknum].compute);
 
-    for(i=symbptr->cblktab[cblknum].bloknum+1;i<symbptr->cblktab[cblknum+1].bloknum;i++)
+    i = symbptr->cblktab[cblknum].bloknum;
+    timerAdd(&(proc->timer), costmtx->bloktab[i].contrib);
+
+    for(i++;i<symbptr->cblktab[cblknum+1].bloknum;i++)
     {
         /** Add time for compute of the contrib due to this odb **/
         /** OIMBE: pour l'instant je considere que les contribs sont calculees
@@ -665,7 +670,7 @@ void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simu
 
 #ifdef DEBUG_M
                 if(ctrl->ricar == 0)
-                    ASSERT(facebloknum >= 0,MOD_BLEND);
+                    assert(facebloknum >= 0);
 #endif
                 /*#ifdef NAPA*/
                 if(facebloknum >= 0)
@@ -716,7 +721,7 @@ void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simu
                         || (ctrl->candtab[facecblknum].distrib == D1 && simuctrl->cblktab[facecblknum].ctrbcnt == 0) )
                     {
                         facetasknum = simuctrl->bloktab[facebloknum].tasknum;
-                        ASSERTDBG(simuctrl->tasktab[facetasknum].taskid != E2,MOD_BLEND);
+                        assert(simuctrl->tasktab[facetasknum].taskid != E2);
 
                         if(!local)
                             computeTaskReceiveTime(facetasknum, symbptr, simuctrl, ctrl, dofptr);
@@ -726,7 +731,7 @@ void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simu
                         {
                             putInReadyQueue(pr, facetasknum, symbptr, simuctrl, ctrl);
                         }
-                        ASSERTDBG(facetasknum < simuctrl->tasknbr,MOD_BLEND);
+                        assert(facetasknum < simuctrl->tasknbr);
                     }
                     /*#ifdef NAPA*/
                 }
@@ -754,23 +759,23 @@ void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simu
                 simuctrl->cblktab[facecblknum].ctrbcnt -= symbptr->cblktab[cblknum+1].bloknum - i;            /** A REVOIR POUR NAPA **/
             /*#endif*/
 
-            ASSERTDBG(simuctrl->cblktab[facecblknum].ctrbcnt >= 0,MOD_BLEND);
+            assert(simuctrl->cblktab[facecblknum].ctrbcnt >= 0);
 
             if(simuctrl->cblktab[facecblknum].ctrbcnt == 0)
             {
                 facetasknum = simuctrl->bloktab[symbptr->cblktab[facecblknum].bloknum].tasknum;
                 /** Update timer of the task (owned by the diag block**/
-                ASSERTDBG(ctrl->candtab[facecblknum].fccandnum == ctrl->candtab[facecblknum].lccandnum,MOD_BLEND);
+                assert(ctrl->candtab[facecblknum].fccandnum == ctrl->candtab[facecblknum].lccandnum);
 
                 /* NB: The facing cblk is local !! */
                 /*timerSet(&(simuctrl->tasktab[facetasknum].time), timerVal(&(proc->timer)));*/
                 timerSet(&(simuctrl->tasktab[facetasknum].time), MAX(timerVal(&(proc->timer)),
                                                                      timerVal(&(simuctrl->tasktab[facetasknum].time))) );
 #ifdef DEBUG_BLEND
-                ASSERTDBG(simuctrl->tasktab[facetasknum].taskid == COMP_1D,MOD_BLEND);
+                assert(simuctrl->tasktab[facetasknum].taskid == COMP_1D);
                 /*#ifdef NAPA*/
                 if(ctrl->ricar == 1)
-                    ASSERTDBG(ctrl->candtab[facecblknum].lccandnum == ctrl->candtab[facecblknum].fccandnum,MOD_BLEND);
+                    assert(ctrl->candtab[facecblknum].lccandnum == ctrl->candtab[facecblknum].fccandnum);
                 /*#endif*/
                 if(ctrl->core2clust[procnum] != ctrl->candtab[facecblknum].fccandnum)
                 {
@@ -778,9 +783,9 @@ void taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simu
                     fprintf(stderr, "%ld candidat [%ld %ld] => %ld candidat [%ld %ld ]\n", (long)cblknum, (long)ctrl->candtab[cblknum].fccandnum, (long)ctrl->candtab[cblknum].lccandnum,
                             (long)facecblknum, (long)ctrl->candtab[facecblknum].fccandnum, (long)ctrl->candtab[facecblknum].lccandnum);
                 }
-                ASSERTDBG(ctrl->core2clust[procnum] == ctrl->candtab[facecblknum].fccandnum,MOD_BLEND);
-                ASSERTDBG(ctrl->core2clust[procnum] == ctrl->candtab[facecblknum].lccandnum,MOD_BLEND);
-                ASSERTDBG(facetasknum<simuctrl->tasknbr,MOD_BLEND);
+                assert(ctrl->core2clust[procnum] == ctrl->candtab[facecblknum].fccandnum);
+                assert(ctrl->core2clust[procnum] == ctrl->candtab[facecblknum].lccandnum);
+                assert(facetasknum<simuctrl->tasknbr);
 #endif
 
                 /** Put the task in the ready heap of its local candidat processor **/
@@ -826,7 +831,7 @@ void computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, S
     if(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum)
         return;
 
-    ASSERTDBG(simuctrl->tasktab[tasknum].taskid != E2,MOD_BLEND);
+    assert(simuctrl->tasktab[tasknum].taskid != E2);
 
     /*------------------------------------------------------------------------------------------------/
      / Compute the cblk on proc timer that is time the cblk would have received                        /
@@ -875,8 +880,8 @@ void computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, S
         if(!(simuctrl->ftgttab[i].costadd >= 0.0))
             errorPrint("ftgt %ld costadd %f", (long)i, simuctrl->ftgttab[i].costadd);
 
-        ASSERTDBG(simuctrl->ftgttab[i].costsend >= 0.0,MOD_BLEND);
-        ASSERTDBG(simuctrl->ftgttab[i].costadd >= 0.0,MOD_BLEND);
+        assert(simuctrl->ftgttab[i].costsend >= 0.0);
+        assert(simuctrl->ftgttab[i].costadd >= 0.0);
 #endif
 
         /** ftgttab[].timerecv is the time this ftgt will be receive **/
@@ -959,12 +964,12 @@ pastix_int_t getTaskUnmapped(Queue *q1, Queue *q2, SimuCtrl *simuctrl)
         case COMP_1D:
             if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
             {
-                ASSERTDBG(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0,MOD_BLEND);
+                assert(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0);
                 goto end;
             }
             break;
         case E2:
-            ASSERTDBG(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]>=0,MOD_BLEND);
+            assert(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]>=0);
             goto end;
         case DIAG:
             if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
@@ -988,12 +993,12 @@ pastix_int_t getTaskUnmapped(Queue *q1, Queue *q2, SimuCtrl *simuctrl)
         case COMP_1D:
             if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
             {
-                ASSERTDBG(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0,MOD_BLEND);
+                assert(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0);
                 goto end;
             }
             break;
         case E2:
-            ASSERTDBG(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]>=0,MOD_BLEND);
+            assert(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]>=0);
             goto end;
         case DIAG:
             if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
@@ -1091,9 +1096,9 @@ pastix_int_t getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, pastix_int
     if(procnum != -1)
     {
         if(queueSize(simuctrl->proctab[procnum].taskheap2)>0)
-        {ASSERT(earlytask == queueGet(simuctrl->proctab[procnum].taskheap2),MOD_BLEND);}
+        {assert(earlytask == queueGet(simuctrl->proctab[procnum].taskheap2));}
         else
-            ASSERT(earlytask == queueGet(simuctrl->proctab[procnum].taskheap),MOD_BLEND);
+            assert(earlytask == queueGet(simuctrl->proctab[procnum].taskheap));
     }
     *procnumptr = procnum;
     return earlytask;
@@ -1171,7 +1176,7 @@ void computeBlockCtrbNbr(SimuCtrl *simuctrl, SymbolMatrix *symbptr, BlendCtrl *c
                 cursor = simuctrl->bloktab[j].tasknum+1;
                 for(k=j;k<symbptr->cblktab[i+1].bloknum;k++)
                 {
-                    ASSERTDBG(simuctrl->tasktab[cursor].taskid == E2,MOD_BLEND);
+                    assert(simuctrl->tasktab[cursor].taskid == E2);
                     simuctrl->bloktab[simuctrl->tasktab[cursor].facebloknum].ctrbcnt++;
                     cursor++;
                 }
@@ -1245,8 +1250,8 @@ void updateFtgtStruct(pastix_int_t bloknum, pastix_int_t bloknum2, pastix_int_t 
     if(blokptr->lrownum > simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LROWNUM])
         simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LROWNUM] = blokptr->lrownum;
 
-    ASSERTDBG(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LCOLNUM] - simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FCOLNUM]+1 > 0,MOD_BLEND);
-    ASSERTDBG(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LROWNUM] - simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FROWNUM]+1 > 0,MOD_BLEND);
+    assert(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LCOLNUM] - simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FCOLNUM]+1 > 0);
+    assert(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LROWNUM] - simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FROWNUM]+1 > 0);
 
 }
 

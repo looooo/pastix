@@ -16,7 +16,12 @@
 #define static
 #endif
 
-void         partBuild(SymbolMatrix *, ExtraSymbolMatrix *, CostMatrix *, ExtraCostMatrix *, BlendCtrl *, const Dof *);
+void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
+                ExtraSymbolMatrix *extrasymb,
+                ExtraCostMatrix *extracost,
+                SymbolMatrix *oldsymb,
+                CostMatrix   *oldcost,
+                Cand        **oldcand);
 
 #undef static
 

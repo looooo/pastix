@@ -131,13 +131,42 @@ void solverBlend(BlendCtrl    *ctrl,
         candInit( ctrl->candtab, symbmtx->cblknbr );
 
         /* Initialize costs in elimination tree and candtab array */
-        candBuild( ctrl->candtab,
+        candBuild( ctrl->autolevel,
+                   ctrl->level2D,
+                   ctrl->ratiolimit,
+                   ctrl->candtab,
                    ctrl->etree,
                    symbmtx,
                    ctrl->costmtx );
 
         pastix_print( clustnum, 0, "-- Total cost of the elimination tree: %g\n",
                       ctrl->etree->nodetab[ eTreeRoot(ctrl->etree) ].subtree);
+    }
+
+    /* Proportional mapping step that distributes the candidates over the tree */
+    {
+        clockStart(timer_current);
+        pastix_print( clustnum, 0, "-- Start proportionnal mapping step\n" );
+
+        propMappTree( ctrl->candtab,
+                      ctrl->etree,
+                      symbmtx,
+                      dofptr,
+                      ctrl->total_nbcores,
+                      ctrl->nocrossproc,
+                      ctrl->allcand );
+
+        /* Set the cluster candidates according to the processor candidats */
+        candSetClusterCand( ctrl->candtab, symbmtx->cblknbr,
+                            ctrl->core2clust, ctrl->total_nbcores );
+
+        /* Let's check the result if ask */
+        if (ctrl->debug) {
+            assert( candCheck( ctrl->candtab, symbmtx ) );
+        }
+
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "-- Proportionnal mapping time:      %g\n", clockVal(timer_current));
     }
 
     /* Build the elimination graph from the symbolic partition */
@@ -154,23 +183,17 @@ void solverBlend(BlendCtrl    *ctrl,
     }
 
     /*
-     * Partitioning of the initial symbolic factorization and processing of
-     * candidate processors group for each colum bloc
+     * Split the existing symbol matrix according to the number of candidates and cblk types
      */
     {
-        pastix_print( clustnum, 0, "Spliting initial partition \n" );
         clockStart(timer_current);
+        pastix_print( clustnum, 0, "-- Spliting initial partition \n" );
 
         splitPart(symbmtx, ctrl, dofptr);
 
         clockStop(timer_current);
-        pastix_print( clustnum, 0, "--Split build at time: %g --\n", clockVal(timer_current));
+        pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
     }
-
-#if defined(PASTIX_DEBUG_BLEND)
-    /** Verify the coherence of the new symbol matrix **/
-    symbolCheck(symbmtx);
-#endif
 
     //TODO
     /* if ( (ctrl->leader == clustnum) && (ctrl->tracegen == 1)) */

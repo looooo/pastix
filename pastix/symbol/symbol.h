@@ -61,9 +61,6 @@ typedef struct SymbolCblk_ {
   pastix_int_t                       fcolnum;              /*+ First column index               +*/
   pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)    +*/
   pastix_int_t                       bloknum;              /*+ First block in column (diagonal) +*/
-#ifdef STARPU_GET_TASK_CTX
-  pastix_int_t                       ctx;
-#endif
 } SymbolCblk;
 
 /*+ The column block structure. +*/

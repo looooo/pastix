@@ -16,14 +16,6 @@
 **  The type and structure definitions.
 */
 
-/*+ The parameters structure definition +*/
-
-typedef struct netperf_ {
-  double startup;
-  double bandwidth;
-} netperf;
-
-
 /*+ Structure containing the structure passed through the blend primitives +*/
 typedef struct BlendCtrl_ {
     pastix_int_t    count_ops ;      /*+ Print costs in term of number of elementary operations            +*/

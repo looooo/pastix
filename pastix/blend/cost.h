@@ -29,7 +29,6 @@ typedef struct CostBlok_ {
 } CostBlok;
 
 typedef struct CostMatrix_ {
-    CostCblk              *     cblktab;
     CostBlok              *     bloktab;
 } CostMatrix;
 

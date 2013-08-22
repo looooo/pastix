@@ -350,4 +350,5 @@ propMappTree( Cand               *candtab,
     propMappSubtree( &pmdata, eTreeRoot(etree),
                      0, candnbr-1,
                      NOCLUSTER, cost_remain);
+
 }

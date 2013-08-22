@@ -8,15 +8,12 @@
 
 pastix_int_t costInit(CostMatrix *costmtx)
 {
-    costmtx->cblktab = NULL;
     costmtx->bloktab = NULL;
     return 1;
 }
-	
+
 void costExit(CostMatrix *costmtx)
 {
-    if(costmtx->cblktab != NULL)
-	memFree_null(costmtx->cblktab);
     if(costmtx->bloktab != NULL)
 	memFree_null(costmtx->bloktab);
     memFree_null(costmtx);

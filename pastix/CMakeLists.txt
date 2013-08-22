@@ -542,7 +542,7 @@ set(PASTIX_LIB_SRCS
   blend/splitfunc.c
   blend/splitpart.c
 #  blend/splitpartlocal.c
-  blend/symbolrand.c
+#  blend/symbolrand.c
   blend/task.c
 #  blend/write_ps.c
 #

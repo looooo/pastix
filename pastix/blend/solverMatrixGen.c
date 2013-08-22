@@ -310,9 +310,6 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
             solvmtx->cblktab[cblknum].bloknum = cursor;
             solvmtx->cblktab[cblknum].coeftab = NULL;
             solvmtx->cblktab[cblknum].ucoeftab = NULL;
-#ifdef STARPU_GET_TASK_CTX
-            solvmtx->cblktab[cblknum].ctx     = symbmtx->cblktab[i].ctx;
-#endif
             nodenbr += symbmtx->cblktab[i].lcolnum - symbmtx->cblktab[i].fcolnum + 1;
             cblknum++;
         }

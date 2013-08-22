@@ -49,11 +49,6 @@ typedef struct Cand_{
 
 void candInit           ( Cand *candtab,
                           pastix_int_t cblknbr );
-void candSetTreelevel   ( Cand *candtab,
-                          const EliminTree *etree );
-void candSetCostlevel   ( Cand *candtab,
-                          const EliminTree *etree,
-                          const CostMatrix *costmtx);
 void candSetSubCandidate( Cand *candtab,
                           const EliminTree *etree,
                           pastix_int_t rootnum,
@@ -65,7 +60,8 @@ void candSetClusterCand ( Cand *candtab,
                           pastix_int_t *core2clust,
                           pastix_int_t  coresnbr );
 
-void candBuild( Cand               *candtab,
+void candBuild( pastix_int_t autolevel, pastix_int_t level2D, double ratiolimit,
+                Cand               *candtab,
                 EliminTree         *etree,
                 const SymbolMatrix *symbmtx,
                 const CostMatrix   *costmtx );

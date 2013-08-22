@@ -72,7 +72,6 @@ simuInit( SimuCtrl     *simuctrl,
     for(i=0;i<bloknbr;i++)
         simuctrl->blprtab[i] = -1;
 
-
     MALLOC_INTERN(simuctrl->cblktab, cblknbr+1, SimuCblk);
     MALLOC_INTERN(simuctrl->bloktab, bloknbr+1, SimuBlok);
     ftgtcur = 0;

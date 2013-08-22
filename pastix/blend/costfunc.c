@@ -35,7 +35,6 @@ double cblkComputeCost2DLocal(pastix_int_t, const BlendCtrl * ctrl, const Symbol
 void costMatrixBuild(CostMatrix *costmtx, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
     pastix_int_t i;
-    MALLOC_INTERN(costmtx->cblktab, symbmtx->cblknbr, CostCblk);
     MALLOC_INTERN(costmtx->bloktab, symbmtx->bloknbr, CostBlok);
 
     for(i=0;i<symbmtx->cblknbr;i++)
@@ -53,17 +52,7 @@ void costMatrixCorrect(CostMatrix *costmtx, const SymbolMatrix *symbmtx, Cand * 
             cblkComputeCost2D(i, costmtx, symbmtx, dofptr);
 }
 
-
-/*+ Summ the subtree cost node ; do not recompute node cost +*/
-double subtreeUpdateCost(pastix_int_t rootnum, CostMatrix *costmtx, const EliminTree *etree)
-{
-    pastix_int_t i;
-    costmtx->cblktab[rootnum].subtree = costmtx->cblktab[rootnum].total;
-    for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-        costmtx->cblktab[rootnum].subtree += subtreeUpdateCost(eTreeSonI(etree, rootnum, i), costmtx, etree);
-    return costmtx->cblktab[rootnum].subtree;
-}
-
+#if 0
 /*+ Summ the subtree cost local node ; do not recompute node cost +*/
 double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, const SymbolMatrix *symbmtx,
                               const SimuCtrl *simuctrl, const Dof * dofptr,  pastix_int_t clustnum)
@@ -169,6 +158,7 @@ void subtreeSetNullCost(pastix_int_t rootnum, const BlendCtrl * ctrl,
 
     return;
 }
+#endif
 
 double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbptr, const Dof * dofptr)
 {
@@ -200,7 +190,6 @@ double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const Symbol
 #ifdef DEBUG_BLEND
     /*  ASSERT(cost >= 0,MOD_BLEND);*/
 #endif
-    costmtx->cblktab[cblknum].total = cost;
     return cost;
 }
 
@@ -253,7 +242,6 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
      of the cbl to compute the local compute cost **/
 #ifdef DOF_CONSTANT
     l = (symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1)*(dofptr)->noddval;
-    /*l = (symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].lrownum - symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].frownum+ 1)*(dofptr)->noddval;*/
 #else
     for(i=symbmtx->cblktab[cblknum].fcolnum;i<=symbmtx->cblktab[cblknum].lcolnum;i++)
         l+= noddDlt(dofptr, i);
@@ -270,7 +258,6 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 #endif
     }
 
-
     costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr = g;
 
     /** retrieve diag height so let g be the odb non empty lines height **/
@@ -279,16 +266,18 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
     /** compute the local compute cost **/
     if(l!=0)
     {
-        costmtx->cblktab[cblknum].compute = computeCost(l, g);
+        contribsum = computeCost(l, g);
     }
     else
-        costmtx->cblktab[cblknum].compute = 0;
+    {
+        contribsum = 0.;
+    }
 
-    costmtx->bloktab[ symbmtx->cblktab[cblknum].bloknum ].contrib = costmtx->cblktab[cblknum].compute;
+    costmtx->bloktab[ symbmtx->cblktab[cblknum].bloknum ].contrib = contribsum;
 
     /** compute for each odb its contribution compute cost and add cost **/
-    contribsum = 0.;
-    for(k=symbmtx->cblktab[cblknum].bloknum+1;k<symbmtx->cblktab[cblknum+1].bloknum;k++)
+    for(k = symbmtx->cblktab[cblknum].bloknum+1;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
 #ifdef  DOF_CONSTANT
         h = (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*(dofptr)->noddval;
@@ -306,8 +295,6 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
         contribsum += costmtx->bloktab[k].contrib;
         g -= h;
     }
-    costmtx->cblktab[cblknum].total = costmtx->cblktab[cblknum].compute + contribsum;
-
 
 #ifdef DEBUG_BLEND
     {
@@ -318,19 +305,18 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
             stride += symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1;
         ASSERT( costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr == stride * dofptr->noddval,MOD_BLEND);
 
-        ASSERT(costmtx->cblktab[cblknum].total > 0,MOD_BLEND);
+        //ASSERT(costmtx->cblktab[cblknum].total > 0,MOD_BLEND);
         cost2 = cblkCost(symbmtx->cblktab[cblknum+1].bloknum -  symbmtx->cblktab[cblknum].bloknum,
                          &(symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum]),
                          dofptr);
         /* Values should be equals but we accept the machine computational error */
-        ASSERT(costmtx->cblktab[cblknum].total - cost2 < 10e-15,
-               MOD_BLEND);
+        /* ASSERT(costmtx->cblktab[cblknum].total - cost2 < 10e-15, */
+        /*        MOD_BLEND); */
 
     }
 #endif
 
-
-    return costmtx->cblktab[cblknum].total;
+    return contribsum;
 }
 
 
@@ -474,7 +460,7 @@ double E2Cost(pastix_int_t L, pastix_int_t h, pastix_int_t g)
  *                  END of cost functions                                                *
  *****************************************************************************************/
 
-
+#if 0
 double cblkMaxCost(pastix_int_t cblknbr, const CostMatrix *costmtx)
 {
     pastix_int_t i;
@@ -497,7 +483,7 @@ double totalCost(pastix_int_t cblknbr, const CostMatrix *costmtx)
     return total;
 }
 
-
+#endif
 double memorySpaceCost(const SolverMatrix *solvmtx)
 {
     double space=0;

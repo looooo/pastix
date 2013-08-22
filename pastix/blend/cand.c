@@ -35,47 +35,8 @@ candInit( Cand *candtab,
         candtab[i].lccandnum = -1;
         candtab[i].distrib   = D1;
         candtab[i].cluster   = -1;
+        candtab[i].cblktype  = CBLK_1D;
     }
-}
-
-static inline void
-candSetSubTreelevel( Cand *candtab, const EliminTree *etree, pastix_int_t rootnum )
-{
-    pastix_int_t i, son;
-    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
-    {
-        son = eTreeSonI(etree, rootnum, i);
-        candtab[ son ].treelevel = candtab[rootnum].treelevel - 1;
-        candSetSubTreelevel(candtab, etree, son );
-    }
-}
-
-void
-candSetTreelevel( Cand *candtab, const EliminTree *etree )
-{
-    pastix_int_t root = eTreeRoot(etree);
-    candtab[root].treelevel = -1;
-    candSetSubTreelevel(candtab, etree, root );
-}
-
-static inline void
-candSetSubCostlevel(Cand *candtab, const EliminTree *etree, const CostMatrix *costmtx, pastix_int_t rootnum )
-{
-    pastix_int_t i, son;
-    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
-    {
-        son = eTreeSonI(etree, rootnum, i);
-        candtab[ son ].costlevel = candtab[rootnum].costlevel - costmtx->cblktab[rootnum].total;
-        candSetSubCostlevel( candtab, etree, costmtx, son );
-    }
-}
-
-void
-candSetCostlevel(Cand *candtab, const EliminTree *etree, const CostMatrix *costmtx)
-{
-    pastix_int_t root = eTreeRoot(etree);
-    candtab[ root ].costlevel = -1.0;
-    candSetSubCostlevel( candtab, etree, costmtx, root );
 }
 
 void
@@ -172,8 +133,56 @@ candSubTreeBuild( pastix_int_t        rootnum,
     return etree->nodetab[ rootnum ].subtree;
 }
 
+static inline void
+candSubTreeDistribWithSize( pastix_int_t        rootnum,
+                            pastix_int_t        distrib_type,
+                            pastix_int_t        ratiolimit,
+                            Cand               *candtab,
+                            const EliminTree   *etree,
+                            const SymbolMatrix *symbmtx )
+{
+    pastix_int_t i, son;
+
+    if(distrib_type == D1)
+    {
+        candtab[ rootnum ].distrib = D1;
+    }
+    else
+    {
+        pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
+
+        if(width >= ratiolimit)
+            candtab[ rootnum ].distrib = D2;
+        else
+            candtab[ rootnum ].distrib = D1;
+    }
+
+    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    {
+        son = eTreeSonI(etree, rootnum, i);
+        candSubTreeDistribWithSize( son, candtab[ rootnum ].distrib, ratiolimit, candtab, etree, symbmtx);
+    }
+}
+
+static inline void
+candDistribWithDepth( pastix_int_t depth,
+                      pastix_int_t cblknbr,
+                      Cand        *candtab )
+{
+    pastix_int_t i;
+
+    for(i=0;i<cblknbr;i++)
+    {
+        if( candtab[i].treelevel > depth )
+            candtab[i].distrib = D2;
+        else
+            candtab[i].distrib = D1;
+    }
+}
+
 void
-candBuild( Cand               *candtab,
+candBuild( pastix_int_t autolevel, pastix_int_t level2D, double ratiolimit,
+           Cand               *candtab,
            EliminTree         *etree,
            const SymbolMatrix *symbmtx,
            const CostMatrix   *costmtx )
@@ -185,4 +194,16 @@ candBuild( Cand               *candtab,
     candtab[ root ].treelevel = -1;
 
     candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
+
+    /* Let's set the cblk type of each node */
+    /* For now, it sets the distrib field and not the cbktype field */
+    if(autolevel)
+    {
+        candSubTreeDistribWithSize( eTreeRoot(etree), D2, (pastix_int_t)ratiolimit,
+                                    candtab, etree, symbmtx );
+    }
+    else
+    {
+        candDistribWithDepth( -level2D, symbmtx->cblknbr, candtab );
+    }
 }
