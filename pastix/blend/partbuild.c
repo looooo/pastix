@@ -22,6 +22,7 @@
 #include "costfunc.h"
 #include "partbuild.h"
 
+#define OLD_MERGE
 /*+
  Make a new SymbolMatrix and CostMatrix from the former ones
  and the Extra ones (that contains splitted bloks)
@@ -210,6 +211,11 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
             newcblknum = newnum[i];
             assert( newcblknum < newsymb->cblknbr );
 
+#if defined(OLD_MERGE)
+	    memcpy( newcand + newcblknum, oldcand + i, sizeof(Cand) );
+	    newsymb->cblktab[newcblknum].fcolnum = oldsymb->cblktab[i].fcolnum;
+	    newsymb->cblktab[newcblknum].lcolnum = oldsymb->cblktab[i].lcolnum;
+#endif
             /* Update bloknum */
             newsymb->cblktab[newcblknum].bloknum = curbloknum;
 
@@ -224,8 +230,9 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                 if(extrasymb->sptblok[j] < 0)
                 {
                     pastix_int_t fcblknum = oldsymb->bloktab[j].cblknum;
-                    assert( fcblknum < oldsymb->cblknbr );
+                    assert( fcblknum   < oldsymb->cblknbr );
                     fcblknum = newnum[ fcblknum ];
+
                     newsymb->bloktab[curbloknum].frownum = oldsymb->bloktab[j].frownum;
                     newsymb->bloktab[curbloknum].lrownum = oldsymb->bloktab[j].lrownum;
                     newsymb->bloktab[curbloknum].cblknum = fcblknum;
@@ -237,6 +244,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                     newcost->bloktab[curbloknum].contrib = oldcost->bloktab[j].contrib;
                     newcost->bloktab[curbloknum].linenbr = oldcost->bloktab[j].linenbr;
                     curbloknum++;
+		    assert( curbloknum <= newsymb->bloknbr );
                 }
                 /* Splitted blok in a non splitted cblk -> the facing diagblok is splitted */
                 else
@@ -246,6 +254,8 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                         k < extrasymb->sptblok[j] + extrasymb->sptblnb[j]; k++)
                     {
                         pastix_int_t fcblknum = extranewnum[ extrasymb->bloktab[k].cblknum ];
+
+			assert( curbloknum < newsymb->bloknbr );
                         newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
                         newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
                         newsymb->bloktab[curbloknum].cblknum = fcblknum;
@@ -258,6 +268,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                         newcost->bloktab[curbloknum].linenbr = extracost->bloktab[k].linenbr;
 
                         curbloknum++;
+			assert( curbloknum <= newsymb->bloknbr );
                     }
                 }
             }
@@ -271,6 +282,10 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                 newcblknum = extranewnum[j];
                 assert( newcblknum < newsymb->cblknbr );
 
+#if defined(OLD_MERGE)
+		memcpy( newcand + newcblknum, oldcand + i, sizeof(Cand) );
+#endif
+
                 newsymb->cblktab[newcblknum].fcolnum = extrasymb->cblktab[j].fcolnum;
                 newsymb->cblktab[newcblknum].lcolnum = extrasymb->cblktab[j].lcolnum;
                 newsymb->cblktab[newcblknum].bloknum = curbloknum;
@@ -280,6 +295,8 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                     k <(extrasymb->cblktab[j].bloknum + extrasymb->sptcblk[i] + extrasymb->sptcbnb[i] - j); k++)
                 {
                     pastix_int_t fcblknum = extrasymb->bloktab[k].cblknum;
+
+		    assert( curbloknum < newsymb->bloknbr );
                     newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
                     newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
                     newsymb->bloktab[curbloknum].cblknum = extranewnum[fcblknum];
@@ -289,6 +306,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                     assert(newsymb->bloktab[curbloknum].lrownum <= extrasymb->cblktab[fcblknum].lcolnum);
 
                     curbloknum++;
+		    assert( curbloknum <= newsymb->bloknbr );
                 }
 
                 sptbloknum = k;
@@ -300,12 +318,15 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                         pastix_int_t fcblknum = extrasymb->bloktab[sptbloknum].cblknum;
                         assert( fcblknum < oldsymb->cblknbr );
                         fcblknum = newnum[ fcblknum ];
+
+			assert( curbloknum < newsymb->bloknbr );
                         newsymb->bloktab[curbloknum].frownum = oldsymb->bloktab[k].frownum;
                         newsymb->bloktab[curbloknum].lrownum = oldsymb->bloktab[k].lrownum;
                         newsymb->bloktab[curbloknum].cblknum = fcblknum;
                         newsymb->bloktab[curbloknum].levfval = oldsymb->bloktab[k].levfval;
                         sptbloknum++;
                         curbloknum++;
+			assert( curbloknum <= newsymb->bloknbr );
                     }
                     else
                     {
@@ -313,12 +334,15 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                         for(s=extrasymb->sptblok[k];s<extrasymb->sptblok[k]+extrasymb->sptblnb[k];s++)
                         {
                             pastix_int_t fcblknum = extranewnum[extrasymb->bloktab[s].cblknum];
+
+			    assert( curbloknum < newsymb->bloknbr );
                             newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[s].frownum;
                             newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[s].lrownum;
                             newsymb->bloktab[curbloknum].cblknum = fcblknum;
                             newsymb->bloktab[curbloknum].levfval = extrasymb->bloktab[s].levfval;
                             sptbloknum++;
                             curbloknum++;
+			    assert( curbloknum <= newsymb->bloknbr );
                         }
                     }
                 }
