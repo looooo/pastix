@@ -1,19 +1,20 @@
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 link_directories(
-  /opt/plasma-extlibs-dbg/lib
+  ${BLAS_LIBRARY_DIRS}
 )
 
 set(PASTIX_EXAMPLES_LIBRARIES
   pastix
   read_matrix
-  refblas
   hwloc
+  ${BLAS_LIBRARIES}
   pthread
+  rt
   m
 )
 
 if (PASTIX_ORDERING_SCOTCH)
-  link_directories(/opt/scotch/int64/lib)
+  link_directories(${SCOTCH_DIR}/lib)
 
   if (PASTIX_ORDERING_PTSCOTCH)
     set(PASTIX_EXAMPLES_LIBRARIES
@@ -32,7 +33,7 @@ endif()
 
 
 if (PASTIX_ORDERING_METIS)
-  link_directories(/opt/metis/lib)
+  link_directories(${METIS_DIR}/lib)
   set(PASTIX_EXAMPLES_LIBRARIES
     ${PASTIX_EXAMPLES_LIBRARIES}
     metis

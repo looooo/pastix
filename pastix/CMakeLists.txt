@@ -55,6 +55,12 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
   "Activate the PT-scotch ordering (requires PASTIX_DISTRIBUTED and PASTIX_ORDERING_SCOTCH)" ON
   "PASTIX_DISTRIBUTED;PASTIX_ORDERING_SCOTCH" OFF)
 
+mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
+set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix directory")
+set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
+set( BLAS_LIBRARY_DIRS /opt/plasma-extlibs-dbg/lib CACHE STRING "BLAS library paths"     )
+set( BLAS_LIBRARIES    refblas                     CACHE STRING "BLAS libraries"         )
+
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
   "Dump the generated symbol matrix in a postscript file" OFF)
@@ -439,11 +445,11 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
-  include_directories("/opt/scotch/int64/include")
+  include_directories("${SCOTCH_DIR}/include")
 endif()
 
 if (PASTIX_ORDERING_METIS)
-  include_directories("/opt/metis/include")
+  include_directories("${METIS_DIR}/include")
 endif()
 
 macro(solver_rules _output_files _sources_files)
