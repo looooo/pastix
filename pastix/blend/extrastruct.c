@@ -6,9 +6,6 @@
 #include "symbol.h"
 #include "extrastruct.h"
 
-
-
-
 pastix_int_t extrasymbolInit(ExtraSymbolMatrix *extrasymb)
 {
     extrasymb->baseval = 0;
@@ -104,3 +101,4 @@ void extra_inc_cblk( ExtraSymbolMatrix *extrasymb )
         memFree_null(tmp);
     }
 }
+

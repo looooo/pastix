@@ -25,6 +25,15 @@ void propMappTree( Cand               *candtab,
                    pastix_int_t        procnbr,
                    int nocrossproc, int allcand );
 
+static void  splitCblk( const BlendCtrl    *ctrl,
+                        const SymbolMatrix *symbmtx,
+                        const Dof          *dofptr,
+                        ExtraSymbolMatrix  *extrasymb,
+                        ExtraCostMatrix    *extracost,
+                        pastix_int_t        cblknum,
+                        pastix_int_t        nseq,
+                        pastix_int_t       *seq);
+
 void  splitPart     (SymbolMatrix *, BlendCtrl *, const Dof *);
 pastix_int_t   check_candidat(SymbolMatrix *, BlendCtrl *);
 
@@ -33,9 +42,6 @@ static void setSubtreeDistribType(const SymbolMatrix *, const CostMatrix *, past
 
 static void splitOnProcs    (const SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, const BlendCtrl *, 
 			     const Dof *, pastix_int_t, pastix_int_t);
-static void splitCblk       (const SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, const BlendCtrl *, 
-			     const Dof *, pastix_int_t, pastix_int_t, pastix_int_t *);
-
 static void printTree          (FILE*, const EliminTree *, pastix_int_t);
 
 static double maxProcCost     (double *, pastix_int_t);

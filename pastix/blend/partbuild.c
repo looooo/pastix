@@ -22,7 +22,7 @@
 #include "costfunc.h"
 #include "partbuild.h"
 
-//#define OLD_MERGE
+#define OLD_MERGE
 /*+
  Make a new SymbolMatrix and CostMatrix from the former ones
  and the Extra ones (that contains splitted bloks)

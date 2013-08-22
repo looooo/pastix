@@ -48,17 +48,17 @@ splitSubtree( pastix_int_t rootnum,
 }
 
 /*
-  Function: splitPart
+ Function: splitPart
 
-  Repartitioning of the initial symbolic factorization
-  and processing of candidate processors group for
-  each colum bloc
+ Repartitioning of the initial symbolic factorization
+ and processing of candidate processors group for
+ each colum bloc
 
-  Parameters:
-    symbmtx - Symbolic matrix.
-    ctrl    -
-    dofptr  -
-*/
+ Parameters:
+ symbmtx - Symbolic matrix.
+ ctrl    -
+ dofptr  -
+ */
 void splitPart(SymbolMatrix *symbmtx,
                BlendCtrl    *ctrl,
                const Dof    *dofptr)
@@ -92,8 +92,8 @@ void splitPart(SymbolMatrix *symbmtx,
             extrasymb->sptblok[i] = -1;
         bzero(extrasymb->sptblnb, symbmtx->bloknbr * sizeof(pastix_int_t));
 
-        extrasymb->curcblk = 0;
-        extrasymb->curblok = 0;
+        extrasymb->curcblk = -1;
+        extrasymb->curblok = -1;
 
         /* We choose an arbitrary size for initial allocation of bloktab and cblktab */
         MALLOC_INTERN(extrasymb->cblktab, symbmtx->cblknbr/3 + 1, SymbolCblk);
@@ -110,6 +110,9 @@ void splitPart(SymbolMatrix *symbmtx,
     /* Stupid split */
     {
         splitSubtree( eTreeRoot( ctrl->etree), ctrl->etree, symbmtx, extrasymb, extracost, ctrl, dofptr, ctrl->candtab );
+
+        extrasymb->curblok++;
+        extrasymb->curcblk++;
     }
 
     /* Rebuild the symbolic matrix */
@@ -293,9 +296,62 @@ void splitOnProcs(const SymbolMatrix      *symbmtx,
     ASSERTDBG(seq[2*(nseq-1)]<= seq[2*nseq-1],MOD_BLEND);
 
 #endif /* SMART_CBLK_SPLIT */
-    splitCblk(symbmtx, extrasymb, extracost, ctrl, dofptr, cblknum, nseq, seq);
+
+    splitCblk( ctrl, symbmtx, dofptr, extrasymb, extracost, cblknum, nseq, seq);
 }
 
+
+
+static inline void
+extraAddBlok( pastix_int_t       frownum,
+              pastix_int_t       lrownum,
+              pastix_int_t       cblknum,
+              ExtraSymbolMatrix *extrasymb,
+              ExtraCostMatrix   *extracost )
+{
+    extra_inc_blok( extrasymb, extracost );
+
+    /* Add the new block */
+    extrasymb->bloktab[extrasymb->curblok].frownum = frownum;
+    extrasymb->bloktab[extrasymb->curblok].lrownum = lrownum;
+    extrasymb->bloktab[extrasymb->curblok].cblknum = cblknum;
+    extrasymb->bloktab[extrasymb->curblok].levfval = 0;
+
+    return;
+}
+
+static inline void
+extraAddBlokCopy( const SymbolBlok  *blokptr,
+                  ExtraSymbolMatrix *extrasymb,
+                  ExtraCostMatrix   *extracost )
+{
+    extra_inc_blok( extrasymb, extracost );
+
+    /* Add the new block */
+    memcpy( &(extrasymb->bloktab[extrasymb->curblok]),
+            blokptr, sizeof(SymbolBlok) );
+
+    return;
+}
+
+static inline void
+extraAddCblk( pastix_int_t fcolnum,
+              pastix_int_t lcolnum,
+              ExtraSymbolMatrix *extrasymb,
+              ExtraCostMatrix   *extracost)
+{
+    extra_inc_cblk( extrasymb );
+
+    /* Add the new diagonal block associated after having update curcblk */
+    extraAddBlok( fcolnum, lcolnum, extrasymb->curcblk, extrasymb, extracost );
+
+    /* Add new cblk after having updated curblok */
+    extrasymb->cblktab[extrasymb->curcblk].fcolnum = fcolnum;
+    extrasymb->cblktab[extrasymb->curcblk].lcolnum = lcolnum;
+    extrasymb->cblktab[extrasymb->curcblk].bloknum = extrasymb->curblok;
+
+    return;
+}
 
 /*
  Function: splitCblk
@@ -318,27 +374,27 @@ void splitOnProcs(const SymbolMatrix      *symbmtx,
  nseq      - Number of part of the split
  *seq      - Splitting indexes array.
  */
-void  splitCblk(const SymbolMatrix      *symbmtx,
-                ExtraSymbolMatrix *extrasymb,
-                ExtraCostMatrix   *extracost,
-                const BlendCtrl         *ctrl,
-                const Dof         *dofptr,
-                pastix_int_t         cblknum,
-                pastix_int_t         nseq,
-                pastix_int_t        *seq)
+void  splitCblk( const BlendCtrl    *ctrl,
+                 const SymbolMatrix *symbmtx,
+                 const Dof          *dofptr,
+                 ExtraSymbolMatrix  *extrasymb,
+                 ExtraCostMatrix    *extracost,
+                 pastix_int_t        cblknum,
+                 pastix_int_t        nseq,
+                 pastix_int_t       *seq)
 {
     pastix_int_t i, j, s;
     pastix_int_t bloknbr      = 0;
     pastix_int_t splitbloknbr = 0;
 
-    /**no need to split **/
+    /* No split to perform */
     if(nseq == 1)
         return;
 
     assert(symbmtx->cblktab[cblknum].fcolnum == seq[0]       );
     assert(symbmtx->cblktab[cblknum].lcolnum == seq[2*nseq-1]);
 
-    /* number of blok in the cblk to be split (diag included)  */
+    /* Number of bloks in the cblk to be split (diag included)  */
     bloknbr = 0;
     for(j = symbmtx->cblktab[cblknum].bloknum;
         j < symbmtx->cblktab[cblknum+1].bloknum; j++)
@@ -350,84 +406,55 @@ void  splitCblk(const SymbolMatrix      *symbmtx,
     }
 
     /*
-     * XL: For Schur complement we keep the last column block.as full
+     * Mark the cblk as being splitted
+     * NB: off diagonal blocks of this cblk don't need to be marked because they
+     * won't be splitted any more in our top-down tree strategy
      */
-    if (!((ctrl->iparm[IPARM_SCHUR] == API_YES) &&
-          (symbmtx->cblktab[cblknum].lcolnum == symbmtx->nodenbr -1)))
+    extrasymb->sptcblk[cblknum] = extrasymb->curcblk + 1;
+    extrasymb->sptcbnb[cblknum] = nseq;
+
+    /* Now create the new cblk and associated blok */
+    for(i=0;i<nseq;i++)
     {
-        /** mark the cblk to be splitted **/
-        /** NB odb of this cblk don't need to be marked
-         *  because they won't be splitted any more in our
-         *  top-down tree strategy **/
-        extrasymb->sptcblk[cblknum] = extrasymb->curcblk;
-        extrasymb->sptcbnb[cblknum] = nseq;
+        /* Add cblk AND its diagonal block */
+        extraAddCblk( seq[2*i], seq[2*i+1], extrasymb, extracost );
+        splitbloknbr++;
 
-        /* now create the new cblk and associated blok */
-        for(i=0;i<nseq;i++)
+        /* Create odb due to the splitting of the diag blok */
+        for(j=i+1; j<nseq; j++)
         {
-            extrasymb->cblktab[extrasymb->curcblk].fcolnum = seq[2*i];
-            extrasymb->cblktab[extrasymb->curcblk].lcolnum = seq[2*i+1];
-            extrasymb->cblktab[extrasymb->curcblk].bloknum = extrasymb->curblok;
-
-            /* create diag blok */
-            extrasymb->bloktab[extrasymb->curblok].frownum = seq[2*i];
-            extrasymb->bloktab[extrasymb->curblok].lrownum = seq[2*i+1];
-            extrasymb->bloktab[extrasymb->curblok].cblknum = extrasymb->curcblk;
-            extrasymb->bloktab[extrasymb->curblok].levfval = 0;
-
-            extra_inc_blok(extrasymb, extracost);
+            extraAddBlok( seq[2*j], seq[2*j+1], extrasymb->sptcblk[cblknum]+j,
+                          extrasymb, extracost );
             splitbloknbr++;
+        }
 
-            /* create odb due to the splitting of the diag blok */
-            for(j=i+1;j<nseq;j++)
+        /* Create other odb */
+        /* We have to test if some of them have been splitted before */
+        for(j = symbmtx->cblktab[cblknum].bloknum+1;
+            j < symbmtx->cblktab[cblknum+1].bloknum; j++)
+        {
+            /* This odb hasn't been splitted */
+            if( extrasymb->sptblok[j] < 0 )
             {
-                extrasymb->bloktab[extrasymb->curblok].frownum = seq[2*j];
-                extrasymb->bloktab[extrasymb->curblok].lrownum = seq[2*j+1];
-                extrasymb->bloktab[extrasymb->curblok].cblknum = extrasymb->sptcblk[cblknum] + j;
-                extrasymb->bloktab[extrasymb->curblok].levfval = 0;
-                extra_inc_blok(extrasymb, extracost);
+                extraAddBlokCopy( &(symbmtx->bloktab[j]), extrasymb, extracost );
                 splitbloknbr++;
             }
-            /* create other odb */
-            /* We have to test if some of them have been splitted before */
-            for(j=symbmtx->cblktab[cblknum].bloknum+1;j<symbmtx->cblktab[cblknum+1].bloknum;j++)
+            /* This odb has been splitted horizontally before (its facing diag blok that has been splitted) */
+            else
             {
-                /* this odb hasn't been splitted */
-                if(extrasymb->sptblok[j]<0)
+                for(s = extrasymb->sptblok[j];
+                    s < extrasymb->sptblok[j] + extrasymb->sptblnb[j]; s++)
                 {
-                    extrasymb->bloktab[extrasymb->curblok].frownum = symbmtx->bloktab[j].frownum;
-                    extrasymb->bloktab[extrasymb->curblok].lrownum = symbmtx->bloktab[j].lrownum;
-                    extrasymb->bloktab[extrasymb->curblok].cblknum = symbmtx->bloktab[j].cblknum;
-                    extrasymb->bloktab[extrasymb->curblok].levfval = 0;
-                    extra_inc_blok(extrasymb, extracost);
+                    extraAddBlokCopy( &(extrasymb->bloktab[s]), extrasymb, extracost );
                     splitbloknbr++;
                 }
-                /* this odb has been splitted before (its facing diag blok has been splitted) */
-                else
-                {
-                    for(s=extrasymb->sptblok[j];s<extrasymb->sptblok[j]+extrasymb->sptblnb[j];s++)
-                    {
-                        extrasymb->bloktab[extrasymb->curblok].frownum = extrasymb->bloktab[s].frownum;
-                        extrasymb->bloktab[extrasymb->curblok].lrownum = extrasymb->bloktab[s].lrownum;
-                        extrasymb->bloktab[extrasymb->curblok].cblknum = extrasymb->bloktab[s].cblknum;
-                        extrasymb->bloktab[extrasymb->curblok].levfval = 0;
-                        extra_inc_blok(extrasymb, extracost);
-                        splitbloknbr++;
-                    }
-                }
             }
-            extra_inc_cblk(extrasymb);
         }
-        /* update extracblk and extrablok */
-        extrasymb->addcblk += nseq-1;
-        extrasymb->addblok += splitbloknbr - bloknbr;
     }
 
-    /** we have to add an extra cblk to extrasymb because of side effect **/
-    /* NB extrasymb->cblktab have at least one extra-allocated cells
-     *    so don't worry about allocated memory size */
-    ASSERTDBG(extrasymb->sizcblk > extrasymb->curcblk,MOD_BLEND);
-    extrasymb->cblktab[extrasymb->curcblk].bloknum = extrasymb->curblok;
+    /* update extracblk and extrablok */
+    extrasymb->addcblk += nseq-1;
+    extrasymb->addblok += splitbloknbr - bloknbr;
 
     /** Now we're going to split odb that hit our diag blok **/
     /** We have to mark them as splitted bloks because they may be split again later
@@ -438,166 +465,53 @@ void  splitCblk(const SymbolMatrix      *symbmtx,
     {
         pastix_int_t sptbloknbr; /* number of splitted bloks resulting */
         pastix_int_t bloknum;
+        pastix_int_t frownum;
+        pastix_int_t lrownum;
         bloknum = ctrl->egraph->inbltab[ctrl->egraph->verttab[cblknum].innum+i];
+        frownum = symbmtx->bloktab[bloknum].frownum;
+        lrownum = symbmtx->bloktab[bloknum].lrownum;
 
-        ASSERTDBG(symbmtx->bloktab[bloknum].cblknum == cblknum,MOD_BLEND);
+        assert( symbmtx->bloktab[bloknum].cblknum == cblknum );
 
         sptbloknbr = 0;
         /* mark this blok as splitted */
-        extrasymb->sptblok[bloknum] = extrasymb->curblok;
+        extrasymb->sptblok[bloknum] = extrasymb->curblok + 1;
         for(j=0;j<nseq;j++)
         {
+            pastix_int_t fcblknum = extrasymb->sptcblk[cblknum]+j;
+
             /* there are six possible cases of intersection
              beetween the blok and the seq we consider ,
              among these six cases, only 4 of them are
              not empty intersection */
 
-            /* empty intersections */
-            if(symbmtx->bloktab[bloknum].frownum > seq[2*j+1])
+            /* Empty intersections */
+            if( frownum > seq[2*j+1] )
                 continue;
 
-            if(symbmtx->bloktab[bloknum].lrownum < seq[2*j])
-                /* in this case there will no more splitted blok to create */
+            /* In this case there will no more splitted blok to create */
+            if( lrownum < seq[2*j] )
                 break;
 
-            /* not empty intersections */
-            if((symbmtx->bloktab[bloknum].frownum >= seq[2*j])
-               && (symbmtx->bloktab[bloknum].lrownum >= seq[2*j+1]))
+            /* Not empty intersections */
+            if( frownum >= seq[2*j] )
             {
-                extrasymb->bloktab[extrasymb->curblok].frownum = symbmtx->bloktab[bloknum].frownum;
-                extrasymb->bloktab[extrasymb->curblok].lrownum = seq[2*j+1];
-                goto endloop;
+                if ( lrownum <= seq[2*j+1] )
+                    extraAddBlok( frownum,  lrownum,    fcblknum, extrasymb, extracost );
+                else
+                    extraAddBlok( frownum,  seq[2*j+1], fcblknum, extrasymb, extracost );
             }
-            if((symbmtx->bloktab[bloknum].frownum <= seq[2*j])
-               && (symbmtx->bloktab[bloknum].lrownum >= seq[2*j+1]))
+            else
             {
-                extrasymb->bloktab[extrasymb->curblok].frownum = seq[2*j];
-                extrasymb->bloktab[extrasymb->curblok].lrownum = seq[2*j+1];
-                goto endloop;
+                if ( lrownum <= seq[2*j+1] )
+                    extraAddBlok( seq[2*j], lrownum,    fcblknum, extrasymb, extracost );
+                else
+                    extraAddBlok( seq[2*j], seq[2*j+1], fcblknum, extrasymb, extracost );
             }
-            if((symbmtx->bloktab[bloknum].frownum <= seq[2*j])
-               && (symbmtx->bloktab[bloknum].lrownum <= seq[2*j+1]))
-            {
-                extrasymb->bloktab[extrasymb->curblok].frownum = seq[2*j];
-                extrasymb->bloktab[extrasymb->curblok].lrownum = symbmtx->bloktab[bloknum].lrownum;
-                goto endloop;
-            }
-            if((symbmtx->bloktab[bloknum].frownum >= seq[2*j])
-               && (symbmtx->bloktab[bloknum].lrownum <= seq[2*j+1]))
-            {
-                extrasymb->bloktab[extrasymb->curblok].frownum = symbmtx->bloktab[bloknum].frownum;
-                extrasymb->bloktab[extrasymb->curblok].lrownum = symbmtx->bloktab[bloknum].lrownum;
-                goto endloop;
-            }
-          endloop:
-            extrasymb->bloktab[extrasymb->curblok].cblknum = extrasymb->sptcblk[cblknum]+j;
-            extrasymb->bloktab[extrasymb->curblok].levfval = 0;
             sptbloknbr++;
-            extra_inc_blok(extrasymb, extracost);
         }
+
         extrasymb->sptblnb[bloknum] = sptbloknbr;
         extrasymb->addblok += sptbloknbr-1;
-
-        /** update cost of the cblk owning the splitted bloks **/
-        //blokUpdateCost(bloknum, ctrl->egraph->ownetab[bloknum], ctrl->costmtx, extracost, symbmtx, extrasymb, ctrl, dofptr);
     }
 }
-
-double maxProcCost(double *proc_cost, pastix_int_t procnbr)
-{
-    double maxcost = 0;
-    pastix_int_t p;
-    for(p=0;p<procnbr;p++)
-        if(proc_cost[p]>maxcost)
-            maxcost = proc_cost[p];
-    return maxcost;
-}
-
-/* /\*+ Recompute cost of cblk which some odb have been splitted, return new total cost - old total cost +*\/ */
-/* double blokUpdateCost(pastix_int_t bloknum, pastix_int_t cblknum, CostMatrix *costmtx, ExtraCostMatrix *extracost, const SymbolMatrix *symbmtx, const ExtraSymbolMatrix *extrasymb, BlendCtrl *ctrl, const Dof * dofptr) */
-/* { */
-/*     pastix_int_t L, h, g; */
-/*     pastix_int_t s; */
-/*     double oldcost, newcost; */
-/* #ifndef DOF_CONSTANT */
-/*     pastix_int_t i; */
-/* #endif */
-
-/*     ASSERTDBG(extrasymb->sptblok[bloknum] >= 0,MOD_BLEND); */
-
-/*     /\** we need the height of the odb and the broadness */
-/*      of the cbl to compute the local compute cost **\/ */
-
-/* #ifdef DOF_CONSTANT */
-/*     L = (symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1)*(dofptr)->noddval; */
-/* #else */
-/*     for(i=symbmtx->cblktab[cblknum].fcolnum;i<=symbmtx->cblktab[cblknum].lcolnum;i++) */
-/*         L+= noddDlt(dofptr, i); */
-/* #endif */
-/*     /\** no need to recompute the local compute cost because odb lines number */
-/*      is not changed **\/ */
-
-
-/*     /\** recompute for each splitted odb its contribution compute cost and add cost **\/ */
-/*     oldcost = 0; */
-/*     newcost = 0; */
-
-/*     oldcost = costmtx->bloktab[bloknum].contrib; /\* cost of blok not splitted *\/ */
-/*     g = costmtx->bloktab[bloknum].linenbr; */
-
-/*     /\* now compute the new cost of each resulting blok of the spliting *\/ */
-/*     for(s = extrasymb->sptblok[bloknum];s<extrasymb->sptblok[bloknum]+extrasymb->sptblnb[bloknum];s++) */
-/*     { */
-
-/* #ifdef  DOF_CONSTANT */
-/*         h = (extrasymb->bloktab[s].lrownum - extrasymb->bloktab[s].frownum + 1)*(dofptr)->noddval; */
-/* #else */
-/*         for(i=extrasymb->bloktab[s].frownum;i<=extrasymb->bloktab[s].lrownum;i++) */
-/*             h+= noddDlt(dofptr, i); */
-/* #endif */
-/*         extracost->bloktab[s].linenbr = g; */
-/*         extracost->bloktab[s].contrib =  contribCompCost(L, h, g) + contribAddCost(h, g); */
-/*         newcost += extracost->bloktab[s].contrib; */
-/*         g -= h; */
-/*     } */
-
-/*     {  */
-/*         pastix_int_t bloknum = symbmtx->cblktab[ cblknum ].bloknum; */
-/*         if(ctrl->candtab[cblknum].distrib == D1) */
-/*             costmtx->bloktab[bloknum].contrib += newcost - oldcost; */
-/*     } */
-/*     return newcost - oldcost; */
-/* } */
-
-
-pastix_int_t countBlok(pastix_int_t cblknum, SymbolMatrix *symbptr, pastix_int_t blcolmin)
-{
-    pastix_int_t i;
-    pastix_int_t bloknbr;
-    double delta;
-    double stride = 0;
-    delta = (double)(symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum+1);
-    delta = ceil(delta/blcolmin);
-
-    for(i=symbptr->cblktab[cblknum].bloknum+1;i<symbptr->cblktab[cblknum+1].bloknum;i++)
-        stride += symbptr->bloktab[i].lrownum-symbptr->bloktab[i].frownum + 1;
-    stride = ceil(stride/blcolmin);
-    /*fprintf(stdout, "delta %g stride %g blcolmin %ld \n", delta, stride, blcolmin); */
-    bloknbr = 0;
-    bloknbr += (pastix_int_t) (((delta + 1)*delta)/2);
-    bloknbr += (pastix_int_t) (stride*delta);
-
-    return bloknbr;
-}
-
-pastix_int_t setSubtreeBlokNbr(pastix_int_t rootnum, const EliminTree *etree, SymbolMatrix *symbptr, ExtraSymbolMatrix *extrasymb, pastix_int_t blcolmin)
-{
-    pastix_int_t i;
-    extrasymb->subtreeblnbr[rootnum] =  countBlok(rootnum, symbptr, blcolmin);
-    /*fprintf(stdout, "Rootnum %ld bloknbr %ld \n", rootnum, extrasymb->blnbtab[rootnum]);*/
-    for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
-        extrasymb->subtreeblnbr[rootnum] += setSubtreeBlokNbr(eTreeSonI(etree, rootnum, i), etree, symbptr, extrasymb, blcolmin);
-    return extrasymb->subtreeblnbr[rootnum];
-}
-
-

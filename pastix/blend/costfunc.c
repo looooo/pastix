@@ -241,17 +241,19 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
     /** we need the height of cblk non empty lines  and the broadness
      of the cbl to compute the local compute cost **/
 #ifdef DOF_CONSTANT
-    l = (symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1)*(dofptr)->noddval;
+    l =  symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1;
+    l *= dofptr->noddval;
 #else
     for(i=symbmtx->cblktab[cblknum].fcolnum;i<=symbmtx->cblktab[cblknum].lcolnum;i++)
         l+= noddDlt(dofptr, i);
 #endif
 
     g = 0;
-    for(k=symbmtx->cblktab[cblknum].bloknum;k<symbmtx->cblktab[cblknum+1].bloknum;k++)
+    for(k = symbmtx->cblktab[cblknum].bloknum;
+        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
 #ifdef  DOF_CONSTANT
-        g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*(dofptr)->noddval;
+        g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1) * dofptr->noddval;
 #else
         for(i=symbmtx->bloktab[k].frownum;i<=symbmtx->bloktab[k].lrownum;i++)
             g+= noddDlt(dofptr, i);
