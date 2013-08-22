@@ -22,7 +22,7 @@
 #include "costfunc.h"
 #include "partbuild.h"
 
-#define OLD_MERGE
+//#define OLD_MERGE
 /*+
  Make a new SymbolMatrix and CostMatrix from the former ones
  and the Extra ones (that contains splitted bloks)
@@ -47,15 +47,19 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
     Cand         *newcand;
 
     /* No splitted cblk: partition remains the same */
-    fprintf( stderr, "Number of generated block is %ld\n", extrasymb->curcblk );
     if( extrasymb->curcblk == 0 ) {
         return;
     }
 
     pastix_print( ctrl->clustnum, 0,
-                  "Number of column blocks created by splitting : %d\n"
-                  "Number of blocks creating by splitting       : %d\n",
-                  (int)(extrasymb->addcblk), (int)(extrasymb->addblok));
+                  "Number of column blocks modified by splitting: %ld\n"
+                  "Number of blocks modified by splitting       : %ld\n"
+                  "Number of column blocks created by splitting : %ld\n"
+                  "Number of blocks creating by splitting       : %ld\n",
+                  (long int)(extrasymb->curcblk),
+                  (long int)(extrasymb->curblok),
+                  (long int)(extrasymb->addcblk),
+                  (long int)(extrasymb->addblok));
 
     /* Allocate new symbol */
     MALLOC_INTERN(oldsymb, 1, SymbolMatrix);
@@ -90,8 +94,9 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
     newnum[0] = 0;
     for(i=1; i<oldsymb->cblknbr; i++) {
         newnum[i] += newnum[i-1];
-        assert( (newnum[i] >= 0) && (newnum[i] < newsymb->cblknbr) );
-        assert( newnum[i] > newnum[i-1] );
+        assert( (newnum[i] >= 0)               &&
+                (newnum[i] < newsymb->cblknbr) &&
+                (newnum[i] > newnum[i-1]) );
     }
 
     /*
@@ -230,21 +235,21 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                 if(extrasymb->sptblok[j] < 0)
                 {
                     pastix_int_t fcblknum = oldsymb->bloktab[j].cblknum;
-                    assert( fcblknum   < oldsymb->cblknbr );
+                    assert( fcblknum  < oldsymb->cblknbr );
                     fcblknum = newnum[ fcblknum ];
+                    assert( (fcblknum >= 0) &&
+                            (fcblknum < newsymb->cblknbr) );
 
+		    //assert( curbloknum < newsymb->bloknbr );
                     newsymb->bloktab[curbloknum].frownum = oldsymb->bloktab[j].frownum;
                     newsymb->bloktab[curbloknum].lrownum = oldsymb->bloktab[j].lrownum;
                     newsymb->bloktab[curbloknum].cblknum = fcblknum;
                     newsymb->bloktab[curbloknum].levfval = oldsymb->bloktab[j].levfval;
 
-                    assert( (fcblknum >= 0) &&
-                            (fcblknum < newsymb->cblknbr) );
-
                     newcost->bloktab[curbloknum].contrib = oldcost->bloktab[j].contrib;
                     newcost->bloktab[curbloknum].linenbr = oldcost->bloktab[j].linenbr;
                     curbloknum++;
-		    assert( curbloknum <= newsymb->bloknbr );
+		    //assert( curbloknum <= newsymb->bloknbr );
                 }
                 /* Splitted blok in a non splitted cblk -> the facing diagblok is splitted */
                 else
@@ -253,22 +258,23 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                     for(k = extrasymb->sptblok[j];
                         k < extrasymb->sptblok[j] + extrasymb->sptblnb[j]; k++)
                     {
-                        pastix_int_t fcblknum = extranewnum[ extrasymb->bloktab[k].cblknum ];
+                        pastix_int_t fcblknum = extrasymb->bloktab[k].cblknum;
+                        assert( fcblknum  < extrasymb->curcblk );
+                        fcblknum = extranewnum[ fcblknum ];
+                        assert( (fcblknum >= 0) &&
+                                (fcblknum < newsymb->cblknbr) );
 
-			assert( curbloknum < newsymb->bloknbr );
+			//assert( curbloknum < newsymb->bloknbr );
                         newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
                         newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
                         newsymb->bloktab[curbloknum].cblknum = fcblknum;
                         newsymb->bloktab[curbloknum].levfval = extrasymb->bloktab[k].levfval;
 
-                        assert( (fcblknum >= 0) &&
-                                (fcblknum < newsymb->cblknbr) );
-
                         newcost->bloktab[curbloknum].contrib = extracost->bloktab[k].contrib;
                         newcost->bloktab[curbloknum].linenbr = extracost->bloktab[k].linenbr;
 
                         curbloknum++;
-			assert( curbloknum <= newsymb->bloknbr );
+			//assert( curbloknum <= newsymb->bloknbr );
                     }
                 }
             }
@@ -279,6 +285,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
             for(j = extrasymb->sptcblk[i];
                 j < extrasymb->sptcblk[i] + extrasymb->sptcbnb[i]; j++)
             {
+                assert(j < extrasymb->curcblk);
                 newcblknum = extranewnum[j];
                 assert( newcblknum < newsymb->cblknbr );
 
@@ -295,8 +302,12 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                     k <(extrasymb->cblktab[j].bloknum + extrasymb->sptcblk[i] + extrasymb->sptcbnb[i] - j); k++)
                 {
                     pastix_int_t fcblknum = extrasymb->bloktab[k].cblknum;
+                    assert( k < extrasymb->curblok );
+                    assert( fcblknum  < extrasymb->curcblk );
+                    assert( (extranewnum[fcblknum] >= 0) &&
+                            (extranewnum[fcblknum] < newsymb->cblknbr) );
 
-		    assert( curbloknum < newsymb->bloknbr );
+		    //assert( curbloknum < newsymb->bloknbr );
                     newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[k].frownum;
                     newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[k].lrownum;
                     newsymb->bloktab[curbloknum].cblknum = extranewnum[fcblknum];
@@ -306,7 +317,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                     assert(newsymb->bloktab[curbloknum].lrownum <= extrasymb->cblktab[fcblknum].lcolnum);
 
                     curbloknum++;
-		    assert( curbloknum <= newsymb->bloknbr );
+		    //assert( curbloknum <= newsymb->bloknbr );
                 }
 
                 sptbloknum = k;
@@ -316,33 +327,40 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
                     if(extrasymb->sptblok[k] < 0)
                     {
                         pastix_int_t fcblknum = extrasymb->bloktab[sptbloknum].cblknum;
+                        assert( sptbloknum < extrasymb->curblok );
                         assert( fcblknum < oldsymb->cblknbr );
                         fcblknum = newnum[ fcblknum ];
+                        assert( (fcblknum >= 0) &&
+                                (fcblknum < newsymb->cblknbr) );
 
-			assert( curbloknum < newsymb->bloknbr );
+			//assert( curbloknum < newsymb->bloknbr );
                         newsymb->bloktab[curbloknum].frownum = oldsymb->bloktab[k].frownum;
                         newsymb->bloktab[curbloknum].lrownum = oldsymb->bloktab[k].lrownum;
                         newsymb->bloktab[curbloknum].cblknum = fcblknum;
                         newsymb->bloktab[curbloknum].levfval = oldsymb->bloktab[k].levfval;
                         sptbloknum++;
                         curbloknum++;
-			assert( curbloknum <= newsymb->bloknbr );
+			//assert( curbloknum <= newsymb->bloknbr );
                     }
                     else
                     {
                         facing_splitted_cnt += extrasymb->sptblnb[k]-1;
                         for(s=extrasymb->sptblok[k];s<extrasymb->sptblok[k]+extrasymb->sptblnb[k];s++)
                         {
-                            pastix_int_t fcblknum = extranewnum[extrasymb->bloktab[s].cblknum];
-
-			    assert( curbloknum < newsymb->bloknbr );
+                            pastix_int_t fcblknum = extrasymb->bloktab[s].cblknum;
+                            assert( s < extrasymb->curblok );
+                            assert( fcblknum  < extrasymb->curcblk );
+                            fcblknum = extranewnum[ fcblknum ];
+                            assert( (fcblknum >= 0) &&
+                                    (fcblknum < newsymb->cblknbr) );
+			    //assert( curbloknum < newsymb->bloknbr );
                             newsymb->bloktab[curbloknum].frownum = extrasymb->bloktab[s].frownum;
                             newsymb->bloktab[curbloknum].lrownum = extrasymb->bloktab[s].lrownum;
                             newsymb->bloktab[curbloknum].cblknum = fcblknum;
                             newsymb->bloktab[curbloknum].levfval = extrasymb->bloktab[s].levfval;
                             sptbloknum++;
                             curbloknum++;
-			    assert( curbloknum <= newsymb->bloknbr );
+                            //assert( curbloknum <= newsymb->bloknbr );
                         }
                     }
                 }

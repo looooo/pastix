@@ -31,9 +31,9 @@ pastix_int_t   check_candidat(SymbolMatrix *, BlendCtrl *);
 static void setDistribType       (const pastix_int_t, SymbolMatrix *, Cand *, const pastix_int_t);
 static void setSubtreeDistribType(const SymbolMatrix *, const CostMatrix *, pastix_int_t , const BlendCtrl *, pastix_int_t);
 
-static void splitOnProcs    (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, 
+static void splitOnProcs    (const SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, const BlendCtrl *, 
 			     const Dof *, pastix_int_t, pastix_int_t);
-static void splitCblk       (SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, BlendCtrl *, 
+static void splitCblk       (const SymbolMatrix *, ExtraSymbolMatrix *, ExtraCostMatrix *, const BlendCtrl *, 
 			     const Dof *, pastix_int_t, pastix_int_t, pastix_int_t *);
 
 static void printTree          (FILE*, const EliminTree *, pastix_int_t);

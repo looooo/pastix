@@ -23,6 +23,30 @@
 #include "partbuild.h"
 #include "splitpart.h"
 
+static inline void
+splitSubtree( pastix_int_t rootnum,
+              const EliminTree   *etree,
+              const SymbolMatrix *symbmtx,
+              ExtraSymbolMatrix  *extrasymb,
+              ExtraCostMatrix    *extracost,
+              const BlendCtrl    *ctrl,
+              const Dof          *dofptr,
+              const Cand         *candtab )
+{
+    pastix_int_t i, son;
+
+    splitOnProcs( symbmtx, extrasymb, extracost, ctrl,
+                  dofptr, rootnum,
+                  candtab[ rootnum ].lcandnum -
+                  candtab[ rootnum ].fcandnum + 1 );
+
+    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    {
+        son = eTreeSonI(etree, rootnum, i);
+        splitSubtree( son, etree, symbmtx, extrasymb, extracost, ctrl, dofptr, candtab );
+    }
+}
+
 /*
   Function: splitPart
 
@@ -85,14 +109,7 @@ void splitPart(SymbolMatrix *symbmtx,
 
     /* Stupid split */
     {
-        pastix_int_t cblknum;
-        for(cblknum = 0; cblknum < symbmtx->cblknbr; cblknum++)
-        {
-            splitOnProcs( symbmtx, extrasymb, extracost, ctrl,
-                          dofptr, cblknum,
-                          ctrl->candtab[ cblknum ].lcandnum -
-                          ctrl->candtab[ cblknum ].fcandnum + 1);
-        }
+        splitSubtree( eTreeRoot( ctrl->etree), ctrl->etree, symbmtx, extrasymb, extracost, ctrl, dofptr, ctrl->candtab );
     }
 
     /* Rebuild the symbolic matrix */
@@ -149,10 +166,10 @@ void splitPart(SymbolMatrix *symbmtx,
  cblknum    -
  procnbr    -
  */
-void splitOnProcs(SymbolMatrix      *symbmtx,
+void splitOnProcs(const SymbolMatrix      *symbmtx,
                   ExtraSymbolMatrix *extrasymb,
                   ExtraCostMatrix   *extracost,
-                  BlendCtrl         *ctrl,
+                  const BlendCtrl         *ctrl,
                   const Dof         *dofptr,
                   pastix_int_t                cblknum,
                   pastix_int_t                procnbr)
@@ -301,10 +318,10 @@ void splitOnProcs(SymbolMatrix      *symbmtx,
  nseq      - Number of part of the split
  *seq      - Splitting indexes array.
  */
-void  splitCblk(SymbolMatrix      *symbmtx,
+void  splitCblk(const SymbolMatrix      *symbmtx,
                 ExtraSymbolMatrix *extrasymb,
                 ExtraCostMatrix   *extracost,
-                BlendCtrl         *ctrl,
+                const BlendCtrl         *ctrl,
                 const Dof         *dofptr,
                 pastix_int_t         cblknum,
                 pastix_int_t         nseq,
