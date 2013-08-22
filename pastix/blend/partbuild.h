@@ -16,12 +16,10 @@
 #define static
 #endif
 
-void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
-                ExtraSymbolMatrix *extrasymb,
-                ExtraCostMatrix *extracost,
-                SymbolMatrix *oldsymb,
-                CostMatrix   *oldcost,
-                Cand        **oldcand);
+void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
+                  SymbolMatrix *newsymb, ExtraSymbolMatrix *extrasymb,
+                  CostMatrix   *newcost, ExtraCostMatrix   *extracost,
+                  Cand        **candtab );
 
 #undef static
 

@@ -96,8 +96,18 @@ void splitPart(SymbolMatrix *symbmtx,
     }
 
     /* Rebuild the symbolic matrix */
-    partBuild(ctrl, dofptr, extrasymb, extracost,
-              symbmtx, ctrl->costmtx, &(ctrl->candtab));
+    {
+        Clock timer;
+        clockStart(timer);
+        symbolMerge( ctrl, dofptr,
+                     symbmtx,       extrasymb,
+                     ctrl->costmtx, extracost,
+                     &(ctrl->candtab) );
+        clockStop(timer);
+
+        pastix_print( 0, 0, "symbolMerge perform in %e s\n",
+                      clockVal(timer) );
+    }
 
     extrasymbolExit(extrasymb);
     extracostExit(extracost);

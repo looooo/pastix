@@ -56,7 +56,6 @@
 */
 
 /*+ The column block structure. +*/
-
 typedef struct SymbolCblk_ {
   pastix_int_t                       fcolnum;              /*+ First column index               +*/
   pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)    +*/

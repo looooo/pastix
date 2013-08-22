@@ -28,12 +28,10 @@
  +*/
 /* OIMBE : retravailler partBuild avec des memcpy */
 
-void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
-                ExtraSymbolMatrix *extrasymb,
-                ExtraCostMatrix *extracost,
-                SymbolMatrix *newsymb,
-                CostMatrix   *newcost,
-                Cand        **candtab )
+void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
+                  SymbolMatrix *newsymb, ExtraSymbolMatrix *extrasymb,
+                  CostMatrix   *newcost, ExtraCostMatrix   *extracost,
+                  Cand        **candtab )
 {
     pastix_int_t  i, j, k, s;
     pastix_int_t  curbloknum;
@@ -49,15 +47,14 @@ void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
 
     /* No splitted cblk: partition remains the same */
     fprintf( stderr, "Number of generated block is %ld\n", extrasymb->curcblk );
-    if(extrasymb->curcblk == 0) {
+    if( extrasymb->curcblk == 0 ) {
         return;
     }
 
-    if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-    {
-        fprintf(stdout, "Number of column blocks created by splitting : %d\n", (int)(extrasymb->addcblk));
-        fprintf(stdout, "Number of blocks creating by splitting       : %d\n", (int)(extrasymb->addblok));
-    }
+    pastix_print( ctrl->clustnum, 0,
+                  "Number of column blocks created by splitting : %d\n"
+                  "Number of blocks creating by splitting       : %d\n",
+                  (int)(extrasymb->addcblk), (int)(extrasymb->addblok));
 
     /* Allocate new symbol */
     MALLOC_INTERN(oldsymb, 1, SymbolMatrix);
@@ -80,6 +77,7 @@ void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
     MALLOC_INTERN(newcand, newsymb->cblknbr, Cand);
     memset( newcand, 0, newsymb->cblknbr * sizeof(Cand) );
 
+#if defined(OLD_MERGE)
     /*
      * We use the sptcbnb array to get the new numbering of the former cblk
      * in the new symbolic matrix
@@ -113,6 +111,94 @@ void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
         }
     }
 
+#else
+    /*
+     * We use the sptcbnb array to get the new numbering of the former cblk
+     * in the new symbolic matrix
+     * newnum[i+1] becomes the new number of the first cblk generated from the
+     * split of former cblk number i.
+     */
+    MALLOC_INTERN(newnum,      oldsymb->cblknbr,   pastix_int_t);
+    MALLOC_INTERN(extranewnum, extrasymb->curcblk, pastix_int_t);
+    memcpy(newnum+1, extrasymb->sptcbnb, (oldsymb->cblknbr-1) * sizeof(pastix_int_t));
+    {
+        pastix_int_t sptcbnb, sptcblk;
+        pastix_int_t nbcblk2copy = 0;
+        pastix_int_t firstcblk   = 0;
+
+        /* First cblk */
+        newnum[0] = 0;
+        sptcbnb = extrasymb->sptcbnb[0];
+        assert( sptcbnb > 0 );
+
+        /* Splitted cblk */
+        if (sptcbnb > 1)
+        {
+            sptcblk = extrasymb->sptcblk[0];
+            assert( sptcblk >= 0 );
+
+            for(j=0; j<sptcbnb; j++, sptcblk++) {
+                extranewnum[sptcblk] = j;
+
+                assert( (extranewnum[sptcblk] >= 0) &&
+                        (extranewnum[sptcblk] < newsymb->cblknbr) );
+
+                memcpy( newcand + extranewnum[ sptcblk ],
+                        oldcand, sizeof(Cand) );
+            }
+        }
+        else {
+            nbcblk2copy++;
+        }
+
+        for(i=1; i<oldsymb->cblknbr; i++) {
+
+            sptcbnb = extrasymb->sptcbnb[i];
+            newnum[i] += newnum[i-1];
+
+            assert( sptcbnb > 0 );
+            assert( (newnum[i] >= 0) && (newnum[i] < newsymb->cblknbr) );
+
+            /* Splitted cblk */
+            if (sptcbnb > 1)
+            {
+                /* Copy the unchanged cblk */
+                if ( nbcblk2copy > 0 ) {
+
+                    memcpy( newsymb->cblktab + newnum[ firstcblk ],
+                            oldsymb->cblktab + firstcblk,
+                            nbcblk2copy * sizeof(SymbolCblk) );
+
+                    memcpy( newcand + newnum[ firstcblk ],
+                            oldcand + firstcblk,
+                            nbcblk2copy * sizeof(Cand) );
+
+                    nbcblk2copy = 0;
+                }
+
+                sptcblk = extrasymb->sptcblk[i];
+                assert( sptcblk >= 0 );
+
+                for(j=0; j<sptcbnb; j++, sptcblk++) {
+                    extranewnum[sptcblk] = newnum[i]+j;
+
+                    assert( (extranewnum[sptcblk] >= 0) &&
+                            (extranewnum[sptcblk] <  newsymb->cblknbr) );
+                    assert(  extranewnum[sptcblk] >= newnum[i] );
+
+                    memcpy( newcand + extranewnum[ sptcblk ],
+                            oldcand + i, sizeof(Cand) );
+                }
+            }
+            else
+            {
+                nbcblk2copy++;
+            }
+        }
+    }
+    memFree_null(oldcand);
+#endif
+
     /* Fill in the new symbolic matrix resulting from the splitting of the former one */
     curbloknum = 0;
     for(i=0; i<oldsymb->cblknbr; i++)
@@ -123,11 +209,9 @@ void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
         {
             newcblknum = newnum[i];
             assert( newcblknum < newsymb->cblknbr );
-            newsymb->cblktab[newcblknum].fcolnum = oldsymb->cblktab[i].fcolnum;
-            newsymb->cblktab[newcblknum].lcolnum = oldsymb->cblktab[i].lcolnum;
-            newsymb->cblktab[newcblknum].bloknum = curbloknum;
 
-            memcpy( newcand + newcblknum, oldcand + i, sizeof(Cand) );
+            /* Update bloknum */
+            newsymb->cblktab[newcblknum].bloknum = curbloknum;
 
             for( j = oldsymb->cblktab[i].bloknum;
                  j < oldsymb->cblktab[i+1].bloknum; j++ )
@@ -191,8 +275,6 @@ void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
                 newsymb->cblktab[newcblknum].lcolnum = extrasymb->cblktab[j].lcolnum;
                 newsymb->cblktab[newcblknum].bloknum = curbloknum;
 
-                memcpy( newcand + newcblknum, oldcand + i, sizeof(Cand) );
-
                 /* Treat blok created by splitting of the diag blok */
                 for(k = extrasymb->cblktab[j].bloknum;
                     k <(extrasymb->cblktab[j].bloknum + extrasymb->sptcblk[i] + extrasymb->sptcbnb[i] - j); k++)
@@ -246,6 +328,17 @@ void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
 
     assert(curbloknum == newsymb->bloknbr);
 
+    /* Free old versions and temporary buffer */
+    symbolExit(oldsymb);
+    memFree_null(oldsymb);
+    costExit(oldcost);
+
+#if defined(OLD_MERGE)
+    memFree_null(oldcand);
+#endif
+    memFree_null(newnum);
+    memFree_null(extranewnum);
+
     /* Virtual cblk to avoid side effect in the loops on cblk bloks */
     newsymb->cblktab[newsymb->cblknbr].fcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
     newsymb->cblktab[newsymb->cblknbr].lcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
@@ -276,15 +369,7 @@ void partBuild( BlendCtrl *ctrl, const Dof * dofptr,
         fprintf(stdout, "Number of blocks created due to facing block splitting : %d\n", (int)facing_splitted_cnt);
     }
 
-    memFree_null(newnum);
-    memFree_null(extranewnum);
-
-    /* Free old versions */
     symbolCheck(newsymb);
-    symbolExit(oldsymb);
-    memFree_null(oldsymb);
-    costExit(oldcost);
-    memFree_null(oldcand);
 
     *candtab = newcand;
     return;
