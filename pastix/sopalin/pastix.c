@@ -2727,7 +2727,7 @@ void pastix(pastix_data_t **pastix_data,
             pastix_welcome_print(*pastix_data, colptr, n);
 
             /* multiple RHS see MRHS_ALLOC */
-            if ( ((*pastix_data)->procnum == 0)  && (rhs!=1)  &&
+            if ( ((*pastix_data)->procnum == 0)  && (rhs > 1)  &&
                  iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
                 errorPrintW("multiple right-hand-side not tested...");
 
