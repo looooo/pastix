@@ -316,11 +316,12 @@ extraCblkMerge( const BlendCtrl *ctrl,
          */
 
         /* Diagonal block */
-        addblok += ((sptcbnbw+1) * sptcbnbw) / 2 - 1;
+        addblok += (((sptcbnbw+1) * sptcbnbw) / 2) - 1;
         for(j=fbloknum+1; j<lbloknum; j++)
         {
             pastix_int_t fcblknum = oldsymb->bloktab[j].cblknum;
             pastix_int_t sptfcbnb = extracblk->sptcbnb[fcblknum];
+	    pastix_int_t sptcbnbh = 0;
 
             /* If facing cblk is splitted */
             if ( sptfcbnb > 1 )
@@ -328,7 +329,6 @@ extraCblkMerge( const BlendCtrl *ctrl,
                 SymbolCblk  *newfcblk =  &(extracblk->cblktab[ extracblk->sptcblk[fcblknum] ]);
                 pastix_int_t frownum  = oldsymb->bloktab[j].frownum;
                 pastix_int_t lrownum  = oldsymb->bloktab[j].lrownum;
-                pastix_int_t sptcbnbh = 0;
 
                 /* Compute how many times the block is splitted horizontally */
                 for(k = 0; k < sptfcbnb; k++, newfcblk++)
@@ -345,14 +345,16 @@ extraCblkMerge( const BlendCtrl *ctrl,
                     sptcbnbh++;
                     frownum = newfcblk->lcolnum+1;
                 }
-
-                /*
-                 * The number of extra blocks is the number of times the block
-                 * is psplitted horizontally times the number of time the cblk
-                 * is splitted vertically minu itself
-                 */
-                addblok += sptcbnbw * sptcbnbh - 1;
             }
+	    else
+	      sptcbnbh = 1;
+
+            /*
+             * The number of extra blocks is the number of times the block
+             * is psplitted horizontally times the number of time the cblk
+             * is splitted vertically minu itself
+             */
+            addblok += sptcbnbw * sptcbnbh - 1;
         }
 
         /*
@@ -420,10 +422,14 @@ extraCblkMerge( const BlendCtrl *ctrl,
     pastix_print( ctrl->clustnum, 0,
                   "Number of column blocks modified by splitting: %ld\n"
                   "Number of column blocks created by splitting : %ld\n"
-                  "Number of blocks creating by splitting       : %ld\n",
+                  "Number of blocks creating by splitting       : %ld\n"
+                  "Oldsymbol bloknbr = %ld, cblknbr = %ld\n"
+                  "Newsymbol bloknbr = %ld, cblknbr = %ld\n",
                   (long int)(extracblk->curcblk + 1),
                   (long int)(extracblk->addcblk),
-                  (long int)(addblok));
+                  (long int)(addblok),
+		  oldsymb->bloknbr, oldsymb->cblknbr,
+		  newsymb->bloknbr + addblok, newsymb->cblknbr );
 
     /* Allocate new bloktab */
     newsymb->bloknbr = oldsymb->bloknbr + addblok;

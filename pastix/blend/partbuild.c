@@ -54,13 +54,18 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
 
     pastix_print( ctrl->clustnum, 0,
                   "Number of column blocks modified by splitting: %ld\n"
-                  "Number of blocks modified by splitting       : %ld\n"
                   "Number of column blocks created by splitting : %ld\n"
-                  "Number of blocks creating by splitting       : %ld\n",
+                  "Number of blocks modified by splitting       : %ld\n"
+                  "Number of blocks creating by splitting       : %ld\n"
+                  "Oldsymbol bloknbr = %ld, cblknbr = %ld\n"
+                  "Newsymbol bloknbr = %ld, cblknbr = %ld\n",
                   (long int)(extrasymb->curcblk),
                   (long int)(extrasymb->curblok),
                   (long int)(extrasymb->addcblk),
-                  (long int)(extrasymb->addblok));
+                  (long int)(extrasymb->addblok),
+		  newsymb->bloknbr, newsymb->cblknbr,
+		  newsymb->bloknbr + extrasymb->addblok,
+		  newsymb->cblknbr + extrasymb->addcblk );
 
     /* Allocate new symbol */
     MALLOC_INTERN(oldsymb, 1, SymbolMatrix);
@@ -276,7 +281,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
     symbolExit(oldsymb);
     memFree_null(oldsymb);
     costExit(oldcost);
-    memFree_null(oldcand);
+    //memFree_null(oldcand);
     memFree_null(newnum);
     memFree_null(extranewnum);
 
@@ -660,7 +665,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
 
     symbolCheck(newsymb);
 
-    *candtab = newcand;
+    //*candtab = newcand;
     return;
 }
 
