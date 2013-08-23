@@ -547,6 +547,7 @@ set(PASTIX_LIB_SRCS
   blend/solver_io.c
   blend/splitfunc.c
   blend/splitpart.c
+  blend/splitpart2.c
 #  blend/splitpartlocal.c
 #  blend/symbolrand.c
   blend/task.c
