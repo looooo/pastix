@@ -194,7 +194,7 @@ ordering_save(const Order * const ordeptr,
     int          o;
 
     if (ordeptr->rangtab == NULL) {
-        errorPrint ("orderSave: cannot save ordering without column block data");
+        errorPrint ("orderSave: cannot save ordering without rangtab array");
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordeptr->permtab == NULL) {
