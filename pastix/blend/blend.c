@@ -194,6 +194,23 @@ void solverBlend(BlendCtrl    *ctrl,
         clockStop(timer_current);
         pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
     }
+    {
+        FILE *stream;
+
+        symbolExit( symbmtx );
+        PASTIX_FOPEN(stream, "symbname", "r" );
+        symbolLoad( symbmtx, stream );
+        fclose(stream);
+    }
+    {
+        clockStart(timer_current);
+        pastix_print( clustnum, 0, "-- Spliting initial partition Version 2\n" );
+
+        splitPart2(ctrl, symbmtx);
+
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
+    }
 
     //TODO
     /* if ( (ctrl->leader == clustnum) && (ctrl->tracegen == 1)) */

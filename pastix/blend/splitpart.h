@@ -18,6 +18,9 @@
 
 #endif
 
+void splitPart2( BlendCtrl    *ctrl,
+                 SymbolMatrix *symbmtx );
+
 void propMappTree( Cand               *candtab,
                    const EliminTree   *etree,
                    const SymbolMatrix *symbmtx,

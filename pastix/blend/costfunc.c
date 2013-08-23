@@ -236,13 +236,15 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
     pastix_int_t k;
 #ifndef DOF_CONSTANT
     pastix_int_t i;
+#else
+    pastix_int_t noddval = ( dofptr == NULL ) ? 1 : dofptr->noddval;
 #endif
 
     /** we need the height of cblk non empty lines  and the broadness
      of the cbl to compute the local compute cost **/
 #ifdef DOF_CONSTANT
     l =  symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1;
-    l *= dofptr->noddval;
+    l *= noddval;
 #else
     for(i=symbmtx->cblktab[cblknum].fcolnum;i<=symbmtx->cblktab[cblknum].lcolnum;i++)
         l+= noddDlt(dofptr, i);
@@ -253,7 +255,7 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
         k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
 #ifdef  DOF_CONSTANT
-        g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1) * dofptr->noddval;
+        g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1) * noddval;
 #else
         for(i=symbmtx->bloktab[k].frownum;i<=symbmtx->bloktab[k].lrownum;i++)
             g+= noddDlt(dofptr, i);
@@ -282,7 +284,7 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
         k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
 #ifdef  DOF_CONSTANT
-        h = (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*(dofptr)->noddval;
+        h = (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*noddval;
 #endif
 
         /* g is the odb lines number above this odb (odb lines include)*/
@@ -305,7 +307,7 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 
         for(k=symbmtx->cblktab[cblknum].bloknum; k<symbmtx->cblktab[cblknum+1].bloknum;k++)
             stride += symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1;
-        ASSERT( costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr == stride * dofptr->noddval,MOD_BLEND);
+        ASSERT( costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr == stride * noddval,MOD_BLEND);
 
         //ASSERT(costmtx->cblktab[cblknum].total > 0,MOD_BLEND);
         cost2 = cblkCost(symbmtx->cblktab[cblknum+1].bloknum -  symbmtx->cblktab[cblknum].bloknum,

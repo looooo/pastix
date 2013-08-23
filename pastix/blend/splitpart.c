@@ -156,7 +156,6 @@ void splitPart(SymbolMatrix *symbmtx,
 #endif
 }
 
-
 /*
  Function: splitOnProcs
 
