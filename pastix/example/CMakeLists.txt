@@ -44,10 +44,22 @@ add_executable(simple
   simple.c
 )
 
+add_executable(analyse
+  analyse.c
+)
+
 target_link_libraries( simple
   ${PASTIX_EXAMPLES_LIBRARIES} )
 
 if (PASTIX_WITH_MPI)
   target_link_libraries( simple
+    ${MPI_LIBRARIES} )
+endif()
+
+target_link_libraries( analyse
+  ${PASTIX_EXAMPLES_LIBRARIES} )
+
+if (PASTIX_WITH_MPI)
+  target_link_libraries( analyse
     ${MPI_LIBRARIES} )
 endif()
