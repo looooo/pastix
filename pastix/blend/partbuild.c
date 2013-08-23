@@ -281,7 +281,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
     symbolExit(oldsymb);
     memFree_null(oldsymb);
     costExit(oldcost);
-    //memFree_null(oldcand);
+    memFree_null(oldcand);
     memFree_null(newnum);
     memFree_null(extranewnum);
 
@@ -665,7 +665,7 @@ void symbolMerge( BlendCtrl *ctrl, const Dof * dofptr,
 
     symbolCheck(newsymb);
 
-    //*candtab = newcand;
+    *candtab = newcand;
     return;
 }
 

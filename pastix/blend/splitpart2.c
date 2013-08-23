@@ -34,7 +34,7 @@ typedef struct ExtraCblk_s {
     SymbolCblk   *cblktab;         /*+ Array of column blocks [+1,based]            +*/
 } ExtraCblk_t;
 
-void
+static inline void
 extraCblkInit( pastix_int_t cblknbr,
                ExtraCblk_t *extracblk )
 {
@@ -48,7 +48,7 @@ extraCblkInit( pastix_int_t cblknbr,
     return;
 }
 
-void
+static inline void
 extraCblkAlloc( ExtraCblk_t *extracblk )
 {
     pastix_int_t i;
@@ -74,7 +74,7 @@ extraCblkAlloc( ExtraCblk_t *extracblk )
     return;
 }
 
-void
+static inline void
 extraCblkExit( ExtraCblk_t *extracblk )
 {
     if ( extracblk->sizcblk > 0 ) {
@@ -88,7 +88,7 @@ extraCblkExit( ExtraCblk_t *extracblk )
     return;
 }
 
-pastix_int_t
+static inline pastix_int_t
 extraCblkInc( ExtraCblk_t *extracblk )
 {
     /* First cblk added */
@@ -118,7 +118,7 @@ extraCblkInc( ExtraCblk_t *extracblk )
     return extracblk->curcblk;
 }
 
-void
+static inline void
 extraCblkAdd( ExtraCblk_t *extracblk,
               pastix_int_t fcolnum,
               pastix_int_t lcolnum )
