@@ -159,6 +159,7 @@ blendCtrlInit(BlendCtrl    *ctrl,
     ctrl->blcolmin = iparm[IPARM_MIN_BLOCKSIZE];
     ctrl->blcolmax = iparm[IPARM_MAX_BLOCKSIZE];
     ctrl->abs      = iparm[IPARM_ABS];
+    ctrl->updatecandtab = 0;
     if(ctrl->blcolmin > ctrl->blcolmax)
     {
         errorPrint("Parameter error : blocksize max < blocksize min (cf. iparm.txt).");

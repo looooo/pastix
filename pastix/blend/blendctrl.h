@@ -28,7 +28,7 @@ typedef struct BlendCtrl_ {
     /* Proportional Mapping */
     pastix_int_t    allcand;         /*+ All processors are candidate for each cblk                        +*/
     pastix_int_t    nocrossproc;     /*+ Forbid a processor to be candidate in two
-                                      different branches shared with different partners                 +*/
+                                      different branches shared with different partners                    +*/
     pastix_int_t    costlevel;       /*+ Enable/disable computation and use of subtree cost                +*/
 
     /* Spliting options */
@@ -36,7 +36,9 @@ typedef struct BlendCtrl_ {
     pastix_int_t    blcolmax;        /*+ Maximum number of columns for a good use of BLAS primitives       +*/
     pastix_int_t    abs;             /*+ Adaptative block size:
                                       - 0, all block are cut to blcolmin
-                                      - >0, try to make (ncand*abs) cblk                              +*/
+                                      - >0, try to make (ncand*abs) cblk                                   +*/
+    pastix_int_t    updatecandtab;   /*+ Update the candtab array after splitting, otherwise each new cblk
+                                         has the same properties as the original one                       +*/
 
     /* 2D */
     pastix_int_t    autolevel;       /*+ Level to shift 1D to 2D is automaticly computed                   +*/
