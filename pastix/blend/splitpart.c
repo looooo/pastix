@@ -22,6 +22,7 @@
 #include "costfunc.h"
 #include "partbuild.h"
 #include "splitpart.h"
+#include "smart_cblk_split.h"
 
 static inline void
 splitSubtree( pastix_int_t rootnum,
@@ -264,7 +265,6 @@ void splitOnProcs(const SymbolMatrix      *symbmtx,
 
 #ifdef SMART_CBLK_SPLIT
     {
-        int old_nseq = nseq;
         smart_cblk_split(ctrl,
                          symbmtx,
                          cblknum,
