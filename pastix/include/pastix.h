@@ -39,8 +39,6 @@
 #endif
 #include "pastix/retro.h"
 
-#define PASTIX_DEBUG_SYMBOL
-
 /** ****************************************************************************
  *
  *  PaStiX constants - Compatible with CBLAS & LAPACK
