@@ -525,30 +525,30 @@ set(PASTIX_LIB_SRCS
   blend/elimin_tree.c
   blend/propmap.c
   blend/pastix_task_analyse.c
+  blend/extracblk.c
+  blend/splitpart2.c
+  blend/blendctrl.c
+
 #  blend/assemblyGener.c
   blend/blend.c
   blend/blend_symbol_cost.c
-  blend/blendctrl.c
   blend/bulles.c
   blend/cost.c
   blend/costfunc.c
   blend/distribPart.c
   blend/extendVector.c
-  blend/extrastruct.c
-  blend/extracblk.c
   blend/fanboth2.c
-#  blend/param_blend.c
-  blend/partbuild.c
   blend/queue.c
   blend/simu.c
-  blend/smart_cblk_split.c
+#  blend/extrastruct.c
+#  blend/partbuild.c
+#  blend/smart_cblk_split.c
   blend/solverMatrixGen.c
   blend/solverRealloc.c
   blend/solver_check.c
   blend/solver_io.c
-  blend/splitfunc.c
-  blend/splitpart.c
-  blend/splitpart2.c
+#  blend/splitfunc.c
+#  blend/splitpart.c
 #  blend/splitpartlocal.c
 #  blend/symbolrand.c
   blend/task.c
