@@ -535,6 +535,7 @@ set(PASTIX_LIB_SRCS
   blend/distribPart.c
   blend/extendVector.c
   blend/extrastruct.c
+  blend/extracblk.c
   blend/fanboth2.c
 #  blend/param_blend.c
   blend/partbuild.c
