@@ -22,6 +22,7 @@
 #include "costfunc.h"
 #include "partbuild.h"
 /* #include "splitpart.h" */
+#define FLAG_ASSERT
 
 struct PASTIX_interval_s {
   pastix_int_t start;
@@ -331,8 +332,8 @@ int insert_in_partition(pastix_int_t start,
   return PASTIX_SUCCESS;
 }
 
-int smart_cblk_split(BlendCtrl      * ctrl,
-                     SymbolMatrix   * symbmtx,
+int smart_cblk_split(const BlendCtrl      * ctrl,
+                     const SymbolMatrix   * symbmtx,
                      pastix_int_t       cblknum,
                      pastix_int_t       procnbr,
                      pastix_int_t       blas_min_col,
