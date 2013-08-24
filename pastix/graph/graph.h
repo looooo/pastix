@@ -16,6 +16,10 @@
 #ifndef _GRAPH_H_
 #define _GRAPH_H_
 
+/**
+ * @ingroup pastix_graph
+ * @struct pastix_graph_s - Graph structure.
+ */
 struct pastix_graph_s {
     pastix_int_t  gN;        /*< Global number of vertices                    */
     pastix_int_t  n;         /*< Number of local vertices                     */
@@ -24,6 +28,9 @@ struct pastix_graph_s {
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global */
 };
 
+/*
+ * Functions of the graph module
+ */
 void graphLoad( const pastix_data_t  *pastix_data,
                 pastix_graph_t *graph );
 void graphSave( const pastix_data_t  *pastix_data,

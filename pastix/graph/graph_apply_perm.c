@@ -21,7 +21,7 @@
  * @ingroup pastix_graph
  *
  * graphApplyPerm - Generate the graph of P*A from the graph of A and the
- * permutation vector.
+ * permutation vector (see kass_csrGenPA()).
  *
  *******************************************************************************
  *
