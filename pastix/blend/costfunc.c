@@ -30,18 +30,6 @@
 void   subtreeSetNullCost    (pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const SimuCtrl *,  pastix_int_t);
 double cblkComputeCost2DLocal(pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const Dof *, const SimuCtrl *);
 
-/*+ Compute cost time for blok in the matrix +*/
-/* Diagonal block contains time of factorization + TRSM of the CBLK */
-void costMatrixBuild(CostMatrix *costmtx, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{
-    pastix_int_t i;
-    MALLOC_INTERN(costmtx->bloktab, symbmtx->bloknbr, CostBlok);
-
-    for(i=0;i<symbmtx->cblknbr;i++)
-        cblkComputeCost(i, costmtx, symbmtx, dofptr);
-}
-
-
 void costMatrixCorrect(CostMatrix *costmtx, const SymbolMatrix *symbmtx, Cand * candtab, const Dof * dofptr)
 {
     pastix_int_t i;

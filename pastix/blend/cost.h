@@ -17,12 +17,6 @@
 **  The type and structure definitions.
 */
 
-typedef struct CostCblk_ {
-  double                     compute; /* Compute cost                               */
-  double                     total;   /* Cost of the treenode only (compute + send) */
-  double                     subtree; /* Cost of the subtree (included total)       */
-} CostCblk;
-
 typedef struct CostBlok_ {
   double                    contrib; /*+ Cost of contrib bounded to this blok                  +*/
   pastix_int_t              linenbr; /*+ Number of no empty line above the blok (blok include) +*/
@@ -39,9 +33,9 @@ typedef struct CostMatrix_ {
 #ifndef COST
 #define static
 #endif
-pastix_int_t                         costInit            (CostMatrix *);
-void                        costExit            (CostMatrix *);
-pastix_int_t                         costLoad            (CostMatrix *, FILE *);
-pastix_int_t                         costSave            (CostMatrix *, FILE *);
+pastix_int_t  costMatrixInit            (CostMatrix *);
+void          costMatrixExit            (CostMatrix *);
+pastix_int_t  costLoad            (CostMatrix *, FILE *);
+pastix_int_t  costSave            (CostMatrix *, FILE *);
 
 #undef static

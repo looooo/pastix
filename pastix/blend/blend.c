@@ -116,7 +116,7 @@ void solverBlend(BlendCtrl    *ctrl,
         clockStart(timer_current);
 
         MALLOC_INTERN(ctrl->costmtx, 1, CostMatrix);
-        costInit(ctrl->costmtx);
+        costMatrixInit(ctrl->costmtx);
         costMatrixBuild(ctrl->costmtx, symbmtx, dofptr);
 
         clockStop(timer_current);
@@ -284,7 +284,7 @@ void solverBlend(BlendCtrl    *ctrl,
 #endif
 
     /** Free some memory **/
-    costExit(ctrl->costmtx);
+    costMatrixExit(ctrl->costmtx);
     eTreeExit(ctrl->etree);
 
     /** gener the final solverMarix for this processor
