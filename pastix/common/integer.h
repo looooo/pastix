@@ -125,4 +125,8 @@ static inline pastix_int_t pastix_imax( pastix_int_t a, pastix_int_t b) {
     return ( a > b ) ? a : b;
 }
 
+static inline pastix_int_t pastix_iceil( pastix_int_t a, pastix_int_t b) {
+    return ( a + b - 1 ) / b;
+}
+
 #endif /* _INTEGER_H_ */
