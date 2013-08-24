@@ -35,7 +35,6 @@
 #include "cand.h"
 #include "blendctrl.h"
 #include "splitpart.h"
-#include "write_ps.h"
 #include "simu.h"
 #include "costfunc.h"
 #include "splitpartlocal.h"
@@ -130,7 +129,7 @@ void solverBlend(BlendCtrl    *ctrl,
         MALLOC_INTERN(ctrl->candtab, symbmtx->cblknbr, Cand);
         candInit( ctrl->candtab, symbmtx->cblknbr );
 
-        /* Initialize costs in elimination tree and candtab array */
+        /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
         candBuild( ctrl->autolevel,
                    ctrl->level2D,
                    ctrl->ratiolimit,
@@ -169,21 +168,12 @@ void solverBlend(BlendCtrl    *ctrl,
         pastix_print( clustnum, 0, "-- Proportionnal mapping time:      %g\n", clockVal(timer_current));
     }
 
-    /* Build the elimination graph from the symbolic partition */
-    {
-        pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
-        clockStart(timer_current);
-
-        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
-        eGraphInit(ctrl->egraph);
-        eGraphBuild(ctrl->egraph, symbmtx);
-
-        clockStop(timer_current);
-        pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
-    }
-
     /*
-     * Split the existing symbol matrix according to the number of candidates and cblk types
+     * Split the existing symbol matrix according to the number of candidates
+     * and cblk types.
+     * It takes the original symbol and candtab, and return the new symbol and
+     * candtab. If the symbmtx is modified, the costmtx is updated, as well as
+     * the tree.
      */
     {
         clockStart(timer_current);
@@ -195,21 +185,8 @@ void solverBlend(BlendCtrl    *ctrl,
         pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
     }
 
-    //TODO
-    /* if ( (ctrl->leader == clustnum) && (ctrl->tracegen == 1)) */
-    /*   { */
-    /*     FILE *out; */
-    /*     OUT_OPENFILEINDIR(ctrl->iparm, out, "elimintree.dot", "w"); */
-    /*     eTreeGenDot(ctrl->etree, out); */
-    /*     OUT_CLOSEFILEINDIR(out); */
-    /*   } */
-
     if(ctrl->count_ops && (ctrl->leader == clustnum))
         symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
-
-    pastix_print( clustnum, 0, "** New Partition: cblknbr=  %ld     bloknbr=  %ld     ratio=%f ** \n",
-                  (long)symbmtx->cblknbr, (long)symbmtx->bloknbr,
-                  (float)symbmtx->bloknbr/(float)symbmtx->cblknbr);
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     {
@@ -221,12 +198,11 @@ void solverBlend(BlendCtrl    *ctrl,
     }
 #endif
 
-    /* Re-build the new elimination graph from the new symbolic partition */
+    /* Build the elimination graph from the new symbolic partition */
     {
         pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH2 );
         clockStart(timer_current);
 
-        eGraphExit(ctrl->egraph);
         MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
         eGraphInit(ctrl->egraph);
         eGraphBuild(ctrl->egraph, symbmtx);
