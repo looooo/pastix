@@ -61,6 +61,7 @@ candSetClusterCand( Cand *candtab,
                     pastix_int_t  coresnbr )
 {
     pastix_int_t i;
+    (void)coresnbr;
 
     for(i=0; i<cblknbr; i++) {
         assert( candtab[i].fcandnum >= 0 );

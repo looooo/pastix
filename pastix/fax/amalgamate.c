@@ -425,8 +425,9 @@ amalgamate(double rat_cblk, double rat_blas,
                 for(j=0;j<n;j++)
                 {
                     pastix_int_t l, k = 0;
-                    for(l=snodetab[j]; l<snodetab[j+1]; l++)
+                    for(l=snodetab[j]; l<snodetab[j+1]; l++) {
                         assert(graphL->rows[j][k++] == l);
+                    }
                 }
             }
 #endif

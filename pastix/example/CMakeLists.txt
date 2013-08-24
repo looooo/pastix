@@ -6,10 +6,8 @@ link_directories(
 set(PASTIX_EXAMPLES_LIBRARIES
   pastix
   read_matrix
-  hwloc
   ${BLAS_LIBRARIES}
-  pthread
-  rt
+  ${EXTRA_LIBS}
   m
 )
 

@@ -185,25 +185,6 @@ void solverBlend(BlendCtrl    *ctrl,
     /*
      * Split the existing symbol matrix according to the number of candidates and cblk types
      */
-    if (0)
-    {
-        clockStart(timer_current);
-        pastix_print( clustnum, 0, "-- Spliting initial partition \n" );
-
-        splitPart(symbmtx, ctrl, dofptr);
-
-        clockStop(timer_current);
-        pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
-    }
-    /* { */
-    /*     FILE *stream; */
-
-    /*     symbolExit( symbmtx ); */
-    /*     PASTIX_FOPEN(stream, "symbname", "r" ); */
-    /*     symbolLoad( symbmtx, stream ); */
-    /*     fclose(stream); */
-    /* } */
-    else
     {
         clockStart(timer_current);
         pastix_print( clustnum, 0, "-- Spliting initial partition Version 2\n" );
