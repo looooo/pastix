@@ -190,6 +190,39 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
     }
 }
 
+static inline pastix_int_t *
+computeNbBlocksPerLine( const SymbolMatrix *symbmtx, pastix_int_t frowsplit )
+{
+    SymbolBlok   *curblok;
+    pastix_int_t *nblocksperline;
+    pastix_int_t  bloknum, line;
+    pastix_int_t  size = symbmtx->nodenbr - frowsplit + 1;
+
+    /*
+     * Allocate the temporary buffer nblocksperline, nbblocksperline stores the
+     * number of blocks that will be splitted if with split between line i and
+     * i+1.
+     */
+    MALLOC_INTERN( nblocksperline, size, pastix_int_t );
+    memset( nblocksperline, 0, size * sizeof(pastix_int_t) );
+
+    curblok = symbmtx->bloktab;
+    for(bloknum=0; bloknum<symbmtx->bloknbr; bloknum++, curblok++ )
+    {
+        if ( curblok->lrownum < frowsplit )
+            continue;
+
+        for(line = pastix_imax( curblok->frownum, frowsplit);
+            line < curblok->lrownum; line++ )
+        {
+            nblocksperline[ line-frowsplit ]++;
+        }
+    }
+    assert( nblocksperline[ size-1 ] == 0 );
+
+    return nblocksperline;
+}
+
 pastix_int_t
 computeSmallestSplit( pastix_int_t *nblocksperline,
                       pastix_int_t step,
@@ -250,25 +283,9 @@ splitSmart( const BlendCtrl    *ctrl,
             Cand               *candtab)
 {
     SymbolBlok   *curblok;
-    pastix_int_t *nblocksperline;
+    pastix_int_t *nblocksperline = NULL;
     pastix_int_t  i, cblknum, bloknum, line;
-
-    /*
-     * Allocate the temporary buffer nblocksperline, nbblocksperline stores the
-     * number of blocks that will be splitted if with split between line i and
-     * i+1.
-     */
-    MALLOC_INTERN( nblocksperline, symbmtx->nodenbr, pastix_int_t );
-    memset( nblocksperline, 0, symbmtx->nodenbr * sizeof(pastix_int_t) );
-    curblok = symbmtx->bloktab;
-    for(bloknum=0; bloknum<symbmtx->bloknbr; bloknum++, curblok++ )
-    {
-        for(line = curblok->frownum; line < curblok->lrownum; line++ )
-        {
-            nblocksperline[ line ]++;
-        }
-    }
-    assert( nblocksperline[ symbmtx->nodenbr-1 ] == 0 );
+    pastix_int_t  fsplitrow = -1;
 
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++)
     {
@@ -291,6 +308,12 @@ splitSmart( const BlendCtrl    *ctrl,
         nseq = computeNbSplit( ctrl, candnbr, width );
         if (nseq <= 1)
             continue;
+
+        if ( fsplitrow == -1 ) {
+            fsplitrow = fcolnum;
+            nblocksperline = computeNbBlocksPerLine( symbmtx, fsplitrow );
+            nblocksperline -= fsplitrow;
+        }
 
         /* Adapt the step to the segments number */
         step = pastix_iceil( width,  nseq );
@@ -348,20 +371,24 @@ splitSmart( const BlendCtrl    *ctrl,
             extracblk->addcblk += nbcblk-1;
             extracblk->sptcblk[cblknum] = extracblk->curcblk - nbcblk + 1;
             extracblk->sptcbnb[cblknum] = nbcblk;
-        }
 
-        curblok = &(symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum + 1]) ;
-        for(bloknum = symbmtx->cblktab[cblknum].bloknum + 1;
-            bloknum < symbmtx->cblktab[cblknum+1].bloknum; bloknum++, curblok++)
-        {
-            for(line = curblok->frownum; line < curblok->lrownum; line++ )
+            /* Update the number of blocks per line*/
+            curblok = &(symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum + 1]) ;
+            for(bloknum = symbmtx->cblktab[cblknum].bloknum + 1;
+                bloknum < symbmtx->cblktab[cblknum+1].bloknum; bloknum++, curblok++)
             {
-                nblocksperline[ line ]+=nseq;
+                for(line = curblok->frownum; line < curblok->lrownum; line++ )
+                {
+                    nblocksperline[ line ] += nbcblk-1;
+                }
             }
         }
     }
 
-    memFree_null( nblocksperline );
+    if ( fsplitrow != -1) {
+        nblocksperline += fsplitrow;
+        memFree_null( nblocksperline );
+    }
 }
 
 
