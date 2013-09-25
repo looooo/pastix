@@ -20,8 +20,6 @@
 #include "updown.h"
 #include "solver.h"
 #include "symbol_cost.h"
-#include "extrastruct.h"
-#include "splitfunc.h"
 #include "simu.h"
 #include "costfunc.h"
 

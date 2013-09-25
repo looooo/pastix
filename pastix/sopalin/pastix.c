@@ -46,7 +46,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-#include "assembly.h"
 #include "order.h"
 #include "fax.h"
 #include "kass.h"

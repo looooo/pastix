@@ -30,7 +30,6 @@
 #include "solver.h"
 #include "solverRealloc.h"
 #include "elimin.h"
-#include "extrastruct.h"
 #include "extendVector.h"
 #include "cand.h"
 #include "blendctrl.h"

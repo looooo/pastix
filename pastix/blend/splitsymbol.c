@@ -18,7 +18,6 @@
 #include "solver.h"
 #include "simu.h"
 #include "costfunc.h"
-#include "partbuild.h"
 #include "smart_cblk_split.h"
 
 #include "extracblk.h"

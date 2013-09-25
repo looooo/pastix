@@ -49,4 +49,11 @@ void solverBlend(BlendCtrl    *ctrl,
 void splitSymbol( BlendCtrl    *ctrl,
                   SymbolMatrix *symbmtx );
 
+void propMappTree( Cand               *candtab,
+                   const EliminTree   *etree,
+                   const SymbolMatrix *symbmtx,
+                   const Dof          *dofptr,
+                   pastix_int_t        candnbr,
+                   int nocrossproc, int allcand );
+
 #endif /* BLEND_H */

@@ -20,10 +20,8 @@
 #include "cost.h"
 #include "cand.h"
 #include "dof.h"
-#include "extrastruct.h"
 #include "extendVector.h"
 #include "blendctrl.h"
-#include "splitpart.h"
 #include "queue.h"
 
 #define CROSS_TOLERANCE 0.1
