@@ -113,9 +113,7 @@ void solverBlend(BlendCtrl    *ctrl,
         pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX );
         clockStart(timer_current);
 
-        MALLOC_INTERN(ctrl->costmtx, 1, CostMatrix);
-        costMatrixInit(ctrl->costmtx);
-        costMatrixBuild(ctrl->costmtx, symbmtx, dofptr);
+        ctrl->costmtx = costMatrixBuild(symbmtx, dofptr);
 
         clockStop(timer_current);
         pastix_print( clustnum, 0, "-- Cost Matrix build at time:          %g\n",

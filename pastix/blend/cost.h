@@ -33,9 +33,12 @@ typedef struct CostMatrix_ {
 #ifndef COST
 #define static
 #endif
+
 pastix_int_t  costMatrixInit            (CostMatrix *);
 void          costMatrixExit            (CostMatrix *);
 pastix_int_t  costLoad            (CostMatrix *, FILE *);
 pastix_int_t  costSave            (CostMatrix *, FILE *);
+CostMatrix   *costMatrixBuild     (const SymbolMatrix *, const Dof *);
+double          cblkComputeCost       (pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
 
 #undef static

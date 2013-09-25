@@ -4,8 +4,6 @@
 #include "common.h"
 #include "cost.h"
 
-
-
 pastix_int_t
 costMatrixInit( CostMatrix *costmtx )
 {
@@ -21,16 +19,20 @@ costMatrixExit( CostMatrix *costmtx )
 }
 
 
-void
-costMatrixBuild( CostMatrix *costmtx,
-                 const SymbolMatrix * symbmtx,
+CostMatrix *
+costMatrixBuild( const SymbolMatrix * symbmtx,
                  const Dof * dofptr)
 {
+    CostMatrix *costmtx = NULL;
     pastix_int_t i;
 
+    MALLOC_INTERN(costmtx, 1, CostMatrix);
+    costMatrixInit(costmtx);
     MALLOC_INTERN(costmtx->bloktab, symbmtx->bloknbr, CostBlok);
     for(i=0;i<symbmtx->cblknbr;i++)
         cblkComputeCost(i, costmtx, symbmtx, dofptr);
+
+    return costmtx;
 }
 
 

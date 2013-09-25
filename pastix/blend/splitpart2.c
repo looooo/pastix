@@ -488,9 +488,7 @@ void splitPart2( BlendCtrl    *ctrl,
     {
         /* Update cost matrix to fill-in blank of newly generated blocks */
         costMatrixExit(ctrl->costmtx);
-        MALLOC_INTERN( ctrl->costmtx, 1, CostMatrix);
-        costMatrixInit(ctrl->costmtx);
-        costMatrixBuild(ctrl->costmtx, symbmtx, NULL );
+        ctrl->costmtx = costMatrixBuild( symbmtx, NULL );
 
         if (ctrl->updatecandtab)
         {
