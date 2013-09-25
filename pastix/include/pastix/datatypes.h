@@ -60,11 +60,12 @@ typedef unsigned int pastix_uint_t;
  * Precisions
  * (Start at 2 for Compatibility with Plasma, just in case)
  **/
-
-#define PastixFloat     2
-#define PastixDouble    3
-#define PastixComplex32 4
-#define PastixComplex64 5
+typedef enum pastix_coeftype_e {
+    PastixFloat     = 2,
+    PastixDouble    = 3,
+    PastixComplex32 = 4,
+    PastixComplex64 = 5
+} pastix_coeftype_t;
 
 /** ****************************************************************************
  * Complex numbers (Extracted from PaRSEC project)
