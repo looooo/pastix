@@ -526,7 +526,7 @@ set(PASTIX_LIB_SRCS
   blend/propmap.c
   blend/pastix_task_analyse.c
   blend/extracblk.c
-  blend/splitpart2.c
+  blend/splitsymbol.c
   blend/blendctrl.c
 
   blend/blend.c
