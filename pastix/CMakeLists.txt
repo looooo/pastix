@@ -539,20 +539,16 @@ set(PASTIX_LIB_SRCS
   blend/fanboth2.c
   blend/queue.c
   blend/simu.c
-#  blend/extrastruct.c
 #  blend/partbuild.c
 #  blend/smart_cblk_split.c
   blend/solverMatrixGen.c
   blend/solverRealloc.c
   blend/solver_check.c
   blend/solver_io.c
-#  blend/splitfunc.c
-#  blend/splitpart.c
 #  blend/splitpartlocal.c
-#  blend/symbolrand.c
   blend/task.c
-#  blend/write_ps.c
 #
+#  symbol/symbolrand.c
 #
 #  sopalin/bordi.c
   sopalin/sopalin_thread.c
