@@ -46,5 +46,7 @@ void solverBlend(BlendCtrl    *ctrl,
                  SymbolMatrix *symbmtx,
                  const Dof    *dofptr);
 
+void splitSymbol( BlendCtrl    *ctrl,
+                  SymbolMatrix *symbmtx );
 
 #endif /* BLEND_H */

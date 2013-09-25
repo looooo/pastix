@@ -34,7 +34,6 @@
 #include "extendVector.h"
 #include "cand.h"
 #include "blendctrl.h"
-#include "splitpart.h"
 #include "simu.h"
 #include "costfunc.h"
 #include "splitpartlocal.h"
@@ -175,7 +174,7 @@ void solverBlend(BlendCtrl    *ctrl,
         clockStart(timer_current);
         pastix_print( clustnum, 0, "-- Spliting initial partition Version 2\n" );
 
-        splitPart2(ctrl, symbmtx);
+        splitSymbol(ctrl, symbmtx);
 
         clockStop(timer_current);
         pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
@@ -257,7 +256,7 @@ void solverBlend(BlendCtrl    *ctrl,
         printf("--Distribution computed at time: %g --\n", clockVal(timer_current));
     }
 
-#ifdef PASTIX_DYNSCHED /* 2 eme passe de splitpart */
+#ifdef PASTIX_DYNSCHED /* 2 eme passe de proportional mapping on local data */
 
     if(ctrl->timer)
     {

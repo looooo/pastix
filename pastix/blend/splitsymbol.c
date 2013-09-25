@@ -7,7 +7,6 @@
 #include "cost.h"
 #include "symbol.h"
 #include "elimin.h"
-#include "extrastruct.h"
 #include "extendVector.h"
 #include "cand.h"
 #include "queue.h"
@@ -20,7 +19,6 @@
 #include "simu.h"
 #include "costfunc.h"
 #include "partbuild.h"
-#include "splitpart.h"
 #include "smart_cblk_split.h"
 
 #include "extracblk.h"
@@ -223,7 +221,7 @@ computeNbBlocksPerLine( const SymbolMatrix *symbmtx, pastix_int_t frowsplit )
     return nblocksperline;
 }
 
-pastix_int_t
+static inline pastix_int_t
 computeSmallestSplit( pastix_int_t *nblocksperline,
                       pastix_int_t step,
                       pastix_int_t max )
@@ -393,7 +391,7 @@ splitSmart( const BlendCtrl    *ctrl,
 
 
 /*
- Function: splitPart
+ Function: splitSymbol
 
  Repartitioning of the initial symbolic factorization
  and processing of candidate processors group for
@@ -404,8 +402,8 @@ splitSmart( const BlendCtrl    *ctrl,
  ctrl    -
  dofptr  -
  */
-void splitPart2( BlendCtrl    *ctrl,
-                 SymbolMatrix *symbmtx )
+void splitSymbol( BlendCtrl    *ctrl,
+                  SymbolMatrix *symbmtx )
 {
     ExtraCblk_t extracblk;
 
