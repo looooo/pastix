@@ -18,48 +18,6 @@ double flops_dgetrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Do
 double flops_zpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
 double flops_dpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
 
-
-void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, const Dof * dofptr)
-{
-    double flops = 0.;
-    printf("SymbolCost: number of operations Cholesky %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, cholesky, symbmtx, dofptr));
-    printf("SymbolCost: number of operations Crout2t  %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_2t, symbmtx, dofptr));
-    printf("SymbolCost: number of operations Crout3t  %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_3t, symbmtx, dofptr));
-    printf("SymbolCost: number of operations CroutHyb %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_hyb, symbmtx, dofptr));
-    printf("SymbolCost: number of operations CroutHyb blok %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
-    printf("SymbolCost: number of non-zero   %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
-
-    set_iparm(iparm, IPARM_NNZEROS,   (pastix_int_t)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
-
-    if ( iparm[IPARM_FACTORIZATION] == API_FACT_LU ) {
-        if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
-             (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
-            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zgetrf, symbmtx, dofptr);
-        }
-        else {
-            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dgetrf, symbmtx, dofptr);
-        }
-    } else {
-        if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
-             (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
-            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zpotrf, symbmtx, dofptr);
-        }
-        else {
-            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dpotrf, symbmtx, dofptr);
-        }
-    }
-    printf("SymbolCost: number of operations with new formula %g \n", flops );
-    set_dparm(dparm, DPARM_FACT_FLOPS, flops);
-}
-
-
-
 double recursive_sum(pastix_int_t a, pastix_int_t b,
                      double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
                      const SymbolMatrix * symbmtx, const Dof * dofptr)
@@ -435,4 +393,43 @@ double flops_dpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Do
     }
 
     return nbops;
+}
+
+void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, const Dof * dofptr)
+{
+    double flops = 0.;
+    printf("SymbolCost: number of operations Cholesky %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, cholesky, symbmtx, dofptr));
+    printf("SymbolCost: number of operations Crout2t  %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_2t, symbmtx, dofptr));
+    printf("SymbolCost: number of operations Crout3t  %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_3t, symbmtx, dofptr));
+    printf("SymbolCost: number of operations CroutHyb %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_hyb, symbmtx, dofptr));
+    printf("SymbolCost: number of operations CroutHyb blok %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
+    printf("SymbolCost: number of non-zero   %g \n",
+           recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
+
+    set_iparm(iparm, IPARM_NNZEROS,   (pastix_int_t)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
+
+    if ( iparm[IPARM_FACTORIZATION] == API_FACT_LU ) {
+        if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
+             (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zgetrf, symbmtx, dofptr);
+        }
+        else {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dgetrf, symbmtx, dofptr);
+        }
+    } else {
+        if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
+             (iparm[IPARM_FLOAT] == API_COMPLEXSINGLE) ) {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_zpotrf, symbmtx, dofptr);
+        }
+        else {
+            flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dpotrf, symbmtx, dofptr);
+        }
+    }
+    printf("SymbolCost: number of operations with new formula %g \n", flops );
+    set_dparm(dparm, DPARM_FACT_FLOPS, flops);
 }
