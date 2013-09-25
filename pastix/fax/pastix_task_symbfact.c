@@ -132,6 +132,8 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
 
     graph    = pastix_data->csc;
     ordemesh = pastix_data->ordemesh;
+    if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD))
+    {
     if (graph == NULL) {
         errorPrint("pastix_task_symbfact: the pastix_data->csc field has not been initialized, pastix_task_order should be called first");
         return PASTIX_ERR_BADPARAMETER;
@@ -142,6 +144,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     }
 
     n        = graph->n;
+    }
     procnum  = pastix_data->procnum;
 
     print_debug(DBG_STEP, "-> pastix_task_symbfact\n");

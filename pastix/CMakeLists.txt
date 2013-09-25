@@ -529,7 +529,6 @@ set(PASTIX_LIB_SRCS
   blend/splitpart2.c
   blend/blendctrl.c
 
-#  blend/assemblyGener.c
   blend/blend.c
   blend/blend_symbol_cost.c
   blend/bulles.c
