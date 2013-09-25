@@ -123,12 +123,16 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
     }
 }
 
-void
-eTreeBuild(EliminTree *etree, const SymbolMatrix *symbmtx)
+EliminTree *
+eTreeBuild(const SymbolMatrix *symbmtx)
 {
+    EliminTree *etree = NULL;
     pastix_int_t i;
     pastix_int_t totalsonsnbr;
     pastix_int_t sonstabcur;
+
+    MALLOC_INTERN(etree, 1, EliminTree);
+    eTreeInit(etree);
 
     etree->nodenbr = symbmtx->cblknbr;
     MALLOC_INTERN(etree->nodetab, etree->nodenbr, TreeNode);
@@ -195,6 +199,8 @@ eTreeBuild(EliminTree *etree, const SymbolMatrix *symbmtx)
         sonstabcur += etree->nodetab[i].sonsnbr;
     }
     assert(sonstabcur == totalsonsnbr);
+
+    return etree;
 }
 
 

@@ -102,9 +102,7 @@ void solverBlend(BlendCtrl    *ctrl,
         pastix_print( clustnum, 0, OUT_BLEND_ELIMTREE );
         clockStart(timer_current);
 
-        MALLOC_INTERN(ctrl->etree, 1, EliminTree);
-        eTreeInit(ctrl->etree);
-        eTreeBuild(ctrl->etree, symbmtx);
+        ctrl->etree = eTreeBuild(symbmtx);
 
         clockStop(timer_current);
         pastix_print( clustnum, 0, "--Tree build at time: %g --\n", clockVal(timer_current));

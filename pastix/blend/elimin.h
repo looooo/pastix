@@ -67,7 +67,7 @@ void          eTreePrint     (const EliminTree *, FILE *, pastix_int_t );
 pastix_int_t  eTreeLeavesNbr (const EliminTree *);
 pastix_int_t  eTreeLevel     (const EliminTree *);
 pastix_int_t  eTreeNodeLevel (const EliminTree *, pastix_int_t );
-void          eTreeBuild     (      EliminTree *, const SymbolMatrix *);
+EliminTree   *eTreeBuild     (const SymbolMatrix *);
 
 #define eTreeFather( __etree__, __node__ )       ((__etree__)->nodetab[(__etree__)->nodetab[(__node__)].fathnum])
 #define eTreeSonI( __etree__, __node__, __i__ )  ((__etree__)->sonstab[(__etree__)->nodetab[(__node__)].fsonnum + (__i__)])

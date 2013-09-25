@@ -498,9 +498,7 @@ void splitPart2( BlendCtrl    *ctrl,
             if (ctrl->etree != NULL)
                 eTreeExit(ctrl->etree);
 
-            MALLOC_INTERN(ctrl->etree, 1, EliminTree);
-            eTreeInit(ctrl->etree);
-            eTreeBuild(ctrl->etree, symbmtx);
+            ctrl->etree = eTreeBuild(symbmtx);
 
             candBuild( ctrl->autolevel,
                        ctrl->level2D,
