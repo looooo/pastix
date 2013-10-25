@@ -1,6 +1,6 @@
 /**
  *
- * @file scotch_strats.h
+ * @file order_scotch_strats.h
  *
  *  PaStiX order routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -16,8 +16,8 @@
  * @date 2013-06-24
  *
  **/
-#ifndef _SCOTCH_STRATS_H_
-#define _SCOTCH_STRATS_H_
+#ifndef _ORDER_SCOTCH_STRATS_H_
+#define _ORDER_SCOTCH_STRATS_H_
 
 #define SCOTCH_STRAT_DIRECT                                             \
   "c{rat=0.7,"                                                          \
@@ -125,4 +125,4 @@
 #define PTSCOTCH_STRAT_PERSO  "c{rat=0.7,cpr=n{sep=/(vert>%ld)?m{vert=100,low=h{pass=10},asc=f{bal=0.2}}|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g},unc=n{sep=/(vert>%ld)?(m{vert=100,low=h{pass=10},asc=f{bal=0.2}})|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g}}"
 
 
-#endif /* _SCOTCH_STRATS_H_ */
+#endif /* _ORDER_SCOTCH_STRATS_H_ */

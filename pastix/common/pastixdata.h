@@ -31,6 +31,17 @@
 /* #include "coefinit.h" */
 
 /*
+ * Steps of the pastix solver
+ */
+#define STEP_INIT     (1 << 0)
+#define STEP_ORDERING (1 << 1)
+#define STEP_SYMBFACT (1 << 2)
+#define STEP_ANALYSE  (1 << 3)
+#define STEP_NUMFACT  (1 << 4)
+#define STEP_SOLVE    (1 << 5)
+#define STEP_REFINE   (1 << 6)
+
+/*
   struct: SopalinParam_
 
   Parameters for factorisation, updown and reffinement.
@@ -71,6 +82,7 @@ struct pastix_data_s {
     pastix_int_t    *iparm;              /*< Store integer parameters (input/output)                             +*/
     double          *dparm;              /*< Store floating parameters (input/output)                            +*/
 
+    pastix_int_t     steps;              /*< Bitmask of the steps performed or not                               +*/
     pastix_graph_t  *csc;
     pastix_int_t     gN;                 /*< Global number of columns without DoF                                +*/
     pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/

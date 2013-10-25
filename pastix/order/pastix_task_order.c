@@ -153,10 +153,10 @@ pastix_task_order(      pastix_data_t *pastix_data,
     }
     iparm = pastix_data->iparm;
 
-    /* if ( !(iparam[IPARAM_STEPS_DONE] & API_TASK_INIT) ) { */
-    /*     errorPrint("pastix_task_order: Init step should be performed before calling this function"); */
-    /*     return PASTIX_ERR_BADPARAMETER; */
-    /* } */
+    if ( pastix_data->step & API_TASK_INIT ) {
+        errorPrint("pastix_task_order: pastix_task_init has to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
     if ((iparm[IPARM_SCHUR] == API_YES) &&
         (pastix_data->schur_n > 0) )
@@ -403,13 +403,12 @@ pastix_task_order(      pastix_data_t *pastix_data,
     }
 
     /* Invalidate following steps, and add order step to the ones performed */
-    /* iparam[IPARAM_STEPS_DONE] &= ~( API_TASK_SYMBFACT | */
-    /*                                 API_TASK_ANALYSE  | */
-    /*                                 API_TASK_NUMFACT  | */
-    /*                                 API_TASK_SOLVE    | */
-    /*                                 API_TASK_REFINE   | */
-    /*                                 API_TASK_CLEAN    ); */
-    /* iparam[IPARAM_STEPS_DONE] |= API_TASK_ORDER; */
+    pastix_data->steps &= ~( STEP_SYMBFACT |
+                             STEP_ANALYSE  |
+                             STEP_NUMFACT  |
+                             STEP_SOLVE    |
+                             STEP_REFINE   );
+    pastix_data->steps |= STEP_ORDERING;
 
     iparm[IPARM_START_TASK]++;
     return PASTIX_SUCCESS;

@@ -1,6 +1,6 @@
 /**
  *
- * @file order_compute_scotch.c
+ * @file order_compute_metis.c
  *
  *  PaStiX order routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
