@@ -815,6 +815,8 @@ void pastix_task_init(pastix_data_t **pastix_data,
   /* Environement variables */
   /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
   setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
+
+  (*pastix_data)->steps = STEP_INIT;
 }
 
 #ifdef MEMORY_USAGE
