@@ -125,25 +125,25 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm = pastix_data->iparm;
-    /* if ( !(iparam[IPARAM_STEPS_DONE] & (API_TASK_INIT | API_TASK_ORDERING) ) { */
-    /*     errorPrint("pastix_task_order: Init step should be performed before calling this function"); */
-    /*     return PASTIX_ERR_BADPARAMETER; */
-    /* } */
+
+    if ( !(pastix_data->steps & STEP_INIT) ) {
+        errorPrint("pastix_task_symbfact: pastix_task_init() has to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
     graph    = pastix_data->csc;
     ordemesh = pastix_data->ordemesh;
     if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD))
     {
-    if (graph == NULL) {
-        errorPrint("pastix_task_symbfact: the pastix_data->csc field has not been initialized, pastix_task_order should be called first");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    if (ordemesh == NULL) {
-        errorPrint("pastix_task_symbfact: the pastix_data->ordemesh field has not been initialized, pastix_task_order should be called first");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    n        = graph->n;
+        if (graph == NULL) {
+            errorPrint("pastix_task_symbfact: the pastix_data->csc field has not been initialized, pastix_task_order should be called first");
+            return PASTIX_ERR_BADPARAMETER;
+        }
+        if (ordemesh == NULL) {
+            errorPrint("pastix_task_symbfact: the pastix_data->ordemesh field has not been initialized, pastix_task_order should be called first");
+            return PASTIX_ERR_BADPARAMETER;
+        }
+        n = graph->n;
     }
     procnum  = pastix_data->procnum;
 
