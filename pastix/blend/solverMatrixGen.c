@@ -18,8 +18,8 @@
 #include "extendVector.h"
 #include "elimin.h"
 #include "cand.h"
-#include "simu.h"
 #include "blendctrl.h"
+#include "simu.h"
 #include "solver_check.h"
 #include "task.h"
 #include "fanboth2.h"
@@ -1108,12 +1108,12 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                         max_n = n;
                     }
                 }
-                /* kernel_trsm require COLNBR * stride - COLNBR in LDLt */
+                /* kernel_trsm require COLNBR * (stride - COLNBR + 1) in LDLt */
                 /* horizontal dimension */
                 n = solvmtx->cblktab[itercblk].lcolnum -
                     solvmtx->cblktab[itercblk].fcolnum + 1;
                 /* vertical dimension */
-                m = stride - n;
+                m = stride - n + 1;
                 delta = m * n;
                 if(delta > solvmtx->coefmax) {
                     solvmtx->coefmax = delta;
