@@ -33,7 +33,6 @@ candInit( Cand *candtab,
         candtab[i].lcandnum  = -1;
         candtab[i].fccandnum = -1;
         candtab[i].lccandnum = -1;
-        candtab[i].distrib   = D1;
         candtab[i].cluster   = -1;
         candtab[i].cblktype  = CBLK_1D;
     }
@@ -136,7 +135,7 @@ candSubTreeBuild( pastix_int_t        rootnum,
 
 static inline void
 candSubTreeDistribWithSize( pastix_int_t        rootnum,
-                            pastix_int_t        distrib_type,
+                            pastix_int_t        cblktype,
                             pastix_int_t        ratiolimit,
                             Cand               *candtab,
                             const EliminTree   *etree,
@@ -144,24 +143,24 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
 {
     pastix_int_t i, son;
 
-    if(distrib_type == D1)
+    if(cblktype == CBLK_1D)
     {
-        candtab[ rootnum ].distrib = D1;
+        candtab[ rootnum ].cblktype = CBLK_1D;
     }
     else
     {
         pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
 
         if(width >= ratiolimit)
-            candtab[ rootnum ].distrib = D2;
+            candtab[ rootnum ].cblktype = CBLK_SPLIT;
         else
-            candtab[ rootnum ].distrib = D1;
+            candtab[ rootnum ].cblktype = CBLK_1D;
     }
 
     for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
     {
         son = eTreeSonI(etree, rootnum, i);
-        candSubTreeDistribWithSize( son, candtab[ rootnum ].distrib, ratiolimit, candtab, etree, symbmtx);
+        candSubTreeDistribWithSize( son, candtab[ rootnum ].cblktype, ratiolimit, candtab, etree, symbmtx);
     }
 }
 
@@ -175,9 +174,9 @@ candDistribWithDepth( pastix_int_t depth,
     for(i=0;i<cblknbr;i++)
     {
         if( candtab[i].treelevel > depth )
-            candtab[i].distrib = D2;
+            candtab[i].cblktype = CBLK_SPLIT;
         else
-            candtab[i].distrib = D1;
+            candtab[i].cblktype = CBLK_1D;
     }
 }
 
@@ -197,10 +196,10 @@ candBuild( pastix_int_t autolevel, pastix_int_t level2D, double ratiolimit,
     candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
 
     /* Let's set the cblk type of each node */
-    /* For now, it sets the distrib field and not the cbktype field */
+    /* For now, it sets the distrib field and not the cblktype field */
     if(autolevel)
     {
-        candSubTreeDistribWithSize( eTreeRoot(etree), D2, (pastix_int_t)ratiolimit,
+        candSubTreeDistribWithSize( eTreeRoot(etree), CBLK_SPLIT, (pastix_int_t)ratiolimit,
                                     candtab, etree, symbmtx );
     }
     else

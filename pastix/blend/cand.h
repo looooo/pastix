@@ -42,7 +42,6 @@ typedef struct Cand_{
     pastix_int_t lcandnum;     /*+ last processor number of this candidate group   +*/
     pastix_int_t fccandnum;    /*+ first cluster number of the cluster candidate group +*/
     pastix_int_t lccandnum;    /*+ last cluster number of the cluster candidate group +*/
-    pastix_int_t distrib;      /*+ type of the distribution +*/
     pastix_int_t cluster;      /*+ Cluster id on which the task will be executed +*/
     cblktype_t   cblktype;     /*+ type of the distribution +*/
 } Cand;
