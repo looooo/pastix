@@ -28,8 +28,8 @@
 
 typedef struct propmap_s {
     const EliminTree   *etree;
-    const SymbolMatrix *symbmtx;
-    const Dof          *dofptr;
+    /* const SymbolMatrix *symbmtx; */
+    /* const Dof          *dofptr; */
     Cand               *candtab;
     pastix_int_t        candnbr;
     int                 nocrossproc;
@@ -339,8 +339,8 @@ propMappTree( Cand               *candtab,
     /* Prepare the stucture */
     pmdata.candtab     = candtab;
     pmdata.etree       = etree;
-    pmdata.symbmtx     = symbmtx;
-    pmdata.dofptr      = dofptr;
+    /* pmdata.symbmtx     = symbmtx; */
+    /* pmdata.dofptr      = dofptr; */
     pmdata.candnbr     = candnbr;
     pmdata.nocrossproc = nocrossproc;
     pmdata.allcand     = allcand;
