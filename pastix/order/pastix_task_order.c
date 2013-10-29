@@ -153,8 +153,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
     }
     iparm = pastix_data->iparm;
 
-    if ( pastix_data->steps & API_TASK_INIT ) {
-        errorPrint("pastix_task_order: pastix_task_init has to be called before calling this function");
+    if ( !(pastix_data->steps & STEP_INIT) ) {
+        errorPrint("pastix_task_order: pastix_task_init() has to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
