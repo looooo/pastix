@@ -13,11 +13,11 @@
 #include "cost.h"
 #include "cand.h"
 #include "extendVector.h"
-#include "simu.h"
 #include "dof.h"
 /* #include "extrastruct.h" */
 /* #include "param_comm.h" */
 #include "blendctrl.h"
+#include "simu.h"
 /* #include "perf.h" */
 /* #include "costfunc.h" */
 #include "task.h"
