@@ -67,18 +67,18 @@ typedef struct SimuBlok_ {
 
 
 typedef struct SimuTask_ {
-  pastix_int_t                   taskid;           /*+ identification of the task type                        +*/
-  pastix_int_t                   prionum;          /*+ priority of the task                                   +*/
-  pastix_int_t                   cblknum;          /*+ Number of the cblknum the task deals with              +*/
-  pastix_int_t                   bloknum;          /*+ number of the block that the task deals with           +*/
-  pastix_int_t                   bloknum2;
-  pastix_int_t                   facebloknum;      /*+ Number of the facing block for E2                      +*/
-  SimuTimer             time;             /*+ Time the task is ready if it doesn't need message      +*/
-  pastix_int_t                   mesglen;         /*+ Time to send the block target                          +*/
-  double                cost;             /*+ Cost of the task                                       +*/
-  pastix_int_t                   ctrbcnt;          /* nbr ftgt + le btgt (+ E1 pret si E2) */
-  pastix_int_t                   ftgtcnt;          /* nbr of contrib from fan-in target                       +*/
-  pastix_int_t                   tasknext;         /* chainage des E1 ou E2, si fin = -1 => liberer les btagptr */
+  pastix_int_t  taskid;           /*+ identification of the task type                        +*/
+  pastix_int_t  prionum;          /*+ priority of the task                                   +*/
+  pastix_int_t  cblknum;          /*+ Number of the cblknum the task deals with              +*/
+  pastix_int_t  bloknum;          /*+ number of the block that the task deals with           +*/
+  pastix_int_t  bloknum2;
+  pastix_int_t  facebloknum;      /*+ Number of the facing block for E2                      +*/
+  SimuTimer     time;             /*+ Time the task is ready if it doesn't need message      +*/
+  pastix_int_t  mesglen;          /*+ Time to send the block target                          +*/
+  double        cost;             /*+ Cost of the task                                       +*/
+  pastix_int_t  ctrbcnt;          /* nbr ftgt + le btgt (+ E1 pret si E2) */
+  pastix_int_t  ftgtcnt;          /* nbr of contrib from fan-in target                       +*/
+  pastix_int_t  tasknext;         /* chainage des E1 ou E2, si fin = -1 => liberer les btagptr */
 } SimuTask;
 
 /* task type allowed*/
