@@ -1,6 +1,6 @@
 /**
  *
- * @file elimin_tree.c
+ * @file elimin_graph.c
  *
  *  PaStiX analyse routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
