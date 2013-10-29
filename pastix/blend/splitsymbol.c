@@ -334,7 +334,7 @@ splitSmart( const BlendCtrl    *ctrl,
         /* Create the new cblk */
         {
             pastix_int_t fcol, lcol;
-            pastix_int_t c, nbcblk = 0;
+            pastix_int_t nbcblk = 0;
 
             fcol = fcolnum;
             for(i=0; (i < nseq) && (fcol < lcolnum); i++)
