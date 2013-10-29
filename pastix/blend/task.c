@@ -9,10 +9,10 @@
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
-#include "simu.h"
 #include "dof.h"
 #include "bulles.h"
 #include "blendctrl.h"
+#include "simu.h"
 #include "csc.h"
 #include "updown.h"
 #include "solver.h"
@@ -217,19 +217,21 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
 }
 
 /** Get face block for task E2 **/
-pastix_int_t getFaceBlockE2(pastix_int_t startsearch, pastix_int_t bloksrc, pastix_int_t bloknum, const SymbolMatrix *symbptr, int ricar)
+pastix_int_t getFaceBlockE2(pastix_int_t startsearch,
+                            pastix_int_t bloksrc,
+                            pastix_int_t bloknum,
+                            const SymbolMatrix *symbptr,
+                            int ricar)
 {
     pastix_int_t i;
 
-    if(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum)
+    if(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum )
         startsearch = symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;
 
     assert(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum);
 
-    /*#ifndef NAPA*/
     if(ricar == 0)
     {
-        /*for(i=symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)*/
         for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
             if(symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].frownum)
                 break;
@@ -239,23 +241,21 @@ pastix_int_t getFaceBlockE2(pastix_int_t startsearch, pastix_int_t bloksrc, past
 
         return i;
     }
-    /*#else*/
-
-    /*for(i=symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)*/
-    for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
+    else
     {
-        if( (symbptr->bloktab[bloknum].frownum >= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].lrownum)
-            || (symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].lrownum <= symbptr->bloktab[i].lrownum)
-            || (symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].frownum &&  symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].lrownum)
-            )
-            return i;  /** We found the first block that matches **/
-        if(symbptr->bloktab[bloknum].lrownum < symbptr->bloktab[i].frownum)
+        for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
         {
-            return -1;
+            if( (symbptr->bloktab[bloknum].frownum >= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].lrownum) ||
+                (symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].lrownum <= symbptr->bloktab[i].lrownum) ||
+                (symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].lrownum) )
+                return i;  /** We found the first block that matches **/
+            if(symbptr->bloktab[bloknum].lrownum < symbptr->bloktab[i].frownum)
+            {
+                return -1;
+            }
         }
     }
     return -1;
-    /*#endif*/
 }
 
 double taskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)
