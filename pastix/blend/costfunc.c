@@ -32,7 +32,7 @@ void costMatrixCorrect(CostMatrix *costmtx, const SymbolMatrix *symbmtx, Cand * 
 {
     pastix_int_t i;
     for(i=0;i<symbmtx->cblknbr;i++)
-        if(candtab[i].distrib == D1)
+        if(candtab[i].cblktype == CBLK_1D)
             cblkComputeCost(i, costmtx, symbmtx, dofptr);
         else
             cblkComputeCost2D(i, costmtx, symbmtx, dofptr);
