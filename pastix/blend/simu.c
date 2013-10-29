@@ -10,6 +10,7 @@
 #include "cand.h"
 #include "queue.h"
 #include "extendVector.h"
+#include "blendctrl.h"
 #include "simu.h"
 
 #define TIMEBASE 10.0
@@ -224,7 +225,7 @@ void timerAdd(SimuTimer *timer, double t)
      }*/
 }
 
-double timerVal(SimuTimer *t)
+double timerVal(const SimuTimer *t)
 {
     /*#ifdef DEBUG_BLEND
      ASSERT(t->ms < TIMEBASE,MOD_BLEND);
