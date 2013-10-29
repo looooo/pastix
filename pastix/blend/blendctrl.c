@@ -184,9 +184,9 @@ blendCtrlInit(BlendCtrl    *ctrl,
     }
 
     if (ctrl->autolevel)
-        printf("ratiolimit=%lf\n",ctrl->ratiolimit);
+        printf("ratiolimit=%lf\n", ctrl->ratiolimit );
     else
-        printf("level2D=%ld\n", (long) ctrl->level2D);
+        printf("level2D=%ld\n", (long) ctrl->level2D );
 
     /* Save iparm for other options */
     ctrl->iparm = iparm;
