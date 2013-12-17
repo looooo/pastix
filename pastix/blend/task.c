@@ -46,8 +46,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
     }
 
     simuctrl->tasknbr = tasknbr;
-    /*fprintf(stderr, "TASKNBR %ld \n" , tasknbr);
-     EXIT(MOD_BLEND,INTERNAL_ERR);*/
+
     MALLOC_INTERN(simuctrl->tasktab, tasknbr, SimuTask);
 #ifdef DEBUG_BLEND
     ASSERT(simuctrl->tasktab != NULL,MOD_BLEND);
@@ -72,8 +71,11 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
             timerSet(&(task->time), 0.0);
             task->mesglen  = 0.0;
             task->tasknext = -1;
-            for(j=symbptr->cblktab[i].bloknum;j<symbptr->cblktab[i+1].bloknum;j++)
+            for(j = symbptr->cblktab[i].bloknum;
+                j < symbptr->cblktab[i+1].bloknum; j++ )
+            {
                 simuctrl->bloktab[j].tasknum = tasknbr;
+            }
             tasknbr++;
             task++;
             break;
