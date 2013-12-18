@@ -534,7 +534,8 @@ set(PASTIX_LIB_SRCS
   blend/bulles.c
   blend/cost.c
   blend/costfunc.c
-  blend/distribPart.c
+  blend/simu_run.c
+#  blend/distribPart.c
   blend/extendVector.c
   blend/fanboth2.c
   blend/queue.c

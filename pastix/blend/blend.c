@@ -36,7 +36,6 @@
 #include "simu.h"
 #include "costfunc.h"
 #include "splitpartlocal.h"
-#include "distribPart.h"
 #include "solverMatrixGen.h"
 #include "solver_check.h"
 #include "symbol_cost.h"
@@ -247,7 +246,8 @@ void solverBlend(BlendCtrl    *ctrl,
     if((ctrl->leader == clustnum) &&
        (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
         fprintf(stdout, OUT_BLEND_DISTPART);
-    distribPart(symbmtx, simuctrl, ctrl, dofptr);
+    //distribPart(symbmtx, simuctrl, ctrl, dofptr);
+    simuRun(symbmtx, simuctrl, ctrl, dofptr);
 
     if(ctrl->timer)
     {
@@ -336,7 +336,7 @@ void solverBlend(BlendCtrl    *ctrl,
         if( ctrl->leader == clustnum &&
             ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
             fprintf(stdout, OUT_BLEND_CHKSOLVER);
-        solverCheck(solvmtx);
+        //solverCheck(solvmtx);
     }
 
     /***************************************
