@@ -826,11 +826,12 @@ void CSC_rowScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_flo
 #ifndef CSC_sort
 #error "This function must be renamed via preprocessor."
 #endif
-void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a)
+void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_int_t ndof)
 {
   pastix_int_t i;
   int numflag;
-  void * sortptr[2];
+  pastix_int_t ndof2 = ndof * ndof;
+  void * sortptr[3];
   numflag = ia[0];
   if(numflag == 1)
     CSC_Fnum2Cnum(ja, ia, n);
@@ -840,7 +841,8 @@ void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t
       for(i=0;i<n;i++)
         {
           sortptr[0] = &ja[ia[i]];
-          sortptr[1] = &a[ia[i]];
+          sortptr[1] = &a[ia[i]*ndof2];
+          sortptr[2] = &ndof2;
           qsortIntFloatAsc(sortptr, ia[i+1] - ia[i]);
         }
 

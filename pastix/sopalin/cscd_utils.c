@@ -339,15 +339,16 @@ int cscd_build_g2l(pastix_int_t        ncol,
       if (commRank == i)
         {
           nrecv   = ncol;
+          l2grecv = loc2glob;
 
           MPI_Bcast(&nrecv,      1, PASTIX_MPI_INT, i, comm);
           if (nrecv > 0)
             {
-                MPI_Bcast((void*)loc2glob, nrecv, PASTIX_MPI_INT, i, comm);
+                MPI_Bcast(l2grecv, nrecv, PASTIX_MPI_INT, i, comm);
 
               for(j = 0; j < nrecv; j++)
                 {
-                  (*g2l)[loc2glob[j]-1] = j+1;
+                  (*g2l)[l2grecv[j]-1] = j+1;
                 }
             }
         }
@@ -372,6 +373,11 @@ int cscd_build_g2l(pastix_int_t        ncol,
             }
         }
     }
+  for(ig=0; ig < *gN; ig++) {
+      if ((*g2l)[ig] == -commSize)
+          fprintf(stdout, "((*g2l)[%ld] = %ld\n", (long)ig, (long)((*g2l)[ig]));
+      assert((*g2l)[ig] != -commSize);
+  }
 
   return EXIT_SUCCESS;
 }
@@ -889,6 +895,7 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
   pastix_int_t            tmpn;
   pastix_int_t         *  tmpia      = NULL;
   pastix_int_t         *  tmpja      = NULL;
+  pastix_int_t         *  tmpl2g     = NULL;
   pastix_int_t         *  g2l        = NULL;
   pastix_int_t            colnum;
   pastix_int_t            rownum;
@@ -1078,6 +1085,7 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
     added[i] = 0;
 
   /* On ajoute les elements recus */
+  tmpl2g = l2g;
   for (i = 0; i < commSize ; i++){
     if (i != commRank) {
       for (j = 0; j < torecvsize[i]; j++)
@@ -1131,7 +1139,7 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
   memFree_null(added);
   /* On ajoute les 2 cscd */
   cscd_addlocal_int(n   , ia   , ja   , a   , l2g,
-                    tmpn, tmpia, tmpja, NULL, l2g,
+                    tmpn, tmpia, tmpja, NULL, tmpl2g,
                     newn, newia, newja, newa, &add_two_floats, 1, malloc_flag);
   memFree_null(tmpia);
   memFree_null(tmpja);
@@ -1315,7 +1323,7 @@ int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pa
   for (i = 0; i < n; i++)
     {
       (*newia)[i+1] = (*newia)[i] + ia[i+1] - ia[i];
-      /* On cherche si la colonne l2g[i] existe aussi dans i2,
+      /* On cherche si la colonne l2g[i] existe aussi dans addl2g,
          si oui on la comptabilise */
       searchInList(l2g[i], addl2g, addn, i2);
       if (i2>=0)
@@ -1340,19 +1348,23 @@ int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pa
   print_debug(DBG_CSCD, "allocation %ld\n", (long)(*newia)[n]-baseval);
   if (((*newia)[n]-baseval) > 0)
     MALLOC_INTOREXTERN((*newja), ((*newia)[n]-baseval), pastix_int_t, malloc_flag);
-  if (val_flag == 1)
-    {
+  if (val_flag == 1) {
       MALLOC_INTOREXTERN((*newa), ((*newia)[n]-baseval)*dof*dof, pastix_float_t,
                          malloc_flag);
-
-    }
-  if (val_flag == 1)
-    {
+  }
+  if (val_flag == 1) {
       memset(*newa,  0, ((*newia)[n]-baseval)*dof*dof*sizeof(pastix_float_t));
-    }
-  memset(*newja, 0, ((*newia)[n]-baseval)*sizeof(pastix_int_t));
+  }
+  if (n > 0) {
+      memset(*newja, 0, ((*newia)[n]-baseval)*sizeof(pastix_int_t));
+  }
 
   pastix_int_t maxj,maxk,maxl;
+  for (i = 0; i < addn; i++) {
+      if(addia[i+1] - addia[i])
+          intSort1asc1(&addja[addia[i]-baseval], addia[i+1] - addia[i]);
+  }
+
   for (i = 0; i < n; i++)
     {
       searchInList(l2g[i], addl2g, addn, i2);

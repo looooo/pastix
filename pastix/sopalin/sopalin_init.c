@@ -110,9 +110,6 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       sopalin_data->raffnbr       = 0;
       sopalin_data->count_iter    = 0;
       sopalin_data->flag_gmres    = 1;
-      sopalin_data->gmresout_flag = 0;
-      sopalin_data->gmresin_flag  = 0;
-      sopalin_data->gmresro       = 0;
 #endif
 
 #ifdef SMP_SOPALIN
@@ -139,6 +136,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 #endif
 
       sopalin_data->common_flt = NULL;
+      sopalin_data->common_dbl = NULL;
       sopalin_data->ptr_csc    = NULL;
       /*
        * Allocation du tableau de structure de thread
@@ -267,7 +265,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 	MPI_Comm_split(sopalin_data->sopar->pastix_comm, color, key, &intra_node_comm);
 	MPI_Comm_rank(intra_node_comm, &intra_node_rank);
 	MPI_Comm_size(intra_node_comm, &intra_node_size);
-    
+
 	CPU_ZERO(&mask);
 	if (sched_getaffinity(0, sizeof(mask), &mask) < 0)
 	  {
@@ -451,7 +449,8 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 #endif /* STORAGE */
 
       /* Structures pour le rafinement */
-      MALLOC_INTERN(sopalin_data->common_flt, 2*SOLV_THRDNBR, double);
+      MALLOC_INTERN(sopalin_data->common_flt, 2*SOLV_THRDNBR, pastix_float_t);
+      MALLOC_INTERN(sopalin_data->common_dbl, 2*SOLV_THRDNBR, double);
       MALLOC_INTERN(sopalin_data->ptr_csc,    SOLV_THRDNBR,   void *);
 
       for(i = 0; i < SOLV_THRDNBR; i++)
@@ -459,6 +458,8 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
           sopalin_data->ptr_csc[i]        = NULL;
           sopalin_data->common_flt[2*i]   = 0.0;
           sopalin_data->common_flt[2*i+1] = 0.0;
+          sopalin_data->common_dbl[2*i]   = 0.0;
+          sopalin_data->common_dbl[2*i+1] = 0.0;
         }
 
 #ifndef OOC
@@ -679,8 +680,9 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
             if (sopalin_data->thread_data[i] != NULL)
 	      {
 #if defined(PASTIX_DYNSCHED) && !defined(PASTIX_DYNSCHED_WITH_TREE)
-                  if (sopalin_data->thread_data[i]->tabtravel != NULL)
-                    memFree_null(sopalin_data->thread_data[i]->tabtravel);
+                if (NO_ERR != tabtravel_deinit(sopalin_data->thread_data[i])) {
+                  errorPrint("tabtravel_deinit (%s:%d)", __FILE__, __LINE__);
+                }
 #endif
 		  memFree_null(sopalin_data->thread_data[i]);
 	      }
@@ -714,6 +716,8 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
 #endif
       if (sopalin_data->common_flt != NULL)
         memFree_null(sopalin_data->common_flt);
+      if (sopalin_data->common_dbl != NULL)
+        memFree_null(sopalin_data->common_dbl);
       if (sopalin_data->ptr_csc != NULL)
         memFree_null(sopalin_data->ptr_csc);
 
@@ -730,6 +734,80 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
 /*          Init and clean thread_data structure                  */
 /*                                                                */
 /******************************************************************/
+#if (defined PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE))
+static inline
+int tabtravel_init(Sopalin_Data_t * sopalin_data,
+                   Thread_Data_t  * thread_data,
+                   int              me) {
+  PASTIX_INT *visited = NULL;
+  PASTIX_INT position = 0;
+  PASTIX_INT father, son, i, j, bubnum = me;
+  faststack_t stack;
+  SolverMatrix  *datacode = sopalin_data->datacode;
+
+
+  if (thread_data->tabtravel != NULL)
+    return NO_ERR;
+
+  MALLOC_INTERN(stack.tab,              datacode->btree->nodenbr+1, PASTIX_INT);
+  MALLOC_INTERN(visited,                datacode->btree->nodenbr,   PASTIX_INT);
+  MALLOC_INTERN(thread_data->tabtravel, datacode->thrdnbr,   PASTIX_INT);
+
+  memset( thread_data->tabtravel, 0, datacode->thrdnbr * sizeof(PASTIX_INT) );
+
+  FASTSTACK_INIT(stack);
+
+  for(i=0; i<datacode->btree->nodenbr; i++) {
+    stack.tab[i+1] = 0;
+    visited[i] = 0;
+  }
+
+  thread_data->tabtravel[position] = bubnum;
+  visited[bubnum] = 1;
+  position++;
+
+  do {
+    /* Add father */
+    father = BFATHER(datacode->btree, bubnum);
+    if ( (father != -1)  &&
+         (visited[father] == 0) ) {
+      /*thread_data->tabtravel[position] = father;*/
+      /*position++;*/
+      visited[father] = 1;
+      FASTSTACK_ADD(stack, father);
+    }
+
+    /* Add sons */
+    for (j=0; j<BNBSON(datacode->btree, bubnum); j++) {
+      son = BSON(datacode->btree, bubnum, j);
+      if ( visited[son] == 0 ) {
+        visited[son] = 1;
+
+        if ( son < SOLV_THRDNBR ) {
+          thread_data->tabtravel[position] = son;
+          position++;
+        }
+        FASTSTACK_ADD(stack, son);
+      }
+    }
+
+    FASTSTACK_TOP(stack, bubnum);
+
+  } while ( bubnum != -1 );
+
+  memFree_null(visited);
+  memFree_null(stack.tab);
+
+  return NO_ERR;
+}
+
+static inline
+int tabtravel_deinit(Thread_Data_t * thread_data) {
+  if (thread_data->tabtravel != NULL)
+    memFree_null(thread_data->tabtravel);
+  return NO_ERR;
+}
+#endif /* (PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE)) */
 
 /*********************************/
 /*
@@ -1072,68 +1150,8 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
             /*
              * Create the ordered list where to steal jobs
              */
-            {
-              pastix_int_t *visited = NULL;
-              pastix_int_t position = 0;
-              pastix_int_t father, son, j, bubnum = me;
-              faststack_t stack;
-
-              thread_data->tabtravel = NULL;
-
-              MALLOC_INTERN(stack.tab,              sopalin_data->datacode->btree->nodenbr+1, pastix_int_t);
-              MALLOC_INTERN(visited,                sopalin_data->datacode->btree->nodenbr,   pastix_int_t);
-              MALLOC_INTERN(thread_data->tabtravel, sopalin_data->datacode->thrdnbr,   pastix_int_t);
-
-              memset( thread_data->tabtravel, 0, sopalin_data->datacode->thrdnbr * sizeof(pastix_int_t) );
-
-              FASTSTACK_INIT(stack);
-
-              for(i=0; i<sopalin_data->datacode->btree->nodenbr; i++)
-                {
-                  stack.tab[i+1] = 0;
-                  visited[i] = 0;
-                }
-
-              thread_data->tabtravel[position] = bubnum;
-              visited[bubnum] = 1;
-              position++;
-
-              do {
-                /* Add father */
-                father = BFATHER(datacode->btree, bubnum);
-                if ( (father != -1)  &&
-                     (visited[father] == 0) )
-                  {
-                    /*thread_data->tabtravel[position] = father;*/
-                    /*position++;*/
-                    visited[father] = 1;
-                    FASTSTACK_ADD(stack, father);
-                  }
-
-                /* Add sons */
-                for (j=0; j<BNBSON(datacode->btree, bubnum); j++)
-                  {
-                    son = BSON(datacode->btree, bubnum, j);
-                    if ( visited[son] == 0 )
-                      {
-                        visited[son] = 1;
-
-                        if ( son < SOLV_THRDNBR ) {
-                          thread_data->tabtravel[position] = son;
-                          position++;
-                        }
-
-                        FASTSTACK_ADD(stack, son);
-                      }
-                  }
-
-                FASTSTACK_TOP(stack, bubnum);
-
-              } while ( bubnum != -1 );
-
-              assert( position == sopalin_data->datacode->thrdnbr );
-              memFree_null(visited);
-              memFree_null(stack.tab);
+            if (NO_ERR != tabtravel_init(sopalin_data, thread_data, me)) {
+              errorPrint("tabtravel_init (%s:%d)", __FILE__, __LINE__);
             }
 #endif
           }
@@ -1169,6 +1187,13 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
       /*  { */
       /*    thread_data->maxsrequest_fanin = 1; */
       /*  } */
+#if (defined PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE))
+      if (INIT_COMPUTE & init) {
+        if (NO_ERR != tabtravel_init(sopalin_data, thread_data, me)) {
+          errorPrint("tabtravel_init (%s:%d)", __FILE__, __LINE__);
+        }
+      }
+#endif /* (defined PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE)) */
 
       if ((INIT_SEND & init) && (SOLV_PROCNBR > 1))
         {

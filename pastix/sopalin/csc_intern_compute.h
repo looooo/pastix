@@ -138,6 +138,33 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
                   const pastix_int_t             smxnbr,
                   MPI_Comm              comm);
 
+
+/*
+ * Function: CscNormFro
+ *
+ * Computes the norm 2 of x
+ *
+ * This Function is multithreaded, each thread will compute a part of the norm,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   x            - vector from which the norm 2 is computed.
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+#define CscNormFro API_CALL(CscNormFro)
+double CscNormFro(Sopalin_Data_t       *sopalin_data,
+                  int                   me,
+                  const volatile pastix_float_t *x,
+                  const PASTIX_INT             colnbr,
+                  const PASTIX_INT             smxnbr,
+                  MPI_Comm              comm);
+
+
+
 /*
  * Function: CscAx
  *
@@ -166,40 +193,7 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
            const SolverMatrix   *solvmtx,
            const UpDownVector   *updovct,
            MPI_Comm              comm,
-           pastix_int_t                   transpose);
-
-/*
- * Function: CscGradAlpha
- *
- * Computes the scalar product of *r* with *z*,
- * then the scalar product of *x* with *p*
- * and finaly store the quotient in *alpha*.
- *
- * Multi-threaded in SMP_RAFF mode.
- *
- * Parameters:
- *   sopalin_data - Gloabal PaStiX data structure.
- *   me           - Thread ID.
- *   r            - A vector of size *colnbr* times *smxnbr*.
- *   z            - A vector of size *colnbr* times *smxnbr*.
- *   x            - A vector of size *colnbr* times *smxnbr*.
- *   p            - A vector of size *colnbr* times *smxnbr*.
- *   colnbr       - Number of unkowns.
- *   smxnbr       - Number of right-hand-side members.
- *   alpha        - Float which will store the computation result.
- *   comm         - MPI communicator.
- */
-#define CscGradAlpha API_CALL(CscGradAlpha)
-void CscGradAlpha(Sopalin_Data_t       *sopalin_data,
-                  int                   me,
-                  const volatile pastix_float_t *r,
-                  const volatile pastix_float_t *z,
-                  const volatile pastix_float_t *x,
-                  const volatile pastix_float_t *p,
-                  pastix_int_t                   colnbr,
-                  pastix_int_t                   smxnbr,
-                  double               *alpha,
-                  MPI_Comm              comm);
+           PASTIX_INT                   transpose);
 
 /*
  * Function: CscGradBeta
@@ -254,4 +248,87 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
                   pastix_int_t                   smxnbr,
                   double               *beta,
                   MPI_Comm              comm);
+
+
+/*
+ * Function: CscCopy
+ *
+ * Copy a vector into another vector
+ *
+ * This Function is multithreaded, each thread will compute a part of the copy,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   x            - vector from which the copy is done.
+ *   y            - vector where the copy is done
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+#define CscCopy API_CALL(CscCopy)
+void CscCopy(Sopalin_Data_t              *sopalin_data,
+             int                          me,
+             const volatile pastix_float_t *x,
+             volatile pastix_float_t       *y,
+             const PASTIX_INT             colnbr,
+             const PASTIX_INT             smxnbr,
+             MPI_Comm                     comm);
+
+/*
+ * Function: CscScal
+ *
+ * Multiply a vector by a scalaire
+ *
+ * This Function is multithreaded, each thread will compute a part of the copy,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   x            - vector from which the copy is done.
+ *   y            - vector where the copy is done
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+#define CscScal API_CALL(CscScal)
+void CscScal(Sopalin_Data_t        *sopalin_data,
+             int                    me,
+             volatile pastix_float_t  alpha,
+             volatile pastix_float_t *x,
+             const PASTIX_INT       colnbr,
+             const PASTIX_INT       smxnbr,
+             MPI_Comm               comm);
+
+
+/*
+ * Function: CscAXPY
+ *
+ * Y<-aX+Y
+ *
+ * This Function is multithreaded, each thread will compute a part of the operation,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   alpha
+ *   x
+ *   y
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+#define CscAXPY API_CALL(CscAXPY)
+void CscAXPY(Sopalin_Data_t              *sopalin_data,
+             int                          me,
+             pastix_float_t                 alpha,
+             const volatile pastix_float_t *x,
+             volatile pastix_float_t       *y,
+             const PASTIX_INT             colnbr,
+             const PASTIX_INT             smxnbr,
+             MPI_Comm                     comm);
+
 #endif /* CSC_INTERN_COMPUTE_H */

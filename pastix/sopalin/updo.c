@@ -3,6 +3,7 @@
 #undef UPDOWN_SM2XMAX
 #define UPDOWN_SM2XMAX 4096
 */
+#include "csc_intern_compute.h"
 
 /* ??? Attention a TASK_PRIONUM en 2D                 */
 /* ??? Attention free apres Isend                     */
@@ -105,14 +106,24 @@ void* up_down_smp ( void *arg )
 #else
   Queue             cblreadyqueue;
 #endif
-
+  pastix_float_t *b = NULL;
   MONOTHREAD_BEGIN;
+
   if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX)
     fprintf(stdout,  "%d:%d up_down_smp\n", (int)SOLV_PROCNUM, (int)me);
+
   ooc_set_step(sopalin_data, OOCSTEP_DOWN);
+
   trace_begin_task(sopalin_data->tracefile,
                    SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
                    STATE_L0_UPDOINIT, 0);
+
+  if (sopalin_data->sopar->iparm[IPARM_END_TASK] == API_TASK_SOLVE &&
+      sopalin_data->sopar->iparm[IPARM_PRODUCE_STATS] == API_YES) {
+    MALLOC_INTERN(b, UPDOWN_SM2XSZE, pastix_float_t);
+    SOPALIN_COPY(UPDOWN_SM2XSZE,sopar->b,iun,b,iun);
+  }
+
   MONOTHREAD_END;
 
 #ifdef SOPALIN_LU
@@ -1458,6 +1469,54 @@ void* up_down_smp ( void *arg )
   API_CALL(dump_all)(datacode, sopar->cscmtx, DUMP_SMB);
 #  endif
   MONOTHREAD_END;
+
+  if (sopalin_data->sopar->iparm[IPARM_END_TASK] == API_TASK_SOLVE &&
+      sopalin_data->sopar->iparm[IPARM_PRODUCE_STATS] == API_YES) {
+    double prec;
+    pastix_float_t *r, *s;
+    MONOTHREAD_BEGIN;
+    MALLOC_INTERN(r, UPDOWN_SM2XSZE, pastix_float_t);
+    MALLOC_INTERN(s, UPDOWN_SM2XSZE, pastix_float_t);
+    sopalin_data->ptr_raff[0] = (void *)r;
+    sopalin_data->ptr_raff[1] = (void *)s;
+    sopalin_data->ptr_raff[2] = (void *)b;
+    MONOTHREAD_END;
+    SYNCHRO_THREAD;
+
+    r = (pastix_float_t *)sopalin_data->ptr_raff[0];
+    s = (pastix_float_t *)sopalin_data->ptr_raff[1];
+    b = (pastix_float_t *)sopalin_data->ptr_raff[2];
+
+    /* compute r = b - Ax */
+    CscbMAx(sopalin_data, me, r, b, sopalin_data->sopar->cscmtx,
+            &(datacode->updovct), datacode, PASTIX_COMM,
+            sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+    /* |A||x| + |b| */
+    CscAxPb( sopalin_data, me, s, b, sopalin_data->sopar->cscmtx,
+             &(datacode->updovct), datacode, PASTIX_COMM,
+             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+
+    CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
+            1, &prec , PASTIX_COMM);
+    sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL] = prec;
+
+    prec = CscNormErr(sopalin_data,
+                      me,
+                      r,
+                      b,
+                      UPDOWN_SM2XSZE,
+                      1,
+                      PASTIX_COMM);
+    sopalin_data->sopar->dparm[DPARM_RELATIVE_ERROR] = prec;
+    if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+      print_onempi(OUT_PREC1, sopalin_data->sopar->dparm[DPARM_RELATIVE_ERROR]);
+      print_onempi(OUT_PREC2, sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL]);
+    }
+    memFree_null(r);
+    memFree_null(s);
+    memFree_null(b);
+  }
+
   if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX)
     fprintf(stdout, OUT4_UPDO_COMM_TIME,
             (int)SOLV_PROCNUM, (int)me, COMM_CLOCK_GET);

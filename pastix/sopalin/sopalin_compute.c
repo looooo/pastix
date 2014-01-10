@@ -8,120 +8,120 @@
  */
 
 void API_CALL(factor_diag)  (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c);
-                            void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c);
-                                                        void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c, pastix_int_t b1, pastix_int_t b2, pastix_int_t usediag);
-                                                                                              void API_CALL(add_contrib_local)      (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1,pastix_int_t b2,pastix_int_t c,pastix_int_t b3,pastix_int_t cbl);
-                                                                                                                                    void API_CALL(add_contrib_target)     (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1,pastix_int_t b2,pastix_int_t task,pastix_int_t t);
+void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c);
+void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c, pastix_int_t b1, pastix_int_t b2, pastix_int_t usediag);
+void API_CALL(add_contrib_local)      (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1,pastix_int_t b2,pastix_int_t c,pastix_int_t b3,pastix_int_t cbl);
+void API_CALL(add_contrib_target)     (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t b1,pastix_int_t b2,pastix_int_t task,pastix_int_t t);
 
-                                                                                                                                                                          /*
-                                                                                                                                                                           * Compute tasks
-                                                                                                                                                                           */
-                                                                                                                                                                          void API_CALL(compute_diag)  (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
-                                                                                                                                                                                                       void API_CALL(compute_1d)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
-                                                                                                                                                                                                                                    void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task, pastix_int_t i, pastix_int_t b2);
-                                                                                                                                                                                                                                                                 void API_CALL(compute_e1)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
-                                                                                                                                                                                                                                                                                              void API_CALL(compute_e2)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
-                                                                                                                                                                                                                                                                                                                           void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, pastix_int_t task);
+/*
+ * Compute tasks
+ */
+void API_CALL(compute_diag)  (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_1d)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task, pastix_int_t i, pastix_int_t b2);
+void API_CALL(compute_e1)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_e2)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task);
+void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, pastix_int_t task);
 
 #include "./compute_gemdm.c"
 #include "./compute_diag.c"
 #include "./compute_trsm.c"
 
 #if (defined COMM_REORDER) || (defined PASTIX_DYNSCHED)
-                                                                                                                                                                                                                                                                                                                                                                     void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, pastix_int_t task)
-                                                                                                                                                                                                                                                                                                                                                                     {
-                                                                                                                                                                                                                                                                                                                                                                         SolverMatrix  *datacode    = sopalin_data->datacode;
-                                                                                                                                                                                                                                                                                                                                                                         pastix_int_t            btagnum, sendcnt;
-                                                                                                                                                                                                                                                                                                                                                                         pastix_int_t            dest, i;
+void API_CALL(compute_unlock_after_DiagE1)(Sopalin_Data_t * sopalin_data, pastix_int_t task)
+{
+    SolverMatrix  *datacode    = sopalin_data->datacode;
+    pastix_int_t            btagnum, sendcnt;
+    pastix_int_t            dest, i;
 
-                                                                                                                                                                                                                                                                                                                                                                         /* Add communication in adapted tasks list */
-                                                                                                                                                                                                                                                                                                                                                                         /* And add local tasks in lists */
+    /* Add communication in adapted tasks list */
+    /* And add local tasks in lists */
 
-                                                                                                                                                                                                                                                                                                                                                                         btagnum = SOLV_INDTAB[TASK_INDNUM(task)];
-                                                                                                                                                                                                                                                                                                                                                                         sendcnt = STASK_SENDCNT(task);
+    btagnum = SOLV_INDTAB[TASK_INDNUM(task)];
+    sendcnt = STASK_SENDCNT(task);
 
-                                                                                                                                                                                                                                                                                                                                                                         for(i=0; i<sendcnt; i++, btagnum++)
-                                                                                                                                                                                                                                                                                                                                                                         {
-                                                                                                                                                                                                                                                                                                                                                                             dest = BTAG_PROCDST(btagnum);
+    for(i=0; i<sendcnt; i++, btagnum++)
+    {
+        dest = BTAG_PROCDST(btagnum);
 
-                                                                                                                                                                                                                                                                                                                                                                             if (dest != SOLV_PROCNUM)
-                                                                                                                                                                                                                                                                                                                                                                             {
+        if (dest != SOLV_PROCNUM)
+        {
 #ifdef COMM_REORDER
-                                                                                                                                                                                                                                                                                                                                                                                 if (THREAD_FUNNELED_ON)
-                                                                                                                                                                                                                                                                                                                                                                                 {
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_LOCK(&(sopalin_data->mutex_comm));
-                                                                                                                                                                                                                                                                                                                                                                                     queueAdd2(sopalin_data->sendqueue, btagnum,
-                                                                                                                                                                                                                                                                                                                                                                                               (double)(-(dest+1)), (pastix_int_t)BTAG_PRIONUM(btagnum));
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-                                                                                                                                                                                                                                                                                                                                                                                 }
-                                                                                                                                                                                                                                                                                                                                                                                 else
-                                                                                                                                                                                                                                                                                                                                                                                 {
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_LOCK(&(sopalin_data->mutex_queue_block[dest]));
-                                                                                                                                                                                                                                                                                                                                                                                     queueAdd2(&(sopalin_data->blocktgtsendqueue[dest]), btagnum,
-                                                                                                                                                                                                                                                                                                                                                                                               ((double)BTAG_PRIONUM(btagnum)), btagnum);
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_UNLOCK(&(sopalin_data->mutex_queue_block[dest]));
-                                                                                                                                                                                                                                                                                                                                                                                 }
+            if (THREAD_FUNNELED_ON)
+            {
+                MUTEX_LOCK(&(sopalin_data->mutex_comm));
+                queueAdd2(sopalin_data->sendqueue, btagnum,
+                          (double)(-(dest+1)), (pastix_int_t)BTAG_PRIONUM(btagnum));
+                MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+            }
+            else
+            {
+                MUTEX_LOCK(&(sopalin_data->mutex_queue_block[dest]));
+                queueAdd2(&(sopalin_data->blocktgtsendqueue[dest]), btagnum,
+                          ((double)BTAG_PRIONUM(btagnum)), btagnum);
+                MUTEX_UNLOCK(&(sopalin_data->mutex_queue_block[dest]));
+            }
 #endif /* COMM_REORDER */
-                                                                                                                                                                                                                                                                                                                                                                             }
+        }
 #ifdef PASTIX_DYNSCHED
-                                                                                                                                                                                                                                                                                                                                                                             else
-                                                                                                                                                                                                                                                                                                                                                                             {
-                                                                                                                                                                                                                                                                                                                                                                                 pastix_int_t j;
-                                                                                                                                                                                                                                                                                                                                                                                 pastix_int_t firsttask = BTAG_TASKDST(btagnum);
-                                                                                                                                                                                                                                                                                                                                                                                 pastix_int_t localtask = firsttask;
+        else
+        {
+            pastix_int_t j;
+            pastix_int_t firsttask = BTAG_TASKDST(btagnum);
+            pastix_int_t localtask = firsttask;
 
-                                                                                                                                                                                                                                                                                                                                                                                 MUTEX_LOCK(&(sopalin_data->mutex_task[localtask]));
-                                                                                                                                                                                                                                                                                                                                                                                 if ((!TASK_CTRBCNT(localtask))
-                                                                                                                                                                                                                                                                                                                                                                                     && (sopalin_data->taskmark[localtask] == -1))
-                                                                                                                                                                                                                                                                                                                                                                                 {
-                                                                                                                                                                                                                                                                                                                                                                                     j = TASK_THREADID(localtask);
-
-#if (DBG_PASTIX_DYNSCHED > 0)
-                                                                                                                                                                                                                                                                                                                                                                                     ASSERTDBG(sopalin_data->taskmark[localtask] == -1, MOD_SOPALIN);
-                                                                                                                                                                                                                                                                                                                                                                                     ASSERTDBG(TASK_BTAGPTR(localtask) != NULL, MOD_SOPALIN);
-                                                                                                                                                                                                                                                                                                                                                                                     ASSERTDBG(RTASK_COEFTAB(localtask) != NULL, MOD_SOPALIN);
-#endif
-                                                                                                                                                                                                                                                                                                                                                                                     sopalin_data->taskmark[localtask]++;
-
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_LOCK(&(sopalin_data->tasktab_mutex[j]));
-                                                                                                                                                                                                                                                                                                                                                                                     queueAdd(&(sopalin_data->taskqueue[j]),
-                                                                                                                                                                                                                                                                                                                                                                                              localtask,
-                                                                                                                                                                                                                                                                                                                                                                                              (double)TASK_PRIONUM(localtask));
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[j]));
-                                                                                                                                                                                                                                                                                                                                                                                     pthread_cond_broadcast(&(sopalin_data->tasktab_cond[j]));
-                                                                                                                                                                                                                                                                                                                                                                                 }
-                                                                                                                                                                                                                                                                                                                                                                                 MUTEX_UNLOCK(&(sopalin_data->mutex_task[localtask]));
-
-                                                                                                                                                                                                                                                                                                                                                                                 while (TASK_TASKNEXT(localtask) != firsttask)
-                                                                                                                                                                                                                                                                                                                                                                                 {
-                                                                                                                                                                                                                                                                                                                                                                                     localtask = TASK_TASKNEXT(localtask);
-
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_LOCK(&(sopalin_data->mutex_task[localtask]));
-                                                                                                                                                                                                                                                                                                                                                                                     if ((!TASK_CTRBCNT(localtask))
-                                                                                                                                                                                                                                                                                                                                                                                         && (sopalin_data->taskmark[localtask] == -1))
-                                                                                                                                                                                                                                                                                                                                                                                     {
-                                                                                                                                                                                                                                                                                                                                                                                         j = TASK_THREADID(localtask);
+            MUTEX_LOCK(&(sopalin_data->mutex_task[localtask]));
+            if ((!TASK_CTRBCNT(localtask))
+                && (sopalin_data->taskmark[localtask] == -1))
+            {
+                j = TASK_THREADID(localtask);
 
 #if (DBG_PASTIX_DYNSCHED > 0)
-                                                                                                                                                                                                                                                                                                                                                                                         ASSERTDBG(sopalin_data->taskmark[localtask] == -1, MOD_SOPALIN);
-                                                                                                                                                                                                                                                                                                                                                                                         ASSERTDBG(TASK_BTAGPTR(localtask) != NULL, MOD_SOPALIN);
-                                                                                                                                                                                                                                                                                                                                                                                         ASSERTDBG(RTASK_COEFTAB(localtask) != NULL, MOD_SOPALIN);
+                ASSERTDBG(sopalin_data->taskmark[localtask] == -1, MOD_SOPALIN);
+                ASSERTDBG(TASK_BTAGPTR(localtask) != NULL, MOD_SOPALIN);
+                ASSERTDBG(RTASK_COEFTAB(localtask) != NULL, MOD_SOPALIN);
 #endif
-                                                                                                                                                                                                                                                                                                                                                                                         sopalin_data->taskmark[localtask]++;
+                sopalin_data->taskmark[localtask]++;
 
-                                                                                                                                                                                                                                                                                                                                                                                         MUTEX_LOCK(&(sopalin_data->tasktab_mutex[j]));
-                                                                                                                                                                                                                                                                                                                                                                                         queueAdd(&(sopalin_data->taskqueue[j]),
-                                                                                                                                                                                                                                                                                                                                                                                                  localtask,
-                                                                                                                                                                                                                                                                                                                                                                                                  (double)TASK_PRIONUM(localtask));
-                                                                                                                                                                                                                                                                                                                                                                                         MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[j]));
-                                                                                                                                                                                                                                                                                                                                                                                         pthread_cond_broadcast(&(sopalin_data->tasktab_cond[j]));
-                                                                                                                                                                                                                                                                                                                                                                                     }
-                                                                                                                                                                                                                                                                                                                                                                                     MUTEX_UNLOCK(&(sopalin_data->mutex_task[localtask]));
-                                                                                                                                                                                                                                                                                                                                                                                 }
-                                                                                                                                                                                                                                                                                                                                                                             }
+                MUTEX_LOCK(&(sopalin_data->tasktab_mutex[j]));
+                queueAdd(&(sopalin_data->taskqueue[j]),
+                         localtask,
+                         (double)TASK_PRIONUM(localtask));
+                MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[j]));
+                pthread_cond_broadcast(&(sopalin_data->tasktab_cond[j]));
+            }
+            MUTEX_UNLOCK(&(sopalin_data->mutex_task[localtask]));
+
+            while (TASK_TASKNEXT(localtask) != firsttask)
+            {
+                localtask = TASK_TASKNEXT(localtask);
+
+                MUTEX_LOCK(&(sopalin_data->mutex_task[localtask]));
+                if ((!TASK_CTRBCNT(localtask))
+                    && (sopalin_data->taskmark[localtask] == -1))
+                {
+                    j = TASK_THREADID(localtask);
+
+#if (DBG_PASTIX_DYNSCHED > 0)
+                    ASSERTDBG(sopalin_data->taskmark[localtask] == -1, MOD_SOPALIN);
+                    ASSERTDBG(TASK_BTAGPTR(localtask) != NULL, MOD_SOPALIN);
+                    ASSERTDBG(RTASK_COEFTAB(localtask) != NULL, MOD_SOPALIN);
 #endif
-                                                                                                                                                                                                                                                                                                                                                                         }
-                                                                                                                                                                                                                                                                                                                                                                     }
+                    sopalin_data->taskmark[localtask]++;
+
+                    MUTEX_LOCK(&(sopalin_data->tasktab_mutex[j]));
+                    queueAdd(&(sopalin_data->taskqueue[j]),
+                             localtask,
+                             (double)TASK_PRIONUM(localtask));
+                    MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[j]));
+                    pthread_cond_broadcast(&(sopalin_data->tasktab_cond[j]));
+                }
+                MUTEX_UNLOCK(&(sopalin_data->mutex_task[localtask]));
+            }
+        }
+#endif
+    }
+}
 #endif /* REORDER/BUBBLE */
 
 /****************************************************************************/

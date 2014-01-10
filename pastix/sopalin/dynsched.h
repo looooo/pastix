@@ -55,7 +55,12 @@ API_CALL(sopalin_dynsched_getNexTask)(Sopalin_Data_t *sopalin_data,
 
   /* Crapy way to detect the end */
   /* || TASK_CTRBCNT(SOLV_TASKNBR-1) != 0 */
-  if ( restart || (TASK_CTRBCNT(SOLV_TASKNBR-1) != 0) ) {
+  if ( ( restart ||
+	 ( SOLV_TASKNBR > 0 && TASK_CTRBCNT(SOLV_TASKNBR-1) != 0) ) &&
+       ( sopalin_data->step_comm == COMMSTEP_INIT  ||
+	 sopalin_data->step_comm == COMMSTEP_FACTO ||
+	 sopalin_data->step_comm == COMMSTEP_DOWN  ||
+	 sopalin_data->step_comm == COMMSTEP_UP    ) ) {
     MUTEX_LOCK(&(sopalin_data->tasktab_mutex[me]));
     COND_TIMEWAIT(&(sopalin_data->tasktab_cond[me]), &(sopalin_data->tasktab_mutex[me]));
     MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[me]));

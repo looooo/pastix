@@ -47,4 +47,15 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b);
 void solve_backup (SolverMatrix *datacode, BackupSolve_t *b);
 void solve_restore(SolverMatrix *datacode, BackupSolve_t *b);
 
+#if (defined PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE))
+#  define tabtravel_init   PASTIX_PREFIX_F(tabtravel_init)
+#  define tabtravel_deinit PASTIX_PREFIX_F(tabtravel_deinit)
+static inline
+int tabtravel_init(Sopalin_Data_t * sopalin_data,
+                   Thread_Data_t  * thread_data,
+                   int              me);
+static inline
+int tabtravel_deinit(Thread_Data_t * thread_data);
+#endif /* (PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE)) */
+
 #endif /* SOPALIN_INIT_H */

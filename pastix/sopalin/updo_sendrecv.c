@@ -275,7 +275,7 @@ void updo_down_send ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_
   MPI_Datatype   newtype;
 #  endif /* NO_MPI_TYPE */
 
-  pastix_int_t            sizea, sizeb, tag;
+  pastix_int_t            sizeb, tag;
   pastix_int_t            iter;
 #  if (!defined PASTIX_UPDO_ISEND) || (defined NO_MPI_TYPE)
   pastix_int_t            infotab[UPDOWN_SIZETAB];
@@ -300,7 +300,6 @@ void updo_down_send ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_
   infotab[2] = FANIN_CBLKDST(SOLV_FTGTIND(j));
   infotab[3] = FANIN_CTRBNBR(SOLV_FTGTIND(j));
 
-  sizea = SYMB_LROWNUM(j)-SYMB_FROWNUM(j)+1;
   sizeb = infotab[1]-infotab[0]+1;
 
   tabsize[0] = UPDOWN_SIZETAB;

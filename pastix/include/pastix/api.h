@@ -102,6 +102,8 @@
    IPARM_TRANSPOSE_SOLVE       - Use transposed matrix during solve                       Default: API_NO              IN
    IPARM_STARPU_CTX_DEPTH      - Tree depth of the contexts given to StarPU               Default:3                    IN
    IPARM_STARPU_CTX_NBR        - Number of contexts created                               Default:-1                   INOUT
+   IPARM_PRODUCE_STATS         - Compute some statistiques (such as precision error)      Default:API_NO               IN
+   IPARM_GPU_CRITERIUM         - Criterium for sorting GPU                                Default:0                    IN
    IPARM_SIZE                  - Iparm Size                IGNORE                         Default:                     IN
 */
 enum IPARM_ACCESS {
@@ -172,6 +174,8 @@ enum IPARM_ACCESS {
   IPARM_TRANSPOSE_SOLVE         = 65,
   IPARM_STARPU_CTX_DEPTH        = 66,
   IPARM_STARPU_CTX_NBR          = 67,
+  IPARM_PRODUCE_STATS           = 68,
+  IPARM_GPU_CRITERIUM           = 69,
 
   IPARM_METIS_CTYPE,
   IPARM_METIS_RTYPE,
@@ -224,6 +228,7 @@ enum DPARM_ACCESS {
   DPARM_MEM_MAX                 = 2,
   DPARM_EPSILON_REFINEMENT      = 5,
   DPARM_RELATIVE_ERROR          = 6,
+  DPARM_SCALED_RESIDUAL         = 7,
   DPARM_EPSILON_MAGN_CTRL       = 10,
   DPARM_ANALYZE_TIME            = 18,
   DPARM_PRED_FACT_TIME          = 19,
@@ -354,16 +359,17 @@ enum API_RHS {
 
   Refinement modes (index IPARM_REFINEMENT)
 
-  API_RAF_GMRES - GMRES
-  API_RAF_GRAD  - Conjugate Gradient ($LL^t$ or $LDL^t$ factorization)
-  API_RAF_PIVOT - Iterative Refinement (only for $LU$ factorization)
-
+  API_RAF_GMRES   - GMRES
+  API_RAF_GRAD    - Conjugate Gradient ($LL^t$ or $LDL^t$ factorization)
+  API_RAF_PIVOT   - Iterative Refinement (only for $LU$ factorization)
+  API_RAF_BICGSTAB - BICGSTAB
  */
 /* _POS_ 8 */
 enum API_RAF {
-  API_RAF_GMRES = 0, /* Utilisation de GMRES */
-  API_RAF_GRAD  = 1, /* Utilisation du gradient conjugue */
-  API_RAF_PIVOT = 1  /* Utilisation de la methode du pivot */
+  API_RAF_GMRES   = 0, /* Utilisation de GMRES */
+  API_RAF_GRAD    = 1, /* Utilisation du gradient conjugue */
+  API_RAF_PIVOT   = 2, /* Utilisation de la methode du pivot */
+  API_RAF_BICGSTAB = 3
 };
 
 /** Type de facto utilisée (LLT,LDLT,LU)*/
@@ -527,6 +533,22 @@ enum API_FLOAT {
   API_COMPLEXDOUBLE = 3
 };
 
+/*
+ * Enum: API_GPU_CRITERIUM
+ *
+ * Criterium used to decide to put tasks on GPUs.
+ *
+ * API_GPU_CRITERION_UPDATES  - Number of updates on the panel.
+ * API_GPU_CRITERION_CBLKSIZE - Size of the target panel.
+ * API_GPU_CRITERION_FLOPS    - Number of FLOP involved in updates.
+ * API_GPU_CRITERION_PRIORITY - Priority computed in static scheduler.
+ */
+enum API_GPU_CRITERIUM {
+  API_GPU_CRITERION_UPDATES  = 0,
+  API_GPU_CRITERION_CBLKSIZE = 1,
+  API_GPU_CRITERION_FLOPS    = 2,
+  API_GPU_CRITERION_PRIORITY = 3
+};
 /*
   Enum: MODULES
 

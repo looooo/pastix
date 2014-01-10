@@ -47,25 +47,25 @@ void sopalin_launch_thread(void *sopalin_data,
 			   pastix_int_t ooc_thrdnbr,  void * (*ooc_routine) (void *), void *ooc_data);
 
 /*
-  Function: sopalin_launch_comm
-
-  Launch communication threads
-
-  Parameters
-    nbthrdcomm    - Number of threads to launch.
-    comm_routine  - Communication function.
-    data          - Data for communication function.
+ * Function: sopalin_launch_comm
+ *
+ * Launch communication threads
+ *
+ * Parameters
+ *   nbthrdcomm    - Number of threads to launch.
+ *   comm_routine  - Communication function.
+ *   data          - Data for communication function.
  */
 void sopalin_launch_comm(int nbthrdcomm, void * (*comm_routine)(void *), void *data);
 
 
 /*
-  Function: sopalin_bindthread
-
-  Bind threads onto processors.
-
-  Parameters:
-    cpu - Processor to bind to.
+ * Function: sopalin_bindthread
+ *
+ * Bind threads onto processors.
+ *
+ * Parameters:
+ *   cpu - Processor to bind to.
  */
 pastix_int_t  sopalin_bindthread(pastix_int_t);
 
@@ -76,9 +76,9 @@ pastix_int_t  sopalin_bindthread(pastix_int_t);
 #define MONOTHREAD_END   }
 
 /*
-  Struct: sopthread_barrier
-
-  Computing threads synchronisation barrier.
+ * Struct: sopthread_barrier
+ *
+ * Computing threads synchronisation barrier.
  */
 typedef struct sopthread_barrier {
   int volatile    instance;         /*+ ID of the barrier                +*/
@@ -88,14 +88,14 @@ typedef struct sopthread_barrier {
 } sopthread_barrier_t;
 
 /*
-  Macro: SYNCHRO_X_THREAD
-
-  Synchronize *nbthread* threads.
-
-  Parameters: 
-    nbthread - Number of threads to synchronize.
-    barrier  - sopthread_barrier structure associated with the synchronisation.
-  
+ *  Macro: SYNCHRO_X_THREAD
+ *
+ *  Synchronize *nbthread* threads.
+ *
+ *  Parameters:
+ *    nbthread - Number of threads to synchronize.
+ *    barrier  - sopthread_barrier structure associated with the synchronisation.
+ *
  */
 #define SYNCHRO_X_THREAD(nbthread, barrier)                             \
   {                                                                     \
@@ -115,7 +115,7 @@ typedef struct sopthread_barrier {
       }                                                                 \
     pthread_mutex_unlock(&((barrier).sync_lock));                       \
   }
- 
+
 /*
  * Définition de MUTEX_LOCK et COND_WAIT (avec ou sans compteurs)
  */
@@ -179,17 +179,21 @@ pastix_int_t *ptwait;
 #define MUTEX_LOCK(x)    {}
 #define MUTEX_UNLOCK(x)  {}
 
-#define pthread_cond_signal(x)
-#define pthread_cond_broadcast(x)
-#define COND_WAIT(x,y)
-#define COND_TIMEWAIT(x,y)
+#  define pthread_cond_signal(x)
+#  define pthread_cond_broadcast(x)
+#  define COND_WAIT(x,y)
+#  define COND_TIMEWAIT(x,y)
 
-#define SYNCHRO_X_THREAD(nbthrd, barrier)
-#define MONOTHREAD_BEGIN 
-#define MONOTHREAD_END
+#  define SYNCHRO_X_THREAD(nbthrd, barrier)
+#  define MONOTHREAD_BEGIN
+#  define MONOTHREAD_END
 
 #define sopthread_barrier_t int
 #endif /* FORCE_NOSMP */
+
+/* SMP Macros required even with FORCE_NOSMP */
+#define SYNCHRO_THREAD  SYNCHRO_X_THREAD(SOLV_THRDNBR, sopalin_data->barrier)
+#define MAXTHRDS        SOLV_THRDNBR
 
 #endif /* SOPALIN_THREAD_H */
 

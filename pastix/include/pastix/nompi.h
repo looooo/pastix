@@ -146,6 +146,10 @@ typedef struct MPI_Status{
     }                                                       \
   } while(0)
 
+#define MPI_Alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount,  \
+                     recvtype, comm)                                    \
+  MPI_Allreduce(sendbuf, recvbuf, sendcount, sendtype, 1, comm)
+
 #define MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm)  \
   switch (datatype) {                                               \
   case MPI_INT:                                                     \

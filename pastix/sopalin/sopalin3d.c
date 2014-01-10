@@ -1,16 +1,16 @@
 /*
-  File: sopalin3d.c
+ File: sopalin3d.c
 
-  sopalin 3d main program.
+ sopalin 3d main program.
 
-  Authors:
-        Mathieu Faverge - faverge@labri.fr
-        Xavier  Lacoste - lacoste@labri.fr
-        Pierre  Ramet   - ramet@labri.fr
+ Authors:
+ Mathieu Faverge - faverge@labri.fr
+ Xavier  Lacoste - lacoste@labri.fr
+ Pierre  Ramet   - ramet@labri.fr
 
-  Date:
-        Version 0.0 - february 2003
-*/
+ Date:
+ Version 0.0 - february 2003
+ */
 
 /***********************************************/
 /*                HEADERS                      */
@@ -129,27 +129,27 @@
 #include "sopalin_compute.h"
 
 /*
-   Section: Global variables
-*/
+ Section: Global variables
+ */
 /*
-   int: iun
-   Integer 1
-*/
+ int: iun
+ Integer 1
+ */
 static pastix_int_t   iun   = 1;
 /* static pastix_int_t izero=0; */
 /*
-  float: fun
-  Floating point   1.0
-*/
+ float: fun
+ Floating point   1.0
+ */
 #ifdef CPLX
 static pastix_float_t fun   = 1.0+0.0*I;
 #else
 static pastix_float_t fun   = 1.0;
 #endif
 /*
-  Float: fzero
-  Floating point   0.0
-*/
+ Float: fzero
+ Floating point   0.0
+ */
 static pastix_float_t fzero = 0.0;
 
 
@@ -182,13 +182,13 @@ static pastix_float_t fzero = 0.0;
 /*      Affichage                  */
 /***********************************/
 /*
-  Section: Macros
+ Section: Macros
 
-  Macros: Printing maccros.
+ Macros: Printing maccros.
 
-  print_onempi(fmt, ...) - Print message by one MPI task.
-  print_one(fmt, ...)    - Print message by one thread of one MPI task
-  print_error(...)       - Print error messages (ignored).
+ print_onempi(fmt, ...) - Print message by one MPI task.
+ print_one(fmt, ...)    - Print message by one thread of one MPI task
+ print_error(...)       - Print error messages (ignored).
 
  */
 #define print_onempi(fmt, ...) if( SOLV_PROCNUM == 0 )           fprintf(stdout, fmt, __VA_ARGS__)
@@ -204,11 +204,11 @@ int err_mpi;
 
 /* ??? extra-diag blocks in 1D column-block (computed by blend) */
 /*
-#undef PACKMAX
-#define PACKMAX 32
-#undef PACKAREA
-#define PACKAREA 200000
-*/
+ #undef PACKMAX
+ #define PACKMAX 32
+ #undef PACKAREA
+ #define PACKAREA 200000
+ */
 
 /************************************************/
 /*       Déclaration des fonctions              */
@@ -256,61 +256,61 @@ void* up_down_smp              (void * arg);
 /************************************************/
 /* Section: Debug functions */
 /*
-   Function: API_CALL(dump_all)
+ Function: API_CALL(dump_all)
 
-   Dumps the matrix and right-hand-side on disk.
+ Dumps the matrix and right-hand-side on disk.
 
-   This function can dump the internal distributed CSC matrix,
-   or the solvermatrix, or the Up-down vector.
+ This function can dump the internal distributed CSC matrix,
+ or the solvermatrix, or the Up-down vector.
 
-   This function must be called by only one thread for
-   each MPI process.
+ This function must be called by only one thread for
+ each MPI process.
 
-   The *x* value can be defined using *DUMP_CSC*, *DUMP_SOLV* and *DUMP_SMB*,
-   combined like *DUMP_CSC | DUMP_SOLV | DUMP_SMB*
+ The *x* value can be defined using *DUMP_CSC*, *DUMP_SOLV* and *DUMP_SMB*,
+ combined like *DUMP_CSC | DUMP_SOLV | DUMP_SMB*
 
-   Parameters:
-         datacode - SolverMatrix
-         x        - value indicating what to dump.
+ Parameters:
+ datacode - SolverMatrix
+ x        - value indicating what to dump.
 
-   Returns:
-         void
-*/
+ Returns:
+ void
+ */
 void dump_all(SolverMatrix *datacode,
               CscMatrix    *cscmtx,
               int           x)
 {
-  /*
-  ** Fonction appellée par un seul thread par processus MPI
-  **   instance : étape où sont dumpées les matrices
-  **   x        : vecteurs a dumper.
-  */
-        static int instance = 0;
-        FILE *file;
-        char  filename[250];
+    /*
+     ** Fonction appellée par un seul thread par processus MPI
+     **   instance : étape où sont dumpées les matrices
+     **   x        : vecteurs a dumper.
+     */
+    static int instance = 0;
+    FILE *file;
+    char  filename[250];
 #ifdef SOPALIN_LU
-        FILE *fileu;
-        char  filenameu[250];
+    FILE *fileu;
+    char  filenameu[250];
 #endif
 
-        printf("Dump CSC SOLV SMB (%ld)...\n",(long) instance);
+    printf("Dump CSC SOLV SMB (%ld)...\n",(long) instance);
 
-        /* CSC */
+    /* CSC */
 #ifdef USE_CSC
-        if (x & DUMP_CSC)
-          {
+    if (x & DUMP_CSC)
+    {
         sprintf(filename, "csc%ld.%ld",
                 (long) instance,
                 (long) SOLV_PROCNUM);
         file = fopen(filename, "w");
         dump2(datacode, cscmtx, NULL, file);
         fclose(file);
-          }
+    }
 #endif
 
-        /* SOLV */
-        if (x & DUMP_SOLV)
-          {
+    /* SOLV */
+    if (x & DUMP_SOLV)
+    {
         sprintf(filename, "solv%ld.%ld",(long) instance,(long) SOLV_PROCNUM);
         file = fopen(filename, "w");
 #ifdef SOPALIN_LU
@@ -322,17 +322,17 @@ void dump_all(SolverMatrix *datacode,
         dump3(datacode, file);
 #endif
         fclose(file);
-          }
+    }
 
-        /* SMB */
-        if (x & DUMP_SMB)
-          {
+    /* SMB */
+    if (x & DUMP_SMB)
+    {
         sprintf(filename, "smb%ld.%ld",(long) instance,(long) SOLV_PROCNUM);
         file = fopen( filename, "w");
         dump5(datacode, file);
         fclose(file);
-          }
-        instance++;
+    }
+    instance++;
 }
 
 /****************************************************************************/
@@ -379,13 +379,27 @@ void  API_CALL(updo_thread)(SolverMatrix *datacode, SopalinParam *sopaparam);
 void* API_CALL(pivotstatique_smp)(void *arg);
 void* API_CALL(gmres_smp)        (void *arg);
 void* API_CALL(grad_smp)         (void *arg);
+void* API_CALL(bicgstab_smp)      (void *arg);
 
 /* Lancement d'une des fonctions seules */
-void  API_CALL(pivot_thread)(SolverMatrix *datacode, SopalinParam *sopaparam);
-void  API_CALL(gmres_thread)(SolverMatrix *datacode, SopalinParam *sopaparam);
-void  API_CALL(grad_thread) (SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(pivot_thread)   (SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(gmres_thread)   (SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(grad_thread)    (SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(bicgstab_thread)(SolverMatrix *datacode, SopalinParam *sopaparam);
 
-#include "raff.c"
+#include "csc_intern_compute.h"
+
+#define RAFF_CLOCK_INIT {clockInit(raff_clk);clockStart(raff_clk);}
+#define RAFF_CLOCK_STOP {clockStop((raff_clk));}
+#define RAFF_CLOCK_GET  clockGet()
+
+/* #define DEBUG_RAFF */
+#include "raff_functions.h"
+#include "raff_grad.c"
+#include "raff_gmres.c"
+#include "raff_pivot.c"
+#include "raff_bicgstab.c"
+
 #endif
 
 /****************************************************************************/
@@ -412,37 +426,37 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
                           SolverMatrix   *datacode,
                           SopalinParam   *sopar)
 {
-  MPI_Comm pastix_comm = PASTIX_COMM;
-  pastix_int_t      i;
+    MPI_Comm pastix_comm = PASTIX_COMM;
+    pastix_int_t      i;
 #if (defined DEADCODE) && !(defined ALLOC_FTGT)
-  pastix_int_t j;
+    pastix_int_t j;
 #endif
 
-  if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-    print_onempi("%s", OUT2_SOP_TABG);
+    if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        print_onempi("%s", OUT2_SOP_TABG);
 
-  /* A la louche ??? */
+    /* A la louche ??? */
 #ifdef SOPALIN_LU
-  SOLV_CPFTMAX *= 2;
-  PACKAREA     *= 2;
+    SOLV_CPFTMAX *= 2;
+    PACKAREA     *= 2;
 #endif
 
 #if (defined COMM_REORDER) && (defined PASTIX_NMAD_AGGREG)
-  PACKMAX = 1;
+    PACKMAX = 1;
 #endif
 
-  /*PACKMAX=(PACKMAX<32)?PACKMAX:32;*/
-  /*PACKAREA=PACKMAX*SOLV_CPFTMAX;*/
+    /*PACKMAX=(PACKMAX<32)?PACKMAX:32;*/
+    /*PACKAREA=PACKMAX*SOLV_CPFTMAX;*/
 
-  print_debug(DBG_SOPALIN_MAIN,"--- PACKMAX=%ld PACKAREA=%ld\n", (long) PACKMAX, (long) PACKAREA);
-  print_debug(DBG_SOPALIN_MAIN,"--- ** sopalin coefnbr=%ld ftgtnbr=%ld bpftmax=%ld cpftmax=%ld coefmax=%ld cblknbr=%ld bloknbr=%ld procnum=%ld procnbr=%ld\n",
-                  (long) SOLV_COEFNBR, (long) SOLV_FTGTNBR, (long) SOLV_BPFTMAX,
-                  (long) SOLV_CPFTMAX, (long) SOLV_COEFMAX, (long) SYMB_CBLKNBR,
-                  (long) SYMB_BLOKNBR, (long) SOLV_PROCNUM, (long) SOLV_PROCNBR);
+    print_debug(DBG_SOPALIN_MAIN,"--- PACKMAX=%ld PACKAREA=%ld\n", (long) PACKMAX, (long) PACKAREA);
+    print_debug(DBG_SOPALIN_MAIN,"--- ** sopalin coefnbr=%ld ftgtnbr=%ld bpftmax=%ld cpftmax=%ld coefmax=%ld cblknbr=%ld bloknbr=%ld procnum=%ld procnbr=%ld\n",
+                (long) SOLV_COEFNBR, (long) SOLV_FTGTNBR, (long) SOLV_BPFTMAX,
+                (long) SOLV_CPFTMAX, (long) SOLV_COEFMAX, (long) SYMB_CBLKNBR,
+                (long) SYMB_BLOKNBR, (long) SOLV_PROCNUM, (long) SOLV_PROCNBR);
 
-  /* Redéfinition des erreurs pour Compaq */
+    /* Redéfinition des erreurs pour Compaq */
 #ifdef X_INCLUDE_ESSL
-  {
+    {
         int ierno,inoal,inomes,itrace,iusadr,irange,dummy;
 
         /* Special pour le pere Goudin ... */
@@ -456,151 +470,147 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
 #define IGNORE_MESSAGE  -1
 
         /*
-        printf("les modifs du pere goudin\n");
+         printf("les modifs du pere goudin\n");
 
-        einfo(0,&dummy,&dummy);
+         einfo(0,&dummy,&dummy);
 
-        ierno=NUM_ERROR_PPF;
-        inoal=UNLIMITED_ERROR;
-        inomes=NOT_ALTERED;
-        itrace=NOT_ALTERED;
-        iusadr=NOT_ALTERED;
-        irange=NUM_ERROR_PPF;
+         ierno=NUM_ERROR_PPF;
+         inoal=UNLIMITED_ERROR;
+         inomes=NOT_ALTERED;
+         itrace=NOT_ALTERED;
+         iusadr=NOT_ALTERED;
+         irange=NUM_ERROR_PPF;
 
-        errset(&ierno,&inoal,&inomes,&itrace,&iusadr,&irange);
+         errset(&ierno,&inoal,&inomes,&itrace,&iusadr,&irange);
 
-        ierno=NUM_ERROR_POF;
-        inoal=UNLIMITED_ERROR;
-        inomes=NOT_ALTERED;
-        itrace=NOT_ALTERED;
-        iusadr=NOT_ALTERED;
-        irange=NUM_ERROR_POF;
+         ierno=NUM_ERROR_POF;
+         inoal=UNLIMITED_ERROR;
+         inomes=NOT_ALTERED;
+         itrace=NOT_ALTERED;
+         iusadr=NOT_ALTERED;
+         irange=NUM_ERROR_POF;
 
-        errset(&ierno,&inoal,&inomes,&itrace,&iusadr,&irange);
-        */
-  }
+         errset(&ierno,&inoal,&inomes,&itrace,&iusadr,&irange);
+         */
+    }
 #endif /* X_INCLUDE_ESSL */
 
-  /* Statistiques d'allocation */
+    /* Statistiques d'allocation */
 #ifdef ALLOC_FTGT
-  {
+    {
         double factor = 0.0;
         pastix_int_t    alloc_init =
-          SYMB_CBLKNBR*3*sizeof(pastix_int_t)+
-          SYMB_BLOKNBR*3*sizeof(pastix_int_t)+
-          SYMB_CBLKNBR*1*sizeof(pastix_int_t)+
-          SYMB_BLOKNBR*1*sizeof(pastix_int_t)+
-          SOLV_TASKNBR  *sizeof(Task)+
-          SOLV_FTGTNBR  *sizeof(FanInTarget)+
-          SOLV_COEFNBR  *sizeof(pastix_float_t)+
-          SOLV_BTAGNBR  *sizeof(BlockTarget)+
-          SOLV_BCOFNBR  *sizeof(BlockCoeff)+
-          SOLV_INDNBR   *sizeof(pastix_int_t);
+            SYMB_CBLKNBR*3*sizeof(pastix_int_t)+
+            SYMB_BLOKNBR*3*sizeof(pastix_int_t)+
+            SYMB_CBLKNBR*1*sizeof(pastix_int_t)+
+            SYMB_BLOKNBR*1*sizeof(pastix_int_t)+
+            SOLV_TASKNBR  *sizeof(Task)+
+            SOLV_FTGTNBR  *sizeof(FanInTarget)+
+            SOLV_COEFNBR  *sizeof(pastix_float_t)+
+            SOLV_BTAGNBR  *sizeof(BlockTarget)+
+            SOLV_BCOFNBR  *sizeof(BlockCoeff)+
+            SOLV_INDNBR   *sizeof(pastix_int_t);
 
         factor = 100.0 / (double)alloc_init;
         (void)factor;
         printf("symbol.cblk %12ld %2.2lf %%\n",
-           (long)  (SYMB_CBLKNBR*3*sizeof(pastix_int_t)),
-           (double)(SYMB_CBLKNBR*3*sizeof(pastix_int_t))*factor);
+               (long)  (SYMB_CBLKNBR*3*sizeof(pastix_int_t)),
+               (double)(SYMB_CBLKNBR*3*sizeof(pastix_int_t))*factor);
         printf("symbol.blok %12ld %2.2lf %%\n",
-           (long)  (SYMB_BLOKNBR*3*sizeof(pastix_int_t)),
-           (double)(SYMB_BLOKNBR*3*sizeof(pastix_int_t))*factor);
+               (long)  (SYMB_BLOKNBR*3*sizeof(pastix_int_t)),
+               (double)(SYMB_BLOKNBR*3*sizeof(pastix_int_t))*factor);
         printf("solver.cblk %12ld %2.2lf %%\n",
-           (long)  (SYMB_CBLKNBR*1*sizeof(pastix_int_t)),
-           (double)(SYMB_CBLKNBR*1*sizeof(pastix_int_t))*factor);
+               (long)  (SYMB_CBLKNBR*1*sizeof(pastix_int_t)),
+               (double)(SYMB_CBLKNBR*1*sizeof(pastix_int_t))*factor);
         printf("solver.blok %12ld %2.2lf %%\n",
-           (long)  (SYMB_BLOKNBR*1*sizeof(pastix_int_t)),
-           (double)(SYMB_BLOKNBR*1*sizeof(pastix_int_t))*factor);
+               (long)  (SYMB_BLOKNBR*1*sizeof(pastix_int_t)),
+               (double)(SYMB_BLOKNBR*1*sizeof(pastix_int_t))*factor);
         printf("solver.task %12ld %2.2lf %%\n",
-           (long)  (SOLV_TASKNBR*1*sizeof(Task)),
-           (double)(SOLV_TASKNBR*1*sizeof(Task))*factor);
+               (long)  (SOLV_TASKNBR*1*sizeof(Task)),
+               (double)(SOLV_TASKNBR*1*sizeof(Task))*factor);
         printf("solver.ftgt %12ld %2.2lf %%\n",
-           (long)  (SOLV_FTGTNBR*1*sizeof(FanInTarget)),
-           (double)(SOLV_FTGTNBR*1*sizeof(FanInTarget))*factor);
+               (long)  (SOLV_FTGTNBR*1*sizeof(FanInTarget)),
+               (double)(SOLV_FTGTNBR*1*sizeof(FanInTarget))*factor);
         printf("solver.coef %12ld %2.2lf %%\n",
-           (long)  (SOLV_COEFNBR*1*sizeof(pastix_float_t)),
-           (double)(SOLV_COEFNBR*1*sizeof(pastix_float_t))*factor);
+               (long)  (SOLV_COEFNBR*1*sizeof(pastix_float_t)),
+               (double)(SOLV_COEFNBR*1*sizeof(pastix_float_t))*factor);
         printf("solver.btag %12ld %2.2lf %%\n",
-           (long)  (SOLV_BTAGNBR*1*sizeof(BlockTarget)),
-           (double)(SOLV_BTAGNBR*1*sizeof(BlockTarget))*factor);
+               (long)  (SOLV_BTAGNBR*1*sizeof(BlockTarget)),
+               (double)(SOLV_BTAGNBR*1*sizeof(BlockTarget))*factor);
         printf("solver.bcof %12ld %2.2lf %%\n",
-           (long)  (SOLV_BCOFNBR*1*sizeof(BlockCoeff)),
-           (double)(SOLV_BCOFNBR*1*sizeof(BlockCoeff))*factor);
+               (long)  (SOLV_BCOFNBR*1*sizeof(BlockCoeff)),
+               (double)(SOLV_BCOFNBR*1*sizeof(BlockCoeff))*factor);
         printf("solver.ind  %12ld %2.2lf %%\n",
-           (long)  (SOLV_INDNBR *1*sizeof(pastix_int_t)),
-           (double)(SOLV_INDNBR *1*sizeof(pastix_int_t))*factor);
-  }
+               (long)  (SOLV_INDNBR *1*sizeof(pastix_int_t)),
+               (double)(SOLV_INDNBR *1*sizeof(pastix_int_t))*factor);
+    }
 #endif
 
-  /* Computing sopalin_data->critere */
-  /* Computing sopalin_data->critere */
+    /* Computing sopalin_data->critere */
+    /* Computing sopalin_data->critere */
 #ifdef COMPUTE
 #ifdef USE_CSC
 
-  sopalin_data->critere = sopar->espilondiag;
-  if (sopalin_data->critere<0.0)
-        {
-          /* sopalin_data->critere absolu */
-          sopalin_data->critere=-sopalin_data->critere;
-          printf("force critere absolu = %g\n", sopalin_data->critere);
+    sopalin_data->critere = sopar->espilondiag;
+    if (sopalin_data->critere<0.0)
+    {
+        /* sopalin_data->critere absolu */
+        sopalin_data->critere=-sopalin_data->critere;
+        if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_YES) {
+            fprintf(stdout, "Pivoting criterium (epsilon) = %g\n", sopalin_data->critere);
         }
-  else
-        {
-          if (sopar->usenocsc == 1)
-        {
-          sopalin_data->critere = sopar->espilondiag;
+    } else {
+        if (sopar->usenocsc == 1) {
+            sopalin_data->critere = sopar->espilondiag;
+        } else {
+            if (sopar->fakefact == 1) {
+                sopalin_data->critere = (UPDOWN_GNODENBR*UPDOWN_GNODENBR+UPDOWN_GNODENBR)*sqrt(sopar->espilondiag);
+            } else {
+                sopalin_data->critere = CscNorm1(sopalin_data->sopar->cscmtx, pastix_comm)*sqrt(sopar->espilondiag);
+            }
         }
-          else
-        {
-          if (sopar->fakefact == 1)
-                {
-                  sopalin_data->critere = (UPDOWN_GNODENBR*UPDOWN_GNODENBR+UPDOWN_GNODENBR)*sqrt(sopar->espilondiag);
-                }
-          else
-                {
-                  sopalin_data->critere = CscNorm1(sopalin_data->sopar->cscmtx, pastix_comm)*sqrt(sopar->espilondiag);
-                }
+        if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_YES) {
+            fprintf(stdout,"Pivoting criterium (||A||*sqrt(epsilon)) = %g\n", sopalin_data->critere);
         }
-          printf("critere = %g\n", sopalin_data->critere);
-        }
+    }
 
-  /* Allocating FANIN_COEFTAB */
+    /* Allocating FANIN_COEFTAB */
 #endif /* USE_CSC */
 #endif
 
-  for (i=0;i<SOLV_FTGTNBR;i++)
+    for (i=0;i<SOLV_FTGTNBR;i++)
     {
-      pastix_int_t ftgtsize;
-      (void)ftgtsize;
+        pastix_int_t ftgtsize;
+        (void)ftgtsize;
 
 #ifdef DEBUG_SOPALIN_INIT
-      printf("ftgt %ld : %ld %ld %ld %ld\n",i,FANIN_LROWNUM(i),FANIN_FROWNUM(i),FANIN_LCOLNUM(i),FANIN_FCOLNUM(i));
+        printf("ftgt %ld : %ld %ld %ld %ld\n",i,FANIN_LROWNUM(i),FANIN_FROWNUM(i),FANIN_LCOLNUM(i),FANIN_FCOLNUM(i));
 #endif
 
-      ftgtsize = (FANIN_LROWNUM(i)-FANIN_FROWNUM(i)+1)
-        *(FANIN_LCOLNUM(i)-FANIN_FCOLNUM(i)+1);
+        ftgtsize = (FANIN_LROWNUM(i)-FANIN_FROWNUM(i)+1)
+            *(FANIN_LCOLNUM(i)-FANIN_FCOLNUM(i)+1);
 
 #ifdef SOPALIN_LU
-      ftgtsize *= 2;
+        ftgtsize *= 2;
 #endif
 #if (defined ALLOC_FTGT )
 #if !(defined OOC_FTGT)
-      FANIN_COEFTAB(i) = NULL;
+        FANIN_COEFTAB(i) = NULL;
 #endif
 #else
-      MALLOC_INTERN(FANIN_COEFTAB(i), ftgtsize, pastix_float_t);
-      for (j=0;j<ftgtsize;j++)
-        FANIN_COEFTAB(i)[j] = 0.0;
+        MALLOC_INTERN(FANIN_COEFTAB(i), ftgtsize, pastix_float_t);
+        for (j=0;j<ftgtsize;j++)
+            FANIN_COEFTAB(i)[j] = 0.0;
 #endif
     }
 #ifdef DEBUG_SOPALIN_INIT
-  printf("end init ftgttab\n");
+    printf("end init ftgttab\n");
 #endif
 
-  /* ???
-         SYMB_NODENBR = UPDOWN_GNODENBR;
-         fprintf(stdout, "Node NBR : %ld\n",SYMB_NODENBR);
-  */
+    /* ???
+     SYMB_NODENBR = UPDOWN_GNODENBR;
+     fprintf(stdout, "Node NBR : %ld\n",SYMB_NODENBR);
+     */
 
 }
 
@@ -624,707 +634,707 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
 #define sopalin_smp API_CALL(sopalin_smp)
 void* sopalin_smp(void *arg)
 {
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
-  SopalinParam     *sopar        = sopalin_data->sopar;
-  Thread_Data_t    *thread_data;
-  pastix_int_t               me           = argument->me;
-  pastix_int_t               i            = 0;
+    sopthread_data_t *argument     = (sopthread_data_t *)arg;
+    Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+    SolverMatrix     *datacode     = sopalin_data->datacode;
+    SopalinParam     *sopar        = sopalin_data->sopar;
+    Thread_Data_t    *thread_data;
+    pastix_int_t               me           = argument->me;
+    pastix_int_t               i            = 0;
 #ifndef PASTIX_DYNSCHED
-  pastix_int_t               ii           = 0;
+    pastix_int_t               ii           = 0;
 #endif
-  pastix_int_t               nbpivotT     = 0;
-  int               init;
-  double            mintime, maxtime;
-/*   pastix_int_t               cptinv = 0; */
+    pastix_int_t               nbpivotT     = 0;
+    int               init;
+    double            mintime, maxtime;
+    /*   pastix_int_t               cptinv = 0; */
 #if (!(defined FORCE_NOMPI))
-  MPI_Comm          pastix_comm = PASTIX_COMM;
+    MPI_Comm          pastix_comm = PASTIX_COMM;
 #ifdef TEST_IRECV
-  pastix_int_t               size;
+    pastix_int_t               size;
 #endif
 #endif
 
 #if (defined PASTIX_DYNSCHED)
-  pastix_int_t bloknum;
-  pastix_int_t itasktab  = me;
-  pastix_int_t itasktab2 = me;
-  int stolen = 0;
+    pastix_int_t bloknum;
+    pastix_int_t itasktab  = me;
+    pastix_int_t itasktab2 = me;
+    int stolen = 0;
 #endif
 
-  MONOTHREAD_BEGIN;
-  trace_begin_task(sopalin_data->tracefile,
-                                   SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
-                                   STATE_L0_FACTOINIT, 0);
-  MONOTHREAD_END;
+    MONOTHREAD_BEGIN;
+    trace_begin_task(sopalin_data->tracefile,
+                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
+                     STATE_L0_FACTOINIT, 0);
+    MONOTHREAD_END;
 
-  /* Initialisation des données propres à chaque thread */
-  print_debug(DBG_SOPALIN_MAIN, "----- %2d : START init sopalin smp\n",
-              (int)me);
-  init = INIT_COMPUTE;
-  if (THREAD_FUNNELED_OFF)
+    /* Initialisation des données propres à chaque thread */
+    print_debug(DBG_SOPALIN_MAIN, "----- %2d : START init sopalin smp\n",
+                (int)me);
+    init = INIT_COMPUTE;
+    if (THREAD_FUNNELED_OFF)
     {
-      init = init | INIT_SEND;
+        init = init | INIT_SEND;
     }
-  if (THREAD_COMM_OFF)
+    if (THREAD_COMM_OFF)
     {
-      init = init | INIT_RECV;
+        init = init | INIT_RECV;
     }
 
-  sopalin_init_smp(sopalin_data, me, 1, init);
-  thread_data = sopalin_data->thread_data[me];
-  print_debug(DBG_SOPALIN_MAIN, "----- %2d : END init sopalin smp\n", (int)me);
+    sopalin_init_smp(sopalin_data, me, 1, init);
+    thread_data = sopalin_data->thread_data[me];
+    print_debug(DBG_SOPALIN_MAIN, "----- %2d : END init sopalin smp\n", (int)me);
 
 #ifdef TEST_IRECV
-  size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
-  for (i=0;i<MAX_R_REQUESTS;i++)
+    size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
+    for (i=0;i<MAX_R_REQUESTS;i++)
     {
-      CALL_MPI MPI_Irecv(thread_data->recv_fanin_buffer[i],size,MPI_BYTE,
-                         MPI_ANY_SOURCE,me,pastix_comm,
-                         &(thread_data->recv_fanin_request[i]));
-      TEST_MPI("MPI_Irecv");
+        CALL_MPI MPI_Irecv(thread_data->recv_fanin_buffer[i],size,MPI_BYTE,
+                           MPI_ANY_SOURCE,me,pastix_comm,
+                           &(thread_data->recv_fanin_request[i]));
+        TEST_MPI("MPI_Irecv");
     }
-  size=sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
-  for (i=0;i<MAX_R_REQUESTS;i++)
+    size=sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
+    for (i=0;i<MAX_R_REQUESTS;i++)
     {
-      CALL_MPI MPI_Irecv(thread_data->recv_block_buffer[i],size,MPI_BYTE,MPI_ANY_SOURCE,
-                         SEPFB+me,pastix_comm,&(thread_data->recv_block_request[i]));
-      TEST_MPI("MPI_Irecv");
+        CALL_MPI MPI_Irecv(thread_data->recv_block_buffer[i],size,MPI_BYTE,MPI_ANY_SOURCE,
+                           SEPFB+me,pastix_comm,&(thread_data->recv_block_request[i]));
+        TEST_MPI("MPI_Irecv");
     }
 #endif /* TEST_IRECV */
 
 #ifdef HPM_SOPALIN
-  hpmInit(SOLV_PROCNUM,"sopalin");
+    hpmInit(SOLV_PROCNUM,"sopalin");
 #endif
 
-  /* Synchro de fin d'initialisation */
-  SYNCHRO_THREAD;
-  MONOTHREAD_BEGIN;
+    /* Synchro de fin d'initialisation */
+    SYNCHRO_THREAD;
+    MONOTHREAD_BEGIN;
 
 #ifdef PASTIX_DUMP_FACTO
-  API_CALL(dump_all)(datacode, sopar->cscmtx,
-                     ((datacode->updovct.sm2xtab!=NULL)?
-                      (DUMP_CSC | DUMP_SOLV | DUMP_SMB):
-                      (DUMP_CSC | DUMP_SOLV)));
+    API_CALL(dump_all)(datacode, sopar->cscmtx,
+                       ((datacode->updovct.sm2xtab!=NULL)?
+                        (DUMP_CSC | DUMP_SOLV | DUMP_SMB):
+                        (DUMP_CSC | DUMP_SOLV)));
 #endif
 
-  if (THREAD_FUNNELED_OFF)
+    if (THREAD_FUNNELED_OFF)
     {
-      CALL_MPI MPI_Barrier(pastix_comm);
-      TEST_MPI("MPI_Barrier");
+        CALL_MPI MPI_Barrier(pastix_comm);
+        TEST_MPI("MPI_Barrier");
     }
 
-  if (THREAD_COMM_ON)
+    if (THREAD_COMM_ON)
     {
-      MUTEX_LOCK(&(sopalin_data->mutex_comm));
-      sopalin_data->step_comm = COMMSTEP_FACTO;
-      print_debug(DBG_THCOMM, "%s:%d FACTO\n", __FILE__, __LINE__);
-      MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-      pthread_cond_broadcast(&(sopalin_data->cond_comm));
+        MUTEX_LOCK(&(sopalin_data->mutex_comm));
+        sopalin_data->step_comm = COMMSTEP_FACTO;
+        print_debug(DBG_THCOMM, "%s:%d FACTO\n", __FILE__, __LINE__);
+        MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+        pthread_cond_broadcast(&(sopalin_data->cond_comm));
     }
 
-  ooc_set_step(sopalin_data, OOCSTEP_SOPALIN);
+    ooc_set_step(sopalin_data, OOCSTEP_SOPALIN);
 
-  trace_begin_task(sopalin_data->tracefile,
-        SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
-        STATE_L0_FACTO, 0);
+    trace_begin_task(sopalin_data->tracefile,
+                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
+                     STATE_L0_FACTO, 0);
 
-  MONOTHREAD_END;
-  SYNCHRO_THREAD;
-  SOPALIN_CLOCK_INIT; /* Debut du compteur pour le temps de facto */
-  COMM_CLOCK_INIT;
-  if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-    print_one("%s", OUT2_SOP_BSOP);
-  print_debug(DBG_SOPALIN_MAIN,"----- [%d]%2d: sopalin starting...\n",
-        (int) SOLV_PROCNUM, (int)me);
+    MONOTHREAD_END;
+    SYNCHRO_THREAD;
+    SOPALIN_CLOCK_INIT; /* Debut du compteur pour le temps de facto */
+    COMM_CLOCK_INIT;
+    if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        print_one("%s", OUT2_SOP_BSOP);
+    print_debug(DBG_SOPALIN_MAIN,"----- [%d]%2d: sopalin starting...\n",
+                (int) SOLV_PROCNUM, (int)me);
 
 #ifdef COMPUTE_ALLOC
-  ALLOC_CLOCK_INIT;
+    ALLOC_CLOCK_INIT;
 #endif
 
-  /*****************************************************/
-  /*            Main Loop                              */
-  /*****************************************************/
+    /*****************************************************/
+    /*            Main Loop                              */
+    /*****************************************************/
 
 #if defined PASTIX_DYNSCHED
-  while(1){
-    trace_begin_task(thread_data->tracefile,
-                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                     STATE_WAITTSK, i);
+    while(1){
+        trace_begin_task(thread_data->tracefile,
+                         SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
+                         STATE_WAITTSK, i);
 
-    i = API_CALL(sopalin_dynsched_getNexTask)( sopalin_data, datacode, thread_data,
-                                               &itasktab, &itasktab2, &bloknum, me );
+        i = API_CALL(sopalin_dynsched_getNexTask)( sopalin_data, datacode, thread_data,
+                                                   &itasktab, &itasktab2, &bloknum, me );
 
-    stolen = itasktab != itasktab2;
-    if ( i == -1 )
-      break;
+        stolen = itasktab != itasktab2;
+        if ( i == -1 )
+            break;
 
-    /* GEMM tasks from ESP option */
-    else if (i < -1)
-      {
-        i = TASK_ESP2TASK( i );
+        /* GEMM tasks from ESP option */
+        else if (i < -1)
+        {
+            i = TASK_ESP2TASK( i );
 #ifdef ESP_WRITE
-        trace_begin_task1(thread_data->tracefile,
-                          SOPALIN_CLOCK_TRACE,
-                          SOLV_PROCNUM, me,
-                          STATE_COMP1DGEMM,
-                          SOLV_PROCDIAG( SYMB_CBLKNUM( bloknum ) ),
-                          SOLV_TASKTAB[i],
-                          stolen );
+            trace_begin_task1(thread_data->tracefile,
+                              SOPALIN_CLOCK_TRACE,
+                              SOLV_PROCNUM, me,
+                              STATE_COMP1DGEMM,
+                              SOLV_PROCDIAG( SYMB_CBLKNUM( bloknum ) ),
+                              SOLV_TASKTAB[i],
+                              stolen );
 #else
-        trace_begin_task1(thread_data->tracefile,
-                          SOPALIN_CLOCK_TRACE,
-                          SOLV_PROCNUM, me,
-                          STATE_COMP1DGEMM,
-                          TASK_PROC( i ),
-                          SOLV_TASKTAB[i],
-                          stolen );
+            trace_begin_task1(thread_data->tracefile,
+                              SOPALIN_CLOCK_TRACE,
+                              SOLV_PROCNUM, me,
+                              STATE_COMP1DGEMM,
+                              TASK_PROC( i ),
+                              SOLV_TASKTAB[i],
+                              stolen );
 #endif
 
-        API_CALL(compute_1dgemm)(sopalin_data, me, i, bloknum, -1);
-        trace_end_task1();
+            API_CALL(compute_1dgemm)(sopalin_data, me, i, bloknum, -1);
+            trace_end_task1();
 
-        MUTEX_LOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
-        sopalin_data->tasktab_indice[itasktab2]++;
-        MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
-        continue;
-      }
+            MUTEX_LOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
+            sopalin_data->tasktab_indice[itasktab2]++;
+            MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
+            continue;
+        }
 
 #elif (defined SMP_SOPALIN)
-    for (ii=0;ii<SOLV_TTSKNBR;ii++){
-        i = SOLV_TTSKTAB(ii);
+        for (ii=0;ii<SOLV_TTSKNBR;ii++){
+            i = SOLV_TTSKTAB(ii);
 
 #else /* DYNSCHED, SMP_SOPALIN */
-        for (ii=0;ii<SOLV_TASKNBR;ii++){
-        i = queueGet(&(sopalin_data->taskqueue));
+            for (ii=0;ii<SOLV_TASKNBR;ii++){
+                i = queueGet(&(sopalin_data->taskqueue));
 #endif /* DYNSCHED, SMP_SOPALIN */
 
 #ifdef COMPUTE_ALLOC
-        ALLOC_CLOCK_STOP;
-        printf("Step %lf memsize %lf\n",ALLOC_CLOCK_GET,
-                   100.0*((double)(sopalin_data->current_alloc))/((double)(SOLV_COEFNBR)));
+                ALLOC_CLOCK_STOP;
+                printf("Step %lf memsize %lf\n",ALLOC_CLOCK_GET,
+                       100.0*((double)(sopalin_data->current_alloc))/((double)(SOLV_COEFNBR)));
 #endif /* COMPUTE_ALLOC */
 
-        print_debug(DBG_SOPALIN_MAIN,
-                                "[%ld]%ld: Task %ld\n"
-                                "[%ld]%ld: taskid prionum cblknum bloknum ctrcnt btagptr"
-                                " indnum tasknext\n"
-                                "[%ld]%ld: %ld %ld %ld %ld %ld %7x %ld %ld (%ld %ld %ld %ld)\n",
-                                (long)SOLV_PROCNUM,(long)me,
-                                (long)i,(long)SOLV_PROCNUM,(long)me,
-                                (long)SOLV_PROCNUM,(long)me,
-                                (long)TASK_TASKID(i),(long)TASK_PRIONUM(i),
-                                (long)TASK_CBLKNUM(i),(long)TASK_BLOKNUM(i),
-                                (long)TASK_CTRBCNT(i),(unsigned int)(intptr_t)TASK_BTAGPTR(i),
-                                (long)TASK_INDNUM(i),(long)TASK_TASKNEXT(i),
-                                (long)SYMB_FCOLNUM(TASK_CBLKNUM(i)),
-                                (long)SYMB_LCOLNUM(TASK_CBLKNUM(i)),
-                                (long)SYMB_FROWNUM(TASK_BLOKNUM(i)),
-                                (long)SYMB_LROWNUM(TASK_BLOKNUM(i)));
+                print_debug(DBG_SOPALIN_MAIN,
+                            "[%ld]%ld: Task %ld\n"
+                            "[%ld]%ld: taskid prionum cblknum bloknum ctrcnt btagptr"
+                            " indnum tasknext\n"
+                            "[%ld]%ld: %ld %ld %ld %ld %ld %7x %ld %ld (%ld %ld %ld %ld)\n",
+                            (long)SOLV_PROCNUM,(long)me,
+                            (long)i,(long)SOLV_PROCNUM,(long)me,
+                            (long)SOLV_PROCNUM,(long)me,
+                            (long)TASK_TASKID(i),(long)TASK_PRIONUM(i),
+                            (long)TASK_CBLKNUM(i),(long)TASK_BLOKNUM(i),
+                            (long)TASK_CTRBCNT(i),(unsigned int)(intptr_t)TASK_BTAGPTR(i),
+                            (long)TASK_INDNUM(i),(long)TASK_TASKNEXT(i),
+                            (long)SYMB_FCOLNUM(TASK_CBLKNUM(i)),
+                            (long)SYMB_LCOLNUM(TASK_CBLKNUM(i)),
+                            (long)SYMB_FROWNUM(TASK_BLOKNUM(i)),
+                            (long)SYMB_LROWNUM(TASK_BLOKNUM(i)));
 
-        trace_begin_task(thread_data->tracefile,
-                                         SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                                         STATE_WAITREM, i);
+                trace_begin_task(thread_data->tracefile,
+                                 SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
+                                 STATE_WAITREM, i);
 
-        /* Compute task */
-        switch(TASK_TASKID(i))
-          {
-          case COMP_1D:
+                /* Compute task */
+                switch(TASK_TASKID(i))
+                {
+                case COMP_1D:
 #ifdef HPM_SOPALIN
-        hpmStart(COMP_1D+1,"COMP_1D");
-        hpmStart(6,"RECV");
+                    hpmStart(COMP_1D+1,"COMP_1D");
+                    hpmStart(6,"RECV");
 #endif /* HPM_SOPALIN */
 
-        /* Wait for contributions */
-        API_CALL(wait_contrib_comp_1d)(sopalin_data, me, i);
+                    /* Wait for contributions */
+                    API_CALL(wait_contrib_comp_1d)(sopalin_data, me, i);
 
 #ifdef HPM_SOPALIN
-        hpmStop(6);
+                    hpmStop(6);
 #endif /* HPM_SOPALIN */
-        ooc_wait_task(sopalin_data,i, me);
-        ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
+                    ooc_wait_task(sopalin_data,i, me);
+                    ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
 
 
-        trace_begin_task1(thread_data->tracefile,
-                          SOPALIN_CLOCK_TRACE,
-                          SOLV_PROCNUM, me,
-                          STATE_COMP1D,
-                          TASK_PROC( i ),
-                          SOLV_TASKTAB[i],
-                          stolen );
+                    trace_begin_task1(thread_data->tracefile,
+                                      SOPALIN_CLOCK_TRACE,
+                                      SOLV_PROCNUM, me,
+                                      STATE_COMP1D,
+                                      TASK_PROC( i ),
+                                      SOLV_TASKTAB[i],
+                                      stolen );
 
-        /* Compute */
-        API_CALL(compute_1d)(sopalin_data, me, i);
+                    /* Compute */
+                    API_CALL(compute_1d)(sopalin_data, me, i);
 
-        trace_end_task1();
+                    trace_end_task1();
 
-        ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i), me);
+                    ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i), me);
 
 #ifdef HPM_SOPALIN
-        hpmStop(COMP_1D+1);
+                    hpmStop(COMP_1D+1);
 #endif /* HPM_SOPALIN */
-        break;
+                    break;
 
-          case DIAG:
+                case DIAG:
 #ifdef HPM_SOPALIN
-        hpmStart(DIAG+1,"DIAG");
-        hpmStart(6,"RECV");
+                    hpmStart(DIAG+1,"DIAG");
+                    hpmStart(6,"RECV");
 #endif /* HPM_SOPALIN */
-        API_CALL(wait_contrib_comp_1d)(sopalin_data, me,i);
+                    API_CALL(wait_contrib_comp_1d)(sopalin_data, me,i);
 
 #ifdef HPM_SOPALIN
-        hpmStop(6);
+                    hpmStop(6);
 #endif /* HPM_SOPALIN */
 
-        ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
+                    ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
 
-        trace_begin_task1(thread_data->tracefile,
-                          SOPALIN_CLOCK_TRACE,
-                          SOLV_PROCNUM, me,
-                          STATE_DIAG,
-                          TASK_PROC( i ),
-                          SOLV_TASKTAB[i],
-                          stolen );
+                    trace_begin_task1(thread_data->tracefile,
+                                      SOPALIN_CLOCK_TRACE,
+                                      SOLV_PROCNUM, me,
+                                      STATE_DIAG,
+                                      TASK_PROC( i ),
+                                      SOLV_TASKTAB[i],
+                                      stolen );
 
-        API_CALL(compute_diag)(sopalin_data, me, i);
+                    API_CALL(compute_diag)(sopalin_data, me, i);
 
-        trace_end_task1();
+                    trace_end_task1();
 
-        ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i),me);
+                    ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i),me);
 
 #ifdef HPM_SOPALIN
-        hpmStop(DIAG+1);
+                    hpmStop(DIAG+1);
 #endif /* HPM_SOPALIN */
-        break;
-          case E1:
+                    break;
+                case E1:
 #ifdef HPM_SOPALIN
-        hpmStart(E1+1,"E1");
-        hpmStart(6,"RECV");
+                    hpmStart(E1+1,"E1");
+                    hpmStart(6,"RECV");
 #endif
 
-        API_CALL(wait_contrib_comp_1d)(sopalin_data, me, i);
+                    API_CALL(wait_contrib_comp_1d)(sopalin_data, me, i);
 
-        API_CALL(wait_contrib_comp_2d)(sopalin_data, me, i);
-
-#ifdef HPM_SOPALIN
-        hpmStop(6);
-#endif
-
-        ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
-
-        trace_begin_task1(thread_data->tracefile,
-                          SOPALIN_CLOCK_TRACE,
-                          SOLV_PROCNUM, me,
-                          STATE_E1,
-                          TASK_PROC( i ),
-                          SOLV_TASKTAB[i],
-                          stolen );
-
-        API_CALL(compute_e1)(sopalin_data, me, i);
-
-        trace_end_task1();
-
-        ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i),me);
+                    API_CALL(wait_contrib_comp_2d)(sopalin_data, me, i);
 
 #ifdef HPM_SOPALIN
-        hpmStop(E1+1);
-#endif
-        break;
-
-          case E2:
-#ifdef HPM_SOPALIN
-        hpmStart(E2+1,"E2");
-        hpmStart(6,"RECV");
+                    hpmStop(6);
 #endif
 
-        API_CALL(wait_contrib_comp_2d)(sopalin_data, me, i);
+                    ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
 
-#ifdef HPM_SOPALIN
-        hpmStop(6);
-#endif
+                    trace_begin_task1(thread_data->tracefile,
+                                      SOPALIN_CLOCK_TRACE,
+                                      SOLV_PROCNUM, me,
+                                      STATE_E1,
+                                      TASK_PROC( i ),
+                                      SOLV_TASKTAB[i],
+                                      stolen );
 
-        ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i), me);
+                    API_CALL(compute_e1)(sopalin_data, me, i);
 
-        trace_begin_task1(thread_data->tracefile,
-                          SOPALIN_CLOCK_TRACE,
-                          SOLV_PROCNUM, me,
-                          STATE_E2,
-                          TASK_PROC( i ),
-                          SOLV_TASKTAB[i],
-                          stolen );
+                    trace_end_task1();
 
-        API_CALL(compute_e2)(sopalin_data, me, i);
-
-        trace_end_task1();
-
-        ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i), me);
+                    ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i),me);
 
 #ifdef HPM_SOPALIN
-        hpmStop(E2+1);
+                    hpmStop(E1+1);
 #endif
-        break;
+                    break;
 
-          default:
-        errorPrint("Taskid unknown for task %ld\n", (long)i);
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
-          }
+                case E2:
+#ifdef HPM_SOPALIN
+                    hpmStart(E2+1,"E2");
+                    hpmStart(6,"RECV");
+#endif
+
+                    API_CALL(wait_contrib_comp_2d)(sopalin_data, me, i);
+
+#ifdef HPM_SOPALIN
+                    hpmStop(6);
+#endif
+
+                    ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i), me);
+
+                    trace_begin_task1(thread_data->tracefile,
+                                      SOPALIN_CLOCK_TRACE,
+                                      SOLV_PROCNUM, me,
+                                      STATE_E2,
+                                      TASK_PROC( i ),
+                                      SOLV_TASKTAB[i],
+                                      stolen );
+
+                    API_CALL(compute_e2)(sopalin_data, me, i);
+
+                    trace_end_task1();
+
+                    ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i), me);
+
+#ifdef HPM_SOPALIN
+                    hpmStop(E2+1);
+#endif
+                    break;
+
+                default:
+                    errorPrint("Taskid unknown for task %ld\n", (long)i);
+                    EXIT(MOD_SOPALIN,INTERNAL_ERR);
+                }
 
 #ifdef FORCE_CONSO
-        API_CALL(rcsd_testall_fab)(sopalin_data, me);
+                API_CALL(rcsd_testall_fab)(sopalin_data, me);
 #endif
 
 #ifdef PASTIX_DYNSCHED
-        MUTEX_LOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
-        sopalin_data->tasktab_indice[itasktab2]++;
-        MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
+                MUTEX_LOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
+                sopalin_data->tasktab_indice[itasktab2]++;
+                MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[itasktab2]));
 #endif
-        trace_begin_task(thread_data->tracefile,
-                         SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                         STATE_IDLE, i);
-  } /* FIN boucle Principale */
+                trace_begin_task(thread_data->tracefile,
+                                 SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
+                                 STATE_IDLE, i);
+            } /* FIN boucle Principale */
 
 #ifdef _UNUSED_
-  }}}
+        }}
 #endif
-  /* Sauvegarde du temps de facto */
-  SOPALIN_CLOCK_STOP;
+    /* Sauvegarde du temps de facto */
+    SOPALIN_CLOCK_STOP;
 
-  trace_begin_task(thread_data->tracefile,
-                   SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                   STATE_IDLE, i);
+    trace_begin_task(thread_data->tracefile,
+                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
+                     STATE_IDLE, i);
 
-  print_debug(DBG_SOPALIN_MAIN,"----- %2d-%2d : sopalin time %lf\n",
-                  (int)SOLV_PROCNUM, (int)me, SOPALIN_CLOCK_GET);
+    print_debug(DBG_SOPALIN_MAIN,"----- %2d-%2d : sopalin time %lf\n",
+                (int)SOLV_PROCNUM, (int)me, SOPALIN_CLOCK_GET);
 
-/*   fprintf(stdout, "%d - %d : Nombre d'inversion %d\n", (int)SOLV_PROCNUM, (int)me, (int)cptinv); */
+    /*   fprintf(stdout, "%d - %d : Nombre d'inversion %d\n", (int)SOLV_PROCNUM, (int)me, (int)cptinv); */
 
-  /* Suppression des Comms lancées inutilement */
+    /* Suppression des Comms lancées inutilement */
 #if (defined TEST_IRECV) && !(defined FORCE_NOMPI)
-  for (i=0; i<MAX_R_REQUESTS; i++)
-        {
-          int flag;
-          MPI_Status status;
+    for (i=0; i<MAX_R_REQUESTS; i++)
+    {
+        int flag;
+        MPI_Status status;
 
-          CALL_MPI MPI_Cancel(&thread_data->recv_fanin_request[i]);
-          TEST_MPI("MPI_Cancel");
-          CALL_MPI MPI_Test(&thread_data->recv_fanin_request[i], &flag, &status);
-          TEST_MPI("MPI_Test");
+        CALL_MPI MPI_Cancel(&thread_data->recv_fanin_request[i]);
+        TEST_MPI("MPI_Cancel");
+        CALL_MPI MPI_Test(&thread_data->recv_fanin_request[i], &flag, &status);
+        TEST_MPI("MPI_Test");
 
-          CALL_MPI MPI_Cancel(&thread_data->recv_block_request[i]);
-          TEST_MPI("MPI_Cancel");
-          CALL_MPI MPI_Test(&thread_data->recv_block_request[i], &flag, &status);
-          TEST_MPI("MPI_Test");
-        }
+        CALL_MPI MPI_Cancel(&thread_data->recv_block_request[i]);
+        TEST_MPI("MPI_Cancel");
+        CALL_MPI MPI_Test(&thread_data->recv_block_request[i], &flag, &status);
+        TEST_MPI("MPI_Test");
+    }
 #endif
 
-  /* Fin HPM */
+    /* Fin HPM */
 #ifdef HPM_SOPALIN
-  hpmTerminate(SOLV_PROCNUM);
+    hpmTerminate(SOLV_PROCNUM);
 #endif
 
 #if (defined TEST_ISEND) && !(defined FORCE_NOMPI)
-if (THREAD_FUNNELED_OFF)
-  {
-    /* Attente de la fin des communications en envoi */
-    if (SOLV_PROCNBR > 1)
-      API_CALL(send_waitall_fab)(sopalin_data, me);
-  }
+    if (THREAD_FUNNELED_OFF)
+    {
+        /* Attente de la fin des communications en envoi */
+        if (SOLV_PROCNBR > 1)
+            API_CALL(send_waitall_fab)(sopalin_data, me);
+    }
 #endif /* Fin attente comm */
 
 #ifdef TRYLOCK
-  print_debug(DBG_SOPALIN_MAIN,"----- %2d : TRYLOCK free = %4ld / busy = %4ld / wait = %4ld\n",
-                  (int)me, (int)thread_data->ptfree, (int)thread_data->ptbusy, (int)thread_data->ptwait);
+    print_debug(DBG_SOPALIN_MAIN,"----- %2d : TRYLOCK free = %4ld / busy = %4ld / wait = %4ld\n",
+                (int)me, (int)thread_data->ptfree, (int)thread_data->ptbusy, (int)thread_data->ptwait);
 #endif
 
-  trace_finish(thread_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me);
-  /* Nettoyage des variables associées aux threads */
-  sopalin_clean_smp(sopalin_data, me);
+    trace_finish(thread_data->tracefile, SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me);
+    /* Nettoyage des variables associées aux threads */
+    sopalin_clean_smp(sopalin_data, me);
 
-  /* Synchro de tous les threads avant calcul globaux par le thread principal */
-  SYNCHRO_THREAD;
+    /* Synchro de tous les threads avant calcul globaux par le thread principal */
+    SYNCHRO_THREAD;
 
-  print_debug(DBG_SOPALIN_MAIN,"%d-%d : Synchro Avant reduction resultats\n",
-                  (int)SOLV_PROCNUM, (int)me);
+    print_debug(DBG_SOPALIN_MAIN,"%d-%d : Synchro Avant reduction resultats\n",
+                (int)SOLV_PROCNUM, (int)me);
 
-  /*******************************************/
-  /*           Partie Monothread             */
-  /*******************************************/
-  MONOTHREAD_BEGIN;
+    /*******************************************/
+    /*           Partie Monothread             */
+    /*******************************************/
+    MONOTHREAD_BEGIN;
 
-  trace_begin_task(sopalin_data->tracefile,
-                   SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
-                   STATE_L0_FACTOCLEAN, 0);
+    trace_begin_task(sopalin_data->tracefile,
+                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
+                     STATE_L0_FACTOCLEAN, 0);
 
-  /* Envoi du message de fin aux threads de comm */
+    /* Envoi du message de fin aux threads de comm */
 #ifndef FORCE_NOMPI
-  if (THREAD_COMM_ON && THREAD_FUNNELED_OFF)
+    if (THREAD_COMM_ON && THREAD_FUNNELED_OFF)
     {
-      for (i=0; i < SOLV_PROCNBR; i++)
+        for (i=0; i < SOLV_PROCNBR; i++)
         {
-          int tag, iterator;
-          int miun = -1;
-          if (i == SOLV_PROCNUM) continue;
-          for (iterator=0; iterator < sopar->nbthrdcomm; iterator++)
+            int tag, iterator;
+            int miun = -1;
+            if (i == SOLV_PROCNUM) continue;
+            for (iterator=0; iterator < sopar->nbthrdcomm; iterator++)
             {
-              tag = (sopar->type_comm == 3) ? iterator : TAG_FANIN;
-              CALL_MPI MPI_Send(&miun, 1, MPI_INT, i, tag, PASTIX_COMM);
-              TEST_MPI("MPI_Send");
-              /*fprintf(stderr," %d : Envoi %d à %d\n", SOLV_PROCNUM, iterator, i);*/
+                tag = (sopar->type_comm == 3) ? iterator : TAG_FANIN;
+                CALL_MPI MPI_Send(&miun, 1, MPI_INT, i, tag, PASTIX_COMM);
+                TEST_MPI("MPI_Send");
+                /*fprintf(stderr," %d : Envoi %d à %d\n", SOLV_PROCNUM, iterator, i);*/
             }
         }
     }
 #endif
 
-  /* Calcul du nombre de pivotage réalisé */
-  for(i= 0; i< SOLV_THRDNBR; i++)
+    /* Calcul du nombre de pivotage réalisé */
+    for(i= 0; i< SOLV_THRDNBR; i++)
         nbpivotT += sopalin_data->thread_data[i]->nbpivot;
-  sopar->diagchange = nbpivotT;
+    sopar->diagchange = nbpivotT;
 
-  /* Calcul du temps de facto */
-  //mintime = thread_data->sop_clk.time[0];
-  maxtime = thread_data->sop_clk;
-  for(i=1; i<SOLV_THRDNBR; i++)
-  {
-      //mintime = MIN(sopalin_data->thread_data[i]->sop_clk.time[0], mintime);
-      maxtime = MAX(sopalin_data->thread_data[i]->sop_clk, maxtime);
-  }
-  sopar->dparm[DPARM_FACT_TIME] = maxtime; /*(maxtime - mintime);*/
-
-  /* WARNING : Don't put one (All)Reduce before thread synchronization FACTOEND */
-  if (THREAD_COMM_ON)
+    /* Calcul du temps de facto */
+    //mintime = thread_data->sop_clk.time[0];
+    maxtime = thread_data->sop_clk;
+    for(i=1; i<SOLV_THRDNBR; i++)
     {
-      MUTEX_LOCK(&(sopalin_data->mutex_comm));
-      while(sopalin_data->step_comm != COMMSTEP_FACTOEND)
-        COND_WAIT(&(sopalin_data->cond_comm), &(sopalin_data->mutex_comm));
-      MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+        //mintime = MIN(sopalin_data->thread_data[i]->sop_clk.time[0], mintime);
+        maxtime = MAX(sopalin_data->thread_data[i]->sop_clk, maxtime);
+    }
+    sopar->dparm[DPARM_FACT_TIME] = maxtime; /*(maxtime - mintime);*/
+
+    /* WARNING : Don't put one (All)Reduce before thread synchronization FACTOEND */
+    if (THREAD_COMM_ON)
+    {
+        MUTEX_LOCK(&(sopalin_data->mutex_comm));
+        while(sopalin_data->step_comm != COMMSTEP_FACTOEND)
+            COND_WAIT(&(sopalin_data->cond_comm), &(sopalin_data->mutex_comm));
+        MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
     }
 
-  /* Calcul de l'inertie de la matrice (pour CROUT seulement, sans pivotage) */
-  sopar->iparm[IPARM_INERTIA] = -1;
+    /* Calcul de l'inertie de la matrice (pour CROUT seulement, sans pivotage) */
+    sopar->iparm[IPARM_INERTIA] = -1;
 #if (!defined TYPE_COMPLEX) && (!defined CHOL_SOPALIN) && (!defined OOC)
-  {
+    {
         pastix_float_t *ga;
         pastix_int_t c, k, stride, size, inertia;
         inertia=0;
         for (c=0;c<SYMB_CBLKNBR;c++)
-          {
-        ga     =&(SOLV_COEFTAB(c)[SOLV_COEFIND(SYMB_BLOKNUM(c))]);
-        stride = SOLV_STRIDE(c);
-        size   = SYMB_LCOLNUM(c)-SYMB_FCOLNUM(c)+1;
-        for (k=0;k<size;k++)
-          if (ga[k+k*stride]>fzero) inertia++;
-          }
+        {
+            ga     =&(SOLV_COEFTAB(c)[SOLV_COEFIND(SYMB_BLOKNUM(c))]);
+            stride = SOLV_STRIDE(c);
+            size   = SYMB_LCOLNUM(c)-SYMB_FCOLNUM(c)+1;
+            for (k=0;k<size;k++)
+                if (ga[k+k*stride]>fzero) inertia++;
+        }
         MyMPI_Allreduce(&inertia,&(sopar->iparm[IPARM_INERTIA]),1,
                         PASTIX_MPI_INT,MPI_SUM,pastix_comm);
-  }
+    }
 #endif
 
 #ifdef PASTIX_DYNSCHED
-  if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    {
+        for(i=1; i<SOLV_THRDNBR; i++)
         {
-          for(i=1; i<SOLV_THRDNBR; i++)
-        {
-          thread_data->esp += sopalin_data->thread_data[i]->esp;
+            thread_data->esp += sopalin_data->thread_data[i]->esp;
         }
-          MyMPI_Reduce(&(thread_data->esp), &(sopar->iparm[IPARM_ESP_NBTASKS]), 1,
-                   PASTIX_MPI_INT, MPI_SUM, 0, pastix_comm);
-        }
+        MyMPI_Reduce(&(thread_data->esp), &(sopar->iparm[IPARM_ESP_NBTASKS]), 1,
+                     PASTIX_MPI_INT, MPI_SUM, 0, pastix_comm);
+    }
 #endif
 
-if (THREAD_FUNNELED_OFF)
-  {
-    CALL_MPI MPI_Barrier(pastix_comm);
-    TEST_MPI("MPI_Barrier");
-  }
+    if (THREAD_FUNNELED_OFF)
+    {
+        CALL_MPI MPI_Barrier(pastix_comm);
+        TEST_MPI("MPI_Barrier");
+    }
 
 #ifdef STATS_SOPALIN
-  if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    {
+        double overhead     = (double)(sopalin_data->max_alloc + SOLV_COEFNBR)/(double)(SOLV_COEFNBR);
+
+        fprintf(stdout, "%2d - Local number of terms allocated\t Cblk+Ftgt : %10ld,\t Cblk : %10ld,\t Overhead : %.2lf (%.2lf%%)\n",
+                (int)SOLV_PROCNUM,
+                (long)(sopalin_data->max_alloc + SOLV_COEFNBR),
+                (long)(SOLV_COEFNBR),
+                overhead,
+                (overhead - 1.0) * 100.0);
         {
-          double overhead     = (double)(sopalin_data->max_alloc + SOLV_COEFNBR)/(double)(SOLV_COEFNBR);
+            pastix_int_t    tmp_max_alloc = sopalin_data->max_alloc;
+            pastix_int_t    tmp_coefnbr   = SOLV_COEFNBR;
+            pastix_int_t    max_max_alloc = 0;
+            pastix_int_t    max_coefnbr   = 0;
+            pastix_int_t    sum_max_alloc = 0;
+            pastix_int_t    sum_coefnbr   = 0;
+            double overhead2;
 
-          fprintf(stdout, "%2d - Local number of terms allocated\t Cblk+Ftgt : %10ld,\t Cblk : %10ld,\t Overhead : %.2lf (%.2lf%%)\n",
-                  (int)SOLV_PROCNUM,
-                  (long)(sopalin_data->max_alloc + SOLV_COEFNBR),
-                  (long)(SOLV_COEFNBR),
-                  overhead,
-                  (overhead - 1.0) * 100.0);
-          {
-        pastix_int_t    tmp_max_alloc = sopalin_data->max_alloc;
-        pastix_int_t    tmp_coefnbr   = SOLV_COEFNBR;
-        pastix_int_t    max_max_alloc = 0;
-        pastix_int_t    max_coefnbr   = 0;
-        pastix_int_t    sum_max_alloc = 0;
-        pastix_int_t    sum_coefnbr   = 0;
-        double overhead2;
+            MyMPI_Allreduce(&tmp_max_alloc,&max_max_alloc,1,PASTIX_MPI_INT,MPI_MAX,pastix_comm);
+            MyMPI_Allreduce(&tmp_coefnbr,  &max_coefnbr,  1,PASTIX_MPI_INT,MPI_MAX,pastix_comm);
+            MyMPI_Allreduce(&tmp_max_alloc,&sum_max_alloc,1,PASTIX_MPI_INT,MPI_SUM,pastix_comm);
+            MyMPI_Allreduce(&tmp_coefnbr,  &sum_coefnbr,  1,PASTIX_MPI_INT,MPI_SUM,pastix_comm);
 
-        MyMPI_Allreduce(&tmp_max_alloc,&max_max_alloc,1,PASTIX_MPI_INT,MPI_MAX,pastix_comm);
-        MyMPI_Allreduce(&tmp_coefnbr,  &max_coefnbr,  1,PASTIX_MPI_INT,MPI_MAX,pastix_comm);
-        MyMPI_Allreduce(&tmp_max_alloc,&sum_max_alloc,1,PASTIX_MPI_INT,MPI_SUM,pastix_comm);
-        MyMPI_Allreduce(&tmp_coefnbr,  &sum_coefnbr,  1,PASTIX_MPI_INT,MPI_SUM,pastix_comm);
+            overhead2 = (double)(max_max_alloc+max_coefnbr)/(double)(max_coefnbr);
+            print_one("Maximum number of terms allocated\t Cblk+Ftgt : %10ld,\t Cblk : %10ld,\t Overhead : %.2lf (%.2lf%%)\n",
+                      (long)(max_max_alloc+max_coefnbr),
+                      (long) max_coefnbr,
+                      overhead2,
+                      (overhead2 - 1.0) * 100.0);
 
-        overhead2 = (double)(max_max_alloc+max_coefnbr)/(double)(max_coefnbr);
-        print_one("Maximum number of terms allocated\t Cblk+Ftgt : %10ld,\t Cblk : %10ld,\t Overhead : %.2lf (%.2lf%%)\n",
-                  (long)(max_max_alloc+max_coefnbr),
-                  (long) max_coefnbr,
-                  overhead2,
-                  (overhead2 - 1.0) * 100.0);
-
-        overhead2 = (double)(sum_max_alloc+sum_coefnbr)/(double)(sum_coefnbr);
-        print_one("Total number of terms allocated\t\t Cblk+Ftgt : %10ld,\t Cblk : %10ld,\t Overhead : %.2lf (%.2lf%%)\n",
-                  (long)(sum_max_alloc+sum_coefnbr),
-                  (long) sum_coefnbr,
-                  overhead2,
-                  (overhead2 - 1.0) * 100.0);
-        sopar->iparm[IPARM_ALLOCATED_TERMS]=sum_max_alloc+sum_coefnbr;
-          }
+            overhead2 = (double)(sum_max_alloc+sum_coefnbr)/(double)(sum_coefnbr);
+            print_one("Total number of terms allocated\t\t Cblk+Ftgt : %10ld,\t Cblk : %10ld,\t Overhead : %.2lf (%.2lf%%)\n",
+                      (long)(sum_max_alloc+sum_coefnbr),
+                      (long) sum_coefnbr,
+                      overhead2,
+                      (overhead2 - 1.0) * 100.0);
+            sopar->iparm[IPARM_ALLOCATED_TERMS]=sum_max_alloc+sum_coefnbr;
         }
+    }
 #endif
 
-  /* free file structures */
-  sopalin_clean(sopalin_data, 1);
+    /* free file structures */
+    sopalin_clean(sopalin_data, 1);
 
 #ifdef PASTIX_DUMP_FACTO
-  API_CALL(dump_all)(datacode, sopar->cscmtx, DUMP_SOLV);
+    API_CALL(dump_all)(datacode, sopar->cscmtx, DUMP_SOLV);
 #endif
 
-  /* Fin des threads de comms et d'OOC */
-  if (THREAD_COMM_ON)
+    /* Fin des threads de comms et d'OOC */
+    if (THREAD_COMM_ON)
     {
-      if ((sopar->iparm[IPARM_END_TASK] == API_TASK_NUMFACT)
-          || (sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0))
+        if ((sopar->iparm[IPARM_END_TASK] == API_TASK_NUMFACT)
+            || (sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0))
         {
-          MUTEX_LOCK(&(sopalin_data->mutex_comm));
-          sopalin_data->step_comm = COMMSTEP_END;
-          print_debug(DBG_THCOMM, "%s:%d END\n", __FILE__, __LINE__);
-          MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-          pthread_cond_broadcast(&(sopalin_data->cond_comm));
+            MUTEX_LOCK(&(sopalin_data->mutex_comm));
+            sopalin_data->step_comm = COMMSTEP_END;
+            print_debug(DBG_THCOMM, "%s:%d END\n", __FILE__, __LINE__);
+            MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+            pthread_cond_broadcast(&(sopalin_data->cond_comm));
         }
     }
 
 #ifdef OOC
-  if (sopalin_data->sopar->iparm[IPARM_END_TASK] < API_TASK_SOLVE)
+    if (sopalin_data->sopar->iparm[IPARM_END_TASK] < API_TASK_SOLVE)
         ooc_stop_thread(sopalin_data);
 #endif
 
-  trace_begin_task(sopalin_data->tracefile,
-                   SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
-                   STATE_L0_IDLE, 0);
+    trace_begin_task(sopalin_data->tracefile,
+                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 0,
+                     STATE_L0_IDLE, 0);
 
-  MONOTHREAD_END;
-  if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-    print_one("%s", OUT2_SOP_ESOP);
+    MONOTHREAD_END;
+    if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        print_one("%s", OUT2_SOP_ESOP);
 
-  if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX)
+    if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX)
         fprintf(stdout, OUT4_FACT_COMM_TIME,
                 (int)SOLV_PROCNUM, (int)me, COMM_CLOCK_GET);
-  return 0;
+    return 0;
 }
 
 /******************************************************************************/
 /*         Fonction pour les threads de communication                         */
 /******************************************************************************/
 /*
-  Function: API_CALL(sopalin_updo_comm)
+ Function: API_CALL(sopalin_updo_comm)
 
-  Updown function used for the communication thread.
+ Updown function used for the communication thread.
 
-  Parameters:
-        arg - Pointer to a data structure <sopthread_data_t> with a
-                  <Sopalin_Data_t> pointer as *data*.
-*/
+ Parameters:
+ arg - Pointer to a data structure <sopthread_data_t> with a
+ <Sopalin_Data_t> pointer as *data*.
+ */
 #define sopalin_updo_comm API_CALL(sopalin_updo_comm)
 void *sopalin_updo_comm ( void *arg )
 {
 #ifndef FORCE_NOMPI
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
-  pastix_int_t               me           = argument->me;
-  if (THREAD_COMM_ON)
+    sopthread_data_t *argument     = (sopthread_data_t *)arg;
+    Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+    SolverMatrix     *datacode     = sopalin_data->datacode;
+    pastix_int_t               me           = argument->me;
+    if (THREAD_COMM_ON)
     {
-      /* Thread_Data_t    *thread_data  = sopalin_data->thread_data[me]; */
+        /* Thread_Data_t    *thread_data  = sopalin_data->thread_data[me]; */
 
-      /* On se met en attente du debut de la descente
-       * ou on quitte si on ne reitere pas */
-      MUTEX_LOCK(&(sopalin_data->mutex_comm));
-      while(1)
+        /* On se met en attente du debut de la descente
+         * ou on quitte si on ne reitere pas */
+        MUTEX_LOCK(&(sopalin_data->mutex_comm));
+        while(1)
         {
-          switch(sopalin_data->step_comm)
+            switch(sopalin_data->step_comm)
             {
-              /* Il n'y a plus de comm */
+                /* Il n'y a plus de comm */
             case COMMSTEP_END:
-              sopalin_data->step_comm = COMMSTEP_INIT;
-              print_debug(DBG_THCOMM, "%s:%d INIT\n", __FILE__, __LINE__);
-              MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-              print_debug(DBG_SOPALIN_THREADCOMM,
-                          "%d : je quitte\n", (int)SOLV_PROCNUM);
-              return (void *)1;
-              break;
+                sopalin_data->step_comm = COMMSTEP_INIT;
+                print_debug(DBG_THCOMM, "%s:%d INIT\n", __FILE__, __LINE__);
+                MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+                print_debug(DBG_SOPALIN_THREADCOMM,
+                            "%d : je quitte\n", (int)SOLV_PROCNUM);
+                return (void *)1;
+                break;
 
-              /* Factorisation */
+                /* Factorisation */
             case COMMSTEP_FACTO:
-              MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-              API_CALL(sendrecv_smp)(arg);
-              /* On ne lance qu'une facto et
-               * le reste ne necessite qu'un thread pour l'instant */
-              if (me > SOLV_THRDNBR) return (void *)1;
-              MUTEX_LOCK(&(sopalin_data->mutex_comm));
-              break;
+                MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+                API_CALL(sendrecv_smp)(arg);
+                /* On ne lance qu'une facto et
+                 * le reste ne necessite qu'un thread pour l'instant */
+                if (me > SOLV_THRDNBR) return (void *)1;
+                MUTEX_LOCK(&(sopalin_data->mutex_comm));
+                break;
 
-              /* Udpo */
+                /* Udpo */
             case COMMSTEP_DOWN:
-              MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-              API_CALL(updo_thread_comm)(arg);
-              MUTEX_LOCK(&(sopalin_data->mutex_comm));
-              break;
+                MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+                API_CALL(updo_thread_comm)(arg);
+                MUTEX_LOCK(&(sopalin_data->mutex_comm));
+                break;
 
-              /* Un AllReduce est a faire en funneled */
+                /* Un AllReduce est a faire en funneled */
             case COMMSTEP_ALLREDUCE:
-              if (THREAD_FUNNELED_ON)
+                if (THREAD_FUNNELED_ON)
                 {
-                  {
-                    Pastix_Allreduce_t *allreduce = &(sopalin_data->allreduce);
-                    MPI_Allreduce(allreduce->sendbuf,
-                                  allreduce->recvbuf,
-                                  allreduce->count,
-                                  allreduce->datatype,
-                                  allreduce->op,
-                                  PASTIX_COMM);
-                    sopalin_data->step_comm = COMMSTEP_INIT;
-                    print_debug(DBG_THCOMM, "%s:%d INIT\n", __FILE__, __LINE__);
-                    pthread_cond_broadcast(&(sopalin_data->cond_comm));
-                  }
-                  break;
+                    {
+                        Pastix_Allreduce_t *allreduce = &(sopalin_data->allreduce);
+                        MPI_Allreduce(allreduce->sendbuf,
+                                      allreduce->recvbuf,
+                                      allreduce->count,
+                                      allreduce->datatype,
+                                      allreduce->op,
+                                      PASTIX_COMM);
+                        sopalin_data->step_comm = COMMSTEP_INIT;
+                        print_debug(DBG_THCOMM, "%s:%d INIT\n", __FILE__, __LINE__);
+                        pthread_cond_broadcast(&(sopalin_data->cond_comm));
+                    }
+                    break;
                 }
             case COMMSTEP_REDUCE:
-              if (THREAD_FUNNELED_ON)
+                if (THREAD_FUNNELED_ON)
                 {
-                  {
-                    Pastix_Allreduce_t *reduce = &(sopalin_data->allreduce);
-                    MPI_Reduce(reduce->sendbuf,
-                               reduce->recvbuf,
-                               reduce->count,
-                               reduce->datatype,
-                               reduce->op,
-                               0,
-                               PASTIX_COMM);
-                    sopalin_data->step_comm = COMMSTEP_INIT;
-                    print_debug(DBG_THCOMM, "%s:%d INIT\n", __FILE__, __LINE__);
-                    pthread_cond_broadcast(&(sopalin_data->cond_comm));
-                  }
-                  break;
+                    {
+                        Pastix_Allreduce_t *reduce = &(sopalin_data->allreduce);
+                        MPI_Reduce(reduce->sendbuf,
+                                   reduce->recvbuf,
+                                   reduce->count,
+                                   reduce->datatype,
+                                   reduce->op,
+                                   0,
+                                   PASTIX_COMM);
+                        sopalin_data->step_comm = COMMSTEP_INIT;
+                        print_debug(DBG_THCOMM, "%s:%d INIT\n", __FILE__, __LINE__);
+                        pthread_cond_broadcast(&(sopalin_data->cond_comm));
+                    }
+                    break;
                 }
-              /* Sortie spontannée du wait */
+                /* Sortie spontannée du wait */
             default:
-              COND_WAIT(&(sopalin_data->cond_comm),
-                        &(sopalin_data->mutex_comm));
+                COND_WAIT(&(sopalin_data->cond_comm),
+                          &(sopalin_data->mutex_comm));
             }
         }
-      MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+        MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
     }
 #endif
-  (void)arg;
-  return (void*)NULL;
+    (void)arg;
+    return (void*)NULL;
 }
 
 /******************************************************************************/
@@ -1347,454 +1357,530 @@ void *sopalin_updo_comm ( void *arg )
 void sopalin_thread(SolverMatrix *m,
                     SopalinParam *sopaparam)
 {
-  Backup b;
-  Sopalin_Data_t *sopalin_data = NULL;
-  SolverMatrix  *datacode = NULL;
+    Backup b;
+    Sopalin_Data_t *sopalin_data = NULL;
+    SolverMatrix  *datacode = NULL;
 
-  MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
+    MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
-  sopalin_backup(m,&b);
-  sopalin_init(sopalin_data, m, sopaparam, 1);
-  API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
+    sopalin_backup(m,&b);
+    sopalin_init(sopalin_data, m, sopaparam, 1);
+    API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
 
-  datacode = sopalin_data->datacode;
+    datacode = sopalin_data->datacode;
 
 #ifdef WITH_STARPU
-  if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
+    if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
-      starpu_submit_tasks(sopalin_data);
+        starpu_submit_tasks(sopalin_data);
     }
-  else
+    else
 #endif
     {
-      sopalin_launch_thread(sopalin_data,
-                            SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree,
-                            sopalin_data->sopar->iparm[IPARM_VERBOSE],
-                            SOLV_THRDNBR,          API_CALL(sopalin_smp),       sopalin_data,
-                            sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
-                            OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
+        sopalin_launch_thread(sopalin_data,
+                              SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree,
+                              sopalin_data->sopar->iparm[IPARM_VERBOSE],
+                              SOLV_THRDNBR,          API_CALL(sopalin_smp),       sopalin_data,
+                              sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
+                              OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
     }
-  sopalin_clean(sopalin_data, 2);
-  sopalin_restore(m,&b);
+    sopalin_clean(sopalin_data, 2);
+    sopalin_restore(m,&b);
 
-  memFree_null(sopalin_data);
+    memFree_null(sopalin_data);
 }
 
 /*
-  Function: sopalin_updo_smp
+ Function: sopalin_updo_smp
 
-  Function used for computing thread creation to compute factorisation and
-  resolution.
+ Function used for computing thread creation to compute factorisation and
+ resolution.
 
-  Parameters:
-        arg - Pointer to a data structure <sopthread_data_t> with a
-                  <Sopalin_Data_t> pointer as *data*.
-*/
+ Parameters:
+ arg - Pointer to a data structure <sopthread_data_t> with a
+ <Sopalin_Data_t> pointer as *data*.
+ */
 void* API_CALL(sopalin_updo_smp)(void *arg)
 {
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  pastix_int_t               me           = argument->me;
+    sopthread_data_t *argument     = (sopthread_data_t *)arg;
+    Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+    pastix_int_t               me           = argument->me;
 
-  API_CALL(sopalin_smp)(argument);
-  if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
-        {
-          if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
-      errorPrintW("Updown incompatible with 2D distribution");
-          return 0;
-        }
+    API_CALL(sopalin_smp)(argument);
+    if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
+    {
+        if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
+            errorPrintW("Updown incompatible with 2D distribution");
+        return 0;
+    }
 
-  MONOTHREAD_BEGIN;
-  sopalin_init(sopalin_data, NULL, NULL, 0);
-  MONOTHREAD_END;
-  API_CALL(up_down_smp)(argument);
+    MONOTHREAD_BEGIN;
+    sopalin_init(sopalin_data, NULL, NULL, 0);
+    MONOTHREAD_END;
+    API_CALL(up_down_smp)(argument);
 
-  return 0;
+    return 0;
 }
 /*
-  Function: API_CALL(sopalin_updo_thread)
+ Function: API_CALL(sopalin_updo_thread)
 
-  Function launching computing, communicating and out of core threads on
-  the factorization and solve steps.
+ Function launching computing, communicating and out of core threads on
+ the factorization and solve steps.
 
-  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
+ Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
-  Parameters:
-        m         - The <SolverMatrix> structure.
-        sopaparam - Sopalin parameters in the <SopalinParam> stucture.
-*/
+ Parameters:
+ m         - The <SolverMatrix> structure.
+ sopaparam - Sopalin parameters in the <SopalinParam> stucture.
+ */
 void API_CALL(sopalin_updo_thread)(SolverMatrix *m,
                                    SopalinParam *sopaparam)
 {
-  Backup b;
-  Sopalin_Data_t *sopalin_data = NULL;
-  SolverMatrix   *datacode = NULL;
+    Backup b;
+    Sopalin_Data_t *sopalin_data = NULL;
+    SolverMatrix   *datacode = NULL;
 
-  MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
+    MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
-  sopalin_backup(m,&b);
-  sopalin_init(sopalin_data, m, sopaparam, 1);
-  API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
-  datacode = sopalin_data->datacode;
+    sopalin_backup(m,&b);
+    sopalin_init(sopalin_data, m, sopaparam, 1);
+    API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
+    datacode = sopalin_data->datacode;
 #ifdef WITH_STARPU
-  if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
+    if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
-      starpu_submit_tasks(sopalin_data);
+        starpu_submit_tasks(sopalin_data);
 
     }
-  else
+    else
 #endif
     {
-      sopalin_launch_thread(sopalin_data,
-                            SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
-                            SOLV_THRDNBR,          API_CALL(sopalin_updo_smp),  sopalin_data,
-                            sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
-                            OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
+        sopalin_launch_thread(sopalin_data,
+                              SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
+                              SOLV_THRDNBR,          API_CALL(sopalin_updo_smp),  sopalin_data,
+                              sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
+                              OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
     }
 
-  sopalin_clean(sopalin_data, 2);
-  sopalin_restore(m,&b);
+    sopalin_clean(sopalin_data, 2);
+    sopalin_restore(m,&b);
 
-  memFree_null(sopalin_data);
+    memFree_null(sopalin_data);
 }
 
 /*
-  Function: API_CALL(sopalin_updo_gmres_smp)
+ Function: API_CALL(sopalin_updo_gmres_smp)
 
-  Function used for computing thread creation to compute factorisation,
-  resolution and gmres.
+ Function used for computing thread creation to compute factorisation,
+ resolution and gmres.
 
-  Parameters:
-        arg - Pointer to a data structure <sopthread_data_t> with a
-                  <Sopalin_Data_t> pointer as *data*.
-*/
+ Parameters:
+ arg - Pointer to a data structure <sopthread_data_t> with a
+ <Sopalin_Data_t> pointer as *data*.
+ */
 void* API_CALL(sopalin_updo_gmres_smp)(void *arg)
 {
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  pastix_int_t               me           = argument->me;
+    sopthread_data_t *argument     = (sopthread_data_t *)arg;
+    Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+    pastix_int_t               me           = argument->me;
 
-  API_CALL(sopalin_smp)(argument);
-  if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
-        {
-          if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
+    API_CALL(sopalin_smp)(argument);
+    if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
+    {
+        if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
             errorPrintW("Updown incompatible with 2D distribution");
-          return 0;
-        }
+        return 0;
+    }
 
-  MONOTHREAD_BEGIN;
-  sopalin_init(sopalin_data, NULL, NULL, 0);
-  MONOTHREAD_END;
-  API_CALL(gmres_smp)(argument);
+    MONOTHREAD_BEGIN;
+    sopalin_init(sopalin_data, NULL, NULL, 0);
+    MONOTHREAD_END;
+    API_CALL(gmres_smp)(argument);
 
-  return 0;
+    return 0;
 }
 /*
-  Function: API_CALL(sopalin_updo_gmres_thread)
+ Function: API_CALL(sopalin_updo_gmres_thread)
 
-  Function launching computing, communicating and out of core threads on
-  the factorization, solve and reffinement (using GMRES) steps.
+ Function launching computing, communicating and out of core threads on
+ the factorization, solve and reffinement (using GMRES) steps.
 
-  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
+ Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
-  Parameters:
-        m         - The <SolverMatrix> structure.
-        sopaparam - Sopalin parameters in the <SopalinParam> stucture.
-*/
+ Parameters:
+ m         - The <SolverMatrix> structure.
+ sopaparam - Sopalin parameters in the <SopalinParam> stucture.
+ */
 void API_CALL(sopalin_updo_gmres_thread)(SolverMatrix *m, SopalinParam *sopaparam)
 {
-  Backup b;
-  Sopalin_Data_t *sopalin_data;
-  SolverMatrix   *datacode = m;
+    Backup b;
+    Sopalin_Data_t *sopalin_data;
+    SolverMatrix   *datacode = m;
 
 
 
-  MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
+    MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
-  sopalin_backup(m,&b);
-  sopalin_init(sopalin_data, m, sopaparam, 1);
-  API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
-  datacode = sopalin_data->datacode;
+    sopalin_backup(m,&b);
+    sopalin_init(sopalin_data, m, sopaparam, 1);
+    API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
+    datacode = sopalin_data->datacode;
 #ifdef WITH_STARPU
-  if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
+    if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
 
-      starpu_submit_tasks(sopalin_data);
+        starpu_submit_tasks(sopalin_data);
 
     }
-  else
+    else
 #endif
     {
-      sopalin_launch_thread(sopalin_data,
-                            SOLV_PROCNUM,          SOLV_PROCNBR,                     datacode->btree,
-                            sopalin_data->sopar->iparm[IPARM_VERBOSE],
-                            SOLV_THRDNBR,          API_CALL(sopalin_updo_gmres_smp), sopalin_data,
-                            sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),      sopalin_data,
-                            OOC_THREAD_NBR,        ooc_thread,                       sopalin_data);
+        sopalin_launch_thread(sopalin_data,
+                              SOLV_PROCNUM,          SOLV_PROCNBR,                     datacode->btree,
+                              sopalin_data->sopar->iparm[IPARM_VERBOSE],
+                              SOLV_THRDNBR,          API_CALL(sopalin_updo_gmres_smp), sopalin_data,
+                              sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),      sopalin_data,
+                              OOC_THREAD_NBR,        ooc_thread,                       sopalin_data);
     }
-  sopalin_clean(sopalin_data, 2);
-  sopalin_restore(m,&b);
+    sopalin_clean(sopalin_data, 2);
+    sopalin_restore(m,&b);
 
-  memFree_null(sopalin_data);
+    memFree_null(sopalin_data);
 }
 
 /*
-  Function: API_CALL(sopalin_updo_grad_smp)
+ Function: API_CALL(sopalin_updo_grad_smp)
 
-  Function used for computing thread creation to compute factorisation,
-  resolution and conjugate gradient.
+ Function used for computing thread creation to compute factorisation,
+ resolution and conjugate gradient.
 
-  Parameters:
-        arg - Pointer to a data structure <sopthread_data_t> with a
-                  <Sopalin_Data_t> pointer as *data*.
-*/
+ Parameters:
+ arg - Pointer to a data structure <sopthread_data_t> with a
+ <Sopalin_Data_t> pointer as *data*.
+ */
 void* API_CALL(sopalin_updo_grad_smp)(void *arg)
 {
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  pastix_int_t               me           = argument->me;
+    sopthread_data_t *argument     = (sopthread_data_t *)arg;
+    Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+    pastix_int_t               me           = argument->me;
 
-  API_CALL(sopalin_smp)(argument);
-  if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
-        {
-          if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
-        errorPrintW("Updown incompatible with 2D distribution");
-          return 0;
-        }
+    API_CALL(sopalin_smp)(argument);
+    if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
+    {
+        if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
+            errorPrintW("Updown incompatible with 2D distribution");
+        return 0;
+    }
 
-  MONOTHREAD_BEGIN;
-  sopalin_init(sopalin_data, NULL, NULL, 0);
-  MONOTHREAD_END;
-  API_CALL(up_down_smp)(argument);
-  API_CALL(grad_smp)   (argument);
+    MONOTHREAD_BEGIN;
+    sopalin_init(sopalin_data, NULL, NULL, 0);
+    MONOTHREAD_END;
+    API_CALL(up_down_smp)(argument);
+    API_CALL(grad_smp)   (argument);
 
-  return 0;
+    return 0;
 }
 
 /*
-  Function: API_CALL(sopalin_updo_grad_thread)
+ Function: API_CALL(sopalin_updo_grad_thread)
 
-  Function launching computing, communicating and out of core threads on
-  the factorization, solve and reffinement (using conjugate grandient) steps.
+ Function launching computing, communicating and out of core threads on
+ the factorization, solve and reffinement (using conjugate grandient) steps.
 
-  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
+ Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
-  Parameters:
-        m         - The <SolverMatrix> structure.
-        sopaparam - Sopalin parameters in the <SopalinParam> stucture.
-*/
+ Parameters:
+ m         - The <SolverMatrix> structure.
+ sopaparam - Sopalin parameters in the <SopalinParam> stucture.
+ */
 void API_CALL(sopalin_updo_grad_thread)(SolverMatrix *m, SopalinParam *sopaparam)
 {
-  Backup b;
-  Sopalin_Data_t *sopalin_data = NULL;
-  SolverMatrix   *datacode = NULL;
+    Backup b;
+    Sopalin_Data_t *sopalin_data = NULL;
+    SolverMatrix   *datacode = NULL;
 
-  MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
+    MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
-  sopalin_backup(m,&b);
-  sopalin_init(sopalin_data, m, sopaparam, 1);
-  API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
-  datacode = sopalin_data->datacode;
+    sopalin_backup(m,&b);
+    sopalin_init(sopalin_data, m, sopaparam, 1);
+    API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
+    datacode = sopalin_data->datacode;
 #ifdef WITH_STARPU
-  if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
+    if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
 
-      starpu_submit_tasks(sopalin_data);
+        starpu_submit_tasks(sopalin_data);
 
     }
-  else
+    else
 #endif
     {
-      sopalin_launch_thread(sopalin_data,
-                            SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
-                            SOLV_THRDNBR,          API_CALL(sopalin_updo_grad_smp), sopalin_data,
-                            sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),     sopalin_data,
-                            OOC_THREAD_NBR,        ooc_thread,                      sopalin_data);
+        sopalin_launch_thread(sopalin_data,
+                              SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
+                              SOLV_THRDNBR,          API_CALL(sopalin_updo_grad_smp), sopalin_data,
+                              sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),     sopalin_data,
+                              OOC_THREAD_NBR,        ooc_thread,                      sopalin_data);
     }
-  sopalin_clean(sopalin_data, 2);
-  sopalin_restore(m,&b);
+    sopalin_clean(sopalin_data, 2);
+    sopalin_restore(m,&b);
 
-  memFree_null(sopalin_data);
+    memFree_null(sopalin_data);
 }
 
 /*
-  Function: API_CALL(sopalin_updo_pivot_smp)
+ Function: API_CALL(sopalin_updo_pivot_smp)
 
-  Function used for computing thread creation to compute factorisation,
-  resolution and pivoting refinement.
+ Function used for computing thread creation to compute factorisation,
+ resolution and pivoting refinement.
 
-  Parameters:
-        arg - Pointer to a data structure <sopthread_data_t> with a
-                  <Sopalin_Data_t> pointer as *data*.
-*/
+ Parameters:
+ arg - Pointer to a data structure <sopthread_data_t> with a
+ <Sopalin_Data_t> pointer as *data*.
+ */
 void* API_CALL(sopalin_updo_pivot_smp)(void *arg)
 {
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  pastix_int_t               me           = argument->me;
+    sopthread_data_t *argument     = (sopthread_data_t *)arg;
+    Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+    pastix_int_t               me           = argument->me;
 
-  API_CALL(sopalin_smp)(argument);
-  if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
-        {
-          if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
-        errorPrintW("Updown incompatible with 2D distribution");
-          return 0;
-        }
+    API_CALL(sopalin_smp)(argument);
+    if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
+    {
+        if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
+            errorPrintW("Updown incompatible with 2D distribution");
+        return 0;
+    }
 
-  MONOTHREAD_BEGIN;
-  sopalin_init(sopalin_data, NULL, NULL, 0);
-  MONOTHREAD_END;
-  API_CALL(up_down_smp)(argument);
-  API_CALL(pivotstatique_smp)(argument);
+    MONOTHREAD_BEGIN;
+    sopalin_init(sopalin_data, NULL, NULL, 0);
+    MONOTHREAD_END;
+    API_CALL(up_down_smp)(argument);
+    API_CALL(pivotstatique_smp)(argument);
 
-  return 0;
+    return 0;
 }
 
 /*
-  Function: API_CALL(sopalin_updo_pivot_thread)
+ Function: API_CALL(sopalin_updo_pivot_thread)
 
-  Function launching computing, communicating and out of core threads on
-  the factorization, solve and reffinement (using pivoting refinement) steps.
+ Function launching computing, communicating and out of core threads on
+ the factorization, solve and reffinement (using pivoting refinement) steps.
 
-  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
+ Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
-  Parameters:
-        m         - The <SolverMatrix> structure.
-        sopaparam - Sopalin parameters in the <SopalinParam> stucture.
-*/
+ Parameters:
+ m         - The <SolverMatrix> structure.
+ sopaparam - Sopalin parameters in the <SopalinParam> stucture.
+ */
 void API_CALL(sopalin_updo_pivot_thread)(SolverMatrix *m, SopalinParam *sopaparam)
 {
-  Backup b;
-  Sopalin_Data_t *sopalin_data = NULL;
-  SolverMatrix   *datacode = NULL;
+    Backup b;
+    Sopalin_Data_t *sopalin_data = NULL;
+    SolverMatrix   *datacode = NULL;
 
-  MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
+    MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
-  sopalin_backup(m,&b);
-  sopalin_init(sopalin_data, m, sopaparam, 1);
-  datacode = sopalin_data->datacode;
+    sopalin_backup(m,&b);
+    sopalin_init(sopalin_data, m, sopaparam, 1);
+    datacode = sopalin_data->datacode;
 #ifdef WITH_STARPU
-  if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
+    if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
 
-      starpu_submit_tasks(sopalin_data);
+        starpu_submit_tasks(sopalin_data);
 
     }
-  else
+    else
 #endif
     {
-      sopalin_launch_thread(sopalin_data,
-                            SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
-                            SOLV_THRDNBR,          API_CALL(sopalin_updo_pivot_smp), sopalin_data,
-                            sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),      sopalin_data,
-                            OOC_THREAD_NBR,        ooc_thread,                       sopalin_data);
+        sopalin_launch_thread(sopalin_data,
+                              SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
+                              SOLV_THRDNBR,          API_CALL(sopalin_updo_pivot_smp), sopalin_data,
+                              sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),      sopalin_data,
+                              OOC_THREAD_NBR,        ooc_thread,                       sopalin_data);
     }
-  sopalin_clean(sopalin_data, 2);
-  sopalin_restore(m,&b);
+    sopalin_clean(sopalin_data, 2);
+    sopalin_restore(m,&b);
+}
+
+
+/*
+ Function: API_CALL(sopalin_updo_bicgstab_smp)
+
+ Function used for computing thread creation to compute factorisation,
+ resolution and bicgstab refinement.
+
+ Parameters:
+ arg - Pointer to a data structure <sopthread_data_t> with a
+ <Sopalin_Data_t> pointer as *data*.
+ */
+void* API_CALL(sopalin_updo_bicgstab_smp)(void *arg)
+{
+    sopthread_data_t *argument     = (sopthread_data_t *)arg;
+    Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+    pastix_int_t               me           = argument->me;
+
+    API_CALL(sopalin_smp)(argument);
+    if (sopalin_data->sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
+    {
+        if ((sopalin_data->datacode->clustnum == 0) && (me == 0))
+            errorPrintW("Updown incompatible with 2D distribution");
+        return 0;
+    }
+
+    MONOTHREAD_BEGIN;
+    sopalin_init(sopalin_data, NULL, NULL, 0);
+    MONOTHREAD_END;
+    API_CALL(up_down_smp)(argument);
+    API_CALL(bicgstab_smp)(argument);
+
+    return 0;
+}
+/*
+ Function: API_CALL(sopalin_updo_bicgstab_thread)
+
+ Function launching computing, communicating and out of core threads on
+ the factorization, solve and reffinement (using bicgstab refinement) steps.
+
+ Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
+
+ Parameters:
+ m         - The <SolverMatrix> structure.
+ sopaparam - Sopalin parameters in the <SopalinParam> stucture.
+ */
+void API_CALL(sopalin_updo_bicgstab_thread)(SolverMatrix *m, SopalinParam *sopaparam)
+{
+    Backup b;
+    Sopalin_Data_t *sopalin_data = NULL;
+    SolverMatrix   *datacode = NULL;
+
+    MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
+
+    sopalin_backup(m,&b);
+    sopalin_init(sopalin_data, m, sopaparam, 1);
+    datacode = sopalin_data->datacode;
+#ifdef WITH_STARPU
+    if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
+    {
+
+        starpu_submit_tasks(sopalin_data);
+
+    }
+    else
+#endif
+    {
+        sopalin_launch_thread(sopalin_data,
+                              SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
+                              SOLV_THRDNBR,          API_CALL(sopalin_updo_bicgstab_smp), sopalin_data,
+                              sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),      sopalin_data,
+                              OOC_THREAD_NBR,        ooc_thread,                       sopalin_data);
+    }
+    sopalin_clean(sopalin_data, 2);
+    sopalin_restore(m,&b);
 }
 
 /*
-  Function: API_CALL(sopalin_launch)
+ Function: API_CALL(sopalin_launch)
 
-  TODO: Comment (unused ?)
+ TODO: Comment (unused ?)
  */
 void API_CALL(sopalin_launch)(SolverMatrix *m,
-                                  SopalinParam *sopaparam,
-                                  pastix_int_t cas)
+                              SopalinParam *sopaparam,
+                              pastix_int_t cas)
 {
-  Backup b;
-  Sopalin_Data_t *sopalin_data = NULL;
-  SolverMatrix   *datacode     = NULL;
+    Backup b;
+    Sopalin_Data_t *sopalin_data = NULL;
+    SolverMatrix   *datacode     = NULL;
 
-  MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
+    MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
-  if (cas < UPDO_ONLY)
-        {
-          sopalin_backup(m,&b);
-          sopalin_init(sopalin_data, m, sopaparam, 1);
-          API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
-        }
-  else
-        {
-          sopalin_init(sopalin_data, m, sopaparam, 0);
-        }
+    if (cas < UPDO_ONLY)
+    {
+        sopalin_backup(m,&b);
+        sopalin_init(sopalin_data, m, sopaparam, 1);
+        API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
+    }
+    else
+    {
+        sopalin_init(sopalin_data, m, sopaparam, 0);
+    }
 
-  datacode = sopalin_data->datacode;
-  switch(cas){
-  case SOPALIN_ONLY:
+    datacode = sopalin_data->datacode;
+    switch(cas){
+    case SOPALIN_ONLY:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(sopalin_smp),       sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
         break;
-  case SOPALIN_UPDO:
+    case SOPALIN_UPDO:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(sopalin_updo_smp),  sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
         break;
-  case SOPALIN_UPDO_GMRES:
+    case SOPALIN_UPDO_GMRES:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(sopalin_updo_gmres_smp), sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),      sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                       sopalin_data);
         break;
-  case SOPALIN_UPDO_GRAD:
+    case SOPALIN_UPDO_GRAD:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(sopalin_updo_grad_smp), sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),     sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                      sopalin_data);
         break;
-  case SOPALIN_UPDO_PIVOT:
+    case SOPALIN_UPDO_PIVOT:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(sopalin_updo_pivot_smp), sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm),      sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                       sopalin_data);
         break;
-  case UPDO_ONLY:
+    case UPDO_ONLY:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(up_down_smp),       sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
         break;
-  case RAFF_GMRES:
+    case RAFF_GMRES:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(gmres_smp),         sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
         break;
-  case RAFF_GRAD:
+    case RAFF_GRAD:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(grad_smp),          sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
         break;
-  case RAFF_PIVOT:
+    case RAFF_PIVOT:
         sopalin_launch_thread(sopalin_data,
                               SOLV_PROCNUM, SOLV_PROCNBR, datacode->btree, sopalin_data->sopar->iparm[IPARM_VERBOSE],
                               SOLV_THRDNBR,          API_CALL(pivotstatique_smp), sopalin_data,
                               sopaparam->nbthrdcomm, API_CALL(sopalin_updo_comm), sopalin_data,
                               OOC_THREAD_NBR,        ooc_thread,                  sopalin_data);
         break;
-  default:
+    default:
         if( SOLV_PROCNUM == 0 )
-          {
-        errorPrint("undefined case.");
-        EXIT(MOD_SOPALIN,BADPARAMETER_ERR);
-          }
-  }
+        {
+            errorPrint("undefined case.");
+            EXIT(MOD_SOPALIN,BADPARAMETER_ERR);
+        }
+    }
 
-  sopalin_clean(sopalin_data, 2);
-  if (cas < UPDO_ONLY)
-          sopalin_restore(m,&b);
+    sopalin_clean(sopalin_data, 2);
+    if (cas < UPDO_ONLY)
+        sopalin_restore(m,&b);
 
-  memFree_null(sopalin_data);
+    memFree_null(sopalin_data);
 }

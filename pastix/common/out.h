@@ -33,7 +33,7 @@
 #define OUT_OPT_FUN           "        THREAD_FUNNELED     :                   %s\n"
 #define OUT_OPT_TAG           "        TAG                 :                   %s\n"
 #define OUT_OPT_OOC           "        OUT_OF_CORE         :                   %s\n"
-#define OUT_OPT_DIST          "        PASTIX_DISTRIBUTED         :                   %s\n"
+#define OUT_OPT_DIST          "        PASTIX_DISTRIBUTED  :                   %s\n"
 #define OUT_OPT_FORCE         "        FORCE_CONSO         :                   %s\n"
 #define OUT_OPT_RFOB          "        RECV_FANIN_OR_BLOCK :                   %s\n"
 #define OUT_OPT_METIS         "        METIS               :                   %s\n"
@@ -110,11 +110,13 @@
 #define OOC_MAX_ALLOCATED     "   [%2d]   Maximum allocated                     %.3g %s\n"
 #define OUT_ITERRAFF_GMRES    "   GMRES :\n"
 #define OUT_ITERRAFF_PIVOT    "   Simple refinement :\n"
+#define OUT_ITERRAFF_BICGSTAB  "   BICGSTAB :\n"
 #define OUT_ITERRAFF_GRAD     "   Conjuguate gradient :\n"
 #define OUT_ITERRAFF_ITER     "    - iteration %d :\n"
 #define OUT_ITERRAFF_TTS      "         time to solve                          %.3g s\n"
 #define OUT_ITERRAFF_TTT      "         total iteration time                   %.3g s\n"
 #define OUT_ITERRAFF_ERR      "         error                                  %.5g  \n"
+#define OUT_ITERRAFF_NORMA    "         ||A||                                  %.5g  \n"
 #define OUT_ITERRAFF_NORMR    "         ||r||                                  %.5g  \n"
 #define OUT_ITERRAFF_NORMB    "         ||b||                                  %.5g  \n"
 #define OUT_ITERRAFF_BDIVR    "         ||r||/||b||                            %.5g  \n"
@@ -129,8 +131,11 @@
 #define OUT_INERTIA_PIVOT     "   Inertia (NB: with pivoting)                  %ld\n"
 #define OUT_ESP_NBTASKS       "   Number of tasks added by esp                 %ld\n"
 #define OUT_TIME_FACT         "   Time to factorize                            %.3g s\n"
+#define OUT_FLOPS_FACT        "   FLOPS during factorization                   %.5g %s\n"
 #define OUT_TIME_SOLV         "   Time to solve                                %.3g s\n"
-#define OUT_RAFF_ITER_NORM    "   Refinement                                   %ld iterations, norm=%g\n"
+#define OUT_RAFF_ITER_NORM    "   Refinement                                   %ld iterations, norm=%.3g\n"
+#define OUT_PREC1             "   ||b-Ax||/||b||                               %.3g\n"
+#define OUT_PREC2             "   max_i(|b-Ax|_i/(|b| + |A||x|)_i              %.3g\n"
 #define OUT_TIME_RAFF         "   Time for refinement                          %.3g s\n"
 #define OUT_END               " +--------------------------------------------------------------------+\n"
 
@@ -139,4 +144,34 @@
  */
 #define pastix_print(mpirank, thrdrank, fmt, ...) do { if((mpirank == 0) && (thrdrank == 0)) fprintf(stdout, fmt, ##__VA_ARGS__); } while(0)
 
+
+#define MEMORY_WRITE(mem) ( ((mem) < 1<<10) ?                           \
+                            ( (double)(mem) ) :                         \
+                            ( ( (mem) < 1<<20 ) ?                       \
+                              ( (double)(mem)/(double)(1<<10) ) :       \
+                              ( ((mem) < 1<<30 ) ?                      \
+                                ( (double)(mem)/(double)(1<<20) ) :     \
+                                ( (double)(mem)/(double)(1<<30) ))))
+#define MEMORY_UNIT_WRITE(mem) (((mem) < 1<<10) ?                       \
+                                "o" :                                   \
+                                ( ( (mem) < 1<<20 ) ?                   \
+                                  "Ko" :                                \
+                                  ( ( (mem) < 1<<30 ) ?                 \
+                                    "Mo" :                              \
+                                    "Go" )))
+
+#define PRINT_FLOPS(flops) ( ((flops) < 1<<10) ?                        \
+                             ( (double)(flops) ) :                      \
+                             ( ( (flops) < 1<<20 ) ?                    \
+                               ( (double)(flops)/(double)(1<<10) ) :    \
+                               ( ((flops) < 1<<30 ) ?                   \
+                                 ( (double)(flops)/(double)(1<<20) ) :  \
+                                 ( (double)(flops)/(double)(1<<30) ))))
+#define PRINT_FLOPS_UNIT(flops) ( ((flops) < 1<<10) ?                   \
+                                  ( "FLOPS" ) :                         \
+                                  ( ( (flops) < 1<<20 ) ?               \
+                                    ( "KFLOPS" ) :                      \
+                                    ( ((flops) < 1<<30 ) ?              \
+                                      ( "MFLOPS" ) :                    \
+                                      ( "GFLOPS" ))))
 #endif /* _OUT_H_ */

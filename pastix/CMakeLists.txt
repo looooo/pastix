@@ -479,7 +479,7 @@ endmacro()
 
 set(generated_files "")
 solver_rules( generated_files
-  "sopalin/sopalin3d.c;sopalin/csc_intern_compute.c"
+  "sopalin/sopalin3d.c;sopalin/csc_intern_compute.c;sopalin/raff_functions.c"
 )
 
 #

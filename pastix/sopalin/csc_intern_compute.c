@@ -35,15 +35,14 @@
 
   Floating point constant equal to one.
 */
-#ifdef SMP_RAFF
 static pastix_int_t   iun   = 1;
+#ifdef SMP_RAFF
 static pastix_float_t fun   = 1.0;
 #endif
 
 #ifdef DEBUG_RAFF
 #define CSC_LOG
 #endif
-#define SYNCHRO_THREAD SYNCHRO_X_THREAD(SOLV_THRDNBR, sopalin_data->barrier)
 
 /* gradient complex sans CONJ */
 /* Section: Macros */
@@ -800,7 +799,7 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
 
 #ifdef SMP_RAFF
   MONOTHREAD_BEGIN;
-  sopalin_data->common_flt[0] = 0.0;
+  sopalin_data->common_dbl[0] = 0.0;
   MONOTHREAD_END;
   SYNCHRO_THREAD;
   step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
@@ -812,38 +811,40 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
 
   for (itersmx=0; itersmx<smxnbr; itersmx++)
     {
-      first2 = first + itersmx*colnbr;
-      last2  = last  + itersmx*colnbr;
-      berr2  = ABS_FLOAT(r[first]/s[first]);
+      if (colnbr > 0) {
+        first2 = first + itersmx*colnbr;
+        last2  = last  + itersmx*colnbr;
+        berr2  = ABS_FLOAT(r[first]/s[first]);
 
-      for (iter=first2+1; iter<last2; iter++)
-        {
+        for (iter=first2+1; iter<last2; iter++) {
           if (ABS_FLOAT(r[iter]/s[iter]) > berr2)
             berr2 = ABS_FLOAT(r[iter]/s[iter]);
         }
-
+      } else {
+        berr2 = 0.0;
+      }
       /* calcul du max entre les threads */
 #ifdef SMP_RAFF
 
       MUTEX_LOCK(&sopalin_data->mutex_raff);
-      if (berr2 > sopalin_data->common_flt[0])
-  sopalin_data->common_flt[0] = berr2;
+      if (berr2 > sopalin_data->common_dbl[0])
+        sopalin_data->common_dbl[0] = berr2;
       MUTEX_UNLOCK(&sopalin_data->mutex_raff);
 
       /* Le thread 0 attend que ttes les contributions soient là */
       SYNCHRO_THREAD;
       MONOTHREAD_BEGIN;
-      berr2 = sopalin_data->common_flt[0];
+      berr2 = sopalin_data->common_dbl[0];
 #endif /* SMP_RAFF */
 
       MyMPI_Allreduce(&berr2, berr, 1, MPI_DOUBLE, MPI_MAX, comm);
 
       /* On s'assure que les threads on tous la mÃªme valeur */
 #ifdef SMP_RAFF
-      sopalin_data->common_flt[0] = *berr;
+      sopalin_data->common_dbl[0] = *berr;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      *berr = sopalin_data->common_flt[0];
+      *berr = sopalin_data->common_dbl[0];
 #endif /* SMP_RAFF */
 
       if (*berr > berrmax)
@@ -931,15 +932,15 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
 
       /* En SMP reduction du resultat sur les threads */
 #ifdef SMP_RAFF
-      sopalin_data->common_flt[me]              = rnorm;
-      sopalin_data->common_flt[me+SOLV_THRDNBR] = bnorm;
+      sopalin_data->common_dbl[me]              = rnorm;
+      sopalin_data->common_dbl[me+SOLV_THRDNBR] = bnorm;
 
       SYNCHRO_THREAD;
       MONOTHREAD_BEGIN;
       for (iter = 1; iter < SOLV_THRDNBR; iter++)
         {
-          rnorm += sopalin_data->common_flt[iter];
-          bnorm += sopalin_data->common_flt[iter+SOLV_THRDNBR];
+          rnorm += sopalin_data->common_dbl[iter];
+          bnorm += sopalin_data->common_dbl[iter+SOLV_THRDNBR];
         }
 #endif /* SMP_RAFF */
 
@@ -955,12 +956,12 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
 
       /* on broadast rnorm et bnorm sur tous les threads */
 #ifdef SMP_RAFF
-      sopalin_data->common_flt[0] = rnorm;
-      sopalin_data->common_flt[1] = bnorm;
+      sopalin_data->common_dbl[0] = rnorm;
+      sopalin_data->common_dbl[1] = bnorm;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      rnorm = sopalin_data->common_flt[0];
-      bnorm = sopalin_data->common_flt[1];
+      rnorm = sopalin_data->common_dbl[0];
+      bnorm = sopalin_data->common_dbl[1];
 #endif /* SMP_RAFF */
 
       if ((rnorm/bnorm)>(rnormax/bnormax))
@@ -979,6 +980,109 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
 
   return sqrt(rnorm/bnorm);
 }
+
+
+/*
+ * Function: CscNormFro
+ *
+ * Computes the norm 2 of x
+ *
+ * This Function is multithreaded, each thread will compute a part of the norm,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   x            - vector from which the norm 2 is computed.
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+double CscNormFro(Sopalin_Data_t       *sopalin_data,
+                  int                   me,
+                  const volatile pastix_float_t *x,
+                  const pastix_int_t             colnbr,
+                  const pastix_int_t             smxnbr,
+                  MPI_Comm              comm)
+{
+  SolverMatrix *datacode;
+  pastix_int_t first,  last;
+  pastix_int_t first2, last2;
+  pastix_int_t iter;
+  pastix_int_t itersmx;
+  pastix_int_t step;
+  double xnorm = 0.0;
+#ifndef INOUT_ALLREDUCE
+  double xnorm2 = 0.0;
+#endif
+  (void)comm;
+
+#ifdef CSC_LOG
+  fprintf(stdout, "-> CscNormFro \n");
+#endif
+
+  datacode  = sopalin_data->datacode;
+
+#ifdef SMP_RAFF
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+#else
+  step  = colnbr;
+#endif
+  first = me * step;
+  last  = MIN(colnbr, (me+1) * step);
+
+  for (itersmx=0; itersmx<smxnbr; itersmx++)
+    {
+      /* Produit scalaire sur les donnÃ©es locales au thread */
+      first2 = first + itersmx*colnbr;
+      last2  = last  + itersmx*colnbr;
+      for (iter=first2; iter<last2; iter++)
+        {
+#ifdef CPLX
+          xnorm += (double)(x[iter]*conj(x[iter]));
+#else  /* CPLX */
+          xnorm += x[iter]*x[iter];
+#endif /* CPLX */
+        }
+
+      /* En SMP reduction du resultat sur les threads */
+#ifdef SMP_RAFF
+      sopalin_data->common_dbl[me]              = xnorm;
+
+      SYNCHRO_THREAD;
+      MONOTHREAD_BEGIN;
+      for (iter = 1; iter < SOLV_THRDNBR; iter++)
+        {
+          xnorm += sopalin_data->common_dbl[iter];
+        }
+#endif /* SMP_RAFF */
+
+#ifdef INOUT_ALLREDUCE
+      MyMPI_Allreduce(&xnorm, &xnorm,  1, MPI_DOUBLE, MPI_SUM, comm);
+#else
+      MyMPI_Allreduce(&xnorm, &xnorm2, 1, MPI_DOUBLE, MPI_SUM, comm);
+      xnorm = xnorm2;
+#endif /* INOUT_ALLREDUCE */
+
+      /* on broadast rnorm et bnorm sur tous les threads */
+#ifdef SMP_RAFF
+      /* to avoid conflict with an other Norm computation,
+       * we use commone_dbl[SOLV_THRDNBR] */
+      sopalin_data->common_dbl[SOLV_THRDNBR] = xnorm;
+      MONOTHREAD_END;
+      SYNCHRO_THREAD;
+      xnorm = sopalin_data->common_dbl[SOLV_THRDNBR];
+#endif /* SMP_RAFF */
+
+    }
+
+#ifdef CSC_LOG
+  fprintf(stdout, "<- CscNormFro \n");
+#endif
+
+  return sqrt(xnorm);
+}
+
 
 /*
  * Function: CscAx
@@ -1187,114 +1291,6 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
 #endif
 }
 
-/*
-  Function: CscGradAlpha
-
-  Computes the scalar product of *r* with *z*,
-  then the scalar product of *x* with *p*
-  and finaly store the quotient in *alpha*.
-
-  Multi-threaded in SMP_RAFF mode.
-
-  Parameters:
-    sopalin_data - Gloabal PaStiX data structure.
-    me           - Thread ID.
-    r            - A vector of size *colnbr* times *smxnbr*.
-    z            - A vector of size *colnbr* times *smxnbr*.
-    x            - A vector of size *colnbr* times *smxnbr*.
-    p            - A vector of size *colnbr* times *smxnbr*.
-    colnbr       - Number of unkowns.
-    smxnbr       - Number of right-hand-side members.
-    alpha        - Float which will store the computation result.
-    comm         - MPI communicator.
-*/
-void CscGradAlpha(Sopalin_Data_t       *sopalin_data,
-                  int                   me,
-                  const volatile pastix_float_t *r,
-                  const volatile pastix_float_t *z,
-                  const volatile pastix_float_t *x,
-                  const volatile pastix_float_t *p,
-                  pastix_int_t                   colnbr,
-                  pastix_int_t                   smxnbr,
-                  double               *alpha,
-                  MPI_Comm              comm)
-{
-  SolverMatrix *datacode;
-  pastix_int_t first,  last;
-  pastix_int_t step;
-  pastix_int_t itersmx;
-  pastix_int_t iter     = 0;
-  double up    = 0.0;
-  double down  = 0.0;
-#ifndef INOUT_ALLREDUCE
-  double up2   = 0.0;
-  double down2 = 0.0;
-#endif
-  (void)comm;
-
-#ifdef CSC_LOG
-  fprintf(stdout, "-> CscGradAlpha \n");
-#endif
-
-  datacode  = sopalin_data->datacode;
-
-#ifdef NOSMP_RAFF
-  step  = colnbr;
-#else
-  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
-#endif
-  first = me * step;
-  last  = MIN(colnbr, (me+1) * step);
-
-  for (itersmx=0; itersmx<smxnbr; itersmx++)
-    {
-      /* Produit scalaire sur les donnees locales au thread */
-      /* up   = <r,z> */
-      /* down = <x,p> */
-      for (iter=first; iter<last; iter++)
-        {
-          up   += (double)(r[iter]*CONJ_JJP(z[iter]));
-          down += (double)(x[iter]*CONJ_JJP(p[iter]));
-        }
-
-      /* En SMP reduction du resultat sur les threads */
-#ifdef SMP_RAFF
-      sopalin_data->common_flt[me]              = up;
-      sopalin_data->common_flt[SOLV_THRDNBR+me] = down;
-
-      SYNCHRO_THREAD;
-      MONOTHREAD_BEGIN;
-      for (iter = 1; iter < SOLV_THRDNBR; iter++)
-        {
-          up   += sopalin_data->common_flt[iter];
-          down += sopalin_data->common_flt[iter+SOLV_THRDNBR];
-        }
-#endif /* SMP_RAFF */
-
-#ifdef INOUT_ALLREDUCE
-      MyMPI_Allreduce((void*)&up,  (void*)&up,   1, MPI_DOUBLE, MPI_SUM, comm);
-      MyMPI_Allreduce((void*)&down,(void*)&down, 1, MPI_DOUBLE, MPI_SUM, comm);
-#else
-      MyMPI_Allreduce((void*)&up,  (void*)&up2,  1, MPI_DOUBLE, MPI_SUM, comm);
-      MyMPI_Allreduce((void*)&down,(void*)&down2,1, MPI_DOUBLE, MPI_SUM, comm);
-      up   = up2;
-      down = down2;
-#endif
-
-      alpha[itersmx] = (up/down);
-
-#ifdef SMP_RAFF
-      MONOTHREAD_END;
-      SYNCHRO_THREAD;
-#endif
-      up   = 0;
-      down = 0;
-    }
-
-#ifdef CSC_LOG
-  fprintf(stdout, "<- CscGradAlpha \n");
-#endif
-}
 
 /*
   Function: CscGradBeta
@@ -1341,6 +1337,10 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
 
   datacode  = sopalin_data->datacode;
 
+  MONOTHREAD_BEGIN;
+  memset( beta, 0, smxnbr*sizeof(pastix_float_t) );
+  MONOTHREAD_END;
+
 #ifdef SMP_RAFF
   step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
 #else
@@ -1356,7 +1356,8 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
       last2  = last  + itersmx*colnbr;
       for (iter=first2; iter<last2; iter++)
         {
-          up += (r[iter]*CONJ_JJP(z[iter]));
+          /* up = up + (r[iter]*CONJ_FLOAT(z[iter])); Utilisé pour GRAD et BICGSTAB en complexe? */
+          up = up + (r[iter]*CONJ_JJP(z[iter]));
         }
 
       /* En SMP reduction du resultat sur les threads */
@@ -1370,9 +1371,9 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
 #endif /* SMP_RAFF */
 
 #ifdef INOUT_ALLREDUCE
-      MyMPI_Allreduce((void*)&up, (void*)&up,  1, COMM_FLOAT, MPI_SUM, comm);
+      MyMPI_Allreduce((void*)&up, (void*)&up,  1, COMM_FLOAT, COMM_SUM, comm);
 #else
-      MyMPI_Allreduce((void*)&up, (void*)&up2, 1, COMM_FLOAT, MPI_SUM, comm);
+      MyMPI_Allreduce((void*)&up, (void*)&up2, 1, COMM_FLOAT, COMM_SUM, comm);
       up = up2;
 #endif
 
@@ -1391,28 +1392,30 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
 }
 
 /*
-  Function: CscGmresBeta
-
-  Computes the scalar product between *r* and *z*
-  and store the result in *beta*.
-
-  Parameters:
-    sopalin_data - PaStiX data structure.
-    me           - Thread ID.
-    r            - first vector of size *colnbr* times *smxnbr*.
-    z            - second vector of size *colnbr* times *smxnbr*.a
-    colnbr       - Number of unknowns.
-    smxnbr       - Number of right-hand-side members.
-    beta         - Float which will store the solution.
-    comm         - MPI communicator.
-*/
+ * Function: CscGmresBeta
+ *
+ * Computes the scalar product between *r* and *z*
+ * and store the result in *beta*.
+ *
+ * beta is only correct on thread 0
+ *
+ * Parameters:
+ *   sopalin_data - PaStiX data structure.
+ *   me           - Thread ID.
+ *   r            - first vector of size *colnbr* times *smxnbr*.
+ *   z            - second vector of size *colnbr* times *smxnbr*.a
+ *   colnbr       - Number of unknowns.
+ *   smxnbr       - Number of right-hand-side members.
+ *   beta         - Float which will store the solution.
+ *   comm         - MPI communicator.
+ */
 void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
                   int                   me,
                   const volatile pastix_float_t *r,
                   const volatile pastix_float_t *z,
                   pastix_int_t                   colnbr,
                   pastix_int_t                   smxnbr,
-                  double               *beta,
+                  pastix_float_t               *beta,
                   MPI_Comm              comm)
 {
   SolverMatrix *  datacode;
@@ -1421,9 +1424,9 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
   pastix_int_t   step;
   pastix_int_t   itersmx;
   pastix_int_t   iter = 0;
-  double up   = 0.0;
+  pastix_float_t up   = 0.0;
 #ifndef INOUT_ALLREDUCE
-  double up2  = 0.0;
+  pastix_float_t up2  = 0.0;
 #endif
   (void)comm;
 
@@ -1469,7 +1472,7 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
       last2  = last  + itersmx*colnbr;
       for (iter=first2; iter<last2; iter++)
         {
-          up += (double)(r[iter]*CONJ_FLOAT(z[iter]));
+          up = up + (r[iter]*CONJ_FLOAT(z[iter]));
         }
 
       /* En SMP reduction du resultat sur les threads */
@@ -1480,35 +1483,188 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
       SYNCHRO_THREAD;
       MONOTHREAD_BEGIN;
       for (iter = 1; iter < SOLV_THRDNBR; iter++)
-        up += (double)(sopalin_data->common_flt[iter]);
+        up = up + (sopalin_data->common_flt[iter]);
 
 
 #endif /* SMP_RAFF */
 
       /* Reduction en MPI */
 #ifdef INOUT_ALLREDUCE
-      MyMPI_Allreduce((void*)&up, (void*)&up,  1, MPI_DOUBLE, MPI_SUM, comm);
+      MyMPI_Allreduce((void*)&up, (void*)&up,  1, COMM_FLOAT, COMM_SUM, comm);
 #else
-      MyMPI_Allreduce((void*)&up, (void*)&up2, 1, MPI_DOUBLE, MPI_SUM, comm);
+      MyMPI_Allreduce((void*)&up, (void*)&up2, 1, COMM_FLOAT, COMM_SUM, comm);
       up = up2;
 #endif
       /* on s'assure que tous les threads aient la bonne valeur de up */
-#ifdef SMP_RAFF
-      sopalin_data->common_flt[0]  = up;
-      MONOTHREAD_END;
-      SYNCHRO_THREAD;
-      up  = sopalin_data->common_flt[0];
-#endif /* SMP_RAFF */
-
       beta[itersmx] = up;
-
 #ifdef SMP_RAFF
-      SYNCHRO_THREAD;
+      MONOTHREAD_END;
 #endif
       up = 0;
     }
 
 #ifdef CSC_LOG
   fprintf(stdout, "<- CscGmresBeta \n");
+#endif
+}
+
+/*
+ * Function: CscCopy
+ *
+ * Copy a vector into another vector
+ *
+ * This Function is multithreaded, each thread will compute a part of the copy,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   x            - vector from which the copy is done.
+ *   y            - vector where the copy is done
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+void CscCopy(Sopalin_Data_t              *sopalin_data,
+             int                          me,
+             const volatile pastix_float_t *x,
+             volatile pastix_float_t       *y,
+             const pastix_int_t             colnbr,
+             const pastix_int_t             smxnbr,
+             MPI_Comm                     comm)
+{
+  SolverMatrix *datacode;
+  pastix_int_t first,  last;
+  pastix_int_t step;
+
+  (void)comm;
+
+#ifdef CSC_LOG
+  fprintf(stdout, "-> CscCopy \n");
+#endif
+
+  datacode  = sopalin_data->datacode;
+
+#ifdef SMP_RAFF
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+#else
+  step  = colnbr;
+#endif
+  first = me * step;
+  last  = MIN(colnbr, (me+1) * step);
+
+  SOPALIN_COPY(last-first, x+first, iun, y+first, iun);
+
+#ifdef CSC_LOG
+  fprintf(stdout, "<- CscCopy \n");
+#endif
+}
+
+/*
+ * Function: CscScal
+ *
+ * Multiply a vector by a scalaire
+ *
+ * This Function is multithreaded, each thread will compute a part of the copy,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   x            - vector from which the copy is done.
+ *   y            - vector where the copy is done
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+void CscScal(Sopalin_Data_t        *sopalin_data,
+             int                    me,
+             volatile pastix_float_t  alpha,
+             volatile pastix_float_t *x,
+             const pastix_int_t       colnbr,
+             const pastix_int_t       smxnbr,
+             MPI_Comm               comm)
+{
+  SolverMatrix *datacode;
+  pastix_int_t first,  last;
+  pastix_int_t step;
+
+  (void)comm;
+
+#ifdef CSC_LOG
+  fprintf(stdout, "-> CscScal \n");
+#endif
+
+  datacode  = sopalin_data->datacode;
+
+#ifdef SMP_RAFF
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+#else
+  step  = colnbr;
+#endif
+  first = me * step;
+  last  = MIN(colnbr, (me+1) * step);
+
+  /* Multiplication par un scalaire sur les données locales au thread */
+  SOPALIN_SCAL(last-first, alpha, x+first, iun);
+
+#ifdef CSC_LOG
+  fprintf(stdout, "<- CscScal \n");
+#endif
+
+}
+
+/*
+ * Function: CscAXPY
+ *
+ * Y<-aX+Y
+ *
+ * This Function is multithreaded, each thread will compute a part of the operation,
+ * it will be gathered between threads, then between MPI processors.
+ *
+ * Parameters:
+ *   sopalin_data - global PaStix informations.
+ *   me           - Thread ID.
+ *   alpha
+ *   x
+ *   y
+ *   colnbr       - Size of the vectors.
+ *   smxnbr       - Number of vectors (multi-right-hand-side method)
+ *   comm         - PaStiX MPI communicator.
+ */
+void CscAXPY(Sopalin_Data_t              *sopalin_data,
+             int                          me,
+             pastix_float_t                 alpha,
+             const volatile pastix_float_t *x,
+             volatile pastix_float_t       *y,
+             const pastix_int_t             colnbr,
+             const pastix_int_t             smxnbr,
+             MPI_Comm                     comm)
+{
+  SolverMatrix *datacode;
+  pastix_int_t first,  last;
+  pastix_int_t step;
+
+  (void)comm;
+
+#ifdef CSC_LOG
+  fprintf(stdout, "-> CscAXPY \n");
+#endif
+
+  datacode  = sopalin_data->datacode;
+
+#ifdef SMP_RAFF
+  step  = (pastix_int_t)ceil((double)(colnbr)/(double)(SOLV_THRDNBR));
+#else
+  step  = colnbr;
+#endif
+  first = me * step;
+  last  = MIN(colnbr, (me+1) * step);
+
+  /* Calcul sur les données locales au thread */
+  SOPALIN_AXPY(last-first, alpha, x+first, iun, y+first, iun);
+
+#ifdef CSC_LOG
+  fprintf(stdout, "<- CscAXPY \n");
 #endif
 }

@@ -167,13 +167,17 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
 #  endif
   pastix_int_t    packnbr, pack, ind;
   pastix_int_t    ctrbnbr, taskdst, cblkdst, blokdst, stride, str, dimi, dimj;
-  pastix_int_t    fcolnum, lcolnum, frownum, lrownum, size, ofrownum, olrownum;
+  pastix_int_t    fcolnum, lcolnum, frownum, lrownum, ofrownum, olrownum;
+#ifdef TEST_IRECV
+  pastix_int_t    size;
+#endif
   int    flag = 0;
 
   print_debug(DBG_SOPALIN_RECV,"%ld: receive fanin target\n",(long)me);
 
+#ifdef TEST_IRECV
   size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
-
+#endif
   taskdst = ((pastix_int_t*)buffer)[FTGT_TASKDST];
   packnbr = ((pastix_int_t*)buffer)[FTGT_PRIONUM];
 
@@ -476,21 +480,26 @@ recv_handle_block(Sopalin_Data_t *sopalin_data,
 #endif
   BlockTarget   *btag;
   BlockCoeff    *bcof;
-  pastix_int_t            task, size, bloksize, taskcnt, taskcntT;
-  pastix_int_t            btprionum, bttaskdst, btprocdst, bttaskcnt;
+  pastix_int_t            task, bloksize, taskcnt;
+#ifdef TEST_IRECV
+  pastix_int_t            size;
+#endif
+  pastix_int_t            taskcntT;
+  pastix_int_t            bttaskdst;
+  pastix_int_t            btprocdst, bttaskcnt, btprionum;
   pastix_int_t            bcfrownum, bclrownum, bcfcolnum, bclcolnum;
 
   print_debug(DBG_SOPALIN_RECV,"%ld: receive block target\n", (long)me);
-
+#ifdef TEST_IRECV
   size = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
-
+#endif
   /* build blocktarget */
   MALLOC_INTERN(btag, 1, BlockTarget);
   MALLOC_INTERN(bcof, 1, BlockCoeff);
 
-  btprionum = btag->infotab[BTAG_PRIONUM] = ((pastix_int_t*)buffer)[BTAG_PRIONUM];
   bttaskdst = btag->infotab[BTAG_TASKDST] = ((pastix_int_t*)buffer)[BTAG_TASKDST];
   btprocdst = btag->infotab[BTAG_PROCDST] = ((pastix_int_t*)buffer)[BTAG_PROCDST];
+  btprionum = btag->infotab[BTAG_PRIONUM] = ((pastix_int_t*)buffer)[BTAG_PRIONUM];
   bttaskcnt = btag->infotab[BTAG_TASKCNT] = ((pastix_int_t*)buffer)[BTAG_TASKCNT];
   btag->bcofptr = bcof;
 
@@ -2353,7 +2362,9 @@ void* sendrecv_smp ( void *arg )
       MPI_Comm          pastix_comm  = PASTIX_COMM;
       int               type_thcomm  = sopalin_data->sopar->type_comm;
       int               me           = argument->me;
+#ifdef TRACE_SOPALIN
       Thread_Data_t    *thread_data;
+#endif
       void            **receive_buffer;
       MPI_Request      *request;
       MPI_Status        status;
@@ -2386,8 +2397,9 @@ void* sendrecv_smp ( void *arg )
         }
 
       sopalin_init_smp(sopalin_data, me, 1, init);
+#ifdef TRACE_SOPALIN
       thread_data = sopalin_data->thread_data[me];
-
+#endif
       /***********************************/
       /*         Reception               */
       /***********************************/
