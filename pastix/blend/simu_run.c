@@ -86,6 +86,7 @@ computeBlockCtrbNbr(const BlendCtrl    *ctrl,
     }
 }
 
+
 static inline void
 simu_putInAllReadyQueues(const BlendCtrl *ctrl,
                          SimuCtrl        *simuctrl,
@@ -100,6 +101,7 @@ simu_putInAllReadyQueues(const BlendCtrl *ctrl,
      /---------------------------------------------------------*/
     const SimuTask *task     = simuctrl->tasktab + tasknum;
     const Cand     *cblkcand = ctrl->candtab + task->cblknum;
+    SimuProc  *sproc;
     double ready_date = 0.0;
     pastix_int_t procnum;
     pastix_int_t bloknum = task->bloknum;
@@ -109,27 +111,30 @@ simu_putInAllReadyQueues(const BlendCtrl *ctrl,
     if( cblkcand->fccandnum == cblkcand->lccandnum )
     {
         ready_date = timerVal( &(task->time) );
+        sproc = &(simuctrl->proctab[cblkcand->fcandnum]);
 
         for(procnum =  cblkcand->fcandnum;
-            procnum <= cblkcand->lcandnum; procnum++)
+            procnum <= cblkcand->lcandnum; procnum++, sproc++)
         {
             if(ready_date > timerVal(TIMER(procnum)))
-                queueAdd2(simuctrl->proctab[procnum].taskheap, tasknum, ready_date, treelevel);
+                pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
             else
-                queueAdd2(simuctrl->proctab[procnum].taskheap2, tasknum, (double)treelevel, bloknum);
+                pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
         }
     }
     else
     {
+        sproc = &(simuctrl->proctab[cblkcand->fcandnum]);
+
         for(procnum =  cblkcand->fcandnum;
-            procnum <= cblkcand->lcandnum; procnum++)
+            procnum <= cblkcand->lcandnum; procnum++, sproc++)
         {
             ready_date = timerVal( simuctrl->ftgttimetab + CLUST2INDEX(bloknum, ctrl->core2clust[procnum]) );
 
-            if( ready_date > timerVal(TIMER(procnum)) )
-                queueAdd2(simuctrl->proctab[procnum].taskheap, tasknum, ready_date, treelevel);
+            if(ready_date > timerVal(TIMER(procnum)))
+                pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
             else
-                queueAdd2(simuctrl->proctab[procnum].taskheap2, tasknum, (double)treelevel, bloknum);
+                pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
         }
     }
 }
@@ -155,13 +160,13 @@ getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, pastix_int_t *procnumpt
     {
         tasknum = -1;
         /** First we search the earlier task in the set of task whose ready date is < proc timer **/
-        while(queueSize(simuctrl->proctab[p].taskheap2)>0)
+        while(pqueueSize(simuctrl->proctab[p].readytask)>0)
         {
-            tasknum = queueRead(simuctrl->proctab[p].taskheap2);
+            tasknum = pqueueRead(simuctrl->proctab[p].readytask);
             if( simuctrl->blprtab[simuctrl->tasktab[tasknum].bloknum]>=0 )
             {
                 /** This task have to be remove from the heap (already mapped) **/
-                queueGet(simuctrl->proctab[p].taskheap2);
+                pqueuePop(simuctrl->proctab[p].readytask);
                 tasknum = -1;
             }
             else
@@ -170,13 +175,13 @@ getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, pastix_int_t *procnumpt
         /** We found no task which ready date is < proc timer so we search one that minimizes ready date - proc-timer **/
         if(tasknum == -1)
         {
-            while(queueSize(simuctrl->proctab[p].taskheap)>0)
+            while(pqueueSize(simuctrl->proctab[p].futuretask)>0)
             {
-                tasknum = queueRead(simuctrl->proctab[p].taskheap);
+                tasknum = pqueueRead(simuctrl->proctab[p].futuretask);
                 if( simuctrl->blprtab[simuctrl->tasktab[tasknum].bloknum]>=0 )
                 {
                     /** This task have to be remove from the heap (already mapped) **/
-                    queueGet(simuctrl->proctab[p].taskheap);
+                    pqueuePop(simuctrl->proctab[p].futuretask);
                     tasknum = -1;
                 }
                 else
@@ -207,10 +212,14 @@ getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, pastix_int_t *procnumpt
     }
     if(procnum != -1)
     {
-        if(queueSize(simuctrl->proctab[procnum].taskheap2)>0)
-        {assert(earlytask == queueGet(simuctrl->proctab[procnum].taskheap2));}
+        if(pqueueSize(simuctrl->proctab[procnum].readytask)>0)
+        {
+            assert(earlytask == pqueuePop(simuctrl->proctab[procnum].readytask));
+        }
         else
-            assert(earlytask == queueGet(simuctrl->proctab[procnum].taskheap));
+        {
+            assert(earlytask == pqueuePop(simuctrl->proctab[procnum].futuretask));
+        }
     }
     *procnumptr = procnum;
     return earlytask;
@@ -501,7 +510,7 @@ pastix_int_t getNextProc(SimuProc *proctab, pastix_int_t procnbr)
 
     min = (double)INTVALMAX;
     for(pr=0;pr<procnbr;pr++)
-        if((timerVal(&(proctab[pr].timer)) < min) && ( (queueSize(proctab[pr].taskheap)>0) || (queueSize(proctab[pr].taskheap2)>0) ))
+        if((timerVal(&(proctab[pr].timer)) < min) && ( (pqueueSize(proctab[pr].futuretask)>0) || (pqueueSize(proctab[pr].readytask)>0) ))
         {
             min = timerVal(&(proctab[pr].timer));
             procnum = pr;
@@ -509,21 +518,21 @@ pastix_int_t getNextProc(SimuProc *proctab, pastix_int_t procnbr)
     return procnum;
 }
 
-pastix_int_t getTaskUnmapped(Queue *q1, Queue *q2, SimuCtrl *simuctrl)
+pastix_int_t getTaskUnmapped(pastix_queue_t *q1, pastix_queue_t *q2, SimuCtrl *simuctrl)
 {
     pastix_int_t next = -1;
-    while(queueSize(q2)>0)
+    while(pqueueSize(q2)>0)
     {
-        next = queueGet(q2);
+        next = pqueuePop(q2);
         if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
         {
             assert(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0);
             goto end;
         }
     }
-    while(queueSize(q1)>0)
+    while(pqueueSize(q1)>0)
     {
-        next = queueGet(q1);
+        next = pqueuePop(q1);
         if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
         {
             assert(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0);
@@ -549,16 +558,18 @@ queueReorder(const BlendCtrl *ctrl, SimuCtrl *simuctrl, pastix_int_t t )
 
     {
         procnum = simuctrl->blprtab[simuctrl->tasktab[t].bloknum];
-        while(queueSize(simuctrl->proctab[procnum].taskheap)>0)
+        while(pqueueSize(simuctrl->proctab[procnum].futuretask)>0)
         {
-            tasknum = queueRead(simuctrl->proctab[procnum].taskheap);
+            tasknum = pqueueRead(simuctrl->proctab[procnum].futuretask);
             cblknum = simuctrl->tasktab[tasknum].cblknum;
 
             if(!compTimer(TIMER(procnum), &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, ctrl->core2clust[procnum])])))
             {
-                tasknum = queueGet(simuctrl->proctab[procnum].taskheap);
+                tasknum = pqueuePop(simuctrl->proctab[procnum].futuretask);
                 cblknum = simuctrl->tasktab[tasknum].cblknum;
-                queueAdd2(simuctrl->proctab[procnum].taskheap2, tasknum,(double)ctrl->candtab[cblknum].treelevel, simuctrl->tasktab[tasknum].bloknum );
+                pqueuePush2(simuctrl->proctab[procnum].readytask, tasknum,
+                            ctrl->candtab[cblknum].treelevel,
+                            simuctrl->tasktab[tasknum].bloknum );
             }
             else
                 break;

@@ -68,7 +68,8 @@ pqueueClear(pastix_queue_t *q)
 
 void
 pqueuePush2(pastix_queue_t *q,
-            void *elt,
+            pastix_int_t elt,
+            /* void *elt, */
             double key1,
             double key2)
 {
@@ -111,13 +112,13 @@ pqueuePush2(pastix_queue_t *q,
     }
 }
 
-void *
+pastix_int_t
 pqueueRead(pastix_queue_t *q)
 {
     return q->elttab[0].eltptr;
 }
 
-void *
+pastix_int_t
 pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
 {
     pastix_int_t i, j;

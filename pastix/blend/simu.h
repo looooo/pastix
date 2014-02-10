@@ -29,12 +29,13 @@ typedef struct SimuCluster_ {
 } SimuCluster;
 
 typedef struct SimuProc_ {
-  SimuTimer          timer;            /*+ Simulated clock of the processor                       +*/
-  Queue            * taskheap;         /*+ heap of cblk that all contrib have been receveive      +*/
-  Queue            * taskheap2;        /*+ queue of cblk ordered by treelevel                     +*/
+    SimuTimer          timer;            /*+ Simulated clock of the processor                       +*/
 
-  pastix_int_t       prionum;          /*+ Current priority to assign to a cblk mapp on this proc +*/
-  ExtendVectorINT  * tasktab;
+    pastix_queue_t   *readytask;   /* Heap of tasks ready to be executed */
+    pastix_queue_t   *futuretask;  /* Heap of tasks ready to be executed in a near future */
+
+    pastix_int_t       prionum;    /*+ Current priority to assign to a cblk mapp on this proc +*/
+    ExtendVectorINT  * tasktab;    /* Vector to store tasks affected to the candidate */
 } SimuProc;
 
 typedef struct SimuFtgt_ {

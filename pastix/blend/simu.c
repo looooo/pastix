@@ -41,10 +41,10 @@ simuInit( SimuCtrl     *simuctrl,
     {
         timerSet(TIMER(i), 0.0); /** for paragraph numeric tolerance **/
         simuctrl->proctab[i].prionum   = 0;
-        MALLOC_INTERN(simuctrl->proctab[i].taskheap,  1, Queue);
-        MALLOC_INTERN(simuctrl->proctab[i].taskheap2, 1, Queue);
-        queueInit(simuctrl->proctab[i].taskheap,  100);
-        queueInit(simuctrl->proctab[i].taskheap2, 100);
+        MALLOC_INTERN(simuctrl->proctab[i].futuretask, 1, pastix_queue_t);
+        MALLOC_INTERN(simuctrl->proctab[i].readytask,  1, pastix_queue_t);
+        pqueueInit(simuctrl->proctab[i].futuretask, 100);
+        pqueueInit(simuctrl->proctab[i].readytask,  100);
 
         MALLOC_INTERN(simuctrl->proctab[i].tasktab, 1, ExtendVectorINT);
         extendint_Init(simuctrl->proctab[i].tasktab, bloknbr/procnbr + 1);
@@ -134,10 +134,10 @@ pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t 
     /* Free processor structure */
     for(i=0;i<procnbr;i++)
     {
-        queueExit     (simuctrl->proctab[i].taskheap);
-        memFree_null  (simuctrl->proctab[i].taskheap);
-        queueExit     (simuctrl->proctab[i].taskheap2);
-        memFree_null  (simuctrl->proctab[i].taskheap2);
+        pqueueExit    (simuctrl->proctab[i].readytask);
+        memFree_null  (simuctrl->proctab[i].readytask);
+        pqueueExit    (simuctrl->proctab[i].futuretask);
+        memFree_null  (simuctrl->proctab[i].futuretask);
         extendint_Exit(simuctrl->proctab[i].tasktab);
         memFree_null  (simuctrl->proctab[i].tasktab);
     }
@@ -162,12 +162,12 @@ void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, p
 #ifndef PASTIX_DYNSCHED
     for(i=0;i<procnbr;i++)
     {
-        queueExit(simuctrl->proctab[i].taskheap);
-        memFree_null(simuctrl->proctab[i].taskheap);
-        queueExit(simuctrl->proctab[i].taskheap2);
-        memFree_null(simuctrl->proctab[i].taskheap2);
+        pqueueExit    (simuctrl->proctab[i].readytask);
+        memFree_null  (simuctrl->proctab[i].readytask);
+        pqueueExit    (simuctrl->proctab[i].futuretask);
+        memFree_null  (simuctrl->proctab[i].futuretask);
         extendint_Exit(simuctrl->proctab[i].tasktab);
-        memFree_null(simuctrl->proctab[i].tasktab);
+        memFree_null  (simuctrl->proctab[i].tasktab);
     }
 #else
     for(i=0;i<local_nbthrds;i++)

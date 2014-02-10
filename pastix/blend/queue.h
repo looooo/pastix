@@ -18,7 +18,8 @@
 typedef struct pastix_queue_item_s {
     double          key1;               /*+ Key 1 of the element             +*/
     double          key2;               /*+ Key 2 of the element             +*/
-    void           *eltptr;             /*+ Pointer to the element           +*/
+    /* void           *eltptr;             /\*+ Pointer to the element           +*\/ */
+    pastix_int_t    eltptr;                 /*+ Pointer to the element           +*/
 } pastix_queue_item_t;
 
 typedef struct pastix_queue_s {
@@ -27,26 +28,26 @@ typedef struct pastix_queue_s {
     pastix_queue_item_t *elttab;        /*+ Array of the element              +*/
 } pastix_queue_t;
 
-int     pqueueInit(pastix_queue_t *, pastix_int_t);
-void    pqueueExit(pastix_queue_t *);
-pastix_int_t pqueueSize(pastix_queue_t *);
-void    pqueueClear(pastix_queue_t *);
-//void    pqueueCopy(pastix_queue_t *, pastix_queue_t *);
-void    pqueuePush2(pastix_queue_t *, void *, double, double);
-void *  pqueueRead (pastix_queue_t *);
-void *  pqueuePop2 (pastix_queue_t *, double *, double *);
+int          pqueueInit( pastix_queue_t *, pastix_int_t);
+void         pqueueExit( pastix_queue_t *);
+pastix_int_t pqueueSize( pastix_queue_t *);
+void         pqueueClear(pastix_queue_t *);
+/*void         pqueueCopy(pastix_queue_t *, pastix_queue_t *);*/
+void         pqueuePush2(pastix_queue_t *, pastix_int_t, double, double);
+pastix_int_t pqueueRead (pastix_queue_t *);
+pastix_int_t pqueuePop2 (pastix_queue_t *, double *, double *);
 
 static inline void
-pqueuePush1(pastix_queue_t *q, void *elt, double key1) {
+pqueuePush1(pastix_queue_t *q, pastix_int_t elt, double key1) {
     return pqueuePush2( q, elt, key1, 0 );
 }
 
-static inline void *
+static inline pastix_int_t
 pqueuePop(pastix_queue_t *q){
     return pqueuePop2(q, NULL, NULL);
 }
 
-static inline void *
+static inline pastix_int_t
 pqueuePop1(pastix_queue_t *q, double *key1){
     return pqueuePop2(q, key1, NULL);
 }
