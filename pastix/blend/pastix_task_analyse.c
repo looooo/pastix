@@ -62,7 +62,9 @@ void pastix_task_blend(pastix_data_t *pastix_data)
                 ((iparm[IPARM_DOF_COST] == 0)?iparm[IPARM_DOF_NBR]:iparm[IPARM_DOF_COST]));
 
     blendCtrlInit( &ctrl, procnum, procnbr,
-                   iparm[IPARM_THREAD_NBR], iparm[IPARM_THREAD_NBR], iparm );
+                   iparm[IPARM_THREAD_NBR],
+                   iparm[IPARM_THREAD_NBR],
+                   iparm );
     ctrl.dparm = dparm;
 
 #ifdef FORCE_NOSMP

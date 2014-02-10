@@ -22,10 +22,10 @@ typedef struct SimuTimer_ {
 } SimuTimer;
 
 typedef struct SimuCluster_ {
-  pastix_int_t                fprocnum;
-  pastix_int_t                lprocnum;
+  pastix_int_t       fprocnum;
+  pastix_int_t       lprocnum;
   ExtendVectorINT  * ftgtsend;         /*+ ftgt send by this proc (one vector per processor       +*/
-  pastix_int_t prionum;
+  pastix_int_t       prionum;
 } SimuCluster;
 
 typedef struct SimuProc_ {
@@ -33,13 +33,13 @@ typedef struct SimuProc_ {
   Queue            * taskheap;         /*+ heap of cblk that all contrib have been receveive      +*/
   Queue            * taskheap2;        /*+ queue of cblk ordered by treelevel                     +*/
 
-  pastix_int_t                prionum;          /*+ Current priority to assign to a cblk mapp on this proc +*/
+  pastix_int_t       prionum;          /*+ Current priority to assign to a cblk mapp on this proc +*/
   ExtendVectorINT  * tasktab;
 } SimuProc;
 
 typedef struct SimuFtgt_ {
   FanInTarget           ftgt;             /*+ the ftgt structures info                              +*/
-  pastix_int_t                   clustnum;         /*+ the cluster that send the ftgt                        +*/
+  pastix_int_t          clustnum;         /*+ the cluster that send the ftgt                        +*/
   SimuTimer             timerecv;         /*+ time the ftgt will be receive                         +*/
   double                costsend;         /*+ time for the ftgt go from procsrc to procdest         +*/
   double                costadd;          /*+ cost to add the ftgt to its cblk destination          +*/
@@ -55,13 +55,13 @@ typedef struct SimuBlockTarget_ {
 } SimuBlockTarget;
 
 typedef struct SimuBlok_ {
-  pastix_int_t                   tasknum;          /*+ Number of the task                                     +*/
-  pastix_int_t                   ftgtnum;          /*+ index of the first ftgt destinated to this cblk
+  pastix_int_t           tasknum;          /*+ Number of the task                                     +*/
+  pastix_int_t           ftgtnum;          /*+ index of the first ftgt destinated to this cblk
                                                     in the ftgttab. This index is also used to find
                                                     the first cblk timer (one per cand proc) in the
                                                     timetab                                                +*/
-  pastix_int_t                   ctrbcnt;          /*+ counter for contributions remaining                    +*/
-  pastix_int_t                   ctrbnbr;          /*+ OIMBE temporaire sert juste pour DRUNK                 +*/
+  pastix_int_t           ctrbcnt;          /*+ counter for contributions remaining                    +*/
+  pastix_int_t           ctrbnbr;          /*+ OIMBE temporaire sert juste pour DRUNK                 +*/
 
 } SimuBlok;
 

@@ -34,7 +34,8 @@ computeBlockCtrbNbr(const BlendCtrl    *ctrl,
     pastix_int_t i, j, k;
     pastix_int_t facebloknum;
 
-    /* Setup the block ctrbcnt only if 2D is enabled */
+    /* Compute the number of contribution per block to each block */
+    /* Might be optimized if we computed the input graph before */
     {
         SymbolCblk *curcblk;
         SimuBlok   *curblok;
@@ -56,8 +57,8 @@ computeBlockCtrbNbr(const BlendCtrl    *ctrl,
                 /* Add contribution due to E2 */
                 for(k=j; k<lbloknum; k++)
                 {
-                    /* We don't care if facing task is 1D or 2D */
-                    facebloknum = getFaceBlockE2(facebloknum, j, k, symbptr, ctrl->ricar);
+                    facebloknum = symbolGetFacingBloknum( symbptr, j, k, facebloknum, ctrl->ricar );
+                    assert( facebloknum == symbptr->bloktab[j].cblknum );
 
                     if(facebloknum >= 0)
                         simuctrl->bloktab[facebloknum].ctrbcnt++;

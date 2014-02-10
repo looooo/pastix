@@ -120,3 +120,47 @@ SymbolMatrix * const        symbptr)
   memFree (symbptr->bloktab);                     /* Move column block array */
   symbptr->bloktab = bloktab;
 }
+
+/** Get face block for task E2 **/
+pastix_int_t
+symbolGetFacingBloknum(const SymbolMatrix *symbptr,
+                       pastix_int_t bloksrc,
+                       pastix_int_t bloknum,
+                       pastix_int_t startsearch,
+                       int ricar)
+{
+    pastix_int_t i;
+
+    if(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum )
+        startsearch = symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;
+
+    assert(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum);
+
+    if(ricar == 0)
+    {
+        for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
+            if(symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].frownum)
+                break;
+
+        assert( (symbptr->bloktab[i].frownum <= symbptr->bloktab[bloknum].frownum) &&
+                (symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].lrownum) );
+
+        return i;
+    }
+    else
+    {
+        for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
+        {
+            if( (symbptr->bloktab[bloknum].frownum >= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].lrownum) ||
+                (symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].lrownum <= symbptr->bloktab[i].lrownum) ||
+                (symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].lrownum) )
+                return i;  /** We found the first block that matches **/
+            if(symbptr->bloktab[bloknum].lrownum < symbptr->bloktab[i].frownum)
+            {
+                return -1;
+            }
+        }
+    }
+    return -1;
+}
+

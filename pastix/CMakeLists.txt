@@ -60,6 +60,8 @@ set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix d
 set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
 set( BLAS_LIBRARY_DIRS /opt/plasma-extlibs-dbg/lib CACHE STRING "BLAS library paths"     )
 set( BLAS_LIBRARIES    refblas                     CACHE STRING "BLAS libraries"         )
+#set( BLAS_LIBRARY_DIRS /opt/gotoblas2              CACHE STRING "BLAS library paths"     )
+#set( BLAS_LIBRARIES    goto2                       CACHE STRING "BLAS libraries"         )
 
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
@@ -693,6 +695,6 @@ endif()
 
 
 #-- Add a custom target to run Doxygen when ever the project is built
-add_custom_target (tagstoto
-  COMMAND etags ${PASTIX_ALL_SRCS}
-  DEPENDS ${PASTIX_ALL_SRCS} )
+add_custom_target (tags
+  COMMAND etags ${PASTIX_LIB_SRCS}
+  DEPENDS ${PASTIX_LIB_SRCS} )

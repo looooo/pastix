@@ -131,6 +131,8 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD))
+    {
     graph    = pastix_data->csc;
     ordemesh = pastix_data->ordemesh;
     if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD))
@@ -155,6 +157,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
 #if defined(PASTIX_SYMBOL_FORCELOAD)
     iparm[IPARM_IO_STRATEGY] = API_IO_LOAD;
 #endif
+    }
 
     /* Allocate the symbol matrix structure */
     if (pastix_data->symbmtx == NULL) {

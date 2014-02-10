@@ -9,6 +9,157 @@
 #include "common.h"
 #include "queue.h"
 
+static inline int
+pqueueItemComparison(pastix_queue_t *q,
+                     pastix_int_t    elt1,
+                     pastix_int_t    elt2)
+{
+    /* if elt1 < elt2 return 1  */
+    /* if elt1 = elt2 return 0  */
+    /* if elt1 > elt2 return 0 */
+
+    pastix_queue_item_t *item1 = q->elttab + elt1;
+    pastix_queue_item_t *item2 = q->elttab + elt2;
+
+    if ( item1->key1 == item2->key1)
+        return item1->key2 < item2->key2;
+    else
+        return item1->key1 < item2->key1;
+}
+
+int
+pqueueInit(pastix_queue_t *q,
+           pastix_int_t    size)
+{
+    q->size = size;
+    q->used = 0;
+    if (q->size != 0)
+    {
+        MALLOC_INTERN(q->elttab, size, pastix_queue_item_t);
+    }
+    else
+    {
+        q->elttab  = NULL;
+    }
+    return PASTIX_SUCCESS;
+}
+
+void
+pqueueExit(pastix_queue_t *q)
+{
+    if(q->size != 0)
+    {
+        memFree_null(q->elttab);
+    }
+    q->size = 0;
+}
+
+pastix_int_t
+pqueueSize(pastix_queue_t *q)
+{
+  return q->used;
+}
+
+void
+pqueueClear(pastix_queue_t *q)
+{
+  q->used = 0;
+}
+
+void
+pqueuePush2(pastix_queue_t *q,
+            void *elt,
+            double key1,
+            double key2)
+{
+    pastix_int_t i, hi;
+
+    /* Allocate more space if necessary */
+    if(q->size == q->used)
+    {
+        pastix_queue_item_t *tmp;
+        tmp = q->elttab;
+
+        assert( (q->size == 0) || (tmp != NULL) );
+
+        /* OIMBE Realloc ?? */
+        MALLOC_INTERN(q->elttab, q->size*2+1, pastix_queue_item_t);
+        memcpy(q->elttab, tmp, q->size * sizeof(pastix_queue_item_t));
+
+        q->size = q->size*2 +1;
+        if (tmp != NULL)
+            memFree_null(tmp);
+    }
+
+    q->elttab[q->used].key1   = key1;
+    q->elttab[q->used].key2   = key2;
+    q->elttab[q->used].eltptr = elt;
+    q->used++;
+
+    i = q->used - 1;
+    hi= (i+1)/2-1;
+
+    while( (i > 0) &&
+           pqueueItemComparison(q, i, hi) )
+    {
+        pastix_queue_item_t swap = q->elttab[i];
+
+        q->elttab[i ] = q->elttab[hi];
+        q->elttab[hi] = swap;
+
+        i = hi+1; hi = (i+1)/2-1;
+    }
+}
+
+void *
+pqueueRead(pastix_queue_t *q)
+{
+    return q->elttab[0].eltptr;
+}
+
+void *
+pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
+{
+    pastix_int_t i, j;
+    void *return_elt;
+
+    if (q->used == 0)
+        return (void*)-1;
+
+    return_elt = q->elttab[0].eltptr;
+    if (key1 != NULL) *key1 = q->elttab[0].key1;
+    if (key2 != NULL) *key2 = q->elttab[0].key2;
+
+    q->elttab[0] = q->elttab[q->used-1];
+    q->used--;
+
+    i = 1;
+    while(i <= (q->used/2))
+    {
+        if( (2*i == q->used)
+            || pqueueItemComparison(q, 2*i-1, 2*i))     /*(q->keytab[2*i-1] < q->keytab[2*i]))*/
+        {
+            j = 2*i;
+        }
+        else
+        {
+            j = 2*i+1;
+        }
+        if (!pqueueItemComparison(q, i-1, j-1))         /*(q->keytab[i-1] >= q->keytab[j-1])*/
+        {
+            pastix_queue_item_t swap;
+
+            swap           = q->elttab[i-1];
+            q->elttab[i-1] = q->elttab[j-1];
+            q->elttab[j-1] = swap;
+
+            i = j;
+        }
+        else
+            break;
+    }
+    return return_elt;
+}
 
 /*
   Function: QueueInit

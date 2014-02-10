@@ -15,12 +15,53 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+typedef struct pastix_queue_item_s {
+    double          key1;               /*+ Key 1 of the element             +*/
+    double          key2;               /*+ Key 2 of the element             +*/
+    void           *eltptr;             /*+ Pointer to the element           +*/
+} pastix_queue_item_t;
+
+typedef struct pastix_queue_s {
+    pastix_int_t         size;          /*+ Allocated memory size             +*/
+    pastix_int_t         used;          /*+ Number of element in the queue    +*/
+    pastix_queue_item_t *elttab;        /*+ Array of the element              +*/
+} pastix_queue_t;
+
+int     pqueueInit(pastix_queue_t *, pastix_int_t);
+void    pqueueExit(pastix_queue_t *);
+pastix_int_t pqueueSize(pastix_queue_t *);
+void    pqueueClear(pastix_queue_t *);
+//void    pqueueCopy(pastix_queue_t *, pastix_queue_t *);
+void    pqueuePush2(pastix_queue_t *, void *, double, double);
+void *  pqueueRead (pastix_queue_t *);
+void *  pqueuePop2 (pastix_queue_t *, double *, double *);
+
+static inline void
+pqueuePush1(pastix_queue_t *q, void *elt, double key1) {
+    return pqueuePush2( q, elt, key1, 0 );
+}
+
+static inline void *
+pqueuePop(pastix_queue_t *q){
+    return pqueuePop2(q, NULL, NULL);
+}
+
+static inline void *
+pqueuePop1(pastix_queue_t *q, double *key1){
+    return pqueuePop2(q, key1, NULL);
+}
+
+/* int     queuePossess    (Queue *, pastix_int_t); */
+/* void    queuePrint      (Queue *); */
+
+/* static pastix_int_t compWith2keys(Queue *, pastix_int_t, pastix_int_t); */
+
 /*
 **  The type and structure definitions.
 */
 
 typedef struct Queue_ {
-  pastix_int_t        size;                  /*+ Allocated memory size             +*/ 
+  pastix_int_t        size;                  /*+ Allocated memory size             +*/
   pastix_int_t        used;                  /*+ Number of element in the queue    +*/
   pastix_int_t    *   elttab;                /*+ Array of the element              +*/
   double *   keytab;                /*+ Array of keys                     +*/
