@@ -329,6 +329,8 @@ propMappTree( Cand               *candtab,
     double *cost_remain = NULL;
     double isocost;
 
+    (void)dofptr; (void)symbmtx;
+
     /* Prepare the initial cost_remain array */
     MALLOC_INTERN(cost_remain, candnbr, double);
     isocost = etree->nodetab[ eTreeRoot(etree) ].subtree / candnbr;

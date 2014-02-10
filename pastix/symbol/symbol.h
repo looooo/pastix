@@ -152,4 +152,11 @@ void symbolRustine (SymbolMatrix *       matrsymb,
                     SymbolMatrix * const matrsymb2);
 
 
+pastix_int_t
+symbolGetFacingBloknum(const SymbolMatrix *symbptr,
+                       pastix_int_t bloksrc,
+                       pastix_int_t bloknum,
+                       pastix_int_t startsearch,
+                       int ricar);
+
 #endif /* SYMBOL_H */

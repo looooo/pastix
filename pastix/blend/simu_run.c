@@ -385,7 +385,7 @@ taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl,
             for(j=i;j<symbptr->cblktab[cblknum+1].bloknum;j++)
             {
                 /* OIMBE trop couteux !! */
-                facebloknum = getFaceBlockE2(facebloknum, i, j, symbptr, ctrl->ricar);
+                facebloknum = symbolGetFacingBloknum(symbptr, i, j, facebloknum, ctrl->ricar);
 
 #ifdef DEBUG_M
                 if(ctrl->ricar == 0)
@@ -439,7 +439,7 @@ taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl,
                 for(j=i;j<symbptr->cblktab[cblknum+1].bloknum;j++)
                 {
                     /* OIMBE trop couteux ON PEUT FAIRE MIEUX EN PARCOURANT EN DESCENDANT!! */
-                    facebloknum = getFaceBlockE2(facebloknum, i, j, symbptr, ctrl->ricar);
+                    facebloknum = symbolGetFacingBloknum(symbptr, i, j, facebloknum, ctrl->ricar);
                     if(facebloknum>=0)
                         simuctrl->cblktab[facecblknum].ctrbcnt--;
                 }

@@ -654,7 +654,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
                     facebloknum = 0;
                     for(j=bloknum;j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
                     {
-                        facebloknum = getFaceBlockE2(facebloknum, bloknum, j, symbmtx, ctrl->ricar);
+                        facebloknum = symbolGetFacingBloknum(symbmtx, bloknum, j, facebloknum, ctrl->ricar);
                         /*#ifdef NAPA*/
                         if(facebloknum >= 0)
                         {
