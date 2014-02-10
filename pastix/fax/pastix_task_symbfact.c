@@ -126,13 +126,16 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     }
     iparm = pastix_data->iparm;
 
+    /* Force Load of symbmtx */
+#if defined(PASTIX_SYMBOL_FORCELOAD)
+    iparm[IPARM_IO_STRATEGY] = API_IO_LOAD;
+#endif
+
     if ( !(pastix_data->steps & STEP_INIT) ) {
         errorPrint("pastix_task_symbfact: pastix_task_init() has to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD))
-    {
     graph    = pastix_data->csc;
     ordemesh = pastix_data->ordemesh;
     if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD))
@@ -147,17 +150,11 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         }
         n = graph->n;
     }
-    procnum  = pastix_data->procnum;
+    procnum = pastix_data->procnum;
 
     print_debug(DBG_STEP, "-> pastix_task_symbfact\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print(procnum, 0, "%s", OUT_STEP_FAX);
-
-    /* Force Load of symbmtx */
-#if defined(PASTIX_SYMBOL_FORCELOAD)
-    iparm[IPARM_IO_STRATEGY] = API_IO_LOAD;
-#endif
-    }
 
     /* Allocate the symbol matrix structure */
     if (pastix_data->symbmtx == NULL) {
