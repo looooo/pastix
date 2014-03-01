@@ -595,6 +595,7 @@ void simuRun( SymbolMatrix *symbptr,
 
     /* OIMBE attention les ctrbcnt des cblk en COMP1D sont recalculee dans computeBlockCtrbNbr */
     /** Compute number of contributions for blocks **/
+    /*  Should be in task construction */
     computeBlockCtrbNbr(ctrl, symbptr, simuctrl);
 
     /*
