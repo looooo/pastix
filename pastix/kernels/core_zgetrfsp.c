@@ -17,10 +17,9 @@
 #include <assert.h>
 
 #include "common.h"
-#include <math.h>
+#include "pastix_zcores.h"
 #include <cblas.h>
 #include "../sopalin/sopalin_acces.h"
-#include "pastix_zcores.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -44,9 +43,9 @@ static pastix_complex64_t zzero =  0.;
  *
  * @param[in,out] A
  *          The matrix A to factorize with LU factorization. The matrix
- *          is of size stride -by- n.
+ *          is of size lda -by- n.
  *
- * @param[in] stride
+ * @param[in] lda
  *          The leading dimension of the matrix A.
  *
  * @param[in,out] nbpivot
@@ -65,12 +64,12 @@ static pastix_complex64_t zzero =  0.;
  *          factorization.
  *
  *******************************************************************************/
-static void core_zgetf2sp(pastix_int_t  m,
-                          pastix_int_t  n,
-                          pastix_complex64_t * A,
-                          pastix_int_t  stride,
-                          pastix_int_t *nbpivot,
-                          double criteria )
+static void core_zgetf2sp(pastix_int_t        m,
+                          pastix_int_t        n,
+                          pastix_complex64_t *A,
+                          pastix_int_t        lda,
+                          pastix_int_t       *nbpivot,
+                          double              criteria )
 {
     pastix_int_t k, minMN;
     pastix_complex64_t *Akk, *Aik, alpha;
@@ -96,11 +95,11 @@ static void core_zgetf2sp(pastix_int_t  m,
             cblas_zgeru(CblasColMajor, m-k-1, n-k-1,
                         CBLAS_SADDR(mzone),
                         Aik,        1,
-                        Akk+stride, stride,
-                        Aik+stride, stride);
+                        Akk+lda, lda,
+                        Aik+lda, lda);
         }
 
-        Akk += stride+1;
+        Akk += lda+1;
     }
 }
 
@@ -122,9 +121,9 @@ static void core_zgetf2sp(pastix_int_t  m,
  *
  * @param[in,out] A
  *          The matrix A to factorize with LU factorization. The matrix
- *          is of size stride -by- n.
+ *          is of size lda -by- n.
  *
- * @param[in] stride
+ * @param[in] lda
  *          The leading dimension of the matrix A.
  *
  * @param[in,out] nbpivot
@@ -147,7 +146,7 @@ static void core_zgetf2sp(pastix_int_t  m,
 
 static void core_zgetrfsp(pastix_int_t        n,
                           pastix_complex64_t *A,
-                          pastix_int_t        stride,
+                          pastix_int_t        lda,
                           pastix_int_t       *nbpivot,
                           double              criteria)
 {
@@ -163,11 +162,11 @@ static void core_zgetrfsp(pastix_int_t        n,
         tempm = n - k * MAXSIZEOFBLOCKS;
         blocksize = pastix_imin(MAXSIZEOFBLOCKS, tempm);
         Lik = Akk + blocksize;
-        Ukj = Akk + blocksize*stride;
+        Ukj = Akk + blocksize*lda;
         Aij = Ukj + blocksize;
 
         /* Factorize the diagonal block Akk*/
-        core_zgetf2sp( tempm, blocksize, Akk, stride, nbpivot, criteria );
+        core_zgetf2sp( tempm, blocksize, Akk, lda, nbpivot, criteria );
 
         matrixsize = tempm - blocksize;
         if ( matrixsize > 0 ) {
@@ -177,19 +176,19 @@ static void core_zgetrfsp(pastix_int_t        n,
                         CblasLeft, CblasLower,
                         CblasNoTrans, CblasUnit,
                         blocksize, matrixsize,
-                        CBLAS_SADDR(zone), Akk, stride,
-                                           Ukj, stride);
+                        CBLAS_SADDR(zone), Akk, lda,
+                                           Ukj, lda);
 
             /* Update Ak+1,k+1 = Ak+1,k+1 - Lk+1,k*Uk,k+1 */
             cblas_zgemm(CblasColMajor,
                         CblasNoTrans, CblasNoTrans,
                         matrixsize, matrixsize, blocksize,
-                        CBLAS_SADDR(mzone), Lik, stride,
-                                            Ukj, stride,
-                        CBLAS_SADDR(zone),  Aij, stride);
+                        CBLAS_SADDR(mzone), Lik, lda,
+                                            Ukj, lda,
+                        CBLAS_SADDR(zone),  Aij, lda);
         }
 
-        Akk += blocksize * (stride+1);
+        Akk += blocksize * (lda+1);
     }
 }
 
@@ -230,11 +229,11 @@ static void core_zgetrfsp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
-void core_zgetrfsp1d( pastix_complex64_t *L,
-                      pastix_complex64_t *U,
-                      SolverMatrix *datacode,
-                      pastix_int_t c,
-                      double criteria)
+int core_zgetrfsp1d( SolverMatrix       *datacode,
+                     pastix_int_t        c,
+                     pastix_complex64_t *L,
+                     pastix_complex64_t *U,
+                     double              criteria)
 {
     SolverCblk *cblk;
     SolverBlok *blok;
@@ -242,7 +241,7 @@ void core_zgetrfsp1d( pastix_complex64_t *L,
     pastix_complex64_t *fL, *fU;
     pastix_int_t dima, dimb, stride;
     pastix_int_t fblknum, lblknum;
-    pastix_int_t nbpivot = 0; /* TODO: return to higher level */
+    pastix_int_t nbpivot = 0;
     pastix_int_t gcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( c ));
 
     cblk    = &(datacode->cblktab[c]);
@@ -299,18 +298,20 @@ void core_zgetrfsp1d( pastix_complex64_t *L,
                     CBLAS_SADDR(zone), U,  stride,
                                        fU, stride);
     }
+
+    return nbpivot;
 }
 
 
-void core_zgetrfsp1d_gemm(pastix_int_t cblknum,
-                          pastix_int_t bloknum,
-                          pastix_int_t fcblknum,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *U,
-                          pastix_complex64_t *Cl,
-                          pastix_complex64_t *Cu,
-                          pastix_complex64_t *work,
-                          SolverMatrix *datacode)
+void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
+                           pastix_int_t cblknum,
+                           pastix_int_t bloknum,
+                           pastix_int_t fcblknum,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           pastix_complex64_t *Cl,
+                           pastix_complex64_t *Cu,
+                           pastix_complex64_t *work )
 {
     SolverCblk *cblk  = &(datacode->cblktab[cblknum]);
     SolverCblk *fcblk = &(datacode->cblktab[fcblknum]);
@@ -368,23 +369,11 @@ void core_zgetrfsp1d_gemm(pastix_int_t cblknum,
     for (j=bloknum; j<lblknum; j++,blok++) {
 
         /* Find facing bloknum */
-#ifdef NAPA_SOPALIN /* ILU(k) */
-        while (!(((blok->frownum >= fblok->frownum) &&
-                  (blok->lrownum <= fblok->lrownum)) ||
-                 ((blok->frownum <= fblok->frownum) &&
-                  (blok->lrownum >= fblok->lrownum)) ||
-                 ((blok->frownum <= fblok->frownum) &&
-                  (blok->lrownum >= fblok->frownum)) ||
-                 ((blok->frownum <= fblok->lrownum) &&
-                  (blok->lrownum >= fblok->lrownum))))
-#else
-        while (!((blok->frownum >= fblok->frownum) &&
-                 (blok->lrownum <= fblok->lrownum)))
-#endif
-            {
-                b++; fblok++;
-                assert( b < fcblk[1].bloknum );
-            }
+        while (!is_block_inside_fblock( blok, fblok ))
+        {
+            b++; fblok++;
+            assert( b < fcblk[1].bloknum );
+        }
 
         Aij = C + fblok->coefind + blok->frownum - fblok->frownum;
         dimb = blok->lrownum - blok->frownum + 1;
@@ -433,19 +422,7 @@ void core_zgetrfsp1d_gemm(pastix_int_t cblknum,
     for (j=bloknum+1; j<lblknum; j++, blok++) {
 
         /* Find facing bloknum */
-#ifdef NAPA_SOPALIN /* ILU(k) */
-        if (!(((blok->frownum >= fblok->frownum) &&
-               (blok->lrownum <= fblok->lrownum)) ||
-              ((blok->frownum <= fblok->frownum) &&
-               (blok->lrownum >= fblok->lrownum)) ||
-              ((blok->frownum <= fblok->frownum) &&
-               (blok->lrownum >= fblok->frownum)) ||
-              ((blok->frownum <= fblok->lrownum) &&
-               (blok->lrownum >= fblok->lrownum))))
-#else
-         if (!((blok->frownum >= fblok->frownum) &&
-               (blok->lrownum <= fblok->lrownum)))
-#endif
+        if (!is_block_inside_fblock( blok, fblok ))
              break;
 
         Aij = C + (blok->frownum - fblok->frownum)*stridefc;
@@ -471,24 +448,11 @@ void core_zgetrfsp1d_gemm(pastix_int_t cblknum,
     for (; j<lblknum; j++,blok++) {
 
         /* Find facing bloknum */
-#ifdef NAPA_SOPALIN /* ILU(k) */
-        while (!(((blok->frownum >= fblok->frownum) &&
-                  (blok->lrownum <= fblok->lrownum)) ||
-                 ((blok->frownum <= fblok->frownum) &&
-                  (blok->lrownum >= fblok->lrownum)) ||
-                 ((blok->frownum <= fblok->frownum) &&
-                  (blok->lrownum >= fblok->frownum)) ||
-                 ((blok->frownum <= fblok->lrownum) &&
-                  (blok->lrownum >= fblok->lrownum))))
-#else
-        while (!((blok->frownum >= fblok->frownum) &&
-                 (blok->lrownum <= fblok->lrownum)))
-#endif
-            {
-                b++; fblok++;
-                assert( b < fcblk[1].bloknum );
-            }
-
+        while (!is_block_inside_fblock( blok, fblok ))
+        {
+            b++; fblok++;
+            assert( b < fcblk[1].bloknum );
+        }
 
         dimb = blok->lrownum - blok->frownum + 1;
         Aij = C + fblok->coefind + blok->frownum - fblok->frownum;

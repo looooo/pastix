@@ -16,12 +16,12 @@ precisions_rules_py(generated_headers
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
   # extra kernel
-  # core_zgemdm.c
+  core_zgemdm.c
   core_zgetro.c
   core_zgeadd.c
   # Kernels
-  # core_zsytrfsp.c
-  # core_zhetrfsp.c
+  core_zsytrfsp.c
+  core_zhetrfsp.c
   core_zpotrfsp.c
   core_zgetrfsp.c
 )

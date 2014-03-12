@@ -41,64 +41,72 @@ void core_zaxpyt(int m, int n, pastix_complex64_t alpha,
                  pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
 
-void core_zgetrfsp1d(pastix_complex64_t *L,
+int core_zgemdm(int transA, int transB,
+                int M, int N, int K,
+                pastix_complex64_t alpha, pastix_complex64_t *A, int LDA,
+                pastix_complex64_t *B, int LDB,
+                pastix_complex64_t beta, pastix_complex64_t *C, int LDC,
+                pastix_complex64_t *D, int incD,
+                pastix_complex64_t *WORK, int LWORK);
+
+
+int core_zgetrfsp1d( SolverMatrix *datacode,
+                     pastix_int_t c,
+                     pastix_complex64_t *L,
                      pastix_complex64_t *U,
-                     SolverMatrix *datacode,
+                     double criteria );
+
+void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
+                           pastix_int_t cblknum,
+                           pastix_int_t bloknum,
+                           pastix_int_t fcblknum,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           pastix_complex64_t *Cl,
+                           pastix_complex64_t *Cu,
+                           pastix_complex64_t *work );
+
+int core_zhetrfsp1d( SolverMatrix *datacode,
                      pastix_int_t c,
-                     double criteria);
+                     pastix_complex64_t *L,
+                     double criteria,
+                     pastix_complex64_t *work );
 
-void core_zgetrfsp1d_gemm(pastix_int_t cblknum,
-                          pastix_int_t bloknum,
-                          pastix_int_t fcblknum,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *U,
-                          pastix_complex64_t *Cl,
-                          pastix_complex64_t *Cu,
-                          pastix_complex64_t *work,
-                          SolverMatrix *datacode);
+void core_zhetrfsp1d_gemm( SolverMatrix *datacode,
+                           pastix_int_t cblknum,
+                           pastix_int_t bloknum,
+                           pastix_int_t fcblknum,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *C,
+                           pastix_complex64_t *work1,
+                           pastix_complex64_t *work2 );
 
-
-void core_zhetrfsp1d(pastix_complex64_t *L,
-                     pastix_complex64_t *work,
-                     SolverMatrix *datacode,
+int core_zpotrfsp1d( SolverMatrix *datacode,
                      pastix_int_t c,
-                     double criteria);
+                     pastix_complex64_t *L,
+                     double criteria );
 
-void core_zhetrfsp1d_gemm(pastix_int_t cblknum,
-                          pastix_int_t bloknum,
-                          pastix_int_t fcblknum,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *C,
-                          pastix_complex64_t *work1,
-                          pastix_complex64_t *work2,
-                          SolverMatrix *datacode);
+void core_zpotrfsp1d_gemm( SolverMatrix *datacode,
+                           pastix_int_t cblknum,
+                           pastix_int_t bloknum,
+                           pastix_int_t fcblknum,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *C,
+                           pastix_complex64_t *work);
 
-int core_zpotrfsp1d(SolverMatrix *datacode,
-                    pastix_int_t c,
-                    pastix_complex64_t *L,
-                    double criteria);
-
-void core_zpotrfsp1d_gemm(SolverMatrix *datacode,
-                          pastix_int_t cblknum,
-                          pastix_int_t bloknum,
-                          pastix_int_t fcblknum,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *C,
-                          pastix_complex64_t *work);
-
-void core_zsytrfsp1d(pastix_complex64_t *L,
-                     pastix_complex64_t *work,
-                     SolverMatrix *datacode,
+int core_zsytrfsp1d( SolverMatrix *datacode,
                      pastix_int_t c,
-                     double criteria);
+                     pastix_complex64_t *L,
+                     double criteria,
+                     pastix_complex64_t *work );
 
-void core_zsytrfsp1d_gemm(pastix_int_t cblknum,
-                          pastix_int_t bloknum,
-                          pastix_int_t fcblknum,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *C,
-                          pastix_complex64_t *work1,
-                          pastix_complex64_t *work2,
-                          SolverMatrix *datacode);
+void core_zsytrfsp1d_gemm( SolverMatrix *datacode,
+                           pastix_int_t cblknum,
+                           pastix_int_t bloknum,
+                           pastix_int_t fcblknum,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *C,
+                           pastix_complex64_t *work1,
+                           pastix_complex64_t *work2 );
 
 #endif /* _CORE_Z_H_ */

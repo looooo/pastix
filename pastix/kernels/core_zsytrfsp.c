@@ -2,137 +2,162 @@
  *
  * @file core_zsytrfsp.c
  *
- *  PLASMA core_blas kernel
- *  PLASMA is a software package provided by Univ. of Tennessee,
- *  Univ. of California Berkeley and Univ. of Colorado Denver
+ *  PaStiX kernel routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
- * @precisions normal z -> c
+ * @precisions normal z -> c d s
  *
  **/
-#include <lapacke.h>
-#include <plasma.h>
-#include <core_blas.h>
+#include <assert.h>
 
-#include "dague.h"
-#include "data_distribution.h"
-#include "dplasma/lib/dplasmajdf.h"
+#include "common.h"
+#include "pastix_zcores.h"
+#include <cblas.h>
 
-#include "data_dist/sparse-matrix/pastix_internal/pastix_internal.h"
-#include "data_dist/sparse-matrix/sparse-matrix.h"
+static pastix_complex64_t zone  =  1.;
+static pastix_complex64_t mzone = -1.;
 
-#define min( _a, _b ) ( (_a) < (_b) ? (_a) : (_b) )
-
-/*
-  Constant: MAXSIZEOFBLOCKS
-  Maximum size of blocks given to blas in factorisation
-*/
-#define MAXSIZEOFBLOCKS 64 /*64 in LAPACK*/
-
-static dague_complex64_t zone  = 1.;
-static dague_complex64_t mzone = -1.;
-
-
-int CORE_zgemdm(int transA, int transB,
-                int M, int N, int K,
-                PLASMA_Complex64_t alpha, PLASMA_Complex64_t *A, int LDA,
-                PLASMA_Complex64_t *B, int LDB,
-                PLASMA_Complex64_t beta, PLASMA_Complex64_t *C, int LDC,
-                PLASMA_Complex64_t *D, int incD,
-                PLASMA_Complex64_t *WORK, int LWORK);
-
-/*
-   Function: FactorizationLDLT
-
-   Factorisation LDLt BLAS2 3 terms
-   this subroutine factors the diagonal block
-
-  > A = LDL^T
-
-  Parameters:
-     A       - Matrix to factorize
-     n       - Size of A
-     stride  - Stide between 2 columns of the matrix
-     nbpivot - IN/OUT pivot number.
-     criteria - Pivoting threshold.
-
-*/
-static void core_zsytf2sp(dague_int_t  n,
-                          dague_complex64_t * A,
-                          dague_int_t  stride,
-                          dague_int_t *nbpivot,
-                          double criteria )
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zsytf2sp - Computes the sequential static pivoting
+ * factorization of the hermitian matrix n-by-n A such that A = L * D * L^t.
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The number of rows and columns of the matrix A.
+ *
+ * @param[in,out] A
+ *          The matrix A to factorize with Cholesky factorization. The matrix
+ *          is of size lda -by- n.
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A.
+ *
+ * @param[in,out] nbpivot
+ *          Pointer to the number of piovting operations made during
+ *          factorization. It is updated during this call
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will fail if it discovers a 0. on the diagonal during
+ *          factorization.
+ *
+ *******************************************************************************/
+static void core_zsytf2sp(pastix_int_t        n,
+                          pastix_complex64_t *A,
+                          pastix_int_t        lda,
+                          pastix_int_t       *nbpivot,
+                          double              criteria )
 {
-    dague_int_t k;
-    dague_complex64_t *tmp, *tmp1, alpha;
+    pastix_int_t k;
+    pastix_complex64_t *Akk = A;   /* A [k  ][k] */
+    pastix_complex64_t *Amk = A+1; /* A [k+1][k] */
+    pastix_complex64_t  alpha;
 
     for (k=0; k<n; k++){
-        tmp = A + k*(stride+1); // = A + k*stride + k = diagonal element
-
-        if ( cabs(*tmp) < criteria ) {
-            (*tmp) = (dague_complex64_t)criteria;
+        if ( cabs(*Akk) < criteria ) {
+            (*Akk) = (pastix_complex64_t)criteria;
             (*nbpivot)++;
         }
 
-        tmp1 = tmp+1; // element just below diagonal
+        alpha = 1. / (*Akk);
 
-        alpha = 1. / (*tmp); // scaling with the diagonal to compute L((k+1):n,k)
-        cblas_zscal(n-k-1, CBLAS_SADDR( alpha ), tmp1, 1 );
+        /* Scale the diagonal to compute L((k+1):n,k) */
+        cblas_zscal(n-k-1, CBLAS_SADDR( alpha ), Amk, 1 );
 
-        alpha = -(*tmp);
+        alpha = -(*Akk);
+
+        /* Move to next Akk */
+        Akk += (lda+1);
 
         /* TODO: replace by SYR but [cz]syr exists only in LAPACK */
-        LAPACKE_zsyr_work(LAPACK_COL_MAJOR, 'l', n-k-1,
-                          alpha, tmp1,        1,
-                                 tmp1+stride, stride);
+        /* LAPACKE_zsyr_work(LAPACK_COL_MAJOR, 'l', */
+        /*                   n-k-1, alpha, */
+        /*                   Amk, 1, */
+        /*                   Akk, lda); */
+
+        /* Move to next Amk */
+        Amk = Akk+1;
     }
 }
 
-/*
-  Function: FactorizationLDLT_block
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zsytrfsp - Computes the block static pivoting factorization of the
+ * hermitian matrix n-by-n A such that A = L * D * L^t.
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The number of rows and columns of the matrix A.
+ *
+ * @param[in,out] A
+ *          The matrix A to factorize with Cholesky factorization. The matrix
+ *          is of size lda -by- n.
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A.
+ *
+ * @param[in,out] nbpivot
+ *          Pointer to the number of piovting operations made during
+ *          factorization. It is updated during this call
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will fail if it discovers a 0. on the diagonal during
+ *          factorization.
+ *
+ *******************************************************************************/
+#define MAXSIZEOFBLOCKS 64
 
-  Computes the block LDL^T factorisation of the
-  matrix A.
-  this subroutine factors the diagonal supernode
-
-  > A = LDL^T
-
-  Parameters:
-     A       - Matrix to factorize
-     n       - Size of A
-     stride  - Stide between 2 columns of the matrix
-     nbpivot - IN/OUT pivot number.
-     criteria - Pivoting threshold.
-
-*/
-
-static void core_zsytrfsp(dague_int_t  n,
-                          dague_complex64_t * A,
-                          dague_int_t  stride,
-                          dague_int_t *nbpivot,
-                          double       criteria,
-                          dague_complex64_t *work)
+static void core_zsytrfsp(pastix_int_t        n,
+                          pastix_complex64_t *A,
+                          pastix_int_t        lda,
+                          pastix_int_t       *nbpivot,
+                          double              criteria,
+                          pastix_complex64_t *work)
 {
-    dague_int_t k, blocknbr, blocksize, matrixsize, col;
-    dague_complex64_t *tmp,*tmp1,*tmp2;
-    dague_complex64_t alpha;
+    pastix_int_t k, blocknbr, blocksize, matrixsize, col;
+    pastix_complex64_t *tmp,*tmp1,*tmp2;
+    pastix_complex64_t alpha;
 
-        /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
-    blocknbr = (dague_int_t) ceil( (double)n/(double)MAXSIZEOFBLOCKS );
+    /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
+    blocknbr = (pastix_int_t) ceil( (double)n/(double)MAXSIZEOFBLOCKS );
 
     for (k=0; k<blocknbr; k++) {
 
-        blocksize = min(MAXSIZEOFBLOCKS, n-k*MAXSIZEOFBLOCKS);
-        tmp  = A+(k*MAXSIZEOFBLOCKS)*(stride+1); /* Lk,k     */
-        tmp1 = tmp  + blocksize;                 /* Lk+1,k   */
-        tmp2 = tmp1 + blocksize * stride;        /* Lk+1,k+1 */
+        blocksize = pastix_imin(MAXSIZEOFBLOCKS, n-k*MAXSIZEOFBLOCKS);
+        tmp  = A+(k*MAXSIZEOFBLOCKS)*(lda+1); /* Lk,k     */
+        tmp1 = tmp  + blocksize;              /* Lk+1,k   */
+        tmp2 = tmp1 + blocksize * lda;        /* Lk+1,k+1 */
 
-        /* Factorize the diagonal block A(k,k) (input A in tmp, output L,D in tmp */
-        core_zsytf2sp(blocksize, tmp, stride, nbpivot, criteria);
+        /* Factorize the diagonal block Akk*/
+        core_zsytf2sp(blocksize, tmp, lda, nbpivot, criteria);
 
         if ((k*MAXSIZEOFBLOCKS+blocksize) < n) {
 
@@ -146,19 +171,19 @@ static void core_zsytrfsp(dague_int_t  n,
                         CblasRight, CblasLower,
                         CblasTrans, CblasUnit,
                         matrixsize, blocksize,
-                        CBLAS_SADDR(zone), tmp,  stride,
-                                           tmp1, stride);
+                        CBLAS_SADDR(zone), tmp,  lda,
+                                           tmp1, lda);
 
             /* Compute L(k+1:n,k) = A(k+1:n,k)D(k,k)^{-1}     */
             for(col = 0; col < blocksize; col++) {
                 /* copy L(k+1+col:n,k+col)*D(k+col,k+col) into work(:,col) */
-                cblas_zcopy(matrixsize, tmp1+col*stride,     1,
+                cblas_zcopy(matrixsize, tmp1+col*lda,     1,
                                         work+col*matrixsize, 1);
 
                                 /* compute L(k+1+col:n,k+col) = A(k+1+col:n,k+col)D(k+col,k+col)^{-1} */
-                alpha = 1. / *(tmp + col*(stride+1));
+                alpha = 1. / *(tmp + col*(lda+1));
                 cblas_zscal(matrixsize, CBLAS_SADDR(alpha),
-                            tmp1+col*stride, 1);
+                            tmp1+col*lda, 1);
             }
 
             /* Update A(k+1:n,k+1:n) = A(k+1:n,k+1:n) - (L(k+1:n,k)*D(k,k))*L(k+1:n,k)^T */
@@ -166,101 +191,176 @@ static void core_zsytrfsp(dague_int_t  n,
                         CblasNoTrans, CblasTrans,
                         matrixsize, matrixsize, blocksize,
                         CBLAS_SADDR(mzone), work, matrixsize,
-                                            tmp1, stride,
-                        CBLAS_SADDR(zone),  tmp2, stride);
+                                            tmp1, lda,
+                        CBLAS_SADDR(zone),  tmp2, lda);
         }
     }
 }
 
 
-/*
- * Factorization of diagonal block
- * entry point from DAGue: to factor c-th supernodal column
- */
-void core_zsytrfsp1d(dague_complex64_t *L,
-                     dague_complex64_t *work,
-                     SolverMatrix *datacode,
-                     dague_int_t c,
-                     double criteria)
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zsytrfsp1d - Computes the LDL^H factorization of one panel and apply
+ * all the trsm updates to this panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] datacode
+ *          TODO
+ *
+ * @param[in] cblknum
+ *          Index of the panel to factorize in the cblktab array.
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+int core_zsytrfsp1d( SolverMatrix       *datacode,
+                     pastix_int_t        cblknum,
+                     pastix_complex64_t *L,
+                     double              criteria,
+                     pastix_complex64_t *work )
 {
-    dague_complex64_t *fL;
-    dague_int_t    dima, dimb, stride;
-    dague_int_t    fblknum, lblknum;
-    dague_int_t    nbpivot = 0; /* TODO: return to higher level */
+    SolverCblk   *cblk;
+    SolverBlok   *blok;
+    pastix_int_t  ncols, stride;
+    pastix_int_t  fblknum, lblknum;
+    pastix_int_t  nbpivot = 0;
+
+    cblk    = &(datacode->cblktab[cblknum]);
+    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
+    stride  = cblk->stride;
+    fblknum = cblk->bloknum;   /* block number of this diagonal block */
+    lblknum = cblk[1].bloknum; /* block number of the next diagonal block */
 
     /* check if diagonal column block */
-    assert( SYMB_FCOLNUM(c) == SYMB_FROWNUM(SYMB_BLOKNUM(c)) );
+    blok = &(datacode->bloktab[fblknum]);
+    assert( cblk->fcolnum == blok->frownum );
+    assert( cblk->lcolnum == blok->lrownum );
 
-    /* Initialisation des pointeurs de blocs */
-    dima   = SYMB_LCOLNUM(c)-SYMB_FCOLNUM(c)+1; /* (last column in this block-column)-(first column in this block-column)+1 */
-    stride = SOLV_STRIDE(c);                    /*  leading dimension of this block                                         */
-
-    /* Factorize diagonal supernode (two terms version with workspace) */
-    core_zsytrfsp(dima, L, stride, &nbpivot, criteria, work); /* L points to the first element of this block column */
-
-    fblknum = SYMB_BLOKNUM(c);      /* block number of this diagonal block     */
-    lblknum = SYMB_BLOKNUM(c + 1);  /* block number of the next diagonal block */
-
-    /* vertical dimension */
-    dimb = stride - dima;
+    /* Factorize diagonal block (two terms version with workspace) */
+    core_zsytrfsp(ncols, L, stride, &nbpivot, criteria, work);
 
     /* if there are off-diagonal supernodes in the column */
     if ( fblknum+1 < lblknum )
     {
+        pastix_complex64_t *fL;
+        pastix_int_t nrows;
+
+        /* vertical dimension */
+        nrows = stride - ncols;
+
         /* the first off-diagonal block in column block address */
-        fL = L + SOLV_COEFIND(fblknum+1);
+        fL = L + blok[1].coefind;
 
         /* Three terms version, no need to keep L and L*D */
         cblas_ztrsm(CblasColMajor,
                     CblasRight, CblasLower,
                     CblasTrans, CblasUnit,
-                    dimb, dima,
+                    nrows, ncols,
                     CBLAS_SADDR(zone), L,  stride,
                                        fL, stride);
 
-        for (dague_int_t k=0; k<dima; k++)
+        for (pastix_int_t k=0; k<ncols; k++)
         {
-          dague_complex64_t alpha;
-          alpha = 1. / L[k+k*stride];
-          cblas_zscal(dimb, CBLAS_SADDR(alpha), &(fL[k*stride]), 1);
+            pastix_complex64_t alpha;
+            alpha = 1. / L[k+k*stride];
+            cblas_zscal(nrows, CBLAS_SADDR(alpha), &(fL[k*stride]), 1);
         }
     }
+
+    return nbpivot;
 }
 
 
-// sparse_matrix_get_lcblknum( descA, (dague_int_t)k ),
-void core_zsytrfsp1d_gemm(dague_int_t cblknum,        //
-                          dague_int_t bloknum,
-                          dague_int_t fcblknum,
-                          dague_complex64_t *L,
-                          dague_complex64_t *C,
-                          dague_complex64_t *work1,
-                          dague_complex64_t *work2,
-                          SolverMatrix *datacode)
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zpotrfsp1d - Computes the Cholesky factorization of one panel and apply
+ * all the trsm updates to this panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] datacode
+ *          TODO
+ *
+ * @param[in] cblk
+ *          The pointer to the data structure that describes the panel to be
+ *          factorized. Must be at least of size 2 in order to get the first
+ *          block number of the following panel (cblk[1]).
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+void core_zsytrfsp1d_gemm( SolverMatrix       *datacode,
+                           pastix_int_t        cblknum,
+                           pastix_int_t        bloknum,
+                           pastix_int_t        fcblknum,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *C,
+                           pastix_complex64_t *work1,
+                           pastix_complex64_t *work2)
 {
-    dague_complex64_t *Aik, *Aij;
-    dague_int_t fblknum, lblknum, frownum;
-    dague_int_t stride, stridefc, indblok;
-    dague_int_t b, j;
-    dague_int_t dimi, dimj, dima, dimb;
-    dague_int_t ldw = SOLV_COEFMAX;
+    SolverCblk *cblk  = &(datacode->cblktab[cblknum]);
+    SolverCblk *fcblk = &(datacode->cblktab[fcblknum]);
+    SolverBlok *blok;
+    SolverBlok *fblok;
 
-    fblknum = SYMB_BLOKNUM(cblknum);
-    lblknum = SYMB_BLOKNUM(cblknum + 1);
+    pastix_complex64_t *Aik, *Aij;
+    pastix_int_t lblknum;
+    pastix_int_t stride, stridefc, indblok;
+    pastix_int_t b, j;
+    pastix_int_t dimi, dimj, dima, dimb;
+    pastix_int_t ldw;
 
-    indblok = SOLV_COEFIND(bloknum);
-    stride  = SOLV_STRIDE(cblknum);
+    stride  = cblk->stride;
+    dima = cblk->lcolnum - cblk->fcolnum + 1;
 
+
+    /* First blok */
+    j = bloknum;
+    blok = &(datacode->bloktab[bloknum]);
+    indblok = blok->coefind;
+
+    dimj = blok->lrownum - blok->frownum + 1;
     dimi = stride - indblok;
-    dimj = SYMB_LROWNUM(bloknum) - SYMB_FROWNUM(bloknum) + 1;
-    dima = SYMB_LCOLNUM(cblknum) - SYMB_FCOLNUM(cblknum) + 1;
 
     /* Matrix A = Aik */
     Aik = L + indblok;
 
-    /* Compute the contribution             *
-         * work1 = A(i:n,k) * D(k,k) * A(i,k)^T */
-    CORE_zgemdm( PlasmaNoTrans, PlasmaTrans,
+    /* Compute ldw which should never be larger than SOLVE_COEFMAX */
+    ldw = dimi * dima;
+
+    /* Compute the contribution */
+    core_zgemdm( CblasNoTrans, CblasTrans,
                  dimi, dimj, dima,
                  1.,  Aik,   stride,
                       Aik,   stride,
@@ -269,42 +369,38 @@ void core_zsytrfsp1d_gemm(dague_int_t cblknum,        //
                       work2, ldw );
 
     /*
-     * Add contribution to facing cblk  *
-         * A(i,i+1:n) += work1              */
-    b = SYMB_BLOKNUM( fcblknum );
-    stridefc = SOLV_STRIDE(fcblknum);
-    C = C + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
+     * Add contribution to facing cblk
+     * A(i,i+1:n) += work1
+     */
+
+    /* Get the first block of the distant panel */
+    b     = fcblk->bloknum;
+    fblok = &(datacode->bloktab[ b ]);
+
+    /* Move the pointer to the top of the right column */
+    stridefc = fcblk->stride;
+    C = C + (blok->frownum - fcblk->fcolnum) * stridefc;
+
+    lblknum = cblk[1].bloknum;
 
     /* for all following blocks in block column */
-    for (j=bloknum; j<lblknum; j++) {
-        frownum = SYMB_FROWNUM(j);
+    for (j=bloknum; j<lblknum; j++,blok++) {
 
         /* Find facing bloknum */
-#ifdef NAPA_SOPALIN /* ILU(k) */
-        while (!(((SYMB_FROWNUM(j)>=SYMB_FROWNUM(b)) &&
-                  (SYMB_LROWNUM(j)<=SYMB_LROWNUM(b))) ||
-                 ((SYMB_FROWNUM(j)<=SYMB_FROWNUM(b)) &&
-                  (SYMB_LROWNUM(j)>=SYMB_LROWNUM(b))) ||
-                 ((SYMB_FROWNUM(j)<=SYMB_FROWNUM(b)) &&
-                  (SYMB_LROWNUM(j)>=SYMB_FROWNUM(b))) ||
-                 ((SYMB_FROWNUM(j)<=SYMB_LROWNUM(b)) &&
-                  (SYMB_LROWNUM(j)>=SYMB_LROWNUM(b)))))
-#else
-        while (!((SYMB_FROWNUM(j)>=SYMB_FROWNUM(b)) &&
-                 (SYMB_LROWNUM(j)<=SYMB_LROWNUM(b))))
-#endif
-            {
-                b++;
-                assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
-            }
+        while (!is_block_inside_fblock( blok, fblok ))
+        {
+            b++; fblok++;
+            assert( b < fcblk[1].bloknum );
+        }
 
+        Aij = C + fblok->coefind + blok->frownum - fblok->frownum;
+        dimb = blok->lrownum - blok->frownum + 1;
 
-        Aij = C + SOLV_COEFIND(b) + frownum - SYMB_FROWNUM(b);
-        dimb = SYMB_LROWNUM(j) - frownum + 1;
-
-        CORE_zgeadd( dimb, dimj, -1.0,
-                    work1, dimi,
-                    Aij,   stridefc );
+        pastix_cblk_lock( fcblk );
+        core_zgeadd( dimb, dimj, -1.0,
+                     work1, dimi,
+                     Aij,   stridefc );
+        pastix_cblk_unlock( fcblk );
 
         /* Displacement to next block */
         work1 += dimb;
