@@ -10,6 +10,20 @@ set (PASTIX_VERSION_MICRO 0)
 
 set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}" )
 
+# Add extra cmake module path and initialize morse cmake modules
+# --------------------------------------------------------------
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
+
+set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse )
+list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
+include(MorseInit)
+
+# Define precision supported by MAGMA_MORSE
+# -----------------------------------------
+set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.py )
+set( RP_PASTIX_PRECISIONS  "s;d;c;z" )
+include(RulesPrecisions)
+
 # # CTest system
 # SET(DART_TESTING_TIMEOUT 120)
 # enable_testing()
@@ -58,8 +72,10 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
 mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
 set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix directory")
 set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
-set( BLAS_LIBRARY_DIRS /opt/plasma-extlibs-dbg/lib CACHE STRING "BLAS library paths"     )
-set( BLAS_LIBRARIES    refblas                     CACHE STRING "BLAS libraries"         )
+#set( BLAS_LIBRARY_DIRS /opt/plasma-extlibs-dbg/lib CACHE STRING "BLAS library paths"     )
+#set( BLAS_LIBRARIES    refblas                     CACHE STRING "BLAS libraries"         )
+#set( CBLAS_DIR         /opt/plasma-extlibs-dbg     CACHE STRING "CBLAS path"     )
+#set( CBLAS_LIBRARIES    cblas                       CACHE STRING "CBLAS libraries"         )
 #set( BLAS_LIBRARY_DIRS /opt/gotoblas2              CACHE STRING "BLAS library paths"     )
 #set( BLAS_LIBRARIES    goto2                       CACHE STRING "BLAS libraries"         )
 
@@ -75,246 +91,19 @@ option(FORGET_PARTITION
 option(COMPACT_SMX
   "Optimization for solve computations (TODO: check if not obsolete because results don't converge)" OFF)
 
-# cmake modules setup
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
-include (CMakeDetermineSystem)
-include (CheckCCompilerFlag)
-include (CheckFunctionExists)
-include (CheckSymbolExists)
-include (CheckIncludeFiles)
-
 #
-# check the capabilities of the system we are building for
+# Find non-optional packages
 #
+find_package(BLASEXT REQUIRED)
+set(HAVE_BLAS ${BLAS_FOUND})
 
-#
-# Check we are using the reentrant version of xlc/xlf if used
-STRING(REGEX MATCH ".*xlc$" _match_xlc ${CMAKE_C_COMPILER})
-IF (_match_xlc)
-     MESSAGE(ERROR "Please use the thread-safe version of the xlc compiler (xlc_r)")
-ENDIF (_match_xlc)
-STRING(REGEX MATCH ".*xlf$" _match_xlf ${CMAKE_Fortran_COMPILER})
-IF (_match_xlf)
-     MESSAGE(ERROR "Please use the thread-safe version of the xlf compiler (xlf_r)")
-ENDIF (_match_xlf)
+find_package(CBLAS REQUIRED)
+set(HAVE_CBLAS ${CBLAS_FOUND})
+if(CBLAS_FOUND)
+  message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
+    include_directories(${CBLAS_INCLUDE_DIRS})
+endif()
 
-# Fortran tricks (BLAS library require to link with fortran linker, while main in in C)
-STRING(REGEX MATCH "Intel" _match_intel ${CMAKE_Fortran_COMPILER_ID})
-IF (_match_intel)
-     MESSAGE(STATUS "Add -nofor_main to the Fortran linker.")
-     SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} -nofor_main")
-ENDIF (_match_intel)
-
-STRING(REGEX MATCH "PGI$" _match_pgi ${CMAKE_Fortran_COMPILER_ID})
-IF (_match_pgi)
-    MESSAGE(STATUS "Add -Mnomain to the Fortran linker.")
-    SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} -Mnomain -Bstatic")
-ENDIF (_match_pgi)
-
-STRING(REGEX MATCH "XL" _match_xlc ${CMAKE_C_COMPILER_ID})
-IF (_match_xlc AND BUILD_64bits)
-     MESSAGE(STATUS "Add -q64 to the C compiler/linker.")
-     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -q64")
-ENDIF (_match_xlc AND BUILD_64bits)
-
-STRING(REGEX MATCH "XL$" _match_xlf ${CMAKE_Fortran_COMPILER_ID})
-IF (_match_xlf)
-  SET(arch_flags "-q32")
-  IF(BUILD_64bits)
-     SET(arch_flags "-q64")
-  ENDIF(BUILD_64bits)
-  MESSAGE(STATUS "Add ${arch_flags} and -nofor_main to the Fortran linker.")
-  SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} ${arch_flags} -nofor_main")
-ENDIF (_match_xlf)
-
-#
-# check for the CPU we build for
-#
-MESSAGE(STATUS "Building for target ${CMAKE_SYSTEM_PROCESSOR}")
-STRING(REGEX MATCH "(i.86-*)|(athlon-*)|(pentium-*)" _mach_x86 ${CMAKE_SYSTEM_PROCESSOR})
-IF (_mach_x86)
-    MESSAGE(STATUS "Found target for X86")
-    SET(ARCH_X86 1)
-ENDIF (_mach_x86)
-
-STRING(REGEX MATCH "(x86_64-*)|(X86_64-*)|(AMD64-*)|(amd64-*)" _mach_x86_64 ${CMAKE_SYSTEM_PROCESSOR})
-IF (_mach_x86_64)
-    MESSAGE(STATUS "Found target X86_64")
-    SET(ARCH_X86_64 1)
-ENDIF (_mach_x86_64)
-
-STRING(REGEX MATCH "(ppc-*)|(powerpc-*)" _mach_ppc ${CMAKE_SYSTEM_PROCESSOR})
-IF (_mach_ppc)
-    MESSAGE(STATUS "Found target for PPC")
-    SET(ARCH_PPC 1)
-ENDIF (_mach_ppc)
-
-#
-# Fix the building system for 32 or 64 bits.
-#
-# On MAC OS X there is a easy solution, by setting the
-# CMAKE_OSX_ARCHITECTURES to a subset of the following values:
-# ppc;ppc64;i386;x86_64.
-# On Linux this is a little bit tricky. We have to check that the
-# compiler supports the -m32/-m64 flags as well as the linker.
-# Once this issue resolved the CMAKE_C_FLAGS and CMAKE_C_LDFLAGS
-# have to be updated accordingly.
-#
-# TODO: Same trick for the Fortran compiler...
-#       no idea how to correctly detect if the required/optional
-#          libraries are in the correct format.
-#
-set(SAVE_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
-if (BUILD_64bits)
-  if( _match_xlc)
-    set( ARCH_BUILD "-q64" )
-  else (_match_xlc)
-    set( ARCH_BUILD "-m64" )
-  endif(_match_xlc)
-else (BUILD_64bits)
-  if( _match_xlc)
-    set( ARCH_BUILD "-q32" )
-  else (_match_xlc)
-    set( ARCH_BUILD "-m32" )
-  endif(_match_xlc)
-endif (BUILD_64bits)
-
-set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${ARCH_BUILD}")
-check_c_compiler_flag(${ARCH_BUILD} C_M32or64)
-
-if (C_M32or64)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH_BUILD}")
-  set(CMAKE_C_LDFLAGS "${CMAKE_C_LDFLAGS} ${ARCH_BUILD}")
-  set(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} ${ARCH_BUILD}")
-else (C_M32or64)
-  set(CMAKE_REQUIRED_FLAGS "${SAVE_CMAKE_REQUIRED_FLAGS}")
-endif (C_M32or64)
-unset( SAVE_CMAKE_REQUIRED_FLAGS )
-
-#
-# Check compiler flags and capabilities
-#
-IF( NOT _match_xlc )
-  CHECK_C_COMPILER_FLAG( "-std=c99" HAVE_STD_C99)
-  IF( HAVE_STD_C99 )
-    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99" )
-  ENDIF( HAVE_STD_C99 )
-ELSE( NOT _match_xlc )
-  CHECK_C_COMPILER_FLAG( "-qlanglvl=extc99" HAVE_STD_C99)
-  IF( HAVE_STD_C99 )
-    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qlanglvl=extc99" )
-  ENDIF( HAVE_STD_C99 )
-ENDIF( NOT _match_xlc )
-
-# Set warnings for debug builds
-CHECK_C_COMPILER_FLAG( "-Wall" HAVE_WALL )
-IF( HAVE_WALL )
-    SET( C_WFLAGS "${C_WFLAGS} -Wall" )
-ENDIF( HAVE_WALL )
-CHECK_C_COMPILER_FLAG( "-Wextra" HAVE_WEXTRA )
-IF( HAVE_WEXTRA )
-    SET( C_WFLAGS "${C_WFLAGS} -Wextra" )
-ENDIF( HAVE_WEXTRA )
-# flags for the overly verbose icc
-CHECK_C_COMPILER_FLAG( "-wd424" HAVE_WD )
-IF( HAVE_WD )
-    # 424: checks for duplicate ";"
-    # 981: every volatile triggers a "unspecified evaluation order", obnoxious
-    #      but might be useful for some debugging sessions.
-    # 1419: warning about extern functions being declared in .c
-    #       files
-    # 1572: cuda compares floats with 0.0f.
-    SET( C_WFLAGS "${C_WFLAGS} -wd424 -wd981 -wd1419 -wd1572" )
-ENDIF( HAVE_WD )
-CHECK_C_COMPILER_FLAG( "-g3" HAVE_G3 )
-IF( HAVE_G3 )
-    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g3 ${C_WFLAGS}" )
-ELSE()
-    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g ${C_WFLAGS}" )
-ENDIF( HAVE_G3)
-SET( CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} ${C_WFLAGS}" )
-SET( CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG" )
-
-#
-# Threads and Atomics
-#
-
-# include (cmake_modules/CheckAtomicIntrinsic.cmake)
-# if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-#   set( MAC_OS_X 1 CACHE INTERNAL "Compile on MAC OS X")
-# endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-
-find_package(Threads)
-if(Threads_FOUND)
-  set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${CMAKE_THREAD_LIBS_INIT}")
-  check_function_exists(pthread_create HAVE_PTHREAD)
-  if(HAVE_PTHREAD)
-    list(APPEND EXTRA_LIBS ${CMAKE_THREAD_LIBS_INIT})
-  endif(HAVE_PTHREAD)
-endif(Threads_FOUND)
-
-check_function_exists(sched_setaffinity HAVE_SCHED_SETAFFINITY)
-if( NOT HAVE_SCHED_SETAFFINITY )
-  check_library_exists(rt sched_setaffinity "" HAVE_SCHED_SETAFFINITY)
-endif( NOT HAVE_SCHED_SETAFFINITY )
-
-#
-# timeval, timespec, realtime clocks, etc
-#
-include(CheckStructHasMember)
-check_struct_has_member("struct timespec" tv_nsec time.h HAVE_TIMESPEC_TV_NSEC)
-if( NOT HAVE_TIMESPEC_TV_NSEC )
-  add_definitions(-D_GNU_SOURCE)
-  check_struct_has_member("struct timespec" tv_nsec time.h HAVE_TIMESPEC_TV_NSEC)
-endif( NOT HAVE_TIMESPEC_TV_NSEC )
-check_library_exists(rt clock_gettime "" HAVE_CLOCK_GETTIME)
-if( HAVE_CLOCK_GETTIME )
-  list(APPEND EXTRA_LIBS rt)
-endif( HAVE_CLOCK_GETTIME )
-
-#
-# stdlib, stdio, string, getopt, etc
-#
-check_include_files(stdarg.h HAVE_STDARG_H)
-# va_copy is special as it is not required to be a function.
-# if (HAVE_STDARG_H)
-#   check_c_source_compiles("
-#       #include <stdarg.h>
-#       int main(void) {
-#           va_list a, b;
-#           va_copy(a, b);
-#           return 0;
-#       }"
-#       HAVE_VA_COPY
-#       )
-
-#   if (NOT HAVE_VA_COPY)
-#     check_c_source_compiles("
-#         #include <stdarg.h>
-#         int main(void) {
-#             va_list a, b;
-#             __va_copy(a, b);
-#             return 0;
-#         }"
-#         HAVE_UNDERSCORE_VA_COPY
-#         )
-#   endif (NOT HAVE_VA_COPY)
-# endif (HAVE_STDARG_H)
-# check_function_exists(asprintf HAVE_ASPRINTF)
-# check_function_exists(vasprintf HAVE_VASPRINTF)
-check_include_files(getopt.h HAVE_GETOPT_H)
-check_include_files(unistd.h HAVE_UNISTD_H)
-check_function_exists(getopt_long HAVE_GETOPT_LONG)
-check_include_files(errno.h HAVE_ERRNO_H)
-check_include_files(stddef.h HAVE_STDDEF_H)
-check_function_exists(getrusage HAVE_GETRUSAGE)
-check_include_files(limits.h HAVE_LIMITS_H)
-check_include_files(string.h HAVE_STRING_H)
-check_include_files(complex.h HAVE_COMPLEX_H)
-
-#
-# Find optional packages
-#
 find_package(HWLOC)
 set(HAVE_HWLOC ${HWLOC_FOUND})
 if( HWLOC_FOUND )
@@ -323,6 +112,9 @@ if( HWLOC_FOUND )
   include_directories( ${HWLOC_INCLUDE_DIRS} )
 endif (HWLOC_FOUND)
 
+#
+# Find optional packages
+#
 if (PASTIX_WITH_MPI)
   find_package(MPI REQUIRED)
   set(HAVE_MPI ${MPI_FOUND})
@@ -332,6 +124,20 @@ if (PASTIX_WITH_MPI)
 endif (PASTIX_WITH_MPI)
 
 #
+if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
+  include_directories("${SCOTCH_DIR}/include")
+  set(SCOTCH_LIBRARY_DIRS "${SCOTCH_DIR}/lib")
+  set(SCOTCH_LIBRARIES    "scotch;scotcherr")
+  set(PTSCOTCH_LIBRARIES  "ptscotch;ptscotcherr")
+endif()
+
+
+if (PASTIX_ORDERING_METIS)
+  include_directories("${METIS_DIR}/include")
+  set(METIS_LIBRARY_DIRS "${METIS_DIR}/lib")
+  set(METIS_LIBRARIES    "metis")
+endif()
+
 # Check to see if support for MPI 2.0 is available
 #
 if (MPI_FOUND)
@@ -366,33 +172,6 @@ if( PASTIX_WITH_CUDA )
     set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
   endif (CUDA_FOUND)
 endif( PASTIX_WITH_CUDA )
-
-# if (DAGUE_PROF_PAPI)
-#   find_package(PAPI REQUIRED)
-#   set(HAVE_PAPI ${PAPI_FOUND})
-#   if (PAPI_FOUND)
-#     list(APPEND EXTRA_SOURCES src/papime.c)
-#     list(APPEND EXTRA_LIBS ${PAPI_LIBRARY})
-#     include_directories( ${PAPI_INCLUDE_DIR} )
-#   endif (PAPI_FOUND)
-# endif (DAGUE_PROF_PAPI)
-
-
-# #
-# # If AYUDAME support is enabled it means we need to deal with weak symbols. On
-# # MAC OS X we need to add a special linker flag or the applications will not
-# # compile correctly.
-# #
-# find_package(AYUDAME QUIET)
-# set(HAVE_AYUDAME ${AYUDAME_FOUND})
-# if(AYUDAME_FOUND)
-#   include_directories( ${AYUDAME_INCLUDE_DIR} )
-#   if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-#     message(STATUS "Add '-undefined dynamic_lookup' to the linking flags")
-#     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -undefined dynamic_lookup")
-#     SET(LOCAL_FORTRAN_LINK_FLAGS "${LOCAL_FORTRAN_LINK_FLAGS} -undefined dynamic_lookup")
-#   endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-# endif(AYUDAME_FOUND)
 
 #
 ##
@@ -445,14 +224,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
-
-if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
-  include_directories("${SCOTCH_DIR}/include")
-endif()
-
-if (PASTIX_ORDERING_METIS)
-  include_directories("${METIS_DIR}/include")
-endif()
 
 macro(solver_rules _output_files _sources_files)
   foreach(_source_file ${_sources_files})
