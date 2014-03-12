@@ -58,6 +58,13 @@ void errorPrintW(const char * const, ...);
 #endif
 
 /********************************************************************
+ * CBLAS value address
+ */
+#ifndef CBLAS_SADDR
+#define CBLAS_SADDR( a_ ) (&(a_))
+#endif
+
+/********************************************************************
  * Files handling macros
  */
 /*
