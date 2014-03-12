@@ -625,6 +625,9 @@ void simuRun( SymbolMatrix *symbptr,
      */
     while(1)
     {
+        SimuTask    *task;
+        pastix_int_t clustnum;
+
         /* Get the next earlier task index and the processor on which it is mapped */
         i = getNextTaskNextProc(simuctrl, ctrl, &pr);
 
@@ -632,82 +635,86 @@ void simuRun( SymbolMatrix *symbptr,
         if( i == -1 )
             break;
 
-        bloknum = simuctrl->tasktab[i].bloknum;
-        cblknum = simuctrl->tasktab[i].cblknum;
+        task    = &(simuctrl->tasktab[i]);
+        bloknum = task->bloknum;
+        cblknum = task->cblknum;
+        clustnum= ctrl->core2clust[pr];
 
-        /*
-         * Compute the time at which each proc cand will have added its ftgt and
-         * received block target if the task is mapped on
-         */
-        assert( simuctrl->ownetab[cblknum]<0 );
+        assert(cblknum < symbptr->cblknbr);
+        assert(bloknum < symbptr->bloknbr);
 
-        /* Set processor owners */
+        /* Make sure the cblk is not already attibuted to someone and give it to the selected proc */
+        assert( simuctrl->ownetab[cblknum] < 0 );
         simuctrl->ownetab[cblknum] = pr;
         for(j=symbptr->cblktab[cblknum].bloknum;
             j<symbptr->cblktab[cblknum+1].bloknum;j++)
         {
             simuctrl->blprtab[j] = pr;
         }
+        task->prionum = simuctrl->clustab[clustnum].prionum;
+        simuctrl->clustab[clustnum].prionum++;
 
-        simuctrl->tasktab[i].prionum = simuctrl->clustab[ctrl->core2clust[pr]].prionum;
-        simuctrl->clustab[ctrl->core2clust[pr]].prionum++;
-
-        /* Ajout de la tache a la file du proc pour version standard */
+        /* Add task to the selected processor list */
         extendint_Add(simuctrl->proctab[pr].tasktab, i);
 
-        /* Sauvegarde du processus MPI devant executer la tache pour version MARCEL */
-        assert(simuctrl->tasktab[i].cblknum < symbptr->cblknbr);
-        ctrl->candtab[simuctrl->tasktab[i].cblknum].cluster = ctrl->core2clust[pr];
+        /* Backup which cluster will get the data for the second run of proportionnal mapping */
+        ctrl->candtab[cblknum].cluster = clustnum;
 
-        /*-------------------------------------------------------------/
-         /   UPDATE TIMER OF THE PROC ON WHICH IS MAPPED THE TASK       /
-         /   TO THE DATE THE PROC WILL BEGIN THE TASK INNER COMPUTATION /
-         /-------------------------------------------------------------*/
-        if( ctrl->candtab[simuctrl->tasktab[i].cblknum].fccandnum == ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum )
-            /** Time do not depend on the reception of a ftgt **/
-            timerSet(TIMER(pr), MAX(timerVal(TIMER(pr)), timerVal(&(simuctrl->tasktab[i].time))));
-        else
-            /** Time depends on the reception of a ftgt **/
-            timerSet(TIMER(pr),
-                     MAX(timerVal(TIMER(pr)),
-                         timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(bloknum, ctrl->core2clust[pr])]))));
+        /*
+         * Compute the time at which each proc cand will have added its ftgt and
+         * received block target if the task is mapped on
+         */
+        if( ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum ) {
+            /*
+             * All contributions come from the same node
+             * Time do not depend on the reception of a ftgt
+             */
+            timerSetMax( TIMER(pr), timerVal(&(task->time)));
+        }
+        else {
+            /*
+             * Contributions might come from different nodes
+             * Time depends on the reception of a ftgt
+             */
+            timerSetMax( TIMER(pr),
+                         timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(bloknum, clustnum)])));
+        }
 
-        /*------------------------------------------------------------------------/
-         /  Fill some fanintarget info (task of type E2 does not have any ftgt)    /
-         /------------------------------------------------------------------------*/
-        if(simuctrl->bloktab[bloknum].ftgtnum< simuctrl->bloktab[bloknum+1].ftgtnum)
+        /*
+         * Fill some fanintarget info (task of type E2 does not have any ftgt)
+         */
+        if(simuctrl->bloktab[bloknum].ftgtnum < simuctrl->bloktab[bloknum+1].ftgtnum)
         {
-            /** Task COMP_1D with several cand cluster **/
-            for(b=bloknum;b<symbptr->cblktab[cblknum+1].bloknum;b++)
+            /* Task COMP_1D with several cand cluster */
+            for(b=bloknum; b<symbptr->cblktab[cblknum+1].bloknum; b++)
             {
-                for(j=simuctrl->bloktab[b].ftgtnum;j<simuctrl->bloktab[b+1].ftgtnum;j++)
+                for(j=simuctrl->bloktab[b].ftgtnum; j<simuctrl->bloktab[b+1].ftgtnum; j++)
                 {
-                    if((simuctrl->ftgttab[j].ftgt.infotab[FTGT_CTRBNBR] >0)
-                       && (j != CLUST2INDEX(b, ctrl->core2clust[pr])))
+                    if( (simuctrl->ftgttab[j].ftgt.infotab[FTGT_CTRBNBR] >0)
+                        && (j != CLUST2INDEX(b, clustnum)))
                     {
                         simuctrl->ftgttab[j].clustnum = INDEX2CLUST(j, b);
-                        simuctrl->ftgttab[j].ftgt.infotab[FTGT_PRIONUM] = simuctrl->tasktab[i].prionum;
+                        simuctrl->ftgttab[j].ftgt.infotab[FTGT_PRIONUM] = task->prionum;
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_PROCDST] = pr;
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_BLOKDST] = b;
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_TASKDST] = simuctrl->bloktab[bloknum].tasknum;
 #ifdef OOC_FTGT
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_GCBKDST] = simuctrl->tasktab[simuctrl->bloktab[bloknum].tasknum].cblknum;
 #endif
-                        extendint_Add(&(simuctrl->clustab[INDEX2CLUST(j,b)].ftgtsend[ctrl->core2clust[pr]]), j);
+                        extendint_Add(&(simuctrl->clustab[INDEX2CLUST(j,b)].ftgtsend[clustnum]), j);
 
                         simuctrl->tasktab[simuctrl->bloktab[bloknum].tasknum].ftgtcnt++;
 
-                        if (ctrl->core2clust[pr] == ctrl->clustnum)
+                        if (clustnum == ctrl->clustnum)
                             simuctrl->ftgtcnt++;
                     }
                 }
-
             }
             simuctrl->ftgtprio++;
-
         }
-        else
+        else {
             assert(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum);
+        }
 
         /* Simule the computing of the task */
         taskExec_COMP1D(i, symbptr, simuctrl, ctrl, dofptr);
@@ -715,16 +722,18 @@ void simuRun( SymbolMatrix *symbptr,
         queueReorder(ctrl, simuctrl, i);
     }
 
-    double maxtime = 0;
-    for(pr=0;pr<ctrl->total_nbcores;pr++)
+    /* Compute maximum time */
     {
-        if(timerVal(TIMER(pr)) > maxtime)
-            maxtime = timerVal(TIMER(pr));
+        double maxtime = 0;
+        for(pr=0; pr<ctrl->total_nbcores; pr++)
+        {
+            if(timerVal(TIMER(pr)) > maxtime)
+                maxtime = timerVal(TIMER(pr));
+        }
+        set_dparm(ctrl->dparm, DPARM_PRED_FACT_TIME, maxtime);
     }
-    set_dparm(ctrl->dparm, DPARM_PRED_FACT_TIME, maxtime);
 
 #ifdef DEBUG_BLEND
-
     for(i=0;i<simuctrl->cblknbr;i++)
         if(ctrl->candtab[i].cblktype == CBLK_1D)
             if(simuctrl->ownetab[i] < 0) /** Check valid for 1D distribution only **/

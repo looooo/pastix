@@ -240,6 +240,13 @@ void timerSet(SimuTimer *timer, double t)
      timer->ms = (t-floor(t))*TIMEBASE;*/
 }
 
+void timerSetMax(SimuTimer *timer, double t)
+{
+    if ( t > timer->s ) {
+        timer->s = t;
+    }
+}
+
 
 /** OIMBE pour optimisation faire un timerMax pour distrib **/
 /** OIMBE pour optimisation faire un timerAffect(timer) pour distrib **/

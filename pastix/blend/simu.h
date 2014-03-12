@@ -130,6 +130,7 @@ pastix_int_t        compTimer       (SimuTimer *, SimuTimer *);
 void                timerAdd        (SimuTimer *, double);
 double              timerVal        (const SimuTimer *);
 void                timerSet        (SimuTimer *, double);
+void                timerSetMax(SimuTimer *timer, double t);
 #undef static
 
 void              simuRun              (SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
