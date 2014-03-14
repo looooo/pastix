@@ -363,11 +363,11 @@ double contribAddCost(pastix_int_t h, pastix_int_t g)
 }
 
 
-double costFtgtSend(pastix_int_t clustsrc,
-                    pastix_int_t sync_comm_nbr,
-                    FanInTarget *ftgt,
-                    BlendCtrl *ctrl,
-                    const Dof * dofptr)
+double costFtgtSend( const BlendCtrl   *ctrl,
+                     const Dof         *dofptr,
+                     const FanInTarget *ftgt,
+                     pastix_int_t clustsrc,
+                     pastix_int_t sync_comm_nbr )
 {
     pastix_int_t ddl_coefnbr = 0;
     pastix_int_t ddl_delta   = 0;

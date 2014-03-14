@@ -13,12 +13,12 @@
 #include "blendctrl.h"
 #include "perf.h"
 
-void getCommunicationCosts( BlendCtrl   *ctrl,
-                            pastix_int_t clustsrc,
-                            pastix_int_t clustdst,
-                            pastix_int_t sync_comm_nbr,
-                            double      *startup,
-                            double      *bandwidth)
+void getCommunicationCosts( const BlendCtrl *ctrl,
+                            pastix_int_t     clustsrc,
+                            pastix_int_t     clustdst,
+                            pastix_int_t     sync_comm_nbr,
+                            double          *startup,
+                            double          *bandwidth)
 {
     assert((clustsrc >= 0) && (clustsrc < ctrl->clustnbr));
     assert((clustdst >= 0) && (clustdst < ctrl->clustnbr));

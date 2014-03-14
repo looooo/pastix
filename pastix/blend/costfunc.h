@@ -30,7 +30,12 @@ double          E2Cost                (pastix_int_t, pastix_int_t, pastix_int_t)
 static double   computeCost           (pastix_int_t, pastix_int_t);
 static double   contribCompCost       (pastix_int_t, pastix_int_t, pastix_int_t);
 static double   contribAddCost        (pastix_int_t, pastix_int_t);
-double          costFtgtSend          (pastix_int_t, pastix_int_t, FanInTarget *, BlendCtrl *,  const Dof *);
+double costFtgtSend( const BlendCtrl   *ctrl,
+                     const Dof         *dofptr,
+                     const FanInTarget *ftgt,
+                     pastix_int_t clustsrc,
+                     pastix_int_t sync_comm_nbr );
+
 
 double          costFtgtAdd           (FanInTarget *, const Dof *);
 double          cblkMaxCost           (pastix_int_t, const CostMatrix *);

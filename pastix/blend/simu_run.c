@@ -58,8 +58,6 @@ computeBlockCtrbNbr(const BlendCtrl    *ctrl,
                 for(k=j; k<lbloknum; k++)
                 {
                     facebloknum = symbolGetFacingBloknum( symbptr, j, k, facebloknum, ctrl->ricar );
-                    assert( facebloknum == symbptr->bloktab[j].cblknum );
-
                     if(facebloknum >= 0)
                         simuctrl->bloktab[facebloknum].ctrbcnt++;
                 }
@@ -226,7 +224,11 @@ getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, pastix_int_t *procnumpt
 }
 
 static inline void
-computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+computeTaskReceiveTime( const BlendCtrl    *ctrl,
+                        const SymbolMatrix *symbptr,
+                        const Dof          *dofptr,
+                        SimuCtrl           *simuctrl,
+                        pastix_int_t        tasknum )
 {
     /*-------------------------------------------------------------------------/
      / Compute the time the cblk would have RECEIVED and ADDED                  /
@@ -245,7 +247,7 @@ computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCt
     bloknum = simuctrl->tasktab[tasknum].bloknum;
     cblknum = simuctrl->tasktab[tasknum].cblknum;
 
-    /* no fan_in_target-> no need treatment */
+    /* If the task is local, all sons sending contributions are local => no treatment */
     if(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum)
         return;
 
@@ -257,10 +259,10 @@ computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCt
 
     /** Compute receive time (time at which a non-local processor should received the target **/
     /* find the latest ftgt receive time and the second latest*/
-    for(i=simuctrl->bloktab[bloknum].ftgtnum; i<simuctrl->bloktab[bloknum+1].ftgtnum;i++)
+    for(i=simuctrl->bloktab[bloknum].ftgtnum; i<simuctrl->bloktab[bloknum+1].ftgtnum; i++)
     {
         /* Source of this ftgt */
-        clustdst = INDEX2CLUST(i,bloknum);
+        clustdst = INDEX2CLUST(i, bloknum);
 
         /** Task COMP_1D with several cand proc **/
         /** The information about ftgt costs are in the ftgt of the diagonal block;
@@ -274,8 +276,9 @@ computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCt
                         costFtgtAdd(&(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt), dofptr);
 
                     simuctrl->ftgttab[i].costsend +=
-                        costFtgtSend(clustdst, ctrl->candtab[cblknum].lccandnum-ctrl->candtab[cblknum].fccandnum+1,
-                                     &(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt), ctrl, dofptr);
+                        costFtgtSend( ctrl, dofptr,
+                                      &(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt),
+                                      clustdst, ctrl->candtab[cblknum].lccandnum-ctrl->candtab[cblknum].fccandnum+1 );
                 }
             }
 
@@ -314,266 +317,297 @@ computeTaskReceiveTime(const pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCt
         if(i != lftgtnum)
             timerSet(&(simuctrl->ftgttimetab[i]), lftgttime);
         else
-            timerSet(&(simuctrl->ftgttimetab[i]), MAX(timerVal(&(simuctrl->ftgttimetab[i])), sftgttime));
+            timerSetMax( &(simuctrl->ftgttimetab[i]), sftgttime );
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_simulation
+ *
+ * simu_updateFtgt - Update the Fan In target structure by incrementing the
+ * contribution counter and integrating to the ftgt area the new contribution.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbolic matrix structure.
+ *
+ * @param[in,out] simuctrl
+ *          The pointer to the simulation structure. On exit, data regarding the
+ *          computational unit pr are updated.
+ *
+ * @param[in] ftgtnum
+ *          Index of the fanin target to update.
+ *
+ * @param[in] bloknum
+ *          Index of the first of diagonal block generating a contribution to
+ *          the ftgtnum Fan In.
+ *
+ * @param[in] fbloknum
+ *          Index of the facing blok of bloknum that will receive the final
+ *          contribution.
+ *
+ *******************************************************************************/
 static inline void
-updateFtgtStruct(pastix_int_t bloknum, pastix_int_t bloknum2, pastix_int_t ftgtnum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl)
+simu_updateFtgt( const SymbolMatrix *symbptr,
+                 SimuCtrl           *simuctrl,
+                 pastix_int_t        ftgtnum,
+                 pastix_int_t        bloknum,
+                 pastix_int_t        fbloknum )
 {
-    SymbolBlok * blokptr;
-    SymbolBlok * blokptr2;
-    (void)ctrl;
+    FanInTarget  *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
+    pastix_int_t *infotab  = ftgt->infotab;
+    SymbolBlok   *blokptr  = (symbptr->bloktab) + bloknum;
+    SymbolBlok   *fblokptr = (symbptr->bloktab) + fbloknum;
 
-    blokptr  = &(symbptr->bloktab[bloknum]);
-    blokptr2 = &(symbptr->bloktab[bloknum2]);
-    simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_CTRBNBR]++;
-    if(blokptr2->frownum < simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FCOLNUM])
-        simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FCOLNUM] = blokptr2->frownum;
-    if(blokptr2->lrownum > simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LCOLNUM])
-        simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LCOLNUM] = blokptr2->lrownum;
-    if(blokptr->frownum < simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FROWNUM])
-        simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FROWNUM] = blokptr->frownum;
-    if(blokptr->lrownum > simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LROWNUM])
-        simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LROWNUM] = blokptr->lrownum;
+    infotab[FTGT_CTRBNBR]++;
 
-    assert(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LCOLNUM] - simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FCOLNUM]+1 > 0);
-    assert(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_LROWNUM] - simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_FROWNUM]+1 > 0);
+    /* Update ftgt dimensions to the maximum area covering all contributions */
+    if( blokptr->frownum < infotab[FTGT_FCOLNUM] )
+        infotab[FTGT_FCOLNUM] = blokptr->frownum;
 
+    if( blokptr->lrownum > infotab[FTGT_LCOLNUM] )
+        infotab[FTGT_LCOLNUM] = blokptr->lrownum;
+
+    if( fblokptr->frownum < infotab[FTGT_FROWNUM] )
+        infotab[FTGT_FROWNUM] = fblokptr->frownum;
+
+    if( fblokptr->lrownum > infotab[FTGT_LROWNUM] )
+        infotab[FTGT_LROWNUM] = fblokptr->lrownum;
+
+    assert( (infotab[FTGT_LCOLNUM] - infotab[FTGT_FCOLNUM] + 1) > 0 );
+    assert( (infotab[FTGT_LROWNUM] - infotab[FTGT_FROWNUM] + 1) > 0 );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_simulation
+ *
+ * simu_computetTask - This routine simulates the task execution by updating the
+ * timers of selected processor, and cblk, as well as cblk targetted by the
+ * updates.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The pointer to the global blend control structure.
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbolic matrix structure.
+ *
+ * @param[in,out] simuctrl
+ *          The pointer to the simulation structure. On exit, data regarding the
+ *          computational unit pr are updated.
+ *
+ * @param[in] tasknum
+ *          The task index of the one, we want to simulate the execution.
+ *
+ *******************************************************************************
+ *
+ * Remark: In this function, we use the standard [f|l]blocknum for first and
+ * last bloknum, and facingcblk, facingblok for the facing block and column
+ * block.
+ *
+ *******************************************************************************/
 static inline void
-taskExec_COMP1D(pastix_int_t tasknum, SymbolMatrix *symbptr, SimuCtrl *simuctrl, BlendCtrl *ctrl, const Dof * dofptr)
+simu_computeTask( const BlendCtrl    *ctrl,
+                  const SymbolMatrix *symbptr,
+                  const Dof          *dofptr,
+                  SimuCtrl           *simuctrl,
+                  pastix_int_t        tasknum )
 {
-    pastix_int_t          i, j;
-    pastix_int_t          cblknum;
-    pastix_int_t          facebloknum;
-    pastix_int_t          facecblknum;
-    pastix_int_t          local;
-    pastix_int_t          facetasknum;
-    pastix_int_t          ftgtnum;
-    pastix_int_t          procnum;
-    /*pastix_int_t          clustnum;*/
-    SimuProc     *proc;
+    pastix_int_t  i, j;
+    pastix_int_t  cblknum;
+    pastix_int_t  fbloknum;
+    pastix_int_t  lbloknum;
+    pastix_int_t  facingblok;
+    pastix_int_t  facingcblk;
+    pastix_int_t  facingtask;
+    pastix_int_t  local;
+    pastix_int_t  ftgtnum;
+    pastix_int_t  procnum;
+    pastix_int_t  clustnum;
+    SimuProc     *sproc;
     CostMatrix   *costmtx;
 
-    cblknum = simuctrl->tasktab[tasknum].cblknum; /* in case of COMP1D bloknum in a SimuTask struct means cblknum */
-    procnum = simuctrl->ownetab[cblknum];
-    proc    = &(simuctrl->proctab[procnum]);
-    costmtx = ctrl->costmtx;
+    cblknum  = simuctrl->tasktab[tasknum].cblknum;
+    procnum  = simuctrl->ownetab[cblknum];
+    clustnum = ctrl->core2clust[procnum];
+    sproc    = &(simuctrl->proctab[procnum]);
+    costmtx  = ctrl->costmtx;
 
-#ifdef DEBUG_BLEND
-    if (procnum < ctrl->candtab[cblknum].fcandnum || procnum > ctrl->candtab[cblknum].lcandnum)
-        fprintf(stderr, "procnum : %ld, fcandnum : %ld, lcandnum : %ld\n",
-                (long)procnum, (long)ctrl->candtab[cblknum].fcandnum, (long)ctrl->candtab[cblknum].lcandnum);
-    assert(procnum >= ctrl->candtab[cblknum].fcandnum && procnum <= ctrl->candtab[cblknum].lcandnum);
-#endif
+    fbloknum = symbptr->cblktab[cblknum  ].bloknum;
+    lbloknum = symbptr->cblktab[cblknum+1].bloknum;
 
-    /** Add time for factorizatoin of the diag blok and repercution on the off diag bloks **/
-    i = symbptr->cblktab[cblknum].bloknum;
-    timerAdd(&(proc->timer), costmtx->bloktab[i].contrib);
+    assert( (procnum >= ctrl->candtab[cblknum].fcandnum) &&
+            (procnum <= ctrl->candtab[cblknum].lcandnum) );
 
-    for(i++;i<symbptr->cblktab[cblknum+1].bloknum;i++)
+    /* Add factorization time to the diagonal blok */
+    timerAdd(&(sproc->timer), costmtx->bloktab[fbloknum].contrib);
+
+    for(i=fbloknum+1; i<lbloknum; i++)
     {
-        /** Add time for compute of the contrib due to this odb **/
-        /** OIMBE: pour l'instant je considere que les contribs sont calculees
-         en un bloc **/
-        timerAdd(&(proc->timer), costmtx->bloktab[i].contrib);
+        /* Add trsm time of this off-diagonal block */
+        timerAdd(&(sproc->timer), costmtx->bloktab[i].contrib);
 
-        facecblknum = symbptr->bloktab[i].cblknum;
+        facingcblk = symbptr->bloktab[i].cblknum;
 
-        if(ctrl->candtab[facecblknum].fccandnum ==  ctrl->candtab[facecblknum].lccandnum)
-            local = 1; /** Facing task is COMP1D and is on the local cluster subtree **/
-        else
-            local = 0;
+        /*
+         * If only one candidate cluster, we can consider the facingcblk as
+         * local because it is an ancestor of the current cblk in the
+         * elimination tree.
+         */
+        local = ( ctrl->candtab[facingcblk].fccandnum == ctrl->candtab[facingcblk].lccandnum ) ? 1 : 0;
 
-        if(!local || ctrl->candtab[facecblknum].cblktype != CBLK_1D )
+        if(!local)
         {
-            facebloknum = 0;
+            facingblok = symbptr->cblktab[facingcblk].bloknum;
 
-            for(j=i;j<symbptr->cblktab[cblknum+1].bloknum;j++)
+            for(j=i; j<lbloknum; j++)
             {
-                /* OIMBE trop couteux !! */
-                facebloknum = symbolGetFacingBloknum(symbptr, i, j, facebloknum, ctrl->ricar);
+                /* TODO: symbolGetFacingBloknum is too expensive !! */
+                facingblok = symbolGetFacingBloknum(symbptr, i, j, facingblok, ctrl->ricar);
+                assert( (ctrl->ricar != 0) || (facingblok >= 0) );
 
-#ifdef DEBUG_M
-                if(ctrl->ricar == 0)
-                    assert(facebloknum >= 0);
-#endif
-                if(facebloknum >= 0)
+                /* If the couple (i, j) generates a contribution, applies it */
+                if(facingblok >= 0)
                 {
-                    if(ctrl->candtab[facecblknum].cblktype == CBLK_1D)
-                        simuctrl->cblktab[facecblknum].ctrbcnt--;
-                    else
-                        simuctrl->bloktab[facebloknum].ctrbcnt--;
+                    simuctrl->cblktab[facingcblk].ctrbcnt--;
+                    simuctrl->bloktab[facingblok].ctrbcnt--;
 
-                    if(!local)
-                    {
-                        ftgtnum = CLUST2INDEX(facebloknum, ctrl->core2clust[procnum]);
-                        updateFtgtStruct(j, i, ftgtnum, symbptr, simuctrl, ctrl);
+                    assert( simuctrl->cblktab[facingcblk].ctrbcnt >= 0);
+                    assert( simuctrl->bloktab[facingblok].ctrbcnt >= 0);
 
-                        /** Update timer ready for receiver of the ftgt **/
-                        ftgtnum = CLUST2INDEX(symbptr->cblktab[facecblknum].bloknum, ctrl->core2clust[procnum]);
-                        timerSet(&(simuctrl->ftgttimetab[ftgtnum]) , MAX( timerVal(&(simuctrl->ftgttimetab[ftgtnum])) ,
-                                                                          timerVal(&(proc->timer))));
-                    }
-                    else
-                    {
-                        /*** LOCAL task ***/
-                        facetasknum = simuctrl->bloktab[symbptr->cblktab[facecblknum].bloknum].tasknum;
-                        timerSet(&(simuctrl->tasktab[facetasknum].time), MAX(timerVal(&(proc->timer)),
-                                                                             timerVal(&(simuctrl->tasktab[facetasknum].time))));
-                    }
+                    ftgtnum = CLUST2INDEX(facingblok, clustnum);
+                    simu_updateFtgt( symbptr, simuctrl, ftgtnum, i, j );
 
-                    if( (ctrl->candtab[facecblknum].cblktype == CBLK_1D && simuctrl->cblktab[facecblknum].ctrbcnt == 0) )
+                    /* Update timer ready for receiver of the ftgt */
+                    ftgtnum = CLUST2INDEX(symbptr->cblktab[facingcblk].bloknum, clustnum);
+                    timerSetMax( &(simuctrl->ftgttimetab[ftgtnum]),
+                                 timerVal(&(sproc->timer)) );
+
+                    if( simuctrl->cblktab[facingcblk].ctrbcnt == 0 )
                     {
-                        facetasknum = simuctrl->bloktab[facebloknum].tasknum;
+                        facingtask = simuctrl->bloktab[symbptr->cblktab[facingcblk].bloknum].tasknum;
+
+                        assert( facingcblk == simuctrl->tasktab[facingtask].cblknum );
+                        assert( facingtask < simuctrl->tasknbr );
 
                         if(!local)
-                            computeTaskReceiveTime(facetasknum, symbptr, simuctrl, ctrl, dofptr);
+                            computeTaskReceiveTime(ctrl, symbptr, dofptr, simuctrl, facingtask );
 
-                        assert( facecblknum == simuctrl->tasktab[facetasknum].cblknum );
-                        simu_putInAllReadyQueues( ctrl, simuctrl, facetasknum );
-                        assert(facetasknum < simuctrl->tasknbr);
+                        simu_putInAllReadyQueues( ctrl, simuctrl, facingtask );
                     }
                 }
             }
         }
+        /* Update on the same node */
         else
         {
-            /** The facing task is local COMP_1D**/
+            assert( clustnum == ctrl->candtab[facingcblk].fccandnum);
+
+            /* If ILU, we have add contribution only for a subset of blocks */
             if(ctrl->ricar == 1)
             {
-                facebloknum = 0;
-                for(j=i;j<symbptr->cblktab[cblknum+1].bloknum;j++)
+                facingblok = symbptr->cblktab[facingcblk].bloknum;
+                for(j=i;j<lbloknum;j++)
                 {
-                    /* OIMBE trop couteux ON PEUT FAIRE MIEUX EN PARCOURANT EN DESCENDANT!! */
-                    facebloknum = symbolGetFacingBloknum(symbptr, i, j, facebloknum, ctrl->ricar);
-                    if(facebloknum>=0)
-                        simuctrl->cblktab[facecblknum].ctrbcnt--;
+                    /* TODO: symbolGetFacingBloknum is too expensive */
+                    facingblok = symbolGetFacingBloknum(symbptr, i, j, facingblok, ctrl->ricar);
+                    if(facingblok>=0)
+                        simuctrl->cblktab[facingcblk].ctrbcnt--;
                 }
             }
-            else
-                simuctrl->cblktab[facecblknum].ctrbcnt -= symbptr->cblktab[cblknum+1].bloknum - i;            /** A REVOIR POUR NAPA **/
+            else {
+                simuctrl->cblktab[facingcblk].ctrbcnt -= lbloknum - i;
+            }
 
-            assert(simuctrl->cblktab[facecblknum].ctrbcnt >= 0);
+            assert(simuctrl->cblktab[facingcblk].ctrbcnt >= 0);
 
-            if(simuctrl->cblktab[facecblknum].ctrbcnt == 0)
+            /*
+             * If the facingcblk has received all its contributions let's update
+             * its timer and add it to the list of ready tasks
+             */
+            if(simuctrl->cblktab[facingcblk].ctrbcnt == 0)
             {
-                facetasknum = simuctrl->bloktab[symbptr->cblktab[facecblknum].bloknum].tasknum;
-                /** Update timer of the task (owned by the diag block**/
-                assert(ctrl->candtab[facecblknum].fccandnum == ctrl->candtab[facecblknum].lccandnum);
+                facingblok = symbptr->cblktab[facingcblk].bloknum;
+                facingtask = simuctrl->bloktab[facingblok].tasknum;
 
-                /* NB: The facing cblk is local !! */
-                timerSet(&(simuctrl->tasktab[facetasknum].time), MAX(timerVal(&(proc->timer)),
-                                                                     timerVal(&(simuctrl->tasktab[facetasknum].time))) );
-#ifdef DEBUG_BLEND
-                assert(simuctrl->tasktab[facetasknum].taskid == COMP_1D);
-                if(ctrl->ricar == 1)
-                    assert(ctrl->candtab[facecblknum].lccandnum == ctrl->candtab[facecblknum].fccandnum);
-                if(ctrl->core2clust[procnum] != ctrl->candtab[facecblknum].fccandnum)
-                {
-                    fprintf(stderr, "clustnum %ld  face proc cand %ld \n", (long)ctrl->core2clust[procnum], (long)ctrl->candtab[facecblknum].fccandnum);
-                    fprintf(stderr, "%ld candidat [%ld %ld] => %ld candidat [%ld %ld ]\n", (long)cblknum, (long)ctrl->candtab[cblknum].fccandnum, (long)ctrl->candtab[cblknum].lccandnum,
-                            (long)facecblknum, (long)ctrl->candtab[facecblknum].fccandnum, (long)ctrl->candtab[facecblknum].lccandnum);
-                }
-                assert(ctrl->core2clust[procnum] == ctrl->candtab[facecblknum].fccandnum);
-                assert(ctrl->core2clust[procnum] == ctrl->candtab[facecblknum].lccandnum);
-                assert(facetasknum<simuctrl->tasknbr);
-#endif
+                /* Some checks */
+                assert( facingcblk == simuctrl->tasktab[facingtask].cblknum );
+                assert( facingtask < simuctrl->tasknbr );
 
-                /** Put the task in the ready heap of its local candidat processor **/
-                assert( facecblknum == simuctrl->tasktab[facetasknum].cblknum );
-                simu_putInAllReadyQueues( ctrl, simuctrl, facetasknum );
+                /* Update timer of the task (associated to the diagonal block) */
+                timerSetMax( &(simuctrl->tasktab[facingtask].time),
+                             timerVal(&(sproc->timer)) );
+
+                /* Put the task in the ready heap of its local candidat processor */
+                simu_putInAllReadyQueues( ctrl, simuctrl, facingtask );
             }
         }
     }
 }
 
-pastix_int_t comp_int(const pastix_int_t * a, const pastix_int_t * b)
-{
-    if(a[0]>b[0])
-        return 1;
-    if(a[0]<b[0])
-        return -1;
-
-    /*a == b*/
-    return 0;
-}
-
-/* OIMBE utiliser un tas pour getNextProc --> cout log(P) au lieu de P */
-pastix_int_t getNextProc(SimuProc *proctab, pastix_int_t procnbr)
-{
-    double min;
-    pastix_int_t pr;
-    pastix_int_t procnum = -1;
-
-    min = (double)INTVALMAX;
-    for(pr=0;pr<procnbr;pr++)
-        if((timerVal(&(proctab[pr].timer)) < min) && ( (pqueueSize(proctab[pr].futuretask)>0) || (pqueueSize(proctab[pr].readytask)>0) ))
-        {
-            min = timerVal(&(proctab[pr].timer));
-            procnum = pr;
-        }
-    return procnum;
-}
-
-pastix_int_t getTaskUnmapped(pastix_queue_t *q1, pastix_queue_t *q2, SimuCtrl *simuctrl)
-{
-    pastix_int_t next = -1;
-    while(pqueueSize(q2)>0)
-    {
-        next = pqueuePop(q2);
-        if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
-        {
-            assert(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0);
-            goto end;
-        }
-    }
-    while(pqueueSize(q1)>0)
-    {
-        next = pqueuePop(q1);
-        if(simuctrl->blprtab[simuctrl->tasktab[next].bloknum]<0)
-        {
-            assert(simuctrl->ownetab[simuctrl->tasktab[next].cblknum]<0);
-            goto end;
-        }
-    }
-
-    /** no unmapped task found **/
-    return -1;
-
-  end:
-    return next;
-}
-
-
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_simulation
+ *
+ * simu_pushToReadyHeap - This routine pushes all future task from the future
+ * task heap to the ready one, if the time at which the task will be ready is
+ * already passed by the computation unit.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The pointer to the global blend control structure.
+ *
+ * @param[in,out] simuctrl
+ *          The pointer to the simulation structure. On exit, data regarding the
+ *          computational unit pr are updated.
+ *
+ * @param[in] pr
+ *          The computational unit index for which, the data need to be transfer
+ *          from the future task heap to ready task heap if the computatuional
+ *          unit timer is more advanced than the ready time of the tasks.
+ *
+ *******************************************************************************/
 static inline void
-queueReorder(const BlendCtrl *ctrl, SimuCtrl *simuctrl, pastix_int_t t )
+simu_pushToReadyHeap(const BlendCtrl *ctrl,
+                     SimuCtrl        *simuctrl,
+                     pastix_int_t     procnum )
 {
+    SimuProc    *sproc;
     pastix_int_t tasknum;
     pastix_int_t cblknum;
-    pastix_int_t procnum;
+    pastix_int_t clustnum;
 
+    clustnum = ctrl->core2clust[procnum];
+    sproc    = &(simuctrl->proctab[procnum]);
+
+    /*
+     * Move each task from future task heap to ready heap if the timer is
+     * further in the future than the ready time
+     */
+    while( pqueueSize(sproc->futuretask) > 0 )
     {
-        procnum = simuctrl->blprtab[simuctrl->tasktab[t].bloknum];
-        while(pqueueSize(simuctrl->proctab[procnum].futuretask)>0)
+        tasknum = pqueueRead(sproc->futuretask);
+
+        if(! compTimer( &(sproc->timer),
+                        &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, clustnum )])) )
         {
-            tasknum = pqueueRead(simuctrl->proctab[procnum].futuretask);
+            tasknum = pqueuePop(sproc->futuretask);
             cblknum = simuctrl->tasktab[tasknum].cblknum;
 
-            if(!compTimer(TIMER(procnum), &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, ctrl->core2clust[procnum])])))
-            {
-                tasknum = pqueuePop(simuctrl->proctab[procnum].futuretask);
-                cblknum = simuctrl->tasktab[tasknum].cblknum;
-                pqueuePush2(simuctrl->proctab[procnum].readytask, tasknum,
-                            ctrl->candtab[cblknum].treelevel,
-                            simuctrl->tasktab[tasknum].bloknum );
-            }
-            else
-                break;
+            pqueuePush2(sproc->readytask, tasknum,
+                        ctrl->candtab[cblknum].treelevel,
+                        simuctrl->tasktab[tasknum].bloknum );
         }
+        else
+            break;
     }
 }
 
@@ -717,9 +751,9 @@ void simuRun( SymbolMatrix *symbptr,
         }
 
         /* Simule the computing of the task */
-        taskExec_COMP1D(i, symbptr, simuctrl, ctrl, dofptr);
+        simu_computeTask( ctrl, symbptr, dofptr, simuctrl, i );
 
-        queueReorder(ctrl, simuctrl, i);
+        simu_pushToReadyHeap(ctrl, simuctrl, pr);
     }
 
     /* Compute maximum time */

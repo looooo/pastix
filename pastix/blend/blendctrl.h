@@ -84,7 +84,7 @@ int  blendCtrlInit (BlendCtrl *ctrl,
 
 void blendCtrlExit (BlendCtrl *);
 
-void getCommunicationCosts( BlendCtrl *ctrl,
+void getCommunicationCosts( const BlendCtrl *ctrl,
                             pastix_int_t clustsrc,
                             pastix_int_t clustdst,
                             pastix_int_t sync_comm_nbr,
