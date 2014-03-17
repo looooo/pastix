@@ -224,11 +224,11 @@ getNextTaskNextProc(SimuCtrl *simuctrl, BlendCtrl *ctrl, pastix_int_t *procnumpt
 }
 
 static inline void
-computeTaskReceiveTime( const BlendCtrl    *ctrl,
-                        const SymbolMatrix *symbptr,
-                        const Dof          *dofptr,
-                        SimuCtrl           *simuctrl,
-                        pastix_int_t        tasknum )
+simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
+                             const SymbolMatrix *symbptr,
+                             const Dof          *dofptr,
+                             SimuCtrl           *simuctrl,
+                             pastix_int_t        tasknum )
 {
     /*-------------------------------------------------------------------------/
      / Compute the time the cblk would have RECEIVED and ADDED                  /
@@ -248,7 +248,7 @@ computeTaskReceiveTime( const BlendCtrl    *ctrl,
     cblknum = simuctrl->tasktab[tasknum].cblknum;
 
     /* If the task is local, all sons sending contributions are local => no treatment */
-    if(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum)
+    if( ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum )
         return;
 
     /*------------------------------------------------------------------------------------------------/
@@ -462,6 +462,7 @@ simu_computeTask( const BlendCtrl    *ctrl,
          */
         local = ( ctrl->candtab[facingcblk].fccandnum == ctrl->candtab[facingcblk].lccandnum ) ? 1 : 0;
 
+        /* Update might be done on a remote node */
         if(!local)
         {
             facingblok = symbptr->cblktab[facingcblk].bloknum;
@@ -497,7 +498,7 @@ simu_computeTask( const BlendCtrl    *ctrl,
                         assert( facingtask < simuctrl->tasknbr );
 
                         if(!local)
-                            computeTaskReceiveTime(ctrl, symbptr, dofptr, simuctrl, facingtask );
+                            simu_computeTaskReceiveTime(ctrl, symbptr, dofptr, simuctrl, facingtask );
 
                         simu_putInAllReadyQueues( ctrl, simuctrl, facingtask );
                     }
@@ -517,8 +518,11 @@ simu_computeTask( const BlendCtrl    *ctrl,
                 {
                     /* TODO: symbolGetFacingBloknum is too expensive */
                     facingblok = symbolGetFacingBloknum(symbptr, i, j, facingblok, ctrl->ricar);
-                    if(facingblok>=0)
+                    if(facingblok>=0) {
                         simuctrl->cblktab[facingcblk].ctrbcnt--;
+                        simuctrl->bloktab[facingblok].ctrbcnt--;
+                        assert(simuctrl->bloktab[facingblok].ctrbcnt >= 0);
+                    }
                 }
             }
             else {
@@ -622,7 +626,6 @@ void simuRun( SymbolMatrix *symbptr,
     pastix_int_t             cblknum, bloknum;
     /*pastix_int_t             c;*/
     pastix_int_t             pr;
-
 
     for(i=0;i<symbptr->cblknbr;i++)
         simuctrl->cblktab[i].ctrbcnt = ctrl->egraph->verttab[i].innbr;

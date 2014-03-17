@@ -90,8 +90,6 @@ typedef struct SimuTask_ {
 #define E2         3
 #endif
 
-
-
 typedef struct SimuCblk_ {
   pastix_int_t                   ctrbcnt;          /*+ counter for contributions remaining                    +*/
 } SimuCblk;
