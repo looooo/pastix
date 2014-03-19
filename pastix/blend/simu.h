@@ -47,12 +47,13 @@ typedef struct SimuCblk_ {
 } SimuCblk;
 
 typedef struct SimuBlok_ {
-    pastix_int_t tasknum;   /*> Task index opeating on this block (stored per block for 2D computations)   */
-    pastix_int_t ftgtnum;   /*> Index of the first fanin destinated to this
-                             *  block in the ftgttab. This index is also used to find the first cblk timer
-                             *  (one per cand proc) in the timetab array                                   */
-    pastix_int_t fccandnum; /*> First candidate that attributed to the cblk of the block                   */
-    pastix_int_t ctrbcnt;   /*> Counter of remaining contributions                                         */
+    pastix_int_t tasknum;    /*> Task index opeating on this block (stored per block for 2D computations)   */
+    pastix_int_t ftgtnum;    /*> Index of the first fanin destinated to this
+                              *  block in the ftgttab. This index is also used to find the first cblk timer
+                              *  (one per cand proc) in the timetab array                                   */
+    pastix_int_t fccandnum;  /*> First candidate that attributed to the cblk of the block                   */
+    pastix_int_t ctrbcnt;    /*> Counter of remaining contributions                                         */
+    pastix_int_t ownerclust; /*> Processor on which the block is distributed                                */
 } SimuBlok;
 
 typedef struct SimuTask_ {
@@ -87,7 +88,6 @@ typedef struct SimuCtrl_ {
     SimuProc     *proctab;     /*+ Virtual processor tab                                   +*/
     SimuCluster  *clustab;     /*+ Virtual cluster tab                                     +*/
     pastix_int_t *ownetab;     /*+ Vector containing the distribution of the diagonal blok +*/
-    pastix_int_t *blprtab;     /*+ Vector containing the distribution of the blok          +*/
     SimuCblk     *cblktab;     /*+ SimuCblk vector                                         +*/
     SimuBlok     *bloktab;     /*+ SimuBlok vector                                         +*/
     SimuFtgt     *ftgttab;     /*+ Vector containing the fan in target                     +*/

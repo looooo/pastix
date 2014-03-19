@@ -64,13 +64,10 @@ simuInit( SimuCtrl     *simuctrl,
     simuctrl->clustab[clustnbr-1].lprocnum = procnbr-1;
 
     MALLOC_INTERN(simuctrl->ownetab, cblknbr, pastix_int_t);
-    MALLOC_INTERN(simuctrl->blprtab, bloknbr, pastix_int_t);
 
     /* affect a negative value to cblk not mapped */
     for(i=0;i<cblknbr;i++)
         simuctrl->ownetab[i] = -1;
-    for(i=0;i<bloknbr;i++)
-        simuctrl->blprtab[i] = -1;
 
     MALLOC_INTERN(simuctrl->cblktab, cblknbr+1, SimuCblk);
     MALLOC_INTERN(simuctrl->bloktab, bloknbr+1, SimuBlok);
@@ -83,10 +80,11 @@ simuInit( SimuCtrl     *simuctrl,
 
         for(j=symbptr->cblktab[i].bloknum;j<symbptr->cblktab[i+1].bloknum;j++)
         {
-            simuctrl->bloktab[j].ftgtnum   = ftgtcur;
-            simuctrl->bloktab[j].tasknum   = -1;
-            simuctrl->bloktab[j].fccandnum = candtab[i].fccandnum;
-            simuctrl->bloktab[j].ctrbcnt   = 0;
+            simuctrl->bloktab[j].ftgtnum    = ftgtcur;
+            simuctrl->bloktab[j].tasknum    = -1;
+            simuctrl->bloktab[j].fccandnum  = candtab[i].fccandnum;
+            simuctrl->bloktab[j].ctrbcnt    = 0;
+            simuctrl->bloktab[j].ownerclust = -1;
             /*if(candnbr > 1)*/
             ftgtcur += candnbr;
         }
@@ -192,7 +190,6 @@ void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, p
     memFree_null(simuctrl->proctab);
     memFree_null(simuctrl->clustab);
     memFree_null(simuctrl->ownetab);
-    memFree_null(simuctrl->blprtab);
     memFree_null(simuctrl->cblktab);
     memFree_null(simuctrl->bloktab);
     memFree_null(simuctrl);

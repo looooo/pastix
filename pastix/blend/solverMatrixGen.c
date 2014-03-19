@@ -44,8 +44,8 @@ void printSymbolMatrix(FILE *file, SymbolMatrix *symbptr)
 }
 
 void build_smx(UpDownVector          *updovct,
-               const SymbolMatrix          *symbptr,
-               pastix_int_t                   *blprtab,
+               const SymbolMatrix    *symbptr,
+               const SimuCtrl        *simuptr,
                const BlendCtrl *const ctrl,
                const Dof       *const dofptr)
 {
@@ -61,7 +61,7 @@ void build_smx(UpDownVector          *updovct,
 #ifdef DOF_CONSTANT
         delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
         /*if(cbprtab[i] == ctrl->procnum)*/
-        if(ctrl->core2clust[blprtab[symbptr->cblktab[i].bloknum]] == ctrl->clustnum)
+        if(simuptr->bloktab[symbptr->cblktab[i].bloknum].ownerclust == ctrl->clustnum)
             localXnbr += delta;
         Xnbr += delta;
 #else
@@ -104,7 +104,7 @@ void build_smx(UpDownVector          *updovct,
     j = 0;
     for(i=0;i<symbptr->cblknbr;i++)
         /*if(cbprtab[i] == ctrl->procnum)*/
-        if(ctrl->core2clust[blprtab[symbptr->cblktab[i].bloknum]] == ctrl->clustnum)
+        if(simuptr->bloktab[symbptr->cblktab[i].bloknum].ownerclust == ctrl->clustnum)
         {
             delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
 
@@ -142,7 +142,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            indnbr           = 0;
     pastix_int_t            btagnbr          = 0;
     pastix_int_t            bcofnbr          = 0;
-    pastix_int_t          * blprtab          = simuctrl->blprtab;
     pastix_int_t          * cblklocalnum     = NULL;
     pastix_int_t          * bloklocalnum     = NULL;
     pastix_int_t          * tasklocalnum     = NULL;
@@ -200,7 +199,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     /* Compute local number of tasks on each cluster */
     MALLOC_INTERN(tasklocalnum, simuctrl->tasknbr, pastix_int_t);
     for(i=0; i<simuctrl->tasknbr; i++) {
-        c = proc2clust[blprtab[simuctrl->tasktab[i].bloknum]];
+        c = simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust;
 
         tasklocalnum[i] = localindex[c];
         localindex[c]++;
@@ -218,7 +217,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         flaglocal = 0;
         for(j = symbmtx->cblktab[i].bloknum; j<symbmtx->cblktab[i+1].bloknum; j++)
         {
-            c = proc2clust[blprtab[j]];
+            c = simuctrl->bloktab[j].ownerclust;
             bloklocalnum[j] = localindex[c];
             localindex[c]++;
 
@@ -245,53 +244,62 @@ solverMatrixGen(const pastix_int_t clustnum,
 
     /* Fill in bloktab and cblktab */
     {
+        SolverCblk *solvcblk = solvmtx->cblktab;
+        SolverBlok *solvblok = solvmtx->bloktab;
+        SymbolCblk *symbcblk = symbmtx->cblktab;
+        SymbolBlok *symbblok = symbmtx->bloktab;
+        SimuBlok   *simublok = simuctrl->bloktab;
+
         cblknum = 0;
         bloknum = 0;
         nodenbr = 0;
-        for(i=0;i<symbmtx->cblknbr;i++)
+        for(i=0;i<symbmtx->cblknbr;i++, symbcblk++)
         {
+            pastix_int_t fbloknum = symbcblk[0].bloknum;
+            pastix_int_t lbloknum = symbcblk[1].bloknum;
+
             flaglocal = 0;
             cursor = bloknum;
 
-            for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++)
-                if(proc2clust[blprtab[j]] == clustnum)
+            for( j=fbloknum; j<lbloknum; j++, symbblok++, simublok++ ) {
+
+                if(simublok->ownerclust == clustnum)
                 {
                     flaglocal = 1;
-                    solvmtx->bloktab[bloknum].frownum = symbmtx->bloktab[j].frownum * dofptr->noddval;
-                    solvmtx->bloktab[bloknum].lrownum = symbmtx->bloktab[j].lrownum * dofptr->noddval + dofptr->noddval-1;
-                    solvmtx->bloktab[bloknum].cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
-                    bloknum ++;
+                    solvblok->frownum = symbblok->frownum * dofptr->noddval;
+                    solvblok->lrownum = symbblok->lrownum * dofptr->noddval + dofptr->noddval - 1;
+                    solvblok->cblknum = cblklocalnum[symbblok->cblknum];
+                    bloknum ++; solvblok++;
                 }
+            }
             if(flaglocal)
             {
-                solvmtx->cblktab[cblknum].fcolnum = symbmtx->cblktab[i].fcolnum * dofptr->noddval;
-                solvmtx->cblktab[cblknum].lcolnum = symbmtx->cblktab[i].lcolnum * dofptr->noddval + dofptr->noddval-1;
-                solvmtx->cblktab[cblknum].bloknum = cursor;
-                solvmtx->cblktab[cblknum].coeftab = NULL;
-                solvmtx->cblktab[cblknum].ucoeftab = NULL;
-                nodenbr += symbmtx->cblktab[i].lcolnum - symbmtx->cblktab[i].fcolnum + 1;
-                cblknum++;
+                solvcblk->fcolnum  = symbcblk->fcolnum * dofptr->noddval;
+                solvcblk->lcolnum  = symbcblk->lcolnum * dofptr->noddval + dofptr->noddval - 1;
+                solvcblk->bloknum  = cursor;
+                solvcblk->coeftab  = NULL;
+                solvcblk->ucoeftab = NULL;
+                nodenbr += symbcblk->lcolnum - symbcblk->fcolnum + 1;
+                cblknum++; solvcblk++;
             }
-
         }
+
         solvmtx->nodenbr = nodenbr;
-#ifdef DEBUG_BLEND
-        ASSERT(solvmtx->cblknbr == cblknum,MOD_BLEND);
-        if(solvmtx->bloknbr != bloknum)
-            fprintf(stderr, "bloknbr %ld bloknum %ld \n", (long)solvmtx->bloknbr, (long)bloknum);
-        ASSERT(solvmtx->bloknbr == bloknum,MOD_BLEND);
-#endif
+
+        assert( solvmtx->cblknbr == cblknum );
+        assert( solvmtx->bloknbr == bloknum );
 
         if (cblknum > 0)
         {
             /*  virtual cblk to avoid side effect in the loops on cblk bloks */
-            solvmtx->cblktab[cblknum].fcolnum = solvmtx->cblktab[cblknum-1].lcolnum+1;
-            solvmtx->cblktab[cblknum].lcolnum = solvmtx->cblktab[cblknum-1].lcolnum+1;
-            solvmtx->cblktab[cblknum].bloknum = bloknum;
-            solvmtx->cblktab[cblknum].coeftab = NULL;
-            solvmtx->cblktab[cblknum].ucoeftab = NULL;
+            solvcblk->fcolnum  = solvcblk->lcolnum + 1;
+            solvcblk->lcolnum  = solvcblk->lcolnum + 1;
+            solvcblk->bloknum  = bloknum;
+            solvcblk->coeftab  = NULL;
+            solvcblk->ucoeftab = NULL;
         }
     }
+
     /****************************/
     /*      Fill tasktab        */
     /****************************/
@@ -300,7 +308,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     /** We need that to know if a task has already been chained **/
     for(i=0;i<solvmtx->tasknbr+1;i++)
         solvmtx->tasktab[i].tasknext = -1;
-
 
     tasknum = 0;
     ftgtnum = 0;
@@ -311,11 +318,10 @@ solverMatrixGen(const pastix_int_t clustnum,
     {
 
         maxprionum2 = 0;
-        if(proc2clust[blprtab[simuctrl->tasktab[i].bloknum]] == clustnum)
+        if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
         {
             ASSERTDBG(tasknum == tasklocalnum[i], MOD_BLEND);
 
-            /*fprintf(stdout ,"i %ld indnbr %ld \n", (long)i, (long)indnbr);*/
             solvmtx->tasktab[tasknum].taskid  = simuctrl->tasktab[i].taskid;
             solvmtx->tasktab[tasknum].prionum = simuctrl->tasktab[i].prionum;
             solvmtx->tasktab[tasknum].cblknum = cblklocalnum[simuctrl->tasktab[i].cblknum];
@@ -355,72 +361,11 @@ solverMatrixGen(const pastix_int_t clustnum,
             case COMP_1D:
                 indnbr += (odb_nbr*(odb_nbr+1))/2;
                 break;
-            case DIAG:
-                indnbr++;
-                /** Count number of BlockTarget and BlockCoeff **/
-
-                flaglocal = 0;
-                for(c  = ctrl->candtab[simuctrl->tasktab[i].cblknum].fccandnum;
-                    c <= ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum; c++)
-                    for(j = simuctrl->tasktab[i].bloknum+1;
-                        j < symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum; j++)
-                        if(proc2clust[blprtab[j]]==c)
-                        {
-                            flaglocal = 1;
-                            btagnbr++;
-                            break;
-                        }
-                if(flaglocal)
-                    bcofnbr++;
-                break;
-            case E1:
-                indnbr++;
-                /** Count number of BlockTarget and BlockCoeff **/
-                for(c  = ctrl->candtab[simuctrl->tasktab[i].cblknum].fccandnum;
-                    c <= ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum; c++)
-                    for(j = simuctrl->tasktab[i].bloknum;
-                        j < symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum; j++)
-                        if(proc2clust[blprtab[j]]==c)
-                        {
-                            btagnbr++;
-                            break;
-                        }
-                bcofnbr++;
-                break;
-            case E2:
-                indnbr++;
-                break;
             default:
                 fprintf(stderr, "solverMatrixgen: Error no task type \n");
                 EXIT(MOD_BLEND,INTERNAL_ERR);
             }
 
-            if(simuctrl->tasktab[i].taskid == E1 || simuctrl->tasktab[i].taskid == E2)
-            {
-                /*************************************************************/
-                /** Chain (in a cycle) all the tasks that use the same btag **/
-                /*************************************************************/
-                if((solvmtx->tasktab[tasknum].tasknext == -1) &&  /** This task has not already been chained **/
-                   (simuctrl->tasktab[i].tasknext      != -1))    /** This task is not the last diag block   **/
-                {
-                    ASSERTDBG(tasklocalnum[i] == tasknum, MOD_BLEND);
-                    ASSERTDBG(simuctrl->tasktab[i].taskid == solvmtx->tasktab[tasknum].taskid, MOD_BLEND);
-
-                    cursor = simuctrl->tasktab[i].tasknext;
-                    while(cursor != i)
-                    {
-                        ASSERTDBG(simuctrl->tasktab[i].taskid == simuctrl->tasktab[cursor].taskid, MOD_BLEND);
-
-                        /*fprintf(stdout, "i %d id %d cursor %d \n", i, simuctrl->tasktab[i].taskid, cursor);*/
-                        if(proc2clust[ blprtab[simuctrl->tasktab[cursor].bloknum] ] == clustnum)
-                            break;
-                        cursor = simuctrl->tasktab[cursor].tasknext;
-
-                    }
-                    solvmtx->tasktab[tasknum].tasknext = tasklocalnum[cursor];
-                }
-            }
-            else
             {
                 ASSERTDBG(solvmtx->tasktab[tasknum].tasknext == -1 && simuctrl->tasktab[i].tasknext == -1,MOD_BLEND);
             }
@@ -597,7 +542,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     bcofnbr     = 0;
     for(i=0;i<simuctrl->tasknbr;i++)
     {
-        if(proc2clust[blprtab[simuctrl->tasktab[i].bloknum]] == clustnum)
+        if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
         {
             ASSERTDBG(tasklocalnum[i] == tasknum,MOD_BLEND);
             ASSERTDBG(indnbr == solvmtx->tasktab[tasklocalnum[i]].indnum, MOD_BLEND);
@@ -618,7 +563,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                         if(facebloknum >= 0)
                         {
                             /*#endif*/
-                            if(proc2clust[blprtab[facebloknum]]!=clustnum)
+                            if(simuctrl->bloktab[facebloknum].ownerclust!=clustnum)
                             {
                                 solvmtx->indtab[indnbr] = ftgtlocalnum[CLUST2INDEX(facebloknum, clustnum)];
 #ifdef DEBUG_PRIO
@@ -653,279 +598,12 @@ solverMatrixGen(const pastix_int_t clustnum,
                     }
                 }
                 break;
-            case DIAG:
-                /* We just need the index of one of the bloktarget */
-                if(i == simuctrl->tasknbr - 1)
-                    solvmtx->indtab[indnbr] = -1;
-                else
-                {
-                    solvmtx->indtab[indnbr] = btagnbr;
-                    solvmtx->bcoftab[bcofnbr].sendcnt = 0;
-                    /*fprintf(stdout, "TASK %ld, btagnum %ld indnum %ld taskid %ld \n",(long)tasklocalnum[i], (long)btagnbr, (long)indnbr, (long)solvmtx->tasktab[tasklocalnum[i]].taskid);*/
-                    flaglocal = 0;
-                    for(c =  ctrl->candtab[simuctrl->tasktab[i].cblknum].fccandnum;
-                        c <= ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum; c++)
-                        for(bloknum = simuctrl->tasktab[i].bloknum+1;
-                            bloknum < symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum; bloknum++)
-                            if(proc2clust[blprtab[bloknum]]==c)
-                            {
-                                flaglocal = 1;
-                                /*solvmtx->btagtab[btagnbr].bcofnum  = bcofnbr;*/
-
-                                bcofind[btagnbr] = bcofnbr;
-
-                                /**solvmtx->btagtab[btagnbr].infotab[BTAG_TASKDST] = tasklocalnum[simuctrl->bloktab[bloknum].tasknum];**/
-                                /** Find the lowest priority on the block receiver of the btag **/
-                                cursor      = simuctrl->bloktab[bloknum].tasknum;
-                                min         = simuctrl->tasktab[cursor].prionum;
-                                min_procdst = blprtab[bloknum];
-                                min_task    = tasklocalnum[cursor];
-
-                                solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT] = 1;
-
-                                while(simuctrl->tasktab[cursor].tasknext != simuctrl->bloktab[bloknum].tasknum)
-                                {
-                                    ASSERTDBG(simuctrl->tasktab[cursor].taskid == E1,MOD_BLEND);
-
-                                    cursor = simuctrl->tasktab[cursor].tasknext;
-                                    if(proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
-                                    {
-                                        solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]++;
-                                        if(simuctrl->tasktab[cursor].prionum < min)
-                                        {
-                                            min         = simuctrl->tasktab[cursor].prionum;
-                                            min_procdst = blprtab[simuctrl->tasktab[cursor].bloknum];
-                                            min_task    = tasklocalnum[cursor];
-                                        }
-                                    }
-                                }
-
-                                /*solvmtx->btagtab[btagnbr].infotab[BTAG_PROCDST] = c;*/
-                                solvmtx->btagtab[btagnbr].infotab[BTAG_TASKDST] = min_task;
-                                solvmtx->btagtab[btagnbr].infotab[BTAG_PROCDST] = min_procdst;
-                                solvmtx->btagtab[btagnbr].infotab[BTAG_PRIONUM] = min;
-
-#ifdef DEBUG_BLEND
-                                {
-                                    pastix_int_t taskcnt;
-                                    taskcnt = 1;
-                                    for(j=bloknum+1; j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
-                                        if(proc2clust[blprtab[j]]==c)
-                                            taskcnt++;
-                                    ASSERT(taskcnt == solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT],MOD_BLEND);
-                                }
-
-
-                                {
-                                    pastix_int_t tnbr;
-                                    tnbr = 1;
-                                    cursor = simuctrl->bloktab[bloknum].tasknum;
-                                    while(simuctrl->tasktab[cursor].tasknext != simuctrl->bloktab[bloknum].tasknum)
-                                    {
-                                        cursor = simuctrl->tasktab[cursor].tasknext;
-                                        if(proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
-                                            tnbr++;
-                                    }
-                                    if(tnbr != solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT])
-                                        fprintf(stderr, "tnbr = %ld taskcnt = %ld \n", (long)tnbr, (long)solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]);
-
-                                    ASSERT(tnbr == solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT],MOD_BLEND);
-                                }
-#endif
-
-
-                                btagnbr++;
-                                solvmtx->bcoftab[bcofnbr].sendcnt++;
-                                break;
-                            }
-                    if(flaglocal)
-                    {
-                        solvmtx->bcoftab[bcofnbr].infotab[BCOF_FCOLNUM] = solvmtx->bloktab[bloklocalnum[simuctrl->tasktab[i].bloknum]].frownum;
-                        solvmtx->bcoftab[bcofnbr].infotab[BCOF_LCOLNUM] = solvmtx->bloktab[bloklocalnum[simuctrl->tasktab[i].bloknum]].lrownum;
-                        solvmtx->bcoftab[bcofnbr].infotab[BCOF_FROWNUM] = solvmtx->bloktab[bloklocalnum[simuctrl->tasktab[i].bloknum]].frownum;
-                        solvmtx->bcoftab[bcofnbr].infotab[BCOF_LROWNUM] = solvmtx->bloktab[bloklocalnum[simuctrl->tasktab[i].bloknum]].lrownum;
-                        solvmtx->bcoftab[bcofnbr].coeftab = NULL;
-                        bcofnbr++;
-                    }
-                }
-                indnbr++;
-                break;
-
-            case E1:
-                /* We just need the index of one of the bloktarget */
-                solvmtx->indtab[indnbr] = btagnbr;
-                solvmtx->bcoftab[bcofnbr].sendcnt = 0;
-
-                /*
-                 * If diag block is local taskmstr is the diag task
-                 * else it's the first local E1 task
-                 */
-                {
-                    bloknum = symbmtx->cblktab[simuctrl->tasktab[i].cblknum].bloknum;
-                    if(proc2clust[blprtab[bloknum]] == clustnum)
-                    {
-                        solvmtx->tasktab[tasknum].taskmstr = tasklocalnum[simuctrl->bloktab[bloknum].tasknum];
-                    }
-                    else
-                    {
-                        cursor   = tasknum;
-                        min      = solvmtx->tasktab[cursor].prionum;
-                        min_task = tasknum;
-                        while(solvmtx->tasktab[cursor].tasknext != tasknum)
-                        {
-                            cursor = solvmtx->tasktab[cursor].tasknext;
-                            ASSERTDBG(solvmtx->tasktab[cursor].taskid == E1,MOD_BLEND);
-
-                            if(solvmtx->tasktab[cursor].prionum < min)
-                            {
-                                min      = solvmtx->tasktab[cursor].prionum;
-                                min_task = cursor;
-                            }
-                        }
-                        solvmtx->tasktab[tasknum].taskmstr = min_task;
-                    }
-                }
-
-                for(c=ctrl->candtab[simuctrl->tasktab[i].cblknum].fccandnum; c<=ctrl->candtab[simuctrl->tasktab[i].cblknum].lccandnum;c++)
-                    for(bloknum=simuctrl->tasktab[i].bloknum;bloknum<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;bloknum++)
-                        if(proc2clust[blprtab[bloknum]]==c)
-                        {
-#ifdef DEBUG_BLEND
-                            pastix_int_t debug = 1;
-#endif
-                            bcofind[btagnbr] = bcofnbr;
-
-                            cursor = i+bloknum-simuctrl->tasktab[i].bloknum+1;
-
-                            ASSERTDBG(simuctrl->tasktab[cursor].bloknum == bloknum,MOD_BLEND);
-
-                            /* solvmtx->btagtab[btagnbr].infotab[BTAG_TASKDST] = tasklocalnum[cursor];*/
-
-                            /** Find the lowest priority on the block receiver of the btag **/
-                            min_task    = tasklocalnum[cursor];
-                            min         = simuctrl->tasktab[cursor].prionum;
-                            min_procdst = blprtab[simuctrl->tasktab[cursor].bloknum];
-                            cursor      = simuctrl->tasktab[cursor].tasknext;
-
-                            solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT] = 1;
-                            while(cursor!= i+bloknum-simuctrl->tasktab[i].bloknum+1)
-                            {
-                                if(proc2clust[blprtab[simuctrl->tasktab[cursor].bloknum]] == c)
-                                {
-                                    solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]++;
-                                    ASSERTDBG(simuctrl->tasktab[cursor].taskid == E2,MOD_BLEND);
-#ifdef DEBUG_BLEND
-                                    debug++;
-#endif
-                                    if(simuctrl->tasktab[cursor].prionum < min)
-                                    {
-                                        min = simuctrl->tasktab[cursor].prionum;
-                                        min_procdst = blprtab[simuctrl->tasktab[cursor].bloknum];
-                                        min_task = tasklocalnum[cursor];
-                                    }
-                                }
-                                cursor = simuctrl->tasktab[cursor].tasknext;
-                            }
-                            /*solvmtx->btagtab[btagnbr].infotab[BTAG_PROCDST] = c;*/
-                            solvmtx->btagtab[btagnbr].infotab[BTAG_TASKDST] = min_task;
-                            solvmtx->btagtab[btagnbr].infotab[BTAG_PROCDST] = min_procdst;
-                            solvmtx->btagtab[btagnbr].infotab[BTAG_PRIONUM] = min;
-
-#ifdef DEBUG_BLEND
-                            {
-                                pastix_int_t taskcnt;
-                                taskcnt = 1;
-                                for(j=bloknum+1; j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
-                                    if(proc2clust[blprtab[j]]==c)
-                                        taskcnt++;
-                                ASSERT(taskcnt == solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT],MOD_BLEND);
-                            }
-                            /*solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]  = 1;
-                             for(j=bloknum+1; j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
-                             if(proc2clust[blprtab[j]]==c)
-                             solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]++;*/
-
-
-                            ASSERT(proc2clust[ min_procdst ] == c ,MOD_BLEND);
-                            if(debug != solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT])
-                                fprintf(stdout, " debug %ld taskcnt %ld \n", (long)debug, (long)solvmtx->btagtab[btagnbr].infotab[BTAG_TASKCNT]);
-#endif
-                            btagnbr++;
-                            solvmtx->bcoftab[bcofnbr].sendcnt++;
-                            break;
-                        }
-
-                solvmtx->bcoftab[bcofnbr].infotab[BCOF_FCOLNUM] = solvmtx->cblktab[cblklocalnum[simuctrl->tasktab[i].cblknum]].fcolnum;
-                solvmtx->bcoftab[bcofnbr].infotab[BCOF_LCOLNUM] = solvmtx->cblktab[cblklocalnum[simuctrl->tasktab[i].cblknum]].lcolnum;
-                solvmtx->bcoftab[bcofnbr].infotab[BCOF_FROWNUM] = solvmtx->bloktab[bloklocalnum[simuctrl->tasktab[i].bloknum]].frownum;
-                solvmtx->bcoftab[bcofnbr].infotab[BCOF_LROWNUM] = solvmtx->bloktab[bloklocalnum[simuctrl->tasktab[i].bloknum]].lrownum;
-                solvmtx->bcoftab[bcofnbr].coeftab = NULL;
-                bcofnbr++;
-
-                indnbr++;
-                break;
-
-            case E2:
-
-                /*
-                 * If diag block is local taskmstr is the diag task
-                 * else it's the first local E1 task
-                 */
-            {
-                bloknum = simuctrl->tasktab[i].bloknum2;
-                if(proc2clust[blprtab[bloknum]] == clustnum)
-                {
-                    solvmtx->tasktab[tasknum].taskmstr = tasklocalnum[simuctrl->bloktab[bloknum].tasknum];
-                }
-                else
-                {
-                    cursor   = tasknum;
-                    min      = solvmtx->tasktab[cursor].prionum;
-                    min_task = tasknum;
-                    while(solvmtx->tasktab[cursor].tasknext != tasknum)
-                    {
-                        cursor = solvmtx->tasktab[cursor].tasknext;
-                        ASSERTDBG(solvmtx->tasktab[cursor].taskid == E2,MOD_BLEND);
-
-                        if(solvmtx->tasktab[cursor].prionum < min)
-                        {
-                            min      = solvmtx->tasktab[cursor].prionum;
-                            min_task = cursor;
-                        }
-                    }
-                    solvmtx->tasktab[tasknum].taskmstr = min_task;
-                }
-            }
-
-            facebloknum = simuctrl->tasktab[i].facebloknum;
-
-            ASSERT(indnbr == solvmtx->tasktab[tasklocalnum[i]].indnum,MOD_BLEND);
-
-            if(proc2clust[blprtab[facebloknum]]!=clustnum)
-            {
-                solvmtx->indtab[solvmtx->tasktab[tasklocalnum[i]].indnum]
-                    = ftgtlocalnum[CLUST2INDEX(facebloknum, clustnum)];
-#ifdef DEBUG_PRIO
-                solvmtx->ftgttab[solvmtx->indtab[indnbr]].infotab[FTGT_PRIONUM]
-                    = solvmtx->tasktab[tasklocalnum[i]].prionum;
-                /*fprintf(stdout, "SOLV Task2D %ld FTGT %ld  taskprio %ld ftgtprio %ld \n", (long)tasklocalnum[i], (long)solvmtx->indtab[indnbr], (long)solvmtx->tasktab[tasklocalnum[i]].prionum, (long)solvmtx->ftgttab[solvmtx->indtab[indnbr]].infotab[FTGT_PRIONUM]);*/
-#endif
-            }
-            else
-            {
-                solvmtx->indtab[solvmtx->tasktab[tasklocalnum[i]].indnum]
-                    = -tasklocalnum[simuctrl->bloktab[facebloknum].tasknum];
-            }
-            indnbr++;
-            break;
-
             default:
                 fprintf(stderr, "Error in solverMatrixgen \n");
                 EXIT(MOD_BLEND,INTERNAL_ERR);
             }
             tasknum++;
         }
-
     }
     ASSERTDBG(indnbr  == solvmtx->indnbr,  MOD_BLEND);
     ASSERTDBG(bcofnbr == solvmtx->bcofnbr, MOD_BLEND);
@@ -1129,7 +807,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     for(i=0;i<simuctrl->tasknbr;i++)
     {
         if(simuctrl->tasktab[i].taskid == E1 || simuctrl->tasktab[i].taskid == E2)
-            if(proc2clust[simuctrl->blprtab[simuctrl->tasktab[i].bloknum]] == clustnum)
+            if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
             {
                 delta = (symbmtx->cblktab[simuctrl->tasktab[i].cblknum].lcolnum - symbmtx->cblktab[simuctrl->tasktab[i].cblknum].fcolnum+1)
                     * dofptr->noddval;
@@ -1207,7 +885,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             pastix_int_t brownbr;
 
             /*if(cbprtab[i] == clustnum)*/
-            if(proc2clust[blprtab[symbmtx->cblktab[i].bloknum]] == clustnum)
+            if(simuctrl->bloktab[symbmtx->cblktab[i].bloknum].ownerclust == clustnum)
             {
                 /*** Compute the list of clusters in the BROW (each cluster is list one time) ***/
                 bzero(clust_mask, sizeof(pastix_int_t)*ctrl->clustnbr);
@@ -1222,7 +900,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 {
                     pastix_int_t cluster;
                     pastix_int_t cblk;
-                    cluster = proc2clust[ blprtab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]] ];
+                    cluster = simuctrl->bloktab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]].ownerclust;
                     cblk = ctrl->egraph->ownetab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]];
 #ifdef DEBUG_M
                     ASSERT( ctrl->candtab[cblk].treelevel   <= 0,   MOD_BLEND);
@@ -1295,7 +973,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvmtx->updovct.gcblk2list[i] = -1;
             flag = 0;
             for(j=0; j<ctrl->egraph->verttab[i].innbr;j++)
-                if( proc2clust[ blprtab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]] ] == clustnum)
+                if( simuctrl->bloktab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]].ownerclust == clustnum)
                 {
                     if(flag == 0)
                     {
@@ -1319,7 +997,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         {
             flag = 0;
             for(j=0; j<ctrl->egraph->verttab[i].innbr;j++)
-                if( proc2clust[ blprtab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]] ] == clustnum)
+                if( simuctrl->bloktab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]].ownerclust == clustnum)
                 {
                     if(flag == 0)
                     {
@@ -1378,7 +1056,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         solvmtx->updovct.gcblknbr = symbmtx->cblknbr;
         MALLOC_INTERN(solvmtx->updovct.lblk2gcblk, symbmtx->bloknbr, pastix_int_t);
         for(i=0;i<symbmtx->bloknbr;i++)
-            if(proc2clust[blprtab[i]] == clustnum)
+            if(simuctrl->bloktab[i].ownerclust == clustnum)
                 solvmtx->updovct.lblk2gcblk[bloklocalnum[i]] = symbmtx->bloktab[i].cblknum;
 
         /* Calcul du nombre de messages a recevoir lors de la remontée */
@@ -1404,7 +1082,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         /*     Temporaire                */
         /*  Pour tester descente remonte */
         /*********************************/
-        build_smx(&(solvmtx->updovct), symbmtx, blprtab, ctrl, dofptr);
+        build_smx(&(solvmtx->updovct), symbmtx, simuctrl, ctrl, dofptr);
 
     }
     /*********************** END TRIANGULAR INFO BUILDING ******************************************/

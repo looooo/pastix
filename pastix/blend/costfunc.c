@@ -135,7 +135,7 @@ void subtreeSetNullCost(pastix_int_t rootnum, const BlendCtrl * ctrl,
     pastix_int_t         i;
 
     assert(ctrl->candtab[rootnum].cluster != clustnum);
-    assert(ctrl->core2clust[ simuctrl->blprtab[symbmtx->cblktab[rootnum].bloknum] ] != clustnum );
+    assert(simuctrl->bloktab[symbmtx->cblktab[rootnum].bloknum].ownerclust != clustnum );
 
     costmtx->cblktab[rootnum].total   = 0.0;
     costmtx->cblktab[rootnum].subtree = 0.0;
@@ -190,12 +190,12 @@ double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, cons
     L *= (dofptr)->noddval;
 
     /*  if (simuctrl->bloktab[symbptr->cblktab[cblknum].bloknum].tasknum != -1)*/
-    if ( ctrl->core2clust[simuctrl->blprtab[symbptr->cblktab[cblknum].bloknum]] == ctrl->clustnum)
+    if ( simuctrl->bloktab[symbptr->cblktab[cblknum].bloknum].ownerclust == ctrl->clustnum)
         cost = DIAGCost(L);
 
     for(i=symbptr->cblktab[cblknum].bloknum+1;i<symbptr->cblktab[cblknum+1].bloknum;i++)
     {
-        if (ctrl->core2clust[simuctrl->blprtab[i]] != ctrl->clustnum)
+        if (simuctrl->bloktab[i].ownerclust != ctrl->clustnum)
             continue;
 
         h     = symbptr->bloktab[i].lrownum - symbptr->bloktab[i].frownum + 1;

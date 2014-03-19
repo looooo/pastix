@@ -159,7 +159,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
         while(pqueueSize(simuctrl->proctab[p].readytask)>0)
         {
             tasknum = pqueueRead(simuctrl->proctab[p].readytask);
-            if( simuctrl->blprtab[simuctrl->tasktab[tasknum].bloknum]>=0 )
+            if( simuctrl->bloktab[simuctrl->tasktab[tasknum].bloknum].ownerclust >= 0 )
             {
                 /** This task have to be remove from the heap (already mapped) **/
                 pqueuePop(simuctrl->proctab[p].readytask);
@@ -174,7 +174,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
             while(pqueueSize(simuctrl->proctab[p].futuretask)>0)
             {
                 tasknum = pqueueRead(simuctrl->proctab[p].futuretask);
-                if( simuctrl->blprtab[simuctrl->tasktab[tasknum].bloknum]>=0 )
+                if( simuctrl->bloktab[simuctrl->tasktab[tasknum].bloknum].ownerclust >= 0 )
                 {
                     /** This task have to be remove from the heap (already mapped) **/
                     pqueuePop(simuctrl->proctab[p].futuretask);
@@ -646,7 +646,7 @@ simuRun( SimuCtrl           *simuctrl,
         for(j=symbptr->cblktab[cblknum].bloknum;
             j<symbptr->cblktab[cblknum+1].bloknum;j++)
         {
-            simuctrl->blprtab[j] = pr;
+            simuctrl->bloktab[j].ownerclust = clustnum;
         }
         task->prionum = simuctrl->clustab[clustnum].prionum;
         simuctrl->clustab[clustnum].prionum++;
@@ -737,15 +737,15 @@ simuRun( SimuCtrl           *simuctrl,
                 fprintf(stderr, "CBLK %ld has no processor \n", (long)i);
 
     for(i=0;i<symbptr->bloknbr;i++)
-        if(!(simuctrl->blprtab[i]>=0))
+        if(!(simuctrl->bloktab[i].ownerclust>=0))
         {
             fprintf(stderr, "BLOCK %ld has no processor \n", (long)i);
-            fprintf(stdout, "blprtab [ %ld ] = %ld type %ld \n", (long)i,
-                    (long)simuctrl->blprtab[i],
+            fprintf(stdout, "ownerclust [ %ld ] = %ld type %ld \n", (long)i,
+                    (long)simuctrl->bloktab[i].ownerclust,
                     (long)simuctrl->tasktab[simuctrl->bloktab[i].tasknum].taskid);
             EXIT(MOD_BLEND,INTERNAL_ERR);
         }
     for(i=0;i<symbptr->bloknbr;i++)
-        assert(simuctrl->blprtab[i]>=0);
+        assert(simuctrl->bloktab[i].ownerclust>=0);
 #endif
 }
