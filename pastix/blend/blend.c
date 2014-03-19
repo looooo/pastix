@@ -212,10 +212,9 @@ void solverBlend(BlendCtrl    *ctrl,
 
     /* initialize simu structure control */
     MALLOC_INTERN(simuctrl, 1, SimuCtrl);
-    simuInit(simuctrl, symbmtx,
-             ctrl->clustnbr,
-             ctrl->total_nbcores,
-             symbmtx->cblknbr, symbmtx->bloknbr, ctrl->candtab);
+    simuInit( simuctrl, symbmtx, ctrl->candtab,
+              ctrl->clustnbr,
+              ctrl->total_nbcores );
 
     /* Build tasks */
     if( ctrl->leader == clustnum &&
@@ -247,7 +246,7 @@ void solverBlend(BlendCtrl    *ctrl,
        (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
         fprintf(stdout, OUT_BLEND_DISTPART);
 
-    simuRun(ctrl, symbmtx, dofptr, simuctrl);
+    simuRun( simuctrl, ctrl, symbmtx, dofptr );
 
     if(ctrl->timer)
     {

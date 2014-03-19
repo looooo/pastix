@@ -24,12 +24,10 @@
 #include "solver.h"
 #include "costfunc.h"
 
-/** OIMBE a t on  tjs besoins de egraph->ownetab ???? **/
-
 static inline void
-computeBlockCtrbNbr(const BlendCtrl    *ctrl,
-                    const SymbolMatrix *symbptr,
-                          SimuCtrl     *simuctrl )
+simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
+                         SimuCtrl     *simuctrl,
+                         pastix_int_t  ricar )
 {
     pastix_int_t i, j, k;
     pastix_int_t facebloknum, firstbloknum;
@@ -53,7 +51,7 @@ computeBlockCtrbNbr(const BlendCtrl    *ctrl,
                 /* Add contribution due to E2 */
                 for(k=j; k<lbloknum; k++)
                 {
-                    facebloknum = symbolGetFacingBloknum( symbptr, j, k, firstbloknum, ctrl->ricar );
+                    facebloknum = symbolGetFacingBloknum( symbptr, j, k, firstbloknum, ricar );
                     if(facebloknum >= 0) {
                         simuctrl->bloktab[facebloknum].ctrbcnt++;
                         firstbloknum = facebloknum;
@@ -566,7 +564,7 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
     {
         tasknum = pqueueRead(sproc->futuretask);
 
-        if(! compTimer( &(sproc->timer),
+        if(! timerComp( &(sproc->timer),
                         &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, clustnum )])) )
         {
             tasknum = pqueuePop(sproc->futuretask);
@@ -583,10 +581,10 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
 
 
 void
-simuRun( const BlendCtrl    *ctrl,
+simuRun( SimuCtrl           *simuctrl,
+         const BlendCtrl    *ctrl,
          const SymbolMatrix *symbptr,
-         const Dof          *dofptr,
-         SimuCtrl           *simuctrl )
+         const Dof          *dofptr )
 {
 
     pastix_int_t             i, j, b;
@@ -594,13 +592,8 @@ simuRun( const BlendCtrl    *ctrl,
     /*pastix_int_t             c;*/
     pastix_int_t             pr;
 
-    for(i=0;i<symbptr->cblknbr;i++)
-        simuctrl->cblktab[i].ctrbcnt = ctrl->egraph->verttab[i].innbr;
-
-    /* OIMBE attention les ctrbcnt des cblk en COMP1D sont recalculee dans computeBlockCtrbNbr */
-    /** Compute number of contributions for blocks **/
-    /*  Should be in task construction */
-    computeBlockCtrbNbr(ctrl, symbptr, simuctrl);
+    /* Compute number of contributions per blocks, cblks, tasks */
+    simu_computeBlockCtrbNbr( symbptr, simuctrl, ctrl->ricar );
 
     /*
      * All ready tasks are put in the task heaps of their respective candidates

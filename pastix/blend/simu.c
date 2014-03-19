@@ -17,18 +17,18 @@
 
 pastix_int_t
 simuInit( SimuCtrl     *simuctrl,
-          SymbolMatrix *symbptr,
+          const SymbolMatrix *symbptr,
+          const Cand         *candtab,
           pastix_int_t  clustnbr,
-          pastix_int_t  procnbr,
-          pastix_int_t  cblknbr,
-          pastix_int_t  bloknbr,
-          Cand         *candtab)
+          pastix_int_t  procnbr )
 {
     pastix_int_t i, j;
     pastix_int_t p;
     pastix_int_t ftgtcur;
     pastix_int_t candnbr;
     pastix_int_t step;
+    pastix_int_t cblknbr = symbptr->cblknbr;
+    pastix_int_t bloknbr = symbptr->bloknbr;
 
     simuctrl->cblknbr  = cblknbr;
     simuctrl->ftgtprio = 0;
@@ -40,7 +40,6 @@ simuInit( SimuCtrl     *simuctrl,
     for(i=0;i<procnbr;i++)
     {
         timerSet(TIMER(i), 0.0); /** for paragraph numeric tolerance **/
-        simuctrl->proctab[i].prionum   = 0;
         MALLOC_INTERN(simuctrl->proctab[i].futuretask, 1, pastix_queue_t);
         MALLOC_INTERN(simuctrl->proctab[i].readytask,  1, pastix_queue_t);
         pqueueInit(simuctrl->proctab[i].futuretask, 100);
@@ -120,7 +119,6 @@ simuInit( SimuCtrl     *simuctrl,
     else
     {
         simuctrl->ftgttab     = NULL;
-        simuctrl->tasktimetab = NULL;
         simuctrl->ftgttimetab = NULL;
     }
 
@@ -190,7 +188,6 @@ void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, p
         memFree_null(simuctrl->ftgttab);
         memFree_null(simuctrl->ftgttimetab);
     }
-    /* memFree_null(simuctrl->tasktimetab); */
     memFree_null(simuctrl->tasktab);
     memFree_null(simuctrl->proctab);
     memFree_null(simuctrl->clustab);
@@ -200,54 +197,3 @@ void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, p
     memFree_null(simuctrl->bloktab);
     memFree_null(simuctrl);
 }
-
-
-pastix_int_t compTimer(SimuTimer *t1, SimuTimer *t2)
-{
-    /** Return 1 if t1 < t2 **/
-    /** 0 in other cases **/
-    if(t1->s < t2->s)
-        return 1;
-    /*if(t1->s == t2->s && t1->ms < t2->ms)
-     return 1;*/
-    return 0;
-}
-
-void timerAdd(SimuTimer *timer, double t)
-{
-    timer->s += t;
-
-    /*timer->s += floor(t);
-     timer->ms += (t-floor(t))*TIMEBASE;
-     if(timer->ms >= TIMEBASE)
-     {
-     timer->s += 1;
-     timer->ms = timer->ms - TIMEBASE;
-     }*/
-}
-
-double timerVal(const SimuTimer *t)
-{
-    /*#ifdef DEBUG_BLEND
-     ASSERT(t->ms < TIMEBASE,MOD_BLEND);
-     #endif*/
-    return (t->s /* + t->ms/TIMEBASE */);
-}
-
-void timerSet(SimuTimer *timer, double t)
-{
-    timer->s = t;
-    /*timer->s = floor(t);
-     timer->ms = (t-floor(t))*TIMEBASE;*/
-}
-
-void timerSetMax(SimuTimer *timer, double t)
-{
-    if ( t > timer->s ) {
-        timer->s = t;
-    }
-}
-
-
-/** OIMBE pour optimisation faire un timerMax pour distrib **/
-/** OIMBE pour optimisation faire un timerAffect(timer) pour distrib **/
