@@ -204,107 +204,66 @@ void solverBlend(BlendCtrl    *ctrl,
         pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
     }
 
-    if(ctrl->timer)
+    /* Simulation step to perform the data distribution over the nodes and compute the priorities of each task */
     {
-        clockInit(timer_current);
+        pastix_print( clustnum, 0, "   Building simulation structure\n" );
         clockStart(timer_current);
-    }
 
-    /* initialize simu structure control */
-    MALLOC_INTERN(simuctrl, 1, SimuCtrl);
-    simuInit( simuctrl, symbmtx, ctrl->candtab,
-              ctrl->clustnbr,
-              ctrl->total_nbcores );
+        /* Initialize simulation structure */
+        MALLOC_INTERN(simuctrl, 1, SimuCtrl);
+        simuInit( simuctrl, symbmtx, ctrl->candtab,
+                  ctrl->clustnbr,
+                  ctrl->total_nbcores );
 
-    /* Build tasks */
-    if( ctrl->leader == clustnum &&
-        ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, OUT_BLEND_TASKGRAPH);
-    taskBuild(simuctrl, symbmtx, ctrl->candtab, dofptr, ctrl);
-
-    if( ctrl->leader == clustnum &&
-        ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, OUT_BLEND_NBTASK, (long)simuctrl->tasknbr);
-    if(ctrl->timer)
-    {
+        /* Create task array */
+        taskBuild(simuctrl, symbmtx, ctrl->candtab, dofptr, ctrl);
         clockStop(timer_current);
-        printf("--Task built at time: %g --\n", clockVal(timer_current));
-    }
 
-    /* Distribution Phase */
-    if(ctrl->timer)
-    {
-        clockInit(timer_current);
+        pastix_print( clustnum, 0, OUT_BLEND_NBTASK, (long)simuctrl->tasknbr );
+        printf("  -- Simulation structure build at time: %g --\n", clockVal(timer_current));
+
+        pastix_print( clustnum, 0, OUT_BLEND_DISTPART );
         clockStart(timer_current);
+
+        simuRun( simuctrl, ctrl, symbmtx, dofptr );
+
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "  -- Data distribution computed at time: %g --\n", clockVal(timer_current) );
     }
 
-#ifdef DEBUG_BLEND
-    ASSERT(check_candidat(symbmtx, ctrl)>=0,MOD_BLEND);
+#ifdef PASTIX_DYNSCHED
+    /*
+     * If dynamic scheduling is asked, let's perform a second proportionnal
+     * mapping step:
+     *    - this is made only on local data
+     *    - no crossing is allowed between branches
+     */
+    {
+        clockStart(timer_current);
+
+        splitPartLocal( ctrl, simuctrl, symbmtx, dofptr );
+
+        clockStop(timer_current);
+        pastix_print( clustnum, 0, "  -- Split build at time: %g --\n", clockVal(timer_current));
+    }
 #endif
 
-    if((ctrl->leader == clustnum) &&
-       (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
-        fprintf(stdout, OUT_BLEND_DISTPART);
-
-    simuRun( simuctrl, ctrl, symbmtx, dofptr );
-
-    if(ctrl->timer)
-    {
-        clockStop(timer_current);
-        printf("--Distribution computed at time: %g --\n", clockVal(timer_current));
-    }
-
-#ifdef PASTIX_DYNSCHED /* 2 eme passe de proportional mapping on local data */
-
-    if(ctrl->timer)
-    {
-        clockInit(timer_current);
-        clockStart(timer_current);
-    }
-
-    /** repartitioning of the initial symbolic factorization
-     and processing of candidate processors group for
-     each colum bloc **/
-
-    splitPartLocal(ctrl, simuctrl, symbmtx, dofptr);
-
-    if(ctrl->timer)
-    {
-        clockStop(timer_current);
-        printf("--Split build at time: %g --\n", clockVal(timer_current));
-    }
-
-#endif
-
-    /** Free some memory **/
+    /* CostMatrix and Elimination Tree which are no further used */
     costMatrixExit(ctrl->costmtx);
     eTreeExit(ctrl->etree);
 
-    /** gener the final solverMarix for this processor
-     i.e. relative bloc numbering **/
-    if(ctrl->timer)
+    /*
+     * Generate the final solver structure that collects data from the different
+     * simulation structures and convert to local numbering
+     */
     {
-        clockInit(timer_current);
+        pastix_print( clustnum, 0, " -- Generate the final SolverMatrix\n" );
         clockStart(timer_current);
-    }
 
-    if(ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, "%ld : Genering final SolverMatrix \n", (long)clustnum);
-    if (ctrl->iparm[IPARM_DOF_COST] != 0) {
-        Dof dofstr;
-        dofInit(&dofstr);
-        dofConstant(&dofstr, 0, symbmtx->nodenbr, ctrl->iparm[IPARM_DOF_NBR]);
-        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, &dofstr);
-        dofExit(&dofstr);
-    }
-    else{
         bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
-    }
 
-    if(ctrl->timer)
-    {
         clockStop(timer_current);
-        printf("--SolverMatrix computed at time: %g --\n", clockVal(timer_current));
+        pastix_print( clustnum, 0, "  -- Solver Matrix structure computed at time: %g --\n", clockVal(timer_current) );
     }
 
     /*if(ctrl->count_ops)

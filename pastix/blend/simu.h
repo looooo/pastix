@@ -79,20 +79,20 @@ typedef struct SimuTask_ {
 #endif
 
 typedef struct SimuCtrl_ {
-    pastix_int_t  cblknbr;          /*+ Number of cblk                                          +*/
-    pastix_int_t  ftgtprio;         /*+ Priority to assign to current ftgts                     +*/
-    pastix_int_t  tasknbr;          /*+ Number of tasks                                         +*/
-    pastix_int_t  ftgtcnt;          /*+ Number of received communication                        +*/
-    SimuTask     *tasktab;          /*+ SimuTask vector                                         +*/
-    SimuProc     *proctab;          /*+ Virtual processor tab                                   +*/
-    SimuCluster  *clustab;          /*+ Virtual cluster tab                                     +*/
-    pastix_int_t *ownetab;          /*+ Vector containing the distribution of the diagonal blok +*/
-    pastix_int_t *blprtab;          /*+ Vector containing the distribution of the blok          +*/
-    SimuCblk     *cblktab;          /*+ SimuCblk vector                                         +*/
-    SimuBlok     *bloktab;          /*+ SimuBlok vector                                         +*/
-    SimuFtgt     *ftgttab;          /*+ Vector containing the fan in target                     +*/
+    pastix_int_t  cblknbr;     /*+ Number of cblk                                          +*/
+    pastix_int_t  ftgtprio;    /*+ Priority to assign to current ftgts                     +*/
+    pastix_int_t  tasknbr;     /*+ Number of tasks                                         +*/
+    pastix_int_t  ftgtcnt;     /*+ Number of received communication                        +*/
+    SimuTask     *tasktab;     /*+ SimuTask vector                                         +*/
+    SimuProc     *proctab;     /*+ Virtual processor tab                                   +*/
+    SimuCluster  *clustab;     /*+ Virtual cluster tab                                     +*/
+    pastix_int_t *ownetab;     /*+ Vector containing the distribution of the diagonal blok +*/
+    pastix_int_t *blprtab;     /*+ Vector containing the distribution of the blok          +*/
+    SimuCblk     *cblktab;     /*+ SimuCblk vector                                         +*/
+    SimuBlok     *bloktab;     /*+ SimuBlok vector                                         +*/
+    SimuFtgt     *ftgttab;     /*+ Vector containing the fan in target                     +*/
     pastix_int_t  ftgtnbr;
-    SimuTimer    *ftgttimetab;      /*+ Vector containing a timer for each cluster on each ftgt  +*/
+    SimuTimer    *ftgttimetab; /*+ Vector containing a timer for each cluster on each ftgt  +*/
 } SimuCtrl;
 
 /*
