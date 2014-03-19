@@ -86,52 +86,54 @@ typedef struct SolverBlok_ {
 
 /*+ Solver matrix structure. +*/
 
+/* All data are local to one cluster */
 typedef struct SolverMatrix_ {
-  pastix_int_t                       baseval;              /*+ Base value for numberings                 +*/
-  pastix_int_t                       nodenbr;              /*+ Number of nodes in matrix                 +*/
-  pastix_int_t                       cblknbr;              /*+ Number of column blocks                   +*/
-  pastix_int_t                       bloknbr;              /*+ Number of blocks                          +*/
+  pastix_int_t              baseval;              /*+ Base value for numberings                         +*/
+
+  pastix_int_t              nodenbr;              /*+ Number of nodes before dof extension              +*/
+  pastix_int_t              coefnbr;              /*+ Number of coefficients (node after dof extension) +*/
+  pastix_int_t              cblknbr;              /*+ Number of column blocks                   +*/
+  pastix_int_t              bloknbr;              /*+ Number of blocks                          +*/
   SolverCblk * restrict     cblktab;              /*+ Array of solver column blocks             +*/
   SolverBlok * restrict     bloktab;              /*+ Array of solver blocks                    +*/
-  pastix_int_t                       coefnbr;              /*+ Number of coefficients                    +*/
 
-  pastix_int_t                       ftgtnbr;              /*+ Number of fanintargets                    +*/
-  pastix_int_t                       ftgtcnt;              /*+ Number of fanintargets to receive         +*/
+  pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
+  pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
   FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
 
-  pastix_int_t                       coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
-  pastix_int_t                       bpftmax;              /*+ Maximum of block size for btag to receive +*/
-  pastix_int_t                       cpftmax;              /*+ Maximum of block size for ftgt to receive +*/
-  pastix_int_t                       nbftmax;              /*+ Maximum block number in ftgt              +*/
-  pastix_int_t                       arftmax;              /*+ Maximum block area in ftgt                +*/
+  pastix_int_t              coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
+  pastix_int_t              bpftmax;              /*+ Maximum of block size for btag to receive +*/
+  pastix_int_t              cpftmax;              /*+ Maximum of block size for ftgt to receive +*/
+  pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
+  pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/
 
-  pastix_int_t                       clustnum;             /*+ current processor number                  +*/
-  pastix_int_t                       clustnbr;             /*+ number of processors                      +*/
-  pastix_int_t                       procnbr;              /*+ Number of physical processor used         +*/
-  pastix_int_t                       thrdnbr;              /*+ Number of local computation threads       +*/
-  pastix_int_t                       bublnbr;              /*+ Number of local computation threads       +*/
+  pastix_int_t              clustnum;             /*+ current processor number                  +*/
+  pastix_int_t              clustnbr;             /*+ number of processors                      +*/
+  pastix_int_t              procnbr;              /*+ Number of physical processor used         +*/
+  pastix_int_t              thrdnbr;              /*+ Number of local computation threads       +*/
+  pastix_int_t              bublnbr;              /*+ Number of local computation threads       +*/
   BubbleTree  * restrict    btree;                /*+ Bubbles tree                              +*/
 
   BlockTarget * restrict    btagtab;              /*+ Blocktarget access vector                 +*/
-  pastix_int_t                       btagnbr;              /*+ Number of Blocktargets                    +*/
-  pastix_int_t                       btgsnbr;              /*+ Number of Blocktargets to send            +*/
-  pastix_int_t                       btgrnbr;              /*+ Number of Blocktargets to recv            +*/
+  pastix_int_t              btagnbr;              /*+ Number of Blocktargets                    +*/
+  pastix_int_t              btgsnbr;              /*+ Number of Blocktargets to send            +*/
+  pastix_int_t              btgrnbr;              /*+ Number of Blocktargets to recv            +*/
   BlockCoeff  * restrict    bcoftab;              /*+ BlockCoeff access vector                  +*/
-  pastix_int_t                       bcofnbr;
+  pastix_int_t              bcofnbr;
 
-  pastix_int_t                       indnbr;
-  pastix_int_t * restrict            indtab;
+  pastix_int_t              indnbr;
+  pastix_int_t * restrict   indtab;
   Task * restrict           tasktab;              /*+ Task access vector                        +*/
-  pastix_int_t                       tasknbr;              /*+ Number of Tasks                           +*/
-  pastix_int_t **                    ttsktab;              /*+ Task access vector by thread              +*/
-  pastix_int_t *                     ttsknbr;              /*+ Number of tasks by thread                 +*/
+  pastix_int_t              tasknbr;              /*+ Number of Tasks                           +*/
+  pastix_int_t **           ttsktab;              /*+ Task access vector by thread              +*/
+  pastix_int_t *            ttsknbr;              /*+ Number of tasks by thread                 +*/
 
-  pastix_int_t *                     proc2clust;           /*+ proc -> cluster                           +*/
-  pastix_int_t                       gridldim;             /*+ Dimensions of the virtual processors      +*/
-  pastix_int_t                       gridcdim;             /*+ grid if dense end block                   +*/
+  pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
+  pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
+  pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
   UpDownVector              updovct;              /*+ UpDown vector                             +*/
 #ifdef STARPU_GET_TASK_CTX
-  pastix_int_t                       starpu_subtree_nbr;
+  pastix_int_t              starpu_subtree_nbr;
 #endif
 } SolverMatrix;
 

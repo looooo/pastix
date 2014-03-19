@@ -116,7 +116,8 @@ void build_smx(UpDownVector          *updovct,
 
 
 
-pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
+pastix_int_t *
+solverMatrixGen(const pastix_int_t clustnum,
                               SolverMatrix *solvmtx,
                               const SymbolMatrix *symbmtx,
                               const SimuCtrl * simuctrl,
@@ -153,6 +154,7 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t          * clust_first_cblk = NULL;
     pastix_int_t          * clust_highest    = NULL;
     pastix_int_t          * uprecvcblk       = NULL;
+    pastix_int_t          * localindex       = NULL;
     pastix_int_t            flaglocal        = 0;
     pastix_int_t            min_procdst;
     pastix_int_t            min_task;
@@ -170,6 +172,9 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     solvmtx->thrdnbr  = ctrl->local_nbthrds;
     solvmtx->bublnbr  = ctrl->local_nbctxts;
     solvmtx->ftgtcnt  = simuctrl->ftgtcnt;
+#ifdef STARPU_GET_TASK_CTX
+    solvmtx->starpu_subtree_nbr = symbmtx->starpu_subtree_nbr;
+#endif
 
     if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
     {
@@ -177,11 +182,11 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
         fprintf(stdout, "NUMBER of BUBBLE %ld \n", (long) solvmtx->bublnbr );
     }
 
-    /** Copy the vector used to get a cluster number from a processor number **/
+    /* Copy the vector used to get a cluster number from a processor number */
     MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
     memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
 
-    /** Initialize pointer **/
+    /* Initialize pointer */
     proc2clust = ctrl->core2clust;
 
     /** Be sure initialized **/
@@ -189,150 +194,104 @@ pastix_int_t *solverMatrixGen(const pastix_int_t clustnum,
     solvmtx->bpftmax = 0;
     solvmtx->coefmax = 0;
 
-    /** Compute the local numbering for cblk, blok, task of each proc **/
-    /** -> need in ftgt cblkdest                          **/
-    MALLOC_INTERN(cblklocalnum, symbmtx->cblknbr,  pastix_int_t);
-    MALLOC_INTERN(bloklocalnum, symbmtx->bloknbr,  pastix_int_t);
+    MALLOC_INTERN(localindex, ctrl->clustnbr, pastix_int_t);
+    memset( localindex, 0, ctrl->clustnbr * sizeof(pastix_int_t) );
+
+    /* Compute local number of tasks on each cluster */
     MALLOC_INTERN(tasklocalnum, simuctrl->tasknbr, pastix_int_t);
+    for(i=0; i<simuctrl->tasknbr; i++) {
+        c = proc2clust[blprtab[simuctrl->tasktab[i].bloknum]];
 
-    for(c=0;c<ctrl->clustnbr;c++)
-    {
-        bloknum = 0;
-        tasknum = 0;
-        for(i=0;i<simuctrl->tasknbr;i++)
-            if(proc2clust[blprtab[simuctrl->tasktab[i].bloknum]] == c)
-            {
-                tasklocalnum[i] = tasknum;
-                tasknum++;
-            }
-
-        for(i=0;i<symbmtx->cblknbr;i++)
-        {
-            for(j = symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++)
-                if(proc2clust[blprtab[j]] == c)
-                {
-                    bloklocalnum[j] = bloknum;
-                    bloknum++;
-                }
-        }
-
-        if(c==clustnum)
-        {
-            solvmtx->tasknbr = tasknum;
-            solvmtx->bloknbr = bloknum;
-        }
+        tasklocalnum[i] = localindex[c];
+        localindex[c]++;
     }
+    solvmtx->tasknbr = localindex[clustnum];
 
+    /* Compute the local numbering of the bloks and cblks on each cluster */
+    MALLOC_INTERN(bloklocalnum, symbmtx->bloknbr, pastix_int_t);
+    MALLOC_INTERN(cblklocalnum, symbmtx->cblknbr, pastix_int_t);
+
+    memset( localindex, 0, ctrl->clustnbr * sizeof(pastix_int_t) );
     cblknum = 0;
-    for(i=0;i<symbmtx->cblknbr;i++)
+    for(i=0; i<symbmtx->cblknbr; i++)
     {
         flaglocal = 0;
-        for(j = symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++)
+        for(j = symbmtx->cblktab[i].bloknum; j<symbmtx->cblktab[i+1].bloknum; j++)
         {
-            if(proc2clust[blprtab[j]] == clustnum)
-            {
+            c = proc2clust[blprtab[j]];
+            bloklocalnum[j] = localindex[c];
+            localindex[c]++;
+
+            if (c == clustnum)
                 flaglocal = 1;
-                break;
-            }
         }
 
-        /** If the processor p ownes at least one blok in the cblk
-         then the cblk must take part in the local matrix **/
-        if(flaglocal)
-        {
+        if(flaglocal) {
             cblklocalnum[i] = cblknum;
             cblknum++;
         }
-        else
-        {
+        else {
             cblklocalnum[i] = -1;
         }
     }
-
-    /*** ONLY TRUE en 1D == provisoire pour la descente remontee ***/
-    /*
-     for(c=0;c<ctrl->clustnbr;c++)
-     {
-     pastix_int_t cblklocalind;
-     cblklocalind = 0;
-     for(i=0;i<symbmtx->cblknbr;i++)
-     {
-     if(proc2clust[blprtab[symbmtx->cblktab[i].bloknum]]==c)
-     {
-     cblklocalnum[i] = cblklocalind;
-     cblklocalind++;
-     }
-     }
-     #ifdef DEBUG_BLEND
-     if(c == clustnum)
-     {
-     if(cblklocalind != cblknum)
-     {
-     fprintf(stderr, "ATTENTION partie du code pour le 1D seulement !!\n");
-     EXIT(MOD_BLEND,INTERNAL_ERR);
-     }
-     }
-     #endif
-     }*/
-
-
-    /*************************/
-    /**   Fill symbmtx      **/
-    /*************************/
-    /* Allocations */
+    solvmtx->bloknbr = localindex[clustnum];
     solvmtx->cblknbr = cblknum;
+
+    memFree_null(localindex);
+
+    /* Allocate the cblktab and bloktab with the computed size */
     MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
     MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
-    cblknum = 0;
-    bloknum = 0;
-    nodenbr = 0;
-#ifdef STARPU_GET_TASK_CTX
-    solvmtx->starpu_subtree_nbr = symbmtx->starpu_subtree_nbr;
-#endif
-    for(i=0;i<symbmtx->cblknbr;i++)
-    {
-        flaglocal = 0;
-        cursor = bloknum;
 
-        for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++)
-            if(proc2clust[blprtab[j]] == clustnum)
-            {
-                flaglocal = 1;
-                solvmtx->bloktab[bloknum].frownum = symbmtx->bloktab[j].frownum * dofptr->noddval;
-                solvmtx->bloktab[bloknum].lrownum = symbmtx->bloktab[j].lrownum * dofptr->noddval + dofptr->noddval-1;
-                solvmtx->bloktab[bloknum].cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
-                bloknum ++;
-            }
-        if(flaglocal)
+    /* Fill in bloktab and cblktab */
+    {
+        cblknum = 0;
+        bloknum = 0;
+        nodenbr = 0;
+        for(i=0;i<symbmtx->cblknbr;i++)
         {
-            solvmtx->cblktab[cblknum].fcolnum = symbmtx->cblktab[i].fcolnum * dofptr->noddval;
-            solvmtx->cblktab[cblknum].lcolnum = symbmtx->cblktab[i].lcolnum * dofptr->noddval + dofptr->noddval-1;
-            solvmtx->cblktab[cblknum].bloknum = cursor;
+            flaglocal = 0;
+            cursor = bloknum;
+
+            for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++)
+                if(proc2clust[blprtab[j]] == clustnum)
+                {
+                    flaglocal = 1;
+                    solvmtx->bloktab[bloknum].frownum = symbmtx->bloktab[j].frownum * dofptr->noddval;
+                    solvmtx->bloktab[bloknum].lrownum = symbmtx->bloktab[j].lrownum * dofptr->noddval + dofptr->noddval-1;
+                    solvmtx->bloktab[bloknum].cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
+                    bloknum ++;
+                }
+            if(flaglocal)
+            {
+                solvmtx->cblktab[cblknum].fcolnum = symbmtx->cblktab[i].fcolnum * dofptr->noddval;
+                solvmtx->cblktab[cblknum].lcolnum = symbmtx->cblktab[i].lcolnum * dofptr->noddval + dofptr->noddval-1;
+                solvmtx->cblktab[cblknum].bloknum = cursor;
+                solvmtx->cblktab[cblknum].coeftab = NULL;
+                solvmtx->cblktab[cblknum].ucoeftab = NULL;
+                nodenbr += symbmtx->cblktab[i].lcolnum - symbmtx->cblktab[i].fcolnum + 1;
+                cblknum++;
+            }
+
+        }
+        solvmtx->nodenbr = nodenbr;
+#ifdef DEBUG_BLEND
+        ASSERT(solvmtx->cblknbr == cblknum,MOD_BLEND);
+        if(solvmtx->bloknbr != bloknum)
+            fprintf(stderr, "bloknbr %ld bloknum %ld \n", (long)solvmtx->bloknbr, (long)bloknum);
+        ASSERT(solvmtx->bloknbr == bloknum,MOD_BLEND);
+#endif
+
+        if (cblknum > 0)
+        {
+            /*  virtual cblk to avoid side effect in the loops on cblk bloks */
+            solvmtx->cblktab[cblknum].fcolnum = solvmtx->cblktab[cblknum-1].lcolnum+1;
+            solvmtx->cblktab[cblknum].lcolnum = solvmtx->cblktab[cblknum-1].lcolnum+1;
+            solvmtx->cblktab[cblknum].bloknum = bloknum;
             solvmtx->cblktab[cblknum].coeftab = NULL;
             solvmtx->cblktab[cblknum].ucoeftab = NULL;
-            nodenbr += symbmtx->cblktab[i].lcolnum - symbmtx->cblktab[i].fcolnum + 1;
-            cblknum++;
         }
-
     }
-    solvmtx->nodenbr = nodenbr;
-#ifdef DEBUG_BLEND
-    ASSERT(solvmtx->cblknbr == cblknum,MOD_BLEND);
-    if(solvmtx->bloknbr != bloknum)
-        fprintf(stderr, "bloknbr %ld bloknum %ld \n", (long)solvmtx->bloknbr, (long)bloknum);
-    ASSERT(solvmtx->bloknbr == bloknum,MOD_BLEND);
-#endif
-
-    if (cblknum > 0)
-    {
-        /*  virtual cblk to avoid side effect in the loops on cblk bloks */
-        solvmtx->cblktab[cblknum].fcolnum = solvmtx->cblktab[cblknum-1].lcolnum+1;
-        solvmtx->cblktab[cblknum].lcolnum = solvmtx->cblktab[cblknum-1].lcolnum+1;
-        solvmtx->cblktab[cblknum].bloknum = bloknum;
-        solvmtx->cblktab[cblknum].coeftab = NULL;
-        solvmtx->cblktab[cblknum].ucoeftab = NULL;
-    }
-
     /****************************/
     /*      Fill tasktab        */
     /****************************/
