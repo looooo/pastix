@@ -129,33 +129,47 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
                        pastix_int_t startsearch,
                        int ricar)
 {
-    pastix_int_t i;
+    SymbolBlok *bsrc;
+    SymbolBlok *bdst;
+    pastix_int_t i, fcblknum, fbloknum, lbloknum;
 
-    if(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum )
-        startsearch = symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum].bloknum;
+    fcblknum = symbptr->bloktab[bloksrc].cblknum;
+    fbloknum = symbptr->cblktab[fcblknum].bloknum;
+    lbloknum = symbptr->cblktab[fcblknum+1].bloknum;
 
-    assert(startsearch < symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum);
+    if(startsearch < fbloknum )
+        startsearch = fbloknum;
+
+    assert( startsearch < lbloknum );
+
+    /* Block in original column block */
+    bsrc = (symbptr->bloktab) + bloknum;
+
+    /* Search for the facing block in the facing column block */
+    bdst = (symbptr->bloktab) + startsearch;
 
     if(ricar == 0)
     {
-        for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
-            if(symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].frownum)
+        for(i=startsearch; i<lbloknum; i++, bdst++ )
+            if( bdst->lrownum >= bsrc->frownum)
                 break;
 
-        assert( (symbptr->bloktab[i].frownum <= symbptr->bloktab[bloknum].frownum) &&
-                (symbptr->bloktab[i].lrownum >= symbptr->bloktab[bloknum].lrownum) );
+        /* We should always exit the loop in non ilu(k) mode */
+        assert( (bdst->frownum <= bsrc->frownum) &&
+                (bdst->lrownum >= bsrc->lrownum) );
 
         return i;
     }
     else
     {
-        for(i=startsearch;i<symbptr->cblktab[symbptr->bloktab[bloksrc].cblknum+1].bloknum;i++)
+        for(i=startsearch; i<lbloknum; i++, bdst++)
         {
-            if( (symbptr->bloktab[bloknum].frownum >= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].lrownum) ||
-                (symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].lrownum <= symbptr->bloktab[i].lrownum) ||
-                (symbptr->bloktab[bloknum].frownum <= symbptr->bloktab[i].frownum && symbptr->bloktab[bloknum].lrownum >= symbptr->bloktab[i].lrownum) )
+            if( ((bsrc->frownum >= bdst->frownum) && (bsrc->frownum <= bdst->lrownum)) ||
+                ((bsrc->lrownum >= bdst->frownum) && (bsrc->lrownum <= bdst->lrownum)) ||
+                ((bsrc->frownum <= bdst->frownum) && (bsrc->lrownum >= bdst->lrownum)) )
                 return i;  /** We found the first block that matches **/
-            if(symbptr->bloktab[bloknum].lrownum < symbptr->bloktab[i].frownum)
+
+            if(bsrc->lrownum < bdst->frownum)
             {
                 return -1;
             }

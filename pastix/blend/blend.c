@@ -246,8 +246,8 @@ void solverBlend(BlendCtrl    *ctrl,
     if((ctrl->leader == clustnum) &&
        (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO))
         fprintf(stdout, OUT_BLEND_DISTPART);
-    //distribPart(symbmtx, simuctrl, ctrl, dofptr);
-    simuRun(symbmtx, simuctrl, ctrl, dofptr);
+
+    simuRun(ctrl, symbmtx, dofptr, simuctrl);
 
     if(ctrl->timer)
     {

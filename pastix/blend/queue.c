@@ -122,10 +122,10 @@ pastix_int_t
 pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
 {
     pastix_int_t i, j;
-    void *return_elt;
+    pastix_int_t return_elt;
 
     if (q->used == 0)
-        return (void*)-1;
+        return -1;
 
     return_elt = q->elttab[0].eltptr;
     if (key1 != NULL) *key1 = q->elttab[0].key1;

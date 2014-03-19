@@ -84,9 +84,10 @@ simuInit( SimuCtrl     *simuctrl,
 
         for(j=symbptr->cblktab[i].bloknum;j<symbptr->cblktab[i+1].bloknum;j++)
         {
-            simuctrl->bloktab[j].ftgtnum = ftgtcur;
-            simuctrl->bloktab[j].tasknum = -1;
-            simuctrl->bloktab[j].ctrbcnt = 0;
+            simuctrl->bloktab[j].ftgtnum   = ftgtcur;
+            simuctrl->bloktab[j].tasknum   = -1;
+            simuctrl->bloktab[j].fccandnum = candtab[i].fccandnum;
+            simuctrl->bloktab[j].ctrbcnt   = 0;
             /*if(candnbr > 1)*/
             ftgtcur += candnbr;
         }

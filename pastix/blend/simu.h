@@ -56,13 +56,13 @@ typedef struct SimuBlockTarget_ {
 } SimuBlockTarget;
 
 typedef struct SimuBlok_ {
-  pastix_int_t           tasknum;          /*+ Number of the task                                     +*/
-  pastix_int_t           ftgtnum;          /*+ index of the first ftgt destinated to this cblk
-                                                    in the ftgttab. This index is also used to find
-                                                    the first cblk timer (one per cand proc) in the
-                                                    timetab                                                +*/
-  pastix_int_t           ctrbcnt;          /*+ counter for contributions remaining                    +*/
-  pastix_int_t           ctrbnbr;          /*+ OIMBE temporaire sert juste pour DRUNK                 +*/
+    pastix_int_t           tasknum;          /*+ Number of the task                                     +*/
+    pastix_int_t           ftgtnum;          /*+ index of the first ftgt destinated to this cblk
+                                              in the ftgttab. This index is also used to find
+                                              the first cblk timer (one per cand proc) in the
+                                            timetab                                                +*/
+    pastix_int_t           fccandnum;        /*> First candidate that owns the cblk of the block */
+    pastix_int_t           ctrbcnt;          /*+ counter for contributions remaining                    +*/
 
 } SimuBlok;
 
@@ -131,9 +131,13 @@ void                timerSet        (SimuTimer *, double);
 void                timerSetMax(SimuTimer *timer, double t);
 #undef static
 
-void              simuRun              (SymbolMatrix *, SimuCtrl *, BlendCtrl *, const Dof *);
+void
+simuRun( const BlendCtrl    *ctrl,
+         const SymbolMatrix *symbptr,
+         const Dof          *dofptr,
+         SimuCtrl           *simuctrl );
 
 
-#define CLUST2INDEX(n,c) ((c) + simuctrl->bloktab[n].ftgtnum - ctrl->candtab[ctrl->egraph->ownetab[n]].fccandnum)
-#define INDEX2CLUST(r,s) ((r) - simuctrl->bloktab[s].ftgtnum + ctrl->candtab[ctrl->egraph->ownetab[s]].fccandnum)
+#define CLUST2INDEX(n,c) ((c) + simuctrl->bloktab[n].ftgtnum - simuctrl->bloktab[n].fccandnum)
+#define INDEX2CLUST(r,s) ((r) - simuctrl->bloktab[s].ftgtnum + simuctrl->bloktab[s].fccandnum)
 #define TIMER(pr)        (&(simuctrl->proctab[pr].timer))
