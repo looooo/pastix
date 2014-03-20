@@ -41,30 +41,6 @@ void solverRealloc(SolverMatrix *solvmtx)
     memcpy(solvmtx->bloktab, tmp->bloktab,
            solvmtx->bloknbr*sizeof(SolverBlok));
 
-    /** Copy BlockTarget tab **/
-    if(solvmtx->btagnbr>0)
-      {
-        MALLOC_INTERN(solvmtx->btagtab, solvmtx->btagnbr, BlockTarget);
-        memcpy(solvmtx->btagtab, tmp->btagtab,
-               solvmtx->btagnbr*sizeof(BlockTarget));
-      }
-    else
-      {
-        solvmtx->btagtab = NULL;
-      }
-
-    /** Copy BlockCoef tab **/
-    if(solvmtx->bcofnbr>0)
-      {
-        MALLOC_INTERN(solvmtx->bcoftab, solvmtx->bcofnbr, BlockCoeff);
-        memcpy(solvmtx->bcoftab, tmp->bcoftab,
-               solvmtx->bcofnbr*sizeof(BlockCoeff));
-      }
-    else
-      {
-        solvmtx->bcoftab = NULL;
-      }
-
     /** Copy ftgttab **/
     if (solvmtx->ftgtnbr != 0)
       {
@@ -134,10 +110,6 @@ void solverExit(SolverMatrix *solvmtx)
       memFree_null(solvmtx->coeftab);*/
     if(solvmtx->ftgttab)
       memFree_null(solvmtx->ftgttab);
-    if(solvmtx->btagtab)
-      memFree_null(solvmtx->btagtab);
-    if(solvmtx->bcoftab)
-      memFree_null(solvmtx->bcoftab);
     if(solvmtx->tasktab)
       memFree_null(solvmtx->tasktab);
     if(solvmtx->indtab)
@@ -161,15 +133,12 @@ void solverInit(SolverMatrix *solvmtx)
   solvmtx->bloktab = NULL;
   solvmtx->coefnbr = 0;
   solvmtx->ftgtnbr = 0;
-  solvmtx->btagtab = NULL;
-  solvmtx->bcoftab = NULL;
 
   solvmtx->ftgttab = NULL;
   solvmtx->cpftmax = 0;
   solvmtx->bpftmax = 0;
   solvmtx->coefmax = 0;
   memset(solvmtx, 0, sizeof (SolverMatrix));
-
 
   solvmtx->baseval = 0;
   solvmtx->cblknbr = 0;

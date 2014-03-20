@@ -108,13 +108,6 @@ typedef struct SolverMatrix_ {
   pastix_int_t              bublnbr;              /*+ Number of local computation threads       +*/
   BubbleTree  * restrict    btree;                /*+ Bubbles tree                              +*/
 
-  BlockTarget * restrict    btagtab;              /*+ Blocktarget access vector                 +*/
-  pastix_int_t              btagnbr;              /*+ Number of Blocktargets                    +*/
-  pastix_int_t              btgsnbr;              /*+ Number of Blocktargets to send            +*/
-  pastix_int_t              btgrnbr;              /*+ Number of Blocktargets to recv            +*/
-  BlockCoeff  * restrict    bcoftab;              /*+ BlockCoeff access vector                  +*/
-  pastix_int_t              bcofnbr;
-
   pastix_int_t              indnbr;
   pastix_int_t * restrict   indtab;
   Task * restrict           tasktab;              /*+ Task access vector                        +*/

@@ -656,8 +656,6 @@ pastix_int_t sizeofsolver(SolverMatrix *solvptr, pastix_int_t *iparm)
 
     /* fanin target */
     result += solvptr->ftgtnbr*sizeof(FanInTarget);
-    result += solvptr->btagnbr*sizeof(BlockTarget);
-    result += solvptr->bcofnbr*sizeof(BlockTarget);
     result += solvptr->indnbr *sizeof(pastix_int_t);
 
     /* task */

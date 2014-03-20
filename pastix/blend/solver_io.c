@@ -43,10 +43,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     SolverBlok   *bloktnd;
     FanInTarget  *ftgtptr;
     FanInTarget  *ftgttnd;
-    BlockTarget  *btagptr;
-    BlockTarget  *btagtnd;
-    BlockCoeff   *bcofptr;
-    BlockCoeff   *bcofnd;
     Task         *taskptr;
     Task         *tasknd;
 
@@ -133,8 +129,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
          intLoad (stream, &solvptr->arftmax) +
          intLoad (stream, &clustnum) +
          intLoad (stream, &clustnbr) +
-         intLoad (stream, &solvptr->btagnbr) +
-         intLoad (stream, &solvptr->bcofnbr) +
          intLoad (stream, &solvptr->indnbr) +
          intLoad (stream, &solvptr->tasknbr) +
          intLoad (stream, &solvptr->procnbr) +
@@ -153,8 +147,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     if (((solvptr->cblktab = (SolverCblk *) memAlloc ((solvptr->cblknbr + 1) * sizeof (SolverCblk)))  == NULL) ||
         ((solvptr->bloktab = (SolverBlok *) memAlloc (solvptr->bloknbr       * sizeof (SolverBlok)))  == NULL) ||
         ((solvptr->ftgttab = (FanInTarget *)memAlloc (solvptr->ftgtnbr               * sizeof (FanInTarget))) == NULL) ||
-        ((solvptr->btagtab = (BlockTarget *)memAlloc (solvptr->btagnbr               * sizeof (BlockTarget))) == NULL) ||
-        ((solvptr->bcoftab = (BlockCoeff *) memAlloc (solvptr->bcofnbr               * sizeof (BlockCoeff)))  == NULL) ||
         ((solvptr->indtab  = (pastix_int_t *)        memAlloc (solvptr->indnbr                * sizeof (pastix_int_t)))         == NULL) ||
         ((solvptr->tasktab = (Task *)       memAlloc ((solvptr->tasknbr+1)           * sizeof (Task)))        == NULL) ||
         ((solvptr->ttsknbr = (pastix_int_t *)        memAlloc ((solvptr->thrdnbr)             * sizeof (pastix_int_t)))         == NULL) ||
@@ -167,10 +159,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
           memFree_null (solvptr->bloktab);
         if (solvptr->ftgttab != NULL)
           memFree_null (solvptr->ftgttab);
-        if (solvptr->btagtab != NULL)
-          memFree_null (solvptr->btagtab);
-        if (solvptr->bcoftab != NULL)
-          memFree_null (solvptr->bcoftab);
         if (solvptr->indtab != NULL)
           memFree_null (solvptr->indtab);
         if (solvptr->tasktab != NULL)
@@ -218,39 +206,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
         ftgtptr->coeftab = NULL;
       }
 
-    for (bcofptr = solvptr->bcoftab,                /* Read BlockCoeff data */
-           bcofnd = bcofptr + solvptr->bcofnbr;
-         (bcofptr < bcofnd); bcofptr ++)
-      {
-        for(i=0;i<BCOFINFO;i++)
-          intLoad(stream, &(bcofptr->infotab[i]));
-        bcofptr->coeftab = NULL;
-        intLoad(stream, &(bcofptr->sendcnt));
-      }
-
-    for (btagptr = solvptr->btagtab,                /* Read BlockTarget data */
-           btagtnd = btagptr + solvptr->btagnbr;
-         (btagptr < btagtnd); btagptr ++)
-      {
-        pastix_int_t bcofind;
-        for(i=0;i<BTAGINFO;i++)
-          intLoad(stream, &btagptr->infotab[i]);
-
-        intLoad(stream, &bcofind);
-        /*fprintf(stdout, "%d\t", bcofind);*/
-        if(bcofind < 0)
-          btagptr->bcofptr = NULL;
-        else
-          {
-#ifdef DEBUG_BLEND
-            ASSERT(bcofind < solvptr->bcofnbr,MOD_BLEND);
-#endif
-            btagptr->bcofptr = &(solvptr->bcoftab[bcofind]);
-          }
-      }
-
-
-
    for(i=0;i<solvptr->indnbr;i++)                   /** Read indtab **/
      intLoad(stream, &(solvptr->indtab[i]));
 
@@ -273,8 +228,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
            taskptr->ctrbcnt = temp;
        }
        intLoad(stream, &(taskptr->indnum));
-       /* TODO: do we keep it for backward compatibility or not ? */
-       intLoad(stream, &(temp));
    }
 
    for(i=0;i<solvptr->thrdnbr;i++)                 /** Read task by thread data **/
@@ -389,10 +342,6 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
    SolverBlok   *bloktnd;
    FanInTarget  *ftgtptr;
    FanInTarget  *ftgttnd;
-   BlockTarget  *btagptr;
-   BlockTarget  *btagtnd;
-   BlockCoeff   *bcofptr;
-   BlockCoeff   *bcofnd;
    Task         *taskptr;
    Task         *tasknd;
 
@@ -433,7 +382,7 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
 
 
    /*fprintf(stream, "File header\n");*/
-   o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
+   o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                  (long) solvptr->coefnbr,
                  (long) solvptr->ftgtnbr,
                  (long) solvptr->coefmax,
@@ -443,8 +392,6 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
                  (long) solvptr->arftmax,
                  (long) solvptr->clustnum,
                  (long) solvptr->clustnbr,
-                 (long) solvptr->btagnbr,
-                 (long) solvptr->bcofnbr,
                  (long) solvptr->indnbr,
                  (long) solvptr->tasknbr,
                  (long) solvptr->procnbr,
@@ -486,44 +433,6 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
      fprintf(stream, "\n");
    }
 
-   /*fprintf(stream, "blockcoeff data\n");*/
-   for (bcofptr = solvptr->bcoftab,                /* Write BlockCoeff data !!BEFORE BLOCKTARGET FOR LOADING!!  */
-          bcofnd = bcofptr + solvptr->bcofnbr;
-        (bcofptr < bcofnd) && (o==0); bcofptr ++) {
-     for(i=0;i<BCOFINFO;i++)
-       o = (fprintf(stream, "%ld\t", (long)bcofptr->infotab[i]) == EOF);
-
-     o = (fprintf(stream, "%ld\t", (long)bcofptr->sendcnt) == EOF);
-
-     fprintf(stream, "\n");
-     fprintf(stream, "\n");
-   }
-
-
-   /*fprintf(stream, "blocktarget data\n");*/
-   for (btagptr = solvptr->btagtab,                /* Write BlockTarget data */
-        btagtnd = btagptr + solvptr->btagnbr;
-        (btagptr < btagtnd) && (o==0); btagptr ++) {
-     for(i=0;i<BTAGINFO;i++)
-       o = (fprintf(stream, "%ld\t", (long)btagptr->infotab[i]) == EOF);
-     if(btagptr->bcofptr == NULL)
-       {
-         fprintf(stream, "-1\t");
-         /*fprintf(stdout, "-1\t");*/
-       }
-     else
-       {
-         fprintf(stream, "%ld\t", (long)( ((long)btagptr->bcofptr-(long)solvptr->bcoftab)/sizeof(BlockCoeff) ));
-         /*fprintf(stdout, "%ld\t", (long)( ((long)btagptr->bcofptr-(long)solvptr->bcoftab)/sizeof(BlockCoeff) ));*/
-
-       }
-
-
-     fprintf(stream, "\n");
-     fprintf(stream, "\n");
-   }
-
-
    /*fprintf(stream, "indtab data\n");*/
    for(i=0;i<solvptr->indnbr;i++)                   /** Write indtab **/
      fprintf(stream, "%ld\t", (long)solvptr->indtab[i]);
@@ -535,10 +444,9 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
             tasknd = taskptr + solvptr->tasknbr+1;
         (taskptr < tasknd) && (o==0); taskptr ++)
    {
-       /* TODO: do we keep the -1 for backward compatibility */
-       fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
+       fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
                (long)taskptr->taskid, (long)taskptr->prionum, (long)taskptr->cblknum, (long)taskptr->bloknum,
-               (long)taskptr->ftgtcnt, (long)taskptr->ctrbcnt, (long)taskptr->indnum, (long)-1);
+               (long)taskptr->ftgtcnt, (long)taskptr->ctrbcnt, (long)taskptr->indnum);
        fprintf(stream, "\n");
        fprintf(stream, "\n");
    }

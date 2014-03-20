@@ -30,9 +30,6 @@ void solverCheck(SolverMatrix *solvmtx)
     pastix_int_t i, j, k = 0;
     pastix_int_t cblknum, bloknum, ftgtnum;
     pastix_int_t indnum, tasknum;
-/*     pastix_int_t stride; */
-    Task *task = NULL;
-    pastix_int_t  *sendcnt = NULL;
     pastix_int_t total;
 
     BlockCoeff *bcofptr = NULL;
