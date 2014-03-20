@@ -34,7 +34,6 @@
 typedef struct Task_ {
   pastix_int_t                       taskid;               /*+ COMP_1D DIAG E1 E2                                     +*/
   pastix_int_t                       prionum;              /*+ Priority value for the factorization                   +*/
-  pastix_int_t                       prionum2;             /*+ Priority value for solve steps                         +*/
   pastix_int_t                       cblknum;              /*+ Attached column block                                  +*/
   pastix_int_t                       bloknum;              /*+ Attached block                                         +*/
   pastix_int_t volatile              ftgtcnt;              /*+ Number of fan-in targets                               +*/
@@ -72,7 +71,7 @@ typedef struct SolverCblk_  {
   pastix_int_t                       cblkdiag;             /*+ Column block owner of diagonal block   +*/
   pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
   pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
-} SolverCblk; 
+} SolverCblk;
 
 /*+ Solver block structure. +*/
 

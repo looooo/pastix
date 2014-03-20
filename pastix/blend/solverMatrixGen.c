@@ -136,7 +136,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            cblknum          = 0;
     pastix_int_t            bloknum          = 0;
     pastix_int_t            tasknum          = 0;
-    pastix_int_t            min              = INTVALMAX;
     pastix_int_t            facebloknum      = 0;
     pastix_int_t            delta            = 0;
     pastix_int_t            indnbr           = 0;
@@ -153,11 +152,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t          * clust_first_cblk = NULL;
     pastix_int_t          * clust_highest    = NULL;
     pastix_int_t          * uprecvcblk       = NULL;
-    pastix_int_t          * localindex       = NULL;
     pastix_int_t            flaglocal        = 0;
-    pastix_int_t            min_procdst;
-    pastix_int_t            min_task;
-    pastix_int_t            maxprionum2;
 
     /** Set procnum and procnbr **/
     /*solvmtx->procnum = procnum;
@@ -193,62 +188,71 @@ solverMatrixGen(const pastix_int_t clustnum,
     solvmtx->bpftmax = 0;
     solvmtx->coefmax = 0;
 
-    MALLOC_INTERN(localindex, ctrl->clustnbr, pastix_int_t);
-    memset( localindex, 0, ctrl->clustnbr * sizeof(pastix_int_t) );
-
-    /* Compute local number of tasks on each cluster */
-    MALLOC_INTERN(tasklocalnum, simuctrl->tasknbr, pastix_int_t);
-    for(i=0; i<simuctrl->tasknbr; i++) {
-        c = simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust;
-
-        tasklocalnum[i] = localindex[c];
-        localindex[c]++;
-    }
-    solvmtx->tasknbr = localindex[clustnum];
-
-    /* Compute the local numbering of the bloks and cblks on each cluster */
-    MALLOC_INTERN(bloklocalnum, symbmtx->bloknbr, pastix_int_t);
-    MALLOC_INTERN(cblklocalnum, symbmtx->cblknbr, pastix_int_t);
-
-    memset( localindex, 0, ctrl->clustnbr * sizeof(pastix_int_t) );
-    cblknum = 0;
-    for(i=0; i<symbmtx->cblknbr; i++)
+    /*
+     * Compute local indices to compress the symbol information into solver
+     */
     {
-        flaglocal = 0;
-        for(j = symbmtx->cblktab[i].bloknum; j<symbmtx->cblktab[i+1].bloknum; j++)
-        {
-            c = simuctrl->bloktab[j].ownerclust;
-            bloklocalnum[j] = localindex[c];
+        pastix_int_t *localindex;
+
+        MALLOC_INTERN(localindex, ctrl->clustnbr, pastix_int_t);
+        memset( localindex, 0, ctrl->clustnbr * sizeof(pastix_int_t) );
+
+        /* Compute local number of tasks on each cluster */
+        MALLOC_INTERN(tasklocalnum, simuctrl->tasknbr, pastix_int_t);
+        for(i=0; i<simuctrl->tasknbr; i++) {
+            c = simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust;
+
+            tasklocalnum[i] = localindex[c];
             localindex[c]++;
+        }
+        solvmtx->tasknbr = localindex[clustnum];
 
-            if (c == clustnum)
-                flaglocal = 1;
-        }
+        /* Compute the local numbering of the bloks and cblks on each cluster */
+        MALLOC_INTERN(bloklocalnum, symbmtx->bloknbr, pastix_int_t);
+        MALLOC_INTERN(cblklocalnum, symbmtx->cblknbr, pastix_int_t);
 
-        if(flaglocal) {
-            cblklocalnum[i] = cblknum;
-            cblknum++;
+        memset( localindex, 0, ctrl->clustnbr * sizeof(pastix_int_t) );
+        cblknum = 0;
+        for(i=0; i<symbmtx->cblknbr; i++)
+        {
+            flaglocal = 0;
+            for(j = symbmtx->cblktab[i].bloknum; j<symbmtx->cblktab[i+1].bloknum; j++)
+            {
+                c = simuctrl->bloktab[j].ownerclust;
+                bloklocalnum[j] = localindex[c];
+                localindex[c]++;
+
+                if (c == clustnum)
+                    flaglocal = 1;
+            }
+
+            if(flaglocal) {
+                cblklocalnum[i] = cblknum;
+                cblknum++;
+            }
+            else {
+                cblklocalnum[i] = -1;
+            }
         }
-        else {
-            cblklocalnum[i] = -1;
-        }
+        solvmtx->bloknbr = localindex[clustnum];
+        solvmtx->cblknbr = cblknum;
+
+        memFree_null(localindex);
     }
-    solvmtx->bloknbr = localindex[clustnum];
-    solvmtx->cblknbr = cblknum;
 
-    memFree_null(localindex);
-
-    /* Allocate the cblktab and bloktab with the computed size */
-    MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
-    MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
-
-    /* Fill in bloktab and cblktab */
+    /*
+     * Fill in bloktab and cblktab
+     */
     {
         SolverCblk *solvcblk = solvmtx->cblktab;
         SolverBlok *solvblok = solvmtx->bloktab;
         SymbolCblk *symbcblk = symbmtx->cblktab;
         SymbolBlok *symbblok = symbmtx->bloktab;
         SimuBlok   *simublok = simuctrl->bloktab;
+
+        /* Allocate the cblktab and bloktab with the computed size */
+        MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
+        MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
 
         cblknum = 0;
         bloknum = 0;
@@ -300,94 +304,75 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
     }
 
-    /****************************/
-    /*      Fill tasktab        */
-    /****************************/
-    MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
-    /** Initialize the tasknext field **/
-    /** We need that to know if a task has already been chained **/
-    for(i=0;i<solvmtx->tasknbr+1;i++)
-        solvmtx->tasktab[i].tasknext = -1;
-
-    tasknum = 0;
-    ftgtnum = 0;
-    indnbr  = 0;
-    maxprionum2 = 0;
-
-    for(i=0;i<simuctrl->tasknbr;i++)
+    /*
+     * Fill in tasktab
+     */
     {
+        MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
 
-        maxprionum2 = 0;
-        if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
+        /** Initialize the tasknext field **/
+        /** We need that to know if a task has already been chained **/
+        for(i=0;i<solvmtx->tasknbr+1;i++)
+            solvmtx->tasktab[i].tasknext = -1;
+
+        tasknum = 0;
+        ftgtnum = 0;
+        indnbr  = 0;
+
+        for(i=0;i<simuctrl->tasknbr;i++)
         {
-            ASSERTDBG(tasknum == tasklocalnum[i], MOD_BLEND);
-
-            solvmtx->tasktab[tasknum].taskid  = simuctrl->tasktab[i].taskid;
-            solvmtx->tasktab[tasknum].prionum = simuctrl->tasktab[i].prionum;
-            solvmtx->tasktab[tasknum].cblknum = cblklocalnum[simuctrl->tasktab[i].cblknum];
-
-            /**** Set the prionum for DR : the locally subtree are ordered in natural cblk order ****/
-            if(ctrl->candtab[simuctrl->tasktab[i].cblknum].fcandnum == ctrl->candtab[simuctrl->tasktab[i].cblknum].lcandnum)
+            if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
             {
-                solvmtx->tasktab[tasknum].prionum2 = cblklocalnum[simuctrl->tasktab[i].cblknum];
-                if(solvmtx->tasktab[tasknum].prionum2 > maxprionum2)
-                    maxprionum2 = solvmtx->tasktab[tasknum].prionum2;
-            }
-            else
-            {
-                solvmtx->tasktab[tasknum].prionum2 = -1; /** The prionum2 for these task is set outside this loop **/
-            }
+                ASSERTDBG(tasknum == tasklocalnum[i], MOD_BLEND);
 
-            if(solvmtx->tasktab[tasknum].taskid == COMP_1D)
-                solvmtx->tasktab[tasknum].bloknum = solvmtx->cblktab[solvmtx->tasktab[tasknum].cblknum].bloknum;
-            else
-                solvmtx->tasktab[tasknum].bloknum = bloklocalnum[simuctrl->tasktab[i].bloknum];
+                solvmtx->tasktab[tasknum].taskid  = simuctrl->tasktab[i].taskid;
+                solvmtx->tasktab[tasknum].prionum = simuctrl->tasktab[i].prionum;
+                solvmtx->tasktab[tasknum].cblknum = cblklocalnum[simuctrl->tasktab[i].cblknum];
 
-            solvmtx->tasktab[tasknum].ctrbcnt = simuctrl->tasktab[i].ctrbcnt;
-            solvmtx->tasktab[tasknum].ftgtcnt = simuctrl->tasktab[i].ftgtcnt;
-            solvmtx->tasktab[tasknum].btagptr = NULL;
-            solvmtx->tasktab[tasknum].indnum  = indnbr;
+                if(solvmtx->tasktab[tasknum].taskid == COMP_1D)
+                    solvmtx->tasktab[tasknum].bloknum = solvmtx->cblktab[solvmtx->tasktab[tasknum].cblknum].bloknum;
+                else
+                    solvmtx->tasktab[tasknum].bloknum = bloklocalnum[simuctrl->tasktab[i].bloknum];
 
-            /*fprintf(stdout, "task %ld, taskid %ld cblk %ld  prionum %ld ctrbnbr %ld \n",(long)tasknum, (long)solvmtx->tasktab[tasknum].taskid, (long)solvmtx->tasktab[tasknum].cblknum, (long)solvmtx->tasktab[tasknum].prionum, (long)solvmtx->tasktab[tasknum].ctrbcnt);*/
+                solvmtx->tasktab[tasknum].ctrbcnt = simuctrl->tasktab[i].ctrbcnt;
+                solvmtx->tasktab[tasknum].ftgtcnt = simuctrl->tasktab[i].ftgtcnt;
+                solvmtx->tasktab[tasknum].btagptr = NULL;
+                solvmtx->tasktab[tasknum].indnum  = indnbr;
 
-            /** Count number of index needed in indtab **/
-            /* number odb below the block (included the block) */
-            odb_nbr = symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum - simuctrl->tasktab[i].bloknum -1;
+                /*fprintf(stdout, "task %ld, taskid %ld cblk %ld  prionum %ld ctrbnbr %ld \n",(long)tasknum, (long)solvmtx->tasktab[tasknum].taskid, (long)solvmtx->tasktab[tasknum].cblknum, (long)solvmtx->tasktab[tasknum].prionum, (long)solvmtx->tasktab[tasknum].ctrbcnt);*/
+
+                /** Count number of index needed in indtab **/
+                /* number odb below the block (included the block) */
+                odb_nbr = symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum - simuctrl->tasktab[i].bloknum -1;
 #ifdef DEBUG_BLEND
-            ASSERT(simuctrl->tasktab[i].taskid == solvmtx->tasktab[tasknum].taskid,MOD_BLEND);
+                ASSERT(simuctrl->tasktab[i].taskid == solvmtx->tasktab[tasknum].taskid,MOD_BLEND);
 #endif
-            switch(simuctrl->tasktab[i].taskid)
-            {
-            case COMP_1D:
-                indnbr += (odb_nbr*(odb_nbr+1))/2;
-                break;
-            default:
-                fprintf(stderr, "solverMatrixgen: Error no task type \n");
-                EXIT(MOD_BLEND,INTERNAL_ERR);
-            }
+                switch(simuctrl->tasktab[i].taskid)
+                {
+                case COMP_1D:
+                    indnbr += (odb_nbr*(odb_nbr+1))/2;
+                    break;
+                default:
+                    fprintf(stderr, "solverMatrixgen: Error no task type \n");
+                    EXIT(MOD_BLEND,INTERNAL_ERR);
+                }
 
-            {
-                ASSERTDBG(solvmtx->tasktab[tasknum].tasknext == -1 && simuctrl->tasktab[i].tasknext == -1,MOD_BLEND);
+                {
+                    ASSERTDBG(solvmtx->tasktab[tasknum].tasknext == -1 && simuctrl->tasktab[i].tasknext == -1,MOD_BLEND);
+                }
+                solvmtx->tasktab[tasknum].taskmstr = -1;
+                tasknum++;
             }
-            solvmtx->tasktab[tasknum].taskmstr = -1;
-            tasknum++;
         }
+        /** One more to avoid side effect **/
+        solvmtx->tasktab[tasknum].indnum = indnbr;
     }
-    /** One more to avoid side effect **/
-    solvmtx->tasktab[tasknum].indnum = indnbr;
+
 
     /** For coherence in Malt (it uses takstab[i+1].tasknum to count access **/
     /*if(solvmtx->tasktab[tasknum-1].taskid == COMP_1D)
      solvmtx->tasktab[tasknum-1].indnum = indnbr-1;*/
     ASSERTDBG(tasknum == solvmtx->tasknbr,MOD_BLEND);
-
-    /********************************************************************/
-    /* Set the prionum2 for task that have several candidate thread     */
-    /********************************************************************/
-    for(i=0;i<solvmtx->tasknbr;i++)
-        if(solvmtx->tasktab[i].prionum2 < 0)
-            solvmtx->tasktab[i].prionum2 = maxprionum2 + solvmtx->tasktab[i].prionum;
-
 
     /********************************************/
     /* Fill the processor tasktab indice vector */
