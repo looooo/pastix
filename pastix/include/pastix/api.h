@@ -32,7 +32,7 @@
    IPARM_ONLY_RAFF             - Refinement only                                          Default: API_NO              IN
    IPARM_CSCD_CORRECT          - Indicate if the cscd has been redistributed after blend  Default: API_NO              IN
    IPARM_NBITER                - Number of iterations performed in refinement             Default: -                   OUT
-   IPARM_TRACEFMT              - Trace format (see Trace modes)                           Default: API_TRACE_PICL      IN
+   IPARM_TRACEFMT              - Trace format (see Trace modes)                           Default: API_TRACE_PAJE      IN
    IPARM_GRAPHDIST             - Specify if the given graph is distributed or not         Default: API_YES             IN
    IPARM_AMALGAMATION_LEVEL    - Amalgamation level                                       Default: 5                   IN
    IPARM_ORDERING              - Choose ordering                                          Default: API_ORDER_SCOTCH    IN
@@ -483,14 +483,12 @@ enum API_BOOLEAN {
 
   Trace modes (index IPARM_TRACEFMT)
 
-  API_TRACE_PICL       - Use PICL trace format
   API_TRACE_PAJE       - Use Paje trace format
   API_TRACE_HUMREAD    - Use human-readable text trace format
   API_TRACE_UNFORMATED - Unformated trace format
  */
 /* _POS_ 10 */
 enum API_TRACEFMT {
-  API_TRACE_PICL       = 0, /* Use PICL trace format       */
   API_TRACE_PAJE       = 1, /* Use Paje trace format       */
   API_TRACE_HUMREAD    = 2, /* Use text trace format       */
   API_TRACE_UNFORMATED = 3  /* Use unformated trace format */

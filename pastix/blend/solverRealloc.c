@@ -28,16 +28,6 @@ void setLocalBtagPtr(SolverMatrix *solvptr)
       if (solvptr->proc2clust[solvptr->btagtab[i].infotab[BTAG_PROCDST]] == solvptr->clustnum)
         {
           task = solvptr->btagtab[i].infotab[BTAG_TASKDST];
-
-          /*
-            for (j=0;j<SOLV_TASKNBR;j++)
-            if (TASK_TASKNEXT(j)==task)
-            {
-            fprintf(stderr,"local Fuck!!\n");
-            fprintf(stderr,"%ld %ld %ld %ld %ld %ld\n",i,j,task,TASK_TASKNEXT(j),SOLV_BTAGNBR,SOLV_TASKNBR);
-            EXIT(MOD_SOPALIN,INTERNAL_ERR);
-            }
-          */
           ASSERT(solvptr->tasktab[task].btagptr == NULL, MOD_SOPALIN);
           if (solvptr->tasktab[task].btagptr == NULL)
             {

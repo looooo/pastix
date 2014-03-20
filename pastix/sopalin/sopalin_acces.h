@@ -1,8 +1,6 @@
-#define SYMB_CBLKTAB      datacode->cblktab
-#define SYMB_BLOKTAB      datacode->bloktab
 #define SYMB_CBLKNBR      datacode->cblknbr
 #define SYMB_BLOKNBR      datacode->bloknbr
-#define SYMB_NODENBR      datacode->nodenbr
+#define SYMB_NODENBR      datacode->nodenbr   /* Is it useful ?*/
 #define SYMB_BLOKNUM(x)   datacode->cblktab[x].bloknum
 #define SYMB_FCOLNUM(x)   datacode->cblktab[x].fcolnum
 #define SYMB_LCOLNUM(x)   datacode->cblktab[x].lcolnum
@@ -12,17 +10,10 @@
 
 #define CBLK_COLNBR(x)    (SYMB_LCOLNUM(x) - SYMB_FCOLNUM(x) + 1)
 
-#define SOLV_BPFTMAX      datacode->bpftmax /* max elements for greatest blok*/
-#define SOLV_BTAGNBR      datacode->btagnbr
-#define SOLV_BTAGTAB      datacode->btagtab
-#define SOLV_BTGRNBR      datacode->btgrnbr
-#define SOLV_BTGSNBR      datacode->btgsnbr
 #define SOLV_COEFMAX      datacode->coefmax /* max elements for greatest cblk*/
 #define SOLV_COEFNBR      datacode->coefnbr
-#define SOLV_CPFTMAX      datacode->cpftmax /* max elements for greatest ftgt*/
 #define SOLV_FTGTCNT      datacode->ftgtcnt
 #define SOLV_FTGTNBR      datacode->ftgtnbr
-#define SOLV_FTGTTAB      datacode->ftgttab
 #define SOLV_INDNBR       datacode->indnbr
 #define SOLV_INDTAB       datacode->indtab
 #define SOLV_PROCNBR      datacode->clustnbr
@@ -32,19 +23,10 @@
 
 #define SOLV_COEFIND(x)   datacode->bloktab[x].coefind
 
-#define SOLV_CBLKTAB      datacode->cblktab
 #define SOLV_COEFTAB(x)   datacode->cblktab[x].coeftab
-#define SOLV_COLOR(x)     datacode->cblktab[x].color
 #define SOLV_PROCDIAG(x)  datacode->cblktab[x].procdiag
 #define SOLV_STRIDE(x)    datacode->cblktab[x].stride
 #define SOLV_UCOEFTAB(x)  datacode->cblktab[x].ucoeftab
-
-#ifdef OOC_SOPALIN
-#define SOLV_OOC_FILETAB   datacode->oocstr->filetab
-#define SOLV_OOC_BLOKTAB   datacode->oocstr->bloktab
-#define SOLV_OOC_NEXT2DISK datacode->oocstr->next2disk
-#define SOLV_OOC_BLOK2DISK datacode->oocstr->blok2disk
-#endif /* OOC_SOPALIN */
 
 #define SOLV_TTSKTAB(x)    datacode->ttsktab[me][x]
 #define SOLV_TTSKNBR       datacode->ttsknbr[me]
@@ -81,19 +63,16 @@
 #define FANIN_PROCDST(x)  datacode->ftgttab[x].infotab[FTGT_PROCDST]
 #endif /* SMP_SOPALIN */
 
-#define TASK_TASKID(x)    datacode->tasktab[x].taskid
-#define TASK_PRIONUM(x)   datacode->tasktab[x].prionum
-#define TASK_CBLKNUM(x)   datacode->tasktab[x].cblknum
 #define TASK_BLOKNUM(x)   datacode->tasktab[x].bloknum
+#define TASK_CBLKNUM(x)   datacode->tasktab[x].cblknum
 #define TASK_CTRBCNT(x)   datacode->tasktab[x].ctrbcnt
 #define TASK_FTGTCNT(x)   datacode->tasktab[x].ftgtcnt
-#define TASK_BTAGPTR(x)   datacode->tasktab[x].btagptr
 #define TASK_INDNUM(x)    datacode->tasktab[x].indnum
-#define TASK_TASKNEXT(x)  datacode->tasktab[x].tasknext
 #define TASK_MASTER(x)    datacode->tasktab[x].taskmstr
-#define TASK_THREADID(x)  datacode->tasktab[x].threadid
-#define TASK_COLOR(x)     datacode->tasktab[x].threadid
+#define TASK_PRIONUM(x)   datacode->tasktab[x].prionum
 #define TASK_PROC(x)      SOLV_PROCDIAG(TASK_CBLKNUM(x))
+#define TASK_TASKID(x)    datacode->tasktab[x].taskid
+#define TASK_THREADID(x)  datacode->tasktab[x].threadid
 
 #define UPDOWN_SM2XTAB          datacode->updovct.sm2xtab
 #define UPDOWN_SM2XMAX          datacode->updovct.sm2xmax
@@ -108,14 +87,10 @@
 #define UPDOWN_SM2XNBR          datacode->updovct.sm2xnbr
 #define UPDOWN_BROWPROCNBR(x)   datacode->updovct.cblktab[x].browprocnbr
 #define UPDOWN_GCBLK2LIST(x)    datacode->updovct.gcblk2list[x]
-#define UPDOWN_GCBLK2LISTNBR    datacode->updovct.gcblk2listnbr
 #define UPDOWN_LISTPTR(x)       datacode->updovct.listptr[x]
-#define UPDOWN_LISTPTRNBR       datacode->updovct.listptrnbr
 #define UPDOWN_LISTCBLK(x)      datacode->updovct.listcblk[x]
 #define UPDOWN_LISTBLOK(x)      datacode->updovct.listblok[x]
-#define UPDOWN_LISTNBR          datacode->updovct.listnbr
 #define UPDOWN_LOC2GLOB(x)      datacode->updovct.loc2glob[x]
-#define UPDOWN_LOC2GLOBNBR      datacode->updovct.loc2globnbr
 #define UPDOWN_LBLK2GCBLK(x)    datacode->updovct.lblk2gcblk[x]
 #define UPDOWN_GCBLKNBR         datacode->updovct.gcblknbr
 #define UPDOWN_GNODENBR         datacode->updovct.gnodenbr

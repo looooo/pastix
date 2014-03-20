@@ -410,7 +410,7 @@ void  API_CALL(bicgstab_thread)(SolverMatrix *datacode, SopalinParam *sopaparam)
  *
  * Initialization routine.
  *
- * Set the sopalin_data->critere, allocate FANIN_COEFTAB and TASK_BTAGPTR.
+ * Set the sopalin_data->critere, allocate FANIN_COEFTAB.
  *
  * Parameters:
  *       sopalin_data - Structure used during factorisation and resolution.
@@ -433,7 +433,6 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
 
     /* A la louche ??? */
 #ifdef SOPALIN_LU
-    SOLV_CPFTMAX *= 2;
     PACKAREA     *= 2;
 #endif
 
@@ -442,12 +441,11 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
 #endif
 
     /*PACKMAX=(PACKMAX<32)?PACKMAX:32;*/
-    /*PACKAREA=PACKMAX*SOLV_CPFTMAX;*/
 
     print_debug(DBG_SOPALIN_MAIN,"--- PACKMAX=%ld PACKAREA=%ld\n", (long) PACKMAX, (long) PACKAREA);
-    print_debug(DBG_SOPALIN_MAIN,"--- ** sopalin coefnbr=%ld ftgtnbr=%ld bpftmax=%ld cpftmax=%ld coefmax=%ld cblknbr=%ld bloknbr=%ld procnum=%ld procnbr=%ld\n",
-                (long) SOLV_COEFNBR, (long) SOLV_FTGTNBR, (long) SOLV_BPFTMAX,
-                (long) SOLV_CPFTMAX, (long) SOLV_COEFMAX, (long) SYMB_CBLKNBR,
+    print_debug(DBG_SOPALIN_MAIN,"--- ** sopalin coefnbr=%ld ftgtnbr=%ld coefmax=%ld cblknbr=%ld bloknbr=%ld procnum=%ld procnbr=%ld\n",
+                (long) SOLV_COEFNBR, (long) SOLV_FTGTNBR,
+                (long) SOLV_COEFMAX, (long) SYMB_CBLKNBR,
                 (long) SYMB_BLOKNBR, (long) SOLV_PROCNUM, (long) SOLV_PROCNBR);
 
     /* Redéfinition des erreurs pour Compaq */
@@ -682,13 +680,6 @@ void* sopalin_smp(void *arg)
                            &(thread_data->recv_fanin_request[i]));
         TEST_MPI("MPI_Irecv");
     }
-    size=sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
-    for (i=0;i<MAX_R_REQUESTS;i++)
-    {
-        CALL_MPI MPI_Irecv(thread_data->recv_block_buffer[i],size,MPI_BYTE,MPI_ANY_SOURCE,
-                           SEPFB+me,pastix_comm,&(thread_data->recv_block_request[i]));
-        TEST_MPI("MPI_Irecv");
-    }
 #endif /* TEST_IRECV */
 
     /* Synchro de fin d'initialisation */
@@ -757,23 +748,23 @@ void* sopalin_smp(void *arg)
         else if (i < -1)
         {
             i = TASK_ESP2TASK( i );
-#ifdef ESP_WRITE
-            trace_begin_task1(thread_data->tracefile,
-                              SOPALIN_CLOCK_TRACE,
-                              SOLV_PROCNUM, me,
-                              STATE_COMP1DGEMM,
-                              SOLV_PROCDIAG( SYMB_CBLKNUM( bloknum ) ),
-                              SOLV_TASKTAB[i],
-                              stolen );
-#else
-            trace_begin_task1(thread_data->tracefile,
-                              SOPALIN_CLOCK_TRACE,
-                              SOLV_PROCNUM, me,
-                              STATE_COMP1DGEMM,
-                              TASK_PROC( i ),
-                              SOLV_TASKTAB[i],
-                              stolen );
-#endif
+/* #ifdef ESP_WRITE */
+/*             trace_begin_task1(thread_data->tracefile, */
+/*                               SOPALIN_CLOCK_TRACE, */
+/*                               SOLV_PROCNUM, me, */
+/*                               STATE_COMP1DGEMM, */
+/*                               SOLV_PROCDIAG( SYMB_CBLKNUM( bloknum ) ), */
+/*                               SOLV_TASKTAB[i], */
+/*                               stolen ); */
+/* #else */
+/*             trace_begin_task1(thread_data->tracefile, */
+/*                               SOPALIN_CLOCK_TRACE, */
+/*                               SOLV_PROCNUM, me, */
+/*                               STATE_COMP1DGEMM, */
+/*                               TASK_PROC( i ), */
+/*                               SOLV_TASKTAB[i], */
+/*                               stolen ); */
+/* #endif */
 
             API_CALL(compute_1dgemm)(sopalin_data, me, i, bloknum, -1);
             trace_end_task1();
@@ -803,14 +794,14 @@ void* sopalin_smp(void *arg)
                             "[%ld]%ld: Task %ld\n"
                             "[%ld]%ld: taskid prionum cblknum bloknum ctrcnt btagptr"
                             " indnum tasknext\n"
-                            "[%ld]%ld: %ld %ld %ld %ld %ld %7x %ld %ld (%ld %ld %ld %ld)\n",
+                            "[%ld]%ld: %ld %ld %ld %ld %ld %ld (%ld %ld %ld %ld)\n",
                             (long)SOLV_PROCNUM,(long)me,
                             (long)i,(long)SOLV_PROCNUM,(long)me,
                             (long)SOLV_PROCNUM,(long)me,
                             (long)TASK_TASKID(i),(long)TASK_PRIONUM(i),
                             (long)TASK_CBLKNUM(i),(long)TASK_BLOKNUM(i),
-                            (long)TASK_CTRBCNT(i),(unsigned int)(intptr_t)TASK_BTAGPTR(i),
-                            (long)TASK_INDNUM(i),(long)TASK_TASKNEXT(i),
+                            (long)TASK_CTRBCNT(i),
+                            (long)TASK_INDNUM(i),
                             (long)SYMB_FCOLNUM(TASK_CBLKNUM(i)),
                             (long)SYMB_LCOLNUM(TASK_CBLKNUM(i)),
                             (long)SYMB_FROWNUM(TASK_BLOKNUM(i)),
@@ -831,13 +822,13 @@ void* sopalin_smp(void *arg)
                     ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
 
 
-                    trace_begin_task1(thread_data->tracefile,
-                                      SOPALIN_CLOCK_TRACE,
-                                      SOLV_PROCNUM, me,
-                                      STATE_COMP1D,
-                                      TASK_PROC( i ),
-                                      SOLV_TASKTAB[i],
-                                      stolen );
+                    /* trace_begin_task1(thread_data->tracefile, */
+                    /*                   SOPALIN_CLOCK_TRACE, */
+                    /*                   SOLV_PROCNUM, me, */
+                    /*                   STATE_COMP1D, */
+                    /*                   TASK_PROC( i ), */
+                    /*                   SOLV_TASKTAB[i], */
+                    /*                   stolen ); */
 
                     /* Compute */
                     API_CALL(compute_1d)(sopalin_data, me, i);
@@ -891,11 +882,6 @@ void* sopalin_smp(void *arg)
         CALL_MPI MPI_Cancel(&thread_data->recv_fanin_request[i]);
         TEST_MPI("MPI_Cancel");
         CALL_MPI MPI_Test(&thread_data->recv_fanin_request[i], &flag, &status);
-        TEST_MPI("MPI_Test");
-
-        CALL_MPI MPI_Cancel(&thread_data->recv_block_request[i]);
-        TEST_MPI("MPI_Cancel");
-        CALL_MPI MPI_Test(&thread_data->recv_block_request[i], &flag, &status);
         TEST_MPI("MPI_Test");
     }
 #endif

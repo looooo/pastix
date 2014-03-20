@@ -519,12 +519,12 @@ void* up_down_smp ( void *arg )
           SYMB_LCOLNUM(i) == sopalin_data->sopar->gN*sopalin_data->sopar->iparm[IPARM_DOF_NBR]-1)
         continue;
 
-      trace_begin_task(thread_data->tracefile,
-                       SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                       STATE_DOWN, TASK_COLOR(i));
-      trace_begin_task(thread_data->tracefile,
-                       SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                       STATE_L2_DOWN, i);
+      /* trace_begin_task(thread_data->tracefile, */
+      /*                  SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1, */
+      /*                  STATE_DOWN, TASK_COLOR(i)); */
+      /* trace_begin_task(thread_data->tracefile, */
+      /*                  SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2, */
+      /*                  STATE_L2_DOWN, i); */
 
       print_debug(DBG_SOPALIN_DOWN, "Calcul de X%d\n",(int)i);
 
@@ -748,12 +748,12 @@ void* up_down_smp ( void *arg )
 #  endif /* FORCE_NOMPI */
       }/* Fin Boucle Ajout contributions */
 
-      trace_end_task(thread_data->tracefile,
-                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                     STATE_L2_ADD, i);
-      trace_end_task(thread_data->tracefile,
-                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                     STATE_DOWN, TASK_COLOR(i));
+      /* trace_end_task(thread_data->tracefile, */
+      /*                SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2, */
+      /*                STATE_L2_ADD, i); */
+      /* trace_end_task(thread_data->tracefile, */
+      /*                SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1, */
+      /*                STATE_DOWN, TASK_COLOR(i)); */
 
       /*******************************/
       /*            DIAG OOC         */
@@ -1154,12 +1154,12 @@ void* up_down_smp ( void *arg )
       i = queueGet(&cblreadyqueue);
 #  endif
 
-      trace_begin_task(thread_data->tracefile,
-                       SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                       STATE_UP, TASK_COLOR(i));
-      trace_begin_task(thread_data->tracefile,
-                       SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                       STATE_L2_UP, i);
+      /* trace_begin_task(thread_data->tracefile, */
+      /*                  SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1, */
+      /*                  STATE_UP, TASK_COLOR(i)); */
+      /* trace_begin_task(thread_data->tracefile, */
+      /*                  SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2, */
+      /*                  STATE_L2_UP, i); */
 
       print_debug(DBG_SOPALIN_UP,"Calcul de X%d\n", (int)i);
 
@@ -1329,12 +1329,12 @@ void* up_down_smp ( void *arg )
 
     ooc_save_coef(sopalin_data, i, i, me);
 
-    trace_end_task(thread_data->tracefile,
-                   SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                   STATE_L2_ADD, i);
-    trace_end_task(thread_data->tracefile,
-                   SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
-                   STATE_UP, TASK_COLOR(i));
+    /* trace_end_task(thread_data->tracefile, */
+    /*                SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2, */
+    /*                STATE_L2_ADD, i); */
+    /* trace_end_task(thread_data->tracefile, */
+    /*                SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1, */
+    /*                STATE_UP, TASK_COLOR(i)); */
   }/* Fin boucle principale */
 #  ifdef _UNUSED_
   }}}

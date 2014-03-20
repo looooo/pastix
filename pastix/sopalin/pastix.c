@@ -202,7 +202,7 @@ void pastix_initParam(pastix_int_t    *iparm,
     iparm[IPARM_MATRIX_VERIFICATION]   = API_YES;             /* Check the input matrix                               */
     iparm[IPARM_MC64]                  = 0;                   /* MC64 operation <pastix.h> IGNORE                     */
     iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
-    iparm[IPARM_TRACEFMT]              = API_TRACE_PICL;      /* Trace format (see Trace modes)                       */
+    iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
     iparm[IPARM_GRAPHDIST]             = API_YES;             /* Specify if the given graph is distributed or not     */
     iparm[IPARM_AMALGAMATION_LEVEL]    = 5;                   /* Amalgamation level                                   */
     iparm[IPARM_ORDERING]              = API_ORDER_SCOTCH;    /* Choose ordering                                      */

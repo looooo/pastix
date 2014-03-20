@@ -12,14 +12,12 @@
 /************************************************/
 
 typedef struct Backup_ {
-  pastix_int_t              cpftmax;         /* Double by LU version             */
   pastix_int_t              arftmax;         /* Double by LU version             */
   pastix_int_t              nbftmax;
   pastix_int_t *            task_ctrbcnt;    /* no inital value                  */
   pastix_int_t *            task_ftgtcnt;    /* no inital value                  */
   pastix_int_t *            fanin_ctrbnbr;   /* change updown information        */
   pastix_int_t *            fanin_prionum;   /* both used for tag and pack       */
-  pastix_int_t *            btagtaskcnt;     /* btag taskcnt                     */
   pastix_int_t *            bcofsendcnt;     /* bcof sendcnt                     */
   pastix_int_t *            symbol_cblknum;  /* sopalin add negative information */
   pastix_int_t              symbol_nodenbr;  /* ???                              */

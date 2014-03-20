@@ -162,10 +162,6 @@ typedef enum COMMSTEP {
  */
 #define SMP_RAFF
 
-
-/* TODO : a completer */
-/*#define TRACE_PICL*/
-
 /* Utilisation d'envoi (par thread) non bloquant */
 #define TEST_ISEND
 

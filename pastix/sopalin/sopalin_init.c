@@ -1329,7 +1329,6 @@ void sopalin_backup(SolverMatrix *datacode, Backup *b)
 
   print_debug(DBG_SOPALIN_ALLOC, "Backup Solver...\n");
 
-  b->cpftmax = SOLV_CPFTMAX;
   b->arftmax = PACKAREA;
   b->nbftmax = PACKMAX;
 
@@ -1384,7 +1383,6 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b)
 
   print_debug(DBG_SOPALIN_ALLOC, "Restore Solver...\n");
 
-  SOLV_CPFTMAX = b->cpftmax;
   PACKAREA     = b->arftmax;
   PACKMAX      = b->nbftmax;
 
