@@ -185,9 +185,6 @@ typedef enum COMMSTEP {
 /* Allocation des fanin TODO : a completer */
 #define ALLOC_FTGT
 
-/* TODO : a completer */
-/*#define HPM_SOPALIN*/
-
 /*
  * STORAGE : stocke le blco-colonne pour faire un blas global,
  * plutot qu'un blas par bloc.

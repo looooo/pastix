@@ -100,10 +100,6 @@
 /**************************************/
 
 
-#ifdef HPM_SOPALIN
-#include <libhpm.h>
-#endif
-
 /* Variables pour la version SMP */
 #define SYNCHRO_THREAD  SYNCHRO_X_THREAD(SOLV_THRDNBR, sopalin_data->barrier)
 #define MAXTHRDS        SOLV_THRDNBR
@@ -703,10 +699,6 @@ void* sopalin_smp(void *arg)
     }
 #endif /* TEST_IRECV */
 
-#ifdef HPM_SOPALIN
-    hpmInit(SOLV_PROCNUM,"sopalin");
-#endif
-
     /* Synchro de fin d'initialisation */
     SYNCHRO_THREAD;
     MONOTHREAD_BEGIN;
@@ -840,17 +832,9 @@ void* sopalin_smp(void *arg)
                 switch(TASK_TASKID(i))
                 {
                 case COMP_1D:
-#ifdef HPM_SOPALIN
-                    hpmStart(COMP_1D+1,"COMP_1D");
-                    hpmStart(6,"RECV");
-#endif /* HPM_SOPALIN */
-
                     /* Wait for contributions */
                     API_CALL(wait_contrib_comp_1d)(sopalin_data, me, i);
 
-#ifdef HPM_SOPALIN
-                    hpmStop(6);
-#endif /* HPM_SOPALIN */
                     ooc_wait_task(sopalin_data,i, me);
                     ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
 
@@ -870,21 +854,10 @@ void* sopalin_smp(void *arg)
 
                     ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i), me);
 
-#ifdef HPM_SOPALIN
-                    hpmStop(COMP_1D+1);
-#endif /* HPM_SOPALIN */
                     break;
 
                 case DIAG:
-#ifdef HPM_SOPALIN
-                    hpmStart(DIAG+1,"DIAG");
-                    hpmStart(6,"RECV");
-#endif /* HPM_SOPALIN */
                     API_CALL(wait_contrib_comp_1d)(sopalin_data, me,i);
-
-#ifdef HPM_SOPALIN
-                    hpmStop(6);
-#endif /* HPM_SOPALIN */
 
                     ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
 
@@ -902,23 +875,11 @@ void* sopalin_smp(void *arg)
 
                     ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i),me);
 
-#ifdef HPM_SOPALIN
-                    hpmStop(DIAG+1);
-#endif /* HPM_SOPALIN */
                     break;
                 case E1:
-#ifdef HPM_SOPALIN
-                    hpmStart(E1+1,"E1");
-                    hpmStart(6,"RECV");
-#endif
-
                     API_CALL(wait_contrib_comp_1d)(sopalin_data, me, i);
 
                     API_CALL(wait_contrib_comp_2d)(sopalin_data, me, i);
-
-#ifdef HPM_SOPALIN
-                    hpmStop(6);
-#endif
 
                     ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me);
 
@@ -936,22 +897,10 @@ void* sopalin_smp(void *arg)
 
                     ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i),me);
 
-#ifdef HPM_SOPALIN
-                    hpmStop(E1+1);
-#endif
                     break;
 
                 case E2:
-#ifdef HPM_SOPALIN
-                    hpmStart(E2+1,"E2");
-                    hpmStart(6,"RECV");
-#endif
-
                     API_CALL(wait_contrib_comp_2d)(sopalin_data, me, i);
-
-#ifdef HPM_SOPALIN
-                    hpmStop(6);
-#endif
 
                     ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i), me);
 
@@ -969,9 +918,6 @@ void* sopalin_smp(void *arg)
 
                     ooc_save_coef(sopalin_data, i, TASK_CBLKNUM(i), me);
 
-#ifdef HPM_SOPALIN
-                    hpmStop(E2+1);
-#endif
                     break;
 
                 default:
@@ -1025,11 +971,6 @@ void* sopalin_smp(void *arg)
         CALL_MPI MPI_Test(&thread_data->recv_block_request[i], &flag, &status);
         TEST_MPI("MPI_Test");
     }
-#endif
-
-    /* Fin HPM */
-#ifdef HPM_SOPALIN
-    hpmTerminate(SOLV_PROCNUM);
 #endif
 
 #if (defined TEST_ISEND) && !(defined FORCE_NOMPI)

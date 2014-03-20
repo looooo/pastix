@@ -120,7 +120,6 @@
 
 #define TASK_TASKID(x)    datacode->tasktab[x].taskid
 #define TASK_PRIONUM(x)   datacode->tasktab[x].prionum
-#define TASK_PRIONUM2(x)  datacode->tasktab[x].prionum2
 #define TASK_CBLKNUM(x)   datacode->tasktab[x].cblknum
 #define TASK_BLOKNUM(x)   datacode->tasktab[x].bloknum
 #define TASK_CTRBCNT(x)   datacode->tasktab[x].ctrbcnt
