@@ -38,14 +38,9 @@ typedef struct Task_ {
   pastix_int_t                       bloknum;              /*+ Attached block                                         +*/
   pastix_int_t volatile              ftgtcnt;              /*+ Number of fan-in targets                               +*/
   pastix_int_t volatile              ctrbcnt;              /*+ Total number of contributions                          +*/
-  volatile BlockTarget *    btagptr;              /*+ si non local, pointeur sur la structure (NB reception) +*/
   pastix_int_t                       indnum;               /*+ For E2 (COMP_1D), index of ftgt (>0) else if local = -taskdest
-                                                      For DIAG and E1 , index of btag (>0) if there is a
-						      local one it must be the first of the chain of local E1   +*/
-  pastix_int_t                       tasknext;             /*+ chainage des E1 ou E2, si fin = -1 => liberer les btagptr +*/
-  pastix_int_t                       taskmstr;             /*+ Master task for E1 or E2 tasks                         +*/
-                                                  /*+ Index of DIAG (or first E1) task for E1                +*/
-                                                  /*+ Index of E1 (or first E2) task for E2                  +*/
+                                                            For DIAG and E1 , index of btag (>0) if there is a
+                                                            local one it must be the first of the chain of local E1   +*/
 #if (defined PASTIX_DYNSCHED) || (defined TRACE_SOPALIN)
   pastix_int_t                       threadid;             /*+ Index of the bubble which contains the task +*/
 #endif

@@ -139,8 +139,7 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
           {
             task = datacode->ttsktab[bubnum][i];
             itercblk = TASK_CBLKNUM(task);
-            if ( ((TASK_MASTER(task) != -1) && (task != TASK_MASTER(task)))
-                 || (me != datacode->cblktab[itercblk].procdiag)
+            if ( (me != datacode->cblktab[itercblk].procdiag)
                  || (SOLV_UCOEFTAB(itercblk) != NULL) )
               {
                 continue;
@@ -224,8 +223,7 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
           task = datacode->ttsktab[bubnum][k];
           itercblk = TASK_CBLKNUM(task);
 
-          if ( ((TASK_MASTER(task) != -1) && (task != TASK_MASTER(task)))
-               || (me != datacode->cblktab[itercblk].procdiag))
+          if ( me != datacode->cblktab[itercblk].procdiag )
             continue;
 
           coefnbr  = SOLV_STRIDE(itercblk) * (SYMB_LCOLNUM(itercblk) - SYMB_FCOLNUM(itercblk) + 1);
@@ -307,8 +305,7 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
         {
           task = datacode->ttsktab[bubnum][i];
           itercblk = TASK_CBLKNUM(task);
-          if ( ((TASK_MASTER(task) != -1) && (task != TASK_MASTER(task)))
-               || (me != datacode->cblktab[itercblk].procdiag))
+          if ( me != datacode->cblktab[itercblk].procdiag )
             continue;
           coefnbr  = SOLV_STRIDE(itercblk) * (SYMB_LCOLNUM(itercblk) - SYMB_FCOLNUM(itercblk) + 1);
 

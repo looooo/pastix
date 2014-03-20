@@ -287,21 +287,11 @@ void solverBlend(BlendCtrl    *ctrl,
     simuExit(simuctrl, ctrl->clustnbr, ctrl->total_nbcores, ctrl->local_nbctxts);
     eGraphExit(ctrl->egraph);
 
-    if(ctrl->debug)
-    {
-        setBcofPtr(solvmtx, bcofind);
-
-        if( ctrl->leader == clustnum &&
-            ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            fprintf(stdout, OUT_BLEND_CHKSOLVER);
-        //solverCheck(solvmtx);
-    }
-
     /***************************************
      * Realloc Memory in a contiguous way  *
      ***************************************/
     printf("Contiguous reallocation of the solverMatrix ...\n");
-    solverRealloc(solvmtx, bcofind);
+    solverRealloc(solvmtx);
     printf("Done \n");
 
 #ifdef DEBUG_BLEND

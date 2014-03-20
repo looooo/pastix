@@ -12,64 +12,8 @@
 /* #include "assert.h" */
 #include "solverRealloc.h"
 
-void setBcofPtr(SolverMatrix *solvptr, const pastix_int_t * bcofind)
-{
-  pastix_int_t i;
-  for(i=0;i<solvptr->btagnbr;i++)
-    solvptr->btagtab[i].bcofptr = &(solvptr->bcoftab[bcofind[i]]);
-}
-
-void setLocalBtagPtr(SolverMatrix *solvptr)
-{
-  pastix_int_t i, task, taskcnt;
-
-  for (i=0; i<solvptr->btagnbr; i++)
-    {
-      if (solvptr->proc2clust[solvptr->btagtab[i].infotab[BTAG_PROCDST]] == solvptr->clustnum)
-        {
-          task = solvptr->btagtab[i].infotab[BTAG_TASKDST];
-          ASSERT(solvptr->tasktab[task].btagptr == NULL, MOD_SOPALIN);
-          if (solvptr->tasktab[task].btagptr == NULL)
-            {
-              taskcnt = 1;
-              solvptr->tasktab[task].btagptr = &(solvptr->btagtab[i]);
-
-              while (solvptr->tasktab[task].tasknext != solvptr->btagtab[i].infotab[BTAG_TASKDST])
-                {
-                  task = solvptr->tasktab[task].tasknext;
-                  solvptr->tasktab[task].btagptr = &(solvptr->btagtab[i]);
-                  taskcnt++;
-                }
-              /* BTAG_TASKCNT(i)=taskcnt; ??? */
-              ASSERTDBG(taskcnt == solvptr->btagtab[i].infotab[BTAG_TASKCNT], MOD_SOPALIN);
-            }
-        }
-    }
-
-  /* Compute the number of block to recv */
-  {
-    Queue q;
-    queueInit(&q, solvptr->btgsnbr * 2); /* Size arbitrary choosen */
-    for(i=0; i<solvptr->tasknbr; i++)
-      {
-        if (((solvptr->tasktab[i].taskid == E1) ||
-             (solvptr->tasktab[i].taskid == E2)) &&
-            (solvptr->tasktab[i].btagptr == NULL))
-          {
-            /* We take the task_master to avoid to count multiple block for one communication */
-            if (queuePossess(&q, solvptr->tasktab[i].taskmstr) == API_NO)
-              {
-                queueAdd(&q, solvptr->tasktab[i].taskmstr, (double)solvptr->tasktab[i].taskmstr);
-              }
-          }
-      }
-    solvptr->btgrnbr = queueSize(&q);
-    queueExit(&q);
-  }
-}
-
 /*+ Realloc the solver matrix in a contiguous way +*/
-void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
+void solverRealloc(SolverMatrix *solvmtx)
 {
     SolverMatrix *tmp;
     pastix_int_t i;
@@ -164,13 +108,6 @@ void solverRealloc(SolverMatrix *solvmtx, pastix_int_t *bcofind)
     /** Free the former solver matrix **/
     solverExit(tmp);
     memFree_null(tmp);
-
-    /** Set the bcofptr **/
-    setBcofPtr(solvmtx, bcofind);
-
-    /** Set the local btagptr **/
-    setLocalBtagPtr(solvmtx);
-
 }
 
 

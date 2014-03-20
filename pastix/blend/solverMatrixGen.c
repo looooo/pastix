@@ -139,15 +139,11 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            facebloknum      = 0;
     pastix_int_t            delta            = 0;
     pastix_int_t            indnbr           = 0;
-    pastix_int_t            btagnbr          = 0;
-    pastix_int_t            bcofnbr          = 0;
     pastix_int_t          * cblklocalnum     = NULL;
     pastix_int_t          * bloklocalnum     = NULL;
     pastix_int_t          * tasklocalnum     = NULL;
-    pastix_int_t          * btaglocalnum     = NULL;
     pastix_int_t          * ftgtlocalnum     = NULL;
     pastix_int_t          * bcofind          = NULL;
-    pastix_int_t          * proc2clust       = NULL;
     pastix_int_t          * clust_mask       = NULL;
     pastix_int_t          * clust_first_cblk = NULL;
     pastix_int_t          * clust_highest    = NULL;
@@ -179,9 +175,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     /* Copy the vector used to get a cluster number from a processor number */
     MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
     memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
-
-    /* Initialize pointer */
-    proc2clust = ctrl->core2clust;
 
     /** Be sure initialized **/
     solvmtx->cpftmax = 0;
@@ -310,11 +303,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     {
         MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
 
-        /** Initialize the tasknext field **/
-        /** We need that to know if a task has already been chained **/
-        for(i=0;i<solvmtx->tasknbr+1;i++)
-            solvmtx->tasktab[i].tasknext = -1;
-
         tasknum = 0;
         ftgtnum = 0;
         indnbr  = 0;
@@ -336,7 +324,6 @@ solverMatrixGen(const pastix_int_t clustnum,
 
                 solvmtx->tasktab[tasknum].ctrbcnt = simuctrl->tasktab[i].ctrbcnt;
                 solvmtx->tasktab[tasknum].ftgtcnt = simuctrl->tasktab[i].ftgtcnt;
-                solvmtx->tasktab[tasknum].btagptr = NULL;
                 solvmtx->tasktab[tasknum].indnum  = indnbr;
 
                 /*fprintf(stdout, "task %ld, taskid %ld cblk %ld  prionum %ld ctrbnbr %ld \n",(long)tasknum, (long)solvmtx->tasktab[tasknum].taskid, (long)solvmtx->tasktab[tasknum].cblknum, (long)solvmtx->tasktab[tasknum].prionum, (long)solvmtx->tasktab[tasknum].ctrbcnt);*/
@@ -360,7 +347,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                 {
                     ASSERTDBG(solvmtx->tasktab[tasknum].tasknext == -1 && simuctrl->tasktab[i].tasknext == -1,MOD_BLEND);
                 }
-                solvmtx->tasktab[tasknum].taskmstr = -1;
                 tasknum++;
             }
         }
@@ -504,27 +490,15 @@ solverMatrixGen(const pastix_int_t clustnum,
     /*********************/
     /*    Fill indtab    */
     /*********************/
-    solvmtx->btagnbr  = btagnbr;
     solvmtx->indnbr   = indnbr;
-    solvmtx->bcofnbr  = bcofnbr;
     solvmtx->indtab   = NULL;
-    solvmtx->btagtab  = NULL;
     bcofind           = NULL;
-    solvmtx->bcoftab  = NULL;
     if (indnbr)
         MALLOC_INTERN(solvmtx->indtab, indnbr, pastix_int_t);
-    if (btagnbr)
-    {
-        MALLOC_INTERN(solvmtx->btagtab, btagnbr, BlockTarget);
-        MALLOC_INTERN(bcofind,          btagnbr, pastix_int_t);
-        memset(bcofind, -1, btagnbr*sizeof(pastix_int_t));
-    }
-    if (bcofnbr)
-        MALLOC_INTERN(solvmtx->bcoftab, bcofnbr, BlockCoeff);
+
     tasknum     = 0;
     indnbr      = 0;
-    btagnbr     = 0;
-    bcofnbr     = 0;
+
     for(i=0;i<simuctrl->tasknbr;i++)
     {
         if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
@@ -591,27 +565,6 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
     }
     ASSERTDBG(indnbr  == solvmtx->indnbr,  MOD_BLEND);
-    ASSERTDBG(bcofnbr == solvmtx->bcofnbr, MOD_BLEND);
-    ASSERTDBG(btagnbr == solvmtx->btagnbr, MOD_BLEND);
-
-    /*
-     *  Initialize data for 2D distribution
-     */
-    solvmtx->btgsnbr = 0;
-    solvmtx->btgrnbr = 0;
-    if (ctrl->level2D != 0)
-    {
-        /* link local btag (blend ???) (attention pb en SMP ???) */
-        /* and compute the number of block to send */
-        for (i=0; i<solvmtx->btagnbr; i++)
-        {
-            if (proc2clust[solvmtx->btagtab[i].infotab[BTAG_PROCDST]] != clustnum)
-                solvmtx->btgsnbr++;
-        }
-
-        /*       for (i=0;i<SOLV_FTGTNBR;i++) */
-        /*        ASSERTDBG((FANIN_FCOLNUM(i)!=0) || (FANIN_LCOLNUM(i)!=0),MOD_SOPALIN); */
-    }
 
     /********************/
     /** Fill Solver    **/
@@ -1076,16 +1029,8 @@ solverMatrixGen(const pastix_int_t clustnum,
     memFree_null(bloklocalnum);
     memFree_null(tasklocalnum);
 
-    if(btaglocalnum != NULL)
-        memFree_null(btaglocalnum);
-
     if(ftgtlocalnum != NULL)
         memFree_null(ftgtlocalnum);
-
-#ifdef DEBUG_BLEND
-    for(i=0;i<solvmtx->btagnbr;i++)
-        ASSERT(bcofind[i]>=0,MOD_BLEND);
-#endif
 
     return bcofind;
 }

@@ -256,25 +256,26 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
 
 
    for (taskptr = solvptr->tasktab,                /** Read Task data **/
-        tasknd = taskptr + solvptr->tasknbr +1;
+            tasknd = taskptr + solvptr->tasknbr +1;
         (taskptr < tasknd); taskptr ++)
-     {
+   {
+       pastix_int_t temp;
+
        intLoad(stream, &(taskptr->taskid));
        intLoad(stream, &(taskptr->prionum));
        intLoad(stream, &(taskptr->cblknum));
        intLoad(stream, &(taskptr->bloknum));
        {
-         /* volatile pb alpha */
-         pastix_int_t temp;
-         intLoad(stream, &temp);
-         taskptr->ftgtcnt = temp;
-         intLoad(stream, &temp);
-         taskptr->ctrbcnt = temp;
+           /* volatile pb alpha */
+           intLoad(stream, &temp);
+           taskptr->ftgtcnt = temp;
+           intLoad(stream, &temp);
+           taskptr->ctrbcnt = temp;
        }
        intLoad(stream, &(taskptr->indnum));
-       intLoad(stream, &(taskptr->tasknext));
-       taskptr->btagptr = NULL;
-     }
+       /* TODO: do we keep it for backward compatibility or not ? */
+       intLoad(stream, &(temp));
+   }
 
    for(i=0;i<solvptr->thrdnbr;i++)                 /** Read task by thread data **/
      {
@@ -531,15 +532,16 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
 
    /*fprintf(stream, "task data\n");*/
    for (taskptr = solvptr->tasktab,                /* Write Task data */
-        tasknd = taskptr + solvptr->tasknbr+1;
+            tasknd = taskptr + solvptr->tasknbr+1;
         (taskptr < tasknd) && (o==0); taskptr ++)
-     {
+   {
+       /* TODO: do we keep the -1 for backward compatibility */
        fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
                (long)taskptr->taskid, (long)taskptr->prionum, (long)taskptr->cblknum, (long)taskptr->bloknum,
-               (long)taskptr->ftgtcnt, (long)taskptr->ctrbcnt, (long)taskptr->indnum, (long)taskptr->tasknext);
+               (long)taskptr->ftgtcnt, (long)taskptr->ctrbcnt, (long)taskptr->indnum, (long)-1);
        fprintf(stream, "\n");
        fprintf(stream, "\n");
-     }
+   }
 
    /*fprintf(stream, "ttsktab\n");*/
    for (i=0; i<solvptr->thrdnbr; i++) /* Write ttsktab */

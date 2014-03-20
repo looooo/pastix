@@ -17,9 +17,8 @@
 #define static
 #endif
 
-void                     solverRealloc        (SolverMatrix *, pastix_int_t*);
+void                     solverRealloc        (SolverMatrix *);
 void                     solverExit           (SolverMatrix *);
 void                     solverInit           (SolverMatrix *);
-void                     setBcofPtr           (SolverMatrix *, const pastix_int_t *);
-void                     setLocalBtagPtr      (SolverMatrix *);
+
 #undef static

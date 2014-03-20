@@ -68,7 +68,6 @@
 #define TASK_CTRBCNT(x)   datacode->tasktab[x].ctrbcnt
 #define TASK_FTGTCNT(x)   datacode->tasktab[x].ftgtcnt
 #define TASK_INDNUM(x)    datacode->tasktab[x].indnum
-#define TASK_MASTER(x)    datacode->tasktab[x].taskmstr
 #define TASK_PRIONUM(x)   datacode->tasktab[x].prionum
 #define TASK_PROC(x)      SOLV_PROCDIAG(TASK_CBLKNUM(x))
 #define TASK_TASKID(x)    datacode->tasktab[x].taskid
@@ -100,7 +99,6 @@
 /* next info is now stored in task struct */ 
 #define SOLV_FTGTIND(x)   (-SYMB_CBLKNUM(x))
 /* next should be good for 1D ??? */
-
 
 #define PACKMAX  datacode->nbftmax
 #define PACKAREA datacode->arftmax

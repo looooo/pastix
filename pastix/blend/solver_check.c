@@ -29,7 +29,7 @@ void solverCheck(SolverMatrix *solvmtx)
 {
     pastix_int_t i, j, k = 0;
     pastix_int_t cblknum, bloknum, ftgtnum;
-    pastix_int_t indnum, tasknum, btagnum;
+    pastix_int_t indnum, tasknum;
 /*     pastix_int_t stride; */
     Task *task = NULL;
     pastix_int_t  *sendcnt = NULL;
@@ -46,7 +46,6 @@ void solverCheck(SolverMatrix *solvmtx)
         indnum  = solvmtx->tasktab[i].indnum;
         ASSERT(cblknum < solvmtx->cblknbr,MOD_BLEND);
         ASSERT(bloknum < solvmtx->bloknbr,MOD_BLEND);
-        /*ASSERT(solvmtx->tasktab[i].btagptr == NULL,MOD_BLEND);*/
         if(indnum >= solvmtx->indnbr)
           printf("tasknbr %ld Tasknum %ld type %ld indnum %ld indnbr %ld \n", (long)solvmtx->tasknbr, (long)i, (long)solvmtx->tasktab[i].taskid, (long)indnum, (long)solvmtx->indnbr);
         /** OIMBE ce test foire (ligne precedente) si il y a du 1D jusqu'au bout !! mais a priori on s'en fout **/
@@ -59,7 +58,6 @@ void solverCheck(SolverMatrix *solvmtx)
         switch(solvmtx->tasktab[i].taskid)
           {
             case COMP_1D:
-              ASSERT(solvmtx->tasktab[i].tasknext == -1,MOD_BLEND);
               ASSERT(bloknum  == solvmtx->cblktab[cblknum].bloknum,MOD_BLEND);
               for(j = bloknum+1;j<solvmtx->cblktab[cblknum+1].bloknum;j++)
                 {
@@ -99,20 +97,6 @@ void solverCheck(SolverMatrix *solvmtx)
                                   ASSERT(solvmtx->bloktab[j].lrownum <= solvmtx->cblktab[facecblknum].lcolnum,MOD_BLEND);
                                 }
                                 break;
-                              case DIAG:
-                              case E1:
-                                {
-                                  pastix_int_t facecblknum = solvmtx->bloktab[j].cblknum;
-                                  (void)facecblknum;
-                                  ASSERT(facecblknum == solvmtx->tasktab[tasknum].cblknum,MOD_BLEND);
-                                  ASSERT(solvmtx->bloktab[k].frownum >= solvmtx->bloktab[solvmtx->tasktab[tasknum].bloknum].frownum,MOD_BLEND);
-                                  ASSERT(solvmtx->bloktab[k].lrownum <= solvmtx->bloktab[solvmtx->tasktab[tasknum].bloknum].lrownum,MOD_BLEND);
-                                  ASSERT(solvmtx->bloktab[j].frownum >= solvmtx->cblktab[solvmtx->tasktab[tasknum].cblknum].fcolnum,MOD_BLEND);
-                                  ASSERT(solvmtx->bloktab[j].lrownum <= solvmtx->cblktab[solvmtx->tasktab[tasknum].cblknum].lcolnum,MOD_BLEND);
-                                  break;
-                                }
-                              case DRUNK:
-                                break;
                               default:
                                   errorPrint("tasknum %ld tasknbr %ld taskid %ld",
                                              (long)tasknum, (long)solvmtx->tasknbr,
@@ -148,84 +132,6 @@ void solverCheck(SolverMatrix *solvmtx)
                     }
                 }
               break;
-          case DIAG:
-              ASSERT(solvmtx->tasktab[i].tasknext == -1,MOD_BLEND);
-              ASSERT(bloknum  == solvmtx->cblktab[cblknum].bloknum,MOD_BLEND);
-              btagnum = solvmtx->indtab[indnum];
-              if(btagnum == -1)
-                break;
-              bcofptr = solvmtx->btagtab[btagnum].bcofptr;
-              ASSERT(solvmtx->bloktab[bloknum].frownum == bcofptr->infotab[BCOF_FROWNUM],MOD_BLEND);
-              ASSERT(solvmtx->bloktab[bloknum].lrownum == bcofptr->infotab[BCOF_LROWNUM],MOD_BLEND);
-              ASSERT(solvmtx->cblktab[cblknum].fcolnum == bcofptr->infotab[BCOF_FCOLNUM],MOD_BLEND);
-              ASSERT(solvmtx->cblktab[cblknum].lcolnum == bcofptr->infotab[BCOF_LCOLNUM],MOD_BLEND);
-              break;
-          case E1:
-              btagnum = solvmtx->indtab[indnum];
-              if(btagnum >=0)
-                {
-                  bcofptr = solvmtx->btagtab[btagnum].bcofptr;
-                  ASSERT(solvmtx->bloktab[bloknum].frownum == bcofptr->infotab[BCOF_FROWNUM],MOD_BLEND);
-                  ASSERT(solvmtx->bloktab[bloknum].lrownum == bcofptr->infotab[BCOF_LROWNUM],MOD_BLEND);
-                  ASSERT(solvmtx->cblktab[cblknum].fcolnum == bcofptr->infotab[BCOF_FCOLNUM],MOD_BLEND);
-                  ASSERT(solvmtx->cblktab[cblknum].lcolnum == bcofptr->infotab[BCOF_LCOLNUM],MOD_BLEND);
-
-                  /** Verify the chain **/
-                  task = &(solvmtx->tasktab[i]);
-                  bloknum = 0;
-                  while(task->tasknext != i)
-                    {
-                      task = &(solvmtx->tasktab[task->tasknext]);
-                      bloknum++;
-                      ASSERT(task->taskid == E1,MOD_BLEND);
-                    }
-
-                }
-              else
-                {
-                  fprintf(stderr, " Fucking matrix \n");
-                  EXIT(MOD_BLEND,BADPARAMETER_ERR);
-                }
-            break;
-          case E2:
-            if(solvmtx->indtab[indnum] < 0)
-              {
-                tasknum = -solvmtx->indtab[indnum];
-              }
-            else
-              {
-                ftgtnum = solvmtx->indtab[indnum];
-
-                ASSERT(solvmtx->bloktab[bloknum].frownum >= solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM],MOD_BLEND);
-                ASSERT(solvmtx->bloktab[bloknum].lrownum <= solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM],MOD_BLEND);
-                solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT]--;
-#ifdef DEBUG_PRIO
-                if(solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT] == 0)
-                  if(solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM] != solvmtx->tasktab[i].prionum)
-                    fprintf(stdout, "Task2D %ld FTGT %ld  taskprio %ld ftgtprio %ld \n", (long)i,
-                            (long)ftgtnum, (long)solvmtx->tasktab[i].prionum, (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM]);
-#endif
-                /*if(solvmtx->ftgttab[ftgtnum].infotab[FTGT_TASKDST] == -DRUNK)
-                  fprintf(stderr, "Task drunk ctrbcnt %ld \n", (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT]);*/
-                /*fprintf(stdout ,"E2 [ %ld %ld ] [%ld %ld ] \n", (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_FCOLNUM],
-                                  (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_LCOLNUM],
-                                  (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM],
-                                  (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM]);*/
-              }
-            /** Verify the chain **/
-              task = &(solvmtx->tasktab[i]);
-              while(task->tasknext != i)
-                {
-                  task = &(solvmtx->tasktab[task->tasknext]);
-                  ASSERT(task->taskid == E2,MOD_BLEND);
-                }
-
-
-            break;
-          case DRUNK:
-              /*fprintf(stdout, "Task DRUNK CHECK \n");*/
-              ASSERT(i == solvmtx->tasknbr-1,MOD_BLEND);
-              break;
           default:
             fprintf(stderr, "solver_check: The task %ld has no type \n", (long)i);
             EXIT(MOD_BLEND,INTERNAL_ERR);
@@ -235,43 +141,7 @@ void solverCheck(SolverMatrix *solvmtx)
       {
         ASSERT(solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR]>0,MOD_BLEND);
         ASSERT(solvmtx->ftgttab[i].infotab[FTGT_CTRBCNT]==0,MOD_BLEND);
-        /*if(solvmtx->ftgttab[i].infotab[FTGT_TASKDST] == -DRUNK)
-          fprintf(stderr, "Ftgt %ld drunk \n", (long)i);*/
       }
-
-    /**** Check the btagptr *****/
-    for(i=0;i<solvmtx->btagnbr;i++)
-      {
-        if(solvmtx->proc2clust[solvmtx->btagtab[i].infotab[BTAG_PROCDST]] == solvmtx->clustnum)
-          {
-            ASSERT(solvmtx->btagtab[i].infotab[BTAG_TASKDST] < solvmtx->tasknbr,MOD_BLEND);
-            ASSERT(solvmtx->tasktab[solvmtx->btagtab[i].infotab[BTAG_TASKDST] ].btagptr
-                   == &(solvmtx->btagtab[i]),MOD_BLEND);
-          }
-      }
-
-
-    /**To check the send counter of ftgt and btag **/
-    if (solvmtx->bcofnbr != 0)
-      {
-        MALLOC_INTERN(sendcnt, solvmtx->bcofnbr, pastix_int_t);
-      }
-    for(i=0;i<solvmtx->bcofnbr;i++)
-      sendcnt[i] = solvmtx->bcoftab[i].sendcnt;
-
-    for(i=0;i<solvmtx->btagnbr;i++)
-      solvmtx->btagtab[i].bcofptr->sendcnt--;
-
-
-    /** Reset the bcof->sendcnt **/
-    for(i=0;i<solvmtx->bcofnbr;i++)
-     {
-       ASSERT(solvmtx->bcoftab[i].sendcnt == 0,MOD_BLEND);
-       /*if(solvmtx->bcoftab[i].sendcnt != 0)
-         fprintf(stdout, "bcof %ld sendcntinit %ld sendcnt %ld \n", (long)i, (long)sendcnt[i], (long)solvmtx->bcoftab[i].sendcnt);*/
-       solvmtx->bcoftab[i].sendcnt = sendcnt[i];
-     }
-    memFree(sendcnt);
 
     /** Reset the ftgt ctrbcnt **/
     for(i=0;i<solvmtx->ftgtnbr;i++)
