@@ -44,7 +44,10 @@ option(PASTIX_WITH_MPI
   "Build PaStiX for distributed memory with MPI" OFF)
 
 cmake_dependent_option(PASTIX_DISTRIBUTED
- "Activate the distributed interface (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
+ "Enable the distributed interface (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
+
+cmake_dependent_option(PASTIX_THREAD_COMM
+ "Enable the specific communication thread (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
 
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA

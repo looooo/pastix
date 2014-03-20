@@ -51,10 +51,11 @@
 #cmakedefine FORGET_PARTITION
 #cmakedefine COMPACT_SMX
 
+#cmakedefine PASTIX_DISTRIBUTED
+#cmakedefine PASTIX_THREAD_COMM
+
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
-#cmakedefine PASTIX_DISTRIBUTED
-
 
 #if defined(PASTIX_INT64)
 #define FORCE_INT64
