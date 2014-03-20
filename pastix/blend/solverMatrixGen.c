@@ -243,16 +243,16 @@ solverMatrixGen(const pastix_int_t clustnum,
     /*
      * Fill in bloktab and cblktab
      */
+
+    /* Allocate the cblktab and bloktab with the computed size */
+    MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
+    MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
     {
         SolverCblk *solvcblk = solvmtx->cblktab;
         SolverBlok *solvblok = solvmtx->bloktab;
         SymbolCblk *symbcblk = symbmtx->cblktab;
         SymbolBlok *symbblok = symbmtx->bloktab;
         SimuBlok   *simublok = simuctrl->bloktab;
-
-        /* Allocate the cblktab and bloktab with the computed size */
-        MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
-        MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
 
         cblknum = 0;
         bloknum = 0;
