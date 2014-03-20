@@ -51,9 +51,9 @@ typedef struct SimuBlok_ {
     pastix_int_t ftgtnum;    /*> Index of the first fanin destinated to this
                               *  block in the ftgttab. This index is also used to find the first cblk timer
                               *  (one per cand proc) in the timetab array                                   */
-    pastix_int_t fccandnum;  /*> First candidate that attributed to the cblk of the block                   */
     pastix_int_t ctrbcnt;    /*> Counter of remaining contributions                                         */
-    pastix_int_t ownerclust; /*> Processor on which the block is distributed                                */
+    int          fccandnum;  /*> First candidate that is attributed to the cblk of the block                */
+    int          ownerclust; /*> Processor on which the block is distributed                                */
 } SimuBlok;
 
 typedef struct SimuTask_ {
