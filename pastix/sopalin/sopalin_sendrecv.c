@@ -342,11 +342,8 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
 
             /* Unlock taskdst if counter is null */
 #  ifdef PASTIX_DYNSCHED
-            if ( ( (!TASK_CTRBCNT(taskdst)) &&
-                   (sopalin_data->taskmark[taskdst] == -1)) &&
-                 (!( (TASK_TASKID(taskdst) == E1) &&
-                     ( (TASK_BTAGPTR(taskdst) == NULL) ||
-                       (RTASK_COEFTAB(taskdst) == NULL)))))
+            if ( (!TASK_CTRBCNT(taskdst)) &&
+                   (sopalin_data->taskmark[taskdst] == -1))
               {
                 pastix_int_t i;
 
@@ -547,11 +544,8 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status     status;
     pastix_int_t            size;
-    size = MAX(PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
-               PACKAREA*sizeof(pastix_float_t),
-               sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+
-               sizeof(pastix_float_t)*SOLV_BPFTMAX);
-
+    size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
+        PACKAREA*sizeof(pastix_float_t);
 
     /* Test one fanin */
     CALL_MPI MPI_Recv(thread_data->recv_buffer, size, MPI_BYTE,
@@ -571,10 +565,8 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
     MPI_Status     status;
     int            elected     = 0;
     pastix_int_t            size;
-    size = MAX(PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
-               PACKAREA*sizeof(pastix_float_t),
-               sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+
-               sizeof(pastix_float_t)*SOLV_BPFTMAX);
+    size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
+        PACKAREA*sizeof(pastix_float_t));
 
 
     CALL_MPI MPI_Recv(thread_data->recv_buffer, size, MPI_BYTE,
@@ -1567,14 +1559,14 @@ void* sendrecv_smp ( void *arg )
       int               tag_fanin;
       int               nbrequest   = 1;
       int               nbrequesttot= 1;
-      pastix_int_t               size[2];
+      pastix_int_t      size;
       int               i;
       int               init;
       int               flag, wait;
       int               nbsend, nbsend_fanin;
       int               nbrecv;
-      pastix_int_t               save_ftgtcnt = -1;
-      pastix_int_t               ftgt, key;
+      pastix_int_t      save_ftgtcnt = -1;
+      pastix_int_t      ftgt, key;
       double            dest;
       int               nb_proc_end = 1;
 
@@ -1600,13 +1592,12 @@ void* sendrecv_smp ( void *arg )
       /***********************************/
 
       /* Taille des buffers de réception */
-      size[0] = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
-      size[1] = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
+      size = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
 
 #ifdef THREAD_COMM_MULTIPLE
       nbrequest = MAX(SOLV_PROCNBR-1, 1);
 #endif
-      nbrequesttot = 2*nbrequest;
+      nbrequesttot = nbrequest;
 
       /* Allocation des buffers de reception et des requetes */
       MALLOC_INTERN(receive_buffer, nbrequesttot, void*);
@@ -1614,8 +1605,7 @@ void* sendrecv_smp ( void *arg )
 
       for(i=0; i< nbrequest; i++)
         {
-          MALLOC_INTERN(receive_buffer[2*i],   size[0], char);
-          MALLOC_INTERN(receive_buffer[2*i+1], size[1], char);
+          MALLOC_INTERN(receive_buffer[i], size, char);
         }
 
       /* Initialisation des requêtes */
@@ -1638,18 +1628,18 @@ void* sendrecv_smp ( void *arg )
 #ifdef THREAD_COMM_MULTIPLE
       /* Proc de rang inferieur au proc local */
       for(i=0; i < SOLV_PROCNUM; i++){
-        CALL_MPI MPI_Recv_init(receive_buffer[2*i],size[0],MPI_BYTE,
-                               i,tag_fanin,pastix_comm,&request[2*i]);
+        CALL_MPI MPI_Recv_init(receive_buffer[i], size, MPI_BYTE,
+                               i,tag_fanin,pastix_comm,&request[i]);
         TEST_MPI("MPI_Recv_init");
       }
       /* Proc de rang supérieur au proc local */
       for(i=SOLV_PROCNUM+1; i<SOLV_PROCNBR; i++){
-        CALL_MPI MPI_Recv_init(receive_buffer[2*(i-1)],size[0],MPI_BYTE,
-                               i,tag_fanin,pastix_comm,&request[2*(i-1)]);
+        CALL_MPI MPI_Recv_init(receive_buffer[i-1],size, MPI_BYTE,
+                               i,tag_fanin,pastix_comm,&request[i-1]);
         TEST_MPI("MPI_Recv_init");
       }
 #else
-      CALL_MPI MPI_Recv_init(receive_buffer[0], size[0], MPI_BYTE,
+      CALL_MPI MPI_Recv_init(receive_buffer[0], size, MPI_BYTE,
                              MPI_ANY_SOURCE, tag_fanin, pastix_comm,
                              &request[0]);
       TEST_MPI("MPI_Recv_init");
@@ -1857,7 +1847,7 @@ void* sendrecv_smp ( void *arg )
 
       /* Annulation des comms inutiles */
       /* et Liberation de la memoire */
-      for(i=0; i<2*nbrequest; i++)
+      for(i=0; i<nbrequest; i++)
         {
           int fflag;
           if (THREAD_FUNNELED_OFF)

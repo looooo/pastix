@@ -10,56 +10,34 @@
 #define SYMB_LROWNUM(x)   datacode->bloktab[x].lrownum
 #define SYMB_CBLKNUM(x)   datacode->bloktab[x].cblknum /*<0 if remote*/
 
-#define CBLK_BLOKNBR(x)   (SYMB_BLOKNUM(x+1) - SYMB_BLOKNUM(x))
 #define CBLK_COLNBR(x)    (SYMB_LCOLNUM(x) - SYMB_FCOLNUM(x) + 1)
-#define BLOK_ROWNBR(x)    (SYMB_LROWNUM(x) - SYMB_FROWNUM(x) + 1)
-#ifdef NAPA_SOPALIN /* ILU(k) */
-#define BLOCK_ISFACING(j,b)                           \
-  (((SYMB_FROWNUM(j)>=SYMB_FROWNUM(b)) &&             \
-    (SYMB_LROWNUM(j)<=SYMB_LROWNUM(b))) ||            \
-   ((SYMB_FROWNUM(j)<=SYMB_FROWNUM(b)) &&             \
-    (SYMB_LROWNUM(j)>=SYMB_LROWNUM(b))) ||            \
-   ((SYMB_FROWNUM(j)<=SYMB_FROWNUM(b)) &&             \
-    (SYMB_LROWNUM(j)>=SYMB_FROWNUM(b))) ||            \
-   ((SYMB_FROWNUM(j)<=SYMB_LROWNUM(b)) &&             \
-    (SYMB_LROWNUM(j)>=SYMB_LROWNUM(b))))
-#else
-#define BLOCK_ISFACING(j,b)                           \
-  ((SYMB_FROWNUM(j)>=SYMB_FROWNUM(b)) &&              \
-   (SYMB_LROWNUM(j)<=SYMB_LROWNUM(b)))
-#endif
 
-/* #define SOLV_SYMBMTX      datacode->symbmtx */
-#define SOLV_CBLKTAB      datacode->cblktab
-#define SOLV_BLOKTAB      datacode->bloktab
-#define SOLV_COEFTAB(x)   datacode->cblktab[x].coeftab
-#define SOLV_UCOEFTAB(x)  datacode->cblktab[x].ucoeftab
-#define SOLV_FTGTTAB      datacode->ftgttab
-#define SOLV_PROCNUM      datacode->clustnum
-#define SOLV_PROCNBR      datacode->clustnbr
-#define SOLV_COEFNBR      datacode->coefnbr
-#define SOLV_FTGTNBR      datacode->ftgtnbr
-#define SOLV_FTGTCNT      datacode->ftgtcnt
 #define SOLV_BPFTMAX      datacode->bpftmax /* max elements for greatest blok*/
-#define SOLV_CPFTMAX      datacode->cpftmax /* max elements for greatest ftgt*/
+#define SOLV_BTAGNBR      datacode->btagnbr
+#define SOLV_BTAGTAB      datacode->btagtab
+#define SOLV_BTGRNBR      datacode->btgrnbr
+#define SOLV_BTGSNBR      datacode->btgsnbr
 #define SOLV_COEFMAX      datacode->coefmax /* max elements for greatest cblk*/
-/* #define SOLV_CTRBNBR(x)   datacode->cblktab[x].ctrbnbr */
-/* #define SOLV_CTRBCNT(x)   datacode->cblktab[x].ctrbcnt */
-/* #define SOLV_PRIONUM(x)   datacode->cblktab[x].prionum */
-#define SOLV_STRIDE(x)    datacode->cblktab[x].stride
+#define SOLV_COEFNBR      datacode->coefnbr
+#define SOLV_CPFTMAX      datacode->cpftmax /* max elements for greatest ftgt*/
+#define SOLV_FTGTCNT      datacode->ftgtcnt
+#define SOLV_FTGTNBR      datacode->ftgtnbr
+#define SOLV_FTGTTAB      datacode->ftgttab
+#define SOLV_INDNBR       datacode->indnbr
+#define SOLV_INDTAB       datacode->indtab
+#define SOLV_PROCNBR      datacode->clustnbr
+#define SOLV_PROCNUM      datacode->clustnum
+#define SOLV_TASKNBR      datacode->tasknbr
+#define SOLV_TASKTAB      datacode->tasktab
+
+#define SOLV_COEFIND(x)   datacode->bloktab[x].coefind
+
+#define SOLV_CBLKTAB      datacode->cblktab
+#define SOLV_COEFTAB(x)   datacode->cblktab[x].coeftab
 #define SOLV_COLOR(x)     datacode->cblktab[x].color
 #define SOLV_PROCDIAG(x)  datacode->cblktab[x].procdiag
-#define SOLV_COEFIND(x)   datacode->bloktab[x].coefind
-#define SOLV_TASKTAB      datacode->tasktab
-#define SOLV_TASKNBR      datacode->tasknbr
-#define SOLV_BTAGTAB      datacode->btagtab
-#define SOLV_BTAGNBR      datacode->btagnbr
-#define SOLV_BTGSNBR      datacode->btgsnbr
-#define SOLV_BTGRNBR      datacode->btgrnbr
-#define SOLV_BCOFTAB      datacode->bcoftab
-#define SOLV_BCOFNBR      datacode->bcofnbr
-#define SOLV_INDTAB       datacode->indtab
-#define SOLV_INDNBR       datacode->indnbr
+#define SOLV_STRIDE(x)    datacode->cblktab[x].stride
+#define SOLV_UCOEFTAB(x)  datacode->cblktab[x].ucoeftab
 
 #ifdef OOC_SOPALIN
 #define SOLV_OOC_FILETAB   datacode->oocstr->filetab
@@ -80,43 +58,28 @@
 #endif /* SMP_SOPALIN */
 
 
-#define FANIN_INFOTAB(x)  datacode->ftgttab[x].infotab
 #define FANIN_COEFTAB(x)  datacode->ftgttab[x].coeftab
-#define FANIN_CTRBNBR(x)  datacode->ftgttab[x].infotab[FTGT_CTRBNBR]
+#define FANIN_INFOTAB(x)  datacode->ftgttab[x].infotab
+
+#define FANIN_BLOKDST(x)  datacode->ftgttab[x].infotab[FTGT_BLOKDST]
 #define FANIN_CTRBCNT(x)  datacode->ftgttab[x].infotab[FTGT_CTRBCNT]
+#define FANIN_CTRBNBR(x)  datacode->ftgttab[x].infotab[FTGT_CTRBNBR]
+#define FANIN_FCOLNUM(x)  datacode->ftgttab[x].infotab[FTGT_FCOLNUM]
+#define FANIN_FROWNUM(x)  datacode->ftgttab[x].infotab[FTGT_FROWNUM]
+#define FANIN_LCOLNUM(x)  datacode->ftgttab[x].infotab[FTGT_LCOLNUM]
+#define FANIN_LROWNUM(x)  datacode->ftgttab[x].infotab[FTGT_LROWNUM]
+#define FANIN_PRIONUM(x)  datacode->ftgttab[x].infotab[FTGT_PRIONUM]
+#define FANIN_TASKDST(x)  datacode->ftgttab[x].infotab[FTGT_TASKDST]
+#define FANIN_GCBKDST(x)  datacode->ftgttab[x].infotab[FTGT_GCBKDST]  /* Only in OOC     */
+#define FANIN_IDTRACE(x)  datacode->ftgttab[x].infotab[FTGT_IDTRACE]  /* Only with trace */
+
+#define FANIN_CBLKDST(x)  FANIN_TASKDST(x)
+
 #ifdef SMP_SOPALIN
 #define FANIN_PROCDST(x)  SOLV_PROC2CLUST(datacode->ftgttab[x].infotab[FTGT_PROCDST])
 #else /* SMP_SOPALIN */
 #define FANIN_PROCDST(x)  datacode->ftgttab[x].infotab[FTGT_PROCDST]
 #endif /* SMP_SOPALIN */
-#define FANIN_TASKDST(x)  datacode->ftgttab[x].infotab[FTGT_TASKDST]
-#define FANIN_BLOKDST(x)  datacode->ftgttab[x].infotab[FTGT_BLOKDST]
-#define FANIN_PRIONUM(x)  datacode->ftgttab[x].infotab[FTGT_PRIONUM]
-#define FANIN_FCOLNUM(x)  datacode->ftgttab[x].infotab[FTGT_FCOLNUM]
-#define FANIN_LCOLNUM(x)  datacode->ftgttab[x].infotab[FTGT_LCOLNUM]
-#define FANIN_FROWNUM(x)  datacode->ftgttab[x].infotab[FTGT_FROWNUM]
-#define FANIN_LROWNUM(x)  datacode->ftgttab[x].infotab[FTGT_LROWNUM]
-#define FANIN_GCBKDST(x)  datacode->ftgttab[x].infotab[FTGT_GCBKDST]
-#define FANIN_IDTRACE(x)  datacode->ftgttab[x].infotab[FTGT_IDTRACE]
-
-#define BTAG_BTAGTAB(x)   datacode->btagtab[x].infotab
-#define BTAG_PRIONUM(x)   datacode->btagtab[x].infotab[BTAG_PRIONUM]
-#define BTAG_TASKDST(x)   datacode->btagtab[x].infotab[BTAG_TASKDST]
-#ifdef SMP_SOPALIN
-#define BTAG_PROCDST(x)   SOLV_PROC2CLUST(datacode->btagtab[x].infotab[BTAG_PROCDST])
-#else /* SMP_SOPALIN */
-#define BTAG_PROCDST(x)   datacode->btagtab[x].infotab[BTAG_PROCDST]
-#endif /* SMP_SOPALIN */
-#define BTAG_TASKCNT(x)   datacode->btagtab[x].infotab[BTAG_TASKCNT]
-#define BTAG_IDTRACE(x)   datacode->btagtab[x].infotab[BTAG_IDTRACE]
-#define BTAG_BCOFPTR(x)   datacode->btagtab[x].bcofptr
-#define BTAG_COEFTAB(x)   datacode->btagtab[x].bcofptr->coeftab
-#define BTAG_BCOFTAB(x)   datacode->btagtab[x].bcofptr->infotab
-#define BTAG_FROWNUM(x)   datacode->btagtab[x].bcofptr->infotab[BCOF_FROWNUM]
-#define BTAG_LROWNUM(x)   datacode->btagtab[x].bcofptr->infotab[BCOF_LROWNUM]
-#define BTAG_FCOLNUM(x)   datacode->btagtab[x].bcofptr->infotab[BCOF_FCOLNUM]
-#define BTAG_LCOLNUM(x)   datacode->btagtab[x].bcofptr->infotab[BCOF_LCOLNUM]
-#define BTAG_SENDCNT(x)   datacode->btagtab[x].bcofptr->sendcnt
 
 #define TASK_TASKID(x)    datacode->tasktab[x].taskid
 #define TASK_PRIONUM(x)   datacode->tasktab[x].prionum
@@ -131,30 +94,6 @@
 #define TASK_THREADID(x)  datacode->tasktab[x].threadid
 #define TASK_COLOR(x)     datacode->tasktab[x].threadid
 #define TASK_PROC(x)      SOLV_PROCDIAG(TASK_CBLKNUM(x))
-
-#define RTASK_PRIONUM(x)  datacode->tasktab[x].btagptr->infotab[BTAG_PRIONUM]
-#define RTASK_TASKDST(x)  datacode->tasktab[x].btagptr->infotab[BTAG_TASKDST]
-#define RTASK_PROCDST(x)  datacode->tasktab[x].btagptr->infotab[BTAG_PROCDST]
-#define RTASK_TASKCNT(x)  datacode->tasktab[x].btagptr->infotab[BTAG_TASKCNT]
-#define RTASK_BCOFPTR(x)  datacode->tasktab[x].btagptr->bcofptr
-#define RTASK_COEFTAB(x)  datacode->tasktab[x].btagptr->bcofptr->coeftab
-#define RTASK_FROWNUM(x)  datacode->tasktab[x].btagptr->bcofptr->infotab[BCOF_FROWNUM]
-#define RTASK_LROWNUM(x)  datacode->tasktab[x].btagptr->bcofptr->infotab[BCOF_LROWNUM]
-#define RTASK_FCOLNUM(x)  datacode->tasktab[x].btagptr->bcofptr->infotab[BCOF_FCOLNUM]
-#define RTASK_LCOLNUM(x)  datacode->tasktab[x].btagptr->bcofptr->infotab[BCOF_LCOLNUM]
-#define RTASK_SENDCNT(x)  datacode->tasktab[x].btagptr->bcofptr->sendcnt
-
-#define STASK_PRIONUM(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].infotab[BTAG_PRIONUM]
-#define STASK_TASKDST(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].infotab[BTAG_TASKDST]
-#define STASK_PROCDST(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].infotab[BTAG_PROCDST]
-#define STASK_TASKCNT(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].infotab[BTAG_TASKCNT]
-#define STASK_BCOFPTR(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].bcofptr
-#define STASK_COEFTAB(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].bcofptr->coeftab
-#define STASK_FROWNUM(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].bcofptr->infotab[BCOF_FROWNUM]
-#define STASK_LROWNUM(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].bcofptr->infotab[BCOF_FROWNUM]
-#define STASK_FCOLNUM(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].bcofptr->infotab[BCOF_FCOLNUM]
-#define STASK_LCOLNUM(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].bcofptr->infotab[BCOF_LCOLNUM]
-#define STASK_SENDCNT(x)  datacode->btagtab[SOLV_INDTAB[TASK_INDNUM(x)]].bcofptr->sendcnt
 
 #define UPDOWN_SM2XTAB          datacode->updovct.sm2xtab
 #define UPDOWN_SM2XMAX          datacode->updovct.sm2xmax
@@ -186,7 +125,7 @@
 /* next info is now stored in task struct */ 
 #define SOLV_FTGTIND(x)   (-SYMB_CBLKNUM(x))
 /* next should be good for 1D ??? */
-#define FANIN_CBLKDST(x)  FANIN_TASKDST(x) 
+
 
 #define PACKMAX  datacode->nbftmax
 #define PACKAREA datacode->arftmax
@@ -194,11 +133,11 @@
 #define PASTIX_COMM sopalin_data->sopar->pastix_comm
 
 #ifdef TEST_ISEND
-#  define MAX_S_REQUESTS                                                \
+#define MAX_S_REQUESTS                                                \
   ( ( THREAD_FUNNELED_ON )?(8096):                                      \
     (MAX(1, (8096/(SOLV_THRDNBR)))))
 #else
-#  define MAX_S_REQUESTS 1
+#define MAX_S_REQUESTS 1
 #endif
 
 #ifdef TEST_IRECV

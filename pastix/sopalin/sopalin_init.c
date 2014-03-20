@@ -81,7 +81,6 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 
       sopalin_data->thread_data       = NULL;
       sopalin_data->fanintgtsendqueue = NULL;
-      sopalin_data->blocktgtsendqueue = NULL;
       sopalin_data->taskmark          = NULL;
       /* Trace */
 #ifdef TRACE_SOPALIN
@@ -119,7 +118,6 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       sopalin_data->cond_fanin  = NULL;
       sopalin_data->mutex_blok  = NULL;
       sopalin_data->mutex_queue_fanin = NULL;
-      sopalin_data->mutex_queue_block = NULL;
 #endif
 
 #ifdef STORAGE
@@ -208,9 +206,9 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
               MALLOC_INTERN(sopalin_data->sendqueue, 1, Queue);
               if (sopaparam->iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
                 queueInit(sopalin_data->sendqueue, MAX(MAX(UPDOWN_UPMSGNBR,UPDOWN_DOWNMSGNBR),\
-                                                       SOLV_FTGTNBR+SOLV_BTAGNBR));
+                                                       SOLV_FTGTNBR));
               else
-                queueInit(sopalin_data->sendqueue, SOLV_FTGTNBR+SOLV_BTAGNBR);
+                queueInit(sopalin_data->sendqueue, SOLV_FTGTNBR);
             }
         }
 
@@ -347,9 +345,6 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       MALLOC_INTERN(sopalin_data->mutex_queue_fanin,
                     SOLV_PROCNBR,
                     pthread_mutex_t);
-      MALLOC_INTERN(sopalin_data->mutex_queue_block,
-                    SOLV_PROCNBR,
-                    pthread_mutex_t);
 
       for (i=0;i<SOLV_FTGTNBR;i++)
         pthread_cond_init(&(sopalin_data->cond_fanin[i]),NULL);
@@ -359,7 +354,6 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
       for (i=0;i<SOLV_PROCNBR;i++)
         {
           pthread_mutex_init(&(sopalin_data->mutex_queue_fanin[i]),NULL);
-          pthread_mutex_init(&(sopalin_data->mutex_queue_block[i]),NULL);
         }
 #endif /* SOPALIN_SMP */
 
@@ -371,24 +365,13 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
                         SOLV_PROCNBR,
                         Queue);
 
-          /* Block */
-          MALLOC_INTERN(sopalin_data->blocktgtsendqueue,
-                        SOLV_PROCNBR,
-                        Queue);
-
           for (i=0;i<SOLV_PROCNBR;i++)
             queueInit(&(sopalin_data->fanintgtsendqueue[i]),SOLV_FTGTNBR);
-          for (i=0;i<SOLV_PROCNBR;i++)
-            queueInit(&(sopalin_data->blocktgtsendqueue[i]),SOLV_BTAGNBR);
-
 
 #ifndef COMM_REORDER
           for (i=0;i<SOLV_FTGTNBR;i++)
             queueAdd2(&(sopalin_data->fanintgtsendqueue[FANIN_PROCDST(i)]), i,
                       ((double)FANIN_PRIONUM(i)), i);
-          for (i=0;i<SOLV_BTAGNBR;i++)
-            queueAdd(&(sopalin_data->blocktgtsendqueue[BTAG_PROCDST(i)]), i,
-                     ((double)BTAG_PRIONUM(i)));
 #endif
         }
 
@@ -398,28 +381,6 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 
       for (i=0;i<SOLV_TASKNBR;i++)
         sopalin_data->taskmark[i]=-1;
-#ifndef PASTIX_DYNSCHED
-      for (i=0;i<SOLV_TASKNBR;i++)
-        if (sopalin_data->taskmark[i]==-1)
-          {
-            pastix_int_t mintask,minprio;
-            sopalin_data->taskmark[i] = 0;
-            task   = i;
-            mintask = i;
-            minprio = TASK_PRIONUM(i);
-            while ((TASK_TASKNEXT(task) != i) && (TASK_TASKNEXT(task) != -1))
-              {
-                task = TASK_TASKNEXT(task);
-                sopalin_data->taskmark[task] = 0;
-                if (TASK_PRIONUM(task)<minprio)
-                  {
-                    minprio = TASK_PRIONUM(task);
-                    mintask = task;
-                  }
-              }
-            sopalin_data->taskmark[mintask] = 1;
-          }
-#endif
     }
   /*
    * Specifique au solve
@@ -543,12 +504,6 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
             queueExit(&(sopalin_data->fanintgtsendqueue[i]));
           memFree_null(sopalin_data->fanintgtsendqueue);
         }
-      if (sopalin_data->blocktgtsendqueue != NULL)
-        {
-          for (i=0;i<SOLV_PROCNBR;i++)
-            queueExit(&(sopalin_data->blocktgtsendqueue[i]));
-          memFree_null(sopalin_data->blocktgtsendqueue);
-        }
 
 #ifndef SMP_SOPALIN
       queueExit(&(sopalin_data->taskqueue));
@@ -564,12 +519,6 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
           for (i=0;i<SOLV_PROCNBR;i++)
             pthread_mutex_destroy(&(sopalin_data->mutex_queue_fanin[i]));
           memFree_null(sopalin_data->mutex_queue_fanin);
-        }
-      if (sopalin_data->mutex_queue_block != NULL)
-        {
-          for (i=0;i<SOLV_PROCNBR;i++)
-            pthread_mutex_destroy(&(sopalin_data->mutex_queue_block[i]));
-          memFree_null(sopalin_data->mutex_queue_block);
         }
 
       pthread_mutex_destroy(&(sopalin_data->mutex_raff));
@@ -983,16 +932,12 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
   thread_data->gtaboffs = NULL;
   thread_data->gtabtype = NULL;
 
-  thread_data->send_block_requests     = NULL;
-  thread_data->send_block_target       = NULL;
   thread_data->send_fanin_requests     = NULL;
   thread_data->send_fanin_target       = NULL;
   thread_data->send_fanin_target_extra = NULL;
 #ifdef NO_MPI_TYPE
   thread_data->send_fanin_buffer      = NULL;
   thread_data->send_fanin_buffer_size = NULL;
-  thread_data->send_block_buffer      = NULL;
-  thread_data->send_block_buffer_size = NULL;
 #else
   thread_data->send_fanin_mpitypes     = NULL;
   thread_data->send_fanin_infotab      = NULL;
@@ -1002,12 +947,9 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
   thread_data->recv_buffer = NULL;
 #ifdef TEST_IRECV
   thread_data->recv_fanin_request = NULL;
-  thread_data->recv_block_request = NULL;
   thread_data->recv_fanin_buffer  = NULL;
-  thread_data->recv_block_buffer  = NULL;
 #endif
   thread_data->maxsrequest_fanin = 0;
-  thread_data->maxsrequest_block = 0;
 #ifndef FORCE_NOMPI
   thread_data->srteststatus  = NULL;
   thread_data->srtestindices = NULL;
@@ -1032,8 +974,6 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
       /* Donnes pour les envois */
       if ((INIT_SEND & init) && (SOLV_PROCNBR > 1))
         {
-          MALLOC_INTERN(thread_data->send_block_requests,     MAX_S_REQUESTS, MPI_Request);
-          MALLOC_INTERN(thread_data->send_block_target,       MAX_S_REQUESTS, pastix_int_t);
           MALLOC_INTERN(thread_data->send_fanin_requests,     MAX_S_REQUESTS, MPI_Request);
           MALLOC_INTERN(thread_data->send_fanin_target,       MAX_S_REQUESTS, pastix_int_t);
           MALLOC_INTERN(thread_data->send_fanin_target_extra, MAX_S_REQUESTS, pastix_int_t*);
@@ -1055,15 +995,11 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
 
               MALLOC_INTERN(thread_data->send_fanin_buffer,      MAX_S_REQUESTS, void *);
               MALLOC_INTERN(thread_data->send_fanin_buffer_size, MAX_S_REQUESTS, pastix_int_t);
-              MALLOC_INTERN(thread_data->send_block_buffer,      MAX_S_REQUESTS, void *);
-              MALLOC_INTERN(thread_data->send_block_buffer_size, MAX_S_REQUESTS, pastix_int_t);
 #endif /* NO_MPI_TYPE */
             }
 
           for (i=0;i<MAX_S_REQUESTS;i++)
             {
-              thread_data->send_block_requests[i]     = MPI_REQUEST_NULL;
-              thread_data->send_block_target[i]       = 0;
               thread_data->send_fanin_requests[i]     = MPI_REQUEST_NULL;
               thread_data->send_fanin_target[i]       = 0;
 #if (!defined NO_MPI_TYPE)
@@ -1078,30 +1014,24 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
         {
 #ifndef TEST_IRECV
           MALLOC_INTERN(thread_data->recv_buffer,
-                        MAX(PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
-                            /* XL: apparently area is missing with dof
-			     *     so I multiply by DOF...*/
-			    sopalin_data->sopar->iparm[IPARM_DOF_NBR]*
-			    PACKAREA*sizeof(pastix_float_t),
-                            sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+
-                            sizeof(pastix_float_t)*SOLV_BPFTMAX),
+                        PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+
+                        /* XL: apparently area is missing with dof
+                         *     so I multiply by DOF...*/
+                        sopalin_data->sopar->iparm[IPARM_DOF_NBR]*
+                        PACKAREA*sizeof(pastix_float_t),
                         char);
 #else
 
           if (MAX_R_REQUESTS)
             {
               pastix_int_t sizef = PACKMAX*(sizeof(pastix_int_t)*MAXINFO)+PACKAREA*sizeof(pastix_float_t);
-              pastix_int_t sizeb = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
 
               MALLOC_INTERN(thread_data->recv_fanin_request, MAX_R_REQUESTS, MPI_Request);
-              MALLOC_INTERN(thread_data->recv_block_request, MAX_R_REQUESTS, MPI_Request);
               MALLOC_INTERN(thread_data->recv_fanin_buffer,  MAX_R_REQUESTS, void*);
-              MALLOC_INTERN(thread_data->recv_block_buffer,  MAX_R_REQUESTS, void*);
 
               for (i=0;i<MAX_R_REQUESTS;i++)
                 {
                   MALLOC_INTERN(thread_data->recv_fanin_buffer[i], sizef, char);
-                  MALLOC_INTERN(thread_data->recv_block_buffer[i], sizeb, char);
                 }
             }
 #endif /* TEST_IRECV  */
@@ -1329,12 +1259,8 @@ void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me)
       if (thread_data->send_fanin_target_extra != NULL)
   {
     memFree_null(thread_data->send_fanin_target_extra);
-    memFree_null(thread_data->send_block_requests);
-    memFree_null(thread_data->send_block_target);
 #ifdef NO_MPI_TYPE
     memFree_null(thread_data->send_fanin_buffer_size);
-    memFree_null(thread_data->send_block_buffer);
-    memFree_null(thread_data->send_block_buffer_size);
 #endif /* NO_MPI_TYPE */
   }
     }
@@ -1350,12 +1276,9 @@ void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me)
   {
     for (i=0;i<MAX_R_REQUESTS;i++){
       memFree_null(thread_data->recv_fanin_buffer[i]);
-      memFree_null(thread_data->recv_block_buffer[i]);
     }
     memFree_null(thread_data->recv_fanin_buffer);
-    memFree_null(thread_data->recv_block_buffer);
     memFree_null(thread_data->recv_fanin_request);
-    memFree_null(thread_data->recv_block_request);
   }
 #endif /* TEST_IRECV  */
     }
@@ -1432,20 +1355,6 @@ void sopalin_backup(SolverMatrix *datacode, Backup *b)
       b->fanin_prionum[i] = FANIN_PRIONUM(i);
     }
 
-  if (SOLV_BTAGNBR)
-    MALLOC_INTERN(b->btagtaskcnt, SOLV_BTAGNBR, pastix_int_t);
-  for (i=0;i<SOLV_BTAGNBR;i++)
-    {
-      b->btagtaskcnt[i] = BTAG_TASKCNT(i);
-    }
-
-  if (SOLV_BCOFNBR)
-    MALLOC_INTERN(b->bcofsendcnt, SOLV_BCOFNBR, pastix_int_t);
-  for (i=0;i<SOLV_BCOFNBR;i++)
-    {
-      b->bcofsendcnt[i] = SOLV_BCOFTAB[i].sendcnt;
-    }
-
   if (SYMB_BLOKNBR)
     MALLOC_INTERN(b->symbol_cblknum, SYMB_BLOKNBR, pastix_int_t);
   for (i=0;i<SYMB_BLOKNBR;i++)
@@ -1511,24 +1420,6 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b)
       b->fanin_prionum = NULL;
     }
 
-  for (i=0;i<SOLV_BTAGNBR;i++)
-    {
-      BTAG_TASKCNT(i) = b->btagtaskcnt[i];
-    }
-  if (SOLV_BTAGNBR)
-    memFree_null(b->btagtaskcnt);
-  else
-    b->btagtaskcnt = NULL;
-
-  for (i=0;i<SOLV_BCOFNBR;i++)
-    {
-      SOLV_BCOFTAB[i].sendcnt = b->bcofsendcnt[i];
-    }
-  if (SOLV_BCOFNBR)
-    memFree_null(b->bcofsendcnt);
-  else
-    b->bcofsendcnt = NULL;
-
   for (i=0;i<SYMB_BLOKNBR;i++)
     SYMB_CBLKNUM(i) = b->symbol_cblknum[i];
   if (SYMB_BLOKNBR)
@@ -1537,28 +1428,6 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b)
     b->symbol_cblknum = NULL;
 
   SYMB_NODENBR = b->symbol_nodenbr;
-
-  /* Restauration des pointeurs sur les btags pour step-by-step */
-  {
-    pastix_int_t task;
-
-    for (i=0; i<datacode->tasknbr; i++)
-      datacode->tasktab[i].btagptr = NULL;
-    for (i=0; i<datacode->btagnbr; i++)
-      {
-  if (datacode->proc2clust[datacode->btagtab[i].infotab[BTAG_PROCDST]] == datacode->clustnum)
-    {
-      task = datacode->btagtab[i].infotab[BTAG_TASKDST];
-      datacode->tasktab[task].btagptr = &(datacode->btagtab[i]);
-
-      while (datacode->tasktab[task].tasknext != datacode->btagtab[i].infotab[BTAG_TASKDST])
-        {
-    task = datacode->tasktab[task].tasknext;
-    datacode->tasktab[task].btagptr = &(datacode->btagtab[i]);
-        }
-    }
-      }
-  }
 }
 
 /*********************************/

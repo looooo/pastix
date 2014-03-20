@@ -503,8 +503,6 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
             SOLV_TASKNBR  *sizeof(Task)+
             SOLV_FTGTNBR  *sizeof(FanInTarget)+
             SOLV_COEFNBR  *sizeof(pastix_float_t)+
-            SOLV_BTAGNBR  *sizeof(BlockTarget)+
-            SOLV_BCOFNBR  *sizeof(BlockCoeff)+
             SOLV_INDNBR   *sizeof(pastix_int_t);
 
         factor = 100.0 / (double)alloc_init;
@@ -530,12 +528,6 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
         printf("solver.coef %12ld %2.2lf %%\n",
                (long)  (SOLV_COEFNBR*1*sizeof(pastix_float_t)),
                (double)(SOLV_COEFNBR*1*sizeof(pastix_float_t))*factor);
-        printf("solver.btag %12ld %2.2lf %%\n",
-               (long)  (SOLV_BTAGNBR*1*sizeof(BlockTarget)),
-               (double)(SOLV_BTAGNBR*1*sizeof(BlockTarget))*factor);
-        printf("solver.bcof %12ld %2.2lf %%\n",
-               (long)  (SOLV_BCOFNBR*1*sizeof(BlockCoeff)),
-               (double)(SOLV_BCOFNBR*1*sizeof(BlockCoeff))*factor);
         printf("solver.ind  %12ld %2.2lf %%\n",
                (long)  (SOLV_INDNBR *1*sizeof(pastix_int_t)),
                (double)(SOLV_INDNBR *1*sizeof(pastix_int_t))*factor);

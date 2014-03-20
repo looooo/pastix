@@ -725,8 +725,7 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pas
                 TASK_CTRBCNT(-t)--;
                 ASSERTDBG((TASK_CTRBCNT(-t) >= 0), MOD_SOPALIN);
 #ifdef PASTIX_DYNSCHED
-                if (((!TASK_CTRBCNT(-t)) && (sopalin_data->taskmark[-t] == -1)) &&
-                    (!((TASK_TASKID(-t) == E1) && ((TASK_BTAGPTR(-t) == NULL) || (RTASK_COEFTAB(-t) == NULL)))))
+                if ((!TASK_CTRBCNT(-t)) && (sopalin_data->taskmark[-t] == -1))
                 {
                     pastix_int_t iter;
 

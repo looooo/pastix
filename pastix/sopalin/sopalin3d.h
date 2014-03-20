@@ -103,8 +103,6 @@ typedef struct Thread_Data_ {
   pastix_int_t              stridebloktab;            /*+ Temporary tabulars maxblokttab's stride copy        +*/
   pastix_float_t           *maxbloktab1;              /*+ Temporary tabular to add contributions              +*/
   pastix_float_t           *maxbloktab2;              /*+ Temporary tabular to add contributions (for LU)     +*/
-  MPI_Request     *send_block_requests;      /*+ sent blocks requests                                +*/
-  pastix_int_t             *send_block_target;        /*+ sent blocks targets                                 +*/
   MPI_Request     *send_fanin_requests;      /*+ sent fanins requests                                +*/
 #if (!defined NO_MPI_TYPE)
   MPI_Datatype    *send_fanin_mpitypes;      /*+ sent fanins mpi types                               +*/
@@ -114,12 +112,9 @@ typedef struct Thread_Data_ {
   pastix_int_t            **send_fanin_target_extra;  /*+ extra sent fanin targets                            +*/
 #ifdef TEST_IRECV
   MPI_Request     *recv_fanin_request;       /*+ receiving fanin requests                            +*/
-  MPI_Request     *recv_block_request;       /*+ receiving blocks requests                           +*/
   void           **recv_fanin_buffer;        /*+ fanin reception buffers                             +*/
-  void           **recv_block_buffer;        /*+ blocks reception buffers                            +*/
 #endif
   pastix_int_t              maxsrequest_fanin;        /*+ Maximum number of send requests used                +*/
-  pastix_int_t              maxsrequest_block;        /*+ Maximum number of send requests used                +*/
 #ifndef FORCE_NOMPI
   MPI_Status      *srteststatus;
   int             *srtestindices;
@@ -133,9 +128,7 @@ typedef struct Thread_Data_ {
   void           **gtaboffs;                 /*+ pointer to the data to send                         +*/
   int             *gtabtype;                 /*+ Size of the data to send                            +*/
   void           **send_fanin_buffer;        /*+ Fanins sending buffers                              +*/
-  void           **send_block_buffer;        /*+ Blocks sending buffers                              +*/
   pastix_int_t             *send_fanin_buffer_size;   /*+ Fanins sending buffers size                         +*/
-  pastix_int_t             *send_block_buffer_size;   /*+ Blocks sending buffers size                         +*/
 #endif /* NO_MPI_TYPE */
 #ifdef TRACE_SOPALIN
   FILE            *tracefile;                /*+ Tracing file for the solver                         +*/
@@ -167,7 +160,6 @@ struct Sopalin_Data_ {
   SopalinParam    *sopar;                    /*+ Sopalin parameters                 +*/
   Thread_Data_t  **thread_data;              /*+ Threads data                       +*/
   Queue           *fanintgtsendqueue;        /*+ Fanins to send queue               +*/
-  Queue           *blocktgtsendqueue;        /*+ Blocks to send queue               +*/
   pastix_int_t             *taskmark;                 /*+ Task marking for 2D                +*/
 #ifdef TRACE_SOPALIN
   FILE            *tracefile;                /*+ Tracing file for the solver        +*/
@@ -199,7 +191,6 @@ struct Sopalin_Data_ {
   pthread_cond_t  *cond_fanin;               /*+ Cond for each fanin                              +*/
   pthread_mutex_t *mutex_blok;               /*+ Mutex on each block                              +*/
   pthread_mutex_t *mutex_queue_fanin;        /*+ Mutex on the fanins queue                        +*/
-  pthread_mutex_t *mutex_queue_block;        /*+ Mutex on the blocks queue                        +*/
 #else /* SMP_SOPALIN */
   Queue            taskqueue;                /*+ Task queue for NOSMP version                     +*/
 #endif
