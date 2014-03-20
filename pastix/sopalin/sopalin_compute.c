@@ -215,7 +215,7 @@ void API_CALL(compute_diag)(Sopalin_Data_t *sopalin_data,
     /* Send what needs to be sent */
     if (THREAD_FUNNELED_OFF)
     {
-        API_CALL(send_all_block)(sopalin_data, me);
+        //API_CALL(send_all_block)(sopalin_data, me);
     }
     else
     {
@@ -1116,7 +1116,7 @@ void API_CALL(compute_e1)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_
      */
     if (THREAD_FUNNELED_OFF)
     {
-        API_CALL(send_all_block)(sopalin_data, me);
+        //API_CALL(send_all_block)(sopalin_data, me);
     }
     else
     {

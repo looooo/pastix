@@ -3,18 +3,13 @@
 /*************************************/
 /* Handle received data */
 #define recv_handle_fanin API_CALL(recv_handle_fanin)
-#define recv_handle_block API_CALL(recv_handle_block)
 void  recv_handle_fanin (Sopalin_Data_t *, pastix_int_t, void *buffer,
-                         MPI_Status status, int elected);
-void  recv_handle_block (Sopalin_Data_t *, pastix_int_t, void *buffer,
                          MPI_Status status, int elected);
 
 /* Wait for one reception */
 #define recv_waitone_fanin API_CALL(recv_waitone_fanin)
-#define recv_waitone_block API_CALL(recv_waitone_block)
 #define recv_waitone_fob   API_CALL(recv_waitone_fob)
 void  recv_waitone_fanin(Sopalin_Data_t *, pastix_int_t, pastix_int_t tag);
-void  recv_waitone_block(Sopalin_Data_t *, pastix_int_t, pastix_int_t tag);
 void  recv_waitone_fob  (Sopalin_Data_t *, pastix_int_t);
 
 /* Test reception */
@@ -28,41 +23,31 @@ void  recv_testall_fab  (Sopalin_Data_t *, pastix_int_t);
 /*************************************/
 /* Send one communication */
 #define send_one_fanin API_CALL(send_one_fanin)
-#define send_one_block API_CALL(send_one_block)
 int   send_one_fanin    (Sopalin_Data_t *, pastix_int_t, pastix_int_t t);
-int   send_one_block    (Sopalin_Data_t *, pastix_int_t, pastix_int_t t);
 
 /* Send all available communications */
 #define send_all_fanin API_CALL(send_all_fanin)
-#define send_all_block API_CALL(send_all_block)
 void  send_all_fanin    (Sopalin_Data_t *, pastix_int_t, pastix_int_t dest);
-void  send_all_block    (Sopalin_Data_t *, pastix_int_t);
 
 /* Free data structure associate with send request */
 #define send_free_fanin API_CALL(send_free_fanin)
-#define send_free_block API_CALL(send_free_block)
 void  send_free_fanin   (Sopalin_Data_t *, pastix_int_t, pastix_int_t s_index);
-void  send_free_block   (Sopalin_Data_t *, pastix_int_t, pastix_int_t s_index);
 
 /* Test and wait send requests */
 #define send_testall       API_CALL(send_testall)
 #define send_testall_fanin API_CALL(send_testall_fanin)
-#define send_testall_block API_CALL(send_testall_block)
 #define send_testall_fab   API_CALL(send_testall_fab)
 #define send_waitone       API_CALL(send_waitone)
 #define send_waitone_fanin API_CALL(send_waitone_fanin)
-#define send_waitone_block API_CALL(send_waitone_block)
 #define send_waitall_fab   API_CALL(send_waitall_fab)
 void  send_testall      (Sopalin_Data_t *,
                          pastix_int_t, void (*funcfree)(Sopalin_Data_t*,
                                                pastix_int_t, pastix_int_t));
 void  send_testall_fanin(Sopalin_Data_t *, pastix_int_t);
-void  send_testall_block(Sopalin_Data_t *, pastix_int_t);
 void  send_testall_fab  (Sopalin_Data_t *, pastix_int_t);
 int   send_waitone      (Sopalin_Data_t *, pastix_int_t,
                          void (*funcfree)(Sopalin_Data_t*, pastix_int_t, pastix_int_t));
 int   send_waitone_fanin(Sopalin_Data_t *, pastix_int_t);
-int   send_waitone_block(Sopalin_Data_t *, pastix_int_t);
 void  send_waitall_fab  (Sopalin_Data_t *, pastix_int_t);
 
 /* Test all receive and send requests */
@@ -75,22 +60,14 @@ void* sendrecv_smp(void *arg);
 
 #ifdef FORCE_NOMPI
 #define recv_waitone_fanin API_CALL(recv_waitone_fanin)
-#define recv_waitone_block API_CALL(recv_waitone_block)
 #define recv_waitone_fob   API_CALL(recv_waitone_fob)
 #define recv_testone_fob   API_CALL(recv_testone_fob)
 #define recv_testall_fab   API_CALL(recv_testall_fab)
 #define send_all_fanin     API_CALL(send_all_fanin)
-#define send_all_block     API_CALL(send_all_block)
 #define send_free_fanin    API_CALL(send_free_fanin)
-#define send_free_block    API_CALL(send_free_block)
 #define rcsd_testall_fab   API_CALL(rcsd_testall_fab)
 #define sendrecv_smp       API_CALL(sendrecv_smp)
 void  recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
-                         pastix_int_t me, pastix_int_t tag)
-{
-  (void)sopalin_data; (void)me; (void)tag;
-}
-void  recv_waitone_block(Sopalin_Data_t *sopalin_data,
                          pastix_int_t me, pastix_int_t tag)
 {
   (void)sopalin_data; (void)me; (void)tag;
@@ -111,20 +88,10 @@ void  send_all_fanin    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_i
 {
   (void)sopalin_data; (void)me; (void)dest;
 }
-void  send_all_block    (Sopalin_Data_t *sopalin_data, pastix_int_t me)
-{
-  (void)sopalin_data; (void)me;
-}
 void  send_free_fanin   (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t s_index)
 {
   (void)sopalin_data; (void)me; (void)s_index;
 }
-
-void  send_free_block   (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t s_index)
-{
-  (void)sopalin_data; (void)me; (void)s_index;
-}
-
 void  rcsd_testall_fab  (Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   (void)sopalin_data; (void)me;
@@ -455,200 +422,6 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
 }
 
 /*
- * Function: recv_handle_block
- *
- * Add block contribution received in recv_buffer.
- *
- * Parameters:
- *    sopalin_data - Solver structure
- *    me           - Thread number
- *    recv_buffer  - Received data
- *    status       - MPI communication status
- *    elected      - Index of communication used
- *
- */
-void
-recv_handle_block(Sopalin_Data_t *sopalin_data,
-                  pastix_int_t             me,
-                  void           *buffer,
-                  MPI_Status      status,
-                  int             elected)
-{
-  SolverMatrix  *datacode    = sopalin_data->datacode;
-#if (defined TRACE_SOPALIN) || (defined TEST_IRECV)
-  Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-#endif
-  BlockTarget   *btag;
-  BlockCoeff    *bcof;
-  pastix_int_t            task, bloksize, taskcnt;
-#ifdef TEST_IRECV
-  pastix_int_t            size;
-#endif
-  pastix_int_t            taskcntT;
-  pastix_int_t            bttaskdst;
-  pastix_int_t            btprocdst, bttaskcnt, btprionum;
-  pastix_int_t            bcfrownum, bclrownum, bcfcolnum, bclcolnum;
-
-  print_debug(DBG_SOPALIN_RECV,"%ld: receive block target\n", (long)me);
-#ifdef TEST_IRECV
-  size = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO)+sizeof(pastix_float_t)*SOLV_BPFTMAX;
-#endif
-  /* build blocktarget */
-  MALLOC_INTERN(btag, 1, BlockTarget);
-  MALLOC_INTERN(bcof, 1, BlockCoeff);
-
-  bttaskdst = btag->infotab[BTAG_TASKDST] = ((pastix_int_t*)buffer)[BTAG_TASKDST];
-  btprocdst = btag->infotab[BTAG_PROCDST] = ((pastix_int_t*)buffer)[BTAG_PROCDST];
-  btprionum = btag->infotab[BTAG_PRIONUM] = ((pastix_int_t*)buffer)[BTAG_PRIONUM];
-  bttaskcnt = btag->infotab[BTAG_TASKCNT] = ((pastix_int_t*)buffer)[BTAG_TASKCNT];
-  btag->bcofptr = bcof;
-
-  btag->bcofptr->sendcnt = LOCAL_ALLOC_BTAG; /* need a mark to be free */
-  bcfrownum = btag->bcofptr->infotab[BCOF_FROWNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_FROWNUM];
-  bclrownum = btag->bcofptr->infotab[BCOF_LROWNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_LROWNUM];
-  bcfcolnum = btag->bcofptr->infotab[BCOF_FCOLNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_FCOLNUM];
-  bclcolnum = btag->bcofptr->infotab[BCOF_LCOLNUM] = ((pastix_int_t*)buffer)[BTAGINFO+BCOF_LCOLNUM];
-
-  bloksize = (bclrownum - bcfrownum + 1)*
-    (bclcolnum - bcfcolnum + 1);
-
-  trace_begin_task(thread_data->tracefile,
-                   SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                   STATE_L2_RECVB, bttaskdst);
-
-  trace_recv(thread_data->tracefile,
-             SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, status.MPI_SOURCE,
-             COMM_BLOCK, bttaskdst, bloksize, ((pastix_int_t*)buffer)[BTAG_IDTRACE]);
-
-  print_debug(DBG_SOPALIN_RECV,
-              "%ld: Recv blocktarget\n"
-              "%ld: prionum taskdst procdst taskcnt frownum"
-              " lrownum fcolnum lcolnum\n"
-              "%ld: %ld %ld %ld %ld %ld %ld %ld %ld\n",
-              (long)me, (long)me, (long)me,
-              (long)btprionum, (long)bttaskdst,
-              (long)btprocdst, (long)bttaskcnt,
-              (long)bcfrownum, (long)bclrownum,
-              (long)bcfcolnum, (long)bclcolnum);
-
-#ifdef EXACT_THREAD
-  ASSERTDBG((SEPFB+me) == (SEPFB+btprocdst%SOLV_THRDNBR), MOD_SOPALIN);
-#endif
-#ifndef PASTIX_DYNSCHED
-  ASSERTDBG((btprocdst/SOLV_THRDNBR) == SOLV_PROCNUM,     MOD_SOPALIN);
-#endif
-  MALLOC_INTERN(btag->bcofptr->coeftab, bloksize, pastix_float_t);
-
-  STATS_ADD(bloksize);
-
-  memcpy((void *) btag->bcofptr->coeftab,
-         (void *) (((char *) buffer)+(BTAGINFO+BCOFINFO)*sizeof(pastix_float_t)),
-         bloksize*sizeof(pastix_float_t));
-
-  /* link  blocktarget -> tasks */
-  task = bttaskdst;
-
-  ASSERTDBG(TASK_BTAGPTR(task)==NULL,MOD_SOPALIN);
-  ASSERTDBG(((bclrownum == bclcolnum) && (bcfrownum == bcfcolnum)) ?
-            (TASK_TASKID(task)==E1):(TASK_TASKID(task)==E2),MOD_SOPALIN);
-
-  /* Lock on the first task from the cycle */
-  MUTEX_LOCK(&(sopalin_data->mutex_task[task]));
-  TASK_BTAGPTR(task) = btag;
-
-  taskcnt  = 1;
-  taskcntT = RTASK_TASKCNT(task);
-
-#ifdef PASTIX_DYNSCHED
-  if ( ( (!TASK_CTRBCNT(task)) &&
-         (sopalin_data->taskmark[task] == -1)) &&
-       (!( (TASK_TASKID(task) == E1) &&
-           ( (TASK_BTAGPTR(task) == NULL) ||
-             (RTASK_COEFTAB(task) == NULL)))) &&
-       (!( (TASK_TASKID(task) == E2) &&
-           ( (TASK_BTAGPTR(task) == NULL) ||
-             (RTASK_COEFTAB(task) == NULL)))))
-    {
-      pastix_int_t i = TASK_THREADID(task);
-
-#  ifdef PASTIX_DYNSCHED
-      ASSERTDBG(sopalin_data->taskmark[task] == -1, MOD_SOPALIN);
-#  endif
-      sopalin_data->taskmark[task]++;
-
-      MUTEX_LOCK(&(sopalin_data->tasktab_mutex[i]));
-      queueAdd(&(sopalin_data->taskqueue[i]),
-               task, (double)TASK_PRIONUM(task));
-      MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[i]));
-      pthread_cond_broadcast(&(sopalin_data->tasktab_cond[i]));
-    }
-#endif
-  MUTEX_UNLOCK(&(sopalin_data->mutex_task[task]));
-
-  print_debug(DBG_SOPALIN_RECV, "%ld: link (%ld[%ld]) ",
-              (long)me, (long)task, (long)TASK_TASKID(task));
-
-  /* Add pointer to receive buffer for tasks in the cycle */
-  while (TASK_TASKNEXT(task) != bttaskdst)
-    {
-      /* same id for all links E1 or E2 */
-      ASSERTDBG(TASK_TASKID(task) == TASK_TASKID(TASK_TASKNEXT(task)),
-                MOD_SOPALIN);
-
-      task = TASK_TASKNEXT(task);
-      MUTEX_LOCK(&(sopalin_data->mutex_task[task]));
-      TASK_BTAGPTR(task) = btag;
-
-      print_debug(DBG_SOPALIN_RECV, "%ld[%ld] ",
-                  (long)task,(long)TASK_TASKID(task));
-
-#ifdef PASTIX_DYNSCHED
-      if (((!TASK_CTRBCNT(task)) && (sopalin_data->taskmark[task] == -1)) &&
-          (!((TASK_TASKID(task) == E1) && ((TASK_BTAGPTR(task) == NULL) ||
-                                           (RTASK_COEFTAB(task) == NULL)))) &&
-          (!((TASK_TASKID(task) == E2) && ((TASK_BTAGPTR(task) == NULL) ||
-                                           (RTASK_COEFTAB(task) == NULL)))))
-        {
-          pastix_int_t i = TASK_THREADID(task);
-
-#  if (DBG_PASTIX_DYNSCHED > 0)
-          ASSERTDBG(sopalin_data->taskmark[task] == -1, MOD_SOPALIN);
-#  endif
-          sopalin_data->taskmark[task]++;
-
-          MUTEX_LOCK(&(sopalin_data->tasktab_mutex[i]));
-          queueAdd(&(sopalin_data->taskqueue[i]),
-                   task, (double)TASK_PRIONUM(task));
-          MUTEX_UNLOCK(&(sopalin_data->tasktab_mutex[i]));
-          pthread_cond_broadcast(&(sopalin_data->tasktab_cond[i]));
-        }
-#endif
-      MUTEX_UNLOCK(&(sopalin_data->mutex_task[task]));
-      taskcnt++;
-    }
-
-  ASSERTDBG(taskcnt == taskcntT, MOD_SOPALIN);
-  pthread_cond_broadcast(&(sopalin_data->cond_task[TASK_MASTER(bttaskdst)]));
-
-  print_debug(DBG_SOPALIN_RECV, "\n");
-  print_debug(DBG_SOPALIN_RECV, "%ld: fin ajout block target\n",(long)me);
-
-#ifdef TEST_IRECV
-  /* Restart block reception */
-  {
-    CALL_MPI MPI_Irecv(thread_data->recv_block_buffer[elected],size,MPI_BYTE,
-                       MPI_ANY_SOURCE,SEPFB+me,PASTIX_COMM,
-                       &(thread_data->recv_block_request[elected]));
-    TEST_MPI("MPI_Irecv");
-  }
-#endif /* TEST_IRECV */
-
-  trace_end_task(thread_data->tracefile,
-                 SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                 STATE_L2_RECVB, bttaskdst);
-}
-
-/*
  * Function: recv_waitone_fanin
  *
  * Wait one fanin communication and call recv_handle_fanin
@@ -708,64 +481,6 @@ recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
                     status, elected);
 }
 
-
-/*
- * Function: recv_waitone_block
- *
- * Wait one block communication and call recv_handle_block
- *
- * Parameters:
- *    sopalin_data - Solver structure
- *    me           - Thread number
- *    tag          - tag used for communication
- *
- */
-void
-recv_waitone_block(Sopalin_Data_t *sopalin_data,
-                   pastix_int_t             me,
-                   pastix_int_t             tag)
-{
-  SolverMatrix  *datacode    = sopalin_data->datacode;
-  Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  MPI_Status     status;
-  int            elected     = 0;
-
-  print_debug(DBG_SOPALIN_RECV, "%ld: recv_waitone_block\n", (long)me);
-
-  /* receive blocktarget */
-#ifdef TEST_IRECV
-
-  CALL_MPI MPI_Waitany(MAX_R_REQUESTS, thread_data->recv_block_request,
-                       &elected, &status);
-  TEST_MPI("MPI_Waitany");
-  thread_data->recv_buffer = thread_data->recv_block_buffer[elected];
-
-#else /*TEST_IRECV */
-
-  {
-    pastix_int_t size;
-
-    tag = TAG_BLOCK;
-    if (THREAD_COMM_OFF)
-      {
-#  if (defined EXACT_THREAD)
-        tag = SEPFB + me;
-#  elif (defined EXACT_TAG)
-        tag = SEPFB + tag;
-#  endif
-      }
-    size = sizeof(pastix_int_t)*(BTAGINFO+BCOFINFO) + sizeof(pastix_float_t)*SOLV_BPFTMAX;
-    CALL_MPI MPI_Recv(thread_data->recv_buffer, size, MPI_BYTE,
-                      MPI_ANY_SOURCE, tag, PASTIX_COMM, &status);
-    TEST_MPI("MPI_Recv");
-  }
-
-#endif /* TEST_IRECV */
-
-  recv_handle_block(sopalin_data, me, thread_data->recv_buffer,
-                    status, elected);
-}
-
 /*
  * Function: recv_waitone_fob
  *
@@ -790,7 +505,7 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status    *statuses    = thread_data->srteststatus;
     int           *indices     = thread_data->srtestindices;
-    int            i, elected, outcount1, outcount2;
+    int            i, elected, outcount1;
 
     if (thread_data->srteststatus == NULL)
       {
@@ -804,8 +519,7 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
       }
 
     outcount1 = 0;
-    outcount2 = 0;
-    while ((!outcount1) && (!outcount2))
+    while (!outcount1)
       {
         CALL_MPI MPI_Testsome(MAX_R_REQUESTS, thread_data->recv_fanin_request,
                               &outcount1, indices, statuses);
@@ -817,18 +531,6 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
             recv_handle_fanin(sopalin_data, me,
                               thread_data->recv_fanin_buffer[elected],
                               statuses[elected], elected);
-          }
-
-        CALL_MPI MPI_Testsome(MAX_R_REQUESTS, thread_data->recv_block_request,
-                              &outcount2, indices, statuses);
-        TEST_MPI("MPI_Testsome");
-
-        for (i=0;i<outcount2;i++)
-          {
-            elected = indices[i];
-            recv_handle_block(sopalin_data, me,
-                              thread_data->recv_block_buffer[elected],
-                              statuses[elected],elected);
           }
       }
   }
@@ -856,14 +558,10 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
                       MPI_ANY_SOURCE, MPI_ANY_TAG, PASTIX_COMM, &status);
     TEST_MPI("MPI_Recv");
 
-    if (status.MPI_TAG < SEPFB)
-      recv_handle_fanin(sopalin_data, me,
-                        thread_data->recv_buffer,
-                        status, 0);
-    else
-      recv_handle_block(sopalin_data, me,
-                        thread_data->recv_buffer,
-                        status, 0);
+    assert(status.MPI_TAG < SEPFB);
+    recv_handle_fanin(sopalin_data, me,
+                      thread_data->recv_buffer,
+                      status, 0);
   }
 #    endif
 #  else
@@ -886,11 +584,6 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
       {
       case TAG_FANIN:
         recv_handle_fanin(sopalin_data, me,
-                          thread_data->recv_buffer,
-                          status, elected);
-        break;
-      case TAG_BLOCK:
-        recv_handle_block(sopalin_data, me,
                           thread_data->recv_buffer,
                           status, elected);
         break;
@@ -936,16 +629,6 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
                           thread_data->recv_fanin_buffer[elected],
                           status, elected);
       }
-
-    CALL_MPI MPI_Testany(MAX_R_REQUESTS, thread_data->recv_block_request,
-                         &elected, &flag, &status);
-    TEST_MPI("MPI_Testany");
-    if (flag)
-      {
-        recv_handle_block(sopalin_data, me,
-                          thread_data->recv_block_buffer[elected],
-                          status, elected);
-      }
   }
 
 #else /* Test_Irecv */
@@ -968,10 +651,8 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
         TEST_MPI("MPI_Iprobe");
         if (flag)
           {
-            if (flag < SEPFB)
+              assert(flag < SEPFB);
               recv_waitone_fanin(sopalin_data, me, status.MPI_TAG);
-            else
-              recv_waitone_block(sopalin_data, me, status.MPI_TAG);
           }
       }
   }
@@ -982,10 +663,10 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
     SolverMatrix *datacode    = sopalin_data->datacode;
 #    endif
     MPI_Status    status;
-    int           flag1, flag2;
+    int           flag1;
 
-    flag1 = 0; flag2 = 0;
-    while ((!flag1) && (!flag2))
+    flag1 = 0;
+    while (!flag1)
       {
         /* Test one fanin */
         CALL_MPI MPI_Iprobe(MPI_ANY_SOURCE, me, PASTIX_COMM,
@@ -993,14 +674,6 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
         TEST_MPI("MPI_Iprobe");
         if (flag1)
           recv_waitone_fanin(sopalin_data, me, status.MPI_TAG);
-
-        /* Test one block */
-        CALL_MPI MPI_Iprobe(MPI_ANY_SOURCE, SEPFB+me, PASTIX_COMM,
-                            &flag2, &status);
-        TEST_MPI("MPI_Iprobe");
-
-        if (flag2)
-          recv_waitone_block(sopalin_data, me, status.MPI_TAG);
       }
   }
 #  else
@@ -1017,9 +690,6 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
           {
           case TAG_FANIN:
             recv_waitone_fanin(sopalin_data, me, status.MPI_TAG);
-            break;
-          case TAG_BLOCK:
-            recv_waitone_block(sopalin_data, me, status.MPI_TAG);
             break;
           default:
             print_debug(DBG_SOPALIN_COMM, "tag unknown\n");
@@ -1081,18 +751,6 @@ recv_testall_fab(Sopalin_Data_t *sopalin_data,
                           thread_data->recv_fanin_buffer[elected],
                           statuses[elected], elected);
       }
-
-    CALL_MPI MPI_Testsome(MAX_R_REQUESTS, thread_data->recv_block_request,
-                          &outcount, indices, statuses);
-    TEST_MPI("MPI_Testsome");
-
-    for (i=0;i<outcount;i++)
-      {
-        elected = indices[i];
-        recv_handle_block(sopalin_data, me,
-                          thread_data->recv_block_buffer[elected],
-                          statuses[elected],elected);
-      }
   }
 #else
 #  if (defined EXACT_TAG)
@@ -1104,11 +762,10 @@ recv_testall_fab(Sopalin_Data_t *sopalin_data,
     SolverMatrix *datacode    = sopalin_data->datacode;
 #    endif
     MPI_Status    status;
-    int           flag1, flag2;
+    int           flag1;
 
     flag1 = 1;
-    flag2 = 1;
-    while (flag1 || flag2)
+    while (flag1)
       {
         /* Test one fanin */
         CALL_MPI MPI_Iprobe(MPI_ANY_SOURCE, me, PASTIX_COMM,
@@ -1116,14 +773,6 @@ recv_testall_fab(Sopalin_Data_t *sopalin_data,
         TEST_MPI("MPI_Iprobe");
         if (flag1)
           recv_waitone_fanin(sopalin_data, me, status.MPI_TAG);
-
-        /* Test one block */
-        CALL_MPI MPI_Iprobe(MPI_ANY_SOURCE, SEPFB+me, PASTIX_COMM,
-                            &flag2, &status);
-        TEST_MPI("MPI_Iprobe");
-
-        if (flag2)
-          recv_waitone_block(sopalin_data, me, status.MPI_TAG);
       }
   }
 #  else
@@ -1145,9 +794,6 @@ recv_testall_fab(Sopalin_Data_t *sopalin_data,
               {
               case TAG_FANIN:
                 recv_waitone_fanin(sopalin_data, me, status.MPI_TAG);
-                break;
-              case TAG_BLOCK:
-                recv_waitone_block(sopalin_data, me, status.MPI_TAG);
                 break;
               default:
                 print_debug(DBG_SOPALIN_COMM, "tag unknown\n");
@@ -1505,173 +1151,6 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
 }
 
 /*
- * Function: send_one_block
- *
- * Send the block t to the correct destination.
- *
- * Parameters:
- *    sopalin_data - Solver structure
- *    me           - Thread number
- *    t            - Block Target number
- *
- * Returns:
- *    Number of blocks sent (always 1)
- */
-int
-send_one_block(Sopalin_Data_t *sopalin_data,
-               pastix_int_t             me,
-               pastix_int_t             t)
-{
-  SolverMatrix  *datacode    = sopalin_data->datacode;
-  Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  int            tabsize[3];
-#ifdef NO_MPI_TYPE
-  void *         taboffs[3];
-  int            tabtype[3]  = {sizeof(pastix_int_t),sizeof(pastix_int_t),sizeof(pastix_float_t)};
-  pastix_int_t            copied;
-  pastix_int_t            iter;
-#else /* NO_MPI_TYPE */
-  MPI_Aint       taboffs[3];
-  MPI_Datatype   tabtype[3]  = {PASTIX_MPI_INT,PASTIX_MPI_INT,COMM_FLOAT};
-  MPI_Datatype   newtype;
-#endif /* NO_MPI_TYPE */
-  pastix_int_t tag;
-  pastix_int_t id_req;
-
-  print_debug(DBG_SOPALIN_SEND, "%ld: Send blocktarget\n"
-              "%ld: prionum taskdst procdst taskcnt frownum"
-              " lrownum fcolnum lcolnum\n"
-              "%ld: %ld %ld %ld %ld %ld %ld %ld %ld\n",
-              (long)me, (long)me, (long)me,
-              (long)BTAG_PRIONUM(t), (long)BTAG_TASKDST(t),
-              (long)BTAG_PROCDST(t), (long)BTAG_TASKCNT(t),
-              (long)BTAG_FROWNUM(t), (long)BTAG_LROWNUM(t),
-              (long)BTAG_FCOLNUM(t), (long)BTAG_LCOLNUM(t));
-
-  /* create MPI type */
-  tabsize[0] = BTAGINFO;
-  tabsize[1] = BCOFINFO;
-  tabsize[2] = (BTAG_LROWNUM(t)-BTAG_FROWNUM(t)+1)*
-    (BTAG_LCOLNUM(t)-BTAG_FCOLNUM(t)+1);
-
-  print_debug(DBG_SOPALIN_SEND, "%ld: BTAG_BTAGTAB : %x\n",
-              (long)me, (unsigned int)(intptr_t)BTAG_BTAGTAB(t));
-  print_debug(DBG_SOPALIN_SEND, "%ld: BTAG_BCOFTAB : %x\n",
-              (long)me, (unsigned int)(intptr_t)BTAG_BCOFTAB(t));
-  print_debug(DBG_SOPALIN_SEND, "%ld: BTAG_BCOFPTR : %x\n",
-              (long)me, (unsigned int)(intptr_t)BTAG_BCOFPTR(t));
-  print_debug(DBG_SOPALIN_SEND, "%ld: BTAG_COEFTAB : %x\n",
-              (long)me, (unsigned int)(intptr_t)BTAG_COEFTAB(t));
-
-#ifndef NO_MPI_TYPE
-  CALL_MPI MPI_Address(BTAG_BTAGTAB(t),&(taboffs[0]));
-  TEST_MPI("MPI_Address");
-  CALL_MPI MPI_Address(BTAG_BCOFTAB(t),&(taboffs[1]));
-  TEST_MPI("MPI_Address");
-  CALL_MPI MPI_Address((void *)BTAG_COEFTAB(t),&(taboffs[2]));
-  TEST_MPI("MPI_Address");
-
-  CALL_MPI MPI_Type_struct(3,tabsize,taboffs,tabtype,&newtype);
-  TEST_MPI("MPI_Type_struct");
-
-  CALL_MPI MPI_Type_commit(&newtype);
-  TEST_MPI("MPI_Type_commit");
-#endif /* NO_MPI_TYPE */
-
-  /* On recherche la premiere requete disponible */
-#ifdef TEST_ISEND
-  id_req = send_waitone_block(sopalin_data, me);
-  ASSERTDBG(id_req<MAX_S_REQUESTS,MOD_SOPALIN);
-#endif /* TEST_ISEND */
-
-  trace_send(thread_data->tracefile,
-             SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me,
-             BTAG_BTAGTAB(t)[BTAG_PROCDST],
-             COMM_BLOCK, (SEPFB+BTAG_BTAGTAB(t)[BTAG_TASKDST]), tabsize[2],
-             &(BTAG_IDTRACE(t)));
-
-  print_debug(DBG_SOPALIN_SEND, "%ld: send block cpu=%ld thrd=%ld(%ld)\n",
-              (long)me, (long)BTAG_PROCDST(t),
-              (long)(BTAG_BTAGTAB(t)[BTAG_PROCDST]%SOLV_THRDNBR),
-              (long)(BTAG_BTAGTAB(t)[BTAG_PROCDST]));
-
-  if (sopalin_data->sopar->type_comm != API_THREAD_COMM_NBPROC)
-    tag = TAG_BLOCK;
-  else
-    tag = SOLV_THRDNBR + BTAG_BTAGTAB(t)[BTAG_PROCDST]%SOLV_THRDNBR;
-  if (THREAD_COMM_OFF)
-    {
-#if (defined EXACT_THREAD)
-      tag = SEPFB+BTAG_BTAGTAB(t)[BTAG_PROCDST]%SOLV_THRDNBR;
-#elif (defined EXACT_TAG)
-      tag = SEPFB+BTAG_PRIONUM(t);
-#endif
-    }
-#ifdef NO_MPI_TYPE
-  taboffs[0] = (void*)BTAG_BTAGTAB(t);
-  taboffs[1] = (void*)BTAG_BCOFTAB(t);
-  taboffs[2] = (void*)BTAG_COEFTAB(t);
-
-  thread_data->send_block_buffer_size[id_req] = 0;
-  for(iter = 0; iter < 3; iter ++){
-    thread_data->send_block_buffer_size[id_req] += tabsize[iter]*tabtype[iter];
-  }
-
-  MALLOC_INTERN(thread_data->send_block_buffer[id_req],
-                thread_data->send_block_buffer_size[id_req],
-                char);
-
-  copied = 0;
-  for(iter = 0; iter < 3; iter ++)
-    {
-      memcpy(thread_data->send_block_buffer+copied,
-             taboffs[iter], tabsize[iter]*tabtype[iter]);
-      copied +=tabsize[iter]*tabtype[iter];
-    }
-#  ifdef TEST_ISEND
-  CALL_MPI MPI_Isend(thread_data->send_block_buffer[id_req],
-                     thread_data->send_block_buffer_size[id_req],
-                     MPI_CHAR,BTAG_PROCDST(t),tag,
-                     PASTIX_COMM,&(thread_data->send_block_requests[id_req]));
-  TEST_MPI("MPI_Isend");
-#  else
-  CALL_MPI MPI_Rsend(thread_data->send_block_buffer[id_req],
-                     thread_data->send_block_buffer_size[id_req],
-                     MPI_CHAR,BTAG_PROCDST(t),tag,
-                     PASTIX_COMM);
-  TEST_MPI("MPI_Rsend");
-#  endif
-#else /* NO_MPI_TYPE */
-#  ifdef TEST_ISEND
-  CALL_MPI MPI_Isend(MPI_BOTTOM,1,newtype,BTAG_PROCDST(t),tag,
-                     PASTIX_COMM,&(thread_data->send_block_requests[id_req]));
-  TEST_MPI("MPI_Isend");
-#  else
-  CALL_MPI MPI_Rsend(MPI_BOTTOM,1,newtype,BTAG_PROCDST(t),tag,
-                     PASTIX_COMM);
-  TEST_MPI("MPI_Send");
-#  endif
-#endif /* NO_MPI_TYPE */
-
-  thread_data->send_block_target[id_req] = t;
-
-#ifndef NO_MPI_TYPE
-  /* free MPI type */
-  CALL_MPI MPI_Type_free(&newtype);
-  TEST_MPI("MPI_Type_free");
-#endif /* NO_MPI_TYPE */
-
-  /* Try to free some buffer */
-#ifdef TEST_ISEND
-  send_testall_block(sopalin_data, me);
-#else
-  send_free_block(sopalin_data, me, id_req);
-#endif
-
-  return 1;
-}
-
-/*
  * Function: send_all_fanin
  *
  * Send all contribution for a different task on a same destination.
@@ -1750,87 +1229,6 @@ send_all_fanin(Sopalin_Data_t *sopalin_data,
 }
 
 /*
- * Function: send_all_block
- *
- * Send all contribution for a same task on a same destination.
- * Can't be called in API_THREAD_FUNNELED
- *
- * Parameters:
- *    sopalin_data - Solver structure
- *    me           - Thread number
- *
- */
-void
-send_all_block ( Sopalin_Data_t *sopalin_data,
-                 pastix_int_t             me)
-{
-  if (THREAD_FUNNELED_ON)
-    {
-      errorPrintW("API_THREAD_FUNNELED is incompatible with the function"
-                  " send_all_block");
-    }
-  else
-    {
-      SolverMatrix  *datacode    = sopalin_data->datacode;
-#ifdef TRACE_SOPALIN
-      Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-#endif
-      int            flag,dest;
-
-      trace_begin_task(thread_data->tracefile,
-                       SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                       STATE_L2_SENDB, 0);
-
-      print_debug(DBG_SOPALIN_SEND, "%ld: send_all_block\n", (long)me);
-
-      for (dest=0;dest<SOLV_PROCNBR;dest++)
-        {
-          flag = 1;
-          if (dest == SOLV_PROCNUM)
-            continue;
-
-          MUTEX_LOCK(&(sopalin_data->mutex_queue_block[dest]));
-          while ( (flag) &&
-                  (queueSize(&(sopalin_data->blocktgtsendqueue[dest]))) )
-            {
-              pastix_int_t t = queueRead(&(sopalin_data->blocktgtsendqueue[dest]));
-
-              print_debug(DBG_SOPALIN_SEND,
-                          "send dest %ld blocktarget %ld bcofptr %x (ready %x)"
-                          " prio %ld task %ld\n",
-                          (long)dest, (long)t,
-                          (unsigned int)(intptr_t)BTAG_BCOFPTR(t),
-                          (unsigned int)(intptr_t)BTAG_COEFTAB(t),
-                          (long)BTAG_PRIONUM(t), (long)BTAG_TASKDST(t));
-
-              /* if the target is ready */
-              if (BTAG_COEFTAB(t))
-                {
-                  double key;
-
-                  t = queueGet2(&(sopalin_data->blocktgtsendqueue[dest]),
-                                &key, NULL);
-
-                  ASSERTDBG(BTAG_PROCDST(t)!=SOLV_PROCNUM,MOD_SOPALIN);
-
-                  /* send block target t */
-                  send_one_block(sopalin_data, me, t);
-                }
-              else
-                flag = 0;
-            }
-          MUTEX_UNLOCK(&(sopalin_data->mutex_queue_block[dest]));
-        }
-
-      trace_end_task(thread_data->tracefile,
-                     SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 2,
-                     STATE_L2_SENDB, 0);
-
-    }
-  return;
-}
-
-/*
  * Function: send_free_fanin
  *
  * Free associated structure to fanin sent.
@@ -1899,43 +1297,6 @@ send_free_fanin ( Sopalin_Data_t *sopalin_data,
   thread_data->send_fanin_buffer[s_index] = NULL;
 #endif /* NO_MPI_TYPE */
   print_debug(DBG_SOPALIN_SEND, "<-send_free_fanin %ld \n", (long)i);
-}
-
-/*
- * Function: send_free_block
- *
- * Free associated structure to block sent.
- *
- * Parameters:
- *
- * Returns:
- *   void
- */
-void
-send_free_block(Sopalin_Data_t *sopalin_data,
-                pastix_int_t             me,
-                pastix_int_t             s_index)
-{
-  SolverMatrix  *datacode    = sopalin_data->datacode;
-  Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  pastix_int_t            i           = thread_data->send_block_target[s_index];
-
-  BTAG_SENDCNT(i)--;
-  ASSERTDBG(BTAG_SENDCNT(i)>=0,MOD_SOPALIN);
-
-  if (BTAG_SENDCNT(i)==0)
-    {
-      memFree_null(BTAG_COEFTAB(i));
-      print_debug(DBG_SOPALIN_ALLOC, "free block coeff %x\n",
-                  (unsigned int)(intptr_t)BTAG_COEFTAB(i));
-
-      STATS_SUB((BTAG_LROWNUM(i)-BTAG_FROWNUM(i)+1)*
-                (BTAG_LCOLNUM(i)-BTAG_FCOLNUM(i)+1));
-    }
-
-#ifdef NO_MPI_TYPE
-  memFree_null(thread_data->send_block_buffer[s_index]);
-#endif /* NO_MPI_TYPE */
 }
 
 /*********************************/
@@ -2022,83 +1383,6 @@ void send_testall_fanin(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 
 /*********************************/
 /*
- * Function: send_testall_block
- *
- * Test all block sent to progress communications
- *
- * Parameters:
- *
- * Returns:
- *   void
- */
-/*********************************/
-void send_testall_block ( Sopalin_Data_t *sopalin_data, pastix_int_t me )
-{
-  Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-
-  print_debug(DBG_SOPALIN_RECV, "%ld: send_testall_block\n", (long)me);
-
-#ifndef PASTIX_TERA
-  {
-#  if (defined TEST_IRECV) || ((defined TEST_ISEND) && (defined SMP_SOPALIN))
-    SolverMatrix  *datacode    = sopalin_data->datacode;
-#  endif
-    MPI_Status    *statuses    = thread_data->srteststatus;
-    int           *indices     = thread_data->srtestindices;
-    int            outcount = 0;
-    int            i;
-
-    if (thread_data->srteststatus == NULL)
-      {
-        MALLOC_INTERN(thread_data->srteststatus,
-                      MAX(MAX_R_REQUESTS, MAX_S_REQUESTS), MPI_Status);
-        MALLOC_INTERN(thread_data->srtestindices,
-                      MAX(MAX_R_REQUESTS, MAX_S_REQUESTS), int);
-        statuses = thread_data->srteststatus;
-        indices  = thread_data->srtestindices;
-      }
-
-    if (thread_data->maxsrequest_block > 0)
-      {
-        CALL_MPI MPI_Testsome(thread_data->maxsrequest_block,
-                              thread_data->send_block_requests,
-                              &outcount, indices, statuses);
-        TEST_MPI("MPI_Testsome");
-
-        for(i=0; i<outcount; i++)
-          {
-            send_free_block(sopalin_data, me, indices[i]);
-          }
-      }
-  }
-#else
-  /* Can be removed in next release, if the first version is ok on TERA10 */
-  {
-    MPI_Status s_status;
-    int        s_flag;
-    pastix_int_t        j;
-
-    for(j=0; j<thread_data->maxsrequest_block; j++)
-      {
-        if (!MPI_Request_is_equal(thread_data->send_block_requests[j],
-                                  MPI_REQUEST_NULL))
-          {
-            CALL_MPI MPI_Test(&(thread_data->send_block_requests[j]),
-                              &s_flag, &s_status);
-            TEST_MPI("MPI_Test");
-            if (s_flag)
-              {
-                send_free_block(sopalin_data, me, j);
-              }
-          }
-      }
-  }
-#endif
-  return;
-}
-
-/*********************************/
-/*
  * Function: send_testall_fab
  *
  * Test all block sent to progress communications
@@ -2112,7 +1396,6 @@ void send_testall_block ( Sopalin_Data_t *sopalin_data, pastix_int_t me )
 void send_testall_fab(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
   send_testall_fanin(sopalin_data, me);
-  send_testall_block(sopalin_data, me);
 }
 
 /*********************************/
@@ -2181,63 +1464,6 @@ int send_waitone_fanin(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 
 /*********************************/
 /*
- * Function: send_waitone_block
- *
- * Tests send block. Must be called only when all requests are used.
- *
- * Parameters:
- *
- * Returns:
- *   void
- */
-/*********************************/
-int send_waitone_block ( Sopalin_Data_t *sopalin_data, pastix_int_t me )
-{
-#if (defined TEST_ISEND) && (defined SMP_SOPALIN)
-  SolverMatrix  *datacode    = sopalin_data->datacode;
-#endif
-  Thread_Data_t *thread_data = sopalin_data->thread_data[me];
-  MPI_Status     status;
-  int            flag = 0;
-  int            req  = 0;
-
-  print_debug(DBG_SOPALIN_RECV, "%ld: send_waitone_block\n",(long)me);
-
-  while((!flag) && (thread_data->maxsrequest_block > 0))
-    {
-      CALL_MPI MPI_Testany(thread_data->maxsrequest_block,
-                           thread_data->send_block_requests,
-                           &req, &flag, &status);
-      TEST_MPI("MPI_Testany");
-
-      if (flag)
-        {
-          if (req != MPI_UNDEFINED)
-            {
-              send_free_block(sopalin_data, me, req);
-              return req;
-            }
-          else
-            /* Case where all requests are finished */
-            return 0;
-        }
-      else
-        {
-          if (thread_data->maxsrequest_block < MAX_S_REQUESTS)
-            {
-              req = thread_data->maxsrequest_block;
-              thread_data->maxsrequest_block++;
-              return req;
-            }
-        }
-    }
-
-  thread_data->maxsrequest_block++;
-  return req;
-}
-
-/*********************************/
-/*
  * Function: send_waitall_fab
  *
  * Wait for all pending communications (fanin and block).
@@ -2256,11 +1482,9 @@ void send_waitall_fab(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 
 #ifdef FORCE_CONSO
   pastix_int_t        nb_envois_fanin = 0;
-  pastix_int_t        nb_envois_block = 0;
   int        s_flag          = 0;
 
-  while((nb_envois_fanin != thread_data->maxsrequest_fanin) ||
-        (nb_envois_block != thread_data->maxsrequest_block))
+  while(nb_envois_fanin != thread_data->maxsrequest_fanin)
     {
       nb_envois_fanin = 0;
       for(i=0; i<thread_data->maxsrequest_fanin; i++)
@@ -2279,25 +1503,6 @@ void send_waitall_fab(Sopalin_Data_t *sopalin_data, pastix_int_t me)
           else
             nb_envois_fanin++;
         }
-
-      nb_envois_block = 0;
-      for(i=0; i<thread_data->maxsrequest_block; i++)
-        {
-          if (!MPI_Request_is_equal(thread_data->send_block_requests[i],
-                                    MPI_REQUEST_NULL))
-            {
-              CALL_MPI MPI_Test(&(thread_data->send_block_requests[i]),
-                                &s_flag, &s_status);
-              TEST_MPI("MPI_Test");
-              if (s_flag)
-                {
-                  send_free_block(sopalin_data, me, i);
-                  nb_envois_block++;
-                }
-            }
-          else
-            nb_envois_block++;
-        }
     }
 #endif
 
@@ -2309,16 +1514,6 @@ void send_waitall_fab(Sopalin_Data_t *sopalin_data, pastix_int_t me)
         TEST_MPI("MPI_Wait");
 
         send_free_fanin(sopalin_data, me, i);
-      }
-
-  for (i=0;i<thread_data->maxsrequest_block;i++)
-    if (!MPI_Request_is_equal(thread_data->send_block_requests[i],
-                              MPI_REQUEST_NULL))
-      {
-        CALL_MPI MPI_Wait(&thread_data->send_block_requests[i], &s_status);
-        TEST_MPI("MPI_Wait");
-
-        send_free_block(sopalin_data, me, i);
       }
 }
 
@@ -2369,15 +1564,15 @@ void* sendrecv_smp ( void *arg )
       MPI_Request      *request;
       MPI_Status        status;
       int               type_comm;
-      int               tag_fanin, tag_block;
+      int               tag_fanin;
       int               nbrequest   = 1;
       int               nbrequesttot= 1;
       pastix_int_t               size[2];
       int               i;
       int               init;
       int               flag, wait;
-      int               nbsend, nbsend_fanin, nbsend_block;
-      int               nbrecv, nbrecv_block;
+      int               nbsend, nbsend_fanin;
+      int               nbrecv;
       pastix_int_t               save_ftgtcnt = -1;
       pastix_int_t               ftgt, key;
       double            dest;
@@ -2432,12 +1627,10 @@ void* sendrecv_smp ( void *arg )
       if (type_thcomm == 3)
         {
           tag_fanin = me-SOLV_THRDNBR;
-          tag_block = me;
         }
       else
         {
           tag_fanin = TAG_FANIN;
-          tag_block = TAG_BLOCK;
         }
 
       /* Initialisation des comms persistantes en réception */
@@ -2448,30 +1641,17 @@ void* sendrecv_smp ( void *arg )
         CALL_MPI MPI_Recv_init(receive_buffer[2*i],size[0],MPI_BYTE,
                                i,tag_fanin,pastix_comm,&request[2*i]);
         TEST_MPI("MPI_Recv_init");
-
-        CALL_MPI MPI_Recv_init(receive_buffer[2*i+1],size[1],MPI_BYTE,
-                               i,tag_block,pastix_comm,&request[2*i+1]);
-        TEST_MPI("MPI_Recv_init");
       }
       /* Proc de rang supérieur au proc local */
       for(i=SOLV_PROCNUM+1; i<SOLV_PROCNBR; i++){
         CALL_MPI MPI_Recv_init(receive_buffer[2*(i-1)],size[0],MPI_BYTE,
                                i,tag_fanin,pastix_comm,&request[2*(i-1)]);
         TEST_MPI("MPI_Recv_init");
-
-        CALL_MPI MPI_Recv_init(receive_buffer[2*(i-1)+1],size[1],MPI_BYTE,
-                               i,tag_block,pastix_comm,&request[2*(i-1)+1]);
-        TEST_MPI("MPI_Recv_init");
       }
 #else
       CALL_MPI MPI_Recv_init(receive_buffer[0], size[0], MPI_BYTE,
                              MPI_ANY_SOURCE, tag_fanin, pastix_comm,
                              &request[0]);
-      TEST_MPI("MPI_Recv_init");
-
-      CALL_MPI MPI_Recv_init(receive_buffer[1], size[1], MPI_BYTE,
-                             MPI_ANY_SOURCE, tag_block, pastix_comm,
-                             &request[1]);
       TEST_MPI("MPI_Recv_init");
 #endif
 
@@ -2531,14 +1711,10 @@ void* sendrecv_smp ( void *arg )
               }
 
             /* On fait le calcul associé */
-            if (type_comm%2 == 1)
-              recv_handle_block(sopalin_data, me,
-                                receive_buffer[type_comm],
-                                status, 0);
-            else
-              recv_handle_fanin(sopalin_data, me,
-                                receive_buffer[type_comm],
-                                status, 0);
+            assert(type_comm%2 == 0);
+            recv_handle_fanin(sopalin_data, me,
+                              receive_buffer[type_comm],
+                              status, 0);
 
             /* On relance l'attente sur une comm */
             CALL_MPI MPI_Start(&request[type_comm]);
@@ -2551,16 +1727,14 @@ void* sendrecv_smp ( void *arg )
           wait   = 0;
           nbsend = 2;
           nbsend_fanin = SOLV_FTGTNBR;
-          nbsend_block = SOLV_BTGSNBR;
-          nbrecv_block = SOLV_BTGRNBR;
           save_ftgtcnt = SOLV_FTGTCNT;
-          nbrecv = SOLV_FTGTCNT + nbrecv_block;
+          nbrecv = SOLV_FTGTCNT;
 
           if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
             {
               fprintf(stdout, OUT2_FUN_STATS,
                       (long)SOLV_PROCNUM, (long)nbrecv,
-                      (long)(nbsend_block+nbsend_fanin));
+                      (long)(nbsend_fanin));
             }
 
           trace_begin_task(thread_data->tracefile,
@@ -2597,19 +1771,12 @@ void* sendrecv_smp ( void *arg )
                                  STATE_COMPUTE, 1);
 
                 /* On fait le calcul associé */
-                if (type_comm%2)
-                  {
-                    recv_handle_block(sopalin_data, me,
-                                      receive_buffer[type_comm],
-                                      status, 0);
-                    nbrecv_block--;
-                  }
-                else
-                  recv_handle_fanin(sopalin_data, me,
-                                    receive_buffer[type_comm],
-                                    status, 0);
+                assert(type_comm%2 == 0);
+                recv_handle_fanin(sopalin_data, me,
+                                  receive_buffer[type_comm],
+                                  status, 0);
 
-                nbrecv = nbrecv_block + SOLV_FTGTCNT;
+                nbrecv = SOLV_FTGTCNT;
 
                 /* On relance l'attente sur une comm */
                 CALL_MPI MPI_Start(&request[type_comm]);
@@ -2656,21 +1823,17 @@ void* sendrecv_smp ( void *arg )
                                 (long)FANIN_PRIONUM(ftgt),
                                 (long)FANIN_TASKDST(ftgt));
                     print_debug(DBG_FUNNELED,
-                                "%d-%d C : fanin %ld / block %ld\n",
-                                (int)SOLV_PROCNUM, (int)me, (long)nbsend_fanin,
-                                (long)nbsend_block);
-                    if (dest > 0)
-                      nbsend_fanin -= send_one_fanin(sopalin_data,
-                                                     me, ftgt);
-                    else
-                      nbsend_block -= send_one_block(sopalin_data,
-                                                     me, ftgt);
+                                "%d-%d C : fanin %ld\n",
+                                (int)SOLV_PROCNUM, (int)me, (long)nbsend_fanin);
+                    assert(dest > 0);
+                    nbsend_fanin -= send_one_fanin(sopalin_data,
+                                                   me, ftgt);
 
                     wait = 0;
                   }
                 MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
 
-                nbsend = nbsend_fanin + nbsend_block;
+                nbsend = nbsend_fanin;
 
                 trace_begin_task(thread_data->tracefile,
                                  SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,
