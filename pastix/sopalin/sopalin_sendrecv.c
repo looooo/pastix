@@ -1761,12 +1761,13 @@ void* sendrecv_smp ( void *arg )
                                  STATE_COMPUTE, 1);
 
                 /* On fait le calcul associé */
-                assert(type_comm%2 == 0);
+                assert(type_comm == 0);
                 recv_handle_fanin(sopalin_data, me,
                                   receive_buffer[type_comm],
                                   status, 0);
 
                 nbrecv = SOLV_FTGTCNT;
+                fprintf(stderr, "nbrecv = %d\n", nbrecv );
 
                 /* On relance l'attente sur une comm */
                 CALL_MPI MPI_Start(&request[type_comm]);
@@ -1784,7 +1785,7 @@ void* sendrecv_smp ( void *arg )
             /*
              * Progression des envois
              */
-            send_testall_fab(sopalin_data, me);
+            send_testall_fanin(sopalin_data, me);
 
             /*
              * Envoi des données
@@ -1819,6 +1820,7 @@ void* sendrecv_smp ( void *arg )
                     nbsend_fanin -= send_one_fanin(sopalin_data,
                                                    me, ftgt);
 
+                    fprintf(stderr, "nbsend = %d\n", nbsend_fanin );
                     wait = 0;
                   }
                 MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
@@ -1879,16 +1881,19 @@ void* sendrecv_smp ( void *arg )
       /***********************************/
       if (THREAD_FUNNELED_ON)
         {
-          /* Attente de la fin des communications en envoi */
-          send_waitall_fab(sopalin_data, me);
+            fprintf(stderr, "nbsend = %d\n", nbsend );
+            /* Attente de la fin des communications en envoi */
+            if (SOLV_FTGTCNT > 0)
+                send_waitall_fab(sopalin_data, me);
 
-          CALL_MPI MPI_Barrier(PASTIX_COMM);
-          TEST_MPI("MPI_Barrier");
+            fprintf(stderr, "nbsend = %d DONE\n", nbsend );
 
-          /* Restoration de SOLV_FTGTCNT */
-          SOLV_FTGTCNT = save_ftgtcnt;
+            CALL_MPI MPI_Barrier(PASTIX_COMM);
+            TEST_MPI("MPI_Barrier");
+
+            /* Restoration de SOLV_FTGTCNT */
+            SOLV_FTGTCNT = save_ftgtcnt;
         }
-
       sopalin_clean_smp(sopalin_data, me);
 
       end:
