@@ -300,41 +300,36 @@ solverMatrixGen(const pastix_int_t clustnum,
     /*
      * Fill in tasktab
      */
+    MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
     {
-        MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
+        SimuTask *simutask = simuctrl->tasktab;
+        Task     *solvtask = solvmtx->tasktab;
 
         tasknum = 0;
         ftgtnum = 0;
         indnbr  = 0;
 
-        for(i=0;i<simuctrl->tasknbr;i++)
+        for(i=0; i<simuctrl->tasknbr; i++, simutask++)
         {
-            if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
+            if( simuctrl->bloktab[ simutask->bloknum ].ownerclust == clustnum )
             {
-                ASSERTDBG(tasknum == tasklocalnum[i], MOD_BLEND);
+                assert( tasknum == tasklocalnum[i] );
 
-                solvmtx->tasktab[tasknum].taskid  = simuctrl->tasktab[i].taskid;
-                solvmtx->tasktab[tasknum].prionum = simuctrl->tasktab[i].prionum;
-                solvmtx->tasktab[tasknum].cblknum = cblklocalnum[simuctrl->tasktab[i].cblknum];
+                solvtask->taskid  = simutask->taskid;
+                solvtask->prionum = simutask->prionum;
+                solvtask->cblknum = cblklocalnum[ simutask->cblknum ];
+                solvtask->bloknum = bloklocalnum[ simutask->bloknum ];
+                solvtask->ftgtcnt = simutask->ftgtcnt;
+                solvtask->ctrbcnt = simutask->ctrbcnt;
+                solvtask->indnum  = indnbr;
 
-                if(solvmtx->tasktab[tasknum].taskid == COMP_1D)
-                    solvmtx->tasktab[tasknum].bloknum = solvmtx->cblktab[solvmtx->tasktab[tasknum].cblknum].bloknum;
-                else
-                    solvmtx->tasktab[tasknum].bloknum = bloklocalnum[simuctrl->tasktab[i].bloknum];
+                /*
+                 * Count number of index needed in indtab:
+                 *  => number of off-diagonal block below the block (included the block itself)
+                 */
+                odb_nbr = symbmtx->cblktab[ simutask->cblknum + 1 ].bloknum - simutask->bloknum - 1;
 
-                solvmtx->tasktab[tasknum].ctrbcnt = simuctrl->tasktab[i].ctrbcnt;
-                solvmtx->tasktab[tasknum].ftgtcnt = simuctrl->tasktab[i].ftgtcnt;
-                solvmtx->tasktab[tasknum].indnum  = indnbr;
-
-                /*fprintf(stdout, "task %ld, taskid %ld cblk %ld  prionum %ld ctrbnbr %ld \n",(long)tasknum, (long)solvmtx->tasktab[tasknum].taskid, (long)solvmtx->tasktab[tasknum].cblknum, (long)solvmtx->tasktab[tasknum].prionum, (long)solvmtx->tasktab[tasknum].ctrbcnt);*/
-
-                /** Count number of index needed in indtab **/
-                /* number odb below the block (included the block) */
-                odb_nbr = symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum - simuctrl->tasktab[i].bloknum -1;
-#ifdef DEBUG_BLEND
-                ASSERT(simuctrl->tasktab[i].taskid == solvmtx->tasktab[tasknum].taskid,MOD_BLEND);
-#endif
-                switch(simuctrl->tasktab[i].taskid)
+                switch(solvtask->taskid)
                 {
                 case COMP_1D:
                     indnbr += (odb_nbr*(odb_nbr+1))/2;
@@ -344,21 +339,20 @@ solverMatrixGen(const pastix_int_t clustnum,
                     EXIT(MOD_BLEND,INTERNAL_ERR);
                 }
 
-                {
-                    ASSERTDBG(solvmtx->tasktab[tasknum].tasknext == -1 && simuctrl->tasktab[i].tasknext == -1,MOD_BLEND);
-                }
-                tasknum++;
+                tasknum++; solvtask++;
             }
         }
-        /** One more to avoid side effect **/
-        solvmtx->tasktab[tasknum].indnum = indnbr;
+        assert(tasknum == solvmtx->tasknbr);
+
+        /* One more task to avoid side effect */
+        solvtask->taskid  = -1;
+        solvtask->prionum = -1;
+        solvtask->cblknum = solvmtx->cblknbr+1;
+        solvtask->bloknum = solvmtx->bloknbr+1;
+        solvtask->ftgtcnt = 0;
+        solvtask->ctrbcnt = 0;
+        solvtask->indnum  = indnbr;
     }
-
-
-    /** For coherence in Malt (it uses takstab[i+1].tasknum to count access **/
-    /*if(solvmtx->tasktab[tasknum-1].taskid == COMP_1D)
-     solvmtx->tasktab[tasknum-1].indnum = indnbr-1;*/
-    ASSERTDBG(tasknum == solvmtx->tasknbr,MOD_BLEND);
 
     /********************************************/
     /* Fill the processor tasktab indice vector */
