@@ -47,48 +47,11 @@ typedef enum {
   MAXINFO
 } FanInInfo;
 
-typedef enum {
-  BTAG_PRIONUM = 0,
-  BTAG_TASKDST,
-  BTAG_PROCDST,
-  BTAG_TASKCNT,
-#if (defined TRACE_SOPALIN)
-  BTAG_NULL,                                      /*+ Global Cblk destination(->COMP_1D)+*/
-  BTAG_IDTRACE,                                   /*+ To have 12 integer in FanInTarget +*/
-#endif
-  BTAGINFO
-} BtagInfo;
-
-typedef enum {
-  BCOF_FROWNUM = 0,
-  BCOF_LROWNUM,
-  BCOF_FCOLNUM,
-  BCOF_LCOLNUM,
-  BCOFINFO
-} BcofInfo;
-
-
-
-
 /*+ Fanintarget structure +*/
 
 typedef struct FanInTarget_ {
   pastix_int_t                       infotab[MAXINFO];     /*+ Fanintarget descriptor (size MAXINFO) +*/
   pastix_float_t *                   coeftab;              /*+ Fanintarget vector access             +*/
 } FanInTarget;
-
-typedef struct BlockCoeff_
-{
-  pastix_int_t              infotab[BCOFINFO];
-  volatile pastix_float_t * coeftab; /* blocktarget coeff vector if != NULL envoi possible */
-  pastix_int_t              sendcnt; /* number of blocktarget send, if == 0 free coeftab */
-} BlockCoeff;
-
-
-/*+ BlockTarget structure +*/
-typedef struct BlockTarget_ {
-  pastix_int_t           infotab[BTAGINFO];
-  BlockCoeff*   bcofptr; /* index of the blockCoeff                        */
-} BlockTarget;
 
 #endif /* FTGT_H */

@@ -32,9 +32,6 @@ void solverCheck(SolverMatrix *solvmtx)
     pastix_int_t indnum, tasknum;
     pastix_int_t total;
 
-    BlockCoeff *bcofptr = NULL;
-    (void)bcofptr;
-
     /** Check the task **/
     for(i=0;i<solvmtx->tasknbr;i++)
       {
