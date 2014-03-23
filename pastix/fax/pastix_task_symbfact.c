@@ -37,13 +37,17 @@
  * pastix_task_symbfact - Computes the the symbolic factorization of the matrix
  * and if required the amalgamated supernode partition.
  *
- * The function is a centralized algorithm to genrated the symbol matrix
- * structure associated to the problem. If (PT-)Scotch has been used, it
- * generates the structure with symbolFaxGraph() thanks to the supernode
- * partition given by Scotch. If ILU(k) factorization will be performed or if
- * the ordering tools didn't provide the supernode partition, symbolKass() is
- * used to generate both supernode partition and associated symbol matrix
- * structure.
+ * The function is a *centralized* algorithm to generate the symbol matrix
+ * structure associated to the problem. It takes as input the ordemesh structure
+ * (permutaion array, inverse permutation array, and optionnal supernodes
+ * array) and returns the modified ordemesh structure if changed, and the
+ * symbolic structure.
+ *  - If (PT-)Scotch has been used, it generates the structure with
+ * symbolFaxGraph() thanks to the supernode partition given by Scotch.
+ *  - If ILU(k) factorization will be performed or if the ordering tools didn't
+ * provide the supernode partition, symbolKass() is used to generate both
+ * supernode partition and associated symbol matrix structure.
+ *
  * Both algorithms are working with a centralized version of the graph and are
  * on every nodes. If a distributed graph has been used, it is gather on each
  * node to compute the symbol matrix.
