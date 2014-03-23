@@ -10,8 +10,8 @@ typedef struct BubbleTreeNode_ {
   int                       lcandnum;     /*+ last bubble proc                       +*/
   double                    costlevel;    /*+ cost of way from the root to this node +*/
   int                       treelevel;    /*+ cost of way from the root to this node +*/
-  pastix_int_t                       priomin;      /*+ Minimal priority of tasks owned by the bubble +*/
-  pastix_int_t                       priomax;      /*+ Maximal priority of tasks owned by the bubble +*/
+  pastix_int_t              priomin;      /*+ Minimal priority of tasks owned by the bubble +*/
+  pastix_int_t              priomax;      /*+ Maximal priority of tasks owned by the bubble +*/
   Queue *                   taskheap;     /*+ Liste de taches de la bulle            +*/
 } BubbleTreeNode;
 
