@@ -127,7 +127,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            p, c;
     pastix_int_t            cursor, cursor2;
     pastix_int_t            flag;
-    pastix_int_t            i, j, jloc, k;
+    pastix_int_t            i, j, k;
     pastix_int_t            ftgtnum          = 0;
     pastix_int_t            coefnbr          = 0;
     pastix_int_t            coefind          = 0;
@@ -136,7 +136,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            cblknum          = 0;
     pastix_int_t            bloknum          = 0;
     pastix_int_t            tasknum          = 0;
-    pastix_int_t            facebloknum      = 0;
     pastix_int_t            delta            = 0;
     pastix_int_t            indnbr           = 0;
     pastix_int_t          * cblklocalnum     = NULL;
@@ -150,9 +149,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t          * uprecvcblk       = NULL;
     pastix_int_t            flaglocal        = 0;
 
-    /** Set procnum and procnbr **/
-    /*solvmtx->procnum = procnum;
-     solvmtx->procnbr = ctrl->procnbr;*/
 #ifdef PASTIX_DYNSCHED
     solvmtx->btree    = ctrl->btree;
 #endif
@@ -352,213 +348,194 @@ solverMatrixGen(const pastix_int_t clustnum,
         solvtask->ftgtcnt = 0;
         solvtask->ctrbcnt = 0;
         solvtask->indnum  = indnbr;
+
+        /* Store the final indnbr */
+        solvmtx->indnbr = indnbr;
     }
 
-    /********************************************/
-    /* Fill the processor tasktab indice vector */
-    /********************************************/
-    /* Number of processor in this cluster */
-    k = solvmtx->bublnbr;
-    MALLOC_INTERN(solvmtx->ttsknbr, k, pastix_int_t);
-
-    for(p = 0;p<k;p++)
+    /*
+     * Fill in the tasktab arrays
+     */
     {
-        solvmtx->ttsknbr[p] = extendint_Size(simuctrl->proctab[simuctrl->clustab[clustnum].fprocnum + p].tasktab);
-        print_debug(DBG_BUBBLES, "La bulle %d execute %d taches\n", (int)p, (int)solvmtx->ttsknbr[p]);
-    }
+        SimuProc *simuproc = &(simuctrl->proctab[simuctrl->clustab[clustnum].fprocnum]);
 
-    MALLOC_INTERN(solvmtx->ttsktab, k, pastix_int_t *);
-    for(p = 0;p<k;p++)
-    {
-#ifdef PASTIX_DYNSCHED
-        pastix_int_t min = INTVALMAX;
-        pastix_int_t max = 0;
-#endif
+        /* Number of processor in this cluster */
+        k = solvmtx->bublnbr;
+        MALLOC_INTERN(solvmtx->ttsknbr, k, pastix_int_t  );
+        MALLOC_INTERN(solvmtx->ttsktab, k, pastix_int_t* );
 
-        if(solvmtx->ttsknbr[p] > 0)
+        for(p=0; p<k; p++, simuproc++)
         {
-            MALLOC_INTERN(solvmtx->ttsktab[p], solvmtx->ttsknbr[p], pastix_int_t);
-        }
-        else
-            solvmtx->ttsktab[p] = NULL;
+            pastix_int_t priomin = INTVALMAX;
+            pastix_int_t priomax = 0;
+            pastix_int_t ttsknbr = extendint_Size( simuproc->tasktab );
+            pastix_int_t j, jloc;
 
-        for(i=0;i<solvmtx->ttsknbr[p];i++)
-        {
-            j    = extendint_Read(simuctrl->proctab[simuctrl->clustab[clustnum].fprocnum + p].tasktab, i);
-            jloc = tasklocalnum[j];
-            solvmtx->ttsktab[p][i] = jloc;
+            solvmtx->ttsknbr[p] = ttsknbr;
+
+            if(ttsknbr > 0) {
+                MALLOC_INTERN(solvmtx->ttsktab[p], ttsknbr, pastix_int_t);
+            }
+            else {
+                solvmtx->ttsktab[p] = NULL;
+            }
+
+            for(i=0; i<ttsknbr; i++)
+            {
+                j    = extendint_Read(simuproc->tasktab, i);
+                jloc = tasklocalnum[j];
+                solvmtx->ttsktab[p][i] = jloc;
 
 #if (defined PASTIX_DYNSCHED) || (defined TRACE_SOPALIN)
-            solvmtx->tasktab[jloc].threadid = p;
+                solvmtx->tasktab[jloc].threadid = p;
 #endif
-#ifdef TRACE_SOPALIN
-            solvmtx->tasktab[jloc].fcandnum = ctrl->candtab[simuctrl->tasktab[j].cblknum].fcandnum;
-            solvmtx->tasktab[jloc].lcandnum = ctrl->candtab[simuctrl->tasktab[j].cblknum].lcandnum;
-            solvmtx->tasktab[jloc].id       = simuctrl->tasktab[j].cblknum;
-#endif
-
-#ifdef PASTIX_DYNSCHED
-            if ( solvmtx->tasktab[jloc].prionum > max )
-                max = solvmtx->tasktab[jloc].prionum;
-            if ( solvmtx->tasktab[jloc].prionum < min )
-                min = solvmtx->tasktab[jloc].prionum;
-#endif
-        }
-
-#ifdef PASTIX_DYNSCHED
-        solvmtx->btree->nodetab[p].priomin = min;
-        solvmtx->btree->nodetab[p].priomax = max;
-#endif
-    }
-
-#ifdef PRINT_ORDOTASK
-    {
-        FILE *ordofile;
-        char  ordofilename[250];
-        sprintf(ordofilename, "Ordo.%02d", clustnum);
-        ordofile = fopen(ordofilename, "w");
-        for(p = 0;p<k;p++)
-            for(i=0;i<solvmtx->ttsknbr[p];i++)
-            {
-                j = extendint_Read(simuctrl->proctab[simuctrl->clustab[clustnum].fprocnum + p].tasktab, i);
-                fprintf(ordofile, "%ld %ld\n", j, tasklocalnum[j]);
+                priomax = pastix_imax( solvmtx->tasktab[jloc].prionum, priomax );
+                priomin = pastix_imin( solvmtx->tasktab[jloc].prionum, priomin );
             }
-        fclose(ordofile);
-    }
+
+#ifdef PASTIX_DYNSCHED
+            solvmtx->btree->nodetab[p].priomin = priomin;
+            solvmtx->btree->nodetab[p].priomax = priomax;
 #endif
-
-    /*******************/
-    /** Fill ftgttab  **/
-    /*******************/
-
-    solvmtx->ftgtnbr = 0;
-    for(c=0;c < ctrl->clustnbr;c++)
-    {
-        if(c != clustnum)
-            solvmtx->ftgtnbr += extendint_Size(&(simuctrl->clustab[clustnum].ftgtsend[c]));
+        }
     }
 
-    if(solvmtx->ftgtnbr > 0)
+    /*
+     * Fill in ftgttab
+     */
     {
-        MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, FanInTarget);
-    }
-    else
+        solvmtx->ftgtnbr = 0;
         solvmtx->ftgttab = NULL;
-    MALLOC_INTERN(ftgtlocalnum, simuctrl->bloktab[symbmtx->bloknbr].ftgtnum, pastix_int_t);
-    memset(ftgtlocalnum, -1, sizeof(pastix_int_t)*simuctrl->bloktab[symbmtx->bloknbr].ftgtnum);
-    cursor = 0;
-    for(c=0;c<ctrl->clustnbr;c++)
-        for(i=0;i<extendint_Size(&(simuctrl->clustab[clustnum].ftgtsend[c]));i++)
-        {
-            ftgtnum = extendint_Read(&(simuctrl->clustab[clustnum].ftgtsend[c]), i);
-            ftgtlocalnum[ftgtnum] = cursor;
-            memcpy(solvmtx->ftgttab[cursor].infotab, simuctrl->ftgttab[ftgtnum].ftgt.infotab, MAXINFO*sizeof(pastix_int_t));
 
-
-#ifdef DOF_CONSTANT
-            solvmtx->ftgttab[cursor].infotab[FTGT_FCOLNUM] *= dofptr->noddval;
-            solvmtx->ftgttab[cursor].infotab[FTGT_LCOLNUM] *= dofptr->noddval;
-            solvmtx->ftgttab[cursor].infotab[FTGT_LCOLNUM] += dofptr->noddval - 1;
-            solvmtx->ftgttab[cursor].infotab[FTGT_FROWNUM] *= dofptr->noddval;
-            solvmtx->ftgttab[cursor].infotab[FTGT_LROWNUM] *= dofptr->noddval;
-            solvmtx->ftgttab[cursor].infotab[FTGT_LROWNUM] += dofptr->noddval - 1;
-#endif
-
-            solvmtx->ftgttab[cursor].infotab[FTGT_TASKDST] = tasklocalnum[solvmtx->ftgttab[cursor].infotab[FTGT_TASKDST]];
-
-            solvmtx->ftgttab[cursor].infotab[FTGT_BLOKDST] = bloklocalnum[solvmtx->ftgttab[cursor].infotab[FTGT_BLOKDST]];
-            /* Reinit ftgt ctrbcnt */
-            solvmtx->ftgttab[cursor].infotab[FTGT_CTRBCNT] = solvmtx->ftgttab[cursor].infotab[FTGT_CTRBNBR];
-            /** Allocation for FanInTarget not assured by blend (done by sopalin)**/
-            solvmtx->ftgttab[cursor].coeftab = NULL;
-
-            /*if(p == 2)
-             fprintf(stdout, "Ftgt %ld prio %ld to task %ld \n", (long)cursor, (long)solvmtx->ftgttab[cursor].infotab[FTGT_PRIONUM],
-             (long)solvmtx->ftgttab[cursor].infotab[FTGT_TASKDST]);*/
-
-
-            cursor++;
+        /* Compute local number of outgoing contributions */
+        for(c=0; c<ctrl->clustnbr; c++) {
+            if(c == clustnum) {
+                assert( extendint_Size(&(simuctrl->clustab[clustnum].ftgtsend[c])) == 0 );
+                continue;
+            }
+            solvmtx->ftgtnbr += extendint_Size(&(simuctrl->clustab[clustnum].ftgtsend[c]));
         }
 
+        if(solvmtx->ftgtnbr > 0) {
+            SimuCluster *simuclust = &(simuctrl->clustab[clustnum]);
+            FanInTarget *solvftgt;
+            pastix_int_t ftgtnbr;
 
-    /*********************/
-    /*    Fill indtab    */
-    /*********************/
-    solvmtx->indnbr   = indnbr;
-    solvmtx->indtab   = NULL;
-    bcofind           = NULL;
-    if (indnbr)
-        MALLOC_INTERN(solvmtx->indtab, indnbr, pastix_int_t);
+            MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, FanInTarget);
 
-    tasknum     = 0;
-    indnbr      = 0;
+            /* Allocate array to store local indices */
+            ftgtnbr = simuctrl->bloktab[symbmtx->bloknbr].ftgtnum;
+            MALLOC_INTERN(ftgtlocalnum, ftgtnbr, pastix_int_t);
+            memset(ftgtlocalnum, -1, ftgtnbr * sizeof(pastix_int_t));
 
-    for(i=0;i<simuctrl->tasknbr;i++)
-    {
-        if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
-        {
-            ASSERTDBG(tasklocalnum[i] == tasknum,MOD_BLEND);
-            ASSERTDBG(indnbr == solvmtx->tasktab[tasklocalnum[i]].indnum, MOD_BLEND);
-            ASSERTDBG(bloklocalnum[simuctrl->tasktab[i].bloknum] == solvmtx->tasktab[tasklocalnum[i]].bloknum,MOD_BLEND);
-            ASSERTDBG(cblklocalnum[simuctrl->tasktab[i].cblknum] == solvmtx->tasktab[tasklocalnum[i]].cblknum,MOD_BLEND);
+            cursor = 0;
+            solvftgt = solvmtx->ftgttab;
 
-            switch(simuctrl->tasktab[i].taskid)
+            for(c=0; c<ctrl->clustnbr; c++)
             {
-            case COMP_1D:
-                for(bloknum = symbmtx->cblktab[simuctrl->tasktab[i].cblknum].bloknum+1;
-                    bloknum < symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum; bloknum++)
+                ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
+                for(i=0; i<ftgtnbr; i++)
                 {
-                    facebloknum = 0;
-                    for(j=bloknum;j<symbmtx->cblktab[simuctrl->tasktab[i].cblknum+1].bloknum;j++)
+                    ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]), i);
+                    ftgtlocalnum[ftgtnum] = cursor;
+
+                    /* Copy information computed during simulation */
+                    memcpy(solvftgt->infotab, simuctrl->ftgttab[ftgtnum].ftgt.infotab, MAXINFO*sizeof(pastix_int_t));
+
+                    /* Update with Degre of freedoms */
+                    solvftgt->infotab[FTGT_FCOLNUM] *= dofptr->noddval;
+                    solvftgt->infotab[FTGT_LCOLNUM] *= dofptr->noddval;
+                    solvftgt->infotab[FTGT_LCOLNUM] += dofptr->noddval - 1;
+                    solvftgt->infotab[FTGT_FROWNUM] *= dofptr->noddval;
+                    solvftgt->infotab[FTGT_LROWNUM] *= dofptr->noddval;
+                    solvftgt->infotab[FTGT_LROWNUM] += dofptr->noddval - 1;
+
+                    /* Convert to local numbering */
+                    solvftgt->infotab[FTGT_TASKDST] = tasklocalnum[solvftgt->infotab[FTGT_TASKDST]];
+                    solvftgt->infotab[FTGT_BLOKDST] = bloklocalnum[solvftgt->infotab[FTGT_BLOKDST]];
+
+                    /* Restore ctrbcnt (modified durind simulation) */
+                    solvftgt->infotab[FTGT_CTRBCNT] = solvmtx->ftgttab[cursor].infotab[FTGT_CTRBNBR];
+                    solvftgt->coeftab = NULL;
+
+                    cursor++; solvftgt++;
+                }
+            }
+        }
+    }
+
+
+    /*
+     * Fill in indtab
+     */
+    {
+        solvmtx->indtab = NULL;
+        if (solvmtx->indnbr) {
+            MALLOC_INTERN(solvmtx->indtab, solvmtx->indnbr, pastix_int_t);
+        }
+
+        indnbr = 0;
+        for(i=0; i<simuctrl->tasknbr; i++)
+        {
+            pastix_int_t bloknum = simuctrl->tasktab[i].bloknum;
+            pastix_int_t cblknum = simuctrl->tasktab[i].cblknum;
+
+            if(simuctrl->bloktab[bloknum].ownerclust != clustnum)
+                continue;
+
+            assert(indnbr == solvmtx->tasktab[tasklocalnum[i]].indnum);
+            assert(bloklocalnum[simuctrl->tasktab[i].bloknum] == solvmtx->tasktab[tasklocalnum[i]].bloknum);
+            assert(cblklocalnum[simuctrl->tasktab[i].cblknum] == solvmtx->tasktab[tasklocalnum[i]].cblknum);
+
+            switch(simuctrl->tasktab[i].taskid) {
+            case COMP_1D:
+            {
+                pastix_int_t fbloknum = symbmtx->cblktab[cblknum  ].bloknum+1;
+                pastix_int_t lbloknum = symbmtx->cblktab[cblknum+1].bloknum;
+
+                /* For each couple (bloknum,j)\ j>=bloknum of off-diagonal block, check where goes the contribution */
+                for(bloknum=fbloknum; bloknum<lbloknum; bloknum++)
+                {
+                    pastix_int_t firstbloknum = 0;
+                    pastix_int_t facebloknum  = 0;
+
+                    for(j=bloknum; j<lbloknum; j++)
                     {
-                        facebloknum = symbolGetFacingBloknum(symbmtx, bloknum, j, facebloknum, ctrl->ricar);
-                        /*#ifdef NAPA*/
-                        if(facebloknum >= 0)
-                        {
-                            /*#endif*/
-                            if(simuctrl->bloktab[facebloknum].ownerclust!=clustnum)
+                        facebloknum = symbolGetFacingBloknum(symbmtx, bloknum, j, firstbloknum, ctrl->ricar);
+
+                        if(facebloknum >= 0) {
+                            firstbloknum = facebloknum;
+
+                            if(simuctrl->bloktab[facebloknum].ownerclust != clustnum)
                             {
                                 solvmtx->indtab[indnbr] = ftgtlocalnum[CLUST2INDEX(facebloknum, clustnum)];
-#ifdef DEBUG_PRIO
-                                solvmtx->ftgttab[solvmtx->indtab[indnbr]].infotab[FTGT_PRIONUM]
-                                    = solvmtx->tasktab[tasklocalnum[i]].prionum;
-                                /*fprintf(stdout, "SOLV Task1D %ld FTGT %ld  taskprio %ld ftgtprio %ld \n", (long)tasklocalnum[i], (long)solvmtx->indtab[indnbr] , (long)solvmtx->tasktab[tasklocalnum[i]].prionum, (long)solvmtx->ftgttab[solvmtx->indtab[indnbr]].infotab[FTGT_PRIONUM]);*/
-#endif
-
-                                ASSERTDBG(solvmtx->indtab[indnbr] < solvmtx->ftgtnbr,MOD_BLEND);
+                                assert(solvmtx->indtab[indnbr] < solvmtx->ftgtnbr);
                             }
                             else
                             {
-                                solvmtx->indtab[indnbr] = -tasklocalnum[simuctrl->bloktab[facebloknum].tasknum];
-
-#ifdef DEBUG_BLEND
-                                if(!(-solvmtx->indtab[indnbr] < solvmtx->tasknbr))
-                                    fprintf(stderr, "facetasknum %ld tasklocalnum %ld \n",
-                                            (long)simuctrl->bloktab[facebloknum].tasknum, (long)-solvmtx->indtab[indnbr]);
-                                ASSERT(-solvmtx->indtab[indnbr] < solvmtx->tasknbr,MOD_BLEND);
-#endif
+                                solvmtx->indtab[indnbr] = - tasklocalnum[simuctrl->bloktab[facebloknum].tasknum];
+                                assert( (- solvmtx->indtab[indnbr]) < solvmtx->tasknbr );
                             }
-                            indnbr++;
-                            ASSERTDBG(indnbr <= solvmtx->indnbr,MOD_BLEND);
-                            /*#ifdef NAPA*/
                         }
-                        else
-                        { /** THE FACING BLOCK DO NOT EXIST **/
+                        else {
+                            /* The facing block does not exist */
                             solvmtx->indtab[indnbr] =  solvmtx->ftgtnbr+1;
-                            indnbr++;
                         }
-                        /*#endif*/
+                        indnbr++;
                     }
                 }
                 break;
+            }
             default:
-                fprintf(stderr, "Error in solverMatrixgen \n");
+                fprintf(stderr, "Error in solverMatrixgen: taskid unknown\n");
                 EXIT(MOD_BLEND,INTERNAL_ERR);
             }
-            tasknum++;
         }
+        assert(indnbr == solvmtx->indnbr);
     }
-    ASSERTDBG(indnbr  == solvmtx->indnbr,  MOD_BLEND);
+
+
+
 
     /********************/
     /** Fill Solver    **/
