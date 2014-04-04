@@ -174,10 +174,9 @@ solverMatrixGen(const pastix_int_t clustnum,
 
     /** Be sure initialized **/
     solvmtx->cpftmax = 0;
-    solvmtx->bpftmax = 0;
     solvmtx->coefmax = 0;
 
-    /*
+    /***************************************************************************
      * Compute local indices to compress the symbol information into solver
      */
     {
@@ -229,7 +228,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         memFree_null(localindex);
     }
 
-    /*
+    /***************************************************************************
      * Fill in bloktab and cblktab
      */
 
@@ -246,10 +245,13 @@ solverMatrixGen(const pastix_int_t clustnum,
         cblknum = 0;
         bloknum = 0;
         nodenbr = 0;
+        coefnbr = 0;
         for(i=0;i<symbmtx->cblknbr;i++, symbcblk++)
         {
             pastix_int_t fbloknum = symbcblk[0].bloknum;
             pastix_int_t lbloknum = symbcblk[1].bloknum;
+            pastix_int_t stride   = 0;
+            pastix_int_t nbcolumns;
 
             flaglocal = 0;
             cursor = bloknum;
@@ -259,25 +261,39 @@ solverMatrixGen(const pastix_int_t clustnum,
                 if(simublok->ownerclust == clustnum)
                 {
                     flaglocal = 1;
+
+                    /* Init the blok */
                     solvblok->frownum = symbblok->frownum * dofptr->noddval;
                     solvblok->lrownum = symbblok->lrownum * dofptr->noddval + dofptr->noddval - 1;
                     solvblok->cblknum = cblklocalnum[symbblok->cblknum];
+                    //solvblok->levfval;
+                    solvblok->coefind = stride;
+
+                    stride += solvblok->lrownum - solvblok->frownum + 1;
                     bloknum ++; solvblok++;
                 }
             }
             if(flaglocal)
             {
+                /* Init the cblk */
                 solvcblk->fcolnum  = symbcblk->fcolnum * dofptr->noddval;
                 solvcblk->lcolnum  = symbcblk->lcolnum * dofptr->noddval + dofptr->noddval - 1;
                 solvcblk->bloknum  = cursor;
+                solvcblk->stride   = stride;
+                solvcblk->procdiag = -1;
                 solvcblk->coeftab  = NULL;
                 solvcblk->ucoeftab = NULL;
-                nodenbr += symbcblk->lcolnum - symbcblk->fcolnum + 1;
+
+                /* Extra statistic informations */
+                nbcolumns = symbcblk->lcolnum - symbcblk->fcolnum + 1;
+                nodenbr += nbcolumns;
+                coefnbr += stride * nbcolumns;
+
                 cblknum++; solvcblk++;
             }
         }
-
         solvmtx->nodenbr = nodenbr;
+        solvmtx->coefnbr = coefnbr;
 
         assert( solvmtx->cblknbr == cblknum );
         assert( solvmtx->bloknbr == bloknum );
@@ -288,12 +304,14 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
             solvcblk->bloknum  = bloknum;
+            solvcblk->stride   = 0;
+            solvcblk->procdiag = -1;
             solvcblk->coeftab  = NULL;
             solvcblk->ucoeftab = NULL;
         }
     }
 
-    /*
+    /***************************************************************************
      * Fill in tasktab
      */
     MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
@@ -353,8 +371,11 @@ solverMatrixGen(const pastix_int_t clustnum,
         solvmtx->indnbr = indnbr;
     }
 
-    /*
-     * Fill in the tasktab arrays
+    /***************************************************************************
+     * Fill in the ttsktab arrays (one per thread)
+     *
+     * TODO: This would definitely be better if each thread was initializing
+     * it's own list on its own memory node.
      */
     {
         SimuProc *simuproc = &(simuctrl->proctab[simuctrl->clustab[clustnum].fprocnum]);
@@ -400,7 +421,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
     }
 
-    /*
+    /***************************************************************************
      * Fill in ftgttab
      */
     {
@@ -465,7 +486,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     }
 
 
-    /*
+    /***************************************************************************
      * Fill in indtab
      */
     {
@@ -534,44 +555,9 @@ solverMatrixGen(const pastix_int_t clustnum,
         assert(indnbr == solvmtx->indnbr);
     }
 
-
-
-
-    /********************/
-    /** Fill Solver    **/
-    /** cblk and blok  **/
-    /********************/
-    cblknum = 0;
-    bloknum = 0;
-    coefnbr = 0;
-    coefind = 0;
-    for(i=0;i<solvmtx->cblknbr;i++)
-    {
-        coefind = 0;
-        solvmtx->cblktab[i].stride   = 0;
-        solvmtx->cblktab[i].procdiag = -1;
-        for(j=solvmtx->cblktab[i].bloknum;j<solvmtx->cblktab[i+1].bloknum;j++)
-        {
-            /* Solvmtx is already expanded in dll */
-            delta =  solvmtx->bloktab[j].lrownum - solvmtx->bloktab[j].frownum +1;
-            solvmtx->cblktab[i].stride += delta;
-            solvmtx->bloktab[j].coefind = coefind;
-            coefind += delta;
-        }
-        coefnbr += (solvmtx->cblktab[i].lcolnum - solvmtx->cblktab[i].fcolnum +1) * solvmtx->cblktab[i].stride;
-        coefind = coefnbr;
-    }
-    solvmtx->coefnbr = coefnbr;
-
     /*****************************************/
-    /**  Find coefmax, cpftmax and bpftmax  **/
+    /**  Find coefmax, cpftmax              **/
     /*****************************************/
-    /** Find bpftmax **/
-    /* bpftmax is the number of coef of the largest block target in reception */
-    solvmtx->bpftmax = 0;
-    /* the largest block target is the largest local block */
-
-
     /** Find cpftmax **/
     /* cpftmax is the number of coef of the largest fan in target in reception */
     solvmtx->cpftmax = 0;
@@ -711,25 +697,6 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
     }
 
-    /** Find the bpftmax **/
-    solvmtx->bpftmax = 0;
-    for(i=0;i<simuctrl->tasknbr;i++)
-    {
-        if(simuctrl->tasktab[i].taskid == E1 || simuctrl->tasktab[i].taskid == E2)
-            if(simuctrl->bloktab[simuctrl->tasktab[i].bloknum].ownerclust == clustnum)
-            {
-                delta = (symbmtx->cblktab[simuctrl->tasktab[i].cblknum].lcolnum - symbmtx->cblktab[simuctrl->tasktab[i].cblknum].fcolnum+1)
-                    * dofptr->noddval;
-                coefnbr = delta * (symbmtx->bloktab[simuctrl->tasktab[i].bloknum2].lrownum - symbmtx->bloktab[simuctrl->tasktab[i].bloknum2].frownum+1)
-                    *dofptr->noddval;
-                if(coefnbr > solvmtx->bpftmax)
-                    solvmtx->bpftmax = coefnbr;
-
-            }
-    }
-
-
-
     /** Find the nbftmax **/
     solvmtx->nbftmax = 0;
     for(i=0;i<simuctrl->tasknbr;i++)
@@ -759,8 +726,8 @@ solverMatrixGen(const pastix_int_t clustnum,
 
 
     if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, "COEFMAX %ld CPFTMAX %ld BPFTMAX %ld NBFTMAX %ld ARFTMAX %ld \n", (long)solvmtx->coefmax, (long)solvmtx->cpftmax,
-                (long)solvmtx->bpftmax, (long)solvmtx->nbftmax, (long)solvmtx->arftmax);
+        fprintf(stdout, "COEFMAX %ld CPFTMAX %ld NBFTMAX %ld ARFTMAX %ld \n", (long)solvmtx->coefmax, (long)solvmtx->cpftmax,
+                (long)solvmtx->nbftmax, (long)solvmtx->arftmax);
 
 
     /****************************************/
