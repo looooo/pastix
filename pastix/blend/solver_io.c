@@ -123,7 +123,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     if(  intLoad (stream, &solvptr->coefnbr) +
          intLoad (stream, &solvptr->ftgtnbr) +
          intLoad (stream, &solvptr->coefmax) +
-         intLoad (stream, &solvptr->cpftmax) +
          intLoad (stream, &solvptr->nbftmax) +
          intLoad (stream, &solvptr->arftmax) +
          intLoad (stream, &clustnum) +
@@ -134,7 +133,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
          intLoad (stream, &solvptr->thrdnbr) +
          intLoad (stream, &solvptr->gridldim) +
          intLoad (stream, &solvptr->gridcdim)
-         != 14)
+         != 13)
         {
             errorPrint ("solverLoad: bad input (1)");
             return     (1);
@@ -375,11 +374,10 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
 
 
    /*fprintf(stream, "File header\n");*/
-   o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
+   o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                  (long) solvptr->coefnbr,
                  (long) solvptr->ftgtnbr,
                  (long) solvptr->coefmax,
-                 (long) solvptr->cpftmax,
                  (long) solvptr->nbftmax,
                  (long) solvptr->arftmax,
                  (long) solvptr->clustnum,

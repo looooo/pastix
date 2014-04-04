@@ -135,7 +135,6 @@ void solverInit(SolverMatrix *solvmtx)
   solvmtx->ftgtnbr = 0;
 
   solvmtx->ftgttab = NULL;
-  solvmtx->cpftmax = 0;
   solvmtx->coefmax = 0;
   memset(solvmtx, 0, sizeof (SolverMatrix));
 

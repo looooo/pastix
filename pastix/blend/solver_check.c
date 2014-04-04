@@ -108,8 +108,6 @@ void solverCheck(SolverMatrix *solvmtx)
                           ASSERT(solvmtx->bloktab[k].frownum >= solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM],MOD_BLEND);
                           ASSERT(solvmtx->bloktab[k].lrownum <= solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM],MOD_BLEND);
 
-                          /*ASSERT( (solvmtx->ftgttab[ftgtnum].infotab[FTGT_LCOLNUM] - solvmtx->ftgttab[ftgtnum].infotab[FTGT_FCOLNUM] + 1)* (solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM] - solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM] + 1) <= solvmtx->cpftmax,MOD_BLEND);*/
-
                           solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT]--;
 
 #ifdef DEBUG_PRIO

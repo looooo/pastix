@@ -94,7 +94,6 @@ typedef struct SolverMatrix_ {
   FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
 
   pastix_int_t              coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
-  pastix_int_t              cpftmax;              /*+ Maximum of block size for ftgt to receive +*/
   pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
   pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/
 

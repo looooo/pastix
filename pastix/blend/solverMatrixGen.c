@@ -130,7 +130,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            i, j, k;
     pastix_int_t            ftgtnum          = 0;
     pastix_int_t            coefnbr          = 0;
-    pastix_int_t            coefind          = 0;
     pastix_int_t            nodenbr          = 0;
     pastix_int_t            odb_nbr          = 0;
     pastix_int_t            cblknum          = 0;
@@ -173,7 +172,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
 
     /** Be sure initialized **/
-    solvmtx->cpftmax = 0;
     solvmtx->coefmax = 0;
 
     /***************************************************************************
@@ -560,12 +558,8 @@ solverMatrixGen(const pastix_int_t clustnum,
     }
 
     /*****************************************/
-    /**  Find coefmax, cpftmax              **/
+    /**  Find coefmax              **/
     /*****************************************/
-    /** Find cpftmax **/
-    /* cpftmax is the number of coef of the largest fan in target in reception */
-    solvmtx->cpftmax = 0;
-
     {
         /***** Find coefmax *****
          * coefmax is the number of coef of the largest temporary block used
@@ -617,20 +611,8 @@ solverMatrixGen(const pastix_int_t clustnum,
                 }
             }
         }
-    }
-
-    /** Find the cpftmax **/
-    /* OIMBE on peut trouver le bon : flemmard */
-    solvmtx->cpftmax = 0;
-    for(i=0;i<simuctrl->ftgtnbr;i++)
-    {
-        if( simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR] > 0 )
-        {
-            coefnbr = (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LCOLNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FCOLNUM] + 1) * dofptr->noddval *
-                      (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LROWNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FROWNUM] + 1) * dofptr->noddval;
-            if(coefnbr > solvmtx->cpftmax)
-                solvmtx->cpftmax = coefnbr;
-        }
+        fprintf(stderr, "Coefmax = %ld (%ld x %ld)\n",
+                (long)solvmtx->coefmax, (long)max_m, (long)max_n );
     }
 
     /** Find the area max **/
@@ -656,8 +638,10 @@ solverMatrixGen(const pastix_int_t clustnum,
 
 
     if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, "COEFMAX %ld CPFTMAX %ld NBFTMAX %ld ARFTMAX %ld \n", (long)solvmtx->coefmax, (long)solvmtx->cpftmax,
-                (long)solvmtx->nbftmax, (long)solvmtx->arftmax);
+        fprintf(stdout, "COEFMAX %ld NBFTMAX %ld ARFTMAX %ld \n",
+                (long)solvmtx->coefmax,
+                (long)solvmtx->nbftmax,
+                (long)solvmtx->arftmax);
 
 
     /****************************************/
