@@ -239,6 +239,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         SymbolCblk *symbcblk = symbmtx->cblktab;
         SymbolBlok *symbblok = symbmtx->bloktab;
         SimuBlok   *simublok = simuctrl->bloktab;
+        pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
 
         cblknum = 0;
         bloknum = 0;
@@ -246,15 +247,19 @@ solverMatrixGen(const pastix_int_t clustnum,
         coefnbr = 0;
         for(i=0;i<symbmtx->cblknbr;i++, symbcblk++)
         {
-            pastix_int_t fbloknum = symbcblk[0].bloknum;
-            pastix_int_t lbloknum = symbcblk[1].bloknum;
-            pastix_int_t stride   = 0;
-            pastix_int_t nbcolumns;
+            pastix_int_t fbloknum  = symbcblk[0].bloknum;
+            pastix_int_t lbloknum  = symbcblk[1].bloknum;
+            pastix_int_t stride    = 0;
+            pastix_int_t nbcolumns = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dofptr->noddval;
+            pastix_int_t nbrows;
 
             flaglocal = 0;
             cursor = bloknum;
 
             for( j=fbloknum; j<lbloknum; j++, symbblok++, simublok++ ) {
+                nbrows = (symbblok->lrownum - symbblok->frownum + 1) * dofptr->noddval;
+
+                blokamax = pastix_imax( blokamax, nbrows * nbcolumns );
 
                 if(simublok->ownerclust == clustnum)
                 {
@@ -262,12 +267,12 @@ solverMatrixGen(const pastix_int_t clustnum,
 
                     /* Init the blok */
                     solvblok->frownum = symbblok->frownum * dofptr->noddval;
-                    solvblok->lrownum = symbblok->lrownum * dofptr->noddval + dofptr->noddval - 1;
+                    solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->cblknum = cblklocalnum[symbblok->cblknum];
                     //solvblok->levfval;
                     solvblok->coefind = stride;
 
-                    stride += solvblok->lrownum - solvblok->frownum + 1;
+                    stride += nbrows;
                     bloknum ++; solvblok++;
                 }
             }
@@ -275,7 +280,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             {
                 /* Init the cblk */
                 solvcblk->fcolnum  = symbcblk->fcolnum * dofptr->noddval;
-                solvcblk->lcolnum  = symbcblk->lcolnum * dofptr->noddval + dofptr->noddval - 1;
+                solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
                 solvcblk->bloknum  = cursor;
                 solvcblk->stride   = stride;
                 solvcblk->procdiag = -1;
@@ -283,22 +288,16 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvcblk->ucoeftab = NULL;
 
                 /* Extra statistic informations */
-                nbcolumns = symbcblk->lcolnum - symbcblk->fcolnum + 1;
                 nodenbr += nbcolumns;
                 coefnbr += stride * nbcolumns;
 
                 cblknum++; solvcblk++;
             }
         }
-        solvmtx->nodenbr = nodenbr;
-        solvmtx->coefnbr = coefnbr;
 
-        assert( solvmtx->cblknbr == cblknum );
-        assert( solvmtx->bloknbr == bloknum );
-
+        /*  Add a virtual cblk to avoid side effect in the loops on cblk bloks */
         if (cblknum > 0)
         {
-            /*  virtual cblk to avoid side effect in the loops on cblk bloks */
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
             solvcblk->bloknum  = bloknum;
@@ -307,6 +306,14 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->coeftab  = NULL;
             solvcblk->ucoeftab = NULL;
         }
+
+        solvmtx->nodenbr = nodenbr;
+        solvmtx->coefnbr = coefnbr;
+        solvmtx->arftmax = blokamax;
+
+        assert( solvmtx->cblknbr == cblknum );
+        assert( solvmtx->bloknbr == bloknum );
+
     }
 
     /***************************************************************************
@@ -614,28 +621,6 @@ solverMatrixGen(const pastix_int_t clustnum,
         fprintf(stderr, "Coefmax = %ld (%ld x %ld)\n",
                 (long)solvmtx->coefmax, (long)max_m, (long)max_n );
     }
-
-    /** Find the area max **/
-
-    /** We search the biggest sum of AUB that can be send to the local cluster from a cblk on another cluster **/
-    /* @@@@@@@@@@@@ TODO  ****/
-
-    /** We search the biggest cblk that can receive some ftgt **/
-    solvmtx->arftmax = 0;
-    for(i=0;i<simuctrl->cblknbr;i++)
-    {
-        pastix_int_t size = 0;
-        delta = (symbmtx->cblktab[i].lcolnum -  symbmtx->cblktab[i].fcolnum + 1)*dofptr->noddval;
-        if(ctrl->candtab[i].fccandnum != ctrl->candtab[i].lccandnum)
-        {
-            for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++)
-                size += delta * (symbmtx->bloktab[j].lrownum-symbmtx->bloktab[j].frownum+1) * dofptr->noddval;
-
-            if(size> solvmtx->arftmax)
-                solvmtx->arftmax = size;
-        }
-    }
-
 
     if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
         fprintf(stdout, "COEFMAX %ld NBFTMAX %ld ARFTMAX %ld \n",
