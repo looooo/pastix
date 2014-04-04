@@ -1,10 +1,6 @@
 #ifndef _PASTIX_DATA_H_
 #define _PASTIX_DATA_H_
 
-#if defined(HAVE_SCOTCH)
-#include <scotch.h>
-#endif
-
 #include "sopalin_define.h"
 #include "dof.h"
 #include "ftgt.h"
