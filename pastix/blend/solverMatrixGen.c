@@ -339,7 +339,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 
                 /*
                  * Count number of index needed in indtab:
-                 *  => number of off-diagonal block below the block (included the block itself)
+                 *  => number of off-diagonal block below the block (including the block itself)
                  */
                 odb_nbr = symbmtx->cblktab[ simutask->cblknum + 1 ].bloknum - simutask->bloknum - 1;
 
@@ -574,47 +574,6 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         solvmtx->coefmax = 0;
 
-        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_YES) {
-            for(i=0;i<solvmtx->tasknbr;i++) {
-                if(solvmtx->tasktab[i].taskid == COMP_1D) {
-                    delta = 0;
-                    assert(solvmtx->tasktab[i].cblknum >= 0);
-                    for(j=solvmtx->tasktab[i].bloknum;
-                        j<solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].bloknum;
-                        j++) {
-                        coefind = solvmtx->bloktab[j].lrownum - solvmtx->bloktab[j].frownum+1;
-#ifdef PASTIX_ESC
-                        while(((j+1) < solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].bloknum)
-                              && (solvmtx->bloktab[j].cblknum == solvmtx->bloktab[j+1].cblknum)) {
-                            j++;
-                            coefind += solvmtx->bloktab[j].lrownum - solvmtx->bloktab[j].frownum+1;
-                        }
-#endif
-                        if(coefind > delta)
-                            delta = coefind;
-                    }
-                    coefnbr = solvmtx->cblktab[solvmtx->tasktab[i].cblknum].stride * delta;
-                    if(coefnbr > solvmtx->coefmax) {
-                        solvmtx->coefmax = coefnbr;
-                        max_m = solvmtx->cblktab[solvmtx->tasktab[i].cblknum].stride;
-                        max_n = delta;
-                    }
-                }
-            }
-            /* Maximum size of diagonal blocks */
-            for(i=0;i<solvmtx->cblknbr;i++) {
-                delta = solvmtx->cblktab[i].lcolnum - solvmtx->cblktab[i].fcolnum+1;
-                if(delta*delta > solvmtx->coefmax) {
-                    solvmtx->coefmax = delta*delta;
-                    max_m = delta;
-                    max_n = delta;
-                }
-            }
-
-            fprintf(stderr, "Actual coefmax = %ld (%ld x %ld)\n",
-                    (long)solvmtx->coefmax, (long)max_m, (long)max_n );
-        }
-
         /* First compute the maximum size of contribution block */
         solvmtx->coefmax = 0;
         {
@@ -654,33 +613,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                 }
             }
         }
-
-        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_YES) {
-            fprintf(stderr, "New suggested coefmax = %ld (%ld x %ld)\n",
-                    (long)solvmtx->coefmax, (long)max_m, (long)max_n );
-            /* First compute the maximum size of contribution block */
-            {
-                pastix_int_t max = 0;
-                pastix_int_t n;
-                for(i=0;i<solvmtx->cblknbr-1;i++) {
-                    n = solvmtx->cblktab[i].lcolnum - solvmtx->cblktab[i].fcolnum+1;
-                    delta = n * 64;
-                    if(delta > max) {
-                        max = delta;
-                        max_m = n;
-                        max_n = 64;
-                    }
-                }
-                fprintf(stderr, "Max diagblock coefmax without shur = %ld (%ld x %ld)\n",
-                        (long)max, (long)max_m, (long)max_n );
-
-                n = solvmtx->cblktab[i].lcolnum - solvmtx->cblktab[i].fcolnum+1;
-                delta = n * 64;
-                if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_YES)
-                    fprintf(stderr, "Max diagblock on shur = %ld (%ld x %ld)\n",
-                            (long)delta, (long)n, (long)64 );
-            }
-        }
     }
 
     /** Find the cpftmax **/
@@ -688,10 +620,10 @@ solverMatrixGen(const pastix_int_t clustnum,
     solvmtx->cpftmax = 0;
     for(i=0;i<simuctrl->ftgtnbr;i++)
     {
-        if((simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0))
-            /*&& (proc2clust[simuctrl->ftgttab[i].ftgt.infotab[FTGT_PROCDST]] == clustnum))*/
+        if( simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR] > 0 )
         {
-            coefnbr = (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LCOLNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FCOLNUM] + 1)*dofptr->noddval * (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LROWNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FROWNUM] + 1)*dofptr->noddval;
+            coefnbr = (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LCOLNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FCOLNUM] + 1) * dofptr->noddval *
+                      (simuctrl->ftgttab[i].ftgt.infotab[FTGT_LROWNUM] - simuctrl->ftgttab[i].ftgt.infotab[FTGT_FROWNUM] + 1) * dofptr->noddval;
             if(coefnbr > solvmtx->cpftmax)
                 solvmtx->cpftmax = coefnbr;
         }
