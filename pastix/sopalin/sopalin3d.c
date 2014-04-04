@@ -198,14 +198,6 @@ int err_mpi;
 
 #define LOCAL_ALLOC_BTAG -100
 
-/* ??? extra-diag blocks in 1D column-block (computed by blend) */
-/*
- #undef PACKMAX
- #define PACKMAX 32
- #undef PACKAREA
- #define PACKAREA 200000
- */
-
 /************************************************/
 /*       Déclaration des fonctions              */
 /************************************************/
@@ -632,7 +624,7 @@ void* sopalin_smp(void *arg)
 #endif
     pastix_int_t               nbpivotT     = 0;
     int               init;
-    double            mintime, maxtime;
+    double            maxtime;
     /*   pastix_int_t               cptinv = 0; */
 #if (!(defined FORCE_NOMPI))
     MPI_Comm          pastix_comm = PASTIX_COMM;
@@ -945,14 +937,12 @@ void* sopalin_smp(void *arg)
     sopar->diagchange = nbpivotT;
 
     /* Calcul du temps de facto */
-    //mintime = thread_data->sop_clk.time[0];
     maxtime = thread_data->sop_clk;
     for(i=1; i<SOLV_THRDNBR; i++)
     {
-        //mintime = MIN(sopalin_data->thread_data[i]->sop_clk.time[0], mintime);
         maxtime = MAX(sopalin_data->thread_data[i]->sop_clk, maxtime);
     }
-    sopar->dparm[DPARM_FACT_TIME] = maxtime; /*(maxtime - mintime);*/
+    sopar->dparm[DPARM_FACT_TIME] = maxtime;
 
     /* WARNING : Don't put one (All)Reduce before thread synchronization FACTOEND */
     if (THREAD_COMM_ON)
