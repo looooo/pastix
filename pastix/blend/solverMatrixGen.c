@@ -316,8 +316,9 @@ solverMatrixGen(const pastix_int_t clustnum,
      */
     MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
     {
-        SimuTask *simutask = simuctrl->tasktab;
-        Task     *solvtask = solvmtx->tasktab;
+        SimuTask    *simutask = simuctrl->tasktab;
+        Task        *solvtask = solvmtx->tasktab;
+        pastix_int_t nbftmax  = 0;
 
         tasknum = 0;
         ftgtnum = 0;
@@ -336,6 +337,8 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvtask->ftgtcnt = simutask->ftgtcnt;
                 solvtask->ctrbcnt = simutask->ctrbcnt;
                 solvtask->indnum  = indnbr;
+
+                nbftmax = pastix_imax( nbftmax, solvtask->ftgtcnt );
 
                 /*
                  * Count number of index needed in indtab:
@@ -368,7 +371,8 @@ solverMatrixGen(const pastix_int_t clustnum,
         solvtask->indnum  = indnbr;
 
         /* Store the final indnbr */
-        solvmtx->indnbr = indnbr;
+        solvmtx->indnbr  = indnbr;
+        solvmtx->nbftmax = nbftmax;
     }
 
     /***************************************************************************
@@ -628,12 +632,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvmtx->cpftmax = coefnbr;
         }
     }
-
-    /** Find the nbftmax **/
-    solvmtx->nbftmax = 0;
-    for(i=0;i<simuctrl->tasknbr;i++)
-        if(simuctrl->tasktab[i].ftgtcnt> solvmtx->nbftmax)
-            solvmtx->nbftmax = simuctrl->tasktab[i].ftgtcnt;
 
     /** Find the area max **/
 
