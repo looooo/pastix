@@ -58,12 +58,10 @@ typedef struct SolverCblk_  {
   pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)          +*/
   pastix_int_t                       bloknum;              /*+ First block in column (diagonal)       +*/
   pastix_int_t                       stride;               /*+ Column block stride                    +*/
-  pastix_int_t			    color;		  /*+ Color of column block (PICL trace)     +*/
 #ifdef STARPU_GET_TASK_CTX
   pastix_int_t                       ctx;                  /*+ Context given to StarPU                +*/
 #endif
   pastix_int_t                       procdiag;             /*+ Processor owner of diagonal block      +*/
-  pastix_int_t                       cblkdiag;             /*+ Column block owner of diagonal block   +*/
   pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
   pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
 } SolverCblk;
@@ -96,7 +94,6 @@ typedef struct SolverMatrix_ {
   FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
 
   pastix_int_t              coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
-  pastix_int_t              bpftmax;              /*+ Maximum of block size for btag to receive +*/
   pastix_int_t              cpftmax;              /*+ Maximum of block size for ftgt to receive +*/
   pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
   pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/

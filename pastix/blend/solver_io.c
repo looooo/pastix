@@ -123,7 +123,6 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     if(  intLoad (stream, &solvptr->coefnbr) +
          intLoad (stream, &solvptr->ftgtnbr) +
          intLoad (stream, &solvptr->coefmax) +
-         intLoad (stream, &solvptr->bpftmax) +
          intLoad (stream, &solvptr->cpftmax) +
          intLoad (stream, &solvptr->nbftmax) +
          intLoad (stream, &solvptr->arftmax) +
@@ -133,8 +132,9 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
          intLoad (stream, &solvptr->tasknbr) +
          intLoad (stream, &solvptr->procnbr) +
          intLoad (stream, &solvptr->thrdnbr) +
-         intLoad (stream, &solvptr->gridldim) + intLoad (stream, &solvptr->gridcdim)
-         != 13)
+         intLoad (stream, &solvptr->gridldim) +
+         intLoad (stream, &solvptr->gridcdim)
+         != 14)
         {
             errorPrint ("solverLoad: bad input (1)");
             return     (1);
@@ -169,20 +169,13 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     for (cblkptr = solvptr->cblktab,                /* Read column block data */
            cblktnd = cblkptr + solvptr->cblknbr;
          cblkptr < cblktnd; cblkptr ++){
-      if (intLoad (stream, &cblkptr->stride) +
-          intLoad (stream, &cblkptr->color) +
-          intLoad (stream, &cblkptr->procdiag) +
-          intLoad (stream, &cblkptr->cblkdiag) != 4)
+      if (intLoad (stream, &cblkptr->stride) != 1)
           {
             errorPrint ("solverlLoad: bad input (2)");
             solverExit (solvptr);
             return     (1);
           }
-#ifdef SOLVER_DEBUG
-      /*intLoad (stream, &cblkptr->color);*/
-#endif
-
-      }
+     }
 
         for (blokptr = solvptr->bloktab,                /* Read block data */
              bloktnd = blokptr + solvptr->bloknbr;
@@ -382,11 +375,10 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
 
 
    /*fprintf(stream, "File header\n");*/
-   o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
+   o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                  (long) solvptr->coefnbr,
                  (long) solvptr->ftgtnbr,
                  (long) solvptr->coefmax,
-                 (long) solvptr->bpftmax,
                  (long) solvptr->cpftmax,
                  (long) solvptr->nbftmax,
                  (long) solvptr->arftmax,
@@ -404,14 +396,8 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
    for (cblkptr = solvptr->cblktab, cblktnd = cblkptr + solvptr->cblknbr;
         (cblkptr < cblktnd) && (o == 0); cblkptr ++)
      {
-       o = (fprintf (stream, "%ld\t%ld\t%ld\t%ld\n",
-                     (long) cblkptr->stride,
-                     (long) cblkptr->color,
-                     (long) cblkptr->procdiag,
-                     (long) cblkptr->cblkdiag) == EOF);
-#ifdef SOLVER_DEBUG
-       /*fprintf(stream, "%ld\n", (long)cblkptr->color);*/
-#endif
+       o = (fprintf (stream, "%ld\n",
+                     (long) cblkptr->stride) == EOF);
      }
 
 
