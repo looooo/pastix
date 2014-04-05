@@ -135,7 +135,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            cblknum          = 0;
     pastix_int_t            bloknum          = 0;
     pastix_int_t            tasknum          = 0;
-    pastix_int_t            delta            = 0;
     pastix_int_t            indnbr           = 0;
     pastix_int_t          * cblklocalnum     = NULL;
     pastix_int_t          * bloklocalnum     = NULL;
@@ -313,7 +312,6 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         assert( solvmtx->cblknbr == cblknum );
         assert( solvmtx->bloknbr == bloknum );
-
     }
 
     /***************************************************************************
@@ -564,69 +562,91 @@ solverMatrixGen(const pastix_int_t clustnum,
         assert(indnbr == solvmtx->indnbr);
     }
 
-    /*****************************************/
-    /**  Find coefmax              **/
-    /*****************************************/
+    /***************************************************************************
+     * Compute the maximum area of the temporary buffer used during computation
+     *
+     * It is either:
+     *    - The panel of a diagonal block used in hetrf/sytrf factorizations of
+     *      width MAXSIZEOFBLOCKS = 64
+     *    - The area of the GEMM computation in a compacted update when done on
+     *      CPUs
+     *
+     * Rk: This loop is not merged with the main block loop, since strides have
+     * to be peviously computed.
+     */
     {
-        /***** Find coefmax *****
-         * coefmax is the number of coef of the largest temporary block used
-         * to compute contribution block on the CPUs.
-         * It can be seen as the maximum surface of the
-         * C matrix in the GEMM operations.
-         */
-        pastix_int_t max_m = 0;
-        pastix_int_t max_n = 0;
+        SolverCblk *solvcblk = solvmtx->cblktab;
+        SolverBlok *solvblok = solvmtx->bloktab;
+        pastix_int_t gemmmax = 0;
+        pastix_int_t diagmax = 0;
+        pastix_int_t gemmarea;
+        pastix_int_t diagarea;
 
-        solvmtx->coefmax = 0;
+        /* Let's keep the block dimensions to print statistics informations */
+        pastix_int_t maxg_m = 0;
+        pastix_int_t maxg_n = 0;
+        pastix_int_t maxd_m = 0;
+        pastix_int_t maxd_n = 0;
 
-        /* First compute the maximum size of contribution block */
-        solvmtx->coefmax = 0;
+        for(i=0;i<solvmtx->cblknbr;i++, solvcblk++)
         {
-            pastix_int_t itercblk;
-            pastix_int_t m, n;
-            for (itercblk = 0; itercblk < solvmtx->cblknbr; itercblk++) {
-                pastix_int_t stride = solvmtx->cblktab[ itercblk ].stride;
-                for(i=solvmtx->cblktab[ itercblk ].bloknum+1;
-                    i<solvmtx->cblktab[ itercblk + 1].bloknum;i++) {
-                    m = stride - solvmtx->bloktab[i].coefind;
-                    n = solvmtx->bloktab[i].lrownum - solvmtx->bloktab[i].frownum+1;
-#ifdef PASTIX_ESC
-                    while(((i+1) < solvmtx->cblktab[itercblk+1].bloknum)
-                          && (solvmtx->bloktab[i].cblknum == solvmtx->bloktab[i+1].cblknum)) {
-                        i++;
-                        n += solvmtx->bloktab[n].lrownum - solvmtx->bloktab[n].frownum+1;
-                    }
-#endif
-                    delta = m * n;
-                    if(delta > solvmtx->coefmax) {
-                        solvmtx->coefmax = delta;
-                        max_m = m;
-                        max_n = n;
-                    }
+            pastix_int_t fbloknum = solvcblk[0].bloknum;
+            pastix_int_t lbloknum = solvcblk[1].bloknum;
+            pastix_int_t m = solvcblk->stride;
+            pastix_int_t n = solvblok->lrownum - solvblok->frownum + 1;
+
+            /* Temporary buffer for factorization is required only if the block
+             * is larger than the blocking size */
+            diagarea = n * pastix_imin( 64, pastix_imax( 0, n - 64) );
+            if ( diagarea > diagmax ) {
+                diagmax = diagarea;
+                maxd_m = n;
+                maxd_n = pastix_imin( 64, pastix_imax( 0, n - 64) );
+            }
+
+            m -= n;
+
+            /*
+             * Compute the surface of the panel for LDLt factorization
+             * This could be cut down if we know at analyse time which operation
+             * will be performed.
+             */
+            diagarea = m * n;
+            if ( diagarea > diagmax ) {
+                diagmax = diagarea;
+                maxd_m = m;
+                maxd_n = n;
+            }
+
+            solvblok++;
+
+            /* Area of GEMM updates */
+            for( j=fbloknum+1; j<lbloknum; j++, solvblok++ ) {
+                n = solvblok->lrownum - solvblok->frownum + 1;
+
+                gemmarea = m * n;
+                if ( gemmarea > gemmmax ) {
+                    gemmmax = gemmarea;
+                    maxg_m = m;
+                    maxg_n = n;
                 }
-                /* kernel_trsm require COLNBR * (stride - COLNBR + 1) in LDLt */
-                /* horizontal dimension */
-                n = solvmtx->cblktab[itercblk].lcolnum -
-                    solvmtx->cblktab[itercblk].fcolnum + 1;
-                /* vertical dimension */
-                m = stride - n + 1;
-                delta = m * n;
-                if(delta > solvmtx->coefmax) {
-                    solvmtx->coefmax = delta;
-                    max_m = m;
-                    max_n = n;
-                }
+
+                m-= n;
             }
         }
-        fprintf(stderr, "Coefmax = %ld (%ld x %ld)\n",
-                (long)solvmtx->coefmax, (long)max_m, (long)max_n );
+
+        solvmtx->coefmax = pastix_imax( gemmmax, diagmax );
+        fprintf(stderr,
+                "Coefmax: diagonal %ld (%ld x %ld)\n"
+                "         update   %ld (%ld x %ld)\n",
+                diagmax, maxd_m, maxd_n,
+                gemmmax, maxg_m, maxg_n );
     }
 
-    if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, "COEFMAX %ld NBFTMAX %ld ARFTMAX %ld \n",
-                (long)solvmtx->coefmax,
-                (long)solvmtx->nbftmax,
-                (long)solvmtx->arftmax);
+    fprintf(stderr, "COEFMAX %ld NBFTMAX %ld ARFTMAX %ld \n",
+            (long)solvmtx->coefmax,
+            (long)solvmtx->nbftmax,
+            (long)solvmtx->arftmax);
 
 
     /****************************************/
