@@ -5,7 +5,7 @@
 #include "dof.h"
 #include "ftgt.h"
 #include "symbol.h"
-#include "csc.h"
+#include "../csc/csc.h"
 #include "updown.h"
 #include "queue.h"
 #include "bulles.h"

@@ -13,7 +13,6 @@
 #include "bulles.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "csc.h"
 #include "updown.h"
 #include "solver.h"
 #include "costfunc.h"

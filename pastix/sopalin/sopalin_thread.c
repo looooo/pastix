@@ -36,7 +36,6 @@
 #include "sopalin_define.h"
 #include "symbol.h"
 #include "ftgt.h"
-#include "csc.h"
 #include "updown.h"
 #include "queue.h"
 #include "bulles.h"

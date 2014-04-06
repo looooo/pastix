@@ -10,7 +10,6 @@
 #include "ftgt.h"
 #include "queue.h"
 #include "bulles.h"
-#include "csc.h"
 #include "updown.h"
 #include "solver.h"
 #include "solverRealloc.h"

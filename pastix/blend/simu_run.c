@@ -19,7 +19,6 @@
 #include "simu.h"
 #include "dof.h"
 #include "task.h"
-#include "csc.h"
 #include "updown.h"
 #include "solver.h"
 #include "costfunc.h"

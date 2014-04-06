@@ -73,7 +73,7 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
   "PASTIX_DISTRIBUTED;PASTIX_ORDERING_SCOTCH" OFF)
 
 mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
-set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix directory")
+set( SCOTCH_DIR        /opt/scotch                 CACHE PATH   "Scotch prefix directory")
 set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
 #set( BLAS_LIBRARY_DIRS /opt/plasma-extlibs-dbg/lib CACHE STRING "BLAS library paths"     )
 #set( BLAS_LIBRARIES    refblas                     CACHE STRING "BLAS libraries"         )
@@ -219,6 +219,7 @@ add_subdirectory(matrix_drivers)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
@@ -255,7 +256,7 @@ endmacro()
 
 set(generated_files "")
 solver_rules( generated_files
-  "sopalin/sopalin3d.c;sopalin/csc_intern_compute.c;sopalin/raff_functions.c"
+  "sopalin/sopalin3d.c;csc/csc_intern_compute.c;sopalin/raff_functions.c"
 )
 
 #
@@ -331,10 +332,10 @@ set(PASTIX_LIB_SRCS
   sopalin/sopalin_thread.c
 #  sopalin/compute_context_nbr.c
   sopalin/coefinit.c
-  sopalin/csc_intern_build.c
-  sopalin/csc_intern_io.c
-  sopalin/csc_intern_solve.c
-  sopalin/csc_intern_updown.c
+  csc/csc_intern_build.c
+  csc/csc_intern_io.c
+  csc/csc_intern_solve.c
+  csc/csc_intern_updown.c
   sopalin/csc_utils.c
   sopalin/cscd_utils.c
   sopalin/cscd_utils_fortran.c

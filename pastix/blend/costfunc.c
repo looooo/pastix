@@ -16,7 +16,6 @@
 #include "bulles.h"
 #include "extendVector.h"
 #include "blendctrl.h"
-#include "csc.h"
 #include "updown.h"
 #include "solver.h"
 #include "symbol_cost.h"
