@@ -232,6 +232,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 macro(solver_rules _output_files _sources_files)
   foreach(_source_file ${_sources_files})
 
+    set(_source_file "${CMAKE_CURRENT_SOURCE_DIR}/${_source_file}")
     string(REGEX REPLACE "^(.*).c$" "\\1" _prefix "${_source_file}")
 
     add_custom_command(OUTPUT ${_prefix}_he.c COMMAND cp ${_source_file} ${_prefix}_he.c DEPENDS ${_source_file} )
