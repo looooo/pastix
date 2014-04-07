@@ -40,6 +40,19 @@ void solverRealloc(SolverMatrix *solvmtx)
     memcpy(solvmtx->bloktab, tmp->bloktab,
            solvmtx->bloknbr*sizeof(SolverBlok));
 
+#if defined(PASTIX_WITH_STARPU)
+    MALLOC_INTERN(solvmtx->hcblktab, solvmtx->hcblknbr+1, SolverHaloCblk);
+    memCpy(solvmtx->hcblktab, tmp->hcblktab,
+           (solvmtx->hcblknbr+1)*sizeof(SolverHaloCblk));
+    MALLOC_INTERN(solvmtx->hbloktab, solvmtx->hcblktab[solvmtx->hcblknbr].bloknum,
+                  SolverHaloBlok);
+    memCpy(solvmtx->hbloktab, tmp->hbloktab,
+           solvmtx->hcblktab[solvmtx->hcblknbr].bloknum*sizeof(SolverHaloBlok));
+    MALLOC_INTERN(solvmtx->gcblk2halo, solvmtx->gcblknbr, pastix_int_t);
+    memCpy(solvmtx->gcblk2halo, tmp->gcblk2halo,
+           solvmtx->gcblknbr*sizeof(pastix_int_t));
+#endif /* defined(PASTIX_WITH_STARPU) */
+
     /** Copy ftgttab **/
     if (solvmtx->ftgtnbr != 0)
       {
@@ -122,7 +135,11 @@ void solverExit(SolverMatrix *solvmtx)
     memFree_null(solvmtx->ttsktab);
     memFree_null(solvmtx->proc2clust);
     /*memFree_null(solvmtx);*/
-
+#if defined(PASTIX_WITH_STARPU)
+    memFree_null(solvmtx->hcblktab);
+    memFree_null(solvmtx->hbloktab);
+    memFree_null(solvmtx->gcblk2halo);
+#endif
 }
 
 
