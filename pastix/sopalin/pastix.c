@@ -631,60 +631,6 @@ void global2localperm(pastix_int_t  lN,
     }
 }
 
-/**
- Function: sizeofsolver
-
- Computes the size in memory of the SolverMatrix.
-
- Parameters:
- solvptr - address of the SolverMatrix
-
- Returns:
- SolverMatrix size.
- */
-pastix_int_t sizeofsolver(SolverMatrix *solvptr, pastix_int_t *iparm)
-{
-    pastix_int_t result=sizeof(SolverMatrix);
-    pastix_int_t iter;
-
-    /* symbol */
-    result += solvptr->cblknbr*sizeof(SymbolCblk);
-    result += solvptr->bloknbr*sizeof(SymbolBlok);
-    result += solvptr->cblknbr*sizeof(SolverCblk);
-    result += solvptr->bloknbr*sizeof(SolverBlok);
-
-    /* fanin target */
-    result += solvptr->ftgtnbr*sizeof(FanInTarget);
-    result += solvptr->indnbr *sizeof(pastix_int_t);
-
-    /* task */
-    result += solvptr->tasknbr*sizeof(Task);
-    result += solvptr->thrdnbr*sizeof(pastix_int_t);
-    for (iter=0; iter<solvptr->thrdnbr; iter++)
-    {
-        result += solvptr->ttsknbr[iter]*sizeof(pastix_int_t);
-    }
-    result += solvptr->procnbr*sizeof(pastix_int_t);
-
-    /* Pour l'instant uniquement si on est en 1d */
-    if (iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
-    {
-        /* Updown */
-        result += solvptr->cblknbr      *sizeof(UpDownCblk);
-        for (iter=0; iter<solvptr->cblknbr; iter++)
-        {
-            result += 2*solvptr->updovct.cblktab[iter].browprocnbr*sizeof(pastix_int_t);
-        }
-        result += solvptr->updovct.gcblk2listnbr*sizeof(pastix_int_t);
-        result += solvptr->updovct.listptrnbr   *sizeof(pastix_int_t);
-        result += 2*solvptr->updovct.listnbr    *sizeof(pastix_int_t);
-        result += solvptr->updovct.loc2globnbr  *sizeof(pastix_int_t);
-        result += solvptr->bloknbr              *sizeof(pastix_int_t);
-    }
-
-    return result;
-}
-
 /*
  * Function: pastix_task_init
  *

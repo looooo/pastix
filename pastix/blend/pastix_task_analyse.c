@@ -23,8 +23,7 @@
 #include "extendVector.h"
 #include "blendctrl.h"
 #include "blend.h"
-
-pastix_int_t sizeofsolver(SolverMatrix *solvptr, pastix_int_t *iparm);
+#include "solver.h"
 
 /*
   Function: pastix_task_blend

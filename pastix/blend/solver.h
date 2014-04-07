@@ -84,10 +84,18 @@ typedef struct SolverMatrix_ {
 
   pastix_int_t              nodenbr;              /*+ Number of nodes before dof extension              +*/
   pastix_int_t              coefnbr;              /*+ Number of coefficients (node after dof extension) +*/
+  pastix_int_t              gcblknbr;             /*+ Global number of column blocks                    +*/
   pastix_int_t              cblknbr;              /*+ Number of column blocks                   +*/
   pastix_int_t              bloknbr;              /*+ Number of blocks                          +*/
   SolverCblk * restrict     cblktab;              /*+ Array of solver column blocks             +*/
   SolverBlok * restrict     bloktab;              /*+ Array of solver blocks                    +*/
+
+#ifdef PASTIX_WITH_STARPU
+  pastix_int_t              hcblknbr;
+  pastix_int_t *            gcblk2halo;
+  SolverHaloCblk * restrict hcblktab;
+  SolverHaloBlok * restrict hbloktab;
+#endif
 
   pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
   pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
@@ -119,5 +127,9 @@ typedef struct SolverMatrix_ {
   pastix_int_t              starpu_subtree_nbr;
 #endif
 } SolverMatrix;
+
+pastix_int_t
+sizeofsolver(const SolverMatrix *solvptr,
+             pastix_int_t *iparm );
 
 #endif /* SOLVER_H */

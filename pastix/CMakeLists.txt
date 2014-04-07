@@ -298,6 +298,7 @@ set(PASTIX_LIB_SRCS
   graph/graph_io.c
 #
   blend/cand.c
+  blend/solver.c
   blend/elimin_graph.c
   blend/elimin_tree.c
   blend/propmap.c
