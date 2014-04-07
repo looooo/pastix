@@ -18,7 +18,6 @@
 #include "common.h"
 #include "graph.h"
 #include "order.h"
-#include <scotch.h>
 #include <ptscotch.h>
 #include "order_scotch_strats.h"
 #include "cscd_utils_intern.h"
