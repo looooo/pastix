@@ -26,22 +26,6 @@
 #include "solver_io.h"
 #include "solverMatrixGen.h"
 
-/*#define DEBUG_PRIO*/
-
-void working_array_boundaries(SolverMatrix *solvmtx, MPI_Comm pastix_comm);
-
-void printSymbolMatrix(FILE *file, SymbolMatrix *symbptr)
-{
-    pastix_int_t i, j;
-    for(i=0;i<symbptr->cblknbr;i++)
-    {
-        fprintf(file, "CBLK %ld [%ld : %ld ] \n",(long)i, (long)symbptr->cblktab[i].fcolnum, (long)symbptr->cblktab[i].lcolnum);
-        for(j=symbptr->cblktab[i].bloknum;j<symbptr->cblktab[i+1].bloknum;j++)
-            fprintf(file, "--BLOK %ld [%ld : %ld ]\n", (long)j, (long)symbptr->bloktab[j].frownum, (long)symbptr->bloktab[j].lrownum);
-        fprintf(file, "\n");
-    }
-}
-
 void build_smx(UpDownVector          *updovct,
                const SymbolMatrix    *symbptr,
                const SimuCtrl        *simuptr,
@@ -641,12 +625,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                 diagmax, maxd_m, maxd_n,
                 gemmmax, maxg_m, maxg_n );
     }
-
-    fprintf(stderr, "COEFMAX %ld NBFTMAX %ld ARFTMAX %ld \n",
-            (long)solvmtx->coefmax,
-            (long)solvmtx->nbftmax,
-            (long)solvmtx->arftmax);
-
 
     /****************************************/
     /** Compute the information for the    **/

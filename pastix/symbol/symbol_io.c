@@ -188,3 +188,17 @@ FILE * const                stream)
 
   return (o);
 }
+
+void
+symbolPrint(const SymbolMatrix *symbptr, FILE *file )
+{
+    pastix_int_t i, j;
+    for(i=0;i<symbptr->cblknbr;i++)
+    {
+        fprintf(file, "CBLK %ld [%ld : %ld ] \n",(long)i, (long)symbptr->cblktab[i].fcolnum, (long)symbptr->cblktab[i].lcolnum);
+        for(j=symbptr->cblktab[i].bloknum;j<symbptr->cblktab[i+1].bloknum;j++)
+            fprintf(file, "--BLOK %ld [%ld : %ld ]\n", (long)j, (long)symbptr->bloktab[j].frownum, (long)symbptr->bloktab[j].lrownum);
+        fprintf(file, "\n");
+    }
+}
+
