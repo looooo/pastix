@@ -139,9 +139,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     solvmtx->thrdnbr  = ctrl->local_nbthrds;
     solvmtx->bublnbr  = ctrl->local_nbctxts;
     solvmtx->ftgtcnt  = simuctrl->ftgtcnt;
-#ifdef STARPU_GET_TASK_CTX
-    solvmtx->starpu_subtree_nbr = symbmtx->starpu_subtree_nbr;
-#endif
 
     if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
     {

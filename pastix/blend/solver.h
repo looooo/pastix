@@ -58,9 +58,6 @@ typedef struct SolverCblk_  {
   pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)          +*/
   pastix_int_t                       bloknum;              /*+ First block in column (diagonal)       +*/
   pastix_int_t                       stride;               /*+ Column block stride                    +*/
-#ifdef STARPU_GET_TASK_CTX
-  pastix_int_t                       ctx;                  /*+ Context given to StarPU                +*/
-#endif
   pastix_int_t                       procdiag;             /*+ Processor owner of diagonal block      +*/
   pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
   pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
@@ -123,9 +120,6 @@ typedef struct SolverMatrix_ {
   pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
   pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
   UpDownVector              updovct;              /*+ UpDown vector                             +*/
-#ifdef STARPU_GET_TASK_CTX
-  pastix_int_t              starpu_subtree_nbr;
-#endif
 } SolverMatrix;
 
 pastix_int_t
