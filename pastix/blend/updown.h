@@ -55,6 +55,16 @@ typedef struct UpDownVector_ {
   pastix_int_t                       gnodenbr;             /*+ total number of nodes              +*/
   pastix_int_t                       downmsgnbr;           /*+ Nb messages receive during down    +*/
   pastix_int_t                       upmsgnbr;             /*+ Nb messages receive during up      +*/
+#if defined(PASTIX_WITH_STARPU)
+  pastix_int_t *                     gcblk2glist;           /*+ Global cblknum -> index in glistptr +*/
+  pastix_int_t                       gcblk2glistnbr;        /*+ Size of gcblk2glist                 +*/
+  pastix_int_t *                     glistptr;              /*+ Index in glist                      +*/
+  pastix_int_t                       glistptrnbr;           /*+ Size of glistptr                    +*/
+  pastix_int_t *                     glistcblk;             /*+ Glist of cblk in a same row         +*/
+  pastix_int_t *                     glistblok;             /*+ Glist of blok in a same row         +*/
+  pastix_int_t                       glistnbr;              /*+ Size of glist                       +*/
+#endif /* defined(PASTIX_WITH_STARPU) */
+
 } UpDownVector;
 
 #endif /* UPDOWN_H */

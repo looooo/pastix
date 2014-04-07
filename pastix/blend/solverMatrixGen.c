@@ -909,8 +909,8 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
         solvmtx->hcblknbr = halocblk-1;
         solvmtx->gcblknbr = symbmtx->cblknbr;
-        MALLOC_INTERN(solvmtx->hcblktab, halocblk, SolverHaloCblk);
-        MALLOC_INTERN(solvmtx->hbloktab, bloknum, SolverHaloBlok);
+        MALLOC_INTERN(solvmtx->hcblktab, halocblk, SolverCblk);
+        MALLOC_INTERN(solvmtx->hbloktab, bloknum, SolverBlok);
         memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
 
         bloknum=0;
@@ -938,11 +938,12 @@ solverMatrixGen(const pastix_int_t clustnum,
                                 dofptr->noddval-1;
                             solvmtx->hcblktab[halocblk].stride   = 0;
                             solvmtx->hcblktab[halocblk].bloknum  = bloknum;
-                            solvmtx->hcblktab[halocblk].owner    = simuctrl->bloktab[ dst_bloc ].ownerclust;
-                            solvmtx->hcblktab[halocblk].gcblk    = dst_cblk;
+                            solvmtx->hcblktab[halocblk].procdiag = simuctrl->bloktab[ dst_bloc ].ownerclust;
+                            solvmtx->hcblktab[halocblk].gcblknum = dst_cblk;
                             for( bloc = symbmtx->cblktab[dst_cblk].bloknum;
                                  bloc < symbmtx->cblktab[dst_cblk+1].bloknum;
                                  bloc++) {
+                                pastix_int_t delta;
                                 delta  =  symbmtx->bloktab[bloc].lrownum -
                                     symbmtx->bloktab[bloc].frownum +1;
                                 delta *=  dofptr->noddval;
@@ -979,12 +980,12 @@ solverMatrixGen(const pastix_int_t clustnum,
                                 dofptr->noddval-1;
                             solvmtx->hcblktab[halocblk].stride   = 0;
                             solvmtx->hcblktab[halocblk].bloknum  = bloknum;
-                            solvmtx->hcblktab[halocblk].owner    = simuctrl->bloktab[ symbmtx->cblktab[i].bloknum ].ownerclust;
-                            solvmtx->hcblktab[halocblk].gcblk    = i;
+                            solvmtx->hcblktab[halocblk].procdiag = simuctrl->bloktab[ symbmtx->cblktab[i].bloknum ].ownerclust;
+                            solvmtx->hcblktab[halocblk].gcblknum = i;
                             for( bloc = symbmtx->cblktab[i].bloknum;
                                  bloc < symbmtx->cblktab[i+1].bloknum;
                                  bloc++) {
-                                delta =  symbmtx->bloktab[bloc].lrownum -
+                                pastix_int_t delta =  symbmtx->bloktab[bloc].lrownum -
                                     symbmtx->bloktab[bloc].frownum +1;
                                 solvmtx->hcblktab[halocblk].stride += delta * dofptr->noddval;
                                 solvmtx->hbloktab[bloknum].frownum =

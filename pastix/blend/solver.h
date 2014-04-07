@@ -59,6 +59,7 @@ typedef struct SolverCblk_  {
   pastix_int_t                       bloknum;              /*+ First block in column (diagonal)       +*/
   pastix_int_t                       stride;               /*+ Column block stride                    +*/
   pastix_int_t                       procdiag;             /*+ Processor owner of diagonal block      +*/
+  pastix_int_t                       gcblknum;             /*+ Global column block index              +*/
   pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
   pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
 } SolverCblk;
@@ -88,10 +89,20 @@ typedef struct SolverMatrix_ {
   SolverBlok * restrict     bloktab;              /*+ Array of solver blocks                    +*/
 
 #ifdef PASTIX_WITH_STARPU
-  pastix_int_t              hcblknbr;
-  pastix_int_t *            gcblk2halo;
-  SolverHaloCblk * restrict hcblktab;
-  SolverHaloBlok * restrict hbloktab;
+  /* All this part concern halo of the local matrix
+   * ie: column blocks which will:
+   *  - be updated by local column blocks
+   *  - update local column blocks
+   */
+  pastix_int_t              hcblknbr;             /*+ Number of column block in the halo        +*/
+  pastix_int_t *            gcblk2halo;           /*+ Indicate the local number corresponding
+                                                   *  global column block.
+                                                   *  gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
+                                                   *                    >  0 : local cblk number
+                                                   *                    <  0 : -halo cblk number
+                                                   *                                            +*/
+  SolverCblk   *   restrict hcblktab;             /*+ Array of halo column blocks               +*/
+  SolverBlok   *   restrict hbloktab;             /*+ Array of halo blocks                      +*/
 #endif
 
   pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/

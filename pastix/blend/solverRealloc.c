@@ -41,15 +41,15 @@ void solverRealloc(SolverMatrix *solvmtx)
            solvmtx->bloknbr*sizeof(SolverBlok));
 
 #if defined(PASTIX_WITH_STARPU)
-    MALLOC_INTERN(solvmtx->hcblktab, solvmtx->hcblknbr+1, SolverHaloCblk);
-    memCpy(solvmtx->hcblktab, tmp->hcblktab,
-           (solvmtx->hcblknbr+1)*sizeof(SolverHaloCblk));
+    MALLOC_INTERN(solvmtx->hcblktab, solvmtx->hcblknbr+1, SolverCblk);
+    memcpy(solvmtx->hcblktab, tmp->hcblktab,
+           (solvmtx->hcblknbr+1)*sizeof(SolverCblk));
     MALLOC_INTERN(solvmtx->hbloktab, solvmtx->hcblktab[solvmtx->hcblknbr].bloknum,
-                  SolverHaloBlok);
-    memCpy(solvmtx->hbloktab, tmp->hbloktab,
-           solvmtx->hcblktab[solvmtx->hcblknbr].bloknum*sizeof(SolverHaloBlok));
+                  SolverBlok);
+    memcpy(solvmtx->hbloktab, tmp->hbloktab,
+           solvmtx->hcblktab[solvmtx->hcblknbr].bloknum*sizeof(SolverBlok));
     MALLOC_INTERN(solvmtx->gcblk2halo, solvmtx->gcblknbr, pastix_int_t);
-    memCpy(solvmtx->gcblk2halo, tmp->gcblk2halo,
+    memcpy(solvmtx->gcblk2halo, tmp->gcblk2halo,
            solvmtx->gcblknbr*sizeof(pastix_int_t));
 #endif /* defined(PASTIX_WITH_STARPU) */
 
