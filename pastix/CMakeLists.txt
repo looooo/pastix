@@ -43,6 +43,9 @@ endif(NOT CMAKE_BUILD_TYPE)
 option(PASTIX_WITH_MPI
   "Build PaStiX for distributed memory with MPI" OFF)
 
+option(PASTIX_WITH_STARPU
+  "Build PaStiX with StarPU runtime support" OFF)
+
 cmake_dependent_option(PASTIX_DISTRIBUTED
  "Enable the distributed interface (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
 
@@ -125,6 +128,40 @@ if (PASTIX_WITH_MPI)
     include_directories( ${MPI_INCLUDE_PATH} )
   endif (MPI_FOUND)
 endif (PASTIX_WITH_MPI)
+
+if (PASTIX_WITH_STARPU)
+
+  # create list of components in order to make a single call to find_package(starpu...)
+  set(STARPU_COMPONENT_LIST "HWLOC")
+  if(PASTIX_WITH_MPI)
+    list(APPEND STARPU_COMPONENT_LIST "MPI")
+  endif(PASTIX_WITH_MPI)
+
+  if(PASTIX_WITH_CUDA)
+    list(APPEND STARPU_COMPONENT_LIST "CUDA")
+  endif(PASTIX_WITH_CUDA)
+
+  find_package(STARPU "1.1" REQUIRED
+    COMPONENTS ${STARPU_COMPONENT_LIST})
+  set(HAVE_STARPU ${STARPU_FOUND})
+  if (STARPU_FOUND)
+    if(PASTIX_USE_MPI)
+      set(CMAKE_REQUIRED_LIBRARIES
+	"${CMAKE_REQUIRED_LIBRARIES};${STARPU_MPI_LIBRARIES}")
+      include_directories( ${STARPU_MPI_INCLUDE_DIRS} )
+    else(PASTIX_USE_MPI)
+      set(CMAKE_REQUIRED_LIBRARIES
+	"${CMAKE_REQUIRED_LIBRARIES};${STARPU_SHM_LIBRARIES}")
+
+      include_directories( ${STARPU_SHM_INCLUDE_DIRS} )
+    endif(PASTIX_USE_MPI)
+    include_directories( ${STARPU_INCLUDE_DIRS} )
+  endif (STARPU_FOUND)
+
+  # if (STARPU_CUDA_FOUND)
+  #   set(PASTIX_WITH_CUDA ON)
+  # endif(STARPU_CUDA_FOUND)
+endif (PASTIX_WITH_STARPU)
 
 #
 if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
