@@ -43,7 +43,6 @@
 #include "fanboth2.h"
 #include "blend.h"
 #include "order.h"
-#include "bordi.h"
 
 /* #include "assert.h" */
 

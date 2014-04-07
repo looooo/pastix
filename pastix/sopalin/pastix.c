@@ -64,7 +64,6 @@
 #include "csc_utils.h"
 #include "cscd_utils.h"
 #include "cscd_utils_intern.h"
-#include "bordi.h"
 #include "sopalin_acces.h"
 #include "scaling.c"
 #include "perf.h"
