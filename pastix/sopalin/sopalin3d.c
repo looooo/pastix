@@ -124,29 +124,6 @@
 
 #include "sopalin_compute.h"
 
-/*
- Section: Global variables
- */
-/*
- int: iun
- Integer 1
- */
-static pastix_int_t   iun   = 1;
-/* static pastix_int_t izero=0; */
-/*
- float: fun
- Floating point   1.0
- */
-#ifdef CPLX
-static pastix_float_t fun   = 1.0+0.0*I;
-#else
-static pastix_float_t fun   = 1.0;
-#endif
-/*
- Float: fzero
- Floating point   0.0
- */
-static pastix_float_t fzero = 0.0;
 
 
 #else /* COMPUTE */
@@ -1213,7 +1190,7 @@ void sopalin_thread(SolverMatrix *m,
 
     datacode = sopalin_data->datacode;
 
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
     if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
         starpu_submit_tasks(sopalin_data);
@@ -1290,7 +1267,7 @@ void API_CALL(sopalin_updo_thread)(SolverMatrix *m,
     sopalin_init(sopalin_data, m, sopaparam, 1);
     API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
     datacode = sopalin_data->datacode;
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
     if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
         starpu_submit_tasks(sopalin_data);
@@ -1369,7 +1346,7 @@ void API_CALL(sopalin_updo_gmres_thread)(SolverMatrix *m, SopalinParam *sopapara
     sopalin_init(sopalin_data, m, sopaparam, 1);
     API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
     datacode = sopalin_data->datacode;
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
     if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
 
@@ -1449,7 +1426,7 @@ void API_CALL(sopalin_updo_grad_thread)(SolverMatrix *m, SopalinParam *sopaparam
     sopalin_init(sopalin_data, m, sopaparam, 1);
     API_CALL(init_struct_sopalin)(sopalin_data, m, sopaparam);
     datacode = sopalin_data->datacode;
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
     if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
 
@@ -1527,7 +1504,7 @@ void API_CALL(sopalin_updo_pivot_thread)(SolverMatrix *m, SopalinParam *sopapara
     sopalin_backup(m,&b);
     sopalin_init(sopalin_data, m, sopaparam, 1);
     datacode = sopalin_data->datacode;
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
     if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
 
@@ -1603,7 +1580,7 @@ void API_CALL(sopalin_updo_bicgstab_thread)(SolverMatrix *m, SopalinParam *sopap
     sopalin_backup(m,&b);
     sopalin_init(sopalin_data, m, sopaparam, 1);
     datacode = sopalin_data->datacode;
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
     if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
 

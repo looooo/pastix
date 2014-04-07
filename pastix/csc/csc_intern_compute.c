@@ -24,22 +24,6 @@
 #include "csc_intern_compute.h"
 
 
-/*
-  Variables:
-
-  Integer: iun
-
-  Integer constant equal to one.
-
-  Float: fun
-
-  Floating point constant equal to one.
-*/
-static pastix_int_t   iun   = 1;
-#ifdef SMP_RAFF
-static pastix_float_t fun   = 1.0;
-#endif
-
 #ifdef DEBUG_RAFF
 #define CSC_LOG
 #endif

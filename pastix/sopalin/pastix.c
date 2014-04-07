@@ -22,9 +22,6 @@
 
 #include "tools.h"
 #include "sopalin_define.h"
-#ifdef WITH_STARPU
-#include "compute_context_nbr.h"
-#endif
 
 #ifdef HAVE_SCOTCH
 #  ifdef    PASTIX_DISTRIBUTED
@@ -963,9 +960,9 @@ int pastix_check_param(pastix_data_t * pastix_data, int rhsnbr)
 
     if (iparm[IPARM_STARPU] == API_YES)
     {
-#ifndef WITH_STARPU
+#ifndef PASTIX_WITH_STARPU
         errorPrintW("To use StarPU scheduler please build"
-                    " PaStiX with -DWITH_STARPU");
+                    " PaStiX with -DPASTIX_WITH_STARPU=ON");
         ret = BADPARAMETER_ERR;
 #endif
         if (pastix_data->inter_node_procnbr > 1)

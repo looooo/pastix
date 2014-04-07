@@ -45,6 +45,8 @@ option(PASTIX_WITH_MPI
 
 option(PASTIX_WITH_STARPU
   "Build PaStiX with StarPU runtime support" OFF)
+option(PASTIX_WITH_STARPU_PROFILING
+  "Build PaStiX with StarPU runtime support profiling" OFF)
 
 cmake_dependent_option(PASTIX_DISTRIBUTED
  "Enable the distributed interface (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
@@ -145,16 +147,16 @@ if (PASTIX_WITH_STARPU)
     COMPONENTS ${STARPU_COMPONENT_LIST})
   set(HAVE_STARPU ${STARPU_FOUND})
   if (STARPU_FOUND)
-    if(PASTIX_USE_MPI)
+    if(PASTIX_WITH_MPI)
       set(CMAKE_REQUIRED_LIBRARIES
 	"${CMAKE_REQUIRED_LIBRARIES};${STARPU_MPI_LIBRARIES}")
       include_directories( ${STARPU_MPI_INCLUDE_DIRS} )
-    else(PASTIX_USE_MPI)
+    else(PASTIX_WITH_MPI)
       set(CMAKE_REQUIRED_LIBRARIES
 	"${CMAKE_REQUIRED_LIBRARIES};${STARPU_SHM_LIBRARIES}")
 
       include_directories( ${STARPU_SHM_INCLUDE_DIRS} )
-    endif(PASTIX_USE_MPI)
+    endif(PASTIX_WITH_MPI)
     include_directories( ${STARPU_INCLUDE_DIRS} )
   endif (STARPU_FOUND)
 
@@ -265,6 +267,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/starpu")
 
 macro(solver_rules _output_files _sources_files)
   foreach(_source_file ${_sources_files})
@@ -395,11 +398,6 @@ set(PASTIX_LIB_SRCS
 #  sopalin/scaling.c
 #  sopalin/sopalin_compute.c
 #  sopalin/sopalin_sendrecv.c
-#  sopalin/starpu_kernels.c
-#  sopalin/starpu_pastix_sched_policy.c
-#  sopalin/starpu_submit_tasks.c
-#  sopalin/starpu_updo.c
-#  sopalin/starpu_updo_kernels.c
 #  sopalin/updo.c
 #  sopalin/updo_sendrecv.c
 #  sopalin/variable_csc.c
@@ -422,6 +420,18 @@ set(PASTIX_LIB_SRCS
   ${generated_files}
   )
 
+
+set(generated_files "")
+solver_rules( generated_files
+  "starpu/starpu_kernels.c;starpu/starpu_submit_tasks.c;starpu/starpu_updo.c;starpu/starpu_updo_kernels.c;"
+)
+
+
+set(PASTIX_STARPU_SRCS
+  ${generated_files}
+  )
+message(generated_files=${generated_files})
+message(PASTIX_STARPU_SRCS=${PASTIX_STARPU_SRCS})
 set(PASTIX_ALL_SRCS
   #
   graph/graph.c
@@ -450,6 +460,10 @@ set(PASTIX_ALL_SRCS
   #order/order_compute_ptscotch.c
   order/order_compute_metis.c
 )
+
+if(PASTIX_WITH_STARPU)
+ list(APPEND PASTIX_LIB_SRCS ${PASTIX_STARPU_SRCS})
+endif(PASTIX_WITH_STARPU)
 
 if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS

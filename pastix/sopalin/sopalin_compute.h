@@ -19,6 +19,24 @@
  */
 #ifndef SOPALIN_COMPUTE_H
 #define SOPALIN_COMPUTE_H
+/*
+ Section: Global variables
+ */
+/*
+ float: fun
+ Floating point   1.0
+ */
+#ifdef CPLX
+static pastix_float_t fun   = 1.0+0.0*I;
+#else
+static pastix_float_t fun   = 1.0;
+#endif
+/*
+ Float: fzero
+ Floating point   0.0
+ */
+static pastix_float_t fzero = 0.0;
+static pastix_int_t   iun   = 1;
 #ifndef X_INCLUDE_ESSL
 /*#define CBLAS*/
 #endif /* X_INCLUDE_ESSL */

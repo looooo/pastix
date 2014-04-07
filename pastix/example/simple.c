@@ -199,10 +199,23 @@ int main (int argc, char **argv)
 
   PRINT_RHS("RHS", rhs, ncol, mpid, iparm[IPARM_VERBOSE]);
 
+  if (iparm[IPARM_STARPU] == API_YES) {
+    /* solve is not efficient with StarPU yet */
+    iparm[IPARM_END_TASK] = API_TASK_NUMFACT;
   pastix(&pastix_data, MPI_COMM_WORLD,
          ncol, colptr, rows, values,
          perm, invp, rhs, nbrhs, iparm, dparm);
 
+    iparm[IPARM_STARPU] = API_NO;
+    iparm[IPARM_END_TASK] = API_TASK_CLEAN;
+    pastix(&pastix_data, MPI_COMM_WORLD,
+           ncol, colptr, rows, values,
+           perm, invp, rhs, nbrhs, iparm, dparm);
+  } else {
+    pastix(&pastix_data, MPI_COMM_WORLD,
+           ncol, colptr, rows, values,
+           perm, invp, rhs, nbrhs, iparm, dparm);
+  }
   PRINT_RHS("SOL", rhs, ncol, mpid, iparm[IPARM_VERBOSE]);
   CHECK_SOL(rhs, rhssaved, ncol, mpid);
 

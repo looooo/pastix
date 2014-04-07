@@ -7,17 +7,13 @@
 #ifndef SOPALIN_3D_H
 #define SOPALIN_3D_H
 
-#ifndef SOPALIN_THREAD_H
-#error "sopalin_thread.h must be included before sopalin3d.h"
-#endif
+#include "sopalin_thread.h"
+#include "sopalin_define.h"
 
-#ifndef SOPALIN_DEFINE_H
-#error "sopalin_define.h must be included before sopalin3d.h"
-#endif
 
 typedef struct Sopalin_Data_ Sopalin_Data_t;
 
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
 #include "starpu_submit_tasks.h"
 #endif
 
@@ -146,6 +142,12 @@ typedef struct Thread_Data_ {
 #endif
 } Thread_Data_t;
 
+typedef struct starpu_task_stats_ {
+  double delay_sum;
+  double length_sum;
+  unsigned int cnt;
+  unsigned long ops;
+} starpu_task_stats_t;
 /************************************************/
 /*          Sopalin Data                        */
 /*   Données Communes à tous les threads        */
@@ -228,8 +230,12 @@ struct Sopalin_Data_ {
   int             ncore_avail;               /*+ number of cores available +*/
 #  endif
 #endif
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
   starpu_loop_data_t  *starpu_loop_data;
+  starpu_task_stats_t * gemm_stats;
+  starpu_task_stats_t * hgemm_stats;
+  starpu_task_stats_t * xxtrf_stats;
+  starpu_task_stats_t * trsm_stats;
 #endif
 };
 

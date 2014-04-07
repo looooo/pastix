@@ -62,6 +62,10 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
     if ( ( ( transA == PastixNoTrans ) && ( LWORK < (M+1)*K) ) ||
          ( ( transA != PastixNoTrans ) && ( LWORK < (N+1)*K) ) ){
         fprintf(stderr, "CORE_gemdm: Illegal value of LWORK\n");
+        if (transA == PastixNoTrans )
+            errorPrint("LWORK %d < (M=%d+1)*K=%d ", LWORK, M, K);
+        if (transA == PastixNoTrans )
+            errorPrint("LWORK %d < (N=%d+1)*K=%d ", LWORK, N, K);
         return -17;
     }
 

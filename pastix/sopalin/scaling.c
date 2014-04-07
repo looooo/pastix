@@ -19,7 +19,6 @@
 #define LOW 0
 #define UPPER 1
 
-static int iun = 1;
 
 void CscMatrix_RowMult(CscMatrix *csc, pastix_float_t *scaletab) {
   int k, col, i, index;

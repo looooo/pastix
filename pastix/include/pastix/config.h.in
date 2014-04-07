@@ -8,6 +8,7 @@
 #cmakedefine PASTIX_WITH_MPI
 #cmakedefine PASTIX_WITH_CUDA
 #cmakedefine PASTIX_WITH_STARPU
+#cmakedefine PASTIX_WITH_STARPU_PROFILING
 
 /* system */
 #cmakedefine HAVE_PTHREAD

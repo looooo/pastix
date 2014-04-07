@@ -37,6 +37,21 @@ if (PASTIX_ORDERING_METIS)
     )
 endif()
 
+if(PASTIX_WITH_STARPU)
+  link_directories(${STARPU_LIBRARY_DIRS})
+  if (PASTIX_WITH_MPI)
+    set(PASTIX_EXAMPLES_LIBRARIES
+      ${PASTIX_EXAMPLES_LIBRARIES}
+      ${STARPU_MPI_LIBRARIES}
+      )
+  else(PASTIX_WITH_MPI)
+    set(PASTIX_EXAMPLES_LIBRARIES
+      ${PASTIX_EXAMPLES_LIBRARIES}
+      ${STARPU_SHM_LIBRARIES}
+      )
+  endif(PASTIX_WITH_MPI)
+endif(PASTIX_WITH_STARPU)
+
 add_executable(simple
   simple.c
 )
