@@ -856,6 +856,223 @@ solverMatrixGen(const pastix_int_t clustnum,
     }
     /*********************** END TRIANGULAR INFO BUILDING ******************************************/
 
+#if defined(PASTIX_WITH_STARPU)
+    /************************************************************************/
+    /*  Fill the halo information                                           */
+    /************************************************************************/
+    /* gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
+     *                   >  0 : local cblk number
+     *                   <  0 : -halo cblk number
+     */
+    {
+        pastix_int_t halocblk=1;
+        pastix_int_t bloknum=0;
+        MALLOC_INTERN(solvmtx->gcblk2halo, symbmtx->cblknbr, pastix_int_t);
+        memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
+        for(i=0;i<symbmtx->cblknbr;i++) {
+            if (cblklocalnum[i] >= 0) {
+                /* If i is a local cblk */
+                solvmtx->gcblk2halo[i] = cblklocalnum[i]+1;
+                for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
+                    pastix_int_t dst_cblk, dst_bloc;
+                    dst_cblk = symbmtx->bloktab[j].cblknum;
+                    if (solvmtx->gcblk2halo[dst_cblk] == 0 &&
+                        symbmtx->cblktab[dst_cblk+1].bloknum -
+                        symbmtx->cblktab[dst_cblk].bloknum > 0) {
+                        dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                        if ( simuctrl->bloktab[ dst_bloc ].ownerclust != clustnum) {
+                            /* i updates remote cblk, add dst_cblk to halo */
+                            solvmtx->gcblk2halo[dst_cblk] = -(halocblk++);
+                            bloknum += symbmtx->cblktab[dst_cblk+1].bloknum -
+                                symbmtx->cblktab[dst_cblk].bloknum;
+                        }
+                    }
+                }
+            } else {
+                /* If i is not a local cblk */
+                if (solvmtx->gcblk2halo[i] == 0 &&
+                    symbmtx->cblktab[i+1].bloknum -
+                    symbmtx->cblktab[i].bloknum > 0) {
+                    for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
+                        pastix_int_t dst_cblk, dst_bloc;
+                        dst_cblk = symbmtx->bloktab[j].cblknum;
+                        dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                        if ( simuctrl->bloktab[ dst_bloc ].ownerclust == clustnum) {
+                            /* i updates local cblk add i to halo*/
+                            solvmtx->gcblk2halo[i] = -(halocblk++);
+                            bloknum += symbmtx->cblktab[i+1].bloknum-symbmtx->cblktab[i].bloknum;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        solvmtx->hcblknbr = halocblk-1;
+        solvmtx->gcblknbr = symbmtx->cblknbr;
+        MALLOC_INTERN(solvmtx->hcblktab, halocblk, SolverHaloCblk);
+        MALLOC_INTERN(solvmtx->hbloktab, bloknum, SolverHaloBlok);
+        memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
+
+        bloknum=0;
+        halocblk=0;
+        for(i=0;i<symbmtx->cblknbr;i++) {
+            if (cblklocalnum[i] >= 0) {
+                /* If i is a local cblk */
+                solvmtx->gcblk2halo[i] = cblklocalnum[i]+1;
+                for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
+                    pastix_int_t dst_cblk, dst_bloc;
+                    dst_cblk = symbmtx->bloktab[j].cblknum;
+                    if (solvmtx->gcblk2halo[dst_cblk] == 0 &&
+                        symbmtx->cblktab[dst_cblk+1].bloknum -
+                        symbmtx->cblktab[dst_cblk].bloknum > 0) {
+                        dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                        if ( simuctrl->bloktab[ dst_bloc ].ownerclust != clustnum) {
+                            pastix_int_t bloc;
+                            pastix_int_t coefind = 0;
+                            /* i updates remote cblk, add dst_cblk to halo */
+                            solvmtx->gcblk2halo[dst_cblk] = -(halocblk+1);
+                            solvmtx->hcblktab[halocblk].fcolnum =
+                                symbmtx->cblktab[dst_cblk].fcolnum * dofptr->noddval;
+                            solvmtx->hcblktab[halocblk].lcolnum =
+                                symbmtx->cblktab[dst_cblk].lcolnum * dofptr->noddval +
+                                dofptr->noddval-1;
+                            solvmtx->hcblktab[halocblk].stride   = 0;
+                            solvmtx->hcblktab[halocblk].bloknum  = bloknum;
+                            solvmtx->hcblktab[halocblk].owner    = simuctrl->bloktab[ dst_bloc ].ownerclust;
+                            solvmtx->hcblktab[halocblk].gcblk    = dst_cblk;
+                            for( bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                                 bloc < symbmtx->cblktab[dst_cblk+1].bloknum;
+                                 bloc++) {
+                                delta  =  symbmtx->bloktab[bloc].lrownum -
+                                    symbmtx->bloktab[bloc].frownum +1;
+                                delta *=  dofptr->noddval;
+                                solvmtx->hcblktab[halocblk].stride += delta;
+                                solvmtx->hbloktab[bloknum].frownum = symbmtx->bloktab[bloc].frownum * dofptr->noddval;
+                                solvmtx->hbloktab[bloknum].lrownum = symbmtx->bloktab[bloc].lrownum * dofptr->noddval + dofptr->noddval-1;
+                                solvmtx->hbloktab[bloknum].coefind = coefind;
+                                coefind += delta;
+                                bloknum ++;
+                            }
+                            halocblk++;
+                        }
+                    }
+                }
+            } else {
+                /* If i is not a local cblk */
+                if (solvmtx->gcblk2halo[i] == 0 &&
+                    symbmtx->cblktab[i+1].bloknum -
+                    symbmtx->cblktab[i].bloknum > 0) {
+                    for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
+                        pastix_int_t dst_cblk, dst_bloc;
+                        dst_cblk = symbmtx->bloktab[j].cblknum;
+                        dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                        if (simuctrl->bloktab[ dst_bloc ].ownerclust == clustnum) {
+                            pastix_int_t bloc;
+                            pastix_int_t coefind = 0;
+                            /* i updates local cblk add i to halo*/
+                            solvmtx->gcblk2halo[i] = -(halocblk+1);
+
+                            solvmtx->hcblktab[halocblk].fcolnum =
+                                symbmtx->cblktab[i].fcolnum * dofptr->noddval;
+                            solvmtx->hcblktab[halocblk].lcolnum =
+                                symbmtx->cblktab[i].lcolnum * dofptr->noddval +
+                                dofptr->noddval-1;
+                            solvmtx->hcblktab[halocblk].stride   = 0;
+                            solvmtx->hcblktab[halocblk].bloknum  = bloknum;
+                            solvmtx->hcblktab[halocblk].owner    = simuctrl->bloktab[ symbmtx->cblktab[i].bloknum ].ownerclust;
+                            solvmtx->hcblktab[halocblk].gcblk    = i;
+                            for( bloc = symbmtx->cblktab[i].bloknum;
+                                 bloc < symbmtx->cblktab[i+1].bloknum;
+                                 bloc++) {
+                                delta =  symbmtx->bloktab[bloc].lrownum -
+                                    symbmtx->bloktab[bloc].frownum +1;
+                                solvmtx->hcblktab[halocblk].stride += delta * dofptr->noddval;
+                                solvmtx->hbloktab[bloknum].frownum =
+                                    symbmtx->bloktab[bloc].frownum * dofptr->noddval;
+                                solvmtx->hbloktab[bloknum].lrownum =
+                                    symbmtx->bloktab[bloc].lrownum * dofptr->noddval + dofptr->noddval-1;
+                                solvmtx->hbloktab[bloknum].coefind = coefind;
+                                coefind += delta;
+
+                                //solvmtx->hbloktab[bloknum].cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
+                                bloknum++;
+                            }
+                            halocblk++;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (halocblk > 0) {
+            /*  virtual cblk to avoid side effect in the loops on cblk bloks */
+            solvmtx->hcblktab[halocblk].fcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
+            solvmtx->hcblktab[halocblk].lcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
+            solvmtx->hcblktab[halocblk].bloknum = bloknum;
+        } else {
+            solvmtx->hcblktab[0].fcolnum = 0;
+            solvmtx->hcblktab[0].lcolnum = 0;
+            solvmtx->hcblktab[0].bloknum = 0;
+        }
+
+        /************************************************************************/
+        /*** Find the list of global column blocks contributing to each cblk ****/
+        /************************************************************************/
+        cursor  = 0;
+        cursor2 = 0;
+        MALLOC_INTERN(solvmtx->updovct.gcblk2glist, symbmtx->cblknbr, pastix_int_t);
+        for(i=0;i<symbmtx->cblknbr;i++) {
+            solvmtx->updovct.gcblk2glist[i] = -1;
+            flag = 0;
+            for(j=0; j<ctrl->egraph->verttab[i].innbr;j++) {
+                if(flag == 0) {
+                    flag = 1;
+                    solvmtx->updovct.gcblk2glist[i] = cursor;
+                    cursor++;
+                }
+                cursor2++;
+            }
+        }
+        solvmtx->updovct.gcblk2glistnbr = symbmtx->cblknbr;
+
+        MALLOC_INTERN(solvmtx->updovct.glistptr, cursor+1, pastix_int_t);
+        solvmtx->updovct.glistptrnbr = cursor+1;
+        MALLOC_INTERN(solvmtx->updovct.glistblok, cursor2, pastix_int_t);
+        MALLOC_INTERN(solvmtx->updovct.glistcblk, cursor2, pastix_int_t);
+        /* MALLOC_INTERN(solvmtx->updovct.glistproc, cursor2, pastix_int_t); */
+        /* for (i = 0; i < cursor2; i++) solvmtx->updovct.glistproc[i] = -1; */
+
+        cursor  = 0;
+        cursor2 = 0;
+        for(i=0;i<symbmtx->cblknbr;i++) {
+            flag = 0;
+            for(j=0; j<ctrl->egraph->verttab[i].innbr;j++) {
+                pastix_int_t blocknum;
+                if(flag == 0) {
+                    solvmtx->updovct.glistptr[cursor2] = cursor;
+                    cursor2++;
+                    flag = 1;
+                }
+                blocknum = ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j];
+                solvmtx->updovct.glistblok[cursor] = bloklocalnum[blocknum];
+                solvmtx->updovct.glistcblk[cursor] = ctrl->egraph->ownetab[blocknum];
+                /* solvmtx->updovct.glistproc[cursor] = proc2clust[ blprtab[blocknum] ]; */
+                if (simuctrl->bloktab[i].ownerclust == clustnum) {
+                    ASSERT(solvmtx->gcblk2halo[ctrl->egraph->ownetab[blocknum]] > 0,
+                           MOD_BLEND);
+                } else {
+                    ASSERT(solvmtx->gcblk2halo[ctrl->egraph->ownetab[blocknum]] <= 0,
+                           MOD_BLEND);
+                }
+                cursor++;
+            }
+        }
+        solvmtx->updovct.glistptr[cursor2] = cursor;
+        solvmtx->updovct.glistnbr = cursor;
+    }
+#endif /* defined(PASTIX_WITH_STARPU) */
+
     memFree_null(cblklocalnum);
     memFree_null(bloklocalnum);
     memFree_null(tasklocalnum);
