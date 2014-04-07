@@ -591,7 +591,7 @@ solverMatrixGen(const pastix_int_t clustnum,
              * This could be cut down if we know at analyse time which operation
              * will be performed.
              */
-            diagarea = m * n;
+            diagarea = (m+1) * n;
             if ( diagarea > diagmax ) {
                 diagmax = diagarea;
                 maxd_m = m;
@@ -617,7 +617,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         solvmtx->coefmax = pastix_imax( gemmmax, diagmax );
         fprintf(stderr,
-                "Coefmax: diagonal %ld (%ld x %ld)\n"
+                "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
                 "         update   %ld (%ld x %ld)\n",
                 diagmax, maxd_m, maxd_n,
                 gemmmax, maxg_m, maxg_n );
