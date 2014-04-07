@@ -326,9 +326,6 @@ set(PASTIX_LIB_SRCS
 #  blend/splitpartlocal.c
   blend/task.c
 #
-#  symbol/symbolrand.c
-#
-#  sopalin/bordi.c
   sopalin/sopalin_thread.c
 #  sopalin/compute_context_nbr.c
   sopalin/coefinit.c
