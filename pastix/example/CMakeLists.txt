@@ -52,26 +52,13 @@ if(PASTIX_WITH_STARPU)
   endif(PASTIX_WITH_MPI)
 endif(PASTIX_WITH_STARPU)
 
-add_executable(simple
-  simple.c
-)
+foreach(example simple step-by-step analyse)
+  add_executable(${example} "${example}.c")
+  target_link_libraries( ${example}
+    ${PASTIX_EXAMPLES_LIBRARIES} )
 
-add_executable(analyse
-  analyse.c
-)
-
-target_link_libraries( simple
-  ${PASTIX_EXAMPLES_LIBRARIES} )
-
-if (PASTIX_WITH_MPI)
-  target_link_libraries( simple
-    ${MPI_LIBRARIES} )
-endif()
-
-target_link_libraries( analyse
-  ${PASTIX_EXAMPLES_LIBRARIES} )
-
-if (PASTIX_WITH_MPI)
-  target_link_libraries( analyse
-    ${MPI_LIBRARIES} )
-endif()
+  if (PASTIX_WITH_MPI)
+    target_link_libraries( ${example}
+      ${MPI_LIBRARIES} )
+  endif()
+endforeach()
