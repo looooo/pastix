@@ -113,6 +113,7 @@
                                    blocknbr,  blocktab,                 \
                                    fblocknbr, fblocktab,                \
                                    starpu_cuda_get_local_stream());     \
+    cudaStreamSynchronize(starpu_cuda_get_local_stream());              \
   } while(0)
 #define CUDA_SPARSE_GEMDM(TRANSA, TRANSB,                               \
                           dimi, dimj, dima,                             \
@@ -138,6 +139,7 @@
                                       blocknbr,  blocktab,              \
                                       fblocknbr, fblocktab,             \
                                       starpu_cuda_get_local_stream());  \
+    cudaStreamSynchronize(starpu_cuda_get_local_stream());              \
     } while(0)
 #else
 #define CUDA_SPARSE_GEMM(TRANSA, TRANSB,                                \
@@ -165,6 +167,7 @@
                                                   blocktab,             \
                                                   fblocknbr,            \
                                                   fblocktab);           \
+    cudaStreamSynchronize(starpu_cuda_get_local_stream());              \
   } while(0)
 #define CUDA_SPARSE_GEMDM(TRANSA, TRANSB,                               \
                           dimi, dimj, dima,                             \
@@ -194,6 +197,7 @@
                                                    blocktab,            \
                                                    fblocknbr,           \
                                                    fblocktab);          \
+    cudaStreamSynchronize(starpu_cuda_get_local_stream());              \
   } while(0)
 #endif
 #endif
