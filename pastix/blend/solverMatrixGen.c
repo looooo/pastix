@@ -1059,7 +1059,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvmtx->updovct.glistblok[cursor] = bloklocalnum[blocknum];
                 solvmtx->updovct.glistcblk[cursor] = ctrl->egraph->ownetab[blocknum];
                 /* solvmtx->updovct.glistproc[cursor] = proc2clust[ blprtab[blocknum] ]; */
-                if (simuctrl->bloktab[i].ownerclust == clustnum) {
+                if (simuctrl->bloktab[blocknum].ownerclust == clustnum) {
                     ASSERT(solvmtx->gcblk2halo[ctrl->egraph->ownetab[blocknum]] > 0,
                            MOD_BLEND);
                 } else {

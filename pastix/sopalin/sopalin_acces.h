@@ -189,8 +189,8 @@
 #define HCBLK_LCOLNUM(x)   datacode->hcblktab[x].lcolnum
 #define HCBLK_COLNBR(x)    (HCBLK_LCOLNUM(x) - HCBLK_FCOLNUM(x) + 1)
 #define HCBLK_STRIDE(x)    datacode->hcblktab[x].stride
-#define HCBLK_OWNER(x)     datacode->hcblktab[x].owner
-#define HCBLK_GCBLK(x)     datacode->hcblktab[x].gcblk
+#define HCBLK_OWNER(x)     datacode->hcblktab[x].procdiag
+#define HCBLK_GCBLK(x)     datacode->hcblktab[x].gcblknum
 #define SOLV_GCBLK2HALO(x) -(datacode->gcblk2halo[x]+1)
 #define SOLV_GCBLK2LOC(x) datacode->gcblk2halo[x]
 #define SOLV_GCBLKISHALO(x) (datacode->gcblk2halo[x] < 0)
