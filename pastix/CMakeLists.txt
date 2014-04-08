@@ -430,8 +430,7 @@ solver_rules( generated_files
 set(PASTIX_STARPU_SRCS
   ${generated_files}
   )
-message(generated_files=${generated_files})
-message(PASTIX_STARPU_SRCS=${PASTIX_STARPU_SRCS})
+
 set(PASTIX_ALL_SRCS
   #
   graph/graph.c
