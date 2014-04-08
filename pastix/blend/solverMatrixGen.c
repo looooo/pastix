@@ -309,6 +309,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         for(i=0; i<simuctrl->tasknbr; i++, simutask++)
         {
+            nbftmax = pastix_imax( nbftmax, simutask->ftgtcnt );
             if( simuctrl->bloktab[ simutask->bloknum ].ownerclust == clustnum )
             {
                 assert( tasknum == tasklocalnum[i] );
@@ -321,7 +322,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvtask->ctrbcnt = simutask->ctrbcnt;
                 solvtask->indnum  = indnbr;
 
-                nbftmax = pastix_imax( nbftmax, solvtask->ftgtcnt );
 
                 /*
                  * Count number of index needed in indtab:
