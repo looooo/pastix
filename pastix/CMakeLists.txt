@@ -268,6 +268,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/starpu")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 
 macro(solver_rules _output_files _sources_files)
   foreach(_source_file ${_sources_files})

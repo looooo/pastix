@@ -15,6 +15,7 @@
 #include "compute_trsm.h"
 #include "starpu_kernels.h"
 #include "starpu_submit_tasks.h"
+#include "panel_xxtrf_cpu.h"
 
 #ifdef PASTIX_WITH_CUDA
 #  include "sparse_gemm.h"
@@ -410,38 +411,11 @@ void xxtrf_starpu_common(void * buffers[], void * _args, int arch) {
 
   switch(arch) {
   case ARCH_CPU:
-#ifdef CHOL_SOPALIN
-#  ifdef SOPALIN_LU
-    /* Add U diagonal updates into L */
-    SOPALIN_GEAM("T", "N", dima, dima, 1.0,
-                 uDiag, stride,
-                 lDiag, stride);
-    /* Factorize diagonal block (two terms version with workspace) */
-    PASTIX_getrf_block(lDiag, dima, dima, stride,
-                       &(sopalin_data->thread_data[me]->nbpivot),
-                       sopalin_data->critere);
-    /* Transpose L_diag in U_diag Matrix */
-    DimTrans(lDiag,stride, dima,uDiag);
-#  else /* SOPALIN_LU */
-    PASTIX_potrf_block(lDiag, dima, stride,
-                       &(sopalin_data->thread_data[me]->nbpivot),
-                       sopalin_data->critere);
-
-#  endif /* SOPALIN_LU */
-#else /* CHOL_SOPALIN */
-#  ifdef HERMITIAN
-    PASTIX_hetrf_block(lDiag, dima, stride,
-                       &(sopalin_data->thread_data[me]->nbpivot),
-                       sopalin_data->critere,
-                       sopalin_data->thread_data[me]->maxbloktab1);
-#  else
-    PASTIX_sytrf_block(lDiag, dima, stride,
-                       &(sopalin_data->thread_data[me]->nbpivot),
-                       sopalin_data->critere,
-                       sopalin_data->thread_data[me]->maxbloktab1);
-#  endif
-#endif /* CHOL_SOPALIN */
-    break;
+      sopalin_data->thread_data[me]->nbpivot +=
+          panel_xxtrf_cpu(datacode->cblktab+cblknum,
+                          sopalin_data->critere,
+                          sopalin_data->thread_data[me]->maxbloktab1);
+      break;
 #ifdef PASTIX_WITH_MAGMABLAS
   case ARCH_CUDA:
 #ifdef CHOL_SOPALIN
