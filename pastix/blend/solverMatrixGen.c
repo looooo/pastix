@@ -221,7 +221,6 @@ solverMatrixGen(const pastix_int_t clustnum,
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
 
         cblknum = 0;
-        bloknum = 0;
         nodenbr = 0;
         coefnbr = 0;
         for(i=0;i<symbmtx->cblknbr;i++, symbcblk++)
@@ -229,11 +228,11 @@ solverMatrixGen(const pastix_int_t clustnum,
             pastix_int_t fbloknum  = symbcblk[0].bloknum;
             pastix_int_t lbloknum  = symbcblk[1].bloknum;
             pastix_int_t stride    = 0;
+            SolverBlok * firstBlok = solvblok;
             pastix_int_t nbcolumns = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dofptr->noddval;
             pastix_int_t nbrows;
 
             flaglocal = 0;
-            cursor = bloknum;
 
             for( j=fbloknum; j<lbloknum; j++, symbblok++, simublok++ ) {
                 nbrows = (symbblok->lrownum - symbblok->frownum + 1) * dofptr->noddval;
@@ -252,7 +251,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                     solvblok->coefind = stride;
 
                     stride += nbrows;
-                    bloknum ++; solvblok++;
+                    solvblok++;
                 }
             }
             if(flaglocal)
@@ -260,7 +259,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 /* Init the cblk */
                 solvcblk->fcolnum  = symbcblk->fcolnum * dofptr->noddval;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
-                solvcblk->bloknum  = cursor;
+                solvcblk->firstBlok = firstBlok;
                 solvcblk->stride   = stride;
                 solvcblk->procdiag = -1;
                 solvcblk->coeftab  = NULL;
@@ -279,7 +278,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         {
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
-            solvcblk->bloknum  = bloknum;
+            solvcblk->firstBlok  = solvblok;
             solvcblk->stride   = 0;
             solvcblk->procdiag = -1;
             solvcblk->coeftab  = NULL;
@@ -291,7 +290,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         solvmtx->arftmax = blokamax;
 
         assert( solvmtx->cblknbr == cblknum );
-        assert( solvmtx->bloknbr == bloknum );
+        assert( solvmtx->bloknbr == solvblok - solvmtx->bloktab );
     }
 
     /***************************************************************************
@@ -570,8 +569,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         for(i=0;i<solvmtx->cblknbr;i++, solvcblk++)
         {
-            pastix_int_t fbloknum = solvcblk[0].bloknum;
-            pastix_int_t lbloknum = solvcblk[1].bloknum;
+            SolverBlok * lblok = solvcblk[1].firstBlok;
             pastix_int_t m = solvcblk->stride;
             pastix_int_t n = solvblok->lrownum - solvblok->frownum + 1;
 
@@ -601,7 +599,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvblok++;
 
             /* Area of GEMM updates */
-            for( j=fbloknum+1; j<lbloknum; j++, solvblok++ ) {
+            for( ; solvblok<lblok; solvblok++ ) {
                 n = solvblok->lrownum - solvblok->frownum + 1;
 
                 gemmarea = m * n;
@@ -835,9 +833,10 @@ solverMatrixGen(const pastix_int_t clustnum,
         for (i=0; i<solvmtx->bublnbr; i++)
             for (j=0; j < solvmtx->ttsknbr[i]; j++)
             {
+                SolverBlok * solvblok;
                 cblknum = solvmtx->tasktab[solvmtx->ttsktab[i][j]].cblknum;
-                for (k =  solvmtx->cblktab[cblknum+1].bloknum-1;
-                     k >= solvmtx->cblktab[cblknum].bloknum+1; k--)
+                for (solvblok =  solvmtx->cblktab[cblknum+1].firstBlok-1;
+                     solvblok >= solvmtx->cblktab[cblknum].firstBlok+1; solvblok--)
                     /* if the contribution is not local */
                     if (solvmtx->bloktab[k].cblknum <= 0)
                         uprecvcblk[solvmtx->updovct.lblk2gcblk[k]] = 1;
@@ -866,7 +865,9 @@ solverMatrixGen(const pastix_int_t clustnum,
      */
     {
         pastix_int_t halocblk=1;
-        pastix_int_t bloknum=0;
+        pastix_int_t bloknbr=0;
+        SolverCblk * hcblk;
+        SolverBlok * hblok;
         MALLOC_INTERN(solvmtx->gcblk2halo, symbmtx->cblknbr, pastix_int_t);
         memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
         for(i=0;i<symbmtx->cblknbr;i++) {
@@ -883,7 +884,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                         if ( simuctrl->bloktab[ dst_bloc ].ownerclust != clustnum) {
                             /* i updates remote cblk, add dst_cblk to halo */
                             solvmtx->gcblk2halo[dst_cblk] = -(halocblk++);
-                            bloknum += symbmtx->cblktab[dst_cblk+1].bloknum -
+                            bloknbr += symbmtx->cblktab[dst_cblk+1].bloknum -
                                 symbmtx->cblktab[dst_cblk].bloknum;
                         }
                     }
@@ -900,7 +901,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                         if ( simuctrl->bloktab[ dst_bloc ].ownerclust == clustnum) {
                             /* i updates local cblk add i to halo*/
                             solvmtx->gcblk2halo[i] = -(halocblk++);
-                            bloknum += symbmtx->cblktab[i+1].bloknum-symbmtx->cblktab[i].bloknum;
+                            bloknbr += symbmtx->cblktab[i+1].bloknum-symbmtx->cblktab[i].bloknum;
                             break;
                         }
                     }
@@ -910,10 +911,11 @@ solverMatrixGen(const pastix_int_t clustnum,
         solvmtx->hcblknbr = halocblk-1;
         solvmtx->gcblknbr = symbmtx->cblknbr;
         MALLOC_INTERN(solvmtx->hcblktab, halocblk, SolverCblk);
-        MALLOC_INTERN(solvmtx->hbloktab, bloknum, SolverBlok);
+        MALLOC_INTERN(solvmtx->hbloktab, bloknbr, SolverBlok);
         memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
 
-        bloknum=0;
+        hblok=solvmtx->hbloktab;
+        hcblk=solvmtx->hcblktab;
         halocblk=0;
         for(i=0;i<symbmtx->cblknbr;i++) {
             if (cblklocalnum[i] >= 0) {
@@ -931,15 +933,15 @@ solverMatrixGen(const pastix_int_t clustnum,
                             pastix_int_t coefind = 0;
                             /* i updates remote cblk, add dst_cblk to halo */
                             solvmtx->gcblk2halo[dst_cblk] = -(halocblk+1);
-                            solvmtx->hcblktab[halocblk].fcolnum =
+                            hcblk->fcolnum =
                                 symbmtx->cblktab[dst_cblk].fcolnum * dofptr->noddval;
-                            solvmtx->hcblktab[halocblk].lcolnum =
+                            hcblk->lcolnum =
                                 symbmtx->cblktab[dst_cblk].lcolnum * dofptr->noddval +
                                 dofptr->noddval-1;
-                            solvmtx->hcblktab[halocblk].stride   = 0;
-                            solvmtx->hcblktab[halocblk].bloknum  = bloknum;
-                            solvmtx->hcblktab[halocblk].procdiag = simuctrl->bloktab[ dst_bloc ].ownerclust;
-                            solvmtx->hcblktab[halocblk].gcblknum = dst_cblk;
+                            hcblk->stride   = 0;
+                            hcblk->firstBlok = hblok;
+                            hcblk->procdiag = simuctrl->bloktab[ dst_bloc ].ownerclust;
+                            hcblk->gcblknum = dst_cblk;
                             for( bloc = symbmtx->cblktab[dst_cblk].bloknum;
                                  bloc < symbmtx->cblktab[dst_cblk+1].bloknum;
                                  bloc++) {
@@ -947,14 +949,15 @@ solverMatrixGen(const pastix_int_t clustnum,
                                 delta  =  symbmtx->bloktab[bloc].lrownum -
                                     symbmtx->bloktab[bloc].frownum +1;
                                 delta *=  dofptr->noddval;
-                                solvmtx->hcblktab[halocblk].stride += delta;
-                                solvmtx->hbloktab[bloknum].frownum = symbmtx->bloktab[bloc].frownum * dofptr->noddval;
-                                solvmtx->hbloktab[bloknum].lrownum = symbmtx->bloktab[bloc].lrownum * dofptr->noddval + dofptr->noddval-1;
-                                solvmtx->hbloktab[bloknum].coefind = coefind;
+                                hcblk->stride += delta;
+                                hblok->frownum = symbmtx->bloktab[bloc].frownum * dofptr->noddval;
+                                hblok->lrownum = symbmtx->bloktab[bloc].lrownum * dofptr->noddval + dofptr->noddval-1;
+                                hblok->coefind = coefind;
                                 coefind += delta;
-                                bloknum ++;
+                                hblok ++;
                             }
                             halocblk++;
+                            hcblk++;
                         }
                     }
                 }
@@ -973,32 +976,33 @@ solverMatrixGen(const pastix_int_t clustnum,
                             /* i updates local cblk add i to halo*/
                             solvmtx->gcblk2halo[i] = -(halocblk+1);
 
-                            solvmtx->hcblktab[halocblk].fcolnum =
+                            hcblk->fcolnum =
                                 symbmtx->cblktab[i].fcolnum * dofptr->noddval;
-                            solvmtx->hcblktab[halocblk].lcolnum =
+                            hcblk->lcolnum =
                                 symbmtx->cblktab[i].lcolnum * dofptr->noddval +
                                 dofptr->noddval-1;
-                            solvmtx->hcblktab[halocblk].stride   = 0;
-                            solvmtx->hcblktab[halocblk].bloknum  = bloknum;
-                            solvmtx->hcblktab[halocblk].procdiag = simuctrl->bloktab[ symbmtx->cblktab[i].bloknum ].ownerclust;
-                            solvmtx->hcblktab[halocblk].gcblknum = i;
+                            hcblk->stride   = 0;
+                            hcblk->firstBlok  = hblok;
+                            hcblk->procdiag = simuctrl->bloktab[ symbmtx->cblktab[i].bloknum ].ownerclust;
+                            hcblk->gcblknum = i;
                             for( bloc = symbmtx->cblktab[i].bloknum;
                                  bloc < symbmtx->cblktab[i+1].bloknum;
                                  bloc++) {
                                 pastix_int_t delta =  symbmtx->bloktab[bloc].lrownum -
                                     symbmtx->bloktab[bloc].frownum +1;
-                                solvmtx->hcblktab[halocblk].stride += delta * dofptr->noddval;
-                                solvmtx->hbloktab[bloknum].frownum =
+                                hcblk->stride += delta * dofptr->noddval;
+                                hblok->frownum =
                                     symbmtx->bloktab[bloc].frownum * dofptr->noddval;
-                                solvmtx->hbloktab[bloknum].lrownum =
+                                hblok->lrownum =
                                     symbmtx->bloktab[bloc].lrownum * dofptr->noddval + dofptr->noddval-1;
-                                solvmtx->hbloktab[bloknum].coefind = coefind;
+                                hblok->coefind = coefind;
                                 coefind += delta;
 
-                                //solvmtx->hbloktab[bloknum].cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
-                                bloknum++;
+                                //hblok->cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
+                                hblok++;
                             }
                             halocblk++;
+                            hcblk++;
                             break;
                         }
                     }
@@ -1008,14 +1012,15 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         if (halocblk > 0) {
             /*  virtual cblk to avoid side effect in the loops on cblk bloks */
-            solvmtx->hcblktab[halocblk].fcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
-            solvmtx->hcblktab[halocblk].lcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
-            solvmtx->hcblktab[halocblk].bloknum = bloknum;
+            hcblk->fcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
+            hcblk->lcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
+            hcblk->firstBlok = hblok;
         } else {
-            solvmtx->hcblktab[0].fcolnum = 0;
-            solvmtx->hcblktab[0].lcolnum = 0;
-            solvmtx->hcblktab[0].bloknum = 0;
+            hcblk->fcolnum = 0;
+            hcblk->lcolnum = 0;
+            hcblk->firstBlok = hblok;
         }
+        assert( bloknbr == hblok - solvmtx->hbloktab );
 
         /************************************************************************/
         /*** Find the list of global column blocks contributing to each cblk ****/

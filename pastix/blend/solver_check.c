@@ -51,10 +51,10 @@ void solverCheck(SolverMatrix *solvmtx)
         switch(solvmtx->tasktab[i].taskid)
           {
             case COMP_1D:
-              ASSERT(bloknum  == solvmtx->cblktab[cblknum].bloknum,MOD_BLEND);
-              for(j = bloknum+1;j<solvmtx->cblktab[cblknum+1].bloknum;j++)
+              ASSERT(bloknum  == (solvmtx->cblktab[cblknum].firstBlok-solvmtx->bloktab),MOD_BLEND);
+              for(j = bloknum+1;j<solvmtx->cblktab[cblknum+1].firstBlok-solvmtx->bloktab;j++)
                 {
-                  for(k=j;k<solvmtx->cblktab[cblknum+1].bloknum;k++)
+                  for(k=j;k<solvmtx->cblktab[cblknum+1].firstBlok-solvmtx->bloktab;k++)
                     {
                       /*#ifdef NAPA*/
                       if(solvmtx->indtab[indnum] > solvmtx->ftgtnbr) /** No ftgt **/
@@ -74,7 +74,7 @@ void solverCheck(SolverMatrix *solvmtx)
                                   facecblknum = solvmtx->bloktab[j].cblknum;
                                   ASSERT(facecblknum >= 0,MOD_BLEND);
                                   ASSERT(facecblknum == solvmtx->tasktab[tasknum].cblknum,MOD_BLEND);
-                                  facebloknum = solvmtx->cblktab[facecblknum].bloknum;
+                                  facebloknum = solvmtx->cblktab[facecblknum].firstBlok-solvmtx->bloktab;
 
                                   while ( ! (    ( solvmtx->bloktab[k].frownum >= solvmtx->bloktab[facebloknum].frownum &&
                                                    solvmtx->bloktab[k].frownum <= solvmtx->bloktab[facebloknum].lrownum)

@@ -1,7 +1,7 @@
 #define SYMB_CBLKNBR      datacode->cblknbr
 #define SYMB_BLOKNBR      datacode->bloknbr
 #define SYMB_NODENBR      datacode->nodenbr   /* Is it useful ?*/
-#define SYMB_BLOKNUM(x)   datacode->cblktab[x].bloknum
+#define SYMB_BLOKNUM(x)   (datacode->cblktab[x].firstBlok - datacode->bloktab)
 #define SYMB_FCOLNUM(x)   datacode->cblktab[x].fcolnum
 #define SYMB_LCOLNUM(x)   datacode->cblktab[x].lcolnum
 #define SYMB_FROWNUM(x)   datacode->bloktab[x].frownum
@@ -183,8 +183,8 @@
 #define TASK_ESP2TASK( __i ) ( -((__i) + 2) )
 
 #define SOLV_HCBLKNBR     datacode->hcblknbr
-#define SOLV_HBLOKNBR     datacode->hcblktab[SOLV_HCBLKNBR].bloknum
-#define HCBLK_BLOKNUM(x)   datacode->hcblktab[x].bloknum
+#define SOLV_HBLOKNBR     (datacode->hcblktab[SOLV_HCBLKNBR].firstBlok - datacode->hbloktab)
+#define HCBLK_BLOKNUM(x)   (datacode->hcblktab[x].firstBlok - datacode->hbloktab)
 #define HCBLK_FCOLNUM(x)   datacode->hcblktab[x].fcolnum
 #define HCBLK_LCOLNUM(x)   datacode->hcblktab[x].lcolnum
 #define HCBLK_COLNBR(x)    (HCBLK_LCOLNUM(x) - HCBLK_FCOLNUM(x) + 1)
