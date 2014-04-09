@@ -1,3 +1,7 @@
+#ifndef _COMPUTE_TRSM_H
+#define _COMPUTE_TRSM_H
+
+#include "common.h"
 #include "sopalin_compute.h"
 
 /*
@@ -12,11 +16,12 @@
  *    U   - extra diagonal block of U
  *    ldl - Leading dimension of matrix L (and U)
  */
+#define kernel_trsm API_CALL(kernel_trsm)
 #ifdef CHOL_SOPALIN
 #  ifdef SOPALIN_LU
 
 static inline
-void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
+void kernel_trsm(pastix_int_t m, pastix_int_t n,
                pastix_float_t *dL, pastix_float_t *dU, pastix_int_t ldd,
                pastix_float_t *L,  pastix_float_t *U,  pastix_int_t ldl )
 {
@@ -30,7 +35,7 @@ void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
 #  else
 
 static inline
-void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
+void kernel_trsm(pastix_int_t m, pastix_int_t n,
                pastix_float_t *dL, pastix_int_t ldd,
                pastix_float_t *L,  pastix_int_t ldl )
 {
@@ -44,7 +49,7 @@ void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
 #else
 
 static inline
-void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
+void kernel_trsm(pastix_int_t m, pastix_int_t n,
                pastix_float_t *dL, pastix_int_t ldd,
                pastix_float_t *L,  pastix_float_t *L2, pastix_int_t ldl )
 {
@@ -75,3 +80,4 @@ void API_CALL(kernel_trsm)(pastix_int_t m, pastix_int_t n,
 }
 
 #endif /* CHOL_SOPALIN */
+#endif _COMPUTE_TRSM_H

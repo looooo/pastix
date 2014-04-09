@@ -11,11 +11,10 @@
 #include "sopalin_thread.h"
 #include "sopalin_acces.h"
 #include "sopalin3d.h"
-#include "compute_diag.h"
-#include "compute_trsm.h"
 #include "starpu_kernels.h"
 #include "starpu_submit_tasks.h"
 #include "panel_xxtrf_cpu.h"
+#include "panel_trsm_cpu.h"
 
 #ifdef PASTIX_WITH_CUDA
 #  include "sparse_gemm.h"
@@ -490,6 +489,8 @@ void trsm_starpu_common(void * buffers[], void * _args, int arch)
 #endif
 #ifndef CHOL_SOPALIN
   pastix_float_t      * tmp4         = (pastix_float_t*)STARPU_VECTOR_GET_PTR(buffers[1]);
+#else
+  pastix_float_t      * tmp4         = NULL;
 #endif
 #ifdef PASTIX_WITH_CUDA /* see pastix_cuda_helper in old branch */
   CU_FLOAT            one_cuf      = CU_FLOAT_INIT(1.0, 0.0);
@@ -504,26 +505,15 @@ void trsm_starpu_common(void * buffers[], void * _args, int arch)
   /* if there is an extra-diagonal bloc in column block */
   if ( fblknum+1 < lblknum )
     {
+
       lExtraDiag = lDiag + SOLV_COEFIND(fblknum+1);
 #if (defined CHOL_SOPALIN && defined SOPALIN_LU)
       uExtraDiag = uDiag + SOLV_COEFIND(fblknum+1);
 #endif
       switch(arch) {
       case ARCH_CPU:
-        kernel_trsm(dimb, dima,
-                    lDiag,
-#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
-                    uDiag,
-#endif
-                    stride,
-                    lExtraDiag,
-#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
-                    uExtraDiag,
-#endif
-#ifndef CHOL_SOPALIN
-                    tmp4,
-#endif
-                    stride);
+          panel_trsm_cpu(datacode->cblktab+cblknum,
+                         tmp4);
         break;
 #ifdef PASTIX_WITH_CUDA
       case ARCH_CUDA:
