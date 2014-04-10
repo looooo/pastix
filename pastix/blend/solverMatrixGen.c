@@ -322,7 +322,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvtask->ctrbcnt = simutask->ctrbcnt;
                 solvtask->indnum  = indnbr;
 
-
                 /*
                  * Count number of index needed in indtab:
                  *  => number of off-diagonal block below the block (including the block itself)
