@@ -198,24 +198,21 @@ static void core_zgetrfsp(pastix_int_t        n,
  *
  * @ingroup pastix_kernel
  *
- * core_zgetrfsp1d - Computes the LU factorization of one panel and apply
- * all the trsm updates to this panel.
+ * core_zgetrfsp1d_getrf - Computes the LU factorization of one panel.
  *
  *******************************************************************************
  *
- * @param[in] n
- *          The number of rows and columns of the matrix A.
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] A
- *          The matrix A to factorize whitch Cholesky factorization. The matrix
- *          is of size stride -by- n.
+ * @param[in,out] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] stride
- *          The leading dimension of the matrix A.
- *
- * @param[in,out] nbpivot
- *          Pointer to the number of piovting operations made during
- *          factorization. It is updated during this call
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
@@ -229,44 +226,28 @@ static void core_zgetrfsp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d( SolverMatrix       *datacode,
-                     pastix_int_t        c,
-                     pastix_complex64_t *L,
-                     pastix_complex64_t *U,
-                     double              criteria)
+int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           double              criteria)
 {
-    SolverCblk *cblk;
-    SolverBlok *blok;
+    SolverBlok *fblok;
 
     pastix_complex64_t *fL, *fU;
-    pastix_int_t dima, dimb, stride;
-    pastix_int_t fblknum, lblknum;
+    pastix_int_t dima, stride;
     pastix_int_t nbpivot = 0;
-    pastix_int_t gcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( c ));
 
-    cblk    = &(datacode->cblktab[c]);
     dima    = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    fblknum = cblk->bloknum;   /* block number of this diagonal block */
-    lblknum = cblk[1].bloknum; /* block number of the next diagonal block */
+    fblok = cblk->fblokptr;   /* this diagonal block */
 
-    blok = &(datacode->bloktab[fblknum]);
 
     /* check if diagonal column block */
-    assert( cblk->fcolnum == blok->frownum );
+    assert( cblk->fcolnum == fblok->frownum );
 
-    /* If the block is not a leaf, we need to combine contributions on U and L */
-    if ( gcblk2list != -1 )
-    {
-        pastix_int_t browk  = UPDOWN_LISTPTR( gcblk2list );
-        pastix_int_t browk1 = UPDOWN_LISTPTR( gcblk2list+1 );
-
-        if ( browk != browk1 ) {
-            core_zgeadd( CblasTrans, dima, dima, 1.0,
-                         U, stride,
-                         L, stride );
-        }
-    }
+    core_zgeadd( CblasTrans, dima, dima, 1.0,
+                 U, stride,
+                 L, stride );
 
     /* Factorize diagonal block (two terms version with workspace) */
     core_zgetrfsp(dima, L, stride, &nbpivot, criteria);
@@ -274,15 +255,61 @@ int core_zgetrfsp1d( SolverMatrix       *datacode,
     /* Transpose Akk in ucoeftab */
     core_zgetro(dima, dima, L, stride, U, stride);
 
+
+    return nbpivot;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgetrfsp1d_trsm - Apply all the trsm updates on one panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *
+ *******************************************************************************/
+int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *U)
+{
+    SolverBlok *fblok, *lblok;
+
+    pastix_complex64_t *fL, *fU;
+    pastix_int_t dima, dimb, stride;
+    pastix_int_t nbpivot = 0;
+
+    dima    = cblk->lcolnum - cblk->fcolnum + 1;
+    stride  = cblk->stride;
+    fblok = cblk->fblokptr;   /* this diagonal block */
+    lblok = cblk[1].fblokptr; /* the next diagonal block */
+
     /* vertical dimension */
     dimb = stride - dima;
 
     /* if there is an extra-diagonal bloc in column block */
-    if ( fblknum+1 < lblknum )
+    if ( fblok+1 < lblok )
     {
         /* first extra-diagonal bloc in column block address */
-        fL = L + blok[1].coefind;
-        fU = U + blok[1].coefind;
+        fL = L + fblok[1].coefind;
+        fU = U + fblok[1].coefind;
 
         cblas_ztrsm(CblasColMajor,
                     CblasRight, CblasUpper,
@@ -299,30 +326,122 @@ int core_zgetrfsp1d( SolverMatrix       *datacode,
                                        fU, stride);
     }
 
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgetrfsp1d - Computes the LU factorization of one panel and apply
+ * all the trsm updates to this panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will fail if it discovers a 0. on the diagonal during
+ *          factorization.
+ *
+ *******************************************************************************/
+int core_zgetrfsp1d( SolverCblk         *cblk,
+                     pastix_complex64_t *L,
+                     pastix_complex64_t *U,
+                     double              criteria)
+{
+    pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    core_zgetrfsp1d_trsm(cblk, L, U);
     return nbpivot;
 }
 
 
-void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
-                           pastix_int_t cblknum,
-                           pastix_int_t bloknum,
-                           pastix_int_t fcblknum,
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgetrfsp1d_gemm - Computes the Cholesky factorization of one panel and apply
+ * all the trsm updates to this panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The pointer to the data structure that describes the blok from which
+ *          we compute the contributions.
+ *
+ * @param[in] fcblk
+ *          The pointer to the data structure that describes the panel on
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through fcblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] Cl
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          updated panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] Cl
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          updated panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
+                           SolverBlok         *blok,
+                           SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            pastix_complex64_t *Cl,
                            pastix_complex64_t *Cu,
                            pastix_complex64_t *work )
 {
-    SolverCblk *cblk  = &(datacode->cblktab[cblknum]);
-    SolverCblk *fcblk = &(datacode->cblktab[fcblknum]);
-    SolverBlok *blok;
+    SolverBlok *iterblok;
     SolverBlok *fblok;
+    SolverBlok *lblok;
 
     pastix_complex64_t *Aik, *Akj, *Aij, *C;
     pastix_complex64_t *wtmp;
-    pastix_int_t lblknum;
     pastix_int_t stride, stridefc, indblok;
-    pastix_int_t b, j;
     pastix_int_t dimi, dimj, dima, dimb;
 
     stride  = cblk->stride;
@@ -330,8 +449,6 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
 
 
     /* First blok */
-    j = bloknum;
-    blok = &(datacode->bloktab[bloknum]);
     indblok = blok->coefind;
 
     dimj = blok->lrownum - blok->frownum + 1;
@@ -356,27 +473,26 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
      */
 
     /* Get the first block of the distant panel */
-    b     = fcblk->bloknum;
-    fblok = &(datacode->bloktab[ b ]);
+    fblok = fcblk->fblokptr;
 
     /* Move the pointer to the top of the right column */
     stridefc = fcblk->stride;
     C = Cl + (blok->frownum - fcblk->fcolnum) * stridefc;
 
-    lblknum = cblk[1].bloknum;
+    lblok = cblk[1].fblokptr;
 
     /* for all following blocks in block column */
-    for (j=bloknum; j<lblknum; j++,blok++) {
+    for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!is_block_inside_fblock( blok, fblok ))
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
-            b++; fblok++;
-            assert( b < fcblk[1].bloknum );
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
         }
 
-        Aij = C + fblok->coefind + blok->frownum - fblok->frownum;
-        dimb = blok->lrownum - blok->frownum + 1;
+        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
         core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
@@ -397,9 +513,7 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
 
     /* Restore data */
     wtmp  = work;
-    blok  = &(datacode->bloktab[bloknum]);
-    b     = fcblk->bloknum;
-    fblok = &(datacode->bloktab[ b ]);
+    fblok = fcblk->fblokptr;
 
     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                  dimi, dimj, dima,
@@ -418,15 +532,14 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
     /*
      * Update on L part (blocks facing diagonal block)
      */
-    blok++;
-    for (j=bloknum+1; j<lblknum; j++, blok++) {
+    for (iterblok=blok+1; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        if (!is_block_inside_fblock( blok, fblok ))
+        if (!is_block_inside_fblock( iterblok, fblok ))
              break;
 
-        Aij = C + (blok->frownum - fblok->frownum)*stridefc;
-        dimb = blok->lrownum - blok->frownum + 1;
+        Aij = C + (iterblok->frownum - fblok->frownum)*stridefc;
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
         core_zgeadd( CblasTrans, dimj, dimb, -1.0,
@@ -445,17 +558,17 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
      * Update is done on U directly
      */
     /* Keep updating on U */
-    for (; j<lblknum; j++,blok++) {
+    for (; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!is_block_inside_fblock( blok, fblok ))
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
-            b++; fblok++;
-            assert( b < fcblk[1].bloknum );
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
         }
 
-        dimb = blok->lrownum - blok->frownum + 1;
-        Aij = C + fblok->coefind + blok->frownum - fblok->frownum;
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
+        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
 
         pastix_cblk_lock( fcblk );
         core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,

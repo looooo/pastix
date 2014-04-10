@@ -203,16 +203,13 @@ static void core_zhetrfsp(pastix_int_t        n,
  *
  * @ingroup pastix_kernel
  *
- * core_zhetrfsp1d - Computes the LDL^H factorization of one panel and apply
- * all the trsm updates to this panel.
+ * core_zhetrfsp1d_hetrf - Computes the LDL^H factorization of one panel.
  *
  *******************************************************************************
  *
- * @param[in] datacode
- *          TODO
- *
- * @param[in] cblknum
- *          Index of the panel to factorize in the cblktab array.
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
  * @param[in,out] L
  *          The pointer to the matrix storing the coefficients of the
@@ -223,40 +220,75 @@ static void core_zhetrfsp(pastix_int_t        n,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
+ * @param[in] work
+ *          Temporary buffer used in core_zhetrfsp().
+ *
  *******************************************************************************
  *
  * @return
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zhetrfsp1d( SolverMatrix       *datacode,
-                     pastix_int_t        cblknum,
-                     pastix_complex64_t *L,
-                     double              criteria,
-                     pastix_complex64_t *work )
+int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           double              criteria,
+                           pastix_complex64_t *work )
 {
-    SolverCblk   *cblk;
-    SolverBlok   *blok;
+    SolverBlok   *blok, *fblk;
     pastix_int_t  ncols, stride;
-    pastix_int_t  fblknum, lblknum;
     pastix_int_t  nbpivot = 0;
 
-    cblk    = &(datacode->cblktab[cblknum]);
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    fblknum = cblk->bloknum;   /* block number of this diagonal block */
-    lblknum = cblk[1].bloknum; /* block number of the next diagonal block */
+    fblk = cblk->fblokptr;   /* this diagonal block */
 
     /* check if diagonal column block */
-    blok = &(datacode->bloktab[fblknum]);
-    assert( cblk->fcolnum == blok->frownum );
-    assert( cblk->lcolnum == blok->lrownum );
+    assert( cblk->fcolnum == fblk->frownum );
+    assert( cblk->lcolnum == fblk->lrownum );
 
     /* Factorize diagonal block (two terms version with workspace) */
     core_zhetrfsp(ncols, L, stride, &nbpivot, criteria, work);
 
+    return nbpivot;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zhetrfsp1d_trsm - Apply all the trsm updates to one panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit.
+ *
+ *******************************************************************************/
+int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
+                          pastix_complex64_t *L)
+{
+    SolverBlok   *blok, *fblk, *lblk;
+    pastix_int_t  ncols, stride;
+    pastix_int_t  nbpivot = 0;
+
+    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
+    stride  = cblk->stride;
+    fblk = cblk->fblokptr;   /* this diagonal block */
+    lblk = cblk[1].fblokptr; /* the next diagonal block */
+
     /* if there are off-diagonal supernodes in the column */
-    if ( fblknum+1 < lblknum )
+    if ( fblk+1 < lblk )
     {
         pastix_complex64_t *fL;
         pastix_int_t nrows;
@@ -265,7 +297,7 @@ int core_zhetrfsp1d( SolverMatrix       *datacode,
         nrows = stride - ncols;
 
         /* the first off-diagonal block in column block address */
-        fL = L + blok[1].coefind;
+        fL = L + fblk[1].coefind;
 
         /* Three terms version, no need to keep L and L*D */
         cblas_ztrsm(CblasColMajor,
@@ -283,6 +315,48 @@ int core_zhetrfsp1d( SolverMatrix       *datacode,
         }
     }
 
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zhetrfsp1d - Computes the LDL^H factorization of one panel and apply
+ * all the trsm updates to this panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ * @param[in] work
+ *          Temporary buffer used in core_zhetrfsp().
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+int core_zhetrfsp1d( SolverCblk         *cblk,
+                     pastix_complex64_t *L,
+                     double              criteria,
+                     pastix_complex64_t *work )
+{
+    pastix_int_t  nbpivot = core_zhetrfsp1d_hetrf(cblk, L, criteria, work);
+    core_zhetrfsp1d_trsm(cblk, L);
     return nbpivot;
 }
 
@@ -292,18 +366,24 @@ int core_zhetrfsp1d( SolverMatrix       *datacode,
  *
  * @ingroup pastix_kernel
  *
- * core_zhetrfsp1d - Computes the Cholesky factorization of one panel and apply
- * all the trsm updates to this panel.
+ * core_zhetrfsp1d_gemm - Computes the Cholesky factorization of one panel and
+ * apply all the trsm updates to this panel.
  *
  *******************************************************************************
  *
- * @param[in] datacode
- *          TODO
- *
  * @param[in] cblk
- *          The pointer to the data structure that describes the panel to be
- *          factorized. Must be at least of size 2 in order to get the first
- *          block number of the following panel (cblk[1]).
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The pointer to the data structure that describes the blok from which
+ *          we compute the contributions.
+ *
+ * @param[in] fcblk
+ *          The pointer to the data structure that describes the panel on
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through fcblk[1].
  *
  * @param[in,out] L
  *          The pointer to the matrix storing the coefficients of the
@@ -320,33 +400,26 @@ int core_zhetrfsp1d( SolverMatrix       *datacode,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zhetrfsp1d_gemm( SolverMatrix       *datacode,
-                           pastix_int_t        cblknum,
-                           pastix_int_t        bloknum,
-                           pastix_int_t        fcblknum,
+void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
+                           SolverBlok         *blok,
+                           SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2 )
 {
-    SolverCblk *cblk  = &(datacode->cblktab[cblknum]);
-    SolverCblk *fcblk = &(datacode->cblktab[fcblknum]);
-    SolverBlok *blok;
-    SolverBlok *fblok;
+    SolverBlok *iterblok;
+    SolverBlok *fblok; /* Facing blok */
+    SolverBlok *lblok; /* last blok */
 
     pastix_complex64_t *Aik, *Aij;
-    pastix_int_t lblknum;
     pastix_int_t stride, stridefc, indblok;
-    pastix_int_t b, j;
     pastix_int_t dimi, dimj, dima, dimb;
     pastix_int_t ldw;
 
     stride  = cblk->stride;
     dima = cblk->lcolnum - cblk->fcolnum + 1;
 
-    /* First blok */
-    j = bloknum;
-    blok = &(datacode->bloktab[bloknum]);
     indblok = blok->coefind;
 
     dimj = blok->lrownum - blok->frownum + 1;
@@ -373,27 +446,26 @@ void core_zhetrfsp1d_gemm( SolverMatrix       *datacode,
      */
 
     /* Get the first block of the distant panel */
-    b     = fcblk->bloknum;
-    fblok = &(datacode->bloktab[ b ]);
+    fblok = fcblk->fblokptr;
 
     /* Move the pointer to the top of the right column */
     stridefc = fcblk->stride;
     C = C + (blok->frownum - fcblk->fcolnum) * stridefc;
 
-    lblknum = cblk[1].bloknum;
+    lblok = cblk[1].fblokptr;
 
     /* for all following blocks in block column */
-    for (j=bloknum; j<lblknum; j++,blok++) {
+    for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!is_block_inside_fblock( blok, fblok ))
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
-            b++; fblok++;
-            assert( b < fcblk[1].bloknum );
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
         }
 
-        Aij = C + fblok->coefind + blok->frownum - fblok->frownum;
-        dimb = blok->lrownum - blok->frownum + 1;
+        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
         core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,

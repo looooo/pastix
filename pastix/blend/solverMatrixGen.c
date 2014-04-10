@@ -228,7 +228,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             pastix_int_t fbloknum  = symbcblk[0].bloknum;
             pastix_int_t lbloknum  = symbcblk[1].bloknum;
             pastix_int_t stride    = 0;
-            SolverBlok * firstBlok = solvblok;
+            SolverBlok * fblokptr = solvblok;
             pastix_int_t nbcolumns = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dofptr->noddval;
             pastix_int_t nbrows;
 
@@ -259,7 +259,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 /* Init the cblk */
                 solvcblk->fcolnum  = symbcblk->fcolnum * dofptr->noddval;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
-                solvcblk->firstBlok = firstBlok;
+                solvcblk->fblokptr = fblokptr;
                 solvcblk->stride   = stride;
                 solvcblk->procdiag = -1;
                 solvcblk->coeftab  = NULL;
@@ -278,7 +278,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         {
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
-            solvcblk->firstBlok  = solvblok;
+            solvcblk->fblokptr  = solvblok;
             solvcblk->stride   = 0;
             solvcblk->procdiag = -1;
             solvcblk->coeftab  = NULL;
@@ -568,7 +568,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         for(i=0;i<solvmtx->cblknbr;i++, solvcblk++)
         {
-            SolverBlok * lblok = solvcblk[1].firstBlok;
+            SolverBlok * lblok = solvcblk[1].fblokptr;
             pastix_int_t m = solvcblk->stride;
             pastix_int_t n = solvblok->lrownum - solvblok->frownum + 1;
 
@@ -834,8 +834,8 @@ solverMatrixGen(const pastix_int_t clustnum,
             {
                 SolverBlok * solvblok;
                 cblknum = solvmtx->tasktab[solvmtx->ttsktab[i][j]].cblknum;
-                for (solvblok =  solvmtx->cblktab[cblknum+1].firstBlok-1;
-                     solvblok >= solvmtx->cblktab[cblknum].firstBlok+1; solvblok--)
+                for (solvblok =  solvmtx->cblktab[cblknum+1].fblokptr-1;
+                     solvblok >= solvmtx->cblktab[cblknum].fblokptr+1; solvblok--)
                     /* if the contribution is not local */
                     if (solvmtx->bloktab[k].cblknum <= 0)
                         uprecvcblk[solvmtx->updovct.lblk2gcblk[k]] = 1;
@@ -938,7 +938,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                                 symbmtx->cblktab[dst_cblk].lcolnum * dofptr->noddval +
                                 dofptr->noddval-1;
                             hcblk->stride   = 0;
-                            hcblk->firstBlok = hblok;
+                            hcblk->fblokptr = hblok;
                             hcblk->procdiag = simuctrl->bloktab[ dst_bloc ].ownerclust;
                             hcblk->gcblknum = dst_cblk;
                             for( bloc = symbmtx->cblktab[dst_cblk].bloknum;
@@ -981,7 +981,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                                 symbmtx->cblktab[i].lcolnum * dofptr->noddval +
                                 dofptr->noddval-1;
                             hcblk->stride   = 0;
-                            hcblk->firstBlok  = hblok;
+                            hcblk->fblokptr  = hblok;
                             hcblk->procdiag = simuctrl->bloktab[ symbmtx->cblktab[i].bloknum ].ownerclust;
                             hcblk->gcblknum = i;
                             for( bloc = symbmtx->cblktab[i].bloknum;
@@ -1013,11 +1013,11 @@ solverMatrixGen(const pastix_int_t clustnum,
             /*  virtual cblk to avoid side effect in the loops on cblk bloks */
             hcblk->fcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
             hcblk->lcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
-            hcblk->firstBlok = hblok;
+            hcblk->fblokptr = hblok;
         } else {
             hcblk->fcolnum = 0;
             hcblk->lcolnum = 0;
-            hcblk->firstBlok = hblok;
+            hcblk->fblokptr = hblok;
         }
         assert( bloknbr == hblok - solvmtx->hbloktab );
 

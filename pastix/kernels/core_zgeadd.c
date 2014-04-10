@@ -61,8 +61,9 @@
  *******************************************************************************
  *
  * @return
- *          \retval PLASMA_SUCCESS successful exit
+ *          \retval PASTIX_SUCCESS successful exit
  *          \retval <0 if -i, the i-th argument had an illegal value
+ *          \retval 1, not yet implemented
  *
  ******************************************************************************/
 int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
@@ -99,12 +100,14 @@ int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
         }
     }
     else if (trans == CblasTrans ) {
+        for (j = 0; j < N; j++)
+            cblas_zaxpy(M, CBLAS_SADDR(alpha), A + j, 1, B + j*LDB, 1);
 
     }
     /* trans == CblasConjTrans */
     else {
-
+        return -10;
     }
 
-    return 0;
+    return PASTIX_SUCCESS;
 }

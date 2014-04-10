@@ -102,7 +102,7 @@ pastix_int_t Malt2(SolverMatrix *solvmtx, double reduction)
       if(solvmtx->tasktab[i].taskid == COMP_1D)
 	{
 	  pastix_int_t odb_nbr;
-	  odb_nbr = (solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].firstBlok - solvmtx->bloktab) - solvmtx->tasktab[i].bloknum -1;
+	  odb_nbr = (solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].fblokptr - solvmtx->bloktab) - solvmtx->tasktab[i].bloknum -1;
 	  for(j=solvmtx->tasktab[i].indnum;j<solvmtx->tasktab[i].indnum + (odb_nbr*(odb_nbr+1))/2;j++)
 	    if(solvmtx->indtab[j] >= 0) 
 	      accessnbr++;
@@ -137,7 +137,7 @@ pastix_int_t Malt2(SolverMatrix *solvmtx, double reduction)
       if(solvmtx->tasktab[i].taskid == COMP_1D)
 	{
 	  pastix_int_t odb_nbr;
-	  odb_nbr = (solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].firstBlok - solvmtx->bloktab)- solvmtx->tasktab[i].bloknum -1;
+	  odb_nbr = (solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].fblokptr - solvmtx->bloktab)- solvmtx->tasktab[i].bloknum -1;
 	  for(j=solvmtx->tasktab[i].indnum;j<solvmtx->tasktab[i].indnum + (odb_nbr*(odb_nbr+1))/2;j++)
 	    if(solvmtx->indtab[j] >= 0) 
 	      {
@@ -448,7 +448,7 @@ pastix_int_t Malt2(SolverMatrix *solvmtx, double reduction)
       if(solvmtx->tasktab[i].taskid == COMP_1D)
 	{
 	  pastix_int_t odb_nbr;
-	  odb_nbr = (solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].firstBlok - solvmtx->bloktab) - solvmtx->tasktab[i].bloknum -1;
+	  odb_nbr = (solvmtx->cblktab[solvmtx->tasktab[i].cblknum+1].fblokptr - solvmtx->bloktab) - solvmtx->tasktab[i].bloknum -1;
 	  for(j=solvmtx->tasktab[i].indnum;j<solvmtx->tasktab[i].indnum + (odb_nbr*(odb_nbr+1))/2;j++)
 	    if(solvmtx->indtab[j] >= 0) 
 	      {
