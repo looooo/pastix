@@ -13,6 +13,9 @@ precisions_rules_py(generated_headers
                     "${HEADERS}"
                     PRECISIONS "s;d;c;z")
 
+add_custom_target(kernel_headers ALL SOURCES
+  ${generated_headers} )
+
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
   # extra kernel
@@ -25,14 +28,19 @@ set(SOURCES
   core_zpotrfsp.c
   core_zgetrfsp.c
 )
-# precisions_rules_py(generated_files
-#   "${SOURCES}"
-#   PRECISIONS "s;d;c;z")
+
+precisions_rules_py(generated_files
+   "${SOURCES}"
+   PRECISIONS "s;d;c;z")
 
 ### Generate the lib
-add_library(dsparse_cores
-  ${SOURCES}
-#  ${generated_files}
+add_library(pastix_kernels
+  ${generated_files}
 )
-install(TARGETS dsparse_cores ARCHIVE DESTINATION lib)
+
+add_dependencies(pastix_kernels
+  kernel_headers
+)
+
+install(TARGETS pastix_kernels ARCHIVE DESTINATION lib)
 
