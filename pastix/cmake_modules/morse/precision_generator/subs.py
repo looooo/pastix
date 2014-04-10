@@ -264,6 +264,7 @@ subs = {
     ('cblas_sasum',    'cblas_dasum',    'cblas_scasum',   'cblas_dzasum'    ),
     ('cblas_snrm2',    'cblas_dnrm2',    'cblas_scnrm2',   'cblas_dznrm2'    ),
     ('',               '',               'CBLAS_SADDR',    'CBLAS_SADDR'     ),
+    ('cblas_ssyr',     'cblas_dsyr',     'cblas_cher',     'cblas_zher'      ),
 
     # ----- Core BLAS
     ('CORE_sasum',     'CORE_dasum',     'CORE_scasum',    'CORE_dzasum'     ),
