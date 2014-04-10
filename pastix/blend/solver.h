@@ -67,7 +67,7 @@ typedef struct SolverBlok_ {
 typedef struct SolverCblk_  {
   pastix_int_t                       fcolnum;              /*+ First column index                     +*/
   pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)          +*/
-  SolverBlok    *                    firstBlok;            /*+ First block in column (diagonal)       +*/
+  SolverBlok    *                    fblokptr;            /*+ First block in column (diagonal)       +*/
   pastix_int_t                       stride;               /*+ Column block stride                    +*/
   pastix_int_t                       procdiag;             /*+ Processor owner of diagonal block      +*/
   pastix_int_t                       gcblknum;             /*+ Global column block index              +*/

@@ -91,11 +91,11 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
         /* solverInit (solvptr); */
         return     (1);
       }
-      solvptr->cblktab[cblknum].firstBlok = solvptr->bloktab+bloknum;
+      solvptr->cblktab[cblknum].fblokptr = solvptr->bloktab+bloknum;
     }
     solvptr->cblktab[cblknbr].fcolnum =             /* Set last column block */
       solvptr->cblktab[cblknbr].lcolnum = nodenbr + baseval;
-    solvptr->cblktab[cblknbr].firstBlok = solvptr->bloktab + bloknbr;
+    solvptr->cblktab[cblknbr].fblokptr = solvptr->bloktab + bloknbr;
 
     for (bloknum = 0; bloknum < bloknbr; bloknum ++) {
       if ((intLoad (stream, &solvptr->bloktab[bloknum].frownum) + /* Read column blocks */
@@ -358,7 +358,7 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
        o = (fprintf (stream, "%ld\t%ld\t%ld\n",
                      (long) cblkptr->fcolnum,
                      (long) cblkptr->lcolnum,
-                     (long) (cblkptr->firstBlok - solvptr->bloktab)) == EOF);
+                     (long) (cblkptr->fblokptr - solvptr->bloktab)) == EOF);
      }
      for (blokptr = solvptr->bloktab, bloktnd = blokptr + solvptr->bloknbr;
           (blokptr < bloktnd) && (o == 0); blokptr ++) {
