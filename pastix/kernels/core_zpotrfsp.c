@@ -372,7 +372,7 @@ void core_zpotrfsp1d_gemm(SolverMatrix       *datacode,
         dimb = blok->lrownum - blok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( dimb, dimj, -1.0,
+        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
                      work, dimi,
                      Aij,  stridefc );
         pastix_cblk_unlock( fcblk );

@@ -262,7 +262,7 @@ int core_zgetrfsp1d( SolverMatrix       *datacode,
         pastix_int_t browk1 = UPDOWN_LISTPTR( gcblk2list+1 );
 
         if ( browk != browk1 ) {
-            core_zaxpyt( dima, dima, 1.0,
+            core_zgeadd( CblasTrans, dima, dima, 1.0,
                          U, stride,
                          L, stride );
         }
@@ -379,7 +379,7 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
         dimb = blok->lrownum - blok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( dimb, dimj, -1.0,
+        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
 		     wtmp, dimi,
 		     Aij,  stridefc );
         pastix_cblk_unlock( fcblk );
@@ -429,7 +429,7 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
         dimb = blok->lrownum - blok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
-        core_zaxpyt( dimj, dimb, -1.0,
+        core_zgeadd( CblasTrans, dimj, dimb, -1.0,
                      wtmp, dimi,
                      Aij,  stridefc );
         pastix_cblk_unlock( fcblk );
@@ -458,7 +458,7 @@ void core_zgetrfsp1d_gemm( SolverMatrix *datacode,
         Aij = C + fblok->coefind + blok->frownum - fblok->frownum;
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( dimb, dimj, -1.0,
+        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
                      wtmp, dimi,
                      Aij,  stridefc );
         pastix_cblk_unlock( fcblk );

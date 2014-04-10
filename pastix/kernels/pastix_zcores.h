@@ -33,13 +33,9 @@ void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
 
-int core_zgeadd(int M, int N, pastix_complex64_t alpha,
+int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
                 const pastix_complex64_t *A, int LDA,
                       pastix_complex64_t *B, int LDB);
-
-void core_zaxpyt(int m, int n, pastix_complex64_t alpha,
-                 pastix_complex64_t *A, int lda,
-                 pastix_complex64_t *B, int ldb);
 
 int core_zgemdm(int transA, int transB,
                 int M, int N, int K,

@@ -15,30 +15,42 @@
 #include "common.h"
 #include <cblas.h>
 
-/***************************************************************************//**
+/**
+ ******************************************************************************
  *
  * @ingroup CORE_pastix_complex64_t
  *
  *  core_zgeadd adds to matrices together.
  *
- *       B <- alpha * A  + B
+ *       B <- alpha * op(A)  + B
  *
  *******************************************************************************
  *
+ * @param[in] trans
+ *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
+ *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg CblasConjTrans :  Conjugate Transpose, op( A ) = conj(A').
+ *
  * @param[in] M
- *          Number of rows of the matrices A and B.
+ *          Number of rows of the matrix B.
+ *          Number of rows of the matrix A, if trans == CblasNoTrans, number of
+ *          columns of A otherwise.
  *
  * @param[in] N
- *          Number of columns of the matrices A and B.
+ *          Number of columns of the matrix B.
+ *          Number of columns of the matrix A, if trans == CblasNoTrans, number
+ *          of rows of A otherwise.
  *
  * @param[in] alpha
  *          Scalar factor of A.
  *
  * @param[in] A
- *          Matrix of size LDA-by-N.
+ *          Matrix of size LDA-by-N, if trans == CblasNoTrans, LDA-by-M,
+ *          otherwise.
  *
  * @param[in] LDA
- *          Leading dimension of the array A. LDA >= max(1,M)
+ *          Leading dimension of the array A. LDA >= max(1,K).
+ *          K = M if trans == CblasNoTrans, K = N otherwise.
  *
  * @param[in,out] B
  *          Matrix of size LDB-by-N.
@@ -53,7 +65,7 @@
  *          \retval <0 if -i, the i-th argument had an illegal value
  *
  ******************************************************************************/
-int core_zgeadd(int M, int N, pastix_complex64_t alpha,
+int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
                 const pastix_complex64_t *A, int LDA,
                       pastix_complex64_t *B, int LDB)
 {
@@ -78,11 +90,20 @@ int core_zgeadd(int M, int N, pastix_complex64_t alpha,
     }
 #endif
 
-    if (M == LDA && M == LDB)
-        cblas_zaxpy(M*N, CBLAS_SADDR(alpha), A, 1, B, 1);
+    if (trans == CblasNoTrans) {
+        if (M == LDA && M == LDB)
+            cblas_zaxpy(M*N, CBLAS_SADDR(alpha), A, 1, B, 1);
+        else {
+            for (j = 0; j < N; j++)
+                cblas_zaxpy(M, CBLAS_SADDR(alpha), A + j*LDA, 1, B + j*LDB, 1);
+        }
+    }
+    else if (trans == CblasTrans ) {
+
+    }
+    /* trans == CblasConjTrans */
     else {
-        for (j = 0; j < N; j++)
-            cblas_zaxpy(M, CBLAS_SADDR(alpha), A + j*LDA, 1, B + j*LDB, 1);
+
     }
 
     return 0;
