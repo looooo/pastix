@@ -203,8 +203,7 @@ static void core_zhetrfsp(pastix_int_t        n,
  *
  * @ingroup pastix_kernel
  *
- * core_zhetrfsp1d - Computes the LDL^H factorization of one panel and apply
- * all the trsm updates to this panel.
+ * core_zhetrfsp1d_hetrf - Computes the LDL^H factorization of one panel.
  *
  *******************************************************************************
  *
@@ -221,16 +220,63 @@ static void core_zhetrfsp(pastix_int_t        n,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
+ * @param[in] work
+ *          Temporary buffer used in core_zhetrfsp().
+ *
  *******************************************************************************
  *
  * @return
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zhetrfsp1d( SolverCblk         *cblk,
-                     pastix_complex64_t *L,
-                     double              criteria,
-                     pastix_complex64_t *work )
+int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           double              criteria,
+                           pastix_complex64_t *work )
+{
+    SolverBlok   *blok, *fblk;
+    pastix_int_t  ncols, stride;
+    pastix_int_t  nbpivot = 0;
+
+    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
+    stride  = cblk->stride;
+    fblk = cblk->fblokptr;   /* this diagonal block */
+
+    /* check if diagonal column block */
+    assert( cblk->fcolnum == fblk->frownum );
+    assert( cblk->lcolnum == fblk->lrownum );
+
+    /* Factorize diagonal block (two terms version with workspace) */
+    core_zhetrfsp(ncols, L, stride, &nbpivot, criteria, work);
+
+    return nbpivot;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zhetrfsp1d_trsm - Apply all the trsm updates to one panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit.
+ *
+ *******************************************************************************/
+int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
+                          pastix_complex64_t *L)
 {
     SolverBlok   *blok, *fblk, *lblk;
     pastix_int_t  ncols, stride;
@@ -240,13 +286,6 @@ int core_zhetrfsp1d( SolverCblk         *cblk,
     stride  = cblk->stride;
     fblk = cblk->fblokptr;   /* this diagonal block */
     lblk = cblk[1].fblokptr; /* the next diagonal block */
-
-    /* check if diagonal column block */
-    assert( cblk->fcolnum == fblk->frownum );
-    assert( cblk->lcolnum == fblk->lrownum );
-
-    /* Factorize diagonal block (two terms version with workspace) */
-    core_zhetrfsp(ncols, L, stride, &nbpivot, criteria, work);
 
     /* if there are off-diagonal supernodes in the column */
     if ( fblk+1 < lblk )
@@ -276,6 +315,48 @@ int core_zhetrfsp1d( SolverCblk         *cblk,
         }
     }
 
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zhetrfsp1d - Computes the LDL^H factorization of one panel and apply
+ * all the trsm updates to this panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ * @param[in] work
+ *          Temporary buffer used in core_zhetrfsp().
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+int core_zhetrfsp1d( SolverCblk         *cblk,
+                     pastix_complex64_t *L,
+                     double              criteria,
+                     pastix_complex64_t *work )
+{
+    pastix_int_t  nbpivot = core_zhetrfsp1d_hetrf(cblk, L, criteria, work);
+    core_zhetrfsp1d_trsm(cblk, L);
     return nbpivot;
 }
 
@@ -285,8 +366,8 @@ int core_zhetrfsp1d( SolverCblk         *cblk,
  *
  * @ingroup pastix_kernel
  *
- * core_zhetrfsp1d - Computes the Cholesky factorization of one panel and apply
- * all the trsm updates to this panel.
+ * core_zhetrfsp1d_gemm - Computes the Cholesky factorization of one panel and
+ * apply all the trsm updates to this panel.
  *
  *******************************************************************************
  *

@@ -198,6 +198,142 @@ static void core_zgetrfsp(pastix_int_t        n,
  *
  * @ingroup pastix_kernel
  *
+ * core_zgetrfsp1d_getrf - Computes the LU factorization of one panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will fail if it discovers a 0. on the diagonal during
+ *          factorization.
+ *
+ *******************************************************************************/
+int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           double              criteria)
+{
+    SolverBlok *fblok;
+
+    pastix_complex64_t *fL, *fU;
+    pastix_int_t dima, stride;
+    pastix_int_t nbpivot = 0;
+
+    dima    = cblk->lcolnum - cblk->fcolnum + 1;
+    stride  = cblk->stride;
+    fblok = cblk->fblokptr;   /* this diagonal block */
+
+
+    /* check if diagonal column block */
+    assert( cblk->fcolnum == fblok->frownum );
+
+    core_zgeadd( CblasTrans, dima, dima, 1.0,
+                 U, stride,
+                 L, stride );
+
+    /* Factorize diagonal block (two terms version with workspace) */
+    core_zgetrfsp(dima, L, stride, &nbpivot, criteria);
+
+    /* Transpose Akk in ucoeftab */
+    core_zgetro(dima, dima, L, stride, U, stride);
+
+
+    return nbpivot;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgetrfsp1d_trsm - Apply all the trsm updates on one panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *
+ *******************************************************************************/
+int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *U)
+{
+    SolverBlok *fblok, *lblok;
+
+    pastix_complex64_t *fL, *fU;
+    pastix_int_t dima, dimb, stride;
+    pastix_int_t nbpivot = 0;
+
+    dima    = cblk->lcolnum - cblk->fcolnum + 1;
+    stride  = cblk->stride;
+    fblok = cblk->fblokptr;   /* this diagonal block */
+    lblok = cblk[1].fblokptr; /* the next diagonal block */
+
+    /* vertical dimension */
+    dimb = stride - dima;
+
+    /* if there is an extra-diagonal bloc in column block */
+    if ( fblok+1 < lblok )
+    {
+        /* first extra-diagonal bloc in column block address */
+        fL = L + fblok[1].coefind;
+        fU = U + fblok[1].coefind;
+
+        cblas_ztrsm(CblasColMajor,
+                    CblasRight, CblasUpper,
+                    CblasNoTrans, CblasNonUnit,
+                    dimb, dima,
+                    CBLAS_SADDR(zone), L,  stride,
+                                       fL, stride);
+
+        cblas_ztrsm(CblasColMajor,
+                    CblasRight, CblasUpper,
+                    CblasNoTrans, CblasUnit,
+                    dimb, dima,
+                    CBLAS_SADDR(zone), U,  stride,
+                                       fU, stride);
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
  * core_zgetrfsp1d - Computes the LU factorization of one panel and apply
  * all the trsm updates to this panel.
  *
@@ -232,58 +368,11 @@ int core_zgetrfsp1d( SolverCblk         *cblk,
                      pastix_complex64_t *U,
                      double              criteria)
 {
-    SolverBlok *fblok, *lblok;
-
-    pastix_complex64_t *fL, *fU;
-    pastix_int_t dima, dimb, stride;
-    pastix_int_t nbpivot = 0;
-
-    dima    = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
-    fblok = cblk->fblokptr;   /* this diagonal block */
-    lblok = cblk[1].fblokptr; /* the next diagonal block */
-
-
-    /* check if diagonal column block */
-    assert( cblk->fcolnum == fblok->frownum );
-
-    core_zgeadd( CblasTrans, dima, dima, 1.0,
-                 U, stride,
-                 L, stride );
-
-    /* Factorize diagonal block (two terms version with workspace) */
-    core_zgetrfsp(dima, L, stride, &nbpivot, criteria);
-
-    /* Transpose Akk in ucoeftab */
-    core_zgetro(dima, dima, L, stride, U, stride);
-
-    /* vertical dimension */
-    dimb = stride - dima;
-
-    /* if there is an extra-diagonal bloc in column block */
-    if ( fblok+1 < lblok )
-    {
-        /* first extra-diagonal bloc in column block address */
-        fL = L + fblok[1].coefind;
-        fU = U + fblok[1].coefind;
-
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasUpper,
-                    CblasNoTrans, CblasNonUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), L,  stride,
-                                       fL, stride);
-
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasUpper,
-                    CblasNoTrans, CblasUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), U,  stride,
-                                       fU, stride);
-    }
-
+    pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    core_zgetrfsp1d_trsm(cblk, L, U);
     return nbpivot;
 }
+
 
 
 /**
