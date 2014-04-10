@@ -198,11 +198,9 @@ static void core_zpotrfsp(pastix_int_t        n,
  *
  *******************************************************************************
  *
- * @param[in] datacode
- *          TODO
- *
- * @param[in] cblknum
- *          Index of the panel to factorize in the cblktab array.
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
  * @param[in,out] L
  *          The pointer to the matrix storing the coefficients of the
@@ -219,25 +217,22 @@ static void core_zpotrfsp(pastix_int_t        n,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zpotrfsp1d( SolverMatrix       *datacode,
-                     pastix_int_t        cblknum,
+int core_zpotrfsp1d( SolverCblk         *cblk,
                      pastix_complex64_t *L,
                      double              criteria )
 {
-    SolverCblk   *cblk;
     SolverBlok   *blok;
     pastix_int_t  ncols, stride;
-    pastix_int_t  fblknum, lblknum;
+    SolverBlok   *fblk, *lblk;
     pastix_int_t  nbpivot = 0;
 
-    cblk    = &(datacode->cblktab[cblknum]);
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    fblknum = cblk->bloknum;   /* block number of this diagonal block */
-    lblknum = cblk[1].bloknum; /* block number of the next diagonal block */
+    fblk = cblk->fblokptr;   /* this diagonal block */
+    lblk = cblk[1].fblokptr; /* the next diagonal block */
 
     /* check if diagonal column block */
-    blok = &(datacode->bloktab[fblknum]);
+    blok = fblk;
     assert( cblk->fcolnum == blok->frownum );
     assert( cblk->lcolnum == blok->lrownum );
 
@@ -245,7 +240,7 @@ int core_zpotrfsp1d( SolverMatrix       *datacode,
     core_zpotrfsp(ncols, L, stride, &nbpivot, criteria );
 
     /* if there are off-diagonal supernodes in the column */
-    if ( fblknum+1 < lblknum )
+    if ( fblk+1 < lblk )
     {
         pastix_complex64_t *fL;
         pastix_int_t nrows;
@@ -279,13 +274,19 @@ int core_zpotrfsp1d( SolverMatrix       *datacode,
  *
  *******************************************************************************
  *
- * @param[in] datacode
- *          TODO
- *
  * @param[in] cblk
- *          The pointer to the data structure that describes the panel to be
- *          factorized. Must be at least of size 2 in order to get the first
- *          block number of the following panel (cblk[1]).
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The pointer to the data structure that describes the blok from which
+ *          we compute the contributions.
+ *
+ * @param[in] fcblk
+ *          The pointer to the data structure that describes the panel on
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through fcblk[1].
  *
  * @param[in,out] L
  *          The pointer to the matrix storing the coefficients of the
@@ -302,23 +303,19 @@ int core_zpotrfsp1d( SolverMatrix       *datacode,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zpotrfsp1d_gemm(SolverMatrix       *datacode,
-                          pastix_int_t        cblknum,
-                          pastix_int_t        bloknum,
-                          pastix_int_t        fcblknum,
+void core_zpotrfsp1d_gemm(SolverCblk         *cblk,
+                          SolverBlok         *blok,
+                          SolverCblk         *fcblk,
                           pastix_complex64_t *L,
                           pastix_complex64_t *C,
                           pastix_complex64_t *work)
 {
-    SolverCblk *cblk  = &(datacode->cblktab[cblknum]);
-    SolverCblk *fcblk = &(datacode->cblktab[fcblknum]);
-    SolverBlok *blok;
-    SolverBlok *fblok;
+    SolverBlok *iterblok;
+    SolverBlok *lblok;  /* Last block   */
+    SolverBlok *fblok;  /* facing block */
 
     pastix_complex64_t *Aik, *Aij;
-    pastix_int_t lblknum;
     pastix_int_t stride, stridefc, indblok;
-    pastix_int_t b, j;
     pastix_int_t dimi, dimj, dima, dimb;
 
     stride  = cblk->stride;
@@ -326,8 +323,6 @@ void core_zpotrfsp1d_gemm(SolverMatrix       *datacode,
 
 
     /* First blok */
-    j = bloknum;
-    blok = &(datacode->bloktab[bloknum]);
     indblok = blok->coefind;
 
     dimj = blok->lrownum - blok->frownum + 1;
@@ -349,27 +344,26 @@ void core_zpotrfsp1d_gemm(SolverMatrix       *datacode,
      */
 
     /* Get the first block of the distant panel */
-    b     = fcblk->bloknum;
-    fblok = &(datacode->bloktab[ b ]);
+    fblok = fcblk->fblokptr;
 
     /* Move the pointer to the top of the right column */
     stridefc = fcblk->stride;
     C = C + (blok->frownum - fcblk->fcolnum) * stridefc;
 
-    lblknum = cblk[1].bloknum;
+    lblok = cblk[1].fblokptr;
 
     /* for all following blocks in block column */
-    for (j=bloknum; j<lblknum; j++,blok++) {
+    for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!is_block_inside_fblock( blok, fblok ))
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
-            b++; fblok++;
-            assert( b < fcblk[1].bloknum );
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
         }
 
-        Aij = C + fblok->coefind + blok->frownum - fblok->frownum;
-        dimb = blok->lrownum - blok->frownum + 1;
+        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
         core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,

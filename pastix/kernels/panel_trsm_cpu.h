@@ -51,6 +51,7 @@ panel_trsm_cpu(const SolverCblk * cblk,
                 buffer,
 #endif
                 cblk->stride);
+    return PASTIX_SUCCESS;
 
 }
 
