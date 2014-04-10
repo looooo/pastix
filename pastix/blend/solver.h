@@ -51,18 +51,6 @@ typedef struct Task_ {
 #endif
 } Task;
 
-/*+ Solver column block structure. +*/
-
-typedef struct SolverCblk_  {
-  pastix_int_t                       fcolnum;              /*+ First column index                     +*/
-  pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)          +*/
-  pastix_int_t                       bloknum;              /*+ First block in column (diagonal)       +*/
-  pastix_int_t                       stride;               /*+ Column block stride                    +*/
-  pastix_int_t                       procdiag;             /*+ Processor owner of diagonal block      +*/
-  pastix_int_t                       gcblknum;             /*+ Global column block index              +*/
-  pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
-  pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
-} SolverCblk;
 
 /*+ Solver block structure. +*/
 
@@ -73,6 +61,19 @@ typedef struct SolverBlok_ {
   pastix_int_t                       levfval;              /*+ Level-of-fill value        +*/
   pastix_int_t                       coefind;              /*+ Index in coeftab           +*/
 } SolverBlok;
+
+/*+ Solver column block structure. +*/
+
+typedef struct SolverCblk_  {
+  pastix_int_t                       fcolnum;              /*+ First column index                     +*/
+  pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)          +*/
+  SolverBlok    *                    firstBlok;            /*+ First block in column (diagonal)       +*/
+  pastix_int_t                       stride;               /*+ Column block stride                    +*/
+  pastix_int_t                       procdiag;             /*+ Processor owner of diagonal block      +*/
+  pastix_int_t                       gcblknum;             /*+ Global column block index              +*/
+  pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
+  pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
+} SolverCblk;
 
 /*+ Solver matrix structure. +*/
 

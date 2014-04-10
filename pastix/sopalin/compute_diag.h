@@ -1,3 +1,6 @@
+#ifndef _COMPUTE_DIAG_H
+#define _COMPUTE_DIAG_H
+
 #include "redefine_functions.h"
 #include "sopalin_define.h"
 
@@ -21,3 +24,5 @@ void PASTIX_potrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t
 void PASTIX_sytrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit, pastix_float_t * tmp4   );
 void PASTIX_hetrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit, pastix_float_t * tmp4   );
 void DimTrans           ( pastix_float_t *A, pastix_int_t lda, pastix_int_t size, pastix_float_t *B );
+
+#endif _COMPUTE_DIAG_H
