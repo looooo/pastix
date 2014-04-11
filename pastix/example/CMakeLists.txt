@@ -6,6 +6,7 @@ link_directories(
 
 set(PASTIX_EXAMPLES_LIBRARIES
   pastix
+  pastix_kernels
   read_matrix
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}

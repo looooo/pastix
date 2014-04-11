@@ -42,5 +42,31 @@ add_dependencies(pastix_kernels
   kernel_headers
 )
 
+include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
+link_directories(
+  ${CBLAS_LIBRARY_DIRS}
+  ${BLAS_LIBRARY_DIRS}
+)
+
+set(TESTING_KERNELS_LIBRARIES
+  pastix_kernels
+  ${CBLAS_LIBRARIES}
+  ${BLAS_SEQ_LIBRARIES}
+  ${EXTRA_LIBS}
+  m
+)
+set(SOURCES
+  test_zgetrfsp.c)
+precisions_rules_py(generated_tests
+   "${SOURCES}"
+   PRECISIONS "s;d;c;z")
+
+foreach(example ${generated_tests})
+  GET_FILENAME_COMPONENT(output ${example} NAME_WE)
+  add_executable(${output} ${example})
+  target_link_libraries( ${output}
+    ${TESTING_KERNELS_LIBRARIES} )
+endforeach()
+
 install(TARGETS pastix_kernels ARCHIVE DESTINATION lib)
 

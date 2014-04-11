@@ -101,7 +101,7 @@ int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
     }
     else if (trans == CblasTrans ) {
         for (j = 0; j < N; j++)
-            cblas_zaxpy(M, CBLAS_SADDR(alpha), A + j, 1, B + j*LDB, 1);
+            cblas_zaxpy(M, CBLAS_SADDR(alpha), A + j, LDA, B + j*LDB, 1);
 
     }
     /* trans == CblasConjTrans */

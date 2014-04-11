@@ -16,11 +16,12 @@
 #include "common.h"
 #include <cblas.h>
 
-/***************************************************************************//**
+/**
+ ******************************************************************************
  *
- * @ingroup CORE_pastix_complex64_t
+ * @ingroup pastix_kernel
  *
- * CORE_zgemdm performs one of the matrix-matrix operations
+ * core_zgemdm performs one of the matrix-matrix operations
  *
  *       C := alpha*op( A )*D*op( B ) + beta*C,
  *
@@ -152,7 +153,7 @@
  *          \retval <0 if -i, the i-th argument had an illegal value
  *
  ******************************************************************************/
-int CORE_zgemdm(int transA, int transB,
+int core_zgemdm(int transA, int transB,
                 int M, int N, int K,
                 pastix_complex64_t alpha, pastix_complex64_t *A, int LDA,
                 pastix_complex64_t *B, int LDB,
@@ -206,6 +207,11 @@ int CORE_zgemdm(int transA, int transB,
     }
     if ( ( ( transA == CblasNoTrans ) && ( LWORK < (M+1)*K) ) ||
          ( ( transA != CblasNoTrans ) && ( LWORK < (N+1)*K) ) ){
+        errorPrint("CORE_gemdm: Illegal value of LWORK\n");
+        if (transA == CblasNoTrans )
+            errorPrint("LWORK %d < (M=%d+1)*K=%d ", LWORK, M, K);
+        if (transA == CblasNoTrans )
+            errorPrint("LWORK %d < (N=%d+1)*K=%d ", LWORK, N, K);
         //coreblas_error(17, "Illegal value of LWORK");
         return -17;
     }

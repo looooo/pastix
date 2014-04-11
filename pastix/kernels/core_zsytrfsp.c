@@ -86,6 +86,11 @@ static void core_zsytf2sp(pastix_int_t        n,
         /* Move to next Akk */
         Akk += (lda+1);
 
+        cblas_zher(CblasColMajor, CblasLower,
+                   n-k-1, alpha,
+                   Amk, 1,
+                   Akk, lda);
+
         /* TODO: replace by SYR but [cz]syr exists only in LAPACK */
         /* LAPACKE_zsyr_work(LAPACK_COL_MAJOR, 'l', */
         /*                   n-k-1, alpha, */
@@ -434,8 +439,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
     Aik = L + indblok;
 
     /* Compute ldw which should never be larger than SOLVE_COEFMAX */
-    ldw = dimi * dima;
-
+    ldw = (dimi +1)* dima;
     /* Compute the contribution */
     core_zgemdm( CblasNoTrans, CblasTrans,
                  dimi, dimj, dima,

@@ -269,6 +269,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/starpu")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
 
 add_subdirectory(kernels)
 
