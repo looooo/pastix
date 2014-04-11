@@ -267,11 +267,17 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/starpu")
+if (PASTIX_WITH_STARPU)
+  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/starpu")
+  include_directories("${CMAKE_CURRENT_BINARY_DIR}/starpu")
+endif (PASTIX_WITH_STARPU)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
 
 add_subdirectory(kernels)
+if (PASTIX_WITH_STARPU)
+  add_subdirectory(starpu)
+endif (PASTIX_WITH_STARPU)
 
 macro(solver_rules _output_files _sources_files)
   foreach(_source_file ${_sources_files})
@@ -425,15 +431,18 @@ set(PASTIX_LIB_SRCS
   )
 
 
-set(generated_files "")
-solver_rules( generated_files
-  "starpu/starpu_kernels.c;starpu/starpu_submit_tasks.c;starpu/starpu_updo.c;starpu/starpu_updo_kernels.c;"
-)
+if(PASTIX_WITH_STARPU)
+  set(generated_files "")
+  solver_rules( generated_files
+    "starpu/starpu_kernels.c;starpu/starpu_submit_tasks.c;starpu/starpu_updo.c;starpu/starpu_updo_kernels.c;"
+    )
 
 
-set(PASTIX_STARPU_SRCS
-  ${generated_files}
-  )
+  set(PASTIX_STARPU_SRCS
+    ${generated_files}
+    )
+
+endif(PASTIX_WITH_STARPU)
 
 set(PASTIX_ALL_SRCS
   #
@@ -488,6 +497,12 @@ endif()
 
 add_library(pastix
   ${PASTIX_LIB_SRCS})
+
+if(PASTIX_WITH_STARPU)
+  add_dependencies(pastix
+    starpu_headers
+    )
+endif(PASTIX_WITH_STARPU)
 
 install(TARGETS pastix ARCHIVE DESTINATION lib)
 

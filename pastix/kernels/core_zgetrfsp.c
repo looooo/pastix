@@ -411,14 +411,12 @@ int core_zgetrfsp1d( SolverCblk         *cblk,
  *          The pointer to the lower matrix storing the coefficients of the
  *          updated panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] Cl
+ * @param[in,out] Cu
  *          The pointer to the upper matrix storing the coefficients of the
  *          updated panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
+ * @param[in] work
+ *          Temporary memory buffer.
  *
  *******************************************************************************
  *

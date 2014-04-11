@@ -36,6 +36,7 @@
 #  include "starpu_updo.h"
 #  include "starpu_pastix_sched_policy.h"
 #  include "sopalin_init.h"
+#  include "starpu_dkernels.h"
 #  define dump_all API_CALL(dump_all)
 void  dump_all                 (SolverMatrix *, CscMatrix * cscmtx, int);
 
@@ -160,15 +161,12 @@ static size_t trf_size(struct starpu_task *task,
 #endif
 		       unsigned nimpl) {
   Sopalin_Data_t    * sopalin_data;
-  SolverMatrix      * datacode;
-  pastix_int_t          cblknum;
-  pastix_int_t          stride;
-  pastix_int_t          tasknum;
+  SolverCblk        * cblk;
+  pastix_int_t        stride;
   size_t              dima;
-  starpu_codelet_unpack_args(task->cl_arg, &sopalin_data, &cblknum, &tasknum);
-  datacode = sopalin_data->datacode;
-  stride   = SOLV_STRIDE(cblknum);
-  dima     = CBLK_COLNBR(cblknum);
+  starpu_codelet_unpack_args(task->cl_arg, &sopalin_data, &cblk);
+  stride   = cblk->stride;
+  dima     = cblk->lcolnum - cblk->fcolnum + 1;
   return OPS_PPF(dima);
 
 }
@@ -180,15 +178,12 @@ static size_t trsm_size(struct starpu_task *task,
 #endif
 			unsigned nimpl) {
   Sopalin_Data_t    * sopalin_data;
-  SolverMatrix      * datacode;
-  pastix_int_t          cblknum;
-  pastix_int_t          stride;
-  pastix_int_t          tasknum;
+  SolverCblk        * cblk;
+  pastix_int_t        stride;
   size_t              dima;
-  starpu_codelet_unpack_args(task->cl_arg, &sopalin_data, &cblknum, &tasknum);
-  datacode = sopalin_data->datacode;
-  stride   = SOLV_STRIDE(cblknum);
-  dima     = CBLK_COLNBR(cblknum);
+  starpu_codelet_unpack_args(task->cl_arg, &sopalin_data, &cblk);
+  stride   = cblk->stride;
+  dima     = cblk->lcolnum - cblk->fcolnum + 1;
   return OPS_TRSM(dima, stride);
 
 }
@@ -211,34 +206,20 @@ static size_t gemm_size(struct starpu_task *task,
                         unsigned nimpl)
 {
   Sopalin_Data_t             * sopalin_data;
-  pastix_int_t                   bloknum;
-  SolverMatrix               * datacode;
-  pastix_int_t                   tasknum;
-  pastix_int_t                   cblknum;
-  pastix_int_t                   fcblknum;
+  SolverCblk                 * cblk;
+  SolverBlok                 * blok;
+  SolverCblk                 * fcblk;
   pastix_int_t                   indblok;
   pastix_int_t                   stride;
   pastix_int_t                   dimi;
   pastix_int_t                   dimj;
   pastix_int_t                   dima;
 
-  starpu_codelet_unpack_args(task->cl_arg, &sopalin_data,
-                             &cblknum, &fcblknum, &bloknum, &tasknum);
-
-  datacode = sopalin_data->datacode;
-  if (cblknum < 0) {
-    /* HALO Gemm*/
-    pastix_int_t hcblk = -(cblknum+1);
-    indblok   = HBLOCK_COEFIND(bloknum);
-    dimj = HBLOCK_ROWNBR(bloknum);
-    dima = HCBLK_COLNBR(hcblk);
-    stride = HCBLK_STRIDE(hcblk);
-  } else {
-    indblok   = SOLV_COEFIND(bloknum);
-    dimj = BLOK_ROWNBR(bloknum);
-    dima = CBLK_COLNBR(cblknum);
-    stride = SOLV_STRIDE(cblknum);
-  }
+  starpu_codelet_unpack_args(task->cl_arg, &sopalin_data, &cblk, &blok, &fcblk);
+  indblok = blok->coefind;
+  dimj = blok->lrownum - blok->frownum + 1;
+  dima = cblk->lcolnum - cblk->fcolnum + 1;
+  stride = cblk->stride;
   dimi = stride - indblok;
 
   return OPS_GEMM(dimi,dimj,dima);
@@ -273,7 +254,22 @@ struct starpu_codelet trf_trsm_cl =
 #  endif /* not FORCE_NO_CUDA */
 #endif /* CHOL_SOPALIN */
   ,
-  .cpu_funcs[0] = trfsp1d_starpu_cpu,
+#if defined( CHOL_SOPALIN )
+#  if defined( SOPALIN_LU )
+  .cpu_funcs[0] = starpu_dgetrfsp1d_cpu,
+#  else
+  .cpu_funcs[0] = starpu_dpotrfsp1d_cpu,
+#  endif
+#else
+#  if defined( HERMITIAN )
+#    if defined( TYPE_COMPLEX )
+  .cpu_funcs[0] = starpu_dhetrfsp1d_cpu,
+#    endif
+#  else
+  .cpu_funcs[0] = starpu_dsytrfsp1d_cpu,
+#  endif
+#endif
+
 #ifdef CHOL_SOPALIN
 #  ifndef FORCE_NO_CUDA
 #    ifdef STARPU_USE_CUDA
@@ -320,7 +316,21 @@ struct starpu_codelet trf_cl =
 #  endif /* not FORCE_NO_CUDA */
 #endif /* CHOL_SOPALIN */
   ,
-  .cpu_funcs[0] = xxtrf_starpu_cpu,
+#if defined( CHOL_SOPALIN )
+#  if defined( SOPALIN_LU )
+  .cpu_funcs[0] = starpu_dgetrfsp1d_getrf_cpu,
+#  else
+  .cpu_funcs[0] = starpu_dpotrfsp1d_potrf_cpu,
+#  endif
+#else
+#  if defined( HERMITIAN )
+#    if defined( TYPE_COMPLEX )
+  .cpu_funcs[0] = starpu_dhetrfsp1d_hetrf_cpu,
+#    endif
+#  else
+  .cpu_funcs[0] = starpu_dsytrfsp1d_sytrf_cpu,
+#  endif
+#endif
 #ifdef CHOL_SOPALIN
 #  ifndef FORCE_NO_CUDA
 #    ifdef STARPU_USE_CUDA
@@ -363,7 +373,23 @@ struct starpu_codelet trsm_cl =
   |STARPU_CUDA
 #  endif /* not FORCE_NO_CUDA */
   ,
-  .cpu_funcs[0] = trsm_starpu_cpu,
+
+#if defined( CHOL_SOPALIN )
+#  if defined( SOPALIN_LU )
+  .cpu_funcs[0] = starpu_dgetrfsp1d_trsm_cpu,
+#  else
+  .cpu_funcs[0] = starpu_dpotrfsp1d_trsm_cpu,
+#  endif
+#else
+#  if defined( HERMITIAN )
+#    if defined( TYPE_COMPLEX )
+  .cpu_funcs[0] = starpu_dhetrfsp1d_trsm_cpu,
+#    endif
+#  else
+  .cpu_funcs[0] = starpu_dsytrfsp1d_trsm_cpu,
+#  endif
+#endif
+
 #  ifndef FORCE_NO_CUDA
   .cuda_funcs[0] = trsm_starpu_cuda,
 #  endif /* not FORCE_NO_CUDA */
@@ -396,7 +422,21 @@ struct starpu_codelet trsm_cl =
 struct starpu_codelet trsm_cpu_cl =
 {
   .where = STARPU_CPU,
-  .cpu_funcs[0] = trsm_starpu_cpu,
+#if defined( CHOL_SOPALIN )
+#  if defined( SOPALIN_LU )
+  .cpu_funcs[0] = starpu_dgetrfsp1d_trsm_cpu,
+#  else
+  .cpu_funcs[0] = starpu_dpotrfsp1d_trsm_cpu,
+#  endif
+#else
+#  if defined( HERMITIAN )
+#    if defined( TYPE_COMPLEX )
+  .cpu_funcs[0] = starpu_dhetrfsp1d_trsm_cpu,
+#    endif
+#  else
+  .cpu_funcs[0] = starpu_dsytrfsp1d_trsm_cpu,
+#  endif
+#endif
   .model = &TRSM_model,
 #  ifdef CHOL_SOPALIN
 #    ifdef SOPALIN_LU
@@ -426,7 +466,28 @@ struct starpu_codelet trsm_cpu_cl =
 struct starpu_codelet sparse_gemm_cpu_cl =
 {
   .where = STARPU_CPU,
-  .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu,
+
+#if defined( CHOL_SOPALIN )
+#  if defined( SOPALIN_LU )
+  .cpu_funcs[0] = starpu_dgetrfsp1d_gemm_cpu,
+#  else
+  .cpu_funcs[0] = starpu_dpotrfsp1d_gemm_cpu,
+#  endif
+#else
+#  if defined( HERMITIAN )
+#    if defined( TYPE_COMPLEX )
+  .cpu_funcs[0] = starpu_dhetrfsp1d_gemm_cpu,
+#    endif
+#  else
+  .cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
+#  endif
+#endif
+
+/* #if (defined CHOL_SOPALIN && defined SOPALIN_LU) */
+/*   .cpu_funcs[0] = starpu_dgetrfsp1d_gemm_cpu, */
+/* #else */
+/*   .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu, */
+/* #endif */
   .model = &GEMM_model,
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
   .nbuffers = 6,
@@ -456,7 +517,28 @@ struct starpu_codelet sparse_gemm_cl =
   |STARPU_CUDA
 #      endif
   ,
-  .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu,
+
+#if defined( CHOL_SOPALIN )
+#  if defined( SOPALIN_LU )
+  .cpu_funcs[0] = starpu_dgetrfsp1d_gemm_cpu,
+#  else
+  .cpu_funcs[0] = starpu_dpotrfsp1d_gemm_cpu,
+#  endif
+#else
+#  if defined( HERMITIAN )
+#    if defined( TYPE_COMPLEX )
+  .cpu_funcs[0] = starpu_dhetrfsp1d_gemm_cpu,
+#    endif
+#  else
+  .cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
+#  endif
+#endif
+
+/* #if (defined CHOL_SOPALIN && defined SOPALIN_LU) */
+/*   .cpu_funcs[0] = starpu_dgetrfsp1d_gemm_cpu, */
+/* #else */
+/*   .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu, */
+/* #endif */
 #      ifdef STARPU_USE_CUDA_GEMM_FUNC
   .cuda_funcs[0] = trfsp1d_sparse_gemm_starpu_cuda,
 #      endif
@@ -651,6 +733,9 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
   struct starpu_codelet * cl;
   pastix_int_t max_deps = 0;
   int ret;
+  SolverCblk *cblk;
+  SolverCblk *fcblk;
+  SolverBlok *blok;
 
   for (itertask=0;itertask<SOLV_TASKNBR;itertask++) {
     pastix_int_t itercblk = TASK_CBLKNUM(itertask);
@@ -661,7 +746,7 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
       UPDOWN_GLISTPTR( gcblk2glist + 1):-1;
     pastix_int_t ndeps, iter;
     ndeps = browk1-browk;
-
+    fcblk = datacode->cblktab + itercblk;
     max_deps = MAX(max_deps, ndeps);
 
     /* several deps can be inserted during same loop if involving same CBLKs */
@@ -680,6 +765,8 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
         pastix_int_t hcblk = -(lcblk+1);
         pastix_int_t hblock = HCBLK_BLOKNUM(hcblk);
         pastix_int_t gfcblk = UPDOWN_LOC2GLOB(itercblk);
+        cblk = datacode->hcblktab+hcblk;
+        blok = datacode->hbloktab+hblock;
         /* submit GEMM halo task */
 #if defined(PASTIX_WITH_CUDA)
         if ( sopalin_data->sopar->iparm[IPARM_CUDA_NBR] > 0 &&
@@ -700,10 +787,9 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
           ret =
             starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &sparse_gemm_cl,
                                    STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                                   STARPU_VALUE, &lcblk,        sizeof(pastix_int_t),
-                                   STARPU_VALUE, &itercblk,     sizeof(pastix_int_t),
-                                   STARPU_VALUE, &hblock,       sizeof(pastix_int_t),
-                                   STARPU_VALUE, &itertask,     sizeof(pastix_int_t),
+                                   STARPU_VALUE, &cblk,        sizeof(SolverCblk*),
+                                   STARPU_VALUE, &blok,        sizeof(SolverBlok*),
+                                   STARPU_VALUE, &fcblk,       sizeof(SolverCblk*),
                                    STARPU_R,     Lhalo_handle[hcblk],
                                    STARPU_COMMUTE|STARPU_RW,    L_handle[itercblk],
 #  if (defined CHOL_SOPALIN)
@@ -749,6 +835,7 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
   int workerid = -1;
   char * separate_trsm;
   struct starpu_codelet * cl;
+  SolverCblk *cblk = datacode->cblktab+itercblk;
 #  ifdef STARPU_CONTEXT
   pastix_int_t threadid = TASK_THREADID(itertask);
   pastix_int_t my_ctx;
@@ -771,32 +858,30 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
 #  endif
 
   if ((separate_trsm = getenv("PASTIX_STARPU_SEPARATE_TRSM")) && !strcmp(separate_trsm, "1")) {
-    ret =
-      starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trf_cl,
-                             STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                             STARPU_VALUE, &itercblk, sizeof(pastix_int_t),
-                             STARPU_VALUE, &itertask, sizeof(pastix_int_t),
-                             STARPU_RW, starpu_loop_data->L_handle[itercblk],
+      ret =
+          starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trf_cl,
+                                 STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
+                                 STARPU_VALUE, &cblk, sizeof(SolverCblk*),
+                                 STARPU_RW, starpu_loop_data->L_handle[itercblk],
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
-                             STARPU_RW, starpu_loop_data->U_handle[itercblk],
+                                 STARPU_RW, starpu_loop_data->U_handle[itercblk],
 #  endif
 #  ifndef CHOL_SOPALIN
-                             STARPU_SCRATCH, starpu_loop_data->WORK_handle,
+                                 STARPU_SCRATCH, starpu_loop_data->WORK_handle,
 #  endif
-                             STARPU_PRIORITY, TASK_PRIONUM(itertask),
-                             STARPU_CALLBACK,     prof_callback,
-                             STARPU_CALLBACK_ARG, sopalin_data->xxtrf_stats,
+                                 STARPU_PRIORITY, TASK_PRIONUM(itertask),
+                                 STARPU_CALLBACK,     prof_callback,
+                                 STARPU_CALLBACK_ARG, sopalin_data->xxtrf_stats,
 #  ifdef STARPU_CONTEXT
-                             STARPU_SCHED_CTX, sched_ctxs[my_ctx],
+                                 STARPU_SCHED_CTX, sched_ctxs[my_ctx],
 #  endif
-                             0);
+                                 0);
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 
     ret =
       starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trsm_cl,
                              STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                             STARPU_VALUE, &itercblk, sizeof(pastix_int_t),
-                             STARPU_VALUE, &itertask, sizeof(pastix_int_t),
+                             STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
                              STARPU_RW, starpu_loop_data->L_handle[itercblk],
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                              STARPU_RW, starpu_loop_data->U_handle[itercblk],
@@ -820,8 +905,7 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
     ret =
       starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trf_trsm_cl,
                              STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                             STARPU_VALUE, &itercblk, sizeof(pastix_int_t),
-                             STARPU_VALUE, &itertask, sizeof(pastix_int_t),
+                             STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
                              STARPU_RW, starpu_loop_data->L_handle[itercblk],
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                              STARPU_RW, starpu_loop_data->U_handle[itercblk],
@@ -864,7 +948,8 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
   pastix_int_t handle_idx;
   int workerid, this_workerid;
   struct starpu_codelet * cl;
-
+  SolverCblk *cblk = datacode->cblktab+itercblk, *fcblk;
+  SolverBlok *blok;
 #  ifdef STARPU_CONTEXT
   pastix_int_t threadid = TASK_THREADID(itertask);
   pastix_int_t my_ctx;
@@ -891,6 +976,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
       starpu_data_handle_t * U_target_handle;
 #    endif
 #  endif
+      blok = datacode->bloktab+iterbloc;
       fcblknum = SYMB_CBLKNUM(iterbloc);
       cl = &sparse_gemm_cpu_cl;
 #ifndef STARPU_PASTIX_SCHED
@@ -900,7 +986,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
         /* itercblk udates a remote cblk */
         pastix_int_t gfcblknum = -(fcblknum+1);
         fcblknum = SOLV_GCBLK2HALO(gfcblknum);
-
+        fcblk = datacode->hcblktab+fcblknum;
         L_target_handle = &(Lhalo_handle[fcblknum]);
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
@@ -909,6 +995,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
 #  endif
       } else {
         /* fcblknum is local */
+        fcblk = datacode->cblktab+fcblknum;
         L_target_handle = &(L_handle[fcblknum]);
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
@@ -929,11 +1016,10 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
       ret =
         starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, cl,
 			       STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-			       STARPU_VALUE, &itercblk,     sizeof(pastix_int_t),
-			       STARPU_VALUE, &fcblknum,     sizeof(pastix_int_t),
-			       STARPU_VALUE, &iterbloc,     sizeof(pastix_int_t),
-			       STARPU_VALUE, &itertask,     sizeof(pastix_int_t),
-			       STARPU_R,     L_handle[itercblk],
+                               STARPU_VALUE, &cblk,        sizeof(SolverCblk*),
+                               STARPU_VALUE, &blok,        sizeof(SolverBlok*),
+                               STARPU_VALUE, &fcblk,       sizeof(SolverCblk*),
+                               STARPU_R,     L_handle[itercblk],
 			       STARPU_COMMUTE|STARPU_RW,    *L_target_handle,
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU

@@ -4,8 +4,16 @@ link_directories(
   ${BLAS_LIBRARY_DIRS}
 )
 
+set(PASTIX_EXAMPLES_LIBRARIES pastix)
+
+if(PASTIX_WITH_STARPU)
+  set(PASTIX_EXAMPLES_LIBRARIES
+    ${PASTIX_EXAMPLES_LIBRARIES}
+    pastix_starpu)
+endif(PASTIX_WITH_STARPU)
+
 set(PASTIX_EXAMPLES_LIBRARIES
-  pastix
+  ${PASTIX_EXAMPLES_LIBRARIES}
   pastix_kernels
   read_matrix
   ${CBLAS_LIBRARIES}

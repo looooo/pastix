@@ -238,40 +238,49 @@
                          blocktab, fblocktab, stride, dimi, dimj, dima, \
                          blocknbr, fblocknbr)                           \
       do {                                                              \
-        starpu_codelet_unpack_args(_args, &sopalin_data,                \
-                                   &cblknum, &fcblknum, &bloknum,       \
-                                   &tasknum);                           \
+          SolverCblk *cblk, *fcblk;                                     \
+          SolverBlok *blok;                                             \
+          starpu_codelet_unpack_args(_args, &sopalin_data,              \
+                                     &cblk, &blok, &fcblk);             \
         datacode  = sopalin_data->datacode;                             \
+        fcblknum  = fcblk - datacode->cblktab;                          \
         fblocktab = &(all_blocktab[2*SYMB_BLOKNUM(fcblknum)]);          \
         fblocknbr = CBLK_BLOKNBR(fcblknum);                             \
-        if (cblknum < 0) {                                              \
-          /* HALO Gemm*/                                                \
-          pastix_int_t hcblk = -(cblknum+1);                              \
-          indblok   = HBLOCK_COEFIND(bloknum);                          \
-          blocktab  = &(all_blocktab[2*(SYMB_BLOKNBR + bloknum)]);      \
-          stride = HCBLK_STRIDE(hcblk);                                 \
-          dimj = HBLOCK_ROWNBR(bloknum);                                \
-          dima = HCBLK_COLNBR(hcblk);                                   \
-          blocknbr  = HCBLK_BLOKNUM(hcblk+1) - bloknum;                 \
+        if ((size_t)cblk > (size_t)datacode->hcblktab &&                \
+            (size_t)cblk < (size_t)(datacode->hcblktab+datacode->hcblknbr)) { \
+            /* HALO Gemm*/                                              \
+            pastix_int_t hcblk;                                         \
+            hcblk = cblk-datacode->hcblktab;                            \
+            cblknum = -hcblk-1;                                         \
+            bloknum = blok-datacode->hbloktab;                          \
+            indblok   = HBLOCK_COEFIND(bloknum);                        \
+            blocktab  = &(all_blocktab[2*(SYMB_BLOKNBR + bloknum)]);    \
+            stride = HCBLK_STRIDE(hcblk);                               \
+            dimj = HBLOCK_ROWNBR(bloknum);                              \
+            dima = HCBLK_COLNBR(hcblk);                                 \
+            blocknbr  = HCBLK_BLOKNUM(hcblk+1) - bloknum;               \
         } else {                                                        \
-          indblok   = SOLV_COEFIND(bloknum);                            \
-          blocktab  = &(all_blocktab[2*bloknum]);                       \
-          stride = SOLV_STRIDE(cblknum);                                \
-          dimj = BLOK_ROWNBR(bloknum);                                  \
-          dima = CBLK_COLNBR(cblknum);                                  \
-          blocknbr  = SYMB_BLOKNUM(cblknum+1) - bloknum;                \
+            cblknum   = cblk-datacode->cblktab;                         \
+            bloknum = blok-datacode->bloktab;                           \
+            indblok   = SOLV_COEFIND(bloknum);                          \
+            blocktab  = &(all_blocktab[2*bloknum]);                     \
+            stride = SOLV_STRIDE(cblknum);                              \
+            dimj = BLOK_ROWNBR(bloknum);                                \
+            dima = CBLK_COLNBR(cblknum);                                \
+            blocknbr  = SYMB_BLOKNUM(cblknum+1) - bloknum;              \
         }                                                               \
         dimi = stride - indblok;                                        \
+        tasknum = cblknum;                                              \
       } while (0)
 
 #define DECLARE_ARGS_TRSM                                               \
         Sopalin_Data_t    * sopalin_data;                               \
         SolverMatrix      * datacode;                                   \
-        pastix_int_t          cblknum;                                    \
-        pastix_int_t          tasknum;                                    \
-        pastix_int_t          fblknum;                                    \
-        pastix_int_t          lblknum;                                    \
-        pastix_int_t          dima;                                       \
+        pastix_int_t          tasknum;                                  \
+        pastix_int_t          cblknum;                                  \
+        pastix_int_t          fblknum;                                  \
+        pastix_int_t          lblknum;                                  \
+        pastix_int_t          dima;                                     \
         pastix_int_t          dimb
 
 
@@ -279,13 +288,15 @@
 #define UNPACK_ARGS_TRSM(_args, sopalin_data, cblknum, tasknum,         \
                          datacode, fblknum, lblknum, dima, dimb)        \
         do {                                                            \
-          starpu_codelet_unpack_args(_args, &sopalin_data, &cblknum,    \
-                                     &tasknum);                         \
-          datacode = sopalin_data->datacode;                            \
-          fblknum  = SYMB_BLOKNUM(cblknum);                             \
-          lblknum  = SYMB_BLOKNUM(cblknum+1);                           \
-          dima     = CBLK_COLNBR(cblknum);                              \
-          dimb     = stride - dima;                                     \
+            SolverCblk * cblk;                                          \
+            starpu_codelet_unpack_args(_args, &sopalin_data, &cblk);    \
+            datacode = sopalin_data->datacode;                          \
+            cblknum  = cblk - datacode->cblktab;                        \
+            tasknum  = cblknum;                                         \
+            fblknum  = cblk->fblokptr - datacode->bloktab;              \
+            lblknum  = cblk[1].fblokptr - datacode->bloktab;            \
+            dima     = cblk->lcolnum - cblk->fcolnum + 1;               \
+            dimb     = stride - dima;                                   \
         } while (0)
 
 /* #define SOPALIN_SPARSE_GEMM(TRANSA, TRANSB,                     \ */
