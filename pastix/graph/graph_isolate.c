@@ -62,11 +62,11 @@
  *          Contains permutation generated to isolate the columns at the end of
  *          the GRAPH.
  *          If new_perm == NULL, nothing is returned, otherwise the pointer to
- *          the allocated sturcture.
+ *          the allocated structure.
  *
  * @param[out] new_invp
  *          Array of size n-isolate_n.
- *          Contains the inverse permutation genereated to isolate the columns
+ *          Contains the inverse permutation generated to isolate the columns
  *          at the end of the GRAPH.
  *          If new_invp == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure.
