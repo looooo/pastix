@@ -550,9 +550,7 @@ subs = {
     ('snrm2',          'dnrm2',          'scnrm2',         'dznrm2'          ),
     ('ssymm',          'dsymm',          'chemm',          'zhemm'           ),
     ('ssymv',          'dsymv',          'chemv',          'zhemv'           ),
-    ('ssyr2',          'dsyr2',          'cher2',          'zher2'           ),
-    ('ssyr2k',         'dsyr2k',         'cher2k',         'zher2k'          ),
-    ('ssyrk',          'dsyrk',          'cherk',          'zherk'           ),
+    ('ssyr',           'dsyr',           'cher',           'zher'           ),
 
     # LAPACK, with precision
     ('slag2d',         'dlag2s',         'clag2z',         'zlag2c'          ),
@@ -775,9 +773,7 @@ subs = {
     ('SNRM2',          'DNRM2',          'SCNRM2',         'DZNRM2'          ),
     ('SSYMM',          'DSYMM',          'CHEMM',          'ZHEMM'           ),
     ('SSYMV',          'DSYMV',          'CHEMV',          'ZHEMV'           ),
-    ('SSYR2',          'DSYR2',          'CHER2',          'ZHER2'           ),
-    ('SSYR2K',         'DSYR2K',         'CHER2K',         'ZHER2K'          ),
-    ('SSYRK',          'DSYRK',          'CHERK',          'ZHERK'           ),
+    ('SSYR',           'DSYR',           'CHER',           'ZHER'            ),
 
     # LAPACK, WITH PRECISION
     ('SLAG2D',         'DLAG2S',         'CLAG2Z',         'ZLAG2C'          ),
