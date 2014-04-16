@@ -22,6 +22,8 @@
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_acces.h"
+#include "starpu_defines.h"
+#include "starpu_zsubmit.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -103,14 +105,7 @@ void starpu_zsytrfsp1d_trsm_cpu(void * buffers[], void * _args)
 
     core_zsytrfsp1d_trsm(cblk, L);
 
-    {
-        char * nested;
-        pastix_int_t tasknum = cblk - sopalin_data->datacode->cblktab;
-        if ((nested = getenv("PASTIX_STARPU_NESTED_TASK")) &&
-            !strcmp(nested, "1")) {
-            starpu_submit_bunch_of_gemm(tasknum, sopalin_data);
-        }
-    }
+    SUBMIT_GEMMS_IF_NEEDED;
 }
 
 
@@ -146,22 +141,17 @@ void starpu_zsytrfsp1d_cpu(void * buffers[], void * _args)
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *work   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(buffers[0]);
+    int                 me     = starpu_worker_get_id();
 
     starpu_codelet_unpack_args(_args, &sopalin_data, &cblk);
 
-    core_zsytrfsp1d(cblk,
-                    L,
-                    sopalin_data->critere,
-                    work);
-    {
-        char * nested;
-        pastix_int_t tasknum = cblk - sopalin_data->datacode->cblktab;
-        if ((nested = getenv("PASTIX_STARPU_NESTED_TASK")) &&
-            !strcmp(nested, "1")) {
-            starpu_submit_bunch_of_gemm(tasknum, sopalin_data);
-        }
-    }
+    sopalin_data->thread_data[me]->nbpivot +=
+        core_zsytrfsp1d(cblk,
+                        L,
+                        sopalin_data->critere,
+                        work);
 
+    SUBMIT_GEMMS_IF_NEEDED;
 }
 
 /**
@@ -198,27 +188,12 @@ void starpu_zsytrfsp1d_cpu(void * buffers[], void * _args)
  *
  *******************************************************************************/
 
-#define SUBMIT_TRF_IF_NEEDED                                            \
-    do {                                                                \
-      char * nested;                                                    \
-      SolverMatrix *datacode = sopalin_data->datacode;                  \
-      pastix_int_t fcblknum = fcblk - datacode->cblktab;                \
-      TASK_CTRBCNT(fcblknum)--;                                         \
-      if ((nested = getenv("PASTIX_STARPU_NESTED_TASK")) &&             \
-          !strcmp(nested, "1"))         {                               \
-          if (TASK_CTRBCNT(fcblknum) == 0) {                            \
-              starpu_submit_one_trf(fcblknum, sopalin_data);            \
-          }                                                             \
-      }                                                                 \
-    } while(0)
-
 void starpu_zsytrfsp1d_gemm_cpu(void * buffers[], void * _args)
 {
     Sopalin_Data_t     *sopalin_data;
     SolverCblk         *cblk;
     SolverBlok         *blok;
     SolverCblk         *fcblk;
-    pastix_int_t        stride   = STARPU_MATRIX_GET_LD(buffers[0]);
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *Cl   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     pastix_complex64_t *work = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[2]);
@@ -226,7 +201,10 @@ void starpu_zsytrfsp1d_gemm_cpu(void * buffers[], void * _args)
     pastix_complex64_t *work2= work + ldw;
 
     starpu_codelet_unpack_args(_args, &sopalin_data, &cblk, &blok, &fcblk);
-
+    assert(cblk_islocal(sopalin_data->datacode, fcblk));
+    assert(is_block_inside_fblock(blok, fcblk->fblokptr));
+    assert(cblk->stride == STARPU_MATRIX_GET_LD(buffers[0]));
+    assert(cblk_colnbr(cblk)  == STARPU_MATRIX_GET_NY(buffers[0]));
     core_zsytrfsp1d_gemm(cblk,
                          blok,
                          fcblk,
@@ -236,3 +214,17 @@ void starpu_zsytrfsp1d_gemm_cpu(void * buffers[], void * _args)
     SUBMIT_TRF_IF_NEEDED;
 }
 
+
+void
+starpu_zsytrfsp1d_geadd_cpu(void * buffers[], void * _args) {
+    Sopalin_Data_t *sopalin_data;
+    SolverCblk *cblk1, *cblk2;
+    pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
+    pastix_complex64_t *Cl   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
+    starpu_codelet_unpack_args(_args, &sopalin_data, &cblk1, &cblk2);
+
+    core_zgeaddsp1d(cblk1,
+                    cblk2,
+                    L, Cl,
+                    NULL, NULL);
+}

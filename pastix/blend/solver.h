@@ -99,11 +99,14 @@ typedef struct SolverMatrix_ {
   pastix_int_t *            gcblk2halo;           /*+ Indicate the local number corresponding
                                                    *  global column block.
                                                    *  gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
-                                                   *                    >  0 : local cblk number
-                                                   *                    <  0 : -halo cblk number
+                                                   *                    >  0 : local cblk number + 1
+                                                   *                    <  0 : - (halo cblk number + 1)
                                                    *                                            +*/
-  SolverCblk   *   restrict hcblktab;             /*+ Array of halo column blocks               +*/
-  SolverBlok   *   restrict hbloktab;             /*+ Array of halo blocks                      +*/
+  SolverCblk   * restrict hcblktab;             /*+ Array of halo column blocks               +*/
+  SolverBlok   * restrict hbloktab;             /*+ Array of halo blocks                      +*/
+  pastix_int_t *          fcblknbr;               /*+ Number of fanin buffer to send or recv    +*/
+  SolverCblk  ** restrict fcblktab;               /*+ Fanin column block array                  +*/
+  SolverBlok  ** restrict fbloktab;               /*+ Fanin block array                         +*/
 #endif
 
   pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
@@ -137,5 +140,156 @@ typedef struct SolverMatrix_ {
 pastix_int_t
 sizeofsolver(const SolverMatrix *solvptr,
              pastix_int_t *iparm );
+
+/**
+ * Indicates whether a column block is in halo.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
+ *
+ * @retval API_YES if the column block is in halo.
+ * @retval API_NO  if the column block is not in halo.
+ */
+static inline
+int cblk_ishalo( SolverMatrix * datacode,
+                 SolverCblk   * cblk ) {
+    if ((size_t)cblk >= (size_t)datacode->hcblktab &&
+        (size_t)cblk < (size_t)(datacode->hcblktab+datacode->hcblknbr)) {
+        return API_YES;
+    }
+    return API_NO;
+}
+
+/**
+ * Indicates whether a column block is a fanin column block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
+ *
+ * @retval API_YES if the column block is a fanin column block.
+ * @retval API_NO  if the column block is not a fanin column block.
+ */
+static inline
+int cblk_isfanin( SolverMatrix * datacode,
+                  SolverCblk   * cblk ) {
+    pastix_int_t clustnum;
+    for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
+        if ((size_t)cblk >= (size_t)datacode->fcblktab[clustnum] &&
+            (size_t)cblk < (size_t)(datacode->fcblktab[clustnum] +
+                                    datacode->fcblknbr[clustnum])) {
+            return API_YES;
+        }
+    }
+    return API_NO;
+}
+
+
+/**
+ * Indicates whether a column block is a local column block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
+ *
+ * @retval API_YES if the column block is a local column block.
+ * @retval API_NO  if the column block is not a local column block.
+ */
+static inline
+int cblk_islocal( SolverMatrix * datacode,
+                  SolverCblk   * cblk ) {
+    if ((size_t)cblk >= (size_t)datacode->cblktab &&
+        (size_t)cblk < (size_t)(datacode->cblktab+datacode->cblknbr)) {
+        return API_YES;
+    }
+    return API_NO;
+}
+
+
+/**
+ * Get the index of a local column block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
+ *
+ * @returns the index of the column block.
+ */
+static inline
+pastix_int_t cblk_getnum( SolverMatrix * datacode,
+                          SolverCblk   * cblk ) {
+    assert(cblk_islocal(datacode, cblk) == API_YES);
+    return cblk - datacode->cblktab;
+}
+
+
+/**
+ * Get the index of a halo column block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
+ *
+ * @returns the index of the column block.
+ */
+static inline
+pastix_int_t hcblk_getnum( SolverMatrix * datacode,
+                           SolverCblk   * cblk ) {
+    assert(cblk_ishalo(datacode, cblk) == API_YES);
+    return cblk - datacode->hcblktab;
+}
+
+
+/**
+ * Get the index of a fanin column block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
+ *
+ * @returns the index of the column block.
+ */
+static inline
+pastix_int_t fcblk_getnum( SolverMatrix * datacode,
+                           SolverCblk   * cblk,
+                           pastix_int_t   procnum ) {
+    assert(cblk_isfanin(datacode, cblk) == API_YES);
+    return cblk - datacode->fcblktab[procnum];
+}
+
+/**
+ * Get the number of columns of a column block.
+ *
+ * @param column block SolverCblk structure.
+ *
+ * @returns the number of columns in the column block.
+ */
+static inline
+pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
+    return cblk->lcolnum - cblk->fcolnum + 1;
+}
+/**
+ * Indicate if a blok is included inside an other block.
+ * i.e. indicate if the row range of the first block is included in the
+ * one of the second.
+ *
+ * @param first block SolverBlok structure to test.
+ * @param second block SolverBlok structure to test.
+ *
+ * @retval true   if the first block is     included in the second one.
+ * @retval false  if the first block is not included in the second one.
+ */
+#  if defined(NAPA_SOPALIN)
+static inline int is_block_inside_fblock( SolverBlok *blok, SolverBlok *fblok ) {
+    return (((blok->frownum >= fblok->frownum) &&
+             (blok->lrownum <= fblok->lrownum)) ||
+            ((blok->frownum <= fblok->frownum) &&
+             (blok->lrownum >= fblok->lrownum)) ||
+            ((blok->frownum <= fblok->frownum) &&
+             (blok->lrownum >= fblok->frownum)) ||
+            ((blok->frownum <= fblok->lrownum) &&
+             (blok->lrownum >= fblok->lrownum)));
+}
+#  else
+static inline int is_block_inside_fblock( SolverBlok *blok, SolverBlok *fblok ) {
+    return ((blok->frownum >= fblok->frownum) &&
+            (blok->lrownum <= fblok->lrownum));
+}
+#  endif /* defined(NAPA_SOPALIN) */
 
 #endif /* SOLVER_H */

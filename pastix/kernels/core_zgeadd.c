@@ -12,13 +12,15 @@
  * @precisions normal z -> c d s
  *
  **/
+
 #include "common.h"
+#include "pastix_zcores.h"
 #include <cblas.h>
 
 /**
  ******************************************************************************
  *
- * @ingroup CORE_pastix_complex64_t
+ * @ingroup pastix_kernel
  *
  *  core_zgeadd adds to matrices together.
  *
@@ -109,5 +111,100 @@ int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
         return -10;
     }
 
+    return PASTIX_SUCCESS;
+}
+
+
+/**
+ ******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ *  core_zgeaddsp1d adds two column blocks together.
+ *
+ *       cblk2 <- cblk1  + cblk2
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk1
+ *          The pointer to the data structure that describes the panel to add.
+ *          Next column blok must be accessible through cblk1[1].
+ *
+ * @param[in] cblk2
+ *          The pointer to the data structure that describes the panel in which
+ *          we add.
+ *          Next column blok must be accessible through cblk2[1].
+ *
+ * @param[in] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] Cl
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          updated panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width. Ignored if
+ *          NULL.
+ *
+ *
+ * @param[in,out] Cu
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          updated panel. Must be of size cblk.stride -by- cblk.width
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS successful exit
+ *
+ ******************************************************************************/
+int
+core_zgeaddsp1d(SolverCblk * cblk1,
+                SolverCblk * cblk2,
+                pastix_complex64_t * L,
+                pastix_complex64_t * Cl,
+                pastix_complex64_t * U,
+                pastix_complex64_t * Cu) {
+    SolverBlok *iterblok;
+    SolverBlok *firstblok;
+    SolverBlok *lastblok;
+    SolverBlok *fblok;
+    pastix_int_t ncol1 = cblk1->lcolnum - cblk1->fcolnum + 1;
+    pastix_complex64_t *ga, *gb;
+
+    firstblok = cblk1->fblokptr;
+    lastblok  = cblk1[1].fblokptr;
+    fblok = cblk2->fblokptr;
+
+    assert(cblk1->fcolnum >= cblk2->fcolnum);
+
+    for (iterblok = firstblok; iterblok < lastblok; iterblok++) {
+        pastix_int_t nrow;
+        /* Find facing bloknum */
+        while (!is_block_inside_fblock( iterblok, fblok )) {
+            fblok++;
+            assert( fblok < cblk2[1].fblokptr );
+        }
+        ga = L + iterblok->coefind;
+        gb = Cl + cblk2->stride*(cblk1->fcolnum-cblk2->fcolnum) +
+            fblok->coefind +
+            iterblok->frownum - fblok->frownum;
+        nrow = iterblok->lrownum - iterblok->frownum + 1;
+        core_zgeadd( CblasNoTrans,
+                     nrow, ncol1, -1.0,
+		     ga, cblk1->stride,
+		     gb, cblk2->stride );
+        if (U != NULL) {
+            ga = U + iterblok->coefind;
+            gb = Cu + cblk2->stride*(cblk1->fcolnum-cblk2->fcolnum) +
+                fblok->coefind +
+                iterblok->frownum - fblok->frownum;
+            core_zgeadd( CblasNoTrans,
+                         nrow, ncol1, -1.0,
+                         ga, cblk1->stride,
+                         gb, cblk2->stride );
+        }
+    }
     return PASTIX_SUCCESS;
 }

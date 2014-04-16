@@ -280,6 +280,7 @@ subs = {
     # Changing prefixes first requires some calls to be fixed without precision,
     # e.g., her2k -> syr2k instead of zher2k -> ssyr2k.
     # See BLAS and LAPACK without precision, below.
+    ('starpu_s',       'starpu_d',       'starpu_c',       'starpu_z'        ),
     ('blasf77_s',      'blasf77_d',      'blasf77_c',      'blasf77_z'       ),
     ('blasf77_s',      'blasf77_d',      'blasf77_s',      'blasf77_d'       ),
     ('BLAS_S',         'BLAS_D',         'BLAS_C',         'BLAS_Z'          ),

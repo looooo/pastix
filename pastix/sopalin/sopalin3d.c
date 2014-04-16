@@ -80,7 +80,7 @@
 #include "ooc.h"
 #include "order.h"
 #include "debug_dump.h"
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
 #include "starpu_submit_tasks.h"
 #endif
 

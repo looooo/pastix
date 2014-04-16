@@ -62,12 +62,41 @@ void solverRealloc(SolverMatrix *solvmtx)
     memcpy(solvmtx->gcblk2halo, tmp->gcblk2halo,
            solvmtx->gcblknbr*sizeof(pastix_int_t));
     solvblok = solvmtx->hbloktab;
-    for (solvcblk = solvmtx->hcblktab; solvcblk  < solvmtx->hcblktab + solvmtx->hcblknbr; solvcblk++) {
+    for (solvcblk = solvmtx->hcblktab;
+         solvcblk  < solvmtx->hcblktab + solvmtx->hcblknbr;
+         solvcblk++) {
         pastix_int_t bloknbr = (solvcblk+1)->fblokptr - solvcblk->fblokptr;
         solvcblk->fblokptr = solvblok;
         solvblok+= bloknbr;
     }
     solvcblk->fblokptr = solvblok;
+
+    if (pastix_starpu_with_fanin() == API_YES) {
+        /* FANIN info */
+        pastix_int_t clustnum;
+        MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, SolverCblk*);
+        MALLOC_INTERN(solvmtx->fbloktab, solvmtx->clustnbr, SolverBlok*);
+        MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
+        memcpy(solvmtx->fcblknbr, tmp->fcblknbr,
+               solvmtx->clustnbr*sizeof(pastix_int_t));
+        for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
+            pastix_int_t bloknbr;
+            MALLOC_INTERN(solvmtx->fcblktab[clustnum],
+                          solvmtx->fcblknbr[clustnum]+1,
+                          SolverCblk);
+            memcpy(solvmtx->fcblktab[clustnum],
+                   tmp->fcblktab[clustnum],
+                   (solvmtx->fcblknbr[clustnum]+1)*sizeof(SolverCblk));
+            bloknbr = tmp->fcblktab[clustnum][tmp->fcblknbr[clustnum]].fblokptr - tmp->fbloktab[clustnum];
+            MALLOC_INTERN(solvmtx->fbloktab[clustnum],
+                          bloknbr,
+                          SolverBlok);
+            memcpy(solvmtx->fbloktab[clustnum],
+                   tmp->fbloktab[clustnum],
+                   (bloknbr)*sizeof(SolverBlok));
+
+        }
+    }
 
 #endif /* defined(PASTIX_WITH_STARPU) */
 
@@ -157,6 +186,16 @@ void solverExit(SolverMatrix *solvmtx)
     memFree_null(solvmtx->hcblktab);
     memFree_null(solvmtx->hbloktab);
     memFree_null(solvmtx->gcblk2halo);
+    if (pastix_starpu_with_fanin() == API_YES) {
+        pastix_int_t clustnum;
+        for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
+          memFree_null(solvmtx->fcblktab[clustnum]);
+          memFree_null(solvmtx->fbloktab[clustnum]);
+        }
+        memFree_null(solvmtx->fcblknbr);
+        memFree_null(solvmtx->fcblktab);
+        memFree_null(solvmtx->fbloktab);
+    }
 #endif
 }
 
@@ -176,5 +215,12 @@ void solverInit(SolverMatrix *solvmtx)
   solvmtx->cblknbr = 0;
   solvmtx->bloknbr = 0;
   solvmtx->nodenbr = 0;
-
+#if defined(PASTIX_WITH_STARPU)
+  solvmtx->hcblktab = NULL;
+  solvmtx->hbloktab = NULL;
+  solvmtx->gcblk2halo = NULL;
+  solvmtx->fcblktab = NULL;
+  solvmtx->fbloktab = NULL;
+  solvmtx->fcblknbr = NULL;
+#endif /* defined(PASTIX_WITH_STARPU) */
 }

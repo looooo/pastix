@@ -143,5 +143,29 @@ static inline void pastix_cleanenv( char *str ) {
 
 #endif
 
+
+static inline int
+pastix_env_is_on(char * str) {
+    char * val;
+    if ( (val = pastix_getenv(str)) &&
+         !strcmp(val, "1"))
+        return API_YES;
+    return API_NO;
+}
+static inline
+int pastix_starpu_with_fanin() {
+    return pastix_env_is_on("PASTIX_STARPU_FANIN");
+}
+
+static inline
+int pastix_starpu_with_nested_task() {
+    return pastix_env_is_on("PASTIX_STARPU_NESTED_TASK");
+}
+
+static inline
+int pastix_starpu_with_separate_trsm() {
+    return pastix_env_is_on("PASTIX_STARPU_SEPARATE_TRSM");
+}
+
 #endif /* _COMMON_H_ */
 

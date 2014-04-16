@@ -7,6 +7,8 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(HEADERS
   starpu_zkernels.h
+  starpu_zsubmit.h
+  starpu_zregister_data.h
 )
 ### generate the dsparse_cores headers for all possible precisions
 precisions_rules_py(generated_headers
@@ -22,6 +24,8 @@ set(SOURCES
   starpu_zpotrfsp_cpu.c
   starpu_zsytrfsp_cpu.c
   starpu_zhetrfsp_cpu.c
+  starpu_zregister_data.c
+  starpu_zsubmit.c
  )
 
 precisions_rules_py(generated_files
@@ -31,6 +35,7 @@ precisions_rules_py(generated_files
 ### Generate the lib
 add_library(pastix_starpu
   ${generated_files}
+  starpu_callback.c
 )
 
 add_dependencies(pastix_starpu

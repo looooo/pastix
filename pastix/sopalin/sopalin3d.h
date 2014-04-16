@@ -236,6 +236,7 @@ struct Sopalin_Data_ {
   starpu_task_stats_t * hgemm_stats;
   starpu_task_stats_t * xxtrf_stats;
   starpu_task_stats_t * trsm_stats;
+  pastix_int_t        * fanin_ctrbcnt;
 #endif
 };
 

@@ -965,11 +965,6 @@ int pastix_check_param(pastix_data_t * pastix_data, int rhsnbr)
                     " PaStiX with -DPASTIX_WITH_STARPU=ON");
         ret = BADPARAMETER_ERR;
 #endif
-        if (pastix_data->inter_node_procnbr > 1)
-        {
-            errorPrintW("StarPU does not works in MPI mode yet");
-            ret = NOTIMPLEMENTED_ERR;
-        }
     }
 
     if (iparm[IPARM_START_TASK] <= API_TASK_SOLVE  &&

@@ -196,7 +196,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 cblknum++;
             }
             else {
-                cblklocalnum[i] = -1;
+                cblklocalnum[i] = -i-1;
             }
         }
         solvmtx->bloknbr = localindex[clustnum];
@@ -264,6 +264,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvcblk->procdiag = -1;
                 solvcblk->coeftab  = NULL;
                 solvcblk->ucoeftab = NULL;
+                solvcblk->gcblknum = i;
 
                 /* Extra statistic informations */
                 nodenbr += nbcolumns;
@@ -283,6 +284,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->procdiag = -1;
             solvcblk->coeftab  = NULL;
             solvcblk->ucoeftab = NULL;
+            solvcblk->gcblknum = -1;
         }
 
         solvmtx->nodenbr = nodenbr;
@@ -858,22 +860,25 @@ solverMatrixGen(const pastix_int_t clustnum,
     /************************************************************************/
     /*  Fill the halo information                                           */
     /************************************************************************/
-    /* gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
-     *                   >  0 : local cblk number
-     *                   <  0 : -halo cblk number
-     */
     {
         pastix_int_t halocblk=1;
         pastix_int_t bloknbr=0;
         SolverCblk * hcblk;
         SolverBlok * hblok;
+        /* gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
+         *                   >  0 : local cblk number
+         *                   <  0 : -halo cblk number
+         */
+        solvmtx->gcblknbr = symbmtx->cblknbr;
         MALLOC_INTERN(solvmtx->gcblk2halo, symbmtx->cblknbr, pastix_int_t);
         memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
         for(i=0;i<symbmtx->cblknbr;i++) {
             if (cblklocalnum[i] >= 0) {
                 /* If i is a local cblk */
                 solvmtx->gcblk2halo[i] = cblklocalnum[i]+1;
-                for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
+                for( j=symbmtx->cblktab[i].bloknum;
+                     j<symbmtx->cblktab[i+1].bloknum;
+                     j++) {
                     pastix_int_t dst_cblk, dst_bloc;
                     dst_cblk = symbmtx->bloktab[j].cblknum;
                     if (solvmtx->gcblk2halo[dst_cblk] == 0 &&
@@ -890,137 +895,321 @@ solverMatrixGen(const pastix_int_t clustnum,
                 }
             } else {
                 /* If i is not a local cblk */
-                if (solvmtx->gcblk2halo[i] == 0 &&
-                    symbmtx->cblktab[i+1].bloknum -
-                    symbmtx->cblktab[i].bloknum > 0) {
-                    for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
-                        pastix_int_t dst_cblk, dst_bloc;
-                        dst_cblk = symbmtx->bloktab[j].cblknum;
-                        dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
-                        if ( simuctrl->bloktab[ dst_bloc ].ownerclust == clustnum) {
-                            /* i updates local cblk add i to halo*/
-                            solvmtx->gcblk2halo[i] = -(halocblk++);
-                            bloknbr += symbmtx->cblktab[i+1].bloknum-symbmtx->cblktab[i].bloknum;
-                            break;
+                if (pastix_starpu_with_fanin() == API_NO) {
+                    if (solvmtx->gcblk2halo[i] == 0 &&
+                        symbmtx->cblktab[i+1].bloknum -
+                        symbmtx->cblktab[i].bloknum > 0) {
+                        for(j=symbmtx->cblktab[i].bloknum;
+                            j<symbmtx->cblktab[i+1].bloknum;
+                            j++) {
+                            pastix_int_t dst_cblk, dst_bloc;
+                            dst_cblk = symbmtx->bloktab[j].cblknum;
+                            dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                            if ( simuctrl->bloktab[ dst_bloc ].ownerclust ==
+                                 clustnum) {
+                                /* i updates local cblk add i to halo*/
+                                solvmtx->gcblk2halo[i] = -(halocblk++);
+                                bloknbr += symbmtx->cblktab[i+1].bloknum -
+                                    symbmtx->cblktab[i].bloknum;
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-        solvmtx->hcblknbr = halocblk-1;
-        solvmtx->gcblknbr = symbmtx->cblknbr;
-        MALLOC_INTERN(solvmtx->hcblktab, halocblk, SolverCblk);
-        MALLOC_INTERN(solvmtx->hbloktab, bloknbr, SolverBlok);
-        memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
 
-        hblok=solvmtx->hbloktab;
-        hcblk=solvmtx->hcblktab;
-        halocblk=0;
-        for(i=0;i<symbmtx->cblknbr;i++) {
-            if (cblklocalnum[i] >= 0) {
-                /* If i is a local cblk */
-                solvmtx->gcblk2halo[i] = cblklocalnum[i]+1;
-                for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
-                    pastix_int_t dst_cblk, dst_bloc;
-                    dst_cblk = symbmtx->bloktab[j].cblknum;
-                    if (solvmtx->gcblk2halo[dst_cblk] == 0 &&
-                        symbmtx->cblktab[dst_cblk+1].bloknum -
-                        symbmtx->cblktab[dst_cblk].bloknum > 0) {
-                        dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
-                        if ( simuctrl->bloktab[ dst_bloc ].ownerclust != clustnum) {
-                            pastix_int_t bloc;
-                            pastix_int_t coefind = 0;
-                            /* i updates remote cblk, add dst_cblk to halo */
-                            solvmtx->gcblk2halo[dst_cblk] = -(halocblk+1);
-                            hcblk->fcolnum =
-                                symbmtx->cblktab[dst_cblk].fcolnum * dofptr->noddval;
-                            hcblk->lcolnum =
-                                symbmtx->cblktab[dst_cblk].lcolnum * dofptr->noddval +
-                                dofptr->noddval-1;
-                            hcblk->stride   = 0;
-                            hcblk->fblokptr = hblok;
-                            hcblk->procdiag = simuctrl->bloktab[ dst_bloc ].ownerclust;
-                            hcblk->gcblknum = dst_cblk;
-                            for( bloc = symbmtx->cblktab[dst_cblk].bloknum;
-                                 bloc < symbmtx->cblktab[dst_cblk+1].bloknum;
-                                 bloc++) {
-                                pastix_int_t delta;
-                                delta  =  symbmtx->bloktab[bloc].lrownum -
-                                    symbmtx->bloktab[bloc].frownum +1;
-                                delta *=  dofptr->noddval;
-                                hcblk->stride += delta;
-                                hblok->frownum = symbmtx->bloktab[bloc].frownum * dofptr->noddval;
-                                hblok->lrownum = symbmtx->bloktab[bloc].lrownum * dofptr->noddval + dofptr->noddval-1;
-                                hblok->coefind = coefind;
-                                coefind += delta;
-                                hblok ++;
-                            }
-                            halocblk++;
-                            hcblk++;
-                        }
-                    }
+        if (pastix_starpu_with_fanin() == API_YES ) {
+            pastix_int_t iter;
+            pastix_int_t ftgtCblkIdx = 0;
+            pastix_int_t ftgtBlokIdx;
+            pastix_int_t clustnum;
+            SolverCblk * fcblk;
+            SolverBlok * fblok;
+            MPI_Request * req;
+
+            /**** OUTGOING FANIN ****/
+            /* Count the number of Fanin blocks */
+            for (ftgtBlokIdx = 0; ftgtBlokIdx < solvmtx->ftgtnbr; ftgtCblkIdx++) {
+                pastix_int_t gcblk =
+                    solvmtx->ftgttab[ftgtBlokIdx].infotab[FTGT_GCBKDST];
+                while(solvmtx->ftgttab[ftgtBlokIdx].infotab[FTGT_GCBKDST] ==
+                      gcblk) {
+                    ftgtBlokIdx++;
                 }
+            }
+            MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
+            MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
+            memset(solvmtx->fcblknbr, 0, solvmtx->clustnbr*sizeof(pastix_int_t));
+            solvmtx->fcblknbr[solvmtx->clustnum]       = ftgtCblkIdx;
+            MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, SolverCblk*);
+            MALLOC_INTERN(solvmtx->fcblktab[solvmtx->clustnum],
+                          ftgtCblkIdx+1, SolverCblk);
+            MALLOC_INTERN(solvmtx->fbloktab, solvmtx->clustnbr, SolverBlok*);
+            MALLOC_INTERN(solvmtx->fbloktab[solvmtx->clustnum],
+                          ftgtBlokIdx+1, SolverBlok);
+            fcblk = solvmtx->fcblktab[solvmtx->clustnum];
+            fblok = solvmtx->fbloktab[solvmtx->clustnum];
+            /* Fill the outgoing fanin info */
+            for (ftgtBlokIdx = 0; ftgtBlokIdx < solvmtx->ftgtnbr;) {
+                FanInTarget * ftgt = &(solvmtx->ftgttab[ftgtBlokIdx]);
+                fcblk->fcolnum = ftgt->infotab[FTGT_FCOLNUM];
+                fcblk->lcolnum = ftgt->infotab[FTGT_LCOLNUM];
+                fcblk->fblokptr = fblok;
+                fcblk->stride  = 0;
+                fcblk->procdiag = ftgt->infotab[FTGT_PROCDST];
+                fcblk->gcblknum = ftgt->infotab[FTGT_GCBKDST];
+                while( ftgt->infotab[FTGT_GCBKDST] ==
+                       fcblk->gcblknum) {
+                    fblok->frownum = ftgt->infotab[FTGT_FROWNUM];
+                    fblok->lrownum = ftgt->infotab[FTGT_LROWNUM];
+                    fblok->coefind = fcblk->stride;
+
+                    fcblk->stride +=
+                        ftgt->infotab[FTGT_LROWNUM] -
+                        ftgt->infotab[FTGT_FROWNUM] + 1;
+                    ftgtBlokIdx++;
+                    fblok++;
+                }
+                fcblk++;
+            }
+            if (solvmtx->ftgtnbr > 0) {
+                /*  virtual cblk to avoid side effect in the loops on cblk bloks */
+                fcblk->fcolnum = (fcblk-1)->lcolnum+1;
+                fcblk->lcolnum = (fcblk-1)->lcolnum+1;
+                fcblk->fblokptr = fblok;
             } else {
-                /* If i is not a local cblk */
-                if (solvmtx->gcblk2halo[i] == 0 &&
-                    symbmtx->cblktab[i+1].bloknum -
-                    symbmtx->cblktab[i].bloknum > 0) {
-                    for(j=symbmtx->cblktab[i].bloknum;j<symbmtx->cblktab[i+1].bloknum;j++) {
-                        pastix_int_t dst_cblk, dst_bloc;
-                        dst_cblk = symbmtx->bloktab[j].cblknum;
-                        dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
-                        if (simuctrl->bloktab[ dst_bloc ].ownerclust == clustnum) {
-                            pastix_int_t bloc;
-                            pastix_int_t coefind = 0;
-                            /* i updates local cblk add i to halo*/
-                            solvmtx->gcblk2halo[i] = -(halocblk+1);
+                fcblk->fcolnum = 0;
+                fcblk->lcolnum = 0;
+                fcblk->fblokptr = NULL;
+            }
 
-                            hcblk->fcolnum =
-                                symbmtx->cblktab[i].fcolnum * dofptr->noddval;
-                            hcblk->lcolnum =
-                                symbmtx->cblktab[i].lcolnum * dofptr->noddval +
-                                dofptr->noddval-1;
-                            hcblk->stride   = 0;
-                            hcblk->fblokptr  = hblok;
-                            hcblk->procdiag = simuctrl->bloktab[ symbmtx->cblktab[i].bloknum ].ownerclust;
-                            hcblk->gcblknum = i;
-                            for( bloc = symbmtx->cblktab[i].bloknum;
-                                 bloc < symbmtx->cblktab[i+1].bloknum;
-                                 bloc++) {
-                                pastix_int_t delta =  symbmtx->bloktab[bloc].lrownum -
-                                    symbmtx->bloktab[bloc].frownum +1;
-                                hcblk->stride += delta * dofptr->noddval;
-                                hblok->frownum =
-                                    symbmtx->bloktab[bloc].frownum * dofptr->noddval;
-                                hblok->lrownum =
-                                    symbmtx->bloktab[bloc].lrownum * dofptr->noddval + dofptr->noddval-1;
-                                hblok->coefind = coefind;
-                                coefind += delta;
+            /***** INCOMMING FANIN ***/
+            for (clustnum = 0; clustnum<ctrl->clustnbr; clustnum++) {
+                SimuCluster *simuclust = &(simuctrl->clustab[clustnum]);
+                pastix_int_t c, ftgtnbr;
+                solvmtx->fcblknbr[clustnum] = 0;
 
-                                //hblok->cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
-                                hblok++;
-                            }
-                            halocblk++;
-                            hcblk++;
-                            break;
+                /* Compute number of receiving contributions */
+                for(c=0; c<ctrl->clustnbr; c++) {
+                    ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
+                    for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr;
+                        solvmtx->fcblknbr[clustnum]++) {
+                        pastix_int_t gcblk;
+                        ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
+                                                 ftgtBlokIdx);
+                        /* while contribution is not local go on */
+                        while (simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_PROCDST] !=
+                               solvmtx->clustnum) {
+                            ftgtBlokIdx++;
+                            ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
+                                                     ftgtBlokIdx);
                         }
+                        gcblk = simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_GCBKDST];
+                        /* while still in same cblk go on */
+                        while(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_GCBKDST] ==
+                              gcblk) {
+                            ftgtBlokIdx++;
+                            ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
+                                                     ftgtBlokIdx);
+                        }
+                    }
+                }
+
+                if(solvmtx->fcblknbr[clustnum] > 0) {
+                    FanInTarget *solvftgt;
+
+                    MALLOC_INTERN(solvmtx->fcblktab[clustnum],
+                                  solvmtx->fcblknbr[clustnum],
+                                  SolverCblk);
+                    MALLOC_INTERN(solvmtx->fbloktab[clustnum],
+                                  ftgtBlokIdx,
+                                  SolverBlok);
+
+                    solvftgt = solvmtx->ftgttab;
+
+                    fcblk = solvmtx->fcblktab[clustnum];
+                    fblok = solvmtx->fbloktab[clustnum];
+
+                    for(c=0; c<ctrl->clustnbr; c++) {
+                        pastix_int_t ftgtnbr;
+                        ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
+                        for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr; ftgtBlokIdx++) {
+                            fcblk->fcolnum =
+                                solvftgt->infotab[FTGT_FCOLNUM];
+                            fcblk->lcolnum =
+                                solvftgt->infotab[FTGT_LCOLNUM];
+                            fcblk->fblokptr = fblok;
+                            fcblk->stride  = 0;
+                            fcblk->procdiag =
+                                solvftgt->infotab[FTGT_PROCDST];
+                            fcblk->gcblknum =
+                                solvftgt->infotab[FTGT_GCBKDST];
+                            while(solvftgt->infotab[FTGT_GCBKDST] ==
+                                  fcblk->gcblknum) {
+                                fblok->frownum = solvftgt->infotab[FTGT_FROWNUM];
+                                fblok->lrownum = solvftgt->infotab[FTGT_LROWNUM];
+                                fblok->coefind = fcblk->stride;
+
+                                fcblk->stride +=
+                                    solvftgt->infotab[FTGT_LROWNUM] -
+                                    solvftgt->infotab[FTGT_FROWNUM] + 1;
+                                fblok++;
+                                ftgtBlokIdx++;
+                                solvftgt++;
+                            }
+                            fcblk++;
+                        }
+                    }
+
+                    if (fcblk !=  solvmtx->fcblktab[clustnum]) {
+                        /* virtual cblk to avoid side effect in the loops on
+                         * cblk bloks */
+                        fcblk->fcolnum = (fcblk-1)->lcolnum+1;
+                        fcblk->lcolnum = (fcblk-1)->lcolnum+1;
+                        fcblk->fblokptr = fblok;
+                    } else {
+                        fcblk->fcolnum = 0;
+                        fcblk->lcolnum = 0;
+                        fcblk->fblokptr = 0;
                     }
                 }
             }
         }
 
-        if (halocblk > 0) {
-            /*  virtual cblk to avoid side effect in the loops on cblk bloks */
-            hcblk->fcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
-            hcblk->lcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
-            hcblk->fblokptr = hblok;
-        } else {
-            hcblk->fcolnum = 0;
-            hcblk->lcolnum = 0;
-            hcblk->fblokptr = hblok;
-        }
-        assert( bloknbr == hblok - solvmtx->hbloktab );
+        {
+            /* Fill hcblktab and hbloktab */
+            solvmtx->hcblknbr = halocblk-1;
+            MALLOC_INTERN(solvmtx->hcblktab, halocblk, SolverCblk);
+            MALLOC_INTERN(solvmtx->hbloktab, bloknbr, SolverBlok);
+            memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
 
+            hblok=solvmtx->hbloktab;
+            hcblk=solvmtx->hcblktab;
+            halocblk=0;
+            for(i=0;i<symbmtx->cblknbr;i++) {
+                if (cblklocalnum[i] >= 0) {
+                    /* If i is a local cblk */
+                    solvmtx->gcblk2halo[i] = cblklocalnum[i]+1;
+                    for( j=symbmtx->cblktab[i].bloknum;
+                         j<symbmtx->cblktab[i+1].bloknum;
+                         j++) {
+                        pastix_int_t dst_cblk, dst_bloc;
+                        dst_cblk = symbmtx->bloktab[j].cblknum;
+                        if (solvmtx->gcblk2halo[dst_cblk] == 0 &&
+                            symbmtx->cblktab[dst_cblk+1].bloknum -
+                            symbmtx->cblktab[dst_cblk].bloknum > 0) {
+                            dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                            if ( simuctrl->bloktab[ dst_bloc ].ownerclust !=
+                                 clustnum) {
+                                pastix_int_t bloc;
+                                pastix_int_t coefind = 0;
+                                /* i updates remote cblk, add dst_cblk to halo */
+                                solvmtx->gcblk2halo[dst_cblk] = -(halocblk+1);
+                                hcblk->fcolnum =
+                                    symbmtx->cblktab[dst_cblk].fcolnum *
+                                    dofptr->noddval;
+                                hcblk->lcolnum =
+                                    symbmtx->cblktab[dst_cblk].lcolnum *
+                                    dofptr->noddval + dofptr->noddval-1;
+                                hcblk->stride   = 0;
+                                hcblk->fblokptr = hblok;
+                                hcblk->procdiag = simuctrl->bloktab[
+                                    dst_bloc ].ownerclust;
+                                hcblk->gcblknum = dst_cblk;
+                                for( bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                                     bloc < symbmtx->cblktab[dst_cblk+1].bloknum;
+                                     bloc++) {
+                                    pastix_int_t delta;
+                                    delta  =  symbmtx->bloktab[bloc].lrownum -
+                                        symbmtx->bloktab[bloc].frownum +1;
+                                    delta *=  dofptr->noddval;
+                                    hcblk->stride += delta;
+                                    hblok->frownum = symbmtx->bloktab[bloc].frownum *
+                                        dofptr->noddval;
+                                    hblok->lrownum = symbmtx->bloktab[bloc].lrownum *
+                                        dofptr->noddval + dofptr->noddval-1;
+                                    hblok->coefind = coefind;
+                                    coefind += delta;
+                                    hblok ++;
+                                }
+                                halocblk++;
+                                hcblk++;
+                            }
+                        }
+                    }
+                } else {
+                    /* If i is not a local cblk */
+                    if (pastix_starpu_with_fanin() == API_NO ) {
+
+                        if (solvmtx->gcblk2halo[i] == 0 &&
+                            symbmtx->cblktab[i+1].bloknum -
+                            symbmtx->cblktab[i].bloknum > 0) {
+                            for( j=symbmtx->cblktab[i].bloknum;
+                                 j<symbmtx->cblktab[i+1].bloknum;
+                                 j++) {
+                                pastix_int_t dst_cblk, dst_bloc;
+                                dst_cblk = symbmtx->bloktab[j].cblknum;
+                                dst_bloc = symbmtx->cblktab[dst_cblk].bloknum;
+                                if (simuctrl->bloktab[ dst_bloc ].ownerclust ==
+                                    clustnum) {
+                                    pastix_int_t bloc;
+                                    pastix_int_t coefind = 0;
+                                    /* i updates local cblk add i to halo*/
+                                    solvmtx->gcblk2halo[i] = -(halocblk+1);
+                                    hcblk->fcolnum =
+                                        symbmtx->cblktab[i].fcolnum * dofptr->noddval;
+                                    hcblk->lcolnum =
+                                        symbmtx->cblktab[i].lcolnum * dofptr->noddval +
+                                        dofptr->noddval-1;
+                                    hcblk->stride   = 0;
+                                    hcblk->fblokptr = hblok;
+                                    hcblk->procdiag =
+                                        simuctrl->bloktab[
+                                            symbmtx->cblktab[i].bloknum ].ownerclust;
+                                    hcblk->gcblknum = i;
+                                    for( bloc = symbmtx->cblktab[i].bloknum;
+                                         bloc < symbmtx->cblktab[i+1].bloknum;
+                                         bloc++) {
+                                        pastix_int_t delta;
+                                        delta = symbmtx->bloktab[bloc].lrownum -
+                                            symbmtx->bloktab[bloc].frownum +1;
+                                        hcblk->stride += delta * dofptr->noddval;
+                                        hblok->frownum =
+                                            symbmtx->bloktab[bloc].frownum *
+                                            dofptr->noddval;
+                                        hblok->lrownum =
+                                            symbmtx->bloktab[bloc].lrownum *
+                                            dofptr->noddval + dofptr->noddval-1;
+                                        hblok->coefind = coefind;
+                                        coefind += delta;
+
+                                        //hblok->cblknum = cblklocalnum[symbmtx->bloktab[j].cblknum];
+                                        hblok++;
+                                    }
+                                    halocblk++;
+                                    hcblk++;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            assert(halocblk == solvmtx->hcblknbr);
+            if (halocblk > 0) {
+                /*  virtual cblk to avoid side effect in the loops on cblk bloks */
+                hcblk->fcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
+                hcblk->lcolnum = solvmtx->hcblktab[halocblk-1].lcolnum+1;
+                hcblk->fblokptr = hblok;
+            } else {
+                hcblk->fcolnum = 0;
+                hcblk->lcolnum = 0;
+                hcblk->fblokptr = hblok;
+            }
+            assert( bloknbr == hblok - solvmtx->hbloktab );
+        }
         /************************************************************************/
         /*** Find the list of global column blocks contributing to each cblk ****/
         /************************************************************************/

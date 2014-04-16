@@ -204,14 +204,12 @@
 
 #define SUBMIT_TRF_IF_NEEDED                                            \
     do {                                                                \
-      char * nested;                                                    \
-      TASK_CTRBCNT(fcblknum)--;                                         \
-      if ((nested = getenv("PASTIX_STARPU_NESTED_TASK")) &&             \
-          !strcmp(nested, "1"))         {                               \
-        if (TASK_CTRBCNT(fcblknum) == 0) {                              \
-          starpu_submit_one_trf(fcblknum, sopalin_data);                \
+        TASK_CTRBCNT(fcblknum)--;                                       \
+        if (pastix_starpu_with_nested_task() == API_YES) {              \
+            if (TASK_CTRBCNT(fcblknum) == 0) {                          \
+                starpu_submit_one_trf(fcblknum, sopalin_data);          \
+            }                                                           \
         }                                                               \
-      }                                                                 \
     } while(0)
 
 
@@ -589,12 +587,8 @@ void trsm_starpu_common(void * buffers[], void * _args, int arch)
       assert(0);
       break;
   }
-  {
-      char * nested;
-      if ((nested = getenv("PASTIX_STARPU_NESTED_TASK")) &&
-          !strcmp(nested, "1")) {
-          starpu_submit_bunch_of_gemm(tasknum, sopalin_data);
-      }
+  if (pastix_starpu_with_nested_task() == API_YES) {
+      starpu_submit_bunch_of_gemm(tasknum, sopalin_data);
   }
 }
 

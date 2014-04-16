@@ -40,7 +40,7 @@ typedef enum {
   FTGT_LCOLNUM,                                   /*+ Fanintarget last column           +*/
   FTGT_FROWNUM,                                   /*+ Fanintarget first row             +*/
   FTGT_LROWNUM,                                   /*+ Fanintarget last row              +*/
-#if (defined OOC) || (defined TRACE_SOPALIN)
+#if (defined OOC) || (defined TRACE_SOPALIN) || (defined PASTIX_WITH_STARPU)
   FTGT_GCBKDST,                                   /*+ Global Cblk destination(->COMP_1D)+*/
   FTGT_IDTRACE,                                   /*+ To have 12 integer in FanInTarget +*/
 #endif

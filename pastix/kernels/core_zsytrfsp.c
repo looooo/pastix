@@ -424,6 +424,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
     pastix_int_t stride, stridefc, indblok;
     pastix_int_t dimi, dimj, dima, dimb;
     pastix_int_t ldw;
+    pastix_int_t ret;
 
     stride  = cblk->stride;
     dima = cblk->lcolnum - cblk->fcolnum + 1;
@@ -441,13 +442,14 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
     /* Compute ldw which should never be larger than SOLVE_COEFMAX */
     ldw = (dimi +1)* dima;
     /* Compute the contribution */
-    core_zgemdm( CblasNoTrans, CblasTrans,
-                 dimi, dimj, dima,
-                 1.,  Aik,   stride,
-                      Aik,   stride,
-                 0.,  work1, dimi,
-                      L,     stride+1,
-                      work2, ldw );
+    ret = core_zgemdm( CblasNoTrans, CblasTrans,
+                       dimi, dimj, dima,
+                       1.,  Aik,   stride,
+                            Aik,   stride,
+                       0.,  work1, dimi,
+                            L,     stride+1,
+                            work2, ldw );
+    assert(ret == PASTIX_SUCCESS);
 
     /*
      * Add contribution to facing cblk
