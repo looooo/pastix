@@ -218,7 +218,8 @@ struct starpu_codelet trf_trsm_cl =
     .cpu_funcs[0] = starpu_dhetrfsp1d_cpu,
 #    endif
 #  else
-    .cpu_funcs[0] = starpu_dsytrfsp1d_cpu,
+    .cpu_funcs[0] = trfsp1d_starpu_cpu,
+    //.cpu_funcs[0] = starpu_dsytrfsp1d_cpu,
 #  endif
 #endif
 
@@ -280,7 +281,7 @@ struct starpu_codelet trf_cl =
     .cpu_funcs[0] = starpu_dhetrfsp1d_hetrf_cpu,
 #    endif
 #  else
-    .cpu_funcs[0] = starpu_dsytrfsp1d_sytrf_cpu,
+    .cpu_funcs[0] = xxtrf_starpu_cpu, //starpu_dsytrfsp1d_sytrf_cpu,
 #  endif
 #endif
 #ifdef CHOL_SOPALIN
@@ -338,7 +339,7 @@ struct starpu_codelet trsm_cl =
     .cpu_funcs[0] = starpu_dhetrfsp1d_trsm_cpu,
 #    endif
 #  else
-    .cpu_funcs[0] = starpu_dsytrfsp1d_trsm_cpu,
+    .cpu_funcs[0] = trsm_starpu_cpu, //starpu_dsytrfsp1d_trsm_cpu,
 #  endif
 #endif
 
@@ -431,7 +432,8 @@ struct starpu_codelet sparse_gemm_cpu_cl =
     .cpu_funcs[0] = starpu_dhetrfsp1d_gemm_cpu,
 #    endif
 #  else
-    .cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
+    //.cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
+    .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu,
 #  endif
 #endif
 
@@ -482,7 +484,8 @@ struct starpu_codelet sparse_gemm_cl =
     .cpu_funcs[0] = starpu_dhetrfsp1d_gemm_cpu,
 #    endif
 #  else
-    .cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
+    //.cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
+    .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu,
 #  endif
 #endif
 

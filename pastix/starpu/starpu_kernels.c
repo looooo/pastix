@@ -15,6 +15,9 @@
 #include "pastix_dcores.h"
 #include "starpu_kernels.h"
 #include "starpu_submit_tasks.h"
+#include "compute_diag.h"
+#include "compute_trsm.h"
+
 
 #ifdef PASTIX_WITH_CUDA
 #  include "sparse_gemm.h"
@@ -418,32 +421,35 @@ void xxtrf_starpu_common(void * buffers[], void * _args, int arch) {
   case ARCH_CPU:
 #ifdef CHOL_SOPALIN
 #  ifdef SOPALIN_LU
-      sopalin_data->thread_data[me]->nbpivot +=
-           core_dgetrfsp1d_getrf(datacode->cblktab+cblknum,
-                                 lDiag,
-                                 uDiag,
-                                 sopalin_data->critere);
-#  else
-      sopalin_data->thread_data[me]->nbpivot +=
-          core_dpotrfsp1d_potrf(datacode->cblktab+cblknum,
-                                lDiag,
-                                sopalin_data->critere);
-#  endif
-#else
+    /* Add U diagonal updates into L */
+    SOPALIN_GEAM("T", "N", dima, dima, 1.0,
+                 uDiag, stride,
+                 lDiag, stride);
+    /* Factorize diagonal block (two terms version with workspace) */
+    PASTIX_getrf_block(lDiag, dima, dima, stride,
+                       &(sopalin_data->thread_data[me]->nbpivot),
+                       sopalin_data->critere);
+    /* Transpose L_diag in U_diag Matrix */
+    DimTrans(lDiag,stride, dima,uDiag);
+#  else /* SOPALIN_LU */
+    PASTIX_potrf_block(lDiag, dima, stride,
+                       &(sopalin_data->thread_data[me]->nbpivot),
+                       sopalin_data->critere);
+
+#  endif /* SOPALIN_LU */
+#else /* CHOL_SOPALIN */
 #  ifdef HERMITIAN
-      sopalin_data->thread_data[me]->nbpivot +=
-          core_dsytrfsp1d_sytrf(datacode->cblktab+cblknum,
-                                lDiag,
-                                sopalin_data->critere,
-                                sopalin_data->thread_data[me]->maxbloktab1);
+    PASTIX_hetrf_block(lDiag, dima, stride,
+                       &(sopalin_data->thread_data[me]->nbpivot),
+                       sopalin_data->critere,
+                       sopalin_data->thread_data[me]->maxbloktab1);
 #  else
-      sopalin_data->thread_data[me]->nbpivot +=
-          core_dsytrfsp1d_sytrf(datacode->cblktab+cblknum,
-                                lDiag,
-                                sopalin_data->critere,
-                                sopalin_data->thread_data[me]->maxbloktab1);
+    PASTIX_sytrf_block(lDiag, dima, stride,
+                       &(sopalin_data->thread_data[me]->nbpivot),
+                       sopalin_data->critere,
+                       sopalin_data->thread_data[me]->maxbloktab1);
 #  endif
-#endif
+#endif /* CHOL_SOPALIN */
       break;
 #ifdef PASTIX_WITH_MAGMABLAS
   case ARCH_CUDA:
@@ -531,24 +537,27 @@ void trsm_starpu_common(void * buffers[], void * _args, int arch)
 
   switch(arch) {
   case ARCH_CPU:
-#ifdef CHOL_SOPALIN
-#  ifdef SOPALIN_LU
-      core_dgetrfsp1d_trsm(datacode->cblktab+cblknum,
-                           lDiag,
-                           uDiag);
-#  else
-      core_dpotrfsp1d_trsm(datacode->cblktab+cblknum,
-                           lDiag);
-#  endif
-#else
-#  ifdef HERMITIAN
-      core_dsytrfsp1d_trsm(datacode->cblktab+cblknum,
-                           lDiag);
-#  else
-      core_dsytrfsp1d_trsm(datacode->cblktab+cblknum,
-                           lDiag);
-#  endif
+      if ( fblknum+1 < lblknum )
+      {
+          lExtraDiag = lDiag + SOLV_COEFIND(fblknum+1);
+#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
+          uExtraDiag = uDiag + SOLV_COEFIND(fblknum+1);
 #endif
+          kernel_trsm(dimb, dima,
+                      lDiag,
+#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
+                      uDiag,
+#endif
+                      stride,
+                      lExtraDiag,
+#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
+                      uExtraDiag,
+#endif
+#ifndef CHOL_SOPALIN
+                      tmp4,
+#endif
+                      stride);
+      }
       break;
 #ifdef PASTIX_WITH_CUDA
   case ARCH_CUDA:
@@ -748,40 +757,177 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
   switch(arch) {
   case ARCH_CPU:
 #ifdef CHOL_SOPALIN
-#  ifdef SOPALIN_LU
-      core_dgetrfsp1d_gemm( datacode->cblktab+cblknum,
-                            datacode->bloktab+bloknum,
-                            datacode->cblktab+fcblknum,
-                            L, U, Cl, Cu, work);
-#  else
-      core_dpotrfsp1d_gemm( datacode->cblktab+cblknum,
-                            datacode->bloktab+bloknum,
-                            datacode->cblktab+fcblknum,
-                            L, Cl, work);
-#  endif
+      SOPALIN_GEMM( "N", trans,
+                    dimi, dimj, dima,
+                    1.,  Aik,  stride,
+                    Akj,  stride,
+                    0.,  wtmp, dimi);
 #else
+  /* Compute the contribution */
+      CORE_gemdm( PastixNoTrans,
 #  ifdef HERMITIAN
-      core_dsytrfsp1d_gemm( datacode->cblktab+cblknum,
-                            datacode->bloktab+bloknum,
-                            datacode->cblktab+fcblknum,
-                            L, Cl, work, work2);
+                  PastixConjTrans,
 #  else
-      core_dsytrfsp1d_gemm( datacode->cblktab+cblknum,
-                            datacode->bloktab+bloknum,
-                            datacode->cblktab+fcblknum,
-                            L, Cl, work, work2);
+                  PastixTrans,
 #  endif
+                  dimi, dimj, dima,
+                  1.,  Aik,   stride,
+                  Aik,   stride,
+                  0.,  wtmp, dimi,
+                  L,     stride+1,
+                  work2, ldw );
 #endif
+      /*
+       * Add contribution to facing cblk
+       */
+      b = SYMB_BLOKNUM( fcblknum );
+      if (cblknum < 0) {
+          Cl = Cl + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
+      } else {
+          Cl = Cl + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
+      }
+      /* for all following blocks in block column */
+      for (j=bloknum; j<lblknum; j++) {
+          if (cblknum < 0) {
+              frownum = HBLOCK_FROWNUM(j);
+              dimb = HBLOCK_ROWNBR(j);
+              /* Find facing bloknum */
+              while (!HBLOCK_ISFACING(j,b)) {
+                  b++;
+                  assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+              }
+          } else {
+              frownum = SYMB_FROWNUM(j);
+              dimb = BLOK_ROWNBR(j);
+              /* Find facing bloknum */
+              while (!BLOCK_ISFACING(j,b)) {
+                  b++;
+                  assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+              }
+          }
+
+          Aij = Cl + SOLV_COEFIND(b) + frownum - SYMB_FROWNUM(b);
+#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
+          SOPALIN_GEAM("N", "N", dimb, dimj, -1.0,
+                       wtmp, dimi,
+                       Aij,  stridefc );
+#else
+          MAT_zaxpy( dimb, dimj, -1.0,
+                     wtmp, dimi,
+                     Aij,  stridefc );
+#endif
+          /* Displacement to next block */
+          wtmp += dimb;
+      }
+
+#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
+      /*
+       * Compute update on U
+       */
+
+      Aik = U + indblok;
+      Akj = L + indblok;
+      wtmp = work;
+      SOPALIN_GEMM( "N", "T",
+                    dimi, dimj, dima,
+                    1.,  Aik,  stride,
+                    Akj,  stride,
+                    0.,  wtmp, dimi  );
+  wtmp += SYMB_LROWNUM(bloknum) - SYMB_FROWNUM(bloknum) + 1;
+
+  /*
+   * Add contribution to facing cblk
+   */
+  b = SYMB_BLOKNUM( fcblknum );
+  if (cblknum < 0) {
+    Cl = Cl + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum));
+  } else {
+    Cl = Cl + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum));
+  }
+  /* for all following blocks in block column */
+  for (j=bloknum+1; j<lblknum; j++) {
+    if (cblknum < 0) {
+      frownum = HBLOCK_FROWNUM(j);
+      dimb = HBLOCK_ROWNBR(j);
+
+      /* Find facing bloknum */
+      /* WARNING: may not work for NAPA */
+      if (!HBLOCK_ISFACING(j,b))
+	break;
+    } else {
+      frownum = SYMB_FROWNUM(j);
+      dimb = BLOK_ROWNBR(j);
+
+      /* Find facing bloknum */
+      /* WARNING: may not work for NAPA */
+      if (!BLOCK_ISFACING(j,b))
+	break;
+    }
+
+
+    Aij = Cl + (frownum - SYMB_FROWNUM(b))*stridefc;
+
+    switch(arch) {
+    case ARCH_CPU:
+      SOPALIN_GEAM( "T", "N", dimj, dimb, -1.0,
+                    wtmp, dimi,
+                    Aij,  stridefc );
       break;
-  case ARCH_CUDA:
-  default:
-    errorPrint("Unknown Architecture");
-    assert(0);
-    break;
+    default:
+      errorPrint("Unknown Architecture");
+      assert(0);
+      break;
+    }
+
+    /* Displacement to next block */
+    wtmp += dimb;
   }
 
-    SUBMIT_TRF_IF_NEEDED;
+  if (cblknum < 0) {
+    Cu = Cu + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
+  } else {
+    Cu = Cu + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
+  }
+  /* Keep updating on U */
+  for (; j<lblknum; j++) {
+    if (cblknum < 0) {
+      frownum = HBLOCK_FROWNUM(j);
+      dimb = HBLOCK_ROWNBR(j);
 
+      /* Find facing bloknum */
+      while (!HBLOCK_ISFACING(j,b)) {
+        b++;
+        assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+      }
+    } else {
+      frownum = SYMB_FROWNUM(j);
+      dimb = SYMB_LROWNUM(j) - frownum + 1;
+
+      /* Find facing bloknum */
+      while (!BLOCK_ISFACING(j,b)) {
+        b++;
+        assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+      }
+    }
+
+    Aij = Cu + SOLV_COEFIND(b) + frownum - SYMB_FROWNUM(b);
+    SOPALIN_GEAM("N", "N", dimb, dimj, -1.0,
+                 wtmp, dimi,
+                 Aij,  stridefc );
+
+
+
+    /* Displacement to next block */
+    wtmp += dimb;
+  }
+#endif
+      break;
+  default:
+      errorPrint("%s:%d Unknown Architecture", __FILE__, __LINE__);
+      assert(0);
+      break;
+  }
+  SUBMIT_TRF_IF_NEEDED;
 }
 
 /*
