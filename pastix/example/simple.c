@@ -202,7 +202,7 @@ int main (int argc, char **argv)
   if (iparm[IPARM_STARPU] == API_YES) {
     /* solve is not efficient with StarPU yet */
     iparm[IPARM_END_TASK] = API_TASK_NUMFACT;
-  pastix(&pastix_data, MPI_COMM_WORLD,
+    pastix(&pastix_data, MPI_COMM_WORLD,
          ncol, colptr, rows, values,
          perm, invp, rhs, nbrhs, iparm, dparm);
 

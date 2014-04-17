@@ -47,6 +47,8 @@ option(PASTIX_WITH_STARPU
   "Build PaStiX with StarPU runtime support" OFF)
 option(PASTIX_WITH_STARPU_PROFILING
   "Build PaStiX with StarPU runtime support profiling" OFF)
+option(PASTIX_DUMP_CBLK
+  "Dump all cblk on disk after modifications" OFF)
 
 cmake_dependent_option(PASTIX_DISTRIBUTED
  "Enable the distributed interface (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)

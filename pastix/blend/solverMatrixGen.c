@@ -928,26 +928,32 @@ solverMatrixGen(const pastix_int_t clustnum,
             SolverBlok * fblok;
             MPI_Request * req;
 
+            MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
+            MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, SolverCblk*);
+            MALLOC_INTERN(solvmtx->fbloktab, solvmtx->clustnbr, SolverBlok*);
+            memset(solvmtx->fcblknbr, 0, solvmtx->clustnbr*sizeof(pastix_int_t));
+            memset(solvmtx->fcblktab, 0, solvmtx->clustnbr*sizeof(SolverCblk*));
+            memset(solvmtx->fbloktab, 0, solvmtx->clustnbr*sizeof(SolverBlok*));
+
             /**** OUTGOING FANIN ****/
             /* Count the number of Fanin blocks */
             for (ftgtBlokIdx = 0; ftgtBlokIdx < solvmtx->ftgtnbr; ftgtCblkIdx++) {
-                pastix_int_t gcblk =
-                    solvmtx->ftgttab[ftgtBlokIdx].infotab[FTGT_GCBKDST];
-                while(solvmtx->ftgttab[ftgtBlokIdx].infotab[FTGT_GCBKDST] ==
-                      gcblk) {
+                FanInTarget * ftgt = &(solvmtx->ftgttab[ftgtBlokIdx]);
+                pastix_int_t gcblk = ftgt->infotab[FTGT_GCBKDST];
+                while( ftgtBlokIdx < solvmtx->ftgtnbr &&
+                       ftgt->infotab[FTGT_GCBKDST] ==
+                       gcblk) {
                     ftgtBlokIdx++;
+                    ftgt++;
                 }
             }
-            MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
-            MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
-            memset(solvmtx->fcblknbr, 0, solvmtx->clustnbr*sizeof(pastix_int_t));
+
             solvmtx->fcblknbr[solvmtx->clustnum]       = ftgtCblkIdx;
-            MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, SolverCblk*);
             MALLOC_INTERN(solvmtx->fcblktab[solvmtx->clustnum],
                           ftgtCblkIdx+1, SolverCblk);
-            MALLOC_INTERN(solvmtx->fbloktab, solvmtx->clustnbr, SolverBlok*);
+            assert(ftgtBlokIdx == solvmtx->ftgtnbr);
             MALLOC_INTERN(solvmtx->fbloktab[solvmtx->clustnum],
-                          ftgtBlokIdx+1, SolverBlok);
+                          solvmtx->ftgtnbr, SolverBlok);
             fcblk = solvmtx->fcblktab[solvmtx->clustnum];
             fblok = solvmtx->fbloktab[solvmtx->clustnum];
             /* Fill the outgoing fanin info */
@@ -959,20 +965,23 @@ solverMatrixGen(const pastix_int_t clustnum,
                 fcblk->stride  = 0;
                 fcblk->procdiag = ftgt->infotab[FTGT_PROCDST];
                 fcblk->gcblknum = ftgt->infotab[FTGT_GCBKDST];
-                while( ftgt->infotab[FTGT_GCBKDST] ==
-                       fcblk->gcblknum) {
+                /* While the target is the same we add bloks inside the
+                 * fanin column block*/
+                while( ftgtBlokIdx < solvmtx->ftgtnbr &&
+                       ftgt->infotab[FTGT_GCBKDST] == fcblk->gcblknum) {
                     fblok->frownum = ftgt->infotab[FTGT_FROWNUM];
                     fblok->lrownum = ftgt->infotab[FTGT_LROWNUM];
                     fblok->coefind = fcblk->stride;
-
                     fcblk->stride +=
                         ftgt->infotab[FTGT_LROWNUM] -
                         ftgt->infotab[FTGT_FROWNUM] + 1;
                     ftgtBlokIdx++;
                     fblok++;
+                    ftgt++;
                 }
                 fcblk++;
             }
+
             if (solvmtx->ftgtnbr > 0) {
                 /*  virtual cblk to avoid side effect in the loops on cblk bloks */
                 fcblk->fcolnum = (fcblk-1)->lcolnum+1;
@@ -988,6 +997,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             for (clustnum = 0; clustnum<ctrl->clustnbr; clustnum++) {
                 SimuCluster *simuclust = &(simuctrl->clustab[clustnum]);
                 pastix_int_t c, ftgtnbr;
+                if (clustnum == solvmtx->clustnum) continue;
                 solvmtx->fcblknbr[clustnum] = 0;
 
                 /* Compute number of receiving contributions */
@@ -995,38 +1005,38 @@ solverMatrixGen(const pastix_int_t clustnum,
                     ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
                     for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr;
                         solvmtx->fcblknbr[clustnum]++) {
+                        pastix_int_t *infotab;
                         pastix_int_t gcblk;
                         ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
                                                  ftgtBlokIdx);
+                        infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
                         /* while contribution is not local go on */
-                        while (simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_PROCDST] !=
-                               solvmtx->clustnum) {
+                        while (ftgtBlokIdx<ftgtnbr &&
+                               infotab[FTGT_PROCDST] != solvmtx->clustnum) {
                             ftgtBlokIdx++;
                             ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
                                                      ftgtBlokIdx);
+                            infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
                         }
                         gcblk = simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_GCBKDST];
                         /* while still in same cblk go on */
-                        while(simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_GCBKDST] ==
+                        while(ftgtBlokIdx<ftgtnbr && infotab[FTGT_GCBKDST] ==
                               gcblk) {
                             ftgtBlokIdx++;
                             ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
                                                      ftgtBlokIdx);
+                            infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
                         }
                     }
                 }
 
                 if(solvmtx->fcblknbr[clustnum] > 0) {
-                    FanInTarget *solvftgt;
-
                     MALLOC_INTERN(solvmtx->fcblktab[clustnum],
-                                  solvmtx->fcblknbr[clustnum],
+                                  solvmtx->fcblknbr[clustnum]+1,
                                   SolverCblk);
                     MALLOC_INTERN(solvmtx->fbloktab[clustnum],
                                   ftgtBlokIdx,
                                   SolverBlok);
-
-                    solvftgt = solvmtx->ftgttab;
 
                     fcblk = solvmtx->fcblktab[clustnum];
                     fblok = solvmtx->fbloktab[clustnum];
@@ -1035,28 +1045,38 @@ solverMatrixGen(const pastix_int_t clustnum,
                         pastix_int_t ftgtnbr;
                         ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
                         for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr; ftgtBlokIdx++) {
-                            fcblk->fcolnum =
-                                solvftgt->infotab[FTGT_FCOLNUM];
-                            fcblk->lcolnum =
-                                solvftgt->infotab[FTGT_LCOLNUM];
+                            pastix_int_t *infotab;
+                            pastix_int_t ftgtnum;
+                            ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
+                                                     ftgtBlokIdx);
+                            infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
+                            /* while contribution is not local go on */
+                            while (ftgtBlokIdx<ftgtnbr &&
+                                   infotab[FTGT_PROCDST] != solvmtx->clustnum) {
+                                ftgtBlokIdx++;
+                                ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
+                                                         ftgtBlokIdx);
+                                infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
+                            }
+                            fcblk->fcolnum = infotab[FTGT_FCOLNUM] * dofptr->noddval;
+                            fcblk->lcolnum = (infotab[FTGT_LCOLNUM] + 1) * dofptr->noddval - 1;
                             fcblk->fblokptr = fblok;
                             fcblk->stride  = 0;
-                            fcblk->procdiag =
-                                solvftgt->infotab[FTGT_PROCDST];
-                            fcblk->gcblknum =
-                                solvftgt->infotab[FTGT_GCBKDST];
-                            while(solvftgt->infotab[FTGT_GCBKDST] ==
-                                  fcblk->gcblknum) {
-                                fblok->frownum = solvftgt->infotab[FTGT_FROWNUM];
-                                fblok->lrownum = solvftgt->infotab[FTGT_LROWNUM];
+                            fcblk->procdiag = infotab[FTGT_PROCDST];
+                            fcblk->gcblknum = infotab[FTGT_GCBKDST];
+                            while(ftgtBlokIdx < ftgtnbr &&
+                                  infotab[FTGT_GCBKDST] == fcblk->gcblknum) {
+                                fblok->frownum = infotab[FTGT_FROWNUM] * dofptr->noddval;
+                                fblok->lrownum = (infotab[FTGT_LROWNUM]+1) *dofptr->noddval - 1;
                                 fblok->coefind = fcblk->stride;
 
-                                fcblk->stride +=
-                                    solvftgt->infotab[FTGT_LROWNUM] -
-                                    solvftgt->infotab[FTGT_FROWNUM] + 1;
+                                fcblk->stride += infotab[FTGT_LROWNUM] -
+                                    infotab[FTGT_FROWNUM] + 1;
                                 fblok++;
                                 ftgtBlokIdx++;
-                                solvftgt++;
+                                ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
+                                                         ftgtBlokIdx);
+                                infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
                             }
                             fcblk++;
                         }

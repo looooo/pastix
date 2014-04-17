@@ -8,11 +8,6 @@
 
 #  include <pthread.h>
 #  include <string.h>
-#  ifdef FORCE_NOMPI
-#    include "nompi.h"
-#  else
-#    include <mpi.h>
-#  endif
 #  include "common.h"
 #  include "out.h"
 #  include "sopalin_define.h"
@@ -35,6 +30,7 @@
 #  include "sopalin_init.h"
 #  include "starpu_dkernels.h"
 #  include "starpu_dregister_data.h"
+#  include "starpu_dsubmit.h"
 
 #  define dump_all API_CALL(dump_all)
 void  dump_all                 (SolverMatrix *, CscMatrix * cscmtx, int);
@@ -602,7 +598,7 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
         /* several deps can be inserted during same loop if involving same CBLKs */
         for (iter = 0; iter < ndeps;) {
             pastix_int_t gcblk = UPDOWN_GLISTCBLK(browk+iter);
-            pastix_int_t lcblk = SOLV_GCBLK2LOC(gcblk);
+            pastix_int_t lcblk = SOLV_GCBLK2LOC(gcblk)+1;
             if (lcblk == 0) {
                 errorPrint("This cblk (%d) should not appear on this proc (%d)\n",
                            gcblk, SOLV_PROCNUM);
@@ -863,10 +859,12 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
                            datacode->fcblknbr[SOLV_PROCNUM]);
                 }
                 fcblknum = fcblk - datacode->fcblktab[SOLV_PROCNUM];
-                L_target_handle = Lfanin_handle[SOLV_PROCNUM]+itercblk;
+                L_target_handle = Lfanin_handle[SOLV_PROCNUM]+
+                    fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
-                U_target_handle = Ufanin_handle[SOLV_PROCNUM]+itercblk;
+                U_target_handle = Ufanin_handle[SOLV_PROCNUM]+
+                    fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
 #    endif
 #  endif
                 assert(cblk_isfanin(datacode, fcblk) == API_YES);
@@ -1298,10 +1296,10 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
                     if (pastix_starpu_with_fanin() == API_YES) {
                         pastix_int_t faninnum;
                         SolverCblk * fcblk = datacode->fcblktab[SOLV_PROCNUM];
+                        SolverCblk * lfanin = fcblk + datacode->fcblknbr[SOLV_PROCNUM];
                         while (fcblk->gcblknum != gfcblknum) {
                             fcblk++;
-                            assert(fcblk - datacode->fcblktab[SOLV_PROCNUM] <
-                                   datacode->fcblknbr[SOLV_PROCNUM]);
+                            assert(fcblk < lfanin);
                         }
                         faninnum = fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
                         sopalin_data->fanin_ctrbcnt[faninnum]++;
@@ -1338,7 +1336,7 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
                                         sizeof(int));
         } else {
             MPI_Bcast(&size, 1, MPI_INT, iter, sopalin_data->sopar->pastix_comm);
-            starpu_vector_data_register(&(blocktab_handles[iter]), 0,
+            starpu_vector_data_register(&(blocktab_handles[iter]), -1,
                                         (uintptr_t)NULL, size,
                                         sizeof(int));
         }
@@ -1494,7 +1492,15 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
         memset(sopalin_data->trsm_stats, 0,
                starpu_worker_get_count()*sizeof(starpu_task_stats_t));
 
-        halo_submit(sopalin_data);
+        if (pastix_starpu_with_fanin() == API_YES) {
+#if (defined CHOL_SOPALIN && defined SOPALIN_LU)
+            starpu_dgesubmit_incomming_fanin(sopalin_data);
+#else
+            starpu_dsysubmit_incomming_fanin(sopalin_data);
+#endif
+        } else {
+            halo_submit(sopalin_data);
+        }
         starpu_submit_loop (starpu_loop_data);
     }
     else
@@ -1677,9 +1683,8 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
                             &Lfanin_handle, NULL);
 #  endif
     starpu_data_unregister(WORK_handle);
-
-    /* for (iter = 0; iter < SOLV_PROCNBR; iter++) */
-    /*     starpu_data_unregister(blocktab_handles[iter]); */
+    for (iter = 0; iter < SOLV_PROCNBR; iter++)
+        starpu_data_unregister(blocktab_handles[iter]);
     memFree_null(blocktab_handles);
     memFree_null(blocktab);
 

@@ -64,23 +64,23 @@
                 if (TASK_CTRBCNT(fcblknum) == 0) {                      \
                     starpu_submit_one_trf(fcblknum, sopalin_data);      \
                 }                                                       \
-            } else {                                                    \
-                if (pastix_starpu_with_fanin() == API_YES) {            \
-                    pastix_int_t faninnum = fcblk_getnum(datacode,      \
-                                                         fcblk,         \
-                                                         SOLV_PROCNUM); \
-                    pastix_int_t *fanin_ctrbcnt;                        \
-                    fanin_ctrbcnt = sopalin_data->fanin_ctrbcnt;        \
-                    fanin_ctrbcnt[faninnum]--;                          \
-                    if (fanin_ctrbcnt[faninnum] == 0) {                 \
-                        pastix_int_t hcblknum;                          \
-                        SolverCblk * hcblk;                             \
-                        hcblknum = SOLV_GCBLK2HALO(fcblk->gcblknum);    \
-                        hcblk = datacode->hcblktab + hcblknum;          \
-                        starpu_submit_outgoing_fanin( sopalin_data,     \
-                                                      fcblk,            \
-                                                      hcblk);           \
-                    }                                                   \
+            }                                                           \
+        } else {                                                        \
+            if (pastix_starpu_with_fanin() == API_YES) {                \
+                pastix_int_t faninnum = fcblk_getnum(datacode,          \
+                                                     fcblk,             \
+                                                     SOLV_PROCNUM);     \
+                pastix_int_t *fanin_ctrbcnt;                            \
+                fanin_ctrbcnt = sopalin_data->fanin_ctrbcnt;            \
+                fanin_ctrbcnt[faninnum]--;                              \
+                if (fanin_ctrbcnt[faninnum] == 0) {                     \
+                    pastix_int_t hcblknum;                              \
+                    SolverCblk * hcblk;                                 \
+                    hcblknum = SOLV_GCBLK2HALO(fcblk->gcblknum);        \
+                    hcblk = datacode->hcblktab + hcblknum;              \
+                    starpu_submit_outgoing_fanin( sopalin_data,         \
+                                                  fcblk,                \
+                                                  hcblk);               \
                 }                                                       \
             }                                                           \
         }                                                               \

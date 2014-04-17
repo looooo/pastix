@@ -10,6 +10,7 @@
 #cmakedefine PASTIX_WITH_STARPU
 #cmakedefine PASTIX_WITH_STARPU_PROFILING
 
+#cmakedefine PASTIX_DUMP_CBLK
 /* system */
 #cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_SCHED_SETAFFINITY

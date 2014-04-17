@@ -152,6 +152,11 @@ void starpu_zsytrfsp1d_cpu(void * buffers[], void * _args)
                         work);
 
     SUBMIT_GEMMS_IF_NEEDED;
+    {
+        char name[256];
+        sprintf(name, "cblk_%d_after_trf_trsm", cblk->gcblknum);
+        cblk_save(cblk, name, L);
+    }
 }
 
 /**
@@ -201,7 +206,6 @@ void starpu_zsytrfsp1d_gemm_cpu(void * buffers[], void * _args)
     pastix_complex64_t *work2= work + ldw;
 
     starpu_codelet_unpack_args(_args, &sopalin_data, &cblk, &blok, &fcblk);
-    assert(cblk_islocal(sopalin_data->datacode, fcblk));
     assert(is_block_inside_fblock(blok, fcblk->fblokptr));
     assert(cblk->stride == STARPU_MATRIX_GET_LD(buffers[0]));
     assert(cblk_colnbr(cblk)  == STARPU_MATRIX_GET_NY(buffers[0]));
@@ -212,19 +216,45 @@ void starpu_zsytrfsp1d_gemm_cpu(void * buffers[], void * _args)
                          work,
                          work2);
     SUBMIT_TRF_IF_NEEDED;
+    {
+        char name[256];
+        sprintf(name, "cblk_%d_after_gemm_%d_%d_%d_on_%d", fcblk->gcblknum,
+                cblk->gcblknum, blok - cblk->fblokptr, fcblk->gcblknum,
+                sopalin_data->datacode->clustnum);
+        cblk_save(fcblk, name, Cl);
+    }
 }
 
 
 void
-starpu_zsytrfsp1d_geadd_cpu(void * buffers[], void * _args) {
+starpu_zsytrfsp1d_syadd_cpu(void * buffers[], void * _args) {
     Sopalin_Data_t *sopalin_data;
     SolverCblk *cblk1, *cblk2;
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *Cl   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     starpu_codelet_unpack_args(_args, &sopalin_data, &cblk1, &cblk2);
 
+    {
+        char name[256];
+        sprintf(name, "cblk_dst_%d_before_add_from_%d", cblk2->gcblknum,
+                fcblk_getorigin(sopalin_data->datacode, cblk1));
+        cblk_save(cblk2, name, Cl);
+    }
+    {
+        char name[256];
+        sprintf(name, "cblk_src_%d_before_add_from_%d", cblk1->gcblknum,
+                fcblk_getorigin(sopalin_data->datacode, cblk1));
+        cblk_save(cblk1, name, L);
+    }
     core_zgeaddsp1d(cblk1,
                     cblk2,
                     L, Cl,
                     NULL, NULL);
+    {
+        char name[256];
+        sprintf(name, "cblk_%d_after_add_from_%d", cblk2->gcblknum,
+                fcblk_getorigin(sopalin_data->datacode, cblk1));
+        cblk_save(cblk2, name, Cl);
+    }
+
 }

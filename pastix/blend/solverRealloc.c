@@ -77,6 +77,10 @@ void solverRealloc(SolverMatrix *solvmtx)
         MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, SolverCblk*);
         MALLOC_INTERN(solvmtx->fbloktab, solvmtx->clustnbr, SolverBlok*);
         MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
+        memset(solvmtx->fcblknbr, 0, solvmtx->clustnbr*sizeof(pastix_int_t));
+        memset(solvmtx->fcblktab, 0, solvmtx->clustnbr*sizeof(SolverCblk*));
+        memset(solvmtx->fbloktab, 0, solvmtx->clustnbr*sizeof(SolverBlok*));
+
         memcpy(solvmtx->fcblknbr, tmp->fcblknbr,
                solvmtx->clustnbr*sizeof(pastix_int_t));
         for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
@@ -84,16 +88,30 @@ void solverRealloc(SolverMatrix *solvmtx)
             MALLOC_INTERN(solvmtx->fcblktab[clustnum],
                           solvmtx->fcblknbr[clustnum]+1,
                           SolverCblk);
-            memcpy(solvmtx->fcblktab[clustnum],
-                   tmp->fcblktab[clustnum],
-                   (solvmtx->fcblknbr[clustnum]+1)*sizeof(SolverCblk));
-            bloknbr = tmp->fcblktab[clustnum][tmp->fcblknbr[clustnum]].fblokptr - tmp->fbloktab[clustnum];
-            MALLOC_INTERN(solvmtx->fbloktab[clustnum],
-                          bloknbr,
-                          SolverBlok);
-            memcpy(solvmtx->fbloktab[clustnum],
-                   tmp->fbloktab[clustnum],
-                   (bloknbr)*sizeof(SolverBlok));
+            if ( solvmtx->fcblknbr[clustnum] > 0 ) {
+                memcpy(solvmtx->fcblktab[clustnum],
+                       tmp->fcblktab[clustnum],
+                       (solvmtx->fcblknbr[clustnum]+1)*sizeof(SolverCblk));
+                bloknbr = tmp->fcblktab[clustnum][tmp->fcblknbr[clustnum]].fblokptr - tmp->fbloktab[clustnum];
+                MALLOC_INTERN(solvmtx->fbloktab[clustnum],
+                              bloknbr,
+                              SolverBlok);
+                memcpy(solvmtx->fbloktab[clustnum],
+                       tmp->fbloktab[clustnum],
+                       (bloknbr)*sizeof(SolverBlok));
+                solvblok = solvmtx->fbloktab[clustnum];
+                for (solvcblk = solvmtx->fcblktab[clustnum];
+                     solvcblk  < solvmtx->fcblktab[clustnum] +
+                         solvmtx->fcblknbr[clustnum];
+                     solvcblk++) {
+
+                    pastix_int_t bloknbr = (solvcblk+1)->fblokptr - solvcblk->fblokptr;
+                    solvcblk->fblokptr = solvblok;
+                    solvblok+= bloknbr;
+                }
+                solvcblk->fblokptr = solvblok;
+
+            }
 
         }
     }
@@ -189,8 +207,10 @@ void solverExit(SolverMatrix *solvmtx)
     if (pastix_starpu_with_fanin() == API_YES) {
         pastix_int_t clustnum;
         for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
-          memFree_null(solvmtx->fcblktab[clustnum]);
-          memFree_null(solvmtx->fbloktab[clustnum]);
+            if (solvmtx->fcblknbr[clustnum] > 0) {
+                memFree_null(solvmtx->fcblktab[clustnum]);
+                memFree_null(solvmtx->fbloktab[clustnum]);
+            }
         }
         memFree_null(solvmtx->fcblknbr);
         memFree_null(solvmtx->fcblktab);

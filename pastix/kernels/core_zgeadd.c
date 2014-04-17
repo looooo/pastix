@@ -192,7 +192,7 @@ core_zgeaddsp1d(SolverCblk * cblk1,
             iterblok->frownum - fblok->frownum;
         nrow = iterblok->lrownum - iterblok->frownum + 1;
         core_zgeadd( CblasNoTrans,
-                     nrow, ncol1, -1.0,
+                     nrow, ncol1, 1.0,
 		     ga, cblk1->stride,
 		     gb, cblk2->stride );
         if (U != NULL) {
@@ -201,7 +201,7 @@ core_zgeaddsp1d(SolverCblk * cblk1,
                 fblok->coefind +
                 iterblok->frownum - fblok->frownum;
             core_zgeadd( CblasNoTrans,
-                         nrow, ncol1, -1.0,
+                         nrow, ncol1, 1.0,
                          ga, cblk1->stride,
                          gb, cblk2->stride );
         }

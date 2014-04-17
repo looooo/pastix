@@ -555,6 +555,12 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_
     {
         API_CALL(factor_trsm1d)(sopalin_data, me, c);
     }
+    {
+        SolverCblk * cblk =sopalin_data->datacode->cblktab+c;
+        char name[256];
+        sprintf(name, "cblk_%d_after_trf_trsm", cblk->gcblknum);
+        cblk_save(cblk, name, cblk->coeftab);
+    }
 
     /* for all extra-diagonal column blocks */
     n = 0;
@@ -773,6 +779,24 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pas
 #endif
             }
         }
+
+#ifdef PASTIX_DUMP_CBLK
+    {
+        n = i - fblknum;
+        n = (n * (n - 1)) / 2;
+        n = (i - fblknum - 1) * (lblknum - fblknum) - n;
+        if ((t = SOLV_INDTAB[TASK_INDNUM(task)+(n)]) < 0) {
+            SolverCblk *cblk  = sopalin_data->datacode->cblktab+c;
+            SolverCblk *fcblk = sopalin_data->datacode->cblktab+TASK_CBLKNUM(-t)-1;
+            SolverBlok *blok  = sopalin_data->datacode->bloktab+i-1;
+            char name[256];
+            sprintf(name, "cblk_%d_after_gemm_%d_%d_%d_on_%d", fcblk->gcblknum,
+                    cblk->gcblknum, blok - cblk->fblokptr, fcblk->gcblknum,
+                    sopalin_data->datacode->clustnum);
+            cblk_save(fcblk, name, fcblk->coeftab);
+        }
+    }
+#endif
 
 #ifdef OOC
     if (tooc < 0)

@@ -153,10 +153,12 @@ sizeofsolver(const SolverMatrix *solvptr,
 static inline
 int cblk_ishalo( SolverMatrix * datacode,
                  SolverCblk   * cblk ) {
+#ifdef PASTIX_WITH_STARPU
     if ((size_t)cblk >= (size_t)datacode->hcblktab &&
         (size_t)cblk < (size_t)(datacode->hcblktab+datacode->hcblknbr)) {
         return API_YES;
     }
+#endif
     return API_NO;
 }
 
@@ -173,6 +175,7 @@ static inline
 int cblk_isfanin( SolverMatrix * datacode,
                   SolverCblk   * cblk ) {
     pastix_int_t clustnum;
+#ifdef PASTIX_WITH_STARPU
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
         if ((size_t)cblk >= (size_t)datacode->fcblktab[clustnum] &&
             (size_t)cblk < (size_t)(datacode->fcblktab[clustnum] +
@@ -180,6 +183,7 @@ int cblk_isfanin( SolverMatrix * datacode,
             return API_YES;
         }
     }
+#endif
     return API_NO;
 }
 
@@ -231,8 +235,12 @@ pastix_int_t cblk_getnum( SolverMatrix * datacode,
 static inline
 pastix_int_t hcblk_getnum( SolverMatrix * datacode,
                            SolverCblk   * cblk ) {
+#ifdef PASTIX_WITH_STARPU
     assert(cblk_ishalo(datacode, cblk) == API_YES);
     return cblk - datacode->hcblktab;
+#else
+    return -1;
+#endif
 }
 
 
@@ -248,10 +256,30 @@ static inline
 pastix_int_t fcblk_getnum( SolverMatrix * datacode,
                            SolverCblk   * cblk,
                            pastix_int_t   procnum ) {
+#ifdef PASTIX_WITH_STARPU
     assert(cblk_isfanin(datacode, cblk) == API_YES);
     return cblk - datacode->fcblktab[procnum];
+
+#else
+    return -1;
+#endif
 }
 
+static inline
+pastix_int_t fcblk_getorigin( SolverMatrix * datacode,
+                              SolverMatrix * cblk ) {
+#ifdef PASTIX_WITH_STARPU
+    pastix_int_t clustnum;
+    for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
+        if ((size_t)cblk >= (size_t)datacode->fcblktab[clustnum] &&
+            (size_t)cblk < (size_t)(datacode->fcblktab[clustnum] +
+                                    datacode->fcblknbr[clustnum])) {
+            return clustnum;
+        }
+    }
+#endif
+    return -1;
+}
 /**
  * Get the number of columns of a column block.
  *
@@ -262,6 +290,27 @@ pastix_int_t fcblk_getnum( SolverMatrix * datacode,
 static inline
 pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
     return cblk->lcolnum - cblk->fcolnum + 1;
+}
+
+
+static inline
+pastix_int_t cblk_save( SolverCblk * cblk, char * name, pastix_float_t * coef) {
+#ifdef PASTIX_DUMP_CBLK
+    pastix_int_t i,j;
+    SolverBlok *b;
+    FILE * file = fopen(name, "w");
+    for ( b = cblk->fblokptr; b < cblk[1].fblokptr; b++) {
+        fprintf(file, "%ld %ld\n", b->frownum, b->lrownum);
+    }
+    for (j = 0; j < cblk->stride; j++) {
+        for (i = 0; i < cblk_colnbr(cblk); i++) {
+            fprintf(file, "%10.5lg ", coef[j+i*cblk->stride]);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
+#endif
+    return PASTIX_SUCCESS;
 }
 /**
  * Indicate if a blok is included inside an other block.

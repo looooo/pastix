@@ -192,5 +192,5 @@
 #define HCBLK_OWNER(x)     datacode->hcblktab[x].procdiag
 #define HCBLK_GCBLK(x)     datacode->hcblktab[x].gcblknum
 #define SOLV_GCBLK2HALO(x) -(datacode->gcblk2halo[x]+1)
-#define SOLV_GCBLK2LOC(x) datacode->gcblk2halo[x]
+#define SOLV_GCBLK2LOC(x)    datacode->gcblk2halo[x]-1
 #define SOLV_GCBLKISHALO(x) (datacode->gcblk2halo[x] < 0)

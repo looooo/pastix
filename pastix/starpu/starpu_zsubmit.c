@@ -65,7 +65,7 @@ struct starpu_codelet starpu_zgeadd_cl =
 struct starpu_codelet starpu_zsyadd_cl =
 {
     .where = STARPU_CPU,
-    .cpu_funcs[0] = starpu_zgetrfsp1d_geadd_cpu,
+    .cpu_funcs[0] = starpu_zsytrfsp1d_syadd_cpu,
     //.cuda_funcs[0] = xxtrf_starpu_cuda,
     .model = &starpu_zsyadd_model,
     /* LU */
@@ -113,7 +113,7 @@ starpu_zgesubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
             pastix_int_t lfcblk = SOLV_GCBLK2LOC(gfcblk);
             pastix_int_t faninnum = fcblk_getnum(datacode, fanin, clustnum);
             fcblk = datacode->cblktab+lfcblk;
-
+            assert(cblk_islocal(datacode, fcblk) == API_YES);
             assert(lfcblk >= 0);
             ret =
                 starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
@@ -167,6 +167,7 @@ starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
 #  endif
 
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
+        if (clustnum == datacode->clustnum) continue;
         for (fanin = datacode->fcblktab[clustnum];
              fanin < datacode->fcblktab[clustnum] + datacode->fcblknbr[clustnum];
              fanin++) {
@@ -177,6 +178,7 @@ starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
             fcblk = datacode->cblktab+lfcblk;
 
             assert(lfcblk >= 0);
+            assert(cblk_islocal(datacode, fcblk));
             ret =
                 starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
                                        &starpu_zsyadd_cl,
@@ -186,10 +188,12 @@ starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
                                        STARPU_R,     Lfanin_handle[clustnum][faninnum],
                                        STARPU_COMMUTE|STARPU_RW,    L_handle[lfcblk],
                                        STARPU_R, starpu_loop_data->blocktab_handles[SOLV_PROCNUM],
+#ifdef STARPU_1_2
                                        STARPU_EXECUTE_ON_WORKER, workerid,
+#endif
                                        STARPU_CALLBACK,     starpu_prof_callback,
                                        STARPU_CALLBACK_ARG, sopalin_data->hgemm_stats,
-#ifdef STARPU_1_2
+#ifdef STARPU_CONTEXT
                                        STARPU_SCHED_CTX, sched_ctxs[my_ctx],
 #endif
                                        0);
@@ -216,6 +220,7 @@ int starpu_zsubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
     pastix_int_t my_ctx;
     my_ctx = 1+threadid/thread_per_ctx;
 #endif
+    assert(hcblk->procdiag  == starpu_data_get_rank(Lhalo_handle[hcblkidx]));
 
     ret =
         starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
@@ -225,7 +230,7 @@ int starpu_zsubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
                                STARPU_VALUE, &hcblk,        sizeof(SolverCblk*),
                                STARPU_R,                    Lfanin_handle[fcblkidx],
                                STARPU_COMMUTE|STARPU_RW,    Lhalo_handle[hcblkidx],
-                               STARPU_R, starpu_loop_data->blocktab_handles[SOLV_PROCNUM],
+                               STARPU_R, starpu_loop_data->blocktab_handles[hcblk->procdiag],
 #ifdef STARPU_1_1
                                STARPU_EXECUTE_ON_WORKER, workerid,
 #endif
