@@ -1,4 +1,4 @@
-#  ifndef FORCE_NO_CUDA
+#  ifdef PASTIX_WITH_CUDA
 #    include <cuda.h>
 #  endif
 #  ifdef STARPU_USE_DEPRECATED_API
@@ -758,14 +758,6 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
                                    0);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
     } else {
-#ifdef CHOL_SOPALIN
-#ifndef SOPALIN_LU
-        fprintf(stdout, "%p %p trf_trsm_cl.cpu_funcs[0] %p %p %p\n",
-                &trf_trsm_cl, &po_trf_trsm_cl,
-                trf_trsm_cl.cpu_funcs[0],
-                starpu_dpotrfsp1d_cpu, starpu_dsytrfsp1d_cpu);
-#endif
-#endif
         ret =
             starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trf_trsm_cl,
                                    STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
@@ -1372,7 +1364,6 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
     }
     starpu_mpi_data_register(WORK_handle, -3, SOLV_PROCNUM);
 
-
     {
         int itercblk;
         int max_cblksize = 0;
@@ -1536,10 +1527,12 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
         int nworkers = 1;
         nworkers = SOLV_THRDNBR + sopalin_data->sopar->iparm[IPARM_CUDA_NBR];;
         memFree_null(sopalin_data->starpu_loop_data->cpu_workerids);
-        memFree_null(sopalin_data->starpu_loop_data->gpu_workerids);
-        for (i = 0; i < sopalin_data->sopar->iparm[IPARM_CUDA_NBR]; i++)
-            fprintf(stdout, "%d GEMMs forced on GPU %d\n",
-                    sopalin_data->starpu_loop_data->gpu_gemm_count[i], i);
+        if (cuda_nbr > 0) {
+            memFree_null(sopalin_data->starpu_loop_data->gpu_workerids);
+            for (i = 0; i < sopalin_data->sopar->iparm[IPARM_CUDA_NBR]; i++)
+                fprintf(stdout, "%d GEMMs forced on GPU %d\n",
+                        sopalin_data->starpu_loop_data->gpu_gemm_count[i], i);
+        }
         memFree_null(sopalin_data->starpu_loop_data->gpu_gemm_count);
         memFree_null(sopalin_data->starpu_loop_data);
     }

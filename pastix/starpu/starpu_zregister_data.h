@@ -9,6 +9,9 @@
 #include "starpu_defines.h"
 #include "solver.h"
 
+
+void starpu_zfanin_init_cpu_func(void *descr[], void *cl_arg);
+
 int
 starpu_zregister_fanin(SolverMatrix            * solvmtx,
                        starpu_data_handle_t  *** Lfanin_handle,

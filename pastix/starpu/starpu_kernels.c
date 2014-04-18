@@ -2,11 +2,7 @@
 #include <magmablas.h>
 #endif /* PASTIX_WITH_MAGMABLAS */
 
-#ifdef STARPU_USE_DEPRECATED_API
-#undef STARPU_USE_DEPRECATED_API
-#endif
-#include <starpu.h>
-#include <starpu_cuda.h>
+#include "starpu_defines.h"
 #include "common.h"
 #include "sopalin_thread.h"
 #include "sopalin_acces.h"
@@ -205,16 +201,6 @@
 #endif
 #endif
 
-#define SUBMIT_TRF_IF_NEEDED                                            \
-    do {                                                                \
-        TASK_CTRBCNT(fcblknum)--;                                       \
-        if (pastix_starpu_with_nested_task() == API_YES) {              \
-            if (TASK_CTRBCNT(fcblknum) == 0) {                          \
-                starpu_submit_one_trf(fcblknum, sopalin_data);          \
-            }                                                           \
-        }                                                               \
-    } while(0)
-
 
 #define DECLARE_ARGS_GEMM                                               \
       Sopalin_Data_t     * sopalin_data;                                \
@@ -231,6 +217,8 @@
       int                  blocknbr;                                    \
       int                  fblocknbr;                                   \
       int                * blocktab;                                    \
+      SolverCblk *cblk, *fcblk;                                         \
+      SolverBlok *blok;                                                 \
       int                * fblocktab
 
 #define UNPACK_ARGS_GEMM(_args, sopalin_data, cblknum, bloknum,         \
@@ -239,38 +227,38 @@
                          blocktab, fblocktab, stride, dimi, dimj, dima, \
                          blocknbr, fblocknbr)                           \
       do {                                                              \
-          SolverCblk *cblk, *fcblk;                                     \
-          SolverBlok *blok;                                             \
           starpu_codelet_unpack_args(_args, &sopalin_data,              \
                                      &cblk, &blok, &fcblk);             \
         datacode  = sopalin_data->datacode;                             \
-        fcblknum  = fcblk - datacode->cblktab;                          \
-        fblocktab = &(all_blocktab[2*SYMB_BLOKNUM(fcblknum)]);          \
-        fblocknbr = CBLK_BLOKNBR(fcblknum);                             \
-        if ((size_t)cblk > (size_t)datacode->hcblktab &&                \
-            (size_t)cblk < (size_t)(datacode->hcblktab+datacode->hcblknbr)) { \
+        if (cblk_islocal(datacode, fcblk)) {                            \
+            fcblknum  = fcblk - datacode->cblktab;                      \
+            fblocktab = &(all_blocktab[2*SYMB_BLOKNUM(fcblknum)]);      \
+            fblocknbr = CBLK_BLOKNBR( fcblknum);                        \
+        } else {                                                        \
+            assert(cblk_isfanin(datacode, fcblk));                      \
+            fcblknum = fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);     \
+            fblocknbr = fcblk[1].fblokptr - fcblk[0].fblokptr;          \
+        }                                                               \
+        if (cblk_ishalo(datacode, cblk)) {                              \
             /* HALO Gemm*/                                              \
             pastix_int_t hcblk;                                         \
-            hcblk = cblk-datacode->hcblktab;                            \
+            hcblk = hcblk_getnum(datacode, cblk);                       \
             cblknum = -hcblk-1;                                         \
             bloknum = blok-datacode->hbloktab;                          \
-            indblok   = HBLOCK_COEFIND(bloknum);                        \
             blocktab  = &(all_blocktab[2*(SYMB_BLOKNBR + bloknum)]);    \
-            stride = HCBLK_STRIDE(hcblk);                               \
-            dimj = HBLOCK_ROWNBR(bloknum);                              \
-            dima = HCBLK_COLNBR(hcblk);                                 \
-            blocknbr  = HCBLK_BLOKNUM(hcblk+1) - bloknum;               \
         } else {                                                        \
-            cblknum   = cblk-datacode->cblktab;                         \
-            bloknum = blok-datacode->bloktab;                           \
-            indblok   = SOLV_COEFIND(bloknum);                          \
-            blocktab  = &(all_blocktab[2*bloknum]);                     \
-            stride = SOLV_STRIDE(cblknum);                              \
-            dimj = BLOK_ROWNBR(bloknum);                                \
-            dima = CBLK_COLNBR(cblknum);                                \
-            blocknbr  = SYMB_BLOKNUM(cblknum+1) - bloknum;              \
+            if (cblk_islocal(datacode, cblk)) {                         \
+                cblknum   = cblk-datacode->cblktab;                     \
+                bloknum = blok-datacode->bloktab;                       \
+                blocktab  = &(all_blocktab[2*bloknum]);                 \
+            }                                                           \
         }                                                               \
+        stride = cblk->stride;                                          \
+        indblok = blok->coefind;                                        \
         dimi = stride - indblok;                                        \
+        dimj = blok->lrownum - blok->frownum + 1;                       \
+        dima = cblk_colnbr(cblk);                                       \
+        blocknbr = cblk[1].fblokptr - blok;                             \
         tasknum = cblknum;                                              \
       } while (0)
 
@@ -278,6 +266,7 @@
         Sopalin_Data_t    * sopalin_data;                               \
         SolverMatrix      * datacode;                                   \
         pastix_int_t          tasknum;                                  \
+        SolverCblk * cblk;                                              \
         pastix_int_t          cblknum;                                  \
         pastix_int_t          fblknum;                                  \
         pastix_int_t          lblknum;                                  \
@@ -289,7 +278,6 @@
 #define UNPACK_ARGS_TRSM(_args, sopalin_data, cblknum, tasknum,         \
                          datacode, fblknum, lblknum, dima, dimb)        \
         do {                                                            \
-            SolverCblk * cblk;                                          \
             starpu_codelet_unpack_args(_args, &sopalin_data, &cblk);    \
             datacode = sopalin_data->datacode;                          \
             cblknum  = cblk - datacode->cblktab;                        \
@@ -599,6 +587,11 @@ void trsm_starpu_common(void * buffers[], void * _args, int arch)
   if (pastix_starpu_with_nested_task() == API_YES) {
       starpu_submit_bunch_of_gemm(tasknum, sopalin_data);
   }
+    {
+        char name[256];
+        sprintf(name, "cblk_%d_after_trf_trsm", cblk->gcblknum);
+        cblk_save(cblk, name, lDiag);
+    }
 }
 
 void trsm_starpu_cpu(void * buffers[], void * _args) {
@@ -780,15 +773,20 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
       /*
        * Add contribution to facing cblk
        */
-      b = SYMB_BLOKNUM( fcblknum );
-      if (cblknum < 0) {
-          Cl = Cl + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
+      if (cblk_islocal(datacode, fcblk)) {
+          b = SYMB_BLOKNUM( fcblknum );
       } else {
-          Cl = Cl + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
+          b = fcblk->fblokptr - datacode->fbloktab[SOLV_PROCNUM];
       }
+      Cl = Cl + ( blok->frownum - fcblk->fcolnum ) * fcblk->stride;
+      /* if (cblknum < 0) { */
+      /*     Cl = Cl + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc; */
+      /* } else { */
+      /*     Cl = Cl + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc; */
+      /* } */
       /* for all following blocks in block column */
       for (j=bloknum; j<lblknum; j++) {
-          if (cblknum < 0) {
+          if (cblk_ishalo(datacode, cblk)) {
               frownum = HBLOCK_FROWNUM(j);
               dimb = HBLOCK_ROWNBR(j);
               /* Find facing bloknum */
@@ -797,16 +795,41 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
                   assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
               }
           } else {
-              frownum = SYMB_FROWNUM(j);
-              dimb = BLOK_ROWNBR(j);
-              /* Find facing bloknum */
-              while (!BLOCK_ISFACING(j,b)) {
-                  b++;
-                  assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+              if (cblk_islocal(datacode, cblk)) {
+                  frownum = SYMB_FROWNUM(j);
+                  dimb = BLOK_ROWNBR(j);
+                  /* Find facing bloknum */
+                  if (cblk_islocal(datacode, fcblk)) {
+                      while (!is_block_inside_fblock(&(blok[j-bloknum]),
+                                                     &(datacode->bloktab[b]))) {
+                          b++;
+                          assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+                      }
+                  } else {
+                      while (!is_block_inside_fblock(&(blok[j-bloknum]),
+                                                     &(datacode->fbloktab[SOLV_PROCNUM][b]))) {
+                          b++;
+                          assert( b < fcblk[1].fblokptr - datacode->fbloktab );
+                      }
+
+                  }
+              } else {
+                  frownum = blok[j-bloknum].frownum;
+                  dimb    = blok[j-bloknum].lrownum - frownum + 1;
+                  /* Find facing bloknum */
+                  while (!is_block_inside_fblock(&(blok[j-bloknum]),
+                                                 &(datacode->bloktab[b]))) {
+                      b++;
+                      assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+                  }
               }
           }
-
-          Aij = Cl + SOLV_COEFIND(b) + frownum - SYMB_FROWNUM(b);
+          if (cblk_islocal(datacode, fcblk)) {
+              Aij = Cl + SOLV_COEFIND(b) + frownum - SYMB_FROWNUM(b);
+          } else {
+              Aij = Cl + datacode->fbloktab[SOLV_PROCNUM][b].coefind + frownum -
+                  datacode->fbloktab[SOLV_PROCNUM][b].frownum;
+          }
 #if (defined CHOL_SOPALIN && defined SOPALIN_LU)
           SOPALIN_GEAM("N", "N", dimb, dimj, -1.0,
                        wtmp, dimi,
@@ -833,35 +856,52 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
                     1.,  Aik,  stride,
                     Akj,  stride,
                     0.,  wtmp, dimi  );
-  wtmp += SYMB_LROWNUM(bloknum) - SYMB_FROWNUM(bloknum) + 1;
+      wtmp += SYMB_LROWNUM(bloknum) - SYMB_FROWNUM(bloknum) + 1;
 
-  /*
-   * Add contribution to facing cblk
-   */
-  b = SYMB_BLOKNUM( fcblknum );
-  if (cblknum < 0) {
-    Cl = Cl + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum));
-  } else {
-    Cl = Cl + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum));
-  }
-  /* for all following blocks in block column */
-  for (j=bloknum+1; j<lblknum; j++) {
-    if (cblknum < 0) {
-      frownum = HBLOCK_FROWNUM(j);
-      dimb = HBLOCK_ROWNBR(j);
+      /*
+       * Add contribution to facing cblk
+       */
+      if (cblk_islocal(datacode, fcblk)) {
+          b = SYMB_BLOKNUM( fcblknum );
+      } else {
+          b = fcblk->fblokptr - datacode->fbloktab[SOLV_PROCNUM];
+      }
+      Cl = Cl + ( blok->frownum - fcblk->fcolnum ) * fcblk->stride;
+      /* if (cblknum < 0) { */
+      /*   Cl = Cl + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)); */
+      /* } else { */
+      /*   Cl = Cl + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)); */
+      /* } */
+      /* for all following blocks in block column */
+      for (j=bloknum+1; j<lblknum; j++) {
+      if (cblk_ishalo(datacode, cblk)) {
+          frownum = HBLOCK_FROWNUM(j);
+          dimb = HBLOCK_ROWNBR(j);
 
-      /* Find facing bloknum */
-      /* WARNING: may not work for NAPA */
-      if (!HBLOCK_ISFACING(j,b))
-	break;
-    } else {
-      frownum = SYMB_FROWNUM(j);
-      dimb = BLOK_ROWNBR(j);
+          /* Find facing bloknum */
+          /* WARNING: may not work for NAPA */
+          if (!HBLOCK_ISFACING(j,b))
+              break;
+      } else {
+          if (cblk_islocal(datacode, cblk)) {
+              frownum = SYMB_FROWNUM(j);
+              dimb = BLOK_ROWNBR(j);
 
-      /* Find facing bloknum */
-      /* WARNING: may not work for NAPA */
-      if (!BLOCK_ISFACING(j,b))
-	break;
+              /* Find facing bloknum */
+              /* WARNING: may not work for NAPA */
+              if (!BLOCK_ISFACING(j,b))
+                  break;
+          } else {
+              frownum = blok[j-bloknum].frownum;
+              dimb    = blok[j-bloknum].lrownum - frownum + 1;
+              /* Find facing bloknum */
+              while (!is_block_inside_fblock(&(blok[j-bloknum]),
+                                             &(datacode->bloktab[b]))) {
+                  b++;
+                  assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+              }
+          }
+
     }
 
 
@@ -883,31 +923,42 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
     wtmp += dimb;
   }
 
-  if (cblknum < 0) {
-    Cu = Cu + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
-  } else {
-    Cu = Cu + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc;
-  }
+  Cu = Cu + ( blok->frownum - fcblk->fcolnum ) * fcblk->stride;
+  /* if (cblknum < 0) { */
+  /*   Cu = Cu + (HBLOCK_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc; */
+  /* } else { */
+  /*   Cu = Cu + (SYMB_FROWNUM(bloknum) - SYMB_FCOLNUM(fcblknum)) * stridefc; */
+  /* } */
   /* Keep updating on U */
   for (; j<lblknum; j++) {
-    if (cblknum < 0) {
-      frownum = HBLOCK_FROWNUM(j);
-      dimb = HBLOCK_ROWNBR(j);
+      if (cblk_ishalo(datacode, cblk)) {
+          frownum = HBLOCK_FROWNUM(j);
+          dimb = HBLOCK_ROWNBR(j);
 
-      /* Find facing bloknum */
-      while (!HBLOCK_ISFACING(j,b)) {
-        b++;
-        assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
-      }
-    } else {
-      frownum = SYMB_FROWNUM(j);
-      dimb = SYMB_LROWNUM(j) - frownum + 1;
-
-      /* Find facing bloknum */
-      while (!BLOCK_ISFACING(j,b)) {
-        b++;
-        assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
-      }
+          /* Find facing bloknum */
+          while (!HBLOCK_ISFACING(j,b)) {
+              b++;
+              assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+          }
+      } else {
+          if (cblk_islocal(datacode, cblk)) {
+              frownum = SYMB_FROWNUM(j);
+              dimb = SYMB_LROWNUM(j) - frownum + 1;
+              /* Find facing bloknum */
+              while (!BLOCK_ISFACING(j,b)) {
+                  b++;
+                  assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+              }
+          } else {
+              frownum = blok[j-bloknum].frownum;
+              dimb    = blok[j-bloknum].lrownum - frownum + 1;
+              /* Find facing bloknum */
+              while (!is_block_inside_fblock(&(blok[j-bloknum]),
+                                             &(datacode->bloktab[b]))) {
+                  b++;
+                  assert( b < SYMB_BLOKNUM( fcblknum+1 ) );
+              }
+          }
     }
 
     Aij = Cu + SOLV_COEFIND(b) + frownum - SYMB_FROWNUM(b);
@@ -928,6 +979,13 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
       break;
   }
   SUBMIT_TRF_IF_NEEDED;
+    {
+        char name[256];
+        sprintf(name, "cblk_%d_after_gemm_%d_%d_%d_on_%d", fcblk->gcblknum,
+                cblk->gcblknum, blok - cblk->fblokptr, fcblk->gcblknum,
+                sopalin_data->datacode->clustnum);
+        cblk_save(fcblk, name, Cl);
+    }
 }
 
 /*

@@ -11,6 +11,41 @@
 #include "starpu_zregister_data.h"
 #include "sopalin_acces.h"
 
+void starpu_zfanin_init_cpu_func(void *descr[], void *cl_arg)
+{
+    pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(descr[0]);
+    pastix_int_t        stride = STARPU_MATRIX_GET_LD(descr[0]);
+    pastix_int_t        ncol   = STARPU_MATRIX_GET_NX(descr[0]);
+    memset(L, 0, stride*ncol*sizeof(pastix_complex64_t));
+}
+
+#ifdef STARPU_USE_CUDA
+void starpu_zfanin_init_cuda_func(void *descr[], void *cl_arg)
+{
+    pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(descr[0]);
+    pastix_int_t        stride = STARPU_MATRIX_GET_LD(descr[0]);
+    pastix_int_t        ncol   = STARPU_MATRIX_GET_NX(descr[0]);
+    cudaMemsetAsync(L, 0, stride*ncol*sizeof(pastix_complex64_t), starpu_cuda_get_local_stream());
+}
+#endif
+
+static struct starpu_codelet starpu_zfanin_init_codelet =
+{
+    .where = STARPU_CPU|STARPU_CUDA,
+    .cpu_funcs = {starpu_zfanin_init_cpu_func, NULL},
+    //.cpu_funcs_name = {"starpu_zfanin_init_cpu_func", NULL},
+#ifdef STARPU_USE_CUDA
+    .cuda_funcs = {starpu_zfanin_init_cuda_func, NULL},
+    .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_OPENCL
+    .opencl_funcs = {init_opencl_func, NULL},
+#endif
+    .modes = {STARPU_W},
+    .nbuffers = 1,
+    .name = "init",
+};
+
 int
 starpu_zregister_fanin(SolverMatrix * solvmtx,
                        starpu_data_handle_t  *** Lfanin_handle,
@@ -31,29 +66,21 @@ starpu_zregister_fanin(SolverMatrix * solvmtx,
         MALLOC_INTERN((*Lfanin_handle)[clustnum],
                       solvmtx->fcblknbr[clustnum], starpu_data_handle_t);
         Lhandle = (*Lfanin_handle)[clustnum];
-        if (Ufanin_handle != NULL)
+        if (Ufanin_handle != NULL) {
             MALLOC_INTERN((*Ufanin_handle)[clustnum],
                           solvmtx->fcblknbr[clustnum], starpu_data_handle_t);
-
-        if (Ufanin_handle != NULL) {
             Uhandle = (*Ufanin_handle)[clustnum];
             coef = 2;
         }
         for (fanin = ffanin; fanin < lfanin; fanin++) {
-            if (clustnum == solvmtx->clustnum) {
-                MALLOC_INTERN(fanin->coeftab,
-                              fanin->stride*cblk_colnbr(fanin),
-                              pastix_complex64_t);
-                memset(fanin->coeftab, 0,
-                       fanin->stride*cblk_colnbr(fanin)*sizeof(pastix_complex64_t));
-                starpu_matrix_data_register(Lhandle, 0,
-                                            (uintptr_t)fanin->coeftab,
-                                            (uint32_t)fanin->stride,
-                                            (uint32_t)fanin->stride,
-                                            cblk_colnbr(fanin),
-                                            sizeof(pastix_complex64_t));
-            } else {
-                starpu_matrix_data_register(Lhandle, -1,
+            starpu_matrix_data_register(Lhandle, -1,
+                                        (uintptr_t)NULL,
+                                        (uint32_t)fanin->stride,
+                                        (uint32_t)fanin->stride,
+                                        cblk_colnbr(fanin),
+                                        sizeof(pastix_complex64_t));
+            if (Ufanin_handle != NULL) {
+                starpu_matrix_data_register(Uhandle, -1,
                                             (uintptr_t)NULL,
                                             (uint32_t)fanin->stride,
                                             (uint32_t)fanin->stride,
@@ -65,33 +92,21 @@ starpu_zregister_fanin(SolverMatrix * solvmtx,
                                               clustnum * solvmtx->gcblknbr ) +
                                      fanin->gcblknum,
                                      clustnum);
+            if (clustnum == solvmtx->clustnum) {
+                starpu_data_set_reduction_methods(*Lhandle, NULL,
+                                                  &starpu_zfanin_init_codelet);
+            }
             Lhandle++;
             if (Ufanin_handle != NULL) {
-                if (clustnum == solvmtx->clustnum) {
-                    MALLOC_INTERN(fanin->ucoeftab,
-                                  fanin->stride*cblk_colnbr(fanin),
-                                  pastix_complex64_t);
-                    memset(fanin->ucoeftab, 0,
-                           fanin->stride*cblk_colnbr(fanin)*sizeof(pastix_complex64_t));
-                    starpu_matrix_data_register(Uhandle, 0,
-                                                (uintptr_t)fanin->ucoeftab,
-                                                (uint32_t)fanin->stride,
-                                                (uint32_t)fanin->stride,
-                                                cblk_colnbr(fanin),
-                                                sizeof(pastix_complex64_t));
-                } else {
-                    starpu_matrix_data_register(Uhandle, -1,
-                                                (uintptr_t)NULL,
-                                                (uint32_t)fanin->stride,
-                                                (uint32_t)fanin->stride,
-                                                cblk_colnbr(fanin),
-                                                sizeof(pastix_complex64_t));
-                }
                 starpu_mpi_data_register(*Uhandle,
                                          coef * ( solvmtx->gcblknbr +
                                                   clustnum * solvmtx->gcblknbr + 1) +
                                          fanin->gcblknum,
                                          clustnum);
+                if (clustnum == solvmtx->clustnum) {
+                    starpu_data_set_reduction_methods(*Uhandle, NULL,
+                                                      &starpu_zfanin_init_codelet);
+                }
                 Uhandle++;
             }
         }
@@ -120,15 +135,9 @@ starpu_zunregister_fanin( SolverMatrix * solvmtx,
         }
         for (fanin = ffanin; fanin < lfanin; fanin++) {
             starpu_data_unregister(*Lhandle);
-            if (clustnum == solvmtx->clustnum) {
-                memFree_null(fanin->coeftab);
-            }
             Lhandle++;
             if (Ufanin_handle != NULL) {
                 starpu_data_unregister(*Uhandle);
-                if (clustnum == solvmtx->clustnum) {
-                    memFree_null(fanin->ucoeftab);
-                }
                 Uhandle++;
             }
         }
@@ -158,8 +167,6 @@ starpu_zregister_halo( SolverMatrix * datacode,
 
         ASSERT(SOLV_GCBLK2HALO(HCBLK_GCBLK(itercblk)) == itercblk,
                MOD_SOPALIN);
-        fprintf(stdout, "cblk->gcblknum %d %d [%d %d]\n",
-                cblk->gcblknum, cblk_colnbr(cblk), cblk->fcolnum, cblk->lcolnum);
 
         starpu_matrix_data_register(&((*Lhalo_handle)[itercblk]), -1,
                                     (uintptr_t)NULL,
