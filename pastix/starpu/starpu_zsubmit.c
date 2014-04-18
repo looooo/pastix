@@ -146,8 +146,6 @@ starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
     pastix_int_t itertask, workerid = -1;
     starpu_data_handle_t *L_handle         = starpu_loop_data->L_handle;
     starpu_data_handle_t **Lfanin_handle   = starpu_loop_data->Lfanin_handle;
-    starpu_data_handle_t *U_handle         = starpu_loop_data->U_handle;
-    starpu_data_handle_t **Ufanin_handle   = starpu_loop_data->Ufanin_handle;
     pastix_int_t max_deps = 0;
     pastix_int_t clustnum;
     int ret;
@@ -203,15 +201,62 @@ starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
     return PASTIX_SUCCESS;
 }
 
-int starpu_zsubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
-                                  SolverCblk     * fcblk,
-                                  SolverCblk     * hcblk) {
+int starpu_zgesubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
+                                     SolverCblk     * fcblk,
+                                     SolverCblk     * hcblk ) {
     SolverMatrix          *datacode         = sopalin_data->datacode;
     starpu_loop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
     starpu_data_handle_t  *Lhalo_handle     = starpu_loop_data->Lhalo_handle;
     starpu_data_handle_t  *Lfanin_handle    = starpu_loop_data->Lfanin_handle[SOLV_PROCNUM];
-    pastix_int_t fcblkidx   = fcblk - sopalin_data->datacode->fcblktab[SOLV_PROCNUM];
-    pastix_int_t hcblkidx   = hcblk - sopalin_data->datacode->hcblktab;
+    starpu_data_handle_t  *Uhalo_handle     = starpu_loop_data->Uhalo_handle;
+    starpu_data_handle_t  *Ufanin_handle    = starpu_loop_data->Ufanin_handle[SOLV_PROCNUM];
+    pastix_int_t fcblkidx   = fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
+    pastix_int_t hcblkidx   = hcblk_getnum(datacode, hcblk);
+    int ret, workerid = -1;
+#ifdef STARPU_CONTEXT
+    pastix_int_t sched_ctxs = starpu_loop_data->sched_ctxs;
+    pastix_int_t threadid = TASK_THREADID(itertask);
+    pastix_int_t thread_per_ctx = starpu_loop_data->thread_per_ctx;
+    pastix_int_t my_ctx;
+    my_ctx = 1+threadid/thread_per_ctx;
+#endif
+    assert(hcblk->procdiag  == starpu_data_get_rank(Lhalo_handle[hcblkidx]));
+
+    ret =
+        starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
+                               &starpu_zsyadd_cl,
+                               STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
+                               STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
+                               STARPU_VALUE, &hcblk,        sizeof(SolverCblk*),
+                               STARPU_R,                    Lfanin_handle[fcblkidx],
+                               STARPU_COMMUTE|STARPU_RW,    Lhalo_handle[hcblkidx],
+                               STARPU_R,                    Ufanin_handle[fcblkidx],
+                               STARPU_COMMUTE|STARPU_RW,    Uhalo_handle[hcblkidx],
+                               STARPU_R, starpu_loop_data->blocktab_handles[hcblk->procdiag],
+#ifdef STARPU_1_1
+                               STARPU_EXECUTE_ON_WORKER, workerid,
+#endif
+                               STARPU_CALLBACK,     starpu_prof_callback,
+                               STARPU_CALLBACK_ARG, sopalin_data->hgemm_stats,
+#ifdef STARPU_CONTEXT
+                               STARPU_SCHED_CTX,    sched_ctxs[my_ctx],
+#endif
+                               0);
+    STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+    starpu_data_unregister_submit(Lfanin_handle[fcblkidx]);
+    starpu_data_unregister_submit(Ufanin_handle[fcblkidx]);
+    return PASTIX_SUCCESS;
+}
+
+int starpu_zsysubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
+                                     SolverCblk     * fcblk,
+                                     SolverCblk     * hcblk ) {
+    SolverMatrix          *datacode         = sopalin_data->datacode;
+    starpu_loop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
+    starpu_data_handle_t  *Lhalo_handle     = starpu_loop_data->Lhalo_handle;
+    starpu_data_handle_t  *Lfanin_handle    = starpu_loop_data->Lfanin_handle[SOLV_PROCNUM];
+    pastix_int_t fcblkidx   = fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
+    pastix_int_t hcblkidx   = hcblk_getnum(datacode, hcblk);
     int ret, workerid = -1;
 #ifdef STARPU_CONTEXT
     pastix_int_t sched_ctxs = starpu_loop_data->sched_ctxs;
@@ -241,5 +286,6 @@ int starpu_zsubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
 #endif
                                0);
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+    starpu_data_unregister_submit(Lfanin_handle[fcblkidx]);
     return PASTIX_SUCCESS;
 }

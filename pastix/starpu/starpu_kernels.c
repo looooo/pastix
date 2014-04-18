@@ -2,6 +2,7 @@
 #include <magmablas.h>
 #endif /* PASTIX_WITH_MAGMABLAS */
 
+#include "starpu_dsubmit.h"
 #include "starpu_defines.h"
 #include "common.h"
 #include "sopalin_thread.h"
@@ -14,6 +15,13 @@
 #include "compute_diag.h"
 #include "compute_trsm.h"
 
+int API_CALL(CORE_gemdm)(int transA, int transB,
+                         pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                         pastix_float_t alpha, pastix_float_t *A, int LDA,
+                         pastix_float_t *B, int LDB,
+                         pastix_float_t beta, pastix_float_t *C, int LDC,
+                         pastix_float_t *D, int incD,
+                         pastix_float_t *WORK, int LWORK);
 
 #ifdef PASTIX_WITH_CUDA
 #  include "sparse_gemm.h"
@@ -589,7 +597,7 @@ void trsm_starpu_common(void * buffers[], void * _args, int arch)
   }
     {
         char name[256];
-        sprintf(name, "cblk_%d_after_trf_trsm", cblk->gcblknum);
+        sprintf(name, "cblk_%ld_after_trf_trsm", (long)cblk->gcblknum);
         cblk_save(cblk, name, lDiag);
     }
 }
@@ -809,7 +817,7 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
                       while (!is_block_inside_fblock(&(blok[j-bloknum]),
                                                      &(datacode->fbloktab[SOLV_PROCNUM][b]))) {
                           b++;
-                          assert( b < fcblk[1].fblokptr - datacode->fbloktab );
+                          assert( b < fcblk[1].fblokptr - datacode->fbloktab[SOLV_PROCNUM] );
                       }
 
                   }
@@ -981,9 +989,11 @@ trfsp1d_gemm_starpu_common(void * buffers[], void * _args, int arch)
   SUBMIT_TRF_IF_NEEDED;
     {
         char name[256];
-        sprintf(name, "cblk_%d_after_gemm_%d_%d_%d_on_%d", fcblk->gcblknum,
-                cblk->gcblknum, blok - cblk->fblokptr, fcblk->gcblknum,
-                sopalin_data->datacode->clustnum);
+        sprintf(name, "cblk_%ld_after_gemm_%ld_%ld_%ld_on_%ld",
+                (long)fcblk->gcblknum,
+                (long)cblk->gcblknum, (long)(blok - cblk->fblokptr),
+                (long)fcblk->gcblknum,
+                (long)sopalin_data->datacode->clustnum);
         cblk_save(fcblk, name, Cl);
     }
 }

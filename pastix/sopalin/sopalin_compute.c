@@ -558,7 +558,7 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_
     {
         SolverCblk * cblk =sopalin_data->datacode->cblktab+c;
         char name[256];
-        sprintf(name, "cblk_%d_after_trf_trsm", cblk->gcblknum);
+        sprintf(name, "cblk_%ld_after_trf_trsm", (long)cblk->gcblknum);
         cblk_save(cblk, name, cblk->coeftab);
     }
 

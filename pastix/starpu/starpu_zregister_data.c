@@ -127,7 +127,7 @@ starpu_zunregister_fanin( SolverMatrix * solvmtx,
         starpu_data_handle_t *Uhandle;
         SolverCblk * ffanin = solvmtx->fcblktab[clustnum];
         SolverCblk * lfanin = ffanin + solvmtx->fcblknbr[clustnum];
-
+        if (clustnum == solvmtx->clustnum) continue;
         Lhandle = (*Lfanin_handle)[clustnum];
         if (Ufanin_handle != NULL) {
             Uhandle = (*Ufanin_handle)[clustnum];

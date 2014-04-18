@@ -9,7 +9,6 @@
 #include <starpu_profiling.h>
 
 #include "sopalin3d.h"
-#include "starpu_dsubmit.h"
 
 #if (STARPU_MAJOR_VERSION < 1)
 #  error "PaStiX requires STARPU >= 1"
