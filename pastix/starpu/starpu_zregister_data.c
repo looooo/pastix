@@ -270,57 +270,134 @@ starpu_zunregister_cblk( SolverMatrix * datacode,
 }
 
 int
-starpu_zregister_data( Sopalin_Data_t * sopalin_data,
-                       starpu_data_handle_t ** L_handle,
-                       starpu_data_handle_t ** U_handle,
-                       starpu_data_handle_t ** Lhalo_handle,
-                       starpu_data_handle_t ** Uhalo_handle,
-                       starpu_data_handle_t *** Lfanin_handle,
-                       starpu_data_handle_t *** Ufanin_handle)
-{
-    SolverMatrix       * datacode         = sopalin_data->datacode;
-    starpu_zregister_cblk(datacode, L_handle, U_handle);
-    /*Either submit halo or fanin */
-    {
-        char * fanin;
-        /* register halo */
-        starpu_zregister_halo(datacode,
-                              Lhalo_handle,
-                              Uhalo_handle);
-        if (pastix_starpu_with_fanin() == API_YES) {
-            /* register FANIN */
-            starpu_zregister_fanin(datacode,
-                                   Lfanin_handle,
-                                   Ufanin_handle);
+starpu_zregister_blocktab( Sopalin_Data_t        * sopalin_data,
+                           starpu_data_handle_t ** blocktab_handles,
+                           int                  ** blocktab) {
+    SolverMatrix * datacode = sopalin_data->datacode;
+    int iter;
+
+    MALLOC_INTERN(*blocktab_handles, SOLV_PROCNBR, starpu_data_handle_t);
+    for (iter = 0; iter < SOLV_PROCNBR; iter++) {
+        int size;
+        if (SOLV_PROCNUM == iter) {
+            /* build blocktab */
+            int iterblock;
+            MALLOC_INTERN((*blocktab), (SYMB_BLOKNBR+SOLV_HBLOKNBR)*2, int);
+            if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+                fprintf(stdout, "sizeof blocktab : %d integers\n",
+                        (int)(2*(SYMB_BLOKNBR+SOLV_HBLOKNBR)));
+            for (iterblock = 0; iterblock < SYMB_BLOKNBR; iterblock++) {
+                (*blocktab)[2*iterblock]   = SYMB_FROWNUM(iterblock);
+                (*blocktab)[2*iterblock+1] = SYMB_LROWNUM(iterblock);
+            }
+            for (iterblock = 0; iterblock < SOLV_HBLOKNBR; iterblock++) {
+                (*blocktab)[2*(iterblock+SYMB_BLOKNBR)]   = HBLOCK_FROWNUM(iterblock);
+                (*blocktab)[2*(iterblock+SYMB_BLOKNBR)+1] = HBLOCK_LROWNUM(iterblock);
+            }
+            size = 2*(SYMB_BLOKNBR + SOLV_HBLOKNBR);
+            MPI_Bcast(&size, 1, MPI_INT, iter, sopalin_data->sopar->pastix_comm);
+            starpu_vector_data_register((*blocktab_handles)+iter, 0,
+                                        (uintptr_t)(*blocktab), size,
+                                        sizeof(int));
+        } else {
+            MPI_Bcast(&size, 1, MPI_INT, iter, sopalin_data->sopar->pastix_comm);
+            starpu_vector_data_register((*blocktab_handles)+iter, -1,
+                                        (uintptr_t)NULL, size,
+                                        sizeof(int));
         }
+        starpu_mpi_data_register((*blocktab_handles)[iter], -20-iter, iter);
+        starpu_data_set_sequential_consistency_flag((*blocktab_handles)[iter], 0);
     }
     return PASTIX_SUCCESS;
 }
 
 int
-starpu_zunregister_data( Sopalin_Data_t * sopalin_data,
-                         starpu_data_handle_t ** L_handle,
-                         starpu_data_handle_t ** U_handle,
-                         starpu_data_handle_t ** Lhalo_handle,
-                         starpu_data_handle_t ** Uhalo_handle,
+starpu_zunregister_blocktab( SolverMatrix          * datacode,
+                             starpu_data_handle_t ** blocktab_handles,
+                             int                  ** blocktab) {
+    int iter;
+    for (iter = 0; iter < SOLV_PROCNBR; iter++) {
+        starpu_data_unregister((*blocktab_handles)[iter]);
+    }
+    memFree_null(*blocktab_handles);
+    memFree_null(*blocktab);
+    return PASTIX_SUCCESS;
+}
+
+int
+starpu_zunregister_work( SolverMatrix * datacode,
+                         starpu_data_handle_t * WORK_handle ) {
+    starpu_data_unregister(*WORK_handle);
+    return PASTIX_SUCCESS;
+}
+
+int
+starpu_zregister_work( SolverMatrix * datacode,
+                       starpu_data_handle_t * WORK_handle,
+                       pastix_int_t WORK_size ) {
+    starpu_vector_data_register(WORK_handle, -1, (uintptr_t)NULL,
+                                WORK_size,
+                                sizeof(pastix_complex64_t));
+    starpu_mpi_data_register(*WORK_handle, -3, SOLV_PROCNUM);
+    return PASTIX_SUCCESS;
+}
+
+int
+starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
+                       starpu_data_handle_t  ** L_handle,
+                       starpu_data_handle_t  ** U_handle,
+                       starpu_data_handle_t  ** Lhalo_handle,
+                       starpu_data_handle_t  ** Uhalo_handle,
+                       starpu_data_handle_t *** Lfanin_handle,
+                       starpu_data_handle_t *** Ufanin_handle,
+                       starpu_data_handle_t  ** blocktab_handles,
+                       int                   ** blocktab,
+                       starpu_data_handle_t   * WORK_handle,
+                       pastix_int_t             WORK_size )
+{
+    SolverMatrix       * datacode         = sopalin_data->datacode;
+    starpu_zregister_cblk(datacode, L_handle, U_handle);
+    /* register halo */
+    starpu_zregister_halo(datacode,
+                          Lhalo_handle,
+                          Uhalo_handle);
+    if (pastix_starpu_with_fanin() == API_YES) {
+        /* register FANIN */
+        starpu_zregister_fanin(datacode,
+                               Lfanin_handle,
+                               Ufanin_handle);
+    }
+    starpu_zregister_blocktab(sopalin_data, blocktab_handles, blocktab);
+    starpu_zregister_work(datacode, WORK_handle, WORK_size);
+
+    return PASTIX_SUCCESS;
+}
+
+int
+starpu_zunregister_data( Sopalin_Data_t         * sopalin_data,
+                         starpu_data_handle_t  ** L_handle,
+                         starpu_data_handle_t  ** U_handle,
+                         starpu_data_handle_t  ** Lhalo_handle,
+                         starpu_data_handle_t  ** Uhalo_handle,
                          starpu_data_handle_t *** Lfanin_handle,
-                         starpu_data_handle_t *** Ufanin_handle)
+                         starpu_data_handle_t *** Ufanin_handle,
+                         starpu_data_handle_t  ** blocktab_handles,
+                         int                   ** blocktab,
+                         starpu_data_handle_t   * WORK_handle)
 {
     SolverMatrix       * datacode         = sopalin_data->datacode;
     starpu_zunregister_cblk(datacode, L_handle, U_handle);
-    /*Either submit halo or fanin */
-    {
-        char * fanin;
-        /* register halo */
-        starpu_zunregister_halo(datacode,
-                                Lhalo_handle,
-                                Uhalo_handle);
-        if (pastix_starpu_with_fanin() == API_YES) {
-            /* register FANIN */
-            starpu_zunregister_fanin(datacode,
-                                     Lfanin_handle,
-                                     Ufanin_handle);
-        }
+    /* register halo */
+    starpu_zunregister_halo(datacode,
+                            Lhalo_handle,
+                            Uhalo_handle);
+    if (pastix_starpu_with_fanin() == API_YES) {
+        /* register FANIN */
+        starpu_zunregister_fanin(datacode,
+                                 Lfanin_handle,
+                                 Ufanin_handle);
     }
+    starpu_zunregister_blocktab(datacode, blocktab_handles, blocktab);
+    starpu_zunregister_work(datacode, WORK_handle);
     return PASTIX_SUCCESS;
 }

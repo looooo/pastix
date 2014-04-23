@@ -1055,6 +1055,7 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
     starpu_data_handle_t * Uhalo_handle = NULL;
     starpu_data_handle_t ** Ufanin_handle = NULL;
     starpu_data_handle_t   WORK_handle;
+    pastix_int_t           WORK_size;
     pastix_int_t itertask;
     int * blocktab;
     starpu_data_handle_t * blocktab_handles;
@@ -1306,39 +1307,6 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
             }
         }
     }
-    MALLOC_INTERN(blocktab_handles, SOLV_PROCNBR, starpu_data_handle_t);
-    for (iter = 0; iter < SOLV_PROCNBR; iter++) {
-        int size;
-        if (SOLV_PROCNUM == iter) {
-            /* build blocktab */
-            int iterblock;
-            MALLOC_INTERN(blocktab, (SYMB_BLOKNBR+SOLV_HBLOKNBR)*2, int);
-            if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-                fprintf(stdout, "sizeof blocktab : %d integers\n",
-                        (int)(2*(SYMB_BLOKNBR+SOLV_HBLOKNBR)));
-            for (iterblock = 0; iterblock < SYMB_BLOKNBR; iterblock++) {
-                blocktab[2*iterblock]   = SYMB_FROWNUM(iterblock);
-                blocktab[2*iterblock+1] = SYMB_LROWNUM(iterblock);
-            }
-            for (iterblock = 0; iterblock < SOLV_HBLOKNBR; iterblock++) {
-                blocktab[2*(iterblock+SYMB_BLOKNBR)]   = HBLOCK_FROWNUM(iterblock);
-                blocktab[2*(iterblock+SYMB_BLOKNBR)+1] = HBLOCK_LROWNUM(iterblock);
-            }
-            size = 2*(SYMB_BLOKNBR + SOLV_HBLOKNBR);
-            MPI_Bcast(&size, 1, MPI_INT, iter, sopalin_data->sopar->pastix_comm);
-            starpu_vector_data_register(&(blocktab_handles[iter]), 0,
-                                        (uintptr_t)blocktab, size,
-                                        sizeof(int));
-        } else {
-            MPI_Bcast(&size, 1, MPI_INT, iter, sopalin_data->sopar->pastix_comm);
-            starpu_vector_data_register(&(blocktab_handles[iter]), -1,
-                                        (uintptr_t)NULL, size,
-                                        sizeof(int));
-        }
-        starpu_mpi_data_register(blocktab_handles[iter], -20-iter, iter);
-
-        starpu_data_set_sequential_consistency_flag(blocktab_handles[iter], 0);
-    }
 
 #  ifdef PASTIX_DUMP_FACTO
     dump_all(datacode, sopalin_data->sopar->cscmtx,
@@ -1349,20 +1317,6 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
     thread_data = sopalin_data->thread_data[0];
     sopalin_data->sopar->diagchange = 0;
     SOPALIN_CLOCK_INIT;
-
-    {
-        int solv_coefmax, solv_coefmaxmax;
-        solv_coefmax = SOLV_COEFMAX;
-        MPI_Allreduce(&solv_coefmax, &solv_coefmaxmax, 1, MPI_INT, MPI_MAX, sopalin_data->sopar->pastix_comm);
-#  ifdef CHOL_SOPALIN
-        starpu_vector_data_register(&WORK_handle, -1, (uintptr_t)NULL, solv_coefmaxmax,
-                                    sizeof(pastix_float_t));
-#  else
-        starpu_vector_data_register(&WORK_handle, -1, (uintptr_t)NULL, 2*solv_coefmaxmax,
-                                    sizeof(pastix_float_t));
-#  endif
-    }
-    starpu_mpi_data_register(WORK_handle, -3, SOLV_PROCNUM);
 
     {
         int itercblk;
@@ -1386,17 +1340,26 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
         task_number = SYMB_BLOKNBR;
     if (sopalin_data->sopar->iparm[IPARM_END_TASK] > API_TASK_NUMFACT)
         task_number += 2*SYMB_BLOKNBR+SYMB_CBLKNBR;
-#  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
+
+    MPI_Allreduce(&(SOLV_COEFMAX), &WORK_size,
+                  1, PASTIX_MPI_INT, MPI_MAX, sopalin_data->sopar->pastix_comm);
+#  if !defined( CHOL_SOPALIN )
+    WORK_size *= 2;
+#  endif
+
     starpu_dregister_data(sopalin_data,
+#  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                           &L_handle,      &U_handle,
                           &Lhalo_handle,  &Uhalo_handle,
-                          &Lfanin_handle, &Ufanin_handle);
+                          &Lfanin_handle, &Ufanin_handle,
 #  else
-    starpu_dregister_data(sopalin_data,
                           &L_handle,      NULL,
                           &Lhalo_handle,  NULL,
-                          &Lfanin_handle, NULL);
+                          &Lfanin_handle, NULL,
 #  endif
+                          &blocktab_handles, &blocktab,
+                          &WORK_handle,      WORK_size);
+
     if (sopalin_data->sopar->iparm[IPARM_END_TASK] > API_TASK_NUMFACT)
     {
         if (sopalin_data->sopar->iparm[IPARM_END_TASK] > API_TASK_SOLVE)
@@ -1667,22 +1630,18 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
         }
     }
 
-#  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
     starpu_dunregister_data(sopalin_data,
+#  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                             &L_handle,      &U_handle,
                             &Lhalo_handle,  &Uhalo_handle,
-                            &Lfanin_handle, &Ufanin_handle);
+                            &Lfanin_handle, &Ufanin_handle,
 #  else
-    starpu_dunregister_data(sopalin_data,
                             &L_handle,      NULL,
                             &Lhalo_handle,  NULL,
-                            &Lfanin_handle, NULL);
+                            &Lfanin_handle, NULL,
 #  endif
-    starpu_data_unregister(WORK_handle);
-    for (iter = 0; iter < SOLV_PROCNBR; iter++)
-        starpu_data_unregister(blocktab_handles[iter]);
-    memFree_null(blocktab_handles);
-    memFree_null(blocktab);
+                            &blocktab_handles, &blocktab,
+                            &WORK_handle);
 
     /* Reduction on pivot number */
     sopalin_data->sopar->diagchange = 0;

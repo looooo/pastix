@@ -28,13 +28,27 @@ starpu_zregister_cblk( SolverMatrix          * datacode,
                        starpu_data_handle_t ** U_handle );
 
 int
-starpu_zregister_data( Sopalin_Data_t * sopalin_data,
-                       starpu_data_handle_t ** L_handle,
-                       starpu_data_handle_t ** U_handle,
-                       starpu_data_handle_t ** Lhalo_handle,
-                       starpu_data_handle_t ** Uhalo_handle,
+starpu_zregister_blocktab( Sopalin_Data_t        * sopalin_data,
+                           starpu_data_handle_t ** blocktab_handles,
+                           int                  ** blocktab);
+
+int
+starpu_zregister_work( SolverMatrix * datacode,
+                       starpu_data_handle_t * WORK_handle,
+                       pastix_int_t WORK_size );
+
+int
+starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
+                       starpu_data_handle_t  ** L_handle,
+                       starpu_data_handle_t  ** U_handle,
+                       starpu_data_handle_t  ** Lhalo_handle,
+                       starpu_data_handle_t  ** Uhalo_handle,
                        starpu_data_handle_t *** Lfanin_handle,
-                       starpu_data_handle_t *** Ufanin_handle);
+                       starpu_data_handle_t *** Ufanin_handle,
+                       starpu_data_handle_t  ** blocktab_handles,
+                       int                   ** blocktab,
+                       starpu_data_handle_t   * WORK_handle,
+                       pastix_int_t             WORK_size );
 
 int
 starpu_zunregister_fanin(SolverMatrix            * solvmtx,
@@ -52,10 +66,22 @@ starpu_zunregister_cblk( SolverMatrix          * datacode,
                          starpu_data_handle_t ** U_handle );
 
 int
-starpu_zunregister_data( Sopalin_Data_t * sopalin_data,
-                         starpu_data_handle_t ** L_handle,
-                         starpu_data_handle_t ** U_handle,
-                         starpu_data_handle_t ** Lhalo_handle,
-                         starpu_data_handle_t ** Uhalo_handle,
+starpu_zunregister_blocktab( SolverMatrix          * datacode,
+                             starpu_data_handle_t ** blocktab_handles,
+                             int                  ** blocktab);
+
+int
+starpu_zunregister_work( SolverMatrix * datacode,
+                         starpu_data_handle_t * WORK_handle );
+
+int
+starpu_zunregister_data( Sopalin_Data_t         * sopalin_data,
+                         starpu_data_handle_t  ** L_handle,
+                         starpu_data_handle_t  ** U_handle,
+                         starpu_data_handle_t  ** Lhalo_handle,
+                         starpu_data_handle_t  ** Uhalo_handle,
                          starpu_data_handle_t *** Lfanin_handle,
-                         starpu_data_handle_t *** Ufanin_handle);
+                         starpu_data_handle_t *** Ufanin_handle,
+                         starpu_data_handle_t  ** blocktab_handles,
+                         int                   ** blocktab,
+                         starpu_data_handle_t   * WORK_handle);
