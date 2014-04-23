@@ -15,7 +15,7 @@ void starpu_zfanin_init_cpu_func(void *descr[], void *cl_arg)
 {
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(descr[0]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(descr[0]);
-    pastix_int_t        ncol   = STARPU_MATRIX_GET_NX(descr[0]);
+    pastix_int_t        ncol   = STARPU_MATRIX_GET_NY(descr[0]);
     memset(L, 0, stride*ncol*sizeof(pastix_complex64_t));
 }
 
@@ -24,7 +24,7 @@ void starpu_zfanin_init_cuda_func(void *descr[], void *cl_arg)
 {
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(descr[0]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(descr[0]);
-    pastix_int_t        ncol   = STARPU_MATRIX_GET_NX(descr[0]);
+    pastix_int_t        ncol   = STARPU_MATRIX_GET_NY(descr[0]);
     cudaMemsetAsync(L, 0, stride*ncol*sizeof(pastix_complex64_t), starpu_cuda_get_local_stream());
 }
 #endif

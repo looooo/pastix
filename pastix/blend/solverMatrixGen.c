@@ -943,10 +943,17 @@ solverMatrixGen(const pastix_int_t clustnum,
                 while( ftgtBlokIdx < solvmtx->ftgtnbr &&
                        ftgt->infotab[FTGT_GCBKDST] ==
                        gcblk) {
+                    fprintf(stdout, "%ld: %ld [ %ld %ld ] is in %ld\n", solvmtx->clustnum,
+                            ftgtBlokIdx, ftgt->infotab[FTGT_FROWNUM], ftgt->infotab[FTGT_LROWNUM],
+                            ftgtCblkIdx);
+
                     ftgtBlokIdx++;
                     ftgt++;
                 }
             }
+
+            fprintf(stdout, "%ld: Outgoing Fanin cblk number %ld, %ld blocks\n",
+                    (long)solvmtx->clustnum, (long)ftgtCblkIdx, (long)solvmtx->ftgtnbr);
 
             solvmtx->fcblknbr[solvmtx->clustnum]       = ftgtCblkIdx;
             MALLOC_INTERN(solvmtx->fcblktab[solvmtx->clustnum],
@@ -996,46 +1003,53 @@ solverMatrixGen(const pastix_int_t clustnum,
             /***** INCOMMING FANIN ***/
             for (clustnum = 0; clustnum<ctrl->clustnbr; clustnum++) {
                 SimuCluster *simuclust = &(simuctrl->clustab[clustnum]);
-                pastix_int_t c, ftgtnbr;
+                pastix_int_t c, ftgtnbr, fBlokNbr;
                 if (clustnum == solvmtx->clustnum) continue;
                 solvmtx->fcblknbr[clustnum] = 0;
+                fBlokNbr = 0;
 
                 /* Compute number of receiving contributions */
                 for(c=0; c<ctrl->clustnbr; c++) {
                     ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
-                    for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr;
-                        solvmtx->fcblknbr[clustnum]++) {
+                    for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr;) {
                         pastix_int_t *infotab;
                         pastix_int_t gcblk;
                         ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
                                                  ftgtBlokIdx);
                         infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
                         /* while contribution is not local go on */
-                        while (ftgtBlokIdx<ftgtnbr &&
-                               infotab[FTGT_PROCDST] != solvmtx->clustnum) {
+                        if (infotab[FTGT_PROCDST] != solvmtx->clustnum) {
                             ftgtBlokIdx++;
-                            ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
-                                                     ftgtBlokIdx);
-                            infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
+                            continue;
                         }
                         gcblk = simuctrl->ftgttab[ftgtnum].ftgt.infotab[FTGT_GCBKDST];
                         /* while still in same cblk go on */
                         while(ftgtBlokIdx<ftgtnbr && infotab[FTGT_GCBKDST] ==
                               gcblk) {
+                            fprintf(stdout, "%ld: %ld [%ld %ld] is in %ld\n", solvmtx->clustnum,
+                                    fBlokNbr,
+                                    infotab[FTGT_FROWNUM], infotab[FTGT_LROWNUM],
+                                    solvmtx->fcblknbr[clustnum]);
+
+
                             ftgtBlokIdx++;
+                            fBlokNbr++;
                             ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
                                                      ftgtBlokIdx);
                             infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
                         }
+                        solvmtx->fcblknbr[clustnum]++;
                     }
                 }
-
+                fprintf(stdout, "%ld: Fanin cblk number %ld, %ld blocks received from %ld\n",
+                        (long)solvmtx->clustnum, (long)solvmtx->fcblknbr[clustnum],
+                        (long)fBlokNbr, (long)clustnum);
                 if(solvmtx->fcblknbr[clustnum] > 0) {
                     MALLOC_INTERN(solvmtx->fcblktab[clustnum],
                                   solvmtx->fcblknbr[clustnum]+1,
                                   SolverCblk);
                     MALLOC_INTERN(solvmtx->fbloktab[clustnum],
-                                  ftgtBlokIdx,
+                                  fBlokNbr,
                                   SolverBlok);
 
                     fcblk = solvmtx->fcblktab[clustnum];
@@ -1044,19 +1058,16 @@ solverMatrixGen(const pastix_int_t clustnum,
                     for(c=0; c<ctrl->clustnbr; c++) {
                         pastix_int_t ftgtnbr;
                         ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
-                        for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr; ftgtBlokIdx++) {
+                        for(ftgtBlokIdx=0; ftgtBlokIdx<ftgtnbr;) {
                             pastix_int_t *infotab;
                             pastix_int_t ftgtnum;
                             ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
                                                      ftgtBlokIdx);
                             infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
                             /* while contribution is not local go on */
-                            while (ftgtBlokIdx<ftgtnbr &&
-                                   infotab[FTGT_PROCDST] != solvmtx->clustnum) {
+                            if (infotab[FTGT_PROCDST] != solvmtx->clustnum) {
                                 ftgtBlokIdx++;
-                                ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
-                                                         ftgtBlokIdx);
-                                infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
+                                continue;
                             }
                             fcblk->fcolnum = infotab[FTGT_FCOLNUM] * dofptr->noddval;
                             fcblk->lcolnum = (infotab[FTGT_LCOLNUM] + 1) * dofptr->noddval - 1;
@@ -1066,6 +1077,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                             fcblk->gcblknum = infotab[FTGT_GCBKDST];
                             while(ftgtBlokIdx < ftgtnbr &&
                                   infotab[FTGT_GCBKDST] == fcblk->gcblknum) {
+                                assert(fblok - solvmtx->fbloktab[clustnum] < fBlokNbr);
                                 fblok->frownum = infotab[FTGT_FROWNUM] * dofptr->noddval;
                                 fblok->lrownum = (infotab[FTGT_LROWNUM]+1) *dofptr->noddval - 1;
                                 fblok->coefind = fcblk->stride;
