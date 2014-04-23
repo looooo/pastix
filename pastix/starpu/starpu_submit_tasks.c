@@ -1064,6 +1064,11 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
     int                    cuda_nbr = sopalin_data->sopar->iparm[IPARM_CUDA_NBR];
     unsigned int * sched_ctxs = NULL;
     int iter;
+    double clock1, clock2;
+#define STARPU_CLOCK_INIT  clock1 = clockGet()
+#define STARPU_CLOCK_STOP  clock2 = clockGet()
+#define STARPU_CLOCK_GET   (clock2 - clock1)
+
 
 #  ifdef STARPU_CONTEXT
     int * devices;
@@ -1316,7 +1321,7 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
 
     thread_data = sopalin_data->thread_data[0];
     sopalin_data->sopar->diagchange = 0;
-    SOPALIN_CLOCK_INIT;
+    STARPU_CLOCK_INIT;
 
     {
         int itercblk;
@@ -1369,10 +1374,10 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
         MALLOC_INTERN(SM2X_handles, SYMB_CBLKNBR, starpu_data_handle_t);
         starpu_register_sm2x(sopalin_data, SM2X_handles);
     }
-    SOPALIN_CLOCK_STOP;
+    STARPU_CLOCK_STOP;
     if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         fprintf(stdout,"----- Time after data registration %lf s\n",
-                SOPALIN_CLOCK_GET);
+                STARPU_CLOCK_GET);
 
     if (sopalin_data->sopar->iparm[IPARM_START_TASK] <= API_TASK_NUMFACT)
     {
@@ -1499,10 +1504,10 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
         memFree_null(sopalin_data->starpu_loop_data->gpu_gemm_count);
         memFree_null(sopalin_data->starpu_loop_data);
     }
-    SOPALIN_CLOCK_STOP;
+    STARPU_CLOCK_STOP;
     if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         fprintf(stdout,"----- submission and wait for all %lf s (%ld tasks)\n",
-                SOPALIN_CLOCK_GET, (long)SYMB_BLOKNBR);
+                STARPU_CLOCK_GET, (long)SYMB_BLOKNBR);
 
     /* Unregister buffers and leave starpu */
     if (sopalin_data->sopar->iparm[IPARM_START_TASK] <= API_TASK_NUMFACT) {
@@ -1653,11 +1658,11 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
         }
     }
 
-    SOPALIN_CLOCK_STOP;
+    STARPU_CLOCK_STOP;
     if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         fprintf(stdout,"----- sopalin time %lf\n",
-                SOPALIN_CLOCK_GET);
-    sopalin_data->sopar->dparm[DPARM_FACT_TIME] = SOPALIN_CLOCK_GET;
+                STARPU_CLOCK_GET);
+    sopalin_data->sopar->dparm[DPARM_FACT_TIME] = STARPU_CLOCK_GET;
 #  ifdef PASTIX_DUMP_FACTO
     dump_all(datacode, sopalin_data->sopar->cscmtx,
              ((datacode->updovct.sm2xtab!=NULL)?
