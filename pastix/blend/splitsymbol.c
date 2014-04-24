@@ -443,27 +443,28 @@ void splitSymbol( BlendCtrl    *ctrl,
     if (ctrl->debug)
         symbolCheck(symbmtx);
 
-    pastix_print( ctrl->clustnum, 0,
-                  "Number of column blocks modified by splitting   : %ld\n"
-                  "Number of column blocks created by splitting    : %ld\n"
-                  "Number of blocks creating by splitting          : %ld\n"
-                  "Number of blocks creating by splitting of fcblk : %ld\n"
-                  "Oldsymbol cblknbr = %ld, bloknbr = %ld\n"
-                  "Newsymbol cblknbr = %ld, bloknbr = %ld\n",
-                  (long int)(extracblk.curcblk + 1),
-                  (long int)(extracblk.addcblk),
-                  (long int)(extracblk.addblok),
-                  (long int)(extracblk.addblof),
-		  (long int)(symbmtx->cblknbr - extracblk.addcblk),
-                  (long int)(symbmtx->bloknbr - extracblk.addblok),
-                  (long int)(symbmtx->cblknbr),
-                  (long int)(symbmtx->bloknbr) );
 
     if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
     {
         pastix_int_t i, j;
         double block_height_sum = 0.0;
         double cblk_width_sum = 0.0;
+        pastix_print( ctrl->clustnum, 0,
+                      "Number of column blocks modified by splitting   : %ld\n"
+                      "Number of column blocks created by splitting    : %ld\n"
+                      "Number of blocks creating by splitting          : %ld\n"
+                      "Number of blocks creating by splitting of fcblk : %ld\n"
+                      "Oldsymbol cblknbr = %ld, bloknbr = %ld\n"
+                      "Newsymbol cblknbr = %ld, bloknbr = %ld\n",
+                      (long int)(extracblk.curcblk + 1),
+                      (long int)(extracblk.addcblk),
+                      (long int)(extracblk.addblok),
+                      (long int)(extracblk.addblof),
+                      (long int)(symbmtx->cblknbr - extracblk.addcblk),
+                      (long int)(symbmtx->bloknbr - extracblk.addblok),
+                      (long int)(symbmtx->cblknbr),
+                      (long int)(symbmtx->bloknbr) );
+
         for (j = 0; j < symbmtx->cblknbr; j++)
         {
             cblk_width_sum += (double)(symbmtx->cblktab[j].lcolnum - symbmtx->cblktab[j].fcolnum + 1);

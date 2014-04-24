@@ -398,19 +398,20 @@ double flops_dpotrf(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Do
 void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, const Dof * dofptr)
 {
     double flops = 0.;
-    printf("SymbolCost: number of operations Cholesky %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, cholesky, symbmtx, dofptr));
-    printf("SymbolCost: number of operations Crout2t  %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_2t, symbmtx, dofptr));
-    printf("SymbolCost: number of operations Crout3t  %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_3t, symbmtx, dofptr));
-    printf("SymbolCost: number of operations CroutHyb %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_hyb, symbmtx, dofptr));
-    printf("SymbolCost: number of operations CroutHyb blok %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
-    printf("SymbolCost: number of non-zero   %g \n",
-           recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
-
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+        printf("SymbolCost: number of operations Cholesky %g \n",
+               recursive_sum(0, symbmtx->cblknbr-1, cholesky, symbmtx, dofptr));
+        printf("SymbolCost: number of operations Crout2t  %g \n",
+               recursive_sum(0, symbmtx->cblknbr-1, crout_2t, symbmtx, dofptr));
+        printf("SymbolCost: number of operations Crout3t  %g \n",
+               recursive_sum(0, symbmtx->cblknbr-1, crout_3t, symbmtx, dofptr));
+        printf("SymbolCost: number of operations CroutHyb %g \n",
+               recursive_sum(0, symbmtx->cblknbr-1, crout_hyb, symbmtx, dofptr));
+        printf("SymbolCost: number of operations CroutHyb blok %g \n",
+               recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
+        printf("SymbolCost: number of non-zero   %g \n",
+               recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
+    }
     set_iparm(iparm, IPARM_NNZEROS,   (pastix_int_t)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
 
     if ( iparm[IPARM_FACTORIZATION] == API_FACT_LU ) {
@@ -430,6 +431,7 @@ void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, 
             flops = recursive_sum(0, symbmtx->cblknbr-1, flops_dpotrf, symbmtx, dofptr);
         }
     }
-    printf("SymbolCost: number of operations with new formula %g \n", flops );
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        printf("SymbolCost: number of operations with new formula %g \n", flops );
     set_dparm(dparm, DPARM_FACT_FLOPS, flops);
 }

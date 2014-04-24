@@ -1308,13 +1308,11 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
             if (iparm[IPARM_FACTORIZATION] == API_FACT_LU) /* LU */
             {
                 /* Lu on RSA */
-                printf("LU on RSA\n");
                 forcetr = 1;
                 Type[1] = 'S';
             }
             else
             {
-                printf("LLt on RSA\n");
                 forcetr = 0;
                 Type[1] = 'S';
             }
@@ -1323,7 +1321,6 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
         }
         else
         {
-            printf("LU on RUA\n");
             forcetr = 0;
             Type[1] = 'U';
         }
@@ -1967,7 +1964,6 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
         }
     }
 
-    printf("FACTO FIN\n");
     iparm[IPARM_START_TASK]++;
     return PASTIX_SUCCESS;
 }
@@ -2032,7 +2028,6 @@ void pastix_task_updown(pastix_data_t *pastix_data,
     }
 #endif /* STORAGE */
 
-    printf("UPDO DEBUT\n");
 
     if ((iparm[IPARM_ONLY_RAFF] == API_YES) && (iparm[IPARM_END_TASK] > API_TASK_SOLVE))
     {
@@ -2132,7 +2127,6 @@ void pastix_task_updown(pastix_data_t *pastix_data,
             }
         }
     }
-    printf("UPDO FIN\n");
     iparm[IPARM_START_TASK]++;
 }
 
@@ -2369,7 +2363,6 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 
         fprintf(stdout, OUT_TIME_RAFF, rrafftime);
     }
-    printf("RAFF FIN\n");
     iparm[IPARM_START_TASK]++;
 
     return;
@@ -2595,7 +2588,6 @@ void pastix_task_clean(pastix_data_t **pastix_data,
     FreeMpiSum();
     pastix_print_memory_usage(iparm,pastix_comm);
 
-    printf("CLEAN FIN\n");
 }
 
 void pastix_unscale(pastix_data_t *pastix_data, pastix_int_t sym) {

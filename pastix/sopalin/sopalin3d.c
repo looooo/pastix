@@ -474,30 +474,32 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
 
         factor = 100.0 / (double)alloc_init;
         (void)factor;
-        printf("symbol.cblk %12ld %2.2lf %%\n",
-               (long)  (SYMB_CBLKNBR*3*sizeof(pastix_int_t)),
-               (double)(SYMB_CBLKNBR*3*sizeof(pastix_int_t))*factor);
-        printf("symbol.blok %12ld %2.2lf %%\n",
-               (long)  (SYMB_BLOKNBR*3*sizeof(pastix_int_t)),
-               (double)(SYMB_BLOKNBR*3*sizeof(pastix_int_t))*factor);
-        printf("solver.cblk %12ld %2.2lf %%\n",
-               (long)  (SYMB_CBLKNBR*1*sizeof(pastix_int_t)),
-               (double)(SYMB_CBLKNBR*1*sizeof(pastix_int_t))*factor);
-        printf("solver.blok %12ld %2.2lf %%\n",
-               (long)  (SYMB_BLOKNBR*1*sizeof(pastix_int_t)),
-               (double)(SYMB_BLOKNBR*1*sizeof(pastix_int_t))*factor);
-        printf("solver.task %12ld %2.2lf %%\n",
-               (long)  (SOLV_TASKNBR*1*sizeof(Task)),
-               (double)(SOLV_TASKNBR*1*sizeof(Task))*factor);
-        printf("solver.ftgt %12ld %2.2lf %%\n",
-               (long)  (SOLV_FTGTNBR*1*sizeof(FanInTarget)),
-               (double)(SOLV_FTGTNBR*1*sizeof(FanInTarget))*factor);
-        printf("solver.coef %12ld %2.2lf %%\n",
-               (long)  (SOLV_COEFNBR*1*sizeof(pastix_float_t)),
-               (double)(SOLV_COEFNBR*1*sizeof(pastix_float_t))*factor);
-        printf("solver.ind  %12ld %2.2lf %%\n",
-               (long)  (SOLV_INDNBR *1*sizeof(pastix_int_t)),
-               (double)(SOLV_INDNBR *1*sizeof(pastix_int_t))*factor);
+        if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX) {
+            printf("symbol.cblk %12ld %2.2lf %%\n",
+                   (long)  (SYMB_CBLKNBR*3*sizeof(pastix_int_t)),
+                   (double)(SYMB_CBLKNBR*3*sizeof(pastix_int_t))*factor);
+            printf("symbol.blok %12ld %2.2lf %%\n",
+                   (long)  (SYMB_BLOKNBR*3*sizeof(pastix_int_t)),
+                   (double)(SYMB_BLOKNBR*3*sizeof(pastix_int_t))*factor);
+            printf("solver.cblk %12ld %2.2lf %%\n",
+                   (long)  (SYMB_CBLKNBR*1*sizeof(pastix_int_t)),
+                   (double)(SYMB_CBLKNBR*1*sizeof(pastix_int_t))*factor);
+            printf("solver.blok %12ld %2.2lf %%\n",
+                   (long)  (SYMB_BLOKNBR*1*sizeof(pastix_int_t)),
+                   (double)(SYMB_BLOKNBR*1*sizeof(pastix_int_t))*factor);
+            printf("solver.task %12ld %2.2lf %%\n",
+                   (long)  (SOLV_TASKNBR*1*sizeof(Task)),
+                   (double)(SOLV_TASKNBR*1*sizeof(Task))*factor);
+            printf("solver.ftgt %12ld %2.2lf %%\n",
+                   (long)  (SOLV_FTGTNBR*1*sizeof(FanInTarget)),
+                   (double)(SOLV_FTGTNBR*1*sizeof(FanInTarget))*factor);
+            printf("solver.coef %12ld %2.2lf %%\n",
+                   (long)  (SOLV_COEFNBR*1*sizeof(pastix_float_t)),
+                   (double)(SOLV_COEFNBR*1*sizeof(pastix_float_t))*factor);
+            printf("solver.ind  %12ld %2.2lf %%\n",
+                   (long)  (SOLV_INDNBR *1*sizeof(pastix_int_t)),
+                   (double)(SOLV_INDNBR *1*sizeof(pastix_int_t))*factor);
+        }
     }
 #endif
 

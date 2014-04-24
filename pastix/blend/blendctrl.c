@@ -183,10 +183,11 @@ blendCtrlInit(BlendCtrl    *ctrl,
         ctrl->ratiolimit = INTVALMAX;
     }
 
-    if (ctrl->autolevel)
-        printf("ratiolimit=%lf\n", ctrl->ratiolimit );
-    else
-        printf("level2D=%ld\n", (long) ctrl->level2D );
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX)
+        if (ctrl->autolevel)
+            printf("ratiolimit=%lf\n", ctrl->ratiolimit );
+        else
+            printf("level2D=%ld\n", (long) ctrl->level2D );
 
     /* Save iparm for other options */
     ctrl->iparm = iparm;

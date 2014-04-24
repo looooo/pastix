@@ -200,8 +200,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
             {
                 graphSymmetrize( n, colptr, rows, loc2glob, tmpgraph );
                 assert( n == tmpgraph->n );
-
-                fprintf(stderr, "SY - N=%ld, NNZ=%ld\n", n, colptr[n] - colptr[0]);
+                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+                    fprintf(stdout, "SY - N=%ld, NNZ=%ld\n", n, colptr[n] - colptr[0]);
             }
             else
             {
@@ -211,8 +211,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 MALLOC_INTERN(tmpgraph->rows,   nnz,   pastix_int_t);
                 memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
                 memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
-
-                fprintf(stderr, "GE - N=%ld, NNZ=%ld\n", n, nnz);
+                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+                    fprintf(stdout, "GE - N=%ld, NNZ=%ld\n", n, nnz);
 
                 graphSort( tmpgraph );
             }

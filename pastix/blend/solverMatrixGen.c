@@ -615,11 +615,13 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
 
         solvmtx->coefmax = pastix_imax( gemmmax, diagmax );
-        fprintf(stderr,
-                "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
-                "         update   %ld (%ld x %ld)\n",
-                diagmax, maxd_m, maxd_n,
-                gemmmax, maxg_m, maxg_n );
+        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
+            fprintf(stdout,
+                    "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
+                    "         update   %ld (%ld x %ld)\n",
+                    diagmax, maxd_m, maxd_n,
+                    gemmmax, maxg_m, maxg_n );
+        }
     }
 
     /****************************************/
@@ -943,18 +945,15 @@ solverMatrixGen(const pastix_int_t clustnum,
                 while( ftgtBlokIdx < solvmtx->ftgtnbr &&
                        ftgt->infotab[FTGT_GCBKDST] ==
                        gcblk) {
-                    fprintf(stdout, "%ld: %ld [ %ld %ld ] is in %ld\n", solvmtx->clustnum,
-                            ftgtBlokIdx, ftgt->infotab[FTGT_FROWNUM], ftgt->infotab[FTGT_LROWNUM],
-                            ftgtCblkIdx);
-
                     ftgtBlokIdx++;
                     ftgt++;
                 }
             }
 
-            fprintf(stdout, "%ld: Outgoing Fanin cblk number %ld, %ld blocks\n",
-                    (long)solvmtx->clustnum, (long)ftgtCblkIdx, (long)solvmtx->ftgtnbr);
-
+            if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
+                fprintf(stdout, "%ld: Outgoing Fanin cblk number %ld, %ld blocks\n",
+                        (long)solvmtx->clustnum, (long)ftgtCblkIdx, (long)solvmtx->ftgtnbr);
+            }
             solvmtx->fcblknbr[solvmtx->clustnum]       = ftgtCblkIdx;
             MALLOC_INTERN(solvmtx->fcblktab[solvmtx->clustnum],
                           ftgtCblkIdx+1, SolverCblk);
@@ -1026,12 +1025,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                         /* while still in same cblk go on */
                         while(ftgtBlokIdx<ftgtnbr && infotab[FTGT_GCBKDST] ==
                               gcblk) {
-                            fprintf(stdout, "%ld: %ld [%ld %ld] is in %ld\n", solvmtx->clustnum,
-                                    fBlokNbr,
-                                    infotab[FTGT_FROWNUM], infotab[FTGT_LROWNUM],
-                                    solvmtx->fcblknbr[clustnum]);
-
-
                             ftgtBlokIdx++;
                             fBlokNbr++;
                             ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]),
@@ -1041,9 +1034,11 @@ solverMatrixGen(const pastix_int_t clustnum,
                         solvmtx->fcblknbr[clustnum]++;
                     }
                 }
-                fprintf(stdout, "%ld: Fanin cblk number %ld, %ld blocks received from %ld\n",
-                        (long)solvmtx->clustnum, (long)solvmtx->fcblknbr[clustnum],
-                        (long)fBlokNbr, (long)clustnum);
+                if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
+                    fprintf(stdout, "%ld: Fanin cblk number %ld, %ld blocks received from %ld\n",
+                            (long)solvmtx->clustnum, (long)solvmtx->fcblknbr[clustnum],
+                            (long)fBlokNbr, (long)clustnum);
+                }
                 if(solvmtx->fcblknbr[clustnum] > 0) {
                     MALLOC_INTERN(solvmtx->fcblktab[clustnum],
                                   solvmtx->fcblknbr[clustnum]+1,

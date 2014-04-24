@@ -165,7 +165,6 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
       }
 #endif /* OOC */
     }
-  printf("fin alloc (u)coeff\n");
 }
 
 /*
@@ -248,8 +247,6 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
       bubnum = BFATHER(datacode->btree, bubnum);
     }
 #endif /* PASTIX_DYNSCHED */
-
-    printf("fin fill-in\n");
 
 #ifdef DEBUG_COEFINIT
     if (me == 0)

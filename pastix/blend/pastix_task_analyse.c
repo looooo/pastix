@@ -54,7 +54,8 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     /* } */
 
     print_debug(DBG_STEP,"->API_TASK_ANALYSE\n");
-    pastix_print( procnum, 0, "%s", OUT_STEP_BLEND );
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        pastix_print( procnum, 0, "%s", OUT_STEP_BLEND );
 
     dofInit(&dofstr);
     dofConstant(&dofstr, 0, pastix_data->symbmtx->nodenbr,
