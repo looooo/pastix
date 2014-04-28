@@ -73,6 +73,10 @@ starpu_zregister_fanin(SolverMatrix * solvmtx,
             coef = 2;
         }
         for (fanin = ffanin; fanin < lfanin; fanin++) {
+            assert( clustnum == solvmtx->clustnum ||
+                    solvmtx->clustnum == fanin->procdiag );
+            assert(fanin->procdiag < solvmtx->clustnbr);
+
             starpu_matrix_data_register(Lhandle, -1,
                                         (uintptr_t)NULL,
                                         (uint32_t)fanin->stride,
@@ -167,6 +171,7 @@ starpu_zregister_halo( SolverMatrix * datacode,
 
         ASSERT(SOLV_GCBLK2HALO(HCBLK_GCBLK(itercblk)) == itercblk,
                MOD_SOPALIN);
+        assert(cblk->procdiag < datacode->clustnbr);
 
         starpu_matrix_data_register(&((*Lhalo_handle)[itercblk]), -1,
                                     (uintptr_t)NULL,
@@ -186,7 +191,7 @@ starpu_zregister_halo( SolverMatrix * datacode,
                                         sizeof(pastix_complex64_t));
             starpu_mpi_data_register((*Uhalo_handle)[itercblk],
                                      SOLV_GCBLKNBR + cblk->gcblknum,
-                                 cblk->procdiag);
+                                     cblk->procdiag);
         }
     }
     return PASTIX_SUCCESS;
