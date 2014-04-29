@@ -820,14 +820,12 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
     assert(cblk_islocal(sopalin_data->datacode, cblk));
     for (iterbloc = SYMB_BLOKNUM(itercblk)+1;
          iterbloc < SYMB_BLOKNUM(itercblk+1);
-         iterbloc ++)
-    {
-        /* contribution is local */
+         iterbloc ++) {
         struct starpu_task * task_gemm;
         pastix_int_t blocnbr;
         pastix_int_t fcblknum;
         pastix_int_t n,t;
-        int dst_cblk;
+        int dst_proc;
         starpu_data_handle_t * L_target_handle;
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
@@ -898,7 +896,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
 #endif  /* defined(PASTIX_WITH_CUDA) */
         }
         assert(cblk_islocal(sopalin_data->datacode, cblk));
-        dst_cblk = starpu_data_get_rank(*L_target_handle);
+        dst_proc = starpu_data_get_rank(*L_target_handle);
         assert(is_block_inside_fblock(blok, fcblk->fblokptr));
 
         ret =
@@ -916,7 +914,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
 #    endif
 #  endif /* CHOL_SOPALIN */
                                    STARPU_SCRATCH, starpu_loop_data->WORK_handle,
-                                   STARPU_R,  starpu_loop_data->blocktab_handles[dst_cblk],
+                                   STARPU_R,  starpu_loop_data->blocktab_handles[dst_proc],
 #ifdef STARPU_1_1
                                    STARPU_EXECUTE_ON_WORKER, workerid,
 #endif
@@ -928,6 +926,11 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
                                    0);
         if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
         STARPU_ASSERT(!ret);
+        if ( fcblknum <  0 &&
+             pastix_starpu_with_fanin() == API_YES ) {
+            /* a fanin was updated */
+            SUBMIT_FANIN_IF_NEEDED;
+        }
     }
 
     /* If we are submiting the last cblknum updates we can tell the main thread

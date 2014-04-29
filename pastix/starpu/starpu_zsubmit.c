@@ -270,8 +270,6 @@ int starpu_zsysubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
     assert(fcblk->procdiag  == hcblk->procdiag);
     assert(fcblk->procdiag < datacode->clustnbr);
     assert(datacode->clustnum == starpu_data_get_rank(Lfanin_handle[fcblkidx]));
-#warning "REMOVE THIS LOCK WHEN STARPU FIXED"
-    pthread_mutex_lock(sopalin_data->mutex_task);
     ret =
         starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
                                &starpu_zsyadd_cl,
@@ -290,8 +288,6 @@ int starpu_zsysubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
                                STARPU_SCHED_CTX,    sched_ctxs[my_ctx],
 #endif
                                0);
-#warning "REMOVE THIS UNLOCK WHEN STARPU FIXED"
-    pthread_mutex_unlock(sopalin_data->mutex_task);
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
     starpu_data_unregister_submit(Lfanin_handle[fcblkidx]);
     return PASTIX_SUCCESS;

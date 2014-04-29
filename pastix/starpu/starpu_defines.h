@@ -52,35 +52,41 @@
 
 #define ARCH_CPU  0
 #define ARCH_CUDA 1
+#define SUBMIT_FANIN_IF_NEEDED                                          \
+    do {                                                                \
+        pastix_int_t faninnum = fcblk_getnum(datacode,                  \
+                                             fcblk,                     \
+                                             SOLV_PROCNUM);             \
+        pastix_int_t *fanin_ctrbcnt;                                    \
+        fanin_ctrbcnt = sopalin_data->fanin_ctrbcnt;                    \
+        fanin_ctrbcnt[faninnum]--;                                      \
+        if (fanin_ctrbcnt[faninnum] == 0) {                             \
+            pastix_int_t hcblknum;                                      \
+            SolverCblk * hcblk;                                         \
+            hcblknum = SOLV_GCBLK2HALO(fcblk->gcblknum);                \
+            hcblk = datacode->hcblktab + hcblknum;                      \
+            starpu_submit_outgoing_fanin( sopalin_data,                 \
+                                          fcblk,                        \
+                                          hcblk);                       \
+        }                                                               \
+    } while (0)
 
+#warning "TODO: REMOVE THE LOCK/UNLOCK WHEN STARPU FIXED"
 #define SUBMIT_TRF_IF_NEEDED                                            \
     do {                                                                \
-        char * nested;                                                  \
-        SolverMatrix *datacode = sopalin_data->datacode;                \
-        if (cblk_islocal(datacode, fcblk)) {                            \
-            pastix_int_t fcblknum = cblk_getnum(datacode, fcblk);       \
-            TASK_CTRBCNT(fcblknum)--;                                   \
-            if (pastix_starpu_with_nested_task() == API_YES) {          \
+        if (pastix_starpu_with_nested_task() == API_YES) {              \
+            SolverMatrix *datacode = sopalin_data->datacode;            \
+            if (cblk_islocal(datacode, fcblk)) {                        \
+                pastix_int_t fcblknum = cblk_getnum(datacode, fcblk);   \
+                TASK_CTRBCNT(fcblknum)--;                               \
                 if (TASK_CTRBCNT(fcblknum) == 0) {                      \
                     starpu_submit_one_trf(fcblknum, sopalin_data);      \
                 }                                                       \
-            }                                                           \
-        } else {                                                        \
-            if (pastix_starpu_with_fanin() == API_YES) {                \
-                pastix_int_t faninnum = fcblk_getnum(datacode,          \
-                                                     fcblk,             \
-                                                     SOLV_PROCNUM);     \
-                pastix_int_t *fanin_ctrbcnt;                            \
-                fanin_ctrbcnt = sopalin_data->fanin_ctrbcnt;            \
-                fanin_ctrbcnt[faninnum]--;                              \
-                if (fanin_ctrbcnt[faninnum] == 0) {                     \
-                    pastix_int_t hcblknum;                              \
-                    SolverCblk * hcblk;                                 \
-                    hcblknum = SOLV_GCBLK2HALO(fcblk->gcblknum);        \
-                    hcblk = datacode->hcblktab + hcblknum;              \
-                    starpu_submit_outgoing_fanin( sopalin_data,         \
-                                                  fcblk,                \
-                                                  hcblk);               \
+            } else {                                                    \
+                if ( pastix_starpu_with_fanin() == API_YES ) {          \
+                    pthread_mutex_lock(sopalin_data->mutex_task);       \
+                    SUBMIT_FANIN_IF_NEEDED;                             \
+                    pthread_mutex_unlock(sopalin_data->mutex_task);     \
                 }                                                       \
             }                                                           \
         }                                                               \
