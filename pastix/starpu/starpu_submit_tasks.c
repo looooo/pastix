@@ -924,7 +924,8 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
                                    0);
         if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
         STARPU_ASSERT(!ret);
-        if ( fcblknum <  0 &&
+        if ( cblk_isfanin(datacode, fcblk) == API_YES &&
+             pastix_starpu_with_nested_task() == API_NO &&
              pastix_starpu_with_fanin() == API_YES ) {
             /* a fanin was updated */
             SUBMIT_FANIN_IF_NEEDED;
