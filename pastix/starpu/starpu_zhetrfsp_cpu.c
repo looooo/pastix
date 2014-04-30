@@ -211,6 +211,35 @@ void starpu_zhetrfsp1d_gemm_cpu(void * buffers[], void * _args)
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_starpu_kernel
+ *
+ * starpu_zsytrfsp1d_geadd_cpu - Computes the addition of a fanin column block
+ * into the destination column block.
+ *
+ *******************************************************************************
+ *
+ * @param[in, out] buffers
+ *          Array of 2 buffers:
+ *            -# L : The pointer to the lower matrix storing the coefficients
+ *                   of the panel. Must be of size cblk1.stride -by- cblk1.width
+ *            -# Cl : The pointer to the lower matrix storing the coefficients
+ *                    of the updated panel. Must be of size cblk2.stride -by-
+ *                    cblk2.width
+ *
+ * @param[in, out] _args
+ *          Package of arguments to unpack with starpu_codelet_unpack_args():
+ *            -# sopalin_data : common sopalin structure.
+ *            -# cblk1 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk1[1].
+ *            -# cblk2 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk2[1].
+ *
+ *******************************************************************************/
 void
 starpu_zgetrfsp1d_geadd_cpu(void * buffers[], void * _args) {
     Sopalin_Data_t * sopalin_data;

@@ -11,14 +11,20 @@
 
 int
 starpu_zgesubmit_incomming_fanin(Sopalin_Data_t * sopalin_data);
+
 int
 starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data);
-int starpu_zgesubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
-                                    SolverCblk     * fcblk,
-                                    SolverCblk     * hcblk);
-int starpu_zsysubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
-                                    SolverCblk     * fcblk,
-                                    SolverCblk     * hcblk);
+
+int
+starpu_zgesubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
+                                SolverCblk     * fcblk,
+                                SolverCblk     * hcblk);
+
+int
+starpu_zsysubmit_outgoing_fanin(Sopalin_Data_t * sopalin_data,
+                                SolverCblk     * fcblk,
+                                SolverCblk     * hcblk);
+
 #if defined(CHOL_SOPALIN) && defined(SOPALIN_LU)
 #  define starpu_submit_outgoing_fanin starpu_zgesubmit_outgoing_fanin
 #else

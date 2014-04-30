@@ -913,16 +913,18 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
 #  endif /* CHOL_SOPALIN */
                                    STARPU_SCRATCH, starpu_loop_data->WORK_handle,
                                    STARPU_R,  starpu_loop_data->blocktab_handles[dst_proc],
-#ifdef STARPU_1_1
+#  ifdef STARPU_1_1
                                    STARPU_EXECUTE_ON_WORKER, workerid,
-#endif
+#  endif
                                    STARPU_CALLBACK,     prof_callback,
                                    STARPU_CALLBACK_ARG, sopalin_data->gemm_stats,
 #  ifdef STARPU_CONTEXT
                                    STARPU_SCHED_CTX, sched_ctxs[my_ctx],
 #  endif
                                    0);
-        if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+        if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+
+
         STARPU_ASSERT(!ret);
         if ( cblk_isfanin(datacode, fcblk) == API_YES &&
              pastix_starpu_with_nested_task() == API_NO &&

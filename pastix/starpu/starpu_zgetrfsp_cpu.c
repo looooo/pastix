@@ -170,7 +170,7 @@ void starpu_zgetrfsp1d_cpu(void * buffers[], void * _args)
  *******************************************************************************
  *
  * @param[in, out] buffers
- *          Array of 2 buffers:
+ *          Array of 5 buffers:
  *            -# L : The pointer to the lower matrix storing the coefficients
  *                   of the panel. Must be of size cblk.stride -by- cblk.width
  *            -# Cl : The pointer to the lower matrix storing the coefficients
@@ -221,8 +221,44 @@ void starpu_zgetrfsp1d_gemm_cpu(void * buffers[], void * _args)
     SUBMIT_TRF_IF_NEEDED;
 }
 
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_starpu_kernel
+ *
+ * starpu_zgetrfsp1d_geadd_cpu - Computes the addition of a fanin column block
+ * into the destination column block.
+ *
+ *******************************************************************************
+ *
+ * @param[in, out] buffers
+ *          Array of 4 buffers:
+ *            -# L : The pointer to the lower matrix storing the coefficients
+ *                   of the panel. Must be of size cblk1.stride -by- cblk1.width
+ *            -# Cl : The pointer to the lower matrix storing the coefficients
+ *                    of the updated panel. Must be of size cblk2.stride -by-
+ *                    cblk2.width
+ *            -# U : The pointer to the upper matrix storing the coefficients
+ *                   of the panel. Must be of size cblk1.stride -by- cblk1.width
+ *            -# Cu : The pointer to the upper matrix storing the coefficients
+ *                    of the updated panel. Must be of size cblk2.stride -by-
+ *                    cblk2.width
+ *
+ * @param[in, out] _args
+ *          Package of arguments to unpack with starpu_codelet_unpack_args():
+ *            -# sopalin_data : common sopalin structure.
+ *            -# cblk1 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk1[1].
+ *            -# cblk2 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk2[1].
+ *
+ *******************************************************************************/
 void
-starpu_zgetrfsp1d_geadd_cpu(void * buffers[], void * _args)
+starpu_zgetrfsp1d_geadd_cpu( void * buffers[],
+                             void * _args )
 {
     Sopalin_Data_t     *sopalin_data;
     SolverCblk *cblk1, *cblk2;

@@ -12,13 +12,23 @@
 #include "sopalin_acces.h"
 #include "perf.h"
 
-static size_t starpu_zsyadd_size(struct starpu_task *task,
+/**
+ * Computes the number of operation involved in a symmetric fanin addition task.
+ *
+ * @param task  The StarPU task.
+ * @param arch  The StarPU starpu_perfmodel_archtype
+ * @param nimpl Version of the executed implementation.
+ *
+ * @returns Number of operation involved in the addition.
+ */
+static size_t
+starpu_zsyadd_size(struct starpu_task *task,
 #ifdef STARPU_1_2
-                                 struct starpu_perfmodel_arch *arch,
+                   struct starpu_perfmodel_arch *arch,
 #else
-                                 enum starpu_perfmodel_archtype arch,
+                   enum starpu_perfmodel_archtype arch,
 #endif
-                                 unsigned nimpl) {
+                   unsigned nimpl) {
     Sopalin_Data_t    * sopalin_data;
     SolverCblk        * cblk, *fcblk;
     pastix_int_t        stride;
@@ -30,21 +40,40 @@ static size_t starpu_zsyadd_size(struct starpu_task *task,
 
 }
 
-static size_t starpu_zgeadd_size(struct starpu_task *task,
+/**
+ * Computes the number of operation involved in an unsymmetric fanin addition
+ * task.
+ *
+ * @param task  The StarPU task.
+ * @param arch  The StarPU starpu_perfmodel_archtype
+ * @param nimpl Version of the executed implementation.
+ *
+ * @returns Number of operation involved in the addition.
+ */
+static size_t
+starpu_zgeadd_size(struct starpu_task *task,
 #ifdef STARPU_1_2
-                                 struct starpu_perfmodel_arch *arch,
+                   struct starpu_perfmodel_arch *arch,
 #else
-                                 enum starpu_perfmodel_archtype arch,
+                   enum starpu_perfmodel_archtype arch,
 #endif
-                                 unsigned nimpl) {
+                   unsigned nimpl) {
     return 2*starpu_zsyadd_size(task, arch, nimpl);
 }
 
-
+/**
+ * starpu_perfmodel assoctiated to the unsymmetric fanin addition task.
+ */
 static struct starpu_perfmodel starpu_zgeadd_model;
 
+/**
+ * starpu_perfmodel assoctiated to the symmetric fanin addition task.
+ */
 static struct starpu_perfmodel starpu_zsyadd_model;
 
+/**
+ * starpu_codelet describing the unsymmetric fanin addition task.
+ */
 struct starpu_codelet starpu_zgeadd_cl =
 {
     .where = STARPU_CPU,
@@ -55,13 +84,16 @@ struct starpu_codelet starpu_zgeadd_cl =
     .nbuffers = 5,
     .modes = {
         STARPU_R,
-        STARPU_RW,
+        STARPU_RW|STARPU_COMMUTE,
         STARPU_R,
-        STARPU_RW,
+        STARPU_RW|STARPU_COMMUTE,
         STARPU_R
     }
 };
 
+/**
+ * starpu_codelet describing the symmetric fanin addition task.
+ */
 struct starpu_codelet starpu_zsyadd_cl =
 {
     .where = STARPU_CPU,
@@ -72,13 +104,20 @@ struct starpu_codelet starpu_zsyadd_cl =
     .nbuffers = 3,
     .modes = {
         STARPU_R,
-        STARPU_RW,
+        STARPU_RW|STARPU_COMMUTE,
         STARPU_R
     }
 };
 
+/**
+ * Submition of all incomming fanin addition in the general case.
+ *
+ * @params sopalin_data Internal PaStiX structure.
+ *
+ * @returns PASTIX_SUCCESS if no error occurs.
+ */
 int
-starpu_zgesubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
+starpu_zgesubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
     SolverMatrix * datacode = sopalin_data->datacode;
     starpu_loop_data_t  *starpu_loop_data  = sopalin_data->starpu_loop_data;
     pastix_int_t itertask, workerid = -1;
@@ -134,13 +173,21 @@ starpu_zgesubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
                                        STARPU_SCHED_CTX, sched_ctxs[my_ctx],
 #endif
                                        0);
+            STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
         }
     }
     return PASTIX_SUCCESS;
 }
 
+/**
+ * Submition of all incomming fanin addition in the symmetric case.
+ *
+ * @params sopalin_data Internal PaStiX structure.
+ *
+ * @returns PASTIX_SUCCESS if no error occurs.
+ */
 int
-starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
+starpu_zsysubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
     SolverMatrix * datacode = sopalin_data->datacode;
     starpu_loop_data_t  *starpu_loop_data  = sopalin_data->starpu_loop_data;
     pastix_int_t itertask, workerid = -1;
@@ -201,9 +248,19 @@ starpu_zsysubmit_incomming_fanin(Sopalin_Data_t * sopalin_data) {
     return PASTIX_SUCCESS;
 }
 
-int starpu_zgesubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
-                                     SolverCblk     * fcblk,
-                                     SolverCblk     * hcblk ) {
+/**
+ * Submit one outgoing fanin update in the general case.
+ *
+ * @params sopalin_data Internal PaStiX structure.
+ * @params fcblk Fanin column block that will update a remote column block.
+ * @params hcblk Halo column block that will be updated.
+ *
+ * @returns PASTIX_SUCCESS if no error occurs.
+ */
+int
+starpu_zgesubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
+                                 SolverCblk     * fcblk,
+                                 SolverCblk     * hcblk ) {
     SolverMatrix          *datacode         = sopalin_data->datacode;
     starpu_loop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
     starpu_data_handle_t  *Lhalo_handle     = starpu_loop_data->Lhalo_handle;
@@ -248,9 +305,19 @@ int starpu_zgesubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
     return PASTIX_SUCCESS;
 }
 
-int starpu_zsysubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
-                                     SolverCblk     * fcblk,
-                                     SolverCblk     * hcblk ) {
+/**
+ * Submit one outgoing fanin update in the symmetric case.
+ *
+ * @params sopalin_data Internal PaStiX structure.
+ * @params fcblk Fanin column block that will update a remote column block.
+ * @params hcblk Halo column block that will be updated.
+ *
+ * @returns PASTIX_SUCCESS if no error occurs.
+ */
+int
+starpu_zsysubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
+                                 SolverCblk     * fcblk,
+                                 SolverCblk     * hcblk ) {
     SolverMatrix          *datacode         = sopalin_data->datacode;
     starpu_loop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
     starpu_data_handle_t  *Lhalo_handle     = starpu_loop_data->Lhalo_handle;

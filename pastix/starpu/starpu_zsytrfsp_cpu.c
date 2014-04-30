@@ -152,11 +152,13 @@ void starpu_zsytrfsp1d_cpu(void * buffers[], void * _args)
                         work);
 
     SUBMIT_GEMMS_IF_NEEDED;
+#ifdef PASTIX_DUMP_CBLK
     {
         char name[256];
         sprintf(name, "cblk_%d_after_trf_trsm", cblk->gcblknum);
         cblk_save(cblk, name, L);
     }
+#endif
 }
 
 /**
@@ -216,6 +218,7 @@ void starpu_zsytrfsp1d_gemm_cpu(void * buffers[], void * _args)
                          work,
                          work2);
     SUBMIT_TRF_IF_NEEDED;
+#ifdef PASTIX_DUMP_CBLK
     {
         char name[256];
         sprintf(name, "cblk_%d_after_gemm_%d_%d_%d_on_%d", fcblk->gcblknum,
@@ -223,9 +226,39 @@ void starpu_zsytrfsp1d_gemm_cpu(void * buffers[], void * _args)
                 sopalin_data->datacode->clustnum);
         cblk_save(fcblk, name, Cl);
     }
+#endif
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_starpu_kernel
+ *
+ * starpu_zsytrfsp1d_geadd_cpu - Computes the addition of a fanin column block
+ * into the destination column block.
+ *
+ *******************************************************************************
+ *
+ * @param[in, out] buffers
+ *          Array of 2 buffers:
+ *            -# L : The pointer to the lower matrix storing the coefficients
+ *                   of the panel. Must be of size cblk1.stride -by- cblk1.width
+ *            -# Cl : The pointer to the lower matrix storing the coefficients
+ *                    of the updated panel. Must be of size cblk2.stride -by-
+ *                    cblk2.width
+ *
+ * @param[in, out] _args
+ *          Package of arguments to unpack with starpu_codelet_unpack_args():
+ *            -# sopalin_data : common sopalin structure.
+ *            -# cblk1 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk1[1].
+ *            -# cblk2 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk2[1].
+ *
+ *******************************************************************************/
 void
 starpu_zsytrfsp1d_syadd_cpu(void * buffers[], void * _args) {
     Sopalin_Data_t *sopalin_data;
@@ -233,7 +266,7 @@ starpu_zsytrfsp1d_syadd_cpu(void * buffers[], void * _args) {
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *Cl   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     starpu_codelet_unpack_args(_args, &sopalin_data, &cblk1, &cblk2);
-
+#ifdef PASTIX_DUMP_CBLK
     {
         char name[256];
         sprintf(name, "cblk_dst_%d_before_add_from_%d", cblk2->gcblknum,
@@ -246,15 +279,17 @@ starpu_zsytrfsp1d_syadd_cpu(void * buffers[], void * _args) {
                 fcblk_getorigin(sopalin_data->datacode, cblk1));
         cblk_save(cblk1, name, L);
     }
+#endif
     core_zgeaddsp1d(cblk1,
                     cblk2,
                     L, Cl,
                     NULL, NULL);
+#ifdef PASTIX_DUMP_CBLK
     {
         char name[256];
         sprintf(name, "cblk_%d_after_add_from_%d", cblk2->gcblknum,
                 fcblk_getorigin(sopalin_data->datacode, cblk1));
         cblk_save(cblk2, name, Cl);
     }
-
+#endif
 }
