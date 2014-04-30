@@ -862,7 +862,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     /************************************************************************/
     /*  Fill the halo information                                           */
     /************************************************************************/
-    {
+    if ( ctrl->iparm[IPARM_STARPU] == API_YES) {
         pastix_int_t halocblk=1;
         pastix_int_t bloknbr=0;
         SolverCblk * hcblk;

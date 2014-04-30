@@ -806,7 +806,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
     pastix_int_t handle_idx;
     int workerid, this_workerid;
     struct starpu_codelet * cl;
-    SolverCblk *cblk = datacode->cblktab+itercblk, *fcblk;
+    SolverCblk *cblk = datacode->cblktab+itercblk;
     SolverBlok *blok;
 #  ifdef STARPU_CONTEXT
     pastix_int_t threadid = TASK_THREADID(itertask);
@@ -824,6 +824,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
         struct starpu_task * task_gemm;
         pastix_int_t blocnbr;
         pastix_int_t fcblknum;
+        SolverCblk  *fcblk;
         pastix_int_t n,t;
         int dst_proc;
         starpu_data_handle_t * L_target_handle;
@@ -851,13 +852,11 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
                     assert(fcblk - datacode->fcblktab[SOLV_PROCNUM] <
                            datacode->fcblknbr[SOLV_PROCNUM]);
                 }
-                fcblknum = fcblk - datacode->fcblktab[SOLV_PROCNUM];
-                L_target_handle = Lfanin_handle[SOLV_PROCNUM]+
-                    fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
+                fcblknum = fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
+                L_target_handle = Lfanin_handle[SOLV_PROCNUM]+fcblknum;
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
-                U_target_handle = Ufanin_handle[SOLV_PROCNUM]+
-                    fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
+                U_target_handle = Ufanin_handle[SOLV_PROCNUM]+fcblknum;
 #    endif
 #  endif
                 assert(cblk_isfanin(datacode, fcblk) == API_YES);
@@ -877,7 +876,6 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
             /* fcblknum is local */
             fcblk = datacode->cblktab+fcblknum;
             assert(cblk_islocal(datacode, fcblk) == API_YES);
-
             L_target_handle = &(L_handle[fcblknum]);
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
@@ -965,8 +963,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
  */
 #  define starpu_submit_loop API_CALL(starpu_submit_loop)
 void*
-starpu_submit_loop (void * arg)
-{
+starpu_submit_loop (void * arg) {
     starpu_loop_data_t  *starpu_loop_data  = (starpu_loop_data_t*)(arg);
     Sopalin_Data_t      *sopalin_data      = (Sopalin_Data_t *)(starpu_loop_data->sopalin_data);
     SolverMatrix        *datacode          = sopalin_data->datacode;
@@ -974,15 +971,18 @@ starpu_submit_loop (void * arg)
     int                 *sched_ctxs        = starpu_loop_data->sched_ctxs;
     pastix_int_t itertask;
     pastix_int_t n_cblks = 0, n_tasks = 0;
-    char      *prefetch;
-    if ((prefetch = getenv("PASTIX_STARPU_PREFETCH_ON_NODE")) && !strcmp(prefetch, "1")) {
+
+    if ( pastix_env_is_on("PASTIX_STARPU_PREFETCH_ON_NODE") ) {
         /* Prefetch data on GPUs */
         pastix_int_t   iterworker;
         pastix_int_t * memory_nodes;
-        fprintf(stdout, "Prefetching data on GPUs %s\n", prefetch);
+        if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+            fprintf(stdout, "Prefetching data on GPUs\n");
         MALLOC_INTERN(memory_nodes, starpu_loop_data->ngpus, pastix_int_t);
         for (iterworker = 0; iterworker < starpu_loop_data->ngpus; iterworker++) {
-            memory_nodes[iterworker] = starpu_worker_get_memory_node(starpu_loop_data->gpu_workerids[iterworker]);
+            memory_nodes[iterworker] =
+                starpu_worker_get_memory_node(
+                    starpu_loop_data->gpu_workerids[iterworker]);
         }
         for (itertask=0;itertask<SOLV_TASKNBR;itertask++) {
             pastix_int_t itercblk = TASK_CBLKNUM(itertask);
@@ -1008,11 +1008,10 @@ starpu_submit_loop (void * arg)
     /* For all ready task we submit factorization  */
     for (itertask=0;itertask<SOLV_TASKNBR;itertask++) {
         char * nested;
-        if (((nested = getenv("PASTIX_STARPU_NESTED_TASK")) && !strcmp(nested, "1")) &&
-            TASK_CTRBCNT((itertask))) continue;
+        if ( pastix_starpu_with_nested_task() &&
+             TASK_CTRBCNT(itertask) ) continue;
         starpu_submit_one_trf(itertask, sopalin_data);
-        if (!((nested = getenv("PASTIX_STARPU_NESTED_TASK")) &&
-              !strcmp(nested, "1"))) {
+        if (!pastix_starpu_with_nested_task()) {
             starpu_submit_bunch_of_gemm(itertask, sopalin_data);
         }
     }
