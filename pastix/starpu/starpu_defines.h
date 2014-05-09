@@ -71,7 +71,8 @@
         }                                                               \
     } while (0)
 
-#warning "TODO: REMOVE THE LOCK/UNLOCK WHEN STARPU FIXED"
+// NOTE: The STARPU_FANIN_IF_NEEDED requires mutex protection if StarPU revision is
+// lower than 12794
 #define SUBMIT_TRF_IF_NEEDED                                            \
     do {                                                                \
         if (pastix_starpu_with_nested_task() == API_YES) {              \
@@ -84,9 +85,7 @@
                 }                                                       \
             } else {                                                    \
                 if ( pastix_starpu_with_fanin() == API_YES ) {          \
-                    pthread_mutex_lock(sopalin_data->mutex_task);       \
                     SUBMIT_FANIN_IF_NEEDED;                             \
-                    pthread_mutex_unlock(sopalin_data->mutex_task);     \
                 }                                                       \
             }                                                           \
         }                                                               \
