@@ -32,22 +32,22 @@
 #define DRUNK                       4
 
 typedef struct Task_ {
-  pastix_int_t                       taskid;               /*+ COMP_1D DIAG E1 E2                                     +*/
-  pastix_int_t                       prionum;              /*+ Priority value for the factorization                   +*/
-  pastix_int_t                       cblknum;              /*+ Attached column block                                  +*/
-  pastix_int_t                       bloknum;              /*+ Attached block                                         +*/
-  pastix_int_t volatile              ftgtcnt;              /*+ Number of fan-in targets                               +*/
-  pastix_int_t volatile              ctrbcnt;              /*+ Total number of contributions                          +*/
-  pastix_int_t                       indnum;               /*+ For E2 (COMP_1D), index of ftgt (>0) else if local = -taskdest
-                                                            For DIAG and E1 , index of btag (>0) if there is a
-                                                            local one it must be the first of the chain of local E1   +*/
+  pastix_int_t          taskid;               /*+ COMP_1D DIAG E1 E2                                     +*/
+  pastix_int_t          prionum;              /*+ Priority value for the factorization                   +*/
+  pastix_int_t          cblknum;              /*+ Attached column block                                  +*/
+  pastix_int_t          bloknum;              /*+ Attached block                                         +*/
+  pastix_int_t volatile ftgtcnt;              /*+ Number of fan-in targets                               +*/
+  pastix_int_t volatile ctrbcnt;              /*+ Total number of contributions                          +*/
+  pastix_int_t          indnum;               /*+ For E2 (COMP_1D), index of ftgt (>0) else if local = -taskdest
+                                                  For DIAG and E1 , index of btag (>0) if there is a
+                                                  local one it must be the first of the chain of local E1   +*/
 #if (defined PASTIX_DYNSCHED) || (defined TRACE_SOPALIN)
-  pastix_int_t                       threadid;             /*+ Index of the bubble which contains the task +*/
+  pastix_int_t          threadid;             /*+ Index of the bubble which contains the task +*/
 #endif
 #ifdef TRACE_SOPALIN
-  pastix_int_t                       fcandnum;             /*+ First thread candidate                      +*/
-  pastix_int_t                       lcandnum;		  /*+ Last thread candidate                       +*/
-  pastix_int_t                       id;                   /*+ Global cblknum of the attached column block +*/
+  pastix_int_t          fcandnum;             /*+ First thread candidate                      +*/
+  pastix_int_t          lcandnum;		  /*+ Last thread candidate                       +*/
+  pastix_int_t          id;                   /*+ Global cblknum of the attached column block +*/
 #endif
 } Task;
 
@@ -55,24 +55,24 @@ typedef struct Task_ {
 /*+ Solver block structure. +*/
 
 typedef struct SolverBlok_ {
-  pastix_int_t                       frownum;              /*+ First row index            +*/
-  pastix_int_t                       lrownum;              /*+ Last row index (inclusive) +*/
-  pastix_int_t                       cblknum;              /*+ Facing column block        +*/
-  pastix_int_t                       levfval;              /*+ Level-of-fill value        +*/
-  pastix_int_t                       coefind;              /*+ Index in coeftab           +*/
+  pastix_int_t  frownum; /*+ First row index            +*/
+  pastix_int_t  lrownum; /*+ Last row index (inclusive) +*/
+  pastix_int_t  cblknum; /*+ Facing column block        +*/
+  pastix_int_t  levfval; /*+ Level-of-fill value        +*/
+  pastix_int_t  coefind; /*+ Index in coeftab           +*/
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
 
 typedef struct SolverCblk_  {
-  pastix_int_t                       fcolnum;              /*+ First column index                     +*/
-  pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)          +*/
-  SolverBlok    *                    fblokptr;            /*+ First block in column (diagonal)       +*/
-  pastix_int_t                       stride;               /*+ Column block stride                    +*/
-  pastix_int_t                       procdiag;             /*+ Cluster owner of diagonal block      +*/
-  pastix_int_t                       gcblknum;             /*+ Global column block index              +*/
-  pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
-  pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
+  SolverBlok     *fblokptr; /*+ First block in column (diagonal)       +*/
+  pastix_int_t    fcolnum;  /*+ First column index                     +*/
+  pastix_int_t    lcolnum;  /*+ Last column index (inclusive)          +*/
+  pastix_int_t    stride;   /*+ Column block stride                    +*/
+  pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
+  pastix_int_t    gcblknum; /*+ Global column block index              +*/
+  pastix_float_t *coeftab;  /*+ Coefficients access vector             +*/
+  pastix_float_t *ucoeftab; /*+ Coefficients access vector             +*/
 } SolverCblk;
 
 /*+ Solver matrix structure. +*/
@@ -80,7 +80,6 @@ typedef struct SolverCblk_  {
 /* All data are local to one cluster */
 typedef struct SolverMatrix_ {
   pastix_int_t              baseval;              /*+ Base value for numberings                         +*/
-
   pastix_int_t              nodenbr;              /*+ Number of nodes before dof extension              +*/
   pastix_int_t              coefnbr;              /*+ Number of coefficients (node after dof extension) +*/
   pastix_int_t              gcblknbr;             /*+ Global number of column blocks                    +*/
