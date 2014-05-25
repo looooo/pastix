@@ -225,10 +225,10 @@ solverMatrixGen(const pastix_int_t clustnum,
         coefnbr = 0;
         for(i=0;i<symbmtx->cblknbr;i++, symbcblk++)
         {
+            SolverBlok  *fblokptr  = solvblok;
             pastix_int_t fbloknum  = symbcblk[0].bloknum;
             pastix_int_t lbloknum  = symbcblk[1].bloknum;
             pastix_int_t stride    = 0;
-            SolverBlok * fblokptr = solvblok;
             pastix_int_t nbcolumns = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dofptr->noddval;
             pastix_int_t nbrows;
 
@@ -247,7 +247,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                     solvblok->frownum = symbblok->frownum * dofptr->noddval;
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->cblknum = cblklocalnum[symbblok->cblknum];
-                    //solvblok->levfval;
                     solvblok->coefind = stride;
 
                     stride += nbrows;
@@ -257,9 +256,9 @@ solverMatrixGen(const pastix_int_t clustnum,
             if(flaglocal)
             {
                 /* Init the cblk */
+                solvcblk->fblokptr = fblokptr;
                 solvcblk->fcolnum  = symbcblk->fcolnum * dofptr->noddval;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
-                solvcblk->fblokptr = fblokptr;
                 solvcblk->stride   = stride;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->coeftab  = NULL;
@@ -277,9 +276,9 @@ solverMatrixGen(const pastix_int_t clustnum,
         /*  Add a virtual cblk to avoid side effect in the loops on cblk bloks */
         if (cblknum > 0)
         {
+            solvcblk->fblokptr = solvblok;
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
-            solvcblk->fblokptr  = solvblok;
             solvcblk->stride   = 0;
             solvcblk->procdiag = -1;
             solvcblk->coeftab  = NULL;
@@ -570,7 +569,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         for(i=0;i<solvmtx->cblknbr;i++, solvcblk++)
         {
-            SolverBlok * lblok = solvcblk[1].fblokptr;
+            SolverBlok *lblok = solvcblk[1].fblokptr;
             pastix_int_t m = solvcblk->stride;
             pastix_int_t n = solvblok->lrownum - solvblok->frownum + 1;
 
@@ -829,7 +828,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             if(simuctrl->bloktab[i].ownerclust == clustnum)
                 solvmtx->updovct.lblk2gcblk[bloklocalnum[i]] = symbmtx->bloktab[i].cblknum;
 
-        /* Calcul du nombre de messages a recevoir lors de la remontee */
+        /* Compute the number of messages to receive during backward substitution */
         MALLOC_INTERN(uprecvcblk, symbmtx->cblknbr, pastix_int_t);
         for(i=0;i<symbmtx->cblknbr;i++)
             uprecvcblk[i] = 0;
