@@ -9,7 +9,7 @@
 #include "updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "solver_struct.h"
 /* #include "assembly.h" */
 /* #include "param_blend.h" */
 /* #include "order.h" */
