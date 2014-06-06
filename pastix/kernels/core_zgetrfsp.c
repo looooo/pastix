@@ -14,12 +14,11 @@
  * @precisions normal z -> c d s
  *
  **/
-#include <assert.h>
-
 #include "common.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
 #include "../sopalin/sopalin_acces.h"
+#include "../blend/solver.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
