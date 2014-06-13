@@ -1141,7 +1141,7 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
     }
 #endif /* STARPU_USE_CUDA */
 
-    GEMM_model.type = STARPU_HISTORY_BASED;
+    GEMM_model.type = STARPU_PER_ARCH;
     GEMM_model.symbol = PREFIX "GEMM";
 #  ifdef STARPU_1_2
     starpu_perfmodel_init(&GEMM_model);
