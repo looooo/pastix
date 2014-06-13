@@ -216,7 +216,7 @@ void starpu_zhetrfsp1d_gemm_cpu(void * buffers[], void * _args)
  *
  * @ingroup pastix_starpu_kernel
  *
- * starpu_zsytrfsp1d_geadd_cpu - Computes the addition of a fanin column block
+ * starpu_zhetrfsp1d_geadd_cpu - Computes the addition of a fanin column block
  * into the destination column block.
  *
  *******************************************************************************
@@ -241,7 +241,7 @@ void starpu_zhetrfsp1d_gemm_cpu(void * buffers[], void * _args)
  *
  *******************************************************************************/
 void
-starpu_zgetrfsp1d_geadd_cpu(void * buffers[], void * _args) {
+starpu_zhetrfsp1d_geadd_cpu(void * buffers[], void * _args) {
     Sopalin_Data_t * sopalin_data;
     SolverCblk *cblk1, *cblk2;
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
