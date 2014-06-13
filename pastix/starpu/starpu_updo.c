@@ -268,7 +268,17 @@ int starpu_submit_updown(Sopalin_Data_t * sopalin_data,
                          starpu_data_handle_t * L_handles,
                          starpu_data_handle_t * U_handles,
                          starpu_data_handle_t * SM2X_handles,
-                         int                  * sched_ctxs)
+			 struct starpu_task  ** tasktab,
+                         int                  * sched_ctxs){
+    return 0;
+}
+
+#define starpu_submit_updown_old API_CALL(starpu_submit_updown_old)
+int starpu_submit_updown_old(Sopalin_Data_t * sopalin_data,
+                             starpu_data_handle_t * L_handles,
+                             starpu_data_handle_t * U_handles,
+                             starpu_data_handle_t * SM2X_handles,
+                             int                  * sched_ctxs)
 {
   SolverMatrix * datacode = sopalin_data->datacode;
   Queue cblreadyqueue;
