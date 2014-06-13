@@ -11,6 +11,7 @@
 #define pastix_cblk_lock( cblk_ )
 #define pastix_cblk_unlock( cblk_ )
 
+#define PRECISION_z
 void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
@@ -57,6 +58,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *Cu,
                            pastix_complex64_t *work );
 
+#ifdef PRECISION_z
 int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
@@ -77,7 +79,7 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2 );
-
+#endif /* PRECISION_z */
 int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria );
