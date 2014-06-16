@@ -500,7 +500,10 @@ solverMatrixGen(const pastix_int_t clustnum,
                 pastix_int_t fbloknum = symbmtx->cblktab[cblknum  ].bloknum+1;
                 pastix_int_t lbloknum = symbmtx->cblktab[cblknum+1].bloknum;
 
-                /* For each couple (bloknum,j)\ j>=bloknum of off-diagonal block, check where goes the contribution */
+                /*
+                 * For each couple (bloknum,j) \ j>=bloknum of off-diagonal
+                 * block, check where goes the contribution
+                 */
                 for(bloknum=fbloknum; bloknum<lbloknum; bloknum++)
                 {
                     pastix_int_t firstbloknum = 0;
@@ -582,13 +585,12 @@ solverMatrixGen(const pastix_int_t clustnum,
                 maxd_n = pastix_imin( 64, pastix_imax( 0, n - 64) );
             }
 
-            m -= n;
-
             /*
              * Compute the surface of the panel for LDLt factorization
              * This could be cut down if we know at analyse time which operation
              * will be performed.
              */
+            m -= n;
             diagarea = (m+1) * n;
             if ( diagarea > diagmax ) {
                 diagmax = diagarea;
@@ -596,9 +598,8 @@ solverMatrixGen(const pastix_int_t clustnum,
                 maxd_n = n;
             }
 
-            solvblok++;
-
             /* Area of GEMM updates */
+            solvblok++;
             for( ; solvblok<lblok; solvblok++ ) {
                 n = solvblok->lrownum - solvblok->frownum + 1;
 
