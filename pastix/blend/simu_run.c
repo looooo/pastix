@@ -339,12 +339,12 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
  *          Index of the fanin target to update.
  *
  * @param[in] bloknum
- *          Index of the first of diagonal block generating a contribution to
+ *          Index of the first off-diagonal block generating a contribution to
  *          the ftgtnum Fan In.
  *
  * @param[in] fbloknum
- *          Index of the facing blok of bloknum that will receive the final
- *          contribution.
+ *          Index of the off-diagonal block that is multiplied by blocknum to
+ *          produce the update.
  *
  *******************************************************************************/
 static inline void
