@@ -933,6 +933,8 @@ solverMatrixGen(const pastix_int_t clustnum,
             SolverCblk * fcblk;
             SolverBlok * fblok;
             MPI_Request * req;
+            double fanin_coefnbr = 0;
+            double fanin_coefnbr_pastix = 0;
 
             MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
             MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, SolverCblk*);
@@ -958,6 +960,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 fprintf(stdout, "%ld: Outgoing Fanin cblk number %ld, %ld blocks\n",
                         (long)solvmtx->clustnum, (long)ftgtCblkIdx,
                         (long)solvmtx->ftgtnbr);
+
             }
             solvmtx->fcblknbr[solvmtx->clustnum]       = ftgtCblkIdx;
             MALLOC_INTERN(solvmtx->fcblktab[solvmtx->clustnum],
@@ -987,6 +990,11 @@ solverMatrixGen(const pastix_int_t clustnum,
                     fcblk->stride +=
                         ftgt->infotab[FTGT_LROWNUM] -
                         ftgt->infotab[FTGT_FROWNUM] + 1;
+                    fanin_coefnbr += (double)(cblk_colnbr(fcblk)*blok_rownbr(fblok));
+                    fanin_coefnbr_pastix += (double)((ftgt->infotab[FTGT_LCOLNUM] -
+                                                      ftgt->infotab[FTGT_FCOLNUM] + 1)
+                                                     *blok_rownbr(fblok));
+
                     ftgtBlokIdx++;
                     fblok++;
                     ftgt++;
@@ -994,6 +1002,14 @@ solverMatrixGen(const pastix_int_t clustnum,
                 fcblk++;
             }
 
+            if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
+                fprintf(stdout,
+                        "%ld: Outgoing Fanin volume : %.3g coefficients (+%.3g%%),"
+                        " %.3g with native scheduler (+%.3g %%)\n",
+                        (long)solvmtx->clustnum, fanin_coefnbr,
+                        (fanin_coefnbr-fanin_coefnbr_pastix)/fanin_coefnbr_pastix,
+                        fanin_coefnbr_pastix);
+            }
             if (solvmtx->ftgtnbr > 0) {
                 /*  virtual cblk to avoid side effect in the loops on cblk bloks */
                 fcblk->fcolnum = (fcblk-1)->lcolnum+1;
@@ -1045,6 +1061,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                             " %ld blocks received from %ld\n",
                             (long)solvmtx->clustnum, (long)solvmtx->fcblknbr[clustnum],
                             (long)fBlokNbr, (long)clustnum);
+
                 }
                 if(solvmtx->fcblknbr[clustnum] > 0) {
                     pastix_int_t ftgtnbr;
