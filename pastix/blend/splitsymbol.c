@@ -246,7 +246,7 @@ computeSmallestSplit( pastix_int_t *nblocksperline,
                       pastix_int_t max,
                       pastix_int_t authorized_percent)
 {
-    pastix_int_t limit = pastix_iceil( step, 100 / authorized_percent );
+    pastix_int_t limit = pastix_iceil( step*authorized_percent, 100 );
     pastix_int_t i, lcolnum, nbsplit;
     pastix_int_t lmin, lmax, lavg;
 
@@ -288,7 +288,7 @@ computeSmallestSplit_max( pastix_int_t *nblocksperline,
                           pastix_int_t max,
                           pastix_int_t authorized_percent )
 {
-    pastix_int_t limit = pastix_iceil( step, 100 / authorized_percent );
+    pastix_int_t limit = pastix_iceil( step*authorized_percent, 100 );
     pastix_int_t i, lcolnum, nbsplit;
     pastix_int_t lmin, lmax, lavg;
 
