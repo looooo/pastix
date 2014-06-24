@@ -34,6 +34,10 @@
 #include "trace.h"
 #include "pastixdata.h"
 #include "redefine_functions.h"
+#include <stdlib.h>
+#include <limits.h>
+#include <stdio.h>
+#include <errno.h>
 
 /********************************************************************
  * Errors functions
@@ -145,13 +149,19 @@ static inline void pastix_cleanenv( char *str ) {
 
 
 static inline int
-pastix_env_is_on(char * str) {
+pastix_env_is_set_to(char * str, char * value) {
     char * val;
     if ( (val = pastix_getenv(str)) &&
-         !strcmp(val, "1"))
+         !strcmp(val, value))
         return API_YES;
     return API_NO;
 }
+
+static inline int
+pastix_env_is_on(char * str) {
+    return pastix_env_is_set_to(str, "1");
+}
+
 static inline
 int pastix_starpu_with_fanin() {
     return pastix_env_is_on("PASTIX_STARPU_FANIN");
@@ -166,6 +176,33 @@ static inline
 int pastix_starpu_with_separate_trsm() {
     return pastix_env_is_on("PASTIX_STARPU_SEPARATE_TRSM");
 }
+
+static inline
+int pastix_getenv_get_value_int(char * string, int default_value) {
+    long int ret;
+    int base = 10;
+    char *endptr;
+    char *str = pastix_getenv(string);
+    if (str == NULL) return default_value;
+
+    ret = strtol(str, &endptr, base);
+
+    /* Check for various possible errors */
+    if ((errno == ERANGE && (ret == LONG_MAX || ret == LONG_MIN))
+        || (errno != 0 && ret == 0)) {
+        perror("strtol");
+        return default_value;
+    }
+
+    if (endptr == str) {
+        return default_value;
+    }
+
+    if (*endptr != '\0')        /* Not necessarily an error... */
+        fprintf(stderr, "Further characters after %s value: %s\n", string, endptr);
+    return (int)ret;
+}
+
 
 #endif /* _COMMON_H_ */
 
