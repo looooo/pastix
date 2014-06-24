@@ -292,6 +292,34 @@ pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
     return cblk->lcolnum - cblk->fcolnum + 1;
 }
 
+/**
+ * Get the number of rows of a block.
+ *
+ * @param block SolverBlok structure.
+ *
+ * @returns the number of rows in the block.
+ */
+static inline
+pastix_int_t blok_rownbr( SolverBlok * blok ) {
+    return blok->lrownum - blok->frownum + 1;
+}
+
+/**
+ * Get the number of rows of a column block.
+ *
+ * @param column block SolverCblk structure.
+ *
+ * @returns the number of rows in the column block.
+ */
+static inline
+pastix_int_t cblk_rownbr( SolverCblk * cblk ) {
+    pastix_int_t rownbr = 0;
+    SolverBlok * blok;
+    for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++)
+        rownbr += blok_rownbr(blok);
+    return rownbr;
+}
+
 
 static inline
 pastix_int_t cblk_save( SolverCblk * cblk, char * name, pastix_float_t * coef) {
@@ -339,6 +367,8 @@ static inline int is_block_inside_fblock( SolverBlok *blok, SolverBlok *fblok ) 
     return ((blok->frownum >= fblok->frownum) &&
             (blok->lrownum <= fblok->lrownum));
 }
+
+
 #  endif /* defined(NAPA_SOPALIN) */
 
 #endif /* SOLVER_H */
