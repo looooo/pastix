@@ -921,6 +921,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
 #  ifdef STARPU_CONTEXT
                                    STARPU_SCHED_CTX, sched_ctxs[my_ctx],
 #  endif
+                                   STARPU_PRIORITY, 1,
                                    0);
         if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 
