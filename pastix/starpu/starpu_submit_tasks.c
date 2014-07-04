@@ -1278,6 +1278,7 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
             STARPU_ASSERT(!ret);
         }
         /* wait for end of init */
+        starpu_mpi_cache_flush_all_data();
         starpu_task_wait_for_all();
         memFree_null(init_arg);
     }
