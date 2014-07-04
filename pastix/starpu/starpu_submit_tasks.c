@@ -972,8 +972,9 @@ starpu_submit_loop (void * arg) {
     SolverMatrix        *datacode          = sopalin_data->datacode;
     int                  me                = starpu_loop_data->me;
     int                 *sched_ctxs        = starpu_loop_data->sched_ctxs;
-    pastix_int_t itertask;
+    pastix_int_t itertask, i;
     pastix_int_t n_cblks = 0, n_tasks = 0;
+    Queue               q;
 
     if ( pastix_env_is_on("PASTIX_STARPU_PREFETCH_ON_NODE") ) {
         /* Prefetch data on GPUs */
@@ -1008,9 +1009,15 @@ starpu_submit_loop (void * arg) {
         memFree_null(memory_nodes);
     }
 
+
+    queueInit(&q,SOLV_TASKNBR);
+    for (i=0;i<SOLV_TASKNBR;i++)
+        queueAdd(&q, i,((double)TASK_PRIONUM(i)));
+
     /* For all ready task we submit factorization  */
-    for (itertask=0;itertask<SOLV_TASKNBR;itertask++) {
+    for (i=0;i<SOLV_TASKNBR;i++) {
         char * nested;
+        itertask = queueGet(&q);
         if ( pastix_starpu_with_nested_task() &&
              TASK_CTRBCNT(itertask) ) continue;
         starpu_submit_one_trf(itertask, sopalin_data);
@@ -1018,6 +1025,7 @@ starpu_submit_loop (void * arg) {
             starpu_submit_bunch_of_gemm(itertask, sopalin_data);
         }
     }
+    queueExit(&q);
     return NULL;
 }
 
