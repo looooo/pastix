@@ -414,7 +414,7 @@ splitSmart( const BlendCtrl    *ctrl,
             pastix_int_t nbcblk = 0;
 
             fcol = fcolnum;
-            while( fcol < lcolnum )
+            while( fcol <= lcolnum )
             {
                 if (SPLITSYMBOL_METHOD_CONSTANT == method)
                     lcol = fcol + computeConstantSplit( nblocksperline + fcol,
