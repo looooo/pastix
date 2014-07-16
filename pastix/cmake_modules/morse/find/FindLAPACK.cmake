@@ -276,7 +276,7 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
           LAPACK
           cheev
           ""
-          "mkl_gf_lp64"
+          "mkl_intel_lp64"
           "${BLAS_LIBRARIES}"
           "${CMAKE_THREAD_LIBS_INIT};${LM}"
           )

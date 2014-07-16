@@ -240,6 +240,7 @@ subs = {
     ('real',                 'double precision',      'real',                            'double precision'                 ),  # before double
     ('float',                'double',                'float _Complex',                  'double _Complex'                  ),
     ('float',                'double',                'cuFloatComplex',                  'cuDoubleComplex'                  ),
+    ('float',                'double',                'magmaFloatComplex',               'magmaDoubleComplex'               ),
     ('float',                'double',                'PLASMA_Complex32_t',              'PLASMA_Complex64_t'               ),
     ('float',                'double',                'PLASMA_voidComplex32_t',          'PLASMA_voidComplex64_t'           ),
     ('PlasmaRealFloat',      'PlasmaRealDouble',      'PlasmaComplexFloat',              'PlasmaComplexDouble'              ),
@@ -415,6 +416,7 @@ subs = {
     ('scopy',          'dcopy',          'ccopy',          'zcopy'           ),
     ('sgecfi',         'dgecfi',         'cgecfi',         'zgecfi'          ),
     ('sgemm',          'dgemm',          'cgemm',          'zgemm'           ),
+    ('sgemdm',         'dgemdm',         'cgemdm',         'zgemdm'          ),
     ('sgemv',          'dgemv',          'cgemv',          'zgemv'           ),
     ('sscal',          'dscal',          'cscal',          'zscal'           ),
     ('sscal',          'dscal',          'csscal',         'zdscal'          ),
@@ -877,6 +879,13 @@ subs = {
     ('DAG_CORE_UNMQL', 'DAG_CORE_UNMQL', 'DAG_CORE_UNMQL', 'DAG_CORE_U-NMQL' ),
     ('DAG_CORE_UNMQR', 'DAG_CORE_UNMQR', 'DAG_CORE_UNMQR', 'DAG_CORE_U-NMQR' ),
 
+    # PaStiX
+    ('sutils.h',       'dutils.h',       'cutils.h',       'zutils.h'        ),
+    ('smurge.h',       'dmurge.h',       'smurge.h',       'zmurge.h'        ),
+    ('SMURGE_',        'DMURGE_',        'SMURGE_',        'ZMURGE_'         ),
+    ('ssimple',        'dsimple',        'csimple',        'zsimple'         ),
+    ('sstep-by-step',  'dstep-by-step',  'cstep-by-step',  'zstep-by-step'         ),
+    ('s_',             'd_',             'c_',             'z_'         ),
     # ----- unused?
     ('s_check',        'd_check',        'c_check',        'z_check'         ),
     #('stesting',       'dtesting',       'ctesting',       'ztesting'        ),
