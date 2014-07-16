@@ -33,7 +33,7 @@
 #include "debug_dump.h"
 #include "sopalin_acces.h"
 #include "csc_intern_compute.h"
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
 #  include "starpu_submit_tasks.h"
 #endif
 

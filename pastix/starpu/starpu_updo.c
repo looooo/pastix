@@ -6,11 +6,6 @@
 #    undef STARPU_USE_DEPRECATED_API
 #  endif
 #  include <starpu.h>
-#  ifdef FORCE_NOMPI
-#    include "nompi.h"
-#  else
-#    include <mpi.h>
-#  endif
 #  include "common.h"
 #  include "symbol.h"
 #  include "ftgt.h"
@@ -43,13 +38,17 @@
 #    define STARPU_1_2
 #  endif
 
-#ifndef WITH_STARPU_MPI
+#ifdef PASTIX_WITH_MPI
+#  ifdef PASTIX_WITH_STARPU
+#    define PASTIX_WITH_STARPU_MPI
+#  endif
+#endif
+#ifndef PASTIX_WITH_STARPU_MPI
 #  define starpu_mpi_init(a, ...)            starpu_init(a, __VA_ARGS__)
 #  define starpu_mpi_insert_task(a, b, ...)  starpu_insert_task(b, __VA_ARGS__)
 #  define starpu_mpi_data_register(...)
 #  define starpu_data_get_rank(...)          0
 #endif
-
 int starpu_register_sm2x(Sopalin_Data_t       * sopalin_data,
                          starpu_data_handle_t * SM2X_handles)
 {

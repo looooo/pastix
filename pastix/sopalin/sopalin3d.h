@@ -240,7 +240,7 @@ struct Sopalin_Data_ {
 #endif
 };
 
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
 struct starpu_trf_data_ {
   pastix_int_t              cblknum;
 #ifdef STARPU_SUBMIT_READY

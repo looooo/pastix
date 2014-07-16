@@ -621,10 +621,10 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
                 /* submit GEMM halo task */
 #if defined(PASTIX_WITH_CUDA)
                 if ( sopalin_data->sopar->iparm[IPARM_CUDA_NBR] > 0 &&
-                     SOLV_COLOR(itercblk) >= 0) {
+                     SOLV_GPUID(itercblk) >= 0) {
                     cl = &sparse_gemm_cl;
-                    workerid = starpu_loop_data->gpu_workerids[SOLV_COLOR(itercblk)];
-                    starpu_loop_data->gpu_gemm_count[SOLV_COLOR(itercblk)]++;
+                    workerid = starpu_loop_data->gpu_workerids[SOLV_GPUID(itercblk)];
+                    starpu_loop_data->gpu_gemm_count[SOLV_GPUID(itercblk)]++;
                 }
 #endif /* defined(PASTIX_WITH_CUDA) */
                 /* search first block facing itercblk */
@@ -885,10 +885,10 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
 
 #if defined(PASTIX_WITH_CUDA)
             if ( starpu_loop_data->ngpus > 0 &&
-                 SOLV_COLOR(SYMB_CBLKNUM(iterbloc)) >= 0) {
+                 SOLV_GPUID(SYMB_CBLKNUM(iterbloc)) >= 0) {
                 cl = &sparse_gemm_cl;
-                workerid = starpu_loop_data->gpu_workerids[SOLV_COLOR(SYMB_CBLKNUM(iterbloc))];
-                starpu_loop_data->gpu_gemm_count[SOLV_COLOR(SYMB_CBLKNUM(iterbloc))]++;
+                workerid = starpu_loop_data->gpu_workerids[SOLV_GPUID(SYMB_CBLKNUM(iterbloc))];
+                starpu_loop_data->gpu_gemm_count[SOLV_GPUID(SYMB_CBLKNUM(iterbloc))]++;
             }
 
 #endif  /* defined(PASTIX_WITH_CUDA) */
@@ -993,8 +993,8 @@ starpu_submit_loop (void * arg) {
             pastix_int_t itercblk = TASK_CBLKNUM(itertask);
 #if defined(PASTIX_WITH_CUDA)
             if (starpu_loop_data->ngpus > 0 &&
-                SOLV_COLOR(itercblk) >= 0) {
-                pastix_int_t workerid = starpu_loop_data->gpu_workerids[SOLV_COLOR(itercblk)];
+                SOLV_GPUID(itercblk) >= 0) {
+                pastix_int_t workerid = starpu_loop_data->gpu_workerids[SOLV_GPUID(itercblk)];
                 pastix_int_t node = memory_nodes[workerid];
                 starpu_data_prefetch_on_node(starpu_loop_data->L_handle[itercblk],
                                              node, 1);

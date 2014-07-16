@@ -36,11 +36,13 @@ static struct starpu_codelet starpu_zfanin_init_codelet =
     //.cpu_funcs_name = {"starpu_zfanin_init_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
     .cuda_funcs = {starpu_zfanin_init_cuda_func, NULL},
+#  ifdef STARPU_WITH_ASYNC_CUDA
     .cuda_flags = {STARPU_CUDA_ASYNC},
+#  endif
 #endif
-#ifdef STARPU_USE_OPENCL
-    .opencl_funcs = {init_opencl_func, NULL},
-#endif
+/* #ifdef STARPU_USE_OPENCL */
+/*     .opencl_funcs = {init_opencl_func, NULL}, */
+/* #endif */
     .modes = {STARPU_W},
     .nbuffers = 1,
     .name = "init",

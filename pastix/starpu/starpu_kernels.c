@@ -24,8 +24,8 @@ int API_CALL(CORE_gemdm)(int transA, int transB,
                          pastix_float_t *WORK, int LWORK);
 
 #ifdef PASTIX_WITH_CUDA
-#  include "sparse_gemm.h"
 #  include "pastix_cuda_helper.h"
+#  include "sparse_zgemm_fermi.h"
 #endif
 
 #include <inttypes.h>

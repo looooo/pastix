@@ -17,6 +17,9 @@
 **  The type and structure definitions.
 */
 
+#ifndef COST_H
+#define COST_H
+
 typedef struct CostBlok_ {
   double                    contrib; /*+ Cost of contrib bounded to this blok                  +*/
   pastix_int_t              linenbr; /*+ Number of no empty line above the blok (blok include) +*/
@@ -42,3 +45,5 @@ CostMatrix   *costMatrixBuild     (const SymbolMatrix *, const Dof *);
 double          cblkComputeCost       (pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
 
 #undef static
+
+#endif /* COST_H */

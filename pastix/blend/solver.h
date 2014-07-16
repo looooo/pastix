@@ -73,6 +73,7 @@ typedef struct SolverCblk_  {
   pastix_int_t                       gcblknum;             /*+ Global column block index              +*/
   pastix_float_t * restrict          coeftab;              /*+ Coefficients access vector             +*/
   pastix_float_t * restrict          ucoeftab;             /*+ Coefficients access vector             +*/
+  pastix_int_t                       gpuid;
 } SolverCblk;
 
 /*+ Solver matrix structure. +*/

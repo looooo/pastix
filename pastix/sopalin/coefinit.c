@@ -59,7 +59,7 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
 #ifndef OOC
   pastix_int_t itercblk, coefnbr;
 #endif
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
   /* For CUDA devices we have no allocation (yet?) */
   if ( sopar->iparm[IPARM_STARPU] == API_YES && me >= SOLV_THRDNBR)
     return;
@@ -191,7 +191,7 @@ void CoefMatrix_Init(SolverMatrix         *datacode,
   pastix_int_t j, itercblk;
   pastix_int_t i, coefnbr;
 
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
   /* For CUDA devices we have no allocation (yet?) */
   if ( iparm[IPARM_STARPU] == API_YES && me >= SOLV_THRDNBR)
     return;

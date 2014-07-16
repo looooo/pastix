@@ -820,7 +820,7 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pas
     }
 }
 
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
 #include "./starpu_kernels.c"
 #include "./starpu_updo_kernels.c"
 #endif

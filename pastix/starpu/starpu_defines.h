@@ -44,6 +44,7 @@
 #  define STARPU_1_1
 #  define STARPU_1_2
 #  define STARPU_COMMUTABLE
+#  define STARPU_WITH_ASYNC_CUDA
 #endif
 
 #ifndef STARPU_COMMUTABLE

@@ -141,7 +141,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
        */
       {
         int threadnbr = SOLV_THRDNBR;
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
         if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
           threadnbr += sopalin_data->sopar->iparm[IPARM_CUDA_NBR];
         else
@@ -618,7 +618,7 @@ void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
       if (sopalin_data->thread_data != NULL)
         {
           int threadnbr = SOLV_THRDNBR;
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
           if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
             threadnbr += sopalin_data->sopar->iparm[IPARM_CUDA_NBR];
           else
@@ -859,9 +859,9 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
                 if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
                   print_one("%s", OUT2_SOP_BIND);
                 if (
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
                   sopalin_data->sopar->iparm[IPARM_STARPU] == API_NO &&
-#endif /* WITH_STARPU */
+#endif /* PASTIX_WITH_STARPU */
                   sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO
                     )
                   {
@@ -1039,7 +1039,7 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
 
       if (INIT_COMPUTE & init)
         {
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
 	  if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_NO ||
 	      me < SOLV_THRDNBR)
 #endif

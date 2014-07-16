@@ -16,7 +16,7 @@ precisions_rules_py(generated_headers
                     PRECISIONS "s;d;c;z")
 
 add_custom_target(starpu_headers ALL SOURCES
-  ${generated_headers} )
+  ${generated_headers})
 
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
@@ -39,7 +39,7 @@ add_library(pastix_starpu
 )
 
 add_dependencies(pastix_starpu
-  kernel_headers
+  starpu_headers
 )
 
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")

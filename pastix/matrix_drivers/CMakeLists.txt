@@ -43,4 +43,8 @@ add_library(read_matrix
 add_dependencies(read_matrix
   headers)
 
-install(TARGETS read_matrix ARCHIVE DESTINATION lib)
+install(TARGETS read_matrix
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib)
+

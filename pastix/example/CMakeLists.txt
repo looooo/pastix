@@ -1,3 +1,8 @@
+include(RulesPrecisions)
+# reset variables
+set(generated_files "")
+set(generated_headers "")
+
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 link_directories(
   ${CBLAS_LIBRARY_DIRS}
@@ -61,8 +66,25 @@ if(PASTIX_WITH_STARPU)
   endif(PASTIX_WITH_MPI)
 endif(PASTIX_WITH_STARPU)
 
-foreach(example simple step-by-step analyse)
-  add_executable(${example} "${example}.c")
+set(HEADERS zutils.h)
+precisions_rules_py(generated_headers
+                    "${HEADERS}"
+                    PRECISIONS "s;d;c;z")
+message(STATUS ${SOURCES})
+message(STATUS ${generated_headers})
+add_custom_target(examples_headers ALL SOURCES
+  ${generated_headers} )
+set(SOURCES zsimple.c zstep-by-step.c)
+## Require all PaStiX with multiple precision before...
+##precisions_rules_py(generated_files
+##   "${SOURCES}"
+##   PRECISIONS "s;d;c;z")
+message(STATUS ${generated_files})
+foreach(example_with_ext ${generated_files} simple.c step-by-step.c analyse.c)
+  message(STATUS "${example_with_ext}")
+  GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
+  add_executable(${example} "${example_with_ext}")
+  add_dependencies(${example} ${example_with_ext})
   target_link_libraries( ${example}
     ${PASTIX_EXAMPLES_LIBRARIES} )
 

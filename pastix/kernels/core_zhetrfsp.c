@@ -291,7 +291,7 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
     if ( fblk+1 < lblk )
     {
         pastix_complex64_t *fL;
-        pastix_int_t nrows;
+        pastix_int_t nrows, k;
 
         /* vertical dimension */
         nrows = stride - ncols;
@@ -307,7 +307,7 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
                     CBLAS_SADDR(zone), L,  stride,
                                        fL, stride);
 
-        for (pastix_int_t k=0; k<ncols; k++)
+        for (k=0; k<ncols; k++)
         {
             pastix_complex64_t alpha;
             alpha = 1. / L[k+k*stride];

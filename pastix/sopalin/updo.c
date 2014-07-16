@@ -39,7 +39,7 @@ void updo_thread ( SolverMatrix *datacode, SopalinParam *sopaparam )
   /*   if (sopaparam->iparm[IPARM_ONLY_RAFF] == 1) */
   /*     sopalin_init(sopalin_data, datacode, sopaparam); */
   sopalin_init(sopalin_data, datacode, sopaparam, 0);
-#ifdef WITH_STARPU
+#ifdef PASTIX_WITH_STARPU
   if (sopalin_data->sopar->iparm[IPARM_STARPU] == API_YES)
     {
       starpu_submit_tasks(sopalin_data);
