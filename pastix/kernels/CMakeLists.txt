@@ -103,8 +103,10 @@ set(TESTING_KERNELS_LIBRARIES
   m
 )
 
-set(SOURCES
-  test_zgetrfsp.c)
+set(SOURCES test_zgetrfsp.c)
+if (PASTIX_WITH_CUDA)
+  list(APPEND SOURCES test_sparse_zgemm.c)
+endif(PASTIX_WITH_CUDA)
 precisions_rules_py(generated_tests
    "${SOURCES}"
    PRECISIONS "s;d;c;z")
@@ -115,9 +117,12 @@ foreach(example ${generated_tests})
   target_link_libraries( ${output}
     ${TESTING_KERNELS_LIBRARIES} )
   if (PASTIX_WITH_MPI)
-    target_link_libraries( ${output}
-      ${MPI_LIBRARIES} )
-  endif()
+    target_link_libraries( ${output} ${MPI_LIBRARIES} )
+  endif(PASTIX_WITH_MPI)
+  if (PASTIX_WITH_CUDA)
+    target_link_libraries(${output} cuda)
+    target_link_libraries(${output} cublas)
+  endif(PASTIX_WITH_CUDA)
 endforeach()
 
 

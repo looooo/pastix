@@ -205,13 +205,17 @@ void cccRead(char const      *filename,
 #endif
 #else
           (*val)[i] = (pastix_float_t)temp1;
+#ifdef TYPE_COMPLEX
           (*val)[i] += ((pastix_float_t)temp2)*I;
+#endif
 #endif
           i++;
         }
 #else
       (*val)[iter] = (pastix_float_t)temp1;
+#ifdef TYPE_COMPLEX
       (*val)[iter] += ((pastix_float_t)temp2)*I;
+#endif
 #endif
     }
   fclose(infile1);

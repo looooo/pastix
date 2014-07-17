@@ -417,6 +417,7 @@ subs = {
     ('sgecfi',         'dgecfi',         'cgecfi',         'zgecfi'          ),
     ('sgemm',          'dgemm',          'cgemm',          'zgemm'           ),
     ('sgemdm',         'dgemdm',         'cgemdm',         'zgemdm'          ),
+    ('SGEMDM',         'DGEMDM',         'CGEMDM',         'ZGEMDM'          ),
     ('sgemv',          'dgemv',          'cgemv',          'zgemv'           ),
     ('sscal',          'dscal',          'cscal',          'zscal'           ),
     ('sscal',          'dscal',          'csscal',         'zdscal'          ),
@@ -884,8 +885,8 @@ subs = {
     ('smurge.h',       'dmurge.h',       'smurge.h',       'zmurge.h'        ),
     ('SMURGE_',        'DMURGE_',        'SMURGE_',        'ZMURGE_'         ),
     ('ssimple',        'dsimple',        'csimple',        'zsimple'         ),
-    ('sstep-by-step',  'dstep-by-step',  'cstep-by-step',  'zstep-by-step'         ),
-    ('s_',             'd_',             'c_',             'z_'         ),
+    ('sstep-by-step',  'dstep-by-step',  'cstep-by-step',  'zstep-by-step'   ),
+    ('s_',             'd_',             'c_',             'z_'              ),
     # ----- unused?
     ('s_check',        'd_check',        'c_check',        'z_check'         ),
     #('stesting',       'dtesting',       'ctesting',       'ztesting'        ),
