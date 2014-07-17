@@ -49,15 +49,38 @@ else (MPI_FOUND)
     "Build PaStiX for distributed memory with MPI" OFF)
 endif(MPI_FOUND)
 
+### GPU engine parameters
+find_package(CUDA)
+if (CUDA_FOUND)
+  option(PASTIX_WITH_CUDA
+    "Enable GPU support using CUDA kernels" ON)
+else (CUDA_FOUND)
+  option(PASTIX_WITH_CUDA
+    "Enable GPU support using CUDA kernels" OFF)
+endif(CUDA_FOUND)
+
+#Search for StarPU
+# create list of components in order to make a single call to find_package(starpu...)
+set(STARPU_COMPONENT_LIST "HWLOC")
+if(PASTIX_WITH_MPI)
+  list(APPEND STARPU_COMPONENT_LIST "MPI")
+endif(PASTIX_WITH_MPI)
+
+if(PASTIX_WITH_CUDA)
+  list(APPEND STARPU_COMPONENT_LIST "CUDA")
+endif(PASTIX_WITH_CUDA)
+
 find_package(STARPU "1.1"
   COMPONENTS ${STARPU_COMPONENT_LIST})
 if (STARPU_FOUND)
-  option(PASTIX_WITH_STARPU_PROFILING
-    "Build PaStiX with StarPU runtime support profiling" ON)
+  option(PASTIX_WITH_STARPU
+    "Build PaStiX with StarPU runtime support" ON)
 else (STARPU_FOUND)
-  option(PASTIX_WITH_STARPU_PROFILING
-    "Build PaStiX with StarPU runtime support profiling" OFF)
+  option(PASTIX_WITH_STARPU
+    "Build PaStiX with StarPU runtime support" OFF)
 endif(STARPU_FOUND)
+option(PASTIX_WITH_STARPU_PROFILING
+  "Build PaStiX with StarPU runtime support profiling" OFF)
 
 option(PASTIX_DUMP_CBLK
   "Dump all cblk on disk after modifications" OFF)
@@ -68,15 +91,6 @@ cmake_dependent_option(PASTIX_DISTRIBUTED
 cmake_dependent_option(PASTIX_THREAD_COMM
  "Enable the specific communication thread (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
 
-### GPU engine parameters
-find_package(CUDA)
-if (CUDA_FOUND)
-  option(PASTIX_WITH_CUDA
-    "Enable GPU support using CUDA kernels" ON)
-else (CUDA_FOUND)
-  option(PASTIX_WITH_CUDA
-    "Enable GPU support using CUDA kernels" OFF)
-endif(CUDA_FOUND)
 option(PASTIX_INT64
   "Choose between int32 and int64 for integer representation" ON)
 
@@ -168,15 +182,6 @@ if (PASTIX_WITH_STARPU)
     message(FATAL_ERROR
       "Starpu is required to build PaStiX with Starpu support.")
   endif(NOT STARPU_FOUND)
-  # create list of components in order to make a single call to find_package(starpu...)
-  set(STARPU_COMPONENT_LIST "HWLOC")
-  if(PASTIX_WITH_MPI)
-    list(APPEND STARPU_COMPONENT_LIST "MPI")
-  endif(PASTIX_WITH_MPI)
-
-  if(PASTIX_WITH_CUDA)
-    list(APPEND STARPU_COMPONENT_LIST "CUDA")
-  endif(PASTIX_WITH_CUDA)
 
   set(HAVE_STARPU ${STARPU_FOUND})
   if (STARPU_FOUND)
