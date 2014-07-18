@@ -138,6 +138,7 @@ void usage(char * name)
     int cmpres_p = 0;                                                   \
     double cmpres_norm =  0.0, cmpres_sum = 0.0;                        \
     double cmpres_maxdiff = 0.0;                                        \
+    double cmpres_result;                                               \
     for (cmpres_i = 0; cmpres_i < ldb*n; cmpres_i++)                    \
       {                                                                 \
         double cmpres_diff = (double)((B1[cmpres_i]-B2[cmpres_i])*      \
@@ -163,9 +164,21 @@ void usage(char * name)
             run2_idx, run_idx, sqrt(cmpres_norm/cmpres_sum));           \
     fprintf(stdout, "%d.%d: normM = %e\n",                              \
             run2_idx, run_idx, sqrt(cmpres_maxdiff));                   \
-    fprintf(stdout, "%d.%d: normM/(sum(normA,At,C)*MAX(m,n)*EPS) = %e\n", \
-            run2_idx, run_idx, sqrt(cmpres_maxdiff)/                    \
-            ((norm_A+norm_At+norm_B)*n*FLOAT_EPSILON));                 \
+    cmpres_result = sqrt(cmpres_maxdiff)/                               \
+        ((norm_A+norm_At+norm_B)*n*FLOAT_EPSILON);                      \
+    fprintf(stdout,                                                     \
+            "%d.%d: normM/(sum(normA,At,C)*MAX(m,n)*EPS) = %e\n",       \
+            run2_idx, run_idx, cmpres_result);                          \
+    if ( isnan(cmpres_result)                                           \
+         || isinf(cmpres_result)                                        \
+         || (cmpres_result > 10.0) ) {                                  \
+        fprintf(stdout,"-- Product is suspicious ! \n");                \
+        ret |= 1;                                                       \
+    }                                                                   \
+    else{                                                               \
+        fprintf(stdout,"-- Factorization is CORRECT ! \n");             \
+        ret |= 0;                                                       \
+    }                                                                   \
   } while(0)
 
 #define PRINT_TIME(str, time, ops) do {                         \
@@ -371,9 +384,9 @@ main(int argc, char ** argv) {
   int           ldd;
   double        clk[2];
   double        clk_wt[2];
-#define myClockInit(clock)  clock[0] = clockGet()
-#define myClockStart(clock)  clock[0] = clockGet()
-#define myClockStop(clock)  clock[1] = clockGet()
+#define myClockInit(clock)  do {clock[0] = clockGet(); } while(0)
+#define myClockStart(clock) do {clock[0] = clockGet(); } while(0)
+#define myClockStop(clock)  do {clock[1] = clockGet(); } while(0)
 #define myClockVal(clock)   (clock[1] - clock[0])
 
   pastix_complex64_t alpha = -1.0;
@@ -400,6 +413,7 @@ main(int argc, char ** argv) {
   double norm_B;
   double norm_At;
   int    nruns = 1, nruns2 = 1, run_idx, run2_idx;
+  int ret = 0;
 
   cu_alpha = CU_FLOAT_INIT(creal(alpha), cimag(alpha));
   cu_beta  = CU_FLOAT_INIT(creal(beta),  cimag(beta));
@@ -540,10 +554,10 @@ main(int argc, char ** argv) {
       norm_At = compute_norme(A1, lda, k, blocks[1]-blocks[0]+1);
       norm_B  = compute_norme(B0, ldb, n, ldb);
       {
-        int i,j;
-        for (i = 0; i < ldd; i++)
-	  for (j = 0; j < k; j++)
-	    D[j*ldd + i] = 2*(i==j);
+          int i,j;
+          for (i = 0; i < ldd; i++)
+              for (j = 0; j < k; j++)
+                  D[j*ldd + i] = (pastix_complex64_t)(i*(i==j));
       }
       
       for (run_idx = 0; run_idx < nruns; run_idx++)
@@ -873,5 +887,5 @@ main(int argc, char ** argv) {
   memFree_null(min_time_dense_GPU);
   memFree_null(min_time_dense_GPU_wt);
   
-  return EXIT_SUCCESS;
+  return ret;
 }

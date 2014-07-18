@@ -16,6 +16,7 @@
  **/
 
 #include <malloc.h>
+#include <float.h>
 #include "common.h"
 #include "core_zgetrfsp.c" //#include "pastix_zcores.h"
 
@@ -28,7 +29,7 @@ test_zgetf2sp(pastix_int_t m, pastix_int_t n, pastix_int_t lda) {
     pastix_complex64_t *A    = malloc(n*lda*sizeof(pastix_complex64_t));
     pastix_complex64_t *LU   = malloc(n*lda*sizeof(pastix_complex64_t));
     pastix_complex64_t *Acpy = malloc(n*lda*sizeof(pastix_complex64_t));
-    double diff, norm;
+    double diff, norm, result;
     for (i = 0; i < n; i++) {
         for (j = 0; j < m; j++) {
             double a=((double)rand()/(double)RAND_MAX);
@@ -59,8 +60,20 @@ test_zgetf2sp(pastix_int_t m, pastix_int_t n, pastix_int_t lda) {
             norm = (Acpy[i*lda+j]) * conj(Acpy[i*lda+j]);
         }
     }
-    fprintf(stdout, "||LU - A||/||A|| %.3g\n", sqrt(diff/norm));
-    return 0;
+    result = sqrt(diff)/sqrt(norm)*n*DBL_EPSILON;
+    fprintf(stdout, "||LU - A||/(||A||.N.eps) %.3g\n", result);
+    if ( isnan(diff)
+         || isinf(diff)
+         || isnan(result)
+         || isinf(result)
+         || (result > 60.0) ) {
+        fprintf(stdout,"-- Factorization is suspicious ! \n");
+        return 1;
+    }
+    else{
+        fprintf(stdout,"-- Factorization is CORRECT ! \n");
+        return 0;
+    }
 }
 
 int
@@ -72,7 +85,7 @@ test_zgetrfsp(pastix_int_t n, pastix_int_t lda) {
     pastix_complex64_t *A    = malloc(n*lda*sizeof(pastix_complex64_t));
     pastix_complex64_t *LU   = malloc(n*lda*sizeof(pastix_complex64_t));
     pastix_complex64_t *Acpy = malloc(n*lda*sizeof(pastix_complex64_t));
-    double diff, norm;
+    double diff, norm, result;
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
             double a=((double)rand()/(double)RAND_MAX);
@@ -103,17 +116,30 @@ test_zgetrfsp(pastix_int_t n, pastix_int_t lda) {
             norm = (Acpy[i*lda+j]) * conj(Acpy[i*lda+j]);
         }
     }
-    fprintf(stdout, "||LU - A||/||A|| %.3g\n", sqrt(diff/norm));
-    return 0;
+    result = sqrt(diff)/sqrt(norm)*n*DBL_EPSILON;
+    fprintf(stdout, "||LU - A||/(||A||.N.eps) %.3g\n", result);
+    if ( isnan(diff)
+         || isinf(diff)
+         || isnan(result)
+         || isinf(result)
+         || (result > 60.0) ) {
+        fprintf(stdout,"-- Factorization is suspicious ! \n");
+        return 1;
+    }
+    else{
+        fprintf(stdout,"-- Factorization is CORRECT ! \n");
+        return 0;
+    }
 }
 
 int main( int argc, char**argv) {
     pastix_int_t ret = 0;
     fprintf(stdout, "test_zgetf2sp M = N = LDA = 128\n");
-    test_zgetf2sp(128, 128, 128);
+    ret |= test_zgetf2sp(128, 128, 128);
     fprintf(stdout, "test_zgetf2sp M = N = 128, LDA = 256\n");
-    test_zgetf2sp(128, 128, 256);
+    ret |= test_zgetf2sp(128, 128, 256);
     fprintf(stdout, "test_zgetrfsp N = 256, LDA = 512\n");
-    test_zgetrfsp(256, 512);
+    ret |= test_zgetrfsp(256, 512);
+    return ret;
 }
 

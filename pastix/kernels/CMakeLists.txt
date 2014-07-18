@@ -125,7 +125,14 @@ foreach(example ${generated_tests})
   endif(PASTIX_WITH_CUDA)
 endforeach()
 
-
+add_test(test_sgetrfsp test_sgetrfsp)
+add_test(test_dgetrfsp test_dgetrfsp)
+add_test(test_cgetrfsp test_cgetrfsp)
+add_test(test_zgetrfsp test_zgetrfsp)
+add_test(test_sparse_sgemm_2000_2000_200 test_sparse_sgemm 2000 2000 20)
+add_test(test_sparse_dgemm_2000_2000_200 test_sparse_dgemm 2000 2000 20)
+add_test(test_sparse_cgemm_2000_2000_200 test_sparse_cgemm 2000 2000 20)
+add_test(test_sparse_zgemm_2000_2000_200 test_sparse_zgemm 2000 2000 20)
 install(TARGETS pastix_kernels
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
