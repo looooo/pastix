@@ -246,6 +246,60 @@ pastix_int_t hcblk_getnum( SolverMatrix * datacode,
 
 
 /**
+ * Get the index of a fanin block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param block SolverBlok structure to test.
+ *
+ * @returns the index of the column block.
+ */
+static inline
+pastix_int_t fblok_getnum( SolverMatrix * datacode,
+                           SolverBlok   * blok,
+                           pastix_int_t   procnum ) {
+#ifdef PASTIX_WITH_STARPU
+    return blok - datacode->fbloktab[procnum];
+
+#else
+    return -1;
+#endif
+}
+
+/**
+ * Get the index of a local block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverBlok structure to test.
+ *
+ * @returns the index of the column block.
+ */
+static inline
+pastix_int_t blok_getnum( SolverMatrix * datacode,
+                          SolverBlok   * blok ) {
+    return blok - datacode->bloktab;
+}
+
+
+/**
+ * Get the index of a halo column block.
+ *
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverBlok structure to test.
+ *
+ * @returns the index of the column block.
+ */
+static inline
+pastix_int_t hblok_getnum( SolverMatrix * datacode,
+                           SolverBlok   * blok ) {
+#ifdef PASTIX_WITH_STARPU
+    return blok - datacode->hbloktab;
+#else
+    return -1;
+#endif
+}
+
+
+/**
  * Get the index of a fanin column block.
  *
  * @param datacode SolverMatrix structure.
@@ -291,6 +345,18 @@ pastix_int_t fcblk_getorigin( SolverMatrix * datacode,
 static inline
 pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
     return cblk->lcolnum - cblk->fcolnum + 1;
+}
+
+/**
+ * Get the number of columns of a column block.
+ *
+ * @param column block SolverCblk structure.
+ *
+ * @returns the number of columns in the column block.
+ */
+static inline
+pastix_int_t cblk_bloknbr( SolverCblk * cblk ) {
+    return (cblk+1)->fblokptr - cblk->fblokptr + 1;
 }
 
 /**
