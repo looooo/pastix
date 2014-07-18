@@ -31,31 +31,7 @@
 #include <starpu_cuda.h>
 
 #include "sparse_zgemm_fermi.h"
-
-#ifdef PRECISION_z
 #include "zgemm_fermi_define.h"
-#include "zgemm_fermi_define_bottom.h"
-#include "zgemm_fermi_define_right.h"
-#include "zgemm_fermi_define_corner.h"
-#endif
-#ifdef PRECISION_c
-#include "cgemm_fermi_define.h"
-#include "cgemm_fermi_define_bottom.h"
-#include "cgemm_fermi_define_right.h"
-#include "cgemm_fermi_define_corner.h"
-#endif
-#ifdef PRECISION_d
-#include "dgemm_fermi_define.h"
-#include "dgemm_fermi_define_bottom.h"
-#include "dgemm_fermi_define_right.h"
-#include "dgemm_fermi_define_corner.h"
-#endif
-#ifdef PRECISION_s
-#include "sgemm_fermi_define.h"
-#include "sgemm_fermi_define_bottom.h"
-#include "sgemm_fermi_define_right.h"
-#include "sgemm_fermi_define_corner.h"
-#endif
 
 extern "C" void
 GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k ,
@@ -243,8 +219,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nn != 0) && (n%BLK_N_nn != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_nn)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_nn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     } 
@@ -271,8 +247,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nt != 0) && (n%BLK_N_nt != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_nt)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_nt)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 	         							 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -294,8 +270,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tn != 0) && (n%BLK_N_tn != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_tn)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_tn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -317,8 +293,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_tt)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_tt)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -341,8 +317,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nt != 0) && (n%BLK_N_nt != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_nc)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_nc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     } 
@@ -364,8 +340,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_tc)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_tc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -387,8 +363,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tn != 0) && (n%BLK_N_tn != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_cn)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_cn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -410,8 +386,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_ct)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_ct)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -433,8 +409,8 @@ GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k 
 								       (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){      
-	dim3 dimGrid_corner(1, 1);
-	GENERATE_SM_VERSION_NAME(gemm_corner_cc)<<< dimGrid_corner, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+	dim3 dimGrid_bottom_right(1, 1);
+	GENERATE_SM_VERSION_NAME(gemm_bottom_right_cc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
 									 (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
