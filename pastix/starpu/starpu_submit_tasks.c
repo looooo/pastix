@@ -484,8 +484,8 @@ struct starpu_codelet sparse_gemm_cl =
     .cpu_funcs[0] = starpu_dhetrfsp1d_gemm_cpu,
 #    endif
 #  else
-    //.cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
-    .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu,
+    .cpu_funcs[0] = starpu_dsytrfsp1d_gemm_cpu,
+    /* .cpu_funcs[0] = trfsp1d_sparse_gemm_starpu_cpu, */
 #  endif
 #endif
 
@@ -496,6 +496,7 @@ struct starpu_codelet sparse_gemm_cl =
     /* #endif */
 #      ifdef STARPU_USE_CUDA_GEMM_FUNC
     .cuda_funcs[0] = trfsp1d_sparse_gemm_starpu_cuda,
+    //.cuda_funcs[0] = starpu_dsytrfsp1d_gemm_cuda,
 #      endif
     .model = &GEMM_model,
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)

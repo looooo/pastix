@@ -23,6 +23,7 @@ set(SOURCES
   starpu_zgetrfsp_cpu.c
   starpu_zpotrfsp_cpu.c
   starpu_zsytrfsp_cpu.c
+  starpu_zsytrfsp_cuda.c
   starpu_zhetrfsp_cpu.c
   starpu_zregister_data.c
   starpu_zsubmit.c
