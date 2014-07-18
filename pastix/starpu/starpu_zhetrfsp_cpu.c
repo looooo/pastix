@@ -35,7 +35,7 @@ static pastix_complex64_t zzero =  0.;
  *
  * @ingroup pastix_starpu_kernel
  *
- * starpu_zhetrfsp1d_hetrf_cpu - Computes the LLt factorization of one panel.
+ * starpu_zhetrfsp1d_hetrf_cpu - Computes the LDLh factorization of one panel.
  *
  *******************************************************************************
  *
