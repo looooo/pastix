@@ -1,31 +1,40 @@
-/*
-  File: csc_utils.c
-
-  Contains functions to manage CSC
-
- */
+/**
+ *  PaStiX CSC management routines.
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 #include "common.h"
-#include "csc_utils.h"
+#include "z_csc_utils.h"
+
+/* /\* */
+/*    Function: cmp_colrow */
+
+/*    Used for qsort to sort arrays of pastix_int_t following their first element. */
+
+/*    Returns the difference between the first element of *p1* and */
+/*    the first element of *p2* */
+
+/*    Parameters: */
+/*      p1 - the first array to compare */
+/*      p2 - the second array to compare */
+/* *\/ */
+/* int */
+/* cmp_colrow(const void *p1, const void *p2) */
+/* { */
+/*   return ((* (pastix_int_t * const *) p1) - (*(pastix_int_t * const *) p2)); */
+/* } */
 
 /*
-   Function: cmp_colrow
-
-   Used for qsort to sort arrays of pastix_int_t following their first element.
-
-   Returns the difference between the first element of *p1* and
-   the first element of *p2*
-
-   Parameters:
-     p1 - the first array to compare
-     p2 - the second array to compare
-*/
-int
-cmp_colrow(const void *p1, const void *p2)
-{
-  return ((* (pastix_int_t * const *) p1) - (*(pastix_int_t * const *) p2));
-}
-/*
-  Function: csc_symgraph
+  Function: z_csc_symgraph
 
 
   Modify the CSC to a symetric graph one.
@@ -45,10 +54,16 @@ cmp_colrow(const void *p1, const void *p2)
     newa  - Value of each element,can be NULL
 
  */
-int csc_symgraph(pastix_int_t n, const pastix_int_t * ia, const pastix_int_t * ja, const pastix_float_t * a,
-                 pastix_int_t *newn,   pastix_int_t **newia,    pastix_int_t **newja,    pastix_float_t **newa)
+int z_csc_symgraph( pastix_int_t               n,
+                    const pastix_int_t        *ia,
+                    const pastix_int_t        *ja,
+                    const pastix_complex64_t  *a,
+                    pastix_int_t              *newn,
+                    pastix_int_t             **newia,
+                    pastix_int_t             **newja,
+                    pastix_complex64_t       **newa)
 {
-  return csc_symgraph_int(n, ia, ja, a, newn, newia, newja, newa, API_NO);
+  return z_csc_symgraph_int(n, ia, ja, a, newn, newia, newja, newa, API_NO);
 }
 
 /*
@@ -70,9 +85,15 @@ int csc_symgraph(pastix_int_t n, const pastix_int_t * ia, const pastix_int_t * j
     newa        - Value of each element,can be NULL
     malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
-int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_t * ja, const pastix_float_t * a,
-                      pastix_int_t *newn, pastix_int_t **newia, pastix_int_t **newja, pastix_float_t **newa,
-                      int malloc_flag)
+int z_csc_symgraph_int (pastix_int_t               n,
+                        const pastix_int_t        *ia,
+                        const pastix_int_t        *ja,
+                        const pastix_complex64_t  *a,
+                        pastix_int_t              *newn,
+                        pastix_int_t             **newia,
+                        pastix_int_t             **newja,
+                        pastix_complex64_t       **newa,
+                        int                        malloc_flag)
 {
   pastix_int_t * nbrEltCol = NULL; /* nbrEltCol[i] = Number of elt to add in column i */
   pastix_int_t * cia       = NULL; /* ia of diff between good CSC and bad CSC */
@@ -198,7 +219,7 @@ int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_
           MALLOC_EXTERN(*newia, n+1, pastix_int_t);
           MALLOC_EXTERN(*newja, newl, pastix_int_t);
           if (a != NULL)
-            MALLOC_EXTERN(*newa, newl, pastix_float_t);
+            MALLOC_EXTERN(*newa, newl, pastix_complex64_t);
         }
       else
         {
@@ -206,7 +227,7 @@ int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_
           MALLOC_INTERN(*newia, n+1, pastix_int_t);
           MALLOC_INTERN(*newja, newl, pastix_int_t);
           if (a != NULL)
-            MALLOC_INTERN(*newa, newl, pastix_float_t);
+            MALLOC_INTERN(*newa, newl, pastix_complex64_t);
         }
       iterrow2 = 0; /* iterator of the CSC diff */
       for (itercol=0; itercol<n; itercol++)
@@ -257,7 +278,7 @@ int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_
           MALLOC_EXTERN(*newia, n+1, pastix_int_t);
           MALLOC_EXTERN(*newja, l, pastix_int_t);
           if (a != NULL)
-            MALLOC_EXTERN(*newa, l, pastix_float_t);
+            MALLOC_EXTERN(*newa, l, pastix_complex64_t);
         }
       else
         {
@@ -265,12 +286,12 @@ int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_
           MALLOC_INTERN(*newia, n+1, pastix_int_t);
           MALLOC_INTERN(*newja, l,   pastix_int_t);
           if (a != NULL)
-            MALLOC_INTERN(*newa, l, pastix_float_t);
+            MALLOC_INTERN(*newa, l, pastix_complex64_t);
         }
       memcpy((*newia), ia, (n+1)*sizeof(pastix_int_t));
       memcpy((*newja), ja, l * sizeof(pastix_int_t));
       if (a != NULL)
-        memcpy((*newa) , a , l * sizeof(pastix_float_t));
+        memcpy((*newa) , a , l * sizeof(pastix_complex64_t));
     }
   memFree_null(cia);
 
@@ -279,7 +300,7 @@ int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_
 
 
 /**
-    Function: csc_noDiag
+    Function: z_csc_noDiag
 
     Supress diagonal term.
     After this call, *ja* can be reallocated to *ia[n] -1*.
@@ -293,11 +314,11 @@ int csc_symgraph_int (pastix_int_t n, const pastix_int_t * ia, const pastix_int_
     Returns:
       ia and ja tabulars modified.
 */
-void csc_noDiag(pastix_int_t baseval,
-                pastix_int_t n,
-                pastix_int_t *ia,
-                pastix_int_t *ja,
-                pastix_float_t *a)
+void z_csc_noDiag(pastix_int_t        baseval,
+                  pastix_int_t        n,
+                  pastix_int_t       *ia,
+                  pastix_int_t       *ja,
+                  pastix_complex64_t *a)
 {
   pastix_int_t i, j;
   pastix_int_t indj;
@@ -336,7 +357,7 @@ void csc_noDiag(pastix_int_t baseval,
 }
 
 /*
-  Function: csc_check_doubles
+  Function: z_csc_check_doubles
 
   Check if the csc contains doubles and if correct if asked
 
@@ -357,18 +378,18 @@ void csc_noDiag(pastix_int_t baseval,
     API_YES - If the matrix contained no double or was successfully corrected.
     API_NO  - Otherwise.
 */
-int csc_check_doubles(pastix_int_t      n,
-                      pastix_int_t   *  colptr,
-                      pastix_int_t   ** rows,
-                      pastix_float_t ** values,
-                      int      dof,
-                      int      flag,
-                      int      flagalloc)
+int z_csc_check_doubles(pastix_int_t         n,
+                        pastix_int_t        *colptr,
+                        pastix_int_t       **rows,
+                        pastix_complex64_t **values,
+                        int                  dof,
+                        int                  flag,
+                        int                  flagalloc)
 {
   pastix_int_t     i,j,k,d;
   int     doubles = 0;
   pastix_int_t   * tmprows = NULL;
-  pastix_float_t * tmpvals = NULL;
+  pastix_complex64_t * tmpvals = NULL;
   pastix_int_t     index = 0;
   pastix_int_t     lastindex = 0;
 
@@ -413,18 +434,18 @@ int csc_check_doubles(pastix_int_t      n,
         {
           MALLOC_EXTERN(tmprows, lastindex, pastix_int_t);
           if (values != NULL)
-            MALLOC_EXTERN(tmpvals, lastindex*dof*dof, pastix_float_t);
+            MALLOC_EXTERN(tmpvals, lastindex*dof*dof, pastix_complex64_t);
         }
       else
         {
           MALLOC_INTERN(tmprows, lastindex, pastix_int_t);
           if (values != NULL)
-            MALLOC_INTERN(tmpvals, lastindex*dof*dof, pastix_float_t);
+            MALLOC_INTERN(tmpvals, lastindex*dof*dof, pastix_complex64_t);
         }
 
       memcpy(tmprows, *rows,   lastindex*sizeof(pastix_int_t));
       if (values != NULL)
-        memcpy(tmpvals, *values, lastindex*dof*dof*sizeof(pastix_float_t));
+        memcpy(tmpvals, *values, lastindex*dof*dof*sizeof(pastix_complex64_t));
       if (flagalloc == API_NO)
         {
           free(*rows);
@@ -446,7 +467,7 @@ int csc_check_doubles(pastix_int_t      n,
 }
 
 /*
-  Function: csc_checksym
+  Function: z_csc_checksym
 
     Check if the CSC graph is symetric.
 
@@ -471,13 +492,13 @@ int csc_check_doubles(pastix_int_t      n,
     alloc    - indicate if allocation on CSC uses internal malloc.
     dof      - Number of degrees of freedom.
 */
-int csc_checksym(pastix_int_t      n,
-                 pastix_int_t     *colptr,
-                 pastix_int_t    **rows,
-                 pastix_float_t  **values,
-                 int      correct,
-                 int      alloc,
-                 int      dof)
+int z_csc_checksym(pastix_int_t         n,
+                   pastix_int_t        *colptr,
+                   pastix_int_t       **rows,
+                   pastix_complex64_t **values,
+                   int                  correct,
+                   int                  alloc,
+                   int                  dof)
 {
   pastix_int_t            i,j,k,l,d;
   pastix_int_t            index1;
@@ -488,7 +509,7 @@ int csc_checksym(pastix_int_t      n,
   pastix_int_t         *  toadd      = NULL;
   pastix_int_t         *  tmpcolptr  = NULL;
   pastix_int_t         *  tmprows    = NULL;
-  pastix_float_t       *  tmpvals    = NULL;
+  pastix_complex64_t       *  tmpvals    = NULL;
 
   /* For all local column C,
      For all row R in the column C,
@@ -565,7 +586,7 @@ int csc_checksym(pastix_int_t      n,
           MALLOC_EXTERN(tmprows, colptr[n]-1 + toaddcnt, pastix_int_t);
           if (values != NULL)
             {
-              MALLOC_EXTERN(tmpvals, colptr[n]-1 + toaddcnt, pastix_float_t);
+              MALLOC_EXTERN(tmpvals, colptr[n]-1 + toaddcnt, pastix_complex64_t);
             }
         }
       else
@@ -573,7 +594,7 @@ int csc_checksym(pastix_int_t      n,
           MALLOC_INTERN(tmprows, colptr[n]-1 + toaddcnt, pastix_int_t);
           if (values != NULL)
             {
-              MALLOC_INTERN(tmpvals, colptr[n]-1 + toaddcnt, pastix_float_t);
+              MALLOC_INTERN(tmpvals, colptr[n]-1 + toaddcnt, pastix_complex64_t);
             }
         }
       /* Build tmpcolptr
@@ -658,7 +679,7 @@ int csc_checksym(pastix_int_t      n,
 
 
 /*
-  Function: CSC_colPerm
+  Function: z_csc_colPerm
 
   Performs column permutation on a CSC
 
@@ -669,12 +690,12 @@ int csc_checksym(pastix_int_t      n,
     a     - Values of non zeros of the matrix.
     cperm - Permutation to perform
 */
-void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_int_t *cperm)
+void z_csc_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_complex64_t *a, pastix_int_t *cperm)
 {
   pastix_int_t i, k;
   pastix_int_t   *newja = NULL;
   pastix_int_t   *newia = NULL;
-  pastix_float_t *newa  = NULL;
+  pastix_complex64_t *newa  = NULL;
   int numflag, numflag2;
 
   numflag = ia[0];
@@ -695,14 +716,14 @@ void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_floa
 
   if(numflag == 1)
     {
-      CSC_Fnum2Cnum(ja, ia, n);
+      z_csc_Fnum2Cnum(ja, ia, n);
       for(i=0;i<n;i++)
         cperm[i]--;
     }
 
   MALLOC_INTERN(newia, n+1,   pastix_int_t);
   MALLOC_INTERN(newja, ia[n], pastix_int_t);
-  MALLOC_INTERN(newa,  ia[n], pastix_float_t);
+  MALLOC_INTERN(newa,  ia[n], pastix_complex64_t);
 
 
   newia[0] = 0;
@@ -734,20 +755,20 @@ void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_floa
       ASSERT(newia[k+1]-newia[k] == ia[i+1]-ia[i], MOD_KASS);
 #endif
       memcpy(newja + newia[k], ja + ia[i], sizeof(pastix_int_t)*(ia[i+1]-ia[i]));
-      memcpy(newa + newia[k], a + ia[i], sizeof(pastix_float_t)*(ia[i+1]-ia[i]));
+      memcpy(newa + newia[k], a + ia[i], sizeof(pastix_complex64_t)*(ia[i+1]-ia[i]));
 
     }
 
   memcpy(ia, newia, sizeof(pastix_int_t)*(n+1));
   memcpy(ja, newja, sizeof(pastix_int_t)*ia[n]);
-  memcpy(a, newa, sizeof(pastix_float_t)*ia[n]);
+  memcpy(a, newa, sizeof(pastix_complex64_t)*ia[n]);
 
   memFree(newia);
   memFree(newja);
   memFree(newa);
   if(numflag == 1)
     {
-      CSC_Cnum2Fnum(ja, ia, n);
+      z_csc_Cnum2Fnum(ja, ia, n);
       for(i=0;i<n;i++)
         cperm[i]++;
     }
@@ -755,19 +776,23 @@ void CSC_colPerm(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_floa
 
 
 /*
-  Function: CSC_colScale
+  Function: z_csc_colScale
 
   Moved from kass, only used in MC64
 */
-void CSC_colScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *dcol)
+void z_csc_colScale(pastix_int_t        n,
+                    pastix_int_t       *ia,
+                    pastix_int_t       *ja,
+                    pastix_complex64_t *a,
+                    pastix_complex64_t *dcol)
 {
   pastix_int_t i, j;
   int numflag;
-  pastix_float_t d;
+  pastix_complex64_t d;
   numflag = ia[0];
 
   if(numflag == 1)
-    CSC_Fnum2Cnum(ja, ia, n);
+    z_csc_Fnum2Cnum(ja, ia, n);
 
   for(i=0;i<n;i++)
     {
@@ -780,22 +805,26 @@ void CSC_colScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_flo
     }
 
   if(numflag == 1)
-    CSC_Cnum2Fnum(ja, ia, n);
+    z_csc_Cnum2Fnum(ja, ia, n);
 }
 
 /*
-  Function: CSC_rowScale
+  Function: z_csc_rowScale
 
   Moved from kass, only used in MC64
 */
-void CSC_rowScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_float_t *drow)
+void z_csc_rowScale(pastix_int_t        n,
+                    pastix_int_t       *ia,
+                    pastix_int_t       *ja,
+                    pastix_complex64_t *a,
+                    pastix_complex64_t *drow)
 {
   pastix_int_t i, j;
   int numflag;
   numflag = ia[0];
 
   if(numflag == 1)
-    CSC_Fnum2Cnum(ja, ia, n);
+    z_csc_Fnum2Cnum(ja, ia, n);
 
   for(i=0;i<n;i++)
     {
@@ -809,11 +838,11 @@ void CSC_rowScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_flo
     }
 
   if(numflag == 1)
-    CSC_Cnum2Fnum(ja, ia, n);
+    z_csc_Cnum2Fnum(ja, ia, n);
 }
 
 /*
- * CSC_sort:
+ * z_csc_sort:
  *
  * Sort CSC columns
  *
@@ -826,7 +855,11 @@ void CSC_rowScale(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_flo
 #ifndef CSC_sort
 #error "This function must be renamed via preprocessor."
 #endif
-void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t *a, pastix_int_t ndof)
+void z_csc_sort(pastix_int_t        n,
+                pastix_int_t       *ia,
+                pastix_int_t       *ja,
+                pastix_complex64_t *a,
+                pastix_int_t        ndof)
 {
   pastix_int_t i;
   int numflag;
@@ -834,7 +867,7 @@ void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t
   void * sortptr[3];
   numflag = ia[0];
   if(numflag == 1)
-    CSC_Fnum2Cnum(ja, ia, n);
+    z_csc_Fnum2Cnum(ja, ia, n);
   if (a != NULL)
     {
 
@@ -854,11 +887,11 @@ void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t
 
     }
   if(numflag == 1)
-    CSC_Cnum2Fnum(ja, ia, n);
+    z_csc_Cnum2Fnum(ja, ia, n);
 }
 
 /*
-  Function: CSC_Fnum2Cnum
+  Function: z_csc_Fnum2Cnum
 
   Convert CSC numbering from fortran numbering to C numbering.
 
@@ -867,7 +900,9 @@ void CSC_sort(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t
     ia - First index of each column in *ja*
     n  - Number of columns
 */
-void CSC_Fnum2Cnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
+void z_csc_Fnum2Cnum(pastix_int_t *ja,
+                     pastix_int_t *ia,
+                     pastix_int_t  n)
 {
   pastix_int_t i, j;
   for(i=0;i<=n;i++)
@@ -880,7 +915,7 @@ void CSC_Fnum2Cnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
 }
 
 /*
-  Function: CSC_Cnum2Fnum
+  Function: z_csc_Cnum2Fnum
 
   Convert CSC numbering from C numbering to Fortran numbering.
 
@@ -889,7 +924,9 @@ void CSC_Fnum2Cnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
     ia - First index of each column in *ja*
     n  - Number of columns
 */
-void CSC_Cnum2Fnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
+void z_csc_Cnum2Fnum(pastix_int_t *ja,
+                     pastix_int_t *ia,
+                     pastix_int_t  n)
 {
   pastix_int_t i, j;
 
@@ -901,7 +938,7 @@ void CSC_Cnum2Fnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
     ia[i]++;
 }
 /*
-  Function: CSC_buildZerosAndNonZerosGraphs
+  Function: z_csc_buildZerosAndNonZerosGraphs
 
   Separate a graph in two graphs, following
   wether the diagonal term of a column is null or not.
@@ -915,19 +952,19 @@ void CSC_Cnum2Fnum(pastix_int_t *ja, pastix_int_t *ia, pastix_int_t n)
     revperm                  - Reverse permutation tabular.
     criteria                 - Value beside which a number is said null.
 */
-int CSC_buildZerosAndNonZerosGraphs(pastix_int_t     n,
-                                    pastix_int_t    *colptr,
-                                    pastix_int_t    *rows,
-                                    pastix_float_t  *values,
-                                    pastix_int_t    *n_nz,
-                                    pastix_int_t   **colptr_nz,
-                                    pastix_int_t   **rows_nz,
-                                    pastix_int_t    *n_z,
-                                    pastix_int_t   **colptr_z,
-                                    pastix_int_t   **rows_z,
-                                    pastix_int_t    *perm,
-                                    pastix_int_t    *revperm,
-                                    double  criteria)
+int z_csc_buildZerosAndNonZerosGraphs(pastix_int_t         n,
+                                      pastix_int_t        *colptr,
+                                      pastix_int_t        *rows,
+                                      pastix_complex64_t  *values,
+                                      pastix_int_t        *n_nz,
+                                      pastix_int_t       **colptr_nz,
+                                      pastix_int_t       **rows_nz,
+                                      pastix_int_t        *n_z,
+                                      pastix_int_t       **colptr_z,
+                                      pastix_int_t       **rows_z,
+                                      pastix_int_t        *perm,
+                                      pastix_int_t        *revperm,
+                                      double               criteria)
 {
   pastix_int_t  itercol;
   pastix_int_t  iterrow;
@@ -1059,7 +1096,7 @@ int CSC_buildZerosAndNonZerosGraphs(pastix_int_t     n,
 }
 
 /*
-  Function: CSC_isolate
+  Function: z_csc_isolate
 
   Isolate a list of unknowns at the end of the CSC.
 
@@ -1072,13 +1109,13 @@ int CSC_buildZerosAndNonZerosGraphs(pastix_int_t     n,
     perm         - permutation tabular.
     revperm      - reverse permutation tabular.
 */
-int CSC_isolate(pastix_int_t     n,
-                pastix_int_t    *colptr,
-                pastix_int_t    *rows,
-                pastix_int_t     n_isolate,
-                pastix_int_t    *isolate_list,
-                pastix_int_t    *perm,
-                pastix_int_t    *revperm)
+int z_csc_isolate(pastix_int_t  n,
+                  pastix_int_t *colptr,
+                  pastix_int_t *rows,
+                  pastix_int_t  n_isolate,
+                  pastix_int_t *isolate_list,
+                  pastix_int_t *perm,
+                  pastix_int_t *revperm)
 {
   pastix_int_t  itercol;
   pastix_int_t  iterrow;
@@ -1198,12 +1235,12 @@ int CSC_isolate(pastix_int_t     n,
     PASTIX_SUCCESS
 
 */
-int csc_save(pastix_int_t      n,
-             pastix_int_t    * colptr,
-             pastix_int_t    * rows,
-             pastix_float_t  * values,
-             int      dof,
-             FILE   * outfile)
+int z_csc_save(pastix_int_t        n,
+               pastix_int_t       *colptr,
+               pastix_int_t       *rows,
+               pastix_complex64_t *values,
+               int                 dof,
+               FILE               *outfile)
 {
 
   pastix_int_t i;
@@ -1262,12 +1299,12 @@ int csc_save(pastix_int_t      n,
     PASTIX_SUCCESS
 
 */
-int csc_load(pastix_int_t    *  n,
-             pastix_int_t    ** colptr,
-             pastix_int_t    ** rows,
-             pastix_float_t  ** values,
-             int    *  dof,
-             FILE   *  infile)
+int z_csc_load(pastix_int_t        *n,
+               pastix_int_t       **colptr,
+               pastix_int_t       **rows,
+               pastix_complex64_t **values,
+               int                 *dof,
+               FILE                *infile)
 {
   int  hasval;
   long tmp1, tmp2, tmp3, tmp4;
@@ -1381,7 +1418,7 @@ int csc_load(pastix_int_t    *  n,
     {
       (*values) = NULL;
 
-      MALLOC_INTERN(*values,  (*colptr)[*n]-(*colptr)[0], pastix_float_t);
+      MALLOC_INTERN(*values,  (*colptr)[*n]-(*colptr)[0], pastix_complex64_t);
 
       for (i=0; i< (*colptr)[*n]-(*colptr)[0]+1-4; i+=4)
         {
@@ -1392,20 +1429,20 @@ int csc_load(pastix_int_t    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
-          (*values)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
-          (*values)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
-          (*values)[i+3] = (pastix_float_t)(tmpflt7 + I * tmpflt8);
+          (*values)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
+          (*values)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
+          (*values)[i+2] = (pastix_complex64_t)(tmpflt5 + I * tmpflt6);
+          (*values)[i+3] = (pastix_complex64_t)(tmpflt7 + I * tmpflt8);
 #else
           if (4 != fscanf(infile, "%lg %lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)tmpflt1;
-          (*values)[i+1] = (pastix_float_t)tmpflt2;
-          (*values)[i+2] = (pastix_float_t)tmpflt3;
-          (*values)[i+3] = (pastix_float_t)tmpflt4;
+          (*values)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*values)[i+1] = (pastix_complex64_t)tmpflt2;
+          (*values)[i+2] = (pastix_complex64_t)tmpflt3;
+          (*values)[i+3] = (pastix_complex64_t)tmpflt4;
 #endif
         }
       switch ( (*colptr)[*n]-(*colptr)[0] - i )
@@ -1418,18 +1455,18 @@ int csc_load(pastix_int_t    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
-          (*values)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
-          (*values)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
+          (*values)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
+          (*values)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
+          (*values)[i+2] = (pastix_complex64_t)(tmpflt5 + I * tmpflt6);
 #else
           if (3 != fscanf(infile, "%lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)tmpflt1;
-          (*values)[i+1] = (pastix_float_t)tmpflt2;
-          (*values)[i+2] = (pastix_float_t)tmpflt3;
+          (*values)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*values)[i+1] = (pastix_complex64_t)tmpflt2;
+          (*values)[i+2] = (pastix_complex64_t)tmpflt3;
 #endif
           break;
         case 2:
@@ -1439,16 +1476,16 @@ int csc_load(pastix_int_t    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
-          (*values)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
+          (*values)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
+          (*values)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
 #else
           if (2 != fscanf(infile, "%lg %lg",
                           &tmpflt1, &tmpflt2)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)tmpflt1;
-          (*values)[i+1] = (pastix_float_t)tmpflt2;
+          (*values)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*values)[i+1] = (pastix_complex64_t)tmpflt2;
 #endif
           break;
         case 1:
@@ -1458,14 +1495,14 @@ int csc_load(pastix_int_t    *  n,
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*values)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
 #else
           if (1 != fscanf(infile, "%lg",
                           &tmpflt1)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*values)[i  ] = (pastix_float_t)tmpflt1;
+          (*values)[i  ] = (pastix_complex64_t)tmpflt1;
 #endif
           break;
         }

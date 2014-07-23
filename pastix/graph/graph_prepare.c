@@ -16,7 +16,7 @@
 #include "common.h"
 #include "graph.h"
 #if defined(PASTIX_DISTRIBUTED)
-#include "cscd_utils_intern.h"
+#include "d_cscd_utils_intern.h"
 #endif
 
 /**
@@ -234,7 +234,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
             if (iparm[IPARM_SYM]==API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER) {
-                cscd_symgraph_int(n, colptr, rows, NULL,
+                d_cscd_symgraph_int(n, colptr, rows, NULL,
                                   &(tmpgraph->n),
                                   &(tmpgraph->colptr),
                                   &(tmpgraph->rows), NULL,
@@ -243,7 +243,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 assert( n == tmpgraph->n );
             }
 
-            cscd_noDiag(tmpgraph->n,
+            d_cscd_noDiag(tmpgraph->n,
                         tmpgraph->colptr,
                         tmpgraph->rows,
                         NULL,

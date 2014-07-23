@@ -20,6 +20,7 @@ endif(PASTIX_WITH_STARPU)
 set(PASTIX_EXAMPLES_LIBRARIES
   ${PASTIX_EXAMPLES_LIBRARIES}
   pastix_kernels
+  pastix_libcsc
   read_matrix
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}

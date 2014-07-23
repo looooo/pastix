@@ -6,7 +6,7 @@
  */
 #include "common.h"
 #include "pastix.h"
-#include "cscd_utils.h"
+#include "d_cscd_utils.h"
 
 #ifdef NO_TYPE_PREFIX
 #define FORTRAN_NAME(nu,nl,pl,pc)   \

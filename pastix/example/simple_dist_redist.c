@@ -13,7 +13,7 @@
 #include <string.h>
 /* to access functions from the libpastix, respect this order */
 #include "pastix.h"
-#include "cscd_utils.h"
+#include "d_cscd_utils.h"
 #include "read_matrix.h"
 #include "get_options.h"
 #include "utils.h"

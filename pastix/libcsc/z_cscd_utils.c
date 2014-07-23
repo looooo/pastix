@@ -1,13 +1,21 @@
-/*
- * File: cscd_utils.c
+/**
+ *  PaStiX CSC management routines.
  *
- * Several operations on CSCD.
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
- */
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 #include "common.h"
 #include "tools.h"
-#include "cscd_utils.h"
-#include "cscd_utils_intern.h"
+#include "z_cscd_utils.h"
+#include "z_cscd_utils_intern.h"
 
 #define TAG_SIZE   1
 #define TAG_COL    2
@@ -30,7 +38,7 @@
   Returns: a + b
  */
 static
-pastix_float_t add_two_floats(pastix_float_t a, pastix_float_t b)
+pastix_complex64_t add_two_floats(pastix_complex64_t a, pastix_complex64_t b)
 {
   return a + b;
 }
@@ -47,7 +55,7 @@ pastix_float_t add_two_floats(pastix_float_t a, pastix_float_t b)
   Returns: a
  */
 static
-pastix_float_t keep_first(pastix_float_t a, pastix_float_t b)
+pastix_complex64_t keep_first(pastix_complex64_t a, pastix_complex64_t b)
 {
   (void)b;
   return a;
@@ -65,7 +73,7 @@ pastix_float_t keep_first(pastix_float_t a, pastix_float_t b)
   Returns: b
  */
 static
-pastix_float_t keep_last(pastix_float_t a, pastix_float_t b)
+pastix_complex64_t keep_last(pastix_complex64_t a, pastix_complex64_t b)
 {
   (void)a;
   return b;
@@ -83,9 +91,8 @@ pastix_float_t keep_last(pastix_float_t a, pastix_float_t b)
   Returns: MAX(a,b)
  */
 static
-pastix_float_t get_max(pastix_float_t a, pastix_float_t b)
-{
-  return MAX(a,b);
+pastix_complex64_t get_max(pastix_complex64_t a, pastix_complex64_t b) {
+    return MAX(creal(a),creal(b));
 }
 
 /*
@@ -100,9 +107,8 @@ pastix_float_t get_max(pastix_float_t a, pastix_float_t b)
   Returns: MIN(a,b)
  */
 static
-pastix_float_t get_min(pastix_float_t a, pastix_float_t b)
-{
-  return MIN(a,b);
+pastix_complex64_t get_min(pastix_complex64_t a, pastix_complex64_t b) {
+    return MIN(creal(a),creal(b));
 }
 
 /*
@@ -128,13 +134,10 @@ pastix_float_t get_min(pastix_float_t a, pastix_float_t b)
  *     dispatch          - choose how to dispatch the csc
  *     pastix_comm       - PaStiX MPI communicator.
  */
-#ifndef csc_dispatch
-#  error "redefinition required"
-#endif
-void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_float_t *  gavals,
-                  pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
-                  pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_float_t ** lavals,
-                  pastix_float_t ** lrhs, pastix_int_t ** lperm,
+void z_csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_complex64_t *  gavals,
+                  pastix_complex64_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                  pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_complex64_t ** lavals,
+                  pastix_complex64_t ** lrhs, pastix_int_t ** lperm,
                   pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm)
 {
   pastix_int_t i;
@@ -154,7 +157,7 @@ void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  gro
 
   /* Ici on a des malloc parce que le free est externe */
   MALLOC_EXTERN((*lcolptr), (*lN + 1), pastix_int_t);
-  MALLOC_EXTERN((*lrhs),    (*lN),     pastix_float_t);
+  MALLOC_EXTERN((*lrhs),    (*lN),     pastix_complex64_t);
   if (gperm != NULL)
     MALLOC_EXTERN((*lperm), (*lN), pastix_int_t);
 
@@ -213,7 +216,7 @@ void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  gro
   if ((*lcolptr)[(*lN)]-1 > 0)
     {
       MALLOC_EXTERN(*lrow,   (*lcolptr)[(*lN)]-1, pastix_int_t);
-      MALLOC_EXTERN(*lavals, (*lcolptr)[(*lN)]-1, pastix_float_t);
+      MALLOC_EXTERN(*lavals, (*lcolptr)[(*lN)]-1, pastix_complex64_t);
     }
   else
     {
@@ -230,7 +233,7 @@ void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  gro
              (gcolptr[iG] - gcolptr[iG-1])* sizeof(pastix_int_t));
       memcpy(&(*lavals)[(*lcolptr)[i]-1],
              &gavals[gcolptr[iG-1]-1],
-             (gcolptr[iG] - gcolptr[iG-1])* sizeof(pastix_float_t));
+             (gcolptr[iG] - gcolptr[iG-1])* sizeof(pastix_complex64_t));
     }
 }
 
@@ -250,7 +253,7 @@ void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  gro
 #ifndef csc_cyclic_distribution
 #  error "redefinition required"
 #endif
-pastix_int_t csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm)
+pastix_int_t z_csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm)
 {
   int commSize;
   (void)pastix_comm;
@@ -262,7 +265,7 @@ pastix_int_t csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr
 }
 
 /*
- * Function: csc_simple_distribution
+ * Function: z_cscsimple_distribution
  *
  * Distribute the CSC.
  * First columns are for first proc and so on.
@@ -275,7 +278,7 @@ pastix_int_t csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr
  * Return:
  *   owner of the column (column*commSize/columnnbr)
  */
-pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm)
+pastix_int_t z_cscsimple_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm)
 {
   int commSize;
   (void)pastix_comm;
@@ -288,7 +291,7 @@ pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr
 
 
 /*
- * Function: cscd_build_g2l
+ * Function: z_cscd_build_g2l
  *
  * Construct global to local tabular containing local number of global columns
  * if one column is local, and -owner if column is not local.
@@ -307,14 +310,11 @@ pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr
  *   dof      - Number of degrees of freedom.
  *   comm     - MPI communicator
  */
-#ifndef cscd_build_g2l
-#  error "redefinition required"
-#endif
-int cscd_build_g2l(pastix_int_t        ncol,
-                   const pastix_int_t *loc2glob,
-                   MPI_Comm            comm,
-                   pastix_int_t       *gN,
-                   pastix_int_t      **g2l)
+int z_cscd_build_g2l(pastix_int_t        ncol,
+                     const pastix_int_t *loc2glob,
+                     MPI_Comm            comm,
+                     pastix_int_t       *gN,
+                     pastix_int_t      **g2l)
 {
   int commRank;
   int commSize;
@@ -383,7 +383,7 @@ int cscd_build_g2l(pastix_int_t        ncol,
 }
 
 /*
- * Function: cscd_checksym
+ * Function: d_cscd_checksym
  *
  * Check if the CSCD graph is symetric.
  *
@@ -418,13 +418,10 @@ int cscd_build_g2l(pastix_int_t        ncol,
  *   dof      - Number of degrees of freedom.
  *   comm     - MPI communicator
  */
-#ifndef cscd_checksym
-#  error "redefinition required"
-#endif
-int cscd_checksym(pastix_int_t      n,
+int z_cscd_checksym(pastix_int_t      n,
                   pastix_int_t     *colptr,
                   pastix_int_t    **rows,
-                  pastix_float_t  **values,
+                  pastix_complex64_t  **values,
                   pastix_int_t     *l2g,
                   int      correct,
                   int      alloc,
@@ -447,7 +444,7 @@ int cscd_checksym(pastix_int_t      n,
   pastix_int_t         *  tmprows    = NULL;
   pastix_int_t         *  newcolptr  = NULL;
   pastix_int_t         *  newrows    = NULL;
-  pastix_float_t       *  newvalues  = NULL;
+  pastix_complex64_t       *  newvalues  = NULL;
   pastix_int_t         *  tosendsize = NULL;
   pastix_int_t         ** tosend     = NULL;
   pastix_int_t         *  torecvsize = NULL;
@@ -463,7 +460,7 @@ int cscd_checksym(pastix_int_t      n,
   MPI_Comm_rank(comm,&commRank);
 
   /* Build the g2l vector */
-  cscd_build_g2l(n, l2g, comm, &gN, &g2l);
+  z_cscd_build_g2l(n, l2g, comm, &gN, &g2l);
 
   MALLOC_INTERN(nbtosend,   commSize, pastix_int_t);
   MALLOC_INTERN(tosendsize, commSize, pastix_int_t);
@@ -553,7 +550,7 @@ int cscd_checksym(pastix_int_t      n,
                                       2*tosendsize[proc]*sizeof(pastix_int_t))))
                   MALLOC_ERROR("tosend[proc]");
                 if (nbtosend[proc] >= tosendsize[proc])
-                  errorPrint("cscd_checksym : should'nt happen");
+                  errorPrint("z_cscd_checksym : should'nt happen");
               }
             tosend[proc][2*nbtosend[proc]]   = (*rows)[j];
             tosend[proc][2*nbtosend[proc]+1] = l2g[i];
@@ -768,18 +765,18 @@ int cscd_checksym(pastix_int_t      n,
       /* On ajoute les 2 cscd, Allocation externe */
       if (values != NULL)
         {
-          cscd_addlocal_int(n,   colptr,   *rows   , *values   ,  l2g,
-                            n,   tmpcolptr,  tmprows,  NULL,      l2g,
-                            &n, &newcolptr, &newrows, &newvalues,
-                            &add_two_floats,
-                            dof, alloc);
+            z_cscd_addlocal_int(n,   colptr,   *rows   , *values   ,  l2g,
+                                n,   tmpcolptr,  tmprows,  NULL,      l2g,
+                                &n, &newcolptr, &newrows, &newvalues,
+                                &add_two_floats,
+                                dof, alloc);
         }
       else
         {
-          cscd_addlocal_int(n,   colptr,   *rows   ,   NULL,    l2g,
-                            n,   tmpcolptr,  tmprows,  NULL,    l2g,
-                            &n, &newcolptr, &newrows,  NULL,
-                            &add_two_floats, dof, alloc);
+            z_cscd_addlocal_int(n,   colptr,   *rows   ,   NULL,    l2g,
+                                n,   tmpcolptr,  tmprows,  NULL,    l2g,
+                                &n, &newcolptr, &newrows,  NULL,
+                                &add_two_floats, dof, alloc);
         }
       memFree_null(tmpcolptr);
       memFree_null(tmprows);
@@ -816,7 +813,7 @@ int cscd_checksym(pastix_int_t      n,
 
 
 /*
- * Function: cscd_symgraph
+ * Function: z_cscd_symgraph
  *
  * Symetrize the graph of the given CSCD.
  *
@@ -834,20 +831,17 @@ int cscd_checksym(pastix_int_t      n,
  *   l2g         - global number of each local column.
  *   comm        - MPI communicator.
  */
-#ifndef cscd_symgraph
-#  error "redefinition required"
-#endif
-int cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_float_t *     a,
-                  pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
+int z_cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_complex64_t *     a,
+                  pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_complex64_t ** newa,
                   const pastix_int_t *  l2g, MPI_Comm comm)
 {
-  return cscd_symgraph_int(n,    ia,    ja,    a,
-                           newn, newia, newja, newa,
-                           l2g,  comm,  API_NO);
+    return z_cscd_symgraph_int(n,    ia,    ja,    a,
+                               newn, newia, newja, newa,
+                               l2g,  comm,  API_NO);
 }
 
 /*
- * Function: cscd_symgraph_int
+ * Function: z_cscd_symgraph_int
  *
  * Symetrize the graph of the given CSCD.
  *
@@ -868,11 +862,8 @@ int cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_
  *                or extern.
  */
 
-#ifndef cscd_symgraph_int
-#  error "redefinition required"
-#endif
-int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const pastix_int_t *        ja, const pastix_float_t *     a,
-                      pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_float_t ** newa,
+int z_cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const pastix_int_t *        ja, const pastix_complex64_t *     a,
+                      pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_complex64_t ** newa,
                       const pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag)
 {
   int            commSize;
@@ -895,7 +886,7 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
   pastix_int_t            tmpn;
   pastix_int_t         *  tmpia      = NULL;
   pastix_int_t         *  tmpja      = NULL;
-  pastix_int_t         *  tmpl2g     = NULL;
+  const pastix_int_t   *  tmpl2g     = NULL;
   pastix_int_t         *  g2l        = NULL;
   pastix_int_t            colnum;
   pastix_int_t            rownum;
@@ -903,10 +894,10 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
   MPI_Comm_size(comm,&commSize);
   MPI_Comm_rank(comm,&commRank);
 
-  print_debug(DBG_CSCD,"->cscd_symgraph\n");
+  print_debug(DBG_CSCD,"->z_cscd_symgraph\n");
 
   /* Build the g2l vector */
-  cscd_build_g2l(n, l2g, comm, &gN, &g2l);
+  z_cscd_build_g2l(n, l2g, comm, &gN, &g2l);
 
   MALLOC_INTERN(nbtosend,   commSize, pastix_int_t);
   MALLOC_INTERN(tosendsize, commSize, pastix_int_t);
@@ -981,7 +972,7 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
                                       2*tosendsize[proc]*sizeof(pastix_int_t))))
                   MALLOC_ERROR("tosend[proc]");
                 if (nbtosend[proc] >= tosendsize[proc])
-                  errorPrint("cscd_checksym : should'nt happen");
+                  errorPrint("z_cscd_checksym : should'nt happen");
               }
             tosend[proc][2*nbtosend[proc]]   = ja[j];
             tosend[proc][2*nbtosend[proc]+1] = l2g[i];
@@ -1138,21 +1129,21 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
   memFree_null(g2l);
   memFree_null(added);
   /* On ajoute les 2 cscd */
-  cscd_addlocal_int(n   , ia   , ja   , a   , l2g,
-                    tmpn, tmpia, tmpja, NULL, tmpl2g,
-                    newn, newia, newja, newa, &add_two_floats, 1, malloc_flag);
+  z_cscd_addlocal_int(n   , ia   , ja   , a   , l2g,
+                      tmpn, tmpia, tmpja, NULL, tmpl2g,
+                      newn, newia, newja, newa, &add_two_floats, 1, malloc_flag);
   memFree_null(tmpia);
   memFree_null(tmpja);
 
-  print_debug(DBG_CSCD,"<-cscd_symgraph\n");
+  print_debug(DBG_CSCD,"<-z_cscd_symgraph\n");
 
   return EXIT_SUCCESS;
 }
 
 /*
- * Function: cscd_addlocal
+ * Function: z_cscd_addlocal
  *
- * Interface to <cscd_addlocal_int>, for external usage.
+ * Interface to <z_cscd_addlocal_int>, for external usage.
  * Add second cscd to first cscd into third cscd (unallocated)
  * Only adds columns from the second CSCD which belongs to the first one.
  *
@@ -1176,44 +1167,41 @@ int cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const p
  *   OP          - Operation to manage common CSCD coefficients.
  *   dof         - Number of degrees of freedom.
  */
-#ifndef cscd_addlocal
-#  error "redefinition required"
-#endif
-int cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   ,
+int z_cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_complex64_t *  a   ,
                   pastix_int_t * l2g,
-                  pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda,
+                  pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_complex64_t *  adda,
                   pastix_int_t * addl2g,
-                  pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
+                  pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_complex64_t ** newa,
                   CSCD_OPERATIONS_t OP, int dof)
 {
 
   switch(OP)
     {
     case CSCD_ADD:
-      return cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                               addn, addia, addja, adda, addl2g,
-                               newn, newia, newja, newa,
-                               &add_two_floats, dof, API_NO);
+      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
+                                 addn, addia, addja, adda, addl2g,
+                                 newn, newia, newja, newa,
+                                 &add_two_floats, dof, API_NO);
     case CSCD_KEEP:
-      return cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                               addn, addia, addja, adda, addl2g,
-                               newn, newia, newja, newa, &keep_first,
-                               dof, API_NO);
+      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
+                                 addn, addia, addja, adda, addl2g,
+                                 newn, newia, newja, newa, &keep_first,
+                                 dof, API_NO);
 #ifndef TYPE_COMPLEX
     case CSCD_MAX:
-      return cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                               addn, addia, addja, adda, addl2g,
-                               newn, newia, newja, newa, &get_max, dof, API_NO);
+      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
+                                 addn, addia, addja, adda, addl2g,
+                                 newn, newia, newja, newa, &get_max, dof, API_NO);
     case CSCD_MIN:
-      return cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                               addn, addia, addja, adda, addl2g,
-                               newn, newia, newja, newa, &get_min, dof, API_NO);
+      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
+                                 addn, addia, addja, adda, addl2g,
+                                 newn, newia, newja, newa, &get_min, dof, API_NO);
 #endif
     case CSCD_OVW:
-      return cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                               addn, addia, addja, adda, addl2g,
-                               newn, newia, newja, newa, &keep_last,
-                               dof, API_NO);
+      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
+                                 addn, addia, addja, adda, addl2g,
+                                 newn, newia, newja, newa, &keep_last,
+                                 dof, API_NO);
 
     default:
       return EXIT_FAILURE;
@@ -1289,16 +1277,22 @@ int cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja
  *                 or extern.
  */
 
-#ifndef cscd_addlocal_int
-#  error "redefinition required"
-#endif
-int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pastix_int_t *  ja   , const pastix_float_t *  a   ,
-                      const pastix_int_t * l2g,
-                      pastix_int_t   addn, const pastix_int_t *  addia, const pastix_int_t *  addja, const pastix_float_t *  adda,
-                      const pastix_int_t * addl2g,
-                      pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
-                      pastix_float_t (*add_fct)(pastix_float_t , pastix_float_t), int dof,
-                      int malloc_flag)
+int z_cscd_addlocal_int(pastix_int_t   n   ,
+                        const pastix_int_t *  ia   ,
+                        const pastix_int_t *  ja   ,
+                        const pastix_complex64_t *  a   ,
+                        const pastix_int_t * l2g,
+                        pastix_int_t   addn,
+                        const pastix_int_t *  addia,
+                        const pastix_int_t *  addja,
+                        const pastix_complex64_t *  adda,
+                        const pastix_int_t * addl2g,
+                        pastix_int_t * newn,
+                        pastix_int_t ** newia,
+                        pastix_int_t ** newja,
+                        pastix_complex64_t ** newa,
+                        pastix_complex64_t (*add_fct)(pastix_complex64_t , pastix_complex64_t), int dof,
+                        int malloc_flag)
 {
   pastix_int_t   i,j,k,l;
   pastix_int_t   i2;
@@ -1349,11 +1343,11 @@ int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pa
   if (((*newia)[n]-baseval) > 0)
     MALLOC_INTOREXTERN((*newja), ((*newia)[n]-baseval), pastix_int_t, malloc_flag);
   if (val_flag == 1) {
-      MALLOC_INTOREXTERN((*newa), ((*newia)[n]-baseval)*dof*dof, pastix_float_t,
+      MALLOC_INTOREXTERN((*newa), ((*newia)[n]-baseval)*dof*dof, pastix_complex64_t,
                          malloc_flag);
   }
   if (val_flag == 1) {
-      memset(*newa,  0, ((*newia)[n]-baseval)*dof*dof*sizeof(pastix_float_t));
+      memset(*newa,  0, ((*newia)[n]-baseval)*dof*dof*sizeof(pastix_complex64_t));
   }
   if (n > 0) {
       memset(*newja, 0, ((*newia)[n]-baseval)*sizeof(pastix_int_t));
@@ -1460,14 +1454,14 @@ int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pa
 
 
 /*
- * Function: cscd_redispatch_scotch
+ * Function: z_cscd_redispatch_scotch
  *
  * Redistribute the columns to have first columns on first proc for Scotch
  *
  * - Checks if the matrix is not allready well ditributed.
  * - Build all new loc2globs on all processors.
  * - Create new CSC for each processor and send it.
- * - Merge all new CSC to the new local CSC with <cscd_addlocal_int>.
+ * - Merge all new CSC to the new local CSC with <z_cscd_addlocal_int>.
  *
  *
  * UNUSED
@@ -1490,12 +1484,9 @@ int cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pa
  *
  */
 
-#ifndef cscd_redispatch_scotch
-#  error "redefinition required"
-#endif
-int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
+int z_cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_complex64_t *   a,
                            pastix_int_t *   l2g,
-                           pastix_int_t *dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
+                           pastix_int_t *dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_complex64_t ** da,
                            pastix_int_t ** dl2g,
                            MPI_Comm comm)
 {
@@ -1512,10 +1503,10 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
   pastix_int_t           tmpn;
   pastix_int_t         * tmpia  = NULL;
   pastix_int_t         * tmpja  = NULL;
-  pastix_float_t       * tmpa   = NULL;
+  pastix_complex64_t       * tmpa   = NULL;
   pastix_int_t         * tmpia2 = NULL;
   pastix_int_t         * tmpja2 = NULL;
-  pastix_float_t       * tmpa2  = NULL;
+  pastix_complex64_t       * tmpa2  = NULL;
   pastix_int_t           start;
   pastix_int_t           end;
   pastix_int_t           size;
@@ -1523,7 +1514,7 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
   pastix_int_t        ** newloc2globs     = NULL;
   pastix_int_t        ** colptr2send      = NULL;
   pastix_int_t        ** rows2send        = NULL;
-  pastix_float_t      ** values2send      = NULL;
+  pastix_complex64_t      ** values2send      = NULL;
   MPI_Request * requests_size    = NULL;
   MPI_Request * requests_col     = NULL;
   MPI_Request * requests_row     = NULL;
@@ -1559,8 +1550,8 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
       memcpy(*dja,ja,(ia[n]-1)*sizeof(pastix_int_t));
       if (NULL != a)
         {
-          MALLOC_INTERN(*da, ia[n]-1, pastix_float_t);
-          memcpy(*da,a,(ia[n]-1)*sizeof(pastix_float_t));
+          MALLOC_INTERN(*da, ia[n]-1, pastix_complex64_t);
+          memcpy(*da,a,(ia[n]-1)*sizeof(pastix_complex64_t));
         }
 
       return EXIT_SUCCESS;
@@ -1586,7 +1577,7 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
   /* Create one CSCD for each proc */
   MALLOC_INTERN(colptr2send, commSize, pastix_int_t*);
   MALLOC_INTERN(rows2send,   commSize, pastix_int_t*);
-  MALLOC_INTERN(values2send, commSize, pastix_float_t*);
+  MALLOC_INTERN(values2send, commSize, pastix_complex64_t*);
 
   for (i = 0; i < commSize; i++)
     {
@@ -1609,12 +1600,12 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
         colptr2send[i][j] = 1;
 
       /* Adding old CSCD to the CSCD to send */
-      cscd_addlocal_int(newloc2globssize[i], colptr2send[i], rows2send[i],
-                        values2send[i], newloc2globs[i],
-                        n                  , ia            , ja          ,
-                        a             , l2g,
-                        &tmpn              , &tmpia        , &tmpja      ,
-                        &tmpa         , &add_two_floats, 1, API_YES);
+      z_cscd_addlocal_int(newloc2globssize[i], colptr2send[i], rows2send[i],
+                          values2send[i], newloc2globs[i],
+                          n                  , ia            , ja          ,
+                          a             , l2g,
+                          &tmpn              , &tmpia        , &tmpja      ,
+                          &tmpa         , &add_two_floats, 1, API_YES);
 
       if (newloc2globssize[i] != tmpn)
         errorPrint("newloc2globssize[i] != tmpn\n");
@@ -1667,19 +1658,19 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
                     &status2);
           if (a != NULL)
             {
-              MALLOC_INTERN(tmpa, size, pastix_float_t);
+              MALLOC_INTERN(tmpa, size, pastix_complex64_t);
               MPI_Recv( tmpa, size, COMM_FLOAT, status.MPI_SOURCE, TAG_VAL,
                         comm, &status2);
             }
-          cscd_addlocal_int(newloc2globssize[rank], colptr2send[rank],
-                            rows2send[rank], values2send[rank],
-                            newloc2globs[rank],
-                            newloc2globssize[rank], tmpia            ,
-                            tmpja          , tmpa             ,
-                            newloc2globs[rank],
-                            &newloc2globssize[rank],&tmpia2          ,
-                            &tmpja2        , &tmpa2           ,
-                            &add_two_floats, 1, API_YES);
+          z_cscd_addlocal_int(newloc2globssize[rank], colptr2send[rank],
+                              rows2send[rank], values2send[rank],
+                              newloc2globs[rank],
+                              newloc2globssize[rank], tmpia            ,
+                              tmpja          , tmpa             ,
+                              newloc2globs[rank],
+                              &newloc2globssize[rank],&tmpia2          ,
+                              &tmpja2        , &tmpa2           ,
+                              &add_two_floats, 1, API_YES);
 
           memFree_null(colptr2send[rank]);
           memFree_null(tmpia);
@@ -1741,14 +1732,14 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
 
 
 /*
- * Function: cscd_redispatch
+ * Function: z_cscd_redispatch
  *
  * Redistribute the first cscd into a new one using *dl2g*.
  *
  * - gather all new loc2globs on all processors.
  * - allocate *dia*, *dja* and *da*.
  * - Create new CSC for each processor and send it.
- * - Merge all new CSC to the new local CSC with <cscd_addlocal_int>.
+ * - Merge all new CSC to the new local CSC with <z_cscd_addlocal_int>.
  *
  * If communicator size is one, check that n = dn and
  * l2g = dl2g and simply create a copy of the first cscd.
@@ -1774,28 +1765,25 @@ int cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *
  *   PASTIX_SUCCESS           - If all goes well
  *   BADPARAMETER_ERR - If commsize = 1 and *n* != *dn* or *l2g* != *dl2g*.
  */
-#ifndef cscd_redispatch
-#  error "redefinition required"
-#endif
-int cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
-                    pastix_float_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
-                    pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
-                    pastix_float_t ** drhs, pastix_int_t *  dl2g,
+int z_cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_complex64_t *   a,
+                    pastix_complex64_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
+                    pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_complex64_t ** da,
+                    pastix_complex64_t ** drhs, pastix_int_t *  dl2g,
                     MPI_Comm comm, pastix_int_t dof)
 {
-  return cscd_redispatch_int(n,  ia,  ja,  a,  rhs,  nrhs, l2g,
+  return z_cscd_redispatch_int(n,  ia,  ja,  a,  rhs,  nrhs, l2g,
                              dn, dia, dja, da, drhs, dl2g,
                              API_NO, comm, dof);
 }
 /*
- * Function: cscd_redispatch_int
+ * Function: z_cscd_redispatch_int
  *
  * Redistribute the first cscd into a new one using *dl2g*.
  *
  * - gather all new loc2globs on all processors.
  * - allocate *dia*, *dja* and *da*.
  * - Create new CSC for each processor and send it.
- * - Merge all new CSC to the new local CSC with <cscd_addlocal_int>.
+ * - Merge all new CSC to the new local CSC with <z_cscd_addlocal_int>.
  *
  * If communicator size is one, check that n = dn and
  * l2g = dl2g and simply create a copy of the first cscd.
@@ -1826,13 +1814,10 @@ int cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, 
  *   EXIT_SUCCESS - If all goes well
  *   EXIT_FAILURE - If commsize = 1 and *n* != *dn* or *l2g* != *dl2g*.
  */
-#ifndef cscd_redispatch_int
-#  error "redefinition required"
-#endif
-int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
-                        pastix_float_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
-                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
-                        pastix_float_t ** drhs, pastix_int_t *  dl2g,
+int z_cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_complex64_t *   a,
+                        pastix_complex64_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
+                        pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_complex64_t ** da,
+                        pastix_complex64_t ** drhs, pastix_int_t *  dl2g,
                         int  malloc_flag, MPI_Comm comm, pastix_int_t dof)
 {
 #ifdef FORCE_NOMPI
@@ -1847,11 +1832,11 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
   pastix_int_t           tmpn;
   pastix_int_t         * tmpia  = NULL;
   pastix_int_t         * tmpja  = NULL;
-  pastix_float_t       * tmpa   = NULL;
-  pastix_float_t       * tmprhs = NULL;
+  pastix_complex64_t       * tmpa   = NULL;
+  pastix_complex64_t       * tmprhs = NULL;
   pastix_int_t         * tmpia2 = NULL;
   pastix_int_t         * tmpja2   = NULL;
-  pastix_float_t       * tmpa2  = NULL;
+  pastix_complex64_t       * tmpa2  = NULL;
   pastix_int_t           size;
   pastix_int_t         * sizep                 = NULL;
   pastix_int_t         * newloc2globssize      = NULL;
@@ -1859,8 +1844,8 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
   pastix_int_t        ** newloc2globs          = NULL;
   pastix_int_t        ** colptr2send           = NULL;
   pastix_int_t        ** rows2send             = NULL;
-  pastix_float_t      ** values2send           = NULL;
-  pastix_float_t      ** rhs2send              = NULL;
+  pastix_complex64_t      ** values2send           = NULL;
+  pastix_complex64_t      ** rhs2send              = NULL;
   MPI_Request * requests_size         = NULL;
   MPI_Request * requests_col          = NULL;
   MPI_Request * requests_row          = NULL;
@@ -1905,13 +1890,13 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
       memcpy(*dja,ja,(ia[n]-1)*sizeof(pastix_int_t));
       if (flags_recv[0] == 1)
         {
-          MALLOC_INTOREXTERN(*da, (ia[n]-1)*dof*dof, pastix_float_t, malloc_flag);
-          memcpy(*da,a,(ia[n]-1)*sizeof(pastix_float_t)*dof*dof);
+          MALLOC_INTOREXTERN(*da, (ia[n]-1)*dof*dof, pastix_complex64_t, malloc_flag);
+          memcpy(*da,a,(ia[n]-1)*sizeof(pastix_complex64_t)*dof*dof);
         }
       if (flags_recv[1] == 1)
         {
-          MALLOC_INTOREXTERN(*drhs, n*nrhs*dof, pastix_float_t, malloc_flag);
-          memcpy(*drhs,rhs,n*nrhs*sizeof(pastix_float_t)*dof);
+          MALLOC_INTOREXTERN(*drhs, n*nrhs*dof, pastix_complex64_t, malloc_flag);
+          memcpy(*drhs,rhs,n*nrhs*sizeof(pastix_complex64_t)*dof);
         }
       return PASTIX_SUCCESS;
     }
@@ -1958,9 +1943,9 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
   MALLOC_INTERN(colptr2send, commSize, pastix_int_t*);
   MALLOC_INTERN(rows2send,   commSize, pastix_int_t*);
   if (flags_recv[0] == 1)
-    MALLOC_INTERN(values2send, commSize, pastix_float_t*);
+    MALLOC_INTERN(values2send, commSize, pastix_complex64_t*);
   if (flags_recv[1] == 1)
-    MALLOC_INTERN(rhs2send,    commSize, pastix_float_t*);
+    MALLOC_INTERN(rhs2send,    commSize, pastix_complex64_t*);
 
   for (i = 0; i < commSize; i++)
     {
@@ -1990,30 +1975,28 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
         colptr2send[i][j] = 1;
 
       /* Adding old CSCD to the CSCD to send */
-      if (i == rank)
-        {
-          cscd_addlocal_int(newloc2globssize[i+1] - newloc2globssize[i],
-                            colptr2send[i], rows2send[i],
-                            ((flags_recv[0]==0)?(NULL):(values2send[i])),
-                            newloc2globs[i],
-                            n, ia, ja, ((flags_recv[0]==0)?(NULL):(a))   , l2g,
-                            &tmpn, &tmpia, &tmpja,
-                            ((flags_recv[0]==0)?(NULL):(&tmpa)),
-                            &add_two_floats,
-                            dof, malloc_flag);
-        }
-      else
-        {
-          cscd_addlocal_int(newloc2globssize[i+1] - newloc2globssize[i],
-                            colptr2send[i], rows2send[i],
-                            ((flags_recv[0]==0)?(NULL):(values2send[i])),
-                            newloc2globs[i],
-                            n, ia, ja, ((flags_recv[0]==0)?(NULL):(a)), l2g,
-                            &tmpn, &tmpia, &tmpja,
-                            ((flags_recv[0]==0)?(NULL):(&tmpa)),
-                            &add_two_floats,
-                            dof, API_YES);
-        }
+      if (i == rank) {
+          z_cscd_addlocal_int(newloc2globssize[i+1] - newloc2globssize[i],
+                              colptr2send[i], rows2send[i],
+                              ((flags_recv[0]==0)?(NULL):(values2send[i])),
+                              newloc2globs[i],
+                              n, ia, ja, ((flags_recv[0]==0)?(NULL):(a))   , l2g,
+                              &tmpn, &tmpia, &tmpja,
+                              ((flags_recv[0]==0)?(NULL):(&tmpa)),
+                              &add_two_floats,
+                              dof, malloc_flag);
+      }
+      else {
+          z_cscd_addlocal_int(newloc2globssize[i+1] - newloc2globssize[i],
+                              colptr2send[i], rows2send[i],
+                              ((flags_recv[0]==0)?(NULL):(values2send[i])),
+                              newloc2globs[i],
+                              n, ia, ja, ((flags_recv[0]==0)?(NULL):(a)), l2g,
+                              &tmpn, &tmpia, &tmpja,
+                              ((flags_recv[0]==0)?(NULL):(&tmpa)),
+                              &add_two_floats,
+                              dof, API_YES);
+      }
       if (newloc2globssize[i+1] - newloc2globssize[i] != tmpn)
         errorPrint("newloc2globssize[i] != tmpn\n");
       memFree_null(colptr2send[i]);
@@ -2023,9 +2006,9 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
           pastix_int_t newrhs_size = (newloc2globssize[i+1] - newloc2globssize[i]);
           MALLOC_INTERN(rhs2send[i],
                         dof*nrhs*newrhs_size,
-                        pastix_float_t);
+                        pastix_complex64_t);
           memset(rhs2send[i], 0,
-                 dof*nrhs*newrhs_size*sizeof(pastix_float_t));
+                 dof*nrhs*newrhs_size*sizeof(pastix_complex64_t));
           for (j = 0; j < newloc2globssize[i+1] - newloc2globssize[i]; j++)
             {
               int iter_rhs;
@@ -2086,8 +2069,8 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
   if (flags_recv[1] == 1)
     {
       pastix_int_t iter_rhs;
-      MALLOC_INTOREXTERN(*drhs, dn*nrhs*dof, pastix_float_t, malloc_flag);
-      MALLOC_INTERN(tmprhs, dn*nrhs*dof, pastix_float_t);
+      MALLOC_INTOREXTERN(*drhs, dn*nrhs*dof, pastix_complex64_t, malloc_flag);
+      MALLOC_INTERN(tmprhs, dn*nrhs*dof, pastix_complex64_t);
       for (i = 0; i < dn*nrhs*dof; i++)
         (*drhs)[i] = 0;
 
@@ -2126,7 +2109,7 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
                     TAG_ROW, comm, &status2);
           if (flags_recv[0] == 1)
             {
-              MALLOC_INTERN(tmpa, dof*dof*size, pastix_float_t);
+              MALLOC_INTERN(tmpa, dof*dof*size, pastix_complex64_t);
               MPI_Recv( tmpa, dof*dof*size, COMM_FLOAT, status.MPI_SOURCE,
                         TAG_VAL, comm, &status2);
             }
@@ -2135,17 +2118,17 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
               tmpa = NULL;
             }
 
-          cscd_addlocal_int(newloc2globssize[rank+1] - newloc2globssize[rank],
-                            colptr2send[rank], rows2send[rank],
-                            ((flags_recv[0]==0)?(NULL):(values2send[rank])),
-                            newloc2globs[rank],
-                            newloc2globssize[rank+1] - newloc2globssize[rank],
-                            tmpia            , tmpja          ,
-                            tmpa             , newloc2globs[rank],
-                            &tmpn            , &tmpia2          ,
-                            &tmpja2        ,
-                            (flags_recv[0]==1)?(&tmpa2):NULL, &add_two_floats , dof,
-                            malloc_flag);
+          z_cscd_addlocal_int(newloc2globssize[rank+1] - newloc2globssize[rank],
+                              colptr2send[rank], rows2send[rank],
+                              ((flags_recv[0]==0)?(NULL):(values2send[rank])),
+                              newloc2globs[rank],
+                              newloc2globssize[rank+1] - newloc2globssize[rank],
+                              tmpia            , tmpja          ,
+                              tmpa             , newloc2globs[rank],
+                              &tmpn            , &tmpia2          ,
+                              &tmpja2        ,
+                              (flags_recv[0]==1)?(&tmpa2):NULL, &add_two_floats , dof,
+                              malloc_flag);
 
 
           memFree_null(tmpia);
@@ -2276,16 +2259,13 @@ int cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   
    pastix_comm - PaStiX MPI communicator.
 
 */
-#ifndef cscd2csc
-#  error "redefinition required"
-#endif
-void  cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_float_t * lavals,
-               pastix_float_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
-               pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_float_t **gavals,
-               pastix_float_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+void  z_cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_complex64_t * lavals,
+               pastix_complex64_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+               pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_complex64_t **gavals,
+               pastix_complex64_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
                pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof)
 {
-  cscd2csc_int(lN, lcolptr, lrow, lavals,
+  z_cscd2csc_int(lN, lcolptr, lrow, lavals,
                lrhs, lperm, linvp,
                gN, gcolptr, grow, gavals,
                grhs, gperm, ginvp,
@@ -2317,13 +2297,10 @@ void  cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, p
  *     intern_flag - Decide if malloc will use internal or external macros.
  *
  */
-#ifndef cscd2csc_int
-#  error "redefinition required"
-#endif
-void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_float_t * lavals,
-                   pastix_float_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
-                   pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_float_t **gavals,
-                   pastix_float_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+void  z_cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_complex64_t * lavals,
+                   pastix_complex64_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+                   pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_complex64_t **gavals,
+                   pastix_complex64_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
                    pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof, int intern_flag)
 {
   pastix_int_t      i,j;
@@ -2334,8 +2311,8 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
   pastix_int_t   ** AllColptr   = NULL;
   pastix_int_t   ** AllRow      = NULL;
   pastix_int_t   ** AllLoc2glob = NULL;
-  pastix_float_t ** AllAvals    = NULL;
-  pastix_float_t ** AllRhs      = NULL;
+  pastix_complex64_t ** AllAvals    = NULL;
+  pastix_complex64_t ** AllRhs      = NULL;
   pastix_int_t   ** AllPerm     = NULL;
   /*   pastix_int_t   ** AllInvp; */
   int      proc;
@@ -2350,10 +2327,10 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
   MALLOC_INTERN(AllLoc2glob, commSize, pastix_int_t*);
 
   if (gavals != NULL)
-    MALLOC_INTERN(AllAvals, commSize, pastix_float_t*);
+    MALLOC_INTERN(AllAvals, commSize, pastix_complex64_t*);
 
   if (grhs != NULL)
-    MALLOC_INTERN(AllRhs, commSize, pastix_float_t*);
+    MALLOC_INTERN(AllRhs, commSize, pastix_complex64_t*);
 
   if (gperm != NULL)
     MALLOC_INTERN(AllPerm, commSize, pastix_int_t*);
@@ -2380,7 +2357,7 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
           MALLOC_INTERN(AllColptr[i],   AllLocalN[i]+1, pastix_int_t);
           MALLOC_INTERN(AllLoc2glob[i], AllLocalN[i],   pastix_int_t);
           if (grhs != NULL)
-            MALLOC_INTERN(AllRhs[i], ndof*AllLocalN[i], pastix_float_t);
+            MALLOC_INTERN(AllRhs[i], ndof*AllLocalN[i], pastix_complex64_t);
 
           if (gperm != NULL)
             MALLOC_INTERN(AllPerm[i], AllLocalN[i], pastix_int_t);
@@ -2391,7 +2368,7 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
         {
           MALLOC_INTERN(AllRow[i], AllColptr[i][AllLocalN[i]]-1, pastix_int_t);
           if (gavals != NULL)
-            MALLOC_INTERN(AllAvals[i], ndof*ndof*(AllColptr[i][AllLocalN[i]]-1), pastix_float_t);
+            MALLOC_INTERN(AllAvals[i], ndof*ndof*(AllColptr[i][AllLocalN[i]]-1), pastix_complex64_t);
         }
 
       MPI_Bcast(AllRow[i], AllColptr[i][AllLocalN[i]]-1,
@@ -2437,9 +2414,9 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
     }
   MALLOC_INTOREXTERN(*grow, (*gcolptr)[(*gN)]-1, pastix_int_t, intern_flag);
   if (gavals != NULL)
-    MALLOC_INTOREXTERN(*gavals, ndof*ndof*((*gcolptr)[(*gN)]-1), pastix_float_t, intern_flag);
+    MALLOC_INTOREXTERN(*gavals, ndof*ndof*((*gcolptr)[(*gN)]-1), pastix_complex64_t, intern_flag);
   if (grhs != NULL)
-    MALLOC_INTOREXTERN(*grhs, *gN*ndof, pastix_float_t, intern_flag);
+    MALLOC_INTOREXTERN(*grhs, *gN*ndof, pastix_complex64_t, intern_flag);
   if (gperm != NULL)
     {
       MALLOC_INTOREXTERN(*gperm, *gN, pastix_int_t, intern_flag);
@@ -2457,7 +2434,7 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
           if (gavals != NULL)
             memcpy(&(*gavals)[(*gcolptr)[AllLoc2glob[proc][i]-1]-1],
                    &AllAvals[proc][AllColptr[proc][i]-1],
-                   ndof*ndof*(AllColptr[proc][i+1] - AllColptr[proc][i])*sizeof(pastix_float_t));
+                   ndof*ndof*(AllColptr[proc][i+1] - AllColptr[proc][i])*sizeof(pastix_complex64_t));
           if (grhs != NULL)
             for (j = 0; j < ndof; j++)
               (*grhs)[ndof*(AllLoc2glob[proc][i]-1)+j]  = AllRhs[proc][ndof*i+j];
@@ -2535,13 +2512,10 @@ void  cscd2csc_int(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lro
  *     linvp    - local part of the reverse permutation tabular (output).
  *     loc2glob - global numbers of local columns (before permutation).
  */
-#ifndef csc2cscd
-#  error "redefinition required"
-#endif
-void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
-               pastix_float_t *  gavals, pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+void  z_csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
+               pastix_complex64_t *  gavals, pastix_complex64_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
                pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow,
-               pastix_float_t ** lavals, pastix_float_t ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+               pastix_complex64_t ** lavals, pastix_complex64_t ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
                pastix_int_t *loc2glob)
 {
   pastix_int_t   i;
@@ -2549,7 +2523,7 @@ void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
 
   if (grhs != NULL)
     {
-      MALLOC_INTERN(*lrhs, lN, pastix_float_t);
+      MALLOC_INTERN(*lrhs, lN, pastix_complex64_t);
       for (i = 0; i < lN; i++)
         (*lrhs )[i] = grhs [loc2glob[i]];
     }
@@ -2572,7 +2546,7 @@ void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
 
   MALLOC_INTERN(*lrow, (*lcolptr)[lN]-1, pastix_int_t);
   if (gavals != NULL)
-    MALLOC_INTERN(*lavals, (*lcolptr)[lN]-1, pastix_float_t);
+    MALLOC_INTERN(*lavals, (*lcolptr)[lN]-1, pastix_complex64_t);
 
   for (i = 0; i < lN; i++)
     {
@@ -2582,14 +2556,14 @@ void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
       if (gavals != NULL)
         memcpy(&((*lavals)[(*lcolptr)[i]-1]),
                &(  gavals[gcolptr[loc2glob[i]-1]]),
-               (gcolptr[loc2glob[i]] - gcolptr[loc2glob[i]-1])*sizeof(pastix_float_t));
+               (gcolptr[loc2glob[i]] - gcolptr[loc2glob[i]-1])*sizeof(pastix_complex64_t));
     }
 
 
 }
 
 /*
- *  Function: cscd_noDiag
+ *  Function: z_cscd_noDiag
  *
  *  Removes diagonal elements from a CSCD.
  *  *ja* and *a* can be reallocated to
@@ -2604,17 +2578,14 @@ void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow,
  *    l2g         - local 2 global column numbers for first cscd
  *
  */
-#ifndef cscd_noDiag
-#  error "redefinition required"
-#endif
-int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, const pastix_int_t * l2g)
+int z_cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_complex64_t * a, const pastix_int_t * l2g)
 {
   pastix_int_t     i;
   pastix_int_t     j;
   pastix_int_t     previous_index = 0;
   pastix_int_t     index          = 0;
 
-  print_debug(DBG_CSCD, "->cscd_noDiag\n");
+  print_debug(DBG_CSCD, "->z_cscd_noDiag\n");
   /* for all local column i */
   for(i = 0; i < n; i++)
     {
@@ -2636,13 +2607,13 @@ int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float
       previous_index = index;
     }
   ia[n] = index+1;
-  print_debug(DBG_CSCD, "<-cscd_noDiag\n");
+  print_debug(DBG_CSCD, "<-z_cscd_noDiag\n");
   return EXIT_SUCCESS;
 }
 
 
 /*
- *  Function: cscd_save
+ *  Function: z_cscd_save
  *
  *  save a distributed csc to disk.
  *  files are called $(filename) and $(filename)$(RANK)
@@ -2665,14 +2636,11 @@ int cscd_noDiag(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float
  *    filename    - name of the files.
  *    comm        - MPI communicator
  */
-#ifndef cscd_save
-#  error "redefinition required"
-#endif
-int cscd_save(pastix_int_t          n,
+int z_cscd_save(pastix_int_t          n,
               pastix_int_t        * ia,
               pastix_int_t        * ja,
-              pastix_float_t      * a,
-              pastix_float_t      * rhs,
+              pastix_complex64_t      * a,
+              pastix_complex64_t      * rhs,
               pastix_int_t        * l2g,
               int          dof,
               const char * filename,
@@ -2904,7 +2872,7 @@ int cscd_save(pastix_int_t          n,
 }
 
 /*
- *  Function: cscd_load
+ *  Function: z_cscd_load
  *
  *  Loads a distributed csc from disk.
  *  if filename is NULL then filename = cscd_matrix.
@@ -2919,10 +2887,7 @@ int cscd_save(pastix_int_t          n,
  *    filename    - name of the files.
  *    comm        - MPI communicator
  */
-#ifndef cscd_load
-#  error "redefinition required"
-#endif
-int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_float_t ** a, pastix_float_t ** rhs,
+int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_complex64_t ** a, pastix_complex64_t ** rhs,
               pastix_int_t ** l2g, const char * filename, MPI_Comm mpi_comm)
 {
   FILE * infile;
@@ -3129,7 +3094,7 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
   if (valbool)
     {
       (*a) = NULL;
-      MALLOC_INTERN(*a, nnz, pastix_float_t);
+      MALLOC_INTERN(*a, nnz, pastix_complex64_t);
 
       for (i=0; i<nnz+1-4; i+=4)
         {
@@ -3140,20 +3105,20 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
-          (*a)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
-          (*a)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
-          (*a)[i+3] = (pastix_float_t)(tmpflt7 + I * tmpflt8);
+          (*a)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
+          (*a)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
+          (*a)[i+2] = (pastix_complex64_t)(tmpflt5 + I * tmpflt6);
+          (*a)[i+3] = (pastix_complex64_t)(tmpflt7 + I * tmpflt8);
 #else
           if (4 != fscanf(infile, "%lf %lf %lf %lf",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)tmpflt1;
-          (*a)[i+1] = (pastix_float_t)tmpflt2;
-          (*a)[i+2] = (pastix_float_t)tmpflt3;
-          (*a)[i+3] = (pastix_float_t)tmpflt4;
+          (*a)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*a)[i+1] = (pastix_complex64_t)tmpflt2;
+          (*a)[i+2] = (pastix_complex64_t)tmpflt3;
+          (*a)[i+3] = (pastix_complex64_t)tmpflt4;
 #endif
         }
       switch (nnz - i )
@@ -3166,18 +3131,18 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
-          (*a)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
-          (*a)[i+2] = (pastix_float_t)(tmpflt5 + I * tmpflt6);
+          (*a)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
+          (*a)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
+          (*a)[i+2] = (pastix_complex64_t)(tmpflt5 + I * tmpflt6);
 #else
           if (3 != fscanf(infile, "%lf %lf %lf",
                           &tmpflt1, &tmpflt2, &tmpflt3)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)tmpflt1;
-          (*a)[i+1] = (pastix_float_t)tmpflt2;
-          (*a)[i+2] = (pastix_float_t)tmpflt3;
+          (*a)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*a)[i+1] = (pastix_complex64_t)tmpflt2;
+          (*a)[i+2] = (pastix_complex64_t)tmpflt3;
 #endif
           break;
         case 2:
@@ -3187,16 +3152,16 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
-          (*a)[i+1] = (pastix_float_t)(tmpflt3 + I * tmpflt4);
+          (*a)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
+          (*a)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
 #else
           if (2 != fscanf(infile, "%lf %lf",
                           &tmpflt1, &tmpflt2)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)tmpflt1;
-          (*a)[i+1] = (pastix_float_t)tmpflt2;
+          (*a)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*a)[i+1] = (pastix_complex64_t)tmpflt2;
 #endif
           break;
         case 1:
@@ -3206,14 +3171,14 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)(tmpflt1 + I * tmpflt2);
+          (*a)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
 #else
           if (1 != fscanf(infile, "%lf",
                           &tmpflt1)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
-          (*a)[i  ] = (pastix_float_t)tmpflt1;
+          (*a)[i  ] = (pastix_complex64_t)tmpflt1;
 #endif
           break;
         }
@@ -3222,7 +3187,7 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
   if (rhsbool)
     {
       (*rhs) = NULL;
-      MALLOC_INTERN(*rhs, *n, pastix_float_t);
+      MALLOC_INTERN(*rhs, *n, pastix_complex64_t);
       for (i=0; i<*n+1-4; i+=4)
         {
           if (4 != fscanf(infile, "%lf %lf %lf %lf",
@@ -3231,10 +3196,10 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
-          (*rhs)[i+1] = (pastix_float_t)tmpflt2;
-          (*rhs)[i+2] = (pastix_float_t)tmpflt3;
-          (*rhs)[i+3] = (pastix_float_t)tmpflt4;
+          (*rhs)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*rhs)[i+1] = (pastix_complex64_t)tmpflt2;
+          (*rhs)[i+2] = (pastix_complex64_t)tmpflt3;
+          (*rhs)[i+3] = (pastix_complex64_t)tmpflt4;
         }
 
       switch (*n - i)
@@ -3246,9 +3211,9 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
-          (*rhs)[i+1] = (pastix_float_t)tmpflt2;
-          (*rhs)[i+2] = (pastix_float_t)tmpflt3;
+          (*rhs)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*rhs)[i+1] = (pastix_complex64_t)tmpflt2;
+          (*rhs)[i+2] = (pastix_complex64_t)tmpflt3;
           break;
         case 2:
           if (2 != fscanf(infile, "%lf %lf", &tmpflt1, &tmpflt2)){
@@ -3256,8 +3221,8 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
-          (*rhs)[i+1] = (pastix_float_t)tmpflt2;
+          (*rhs)[i  ] = (pastix_complex64_t)tmpflt1;
+          (*rhs)[i+1] = (pastix_complex64_t)tmpflt2;
           break;
         case 1:
           if (1 != fscanf(infile, "%lf", &tmpflt1)){
@@ -3265,7 +3230,7 @@ int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_fl
             return EXIT_FAILURE;
           }
 
-          (*rhs)[i  ] = (pastix_float_t)tmpflt1;
+          (*rhs)[i  ] = (pastix_complex64_t)tmpflt1;
           break;
         }
 

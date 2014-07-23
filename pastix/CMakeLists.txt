@@ -316,8 +316,11 @@ if (PASTIX_WITH_STARPU)
 endif (PASTIX_WITH_STARPU)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/libcsc")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/libcsc")
 
 add_subdirectory(kernels)
+add_subdirectory(libcsc)
 if (PASTIX_WITH_STARPU)
   add_subdirectory(starpu)
   add_dependencies(pastix_starpu starpu_headers)
@@ -431,9 +434,6 @@ set(PASTIX_LIB_SRCS
   csc/csc_intern_io.c
   csc/csc_intern_solve.c
   csc/csc_intern_updown.c
-  sopalin/csc_utils.c
-  sopalin/cscd_utils.c
-  sopalin/cscd_utils_fortran.c
   sopalin/debug_dump.c
 #  sopalin/ooc.c
   sopalin/pastix.c
@@ -543,6 +543,8 @@ endif()
 
 add_library(pastix ${PASTIX_LIB_SRCS})
 
+add_dependencies(pastix kernel_headers)
+add_dependencies(pastix libcsc_headers)
 if(PASTIX_WITH_STARPU)
   add_dependencies(pastix
     starpu_headers

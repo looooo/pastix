@@ -32,8 +32,7 @@ list(APPEND generated_headers
   gemm_stencil_corner.h
   gemdm_stencil_corner.h)
 
-add_custom_target(kernel_headers ALL SOURCES
-  ${generated_headers} )
+add_custom_target(kernel_headers DEPENDS ${generated_headers} )
 
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES

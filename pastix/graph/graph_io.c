@@ -15,7 +15,7 @@
  **/
 #include "common.h"
 #include "graph.h"
-#include "csc_utils.h"
+#include "d_csc_utils.h"
 
 /**
  *******************************************************************************
@@ -46,7 +46,7 @@ void graphLoad( const pastix_data_t  *pastix_data,
         FILE *stream;
         //TODO
         PASTIX_FOPEN(stream, "graphname","r");
-        csc_load(&ncol, &colptr, &rows, NULL, &dof, stream);
+        d_csc_load(&ncol, &colptr, &rows, NULL, &dof, stream);
         fclose(stream);
     }
 
@@ -101,10 +101,10 @@ void graphSave( const pastix_data_t  *pastix_data,
     {
         PASTIX_FOPEN(stream, "cscgen", "w");
         // TODO
-        csc_save( graph->n,
-                  graph->colptr,
-                  graph->rows,
-                  NULL, 1, stream);
+        d_csc_save( graph->n,
+                    graph->colptr,
+                    graph->rows,
+                    NULL, 1, stream);
         fclose(stream);
     }
 }

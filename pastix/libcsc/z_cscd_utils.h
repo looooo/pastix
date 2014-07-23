@@ -1,10 +1,17 @@
-/*
-  File: cscd_utils.h
-
-  Several operations on CSCD.
-
- */
-
+/**
+ *  PaStiX distributed CSC management routines.
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 #ifndef CSCD_UTILS_H
 #define CSCD_UTILS_H
 
@@ -46,7 +53,7 @@ typedef enum CSC_DISPATCH_OP CSCD_DISPATCH_OP_t;
 
 /* Section: Functions */
 /*
- *  Function: csc_dispatch
+ *  Function: z_csc_dispatch
  *
  *  Distribute a CSC to a CSCD
  *
@@ -67,10 +74,10 @@ typedef enum CSC_DISPATCH_OP CSCD_DISPATCH_OP_t;
  *     dispatch          - choose how to dispatch the csc
  *     pastix_comm       - PaStiX MPI communicator.
  */
-void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_float_t *  gavals,
-                  pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
-                  pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_float_t ** lavals,
-                  pastix_float_t ** lrhs, pastix_int_t ** lperm,
+void z_csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_complex64_t *  gavals,
+                  pastix_complex64_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+                  pastix_int_t *lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_complex64_t ** lavals,
+                  pastix_complex64_t ** lrhs, pastix_int_t ** lperm,
                   pastix_int_t **loc2glob, int dispatch, MPI_Comm pastix_comm);
 
 /*
@@ -86,7 +93,7 @@ void csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  gro
  * Return:
  *   owner of the column (column%commSize)
  */
-pastix_int_t csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm);
+pastix_int_t z_csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm);
 
 /*
  * Function: csc_simple_distribution
@@ -102,7 +109,7 @@ pastix_int_t csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr
  * Return:
  *   owner of the column (column/commSize)
  */
-pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm);
+pastix_int_t z_csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm);
 
 /*
  * Function: cscd_symgraph
@@ -121,8 +128,8 @@ pastix_int_t csc_simple_distribution(pastix_int_t column, pastix_int_t columnnbr
  *   l2g         - global number of each local column.
  *   malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
-int cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_float_t *a,
-                  pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa,
+int z_cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_complex64_t *a,
+                  pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_complex64_t ** newa,
                   const pastix_int_t *     l2g,  MPI_Comm comm);
 /*
  * Function: cscd_addlocal
@@ -148,9 +155,9 @@ int cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_
  *   dof         - Number of degrees of freedom.
  */
 
-int cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_float_t *  a   , pastix_int_t * l2g,
-      pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_float_t *  adda, pastix_int_t * addl2g,
-      pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_float_t ** newa, CSCD_OPERATIONS_t OP, int dof);
+int z_cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja   , pastix_complex64_t *  a   , pastix_int_t * l2g,
+      pastix_int_t   addn, pastix_int_t *  addia, pastix_int_t *  addja, pastix_complex64_t *  adda, pastix_int_t * addl2g,
+      pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_complex64_t ** newa, CSCD_OPERATIONS_t OP, int dof);
 
 /**
  *   Function: csc2cscd
@@ -176,10 +183,10 @@ int cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  ja
  *     linvp    - local part of the reverse permutation tabular (output).
  *     loc2glob - global numbers of local columns (before permutation).
  */
-void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_float_t *  gavals,
-               pastix_float_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
-               pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_float_t ** lavals,
-               pastix_float_t ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
+void  z_csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, pastix_complex64_t *  gavals,
+               pastix_complex64_t *  grhs, pastix_int_t *  gperm, pastix_int_t *  ginvp,
+               pastix_int_t lN, pastix_int_t ** lcolptr, pastix_int_t ** lrow, pastix_complex64_t ** lavals,
+               pastix_complex64_t ** lrhs, pastix_int_t ** lperm, pastix_int_t ** linvp,
                pastix_int_t *loc2glob);
 
 /**
@@ -209,10 +216,10 @@ void  csc2cscd(pastix_int_t gN, pastix_int_t *  gcolptr, pastix_int_t *  grow, p
  *
  */
 
-void  cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_float_t * lavals,
-               pastix_float_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
-               pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_float_t **gavals,
-               pastix_float_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
+void  z_cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, pastix_complex64_t * lavals,
+               pastix_complex64_t * lrhs, pastix_int_t * lperm, pastix_int_t * linvp,
+               pastix_int_t *gN, pastix_int_t ** gcolptr, pastix_int_t **grow, pastix_complex64_t **gavals,
+               pastix_complex64_t **grhs, pastix_int_t **gperm, pastix_int_t **ginvp,
                pastix_int_t *loc2glob, MPI_Comm pastix_comm, pastix_int_t ndof);
 
 /*
@@ -249,10 +256,10 @@ void  cscd2csc(pastix_int_t  lN, pastix_int_t *  lcolptr, pastix_int_t * lrow, p
  *   EXIT_SUCCESS - If all goes well
  *   EXIT_FAILURE - If commsize = 1 and *n* != *dn* or *l2g* != *dl2g*.
  */
-int cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_float_t *   a,
-                    pastix_float_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
-                    pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_float_t ** da,
-                    pastix_float_t ** drhs,  pastix_int_t *  dl2g,
+int z_cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, pastix_complex64_t *   a,
+                    pastix_complex64_t *  rhs,  pastix_int_t nrhs, pastix_int_t *   l2g,
+                    pastix_int_t  dn, pastix_int_t ** dia, pastix_int_t ** dja, pastix_complex64_t ** da,
+                    pastix_complex64_t ** drhs,  pastix_int_t *  dl2g,
                     MPI_Comm comm, pastix_int_t dof);
 
 /*
@@ -279,7 +286,7 @@ int cscd_redispatch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t *   ja, 
  *    filename    - name of the files.
  *    comm        - MPI communicator
  */
-int cscd_save(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t * a, pastix_float_t * rhs, pastix_int_t* l2g,
+int z_cscd_save(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_complex64_t * a, pastix_complex64_t * rhs, pastix_int_t* l2g,
               int dof, const char * filename, MPI_Comm comm);
 
 /*
@@ -298,7 +305,7 @@ int cscd_save(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_float_t
  *    filename    - name of the files.
  *    comm        - MPI communicator
  */
-int cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_float_t ** a, pastix_float_t ** rhs, pastix_int_t ** l2g,
+int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_complex64_t ** a, pastix_complex64_t ** rhs, pastix_int_t ** l2g,
               const char * filename, MPI_Comm mpi_comm);
 
 #endif /* CSCD_UTILS_H */

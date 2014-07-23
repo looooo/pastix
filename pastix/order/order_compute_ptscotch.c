@@ -20,7 +20,7 @@
 #include "order.h"
 #include <ptscotch.h>
 #include "order_scotch_strats.h"
-#include "cscd_utils_intern.h"
+#include "d_cscd_utils_intern.h"
 
 /* TODO: take care of this */
 void global2localperm(pastix_int_t  lN,

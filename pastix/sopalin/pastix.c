@@ -58,9 +58,9 @@
 #include "out.h"
 #include "pastix_internal.h"
 
-#include "csc_utils.h"
-#include "cscd_utils.h"
-#include "cscd_utils_intern.h"
+#include "d_csc_utils.h"
+#include "d_cscd_utils.h"
+#include "d_cscd_utils_intern.h"
 #include "sopalin_acces.h"
 #include "scaling.c"
 #include "perf.h"
@@ -354,11 +354,11 @@ int redispatch_rhs(pastix_int_t      n,
     pastix_int_t   ** toSendIdx;
     pastix_float_t ** toSendValues;
 
-    cscd_build_g2l(newn,
-                   newl2g,
-                   comm,
-                   &gN,
-                   &g2l);
+    d_cscd_build_g2l(newn,
+                     newl2g,
+                     comm,
+                     &gN,
+                     &g2l);
 
     /* allocate counter */
     MALLOC_INTERN(count, commSize, pastix_int_t*);
@@ -1066,11 +1066,11 @@ int pastix_fake_fillin_csc( pastix_data_t *pastix_data,
             memFree_null(pastix_data->glob2loc);
 
         /* Building global to local column number correspondance */
-        cscd_build_g2l(l_n,
-                       l_l2g,
-                       pastix_comm,
-                       &gN,
-                       &(pastix_data->glob2loc));
+        d_cscd_build_g2l(l_n,
+                         l_l2g,
+                         pastix_comm,
+                         &gN,
+                         &(pastix_data->glob2loc));
 
     }
 
@@ -1082,9 +1082,9 @@ int pastix_fake_fillin_csc( pastix_data_t *pastix_data,
             fprintf(stdout,OUT_REDIS_CSC);
 
         /* redistributing cscd with correct local to global correspondance */
-        retval = cscd_redispatch_int(  n,    colptr,    row,  avals,    b, nrhs, loc2glob,
-                                       l_n, &l_colptr, &l_row, &l_val, &l_b, l_l2g,
-                                       API_YES, pastix_comm, iparm[IPARM_DOF_NBR]);
+        retval = d_cscd_redispatch_int(  n,    colptr,    row,  avals,    b, nrhs, loc2glob,
+                                         l_n, &l_colptr, &l_row, &l_val, &l_b, l_l2g,
+                                         API_YES, pastix_comm, iparm[IPARM_DOF_NBR]);
         memFree_null(l_colptr); /* in fake fillin we do nothing with that */
         MPI_Allreduce(&retval, &retval_recv, 1, MPI_INT, MPI_MAX, pastix_comm);
         if (retval_recv != PASTIX_SUCCESS)
@@ -1218,11 +1218,11 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
             memFree_null(pastix_data->glob2loc);
 
         /* Building global to local column number correspondance */
-        cscd_build_g2l(l_n,
-                       l_l2g,
-                       pastix_comm,
-                       &gN,
-                       &(pastix_data->glob2loc));
+        d_cscd_build_g2l(l_n,
+                         l_l2g,
+                         pastix_comm,
+                         &gN,
+                         &(pastix_data->glob2loc));
 
     }
 
@@ -1236,7 +1236,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
         /* redistributing cscd with correct local to global correspondance */
         clockInit(clk);
         clockStart(clk);
-        retval = cscd_redispatch_int(  n,    colptr,    row,  avals,    b, nrhs, loc2glob,
+        retval = d_cscd_redispatch_int(  n,    colptr,    row,  avals,    b, nrhs, loc2glob,
                                        l_n, &l_colptr, &l_row, &l_val, &l_b, l_l2g,
                                        API_YES, pastix_comm, iparm[IPARM_DOF_NBR]);
         clockStop((clk));
@@ -3282,7 +3282,7 @@ void dpastix(pastix_data_t **pastix_data,
         if ((iparm[IPARM_GRAPHDIST] == API_YES) &&
             ((*pastix_data)->glob2loc == NULL))
         {
-            cscd_build_g2l(ncol_int,
+            d_cscd_build_g2l(ncol_int,
                            l2g_int,
                            (*pastix_data)->inter_node_comm,
                            &gN,
@@ -3524,7 +3524,7 @@ pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
         /* fortran-style numbering */
         if (verb > API_VERBOSE_NOT)
             print_onempi("%s", "\n\tC numbering to Fortran Numbering\tOK\n");
-        CSC_Cnum2Fnum(*row,*colptr,n);
+        d_csc_Cnum2Fnum(*row,*colptr,n);
         if (loc2glob != NULL)
             for (i = 0; i <  n; i++)
                 (*loc2glob)[i]++;
@@ -3573,9 +3573,9 @@ pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
         print_onempi("%s", "Check : Sort CSC");
 
     if (avals != NULL)
-        CSC_sort(n,*colptr,*row,*avals, dof);
+        d_csc_sort(n,*colptr,*row,*avals, dof);
     else
-        CSC_sort(n,*colptr,*row,NULL, 0);
+        d_csc_sort(n,*colptr,*row,NULL, 0);
     if (verb > API_VERBOSE_NOT)
         print_onempi("%s","\t\tOK\n");
 
@@ -3585,13 +3585,13 @@ pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
 
     old = (*colptr)[n]-1;
     /* Preserve sorting */
-    ret = csc_check_doubles(n,
-                            *colptr,
-                            row,
-                            avals,
-                            dof,
-                            flagcor,
-                            flagalloc);
+    ret = d_csc_check_doubles(n,
+                              *colptr,
+                              row,
+                              avals,
+                              dof,
+                              flagcor,
+                              flagalloc);
 
     if (loc2glob != NULL)
     {
@@ -3837,17 +3837,17 @@ pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
                 dw[i]=exp(dw[i]); /* a_ij := aij * exp(u_i + u_j) */
 
             print_onempi("%s", "scaling rows...\n");
-            CSC_rowScale(n,*colptr,*row,*avals,dw);
+            d_csc_rowScale(n,*colptr,*row,*avals,dw);
 
             print_onempi("%s", "scaling columns...\n");
-            CSC_colScale(n,*colptr,*row,*avals,dw+m);
+            d_csc_colScale(n,*colptr,*row,*avals,dw+m);
 
             /* apply unsymmetric column permutation */
             for (i=0;i<m;i++)
                 ip[p[i]-1]=i+1; /* inverse permutation */
 
             print_onempi("s%", "apply unsymmetric column permutation...\n");
-            CSC_colPerm(n,*colptr,*row,*avals,ip);
+            d_csc_colPerm(n,*colptr,*row,*avals,ip);
 
             memFree_null(p);
             memFree_null(ip);
@@ -3872,8 +3872,9 @@ pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
         if ((loc2glob != NULL))
         {
             /* Preserve sorting */
-            if (EXIT_SUCCESS == cscd_checksym(n, *colptr, row, avals, *loc2glob, flagcor,
-                                              flagalloc, dof,  pastix_comm))
+            if (EXIT_SUCCESS == d_cscd_checksym(n, *colptr, row, avals, *loc2glob,
+                                                flagcor,
+                                                flagalloc, dof,  pastix_comm))
             {
                 if (verb > API_VERBOSE_NOT)
                 {
@@ -3902,7 +3903,7 @@ pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
         else
         {
             /* Preserve sorting */
-            if (EXIT_SUCCESS == csc_checksym(n, *colptr, row, avals, flagcor, flagalloc, dof))
+            if (EXIT_SUCCESS == d_csc_checksym(n, *colptr, row, avals, flagcor, flagalloc, dof))
             {
                 if (verb > API_VERBOSE_NOT)
                 {
