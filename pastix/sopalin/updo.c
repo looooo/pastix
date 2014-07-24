@@ -3,7 +3,7 @@
 #undef UPDOWN_SM2XMAX
 #define UPDOWN_SM2XMAX 4096
 */
-#include "csc_intern_compute.h"
+#include "d_csc_intern_compute.h"
 
 /* ??? Attention a TASK_PRIONUM en 2D                 */
 /* ??? Attention free apres Isend                     */
@@ -1488,19 +1488,19 @@ void* up_down_smp ( void *arg )
     b = (pastix_float_t *)sopalin_data->ptr_raff[2];
 
     /* compute r = b - Ax */
-    CscbMAx(sopalin_data, me, r, b, sopalin_data->sopar->cscmtx,
+    d_CscbMAx(sopalin_data, me, r, b, sopalin_data->sopar->cscmtx,
             &(datacode->updovct), datacode, PASTIX_COMM,
             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
     /* |A||x| + |b| */
-    CscAxPb( sopalin_data, me, s, b, sopalin_data->sopar->cscmtx,
+    d_CscAxPb( sopalin_data, me, s, b, sopalin_data->sopar->cscmtx,
              &(datacode->updovct), datacode, PASTIX_COMM,
              sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
 
-    CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
+    d_CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
             1, &prec , PASTIX_COMM);
     sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL] = prec;
 
-    prec = CscNormErr(sopalin_data,
+    prec = d_CscNormErr(sopalin_data,
                       me,
                       r,
                       b,

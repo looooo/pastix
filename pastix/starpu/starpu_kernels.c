@@ -1104,7 +1104,7 @@ void trfsp1d_sparse_gemm_starpu_common(void * buffers[], void * _args,
 #  ifdef SOPALIN_LU
   char * TRANS = "T";
   char * trans = "t";
-#  else  SOPALIN_LU
+#  else /* SOPALIN_LU */
   char * TRANS = "C";
   char * trans = "c";
 #  endif
@@ -1323,7 +1323,7 @@ void fill_coeftab_common(void * buffers[], void * _args, int arch) {
   pastix_int_t          lblknum;
   pastix_int_t          dima;
   pastix_int_t          dimb;
-  const CscMatrix   * cscmtx;
+  const d_CscMatrix   * cscmtx;
   pastix_float_t      * trandcsc;
 
   starpu_codelet_unpack_args(_args, &sopalin_data, &cblknum,

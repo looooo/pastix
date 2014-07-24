@@ -5,7 +5,7 @@
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "csc.h"
+#include "z_csc.h"
 #include "z_updown.h"
 #include "z_solver.h"
 #include "queue.h"

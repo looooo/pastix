@@ -1,41 +1,55 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "common.h"
-#include "csc.h"
+#include "z_csc.h"
 #include "symbol.h"
-#include "d_ftgt.h"
-#include "d_updown.h"
+#include "z_ftgt.h"
+#include "z_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_solver.h"
+#include "z_solver.h"
 
 #include "sopalin_acces.h"
-#include "csc_intern_solve.h"
+#include "z_csc_intern_solve.h"
 
 #ifdef DEBUG_RAFF
 #  define CSC_LOG
 #endif
 
 /*
- * Function: Csc2solv_cblk
+ * Function: z_Csc2solv_cblk
  *
  * Copy the part of the internal CSCd corresponding to
- * the column bloc itercblk into the d_SolverMatrix structure
+ * the column bloc itercblk into the z_SolverMatrix structure
  * coeftab which will be used to compute the decomposition.
  *
  * Used in NUMA mode.
  *
  * Parameters:
  *   cscmtx   - The internal CSCd matrix.
- *   datacode - The d_SolverMatrix structure used during decomposition.
+ *   datacode - The z_SolverMatrix structure used during decomposition.
  *   trandcsc - The internal CSCd transpose used in LU decomposition.
  *   itercblk - Column bloc number in which we had the internal CSCd.
  */
-void Csc2solv_cblk(const CscMatrix *cscmtx,
-                   d_SolverMatrix    *datacode,
-                   pastix_float_t           *trandcsc,
-                   pastix_int_t              itercblk)
+void z_Csc2solv_cblk(const z_CscMatrix *cscmtx,
+                     z_SolverMatrix    *datacode,
+                     pastix_complex64_t           *trandcsc,
+                     pastix_int_t              itercblk)
 {
   pastix_int_t itercoltab;
   pastix_int_t iterbloc;

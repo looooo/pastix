@@ -80,4 +80,4 @@ void kernel_trsm(pastix_int_t m, pastix_int_t n,
 }
 
 #endif /* CHOL_SOPALIN */
-#endif _COMPUTE_TRSM_H
+#endif /*_COMPUTE_TRSM_H */

@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include "common.h"
-#include "csc.h"
+#include "d_csc.h"
 #include "queue.h"
 #include "bulles.h"
 #include "stack.h"
@@ -20,7 +20,7 @@
 #define UPPER 1
 
 
-void CscMatrix_RowMult(CscMatrix *csc, pastix_float_t *scaletab) {
+void CscMatrix_RowMult(d_CscMatrix *csc, pastix_float_t *scaletab) {
   int k, col, i, index;
   index = 0;
   for(k=0; k<CSC_FNBR(csc); k++)
@@ -36,7 +36,7 @@ void CscMatrix_RowMult(CscMatrix *csc, pastix_float_t *scaletab) {
     }
 }
 
-void CscMatrix_ColMult(CscMatrix *csc, pastix_float_t *scaletab) {
+void CscMatrix_ColMult(d_CscMatrix *csc, pastix_float_t *scaletab) {
   int k, col, colsize, colbegin, colnum;
   colnum = 0;
   for(k=0; k<CSC_FNBR(csc); k++)
@@ -116,17 +116,17 @@ void SolverMatrix_DiagMult(d_SolverMatrix *datacode, pastix_float_t *scaletab) {
     }
 }
 
-/* Unscale the CscMatrix (which is not factorized) */
+/* Unscale the d_CscMatrix (which is not factorized) */
 /* symmetric case */
-void CscMatrix_Unscale_Sym(CscMatrix *cscmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
+void CscMatrix_Unscale_Sym(d_CscMatrix *cscmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
   (void)scaletab;
   CscMatrix_RowMult(cscmtx, iscaletab);
   CscMatrix_ColMult(cscmtx, iscaletab);
 }
 
-/* Unscale the CscMatrix (which is not factorized) */
+/* Unscale the d_CscMatrix (which is not factorized) */
 /* unsymmetric case */
-void CscMatrix_Unscale_Unsym(CscMatrix *cscmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
+void CscMatrix_Unscale_Unsym(d_CscMatrix *cscmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
   (void)scalerowtab; (void)scalecoltab;
   CscMatrix_RowMult(cscmtx, iscalerowtab);
   CscMatrix_ColMult(cscmtx, iscalecoltab);
@@ -154,7 +154,7 @@ void SolverMatrix_Unscale_Unsym(d_SolverMatrix *solvmtx, pastix_float_t *scalero
 }
 
 /* Unscale a matrix after it has been factorized */
-/* (the d_SolverMatrix is factorized but the CscMatrix not) */
+/* (the d_SolverMatrix is factorized but the d_CscMatrix not) */
 /* symmetric case */
 void Matrix_Unscale_Sym(pastix_data_t * pastix_data,
                         d_SolverMatrix *solvmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
@@ -163,7 +163,7 @@ void Matrix_Unscale_Sym(pastix_data_t * pastix_data,
 }
 
 /* Unscale a matrix after it has been factorized */
-/* (the d_SolverMatrix is factorized but the CscMatrix not) */
+/* (the d_SolverMatrix is factorized but the d_CscMatrix not) */
 /* unsymmetric case */
 void Matrix_Unscale_Unsym(pastix_data_t * pastix_data,
                           d_SolverMatrix *solvmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {

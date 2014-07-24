@@ -1,23 +1,37 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
+
 /*
   File: csc_intern_updown.c
 
-  Build d_UpDownVector from user right-hand-side and CSCd.
-  Retrieve soltion from d_UpDownVector.
-  Construct d_UpDownVector such as X[i] = 1, or X[i] = i.
+  Build z_UpDownVector from user right-hand-side and CSCd.
+  Retrieve soltion from z_UpDownVector.
+  Construct z_UpDownVector such as X[i] = 1, or X[i] = i.
 
 */
 #include "common.h"
 #include <pthread.h>
 #include "tools.h"
 #include "order.h"
-#include "csc.h"
-#include "d_updown.h"
-#include "d_ftgt.h"
-#include "d_updown.h"
+#include "z_csc.h"
+#include "z_updown.h"
+#include "z_ftgt.h"
+#include "z_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_solver.h"
-#include "csc_intern_updown.h"
+#include "z_solver.h"
+#include "z_csc_intern_updown.h"
 
 #ifdef DEBUG_RAFF
 #define CSC_LOG
@@ -30,20 +44,20 @@
 #endif
 
 /*
-  Function: CscdUpdownRhs
+  Function: z_CscdUpdownRhs
 
-  Fill-in d_UpDownVector structure from user right-hand-side member.
+  Fill-in z_UpDownVector structure from user right-hand-side member.
 
   Parameters:
-    updovct - d_UpDownVector structure to fill-in.
+    updovct - z_UpDownVector structure to fill-in.
     solvmtx - Solver matrix.
     rhs     - Right-hand-side member.
     invp    - reverse permutation tabular.
     dof     - Number of degree of freedom.
  */
-void CscUpdownRhs(d_UpDownVector       *updovct,
-                  const d_SolverMatrix *solvmtx,
-                  const pastix_float_t        *rhs,
+void z_CscUpdownRhs(z_UpDownVector       *updovct,
+                  const z_SolverMatrix *solvmtx,
+                  const pastix_complex64_t        *rhs,
                   const pastix_int_t          *invp,
                   int                 dof)
 {
@@ -53,7 +67,7 @@ void CscUpdownRhs(d_UpDownVector       *updovct,
   pastix_int_t indice;
   pastix_int_t i;
 
-  print_debug(DBG_CSC_LOG, "-> CscUpdownRhs \n");
+  print_debug(DBG_CSC_LOG, "-> z_CscUpdownRhs \n");
 
   for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++)
     {
@@ -72,25 +86,25 @@ void CscUpdownRhs(d_UpDownVector       *updovct,
         }
     }
 
-  print_debug(DBG_CSC_LOG, "<- CscUpdownRhs \n");
+  print_debug(DBG_CSC_LOG, "<- z_CscUpdownRhs \n");
 }
 
 /*
-  Function: CscdUpdownRhs
+  Function: z_CscdUpdownRhs
 
-  Fill-in d_UpDownVector structure from user distributed right-hand-side member.
+  Fill-in z_UpDownVector structure from user distributed right-hand-side member.
 
   Parameters:
-    updovct - d_UpDownVector structure to fill-in.
+    updovct - z_UpDownVector structure to fill-in.
     solvmtx - Solver matrix.
     rhs     - Right-hand-side member.
     invp    - reverse permutation tabular.
     g2l     - local numbers of global nodes, if not local contains -owner
     dof     - Number of degree of freedom.
  */
-void CscdUpdownRhs(d_UpDownVector       *updovct,
-                   const d_SolverMatrix *solvmtx,
-                   const pastix_float_t        *rhs,
+void z_CscdUpdownRhs(z_UpDownVector       *updovct,
+                   const z_SolverMatrix *solvmtx,
+                   const pastix_complex64_t        *rhs,
                    const pastix_int_t          *invp,
                    const pastix_int_t          *g2l,
                    const pastix_int_t           ln,
@@ -102,7 +116,7 @@ void CscdUpdownRhs(d_UpDownVector       *updovct,
   pastix_int_t indice;
   pastix_int_t i;
 
-  print_debug(DBG_CSC_LOG, "-> CscdUpdownRhs \n");
+  print_debug(DBG_CSC_LOG, "-> z_CscdUpdownRhs \n");
 
   for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++)
     {
@@ -122,16 +136,16 @@ void CscdUpdownRhs(d_UpDownVector       *updovct,
         }
     }
 
-  print_debug(DBG_CSC_LOG, "<- CscdUpdownRhs \n");
+  print_debug(DBG_CSC_LOG, "<- z_CscdUpdownRhs \n");
 }
 
 /*
-  Function:CscRhsUpdown
+  Function:z_CscRhsUpdown
 
-  Builds solution from d_UpDownVector structure
+  Builds solution from z_UpDownVector structure
 
   Parameters:
-    updovct  - d_UpDownVector structure containing the solution.
+    updovct  - z_UpDownVector structure containing the solution.
     solvmtx  - Solver matrix structure.
     rhs      - Solution to fill.
     ncol     - Number of columns in local matrix.
@@ -139,9 +153,9 @@ void CscdUpdownRhs(d_UpDownVector       *updovct,
     comm     - MPI communicator.
 
  */
-void CscRhsUpdown(const d_UpDownVector *updovct,
-                  const d_SolverMatrix *solvmtx,
-                  pastix_float_t              *rhs,
+void z_CscRhsUpdown(const z_UpDownVector *updovct,
+                  const z_SolverMatrix *solvmtx,
+                  pastix_complex64_t              *rhs,
                   const pastix_int_t           ncol,
                   const pastix_int_t          *invp,
                   const int           dof,
@@ -154,16 +168,16 @@ void CscRhsUpdown(const d_UpDownVector *updovct,
   pastix_int_t    itercol;
   pastix_int_t    indice, i;
   pastix_int_t    size = updovct->sm2xnbr*ncol*dof;
-  pastix_float_t *rhs2 = NULL;
+  pastix_complex64_t *rhs2 = NULL;
   (void)comm;
 
 #ifdef INOUT_ALLREDUCE
   rhs2 = rhs;
 #else
-  MALLOC_INTERN(rhs2, size, pastix_float_t);
+  MALLOC_INTERN(rhs2, size, pastix_complex64_t);
 #endif
 
-  print_debug(DBG_CSC_LOG, "-> CscRhsUpdown \n");
+  print_debug(DBG_CSC_LOG, "-> z_CscRhsUpdown \n");
 
   for (iter=0; iter<size; iter++)
     {
@@ -217,17 +231,17 @@ void CscRhsUpdown(const d_UpDownVector *updovct,
   memFree_null(rhs2);
 #endif
 
-  print_debug(DBG_CSC_LOG, "<- CscRhsUpdown \n");
+  print_debug(DBG_CSC_LOG, "<- z_CscRhsUpdown \n");
 }
 
 /*
-  Function:CscdRhsUpdown
+  Function:z_CscdRhsUpdown
 
   Builds distributed solution from
-  d_UpDownVector structure
+  z_UpDownVector structure
 
   Parameters:
-    updovct  - d_UpDownVector structure containing the solution.
+    updovct  - z_UpDownVector structure containing the solution.
     solvmtx  - Solver matrix structure.
     x        - Solution to fill.
     ncol     - Number of columns in local matrix.
@@ -237,9 +251,9 @@ void CscRhsUpdown(const d_UpDownVector *updovct,
     comm     - MPI communicator.
 
  */
-void CscdRhsUpdown(const d_UpDownVector *updovct,
-                   const d_SolverMatrix *solvmtx,
-                   pastix_float_t              *x,
+void z_CscdRhsUpdown(const z_UpDownVector *updovct,
+                   const z_SolverMatrix *solvmtx,
+                   pastix_complex64_t              *x,
                    const pastix_int_t           ncol,
                    const pastix_int_t          *g2l,
                    const pastix_int_t          *invp,
@@ -253,7 +267,7 @@ void CscdRhsUpdown(const d_UpDownVector *updovct,
   pastix_int_t size = updovct->sm2xnbr*ncol*dof;
   (void)comm;
 
-  print_debug(DBG_CSC_LOG, "-> CscdRhsUpdown \n");
+  print_debug(DBG_CSC_LOG, "-> z_CscdRhsUpdown \n");
 
   for (iter=0; iter<size; iter++)
     {
@@ -278,25 +292,25 @@ void CscdRhsUpdown(const d_UpDownVector *updovct,
         }
     }
 
-  print_debug(DBG_CSC_LOG, "<- CscdRhsUpdown \n");
+  print_debug(DBG_CSC_LOG, "<- z_CscdRhsUpdown \n");
 }
 
 /*
-  Function: Csc2updown
+  Function: z_Csc2updown
 
-  Fill-in d_UpDownVector structure such as the solution of
+  Fill-in z_UpDownVector structure such as the solution of
   the system Ax=b is x_i=1 (API_RHS_1) or x_i=i (API_RHS_I).
 
   Parameters:
     cscmtx   - internal CSCd matrix.
-    updovct  - d_UpDownVector structure to fill-in.
+    updovct  - z_UpDownVector structure to fill-in.
     solvmtx  - Solver matrix.
     mode     - wanted solution API_RHS_1 or API_RHS_I.
     comm     - MPI communicator.
 */
-void Csc2updown(const CscMatrix    *cscmtx,
-                d_UpDownVector       *updovct,
-                const d_SolverMatrix *solvmtx,
+void z_Csc2updown(const z_CscMatrix    *cscmtx,
+                z_UpDownVector       *updovct,
+                const z_SolverMatrix *solvmtx,
                 int                 mode,
                 MPI_Comm            comm)
 {
@@ -306,19 +320,19 @@ void Csc2updown(const CscMatrix    *cscmtx,
   pastix_int_t    iterval;
   pastix_int_t    itersmx;
   pastix_int_t    cblknbr;
-  pastix_float_t *smb   = NULL;
-  pastix_float_t *tempy = NULL;
+  pastix_complex64_t *smb   = NULL;
+  pastix_complex64_t *tempy = NULL;
   (void)comm;
 
-  print_debug(DBG_CSC_LOG, "-> Csc2updown \n");
+  print_debug(DBG_CSC_LOG, "-> z_Csc2updown \n");
 
   cblknbr = solvmtx->cblknbr;
 
-  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_complex64_t);
 #ifdef INOUT_ALLREDUCE
   smb = tempy;
 #else
-  MALLOC_INTERN(smb,   updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(smb,   updovct->gnodenbr, pastix_complex64_t);
 #endif
 
   print_debug(DBG_CSC_LOG, "nodenbr=%ld\n",(long)updovct->gnodenbr);
@@ -347,11 +361,11 @@ void Csc2updown(const CscMatrix    *cscmtx,
                   switch (mode)
                     {
                     case API_RHS_1:
-                      tempy[CSC_ROW(cscmtx,iterval)] += (pastix_float_t)(itersmx+SMX_SOL)*CSC_VAL(cscmtx,iterval);
+                      tempy[CSC_ROW(cscmtx,iterval)] += (pastix_complex64_t)(itersmx+SMX_SOL)*CSC_VAL(cscmtx,iterval);
                       break;
                     case API_RHS_I:
                       tempy[CSC_ROW(cscmtx,iterval)] +=
-                        ((pastix_float_t)(solvmtx->cblktab[itercblk].fcolnum+itercol))*
+                        ((pastix_complex64_t)(solvmtx->cblktab[itercblk].fcolnum+itercol))*
                         CSC_VAL(cscmtx,iterval);
                       break;
                     }
@@ -378,12 +392,12 @@ void Csc2updown(const CscMatrix    *cscmtx,
   memFree_null(smb);
 #endif
 
-  print_debug(DBG_CSC_LOG, "<- Csc2updown \n");
+  print_debug(DBG_CSC_LOG, "<- z_Csc2updown \n");
 }
 
 
 /*
-  Function: Csc2updown_X0
+  Function: z_Csc2updown_X0
 
   Fill-in initial X0 for reffinement if we don't want to use
   Solve step.
@@ -391,13 +405,13 @@ void Csc2updown(const CscMatrix    *cscmtx,
   (iparm[IPARM_ONLY_RAFF] == API_YES)
 
   Parameters:
-    updovct - d_UpDownVector structure were to copy B as the first X0 used for raffinement.
+    updovct - z_UpDownVector structure were to copy B as the first X0 used for raffinement.
     solvmtx - Solver matrix.
     mode    - Rule to construct X0 (API_RHS_0 : X0[i] = 0, API_RHS_1 : X0[i] = 1, API_RHS_I : X0[i] = i).
     comm    - MPI_Communicator.
 */
-void Csc2updown_X0(d_UpDownVector *updovct,
-                   /*const*/ d_SolverMatrix *solvmtx,
+void z_Csc2updown_X0(z_UpDownVector *updovct,
+                   /*const*/ z_SolverMatrix *solvmtx,
                    int mode,
                    MPI_Comm comm)
 {
@@ -407,7 +421,7 @@ void Csc2updown_X0(d_UpDownVector *updovct,
   pastix_int_t  cblknbr = solvmtx->cblknbr;
   (void)comm;
 
-  print_debug(DBG_CSC_LOG, "-> Csc2updown_X0 \n");
+  print_debug(DBG_CSC_LOG, "-> z_Csc2updown_X0 \n");
   print_debug(DBG_CSC_LOG, "nodenbr=%ld\n",(long)updovct->gnodenbr);
 
   for (itersmx=0; itersmx<updovct->sm2xnbr; itersmx++)
@@ -422,13 +436,13 @@ void Csc2updown_X0(d_UpDownVector *updovct,
               switch (mode)
                 {
                 case API_RHS_0:
-                  updovct->sm2xtab[iterdval+iterval] = (pastix_float_t)0.0;
+                  updovct->sm2xtab[iterdval+iterval] = (pastix_complex64_t)0.0;
                   break;
                 case API_RHS_1:
-                  updovct->sm2xtab[iterdval+iterval] = (pastix_float_t)SMX_SOL;
+                  updovct->sm2xtab[iterdval+iterval] = (pastix_complex64_t)SMX_SOL;
                   break;
                 case API_RHS_I:
-                  updovct->sm2xtab[iterdval+iterval] = ((pastix_float_t)(solvmtx->cblktab[itercblk].fcolnum+iterval));
+                  updovct->sm2xtab[iterdval+iterval] = ((pastix_complex64_t)(solvmtx->cblktab[itercblk].fcolnum+iterval));
                   break;
 
                 }
@@ -436,5 +450,5 @@ void Csc2updown_X0(d_UpDownVector *updovct,
         }
     }
 
-  print_debug(DBG_CSC_LOG, "<- Csc2updown_X0 \n");
+  print_debug(DBG_CSC_LOG, "<- z_Csc2updown_X0 \n");
 }

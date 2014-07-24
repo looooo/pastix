@@ -14,7 +14,7 @@
 #  include "sopalin_acces.h"
 #  include "symbol.h"
 #  include "d_ftgt.h"
-#  include "csc.h"
+#  include "d_csc.h"
 #  include "d_updown.h"
 #  include "queue.h"
 #  include "bulles.h"
@@ -33,7 +33,7 @@
 #  include "starpu_dsubmit.h"
 
 #  define dump_all API_CALL(dump_all)
-void  dump_all                 (d_SolverMatrix *, CscMatrix * cscmtx, int);
+void  dump_all                 (d_SolverMatrix *, d_CscMatrix * cscmtx, int);
 
 /* #define starpu_mpi_data_register(data, tag, rank) do {          \ */
 /*   starpu_data_set_rank(data, rank);                             \ */

@@ -38,7 +38,7 @@
 #include "dof.h"
 #include "d_ftgt.h"
 #include "symbol.h"
-#include "csc.h"
+#include "d_csc.h"
 #include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
@@ -52,8 +52,8 @@
 #include "sopalin3d.h"
 #include "sopalin_init.h"
 #include "sopalin_option.h"
-#include "csc_intern_updown.h"
-#include "csc_intern_build.h"
+#include "d_csc_intern_updown.h"
+#include "d_csc_intern_build.h"
 #include "coefinit.h"
 #include "out.h"
 #include "pastix_internal.h"
@@ -524,7 +524,7 @@ int buildUpdoVect(pastix_data_t *pastix_data,
             /* Permuter b avec la permutation inverse */
             if (iparm[IPARM_GRAPHDIST] == API_NO )
             {
-                CscUpdownRhs(&(solvmatr->updovct),
+                d_CscUpdownRhs(&(solvmatr->updovct),
                              solvmatr,
                              b,
                              invp,
@@ -533,7 +533,7 @@ int buildUpdoVect(pastix_data_t *pastix_data,
 #ifdef PASTIX_DISTRIBUTED
             else
             {
-                CscdUpdownRhs(&(solvmatr->updovct),
+                d_CscdUpdownRhs(&(solvmatr->updovct),
                               solvmatr,
                               b,
                               invp,
@@ -564,14 +564,14 @@ int buildUpdoVect(pastix_data_t *pastix_data,
         if ((iparm[IPARM_ONLY_RAFF] == API_YES) && (iparm[IPARM_START_TASK] < API_TASK_REFINE))
         {
             fprintf(stdout,GEN_SOL_0);
-            Csc2updown_X0(&(solvmatr->updovct),
+            d_Csc2updown_X0(&(solvmatr->updovct),
                           solvmatr,
                           API_RHS_0,
                           pastix_comm);
         }
         else
         {
-            Csc2updown(&(pastix_data->cscmtx),
+            d_Csc2updown(&(pastix_data->cscmtx),
                        &(solvmatr->updovct),
                        solvmatr,
                        iparm[IPARM_RHS_MAKING],
@@ -1295,14 +1295,14 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
     {
         if (pastix_data->malcsc)
         {
-            CscExit(&(pastix_data->cscmtx));
+            d_CscExit(&(pastix_data->cscmtx));
             pastix_data->malcsc=0;
         }
 
         clockInit(clk);
         clockStart(clk);
 
-        /* Choix des parametres pour CscOrdistrib */
+        /* Choix des parametres pour d_CscOrdistrib */
         if (iparm[IPARM_SYM] == API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER) /* symmetric mtx */
         {
             if (iparm[IPARM_FACTORIZATION] == API_FACT_LU) /* LU */
@@ -1332,7 +1332,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
         /* Build internal CSCD from user CSC */
         if (iparm[IPARM_GRAPHDIST] == API_NO)
         {
-            CscOrdistrib(&(pastix_data->cscmtx), Type,
+            d_CscOrdistrib(&(pastix_data->cscmtx), Type,
                          transcsc, ordemesh,
                          l_n, l_n, l_colptr[l_n]-1, l_colptr,
                          l_row, l_val, forcetr,
@@ -1342,7 +1342,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
         else
         {
             /* Build internal CSCD from user CSCD */
-            CscdOrdistrib(&(pastix_data->cscmtx), Type,
+            d_CscdOrdistrib(&(pastix_data->cscmtx), Type,
                           transcsc, ordemesh,
                           l_n, l_colptr,
                           l_row, l_val,
@@ -1841,7 +1841,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
         {
             if (iparm[IPARM_ONLY_RAFF] == API_NO)
             {
-                CscRhsUpdown(&(solvmatr->updovct),
+                d_CscRhsUpdown(&(solvmatr->updovct),
                              solvmatr,
                              b, n, ordemesh->peritab,
                              iparm[IPARM_DOF_NBR],
@@ -1852,7 +1852,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
 #ifdef PASTIX_DISTRIBUTED
         else
         {
-            CscdRhsUpdown(&(solvmatr->updovct),
+            d_CscdRhsUpdown(&(solvmatr->updovct),
                           solvmatr,
                           pastix_data->b_int,
                           pastix_data->ncol_int,
@@ -2095,7 +2095,7 @@ void pastix_task_updown(pastix_data_t *pastix_data,
             /* b <- solution */
             if (iparm[IPARM_GRAPHDIST] == API_NO)
             {
-                CscRhsUpdown(&(solvmatr->updovct),
+                d_CscRhsUpdown(&(solvmatr->updovct),
                              solvmatr,
                              b, n, ordemesh->peritab,
                              iparm[IPARM_DOF_NBR],
@@ -2105,7 +2105,7 @@ void pastix_task_updown(pastix_data_t *pastix_data,
 #ifdef PASTIX_DISTRIBUTED
             else
             {
-                CscdRhsUpdown(&(solvmatr->updovct),
+                d_CscdRhsUpdown(&(solvmatr->updovct),
                               solvmatr,
                               b, n,
                               pastix_data->glob2loc,
@@ -2327,7 +2327,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
     /* b <- solution */
     if (iparm[IPARM_GRAPHDIST] == API_NO)
     {
-        CscRhsUpdown(&(solvmatr->updovct),
+        d_CscRhsUpdown(&(solvmatr->updovct),
                      solvmatr,
                      b, n, ordemesh->peritab,
                      iparm[IPARM_DOF_NBR],
@@ -2337,7 +2337,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 #ifdef PASTIX_DISTRIBUTED
     else
     {
-        CscdRhsUpdown(&(solvmatr->updovct),
+        d_CscdRhsUpdown(&(solvmatr->updovct),
                       solvmatr,
                       b, n,
                       pastix_data->glob2loc,
@@ -2508,7 +2508,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
 
     if ((*pastix_data)->malcsc)
     {
-        CscExit(&((*pastix_data)->cscmtx));
+        d_CscExit(&((*pastix_data)->cscmtx));
         (*pastix_data)->malcsc=0;
     }
 

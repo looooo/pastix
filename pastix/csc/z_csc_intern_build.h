@@ -1,16 +1,30 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
+
 /*
-  File: csc_intern_build.h
+  File: z_csc_intern_build.h
   
   Functions to build internal CSCd from user CSCd.
 
   Function to free internal CSCd.
 
 */
-#ifndef CSC_INTERN_BUILD_H
-#define CSC_INTERN_BUILD_H
+#ifndef Z_CSC_INTERN_BUILD_H
+#define Z_CSC_INTERN_BUILD_H
 
 /*
-  Function: CscOrdistrib
+  Function: z_CscOrdistrib
 
   Fill in *thecsc* CSC matrix in column block representation.
 
@@ -31,23 +45,23 @@
   procnum    - MPI process number.
   dof        - Number of degree of freedom
 */
-void CscOrdistrib(CscMatrix          *thecsc, 
+void z_CscOrdistrib(z_CscMatrix          *thecsc, 
 		  char               *Type, 
-		  pastix_float_t             **transcsc,
+		  pastix_complex64_t             **transcsc,
 		  const Order        *ord, 
 		  pastix_int_t                 Nrow, 
 		  pastix_int_t                 Ncol,
 		  pastix_int_t                 Nnzero, 
 		  pastix_int_t                *colptr, 
 		  pastix_int_t                *rowind, 
-		  pastix_float_t              *val, 
+		  pastix_complex64_t              *val, 
 		  pastix_int_t                 forcetrans,
-		  const d_SolverMatrix *symbmtx, 
+		  const z_SolverMatrix *symbmtx, 
 		  pastix_int_t                 procnum, 
 		  pastix_int_t                 dof);
 
 /*
-  Function: CscdOrdistrib
+  Function: z_CscdOrdistrib
 
   Fill in *thecsc* CSC matrix in column block representation.
 
@@ -107,30 +121,30 @@ void CscOrdistrib(CscMatrix          *thecsc,
   dof        - Number of degree of freedom
   comm       - MPI communicator.
 */
-void CscdOrdistrib(CscMatrix          *thecsc, 
+void z_CscdOrdistrib(z_CscMatrix          *thecsc, 
 		   char               *Type, 
-		   pastix_float_t             **transcsc,
+		   pastix_complex64_t             **transcsc,
 		   const Order        *ord, 
 		   pastix_int_t                 Ncol,
 		   pastix_int_t                *colptr, 
 		   pastix_int_t                *rowind, 
-		   pastix_float_t              *val, 
+		   pastix_complex64_t              *val, 
 		   pastix_int_t                *l2g,
 		   pastix_int_t                 gNcol,
 		   pastix_int_t                *g2l,
 		   pastix_int_t                 forcetrans,
-		   const d_SolverMatrix *symbmtx, 
+		   const z_SolverMatrix *symbmtx, 
 		   pastix_int_t                 procnum,
 		   pastix_int_t                 dof,
 		   MPI_Comm            comm);
 
 /* 
-   Function: CscExit
+   Function: z_CscExit
    
    Free the internal CSCd structure.
    
    Parameters:
      thecsc - Internal CSCd to free.
 */
-void CscExit(CscMatrix *thecsc);
-#endif /* CSC_INTERN_BUILD_H */
+void z_CscExit(z_CscMatrix *thecsc);
+#endif /* Z_CSC_INTERN_BUILD_H */

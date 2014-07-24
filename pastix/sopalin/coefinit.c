@@ -13,7 +13,7 @@
 #include "dof.h"
 #include "d_ftgt.h"
 #include "symbol.h"
-#include "../csc/csc.h"
+#include "../csc/d_csc.h"
 #include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
@@ -23,8 +23,8 @@
 #include "sopalin3d.h"
 #include "order.h"
 #include "debug_dump.h"
-#include "csc_intern_solve.h"
-#include "csc_intern_build.h"
+#include "d_csc_intern_solve.h"
+#include "d_csc_intern_build.h"
 #include "sopalin_time.h"
 #include "ooc.h"
 #include "sopalin_acces.h" /* ATTENTION : inclure apres define SMP_SOPALIN */
@@ -238,7 +238,7 @@ void CoefMatrix_Init(d_SolverMatrix         *datacode,
           }
 
           /* remplissage */
-          Csc2solv_cblk(sopalin_data->sopar->cscmtx, datacode, *transcsc, itercblk);
+          d_Csc2solv_cblk(sopalin_data->sopar->cscmtx, datacode, *transcsc, itercblk);
 
           ooc_save_coef(sopalin_data, task, itercblk, me);
         }
@@ -392,7 +392,7 @@ if (iparm[IPARM_FREE_CSCPASTIX] == API_CSC_FREE)
          ((iparm[IPARM_END_TASK] < API_TASK_REFINE) &&
           (iparm[IPARM_RHS_MAKING] == API_RHS_B)))
      {
-       CscExit(sopalin_data->sopar->cscmtx);
+       d_CscExit(sopalin_data->sopar->cscmtx);
      }
      else
      {

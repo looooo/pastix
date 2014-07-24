@@ -19,7 +19,7 @@
 #include "d_ftgt.h"
 #include "symbol.h"
 #include "queue.h"
-#include "csc.h"
+#include "d_csc.h"
 #include "d_updown.h"
 #include "bulles.h"
 #include "d_solver.h"
@@ -28,7 +28,7 @@
 #include "sopalin3d.h"
 #include "sopalin_acces.h"
 #ifdef OOC_NOCOEFINIT
-#include "csc_intern_solve.h"
+#include "d_csc_intern_solve.h"
 #endif
 #include "ooc.h"
 
@@ -2167,7 +2167,7 @@ int ooc_do_load_coef (Sopalin_Data_t * sopalin_data, pastix_int_t cblknum, int m
                 SOLV_UCOEFTAB(cblknum)[j] = ZERO;
               }
 #ifdef OOC_NOCOEFINIT
-          Csc2solv_cblk(&(datacode->cscmtx), datacode,
+          d_Csc2solv_cblk(&(datacode->cscmtx), datacode,
                         sopalin_data->sopar->transcsc, cblknum);
 #endif
           return EXIT_SUCCESS;

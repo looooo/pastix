@@ -1,5 +1,18 @@
-#ifndef CSC_H
-#define CSC_H
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
+#ifndef Z_CSC_H
+#define Z_CSC_H
 #include "common.h"
 
 /* Section: Macros */
@@ -153,7 +166,7 @@
      coltab - Array of indexes of the start of each column in
 	      the row and value arrays.
 */
-struct CscFormat_ {
+struct z_CscFormat_ {
   pastix_int_t   colnbr;
   pastix_int_t * coltab;
 };
@@ -163,10 +176,10 @@ struct CscFormat_ {
 
    See <CscFormat_> structure.
 */
-typedef struct CscFormat_ CscFormat;
+typedef struct z_CscFormat_ z_CscFormat;
 
 /*
-  Structure: CscMatrix_
+  Structure: z_CscMatrix_
 
   Internal column block distributed CSC matrix.
 
@@ -177,18 +190,18 @@ typedef struct CscFormat_ CscFormat;
     valtab  - Array of values of the matrix.
     type    - 'S' for symmetric, 'H' for hermitian, U for unsymmetric.
 */
-struct CscMatrix_ {
+struct z_CscMatrix_ {
   pastix_int_t         cscfnbr;
-  CscFormat          * cscftab;
+  z_CscFormat          * cscftab;
   pastix_int_t       * rowtab;
-  pastix_float_t     * valtab;
+  pastix_complex64_t     * valtab;
   char                 type;
 };
 /*
-  Type: CscMatrix
+  Type: z_CscMatrix
 
-  See <CscMatrix_> structure.
+  See <z_CscMatrix_> structure.
 */
-typedef struct CscMatrix_ CscMatrix;
+typedef struct z_CscMatrix_ z_CscMatrix;
 
 #endif /* CSC_H */

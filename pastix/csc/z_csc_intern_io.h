@@ -1,14 +1,27 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 /*
-  File: csc_intern_io.h
+  File: z_csc_intern_io.h
 
   Functions to save or load internal CSC in binary or ascii mode.
   
 */
 
-#ifndef CSC_INTERN_IO_H
-#define CSC_INTERN_IO_H
+#ifndef Z_CSC_INTERN_IO_H
+#define Z_CSC_INTERN_IO_H
 /*
-  Function: CscSave
+  Function: z_CscSave
 
   Writes on disk an internal CSCd in text format.
 
@@ -25,11 +38,11 @@
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-pastix_int_t CscSave(const CscMatrix * const cscptr, 
-	    FILE            * const stream);
+pastix_int_t z_CscSave(const z_CscMatrix * const cscptr,
+                       FILE            * const stream);
 
 /*
-  Function: CscBSave
+  Function: z_CscBSave
 
   Writes on disk an internal CSCd in binary format.
 
@@ -37,11 +50,11 @@ pastix_int_t CscSave(const CscMatrix * const cscptr,
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-pastix_int_t CscBSave(const CscMatrix * const cscptr, 
+pastix_int_t z_CscBSave(const z_CscMatrix * const cscptr, 
 	     FILE            * const stream);
 
 /* 
-   Function: CscLoad
+   Function: z_CscLoad
 
    Reads an internal CSCd from disk.
 
@@ -58,11 +71,11 @@ pastix_int_t CscBSave(const CscMatrix * const cscptr,
      cscprt - the internal CSCd structure to load.
      stream - the FILE to write into, open in read mode. 
 */
-pastix_int_t CscLoad(CscMatrix * cscptr, 
+pastix_int_t z_CscLoad(z_CscMatrix * cscptr, 
 	    FILE      * stream);
 
 /*
-  Function: CscBLoad
+  Function: z_CscBLoad
   
   Loads an internal CSCd from a file saved in binary mode.
 
@@ -70,7 +83,7 @@ pastix_int_t CscLoad(CscMatrix * cscptr,
     cscprt - the internal CSCd structure to load.
     stream - the FILE to write into, open in read mode. 
 */
-pastix_int_t CscBLoad(CscMatrix * cscptr, 
+pastix_int_t z_CscBLoad(z_CscMatrix * cscptr, 
 	     FILE      * stream);
 
-#endif /* CSC_INTERN_IO_H */
+#endif /* Z_CSC_INTERN_IO_H */

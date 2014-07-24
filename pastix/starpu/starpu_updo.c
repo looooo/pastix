@@ -9,7 +9,7 @@
 #  include "common.h"
 #  include "symbol.h"
 #  include "d_ftgt.h"
-#  include "csc.h"
+#  include "d_csc.h"
 #  include "d_updown.h"
 #  include "queue.h"
 #  include "bulles.h"

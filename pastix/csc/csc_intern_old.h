@@ -1,8 +1,8 @@
 /*== Creation/Destruction de CSC ==*/
 
 /******************************************************************************/
-/* void CscHbRead(CscMatrix *thecsc, char *Type, char *RhsType, pastix_float_t **rhs,  */
-/*                pastix_float_t **rhs2, const Order *ord, const char *rsaname)        */
+/* void CscHbRead(z_CscMatrix *thecsc, char *Type, char *RhsType, pastix_complex64_t **rhs,  */
+/*                pastix_complex64_t **rhs2, const Order *ord, const char *rsaname)        */
 /*                                                                            */
 /* Lecture de la csc a partir d'un fichier au format HB et permutation a      */
 /* partir du vecteur permutation fournit par Scotch                           */
@@ -22,17 +22,17 @@
 /******************************************************************************/
 
 /* !!!!!!!!!!!!!FONCTION INUTILISEE !!!!!!!! */
-void CscOrder(CscMatrix *thecsc,
-	      char *Type, char *RhsType, pastix_float_t **transcsc,
-	      pastix_float_t **rhs, pastix_float_t **rhs2,
+void CscOrder(z_CscMatrix *thecsc,
+	      char *Type, char *RhsType, pastix_complex64_t **transcsc,
+	      pastix_complex64_t **rhs, pastix_complex64_t **rhs2,
 	      const Order *ord,
 	      pastix_int_t Nrow, pastix_int_t Ncol, pastix_int_t Nnzero, 
-	      pastix_int_t *colptr, pastix_int_t *rowind, pastix_float_t *val, pastix_int_t forcetrans);
+	      pastix_int_t *colptr, pastix_int_t *rowind, pastix_complex64_t *val, pastix_int_t forcetrans);
 
 /*== Distribution/Remplissage ==*/
 /******************************************************************************/
-/* void CscDistrib(SymbolMatrix *symbmtx, CscMatrix *cscmtx,                  */
-/*                 CscMatrix *cscdist)                                        */
+/* void CscDistrib(SymbolMatrix *symbmtx, z_CscMatrix *cscmtx,                  */
+/*                 z_CscMatrix *cscdist)                                        */
 /*                                                                            */
 /* Distribution de la csc                                                     */
 /*                                                                            */
@@ -40,26 +40,26 @@ void CscOrder(CscMatrix *thecsc,
 /* cscmtx : csc globale                                                       */
 /* cscdist : csc locale                                                       */
 /******************************************************************************/
-void CscDistrib(const SymbolMatrix *symbmtx, const CscMatrix *cscmtx,
-		CscMatrix *cscdist, const pastix_float_t *transcsc, pastix_float_t **trandcsc);
+void CscDistrib(const SymbolMatrix *symbmtx, const z_CscMatrix *cscmtx,
+		z_CscMatrix *cscdist, const pastix_complex64_t *transcsc, pastix_complex64_t **trandcsc);
 
 /*== Divers ==*/
 /******************************************************************************/
-/* void CscTrans(CscMatrix *cscmtx, CscMatrix *csctrp)                        */
+/* void CscTrans(z_CscMatrix *cscmtx, z_CscMatrix *csctrp)                        */
 /*                                                                            */
 /* Transpose une csc                                                          */
 /*                                                                            */
 /* cscmtx : csc                                                               */
 /* csctrp : csc transposee                                                    */
 /******************************************************************************/
-void CscTrans(const CscMatrix *cscmtx, CscMatrix *csctrp);
+void CscTrans(const z_CscMatrix *cscmtx, z_CscMatrix *csctrp);
 
-void CscScaling2(char *Type, pastix_int_t Ncol, pastix_int_t *col, pastix_int_t *row, pastix_float_t *val, pastix_float_t *rhs, pastix_float_t *rhs2);
-void CscScaling(CscMatrix *cscmtx, pastix_float_t *transcsc, pastix_float_t *rhs1, pastix_float_t *rhs2);
+void z_CscScaling2(char *Type, pastix_int_t Ncol, pastix_int_t *col, pastix_int_t *row, pastix_complex64_t *val, pastix_complex64_t *rhs, pastix_complex64_t *rhs2);
+void z_CscScaling(z_CscMatrix *cscmtx, pastix_complex64_t *transcsc, pastix_complex64_t *rhs1, pastix_complex64_t *rhs2);
 
 /******************************************************************************/
 /* void CscVerifUpdown(const d_UpDownVector *updovct,                           */
-/*                     const SymbolMatrix *symbmtx; const pastix_float_t *rhs2)        */
+/*                     const SymbolMatrix *symbmtx; const pastix_complex64_t *rhs2)        */
 /*                                                                            */
 /* Verification entre le second membre fournit dans le fichier HB et le second*/
 /* membre calcule.                                                            */
@@ -69,30 +69,30 @@ void CscScaling(CscMatrix *cscmtx, pastix_float_t *transcsc, pastix_float_t *rhs
 /* rhs2 : vecteur second membre solution fournit dans le fichier HB           */
 /******************************************************************************/
 void CscVerifUpdown(const d_UpDownVector *updovct, const SymbolMatrix *symbmtx,
-		    const pastix_float_t *rhs2);
+		    const pastix_complex64_t *rhs2);
 
 /******************************************************************************/
 /* void CscUpDown(d_UpDownVector *updovct, const SymbolMatrix *symbmtx,         */
-/*                const pastix_float_t *rhs)                                           */
+/*                const pastix_complex64_t *rhs)                                           */
 /*                                                                            */
 /* Remplissage du vector second membre a partir de celui fournit dans le      */
 /* fichier HB.                                                                */
 /*                                                                            */
 /******************************************************************************/
 void CscUpdown(d_UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
-	       const pastix_float_t *rhs);
+	       const pastix_complex64_t *rhs);
 void CscUpdown2(d_UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
-		const pastix_float_t *rhs);
+		const pastix_complex64_t *rhs);
 
 
 
 /******************************************************************************/
-/* void CscDiagDom(CscMatrix *cscmtx)                                         */
+/* void CscDiagDom(z_CscMatrix *cscmtx)                                         */
 /*                                                                            */
 /* Transforme la csc en csc a diagonale dominante                             */
 /*                                                                            */
 /* cscmtx : Csc                                                               */
 /******************************************************************************/
-void CscDiagDom(CscMatrix *cscmtx);
+void CscDiagDom(z_CscMatrix *cscmtx);
 
-pastix_int_t CscStrucSym(CscMatrix *cscmtx);
+pastix_int_t CscStrucSym(z_CscMatrix *cscmtx);

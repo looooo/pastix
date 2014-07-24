@@ -5,7 +5,7 @@
  */
 #include "common.h"
 #include "order.h"
-#include "csc.h"
+#include "d_csc.h"
 #include "symbol.h"
 #include "d_ftgt.h"
 #include "d_updown.h"
@@ -62,7 +62,7 @@ void dump1(Order *ord,
 
  */
 void dump2(const d_SolverMatrix * datacode,
-           const CscMatrix    * cscmtx,
+           const d_CscMatrix    * cscmtx,
            pastix_float_t              *trandcsc,
            FILE               *stream)
 {

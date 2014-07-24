@@ -1,4 +1,4 @@
-#include "csc_intern_compute.h"
+#include "d_csc_intern_compute.h"
 
 #define RAFF_CLOCK_INIT {clockInit(raff_clk);clockStart(raff_clk);}
 #define RAFF_CLOCK_STOP {clockStop((raff_clk));}
@@ -116,20 +116,20 @@ void* pivotstatique_smp ( void *arg )
       MONOTHREAD_BEGIN;
 #endif /* SMP_RAFF */
       /* r=b-ax */
-      CscbMAx(sopalin_data, me, lur, lub, sopalin_data->sopar->cscmtx,
+      d_CscbMAx(sopalin_data, me, lur, lub, sopalin_data->sopar->cscmtx,
               &(datacode->updovct), datacode, pastix_comm,
               sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
 
 
       /* r'=|A||x|+|b| */
-      CscAxPb( sopalin_data, me, lur2, lub, sopalin_data->sopar->cscmtx,
+      d_CscAxPb( sopalin_data, me, lur2, lub, sopalin_data->sopar->cscmtx,
                &(datacode->updovct), datacode, pastix_comm,
                sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
 
 
 
       /* tmp_berr =  max_i(|lur_i|/|lur2_i|)*/
-      CscBerr(sopalin_data, me, lur, lur2, UPDOWN_SM2XSZE,
+      d_CscBerr(sopalin_data, me, lur, lur2, UPDOWN_SM2XSZE,
               1, &tmp_berr , pastix_comm);
 
       MONOTHREAD_BEGIN;
@@ -146,7 +146,7 @@ void* pivotstatique_smp ( void *arg )
       MONOTHREAD_END;
 
       /* Calcul de ||r|| et ||r||/||b|| */
-      tmp_berr = CscNormErr(sopalin_data, me, lur,lub,
+      tmp_berr = d_CscNormErr(sopalin_data, me, lur,lub,
                             UPDOWN_SM2XSZE,UPDOWN_SM2XNBR, pastix_comm);
       MONOTHREAD_BEGIN;
       sopar->rberror = tmp_berr;
@@ -436,7 +436,7 @@ void* API_CALL(gmres_smp)(void *arg)
       gmreswk2 = gmresvv[0];
 
       /* wk2 = A*x */
-      CscAx(sopalin_data, me, sopalin_data->sopar->cscmtx,
+      d_CscAx(sopalin_data, me, sopalin_data->sopar->cscmtx,
             UPDOWN_SM2XTAB, gmreswk2,
             datacode, &(datacode->updovct), pastix_comm,
             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
@@ -454,7 +454,7 @@ void* API_CALL(gmres_smp)(void *arg)
 #endif /* SMP_RAFF */
 
       /* ro = vv[0].vv[0] */
-      CscGmresBeta(sopalin_data, me, gmresvv[0], gmresvv[0],
+      d_CscGmresBeta(sopalin_data, me, gmresvv[0], gmresvv[0],
                    UPDOWN_SM2XSZE, 1, &beta, pastix_comm);
 
       MONOTHREAD_BEGIN;
@@ -538,7 +538,7 @@ void* API_CALL(gmres_smp)(void *arg)
           gmreswk1 = gmresvv[gmresi1];
 
           /* vv[i1] = A*wk2 */
-          CscAx(sopalin_data, me, sopalin_data->sopar->cscmtx,
+          d_CscAx(sopalin_data, me, sopalin_data->sopar->cscmtx,
                 gmreswk2, gmreswk1,
                 datacode, &(datacode->updovct), pastix_comm,
                 sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
@@ -548,7 +548,7 @@ void* API_CALL(gmres_smp)(void *arg)
           for (j=0; j<=i; j++)
             {
               /* vv[j]*vv[i1] */
-              CscGmresBeta(sopalin_data, me, gmresvv[gmresi1], gmresvv[j],
+              d_CscGmresBeta(sopalin_data, me, gmresvv[gmresi1], gmresvv[j],
                            UPDOWN_SM2XSZE, 1, &beta, pastix_comm);
 
               MONOTHREAD_BEGIN;
@@ -584,7 +584,7 @@ void* API_CALL(gmres_smp)(void *arg)
           SYNCHRO_THREAD;
 #endif /* SMP_RAFF */
 
-          CscGmresBeta(sopalin_data, me, gmresvv[gmresi1],gmresvv[gmresi1],
+          d_CscGmresBeta(sopalin_data, me, gmresvv[gmresi1],gmresvv[gmresi1],
                        UPDOWN_SM2XSZE, 1, &beta, pastix_comm);
 
           MONOTHREAD_BEGIN;
@@ -856,11 +856,11 @@ void* API_CALL(grad_smp)(void *arg)
 #endif
 
   /* r=b-ax */
-  CscbMAx(sopalin_data, me, gradr, gradb, sopalin_data->sopar->cscmtx,
+  d_CscbMAx(sopalin_data, me, gradr, gradb, sopalin_data->sopar->cscmtx,
           &(datacode->updovct), datacode, pastix_comm,
           sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
 
-  tmp = CscNormErr( sopalin_data, me, gradr, gradb, UPDOWN_SM2XSZE,
+  tmp = d_CscNormErr( sopalin_data, me, gradr, gradb, UPDOWN_SM2XSZE,
                     UPDOWN_SM2XNBR, pastix_comm);
 
 #ifdef SMP_RAFF
@@ -926,14 +926,14 @@ void* API_CALL(grad_smp)(void *arg)
       MONOTHREAD_END;
 #endif
       /* grad2 = Ap */
-      CscAx( sopalin_data, me, sopalin_data->sopar->cscmtx, gradp, grad2,
+      d_CscAx( sopalin_data, me, sopalin_data->sopar->cscmtx, gradp, grad2,
              datacode, &(datacode->updovct), pastix_comm,
              sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
       /* alpha = <r,z>/<Ap,p> */
 
-      CscGradBeta(sopalin_data, me, gradr, gradz,
+      d_CscGradBeta(sopalin_data, me, gradr, gradz,
                   UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, beta, pastix_comm);
-      CscGradBeta(sopalin_data, me, grad2, gradp,
+      d_CscGradBeta(sopalin_data, me, grad2, gradp,
                   UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, alpha, pastix_comm);
       /*
         CscGradAlpha(sopalin_data, me, gradr, gradz, grad2, gradp,
@@ -1032,7 +1032,7 @@ void* API_CALL(grad_smp)(void *arg)
       SYNCHRO_THREAD;
 #endif
 
-      CscGradBeta(sopalin_data, me, gradr, gradz,
+      d_CscGradBeta(sopalin_data, me, gradr, gradz,
                   UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, alpha, pastix_comm);
 
 #ifdef SMP_RAFF
@@ -1075,7 +1075,7 @@ void* API_CALL(grad_smp)(void *arg)
       SYNCHRO_THREAD;
 #endif
 
-      tmp = CscNormErr(sopalin_data, me, gradr, gradb, UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
+      tmp = d_CscNormErr(sopalin_data, me, gradr, gradb, UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
 
 #ifndef SMP_RAFF
       MONOTHREAD_END;

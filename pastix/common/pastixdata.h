@@ -5,7 +5,7 @@
 #include "dof.h"
 #include "d_ftgt.h"
 #include "symbol.h"
-#include "../csc/csc.h"
+#include "../csc/d_csc.h"
 #include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
@@ -22,8 +22,8 @@
 /* #include "sopalin3d.h" */
 /* #include "sopalin_init.h" */
 /* #include "sopalin_option.h" */
-/* #include "csc_intern_updown.h" */
-/* #include "csc_intern_build.h" */
+/* #include "d_csc_intern_updown.h" */
+/* #include "d_csc_intern_build.h" */
 /* #include "coefinit.h" */
 
 /*
@@ -43,7 +43,7 @@
   Parameters for factorisation, updown and reffinement.
  */
 typedef struct SopalinParam_ {
-  CscMatrix      *cscmtx;          /*+ Compress Sparse Column matrix                    +*/
+  d_CscMatrix      *cscmtx;          /*+ Compress Sparse Column matrix                    +*/
   double          epsilonraff;     /*+ epsilon to stop reffinement                      +*/
   double          rberror;         /*+ ||r||/||b||                                      +*/
   double          espilondiag;     /*+ epsilon critere for diag control                 +*/
@@ -91,7 +91,7 @@ struct pastix_data_s {
     pastix_int_t    *zeros_list;         /*< List of diagonal entries considered as zeros                        +*/
 
     d_SolverMatrix   solvmatr;           /*+ Matrix informations                                                 +*/
-    CscMatrix        cscmtx;             /*+ Compress Sparse Column matrix                                       +*/
+    d_CscMatrix        cscmtx;             /*+ Compress Sparse Column matrix                                       +*/
     SopalinParam     sopar;              /*+ Sopalin parameters                                                  +*/
 #ifdef PASTIX_DISTRIBUTED
 #ifdef WITH_SCOTCH

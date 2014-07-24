@@ -1,15 +1,28 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 /*
- * File: csc_intern_compute.h
+ * File: z_csc_intern_compute.h
  *
  * Functions computing operations on the CSC.
  *
  */
 
-#ifndef CSC_INTERN_COMPUTE_H
-#define CSC_INTERN_COMPUTE_H
+#ifndef Z_CSC_INTERN_COMPUTE_H
+#define Z_CSC_INTERN_COMPUTE_H
 
 /*
- * Function: CscNorm1
+ * Function: z_CscNorm1
  *
  * Computes the norm 1 of the internal CSCd
  *
@@ -23,12 +36,12 @@
  * Returns:
  *   The norm 1 of the internal CSCd.
  */
-#define CscNorm1 API_CALL(CscNorm1)
-double CscNorm1(const CscMatrix *cscmtx,
-                MPI_Comm         comm);
+#define z_CscNorm1 API_CALL(z_CscNorm1)
+double z_CscNorm1(const z_CscMatrix *cscmtx,
+                  MPI_Comm         comm);
 
 /*
- * Function: CscbMAx
+ * Function: z_CscbMAx
  *
  * Computes $$r = b-Ax$$.
  *
@@ -38,25 +51,25 @@ double CscNorm1(const CscMatrix *cscmtx,
  *   r            - will contains $$b-Ax$$
  *   b            - Vector $$b$$.
  *   cscmtx       - Internal CSCd matrix containing $$A$$.
- *   updovct      - d_UpDownVector structure containing $$x$$.
+ *   updovct      - z_UpDownVector structure containing $$x$$.
  *   solvmtx      - Solver matrix.
  *   comm         - MPI communicator.
  *   transpose    - Indicate if we want to transpose A.
  */
-#define CscbMAx API_CALL(CscbMAx)
-void CscbMAx(Sopalin_Data_t       *sopalin_data,
+#define z_CscbMAx API_CALL(z_CscbMAx)
+void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
              int                   me,
-             volatile pastix_float_t       *r,
-             const volatile pastix_float_t *b,
-             const CscMatrix      *cscmtx,
-             const d_UpDownVector   *updovct,
-             const d_SolverMatrix   *solvmtx,
+             volatile pastix_complex64_t       *r,
+             const volatile pastix_complex64_t *b,
+             const z_CscMatrix      *cscmtx,
+             const z_UpDownVector   *updovct,
+             const z_SolverMatrix   *solvmtx,
              MPI_Comm              comm,
              pastix_int_t                   transpose);
 
 
 /*
- * function: CscAxPb
+ * function: z_CscAxPb
  *
  *
  *  Compute the operation $$r=|A||x|+|b|$$
@@ -72,20 +85,20 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
  *     comm         - MPI communicator
  *     transpose    - Indicate if we want to transpose A.
  */
-#define CscAxPb API_CALL(CscAxPb)
-void CscAxPb(Sopalin_Data_t     *sopalin_data,
+#define z_CscAxPb API_CALL(z_CscAxPb)
+void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
              int                 me,
-             pastix_float_t              *r,
-             const pastix_float_t        *b,
-             const CscMatrix    *cscmtx,
-             const d_UpDownVector *updovct,
-             const d_SolverMatrix *solvmtx,
+             pastix_complex64_t              *r,
+             const pastix_complex64_t        *b,
+             const z_CscMatrix    *cscmtx,
+             const z_UpDownVector *updovct,
+             const z_SolverMatrix *solvmtx,
              MPI_Comm            comm,
              pastix_int_t                 transpose);
 
 
 /*
- *  Function: CscBerr
+ *  Function: z_CscBerr
  *
  *  Compute the operation $$berr= max_{i} |r|_{i}/|s|_{i}$$.
  *
@@ -100,11 +113,11 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
  *  berr         - berr (local variable)
  *  comm         - MPI communicator
  */
-#define CscBerr API_CALL(CscBerr)
-void CscBerr(Sopalin_Data_t *sopalin_data,
+#define z_CscBerr API_CALL(z_CscBerr)
+void z_CscBerr(Sopalin_Data_t *sopalin_data,
              int            me,
-             const pastix_float_t   *r,
-             const pastix_float_t   *s,
+             const pastix_complex64_t   *r,
+             const pastix_complex64_t   *s,
              const pastix_int_t      colnbr,
              const pastix_int_t      smxnbr,
              double        *berr,
@@ -112,7 +125,7 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
 
 
 /*
- * Function: CscNormErr
+ * Function: z_CscNormErr
  *
  * Computes the norm 2 of r and the norm 2 of b and return
  * the quotient of these two vectors.
@@ -129,18 +142,18 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-#define CscNormErr API_CALL(CscNormErr)
-double CscNormErr(Sopalin_Data_t       *sopalin_data,
+#define z_CscNormErr API_CALL(z_CscNormErr)
+double z_CscNormErr(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile pastix_float_t *r,
-                  const volatile pastix_float_t *b,
+                  const volatile pastix_complex64_t *r,
+                  const volatile pastix_complex64_t *b,
                   const pastix_int_t             colnbr,
                   const pastix_int_t             smxnbr,
                   MPI_Comm              comm);
 
 
 /*
- * Function: CscNormFro
+ * Function: z_CscNormFro
  *
  * Computes the norm 2 of x
  *
@@ -155,10 +168,10 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-#define CscNormFro API_CALL(CscNormFro)
-double CscNormFro(Sopalin_Data_t       *sopalin_data,
+#define z_CscNormFro API_CALL(z_CscNormFro)
+double z_CscNormFro(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile pastix_float_t *x,
+                  const volatile pastix_complex64_t *x,
                   const PASTIX_INT             colnbr,
                   const PASTIX_INT             smxnbr,
                   MPI_Comm              comm);
@@ -166,7 +179,7 @@ double CscNormFro(Sopalin_Data_t       *sopalin_data,
 
 
 /*
- * Function: CscAx
+ * Function: z_CscAx
  *
  * Computes *A* times *p* and store the result in *x*.
  *
@@ -184,19 +197,19 @@ double CscNormFro(Sopalin_Data_t       *sopalin_data,
  *   comm         - MPI Communicator.
  *     transpose    - Indicate if we want to transpose A.
  */
-#define CscAx API_CALL(CscAx)
-void CscAx(Sopalin_Data_t       *sopalin_data,
+#define z_CscAx API_CALL(z_CscAx)
+void z_CscAx(Sopalin_Data_t       *sopalin_data,
            int                   me,
-           const CscMatrix      *cscmtx,
-           const volatile pastix_float_t *p,
-           volatile pastix_float_t       *x,
-           const d_SolverMatrix   *solvmtx,
-           const d_UpDownVector   *updovct,
+           const z_CscMatrix      *cscmtx,
+           const volatile pastix_complex64_t *p,
+           volatile pastix_complex64_t       *x,
+           const z_SolverMatrix   *solvmtx,
+           const z_UpDownVector   *updovct,
            MPI_Comm              comm,
            PASTIX_INT                   transpose);
 
 /*
- * Function: CscGradBeta
+ * Function: z_CscGradBeta
  *
  * Computes the scalar product between *r* and *z*
  * and store the result in *beta*.
@@ -213,18 +226,18 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
  *   beta         - Float which will store the solution.
  *   comm         - MPI communicator.
  */
-#define CscGradBeta API_CALL(CscGradBeta)
-void CscGradBeta(Sopalin_Data_t       *sopalin_data,
+#define z_CscGradBeta API_CALL(z_CscGradBeta)
+void z_CscGradBeta(Sopalin_Data_t       *sopalin_data,
                  int                   me,
-                 const volatile pastix_float_t *r,
-                 const volatile pastix_float_t *z,
+                 const volatile pastix_complex64_t *r,
+                 const volatile pastix_complex64_t *z,
                  pastix_int_t                   colnbr,
                  pastix_int_t                   smxnbr,
-                 pastix_float_t               *beta,
+                 pastix_complex64_t               *beta,
                  MPI_Comm              comm);
 
 /*
- * Function: CscGmresBeta
+ * Function: z_CscGmresBeta
  *
  * Computes the scalar product between *r* and *z*
  * and store the result in *beta*.
@@ -239,19 +252,19 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
  *   beta         - Float which will store the solution.
  *   comm         - MPI communicator.
  */
-#define CscGmresBeta API_CALL(CscGmresBeta)
-void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
-                  int                   me,
-                  const volatile pastix_float_t *r,
-                  const volatile pastix_float_t *z,
-                  pastix_int_t                   colnbr,
-                  pastix_int_t                   smxnbr,
-                  double               *beta,
-                  MPI_Comm              comm);
+#define z_CscGmresBeta API_CALL(z_CscGmresBeta)
+void z_CscGmresBeta(Sopalin_Data_t                    *sopalin_data,
+                    int                                me,
+                    const volatile pastix_complex64_t *r,
+                    const volatile pastix_complex64_t *z,
+                    pastix_int_t                       colnbr,
+                    pastix_int_t                       smxnbr,
+                    pastix_complex64_t                *beta,
+                    MPI_Comm                           comm);
 
 
 /*
- * Function: CscCopy
+ * Function: z_CscCopy
  *
  * Copy a vector into another vector
  *
@@ -267,17 +280,17 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-#define CscCopy API_CALL(CscCopy)
-void CscCopy(Sopalin_Data_t              *sopalin_data,
+#define z_CscCopy API_CALL(z_CscCopy)
+void z_CscCopy(Sopalin_Data_t              *sopalin_data,
              int                          me,
-             const volatile pastix_float_t *x,
-             volatile pastix_float_t       *y,
+             const volatile pastix_complex64_t *x,
+             volatile pastix_complex64_t       *y,
              const PASTIX_INT             colnbr,
              const PASTIX_INT             smxnbr,
              MPI_Comm                     comm);
 
 /*
- * Function: CscScal
+ * Function: z_CscScal
  *
  * Multiply a vector by a scalaire
  *
@@ -293,18 +306,18 @@ void CscCopy(Sopalin_Data_t              *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-#define CscScal API_CALL(CscScal)
-void CscScal(Sopalin_Data_t        *sopalin_data,
+#define z_CscScal API_CALL(z_CscScal)
+void z_CscScal(Sopalin_Data_t        *sopalin_data,
              int                    me,
-             volatile pastix_float_t  alpha,
-             volatile pastix_float_t *x,
+             volatile pastix_complex64_t  alpha,
+             volatile pastix_complex64_t *x,
              const PASTIX_INT       colnbr,
              const PASTIX_INT       smxnbr,
              MPI_Comm               comm);
 
 
 /*
- * Function: CscAXPY
+ * Function: z_CscAXPY
  *
  * Y<-aX+Y
  *
@@ -321,14 +334,14 @@ void CscScal(Sopalin_Data_t        *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-#define CscAXPY API_CALL(CscAXPY)
-void CscAXPY(Sopalin_Data_t              *sopalin_data,
+#define z_CscAXPY API_CALL(z_CscAXPY)
+void z_CscAXPY(Sopalin_Data_t              *sopalin_data,
              int                          me,
-             pastix_float_t                 alpha,
-             const volatile pastix_float_t *x,
-             volatile pastix_float_t       *y,
+             pastix_complex64_t                 alpha,
+             const volatile pastix_complex64_t *x,
+             volatile pastix_complex64_t       *y,
              const PASTIX_INT             colnbr,
              const PASTIX_INT             smxnbr,
              MPI_Comm                     comm);
 
-#endif /* CSC_INTERN_COMPUTE_H */
+#endif /* Z_CSC_INTERN_COMPUTE_H */

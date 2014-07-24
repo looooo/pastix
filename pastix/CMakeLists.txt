@@ -300,7 +300,6 @@ add_subdirectory(matrix_drivers)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
@@ -309,7 +308,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
-set(modules libcsc blend kernels)
+set(modules libcsc blend csc kernels)
 if (PASTIX_WITH_STARPU)
   list(APPEND modules starpu)
 endif (PASTIX_WITH_STARPU)
@@ -319,7 +318,6 @@ foreach (module ${modules})
   include_directories("${CMAKE_CURRENT_BINARY_DIR}/${module}")
 endforeach()
 foreach (module ${modules})
-  message(STATUS ${module})
   add_subdirectory(${module})
 endforeach()
 
@@ -351,7 +349,7 @@ endmacro()
 
 set(generated_files "")
 solver_rules( generated_files
-  "sopalin/sopalin3d.c;csc/csc_intern_compute.c;sopalin/raff_functions.c"
+  "sopalin/sopalin3d.c;sopalin/raff_functions.c"
 )
 
 #
@@ -396,10 +394,6 @@ set(PASTIX_LIB_SRCS
   sopalin/sopalin_thread.c
 #  sopalin/compute_context_nbr.c
   sopalin/coefinit.c
-  csc/csc_intern_build.c
-  csc/csc_intern_io.c
-  csc/csc_intern_solve.c
-  csc/csc_intern_updown.c
   sopalin/debug_dump.c
 #  sopalin/ooc.c
   sopalin/pastix.c
@@ -512,6 +506,7 @@ add_library(pastix ${PASTIX_LIB_SRCS})
 add_dependencies(pastix kernel_headers)
 add_dependencies(pastix libcsc_headers)
 add_dependencies(pastix blend_headers)
+add_dependencies(pastix bcsc_headers)
 if(PASTIX_WITH_STARPU)
   add_dependencies(pastix
     starpu_headers

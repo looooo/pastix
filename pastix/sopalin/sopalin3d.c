@@ -65,7 +65,7 @@
 #include "sopalin_define.h"
 #include "symbol.h"
 #include "d_ftgt.h"
-#include "csc.h"
+#include "d_csc.h"
 #include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
@@ -198,7 +198,7 @@ int err_mpi;
 
 
 
-void  dump_all                 (d_SolverMatrix *, CscMatrix * cscmtx, int);
+void  dump_all                 (d_SolverMatrix *, d_CscMatrix * cscmtx, int);
 void  init_struct_sopalin      (Sopalin_Data_t *sopalin_data, d_SolverMatrix *m,
                                 SopalinParam *sopar);
 void  sopalin_launch           (d_SolverMatrix *m, SopalinParam *sopaparam, pastix_int_t cas);
@@ -242,7 +242,7 @@ void* up_down_smp              (void * arg);
  void
  */
 void dump_all(d_SolverMatrix *datacode,
-              CscMatrix    *cscmtx,
+              d_CscMatrix    *cscmtx,
               int           x)
 {
     /*
@@ -352,7 +352,7 @@ void  API_CALL(gmres_thread)   (d_SolverMatrix *datacode, SopalinParam *sopapara
 void  API_CALL(grad_thread)    (d_SolverMatrix *datacode, SopalinParam *sopaparam);
 void  API_CALL(bicgstab_thread)(d_SolverMatrix *datacode, SopalinParam *sopaparam);
 
-#include "csc_intern_compute.h"
+#include "d_csc_intern_compute.h"
 
 #define RAFF_CLOCK_INIT {clockInit(raff_clk);clockStart(raff_clk);}
 #define RAFF_CLOCK_STOP {clockStop((raff_clk));}
@@ -523,7 +523,7 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
             if (sopar->fakefact == 1) {
                 sopalin_data->critere = (UPDOWN_GNODENBR*UPDOWN_GNODENBR+UPDOWN_GNODENBR)*sqrt(sopar->espilondiag);
             } else {
-                sopalin_data->critere = CscNorm1(sopalin_data->sopar->cscmtx, pastix_comm)*sqrt(sopar->espilondiag);
+                sopalin_data->critere = d_CscNorm1(sopalin_data->sopar->cscmtx, pastix_comm)*sqrt(sopar->espilondiag);
             }
         }
         if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_YES) {

@@ -23,6 +23,7 @@ set(PASTIX_EXAMPLES_LIBRARIES
   pastix_libcsc
   pastix_blend
   pastix # pastix_blend requires dofInit from symbol which is in libpastix.a
+  pastix_bcsc
   read_matrix
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}

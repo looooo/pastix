@@ -1,3 +1,16 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 /******************************************************************************
  * File: csc_intern_build.c                                                   *
  ******************************************************************************
@@ -11,14 +24,14 @@
 #include "common.h"
 #include "tools.h"
 #include "order.h"
-#include "csc.h"
-#include "d_ftgt.h"
-#include "d_updown.h"
+#include "z_csc.h"
+#include "z_ftgt.h"
+#include "z_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_solver.h"
+#include "z_solver.h"
 #include "sopalin_define.h"
-#include "csc_intern_build.h"
+#include "z_csc_intern_build.h"
 
 /****                    Section: Macros and defines                       ****/
 
@@ -57,16 +70,16 @@
 #define SET_CSC_COL(newcoltab) do {                                     \
     /* Local coltab */                                                  \
     CSC_FNBR(thecsc) = solvmtx->cblknbr;                                \
-    MALLOC_INTERN(CSC_FTAB(thecsc), CSC_FNBR(thecsc), CscFormat);       \
+    MALLOC_INTERN(CSC_FTAB(thecsc), CSC_FNBR(thecsc), z_CscFormat);     \
                                                                         \
     for (index=0; index<solvmtx->cblknbr; index++)                      \
     {                                                                   \
-      pastix_int_t fcolnum = solvmtx->cblktab[index].fcolnum;                    \
-      pastix_int_t lcolnum = solvmtx->cblktab[index].lcolnum;                    \
-      CSC_COLNBR(thecsc,index) = (lcolnum - fcolnum+1);                 \
+        pastix_int_t fcolnum = solvmtx->cblktab[index].fcolnum;         \
+        pastix_int_t lcolnum = solvmtx->cblktab[index].lcolnum;         \
+        CSC_COLNBR(thecsc,index) = (lcolnum - fcolnum+1);               \
                                                                         \
-      MALLOC_INTERN(CSC_COLTAB(thecsc,index),                           \
-                    CSC_COLNBR(thecsc,index)+1, pastix_int_t);                   \
+        MALLOC_INTERN(CSC_COLTAB(thecsc,index),                         \
+                      CSC_COLNBR(thecsc,index)+1, pastix_int_t);        \
                                                                         \
       if ((fcolnum)%dof != 0)                                           \
         errorPrint("dof doesn't divide fcolnum");                       \
@@ -111,7 +124,7 @@
                                                                   \
     /* Puting values */                                           \
     MALLOC_INTERN(CSC_ROWTAB(thecsc), strdcol, pastix_int_t);              \
-    MALLOC_INTERN(CSC_VALTAB(thecsc), strdcol, pastix_float_t);            \
+    MALLOC_INTERN(CSC_VALTAB(thecsc), strdcol, pastix_complex64_t);            \
                                                                   \
     if (transcsc != NULL)                                         \
     {                                                             \
@@ -124,7 +137,7 @@
       }                                                           \
       else                                                        \
       {                                                           \
-        MALLOC_INTERN(*transcsc, strdcol, pastix_float_t);                 \
+        MALLOC_INTERN(*transcsc, strdcol, pastix_complex64_t);                 \
         MALLOC_INTERN(trowtab, strdcol, pastix_int_t);                     \
         MALLOC_INTERN(trscltb, solvmtx->cblknbr, pastix_int_t *);          \
                                                                   \
@@ -159,8 +172,8 @@
                    dof, iterdofcol, iterdofrow, iter,         \
                    colidx, strdcol, val)
 static inline
-void _set_csc_row_val(const d_SolverMatrix *solvmtx,
-                      CscMatrix          *thecsc,
+void _set_csc_row_val(const z_SolverMatrix *solvmtx,
+                      z_CscMatrix          *thecsc,
                       pastix_int_t          itercblk,
                       pastix_int_t          therow,
                       pastix_int_t          thecol,
@@ -170,7 +183,7 @@ void _set_csc_row_val(const d_SolverMatrix *solvmtx,
                       pastix_int_t          iter,
                       pastix_int_t          colidx,
                       pastix_int_t          strdcol,
-                      pastix_float_t       *val) {
+                      pastix_complex64_t       *val) {
   pastix_int_t fcolnum = solvmtx->cblktab[itercblk].fcolnum;
   pastix_int_t validx  = (iter-1)*dof*dof + iterdofcol*dof + iterdofrow;
 
@@ -247,7 +260,7 @@ void _set_csc_row_val(const d_SolverMatrix *solvmtx,
       for (iter=0; iter<CSC_COLNBR(thecsc,index); iter++)       \
       {                                                         \
         pastix_int_t   *t = &(CSC_FROW(thecsc,index,iter));              \
-        pastix_float_t *v = &(CSC_FVAL(thecsc,index,iter));              \
+        pastix_complex64_t *v = &(CSC_FVAL(thecsc,index,iter));              \
         pastix_int_t    n = CSC_COL(thecsc,index,iter+1)-                \
           CSC_COL(thecsc,index,iter);                           \
         void * sortptr[2];                                      \
@@ -265,7 +278,7 @@ void _set_csc_row_val(const d_SolverMatrix *solvmtx,
           for (iter=0; iter<CSC_COLNBR(thecsc,index); iter++)   \
           {                                                     \
             pastix_int_t   *t = &(trowtab[CSC_COL(thecsc,index,iter)]);  \
-            pastix_float_t *v = &((*transcsc)[CSC_COL(thecsc,            \
+            pastix_complex64_t *v = &((*transcsc)[CSC_COL(thecsc,            \
                                              index,iter)]);     \
             pastix_int_t n;                                              \
             void * sortptr[2];                                  \
@@ -286,7 +299,7 @@ void _set_csc_row_val(const d_SolverMatrix *solvmtx,
 /****                        Section: Functions                            ****/
 
 /******************************************************************************
- * Function: CscOrdistrib                                                     *
+ * Function: z_CscOrdistrib                                                     *
  ******************************************************************************
  *                                                                            *
  * Fill in *thecsc* CSC matrix in column block representation.                *
@@ -310,18 +323,18 @@ void _set_csc_row_val(const d_SolverMatrix *solvmtx,
  *   dof        - Number of degree of freedom.                                *
  *                                                                            *
  ******************************************************************************/
-void CscOrdistrib(CscMatrix          *thecsc,
+void z_CscOrdistrib(z_CscMatrix          *thecsc,
                   char               *Type,
-                  pastix_float_t             **transcsc,
+                  pastix_complex64_t             **transcsc,
                   const Order        *ord,
                   pastix_int_t                 Nrow,
                   pastix_int_t                 Ncol,
                   pastix_int_t                 Nnzero,
                   pastix_int_t                *colptr,
                   pastix_int_t                *rowind,
-                  pastix_float_t              *val,
+                  pastix_complex64_t              *val,
                   pastix_int_t                 forcetrans,
-                  const d_SolverMatrix *solvmtx,
+                  const z_SolverMatrix *solvmtx,
                   pastix_int_t                 procnum,
                   pastix_int_t                 dof)
 {
@@ -338,12 +351,12 @@ void CscOrdistrib(CscMatrix          *thecsc,
   pastix_int_t   iterdofcol;
   pastix_int_t   nodeidx;
   pastix_int_t   colsize;
-  /* To use common macro with CscdOrdistrib */
+  /* To use common macro with z_CscdOrdistrib */
   pastix_int_t  *g2l        = NULL;
   (void)Nrow; (void)Nnzero; (void)procnum;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscOrdistrib \n");
+  fprintf(stdout, "-> z_CscOrdistrib \n");
 #endif
   thecsc->type = Type[1];
   /* Global coltab */
@@ -382,7 +395,7 @@ void CscOrdistrib(CscMatrix          *thecsc,
 
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscOrdistrib step 1 : %.3g s\n",
+  fprintf(stdout, "z_CscOrdistrib step 1 : %.3g s\n",
           (double)clockVal(&clk));
   clockInit(&clk);
   clockStart(&clk);
@@ -402,7 +415,7 @@ void CscOrdistrib(CscMatrix          *thecsc,
 
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscOrdistrib step 2 : %.3g s\n",
+  fprintf(stdout, "z_CscOrdistrib step 2 : %.3g s\n",
           (double)clockVal(&clk));
   clockInit(&clk);
   clockStart(&clk);
@@ -520,7 +533,7 @@ void CscOrdistrib(CscMatrix          *thecsc,
   }
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscOrdistrib step 3 : %.3g s\n",
+  fprintf(stdout, "z_CscOrdistrib step 3 : %.3g s\n",
           (double)clockVal(&clk));
   clockInit(&clk);
   clockStart(&clk);
@@ -529,16 +542,16 @@ void CscOrdistrib(CscMatrix          *thecsc,
 
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscOrdistrib step 4 : %.3g s\n",
+  fprintf(stdout, "z_CscOrdistrib step 4 : %.3g s\n",
           (double)clockVal(&clk));
 #endif
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscOrdistrib \n");
+  fprintf(stdout, "<- z_CscOrdistrib \n");
 #endif
 }
 
 /******************************************************************************
- * Function: CscdOrdistrib                                                    *
+ * Function: z_CscdOrdistrib                                                    *
  ******************************************************************************
  *                                                                            *
  * Fill in *thecsc* CSC matrix in column block representation.                *
@@ -604,19 +617,19 @@ void CscOrdistrib(CscMatrix          *thecsc,
  *   comm       - MPI communicator.                 *
  *                                                                            *
  ******************************************************************************/
-void CscdOrdistrib(CscMatrix          *thecsc,
+void z_CscdOrdistrib(z_CscMatrix          *thecsc,
                    char               *Type,
-                   pastix_float_t             **transcsc,
+                   pastix_complex64_t             **transcsc,
                    const Order        *ord,
                    pastix_int_t                 Ncol,
                    pastix_int_t                *colptr,
                    pastix_int_t                *rowind,
-                   pastix_float_t              *val,
+                   pastix_complex64_t              *val,
                    pastix_int_t                *l2g,
                    pastix_int_t                 gNcol,
                    pastix_int_t                *g2l,
                    pastix_int_t                 forcetrans,
-                   const d_SolverMatrix *solvmtx,
+                   const z_SolverMatrix *solvmtx,
                    pastix_int_t                 procnum,
                    pastix_int_t                 dof,
                    MPI_Comm            comm)
@@ -646,10 +659,10 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   pastix_int_t         *tosend_cnt  = NULL;
   pastix_int_t        **tosend_col  = NULL;
   pastix_int_t        **tosend_row  = NULL;
-  pastix_float_t      **tosend_val  = NULL;
+  pastix_complex64_t      **tosend_val  = NULL;
   pastix_int_t        **torecv_col  = NULL;
   pastix_int_t        **torecv_row  = NULL;
-  pastix_float_t      **torecv_val  = NULL;
+  pastix_complex64_t      **torecv_val  = NULL;
   pastix_int_t         *newcoltab   = NULL;
   pastix_int_t          owner;
   pastix_int_t          therow;
@@ -663,7 +676,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscdOrdistrib \n");
+  fprintf(stdout, "-> z_CscdOrdistrib \n");
 #endif
   thecsc->type = Type[1];
 #if (DBG_SOPALIN_TIME==1)
@@ -758,7 +771,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
    internal CSCD */
   MALLOC_INTERN(tosend_col, commSize, pastix_int_t*);
   MALLOC_INTERN(tosend_row, commSize, pastix_int_t*);
-  MALLOC_INTERN(tosend_val, commSize, pastix_float_t*);
+  MALLOC_INTERN(tosend_val, commSize, pastix_complex64_t*);
   MALLOC_INTERN(tosend_cnt, commSize, pastix_int_t);
 
   for (proc = 0; proc < commSize; proc++)
@@ -767,7 +780,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
     {
       MALLOC_INTERN(tosend_col[proc], tosend[proc], pastix_int_t);
       MALLOC_INTERN(tosend_row[proc], tosend[proc], pastix_int_t);
-      MALLOC_INTERN(tosend_val[proc], tosend[proc]*dof*dof, pastix_float_t);
+      MALLOC_INTERN(tosend_val[proc], tosend[proc]*dof*dof, pastix_complex64_t);
     }
     tosend_cnt[proc] = 0;
   }
@@ -804,7 +817,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
           memcpy(&(tosend_val[owner][tosend_cnt[owner]*dof*dof]),
                  &(val[(iter-1)*dof*dof]),
-                 sizeof(pastix_float_t)*dof*dof);
+                 sizeof(pastix_complex64_t)*dof*dof);
           tosend_cnt[owner]++;
         }
       }
@@ -848,14 +861,14 @@ void CscdOrdistrib(CscMatrix          *thecsc,
   /* Receiving information from other processors and updating newcoltab */
   MALLOC_INTERN(torecv_col, commSize, pastix_int_t*);
   MALLOC_INTERN(torecv_row, commSize, pastix_int_t*);
-  MALLOC_INTERN(torecv_val, commSize, pastix_float_t*);
+  MALLOC_INTERN(torecv_val, commSize, pastix_complex64_t*);
   for (proc = 0; proc < commSize; proc++)
   {
     if (proc != procnum && torecv[proc] > 0 )
     {
       MALLOC_INTERN(torecv_col[proc], torecv[proc], pastix_int_t);
       MALLOC_INTERN(torecv_row[proc], torecv[proc], pastix_int_t);
-      MALLOC_INTERN(torecv_val[proc], torecv[proc]*dof*dof, pastix_float_t);
+      MALLOC_INTERN(torecv_val[proc], torecv[proc]*dof*dof, pastix_complex64_t);
       CALL_MPI MPI_Recv(torecv_col[proc], torecv[proc], PASTIX_MPI_INT,
                         proc, 1, comm, &status );
       TEST_MPI("MPI_Recv");
@@ -880,7 +893,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscdOrdistrib step 1 : %.3g s\n",
+  fprintf(stdout, "z_CscdOrdistrib step 1 : %.3g s\n",
           (double)clockVal(&clk));
   clockInit(&clk);
   clockStart(&clk);
@@ -902,7 +915,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscdOrdistrib step 2 : %.3g s\n",
+  fprintf(stdout, "z_CscdOrdistrib step 2 : %.3g s\n",
           (double)clockVal(&clk));
   clockInit(&clk);
   clockStart(&clk);
@@ -981,7 +994,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
     else
     {
       /* Impossible*/
-      errorPrint("Error in CscdOrdistrib");
+      errorPrint("Error in z_CscdOrdistrib");
       EXIT(MOD_SOPALIN, UNKNOWN_ERR)
         }
   }
@@ -1110,7 +1123,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscdOrdistrib step 3 : %.3g s\n",
+  fprintf(stdout, "z_CscdOrdistrib step 3 : %.3g s\n",
           (double)clockVal(&clk));
   clockInit(&clk);
   clockStart(&clk);
@@ -1120,17 +1133,17 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 
 #if (DBG_SOPALIN_TIME==1)
   clockStop(&(clk));
-  fprintf(stdout, "CscdOrdistrib step 4 : %.3g s\n",
+  fprintf(stdout, "z_CscdOrdistrib step 4 : %.3g s\n",
           (double)clockVal(&clk));
 #endif
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscdOrdistrib \n");
+  fprintf(stdout, "<- z_CscdOrdistrib \n");
 #endif
 }
 
 
 /******************************************************************************
- * Function: CscExit                                                          *
+ * Function: z_CscExit                                                          *
  ******************************************************************************
  *                                                                            *
  * Free the internal CSCd structure.                                          *
@@ -1139,12 +1152,12 @@ void CscdOrdistrib(CscMatrix          *thecsc,
  *   thecsc - Internal CSCd to free.                                          *
  *                                                                            *
  ******************************************************************************/
-void CscExit(CscMatrix *thecsc)
+void z_CscExit(z_CscMatrix *thecsc)
 {
   pastix_int_t itercscf;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscExit \n");
+  fprintf(stdout, "-> z_CscExit \n");
 #endif
 
   if ( CSC_FTAB(thecsc) != NULL )
@@ -1168,6 +1181,6 @@ void CscExit(CscMatrix *thecsc)
   }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscExit \n");
+  fprintf(stdout, "<- z_CscExit \n");
 #endif
 }

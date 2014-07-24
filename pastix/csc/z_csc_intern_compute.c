@@ -1,3 +1,16 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 /*
   File: csc_intern_compute.c
 
@@ -8,12 +21,12 @@
 #include <pthread.h>
 #include "tools.h"
 #include "order.h"
-#include "csc.h"
-#include "d_ftgt.h"
-#include "d_updown.h"
+#include "z_csc.h"
+#include "z_ftgt.h"
+#include "z_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_solver.h"
+#include "z_solver.h"
 #include "sopalin_define.h"
 #include "sopalin_time.h"
 #include "sopalin_thread.h"
@@ -21,7 +34,7 @@
 #include "sopalin3d.h"
 #include "sopalin_acces.h"
 #include "sopalin_compute.h"
-#include "csc_intern_compute.h"
+#include "z_csc_intern_compute.h"
 
 
 #ifdef DEBUG_RAFF
@@ -47,7 +60,7 @@
 #endif
 /* Section: Functions */
 /*
-  Function: CscNorm1
+  Function: z_CscNorm1
 
   Computes the norm 1 of the internal CSCd
 
@@ -61,8 +74,8 @@
   Returns:
     The norm 1 of the internal CSCd.
 */
-double CscNorm1(const CscMatrix *cscmtx,
-                MPI_Comm         comm)
+double z_CscNorm1(const z_CscMatrix *cscmtx,
+                  MPI_Comm         comm)
 {
   pastix_int_t itercblk;
   pastix_int_t itercol;
@@ -74,7 +87,7 @@ double CscNorm1(const CscMatrix *cscmtx,
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscNorm1 \n");
+  fprintf(stdout, "-> z_CscNorm1 \n");
 #endif
 
   for (itercblk=0;
@@ -106,7 +119,7 @@ double CscNorm1(const CscMatrix *cscmtx,
 #endif
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscNorm1 \n");
+  fprintf(stdout, "<- z_CscNorm1 \n");
 #endif
 
 #ifdef INOUT_ALLREDUCE
@@ -117,23 +130,23 @@ double CscNorm1(const CscMatrix *cscmtx,
 }
 
 /*
- * Function: CscGather_X
+ * Function: z_CscGather_X
  *
  * Inlined function to gather a MPI distributed vector.
  *
  *
  */
-#define CscGather_X PASTIX_PREFIX_F(CscGather_X)
+#define z_CscGather_X PASTIX_PREFIX_F(z_CscGather_X)
 static inline
-int CscGather_X(Sopalin_Data_t        *sopalin_data,
-                int                    me,
-                const CscMatrix       *cscmtx,
-                const d_UpDownVector    *updovct,
-                const d_SolverMatrix    *datacode,
-                MPI_Comm               comm,
-                const volatile pastix_float_t * x,
-                pastix_float_t                * tmpx,
-                pastix_float_t                **tmpx2)
+int z_CscGather_X(Sopalin_Data_t        *sopalin_data,
+                  int                    me,
+                  const z_CscMatrix       *cscmtx,
+                  const z_UpDownVector    *updovct,
+                  const z_SolverMatrix    *datacode,
+                  MPI_Comm               comm,
+                  const volatile pastix_complex64_t * x,
+                  pastix_complex64_t                * tmpx,
+                  pastix_complex64_t                **tmpx2)
 {
   pastix_int_t itercblk;
   pastix_int_t itercol;
@@ -188,12 +201,12 @@ int CscGather_X(Sopalin_Data_t        *sopalin_data,
   sopalin_data->ptr_csc[0] = (void *)(*tmpx2);
   MONOTHREAD_END;
   SYNCHRO_THREAD;
-  (*tmpx2) = (pastix_float_t *)sopalin_data->ptr_csc[0];
+  (*tmpx2) = (pastix_complex64_t *)sopalin_data->ptr_csc[0];
 #endif /* SMP_RAFF */
   return PASTIX_SUCCESS;
 }
 /*
- * Function: CscAtx_norm_thread
+ * Function: z_CscAtx_norm_thread
  *
  * Inlined function computin ||A^t|| \times ||X||.
  *
@@ -210,16 +223,15 @@ int CscGather_X(Sopalin_Data_t        *sopalin_data,
  *     datacode     - solver matrix to know tho local structure of the matrix
  *     comm         - MPI communicator
  */
-#define CscAtx_norm_thread PASTIX_PREFIX_F(CscAtx_norm_thread)
 static inline
-int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
-                       int                   me,
-                       const volatile pastix_float_t *x,
-                       pastix_float_t                *atx,
-                       const CscMatrix      *cscmtx,
-                       const d_UpDownVector   *updovct,
-                       const d_SolverMatrix   *datacode,
-                       MPI_Comm              comm)
+int z_CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
+                         int                   me,
+                         const volatile pastix_complex64_t *x,
+                         pastix_complex64_t                *atx,
+                         const z_CscMatrix      *cscmtx,
+                         const z_UpDownVector   *updovct,
+                         const z_SolverMatrix   *datacode,
+                         MPI_Comm              comm)
 {
   pastix_int_t itercblk;
   pastix_int_t itercol;
@@ -229,19 +241,19 @@ int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
   pastix_int_t iterttsk;
 #endif
 
-  pastix_float_t * tmpx;
-  pastix_float_t * tmpx2 = NULL;
-  MALLOC_INTERN(tmpx, updovct->gnodenbr, pastix_float_t);
-  memset(tmpx, 0, updovct->gnodenbr*sizeof(pastix_float_t));
+  pastix_complex64_t * tmpx;
+  pastix_complex64_t * tmpx2 = NULL;
+  MALLOC_INTERN(tmpx, updovct->gnodenbr, pastix_complex64_t);
+  memset(tmpx, 0, updovct->gnodenbr*sizeof(pastix_complex64_t));
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tmpx2 = tmpx;
 #else
-  MALLOC_INTERN(tmpx2, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tmpx2, updovct->gnodenbr, pastix_complex64_t);
 #endif
   MONOTHREAD_END;
 
-  CscGather_X(sopalin_data, me, cscmtx, updovct, datacode,
+  z_CscGather_X(sopalin_data, me, cscmtx, updovct, datacode,
               comm, x,
               tmpx, &tmpx2);
 
@@ -284,7 +296,7 @@ int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
 }
 
 /*
- * Function: CscAtx_thread
+ * Function: z_CscAtx_thread
  *
  * Inlined function computin A^t \times X.
  *
@@ -301,16 +313,15 @@ int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
  *     datacode     - solver matrix to know tho local structure of the matrix
  *     comm         - MPI communicator
  */
-#define CscAtx_thread PASTIX_PREFIX_F(CscAtx_thread)
 static inline
-int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
-                  int                   me,
-                  const volatile pastix_float_t *x,
-                  pastix_float_t                *atx,
-                  const CscMatrix      *cscmtx,
-                  const d_UpDownVector   *updovct,
-                  const d_SolverMatrix   *datacode,
-                  MPI_Comm              comm)
+int z_CscAtx_thread(Sopalin_Data_t       *sopalin_data,
+                    int                   me,
+                    const volatile pastix_complex64_t *x,
+                    pastix_complex64_t                *atx,
+                    const z_CscMatrix      *cscmtx,
+                    const z_UpDownVector   *updovct,
+                    const z_SolverMatrix   *datacode,
+                    MPI_Comm              comm)
 {
   pastix_int_t itercblk;
   pastix_int_t itercol;
@@ -319,19 +330,19 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
 #ifdef SMP_RAFF
   pastix_int_t iterttsk;
 #endif
-  pastix_float_t * tmpx;
-  pastix_float_t * tmpx2 = NULL;
-  MALLOC_INTERN(tmpx, updovct->gnodenbr, pastix_float_t);
-  memset(tmpx, 0, updovct->gnodenbr*sizeof(pastix_float_t));
+  pastix_complex64_t * tmpx;
+  pastix_complex64_t * tmpx2 = NULL;
+  MALLOC_INTERN(tmpx, updovct->gnodenbr, pastix_complex64_t);
+  memset(tmpx, 0, updovct->gnodenbr*sizeof(pastix_complex64_t));
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tmpx2 = tmpx;
 #else
-  MALLOC_INTERN(tmpx2, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tmpx2, updovct->gnodenbr, pastix_complex64_t);
 #endif
   MONOTHREAD_END;
 
-  CscGather_X(sopalin_data, me, cscmtx, updovct, datacode,
+  z_CscGather_X(sopalin_data, me, cscmtx, updovct, datacode,
               comm, x,
               tmpx, &tmpx2);
 
@@ -374,7 +385,7 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
   return PASTIX_SUCCESS;
 }
 /*
- * Function: CscbMAx
+ * Function: z_CscbMAx
  *
  * Computes $$r = b-Ax$$.
  *
@@ -384,24 +395,24 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
  *   r            - will contains $$b-Ax$$
  *   b            - Vector $$b$$.
  *   cscmtx       - Internal CSCd matrix containing $$A$$.
- *   updovct      - d_UpDownVector structure containing $$x$$.
+ *   updovct      - z_UpDownVector structure containing $$x$$.
  *   solvmtx      - Solver matrix.
  *   comm         - MPI communicator.
  *   transpose    - Indicate if we want to transpose A.
  */
-void CscbMAx(Sopalin_Data_t       *sopalin_data,
-             int                   me,
-             volatile pastix_float_t       *r,
-             const volatile pastix_float_t *b,
-             const CscMatrix      *cscmtx,
-             const d_UpDownVector   *updovct,
-             const d_SolverMatrix   *solvmtx,
-             MPI_Comm              comm,
-             pastix_int_t                   transpose)
+void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
+               int                   me,
+               volatile pastix_complex64_t       *r,
+               const volatile pastix_complex64_t *b,
+               const z_CscMatrix      *cscmtx,
+               const z_UpDownVector   *updovct,
+               const z_SolverMatrix   *solvmtx,
+               MPI_Comm              comm,
+               pastix_int_t                   transpose)
 {
-  d_SolverMatrix * datacode;
-  pastix_float_t * tempy  = NULL;
-  pastix_float_t * tempy2 = NULL;
+  z_SolverMatrix * datacode;
+  pastix_complex64_t * tempy  = NULL;
+  pastix_complex64_t * tempy2 = NULL;
 
 
   pastix_int_t itertempy = 0;
@@ -417,18 +428,18 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
 #endif
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscbMAx \n");
+  fprintf(stdout, "-> z_CscbMAx \n");
 #endif
   datacode = sopalin_data->datacode;
 
   /* Vecteur local a chaque thread */
-  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_complex64_t);
 
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tempy2 = tempy;
 #else
-  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_complex64_t);
 #endif
   MONOTHREAD_END;
 
@@ -449,7 +460,7 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
 
       if (transpose == API_YES)
         {
-          CscAtx_thread(sopalin_data, me,
+          z_CscAtx_thread(sopalin_data, me,
                         &(updovct->sm2xtab[itersmx*updovct->sm2xsze]), tempy,
                         cscmtx, updovct, solvmtx,
                         comm);
@@ -507,7 +518,7 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
       sopalin_data->ptr_csc[0] = (void *)tempy2;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      tempy2 = (pastix_float_t *)sopalin_data->ptr_csc[0];
+      tempy2 = (pastix_complex64_t *)sopalin_data->ptr_csc[0];
 
       for (iterttsk=0; iterttsk<SOLV_TTSKNBR; iterttsk++)
         {
@@ -547,13 +558,13 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
   MONOTHREAD_END;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscbMAx \n");
+  fprintf(stdout, "<- z_CscbMAx \n");
 #endif
 }
 
 
 /*
- * function: CscAxPb
+ * function: z_CscAxPb
  *
  *
  *  Compute the operation $$r=|A||x|+|b|$$
@@ -569,19 +580,19 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
  *     comm         - MPI communicator
  *     transpose    - Indicate if we want to transpose A.
  */
-void CscAxPb(Sopalin_Data_t     *sopalin_data,
+void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
              int                 me,
-             pastix_float_t              *r,
-             const pastix_float_t        *b,
-             const CscMatrix    *cscmtx,
-             const d_UpDownVector *updovct,
-             const d_SolverMatrix *solvmtx,
+             pastix_complex64_t              *r,
+             const pastix_complex64_t        *b,
+             const z_CscMatrix    *cscmtx,
+             const z_UpDownVector *updovct,
+             const z_SolverMatrix *solvmtx,
              MPI_Comm            comm,
              pastix_int_t                 transpose)
 {
-  d_SolverMatrix * datacode;
-  pastix_float_t * tempy  = NULL;
-  pastix_float_t * tempy2 = NULL;
+  z_SolverMatrix * datacode;
+  pastix_complex64_t * tempy  = NULL;
+  pastix_complex64_t * tempy2 = NULL;
 
   pastix_int_t itertempy = 0;
   pastix_int_t itercblk  = 0;
@@ -596,19 +607,19 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
 #endif
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscAxPb \n");
+  fprintf(stdout, "-> z_CscAxPb \n");
 #endif
 
   datacode = sopalin_data->datacode;
 
   /* vecteurs temporaires locaux */
-  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_complex64_t);
 
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tempy2 = tempy;
 #else
-  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_complex64_t);
 #endif
   MONOTHREAD_END;
 
@@ -632,7 +643,7 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
       if (transpose == API_YES)
         {
 
-          CscAtx_norm_thread(sopalin_data, me,
+          z_CscAtx_norm_thread(sopalin_data, me,
                              &(updovct->sm2xtab[itersmx*updovct->sm2xsze]),
                              tempy,
                              cscmtx, updovct, solvmtx,
@@ -697,7 +708,7 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
       sopalin_data->ptr_csc[0] = (void *)tempy2;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      tempy2 = (pastix_float_t *)sopalin_data->ptr_csc[0];
+      tempy2 = (pastix_complex64_t *)sopalin_data->ptr_csc[0];
 
       for (iterttsk=0; iterttsk<SOLV_TTSKNBR; iterttsk++)
         {
@@ -736,12 +747,12 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
   MONOTHREAD_END;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscAxPb \n");
+  fprintf(stdout, "<- z_CscAxPb \n");
 #endif
 }
 
 /*
-   Function: CscBerr
+   Function: z_CscBerr
 
    Compute the operation $$ berr= max_{i}(\\frac{|r_{i}|}{|s_{i}|}) $$.
 
@@ -756,16 +767,16 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
    berr         - berr (local variable)
    comm         - MPI communicator
 */
-void CscBerr(Sopalin_Data_t *sopalin_data,
+void z_CscBerr(Sopalin_Data_t *sopalin_data,
              int            me,
-             const pastix_float_t   *r,
-             const pastix_float_t   *s,
+             const pastix_complex64_t   *r,
+             const pastix_complex64_t   *s,
              const pastix_int_t      colnbr,
              const pastix_int_t      smxnbr,
              double        *berr,
              MPI_Comm       comm)
 {
-  d_SolverMatrix *  datacode;
+  z_SolverMatrix *  datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t step;
@@ -776,7 +787,7 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscBerr \n");
+  fprintf(stdout, "-> z_CscBerr \n");
 #endif
 
   datacode = sopalin_data->datacode;
@@ -838,12 +849,12 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
   *berr = berrmax;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscBerr \n");
+  fprintf(stdout, "<- z_CscBerr \n");
 #endif
 }
 
 /*
-  Function: CscNormErr
+  Function: z_CscNormErr
 
   Computes the norm 2 of r and the norm 2 of b and return the quotient of these
   two vectors.
@@ -860,15 +871,15 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
     smxnbr       - Number of vectors (multi-right-hand-side method)
     comm         - PaStiX MPI communicator.
 */
-double CscNormErr(Sopalin_Data_t       *sopalin_data,
+double z_CscNormErr(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile pastix_float_t *r,
-                  const volatile pastix_float_t *b,
+                  const volatile pastix_complex64_t *r,
+                  const volatile pastix_complex64_t *b,
                   const pastix_int_t             colnbr,
                   const pastix_int_t             smxnbr,
                   MPI_Comm              comm)
 {
-  d_SolverMatrix *datacode;
+  z_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t iter;
@@ -885,7 +896,7 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscNormErr \n");
+  fprintf(stdout, "-> z_CscNormErr \n");
 #endif
 
   datacode  = sopalin_data->datacode;
@@ -959,7 +970,7 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
   bnorm = bnormax;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscNormErr \n");
+  fprintf(stdout, "<- z_CscNormErr \n");
 #endif
 
   return sqrt(rnorm/bnorm);
@@ -967,7 +978,7 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
 
 
 /*
- * Function: CscNormFro
+ * Function: z_CscNormFro
  *
  * Computes the norm 2 of x
  *
@@ -982,14 +993,14 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-double CscNormFro(Sopalin_Data_t       *sopalin_data,
+double z_CscNormFro(Sopalin_Data_t       *sopalin_data,
                   int                   me,
-                  const volatile pastix_float_t *x,
+                  const volatile pastix_complex64_t *x,
                   const pastix_int_t             colnbr,
                   const pastix_int_t             smxnbr,
                   MPI_Comm              comm)
 {
-  d_SolverMatrix *datacode;
+  z_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t iter;
@@ -1002,7 +1013,7 @@ double CscNormFro(Sopalin_Data_t       *sopalin_data,
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscNormFro \n");
+  fprintf(stdout, "-> z_CscNormFro \n");
 #endif
 
   datacode  = sopalin_data->datacode;
@@ -1061,7 +1072,7 @@ double CscNormFro(Sopalin_Data_t       *sopalin_data,
     }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscNormFro \n");
+  fprintf(stdout, "<- z_CscNormFro \n");
 #endif
 
   return sqrt(xnorm);
@@ -1069,7 +1080,7 @@ double CscNormFro(Sopalin_Data_t       *sopalin_data,
 
 
 /*
- * Function: CscAx
+ * Function: z_CscAx
  *
  * Computes *A* times *p* and store the result in *x*.
  *
@@ -1087,19 +1098,19 @@ double CscNormFro(Sopalin_Data_t       *sopalin_data,
  *   comm         - MPI Communicator.
  *     transpose    - Indicate if we want to transpose A.
  */
-void CscAx(Sopalin_Data_t       *sopalin_data,
+void z_CscAx(Sopalin_Data_t       *sopalin_data,
            int                   me,
-           const CscMatrix      *cscmtx,
-           const volatile pastix_float_t *p,
-           volatile pastix_float_t       *x,
-           const d_SolverMatrix   *solvmtx,
-           const d_UpDownVector   *updovct,
+           const z_CscMatrix      *cscmtx,
+           const volatile pastix_complex64_t *p,
+           volatile pastix_complex64_t       *x,
+           const z_SolverMatrix   *solvmtx,
+           const z_UpDownVector   *updovct,
            MPI_Comm              comm,
            pastix_int_t                   transpose)
 {
-  d_SolverMatrix * datacode;
-  pastix_float_t * tempy  = NULL;
-  pastix_float_t * tempy2 = NULL;
+  z_SolverMatrix * datacode;
+  pastix_complex64_t * tempy  = NULL;
+  pastix_complex64_t * tempy2 = NULL;
 
   pastix_int_t itertempy = 0;
   pastix_int_t itercblk  = 0;
@@ -1114,17 +1125,17 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
 #endif
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscAx \n");
+  fprintf(stdout, "-> z_CscAx \n");
 #endif
   datacode = sopalin_data->datacode;
 
   /* vecteurs temporaires locaux */
-  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tempy, updovct->gnodenbr, pastix_complex64_t);
   MONOTHREAD_BEGIN;
 #ifdef INOUT_ALLREDUCE
   tempy2 = tempy;
 #else
-  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_float_t);
+  MALLOC_INTERN(tempy2, updovct->gnodenbr, pastix_complex64_t);
 #endif
   MONOTHREAD_END;
 
@@ -1149,7 +1160,7 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
       if (transpose == API_YES)
         {
 
-          CscAtx_thread(sopalin_data, me,
+          z_CscAtx_thread(sopalin_data, me,
                         &(p[itersmx*updovct->sm2xsze]), tempy,
                         cscmtx, updovct, solvmtx, comm);
         }
@@ -1193,9 +1204,9 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
         FILE *rafffile;
         char  rafffilename[30];
         static pastix_int_t toto = 0;
-        sprintf(rafffilename, "CscAxtempy%ld.%ld",(long) toto,me);
+        sprintf(rafffilename, "z_CscAxtempy%ld.%ld",(long) toto,me);
         rafffile = fopen(rafffilename, "w");
-        dump7((pastix_float_t *)tempy,rafffile,updovct->gnodenbr);
+        dump7((pastix_complex64_t *)tempy,rafffile,updovct->gnodenbr);
         fclose(rafffile);
 
         SYNCHRO_THREAD;
@@ -1225,9 +1236,9 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
         FILE *rafffile;
         char  rafffilename[10];
         static pastix_int_t toto = 0;
-        sprintf(rafffilename, "CscAx%ld.%ld",(long) toto,(long) SOLV_PROCNUM);
+        sprintf(rafffilename, "z_CscAx%ld.%ld",(long) toto,(long) SOLV_PROCNUM);
         rafffile = fopen(rafffilename, "w");
-        dump7((pastix_float_t *)tempy2,rafffile,updovct->gnodenbr);
+        dump7((pastix_complex64_t *)tempy2,rafffile,updovct->gnodenbr);
         fclose(rafffile);
         toto++;
       }
@@ -1237,7 +1248,7 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
       sopalin_data->ptr_csc[0] = (void *)tempy2;
       MONOTHREAD_END;
       SYNCHRO_THREAD;
-      tempy2 = (pastix_float_t *)sopalin_data->ptr_csc[0];
+      tempy2 = (pastix_complex64_t *)sopalin_data->ptr_csc[0];
 
       for (iterttsk=0; iterttsk<SOLV_TTSKNBR; iterttsk++)
         {
@@ -1271,13 +1282,13 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
   MONOTHREAD_END;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscAx \n");
+  fprintf(stdout, "<- z_CscAx \n");
 #endif
 }
 
 
 /*
-  Function: CscGradBeta
+  Function: z_CscGradBeta
 
   Computes the scalar product between *r* and *z*
   and store the result in *beta*.
@@ -1294,35 +1305,35 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
     beta         - Float which will store the solution.
     comm         - MPI communicator.
 */
-void CscGradBeta(Sopalin_Data_t       *sopalin_data,
+void z_CscGradBeta(Sopalin_Data_t       *sopalin_data,
                  int                   me,
-                 const volatile pastix_float_t *r,
-                 const volatile pastix_float_t *z,
+                 const volatile pastix_complex64_t *r,
+                 const volatile pastix_complex64_t *z,
                  pastix_int_t                   colnbr,
                  pastix_int_t                   smxnbr,
-                 pastix_float_t                *beta,
+                 pastix_complex64_t                *beta,
                  MPI_Comm              comm)
 {
-  d_SolverMatrix *datacode;
+  z_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t step;
   pastix_int_t itersmx;
   pastix_int_t iter  = 0;
-  pastix_float_t up  = 0.0;
+  pastix_complex64_t up  = 0.0;
 #ifndef INOUT_ALLREDUCE
-  pastix_float_t up2 = 0.0;
+  pastix_complex64_t up2 = 0.0;
 #endif
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscGradBeta \n");
+  fprintf(stdout, "-> z_CscGradBeta \n");
 #endif
 
   datacode  = sopalin_data->datacode;
 
   MONOTHREAD_BEGIN;
-  memset( beta, 0, smxnbr*sizeof(pastix_float_t) );
+  memset( beta, 0, smxnbr*sizeof(pastix_complex64_t) );
   MONOTHREAD_END;
 
 #ifdef SMP_RAFF
@@ -1371,12 +1382,12 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
     }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscGradBeta \n");
+  fprintf(stdout, "<- z_CscGradBeta \n");
 #endif
 }
 
 /*
- * Function: CscGmresBeta
+ * Function: z_CscGmresBeta
  *
  * Computes the scalar product between *r* and *z*
  * and store the result in *beta*.
@@ -1393,29 +1404,29 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
  *   beta         - Float which will store the solution.
  *   comm         - MPI communicator.
  */
-void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
-                  int                   me,
-                  const volatile pastix_float_t *r,
-                  const volatile pastix_float_t *z,
-                  pastix_int_t                   colnbr,
-                  pastix_int_t                   smxnbr,
-                  pastix_float_t               *beta,
-                  MPI_Comm              comm)
+void z_CscGmresBeta(Sopalin_Data_t                    *sopalin_data,
+                    int                                me,
+                    const volatile pastix_complex64_t *r,
+                    const volatile pastix_complex64_t *z,
+                    pastix_int_t                       colnbr,
+                    pastix_int_t                       smxnbr,
+                    pastix_complex64_t                *beta,
+                    MPI_Comm                           comm)
 {
-  d_SolverMatrix *  datacode;
+  z_SolverMatrix *  datacode;
   pastix_int_t   first,  last;
   pastix_int_t   first2, last2;
   pastix_int_t   step;
   pastix_int_t   itersmx;
   pastix_int_t   iter = 0;
-  pastix_float_t up   = 0.0;
+  pastix_complex64_t up   = 0.0;
 #ifndef INOUT_ALLREDUCE
-  pastix_float_t up2  = 0.0;
+  pastix_complex64_t up2  = 0.0;
 #endif
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscGmresBeta \n");
+  fprintf(stdout, "-> z_CscGmresBeta \n");
 #endif
 
   datacode  = sopalin_data->datacode;
@@ -1425,16 +1436,16 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
     FILE *rafffile;
     char  rafffilename[30];
     static pastix_int_t toto = 0;
-    sprintf(rafffilename, "CscGmresBetar%ld.%ld",
+    sprintf(rafffilename, "z_CscGmresBetar%ld.%ld",
             (long) toto,(long) SOLV_PROCNUM);
     rafffile = fopen(rafffilename, "w");
-    dump7((pastix_float_t *)r,rafffile,colnbr);
+    dump7((pastix_complex64_t *)r,rafffile,colnbr);
     fclose(rafffile);
 
-    sprintf(rafffilename, "CscGmresBetaz%ld.%ld",
+    sprintf(rafffilename, "z_CscGmresBetaz%ld.%ld",
             (long) toto,(long) SOLV_PROCNUM);
     rafffile = fopen(rafffilename, "w");
-    dump7((pastix_float_t *)z,rafffile,colnbr);
+    dump7((pastix_complex64_t *)z,rafffile,colnbr);
     fclose(rafffile);
     toto++;
     MONOTHREAD_END;
@@ -1488,12 +1499,12 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
     }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscGmresBeta \n");
+  fprintf(stdout, "<- z_CscGmresBeta \n");
 #endif
 }
 
 /*
- * Function: CscCopy
+ * Function: z_CscCopy
  *
  * Copy a vector into another vector
  *
@@ -1509,22 +1520,22 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-void CscCopy(Sopalin_Data_t              *sopalin_data,
+void z_CscCopy(Sopalin_Data_t              *sopalin_data,
              int                          me,
-             const volatile pastix_float_t *x,
-             volatile pastix_float_t       *y,
+             const volatile pastix_complex64_t *x,
+             volatile pastix_complex64_t       *y,
              const pastix_int_t             colnbr,
              const pastix_int_t             smxnbr,
              MPI_Comm                     comm)
 {
-  d_SolverMatrix *datacode;
+  z_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t step;
 
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscCopy \n");
+  fprintf(stdout, "-> z_CscCopy \n");
 #endif
 
   datacode  = sopalin_data->datacode;
@@ -1540,12 +1551,12 @@ void CscCopy(Sopalin_Data_t              *sopalin_data,
   SOPALIN_COPY(last-first, x+first, iun, y+first, iun);
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscCopy \n");
+  fprintf(stdout, "<- z_CscCopy \n");
 #endif
 }
 
 /*
- * Function: CscScal
+ * Function: z_CscScal
  *
  * Multiply a vector by a scalaire
  *
@@ -1561,22 +1572,22 @@ void CscCopy(Sopalin_Data_t              *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-void CscScal(Sopalin_Data_t        *sopalin_data,
+void z_CscScal(Sopalin_Data_t        *sopalin_data,
              int                    me,
-             volatile pastix_float_t  alpha,
-             volatile pastix_float_t *x,
+             volatile pastix_complex64_t  alpha,
+             volatile pastix_complex64_t *x,
              const pastix_int_t       colnbr,
              const pastix_int_t       smxnbr,
              MPI_Comm               comm)
 {
-  d_SolverMatrix *datacode;
+  z_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t step;
 
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscScal \n");
+  fprintf(stdout, "-> z_CscScal \n");
 #endif
 
   datacode  = sopalin_data->datacode;
@@ -1593,13 +1604,13 @@ void CscScal(Sopalin_Data_t        *sopalin_data,
   SOPALIN_SCAL(last-first, alpha, x+first, iun);
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscScal \n");
+  fprintf(stdout, "<- z_CscScal \n");
 #endif
 
 }
 
 /*
- * Function: CscAXPY
+ * Function: z_CscAXPY
  *
  * Y<-aX+Y
  *
@@ -1616,23 +1627,23 @@ void CscScal(Sopalin_Data_t        *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-void CscAXPY(Sopalin_Data_t              *sopalin_data,
+void z_CscAXPY(Sopalin_Data_t              *sopalin_data,
              int                          me,
-             pastix_float_t                 alpha,
-             const volatile pastix_float_t *x,
-             volatile pastix_float_t       *y,
+             pastix_complex64_t                 alpha,
+             const volatile pastix_complex64_t *x,
+             volatile pastix_complex64_t       *y,
              const pastix_int_t             colnbr,
              const pastix_int_t             smxnbr,
              MPI_Comm                     comm)
 {
-  d_SolverMatrix *datacode;
+  z_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t step;
 
   (void)comm;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscAXPY \n");
+  fprintf(stdout, "-> z_CscAXPY \n");
 #endif
 
   datacode  = sopalin_data->datacode;
@@ -1649,6 +1660,6 @@ void CscAXPY(Sopalin_Data_t              *sopalin_data,
   SOPALIN_AXPY(last-first, alpha, x+first, iun, y+first, iun);
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscAXPY \n");
+  fprintf(stdout, "<- z_CscAXPY \n");
 #endif
 }

@@ -100,20 +100,20 @@ void* pivotstatique_smp ( void *arg )
       MONOTHREAD_BEGIN;
 #endif /* SMP_RAFF */
       /* r=b-ax */
-      CscbMAx(sopalin_data, me, lur, lub, sopalin_data->sopar->cscmtx,
+      d_CscbMAx(sopalin_data, me, lur, lub, sopalin_data->sopar->cscmtx,
               &(datacode->updovct), datacode, pastix_comm,
               sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
 
 
       /* r'=|A||x|+|b| */
-      CscAxPb( sopalin_data, me, lur2, lub, sopalin_data->sopar->cscmtx,
+      d_CscAxPb( sopalin_data, me, lur2, lub, sopalin_data->sopar->cscmtx,
                &(datacode->updovct), datacode, pastix_comm,
                sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
 
 
 
       /* tmp_berr =  max_i(|lur_i|/|lur2_i|)*/
-      CscBerr(sopalin_data, me, lur, lur2, UPDOWN_SM2XSZE,
+      d_CscBerr(sopalin_data, me, lur, lur2, UPDOWN_SM2XSZE,
               1, &tmp_berr , pastix_comm);
 
 
@@ -131,7 +131,7 @@ void* pivotstatique_smp ( void *arg )
       MONOTHREAD_END;
 
       /* Calcul de ||r|| et ||r||/||b|| */
-      tmp_berr = CscNormErr(sopalin_data, me, lur,lub,
+      tmp_berr = d_CscNormErr(sopalin_data, me, lur,lub,
                             UPDOWN_SM2XSZE,UPDOWN_SM2XNBR, pastix_comm);
       MONOTHREAD_BEGIN;
       sopar->rberror = tmp_berr;

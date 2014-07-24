@@ -1,21 +1,34 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z -> c d s
+ *
+ **/
 /*
-  File: csc_intern_io.c
+  File: z_csc_intern_io.c
 
   Functions to save or load internal CSC in binary or ascii mode.
 
 */
 #include "common.h"
 #include <pthread.h>
-#include "csc.h"
-#include "csc_intern_io.h"
-#include "d_ftgt.h"
-#include "d_updown.h"
+#include "z_csc.h"
+#include "z_csc_intern_io.h"
+#include "z_ftgt.h"
+#include "z_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_solver.h"
+#include "z_solver.h"
 
 /*
-  Function: CscSave
+  Function: z_CscSave
 
   Writes on disk an internal CSCd in text format.
 
@@ -32,8 +45,8 @@
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-pastix_int_t CscSave(const CscMatrix * const cscptr,
-            FILE            * const stream)
+pastix_int_t z_CscSave(const z_CscMatrix * const cscptr,
+                       FILE            * const stream)
 {
   pastix_int_t iter=0;
   pastix_int_t iter2=0;
@@ -41,7 +54,7 @@ pastix_int_t CscSave(const CscMatrix * const cscptr,
   pastix_int_t o=0;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscSave \n");
+  fprintf(stdout, "-> z_CscSave \n");
 #endif
 
   fprintf(stream, "%ld\n", (long)CSC_FNBR(cscptr));
@@ -72,15 +85,15 @@ pastix_int_t CscSave(const CscMatrix * const cscptr,
     }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscSave \n");
+  fprintf(stdout, "<- z_CscSave \n");
 #endif
 
   return o;
 }
 
 #define CscSaveIJV PASTIX_EXTERN_F(CscSaveIJV)
-pastix_int_t CscSaveIJV(const CscMatrix * const cscptr,
-               const d_SolverMatrix     *solvmtx,
+pastix_int_t CscSaveIJV(const z_CscMatrix * const cscptr,
+               const z_SolverMatrix     *solvmtx,
                pastix_int_t                    *l2g,
                pastix_int_t                    *peritab,
                pastix_int_t                     dof,
@@ -93,7 +106,7 @@ pastix_int_t CscSaveIJV(const CscMatrix * const cscptr,
   pastix_int_t o=0;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscSave \n");
+  fprintf(stdout, "-> z_CscSave \n");
 #endif
 
   for (itercblk=0; itercblk<CSC_FNBR(cscptr); itercblk++)
@@ -128,7 +141,7 @@ pastix_int_t CscSaveIJV(const CscMatrix * const cscptr,
   return o;
 }
 /*
-  Function: CscBSave
+  Function: z_CscBSave
 
   Writes on disk an internal CSCd in binary format.
 
@@ -136,7 +149,7 @@ pastix_int_t CscSaveIJV(const CscMatrix * const cscptr,
     cscprt - the internal CSCd structure to save.
     stream - the FILE to write into, open in write mode.
 */
-pastix_int_t CscBSave(const CscMatrix * const cscptr,
+pastix_int_t z_CscBSave(const z_CscMatrix * const cscptr,
              FILE            * const stream)
 {
   pastix_int_t iter=0;
@@ -144,7 +157,7 @@ pastix_int_t CscBSave(const CscMatrix * const cscptr,
   pastix_int_t o=0;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscBSave \n");
+  fprintf(stdout, "-> z_CscBSave \n");
 #endif
 
   fwrite(&(CSC_FNBR(cscptr)),sizeof(pastix_int_t), 1, stream);
@@ -162,18 +175,18 @@ pastix_int_t CscBSave(const CscMatrix * const cscptr,
   for (iter=0; iter < valnbr ;iter++)
     {
       fwrite(&(CSC_ROW(cscptr,iter)), sizeof(pastix_int_t), 1, stream);
-      fwrite(&(CSC_VAL(cscptr,iter)), sizeof(pastix_float_t), 1,stream);
+      fwrite(&(CSC_VAL(cscptr,iter)), sizeof(pastix_complex64_t), 1,stream);
     }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscBSave \n");
+  fprintf(stdout, "<- z_CscBSave \n");
 #endif
 
   return o;
 }
 
 /*
-   Function: CscLoad
+   Function: z_CscLoad
 
    Reads an internal CSCd from disk.
 
@@ -190,7 +203,7 @@ pastix_int_t CscBSave(const CscMatrix * const cscptr,
      cscprt - the internal CSCd structure to load.
      stream - the FILE to write into, open in read mode.
 */
-pastix_int_t CscLoad(CscMatrix * cscptr,
+pastix_int_t z_CscLoad(z_CscMatrix * cscptr,
             FILE      * stream)
 {
   pastix_int_t iter=0;
@@ -199,7 +212,7 @@ pastix_int_t CscLoad(CscMatrix * cscptr,
   long temp;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscLoad \n");
+  fprintf(stdout, "-> z_CscLoad \n");
 #endif
 
   if (1 != fscanf(stream, "%ld\n", &temp)){
@@ -209,7 +222,7 @@ pastix_int_t CscLoad(CscMatrix * cscptr,
 
   CSC_FNBR(cscptr) = temp;
 
-  MALLOC_INTERN(CSC_FTAB(cscptr), CSC_FNBR(cscptr), CscFormat);
+  MALLOC_INTERN(CSC_FTAB(cscptr), CSC_FNBR(cscptr), z_CscFormat);
 
   for (iter=0; iter < CSC_FNBR(cscptr); iter++)
     {
@@ -239,7 +252,7 @@ pastix_int_t CscLoad(CscMatrix * cscptr,
   valnbr = CSC_VALNBR(cscptr);
 
   MALLOC_INTERN(CSC_ROWTAB(cscptr), valnbr, pastix_int_t);
-  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, pastix_float_t);
+  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, pastix_complex64_t);
 
   for (iter=0; iter < valnbr; iter++)
     {
@@ -258,9 +271,9 @@ pastix_int_t CscLoad(CscMatrix * cscptr,
         }
 
 #if (defined X_ARCHalpha_compaq_osf1)
-        CSC_VAL(cscptr,iter) = pastix_float_t (tempreal, tempimag);
+        CSC_VAL(cscptr,iter) = pastix_complex64_t (tempreal, tempimag);
 #else
-        CSC_VAL(cscptr,iter) = (pastix_float_t) tempreal+( (pastix_float_t) tempimag)*I;
+        CSC_VAL(cscptr,iter) = (pastix_complex64_t) tempreal+( (pastix_complex64_t) tempimag)*I;
 #endif
       }
 #else
@@ -273,14 +286,14 @@ pastix_int_t CscLoad(CscMatrix * cscptr,
     }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscLoad \n");
+  fprintf(stdout, "<- z_CscLoad \n");
 #endif
 
   return 0;
 }
 
 /*
-  Function: CscBLoad
+  Function: z_CscBLoad
 
   Loads an internal CSCd from a file saved in binary mode.
 
@@ -288,19 +301,19 @@ pastix_int_t CscLoad(CscMatrix * cscptr,
     cscprt - the internal CSCd structure to load.
     stream - the FILE to write into, open in read mode.
 */
-pastix_int_t CscBLoad(CscMatrix * cscptr,
-             FILE      * stream)
+pastix_int_t z_CscBLoad(z_CscMatrix * cscptr,
+                        FILE      * stream)
 {
   pastix_int_t iter=0;
   pastix_int_t valnbr;
 
 #ifdef CSC_LOG
-  fprintf(stdout, "-> CscBLoad \n");
+  fprintf(stdout, "-> z_CscBLoad \n");
 #endif
 
   PASTIX_FREAD(&(CSC_FNBR(cscptr)), sizeof(pastix_int_t), 1, stream);
 
-  MALLOC_INTERN(CSC_FTAB(cscptr), CSC_FNBR(cscptr), CscFormat);
+  MALLOC_INTERN(CSC_FTAB(cscptr), CSC_FNBR(cscptr), z_CscFormat);
 
   for (iter=0; iter < CSC_FNBR(cscptr); iter++)
     {
@@ -317,16 +330,16 @@ pastix_int_t CscBLoad(CscMatrix * cscptr,
   valnbr = CSC_VALNBR(cscptr);
 
   MALLOC_INTERN(CSC_ROWTAB(cscptr), valnbr, pastix_int_t);
-  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, pastix_float_t);
+  MALLOC_INTERN(CSC_VALTAB(cscptr), valnbr, pastix_complex64_t);
 
   for (iter=0; iter < valnbr; iter++)
     {
       PASTIX_FREAD(&(CSC_ROW(cscptr,iter)), sizeof(pastix_int_t), 1, stream);
-      PASTIX_FREAD(&(CSC_VAL(cscptr,iter)), sizeof(pastix_float_t), 1, stream);
+      PASTIX_FREAD(&(CSC_VAL(cscptr,iter)), sizeof(pastix_complex64_t), 1, stream);
     }
 
 #ifdef CSC_LOG
-  fprintf(stdout, "<- CscBLoad \n");
+  fprintf(stdout, "<- z_CscBLoad \n");
 #endif
   return 0;
 }

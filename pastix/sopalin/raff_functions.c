@@ -15,7 +15,7 @@
 #endif
 #include "sopalin_define.h"
 #include "symbol.h"
-#include "csc.h"
+#include "d_csc.h"
 #include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
@@ -32,7 +32,7 @@
 #include "order.h"
 #include "debug_dump.h"
 #include "sopalin_acces.h"
-#include "csc_intern_compute.h"
+#include "d_csc_intern_compute.h"
 #ifdef PASTIX_WITH_STARPU
 #  include "starpu_submit_tasks.h"
 #endif
@@ -134,7 +134,7 @@ void Pastix_End(void* arg, pastix_float_t tmp, PASTIX_INT nb_iter, double t, pas
 
   sopalin_data->stop = tmp;
   MULTITHREAD_BEGIN;
-  CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
+  d_CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
   SYNCHRO_THREAD;
@@ -157,14 +157,14 @@ void Pastix_End(void* arg, pastix_float_t tmp, PASTIX_INT nb_iter, double t, pas
     s = (pastix_float_t *)sopalin_data->ptr_raff[1];
     MULTITHREAD_BEGIN;
     /* compute r = b - Ax */
-    CscbMAx(sopalin_data, me, r, sopar->b, sopar->cscmtx,
+    d_CscbMAx(sopalin_data, me, r, sopar->b, sopar->cscmtx,
             &(datacode->updovct), datacode, PASTIX_COMM,
             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
     /* |A||x| + |b| */
-    CscAxPb( sopalin_data, me, s, sopar->b, sopar->cscmtx,
+    d_CscAxPb( sopalin_data, me, s, sopar->b, sopar->cscmtx,
              &(datacode->updovct), datacode, PASTIX_COMM,
              sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
-    CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
+    d_CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
             1, &(sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL]),
             PASTIX_COMM);
     MULTITHREAD_END(1);
@@ -206,7 +206,7 @@ void Pastix_X(void *arg, pastix_float_t *x)
     for (i=0;i<UPDOWN_SM2XSZE*UPDOWN_SM2XNBR;i++)
       UPDOWN_SM2XTAB[i]=0.0;
   MULTITHREAD_BEGIN;
-  CscCopy(sopalin_data, me, UPDOWN_SM2XTAB, x,
+  d_CscCopy(sopalin_data, me, UPDOWN_SM2XTAB, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(1);
   SYNCHRO_THREAD;
@@ -240,7 +240,7 @@ void Pastix_B(void *arg, pastix_float_t *b)
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
-  CscCopy(sopalin_data, me, sopar->b, b,
+  d_CscCopy(sopalin_data, me, sopar->b, b,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
   SYNCHRO_THREAD;
@@ -333,7 +333,7 @@ pastix_float_t Pastix_Norm2(void* arg, pastix_float_t *x)
   PASTIX_INT        me           = argument->me;
   double            normx;
   MULTITHREAD_BEGIN;
-  normx = CscNormFro(sopalin_data, me, x,
+  normx = d_CscNormFro(sopalin_data, me, x,
                      UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(1);
   NOSMP_SYNC_COEF(normx);
@@ -349,7 +349,7 @@ void Pastix_Copy(void *arg, pastix_float_t *s, pastix_float_t *d, int flag)
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
-  CscCopy(sopalin_data, me, s, d,
+  d_CscCopy(sopalin_data, me, s, d,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
 
@@ -368,7 +368,7 @@ void Pastix_Precond(void *arg, pastix_float_t *s, pastix_float_t *d, int flag)
   PASTIX_INT        me           = argument->me;
 
   MULTITHREAD_BEGIN;
-  CscCopy(sopalin_data, me, s, UPDOWN_SM2XTAB,
+  d_CscCopy(sopalin_data, me, s, UPDOWN_SM2XTAB,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(1);
   /* M-1 updo -> updo */
@@ -381,7 +381,7 @@ void Pastix_Precond(void *arg, pastix_float_t *s, pastix_float_t *d, int flag)
     }
 #endif
   MULTITHREAD_BEGIN;
-  CscCopy(sopalin_data, me, UPDOWN_SM2XTAB, d,
+  d_CscCopy(sopalin_data, me, UPDOWN_SM2XTAB, d,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
   if (flag)
@@ -397,7 +397,7 @@ void Pastix_Scal(void *arg, pastix_float_t alpha, pastix_float_t *x, int flag)
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
-  CscScal(sopalin_data, me, alpha, x,
+  d_CscScal(sopalin_data, me, alpha, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
   if (flag)
@@ -413,7 +413,7 @@ void Pastix_Dotc(void *arg, pastix_float_t *x, pastix_float_t *y, pastix_float_t
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
-  CscGradBeta(sopalin_data, me, x, y,
+  d_CscGradBeta(sopalin_data, me, x, y,
               UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, r, pastix_comm);
   MULTITHREAD_END(0);
   if (flag)
@@ -428,7 +428,7 @@ void Pastix_Dotc_Gmres(void *arg, pastix_float_t *x, pastix_float_t *y, pastix_f
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
-  CscGmresBeta(sopalin_data, me, x, y,
+  d_CscGmresBeta(sopalin_data, me, x, y,
                UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, r, pastix_comm);
   MULTITHREAD_END(0);
   SYNC_COEF(*r);
@@ -444,7 +444,7 @@ void Pastix_Ax(void *arg, pastix_float_t *x, pastix_float_t *r)
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
-  CscAx(sopalin_data, me, sopalin_data->sopar->cscmtx, x, r,
+  d_CscAx(sopalin_data, me, sopalin_data->sopar->cscmtx, x, r,
         datacode, &(datacode->updovct), pastix_comm,
         sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
   MULTITHREAD_END(1);
@@ -462,12 +462,12 @@ void Pastix_bMAx(void *arg, pastix_float_t *b, pastix_float_t *x, pastix_float_t
   PASTIX_INT        me           = argument->me;
 
   MULTITHREAD_BEGIN;
-  CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
+  d_CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
   SYNCHRO_THREAD;
   MULTITHREAD_BEGIN;
-  CscbMAx(sopalin_data, me, r, b, sopalin_data->sopar->cscmtx,
+  d_CscbMAx(sopalin_data, me, r, b, sopalin_data->sopar->cscmtx,
           &(datacode->updovct), datacode, pastix_comm,
           sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
   MULTITHREAD_END(1);
@@ -487,7 +487,7 @@ void Pastix_BYPX(void *arg, pastix_float_t *beta, pastix_float_t *y, pastix_floa
     for (itersmx=0; itersmx<UPDOWN_SM2XNBR; itersmx++)
       {
         MULTITHREAD_BEGIN;
-        CscScal(sopalin_data, me, beta[itersmx], x+(itersmx*UPDOWN_SM2XSZE),
+        d_CscScal(sopalin_data, me, beta[itersmx], x+(itersmx*UPDOWN_SM2XSZE),
                 UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
         MULTITHREAD_END(0);
         SYNCHRO_THREAD;
@@ -499,12 +499,12 @@ void Pastix_BYPX(void *arg, pastix_float_t *beta, pastix_float_t *y, pastix_floa
   MONOTHREAD_END;
 #else
   MULTITHREAD_BEGIN;
-  CscScal(sopalin_data, me, beta[0], x,
+  d_CscScal(sopalin_data, me, beta[0], x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
   SYNCHRO_THREAD;
   MULTITHREAD_BEGIN;
-  CscAXPY(sopalin_data, me, fun, y, x,
+  d_CscAXPY(sopalin_data, me, fun, y, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
 #endif
@@ -528,7 +528,7 @@ void Pastix_AXPY(void *arg, double coeff, pastix_float_t *alpha, pastix_float_t 
       {
         tmp_flt = (pastix_float_t) alpha[itersmx] * coeff;
         MULTITHREAD_BEGIN;
-        CscAXPY(sopalin_data, me, tmp_flt, y+(itersmx*UPDOWN_SM2XSZE), x+(itersmx*UPDOWN_SM2XSZE),
+        d_CscAXPY(sopalin_data, me, tmp_flt, y+(itersmx*UPDOWN_SM2XSZE), x+(itersmx*UPDOWN_SM2XSZE),
                 UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
         MULTITHREAD_END(1);
       }
@@ -536,7 +536,7 @@ void Pastix_AXPY(void *arg, double coeff, pastix_float_t *alpha, pastix_float_t 
 #else
   tmp_flt = (pastix_float_t) alpha[0] * coeff;
   MULTITHREAD_BEGIN;
-  CscAXPY(sopalin_data, me, tmp_flt, y, x,
+  d_CscAXPY(sopalin_data, me, tmp_flt, y, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
   MULTITHREAD_END(0);
 #endif

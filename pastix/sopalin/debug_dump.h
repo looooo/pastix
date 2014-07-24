@@ -36,7 +36,7 @@ void dump1(Order *ord,
   
  */
 void dump2(const d_SolverMatrix * datacode,
-           CscMatrix          * cscmtx,
+           d_CscMatrix          * cscmtx,
 	   pastix_float_t              * trandcsc,
 	   FILE               *stream);
 
