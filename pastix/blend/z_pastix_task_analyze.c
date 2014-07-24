@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_task_analyse.c
+ * @file z_pastix_task_analyze.c
  *
  *  PaStiX analyse routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -12,6 +12,7 @@
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @date 2013-06-24
+ * @precisions normal z -> c d s
  *
  **/
 #include "common.h"
@@ -23,7 +24,8 @@
 #include "extendVector.h"
 #include "blendctrl.h"
 #include "blend.h"
-#include "solver.h"
+#include "dof.h"
+#include "z_solver.h"
 
 /*
   Function: pastix_task_blend
@@ -35,7 +37,7 @@
   pastix_comm - PaStiX MPI communicator
 
 */
-void pastix_task_blend(pastix_data_t *pastix_data)
+void z_pastix_task_blend(pastix_data_t *pastix_data)
 {
     Dof            dofstr;
     BlendCtrl      ctrl;
@@ -44,7 +46,7 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     pastix_int_t   procnum  = pastix_data->inter_node_procnum;
     pastix_int_t  *iparm    = pastix_data->iparm;
     double        *dparm    = pastix_data->dparm;
-    SolverMatrix  *solvmatr = &(pastix_data->solvmatr);
+    z_SolverMatrix  *solvmatr = &(pastix_data->solvmatr);
 
     /* /\* Si on refait blend on doit jeter nos ancien coefs *\/ */
     /* if (pastix_data->malcof) */
@@ -103,7 +105,7 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     }
     if ((iparm[IPARM_VERBOSE] > API_VERBOSE_NO))
     {
-        pastix_int_t solversize = sizeofsolver(solvmatr, iparm);
+        pastix_int_t solversize = z_sizeofsolver(solvmatr, iparm);
 
         fprintf(stdout,SOLVMTX_WITHOUT_CO,  (int)procnum, (double)MEMORY_WRITE(solversize),
                 MEMORY_UNIT_WRITE(solversize));
@@ -118,7 +120,7 @@ void pastix_task_blend(pastix_data_t *pastix_data)
 
         if (procnum == 0)
         {
-            sizeG *= sizeof(pastix_float_t);
+            sizeG *= sizeof(pastix_complex64_t);
             if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
                 sizeG *= 2;
 

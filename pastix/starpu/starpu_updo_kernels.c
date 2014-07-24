@@ -29,7 +29,7 @@ static inline
 void updo_trsm_starpu_common(void * buffers[], void * _args, int arch)
 {
   Sopalin_Data_t          * sopalin_data;
-  SolverMatrix            * datacode;
+  d_SolverMatrix            * datacode;
   pastix_float_t            * L    = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
   pastix_float_t            * RHS  = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
   pastix_int_t                stride       = STARPU_MATRIX_GET_LD(buffers[0]);
@@ -92,7 +92,7 @@ static inline
 void updo_down_gemm_starpu_common(void * buffers[], void * _args, int arch)
 {
   Sopalin_Data_t          * sopalin_data;
-  SolverMatrix            * datacode;
+  d_SolverMatrix            * datacode;
   pastix_float_t            * L            = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
   pastix_float_t            * RHS          = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
   pastix_float_t            * RHS2         = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[2]);
@@ -169,7 +169,7 @@ static inline
 void updo_up_gemm_starpu_common(void * buffers[], void * _args, int arch)
 {
   Sopalin_Data_t          * sopalin_data;
-  SolverMatrix            * datacode;
+  d_SolverMatrix            * datacode;
   pastix_float_t            * L            = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
   pastix_float_t            * RHS          = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
   pastix_float_t            * RHS2         = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[2]);
@@ -248,7 +248,7 @@ static inline
 void updo_diag_starpu_common(void * buffers[], void * _args, int arch)
 {
   Sopalin_Data_t          * sopalin_data;
-  SolverMatrix            * datacode;
+  d_SolverMatrix            * datacode;
   pastix_float_t            * L            = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
   pastix_float_t            * RHS          = (pastix_float_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
   pastix_int_t                stride       = STARPU_MATRIX_GET_LD(buffers[0]);

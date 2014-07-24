@@ -11,7 +11,7 @@
 void* gmres_smp        (void *arg);
 
 /* Lancement d'une des fonctions seules */
-void gmres_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
+void gmres_thread(d_SolverMatrix *datacode, SopalinParam *sopaparam);
 
 /*
  ** Section: Threads routines
@@ -328,7 +328,7 @@ void* API_CALL(gmres_smp)(void *arg)
 /*
 ** Section: Function creating threads
 */
-void API_CALL(gmres_thread)(SolverMatrix *datacode, SopalinParam *sopaparam)
+void API_CALL(gmres_thread)(d_SolverMatrix *datacode, SopalinParam *sopaparam)
 {
   raff_thread(datacode, sopaparam, &API_CALL(gmres_smp));
 }

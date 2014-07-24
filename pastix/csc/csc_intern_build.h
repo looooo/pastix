@@ -42,7 +42,7 @@ void CscOrdistrib(CscMatrix          *thecsc,
 		  pastix_int_t                *rowind, 
 		  pastix_float_t              *val, 
 		  pastix_int_t                 forcetrans,
-		  const SolverMatrix *symbmtx, 
+		  const d_SolverMatrix *symbmtx, 
 		  pastix_int_t                 procnum, 
 		  pastix_int_t                 dof);
 
@@ -119,7 +119,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
 		   pastix_int_t                 gNcol,
 		   pastix_int_t                *g2l,
 		   pastix_int_t                 forcetrans,
-		   const SolverMatrix *symbmtx, 
+		   const d_SolverMatrix *symbmtx, 
 		   pastix_int_t                 procnum,
 		   pastix_int_t                 dof,
 		   MPI_Comm            comm);

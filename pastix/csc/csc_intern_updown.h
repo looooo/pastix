@@ -1,9 +1,9 @@
 /*
   File: csc_intern_updown.h
 
-  Build UpDownVector from user right-hand-side and CSCd.
-  Retrieve soltion from UpDownVector.
-  Construct UpDownVector such as X[i] = 1, or X[i] = i.
+  Build d_UpDownVector from user right-hand-side and CSCd.
+  Retrieve soltion from d_UpDownVector.
+  Construct d_UpDownVector such as X[i] = 1, or X[i] = i.
 
 */
 #ifndef CSC_INTERN_UPDOWN_H
@@ -12,17 +12,17 @@
 /*
   Function: CscdUpdownRhs
 
-  Fill-in UpDownVector structure from user right-hand-side member.
+  Fill-in d_UpDownVector structure from user right-hand-side member.
 
   Parameters:
-    updovct - UpDownVector structure to fill-in.
+    updovct - d_UpDownVector structure to fill-in.
     symbmtx - Solver matrix.
     rhs     - Right-hand-side member.
     perm    - reverse permutation tabular.
     dof      - Number of degree of freedom.
  */
-void CscUpdownRhs(UpDownVector       *updovct,
-		  const SolverMatrix *symbmtx, 
+void CscUpdownRhs(d_UpDownVector       *updovct,
+		  const d_SolverMatrix *symbmtx, 
 		  const pastix_float_t        *rhs, 
 		  const pastix_int_t          *perm,
 		  int                 dof);
@@ -30,18 +30,18 @@ void CscUpdownRhs(UpDownVector       *updovct,
 /*
   Function: CscdUpdownRhs
 
-  Fill-in UpDownVector structure from user distributed right-hand-side member.
+  Fill-in d_UpDownVector structure from user distributed right-hand-side member.
 
   Parameters:
-    updovct - UpDownVector structure to fill-in.
+    updovct - d_UpDownVector structure to fill-in.
     symbmtx - Solver matrix.
     rhs     - Right-hand-side member.
     invp    - reverse permutation tabular.
     g2l     - local numbers of global nodes, if not local contains -owner
     dof      - Number of degree of freedom.
  */
-void CscdUpdownRhs(UpDownVector       *updovct,
-		   const SolverMatrix *symbmtx, 
+void CscdUpdownRhs(d_UpDownVector       *updovct,
+		   const d_SolverMatrix *symbmtx, 
 		   const pastix_float_t        *rhs, 
 		   const pastix_int_t          *invp,
 		   const pastix_int_t          *g2l,
@@ -51,10 +51,10 @@ void CscdUpdownRhs(UpDownVector       *updovct,
 /*
   Function:CscdRhsUpdown
 
-  Builds solution from UpDownVector structure
+  Builds solution from d_UpDownVector structure
 
   Parameters:
-    updovct  - UpDownVector structure containing the solution.
+    updovct  - d_UpDownVector structure containing the solution.
     symbmtx  - Solver matrix structure.
     rhs      - Solution to fill.
     ncol     - Number of columns in local matrix.
@@ -62,8 +62,8 @@ void CscdUpdownRhs(UpDownVector       *updovct,
     comm     - MPI communicator.
   
  */
-void CscRhsUpdown(const UpDownVector *updovct, 
-		  const SolverMatrix *symbmtx, 
+void CscRhsUpdown(const d_UpDownVector *updovct, 
+		  const d_SolverMatrix *symbmtx, 
 		  pastix_float_t              *rhs, 
 		  const pastix_int_t           ncol,
 		  const pastix_int_t          *invp,
@@ -75,10 +75,10 @@ void CscRhsUpdown(const UpDownVector *updovct,
   Function:CscdRhsUpdown
 
   Builds distributed solution from
-  UpDownVector structure
+  d_UpDownVector structure
 
   Parameters:
-    updovct  - UpDownVector structure containing the solution.
+    updovct  - d_UpDownVector structure containing the solution.
     symbmtx  - Solver matrix structure.
     x        - Solution to fill.
     ncol     - Number of columns in local matrix.
@@ -88,8 +88,8 @@ void CscRhsUpdown(const UpDownVector *updovct,
     comm     - MPI communicator.
   
  */
-void CscdRhsUpdown(const UpDownVector *updovct, 
-		   const SolverMatrix *symbmtx, 
+void CscdRhsUpdown(const d_UpDownVector *updovct, 
+		   const d_SolverMatrix *symbmtx, 
 		   pastix_float_t              *x,
 		   const pastix_int_t           ncol, 
 		   const pastix_int_t          *g2l,
@@ -100,19 +100,19 @@ void CscdRhsUpdown(const UpDownVector *updovct,
 /*
   Function: Csc2updown
 
-  Fill-in UpDownVector structure such as the solution of
+  Fill-in d_UpDownVector structure such as the solution of
   the system Ax=b is x_i=1 (API_RHS_1) or x_i=i (API_RHS_I). 
 
   Parameters:
     cscmtx   - internal CSCd matrix.
-    updovct  - UpDownVector structure to fill-in.
+    updovct  - d_UpDownVector structure to fill-in.
     symbmtx  - Solver matrix.
     mode     - wanted solution API_RHS_1 or API_RHS_I.
     comm     - MPI communicator.
 */
 void Csc2updown(const CscMatrix    *cscmtx, 
-		UpDownVector       *updovct,
-		const SolverMatrix *symbmtx, 
+		d_UpDownVector       *updovct,
+		const d_SolverMatrix *symbmtx, 
 		int                 mode,
 		MPI_Comm            comm);
 
@@ -126,13 +126,13 @@ void Csc2updown(const CscMatrix    *cscmtx,
   (iparm[IPARM_ONLY_RAFF] == API_YES)
 
   Parameters:
-    updovct - UpDownVector structure were to copy B as the first X0 used for raffinement.
+    updovct - d_UpDownVector structure were to copy B as the first X0 used for raffinement.
     symbmtx - Solver matrix.
     mode    - Rule to construct X0 (API_RHS_1 : X0[i] = 1, API_RHS_I : X0[i] = i).
     comm    - MPI_Communicator.
 */
-void Csc2updown_X0(UpDownVector *updovct, 
-		   /*const*/ SolverMatrix *symbmtx, 
+void Csc2updown_X0(d_UpDownVector *updovct, 
+		   /*const*/ d_SolverMatrix *symbmtx, 
 		   int mode, 
 		   MPI_Comm comm);
 

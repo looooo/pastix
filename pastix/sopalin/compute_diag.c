@@ -492,7 +492,7 @@ void factor_diag (Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c)
 #ifdef SOPALIN_LU
     pastix_float_t *gb = NULL;
 #endif
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 
     /* check if diagonal column block */

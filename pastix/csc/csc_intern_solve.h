@@ -12,21 +12,21 @@
   Function: Csc2solv_cblk
 
   Copy the part of the internal CSCd corresponding to
-  the column bloc itercblk into the SolverMatrix structure 
+  the column bloc itercblk into the d_SolverMatrix structure 
   coeftab which will be used to compute the decomposition.
 
   Used in NUMA mode.
  
   Parameters:
     cscmtx   - The internal CSCd matrix.
-    datacode - The SolverMatrix structure used during decomposition.
+    datacode - The d_SolverMatrix structure used during decomposition.
     trandcsc - The internal CSCd transpose used in LU decomposition.
     itercblk - Column bloc number in which we had the internal CSCd. 
   
   
 */
 void Csc2solv_cblk(const CscMatrix *cscmtx, 
-		   SolverMatrix    *solvmtx, 
+		   d_SolverMatrix    *solvmtx, 
 		   pastix_float_t           *trandcsc, 
 		   pastix_int_t              itercblk);
 

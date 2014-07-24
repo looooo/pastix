@@ -24,7 +24,7 @@ void send_free_down ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_
 {
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #  ifndef NO_MPI_TYPE
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
 
   memFree_null(FANIN_COEFTAB(thread_data->send_fanin_target[s_index]));
   memFree_null(thread_data->send_fanin_infotab[s_index]);
@@ -153,7 +153,7 @@ void updo_down_recv ( Sopalin_Data_t *sopalin_data,
                       MPI_Status      status,
                       pastix_int_t             me )
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   pastix_float_t         *gb, *gc;
   pastix_int_t           *infotab;
   pastix_int_t            size;
@@ -258,7 +258,7 @@ void updo_down_recv ( Sopalin_Data_t *sopalin_data,
  */
 void updo_down_send ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t i, pastix_int_t j )
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #  if (defined PASTIX_UPDO_ISEND) || (defined NO_MPI_TYPE)
   pastix_int_t            id_req = 0;
@@ -469,13 +469,13 @@ void updo_up_WaitCtrb_storage ( Sopalin_Data_t *sopalin_data,
                                 pastix_int_t      me,
                                 pastix_int_t      i )
 {
-  SolverMatrix  *datacode = sopalin_data->datacode;
+  d_SolverMatrix  *datacode = sopalin_data->datacode;
   pastix_float_t         *ga, *gb, *gc;
   pastix_int_t            j, stride;
   pastix_int_t            size, sizea;
   (void)updo_buffer; (void)updo_buffer_size; (void)me;
 
-  print_debug(DBG_SOPALIN_UP, "%d : Task %4d Wait %4d\n",
+  print_debug(DBG_SOPALIN_UP, "%d : d_Task %4d Wait %4d\n",
               (int)me, (int)i, (int)UPDOWN_CTRBCNT(i));
 
   /* Boucle sur les blocs du bloc colonne courant à partir du dernier */
@@ -635,7 +635,7 @@ void updo_up_recv ( Sopalin_Data_t *sopalin_data,
   pastix_int_t           *infotab;
   pastix_float_t         *gb, *lgb, *lgrhs;
   /* #if (defined FLAG_ASSERT) || (defined TRACE_SOPALIN) || (defined PASTIX_DUMP_SOLV_COMM) */
-  SolverMatrix  *datacode     = sopalin_data->datacode;
+  d_SolverMatrix  *datacode     = sopalin_data->datacode;
   /* #endif */
 #    ifdef TRACE_SOPALIN
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
@@ -751,7 +751,7 @@ void updo_up_WaitCtrb_nostorage ( Sopalin_Data_t *sopalin_data,
                                   pastix_int_t             me,
                                   pastix_int_t             i )
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   MPI_Status     status;
   pastix_float_t         *ga, *gb, *gc;
   pastix_int_t           *infotab;
@@ -873,7 +873,7 @@ void updo_up_WaitCtrb_nostorage ( Sopalin_Data_t *sopalin_data,
 #ifndef FORCE_NOMPI
 void updo_up_send ( Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t i, pastix_int_t j)
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #  if (defined PASTIX_UPDO_ISEND) || (defined NO_MPI_TYPE)
   pastix_int_t            id_req = 0;
@@ -1079,7 +1079,7 @@ void* updo_thread_comm ( void *arg )
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
   if (THREAD_COMM_ON)
     {
-      SolverMatrix     *datacode     = sopalin_data->datacode;
+      d_SolverMatrix     *datacode     = sopalin_data->datacode;
       MPI_Request      *request;
       pastix_int_t               me           = argument->me;
       Thread_Data_t    *thread_data;

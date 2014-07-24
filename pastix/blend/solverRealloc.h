@@ -13,12 +13,11 @@
 /**                                                        **/
 /************************************************************/
 
-#ifndef SOLVER_REALLOC
-#define static
-#endif
+#ifndef SOLVER_REALLOC_H
+#define SOLVER_REALLOC_H
+#include "z_solver.h"
+void                     solverRealloc        (z_SolverMatrix *);
+void                     solverExit           (z_SolverMatrix *);
+void                     solverInit           (z_SolverMatrix *);
 
-void                     solverRealloc        (SolverMatrix *);
-void                     solverExit           (SolverMatrix *);
-void                     solverInit           (SolverMatrix *);
-
-#undef static
+#endif /* SOLVER_REALLOC_H */

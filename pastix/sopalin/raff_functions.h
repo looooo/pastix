@@ -48,7 +48,7 @@ typedef pastix_float_t RAFF_FLOAT;
   do {                                                                  \
     Sopalin_Data_t * sopalin_data;                                      \
     sopalin_data = (Sopalin_Data_t*)((sopthread_data_t *)arg)->data;    \
-    SolverMatrix     *datacode     = sopalin_data->datacode;            \
+    d_SolverMatrix     *datacode     = sopalin_data->datacode;            \
     SYNCHRO_THREAD;                                                     \
   } while(0)
 
@@ -206,10 +206,10 @@ void Pastix_Solveur(struct solver *);
  <method_smp)>.
 
  Parameters:
- datacode  - PaStiX <SolverMatrix> structure.
+ datacode  - PaStiX <d_SolverMatrix> structure.
  sopaparam - <SopalinParam> parameters structure.
  */
 #define raff_thread API_CALL(raff_thread)
-void raff_thread(SolverMatrix *, SopalinParam *, void*(*)(void *));
+void raff_thread(d_SolverMatrix *, SopalinParam *, void*(*)(void *));
 
 #endif

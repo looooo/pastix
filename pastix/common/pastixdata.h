@@ -3,13 +3,13 @@
 
 #include "sopalin_define.h"
 #include "dof.h"
-#include "ftgt.h"
+#include "d_ftgt.h"
 #include "symbol.h"
 #include "../csc/csc.h"
-#include "updown.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 /* #include "assembly.h" */
 /* #include "param_blend.h" */
 /* #include "order.h" */
@@ -90,7 +90,7 @@ struct pastix_data_s {
     pastix_int_t     zeros_n;            /*< Number of diagonal entries considered as zeros                      +*/
     pastix_int_t    *zeros_list;         /*< List of diagonal entries considered as zeros                        +*/
 
-    SolverMatrix     solvmatr;           /*+ Matrix informations                                                 +*/
+    d_SolverMatrix   solvmatr;           /*+ Matrix informations                                                 +*/
     CscMatrix        cscmtx;             /*+ Compress Sparse Column matrix                                       +*/
     SopalinParam     sopar;              /*+ Sopalin parameters                                                  +*/
 #ifdef PASTIX_DISTRIBUTED

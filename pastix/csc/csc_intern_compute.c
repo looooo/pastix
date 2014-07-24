@@ -9,11 +9,11 @@
 #include "tools.h"
 #include "order.h"
 #include "csc.h"
-#include "ftgt.h"
-#include "updown.h"
+#include "d_ftgt.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 #include "sopalin_define.h"
 #include "sopalin_time.h"
 #include "sopalin_thread.h"
@@ -128,8 +128,8 @@ static inline
 int CscGather_X(Sopalin_Data_t        *sopalin_data,
                 int                    me,
                 const CscMatrix       *cscmtx,
-                const UpDownVector    *updovct,
-                const SolverMatrix    *datacode,
+                const d_UpDownVector    *updovct,
+                const d_SolverMatrix    *datacode,
                 MPI_Comm               comm,
                 const volatile pastix_float_t * x,
                 pastix_float_t                * tmpx,
@@ -217,8 +217,8 @@ int CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
                        const volatile pastix_float_t *x,
                        pastix_float_t                *atx,
                        const CscMatrix      *cscmtx,
-                       const UpDownVector   *updovct,
-                       const SolverMatrix   *datacode,
+                       const d_UpDownVector   *updovct,
+                       const d_SolverMatrix   *datacode,
                        MPI_Comm              comm)
 {
   pastix_int_t itercblk;
@@ -308,8 +308,8 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
                   const volatile pastix_float_t *x,
                   pastix_float_t                *atx,
                   const CscMatrix      *cscmtx,
-                  const UpDownVector   *updovct,
-                  const SolverMatrix   *datacode,
+                  const d_UpDownVector   *updovct,
+                  const d_SolverMatrix   *datacode,
                   MPI_Comm              comm)
 {
   pastix_int_t itercblk;
@@ -384,7 +384,7 @@ int CscAtx_thread(Sopalin_Data_t       *sopalin_data,
  *   r            - will contains $$b-Ax$$
  *   b            - Vector $$b$$.
  *   cscmtx       - Internal CSCd matrix containing $$A$$.
- *   updovct      - UpDownVector structure containing $$x$$.
+ *   updovct      - d_UpDownVector structure containing $$x$$.
  *   solvmtx      - Solver matrix.
  *   comm         - MPI communicator.
  *   transpose    - Indicate if we want to transpose A.
@@ -394,12 +394,12 @@ void CscbMAx(Sopalin_Data_t       *sopalin_data,
              volatile pastix_float_t       *r,
              const volatile pastix_float_t *b,
              const CscMatrix      *cscmtx,
-             const UpDownVector   *updovct,
-             const SolverMatrix   *solvmtx,
+             const d_UpDownVector   *updovct,
+             const d_SolverMatrix   *solvmtx,
              MPI_Comm              comm,
              pastix_int_t                   transpose)
 {
-  SolverMatrix * datacode;
+  d_SolverMatrix * datacode;
   pastix_float_t * tempy  = NULL;
   pastix_float_t * tempy2 = NULL;
 
@@ -574,12 +574,12 @@ void CscAxPb(Sopalin_Data_t     *sopalin_data,
              pastix_float_t              *r,
              const pastix_float_t        *b,
              const CscMatrix    *cscmtx,
-             const UpDownVector *updovct,
-             const SolverMatrix *solvmtx,
+             const d_UpDownVector *updovct,
+             const d_SolverMatrix *solvmtx,
              MPI_Comm            comm,
              pastix_int_t                 transpose)
 {
-  SolverMatrix * datacode;
+  d_SolverMatrix * datacode;
   pastix_float_t * tempy  = NULL;
   pastix_float_t * tempy2 = NULL;
 
@@ -765,7 +765,7 @@ void CscBerr(Sopalin_Data_t *sopalin_data,
              double        *berr,
              MPI_Comm       comm)
 {
-  SolverMatrix *  datacode;
+  d_SolverMatrix *  datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t step;
@@ -868,7 +868,7 @@ double CscNormErr(Sopalin_Data_t       *sopalin_data,
                   const pastix_int_t             smxnbr,
                   MPI_Comm              comm)
 {
-  SolverMatrix *datacode;
+  d_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t iter;
@@ -989,7 +989,7 @@ double CscNormFro(Sopalin_Data_t       *sopalin_data,
                   const pastix_int_t             smxnbr,
                   MPI_Comm              comm)
 {
-  SolverMatrix *datacode;
+  d_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t iter;
@@ -1092,12 +1092,12 @@ void CscAx(Sopalin_Data_t       *sopalin_data,
            const CscMatrix      *cscmtx,
            const volatile pastix_float_t *p,
            volatile pastix_float_t       *x,
-           const SolverMatrix   *solvmtx,
-           const UpDownVector   *updovct,
+           const d_SolverMatrix   *solvmtx,
+           const d_UpDownVector   *updovct,
            MPI_Comm              comm,
            pastix_int_t                   transpose)
 {
-  SolverMatrix * datacode;
+  d_SolverMatrix * datacode;
   pastix_float_t * tempy  = NULL;
   pastix_float_t * tempy2 = NULL;
 
@@ -1303,7 +1303,7 @@ void CscGradBeta(Sopalin_Data_t       *sopalin_data,
                  pastix_float_t                *beta,
                  MPI_Comm              comm)
 {
-  SolverMatrix *datacode;
+  d_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t first2, last2;
   pastix_int_t step;
@@ -1402,7 +1402,7 @@ void CscGmresBeta(Sopalin_Data_t       *sopalin_data,
                   pastix_float_t               *beta,
                   MPI_Comm              comm)
 {
-  SolverMatrix *  datacode;
+  d_SolverMatrix *  datacode;
   pastix_int_t   first,  last;
   pastix_int_t   first2, last2;
   pastix_int_t   step;
@@ -1517,7 +1517,7 @@ void CscCopy(Sopalin_Data_t              *sopalin_data,
              const pastix_int_t             smxnbr,
              MPI_Comm                     comm)
 {
-  SolverMatrix *datacode;
+  d_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t step;
 
@@ -1569,7 +1569,7 @@ void CscScal(Sopalin_Data_t        *sopalin_data,
              const pastix_int_t       smxnbr,
              MPI_Comm               comm)
 {
-  SolverMatrix *datacode;
+  d_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t step;
 
@@ -1625,7 +1625,7 @@ void CscAXPY(Sopalin_Data_t              *sopalin_data,
              const pastix_int_t             smxnbr,
              MPI_Comm                     comm)
 {
-  SolverMatrix *datacode;
+  d_SolverMatrix *datacode;
   pastix_int_t first,  last;
   pastix_int_t step;
 

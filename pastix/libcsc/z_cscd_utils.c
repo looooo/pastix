@@ -383,7 +383,7 @@ int z_cscd_build_g2l(pastix_int_t        ncol,
 }
 
 /*
- * Function: d_cscd_checksym
+ * Function: z_cscd_checksym
  *
  * Check if the CSCD graph is symetric.
  *

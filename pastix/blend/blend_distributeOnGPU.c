@@ -8,7 +8,7 @@
 //#include "fifo.h"
 
 typedef struct _cblk_elem_ {
-  SolverCblk       *cblk;
+  z_SolverCblk       *cblk;
   double criterium;
   int cblk_size;
   int updates;
@@ -22,15 +22,15 @@ typedef struct _gpu_elem_ {
 }gpu_elem;
 
 
-int blend_distributeOnGPU(SolverMatrix * datacode,
+int blend_distributeOnGPU(z_SolverMatrix * datacode,
                           double         maxMem,
                           int            pageSize,
                           int            criterium,
                           enum API_GPU_CRITERIUM nGPUs,
                           enum API_FLOAT floatType,
                           enum API_FACT  factType) {
-  SolverCblk   *cblktab = datacode->cblktab;
-  UpDownVector * updovect = &(datacode->updovct);
+  z_SolverCblk   *cblktab = datacode->cblktab;
+  z_UpDownVector * updovect = &(datacode->updovct);
   PASTIX_INT   cblknbr, cblknum;
   cblk_elem * cblkInfo;
   gpu_elem  * gpuInfo;

@@ -35,7 +35,7 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pas
  */
 void API_CALL(compute_contrib_compact)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c, pastix_int_t b1, pastix_int_t b2, pastix_int_t usediag)
 {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     pastix_float_t         *gaik, *gb, *gc;
 #ifdef CHOL_SOPALIN
@@ -162,7 +162,7 @@ void API_CALL(add_contrib_local)(Sopalin_Data_t *sopalin_data, pastix_int_t me, 
 #ifdef SOPALIN_LU
     pastix_float_t *ga2, *gb2;
 #endif /* SOPALIN_LU */
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #ifdef DEBUG_SOPALIN_NAPA
     int flag;
@@ -367,7 +367,7 @@ void API_CALL(add_contrib_target)(Sopalin_Data_t *sopalin_data, pastix_int_t me,
 {
     pastix_int_t dimi,dimj,stridea,strideb,step,k;
     pastix_float_t *ga,*gb;
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     (void)task;
 
@@ -507,12 +507,12 @@ void API_CALL(add_contrib_target)(Sopalin_Data_t *sopalin_data, pastix_int_t me,
  Parameters:
  sopalin_data -
  me           - Thread number
- task         - Task number
+ task         - d_Task number
 
  */
 void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task)
 {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
 #if defined(TRACE_SOPALIN) || defined(PASTIX_DYNSCHED)
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #endif
@@ -556,10 +556,10 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_
         API_CALL(factor_trsm1d)(sopalin_data, me, c);
     }
     {
-        SolverCblk * cblk =sopalin_data->datacode->cblktab+c;
+        d_SolverCblk * cblk =sopalin_data->datacode->cblktab+c;
         char name[256];
         sprintf(name, "cblk_%ld_after_trf_trsm", (long)cblk->gcblknum);
-        cblk_save(cblk, name, cblk->coeftab);
+        d_cblk_save(cblk, name, cblk->coeftab);
     }
 
     /* for all extra-diagonal column blocks */
@@ -636,7 +636,7 @@ void API_CALL(compute_1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_
 
 void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t task, pastix_int_t i, pastix_int_t b2)
 {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
 #ifdef TRACE_SOPALIN
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #endif
@@ -786,14 +786,14 @@ void API_CALL(compute_1dgemm)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pas
         n = (n * (n - 1)) / 2;
         n = (i - fblknum - 1) * (lblknum - fblknum) - n;
         if ((t = SOLV_INDTAB[TASK_INDNUM(task)+(n)]) < 0) {
-            SolverCblk *cblk  = sopalin_data->datacode->cblktab+c;
-            SolverCblk *fcblk = sopalin_data->datacode->cblktab+TASK_CBLKNUM(-t)-1;
-            SolverBlok *blok  = sopalin_data->datacode->bloktab+i-1;
+            d_SolverCblk *cblk  = sopalin_data->datacode->cblktab+c;
+            d_SolverCblk *fcblk = sopalin_data->datacode->cblktab+TASK_CBLKNUM(-t)-1;
+            d_SolverBlok *blok  = sopalin_data->datacode->bloktab+i-1;
             char name[256];
             sprintf(name, "cblk_%d_after_gemm_%d_%d_%d_on_%d", fcblk->gcblknum,
                     cblk->gcblknum, blok - cblk->fblokptr, fcblk->gcblknum,
                     sopalin_data->datacode->clustnum);
-            cblk_save(fcblk, name, fcblk->coeftab);
+            d_cblk_save(fcblk, name, fcblk->coeftab);
         }
     }
 #endif

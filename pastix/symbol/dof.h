@@ -65,10 +65,6 @@ typedef struct Dof_ {
 **  The function prototypes.
 */
 
-#ifndef DOF
-#define static
-#endif
-
 int                         dofInit             (Dof * const deofptr);
 void                        dofExit             (Dof * const deofptr);
 int                         dofLoad             (Dof * const deofptr, FILE * const stream);
@@ -77,8 +73,6 @@ void                        dofConstant         (Dof * const deofptr, const past
 #ifdef GRAPH_H
 int                         dofGraph            (Dof * const deofptr, const Graph * const grafptr, const pastix_int_t, const pastix_int_t * const peritab);
 #endif /* GRAPH_H */
-
-#undef static
 
 /*
 **  The macro definitions.

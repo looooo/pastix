@@ -83,10 +83,10 @@ int z_cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *ia, const pasti
     comm     - MPI communicator
  */
 int z_cscd_build_g2l(pastix_int_t       ncol,
-                   const pastix_int_t      *loc2glob,
-                   MPI_Comm  comm,
-                   pastix_int_t      *gN,
-                   pastix_int_t     **g2l);
+                     const pastix_int_t      *loc2glob,
+                     MPI_Comm  comm,
+                     pastix_int_t      *gN,
+                     pastix_int_t     **g2l);
 /*
    Function: cscd_noDiag
 

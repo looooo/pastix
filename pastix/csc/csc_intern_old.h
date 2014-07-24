@@ -58,7 +58,7 @@ void CscScaling2(char *Type, pastix_int_t Ncol, pastix_int_t *col, pastix_int_t 
 void CscScaling(CscMatrix *cscmtx, pastix_float_t *transcsc, pastix_float_t *rhs1, pastix_float_t *rhs2);
 
 /******************************************************************************/
-/* void CscVerifUpdown(const UpDownVector *updovct,                           */
+/* void CscVerifUpdown(const d_UpDownVector *updovct,                           */
 /*                     const SymbolMatrix *symbmtx; const pastix_float_t *rhs2)        */
 /*                                                                            */
 /* Verification entre le second membre fournit dans le fichier HB et le second*/
@@ -68,20 +68,20 @@ void CscScaling(CscMatrix *cscmtx, pastix_float_t *transcsc, pastix_float_t *rhs
 /* symbmtx : Symbol matrix                                                    */
 /* rhs2 : vecteur second membre solution fournit dans le fichier HB           */
 /******************************************************************************/
-void CscVerifUpdown(const UpDownVector *updovct, const SymbolMatrix *symbmtx,
+void CscVerifUpdown(const d_UpDownVector *updovct, const SymbolMatrix *symbmtx,
 		    const pastix_float_t *rhs2);
 
 /******************************************************************************/
-/* void CscUpDown(UpDownVector *updovct, const SymbolMatrix *symbmtx,         */
+/* void CscUpDown(d_UpDownVector *updovct, const SymbolMatrix *symbmtx,         */
 /*                const pastix_float_t *rhs)                                           */
 /*                                                                            */
 /* Remplissage du vector second membre a partir de celui fournit dans le      */
 /* fichier HB.                                                                */
 /*                                                                            */
 /******************************************************************************/
-void CscUpdown(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
+void CscUpdown(d_UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
 	       const pastix_float_t *rhs);
-void CscUpdown2(UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
+void CscUpdown2(d_UpDownVector *updovct, /*const*/ SymbolMatrix *symbmtx,
 		const pastix_float_t *rhs);
 
 

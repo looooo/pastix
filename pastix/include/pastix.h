@@ -540,9 +540,9 @@ void pastix_initParam(pastix_int_t    *iparm,
 /*
  * Function: pastix_unscale
  *
- * Unscale the factorized SolverMatrix.
+ * Unscale the factorized d_SolverMatrix.
  *
- * Unscale the factorized SolverMatrix in pastix_data,
+ * Unscale the factorized d_SolverMatrix in pastix_data,
  * according to pastix_data->scalerowtab,
  * pastix_data->iscalerowtab, pastix_data->scalecoltab and
  * pastix_data->iscalecoltab

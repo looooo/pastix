@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "symbol.h"
-#include "ftgt.h"
+#include "z_ftgt.h"
 #include "queue.h"
 #include "extendVector.h"
 #include "elimin.h"
@@ -13,8 +13,8 @@
 #include "bulles.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "updown.h"
-#include "solver.h"
+#include "z_updown.h"
+#include "z_solver.h"
 #include "costfunc.h"
 /* #include "extrastruct.h" */
 /* #include "param_comm.h" */
@@ -39,7 +39,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
             tasknbr++;
             break;
         default:
-            fprintf(stderr, "Task No %ld has wrong type \n", (long)i);
+            fprintf(stderr, "z_Task No %ld has wrong type \n", (long)i);
             EXIT(MOD_BLEND,INTERNAL_ERR);
         }
     }
@@ -80,7 +80,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
             break;
 
         default:
-            fprintf(stderr, "Task No %ld has wrong type \n", (long)i);
+            fprintf(stderr, "z_Task No %ld has wrong type \n", (long)i);
             EXIT(MOD_BLEND,INTERNAL_ERR);
         }
     }

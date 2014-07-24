@@ -15,8 +15,7 @@ precisions_rules_py(generated_headers
                     "${HEADERS}"
                     PRECISIONS "s;d;c;z")
 
-add_custom_target(libcsc_headers 
-  DEPENDS ${generated_headers} )
+add_custom_target(libcsc_headers DEPENDS ${generated_headers} )
 
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
@@ -28,8 +27,6 @@ set(SOURCES
 precisions_rules_py(generated_files
    "${SOURCES}"
    PRECISIONS "s;d;c;z")
-
-message(STATUS ${generated_files})
 
 ### Generate the lib
 add_library(pastix_libcsc ${generated_files} )

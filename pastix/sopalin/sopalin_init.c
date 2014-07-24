@@ -23,12 +23,12 @@
 #endif
 #include "sopalin_define.h"
 #include "symbol.h"
-#include "ftgt.h"
+#include "d_ftgt.h"
 #include "csc.h"
-#include "updown.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 #include "sopalin_thread.h"
 #include "sopalin_acces.h"
 #include "sopalin_time.h"
@@ -52,7 +52,7 @@
 
   Parameters:
     sopalin_data - Sopalin_data structure to initialize
-    datacode     - SolverMatrix structure (common data)
+    datacode     - d_SolverMatrix structure (common data)
     sopaparam    - sopalin parameters.
     fact         - Boolean for factorisation step or not
 
@@ -61,11 +61,11 @@
  */
 /*********************************/
 void sopalin_init(Sopalin_Data_t *sopalin_data,
-                  SolverMatrix   *m,
+                  d_SolverMatrix   *m,
                   SopalinParam   *sopaparam,
                   int             fact)
 {
-  SolverMatrix *datacode;
+  d_SolverMatrix *datacode;
   pastix_int_t           i, j, task;
 
   /* Initialize global var */
@@ -494,7 +494,7 @@ void sopalin_init(Sopalin_Data_t *sopalin_data,
 void sopalin_clean(Sopalin_Data_t *sopalin_data, int step)
 {
   pastix_int_t i;
-  SolverMatrix *datacode = sopalin_data->datacode;
+  d_SolverMatrix *datacode = sopalin_data->datacode;
 
   if (step == 1)
     {
@@ -692,7 +692,7 @@ int tabtravel_init(Sopalin_Data_t * sopalin_data,
   PASTIX_INT position = 0;
   PASTIX_INT father, son, i, j, bubnum = me;
   faststack_t stack;
-  SolverMatrix  *datacode = sopalin_data->datacode;
+  d_SolverMatrix  *datacode = sopalin_data->datacode;
 
 
   if (thread_data->tabtravel != NULL)
@@ -778,7 +778,7 @@ int tabtravel_deinit(Thread_Data_t * thread_data) {
 void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, int init)
 {
   Thread_Data_t *thread_data;
-  SolverMatrix  *datacode = sopalin_data->datacode;
+  d_SolverMatrix  *datacode = sopalin_data->datacode;
   SopalinParam  *sopar    = sopalin_data->sopar;
   pastix_int_t            i;
 
@@ -1220,7 +1220,7 @@ void sopalin_init_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, i
 /*********************************/
 void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #ifdef TEST_IRECV
   pastix_int_t i;
@@ -1315,7 +1315,7 @@ void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me)
    (Fonction Mono-thread)
 
    Parameters:
-     datacode - SolverMatrix structure (common data)
+     datacode - d_SolverMatrix structure (common data)
      b        - Backup_t structure
 
    Returns:
@@ -1323,7 +1323,7 @@ void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 
  */
 /*********************************/
-void sopalin_backup(SolverMatrix *datacode, Backup *b)
+void sopalin_backup(d_SolverMatrix *datacode, Backup *b)
 {
   pastix_int_t i;
 
@@ -1370,14 +1370,14 @@ void sopalin_backup(SolverMatrix *datacode, Backup *b)
    (Fonction Mono-thread)
 
    Parameters:
-     datacode - SolverMatrix structure (common data)
+     datacode - d_SolverMatrix structure (common data)
      b        - Backup structure
 
    Returns
      void
  */
 /*********************************/
-void sopalin_restore(SolverMatrix *datacode, Backup *b)
+void sopalin_restore(d_SolverMatrix *datacode, Backup *b)
 {
   pastix_int_t i;
 
@@ -1436,7 +1436,7 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b)
    (Fonction Mono-thread)
 
    Parameters:
-     datacode - SolverMatrix structure (common data)
+     datacode - d_SolverMatrix structure (common data)
      b        - BackupSolve_t structure
 
    Returns:
@@ -1444,7 +1444,7 @@ void sopalin_restore(SolverMatrix *datacode, Backup *b)
 
  */
 /*********************************/
-void solve_backup(SolverMatrix *datacode, BackupSolve_t *b)
+void solve_backup(d_SolverMatrix *datacode, BackupSolve_t *b)
 {
   pastix_int_t i;
 
@@ -1471,14 +1471,14 @@ void solve_backup(SolverMatrix *datacode, BackupSolve_t *b)
    (Fonction Mono-thread)
 
    Parameters:
-     datacode - SolverMatrix structure (common data)
+     datacode - d_SolverMatrix structure (common data)
      b        - BackupSolve_t structure
 
    Returns
      void
  */
 /*********************************/
-void solve_restore(SolverMatrix *datacode, BackupSolve_t *b)
+void solve_restore(d_SolverMatrix *datacode, BackupSolve_t *b)
 {
   pastix_int_t i;
 

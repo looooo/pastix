@@ -12,11 +12,11 @@
 #include "tools.h"
 #include "order.h"
 #include "csc.h"
-#include "ftgt.h"
-#include "updown.h"
+#include "d_ftgt.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 #include "sopalin_define.h"
 #include "csc_intern_build.h"
 
@@ -159,7 +159,7 @@
                    dof, iterdofcol, iterdofrow, iter,         \
                    colidx, strdcol, val)
 static inline
-void _set_csc_row_val(const SolverMatrix *solvmtx,
+void _set_csc_row_val(const d_SolverMatrix *solvmtx,
                       CscMatrix          *thecsc,
                       pastix_int_t          itercblk,
                       pastix_int_t          therow,
@@ -321,7 +321,7 @@ void CscOrdistrib(CscMatrix          *thecsc,
                   pastix_int_t                *rowind,
                   pastix_float_t              *val,
                   pastix_int_t                 forcetrans,
-                  const SolverMatrix *solvmtx,
+                  const d_SolverMatrix *solvmtx,
                   pastix_int_t                 procnum,
                   pastix_int_t                 dof)
 {
@@ -616,7 +616,7 @@ void CscdOrdistrib(CscMatrix          *thecsc,
                    pastix_int_t                 gNcol,
                    pastix_int_t                *g2l,
                    pastix_int_t                 forcetrans,
-                   const SolverMatrix *solvmtx,
+                   const d_SolverMatrix *solvmtx,
                    pastix_int_t                 procnum,
                    pastix_int_t                 dof,
                    MPI_Comm            comm)

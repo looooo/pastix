@@ -1,3 +1,9 @@
+/**
+ * @file starpu_zdefines.h
+ *
+ * @author Xavier Lacoste
+ * @precisions normal z -> s d c
+ */
 #ifndef STARPU_DEFINES_H
 #define STARPU_DEFINES_H
 
@@ -55,7 +61,7 @@
 #define ARCH_CUDA 1
 #define SUBMIT_FANIN_IF_NEEDED                                          \
     do {                                                                \
-        pastix_int_t faninnum = fcblk_getnum(datacode,                  \
+        pastix_int_t faninnum = z_fcblk_getnum(datacode,                \
                                              fcblk,                     \
                                              SOLV_PROCNUM);             \
         pastix_int_t *fanin_ctrbcnt;                                    \
@@ -63,7 +69,7 @@
         fanin_ctrbcnt[faninnum]--;                                      \
         if (fanin_ctrbcnt[faninnum] == 0) {                             \
             pastix_int_t hcblknum;                                      \
-            SolverCblk * hcblk;                                         \
+            z_SolverCblk * hcblk;                                       \
             hcblknum = SOLV_GCBLK2HALO(fcblk->gcblknum);                \
             hcblk = datacode->hcblktab + hcblknum;                      \
             starpu_submit_outgoing_fanin( sopalin_data,                 \
@@ -77,9 +83,9 @@
 #define SUBMIT_TRF_IF_NEEDED                                            \
     do {                                                                \
         if (pastix_starpu_with_nested_task() == API_YES) {              \
-            SolverMatrix *datacode = sopalin_data->datacode;            \
-            if (cblk_islocal(datacode, fcblk)) {                        \
-                pastix_int_t fcblknum = cblk_getnum(datacode, fcblk);   \
+            z_SolverMatrix *datacode = sopalin_data->datacode;          \
+            if (z_cblk_islocal(datacode, fcblk)) {                      \
+                pastix_int_t fcblknum = z_cblk_getnum(datacode, fcblk); \
                 TASK_CTRBCNT(fcblknum)--;                               \
                 if (TASK_CTRBCNT(fcblknum) == 0) {                      \
                     starpu_submit_one_trf(fcblknum, sopalin_data);      \
@@ -96,8 +102,8 @@
 #define SUBMIT_GEMMS_IF_NEEDED                                          \
         do {                                                            \
             char * nested;                                              \
-            SolverMatrix *datacode = sopalin_data->datacode;            \
-            pastix_int_t tasknum = cblk_getnum(datacode, cblk);         \
+            z_SolverMatrix *datacode = sopalin_data->datacode;            \
+            pastix_int_t tasknum = z_cblk_getnum(datacode, cblk);         \
             if (pastix_starpu_with_nested_task() == API_YES) {          \
                 starpu_submit_bunch_of_gemm(tasknum, sopalin_data);     \
             }                                                           \

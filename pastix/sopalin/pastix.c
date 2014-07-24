@@ -36,13 +36,13 @@
 #endif
 
 #include "dof.h"
-#include "ftgt.h"
+#include "d_ftgt.h"
 #include "symbol.h"
 #include "csc.h"
-#include "updown.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 #include "order.h"
 #include "fax.h"
 #include "kass.h"
@@ -488,7 +488,7 @@ int redispatch_rhs(pastix_int_t      n,
 /*
  Function: buildUpDoVect
 
- Build UpDownVector from user B vector or
+ Build d_UpDownVector from user B vector or
  computes its to obtain $$ \forall i X[i] = 1 $$ or $$ \forall i X[i] = i $$
  as the solution. (depending on iparm)
 
@@ -504,7 +504,7 @@ int buildUpdoVect(pastix_data_t *pastix_data,
                   MPI_Comm       pastix_comm)
 {
     pastix_int_t           * iparm    = pastix_data->iparm;
-    SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
+    d_SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
     Order         * ordemesh = pastix_data->ordemesh;
     pastix_int_t             procnum  = pastix_data->procnum;
     pastix_int_t           * invp     = ordemesh->peritab;
@@ -1156,7 +1156,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
                        pastix_int_t           *loc2glob)
 {
     pastix_int_t            *iparm    = pastix_data->iparm;
-    SolverMatrix   *solvmatr = &(pastix_data->solvmatr);
+    d_SolverMatrix   *solvmatr = &(pastix_data->solvmatr);
     Order          *ordemesh = pastix_data->ordemesh;
     pastix_int_t            *l_colptr = NULL;
     pastix_int_t            *l_row    = NULL;
@@ -1385,7 +1385,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
     {
         if (iparm[IPARM_SCHUR] == API_YES && pastix_data->schur_tab_set == API_YES)
         {
-            SolverMatrix * datacode = &(pastix_data->solvmatr);
+            d_SolverMatrix * datacode = &(pastix_data->solvmatr);
             pastix_int_t            cblk;
 
             if (SOLV_TASKNBR > 0)
@@ -1408,7 +1408,7 @@ int pastix_fillin_csc( pastix_data_t *pastix_data,
     {
         if (iparm[IPARM_SCHUR] == API_YES && pastix_data->schur_tab_set == API_YES)
         {
-            SolverMatrix * datacode = &(pastix_data->solvmatr);
+            d_SolverMatrix * datacode = &(pastix_data->solvmatr);
             pastix_int_t            cblk;
 
             if (SOLV_TASKNBR > 0)
@@ -1461,7 +1461,7 @@ int pastix_task_sopalin( pastix_data_t *pastix_data,
     double          srafftime,rrafftime;
     pastix_int_t           * iparm    = pastix_data->iparm;
     double        * dparm    = pastix_data->dparm;
-    SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
+    d_SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
     Order         * ordemesh = pastix_data->ordemesh;
     SopalinParam  * sopar    = &(pastix_data->sopar);
     pastix_int_t             procnum  = pastix_data->inter_node_procnum;
@@ -1992,7 +1992,7 @@ void pastix_task_updown(pastix_data_t *pastix_data,
 {
     pastix_int_t           * iparm    = pastix_data->iparm;
     double        * dparm    = pastix_data->dparm;
-    SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
+    d_SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
     SopalinParam  * sopar    = &(pastix_data->sopar);
     Order         * ordemesh = pastix_data->ordemesh;
     pastix_int_t             procnum  = pastix_data->procnum;
@@ -2152,7 +2152,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
     pastix_int_t           * iparm    = pastix_data->iparm;
     double        * dparm    = pastix_data->dparm;
     SopalinParam  * sopar    = &(pastix_data->sopar);
-    SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
+    d_SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
     Order         * ordemesh = pastix_data->ordemesh;
     double          srafftime,rrafftime;
     pastix_int_t             procnum  = pastix_data->procnum;;
@@ -2382,7 +2382,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
     pastix_int_t             i;
     pastix_int_t           * iparm    = (*pastix_data)->iparm;
     SopalinParam  * sopar    = &((*pastix_data)->sopar);
-    SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
+    d_SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
 #ifdef PASTIX_DEBUG
     int             procnum  = (*pastix_data)->procnum;
     double        * dparm    = (*pastix_data)->dparm;
@@ -2410,7 +2410,7 @@ void pastix_task_clean(pastix_data_t **pastix_data,
     {
         if (iparm[IPARM_SCHUR] == API_YES && (*pastix_data)->schur_tab_set == API_YES)
         {
-            SolverMatrix * datacode = &((*pastix_data)->solvmatr);
+            d_SolverMatrix * datacode = &((*pastix_data)->solvmatr);
             pastix_int_t            cblk;
 
             if (SOLV_TASKNBR > 0)
@@ -2910,7 +2910,7 @@ void pastix(pastix_data_t **pastix_data,
          * Blend : Scheduling
          */
         if (iparm[IPARM_START_TASK] == API_TASK_ANALYSE) /* Blend task */
-            pastix_task_blend(*pastix_data);
+            d_pastix_task_blend(*pastix_data);
 
         if (iparm[IPARM_END_TASK]<API_TASK_NUMFACT) {
             WAIT_AND_RETURN;
@@ -3198,7 +3198,7 @@ void dpastix(pastix_data_t **pastix_data,
     {
         if (iparm[IPARM_START_TASK] == API_TASK_ANALYSE) /* Blend task */
         {
-            pastix_task_blend(*pastix_data);
+            d_pastix_task_blend(*pastix_data);
         }
     }
     SYNC_IPARM;
@@ -3947,7 +3947,7 @@ pastix_int_t pastix_checkMatrix_int(MPI_Comm pastix_comm,
  */
 pastix_int_t pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data)
 {
-    SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
+    d_SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
     pastix_int_t index;
     pastix_int_t nodenbr;
 
@@ -3974,7 +3974,7 @@ pastix_int_t pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data)
  */
 pastix_int_t pastix_getLocalNodeNbr(pastix_data_t ** pastix_data)
 {
-    SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
+    d_SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
     pastix_int_t index;
     pastix_int_t nodenbr;
 
@@ -4011,7 +4011,7 @@ pastix_int_t pastix_getLocalUnknownLst(pastix_data_t **pastix_data,
                                        pastix_int_t            *nodelst)
 {
 
-    SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
+    d_SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
     Order         * ordemesh = (*pastix_data)->ordemesh;
     pastix_int_t index;
     pastix_int_t index2;
@@ -4048,7 +4048,7 @@ pastix_int_t pastix_getLocalNodeLst(pastix_data_t **pastix_data,
                                     pastix_int_t            *nodelst)
 {
 
-    SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
+    d_SolverMatrix  * solvmatr = &((*pastix_data)->solvmatr);
     Order         * ordemesh = (*pastix_data)->ordemesh;
     pastix_int_t index;
     pastix_int_t index2;
@@ -4111,7 +4111,7 @@ pastix_int_t pastix_setSchurUnknownList(pastix_data_t * pastix_data,
  */
 pastix_int_t pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, pastix_int_t * nodeNbr)
 {
-    SolverMatrix * datacode = &(pastix_data->solvmatr);
+    d_SolverMatrix * datacode = &(pastix_data->solvmatr);
     int            owner = API_NO;
     pastix_int_t            cblk;
 
@@ -4152,7 +4152,7 @@ pastix_int_t pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, pastix_int
  */
 pastix_int_t pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data, pastix_int_t * unknownNbr)
 {
-    SolverMatrix * datacode = &(pastix_data->solvmatr);
+    d_SolverMatrix * datacode = &(pastix_data->solvmatr);
     int            owner = API_NO;
     pastix_int_t            cblk;
 
@@ -4195,7 +4195,7 @@ pastix_int_t pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data, pastix_i
  */
 pastix_int_t pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, pastix_int_t * nodes)
 {
-    SolverMatrix * datacode = NULL;
+    d_SolverMatrix * datacode = NULL;
     Order        * ordemesh = NULL;
     int            owner = API_NO;
     pastix_int_t            cblk;
@@ -4247,7 +4247,7 @@ pastix_int_t pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, pastix_in
  */
 pastix_int_t pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data, pastix_int_t * unknowns)
 {
-    SolverMatrix * datacode = NULL;
+    d_SolverMatrix * datacode = NULL;
     Order        * ordemesh = NULL;
     int            owner = API_NO;
     pastix_int_t            cblk;
@@ -4319,7 +4319,7 @@ pastix_int_t pastix_setSchurArray(pastix_data_t * pastix_data, pastix_float_t * 
 pastix_int_t pastix_getSchur(pastix_data_t * pastix_data,
                              pastix_float_t * schur)
 {
-    SolverMatrix * datacode = &(pastix_data->solvmatr);
+    d_SolverMatrix * datacode = &(pastix_data->solvmatr);
     int            owner = API_NO;
     pastix_int_t            send[2];
     pastix_int_t            recv[2];

@@ -24,7 +24,7 @@
  */
 void API_CALL(factor_trsm1d)(Sopalin_Data_t *sopalin_data, pastix_int_t me, pastix_int_t c)
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   pastix_float_t *dL, *L;
 #ifdef SOPALIN_LU
   pastix_float_t *dU, *U;

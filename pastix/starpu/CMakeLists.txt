@@ -6,6 +6,7 @@ set(generated_headers "")
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(HEADERS
+  starpu_zdefines.h
   starpu_zkernels.h
   starpu_zsubmit.h
   starpu_zregister_data.h
@@ -15,8 +16,7 @@ precisions_rules_py(generated_headers
                     "${HEADERS}"
                     PRECISIONS "s;d;c;z")
 
-add_custom_target(starpu_headers ALL SOURCES
-  ${generated_headers})
+add_custom_target(starpu_headers DEPENDS ${generated_headers})
 
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES

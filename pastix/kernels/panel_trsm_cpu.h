@@ -14,7 +14,7 @@
 #define _PANEL_TRSM_CPU_H
 
 #include "common.h"
-#include "solver.h"
+#include "z_solver.h"
 #include "compute_trsm.h"
 
 /**
@@ -29,7 +29,7 @@
  */
 static inline
 int
-panel_trsm_cpu(const SolverCblk * cblk,
+panel_trsm_cpu(const z_SolverCblk * cblk,
                pastix_float_t   * buffer) {
     pastix_int_t dima = cblk->lcolnum - cblk->fcolnum + 1;
     pastix_int_t dimb = cblk->stride - dima;

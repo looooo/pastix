@@ -12,9 +12,9 @@
 #include "sopalin_compute.h"
 
 /*#include "symbol.h"
-#include "ftgt.h"
-#include "updown.h"
-#include "solver.h" */
+#include "d_ftgt.h"
+#include "d_updown.h"
+#include "d_solver.h" */
 
 #define LOW 0
 #define UPPER 1
@@ -51,7 +51,7 @@ void CscMatrix_ColMult(CscMatrix *csc, pastix_float_t *scaletab) {
     }
 }
 
-void SolverMatrix_RowMult(SolverMatrix *datacode, pastix_float_t *scaletab, int lu) {
+void SolverMatrix_RowMult(d_SolverMatrix *datacode, pastix_float_t *scaletab, int lu) {
   int k, bloknum, i, colspan, stride, first_row;
   pastix_float_t *ptr;
 
@@ -75,7 +75,7 @@ void SolverMatrix_RowMult(SolverMatrix *datacode, pastix_float_t *scaletab, int 
     }
 }
 
-void SolverMatrix_ColMult(SolverMatrix *datacode, pastix_float_t *scaletab, int lu) {
+void SolverMatrix_ColMult(d_SolverMatrix *datacode, pastix_float_t *scaletab, int lu) {
   int k, colspan, stride, first_col, m;
   pastix_float_t *ptr;
 
@@ -96,7 +96,7 @@ void SolverMatrix_ColMult(SolverMatrix *datacode, pastix_float_t *scaletab, int 
     }
 }
 
-void SolverMatrix_DiagMult(SolverMatrix *datacode, pastix_float_t *scaletab) {
+void SolverMatrix_DiagMult(d_SolverMatrix *datacode, pastix_float_t *scaletab) {
   int bloknum, stride, colspan, k, i;
   pastix_float_t *ptr, *scalptr;
 
@@ -132,9 +132,9 @@ void CscMatrix_Unscale_Unsym(CscMatrix *cscmtx, pastix_float_t *scalerowtab, pas
   CscMatrix_ColMult(cscmtx, iscalecoltab);
 }
 
-/* Unscale the factorized SolverMatrix */
+/* Unscale the factorized d_SolverMatrix */
 /* symmetric case */
-void SolverMatrix_Unscale_Sym(SolverMatrix *solvmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
+void SolverMatrix_Unscale_Sym(d_SolverMatrix *solvmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
   SolverMatrix_RowMult(solvmtx, iscaletab, LOW);
   SolverMatrix_ColMult(solvmtx, scaletab, LOW);
 
@@ -142,9 +142,9 @@ void SolverMatrix_Unscale_Sym(SolverMatrix *solvmtx, pastix_float_t *scaletab, p
   SolverMatrix_DiagMult(solvmtx, iscaletab);
 }
 
-/* Unscale the factorized SolverMatrix */
+/* Unscale the factorized d_SolverMatrix */
 /* unsymmetric case */
-void SolverMatrix_Unscale_Unsym(SolverMatrix *solvmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
+void SolverMatrix_Unscale_Unsym(d_SolverMatrix *solvmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
   (void)scalecoltab;
   SolverMatrix_RowMult(solvmtx, iscalerowtab, LOW);
   SolverMatrix_ColMult(solvmtx, scalerowtab,  LOW);
@@ -154,19 +154,19 @@ void SolverMatrix_Unscale_Unsym(SolverMatrix *solvmtx, pastix_float_t *scalerowt
 }
 
 /* Unscale a matrix after it has been factorized */
-/* (the SolverMatrix is factorized but the CscMatrix not) */
+/* (the d_SolverMatrix is factorized but the CscMatrix not) */
 /* symmetric case */
 void Matrix_Unscale_Sym(pastix_data_t * pastix_data,
-                        SolverMatrix *solvmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
+                        d_SolverMatrix *solvmtx, pastix_float_t *scaletab, pastix_float_t *iscaletab) {
   SolverMatrix_Unscale_Sym(solvmtx, scaletab, iscaletab);
   CscMatrix_Unscale_Sym(&(pastix_data->cscmtx), scaletab, iscaletab);
 }
 
 /* Unscale a matrix after it has been factorized */
-/* (the SolverMatrix is factorized but the CscMatrix not) */
+/* (the d_SolverMatrix is factorized but the CscMatrix not) */
 /* unsymmetric case */
 void Matrix_Unscale_Unsym(pastix_data_t * pastix_data,
-                          SolverMatrix *solvmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
+                          d_SolverMatrix *solvmtx, pastix_float_t *scalerowtab, pastix_float_t *iscalerowtab, pastix_float_t *scalecoltab, pastix_float_t *iscalecoltab) {
   SolverMatrix_Unscale_Unsym(solvmtx, scalerowtab, iscalerowtab, scalecoltab, iscalecoltab);
   CscMatrix_Unscale_Unsym(&(pastix_data->cscmtx), scalerowtab, iscalerowtab, scalecoltab, iscalecoltab);
 }

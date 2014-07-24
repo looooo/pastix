@@ -16,11 +16,11 @@
 #include "sopalin_define.h"
 #include "symbol.h"
 #include "csc.h"
-#include "updown.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "ftgt.h"
-#include "solver.h"
+#include "d_ftgt.h"
+#include "d_solver.h"
 #include "sopalin_thread.h"
 #include "stack.h"
 #include "sopalin3d.h"
@@ -55,7 +55,7 @@ pastix_float_t *Pastix_Synchro_Vect(void *arg, void *x, int nb)
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   PASTIX_INT        me           = argument->me;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MONOTHREAD_BEGIN;
   sopalin_data->ptr_raff[nb] = x;
   MONOTHREAD_END;
@@ -93,7 +93,7 @@ void Pastix_Verbose(void *arg, double t0, double t3, double tmp, PASTIX_INT nb_i
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
@@ -128,7 +128,7 @@ void Pastix_End(void* arg, pastix_float_t tmp, PASTIX_INT nb_iter, double t, pas
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
   SopalinParam     *sopar        = sopalin_data->sopar;
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
 
@@ -196,7 +196,7 @@ void Pastix_X(void *arg, pastix_float_t *x)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
@@ -217,7 +217,7 @@ PASTIX_INT Pastix_n(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   return UPDOWN_SM2XSZE;
 }
 
@@ -226,7 +226,7 @@ PASTIX_INT Pastix_m(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   return UPDOWN_SM2XNBR;
 }
 
@@ -236,7 +236,7 @@ void Pastix_B(void *arg, pastix_float_t *b)
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
   SopalinParam     *sopar        = sopalin_data->sopar;
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
@@ -280,7 +280,7 @@ void Pastix_Mult(void *arg, pastix_float_t *alpha, pastix_float_t *beta, pastix_
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   PASTIX_INT        me           = argument->me;
   MONOTHREAD_BEGIN;
 #ifdef MULT_SMX_RAFF
@@ -304,7 +304,7 @@ void Pastix_Div(void *arg, pastix_float_t *alpha, pastix_float_t *beta, pastix_f
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   PASTIX_INT        me           = argument->me;
   MONOTHREAD_BEGIN;
 #ifdef MULT_SMX_RAFF
@@ -328,7 +328,7 @@ pastix_float_t Pastix_Norm2(void* arg, pastix_float_t *x)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   double            normx;
@@ -345,7 +345,7 @@ void Pastix_Copy(void *arg, pastix_float_t *s, pastix_float_t *d, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
@@ -362,7 +362,7 @@ void Pastix_Precond(void *arg, pastix_float_t *s, pastix_float_t *d, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
@@ -393,7 +393,7 @@ void Pastix_Scal(void *arg, pastix_float_t alpha, pastix_float_t *x, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
@@ -409,7 +409,7 @@ void Pastix_Dotc(void *arg, pastix_float_t *x, pastix_float_t *y, pastix_float_t
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
@@ -424,7 +424,7 @@ void Pastix_Dotc_Gmres(void *arg, pastix_float_t *x, pastix_float_t *y, pastix_f
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   MULTITHREAD_BEGIN;
@@ -439,7 +439,7 @@ void Pastix_Ax(void *arg, pastix_float_t *x, pastix_float_t *r)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
@@ -456,7 +456,7 @@ void Pastix_bMAx(void *arg, pastix_float_t *b, pastix_float_t *x, pastix_float_t
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
@@ -477,7 +477,7 @@ void Pastix_BYPX(void *arg, pastix_float_t *beta, pastix_float_t *y, pastix_floa
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
 
@@ -517,7 +517,7 @@ void Pastix_AXPY(void *arg, double coeff, pastix_float_t *alpha, pastix_float_t 
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT        me           = argument->me;
   pastix_float_t      tmp_flt;
@@ -598,10 +598,10 @@ void Pastix_Solveur(struct solver *solveur)
  <method_smp)>.
 
  Parameters:
- datacode  - PaStiX <SolverMatrix> structure.
+ datacode  - PaStiX <d_SolverMatrix> structure.
  sopaparam - <SopalinParam> parameters structure.
  */
-void raff_thread(SolverMatrix *datacode, SopalinParam *sopaparam, void*(*method)(void *))
+void raff_thread(d_SolverMatrix *datacode, SopalinParam *sopaparam, void*(*method)(void *))
 {
   Sopalin_Data_t *sopalin_data = NULL;
   BackupSolve_t b;

@@ -8,12 +8,12 @@
 #  include <starpu.h>
 #  include "common.h"
 #  include "symbol.h"
-#  include "ftgt.h"
+#  include "d_ftgt.h"
 #  include "csc.h"
-#  include "updown.h"
+#  include "d_updown.h"
 #  include "queue.h"
 #  include "bulles.h"
-#  include "solver.h"
+#  include "d_solver.h"
 #  include "sopalin_thread.h"
 #  include "sopalin_define.h"
 #  include "sopalin3d.h"
@@ -52,7 +52,7 @@
 int starpu_register_sm2x(Sopalin_Data_t       * sopalin_data,
                          starpu_data_handle_t * SM2X_handles)
 {
-  SolverMatrix * datacode = sopalin_data->datacode;
+  d_SolverMatrix * datacode = sopalin_data->datacode;
   int itercblk;
   for (itercblk=0;itercblk<SYMB_CBLKNBR;itercblk++) {
     starpu_matrix_data_register(&(SM2X_handles[itercblk]), 0,
@@ -144,7 +144,7 @@ int starpu_submit_up_or_down(Sopalin_Data_t * sopalin_data,
 {
   pastix_int_t ii;
   char N = 'N', T = 'T', C = 'C', U = 'U';
-  SolverMatrix * datacode = sopalin_data->datacode;
+  d_SolverMatrix * datacode = sopalin_data->datacode;
 
 #ifdef STARPU_1_2
   updo_TRSM_model.type = STARPU_HISTORY_BASED;
@@ -165,7 +165,7 @@ int starpu_submit_up_or_down(Sopalin_Data_t * sopalin_data,
     pastix_int_t iterblok;
     char * transpose, * diag;
     itercblk = queueGet(&cblreadyqueue);
-    /* Task bloc itercblk */
+    /* d_Task bloc itercblk */
     if (DOWN_OR_UP == DOWN) {
       transpose = &N;
 #  if (defined CHOL_SOPALIN) && (!defined SOPALIN_LU)
@@ -279,7 +279,7 @@ int starpu_submit_updown_old(Sopalin_Data_t * sopalin_data,
                              starpu_data_handle_t * SM2X_handles,
                              int                  * sched_ctxs)
 {
-  SolverMatrix * datacode = sopalin_data->datacode;
+  d_SolverMatrix * datacode = sopalin_data->datacode;
   Queue cblreadyqueue;
   pastix_int_t   itercblk;
 

@@ -27,7 +27,7 @@
  
 */
 void CoefMatrix_Allocate (SopalinParam    *sopar,
-			  SolverMatrix    *datacode,
+			  d_SolverMatrix    *datacode,
 			  pthread_mutex_t *mutex,
 			  pastix_int_t              factotype, 
 			  pastix_int_t              me);
@@ -45,7 +45,7 @@ void CoefMatrix_Allocate (SopalinParam    *sopar,
      transcsc     - vecteur transcsc
      sopalin_data - <Sopalin_Data_t> structure for NUMA version.
 */
-void CoefMatrix_Init     (SolverMatrix         *datacode, 
+void CoefMatrix_Init     (d_SolverMatrix         *datacode, 
 			  sopthread_barrier_t  *barrier, 
 			  pastix_int_t                   me,
 			  pastix_int_t                  *iparm, 
@@ -65,7 +65,7 @@ void CoefMatrix_Init     (SolverMatrix         *datacode,
     
 */  
 void CoefMatrix_Free     (SopalinParam *sopar,
-			  SolverMatrix *datacode, 
+			  d_SolverMatrix *datacode, 
 			  pastix_int_t           factotype);
 
 

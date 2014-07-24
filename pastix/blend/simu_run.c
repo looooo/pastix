@@ -10,7 +10,7 @@
 #include "symbol.h"
 #include "extendVector.h"
 #include "queue.h"
-#include "ftgt.h"
+#include "z_ftgt.h"
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
@@ -19,8 +19,8 @@
 #include "simu.h"
 #include "dof.h"
 #include "task.h"
-#include "updown.h"
-#include "solver.h"
+#include "z_updown.h"
+#include "z_solver.h"
 #include "costfunc.h"
 
 static inline void
@@ -261,7 +261,7 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
         /* Source of this ftgt */
         clustdst = INDEX2CLUST(i, bloknum);
 
-        /** Task COMP_1D with several cand proc **/
+        /** z_Task COMP_1D with several cand proc **/
         /** The information about ftgt costs are in the ftgt of the diagonal block;
          this loop sums the cost of all the ftgt received by the blocks in this column block **/
         if(simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0)
@@ -354,7 +354,7 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
                  pastix_int_t        bloknum,
                  pastix_int_t        fbloknum )
 {
-    FanInTarget  *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
+    z_FanInTarget  *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
     pastix_int_t *infotab  = ftgt->infotab;
     SymbolBlok   *blokptr  = (symbptr->bloktab) + bloknum;
     SymbolBlok   *fblokptr = (symbptr->bloktab) + fbloknum;
@@ -681,7 +681,7 @@ simuRun( SimuCtrl           *simuctrl,
          */
         if(simuctrl->bloktab[bloknum].ftgtnum < simuctrl->bloktab[bloknum+1].ftgtnum)
         {
-            /* Task COMP_1D with several cand cluster */
+            /* z_Task COMP_1D with several cand cluster */
             for(b=bloknum; b<symbptr->cblktab[cblknum+1].bloknum; b++)
             {
                 for(j=simuctrl->bloktab[b].ftgtnum; j<simuctrl->bloktab[b+1].ftgtnum; j++)

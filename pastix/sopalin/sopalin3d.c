@@ -64,12 +64,12 @@
 #endif
 #include "sopalin_define.h"
 #include "symbol.h"
-#include "ftgt.h"
+#include "d_ftgt.h"
 #include "csc.h"
-#include "updown.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 #include "sopalin_thread.h"
 #include "stack.h"
 #include "sopalin3d.h"
@@ -198,20 +198,20 @@ int err_mpi;
 
 
 
-void  dump_all                 (SolverMatrix *, CscMatrix * cscmtx, int);
-void  init_struct_sopalin      (Sopalin_Data_t *sopalin_data, SolverMatrix *m,
+void  dump_all                 (d_SolverMatrix *, CscMatrix * cscmtx, int);
+void  init_struct_sopalin      (Sopalin_Data_t *sopalin_data, d_SolverMatrix *m,
                                 SopalinParam *sopar);
-void  sopalin_launch           (SolverMatrix *m, SopalinParam *sopaparam, pastix_int_t cas);
+void  sopalin_launch           (d_SolverMatrix *m, SopalinParam *sopaparam, pastix_int_t cas);
 void* sopalin_updo_comm        (void *arg);
-void  sopalin_thread           (SolverMatrix *m, SopalinParam *sopaparam);
+void  sopalin_thread           (d_SolverMatrix *m, SopalinParam *sopaparam);
 void* sopalin_smp              (void *arg);
-void  sopalin_updo_thread      (SolverMatrix *m, SopalinParam *sopaparam);
+void  sopalin_updo_thread      (d_SolverMatrix *m, SopalinParam *sopaparam);
 void* sopalin_updo_smp         (void *arg);
-void  sopalin_updo_gmres_thread(SolverMatrix *m, SopalinParam *sopaparam);
+void  sopalin_updo_gmres_thread(d_SolverMatrix *m, SopalinParam *sopaparam);
 void* sopalin_updo_gmres_smp   (void *arg);
-void  sopalin_updo_grad_thread (SolverMatrix *m, SopalinParam *sopaparam);
+void  sopalin_updo_grad_thread (d_SolverMatrix *m, SopalinParam *sopaparam);
 void* sopalin_updo_grad_smp    (void *arg);
-void  sopalin_updo_pivot_thread(SolverMatrix *m, SopalinParam *sopaparam);
+void  sopalin_updo_pivot_thread(d_SolverMatrix *m, SopalinParam *sopaparam);
 void* sopalin_updo_pivot_smp   (void *arg);
 void  up_down                  (void);
 void* up_down_smp              (void * arg);
@@ -235,13 +235,13 @@ void* up_down_smp              (void * arg);
  combined like *DUMP_CSC | DUMP_SOLV | DUMP_SMB*
 
  Parameters:
- datacode - SolverMatrix
+ datacode - d_SolverMatrix
  x        - value indicating what to dump.
 
  Returns:
  void
  */
-void dump_all(SolverMatrix *datacode,
+void dump_all(d_SolverMatrix *datacode,
               CscMatrix    *cscmtx,
               int           x)
 {
@@ -330,13 +330,13 @@ void API_CALL(compute_e2)    (Sopalin_Data_t *sopalin_data, pastix_int_t me, pas
 /****************************************************************************/
 /* Section : Up-down step routines prototypes */
 /* Initialisation / Nettoyage */
-void  API_CALL(updo_init)(Sopalin_Data_t *sopalin_data, SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(updo_init)(Sopalin_Data_t *sopalin_data, d_SolverMatrix *datacode, SopalinParam *sopaparam);
 
 /* Thread de communication */
 void* API_CALL(updo_thread_comm)(void *);
 
 /* Lancement de updo seul */
-void  API_CALL(updo_thread)(SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(updo_thread)(d_SolverMatrix *datacode, SopalinParam *sopaparam);
 
 #include "updo.c"
 /* Section : Reffinement step routines prototypes */
@@ -347,10 +347,10 @@ void* API_CALL(grad_smp)         (void *arg);
 void* API_CALL(bicgstab_smp)      (void *arg);
 
 /* Lancement d'une des fonctions seules */
-void  API_CALL(pivot_thread)   (SolverMatrix *datacode, SopalinParam *sopaparam);
-void  API_CALL(gmres_thread)   (SolverMatrix *datacode, SopalinParam *sopaparam);
-void  API_CALL(grad_thread)    (SolverMatrix *datacode, SopalinParam *sopaparam);
-void  API_CALL(bicgstab_thread)(SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(pivot_thread)   (d_SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(gmres_thread)   (d_SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(grad_thread)    (d_SolverMatrix *datacode, SopalinParam *sopaparam);
+void  API_CALL(bicgstab_thread)(d_SolverMatrix *datacode, SopalinParam *sopaparam);
 
 #include "csc_intern_compute.h"
 
@@ -383,12 +383,12 @@ void  API_CALL(bicgstab_thread)(SolverMatrix *datacode, SopalinParam *sopaparam)
  *
  * Parameters:
  *       sopalin_data - Structure used during factorisation and resolution.
- *       datacode     - SolverMatrix structure.
+ *       datacode     - d_SolverMatrix structure.
  *	sopar        - Factorisation parameters.
  */
 #define init_struct_sopalin API_CALL(init_struct_sopalin)
 void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
-                          SolverMatrix   *datacode,
+                          d_SolverMatrix   *datacode,
                           SopalinParam   *sopar)
 {
     MPI_Comm pastix_comm = PASTIX_COMM;
@@ -467,8 +467,8 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
             SYMB_BLOKNBR*3*sizeof(pastix_int_t)+
             SYMB_CBLKNBR*1*sizeof(pastix_int_t)+
             SYMB_BLOKNBR*1*sizeof(pastix_int_t)+
-            SOLV_TASKNBR  *sizeof(Task)+
-            SOLV_FTGTNBR  *sizeof(FanInTarget)+
+            SOLV_TASKNBR  *sizeof(d_Task)+
+            SOLV_FTGTNBR  *sizeof(d_FanInTarget)+
             SOLV_COEFNBR  *sizeof(pastix_float_t)+
             SOLV_INDNBR   *sizeof(pastix_int_t);
 
@@ -488,11 +488,11 @@ void init_struct_sopalin (Sopalin_Data_t *sopalin_data,
                    (long)  (SYMB_BLOKNBR*1*sizeof(pastix_int_t)),
                    (double)(SYMB_BLOKNBR*1*sizeof(pastix_int_t))*factor);
             printf("solver.task %12ld %2.2lf %%\n",
-                   (long)  (SOLV_TASKNBR*1*sizeof(Task)),
-                   (double)(SOLV_TASKNBR*1*sizeof(Task))*factor);
+                   (long)  (SOLV_TASKNBR*1*sizeof(d_Task)),
+                   (double)(SOLV_TASKNBR*1*sizeof(d_Task))*factor);
             printf("solver.ftgt %12ld %2.2lf %%\n",
-                   (long)  (SOLV_FTGTNBR*1*sizeof(FanInTarget)),
-                   (double)(SOLV_FTGTNBR*1*sizeof(FanInTarget))*factor);
+                   (long)  (SOLV_FTGTNBR*1*sizeof(d_FanInTarget)),
+                   (double)(SOLV_FTGTNBR*1*sizeof(d_FanInTarget))*factor);
             printf("solver.coef %12ld %2.2lf %%\n",
                    (long)  (SOLV_COEFNBR*1*sizeof(pastix_float_t)),
                    (double)(SOLV_COEFNBR*1*sizeof(pastix_float_t))*factor);
@@ -593,7 +593,7 @@ void* sopalin_smp(void *arg)
 {
     sopthread_data_t *argument     = (sopthread_data_t *)arg;
     Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-    SolverMatrix     *datacode     = sopalin_data->datacode;
+    d_SolverMatrix     *datacode     = sopalin_data->datacode;
     SopalinParam     *sopar        = sopalin_data->sopar;
     Thread_Data_t    *thread_data;
     pastix_int_t               me           = argument->me;
@@ -762,7 +762,7 @@ void* sopalin_smp(void *arg)
 #endif /* COMPUTE_ALLOC */
 
                 print_debug(DBG_SOPALIN_MAIN,
-                            "[%ld]%ld: Task %ld\n"
+                            "[%ld]%ld: d_Task %ld\n"
                             "[%ld]%ld: taskid prionum cblknum bloknum ctrcnt btagptr"
                             " indnum tasknext\n"
                             "[%ld]%ld: %ld %ld %ld %ld %ld %ld (%ld %ld %ld %ld)\n",
@@ -1071,7 +1071,7 @@ void *sopalin_updo_comm ( void *arg )
 #ifndef FORCE_NOMPI
     sopthread_data_t *argument     = (sopthread_data_t *)arg;
     Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-    SolverMatrix     *datacode     = sopalin_data->datacode;
+    d_SolverMatrix     *datacode     = sopalin_data->datacode;
     pastix_int_t               me           = argument->me;
     if (THREAD_COMM_ON)
     {
@@ -1173,16 +1173,16 @@ void *sopalin_updo_comm ( void *arg )
  * Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
  *
  * Parameters:
- *       m         - The <SolverMatrix> structure.
+ *       m         - The <d_SolverMatrix> structure.
  *	sopaparam - Sopalin parameters in the <SopalinParam> stucture.
  */
 #define sopalin_thread API_CALL(sopalin_thread)
-void sopalin_thread(SolverMatrix *m,
+void sopalin_thread(d_SolverMatrix *m,
                     SopalinParam *sopaparam)
 {
     Backup b;
     Sopalin_Data_t *sopalin_data = NULL;
-    SolverMatrix  *datacode = NULL;
+    d_SolverMatrix  *datacode = NULL;
 
     MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
@@ -1253,15 +1253,15 @@ void* API_CALL(sopalin_updo_smp)(void *arg)
  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
  Parameters:
- m         - The <SolverMatrix> structure.
+ m         - The <d_SolverMatrix> structure.
  sopaparam - Sopalin parameters in the <SopalinParam> stucture.
  */
-void API_CALL(sopalin_updo_thread)(SolverMatrix *m,
+void API_CALL(sopalin_updo_thread)(d_SolverMatrix *m,
                                    SopalinParam *sopaparam)
 {
     Backup b;
     Sopalin_Data_t *sopalin_data = NULL;
-    SolverMatrix   *datacode = NULL;
+    d_SolverMatrix   *datacode = NULL;
 
     MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
@@ -1331,14 +1331,14 @@ void* API_CALL(sopalin_updo_gmres_smp)(void *arg)
  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
  Parameters:
- m         - The <SolverMatrix> structure.
+ m         - The <d_SolverMatrix> structure.
  sopaparam - Sopalin parameters in the <SopalinParam> stucture.
  */
-void API_CALL(sopalin_updo_gmres_thread)(SolverMatrix *m, SopalinParam *sopaparam)
+void API_CALL(sopalin_updo_gmres_thread)(d_SolverMatrix *m, SopalinParam *sopaparam)
 {
     Backup b;
     Sopalin_Data_t *sopalin_data;
-    SolverMatrix   *datacode = m;
+    d_SolverMatrix   *datacode = m;
 
 
 
@@ -1413,14 +1413,14 @@ void* API_CALL(sopalin_updo_grad_smp)(void *arg)
  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
  Parameters:
- m         - The <SolverMatrix> structure.
+ m         - The <d_SolverMatrix> structure.
  sopaparam - Sopalin parameters in the <SopalinParam> stucture.
  */
-void API_CALL(sopalin_updo_grad_thread)(SolverMatrix *m, SopalinParam *sopaparam)
+void API_CALL(sopalin_updo_grad_thread)(d_SolverMatrix *m, SopalinParam *sopaparam)
 {
     Backup b;
     Sopalin_Data_t *sopalin_data = NULL;
-    SolverMatrix   *datacode = NULL;
+    d_SolverMatrix   *datacode = NULL;
 
     MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
@@ -1492,14 +1492,14 @@ void* API_CALL(sopalin_updo_pivot_smp)(void *arg)
  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
  Parameters:
- m         - The <SolverMatrix> structure.
+ m         - The <d_SolverMatrix> structure.
  sopaparam - Sopalin parameters in the <SopalinParam> stucture.
  */
-void API_CALL(sopalin_updo_pivot_thread)(SolverMatrix *m, SopalinParam *sopaparam)
+void API_CALL(sopalin_updo_pivot_thread)(d_SolverMatrix *m, SopalinParam *sopaparam)
 {
     Backup b;
     Sopalin_Data_t *sopalin_data = NULL;
-    SolverMatrix   *datacode = NULL;
+    d_SolverMatrix   *datacode = NULL;
 
     MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
@@ -1568,14 +1568,14 @@ void* API_CALL(sopalin_updo_bicgstab_smp)(void *arg)
  Initiate the <Sopalin_Data_t> structure, launch threads, clean and restore.
 
  Parameters:
- m         - The <SolverMatrix> structure.
+ m         - The <d_SolverMatrix> structure.
  sopaparam - Sopalin parameters in the <SopalinParam> stucture.
  */
-void API_CALL(sopalin_updo_bicgstab_thread)(SolverMatrix *m, SopalinParam *sopaparam)
+void API_CALL(sopalin_updo_bicgstab_thread)(d_SolverMatrix *m, SopalinParam *sopaparam)
 {
     Backup b;
     Sopalin_Data_t *sopalin_data = NULL;
-    SolverMatrix   *datacode = NULL;
+    d_SolverMatrix   *datacode = NULL;
 
     MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
@@ -1607,13 +1607,13 @@ void API_CALL(sopalin_updo_bicgstab_thread)(SolverMatrix *m, SopalinParam *sopap
 
  TODO: Comment (unused ?)
  */
-void API_CALL(sopalin_launch)(SolverMatrix *m,
+void API_CALL(sopalin_launch)(d_SolverMatrix *m,
                               SopalinParam *sopaparam,
                               pastix_int_t cas)
 {
     Backup b;
     Sopalin_Data_t *sopalin_data = NULL;
-    SolverMatrix   *datacode     = NULL;
+    d_SolverMatrix   *datacode     = NULL;
 
     MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 

@@ -11,7 +11,7 @@
 void* bicgstab_smp(void *arg);
 
 /* Lancement d'une des fonctions seules */
-void bicgstab_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
+void bicgstab_thread(d_SolverMatrix *datacode, SopalinParam *sopaparam);
 
 
 /*
@@ -231,7 +231,7 @@ void* API_CALL(bicgstab_smp) ( void *arg )
 /*
 ** Section: Function creating threads
 */
-void API_CALL(bicgstab_thread)(SolverMatrix *datacode, SopalinParam *sopaparam)
+void API_CALL(bicgstab_thread)(d_SolverMatrix *datacode, SopalinParam *sopaparam)
 {
   raff_thread(datacode, sopaparam, &API_CALL(bicgstab_smp));
 }

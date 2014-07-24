@@ -31,11 +31,11 @@ void dump1(Order *ord,
   Prints internal CSCd, in (i,j,v) format, in a file.
 
   Parameters:
-    datacode - SolverMatrix.
+    datacode - d_SolverMatrix.
     stream   - FILE * opened in write mode.
   
  */
-void dump2(const SolverMatrix * datacode,
+void dump2(const d_SolverMatrix * datacode,
            CscMatrix          * cscmtx,
 	   pastix_float_t              * trandcsc,
 	   FILE               *stream);
@@ -47,10 +47,10 @@ void dump2(const SolverMatrix * datacode,
   Prints solver matrix informations, in (i,j,v) format, in a file.
 
   Parameters:
-    datacode - SolverMatrix.
+    datacode - d_SolverMatrix.
     stream   - FILE * opened in write mode.
 */
-void dump3(const SolverMatrix *datacode, 
+void dump3(const d_SolverMatrix *datacode, 
 	   FILE               *stream);
 
 /*
@@ -60,11 +60,11 @@ void dump3(const SolverMatrix *datacode,
   for LU decomposition.
 
   Parameters:
-    datacode - SolverMatrix.
+    datacode - d_SolverMatrix.
     streamL  - FILE * opened in write mode.
     streamU  - FILE * opened in write mode.
 */
-void dump3_LU(const SolverMatrix * datacode, 
+void dump3_LU(const d_SolverMatrix * datacode, 
 	      FILE               * streamL, 
 	      FILE               * streamU);
 
@@ -75,10 +75,10 @@ void dump3_LU(const SolverMatrix * datacode,
   Writes column blocks and blocs dimension in a file.
   
   Parameters:
-    datacode - SolverMatrix containing informations about blocs
+    datacode - d_SolverMatrix containing informations about blocs
     stream   - FILE * opened in write mode.
 */
-void dump4(const SolverMatrix *datacode, 
+void dump4(const d_SolverMatrix *datacode, 
 	   FILE               *stream);
 
 
@@ -88,10 +88,10 @@ void dump4(const SolverMatrix *datacode,
   Writes right-hand-side memeber in a file.
 
   Parameters:
-    datacode - SolverMatrix containing right-hand-side member.
+    datacode - d_SolverMatrix containing right-hand-side member.
     stream   - FILE * opened in write mode.
 */
-void dump5(const SolverMatrix *datacode, 
+void dump5(const d_SolverMatrix *datacode, 
 	   FILE               *stream);
 
 
@@ -106,11 +106,11 @@ void dump5(const SolverMatrix *datacode,
   Prints one file dor L and one for U.
 
   Parameters:
-    datacode - SolverMatrix.
+    datacode - d_SolverMatrix.
     streamL  - FILE * into which L diagonal blocs will be writen.
     streamU  - FILE * into which U diagonal blocs will be writen.
 */
-void dump6(const SolverMatrix *datacode, 
+void dump6(const d_SolverMatrix *datacode, 
 	   FILE               *streamL, 
 	   FILE               *streamU);
 

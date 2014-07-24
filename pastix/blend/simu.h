@@ -35,7 +35,7 @@ typedef struct SimuProc_ {
 } SimuProc;
 
 typedef struct SimuFtgt_ {
-    FanInTarget  ftgt;       /*> Fan-in informations                            */
+    z_FanInTarget  ftgt;       /*> Fan-in informations                            */
     pastix_int_t clustnum;   /*> Cluster sending the contribution               */
     SimuTimer    timerecv;   /*> Simulated clock of the reception time          */
     double       costsend;   /*> Cost to send the contribution                  */
@@ -47,7 +47,7 @@ typedef struct SimuCblk_ {
 } SimuCblk;
 
 typedef struct SimuBlok_ {
-    pastix_int_t tasknum;    /*> Task index opeating on this block (stored per block for 2D computations)   */
+    pastix_int_t tasknum;    /*> z_Task index opeating on this block (stored per block for 2D computations)   */
     pastix_int_t ftgtnum;    /*> Index of the first fanin destinated to this
                               *  block in the ftgttab. This index is also used to find the first cblk timer
                               *  (one per cand proc) in the timetab array                                   */

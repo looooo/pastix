@@ -19,7 +19,7 @@
 
 #include "common.h"
 #include "sopalin3d.h"
-#include "solver.h"
+#include "z_solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_acces.h"
 #include "starpu_defines.h"
@@ -58,7 +58,7 @@ static pastix_complex64_t zzero =  0.;
 void starpu_zsytrfsp1d_sytrf_cuda(void * buffers[], void * _args)
 {
     Sopalin_Data_t     *sopalin_data;
-    SolverCblk         *cblk;
+    z_SolverCblk         *cblk;
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *work   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(buffers[0]);
@@ -99,7 +99,7 @@ void starpu_zsytrfsp1d_sytrf_cuda(void * buffers[], void * _args)
 void starpu_zsytrfsp1d_trsm_cuda(void * buffers[], void * _args)
 {
     Sopalin_Data_t     *sopalin_data;
-    SolverCblk         *cblk;
+    z_SolverCblk         *cblk;
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(buffers[0]);
 
@@ -140,7 +140,7 @@ void starpu_zsytrfsp1d_trsm_cuda(void * buffers[], void * _args)
 void starpu_zsytrfsp1d_cuda(void * buffers[], void * _args)
 {
     Sopalin_Data_t     *sopalin_data;
-    SolverCblk         *cblk;
+    z_SolverCblk         *cblk;
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *work   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(buffers[0]);
@@ -201,10 +201,10 @@ void starpu_zsytrfsp1d_cuda(void * buffers[], void * _args)
 void starpu_zsytrfsp1d_gemm_cuda(void * buffers[], void * _args)
 {
     Sopalin_Data_t     *sopalin_data;
-    SolverMatrix       *datacode;
-    SolverCblk         *cblk;
-    SolverBlok         *blok;
-    SolverCblk         *fcblk;
+    z_SolverMatrix       *datacode;
+    z_SolverCblk         *cblk;
+    z_SolverBlok         *blok;
+    z_SolverCblk         *fcblk;
     pastix_int_t dimi, dimj, dima, dimb;
     pastix_complex64_t *Aik, *Aij;
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
@@ -217,7 +217,7 @@ void starpu_zsytrfsp1d_gemm_cuda(void * buffers[], void * _args)
 
     starpu_codelet_unpack_args(_args, &sopalin_data, &cblk, &blok, &fcblk);
     datacode = sopalin_data->datacode;
-    assert(is_block_inside_fblock(blok, fcblk->fblokptr));
+    assert(z_is_block_inside_fblock(blok, fcblk->fblokptr));
     assert(cblk->stride == STARPU_MATRIX_GET_LD(buffers[0]));
     assert(cblk_colnbr(cblk)  == STARPU_MATRIX_GET_NY(buffers[0]));
     fblocktab = &(all_blocktab[2*blok_getnum(datacode,
@@ -296,7 +296,7 @@ void starpu_zsytrfsp1d_gemm_cuda(void * buffers[], void * _args)
 void
 starpu_zsytrfsp1d_syadd_cuda(void * buffers[], void * _args) {
     Sopalin_Data_t *sopalin_data;
-    SolverCblk *cblk1, *cblk2;
+    z_SolverCblk *cblk1, *cblk2;
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *Cl   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     starpu_codelet_unpack_args(_args, &sopalin_data, &cblk1, &cblk2);

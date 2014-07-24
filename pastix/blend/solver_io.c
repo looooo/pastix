@@ -7,11 +7,11 @@
 
 #include "common.h"
 #include "symbol.h"
-#include "ftgt.h"
+#include "z_ftgt.h"
 #include "queue.h"
 #include "bulles.h"
-#include "updown.h"
-#include "solver.h"
+#include "z_updown.h"
+#include "z_solver.h"
 #include "solverRealloc.h"
 #include "solver_io.h"
 
@@ -32,18 +32,18 @@
 *** - !0  : on error.
 +*/
 
-pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
+pastix_int_t solverLoad(z_SolverMatrix *solvptr, FILE *stream)
 {
     pastix_int_t i,j;
     pastix_int_t clustnbr, clustnum;
-    SolverCblk   *cblkptr;
-    SolverCblk   *cblktnd;
-    SolverBlok   *blokptr;
-    SolverBlok   *bloktnd;
-    FanInTarget  *ftgtptr;
-    FanInTarget  *ftgttnd;
-    Task         *taskptr;
-    Task         *tasknd;
+    z_SolverCblk   *cblkptr;
+    z_SolverCblk   *cblktnd;
+    z_SolverBlok   *blokptr;
+    z_SolverBlok   *bloktnd;
+    z_FanInTarget  *ftgtptr;
+    z_FanInTarget  *ftgttnd;
+    z_Task         *taskptr;
+    z_Task         *tasknd;
 
     pastix_int_t                 versval;
     pastix_int_t                 baseval;
@@ -68,8 +68,8 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
       errorPrint ("solverLoad: bad input (1)");
       return     (1);
     }
-    MALLOC_INTERN(solvptr->cblktab, cblknbr + 1, SolverCblk);
-    MALLOC_INTERN(solvptr->bloktab, bloknbr,     SolverBlok);
+    MALLOC_INTERN(solvptr->cblktab, cblknbr + 1, z_SolverCblk);
+    MALLOC_INTERN(solvptr->bloktab, bloknbr,     z_SolverBlok);
     if (solvptr->cblktab == NULL || solvptr->bloktab == NULL) {
       errorPrint ("solverLoad: out of memory");
       solverExit (solvptr);
@@ -143,11 +143,11 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     solvptr->clustnum = (pastix_int_t)clustnum;
 
 
-    if (((solvptr->cblktab = (SolverCblk *) memAlloc ((solvptr->cblknbr + 1) * sizeof (SolverCblk)))  == NULL) ||
-        ((solvptr->bloktab = (SolverBlok *) memAlloc (solvptr->bloknbr       * sizeof (SolverBlok)))  == NULL) ||
-        ((solvptr->ftgttab = (FanInTarget *)memAlloc (solvptr->ftgtnbr               * sizeof (FanInTarget))) == NULL) ||
+    if (((solvptr->cblktab = (z_SolverCblk *) memAlloc ((solvptr->cblknbr + 1) * sizeof (z_SolverCblk)))  == NULL) ||
+        ((solvptr->bloktab = (z_SolverBlok *) memAlloc (solvptr->bloknbr       * sizeof (z_SolverBlok)))  == NULL) ||
+        ((solvptr->ftgttab = (z_FanInTarget *)memAlloc (solvptr->ftgtnbr               * sizeof (z_FanInTarget))) == NULL) ||
         ((solvptr->indtab  = (pastix_int_t *)        memAlloc (solvptr->indnbr                * sizeof (pastix_int_t)))         == NULL) ||
-        ((solvptr->tasktab = (Task *)       memAlloc ((solvptr->tasknbr+1)           * sizeof (Task)))        == NULL) ||
+        ((solvptr->tasktab = (z_Task *)       memAlloc ((solvptr->tasknbr+1)           * sizeof (z_Task)))        == NULL) ||
         ((solvptr->ttsknbr = (pastix_int_t *)        memAlloc ((solvptr->thrdnbr)             * sizeof (pastix_int_t)))         == NULL) ||
         ((solvptr->ttsktab = (pastix_int_t **)       memAlloc ((solvptr->thrdnbr)             * sizeof (pastix_int_t *)))       == NULL)
         ) {
@@ -202,7 +202,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
      intLoad(stream, &(solvptr->indtab[i]));
 
 
-   for (taskptr = solvptr->tasktab,                /** Read Task data **/
+   for (taskptr = solvptr->tasktab,                /** Read z_Task data **/
             tasknd = taskptr + solvptr->tasknbr +1;
         (taskptr < tasknd); taskptr ++)
    {
@@ -257,7 +257,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
        return     (1);
      }
 
-   MALLOC_INTERN(solvptr->updovct.cblktab,    solvptr->cblknbr,       UpDownCblk);
+   MALLOC_INTERN(solvptr->updovct.cblktab,    solvptr->cblknbr,       z_UpDownCblk);
    MALLOC_INTERN(solvptr->updovct.gcblk2list, solvptr->updovct.gcblk2listnbr, pastix_int_t);
    MALLOC_INTERN(solvptr->updovct.listptr,    solvptr->updovct.listptrnbr,    pastix_int_t);
    MALLOC_INTERN(solvptr->updovct.listcblk,   solvptr->updovct.listnbr,       pastix_int_t);
@@ -324,28 +324,28 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
 }
 
 
-pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
+pastix_int_t solverSave(const z_SolverMatrix * solvptr, FILE *stream)
 {
    pastix_int_t i;
    pastix_int_t j;
-   SolverCblk   *cblkptr;
-   SolverCblk   *cblktnd;
-   SolverBlok   *blokptr;
-   SolverBlok   *bloktnd;
-   FanInTarget  *ftgtptr;
-   FanInTarget  *ftgttnd;
-   Task         *taskptr;
-   Task         *tasknd;
+   z_SolverCblk   *cblkptr;
+   z_SolverCblk   *cblktnd;
+   z_SolverBlok   *blokptr;
+   z_SolverBlok   *bloktnd;
+   z_FanInTarget  *ftgtptr;
+   z_FanInTarget  *ftgttnd;
+   z_Task         *taskptr;
+   z_Task         *tasknd;
 
    pastix_int_t          o;
 
 
    /** Save the solver matrix **/
    {
-     const SolverCblk *  cblktnd;
-     const SolverCblk *  cblkptr;
-     const SolverBlok *  bloktnd;
-     const SolverBlok *  blokptr;
+     const z_SolverCblk *  cblktnd;
+     const z_SolverCblk *  cblkptr;
+     const z_SolverBlok *  bloktnd;
+     const z_SolverBlok *  blokptr;
      int                 o;
 
      o = (fprintf (stream, "1\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
@@ -424,7 +424,7 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
    fprintf(stream, "\n");
 
    /*fprintf(stream, "task data\n");*/
-   for (taskptr = solvptr->tasktab,                /* Write Task data */
+   for (taskptr = solvptr->tasktab,                /* Write z_Task data */
             tasknd = taskptr + solvptr->tasknbr+1;
         (taskptr < tasknd) && (o==0); taskptr ++)
    {

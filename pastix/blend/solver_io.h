@@ -18,8 +18,8 @@
 
 #define static
 
-pastix_int_t solverLoad(SolverMatrix *, FILE *);
-pastix_int_t solverSave(const SolverMatrix *, FILE *);
+pastix_int_t solverLoad(z_SolverMatrix *, FILE *);
+pastix_int_t solverSave(const z_SolverMatrix *, FILE *);
 
 
 #undef static

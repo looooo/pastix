@@ -4,7 +4,7 @@
 #  ifdef STARPU_USE_DEPRECATED_API
 #    undef STARPU_USE_DEPRECATED_API
 #  endif
-#  include "starpu_defines.h"
+#  include "starpu_ddefines.h"
 
 #  include <pthread.h>
 #  include <string.h>
@@ -13,12 +13,12 @@
 #  include "sopalin_define.h"
 #  include "sopalin_acces.h"
 #  include "symbol.h"
-#  include "ftgt.h"
+#  include "d_ftgt.h"
 #  include "csc.h"
-#  include "updown.h"
+#  include "d_updown.h"
 #  include "queue.h"
 #  include "bulles.h"
-#  include "solver.h"
+#  include "d_solver.h"
 #  include "sopalin_thread.h"
 #  include "sopalin_time.h"
 #  include "sopalin3d.h"
@@ -33,7 +33,7 @@
 #  include "starpu_dsubmit.h"
 
 #  define dump_all API_CALL(dump_all)
-void  dump_all                 (SolverMatrix *, CscMatrix * cscmtx, int);
+void  dump_all                 (d_SolverMatrix *, CscMatrix * cscmtx, int);
 
 /* #define starpu_mpi_data_register(data, tag, rank) do {          \ */
 /*   starpu_data_set_rank(data, rank);                             \ */
@@ -114,7 +114,7 @@ static size_t trf_size(struct starpu_task *task,
 #endif
 		       unsigned nimpl) {
     Sopalin_Data_t    * sopalin_data;
-    SolverCblk        * cblk;
+    d_SolverCblk        * cblk;
     pastix_int_t        stride;
     size_t              dima;
     starpu_codelet_unpack_args(task->cl_arg, &sopalin_data, &cblk);
@@ -131,7 +131,7 @@ static size_t trsm_size(struct starpu_task *task,
 #endif
 			unsigned nimpl) {
     Sopalin_Data_t    * sopalin_data;
-    SolverCblk        * cblk;
+    d_SolverCblk        * cblk;
     pastix_int_t        stride;
     size_t              dima;
     starpu_codelet_unpack_args(task->cl_arg, &sopalin_data, &cblk);
@@ -159,9 +159,9 @@ static size_t gemm_size(struct starpu_task *task,
                         unsigned nimpl)
 {
     Sopalin_Data_t             * sopalin_data;
-    SolverCblk                 * cblk;
-    SolverBlok                 * blok;
-    SolverCblk                 * fcblk;
+    d_SolverCblk                 * cblk;
+    d_SolverBlok                 * blok;
+    d_SolverCblk                 * fcblk;
     pastix_int_t                   indblok;
     pastix_int_t                   stride;
     pastix_int_t                   dimi;
@@ -569,7 +569,7 @@ struct starpu_codelet sopalin_init_cl =
 
 static inline int
 halo_submit(Sopalin_Data_t * sopalin_data) {
-    SolverMatrix * datacode = sopalin_data->datacode;
+    d_SolverMatrix * datacode = sopalin_data->datacode;
     starpu_loop_data_t  *starpu_loop_data  = sopalin_data->starpu_loop_data;
     pastix_int_t itertask, workerid = -1;
     starpu_data_handle_t *L_handle         = starpu_loop_data->L_handle;
@@ -583,9 +583,9 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
     struct starpu_codelet * cl;
     pastix_int_t max_deps = 0;
     int ret;
-    SolverCblk *cblk;
-    SolverCblk *fcblk;
-    SolverBlok *blok;
+    d_SolverCblk *cblk;
+    d_SolverCblk *fcblk;
+    d_SolverBlok *blok;
 
     for (itertask=0;itertask<SOLV_TASKNBR;itertask++) {
         pastix_int_t itercblk = TASK_CBLKNUM(itertask);
@@ -636,18 +636,18 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
                 /* insert all tasks involving same CBLKs */
                 while(hblock < SOLV_HBLOKNBR &&
                       HBLOCK_ISFACING(hblock, SYMB_BLOKNUM(itercblk))) {
-                    assert(cblk_ishalo(datacode, cblk) == API_YES);
-                    assert(cblk_islocal(datacode, fcblk) == API_YES);
-                    assert(itercblk == cblk_getnum(datacode, fcblk));
-                    assert(hcblk    == hcblk_getnum(datacode, cblk));
+                    assert(d_cblk_ishalo(datacode, cblk) == API_YES);
+                    assert(d_cblk_islocal(datacode, fcblk) == API_YES);
+                    assert(itercblk == d_cblk_getnum(datacode, fcblk));
+                    assert(hcblk    == d_hcblk_getnum(datacode, cblk));
                     assert(hblock   == blok - datacode->hbloktab);
-                    assert(is_block_inside_fblock(blok, fcblk->fblokptr));
+                    assert(d_is_block_inside_fblock(blok, fcblk->fblokptr));
                     ret =
                         starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, cl,
                                                STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                                               STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-                                               STARPU_VALUE, &blok,         sizeof(SolverBlok*),
-                                               STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
+                                               STARPU_VALUE, &cblk,         sizeof(d_SolverCblk*),
+                                               STARPU_VALUE, &blok,         sizeof(d_SolverBlok*),
+                                               STARPU_VALUE, &fcblk,        sizeof(d_SolverCblk*),
                                                STARPU_R,                    Lhalo_handle[hcblk],
                                                STARPU_COMMUTE|STARPU_RW,    L_handle[itercblk],
 #  if (defined CHOL_SOPALIN)
@@ -681,7 +681,7 @@ halo_submit(Sopalin_Data_t * sopalin_data) {
 int
 starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
 {
-    SolverMatrix        *datacode          = sopalin_data->datacode;
+    d_SolverMatrix        *datacode          = sopalin_data->datacode;
     starpu_loop_data_t  *starpu_loop_data  = (starpu_loop_data_t *)sopalin_data->starpu_loop_data;
     int                  me                = starpu_loop_data->me;
     int                 *sched_ctxs        = starpu_loop_data->sched_ctxs;
@@ -692,7 +692,7 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
     int this_workerid;;
     int workerid = -1;
     struct starpu_codelet * cl;
-    SolverCblk *cblk = datacode->cblktab+itercblk;
+    d_SolverCblk *cblk = datacode->cblktab+itercblk;
 #  ifdef STARPU_CONTEXT
     pastix_int_t threadid = TASK_THREADID(itertask);
     pastix_int_t my_ctx;
@@ -718,7 +718,7 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
         ret =
             starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trf_cl,
                                    STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                                   STARPU_VALUE, &cblk, sizeof(SolverCblk*),
+                                   STARPU_VALUE, &cblk, sizeof(d_SolverCblk*),
                                    STARPU_RW, starpu_loop_data->L_handle[itercblk],
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                                    STARPU_RW, starpu_loop_data->U_handle[itercblk],
@@ -738,7 +738,7 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
         ret =
             starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trsm_cl,
                                    STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                                   STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+                                   STARPU_VALUE, &cblk,         sizeof(d_SolverCblk*),
                                    STARPU_RW, starpu_loop_data->L_handle[itercblk],
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                                    STARPU_RW, starpu_loop_data->U_handle[itercblk],
@@ -762,7 +762,7 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
         ret =
             starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, &trf_trsm_cl,
                                    STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                                   STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+                                   STARPU_VALUE, &cblk,         sizeof(d_SolverCblk*),
                                    STARPU_RW, starpu_loop_data->L_handle[itercblk],
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                                    STARPU_RW, starpu_loop_data->U_handle[itercblk],
@@ -786,7 +786,7 @@ starpu_submit_one_trf(pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
 int
 starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_data)
 {
-    SolverMatrix        *datacode          = sopalin_data->datacode;
+    d_SolverMatrix        *datacode          = sopalin_data->datacode;
     starpu_loop_data_t  *starpu_loop_data  = (starpu_loop_data_t *)sopalin_data->starpu_loop_data;
     int                  me                = starpu_loop_data->me;
     int                 *sched_ctxs        = starpu_loop_data->sched_ctxs;
@@ -807,8 +807,8 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
     pastix_int_t handle_idx;
     int workerid, this_workerid;
     struct starpu_codelet * cl;
-    SolverCblk *cblk = datacode->cblktab+itercblk;
-    SolverBlok *blok;
+    d_SolverCblk *cblk = datacode->cblktab+itercblk;
+    d_SolverBlok *blok;
 #  ifdef STARPU_CONTEXT
     pastix_int_t threadid = TASK_THREADID(itertask);
     pastix_int_t my_ctx;
@@ -818,14 +818,14 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
     else
         my_ctx = 1+threadid/starpu_loop_data->thread_per_ctx;
 #  endif
-    assert(cblk_islocal(sopalin_data->datacode, cblk));
+    assert(d_cblk_islocal(sopalin_data->datacode, cblk));
     for (iterbloc = SYMB_BLOKNUM(itercblk)+1;
          iterbloc < SYMB_BLOKNUM(itercblk+1);
          iterbloc ++) {
         struct starpu_task * task_gemm;
         pastix_int_t blocnbr;
         pastix_int_t fcblknum;
-        SolverCblk  *fcblk;
+        d_SolverCblk  *fcblk;
         pastix_int_t n,t;
         int dst_proc;
         starpu_data_handle_t * L_target_handle;
@@ -853,14 +853,14 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
                     assert(fcblk - datacode->fcblktab[SOLV_PROCNUM] <
                            datacode->fcblknbr[SOLV_PROCNUM]);
                 }
-                fcblknum = fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
+                fcblknum = d_fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
                 L_target_handle = Lfanin_handle[SOLV_PROCNUM]+fcblknum;
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
                 U_target_handle = Ufanin_handle[SOLV_PROCNUM]+fcblknum;
 #    endif
 #  endif
-                assert(cblk_isfanin(datacode, fcblk) == API_YES);
+                assert(d_cblk_isfanin(datacode, fcblk) == API_YES);
             } else {
                 /* Fanout case */
                 fcblknum = SOLV_GCBLK2HALO(gfcblknum);
@@ -871,12 +871,12 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
                 U_target_handle = Uhalo_handle+fcblknum;
 #    endif
 #  endif
-                assert(cblk_ishalo(datacode, fcblk) == API_YES);
+                assert(d_cblk_ishalo(datacode, fcblk) == API_YES);
             }
         } else {
             /* fcblknum is local */
             fcblk = datacode->cblktab+fcblknum;
-            assert(cblk_islocal(datacode, fcblk) == API_YES);
+            assert(d_cblk_islocal(datacode, fcblk) == API_YES);
             L_target_handle = &(L_handle[fcblknum]);
 #  if (defined CHOL_SOPALIN)
 #    ifdef SOPALIN_LU
@@ -894,16 +894,16 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
 
 #endif  /* defined(PASTIX_WITH_CUDA) */
         }
-        assert(cblk_islocal(sopalin_data->datacode, cblk));
+        assert(d_cblk_islocal(sopalin_data->datacode, cblk));
         dst_proc = starpu_data_get_rank(*L_target_handle);
-        assert(is_block_inside_fblock(blok, fcblk->fblokptr));
+        assert(d_is_block_inside_fblock(blok, fcblk->fblokptr));
 
         ret =
             starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm, cl,
                                    STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
-                                   STARPU_VALUE, &cblk,        sizeof(SolverCblk*),
-                                   STARPU_VALUE, &blok,        sizeof(SolverBlok*),
-                                   STARPU_VALUE, &fcblk,       sizeof(SolverCblk*),
+                                   STARPU_VALUE, &cblk,        sizeof(d_SolverCblk*),
+                                   STARPU_VALUE, &blok,        sizeof(d_SolverBlok*),
+                                   STARPU_VALUE, &fcblk,       sizeof(d_SolverCblk*),
                                    STARPU_R,     L_handle[itercblk],
                                    STARPU_COMMUTE|STARPU_RW,    *L_target_handle,
 #  if (defined CHOL_SOPALIN)
@@ -930,7 +930,7 @@ starpu_submit_bunch_of_gemm (pastix_int_t itertask, Sopalin_Data_t * sopalin_dat
         STARPU_ASSERT(!ret);
         if ( pastix_starpu_with_nested_task() == API_NO &&
              pastix_starpu_with_fanin() == API_YES &&
-             cblk_isfanin(datacode, fcblk) == API_YES ) {
+             d_cblk_isfanin(datacode, fcblk) == API_YES ) {
             /* a fanin was updated */
             SUBMIT_FANIN_IF_NEEDED;
         }
@@ -971,7 +971,7 @@ void*
 starpu_submit_loop (void * arg) {
     starpu_loop_data_t  *starpu_loop_data  = (starpu_loop_data_t*)(arg);
     Sopalin_Data_t      *sopalin_data      = (Sopalin_Data_t *)(starpu_loop_data->sopalin_data);
-    SolverMatrix        *datacode          = sopalin_data->datacode;
+    d_SolverMatrix        *datacode          = sopalin_data->datacode;
     int                  me                = starpu_loop_data->me;
     int                 *sched_ctxs        = starpu_loop_data->sched_ctxs;
     pastix_int_t itertask, i;
@@ -1059,7 +1059,7 @@ starpu_clean_smp (void * arg)
  */
 int
 starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
-    SolverMatrix         * datacode         = sopalin_data->datacode;
+    d_SolverMatrix         * datacode         = sopalin_data->datacode;
     Thread_Data_t        * thread_data;
     starpu_data_handle_t * L_handle;
     starpu_data_handle_t * Lhalo_handle;
@@ -1312,13 +1312,13 @@ starpu_submit_tasks(Sopalin_Data_t  * sopalin_data) {
                     /* itercblk udates a remote cblk */
                     if (pastix_starpu_with_fanin() == API_YES) {
                         pastix_int_t faninnum;
-                        SolverCblk * fcblk = datacode->fcblktab[SOLV_PROCNUM];
-                        SolverCblk * lfanin = fcblk + datacode->fcblknbr[SOLV_PROCNUM];
+                        d_SolverCblk * fcblk = datacode->fcblktab[SOLV_PROCNUM];
+                        d_SolverCblk * lfanin = fcblk + datacode->fcblknbr[SOLV_PROCNUM];
                         while (fcblk->gcblknum != gfcblknum) {
                             fcblk++;
                             assert(fcblk < lfanin);
                         }
-                        faninnum = fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
+                        faninnum = d_fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
                         sopalin_data->fanin_ctrbcnt[faninnum]++;
                     }
                     continue;

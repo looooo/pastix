@@ -13,7 +13,7 @@
 
 #define updo_thread API_CALL(updo_thread)
 /* Lancement de updo seul */
-void updo_thread ( SolverMatrix * datacode, SopalinParam * sopar);
+void updo_thread ( d_SolverMatrix * datacode, SopalinParam * sopar);
 
 /*********************************/
 /*
@@ -22,13 +22,13 @@ void updo_thread ( SolverMatrix * datacode, SopalinParam * sopar);
  * Launch threads for solving step.
  *
  * Parameters:
- *   datacode  - SolverMatrix structure (common data)
+ *   datacode  - d_SolverMatrix structure (common data)
  *   sopaparam - sopalin parameters.
  *
  * Returns:
  *   void
  */
-void updo_thread ( SolverMatrix *datacode, SopalinParam *sopaparam )
+void updo_thread ( d_SolverMatrix *datacode, SopalinParam *sopaparam )
 {
   Sopalin_Data_t *sopalin_data = NULL;
   BackupSolve_t b;
@@ -80,7 +80,7 @@ void* up_down_smp ( void *arg )
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   pastix_int_t               me           = argument->me;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   Thread_Data_t    *thread_data  = sopalin_data->thread_data[me];
   /* Taille et buffer de communication (inutilisé si thread comm) */
@@ -1105,7 +1105,7 @@ void* up_down_smp ( void *arg )
   for (ii=0;ii<SOLV_TTSKNBR;ii++)
   {
     i = queueGet(&cblreadyqueue);
-    print_debug(DBG_SOPALIN_UP, "%d : Task %4d\n", (int)me, (int)i);
+    print_debug(DBG_SOPALIN_UP, "%d : d_Task %4d\n", (int)me, (int)i);
 
     trace_begin_task(thread_data->tracefile,
                      SOPALIN_CLOCK_TRACE, SOLV_PROCNUM, me, 1,

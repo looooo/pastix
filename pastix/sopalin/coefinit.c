@@ -11,13 +11,13 @@
 #endif
 #include "sopalin_define.h"
 #include "dof.h"
-#include "ftgt.h"
+#include "d_ftgt.h"
 #include "symbol.h"
 #include "../csc/csc.h"
-#include "updown.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 #include "sopalin_thread.h"
 #include "stack.h"
 #include "sopalin3d.h"
@@ -50,7 +50,7 @@
  *     assigned to each thread.)
  */
 void CoefMatrix_Allocate(SopalinParam    *sopar,
-                         SolverMatrix    *datacode,
+                         d_SolverMatrix    *datacode,
                          pthread_mutex_t *mutex,
                          pastix_int_t              factotype,
                          pastix_int_t              me)
@@ -180,7 +180,7 @@ void CoefMatrix_Allocate(SopalinParam    *sopar,
  *    transcsc     - vecteur transcsc
  *    sopalin_data - <Sopalin_Data_t> structure.
  */
-void CoefMatrix_Init(SolverMatrix         *datacode,
+void CoefMatrix_Init(d_SolverMatrix         *datacode,
                      sopthread_barrier_t  *barrier,
                      pastix_int_t                   me,
                      pastix_int_t                  *iparm,
@@ -415,7 +415,7 @@ if (iparm[IPARM_FREE_CSCPASTIX] == API_CSC_FREE)
 
  */
 void CoefMatrix_Free(SopalinParam *sopar,
-                     SolverMatrix *datacode,
+                     d_SolverMatrix *datacode,
                      pastix_int_t           factotype)
 {
   pastix_int_t i;

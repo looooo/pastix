@@ -9,7 +9,7 @@
 void* pivotstatique_smp(void *arg);
 
 /* Lancement d'une des fonctions seules */
-void pivot_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
+void pivot_thread(d_SolverMatrix *datacode, SopalinParam *sopaparam);
 
 /*
 ** Section: Threads routines
@@ -58,7 +58,7 @@ void* pivotstatique_smp ( void *arg )
   double            tmp_berr     = 0.0;
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-  SolverMatrix     *datacode     = sopalin_data->datacode;
+  d_SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   PASTIX_INT               me           = argument->me;
@@ -274,10 +274,10 @@ void* pivotstatique_smp ( void *arg )
   <API_CALL(pivotstatique_smp)>.
 
   Parameters:
-  datacode  - PaStiX <SolverMatrix> structure.
+  datacode  - PaStiX <d_SolverMatrix> structure.
   sopaparam - <SopalinParam> parameters structure.
 */
-void API_CALL(pivot_thread)(SolverMatrix *datacode,
+void API_CALL(pivot_thread)(d_SolverMatrix *datacode,
                             SopalinParam *sopaparam)
 {
   Sopalin_Data_t *sopalin_data = NULL;

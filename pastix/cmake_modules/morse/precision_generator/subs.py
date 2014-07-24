@@ -887,6 +887,7 @@ subs = {
     ('ssimple',        'dsimple',        'csimple',        'zsimple'         ),
     ('sstep-by-step',  'dstep-by-step',  'cstep-by-step',  'zstep-by-step'   ),
     ('s_',             'd_',             'c_',             'z_'              ),
+    ('S_',             'D_',             'C_',             'Z_'              ),
     ('FLT_EPSILON',    'FLT_EPSILON',    'DBL_EPSILON',    'DBL_EPSILON'     ),
     # ----- unused?
     ('s_check',        'd_check',        'c_check',        'z_check'         ),

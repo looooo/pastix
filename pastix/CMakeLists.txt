@@ -300,7 +300,6 @@ add_subdirectory(matrix_drivers)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
@@ -310,22 +309,19 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
+set(modules libcsc blend kernels)
 if (PASTIX_WITH_STARPU)
-  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/starpu")
-  include_directories("${CMAKE_CURRENT_BINARY_DIR}/starpu")
+  list(APPEND modules starpu)
 endif (PASTIX_WITH_STARPU)
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/libcsc")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/libcsc")
-
-add_subdirectory(kernels)
-add_subdirectory(libcsc)
-if (PASTIX_WITH_STARPU)
-  add_subdirectory(starpu)
-  add_dependencies(pastix_starpu starpu_headers)
-
-endif (PASTIX_WITH_STARPU)
+# For each modules add -I compilation flag and then include module
+foreach (module ${modules})
+  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/${module}")
+  include_directories("${CMAKE_CURRENT_BINARY_DIR}/${module}")
+endforeach()
+foreach (module ${modules})
+  message(STATUS ${module})
+  add_subdirectory(${module})
+endforeach()
 
 macro(solver_rules _output_files _sources_files)
   foreach(_source_file ${_sources_files})
@@ -396,36 +392,6 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
   graph/graph_io.c
 #
-  blend/cand.c
-  blend/solver.c
-  blend/elimin_graph.c
-  blend/elimin_tree.c
-  blend/propmap.c
-  blend/pastix_task_analyse.c
-  blend/extracblk.c
-  blend/splitsymbol.c
-  blend/blendctrl.c
-
-  blend/blend.c
-  blend/blend_symbol_cost.c
-  blend/bulles.c
-  blend/cost.c
-  blend/costfunc.c
-  blend/simu_run.c
-#  blend/distribPart.c
-  blend/extendVector.c
-  blend/fanboth2.c
-  blend/queue.c
-  blend/simu.c
-#  blend/partbuild.c
-#  blend/smart_cblk_split.c
-  blend/solverMatrixGen.c
-  blend/solverRealloc.c
-  blend/solver_check.c
-  blend/solver_io.c
-#  blend/splitpartlocal.c
-  blend/task.c
-  blend/blend_distributeOnGPU.c
 #
   sopalin/sopalin_thread.c
 #  sopalin/compute_context_nbr.c
@@ -545,6 +511,7 @@ add_library(pastix ${PASTIX_LIB_SRCS})
 
 add_dependencies(pastix kernel_headers)
 add_dependencies(pastix libcsc_headers)
+add_dependencies(pastix blend_headers)
 if(PASTIX_WITH_STARPU)
   add_dependencies(pastix
     starpu_headers

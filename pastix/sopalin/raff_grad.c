@@ -11,7 +11,7 @@
 void* grad_smp         (void *arg);
 
 /* Lancement d'une des fonctions seules */
-void grad_thread (SolverMatrix *datacode, SopalinParam *sopaparam);
+void grad_thread (d_SolverMatrix *datacode, SopalinParam *sopaparam);
 /*
  ** Section: Threads routines
  */
@@ -144,7 +144,7 @@ void* API_CALL(grad_smp)(void *arg)
 /*
  ** Section: Function creating threads
  */
-void API_CALL(grad_thread)(SolverMatrix *datacode, SopalinParam *sopaparam)
+void API_CALL(grad_thread)(d_SolverMatrix *datacode, SopalinParam *sopaparam)
 {
   raff_thread(datacode, sopaparam, &API_CALL(grad_smp));
 }

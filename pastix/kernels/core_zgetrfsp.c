@@ -226,12 +226,12 @@ static void core_zgetrfsp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
+int core_zgetrfsp1d_getrf( z_SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria)
 {
-    SolverBlok *fblok;
+    z_SolverBlok *fblok;
 
     pastix_complex64_t *fL, *fU;
     pastix_int_t dima, stride;
@@ -286,11 +286,11 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *          \retval PASTIX_SUCCESS on successful exit
  *
  *******************************************************************************/
-int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
+int core_zgetrfsp1d_trsm( z_SolverCblk         *cblk,
                           pastix_complex64_t *L,
                           pastix_complex64_t *U)
 {
-    SolverBlok *fblok, *lblok;
+    z_SolverBlok *fblok, *lblok;
 
     pastix_complex64_t *fL, *fU;
     pastix_int_t dima, dimb, stride;
@@ -363,7 +363,7 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
  *          factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d( SolverCblk         *cblk,
+int core_zgetrfsp1d( z_SolverCblk         *cblk,
                      pastix_complex64_t *L,
                      pastix_complex64_t *U,
                      double              criteria)
@@ -424,18 +424,18 @@ int core_zgetrfsp1d( SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
-                           SolverBlok         *blok,
-                           SolverCblk         *fcblk,
+void core_zgetrfsp1d_gemm( z_SolverCblk         *cblk,
+                           z_SolverBlok         *blok,
+                           z_SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            pastix_complex64_t *Cl,
                            pastix_complex64_t *Cu,
                            pastix_complex64_t *work )
 {
-    SolverBlok *iterblok;
-    SolverBlok *fblok;
-    SolverBlok *lblok;
+    z_SolverBlok *iterblok;
+    z_SolverBlok *fblok;
+    z_SolverBlok *lblok;
 
     pastix_complex64_t *Aik, *Akj, *Aij, *C;
     pastix_complex64_t *wtmp;
@@ -483,7 +483,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!is_block_inside_fblock( iterblok, fblok ))
+        while (!z_is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );
@@ -533,7 +533,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     for (iterblok=blok+1; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        if (!is_block_inside_fblock( iterblok, fblok ))
+        if (!z_is_block_inside_fblock( iterblok, fblok ))
              break;
 
         Aij = C + (iterblok->frownum - fblok->frownum)*stridefc;
@@ -559,7 +559,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     for (; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!is_block_inside_fblock( iterblok, fblok ))
+        while (!z_is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );

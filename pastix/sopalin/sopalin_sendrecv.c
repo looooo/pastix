@@ -123,7 +123,7 @@ recv_handle_fanin(Sopalin_Data_t *sopalin_data,
                   MPI_Status      status,
                   int             elected)
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
 #  if (defined TRACE_SOPALIN) || (defined TEST_IRECV)
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #  endif
@@ -434,7 +434,7 @@ recv_waitone_fanin(Sopalin_Data_t *sopalin_data,
                    pastix_int_t             me,
                    pastix_int_t             tag)
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   MPI_Status     status;
   int            elected     = 0;
@@ -498,7 +498,7 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
 
 #ifdef TEST_IRECV
   {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status    *statuses    = thread_data->srteststatus;
     int           *indices     = thread_data->srtestindices;
@@ -540,7 +540,7 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
               " recv_waitone_fob");
 #    else
   {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status     status;
     pastix_int_t            size;
@@ -560,7 +560,7 @@ recv_waitone_fob(Sopalin_Data_t *sopalin_data,
 #    endif
 #  else
   {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status     status;
     int            elected     = 0;
@@ -606,7 +606,7 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 
 #ifdef TEST_IRECV
   {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status     status;
     int            flag;
@@ -652,7 +652,7 @@ void recv_testone_fob(Sopalin_Data_t *sopalin_data, pastix_int_t me)
 #  elif (defined EXACT_THREAD)
   {
 #    ifdef SMP_SOPALIN
-    SolverMatrix *datacode    = sopalin_data->datacode;
+    d_SolverMatrix *datacode    = sopalin_data->datacode;
 #    endif
     MPI_Status    status;
     int           flag1;
@@ -715,7 +715,7 @@ recv_testall_fab(Sopalin_Data_t *sopalin_data,
   /* We don't care about the tag since there is launched requests */
 #ifdef TEST_IRECV
   {
-    SolverMatrix  *datacode    = sopalin_data->datacode;
+    d_SolverMatrix  *datacode    = sopalin_data->datacode;
     Thread_Data_t *thread_data = sopalin_data->thread_data[me];
     MPI_Status    *statuses;
     int           *indices;
@@ -751,7 +751,7 @@ recv_testall_fab(Sopalin_Data_t *sopalin_data,
 #  elif (defined EXACT_THREAD)
   {
 #    ifdef SMP_SOPALIN
-    SolverMatrix *datacode    = sopalin_data->datacode;
+    d_SolverMatrix *datacode    = sopalin_data->datacode;
 #    endif
     MPI_Status    status;
     int           flag1;
@@ -821,7 +821,7 @@ send_one_fanin ( Sopalin_Data_t *sopalin_data,
                  pastix_int_t             me,
                  pastix_int_t             t)
 {
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   Queue         *sendqueue;
   pastix_int_t            id_req  = 0;
@@ -1166,7 +1166,7 @@ send_all_fanin(Sopalin_Data_t *sopalin_data,
     }
   else
     {
-      SolverMatrix  *datacode    = sopalin_data->datacode;
+      d_SolverMatrix  *datacode    = sopalin_data->datacode;
 #ifdef TRACE_SOPALIN
       Thread_Data_t *thread_data = sopalin_data->thread_data[me];
 #endif
@@ -1236,7 +1236,7 @@ send_free_fanin ( Sopalin_Data_t *sopalin_data,
                   pastix_int_t             s_index)
 {
 #if ((!defined OOC_FTGT) || defined PASTIX_DEBUG )
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
 #endif
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   pastix_int_t f = 0;
@@ -1314,7 +1314,7 @@ void send_testall ( Sopalin_Data_t *sopalin_data, pastix_int_t me,
 #ifndef PASTIX_TERA
   {
 #  if (defined TEST_IRECV) || ((defined TEST_ISEND) && (defined SMP_SOPALIN))
-    SolverMatrix  *datacode = sopalin_data->datacode;
+    d_SolverMatrix  *datacode = sopalin_data->datacode;
 #  endif
     MPI_Status    *statuses;
     int           *indices;
@@ -1406,7 +1406,7 @@ int send_waitone ( Sopalin_Data_t *sopalin_data, pastix_int_t me,
                    void (*funcfree)(Sopalin_Data_t*, pastix_int_t, pastix_int_t) )
 {
 #if (defined TEST_ISEND) && (defined SMP_SOPALIN)
-  SolverMatrix  *datacode    = sopalin_data->datacode;
+  d_SolverMatrix  *datacode    = sopalin_data->datacode;
 #endif
   Thread_Data_t *thread_data = sopalin_data->thread_data[me];
   MPI_Status     status;
@@ -1545,7 +1545,7 @@ void* sendrecv_smp ( void *arg )
   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
   if (THREAD_COMM_ON)
     {
-      SolverMatrix     *datacode     = sopalin_data->datacode;
+      d_SolverMatrix     *datacode     = sopalin_data->datacode;
       MPI_Comm          pastix_comm  = PASTIX_COMM;
       int               type_thcomm  = sopalin_data->sopar->type_comm;
       int               me           = argument->me;

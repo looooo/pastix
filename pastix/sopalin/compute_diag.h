@@ -25,4 +25,4 @@ void PASTIX_sytrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t
 void PASTIX_hetrf_block ( pastix_float_t *A, pastix_int_t n,        pastix_int_t lda, pastix_int_t *npvt, double crit, pastix_float_t * tmp4   );
 void DimTrans           ( pastix_float_t *A, pastix_int_t lda, pastix_int_t size, pastix_float_t *B );
 
-#endif _COMPUTE_DIAG_H
+#endif /* _COMPUTE_DIAG_H */

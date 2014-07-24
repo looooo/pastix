@@ -30,7 +30,7 @@ typedef struct BackupSolve_ {
 
 
 /* Allocate and initialize/Free globale data for solver */
-void sopalin_init     (Sopalin_Data_t *sopalin_data, SolverMatrix *m, SopalinParam *sopaparam, int fact);
+void sopalin_init     (Sopalin_Data_t *sopalin_data, d_SolverMatrix *m, SopalinParam *sopaparam, int fact);
 void sopalin_clean    (Sopalin_Data_t *sopalin_data, int step);
 
 /* Allocate and initialize/Free thread data for solver */
@@ -38,12 +38,12 @@ void sopalin_init_smp (Sopalin_Data_t *sopalin_data, pastix_int_t me, int fact, 
 void sopalin_clean_smp(Sopalin_Data_t *sopalin_data, pastix_int_t me);
 
 /* Restore/backup des données modifiées pendant l'enchaînement facto/solve */
-void sopalin_backup (SolverMatrix *datacode, Backup *b);
-void sopalin_restore(SolverMatrix *datacode, Backup *b);
+void sopalin_backup (d_SolverMatrix *datacode, Backup *b);
+void sopalin_restore(d_SolverMatrix *datacode, Backup *b);
 
 /* Restore/backup des données modifiées pendant le solve */
-void solve_backup (SolverMatrix *datacode, BackupSolve_t *b);
-void solve_restore(SolverMatrix *datacode, BackupSolve_t *b);
+void solve_backup (d_SolverMatrix *datacode, BackupSolve_t *b);
+void solve_restore(d_SolverMatrix *datacode, BackupSolve_t *b);
 
 #if (defined PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE))
 #  define tabtravel_init   PASTIX_PREFIX_F(tabtravel_init)

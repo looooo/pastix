@@ -8,11 +8,11 @@
 #include <pthread.h>
 #include "csc.h"
 #include "csc_intern_io.h"
-#include "ftgt.h"
-#include "updown.h"
+#include "d_ftgt.h"
+#include "d_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "d_solver.h"
 
 /*
   Function: CscSave
@@ -80,7 +80,7 @@ pastix_int_t CscSave(const CscMatrix * const cscptr,
 
 #define CscSaveIJV PASTIX_EXTERN_F(CscSaveIJV)
 pastix_int_t CscSaveIJV(const CscMatrix * const cscptr,
-               const SolverMatrix     *solvmtx,
+               const d_SolverMatrix     *solvmtx,
                pastix_int_t                    *l2g,
                pastix_int_t                    *peritab,
                pastix_int_t                     dof,

@@ -18,7 +18,7 @@
  */
 static inline pastix_int_t
 API_CALL(sopalin_dynsched_getNexTask)(Sopalin_Data_t *sopalin_data,
-                                      SolverMatrix   *datacode,
+                                      d_SolverMatrix   *datacode,
                                       Thread_Data_t  *thread_data,
                                       pastix_int_t *itaskptr,
                                       pastix_int_t *itaskptr2,
@@ -77,7 +77,7 @@ API_CALL(sopalin_dynsched_getNexTask)(Sopalin_Data_t *sopalin_data,
  */
 static inline pastix_int_t
 API_CALL(sopalin_dynsched_getNexTask)(Sopalin_Data_t *sopalin_data,
-                                      SolverMatrix   *datacode,
+                                      d_SolverMatrix   *datacode,
                                       Thread_Data_t  *thread_data,
                                       pastix_int_t *itaskptr,
                                       pastix_int_t *itaskptr2,
