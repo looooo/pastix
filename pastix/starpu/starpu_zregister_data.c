@@ -7,7 +7,7 @@
 
 #include "starpu_zdefines.h"
 #include "common.h"
-#include "sopalin3d.h"
+#include "z_sopalin3d.h"
 #include "starpu_zregister_data.h"
 #include "sopalin_acces.h"
 
@@ -277,7 +277,7 @@ starpu_zunregister_cblk( z_SolverMatrix * datacode,
 }
 
 int
-starpu_zregister_blocktab( Sopalin_Data_t        * sopalin_data,
+starpu_zregister_blocktab( z_Sopalin_Data_t        * sopalin_data,
                            starpu_data_handle_t ** blocktab_handles,
                            int                  ** blocktab) {
     z_SolverMatrix * datacode = sopalin_data->datacode;
@@ -350,7 +350,7 @@ starpu_zregister_work( z_SolverMatrix * datacode,
 }
 
 int
-starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
+starpu_zregister_data( z_Sopalin_Data_t         * sopalin_data,
                        starpu_data_handle_t  ** L_handle,
                        starpu_data_handle_t  ** U_handle,
                        starpu_data_handle_t  ** Lhalo_handle,
@@ -381,7 +381,7 @@ starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
 }
 
 int
-starpu_zunregister_data( Sopalin_Data_t         * sopalin_data,
+starpu_zunregister_data( z_Sopalin_Data_t         * sopalin_data,
                          starpu_data_handle_t  ** L_handle,
                          starpu_data_handle_t  ** U_handle,
                          starpu_data_handle_t  ** Lhalo_handle,

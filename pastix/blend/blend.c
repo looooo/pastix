@@ -20,13 +20,13 @@
 #include "common.h"
 #include "out.h"
 #include "dof.h"
-#include "z_ftgt.h"
+#include "d_ftgt.h"
 #include "cost.h"
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "z_updown.h"
-#include "z_solver.h"
+#include "d_updown.h"
+#include "d_solver.h"
 #include "solverRealloc.h"
 #include "elimin.h"
 #include "extendVector.h"
@@ -65,7 +65,7 @@
  *   solvmtx    - Solver matrix structure.
  */
 void solverBlend(BlendCtrl    *ctrl,
-                 z_SolverMatrix *solvmtx,
+                 d_SolverMatrix *solvmtx,
                  SymbolMatrix *symbmtx,
                  const Dof    *dofptr)
 {
@@ -272,7 +272,7 @@ void solverBlend(BlendCtrl    *ctrl,
      */
     {
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, " -- Generate the final z_SolverMatrix\n" );
+            pastix_print( clustnum, 0, " -- Generate the final SolverMatrix\n" );
         clockStart(timer_current);
 
         bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);

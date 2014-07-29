@@ -1,9 +1,12 @@
 include(RulesPrecisions)
+include(array2d)
+
 # reset variables
 set(generated_files "")
 set(generated_headers "")
 
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
+include_directories(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/")
 link_directories(
   ${CBLAS_LIBRARY_DIRS}
   ${BLAS_LIBRARY_DIRS}
@@ -11,20 +14,27 @@ link_directories(
 
 set(PASTIX_EXAMPLES_LIBRARIES pastix)
 
+
+set(PASTIX_EXAMPLES_LIBRARIES
+  ${PASTIX_EXAMPLES_LIBRARIES}
+  read_matrix
+  pastix
+  pastix_sopalin
+  pastix_libcsc
+  pastix_csc
+  pastix
+  pastix_blend)
 if(PASTIX_WITH_STARPU)
   set(PASTIX_EXAMPLES_LIBRARIES
     ${PASTIX_EXAMPLES_LIBRARIES}
     pastix_starpu)
 endif(PASTIX_WITH_STARPU)
-
 set(PASTIX_EXAMPLES_LIBRARIES
   ${PASTIX_EXAMPLES_LIBRARIES}
-  pastix_kernels
   pastix_libcsc
-  pastix_blend
-  pastix # pastix_blend requires dofInit from symbol which is in libpastix.a
-  pastix_bcsc
-  read_matrix
+  pastix
+  pastix_kernels
+  pastix_common
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
@@ -70,30 +80,45 @@ if(PASTIX_WITH_STARPU)
   endif(PASTIX_WITH_MPI)
 endif(PASTIX_WITH_STARPU)
 
-set(HEADERS zutils.h)
+set(HEADERS z_utils.h)
 precisions_rules_py(generated_headers
                     "${HEADERS}"
                     PRECISIONS "s;d;c;z")
-message(STATUS ${SOURCES})
+add_custom_target(examples_headers DEPENDS ${generated_headers} )
 message(STATUS ${generated_headers})
-add_custom_target(examples_headers ALL SOURCES
-  ${generated_headers} )
-set(SOURCES zsimple.c zstep-by-step.c)
+
+set(SOURCES z_simple.c z_step-by-step.c z_analyze.c)
 ## Require all PaStiX with multiple precision before...
-##precisions_rules_py(generated_files
-##   "${SOURCES}"
-##   PRECISIONS "s;d;c;z")
-message(STATUS ${generated_files})
-foreach(example_with_ext ${generated_files} simple.c step-by-step.c analyse.c)
-  message(STATUS "${example_with_ext}")
+precisions_rules_py(generated_files
+   "${SOURCES}"
+   PRECISIONS "s;d;c;z")
+
+foreach(example_with_ext ${generated_files})
   GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
-  add_executable(${example} "${example_with_ext}")
-  add_dependencies(${example} ${example_with_ext})
+  add_executable(${example} "${example_with_ext}" ${generated_headers})
   target_link_libraries( ${example}
-    ${PASTIX_EXAMPLES_LIBRARIES} )
+    ${PASTIX_EXAMPLES_LIBRARIES})
 
   if (PASTIX_WITH_MPI)
     target_link_libraries( ${example}
       ${MPI_LIBRARIES} )
   endif()
 endforeach()
+
+foreach(example simple step-by-step)
+  foreach(prec s d c z)
+    set(test_args
+      ${test_args}
+      ${prec}_${example} "-lap 1000"
+      )
+  endforeach()
+endforeach()
+
+array2d_begin_loop( advanced "${test_args}" 2 "test;args" )
+while( advanced )
+  set(name "${test}_${args}")
+  string(REPLACE " " "_" name ${name})
+  string(REPLACE " " ";" args_list ${args})
+  add_test(${name} ${test} ${args_list})
+  array2d_advance()
+endwhile()

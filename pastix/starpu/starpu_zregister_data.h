@@ -28,7 +28,7 @@ starpu_zregister_cblk( z_SolverMatrix          * datacode,
                        starpu_data_handle_t ** U_handle );
 
 int
-starpu_zregister_blocktab( Sopalin_Data_t        * sopalin_data,
+starpu_zregister_blocktab( z_Sopalin_Data_t        * sopalin_data,
                            starpu_data_handle_t ** blocktab_handles,
                            int                  ** blocktab);
 
@@ -38,7 +38,7 @@ starpu_zregister_work( z_SolverMatrix * datacode,
                        pastix_int_t WORK_size );
 
 int
-starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
+starpu_zregister_data( z_Sopalin_Data_t         * sopalin_data,
                        starpu_data_handle_t  ** L_handle,
                        starpu_data_handle_t  ** U_handle,
                        starpu_data_handle_t  ** Lhalo_handle,
@@ -75,7 +75,7 @@ starpu_zunregister_work( z_SolverMatrix * datacode,
                          starpu_data_handle_t * WORK_handle );
 
 int
-starpu_zunregister_data( Sopalin_Data_t         * sopalin_data,
+starpu_zunregister_data( z_Sopalin_Data_t         * sopalin_data,
                          starpu_data_handle_t  ** L_handle,
                          starpu_data_handle_t  ** U_handle,
                          starpu_data_handle_t  ** Lhalo_handle,

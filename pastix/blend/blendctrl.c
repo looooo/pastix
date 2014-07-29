@@ -183,12 +183,12 @@ blendCtrlInit(BlendCtrl    *ctrl,
         ctrl->ratiolimit = INTVALMAX;
     }
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX)
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX) {
         if (ctrl->autolevel)
             printf("ratiolimit=%lf\n", ctrl->ratiolimit );
         else
             printf("level2D=%ld\n", (long) ctrl->level2D );
-
+    }
     /* Save iparm for other options */
     ctrl->iparm = iparm;
 
@@ -238,6 +238,11 @@ blendCtrlInit(BlendCtrl    *ctrl,
 #ifdef PASTIX_DYNSCHED
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
 #endif
+
+    {
+        /* hack because double has been replaced by float in all z_ => c_ d_ files */
+        MALLOC_INTERN(ctrl->dparm, IPARM_SIZE, double);
+    }
 
     return PASTIX_SUCCESS;
 }

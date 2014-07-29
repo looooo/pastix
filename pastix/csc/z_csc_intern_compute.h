@@ -57,7 +57,7 @@ double z_CscNorm1(const z_CscMatrix *cscmtx,
  *   transpose    - Indicate if we want to transpose A.
  */
 #define z_CscbMAx API_CALL(z_CscbMAx)
-void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
+void z_CscbMAx(z_Sopalin_Data_t       *sopalin_data,
              int                   me,
              volatile pastix_complex64_t       *r,
              const volatile pastix_complex64_t *b,
@@ -75,7 +75,7 @@ void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
  *  Compute the operation $$r=|A||x|+|b|$$
  *
  *  Parameters:
- *     sopalin_data - Sopalin_Data_t structure, common to all threads.
+ *     sopalin_data - z_Sopalin_Data_t structure, common to all threads.
  *     me           - thread number
  *     r            - solution (vector commont to all threads)
  *     b            - Added vector (vector commont to all threads)
@@ -86,7 +86,7 @@ void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
  *     transpose    - Indicate if we want to transpose A.
  */
 #define z_CscAxPb API_CALL(z_CscAxPb)
-void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
+void z_CscAxPb(z_Sopalin_Data_t     *sopalin_data,
              int                 me,
              pastix_complex64_t              *r,
              const pastix_complex64_t        *b,
@@ -104,7 +104,7 @@ void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
  *
  *  Parameters :
  *
- *  sopalin_data - Sopalin_Data_t structure, common to all threads.
+ *  sopalin_data - z_Sopalin_Data_t structure, common to all threads.
  *  me           - thread number
  *  r            - vector(s) (common to all threads)
  *  s            - vector(s) (common to all threads)
@@ -114,7 +114,7 @@ void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
  *  comm         - MPI communicator
  */
 #define z_CscBerr API_CALL(z_CscBerr)
-void z_CscBerr(Sopalin_Data_t *sopalin_data,
+void z_CscBerr(z_Sopalin_Data_t *sopalin_data,
              int            me,
              const pastix_complex64_t   *r,
              const pastix_complex64_t   *s,
@@ -143,7 +143,7 @@ void z_CscBerr(Sopalin_Data_t *sopalin_data,
  *   comm         - PaStiX MPI communicator.
  */
 #define z_CscNormErr API_CALL(z_CscNormErr)
-double z_CscNormErr(Sopalin_Data_t       *sopalin_data,
+double z_CscNormErr(z_Sopalin_Data_t       *sopalin_data,
                   int                   me,
                   const volatile pastix_complex64_t *r,
                   const volatile pastix_complex64_t *b,
@@ -169,7 +169,7 @@ double z_CscNormErr(Sopalin_Data_t       *sopalin_data,
  *   comm         - PaStiX MPI communicator.
  */
 #define z_CscNormFro API_CALL(z_CscNormFro)
-double z_CscNormFro(Sopalin_Data_t       *sopalin_data,
+double z_CscNormFro(z_Sopalin_Data_t       *sopalin_data,
                   int                   me,
                   const volatile pastix_complex64_t *x,
                   const PASTIX_INT             colnbr,
@@ -198,7 +198,7 @@ double z_CscNormFro(Sopalin_Data_t       *sopalin_data,
  *     transpose    - Indicate if we want to transpose A.
  */
 #define z_CscAx API_CALL(z_CscAx)
-void z_CscAx(Sopalin_Data_t       *sopalin_data,
+void z_CscAx(z_Sopalin_Data_t       *sopalin_data,
            int                   me,
            const z_CscMatrix      *cscmtx,
            const volatile pastix_complex64_t *p,
@@ -227,7 +227,7 @@ void z_CscAx(Sopalin_Data_t       *sopalin_data,
  *   comm         - MPI communicator.
  */
 #define z_CscGradBeta API_CALL(z_CscGradBeta)
-void z_CscGradBeta(Sopalin_Data_t       *sopalin_data,
+void z_CscGradBeta(z_Sopalin_Data_t       *sopalin_data,
                  int                   me,
                  const volatile pastix_complex64_t *r,
                  const volatile pastix_complex64_t *z,
@@ -253,7 +253,7 @@ void z_CscGradBeta(Sopalin_Data_t       *sopalin_data,
  *   comm         - MPI communicator.
  */
 #define z_CscGmresBeta API_CALL(z_CscGmresBeta)
-void z_CscGmresBeta(Sopalin_Data_t                    *sopalin_data,
+void z_CscGmresBeta(z_Sopalin_Data_t                    *sopalin_data,
                     int                                me,
                     const volatile pastix_complex64_t *r,
                     const volatile pastix_complex64_t *z,
@@ -281,7 +281,7 @@ void z_CscGmresBeta(Sopalin_Data_t                    *sopalin_data,
  *   comm         - PaStiX MPI communicator.
  */
 #define z_CscCopy API_CALL(z_CscCopy)
-void z_CscCopy(Sopalin_Data_t              *sopalin_data,
+void z_CscCopy(z_Sopalin_Data_t              *sopalin_data,
              int                          me,
              const volatile pastix_complex64_t *x,
              volatile pastix_complex64_t       *y,
@@ -307,7 +307,7 @@ void z_CscCopy(Sopalin_Data_t              *sopalin_data,
  *   comm         - PaStiX MPI communicator.
  */
 #define z_CscScal API_CALL(z_CscScal)
-void z_CscScal(Sopalin_Data_t        *sopalin_data,
+void z_CscScal(z_Sopalin_Data_t        *sopalin_data,
              int                    me,
              volatile pastix_complex64_t  alpha,
              volatile pastix_complex64_t *x,
@@ -335,7 +335,7 @@ void z_CscScal(Sopalin_Data_t        *sopalin_data,
  *   comm         - PaStiX MPI communicator.
  */
 #define z_CscAXPY API_CALL(z_CscAXPY)
-void z_CscAXPY(Sopalin_Data_t              *sopalin_data,
+void z_CscAXPY(z_Sopalin_Data_t              *sopalin_data,
              int                          me,
              pastix_complex64_t                 alpha,
              const volatile pastix_complex64_t *x,

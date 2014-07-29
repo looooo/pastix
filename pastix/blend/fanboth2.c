@@ -4,20 +4,20 @@
 #include <assert.h>
 
 #include "common.h"
-#include "z_ftgt.h"
+#include "d_ftgt.h"
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "z_updown.h"
-#include "z_solver.h"
+#include "d_updown.h"
+#include "d_solver.h"
 #include "fanboth2.h"
 
 #undef DEBUG_BLEND
 
 /** reduction is the percentage of the total AUB size that we do not want to violate **/
-pastix_int_t Malt2(z_SolverMatrix *solvmtx, double reduction)
+pastix_int_t Malt2(d_SolverMatrix *solvmtx, double reduction)
 {
-  const pastix_int_t fanFixSize = sizeof(z_FanInTarget);
+  const pastix_int_t fanFixSize = sizeof(d_FanInTarget);
   pastix_int_t p, procdst;
   pastix_int_t i, j, cursor=0;
   pastix_int_t accessnbr=0;
@@ -36,7 +36,7 @@ pastix_int_t Malt2(z_SolverMatrix *solvmtx, double reduction)
   pastix_int_t overmem = 0;  /* the excedent memmory that can't be overlap by fanboth */
   pastix_int_t extraftgtnbr = 0; /* the number of extra fan in target */
   ExtraFtgt *extraftgttab = NULL;
-  z_FanInTarget *newftgttab = NULL;
+  d_FanInTarget *newftgttab = NULL;
   pastix_int_t *newnumtab          = NULL;
 #ifdef DEBUG_BLEND
   pastix_int_t debugaccess = 0;
@@ -276,7 +276,7 @@ pastix_int_t Malt2(z_SolverMatrix *solvmtx, double reduction)
   /** Generation of the new fan-in-target **/
   /* For avoid side effect */
   queueAdd(&partialFtgtInd, solvmtx->ftgtnbr, (double)(solvmtx->ftgtnbr));
-  MALLOC_INTERN(newftgttab, solvmtx->ftgtnbr + extracursor, z_FanInTarget);
+  MALLOC_INTERN(newftgttab, solvmtx->ftgtnbr + extracursor, d_FanInTarget);
   MALLOC_INTERN(newnumtab,  solvmtx->ftgtnbr, pastix_int_t);
   cursor = 0;
   j = 0;
@@ -290,7 +290,7 @@ pastix_int_t Malt2(z_SolverMatrix *solvmtx, double reduction)
 	  ASSERT( extraftgttab[j].indnum == i,MOD_BLEND);
 #endif
 	  /*fprintf(stdout, "Add Partial %ld at %ld before Ftgt %ld \n", (long)j, (long)cursor, (long)i);*/
-	  /*memcpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[extraftgttab[j].ftgtnum]), sizeof(z_FanInTarget));*/
+	  /*memcpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[extraftgttab[j].ftgtnum]), sizeof(d_FanInTarget));*/
 	  newftgttab[cursor].infotab[FTGT_PROCDST] = solvmtx->ftgttab[extraftgttab[j].ftgtnum].infotab[FTGT_PROCDST];
 	  newftgttab[cursor].infotab[FTGT_TASKDST] = solvmtx->ftgttab[extraftgttab[j].ftgtnum].infotab[FTGT_TASKDST];
 	  newftgttab[cursor].infotab[FTGT_BLOKDST] = solvmtx->ftgttab[extraftgttab[j].ftgtnum].infotab[FTGT_BLOKDST];
@@ -306,7 +306,7 @@ pastix_int_t Malt2(z_SolverMatrix *solvmtx, double reduction)
 	  extraftgttab[j].ftgtnewnum = cursor;
 	  cursor++;
 	}
-      /*memcpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[i]), sizeof(z_FanInTarget));*/
+      /*memcpy(&(newftgttab[cursor]), &(solvmtx->ftgttab[i]), sizeof(d_FanInTarget));*/
       
       newftgttab[cursor].infotab[FTGT_PROCDST] = solvmtx->ftgttab[i].infotab[FTGT_PROCDST];
       newftgttab[cursor].infotab[FTGT_TASKDST] = solvmtx->ftgttab[i].infotab[FTGT_TASKDST];
@@ -580,7 +580,7 @@ pastix_int_t Malt2(z_SolverMatrix *solvmtx, double reduction)
 
 }
 
-pastix_int_t getFtgtInd2(z_SolverMatrix *solvmtx, pastix_int_t *senttab, Queue *toSendQueue, Queue *latestQueue)
+pastix_int_t getFtgtInd2(d_SolverMatrix *solvmtx, pastix_int_t *senttab, Queue *toSendQueue, Queue *latestQueue)
 {
   pastix_int_t ftgtnum = -1;
   pastix_int_t ind;

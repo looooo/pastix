@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "pastix.h"
+#include "z_pastix.h"
 
 /*
   Function: myupcase

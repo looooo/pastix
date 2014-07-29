@@ -6,7 +6,7 @@
 /**                                                        **/
 /**   FUNCTION   : queue of pastix_int_t that sorts elements        **/
 /**                in ascending way according to a         **/
-/**                pastix_float_t key                               **/
+/**                pastix_complex64_t key                               **/
 /**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
 /**                                 to     08 sep 1998     **/
 /**                                                        **/

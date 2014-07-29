@@ -348,7 +348,7 @@ splitSmart( const BlendCtrl    *ctrl,
 {
     SymbolBlok   *curblok;
     pastix_int_t *nblocksperline = NULL;
-    pastix_int_t  i, cblknum, bloknum, line;
+    pastix_int_t  cblknum, bloknum, line;
     pastix_int_t  fsplitrow = -1;
     pastix_int_t  method, authorized_percent;
 #define SPLITSYMBOL_METHOD_DEFAULT  0
@@ -578,6 +578,8 @@ void splitSymbol( BlendCtrl    *ctrl,
             pastix_int_t block_step = (block_height_max - block_height_min)/10;
             pastix_int_t cblk_counters[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             pastix_int_t block_counters[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            if (cblk_step == 0) cblk_step++;
+            if (block_step == 0) block_step++;
             if (cblk_width_min + cblk_step * 10 < cblk_width_max)
                 cblk_step++;
             if (block_height_min + block_step * 10 < block_height_max)

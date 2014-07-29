@@ -74,7 +74,7 @@
 #define TIME_TO_ANALYSE       "   Time to analyze                              %.3g s\n"
 #define NNZERO_WITH_FILLIN_TH "   Number of nonzeros in factorized matrix      %ld\n"
 #define NNZERO_WITH_FILLIN    "%d : Number of nonzeros (local block structure) %ld\n"
-#define SOLVMTX_WITHOUT_CO    "%d : d_SolverMatrix size (without coefficients)   %.3g %s\n"
+#define SOLVMTX_WITHOUT_CO    "%d : SolverMatrix size (without coefficients)   %.3g %s\n"
 #define OUT_FILLIN_TH         "   Fill-in                                      %lg\n"
 #define NUMBER_OP_LU          "   Number of operations (LU)                    %g\n"
 #define NUMBER_OP_LLT         "   Number of operations (LLt)                   %g\n"

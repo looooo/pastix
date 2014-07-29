@@ -76,7 +76,7 @@ pastix_int_t z_CscSave(const z_CscMatrix * const cscptr,
       for (iter=0; iter < valnbr ;iter++)
         {
           fprintf(stream, "%ld\n", (long)CSC_ROW(cscptr,iter));
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
           fprintf(stream, "%e %e\n", creal(CSC_VAL(cscptr,iter)), cimag(CSC_VAL(cscptr,iter)));
 #else
           fprintf(stream, "%e\n", CSC_VAL(cscptr,iter));
@@ -125,7 +125,7 @@ pastix_int_t CscSaveIJV(const z_CscMatrix * const cscptr,
                                                        CSC_ROW(cscptr,iterval)%dof)/dof]*dof + 1
                                               + CSC_ROW(cscptr,iterval)%dof));
               fprintf(stream, "%ld ", (long)((l2g[peritab[(indcol- indcol%dof)/dof]]-1)*dof+1+indcol%dof));
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
               fprintf(stream, "%e %e\n", creal(CSC_VAL(cscptr,iterval)), cimag(CSC_VAL(cscptr,iterval)));
 #else
               fprintf(stream, "%e\n", CSC_VAL(cscptr,iterval));
@@ -262,7 +262,7 @@ pastix_int_t z_CscLoad(z_CscMatrix * cscptr,
       }
 
       CSC_ROW(cscptr,iter)=temp;
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
       {
         double tempreal, tempimag;
         if (2 != fscanf(stream, "%lf %lf\n", &tempreal, &tempimag)){

@@ -13,7 +13,7 @@
  *
  **/
 #include "common.h"
-#include "tools.h"
+#include "z_tools.h"
 #include "z_cscd_utils.h"
 #include "z_cscd_utils_intern.h"
 
@@ -79,6 +79,7 @@ pastix_complex64_t keep_last(pastix_complex64_t a, pastix_complex64_t b)
   return b;
 }
 
+#ifndef TYPE_COMPLEX
 /*
   Function: get_max
 
@@ -110,6 +111,7 @@ static
 pastix_complex64_t get_min(pastix_complex64_t a, pastix_complex64_t b) {
     return MIN(creal(a),creal(b));
 }
+#endif
 
 /*
  *  Function: csc_dispatch
@@ -250,9 +252,6 @@ void z_csc_dispatch(pastix_int_t  gN, pastix_int_t *  gcolptr, pastix_int_t *  g
  * Return:
  *   owner of the column (column%commSize)
  */
-#ifndef csc_cyclic_distribution
-#  error "redefinition required"
-#endif
 pastix_int_t z_csc_cyclic_distribution(pastix_int_t column, pastix_int_t columnnbr, MPI_Comm pastix_comm)
 {
   int commSize;
@@ -310,11 +309,11 @@ pastix_int_t z_cscsimple_distribution(pastix_int_t column, pastix_int_t columnnb
  *   dof      - Number of degrees of freedom.
  *   comm     - MPI communicator
  */
-int z_cscd_build_g2l(pastix_int_t        ncol,
-                     const pastix_int_t *loc2glob,
-                     MPI_Comm            comm,
-                     pastix_int_t       *gN,
-                     pastix_int_t      **g2l)
+int z_cscd_build_g2l(pastix_int_t   ncol,
+                     pastix_int_t  *loc2glob,
+                     MPI_Comm       comm,
+                     pastix_int_t  *gN,
+                     pastix_int_t **g2l)
 {
   int commRank;
   int commSize;
@@ -832,8 +831,8 @@ int z_cscd_checksym(pastix_int_t      n,
  *   comm        - MPI communicator.
  */
 int z_cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_complex64_t *     a,
-                  pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_complex64_t ** newa,
-                  const pastix_int_t *  l2g, MPI_Comm comm)
+                    pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_complex64_t ** newa,
+                    pastix_int_t *  l2g, MPI_Comm comm)
 {
     return z_cscd_symgraph_int(n,    ia,    ja,    a,
                                newn, newia, newja, newa,
@@ -863,8 +862,8 @@ int z_cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_in
  */
 
 int z_cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const pastix_int_t *        ja, const pastix_complex64_t *     a,
-                      pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_complex64_t ** newa,
-                      const pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag)
+                        pastix_int_t * newn, pastix_int_t **  newia, pastix_int_t **    newja, pastix_complex64_t ** newa,
+                        pastix_int_t *  l2g, MPI_Comm comm, int malloc_flag)
 {
   int            commSize;
   int            proc;
@@ -1284,7 +1283,7 @@ int z_cscd_addlocal_int(pastix_int_t   n   ,
                         const pastix_int_t * l2g,
                         pastix_int_t   addn,
                         const pastix_int_t *  addia,
-                        const pastix_int_t *  addja,
+                              pastix_int_t *  addja,
                         const pastix_complex64_t *  adda,
                         const pastix_int_t * addl2g,
                         pastix_int_t * newn,
@@ -2712,7 +2711,7 @@ int z_cscd_save(pastix_int_t          n,
     {
       for (i=0; i<(ia[n]-1)*dof*dof; i++)
         {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
           fprintf(outfile, "%lg %lg ", creal(a[i]), cimag(a[i]));
           if (i%2 == 1) fprintf(outfile, "\n");
 #else
@@ -2720,7 +2719,7 @@ int z_cscd_save(pastix_int_t          n,
           if (i%4 == 3) fprintf(outfile, "\n");
 #endif
         }
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
       if ((i-1)%2 !=3) fprintf(outfile, "\n");
 #else
       if ((i-1)%4 !=3) fprintf(outfile, "\n");
@@ -2731,7 +2730,7 @@ int z_cscd_save(pastix_int_t          n,
     {
       for (i=0; i<n*dof; i++)
         {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
           fprintf(outfile, "%lg %lg ", creal(rhs[i]), cimag(rhs[i]));
           if (i%2 == 1) fprintf(outfile, "\n");
 #else
@@ -2739,7 +2738,7 @@ int z_cscd_save(pastix_int_t          n,
           if (i%4 == 3) fprintf(outfile, "\n");
 #endif
         }
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
       if ((i-1)%2 !=3) fprintf(outfile, "\n");
 #else
       if ((i-1)%4 !=3) fprintf(outfile, "\n");
@@ -2766,7 +2765,7 @@ int z_cscd_save(pastix_int_t          n,
                   {
                     if (a != NULL)
                       {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
 #ifdef DUMP_BY_NODE
                         fprintf(outfile, "%ld (%ld)\t%ld (%ld)\t%.12lg\t%.12lg\n",
                                 (long)l2g[i], (long)(k+1),
@@ -2806,7 +2805,7 @@ int z_cscd_save(pastix_int_t          n,
                   {
                     if (a != NULL)
                       {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
                         fprintf(outfile, "%ld\t%ld\t%.12lg\t%.12lg\n",
                                 (long)((i)*dof+k+1),
                                 (long)((ja[j]-1)*dof+l+1),
@@ -2842,7 +2841,7 @@ int z_cscd_save(pastix_int_t          n,
             {
               if (l2g != NULL)
                 {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
                   fprintf(outfile, "%ld %lg %lg\n", (long)((l2g[i]-1)*dof+j+1),
                           (double)creal(rhs[i*dof+j]),
                           (double)cimag(rhs[i*dof+j]));
@@ -2853,7 +2852,7 @@ int z_cscd_save(pastix_int_t          n,
                 }
               else
                 {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
                   fprintf(outfile, "%ld %lg %lg\n", (long)(i*dof+j+1),
                           (double)creal(rhs[i*dof+j]),
                           (double)cimag(rhs[i*dof+j]));
@@ -3099,7 +3098,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
       for (i=0; i<nnz+1-4; i+=4)
         {
 #ifdef TYPE_COMPLEX
-          if (8 != fscanf(infile, "%lf %lf %lf %lf %lf %lf %lf %lf",
+          if (8 != fscanf(infile, "%lg %lg %lg %lg %lg %lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4,
                           &tmpflt5, &tmpflt6, &tmpflt7, &tmpflt8)){
             errorPrint("CSCD badly formated");
@@ -3110,7 +3109,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
           (*a)[i+2] = (pastix_complex64_t)(tmpflt5 + I * tmpflt6);
           (*a)[i+3] = (pastix_complex64_t)(tmpflt7 + I * tmpflt8);
 #else
-          if (4 != fscanf(infile, "%lf %lf %lf %lf",
+          if (4 != fscanf(infile, "%lg %lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
@@ -3125,7 +3124,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
         {
         case 3:
 #ifdef TYPE_COMPLEX
-          if (6 != fscanf(infile, "%lf %lf %lf %lf %lf %lf",
+          if (6 != fscanf(infile, "%lg %lg %lg %lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4,
                           &tmpflt5, &tmpflt6)){
             errorPrint("CSCD badly formated");
@@ -3135,7 +3134,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
           (*a)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
           (*a)[i+2] = (pastix_complex64_t)(tmpflt5 + I * tmpflt6);
 #else
-          if (3 != fscanf(infile, "%lf %lf %lf",
+          if (3 != fscanf(infile, "%lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
@@ -3147,7 +3146,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
           break;
         case 2:
 #ifdef TYPE_COMPLEX
-          if (4 != fscanf(infile, "%lf %lf %lf %lf",
+          if (4 != fscanf(infile, "%lg %lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
@@ -3155,7 +3154,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
           (*a)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
           (*a)[i+1] = (pastix_complex64_t)(tmpflt3 + I * tmpflt4);
 #else
-          if (2 != fscanf(infile, "%lf %lf",
+          if (2 != fscanf(infile, "%lg %lg",
                           &tmpflt1, &tmpflt2)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
@@ -3166,14 +3165,14 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
           break;
         case 1:
 #ifdef TYPE_COMPLEX
-          if (2 != fscanf(infile, "%lf %lf",
+          if (2 != fscanf(infile, "%lg %lg",
                           &tmpflt1, &tmpflt2)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
           (*a)[i  ] = (pastix_complex64_t)(tmpflt1 + I * tmpflt2);
 #else
-          if (1 != fscanf(infile, "%lf",
+          if (1 != fscanf(infile, "%lg",
                           &tmpflt1)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
@@ -3190,7 +3189,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
       MALLOC_INTERN(*rhs, *n, pastix_complex64_t);
       for (i=0; i<*n+1-4; i+=4)
         {
-          if (4 != fscanf(infile, "%lf %lf %lf %lf",
+          if (4 != fscanf(infile, "%lg %lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3, &tmpflt4)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
@@ -3205,7 +3204,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
       switch (*n - i)
         {
         case 3:
-          if (3 != fscanf(infile, "%lf %lf %lf",
+          if (3 != fscanf(infile, "%lg %lg %lg",
                           &tmpflt1, &tmpflt2, &tmpflt3)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
@@ -3216,7 +3215,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
           (*rhs)[i+2] = (pastix_complex64_t)tmpflt3;
           break;
         case 2:
-          if (2 != fscanf(infile, "%lf %lf", &tmpflt1, &tmpflt2)){
+          if (2 != fscanf(infile, "%lg %lg", &tmpflt1, &tmpflt2)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }
@@ -3225,7 +3224,7 @@ int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_
           (*rhs)[i+1] = (pastix_complex64_t)tmpflt2;
           break;
         case 1:
-          if (1 != fscanf(infile, "%lf", &tmpflt1)){
+          if (1 != fscanf(infile, "%lg", &tmpflt1)){
             errorPrint("CSCD badly formated");
             return EXIT_FAILURE;
           }

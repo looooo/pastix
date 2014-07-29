@@ -15,10 +15,10 @@
 
 #ifndef SOLVER_REALLOC_H
 #define SOLVER_REALLOC_H
-#include "z_solver.h"
-
-void                     solverRealloc        (z_SolverMatrix *);
-void                     solverExit           (z_SolverMatrix *);
-void                     solverInit           (z_SolverMatrix *);
+#include "d_solver.h"
+/* hack to call the function in a precision generated file */
+void                     solverRealloc        (d_SolverMatrix *);
+void                     solverExit           (d_SolverMatrix *);
+void                     solverInit           (d_SolverMatrix *);
 
 #endif /* SOLVER_REALLOC_H */

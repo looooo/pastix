@@ -4,8 +4,8 @@
  * @author Xavier Lacoste
  * @precisions normal z -> s d c
  */
-#ifndef STARPU_DEFINES_H
-#define STARPU_DEFINES_H
+#ifndef STARPU_ZDEFINES_H
+#define STARPU_ZDEFINES_H
 
 #include <starpu.h>
 #include "common.h"
@@ -14,7 +14,7 @@
 #endif
 #include <starpu_profiling.h>
 
-#include "sopalin3d.h"
+#include "z_sopalin3d.h"
 
 #if (STARPU_MAJOR_VERSION < 1)
 #  error "PaStiX requires STARPU >= 1"
@@ -88,7 +88,7 @@
                 pastix_int_t fcblknum = z_cblk_getnum(datacode, fcblk); \
                 TASK_CTRBCNT(fcblknum)--;                               \
                 if (TASK_CTRBCNT(fcblknum) == 0) {                      \
-                    starpu_submit_one_trf(fcblknum, sopalin_data);      \
+                    starpu_zsubmit_one_trf(fcblknum, sopalin_data);      \
                 }                                                       \
             } else {                                                    \
                 if ( pastix_starpu_with_fanin() == API_YES ) {          \
@@ -105,12 +105,11 @@
             z_SolverMatrix *datacode = sopalin_data->datacode;            \
             pastix_int_t tasknum = z_cblk_getnum(datacode, cblk);         \
             if (pastix_starpu_with_nested_task() == API_YES) {          \
-                starpu_submit_bunch_of_gemm(tasknum, sopalin_data);     \
+                starpu_zsubmit_bunch_of_gemm(tasknum, sopalin_data);     \
             }                                                           \
         } while(0)
 
-
-struct starpu_loop_data_ {
+struct starpu_zloop_data_ {
     int                     me;
     starpu_data_handle_t *  L_handle;
     starpu_data_handle_t *  Lhalo_handle;
@@ -120,7 +119,7 @@ struct starpu_loop_data_ {
     starpu_data_handle_t ** Ufanin_handle;
     starpu_data_handle_t    WORK_handle;
     starpu_data_handle_t *  blocktab_handles;
-    Sopalin_Data_t       *  sopalin_data;
+    z_Sopalin_Data_t       *  sopalin_data;
     int                     ctx;
     int                     ctx_nbr;
     int                     thread_per_ctx;
@@ -137,4 +136,4 @@ struct starpu_loop_data_ {
 };
 
 
-#endif /* STARPU_DEFINES_H */
+#endif /* STARPU_ZDEFINES_H */

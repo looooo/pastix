@@ -32,17 +32,17 @@ static double   contribCompCost       (pastix_int_t, pastix_int_t, pastix_int_t)
 static double   contribAddCost        (pastix_int_t, pastix_int_t);
 double costFtgtSend( const BlendCtrl   *ctrl,
                      const Dof         *dofptr,
-                     const z_FanInTarget *ftgt,
+                     const d_FanInTarget *ftgt,
                      pastix_int_t clustsrc,
                      pastix_int_t sync_comm_nbr );
 
 
-double          costFtgtAdd           (z_FanInTarget *, const Dof *);
+double          costFtgtAdd           (d_FanInTarget *, const Dof *);
 double          cblkMaxCost           (pastix_int_t, const CostMatrix *);
 double          totalCost             (pastix_int_t, const CostMatrix *);
-void            printSolverInfo       (FILE *, const z_SolverMatrix *, const SymbolMatrix *, const Dof * const dofptr);
-double          memorySpaceCost       (const z_SolverMatrix *);
-static double   solverSpaceCost       (const z_SolverMatrix *);
+void            printSolverInfo       (FILE *, const d_SolverMatrix *, const SymbolMatrix *, const Dof * const dofptr);
+double          memorySpaceCost       (const d_SolverMatrix *);
+static double   solverSpaceCost       (const d_SolverMatrix *);
 static double   symbolSpaceCost       (const SymbolMatrix *);
 
 #undef static

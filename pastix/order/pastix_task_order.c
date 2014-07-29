@@ -18,6 +18,7 @@
 #include "common.h"
 #include "graph.h"
 #include "order.h"
+#include "pastix_task_order.h"
 
 /**
  *******************************************************************************
@@ -109,11 +110,11 @@
  *
  *******************************************************************************/
 int
-pastix_task_order(      pastix_data_t *pastix_data,
+pastix_task_order(      d_pastix_data_t *pastix_data,
                         pastix_int_t   n,
                   const pastix_int_t  *colptr,
                   const pastix_int_t  *rows,
-                  const pastix_int_t  *loc2glob,
+                        pastix_int_t  *loc2glob,
                         pastix_int_t  *perm,
                         pastix_int_t  *invp)
 {

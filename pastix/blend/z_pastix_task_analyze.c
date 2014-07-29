@@ -37,11 +37,13 @@
   pastix_comm - PaStiX MPI communicator
 
 */
-void z_pastix_task_blend(pastix_data_t *pastix_data)
+void z_pastix_task_blend(z_pastix_data_t *pastix_data)
 {
     Dof            dofstr;
     BlendCtrl      ctrl;
+#ifdef PASTIX_WITH_MPI
     MPI_Comm       pastix_comm = pastix_data->inter_node_comm;
+#endif
     pastix_int_t   procnbr  = pastix_data->inter_node_procnbr;
     pastix_int_t   procnum  = pastix_data->inter_node_procnum;
     pastix_int_t  *iparm    = pastix_data->iparm;
@@ -67,13 +69,18 @@ void z_pastix_task_blend(pastix_data_t *pastix_data)
                    iparm[IPARM_THREAD_NBR],
                    iparm[IPARM_THREAD_NBR],
                    iparm );
-    ctrl.dparm = dparm;
 
+    {
+        /* hack because double has been replaced by float in all z_ => c_ d_ files */
+        int i;
+        for(i= 0; i < IPARM_SIZE; i++)
+            ctrl.dparm[i] = dparm[i];
+    }
 #ifdef FORCE_NOSMP
     iparm[IPARM_THREAD_NBR] = 1;
 #endif
 
-    solverBlend( &ctrl, solvmatr, pastix_data->symbmtx, &dofstr );
+    solverBlend( &ctrl, (d_SolverMatrix*)solvmatr, pastix_data->symbmtx, &dofstr );
     blendCtrlExit(&ctrl);
 
     symbolExit(pastix_data->symbmtx);
@@ -128,6 +135,9 @@ void z_pastix_task_blend(pastix_data_t *pastix_data)
                     MEMORY_UNIT_WRITE(sizeG));
         }
     }
-
+    {
+        /* hack because double has been replaced by float in all z_ => c_ d_ files */
+        memFree_null(ctrl.dparm);
+    }
     iparm[IPARM_START_TASK]++;
 }

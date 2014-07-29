@@ -100,7 +100,7 @@ int get_options(int              argc,
                 pastix_int_t    *size);
 
 /*
-  Function: get_idparm
+  Function: d_get_idparm
 
   Get options from argv.
 
@@ -110,9 +110,13 @@ int get_options(int              argc,
     iparm         - type of driver (output, -1 if not set).
     dparm         - type of driver (output, -1 if not set).
  */
-int get_idparm(int            argc,
-               char         **argv,
-               pastix_int_t  *iparm,
-               double        *dparm);
+int d_get_idparm(int            argc,
+                 char         **argv,
+                 pastix_int_t  *iparm,
+                 double        *dparm);
+int s_get_idparm(int            argc,
+                 char         **argv,
+                 pastix_int_t  *iparm,
+                 float        *dparm);
 
 #endif

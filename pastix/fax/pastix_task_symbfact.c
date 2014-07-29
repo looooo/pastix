@@ -24,8 +24,9 @@
 #include "order.h"
 #include "fax.h"
 #include "kass.h"
-#include "d_csc_utils.h"
-#include "d_cscd_utils_intern.h"
+#include "z_csc_utils.h"
+#include "z_cscd_utils_intern.h"
+#include "pastix_task_symbfact.h"
 
 
 /**
@@ -102,7 +103,7 @@
  *
  *******************************************************************************/
 int
-pastix_task_symbfact(pastix_data_t *pastix_data,
+pastix_task_symbfact(d_pastix_data_t *pastix_data,
                      pastix_int_t  *perm,
                      pastix_int_t  *invp )
 {

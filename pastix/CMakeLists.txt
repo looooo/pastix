@@ -3,6 +3,7 @@ project (PASTIX C CXX Fortran)
 enable_testing()
 
 include(CMakeDependentOption)
+include(CheckFunctionExists)
 
 # The current version number
 set (PASTIX_VERSION_MAJOR 5)
@@ -23,6 +24,9 @@ include(MorseInit)
 # -----------------------------------------
 set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.py )
 set( RP_PASTIX_PRECISIONS  "s;d;c;z" )
+include(CheckIncludeFiles)
+check_include_files(complex.h HAVE_COMPLEX_H)
+
 include(RulesPrecisions)
 
 # # CTest system
@@ -49,6 +53,7 @@ else (MPI_FOUND)
   option(PASTIX_WITH_MPI
     "Build PaStiX for distributed memory with MPI" OFF)
 endif(MPI_FOUND)
+
 
 ### GPU engine parameters
 find_package(CUDA)
@@ -176,6 +181,14 @@ if (PASTIX_WITH_MPI)
   endif(NOT MPI_FOUND)
   set(HAVE_MPI TRUE)
   include_directories( ${MPI_INCLUDE_PATH} )
+##  set(CMAKE_REQUIRED_INCLUDES ${MPI_INCLUDE_PATH})
+##  set(CMAKE_REQUIRED_LIBRARIES ${MPI_LIBRARIES})
+##  check_function_exists(MPI_Get_address HAVE_MPI_GET_ADDRESS)
+##  if (${HAVE_MPI_GET_ADDRESS})
+##    message(STATUS "HAVE_MPI_GET_ADDRESS -- True")
+##  else(${HAVE_MPI_GET_ADDRESS})
+##    message(STATUS "HAVE_MPI_GET_ADDRESS -- False ${MPI_INCLUDE_PATH} ${MPI_LIBRARIES}")
+##  endif(${HAVE_MPI_GET_ADDRESS})
 endif (PASTIX_WITH_MPI)
 
 if (PASTIX_WITH_STARPU)
@@ -292,11 +305,10 @@ execute_process(COMMAND "./myversion.sh" OUTPUT_VARIABLE PASTIX_VERSION)
 set(TOTO "-DVERSION=\"toto\"" )
 add_definitions(${TOTO})
 
-#
 # Build matrix drivers library
 #
 #add_subdirectory(tools)
-add_subdirectory(matrix_drivers)
+#add_subdirectory(matrix_drivers)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
@@ -305,10 +317,13 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kass")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
-set(modules libcsc blend csc kernels)
+
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
+
+# Sub modules
+set(modules libcsc blend csc kernels sopalin matrix_drivers include common)
 if (PASTIX_WITH_STARPU)
   list(APPEND modules starpu)
 endif (PASTIX_WITH_STARPU)
@@ -317,8 +332,21 @@ foreach (module ${modules})
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/${module}")
   include_directories("${CMAKE_CURRENT_BINARY_DIR}/${module}")
 endforeach()
+# include modules
 foreach (module ${modules})
   add_subdirectory(${module})
+endforeach()
+# declare dependencies on headers generation
+set(modules_with_libs ${modules})
+list(REMOVE_ITEM modules_with_libs include matrix_drivers)
+message(STATUS ${modules_with_libs})
+foreach (module ${modules_with_libs})
+  foreach (module2 ${modules})
+    add_dependencies(pastix_${module} ${module2}_headers)
+  endforeach()
+endforeach()
+foreach (module2 ${modules})
+  add_dependencies(read_matrix ${module2}_headers)
 endforeach()
 
 macro(solver_rules _output_files _sources_files)
@@ -347,10 +375,6 @@ macro(solver_rules _output_files _sources_files)
   endforeach()
 endmacro()
 
-set(generated_files "")
-solver_rules( generated_files
-  "sopalin/sopalin3d.c;sopalin/raff_functions.c"
-)
 
 #
 # Build the pastix library
@@ -391,37 +415,6 @@ set(PASTIX_LIB_SRCS
   graph/graph_io.c
 #
 #
-  sopalin/sopalin_thread.c
-#  sopalin/compute_context_nbr.c
-  sopalin/coefinit.c
-  sopalin/debug_dump.c
-#  sopalin/ooc.c
-  sopalin/pastix.c
-  sopalin/pastix_fortran.c
-  sopalin/sopalin_init.c
-  sopalin/sopalin_option.c
-#  sopalin/sparse_gemm_cpu.c
-  sopalin/tools.c
-#  sopalin/murge.c
-#  sopalin/csc_intern_old.c
-#  sopalin/compute_diag.c
-#  sopalin/compute_gemdm.c
-#  sopalin/compute_trsm.c
-#  sopalin/contrib.c
-#  sopalin/MURGE_GetLocalElementList.c
-#  sopalin/murge_pastix_fortran.c
-#  sopalin/raff.c
-#  sopalin/scaling.c
-#  sopalin/sopalin_compute.c
-#  sopalin/sopalin_sendrecv.c
-#  sopalin/updo.c
-#  sopalin/updo_sendrecv.c
-#  sopalin/variable_csc.c
-#  sopalin/zgetrf_stapiv_gpu.c
-#  sopalin/zhetrf_stapiv_gpu.c
-#  sopalin/zpotrf_stapiv_gpu.c
-#  sopalin/zsytrf_stapiv_gpu.c
-#
   symbol/dof.c
   symbol/dof_io.c
   symbol/symbol_base.c
@@ -437,18 +430,6 @@ set(PASTIX_LIB_SRCS
   )
 
 
-if(PASTIX_WITH_STARPU)
-  set(generated_files "")
-  solver_rules( generated_files
-    "starpu/starpu_kernels.c;starpu/starpu_submit_tasks.c;starpu/starpu_updo.c;starpu/starpu_updo_kernels.c;"
-    )
-
-
-  set(PASTIX_STARPU_SRCS
-    ${generated_files}
-    )
-
-endif(PASTIX_WITH_STARPU)
 
 set(PASTIX_ALL_SRCS
   #
@@ -503,15 +484,10 @@ endif()
 
 add_library(pastix ${PASTIX_LIB_SRCS})
 
-add_dependencies(pastix kernel_headers)
-add_dependencies(pastix libcsc_headers)
-add_dependencies(pastix blend_headers)
-add_dependencies(pastix bcsc_headers)
-if(PASTIX_WITH_STARPU)
-  add_dependencies(pastix
-    starpu_headers
-    )
-endif(PASTIX_WITH_STARPU)
+
+foreach (module2 ${modules})
+  add_dependencies(pastix ${module2}_headers)
+endforeach()
 
 install(TARGETS pastix
   RUNTIME DESTINATION bin

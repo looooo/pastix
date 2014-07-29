@@ -19,7 +19,7 @@
 */
 #include "common.h"
 #include <pthread.h>
-#include "tools.h"
+#include "z_tools.h"
 #include "order.h"
 #include "z_csc.h"
 #include "z_ftgt.h"
@@ -31,9 +31,9 @@
 #include "sopalin_time.h"
 #include "sopalin_thread.h"
 #include "stack.h"
-#include "sopalin3d.h"
+#include "z_sopalin3d.h"
 #include "sopalin_acces.h"
-#include "sopalin_compute.h"
+#include "z_sopalin_compute.h"
 #include "z_csc_intern_compute.h"
 
 
@@ -138,7 +138,7 @@ double z_CscNorm1(const z_CscMatrix *cscmtx,
  */
 #define z_CscGather_X PASTIX_PREFIX_F(z_CscGather_X)
 static inline
-int z_CscGather_X(Sopalin_Data_t        *sopalin_data,
+int z_CscGather_X(z_Sopalin_Data_t        *sopalin_data,
                   int                    me,
                   const z_CscMatrix       *cscmtx,
                   const z_UpDownVector    *updovct,
@@ -214,7 +214,7 @@ int z_CscGather_X(Sopalin_Data_t        *sopalin_data,
  * "by thread" par of the result, need reduction.
  *
  * Parameters:
- *     sopalin_data - Sopalin_Data_t structure, common to all threads.
+ *     sopalin_data - z_Sopalin_Data_t structure, common to all threads.
  *     me           - thread number.
  *     x            - (global) vector to multiply.
  *     atx          - Result vector.
@@ -224,7 +224,7 @@ int z_CscGather_X(Sopalin_Data_t        *sopalin_data,
  *     comm         - MPI communicator
  */
 static inline
-int z_CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
+int z_CscAtx_norm_thread(z_Sopalin_Data_t       *sopalin_data,
                          int                   me,
                          const volatile pastix_complex64_t *x,
                          pastix_complex64_t                *atx,
@@ -304,7 +304,7 @@ int z_CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
  * "by thread" par of the result, need reduction.
  *
  * Parameters:
- *     sopalin_data - Sopalin_Data_t structure, common to all threads.
+ *     sopalin_data - z_Sopalin_Data_t structure, common to all threads.
  *     me           - thread number.
  *     x            - (global) vector to multiply.
  *     atx          - Result vector.
@@ -314,7 +314,7 @@ int z_CscAtx_norm_thread(Sopalin_Data_t       *sopalin_data,
  *     comm         - MPI communicator
  */
 static inline
-int z_CscAtx_thread(Sopalin_Data_t       *sopalin_data,
+int z_CscAtx_thread(z_Sopalin_Data_t       *sopalin_data,
                     int                   me,
                     const volatile pastix_complex64_t *x,
                     pastix_complex64_t                *atx,
@@ -400,7 +400,7 @@ int z_CscAtx_thread(Sopalin_Data_t       *sopalin_data,
  *   comm         - MPI communicator.
  *   transpose    - Indicate if we want to transpose A.
  */
-void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
+void z_CscbMAx(z_Sopalin_Data_t       *sopalin_data,
                int                   me,
                volatile pastix_complex64_t       *r,
                const volatile pastix_complex64_t *b,
@@ -570,7 +570,7 @@ void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
  *  Compute the operation $$r=|A||x|+|b|$$
  *
  *  Parameters:
- *     sopalin_data - Sopalin_Data_t structure, common to all threads.
+ *     sopalin_data - z_Sopalin_Data_t structure, common to all threads.
  *     me           - thread number
  *     r            - solution (vector commont to all threads)
  *     b            - Added vector (vector commont to all threads)
@@ -580,7 +580,7 @@ void z_CscbMAx(Sopalin_Data_t       *sopalin_data,
  *     comm         - MPI communicator
  *     transpose    - Indicate if we want to transpose A.
  */
-void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
+void z_CscAxPb(z_Sopalin_Data_t     *sopalin_data,
              int                 me,
              pastix_complex64_t              *r,
              const pastix_complex64_t        *b,
@@ -758,7 +758,7 @@ void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
 
    Parameters :
 
-   sopalin_data - Sopalin_Data_t structure, common to all threads.
+   sopalin_data - z_Sopalin_Data_t structure, common to all threads.
    me           - thread number
    r            - vector(s) (common to all threads)
    s            - vector(s) (common to all threads)
@@ -767,7 +767,7 @@ void z_CscAxPb(Sopalin_Data_t     *sopalin_data,
    berr         - berr (local variable)
    comm         - MPI communicator
 */
-void z_CscBerr(Sopalin_Data_t *sopalin_data,
+void z_CscBerr(z_Sopalin_Data_t *sopalin_data,
              int            me,
              const pastix_complex64_t   *r,
              const pastix_complex64_t   *s,
@@ -871,7 +871,7 @@ void z_CscBerr(Sopalin_Data_t *sopalin_data,
     smxnbr       - Number of vectors (multi-right-hand-side method)
     comm         - PaStiX MPI communicator.
 */
-double z_CscNormErr(Sopalin_Data_t       *sopalin_data,
+double z_CscNormErr(z_Sopalin_Data_t       *sopalin_data,
                   int                   me,
                   const volatile pastix_complex64_t *r,
                   const volatile pastix_complex64_t *b,
@@ -916,13 +916,13 @@ double z_CscNormErr(Sopalin_Data_t       *sopalin_data,
       last2  = last  + itersmx*colnbr;
       for (iter=first2; iter<last2; iter++)
         {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
           rnorm += (double)(r[iter]*conj(r[iter]));
           bnorm += (double)(b[iter]*conj(b[iter]));
-#else  /* CPLX */
+#else  /* TYPE_COMPLEX */
           rnorm += r[iter]*r[iter];
           bnorm += b[iter]*b[iter];
-#endif /* CPLX */
+#endif /* TYPE_COMPLEX */
         }
 
       /* En SMP reduction du resultat sur les threads */
@@ -993,7 +993,7 @@ double z_CscNormErr(Sopalin_Data_t       *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-double z_CscNormFro(Sopalin_Data_t       *sopalin_data,
+double z_CscNormFro(z_Sopalin_Data_t       *sopalin_data,
                   int                   me,
                   const volatile pastix_complex64_t *x,
                   const pastix_int_t             colnbr,
@@ -1033,11 +1033,11 @@ double z_CscNormFro(Sopalin_Data_t       *sopalin_data,
       last2  = last  + itersmx*colnbr;
       for (iter=first2; iter<last2; iter++)
         {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
           xnorm += (double)(x[iter]*conj(x[iter]));
-#else  /* CPLX */
+#else  /* TYPE_COMPLEX */
           xnorm += x[iter]*x[iter];
-#endif /* CPLX */
+#endif /* TYPE_COMPLEX */
         }
 
       /* En SMP reduction du resultat sur les threads */
@@ -1098,7 +1098,7 @@ double z_CscNormFro(Sopalin_Data_t       *sopalin_data,
  *   comm         - MPI Communicator.
  *     transpose    - Indicate if we want to transpose A.
  */
-void z_CscAx(Sopalin_Data_t       *sopalin_data,
+void z_CscAx(z_Sopalin_Data_t       *sopalin_data,
            int                   me,
            const z_CscMatrix      *cscmtx,
            const volatile pastix_complex64_t *p,
@@ -1305,7 +1305,7 @@ void z_CscAx(Sopalin_Data_t       *sopalin_data,
     beta         - Float which will store the solution.
     comm         - MPI communicator.
 */
-void z_CscGradBeta(Sopalin_Data_t       *sopalin_data,
+void z_CscGradBeta(z_Sopalin_Data_t       *sopalin_data,
                  int                   me,
                  const volatile pastix_complex64_t *r,
                  const volatile pastix_complex64_t *z,
@@ -1404,7 +1404,7 @@ void z_CscGradBeta(Sopalin_Data_t       *sopalin_data,
  *   beta         - Float which will store the solution.
  *   comm         - MPI communicator.
  */
-void z_CscGmresBeta(Sopalin_Data_t                    *sopalin_data,
+void z_CscGmresBeta(z_Sopalin_Data_t                    *sopalin_data,
                     int                                me,
                     const volatile pastix_complex64_t *r,
                     const volatile pastix_complex64_t *z,
@@ -1520,7 +1520,7 @@ void z_CscGmresBeta(Sopalin_Data_t                    *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-void z_CscCopy(Sopalin_Data_t              *sopalin_data,
+void z_CscCopy(z_Sopalin_Data_t              *sopalin_data,
              int                          me,
              const volatile pastix_complex64_t *x,
              volatile pastix_complex64_t       *y,
@@ -1547,7 +1547,6 @@ void z_CscCopy(Sopalin_Data_t              *sopalin_data,
 #endif
   first = me * step;
   last  = MIN(colnbr, (me+1) * step);
-
   SOPALIN_COPY(last-first, x+first, iun, y+first, iun);
 
 #ifdef CSC_LOG
@@ -1572,7 +1571,7 @@ void z_CscCopy(Sopalin_Data_t              *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-void z_CscScal(Sopalin_Data_t        *sopalin_data,
+void z_CscScal(z_Sopalin_Data_t        *sopalin_data,
              int                    me,
              volatile pastix_complex64_t  alpha,
              volatile pastix_complex64_t *x,
@@ -1627,7 +1626,7 @@ void z_CscScal(Sopalin_Data_t        *sopalin_data,
  *   smxnbr       - Number of vectors (multi-right-hand-side method)
  *   comm         - PaStiX MPI communicator.
  */
-void z_CscAXPY(Sopalin_Data_t              *sopalin_data,
+void z_CscAXPY(z_Sopalin_Data_t              *sopalin_data,
              int                          me,
              pastix_complex64_t                 alpha,
              const volatile pastix_complex64_t *x,

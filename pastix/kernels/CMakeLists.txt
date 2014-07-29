@@ -32,7 +32,7 @@ list(APPEND generated_headers
   gemm_stencil_corner.h
   gemdm_stencil_corner.h)
 
-add_custom_target(kernel_headers DEPENDS ${generated_headers} )
+add_custom_target(kernels_headers DEPENDS ${generated_headers} )
 
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
@@ -83,9 +83,9 @@ else(PASTIX_WITH_CUDA)
 endif(PASTIX_WITH_CUDA)
 
 
-add_dependencies(pastix_kernels
-  kernel_headers
-)
+add_dependencies(pastix_kernels kernels_headers)
+add_dependencies(pastix_kernels include_headers)
+add_dependencies(pastix_kernels common_headers)
 
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 link_directories(
@@ -128,10 +128,12 @@ add_test(test_sgetrfsp test_sgetrfsp)
 add_test(test_dgetrfsp test_dgetrfsp)
 add_test(test_cgetrfsp test_cgetrfsp)
 add_test(test_zgetrfsp test_zgetrfsp)
-add_test(test_sparse_sgemm_2000_2000_200 test_sparse_sgemm 2000 2000 20)
-add_test(test_sparse_dgemm_2000_2000_200 test_sparse_dgemm 2000 2000 20)
-add_test(test_sparse_cgemm_2000_2000_200 test_sparse_cgemm 2000 2000 20)
-add_test(test_sparse_zgemm_2000_2000_200 test_sparse_zgemm 2000 2000 20)
+if (PASTIX_WITH_CUDA)
+  add_test(test_sparse_sgemm_2000_2000_200 test_sparse_sgemm 2000 2000 20)
+  add_test(test_sparse_dgemm_2000_2000_200 test_sparse_dgemm 2000 2000 20)
+  add_test(test_sparse_cgemm_2000_2000_200 test_sparse_cgemm 2000 2000 20)
+  add_test(test_sparse_zgemm_2000_2000_200 test_sparse_zgemm 2000 2000 20)
+endif(PASTIX_WITH_CUDA)
 install(TARGETS pastix_kernels
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib

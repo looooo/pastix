@@ -26,13 +26,13 @@ int main (int argc, char **argv)
   fprintf(stdout, "This example is not compatible with -DFORCE_MPI\n");
   return EXIT_FAILURE;
 #else
-  pastix_data_t    *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+  z_pastix_data_t    *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
   pastix_int_t      ncol;               /* Size of the matrix                                        */
   pastix_int_t     *colptr      = NULL; /* Indexes of first element of each column in row and values */
   pastix_int_t     *rows        = NULL; /* Row of each element of the matrix                         */
-  pastix_float_t   *values      = NULL; /* Value of each element of the matrix                       */
-  pastix_float_t   *rhs         = NULL; /* right hand side                                           */
-  pastix_float_t ***rhsiter     = NULL; /* right hand side (one by iteration)                        */
+  pastix_complex64_t   *values      = NULL; /* Value of each element of the matrix                       */
+  pastix_complex64_t   *rhs         = NULL; /* right hand side                                           */
+  pastix_complex64_t ***rhsiter     = NULL; /* right hand side (one by iteration)                        */
   pastix_int_t      iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
   double            dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
   pastix_int_t     *perm        = NULL; /* Permutation tabular                                       */
@@ -202,15 +202,15 @@ int main (int argc, char **argv)
   /*           Save the rhs                  */
   /*    (it will be replaced by solution)    */
   /*******************************************/
-  rhsiter = (pastix_float_t ***) malloc(nfact*sizeof(pastix_float_t**));
+  rhsiter = (pastix_complex64_t ***) malloc(nfact*sizeof(pastix_complex64_t**));
 
   for (i = 0; i < nfact; i++)
     {
-      rhsiter[i] = (pastix_float_t **)malloc(nsolv*sizeof(pastix_float_t*));
+      rhsiter[i] = (pastix_complex64_t **)malloc(nsolv*sizeof(pastix_complex64_t*));
       for (j = 0; j < nsolv; j++)
         {
-          rhsiter[i][j] = (pastix_float_t *)malloc(ncol*sizeof(pastix_float_t));
-          memcpy(rhsiter[i][j], rhs, ncol*sizeof(pastix_float_t));
+          rhsiter[i][j] = (pastix_complex64_t *)malloc(ncol*sizeof(pastix_complex64_t));
+          memcpy(rhsiter[i][j], rhs, ncol*sizeof(pastix_complex64_t));
         }
     }
 

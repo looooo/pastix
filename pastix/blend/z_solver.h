@@ -195,8 +195,8 @@ int z_cblk_ishalo( z_SolverMatrix * datacode,
 static inline
 int z_cblk_isfanin( z_SolverMatrix * datacode,
                   z_SolverCblk   * cblk ) {
-    pastix_int_t clustnum;
 #ifdef PASTIX_WITH_STARPU
+    pastix_int_t clustnum;
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
         if ((size_t)cblk >= (size_t)datacode->fcblktab[clustnum] &&
             (size_t)cblk < (size_t)(datacode->fcblktab[clustnum] +
@@ -403,7 +403,7 @@ pastix_int_t z_cblk_rownbr( z_SolverCblk * cblk ) {
     pastix_int_t rownbr = 0;
     z_SolverBlok * blok;
     for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++)
-        rownbr += blok_rownbr(blok);
+        rownbr += z_blok_rownbr(blok);
     return rownbr;
 }
 

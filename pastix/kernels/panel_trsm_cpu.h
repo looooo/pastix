@@ -30,12 +30,12 @@
 static inline
 int
 panel_trsm_cpu(const z_SolverCblk * cblk,
-               pastix_float_t   * buffer) {
+               pastix_complex64_t   * buffer) {
     pastix_int_t dima = cblk->lcolnum - cblk->fcolnum + 1;
     pastix_int_t dimb = cblk->stride - dima;
-    pastix_float_t *lExtraDiag = cblk->coeftab + (cblk->fblokptr+1)->coefind;
+    pastix_complex64_t *lExtraDiag = cblk->coeftab + (cblk->fblokptr+1)->coefind;
 #if (defined CHOL_SOPALIN && defined SOPALIN_LU)
-    pastix_float_t *uExtraDiag = cblk->ucoeftab + (cblk->fblokptr+1)->coefind;
+    pastix_complex64_t *uExtraDiag = cblk->ucoeftab + (cblk->fblokptr+1)->coefind;
 #endif
     kernel_trsm(dimb, dima,
                 cblk->coeftab,

@@ -22,7 +22,7 @@
  ******************************************************************************/
 
 #include "common.h"
-#include "tools.h"
+#include "z_tools.h"
 #include "order.h"
 #include "z_csc.h"
 #include "z_ftgt.h"
@@ -266,7 +266,7 @@ void _set_csc_row_val(const z_SolverMatrix *solvmtx,
         void * sortptr[2];                                      \
         sortptr[0] = t;                                         \
         sortptr[1] = v;                                         \
-        qsortIntFloatAsc(sortptr, n);                           \
+        z_qsortIntFloatAsc(sortptr, n);                           \
       }                                                         \
     }                                                           \
     if (transcsc != NULL && (*transcsc) != NULL)                \
@@ -288,7 +288,7 @@ void _set_csc_row_val(const z_SolverMatrix *solvmtx,
                                                                 \
             sortptr[0] = t;                                     \
             sortptr[1] = v;                                     \
-            qsortIntFloatAsc(sortptr, n);                       \
+            z_qsortIntFloatAsc(sortptr, n);                     \
           }                                                     \
         }                                                       \
         memFree_null(trowtab);                                  \

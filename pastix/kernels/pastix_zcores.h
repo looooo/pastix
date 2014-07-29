@@ -12,8 +12,10 @@
 
 #define pastix_cblk_lock( cblk_ )
 #define pastix_cblk_unlock( cblk_ )
-
+/* REQUIRED ? */
+#if (!defined PRECISION_z) && (!defined PRECISION_c) && (!defined PRECISION_d) && (!defined PRECISION_s)
 #define PRECISION_z
+#endif
 void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);

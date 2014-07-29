@@ -31,9 +31,10 @@ precisions_rules_py(generated_files
 ### Generate the lib
 add_library(pastix_libcsc ${generated_files} )
 
-add_dependencies(pastix_libcsc
-  libcsc_headers
-)
+add_dependencies(pastix_libcsc libcsc_headers)
+add_dependencies(pastix_libcsc include_headers)
+add_dependencies(pastix_libcsc common_headers)
+add_dependencies(pastix_libcsc sopalin_headers)
 
 install(TARGETS pastix_libcsc
   RUNTIME DESTINATION bin

@@ -1,8 +1,57 @@
 #ifndef PASTIX_RETRO_H
 #define PASTIX_RETRO_H
 
+#if (defined PRECISION_z)
+#  define PREC_DOUBLE
+#  define TYPE_COMPLEX
+#  define BLAS_REAL  double
+#  define BLAS_FLOAT pastix_complex64_t
+#  define CONJ_FLOAT(val) conj(val)
+#  define ABS_FLOAT(val)  cabs(val)
+#  define COMM_FLOAT MPI_DOUBLE_COMPLEX
+#  define COMM_SUM MPI_SUM
+#  define PASTIX_MPI_FLOAT MPI_DOUBLE_COMPLEX
+#elif (defined PRECISION_c)
+#define TYPE_COMPLEX
+#  ifdef PREC_DOUBLE
+#    undef PREC_DOUBLE
+#  endif /* PREC_DOUBLE */
+#  define BLAS_REAL  float
+#  define BLAS_FLOAT pastix_complex32_t
+#  define CONJ_FLOAT(val) conjf(val)
+#  define ABS_FLOAT(val)  cabsf(val)
+#  define COMM_FLOAT MPI_COMPLEX
+#  define COMM_SUM MPI_SUM
+#  define PASTIX_MPI_FLOAT MPI_COMPLEX
+#elif (defined PRECISION_d)
+#define PREC_DOUBLE
+#  ifdef TYPE_COMPLEX
+#    undef TYPE_COMPLEX
+#  endif /* TYPE_COMPLEX */
+#  define BLAS_REAL  double
+#  define BLAS_FLOAT double
+#  define CONJ_FLOAT(val) (val)
+#  define ABS_FLOAT(val)  fabs(val)
+#  define COMM_FLOAT MPI_DOUBLE
+#  define COMM_SUM MPI_SUM
+#  define PASTIX_MPI_FLOAT MPI_DOUBLE
+#else /* Precision_s or nothing */
+#  ifdef PREC_DOUBLE
+#    undef PREC_DOUBLE
+#  endif /* PREC_DOUBLE */
+#  ifdef TYPE_COMPLEX
+#    undef TYPE_COMPLEX
+#  endif /* TYPE_COMPLEX */
+#  define BLAS_REAL  float
+#  define BLAS_FLOAT float
+#  define CONJ_FLOAT(val) (val)
+#  define ABS_FLOAT(val)  fabsf(val)
+#  define COMM_FLOAT MPI_FLOAT
+#  define COMM_SUM MPI_SUM
+#  define PASTIX_MPI_FLOAT MPI_FLOAT
+#endif
+
 #define PASTIX_INT     pastix_int_t
-#define pastix_float_t double
 
 #define ASSERTDBG( test, mod ) assert(test)
 #define ASSERT( test, mod ) assert(test)
@@ -105,17 +154,10 @@
     THREAD_MODE = THREAD_MODE;                  \
   } while (0)
 #endif
-#define CONJ_FLOAT(val) (val)
-#define ABS_FLOAT(val)  fabs(val)
 
 #define BLAS_INT int
-#define BLAS_REAL double
-#define BLAS_FLOAT double
 #define TAB_CHECK_NAN(tab, size)  do {} while (0)
 
-#define COMM_FLOAT MPI_DOUBLE
-#define COMM_SUM MPI_SUM
-#define PASTIX_MPI_FLOAT MPI_DOUBLE
 
 #define NO_ERR              PASTIX_SUCCESS
 #define UNKNOWN_ERR         PASTIX_ERR_UNKNOWN

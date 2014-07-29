@@ -58,7 +58,7 @@
  *
  *******************************************************************************/
 int
-orderComputeMetis(       pastix_data_t  *pastix_data,
+orderComputeMetis(       d_pastix_data_t  *pastix_data,
                    const pastix_graph_t *graph )
 {
     pastix_int_t *iparm    = pastix_data->iparm;

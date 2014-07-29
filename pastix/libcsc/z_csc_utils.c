@@ -852,9 +852,6 @@ void z_csc_rowScale(pastix_int_t        n,
  *   ja - Rows of each non zeros.
  *   a  - Values of each non zeros.
 */
-#ifndef CSC_sort
-#error "This function must be renamed via preprocessor."
-#endif
 void z_csc_sort(pastix_int_t        n,
                 pastix_int_t       *ia,
                 pastix_int_t       *ja,
@@ -876,7 +873,7 @@ void z_csc_sort(pastix_int_t        n,
           sortptr[0] = &ja[ia[i]];
           sortptr[1] = &a[ia[i]*ndof2];
           sortptr[2] = &ndof2;
-          qsortIntFloatAsc(sortptr, ia[i+1] - ia[i]);
+          z_qsortIntFloatAsc(sortptr, ia[i+1] - ia[i]);
         }
 
     }
@@ -1267,7 +1264,7 @@ int z_csc_save(pastix_int_t        n,
     {
       for (i=0; i<(colptr[n]-1)*dof*dof; i++)
         {
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
           fprintf(outfile, "%lg %lg ", (double)(creal(values[i])), (double)(cimag(values[i])));
 #else
           fprintf(outfile, "%lg ", (double)(values[i]));

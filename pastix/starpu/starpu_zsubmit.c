@@ -29,7 +29,7 @@ starpu_zsyadd_size(struct starpu_task *task,
                    enum starpu_perfmodel_archtype arch,
 #endif
                    unsigned nimpl) {
-    Sopalin_Data_t    * sopalin_data;
+    z_Sopalin_Data_t    * sopalin_data;
     z_SolverCblk        * cblk, *fcblk;
     pastix_int_t        stride;
     size_t              dima;
@@ -117,9 +117,9 @@ struct starpu_codelet starpu_zsyadd_cl =
  * @returns PASTIX_SUCCESS if no error occurs.
  */
 int
-starpu_zgesubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
+starpu_zgesubmit_incomming_fanin( z_Sopalin_Data_t * sopalin_data ) {
     z_SolverMatrix * datacode = sopalin_data->datacode;
-    starpu_loop_data_t  *starpu_loop_data  = sopalin_data->starpu_loop_data;
+    starpu_zloop_data_t  *starpu_loop_data  = sopalin_data->starpu_loop_data;
     pastix_int_t itertask, workerid = -1;
     starpu_data_handle_t *L_handle         = starpu_loop_data->L_handle;
     starpu_data_handle_t **Lfanin_handle   = starpu_loop_data->Lfanin_handle;
@@ -157,7 +157,7 @@ starpu_zgesubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
             ret =
                 starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
                                        &starpu_zgeadd_cl,
-                                       STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
+                                       STARPU_VALUE, &sopalin_data, sizeof(z_Sopalin_Data_t*),
                                        STARPU_VALUE, &fanin,        sizeof(z_SolverCblk*),
                                        STARPU_VALUE, &fcblk,        sizeof(z_SolverCblk*),
                                        STARPU_R,     Lfanin_handle[clustnum][faninnum],
@@ -187,9 +187,9 @@ starpu_zgesubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
  * @returns PASTIX_SUCCESS if no error occurs.
  */
 int
-starpu_zsysubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
+starpu_zsysubmit_incomming_fanin( z_Sopalin_Data_t * sopalin_data ) {
     z_SolverMatrix * datacode = sopalin_data->datacode;
-    starpu_loop_data_t  *starpu_loop_data  = sopalin_data->starpu_loop_data;
+    starpu_zloop_data_t  *starpu_loop_data  = sopalin_data->starpu_loop_data;
     pastix_int_t itertask, workerid = -1;
     starpu_data_handle_t *L_handle         = starpu_loop_data->L_handle;
     starpu_data_handle_t **Lfanin_handle   = starpu_loop_data->Lfanin_handle;
@@ -227,7 +227,7 @@ starpu_zsysubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
             ret =
                 starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
                                        &starpu_zsyadd_cl,
-                                       STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
+                                       STARPU_VALUE, &sopalin_data, sizeof(z_Sopalin_Data_t*),
                                        STARPU_VALUE, &fanin,        sizeof(z_SolverCblk*),
                                        STARPU_VALUE, &fcblk,       sizeof(z_SolverCblk*),
                                        STARPU_R,     Lfanin_handle[clustnum][faninnum],
@@ -258,11 +258,11 @@ starpu_zsysubmit_incomming_fanin( Sopalin_Data_t * sopalin_data ) {
  * @returns PASTIX_SUCCESS if no error occurs.
  */
 int
-starpu_zgesubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
+starpu_zgesubmit_outgoing_fanin( z_Sopalin_Data_t * sopalin_data,
                                  z_SolverCblk     * fcblk,
                                  z_SolverCblk     * hcblk ) {
     z_SolverMatrix          *datacode         = sopalin_data->datacode;
-    starpu_loop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
+    starpu_zloop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
     starpu_data_handle_t  *Lhalo_handle     = starpu_loop_data->Lhalo_handle;
     starpu_data_handle_t  *Lfanin_handle    = starpu_loop_data->Lfanin_handle[SOLV_PROCNUM];
     starpu_data_handle_t  *Uhalo_handle     = starpu_loop_data->Uhalo_handle;
@@ -282,7 +282,7 @@ starpu_zgesubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
     ret =
         starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
                                &starpu_zsyadd_cl,
-                               STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
+                               STARPU_VALUE, &sopalin_data, sizeof(z_Sopalin_Data_t*),
                                STARPU_VALUE, &fcblk,        sizeof(z_SolverCblk*),
                                STARPU_VALUE, &hcblk,        sizeof(z_SolverCblk*),
                                STARPU_R,                    Lfanin_handle[fcblkidx],
@@ -315,11 +315,11 @@ starpu_zgesubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
  * @returns PASTIX_SUCCESS if no error occurs.
  */
 int
-starpu_zsysubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
+starpu_zsysubmit_outgoing_fanin( z_Sopalin_Data_t * sopalin_data,
                                  z_SolverCblk     * fcblk,
                                  z_SolverCblk     * hcblk ) {
     z_SolverMatrix          *datacode         = sopalin_data->datacode;
-    starpu_loop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
+    starpu_zloop_data_t    *starpu_loop_data = sopalin_data->starpu_loop_data;
     starpu_data_handle_t  *Lhalo_handle     = starpu_loop_data->Lhalo_handle;
     starpu_data_handle_t  *Lfanin_handle    = starpu_loop_data->Lfanin_handle[SOLV_PROCNUM];
     pastix_int_t fcblkidx   = z_fcblk_getnum(datacode, fcblk, SOLV_PROCNUM);
@@ -340,7 +340,7 @@ starpu_zsysubmit_outgoing_fanin( Sopalin_Data_t * sopalin_data,
     ret =
         starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
                                &starpu_zsyadd_cl,
-                               STARPU_VALUE, &sopalin_data, sizeof(Sopalin_Data_t*),
+                               STARPU_VALUE, &sopalin_data, sizeof(z_Sopalin_Data_t*),
                                STARPU_VALUE, &fcblk,        sizeof(z_SolverCblk*),
                                STARPU_VALUE, &hcblk,        sizeof(z_SolverCblk*),
                                STARPU_R,                    Lfanin_handle[fcblkidx],

@@ -62,7 +62,7 @@ void global2localperm(pastix_int_t  lN,
  *
  *******************************************************************************/
 int
-orderComputePTScotch(       pastix_data_t  *pastix_data,
+orderComputePTScotch(       d_pastix_data_t  *pastix_data,
                       const pastix_graph_t *graph )
 {
     SCOTCH_Dordering ordedat;

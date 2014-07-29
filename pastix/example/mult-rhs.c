@@ -27,14 +27,14 @@
 
 int main (int argc, char **argv)
 {
-  pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+  z_pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
   pastix_int_t    ncol;               /* Size of the matrix                                        */
   pastix_int_t   *colptr      = NULL; /* Indexes of first element of each column in row and values */
   pastix_int_t   *rows        = NULL; /* Row of each element of the matrix                         */
-  pastix_float_t *values      = NULL; /* Value of each element of the matrix                       */
-  pastix_float_t *rhs         = NULL; /* right hand side                                           */
-  pastix_float_t *rhssaved    = NULL; /* right hand side (save)                                    */
-  pastix_float_t *ax          = NULL; /* A times X product                                         */
+  pastix_complex64_t *values      = NULL; /* Value of each element of the matrix                       */
+  pastix_complex64_t *rhs         = NULL; /* right hand side                                           */
+  pastix_complex64_t *rhssaved    = NULL; /* right hand side (save)                                    */
+  pastix_complex64_t *ax          = NULL; /* A times X product                                         */
   pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
   double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
   pastix_int_t   *perm        = NULL; /* Permutation tabular                                       */
@@ -119,7 +119,7 @@ int main (int argc, char **argv)
   read_matrix(filename[0], &ncol, &colptr, &rows, &values,
               &rhs, &type, &rhstype, driver_type[0], MPI_COMM_WORLD);
 
-  rhs = realloc(rhs, 2*ncol*sizeof(pastix_float_t));
+  rhs = realloc(rhs, 2*ncol*sizeof(pastix_complex64_t));
   for (i = 1; i < nbrhs; i++)
     for (j = 0; j < ncol; j++)
       rhs[i*ncol+j] = rhs[j]*i;
@@ -196,9 +196,9 @@ int main (int argc, char **argv)
   /*           Save the rhs                  */
   /*    (it will be replaced by solution)    */
   /*******************************************/
-  rhssaved = malloc(nbrhs*ncol*sizeof(pastix_float_t));
+  rhssaved = malloc(nbrhs*ncol*sizeof(pastix_complex64_t));
   for(i=0; i<nbrhs; i++)
-    memcpy(rhssaved+(i*ncol), rhs, ncol*sizeof(pastix_float_t));
+    memcpy(rhssaved+(i*ncol), rhs, ncol*sizeof(pastix_complex64_t));
 
   /*******************************************/
   /*           Call pastix                   */
@@ -221,7 +221,7 @@ int main (int argc, char **argv)
 
   iparm[IPARM_START_TASK]          = API_TASK_SOLVE;
   iparm[IPARM_END_TASK]            = API_TASK_SOLVE;
-  memcpy(rhs, rhssaved, nbrhs*ncol*sizeof(pastix_float_t));
+  memcpy(rhs, rhssaved, nbrhs*ncol*sizeof(pastix_complex64_t));
   pastix(&pastix_data, MPI_COMM_WORLD,
    ncol, colptr, rows, values,
    perm, invp, rhs, nbrhs, iparm, dparm);
@@ -230,7 +230,7 @@ int main (int argc, char **argv)
     PRINT_RHS("SOL (solve)", (&(rhs[i*ncol])), ncol, mpid, iparm[IPARM_VERBOSE]);
     CHECK_SOL((&(rhs[i*ncol])), (&(rhssaved[i*ncol])), ncol, mpid);
   }
-  memcpy(rhs, rhssaved, nbrhs*ncol*sizeof(pastix_float_t));
+  memcpy(rhs, rhssaved, nbrhs*ncol*sizeof(pastix_complex64_t));
   for(i=0; i<nbrhs; i++) {
     iparm[IPARM_START_TASK]          = API_TASK_SOLVE;
     iparm[IPARM_END_TASK]            = API_TASK_REFINE;

@@ -4,7 +4,7 @@
  * @author Xavier Lacoste
  */
 #include "common.h"
-#include "starpu_ddefines.h"
+#include "starpu_zdefines.h"
 void starpu_prof_callback(void *callback_arg)
 {
 #  if (defined PASTIX_WITH_STARPU_PROFILING)

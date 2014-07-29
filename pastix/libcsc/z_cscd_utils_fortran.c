@@ -108,8 +108,8 @@ void z_csc_dispatch_fortran(csc_data_t         **csc_data,
   (*csc_data)->perm   = NULL;
   (*csc_data)->l2g    = NULL;
 
-  csc_dispatch(*gN, gcolptr, grow, gavals, grhs, gperm, ginvp,
-               &((*csc_data)->n), &((*csc_data)->colptr), &((*csc_data)->rows), &((*csc_data)->values),
+  z_csc_dispatch(*gN, gcolptr, grow, gavals, grhs, gperm, ginvp,
+                 &((*csc_data)->n), &((*csc_data)->colptr), &((*csc_data)->rows), &((*csc_data)->values),
                &((*csc_data)->rhs), &((*csc_data)->perm),
                &((*csc_data)->l2g), *dispatch, pastix_comm);
 
@@ -233,8 +233,8 @@ void z_cscd_redispatch_fortran(csc_data_t         **csc_data,
   (*csc_data)->l2g    = NULL;
   (*csc_data)->dof    = *dof;
 
-  *ierr = cscd_redispatch(*n,    ia, ja, a, rhs,  *nrhs, l2g,
-                          *newn, &((*csc_data)->colptr), &((*csc_data)->rows), &((*csc_data)->values),  &((*csc_data)->rhs), newl2g,
+  *ierr = z_cscd_redispatch(*n,    ia, ja, a, rhs,  *nrhs, l2g,
+                            *newn, &((*csc_data)->colptr), &((*csc_data)->rows), &((*csc_data)->values),  &((*csc_data)->rhs), newl2g,
                           pastix_comm, (*csc_data)->dof);
 }
 

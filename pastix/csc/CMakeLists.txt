@@ -12,18 +12,20 @@ set(HEADERS
   z_csc_intern_updown.h
   z_csc_intern_build.h
   z_csc_intern_solve.h
+  # This C file is included in all other _he,_sy,_po,_ge
+  z_csc_intern_compute.c
+
 )
 ### generate the dsparse_cores headers for all possible precisions
 precisions_rules_py(generated_headers
                     "${HEADERS}"
                     PRECISIONS "s;d;c;z")
 
-add_custom_target(bcsc_headers 
+add_custom_target(csc_headers
   DEPENDS ${generated_headers} )
 
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
-  z_csc_intern_compute.c
   z_csc_intern_compute_ge.c
   z_csc_intern_compute_po.c
   z_csc_intern_compute_sy.c
@@ -38,21 +40,12 @@ precisions_rules_py(generated_files
    "${SOURCES}"
    PRECISIONS "s;d;c;z")
 
-##list(REMOVE_ITEM generated_files
-##  s_csc_intern_compute.c
-##  d_csc_intern_compute.c
-##  c_csc_intern_compute.c
-##  z_csc_intern_compute.c
-##)
 
 ### Generate the lib
-add_library(pastix_bcsc ${generated_files} )
+add_library(pastix_csc ${generated_files} )
 
-add_dependencies(pastix_bcsc
-  bcsc_headers
-)
 
-install(TARGETS pastix_bcsc
+install(TARGETS pastix_csc
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)

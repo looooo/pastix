@@ -46,7 +46,7 @@
       fprintf(stdout,"\n");                     \
     }                                           \
   }
-#define PRINT_RHS_CPLX(st, rh, nn, rk, verbose) \
+#define PRINT_RHS_TYPE_COMPLEX(st, rh, nn, rk, verbose) \
   {                                             \
     if (verbose >= 5) {                         \
       int PRHS_ii;                              \
@@ -60,7 +60,7 @@
   }
 #define PRECISION_z
 #if (defined PRECISION_z || defined PRECISION_c)
-#  define PRINT_RHS PRINT_RHS_CPLX
+#  define PRINT_RHS PRINT_RHS_TYPE_COMPLEX
 #else
 #  define PRINT_RHS PRINT_RHS_REAL
 #endif

@@ -21,15 +21,15 @@
 int main (int argc, char **argv)
 {
 
-  pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+  z_pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
   pastix_int_t    ncol;               /* Number of local columns                                   */
   pastix_int_t   *colptr      = NULL; /* Indexes of first element of each column in row and values */
   pastix_int_t   *rows        = NULL; /* Row of each element of the matrix                         */
   pastix_int_t   *loc2glob    = NULL; /* Local to local column correspondance                      */
-  pastix_float_t *values      = NULL; /* Value of each element of the matrix                       */
-  pastix_float_t *rhs         = NULL; /* right-hand-side                                           */
-  pastix_float_t *rhssaved    = NULL; /* right hand side (save)                                    */
-  pastix_float_t *rhssaved_g  = NULL; /* right hand side (save, global)                            */
+  pastix_complex64_t *values      = NULL; /* Value of each element of the matrix                       */
+  pastix_complex64_t *rhs         = NULL; /* right-hand-side                                           */
+  pastix_complex64_t *rhssaved    = NULL; /* right hand side (save)                                    */
+  pastix_complex64_t *rhssaved_g  = NULL; /* right hand side (save, global)                            */
   pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
   double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
   pastix_int_t   *perm        = NULL; /* Permutation tabular                                       */
@@ -184,15 +184,15 @@ int main (int argc, char **argv)
   /*           Save the rhs                  */
   /*    (it will be replaced by solution)    */
   /*******************************************/
-  rhssaved = malloc(ncol*sizeof(pastix_float_t));
-  memcpy(rhssaved, rhs, ncol*sizeof(pastix_float_t));
+  rhssaved = malloc(ncol*sizeof(pastix_complex64_t));
+  memcpy(rhssaved, rhs, ncol*sizeof(pastix_complex64_t));
 #ifndef FORCE_NOMPI
   MPI_Allreduce(&ncol, &globn, 1, PASTIX_MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 #else
   globn = ncol;
 #endif
-  rhssaved_g = malloc(globn*sizeof(pastix_float_t));
-  memset(rhssaved_g, 0, globn*sizeof(pastix_float_t));
+  rhssaved_g = malloc(globn*sizeof(pastix_complex64_t));
+  memset(rhssaved_g, 0, globn*sizeof(pastix_complex64_t));
   for (i = 0; i < ncol; i++)
     {
       rhssaved_g[loc2glob[i]-1] = rhssaved[i];
@@ -201,8 +201,8 @@ int main (int argc, char **argv)
   free(rhssaved);
 #ifndef FORCE_NOMPI
   {
-    pastix_float_t * rhssaved_g_rcv;
-    rhssaved_g_rcv = malloc(globn*sizeof(pastix_float_t));
+    pastix_complex64_t * rhssaved_g_rcv;
+    rhssaved_g_rcv = malloc(globn*sizeof(pastix_complex64_t));
     MPI_Allreduce(rhssaved_g, rhssaved_g_rcv, globn, MPI_pastix_float_t, MPI_SUM, MPI_COMM_WORLD);
     free(rhssaved_g);
     rhssaved_g = rhssaved_g_rcv;

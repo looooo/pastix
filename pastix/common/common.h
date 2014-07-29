@@ -23,7 +23,17 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#include "pastix.h"
+#include "pastix/config.h"
+#include "s_pastix.h"
+#include "s_pastixdata.h"
+#include "d_pastix.h"
+#include "d_pastixdata.h"
+#ifdef HAVE_COMPLEX_H
+#  include "c_pastix.h"
+#  include "c_pastixdata.h"
+#  include "z_pastix.h"
+#  include "z_pastixdata.h"
+#endif
 #include <unistd.h>
 #include <assert.h>
 #include "debug.h"
@@ -32,8 +42,10 @@
 #include "integer.h"
 #include "timing.h"
 #include "trace.h"
-#include "pastixdata.h"
-#include "redefine_functions.h"
+/* #include "redefine_functions.h" */
+#define PASTIX_PREFIX_F(x) x
+#define PASTIX_PREFIX(x) x
+#define PASTIX_EXTERN_F(x) x
 #include <stdlib.h>
 #include <limits.h>
 #include <stdio.h>

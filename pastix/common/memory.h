@@ -78,8 +78,10 @@ static inline void *pastix_malloc_func( size_t size,
 	    (ptr) = NULL;			\
 	} while(0)
 
-#define MALLOC_INTERN(ptr, size, type)		\
-    ptr = (type*)memAlloc((size) * sizeof(type))
+#define MALLOC_INTERN(ptr, size, type)                          \
+    do {                                                        \
+        ptr = (type*)memAlloc((size) * sizeof(type)) ;          \
+    } while(0)
 
 #define MALLOC_EXTERN(ptr, size, type)		\
     ptr = (type*)malloc((size) * sizeof(type))
@@ -127,7 +129,7 @@ static inline void *pastix_malloc_func( size_t size,
       }                                           \
   } while (0)
 
-void *memAlloc(size_t size);
+//void *memAlloc(size_t size);
 //void  memFree(void *ptr);
 //void *memRealloc(void *ptr, size_t size);
 #define memRealloc realloc

@@ -56,7 +56,7 @@
  *
  *******************************************************************************/
 int
-orderComputeScotch(       pastix_data_t  *pastix_data,
+orderComputeScotch(       d_pastix_data_t  *pastix_data,
                     const pastix_graph_t *graph )
 {
     Order        *ordemesh = pastix_data->ordemesh;

@@ -129,8 +129,8 @@ pastix_int_t z_csc_simple_distribution(pastix_int_t column, pastix_int_t columnn
  *   malloc_flag - flag to indicate if function call is intern to pastix or extern.
  */
 int z_cscd_symgraph(pastix_int_t      n, const pastix_int_t *ia, const pastix_int_t *ja, const pastix_complex64_t *a,
-                  pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_complex64_t ** newa,
-                  const pastix_int_t *     l2g,  MPI_Comm comm);
+                    pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_complex64_t ** newa,
+                    pastix_int_t *     l2g,  MPI_Comm comm);
 /*
  * Function: cscd_addlocal
  *

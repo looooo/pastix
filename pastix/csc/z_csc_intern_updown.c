@@ -22,7 +22,7 @@
 */
 #include "common.h"
 #include <pthread.h>
-#include "tools.h"
+#include "z_tools.h"
 #include "order.h"
 #include "z_csc.h"
 #include "z_updown.h"
@@ -37,7 +37,7 @@
 #define CSC_LOG
 #endif
 
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
 #define SMX_SOL (1.0+0.0*I)
 #else
 #define SMX_SOL 1.0
@@ -55,11 +55,11 @@
     invp    - reverse permutation tabular.
     dof     - Number of degree of freedom.
  */
-void z_CscUpdownRhs(z_UpDownVector       *updovct,
-                  const z_SolverMatrix *solvmtx,
-                  const pastix_complex64_t        *rhs,
-                  const pastix_int_t          *invp,
-                  int                 dof)
+void z_CscUpdownRhs(z_UpDownVector           *updovct,
+                    const z_SolverMatrix     *solvmtx,
+                    const pastix_complex64_t *rhs,
+                    const pastix_int_t       *invp,
+                    int                       dof)
 {
   pastix_int_t itercblk;
   pastix_int_t itercol;
@@ -102,13 +102,13 @@ void z_CscUpdownRhs(z_UpDownVector       *updovct,
     g2l     - local numbers of global nodes, if not local contains -owner
     dof     - Number of degree of freedom.
  */
-void z_CscdUpdownRhs(z_UpDownVector       *updovct,
-                   const z_SolverMatrix *solvmtx,
-                   const pastix_complex64_t        *rhs,
-                   const pastix_int_t          *invp,
-                   const pastix_int_t          *g2l,
-                   const pastix_int_t           ln,
-                   int                 dof)
+void z_CscdUpdownRhs(z_UpDownVector           *updovct,
+                     const z_SolverMatrix     *solvmtx,
+                     const pastix_complex64_t *rhs,
+                     const pastix_int_t       *invp,
+                     const pastix_int_t       *g2l,
+                     const pastix_int_t        ln,
+                     int                       dof)
 {
   pastix_int_t itercblk;
   pastix_int_t itercol;
@@ -154,13 +154,13 @@ void z_CscdUpdownRhs(z_UpDownVector       *updovct,
 
  */
 void z_CscRhsUpdown(const z_UpDownVector *updovct,
-                  const z_SolverMatrix *solvmtx,
-                  pastix_complex64_t              *rhs,
-                  const pastix_int_t           ncol,
-                  const pastix_int_t          *invp,
-                  const int           dof,
-                  const int           rhsmaking,
-                  MPI_Comm            comm)
+                    const z_SolverMatrix *solvmtx,
+                    pastix_complex64_t   *rhs,
+                    const pastix_int_t    ncol,
+                    const pastix_int_t   *invp,
+                    const int             dof,
+                    const int             rhsmaking,
+                    MPI_Comm              comm)
 {
   pastix_int_t    iter;
   pastix_int_t    itercblk;
@@ -252,13 +252,13 @@ void z_CscRhsUpdown(const z_UpDownVector *updovct,
 
  */
 void z_CscdRhsUpdown(const z_UpDownVector *updovct,
-                   const z_SolverMatrix *solvmtx,
-                   pastix_complex64_t              *x,
-                   const pastix_int_t           ncol,
-                   const pastix_int_t          *g2l,
-                   const pastix_int_t          *invp,
-                   int                 dof,
-                   MPI_Comm            comm)
+                     const z_SolverMatrix *solvmtx,
+                     pastix_complex64_t   *x,
+                     const pastix_int_t    ncol,
+                     const pastix_int_t   *g2l,
+                     const pastix_int_t   *invp,
+                     int                   dof,
+                     MPI_Comm              comm)
 {
   pastix_int_t iter;
   pastix_int_t itercblk;
@@ -309,10 +309,10 @@ void z_CscdRhsUpdown(const z_UpDownVector *updovct,
     comm     - MPI communicator.
 */
 void z_Csc2updown(const z_CscMatrix    *cscmtx,
-                z_UpDownVector       *updovct,
-                const z_SolverMatrix *solvmtx,
-                int                 mode,
-                MPI_Comm            comm)
+                  z_UpDownVector       *updovct,
+                  const z_SolverMatrix *solvmtx,
+                  int                   mode,
+                  MPI_Comm              comm)
 {
   pastix_int_t    itercblk;
   pastix_int_t    itercol;
@@ -410,10 +410,10 @@ void z_Csc2updown(const z_CscMatrix    *cscmtx,
     mode    - Rule to construct X0 (API_RHS_0 : X0[i] = 0, API_RHS_1 : X0[i] = 1, API_RHS_I : X0[i] = i).
     comm    - MPI_Communicator.
 */
-void z_Csc2updown_X0(z_UpDownVector *updovct,
-                   /*const*/ z_SolverMatrix *solvmtx,
-                   int mode,
-                   MPI_Comm comm)
+void z_Csc2updown_X0(z_UpDownVector           *updovct,
+                     /*const*/ z_SolverMatrix *solvmtx,
+                     int                       mode,
+                     MPI_Comm                  comm)
 {
   pastix_int_t  itercblk;
   pastix_int_t  iterval;

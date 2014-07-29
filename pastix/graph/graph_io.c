@@ -34,7 +34,7 @@
  *          The graph structure to store the loaded graph.
  *
  *******************************************************************************/
-void graphLoad( const pastix_data_t  *pastix_data,
+void graphLoad( const d_pastix_data_t  *pastix_data,
                       pastix_graph_t *graph )
 {
     pastix_int_t  procnum  = pastix_data->procnum;
@@ -91,7 +91,7 @@ void graphLoad( const pastix_data_t  *pastix_data,
  *          The graph structure to store the loaded graph.
  *
  *******************************************************************************/
-void graphSave( const pastix_data_t  *pastix_data,
+void graphSave( const d_pastix_data_t  *pastix_data,
                 const pastix_graph_t *graph )
 {
     pastix_int_t procnum = pastix_data->procnum;

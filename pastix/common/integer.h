@@ -47,8 +47,14 @@ void         intSort2asc2(void * const, const pastix_int_t);
   Nothing
 
 */
-void qsortIntFloatAsc(void ** const pbase,
-                      const pastix_int_t     total_elems);
+void s_qsortIntFloatAsc(void ** const pbase,
+                        const pastix_int_t     total_elems);
+void d_qsortIntFloatAsc(void ** const pbase,
+                        const pastix_int_t     total_elems);
+void c_qsortIntFloatAsc(void ** const pbase,
+                        const pastix_int_t     total_elems);
+void z_qsortIntFloatAsc(void ** const pbase,
+                        const pastix_int_t     total_elems);
 
 /*
   Function: qsort2IntFloatAsc
@@ -67,7 +73,13 @@ void qsortIntFloatAsc(void ** const pbase,
   Nothing
 
 */
-void qsort2IntFloatAsc(void ** const pbase,
+void s_qsort2IntFloatAsc(void ** const pbase,
+                       const pastix_int_t     total_elems);
+void d_qsort2IntFloatAsc(void ** const pbase,
+                       const pastix_int_t     total_elems);
+void c_qsort2IntFloatAsc(void ** const pbase,
+                       const pastix_int_t     total_elems);
+void z_qsort2IntFloatAsc(void ** const pbase,
                        const pastix_int_t     total_elems);
 
 

@@ -165,7 +165,8 @@ int core_zgemdm(int transA, int transB,
 {
     int j, Am, Bm;
     pastix_complex64_t delta;
-    pastix_complex64_t *wD, *w;
+    pastix_complex64_t *wD2, *w;
+    const pastix_complex64_t *wD;
 
     Am = (transA == CblasNoTrans ) ? M : K;
     Bm = (transB == CblasNoTrans ) ? K : N;
@@ -227,8 +228,9 @@ int core_zgemdm(int transA, int transB,
     if ( incD == 1 ) {
         wD = D;
     } else {
-        wD = WORK;
-        cblas_zcopy(K, D, incD, wD, 1);
+        wD2 = WORK;
+        cblas_zcopy(K, D, incD, wD2, 1);
+        wD = wD2;
     }
     w = WORK + K;
 
