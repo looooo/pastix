@@ -36,13 +36,13 @@
 #include "z_tools.h"
 #include "sopalin_define.h"
 
-#ifdef HAVE_SCOTCH
-#  ifdef    PASTIX_DISTRIBUTED
+#if (defined PASTIX_ORDERING_SCOTCH) || (defined PASTIX_ORDERING_PTSCOTCH)
+#  ifdef    PASTIX_ORDERING_PTSCOTCH
 #    include <ptscotch.h>
-#  else
+#  else  /* PASTIX_ORDERING_PTSCOTCH */
 #    include <scotch.h>
-#  endif /* PASTIX_DISTRIBUTED */
-#endif /* WITH_SCOTCH */
+#  endif /* PASTIX_ORDERING_PTSCOTCH */
+#endif /* PASTIX_ORDERING_PTSCOTCH || PASTIX_ORDERING_SCOTCH */
 
 #if defined(HAVE_METIS)
 #include <metis.h>
