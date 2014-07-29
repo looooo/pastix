@@ -47,7 +47,7 @@
 #    undef PREC_DOUBLE
 #  endif
 #endif
-#include "sopalin_compute.h"
+#include "z_sopalin_compute.h"
 #include "pastix_cuda_helper.h"
 
 #if (CUDA_SM_VERSION >= 20)

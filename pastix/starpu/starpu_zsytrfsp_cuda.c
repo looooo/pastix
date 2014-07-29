@@ -22,7 +22,7 @@
 #include "z_solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_acces.h"
-#include "starpu_defines.h"
+#include "starpu_zdefines.h"
 #include "starpu_zsubmit.h"
 #include "pastix_cuda_helper.h"
 #include "sparse_zgemm_fermi.h"

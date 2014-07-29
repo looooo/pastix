@@ -11,8 +11,8 @@
  * @precisions normal z -> c d s
  *
  **/
-#ifndef _MTX_H_
-#define _MTX_H_
+#ifndef Z_MTX_H_
+#define Z_MTX_H_
 
 #include <stdio.h>
 
@@ -57,4 +57,4 @@ void z_driverFdupros(char const *filename, pastix_int_t *Nrow, pastix_int_t *Nco
 
 #include "z_csparse.h"
 
-#endif
+#endif /* Z_MTX_H_ */

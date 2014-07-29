@@ -1402,7 +1402,6 @@ void* z_up_down_smp ( void *arg )
           || (sopar->iparm[IPARM_END_TASK] == API_TASK_SOLVE))
         {
           sopalin_data->step_comm = COMMSTEP_END;
-          print_debug(DBG_THCOMM, "%s:%d END\n", __FILE__, __LINE__);
         }
       MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
       pthread_cond_broadcast(&(sopalin_data->cond_comm));
