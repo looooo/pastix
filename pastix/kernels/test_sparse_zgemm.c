@@ -26,27 +26,6 @@
 #include "pastix_zcores.h"
 #include "timing.h"
 /* #include "sparse_zgemm.h" */
-#ifdef PRECISIONS_z
-#  define TYPE_COMPLEX
-#  define PREC_DOUBLE
-#elif PRECISIONS_d
-#  ifdef TYPE_COMPLEX
-#    undef TYPE_COMPLEX
-#  endif
-#  define PREC_DOUBLE
-#elif PRECISIONS_c
-#  define TYPE_COMPLEX
-#  ifdef PREC_DOUBLE
-#    undef PREC_DOUBLE
-#  endif
-#elif PRECISIONS_s
-#  ifdef TYPE_COMPLEX
-#    undef TYPE_COMPLEX
-#  endif
-#  ifdef PREC_DOUBLE
-#    undef PREC_DOUBLE
-#  endif
-#endif
 #include "z_sopalin_compute.h"
 #include "pastix_cuda_helper.h"
 
@@ -56,10 +35,11 @@
 
 #define TO_STR(x) STR(x)
 #define STR(x) #x
-#if (defined PRECISION_z || defined PRECISION_d)
-#  define FLOAT_EPSILON DBL_EPSILON
-#else
-#  define FLOAT_EPSILON FLT_EPSILON
+
+#if (defined PRECISION_c)
+#  define make_cuDoubleComplex(a,b) make_cuFloatComplex(a,b)
+#elif (defined PRECISION_d || defined PRECISION_s)
+#  define make_cuDoubleComplex(a,b) a
 #endif
 
 #define SAVE_MIN_TIME(time)                                             \
@@ -119,12 +99,12 @@ void usage(char * name)
       magmablas_sparse_zgemm_kernel_N_T_64_16_4_16_4((int)dimi,         \
                                                      (int)dimj,         \
                                                      (int)dima,         \
-                                                     (float)alpha,      \
+                                                     (double)alpha,      \
                                                      A,                 \
                                                      (int)stride_A,     \
                                                       B,               \
                                                      (int)stride_B,    \
-                                                     (float)beta,      \
+                                                     (double)beta,      \
                                                      C,                \
                                                      (int)stride_C,    \
                                                      blocknbr,         \
@@ -164,11 +144,11 @@ void usage(char * name)
             run2_idx, run_idx, sqrt(cmpres_norm/cmpres_sum));           \
     fprintf(stdout, "%d.%d: normM = %e\n",                              \
             run2_idx, run_idx, sqrt(cmpres_maxdiff));                   \
-    cmpres_result = sqrt(cmpres_maxdiff)/                               \
-        ((norm_A+norm_At+norm_B)*n*FLOAT_EPSILON);                      \
+    cmpres_result = cmpres_maxdiff/                                     \
+        ((norm_A+norm_At+norm_B)*n*DBL_EPSILON);                        \
     fprintf(stdout,                                                     \
-            "%d.%d: normM/(sum(normA,At,C)*MAX(m,n)*EPS) = %e\n",       \
-            run2_idx, run_idx, cmpres_result);                          \
+            "%d.%d: normM/(sum(normA,At,C)*MAX(m,n)*EPS) = %e %g\n",    \
+            run2_idx, run_idx, cmpres_result, DBL_EPSILON);             \
     if ( isnan(cmpres_result)                                           \
          || isinf(cmpres_result)                                        \
          || (cmpres_result > 10.0) ) {                                  \
@@ -392,9 +372,9 @@ main(int argc, char ** argv) {
   pastix_complex64_t alpha = -1.0;
   pastix_complex64_t beta  = 1.0;
 
-  CU_FLOAT cu_alpha;
-  CU_FLOAT cu_beta;
-  CU_FLOAT *d_A, *d_B, *d_D;
+  cuDoubleComplex cu_alpha;
+  cuDoubleComplex cu_beta;
+  cuDoubleComplex *d_A, *d_B, *d_D;
 
   double time_sparse_CPU,          *min_time_sparse_CPU;
   double time_sparse_GPU,          *min_time_sparse_GPU;
@@ -415,8 +395,8 @@ main(int argc, char ** argv) {
   int    nruns = 1, nruns2 = 1, run_idx, run2_idx;
   int ret = 0;
 
-  cu_alpha = CU_FLOAT_INIT(creal(alpha), cimag(alpha));
-  cu_beta  = CU_FLOAT_INIT(creal(beta),  cimag(beta));
+  cu_alpha = make_cuDoubleComplex(creal(alpha), cimag(alpha));
+  cu_beta  = make_cuDoubleComplex(creal(beta),  cimag(beta));
   srand (iseed);
 
   if (argc != 4 && argc != 6)
@@ -827,8 +807,8 @@ main(int argc, char ** argv) {
           myClockStart(clk);
           CUDA_CALL(cudaThreadSynchronize());
           CUBLAS_GEMM('N', 'C', m, n, k, cu_alpha,
-                      (CU_FLOAT*)d_A, lda, (CU_FLOAT*)d_A, lda,
-                      cu_beta, (CU_FLOAT*)d_B, ldb);
+                      (cuDoubleComplex*)d_A, lda, (cuDoubleComplex*)d_A, lda,
+                      cu_beta, (cuDoubleComplex*)d_B, ldb);
           CUDA_CALL(cudaThreadSynchronize());
           myClockStop(clk);
 

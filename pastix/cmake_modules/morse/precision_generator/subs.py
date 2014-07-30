@@ -890,7 +890,7 @@ subs = {
     ('pastix_s',       'pastix_d',       'pastix_c',       'pastix_z'        ),
     ('s_',             'd_',             'c_',             'z_'              ),
     ('S_',             'D_',             'C_',             'Z_'              ),
-    ('FLT_EPSILON',    'FLT_EPSILON',    'DBL_EPSILON',    'DBL_EPSILON'     ),
+    ('FLT_EPSILON',    'DBL_EPSILON',    'FLT_EPSILON',    'DBL_EPSILON'     ),
     ('s_RAFF_FLOAT',   'd_RAFF_FLOAT',   'c_RAFF_FLOAT',   'z_RAFF_FLOAT'    ),
     ('MPI_FLOAT',      'MPI_DOUBLE',     'MPI_COMPLEX',    'MPI_DOUBLE_COMPLEX'),
     ('MPI_FLOAT',      'MPI_DOUBLE',     'MPI_FLOAT',      'MPI_DOUBLE'      ),
