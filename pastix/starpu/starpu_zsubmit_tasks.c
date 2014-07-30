@@ -1381,7 +1381,7 @@ starpu_zsubmit_tasks(z_Sopalin_Data_t  * sopalin_data) {
     WORK_size *= 2;
 #  endif
 
-    starpu_dregister_data(sopalin_data,
+    starpu_zregister_data(sopalin_data,
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                           &L_handle,      &U_handle,
                           &Lhalo_handle,  &Uhalo_handle,
@@ -1664,7 +1664,7 @@ starpu_zsubmit_tasks(z_Sopalin_Data_t  * sopalin_data) {
         }
     }
 
-    starpu_dunregister_data(sopalin_data,
+    starpu_zunregister_data(sopalin_data,
 #  if (defined CHOL_SOPALIN && defined SOPALIN_LU)
                             &L_handle,      &U_handle,
                             &Lhalo_handle,  &Uhalo_handle,
