@@ -603,11 +603,11 @@ solverMatrixGen(const pastix_int_t clustnum,
 
             solvblok++;
 
-            /* Area of GEMM updates */
+            /* Area of GEMDM updates */
             for( ; solvblok<lblok; solvblok++ ) {
                 n = solvblok->lrownum - solvblok->frownum + 1;
 
-                gemmarea = m * n;
+                gemmarea = pastix_imax((m +1)* n, m*(n+1));
                 if ( gemmarea > gemmmax ) {
                     gemmmax = gemmarea;
                     maxg_m = m;
@@ -1049,7 +1049,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
                 fprintf(stdout,
                         "%ld: Outgoing Fanin volume : %.3g coefficients (+%.3g%%),"
-                        " %.3g with native scheduler (+%.3g %%)\n",
+                        "                             %.3g with native scheduler\n",
                         (long)solvmtx->clustnum, fanin_coefnbr,
                         (fanin_coefnbr-fanin_coefnbr_pastix)/fanin_coefnbr_pastix,
                         fanin_coefnbr_pastix);

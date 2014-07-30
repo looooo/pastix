@@ -229,7 +229,6 @@ void* z_up_down_smp ( void *arg )
         UPDOWN_SM2XMAX*sizeof(pastix_complex64_t)*UPDOWN_SM2XNBR;
 
       MALLOC_INTERN(updo_buffer, updo_buffer_size, char);
-      fprintf(stdout, "%s:%d\n", __FILE__, __LINE__);
 
       print_debug(DBG_SOPALIN_UPDO, "  buffer size = %d\n", (int)updo_buffer_size);
     }
@@ -284,7 +283,6 @@ void* z_up_down_smp ( void *arg )
 #ifdef PASTIX_DUMP_SOLV
   API_CALL(z_dump_all)(datacode, sopar->cscmtx, DUMP_SMB);
 #endif
-  fprintf(stdout, "%s:%d\n", __FILE__, __LINE__);
 
   MONOTHREAD_END;
   SYNCHRO_THREAD;
@@ -362,7 +360,6 @@ void* z_up_down_smp ( void *arg )
       pthread_cond_broadcast(&(sopalin_data->cond_comm));
     }
   MONOTHREAD_END;
-  fprintf(stdout, "%s:%d\n", __FILE__, __LINE__);
 
   /******************************/
   /*          DOWN              */
