@@ -106,6 +106,13 @@ foreach(example_with_ext ${generated_files})
   endif()
 endforeach()
 
+
+#
+#-- CTests
+#
+enable_testing()
+include(CTest)
+
 foreach(example simple step-by-step)
   foreach(prec s d c z)
     set(test_args

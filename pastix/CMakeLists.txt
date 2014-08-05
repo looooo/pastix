@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
 project (PASTIX C CXX Fortran)
-enable_testing()
 
 include(CMakeDependentOption)
 include(CheckFunctionExists)
@@ -24,16 +23,7 @@ include(MorseInit)
 # -----------------------------------------
 set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.py )
 set( RP_PASTIX_PRECISIONS  "s;d;c;z" )
-include(CheckIncludeFiles)
-check_include_files(complex.h HAVE_COMPLEX_H)
-
 include(RulesPrecisions)
-
-# # CTest system
-# SET(DART_TESTING_TIMEOUT 120)
-# enable_testing()
-# include(CTest)
-# enable_testing()
 
 ### Misc options
 option(BUILD_SHARED_LIBS
@@ -44,50 +34,27 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo and MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
-### Distributed engine parameters
-find_package(MPI)
-if (MPI_FOUND)
-  option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" ON)
-else (MPI_FOUND)
-  option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" OFF)
-endif(MPI_FOUND)
+### System parameter detection
+include(CheckIncludeFiles)
+check_include_files(complex.h HAVE_COMPLEX_H)
 
+### Distributed engine parameters
+option(PASTIX_WITH_MPI
+    "Build PaStiX for distributed memory with MPI" ON)
 
 ### GPU engine parameters
-find_package(CUDA)
-if (CUDA_FOUND)
-  option(PASTIX_WITH_CUDA
-    "Enable GPU support using CUDA kernels" ON)
-else (CUDA_FOUND)
-  option(PASTIX_WITH_CUDA
+option(PASTIX_WITH_CUDA
     "Enable GPU support using CUDA kernels" OFF)
-endif(CUDA_FOUND)
 
-#Search for StarPU
-# create list of components in order to make a single call to find_package(starpu...)
-set(STARPU_COMPONENT_LIST "HWLOC")
-if(PASTIX_WITH_MPI)
-  list(APPEND STARPU_COMPONENT_LIST "MPI")
-endif(PASTIX_WITH_MPI)
-
-if(PASTIX_WITH_CUDA)
-  list(APPEND STARPU_COMPONENT_LIST "CUDA")
-endif(PASTIX_WITH_CUDA)
-
-find_package(STARPU "1.1"
-  COMPONENTS ${STARPU_COMPONENT_LIST})
-if (STARPU_FOUND)
-  option(PASTIX_WITH_STARPU
-    "Build PaStiX with StarPU runtime support" ON)
-else (STARPU_FOUND)
-  option(PASTIX_WITH_STARPU
+### Runtime engines
+option(PASTIX_WITH_STARPU
     "Build PaStiX with StarPU runtime support" OFF)
-endif(STARPU_FOUND)
 option(PASTIX_WITH_STARPU_PROFILING
   "Build PaStiX with StarPU runtime support profiling" OFF)
+option(PASTIX_WITH_PARSEC
+  "Build PaStiX with PaRSEC runtime support" OFF)
 
+# Internal options
 option(PASTIX_DUMP_CBLK
   "Dump all cblk on disk after modifications" OFF)
 
@@ -116,17 +83,6 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
   "Activate the PT-scotch ordering (requires PASTIX_DISTRIBUTED and PASTIX_ORDERING_SCOTCH)" ON
   "PASTIX_DISTRIBUTED;PASTIX_ORDERING_SCOTCH" OFF)
 
-mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
-set( SCOTCH_DIR        /opt/scotch                 CACHE PATH   "Scotch prefix directory")
-set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
-
-#set( BLAS_LIBRARY_DIRS /opt/plasma-extlibs-dbg/lib CACHE STRING "BLAS library paths"     )
-#set( BLAS_LIBRARIES    refblas                     CACHE STRING "BLAS libraries"         )
-#set( CBLAS_DIR         /opt/plasma-extlibs-dbg     CACHE STRING "CBLAS path"     )
-#set( CBLAS_LIBRARIES    cblas                       CACHE STRING "CBLAS libraries"         )
-#set( BLAS_LIBRARY_DIRS /opt/gotoblas2              CACHE STRING "BLAS library paths"     )
-#set( BLAS_LIBRARIES    goto2                       CACHE STRING "BLAS libraries"         )
-
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
   "Dump the generated symbol matrix in a postscript file" OFF)
@@ -139,19 +95,37 @@ option(FORGET_PARTITION
 option(COMPACT_SMX
   "Optimization for solve computations (TODO: check if not obsolete because results don't converge)" OFF)
 
-#
-# Find non-optional packages
-#
+###############################################################################
+# Look for dependencies #
+#########################
+
+# Check for Thread library
+# ------------------------
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+find_package(Threads REQUIRED)
+if( THREADS_FOUND )
+    list(APPEND EXTRA_LIBS ${CMAKE_THREAD_LIBS_INIT})
+endif ()
+
+# Check for RT library
+# ------------------------
+find_library(RT rt)
+list(APPEND EXTRA_LIBS ${RT})
+
+# PaStiX depends on CBLAS
+#----------------------------
 find_package(BLASEXT REQUIRED)
 set(HAVE_BLAS ${BLAS_FOUND})
 
 find_package(CBLAS REQUIRED)
 set(HAVE_CBLAS ${CBLAS_FOUND})
 if(CBLAS_FOUND)
-  message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
+    message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
+# PaStiX depends on HwLoc
+#---------------------------
 find_package(HWLOC)
 set(HAVE_HWLOC ${HWLOC_FOUND})
 if( HWLOC_FOUND )
@@ -160,64 +134,130 @@ if( HWLOC_FOUND )
   include_directories( ${HWLOC_INCLUDE_DIRS} )
 endif (HWLOC_FOUND)
 
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-find_package(Threads REQUIRED)
-list(APPEND EXTRA_LIBS
-  ${CMAKE_THREAD_LIBS_INIT})
-
-FIND_LIBRARY(RT rt)
-list(APPEND EXTRA_LIBS
-  ${RT})
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCUDA_SM_VERSION=20")
-#
-# Find optional packages
-#
+# PaStiX might depend on MPI
+#------------------------------
 if (PASTIX_WITH_MPI)
-  if (NOT MPI_FOUND)
-    message(FATAL_ERROR
-      "MPI is required to build PaStiX with MPI support.")
-  endif(NOT MPI_FOUND)
-  set(HAVE_MPI TRUE)
-  include_directories( ${MPI_INCLUDE_PATH} )
-##  set(CMAKE_REQUIRED_INCLUDES ${MPI_INCLUDE_PATH})
-##  set(CMAKE_REQUIRED_LIBRARIES ${MPI_LIBRARIES})
-##  check_function_exists(MPI_Get_address HAVE_MPI_GET_ADDRESS)
-##  if (${HAVE_MPI_GET_ADDRESS})
-##    message(STATUS "HAVE_MPI_GET_ADDRESS -- True")
-##  else(${HAVE_MPI_GET_ADDRESS})
-##    message(STATUS "HAVE_MPI_GET_ADDRESS -- False ${MPI_INCLUDE_PATH} ${MPI_LIBRARIES}")
-##  endif(${HAVE_MPI_GET_ADDRESS})
+  # Force the detection of the C library
+  find_package(MPI)
+  set(HAVE_MPI ${MPI_C_FOUND})
+  if (MPI_C_FOUND)
+    list(APPEND EXTRA_LIBS ${MPI_C_LIBRARIES} )
+    include_directories( ${MPI_C_INCLUDE_PATH} )
+
+    # Check to see if support for MPI 2.0 is available
+    set(saved_include "${CMAKE_REQUIRED_INCLUDES}" )
+    set(saved_libs    "${CMAKE_REQUIRED_LIBRARIES}")
+    set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${MPI_C_INCLUDE_PATH}")
+    set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${MPI_C_LIBRARIES}")
+    check_function_exists(MPI_Type_create_resized HAVE_MPI_20)
+    set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
+    set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
+
+  else (MPI_C_FOUND)
+    message(ERROR "MPI is required but was not found. Please provide an MPI compiler in your environment or configure with -DPASTIX_WITH_MPI=OFF")
+  endif (MPI_C_FOUND)
 endif (PASTIX_WITH_MPI)
 
+# PaStiX might depend on CUDA
+#-------------------------------
+if( PASTIX_WITH_CUDA )
+
+    find_package(CUDA)
+
+    set(HAVE_CUDA ${CUDA_FOUND})
+    if (CUDA_FOUND)
+        if(CUDA_VERSION VERSION_LESS "3.0")
+            set(CUDA_HOST_COMPILATION_CPP OFF)
+        endif(CUDA_VERSION VERSION_LESS "3.0")
+        set(CUDA_BUILD_EMULATION OFF)
+        include_directories(${CUDA_INCLUDE_DIRS})
+        list(APPEND EXTRA_LIBRARIES ${CUDA_LIBRARIES}) # need CUDA libs to link.
+        list(APPEND EXTRA_SOURCES src/gpu_data.c)
+        set(saved_include "${CMAKE_REQUIRED_INCLUDES}")
+        set(saved_libs "${CMAKE_REQUIRED_LIBRARIES}")
+        set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${CUDA_INCLUDE_DIRS}")
+        set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${CUDA_LIBRARIES}")
+        if(CUDA_VERSION VERSION_LESS "4.0")
+            set(CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS 0)
+        else()
+            check_function_exists(cuDeviceCanAccessPeer CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS)
+        endif()
+        set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
+        set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
+
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCUDA_SM_VERSION=20")
+
+    else(CUDA_FOUND)
+        message(ERROR "CUDA is required but was not found. Please provide a CUDA library in your environment or configure with -DPASTIX_WITH_CUDA=OFF")
+    endif (CUDA_FOUND)
+
+endif()
+
+# PaStiX might depend on StarPU
+#---------------------------------
 if (PASTIX_WITH_STARPU)
-  if (NOT STARPU_FOUND)
-    message(FATAL_ERROR
-      "Starpu is required to build PaStiX with Starpu support.")
-  endif(NOT STARPU_FOUND)
 
-  set(HAVE_STARPU ${STARPU_FOUND})
-  if (STARPU_FOUND)
+    set(PASTIX_STARPU_VERSION "1.1" CACHE STRING "oldest STARPU version desired")
+
+    # Create list of components in order to make a single call to find_package(starpu...)
+    set(STARPU_COMPONENT_LIST "HWLOC")
     if(PASTIX_WITH_MPI)
-      set(CMAKE_REQUIRED_LIBRARIES
-	"${CMAKE_REQUIRED_LIBRARIES};${STARPU_MPI_LIBRARIES}")
-      include_directories( ${STARPU_MPI_INCLUDE_DIRS} )
-    else(PASTIX_WITH_MPI)
-      set(CMAKE_REQUIRED_LIBRARIES
-	"${CMAKE_REQUIRED_LIBRARIES};${STARPU_SHM_LIBRARIES}")
+        list(APPEND STARPU_COMPONENT_LIST "MPI")
+    endif()
+    if(PASTIX_WITH_CUDA)
+        list(APPEND STARPU_COMPONENT_LIST "CUDA")
+    endif()
+    if(PASTIX_WITH_FXT)
+        list(APPEND STARPU_COMPONENT_LIST "FXT")
+    endif()
 
-      include_directories( ${STARPU_SHM_INCLUDE_DIRS} )
-    endif(PASTIX_WITH_MPI)
-    include_directories( ${STARPU_INCLUDE_DIRS} )
-  endif (STARPU_FOUND)
+    find_package(STARPU ${PASTIX_STARPU_VERSION} REQUIRED
+                 COMPONENTS ${STARPU_COMPONENT_LIST})
 
-  # if (STARPU_CUDA_FOUND)
-  #   set(PASTIX_WITH_CUDA ON)
-  # endif(STARPU_CUDA_FOUND)
+    set(HAVE_STARPU ${STARPU_FOUND})
+
+    # Add definition and include_dir if found
+    if(STARPU_FOUND)
+        include_directories(${STARPU_INCLUDE_DIRS})
+        set(CMAKE_REQUIRED_INCLUDES "${STARPU_INCLUDE_DIRS}")
+        foreach(libdir ${STARPU_LIBRARY_DIRS})
+            list(APPEND CMAKE_REQUIRED_FLAGS "-L${libdir}")
+        endforeach()
+        string(REPLACE ";" " " CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+        if(PASTIX_USE_FXT)
+            # check if fxt profiling is accessible in starpu and activate it in magmamorse
+            set(CMAKE_REQUIRED_LIBRARIES "${STARPU_SHM_LIBRARIES}")
+            unset(STARPU_FXT_START_PROFILING_FOUND CACHE)
+            check_function_exists(starpu_fxt_start_profiling STARPU_FXT_START_PROFILING_FOUND)
+            if ( STARPU_FXT_START_PROFILING_FOUND )
+                message(STATUS "Set HAVE_STARPU_FXT_PROFILING - Activate FxT profiling through StarPU")
+                add_definitions(-DHAVE_STARPU_FXT_PROFILING)
+            endif()
+        endif()
+        if (STARPU_MPI_LIBRARIES)
+            # Check if a specific function exist
+            set(CMAKE_REQUIRED_LIBRARIES "${STARPU_MPI_LIBRARIES}")
+            unset(STARPU_MPI_DATA_REGISTER_FOUND CACHE)
+            check_function_exists(starpu_mpi_data_register STARPU_MPI_DATA_REGISTER_FOUND)
+            if ( STARPU_MPI_DATA_REGISTER_FOUND )
+                add_definitions(-DHAVE_STARPU_MPI_DATA_REGISTER)
+            endif()
+        endif()
+
+    else(STARPU_FOUND)
+        message(ERROR "StarPU with ${STARPU_COMPONENT_LIST} components is required but was not found. Please provide the StarPU library in your environment or configure with -DPASTIX_WITH_STARPU=OFF")
+    endif()
+
 endif (PASTIX_WITH_STARPU)
 
-#
+# PaStiX might depend on Scotch/PT-Scotch
+#-------------------------------------------
+
+# the following  3 lines are temporary
+mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
+set( SCOTCH_DIR        /opt/scotch                 CACHE PATH   "Scotch prefix directory")
+set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
+
 if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
   include_directories("${SCOTCH_DIR}/include")
   set(SCOTCH_LIBRARY_DIRS "${SCOTCH_DIR}/lib")
@@ -225,51 +265,13 @@ if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
   set(PTSCOTCH_LIBRARIES  "ptscotch;ptscotcherr")
 endif()
 
-
+# PaStiX might depend on Metis
+#--------------------------------
 if (PASTIX_ORDERING_METIS)
   include_directories("${METIS_DIR}/include")
   set(METIS_LIBRARY_DIRS "${METIS_DIR}/lib")
   set(METIS_LIBRARIES    "metis")
 endif()
-
-# Check to see if support for MPI 2.0 is available
-#
-if (MPI_FOUND)
-  set(saved_include "${CMAKE_REQUIRED_INCLUDES}" )
-  set(saved_libs    "${CMAKE_REQUIRED_LIBRARIES}")
-  set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${MPI_C_INCLUDE_PATH}")
-  set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${MPI_C_LIBRARIES}")
-  check_function_exists(MPI_Type_create_resized HAVE_MPI_20)
-  set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
-  set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
-endif (MPI_FOUND)
-
-if( PASTIX_WITH_CUDA )
-  set(HAVE_CUDA ${CUDA_FOUND})
-  if (NOT CUDA_FOUND)
-    message(FATAL_ERROR
-      "CUDA is required to build PaStiX with CUDA support.")
-  endif(NOT CUDA_FOUND)
-  
-  if (CUDA_FOUND)
-    if(CUDA_VERSION VERSION_LESS "3.0")
-      set(CUDA_HOST_COMPILATION_CPP OFF)
-    endif(CUDA_VERSION VERSION_LESS "3.0")
-    set(CUDA_BUILD_EMULATION OFF)
-    include_directories(${CUDA_INCLUDE_DIRS})
-    set(saved_include "${CMAKE_REQUIRED_INCLUDES}")
-    set(saved_libs    "${CMAKE_REQUIRED_LIBRARIES}")
-    set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${CUDA_INCLUDE_DIRS}")
-    set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${CUDA_LIBRARIES}")
-    if(CUDA_VERSION VERSION_LESS "4.0")
-      set(DAGUE_HAVE_PEER_DEVICE_MEMORY_ACCESS 0)
-    else()
-      check_function_exists(cuDeviceCanAccessPeer DAGUE_HAVE_PEER_DEVICE_MEMORY_ACCESS)
-    endif()
-    set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
-    set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
-  endif (CUDA_FOUND)
-endif( PASTIX_WITH_CUDA )
 
 #
 ##
@@ -278,6 +280,10 @@ endif( PASTIX_WITH_CUDA )
 ###
 ##
 #
+
+# Disable restrict (temporary)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
+
 set(PROJECT_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
 include_directories(BEFORE "${PROJECT_INCLUDE_DIR}")
 
@@ -312,15 +318,15 @@ add_definitions(${TOTO})
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kass")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
-
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
 
 # Sub modules
 set(modules libcsc blend csc kernels sopalin matrix_drivers include common)
@@ -531,3 +537,4 @@ endif()
 add_custom_target (tags
   COMMAND etags ${PASTIX_LIB_SRCS}
   DEPENDS ${PASTIX_LIB_SRCS} )
+
