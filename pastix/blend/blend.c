@@ -20,13 +20,13 @@
 #include "common.h"
 #include "out.h"
 #include "dof.h"
-#include "ftgt.h"
+#include "d_ftgt.h"
 #include "cost.h"
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "updown.h"
-#include "solver.h"
+#include "d_updown.h"
+#include "d_solver.h"
 #include "solverRealloc.h"
 #include "elimin.h"
 #include "extendVector.h"
@@ -65,7 +65,7 @@
  *   solvmtx    - Solver matrix structure.
  */
 void solverBlend(BlendCtrl    *ctrl,
-                 SolverMatrix *solvmtx,
+                 d_SolverMatrix *solvmtx,
                  SymbolMatrix *symbmtx,
                  const Dof    *dofptr)
 {

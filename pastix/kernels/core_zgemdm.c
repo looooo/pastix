@@ -155,15 +155,18 @@
  ******************************************************************************/
 int core_zgemdm(int transA, int transB,
                 int M, int N, int K,
-                pastix_complex64_t alpha, pastix_complex64_t *A, int LDA,
-                pastix_complex64_t *B, int LDB,
-                pastix_complex64_t beta, pastix_complex64_t *C, int LDC,
-                pastix_complex64_t *D, int incD,
+                pastix_complex64_t alpha,
+                const pastix_complex64_t *A, int LDA,
+                const pastix_complex64_t *B, int LDB,
+                pastix_complex64_t beta,
+                pastix_complex64_t *C, int LDC,
+                const pastix_complex64_t *D, int incD,
                 pastix_complex64_t *WORK, int LWORK)
 {
     int j, Am, Bm;
     pastix_complex64_t delta;
-    pastix_complex64_t *wD, *w;
+    pastix_complex64_t *wD2, *w;
+    const pastix_complex64_t *wD;
 
     Am = (transA == CblasNoTrans ) ? M : K;
     Bm = (transB == CblasNoTrans ) ? K : N;
@@ -225,8 +228,9 @@ int core_zgemdm(int transA, int transB,
     if ( incD == 1 ) {
         wD = D;
     } else {
-        wD = WORK;
-        cblas_zcopy(K, D, incD, wD, 1);
+        wD2 = WORK;
+        cblas_zcopy(K, D, incD, wD2, 1);
+        wD = wD2;
     }
     w = WORK + K;
 

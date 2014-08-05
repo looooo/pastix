@@ -15,6 +15,7 @@
 #ifndef BLEND_H
 #define BLEND_H
 
+#include "d_solver.h"
 /*
  * Function: solverBlend
  *
@@ -42,7 +43,7 @@
  *   dofptr     -
  */
 void solverBlend(BlendCtrl    *ctrl,
-                 SolverMatrix *solvmtx,
+                 d_SolverMatrix *solvmtx,
                  SymbolMatrix *symbmtx,
                  const Dof    *dofptr);
 

@@ -14,27 +14,27 @@
 #include <string.h>
 /* to access functions from the libpastix, respect this order */
 #include "pastix.h"
-#include "cscd_utils.h"
+#include "d_cscd_utils.h"
 #include "read_matrix.h"
 #include "get_options.h"
 
 int main (int argc, char **argv)
 {
 
-  pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+  z_pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
   pastix_int_t    ncol;               /* Number of local columns                                   */
   pastix_int_t   *colptr      = NULL; /* Indexes of first element of each column in row and values */
   pastix_int_t   *rows        = NULL; /* Row of each element of the matrix                         */
   pastix_int_t   *loc2glob    = NULL; /* Local to local column correspondance                      */
-  pastix_float_t *values      = NULL; /* Value of each element of the matrix                       */
+  pastix_complex64_t *values      = NULL; /* Value of each element of the matrix                       */
   pastix_int_t    ncol2;              /* Size of the matrix                                        */
   pastix_int_t   *colptr2     = NULL; /* Indexes of first element of each column in row and values */
   pastix_int_t   *rows2       = NULL; /* Row of each element of the matrix                         */
   pastix_int_t   *loc2glob2   = NULL; /* Local to local column correspondance                      */
-  pastix_float_t *values2     = NULL; /* Value of each element of the matrix                       */
-  pastix_float_t *rhs         = NULL; /* right-hand-side                                           */
-  pastix_float_t *rhs2        = NULL; /* right-hand-side                                           */
-  pastix_float_t *rhssaved    = NULL; /* right hand side (save)                                    */
+  pastix_complex64_t *values2     = NULL; /* Value of each element of the matrix                       */
+  pastix_complex64_t *rhs         = NULL; /* right-hand-side                                           */
+  pastix_complex64_t *rhs2        = NULL; /* right-hand-side                                           */
+  pastix_complex64_t *rhssaved    = NULL; /* right hand side (save)                                    */
   pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
   double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
   pastix_int_t   *perm        = NULL; /* Permutation tabular                                       */
@@ -189,8 +189,8 @@ int main (int argc, char **argv)
   /*           Save the rhs                  */
   /*    (it will be replaced by solution)    */
   /*******************************************/
-  rhssaved = malloc(ncol*sizeof(pastix_float_t));
-  memcpy(rhssaved, rhs, ncol*sizeof(pastix_float_t));
+  rhssaved = malloc(ncol*sizeof(pastix_complex64_t));
+  memcpy(rhssaved, rhs, ncol*sizeof(pastix_complex64_t));
 
   /*******************************************/
   /*           Call pastix                   */

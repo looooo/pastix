@@ -15,12 +15,12 @@
  *
  **/
 #include <assert.h>
-#include "starpu_defines.h"
+#include "starpu_zdefines.h"
 #include "starpu_zsubmit.h"
 
 #include "common.h"
-#include "sopalin3d.h"
-#include "solver.h"
+#include "z_sopalin3d.h"
+#include "z_solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_acces.h"
 
@@ -56,8 +56,8 @@ static pastix_complex64_t zzero =  0.;
  *******************************************************************************/
 void starpu_zgetrfsp1d_getrf_cpu(void * buffers[], void * _args)
 {
-    Sopalin_Data_t     *sopalin_data;
-    SolverCblk         *cblk;
+    z_Sopalin_Data_t     *sopalin_data;
+    z_SolverCblk         *cblk;
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *U      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(buffers[0]);
@@ -97,8 +97,8 @@ void starpu_zgetrfsp1d_getrf_cpu(void * buffers[], void * _args)
  *******************************************************************************/
 void starpu_zgetrfsp1d_trsm_cpu(void * buffers[], void * _args)
 {
-    Sopalin_Data_t     *sopalin_data;
-    SolverCblk         *cblk;
+    z_Sopalin_Data_t     *sopalin_data;
+    z_SolverCblk         *cblk;
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *U      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(buffers[0]);
@@ -141,8 +141,8 @@ void starpu_zgetrfsp1d_trsm_cpu(void * buffers[], void * _args)
  *******************************************************************************/
 void starpu_zgetrfsp1d_cpu(void * buffers[], void * _args)
 {
-    Sopalin_Data_t     *sopalin_data;
-    SolverCblk         *cblk;
+    z_Sopalin_Data_t     *sopalin_data;
+    z_SolverCblk         *cblk;
     pastix_complex64_t *L      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *U      = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     pastix_int_t        stride = STARPU_MATRIX_GET_LD(buffers[0]);
@@ -170,7 +170,7 @@ void starpu_zgetrfsp1d_cpu(void * buffers[], void * _args)
  *******************************************************************************
  *
  * @param[in, out] buffers
- *          Array of 2 buffers:
+ *          Array of 5 buffers:
  *            -# L : The pointer to the lower matrix storing the coefficients
  *                   of the panel. Must be of size cblk.stride -by- cblk.width
  *            -# Cl : The pointer to the lower matrix storing the coefficients
@@ -200,10 +200,10 @@ void starpu_zgetrfsp1d_cpu(void * buffers[], void * _args)
 
 void starpu_zgetrfsp1d_gemm_cpu(void * buffers[], void * _args)
 {
-    Sopalin_Data_t     *sopalin_data;
-    SolverCblk         *cblk;
-    SolverBlok         *blok;
-    SolverCblk         *fcblk;
+    z_Sopalin_Data_t     *sopalin_data;
+    z_SolverCblk         *cblk;
+    z_SolverBlok         *blok;
+    z_SolverCblk         *fcblk;
     pastix_int_t        stride   = STARPU_MATRIX_GET_LD(buffers[0]);
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *Cl   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
@@ -221,11 +221,47 @@ void starpu_zgetrfsp1d_gemm_cpu(void * buffers[], void * _args)
     SUBMIT_TRF_IF_NEEDED;
 }
 
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_starpu_kernel
+ *
+ * starpu_zgetrfsp1d_geadd_cpu - Computes the addition of a fanin column block
+ * into the destination column block.
+ *
+ *******************************************************************************
+ *
+ * @param[in, out] buffers
+ *          Array of 4 buffers:
+ *            -# L : The pointer to the lower matrix storing the coefficients
+ *                   of the panel. Must be of size cblk1.stride -by- cblk1.width
+ *            -# Cl : The pointer to the lower matrix storing the coefficients
+ *                    of the updated panel. Must be of size cblk2.stride -by-
+ *                    cblk2.width
+ *            -# U : The pointer to the upper matrix storing the coefficients
+ *                   of the panel. Must be of size cblk1.stride -by- cblk1.width
+ *            -# Cu : The pointer to the upper matrix storing the coefficients
+ *                    of the updated panel. Must be of size cblk2.stride -by-
+ *                    cblk2.width
+ *
+ * @param[in, out] _args
+ *          Package of arguments to unpack with starpu_codelet_unpack_args():
+ *            -# sopalin_data : common sopalin structure.
+ *            -# cblk1 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk1[1].
+ *            -# cblk2 : Pointer to the structure representing the panel to
+ *                       factorize in the cblktab array. Next column blok must
+ *                       be accessible through cblk2[1].
+ *
+ *******************************************************************************/
 void
-starpu_zgetrfsp1d_geadd_cpu(void * buffers[], void * _args)
+starpu_zgetrfsp1d_geadd_cpu( void * buffers[],
+                             void * _args )
 {
-    Sopalin_Data_t     *sopalin_data;
-    SolverCblk *cblk1, *cblk2;
+    z_Sopalin_Data_t     *sopalin_data;
+    z_SolverCblk *cblk1, *cblk2;
     pastix_complex64_t *L    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[0]);
     pastix_complex64_t *Cl   = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[1]);
     pastix_complex64_t *U    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(buffers[2]);

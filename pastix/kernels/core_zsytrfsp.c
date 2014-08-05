@@ -233,12 +233,12 @@ static void core_zsytrfsp(pastix_int_t        n,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
+int core_zsytrfsp1d_sytrf( z_SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
                            pastix_complex64_t *work )
 {
-    SolverBlok   *fblk, *lblk;
+    z_SolverBlok   *fblk, *lblk;
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
@@ -281,10 +281,10 @@ int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
  *          \retval PASTIX_SUCCESS on successful exit.
  *
  *******************************************************************************/
-int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
+int core_zsytrfsp1d_trsm( z_SolverCblk         *cblk,
                           pastix_complex64_t *L )
 {
-    SolverBlok   *fblk, *lblk;
+    z_SolverBlok   *fblk, *lblk;
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
@@ -297,7 +297,7 @@ int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
     if ( fblk+1 < lblk )
     {
         pastix_complex64_t *fL;
-        pastix_int_t nrows;
+        pastix_int_t nrows, k;
 
         /* vertical dimension */
         nrows = stride - ncols;
@@ -313,7 +313,7 @@ int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
                     CBLAS_SADDR(zone), L,  stride,
                                        fL, stride);
 
-        for (pastix_int_t k=0; k<ncols; k++)
+        for (k=0; k<ncols; k++)
         {
             pastix_complex64_t alpha;
             alpha = 1. / L[k+k*stride];
@@ -356,7 +356,7 @@ int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zsytrfsp1d( SolverCblk         *cblk,
+int core_zsytrfsp1d( z_SolverCblk         *cblk,
                      pastix_complex64_t *L,
                      double              criteria,
                      pastix_complex64_t *work )
@@ -408,17 +408,17 @@ int core_zsytrfsp1d( SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
-                           SolverBlok         *blok,
-                           SolverCblk         *fcblk,
+void core_zsytrfsp1d_gemm( z_SolverCblk         *cblk,
+                           z_SolverBlok         *blok,
+                           z_SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2)
 {
-    SolverBlok *iterblok;
-    SolverBlok *fblok; /* facing blok */
-    SolverBlok *lblk;  /* first blok of panel cblk+1 */
+    z_SolverBlok *iterblok;
+    z_SolverBlok *fblok; /* facing blok */
+    z_SolverBlok *lblk;  /* first blok of panel cblk+1 */
 
     pastix_complex64_t *Aik, *Aij;
     pastix_int_t stride, stridefc, indblok;
@@ -469,7 +469,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
     for (iterblok=blok; iterblok<lblk; iterblok++) {
 
         /* Find facing blok */
-        while (!is_block_inside_fblock( iterblok, fblok ))
+        while (!z_is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );

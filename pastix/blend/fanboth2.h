@@ -23,8 +23,8 @@ typedef struct {
   pastix_int_t ftgtnewnum; /*+ index of the ftgt in the final ftgttab +*/
   pastix_int_t next;    /*+ Chain to the next partial ftgt of the initial ftgt +*/
 } ExtraFtgt;
-pastix_int_t Malt2(SolverMatrix *, double);
-pastix_int_t getFtgtInd2(SolverMatrix *, pastix_int_t *, Queue *, Queue *);
+pastix_int_t Malt2(d_SolverMatrix *, double);
+pastix_int_t getFtgtInd2(d_SolverMatrix *, pastix_int_t *, Queue *, Queue *);
 pastix_int_t getFtgtNextAccess(pastix_int_t ind, pastix_int_t ftgtaccessnbr, pastix_int_t *ftgtaccesstab);
 #undef static
 #endif

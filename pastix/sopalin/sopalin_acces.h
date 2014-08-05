@@ -63,6 +63,7 @@
 #define SOLV_PROCDIAG(x)  datacode->cblktab[x].procdiag
 #define SOLV_STRIDE(x)    datacode->cblktab[x].stride
 #define SOLV_UCOEFTAB(x)  datacode->cblktab[x].ucoeftab
+#define SOLV_GPUID(x)     datacode->cblktab[x].gpuid
 
 #define SOLV_TTSKTAB(x)    datacode->ttsktab[me][x]
 #define SOLV_TTSKNBR       datacode->ttsknbr[me]

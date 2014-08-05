@@ -14,7 +14,7 @@
 #ifndef SOLVER_CHECK
 #define static
 #endif
-void            solverCheck          (SolverMatrix *);
+void            solverCheck          (d_SolverMatrix *);
 
 #undef static
 

@@ -216,11 +216,11 @@ static void core_zpotrfsp(pastix_int_t        n,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
+int core_zpotrfsp1d_potrf( z_SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria )
 {
-    SolverBlok   *blok;
+    z_SolverBlok   *blok;
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
@@ -262,12 +262,12 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *         \retval PASTIX_SUCCESS on successful exit.
  *
  *******************************************************************************/
-int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
+int core_zpotrfsp1d_trsm( z_SolverCblk         *cblk,
                           pastix_complex64_t *L )
 {
-    SolverBlok   *blok;
+    z_SolverBlok   *blok;
     pastix_int_t  ncols, stride;
-    SolverBlok   *lblk;
+    z_SolverBlok   *lblk;
     pastix_int_t  nbpivot = 0;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
@@ -328,7 +328,7 @@ int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zpotrfsp1d( SolverCblk         *cblk,
+int core_zpotrfsp1d( z_SolverCblk         *cblk,
                      pastix_complex64_t *L,
                      double              criteria )
 {
@@ -378,16 +378,16 @@ int core_zpotrfsp1d( SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
-                           SolverBlok         *blok,
-                           SolverCblk         *fcblk,
+void core_zpotrfsp1d_gemm( z_SolverCblk         *cblk,
+                           z_SolverBlok         *blok,
+                           z_SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work)
 {
-    SolverBlok *iterblok;
-    SolverBlok *lblok;  /* Last block   */
-    SolverBlok *fblok;  /* facing block */
+    z_SolverBlok *iterblok;
+    z_SolverBlok *lblok;  /* Last block   */
+    z_SolverBlok *fblok;  /* facing block */
 
     pastix_complex64_t *Aik, *Aij;
     pastix_int_t stride, stridefc, indblok;
@@ -431,7 +431,7 @@ void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!is_block_inside_fblock( iterblok, fblok ))
+        while (!z_is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );

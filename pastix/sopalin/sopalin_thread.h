@@ -36,15 +36,15 @@ typedef struct sopthread_data {
  *   comm_thrdnbr  - Number of communicating threads.
  *   comm_routine  - communication function.
  *   comm_data     - Parameters for communication function.
- *   ooc_thrdnbr   - Number of out-of-core threads.
- *   ooc_routine   - Out-of-core function.
- *   ooc_data      - Parameters for *ooc_routine*.
+ *   z_ooc_thrdnbr   - Number of out-of-core threads.
+ *   z_ooc_routine   - Out-of-core function.
+ *   z_ooc_data      - Parameters for *z_ooc_routine*.
  */
 void sopalin_launch_thread(void *sopalin_data,
                            pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
 			   pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
 			   pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-			   pastix_int_t ooc_thrdnbr,  void * (*ooc_routine) (void *), void *ooc_data);
+			   pastix_int_t z_ooc_thrdnbr,  void * (*z_ooc_routine) (void *), void *z_ooc_data);
 
 /*
  * Function: sopalin_launch_comm

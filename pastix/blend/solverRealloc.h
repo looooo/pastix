@@ -13,12 +13,12 @@
 /**                                                        **/
 /************************************************************/
 
-#ifndef SOLVER_REALLOC
-#define static
-#endif
+#ifndef SOLVER_REALLOC_H
+#define SOLVER_REALLOC_H
+#include "d_solver.h"
+/* hack to call the function in a precision generated file */
+void                     solverRealloc        (d_SolverMatrix *);
+void                     solverExit           (d_SolverMatrix *);
+void                     solverInit           (d_SolverMatrix *);
 
-void                     solverRealloc        (SolverMatrix *);
-void                     solverExit           (SolverMatrix *);
-void                     solverInit           (SolverMatrix *);
-
-#undef static
+#endif /* SOLVER_REALLOC_H */

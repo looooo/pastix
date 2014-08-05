@@ -94,6 +94,12 @@ if(BLA_VENDOR MATCHES "Intel*")
     ###
     # look for libs
     ###
+    
+    if (BLA_VENDOR MATCHES "Intel10_64lp*")
+        ## look for the sequential version
+        set(BLA_VENDOR "Intel10_64lp_seq")
+    endif()
+    
     if(LAPACKEXT_FIND_REQUIRED)
         find_package(LAPACK REQUIRED)
     else()

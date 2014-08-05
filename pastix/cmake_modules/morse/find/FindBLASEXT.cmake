@@ -135,11 +135,7 @@ if(BLA_VENDOR MATCHES "Intel*")
 
         ## look for the multithreaded version
         set(BLA_VENDOR "Intel10_64lp")
-        if(BLASEXT_FIND_REQUIRED)
-            find_package(BLAS REQUIRED)
-        else()
-            find_package(BLAS)
-        endif()
+        find_package(BLAS)
         if(BLAS_FOUND)
             set(BLAS_PAR_LIBRARIES "${BLAS_LIBRARIES}")
         else()

@@ -25,14 +25,14 @@
 int main (int argc, char **argv)
 {
 
-  pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+  z_pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
   pastix_int_t    ncol;               /* Size of the matrix                                        */
   pastix_int_t   *colptr      = NULL; /* Indexes of first element of each column in row and values */
   pastix_int_t   *rows        = NULL; /* Row of each element of the matrix                         */
-  pastix_float_t *values      = NULL; /* Value of each element of the matrix                       */
-  pastix_float_t *rhs         = NULL; /* right hand side                                           */
-  pastix_float_t *rhssaved    = NULL; /* right hand side (save)                                    */
-  pastix_float_t *ax          = NULL; /* A times X product                                         */
+  pastix_complex64_t *values      = NULL; /* Value of each element of the matrix                       */
+  pastix_complex64_t *rhs         = NULL; /* right hand side                                           */
+  pastix_complex64_t *rhssaved    = NULL; /* right hand side (save)                                    */
+  pastix_complex64_t *ax          = NULL; /* A times X product                                         */
   pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
   double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
   pastix_int_t   *perm        = NULL; /* Permutation tabular                                       */
@@ -56,7 +56,7 @@ int main (int argc, char **argv)
   int             ooc;                /* OOC limit (Mo/percent depending on compilation options)   */
   pastix_int_t    mat_type;
   long            i,j;
-  pastix_float_t *schur;
+  pastix_complex64_t *schur;
   pastix_int_t    nschur;
   pastix_int_t   *schurlist = NULL;
   double norme1, norme2;
@@ -219,7 +219,7 @@ int main (int argc, char **argv)
   /*             Getting Schur               */
   /*******************************************/
 
-  if (NULL == (schur = malloc(nschur*nschur*sizeof(pastix_float_t))))
+  if (NULL == (schur = malloc(nschur*nschur*sizeof(pastix_complex64_t))))
     return EXIT_FAILURE;
 
   pastix_getSchur(pastix_data,
@@ -246,8 +246,8 @@ int main (int argc, char **argv)
   /*           Save the rhs                  */
   /*    (it will be replaced by solution)    */
   /*******************************************/
-  rhssaved = malloc(ncol*sizeof(pastix_float_t));
-  memcpy(rhssaved, rhs, ncol*sizeof(pastix_float_t));
+  rhssaved = malloc(ncol*sizeof(pastix_complex64_t));
+  memcpy(rhssaved, rhs, ncol*sizeof(pastix_complex64_t));
 
   /*******************************************/
   /*               Solve                     */
@@ -270,8 +270,8 @@ int main (int argc, char **argv)
    ncol, NULL, NULL, NULL,
    NULL, NULL, rhs, 1, iparm, dparm);
 
-  ax = malloc(ncol*sizeof(pastix_float_t));
-  memset(ax, 0, ncol*sizeof(pastix_float_t));
+  ax = malloc(ncol*sizeof(pastix_complex64_t));
+  memset(ax, 0, ncol*sizeof(pastix_complex64_t));
   for (i= 0; i < ncol-nschur; i++)
     {
       for (j = colptr[i]-1; j < colptr[i+1] - 1; j++)

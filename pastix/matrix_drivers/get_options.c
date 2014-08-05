@@ -1,3 +1,16 @@
+/**
+ *
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ * @precisions normal z
+ *
+ **/
 /*
   File: get_options.c
 
@@ -12,8 +25,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "pastix.h"
-#include "read_matrix.h"
+#include "d_pastix.h"
+#include "d_read_matrix.h"
 #include "get_options.h"
 
 int api_iparmreader(char * filename, pastix_int_t *iparmtab);
@@ -555,7 +568,7 @@ int get_options(int              argc,
 }
 
 /*
-  Function: get_idparm
+  Function: d_get_idparm
 
   Get options from argv.
 
@@ -565,10 +578,10 @@ int get_options(int              argc,
   iparm         - type of driver (output, -1 if not set).
   dparm         - type of driver (output, -1 if not set).
 */
-int get_idparm(int            argc,
-	       char         **argv,
-	       pastix_int_t  *iparm,
-	       double        *dparm)
+int d_get_idparm(int            argc,
+                 char         **argv,
+                 pastix_int_t  *iparm,
+                 double        *dparm)
 {
   int i             = 1;
 
@@ -646,4 +659,31 @@ int get_idparm(int            argc,
   MPI_Finalize();
   return EXIT_FAILURE;
 
+}
+
+
+/*
+  Function: s_get_idparm
+
+  Get options from argv.
+
+  Parameters:
+  argc          - number of arguments.
+  argv          - argument tabular.
+  iparm         - type of driver (output, -1 if not set).
+  dparm         - type of driver (output, -1 if not set).
+*/
+int s_get_idparm(int            argc,
+                 char         **argv,
+                 pastix_int_t  *iparm,
+                 float        *dparm) {
+    int i, ret=EXIT_SUCCESS;
+    double *mydparm = malloc(DPARM_SIZE*sizeof(double));
+    for (i = 0; i < DPARM_SIZE; i++)
+        mydparm[i] = (double)(dparm[i]);
+    ret = d_get_idparm(argc, argv, iparm, mydparm);
+    if (ret != EXIT_SUCCESS) return ret;
+    for (i = 0; i < DPARM_SIZE; i++)
+        dparm[i] = (float)(mydparm[i]);
+    return ret;
 }

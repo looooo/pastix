@@ -30,12 +30,12 @@ int main (int argc, char **argv)
   fprintf(stdout, "This example is not compatible with -DFORCE_MPI\n");
   return EXIT_FAILURE;
 #else
-  pastix_data_t    *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+  z_pastix_data_t    *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
   pastix_int_t      ncol;               /* Size of the matrix                                        */
   pastix_int_t     *colptr      = NULL; /* Indexes of first element of each column in row and values */
   pastix_int_t     *rows        = NULL; /* Row of each element of the matrix                         */
-  pastix_float_t   *values      = NULL; /* Value of each element of the matrix                       */
-  pastix_float_t   *rhs         = NULL; /* right hand side                                           */
+  pastix_complex64_t   *values      = NULL; /* Value of each element of the matrix                       */
+  pastix_complex64_t   *rhs         = NULL; /* right hand side                                           */
   pastix_int_t      iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
   double            dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
   pastix_int_t     *perm        = NULL; /* Permutation tabular                                       */

@@ -12,16 +12,32 @@
 #include "queue.h"
 #include "bulles.h"
 #include "blendctrl.h"
-#include "ftgt.h"
-#include "updown.h"
-#include "solver.h"
+#include "z_ftgt.h"
+#include "z_updown.h"
+#include "z_solver.h"
 #include "simu.h"
 #include "costfunc.h"
 #include "smart_cblk_split.h"
 
 #include "extracblk.h"
 
-#define AUTORIZED_PERCENTAGE 5
+static inline
+int pastix_blend_with_constant_split() {
+    return pastix_env_is_set_to("PASTIX_BLEND_SPLIT", "CONSTANT");
+}
+
+static inline
+int pastix_blend_with_smallest_upper_split() {
+    return pastix_env_is_set_to("PASTIX_BLEND_SPLIT", "UPPER");
+}
+
+static inline
+int pastix_blend_split_percent() {
+    return
+      pastix_getenv_get_value_int( "PASTIX_BLEND_SPLIT_AUTORIZED_PERCENTAGE",
+                                    5);
+}
+
 
 static inline pastix_int_t
 computeNbSplit( const BlendCtrl *ctrl,
@@ -85,9 +101,9 @@ computeNbSplit( const BlendCtrl *ctrl,
     }
 
     /* Make sure cblk are at least blas_min_col wide */
-    if ( (width / nseq) < blas_min_col )
+    if ( nseq > 1 && (width / nseq) < blas_min_col ) {
         nseq--;
-
+    }
     return nseq;
 }
 
@@ -187,7 +203,8 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
 }
 
 static inline pastix_int_t *
-computeNbBlocksPerLine( const SymbolMatrix *symbmtx, pastix_int_t frowsplit )
+computeNbBlocksPerLine( const SymbolMatrix *symbmtx,
+                        pastix_int_t frowsplit )
 {
     SymbolBlok   *curblok;
     pastix_int_t *nblocksperline;
@@ -208,6 +225,10 @@ computeNbBlocksPerLine( const SymbolMatrix *symbmtx, pastix_int_t frowsplit )
         if ( curblok->lrownum < frowsplit )
             continue;
 
+        /*
+         * For each couple of rows (i,i+1) in the block, we increment
+         * the number blocks in regard of the row i
+         */
         for(line = pastix_imax( curblok->frownum, frowsplit);
             line < curblok->lrownum; line++ )
         {
@@ -222,9 +243,10 @@ computeNbBlocksPerLine( const SymbolMatrix *symbmtx, pastix_int_t frowsplit )
 static inline pastix_int_t
 computeSmallestSplit( pastix_int_t *nblocksperline,
                       pastix_int_t step,
-                      pastix_int_t max )
+                      pastix_int_t max,
+                      pastix_int_t authorized_percent)
 {
-    pastix_int_t limit = pastix_iceil( step, 100 / AUTORIZED_PERCENTAGE );
+    pastix_int_t limit = pastix_iceil( step*authorized_percent, 100 );
     pastix_int_t i, lcolnum, nbsplit;
     pastix_int_t lmin, lmax, lavg;
 
@@ -260,6 +282,52 @@ computeSmallestSplit( pastix_int_t *nblocksperline,
     return lcolnum;
 }
 
+static inline pastix_int_t
+computeSmallestSplit_max( pastix_int_t *nblocksperline,
+                          pastix_int_t step,
+                          pastix_int_t max,
+                          pastix_int_t authorized_percent )
+{
+    pastix_int_t limit = pastix_iceil( step*authorized_percent, 100 );
+    pastix_int_t i, lcolnum, nbsplit;
+    pastix_int_t lmin, lmax, lavg;
+
+    if (step >= max)
+        return max-1;
+    assert( step > 1 );
+
+    lavg = step - 1;
+    lmin = pastix_imax( lavg - limit,  1   );
+    lmax = pastix_imin( lavg + limit + 1,  max );
+
+    lcolnum = lmin;
+    nbsplit = nblocksperline[ lcolnum ];
+
+    /* Search for the minimal split */
+    for(i=lmin; i<lmax; i++ )
+    {
+        if ( nblocksperline[ i ] <= nbsplit )
+        {
+            lcolnum = i;
+            nbsplit = nblocksperline[ i ];
+        }
+    }
+
+    return lcolnum;
+}
+
+static inline pastix_int_t
+computeConstantSplit( pastix_int_t *nblocksperline,
+                      pastix_int_t step,
+                      pastix_int_t max,
+                      pastix_int_t authorized_percent )
+{
+    if (step >= max)
+        return max-1;
+    assert( step > 1 );
+    return step-1;
+}
+
 /*
  Function: splitOnProcs
 
@@ -280,8 +348,18 @@ splitSmart( const BlendCtrl    *ctrl,
 {
     SymbolBlok   *curblok;
     pastix_int_t *nblocksperline = NULL;
-    pastix_int_t  i, cblknum, bloknum, line;
+    pastix_int_t  cblknum, bloknum, line;
     pastix_int_t  fsplitrow = -1;
+    pastix_int_t  method, authorized_percent;
+#define SPLITSYMBOL_METHOD_DEFAULT  0
+#define SPLITSYMBOL_METHOD_CONSTANT 1
+#define SPLITSYMBOL_METHOD_UPPER    2
+    method = SPLITSYMBOL_METHOD_DEFAULT;
+    if (pastix_blend_with_constant_split())
+        method = SPLITSYMBOL_METHOD_CONSTANT;
+    else if (pastix_blend_with_smallest_upper_split())
+        method = SPLITSYMBOL_METHOD_UPPER;
+    authorized_percent = pastix_blend_split_percent();
 
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++)
     {
@@ -336,10 +414,20 @@ splitSmart( const BlendCtrl    *ctrl,
             pastix_int_t nbcblk = 0;
 
             fcol = fcolnum;
-            for(i=0; (i < nseq) && (fcol < lcolnum); i++)
+            while( fcol <= lcolnum )
             {
-                lcol = fcol + computeSmallestSplit( nblocksperline + fcol,
-                                                    step, width );
+                if (SPLITSYMBOL_METHOD_CONSTANT == method)
+                    lcol = fcol + computeConstantSplit( nblocksperline + fcol,
+                                                        step, width,
+                                                        authorized_percent );
+                else if (SPLITSYMBOL_METHOD_UPPER == method)
+                    lcol = fcol + computeSmallestSplit_max( nblocksperline + fcol,
+                                                            step, width,
+                                                            authorized_percent );
+                else
+                    lcol = fcol + computeSmallestSplit( nblocksperline + fcol,
+                                                        step, width,
+                                                        authorized_percent );
 
                 assert( (lcol > fcol) && (lcol <= lcolnum) );
 
@@ -351,14 +439,6 @@ splitSmart( const BlendCtrl    *ctrl,
 
                 width = width - (lcol - fcol + 1);
                 fcol = lcol + 1;
-            }
-
-            /* pastix_print( 0, 0, ")\n"); */
-            /* We didn't get as many block as expected */
-            if (fcol < lcolnum)
-            {
-                extraCblkAdd( extracblk, fcol, lcolnum );
-                nbcblk++;
             }
 
             /*
@@ -449,6 +529,11 @@ void splitSymbol( BlendCtrl    *ctrl,
         pastix_int_t i, j;
         double block_height_sum = 0.0;
         double cblk_width_sum = 0.0;
+        pastix_int_t block_height_min = (symbmtx->cblktab[0].lcolnum - symbmtx->cblktab[0].fcolnum + 1);
+        pastix_int_t cblk_width_min = (symbmtx->bloktab[0].lrownum - symbmtx->bloktab[0].frownum + 1);;
+        pastix_int_t block_height_max = 0.0;
+        pastix_int_t cblk_width_max = 0.0;
+
         pastix_print( ctrl->clustnum, 0,
                       "Number of column blocks modified by splitting   : %ld\n"
                       "Number of column blocks created by splitting    : %ld\n"
@@ -467,17 +552,76 @@ void splitSymbol( BlendCtrl    *ctrl,
 
         for (j = 0; j < symbmtx->cblknbr; j++)
         {
-            cblk_width_sum += (double)(symbmtx->cblktab[j].lcolnum - symbmtx->cblktab[j].fcolnum + 1);
-
+            pastix_int_t cblk_width = ( symbmtx->cblktab[j].lcolnum -
+                                        symbmtx->cblktab[j].fcolnum + 1);
+            cblk_width_sum += (double)cblk_width;
+            cblk_width_max = pastix_imax(cblk_width_max, cblk_width);
+            cblk_width_min = pastix_imin(cblk_width_min, cblk_width);
             for (i = symbmtx->cblktab[j].bloknum+1; i < symbmtx->cblktab[j+1].bloknum; i++)
             {
-                block_height_sum += (double)(symbmtx->bloktab[i].lrownum - symbmtx->bloktab[i].frownum + 1);
+                pastix_int_t block_height = ( symbmtx->bloktab[i].lrownum -
+                                              symbmtx->bloktab[i].frownum + 1);
+                block_height_sum += (double)block_height;
+                block_height_max = pastix_imax(block_height_max, block_height);
+                block_height_min = pastix_imin(block_height_min, block_height);
             }
         }
-        fprintf(stdout, "Average cblk size : %g\n", cblk_width_sum/symbmtx->cblknbr);
-        fprintf(stdout, "Average extra diagonal block height : %g\n", block_height_sum/(symbmtx->bloknbr-symbmtx->cblknbr));
-    }
+        fprintf(stdout, "Cblk width : Avg %6.3g\t Min %ld\t Max %ld\n",
+                cblk_width_sum/symbmtx->cblknbr,
+                cblk_width_min, cblk_width_max);
+        fprintf(stdout, "Extra diagonal block height : Avg %6.3g\t Min %ld\t Max %ld\n",
+                block_height_sum/(symbmtx->bloknbr-symbmtx->cblknbr),
+                block_height_min, block_height_max);
+        if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX)
+        {
+            pastix_int_t cblk_step = (cblk_width_max - cblk_width_min)/10;
+            pastix_int_t block_step = (block_height_max - block_height_min)/10;
+            pastix_int_t cblk_counters[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            pastix_int_t block_counters[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            if (cblk_step == 0) cblk_step++;
+            if (block_step == 0) block_step++;
+            if (cblk_width_min + cblk_step * 10 < cblk_width_max)
+                cblk_step++;
+            if (block_height_min + block_step * 10 < block_height_max)
+                block_step++;
+            for (j = 0; j < symbmtx->cblknbr; j++)
+            {
+                pastix_int_t cblk_width = ( symbmtx->cblktab[j].lcolnum -
+                                            symbmtx->cblktab[j].fcolnum + 1);
+                cblk_counters[(cblk_width-cblk_width_min)/cblk_step]++;
+                for (i = symbmtx->cblktab[j].bloknum+1; i < symbmtx->cblktab[j+1].bloknum; i++)
+                {
+                    pastix_int_t block_height = ( symbmtx->bloktab[i].lrownum -
+                                                  symbmtx->bloktab[i].frownum + 1);
+                    block_counters[(block_height-block_height_min)/block_step]++;
+                }
+            }
+            fprintf(stdout, "Cblk width range :");
+            for (j = 0; j < 10; j ++)
+                fprintf(stdout, " [ %3ld - %3ld ]",
+                        cblk_width_min+j*cblk_step,
+                        cblk_width_min+(j+1)*cblk_step);
+            fprintf(stdout, "\n");
+            fprintf(stdout, "Number of Cblks :  ");
+            for (j = 0; j < 10; j ++)
+                fprintf(stdout, "[ %9ld ]",
+                        cblk_counters[j]);
+            fprintf(stdout, "\n");
 
+            fprintf(stdout, "Block height range :");
+            for (j = 0; j < 10; j ++)
+                fprintf(stdout, "[ %3ld - %3ld ]",
+                        block_height_min+j*block_step,
+                        block_height_min+(j+1)*block_step);
+            fprintf(stdout, "\n");
+            fprintf(stdout, "Number of Blocks :   ");
+            for (j = 0; j < 10; j ++)
+                fprintf(stdout, "[ %9ld ]",
+                        block_counters[j]);
+
+            fprintf(stdout, "\n");
+        }
+    }
     extraCblkExit(&extracblk);
 
     /* addcblk field is not erased by Exit call */

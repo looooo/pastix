@@ -16,7 +16,7 @@
 #include "common.h"
 #include "graph.h"
 #if defined(PASTIX_DISTRIBUTED)
-#include "cscd_utils_intern.h"
+#include "d_cscd_utils_intern.h"
 #endif
 
 /**
@@ -160,11 +160,11 @@ graphSort( pastix_graph_t *graph )
  *
  *******************************************************************************/
 int
-graphPrepare(      pastix_data_t   *pastix_data,
+graphPrepare(      d_pastix_data_t   *pastix_data,
                    pastix_int_t     n,
              const pastix_int_t    *colptr,
              const pastix_int_t    *rows,
-             const pastix_int_t    *loc2glob,
+                   pastix_int_t    *loc2glob,
                    pastix_graph_t **graph )
 {
     pastix_graph_t *tmpgraph  = NULL;
@@ -200,8 +200,9 @@ graphPrepare(      pastix_data_t   *pastix_data,
             {
                 graphSymmetrize( n, colptr, rows, loc2glob, tmpgraph );
                 assert( n == tmpgraph->n );
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-                    fprintf(stdout, "SY - N=%ld, NNZ=%ld\n", n, colptr[n] - colptr[0]);
+                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+                    fprintf(stdout, "SY - N=%ld, NNZ=%ld\n", n, tmpgraph->colptr[n] - tmpgraph->colptr[0]);
+                }
             }
             else
             {
@@ -234,16 +235,16 @@ graphPrepare(      pastix_data_t   *pastix_data,
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
             if (iparm[IPARM_SYM]==API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER) {
-                cscd_symgraph_int(n, colptr, rows, NULL,
-                                  &(tmpgraph->n),
-                                  &(tmpgraph->colptr),
-                                  &(tmpgraph->rows), NULL,
-                                  loc2glob,
-                                  pastix_comm, API_YES );
+                d_cscd_symgraph_int(n, colptr, rows, NULL,
+                                    &(tmpgraph->n),
+                                    &(tmpgraph->colptr),
+                                    &(tmpgraph->rows), NULL,
+                                    loc2glob,
+                                    pastix_comm, API_YES );
                 assert( n == tmpgraph->n );
             }
 
-            cscd_noDiag(tmpgraph->n,
+            d_cscd_noDiag(tmpgraph->n,
                         tmpgraph->colptr,
                         tmpgraph->rows,
                         NULL,

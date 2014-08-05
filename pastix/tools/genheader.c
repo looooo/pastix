@@ -38,7 +38,7 @@ int main (int argc, char ** argv)
   char * argument  = NULL;
   FILE * file      = NULL;
   int    cplx      = 0;
-  int    realsize  = (int)(sizeof(pastix_float_t)/sizeof(unsigned char));
+  int    realsize  = (int)(sizeof(pastix_complex64_t)/sizeof(unsigned char));
   int    intsize   = (int)(sizeof(pastix_int_t)/sizeof(unsigned char));
 #ifdef INTSSIZE64
   int    sintsize  = (int)(sizeof(int64_t)/sizeof(unsigned char));
@@ -47,7 +47,7 @@ int main (int argc, char ** argv)
 #endif
 #ifdef TYPE_COMPLEX
   cplx     = 1;
-  realsize = (int)(sizeof(pastix_float_t)/sizeof(unsigned char)/2);
+  realsize = (int)(sizeof(pastix_complex64_t)/sizeof(unsigned char)/2);
 #endif
 
   if (argc != 9)
@@ -121,17 +121,17 @@ int main (int argc, char ** argv)
       "#      ifndef COMPLEXDOUBLE_\n"
       "#        define COMPLEXDOUBLE_\n"
       "#      endif\n"
-      "       typedef std::complex<double>  pastix_float_t;\n"
+      "       typedef std::complex<double>  pastix_complex64_t;\n"
       "#    else\n"
-      "       typedef double complex pastix_float_t;\n"
+      "       typedef double complex pastix_complex64_t;\n"
       "#    endif\n");
     fprintf(file, "#    define MPI_pastix_float_t MPI_DOUBLE_COMPLEX\n");
-    fprintf(file, "#    define pastix_float_t            pastix_float_t\n");
+    fprintf(file, "#    define pastix_complex64_t            pastix_complex64_t\n");
     fprintf(file, "#  endif\n");
 #else
-    fprintf(file, "typedef double pastix_float_t;\n");
+    fprintf(file, "typedef double pastix_complex64_t;\n");
     fprintf(file, "#  define MPI_pastix_float_t MPI_DOUBLE\n");
-    fprintf(file, "#  define pastix_float_t            pastix_float_t\n");
+    fprintf(file, "#  define pastix_complex64_t            pastix_complex64_t\n");
 #endif
 #else
 #ifdef TYPE_COMPLEX
@@ -144,17 +144,17 @@ int main (int argc, char ** argv)
       "#      ifndef COMPLEXFLOAT_\n"
       "#        define COMPLEXFLOAT_\n"
       "#      endif\n"
-      "#      typedef std::complex<float> pastix_float_t;\n"
+      "#      typedef std::complex<float> pastix_complex64_t;\n"
       "#    else\n"
-      "#      typedef float complex pastix_float_t;\n"
+      "#      typedef float complex pastix_complex64_t;\n"
       "#    endif\n");
     fprintf(file, "#    define MPI_pastix_float_t MPI_COMPLEX\n");
-    fprintf(file, "#    define pastix_float_t            pastix_float_t\n");
+    fprintf(file, "#    define pastix_complex64_t            pastix_complex64_t\n");
     fprintf(file, "#  endif\n");
 #else
-    fprintf(file, "typedef float pastix_float_t;\n");
+    fprintf(file, "typedef float pastix_complex64_t;\n");
     fprintf(file, "#  define MPI_pastix_float_t MPI_FLOAT\n");
-    fprintf(file, "#  define pastix_float_t            pastix_float_t\n");
+    fprintf(file, "#  define pastix_complex64_t            pastix_complex64_t\n");
 #endif
 #endif
     fprintf(file, "#  define pastix_int_t              pastix_int_t\n");
@@ -186,15 +186,15 @@ int main (int argc, char ** argv)
             (int)(sizeof(pastix_int_t)/sizeof(unsigned char)));
 
 #ifdef TYPE_COMPLEX
-    fprintf(file, "#define pastix_float_t     COMPLEX(kind=%d)\n",
-            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)/2));
+    fprintf(file, "#define pastix_complex64_t     COMPLEX(kind=%d)\n",
+            (int)(sizeof(pastix_complex64_t)/sizeof(unsigned char)/2));
     fprintf(file, "#define MPI_pastix_float_t   MPI_COMPLEX%d\n",
-            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)));
+            (int)(sizeof(pastix_complex64_t)/sizeof(unsigned char)));
 #else
-    fprintf(file, "#define pastix_float_t     REAL(kind=%d)\n",
-            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)));
+    fprintf(file, "#define pastix_complex64_t     REAL(kind=%d)\n",
+            (int)(sizeof(pastix_complex64_t)/sizeof(unsigned char)));
     fprintf(file, "#define MPI_pastix_float_t   MPI_REAL%d\n",
-            (int)(sizeof(pastix_float_t)/sizeof(unsigned char)));
+            (int)(sizeof(pastix_complex64_t)/sizeof(unsigned char)));
 #endif
 
     fclose(file);

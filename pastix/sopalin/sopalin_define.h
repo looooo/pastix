@@ -72,7 +72,7 @@ typedef enum COMMSTEP {
  *   UN   - 1.0
  *   DEUX - 2.0
  */
-#ifdef CPLX
+#ifdef TYPE_COMPLEX
 #  define ZERO (0.0+0.0*I)
 #  define UN   (1.0+0.0*I)
 #  define DEUX (2.0+0.0*I)
@@ -466,10 +466,9 @@ extern int err_mpi;
  */
 #define MyMPI_Allreduce(lsendbuf, lrecvbuf, lcount, ldatatype, lop, lcomm) \
   {                                                                     \
-    if (sopalin_data->sopar->iparm[IPARM_THREAD_COMM_MODE] &            \
-        API_THREAD_FUNNELED)                                            \
-      {                                                                 \
-        Pastix_Allreduce_t *allreduce = &(sopalin_data->allreduce);     \
+    if ( sopalin_data->sopar->iparm[IPARM_THREAD_COMM_MODE] &            \
+         API_THREAD_FUNNELED) {                                         \
+        Pastix_Allreduce_t *allreduce = &(sopalin_data->allreduce);   \
         allreduce->sendbuf  = lsendbuf;                                 \
         allreduce->recvbuf  = lrecvbuf;                                 \
         allreduce->count    = lcount;                                   \
@@ -485,15 +484,14 @@ extern int err_mpi;
         /* Attente de la fin du reduce */                               \
         MUTEX_LOCK(&(sopalin_data->mutex_comm));                        \
         while(sopalin_data->step_comm != COMMSTEP_INIT)                 \
-          COND_WAIT(&(sopalin_data->cond_comm),                         \
-                    &(sopalin_data->mutex_comm));                       \
+            COND_WAIT(&(sopalin_data->cond_comm),                       \
+                      &(sopalin_data->mutex_comm));                     \
         MUTEX_UNLOCK(&(sopalin_data->mutex_comm));                      \
-      }                                                                 \
-    else                                                                \
-      {                                                                 \
+    }                                                                   \
+    else {                                                              \
         MPI_Allreduce(lsendbuf, lrecvbuf, lcount, ldatatype, lop,       \
                       lcomm);                                           \
-      }                                                                 \
+    }                                                                   \
   }
 /*
   Macro: MyMPI_Reduce

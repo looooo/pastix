@@ -6,14 +6,19 @@
 #include <sys/stat.h>
 
 #include "common.h"
+#ifdef PASTIX_WITH_CUDA
+#  include <cuda.h>
+#  include <cuda_runtime_api.h>
+#  include "blend_distributeOnGPU.h"
+#endif
 #include "dof.h"
 #include "cost.h"
-#include "ftgt.h"
+#include "d_ftgt.h"
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "updown.h"
-#include "solver.h"
+#include "d_updown.h"
+#include "d_solver.h"
 #include "extendVector.h"
 #include "elimin.h"
 #include "cand.h"
@@ -26,7 +31,7 @@
 #include "solver_io.h"
 #include "solverMatrixGen.h"
 
-void build_smx(UpDownVector          *updovct,
+void build_smx(d_UpDownVector          *updovct,
                const SymbolMatrix    *symbptr,
                const SimuCtrl        *simuptr,
                const BlendCtrl *const ctrl,
@@ -101,11 +106,11 @@ void build_smx(UpDownVector          *updovct,
 
 pastix_int_t *
 solverMatrixGen(const pastix_int_t clustnum,
-                              SolverMatrix *solvmtx,
-                              const SymbolMatrix *symbmtx,
-                              const SimuCtrl * simuctrl,
-                              const BlendCtrl * ctrl,
-                              const Dof * dofptr)
+                d_SolverMatrix *solvmtx,
+                const SymbolMatrix *symbmtx,
+                const SimuCtrl * simuctrl,
+                const BlendCtrl * ctrl,
+                const Dof * dofptr)
 {
     pastix_int_t            p, c;
     pastix_int_t            cursor, cursor2;
@@ -116,7 +121,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t            nodenbr          = 0;
     pastix_int_t            odb_nbr          = 0;
     pastix_int_t            cblknum          = 0;
-    pastix_int_t            bloknum          = 0;
     pastix_int_t            tasknum          = 0;
     pastix_int_t            indnbr           = 0;
     pastix_int_t          * cblklocalnum     = NULL;
@@ -210,11 +214,11 @@ solverMatrixGen(const pastix_int_t clustnum,
      */
 
     /* Allocate the cblktab and bloktab with the computed size */
-    MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
-    MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
+    MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, d_SolverCblk);
+    MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   d_SolverBlok);
     {
-        SolverCblk *solvcblk = solvmtx->cblktab;
-        SolverBlok *solvblok = solvmtx->bloktab;
+        d_SolverCblk *solvcblk = solvmtx->cblktab;
+        d_SolverBlok *solvblok = solvmtx->bloktab;
         SymbolCblk *symbcblk = symbmtx->cblktab;
         SymbolBlok *symbblok = symbmtx->bloktab;
         SimuBlok   *simublok = simuctrl->bloktab;
@@ -225,7 +229,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         coefnbr = 0;
         for(i=0;i<symbmtx->cblknbr;i++, symbcblk++)
         {
-            SolverBlok  *fblokptr  = solvblok;
+            d_SolverBlok  *fblokptr = solvblok;
             pastix_int_t fbloknum  = symbcblk[0].bloknum;
             pastix_int_t lbloknum  = symbcblk[1].bloknum;
             pastix_int_t stride    = 0;
@@ -297,10 +301,10 @@ solverMatrixGen(const pastix_int_t clustnum,
     /***************************************************************************
      * Fill in tasktab
      */
-    MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
+    MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, d_Task);
     {
         SimuTask    *simutask = simuctrl->tasktab;
-        Task        *solvtask = solvmtx->tasktab;
+        d_Task        *solvtask = solvmtx->tasktab;
         pastix_int_t nbftmax  = 0;
 
         tasknum = 0;
@@ -425,10 +429,10 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         if(solvmtx->ftgtnbr > 0) {
             SimuCluster *simuclust = &(simuctrl->clustab[clustnum]);
-            FanInTarget *solvftgt;
+            d_FanInTarget *solvftgt;
             pastix_int_t ftgtnbr;
 
-            MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, FanInTarget);
+            MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, d_FanInTarget);
 
             /* Allocate array to store local indices */
             ftgtnbr = simuctrl->bloktab[symbmtx->bloknbr].ftgtnum;
@@ -557,8 +561,8 @@ solverMatrixGen(const pastix_int_t clustnum,
      * to be peviously computed.
      */
     {
-        SolverCblk *solvcblk = solvmtx->cblktab;
-        SolverBlok *solvblok = solvmtx->bloktab;
+        d_SolverCblk *solvcblk = solvmtx->cblktab;
+        d_SolverBlok *solvblok = solvmtx->bloktab;
         pastix_int_t gemmmax = 0;
         pastix_int_t diagmax = 0;
         pastix_int_t gemmarea;
@@ -572,7 +576,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         for(i=0;i<solvmtx->cblknbr;i++, solvcblk++)
         {
-            SolverBlok *lblok = solvcblk[1].fblokptr;
+            d_SolverBlok *lblok = solvcblk[1].fblokptr;
             pastix_int_t m = solvcblk->stride;
             pastix_int_t n = solvblok->lrownum - solvblok->frownum + 1;
 
@@ -642,7 +646,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         /*fprintf(stderr," GNODENBR %ld \n", (long)solvmtx->updovct.gnodenbr);*/
 
         /** Build the browtabs for each diagonal block **/
-        MALLOC_INTERN(solvmtx->updovct.cblktab, solvmtx->cblknbr,UpDownCblk);
+        MALLOC_INTERN(solvmtx->updovct.cblktab, solvmtx->cblknbr,d_UpDownCblk);
         cursor = 0;
         MALLOC_INTERN(clust_mask,       ctrl->clustnbr, pastix_int_t);
         MALLOC_INTERN(clust_first_cblk, ctrl->clustnbr, pastix_int_t);
@@ -836,7 +840,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         for (i=0; i<solvmtx->bublnbr; i++)
             for (j=0; j < solvmtx->ttsknbr[i]; j++)
             {
-                SolverBlok * solvblok;
+                d_SolverBlok * solvblok;
                 cblknum = solvmtx->tasktab[solvmtx->ttsktab[i][j]].cblknum;
                 for (solvblok =  solvmtx->cblktab[cblknum+1].fblokptr-1;
                      solvblok >= solvmtx->cblktab[cblknum].fblokptr+1; solvblok--)
@@ -858,15 +862,55 @@ solverMatrixGen(const pastix_int_t clustnum,
     }
     /*********************** END TRIANGULAR INFO BUILDING ******************************************/
 
+#ifdef PASTIX_WITH_CUDA
+  if (ctrl->iparm[IPARM_STARPU] == API_YES &&
+      ctrl->iparm[IPARM_CUDA_NBR] > 0) {
+    size_t free, total;
+    int pageSize = 128*1024;
+    int iter;
+    switch (ctrl->iparm[IPARM_FLOAT]) {
+    case API_REALSINGLE:
+      pageSize*=sizeof(float);
+      break;
+    case API_REALDOUBLE:
+      pageSize*=sizeof(double);
+      break;
+    case API_COMPLEXSINGLE:
+      pageSize*=2*sizeof(float);
+      break;
+    case API_COMPLEXDOUBLE:
+      pageSize*=2*sizeof(double);
+      break;
+    default:
+      errorPrint("Unkwnown type");
+      return NULL; /* FLOAT_TYPE_ERR; */
+    }
+    for (iter = 0; iter < ctrl->iparm[IPARM_CUDA_NBR]; iter++) {
+      cudaSetDevice(iter);
+      cudaFree(0);
+      cuMemGetInfo(&free, &total);
+      fprintf(stdout, "GPU%d free %.2g %s total %.2g %s\n", iter,
+              MEMORY_WRITE(free), MEMORY_UNIT_WRITE(free),
+              MEMORY_WRITE(total), MEMORY_UNIT_WRITE(total));
+    }
+    blend_distributeOnGPU(solvmtx,
+                          (double)GPU_MAX_FILL*free,
+                          pageSize,
+                          ctrl->iparm[IPARM_GPU_CRITERIUM],
+                          ctrl->iparm[IPARM_CUDA_NBR],
+                          ctrl->iparm[IPARM_FLOAT],
+                          ctrl->iparm[IPARM_FACTORIZATION]);
+  }
+#endif
 #if defined(PASTIX_WITH_STARPU)
     /************************************************************************/
     /*  Fill the halo information                                           */
     /************************************************************************/
-    {
+    if ( ctrl->iparm[IPARM_STARPU] == API_YES) {
         pastix_int_t halocblk=1;
         pastix_int_t bloknbr=0;
-        SolverCblk * hcblk;
-        SolverBlok * hblok;
+        d_SolverCblk * hcblk;
+        d_SolverBlok * hblok;
         /* gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
          *                   >  0 : local cblk number
          *                   <  0 : -halo cblk number
@@ -930,21 +974,23 @@ solverMatrixGen(const pastix_int_t clustnum,
             pastix_int_t ftgtCblkIdx = 0;
             pastix_int_t ftgtBlokIdx;
             pastix_int_t clustnum;
-            SolverCblk * fcblk;
-            SolverBlok * fblok;
+            d_SolverCblk * fcblk;
+            d_SolverBlok * fblok;
             MPI_Request * req;
+            double fanin_coefnbr = 0;
+            double fanin_coefnbr_pastix = 0;
 
             MALLOC_INTERN(solvmtx->fcblknbr, solvmtx->clustnbr, pastix_int_t);
-            MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, SolverCblk*);
-            MALLOC_INTERN(solvmtx->fbloktab, solvmtx->clustnbr, SolverBlok*);
+            MALLOC_INTERN(solvmtx->fcblktab, solvmtx->clustnbr, d_SolverCblk*);
+            MALLOC_INTERN(solvmtx->fbloktab, solvmtx->clustnbr, d_SolverBlok*);
             memset(solvmtx->fcblknbr, 0, solvmtx->clustnbr*sizeof(pastix_int_t));
-            memset(solvmtx->fcblktab, 0, solvmtx->clustnbr*sizeof(SolverCblk*));
-            memset(solvmtx->fbloktab, 0, solvmtx->clustnbr*sizeof(SolverBlok*));
+            memset(solvmtx->fcblktab, 0, solvmtx->clustnbr*sizeof(d_SolverCblk*));
+            memset(solvmtx->fbloktab, 0, solvmtx->clustnbr*sizeof(d_SolverBlok*));
 
             /**** OUTGOING FANIN ****/
             /* Count the number of Fanin blocks */
             for (ftgtBlokIdx = 0; ftgtBlokIdx < solvmtx->ftgtnbr; ftgtCblkIdx++) {
-                FanInTarget * ftgt = &(solvmtx->ftgttab[ftgtBlokIdx]);
+                d_FanInTarget * ftgt = &(solvmtx->ftgttab[ftgtBlokIdx]);
                 pastix_int_t gcblk = ftgt->infotab[FTGT_GCBKDST];
                 while( ftgtBlokIdx < solvmtx->ftgtnbr &&
                        ftgt->infotab[FTGT_GCBKDST] ==
@@ -958,19 +1004,20 @@ solverMatrixGen(const pastix_int_t clustnum,
                 fprintf(stdout, "%ld: Outgoing Fanin cblk number %ld, %ld blocks\n",
                         (long)solvmtx->clustnum, (long)ftgtCblkIdx,
                         (long)solvmtx->ftgtnbr);
+
             }
             solvmtx->fcblknbr[solvmtx->clustnum]       = ftgtCblkIdx;
             MALLOC_INTERN(solvmtx->fcblktab[solvmtx->clustnum],
-                          ftgtCblkIdx+1, SolverCblk);
+                          ftgtCblkIdx+1, d_SolverCblk);
             solvmtx->fbloktab[solvmtx->clustnum] = NULL;
             assert(ftgtBlokIdx == solvmtx->ftgtnbr);
             MALLOC_INTERN(solvmtx->fbloktab[solvmtx->clustnum],
-                          solvmtx->ftgtnbr, SolverBlok);
+                          solvmtx->ftgtnbr, d_SolverBlok);
             fcblk = solvmtx->fcblktab[solvmtx->clustnum];
             fblok = solvmtx->fbloktab[solvmtx->clustnum];
             /* Fill the outgoing fanin info */
             for (ftgtBlokIdx = 0; ftgtBlokIdx < solvmtx->ftgtnbr;) {
-                FanInTarget * ftgt = &(solvmtx->ftgttab[ftgtBlokIdx]);
+                d_FanInTarget * ftgt = &(solvmtx->ftgttab[ftgtBlokIdx]);
                 fcblk->fcolnum = ftgt->infotab[FTGT_FCOLNUM];
                 fcblk->lcolnum = ftgt->infotab[FTGT_LCOLNUM];
                 fcblk->fblokptr = fblok;
@@ -987,6 +1034,11 @@ solverMatrixGen(const pastix_int_t clustnum,
                     fcblk->stride +=
                         ftgt->infotab[FTGT_LROWNUM] -
                         ftgt->infotab[FTGT_FROWNUM] + 1;
+                    fanin_coefnbr += (double)(d_cblk_colnbr(fcblk)*d_blok_rownbr(fblok));
+                    fanin_coefnbr_pastix += (double)((ftgt->infotab[FTGT_LCOLNUM] -
+                                                      ftgt->infotab[FTGT_FCOLNUM] + 1)
+                                                     *d_blok_rownbr(fblok));
+
                     ftgtBlokIdx++;
                     fblok++;
                     ftgt++;
@@ -994,6 +1046,14 @@ solverMatrixGen(const pastix_int_t clustnum,
                 fcblk++;
             }
 
+            if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
+                fprintf(stdout,
+                        "%ld: Outgoing Fanin volume : %.3g coefficients (+%.3g%%),"
+                        " %.3g with native scheduler (+%.3g %%)\n",
+                        (long)solvmtx->clustnum, fanin_coefnbr,
+                        (fanin_coefnbr-fanin_coefnbr_pastix)/fanin_coefnbr_pastix,
+                        fanin_coefnbr_pastix);
+            }
             if (solvmtx->ftgtnbr > 0) {
                 /*  virtual cblk to avoid side effect in the loops on cblk bloks */
                 fcblk->fcolnum = (fcblk-1)->lcolnum+1;
@@ -1045,15 +1105,16 @@ solverMatrixGen(const pastix_int_t clustnum,
                             " %ld blocks received from %ld\n",
                             (long)solvmtx->clustnum, (long)solvmtx->fcblknbr[clustnum],
                             (long)fBlokNbr, (long)clustnum);
+
                 }
                 if(solvmtx->fcblknbr[clustnum] > 0) {
                     pastix_int_t ftgtnbr;
                     MALLOC_INTERN(solvmtx->fcblktab[clustnum],
                                   solvmtx->fcblknbr[clustnum]+1,
-                                  SolverCblk);
+                                  d_SolverCblk);
                     MALLOC_INTERN(solvmtx->fbloktab[clustnum],
                                   fBlokNbr,
-                                  SolverBlok);
+                                  d_SolverBlok);
 
                     fcblk = solvmtx->fcblktab[clustnum];
                     fblok = solvmtx->fbloktab[clustnum];
@@ -1120,8 +1181,8 @@ solverMatrixGen(const pastix_int_t clustnum,
                         (long)solvmtx->clustnum, (long)solvmtx->hcblknbr, (long)bloknbr);
             }
 
-            MALLOC_INTERN(solvmtx->hcblktab, halocblk, SolverCblk);
-            MALLOC_INTERN(solvmtx->hbloktab, bloknbr, SolverBlok);
+            MALLOC_INTERN(solvmtx->hcblktab, halocblk, d_SolverCblk);
+            MALLOC_INTERN(solvmtx->hbloktab, bloknbr, d_SolverBlok);
             memset(solvmtx->gcblk2halo, 0, symbmtx->cblknbr*sizeof(pastix_int_t));
 
             hblok=solvmtx->hbloktab;

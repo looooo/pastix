@@ -2,7 +2,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../common")
 
 add_executable(genheader
   genheader.c)
-
+add_dependencies(genheader include_headers)
+add_dependencies(genheader common_headers)
 set(INCDIR
   ${CMAKE_CURRENT_SOURCE_DIR}/../include )
 

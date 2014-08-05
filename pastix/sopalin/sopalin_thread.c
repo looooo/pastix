@@ -27,7 +27,7 @@
 
 
 #include "common.h"
-#include "tools.h"
+#include "z_tools.h"
 #ifdef PASTIX_EZTRACE
 #include "pastix_eztrace.h"
 #else
@@ -35,14 +35,14 @@
 #endif
 #include "sopalin_define.h"
 #include "symbol.h"
-#include "ftgt.h"
-#include "updown.h"
+#include "z_ftgt.h"
+#include "z_updown.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
+#include "z_solver.h"
 #include "sopalin_thread.h"
 #include "stack.h"
-#include "sopalin3d.h"
+#include "z_sopalin3d.h"
 
 #ifdef HAVE_HWLOC
 #include <hwloc.h>
@@ -74,7 +74,7 @@ void sopalin_launch_thread(void * sopalin_data_ref,
                            pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
                            pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
                            pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-                           pastix_int_t ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data){
+                           pastix_int_t z_ooc_thrdnbr,  void * (*z_ooc_routine)(void *),  void *z_ooc_data){
     sopthread_data_t  d_comm;
     sopthread_data_t  d_ooc;
     sopthread_data_t  d_calc;
@@ -83,23 +83,23 @@ void sopalin_launch_thread(void * sopalin_data_ref,
     pthread_attr_t    attr_comm;
     pthread_attr_t    attr_ooc;
     int               ret;
-    Sopalin_Data_t   *sopalin_data = sopalin_data_ref;
+    z_Sopalin_Data_t   *sopalin_data = sopalin_data_ref;
     (void)procnbr; (void)ptr;
 
     /* Lancement d'un thread de chargement ooc si il est séparé */
     if (verbose > API_VERBOSE_NO)
         print_one("Launching %d threads"
                   " (%d commputation, %d communication, %d out-of-core)",
-                  comm_thrdnbr+ooc_thrdnbr,
-                  0, comm_thrdnbr, ooc_thrdnbr);
+                  comm_thrdnbr+z_ooc_thrdnbr,
+                  0, comm_thrdnbr, z_ooc_thrdnbr);
 
-    if (ooc_thrdnbr > 0)
+    if (z_ooc_thrdnbr > 0)
     {
         pthread_attr_init(&attr_ooc);
         d_ooc.me   = 2;
-        d_ooc.data = ooc_data;
+        d_ooc.data = z_ooc_data;
 
-        ret = pthread_create(&pthread_ooc, &attr_ooc, ooc_routine, (void *)&d_ooc);
+        ret = pthread_create(&pthread_ooc, &attr_ooc, z_ooc_routine, (void *)&d_ooc);
         if (ret) {errorPrint("thread create."); EXIT(MOD_SOPALIN,THREAD_ERR);}
     }
 
@@ -128,7 +128,7 @@ void sopalin_launch_thread(void * sopalin_data_ref,
     }
 
     /* Récupération du thread de chargement ooc */
-    if (ooc_thrdnbr > 0)
+    if (z_ooc_thrdnbr > 0)
     {
         ret = pthread_join(pthread_ooc,(void**)NULL);
         if (ret) {errorPrint("thread join."); EXIT(MOD_SOPALIN,THREAD_ERR);}
@@ -145,7 +145,7 @@ void sopalin_launch_thread(void * sopalin_data_ref,
                            pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
                            pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
                            pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-                           pastix_int_t ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data)
+                           pastix_int_t z_ooc_thrdnbr,  void * (*z_ooc_routine)(void *),  void *z_ooc_data)
 {
     sopthread_data_t *d       = NULL;
     pthread_t        *calltab = NULL;
@@ -153,16 +153,16 @@ void sopalin_launch_thread(void * sopalin_data_ref,
     pastix_int_t               ret;
     pastix_int_t               thrdnbr;
     pastix_int_t               thrdnbr_wo_ooc;
-    Sopalin_Data_t   *sopalin_data = sopalin_data_ref;
+    z_Sopalin_Data_t   *sopalin_data = sopalin_data_ref;
     (void)procnbr; (void)ptr;
 
-    thrdnbr = calc_thrdnbr + comm_thrdnbr + ooc_thrdnbr ;
+    thrdnbr = calc_thrdnbr + comm_thrdnbr + z_ooc_thrdnbr ;
     thrdnbr_wo_ooc = calc_thrdnbr + comm_thrdnbr;
     if (verbose > API_VERBOSE_NO)
         print_one("Launching %d threads"
                   " (%d commputation, %d communication, %d out-of-core)\n",
                   (int) thrdnbr, (int)calc_thrdnbr,
-                  (int)comm_thrdnbr, (int)ooc_thrdnbr);
+                  (int)comm_thrdnbr, (int)z_ooc_thrdnbr);
     MALLOC_INTERN(calltab, thrdnbr, pthread_t);
     MALLOC_INTERN(d,       thrdnbr, sopthread_data_t);
 
@@ -208,8 +208,8 @@ void sopalin_launch_thread(void * sopalin_data_ref,
 #endif
 
         d[i].me   = i;
-        d[i].data = ooc_data;
-        ret = pthread_create(&calltab[i],&attr,ooc_routine,(void *)&d[i]);
+        d[i].data = z_ooc_data;
+        ret = pthread_create(&calltab[i],&attr,z_ooc_routine,(void *)&d[i]);
         if (ret) {errorPrint("thread create."); EXIT(MOD_SOPALIN,THREAD_ERR);}
     }
 
@@ -268,7 +268,7 @@ void sopalin_launch_thread(void * sopalin_data_ref,
                            pastix_int_t procnum, pastix_int_t procnbr, void *ptr, pastix_int_t verbose,
                            pastix_int_t calc_thrdnbr, void * (*calc_routine)(void *), void *calc_data,
                            pastix_int_t comm_thrdnbr, void * (*comm_routine)(void *), void *comm_data,
-                           pastix_int_t ooc_thrdnbr,  void * (*ooc_routine)(void *),  void *ooc_data){
+                           pastix_int_t z_ooc_thrdnbr,  void * (*z_ooc_routine)(void *),  void *z_ooc_data){
     char             *name;
     pthread_t        *calltab;
     marcel_bubble_t  *bubbletab;
@@ -281,7 +281,7 @@ void sopalin_launch_thread(void * sopalin_data_ref,
     int               ret;
     int               me = 0;
     int               i;
-    Sopalin_Data_t   *sopalin_data = sopalin_data_ref;
+    z_Sopalin_Data_t   *sopalin_data = sopalin_data_ref;
     (void)procnbr;
 
     btree        = (BubbleTree *)ptr;

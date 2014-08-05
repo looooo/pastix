@@ -14,7 +14,7 @@
 #define _PANEL_XXTRF_CPU_H
 
 #include "common.h"
-#include "solver.h"
+#include "z_solver.h"
 #include "sopalin_compute.h"
 #include "compute_diag.h"
 
@@ -30,7 +30,7 @@
  */
 static inline
 int
-panel_getrf_cpu(const SolverCblk * cblk,
+panel_getrf_cpu(const z_SolverCblk * cblk,
                 double criteria) {
     pastix_int_t npiv = 0;
     pastix_int_t dima = cblk->lcolnum - cblk->fcolnum + 1;
@@ -60,7 +60,7 @@ panel_getrf_cpu(const SolverCblk * cblk,
  */
 static inline
 int
-panel_potrf_cpu(const SolverCblk * cblk,
+panel_potrf_cpu(const z_SolverCblk * cblk,
                 double criteria) {
     pastix_int_t npiv = 0;
     pastix_int_t dima = cblk->lcolnum - cblk->fcolnum + 1;
@@ -85,9 +85,9 @@ panel_potrf_cpu(const SolverCblk * cblk,
  */
 static inline
 int
-panel_sytrf_cpu(const SolverCblk * cblk,
+panel_sytrf_cpu(const z_SolverCblk * cblk,
                 double criteria,
-                pastix_float_t * buffer) {
+                pastix_complex64_t * buffer) {
     pastix_int_t npiv = 0;
     pastix_int_t dima = cblk->lcolnum - cblk->fcolnum + 1;
 
@@ -111,9 +111,9 @@ panel_sytrf_cpu(const SolverCblk * cblk,
  */
 static inline
 int
-panel_hetrf_cpu(const SolverCblk * cblk,
+panel_hetrf_cpu(const z_SolverCblk * cblk,
                 double criteria,
-                pastix_float_t * buffer) {
+                pastix_complex64_t * buffer) {
     pastix_int_t npiv = 0;
     pastix_int_t dima = cblk->lcolnum - cblk->fcolnum + 1;
 
@@ -136,9 +136,9 @@ panel_hetrf_cpu(const SolverCblk * cblk,
  */
 static inline
 int
-panel_xxtrf_cpu(const SolverCblk * cblk,
+panel_xxtrf_cpu(const z_SolverCblk * cblk,
                 double criteria,
-                pastix_float_t * buffer) {
+                pastix_complex64_t * buffer) {
 #ifdef CHOL_SOPALIN
 #  ifdef SOPALIN_LU
     return panel_getrf_cpu(cblk, criteria);

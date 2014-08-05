@@ -5,9 +5,9 @@
  * @precisions normal z -> s d c
  */
 
-#include "starpu_defines.h"
+#include "starpu_zdefines.h"
 #include "common.h"
-#include "sopalin3d.h"
+#include "z_sopalin3d.h"
 #include "starpu_zregister_data.h"
 #include "sopalin_acces.h"
 
@@ -36,18 +36,20 @@ static struct starpu_codelet starpu_zfanin_init_codelet =
     //.cpu_funcs_name = {"starpu_zfanin_init_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
     .cuda_funcs = {starpu_zfanin_init_cuda_func, NULL},
+#  ifdef STARPU_WITH_ASYNC_CUDA
     .cuda_flags = {STARPU_CUDA_ASYNC},
+#  endif
 #endif
-#ifdef STARPU_USE_OPENCL
-    .opencl_funcs = {init_opencl_func, NULL},
-#endif
+/* #ifdef STARPU_USE_OPENCL */
+/*     .opencl_funcs = {init_opencl_func, NULL}, */
+/* #endif */
     .modes = {STARPU_W},
     .nbuffers = 1,
     .name = "init",
 };
 
 int
-starpu_zregister_fanin(SolverMatrix * solvmtx,
+starpu_zregister_fanin(z_SolverMatrix * solvmtx,
                        starpu_data_handle_t  *** Lfanin_handle,
                        starpu_data_handle_t  *** Ufanin_handle) {
     pastix_int_t clustnum;
@@ -57,11 +59,11 @@ starpu_zregister_fanin(SolverMatrix * solvmtx,
         MALLOC_INTERN(*Ufanin_handle, solvmtx->clustnbr, starpu_data_handle_t*);
     for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
         pastix_int_t coef = 1;
-        SolverCblk *fanin;
+        z_SolverCblk *fanin;
         starpu_data_handle_t *Lhandle;
         starpu_data_handle_t *Uhandle;
-        SolverCblk * ffanin = solvmtx->fcblktab[clustnum];
-        SolverCblk * lfanin = ffanin + solvmtx->fcblknbr[clustnum];
+        z_SolverCblk * ffanin = solvmtx->fcblktab[clustnum];
+        z_SolverCblk * lfanin = ffanin + solvmtx->fcblknbr[clustnum];
 
         MALLOC_INTERN((*Lfanin_handle)[clustnum],
                       solvmtx->fcblknbr[clustnum], starpu_data_handle_t);
@@ -81,14 +83,14 @@ starpu_zregister_fanin(SolverMatrix * solvmtx,
                                         (uintptr_t)NULL,
                                         (uint32_t)fanin->stride,
                                         (uint32_t)fanin->stride,
-                                        cblk_colnbr(fanin),
+                                        z_cblk_colnbr(fanin),
                                         sizeof(pastix_complex64_t));
             if (Ufanin_handle != NULL) {
                 starpu_matrix_data_register(Uhandle, -1,
                                             (uintptr_t)NULL,
                                             (uint32_t)fanin->stride,
                                             (uint32_t)fanin->stride,
-                                            cblk_colnbr(fanin),
+                                            z_cblk_colnbr(fanin),
                                             sizeof(pastix_complex64_t));
             }
             starpu_mpi_data_register(*Lhandle,
@@ -119,18 +121,18 @@ starpu_zregister_fanin(SolverMatrix * solvmtx,
 }
 
 int
-starpu_zunregister_fanin( SolverMatrix * solvmtx,
+starpu_zunregister_fanin( z_SolverMatrix * solvmtx,
                           starpu_data_handle_t  *** Lfanin_handle,
                           starpu_data_handle_t  *** Ufanin_handle) {
     pastix_int_t clustnum;
     pastix_int_t max_ftgtnbr;
     for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
         pastix_int_t coef = 1;
-        SolverCblk *fanin;
+        z_SolverCblk *fanin;
         starpu_data_handle_t *Lhandle;
         starpu_data_handle_t *Uhandle;
-        SolverCblk * ffanin = solvmtx->fcblktab[clustnum];
-        SolverCblk * lfanin = ffanin + solvmtx->fcblknbr[clustnum];
+        z_SolverCblk * ffanin = solvmtx->fcblktab[clustnum];
+        z_SolverCblk * lfanin = ffanin + solvmtx->fcblknbr[clustnum];
         if (clustnum == solvmtx->clustnum) continue;
         Lhandle = (*Lfanin_handle)[clustnum];
         if (Ufanin_handle != NULL) {
@@ -157,7 +159,7 @@ starpu_zunregister_fanin( SolverMatrix * solvmtx,
 }
 
 int
-starpu_zregister_halo( SolverMatrix * datacode,
+starpu_zregister_halo( z_SolverMatrix * datacode,
                        starpu_data_handle_t ** Lhalo_handle,
                        starpu_data_handle_t ** Uhalo_handle) {
     pastix_int_t itercblk;
@@ -167,7 +169,7 @@ starpu_zregister_halo( SolverMatrix * datacode,
     }
 
     for (itercblk=0;itercblk<SOLV_HCBLKNBR;itercblk++) {
-        SolverCblk * cblk = datacode->hcblktab + itercblk;
+        z_SolverCblk * cblk = datacode->hcblktab + itercblk;
 
         ASSERT(SOLV_GCBLK2HALO(HCBLK_GCBLK(itercblk)) == itercblk,
                MOD_SOPALIN);
@@ -177,7 +179,7 @@ starpu_zregister_halo( SolverMatrix * datacode,
                                     (uintptr_t)NULL,
                                     (uint32_t)cblk->stride,
                                     (uint32_t)cblk->stride,
-                                    cblk_colnbr(cblk),
+                                    z_cblk_colnbr(cblk),
                                     sizeof(pastix_complex64_t));
         starpu_mpi_data_register((*Lhalo_handle)[itercblk],
                                  cblk->gcblknum,
@@ -187,7 +189,7 @@ starpu_zregister_halo( SolverMatrix * datacode,
                                         (uintptr_t)NULL,
                                         (uint32_t)cblk->stride,
                                         (uint32_t)cblk->stride,
-                                        cblk_colnbr(cblk),
+                                        z_cblk_colnbr(cblk),
                                         sizeof(pastix_complex64_t));
             starpu_mpi_data_register((*Uhalo_handle)[itercblk],
                                      SOLV_GCBLKNBR + cblk->gcblknum,
@@ -198,7 +200,7 @@ starpu_zregister_halo( SolverMatrix * datacode,
 }
 
 int
-starpu_zunregister_halo( SolverMatrix * datacode,
+starpu_zunregister_halo( z_SolverMatrix * datacode,
                          starpu_data_handle_t ** Lhalo_handle,
                          starpu_data_handle_t ** Uhalo_handle) {
     pastix_int_t itercblk;
@@ -219,7 +221,7 @@ starpu_zunregister_halo( SolverMatrix * datacode,
 }
 
 int
-starpu_zregister_cblk( SolverMatrix * datacode,
+starpu_zregister_cblk( z_SolverMatrix * datacode,
                        starpu_data_handle_t ** L_handle,
                        starpu_data_handle_t ** U_handle ) {
     pastix_int_t itercblk;
@@ -229,12 +231,12 @@ starpu_zregister_cblk( SolverMatrix * datacode,
     }
 
     for (itercblk=0;itercblk<SYMB_CBLKNBR;itercblk++) {
-        SolverCblk * cblk = datacode->cblktab+itercblk;
+        z_SolverCblk * cblk = datacode->cblktab+itercblk;
         starpu_matrix_data_register(&((*L_handle)[itercblk]), 0,
                                     (uintptr_t)cblk->coeftab,
                                     (uint32_t)cblk->stride,
                                     (uint32_t)cblk->stride,
-                                    cblk_colnbr(cblk),
+                                    z_cblk_colnbr(cblk),
                                     sizeof(pastix_complex64_t));
         starpu_mpi_data_register((*L_handle)[itercblk],
                                  UPDOWN_LOC2GLOB(itercblk),
@@ -245,7 +247,7 @@ starpu_zregister_cblk( SolverMatrix * datacode,
                                         (uintptr_t)cblk->ucoeftab,
                                         (uint32_t)cblk->stride,
                                         (uint32_t)cblk->stride,
-                                        cblk_colnbr(cblk),
+                                        z_cblk_colnbr(cblk),
                                         sizeof(pastix_complex64_t));
             starpu_mpi_data_register((*U_handle)[itercblk],
                                      SOLV_GCBLKNBR + UPDOWN_LOC2GLOB(itercblk),
@@ -256,7 +258,7 @@ starpu_zregister_cblk( SolverMatrix * datacode,
 }
 
 int
-starpu_zunregister_cblk( SolverMatrix * datacode,
+starpu_zunregister_cblk( z_SolverMatrix * datacode,
                          starpu_data_handle_t ** L_handle,
                          starpu_data_handle_t ** U_handle ) {
     pastix_int_t itercblk;
@@ -275,10 +277,10 @@ starpu_zunregister_cblk( SolverMatrix * datacode,
 }
 
 int
-starpu_zregister_blocktab( Sopalin_Data_t        * sopalin_data,
+starpu_zregister_blocktab( z_Sopalin_Data_t        * sopalin_data,
                            starpu_data_handle_t ** blocktab_handles,
                            int                  ** blocktab) {
-    SolverMatrix * datacode = sopalin_data->datacode;
+    z_SolverMatrix * datacode = sopalin_data->datacode;
     int iter;
 
     MALLOC_INTERN(*blocktab_handles, SOLV_PROCNBR, starpu_data_handle_t);
@@ -317,7 +319,7 @@ starpu_zregister_blocktab( Sopalin_Data_t        * sopalin_data,
 }
 
 int
-starpu_zunregister_blocktab( SolverMatrix          * datacode,
+starpu_zunregister_blocktab( z_SolverMatrix          * datacode,
                              starpu_data_handle_t ** blocktab_handles,
                              int                  ** blocktab) {
     int iter;
@@ -330,14 +332,14 @@ starpu_zunregister_blocktab( SolverMatrix          * datacode,
 }
 
 int
-starpu_zunregister_work( SolverMatrix * datacode,
+starpu_zunregister_work( z_SolverMatrix * datacode,
                          starpu_data_handle_t * WORK_handle ) {
     starpu_data_unregister(*WORK_handle);
     return PASTIX_SUCCESS;
 }
 
 int
-starpu_zregister_work( SolverMatrix * datacode,
+starpu_zregister_work( z_SolverMatrix * datacode,
                        starpu_data_handle_t * WORK_handle,
                        pastix_int_t WORK_size ) {
     starpu_vector_data_register(WORK_handle, -1, (uintptr_t)NULL,
@@ -348,7 +350,7 @@ starpu_zregister_work( SolverMatrix * datacode,
 }
 
 int
-starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
+starpu_zregister_data( z_Sopalin_Data_t         * sopalin_data,
                        starpu_data_handle_t  ** L_handle,
                        starpu_data_handle_t  ** U_handle,
                        starpu_data_handle_t  ** Lhalo_handle,
@@ -360,7 +362,7 @@ starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
                        starpu_data_handle_t   * WORK_handle,
                        pastix_int_t             WORK_size )
 {
-    SolverMatrix       * datacode         = sopalin_data->datacode;
+    z_SolverMatrix       * datacode         = sopalin_data->datacode;
     starpu_zregister_cblk(datacode, L_handle, U_handle);
     /* register halo */
     starpu_zregister_halo(datacode,
@@ -379,7 +381,7 @@ starpu_zregister_data( Sopalin_Data_t         * sopalin_data,
 }
 
 int
-starpu_zunregister_data( Sopalin_Data_t         * sopalin_data,
+starpu_zunregister_data( z_Sopalin_Data_t         * sopalin_data,
                          starpu_data_handle_t  ** L_handle,
                          starpu_data_handle_t  ** U_handle,
                          starpu_data_handle_t  ** Lhalo_handle,
@@ -390,7 +392,7 @@ starpu_zunregister_data( Sopalin_Data_t         * sopalin_data,
                          int                   ** blocktab,
                          starpu_data_handle_t   * WORK_handle)
 {
-    SolverMatrix       * datacode         = sopalin_data->datacode;
+    z_SolverMatrix       * datacode         = sopalin_data->datacode;
     starpu_zunregister_cblk(datacode, L_handle, U_handle);
     /* register halo */
     starpu_zunregister_halo(datacode,

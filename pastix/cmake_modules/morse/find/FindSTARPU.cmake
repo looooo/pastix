@@ -41,7 +41,7 @@
 
 #message(STATUS "Is required STARPU: ${STARPU_FIND_REQUIRED}")
 
-# STARPU may depend on other packages (HWLOC, MPI, CUDA, FXT, ...)
+# STARPU may depend on other packages (HWLOC, MPI, CUDA, ...)
 # try to find them if specified as COMPONENTS during the call
 set(STARPU_LOOK_FOR_MPI FALSE)
 set(STARPU_LOOK_FOR_CUDA FALSE)
@@ -143,6 +143,9 @@ list(REMOVE_DUPLICATES _inc_env)
 
 # set paths where to look for
 set(PATH_TO_LOOK_FOR "${_inc_env}")
+if(STARPU_SHM_PKG_FILE_FOUND)
+    set(PATH_TO_LOOK_FOR "${PC_STARPU_SHM_INCLUDE_DIRS}")
+endif()
 
 # Try to find the version of StarPU in starpu_config.h file
 set(STARPU_hdrs_to_find "starpu_config.h")
@@ -162,7 +165,7 @@ else()
             find_path(STARPU_${starpu_hdr}_INCLUDE_DIRS
                       NAMES ${starpu_hdr}
                       HINTS ${STARPU_DIR}
-                      PATH_SUFFIXES include)
+                      PATH_SUFFIXES "include/starpu/${STARPU_FIND_VERSION}")
         endforeach()
     else()
         foreach(starpu_hdr ${STARPU_hdrs_to_find})
@@ -208,20 +211,22 @@ ENDMACRO(GET_VERSION)
 # remark: the version is defined in this file since the STARPU 1.0 version
 if (STARPU_starpu_config.h_INCLUDE_DIRS)
     GET_VERSION("STARPU" "${STARPU_starpu_config.h_INCLUDE_DIRS}/starpu_config.h")
-    if (STARPU_FIND_VERSION_EXACT STREQUAL 1)
-        if( NOT (STARPU_FIND_VERSION_MAJOR STREQUAL STARPU_VERSION_MAJOR) OR
-            NOT (STARPU_FIND_VERSION_MINOR STREQUAL STARPU_VERSION_MINOR) )
-            message(FATAL_ERROR
-                    "STARPU version found is ${STARPU_VERSION_STRING} "
-                    "when required is ${STARPU_FIND_VERSION}")
-        endif()
-    else()
-        # if the version found is older than the required then error
-        if( (STARPU_FIND_VERSION_MAJOR STRGREATER STARPU_VERSION_MAJOR) OR
-            (STARPU_FIND_VERSION_MINOR STRGREATER STARPU_VERSION_MINOR) )
-            message(FATAL_ERROR
-                    "STARPU version found is ${STARPU_VERSION_STRING} "
-                    "when required is ${STARPU_FIND_VERSION} or newer")
+    if (STARPU_FIND_VERSION)
+        if (STARPU_FIND_VERSION_EXACT STREQUAL 1)
+            if( NOT (STARPU_FIND_VERSION_MAJOR STREQUAL STARPU_VERSION_MAJOR) OR
+                NOT (STARPU_FIND_VERSION_MINOR STREQUAL STARPU_VERSION_MINOR) )
+                message(FATAL_ERROR
+                        "STARPU version found is ${STARPU_VERSION_STRING} "
+                        "when required is ${STARPU_FIND_VERSION}")
+            endif()
+        else()
+            # if the version found is older than the required then error
+            if( (STARPU_FIND_VERSION_MAJOR STRGREATER STARPU_VERSION_MAJOR) OR
+                (STARPU_FIND_VERSION_MINOR STRGREATER STARPU_VERSION_MINOR) )
+                message(FATAL_ERROR
+                        "STARPU version found is ${STARPU_VERSION_STRING} "
+                        "when required is ${STARPU_FIND_VERSION} or newer")
+            endif()
         endif()
     endif()
 endif()
@@ -254,7 +259,7 @@ else()
             find_path(STARPU_${starpu_hdr}_INCLUDE_DIRS
                       NAMES ${starpu_hdr}
                       HINTS ${STARPU_DIR}
-                      PATH_SUFFIXES include)
+                      PATH_SUFFIXES "include/starpu/${STARPU_VERSION_STRING}")
         endforeach()
     else()
         foreach(starpu_hdr ${STARPU_hdrs_to_find})
@@ -359,11 +364,12 @@ set(PATH_TO_LOOK_FOR "${_lib_env}")
 # ----------------------------------------------
 
 # create list of libs to find
-set(STARPU_libs_to_find "starpu-${STARPU_VERSION_STRING}")
+set(STARPU_libs_to_find     "starpu-${STARPU_VERSION_STRING}")
 set(STARPU_SHM_libs_to_find "starpu-${STARPU_VERSION_STRING}")
+set(STARPU_MPI_libs_to_find "starpu-${STARPU_VERSION_STRING}")
 if(STARPU_LOOK_FOR_MPI)
     list(APPEND STARPU_libs_to_find "starpumpi-${STARPU_VERSION_STRING}")
-    set(STARPU_MPI_libs_to_find "starpumpi-${STARPU_VERSION_STRING}")
+    list(APPEND STARPU_MPI_libs_to_find "starpumpi-${STARPU_VERSION_STRING}")
 endif()
 
 # call cmake macro to find the lib path
