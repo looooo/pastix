@@ -347,8 +347,8 @@ set(PASTIX_LIB_SRCS
   common/errors.c
   common/integer.c
   common/memory.c
-  common/bindthread.c
-  common/pastix_hwloc.c
+  common/isched.c
+#  common/isched_hwloc.c
 #  common/trace.c
   graph/graph_io.c
 #

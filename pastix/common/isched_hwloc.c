@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_hwloc.c
+ * @file isched_hwloc.c
  *
  * Copyright (c) 2008-2014 The University of Bordeaux, IPB, LaBRI, Inria -
  *                         Bordeaux-Sud-Ouest.  All rights reserved.
@@ -21,7 +21,7 @@
  *
  **/
 #include "common.h"
-#include "pastix_hwloc.h"
+#include "isched_hwloc.h"
 
 #if defined(HAVE_HWLOC)
 
@@ -35,7 +35,7 @@ static int ht = 1;
 #define HWLOC_GET_PARENT(OBJ)  (OBJ)->father
 #endif  /* defined(HAVE_HWLOC_PARENT_MEMBER) */
 
-int pastix_hwloc_init(void)
+int isched_hwloc_init(void)
 {
     if ( first_init ) {
         hwloc_topology_init(&topology);
@@ -45,14 +45,14 @@ int pastix_hwloc_init(void)
     return 0;
 }
 
-int pastix_hwloc_fini(void)
+int isched_hwloc_fini(void)
 {
     hwloc_topology_destroy(topology);
     first_init = 1;
     return 0;
 }
 
-int pastix_hwloc_export_topology(int *buflen, char **xmlbuffer)
+int isched_hwloc_export_topology(int *buflen, char **xmlbuffer)
 {
     if( first_init == 0 ) {
         return hwloc_topology_export_xmlbuffer(topology, xmlbuffer, buflen);
@@ -63,7 +63,7 @@ int pastix_hwloc_export_topology(int *buflen, char **xmlbuffer)
     }
 }
 
-void pastix_hwloc_free_xml_buffer(char *xmlbuffer)
+void isched_hwloc_free_xml_buffer(char *xmlbuffer)
 {
     if( NULL == xmlbuffer )
         return;
@@ -73,7 +73,7 @@ void pastix_hwloc_free_xml_buffer(char *xmlbuffer)
     }
 }
 
-int pastix_hwloc_distance( int id1, int id2 )
+int isched_hwloc_distance( int id1, int id2 )
 {
     int count = 0;
 
@@ -95,7 +95,7 @@ int pastix_hwloc_distance( int id1, int id2 )
  * obsolete as we now rely on the native hwloc topology to extrat the vp
  * dedistribution.
  */
-int pastix_hwloc_master_id( int level, int processor_id )
+int isched_hwloc_master_id( int level, int processor_id )
 {
     int count = 0, div = 0, real_cores, cores;
     unsigned int i;
@@ -137,7 +137,7 @@ int pastix_hwloc_master_id( int level, int processor_id )
  * obsolete as we now rely on the native hwloc topology to extrat the vp
  * dedistribution.
  */
-unsigned int pastix_hwloc_nb_cores( int level, int master_id )
+unsigned int isched_hwloc_nb_cores( int level, int master_id )
 {
     unsigned int i;
 
@@ -157,7 +157,7 @@ unsigned int pastix_hwloc_nb_cores( int level, int master_id )
 }
 
 
-size_t pastix_hwloc_cache_size( unsigned int level, int master_id )
+size_t isched_hwloc_cache_size( unsigned int level, int master_id )
 {
 #if defined(HAVE_HWLOC_OBJ_PU) || 1
     hwloc_obj_t obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_PU, master_id);
@@ -181,26 +181,26 @@ size_t pastix_hwloc_cache_size( unsigned int level, int master_id )
     return 0;
 }
 
-int pastix_hwloc_nb_real_cores(void)
+int isched_hwloc_nb_real_cores(void)
 {
     return hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
 }
 
 
-int pastix_hwloc_core_first_hrwd_ancestor_depth(void)
+int isched_hwloc_core_first_hrwd_ancestor_depth(void)
 {
     int level = MAX(hwloc_get_type_depth(topology, HWLOC_OBJ_NODE),hwloc_get_type_depth(topology, HWLOC_OBJ_SOCKET));
     assert(level < hwloc_get_type_depth(topology, HWLOC_OBJ_CORE));
     return level;
 }
 
-int pastix_hwloc_get_nb_objects(int level)
+int isched_hwloc_get_nb_objects(int level)
 {
     return hwloc_get_nbobjs_by_depth(topology, level);
 }
 
 
-int pastix_hwloc_socket_id(int core_id )
+int isched_hwloc_socket_id(int core_id )
 {
     hwloc_obj_t core =  hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, core_id);
     hwloc_obj_t socket = NULL;
@@ -213,7 +213,7 @@ int pastix_hwloc_socket_id(int core_id )
     }
 }
 
-int pastix_hwloc_numa_id(int core_id )
+int isched_hwloc_numa_id(int core_id )
 {
     hwloc_obj_t core =  hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, core_id);
     hwloc_obj_t node = NULL;
@@ -226,54 +226,38 @@ int pastix_hwloc_numa_id(int core_id )
     }
 }
 
-unsigned int pastix_hwloc_nb_cores_per_obj( int level, int index )
+unsigned int isched_hwloc_nb_cores_per_obj( int level, int index )
 {
     hwloc_obj_t obj = hwloc_get_obj_by_depth(topology, level, index);
     assert( obj != NULL );
     return hwloc_get_nbobjs_inside_cpuset_by_type(topology, obj->cpuset, HWLOC_OBJ_CORE);
 }
 
-int pastix_hwloc_nb_levels(void)
+int isched_hwloc_nb_levels(void)
 {
     return hwloc_get_type_depth(topology, HWLOC_OBJ_CORE);
 }
 
 
-int pastix_hwloc_bind_on_core_index(int cpu_index, int local_ht_index)
+int isched_hwloc_bind_on_core_index(int cpu_index)
 {
-    hwloc_obj_t      obj, core;      /* Hwloc object    */
+    hwloc_obj_t      core;     /* Hwloc object    */
     hwloc_cpuset_t   cpuset;   /* Hwloc cpuset    */
 
     /* Get the core of index cpu_index */
     core = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
     if (!core) {
-        WARNING(("pastix_hwloc: unable to get the core of index %i (nb physical cores = %i )\n",
-                 cpu_index,  pastix_hwloc_nb_real_cores()));
+        WARNING(("isched_hwloc: unable to get the core of index %i (nb physical cores = %i )\n",
+                 cpu_index,  isched_hwloc_nb_real_cores()));
         return -1;
     }
-   /* Get the cpuset of the core if not using SMT/HyperThreading,
-    * get the cpuset of the designated child object (PU) otherwise */
-    if ( local_ht_index > -1) {
-        if ( (uint32_t)local_ht_index < core->arity )
-            obj = core->children[local_ht_index];
-        else
-            obj = core->children[0];
-
-        if (!obj) {
-            WARNING(("pastix_hwloc: unable to get the core of index %i, HT %i (nb cores = %i)\n",
-                     cpu_index, local_ht_index, pastix_hwloc_nb_real_cores()));
-            return -1;
-        }
-    }
-    else
-        obj = core;
 
     /* Get a copy of its cpuset that we may modify.  */
 #if !defined(HAVE_HWLOC_BITMAP)
-    cpuset = hwloc_cpuset_dup(obj->cpuset);
+    cpuset = hwloc_cpuset_dup(core->cpuset);
     hwloc_cpuset_singlify(cpuset);
 #else
-    cpuset = hwloc_bitmap_dup(obj->cpuset);
+    cpuset = hwloc_bitmap_dup(core->cpuset);
     hwloc_bitmap_singlify(cpuset);
 #endif
 
@@ -281,11 +265,11 @@ int pastix_hwloc_bind_on_core_index(int cpu_index, int local_ht_index)
     if (hwloc_set_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD)) {
         char *str = NULL;
 #if !defined(HAVE_HWLOC_BITMAP)
-        hwloc_cpuset_asprintf(&str, obj->cpuset);
+        hwloc_cpuset_asprintf(&str, core->cpuset);
 #else
-        hwloc_bitmap_asprintf(&str, obj->cpuset);
+        hwloc_bitmap_asprintf(&str, core->cpuset);
 #endif
-        WARNING(("pastix_hwloc: couldn't bind to cpuset %s\n", str));
+        WARNING(("isched_hwloc: couldn't bind to cpuset %s\n", str));
         free(str);
 
         /* Free our cpuset copy */
@@ -299,7 +283,7 @@ int pastix_hwloc_bind_on_core_index(int cpu_index, int local_ht_index)
     DEBUG2(("Thread bound on core index %i, [HT %i ]\n", cpu_index, local_ht_index));
 
     /* Get the number at Proc level*/
-    cpu_index = obj->os_index;
+    cpu_index = core->os_index;
 
     /* Free our cpuset copy */
 #if !defined(HAVE_HWLOC_BITMAP)
@@ -310,7 +294,7 @@ int pastix_hwloc_bind_on_core_index(int cpu_index, int local_ht_index)
     return cpu_index;
 }
 
-int pastix_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
+int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
 {
 #if defined(HAVE_HWLOC_BITMAP)
     unsigned cpu_index;
@@ -324,7 +308,7 @@ int pastix_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
         /* Get the core of index cpu */
         obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
         if (!obj) {
-            DEBUG3(("pastix_hwloc_bind_on_mask_index: unable to get the core of index %i\n", cpu_index));
+            DEBUG3(("isched_hwloc_bind_on_mask_index: unable to get the core of index %i\n", cpu_index));
         } else {
             hwloc_bitmap_or(binding_mask, binding_mask, obj->cpuset);
         }
@@ -357,10 +341,10 @@ int pastix_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
 #endif /* HAVE_HWLOC_BITMAP */
 }
 
-int pastix_hwloc_allow_ht(int htnb)
+int isched_hwloc_allow_ht(int htnb)
 {
 #if defined(HAVE_HWLOC_BITMAP)
-    pastix_hwloc_init();
+    isched_hwloc_init();
 
     /* Check the validity of the parameter. Correct otherwise  */
     if (htnb > 1){
@@ -379,7 +363,7 @@ int pastix_hwloc_allow_ht(int htnb)
 #endif
 }
 
-int pastix_hwloc_get_ht(void)
+int isched_hwloc_get_ht(void)
 {
     return ht;
 }

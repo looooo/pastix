@@ -25,7 +25,13 @@
 
 BEGIN_C_DECLS
 
-int pastix_bindthread(int cpu, int ht);
+enum isched_action_e {
+    ISCHED_ACT_STAND_BY,
+    ISCHED_ACT_PARALLEL,
+    ISCHED_ACT_FINALIZE
+};
+
+/* int pastix_bindthread(int cpu, int ht); */
 /* int pastix_bindthread_mask(hwloc_cpuset_t cpuset); */
 
 END_C_DECLS

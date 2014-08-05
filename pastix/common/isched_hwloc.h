@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_hwloc.h
+ * @file isched_hwloc.h
  *
  * Copyright (c) 2008-2014 The University of Bordeaux, IPB, LaBRI, Inria -
  *                         Bordeaux-Sud-Ouest.  All rights reserved.
@@ -20,8 +20,8 @@
  * @date 2013-06-24
  *
  **/
-#ifndef PASTIX_HWLOC_H
-#define PASTIX_HWLOC_H
+#ifndef ISCHED_HWLOC_H
+#define ISCHED_HWLOC_H
 
 /**
  * This file is available only if hwloc is available
@@ -46,95 +46,95 @@ typedef struct {
 /**
  * Find the master for the processor_id at n level
  */
-extern int pastix_hwloc_master_id( int level, int processor_id );
+extern int isched_hwloc_master_id( int level, int processor_id );
 
 /**
  * Find the number of core for master_id at n level
  */
-extern unsigned int pastix_hwloc_nb_cores( int level, int master_id );
+extern unsigned int isched_hwloc_nb_cores( int level, int master_id );
 
 /**
  * Find the number of level from the computer architecture
  */
-extern int pastix_hwloc_nb_levels( void );
+extern int isched_hwloc_nb_levels( void );
 
 /**
  * Find the cache size for master at n level
  */
-extern size_t pastix_hwloc_cache_size( unsigned int level, int master_id );
+extern size_t isched_hwloc_cache_size( unsigned int level, int master_id );
 
 /**
  * Find the distance between id1 and id2
  */
-extern int pastix_hwloc_distance( int id1, int id2 );
+extern int isched_hwloc_distance( int id1, int id2 );
 
 /**
  * load the HWLOC topology.
  */
-extern int pastix_hwloc_init(void);
+extern int isched_hwloc_init(void);
 
 /**
  * unload the HWLOC topology.
  */
-extern int pastix_hwloc_fini(void);
+extern int isched_hwloc_fini(void);
 
 /**
  * Find the number of core of the architecture.
  *
  */
-extern int pastix_hwloc_nb_real_cores();
+extern int isched_hwloc_nb_real_cores();
 
 /**
  * Bind the current thread on the core of index cpu_index.
  *
  */
-int pastix_hwloc_bind_on_core_index(int cpu_index, int ht_index);
+int isched_hwloc_bind_on_core_index(int cpu_index);
 
 /**
  * Return the logical socket index for a core index (hwloc numbering).
  */
-int pastix_hwloc_socket_id(int core_id);
+int isched_hwloc_socket_id(int core_id);
 
 /**
  * Return the logical NUMA node index for a core index (hwloc numbering).
  */
-int pastix_hwloc_numa_id(int core_id);
+int isched_hwloc_numa_id(int core_id);
 
 /**
  * Return the depth of the first core hardware ancestor: NUMA node or socket.
  */
-int pastix_hwloc_core_first_hrwd_ancestor_depth();
+int isched_hwloc_core_first_hrwd_ancestor_depth();
 
 /**
  * Return the number of hwloc objects at the "level" depth.
  */
-int pastix_hwloc_get_nb_objects(int level);
+int isched_hwloc_get_nb_objects(int level);
 
 /**
  * Return the number of hwloc objects at the "level" depth.
  */
-int pastix_hwloc_get_nb_objects(int level);
+int isched_hwloc_get_nb_objects(int level);
 
 
 /**
  * Find the number of core under the object number index at the topology depth level.
  */
-unsigned int pastix_hwloc_nb_cores_per_obj( int level, int index );
+unsigned int isched_hwloc_nb_cores_per_obj( int level, int index );
 
 /**
  * Bind the current thread according the mask of index mask_index.
  */
-int pastix_hwloc_bind_on_mask_index(hwloc_cpuset_t mask_index);
+int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t mask_index);
 
 /**
  * Allow serial thread binding per core to use the SMT/HT capabilities of the
  * processor
  */
-int pastix_hwloc_allow_ht(int htnb);
-int pastix_hwloc_get_ht(void);
+int isched_hwloc_allow_ht(int htnb);
+int isched_hwloc_get_ht(void);
 
 END_C_DECLS
 
 #endif /* defined(HAVE_HWLOC) */
 
-#endif  /* PASTIX_HWLOC_H */
+#endif  /* ISCHED_HWLOC_H */
