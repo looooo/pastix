@@ -23,13 +23,6 @@
 #include <assert.h>
 #include <cuda.h>
 
-
-#ifdef STARPU_USE_DEPRECATED_API
-#  undef STARPU_USE_DEPRECATED_API
-#endif
-#include <starpu.h>
-#include <starpu_cuda.h>
-
 #include "sparse_zgemm_fermi.h"
 #include "zgemm_fermi_define.h"
 
