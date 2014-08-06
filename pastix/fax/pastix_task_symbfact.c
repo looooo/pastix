@@ -24,8 +24,10 @@
 #include "order.h"
 #include "fax.h"
 #include "kass.h"
+#if defined(PASTIX_DISTRIBUTED)
 #include "csc_utils.h"
 #include "cscd_utils_intern.h"
+#endif /* defined(PASTIX_DISTRIBUTED) */
 
 /**
  *******************************************************************************
@@ -263,7 +265,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             memFree_null(rowfax);
         }
 
-#ifdef PASTIX_DISTRIBUTED
+#if defined(PASTIX_DISTRIBUTED)
         if (PTS_perm != NULL)
         {
             gN = n;
@@ -284,7 +286,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             memFree_null(PTS_perm);
             memFree_null(PTS_rev_perm);
         }
-#endif /* PASTIX_DISTRIBUTED */
+#endif /* defined(PASTIX_DISTRIBUTED) */
 
         /*
          * Save the new ordering structure
