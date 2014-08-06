@@ -7,16 +7,14 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2011-11-11
- * @precisions normal z -> c d s
+ * @author David Goudin
+ * @author Pascal Henon
+ * @author Francois Pellegrini
  *
  **/
-#ifndef Z_PASTIX_H_
-#define Z_PASTIX_H_
+#ifndef _PASTIX_H_
+#define _PASTIX_H_
 
-#if HAVE_COMPLEX
-#  include <complex.h>
-#endif
 #include "pastix/config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,7 +40,6 @@
  *    2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/).
  *
  **/
-#ifndef PastixNoTrans
 #define PastixNoTrans       111
 #define PastixTrans         112
 #define PastixConjTrans     113
@@ -51,9 +48,9 @@
 #define PastixHermitian     113
 
 #define PASTIX_SUCESS  0
-#endif
-struct z_pastix_data_s;
-typedef struct z_pastix_data_s z_pastix_data_t;
+
+struct pastix_data_s;
+typedef struct pastix_data_s pastix_data_t;
 
 /*
  * Group: Main PaStiX functions
@@ -81,7 +78,7 @@ typedef struct z_pastix_data_s z_pastix_data_t;
  *                 of the unknowns.
  *   b           - Right hand side vector(s).
  *   rhs         - Number of right hand side vector(s).
- *   iparm       - Integer parameters given to z_pastix.
+ *   iparm       - Integer parameters given to pastix.
  *   dparm       - Double parameters given to pâstix.
  *
  * About: Example
@@ -100,7 +97,7 @@ typedef struct z_pastix_data_s z_pastix_data_t;
  *   > mat_type = API_SYM_NO;
  *   > if (MTX_ISSYM(type)) mat_type = API_SYM_YES;
  *   > if (MTX_ISHER(type)) mat_type = API_SYM_HER;
- *   > z_pastix_checkMatrix( MPI_COMM_WORLD, verbosemode,
+ *   > pastix_checkMatrix( MPI_COMM_WORLD, verbosemode,
  *   >                     mat_sym,
  *   >                     API_YES,
  *   >                     ncol, &colptr, &rows, &values, NULL);
@@ -109,7 +106,7 @@ typedef struct z_pastix_data_s z_pastix_data_t;
  *   > /\* Initialize parameters to default values *\/
  *   > /\*******************************************\/
  *   > iparm[IPARM_MODIFY_PARAMETER] = API_NO;
- *   > z_pastix(&pastix_data, MPI_COMM_WORLD,
+ *   > pastix(&pastix_data, MPI_COMM_WORLD,
  *   >        ncol, colptr, rows, values,
  *   >        perm, invp, rhs, 1, iparm, dparm);
  *   >
@@ -140,22 +137,22 @@ typedef struct z_pastix_data_s z_pastix_data_t;
  *   > memcpy(rhssaved, rhs, ncol*sizeof(pastix_complex64_t));
  *   >
  *   > /\*******************************************\/
- *   > /\*           Call z_pastix                   *\/
+ *   > /\*           Call pastix                   *\/
  *   > /\*******************************************\/
  *   > perm = malloc(ncol*sizeof(pastix_int_t));
  *   > invp = malloc(ncol*sizeof(pastix_int_t));
  *   >
- *   > z_pastix(&pastix_data, MPI_COMM_WORLD,
+ *   > pastix(&pastix_data, MPI_COMM_WORLD,
  *   >  ncol, colptr, rows, values,
  *   >  perm, invp, rhs, 1, iparm, dparm);
  */
-void z_pastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
+void pastix(pastix_data_t **pastix_data, MPI_Comm pastix_comm,
             pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
             pastix_complex64_t *avals, pastix_int_t *perm, pastix_int_t *invp, pastix_complex64_t *b, pastix_int_t rhs,
             pastix_int_t *iparm, double *dparm);
 
 /*
- * Function: z_dpastix
+ * Function: dpastix
  *
  *   Computes steps of the resolution of Ax=b linear system,
  *   using direct methods.
@@ -180,7 +177,7 @@ void z_pastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
  *                    of the unknowns.
  *      b           - Right hand side vector(s).
  *      rhs         - Number of right hand side vector(s).
- *      iparm       - Integer parameters given to z_pastix.
+ *      iparm       - Integer parameters given to pastix.
  *      dparm       - Double parameters given to pâstix.
  *
  * About: Example
@@ -196,7 +193,7 @@ void z_pastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
  *   >  *    - to have only the lower triangular part in symmetric case
  *   >  *    - to have a graph with a symmetric structure in unsymmetric case
  *   >  *\/
- *   > z_pastix_checkMatrix( MPI_COMM_WORLD, verbosemode,
+ *   > pastix_checkMatrix( MPI_COMM_WORLD, verbosemode,
  *   >                     (MTX_ISSYM(type) ? API_SYM_YES : API_SYM_NO),
  *   >                     API_YES,
  *   >                     ncol, &colptr, &rows, &values, &loc2glob, 1);
@@ -205,7 +202,7 @@ void z_pastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
  *   > /\* Initialize parameters to default values *\/
  *   > /\*******************************************\/
  *   > iparm[IPARM_MODIFY_PARAMETER] = API_NO;
- *   > z_dpastix(&pastix_data, MPI_COMM_WORLD,
+ *   > dpastix(&pastix_data, MPI_COMM_WORLD,
  *   >         ncol, colptr, rows, values, loc2glob,
  *   >         perm, invp, rhs, 1, iparm, dparm);
  *   >
@@ -229,18 +226,18 @@ void z_pastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
  *   > iparm[IPARM_END_TASK]            = API_TASK_BLEND;
  *   >
  *   > /\*******************************************\/
- *   > /\*           Call z_pastix                   *\/
+ *   > /\*           Call pastix                   *\/
  *   > /\*******************************************\/
  *   > perm = malloc(ncol*sizeof(pastix_int_t));
- *   > /\* No need to allocate invp in z_dpastix *\/
+ *   > /\* No need to allocate invp in dpastix *\/
  *   >
- *   > z_dpastix(&pastix_data, MPI_COMM_WORLD,
+ *   > dpastix(&pastix_data, MPI_COMM_WORLD,
  *   >         ncol, colptr, rows, NULL, loc2glob,
  *   >         perm, NULL, NULL, 1, iparm, dparm);
  *   >
  *   > /\* Redistributing the matrix *\/
  *   >
- *   > ncol2 = z_pastix_getLocalNodeNbr(&pastix_data);
+ *   > ncol2 = pastix_getLocalNodeNbr(&pastix_data);
  *   >
  *   > if (NULL == (loc2glob2 = malloc(ncol2 * sizeof(pastix_int_t))))
  *   >   {
@@ -248,7 +245,7 @@ void z_pastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
  *   >     return EXIT_FAILURE;
  *   >   }
  *   >
- *   > z_pastix_getLocalNodeLst(&pastix_data, loc2glob2);
+ *   > pastix_getLocalNodeLst(&pastix_data, loc2glob2);
  *   >
  *   > if (EXIT_SUCCESS != cscd_redispatch(ncol,   colptr,   rows,
  *   >                                     values,    rhs,  loc2glob,
@@ -268,12 +265,12 @@ void z_pastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
  *   > iparm[IPARM_END_TASK]            = API_TASK_CLEAN;
  *   >
  *   >
- *   > z_dpastix(&pastix_data, MPI_COMM_WORLD,
+ *   > dpastix(&pastix_data, MPI_COMM_WORLD,
  *   >         ncol2, colptr2, rows2, values2, loc2glob2,
  *   >         perm, invp, rhs2, 1, iparm, dparm);
  *   >
  */
-void z_dpastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
+void dpastix(pastix_data_t **pastix_data, MPI_Comm pastix_comm,
              pastix_int_t n, pastix_int_t *colptr, pastix_int_t *row,
              pastix_complex64_t *avals, pastix_int_t * loc2glob, pastix_int_t *perm, pastix_int_t *invp,
              pastix_complex64_t *b, pastix_int_t rhs, pastix_int_t *iparm, double *dparm);
@@ -283,7 +280,7 @@ void z_dpastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
  */
 
 /*
-  Function: z_pastix_bindThreads
+  Function: pastix_bindThreads
 
   Set bindtab in pastix_data, it gives for each thread the CPU to bind in to.
   bindtab follows this organisation :
@@ -295,14 +292,14 @@ void z_dpastix(z_pastix_data_t **pastix_data, MPI_Comm pastix_comm,
     thrdnbr     - Nombre de threads / Taille du tableau
     bindtab     - Tableau de correspondance entre chaque thread et coeur de la machine
 */
-void z_pastix_bindThreads(z_pastix_data_t *pastix_data, pastix_int_t thrdnbr, pastix_int_t *bindtab);
+void pastix_bindThreads(pastix_data_t *pastix_data, pastix_int_t thrdnbr, pastix_int_t *bindtab);
 
 /*
  * Group: Checking the matrix.
  */
 
 /*
- * Function: z_pastix_checkMatrix
+ * Function: pastix_checkMatrix
  *
  * Check the matrix :
  * - Renumbers in Fortran numerotation (base 1) if needed (base 0)
@@ -328,16 +325,16 @@ void z_pastix_bindThreads(z_pastix_data_t *pastix_data, pastix_int_t thrdnbr, pa
  *                 (NULL if not distributed).
  *   dof         - Number of degrees of freedom.
  */
-pastix_int_t z_pastix_checkMatrix(MPI_Comm pastix_comm, pastix_int_t verb, pastix_int_t flagsym, pastix_int_t flagcor,
-                       pastix_int_t n, pastix_int_t **colptr, pastix_int_t **row, pastix_complex64_t **avals,
-                       pastix_int_t **loc2glob, pastix_int_t dof);
+pastix_int_t pastix_checkMatrix(MPI_Comm pastix_comm, pastix_int_t verb, pastix_int_t flagsym, pastix_int_t flagcor,
+                                pastix_int_t n, pastix_int_t **colptr, pastix_int_t **row, pastix_complex64_t **avals,
+                                pastix_int_t **loc2glob, pastix_int_t dof);
 
 /*
- * Group: Getting z_solver distribution.
+ * Group: Getting solver distribution.
  */
 
 /*
-  Function: z_pastix_getLocalNodeNbr
+  Function: pastix_getLocalNodeNbr
 
   Return the node number in the new distribution computed by analyze step.
   Needs analyze step to be runned with pastix_data before.
@@ -348,23 +345,23 @@ pastix_int_t z_pastix_checkMatrix(MPI_Comm pastix_comm, pastix_int_t verb, pasti
   Returns:
     Number of local nodes/columns in new distribution.
  */
-pastix_int_t z_pastix_getLocalNodeNbr(z_pastix_data_t ** pastix_data);
+pastix_int_t pastix_getLocalNodeNbr(pastix_data_t ** pastix_data);
 
 /*
-  Function: z_pastix_getLocalNodeLst
+  Function: pastix_getLocalNodeLst
 
   Fill in nodelst with the list of local nodes/columns.
   Needs nodelst to be allocated with nodenbr*sizeof(pastix_int_t),
-  where nodenbr has been computed by <z_pastix_getLocalNodeNbr>.
+  where nodenbr has been computed by <pastix_getLocalNodeNbr>.
 
   Parameters:
     pastix_data - Data used for a step by step execution.
     nodelst     - An array where to write the list of local nodes/columns.
  */
-pastix_int_t z_pastix_getLocalNodeLst(z_pastix_data_t ** pastix_data, pastix_int_t * nodelst);
+pastix_int_t pastix_getLocalNodeLst(pastix_data_t ** pastix_data, pastix_int_t * nodelst);
 
 /*
-  Function: z_pastix_getLocalUnknownNbr
+  Function: pastix_getLocalUnknownNbr
 
   Return the unknown number in the new distribution computed by analyze step.
   Needs analyze step to be runned with pastix_data before.
@@ -375,20 +372,20 @@ pastix_int_t z_pastix_getLocalNodeLst(z_pastix_data_t ** pastix_data, pastix_int
   Returns:
     Number of local unknowns/columns in new distribution.
  */
-pastix_int_t z_pastix_getLocalUnknownNbr(z_pastix_data_t ** pastix_data);
+pastix_int_t pastix_getLocalUnknownNbr(pastix_data_t ** pastix_data);
 
 /*
-  Function: z_pastix_getLocalUnknownLst
+  Function: pastix_getLocalUnknownLst
 
   Fill in unknownlst with the list of local unknowns/clumns.
   Needs unknownlst to be allocated with unknownnbr*sizeof(pastix_int_t),
-  where unknownnbr has been computed by <z_pastix_getLocalUnknownNbr>.
+  where unknownnbr has been computed by <pastix_getLocalUnknownNbr>.
 
   Parameters:
     pastix_data - Data used for a step by step execution.
     unknownlst     - An array where to write the list of local unknowns/columns.
  */
-pastix_int_t z_pastix_getLocalUnknownLst(z_pastix_data_t ** pastix_data, pastix_int_t * unknownlst);
+pastix_int_t pastix_getLocalUnknownLst(pastix_data_t ** pastix_data, pastix_int_t * unknownlst);
 
 /*
  * Group: About the Schur complement.
@@ -396,7 +393,7 @@ pastix_int_t z_pastix_getLocalUnknownLst(z_pastix_data_t ** pastix_data, pastix_
 
 
 /*
-  Function: z_pastix_setSchurUnknownList
+  Function: pastix_setSchurUnknownList
 
   Set the list of unknowns to isolate at the end
   of the matrix via permutations.
@@ -408,12 +405,12 @@ pastix_int_t z_pastix_getLocalUnknownLst(z_pastix_data_t ** pastix_data, pastix_
     n           - Number of unknowns.
     list        - List of unknowns.
 */
-pastix_int_t z_pastix_setSchurUnknownList(z_pastix_data_t * pastix_data,
+pastix_int_t pastix_setSchurUnknownList(pastix_data_t * pastix_data,
              pastix_int_t  n,
              pastix_int_t *list);
 
 /*
-  Function: z_pastix_getSchurLocalNodeNbr
+  Function: pastix_getSchurLocalNodeNbr
 
   Compute the number of nodes in the local part of the Schur.
 
@@ -426,10 +423,10 @@ pastix_int_t z_pastix_setSchurUnknownList(z_pastix_data_t * pastix_data,
 
   TODO: Error management.
 */
-pastix_int_t z_pastix_getSchurLocalNodeNbr(z_pastix_data_t * pastix_data, pastix_int_t * nodeNbr);
+pastix_int_t pastix_getSchurLocalNodeNbr(pastix_data_t * pastix_data, pastix_int_t * nodeNbr);
 
 /*
-  Function: z_pastix_getSchurLocalUnkownNbr
+  Function: pastix_getSchurLocalUnkownNbr
 
   Compute the number of unknowns in the local part of the Schur.
 
@@ -442,11 +439,11 @@ pastix_int_t z_pastix_getSchurLocalNodeNbr(z_pastix_data_t * pastix_data, pastix
 
   TODO: Error management.
 */
-pastix_int_t z_pastix_getSchurLocalUnkownNbr(z_pastix_data_t * pastix_data,
+pastix_int_t pastix_getSchurLocalUnkownNbr(pastix_data_t * pastix_data,
                                   pastix_int_t * unknownNbr);
 
 /*
-  Function: z_pastix_getSchurLocalNodeList
+  Function: pastix_getSchurLocalNodeList
 
   Compute the list of nodes in the local part of the Schur.
 
@@ -459,10 +456,10 @@ pastix_int_t z_pastix_getSchurLocalUnkownNbr(z_pastix_data_t * pastix_data,
 
   TODO: Error management.
 */
-pastix_int_t z_pastix_getSchurLocalNodeList(z_pastix_data_t * pastix_data, pastix_int_t * nodes);
+pastix_int_t pastix_getSchurLocalNodeList(pastix_data_t * pastix_data, pastix_int_t * nodes);
 
 /*
-  Function: z_pastix_getSchurLocalUnkownList
+  Function: pastix_getSchurLocalUnkownList
 
   Compute the list of unknowns in the local part of the Schur.
 
@@ -475,11 +472,11 @@ pastix_int_t z_pastix_getSchurLocalNodeList(z_pastix_data_t * pastix_data, pasti
 
   TODO: Error management.
 */
-pastix_int_t z_pastix_getSchurLocalUnknownList(z_pastix_data_t * pastix_data,
-                                               pastix_int_t * unknowns);
+pastix_int_t pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data,
+                                    pastix_int_t * unknowns);
 
 /*
-  Function: z_pastix_setSchurArray
+  Function: pastix_setSchurArray
 
   Give user memory area to store Schur in PaStiX.
 
@@ -492,10 +489,10 @@ pastix_int_t z_pastix_getSchurLocalUnknownList(z_pastix_data_t * pastix_data,
 
   TODO: Error management.
 */
-pastix_int_t z_pastix_setSchurArray(z_pastix_data_t * pastix_data, pastix_complex64_t * array);
+pastix_int_t pastix_setSchurArray(pastix_data_t * pastix_data, pastix_float_t * array);
 
 /*
-  Function: z_pastix_getSchur
+  Function: pastix_getSchur
 
   Get the Schur complement from PaStiX.
 
@@ -507,15 +504,15 @@ pastix_int_t z_pastix_setSchurArray(z_pastix_data_t * pastix_data, pastix_comple
     schur - Array to fill-in with Schur complement.
 
 */
-pastix_int_t z_pastix_getSchur(z_pastix_data_t * pastix_data,
-                    pastix_complex64_t * schur);
+pastix_int_t pastix_getSchur(pastix_data_t * pastix_data,
+                    pastix_float_t * schur);
 
 /*
  * Group: About parameters.
  */
 
 /*
-  Function: z_pastix_initParam
+  Function: pastix_initParam
 
   Sets default parameters for iparm and dparm
 
@@ -523,7 +520,7 @@ pastix_int_t z_pastix_getSchur(z_pastix_data_t * pastix_data,
     iparm - tabular of IPARM_SIZE integer parameters.
     dparm - tabular of DPARM_SIZE double parameters.
 */
-void z_pastix_initParam(pastix_int_t    *iparm,
+void pastix_initParam(pastix_int_t    *iparm,
                       double *dparm);
 
 /*
@@ -533,11 +530,11 @@ void z_pastix_initParam(pastix_int_t    *iparm,
  */
 
 /*
- * Function: z_pastix_unscale
+ * Function: pastix_unscale
  *
- * Unscale the factorized z_SolverMatrix.
+ * Unscale the factorized SolverMatrix.
  *
- * Unscale the factorized z_SolverMatrix in pastix_data,
+ * Unscale the factorized SolverMatrix in pastix_data,
  * according to pastix_data->scalerowtab,
  * pastix_data->iscalerowtab, pastix_data->scalecoltab and
  * pastix_data->iscalecoltab
@@ -553,10 +550,9 @@ void z_pastix_initParam(pastix_int_t    *iparm,
  *                     are used in this case),
  *                 API_NO otherwise
  */
-void z_pastix_unscale ( z_pastix_data_t *pastix_data, pastix_int_t sym);
+void pastix_unscale ( pastix_data_t *pastix_data, pastix_int_t sym);
 
-unsigned long z_pastix_getMemoryUsage(void);
-#ifndef _PASTIX_UNTYPED
+unsigned long pastix_getMemoryUsage(void);
 unsigned long pastix_getMaxMemoryUsage(void);
 
 struct pastix_graph_s;
@@ -564,18 +560,19 @@ typedef struct pastix_graph_s pastix_graph_t;
 
 struct Order_;
 typedef struct Order_ Order;
-#endif /* _PASTIX_UNTYPED */
-int z_pastix_task_order(z_pastix_data_t *pastix_data,
-                        pastix_int_t   n,
-                        const pastix_int_t  *colptr,
-                        const pastix_int_t  *row,
-                        const pastix_int_t  *loc2glob,
-                        pastix_int_t  *perm,
-                        pastix_int_t  *invp);
 
-int z_pastix_task_symbfact(z_pastix_data_t *pastix_data,
-                           pastix_int_t  *perm,
-                           pastix_int_t  *invp);
+int pastix_task_order(pastix_data_t *pastix_data,
+                      pastix_int_t   n,
+                      const pastix_int_t  *colptr,
+                      const pastix_int_t  *row,
+                      const pastix_int_t  *loc2glob,
+                      pastix_int_t  *perm,
+                      pastix_int_t  *invp);
 
-void z_pastix_task_blend( z_pastix_data_t *pastix_data );
+int pastix_task_symbfact(pastix_data_t *pastix_data,
+                         pastix_int_t  *perm,
+                         pastix_int_t  *invp);
+
+void pastix_task_blend( pastix_data_t *pastix_data );
+
 #endif /* _PASTIX_H_ */
