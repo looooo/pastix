@@ -2,12 +2,12 @@
 #include <assert.h>
 
 #include "common.h"
-#include "d_ftgt.h"
+#include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_updown.h"
-#include "d_solver.h"
+#include "updown.h"
+#include "solver.h"
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
@@ -24,7 +24,7 @@
 
 /*#define DEBUG_PRIO*/
 
-void solverCheck(d_SolverMatrix *solvmtx)
+void solverCheck(SolverMatrix *solvmtx)
 {
     pastix_int_t i, j, k = 0;
     pastix_int_t cblknum, bloknum, ftgtnum;

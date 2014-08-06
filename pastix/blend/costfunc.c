@@ -7,7 +7,7 @@
 #include "common.h"
 #include "dof.h"
 #include "cost.h"
-#include "d_ftgt.h"
+#include "ftgt.h"
 #include "symbol.h"
 #include "elimin.h"
 #include "perf.h"
@@ -16,8 +16,8 @@
 #include "bulles.h"
 #include "extendVector.h"
 #include "blendctrl.h"
-#include "d_updown.h"
-#include "d_solver.h"
+#include "updown.h"
+#include "solver.h"
 #include "symbol_cost.h"
 #include "simu.h"
 #include "costfunc.h"
@@ -364,7 +364,7 @@ double contribAddCost(pastix_int_t h, pastix_int_t g)
 
 double costFtgtSend( const BlendCtrl   *ctrl,
                      const Dof         *dofptr,
-                     const d_FanInTarget *ftgt,
+                     const FanInTarget *ftgt,
                      pastix_int_t clustsrc,
                      pastix_int_t sync_comm_nbr )
 {
@@ -395,7 +395,7 @@ double costFtgtSend( const BlendCtrl   *ctrl,
     return (startup + bandwidth * (ddl_coefnbr*sizeof(double) + MAXINFO * sizeof(pastix_int_t)));
 }
 
-double costFtgtAdd(d_FanInTarget *ftgt, const Dof * dofptr)
+double costFtgtAdd(FanInTarget *ftgt, const Dof * dofptr)
 {
     pastix_int_t ddl_delta   = 0;
     pastix_int_t ddl_stride  = 0;
@@ -473,7 +473,7 @@ double totalCost(pastix_int_t cblknbr, const CostMatrix *costmtx)
 }
 
 #endif
-double memorySpaceCost(const d_SolverMatrix *solvmtx)
+double memorySpaceCost(const SolverMatrix *solvmtx)
 {
     double space=0;
     space += solverSpaceCost(solvmtx);
@@ -481,15 +481,15 @@ double memorySpaceCost(const d_SolverMatrix *solvmtx)
 }
 
 
-double solverSpaceCost(const d_SolverMatrix *solvmtx)
+double solverSpaceCost(const SolverMatrix *solvmtx)
 {
     double space=0;
     /*pastix_int_t i;*/
     space += sizeof(double)*(solvmtx->coefnbr);
 
-    space += sizeof(d_SolverCblk)*(solvmtx->cblknbr);
-    space += sizeof(d_SolverBlok)*(solvmtx->bloknbr);
-    space += sizeof(d_FanInTarget)*(solvmtx->ftgtnbr);
+    space += sizeof(SolverCblk)*(solvmtx->cblknbr);
+    space += sizeof(SolverBlok)*(solvmtx->bloknbr);
+    space += sizeof(FanInTarget)*(solvmtx->ftgtnbr);
     space += sizeof(pastix_int_t)*MAXINFO*(solvmtx->ftgtnbr);
     /*  for(i=0;i<solvmtx->ftgtnbr;i++)
      space += sizeof(double) * solvmtx->ftgttab[i].indtab[solvmtx->ftgttab[i].infotab[FTGT_BLOKNBR]]
@@ -507,7 +507,7 @@ double symbolSpaceCost(const SymbolMatrix *symbmtx)
 }
 
 
-void printSolverInfo(FILE *out, const d_SolverMatrix * solvmtx, const SymbolMatrix * symbmtx, const Dof * const dofptr)
+void printSolverInfo(FILE *out, const SolverMatrix * solvmtx, const SymbolMatrix * symbmtx, const Dof * const dofptr)
 {
     pastix_int_t procnum = solvmtx->clustnum;
     double totalspace = memorySpaceCost(solvmtx);

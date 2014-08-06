@@ -1,13 +1,13 @@
 #include "common.h"
 #include "dof.h"
 #include "cost.h"
-#include "d_ftgt.h"
+#include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_csc.h"
-#include "d_updown.h"
-#include "d_solver.h"
+#include "csc.h"
+#include "updown.h"
+#include "solver.h"
 #include "queue.h"
 #include "sopalin_acces.h"
 
@@ -29,7 +29,7 @@
  * cblk are taken from the queue until all GPUs are alocated maxMem memory.
  */
 #define blend_distributeOnGPU PASTIX_PREFIX(blend_distributeOnGPU)
-int blend_distributeOnGPU(d_SolverMatrix  * solvmtr,
+int blend_distributeOnGPU(SolverMatrix  * solvmtr,
                           double          maxMem,
                           int             pageSize,
                           int             criterium,

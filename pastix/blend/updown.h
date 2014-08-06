@@ -1,5 +1,5 @@
 /**
- * z_updown.h -- These lines are the data declarations
+ * updown.h -- These lines are the data declarations
  *                for the UpDown step
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -10,7 +10,6 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
- * @precisions normal z -> c d s
  *
  **/
 /************************************************************/
@@ -31,12 +30,12 @@
 /**                                                        **/
 /************************************************************/
 
-#ifndef Z_UPDOWN_H
-#define Z_UPDOWN_H
+#ifndef UPDOWN_H
+#define UPDOWN_H
 
 /*+ UpDown block structure. +*/
 
-typedef struct z_UpDownCblk_  {
+typedef struct UpDownCblk_  {
   pastix_int_t          sm2xind; /*+ Index in the rhs local vector of the unknowns corresponding to the diag blok +*/
   pastix_int_t *        browproctab; /*+ Brow                               +*/
   pastix_int_t *        browcblktab; /*+ Brow                               +*/
@@ -45,14 +44,14 @@ typedef struct z_UpDownCblk_  {
   pastix_int_t volatile msgcnt; /*+ Number of messages                 +*/
   pastix_int_t          ctrbnbr; /*+ Number of contributions            +*/
   pastix_int_t volatile ctrbcnt; /*+ Number of contributions            +*/
-} z_UpDownCblk;
+} UpDownCblk;
 
 
 /*+ UpDown vector structure. +*/
 
-typedef struct z_UpDownVector_ {
-  z_UpDownCblk *       cblktab; /*+ Array of solver column blocks      +*/
-  pastix_complex64_t * sm2xtab; /*+ Unknown vector                     +*/
+typedef struct UpDownVector_ {
+  UpDownCblk *       cblktab; /*+ Array of solver column blocks      +*/
+  void * sm2xtab; /*+ Unknown vector                     +*/
   pastix_int_t         sm2xmax; /*+ Maximum of coefficients per unknown vector +*/
   pastix_int_t         sm2xsze; /*+ Size of sm2xtab                    +*/
   pastix_int_t         sm2xnbr; /*+ Number of sm2x                     +*/
@@ -80,6 +79,6 @@ typedef struct z_UpDownVector_ {
   pastix_int_t         glistnbr; /*+ Size of glist                       +*/
 #endif /* defined(PASTIX_WITH_STARPU) */
 
-} z_UpDownVector;
+} UpDownVector;
 
-#endif /* Z_UPDOWN_H */
+#endif /* UPDOWN_H */

@@ -1,5 +1,5 @@
 /**
- * z_ftgt.h -- These lines are the data declarations
+ * ftgt.h -- These lines are the data declarations
  *              for the graph structure.
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -10,7 +10,6 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
- * @precisions normal z -> c d s
  *
  **/
 /************************************************************/
@@ -31,8 +30,8 @@
 /**                                                        **/
 /************************************************************/
 
-#ifndef Z_FTGT_H
-#define Z_FTGT_H
+#ifndef FTGT_H
+#define FTGT_H
 
 /*
  **  The type and structure definitions.
@@ -49,7 +48,7 @@ typedef enum {
     FTGT_CTRBNBR = 0,           /*+ Number of contributions           +*/
     FTGT_CTRBCNT,               /*+ Number of contributions remaining +*/
     FTGT_PROCDST,               /*+ Destination for fanintarget       +*/
-    FTGT_TASKDST,               /*+ z_Task  destination                 +*/
+    FTGT_TASKDST,               /*+ Task  destination                 +*/
     FTGT_BLOKDST,               /*+ Block destination (->COMP_1D)     +*/
     FTGT_PRIONUM,               /*+ Fanintarget priority              +*/
     FTGT_FCOLNUM,               /*+ Fanintarget first column          +*/
@@ -58,16 +57,16 @@ typedef enum {
     FTGT_LROWNUM,               /*+ Fanintarget last row              +*/
 #if (defined OOC) || (defined TRACE_SOPALIN) || (defined PASTIX_WITH_STARPU)
     FTGT_GCBKDST,               /*+ Global Cblk destination(->COMP_1D)+*/
-    FTGT_IDTRACE,               /*+ To have 12 integer in z_FanInTarget +*/
+    FTGT_IDTRACE,               /*+ To have 12 integer in FanInTarget +*/
 #endif
     MAXINFO
 } FanInInfo;
 #endif /* FTGT_MAXINFO */
 /*+ Fanintarget structure +*/
 
-typedef struct z_FanInTarget_ {
-    pastix_int_t         infotab[MAXINFO]; /*+ Fanintarget descriptor (size MAXINFO) +*/
-    pastix_complex64_t * coeftab;          /*+ Fanintarget vector access             +*/
-} z_FanInTarget;
+typedef struct FanInTarget_ {
+    pastix_int_t   infotab[MAXINFO]; /*+ Fanintarget descriptor (size MAXINFO) +*/
+    void          *coeftab;          /*+ Fanintarget vector access             +*/
+} FanInTarget;
 
-#endif /* Z_FTGT_H */
+#endif /* FTGT_H */

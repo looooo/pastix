@@ -239,11 +239,6 @@ blendCtrlInit(BlendCtrl    *ctrl,
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
 #endif
 
-    {
-        /* hack because double has been replaced by float in all z_ => c_ d_ files */
-        MALLOC_INTERN(ctrl->dparm, IPARM_SIZE, double);
-    }
-
     return PASTIX_SUCCESS;
 }
 
