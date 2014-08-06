@@ -31,9 +31,9 @@ struct pastix_graph_s {
 /*
  * Functions of the graph module
  */
-void graphLoad( const d_pastix_data_t  *pastix_data,
-                pastix_graph_t *graph );
-void graphSave( const d_pastix_data_t  *pastix_data,
+void graphLoad( const pastix_data_t  *pastix_data,
+                      pastix_graph_t *graph );
+void graphSave( const pastix_data_t  *pastix_data,
                 const pastix_graph_t *graph );
 
 void graphBase(  pastix_graph_t *graph, int baseval );
@@ -45,11 +45,11 @@ int  graphSymmetrize(       pastix_int_t    n,
                       const pastix_int_t   *loc2glob,
                             pastix_graph_t *newgraph );
 
-int  graphPrepare(      d_pastix_data_t   *pastix_data,
+int  graphPrepare(      pastix_data_t   *pastix_data,
                         pastix_int_t     n,
                   const pastix_int_t    *colptr,
                   const pastix_int_t    *rows,
-                        pastix_int_t    *loc2glob,
+                  const pastix_int_t    *loc2glob,
                         pastix_graph_t **graph );
 
 int  graphIsolate(       pastix_int_t   n,
