@@ -24,10 +24,8 @@
 #include "order.h"
 #include "fax.h"
 #include "kass.h"
-#include "z_csc_utils.h"
-#include "z_cscd_utils_intern.h"
-#include "pastix_task_symbfact.h"
-
+#include "csc_utils.h"
+#include "cscd_utils_intern.h"
 
 /**
  *******************************************************************************
@@ -103,7 +101,7 @@
  *
  *******************************************************************************/
 int
-pastix_task_symbfact(d_pastix_data_t *pastix_data,
+pastix_task_symbfact(pastix_data_t *pastix_data,
                      pastix_int_t  *perm,
                      pastix_int_t  *invp )
 {
@@ -199,15 +197,15 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
          */
         if (iparm[IPARM_GRAPHDIST] == API_YES)
         {
-            d_cscd2csc_int( graph->n,
-                            graph->colptr,
-                            graph->rows,
-                            NULL, NULL, NULL, NULL,
-                            &nfax, &colptrfax, &rowfax,
-                            NULL, NULL, NULL, NULL,
-                            graph->loc2glob,
-                            pastix_data->pastix_comm,
-                            iparm[IPARM_DOF_NBR], API_YES);
+            cscd2csc_int( graph->n,
+                          graph->colptr,
+                          graph->rows,
+                          NULL, NULL, NULL, NULL,
+                          &nfax, &colptrfax, &rowfax,
+                          NULL, NULL, NULL, NULL,
+                          graph->loc2glob,
+                          pastix_data->pastix_comm,
+                          iparm[IPARM_DOF_NBR], API_YES);
         }
         else
         {
