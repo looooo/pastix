@@ -67,24 +67,28 @@ starpu_zregister_fanin(z_SolverMatrix * solvmtx,
 
         MALLOC_INTERN((*Lfanin_handle)[clustnum],
                       solvmtx->fcblknbr[clustnum], starpu_data_handle_t);
-        Lhandle = (*Lfanin_handle)[clustnum];
         if (Ufanin_handle != NULL) {
             MALLOC_INTERN((*Ufanin_handle)[clustnum],
                           solvmtx->fcblknbr[clustnum], starpu_data_handle_t);
-            Uhandle = (*Ufanin_handle)[clustnum];
             coef = 2;
         }
         for (fanin = ffanin; fanin < lfanin; fanin++) {
+            pastix_int_t faninnum = z_fcblk_getnum(solvmtx, fanin, clustnum);
             assert( clustnum == solvmtx->clustnum ||
                     solvmtx->clustnum == fanin->procdiag );
             assert(fanin->procdiag < solvmtx->clustnbr);
 
+            Lhandle = &((*Lfanin_handle)[clustnum][faninnum]);
+            if (Ufanin_handle != NULL) {
+                Uhandle = &((*Ufanin_handle)[clustnum][faninnum]);
+            }
             starpu_matrix_data_register(Lhandle, -1,
                                         (uintptr_t)NULL,
                                         (uint32_t)fanin->stride,
                                         (uint32_t)fanin->stride,
                                         z_cblk_colnbr(fanin),
                                         sizeof(pastix_complex64_t));
+
             if (Ufanin_handle != NULL) {
                 starpu_matrix_data_register(Uhandle, -1,
                                             (uintptr_t)NULL,
@@ -102,18 +106,17 @@ starpu_zregister_fanin(z_SolverMatrix * solvmtx,
                 starpu_data_set_reduction_methods(*Lhandle, NULL,
                                                   &starpu_zfanin_init_codelet);
             }
-            Lhandle++;
             if (Ufanin_handle != NULL) {
                 starpu_mpi_data_register(*Uhandle,
                                          coef * ( solvmtx->gcblknbr +
-                                                  clustnum * solvmtx->gcblknbr + 1) +
+                                                  clustnum * solvmtx->gcblknbr ) +
+                                         solvmtx->gcblknbr +
                                          fanin->gcblknum,
                                          clustnum);
                 if (clustnum == solvmtx->clustnum) {
                     starpu_data_set_reduction_methods(*Uhandle, NULL,
                                                       &starpu_zfanin_init_codelet);
                 }
-                Uhandle++;
             }
         }
     }
@@ -127,30 +130,23 @@ starpu_zunregister_fanin( z_SolverMatrix * solvmtx,
     pastix_int_t clustnum;
     pastix_int_t max_ftgtnbr;
     for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
-        pastix_int_t coef = 1;
         z_SolverCblk *fanin;
-        starpu_data_handle_t *Lhandle;
-        starpu_data_handle_t *Uhandle;
         z_SolverCblk * ffanin = solvmtx->fcblktab[clustnum];
         z_SolverCblk * lfanin = ffanin + solvmtx->fcblknbr[clustnum];
-        if (clustnum == solvmtx->clustnum) continue;
-        Lhandle = (*Lfanin_handle)[clustnum];
-        if (Ufanin_handle != NULL) {
-            Uhandle = (*Ufanin_handle)[clustnum];
-            coef = 2;
-        }
-        for (fanin = ffanin; fanin < lfanin; fanin++) {
-            starpu_data_unregister(*Lhandle);
-            Lhandle++;
-            if (Ufanin_handle != NULL) {
-                starpu_data_unregister(*Uhandle);
-                Uhandle++;
+        /* Outgoing fanin are unregistred as soon as sent */
+        if (clustnum != solvmtx->clustnum) {
+            for (fanin = ffanin; fanin < lfanin; fanin++) {
+                pastix_int_t faninnum = z_fcblk_getnum(solvmtx, fanin, clustnum);
+                starpu_data_unregister((*Lfanin_handle)[clustnum][faninnum]);
+                if (Ufanin_handle != NULL) {
+                    starpu_data_unregister((*Ufanin_handle)[clustnum][faninnum]);
+                }
             }
         }
         memFree_null((*Lfanin_handle)[clustnum]);
-        if (Ufanin_handle != NULL)
+        if (Ufanin_handle != NULL) {
             memFree_null((*Ufanin_handle)[clustnum]);
-
+        }
     }
     memFree_null(*Lfanin_handle);
     if (Ufanin_handle != NULL)

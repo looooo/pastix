@@ -144,6 +144,7 @@ starpu_zgesubmit_incomming_fanin( z_Sopalin_Data_t * sopalin_data ) {
 #  endif
 
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
+        if (clustnum == datacode->clustnum) continue;
         for (fanin = datacode->fcblktab[clustnum];
              fanin < datacode->fcblktab[clustnum] + datacode->fcblknbr[clustnum];
              fanin++) {
@@ -154,6 +155,8 @@ starpu_zgesubmit_incomming_fanin( z_Sopalin_Data_t * sopalin_data ) {
             fcblk = datacode->cblktab+lfcblk;
             assert(z_cblk_islocal(datacode, fcblk) == API_YES);
             assert(lfcblk >= 0);
+            assert(starpu_data_get_rank(Lfanin_handle[clustnum][faninnum]) == clustnum);
+            assert(starpu_data_get_rank(Ufanin_handle[clustnum][faninnum]) == clustnum);
             ret =
                 starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
                                        &starpu_zgeadd_cl,
@@ -164,7 +167,6 @@ starpu_zgesubmit_incomming_fanin( z_Sopalin_Data_t * sopalin_data ) {
                                        STARPU_COMMUTE|STARPU_RW,    L_handle[lfcblk],
                                        STARPU_R,     Ufanin_handle[clustnum][faninnum],
                                        STARPU_COMMUTE|STARPU_RW,    U_handle[lfcblk],
-                                       STARPU_SCRATCH, starpu_loop_data->WORK_handle,
                                        STARPU_R, starpu_loop_data->blocktab_handles[SOLV_PROCNUM],
                                        STARPU_EXECUTE_ON_WORKER, workerid,
                                        STARPU_CALLBACK,     starpu_prof_callback,
@@ -281,7 +283,7 @@ starpu_zgesubmit_outgoing_fanin( z_Sopalin_Data_t * sopalin_data,
     assert(hcblk->procdiag < datacode->clustnbr);
     ret =
         starpu_mpi_insert_task(sopalin_data->sopar->pastix_comm,
-                               &starpu_zsyadd_cl,
+                               &starpu_zgeadd_cl,
                                STARPU_VALUE, &sopalin_data, sizeof(z_Sopalin_Data_t*),
                                STARPU_VALUE, &fcblk,        sizeof(z_SolverCblk*),
                                STARPU_VALUE, &hcblk,        sizeof(z_SolverCblk*),
