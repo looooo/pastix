@@ -112,7 +112,12 @@ precisions_rules_py(generated_tests
 
 foreach(example ${generated_tests})
   GET_FILENAME_COMPONENT(output ${example} NAME_WE)
-  add_executable(${output} ${example})
+  if (PASTIX_WITH_CUDA)
+    cuda_add_executable(${output} ${example})
+    target_link_libraries(${output} cuda)
+  else (PASTIX_WITH_CUDA)
+    add_executable(${output} ${example})
+  endif(PASTIX_WITH_CUDA)
   target_link_libraries( ${output}
     ${TESTING_KERNELS_LIBRARIES} )
   if (PASTIX_WITH_MPI)

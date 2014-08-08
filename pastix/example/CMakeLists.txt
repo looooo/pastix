@@ -96,7 +96,12 @@ precisions_rules_py(generated_files
 
 foreach(example_with_ext ${generated_files})
   GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
-  add_executable(${example} "${example_with_ext}" ${generated_headers})
+  if (PASTIX_WITH_CUDA)
+    cuda_add_executable(${example} "${example_with_ext}" ${generated_headers})
+    target_link_libraries(${output} cuda)
+  else(PASTIX_WITH_CUDA)
+    add_executable(${example} "${example_with_ext}" ${generated_headers})
+  endif(PASTIX_WITH_CUDA)
   target_link_libraries( ${example}
     ${PASTIX_EXAMPLES_LIBRARIES})
 
