@@ -19,40 +19,6 @@
 int str_tolower(char * string);
 
 /*
-  Function: getfilename
-
-  Sets filename to source if source doesn't starts with '-'.
-  Otherwise, filename is set to defaultname.
-
-  Parameters:
-    filename    - string to set to correct filename.
-    source      - possible source for filename.
-    defaultname - default filename.
-
-  Returns:
-    0 if set to default.
-    1 if set to source.
- */
-int getfilename(char ** filename, char * source, char * defaultname);
-
-/*
-  Function: getordering
-
-  Sets *ordering* from source.
-
-  Parameters:
-    ordering    - integer to set to correct ordering.
-    source      - source for ordering name.
-
-  Returns:
-    EXIT_SUCCESS if ordering exists.
-    EXIT_FAILURE if ordering doesn't exists.
- */
-int getordering(int  * ordering,
-    char * source);
-
-
-/*
    Function: global_usage
 
    Print usage corresponding to all pastix exemples.
