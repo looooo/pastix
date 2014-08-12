@@ -740,7 +740,7 @@ static struct option long_options[] =
 #endif  /* defined(HAVE_GETOPT_LONG) */
 
 void pastix_ex_getoptions(int argc, char **argv,
-                          int *iparam, double *dparam,
+                          pastix_int_t *iparam, double *dparam,
                           pastix_driver_t *driver, char **filename)
 {
     int opt = 0;
