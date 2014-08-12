@@ -28,7 +28,7 @@
  */
 pastix_int_t
 sizeofsolver(const SolverMatrix *solvptr,
-                      pastix_int_t *iparm )
+                   pastix_int_t *iparm )
 {
   pastix_int_t result=sizeof(SolverMatrix);
   pastix_int_t iter;
