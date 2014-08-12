@@ -103,6 +103,9 @@ int main (int argc, char **argv)
                        NULL,
                        NULL );
 
+
+    pastix_task_symbfact( pastix_data, NULL, NULL );
+
     //cscClean( csc );
     free(csc.colptr);
     free(csc.rows);
