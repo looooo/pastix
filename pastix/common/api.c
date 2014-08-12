@@ -19,6 +19,7 @@
  *******************************************************************************
  *
  * @ingroup pastix_common
+ * @ingroup pastix_internal
  *
  * pastixInitParam - Initialize the iparm and dparm arrays to their default
  * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
@@ -33,8 +34,8 @@
  *          The floating point array of parameters to initialize.
  *
  *******************************************************************************/
-void pastixInitParam(pastix_int_t *iparm,
-                     double       *dparm)
+void pastix_init_param(pastix_int_t *iparm,
+                       double       *dparm)
 {
     pastix_int_t i;
 
