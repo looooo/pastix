@@ -43,8 +43,8 @@
  *
  *******************************************************************************/
 static inline int
-ordering_load(Order * const ordeptr,
-              FILE  * const stream)
+ordering_load(Order * ordeptr,
+              FILE  * stream)
 {
     pastix_int_t  versval;
     pastix_int_t  cblknbr;
