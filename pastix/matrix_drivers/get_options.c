@@ -883,6 +883,6 @@ void pastix_ex_getoptions(int argc, char **argv,
         }
     } while(-1 != c);
 
-    int verbose = iparam[IPARM_VERBOSE];
+    //    int verbose = iparam[IPARM_VERBOSE];
 }
 
