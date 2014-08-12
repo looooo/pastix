@@ -36,8 +36,8 @@ void graphLoad( const pastix_data_t  *pastix_data,
 void graphSave( const pastix_data_t  *pastix_data,
                 const pastix_graph_t *graph );
 
-void graphBase(  pastix_graph_t *graph, int baseval );
-void graphClean( pastix_graph_t *graph );
+void graphBase( pastix_graph_t *graph, int baseval );
+void graphExit( pastix_graph_t *graph );
 
 int  graphSymmetrize(       pastix_int_t    n,
                       const pastix_int_t   *ia,

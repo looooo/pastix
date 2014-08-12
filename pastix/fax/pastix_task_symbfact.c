@@ -309,8 +309,8 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
      */
     if (pastix_data->graph != NULL)
     {
-        graphClean( pastix_data->graph );
-        pastix_data->graph = NULL;
+        graphExit( pastix_data->graph );
+        memFree_null( pastix_data->graph );
     }
 
     /* Rebase to 0 */

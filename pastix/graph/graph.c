@@ -29,7 +29,7 @@
  *          The graph structure to free.
  *
  *******************************************************************************/
-void graphClean( pastix_graph_t *graph )
+void graphExit( pastix_graph_t *graph )
 {
     graph->gN = 0;
     graph->n  = 0;
@@ -50,7 +50,6 @@ void graphClean( pastix_graph_t *graph )
     memFree_null(graph->rows);
     if (graph->loc2glob != NULL) { memFree_null( graph->loc2glob );}
 
-    memFree_null( graph );
     return;
 }
 
