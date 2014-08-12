@@ -99,6 +99,11 @@ option(COMPACT_SMX
 # Look for dependencies #
 #########################
 
+include(FortranCInterface)
+FortranCInterface_HEADER(common/FCmangle.h
+  MACRO_NAMESPACE "FC_"
+  SYMBOL_NAMESPACE "FC_")
+
 # Check for Thread library
 # ------------------------
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -255,7 +260,7 @@ endif (PASTIX_WITH_STARPU)
 
 # the following  3 lines are temporary
 mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
-set( SCOTCH_DIR        /opt/scotch                 CACHE PATH   "Scotch prefix directory")
+set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix directory")
 set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
 
 if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
@@ -328,72 +333,73 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kass")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 
-# Sub modules
-set(modules libcsc blend csc kernels sopalin matrix_drivers include common)
-if (PASTIX_WITH_STARPU)
-  list(APPEND modules starpu)
-endif (PASTIX_WITH_STARPU)
-# For each modules add -I compilation flag and then include module
-foreach (module ${modules})
-  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/${module}")
-  include_directories("${CMAKE_CURRENT_BINARY_DIR}/${module}")
-endforeach()
-# include modules
-foreach (module ${modules})
-  add_subdirectory(${module})
-endforeach()
-# declare dependencies on headers generation
-set(modules_with_libs ${modules})
-list(REMOVE_ITEM modules_with_libs include matrix_drivers)
-message(STATUS ${modules_with_libs})
-foreach (module ${modules_with_libs})
-  foreach (module2 ${modules})
-    add_dependencies(pastix_${module} ${module2}_headers)
-  endforeach()
-endforeach()
-foreach (module2 ${modules})
-  add_dependencies(read_matrix ${module2}_headers)
-endforeach()
+# # Sub modules
+# set(modules csc bcsc kernels sopalin matrix_drivers common)
+# if (PASTIX_WITH_STARPU)
+#   list(APPEND modules starpu)
+# endif (PASTIX_WITH_STARPU)
+# # For each modules add -I compilation flag and then include module
+# foreach (module ${modules})
+#   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/${module}")
+#   include_directories("${CMAKE_CURRENT_BINARY_DIR}/${module}")
+# endforeach()
+# # include modules
+# foreach (module ${modules})
+#   add_subdirectory(${module})
+# endforeach()
+# # declare dependencies on headers generation
+# set(modules_with_libs ${modules})
+# list(REMOVE_ITEM modules_with_libs include matrix_drivers)
+# message(STATUS ${modules_with_libs})
+# foreach (module ${modules_with_libs})
+#   foreach (module2 ${modules})
+#     add_dependencies(pastix_${module} ${module2}_headers)
+#   endforeach()
+# endforeach()
+# foreach (module2 ${modules})
+#   add_dependencies(read_matrix ${module2}_headers)
+# endforeach()
 
-macro(solver_rules _output_files _sources_files)
-  foreach(_source_file ${_sources_files})
+# macro(solver_rules _output_files _sources_files)
+#   foreach(_source_file ${_sources_files})
 
-    set(_source_file "${CMAKE_CURRENT_SOURCE_DIR}/${_source_file}")
-    string(REGEX REPLACE "^(.*).c$" "\\1" _prefix "${_source_file}")
+#     set(_source_file "${CMAKE_CURRENT_SOURCE_DIR}/${_source_file}")
+#     string(REGEX REPLACE "^(.*).c$" "\\1" _prefix "${_source_file}")
 
-    add_custom_command(OUTPUT ${_prefix}_he.c COMMAND cp ${_source_file} ${_prefix}_he.c DEPENDS ${_source_file} )
-    add_custom_command(OUTPUT ${_prefix}_sy.c COMMAND cp ${_source_file} ${_prefix}_sy.c DEPENDS ${_source_file} )
-    add_custom_command(OUTPUT ${_prefix}_po.c COMMAND cp ${_source_file} ${_prefix}_po.c DEPENDS ${_source_file} )
-    add_custom_command(OUTPUT ${_prefix}_ge.c COMMAND cp ${_source_file} ${_prefix}_ge.c DEPENDS ${_source_file} )
+#     add_custom_command(OUTPUT ${_prefix}_he.c COMMAND cp ${_source_file} ${_prefix}_he.c DEPENDS ${_source_file} )
+#     add_custom_command(OUTPUT ${_prefix}_sy.c COMMAND cp ${_source_file} ${_prefix}_sy.c DEPENDS ${_source_file} )
+#     add_custom_command(OUTPUT ${_prefix}_po.c COMMAND cp ${_source_file} ${_prefix}_po.c DEPENDS ${_source_file} )
+#     add_custom_command(OUTPUT ${_prefix}_ge.c COMMAND cp ${_source_file} ${_prefix}_ge.c DEPENDS ${_source_file} )
 
-    set_source_files_properties(${_prefix}_he.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN -DHERMITIAN" )
-    set_source_files_properties(${_prefix}_sy.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN" )
-    set_source_files_properties(${_prefix}_po.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN" )
-    set_source_files_properties(${_prefix}_ge.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN -DSOPALIN_LU" )
+#     set_source_files_properties(${_prefix}_he.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN -DHERMITIAN" )
+#     set_source_files_properties(${_prefix}_sy.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN" )
+#     set_source_files_properties(${_prefix}_po.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN" )
+#     set_source_files_properties(${_prefix}_ge.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN -DSOPALIN_LU" )
 
-    list(APPEND ${_output_files}
-      ${_prefix}_he.c
-      ${_prefix}_sy.c
-      ${_prefix}_po.c
-      ${_prefix}_ge.c
-      )
+#     list(APPEND ${_output_files}
+#       ${_prefix}_he.c
+#       ${_prefix}_sy.c
+#       ${_prefix}_po.c
+#       ${_prefix}_ge.c
+#       )
 
-  endforeach()
-endmacro()
+#   endforeach()
+# endmacro()
 
 
 #
 # Build the pastix library
 # Create the define for Pastix sources that will be updated in each
-# subdrectory
+# subdirectory
 #
 set(PASTIX_LIB_SRCS
-# Files that are fully converted
+  # Files that are fully converted
   #
   graph/graph.c
   graph/graph_isolate.c
   graph/graph_prepare.c
   graph/graph_symmetrize.c
+  graph/graph_io.c  # Not finished
   #
   order/order.c
   order/order_add_isolate.c
@@ -412,15 +418,43 @@ set(PASTIX_LIB_SRCS
   fax/pastix_task_symbfact.c
   #
 
-# Files that still require some changes
+  # Files that still require some changes
+  blend/cand.c
+  blend/elimin_graph.c
+  blend/elimin_tree.c
+  blend/propmap.c
+  blend/extracblk.c
+  blend/splitsymbol.c
+  blend/blendctrl.c
 
+  blend/blend.c
+  blend/blend_symbol_cost.c
+  blend/bulles.c
+  blend/cost.c
+  blend/costfunc.c
+  blend/simu_run.c
+# blend/distribPart.c
+  blend/extendVector.c
+  blend/fanboth2.c
+  blend/queue.c
+  blend/simu.c
+# blend/partbuild.c
+# blend/smart_cblk_split.c
+  blend/solverMatrixGen.c
+  blend/solverRealloc.c
+  blend/solver_check.c
+  blend/solver_io.c
+# blend/splitpartlocal.c
+  blend/task.c
+  blend/blend_distributeOnGPU.c
+
+  common/api.c
   common/errors.c
   common/integer.c
   common/memory.c
   common/isched.c
 #  common/isched_hwloc.c
 #  common/trace.c
-  graph/graph_io.c
 #
 #
   symbol/dof.c
@@ -434,6 +468,11 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_tree.c
   symbol/symbol_rustine.c
 #
+  matrix_drivers/get_options.c
+  matrix_drivers/drivers.c
+  matrix_drivers/skitf.f
+  matrix_drivers/readrsa.c
+
   ${generated_files}
   )
 
