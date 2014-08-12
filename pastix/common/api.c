@@ -316,7 +316,7 @@ pastixInit( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    /* Initialization step done */
+    /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
 
     // TODO
@@ -354,13 +354,19 @@ pastixFinalize( pastix_data_t **pastix_data,
     if ( pastix->graph != NULL )
     {
         graphClean( pastix->graph );
-        pastix->graph = NULL;
+        memFree_null( pastix->graph );
     }
 
     if ( pastix->ordemesh != NULL )
     {
         orderExit( pastix->ordemesh );
         memFree_null( pastix->ordemesh );
+    }
+
+    if ( pastix->symbmtx != NULL )
+    {
+        symbolExit( pastix->symbmtx );
+        memFree_null( pastix->symbmtx );
     }
 
     memFree_null(*pastix_data);

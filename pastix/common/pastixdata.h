@@ -92,18 +92,18 @@ struct pastix_data_s {
     double          *dparm;              /*< Store floating parameters (input/output)                            +*/
 
     pastix_int_t     steps;              /*< Bitmask of the steps performed or not                               +*/
+
     pastix_graph_t  *graph;              /*< Cleaned graph of the problem used within ordering
                                           *  and symbolic factorization steps.                                   +*/
-    Order           *ordemesh;           /*< Ordering structure                                                  +*/
-
-    pastix_int_t     gN;                 /*< Global number of columns without DoF                                +*/
-    pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
-    SymbolMatrix    *symbmtx;            /*< Symbol Matrix                                                       +*/
-
     pastix_int_t     schur_n;            /*< Number of entries for the Schur complement                          +*/
     pastix_int_t    *schur_list;         /*< List of entries for the schur complement                            +*/
     pastix_int_t     zeros_n;            /*< Number of diagonal entries considered as zeros                      +*/
     pastix_int_t    *zeros_list;         /*< List of diagonal entries considered as zeros                        +*/
+    Order           *ordemesh;           /*< Ordering structure                                                  +*/
+    SymbolMatrix    *symbmtx;            /*< Symbol Matrix                                                       +*/
+
+    pastix_int_t     gN;                 /*< Global number of columns without DoF                                +*/
+    pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
 
     SolverMatrix     solvmatr;           /*+ Matrix informations                                                 +*/
     CscMatrix       *cscmtx;             /*+ Compress Sparse Column matrix                                       +*/
