@@ -67,13 +67,13 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     blendCtrlInit( &ctrl, procnum, procnbr,
                    iparm[IPARM_THREAD_NBR],
                    iparm[IPARM_THREAD_NBR],
-                   iparm );
+                   iparm, dparm );
 
 #ifdef FORCE_NOSMP
     iparm[IPARM_THREAD_NBR] = 1;
 #endif
 
-    solverBlend( &ctrl, (d_SolverMatrix*)solvmatr, pastix_data->symbmtx, &dofstr );
+    solverBlend( &ctrl, (SolverMatrix*)solvmatr, pastix_data->symbmtx, &dofstr );
     blendCtrlExit(&ctrl);
 
     symbolExit(pastix_data->symbmtx);

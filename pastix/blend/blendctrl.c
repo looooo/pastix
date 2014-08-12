@@ -89,12 +89,13 @@ void getCommunicationCosts( const BlendCtrl *ctrl,
 }
 
 int
-blendCtrlInit(BlendCtrl    *ctrl,
-              pastix_int_t  procnum,
-              pastix_int_t  procnbr,
-              pastix_int_t  local_coresnbr,
-              pastix_int_t  local_thrdsnbr,
-              pastix_int_t *iparm)
+blendCtrlInit( BlendCtrl    *ctrl,
+               pastix_int_t  procnum,
+               pastix_int_t  procnbr,
+               pastix_int_t  local_coresnbr,
+               pastix_int_t  local_thrdsnbr,
+               pastix_int_t *iparm,
+               double       *dparm )
 {
     pastix_int_t i;
 
@@ -191,6 +192,7 @@ blendCtrlInit(BlendCtrl    *ctrl,
     }
     /* Save iparm for other options */
     ctrl->iparm = iparm;
+    ctrl->dparm = dparm;
 
     /*
      * Initialize architecture description
