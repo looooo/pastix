@@ -489,7 +489,7 @@ pastix_int_t pastix_getSchurLocalUnknownList(pastix_data_t * pastix_data,
 
   TODO: Error management.
 */
-pastix_int_t pastix_setSchurArray(pastix_data_t * pastix_data, pastix_float_t * array);
+pastix_int_t pastix_setSchurArray(pastix_data_t * pastix_data, pastix_complex64_t * array);
 
 /*
   Function: pastix_getSchur
@@ -505,7 +505,7 @@ pastix_int_t pastix_setSchurArray(pastix_data_t * pastix_data, pastix_float_t * 
 
 */
 pastix_int_t pastix_getSchur(pastix_data_t * pastix_data,
-                    pastix_float_t * schur);
+                             pastix_complex64_t * schur);
 
 /*
  * Group: About parameters.
@@ -561,11 +561,18 @@ typedef struct pastix_graph_s pastix_graph_t;
 struct Order_;
 typedef struct Order_ Order;
 
+void pastixInit( pastix_data_t **pastix_data,
+                 int            *argc,
+                 char         ***argv,
+                 MPI_Comm        pastix_comm,
+                 pastix_int_t   *iparm,
+                 double         *dparm );
+
 int pastix_task_order(pastix_data_t *pastix_data,
                       pastix_int_t   n,
-                      const pastix_int_t  *colptr,
-                      const pastix_int_t  *row,
-                      const pastix_int_t  *loc2glob,
+                      const pastix_int_t *colptr,
+                      const pastix_int_t *row,
+                      const pastix_int_t *loc2glob,
                       pastix_int_t  *perm,
                       pastix_int_t  *invp);
 
