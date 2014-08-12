@@ -137,11 +137,11 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     }
 
     procnum  = pastix_data->procnum;
-    graph    = pastix_data->csc;
+    graph    = pastix_data->graph;
     ordemesh = pastix_data->ordemesh;
 
     if (graph == NULL) {
-        errorPrint("pastix_task_symbfact: the pastix_data->csc field has not been initialized, pastix_task_order should be called first");
+        errorPrint("pastix_task_symbfact: the pastix_data->graph field has not been initialized, pastix_task_order should be called first");
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordemesh == NULL) {
@@ -197,6 +197,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         /*
          * Fax works with centralized interface, we convert the cscd to csc if required
          */
+#if defined(PASTIX_DISTRIBUTED)
         if (iparm[IPARM_GRAPHDIST] == API_YES)
         {
             cscd2csc_int( graph->n,
@@ -210,6 +211,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                           iparm[IPARM_DOF_NBR], API_YES);
         }
         else
+#endif
         {
             nfax      = graph->n;
             colptrfax = graph->colptr;
@@ -305,10 +307,10 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /*
      * The graph is not useful anymore, we clean it
      */
-    if (pastix_data->csc != NULL)
+    if (pastix_data->graph != NULL)
     {
-        graphClean( pastix_data->csc );
-        pastix_data->csc = NULL;
+        graphClean( pastix_data->graph );
+        pastix_data->graph = NULL;
     }
 
     /* Rebase to 0 */
