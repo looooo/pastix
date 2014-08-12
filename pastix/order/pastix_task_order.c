@@ -178,7 +178,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
     {
         /*
          * If ordering is set to API_ORDER_PERSONAL or API_ORDER_LOAD, we
-         * consider that the schur complement is already isolated at the end of
+         * consider that the zeros on diagonal are already isolated at the end of
          * permutation array
          */
         if ((iparm[IPARM_ORDERING] == API_ORDER_PERSONAL) ||
