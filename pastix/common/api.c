@@ -21,7 +21,7 @@
  * @ingroup pastix_common
  * @ingroup pastix_internal
  *
- * pastixInitParam - Initialize the iparm and dparm arrays to their default
+ * pastix_init_param - Initialize the iparm and dparm arrays to their default
  * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
  * API_NO.
  *
@@ -34,8 +34,9 @@
  *          The floating point array of parameters to initialize.
  *
  *******************************************************************************/
-void pastix_init_param(pastix_int_t *iparm,
-                       double       *dparm)
+static inline void
+pastix_init_param(pastix_int_t *iparm,
+                  double       *dparm)
 {
     pastix_int_t i;
 
@@ -164,3 +165,188 @@ void pastix_init_param(pastix_int_t *iparm,
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_common
+ *
+ * pastixInit - Initialize the iparm and dparm arrays to their default
+ * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
+ * API_NO.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] iparm
+ *          The integer array of parameters to initialize.
+ *
+ * @param[in,out] dparm
+ *          The floating point array of parameters to initialize.
+ *
+ *******************************************************************************/
+void
+pastixInit( pastix_data_t **pastix_data,
+            int            *argc,
+            char         ***argv,
+            MPI_Comm        pastix_comm,
+            pastix_int_t   *iparm,
+            double         *dparm )
+{
+    pastix_data_t *pastix;
+
+    /**
+     * Allocate pastix_data structure when we enter PaStiX for the first time.
+     */
+    MALLOC_INTERN(pastix, 1, pastix_data_t);
+    memset( pastix, 0, sizeof(pastix_data_t) );
+
+    /* Initialize default parameters */
+    pastix->iparm = iparm;
+    pastix->dparm = dparm;
+
+    iparm[IPARM_MODIFY_PARAMETER] = API_NO;
+    pastix_init_param( iparm, dparm );
+
+    pastix->n2          = -1;
+    pastix->malcsc      = 0;
+    pastix->malsmx      = 0;
+    pastix->malslv      = 0;
+    pastix->malcof      = 0;
+    pastix->iparm       = iparm;
+    pastix->dparm       = dparm;
+    pastix->pastix_comm = pastix_comm;
+    if (iparm != NULL && iparm[IPARM_AUTOSPLIT_COMM] == API_YES)
+    {
+        int i,len, mpisize;
+        char procname[MPI_MAX_PROCESSOR_NAME];
+        int color, key;
+
+        MPI_Get_processor_name(procname,&len);
+        MPI_Comm_rank(pastix_comm, &(key));
+        color = 0;
+        for (i = 0; i < len; i++)
+            color = color*256*sizeof(char) + procname[i];
+        MPI_Comm_split(pastix_comm, color, key, &pastix->intra_node_comm);
+        MPI_Comm_rank(pastix->intra_node_comm, &color);
+        MPI_Comm_rank(pastix->intra_node_comm, &(key));
+        MPI_Comm_split(pastix_comm, color, key, &pastix->inter_node_comm);
+        MPI_Comm_size(pastix->intra_node_comm, &mpisize);
+        iparm[IPARM_THREAD_NBR] = mpisize;
+    }
+    else
+    {
+        pastix->inter_node_comm      = pastix_comm;
+        pastix->intra_node_comm      = MPI_COMM_SELF;
+    }
+
+    pastix->sopar.bindtab    = NULL;
+    pastix->sopar.b          = NULL;
+    pastix->sopar.transcsc   = NULL;
+    pastix->sopar.stopthrd   = API_NO;
+    pastix->bindtab          = NULL;
+    pastix->cscInternFilled  = API_NO;
+
+#ifdef PASTIX_DISTRIBUTED
+    pastix->malrhsd_int      = API_NO;
+    pastix->l2g_int          = NULL;
+    pastix->mal_l2g_int      = API_NO;
+    pastix->glob2loc         = NULL;
+    pastix->PTS_permtab      = NULL;
+    pastix->PTS_peritab      = NULL;
+#endif
+    pastix->schur_n          = 0;
+    pastix->schur_list       = NULL;
+    pastix->schur_tab        = NULL;
+    pastix->schur_tab_set    = API_NO;
+
+    pastix->solvmatr.updovct.cblktab    = NULL;
+    pastix->solvmatr.updovct.lblk2gcblk = NULL;
+    pastix->solvmatr.updovct.listblok   = NULL;
+    pastix->solvmatr.updovct.listcblk   = NULL;
+    pastix->solvmatr.updovct.gcblk2list = NULL;
+    pastix->solvmatr.updovct.loc2glob   = NULL;
+    pastix->solvmatr.updovct.cblktab    = NULL;
+    pastix->solvmatr.updovct.listptr    = NULL;
+
+    pastix->scaling  = API_NO;
+    pastix->scalerowtab = NULL;
+    pastix->iscalerowtab = NULL;
+    pastix->scalecoltab = NULL;
+    pastix->iscalecoltab = NULL;
+
+    /* Récupération du nombre de proc */
+    MPI_Comm_size(pastix_comm, &(pastix->procnbr));
+    MPI_Comm_rank(pastix_comm, &(pastix->procnum));
+    MPI_Comm_size(pastix->inter_node_comm, &(pastix->inter_node_procnbr));
+    MPI_Comm_rank(pastix->inter_node_comm, &(pastix->inter_node_procnum));
+    MPI_Comm_size(pastix->intra_node_comm, &(pastix->intra_node_procnbr));
+    MPI_Comm_rank(pastix->intra_node_comm, &(pastix->intra_node_procnum));
+    if (pastix->procnum == 0)
+    {
+        pastix->pastix_id = getpid();
+    }
+    MPI_Bcast(&(pastix->pastix_id), 1, PASTIX_MPI_INT, 0, pastix_comm);
+
+#ifdef WITH_SEM_BARRIER
+    if (pastix->intra_node_procnbr > 1)
+    {
+        char sem_name[256];
+        sprintf(sem_name, "/pastix_%d", pastix->pastix_id);
+        OPEN_SEM(pastix->sem_barrier, sem_name, 0);
+    }
+#endif
+
+    if (iparm != NULL)
+    {
+        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        {
+            fprintf(stdout, "AUTOSPLIT_COMM : global rank : %d,"
+                    " inter node rank %d,"
+                    " intra node rank %d, threads %d\n",
+                    (int)(pastix->procnum),
+                    (int)(pastix->inter_node_procnum),
+                    (int)(pastix->intra_node_procnum),
+                    (int)iparm[IPARM_THREAD_NBR]);
+        }
+
+        iparm[IPARM_PID] = pastix->pastix_id;
+    }
+    /* DIRTY Initialization for Scotch */
+    srand(1);
+
+    /* Environement variables */
+    /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
+    setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
+
+    /* Initialization step done */
+    pastix->steps = STEP_INIT;
+
+    *pastix_data = pastix;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_common
+ *
+ * pastixInit - Initialize the iparm and dparm arrays to their default
+ * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
+ * API_NO.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] iparm
+ *          The integer array of parameters to initialize.
+ *
+ * @param[in,out] dparm
+ *          The floating point array of parameters to initialize.
+ *
+ *******************************************************************************/
+void
+pastixFinalize( pastix_data_t **pastix_data,
+                MPI_Comm        pastix_comm,
+                pastix_int_t   *iparm,
+                double         *dparm )
+{
+
+    memFree_null(*pastix_data);
+}
