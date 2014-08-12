@@ -92,10 +92,12 @@ struct pastix_data_s {
     double          *dparm;              /*< Store floating parameters (input/output)                            +*/
 
     pastix_int_t     steps;              /*< Bitmask of the steps performed or not                               +*/
-    pastix_graph_t  *csc;
+    pastix_graph_t  *graph;              /*< Cleaned graph of the problem used within ordering
+                                          *  and symbolic factorization steps.                                   +*/
+    Order           *ordemesh;           /*< Ordering structure                                                  +*/
+
     pastix_int_t     gN;                 /*< Global number of columns without DoF                                +*/
     pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
-    Order           *ordemesh;           /*< Ordering structure                                                  +*/
     SymbolMatrix    *symbmtx;            /*< Symbol Matrix                                                       +*/
 
     pastix_int_t     schur_n;            /*< Number of entries for the Schur complement                          +*/
