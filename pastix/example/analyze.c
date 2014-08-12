@@ -94,6 +94,15 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
+
+    pastix_task_order( pastix_data,
+                       csc.n,
+                       csc.colptr,
+                       csc.rows,
+                       NULL,
+                       NULL,
+                       NULL );
+
     //cscClean( csc );
     free(csc.colptr);
     free(csc.rows);
