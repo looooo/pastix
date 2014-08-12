@@ -175,7 +175,8 @@ enum IPARM_ACCESS {
   IPARM_STARPU_CTX_DEPTH        = 66,
   IPARM_STARPU_CTX_NBR          = 67,
   IPARM_PRODUCE_STATS           = 68,
-  IPARM_GPU_CRITERIUM           = 69,
+  IPARM_GPUS_NBR                = 69,
+  IPARM_GPU_CRITERIUM           = 70,
 
   IPARM_METIS_CTYPE,
   IPARM_METIS_RTYPE,
