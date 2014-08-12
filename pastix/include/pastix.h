@@ -568,6 +568,11 @@ void pastixInit( pastix_data_t **pastix_data,
                  pastix_int_t   *iparm,
                  double         *dparm );
 
+void pastixFinalize( pastix_data_t **pastix_data,
+                     MPI_Comm        pastix_comm,
+                     pastix_int_t   *iparm,
+                     double         *dparm );
+
 int pastix_task_order(pastix_data_t *pastix_data,
                       pastix_int_t   n,
                       const pastix_int_t *colptr,
