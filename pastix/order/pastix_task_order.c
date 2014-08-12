@@ -29,7 +29,7 @@
  *
  * The graph given by the user is used to generate a graph that can be used by
  * ordering tools and symbol factorization. This graph is stored in the
- * pastix_data->csc to be pass over to the symbolic factorization. If it exists
+ * pastix_data->graph to be pass over to the symbolic factorization. If it exists
  * before to call this routine, then the current structure is cleaned and a new
  * one is created. From this structure, an ordering is computed by the ordering
  * tool chosen by IPARM_ORDERING and stored in pastix_data->ordemesh. If Scotch
@@ -202,7 +202,6 @@ pastix_task_order(      pastix_data_t *pastix_data,
     procnum  = pastix_data->procnum;
     orderInit( ordemesh, 0, 0 );
 
-    print_debug(DBG_STEP, "-> pastix_task_order\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print(procnum, 0, "%s", OUT_STEP_ORDER);
 
@@ -212,8 +211,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
      * operations as symmetrizing the graph and removing the diagonal
      * coefficients
      */
-    graphPrepare( pastix_data, n, colptr, rows, loc2glob, &(pastix_data->csc) );
-    graph = pastix_data->csc;
+    graphPrepare( pastix_data, n, colptr, rows, loc2glob, &(pastix_data->graph) );
+    graph = pastix_data->graph;
     pastix_data->n2 = graph->n;
     pastix_data->gN = graph->gN;
 
@@ -285,7 +284,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
 #if defined(HAVE_SCOTCH)
         retval = orderComputeScotch( pastix_data, &subgraph );
 #else
-        errorPrint("PASTIX Ordering: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
+        errorPrint("pastix_task_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
         retval = PASTIX_ERR_BADPARAMETER;
 #endif
         break;
@@ -297,7 +296,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
 #if defined(HAVE_PTSCOTCH)
         retval = orderComputePTScotch( pastix_data, &subgraph );
 #else
-        errorPrint("PASTIX Ordering: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
+        errorPrint("pastix_task_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
         retval = PASTIX_ERR_BADPARAMETER;
 #endif
         break;
@@ -310,7 +309,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         retval = orderComputeMetis( pastix_data, &subgraph );
         assert( ordemesh->rangtab == NULL );
 #else
-        errorPrint("PASTIX Ordering: Ordering with Metis requires -DHAVE_METIS flag at compile time");
+        errorPrint("pastix_task_order: Ordering with Metis requires -DHAVE_METIS flag at compile time");
         retval = PASTIX_ERR_BADPARAMETER;
 #endif
         break;
@@ -338,7 +337,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
         break;
 
     default:
-        errorPrint("Ordering not available");
+        errorPrint( "pastix_task_order: Ordering not available (iparm[IPARM_ORDERING]=%d)\n",
+                    iparm[IPARM_ORDERING] );
         retval = PASTIX_ERR_BADPARAMETER;
         break;
     }
