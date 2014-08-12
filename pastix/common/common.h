@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
+#include "FCmangle.h"
 #include "debug.h"
 #include "out.h"
 #include "memory.h"
