@@ -12,34 +12,19 @@ link_directories(
   ${BLAS_LIBRARY_DIRS}
 )
 
-set(PASTIX_EXAMPLES_LIBRARIES pastix)
-
-
 set(PASTIX_EXAMPLES_LIBRARIES
-  ${PASTIX_EXAMPLES_LIBRARIES}
-  read_matrix
   pastix
-  pastix_sopalin
-  pastix_libcsc
-  pastix_csc
-  pastix
-  pastix_blend)
-if(PASTIX_WITH_STARPU)
-  set(PASTIX_EXAMPLES_LIBRARIES
-    ${PASTIX_EXAMPLES_LIBRARIES}
-    pastix_starpu)
-endif(PASTIX_WITH_STARPU)
-set(PASTIX_EXAMPLES_LIBRARIES
-  ${PASTIX_EXAMPLES_LIBRARIES}
-  pastix_libcsc
-  pastix
-  pastix_kernels
-  pastix_common
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
   m
 )
+
+if(PASTIX_WITH_STARPU)
+  set(PASTIX_EXAMPLES_LIBRARIES
+    ${PASTIX_EXAMPLES_LIBRARIES}
+    pastix_starpu)
+endif(PASTIX_WITH_STARPU)
 
 if (PASTIX_ORDERING_SCOTCH)
   link_directories(${SCOTCH_LIBRARY_DIRS})
@@ -88,24 +73,34 @@ precisions_rules_py(generated_headers
 add_custom_target(examples_headers DEPENDS ${generated_headers} )
 message(STATUS ${generated_headers})
 
-set(SOURCES z_simple.c z_step-by-step.c z_analyze.c)
-## Require all PaStiX with multiple precision before...
-precisions_rules_py(generated_files
-   "${SOURCES}"
-   PRECISIONS "s;d;c;z")
+# set(SOURCES
+#   z_simple.c
+#   z_step-by-step.c
+#   z_analyze.c
+# )
 
-foreach(example_with_ext ${generated_files})
-  GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
-  add_executable(${example} "${example_with_ext}" ${generated_headers})
-  target_link_libraries( ${example}
-    ${PASTIX_EXAMPLES_LIBRARIES})
+# ## Require all PaStiX with multiple precision before...
+# precisions_rules_py(generated_files
+#    "${SOURCES}"
+#    PRECISIONS "s;d;c;z")
 
-  if (PASTIX_WITH_MPI)
-    target_link_libraries( ${example}
-      ${MPI_LIBRARIES} )
-  endif()
-endforeach()
+# foreach(example_with_ext ${generated_files})
+#   GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
+#   add_executable(${example} "${example_with_ext}" ${generated_headers})
+#   target_link_libraries( ${example}
+#     ${PASTIX_EXAMPLES_LIBRARIES})
 
+#   if (PASTIX_WITH_MPI)
+#     target_link_libraries( ${example}
+#       ${MPI_LIBRARIES} )
+#   endif()
+# endforeach()
+
+add_executable(analyze analyze.c)
+target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
+if (PASTIX_WITH_MPI)
+  target_link_libraries(analyze ${MPI_LIBRARIES})
+endif()
 
 #
 #-- CTests
