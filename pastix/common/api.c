@@ -15,6 +15,9 @@
  **/
 #include "common.h"
 #include "order.h"
+#if defined(HAVE_METIS)
+#include <metis.h>
+#endif
 
 /**
  *******************************************************************************
@@ -353,7 +356,7 @@ pastixFinalize( pastix_data_t **pastix_data,
 
     if ( pastix->graph != NULL )
     {
-        graphClean( pastix->graph );
+        graphExit( pastix->graph );
         memFree_null( pastix->graph );
     }
 
