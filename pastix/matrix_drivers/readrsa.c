@@ -156,7 +156,7 @@ void readRSAHeader( char const *filename,
  *          At exit, contains the type of the right hand side.
  *
  *******************************************************************************/
-void rsaRead( char const    *filename,
+void readRSA( char const    *filename,
               pastix_csc_t  *csc )
 {
     char    Type[4];

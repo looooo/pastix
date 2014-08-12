@@ -52,8 +52,6 @@ void convertArrayToDouble( pastix_int_t n,
                            const double *A,
                            void **B )
 {
-    pastix_int_t i;
-
     *B = malloc ( n * sizeof(double) );
     assert(*B);
 
@@ -82,8 +80,6 @@ int cscReadFromFile( pastix_driver_t  driver,
                      pastix_csc_t    *csc,
                      MPI_Comm         pastix_comm )
 {
-    pastix_int_t nrows;
-    pastix_int_t nnz;
     int mpirank;
 
     MPI_Comm_rank( pastix_comm, &mpirank );
@@ -213,7 +209,7 @@ int cscReadFromFile( pastix_driver_t  driver,
 /* #endif */
         case PastixDriverRSA:
         default:
-            rsaRead( filename, csc );
+            readRSA( filename, csc );
         }
     }
 

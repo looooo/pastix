@@ -50,5 +50,7 @@ int cscReadFromFile( pastix_driver_t  driver,
                      pastix_csc_t    *csc,
                      MPI_Comm         pastix_comm );
 
+void readRSA( char const    *filename,
+              pastix_csc_t  *csc );
 
 #endif /* _DRIVER_H_ */
