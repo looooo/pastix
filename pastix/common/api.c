@@ -14,6 +14,7 @@
  *
  **/
 #include "common.h"
+#include "order.h"
 
 /**
  *******************************************************************************
@@ -38,8 +39,6 @@ static inline void
 pastix_init_param(pastix_int_t *iparm,
                   double       *dparm)
 {
-    pastix_int_t i;
-
     memset( iparm, 0, IPARM_SIZE * sizeof(pastix_int_t) );
     memset( dparm, 0, DPARM_SIZE * sizeof(double) );
 
@@ -320,6 +319,9 @@ pastixInit( pastix_data_t **pastix_data,
     /* Initialization step done */
     pastix->steps = STEP_INIT;
 
+    // TODO
+    //z_pastix_welcome_print(*pastix_data, colptr, n);
+
     *pastix_data = pastix;
 }
 
@@ -347,6 +349,19 @@ pastixFinalize( pastix_data_t **pastix_data,
                 pastix_int_t   *iparm,
                 double         *dparm )
 {
+    pastix_data_t *pastix = *pastix_data;
+
+    if ( pastix->graph != NULL )
+    {
+        graphClean( pastix->graph );
+        pastix->graph = NULL;
+    }
+
+    if ( pastix->ordemesh != NULL )
+    {
+        orderExit( pastix->ordemesh );
+        memFree_null( pastix->ordemesh );
+    }
 
     memFree_null(*pastix_data);
 }
