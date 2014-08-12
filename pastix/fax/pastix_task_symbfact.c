@@ -113,7 +113,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     pastix_int_t    n;
     int             procnum;
 
-#ifdef PASTIX_DISTRIBUTED
+#if defined(PASTIX_DISTRIBUTED)
     pastix_int_t           * PTS_perm     = pastix_data->PTS_permtab;
     pastix_int_t           * PTS_rev_perm = pastix_data->PTS_peritab;
     pastix_int_t           * tmpperm      = NULL;
@@ -198,7 +198,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
          * Fax works with centralized interface, we convert the cscd to csc if required
          */
 #if defined(PASTIX_DISTRIBUTED)
-        if (iparm[IPARM_GRAPHDIST] == API_YES)
+        if (graph->loc2glob != NULL)
         {
             cscd2csc_int( graph->n,
                           graph->colptr,
@@ -261,7 +261,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                        pastix_data->pastix_comm);
         }
 
-        if (iparm[IPARM_GRAPHDIST] == API_YES)
+        if ( graph->loc2glob != NULL )
         {
             memFree_null(colptrfax);
             memFree_null(rowfax);
