@@ -376,34 +376,35 @@ csc_load( pastix_int_t  *n,
 
     /* Read values if values is provided and if file contains */
     if (values != NULL) {
+        pastix_int_t nval = nnz * (*dof) * (*dof);
         (*values) = NULL;
 
         switch(ft)
         {
         case PastixComplex64:
-            *values = malloc( nnz * sizeof(pastix_complex64_t) );
-            readArrayOfComplex64( infile, nnz, *values );
+            *values = malloc( nval * sizeof(pastix_complex64_t) );
+            readArrayOfComplex64( infile, nval, *values );
             if ( rc != EXIT_SUCCESS )
                 return rc;
             break;
 
         case PastixComplex32:
-            *values = malloc( nnz * sizeof(pastix_complex32_t) );
-            readArrayOfComplex32( infile, nnz, *values );
+            *values = malloc( nval * sizeof(pastix_complex32_t) );
+            readArrayOfComplex32( infile, nval, *values );
             if ( rc != EXIT_SUCCESS )
                 return rc;
             break;
 
         case PastixDouble:
-            *values = malloc( nnz * sizeof(double) );
-            readArrayOfDouble( infile, nnz, *values );
+            *values = malloc( nval * sizeof(double) );
+            readArrayOfDouble( infile, nval, *values );
             if ( rc != EXIT_SUCCESS )
                 return rc;
             break;
 
         case PastixFloat:
-            *values = malloc( nnz * sizeof(float) );
-            readArrayOfFloat( infile, nnz, *values );
+            *values = malloc( nval * sizeof(float) );
+            readArrayOfFloat( infile, nval, *values );
             if ( rc != EXIT_SUCCESS )
                 return rc;
             break;
