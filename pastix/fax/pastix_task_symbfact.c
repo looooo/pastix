@@ -354,6 +354,13 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     }
 #endif
 
+    /* Invalidate following steps, and add order step to the ones performed */
+    pastix_data->steps &= ~( STEP_ANALYSE  |
+                             STEP_NUMFACT  |
+                             STEP_SOLVE    |
+                             STEP_REFINE   );
+    pastix_data->steps |= STEP_SYMBFACT;
+
     iparm[IPARM_START_TASK]++;
 
     return PASTIX_SUCCESS;
