@@ -323,7 +323,7 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
 
 # Sub modules
-set(modules libcsc blend csc kernels sopalin matrix_drivers include common)
+set(modules libcsc blend csc kernels sopalin matrix_drivers include common murge)
 if (PASTIX_WITH_STARPU)
   list(APPEND modules starpu)
 endif (PASTIX_WITH_STARPU)

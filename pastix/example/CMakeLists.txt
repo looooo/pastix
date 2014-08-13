@@ -7,6 +7,7 @@ set(generated_headers "")
 
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 include_directories(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/")
+include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/")
 link_directories(
   ${CBLAS_LIBRARY_DIRS}
   ${BLAS_LIBRARY_DIRS}
@@ -18,6 +19,7 @@ set(PASTIX_EXAMPLES_LIBRARIES pastix)
 set(PASTIX_EXAMPLES_LIBRARIES
   ${PASTIX_EXAMPLES_LIBRARIES}
   read_matrix
+  pastix_murge
   pastix
   pastix_sopalin
   pastix_libcsc
@@ -86,9 +88,8 @@ precisions_rules_py(generated_headers
                     "${HEADERS}"
                     PRECISIONS "s;d;c;z")
 add_custom_target(examples_headers DEPENDS ${generated_headers} )
-message(STATUS ${generated_headers})
 
-set(SOURCES z_simple.c z_step-by-step.c z_analyze.c)
+set(SOURCES z_simple.c z_step-by-step.c z_analyze.c zmurge_2Dlap.c zmurge_3Dlap.c)
 ## Require all PaStiX with multiple precision before...
 precisions_rules_py(generated_files
    "${SOURCES}"
@@ -97,10 +98,10 @@ precisions_rules_py(generated_files
 foreach(example_with_ext ${generated_files})
   GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
   if (PASTIX_WITH_CUDA)
-    cuda_add_executable(${example} "${example_with_ext}" ${generated_headers})
+    cuda_add_executable(${example} "${example_with_ext}" ${generated_headers} mem_trace.c)
     target_link_libraries(${output} cuda)
   else(PASTIX_WITH_CUDA)
-    add_executable(${example} "${example_with_ext}" ${generated_headers})
+    add_executable(${example} "${example_with_ext}" ${generated_headers} mem_trace.c)
   endif(PASTIX_WITH_CUDA)
   target_link_libraries( ${example}
     ${PASTIX_EXAMPLES_LIBRARIES})
@@ -117,6 +118,14 @@ foreach(example simple step-by-step)
       ${test_args}
       ${prec}_${example} "-lap 1000"
       )
+  endforeach()
+endforeach()
+
+foreach(example murge_2Dlap murge_3Dlap)
+  foreach(prec s d c z)
+    set(test_args
+      ${test_args}
+      ${prec}${example} "-n 10")
   endforeach()
 endforeach()
 

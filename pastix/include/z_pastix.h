@@ -556,9 +556,9 @@ void z_pastix_initParam(pastix_int_t    *iparm,
 void z_pastix_unscale ( z_pastix_data_t *pastix_data, pastix_int_t sym);
 
 unsigned long z_pastix_getMemoryUsage(void);
+unsigned long z_pastix_getMaxMemoryUsage(void);
 #ifndef _PASTIX_UNTYPED
 #define _PASTIX_UNTYPED
-unsigned long pastix_getMaxMemoryUsage(void);
 
 struct pastix_graph_s;
 typedef struct pastix_graph_s pastix_graph_t;

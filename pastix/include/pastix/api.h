@@ -104,6 +104,7 @@
    IPARM_STARPU_CTX_NBR        - Number of contexts created                               Default:-1                   INOUT
    IPARM_PRODUCE_STATS         - Compute some statistiques (such as precision error)      Default:API_NO               IN
    IPARM_GPU_CRITERIUM         - Criterium for sorting GPU                                Default:0                    IN
+   IPARM_MURGE_MAY_REFINE      - Enable refinement in MURGE                               Default: API_NO             IN
    IPARM_SIZE                  - Iparm Size                IGNORE                         Default:                     IN
 */
 enum IPARM_ACCESS {
@@ -176,6 +177,7 @@ enum IPARM_ACCESS {
   IPARM_STARPU_CTX_NBR          = 67,
   IPARM_PRODUCE_STATS           = 68,
   IPARM_GPU_CRITERIUM           = 69,
+  IPARM_MURGE_MAY_REFINE        = 70,
 
   IPARM_METIS_CTYPE,
   IPARM_METIS_RTYPE,

@@ -12,8 +12,8 @@
  * @precisions normal z -> c d s
  *
  **/
-#ifndef CSCD_UTILS_H
-#define CSCD_UTILS_H
+#ifndef Z_CSCD_UTILS_H
+#define Z_CSCD_UTILS_H
 
 
 /*
@@ -308,4 +308,4 @@ int z_cscd_save(pastix_int_t n, pastix_int_t *ia, pastix_int_t *ja, pastix_compl
 int z_cscd_load(pastix_int_t *n, pastix_int_t ** ia, pastix_int_t ** ja, pastix_complex64_t ** a, pastix_complex64_t ** rhs, pastix_int_t ** l2g,
               const char * filename, MPI_Comm mpi_comm);
 
-#endif /* CSCD_UTILS_H */
+#endif /* Z_CSCD_UTILS_H */

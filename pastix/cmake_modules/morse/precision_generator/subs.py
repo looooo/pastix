@@ -881,8 +881,10 @@ subs = {
 
     # PaStiX
     ('sutils.h',       'dutils.h',       'cutils.h',       'zutils.h'        ),
-    ('smurge.h',       'dmurge.h',       'smurge.h',       'zmurge.h'        ),
-    ('SMURGE_',        'DMURGE_',        'SMURGE_',        'ZMURGE_'         ),
+    ('SMURGE_',        'DMURGE_',        'CMURGE_',        'ZMURGE_'         ),
+    ('smurge_',        'dmurge_',        'cmurge_',        'zmurge_'         ),
+    ('smurge.h',       'dmurge.h',       'cmurge.h',       'zmurge.h'        ),
+    ('smurge.c',       'dmurge.c',       'cmurge.c',       'zmurge.c'        ),
     ('ssimple',        'dsimple',        'csimple',        'zsimple'         ),
     ('sstep-by-step',  'dstep-by-step',  'cstep-by-step',  'zstep-by-step'   ),
     ('starpu_s',       'starpu_d',       'starpu_c',       'starpu_z'        ),

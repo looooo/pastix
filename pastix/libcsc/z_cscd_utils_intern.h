@@ -12,12 +12,13 @@
  * @precisions normal z -> c d s
  *
  **/
+#include "z_cscd_utils.h"
 #ifndef CSCD_UTILS_INTERN_H
 #define CSCD_UTILS_INTERN_H
 int z_cscd_addlocal_int(pastix_int_t   n   , const pastix_int_t *  ia   , const pastix_int_t *  ja   , const pastix_complex64_t *  a   , const pastix_int_t * l2g,
                         pastix_int_t   addn, const pastix_int_t *  addia,       pastix_int_t *  addja, const pastix_complex64_t *  adda, const pastix_int_t * addl2g,
                         pastix_int_t * newn, pastix_int_t ** newia, pastix_int_t ** newja, pastix_complex64_t ** newa,
-                        pastix_complex64_t (*add_fct)(pastix_complex64_t , pastix_complex64_t), int dof, int malloc_flag);
+                        CSCD_OPERATIONS_t OP, int dof, int malloc_flag);
 
 /*
  * Function: cscd_redispatch_int

@@ -800,9 +800,11 @@ void z_pastix_print_memory_usage(pastix_int_t      *iparm,
     smem[0] = memAllocGetMax();
     smem[1] = memAllocGetCurrent();
     MPI_Reduce(smem,rmem,2,MPI_LONG,MPI_MAX,0,pastix_comm);
-    iparm[DPARM_MEM_MAX] = rmem[0];
+    if (iparm != NULL)
+        iparm[DPARM_MEM_MAX] = rmem[0];
     if (procnum == 0)
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+        if ( iparm != NULL &&
+             iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
         {
             fprintf(stdout,MAX_MEM_AF_CL,
                     MEMORY_WRITE(rmem[0]),
@@ -2407,7 +2409,7 @@ void z_pastix_task_clean(z_pastix_data_t **pastix_data,
 
     if ((*pastix_data)->malrhsd_int == API_YES)
     {
-        if (iparm[IPARM_RHSD_CHECK] == API_YES)
+        if (iparm != NULL && iparm[IPARM_RHSD_CHECK] == API_YES)
         {
             memFree_null((*pastix_data)->b_int);
         }
@@ -2418,7 +2420,8 @@ void z_pastix_task_clean(z_pastix_data_t **pastix_data,
 
     if ((*pastix_data)->malcof)
     {
-        if (iparm[IPARM_SCHUR] == API_YES && (*pastix_data)->schur_tab_set == API_YES)
+        if (iparm != NULL &&
+            iparm[IPARM_SCHUR] == API_YES && (*pastix_data)->schur_tab_set == API_YES)
         {
             z_SolverMatrix * datacode = &((*pastix_data)->solvmatr);
             pastix_int_t            cblk;
@@ -2505,6 +2508,7 @@ void z_pastix_task_clean(z_pastix_data_t **pastix_data,
         char filename[256];
         sprintf(filename, "parm%ld.dump", (long) procnum);
         PASTIX_FOPEN(stream, filename, "w");
+        if (iparm != NULL);
         api_dumparm(stream,iparm,dparm);
         fclose(stream);
     }
@@ -2529,7 +2533,8 @@ void z_pastix_task_clean(z_pastix_data_t **pastix_data,
     }
 
     /* Pour l'instant uniquement si on est en 1d */
-    if (iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
+    if (iparm != NULL &&
+        iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
     {
         if (solvmatr->updovct.cblktab)
             for (i=0; i<solvmatr->cblknbr; i++)
@@ -4412,7 +4417,6 @@ pastix_int_t z_pastix_checkMatrix(MPI_Comm pastix_comm,
                                   API_NO);
 }
 
-#define z_pastix_getMemoryUsage PASTIX_EXTERN_F(z_pastix_getMemoryUsage)
 unsigned long z_pastix_getMemoryUsage() {
 #ifdef MEMORY_USAGE
     return memAllocGetCurrent();
@@ -4421,8 +4425,7 @@ unsigned long z_pastix_getMemoryUsage() {
 #endif
 }
 
-#define pastix_getMaxMemoryUsage PASTIX_EXTERN_F(pastix_getMaxMemoryUsage)
-unsigned long pastix_getMaxMemoryUsage() {
+unsigned long z_pastix_getMaxMemoryUsage() {
 #ifdef MEMORY_USAGE
     return memAllocGetMax();
 #else

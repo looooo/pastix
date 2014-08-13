@@ -767,7 +767,7 @@ int z_cscd_checksym(pastix_int_t      n,
             z_cscd_addlocal_int(n,   colptr,   *rows   , *values   ,  l2g,
                                 n,   tmpcolptr,  tmprows,  NULL,      l2g,
                                 &n, &newcolptr, &newrows, &newvalues,
-                                &add_two_floats,
+                                CSCD_ADD,
                                 dof, alloc);
         }
       else
@@ -775,7 +775,7 @@ int z_cscd_checksym(pastix_int_t      n,
             z_cscd_addlocal_int(n,   colptr,   *rows   ,   NULL,    l2g,
                                 n,   tmpcolptr,  tmprows,  NULL,    l2g,
                                 &n, &newcolptr, &newrows,  NULL,
-                                &add_two_floats, dof, alloc);
+                                CSCD_ADD, dof, alloc);
         }
       memFree_null(tmpcolptr);
       memFree_null(tmprows);
@@ -1130,7 +1130,7 @@ int z_cscd_symgraph_int(pastix_int_t      n, const pastix_int_t *      ia, const
   /* On ajoute les 2 cscd */
   z_cscd_addlocal_int(n   , ia   , ja   , a   , l2g,
                       tmpn, tmpia, tmpja, NULL, tmpl2g,
-                      newn, newia, newja, newa, &add_two_floats, 1, malloc_flag);
+                      newn, newia, newja, newa, CSCD_ADD, 1, malloc_flag);
   memFree_null(tmpia);
   memFree_null(tmpja);
 
@@ -1174,37 +1174,10 @@ int z_cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  
                   CSCD_OPERATIONS_t OP, int dof)
 {
 
-  switch(OP)
-    {
-    case CSCD_ADD:
-      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                                 addn, addia, addja, adda, addl2g,
-                                 newn, newia, newja, newa,
-                                 &add_two_floats, dof, API_NO);
-    case CSCD_KEEP:
-      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                                 addn, addia, addja, adda, addl2g,
-                                 newn, newia, newja, newa, &keep_first,
-                                 dof, API_NO);
-#ifndef TYPE_COMPLEX
-    case CSCD_MAX:
-      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                                 addn, addia, addja, adda, addl2g,
-                                 newn, newia, newja, newa, &get_max, dof, API_NO);
-    case CSCD_MIN:
-      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                                 addn, addia, addja, adda, addl2g,
-                                 newn, newia, newja, newa, &get_min, dof, API_NO);
-#endif
-    case CSCD_OVW:
-      return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
-                                 addn, addia, addja, adda, addl2g,
-                                 newn, newia, newja, newa, &keep_last,
-                                 dof, API_NO);
-
-    default:
-      return EXIT_FAILURE;
-    }
+    return z_cscd_addlocal_int(n,    ia,    ja,    a,    l2g,
+                               addn, addia, addja, adda, addl2g,
+                               newn, newia, newja, newa,
+                               OP, dof, API_NO);
 }
 
 
@@ -1246,7 +1219,7 @@ int z_cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  
 
 
 /*
- * Function: cscd_addlocal_int
+ * Function: z_cscd_addlocal_int
  *
  * Add second cscd to first cscd into third cscd (unallocated)
  * Only adds columns from the second CSCD which belongs to the first one.
@@ -1269,8 +1242,7 @@ int z_cscd_addlocal(pastix_int_t   n   , pastix_int_t *  ia   , pastix_int_t *  
  *                 and *newwa*
  *   newja       - Row of each element in third CSCD
  *   newa        - value of each cscd in third CSCD
- *   add_fct     - Fonction indicating what to do if a coefficient is in
- *                 the two cscd.
+ *   OP          - Operation to manage common CSCD coefficients.
  *   dof         - Number of degrees of freedom.
  *   malloc_flag - flag to indicate if function call is intern to pastix
  *                 or extern.
@@ -1290,7 +1262,7 @@ int z_cscd_addlocal_int(pastix_int_t   n   ,
                         pastix_int_t ** newia,
                         pastix_int_t ** newja,
                         pastix_complex64_t ** newa,
-                        pastix_complex64_t (*add_fct)(pastix_complex64_t , pastix_complex64_t), int dof,
+                        CSCD_OPERATIONS_t OP, int dof,
                         int malloc_flag)
 {
   pastix_int_t   i,j,k,l;
@@ -1298,6 +1270,30 @@ int z_cscd_addlocal_int(pastix_int_t   n   ,
   int   baseval = ia[0];
   int   iterdof;
   int   val_flag;
+  pastix_complex64_t (*add_fct)(pastix_complex64_t a, pastix_complex64_t b);
+
+  switch(OP) {
+  case CSCD_ADD:
+    add_fct = &add_two_floats;
+    break;
+  case CSCD_KEEP:
+    add_fct = &keep_first;
+    break;
+#ifndef TYPE_COMPLEX
+  case CSCD_MAX:
+    add_fct = &get_max;
+    break;
+  case CSCD_MIN:
+    add_fct = &get_min;
+    break;
+#endif
+    case CSCD_OVW:
+    add_fct = &keep_last;
+    break;
+  default:
+    return EXIT_FAILURE;
+  }
+
 
   /* A can be null, Adda too but newa has to be filled with zeros...
    * => Test on newa
@@ -1604,7 +1600,7 @@ int z_cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t
                           n                  , ia            , ja          ,
                           a             , l2g,
                           &tmpn              , &tmpia        , &tmpja      ,
-                          &tmpa         , &add_two_floats, 1, API_YES);
+                          &tmpa         , CSCD_ADD, 1, API_YES);
 
       if (newloc2globssize[i] != tmpn)
         errorPrint("newloc2globssize[i] != tmpn\n");
@@ -1669,7 +1665,7 @@ int z_cscd_redispatch_scotch(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t
                               newloc2globs[rank],
                               &newloc2globssize[rank],&tmpia2          ,
                               &tmpja2        , &tmpa2           ,
-                              &add_two_floats, 1, API_YES);
+                               CSCD_ADD, 1, API_YES);
 
           memFree_null(colptr2send[rank]);
           memFree_null(tmpia);
@@ -1982,7 +1978,7 @@ int z_cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t * 
                               n, ia, ja, ((flags_recv[0]==0)?(NULL):(a))   , l2g,
                               &tmpn, &tmpia, &tmpja,
                               ((flags_recv[0]==0)?(NULL):(&tmpa)),
-                              &add_two_floats,
+                              CSCD_ADD,
                               dof, malloc_flag);
       }
       else {
@@ -1993,7 +1989,7 @@ int z_cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t * 
                               n, ia, ja, ((flags_recv[0]==0)?(NULL):(a)), l2g,
                               &tmpn, &tmpia, &tmpja,
                               ((flags_recv[0]==0)?(NULL):(&tmpa)),
-                              &add_two_floats,
+                              CSCD_ADD,
                               dof, API_YES);
       }
       if (newloc2globssize[i+1] - newloc2globssize[i] != tmpn)
@@ -2126,7 +2122,8 @@ int z_cscd_redispatch_int(pastix_int_t   n, pastix_int_t *   ia, pastix_int_t * 
                               tmpa             , newloc2globs[rank],
                               &tmpn            , &tmpia2          ,
                               &tmpja2        ,
-                              (flags_recv[0]==1)?(&tmpa2):NULL, &add_two_floats , dof,
+                              (flags_recv[0]==1)?(&tmpa2):NULL,
+			                  CSCD_ADD, dof,
                               malloc_flag);
 
 

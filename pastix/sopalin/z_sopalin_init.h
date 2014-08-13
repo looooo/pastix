@@ -11,9 +11,10 @@
  * @precisions normal z -> c d s
  *
  **/
-#ifndef SOPALIN_INIT_H
-#define SOPALIN_INIT_H
+#ifndef Z_SOPALIN_INIT_H
+#define Z_SOPALIN_INIT_H
 
+#include "z_sopalin3d.h"
 /* Type of thread asking for allocation (must be a power of 2) */
 #define INIT_COMPUTE   1
 #define INIT_SEND      2
@@ -69,4 +70,4 @@ static inline
 int z_tabtravel_deinit(z_Thread_Data_t * thread_data);
 #endif /* (PASTIX_DYNSCHED && !(defined PASTIX_DYNSCHED_WITH_TREE)) */
 
-#endif /* SOPALIN_INIT_H */
+#endif /* Z_SOPALIN_INIT_H */
