@@ -222,6 +222,24 @@ void solverExit(SolverMatrix *solvmtx)
         memFree_null(solvmtx->fbloktab);
     }
 #endif
+
+    /* /\* Pour l'instant uniquement si on est en 1d *\/ */
+    /* if (solvmtx->updovct.cblktab) { */
+    /*     for (i=0; i<solvmtx->cblknbr; i++) */
+    /*     { */
+    /*         if (solvmtx->updovct.cblktab[i].browcblktab) */
+    /*             memFree_null(solvmtx->updovct.cblktab[i].browcblktab); */
+    /*         if (solvmtx->updovct.cblktab[i].browproctab) */
+    /*             memFree_null(solvmtx->updovct.cblktab[i].browproctab); */
+    /*     } */
+    /* } */
+    /* memFree_null(solvmtx->updovct.lblk2gcblk); */
+    /* memFree_null(solvmtx->updovct.listblok); */
+    /* memFree_null(solvmtx->updovct.listcblk); */
+    /* memFree_null(solvmtx->updovct.gcblk2list); */
+    /* memFree_null(solvmtx->updovct.loc2glob); */
+    /* memFree_null(solvmtx->updovct.cblktab); */
+    /* memFree_null(solvmtx->updovct.listptr); */
 }
 
 

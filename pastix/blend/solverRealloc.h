@@ -18,7 +18,5 @@
 #include "solver.h"
 /* hack to call the function in a precision generated file */
 void                     solverRealloc        (SolverMatrix *);
-void                     solverExit           (SolverMatrix *);
-void                     solverInit           (SolverMatrix *);
 
 #endif /* SOLVER_REALLOC_H */

@@ -36,7 +36,7 @@
   pastix_comm - PaStiX MPI communicator
 
 */
-void pastix_task_blend(pastix_data_t *pastix_data)
+int pastix_task_blend(pastix_data_t *pastix_data)
 {
     Dof            dofstr;
     BlendCtrl      ctrl;
@@ -47,18 +47,22 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     pastix_int_t   procnum  = pastix_data->inter_node_procnum;
     pastix_int_t  *iparm    = pastix_data->iparm;
     double        *dparm    = pastix_data->dparm;
-    SolverMatrix  *solvmatr = &(pastix_data->solvmatr);
+    SolverMatrix  *solvmatr;
 
-    /* /\* Si on refait blend on doit jeter nos ancien coefs *\/ */
-    /* if (pastix_data->malcof) */
-    /* { */
-    /*     CoefMatrix_Free( &(pastix_data->sopar), solvmatr, iparm[IPARM_FACTORIZATION]); */
-    /*     pastix_data->malcof=0; */
-    /* } */
+    if ( !(pastix_data->steps & STEP_SYMBFACT) ) {
+        errorPrint("pastix_task_symbfact: pastix_task_init() has to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
-    print_debug(DBG_STEP,"->API_TASK_ANALYSE\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print( procnum, 0, "%s", OUT_STEP_BLEND );
+
+    if ( pastix_data->solvmatr != NULL ) {
+        solverExit( pastix_data->solvmatr );
+        memFree_null( pastix_data->solvmatr );
+    }
+    solvmatr = (SolverMatrix*)malloc(sizeof(SolverMatrix));
+    pastix_data->solvmatr = solvmatr;
 
     dofInit(&dofstr);
     dofConstant(&dofstr, 0, pastix_data->symbmtx->nodenbr,
@@ -73,12 +77,11 @@ void pastix_task_blend(pastix_data_t *pastix_data)
     iparm[IPARM_THREAD_NBR] = 1;
 #endif
 
-    solverBlend( &ctrl, (SolverMatrix*)solvmatr, pastix_data->symbmtx, &dofstr );
+    solverBlend( &ctrl, solvmatr, pastix_data->symbmtx, &dofstr );
     blendCtrlExit(&ctrl);
 
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
-    pastix_data->malslv = 1;
 
     if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
     {
@@ -128,5 +131,14 @@ void pastix_task_blend(pastix_data_t *pastix_data)
                     MEMORY_UNIT_WRITE(sizeG));
         }
     }
+
+    /* Invalidate following steps, and add order step to the ones performed */
+    pastix_data->steps &= ~( STEP_NUMFACT  |
+                             STEP_SOLVE    |
+                             STEP_REFINE   );
+    pastix_data->steps |= STEP_ANALYSE;
+
     iparm[IPARM_START_TASK]++;
+
+    return PASTIX_SUCCESS;
 }

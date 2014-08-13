@@ -463,4 +463,7 @@ static inline int is_block_inside_fblock( SolverBlok *blok,
 
 #  endif /* defined(NAPA_SOPALIN) */
 
+void                     solverExit           (SolverMatrix *);
+void                     solverInit           (SolverMatrix *);
+
 #endif /* SOLVER_H */

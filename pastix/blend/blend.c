@@ -264,6 +264,7 @@ void solverBlend(BlendCtrl    *ctrl,
 
     /* CostMatrix and Elimination Tree which are no further used */
     costMatrixExit(ctrl->costmtx);
+    memFree_null( ctrl->costmtx );
     eTreeExit(ctrl->etree);
 
     /*
