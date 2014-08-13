@@ -139,7 +139,7 @@ blendCtrlInit( BlendCtrl    *ctrl,
 
     /* Initialize options */
     ctrl->count_ops = 1;
-#if !defined(PASTIX_DEBUG_BLEND)
+#if defined(PASTIX_DEBUG_BLEND)
     ctrl->debug     = 1;
 #else
     ctrl->debug     = 0;
