@@ -105,7 +105,7 @@ struct pastix_data_s {
     pastix_int_t     gN;                 /*< Global number of columns without DoF                                +*/
     pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
 
-    SolverMatrix     solvmatr;           /*+ Matrix informations                                                 +*/
+    SolverMatrix    *solvmatr;           /*+ Matrix informations                                                 +*/
     CscMatrix       *cscmtx;             /*+ Compress Sparse Column matrix                                       +*/
     SopalinParam     sopar;              /*+ Sopalin parameters                                                  +*/
 #ifdef PASTIX_DISTRIBUTED
@@ -116,14 +116,14 @@ struct pastix_data_s {
     pastix_int_t    *glob2loc;           /*+ local column number of global column, or -(owner+1) is not local    +*/
     pastix_int_t     ncol_int;           /*+ Number of local columns in internal CSCD                            +*/
     pastix_int_t    *l2g_int;            /*+ Local to global column numbers in internal CSCD                     +*/
-    int              malrhsd_int;        /*+ Indicates if internal distributed rhs has been allocated            +*/
-    int              mal_l2g_int;
+    /* int              malrhsd_int;        /\*+ Indicates if internal distributed rhs has been allocated            +*\/ */
+    /* int              mal_l2g_int; */
     void  *b_int;              /*+ Local part of the right-hand-side                                   +*/
 #endif /* PASTIX_DISTRIBUTED */
-    int              malcsc;             /*+ boolean indicating if solvmatr->cscmtx has beek allocated           +*/
-    int              malsmx;             /*+ boolean indicating if solvmatr->updovct.sm2xtab has been allocated  +*/
-    int              malslv;             /*+ boolean indicating if solvmatr has been allocated                   +*/
-    int              malcof;             /*+ boolean indicating if coeficients tabular(s) has(ve) been allocated +*/
+    /* int              malcsc;             /\*+ boolean indicating if solvmatr->cscmtx has beek allocated           +*\/ */
+    /* int              malsmx;             /\*+ boolean indicating if solvmatr->updovct.sm2xtab has been allocated  +*\/ */
+    /* int              malslv;             /\*+ boolean indicating if solvmatr has been allocated                   +*\/ */
+    /* int              malcof;             /\*+ boolean indicating if coeficients tabular(s) has(ve) been allocated +*\/ */
     MPI_Comm         pastix_comm;        /*+ PaStiX MPI communicator                                             +*/
     MPI_Comm         intra_node_comm;    /*+ PaStiX intra node MPI communicator                                  +*/
     MPI_Comm         inter_node_comm;    /*+ PaStiX inter node MPI communicator                                  +*/

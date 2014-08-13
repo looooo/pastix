@@ -14,10 +14,11 @@
  *
  **/
 #include "common.h"
-#include "order.h"
 #if defined(HAVE_METIS)
 #include <metis.h>
 #endif
+#include "order.h"
+#include "solver.h"
 
 /**
  *******************************************************************************
@@ -209,13 +210,8 @@ pastixInit( pastix_data_t **pastix_data,
     pastix_init_param( iparm, dparm );
 
     pastix->n2          = -1;
-    pastix->malcsc      = 0;
-    pastix->malsmx      = 0;
-    pastix->malslv      = 0;
-    pastix->malcof      = 0;
-    pastix->iparm       = iparm;
-    pastix->dparm       = dparm;
     pastix->pastix_comm = pastix_comm;
+
     if (iparm != NULL && iparm[IPARM_AUTOSPLIT_COMM] == API_YES)
     {
         int i,len, mpisize;
@@ -259,21 +255,7 @@ pastixInit( pastix_data_t **pastix_data,
     pastix->schur_list       = NULL;
     pastix->schur_tab        = NULL;
     pastix->schur_tab_set    = API_NO;
-
-    pastix->solvmatr.updovct.cblktab    = NULL;
-    pastix->solvmatr.updovct.lblk2gcblk = NULL;
-    pastix->solvmatr.updovct.listblok   = NULL;
-    pastix->solvmatr.updovct.listcblk   = NULL;
-    pastix->solvmatr.updovct.gcblk2list = NULL;
-    pastix->solvmatr.updovct.loc2glob   = NULL;
-    pastix->solvmatr.updovct.cblktab    = NULL;
-    pastix->solvmatr.updovct.listptr    = NULL;
-
     pastix->scaling  = API_NO;
-    pastix->scalerowtab = NULL;
-    pastix->iscalerowtab = NULL;
-    pastix->scalecoltab = NULL;
-    pastix->iscalecoltab = NULL;
 
     /* Récupération du nombre de proc */
     MPI_Comm_size(pastix_comm, &(pastix->procnbr));
@@ -370,6 +352,33 @@ pastixFinalize( pastix_data_t **pastix_data,
     {
         symbolExit( pastix->symbmtx );
         memFree_null( pastix->symbmtx );
+    }
+
+    if ( pastix->solvmatr != NULL )
+    {
+        SolverMatrix *solvmatr = pastix->solvmatr;
+        pastix_int_t i;
+
+        /* TODO: move to solverExit */
+        if (solvmatr->updovct.cblktab) {
+            for (i=0; i<solvmatr->cblknbr; i++)
+            {
+                if (solvmatr->updovct.cblktab[i].browcblktab)
+                    memFree_null(solvmatr->updovct.cblktab[i].browcblktab);
+                if (solvmatr->updovct.cblktab[i].browproctab)
+                    memFree_null(solvmatr->updovct.cblktab[i].browproctab);
+            }
+        }
+        memFree_null(solvmatr->updovct.lblk2gcblk);
+        memFree_null(solvmatr->updovct.listblok);
+        memFree_null(solvmatr->updovct.listcblk);
+        memFree_null(solvmatr->updovct.gcblk2list);
+        memFree_null(solvmatr->updovct.loc2glob);
+        memFree_null(solvmatr->updovct.cblktab);
+        memFree_null(solvmatr->updovct.listptr);
+
+        solverExit( pastix->solvmatr );
+        memFree_null( pastix->solvmatr );
     }
 
     memFree_null(*pastix_data);
