@@ -585,6 +585,6 @@ int pastix_task_symbfact(pastix_data_t *pastix_data,
                          pastix_int_t  *perm,
                          pastix_int_t  *invp);
 
-void pastix_task_blend( pastix_data_t *pastix_data );
+int pastix_task_blend( pastix_data_t *pastix_data );
 
 #endif /* _PASTIX_H_ */
