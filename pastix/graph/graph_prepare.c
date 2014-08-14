@@ -187,7 +187,7 @@ graphPrepare(      d_pastix_data_t   *pastix_data,
         /*
          * Centralized graph
          */
-        if (loc2glob == NULL)
+        if (iparm[IPARM_GRAPHDIST] == API_NO)
         {
             tmpgraph->gN = n;
 
@@ -242,13 +242,22 @@ graphPrepare(      d_pastix_data_t   *pastix_data,
                                     loc2glob,
                                     pastix_comm, API_YES );
                 assert( n == tmpgraph->n );
+            } else {
+                pastix_int_t nnz = colptr[n]-colptr[0];
+                tmpgraph->n = n;
+                MALLOC_INTERN(tmpgraph->colptr, (n+1), pastix_int_t);
+                MALLOC_INTERN(tmpgraph->rows,   nnz,   pastix_int_t);
+                memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
+                memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
             }
+            MALLOC_INTERN(tmpgraph->loc2glob,   n,   pastix_int_t);
+            memcpy(tmpgraph->loc2glob, loc2glob, n*sizeof(pastix_int_t));
 
             d_cscd_noDiag(tmpgraph->n,
-                        tmpgraph->colptr,
-                        tmpgraph->rows,
-                        NULL,
-                        loc2glob);
+                          tmpgraph->colptr,
+                          tmpgraph->rows,
+                          NULL,
+                          loc2glob);
 
             /* Create contiguous partitions for ordering tools */
             {
@@ -275,8 +284,8 @@ graphPrepare(      d_pastix_data_t   *pastix_data,
                     MALLOC_INTERN(all_n,  pastix_data->procnbr, int);
                     MALLOC_INTERN(displs, pastix_data->procnbr, int);
 
-                    MPI_Allgather(&n,    1, PASTIX_MPI_INT,
-                                  all_n, 1, PASTIX_MPI_INT,
+                    MPI_Allgather(&n,    1, MPI_INT,
+                                  all_n, 1, MPI_INT,
                                   pastix_comm);
 
                     displs[0] = 0;

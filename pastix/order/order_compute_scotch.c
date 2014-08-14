@@ -84,12 +84,26 @@ orderComputeScotch(       d_pastix_data_t  *pastix_data,
         errorPrint("Inconsistent integer type\n");
         return PASTIX_ERR_INTEGER_TYPE;
     }
+    /* centralized */
+    if (iparm[IPARM_GRAPHDIST] == API_NO) {
+        n      = graph->n;
+        colptr = graph->colptr;
+        rows   = graph->rows;
+        nnz    = colptr[n] - 1;
+    } else {
+        /* distributed */
+        d_cscd2csc_int( graph->n,
+                        graph->colptr,
+                        graph->rows,
+                        NULL, NULL, NULL, NULL,
+                        &n, &colptr, &rows,
+                        NULL, NULL, NULL, NULL,
+                        graph->loc2glob,
+                        pastix_data->pastix_comm,
+                        0, /* DoF to 0 as we have no values */
+                        API_YES);
 
-    n      = graph->n;
-    colptr = graph->colptr;
-    rows   = graph->rows;
-    nnz    = colptr[n] - 1;
-
+    }
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
     orderInit(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
@@ -176,7 +190,10 @@ orderComputeScotch(       d_pastix_data_t  *pastix_data,
 
     SCOTCH_stratExit (&stratdat);
     SCOTCH_graphExit( &scotchgraph );
-
+    if (iparm[IPARM_GRAPHDIST] == API_YES) {
+        memFree_null(colptr);
+        memFree_null(rows);
+    }
     if (ret != 0) {           /* If something failed in Scotch */
         orderExit (ordemesh);    /* Free ordering arrays          */
         return PASTIX_ERR_INTERNAL;

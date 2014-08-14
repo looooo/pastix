@@ -398,9 +398,16 @@ pastix_task_order(      d_pastix_data_t *pastix_data,
      * Return the ordering to user if perm/invp are not NULL
      * Remark: No need to copy back for personal
      */
-    if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
-        if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
-        if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
+    if (iparm[IPARM_GRAPHDIST] == API_NO) {
+        if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
+            if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
+            if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
+        }
+    } else {
+        pastix_int_t i;
+        for (i = 0; i < n; i++) {
+            perm[i] = ordemesh->permtab[loc2glob[i]-1];
+        }
     }
 
     /* Invalidate following steps, and add order step to the ones performed */

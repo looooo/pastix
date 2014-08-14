@@ -18,7 +18,7 @@
     {                                                                   \
         pastix_complex64_t * EAX_ax_rcv;                                \
         EAX_ax_rcv = malloc(globn*sizeof(pastix_complex64_t));          \
-        MPI_Allreduce(ax, EAX_ax_rcv, globn, MPI_pastix_float_t, MPI_SUM, \
+        MPI_Allreduce(ax, EAX_ax_rcv, globn, MPI_DOUBLE_COMPLEX, MPI_SUM, \
                       MPI_COMM_WORLD);                                  \
         free(ax);                                                       \
         ax = EAX_ax_rcv;                                                \
@@ -27,10 +27,10 @@
 #  define EXCHANGE_NORME(norme1, norme2)                                \
     {                                                                   \
         pastix_complex64_t EN_norme1_rcv, EN_norme2_rcv;                \
-        MPI_Allreduce(&norme1, &EN_norme1_rcv, 1, MPI_pastix_float_t,   \
+        MPI_Allreduce(&norme1, &EN_norme1_rcv, 1, MPI_DOUBLE_COMPLEX,   \
                       MPI_SUM, MPI_COMM_WORLD);                         \
         norme1 = EN_norme1_rcv;                                         \
-        MPI_Allreduce(&norme2, &EN_norme2_rcv, 1, MPI_pastix_float_t,   \
+        MPI_Allreduce(&norme2, &EN_norme2_rcv, 1, MPI_DOUBLE_COMPLEX,   \
                       MPI_SUM, MPI_COMM_WORLD);                         \
         norme2 = EN_norme2_rcv;                                         \
     }
@@ -167,7 +167,7 @@
             CDS_sol_g[loc2glob2[CDS_iter]-1] = rhs2[CDS_iter];          \
         }                                                               \
         MPI_Allreduce(CDS_sol_g, CDS_sol_g_recv, globn,                 \
-                      MPI_pastix_float_t, MPI_SUM,                      \
+                      MPI_DOUBLE_COMPLEX, MPI_SUM,                      \
                       MPI_COMM_WORLD);                                  \
         free(CDS_sol_g);                                                \
         CDS_sol_g =CDS_sol_g_recv;                                      \

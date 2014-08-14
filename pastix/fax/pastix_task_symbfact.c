@@ -148,7 +148,7 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
         errorPrint("pastix_task_symbfact: the pastix_data->ordemesh field has not been initialized, pastix_task_order should be called first");
         return PASTIX_ERR_BADPARAMETER;
     }
-    n = graph->n;
+    n = ordemesh->vertnbr;
 
     print_debug(DBG_STEP, "-> pastix_task_symbfact\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
@@ -199,6 +199,7 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
          */
         if (iparm[IPARM_GRAPHDIST] == API_YES)
         {
+            pastix_graph_t graphfax;
             d_cscd2csc_int( graph->n,
                             graph->colptr,
                             graph->rows,
@@ -207,7 +208,14 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
                             NULL, NULL, NULL, NULL,
                             graph->loc2glob,
                             pastix_data->pastix_comm,
-                            iparm[IPARM_DOF_NBR], API_YES);
+                            0, /* DoF to 0 as we have no values */
+                            API_YES);
+            graphfax.gN     = nfax;
+            graphfax.n      = nfax;
+            graphfax.colptr = colptrfax;
+            graphfax.rows   = rowfax;
+            graphfax.loc2glob = NULL;
+            graphBase(&graphfax, 0);
         }
         else
         {

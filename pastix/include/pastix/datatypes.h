@@ -23,19 +23,19 @@
  * Integers
  **/
 #if defined(PASTIX_INT64)
-
+#define INTSSIZE64
 typedef int64_t  pastix_int_t;
 typedef uint64_t pastix_uint_t;
 #define PASTIX_MPI_INT MPI_INTEGER8
 
 #elif defined(PASTIX_INT32)
-
+#define INTSIZE32
 typedef int32_t  pastix_int_t;
 typedef uint32_t pastix_uint_t;
 #define PASTIX_MPI_INT MPI_INTEGER4
 
 #elif defined(PASTIX_LONG)
-
+#define LONG
 typedef long          pastix_int_t;
 typedef unsigned long pastix_uint_t;
 #define PASTIX_MPI_INT MPI_LONG

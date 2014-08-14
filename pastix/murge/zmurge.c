@@ -46,14 +46,6 @@
 #include "z_tools.h"
 #include "sopalin_define.h"
 
-#ifdef WITH_SCOTCH
-#  ifdef    DISTRIBUTED
-#    include "ptscotch.h"
-#  else
-#    include "scotch.h"
-#  endif /* DISTRIBUTED */
-#endif /* WITH_SCOTCH */
-
 #include "z_ftgt.h"
 #include "symbol.h"
 #include "z_csc.h"
@@ -527,7 +519,7 @@ INTS z_stop_threads(INTS id) {
 }
 
 static inline
-int murge_redistribute_data(INTS id) {
+int zmurge_redistribute_data(INTS id) {
   z_pastix_data_t *pastix_data = zmurge_solvers[id]->pastix_data;
   PASTIX_INT    *iparm       = pastix_data->iparm;
   PASTIX_INT     newn;
@@ -614,7 +606,7 @@ int murge_redistribute_data(INTS id) {
  *   MURGE_ERR_ALLOCATE - If any allocation error occurs.
  */
 static inline
-int check_preprocessing(int id) {
+int z_check_preprocessing(int id) {
   z_pastix_data_t   *pastix_data = zmurge_solvers[id]->pastix_data;
   pastix_int_t             *iparm       = pastix_data->iparm;
 #ifdef MURGE_TIME
@@ -686,7 +678,7 @@ int check_preprocessing(int id) {
     CLOCK_PRINT("Preprocessing in PaStiX");
 #ifdef MURGE_INSERT_DIRECTLY
     /* We build the new CSC which will receive the coefficients */
-    murge_redistribute_data(id);
+    zmurge_redistribute_data(id);
 #else /* not MURGE_INSERT_DIRECTLY */
     /* On corrige n et l2g */
 
@@ -721,7 +713,7 @@ int check_preprocessing(int id) {
 }
 
 static inline
-int check_fact(INTS id) {
+int z_check_fact(INTS id) {
   z_pastix_data_t   *pastix_data = zmurge_solvers[id]->pastix_data;
   pastix_int_t      *iparm       = pastix_data->iparm;
 
@@ -766,7 +758,7 @@ int check_fact(INTS id) {
       MURGE_TRACE_MALLOC(new_size-old_size, char);
 #endif
     }
-    CLOCK_PRINT("check_fact -- pastix_checkMatrix");
+    CLOCK_PRINT("z_check_fact -- pastix_checkMatrix");
     /* Do we have to perform preprocessing */
     if (!(MURGE_STATE_ISTRUE(zmurge_solvers[id]->state, MURGE_BLEND_OK))) {
       /* Do we have to perform symbolic factorization */
@@ -801,9 +793,9 @@ int check_fact(INTS id) {
 	      zmurge_solvers[id]->nrhs,
 	      pastix_data->iparm,
 	      pastix_data->dparm);
-      murge_redistribute_data(id);
+      zmurge_redistribute_data(id);
     }
-    CLOCK_PRINT("check_fact -- preprocessing");
+    CLOCK_PRINT("z_check_fact -- preprocessing");
 
     /* If not performed yet we
      * - fill the internal CSC
@@ -820,7 +812,7 @@ int check_fact(INTS id) {
 		      zmurge_solvers[id]->b,
 		      zmurge_solvers[id]->nrhs,
 		      zmurge_solvers[id]->l2g);
-    CLOCK_PRINT("check_fact -- PASTIX_FILLIN_CSC");
+    CLOCK_PRINT("z_check_fact -- PASTIX_FILLIN_CSC");
     zmurge_solvers[id]->pastix_data->cscInternFilled = API_YES;
     if (zmurge_solvers[id]->pastix_data->iparm[IPARM_FREE_CSCUSER] == API_CSC_FREE) {
       MURGE_FREE(zmurge_solvers[id]->colptr);
@@ -887,7 +879,7 @@ int check_fact(INTS id) {
           zmurge_solvers[id]->nrhs,
           pastix_data->iparm,
           pastix_data->dparm);
-  CLOCK_PRINT("check_fact -- DPASTIX");
+  CLOCK_PRINT("z_check_fact -- DPASTIX");
 
   MURGE_STATE_TRUE(zmurge_solvers[id]->state, MURGE_SYMB_OK);
   MURGE_STATE_TRUE(zmurge_solvers[id]->state, MURGE_BLEND_OK);
@@ -898,7 +890,7 @@ int check_fact(INTS id) {
       iparm[IPARM_MURGE_MAY_REFINE] == API_NO) {
     zmurge_solvers[id]->pastix_data->cscInternFilled = API_NO;
   }
-  CLOCK_PRINT("check_fact -- end");
+  CLOCK_PRINT("z_check_fact -- end");
 
   return MURGE_SUCCESS;
 }
@@ -929,7 +921,7 @@ void zmurge_pastix_fillin_csc(INTS            id,
 
   if (data->procnum == 0 && data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
     errorPrintW("To get an optimal MURGE installation"
-                " please build PaStiX with -DDISTRIBUTED\n");
+                " please build PaStiX with -DPASTIX_DISTRIBUTED\n");
 
   z_cscd2csc_int(n, colptr, rows, values,
                  b, NULL, NULL,
@@ -995,7 +987,7 @@ int zmurge_dpastix(INTS             id,
 
   if ((*data)->procnum == 0 && (*data)->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
     errorPrintW("To get an optimal MURGE installation"
-                " please build PaStiX with -DDISTRIBUTED\n");
+                " please build PaStiX with -DPASTIX_DISTRIBUTED\n");
   /* After factorization, no more CSC if API_CSC_FREE */
   if ( ( zmurge_solvers[id]->pastix_data->iparm[IPARM_FREE_CSCUSER] == API_CSC_FREE &&
          iparm[IPARM_END_TASK] > API_TASK_NUMFACT )) {
@@ -1228,8 +1220,8 @@ INTS ZMURGE_SetDefaultOptions(INTS id, INTS stratnum) {
   }
 
   z_pastix_initParam(zmurge_solvers[id]->pastix_data->iparm,
-                   zmurge_solvers[id]->pastix_data->dparm);
-
+                     zmurge_solvers[id]->pastix_data->dparm);
+  zmurge_solvers[id]->pastix_data->iparm[IPARM_ORDERING] = API_ORDER_PTSCOTCH;
   zmurge_solvers[id]->pastix_data->iparm[IPARM_PID] =
     zmurge_solvers[id]->pastix_data->pastix_id;
   zmurge_solvers[id]->pastix_data->iparm[IPARM_RHS_MAKING] = API_RHS_B;

@@ -3118,6 +3118,7 @@ void z_dpastix(z_pastix_data_t    **pastix_data,
     {
         /* init with default for iparm & dparm */
         z_pastix_initParam(iparm, dparm);
+        iparm[IPARM_ORDERING] = API_ORDER_PTSCOTCH;
         return;
     }
 
@@ -3198,8 +3199,121 @@ void z_dpastix(z_pastix_data_t    **pastix_data,
      */
     if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT) /* Fax task */
     {
-        pastix_task_symbfact( *pastix_data,
-                              perm, invp );
+
+        if (iparm[IPARM_GRAPHDIST] == API_YES) {
+            PASTIX_INT   * gperm   = NULL;
+            PASTIX_INT   * ginvp   = NULL;
+            PASTIX_INT     gN;
+            PASTIX_INT     my_n;
+            PASTIX_INT   * my_perm = NULL;
+            /* Note: for AUTOSPLIT_COMM
+             *
+             * perm is given by user, of size n,
+             * we have to allocate it so that fax can write into it,
+             * only written, data can be anything...
+             *
+             * loc2glob is also given by user and we need
+             * a gathered one to build gperm from perm returned by fax.
+             *
+             * Anyway perm can't be used by user as it does not correspond to
+             * the columns it gaves us. We just need to allocate data to write trash.
+             */
+            MPI_Allreduce(&n, &my_n, 1, PASTIX_MPI_INT, MPI_SUM,
+                          (*pastix_data)->intra_node_comm);
+            if ((*pastix_data)->intra_node_procnum == 0) {
+                /* Master of intra node comm */
+                if (my_n != n) {
+                    /* if all wasn't on master allocate area to recv permtab
+                     * that will be deleted because unusable by user...
+                     */
+                    MALLOC_INTERN(my_perm, my_n, PASTIX_INT);
+                    perm = my_perm;
+                    if ((*pastix_data)->procnum == 0)
+                        errorPrintW("User's perm array is invalid and will be unusable with IPARM_AUTOSPLIT_COMM");
+                }
+                /* unless we are using IO_LOAD strategy we need to have large
+                 * enough perm/invp arrays allocated
+                 */
+                if (!(PASTIX_MASK_ISTRUE((*pastix_data)->iparm[IPARM_IO_STRATEGY],
+                                         API_IO_LOAD))) {
+                    gN = 0;
+                    MPI_Allreduce(&my_n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, (*pastix_data)->inter_node_comm);
+                    MALLOC_INTERN(gperm, gN, pastix_int_t);
+                    MALLOC_INTERN(ginvp, gN, pastix_int_t);
+                }
+                pastix_task_symbfact( *pastix_data,
+                                      gperm, ginvp );
+                if (my_n == n) {
+                    if (!(PASTIX_MASK_ISTRUE((*pastix_data)->iparm[IPARM_IO_STRATEGY],
+                                             API_IO_LOAD))) {
+                        /* permtab may have been changed and user can retrive it*/
+                        pastix_int_t i;
+                        for (i = 0; i < my_n; i++) {
+                            perm[i] = gperm[loc2glob[i]-1];
+                        }
+                    }
+                }
+                else {
+                    /* user can't retrieve perm/invp */
+                    memFree_null(my_perm);
+                }
+                if (!(PASTIX_MASK_ISTRUE((*pastix_data)->iparm[IPARM_IO_STRATEGY],
+                                         API_IO_LOAD))) {
+                    memFree_null(gperm);
+                    memFree_null(ginvp);
+                }
+            } else {
+                /* TODO: NEED FIX  */
+
+                /* /\* not on master core *\/ */
+                /* if ( ( (*pastix_data)->iparm[IPARM_INCOMPLETE] == API_NO && */
+                /*        ( (*pastix_data)->iparm[IPARM_ORDERING] == API_ORDER_PERSONAL || */
+                /*          (*pastix_data)->iparm[IPARM_ORDERING] == API_ORDER_METIS || */
+                /*          (*pastix_data)->iparm[IPARM_LEVEL_OF_FILL] == -1) && */
+                /*        (*pastix_data)->iparm[IPARM_GRAPHDIST] == API_YES ) || */
+                /*      ( (*pastix_data)->iparm[IPARM_INCOMPLETE] == API_YES && */
+                /*        (*pastix_data)->iparm[IPARM_GRAPHDIST] == API_YES ) ) { */
+
+                /*                     PASTIX_INT nkass; */
+                /*                     PASTIX_INT * colptrkass; */
+                /*                     PASTIX_INT * rowkass; */
+
+                /*                     CSC_sort((*pastix_data)->csc->n, */
+                /*                              (*pastix_data)->csc->colptr, */
+                /*                              (*pastix_data)->csc->rows, */
+                /*                              NULL, 0); */
+
+                /*                     cscd2csc_int((*pastix_data)->csc->n, */
+                /*                                  (*pastix_data)->csc->colptr, */
+                /*                                  (*pastix_data)->csc->rows, */
+                /*                                  NULL, */
+                /*                                  NULL, NULL, NULL, */
+                /*                                  &nkass, &colptrkass, &rowkass, NULL, */
+                /*                                  NULL, NULL, NULL, */
+                /* #ifdef DISTRIBUTED */
+                /*                                  (*pastix_data)->loc2glob2, */
+                /* #else */
+                /*                                  NULL, */
+                /* #endif */
+                /*                                  (*pastix_data)->pastix_comm, (*pastix_data)->iparm[IPARM_DOF_NBR], API_YES); */
+                /*                     memFree_null(colptrkass); */
+                /*                     memFree_null(rowkass); */
+                /*                 } */
+
+                /*                 if ((*pastix_data)->bmalcolrow == 1) { */
+                /*                     if ((*pastix_data)->col2      != NULL) memFree_null((*pastix_data)->col2); */
+                /*                     if ((*pastix_data)->row2      != NULL) memFree_null((*pastix_data)->row2); */
+                /* #ifdef DISTRIBUTED */
+                /*                     if ((*pastix_data)->loc2glob2 != NULL) memFree_null((*pastix_data)->loc2glob2); */
+                /* #endif */
+                /*                     (*pastix_data)->bmalcolrow = 0; */
+                /*                 } */
+            }
+        } else {
+            /* centralized case */
+            pastix_task_symbfact( *pastix_data,
+                                  perm, invp );
+        }
         SYNC_IPARM;
     }
 
@@ -4363,7 +4477,7 @@ pastix_int_t z_pastix_getSchur(z_pastix_data_t * pastix_data,
 
         MPI_Allreduce(&send, &recv, 2, PASTIX_MPI_INT, MPI_SUM, pastix_data->pastix_comm);
     }
-    MPI_Bcast(schur, recv[0], COMM_FLOAT, recv[1], pastix_data->pastix_comm);
+    MPI_Bcast(schur, recv[0], MPI_DOUBLE_COMPLEX, recv[1], pastix_data->pastix_comm);
     return PASTIX_SUCCESS;
 }
 /*

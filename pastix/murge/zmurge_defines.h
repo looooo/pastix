@@ -534,7 +534,7 @@
 
 #define CHECK_PREPROCESSING(id)                 \
   {                                             \
-    int err = check_preprocessing(id);          \
+    int err = z_check_preprocessing(id);          \
     if (err != MURGE_SUCCESS)                   \
       return err;                               \
   }
@@ -557,7 +557,7 @@
  */
 #define CHECK_FACT(id) do {                        \
     INTS CF_err;                                   \
-    CF_err = check_fact(id);                       \
+    CF_err = z_check_fact(id);                       \
     if (CF_err != MURGE_SUCCESS)                   \
       return CF_err;                               \
   } while(0)
@@ -1003,7 +1003,7 @@ pastix_complex64_t get_min(pastix_complex64_t a, pastix_complex64_t b) {
 #define MPI_INTL (sizeof(long) == sizeof(INTL))?MPI_LONG:MPI_INT
 #define MPI_INTS (sizeof(long) == sizeof(INTS))?MPI_LONG:MPI_INT
 
-#ifdef DISTRIBUTED
+#ifdef PASTIX_DISTRIBUTED
 #  ifdef MURGE_TIME
 #    define DPASTIX(data, comm,                                         \
                     n, colptr, rows, values, l2g, perm, invp,           \
@@ -1050,7 +1050,7 @@ pastix_complex64_t get_min(pastix_complex64_t a, pastix_complex64_t b) {
                               n, colptr, rows, values, b, nrhs, l2g);   \
           iparm[IPARM_FREE_CSCUSER] = save_free;                        \
       } while(0)
-#else /* DISTRIBUTED */
+#else /* PASTIX_DISTRIBUTED */
 static inline
 int zmurge_dpastix(INTS id,
                    z_pastix_data_t ** data,
@@ -1156,5 +1156,5 @@ void zmurge_pastix_fillin_csc(INTS id,
     }                                                    \
   } while(0)
 
-#endif /* DISTRIBUTED */
+#endif /* PASTIX_DISTRIBUTED */
 #endif /* MURGE_DEFINE_H */

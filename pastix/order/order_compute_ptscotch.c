@@ -219,7 +219,7 @@ orderComputePTScotch(       d_pastix_data_t  *pastix_data,
     else {
         SCOTCH_dgraphOrderGather (&dgraph, &ordedat, NULL);
     }
-
+    ordemesh->baseval=1;
     MPI_Bcast(&ordemesh->cblknbr, 1,                     PASTIX_MPI_INT, 0, pastix_comm);
     MPI_Bcast( ordemesh->rangtab, (ordemesh->cblknbr+1), PASTIX_MPI_INT, 0, pastix_comm);
     MPI_Bcast( ordemesh->permtab, gN,                    PASTIX_MPI_INT, 0, pastix_comm);

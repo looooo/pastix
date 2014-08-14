@@ -25,6 +25,7 @@
 #include "common_drivers.h"
 #include "get_options.h"
 
+#include "z_cscd_utils.h"
 /* #include "z_cccread.h" */
 /* #include "z_chbread.h" */
 #include "z_cscdread.h"
@@ -470,30 +471,28 @@ int z_dread_matrix(char            *filename,    pastix_int_t    *ncol,
         return ret;
   }
 
-  /* if (driver_type != CSCD && driver_type != FDUP_DIST && driver_type != MMD) */
-  /*   { */
+  if (driver_type != CSCD && driver_type != FDUP_DIST && driver_type != MMD) {
+      pastix_int_t    lN;
+      pastix_int_t   *lcolptr;
+      pastix_int_t   *lrow;
+      pastix_complex64_t *lavals;
+      pastix_complex64_t *lrhs;
 
-  /*     pastix_int_t    lN; */
-  /*     pastix_int_t   *lcolptr; */
-  /*     pastix_int_t   *lrow; */
-  /*     pastix_complex64_t *lavals; */
-  /*     pastix_complex64_t *lrhs; */
+      z_csc_dispatch(*ncol, *colptr,  *rows, *values, *rhs,  NULL, NULL,
+                     &lN,   &lcolptr, &lrow, &lavals, &lrhs, NULL,
+                     loc2glob, CSC_DISP_SIMPLE, MPI_COMM_WORLD);
 
-  /*     PASTIX_EXTERN(csc_dispatch)(*ncol, *colptr,  *rows, *values, *rhs,  NULL, NULL, */
-  /*                                 &lN,   &lcolptr, &lrow, &lavals, &lrhs, NULL, */
-  /*                                 loc2glob, CSC_DISP_SIMPLE, MPI_COMM_WORLD); */
+      memFree_null(*colptr);
+      memFree_null(*rows);
+      memFree_null(*values);
+      memFree_null(*rhs);
 
-  /*     memFree_null(*colptr); */
-  /*     memFree_null(*rows); */
-  /*     memFree_null(*values); */
-  /*     memFree_null(*rhs); */
-
-  /*     *ncol   = lN; */
-  /*     *colptr = lcolptr; */
-  /*     *rows   = lrow; */
-  /*     *values = lavals; */
-  /*     *rhs    = lrhs; */
-  /*   } */
+      *ncol   = lN;
+      *colptr = lcolptr;
+      *rows   = lrow;
+      *values = lavals;
+      *rhs    = lrhs;
+    }
 
   return EXIT_SUCCESS;
 }

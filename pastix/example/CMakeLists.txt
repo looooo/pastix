@@ -90,6 +90,9 @@ precisions_rules_py(generated_headers
 add_custom_target(examples_headers DEPENDS ${generated_headers} )
 
 set(SOURCES z_simple.c z_step-by-step.c z_analyze.c zmurge_2Dlap.c zmurge_3Dlap.c)
+if(PASTIX_DISTRIBUTED)
+  set(SOURCES ${SOURCES} z_simple_dist.c)
+endif(PASTIX_DISTRIBUTED)
 ## Require all PaStiX with multiple precision before...
 precisions_rules_py(generated_files
    "${SOURCES}"
@@ -112,7 +115,7 @@ foreach(example_with_ext ${generated_files})
   endif()
 endforeach()
 
-foreach(example simple step-by-step)
+foreach(example simple step-by-step simple_dist)
   foreach(prec s d c z)
     set(test_args
       ${test_args}

@@ -4,6 +4,12 @@
  *  read the matrix, check it is correct and correct it if needed,
  *  distribute it then run pastix in one call.
  *
+ *  @version 1.0.0
+ *  @author Mathieu Faverge
+ *  @author Pierre Ramet
+ *  @author Xavier Lacoste
+ *  @date 2011-11-11
+ *  @precisions normal z -> c d s
  */
 
 #include <stdint.h>
@@ -12,11 +18,11 @@
 #include <math.h>
 #include <string.h>
 /* to access functions from the libpastix, respect this order */
-#include "pastix.h"
-#include "d_cscd_utils.h"
-#include "read_matrix.h"
+#include "z_pastix.h"
+#include "z_cscd_utils.h"
+#include "z_read_matrix.h"
 #include "get_options.h"
-#include "utils.h"
+#include "z_utils.h"
 
 int main (int argc, char **argv)
 {
@@ -108,8 +114,8 @@ int main (int argc, char **argv)
   /*******************************************/
   /*      Read Matrice                       */
   /*******************************************/
-  dread_matrix(filename[0], &ncol, &colptr, &rows, &loc2glob, &values,
-               &rhs, &type, &rhstype, driver_type[0], MPI_COMM_WORLD);
+  z_dread_matrix(filename[0], &ncol, &colptr, &rows, &loc2glob, &values,
+                 &rhs, &type, &rhstype, driver_type[0], MPI_COMM_WORLD);
 
   mat_type = API_SYM_NO;
   if (MTX_ISSYM(type)) mat_type = API_SYM_YES;
@@ -130,17 +136,17 @@ int main (int argc, char **argv)
    *    - to have only the lower triangular part in symmetric case
    *    - to have a graph with a symmetric structure in unsymmetric case
    */
-  pastix_checkMatrix(MPI_COMM_WORLD, verbosemode,
-                     mat_type,  API_YES,
-                     ncol, &colptr, &rows, &values, &loc2glob, 1);
+  z_pastix_checkMatrix(MPI_COMM_WORLD, verbosemode,
+                       mat_type,  API_YES,
+                       ncol, &colptr, &rows, &values, &loc2glob, 1);
 
   /*******************************************/
   /* Initialize parameters to default values */
   /*******************************************/
   iparm[IPARM_MODIFY_PARAMETER] = API_NO;
-  dpastix(&pastix_data, MPI_COMM_WORLD,
-          ncol, colptr, rows, values, loc2glob,
-          perm, invp, rhs, 1, iparm, dparm);
+  z_dpastix(&pastix_data, MPI_COMM_WORLD,
+            ncol, colptr, rows, values, loc2glob,
+            perm, invp, rhs, 1, iparm, dparm);
 
   /*******************************************/
   /*       Customize some parameters         */
@@ -172,8 +178,8 @@ int main (int argc, char **argv)
   iparm[IPARM_AMALGAMATION_LEVEL]  = amalgamation;
   iparm[IPARM_RHS_MAKING]          = API_RHS_B;
   /* reread parameters to set IPARM/DPARM */
-  if (EXIT_FAILURE == get_idparm(argc, argv,
-                                 iparm,          dparm))
+  if (EXIT_FAILURE == d_get_idparm(argc, argv,
+                                   iparm, dparm))
     return EXIT_FAILURE;
 
   iparm[IPARM_START_TASK]          = API_TASK_ORDERING;
@@ -203,7 +209,7 @@ int main (int argc, char **argv)
   {
     pastix_complex64_t * rhssaved_g_rcv;
     rhssaved_g_rcv = malloc(globn*sizeof(pastix_complex64_t));
-    MPI_Allreduce(rhssaved_g, rhssaved_g_rcv, globn, MPI_pastix_float_t, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(rhssaved_g, rhssaved_g_rcv, globn, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
     free(rhssaved_g);
     rhssaved_g = rhssaved_g_rcv;
   }
@@ -216,9 +222,9 @@ int main (int argc, char **argv)
 
   PRINT_RHS("RHS", rhs, ncol, mpid, iparm[IPARM_VERBOSE]);
 
-  dpastix(&pastix_data, MPI_COMM_WORLD,
-          ncol, colptr, rows, values, loc2glob,
-          perm, NULL, rhs, 1, iparm, dparm);
+  z_dpastix(&pastix_data, MPI_COMM_WORLD,
+            ncol, colptr, rows, values, loc2glob,
+            perm, NULL, rhs, 1, iparm, dparm);
 
   PRINT_RHS("SOL", rhs, ncol, mpid, iparm[IPARM_VERBOSE]);
   CHECK_DIST_SOL(colptr, rows, values, rhs, ncol, loc2glob, globn, rhssaved_g);
