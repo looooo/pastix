@@ -194,7 +194,7 @@ endif (PASTIX_WITH_MPI)
 if (PASTIX_WITH_STARPU)
   if (NOT STARPU_FOUND)
     message(FATAL_ERROR
-      "Starpu is required to build PaStiX with Starpu support.")
+      "StarPU is required to build PaStiX with StarPU support.")
   endif(NOT STARPU_FOUND)
 
   set(HAVE_STARPU ${STARPU_FOUND})
@@ -339,7 +339,6 @@ endforeach()
 # declare dependencies on headers generation
 set(modules_with_libs ${modules})
 list(REMOVE_ITEM modules_with_libs include matrix_drivers)
-message(STATUS ${modules_with_libs})
 foreach (module ${modules_with_libs})
   foreach (module2 ${modules})
     add_dependencies(pastix_${module} ${module2}_headers)
