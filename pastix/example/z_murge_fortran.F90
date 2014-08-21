@@ -1,36 +1,36 @@
-!
-! File: fmurge.F90
-!
-! Example that generate A Laplacian with multiple
-! degrees of freedom and solves it.
-!
-! That example only works with the -DDISTRIBUTED option.
-!
-! The laplacian looks like :
-!   >    1       0                      ... 0
-!   > -2(n-1)  (n-1)  -2(n-1)   0       ... 0
-!   >    0    -2(n-1)  (n-1)  -2(n-1) 0 ... 0
-!   >              ....
-!   >              ....
-!   >    0 ...              -2(n-1)  n-1  -2(n-1)
-!   >    0 ...                        0     1
-!
-! The Right-hand-side member is defined by
-!   $$RHS_i = - 4\pi^2 sin(2\pi x)$$
-!
-! The solution should be $$X_i = sin(2\pi x)$$
-!
-! The solution is stored in the file "result.plot" that can be ploted using
-! > gnuplot> plot "./result.plot" u 2:3 t "reference", "./result.plot" u 2:4 t "Result, first degree of freedom"
-!
-!
-! Usage:
-!   > ./fmurge <size> <DofNbr>
-!
-! Authors:
-!   Pascal JACQ    - jacq@labri.fr
-!   Xavier LACOSTE - lacoste@labri.fr
-!
+!>
+!! File: zmurge-fortran.F90
+!!
+!! Example that generate A Laplacian with multiple
+!! degrees of freedom and solves it.
+!!
+!! That example only works with the -DDISTRIBUTED option.
+!!
+!! The laplacian looks like :
+!!   >    1       0                      ... 0
+!!   > -2(n-1)  (n-1)  -2(n-1)   0       ... 0
+!!   >    0    -2(n-1)  (n-1)  -2(n-1) 0 ... 0
+!!   >              ....
+!!   >              ....
+!!   >    0 ...              -2(n-1)  n-1  -2(n-1)
+!!   >    0 ...                        0     1
+!!
+!! The Right-hand-side member is defined by
+!!   $$RHS_i = - 4\pi^2 sin(2\pi x)$$
+!!
+!! The solution should be $$X_i = sin(2\pi x)$$
+!!
+!! The solution is stored in the file "result.plot" that can be ploted using
+!! > gnuplot> plot "./result.plot" u 2:3 t "reference", "./result.plot" u 2:4 t "Result, first degree of freedom"
+!!
+!!
+!! Usage:
+!!   > ./zmurge-fortran <size> <DofNbr>
+!!
+!! @author Pascal JACQ    - jacq@labri.fr
+!! @authoe Xavier LACOSTE - lacoste@labri.fr
+!! @precisions normal z -> c d s
+!!
 
 PROGRAM main
   !$ use omp_lib, only : omp_get_num_threads
@@ -38,7 +38,8 @@ PROGRAM main
 ! will be replaced during compilation by replaceCOEF.sh
 
   INCLUDE "mpif.h"
-  INCLUDE "murge.inc"
+  INCLUDE "zmurge.inc"
+  INCLUDE "zmurge_pastix.inc"
   ! MPI Data
   INTEGER(KIND=MURGE_INTS_KIND)          :: ierr
   INTEGER       :: Me, NTasks, required, provided
@@ -49,21 +50,20 @@ PROGRAM main
   ! CSC Data
   INTEGER(KIND=MURGE_INTS_KIND)                         :: n, dof
   INTEGER(KIND=MURGE_INTL_KIND)                         :: nnzeros, edgenbr
-  ! __COEF__ will be replaced during compilation by replaceCOEF.sh
-  __COEF__                                                  :: val
+  DOUBLE COMPLEX                                                  :: val
   ! Local Data
   INTEGER(KIND=MURGE_INTS_KIND)                         :: localnodenbr,interior,taille
   INTEGER(KIND=MURGE_INTS_KIND), DIMENSION(:) , POINTER :: nodelist
   INTEGER(KIND=MURGE_INTS_KIND)                         :: root
   INTEGER(KIND=MURGE_INTS_KIND)                         :: base
-  __COEF__, DIMENSION(:) , POINTER                          :: lrhs
-  __COEF__, DIMENSION(:) , POINTER                          :: globrhs
-  __COEF__, DIMENSION(:) , POINTER                          :: globrhs_recv
-  __COEF__, DIMENSION(:) , POINTER                          :: globx
-  __COEF__, DIMENSION(:) , POINTER                          :: globprod
+  DOUBLE COMPLEX, DIMENSION(:) , POINTER                          :: lrhs
+  DOUBLE COMPLEX, DIMENSION(:) , POINTER                          :: globrhs
+  DOUBLE COMPLEX, DIMENSION(:) , POINTER                          :: globrhs_recv
+  DOUBLE COMPLEX, DIMENSION(:) , POINTER                          :: globx
+  DOUBLE COMPLEX, DIMENSION(:) , POINTER                          :: globprod
   ! Other data
-  __COEF__, DIMENSION(:) , POINTER                          :: expand
-  __COEF__                                                  :: val2
+  DOUBLE COMPLEX, DIMENSION(:) , POINTER                          :: expand
+  DOUBLE COMPLEX                                                  :: val2
   REAL(KIND=MURGE_REAL_KIND)                            :: prec
   REAL(KIND=8)                                          :: xmin, xmax
   INTEGER(KIND=MURGE_INTS_KIND)                         :: NArgs, i, j, k, myfirstrow, mylastrow, l
@@ -75,7 +75,7 @@ PROGRAM main
   INTEGER(KIND=MURGE_INTS_KIND)                         :: one=1
   INTEGER(KIND=MURGE_INTS_KIND)                         :: two=2
   INTEGER(KIND=MURGE_INTS_KIND)                         :: nb_threads
-
+  
   NArgs = command_argument_count()
   root = -1
   base = 1
@@ -103,7 +103,7 @@ PROGRAM main
   xmax = 1.
 
   ! Starting MURGE
-  CALL MURGE_INITIALIZE(one, ierr)
+  CALL ZMURGE_INITIALIZE(one, ierr)
   if (ierr /= MURGE_SUCCESS) call abort()
   id = 0
 
@@ -118,9 +118,10 @@ PROGRAM main
 
 
   IF (solver == MURGE_SOLVER_PASTIX) THEN
-     CALL MURGE_SetDefaultOptions(id, zero, ierr)
-     CALL MURGE_SetOptionINT(id, IPARM_VERBOSE, API_VERBOSE_NO, ierr)
-     CALL MURGE_SetOptionINT(id, IPARM_MATRIX_VERIFICATION, API_YES, ierr)
+     CALL ZMURGE_SetDefaultOptions(id, zero, ierr)
+     CALL ZMURGE_SetOptionINT(id, IPARM_VERBOSE, API_VERBOSE_NO, ierr)
+     CALL ZMURGE_SetOptionINT(id, IPARM_MATRIX_VERIFICATION, API_YES, ierr)
+     CALL ZMURGE_SetOptionINT(id, IPARM_FREE_CSCUSER, API_NO, ierr)
      nb_threads = 1
      !$OMP PARALLEL shared(nb_threads)
      !$ nb_threads = omp_get_num_threads()
@@ -128,31 +129,31 @@ PROGRAM main
      if (Me .eq. 0) then
 	print *, "Running on", nb_threads,"threads and", NTasks, "MPI Tasks"
      end if
-     CALL MURGE_SetOptionINT(id, IPARM_THREAD_NBR, nb_threads, ierr)
+     CALL ZMURGE_SetOptionINT(id, IPARM_THREAD_NBR, nb_threads, ierr)
   ELSE IF (solver == MURGE_SOLVER_HIPS) THEN
 #ifdef HIPS
      IF (method == 1) THEN
-	CALL MURGE_SetDefaultOptions(id, HIPS_ITERATIVE, ierr)
+	CALL ZMURGE_SetDefaultOptions(id, HIPS_ITERATIVE, ierr)
      ELSE
-	CALL MURGE_SetDefaultOptions(id, HIPS_HYBRID, ierr )
-	CALL MURGE_SetOptionINT(id, HIPS_PARTITION_TYPE, zero, ierr)
-	CALL MURGE_SetOptionINT(id, HIPS_DOMSIZE, domsize, ierr)
+	CALL ZMURGE_SetDefaultOptions(id, HIPS_HYBRID, ierr )
+	CALL ZMURGE_SetOptionINT(id, HIPS_PARTITION_TYPE, zero, ierr)
+	CALL ZMURGE_SetOptionINT(id, HIPS_DOMSIZE, domsize, ierr)
      END IF
-     CALL MURGE_SetOptionINT(id, HIPS_SYMMETRIC, zero, ierr)
-     CALL MURGE_SetOptionINT(id, HIPS_LOCALLY, zero, ierr)
-     CALL MURGE_SetOptionINT(id, HIPS_ITMAX, itmax, ierr)
-     CALL MURGE_SetOptionINT(id, HIPS_KRYLOV_RESTART, restart, ierr)
-     CALL MURGE_SetOptionINT(id, HIPS_VERBOSE, verbose, ierr)
-     CALL MURGE_SetOptionINT(id, HIPS_DOMNBR, NTasks, ierr)
-     CALL MURGE_SetOptionINT(id, HIPS_CHECK_GRAPH, one, ierr)
-     CALL MURGE_SetOptionINT(id, HIPS_CHECK_MATRIX, one, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_SYMMETRIC, zero, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_LOCALLY, zero, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_ITMAX, itmax, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_KRYLOV_RESTART, restart, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_VERBOSE, verbose, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_DOMNBR, NTasks, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_CHECK_GRAPH, one, ierr)
+     CALL ZMURGE_SetOptionINT(id, HIPS_CHECK_MATRIX, one, ierr)
 #endif
   END IF
-  CALL MURGE_SetOptionINT(id, MURGE_IPARAM_DOF, dof, ierr)
-  CALL MURGE_SetOptionINT(id, MURGE_IPARAM_SYM, MURGE_BOOLEAN_FALSE, ierr)
-  CALL MURGE_SetOptionINT(id, MURGE_IPARAM_BASEVAL, base, ierr)
-
-  CALL MURGE_SetOptionREAL(id, MURGE_RPARAM_EPSILON_ERROR, PREC, ierr)
+  CALL ZMURGE_SetOptionINT(id, MURGE_IPARAM_DOF, dof, ierr)
+  CALL ZMURGE_SetOptionINT(id, MURGE_IPARAM_SYM, MURGE_BOOLEAN_FALSE, ierr)
+  CALL ZMURGE_SetOptionINT(id, MURGE_IPARAM_BASEVAL, base, ierr)
+  
+  CALL ZMURGE_SetOptionREAL(id, MURGE_RPARAM_EPSILON_ERROR, PREC, ierr)
   ! Set the graph : all processor enter some edge of the
   ! graph that corresponds to non-zeros location in the matrix
 
@@ -167,32 +168,32 @@ PROGRAM main
   IF (me == 0) THEN
      edgenbr = 3*n-4
 
-     CALL MURGE_GRAPHBEGIN(id, n, edgenbr, ierr)
+     CALL ZMURGE_GRAPHBEGIN(id, n, edgenbr, ierr)
 
      ! Dirichlet boundary condition
-     CALL MURGE_GRAPHEDGE(id, one, one, ierr)
-     CALL MURGE_GRAPHEDGE(id, n, n, ierr)
+     CALL ZMURGE_GRAPHEDGE(id, one, one, ierr)
+     CALL ZMURGE_GRAPHEDGE(id, n, n, ierr)
 
      ! Interior
      DO i = 2, n-1
 	DO j = -1,1
-	   CALL MURGE_GRAPHEDGE(id, i, i+j, ierr)
+	   CALL ZMURGE_GRAPHEDGE(id, i, i+j, ierr)
 	   !IF (j /= 0) THEN
-	   !CALL MURGE_GRAPHEDGE(id, j+i, i, ierr)
+	   !CALL ZMURGE_GRAPHEDGE(id, j+i, i, ierr)
 	   !END IF
 	END DO
      END DO
   ELSE
      edgenbr = 0
-     CALL MURGE_GRAPHBEGIN(id, n, edgenbr,  ierr)
+     CALL ZMURGE_GRAPHBEGIN(id, n, edgenbr,  ierr)
   END IF
-  CALL MURGE_GRAPHEND(id, ierr)
+  CALL ZMURGE_GRAPHEND(id, ierr)
 
   ! Get Local nodes
-  CALL MURGE_GETLOCALNODENBR(id, localnodenbr, ierr)
+  CALL ZMURGE_GETLOCALNODENBR(id, localnodenbr, ierr)
   ALLOCATE(nodelist(localnodenbr))
 
-  CALL MURGE_GETLOCALNODELIST(id, nodelist, ierr)
+  CALL ZMURGE_GETLOCALNODELIST(id, nodelist, ierr)
 
   mode = 0
 
@@ -236,7 +237,7 @@ PROGRAM main
      END DO
   END DO
 
-  CALL MURGE_ASSEMBLYBEGIN(id, n, nnzeros, MURGE_ASSEMBLY_OVW, MURGE_ASSEMBLY_OVW, &
+  CALL ZMURGE_ASSEMBLYBEGIN(id, n, nnzeros, MURGE_ASSEMBLY_OVW, MURGE_ASSEMBLY_OVW, &
        MURGE_ASSEMBLY_FOOL, MURGE_BOOLEAN_FALSE, ierr)
   !$OMP PARALLEL default(none)&
   !$OMP private(m, i, val, ierr, k) &
@@ -247,19 +248,19 @@ PROGRAM main
      IF (i == 1 .OR. i == n) THEN
 	! Boundaries
 	CALL GetCoef(val,i,i,xmin,xmax,n)
-	CALL MURGE_ASSEMBLYSETNODEVALUES(id, i, i, val*expand, ierr)
+	CALL ZMURGE_ASSEMBLYSETNODEVALUES(id, i, i, val*expand, ierr)
 	!print *, i, i, val*expand
      ELSE
 	DO k = -1,1
 	   CALL GetCoef(val,i+k,i,xmin,xmax,n)
-	   CALL MURGE_ASSEMBLYSETNODEVALUES(id, i, i+k, val*expand, ierr)
+	   CALL ZMURGE_ASSEMBLYSETNODEVALUES(id, i, i+k, val*expand, ierr)
 	   !print *, i, i+k, val*expand
 	END DO
      END IF
   END DO
   !$OMP END DO
   !$OMP END PARALLEL
-  CALL MURGE_ASSEMBLYEND(id, ierr)
+  CALL ZMURGE_ASSEMBLYEND(id, ierr)
 
 
   ! We expand the rhs
@@ -272,35 +273,25 @@ PROGRAM main
      globrhs((nodelist(m)-1)*dof+1:(nodelist(m)-1)*dof+dof) = val
      lrhs(k:k+dof-1) = val
      DO l = 1, dof
-	!print *, "rhs", (nodelist(m)-1)*dof+l, lrhs((m-1)*dof+l)
+	print *, "rhs", (nodelist(m)-1)*dof+l, lrhs((m-1)*dof+l)
      END DO
      k = k + dof
   END DO
   ALLOCATE(globrhs_recv(n*dof))
-  if (__IS_COMPLEX__) then ! __IS_COMPLEX__will be replaced during compilation by replaceCOEF.sh
-     if (MURGE_COEF_KIND==4) then
-	CAll MPI_Allreduce(globrhs, globrhs_recv, n*dof, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
-     else
-	CAll MPI_Allreduce(globrhs, globrhs_recv, n*dof, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
-     end if
-  else
-     if (MURGE_COEF_KIND==4) then
-	CAll MPI_Allreduce(globrhs, globrhs_recv, n*dof, MPI_REAL, MPI_SUM, MPI_COMM_WORLD, ierr)
-     else
-	CAll MPI_Allreduce(globrhs, globrhs_recv, n*dof, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-     end if
-  end if
+  CAll MPI_Allreduce(globrhs, globrhs_recv, n*dof, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD, ierr)
   DEALLOCATE(globrhs)
-  CALL MURGE_SETLOCALRHS(id, lrhs, MURGE_ASSEMBLY_OVW, MURGE_ASSEMBLY_OVW, ierr)
+  CALL ZMURGE_SETLOCALRHS(id, lrhs, MURGE_ASSEMBLY_OVW, MURGE_ASSEMBLY_OVW, ierr)
 
 
   ! Get the global solution
   ALLOCATE(globx(n*dof))
-  CALL MURGE_GETGLOBALSOLUTION(id, globx, root, ierr)
-
-  CALL MURGE_SETGLOBALRHS(id, globx, -one, MURGE_ASSEMBLY_OVW, ierr)
+  print *, "ZMURGE_GETGLOBALSOLUTION"
+  CALL ZMURGE_GETGLOBALSOLUTION(id, globx, root, ierr)
+  print *, "ZMURGE_SETGLOBALRHS"
+  CALL ZMURGE_SETGLOBALRHS(id, globx, -one, MURGE_ASSEMBLY_OVW, ierr)
   ALLOCATE(globprod(n*dof))
-  CALL MURGE_GETGLOBALPRODUCT(id, globprod, -one, ierr)
+  print *, "ZMURGE_GETGLOBALPRODUCT"
+  CALL ZMURGE_GETGLOBALPRODUCT(id, globprod, -one, ierr)
 
   print *, "||AX - B||/||AX||  :", SQRT(SUM((globprod(:) - globrhs_recv(:))**2)/SUM(globprod(:)**2))
 
@@ -310,8 +301,8 @@ PROGRAM main
   END IF
 
   ! I'm Free
-  CALL MURGE_CLEAN(id, ierr)
-  CALL MURGE_FINALIZE(ierr)
+  CALL ZMURGE_CLEAN(id, ierr)
+  CALL ZMURGE_FINALIZE(ierr)
   CALL MPI_FINALIZE(ierr)
 
   DEALLOCATE(expand, nodelist, lrhs, globx, globprod, globrhs_recv)
@@ -331,7 +322,7 @@ CONTAINS
   !   xmax - Maximum value of the interval.
   !   n    - Number of points in the interval.
   SUBROUTINE GetCoef(val,i,j,xmin,xmax,n)
-    __COEF__        , INTENT(OUT) :: val
+    DOUBLE COMPLEX        , INTENT(OUT) :: val
     INTEGER(KIND=MURGE_INTS_KIND)        , INTENT(IN)  :: i, j, n
     REAL(KIND=8), INTENT(IN)  :: xmin, xmax
 
@@ -367,7 +358,7 @@ CONTAINS
   !   xmax - Maximum value of the interval.
   !   n    - Number of points in the interval.
   SUBROUTINE GetRhs(val,i,xmin,xmax,n)
-    __COEF__                , INTENT(OUT) :: val
+    DOUBLE COMPLEX                , INTENT(OUT) :: val
     INTEGER(KIND=MURGE_INTS_KIND)                , INTENT(IN)  :: i, n
     REAL(KIND=8)           , INTENT(IN)  :: xmin, xmax
 
@@ -378,7 +369,7 @@ CONTAINS
     x = xmin + (i-1)*dx
 
     Pi =ACOS(-1.)
-
+ 
     val = -4*Pi**2*SIN(2*Pi*x)
     ! Boundary Condition (Dirichlet)
     IF (i == n .OR. i==1) THEN
@@ -406,7 +397,7 @@ CONTAINS
   !   dof  - The Number of degree of freedom.
   !
   SUBROUTINE store(sol,xmin,xmax,dof)
-    __COEF__,         DIMENSION(:), INTENT(IN) :: sol
+    DOUBLE COMPLEX,         DIMENSION(:), INTENT(IN) :: sol
     REAL(KIND=8),               INTENT(IN) :: xmin,xmax
     INTEGER(KIND=MURGE_INTS_KIND),                       INTENT(IN) :: dof
     REAL(KIND=8)                           :: x,dx,Pi2,s

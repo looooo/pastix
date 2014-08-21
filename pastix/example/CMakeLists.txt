@@ -89,7 +89,7 @@ precisions_rules_py(generated_headers
                     PRECISIONS "s;d;c;z")
 add_custom_target(examples_headers DEPENDS ${generated_headers} )
 
-set(SOURCES z_simple.c z_step-by-step.c z_analyze.c zmurge_2Dlap.c zmurge_3Dlap.c)
+set(SOURCES z_simple.c z_step-by-step.c z_analyze.c zmurge_2Dlap.c zmurge_3Dlap.c z_murge_fortran.F90)
 if(PASTIX_DISTRIBUTED)
   set(SOURCES ${SOURCES} z_simple_dist.c)
 endif(PASTIX_DISTRIBUTED)
@@ -100,9 +100,10 @@ precisions_rules_py(generated_files
 
 foreach(example_with_ext ${generated_files})
   GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
+  GET_FILENAME_COMPONENT(ext ${example_with_ext} EXT)
   if (PASTIX_WITH_CUDA)
     cuda_add_executable(${example} "${example_with_ext}" ${generated_headers} mem_trace.c)
-    target_link_libraries(${output} cuda)
+    target_link_libraries(${example} cuda)
   else(PASTIX_WITH_CUDA)
     add_executable(${example} "${example_with_ext}" ${generated_headers} mem_trace.c)
   endif(PASTIX_WITH_CUDA)
@@ -110,8 +111,18 @@ foreach(example_with_ext ${generated_files})
     ${PASTIX_EXAMPLES_LIBRARIES})
 
   if (PASTIX_WITH_MPI)
-    target_link_libraries( ${example}
-      ${MPI_LIBRARIES} )
+    if (${ext} STREQUAL ".c")
+      message(STATUS "${example}: ${MPI_C_LIBRARIES}")
+      target_link_libraries( ${example}
+        ${MPI_C_LIBRARIES} )
+    elseif(${ext} STREQUAL ".F90")
+      message(STATUS "${example}: ${MPI_Fortran_LIBRARIES}")
+      set_property(TARGET ${example} PROPERTY LINKER_LANGUAGE Fortran) 
+      target_link_libraries( ${example}
+        ${MPI_Fortran_LIBRARIES} )
+    else()
+      message(STATUS "${example} : _${ext}_")
+    endif()
   endif()
 endforeach()
 

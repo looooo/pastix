@@ -197,12 +197,12 @@ typedef struct z_murge_data_ z_murge_data_t;
 struct z_murge_product_data_
 {
   INTS           thread_id;
-  z_murge_data_t * solver;
   COEF         * t_prod;
   INTS           ret;
   INTS           counter;
   INTS           first;
   INTS           last;
+  INTS           id;
 };
 
 /*
@@ -214,7 +214,7 @@ typedef struct z_murge_product_data_ z_murge_product_data_t;
 
 struct z_murge_thread_data_ {
     z_murge_product_data_t * pdata;
-    z_murge_data_t         * solver;
+    INTS                     id;
 };
 
 /*
@@ -362,14 +362,14 @@ void* z_product_thread(void * data) {
   INTS row;
   COEF * mat = NULL;
   z_murge_product_data_t * pdata = (z_murge_product_data_t *)data;
-  INTS id = &(pdata->solver) - zmurge_solvers;
-  INTS threadnbr = pdata->solver->pastix_data->iparm[IPARM_THREAD_NBR];
+  INTS id = pdata->id;
+  INTS threadnbr = zmurge_solvers[id]->pastix_data->iparm[IPARM_THREAD_NBR];
 
-  baseval = pdata->solver->pastix_data->iparm[IPARM_BASEVAL];
-  dof = pdata->solver->pastix_data->iparm[IPARM_DOF_NBR];
+  baseval = zmurge_solvers[id]->pastix_data->iparm[IPARM_BASEVAL];
+  dof = zmurge_solvers[id]->pastix_data->iparm[IPARM_DOF_NBR];
   pdata->ret = MURGE_SUCCESS;
   if (pdata->t_prod == NULL)
-      MURGE_MEMALLOC_RET(pdata->solver,
+      MURGE_MEMALLOC_RET(zmurge_solvers[id],
                          pdata->t_prod, (pdata->last-pdata->first)*dof, COEF,
                          pdata->ret);
   for (iterrows = 0; iterrows < pdata->last-pdata->first; iterrows++) {
@@ -378,68 +378,68 @@ void* z_product_thread(void * data) {
       pdata->t_prod[(iterrows)*dof+i] = 0;
   }
   }
-  SYNCHRO_X_THREAD(threadnbr, pdata->solver->barrier);
+  SYNCHRO_X_THREAD(threadnbr, zmurge_solvers[id]->barrier);
 
-  for (itercol = 0; itercol < pdata->solver->n; itercol++) {
-    for (iterrows = pdata->solver->colptr[itercol]-baseval;
-         iterrows < pdata->solver->colptr[itercol+1]-baseval;
+  for (itercol = 0; itercol < zmurge_solvers[id]->n; itercol++) {
+    for (iterrows = zmurge_solvers[id]->colptr[itercol]-baseval;
+         iterrows < zmurge_solvers[id]->colptr[itercol+1]-baseval;
            iterrows++) {
-        row = pdata->solver->rows[iterrows]-baseval;
+        row = zmurge_solvers[id]->rows[iterrows]-baseval;
       if (row < pdata->first) continue;
       if (row >= pdata->last) break;
-        mat = &(pdata->solver->values[iterrows*dof*dof]);
+        mat = &(zmurge_solvers[id]->values[iterrows*dof*dof]);
         SOPALIN_GEMV("N", dof, dof, 1.0, mat, dof,
-                     &(pdata->solver->b[itercol*dof]), 1, 1.0,
+                     &(zmurge_solvers[id]->b[itercol*dof]), 1, 1.0,
                    &(pdata->t_prod[(row-pdata->first)*dof]), 1);
     }
   }
 
-  SYNCHRO_X_THREAD(threadnbr, pdata->solver->barrier);
+  SYNCHRO_X_THREAD(threadnbr, zmurge_solvers[id]->barrier);
   if (pdata->thread_id == 0) {
-    pthread_mutex_lock(&(pdata->solver->mutex_state));
-    pdata->solver->threads_state = MURGE_THREAD_WAIT;
-    pthread_mutex_unlock(&(pdata->solver->mutex_state));
-    pthread_cond_broadcast(&(pdata->solver->cond_state));
+    pthread_mutex_lock(&(zmurge_solvers[id]->mutex_state));
+    zmurge_solvers[id]->threads_state = MURGE_THREAD_WAIT;
+    pthread_mutex_unlock(&(zmurge_solvers[id]->mutex_state));
+    pthread_cond_broadcast(&(zmurge_solvers[id]->cond_state));
   }
-  SYNCHRO_X_THREAD(threadnbr, pdata->solver->barrier);
+  SYNCHRO_X_THREAD(threadnbr, zmurge_solvers[id]->barrier);
   return 0;
 }
 
 
 void* z_control_thread(void * data) {
   z_murge_thread_data_t * tdata= (z_murge_thread_data_t*)data;
-  INTS threadnbr = tdata->solver->pastix_data->iparm[IPARM_THREAD_NBR];
+  INTS threadnbr = zmurge_solvers[tdata->id]->pastix_data->iparm[IPARM_THREAD_NBR];
   if (tdata->pdata->thread_id == 0) {
-    pthread_mutex_lock(&(tdata->solver->mutex_state));
-    tdata->solver->threads_state = MURGE_THREAD_WAIT;
-    pthread_mutex_unlock(&(tdata->solver->mutex_state));
+    pthread_mutex_lock(&(zmurge_solvers[tdata->id]->mutex_state));
+    zmurge_solvers[tdata->id]->threads_state = MURGE_THREAD_WAIT;
+    pthread_mutex_unlock(&(zmurge_solvers[tdata->id]->mutex_state));
   }
-  SYNCHRO_X_THREAD(threadnbr, tdata->solver->barrier);
+  SYNCHRO_X_THREAD(threadnbr, zmurge_solvers[tdata->id]->barrier);
   if (tdata->pdata->thread_id == 0) {
-    pthread_cond_broadcast(&(tdata->solver->cond_state));
+    pthread_cond_broadcast(&(zmurge_solvers[tdata->id]->cond_state));
   }
-  pthread_mutex_lock(&(tdata->solver->mutex_state));
-  while (tdata->solver->threads_state != MURGE_THREAD_END) {
-    switch(tdata->solver->threads_state) {
+  pthread_mutex_lock(&(zmurge_solvers[tdata->id]->mutex_state));
+  while (zmurge_solvers[tdata->id]->threads_state != MURGE_THREAD_END) {
+    switch(zmurge_solvers[tdata->id]->threads_state) {
     case MURGE_THREAD_END:
-      pthread_mutex_unlock(&(tdata->solver->mutex_state));
+      pthread_mutex_unlock(&(zmurge_solvers[tdata->id]->mutex_state));
       return NULL;
       break;
     case MURGE_THREAD_WAIT:
-      pthread_cond_wait(&(tdata->solver->cond_state),
-                        &(tdata->solver->mutex_state));
+      pthread_cond_wait(&(zmurge_solvers[tdata->id]->cond_state),
+                        &(zmurge_solvers[tdata->id]->mutex_state));
       break;
     case MURGE_THREAD_PRODUCT:
-      pthread_mutex_unlock(&(tdata->solver->mutex_state));
+      pthread_mutex_unlock(&(zmurge_solvers[tdata->id]->mutex_state));
       z_product_thread(tdata->pdata);
-      pthread_mutex_lock(&(tdata->solver->mutex_state));
+      pthread_mutex_lock(&(zmurge_solvers[tdata->id]->mutex_state));
       break;
     default:
-      errorPrint("Undefined state : %d", tdata->solver->threads_state);
+      errorPrint("Undefined state : %d", zmurge_solvers[tdata->id]->threads_state);
       break;
     }
   }
-  pthread_mutex_unlock(&(tdata->solver->mutex_state));
+  pthread_mutex_unlock(&(zmurge_solvers[tdata->id]->mutex_state));
   return NULL;
 }
 
@@ -460,7 +460,7 @@ INTS z_start_threads(INTS id) {
     MURGE_MEMALLOC(zmurge_solvers[id]->threads_data[iter].pdata,
                    zmurge_solvers[id]->threadnbr,
                    z_murge_product_data_t);
-    zmurge_solvers[id]->threads_data[iter].solver = zmurge_solvers[id];
+  zmurge_solvers[id]->threads_data[iter].id = id;
     {
       /* Initialize pdata */
       z_murge_product_data_t * pdata       = zmurge_solvers[id]->threads_data[iter].pdata;
@@ -469,7 +469,7 @@ INTS z_start_threads(INTS id) {
       INTS                   size        = N_perthread;
 
       pdata->thread_id = iter;
-      pdata->solver = zmurge_solvers[id];
+      pdata->id = id;
       pdata->t_prod = NULL;
       pdata->counter = 0;
       pdata->first = pdata->thread_id*N_perthread;
@@ -2634,9 +2634,9 @@ INTS ZMURGE_SetOrdering(INTS id, INTS * permutation) {
  *   MURGE_ERR_PARAMETER - If *id* is not in solver arrays range, or
  *                         *op*, *mode*, *sym*, or *coefnbr* are not valid.
  */
-int ZMURGE_AssemblySetSequence (INTS id, INTL coefnbr, INTS * ROWs, INTS * COLs,
-                               INTS op, INTS op2, INTS mode, INTS nodes,
-                               INTS * id_seq) {
+INTS ZMURGE_AssemblySetSequence (INTS id, INTL coefnbr, INTS * ROWs, INTS * COLs,
+                                 INTS op, INTS op2, INTS mode, INTS nodes,
+                                 INTS * id_seq) {
   z_murge_seq_t * sequence     = NULL;
   INTL         iter;
   ijv_t      **send_ijv      = NULL;
@@ -4925,50 +4925,50 @@ INTS ZMURGE_GetGlobalSolution_(INTS id, COEF *x, INTS root) {
   }
   CLOCK_PRINT("MURGE_GetGlobalSolution_ -- copy data");
   if (root == -1) {
-  /*   INTS          i; */
-  /*   PASTIX_INT   *n_rcv, *disp; */
-  /*   PASTIX_INT   *l2g_rcv; */
-  /*   PASTIX_FLOAT *rhs_rcv; */
-  /*   MURGE_MEMALLOC(n_rcv,   2*zmurge_solvers[id]->pastix_data->procnbr, PASTIX_INT); */
-  /*   disp = n_rcv + zmurge_solvers[id]->pastix_data->procnbr; */
-  /*   MURGE_MEMALLOC(l2g_rcv, zmurge_solvers[id]->N, PASTIX_INT); */
-  /*   MURGE_MEMALLOC(rhs_rcv, zmurge_solvers[id]->N*dof, PASTIX_FLOAT); */
-  /*   for (i = 0; i < zmurge_solvers[id]->pastix_data->procnbr; i++) { */
-  /*     INTS j,k,d; */
-  /*     MPI_Allgather(&(zmurge_solvers[id]->n), 1, COMM_INT, */
-  /*                   n_rcv, 1, COMM_INT, */
-  /*                   zmurge_solvers[id]->pastix_data->pastix_comm); */
-  /*     CLOCK_PRINT("MURGE_GetGlobalSolution_ -- MPI_Allgather"); */
-  /*     disp[0] = 0; */
-  /*     j = 0; */
-  /*     fprintf(stdout, "n_rcv[%d] %d disp[%d] %d\n", j, n_rcv[j], j, disp[j]); */
-  /*     for (j = 1; j < zmurge_solvers[id]->pastix_data->procnbr; j++) { */
-  /*       disp[j] = disp[j-1] + n_rcv[j-1]; */
-  /*       fprintf(stdout, "n_rcv[%d] %d disp[%d] %d\n", j, n_rcv[j], j, disp[j]); */
-  /*     } */
-  /*     MPI_Allgatherv(zmurge_solvers[id]->l2g, zmurge_solvers[id]->n, COMM_INT, */
-  /*                    l2g_rcv, n_rcv, disp, COMM_INT, */
-  /*                   zmurge_solvers[id]->pastix_data->pastix_comm); */
-  /*     CLOCK_PRINT("MURGE_GetGlobalSolution_ -- MPI_Allgatherv"); */
-  /*     for (j = 0; j < zmurge_solvers[id]->pastix_data->procnbr; j++) { */
-  /*       n_rcv[j] *=dof; */
-  /*       disp[j] *=dof; */
-  /*     } */
-  /*     MPI_Allgatherv(zmurge_solvers[id]->b, zmurge_solvers[id]->n*dof, COMM_INT, */
-  /*                    rhs_rcv, n_rcv, disp, COMM_INT, */
-  /*                    zmurge_solvers[id]->pastix_data->pastix_comm); */
-  /*     CLOCK_PRINT("MURGE_GetGlobalSolution_ -- MPI_Allgatherv 2"); */
-  /*     for (j = 0; j < zmurge_solvers[id]->pastix_data->procnbr; j++) { */
-  /*       n_rcv[j] /=dof; */
-  /*       disp[j] /=dof; */
-  /*     } */
-  /*     for (k = 0; k < zmurge_solvers[id]->pastix_data->procnbr; k++) { */
-  /*       for (j = 0; j < n_rcv[k]; j++) { */
-  /*         for (d=0; d<dof; d++) { */
-  /*           x[(l2g_rcv[disp[k]+j]-1)*dof+d] = rhs_rcv[(disp[k]+j)*dof+d]; */
-  /*         } */
-  /*       } */
-  /*     } */
+      /*   INTS          i; */
+      /*   PASTIX_INT   *n_rcv, *disp; */
+      /*   PASTIX_INT   *l2g_rcv; */
+      /*   PASTIX_FLOAT *rhs_rcv; */
+      /*   MURGE_MEMALLOC(n_rcv,   2*zmurge_solvers[id]->pastix_data->procnbr, PASTIX_INT); */
+      /*   disp = n_rcv + zmurge_solvers[id]->pastix_data->procnbr; */
+      /*   MURGE_MEMALLOC(l2g_rcv, zmurge_solvers[id]->N, PASTIX_INT); */
+      /*   MURGE_MEMALLOC(rhs_rcv, zmurge_solvers[id]->N*dof, PASTIX_FLOAT); */
+      /*   for (i = 0; i < zmurge_solvers[id]->pastix_data->procnbr; i++) { */
+      /*     INTS j,k,d; */
+      /*     MPI_Allgather(&(zmurge_solvers[id]->n), 1, COMM_INT, */
+      /*                   n_rcv, 1, COMM_INT, */
+      /*                   zmurge_solvers[id]->pastix_data->pastix_comm); */
+      /*     CLOCK_PRINT("MURGE_GetGlobalSolution_ -- MPI_Allgather"); */
+      /*     disp[0] = 0; */
+      /*     j = 0; */
+      /*     fprintf(stdout, "n_rcv[%d] %d disp[%d] %d\n", j, n_rcv[j], j, disp[j]); */
+      /*     for (j = 1; j < zmurge_solvers[id]->pastix_data->procnbr; j++) { */
+      /*       disp[j] = disp[j-1] + n_rcv[j-1]; */
+      /*       fprintf(stdout, "n_rcv[%d] %d disp[%d] %d\n", j, n_rcv[j], j, disp[j]); */
+      /*     } */
+      /*     MPI_Allgatherv(zmurge_solvers[id]->l2g, zmurge_solvers[id]->n, COMM_INT, */
+      /*                    l2g_rcv, n_rcv, disp, COMM_INT, */
+      /*                   zmurge_solvers[id]->pastix_data->pastix_comm); */
+      /*     CLOCK_PRINT("MURGE_GetGlobalSolution_ -- MPI_Allgatherv"); */
+      /*     for (j = 0; j < zmurge_solvers[id]->pastix_data->procnbr; j++) { */
+      /*       n_rcv[j] *=dof; */
+      /*       disp[j] *=dof; */
+      /*     } */
+      /*     MPI_Allgatherv(zmurge_solvers[id]->b, zmurge_solvers[id]->n*dof, COMM_INT, */
+      /*                    rhs_rcv, n_rcv, disp, COMM_INT, */
+      /*                    zmurge_solvers[id]->pastix_data->pastix_comm); */
+      /*     CLOCK_PRINT("MURGE_GetGlobalSolution_ -- MPI_Allgatherv 2"); */
+      /*     for (j = 0; j < zmurge_solvers[id]->pastix_data->procnbr; j++) { */
+      /*       n_rcv[j] /=dof; */
+      /*       disp[j] /=dof; */
+      /*     } */
+      /*     for (k = 0; k < zmurge_solvers[id]->pastix_data->procnbr; k++) { */
+      /*       for (j = 0; j < n_rcv[k]; j++) { */
+      /*         for (d=0; d<dof; d++) { */
+      /*           x[(l2g_rcv[disp[k]+j]-1)*dof+d] = rhs_rcv[(disp[k]+j)*dof+d]; */
+      /*         } */
+      /*       } */
+      /*     } */
       /* INTS j,d; */
       /* if (i == zmurge_solvers[id]->pastix_data->procnum) { */
       /*   n_rcv   = &(zmurge_solvers[id]->n); */
@@ -4988,9 +4988,9 @@ INTS ZMURGE_GetGlobalSolution_(INTS id, COEF *x, INTS root) {
       /* for (j = 0; j < *n_rcv; j++) */
       /*   for (d=0; d<dof; d++) */
       /*     x[(l2g_rcv[j]-1)*dof+d] = rhs_rcv[j*dof+d]; */
-    /* } */
-    MPI_Allreduce(tmpx, x, zmurge_solvers[id]->N*dof, COMM_FLOAT, COMM_SUM,
-                  zmurge_solvers[id]->pastix_data->pastix_comm);
+      /* } */
+      MPI_Allreduce(tmpx, x, zmurge_solvers[id]->N*dof, COMM_FLOAT, COMM_SUM,
+                    zmurge_solvers[id]->pastix_data->pastix_comm);
   } else {
     /* if (root != zmurge_solvers[id]->pastix_data->procnum) { */
     /*   MPI_Send(&(zmurge_solvers[id]->n), 1, COMM_INT, */
@@ -5569,7 +5569,7 @@ INTS ZMURGE_GetNorm(INTS id,  INTS n, INTS *coefsidx, REAL *norm, INTS rule, INT
 
 
 /*
- Function: MURGE_ApplyGlobalScaling
+ Function: ZMURGE_ApplyGlobalScaling
 
  Apply scaling to local unknowns.
 
@@ -5589,14 +5589,14 @@ INTS ZMURGE_GetNorm(INTS id,  INTS n, INTS *coefsidx, REAL *norm, INTS rule, INT
 
  Fortran interface:
  >
- > SUBROUTINE MURGE_APPLYGLOBALSCALING(ID, SCAL, SC_MODE, ROOT, IERROR)
+ > SUBROUTINE ZMURGE_APPLYGLOBALSCALING(ID, SCAL, SC_MODE, ROOT, IERROR)
  >   INTS,               INTENT(IN)  :: ID, ROOT, SC_MODE
  >   REAL, DIMENSION(0), INTENT(OUT) :: SCAL
  >   INTS,               INTENT(OUT) :: IERROR
- > END SUBROUTINE MURGE_APPLYGLOBALSCALING
+ > END SUBROUTINE ZMURGE_APPLYGLOBALSCALING
 
  */
-INTS MURGE_ApplyGlobalScaling(INTS id, REAL *scal, INTS root, INTS sc_mode){
+INTS ZMURGE_ApplyGlobalScaling(INTS id, REAL *scal, INTS root, INTS sc_mode){
   INTS itercol;       /* Each column*/
   pastix_int_t  iterrow;       /* each row entry in each column of the CSCd */
   INTS iterdof_col;   /* each dof on column */
@@ -5687,7 +5687,7 @@ INTS MURGE_ApplyGlobalScaling(INTS id, REAL *scal, INTS root, INTS sc_mode){
  >   INTS,               INTENT(OUT) :: IERROR
  > END SUBROUTINE MURGE_APPLYLOCALSCALING
  */
-INTS MURGE_ApplyLocalScaling(INTS id, REAL *scal, INTS sc_mode){
+INTS ZMURGE_ApplyLocalScaling(INTS id, REAL *scal, INTS sc_mode){
   INTS itercol;       /* Each column*/
   pastix_int_t  iterrow;       /* each row entry in each column of the CSCd */
   INTS iterdof_col;   /* each dof on column */
@@ -5766,7 +5766,7 @@ INTS MURGE_ApplyLocalScaling(INTS id, REAL *scal, INTS sc_mode){
  >   INTS,               INTENT(OUT) :: IERROR
  > END SUBROUTINE MURGE_APPLYSCALING
  */
-INTS MURGE_ApplyScaling(INTS id,  INTS n, INTS *coefsidx, REAL *scal,
+INTS ZMURGE_ApplyScaling(INTS id,  INTS n, INTS *coefsidx, REAL *scal,
                         INTS sc_mode, INTS mode){
   INTS itercol;       /* Each column*/
   INTS iterdof_col;   /* each dof on column */
@@ -5792,7 +5792,7 @@ INTS MURGE_ApplyScaling(INTS id,  INTS n, INTS *coefsidx, REAL *scal,
     for (itercol = 0; itercol < n; itercol++)
       for (iterdof_col =0; iterdof_col < dof; iterdof_col++)
         scaling[(zmurge_solvers[id]->g2l[coefsidx[itercol]-baseval]-1)*dof+iterdof_col] = scal[itercol*dof+iterdof_col];
-    MURGE_ApplyLocalScaling(id, scaling, sc_mode);
+    ZMURGE_ApplyLocalScaling(id, scaling, sc_mode);
     MURGE_FREE(scaling);
   }
   else
@@ -5826,7 +5826,7 @@ INTS MURGE_ApplyScaling(INTS id,  INTS n, INTS *coefsidx, REAL *scal,
       }
 
 
-      MURGE_ApplyGlobalScaling(id, scaling_recv, sc_mode, -1);
+      ZMURGE_ApplyGlobalScaling(id, scaling_recv, sc_mode, -1);
       MURGE_FREE(scaling_recv);
     }
   return MURGE_SUCCESS;
@@ -5858,7 +5858,7 @@ INTS MURGE_ApplyScaling(INTS id,  INTS n, INTS *coefsidx, REAL *scal,
  *                                                                            *
  ******************************************************************************/
 
-INTS MURGE_Analyze(INTS id){
+INTS ZMURGE_Analyze(INTS id){
   CHECK_SOLVER_ID(id);
   CHECK_SOLVER_PARAM(id);
   CHECK_PREPROCESSING(id);
@@ -5881,7 +5881,7 @@ INTS MURGE_Analyze(INTS id){
  *                                                                            *
  ******************************************************************************/
 
-INTS MURGE_Factorize(INTS id){
+INTS ZMURGE_Factorize(INTS id){
   z_pastix_data_t   *pastix_data = zmurge_solvers[id]->pastix_data;
   pastix_int_t             *iparm       = pastix_data->iparm;
 
@@ -5950,7 +5950,7 @@ INTS MURGE_Factorize(INTS id){
  *   MURGE_SUCCESS                                                            *
  *                                                                            *
  ******************************************************************************/
-INTS MURGE_ForceNoFacto(INTS id) {
+INTS ZMURGE_ForceNoFacto(INTS id) {
   MURGE_STATE_TRUE(zmurge_solvers[id]->state, MURGE_FACTO_OK);
   return MURGE_SUCCESS;
 }
@@ -5964,7 +5964,7 @@ INTS MURGE_ForceNoFacto(INTS id) {
  *                                                                            *
  ******************************************************************************/
 
-INTS MURGE_ProductSetLocalNodeNbr (INTS id, INTS n) {
+INTS ZMURGE_ProductSetLocalNodeNbr (INTS id, INTS n) {
   CHECK_SOLVER_ID(id);
   CHECK_SOLVER_PARAM(id);
 
@@ -5985,7 +5985,7 @@ INTS MURGE_ProductSetLocalNodeNbr (INTS id, INTS n) {
  *                                                                            *
  ******************************************************************************/
 
-INTS MURGE_ProductSetGlobalNodeNbr (INTS id, INTS N) {
+INTS ZMURGE_ProductSetGlobalNodeNbr (INTS id, INTS N) {
   CHECK_SOLVER_ID(id);
   CHECK_SOLVER_PARAM(id);
   if (MURGE_STATE_ISTRUE(zmurge_solvers[id]->state, MURGE_NODELST_OK)) {
@@ -6005,7 +6005,7 @@ INTS MURGE_ProductSetGlobalNodeNbr (INTS id, INTS N) {
  *                                                                            *
  ******************************************************************************/
 
-INTS MURGE_ProductSetLocalNodeList (INTS id, INTS * l2g) {
+INTS ZMURGE_ProductSetLocalNodeList (INTS id, INTS * l2g) {
   INTS i;
   CHECK_SOLVER_ID(id);
   CHECK_SOLVER_PARAM(id);
@@ -6338,7 +6338,7 @@ INTS ZMURGE_SetDropCols(INTS id, INTS nodenbr, INTS * dropcols) {
   return MURGE_SUCCESS;
 }
 
-INTS MURGE_ColGetNonZerosNbr(INTS id, INTS COL, INTS * nnzNbr) {
+INTS ZMURGE_ColGetNonZerosNbr(INTS id, INTS COL, INTS * nnzNbr) {
   INTS lcol;
   INTS base = zmurge_solvers[id]->pastix_data->iparm[IPARM_BASEVAL];
   CHECK_SOLVER_ID(id);
@@ -6356,7 +6356,7 @@ INTS MURGE_ColGetNonZerosNbr(INTS id, INTS COL, INTS * nnzNbr) {
   return MURGE_SUCCESS;
 }
 
-INTS MURGE_ColGetNonZerosIdx(INTS id, INTS COL, INTS * indexes) {
+INTS ZMURGE_ColGetNonZerosIdx(INTS id, INTS COL, INTS * indexes) {
   INTS lcol;
   INTS base = zmurge_solvers[id]->pastix_data->iparm[IPARM_BASEVAL];
   CHECK_SOLVER_ID(id);

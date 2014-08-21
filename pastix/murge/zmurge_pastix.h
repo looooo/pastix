@@ -11,6 +11,14 @@
  * @precisions normal z -> c d s
  *
  **/
+#ifndef ZMURGE_PASTIX_H
+#define ZMURGE_PASTIX_H
+#ifdef FORCE_NOMPI
+#  include "nompi.h"
+#else /* not FORCE_NOMPI */
+#  include <mpi.h>
+#endif /* not FORCE_NOMPI */
+#include "zmurge.h"
 /******************************************************************************
  * Title: PaStiX specific addons to Murge                                     *
  *                                                                            *
@@ -25,7 +33,7 @@
 
 
 /******************************************************************************
- * Function: ZMURGE_Analyze                                                    *
+ * Function: ZMURGE_Analyze                                                   *
  *                                                                            *
  * Perform matrix analyze.                                                    *
  *                                                                            *
@@ -42,6 +50,12 @@
  *   MURGE_ERR_ORDER     - If function the graph is not built.                *
  *   MURGE_ERR_PARAMETER - If *murge_id* is not a valid ID.                   *
  *                                                                            *
+ * Fortran interface:                                                         *
+ >
+ > SUBROUTINE ZMURGE_Analyze(ID, IERROR)
+ >   INTS, INTENT(IN)  :: ID
+ >   INTS, INTENT(OUT) :: IERROR
+ > END SUBROUTINE ZMURGE_Analyze
  ******************************************************************************/
 
 INTS ZMURGE_Analyze(INTS id);
@@ -59,6 +73,12 @@ INTS ZMURGE_Analyze(INTS id);
  *   MURGE_ERR_ORDER     - If function the graph is not built.                *
  *   MURGE_ERR_PARAMETER - If *murge_id* is not a valid ID.                   *
  *                                                                            *
+ * Fortran interface:                                                         *
+ >
+ > SUBROUTINE ZMURGE_Factorize(ID, IERROR)
+ >   INTS, INTENT(IN)  :: ID
+ >   INTS, INTENT(OUT) :: IERROR
+ > END SUBROUTINE ZMURGE_Factorize
  ******************************************************************************/
 
 INTS ZMURGE_Factorize(INTS id);
@@ -72,6 +92,14 @@ INTS ZMURGE_Factorize(INTS id);
  *   id - Solver instance identification number.                              *
  *   permutation - Permutation to perform factorization.                      *
  *                                                                            *
+ * Fortran interface:                                                         *
+ >
+ > SUBROUTINE ZMURGE_SetOrdering(ID, PERMUTATION, IERROR)
+ >   INTS, INTENT(IN)               :: ID
+ >   INTS, DIMENSION(0), INTENT(IN) :: PERMUTATION
+ >   INTS, INTENT(OUT)              :: IERROR
+ > END SUBROUTINE ZMURGE_SetOrdering
+
  ******************************************************************************/
 INTS ZMURGE_SetOrdering(INTS   id,
                        INTS * permutation);
@@ -86,6 +114,12 @@ INTS ZMURGE_SetOrdering(INTS   id,
  *   id - Solver instance identification number.                              *
  *   n  - Number of local nodes.                                              *
  *                                                                            *
+ Fortran intrerface:
+ >
+ > SUBROUTINE ZMURGE_SetLocalNodeNbr(ID, N, IERROR)
+ >   INTS, INTENT(IN)               :: ID, N
+ >   INTS, INTENT(OUT)              :: IERROR
+ > END SUBROUTINE ZMURGE_SetLocalNodeNbr
  ******************************************************************************/
 INTS ZMURGE_ProductSetLocalNodeNbr (INTS id, INTS n);
 
@@ -99,6 +133,12 @@ INTS ZMURGE_ProductSetLocalNodeNbr (INTS id, INTS n);
  *   id - Solver instance identification number.                              *
  *   N  - Number of global nodes.                                             *
  *                                                                            *
+ Fortran intrerface:
+ >
+ > SUBROUTINE ZMURGE_SetGlobalNodeNbr(ID, N, IERROR)
+ >   INTS, INTENT(IN)               :: ID, N
+ >   INTS, INTENT(OUT)              :: IERROR
+ > END SUBROUTINE ZMURGE_SetGlobalNodeNbr
  ******************************************************************************/
 INTS ZMURGE_ProductSetGlobalNodeNbr (INTS id, INTS N);
 
@@ -112,6 +152,13 @@ INTS ZMURGE_ProductSetGlobalNodeNbr (INTS id, INTS N);
  *   id  - Solver instance identification number.                             *
  *   l2g - Local to global node numbers.                                      *
  *                                                                            *
+ Fortran interface:
+ >
+ > SUBROUTINE ZMURGE_ProductSetLocalNodeList(ID, L2G, IERROR)
+ >   INTS, INTENT(IN)               :: ID
+ >   INTS, DIMENSION(0), INTENT(IN) :: L2G
+ >   INTS, INTENT(OUT)              :: IERROR
+ > END SUBROUTINE ZMURGE_ProductSetLocalNodeList
  ******************************************************************************/
 INTS ZMURGE_ProductSetLocalNodeList (INTS id, INTS * l2g);
 
@@ -127,6 +174,13 @@ INTS ZMURGE_ProductSetLocalNodeList (INTS id, INTS * l2g);
  *   id - Solver instance identification number.                              *
  *   x  - Array in which the local part of the product will be stored.        *
  *                                                                            *
+ Fortran interface:
+ >
+ > SUBROUTINE ZMURGE_GetLocalProduct(ID, X, IERROR)
+ >   INTS, INTENT(IN)               :: ID
+ >   COEF, DIMENSION(0), INTENT(INOUT) :: X
+ >   INTS, INTENT(OUT)              :: IERROR
+ > END SUBROUTINE ZMURGE_GetLocalProduct
  ******************************************************************************/
 INTS ZMURGE_GetLocalProduct (INTS id, COEF *x);
 
@@ -147,6 +201,13 @@ INTS ZMURGE_GetLocalProduct (INTS id, COEF *x);
  *   ZMURGE_ERR_ORDER  - If values have not been set.                          *
  *                                                                            *
  *                                                                            *
+ Fortran interface:
+ >
+ > SUBROUTINE ZMURGE_GetGlobalProduct(ID, X, ROOT, IERROR)
+ >   INTS, INTENT(IN)               :: ID, ROOT
+ >   COEF, DIMENSION(0), INTENT(INOUT) :: X
+ >   INTS, INTENT(OUT)              :: IERROR
+ > END SUBROUTINE ZMURGE_GetGlobalProduct
  ******************************************************************************/
 INTS ZMURGE_GetGlobalProduct (INTS id, COEF *x, INTS root);
 
@@ -160,6 +221,11 @@ INTS ZMURGE_GetGlobalProduct (INTS id, COEF *x, INTS root);
  * Returns:                                                                   *
  *   ZMURGE_SUCCESS                                                            *
  *                                                                            *
+ Fortran interface:
+ >  SUBROUTINE ZMURGE_FORCENOFACTO(ID, IERROR)
+ >    INTS,               INTENT(IN)  :: ID
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_FORCENOFACTO
  ******************************************************************************/
 INTS ZMURGE_ForceNoFacto(INTS id);
 
@@ -168,6 +234,11 @@ INTS ZMURGE_ForceNoFacto(INTS id);
  *                                                                            *
  * Deprecated, need to be checked                                             *
  *                                                                            *
+ >  SUBROUTINE ZMURGE_SETLOCALNODELIST(ID, N, LIST, IERROR)
+ >    INTS,               INTENT(IN)  :: ID, N
+ >    INTS, DIMENSION(N), INTENT(IN)  :: LIST
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_SETLOCALNODELIST
  ******************************************************************************/
 INTS ZMURGE_SetLocalNodeList(INTS id, INTS n, INTS * list);
 
@@ -198,10 +269,14 @@ INTS ZMURGE_SetLocalNodeList(INTS id, INTS n, INTS * list);
  *   MURGE_ERR_ALLOCATE  - If Allocation didn't worked.                       *
  *   MURGE_ERR_PARAMETER - If *id* is not in solver arrays range, or          *
  *                         *op*, *mode*, *sym*, or *coefnbr* are not valid.   *
+ >  SUBROUTINE ZMURGE_ASSEMBLYSETSEQUENCE (ID, NNZ, ROWs, COLs, OP, OP2, MODE, NODES, ID_SEQ, IERROR)
+ >    INTS,                     INTENT(IN)  :: ID, OP, OP2, MODE, NODES
+ >    INTL,                     INTENT(IN)  :: NNZ
+ >    INTS, DIMENSION(NNZ),     INTENT(IN)  :: ROWs, COLs
+ >    INTS,                     INTENT(OUT) :: ID_SEQ, IERROR
+ >  END SUBROUTINE ZMURGE_ASSEMBLYSETSEQUENCE
  ******************************************************************************/
-int ZMURGE_AssemblySetSequence (INTS id, INTL coefnbr, INTS * ROWs, INTS * COLs,
-                               INTS op, INTS op2, INTS mode, INTS nodes,
-                               INTS * id_seq);
+INTS ZMURGE_AssemblySetSequence (INTS id, INTL coefnbr, INTS * ROWs, INTS * COLs, INTS op, INTS op2, INTS mode, INTS nodes,INTS * id_seq);
 
 /******************************************************************************
  * ZMURGE_AssemblySetSequence                                                  *
@@ -219,6 +294,12 @@ int ZMURGE_AssemblySetSequence (INTS id, INTL coefnbr, INTS * ROWs, INTS * COLs,
  *   MURGE_ERR_ALLOCATE  - If Allocation didn't worked.                       *
  *   MURGE_ERR_PARAMETER - If *id* is not in solver arrays range, or          *
  *                         *id_seq* or *values* are not valid.                *
+ Fortran interface:
+ >  SUBROUTINE ZMURGE_ASSEMBLYUSESEQUENCE(ID, ID_SEQ, VALUES, IERROR)
+ >    INTS,               INTENT(IN)  :: ID, ID_SEQ 
+ >    COEF, DIMENSION(0), INTENT(IN)  :: VALUES
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_ASSEMBLYUSESEQUENCE
  ******************************************************************************/
 INTS ZMURGE_AssemblyUseSequence(INTS id, INTS id_seq, COEF * values);
 
@@ -236,6 +317,11 @@ INTS ZMURGE_AssemblyUseSequence(INTS id, INTS id_seq, COEF * values);
  *   MURGE_ERR_ALLOCATE  - If Allocation didn't worked.                       *
  *   MURGE_ERR_PARAMETER - If *id* is not in solver arrays range, or          *
  *                         *id_seq* is not valid.                             *
+ Fortran interface:
+ >  SUBROUTINE ZMURGE_ASSEMBLYDELETESEQUENCE(ID, ID_SEQ, IERROR)
+ >    INTS,               INTENT(IN)  :: ID, ID_SEQ 
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_ASSEMBLYDELETESEQUENCE
  ******************************************************************************/
 INTS ZMURGE_AssemblyDeleteSequence(INTS id, INTS id_seq);
 
@@ -245,28 +331,60 @@ INTS ZMURGE_GetCommRank(INTS id, int * rank);
 INTS ZMURGE_GetCommSize(INTS id, int * size);
 INTS ZMURGE_GetOptionINT(INTS id, INTS index, INTS * value);
 INTS ZMURGE_GetComm(INTS id, MPI_Comm * comm);
-typedef struct ZMURGE_UserData_ ZMURGE_UserData_t;
-INTS ZMURGE_GetLocalElementNbr(INTS id,
-                              INTS N,
-                              INTS globalElementNbr,
-                              INTS * localElementNbr,
-                              INTS mode,
-                              ZMURGE_UserData_t * d);
-INTS ZMURGE_GetLocalElementList(INTS id, INTS * element_list);
+/* INTS ZMURGE_GetLocalElementNbr(INTS id, INTS N, INTS globalElementNbr, INTS * localElementNbr, INTS mode, void * d); */
+/* INTS ZMURGE_GetLocalElementList(INTS id, INTS * element_list); */
 INTS ZMURGE_GraphSetEdge (INTS id, INTS ROW, INTS COL);
-INTS ZMURGE_GraphSetBlockEdges(INTS id, INTS nROW, INTS *ROWlist,
-                              INTS nCOL, INTS *COLlist);
+INTS ZMURGE_GraphSetBlockEdges(INTS id, INTS nROW, INTS *ROWlist, INTS nCOL, INTS *COLlist);
 
+/*
+ >  SUBROUTINE ZMURGE_SETDROPNODES(ID, NODENBR, DROPMASK, IERROR)
+ >    INTS,               INTENT(IN) :: ID, NODENBR
+ >    INTS, DIMENSION(0), INTENT(IN) :: DROPMASK
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_SETDROPNODES
+ */
 INTS ZMURGE_SetDropNodes(INTS id, INTS nodenbr, INTS * dropmask);
+
+/*
+ >  SUBROUTINE ZMURGE_SETDROPCOLS(ID, NODENBR, DROPMASK, IERROR)
+ >    INTS,               INTENT(IN) :: ID, NODENBR
+ >    INTS, DIMENSION(0), INTENT(IN) :: DROPMASK
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_SETDROPCOLS
+ */
 INTS ZMURGE_SetDropCols(INTS id, INTS nodenbr, INTS * dropmask);
+/*
+ >  SUBROUTINE ZMURGE_SETDROPROWS(ID, NODENBR, DROPMASK, IERROR)
+ >    INTS,               INTENT(IN) :: ID, NODENBR
+ >    INTS, DIMENSION(0), INTENT(IN) :: DROPMASK
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_SETDROPROWS
+ */
 INTS ZMURGE_SetDropRows(INTS id, INTS nodenbr, INTS * dropmask);
+/*
+ >  SUBROUTINE ZMURGE_COLGETNONZEROSNBR(ID, ROW, NNZNBR, IERROR)
+ >    INTS,               INTENT(IN) :: ID, ROW
+ >    INTS,               INTENT(INOUT) :: NNZNBR
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_COLGETNONZEROSNBR
+ */
 INTS ZMURGE_ColGetNonZerosNbr(INTS id, INTS COL, INTS * nnzNbr);
+/*
+ >  SUBROUTINE ZMURGE_COLGETNONZEROSIDX(ID, ROW, NNZIDX, IERROR)
+ >    INTS,               INTENT(IN) :: ID, ROW
+ >    INTS, DIMENSION(0), INTENT(INOUT) :: NNZIDX
+ >    INTS,               INTENT(OUT) :: IERROR
+ >  END SUBROUTINE ZMURGE_COLGETNONZEROSIDX
+ */
 INTS ZMURGE_ColGetNonZerosIdx(INTS id, INTS COL, INTS * indexes);
 
-INTS ZMURGE_AssemblySetListOfBlockValues(INTS id, INTS nBlocks,
-                                        INTS nROW, INTS *ROWlist,
-                                        INTS nCOL, INTS *COLlist,
-                                        COEF *values);
+INTS ZMURGE_AssemblySetListOfBlockValues(INTS id, INTS nBlocks, INTS nROW, INTS *ROWlist, INTS nCOL, INTS *COLlist, COEF *values);
+
+
+/* This comment must remain for generation purpose */
+/*
+ Murge's constants
+ */
 enum MURGE_PASTIX_ERR {
   MURGE_ERR_MPI      = 1024,
   MURGE_ERR_INTERNAL = 1025
@@ -280,3 +398,4 @@ enum MURGE_ELEMENT_DIST {
 enum PASTIX_MURGE_ASSEMBLY_MODE {
   MURGE_ASSEMBLY_DROPNONLOCAL = 3
 };
+#endif /* ZMURGE_PASTIX_H */

@@ -224,7 +224,7 @@ subs = {
     ['s',              'd',              'c',              'z'               ],
 
     # ----- Preprocessor
-    ('#define PRECISION_s',  '#define PRECISION_d',   '#define PRECISION_c',             '#define PRECISION_z'              ),
+    ('#define PRECISION_s',  '#define PRECISION_d',   '#define PRECISION_c',             '#\s*define PRECISION_z'              ),
     ('#undef PRECISION_s',   '#undef PRECISION_d',    '#undef PRECISION_c',              '#undef PRECISION_z'               ),
     ('#define REAL',         '#define REAL',          '#define COMPLEX',                 '#define COMPLEX'                  ),
     ('#undef COMPLEX',       '#undef COMPLEX',        '#undef REAL',                     '#undef REAL'                      ),
@@ -249,6 +249,7 @@ subs = {
     ('MorseRealFloat',       'MorseRealDouble',       'MorseComplexFloat',               r'\bMorseComplexDouble'               ),
     ('real',                 'double precision',      'complex',                         r'\bcomplex\*16'                      ),
     ('REAL',                 'DOUBLE_PRECISION',      'COMPLEX',                         r'\bCOMPLEX_16'                       ),
+    ('REAL',                 'DOUBLE PRECISION',      'COMPLEX',                         r'\bDOUBLE COMPLEX'                   ),
     ('sizeof_real',          'sizeof_double',         'sizeof_complex',                  r'\bsizeof_complex_16'                ),  # before complex
     ('float',                'double',                'pastix_complex32_t',              r'\bpastix_complex64_t'               ),
     ('real',                 'real',                  'complex',                         r'\bcomplex'                          ),
@@ -884,6 +885,7 @@ subs = {
     ('SMURGE_',        'DMURGE_',        'CMURGE_',        'ZMURGE_'         ),
     ('smurge_',        'dmurge_',        'cmurge_',        'zmurge_'         ),
     ('smurge.h',       'dmurge.h',       'cmurge.h',       'zmurge.h'        ),
+    ('smurge.inc',     'dmurge.inc',     'cmurge.inc',     'zmurge.inc'      ),
     ('smurge.c',       'dmurge.c',       'cmurge.c',       'zmurge.c'        ),
     ('ssimple',        'dsimple',        'csimple',        'zsimple'         ),
     ('sstep-by-step',  'dstep-by-step',  'cstep-by-step',  'zstep-by-step'   ),
