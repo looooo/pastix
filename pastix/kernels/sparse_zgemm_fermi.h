@@ -11,8 +11,10 @@
 #ifndef SPARSE_GEMM_FERMI_H
 #define SPARSE_GEMM_FERMI_H
 
-#define PRECISION_z
-
+#if (!defined PRECISION_z && !defined PRECISION_c && !defined PRECISION_d && !defined PRECISION_s)
+/* Required because CUDA compiler does not get the -DPRECISION_x */
+#  define PRECISION_z
+#endif
 #include <cuda.h>
 #if defined(PRECISION_z) || defined(PRECISION_c)
 #include <cuComplex.h>

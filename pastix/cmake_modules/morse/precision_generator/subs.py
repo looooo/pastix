@@ -250,6 +250,7 @@ subs = {
     ('real',                 'double precision',      'complex',                         r'\bcomplex\*16'                      ),
     ('REAL',                 'DOUBLE_PRECISION',      'COMPLEX',                         r'\bCOMPLEX_16'                       ),
     ('REAL',                 'DOUBLE PRECISION',      'COMPLEX',                         r'\bDOUBLE COMPLEX'                   ),
+    ('REAL',                 'DOUBLE PRECISION',      'REAL',                            r'\bDOUBLE PRECISION'                 ),
     ('sizeof_real',          'sizeof_double',         'sizeof_complex',                  r'\bsizeof_complex_16'                ),  # before complex
     ('float',                'double',                'pastix_complex32_t',              r'\bpastix_complex64_t'               ),
     ('real',                 'real',                  'complex',                         r'\bcomplex'                          ),

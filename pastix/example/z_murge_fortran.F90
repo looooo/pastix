@@ -272,9 +272,9 @@ PROGRAM main
      CALL GetRhs(val,nodelist(m),xmin,xmax,n)
      globrhs((nodelist(m)-1)*dof+1:(nodelist(m)-1)*dof+dof) = val
      lrhs(k:k+dof-1) = val
-     DO l = 1, dof
-	print *, "rhs", (nodelist(m)-1)*dof+l, lrhs((m-1)*dof+l)
-     END DO
+     !DO l = 1, dof
+     !  print *, "rhs", (nodelist(m)-1)*dof+l, lrhs((m-1)*dof+l)
+     !END DO
      k = k + dof
   END DO
   ALLOCATE(globrhs_recv(n*dof))

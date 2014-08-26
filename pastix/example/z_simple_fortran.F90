@@ -1,7 +1,10 @@
-  !File: fsimple.F90
-  !
-  ! Simple example in Fortran calling PaStiX
-  !
+!>
+!! @file z_simple_fortran.F90
+!!
+!! Simple example in Fortran calling PaStiX
+!!
+!! @authoe Xavier LACOSTE - lacoste@labri.fr
+!! @precisions normal z -> c d s
   
 #include "pastix_fortran.h"
   
@@ -18,7 +21,7 @@
   !
   program simple_f
 
-    use utils
+    use z_utils
     implicit none
 
     include 'mpif.h'
@@ -29,13 +32,13 @@
     pastix_int_t                              :: n           ! Number of columns in the matrix
     pastix_int_t   ,dimension(:), allocatable :: ia          ! Index of first element of each column in ja and avals
     pastix_int_t   ,dimension(:), allocatable :: ja          ! Row of each element
-    pastix_float_t ,dimension(:), allocatable :: avals       ! Value of each element
+    DOUBLE COMPLEX ,dimension(:), allocatable :: avals       ! Value of each element
     pastix_int_t   ,dimension(:), allocatable :: perm        ! permutation tabular
     pastix_int_t   ,dimension(:), allocatable :: invp        ! reverse permutation tabular
-    pastix_float_t ,dimension(:), allocatable :: rhs         ! Right hand side
+    DOUBLE COMPLEX ,dimension(:), allocatable :: rhs         ! Right hand side
     pastix_int_t                              :: nrhs        ! right hand side number (only one possible)
     pastix_int_t                              :: iparm(IPARM_SIZE) ! Integer parameters
-    double precision                          :: dparm(DPARM_SIZE) ! Floating poin parameters
+    DOUBLE PRECISION                          :: dparm(DPARM_SIZE) ! Floating poin parameters
     Integer                                   :: driver_num  ! Driver number
     Character(len=64)                         :: filename    ! Path to the matrix
     Character(len=4)                          :: type        ! type of the matrix
@@ -78,8 +81,8 @@
     else
        flagsym = API_SYM_NO
     end if
-    
-    call pastix_fortran_checkmatrix(check_data, pastix_comm, &
+    nnz = ia(n+1) -1
+    call z_pastix_fortran_checkmatrix(check_data, pastix_comm, &
          verbose, flagsym, API_YES, n, ia, ja, avals, mun, un)
     
     if (ia(n+1) - 1 /= nnz ) then
@@ -87,7 +90,7 @@
        deallocate(avals)
        allocate(ja(ia(n+1)-1))
        allocate(avals(ia(n+1)-1))
-       call pastix_fortran_checkmatrix_end(check_data, &
+       call z_pastix_fortran_checkmatrix_end(check_data, &
             verbose, ja,avals, 1)
     endif
     
@@ -100,7 +103,7 @@
     iparm(IPARM_START_TASK)       = API_TASK_INIT
     iparm(IPARM_END_TASK)         = API_TASK_INIT
 
-    call pastix_fortran(pastix_data ,pastix_comm, &
+    call z_pastix_fortran(pastix_data ,pastix_comm, &
          n,ia,ja,avals,perm,invp,rhs,nrhs,iparm,dparm)
 
 
@@ -130,7 +133,7 @@
     !
     ! Call PaStiX 
     !
-    call pastix_fortran(pastix_data ,pastix_comm, &
+    call z_pastix_fortran(pastix_data ,pastix_comm, &
          n,ia,ja,avals,perm,invp,rhs,nrhs,iparm,dparm)
 
     deallocate(ia)

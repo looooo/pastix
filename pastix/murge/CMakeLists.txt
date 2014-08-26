@@ -48,7 +48,6 @@ set(name_prec_coefsize_cplx
   "murge_pastix" "c" 4 1
   "murge_pastix" "s" 4 0
   )
-find_package(Perl REQUIRED)
 array2d_begin_loop( advanced "${name_prec_coefsize_cplx}"
   4 "name;prec;coefsize;cplx;" )
 if (NOT advanced)
@@ -69,22 +68,6 @@ while( advanced )
   add_custom_target(${prec}${name}_fortran ALL DEPENDS ${prec}${name}_fortran.c)
   set(generated_files ${generated_files} ${prec}${name}_fortran.c)
 
-  ### Adjust COEF/REAL type definition via compile flags.
-  set(_FLAGS "")
-  # Append new FLAGS
-  if ("z" STREQUAL ${prec} OR "c" STREQUAL ${prec})
-    set(_FLAGS "-DTYPE_COMPLEX")
-  endif("z" STREQUAL ${prec} OR "c" STREQUAL ${prec})
-  if ("z" STREQUAL ${prec} OR "d" STREQUAL ${prec})
-    set(_FLAGS "${_FLAGS} -DPREC_DOUBLE")
-  endif("z" STREQUAL ${prec} OR "d" STREQUAL ${prec})
-  # Change COMPILE_FLAGS if modified
-  if (NOT "s" STREQUAL ${prec})
-    message(STATUS "Setting ${prec}${name}_fortran COMPILE_FLAGS to ${_FLAGS}")
-    set_property(SOURCE ${prec}${name}_fortran.c
-      APPEND PROPERTY COMPILE_FLAGS ${_FLAGS})
-  endif (NOT "s" STREQUAL ${prec})
-
   # generate .inc file
   if ("murge_pastix" STREQUAL ${name})
     # generate interface using genfort.pl, add API variables using APIc2f.pl
@@ -98,7 +81,10 @@ while( advanced )
       ARGS -ne 'print if !(/ "PARAMETER.*_KIND"/)' ${prec}${name}.inc.tmp > ${prec}${name}.inc
       COMMAND ${CMAKE_COMMAND}
       ARGS -E remove ${prec}${name}.inc.tmp
-      DEPENDS ../tools/APIc2f.pl genfort.pl ${CMAKE_CURRENT_BINARY_DIR}/${prec}${name}.h
+      DEPENDS
+      ../tools/APIc2f.pl genfort.pl
+      ${CMAKE_CURRENT_BINARY_DIR}/${prec}${name}.h
+      ${CMAKE_CURRENT_SOURCE_DIR}/../include/pastix/api.h
       )
   else()
     # generate interface using genfort.pl

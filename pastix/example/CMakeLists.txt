@@ -89,11 +89,24 @@ precisions_rules_py(generated_headers
                     PRECISIONS "s;d;c;z")
 add_custom_target(examples_headers DEPENDS ${generated_headers} )
 
-set(SOURCES z_simple.c z_step-by-step.c z_analyze.c zmurge_2Dlap.c zmurge_3Dlap.c z_murge_fortran.F90)
+#Generate examples utils library
+set(SOURCES  z_utils.F90)
+precisions_rules_py(generated_files
+   "${SOURCES}"
+   PRECISIONS "s;d;c;z")
+add_library(pastix_examples ${generated_files} mem_trace.c)
+add_dependencies(pastix_examples generated_headers)
+set(PASTIX_EXAMPLES_LIBRARIES ${PASTIX_EXAMPLES_LIBRARIES} pastix_examples read_matrix)
+set(generated_files "")
+message(STATUS PASTIX_EXAMPLES_LIBRARIES :  ${PASTIX_EXAMPLES_LIBRARIES})
+
+
+
+set(SOURCES z_simple.c z_step-by-step.c z_analyze.c zmurge_2Dlap.c zmurge_3Dlap.c
+  z_murge_fortran.F90 z_simple_fortran.F90)
 if(PASTIX_DISTRIBUTED)
   set(SOURCES ${SOURCES} z_simple_dist.c)
 endif(PASTIX_DISTRIBUTED)
-## Require all PaStiX with multiple precision before...
 precisions_rules_py(generated_files
    "${SOURCES}"
    PRECISIONS "s;d;c;z")
@@ -102,10 +115,10 @@ foreach(example_with_ext ${generated_files})
   GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
   GET_FILENAME_COMPONENT(ext ${example_with_ext} EXT)
   if (PASTIX_WITH_CUDA)
-    cuda_add_executable(${example} "${example_with_ext}" ${generated_headers} mem_trace.c)
+    cuda_add_executable(${example} "${example_with_ext}" ${generated_headers})
     target_link_libraries(${example} cuda)
   else(PASTIX_WITH_CUDA)
-    add_executable(${example} "${example_with_ext}" ${generated_headers} mem_trace.c)
+    add_executable(${example} "${example_with_ext}" ${generated_headers})
   endif(PASTIX_WITH_CUDA)
   target_link_libraries( ${example}
     ${PASTIX_EXAMPLES_LIBRARIES})
@@ -126,7 +139,7 @@ foreach(example_with_ext ${generated_files})
   endif()
 endforeach()
 
-foreach(example simple step-by-step simple_dist)
+foreach(example simple step-by-step simple_dist simple_fortran)
   foreach(prec s d c z)
     set(test_args
       ${test_args}
@@ -143,6 +156,15 @@ foreach(example murge_2Dlap murge_3Dlap)
   endforeach()
 endforeach()
 
+foreach(prec s d c z)
+  set(test_args
+    ${test_args}
+    ${prec}_murge_fortran "100 1")
+  set(test_args
+    ${test_args}
+    ${prec}_murge_fortran "100 4")
+endforeach()
+
 array2d_begin_loop( advanced "${test_args}" 2 "test;args" )
 while( advanced )
   set(name "${test}_${args}")
@@ -150,5 +172,9 @@ while( advanced )
   string(REPLACE " " ";" args_list ${args})
   add_test(${name} ${test} ${args_list})
   set_tests_properties(${name} PROPERTIES TIMEOUT 4)
+  if (PASTIX_WITH_MPI)
+    add_test("mpirun_np_2_${name}" ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 2 ${MPIEXEC_PREFLAGS} ${test} ${MPIEXEC_POSTFLAGS} ${args_list})
+    set_tests_properties(${name} PROPERTIES TIMEOUT 4)
+  endif(PASTIX_WITH_MPI)
   array2d_advance()
 endwhile()

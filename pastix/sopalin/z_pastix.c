@@ -4371,7 +4371,7 @@ pastix_int_t z_pastix_getSchurLocalNodeList(z_pastix_data_t * pastix_data, pasti
 
  TODO: Error management.
  */
-pastix_int_t pastix_getSchurLocalUnknownList(z_pastix_data_t * pastix_data, pastix_int_t * unknowns)
+pastix_int_t z_pastix_getSchurLocalUnknownList(z_pastix_data_t * pastix_data, pastix_int_t * unknowns)
 {
     z_SolverMatrix * datacode = NULL;
     Order        * ordemesh = NULL;

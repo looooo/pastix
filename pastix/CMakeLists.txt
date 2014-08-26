@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.8)
 project (PASTIX C CXX Fortran)
 enable_testing()
+include(CTest)
 
 include(CMakeDependentOption)
 include(CheckFunctionExists)
@@ -142,6 +143,7 @@ option(COMPACT_SMX
 #
 # Find non-optional packages
 #
+find_package(Perl REQUIRED)
 find_package(BLASEXT REQUIRED)
 set(HAVE_BLAS ${BLAS_FOUND})
 
