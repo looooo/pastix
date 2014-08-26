@@ -3619,6 +3619,7 @@ void z_pastix_bindThreads ( z_pastix_data_t *pastix_data, pastix_int_t thrdnbr, 
  *   dof         - Number of degrees of freedom.
  *   flagalloc   - indicate if allocation on CSC uses internal malloc.
  */
+#pragma intel optimization_level 0
 pastix_int_t z_pastix_checkMatrix_int(MPI_Comm pastix_comm,
                                     pastix_int_t      verb,
                                     pastix_int_t      flagsym,
