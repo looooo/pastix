@@ -63,7 +63,8 @@ void z_HBRead(char const      *filename,
   int      Nrow2;
   int      Ncol2;
   int      Nnzero2;
-  double  *tmpval;
+#define dbl dou ## ble
+  dbl  *tmpval; /* hack to avoid redefinition of double... */
   int      ierr;
 
   *Type = (char *) malloc(4*sizeof(char));
@@ -105,7 +106,7 @@ void z_HBRead(char const      *filename,
 #if (defined PREC_DOUBLE && !defined TYPE_COMPLEX)
   tmpval = *val;
 #else
-  tmpval = (double*)malloc(*Nnzero*sizeof(double));
+  tmpval = (dbl*)malloc(*Nnzero*sizeof(dbl));
 #endif
 
   ierr = readHB_mat_double(filename, tmpcol, tmprow, tmpval);

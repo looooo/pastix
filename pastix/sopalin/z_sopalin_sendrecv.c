@@ -1207,7 +1207,10 @@ send_all_fanin(z_Sopalin_Data_t *sopalin_data,
               /* With -DCOMM_REORDER : Always true  */
               if (!(FANIN_CTRBCNT(t)))
                 {
-                  double key;
+#define dbl dou ## ble
+                    /* hack to avoid replacement of the double when genrating precision*/
+                  dbl key;
+#undef dbl
 
                   t = queueGet2(&(sopalin_data->fanintgtsendqueue[dest]),
                                 &key, NULL);
@@ -1580,7 +1583,10 @@ void* sendrecv_smp ( void *arg )
       int               nbrecv;
       pastix_int_t      save_ftgtcnt = -1;
       pastix_int_t      ftgt, key;
-      double            dest;
+#define dbl dou ## ble
+                    /* hack to avoid replacement of the double when genrating precision*/
+      dbl            dest;
+#undef dbl
       int               nb_proc_end = 1;
 
 

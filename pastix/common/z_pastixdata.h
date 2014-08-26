@@ -55,11 +55,13 @@
 
   Parameters for factorisation, updown and reffinement.
  */
+/* Hack to avoid replacing double */
+#define _dbl_ dou ## ble
 typedef struct z_SopalinParam_ {
   z_CscMatrix      *cscmtx;          /*+ Compress Sparse Column matrix                    +*/
-  double          epsilonraff;     /*+ epsilon to stop reffinement                      +*/
-  double          rberror;         /*+ ||r||/||b||                                      +*/
-  double          espilondiag;     /*+ epsilon critere for diag control                 +*/
+  _dbl_               epsilonraff;     /*+ epsilon to stop reffinement                      +*/
+  _dbl_               rberror;         /*+ ||r||/||b||                                      +*/
+  _dbl_               espilondiag;     /*+ epsilon critere for diag control                 +*/
   pastix_complex64_t *b;               /*+ b vector (RHS and solution)                      +*/
   pastix_complex64_t *transcsc;        /*+ transpose csc                                    +*/
   pastix_int_t    itermax;         /*+ max number of iteration                          +*/
