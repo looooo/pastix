@@ -21,12 +21,14 @@
  * @struct pastix_csc_s - Csc structure.
  */
 struct pastix_csc_s {
+    int           mtxtype;   /*> Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.           */
+    int           flttype;   /*> avals datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
     pastix_int_t  gN;        /*< Global number of vertices                    */
     pastix_int_t  n;         /*< Number of local vertices                     */
+    pastix_int_t  dof;       /*< Number of degree of freedom                  */
     pastix_int_t *colptr;    /*< List of indirections to rows for each vertex */
     pastix_int_t *rows;      /*< List of edges for each vertex                */
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global */
-    int           ft;
     void         *avals;
 };
 typedef struct pastix_csc_s pastix_csc_t;
