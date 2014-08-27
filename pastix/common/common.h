@@ -204,5 +204,17 @@ int pastix_getenv_get_value_int(char * string, int default_value) {
 }
 
 
+static inline int pastix_size_of(int type)
+{
+    switch(type) {
+    case PastixFloat:     return   sizeof(float);
+    case PastixDouble:    return   sizeof(double);
+    case PastixComplex32: return 2*sizeof(float);
+    case PastixComplex64: return 2*sizeof(double);
+    default:
+        fprintf(stderr, "pastix_size_of: invalide type parameter\n");
+        return -1;
+    }
+}
 #endif /* _COMMON_H_ */
 
