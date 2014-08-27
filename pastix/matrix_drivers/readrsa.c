@@ -172,7 +172,6 @@ void readRSA( char const    *filename,
     int     M, N, Nnz;
     int    *tmpcolptr;
     int    *tmprows;
-    double *tmpavals;
     int     base;
 
     readRSAHeader(filename, &N, &Nnz, Type, RhsType );
@@ -184,7 +183,7 @@ void readRSA( char const    *filename,
     assert( tmprows );
 
     /* RSA reads only double */
-    csc->ft = PastixDouble;
+    csc->flttype = PastixDouble;
     csc->avals = (double*) malloc( Nnz * sizeof(double) );
     assert( csc->avals );
 
