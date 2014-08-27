@@ -82,6 +82,16 @@ int cscReadFromFile( pastix_driver_t  driver,
 {
     int mpirank;
 
+    csc->mtxtype = PastixGeneral;
+    csc->flttype = PastixDouble;
+    csc->gN  = 0;
+    csc->n   = 0;
+    csc->dof = 1;
+    csc->colptr = NULL;
+    csc->rows   = NULL;
+    csc->avals  = NULL;
+    csc->loc2glob = NULL;
+
     MPI_Comm_rank( pastix_comm, &mpirank );
 
     if ( (mpirank == 0)                    ||
