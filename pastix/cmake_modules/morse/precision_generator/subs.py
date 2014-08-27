@@ -899,6 +899,7 @@ subs = {
     ('s_get_idparm',   'd_get_idparm',   's_get_idparm',   'd_get_idparm',   ),
     #('stesting',       'dtesting',       'ctesting',       'ztesting'        ),
     #('SAUXILIARY',     'DAUXILIARY',     'CAUXILIARY',     'ZAUXILIARY'      ),
+    ('csc_s',          'csc_d',          'csc_c',          'csc_z'           ),
   ],
 
   # ------------------------------------------------------------
