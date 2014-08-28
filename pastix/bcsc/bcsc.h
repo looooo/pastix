@@ -39,37 +39,49 @@ struct pastix_bcsc_s {
 typedef struct pastix_bcsc_s pastix_bcsc_t;
 
 
-void bcsc_zInitLvalues( const pastix_csc_t *csc,
-                        const Order        *ord,
-                        const SolverMatrix *solvmtx,
-                        const pastix_int_t *col2cblk,
-                        pastix_bcsc_t      *bcsc,
-                        pastix_complex64_t *avals,
-                        pastix_complex64_t *Lvalues );
+void bcsc_zInitCentralized( const pastix_csc_t  *csc,
+                            const Order         *ord,
+                            const SolverMatrix  *solvmtx,
+                            const pastix_int_t  *col2cblk,
+                                  int            initAt,
+                                  pastix_bcsc_t *bcsc );
 
-void bcsc_cInitLvalues( const pastix_csc_t *csc,
-                        const Order        *ord,
-                        const SolverMatrix *solvmtx,
-                        const pastix_int_t *col2cblk,
-                        pastix_bcsc_t      *bcsc,
-                        pastix_complex32_t *avals,
-                        pastix_complex32_t *Lvalues );
+void bcsc_cInitCentralized( const pastix_csc_t  *csc,
+                            const Order         *ord,
+                            const SolverMatrix  *solvmtx,
+                            const pastix_int_t  *col2cblk,
+                                  int            initAt,
+                                  pastix_bcsc_t *bcsc );
 
-void bcsc_dInitLvalues( const pastix_csc_t *csc,
-                        const Order        *ord,
-                        const SolverMatrix *solvmtx,
-                        const pastix_int_t *col2cblk,
-                        pastix_bcsc_t      *bcsc,
-                        double *avals,
-                        double *Lvalues );
+void bcsc_dInitCentralized( const pastix_csc_t  *csc,
+                            const Order         *ord,
+                            const SolverMatrix  *solvmtx,
+                            const pastix_int_t  *col2cblk,
+                                  int            initAt,
+                                  pastix_bcsc_t *bcsc );
 
-void bcsc_sInitLvalues( const pastix_csc_t *csc,
-                        const Order        *ord,
-                        const SolverMatrix *solvmtx,
-                        const pastix_int_t *col2cblk,
-                        pastix_bcsc_t      *bcsc,
-                        float *avals,
-                        float *Lvalues );
+void bcsc_sInitCentralized( const pastix_csc_t  *csc,
+                            const Order         *ord,
+                            const SolverMatrix  *solvmtx,
+                            const pastix_int_t  *col2cblk,
+                                  int            initAt,
+                                  pastix_bcsc_t *bcsc );
 
+pastix_int_t
+bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
+                              const Order         *ord,
+                              const SolverMatrix  *solvmtx,
+                                    pastix_bcsc_t *bcsc );
+
+void
+bcsc_restore_coltab( pastix_bcsc_t *bcsc );
+
+void bcscInit( const pastix_csc_t  *csc,
+               const Order         *ord,
+               const SolverMatrix  *solvmtx,
+               pastix_int_t   initAt,
+               pastix_bcsc_t *bcsc );
+
+void bcscExit( pastix_bcsc_t *bcsc );
 
 #endif /* CSC_H */
