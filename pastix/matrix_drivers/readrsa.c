@@ -220,12 +220,15 @@ void readRSA( char const    *filename,
 
     switch( Type[1] ){
     case 'S':
+    case 's':
         csc->mtxtype = PastixSymmetric;
         break;
     case 'H':
+    case 'h':
         csc->mtxtype = PastixHermitian;
         break;
     case 'U':
+    case 'u':
     default:
         csc->mtxtype = PastixGeneral;
     }
