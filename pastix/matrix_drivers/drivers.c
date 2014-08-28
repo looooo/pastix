@@ -337,28 +337,39 @@ int cscReadFromFile( pastix_driver_t  driver,
 /*         } */
 /*     } */
 
-/*   if ( driver_type != LAPLACIAN && driver_type != CSCD && */
-/*        driver_type != FDUP_DIST && driver_type != MMD) */
-/*     { */
-/*       MPI_Bcast(ncol,1,PASTIX_MPI_INT,0,pastix_comm); */
-/*       MPI_Bcast(&nnz,1,PASTIX_MPI_INT,0,pastix_comm); */
+    if ( 1 )
+    {
+        pastix_int_t nnz;
 
-/*       if (mpirank!=0) */
-/*         { */
-/*           *colptr = (pastix_int_t *)   malloc((*ncol+1)*sizeof(pastix_int_t)); */
-/*           *rows   = (pastix_int_t *)   malloc(nnz*sizeof(pastix_int_t)); */
-/*           *values = (pastix_complex64_t *) malloc(nnz*sizeof(pastix_complex64_t)); */
-/*           *rhs    = (pastix_complex64_t *) malloc((*ncol)*sizeof(pastix_complex64_t)); */
-/*           *type   = (char *)  malloc(4*sizeof(char)); */
-/*         } */
+        fprintf(stderr, "Hello");
+        if (mpirank == 0) {
+            nnz = csc->colptr[csc->gN] - csc->colptr[0];
+        }
 
-/*       MPI_Bcast(*colptr, *ncol+1, PASTIX_MPI_INT,   0, pastix_comm); */
-/*       MPI_Bcast(*rows,    nnz,    PASTIX_MPI_INT,   0, pastix_comm); */
-/*       MPI_Bcast(*values,  nnz,    PASTIX_MPI_FLOAT, 0, pastix_comm); */
-/*       MPI_Bcast(*rhs,    *ncol,   PASTIX_MPI_FLOAT, 0, pastix_comm); */
-/*       MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm); */
-/*   } */
+        MPI_Bcast( csc, 2*sizeof(int)+3*sizeof(pastix_int_t), MPI_CHAR, 0, pastix_comm );
+        MPI_Bcast( &nnz, 1, PASTIX_MPI_INT, 0, pastix_comm );
 
-  return EXIT_SUCCESS;
+        fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n",
+                mpirank, csc->mtxtype, csc->flttype, nnz, csc->gN );
+
+        if ( mpirank != 0 )
+        {
+            csc->colptr = (pastix_int_t *) malloc((csc->gN+1) * sizeof(pastix_int_t));
+            csc->rows   = (pastix_int_t *) malloc(nnz * sizeof(pastix_int_t));
+            csc->avals  = (void *)         malloc(nnz * pastix_size_of( csc->flttype ));
+            csc->loc2glob = NULL;
+            csc->loc2glob = NULL;
+            /* csc->rhs    = (void *) malloc((*ncol)*sizeof(pastix_complex64_t)); */
+            /* csc->type   = (char *) malloc(4*sizeof(char)); */
+        }
+
+        MPI_Bcast( csc->colptr, csc->gN+1, PASTIX_MPI_INT, 0, pastix_comm );
+        MPI_Bcast( csc->rows,   nnz,       PASTIX_MPI_INT, 0, pastix_comm );
+        MPI_Bcast( csc->avals,  nnz * pastix_size_of( csc->flttype ), MPI_CHAR, 0, pastix_comm );
+        /* MPI_Bcast(*rhs,    *ncol,   PASTIX_MPI_FLOAT, 0, pastix_comm); */
+        /* MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm); */
+    }
+
+    return EXIT_SUCCESS;
 }
 
