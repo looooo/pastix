@@ -217,4 +217,17 @@ void readRSA( char const    *filename,
     if(ierr != 0) {
         fprintf(stderr, "cannot read matrix (job=2)\n");
     }
+
+    switch( Type[1] ){
+    case 'S':
+        csc->mtxtype = PastixSymmetric;
+        break;
+    case 'H':
+        csc->mtxtype = PastixHermitian;
+        break;
+    case 'U':
+    default:
+        csc->mtxtype = PastixGeneral;
+    }
+    csc->flttype = PastixDouble;
 }
