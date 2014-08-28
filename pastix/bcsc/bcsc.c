@@ -16,7 +16,7 @@
 #include "bcsc.h"
 
 /******************************************************************************
- * Function: z_CscExit                                                          *
+ * Function: z_CscExit                                                        *
  ******************************************************************************
  *                                                                            *
  * Free the internal CSCd structure.                                          *
@@ -103,7 +103,7 @@ void
 bcscInitCentralized( const pastix_csc_t  *csc,
                      const Order         *ord,
                      const SolverMatrix  *solvmtx,
-                           pastix_int_t   forcetr,
+                           pastix_int_t   initU,
                            pastix_bcsc_t *bcsc )
 {
     pastix_int_t  itercol, itercblk, valuesize, baseval;
@@ -118,6 +118,8 @@ bcscInitCentralized( const pastix_csc_t  *csc,
     bcsc->mtxtype = csc->mtxtype;
     bcsc->flttype = csc->flttype;
 
+    baseval = csc->colptr[0];
+
     /**
      * Allocate and initialize globcol that contains the number of element in
      * each column of the symmetrized and permuted matrix
@@ -125,11 +127,10 @@ bcscInitCentralized( const pastix_csc_t  *csc,
      * symmetry and ordering.
      */
     MALLOC_INTERN( globcol, csc->gN+1, pastix_int_t );
-    memset( globcol, 0, (csc->gN+1) *sizeof(pastix_int_t) );
+    memset( globcol, 0, (csc->gN+1) * sizeof(pastix_int_t) );
 
     assert( csc->loc2glob == NULL );
 
-    baseval = csc->colptr[0];
     {
         pastix_int_t itercol, newcol;
 
@@ -140,6 +141,7 @@ bcscInitCentralized( const pastix_csc_t  *csc,
             newcol = ord->permtab[itercol];
             globcol[newcol] += lrow - frow;
 
+            assert( (lrow - frow) >= 0 );
             if (sym) {
                 pastix_int_t iterrow, newrow;
 
@@ -154,10 +156,17 @@ bcscInitCentralized( const pastix_csc_t  *csc,
             }
         }
 
-        globcol[0] = 0;
-        for (itercol=1; itercol<=csc->gN; itercol++)
+        /* Compute displacements */
         {
-            globcol[itercol] += globcol[itercol-1];
+            pastix_int_t tmp, idx;
+
+            idx = 0;
+            for (itercol=0; itercol<=csc->gN; itercol++)
+            {
+                tmp = globcol[itercol];
+                globcol[itercol] = idx;
+                idx += tmp;
+            }
         }
     }
 
@@ -194,20 +203,24 @@ bcscInitCentralized( const pastix_csc_t  *csc,
     switch( csc->flttype ) {
     case PastixFloat:
         bcsc_sInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        break;
     case PastixDouble:
         bcsc_dInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        break;
     case PastixComplex32:
         bcsc_cInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        break;
     case PastixComplex64:
         bcsc_zInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        break;
     default:
-        fprintf(stderr, "bcscInitCentralized: Error unknow floating type for input csc\n");
+        fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input csc\n");
     }
 
     /* /\** */
     /*  * Fill-in the upper part of the matrix when required for LU factorization */
     /*  *\/ */
-    /* if (forcetr) */
+    /* if (initU) */
     /* { */
     /*     if (sym) */
     /*     { */
@@ -243,12 +256,12 @@ bcscInitCentralized( const pastix_csc_t  *csc,
 void bcscInit( const pastix_csc_t  *csc,
                const Order         *ord,
                const SolverMatrix  *solvmtx,
-               pastix_int_t   forcetr,
+               pastix_int_t   initU,
                pastix_bcsc_t *bcsc )
 {
     assert( ord->baseval == 0 );
     assert( ord->vertnbr == csc->n );
 
     if ( csc->loc2glob == NULL )
-        bcscInitCentralized( csc, ord, solvmtx, forcetr, bcsc );
+        bcscInitCentralized( csc, ord, solvmtx, initU, bcsc );
 }
