@@ -561,6 +561,9 @@ typedef struct pastix_graph_s pastix_graph_t;
 struct Order_;
 typedef struct Order_ Order;
 
+struct pastix_csc_s;
+typedef struct pastix_csc_s pastix_csc_t;
+
 void pastixInit( pastix_data_t **pastix_data,
                  int            *argc,
                  char         ***argv,
@@ -586,5 +589,8 @@ int pastix_task_symbfact(pastix_data_t *pastix_data,
                          pastix_int_t  *invp);
 
 int pastix_task_blend( pastix_data_t *pastix_data );
+
+void pastix_task_sopalin( pastix_data_t *pastix_data,
+                          pastix_csc_t  *csc );
 
 #endif /* _PASTIX_H_ */
