@@ -99,6 +99,9 @@ typedef struct SolverCblk_  {
 
 /* All data are local to one cluster */
 typedef struct SolverMatrix_ {
+    int restore; /*+ Flag to indicate if it is require to restore data with
+                     solverBackupRestore: 0: No need, 1:After solve,
+                     2:After Factorization +*/
     pastix_int_t            baseval; /*+ Base value for numberings                         +*/
 
     pastix_int_t            nodenbr; /*+ Number of nodes before dof extension              +*/
@@ -146,7 +149,7 @@ typedef struct SolverMatrix_ {
 
     pastix_int_t              indnbr;
     pastix_int_t * restrict   indtab;
-    Task       * restrict   tasktab;              /*+ Task access vector                        +*/
+    Task         * restrict   tasktab;              /*+ Task access vector                        +*/
     pastix_int_t              tasknbr;              /*+ Number of Tasks                           +*/
     pastix_int_t **           ttsktab;              /*+ Task access vector by thread              +*/
     pastix_int_t *            ttsknbr;              /*+ Number of tasks by thread                 +*/
@@ -156,10 +159,6 @@ typedef struct SolverMatrix_ {
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
     UpDownVector              updovct;              /*+ UpDown vector                             +*/
 } SolverMatrix;
-
-pastix_int_t
-sizeofsolver(const SolverMatrix *solvptr,
-             pastix_int_t *iparm );
 
 /**
  * Indicates whether a column block is in halo.
@@ -463,7 +462,17 @@ static inline int is_block_inside_fblock( SolverBlok *blok,
 
 #  endif /* defined(NAPA_SOPALIN) */
 
+pastix_int_t sizeofsolver(const SolverMatrix *solvptr,
+                          pastix_int_t *iparm );
+
 void                     solverExit           (SolverMatrix *);
 void                     solverInit           (SolverMatrix *);
+
+struct SolverBackup_s;
+typedef struct SolverBackup_s SolverBackup_t;
+
+SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
+int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
+void            solverBackupExit( SolverBackup_t *b );
 
 #endif /* SOLVER_H */

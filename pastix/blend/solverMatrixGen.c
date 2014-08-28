@@ -134,6 +134,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t          * uprecvcblk       = NULL;
     pastix_int_t            flaglocal        = 0;
 
+    solvmtx->restore  = 0;
 #ifdef PASTIX_DYNSCHED
     solvmtx->btree    = ctrl->btree;
 #endif
