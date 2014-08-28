@@ -20,6 +20,7 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
+
 /* #include "assembly.h" */
 /* #include "param_blend.h" */
 /* #include "order.h" */
@@ -47,8 +48,8 @@
 #define STEP_SOLVE    (1 << 5)
 #define STEP_REFINE   (1 << 6)
 
-struct CscMatrix_;
-typedef struct CscMatrix_ CscMatrix;
+struct pastix_bcsc_s;
+typedef struct pastix_bcsc_s pastix_bcsc_t;
 
 /*
   struct: SopalinParam_
@@ -56,7 +57,7 @@ typedef struct CscMatrix_ CscMatrix;
   Parameters for factorisation, updown and reffinement.
  */
 typedef struct SopalinParam_ {
-  CscMatrix      *cscmtx;          /*+ Compress Sparse Column matrix                    +*/
+    pastix_bcsc_t *bcsc;          /*+ Compress Sparse Column matrix                    +*/
   double          epsilonraff;     /*+ epsilon to stop reffinement                      +*/
   double          rberror;         /*+ ||r||/||b||                                      +*/
   double          espilondiag;     /*+ epsilon critere for diag control                 +*/
@@ -106,7 +107,8 @@ struct pastix_data_s {
     pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
 
     SolverMatrix    *solvmatr;           /*+ Matrix informations                                                 +*/
-    CscMatrix       *cscmtx;             /*+ Compress Sparse Column matrix                                       +*/
+    pastix_bcsc_t   *bcsc;               /*+ Compress Sparse Column matrix                                       +*/
+
     SopalinParam     sopar;              /*+ Sopalin parameters                                                  +*/
 #ifdef PASTIX_DISTRIBUTED
 #ifdef WITH_SCOTCH
