@@ -199,7 +199,7 @@ int graphSymmetrize(       pastix_int_t    n,
     }
     else
     {
-        memcpy( newja, ja, newia[n] * sizeof(pastix_int_t) );
+        memcpy( newja, ja, nnz * sizeof(pastix_int_t) );
     }
 
     memFree_null( nbrEltCol );
