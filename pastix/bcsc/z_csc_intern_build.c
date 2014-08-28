@@ -310,9 +310,7 @@ void _set_csc_row_val(const z_SolverMatrix *solvmtx,
  *                used to check if matrix is Symetric(S) or not(U).           *
  *   transcsc   - transpose of the CSC in non symetric mode.                  *
  *   ord        - ordering                                                    *
- *   Nrow       - Number of rows.                                             *
  *   Ncol       - Number of columns.                                          *
- *   Nnzero     - Number of non zeros in the matrix.                          *
  *   colptr     - Index in *rowind* and *val* of the start of each column.    *
  *   rowind     - Index of the elements.                                      *
  *   val        - values of the elements.                                     *
@@ -327,9 +325,7 @@ void z_CscOrdistrib(z_CscMatrix          *thecsc,
                   char               *Type,
                   pastix_complex64_t             **transcsc,
                   const Order        *ord,
-                  pastix_int_t                 Nrow,
                   pastix_int_t                 Ncol,
-                  pastix_int_t                 Nnzero,
                   pastix_int_t                *colptr,
                   pastix_int_t                *rowind,
                   pastix_complex64_t              *val,
@@ -353,7 +349,7 @@ void z_CscOrdistrib(z_CscMatrix          *thecsc,
   pastix_int_t   colsize;
   /* To use common macro with z_CscdOrdistrib */
   pastix_int_t  *g2l        = NULL;
-  (void)Nrow; (void)Nnzero; (void)procnum;
+  (void)procnum;
 
 #ifdef CSC_LOG
   fprintf(stdout, "-> z_CscOrdistrib \n");
