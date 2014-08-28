@@ -24,10 +24,10 @@
 int main (int argc, char **argv)
 {
     pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
-    pastix_int_t    ncol;               /* Size of the matrix                                        */
-    pastix_int_t   *colptr      = NULL; /* Indexes of first element of each column in row and values */
-    pastix_int_t   *rows        = NULL; /* Row of each element of the matrix                         */
-    pastix_complex64_t *values      = NULL; /* Value of each element of the matrix                       */
+    /* pastix_int_t    ncol;               /\* Size of the matrix                                        *\/ */
+    /* pastix_int_t   *colptr      = NULL; /\* Indexes of first element of each column in row and values *\/ */
+    /* pastix_int_t   *rows        = NULL; /\* Row of each element of the matrix                         *\/ */
+    /* pastix_complex64_t *values      = NULL; /\* Value of each element of the matrix                       *\/ */
     pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
 #ifndef FORCE_NOMPI
@@ -37,21 +37,21 @@ int main (int argc, char **argv)
     int             mpid;
     pastix_driver_t driver;        /* Matrix driver(s) requested by user                        */
     char           *filename;           /* Filename(s) given by user                                 */
-    int             nbmatrices;         /* Number of matrices given by user                          */
-    int             nbthread;           /* Number of thread wanted by user                           */
-    int             verbosemode;        /* Level of verbose mode (0, 1, 2)                           */
-    int             ordering;           /* Ordering to use                                           */
-    int             incomplete;         /* Indicate if we want to use incomplete factorisation       */
-    int             level_of_fill;      /* Level of fill for incomplete factorisation                */
-    int             amalgamation;       /* Level of amalgamation for Kass                            */
-    int             ooc;                /* OOC limit (Mo/percent depending on compilation options)   */
+    /* int             nbmatrices;         /\* Number of matrices given by user                          *\/ */
+    /* int             nbthread;           /\* Number of thread wanted by user                           *\/ */
+    /* int             verbosemode;        /\* Level of verbose mode (0, 1, 2)                           *\/ */
+    /* int             ordering;           /\* Ordering to use                                           *\/ */
+    /* int             incomplete;         /\* Indicate if we want to use incomplete factorisation       *\/ */
+    /* int             level_of_fill;      /\* Level of fill for incomplete factorisation                *\/ */
+    /* int             amalgamation;       /\* Level of amalgamation for Kass                            *\/ */
+    /* int             ooc;                /\* OOC limit (Mo/percent depending on compilation options)   *\/ */
 
     pastix_csc_t    csc;
 
     /*******************************************/
     /*          MPI initialisation             */
     /*******************************************/
-#ifndef FORCE_NOMPI
+#if defined(PASTIX_WITH_MPI)
     required = MPI_THREAD_MULTIPLE;
     provided = -1;
     MPI_Init_thread(&argc, &argv, required, &provided);
@@ -94,19 +94,12 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
-
-    pastix_task_order( pastix_data,
-                       csc.n,
-                       csc.colptr,
-                       csc.rows,
-                       NULL,
-                       NULL,
-                       NULL );
-
-
+    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
+    pastix_task_blend( pastix_data );
+    pastix_task_sopalin( pastix_data, &csc );
 
-    //cscClean( csc );
+    //cscExit( csc );
     free(csc.colptr);
     free(csc.rows);
     free(csc.avals);
