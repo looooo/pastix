@@ -15,39 +15,6 @@
 #include "csc.h"
 #include "bcsc.h"
 
-/******************************************************************************
- * Function: z_CscExit                                                        *
- ******************************************************************************
- *                                                                            *
- * Free the internal CSCd structure.                                          *
- *                                                                            *
- * Parameters:                                                                *
- *   thecsc - Internal CSCd to free.                                          *
- *                                                                            *
- ******************************************************************************/
-void
-bcscExit( pastix_bcsc_t *bcsc )
-{
-    if ( bcsc->cscftab != NULL )
-    {
-        pastix_int_t itercscf;
-        for (itercscf = 0; itercscf < bcsc->cscfnbr; itercscf++ )
-        {
-            memFree_null( bcsc->cscftab[itercscf].coltab );
-        }
-
-        memFree_null( bcsc->cscftab );
-        memFree_null( bcsc->rowtab );
-
-        if ( (bcsc->Uvalues != NULL) &&
-             (bcsc->Lvalues != bcsc->Lvalues) ) {
-            memFree_null( bcsc->Uvalues );
-        }
-
-        memFree_null( bcsc->Lvalues );
-    }
-}
-
 static inline pastix_int_t
 bcsc_init_coltab( const SolverMatrix  *solvmtx,
                   const pastix_int_t  *newcoltab,
@@ -100,16 +67,33 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
 }
 
 void
-bcscInitCentralized( const pastix_csc_t  *csc,
-                     const Order         *ord,
-                     const SolverMatrix  *solvmtx,
-                           pastix_int_t   initU,
-                           pastix_bcsc_t *bcsc )
+bcsc_restore_coltab( pastix_bcsc_t *bcsc )
 {
-    pastix_int_t  itercol, itercblk, valuesize, baseval;
-    pastix_int_t  cblknbr = solvmtx->cblknbr;
+    bcsc_format_t *blockcol;
+    pastix_int_t index, iter, idxcol, idxcoltmp;
+
+    idxcol = 0;
+    blockcol = bcsc->cscftab;
+    for (index=0; index<bcsc->cscfnbr; index++, blockcol++)
+    {
+        for (iter=0; iter <= blockcol->colnbr; iter++)
+        {
+            idxcoltmp = blockcol->coltab[iter];
+            blockcol->coltab[iter] = idxcol;
+            idxcol = idxcoltmp;
+        }
+    }
+    return;
+}
+
+pastix_int_t
+bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
+                              const Order         *ord,
+                              const SolverMatrix  *solvmtx,
+                                    pastix_bcsc_t *bcsc )
+{
+    pastix_int_t  valuesize, baseval;
     pastix_int_t *globcol  = NULL;
-    pastix_int_t *col2cblk = NULL;
     pastix_int_t *colptr = csc->colptr;
     pastix_int_t *rows   = csc->rows;
     int dof = csc->dof;
@@ -121,10 +105,11 @@ bcscInitCentralized( const pastix_csc_t  *csc,
     baseval = csc->colptr[0];
 
     /**
-     * Allocate and initialize globcol that contains the number of element in
-     * each column of the symmetrized and permuted matrix
-     * This corresponds to the colptr of the internal blocked csc integrating
-     * symmetry and ordering.
+     * Allocate and initialize globcol that contains the number of elements in
+     * each column of the input matrix
+     * Globcol is equivalent to the calssic colptr for the internal blocked
+     * csc. The blocked csc integrate the perumtation computed within order
+     * structure.
      */
     MALLOC_INTERN( globcol, csc->gN+1, pastix_int_t );
     memset( globcol, 0, (csc->gN+1) * sizeof(pastix_int_t) );
@@ -173,15 +158,35 @@ bcscInitCentralized( const pastix_csc_t  *csc,
     valuesize = bcsc_init_coltab( solvmtx, globcol, dof, bcsc );
     memFree_null( globcol );
 
+    return valuesize;
+}
+
+void
+bcscInitCentralized( const pastix_csc_t  *csc,
+                     const Order         *ord,
+                     const SolverMatrix  *solvmtx,
+                           pastix_int_t   initAt,
+                           pastix_bcsc_t *bcsc )
+{
+    pastix_int_t  itercol, itercblk;
+    pastix_int_t  cblknbr = solvmtx->cblknbr;
+    pastix_int_t  eltnbr  = csc->gN * csc->dof + 1;
+    pastix_int_t *col2cblk = NULL;
+
+    bcsc->mtxtype = csc->mtxtype;
+    bcsc->flttype = csc->flttype;
+
+    assert( csc->loc2glob == NULL );
+
     /**
      * Initialize the col2cblk array. col2cblk[i] contains the cblk index of the
-     * i-th column. With distributed CSC, col2cblk[i] = -1 if not local.
+     * i-th column. col2cblk[i] = -1 if not local.
      */
     {
         SolverCblk *cblk = solvmtx->cblktab;
 
-        MALLOC_INTERN( col2cblk, (csc->gN * dof)+1, pastix_int_t );
-        for (itercol=0; itercol< (csc->gN * dof)+1; itercol++)
+        MALLOC_INTERN( col2cblk, eltnbr, pastix_int_t );
+        for (itercol=0; itercol<eltnbr; itercol++)
             col2cblk[itercol] = -1;
 
         for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
@@ -202,66 +207,73 @@ bcscInitCentralized( const pastix_csc_t  *csc,
      */
     switch( csc->flttype ) {
     case PastixFloat:
-        bcsc_sInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        bcsc_sInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixDouble:
-        bcsc_dInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        bcsc_dInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex32:
-        bcsc_cInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        bcsc_cInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex64:
-        bcsc_zInitLvalues( csc, ord, solvmtx, col2cblk, bcsc, csc->avals, bcsc->Lvalues );
+        bcsc_zInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     default:
         fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input csc\n");
     }
 
-    /* /\** */
-    /*  * Fill-in the upper part of the matrix when required for LU factorization */
-    /*  *\/ */
-    /* if (initU) */
-    /* { */
-    /*     if (sym) */
-    /*     { */
-    /*         /\** */
-    /*          * If PastixHermitian, conjugate is computed later if required to */
-    /*          * save memory space. */
-    /*          *\/ */
-    /*         bcsc->Uvalues = bcsc->Lvalues; */
-    /*     } */
-    /*     else */
-    /*     { */
-    /*         MALLOC_INTERN( bcsc->Uvalues, valuesize * pastix_size_of( bcsc->flttype ), char ); */
-    /*         MALLOC_INTERN( trowtab, valuesize, pastix_int_t); */
-    /*         MALLOC_INTERN( trscltb, solvmtx->cblknbr, pastix_int_t *); */
-
-    /*         for (index=0; index<solvmtx->cblknbr; index++) */
-    /*         { */
-    /*             MALLOC_INTERN(trscltb[index], */
-    /*                           CSC_COLNBR(thecsc,index)+1, pastix_int_t); */
-    /*             for (iter=0; iter<(CSC_COLNBR(thecsc,index)+1); iter++) */
-    /*             { */
-    /*                 trscltb[index][iter] = CSC_COL(thecsc,index,iter); */
-    /*             } */
-    /*         } */
-    /*     } */
-    /* } */
+    memFree_null(col2cblk);
 }
-
-
-
-
 
 void bcscInit( const pastix_csc_t  *csc,
                const Order         *ord,
                const SolverMatrix  *solvmtx,
-               pastix_int_t   initU,
+               pastix_int_t   initAt,
                pastix_bcsc_t *bcsc )
 {
     assert( ord->baseval == 0 );
     assert( ord->vertnbr == csc->n );
 
+    double time = 0.;
+    clockStart(time);
+
     if ( csc->loc2glob == NULL )
-        bcscInitCentralized( csc, ord, solvmtx, initU, bcsc );
+        bcscInitCentralized( csc, ord, solvmtx, initAt, bcsc );
+
+    clockStop(time);
+    fprintf(stdout, "CscdOrdistrib: %.3g s\n", clockVal(time));
 }
+
+/******************************************************************************
+ * Function: z_CscExit                                                        *
+ ******************************************************************************
+ *                                                                            *
+ * Free the internal CSCd structure.                                          *
+ *                                                                            *
+ * Parameters:                                                                *
+ *   thecsc - Internal CSCd to free.                                          *
+ *                                                                            *
+ ******************************************************************************/
+void
+bcscExit( pastix_bcsc_t *bcsc )
+{
+    if ( bcsc->cscftab != NULL )
+    {
+        pastix_int_t itercscf;
+        for (itercscf = 0; itercscf < bcsc->cscfnbr; itercscf++ )
+        {
+            memFree_null( bcsc->cscftab[itercscf].coltab );
+        }
+
+        memFree_null( bcsc->cscftab );
+        memFree_null( bcsc->rowtab );
+
+        if ( (bcsc->Uvalues != NULL) &&
+             (bcsc->Lvalues != bcsc->Lvalues) ) {
+            memFree_null( bcsc->Uvalues );
+        }
+
+        memFree_null( bcsc->Lvalues );
+    }
+}
+
