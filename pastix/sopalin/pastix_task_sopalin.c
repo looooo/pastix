@@ -53,6 +53,7 @@ int
 pastix_task_sopalin( pastix_data_t *pastix_data,
                      pastix_csc_t  *csc )
 {
+    SolverBackup_t *sbackup;
 /* #ifdef PASTIX_WITH_MPI */
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
@@ -72,13 +73,13 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         errorPrint("pastix_task_sopalin: wrong csc parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    iparm = pastix_data->iparm;
-    procnum = pastix_data->inter_node_procnum;
-
     if ( !(pastix_data->steps & STEP_ANALYSE) ) {
-        errorPrint("pastix_task_order: pastix_task_init() has to be called before calling this function");
+        errorPrint("pastix_task_sopalin: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    iparm   = pastix_data->iparm;
+    procnum = pastix_data->inter_node_procnum;
 
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
     {
@@ -128,10 +129,22 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         //TODO: cscExit( csc );
     }
 
+    sbackup = solverBackupInit( pastix_data->solvmatr );
+
+    /* sopalinInit( pastix_data, sopalin_data, 1 ); */
+    /* sopalinFacto( pastix_data, sopalin_data ); */
+    /* sopalinExit( sopalin_data ); */
+
+    solverBackupRestore( pastix_data->solvmatr, sbackup );
+    solverBackupExit( sbackup );
+    memFree_null( sbackup );
+
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |
                              STEP_REFINE );
     pastix_data->steps |= STEP_NUMFACT;
 
     iparm[IPARM_START_TASK]++;
+
+    return EXIT_SUCCESS;
 }
