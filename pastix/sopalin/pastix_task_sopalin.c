@@ -2,7 +2,7 @@
  *
  * @file pastix_task_sopalin.c
  *
- *  PaStiX analyse routines
+ *  PaStiX factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -18,45 +18,86 @@
 #include "csc.h"
 #include "bcsc.h"
 
-/*
-  Function: pastix_task_sopalin
-
-  Distribution task.
-
-  Parameters:
-  pastix_data - PaStiX data structure
-  pastix_comm - PaStiX MPI communicator
-
-*/
-void pastix_task_sopalin( pastix_data_t *pastix_data,
-                          pastix_csc_t  *csc )
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_sopalin
+ * @ingroup pastix
+ *
+ * pastix_task_sopalin - Factorize the given problem using Cholesky(-Crout) or
+ * LU decomposition.
+ *
+ * ...
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, ...
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *          On exit, ...
+ *
+ * @param[in,out] csc
+ *          ...
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ *
+ *******************************************************************************/
+int
+pastix_task_sopalin( pastix_data_t *pastix_data,
+                     pastix_csc_t  *csc )
 {
 /* #ifdef PASTIX_WITH_MPI */
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
-/*     pastix_int_t   procnum  = pastix_data->inter_node_procnum; */
-    pastix_int_t  *iparm    = pastix_data->iparm;
+    pastix_int_t  procnum;
+    pastix_int_t *iparm;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
 
-/*     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) */
-/*     { */
-/*         switch(iparm[IPARM_FACTORIZATION]) */
-/*         { */
-/*         case API_FACT_LU: */
-/*             print_onempi("%s", OUT_STEP_NUMFACT_LU); */
-/*             break; */
-/*         case API_FACT_LLT: */
-/*             print_onempi("%s", OUT_STEP_NUMFACT_LLT); */
-/*             break; */
-/*         case API_FACT_LDLH: */
-/*             print_onempi("%s", OUT_STEP_NUMFACT_LDLH); */
-/*             break; */
-/*         case API_FACT_LDLT: */
-/*         default: */
-/*             print_onempi("%s", OUT_STEP_NUMFACT_LDLT); */
-/*         } */
-/*     } */
+    /*
+     * Check parameters
+     */
+    if (pastix_data == NULL) {
+        errorPrint("pastix_task_sopalin: wrong pastix_data parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (csc == NULL) {
+        errorPrint("pastix_task_sopalin: wrong csc parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    iparm = pastix_data->iparm;
+    procnum = pastix_data->inter_node_procnum;
+
+    if ( !(pastix_data->steps & STEP_ANALYSE) ) {
+        errorPrint("pastix_task_order: pastix_task_init() has to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    {
+        switch(iparm[IPARM_FACTORIZATION])
+        {
+        case API_FACT_LU:
+            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LU);
+            break;
+        case API_FACT_LLT:
+            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LLT);
+            break;
+        case API_FACT_LDLH:
+            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LDLH);
+            break;
+        case API_FACT_LDLT:
+        default:
+            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LDLT);
+        }
+    }
 
     /**
      * Fill in the internal blocked CSC. We consider that if this step is called
@@ -86,6 +127,11 @@ void pastix_task_sopalin( pastix_data_t *pastix_data,
     if ( iparm[IPARM_FREE_CSCUSER] ) {
         //TODO: cscExit( csc );
     }
+
+    /* Invalidate following steps, and add factorization step to the ones performed */
+    pastix_data->steps &= ~( STEP_SOLVE  |
+                             STEP_REFINE );
+    pastix_data->steps |= STEP_NUMFACT;
 
     iparm[IPARM_START_TASK]++;
 }
