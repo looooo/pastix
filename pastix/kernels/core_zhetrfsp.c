@@ -14,12 +14,11 @@
  * @precisions normal z -> c
  *
  **/
-#include <assert.h>
-
 #include "common.h"
-#include "z_solver.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
+#include "../sopalin/sopalin_acces.h"
+#include "../blend/solver.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -198,7 +197,6 @@ static void core_zhetrfsp(pastix_int_t        n,
     }
 }
 
-
 /**
  *******************************************************************************
  *
@@ -230,22 +228,20 @@ static void core_zhetrfsp(pastix_int_t        n,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zhetrfsp1d_hetrf( z_SolverCblk         *cblk,
+int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
                            pastix_complex64_t *work )
 {
-    z_SolverBlok   *blok, *fblk;
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    fblk = cblk->fblokptr;   /* this diagonal block */
 
     /* check if diagonal column block */
-    assert( cblk->fcolnum == fblk->frownum );
-    assert( cblk->lcolnum == fblk->lrownum );
+    assert( cblk->fcolnum == cblk->fblokptr->frownum );
+    assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     /* Factorize diagonal block (two terms version with workspace) */
     core_zhetrfsp(ncols, L, stride, &nbpivot, criteria, work);
@@ -276,12 +272,11 @@ int core_zhetrfsp1d_hetrf( z_SolverCblk         *cblk,
  *          \retval PASTIX_SUCCESS on successful exit.
  *
  *******************************************************************************/
-int core_zhetrfsp1d_trsm( z_SolverCblk         *cblk,
+int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L)
 {
-    z_SolverBlok   *blok, *fblk, *lblk;
-    pastix_int_t  ncols, stride;
-    pastix_int_t  nbpivot = 0;
+    SolverBlok  *fblk, *lblk;
+    pastix_int_t ncols, stride;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
@@ -351,7 +346,7 @@ int core_zhetrfsp1d_trsm( z_SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zhetrfsp1d( z_SolverCblk         *cblk,
+int core_zhetrfsp1d( SolverCblk         *cblk,
                      pastix_complex64_t *L,
                      double              criteria,
                      pastix_complex64_t *work )
@@ -390,10 +385,11 @@ int core_zhetrfsp1d( z_SolverCblk         *cblk,
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
+ * @param[in,out] work1
+ *          Temporary buffer used in core_zgemdm().
+ *
+ * @param[in,out] work2
+ *          Temporary buffer used in core_zgemdm().
  *
  *******************************************************************************
  *
@@ -401,27 +397,29 @@ int core_zhetrfsp1d( z_SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zhetrfsp1d_gemm( z_SolverCblk         *cblk,
-                           z_SolverBlok         *blok,
-                           z_SolverCblk         *fcblk,
+void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
+                           SolverBlok         *blok,
+                           SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2 )
 {
-    z_SolverBlok *iterblok;
-    z_SolverBlok *fblok; /* Facing blok */
-    z_SolverBlok *lblok; /* last blok */
+    SolverBlok *iterblok;
+    SolverBlok *fblok; /* facing blok */
+    SolverBlok *lblok; /* first blok of panel cblk+1 */
 
     pastix_complex64_t *Aik, *Aij;
     pastix_int_t stride, stridefc, indblok;
     pastix_int_t dimi, dimj, dima, dimb;
     pastix_int_t ldw;
+    pastix_int_t ret;
 
     stride  = cblk->stride;
     dima = cblk->lcolnum - cblk->fcolnum + 1;
 
-    indblok = blok->coefind;
+    /* First blok */
+    indblok  = blok->coefind;
 
     dimj = blok->lrownum - blok->frownum + 1;
     dimi = stride - indblok;
@@ -433,13 +431,14 @@ void core_zhetrfsp1d_gemm( z_SolverCblk         *cblk,
     ldw = dimi * dima;
 
     /* Compute the contribution */
-    core_zgemdm( CblasNoTrans, CblasConjTrans,
-                 dimi, dimj, dima,
-                 1.,  Aik,   stride,
-                      Aik,   stride,
-                 0.,  work1, dimi,
-                      L,     stride+1,
-                      work2, ldw );
+    ret = core_zgemdm( CblasNoTrans, CblasConjTrans,
+                       dimi, dimj, dima,
+                       1.,  Aik,   stride,
+                            Aik,   stride,
+                       0.,  work1, dimi,
+                            L,     stride+1,
+                            work2, ldw );
+    assert(ret == PASTIX_SUCCESS);
 
     /*
      * Add contribution to facing cblk
@@ -458,8 +457,8 @@ void core_zhetrfsp1d_gemm( z_SolverCblk         *cblk,
     /* for all following blocks in block column */
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
-        /* Find facing bloknum */
-        while (!z_is_block_inside_fblock( iterblok, fblok ))
+        /* Find facing blok */
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );

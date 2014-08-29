@@ -14,11 +14,11 @@
  * @precisions normal z -> c d s
  *
  **/
-#include <assert.h>
-
 #include "common.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
+#include "../sopalin/sopalin_acces.h"
+#include "../blend/solver.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -233,27 +233,23 @@ static void core_zsytrfsp(pastix_int_t        n,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zsytrfsp1d_sytrf( z_SolverCblk         *cblk,
+int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
                            pastix_complex64_t *work )
 {
-    z_SolverBlok   *fblk, *lblk;
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    fblk = cblk->fblokptr;   /* diagonal block */
-    lblk = cblk[1].fblokptr; /* next diagonal block */
 
     /* check if diagonal column block */
-    assert( cblk->fcolnum == fblk->frownum );
-    assert( cblk->lcolnum == fblk->lrownum );
+    assert( cblk->fcolnum == cblk->fblokptr->frownum );
+    assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     /* Factorize diagonal block (two terms version with workspace) */
     core_zsytrfsp(ncols, L, stride, &nbpivot, criteria, work);
-
 
     return nbpivot;
 }
@@ -281,17 +277,16 @@ int core_zsytrfsp1d_sytrf( z_SolverCblk         *cblk,
  *          \retval PASTIX_SUCCESS on successful exit.
  *
  *******************************************************************************/
-int core_zsytrfsp1d_trsm( z_SolverCblk         *cblk,
+int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L )
 {
-    z_SolverBlok   *fblk, *lblk;
-    pastix_int_t  ncols, stride;
-    pastix_int_t  nbpivot = 0;
+    SolverBlok  *fblk, *lblk;
+    pastix_int_t ncols, stride;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    fblk = cblk->fblokptr;   /* diagonal block */
-    lblk = cblk[1].fblokptr; /* next diagonal block */
+    fblk = cblk->fblokptr;   /* this diagonal block */
+    lblk = cblk[1].fblokptr; /* the next diagonal block */
 
     /* if there are off-diagonal supernodes in the column */
     if ( fblk+1 < lblk )
@@ -356,14 +351,13 @@ int core_zsytrfsp1d_trsm( z_SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zsytrfsp1d( z_SolverCblk         *cblk,
+int core_zsytrfsp1d( SolverCblk         *cblk,
                      pastix_complex64_t *L,
                      double              criteria,
                      pastix_complex64_t *work )
 {
     pastix_int_t  nbpivot = core_zsytrfsp1d_sytrf(cblk, L, criteria, work);
     core_zsytrfsp1d_trsm(cblk, L);
-
     return nbpivot;
 }
 
@@ -373,8 +367,8 @@ int core_zsytrfsp1d( z_SolverCblk         *cblk,
  *
  * @ingroup pastix_kernel
  *
- * core_zpotrfsp1d - Computes the Cholesky factorization of one panel and apply
- * all the trsm updates to this panel.
+ * core_zsytrfsp1d_gemm - Computes the Cholesky factorization of one panel and
+ * apply all the trsm updates to this panel.
  *
  *******************************************************************************
  *
@@ -408,17 +402,17 @@ int core_zsytrfsp1d( z_SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zsytrfsp1d_gemm( z_SolverCblk         *cblk,
-                           z_SolverBlok         *blok,
-                           z_SolverCblk         *fcblk,
+void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
+                           SolverBlok         *blok,
+                           SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work1,
-                           pastix_complex64_t *work2)
+                           pastix_complex64_t *work2 )
 {
-    z_SolverBlok *iterblok;
-    z_SolverBlok *fblok; /* facing blok */
-    z_SolverBlok *lblk;  /* first blok of panel cblk+1 */
+    SolverBlok *iterblok;
+    SolverBlok *fblok; /* facing blok */
+    SolverBlok *lblok; /* first blok of panel cblk+1 */
 
     pastix_complex64_t *Aik, *Aij;
     pastix_int_t stride, stridefc, indblok;
@@ -428,7 +422,6 @@ void core_zsytrfsp1d_gemm( z_SolverCblk         *cblk,
 
     stride  = cblk->stride;
     dima = cblk->lcolnum - cblk->fcolnum + 1;
-
 
     /* First blok */
     indblok  = blok->coefind;
@@ -441,6 +434,7 @@ void core_zsytrfsp1d_gemm( z_SolverCblk         *cblk,
 
     /* Compute ldw which should never be larger than SOLVE_COEFMAX */
     ldw = (dimi +1)* dima;
+
     /* Compute the contribution */
     ret = core_zgemdm( CblasNoTrans, CblasTrans,
                        dimi, dimj, dima,
@@ -463,13 +457,13 @@ void core_zsytrfsp1d_gemm( z_SolverCblk         *cblk,
     stridefc = fcblk->stride;
     C = C + (blok->frownum - fcblk->fcolnum) * stridefc;
 
-    lblk = cblk[1].fblokptr;
+    lblok = cblk[1].fblokptr;
 
     /* for all following blocks in block column */
-    for (iterblok=blok; iterblok<lblk; iterblok++) {
+    for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
-        while (!z_is_block_inside_fblock( iterblok, fblok ))
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );

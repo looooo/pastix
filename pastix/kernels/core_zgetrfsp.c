@@ -225,24 +225,20 @@ static void core_zgetrfsp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d_getrf( z_SolverCblk         *cblk,
+int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria)
 {
-    z_SolverBlok *fblok;
-
-    pastix_complex64_t *fL, *fU;
     pastix_int_t dima, stride;
     pastix_int_t nbpivot = 0;
 
     dima    = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    fblok = cblk->fblokptr;   /* this diagonal block */
-
 
     /* check if diagonal column block */
-    assert( cblk->fcolnum == fblok->frownum );
+    assert( cblk->fcolnum == cblk->fblokptr->frownum );
+    assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     core_zgeadd( CblasTrans, dima, dima, 1.0,
                  U, stride,
@@ -253,7 +249,6 @@ int core_zgetrfsp1d_getrf( z_SolverCblk         *cblk,
 
     /* Transpose Akk in ucoeftab */
     core_zgetro(dima, dima, L, stride, U, stride);
-
 
     return nbpivot;
 }
@@ -285,15 +280,13 @@ int core_zgetrfsp1d_getrf( z_SolverCblk         *cblk,
  *          \retval PASTIX_SUCCESS on successful exit
  *
  *******************************************************************************/
-int core_zgetrfsp1d_trsm( z_SolverCblk         *cblk,
+int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L,
                           pastix_complex64_t *U)
 {
-    z_SolverBlok *fblok, *lblok;
-
+    SolverBlok *fblok, *lblok;
     pastix_complex64_t *fL, *fU;
     pastix_int_t dima, dimb, stride;
-    pastix_int_t nbpivot = 0;
 
     dima    = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
@@ -362,7 +355,7 @@ int core_zgetrfsp1d_trsm( z_SolverCblk         *cblk,
  *          factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d( z_SolverCblk         *cblk,
+int core_zgetrfsp1d( SolverCblk         *cblk,
                      pastix_complex64_t *L,
                      pastix_complex64_t *U,
                      double              criteria)
@@ -423,18 +416,18 @@ int core_zgetrfsp1d( z_SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zgetrfsp1d_gemm( z_SolverCblk         *cblk,
-                           z_SolverBlok         *blok,
-                           z_SolverCblk         *fcblk,
+void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
+                           SolverBlok         *blok,
+                           SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            pastix_complex64_t *Cl,
                            pastix_complex64_t *Cu,
                            pastix_complex64_t *work )
 {
-    z_SolverBlok *iterblok;
-    z_SolverBlok *fblok;
-    z_SolverBlok *lblok;
+    SolverBlok *iterblok;
+    SolverBlok *fblok;
+    SolverBlok *lblok;
 
     pastix_complex64_t *Aik, *Akj, *Aij, *C;
     pastix_complex64_t *wtmp;
@@ -482,7 +475,7 @@ void core_zgetrfsp1d_gemm( z_SolverCblk         *cblk,
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!z_is_block_inside_fblock( iterblok, fblok ))
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );
@@ -532,7 +525,7 @@ void core_zgetrfsp1d_gemm( z_SolverCblk         *cblk,
     for (iterblok=blok+1; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        if (!z_is_block_inside_fblock( iterblok, fblok ))
+        if (!is_block_inside_fblock( iterblok, fblok ))
              break;
 
         Aij = C + (iterblok->frownum - fblok->frownum)*stridefc;
@@ -558,7 +551,7 @@ void core_zgetrfsp1d_gemm( z_SolverCblk         *cblk,
     for (; iterblok<lblok; iterblok++) {
 
         /* Find facing bloknum */
-        while (!z_is_block_inside_fblock( iterblok, fblok ))
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );
