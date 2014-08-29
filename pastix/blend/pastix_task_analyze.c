@@ -26,17 +26,38 @@
 #include "dof.h"
 #include "solver.h"
 
-/*
-  Function: pastix_task_blend
-
-  Distribution task.
-
-  Parameters:
-  pastix_data - PaStiX data structure
-  pastix_comm - PaStiX MPI communicator
-
-*/
-int pastix_task_blend(pastix_data_t *pastix_data)
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_analyze
+ * @ingroup pastix
+ *
+ * pastix_task_blend - Computes the structural information required to factorize
+ * and solve the problem.
+ *
+ * ...
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, ...
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *          On exit, ...
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ *
+ *******************************************************************************/
+// TODO: need some cleanup arount the printf, and solverBlend could be
+// integrated directly into this function.
+int
+pastix_task_blend(pastix_data_t *pastix_data)
 {
     Dof            dofstr;
     BlendCtrl      ctrl;
@@ -132,10 +153,10 @@ int pastix_task_blend(pastix_data_t *pastix_data)
         }
     }
 
-    /* Invalidate following steps, and add order step to the ones performed */
-    pastix_data->steps &= ~( STEP_NUMFACT  |
-                             STEP_SOLVE    |
-                             STEP_REFINE   );
+    /* Invalidate following steps, and add analyse step to the ones performed */
+    pastix_data->steps &= ~( STEP_NUMFACT |
+                             STEP_SOLVE   |
+                             STEP_REFINE  );
     pastix_data->steps |= STEP_ANALYSE;
 
     iparm[IPARM_START_TASK]++;
