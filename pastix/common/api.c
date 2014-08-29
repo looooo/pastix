@@ -19,6 +19,7 @@
 #endif
 #include "order.h"
 #include "solver.h"
+#include "bcsc.h"
 
 /**
  *******************************************************************************
@@ -301,11 +302,16 @@ pastixInit( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    /* Initialization step done, overwrite anything done before */
-    pastix->steps = STEP_INIT;
 
     // TODO
     //z_pastix_welcome_print(*pastix_data, colptr, n);
+
+    
+
+
+
+    /* Initialization step done, overwrite anything done before */
+    pastix->steps = STEP_INIT;
 
     *pastix_data = pastix;
 }
@@ -359,27 +365,34 @@ pastixFinalize( pastix_data_t **pastix_data,
         SolverMatrix *solvmatr = pastix->solvmatr;
         pastix_int_t i;
 
-        /* TODO: move to solverExit */
-        if (solvmatr->updovct.cblktab) {
-            for (i=0; i<solvmatr->cblknbr; i++)
-            {
-                if (solvmatr->updovct.cblktab[i].browcblktab)
-                    memFree_null(solvmatr->updovct.cblktab[i].browcblktab);
-                if (solvmatr->updovct.cblktab[i].browproctab)
-                    memFree_null(solvmatr->updovct.cblktab[i].browproctab);
+        /* TODO: move following block to solverExit */
+        {
+            if (solvmatr->updovct.cblktab) {
+                for (i=0; i<solvmatr->cblknbr; i++)
+                {
+                    if (solvmatr->updovct.cblktab[i].browcblktab)
+                        memFree_null(solvmatr->updovct.cblktab[i].browcblktab);
+                    if (solvmatr->updovct.cblktab[i].browproctab)
+                        memFree_null(solvmatr->updovct.cblktab[i].browproctab);
+                }
             }
+            memFree_null(solvmatr->updovct.lblk2gcblk);
+            memFree_null(solvmatr->updovct.listblok);
+            memFree_null(solvmatr->updovct.listcblk);
+            memFree_null(solvmatr->updovct.gcblk2list);
+            memFree_null(solvmatr->updovct.loc2glob);
+            memFree_null(solvmatr->updovct.cblktab);
+            memFree_null(solvmatr->updovct.listptr);
         }
-        memFree_null(solvmatr->updovct.lblk2gcblk);
-        memFree_null(solvmatr->updovct.listblok);
-        memFree_null(solvmatr->updovct.listcblk);
-        memFree_null(solvmatr->updovct.gcblk2list);
-        memFree_null(solvmatr->updovct.loc2glob);
-        memFree_null(solvmatr->updovct.cblktab);
-        memFree_null(solvmatr->updovct.listptr);
 
         solverExit( pastix->solvmatr );
         memFree_null( pastix->solvmatr );
     }
 
+    if ( pastix->bcsc != NULL )
+    {
+        bcscExit( pastix->bcsc );
+        memFree_null( pastix->bcsc );
+    }
     memFree_null(*pastix_data);
 }
