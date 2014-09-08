@@ -266,7 +266,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
                 solvcblk->stride   = stride;
                 solvcblk->procdiag = solvmtx->clustnum;
-                solvcblk->coeftab  = NULL;
+                solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
 
@@ -286,7 +286,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
             solvcblk->stride   = 0;
             solvcblk->procdiag = -1;
-            solvcblk->coeftab  = NULL;
+            solvcblk->lcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
         }

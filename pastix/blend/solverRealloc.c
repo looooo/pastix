@@ -178,8 +178,8 @@ void solverExit(SolverMatrix *solvmtx)
       {
         for (i = 0; i < solvmtx->cblknbr; i++)
           {
-            if (solvmtx->cblktab[i].coeftab)
-              memFree_null(solvmtx->cblktab[i].coeftab);
+            if (solvmtx->cblktab[i].lcoeftab)
+              memFree_null(solvmtx->cblktab[i].lcoeftab);
 
             if (solvmtx->cblktab[i].ucoeftab)
               memFree_null(solvmtx->cblktab[i].ucoeftab);
@@ -188,8 +188,6 @@ void solverExit(SolverMatrix *solvmtx)
       }
     if(solvmtx->bloktab)
       memFree_null(solvmtx->bloktab);
-    /*if(solvmtx->coeftab)
-      memFree_null(solvmtx->coeftab);*/
     if(solvmtx->ftgttab)
       memFree_null(solvmtx->ftgttab);
     if(solvmtx->tasktab)
