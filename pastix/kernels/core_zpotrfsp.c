@@ -81,6 +81,7 @@ static void core_zpotf2sp(pastix_int_t        n,
         if ( creal(*Akk) < 0. )
         {
             errorPrint("Negative diagonal term\n");
+            assert(0);
             EXIT(MOD_SOPALIN, INTERNAL_ERR);
         }
 
@@ -482,7 +483,7 @@ core_zpotrfsp1d( SolverMatrix *solvmtx,
                  SolverCblk   *cblk,
                  double        criteria )
 {
-    pastix_complex64_t *L = cblk->coeftab;
+    pastix_complex64_t *L = cblk->lcoeftab;
     pastix_complex64_t *work = NULL;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
@@ -495,16 +496,22 @@ core_zpotrfsp1d( SolverMatrix *solvmtx,
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
 
     if ( blok < lblk ) {
-        MALLOC_INTERN( work, blok_rownbr( cblk->fblokptr ) * cblk->stride, pastix_complex64_t );
+        pastix_int_t maxarea = 0;
+        for( ; blok < lblk; blok++ )
+        {
+            maxarea = pastix_imax( maxarea, blok_rownbr( blok ) * cblk->stride );
+        }
+        MALLOC_INTERN( work, maxarea, pastix_complex64_t );
     }
 
     /* if there are off-diagonal supernodes in the column */
+    blok = cblk->fblokptr+1;
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->cblknum);
 
         core_zpotrfsp1d_gemm( cblk, blok, fcblk,
-                              L, fcblk->coeftab, work );
+                              L, fcblk->lcoeftab, work );
     }
 
     memFree_null( work );
