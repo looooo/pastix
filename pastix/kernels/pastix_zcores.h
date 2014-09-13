@@ -108,10 +108,9 @@ int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
 int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L );
 
-int core_zsytrfsp1d( SolverCblk         *cblk,
-                     pastix_complex64_t *L,
-                     double              criteria,
-                     pastix_complex64_t *work );
+int core_zsytrfsp1d( SolverMatrix *solvmtx,
+                     SolverCblk   *cblk,
+                     double        criteria );
 
 void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
                            SolverBlok         *blok,

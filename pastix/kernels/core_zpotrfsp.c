@@ -85,7 +85,7 @@ static void core_zpotf2sp(pastix_int_t        n,
             EXIT(MOD_SOPALIN, INTERNAL_ERR);
         }
 
-        *Akk = (pastix_complex64_t)csqrt(*Akk);
+        *Akk = csqrt(*Akk);
         alpha = 1. / (*Akk);
 
         /* Scale the diagonal to compute L((k+1):n,k) */
@@ -187,7 +187,6 @@ static void core_zpotrfsp(pastix_int_t        n,
         }
     }
 }
-
 
 /**
  *******************************************************************************
@@ -387,7 +386,7 @@ void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
     /* for all following blocks in block column */
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
-        /* Find facing bloknum */
+        /* Find facing blok */
         while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
