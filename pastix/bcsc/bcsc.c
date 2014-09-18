@@ -225,11 +225,12 @@ bcscInitCentralized( const pastix_csc_t  *csc,
     memFree_null(col2cblk);
 }
 
-void bcscInit( const pastix_csc_t  *csc,
-               const Order         *ord,
-               const SolverMatrix  *solvmtx,
-               pastix_int_t   initAt,
-               pastix_bcsc_t *bcsc )
+void
+bcscInit( const pastix_csc_t  *csc,
+          const Order         *ord,
+          const SolverMatrix  *solvmtx,
+                pastix_int_t   initAt,
+                pastix_bcsc_t *bcsc )
 {
     assert( ord->baseval == 0 );
     assert( ord->vertnbr == csc->n );

@@ -71,7 +71,7 @@ void z_Csc2solv_cblk(const z_CscMatrix *cscmtx,
           {
             if (CSC_ROW(cscmtx,iterval) >=
                 SYMB_FCOLNUM(itercblk))
-              {
+            {
                 iterbloc = SYMB_BLOKNUM(itercblk);
 
                 ASSERTDBG(iterbloc < SYMB_BLOKNBR, MOD_SOPALIN);
