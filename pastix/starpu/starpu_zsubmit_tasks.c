@@ -39,7 +39,6 @@
 #  include "perf.h"
 #  include "starpu_zsubmit_tasks.h"
 #  include "starpu_zupdo.h"
-#  include "starpu_pastix_sched_policy.h"
 #  include "z_sopalin_init.h"
 #  include "starpu_zkernels.h"
 #  include "starpu_zregister_data.h"

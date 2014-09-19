@@ -296,7 +296,7 @@ void solverBlend(BlendCtrl    *ctrl,
     {
         clockStop(timer_all);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            printf("---- Total execution at time: %g ----\n",clockVal(timer_all));
+            printf("---- Total execution at time: %lg ----\n",clockVal(timer_all));
         set_dparm(ctrl->dparm, DPARM_ANALYZE_TIME, clockVal(timer_all));
     }
 
