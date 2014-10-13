@@ -40,9 +40,9 @@
  *          The floating point array of parameters to initialize.
  *
  *******************************************************************************/
-static inline void
-pastix_init_param(pastix_int_t *iparm,
-                  double       *dparm)
+void
+pastixInitParam( pastix_int_t *iparm,
+                 double       *dparm )
 {
     memset( iparm, 0, IPARM_SIZE * sizeof(pastix_int_t) );
     memset( dparm, 0, DPARM_SIZE * sizeof(double) );
@@ -59,31 +59,46 @@ pastix_init_param(pastix_int_t *iparm,
     iparm[IPARM_MC64]                  = 0;                   /* MC64 operation <z_pastix.h> IGNORE                     */
     iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
     iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
-    iparm[IPARM_GRAPHDIST]             = API_YES;             /* Specify if the given graph is distributed or not     */
+    iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
     iparm[IPARM_AMALGAMATION_LEVEL]    = 5;                   /* Amalgamation level                                   */
+
+    /**
+     * Ordering parameters
+     */
     iparm[IPARM_ORDERING]              = API_ORDER_SCOTCH;    /* Choose ordering                                      */
     iparm[IPARM_ORDERING_DEFAULT]      = API_YES;             /* Use default ordering parameters with scotch or metis */
 
-    /* Scotch default */
-    iparm[IPARM_ORDERING_SWITCH_LEVEL] = 120;                 /* Ordering switch level    (see Scotch User's Guide)   */
-    iparm[IPARM_ORDERING_CMIN]         = 0;                   /* Ordering cmin parameter  (see Scotch User's Guide)   */
-    iparm[IPARM_ORDERING_CMAX]         = 100000;              /* Ordering cmax parameter  (see Scotch User's Guide)   */
-    iparm[IPARM_ORDERING_FRAT]         = 8;                   /* Ordering frat parameter  (see Scotch User's Guide)   */
+    /* Scotch */
+    {
+        iparm[IPARM_ORDERING_SWITCH_LEVEL] = 120;    /* Ordering switch level    (see Scotch User's Guide)   */
+        iparm[IPARM_ORDERING_CMIN]         = 0;      /* Ordering cmin parameter  (see Scotch User's Guide)   */
+        iparm[IPARM_ORDERING_CMAX]         = 100000; /* Ordering cmax parameter  (see Scotch User's Guide)   */
+        iparm[IPARM_ORDERING_FRAT]         = 8;      /* Ordering frat parameter  (see Scotch User's Guide)   */
+    }
 
-    /* Metis default */
+    /* Metis */
+    {
 #if defined(HAVE_METIS)
-    iparm[IPARM_METIS_CTYPE   ] = METIS_CTYPE_SHEM;
-    iparm[IPARM_METIS_RTYPE   ] = METIS_RTYPE_SEP1SIDED;
+        iparm[IPARM_METIS_CTYPE   ] = METIS_CTYPE_SHEM;
+        iparm[IPARM_METIS_RTYPE   ] = METIS_RTYPE_SEP1SIDED;
+#else
+        iparm[IPARM_METIS_CTYPE   ] = -1;
+        iparm[IPARM_METIS_RTYPE   ] = -1;
 #endif
-    iparm[IPARM_METIS_NO2HOP  ] = 0;
-    iparm[IPARM_METIS_NSEPS   ] = 1;
-    iparm[IPARM_METIS_NITER   ] = 10;
-    iparm[IPARM_METIS_UFACTOR ] = 200;
-    iparm[IPARM_METIS_COMPRESS] = 1;
-    iparm[IPARM_METIS_CCORDER ] = 0;
-    iparm[IPARM_METIS_PFACTOR ] = 0;
-    iparm[IPARM_METIS_SEED    ] = 3452;
-    iparm[IPARM_METIS_DBGLVL  ] = 0;
+        iparm[IPARM_METIS_NO2HOP  ] = 0;
+        iparm[IPARM_METIS_NSEPS   ] = 1;
+        iparm[IPARM_METIS_NITER   ] = 10;
+        iparm[IPARM_METIS_UFACTOR ] = 200;
+        iparm[IPARM_METIS_COMPRESS] = 1;
+        iparm[IPARM_METIS_CCORDER ] = 0;
+        iparm[IPARM_METIS_PFACTOR ] = 0;
+        iparm[IPARM_METIS_SEED    ] = 3452;
+        iparm[IPARM_METIS_DBGLVL  ] = 0;
+    }
+
+    /**
+     * End of ordering parameters
+     ******************************************/
 
     iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
     iparm[IPARM_NNZEROS]               = 0;                   /* memory space for coefficients                        */
@@ -98,7 +113,7 @@ pastix_init_param(pastix_int_t *iparm,
     iparm[IPARM_THREAD_NBR]            = 1;                   /* thread/mpi */
     iparm[IPARM_CUDA_NBR]              = 0;                   /* CUDA devices */
     iparm[IPARM_DISTRIBUTION_LEVEL]    = 0;                   /* 1d / 2d */
-    iparm[IPARM_LEVEL_OF_FILL]         = 1;                   /* level of fill */
+    iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
     iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
     iparm[IPARM_RHS_MAKING]            = API_RHS_B;           /* generate rhs */
     iparm[IPARM_REFINEMENT]            = API_RAF_GMRES;       /* gmres */
@@ -120,54 +135,62 @@ pastix_init_param(pastix_int_t *iparm,
     iparm[IPARM_NB_SMP_NODE_USED]      = 0;                   /* Nb SMP node used (0 for 1 per MPI process) */
     iparm[IPARM_MURGE_REFINEMENT]      = API_YES;
     iparm[IPARM_TRANSPOSE_SOLVE]       = API_NO;
-    /* Mode pour thread_comm :
-     0 -> inutilisé
-     1 -> 1 seul
-     2 -> iparm[IPARM_NB_THREAD_COMM]
-     3 -> Nbproc(iparm[IPARM_THREAD_NBR]))
-     */
-#ifdef PASTIX_FUNNELED
-    iparm[IPARM_THREAD_COMM_MODE]      = API_THREAD_FUNNELED;
-#else
-    iparm[IPARM_THREAD_COMM_MODE]      = API_THREAD_MULTIPLE;
-#endif
-    iparm[IPARM_NB_THREAD_COMM]        = 1;                   /* Nb thread quand iparm[IPARM_THREAD_COMM_MODE] == API_THCOMM_DEFINED */
-    iparm[IPARM_FILL_MATRIX]           = API_NO;              /* fill matrix */
-    iparm[IPARM_INERTIA]               = -1;
-    iparm[IPARM_ESP_NBTASKS]           = -1;
-    iparm[IPARM_ESP_THRESHOLD]         = 16384;               /* Taille de bloc minimale pour passer en esp (2**14) = 128 * 128 */
-    iparm[IPARM_ERROR_NUMBER]          = PASTIX_SUCCESS;
-    iparm[IPARM_RHSD_CHECK]            = API_YES;
-    iparm[IPARM_STARPU]                = API_NO;
-    iparm[IPARM_AUTOSPLIT_COMM]        = API_NO;
-#ifdef TYPE_COMPLEX
-#  ifdef PREC_DOUBLE
-    iparm[IPARM_FLOAT]                 = API_COMPLEXDOUBLE;
-#  else
-    iparm[IPARM_FLOAT]                 = API_COMPLEXSINGLE;
-#  endif
-#else
-#  ifdef PREC_DOUBLE
-    iparm[IPARM_FLOAT]                 = API_REALDOUBLE;
-#  else
-    iparm[IPARM_FLOAT]                 = API_REALSINGLE;
-#  endif
-#endif
-    iparm[IPARM_STARPU_CTX_DEPTH]      = 3;
-    iparm[IPARM_STARPU_CTX_NBR]        = -1;
-    iparm[IPARM_PRODUCE_STATS]         = API_NO;
-#ifdef PREC_DOUBLE
-    dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
-#else
-    dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
-#endif
-    dparm[DPARM_RELATIVE_ERROR]     = -1;
-    dparm[DPARM_SCALED_RESIDUAL]    = -1;
-    dparm[DPARM_EPSILON_MAGN_CTRL]  = 1e-31;
-    dparm[DPARM_FACT_FLOPS]         = 0;
-    dparm[DPARM_SOLV_FLOPS]         = 0;
-}
 
+
+    /**
+     * Communication modes
+     */
+    iparm[IPARM_THREAD_COMM_MODE] = 0;
+#if defined(PASTIX_WITH_MPI)
+    {
+        int flag = 0;
+        int provided = MPI_THREAD_SINGLE;
+        MPI_Initialized(&flag);
+
+        if (flag) {
+            MPI_Query_thread(&provided);
+            switch( provided ) {
+            case MPI_THREAD_MULTIPLE:
+                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_MULTIPLE;
+                break;
+            case MPI_THREAD_SERIALIZED:
+            case MPI_THREAD_FUNNELED:
+                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_FUNNELED;
+                break;
+                /**
+                 * In the folowing cases, we consider that any MPI implementation
+                 * should provide enough level of parallelism to turn in Funneled mode
+                 */
+            case MPI_THREAD_SINGLE:
+            default:
+                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_FUNNELED;
+            }
+        }
+    }
+#endif /* defined(PASTIX_WITH_MPI) */
+
+
+    iparm[IPARM_NB_THREAD_COMM]     = 1;                   /* Nb thread quand iparm[IPARM_THREAD_COMM_MODE] == API_THCOMM_DEFINED */
+    iparm[IPARM_FILL_MATRIX]        = API_NO;              /* fill matrix */
+    iparm[IPARM_INERTIA]            = -1;
+    iparm[IPARM_ESP_NBTASKS]        = -1;
+    iparm[IPARM_ESP_THRESHOLD]      = 16384;               /* Taille de bloc minimale pour passer en esp (2**14) = 128 * 128 */
+    iparm[IPARM_ERROR_NUMBER]       = PASTIX_SUCCESS;
+    iparm[IPARM_RHSD_CHECK]         = API_YES;
+    iparm[IPARM_STARPU]             = API_NO;
+    iparm[IPARM_AUTOSPLIT_COMM]     = API_NO;
+    iparm[IPARM_FLOAT]              = API_REALDOUBLE;
+    iparm[IPARM_STARPU_CTX_DEPTH]   = 3;
+    iparm[IPARM_STARPU_CTX_NBR]     = -1;
+    iparm[IPARM_PRODUCE_STATS]      = API_NO;
+
+    dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
+    dparm[DPARM_RELATIVE_ERROR]     = -1.;
+    dparm[DPARM_SCALED_RESIDUAL]    = -1.;
+    dparm[DPARM_EPSILON_MAGN_CTRL]  = 1e-31;
+    dparm[DPARM_FACT_FLOPS]         = 0.;
+    dparm[DPARM_SOLV_FLOPS]         = 0.;
+}
 
 /**
  *******************************************************************************
@@ -198,73 +221,101 @@ pastixInit( pastix_data_t **pastix_data,
     pastix_data_t *pastix;
 
     /**
+     * Check if MPI is initialized
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int provided = MPI_THREAD_SINGLE;
+        int flag = 0;
+        MPI_Initialized(&flag);
+        if ( !flag ) {
+            MPI_Init_thread( argc, argv, MPI_THREAD_MULTIPLE, &provided );
+        }
+    }
+#endif
+
+    /**
      * Allocate pastix_data structure when we enter PaStiX for the first time.
      */
     MALLOC_INTERN(pastix, 1, pastix_data_t);
     memset( pastix, 0, sizeof(pastix_data_t) );
 
-    /* Initialize default parameters */
+    /**
+     * Initialize iparm/dparm vectors and set them to default values if not set
+     * by the user.
+     */
+    if ( iparm[IPARM_MODIFY_PARAMETER] == API_NO ) {
+        pastixInitParam( iparm, dparm );
+    }
     pastix->iparm = iparm;
     pastix->dparm = dparm;
 
-    iparm[IPARM_MODIFY_PARAMETER] = API_NO;
-    pastix_init_param( iparm, dparm );
+    pastix->graph      = NULL;
+    pastix->schur_n    = 0;
+    pastix->schur_list = NULL;
+    pastix->zeros_n    = 0;
+    pastix->zeros_list = NULL;
+    pastix->ordemesh   = NULL;
+    pastix->symbmtx    = NULL;
 
-    pastix->n2          = -1;
+    pastix->gN = -1;
+    pastix->n2 = -1;
+    pastix->solvmatr   = NULL;
+    pastix->bcsc       = NULL;
+
+    /**
+     * Setup all communicators for autosplitmode and initialize number/rank of
+     * processes.
+     */
     pastix->pastix_comm = pastix_comm;
+    MPI_Comm_size(pastix_comm, &(pastix->procnbr));
+    MPI_Comm_rank(pastix_comm, &(pastix->procnum));
 
-    if (iparm != NULL && iparm[IPARM_AUTOSPLIT_COMM] == API_YES)
+    if (iparm[IPARM_AUTOSPLIT_COMM] == API_YES)
     {
-        int i,len, mpisize;
-        char procname[MPI_MAX_PROCESSOR_NAME];
-        int color, key;
+        int     i, len;
+        char    procname[MPI_MAX_PROCESSOR_NAME];
+        int     rc, key = pastix->procnum;
+        int64_t color;
 
-        MPI_Get_processor_name(procname,&len);
-        MPI_Comm_rank(pastix_comm, &(key));
+        /**
+         * Get hostname to generate a hash that will be the color of each node
+         * MPI_Get_processor_name is not used as it can returned different
+         * strings for processes of a same physical node.
+         */
+        rc = gethostname(procname, MPI_MAX_PROCESSOR_NAME-1);
+        assert(rc == 0);
+        procname[MPI_MAX_PROCESSOR_NAME-1] = '\0';
+        len = strlen( procname );
+
+        /* Compute hash */
         color = 0;
-        for (i = 0; i < len; i++)
+        for (i = 0; i < len; i++) {
             color = color*256*sizeof(char) + procname[i];
-        MPI_Comm_split(pastix_comm, color, key, &pastix->intra_node_comm);
-        MPI_Comm_rank(pastix->intra_node_comm, &color);
-        MPI_Comm_rank(pastix->intra_node_comm, &(key));
-        MPI_Comm_split(pastix_comm, color, key, &pastix->inter_node_comm);
-        MPI_Comm_size(pastix->intra_node_comm, &mpisize);
-        iparm[IPARM_THREAD_NBR] = mpisize;
+        }
+
+        /* Create intra-node communicator */
+        MPI_Comm_split(pastix_comm, color, key, &(pastix->intra_node_comm));
+        MPI_Comm_size(pastix->intra_node_comm, &(pastix->intra_node_procnbr));
+        MPI_Comm_rank(pastix->intra_node_comm, &(pastix->intra_node_procnum));
+
+        /* Create inter-node communicator */
+        MPI_Comm_split(pastix_comm, pastix->intra_node_procnum, key, &(pastix->inter_node_comm));
+        MPI_Comm_size(pastix->inter_node_comm, &(pastix->inter_node_procnbr));
+        MPI_Comm_rank(pastix->inter_node_comm, &(pastix->inter_node_procnum));
     }
     else
     {
-        pastix->inter_node_comm      = pastix_comm;
-        pastix->intra_node_comm      = MPI_COMM_SELF;
+        pastix->intra_node_comm = MPI_COMM_SELF;
+        pastix->intra_node_procnbr = 1;
+        pastix->intra_node_procnum = 0;
+        pastix->inter_node_comm = pastix_comm;
+        pastix->inter_node_procnbr = pastix->procnbr;
+        pastix->inter_node_procnum = pastix->procnum;
     }
 
-    pastix->sopar.bindtab    = NULL;
-    pastix->sopar.b          = NULL;
-    pastix->sopar.transcsc   = NULL;
-    pastix->sopar.stopthrd   = API_NO;
-    pastix->bindtab          = NULL;
-    pastix->cscInternFilled  = API_NO;
+    iparm[IPARM_THREAD_NBR] = pastix->intra_node_procnbr;
 
-#ifdef PASTIX_DISTRIBUTED
-    pastix->malrhsd_int      = API_NO;
-    pastix->l2g_int          = NULL;
-    pastix->mal_l2g_int      = API_NO;
-    pastix->glob2loc         = NULL;
-    pastix->PTS_permtab      = NULL;
-    pastix->PTS_peritab      = NULL;
-#endif
-    pastix->schur_n          = 0;
-    pastix->schur_list       = NULL;
-    pastix->schur_tab        = NULL;
-    pastix->schur_tab_set    = API_NO;
-    pastix->scaling  = API_NO;
-
-    /* Récupération du nombre de proc */
-    MPI_Comm_size(pastix_comm, &(pastix->procnbr));
-    MPI_Comm_rank(pastix_comm, &(pastix->procnum));
-    MPI_Comm_size(pastix->inter_node_comm, &(pastix->inter_node_procnbr));
-    MPI_Comm_rank(pastix->inter_node_comm, &(pastix->inter_node_procnum));
-    MPI_Comm_size(pastix->intra_node_comm, &(pastix->intra_node_procnbr));
-    MPI_Comm_rank(pastix->intra_node_comm, &(pastix->intra_node_procnum));
     if (pastix->procnum == 0)
     {
         pastix->pastix_id = getpid();
@@ -295,6 +346,29 @@ pastixInit( pastix_data_t **pastix_data,
 
         iparm[IPARM_PID] = pastix->pastix_id;
     }
+
+
+
+
+    pastix->sopar.bindtab    = NULL;
+    pastix->sopar.b          = NULL;
+    pastix->sopar.transcsc   = NULL;
+    pastix->sopar.stopthrd   = API_NO;
+    pastix->bindtab          = NULL;
+    pastix->cscInternFilled  = API_NO;
+
+#ifdef PASTIX_DISTRIBUTED
+    pastix->malrhsd_int      = API_NO;
+    pastix->l2g_int          = NULL;
+    pastix->mal_l2g_int      = API_NO;
+    pastix->glob2loc         = NULL;
+    pastix->PTS_permtab      = NULL;
+    pastix->PTS_peritab      = NULL;
+#endif
+    pastix->schur_tab        = NULL;
+    pastix->schur_tab_set    = API_NO;
+    pastix->scaling  = API_NO;
+
     /* DIRTY Initialization for Scotch */
     srand(1);
 
@@ -305,10 +379,6 @@ pastixInit( pastix_data_t **pastix_data,
 
     // TODO
     //z_pastix_welcome_print(*pastix_data, colptr, n);
-
-    
-
-
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;

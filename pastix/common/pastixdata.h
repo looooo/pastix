@@ -126,6 +126,7 @@ struct pastix_data_s {
     /* int              malsmx;             /\*+ boolean indicating if solvmatr->updovct.sm2xtab has been allocated  +*\/ */
     /* int              malslv;             /\*+ boolean indicating if solvmatr has been allocated                   +*\/ */
     /* int              malcof;             /\*+ boolean indicating if coeficients tabular(s) has(ve) been allocated +*\/ */
+
     MPI_Comm         pastix_comm;        /*+ PaStiX MPI communicator                                             +*/
     MPI_Comm         intra_node_comm;    /*+ PaStiX intra node MPI communicator                                  +*/
     MPI_Comm         inter_node_comm;    /*+ PaStiX inter node MPI communicator                                  +*/
@@ -135,8 +136,9 @@ struct pastix_data_s {
     int              intra_node_procnum; /*+ Local MPI rank in node_comm                                         +*/
     int              inter_node_procnbr; /*+ Number of MPI tasks in node_comm                                    +*/
     int              inter_node_procnum; /*+ Local MPI rank in node_comm                                         +*/
+
     int             *bindtab;            /*+ Tabular giving for each thread a CPU to bind it too                 +*/
-    void  *schur_tab;
+    void            *schur_tab;
     pastix_int_t     schur_tab_set;
     int              cscInternFilled;
     int              scaling;            /*+ Indicates if the matrix has been scaled                             +*/
