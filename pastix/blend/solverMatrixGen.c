@@ -134,6 +134,8 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t          * uprecvcblk       = NULL;
     pastix_int_t            flaglocal        = 0;
 
+    solverInit(solvmtx);
+
     solvmtx->restore  = 0;
 #ifdef PASTIX_DYNSCHED
     solvmtx->btree    = ctrl->btree;
@@ -252,6 +254,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                     solvblok->frownum = symbblok->frownum * dofptr->noddval;
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->cblknum = cblklocalnum[symbblok->cblknum];
+                    solvblok->levfval = -1; /* Unused */
                     solvblok->coefind = stride;
 
                     stride += nbrows;
