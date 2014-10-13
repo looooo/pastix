@@ -126,6 +126,7 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
 EliminTree *
 eTreeBuild(const SymbolMatrix *symbmtx)
 {
+    eTreeNode_t *enode;
     EliminTree *etree = NULL;
     pastix_int_t i;
     pastix_int_t totalsonsnbr;
@@ -135,14 +136,17 @@ eTreeBuild(const SymbolMatrix *symbmtx)
     eTreeInit(etree);
 
     etree->nodenbr = symbmtx->cblknbr;
-    MALLOC_INTERN(etree->nodetab, etree->nodenbr, TreeNode);
+    MALLOC_INTERN(etree->nodetab, etree->nodenbr, eTreeNode_t);
+    enode = etree->nodetab;
 
     /* Initialize the structure fields */
-    for(i=0;i < symbmtx->cblknbr;i++)
+    for(i=0; i<symbmtx->cblknbr; i++, enode++)
     {
-        etree->nodetab[i].sonsnbr =  0;
-        etree->nodetab[i].fathnum = -1;
-        etree->nodetab[i].fsonnum = -1;
+        enode->total   = 0.;
+        enode->subtree = 0.;
+        enode->sonsnbr =  0;
+        enode->fathnum = -1;
+        enode->fsonnum = -1;
     }
 
     totalsonsnbr = 0;
