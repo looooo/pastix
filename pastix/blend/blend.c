@@ -153,7 +153,7 @@ void solverBlend(BlendCtrl    *ctrl,
                       ctrl->nocrossproc,
                       ctrl->allcand );
 
-        /* Set the cluster candidates according to the processor candidats */
+        /* Set the cluster candidates according to the processor candidates */
         candSetClusterCand( ctrl->candtab, symbmtx->cblknbr,
                             ctrl->core2clust, ctrl->total_nbcores );
 
@@ -198,6 +198,13 @@ void solverBlend(BlendCtrl    *ctrl,
         fclose(stream);
     }
 #endif
+
+    if (0)
+    {
+        FILE *file = fopen("symbgen2", "w");
+        symbolSave( symbmtx, file );
+        fclose(file);
+    }
 
     /* Build the elimination graph from the new symbolic partition */
     {
