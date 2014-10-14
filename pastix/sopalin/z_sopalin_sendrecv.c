@@ -1786,7 +1786,6 @@ void* sendrecv_smp ( void *arg )
                                   status, 0);
 
                 nbrecv = SOLV_FTGTCNT;
-                fprintf(stderr, "nbrecv = %d\n", nbrecv );
 
                 /* On relance l'attente sur une comm */
                 CALL_MPI MPI_Start(&request[type_comm]);
@@ -1839,7 +1838,6 @@ void* sendrecv_smp ( void *arg )
                     nbsend_fanin -= send_one_fanin(sopalin_data,
                                                    me, ftgt);
 
-                    fprintf(stderr, "nbsend = %d\n", nbsend_fanin );
                     wait = 0;
                   }
                 MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
