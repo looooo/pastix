@@ -85,7 +85,7 @@ void z_pastix_task_blend(z_pastix_data_t *pastix_data)
         /* hack because double has been replaced by float in all z_ => c_ d_ files */
         int i;
         for(i= 0; i < DPARM_SIZE; i++)
-            dparm[i] = ctrl.dparm[i];
+            dparm[i] = (double)ctrl.dparm[i];
     }
     blendCtrlExit(&ctrl);
 
