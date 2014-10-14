@@ -204,7 +204,7 @@ propMappSubtree( propmap_t    *pmptr,
         }
 
         /* If the first candidate doesn't have enough ressources, we skip it */
-        if( (cost_remain[lcand] <= epsilon) && (lcand < candnbr-1) )
+        if( (cost_remain[fcand] <= epsilon) && (fcand < candnbr-1) )
         {
             fcand++;
         }
@@ -248,8 +248,8 @@ propMappSubtree( propmap_t    *pmptr,
                 sub_cost_remain[p] = cost_remain[fcand+p];
                 cost_remain[fcand+p] = 0.0;
             }
-            sub_cost_remain[scandnbr-1] = cost_remain[lcand];
-            cost_remain[fcand+scandnbr-1] += cumul_cost;  /* cumul_cost <= 0 */
+            sub_cost_remain[scandnbr-1] = cost_remain[lcand] + cumul_cost;
+            cost_remain[fcand+scandnbr-1] = -cumul_cost;  /* cumul_cost <= 0 */
         }
 
         /* Go on to subtree */

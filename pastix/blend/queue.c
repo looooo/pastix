@@ -108,7 +108,7 @@ pqueuePush2(pastix_queue_t *q,
         q->elttab[i ] = q->elttab[hi];
         q->elttab[hi] = swap;
 
-        i = hi+1; hi = (i+1)/2-1;
+        i = hi; hi = (i+1)/2-1;
     }
 }
 
