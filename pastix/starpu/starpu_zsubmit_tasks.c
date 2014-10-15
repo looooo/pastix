@@ -1143,7 +1143,7 @@ starpu_zsubmit_tasks(z_Sopalin_Data_t  * sopalin_data) {
         conf.sched_policy_name = NULL;
         conf.sched_policy = &starpu_pastix_sched_policy;
 #else
-        conf.sched_policy_name = "dmda";
+        conf.sched_policy_name = "eager";
         if (sopalin_data->sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
             fprintf(stdout, OUT_STARPU_STP, conf.sched_policy_name);
 #endif
