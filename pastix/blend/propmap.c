@@ -96,7 +96,6 @@ propMappSubtree( propmap_t    *pmptr,
     /* This treenode is a leave, return */
     if(pmptr->etree->nodetab[rootnum].sonsnbr == 0)
     {
-        memFree_null(cost_remain);
         return;
     }
 
