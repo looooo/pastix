@@ -73,7 +73,7 @@ computeNbSplit( const BlendCtrl *ctrl,
             return 1;
         }
 
-        nseq = pastix_iceil( width, blas_max_col );
+        nseq = width / blas_max_col; //pastix_iceil( width, blas_max_col );
     }
     else
     {
@@ -86,17 +86,17 @@ computeNbSplit( const BlendCtrl *ctrl,
         /* If option adaptative block size is set then compute the size of a column block */
         if(abs > 0)
         {
-            step = pastix_iceil( width, (abs * candnbr) );
+            step = width / (abs * candnbr); //pastix_iceil( width, (abs * candnbr) );
 
             step = pastix_imax(step, blas_min_col);
             step = pastix_imin(step, blas_max_col);
 
             /* Ceil */
-            nseq = pastix_iceil( width, step );
+            nseq = width / step; //pastix_iceil( width, step );
         }
         else
         {
-            nseq = width / blas_min_col;
+            nseq = pastix_iceil( width, blas_min_col );
         }
     }
 
@@ -104,6 +104,7 @@ computeNbSplit( const BlendCtrl *ctrl,
     if ( nseq > 1 && (width / nseq) < blas_min_col ) {
         nseq--;
     }
+
     return nseq;
 }
 
@@ -144,11 +145,11 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
             -   symbmtx->cblktab[cblknum].fcolnum + 1;
 
         nseq = computeNbSplit( ctrl, candnbr, width );
-        if (nseq <= 1)
+        if (nseq < 4)
             continue;
 
         /* Adapt the step to the segments number */
-        step = pastix_iceil( width,  nseq );
+        step = width / nseq; //pastix_iceil( width,  nseq );
         assert( step > 0 );
         nseq--;
 
@@ -489,7 +490,7 @@ void splitSymbol( BlendCtrl    *ctrl,
     extraCblkInit( symbmtx->cblknbr, &extracblk );
 
     /* Stupid split */
-    if (0)
+    if (1)
     {
 #ifdef SMART_CBLK_SPLIT
         /* Build the elimination graph from the new symbolic partition */
@@ -624,7 +625,7 @@ void splitSymbol( BlendCtrl    *ctrl,
     }
     extraCblkExit(&extracblk);
 
-    /* addcblk field is not erased by Exit call */
+    /* Rk: addcblk field is not erased by Exit call, so we can freely use it */
     if ( extracblk.addcblk )
     {
         /* Update cost matrix to fill-in blank of newly generated blocks */
@@ -640,6 +641,7 @@ void splitSymbol( BlendCtrl    *ctrl,
 
             ctrl->etree = eTreeBuild(symbmtx);
 
+            /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
             candBuild( ctrl->autolevel,
                        ctrl->level2D,
                        ctrl->ratiolimit,
