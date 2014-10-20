@@ -1,5 +1,5 @@
 /**
- * z_solver.h -- z_SolverMatrix description.
+ * solver.h -- SolverMatrix description.
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
@@ -9,7 +9,6 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
- * @precisions normal z -> c d s
  *
  **/
 
@@ -34,11 +33,11 @@
 /**                                                        **/
 /************************************************************/
 
-#ifndef Z_SOLVER_H
-#define Z_SOLVER_H
+#ifndef SOLVER_H
+#define SOLVER_H
 
-#include "z_ftgt.h"
-#include "z_updown.h"
+#include "ftgt.h"
+#include "updown.h"
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
 /*
@@ -51,7 +50,7 @@
 #define DRUNK                       4
 #endif /* SOLVER_TASKS_TYPES */
 
-typedef struct z_Task_ {
+typedef struct Task_ {
     pastix_int_t          taskid;  /*+ COMP_1D DIAG E1 E2                                     +*/
     pastix_int_t          prionum; /*+ Priority value for the factorization                   +*/
     pastix_int_t          cblknum; /*+ Attached column block                                  +*/
@@ -69,37 +68,40 @@ typedef struct z_Task_ {
     pastix_int_t          lcandnum; /*+ Last thread candidate                       +*/
     pastix_int_t          id;     /*+ Global cblknum of the attached column block +*/
 #endif
-} z_Task;
+} Task;
 
 
 /*+ Solver block structure. +*/
 
-typedef struct z_SolverBlok_ {
+typedef struct SolverBlok_ {
     pastix_int_t frownum;       /*+ First row index            +*/
     pastix_int_t lrownum;       /*+ Last row index (inclusive) +*/
     pastix_int_t cblknum;       /*+ Facing column block        +*/
     pastix_int_t levfval;       /*+ Level-of-fill value        +*/
     pastix_int_t coefind;       /*+ Index in coeftab           +*/
-} z_SolverBlok;
+} SolverBlok;
 
 /*+ Solver column block structure. +*/
 
-typedef struct z_SolverCblk_  {
-    pastix_int_t                  fcolnum; /*+ First column index                     +*/
-    pastix_int_t                  lcolnum; /*+ Last column index (inclusive)          +*/
-    z_SolverBlok                 *fblokptr; /*+ First block in column (diagonal)       +*/
-    pastix_int_t                  stride; /*+ Column block stride                    +*/
-    pastix_int_t                  procdiag; /*+ Cluster owner of diagonal block      +*/
-    pastix_int_t                  gcblknum; /*+ Global column block index              +*/
-    pastix_complex64_t * restrict coeftab; /*+ Coefficients access vector             +*/
-    pastix_complex64_t * restrict ucoeftab; /*+ Coefficients access vector             +*/
-    pastix_int_t                  gpuid;
-} z_SolverCblk;
+typedef struct SolverCblk_  {
+    pastix_int_t    fcolnum;  /*+ First column index                     +*/
+    pastix_int_t    lcolnum;  /*+ Last column index (inclusive)          +*/
+    SolverBlok     *fblokptr; /*+ First block in column (diagonal)       +*/
+    pastix_int_t    stride;   /*+ Column block stride                    +*/
+    pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
+    pastix_int_t    gcblknum; /*+ Global column block index              +*/
+    void          * lcoeftab; /*+ Coefficients access vector             +*/
+    void          * ucoeftab; /*+ Coefficients access vector             +*/
+    pastix_int_t    gpuid;
+} SolverCblk;
 
 /*+ Solver matrix structure. +*/
 
 /* All data are local to one cluster */
-typedef struct z_SolverMatrix_ {
+typedef struct SolverMatrix_ {
+    int restore; /*+ Flag to indicate if it is require to restore data with
+                     solverBackupRestore: 0: No need, 1:After solve,
+                     2:After Factorization +*/
     pastix_int_t            baseval; /*+ Base value for numberings                         +*/
 
     pastix_int_t            nodenbr; /*+ Number of nodes before dof extension              +*/
@@ -107,8 +109,8 @@ typedef struct z_SolverMatrix_ {
     pastix_int_t            gcblknbr; /*+ Global number of column blocks                    +*/
     pastix_int_t            cblknbr; /*+ Number of column blocks                   +*/
     pastix_int_t            bloknbr; /*+ Number of blocks                          +*/
-    z_SolverCblk * restrict cblktab; /*+ Array of solver column blocks             +*/
-    z_SolverBlok * restrict bloktab; /*+ Array of solver blocks                    +*/
+    SolverCblk * restrict cblktab; /*+ Array of solver column blocks             +*/
+    SolverBlok * restrict bloktab; /*+ Array of solver blocks                    +*/
 
 #ifdef PASTIX_WITH_STARPU
     /* All this part concern halo of the local matrix
@@ -123,16 +125,16 @@ typedef struct z_SolverMatrix_ {
                                                      *                    >  0 : local cblk number + 1
                                                      *                    <  0 : - (halo cblk number + 1)
                                                      *                                            +*/
-    z_SolverCblk   * restrict hcblktab;             /*+ Array of halo column blocks               +*/
-    z_SolverBlok   * restrict hbloktab;             /*+ Array of halo blocks                      +*/
+    SolverCblk   * restrict hcblktab;             /*+ Array of halo column blocks               +*/
+    SolverBlok   * restrict hbloktab;             /*+ Array of halo blocks                      +*/
     pastix_int_t *          fcblknbr;               /*+ Number of fanin buffer to send or recv    +*/
-    z_SolverCblk  ** restrict fcblktab;               /*+ Fanin column block array                  +*/
-    z_SolverBlok  ** restrict fbloktab;               /*+ Fanin block array                         +*/
+    SolverCblk  ** restrict fcblktab;               /*+ Fanin column block array                  +*/
+    SolverBlok  ** restrict fbloktab;               /*+ Fanin block array                         +*/
 #endif
 
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
-    z_FanInTarget * restrict  ftgttab;              /*+ Fanintarget access vector                 +*/
+    FanInTarget * restrict  ftgttab;              /*+ Fanintarget access vector                 +*/
 
     pastix_int_t              coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
     pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
@@ -147,33 +149,29 @@ typedef struct z_SolverMatrix_ {
 
     pastix_int_t              indnbr;
     pastix_int_t * restrict   indtab;
-    z_Task       * restrict   tasktab;              /*+ z_Task access vector                        +*/
-    pastix_int_t              tasknbr;              /*+ Number of z_Tasks                           +*/
-    pastix_int_t **           ttsktab;              /*+ z_Task access vector by thread              +*/
+    Task         * restrict   tasktab;              /*+ Task access vector                        +*/
+    pastix_int_t              tasknbr;              /*+ Number of Tasks                           +*/
+    pastix_int_t **           ttsktab;              /*+ Task access vector by thread              +*/
     pastix_int_t *            ttsknbr;              /*+ Number of tasks by thread                 +*/
 
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
-    z_UpDownVector              updovct;              /*+ UpDown vector                             +*/
-} z_SolverMatrix;
-
-pastix_int_t
-z_sizeofsolver(const z_SolverMatrix *solvptr,
-               pastix_int_t *iparm );
+    UpDownVector              updovct;              /*+ UpDown vector                             +*/
+} SolverMatrix;
 
 /**
  * Indicates whether a column block is in halo.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverCblk structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
  *
  * @retval API_YES if the column block is in halo.
  * @retval API_NO  if the column block is not in halo.
  */
 static inline
-int z_cblk_ishalo( z_SolverMatrix * datacode,
-                   z_SolverCblk   * cblk ) {
+int cblk_ishalo( SolverMatrix * datacode,
+                 SolverCblk   * cblk ) {
 #ifdef PASTIX_WITH_STARPU
     if ((size_t)cblk >= (size_t)datacode->hcblktab &&
         (size_t)cblk < (size_t)(datacode->hcblktab+datacode->hcblknbr)) {
@@ -186,15 +184,15 @@ int z_cblk_ishalo( z_SolverMatrix * datacode,
 /**
  * Indicates whether a column block is a fanin column block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverCblk structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
  *
  * @retval API_YES if the column block is a fanin column block.
  * @retval API_NO  if the column block is not a fanin column block.
  */
 static inline
-int z_cblk_isfanin( z_SolverMatrix * datacode,
-                  z_SolverCblk   * cblk ) {
+int cblk_isfanin( SolverMatrix * datacode,
+                  SolverCblk   * cblk ) {
 #ifdef PASTIX_WITH_STARPU
     pastix_int_t clustnum;
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
@@ -212,15 +210,15 @@ int z_cblk_isfanin( z_SolverMatrix * datacode,
 /**
  * Indicates whether a column block is a local column block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverCblk structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
  *
  * @retval API_YES if the column block is a local column block.
  * @retval API_NO  if the column block is not a local column block.
  */
 static inline
-int z_cblk_islocal( z_SolverMatrix * datacode,
-                    z_SolverCblk   * cblk ) {
+int cblk_islocal( SolverMatrix * datacode,
+                  SolverCblk   * cblk ) {
     if ((size_t)cblk >= (size_t)datacode->cblktab &&
         (size_t)cblk < (size_t)(datacode->cblktab+datacode->cblknbr)) {
         return API_YES;
@@ -232,15 +230,15 @@ int z_cblk_islocal( z_SolverMatrix * datacode,
 /**
  * Get the index of a local column block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverCblk structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
  *
  * @returns the index of the column block.
  */
 static inline
-pastix_int_t z_cblk_getnum( z_SolverMatrix * datacode,
-                            z_SolverCblk   * cblk ) {
-    assert(z_cblk_islocal(datacode, cblk) == API_YES);
+pastix_int_t cblk_getnum( SolverMatrix * datacode,
+                          SolverCblk   * cblk ) {
+    assert(cblk_islocal(datacode, cblk) == API_YES);
     return cblk - datacode->cblktab;
 }
 
@@ -248,16 +246,16 @@ pastix_int_t z_cblk_getnum( z_SolverMatrix * datacode,
 /**
  * Get the index of a halo column block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverCblk structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
  *
  * @returns the index of the column block.
  */
 static inline
-pastix_int_t z_hcblk_getnum( z_SolverMatrix * datacode,
-                             z_SolverCblk   * cblk ) {
+pastix_int_t hcblk_getnum( SolverMatrix * datacode,
+                           SolverCblk   * cblk ) {
 #ifdef PASTIX_WITH_STARPU
-    assert(z_cblk_ishalo(datacode, cblk) == API_YES);
+    assert(cblk_ishalo(datacode, cblk) == API_YES);
     return cblk - datacode->hcblktab;
 #else
     return -1;
@@ -268,15 +266,15 @@ pastix_int_t z_hcblk_getnum( z_SolverMatrix * datacode,
 /**
  * Get the index of a fanin block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param block z_SolverBlok structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param block SolverBlok structure to test.
  *
  * @returns the index of the column block.
  */
 static inline
-pastix_int_t z_fblok_getnum( z_SolverMatrix * datacode,
-                             z_SolverBlok   * blok,
-                             pastix_int_t   procnum ) {
+pastix_int_t fblok_getnum( SolverMatrix * datacode,
+                           SolverBlok   * blok,
+                           pastix_int_t   procnum ) {
 #ifdef PASTIX_WITH_STARPU
     return blok - datacode->fbloktab[procnum];
 
@@ -288,14 +286,14 @@ pastix_int_t z_fblok_getnum( z_SolverMatrix * datacode,
 /**
  * Get the index of a local block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverBlok structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverBlok structure to test.
  *
  * @returns the index of the column block.
  */
 static inline
-pastix_int_t z_blok_getnum( z_SolverMatrix * datacode,
-                            z_SolverBlok   * blok ) {
+pastix_int_t blok_getnum( SolverMatrix * datacode,
+                          SolverBlok   * blok ) {
     return blok - datacode->bloktab;
 }
 
@@ -303,14 +301,14 @@ pastix_int_t z_blok_getnum( z_SolverMatrix * datacode,
 /**
  * Get the index of a halo column block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverBlok structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverBlok structure to test.
  *
  * @returns the index of the column block.
  */
 static inline
-pastix_int_t z_hblok_getnum( z_SolverMatrix * datacode,
-                             z_SolverBlok   * blok ) {
+pastix_int_t hblok_getnum( SolverMatrix * datacode,
+                           SolverBlok   * blok ) {
 #ifdef PASTIX_WITH_STARPU
     return blok - datacode->hbloktab;
 #else
@@ -322,17 +320,17 @@ pastix_int_t z_hblok_getnum( z_SolverMatrix * datacode,
 /**
  * Get the index of a fanin column block.
  *
- * @param datacode z_SolverMatrix structure.
- * @param column block z_SolverCblk structure to test.
+ * @param datacode SolverMatrix structure.
+ * @param column block SolverCblk structure to test.
  *
  * @returns the index of the column block.
  */
 static inline
-pastix_int_t z_fcblk_getnum( z_SolverMatrix * datacode,
-                             z_SolverCblk   * cblk,
-                             pastix_int_t   procnum ) {
+pastix_int_t fcblk_getnum( SolverMatrix * datacode,
+                           SolverCblk   * cblk,
+                           pastix_int_t   procnum ) {
 #ifdef PASTIX_WITH_STARPU
-    assert(z_cblk_isfanin(datacode, cblk) == API_YES);
+    assert(cblk_isfanin(datacode, cblk) == API_YES);
     return cblk - datacode->fcblktab[procnum];
 
 #else
@@ -341,8 +339,8 @@ pastix_int_t z_fcblk_getnum( z_SolverMatrix * datacode,
 }
 
 static inline
-pastix_int_t z_fcblk_getorigin( z_SolverMatrix * datacode,
-                                z_SolverMatrix * cblk ) {
+pastix_int_t fcblk_getorigin( SolverMatrix * datacode,
+                              SolverMatrix * cblk ) {
 #ifdef PASTIX_WITH_STARPU
     pastix_int_t clustnum;
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
@@ -358,72 +356,72 @@ pastix_int_t z_fcblk_getorigin( z_SolverMatrix * datacode,
 /**
  * Get the number of columns of a column block.
  *
- * @param column block z_SolverCblk structure.
+ * @param column block SolverCblk structure.
  *
  * @returns the number of columns in the column block.
  */
 static inline
-pastix_int_t z_cblk_colnbr( z_SolverCblk * cblk ) {
+pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
     return cblk->lcolnum - cblk->fcolnum + 1;
 }
 
 /**
  * Get the number of columns of a column block.
  *
- * @param column block z_SolverCblk structure.
+ * @param column block SolverCblk structure.
  *
  * @returns the number of columns in the column block.
  */
 static inline
-pastix_int_t z_cblk_bloknbr( z_SolverCblk * cblk ) {
+pastix_int_t cblk_bloknbr( SolverCblk * cblk ) {
     return (cblk+1)->fblokptr - cblk->fblokptr + 1;
 }
 
 /**
  * Get the number of rows of a block.
  *
- * @param block z_SolverBlok structure.
+ * @param block SolverBlok structure.
  *
  * @returns the number of rows in the block.
  */
 static inline
-pastix_int_t z_blok_rownbr( z_SolverBlok * blok ) {
+pastix_int_t blok_rownbr( SolverBlok * blok ) {
     return blok->lrownum - blok->frownum + 1;
 }
 
 /**
  * Get the number of rows of a column block.
  *
- * @param column block z_SolverCblk structure.
+ * @param column block SolverCblk structure.
  *
  * @returns the number of rows in the column block.
  */
 static inline
-pastix_int_t z_cblk_rownbr( z_SolverCblk * cblk ) {
+pastix_int_t cblk_rownbr( SolverCblk * cblk ) {
     pastix_int_t rownbr = 0;
-    z_SolverBlok * blok;
+    SolverBlok * blok;
     for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++)
-        rownbr += z_blok_rownbr(blok);
+        rownbr += blok_rownbr(blok);
     return rownbr;
 }
 
 
 static inline
-pastix_int_t z_cblk_save( z_SolverCblk * cblk,
-                          char * name,
-                          pastix_complex64_t * coef) {
+pastix_int_t cblk_save( SolverCblk * cblk,
+                        char * name,
+                        pastix_complex64_t * coef) {
 #ifdef PASTIX_DUMP_CBLK
     pastix_int_t i,j;
-    z_SolverBlok *b;
+    SolverBlok *b;
     FILE * file = fopen(name, "w");
     for ( b = cblk->fblokptr; b < cblk[1].fblokptr; b++) {
         fprintf(file, "%ld %ld\n", b->frownum, b->lrownum);
     }
     for (j = 0; j < cblk->stride; j++) {
-        for (i = 0; i < z_cblk_colnbr(cblk); i++) {
+        for (i = 0; i < cblk_colnbr(cblk); i++) {
             fprintf(file, "(%10.5lg %10.5lg)",
-                creal(coef[j+i*cblk->stride]),
-                cimag(coef[j+i*cblk->stride]));
+                    creal(coef[j+i*cblk->stride]),
+                    cimag(coef[j+i*cblk->stride]));
         }
         fprintf(file, "\n");
     }
@@ -436,15 +434,15 @@ pastix_int_t z_cblk_save( z_SolverCblk * cblk,
  * i.e. indicate if the row range of the first block is included in the
  * one of the second.
  *
- * @param first block z_SolverBlok structure to test.
- * @param second block z_SolverBlok structure to test.
+ * @param first block SolverBlok structure to test.
+ * @param second block SolverBlok structure to test.
  *
  * @retval true   if the first block is     included in the second one.
  * @retval false  if the first block is not included in the second one.
  */
 #  if defined(NAPA_SOPALIN)
-static inline int z_is_block_inside_fblock( z_SolverBlok *blok,
-                                            z_SolverBlok *fblok ) {
+static inline int is_block_inside_fblock( SolverBlok *blok,
+                                          SolverBlok *fblok ) {
     return (((blok->frownum >= fblok->frownum) &&
              (blok->lrownum <= fblok->lrownum)) ||
             ((blok->frownum <= fblok->frownum) &&
@@ -455,8 +453,8 @@ static inline int z_is_block_inside_fblock( z_SolverBlok *blok,
              (blok->lrownum >= fblok->lrownum)));
 }
 #  else
-static inline int z_is_block_inside_fblock( z_SolverBlok *blok,
-                                            z_SolverBlok *fblok ) {
+static inline int is_block_inside_fblock( SolverBlok *blok,
+                                          SolverBlok *fblok ) {
     return ((blok->frownum >= fblok->frownum) &&
             (blok->lrownum <= fblok->lrownum));
 }
@@ -464,4 +462,17 @@ static inline int z_is_block_inside_fblock( z_SolverBlok *blok,
 
 #  endif /* defined(NAPA_SOPALIN) */
 
-#endif /* Z_SOLVER_H */
+pastix_int_t sizeofsolver(const SolverMatrix *solvptr,
+                          pastix_int_t *iparm );
+
+void                     solverExit           (SolverMatrix *);
+void                     solverInit           (SolverMatrix *);
+
+struct SolverBackup_s;
+typedef struct SolverBackup_s SolverBackup_t;
+
+SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
+int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
+void            solverBackupExit( SolverBackup_t *b );
+
+#endif /* SOLVER_H */

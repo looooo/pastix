@@ -23,33 +23,21 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#include "pastix/config.h"
-#include "s_pastix.h"
-#include "s_pastixdata.h"
-#include "d_pastix.h"
-#include "d_pastixdata.h"
-#ifdef HAVE_COMPLEX_H
-#  include "c_pastix.h"
-#  include "c_pastixdata.h"
-#  include "z_pastix.h"
-#  include "z_pastixdata.h"
-#endif
+#include "pastix.h"
 #include <unistd.h>
 #include <assert.h>
+#include <errno.h>
+#include <inttypes.h>
+#include <limits.h>
+#include "FCmangle.h"
 #include "debug.h"
 #include "out.h"
 #include "memory.h"
 #include "integer.h"
 #include "timing.h"
 #include "trace.h"
+#include "pastixdata.h"
 /* #include "redefine_functions.h" */
-#define PASTIX_PREFIX_F(x) x
-#define PASTIX_PREFIX(x) x
-#define PASTIX_EXTERN_F(x) x
-#include <stdlib.h>
-#include <limits.h>
-#include <stdio.h>
-#include <errno.h>
 
 /********************************************************************
  * Errors functions
@@ -216,5 +204,17 @@ int pastix_getenv_get_value_int(char * string, int default_value) {
 }
 
 
+static inline int pastix_size_of(int type)
+{
+    switch(type) {
+    case PastixFloat:     return   sizeof(float);
+    case PastixDouble:    return   sizeof(double);
+    case PastixComplex32: return 2*sizeof(float);
+    case PastixComplex64: return 2*sizeof(double);
+    default:
+        fprintf(stderr, "pastix_size_of: invalide type parameter\n");
+        return -1;
+    }
+}
 #endif /* _COMMON_H_ */
 

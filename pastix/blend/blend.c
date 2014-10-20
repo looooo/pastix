@@ -20,13 +20,13 @@
 #include "common.h"
 #include "out.h"
 #include "dof.h"
-#include "d_ftgt.h"
+#include "ftgt.h"
 #include "cost.h"
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "d_updown.h"
-#include "d_solver.h"
+#include "updown.h"
+#include "solver.h"
 #include "solverRealloc.h"
 #include "elimin.h"
 #include "extendVector.h"
@@ -65,7 +65,7 @@
  *   solvmtx    - Solver matrix structure.
  */
 void solverBlend(BlendCtrl    *ctrl,
-                 d_SolverMatrix *solvmtx,
+                 SolverMatrix *solvmtx,
                  SymbolMatrix *symbmtx,
                  const Dof    *dofptr)
 {
@@ -153,7 +153,7 @@ void solverBlend(BlendCtrl    *ctrl,
                       ctrl->nocrossproc,
                       ctrl->allcand );
 
-        /* Set the cluster candidates according to the processor candidats */
+        /* Set the cluster candidates according to the processor candidates */
         candSetClusterCand( ctrl->candtab, symbmtx->cblknbr,
                             ctrl->core2clust, ctrl->total_nbcores );
 
@@ -198,6 +198,13 @@ void solverBlend(BlendCtrl    *ctrl,
         fclose(stream);
     }
 #endif
+
+    if (0)
+    {
+        FILE *file = fopen("symbgen2", "w");
+        symbolSave( symbmtx, file );
+        fclose(file);
+    }
 
     /* Build the elimination graph from the new symbolic partition */
     {
@@ -264,6 +271,7 @@ void solverBlend(BlendCtrl    *ctrl,
 
     /* CostMatrix and Elimination Tree which are no further used */
     costMatrixExit(ctrl->costmtx);
+    memFree_null( ctrl->costmtx );
     eTreeExit(ctrl->etree);
 
     /*

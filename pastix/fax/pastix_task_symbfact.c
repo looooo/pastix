@@ -24,10 +24,10 @@
 #include "order.h"
 #include "fax.h"
 #include "kass.h"
-#include "z_csc_utils.h"
-#include "z_cscd_utils_intern.h"
-#include "pastix_task_symbfact.h"
-
+#if defined(PASTIX_DISTRIBUTED)
+#include "csc_utils.h"
+#include "cscd_utils_intern.h"
+#endif /* defined(PASTIX_DISTRIBUTED) */
 
 /**
  *******************************************************************************
@@ -103,7 +103,7 @@
  *
  *******************************************************************************/
 int
-pastix_task_symbfact(d_pastix_data_t *pastix_data,
+pastix_task_symbfact(pastix_data_t *pastix_data,
                      pastix_int_t  *perm,
                      pastix_int_t  *invp )
 {
@@ -113,7 +113,7 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
     pastix_int_t    n;
     int             procnum;
 
-#ifdef PASTIX_DISTRIBUTED
+#if defined(PASTIX_DISTRIBUTED)
     pastix_int_t           * PTS_perm     = pastix_data->PTS_permtab;
     pastix_int_t           * PTS_rev_perm = pastix_data->PTS_peritab;
     pastix_int_t           * tmpperm      = NULL;
@@ -137,11 +137,11 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
     }
 
     procnum  = pastix_data->procnum;
-    graph    = pastix_data->csc;
+    graph    = pastix_data->graph;
     ordemesh = pastix_data->ordemesh;
 
     if (graph == NULL) {
-        errorPrint("pastix_task_symbfact: the pastix_data->csc field has not been initialized, pastix_task_order should be called first");
+        errorPrint("pastix_task_symbfact: the pastix_data->graph field has not been initialized, pastix_task_order should be called first");
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordemesh == NULL) {
@@ -197,27 +197,21 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
         /*
          * Fax works with centralized interface, we convert the cscd to csc if required
          */
-        if (iparm[IPARM_GRAPHDIST] == API_YES)
+#if defined(PASTIX_DISTRIBUTED)
+        if (graph->loc2glob != NULL)
         {
-            pastix_graph_t graphfax;
-            d_cscd2csc_int( graph->n,
-                            graph->colptr,
-                            graph->rows,
-                            NULL, NULL, NULL, NULL,
-                            &nfax, &colptrfax, &rowfax,
-                            NULL, NULL, NULL, NULL,
-                            graph->loc2glob,
-                            pastix_data->pastix_comm,
-                            0, /* DoF to 0 as we have no values */
-                            API_YES);
-            graphfax.gN     = nfax;
-            graphfax.n      = nfax;
-            graphfax.colptr = colptrfax;
-            graphfax.rows   = rowfax;
-            graphfax.loc2glob = NULL;
-            graphBase(&graphfax, 0);
+            cscd2csc_int( graph->n,
+                          graph->colptr,
+                          graph->rows,
+                          NULL, NULL, NULL, NULL,
+                          &nfax, &colptrfax, &rowfax,
+                          NULL, NULL, NULL, NULL,
+                          graph->loc2glob,
+                          pastix_data->pastix_comm,
+                          iparm[IPARM_DOF_NBR], API_YES);
         }
         else
+#endif
         {
             nfax      = graph->n;
             colptrfax = graph->colptr;
@@ -267,13 +261,13 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
                        pastix_data->pastix_comm);
         }
 
-        if (iparm[IPARM_GRAPHDIST] == API_YES)
+        if ( graph->loc2glob != NULL )
         {
             memFree_null(colptrfax);
             memFree_null(rowfax);
         }
 
-#ifdef PASTIX_DISTRIBUTED
+#if defined(PASTIX_DISTRIBUTED)
         if (PTS_perm != NULL)
         {
             gN = n;
@@ -294,7 +288,7 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
             memFree_null(PTS_perm);
             memFree_null(PTS_rev_perm);
         }
-#endif /* PASTIX_DISTRIBUTED */
+#endif /* defined(PASTIX_DISTRIBUTED) */
 
         /*
          * Save the new ordering structure
@@ -313,10 +307,10 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
     /*
      * The graph is not useful anymore, we clean it
      */
-    if (pastix_data->csc != NULL)
+    if (pastix_data->graph != NULL)
     {
-        graphClean( pastix_data->csc );
-        pastix_data->csc = NULL;
+        graphExit( pastix_data->graph );
+        memFree_null( pastix_data->graph );
     }
 
     /* Rebase to 0 */
@@ -359,6 +353,13 @@ pastix_task_symbfact(d_pastix_data_t *pastix_data,
         fclose(stream);
     }
 #endif
+
+    /* Invalidate following steps, and add order step to the ones performed */
+    pastix_data->steps &= ~( STEP_ANALYSE  |
+                             STEP_NUMFACT  |
+                             STEP_SOLVE    |
+                             STEP_REFINE   );
+    pastix_data->steps |= STEP_SYMBFACT;
 
     iparm[IPARM_START_TASK]++;
 

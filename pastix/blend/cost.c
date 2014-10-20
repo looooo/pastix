@@ -8,6 +8,7 @@ pastix_int_t
 costMatrixInit( CostMatrix *costmtx )
 {
     costmtx->bloktab = NULL;
+    costmtx->cblkcost = NULL;
     return 1;
 }
 
@@ -28,11 +29,19 @@ costMatrixBuild( const SymbolMatrix * symbmtx,
 
     MALLOC_INTERN(costmtx, 1, CostMatrix);
     costMatrixInit(costmtx);
-    MALLOC_INTERN(costmtx->bloktab, symbmtx->bloknbr, CostBlok);
+
+    MALLOC_INTERN(costmtx->bloktab,  symbmtx->bloknbr, CostBlok);
+    MALLOC_INTERN(costmtx->cblkcost, symbmtx->cblknbr, double);
+
+    memset( costmtx->cblkcost, 0, symbmtx->cblknbr * sizeof(double) );
+
+    /* Init block cost */
     for(i=0;i<symbmtx->cblknbr;i++)
         cblkComputeCost(i, costmtx, symbmtx, dofptr);
 
+    /* Init cblk cost */
+    for(i=0;i<symbmtx->cblknbr;i++)
+        cblkComputeCostLL(i, costmtx, symbmtx, dofptr);
+
     return costmtx;
 }
-
-

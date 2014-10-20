@@ -18,15 +18,10 @@
 #include "common.h"
 #include "graph.h"
 #include "order.h"
-#if (defined PASTIX_ORDERING_SCOTCH) || (defined PASTIX_ORDERING_PTSCOTCH)
-#  ifdef    PASTIX_ORDERING_PTSCOTCH
-#    include <ptscotch.h>
-#  else  /* PASTIX_ORDERING_PTSCOTCH */
-#    include <scotch.h>
-#  endif /* PASTIX_ORDERING_PTSCOTCH */
-#endif /* PASTIX_ORDERING_PTSCOTCH || PASTIX_ORDERING_SCOTCH */
+#if defined(PASTIX_ORDERING_PTSCOTCH)
+#include <ptscotch.h>
+#endif
 #include "order_scotch_strats.h"
-#include "d_cscd_utils_intern.h"
 
 /* TODO: take care of this */
 void global2localperm(pastix_int_t  lN,
@@ -68,7 +63,7 @@ void global2localperm(pastix_int_t  lN,
  *
  *******************************************************************************/
 int
-orderComputePTScotch(       d_pastix_data_t  *pastix_data,
+orderComputePTScotch(       pastix_data_t  *pastix_data,
                       const pastix_graph_t *graph )
 {
     SCOTCH_Dordering ordedat;

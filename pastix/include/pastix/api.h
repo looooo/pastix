@@ -176,8 +176,8 @@ enum IPARM_ACCESS {
   IPARM_STARPU_CTX_DEPTH        = 66,
   IPARM_STARPU_CTX_NBR          = 67,
   IPARM_PRODUCE_STATS           = 68,
-  IPARM_GPU_CRITERIUM           = 69,
-  IPARM_MURGE_MAY_REFINE        = 70,
+  IPARM_GPUS_NBR                = 69,
+  IPARM_GPU_CRITERIUM           = 70,
 
   IPARM_METIS_CTYPE             = 71,
   IPARM_METIS_RTYPE             = 72,
@@ -191,7 +191,9 @@ enum IPARM_ACCESS {
   IPARM_METIS_SEED              = 80,
   IPARM_METIS_DBGLVL            = 81,
 
-  IPARM_SIZE                    = 82
+  IPARM_MURGE_MAY_REFINE        = 82,
+
+  IPARM_SIZE                    = 83
 };
 
 

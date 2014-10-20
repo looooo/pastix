@@ -162,6 +162,24 @@ pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
     return return_elt;
 }
 
+void
+pqueuePrint( pastix_queue_t *q )
+{
+    pastix_queue_item_t *item = q->elttab;
+    pastix_int_t i;
+
+    fprintf(stderr, "Queue :\n");
+    for (i = 0; i < q->used; i++, item++) {
+        fprintf(stderr, "(%ld %ld %ld) ",
+                (int64_t)(item->eltptr),
+                (int64_t)(item->key1),
+                (int64_t)(item->key2) );
+        if (i%4 == 3)
+            fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+}
+
 /*
   Function: QueueInit
 
@@ -446,6 +464,27 @@ pastix_int_t queueRead(Queue *q)
 }
 
 /*
+  Function: queueRead
+
+  Read the next element that 'll be given by queueGet
+  but not suppress it from the queue
+
+  Parameters:
+    q - The queue.
+
+  Returns:
+    The next element.
+*/
+pastix_int_t queueRead2(Queue *q,
+                       double *key,
+                       pastix_int_t *key2)
+{
+    if (key  != NULL) *key  = q->keytab[0];
+    if (key2 != NULL) *key2 = q->keytab2[0];
+    return q->elttab[0];
+}
+
+/*
   Function: compwith2keys
 
   Compare 2 elements following their two keys.
@@ -485,8 +524,8 @@ pastix_int_t compWith2keys(Queue *q,
     The element, or -1 if not found.
 */
 pastix_int_t queueGet2(Queue  *q,
-              double *key,
-              pastix_int_t    *key2)
+                       double *key,
+                       pastix_int_t    *key2)
 {
     pastix_int_t i, j;
     pastix_int_t return_elt;
@@ -574,12 +613,13 @@ int queuePossess(Queue * q,
 */
 void queuePrint(Queue *q)
 {
-  pastix_int_t i;
-  fprintf(stderr, "Queue :");
-  for (i = 0; i < q->used; i++)
-    fprintf(stderr, "(%d %f %d) ",
-            (int)q->elttab[i],
-            (double)q->keytab[i],
-            (int)q->keytab2[i] );
-  fprintf(stderr, "\n");
+    pastix_int_t i;
+
+    fprintf(stderr, "Queue :");
+    for (i=0; i < q->used; i++)
+        fprintf(stderr, "(%d %f %d) ",
+                (int)q->elttab[i],
+                (double)q->keytab[i],
+                (int)q->keytab2[i] );
+    fprintf(stderr, "\n");
 }

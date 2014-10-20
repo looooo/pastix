@@ -18,13 +18,11 @@
 #include "common.h"
 #include "graph.h"
 #include "order.h"
-#if (defined PASTIX_ORDERING_SCOTCH) || (defined PASTIX_ORDERING_PTSCOTCH)
-#  ifdef    PASTIX_ORDERING_PTSCOTCH
-#    include <ptscotch.h>
-#  else  /* PASTIX_ORDERING_PTSCOTCH */
-#    include <scotch.h>
-#  endif /* PASTIX_ORDERING_PTSCOTCH */
-#endif /* PASTIX_ORDERING_PTSCOTCH || PASTIX_ORDERING_SCOTCH */
+#if defined(PASTIX_ORDERING_PTSCOTCH)
+#include <ptscotch.h>
+#elif defined(PASTIX_ORDERING_SCOTCH)
+#include <scotch.h>
+#endif /* defined(PASTIX_ORDERING_PTSCOTCH) */
 #include "order_scotch_strats.h"
 
 /**
@@ -62,7 +60,7 @@
  *
  *******************************************************************************/
 int
-orderComputeScotch(       d_pastix_data_t  *pastix_data,
+orderComputeScotch(       pastix_data_t  *pastix_data,
                     const pastix_graph_t *graph )
 {
     Order        *ordemesh = pastix_data->ordemesh;

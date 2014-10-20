@@ -25,22 +25,6 @@
 /*     Structure pour le backup des données     */
 /************************************************/
 
-typedef struct z_Backup_ {
-  pastix_int_t              arftmax;         /* Double by LU version             */
-  pastix_int_t              nbftmax;
-  pastix_int_t *            task_ctrbcnt;    /* no inital value                  */
-  pastix_int_t *            task_ftgtcnt;    /* no inital value                  */
-  pastix_int_t *            fanin_ctrbnbr;   /* change updown information        */
-  pastix_int_t *            fanin_prionum;   /* both used for tag and pack       */
-  pastix_int_t *            bcofsendcnt;     /* bcof sendcnt                     */
-  pastix_int_t *            symbol_cblknum;  /* sopalin add negative information */
-  pastix_int_t              symbol_nodenbr;  /* ???                              */
-} z_Backup;
-
-typedef struct z_BackupSolve_ {
-  pastix_int_t *            fanin_ctrbnbr;   /* change updown information        */
-  pastix_int_t *            symbol_cblknum;  /* sopalin add negative information */
-} BackupSolve_t;
 
 
 /* Allocate and initialize/Free globale data for z_solver */

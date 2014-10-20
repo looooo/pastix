@@ -16,7 +16,7 @@
 #include "common.h"
 #include "graph.h"
 #if defined(PASTIX_DISTRIBUTED)
-#include "d_cscd_utils_intern.h"
+#include "cscd_utils_intern.h"
 #endif
 
 /**
@@ -160,11 +160,11 @@ graphSort( pastix_graph_t *graph )
  *
  *******************************************************************************/
 int
-graphPrepare(      d_pastix_data_t   *pastix_data,
+graphPrepare(      pastix_data_t   *pastix_data,
                    pastix_int_t     n,
              const pastix_int_t    *colptr,
              const pastix_int_t    *rows,
-                   pastix_int_t    *loc2glob,
+             const pastix_int_t    *loc2glob,
                    pastix_graph_t **graph )
 {
     pastix_graph_t *tmpgraph  = NULL;
@@ -235,12 +235,12 @@ graphPrepare(      d_pastix_data_t   *pastix_data,
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
             if (iparm[IPARM_SYM]==API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER) {
-                d_cscd_symgraph_int(n, colptr, rows, NULL,
-                                    &(tmpgraph->n),
-                                    &(tmpgraph->colptr),
-                                    &(tmpgraph->rows), NULL,
-                                    loc2glob,
-                                    pastix_comm, API_YES );
+                cscd_symgraph_int(n, colptr, rows, NULL,
+                                  &(tmpgraph->n),
+                                  &(tmpgraph->colptr),
+                                  &(tmpgraph->rows), NULL,
+                                  loc2glob,
+                                  pastix_comm, API_YES );
                 assert( n == tmpgraph->n );
             } else {
                 pastix_int_t nnz = colptr[n]-colptr[0];
@@ -253,11 +253,11 @@ graphPrepare(      d_pastix_data_t   *pastix_data,
             MALLOC_INTERN(tmpgraph->loc2glob,   n,   pastix_int_t);
             memcpy(tmpgraph->loc2glob, loc2glob, n*sizeof(pastix_int_t));
 
-            d_cscd_noDiag(tmpgraph->n,
-                          tmpgraph->colptr,
-                          tmpgraph->rows,
-                          NULL,
-                          loc2glob);
+            cscd_noDiag(tmpgraph->n,
+                        tmpgraph->colptr,
+                        tmpgraph->rows,
+                        NULL,
+                        loc2glob);
 
             /* Create contiguous partitions for ordering tools */
             {

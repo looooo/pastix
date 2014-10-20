@@ -6,7 +6,7 @@
 /**                                                        **/
 /**   FUNCTION   : queue of pastix_int_t that sorts elements        **/
 /**                in ascending way according to a         **/
-/**                pastix_complex64_t key                               **/
+/**                double key                               **/
 /**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
 /**                                 to     08 sep 1998     **/
 /**                                                        **/
@@ -36,6 +36,7 @@ void         pqueueClear(pastix_queue_t *);
 void         pqueuePush2(pastix_queue_t *, pastix_int_t, double, double);
 pastix_int_t pqueueRead (pastix_queue_t *);
 pastix_int_t pqueuePop2 (pastix_queue_t *, double *, double *);
+void         pqueuePrint(pastix_queue_t *);
 
 static inline void
 pqueuePush1(pastix_queue_t *q, pastix_int_t elt, double key1) {
@@ -86,5 +87,9 @@ int     queuePossess    (Queue *, pastix_int_t);
 void    queuePrint      (Queue *);
 
 static pastix_int_t compWith2keys(Queue *, pastix_int_t, pastix_int_t);
+
+pastix_int_t queueRead2(Queue *q,
+                        double *key,
+                        pastix_int_t *key2);
 #undef static
 #endif

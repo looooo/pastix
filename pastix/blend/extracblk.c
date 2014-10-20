@@ -293,7 +293,7 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
                 curblok->frownum = curcblk[k].fcolnum;
                 curblok->lrownum = curcblk[k].lcolnum;
                 curblok->cblknum = curcblknum + k;
-                curblok->levfval = 0;
+                curblok->levfval = -1;
             }
             /* Next cblk will have one block less on the diagonal */
 
@@ -329,7 +329,7 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
                         curblok->frownum = frownum;
                         curblok->lrownum = pastix_imin( lrownum, newfcblk->lcolnum );
                         curblok->cblknum = newfcblknum + l;
-                        curblok->levfval = 0;
+                        curblok->levfval = -1;
                         curblok++; curbloknum++;
 
                         frownum = newfcblk->lcolnum+1;
@@ -343,7 +343,7 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
                     curblok->frownum = frownum;
                     curblok->lrownum = lrownum;
                     curblok->cblknum = newnum[fcblknum];
-                    curblok->levfval = 0;
+                    curblok->levfval = -1;
                     curblok++; curbloknum++;
                 }
             }

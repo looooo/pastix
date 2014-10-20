@@ -16,6 +16,7 @@
 #include "common.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
+#include "../blend/solver.h"
 
 /**
  ******************************************************************************
@@ -160,16 +161,16 @@ int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
  *
  ******************************************************************************/
 int
-core_zgeaddsp1d(z_SolverCblk * cblk1,
-                z_SolverCblk * cblk2,
+core_zgeaddsp1d(SolverCblk * cblk1,
+                SolverCblk * cblk2,
                 pastix_complex64_t * L,
                 pastix_complex64_t * Cl,
                 pastix_complex64_t * U,
                 pastix_complex64_t * Cu) {
-    z_SolverBlok *iterblok;
-    z_SolverBlok *firstblok;
-    z_SolverBlok *lastblok;
-    z_SolverBlok *fblok;
+    SolverBlok *iterblok;
+    SolverBlok *firstblok;
+    SolverBlok *lastblok;
+    SolverBlok *fblok;
     pastix_int_t ncol1 = cblk1->lcolnum - cblk1->fcolnum + 1;
     pastix_complex64_t *ga, *gb;
 
@@ -182,7 +183,7 @@ core_zgeaddsp1d(z_SolverCblk * cblk1,
     for (iterblok = firstblok; iterblok < lastblok; iterblok++) {
         pastix_int_t nrow;
         /* Find facing bloknum */
-        while (!z_is_block_inside_fblock( iterblok, fblok )) {
+        while (!is_block_inside_fblock( iterblok, fblok )) {
             fblok++;
             assert( fblok < cblk2[1].fblokptr );
         }

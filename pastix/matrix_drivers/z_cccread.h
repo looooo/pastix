@@ -11,7 +11,7 @@
  * @precisions normal z -> c d s
  *
  **/
-#ifndef Z__CCCREAD_H_
+#ifndef Z_CCCREAD_H_
 #define Z_CCCREAD_H_
 
 /*

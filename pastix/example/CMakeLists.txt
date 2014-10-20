@@ -13,35 +13,22 @@ link_directories(
   ${BLAS_LIBRARY_DIRS}
 )
 
-set(PASTIX_EXAMPLES_LIBRARIES pastix)
-
-
 set(PASTIX_EXAMPLES_LIBRARIES
-  ${PASTIX_EXAMPLES_LIBRARIES}
-  read_matrix
-  pastix_murge
   pastix
-  pastix_sopalin
-  pastix_libcsc
-  pastix_csc
-  pastix
-  pastix_blend)
-if(PASTIX_WITH_STARPU)
-  set(PASTIX_EXAMPLES_LIBRARIES
-    ${PASTIX_EXAMPLES_LIBRARIES}
-    pastix_starpu)
-endif(PASTIX_WITH_STARPU)
-set(PASTIX_EXAMPLES_LIBRARIES
-  ${PASTIX_EXAMPLES_LIBRARIES}
-  pastix_libcsc
-  pastix
+  pastix_bcsc
   pastix_kernels
-  pastix_common
+  pastix
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
   m
 )
+
+if(PASTIX_WITH_STARPU)
+  set(PASTIX_EXAMPLES_LIBRARIES
+    ${PASTIX_EXAMPLES_LIBRARIES}
+    pastix_starpu)
+endif(PASTIX_WITH_STARPU)
 
 if (PASTIX_ORDERING_SCOTCH)
   link_directories(${SCOTCH_LIBRARY_DIRS})
@@ -68,6 +55,14 @@ if (PASTIX_ORDERING_METIS)
     )
 endif()
 
+if (PASTIX_BLEND_GENTRACE)
+  link_directories(${GTG_DIR}/lib)
+  set(PASTIX_EXAMPLES_LIBRARIES
+    ${PASTIX_EXAMPLES_LIBRARIES}
+    ${GTG_LIBRARIES}
+    )
+endif()
+
 if(PASTIX_WITH_STARPU)
   link_directories(${STARPU_LIBRARY_DIRS})
   if (PASTIX_WITH_MPI)
@@ -89,55 +84,40 @@ precisions_rules_py(generated_headers
                     PRECISIONS "s;d;c;z")
 add_custom_target(examples_headers DEPENDS ${generated_headers} )
 
-#Generate examples utils library
-set(SOURCES  z_utils.F90)
-precisions_rules_py(generated_files
-   "${SOURCES}"
-   PRECISIONS "s;d;c;z")
-add_library(pastix_examples ${generated_files} mem_trace.c)
-add_dependencies(pastix_examples generated_headers)
-set(PASTIX_EXAMPLES_LIBRARIES ${PASTIX_EXAMPLES_LIBRARIES} pastix_examples read_matrix)
-set(generated_files "")
-message(STATUS PASTIX_EXAMPLES_LIBRARIES :  ${PASTIX_EXAMPLES_LIBRARIES})
+# set(SOURCES
+#   z_simple.c
+#   z_step-by-step.c
+#   z_analyze.c
+# )
 
+# ## Require all PaStiX with multiple precision before...
+# precisions_rules_py(generated_files
+#    "${SOURCES}"
+#    PRECISIONS "s;d;c;z")
 
+# foreach(example_with_ext ${generated_files})
+#   GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
+#   add_executable(${example} "${example_with_ext}" ${generated_headers})
+#   target_link_libraries( ${example}
+#     ${PASTIX_EXAMPLES_LIBRARIES})
 
-set(SOURCES z_simple.c z_step-by-step.c z_analyze.c zmurge_2Dlap.c zmurge_3Dlap.c
-  z_murge_fortran.F90 z_simple_fortran.F90)
-if(PASTIX_DISTRIBUTED)
-  set(SOURCES ${SOURCES} z_simple_dist.c)
-endif(PASTIX_DISTRIBUTED)
-precisions_rules_py(generated_files
-   "${SOURCES}"
-   PRECISIONS "s;d;c;z")
+#   if (PASTIX_WITH_MPI)
+#     target_link_libraries( ${example}
+#       ${MPI_LIBRARIES} )
+#   endif()
+# endforeach()
 
-foreach(example_with_ext ${generated_files})
-  GET_FILENAME_COMPONENT(example ${example_with_ext} NAME_WE)
-  GET_FILENAME_COMPONENT(ext ${example_with_ext} EXT)
-  if (PASTIX_WITH_CUDA)
-    cuda_add_executable(${example} "${example_with_ext}" ${generated_headers})
-    target_link_libraries(${example} cuda)
-  else(PASTIX_WITH_CUDA)
-    add_executable(${example} "${example_with_ext}" ${generated_headers})
-  endif(PASTIX_WITH_CUDA)
-  target_link_libraries( ${example}
-    ${PASTIX_EXAMPLES_LIBRARIES})
+add_executable(analyze analyze.c)
+target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
+if (PASTIX_WITH_MPI)
+  target_link_libraries(analyze ${MPI_LIBRARIES})
+endif()
 
-  if (PASTIX_WITH_MPI)
-    if (${ext} STREQUAL ".c")
-      message(STATUS "${example}: ${MPI_C_LIBRARIES}")
-      target_link_libraries( ${example}
-        ${MPI_C_LIBRARIES} )
-    elseif(${ext} STREQUAL ".F90")
-      message(STATUS "${example}: ${MPI_Fortran_LIBRARIES}")
-      set_property(TARGET ${example} PROPERTY LINKER_LANGUAGE Fortran) 
-      target_link_libraries( ${example}
-        ${MPI_Fortran_LIBRARIES} )
-    else()
-      message(STATUS "${example} : _${ext}_")
-    endif()
-  endif()
-endforeach()
+#
+#-- CTests
+#
+enable_testing()
+include(CTest)
 
 foreach(example simple step-by-step simple_dist simple_fortran)
   foreach(prec s d c z)

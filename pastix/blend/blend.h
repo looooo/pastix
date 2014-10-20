@@ -15,7 +15,8 @@
 #ifndef BLEND_H
 #define BLEND_H
 
-#include "d_solver.h"
+#include "solver.h"
+
 /*
  * Function: solverBlend
  *
@@ -43,7 +44,7 @@
  *   dofptr     -
  */
 void solverBlend(BlendCtrl    *ctrl,
-                 d_SolverMatrix *solvmtx,
+                 SolverMatrix *solvmtx,
                  SymbolMatrix *symbmtx,
                  const Dof    *dofptr);
 
@@ -56,5 +57,16 @@ void propMappTree( Cand               *candtab,
                    const Dof          *dofptr,
                    pastix_int_t        candnbr,
                    int nocrossproc, int allcand );
+
+/* Alter threadid of tasks to put some of them on GPUs (threadid >= thread_nbr)
+ * cblk are taken from the queue until all GPUs are alocated maxMem memory.
+ */
+int blend_distributeOnGPU(SolverMatrix  * solvmtr,
+                          double          maxMem,
+                          int             pageSize,
+                          int             criterium,
+                          enum API_GPU_CRITERIUM nGPUs,
+                          enum API_FLOAT  floatType,
+                          enum API_FACT   factType);
 
 #endif /* BLEND_H */

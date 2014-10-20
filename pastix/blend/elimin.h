@@ -18,20 +18,20 @@
  */
 
 /*+ The node structure. +*/
-typedef struct eTreeNode_ {
+typedef struct eTreeNode_s {
     double         total;   /* Cost of the treenode only (compute + send) */
-    double         subtree; /* Cost of the subtree (included total)       */
+    double         subtree; /* Cost of the subtree (includes total)       */
     pastix_int_t   sonsnbr; /* Number of sons                             */
     pastix_int_t   fathnum; /* index of the father node                   */
     pastix_int_t   fsonnum; /* index of first son                         */
-} TreeNode;
+} eTreeNode_t;
 
 /*+ The elimination tree. +*/
 
 typedef struct EliminTree_ {
     pastix_int_t   baseval;              /*+ Base value for numberings         +*/
     pastix_int_t   nodenbr;              /*+ Number of nodes                   +*/
-    TreeNode     * nodetab;              /*+ Array of node          [+1,based] +*/
+    eTreeNode_t  * nodetab;              /*+ Array of node          [+1,based] +*/
     pastix_int_t * sonstab;              /*+ Sons index of nodes               +*/
 } EliminTree;
 

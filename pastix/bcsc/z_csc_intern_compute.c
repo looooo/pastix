@@ -576,7 +576,7 @@ void z_CscbMAx(z_Sopalin_Data_t       *sopalin_data,
  *     b            - Added vector (vector commont to all threads)
  *     cscmtx       - Compress Sparse Column matrix *A*
  *     updovct      - x, multiplied vector
- *     solvmtx      - solver matrix to know tho local structure of the matrix
+ *     solvmtx      - solver matrix to know the local structure of the matrix
  *     comm         - MPI communicator
  *     transpose    - Indicate if we want to transpose A.
  */

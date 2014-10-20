@@ -1,6 +1,6 @@
 /**
  *
- * @file z_pastix_task_analyze.c
+ * @file pastix_task_analyze.c
  *
  *  PaStiX analyse routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -12,7 +12,6 @@
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @date 2013-06-24
- * @precisions normal z -> c d s
  *
  **/
 #include "common.h"
@@ -25,19 +24,40 @@
 #include "blendctrl.h"
 #include "blend.h"
 #include "dof.h"
-#include "z_solver.h"
+#include "solver.h"
 
-/*
-  Function: pastix_task_blend
-
-  Distribution task.
-
-  Parameters:
-  pastix_data - PaStiX data structure
-  pastix_comm - PaStiX MPI communicator
-
-*/
-void z_pastix_task_blend(z_pastix_data_t *pastix_data)
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_analyze
+ * @ingroup pastix
+ *
+ * pastix_task_blend - Computes the structural information required to factorize
+ * and solve the problem.
+ *
+ * ...
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, ...
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *          On exit, ...
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS on successful exit
+ *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ *
+ *******************************************************************************/
+// TODO: need some cleanup arount the printf, and solverBlend could be
+// integrated directly into this function.
+int
+pastix_task_blend(pastix_data_t *pastix_data)
 {
     Dof            dofstr;
     BlendCtrl      ctrl;
@@ -48,18 +68,22 @@ void z_pastix_task_blend(z_pastix_data_t *pastix_data)
     pastix_int_t   procnum  = pastix_data->inter_node_procnum;
     pastix_int_t  *iparm    = pastix_data->iparm;
     double        *dparm    = pastix_data->dparm;
-    z_SolverMatrix  *solvmatr = &(pastix_data->solvmatr);
+    SolverMatrix  *solvmatr;
 
-    /* /\* Si on refait blend on doit jeter nos ancien coefs *\/ */
-    /* if (pastix_data->malcof) */
-    /* { */
-    /*     CoefMatrix_Free( &(pastix_data->sopar), solvmatr, iparm[IPARM_FACTORIZATION]); */
-    /*     pastix_data->malcof=0; */
-    /* } */
+    if ( !(pastix_data->steps & STEP_SYMBFACT) ) {
+        errorPrint("pastix_task_symbfact: pastix_task_init() has to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
-    print_debug(DBG_STEP,"->API_TASK_ANALYSE\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print( procnum, 0, "%s", OUT_STEP_BLEND );
+
+    if ( pastix_data->solvmatr != NULL ) {
+        solverExit( pastix_data->solvmatr );
+        memFree_null( pastix_data->solvmatr );
+    }
+    solvmatr = (SolverMatrix*)malloc(sizeof(SolverMatrix));
+    pastix_data->solvmatr = solvmatr;
 
     dofInit(&dofstr);
     dofConstant(&dofstr, 0, pastix_data->symbmtx->nodenbr,
@@ -68,30 +92,17 @@ void z_pastix_task_blend(z_pastix_data_t *pastix_data)
     blendCtrlInit( &ctrl, procnum, procnbr,
                    iparm[IPARM_THREAD_NBR],
                    iparm[IPARM_THREAD_NBR],
-                   iparm );
+                   iparm, dparm );
 
-    {
-        /* hack because double has been replaced by float in all z_ => c_ d_ files */
-        int i;
-        for(i= 0; i < DPARM_SIZE; i++)
-            ctrl.dparm[i] = dparm[i];
-    }
 #ifdef FORCE_NOSMP
     iparm[IPARM_THREAD_NBR] = 1;
 #endif
 
-    solverBlend( &ctrl, (d_SolverMatrix*)solvmatr, pastix_data->symbmtx, &dofstr );
-    {
-        /* hack because double has been replaced by float in all z_ => c_ d_ files */
-        int i;
-        for(i= 0; i < DPARM_SIZE; i++)
-            dparm[i] = (double)ctrl.dparm[i];
-    }
+    solverBlend( &ctrl, solvmatr, pastix_data->symbmtx, &dofstr );
     blendCtrlExit(&ctrl);
 
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
-    pastix_data->malslv = 1;
 
     if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
     {
@@ -103,10 +114,12 @@ void z_pastix_task_blend(z_pastix_data_t *pastix_data)
     iparm[IPARM_NNZEROS_BLOCK_LOCAL] = solvmatr->coefnbr;
 
     /* Affichage */
-    dparm[DPARM_FILL_IN]       = dparm[DPARM_FILL_IN]      *(double)(iparm[IPARM_NNZEROS]/(iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
+    dparm[DPARM_FILL_IN] = dparm[DPARM_FILL_IN]
+        * (double)(iparm[IPARM_NNZEROS]/(iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
+
     if ((procnum==0) && (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT))
     {
-        fprintf(stdout,TIME_TO_ANALYSE,    (double)dparm[DPARM_ANALYZE_TIME]);
+        fprintf(stdout, TIME_TO_ANALYSE,       (double)dparm[DPARM_ANALYZE_TIME]);
         fprintf(stdout, NNZERO_WITH_FILLIN_TH, (long)iparm[IPARM_NNZEROS]);
         fprintf(stdout, OUT_FILLIN_TH,         (double)dparm[DPARM_FILL_IN]);
         if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
@@ -118,7 +131,7 @@ void z_pastix_task_blend(z_pastix_data_t *pastix_data)
     }
     if ((iparm[IPARM_VERBOSE] > API_VERBOSE_NO))
     {
-        pastix_int_t solversize = z_sizeofsolver(solvmatr, iparm);
+        pastix_int_t solversize = sizeofsolver(solvmatr, iparm);
 
         fprintf(stdout,SOLVMTX_WITHOUT_CO,  (int)procnum, (double)MEMORY_WRITE(solversize),
                 MEMORY_UNIT_WRITE(solversize));
@@ -141,13 +154,21 @@ void z_pastix_task_blend(z_pastix_data_t *pastix_data)
                     MEMORY_UNIT_WRITE(sizeG));
         }
     }
-    {
-        /* hack because double has been replaced by float in all z_ => c_ d_ files */
-        int i;
-        for(i= 0; i < DPARM_SIZE; i++)
-            dparm[i] = (double)ctrl.dparm[i];
 
-        memFree_null(ctrl.dparm);
+    if (0)
+    {
+        FILE *file = fopen("solvergen", "w");
+        solverSave( solvmatr, file );
+        fclose(file);
     }
+
+    /* Invalidate following steps, and add analyse step to the ones performed */
+    pastix_data->steps &= ~( STEP_NUMFACT |
+                             STEP_SOLVE   |
+                             STEP_REFINE  );
+    pastix_data->steps |= STEP_ANALYSE;
+
     iparm[IPARM_START_TASK]++;
+
+    return PASTIX_SUCCESS;
 }

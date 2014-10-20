@@ -179,11 +179,12 @@ FILE * const                stream)
   }
   for (blokptr = symbptr->bloktab, bloktnd = blokptr + symbptr->bloknbr;
        (blokptr < bloktnd) && (o == 0); blokptr ++) {
-    o = (fprintf (stream, "%ld\t%ld\t%ld\t%ld\n",
+      /* o = (fprintf (stream, "%ld\t%ld\t%ld\t%ld\n", */
+      o = (fprintf (stream, "%ld\t%ld\t%ld\n",
                   (long) blokptr->frownum,
                   (long) blokptr->lrownum,
-                  (long) blokptr->cblknum,
-                  (long) blokptr->levfval) == EOF);
+                  (long) blokptr->cblknum/* , */
+                  /* (long) blokptr->levfval */) == EOF);
   }
 
   return (o);

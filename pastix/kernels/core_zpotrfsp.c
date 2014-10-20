@@ -14,11 +14,11 @@
  * @precisions normal z -> c d s
  *
  **/
-#include <assert.h>
-
 #include "common.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
+//#include "../sopalin/sopalin_acces.h"
+#include "../blend/solver.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -50,7 +50,7 @@ static pastix_complex64_t zzero =  0.;
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
  *******************************************************************************
@@ -81,10 +81,11 @@ static void core_zpotf2sp(pastix_int_t        n,
         if ( creal(*Akk) < 0. )
         {
             errorPrint("Negative diagonal term\n");
+            assert(0);
             EXIT(MOD_SOPALIN, INTERNAL_ERR);
         }
 
-        *Akk = (pastix_complex64_t)csqrt(*Akk);
+        *Akk = csqrt(*Akk);
         alpha = 1. / (*Akk);
 
         /* Scale the diagonal to compute L((k+1):n,k) */
@@ -187,7 +188,6 @@ static void core_zpotrfsp(pastix_int_t        n,
     }
 }
 
-
 /**
  *******************************************************************************
  *
@@ -216,21 +216,19 @@ static void core_zpotrfsp(pastix_int_t        n,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-int core_zpotrfsp1d_potrf( z_SolverCblk         *cblk,
+int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria )
 {
-    z_SolverBlok   *blok;
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
-    blok = cblk->fblokptr;   /* this diagonal block */
 
     /* check if diagonal column block */
-    assert( cblk->fcolnum == blok->frownum );
-    assert( cblk->lcolnum == blok->lrownum );
+    assert( cblk->fcolnum == cblk->fblokptr->frownum );
+    assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     /* Factorize diagonal block */
     core_zpotrfsp(ncols, L, stride, &nbpivot, criteria );
@@ -262,13 +260,12 @@ int core_zpotrfsp1d_potrf( z_SolverCblk         *cblk,
  *         \retval PASTIX_SUCCESS on successful exit.
  *
  *******************************************************************************/
-int core_zpotrfsp1d_trsm( z_SolverCblk         *cblk,
+int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L )
 {
-    z_SolverBlok   *blok;
+    SolverBlok   *blok;
     pastix_int_t  ncols, stride;
-    z_SolverBlok   *lblk;
-    pastix_int_t  nbpivot = 0;
+    SolverBlok   *lblk;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
@@ -298,46 +295,6 @@ int core_zpotrfsp1d_trsm( z_SolverCblk         *cblk,
 
     return PASTIX_SUCCESS;
 }
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_kernel
- *
- * core_zpotrfsp1d - Computes the Cholesky factorization of one panel and apply
- * all the trsm updates to this panel.
- *
- *******************************************************************************
- *
- * @param[in] cblk
- *          Pointer to the structure representing the panel to factorize in the
- *          cblktab array.  Next column blok must be accessible through cblk[1].
- *
- * @param[in,out] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
- *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
- *
- *******************************************************************************/
-int core_zpotrfsp1d( z_SolverCblk         *cblk,
-                     pastix_complex64_t *L,
-                     double              criteria )
-{
-    pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
-    core_zpotrfsp1d_trsm(cblk, L);
-
-    return nbpivot;
-}
-
 
 /**
  *******************************************************************************
@@ -378,24 +335,23 @@ int core_zpotrfsp1d( z_SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zpotrfsp1d_gemm( z_SolverCblk         *cblk,
-                           z_SolverBlok         *blok,
-                           z_SolverCblk         *fcblk,
+void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
+                           SolverBlok         *blok,
+                           SolverCblk         *fcblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work)
 {
-    z_SolverBlok *iterblok;
-    z_SolverBlok *lblok;  /* Last block   */
-    z_SolverBlok *fblok;  /* facing block */
+    SolverBlok *iterblok;
+    SolverBlok *lblok;  /* Last block   */
+    SolverBlok *fblok;  /* facing block */
 
     pastix_complex64_t *Aik, *Aij;
     pastix_int_t stride, stridefc, indblok;
     pastix_int_t dimi, dimj, dima, dimb;
 
-    stride  = cblk->stride;
+    stride = cblk->stride;
     dima = cblk->lcolnum - cblk->fcolnum + 1;
-
 
     /* First blok */
     indblok = blok->coefind;
@@ -430,8 +386,8 @@ void core_zpotrfsp1d_gemm( z_SolverCblk         *cblk,
     /* for all following blocks in block column */
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
-        /* Find facing bloknum */
-        while (!z_is_block_inside_fblock( iterblok, fblok ))
+        /* Find facing blok */
+        while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
             assert( fblok < fcblk[1].fblokptr );
@@ -450,3 +406,114 @@ void core_zpotrfsp1d_gemm( z_SolverCblk         *cblk,
         work += dimb;
     }
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zpotrfsp1d - Computes the Cholesky factorization of one panel and apply
+ * all the trsm updates to this panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+int core_zpotrfsp1d_panel( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           double              criteria )
+{
+    pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
+    core_zpotrfsp1d_trsm(cblk, L);
+
+    return nbpivot;
+}
+
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zpotrfsp1d - Computes the Cholesky factorization of one panel, apply all
+ * the trsm updates to this panel, and apply all updates to the right with no
+ * lock.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+int
+core_zpotrfsp1d( SolverMatrix *solvmtx,
+                 SolverCblk   *cblk,
+                 double        criteria )
+{
+    pastix_complex64_t *L = cblk->lcoeftab;
+    pastix_complex64_t *work = NULL;
+    SolverCblk  *fcblk;
+    SolverBlok  *blok, *lblk;
+    pastix_int_t nbpivot;
+
+    nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
+    core_zpotrfsp1d_trsm(cblk, L);
+
+    blok = cblk->fblokptr + 1; /* this diagonal block */
+    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+    if ( blok < lblk ) {
+        pastix_int_t maxarea = 0;
+        for( ; blok < lblk; blok++ )
+        {
+            maxarea = pastix_imax( maxarea, blok_rownbr( blok ) * cblk->stride );
+        }
+        MALLOC_INTERN( work, maxarea, pastix_complex64_t );
+    }
+
+    /* if there are off-diagonal supernodes in the column */
+    blok = cblk->fblokptr+1;
+    for( ; blok < lblk; blok++ )
+    {
+        fcblk = (solvmtx->cblktab + blok->cblknum);
+
+        core_zpotrfsp1d_gemm( cblk, blok, fcblk,
+                              L, fcblk->lcoeftab, work );
+    }
+
+    memFree_null( work );
+    return nbpivot;
+}
+

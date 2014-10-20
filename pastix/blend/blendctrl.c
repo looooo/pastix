@@ -89,12 +89,13 @@ void getCommunicationCosts( const BlendCtrl *ctrl,
 }
 
 int
-blendCtrlInit(BlendCtrl    *ctrl,
-              pastix_int_t  procnum,
-              pastix_int_t  procnbr,
-              pastix_int_t  local_coresnbr,
-              pastix_int_t  local_thrdsnbr,
-              pastix_int_t *iparm)
+blendCtrlInit( BlendCtrl    *ctrl,
+               pastix_int_t  procnum,
+               pastix_int_t  procnbr,
+               pastix_int_t  local_coresnbr,
+               pastix_int_t  local_thrdsnbr,
+               pastix_int_t *iparm,
+               double       *dparm )
 {
     pastix_int_t i;
 
@@ -138,7 +139,7 @@ blendCtrlInit(BlendCtrl    *ctrl,
 
     /* Initialize options */
     ctrl->count_ops = 1;
-#if !defined(PASTIX_DEBUG_BLEND)
+#if defined(PASTIX_DEBUG_BLEND)
     ctrl->debug     = 1;
 #else
     ctrl->debug     = 0;
@@ -191,6 +192,7 @@ blendCtrlInit(BlendCtrl    *ctrl,
     }
     /* Save iparm for other options */
     ctrl->iparm = iparm;
+    ctrl->dparm = dparm;
 
     /*
      * Initialize architecture description
@@ -238,11 +240,6 @@ blendCtrlInit(BlendCtrl    *ctrl,
 #ifdef PASTIX_DYNSCHED
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
 #endif
-
-    {
-        /* hack because double has been replaced by float in all z_ => c_ d_ files */
-        MALLOC_INTERN(ctrl->dparm, DPARM_SIZE, double);
-    }
 
     return PASTIX_SUCCESS;
 }
