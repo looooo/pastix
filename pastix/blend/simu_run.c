@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -22,6 +23,10 @@
 #include "updown.h"
 #include "solver.h"
 #include "costfunc.h"
+
+#if defined(PASTIX_BLEND_GENTRACE)
+#include <GTG.h>
+#endif
 
 static inline void
 simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
@@ -591,6 +596,58 @@ simuRun( SimuCtrl           *simuctrl,
     /*pastix_int_t             c;*/
     pastix_int_t             pr;
 
+#if defined(PASTIX_BLEND_GENTRACE)
+    char **procnames = NULL;
+
+    if (ctrl->clustnum == 0)
+    {
+        int rc;
+
+        setTraceType (PAJE);
+        initTrace ("blend", 0, GTG_FLAG_NONE);
+
+        addContType ("CT_Appli", "0", "Application");
+        addContType ("CT_P",  "CT_Appli", "Process");
+        addContType ("CT_T",  "CT_P", "Thread"     );
+        addStateType("ST_TS", "CT_T", "Thread State");
+
+        addLinkType ("LT_TL", "Split Event Link", "CT_P", "CT_T", "CT_T");
+
+        /* Create root container of the application */
+        addContainer (0.00000, "Appli", "CT_Appli", "0", "PaStiX Blend Simulation", "");
+
+        /* Add all possible states */
+        addEntityValue ("Wait", "ST_TS", "Waiting",   GTG_LIGHTGREY);
+        addEntityValue ("Comp", "ST_TS", "Computing", GTG_RED);
+
+        /* Add each process and thread */
+        procnames = (char**) malloc ( ctrl->total_nbthrds * sizeof(char*) );
+        pr = 0;
+        for (i=0; i<ctrl->clustnbr; i++) {
+            char *clustname;
+            char *clustalias;
+
+            rc = asprintf( &clustname, "Process %02d", (int)i); assert(rc!=-1);
+            rc = asprintf( &clustalias, "P%d", (int)i); assert(rc!=-1);
+            addContainer (0.00000, clustalias, "CT_P", "Appli", clustname, "");
+
+            for (j=0; j<ctrl->local_nbthrds; j++, pr++) {
+                char *procname;
+                char *procalias;
+
+                rc = asprintf( &procname, "Thread %02d", (int)pr); assert(rc!=-1);
+                rc = asprintf( &procalias, "T%d", (int)pr); assert(rc!=-1);
+                addContainer (0.00000, procalias, "CT_T", clustname, procname, "");
+
+                procnames[pr] = procalias;
+                free(procname);
+            }
+
+            free(clustname); free(clustalias);
+        }
+    }
+#endif /* defined(PASTIX_BLEND_GENTRACE) */
+
     /* Compute number of contributions per blocks, cblks, tasks */
     simu_computeBlockCtrbNbr( symbptr, simuctrl, ctrl->ricar );
 
@@ -616,6 +673,15 @@ simuRun( SimuCtrl           *simuctrl,
         }
     }
 
+    for(i=0; i<ctrl->total_nbthrds; i++)
+      {
+        fprintf(stderr, "Processor %ld Not Yet Ready ", i);
+        pqueuePrint( simuctrl->proctab[i].futuretask );
+        fprintf(stderr, "Processor %ld Ready ", i);
+        pqueuePrint( simuctrl->proctab[i].readytask );
+      }
+
+
     /*
      * Run simulation and mapp the task onto a single candidate
      */
@@ -639,7 +705,7 @@ simuRun( SimuCtrl           *simuctrl,
         assert(cblknum < symbptr->cblknbr);
         assert(bloknum < symbptr->bloknbr);
 
-        /* Make sure the cblk is not already attibuted to someone and give it to the selected proc */
+        /* Make sure the cblk is not already atributed to someone and give it to the selected proc */
         assert( simuctrl->ownetab[cblknum] < 0 );
         simuctrl->ownetab[cblknum] = pr;
         for(j=symbptr->cblktab[cblknum].bloknum;
@@ -655,6 +721,8 @@ simuRun( SimuCtrl           *simuctrl,
 
         /* Backup which cluster will get the data for the second run of proportionnal mapping */
         ctrl->candtab[cblknum].cluster = clustnum;
+
+        fprintf(stderr, "%ld - %ld - %lf - %lf\n", pr, i, timerVal( TIMER(pr) ), timerVal(&(task->time)) );
 
         /*
          * Compute the time at which each proc cand will have added its ftgt and
@@ -675,6 +743,12 @@ simuRun( SimuCtrl           *simuctrl,
             timerSetMax( TIMER(pr),
                          timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(bloknum, clustnum)])));
         }
+
+#if defined(PASTIX_BLEND_GENTRACE)
+        if (ctrl->clustnum == 0) {
+            setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Comp" );
+        }
+#endif
 
         /*
          * Fill some fanintarget info (task of type E2 does not have any ftgt)
@@ -712,9 +786,14 @@ simuRun( SimuCtrl           *simuctrl,
             assert(ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum);
         }
 
-        /* Simule the computing of the task */
+        /* Simulate the task computation */
         simu_computeTask( ctrl, symbptr, dofptr, simuctrl, i );
 
+#if defined(PASTIX_BLEND_GENTRACE)
+        if (ctrl->clustnum == 0) {
+            setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Wait" );
+        }
+#endif
         simu_pushToReadyHeap(ctrl, simuctrl, pr);
     }
 
@@ -728,6 +807,17 @@ simuRun( SimuCtrl           *simuctrl,
         }
         set_dparm(ctrl->dparm, DPARM_PRED_FACT_TIME, maxtime);
     }
+
+#if defined(PASTIX_BLEND_GENTRACE)
+    if (ctrl->clustnum == 0) {
+        for(pr=0; pr<ctrl->total_nbthrds; pr++) {
+            free(procnames[pr]);
+        }
+        free(procnames);
+
+        endTrace();
+    }
+#endif
 
 #ifdef DEBUG_BLEND
     for(i=0;i<simuctrl->cblknbr;i++)
