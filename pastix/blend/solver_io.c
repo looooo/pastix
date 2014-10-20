@@ -362,11 +362,11 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
      }
      for (blokptr = solvptr->bloktab, bloktnd = blokptr + solvptr->bloknbr;
           (blokptr < bloktnd) && (o == 0); blokptr ++) {
-       o = (fprintf (stream, "%ld\t%ld\t%ld\t%ld\n",
+       o = (fprintf (stream, "%ld\t%ld\t%ld\n",/* "%ld\t%ld\t%ld\t%ld\n", */
                      (long) blokptr->frownum,
                      (long) blokptr->lrownum,
-                     (long) blokptr->cblknum,
-                     (long) blokptr->levfval) == EOF);
+                     (long) blokptr->cblknum/* , */
+                     /* (long) blokptr->levfval */) == EOF);
      }
 
    }
@@ -424,15 +424,17 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
    fprintf(stream, "\n");
 
    /*fprintf(stream, "task data\n");*/
-   for (taskptr = solvptr->tasktab,                /* Write Task data */
-            tasknd = taskptr + solvptr->tasknbr+1;
-        (taskptr < tasknd) && (o==0); taskptr ++)
    {
-       fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
-               (long)taskptr->taskid, (long)taskptr->prionum, (long)taskptr->cblknum, (long)taskptr->bloknum,
-               (long)taskptr->ftgtcnt, (long)taskptr->ctrbcnt, (long)taskptr->indnum);
-       fprintf(stream, "\n");
-       fprintf(stream, "\n");
+       Task *taskend = solvptr->tasktab + solvptr->tasknbr;
+       for (taskptr = solvptr->tasktab;                /* Write Task data */
+            (taskptr < taskend) && (o==0); taskptr ++)
+       {
+           fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
+                   (long)taskptr->taskid, (long)taskptr->prionum, (long)taskptr->cblknum, (long)taskptr->bloknum,
+                   (long)taskptr->ftgtcnt, (long)taskptr->ctrbcnt, (long)taskptr->indnum);
+           fprintf(stream, "\n");
+           fprintf(stream, "\n");
+       }
    }
 
    /*fprintf(stream, "ttsktab\n");*/
