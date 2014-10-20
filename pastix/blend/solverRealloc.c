@@ -30,7 +30,7 @@ void solverRealloc(SolverMatrix *solvmtx)
     memcpy(solvmtx->tasktab, tmp->tasktab, solvmtx->tasknbr*sizeof(Task));
 #ifdef DEBUG_BLEND
     for(i=0;i<solvmtx->tasknbr;i++)
-      ASSERT((solvmtx->tasktab[i].btagptr == NULL), MOD_BLEND);
+        ASSERT((solvmtx->tasktab[i].btagptr == NULL), MOD_BLEND);
 #endif
 
     /** Copy cblktab and bloktab **/
@@ -125,14 +125,14 @@ void solverRealloc(SolverMatrix *solvmtx)
 
     /** Copy ftgttab **/
     if (solvmtx->ftgtnbr != 0)
-      {
+    {
         MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, FanInTarget);
         memcpy(solvmtx->ftgttab, tmp->ftgttab,
                solvmtx->ftgtnbr*sizeof(FanInTarget));
-      }
+    }
     /** copy infotab of fan intarget **/
     /*for(i=0;i<tmp->ftgtnbr;i++)
-      memcpy(solvmtx->ftgttab[i].infotab, tmp->ftgttab[i].infotab, MAXINFO*sizeof(pastix_int_t));*/
+     memcpy(solvmtx->ftgttab[i].infotab, tmp->ftgttab[i].infotab, MAXINFO*sizeof(pastix_int_t));*/
 
     /** Copy indtab **/
     MALLOC_INTERN(solvmtx->indtab, solvmtx->indnbr, pastix_int_t);
@@ -141,23 +141,24 @@ void solverRealloc(SolverMatrix *solvmtx)
 
     /** Copy ttsktab & ttsknbr **/
     if (solvmtx->bublnbr>0)
-      {
+    {
         MALLOC_INTERN(solvmtx->ttsknbr, solvmtx->bublnbr, pastix_int_t);
         memcpy(solvmtx->ttsknbr, tmp->ttsknbr, solvmtx->bublnbr*sizeof(pastix_int_t));
         MALLOC_INTERN(solvmtx->ttsktab, solvmtx->bublnbr, pastix_int_t*);
+
         for (i=0;i<solvmtx->bublnbr;i++)
-          {
+        {
             solvmtx->ttsktab[i] = NULL;
             MALLOC_INTERN(solvmtx->ttsktab[i], solvmtx->ttsknbr[i], pastix_int_t);
             memcpy(solvmtx->ttsktab[i], tmp->ttsktab[i],
                    solvmtx->ttsknbr[i]*sizeof(pastix_int_t));
-          }
-      }
+        }
+    }
     else
-      {
+    {
         solvmtx->ttsknbr = NULL;
         solvmtx->ttsktab = NULL;
-      }
+    }
 
     MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
     memcpy(solvmtx->proc2clust, tmp->proc2clust,
@@ -175,31 +176,31 @@ void solverExit(SolverMatrix *solvmtx)
 
     /** Free arrays of solvmtx **/
     if(solvmtx->cblktab)
-      {
+    {
         for (i = 0; i < solvmtx->cblknbr; i++)
-          {
+        {
             if (solvmtx->cblktab[i].lcoeftab)
-              memFree_null(solvmtx->cblktab[i].lcoeftab);
+                memFree_null(solvmtx->cblktab[i].lcoeftab);
 
             if (solvmtx->cblktab[i].ucoeftab)
-              memFree_null(solvmtx->cblktab[i].ucoeftab);
-          }
+                memFree_null(solvmtx->cblktab[i].ucoeftab);
+        }
         memFree_null(solvmtx->cblktab);
-      }
+    }
     if(solvmtx->bloktab)
-      memFree_null(solvmtx->bloktab);
+        memFree_null(solvmtx->bloktab);
     if(solvmtx->ftgttab)
-      memFree_null(solvmtx->ftgttab);
+        memFree_null(solvmtx->ftgttab);
     if(solvmtx->tasktab)
-      memFree_null(solvmtx->tasktab);
+        memFree_null(solvmtx->tasktab);
     if(solvmtx->indtab)
-      memFree_null(solvmtx->indtab);
+        memFree_null(solvmtx->indtab);
     memFree_null(solvmtx->ttsknbr);
     for (i=0;i<solvmtx->bublnbr;i++)
-      {
+    {
         if (solvmtx->ttsktab[i] != NULL)
-          memFree_null(solvmtx->ttsktab[i]);
-      }
+            memFree_null(solvmtx->ttsktab[i]);
+    }
     memFree_null(solvmtx->ttsktab);
     memFree_null(solvmtx->proc2clust);
     /*memFree_null(solvmtx);*/
@@ -243,25 +244,25 @@ void solverExit(SolverMatrix *solvmtx)
 
 void solverInit(SolverMatrix *solvmtx)
 {
-  solvmtx->cblktab = NULL;
-  solvmtx->bloktab = NULL;
-  solvmtx->coefnbr = 0;
-  solvmtx->ftgtnbr = 0;
+    solvmtx->cblktab = NULL;
+    solvmtx->bloktab = NULL;
+    solvmtx->coefnbr = 0;
+    solvmtx->ftgtnbr = 0;
 
-  solvmtx->ftgttab = NULL;
-  solvmtx->coefmax = 0;
-  memset(solvmtx, 0, sizeof (SolverMatrix));
+    solvmtx->ftgttab = NULL;
+    solvmtx->coefmax = 0;
+    memset(solvmtx, 0, sizeof (SolverMatrix));
 
-  solvmtx->baseval = 0;
-  solvmtx->cblknbr = 0;
-  solvmtx->bloknbr = 0;
-  solvmtx->nodenbr = 0;
+    solvmtx->baseval = 0;
+    solvmtx->cblknbr = 0;
+    solvmtx->bloknbr = 0;
+    solvmtx->nodenbr = 0;
 #if defined(PASTIX_WITH_STARPU)
-  solvmtx->hcblktab = NULL;
-  solvmtx->hbloktab = NULL;
-  solvmtx->gcblk2halo = NULL;
-  solvmtx->fcblktab = NULL;
-  solvmtx->fbloktab = NULL;
-  solvmtx->fcblknbr = NULL;
+    solvmtx->hcblktab = NULL;
+    solvmtx->hbloktab = NULL;
+    solvmtx->gcblk2halo = NULL;
+    solvmtx->fcblktab = NULL;
+    solvmtx->fbloktab = NULL;
+    solvmtx->fcblknbr = NULL;
 #endif /* defined(PASTIX_WITH_STARPU) */
 }
