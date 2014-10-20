@@ -247,8 +247,6 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 #endif
     }
 
-    costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr = g;
-
     /** retrieve diag height so let g be the odb non empty lines height **/
     g -= l;
 
@@ -272,8 +270,6 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
         h = (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1)*noddval;
 #endif
 
-        /* g is the odb lines number above this odb (odb lines include)*/
-        costmtx->bloktab[k].linenbr     = g;
         /*if(l!=0 && h != 0 && g != 0)*/
         costmtx->bloktab[k].contrib     = contribCompCost(l, h, g);
         /*else
@@ -292,7 +288,6 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 
         for(k=symbmtx->cblktab[cblknum].bloknum; k<symbmtx->cblktab[cblknum+1].bloknum;k++)
             stride += symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1;
-        ASSERT( costmtx->bloktab[symbmtx->cblktab[cblknum].bloknum].linenbr == stride * noddval,MOD_BLEND);
 
         //ASSERT(costmtx->cblktab[cblknum].total > 0,MOD_BLEND);
         cost2 = cblkCost(symbmtx->cblktab[cblknum+1].bloknum -  symbmtx->cblktab[cblknum].bloknum,
@@ -306,6 +301,55 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 #endif
 
     return contribsum;
+}
+
+/** Assure that cblkComputeCost and cblkCost compute the same things !!!! **/
+void cblkComputeCostLL(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbmtx, const Dof * dofptr)
+{
+    double contribsum;
+    pastix_int_t fbloknum, lbloknum, fcblknum;
+    pastix_int_t l, h, g;
+    pastix_int_t k;
+    pastix_int_t noddval = ( dofptr == NULL ) ? 1 : dofptr->noddval;
+
+    /* Compute the height and width of the cblk */
+    l =  symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1;
+    l *= noddval;
+
+    g = 0;
+    fbloknum = symbmtx->cblktab[cblknum  ].bloknum;
+    lbloknum = symbmtx->cblktab[cblknum+1].bloknum;
+    for(k=fbloknum; k<lbloknum; k++)
+    {
+        g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+    }
+    g *= noddval;
+
+    /* Substract the diagonal height so let g be the off-diagonal blocks non empty lines height */
+    g -= l;
+
+    /* Compute the cost of factorizing the diagonal block and updating the panel */
+    assert( l > 0 );
+    contribsum = computeCost(l, g);
+
+    costmtx->cblkcost[cblknum] += contribsum;
+
+    /* Compute for each off-diagonal block its contribution and compute cost and add cost **/
+    for(k=fbloknum+1; k<lbloknum; k++)
+    {
+        h  = (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        h *= noddval;
+
+        fcblknum = symbmtx->bloktab[k].cblknum;
+
+        /* g is the number of off-diagonal blocks in the panel below k (k included) */
+        costmtx->cblkcost[fcblknum]  = contribCompCost(l, h, g);
+        costmtx->cblkcost[fcblknum] += contribAddCost(h, g);
+
+        g -= h;
+    }
+
+    return;
 }
 
 
@@ -333,18 +377,11 @@ double computeCost(pastix_int_t L, pastix_int_t g_total)
 double contribCompCost(pastix_int_t L, pastix_int_t h, pastix_int_t g)
 {
     double total = 0;
-#ifdef DEBUG_BLEND
-    ASSERT(L>0,MOD_BLEND);
-    ASSERT(h>=0,MOD_BLEND);
-    ASSERT(g>=0,MOD_BLEND);
-#endif
-    total = (double)(PERF_GEMM(g,h,L));
-#ifdef DEBUG_BLEND
-    /*
-     if(total>1)
-     return 0.99;*/
-#endif
+    assert(L> 0);
+    assert(h>=0);
+    assert(g>=0);
 
+    total = (double)(PERF_GEMM(g,h,L));
     return (total>0)?total:0;
 }
 
