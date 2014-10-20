@@ -150,9 +150,6 @@
 #define SOLV_FTGTIND(x)   (-SYMB_CBLKNUM(x))
 /* next should be good for 1D ??? */
 
-#define PACKMAX  datacode->nbftmax
-#define PACKAREA datacode->arftmax
-
 #define PASTIX_COMM sopalin_data->sopar->pastix_comm
 
 #ifdef TEST_ISEND
