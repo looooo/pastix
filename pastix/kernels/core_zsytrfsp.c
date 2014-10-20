@@ -86,10 +86,11 @@ static void core_zsytf2sp(pastix_int_t        n,
         /* Move to next Akk */
         Akk += (lda+1);
 
-        cblas_zher(CblasColMajor, CblasLower,
-                   n-k-1, alpha,
-                   Amk, 1,
-                   Akk, lda);
+        /* TODO: check */
+        cblas_zsyrk(CblasColMajor, CblasLower, CblasNoTrans,
+                    n-k-1, 1,
+                    CBLAS_SADDR( alpha ), Amk, lda,
+                    CBLAS_SADDR( zone  ), Akk, lda);
 
         /* TODO: replace by SYR but [cz]syr exists only in LAPACK */
         /* LAPACKE_zsyr_work(LAPACK_COL_MAJOR, 'l', */
