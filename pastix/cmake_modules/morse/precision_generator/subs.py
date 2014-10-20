@@ -339,6 +339,10 @@ subs = {
     ('Workspace_s',    'Workspace_d',    'Workspace_c',    'Workspace_z'     ),
     ('workspace_s',    'workspace_d',    'workspace_c',    'workspace_z'     ),
 
+    ('csc_s',          'csc_d',          'csc_c',          'csc_z'           ),
+    ('sequential_s',   'sequential_d',   'sequential_c',   'sequential_z'    ),
+    ('coeftab_s',      'coeftab_d',      'coeftab_c',      'coeftab_z'       ),
+
     # ----- Prefixes MORSE
     ('MORSE_S',        'MORSE_D',        'MORSE_C',        'MORSE_Z'         ),
     ('MORSE_sor',      'MORSE_dor',      'MORSE_cun',      'MORSE_zun'       ),
@@ -364,6 +368,8 @@ subs = {
     ('',               '',               'cuCimagf',       'cuCimag'         ),
     ('',               '',               'cuConjf',        'cuConj'          ),
     ('fabsf',          'fabs',           'cuCabsf',        'cuCabs'          ),
+    ('',               '',               'crealf',         'creal'           ),
+    ('sqrtf',          'sqrt',           'csqrtf',         'csqrt'           ),
 
     # ----- CUDA
     ('cublasIsamax',   'cublasIdamax',   'cublasIcamax',   'cublasIzamax'    ),
@@ -899,7 +905,6 @@ subs = {
     ('s_get_idparm',   'd_get_idparm',   's_get_idparm',   'd_get_idparm',   ),
     #('stesting',       'dtesting',       'ctesting',       'ztesting'        ),
     #('SAUXILIARY',     'DAUXILIARY',     'CAUXILIARY',     'ZAUXILIARY'      ),
-    ('csc_s',          'csc_d',          'csc_c',          'csc_z'           ),
   ],
 
   # ------------------------------------------------------------
