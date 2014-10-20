@@ -51,6 +51,8 @@
 #cmakedefine PASTIX_SYMBOL_FORCELOAD
 #cmakedefine PASTIX_SYMBOL_DUMP_SYMBMTX
 
+#cmakedefine PASTIX_BLEND_GENTRACE
+
 #cmakedefine FORGET_PARTITION
 #cmakedefine COMPACT_SMX
 
