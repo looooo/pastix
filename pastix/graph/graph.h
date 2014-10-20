@@ -26,6 +26,7 @@ struct pastix_graph_s {
     pastix_int_t *colptr;    /*< List of indirections to rows for each vertex */
     pastix_int_t *rows;      /*< List of edges for each vertex                */
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global */
+    pastix_int_t *glob2loc;  /*< Corresponding numbering from global to local */
 };
 
 /*
