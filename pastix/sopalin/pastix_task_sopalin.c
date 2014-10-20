@@ -17,6 +17,13 @@
 #include "common.h"
 #include "csc.h"
 #include "bcsc.h"
+#include "sopalin_data.h"
+
+void
+coeftabInit( const SolverMatrix  *datacode,
+             const pastix_bcsc_t *bcsc,
+             pastix_int_t         fakefillin,
+             pastix_int_t         factoLU );
 
 /**
  *******************************************************************************
@@ -129,15 +136,26 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         //TODO: cscExit( csc );
     }
 
+    coeftabInit( pastix_data->solvmatr,
+                 pastix_data->bcsc,
+                 0, 0 );
     sbackup = solverBackupInit( pastix_data->solvmatr );
 
-    /* sopalinInit( pastix_data, sopalin_data, 1 ); */
-    /* sopalinFacto( pastix_data, sopalin_data ); */
-    /* sopalinExit( sopalin_data ); */
+    {
+        sopalin_data_t sopalin_data;
+        sopalin_data.solvmtx = pastix_data->solvmatr;
+
+        pastix_static_dpotrf( &sopalin_data );
+        //pastix_static_dsytrf( &sopalin_data );
+        //coeftab_ddump( pastix_data->solvmatr, "AfterFacto" );
+    }
+
+        /* sopalinInit( pastix_data, sopalin_data, 1 ); */
+        /* sopalinFacto( pastix_data, sopalin_data ); */
+        /* sopalinExit( sopalin_data ); */
 
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
-    memFree_null( sbackup );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |
