@@ -14,6 +14,9 @@ link_directories(
 
 set(PASTIX_EXAMPLES_LIBRARIES
   pastix
+  pastix_bcsc
+  pastix_kernels
+  pastix
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
@@ -48,6 +51,14 @@ if (PASTIX_ORDERING_METIS)
   set(PASTIX_EXAMPLES_LIBRARIES
     ${PASTIX_EXAMPLES_LIBRARIES}
     ${METIS_LIBRARIES}
+    )
+endif()
+
+if (PASTIX_BLEND_GENTRACE)
+  link_directories(${GTG_DIR}/lib)
+  set(PASTIX_EXAMPLES_LIBRARIES
+    ${PASTIX_EXAMPLES_LIBRARIES}
+    ${GTG_LIBRARIES}
     )
 endif()
 
