@@ -114,10 +114,12 @@ pastix_task_blend(pastix_data_t *pastix_data)
     iparm[IPARM_NNZEROS_BLOCK_LOCAL] = solvmatr->coefnbr;
 
     /* Affichage */
-    dparm[DPARM_FILL_IN]       = dparm[DPARM_FILL_IN]      *(double)(iparm[IPARM_NNZEROS]/(iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
+    dparm[DPARM_FILL_IN] = dparm[DPARM_FILL_IN]
+        * (double)(iparm[IPARM_NNZEROS]/(iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
+
     if ((procnum==0) && (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT))
     {
-        fprintf(stdout,TIME_TO_ANALYSE,    (double)dparm[DPARM_ANALYZE_TIME]);
+        fprintf(stdout, TIME_TO_ANALYSE,       (double)dparm[DPARM_ANALYZE_TIME]);
         fprintf(stdout, NNZERO_WITH_FILLIN_TH, (long)iparm[IPARM_NNZEROS]);
         fprintf(stdout, OUT_FILLIN_TH,         (double)dparm[DPARM_FILL_IN]);
         if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
@@ -151,6 +153,13 @@ pastix_task_blend(pastix_data_t *pastix_data)
             fprintf(stdout, OUT_COEFSIZE, (double)MEMORY_WRITE(sizeG),
                     MEMORY_UNIT_WRITE(sizeG));
         }
+    }
+
+    if (0)
+    {
+        FILE *file = fopen("solvergen", "w");
+        solverSave( solvmatr, file );
+        fclose(file);
     }
 
     /* Invalidate following steps, and add analyse step to the ones performed */
