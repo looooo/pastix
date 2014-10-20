@@ -111,12 +111,17 @@ candSubTreeBuild( pastix_int_t        rootnum,
     pastix_int_t i, son, bloknum;
 
     /* Compute cost of current node */
+#if defined(BLEND_COST_LL)
+    cost = costmtx->cblkcost[rootnum];
+#else
     cost = 0.;
     for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
          bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
     {
         cost += costmtx->bloktab[ bloknum ].contrib;
     }
+#endif
+
     etree->nodetab[ rootnum ].total   = cost;
     etree->nodetab[ rootnum ].subtree = cost;
 
