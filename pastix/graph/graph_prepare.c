@@ -187,7 +187,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
         /*
          * Centralized graph
          */
-        if (iparm[IPARM_GRAPHDIST] == API_NO)
+        //if (iparm[IPARM_GRAPHDIST] == API_NO)
+        if (loc2glob == NULL)
         {
             tmpgraph->gN = n;
 
@@ -276,16 +277,16 @@ graphPrepare(      pastix_data_t   *pastix_data,
                  * If the partition is incorrect, we create a permutation to linearize the sets
                  */
                 if ( !gok ) {
-                    pastix_int_t ldisp;
-                    int *all_n;
-                    int *displs;
+                    pastix_int_t  ldisp;
+                    pastix_int_t *all_n;
+                    pastix_int_t *displs;
 
                     /* Gather the locals n */
-                    MALLOC_INTERN(all_n,  pastix_data->procnbr, int);
-                    MALLOC_INTERN(displs, pastix_data->procnbr, int);
+                    MALLOC_INTERN(all_n,  pastix_data->procnbr, pastix_int_t);
+                    MALLOC_INTERN(displs, pastix_data->procnbr, pastix_int_t);
 
-                    MPI_Allgather(&n,    1, MPI_INT,
-                                  all_n, 1, MPI_INT,
+                    MPI_Allgather(&n,    1, PASTIX_MPI_INT,
+                                  all_n, 1, PASTIX_MPI_INT,
                                   pastix_comm);
 
                     displs[0] = 0;
