@@ -31,6 +31,10 @@
 #  License text for the above reference.)
 
 
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
+
 # Optionally use pkg-config to detect include/library dirs (if pkg-config is available)
 # -------------------------------------------------------------------------------------
 include(FindPkgConfig)
@@ -44,14 +48,8 @@ if(PKG_CONFIG_EXECUTABLE)
     mark_as_advanced(HWLOC_PKG_FILE_FOUND)
     if(HWLOC_PKG_FILE_FOUND)
         pkg_search_module(PC_HWLOC hwloc)
-        message(STATUS "Looking for HWLOC - pkgconfig used")
-        message(STATUS "Is found: ${PC_HWLOC_FOUND}")
-        message(STATUS "Version: ${PC_HWLOC_VERSION}")
-        message(STATUS "Prefix: ${PC_HWLOC_PREFIX}")
-        message(STATUS "include_dirs: ${PC_HWLOC_INCLUDE_DIRS}")
-        message(STATUS "Lib_dirs: ${PC_HWLOC_LIBRARY_DIRS}")
-        message(STATUS "Libraries: ${PC_HWLOC_LIBRARIES}")
     else()
+        Print_Find_Pkgconfig_Status(hwloc hwloc.pc ${PATH_PKGCONFIGPATH})
         message(STATUS "Looking for HWLOC - pkgconfig not used")
     endif()
 
@@ -113,6 +111,12 @@ else()
 endif()
 mark_as_advanced(HWLOC_hwloc.h_DIRS)
 
+# Print status if not found
+# -------------------------
+if (NOT HWLOC_hwloc.h_DIRS)
+    Print_Find_Header_Status(hwloc hwloc.h)
+endif ()
+
 # Add path to cmake variable
 # ------------------------------------
 if (HWLOC_hwloc.h_DIRS)
@@ -160,9 +164,7 @@ if(DEFINED HWLOC_LIBDIR)
         NAMES hwloc
         HINTS ${HWLOC_LIBDIR})
 else()
-  message(STATUS "test ${PC_HWLOC_LIBRARY_DIRS} 2 '${HWLOC_DIR}'")
-    if(DEFINED HWLOC_DIR AND NOT "${HWLOC_DIR}" STREQUAL "")
-      message(STATUS "test ${PC_HWLOC_LIBRARY_DIRS} 2 ${HWLOC_DIR}")
+    if(DEFINED HWLOC_DIR)
         set(HWLOC_hwloc_LIBRARY "HWLOC_hwloc_LIBRARY-NOTFOUND")
         find_library(HWLOC_hwloc_LIBRARY
             NAMES hwloc
@@ -170,7 +172,6 @@ else()
             PATH_SUFFIXES lib lib32 lib64)
     else()
         set(HWLOC_hwloc_LIBRARY "HWLOC_hwloc_LIBRARY-NOTFOUND")    
-	message(STATUS "test ${PC_HWLOC_LIBRARY_DIRS}")
         if(HWLOC_PKG_FILE_FOUND AND PC_HWLOC_LIBRARY_DIRS)
             find_library(HWLOC_hwloc_LIBRARY
                 NAMES hwloc
@@ -184,6 +185,12 @@ else()
     endif()
 endif()
 mark_as_advanced(HWLOC_hwloc_LIBRARY)
+
+# Print status if not found
+# -------------------------
+if (NOT HWLOC_hwloc_LIBRARY)
+    Print_Find_Library_Status(hwloc libhwloc)
+endif ()
 
 # If found, add path to cmake variable
 # ------------------------------------

@@ -33,6 +33,10 @@
 #  License text for the above reference.)
 
 
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
+
 # used to test a TMG function after
 get_property(_LANGUAGES_ GLOBAL PROPERTY ENABLED_LANGUAGES)
 if (NOT _LANGUAGES_ MATCHES Fortran)

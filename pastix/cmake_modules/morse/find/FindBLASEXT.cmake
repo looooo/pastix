@@ -30,6 +30,11 @@
 # (To distribute this file outside of Morse, substitute the full
 #  License text for the above reference.)
 
+
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
+
 # add a cache variable to let the user specify the BLAS vendor
 set(BLA_VENDOR "" CACHE STRING "list of possible BLAS vendor:
     Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL,
@@ -69,6 +74,18 @@ endif()
 # Intel case
 if(BLA_VENDOR MATCHES "Intel*")
 
+    message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
+        "have also potentially detected some BLAS libraries from the MKL."
+        "We try to use this one.")
+    message(STATUS "If you want to force the use of one specific library, "
+        "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
+        "at cmake configure.")
+    message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
+        "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
+        "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+        "Intel( older versions of mkl 32 and 64 bit),"
+        "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")        
     ###
     # look for include path if the BLAS vendor is Intel
     ###
@@ -100,7 +117,7 @@ if(BLA_VENDOR MATCHES "Intel*")
             find_path(BLAS_mkl.h_INCLUDE_DIRS
                     NAMES mkl.h
                     HINTS ${BLAS_DIR}
-                    PATH_SUFFIXES lib lib32 lib64)
+                    PATH_SUFFIXES include)
         else()
             find_path(BLAS_mkl.h_INCLUDE_DIRS
                     NAMES mkl.h
@@ -108,6 +125,11 @@ if(BLA_VENDOR MATCHES "Intel*")
         endif()
     endif()
     mark_as_advanced(BLAS_mkl.h_INCLUDE_DIRS)
+    # Print status if not found
+    # -------------------------
+    if (NOT BLAS_mkl.h_INCLUDE_DIRS)
+        Print_Find_Header_Status(blas mkl.h)
+    endif ()
     set(BLAS_INCLUDE_DIRS "")
     if(BLAS_mkl.h_INCLUDE_DIRS)
         list(APPEND BLAS_INCLUDE_DIRS "${BLAS_mkl.h_INCLUDE_DIRS}" )
@@ -154,6 +176,19 @@ if(BLA_VENDOR MATCHES "Intel*")
 
 # ACML case
 elseif(BLA_VENDOR MATCHES "ACML*")
+
+    message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
+        "have also potentially detected some BLAS libraries from the ACML."
+        "We try to use this one.")
+    message(STATUS "If you want to force the use of one specific library, "
+        "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
+        "at cmake configure.")
+    message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
+        "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
+        "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+        "Intel( older versions of mkl 32 and 64 bit),"
+        "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic") 
 
     ## look for the sequential version
     set(BLA_VENDOR "ACML")
@@ -224,32 +259,42 @@ endif ()
 include(FindPackageHandleStandardArgs)
 if(BLA_VENDOR MATCHES "Intel*")
     if(BLA_VENDOR MATCHES "Intel10_64lp*")
-        message(STATUS "BLAS found is Intel MKL: "
+        message(STATUS "BLAS found is Intel MKL:"
                        "we manage two lists of libs,"
-                       " one sequential and one parallel (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
+                       " one sequential and one parallel if found (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
+        message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
         find_package_handle_standard_args(BLAS DEFAULT_MSG
                                           BLAS_SEQ_LIBRARIES
                                           BLAS_LIBRARY_DIRS
                                           BLAS_INCLUDE_DIRS)
-        find_package_handle_standard_args(BLAS DEFAULT_MSG
-                                          BLAS_PAR_LIBRARIES)
+        if(BLAS_PAR_LIBRARIES)
+            message(STATUS "BLAS parallel libraries stored in BLAS_PAR_LIBRARIES")
+            find_package_handle_standard_args(BLAS DEFAULT_MSG
+                                              BLAS_PAR_LIBRARIES)
+        endif()
     else()
+        message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
         find_package_handle_standard_args(BLAS DEFAULT_MSG
                                           BLAS_SEQ_LIBRARIES
                                           BLAS_LIBRARY_DIRS
                                           BLAS_INCLUDE_DIRS)
     endif()
 elseif(BLA_VENDOR MATCHES "ACML*")
-    message(STATUS "BLAS found is ACML: "
+    message(STATUS "BLAS found is ACML:"
                     "we manage two lists of libs,"
-                    " one sequential and one parallel (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
+                    " one sequential and one parallel if found (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
+    message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")                    
     find_package_handle_standard_args(BLAS DEFAULT_MSG
                                       BLAS_SEQ_LIBRARIES
                                       BLAS_LIBRARY_DIRS
                                       BLAS_INCLUDE_DIRS)
-    find_package_handle_standard_args(BLAS DEFAULT_MSG
-                                      BLAS_PAR_LIBRARIES)
+    if(BLAS_PAR_LIBRARIES)
+        message(STATUS "BLAS parallel libraries stored in BLAS_PAR_LIBRARIES")
+        find_package_handle_standard_args(BLAS DEFAULT_MSG
+                                          BLAS_PAR_LIBRARIES)
+    endif()
 else()
+    message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
     find_package_handle_standard_args(BLAS DEFAULT_MSG
                                       BLAS_SEQ_LIBRARIES
                                       BLAS_LIBRARY_DIRS)

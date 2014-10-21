@@ -33,6 +33,10 @@
 #  License text for the above reference.)
 
 
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
+
 # CBLAS depends on BLAS
 # try to find it specified as COMPONENTS during the call
 if (CBLAS_FIND_COMPONENTS)
@@ -120,6 +124,12 @@ if (BLAS_FOUND)
             endif()
         endif()
         mark_as_advanced(CBLAS_cblas.h_DIRS)
+        
+        # Print status if not found
+        # -------------------------
+        if (NOT CBLAS_cblas.h_DIRS)
+            Print_Find_Header_Status(cblas cblas.h)
+        endif ()        
 
         # If found, add path to cmake variable
         # ------------------------------------
@@ -175,6 +185,12 @@ if (BLAS_FOUND)
             endif()
         endif()
         mark_as_advanced(CBLAS_cblas_LIBRARY)
+        
+        # Print status if not found
+        # -------------------------
+        if (NOT CBLAS_cblas_LIBRARY)
+            Print_Find_Library_Status(cblas libcblas)
+        endif ()
 
         # If found, add path to cmake variable
         # ------------------------------------

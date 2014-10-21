@@ -39,7 +39,10 @@
 # (To distribute this file outside of Morse, substitute the full
 #  License text for the above reference.)
 
-#message(STATUS "Is required STARPU: ${STARPU_FIND_REQUIRED}")
+
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
 
 # STARPU may depend on other packages (HWLOC, MPI, CUDA, ...)
 # try to find them if specified as COMPONENTS during the call
@@ -92,14 +95,8 @@ if(PKG_CONFIG_EXECUTABLE)
     mark_as_advanced(STARPU_SHM_PKG_FILE_FOUND)
     if(STARPU_SHM_PKG_FILE_FOUND)
         pkg_search_module(PC_STARPU_SHM libstarpu)
-#        message(STATUS "Looking for STARPU without MPI - pkgconfig used")
-#        message(STATUS "Is found: ${PC_STARPU_SHM_FOUND}")
-#        message(STATUS "Version: ${PC_STARPU_SHM_VERSION}")
-#        message(STATUS "Prefix: ${PC_STARPU_SHM_PREFIX}")
-#        message(STATUS "include_dirs: ${PC_STARPU_SHM_INCLUDE_DIRS}")
-#        message(STATUS "Lib_dirs: ${PC_STARPU_SHM_LIBRARY_DIRS}")
-#        message(STATUS "Libraries: ${PC_STARPU_SHM_LIBRARIES}")
     else()
+        Print_Find_Pkgconfig_Status(starpu libstarpu.pc ${PATH_PKGCONFIGPATH})
         message(STATUS "Looking for STARPU without MPI - pkgconfig not used")
     endif()
     if(STARPU_LOOK_FOR_MPI)
@@ -110,8 +107,9 @@ if(PKG_CONFIG_EXECUTABLE)
         mark_as_advanced(STARPU_MPI_PKG_FILE_FOUND)
         if(STARPU_MPI_PKG_FILE_FOUND)
             pkg_search_module(PC_STARPU_MPI libstarpumpi)
-            #message(STATUS "Libraries: ${PC_STARPU_MPI_LIBRARIES}")
         else()
+            Print_Find_Pkgconfig_Status(starpu libstarpumpi.pc 
+                                        ${PATH_PKGCONFIGPATH})
             message(STATUS "Looking for STARPU with MPI- pkgconfig not used")
         endif()
     endif()
@@ -184,6 +182,12 @@ else()
 endif()
 mark_as_advanced(STARPU_starpu_config.h_INCLUDE_DIRS)
 
+# Print status if not found
+# -------------------------
+if (NOT STARPU_starpu_config.h_INCLUDE_DIRS)
+    Print_Find_Header_Status(starpu starpu_config.h)
+endif ()
+
 
 ###
 #
@@ -250,7 +254,7 @@ if(DEFINED STARPU_INCDIR)
         set(STARPU_${starpu_hdr}_INCLUDE_DIRS "STARPU_${starpu_hdr}_INCLUDE_DIRS-NOTFOUND")
         find_path(STARPU_${starpu_hdr}_INCLUDE_DIRS
                   NAMES ${starpu_hdr}
-                  HINTS ${STARPU_INCDIR})
+                  HINTS ${STARPU_INCDIR})                
     endforeach()
 else()
     if(DEFINED STARPU_DIR)
@@ -277,6 +281,14 @@ else()
         endforeach()
     endif()
 endif()
+
+# Print status if not found
+# -------------------------
+foreach(starpu_hdr ${STARPU_hdrs_to_find})
+    if (NOT STARPU_${starpu_hdr}_INCLUDE_DIRS)
+        Print_Find_Header_Status(starpu ${starpu_hdr})
+    endif ()
+endforeach()
 
 # If found, add path to cmake variable
 # ------------------------------------
@@ -315,7 +327,8 @@ foreach(starpu_hdr ${STARPU_hdrs_to_find})
     endif ()
     mark_as_advanced(STARPU_${starpu_hdr}_INCLUDE_DIRS)
 
-endforeach()
+endforeach(starpu_hdr ${STARPU_hdrs_to_find})
+
 if (STARPU_INCLUDE_DIRS)
     list(REMOVE_DUPLICATES STARPU_INCLUDE_DIRS)
 endif ()
@@ -366,10 +379,9 @@ set(PATH_TO_LOOK_FOR "${_lib_env}")
 # create list of libs to find
 set(STARPU_libs_to_find     "starpu-${STARPU_VERSION_STRING}")
 set(STARPU_SHM_libs_to_find "starpu-${STARPU_VERSION_STRING}")
-set(STARPU_MPI_libs_to_find "starpu-${STARPU_VERSION_STRING}")
-if(STARPU_LOOK_FOR_MPI)
+if (STARPU_LOOK_FOR_MPI)
     list(APPEND STARPU_libs_to_find "starpumpi-${STARPU_VERSION_STRING}")
-    list(APPEND STARPU_MPI_libs_to_find "starpumpi-${STARPU_VERSION_STRING}")
+    set(STARPU_MPI_libs_to_find "${STARPU_libs_to_find}")
 endif()
 
 # call cmake macro to find the lib path
@@ -405,11 +417,20 @@ else()
     endif()
 endif()
 
+# Print status if not found
+# -------------------------
+foreach(starpu_lib ${STARPU_libs_to_find})
+    if (NOT STARPU_${starpu_lib}_LIBRARY)
+        Print_Find_Library_Status(starpu ${starpu_lib})
+    endif ()
+endforeach()
+
 # If found, add path to cmake variable
 # ------------------------------------
 foreach(starpu_lib ${STARPU_libs_to_find})
 
     if (STARPU_${starpu_lib}_LIBRARY)
+    
         get_filename_component(${starpu_lib}_lib_path ${STARPU_${starpu_lib}_LIBRARY} PATH)
         # set cmake variables (respects naming convention)
         
@@ -422,21 +443,25 @@ foreach(starpu_lib ${STARPU_libs_to_find})
                 endif()
             endif()
         endforeach()
-        foreach(starpu_mpi_lib ${STARPU_MPI_libs_to_find})
-            if(starpu_mpi_lib STREQUAL starpu_lib)
-                if (STARPU_MPI_LIBRARIES)
-                    list(APPEND STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
-                else()
-                    set(STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
+        if (STARPU_LOOK_FOR_MPI)
+            foreach(starpu_mpi_lib ${STARPU_MPI_libs_to_find})
+                if(starpu_mpi_lib STREQUAL starpu_lib)
+                    if (STARPU_MPI_LIBRARIES)
+                        list(APPEND STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
+                    else()
+                        set(STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
+                    endif()
                 endif()
-            endif()
-        endforeach()
+            endforeach()
+        endif ()
         if (STARPU_LIBRARY_DIRS)
             list(APPEND STARPU_LIBRARY_DIRS "${${starpu_lib}_lib_path}")
         else()
             set(STARPU_LIBRARY_DIRS "${${starpu_lib}_lib_path}")
         endif()
-    else ()
+        
+    else (STARPU_${starpu_lib}_LIBRARY)
+    
         message(STATUS "Looking for starpu -- lib ${starpu_lib} not found")
         if(starpu_lib STREQUAL "starpumpi-${STARPU_VERSION_STRING}" AND
            NOT ${STARPU_FIND_REQUIRED_MPI} STREQUAL 1)
@@ -453,19 +478,25 @@ foreach(starpu_lib ${STARPU_libs_to_find})
                     endif()
                 endif()
             endforeach()
-            foreach(starpu_mpi_lib ${STARPU_MPI_libs_to_find})
-                if(starpu_mpi_lib STREQUAL starpu_lib)
-                    if (STARPU_MPI_LIBRARIES)
-                        list(APPEND STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
-                    else()
-                        set(STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
+            if (STARPU_LOOK_FOR_MPI)
+                foreach(starpu_mpi_lib ${STARPU_MPI_libs_to_find})
+                    if(starpu_mpi_lib STREQUAL starpu_lib)
+                        if (STARPU_MPI_LIBRARIES)
+                            list(APPEND STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
+                        else()
+                            set(STARPU_MPI_LIBRARIES "${STARPU_${starpu_lib}_LIBRARY}")
+                        endif()
                     endif()
-                endif()
-            endforeach()
+                endforeach()
+            endif ()
         endif()
-    endif ()
+        
+    endif (STARPU_${starpu_lib}_LIBRARY)
+    
     mark_as_advanced(STARPU_${starpu_lib}_LIBRARY)
-endforeach()
+    
+endforeach(starpu_lib ${STARPU_libs_to_find})
+
 if (STARPU_LIBRARY_DIRS)
     list(REMOVE_DUPLICATES STARPU_SHM_LIBRARIES)
     list(REMOVE_DUPLICATES STARPU_MPI_LIBRARIES)
@@ -481,15 +512,20 @@ endif ()
 # check that STARPU has been found
 # --------------------------------
 include(FindPackageHandleStandardArgs)
-message(STATUS "StarPU has been found. "
-               "If the mpi version of StarPU has been found then we manage two lists of libs,"
-                " one sequential and one parallel (see STARPU_SHM_LIBRARIES and STARPU_MPI_LIBRARIES).")
+message(STATUS "StarPU has been found.")
+if(STARPU_LOOK_FOR_MPI)
+    message(STATUS "If the mpi version of StarPU has been found then we manage"
+                   "two lists of libs, one sequential and one parallel (see"
+                   "STARPU_SHM_LIBRARIES and STARPU_MPI_LIBRARIES).")
+endif()
+message(STATUS "StarPU shared memory libraries stored in STARPU_SHM_LIBRARIES")
 find_package_handle_standard_args(STARPU DEFAULT_MSG
 #                                  STARPU_FOUND
                                   STARPU_SHM_LIBRARIES
                                   STARPU_INCLUDE_DIRS
                                   STARPU_LIBRARY_DIRS)
 if(STARPU_LOOK_FOR_MPI)
+    message(STATUS "StarPU mpi libraries stored in STARPU_MPI_LIBRARIES")
     find_package_handle_standard_args(STARPU DEFAULT_MSG
                                       STARPU_MPI_LIBRARIES)
 endif()

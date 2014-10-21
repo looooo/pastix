@@ -33,6 +33,10 @@
 #  License text for the above reference.)
 
 
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
+
 # LAPACKE depends on LAPACK
 # try to find it specified as COMPONENTS during the call
 if (LAPACKE_FIND_COMPONENTS)
@@ -95,6 +99,12 @@ else()
 endif()
 mark_as_advanced(LAPACKE_lapacke.h_DIRS)
 
+# Print status if not found
+# -------------------------
+if (NOT LAPACKE_lapacke.h_DIRS)
+    Print_Find_Header_Status(lapacke lapacke.h)
+endif ()
+
 # If found, add path to cmake variable
 # ------------------------------------
 if (LAPACKE_lapacke.h_DIRS)
@@ -149,6 +159,12 @@ else()
     endif()
 endif()
 mark_as_advanced(LAPACKE_lapacke_LIBRARY)
+
+# Print status if not found
+# -------------------------
+if (NOT LAPACKE_lapacke_LIBRARY)
+    Print_Find_Library_Status(lapacke liblapacke)
+endif ()
 
 # If found, add path to cmake variable
 # ------------------------------------

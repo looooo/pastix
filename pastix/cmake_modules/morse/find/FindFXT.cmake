@@ -31,6 +31,10 @@
 #  License text for the above reference.)
 
 
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
+
 # Optionally use pkg-config to detect include/library dirs (if pkg-config is available)
 # -------------------------------------------------------------------------------------
 include(FindPkgConfig)
@@ -44,14 +48,8 @@ if(PKG_CONFIG_EXECUTABLE)
     mark_as_advanced(FXT_PKG_FILE_FOUND)
     if(FXT_PKG_FILE_FOUND)
         pkg_search_module(PC_FXT fxt)
-#        message(STATUS "Looking for FXT - pkgconfig used")
-#        message(STATUS "Is found: ${PC_FXT_FOUND}")
-#        message(STATUS "Version: ${PC_FXT_VERSION}")
-#        message(STATUS "Prefix: ${PC_FXT_PREFIX}")
-#        message(STATUS "include_dirs: ${PC_FXT_INCLUDE_DIRS}")
-#        message(STATUS "Lib_dirs: ${PC_FXT_LIBRARY_DIRS}")
-#        message(STATUS "Libraries: ${PC_FXT_LIBRARIES}")
     else()
+        Print_Find_Pkgconfig_Status(fxt fxt.pc ${PATH_PKGCONFIGPATH})
         message(STATUS "Looking for FXT - pkgconfig not used")
     endif()
 
@@ -112,6 +110,12 @@ else()
     endif()
 endif()
 mark_as_advanced(FXT_fxt.h_DIRS)
+
+# Print status if not found
+# -------------------------
+if (NOT FXT_fxt.h_DIRS)
+    Print_Find_Header_Status(fxt fxt.h)
+endif ()
 
 # Add path to cmake variable
 # ------------------------------------
@@ -180,6 +184,12 @@ else()
     endif()
 endif()
 mark_as_advanced(FXT_fxt_LIBRARY)
+
+# Print status if not found
+# -------------------------
+if (NOT FXT_fxt_LIBRARY)
+    Print_Find_Library_Status(fxt libfxt)
+endif ()
 
 # If found, add path to cmake variable
 # ------------------------------------

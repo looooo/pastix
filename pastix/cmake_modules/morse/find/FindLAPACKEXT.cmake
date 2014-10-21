@@ -33,6 +33,10 @@
 #  License text for the above reference.)
 
 
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+include(PrintFindStatus)
+
 # LAPACKEXT depends on BLASEXT
 # call our extended module for BLAS
 #----------------------------------
@@ -67,6 +71,12 @@ if(BLA_VENDOR MATCHES "Intel*")
     endif()
     list(REMOVE_DUPLICATES _inc_env)
     
+    if (BLAS_DIR)
+        set(LAPACK_DIR ${BLAS_DIR})
+    endif ()
+    if (BLAS_INCDIR)
+        set(LAPACK_INCDIR ${BLAS_INCDIR})
+    endif ()    
     # find mkl.h inside known include paths
     set(LAPACK_mkl_lapack.h_INCLUDE_DIRS "LAPACK_mkl_lapack.h_INCLUDE_DIRS-NOTFOUND")
     if(DEFINED LAPACK_INCDIR)
@@ -78,7 +88,7 @@ if(BLA_VENDOR MATCHES "Intel*")
             find_path(LAPACK_mkl_lapack.h_INCLUDE_DIRS
                     NAMES mkl_lapack.h
                     HINTS ${LAPACK_DIR}
-                    PATH_SUFFIXES lib lib32 lib64)
+                    PATH_SUFFIXES include)
         else()
             find_path(LAPACK_mkl_lapack.h_INCLUDE_DIRS
                     NAMES mkl_lapack.h
@@ -86,6 +96,11 @@ if(BLA_VENDOR MATCHES "Intel*")
         endif()
     endif()  
     mark_as_advanced(LAPACK_mkl_lapack.h_INCLUDE_DIRS)
+    # Print status if not found
+    # -------------------------
+    if (NOT LAPACK_mkl_lapack.h_INCLUDE_DIRS)
+        Print_Find_Header_Status(lapack mkl_lapack.h)
+    endif ()    
     set(LAPACK_INCLUDE_DIRS "")
     if(LAPACK_mkl_lapack.h_INCLUDE_DIRS)
         list(APPEND LAPACK_INCLUDE_DIRS "${LAPACK_mkl_lapack.h_INCLUDE_DIRS}" )
@@ -113,7 +128,7 @@ if(BLA_VENDOR MATCHES "Intel*")
             set(LAPACK_SEQ_LIBRARIES "${LAPACK_SEQ_LIBRARIES-NOTFOUND}")
         endif()     
         # if BLAS Intel 10 64 bit -> save sequential and multithreaded versions
-        if(BLA_VENDOR MATCHES "Intel10_64lp*")   
+        if(BLA_VENDOR MATCHES "Intel10_64lp*")
             if(BLAS_PAR_LIBRARIES)
                 set(LAPACK_PAR_LIBRARIES "${BLAS_PAR_LIBRARIES}")
             else()
@@ -210,32 +225,51 @@ endif ()
 include(FindPackageHandleStandardArgs)
 if(BLA_VENDOR MATCHES "Intel*")
     if(BLA_VENDOR MATCHES "Intel10_64lp*")
-        message(STATUS "LAPACK found is Intel MKL: "
+        message(STATUS "LAPACK found is Intel MKL:"
                        "we manage two lists of libs,"
-                       " one sequential and one parallel (see LAPACK_SEQ_LIBRARIES and LAPACK_PAR_LIBRARIES)")
+                       " one sequential and one parallel (see"
+                       "LAPACK_SEQ_LIBRARIES and LAPACK_PAR_LIBRARIES)")
+        message(STATUS "LAPACK sequential libraries stored in"
+                       "LAPACK_SEQ_LIBRARIES")
         find_package_handle_standard_args(LAPACK DEFAULT_MSG
                                           LAPACK_SEQ_LIBRARIES
                                           LAPACK_LIBRARY_DIRS
                                           LAPACK_INCLUDE_DIRS)
-        find_package_handle_standard_args(LAPACK DEFAULT_MSG
-                                          LAPACK_PAR_LIBRARIES)                                          
+        if(LAPACK_PAR_LIBRARIES)
+            message(STATUS "LAPACK parallel libraries stored in"
+                           "LAPACK_PAR_LIBRARIES")        
+            find_package_handle_standard_args(LAPACK DEFAULT_MSG
+                                              LAPACK_PAR_LIBRARIES)
+        endif()
+                          
     else()
+        message(STATUS "LAPACK sequential libraries stored in"
+                       "LAPACK_SEQ_LIBRARIES")    
         find_package_handle_standard_args(LAPACK DEFAULT_MSG
                                           LAPACK_SEQ_LIBRARIES
                                           LAPACK_LIBRARY_DIRS
                                           LAPACK_INCLUDE_DIRS)    
     endif()
 elseif(BLA_VENDOR MATCHES "ACML*") 
-    message(STATUS "LAPACK found is ACML: "
+    message(STATUS "LAPACK found is ACML:"
                     "we manage two lists of libs,"
-                    " one sequential and one parallel (see LAPACK_SEQ_LIBRARIES and LAPACK_PAR_LIBRARIES)")
+                    " one sequential and one parallel (see"
+                    "LAPACK_SEQ_LIBRARIES and LAPACK_PAR_LIBRARIES)")
+    message(STATUS "LAPACK sequential libraries stored in"
+                   "LAPACK_SEQ_LIBRARIES")
     find_package_handle_standard_args(LAPACK DEFAULT_MSG
                                       LAPACK_SEQ_LIBRARIES
                                       LAPACK_LIBRARY_DIRS
                                       LAPACK_INCLUDE_DIRS)
-    find_package_handle_standard_args(LAPACK DEFAULT_MSG
-                                      LAPACK_PAR_LIBRARIES)    
+    if(LAPACK_PAR_LIBRARIES)
+        message(STATUS "LAPACK parallel libraries stored in"
+                       "LAPACK_PAR_LIBRARIES")    
+        find_package_handle_standard_args(LAPACK DEFAULT_MSG
+                                        LAPACK_PAR_LIBRARIES)
+    endif()
 else()
+    message(STATUS "LAPACK sequential libraries stored in"
+                   "LAPACK_SEQ_LIBRARIES")
     find_package_handle_standard_args(LAPACK DEFAULT_MSG
                                       LAPACK_SEQ_LIBRARIES
                                       LAPACK_LIBRARY_DIRS)
