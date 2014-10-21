@@ -71,8 +71,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
     pastix_int_t *rows;
     pastix_int_t *iparm = pastix_data->iparm;
     pastix_int_t  procnum;
-    pastix_int_t n;
-    pastix_int_t nnz;
+    pastix_int_t  n, nnz, baseval;
     int ret;
 
     procnum = pastix_data->procnum;
@@ -82,33 +81,38 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
         errorPrint("Inconsistent integer type\n");
         return PASTIX_ERR_INTEGER_TYPE;
     }
-    /* centralized */
+    /* Centralized */
+#if 0
     if (iparm[IPARM_GRAPHDIST] == API_NO) {
+#endif
         n      = graph->n;
         colptr = graph->colptr;
         rows   = graph->rows;
-        nnz    = colptr[n] - 1;
-    } else {
-        /* distributed */
-        d_cscd2csc_int( graph->n,
-                        graph->colptr,
-                        graph->rows,
-                        NULL, NULL, NULL, NULL,
-                        &n, &colptr, &rows,
-                        NULL, NULL, NULL, NULL,
-                        graph->loc2glob,
-                        pastix_data->pastix_comm,
-                        0, /* DoF to 0 as we have no values */
-                        API_YES);
-
+        baseval= colptr[0];
+        nnz    = colptr[n] - baseval;
+#if 0
     }
+    /* Distributed */
+    else {
+        cscd2csc_int( graph->n,
+                      graph->colptr,
+                      graph->rows,
+                      NULL, NULL, NULL, NULL,
+                      &n, &colptr, &rows,
+                      NULL, NULL, NULL, NULL,
+                      graph->loc2glob,
+                      pastix_data->pastix_comm,
+                      0, /* DoF to 0 as we have no values */
+                      API_YES);
+    }
+#endif
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
     orderInit(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
     if (SCOTCH_graphBuild(&scotchgraph,   /* Graph to build     */
-                          1,              /* baseval            */
+                          baseval,        /* baseval            */
                           n,              /* Number of vertices */
                           colptr,         /* Vertex array       */
                           NULL,
@@ -188,10 +192,13 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
 
     SCOTCH_stratExit (&stratdat);
     SCOTCH_graphExit( &scotchgraph );
+#if 0
     if (iparm[IPARM_GRAPHDIST] == API_YES) {
         memFree_null(colptr);
         memFree_null(rows);
     }
+#endif
+
     if (ret != 0) {           /* If something failed in Scotch */
         orderExit (ordemesh);    /* Free ordering arrays          */
         return PASTIX_ERR_INTERNAL;

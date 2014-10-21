@@ -80,7 +80,7 @@ orderComputePTScotch(       pastix_data_t  *pastix_data,
     pastix_int_t *rows;
     pastix_int_t *iparm = pastix_data->iparm;
     pastix_int_t  procnum;
-    pastix_int_t  n, gN, nnz;
+    pastix_int_t  n, gN, nnz, baseval;
 
     procnum     = pastix_data->procnum;
     pastix_comm = pastix_data->pastix_comm;
@@ -95,7 +95,8 @@ orderComputePTScotch(       pastix_data_t  *pastix_data,
     n      = graph->n;
     colptr = graph->colptr;
     rows   = graph->rows;
-    nnz    = colptr[n] - 1;
+    baseval= colptr[0];
+    nnz    = colptr[n] - baseval;
 
     /* Build distributed graph */
     print_debug(DBG_SCOTCH, "> SCOTCH_dgraphInit <\n");
@@ -103,7 +104,7 @@ orderComputePTScotch(       pastix_data_t  *pastix_data,
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
     if ( SCOTCH_dgraphBuild (&dgraph,
-                             colptr[0],    /* baseval */
+                             baseval,      /* baseval */
                              n,            /* number of local vertices */
                              n,            /* Maximum number of local vertices     */
                              colptr,
@@ -147,14 +148,14 @@ orderComputePTScotch(       pastix_data_t  *pastix_data,
     }
     else /* Personal strategy */
     {
-        sprintf(strat, PTSCOTCH_STRAT_PERSO,
-                (long) iparm[IPARM_ORDERING_SWITCH_LEVEL],
-                (long) iparm[IPARM_ORDERING_CMIN],
-                (long) iparm[IPARM_ORDERING_CMAX],
+        sprintf(strat,  PTSCOTCH_STRAT_PERSO,
+                (long)  iparm[IPARM_ORDERING_SWITCH_LEVEL],
+                (long)  iparm[IPARM_ORDERING_CMIN],
+                (long)  iparm[IPARM_ORDERING_CMAX],
                 ((float)iparm[IPARM_ORDERING_FRAT])/100.,
-                (long) iparm[IPARM_ORDERING_SWITCH_LEVEL],
-                (long) iparm[IPARM_ORDERING_CMIN],
-                (long) iparm[IPARM_ORDERING_CMAX],
+                (long)  iparm[IPARM_ORDERING_SWITCH_LEVEL],
+                (long)  iparm[IPARM_ORDERING_CMIN],
+                (long)  iparm[IPARM_ORDERING_CMAX],
                 ((float)iparm[IPARM_ORDERING_FRAT])/100.);
 
         if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
@@ -214,7 +215,8 @@ orderComputePTScotch(       pastix_data_t  *pastix_data,
     else {
         SCOTCH_dgraphOrderGather (&dgraph, &ordedat, NULL);
     }
-    ordemesh->baseval=1;
+
+    ordemesh->baseval = dgraph->baseval;
     MPI_Bcast(&ordemesh->cblknbr, 1,                     PASTIX_MPI_INT, 0, pastix_comm);
     MPI_Bcast( ordemesh->rangtab, (ordemesh->cblknbr+1), PASTIX_MPI_INT, 0, pastix_comm);
     MPI_Bcast( ordemesh->permtab, gN,                    PASTIX_MPI_INT, 0, pastix_comm);

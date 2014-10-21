@@ -79,7 +79,7 @@
  * @param[in] loc2glob
  *          Array of size n
  *          Global numbering of each local vertex.
- *          Can be equal to NULL if graph load is asked.
+ *          NULL if centralized interface is used or if graph load is asked.
  *
  * @param[in,out] perm
  *          Array of size n.
@@ -397,15 +397,30 @@ pastix_task_order(      pastix_data_t *pastix_data,
      * Return the ordering to user if perm/invp are not NULL
      * Remark: No need to copy back for personal
      */
-    if (iparm[IPARM_GRAPHDIST] == API_NO) {
-        if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
+    if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
+        if (loc2glob == NULL) {
             if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
             if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
         }
-    } else {
-        pastix_int_t i;
-        for (i = 0; i < n; i++) {
-            perm[i] = ordemesh->permtab[loc2glob[i]-1];
+        else {
+            int baseval = graph->colptr[0];
+
+            if (perm != NULL) {
+                pastix_int_t *permtab = ordemesh->permtab - baseval;
+                pastix_int_t i;
+
+                for(i=0; i<n; i++) {
+                    perm[i] = permtab[loc2glob[i]];
+                }
+            }
+            if (invp != NULL) {
+                pastix_int_t *peritab = ordemesh->peritab - baseval;
+                pastix_int_t i;
+
+                for(i=0; i<n; i++) {
+                    invp[i] = peritab[loc2glob[i]];
+                }
+            }
         }
     }
 
