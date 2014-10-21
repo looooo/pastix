@@ -673,15 +673,6 @@ simuRun( SimuCtrl           *simuctrl,
         }
     }
 
-    for(i=0; i<ctrl->total_nbthrds; i++)
-      {
-        fprintf(stderr, "Processor %ld Not Yet Ready ", i);
-        pqueuePrint( simuctrl->proctab[i].futuretask );
-        fprintf(stderr, "Processor %ld Ready ", i);
-        pqueuePrint( simuctrl->proctab[i].readytask );
-      }
-
-
     /*
      * Run simulation and mapp the task onto a single candidate
      */
@@ -721,8 +712,6 @@ simuRun( SimuCtrl           *simuctrl,
 
         /* Backup which cluster will get the data for the second run of proportionnal mapping */
         ctrl->candtab[cblknum].cluster = clustnum;
-
-        fprintf(stderr, "%ld - %ld - %lf - %lf\n", pr, i, timerVal( TIMER(pr) ), timerVal(&(task->time)) );
 
         /*
          * Compute the time at which each proc cand will have added its ftgt and
