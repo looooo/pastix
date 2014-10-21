@@ -612,14 +612,14 @@ solverMatrixGen(const pastix_int_t clustnum,
             for( ; solvblok<lblok; solvblok++ ) {
                 n = solvblok->lrownum - solvblok->frownum + 1;
 
-                gemmarea = pastix_imax((m +1)* n, m*(n+1));
+                gemmarea = (m+1) * n;
                 if ( gemmarea > gemmmax ) {
                     gemmmax = gemmarea;
                     maxg_m = m;
                     maxg_n = n;
                 }
 
-                m-= n;
+                m -= n;
             }
         }
 
