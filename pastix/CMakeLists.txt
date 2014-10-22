@@ -59,7 +59,7 @@ option(PASTIX_DUMP_CBLK
   "Dump all cblk on disk after modifications" OFF)
 
 cmake_dependent_option(PASTIX_DISTRIBUTED
- "Enable the distributed interface (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
+ "Enable the distributed interface (requires PASTIX_WITH_MPI)" OFF "PASTIX_WITH_MPI" OFF)
 
 cmake_dependent_option(PASTIX_THREAD_COMM
  "Enable the specific communication thread (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
@@ -263,29 +263,65 @@ if (PASTIX_WITH_STARPU)
 endif (PASTIX_WITH_STARPU)
 
 # PaStiX might depend on Scotch/PT-Scotch
-#-------------------------------------------
-
-# the following  3 lines are temporary
-mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
-set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix directory")
-set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
-set( GTG_DIR           /opt/traces                 CACHE PATH   "GTG prefix directory")
-
-if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
-  include_directories("${SCOTCH_DIR}/include")
-  set(SCOTCH_LIBRARY_DIRS "${SCOTCH_DIR}/lib")
-  set(SCOTCH_LIBRARIES    "scotch;scotcherr")
-  set(PTSCOTCH_LIBRARIES  "ptscotch;ptscotcherr")
+#----------------------------------------
+if (PASTIX_ORDERING_SCOTCH)
+  find_package(SCOTCH)
+  if (SCOTCH_FOUND)
+    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS}" )
+    include_directories( ${SCOTCH_INCLUDE_DIRS} )
+    link_directories( ${SCOTCH_LIBRARY_DIRS} )
+    link_libraries( ${SCOTCH_LIBRARIES} )
+  else()
+    message(ERROR "Scotch is required but was not found. Please provide a Scotch library in your environment or configure with -DPASTIX_ORDERING_SCOTCH=OFF")
+  endif()
 endif()
 
-# PaStiX might depend on Metis
-#-----------------------------
+if (PASTIX_ORDERING_PTSCOTCH)
+  find_package(PTSCOTCH)
+  if (PTSCOTCH_FOUND)
+    include_directories( ${PTSCOTCH_INCLUDE_DIRS} )
+    link_directories( ${PTSCOTCH_LIBRARY_DIRS} )
+    list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES} )
+  else (PTSCOTCH_FOUND)
+    message(ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
+  endif (PTSCOTCH_FOUND)
+endif()
+
+
+# PaStiX might depend on Metis/ParMetis
+#--------------------------------------
 if (PASTIX_ORDERING_METIS)
-  include_directories("${METIS_DIR}/include")
-  set(METIS_LIBRARY_DIRS "${METIS_DIR}/lib")
-  set(METIS_LIBRARIES    "metis")
+  find_package(METIS)
+  if (METIS_FOUND)
+    include_directories( ${METIS_INCLUDE_DIRS} )
+    link_directories( ${METIS_LIBRARY_DIRS} )
+    link_libraries( ${METIS_LIBRARIES} )
+  else()
+    message(ERROR "Metis is required but was not found. Please provide a Metis library in your environment or configure with -DPASTIX_ORDERING_METIS=OFF")
+  endif()
 endif()
 
+# # the following  3 lines are temporary
+# mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
+# set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix directory")
+# set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
+# set( GTG_DIR           /opt/traces                 CACHE PATH   "GTG prefix directory")
+
+# if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
+#   include_directories("${SCOTCH_DIR}/include")
+#   set(SCOTCH_LIBRARY_DIRS "${SCOTCH_DIR}/lib")
+#   set(SCOTCH_LIBRARIES    "scotch;scotcherr")
+#   set(PTSCOTCH_LIBRARIES  "ptscotch;ptscotcherr")
+# endif()
+
+# # PaStiX might depend on Metis
+# #-----------------------------
+# if (PASTIX_ORDERING_METIS)
+#   include_directories("${METIS_DIR}/include")
+#   set(METIS_LIBRARY_DIRS "${METIS_DIR}/lib")
+#   set(METIS_LIBRARIES    "metis")
+# endif()
+# 
 # PaStiX might depend on GTG
 #---------------------------
 if (PASTIX_BLEND_GENTRACE)
