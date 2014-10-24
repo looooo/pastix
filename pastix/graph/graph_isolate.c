@@ -131,8 +131,7 @@ int graphIsolate(       pastix_int_t   n,
     /* Init invp array */
     MALLOC_INTERN(tmpinvp, n, pastix_int_t);
     for (i = 0; i <n; i++) {
-        if ((iter_isolate < isolate_n)          &&
-            (i == isolate_list[iter_isolate]-baseval) )
+        if (i == isolate_list[iter_isolate]-baseval)
         {
             tmpinvp[new_n+iter_isolate] = i;
             iter_isolate++;
@@ -185,7 +184,7 @@ int graphIsolate(       pastix_int_t   n,
         tmpcolptr[i+1] += tmpcolptr[i];
 
     new_nnz = tmpcolptr[new_n] - tmpcolptr[0];
-    assert( new_nnz > new_n );
+    /* TODO: be careful, allocation will fail if matrix is diagonal and no off-diagonal elements are found */
 
     /* Create the new rows array */
     MALLOC_INTERN(tmprows, new_nnz, pastix_int_t);
