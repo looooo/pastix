@@ -42,6 +42,11 @@ int  orderComputeScotch(   pastix_data_t *pastix_data, const pastix_graph_t *gra
 int  orderComputePTScotch( pastix_data_t *pastix_data, const pastix_graph_t *graph );
 int  orderComputeMetis(    pastix_data_t *pastix_data, const pastix_graph_t *graph );
 
+void orderComputeClif( const pastix_graph_t *graph,
+                       SCOTCH_Graph         *sgraph,
+                       Order                *order,
+                       SCOTCH_Ordering      *sorder);
+
 int  orderLoad(       Order * const ordeptr, char *filename );
 int  orderSave( const Order * const ordeptr, char *filename );
 
