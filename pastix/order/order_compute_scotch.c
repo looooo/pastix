@@ -25,6 +25,12 @@
 #endif /* defined(PASTIX_ORDERING_PTSCOTCH) */
 #include "order_scotch_strats.h"
 
+void
+orderComputeClif(const pastix_graph_t *graph,
+                 SCOTCH_Graph         *sgraph,
+                 Order                *order,
+                 SCOTCH_Ordering      *sorder);
+
 /**
  *******************************************************************************
  *
