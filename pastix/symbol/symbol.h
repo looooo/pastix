@@ -159,4 +159,6 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
                        pastix_int_t startsearch,
                        int ricar);
 
+void symbolPrintStats( const SymbolMatrix * );
+
 #endif /* SYMBOL_H */

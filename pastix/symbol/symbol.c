@@ -178,3 +178,72 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     return -1;
 }
 
+void
+symbolPrintStats( const SymbolMatrix *symbptr )
+{
+    SymbolCblk *cblk;
+    SymbolBlok *blok;
+    pastix_int_t itercblk, iterblok;
+    pastix_int_t cblknbr, bloknbr;
+    pastix_int_t cblkmin, cblkmax;
+    pastix_int_t blokmin, blokmax;
+    double cblkavg, blokavg;
+
+    cblknbr = symbptr->cblknbr;
+    bloknbr = symbptr->bloknbr - cblknbr;
+    cblkmin = 99999999999;
+    cblkmax = 0;
+    cblkavg = 0;
+    blokmin = 99999999999;
+    blokmax = 0;
+    blokavg = 0;
+
+    cblk = symbptr->cblktab;
+    blok = symbptr->bloktab;
+
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t iterblok = cblk[0].bloknum + 1;
+        pastix_int_t lbloknum = cblk[1].bloknum;
+
+        pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
+
+        cblkmin = pastix_imin( cblkmin, colnbr );
+        cblkmax = pastix_imax( cblkmax, colnbr );
+        cblkavg += colnbr;
+        blok++;
+
+        /* Only extra diagonal */
+        for( ; iterblok < lbloknum; iterblok++, blok++)
+        {
+            pastix_int_t rownbr = blok->lrownum - blok->frownum + 1;
+
+            blokmin = pastix_imin( blokmin, rownbr );
+            blokmax = pastix_imax( blokmax, rownbr );
+            blokavg += rownbr;
+        }
+    }
+
+    cblkavg = cblkavg / (double)cblknbr;
+    blokavg = blokavg / (double)bloknbr;
+
+    fprintf(stdout,
+            "------ Stats Symbol Matrix ----------\n"
+            " Number of cblk  : %ld\n"
+            " Number of blok  : %ld\n"
+            " Cblk min width  : %ld\n"
+            " Cblk max width  : %ld\n"
+            " Cblk avg width  : %lf\n"
+            " Blok min height : %ld\n"
+            " Blok max height : %ld\n"
+            " Blok avg height : %lf\n"
+            "-------------------------------------\n",
+            cblknbr, bloknbr,
+            cblkmin, cblkmax, cblkavg,
+            blokmin, blokmax, blokavg );
+
+    fprintf(stdout,
+            "& %ld & %ld & %ld & %lf & %ld & %ld & %ld & %lf\n",
+            cblknbr, cblkmin, cblkmax, cblkavg,
+            bloknbr, blokmin, blokmax, blokavg );
+}
