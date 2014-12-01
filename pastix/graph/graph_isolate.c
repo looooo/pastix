@@ -236,30 +236,33 @@ int graphIsolate(       pastix_int_t   n,
  *
  * @ingroup pastix_graph
  *
- * graphIsolateSupernode - This routine isolates a subset of vertices (supernode)
- * from a given graph, and returns a new GRAPH made up of those vertices, 
- * with additional edges created between vertices if they share a halo vertex.
+ * graphIsolateSupernode - This routine isolates a subset of vertices belonging
+ * to a supernode from a given graph, and returns a new graph made up of those
+ * vertices and internal connexions.  Extra edges are created between vertices
+ * if they are connected through a halo at 1.
  *
  *******************************************************************************
  *
  * @param[in] n
- *          The number of columns of the original GRAPH matrix.
+ *          The number of columns of the original matrix, ie the number of
+ *          vertices of the graph.
  *
  * @param[in] colptr
  *          Array of size n+1
- *          Index of first element of each column in rows array.
+ *          Index of first element of each column in rows array, ie the first
+ *          element of each vertex in the edges array.
  *
  * @param[in] rows
  *          Array of size nnz = colptr[n] - colptr[0].
- *          Rows of each non zero entries.
+ *          Rows of each non zero entries, ie the list of neighbours of each entry.
  *
  * @param[in] isolate_n
- *          The number of columns to isolate from the original GRAPH matrix.
+ *          The number of vertices to isolate from the original graph.
  *
  * @param[in,out] isolate_list
  *          Array of size isolate_n.
- *          List of columns to isolate. On exit, the list is sorted by ascending
- *          indexes.
+ *          List of columns/vertices to isolate. On exit, the list is sorted by
+ *          ascending indexes.
  *
  * @param[out] new_colptr
  *          Array of size isolate_n+1
