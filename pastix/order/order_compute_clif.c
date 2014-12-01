@@ -92,6 +92,25 @@ orderComputeClif( const pastix_graph_t *graph,
      * numbering that are not in this supernode.
      */
     {
+        pastix_int_t *blk_vertices;
+        pastix_int_t *sn_colptr, *sn_rows, *sn_perm, *sn_invp;
+
+        MALLOC_INTERN(blk_vertices, sn_vertnbr, pastix_int_t);
+
+        for(i=vertnbr; i<graph->n; i++) {
+            blk_vertices[i-vertnbr] = order->peritab[i];
+        }
+
+        graphIsolateSupernode( graph->n,
+			       graph->colptr,
+			       graph->rows,
+			       vertnbr,
+			       blk_vertices,
+			       &sn_colptr,
+			       &sn_rows,
+			       &sn_perm,
+			       &sn_invp );
+	/*    {
         pastix_int_t *non_blk_vertices;
         pastix_int_t *sn_colptr, *sn_rows, *sn_perm, *sn_invp;
 
@@ -110,7 +129,7 @@ orderComputeClif( const pastix_graph_t *graph,
                       &sn_rows,
                       &sn_perm,
                       &sn_invp );
-
+	*/
         //csc_symgraph_int(blksize,ncol_ptr,nrows,NULL,&nblksize,&nncol,&nnrow,NULL,API_YES);
         //csc_noDiag(nncol[0],nblksize,nncol,nnrow,NULL);
 
