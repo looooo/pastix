@@ -88,7 +88,7 @@ FC_GLOBAL(wreadmtc,WREADMTC)(int        *tmp1,
  *          At exit, contains the type of the right hand side.
  *
  *******************************************************************************/
-void readRSAHeader( char const *filename,
+void readRSAHeader( const char *filename,
                     int        *N,
                     int        *Nnz,
                     char       *Type,
@@ -156,8 +156,8 @@ void readRSAHeader( char const *filename,
  *          At exit, contains the type of the right hand side.
  *
  *******************************************************************************/
-void readRSA( char const    *filename,
-              pastix_csc_t  *csc )
+void readRSA( const char   *filename,
+              pastix_csc_t *csc )
 {
     char    Type[4];
     char    RhsType[4];

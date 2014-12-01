@@ -13,6 +13,9 @@
 
 #include "common.h"
 #include "drivers.h"
+#if defined(HAVE_SCOTCH)
+#include <scotch.h>
+#endif
 
 void convertArrayToComplex64( pastix_int_t n,
                               const double *A,
@@ -217,6 +220,18 @@ int cscReadFromFile( pastix_driver_t  driver,
 /*           *rhs = NULL; */
 /*           break; */
 /* #endif */
+#if defined(HAVE_SCOTCH)
+        case PastixDriverGraph:
+        {
+            SCOTCH_Graph sgraph;
+            FILE *file = fopen( filename, "r" );
+            SCOTCH_graphLoad( &sgraph, file, 1, 0 );
+            SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rows), NULL );
+            fclose(file);
+        }
+        break;
+#endif
+
         case PastixDriverRSA:
         default:
             readRSA( filename, csc );

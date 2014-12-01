@@ -687,7 +687,7 @@ pastix_ex_usage(void)
             );
 }
 
-#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:t:g:o:i:d:v::h"
+#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:t:g:o:i:d:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 static struct option long_options[] =
@@ -718,6 +718,8 @@ static struct option long_options[] =
     {"petsc_s",     required_argument,  0, 'D'},
     {"petsc_h",     required_argument,  0, 'E'},
     {"petsc_u",     required_argument,  0, 'F'},
+    {"G",           required_argument,  0, 'G'},
+    {"graph",       required_argument,  0, 'G'},
 
     {"threads",     required_argument,  0, 't'},
     {"t",           required_argument,  0, 't'},
@@ -841,6 +843,11 @@ void pastix_ex_getoptions(int argc, char **argv,
         case 'F':
             *driver = PastixDriverPetscU;
             getfilename( filename, optarg, "petscname" );
+            break;
+
+        case 'G':
+            *driver = PastixDriverGraph;
+            getfilename( filename, optarg, "graphname" );
             break;
 
         case 't': iparam[IPARM_THREAD_NBR] = atoi(optarg); break;

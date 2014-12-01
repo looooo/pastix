@@ -32,7 +32,8 @@ typedef enum pastix_driver_e {
     PastixDriverCSCD,
     PastixDriverLaplacian,
     PastixDriverBRGM,
-    PastixDriverBRGMD
+    PastixDriverBRGMD,
+    PastixDriverGraph
 } pastix_driver_t;
 
 void pastix_ex_getoptions(int argc, char **argv,
