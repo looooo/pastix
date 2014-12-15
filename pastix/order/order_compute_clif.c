@@ -38,7 +38,7 @@ orderComputeClif( const pastix_graph_t *graph,
     pastix_int_t  *new_rangtab;
     pastix_int_t   new_cblknbr;
     pastix_int_t   i, vertnbr = order->rangtab[order->cblknbr - 1];
-    pastix_int_t   sn_vertnbr = graph->n - vertnbr;
+    pastix_int_t   sn_vertnbr = graph->n - vertnbr; /* This works for the last supernode */
 
     SCOTCH_graphBase( sgraph, 0 );
     orderBase( order, 0 );
@@ -95,17 +95,11 @@ orderComputeClif( const pastix_graph_t *graph,
         pastix_int_t *blk_vertices;
         pastix_int_t *sn_colptr, *sn_rows, *sn_perm, *sn_invp;
 
-        MALLOC_INTERN(blk_vertices, sn_vertnbr, pastix_int_t);
-
-        for(i=vertnbr; i<graph->n; i++) {
-            blk_vertices[i-vertnbr] = order->peritab[i];
-        }
-
         graphIsolateSupernode( graph->n,
 			       graph->colptr,
 			       graph->rows,
-			       vertnbr,
-			       blk_vertices,
+			       sn_vertnbr,      /* Number of vertices in the supernode */
+			       order->peritab + order->rangtab[order->cblknbr - 1],
 			       &sn_colptr,
 			       &sn_rows,
 			       &sn_perm,
