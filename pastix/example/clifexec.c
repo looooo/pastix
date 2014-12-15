@@ -81,13 +81,7 @@ int main (int argc, char **argv)
                           iparm, dparm,
                           &driver, &filename );
 
-    {
-        SCOTCH_Graph sgraph;
-        FILE *file = fopen( filename, "r" );
-        SCOTCH_graphLoad( &sgraph, file, 1, 0 );
-        SCOTCH_graphData( &sgraph, NULL, &(csc.n), &(csc.colptr), NULL, NULL, NULL, NULL, &(csc.rows), NULL );
-        fclose(file);
-    }
+    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
