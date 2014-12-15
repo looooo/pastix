@@ -225,6 +225,14 @@ int cscReadFromFile( pastix_driver_t  driver,
         {
             SCOTCH_Graph sgraph;
             FILE *file = fopen( filename, "r" );
+
+            /* Check integer compatibility */
+            if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
+                errorPrint("Inconsistent integer type\n");
+                fclose(file);
+                return PASTIX_ERR_INTEGER_TYPE;
+            }
+
             SCOTCH_graphLoad( &sgraph, file, 1, 0 );
             SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rows), NULL );
             fclose(file);
