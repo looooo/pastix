@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Some macros to print status when search for headers and libs
 # Main parameters of macros
 #  _libname: name of the lib you seek, foo for example
@@ -56,11 +66,11 @@ macro(Print_Find_Header_Status _libname _header_to_find)
 
     # print status
     #message(" ")    
-    if(DEFINED ${LIBNAME}_INCDIR)
+    if(${LIBNAME}_INCDIR)
         message("${Blue}${LIBNAME}_INCDIR is defined but ${_header_to_find}"
                 "has not been found in ${${LIBNAME}_INCDIR}${ColourReset}")
     else()
-        if(DEFINED ${LIBNAME}_DIR)
+        if(${LIBNAME}_DIR)
             message("${Blue}${LIBNAME}_DIR is defined but"
                     "${_header_to_find} has not been found in" 
                     "${${LIBNAME}_DIR}/include${ColourReset}")
@@ -69,17 +79,19 @@ macro(Print_Find_Header_Status _libname _header_to_find)
                     "Nor ${LIBNAME}_DIR neither ${LIBNAME}_INCDIR"
                     "are defined so that we looked for ${_header_to_find} in"
                     "system paths (INCLUDE, CPATH, C_INCLUDE_PATH,"
-                    "INCLUDE_PATH)${ColourReset}")
+                    "INCLUDE_PATH, CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES"
+                    ", CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES)${ColourReset}")
             if(_inc_env)
                 message("${Blue}${_header_to_find} has not been found in"
                         "${_inc_env}${ColourReset}")        
             endif()
         endif()
     endif()
-    message("${BoldBlue}Please indicate where to find ${_header_to_find} by"
-            "updating your environment variable (INCLUDE or CPATH) or give the"
-            "path by adding -D${LIBNAME}_DIR=your/path/to/${libname} at cmake"
-            "configure${ColourReset}")
+    message("${BoldBlue}Please indicate where to find ${_header_to_find}. You have three options:\n"
+            "- Option 1: Provide the root directory of the library with cmake option: -D${LIBNAME}_DIR=your/path/to/${libname}/\n"
+            "- Option 2: Provide the directory where to find the headers with cmake option: -D${LIBNAME}_INCDIR=your/path/to/${libname}/include/\n"
+            "- Option 3: Update your environment variable (INCLUDE or CPATH)\n"
+            "- Option 4: If your library provides a PkgConfig file, make sure pkg-config finds your library${ColourReset}")
     #message(" ")
 
 endmacro()
@@ -93,19 +105,22 @@ macro(Print_Find_Library_Status _libname _lib_to_find)
 
     # print status
     #message(" ")
-    if(DEFINED ${LIBNAME}_LIBDIR)
+    if(${LIBNAME}_LIBDIR)
         message("${Yellow}${LIBNAME}_LIBDIR is defined but ${_lib_to_find}"
                 "has not been found in ${${LIBNAME}_LIBDIR}${ColourReset}")
     else()
-        if(DEFINED ${LIBNAME}_DIR)
+        if(${LIBNAME}_DIR)
             message("${Yellow}${LIBNAME}_DIR is defined but ${_lib_to_find}"
                     "has not been found in ${${LIBNAME}_DIR}/lib(or /lib32 or"
                     "/lib64)${ColourReset}")
         else()
             message("${Yellow}${_lib_to_find} not found."
                     "Nor ${LIBNAME}_DIR neither ${LIBNAME}_LIBDIR"
-                    "are defined so that we looked for ${_lib_to_find} in system"
-                    "paths (LD_LIBRARY_PATH, etc)${ColourReset}")
+                    "are defined so that we looked for ${_lib_to_find} in"
+                    "system paths (Linux: LD_LIBRARY_PATH, Windows: LIB,"
+                    "Mac: DYLD_LIBRARY_PATH,"
+                    "CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES,"
+                    "CMAKE_C_IMPLICIT_LINK_DIRECTORIES)${ColourReset}")
             if(_lib_env)
                 message("${Yellow}${_lib_to_find} has not been found in"
                         "${_lib_env}${ColourReset}")
@@ -113,9 +128,10 @@ macro(Print_Find_Library_Status _libname _lib_to_find)
         endif()
     endif()
     message("${BoldYellow}Please indicate where to find ${_lib_to_find}. You have three options:\n"
-            "- Option 1: Provide the directory where to find it with cmake option: -D${LIBNAME}_DIR=your/path/to/${libname}/\n"
-            "- Option 2: Provide both directories where to find the library and the headers with cmake options: -D${LIBNAME}_LIBDIR=your/path/to/${libname}/lib/ -D${LIBNAME}_INCDIR=your/path/to/${libname}/include/\n"
-            "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)${ColourReset}")
+            "- Option 1: Provide the root directory of the library with cmake option: -D${LIBNAME}_DIR=your/path/to/${libname}/\n"
+            "- Option 2: Provide the directory where to find the library with cmake option: -D${LIBNAME}_LIBDIR=your/path/to/${libname}/lib/\n"
+            "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"
+            "- Option 4: If your library provides a PkgConfig file, make sure pkg-config finds your library${ColourReset}")
 
 endmacro()
 
@@ -128,18 +144,21 @@ macro(Print_Find_Library_Blas_Status _libname _lib_to_find)
 
     # print status
     #message(" ")
-    if(DEFINED ${LIBNAME}_LIBDIR)
+    if(${LIBNAME}_LIBDIR)
         message("${Yellow}${LIBNAME}_LIBDIR is defined but ${_lib_to_find}"
                 "has not been found in ${ARGN}${ColourReset}")
     else()
-        if(DEFINED ${LIBNAME}_DIR)
+        if(${LIBNAME}_DIR)
             message("${Yellow}${LIBNAME}_DIR is defined but ${_lib_to_find}"
                     "has not been found in ${ARGN}${ColourReset}")
         else()
             message("${Yellow}${_lib_to_find} not found."
                     "Nor ${LIBNAME}_DIR neither ${LIBNAME}_LIBDIR"
-                    "are defined so that we look for ${_lib_to_find} in system"
-                    "paths (LD_LIBRARY_PATH, etc)${ColourReset}")
+                    "are defined so that we look for ${_lib_to_find} in"
+                    "system paths (Linux: LD_LIBRARY_PATH, Windows: LIB,"
+                    "Mac: DYLD_LIBRARY_PATH,"
+                    "CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES,"
+                    "CMAKE_C_IMPLICIT_LINK_DIRECTORIES)${ColourReset}")
             if(_lib_env)
                 message("${Yellow}${_lib_to_find} has not been found in"
                         "${_lib_env}${ColourReset}")
@@ -147,9 +166,10 @@ macro(Print_Find_Library_Blas_Status _libname _lib_to_find)
         endif()
     endif()
     message("${BoldYellow}Please indicate where to find ${_lib_to_find}. You have three options:\n"
-            "- Option 1: Provide the directory where to find it with cmake option: -D${LIBNAME}_DIR=your/path/to/${libname}/\n"
-            "- Option 2: Provide both directories where to find the library and the headers with cmake options: -D${LIBNAME}_LIBDIR=your/path/to/${libname}/lib/ -D${LIBNAME}_INCDIR=your/path/to/${libname}/include/\n"
-            "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)${ColourReset}")
+            "- Option 1: Provide the root directory of the library with cmake option: -D${LIBNAME}_DIR=your/path/to/${libname}/\n"
+            "- Option 2: Provide the directory where to find the library with cmake option: -D${LIBNAME}_LIBDIR=your/path/to/${libname}/lib/\n"
+            "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"
+            "- Option 4: If your library provides a PkgConfig file, make sure pkg-config finds your library${ColourReset}")
 
 endmacro()
 

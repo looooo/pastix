@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find CBLAS include dirs and libraries
 # Use this module by invoking find_package with the form:
 #  find_package(CBLAS
@@ -10,10 +20,17 @@
 #  CBLAS_INCLUDE_DIRS    - cblas include directories
 #  CBLAS_LIBRARY_DIRS    - Link directories for cblas libraries
 #  CBLAS_LIBRARIES       - cblas component libraries to be linked
-# The user can give specific paths where to find the libraries:
-#  CBLAS_DIR             - Where to find the base directory of CBLAS
+# The user can give specific paths where to find the libraries adding cmake 
+# options at configure (ex: cmake path/to/project -DCBLAS_DIR=path/to/cblas):
+#  CBLAS_DIR             - Where to find the base directory of cblas
 #  CBLAS_INCDIR          - Where to find the header files
 #  CBLAS_LIBDIR          - Where to find the library files
+# CBLAS could be directly embedded in BLAS library (ex: Intel MKL) so that 
+# we test a cblas function with the blas libraries found and set CBLAS 
+# variables to BLAS ones if test is successful. To skip this feature and 
+# look for a stand alone cblas, please add the following in your 
+# CMakeLists.txt before to call find_package(CBLAS):
+# set(CBLAS_STANDALONE TRUE)
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -34,7 +51,7 @@
 
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 
 # CBLAS depends on BLAS
@@ -54,27 +71,37 @@ if (CBLAS_FIND_COMPONENTS)
     endforeach()
 endif ()
 
+
 # CBLAS depends on BLAS
 if (BLAS_FOUND)
 
-    # check if a cblas function exists in the BLAS lib
-    include(CheckFunctionExists)
-    set(CMAKE_REQUIRED_LIBRARIES "${BLAS_LIBRARIES};${CMAKE_THREAD_LIBS_INIT};${LM}")
-    unset(CBLAS_WORKS CACHE)
-    check_function_exists(cblas_dscal CBLAS_WORKS)
-    mark_as_advanced(CBLAS_WORKS)
-    set(CMAKE_REQUIRED_LIBRARIES)
+    if (NOT CBLAS_STANDALONE)
+        # check if a cblas function exists in the BLAS lib
+        include(CheckFunctionExists)
+        set(CMAKE_REQUIRED_LIBRARIES "${BLAS_LIBRARIES};${CMAKE_THREAD_LIBS_INIT};${LM}")
+        unset(CBLAS_WORKS CACHE)
+        check_function_exists(cblas_dscal CBLAS_WORKS)
+        mark_as_advanced(CBLAS_WORKS)
+        set(CMAKE_REQUIRED_LIBRARIES)
     
-    if(CBLAS_WORKS)
-        message(STATUS "Looking for cblas: test with blas succeeds")
-        # test succeeds: CBLAS is in BLAS
-        set(CBLAS_LIBRARIES "${BLAS_LIBRARIES}")
-        set(CBLAS_LIBRARY_DIRS "${BLAS_LIBRARY_DIRS}")
-        if(BLAS_INCLUDE_DIRS)
-            set(CBLAS_INCLUDE_DIRS "${BLAS_INCLUDE_DIRS}")
-        endif()        
-    else()
-        message(STATUS "Looking for cblas : test with blas fails")
+        if(CBLAS_WORKS)
+            if(NOT CBLAS_FIND_QUIETLY)
+                message(STATUS "Looking for cblas: test with blas succeeds")
+            endif()
+            # test succeeds: CBLAS is in BLAS
+            set(CBLAS_LIBRARIES "${BLAS_LIBRARIES}")
+            set(CBLAS_LIBRARY_DIRS "${BLAS_LIBRARY_DIRS}")
+            if(BLAS_INCLUDE_DIRS)
+                set(CBLAS_INCLUDE_DIRS "${BLAS_INCLUDE_DIRS}")
+            endif()
+        endif()
+    endif (NOT CBLAS_STANDALONE)
+        
+    if (CBLAS_STANDALONE OR NOT CBLAS_WORKS)
+   
+        if(NOT CBLAS_WORKS AND NOT CBLAS_FIND_QUIETLY)
+            message(STATUS "Looking for cblas : test with blas fails")
+        endif()
         # test fails: try to find CBLAS lib exterior to BLAS
         
         # Try to find CBLAS lib
@@ -96,21 +123,23 @@ if (BLAS_FOUND)
             string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
             list(APPEND _inc_env "${_path_env}")
             string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-            list(APPEND _inc_env "${_path_env}")      
+            list(APPEND _inc_env "${_path_env}")
         endif()
+        list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
+        list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
         list(REMOVE_DUPLICATES _inc_env)
 
 
         # Try to find the cblas header in the given paths
         # -------------------------------------------------
         # call cmake macro to find the header path
-        if(DEFINED CBLAS_INCDIR)
+        if(CBLAS_INCDIR)
             set(CBLAS_cblas.h_DIRS "CBLAS_cblas.h_DIRS-NOTFOUND")
             find_path(CBLAS_cblas.h_DIRS
             NAMES cblas.h
             HINTS ${CBLAS_INCDIR})
         else()
-            if(DEFINED CBLAS_DIR)
+            if(CBLAS_DIR)
                 set(CBLAS_cblas.h_DIRS "CBLAS_cblas.h_DIRS-NOTFOUND")
                 find_path(CBLAS_cblas.h_DIRS
                 NAMES cblas.h
@@ -120,7 +149,7 @@ if (BLAS_FOUND)
                 set(CBLAS_cblas.h_DIRS "CBLAS_cblas.h_DIRS-NOTFOUND")
                 find_path(CBLAS_cblas.h_DIRS
                 NAMES cblas.h
-                PATHS ${_inc_env})
+                HINTS ${_inc_env})
             endif()
         endif()
         mark_as_advanced(CBLAS_cblas.h_DIRS)
@@ -137,7 +166,9 @@ if (BLAS_FOUND)
             set(CBLAS_INCLUDE_DIRS "${CBLAS_cblas.h_DIRS}")
         else ()
             set(CBLAS_INCLUDE_DIRS "CBLAS_INCLUDE_DIRS-NOTFOUND")
-            message(STATUS "Looking for cblas -- cblas.h not found")
+            if(NOT CBLAS_FIND_QUIETLY)
+                message(STATUS "Looking for cblas -- cblas.h not found")
+            endif()
         endif()
 
 
@@ -155,23 +186,22 @@ if (BLAS_FOUND)
             else()
                 string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
             endif()
-            list(APPEND _lib_env "/usr/local/lib64")
-            list(APPEND _lib_env "/usr/lib64")
-            list(APPEND _lib_env "/usr/local/lib")
-            list(APPEND _lib_env "/usr/lib")
+            list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+            list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
         endif()
+        list(REMOVE_DUPLICATES _lib_env)
 
         # Try to find the cblas lib in the given paths
         # ----------------------------------------------
 
         # call cmake macro to find the lib path
-        if(DEFINED CBLAS_LIBDIR)
+        if(CBLAS_LIBDIR)
             set(CBLAS_cblas_LIBRARY "CBLAS_cblas_LIBRARY-NOTFOUND")
             find_library(CBLAS_cblas_LIBRARY
                 NAMES cblas
                 HINTS ${CBLAS_LIBDIR})
         else()
-            if(DEFINED CBLAS_DIR)
+            if(CBLAS_DIR)
                 set(CBLAS_cblas_LIBRARY "CBLAS_cblas_LIBRARY-NOTFOUND")
                 find_library(CBLAS_cblas_LIBRARY
                     NAMES cblas
@@ -181,14 +211,14 @@ if (BLAS_FOUND)
                 set(CBLAS_cblas_LIBRARY "CBLAS_cblas_LIBRARY-NOTFOUND")
                 find_library(CBLAS_cblas_LIBRARY
                     NAMES cblas
-                    PATHS ${_lib_env})
+                    HINTS ${_lib_env})
             endif()
         endif()
         mark_as_advanced(CBLAS_cblas_LIBRARY)
         
         # Print status if not found
         # -------------------------
-        if (NOT CBLAS_cblas_LIBRARY)
+        if (NOT CBLAS_cblas_LIBRARY AND NOT CBLAS_FIND_QUIETLY)
             Print_Find_Library_Status(cblas libcblas)
         endif ()
 
@@ -202,22 +232,27 @@ if (BLAS_FOUND)
         else ()
             set(CBLAS_LIBRARIES    "CBLAS_LIBRARIES-NOTFOUND")
             set(CBLAS_LIBRARY_DIRS "CBLAS_LIBRARY_DIRS-NOTFOUND")
-            message(STATUS "Looking for cblas -- lib cblas not found")
-        endif ()        
-    endif()
+            if (NOT CBLAS_FIND_QUIETLY)
+                message(STATUS "Looking for cblas -- lib cblas not found")
+            endif()
+        endif ()
+        
+    endif (CBLAS_STANDALONE OR NOT CBLAS_WORKS)
     
-else()
+else(BLAS_FOUND)
 
-    message(STATUS "CBLAS requires BLAS")
-    
-endif()
+    if (NOT CBLAS_FIND_QUIETLY)
+        message(STATUS "CBLAS requires BLAS but BLAS has not been found."
+            "Please look for BLAS first.")
+    endif()
+        
+endif(BLAS_FOUND)
 
 
 # check that CBLAS has been found
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(CBLAS DEFAULT_MSG
-#                                  CBLAS_FOUND
                                   CBLAS_LIBRARIES
                                   CBLAS_LIBRARY_DIRS)
 #

@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find LAPACK library
 # This module finds an installed fortran library that implements the LAPACK
 # linear-algebra interface (see http://www.netlib.org/lapack/).
@@ -20,6 +30,12 @@
 #  BLA_VENDOR  if set checks only the specified vendor, if not set checks
 #     all the possibilities
 #  BLA_F95     if set on tries to find the f95 interfaces for BLAS/LAPACK
+# The user can give specific paths where to find the libraries adding cmake 
+# options at configure (ex: cmake path/to/project -DLAPACK_DIR=path/to/lapack):
+#  LAPACK_DIR            - Where to find the base directory of lapack
+#  LAPACK_INCDIR         - Where to find the header files
+#  LAPACK_LIBDIR         - Where to find the library files
+# Note that if BLAS_DIR is set, it will also look for lapack in it
 ### List of vendors (BLA_VENDOR) valid in this module
 ##  Intel(mkl), ACML,Apple, NAS, Generic
 
@@ -38,7 +54,7 @@
 
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 option(LAPACK_VERBOSE "Print some additional information during LAPACK 
 libraries detection" OFF)
@@ -75,13 +91,6 @@ set(_libraries_work TRUE)
 set(${LIBRARIES})
 set(_combined_name)
 if (NOT _libdir)
-  if (WIN32)
-    set(_libdir ENV LIB)
-  elseif (APPLE)
-    set(_libdir /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 ENV DYLD_LIBRARY_PATH)
-  else ()
-    set(_libdir /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 ENV LD_LIBRARY_PATH)
-  endif ()
   if (BLAS_DIR)
     list(APPEND _libdir "${BLAS_DIR}")  
     list(APPEND _libdir "${BLAS_DIR}/lib")
@@ -103,7 +112,17 @@ if (NOT _libdir)
   endif ()
   if (LAPACK_LIBIR)
     list(APPEND _libdir "${LAPACK_LIBIR}")
-  endif ()    
+  endif ()
+  if (WIN32)
+    string(REPLACE ":" ";" _libdir2 "$ENV{LIB}")
+  elseif (APPLE)
+    string(REPLACE ":" ";" _libdir2 "$ENV{DYLD_LIBRARY_PATH}")
+  else ()
+    string(REPLACE ":" ";" _libdir2 "$ENV{LD_LIBRARY_PATH}")
+  endif ()
+  list(APPEND _libdir "${_libdir2}")  
+  list(APPEND _libdir "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+  list(APPEND _libdir "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")  
 endif ()
 
 if (LAPACK_VERBOSE)
@@ -131,7 +150,7 @@ foreach(_library ${_list})
     endif (BLA_STATIC)
     find_library(${_prefix}_${_library}_LIBRARY
       NAMES ${_library}
-      PATHS ${_libdir}
+      HINTS ${_libdir}
       )
     mark_as_advanced(${_prefix}_${_library}_LIBRARY)
     # Print status if not found
@@ -343,22 +362,16 @@ if(BLA_F95)
     message(STATUS "A library with LAPACK95 API found.")
     message(STATUS "LAPACK_LIBRARIES ${LAPACK_LIBRARIES}")
   else(LAPACK95_FOUND)
-    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but lapack" 
-        "95 libraries could not be found or check of symbols failed."
-        "Please indicate where to find blas lib by updating your"
-        "environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB,"
-        "Mac: DYLD_LIBRARY_PATH) or give the path by adding"
-        "-DLAPACK_DIR=your/path/to/blas at cmake configure. To follow"
-        "libraries detection more precisely you can activate a verbose"
-        "mode with -DLAPACK_VERBOSE=ON at cmake configure. You could also"
-        "specify a BLAS vendor to look for by setting"
-        "-DBLA_VENDOR=blas_vendor_name. List of possible BLAS"
-        "vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL,"
-        "SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
-        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
-        "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
-        "Intel( older versions of mkl 32 and 64 bit),"
-        "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")    
+    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but LAPACK 95 libraries could not be found or check of symbols failed."
+        "\nPlease indicate where to find LAPACK libraries. You have three options:\n"
+        "- Option 1: Provide the root directory of LAPACK library with cmake option: -DLAPACK_DIR=your/path/to/lapack\n"
+        "- Option 2: Provide the directory where to find BLAS libraries with cmake option: -DBLAS_LIBDIR=your/path/to/blas/libs\n"
+        "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"                
+        "\nTo follow libraries detection more precisely you can activate a verbose mode with -DLAPACK_VERBOSE=ON at cmake configure."
+        "\nYou could also specify a BLAS vendor to look for by setting -DBLA_VENDOR=blas_vendor_name."
+        "\nList of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model), Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+        "Intel( older versions of mkl 32 and 64 bit), ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")   
     if(LAPACK_FIND_REQUIRED)
       message(FATAL_ERROR
       "A required library with LAPACK95 API not found. Please specify library location."
@@ -384,22 +397,16 @@ else(BLA_F95)
     message(STATUS "A library with LAPACK API found.")
     message(STATUS "LAPACK_LIBRARIES ${LAPACK_LIBRARIES}")
   else(LAPACK_FOUND)
-    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but lapack" 
-        "libraries could not be found or check of symbols failed."
-        "Please indicate where to find blas lib by updating your"
-        "environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB,"
-        "Mac: DYLD_LIBRARY_PATH) or give the path by adding"
-        "-DLAPACK_DIR=your/path/to/blas at cmake configure. To follow"
-        "libraries detection more precisely you can activate a verbose"
-        "mode with -DLAPACK_VERBOSE=ON at cmake configure. You could also"
-        "specify a BLAS vendor to look for by setting"
-        "-DBLA_VENDOR=blas_vendor_name. List of possible BLAS"
-        "vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL,"
-        "SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
-        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
-        "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
-        "Intel( older versions of mkl 32 and 64 bit),"
-        "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")  
+    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but LAPACK libraries could not be found or check of symbols failed."
+        "\nPlease indicate where to find LAPACK libraries. You have three options:\n"
+        "- Option 1: Provide the root directory of LAPACK library with cmake option: -DLAPACK_DIR=your/path/to/lapack\n"
+        "- Option 2: Provide the directory where to find BLAS libraries with cmake option: -DBLAS_LIBDIR=your/path/to/blas/libs\n"
+        "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"                
+        "\nTo follow libraries detection more precisely you can activate a verbose mode with -DLAPACK_VERBOSE=ON at cmake configure."
+        "\nYou could also specify a BLAS vendor to look for by setting -DBLA_VENDOR=blas_vendor_name."
+        "\nList of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model), Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+        "Intel( older versions of mkl 32 and 64 bit), ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
     if(LAPACK_FIND_REQUIRED)
       message(FATAL_ERROR
       "A required library with LAPACK API not found. Please specify library location."

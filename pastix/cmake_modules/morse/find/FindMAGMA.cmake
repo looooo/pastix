@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find MAGMA include dirs and libraries
 # Use this module by invoking find_package with the form:
 #  find_package(MAGMA
@@ -9,9 +19,9 @@
 #  MAGMA_FOUND           - True if headers and requested libraries were found
 #  MAGMA_INCLUDE_DIRS    - magma include directories
 #  MAGMA_LIBRARY_DIRS    - Link directories for magma libraries
-#  MAGMA_LIBRARIES       - magma component libraries to be linked
-# The user can give specific paths where to find the libraries:
-#  MAGMA_DIR             - Where to find the base directory of MAGMA
+# The user can give specific paths where to find the libraries adding cmake 
+# options at configure (ex: cmake path/to/project -DMAGMA_DIR=path/to/magma):
+#  MAGMA_DIR             - Where to find the base directory of magma
 #  MAGMA_INCDIR          - Where to find the header files
 #  MAGMA_LIBDIR          - Where to find the library files
 
@@ -34,7 +44,7 @@
 
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 
 # MAGMA may depend on CUDA
@@ -62,140 +72,195 @@ if( MAGMA_FIND_COMPONENTS )
     endforeach()
 endif()
 
-# Looking for include
-# -------------------
+# Optionally use pkg-config to detect include/library dirs (if pkg-config is available)
+# -------------------------------------------------------------------------------------
+include(FindPkgConfig)
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_EXECUTABLE)
 
-# Add system include paths to search include
-# ------------------------------------------
-unset(_inc_env)
-if(WIN32)
-    string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
-else()
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
-endif()
-list(REMOVE_DUPLICATES _inc_env)
+    pkg_search_module(MAGMA magma)
+    if (NOT MAGMA_FIND_QUIETLY)
+        if (MAGMA_FOUND AND MAGMA_LIBRARIES)
+            message(STATUS "Looking for MAGMA - found using PkgConfig")
+            if(NOT MAGMA_INCLUDE_DIRS)
+                message("${Magenta}MAGMA_INCLUDE_DIRS is empty using PkgConfig."
+                    "Perhaps the path to magma headers is already present in your"
+                    "C(PLUS)_INCLUDE_PATH environment variable.${ColourReset}")
+            endif()
+        else()
+            message("${Magenta}Looking for MAGMA - not found using PkgConfig."
+                "Perhaps you should add the directory containing magma.pc"
+                "to the PKG_CONFIG_PATH environment variable.${ColourReset}")
+        endif()
+    endif()
 
+    if (MAGMA_FIND_VERSION_EXACT STREQUAL 1)
+        if( NOT (MAGMA_FIND_VERSION_MAJOR STREQUAL MAGMA_VERSION_MAJOR) OR
+            NOT (MAGMA_FIND_VERSION_MINOR STREQUAL MAGMA_VERSION_MINOR) )
+            if(NOT MAGMA_FIND_QUIETLY)
+                message(FATAL_ERROR
+                        "MAGMA version found is ${MAGMA_VERSION_STRING}"
+                        "when required is ${MAGMA_FIND_VERSION}")
+            endif()
+        endif()
+    else()
+        # if the version found is older than the required then error
+        if( (MAGMA_FIND_VERSION_MAJOR STRGREATER MAGMA_VERSION_MAJOR) OR
+            (MAGMA_FIND_VERSION_MINOR STRGREATER MAGMA_VERSION_MINOR) )
+            if(NOT MAGMA_FIND_QUIETLY)
+                message(FATAL_ERROR
+                        "MAGMA version found is ${MAGMA_VERSION_STRING}"
+                        "when required is ${MAGMA_FIND_VERSION} or newer")
+            endif()
+        endif()
+    endif()
 
-# Try to find the magma header in the given paths
-# -------------------------------------------------
-# call cmake macro to find the header path
-if(DEFINED MAGMA_INCDIR)
-    set(MAGMA_magma.h_DIRS "MAGMA_magma.h_DIRS-NOTFOUND")
-    find_path(MAGMA_magma.h_DIRS
-      NAMES magma.h
-      HINTS ${MAGMA_INCDIR})
-else()
-    if(DEFINED MAGMA_DIR)
+endif(PKG_CONFIG_EXECUTABLE)
+
+if(NOT MAGMA_FOUND OR NOT MAGMA_LIBRARIES)
+
+    if (NOT MAGMA_FIND_QUIETLY)
+        message(STATUS "Looking for MAGMA - PkgConfig not used")
+    endif()
+
+    # Looking for include
+    # -------------------
+    
+    # Add system include paths to search include
+    # ------------------------------------------
+    unset(_inc_env)
+    if(WIN32)
+        string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+    else()
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+    endif()
+    list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
+    list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
+    list(REMOVE_DUPLICATES _inc_env)
+    
+    
+    # Try to find the magma header in the given paths
+    # -------------------------------------------------
+    # call cmake macro to find the header path
+    if(MAGMA_INCDIR)
         set(MAGMA_magma.h_DIRS "MAGMA_magma.h_DIRS-NOTFOUND")
         find_path(MAGMA_magma.h_DIRS
           NAMES magma.h
-          HINTS ${MAGMA_DIR}
-          PATH_SUFFIXES include)
+          HINTS ${MAGMA_INCDIR})
     else()
-        set(MAGMA_magma.h_DIRS "MAGMA_magma.h_DIRS-NOTFOUND")
-        find_path(MAGMA_magma.h_DIRS
-          NAMES magma.h
-          PATHS ${_inc_env})
+        if(MAGMA_DIR)
+            set(MAGMA_magma.h_DIRS "MAGMA_magma.h_DIRS-NOTFOUND")
+            find_path(MAGMA_magma.h_DIRS
+              NAMES magma.h
+              HINTS ${MAGMA_DIR}
+              PATH_SUFFIXES include)
+        else()
+            set(MAGMA_magma.h_DIRS "MAGMA_magma.h_DIRS-NOTFOUND")
+            find_path(MAGMA_magma.h_DIRS
+              NAMES magma.h
+              HINTS ${_inc_env})
+        endif()
     endif()
-endif()
-mark_as_advanced(MAGMA_magma.h_DIRS)
-
-# Print status if not found
-# -------------------------
-if (NOT MAGMA_magma.h_DIRS)
-    Print_Find_Header_Status(magma magma.h)
-endif ()
-
-# If found, add path to cmake variable
-# ------------------------------------
-if (MAGMA_magma.h_DIRS)
-    set(MAGMA_INCLUDE_DIRS "${MAGMA_magma.h_DIRS}")
-else ()
-    set(MAGMA_INCLUDE_DIRS "MAGMA_INCLUDE_DIRS-NOTFOUND")
-    message(STATUS "Looking for magma -- magma.h not found")
-endif()
-
-
-# Looking for lib
-# ---------------
-
-# Add system library paths to search lib
-# --------------------------------------
-unset(_lib_env)
-if(WIN32)
-    string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
-else()
-    if(APPLE)
-        string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+    mark_as_advanced(MAGMA_magma.h_DIRS)
+    
+    # Print status if not found
+    # -------------------------
+    if (NOT MAGMA_magma.h_DIRS AND NOT MAGMA_FIND_QUIETLY)
+        Print_Find_Header_Status(magma magma.h)
+    endif ()
+    
+    # If found, add path to cmake variable
+    # ------------------------------------
+    if (MAGMA_magma.h_DIRS)
+        set(MAGMA_INCLUDE_DIRS "${MAGMA_magma.h_DIRS}")
+    else ()
+        set(MAGMA_INCLUDE_DIRS "MAGMA_INCLUDE_DIRS-NOTFOUND")
+        if(NOT MAGMA_FIND_QUIETLY)
+            message(STATUS "Looking for magma -- magma.h not found")
+        endif()
+    endif()
+    
+    
+    # Looking for lib
+    # ---------------
+    
+    # Add system library paths to search lib
+    # --------------------------------------
+    unset(_lib_env)
+    if(WIN32)
+        string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
     else()
-        string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        if(APPLE)
+            string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+        else()
+            string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        endif()
+        list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif()
-    list(APPEND _lib_env "/usr/local/lib64")
-    list(APPEND _lib_env "/usr/lib64")
-    list(APPEND _lib_env "/usr/local/lib")
-    list(APPEND _lib_env "/usr/lib")
-endif()
-
-# Try to find the magma lib in the given paths
-# ----------------------------------------------
-
-# call cmake macro to find the lib path
-if(DEFINED MAGMA_LIBDIR)
-    set(MAGMA_magma_LIBRARY "MAGMA_magma_LIBRARY-NOTFOUND")
-    find_library(MAGMA_magma_LIBRARY
-        NAMES magma
-        HINTS ${MAGMA_LIBDIR})
-else()
-    if(DEFINED MAGMA_DIR)
+    list(REMOVE_DUPLICATES _lib_env)
+    
+    # Try to find the magma lib in the given paths
+    # ----------------------------------------------
+    
+    # call cmake macro to find the lib path
+    if(MAGMA_LIBDIR)
         set(MAGMA_magma_LIBRARY "MAGMA_magma_LIBRARY-NOTFOUND")
         find_library(MAGMA_magma_LIBRARY
             NAMES magma
-            HINTS ${MAGMA_DIR}
-            PATH_SUFFIXES lib lib32 lib64)
+            HINTS ${MAGMA_LIBDIR})
     else()
-        set(MAGMA_magma_LIBRARY "MAGMA_magma_LIBRARY-NOTFOUND")
-        find_library(MAGMA_magma_LIBRARY
-            NAMES magma
-            PATHS ${_lib_env})
+        if(MAGMA_DIR)
+            set(MAGMA_magma_LIBRARY "MAGMA_magma_LIBRARY-NOTFOUND")
+            find_library(MAGMA_magma_LIBRARY
+                NAMES magma
+                HINTS ${MAGMA_DIR}
+                PATH_SUFFIXES lib lib32 lib64)
+        else()
+            set(MAGMA_magma_LIBRARY "MAGMA_magma_LIBRARY-NOTFOUND")
+            find_library(MAGMA_magma_LIBRARY
+                NAMES magma
+                HINTS ${_lib_env})
+        endif()
     endif()
-endif()
-mark_as_advanced(MAGMA_magma_LIBRARY)
+    mark_as_advanced(MAGMA_magma_LIBRARY)
+    
+    # Print status if not found
+    # -------------------------
+    if (NOT MAGMA_magma_LIBRARY AND NOT MAGMA_FIND_QUIETLY)
+        Print_Find_Library_Status(magma libmagma)
+    endif ()
+    
+    # If found, add path to cmake variable
+    # ------------------------------------
+    if (MAGMA_magma_LIBRARY)
+        get_filename_component(magma_lib_path "${MAGMA_magma_LIBRARY}" PATH)
+        # set cmake variables
+        set(MAGMA_LIBRARIES    "${MAGMA_magma_LIBRARY}")
+        set(MAGMA_LIBRARY_DIRS "${magma_lib_path}")
+    else ()
+        set(MAGMA_LIBRARIES    "MAGMA_LIBRARIES-NOTFOUND")
+        set(MAGMA_LIBRARY_DIRS "MAGMA_LIBRARY_DIRS-NOTFOUND")
+        if(NOT MAGMA_FIND_QUIETLY)
+            message(STATUS "Looking for magma -- lib magma not found")
+        endif()
+    endif ()
 
-# Print status if not found
-# -------------------------
-if (NOT MAGMA_magma_LIBRARY)
-    Print_Find_Library_Status(magma libmagma)
-endif ()
-
-# If found, add path to cmake variable
-# ------------------------------------
-if (MAGMA_magma_LIBRARY)
-    get_filename_component(magma_lib_path "${MAGMA_magma_LIBRARY}" PATH)
-    # set cmake variables
-    set(MAGMA_LIBRARIES    "${MAGMA_magma_LIBRARY}")
-    set(MAGMA_LIBRARY_DIRS "${magma_lib_path}")
-else ()
-    set(MAGMA_LIBRARIES    "MAGMA_LIBRARIES-NOTFOUND")
-    set(MAGMA_LIBRARY_DIRS "MAGMA_LIBRARY_DIRS-NOTFOUND")
-    message(STATUS "Looking for magma -- lib magma not found")
-endif ()
+endif(NOT MAGMA_FOUND OR NOT MAGMA_LIBRARIES)
 
 
 # check that MAGMA has been found
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MAGMA DEFAULT_MSG
-#                                  MAGMA_FOUND
-                                  MAGMA_LIBRARIES
-                                  MAGMA_INCLUDE_DIRS
-                                  MAGMA_LIBRARY_DIRS)
+                                  MAGMA_LIBRARIES)
 #
 # TODO: Add possibility to check for specific functions in the library
 #

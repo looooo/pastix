@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find BLAS library
 # This module finds an installed fortran library that implements the BLAS
 # linear-algebra interface (see http://www.netlib.org/blas/).
@@ -20,8 +30,14 @@
 #  BLA_VENDOR  if set checks only the specified vendor, if not set checks
 #     all the possibilities
 #  BLA_F95     if set on tries to find the f95 interfaces for BLAS/LAPACK
+# The user can give specific paths where to find the libraries adding cmake 
+# options at configure (ex: cmake path/to/project -DBLAS_DIR=path/to/blas):
+#  BLAS_DIR            - Where to find the base directory of blas
+#  BLAS_INCDIR         - Where to find the header files
+#  BLAS_LIBDIR         - Where to find the library files
 ##########
 ### List of vendors (BLA_VENDOR) valid in this module
+########## List of vendors (BLA_VENDOR) valid in this module
 ##  Goto,ATLAS PhiPACK,CXML,DXML,SunPerf,SCSL,SGIMATH,IBMESSL,Intel10_32 (intel mkl v10 32 bit),Intel10_64lp (intel mkl v10 64 bit,lp thread model, lp64 model),
 ##  Intel10_64lp_seq (intel mkl v10 64 bit,sequential code, lp64 model),
 ##  Intel( older versions of mkl 32 and 64 bit), ACML,ACML_MP,ACML_GPU,Apple, NAS, Generic
@@ -41,7 +57,7 @@
 #  License text for the above reference.)
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 option(BLAS_VERBOSE "Print some additional information during BLAS 
 libraries detection" OFF)
@@ -84,15 +100,8 @@ macro(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list _thread)
     set(${LIBRARIES} ${_flags})
     set(_combined_name)
     if (NOT _libdir)
-        if (WIN32)
-            string(REPLACE ":" ";" _libdir "$ENV{LIB}")
-        elseif (APPLE)
-            string(REPLACE ":" ";" _libdir "$ENV{DYLD_LIBRARY_PATH}")
-        else ()
-            string(REPLACE ":" ";" _libdir "$ENV{LD_LIBRARY_PATH}")
-        endif ()
         if (BLAS_DIR)
-            list(APPEND _libdir "${BLAS_DIR}")  
+            list(APPEND _libdir "${BLAS_DIR}")
             list(APPEND _libdir "${BLAS_DIR}/lib")
             list(APPEND _libdir "${BLAS_DIR}/lib32")
             list(APPEND _libdir "${BLAS_DIR}/lib64")
@@ -102,6 +111,16 @@ macro(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list _thread)
         if (BLAS_LIBDIR)
             list(APPEND _libdir "${BLAS_LIBDIR}")
         endif ()
+        if (WIN32)
+            string(REPLACE ":" ";" _libdir2 "$ENV{LIB}")
+        elseif (APPLE)
+            string(REPLACE ":" ";" _libdir2 "$ENV{DYLD_LIBRARY_PATH}")
+        else ()
+            string(REPLACE ":" ";" _libdir2 "$ENV{LD_LIBRARY_PATH}")
+        endif ()
+        list(APPEND _libdir "${_libdir2}")
+        list(APPEND _libdir "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _libdir "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif ()
     
     if (BLAS_VERBOSE)
@@ -129,7 +148,7 @@ macro(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list _thread)
             endif ()
             find_library(${_prefix}_${_library}_LIBRARY
                 NAMES ${_library}
-                PATHS ${_libdir}
+                HINTS ${_libdir}
               )
             mark_as_advanced(${_prefix}_${_library}_LIBRARY)
             # Print status if not found
@@ -674,22 +693,16 @@ if(BLA_F95)
             message(STATUS "A library with BLAS95 API found.")
             message(STATUS "BLAS_LIBRARIES ${BLAS_LIBRARIES}")
         else(BLAS95_FOUND)
-            message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but blas" 
-                "95 libraries could not be found or check of symbols failed."
-                "Please indicate where to find blas lib by updating your"
-                "environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB,"
-                "Mac: DYLD_LIBRARY_PATH) or give the path by adding"
-                "-DBLAS_DIR=your/path/to/blas at cmake configure. To follow"
-                "libraries detection more precisely you can activate a verbose"
-                "mode with -DBLAS_VERBOSE=ON at cmake configure. You could also"
-                "specify a BLAS vendor to look for by setting"
-                "-DBLA_VENDOR=blas_vendor_name. List of possible BLAS"
-                "vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL,"
-                "SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
-                "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
-                "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
-                "Intel( older versions of mkl 32 and 64 bit),"
-                "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")    
+            message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but blas 95 libraries could not be found or check of symbols failed."
+                "\nPlease indicate where to find blas libraries. You have three options:\n"
+                "- Option 1: Provide the root directory of BLAS library with cmake option: -DBLAS_DIR=your/path/to/blas\n"
+                "- Option 2: Provide the directory where to find BLAS libraries with cmake option: -DBLAS_LIBDIR=your/path/to/blas/libs\n"
+                "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"                
+                "\nTo follow libraries detection more precisely you can activate a verbose mode with -DBLAS_VERBOSE=ON at cmake configure."
+                "\nYou could also specify a BLAS vendor to look for by setting -DBLA_VENDOR=blas_vendor_name."
+                "\nList of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+                "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model), Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+                "Intel( older versions of mkl 32 and 64 bit), ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
             if(BLAS_FIND_REQUIRED)
                 message(FATAL_ERROR
                 "A required library with BLAS95 API not found. Please specify library location.")
@@ -716,22 +729,16 @@ else(BLA_F95)
             message(STATUS "A library with BLAS API found.")
             message(STATUS "BLAS_LIBRARIES ${BLAS_LIBRARIES}")
         else(BLAS_FOUND)
-            message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but blas" 
-                "libraries could not be found or check of symbols failed."
-                "Please indicate where to find blas lib by updating your"
-                "environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB,"
-                "Mac: DYLD_LIBRARY_PATH) or give the path by adding"
-                "-DBLAS_DIR=your/path/to/blas at cmake configure. To follow"
-                "libraries detection more precisely you can activate a verbose"
-                "mode with -DBLAS_VERBOSE=ON at cmake configure. You could also"
-                "specify a BLAS vendor to look for by setting"
-                "-DBLA_VENDOR=blas_vendor_name. List of possible BLAS"
-                "vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL,"
-                "SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
-                "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
-                "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
-                "Intel( older versions of mkl 32 and 64 bit),"
-                "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic") 
+            message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but blas libraries could not be found or check of symbols failed."
+                "\nPlease indicate where to find blas libraries. You have three options:\n"
+                "- Option 1: Provide the root directory of BLAS library with cmake option: -DBLAS_DIR=your/path/to/blas\n"
+                "- Option 2: Provide the directory where to find BLAS libraries with cmake option: -DBLAS_LIBDIR=your/path/to/blas/libs\n"
+                "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"                
+                "\nTo follow libraries detection more precisely you can activate a verbose mode with -DBLAS_VERBOSE=ON at cmake configure."
+                "\nYou could also specify a BLAS vendor to look for by setting -DBLA_VENDOR=blas_vendor_name."
+                "\nList of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+                "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model), Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+                "Intel( older versions of mkl 32 and 64 bit), ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
             if(BLAS_FIND_REQUIRED)
                 message(FATAL_ERROR
                     "A required library with BLAS API not found. Please specify library location.")

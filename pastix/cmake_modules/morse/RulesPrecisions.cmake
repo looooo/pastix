@@ -1,6 +1,10 @@
 ###
 #
-# Copyright 2012-2013 Inria
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
 #
 ###
 #
@@ -14,7 +18,7 @@
 #     Univ. of California Berkeley,
 #     Univ. of Colorado Denver.
 #
-#  @version 2.0.0
+#  @version 0.9.0
 #  @author Thomas Herault
 #  @author George Bosilca
 #  @author Aurelien Bouteiller
