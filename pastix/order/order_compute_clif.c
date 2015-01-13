@@ -44,18 +44,6 @@ orderComputeClif( const pastix_graph_t *graph,
     orderBase( order, 0 );
 
     //clifton: node reordering somewhere around here
-     /*
-    FILE* crdF;
-    crdF = fopen("blocked.mtx","w");
-    fprintf(crdF,"%%%MatrixMarket matrix coordinate real general\n");
-    fprintf(crdF,"%d %d %d\n",n,n,n);
-
-    for(crdi = 0; crdi < n; crdi++)
-    {
-      fprintf(crdF,"%d %d 1\n",perm[crdi]+1,crdi+1);
-    }
-    fclose(crdF);
-    */
 
     /* Output graph before any changes */
     //DEBUG: Before partition, output entire graph, map
@@ -91,20 +79,25 @@ orderComputeClif( const pastix_graph_t *graph,
      * For that, we need to generate the list of all vertices in original
      * numbering that are not in this supernode.
      */
-    {
+     {
         pastix_int_t *blk_vertices;
         pastix_int_t *sn_colptr, *sn_rows, *sn_perm, *sn_invp;
 
+        pastix_int_t sn_id  = order->cblknbr - 1; /* set to whichever supernode should be extracted */
+        pastix_int_t fnode = order->rangtab[sn_id];
+        pastix_int_t lnode = order->rangtab[sn_id+1]-1;
         graphIsolateSupernode( graph->n,
 			       graph->colptr,
 			       graph->rows,
-			       sn_vertnbr,      /* Number of vertices in the supernode */
+                               order->permtab,
+                               order->peritab,
+                               fnode,
+                               lnode,
+                               sn_vertnbr,
 			       order->peritab + order->rangtab[order->cblknbr - 1],
 			       &sn_colptr,
-			       &sn_rows,
-			       &sn_perm,
-			       &sn_invp );
-	/*    {
+			       &sn_rows );
+        /*{
         pastix_int_t *non_blk_vertices;
         pastix_int_t *sn_colptr, *sn_rows, *sn_perm, *sn_invp;
 
@@ -123,7 +116,7 @@ orderComputeClif( const pastix_graph_t *graph,
                       &sn_rows,
                       &sn_perm,
                       &sn_invp );
-	*/
+         */
         //csc_symgraph_int(blksize,ncol_ptr,nrows,NULL,&nblksize,&nncol,&nnrow,NULL,API_YES);
         //csc_noDiag(nncol[0],nblksize,nncol,nnrow,NULL);
 
@@ -221,7 +214,7 @@ orderComputeClif( const pastix_graph_t *graph,
                     double x, y, z;
 
                     rc = fscanf(file, "%ld %lf %lf %lf", &v, &x, &y, &z );
-                    assert( rc == 3 );
+                    assert( rc == 4 );
 
                     /* If permutation in the last supernode, we keep it */
                     iv = sn_perm[i];
@@ -293,15 +286,4 @@ orderComputeClif( const pastix_graph_t *graph,
         fprintf(stderr, "\n");
     }
 
-    /*
-    crdF = fopen("partitioned.mtx","w");
-    fprintf(crdF,"%%%MatrixMarket matrix coordinate real general\n");
-    fprintf(crdF,"%d %d %d\n",n,n,n);
-
-    for(crdi = 0; crdi < n; crdi++)
-    {
-      fprintf(crdF,"%d %d 1\n",perm[crdi]+1,crdi+1);
-    }
-    fclose(crdF);
-    */
 }

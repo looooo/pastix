@@ -298,6 +298,8 @@ int graphIsolateSupernode(       pastix_int_t   n,
 			   const pastix_int_t  *rows,
 			   const pastix_int_t  *perm,
 			   const pastix_int_t  *invp,
+                                 pastix_int_t   fnode,
+                                 pastix_int_t   lnode,
 				 pastix_int_t   isolate_n,
 			   const pastix_int_t  *isolate_list,
 				 pastix_int_t **new_colptr,
@@ -346,21 +348,28 @@ int graphIsolateSupernode(       pastix_int_t   n,
     /* (i,j) in permutated ordering */
     /* (ip,jp) in initial ordering */
     tmpcolptr[0] = baseval;
-    for (i=0; i<n; i++)
+    for (ip=fnode; ip<=lnode; ip++)
     {
         /* i^th vertex in the initial numbering */
-        ip = isolate_list[i];
-
-        for (j = colptr[ip]-baseval; j < colptr[ip+1]-baseval; j++)
+        i = invp[ip];
+        for (j = colptr[i]-baseval; j < colptr[i+1]-baseval; j++)
         {
             pastix_int_t jp = perm[ rows[j]-baseval ];
 
             /* Count edges in each column of the new graph */
-            /* if ( jp >= fnode && jp <= lnode ) */
-            /* { */
-            /*     tmpcolptr[i]++; */
-            /* } */
-            /* else { /\* Look for connection at distance 1*\/ */
+            if ( jp >= fnode && jp <= lnode )
+            {
+                tmpcolptr[ip-fnode]++;
+            }
+            /* else */
+            /* { /\* Look for connection at distance 1 *\/ */
+            /*     for(k = colptr[j]-baseval; k < colptr[j+1]-baseval; k++) */
+            /*     { */
+            /*         pastix_int_t = kp = perm[ rows[k]-baseval ]; */
+            /*         if ( kp >= fnode && kp <= lnode ) */
+            /*         { */
+            /*         } */
+            /*     } */
             /* } */
         }
     }
@@ -373,22 +382,22 @@ int graphIsolateSupernode(       pastix_int_t   n,
 
     /* Create the new rows array */
     MALLOC_INTERN(tmprows, new_nnz, pastix_int_t);
-    for (i = 0; i <n; i++)
+    pastix_int_t row_counter = 0;
+
+    for (ip=fnode; ip<=lnode; ip++)
     {
-        ip = tmpperm[i];
-        if (ip >= other_n)
+        /* i^th vertex in the initial numbering */
+        i = invp[ip];
+        for (j = colptr[i]-baseval; j < colptr[i+1]-baseval; j++)
         {
-            k = tmpcolptr[ip-other_n]-baseval;
-            for (j = colptr[i]-baseval; j < colptr[i+1]-baseval; j ++)
+            pastix_int_t jp = perm[ rows[j]-baseval ];
+
+            /* Count edges in each column of the new graph */
+            if ( jp >= fnode && jp <= lnode )
             {
-                /* Count edges in each column of the new graph */
-                if (tmpperm[rows[j]-baseval] >= other_n)
-                {
-                    tmprows[k] = tmpperm[rows[j]-baseval] + baseval;
-                    k++;
-                }
+                tmprows[row_counter] = jp;
+                row_counter++;
             }
-            assert( k == tmpcolptr[ip-other_n+1]-baseval );
         }
     }
 
