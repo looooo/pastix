@@ -359,7 +359,7 @@ int graphIsolateSupernode(       pastix_int_t   n,
             /* Count edges in each column of the new graph */
             if ( jp >= fnode && jp <= lnode )
             {
-                tmpcolptr[ip-fnode]++;
+                tmpcolptr[ip-fnode+1]++;
             }
             /* else */
             /* { /\* Look for connection at distance 1 *\/ */
@@ -395,7 +395,7 @@ int graphIsolateSupernode(       pastix_int_t   n,
             /* Count edges in each column of the new graph */
             if ( jp >= fnode && jp <= lnode )
             {
-                tmprows[row_counter] = jp;
+                tmprows[row_counter] = jp - fnode;
                 row_counter++;
             }
         }

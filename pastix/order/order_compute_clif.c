@@ -81,7 +81,7 @@ orderComputeClif( const pastix_graph_t *graph,
      */
      {
         pastix_int_t *blk_vertices;
-        pastix_int_t *sn_colptr, *sn_rows, *sn_perm, *sn_invp;
+        pastix_int_t *sn_colptr, *sn_rows;
 
         pastix_int_t sn_id  = order->cblknbr - 1; /* set to whichever supernode should be extracted */
         pastix_int_t fnode = order->rangtab[sn_id];
@@ -182,11 +182,12 @@ orderComputeClif( const pastix_graph_t *graph,
             fileout = fopen( "part.xyz", "w" );
 
             rc = fscanf( file, "%ld %ld", &dim, &n );
-            fprintf(stderr, "%d %ld / %ld\n", rc, dim, n );
             assert( n == graph->n );
             assert( rc == 2 );
 
             if ( dim == 2 ) {
+                pastix_int_t fnode = order->rangtab[ order->cblknbr-1 ];
+
                 /* Write header */
                 fprintf(fileout, "%ld %ld\n", dim, sn_vertnbr );
 
@@ -198,14 +199,15 @@ orderComputeClif( const pastix_graph_t *graph,
                     assert( rc == 3 );
 
                     /* If permutation in the last supernode, we keep it */
-                    iv = sn_perm[i];
-                    if ( iv < sn_vertnbr ) {
-                        assert( order->permtab[i] >= vertnbr );
-                        fprintf(fileout, "%ld %lf %lf\n", order->permtab[i]-vertnbr, x, y);
+                    iv = order->permtab[i];
+                    if ( iv >= fnode ) {
+                        fprintf(fileout, "%ld %lf %lf\n", iv-fnode, x, y);
                     }
                 }
             }
             else if (dim == 3) {
+                pastix_int_t fnode = order->rangtab[ order->cblknbr-1 ];
+
                 /* Write header */
                 fprintf(fileout, "%ld %ld\n", dim, sn_vertnbr );
 
@@ -217,10 +219,9 @@ orderComputeClif( const pastix_graph_t *graph,
                     assert( rc == 4 );
 
                     /* If permutation in the last supernode, we keep it */
-                    iv = sn_perm[i];
-                    if ( iv < sn_vertnbr ) {
-                        assert( order->permtab[i] >= vertnbr );
-                        fprintf(fileout, "%ld %lf %lf %lf\n", order->permtab[i]-vertnbr, x, y, z);
+                    iv = order->permtab[i];
+                    if ( iv >= fnode ) {
+                        fprintf(fileout, "%ld %lf %lf %lf\n", iv-fnode, x, y, z);
                     }
                 }
             }
@@ -233,57 +234,55 @@ orderComputeClif( const pastix_graph_t *graph,
         }
 
         /* Update the invp/perm arrays */
-        if (1)
-        {
-            int idxones[ sn_vertnbr];
-            int localoff[sn_vertnbr];
-            int offzero = 0;
-            int offone = 0;
-            int crdi;
+    /*     if (1) */
+    /*     { */
+    /*         int idxones[ sn_vertnbr]; */
+    /*         int localoff[sn_vertnbr]; */
+    /*         int offzero = 0; */
+    /*         int offone = 0; */
+    /*         int crdi; */
 
-            for(crdi = 0; crdi < sn_vertnbr; crdi++)
-            {
-                if(sn_parttab[crdi])
-                {
-                    idxones[offone] = crdi;
-                    localoff[crdi] = offone++;
-                }
-                else
-                    localoff[crdi] = offzero++;
-            }
-            for(crdi = 0; crdi < offone; crdi++)
-            {
-                localoff[idxones[crdi]] += offzero;
-            }
+    /*         for(crdi = 0; crdi < sn_vertnbr; crdi++) */
+    /*         { */
+    /*             if(sn_parttab[crdi]) */
+    /*             { */
+    /*                 idxones[offone] = crdi; */
+    /*                 localoff[crdi] = offone++; */
+    /*             } */
+    /*             else */
+    /*                 localoff[crdi] = offzero++; */
+    /*         } */
+    /*         for(crdi = 0; crdi < offone; crdi++) */
+    /*         { */
+    /*             localoff[idxones[crdi]] += offzero; */
+    /*         } */
 
-            for(crdi = 0; crdi < sn_vertnbr; crdi++)
-            {
-                int cidx = sn_invp[crdi];
-                int npm = vertnbr+localoff[crdi];
-                order->permtab[cidx] = npm;
-                order->peritab[npm] = cidx;
-            }
+    /*         for(crdi = 0; crdi < sn_vertnbr; crdi++) */
+    /*         { */
+    /*             int cidx = sn_invp[crdi]; */
+    /*             int npm = vertnbr+localoff[crdi]; */
+    /*             order->permtab[cidx] = npm; */
+    /*             order->peritab[npm] = cidx; */
+    /*         } */
 
-            /* Update rangtab with a two partition of the supernode */
-            new_cblknbr = order->cblknbr + 1; /* Add Nb partition - 1 */
-            MALLOC_INTERN( new_rangtab, new_cblknbr+1, pastix_int_t );
+    /*         /\* Update rangtab with a two partition of the supernode *\/ */
+    /*         new_cblknbr = order->cblknbr + 1; /\* Add Nb partition - 1 *\/ */
+    /*         MALLOC_INTERN( new_rangtab, new_cblknbr+1, pastix_int_t ); */
 
-            memcpy( new_rangtab, order->rangtab, (order->cblknbr+1) * sizeof(pastix_int_t) );
-            new_rangtab[order->cblknbr]   = new_rangtab[order->cblknbr-1] + offzero;
-            new_rangtab[order->cblknbr+1] = order->vertnbr;
-        }
-
+    /*         memcpy( new_rangtab, order->rangtab, (order->cblknbr+1) * sizeof(pastix_int_t) ); */
+    /*         new_rangtab[order->cblknbr]   = new_rangtab[order->cblknbr-1] + offzero; */
+    /*         new_rangtab[order->cblknbr+1] = order->vertnbr; */
+    /*     } */
     }
 
-    {
-        pastix_int_t i;
-        fprintf(stderr, "cblknbr = %ld:\n", new_cblknbr);
-        for (i=0; i<=new_cblknbr; i++) {
-            fprintf(stderr, "%ld ", new_rangtab[i]);
-            if (i % 8 == 7 )
-                fprintf(stderr, "\n");
-        }
-        fprintf(stderr, "\n");
-    }
-
+    /* { */
+    /*     pastix_int_t i; */
+    /*     fprintf(stderr, "cblknbr = %ld:\n", new_cblknbr); */
+    /*     for (i=0; i<=new_cblknbr; i++) { */
+    /*         fprintf(stderr, "%ld ", new_rangtab[i]); */
+    /*         if (i % 8 == 7 ) */
+    /*             fprintf(stderr, "\n"); */
+    /*     } */
+    /*     fprintf(stderr, "\n"); */
+    /* } */
 }
