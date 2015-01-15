@@ -72,7 +72,7 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
     iparm[IPARM_FACTORIZATION] = API_FACT_LDLT;
-    pastixInit( &pastix_data, &argc, &argv, MPI_COMM_WORLD, iparm, dparm );
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Get options from command line
