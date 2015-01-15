@@ -212,8 +212,6 @@ pastixInitParam( pastix_int_t *iparm,
  *******************************************************************************/
 void
 pastixInit( pastix_data_t **pastix_data,
-            int            *argc,
-            char         ***argv,
             MPI_Comm        pastix_comm,
             pastix_int_t   *iparm,
             double         *dparm )
@@ -229,7 +227,7 @@ pastixInit( pastix_data_t **pastix_data,
         int flag = 0;
         MPI_Initialized(&flag);
         if ( !flag ) {
-            MPI_Init_thread( argc, argv, MPI_THREAD_MULTIPLE, &provided );
+            MPI_Init_thread( NULL, NULL, MPI_THREAD_MULTIPLE, &provided );
         }
     }
 #endif
