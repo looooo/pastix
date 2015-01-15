@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find TMG include dirs and libraries
 # Use this module by invoking find_package with the form:
 #  find_package(TMG
@@ -10,7 +20,8 @@
 #  TMG_INCLUDE_DIRS    - tmg include directories
 #  TMG_LIBRARY_DIRS    - Link directories for tmg libraries
 #  TMG_LIBRARIES       - tmg component libraries to be linked
-# The user can give specific paths where to find the libraries:
+# The user can give specific paths where to find the libraries adding cmake 
+# options at configure (ex: cmake path/to/project -DTMG=path/to/tmg):
 #  TMG_DIR             - Where to find the base directory of tmg
 #  TMG_INCDIR          - Where to find the header files
 #  TMG_LIBDIR          - Where to find the library files
@@ -34,7 +45,7 @@
 
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 
 # used to test a TMG function after
@@ -77,7 +88,9 @@ if (LAPACK_FOUND)
     endif()
     
     if(TMG_WORKS)
-        message(STATUS "Looking for tmg: test with lapack succeeds")
+        if(NOT TMG_FIND_QUIETLY)
+            message(STATUS "Looking for tmg: test with lapack succeeds")
+        endif()
         # test succeeds: TMG is in LAPACK
         set(TMG_LIBRARIES "${LAPACK_LIBRARIES}")
         set(TMG_LIBRARY_DIRS "${LAPACK_LIBRARY_DIRS}")
@@ -85,9 +98,11 @@ if (LAPACK_FOUND)
             set(TMG_INCLUDE_DIRS "${LAPACK_INCLUDE_DIRS}")
         endif()
     else()    
-       
-        message(STATUS "Looking for tmg : test with lapack fails")
-        message(STATUS "Looking for tmg : try to find it elsewhere")
+
+        if(NOT TMG_FIND_QUIETLY)
+            message(STATUS "Looking for tmg : test with lapack fails")
+            message(STATUS "Looking for tmg : try to find it elsewhere")
+        endif()
         # test fails: try to find TMG lib exterior to LAPACK  
 
         # Looking for lib tmg
@@ -104,23 +119,22 @@ if (LAPACK_FOUND)
             else()
                 string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
             endif()
-            list(APPEND _lib_env "/usr/local/lib64")
-            list(APPEND _lib_env "/usr/lib64")
-            list(APPEND _lib_env "/usr/local/lib")
-            list(APPEND _lib_env "/usr/lib")
+            list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+            list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
         endif()
+        list(REMOVE_DUPLICATES _lib_env)
 
         # Try to find the tmg lib in the given paths
         # ----------------------------------------------
 
         # call cmake macro to find the lib path
-        if(DEFINED TMG_LIBDIR)
+        if(TMG_LIBDIR)
             set(TMG_tmg_LIBRARY "TMG_tmg_LIBRARY-NOTFOUND")
             find_library(TMG_tmg_LIBRARY
                 NAMES tmg
                 HINTS ${TMG_LIBDIR} )
         else()
-            if(DEFINED TMG_DIR)
+            if(TMG_DIR)
                 set(TMG_tmg_LIBRARY "TMG_tmg_LIBRARY-NOTFOUND")
                 find_library(TMG_tmg_LIBRARY
                     NAMES tmg
@@ -130,7 +144,7 @@ if (LAPACK_FOUND)
                 set(TMG_tmg_LIBRARY "TMG_tmg_LIBRARY-NOTFOUND")
                 find_library(TMG_tmg_LIBRARY
                     NAMES tmg
-                    PATHS ${_lib_env} )
+                    HINTS ${_lib_env} )
             endif()
         endif()
         mark_as_advanced(TMG_tmg_LIBRARY)
@@ -145,7 +159,9 @@ if (LAPACK_FOUND)
         else ()
             set(TMG_LIBRARIES    "TMG_LIBRARIES-NOTFOUND")
             set(TMG_LIBRARY_DIRS "TMG_LIBRARY_DIRS-NOTFOUND")
-            message(STATUS "Looking for tmg -- lib tmg not found")
+            if(NOT TMG_FIND_QUIETLY)
+                message(STATUS "Looking for tmg -- lib tmg not found")
+            endif()
         endif ()
 
         if (TMG_LIBRARY_DIRS)
@@ -155,7 +171,10 @@ if (LAPACK_FOUND)
 
 else()
 
-    message(STATUS "TMG requires LAPACK")
+    if(NOT TMG_FIND_QUIETLY)
+        message(STATUS "TMG requires LAPACK but LAPACK has not been found."
+            "Please look for LAPACK first.")
+    endif()
     
 endif()
 
@@ -164,7 +183,6 @@ endif()
 # -------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(TMG DEFAULT_MSG
-#                                  TMG_FOUND
                                   TMG_LIBRARIES
                                   TMG_LIBRARY_DIRS)
 #

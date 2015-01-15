@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find BLAS EXTENDED for MORSE projects: find include dirs and libraries
 #
 # This module allows to find BLAS libraries by calling the official FindBLAS module
@@ -32,7 +42,7 @@
 
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 
 # add a cache variable to let the user specify the BLAS vendor
@@ -74,18 +84,20 @@ endif()
 # Intel case
 if(BLA_VENDOR MATCHES "Intel*")
 
-    message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
-        "have also potentially detected some BLAS libraries from the MKL."
-        "We try to use this one.")
-    message(STATUS "If you want to force the use of one specific library, "
-        "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
-        "at cmake configure.")
-    message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
-        "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
-        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
-        "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
-        "Intel( older versions of mkl 32 and 64 bit),"
-        "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")        
+    if(NOT BLASEXT_FIND_QUIETLY)
+        message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
+            "have also potentially detected some BLAS libraries from the MKL."
+            "We try to use this one.")
+        message(STATUS "If you want to force the use of one specific library, "
+            "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
+            "at cmake configure.")
+        message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
+            "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+            "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
+            "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+            "Intel( older versions of mkl 32 and 64 bit),"
+            "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
+    endif()
     ###
     # look for include path if the BLAS vendor is Intel
     ###
@@ -104,16 +116,18 @@ if(BLA_VENDOR MATCHES "Intel*")
         string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
         list(APPEND _inc_env "${_path_env}")
     endif()
+    list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
+    list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
     list(REMOVE_DUPLICATES _inc_env)
 
     # find mkl.h inside known include paths
     set(BLAS_mkl.h_INCLUDE_DIRS "BLAS_mkl.h_INCLUDE_DIRS-NOTFOUND")
-    if(DEFINED BLAS_INCDIR)
+    if(BLAS_INCDIR)
         find_path(BLAS_mkl.h_INCLUDE_DIRS
                 NAMES mkl.h
                 HINTS ${BLAS_INCDIR})
     else()
-        if(DEFINED BLAS_DIR)
+        if(BLAS_DIR)
             find_path(BLAS_mkl.h_INCLUDE_DIRS
                     NAMES mkl.h
                     HINTS ${BLAS_DIR}
@@ -121,7 +135,7 @@ if(BLA_VENDOR MATCHES "Intel*")
         else()
             find_path(BLAS_mkl.h_INCLUDE_DIRS
                     NAMES mkl.h
-                    PATHS ${_inc_env})
+                    HINTS ${_inc_env})
         endif()
     endif()
     mark_as_advanced(BLAS_mkl.h_INCLUDE_DIRS)
@@ -177,18 +191,20 @@ if(BLA_VENDOR MATCHES "Intel*")
 # ACML case
 elseif(BLA_VENDOR MATCHES "ACML*")
 
-    message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
-        "have also potentially detected some BLAS libraries from the ACML."
-        "We try to use this one.")
-    message(STATUS "If you want to force the use of one specific library, "
-        "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
-        "at cmake configure.")
-    message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
-        "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
-        "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
-        "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
-        "Intel( older versions of mkl 32 and 64 bit),"
-        "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic") 
+    if(NOT BLASEXT_FIND_QUIETLY)
+        message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
+            "have also potentially detected some BLAS libraries from the ACML."
+            "We try to use this one.")
+        message(STATUS "If you want to force the use of one specific library, "
+            "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
+            "at cmake configure.")
+        message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
+            "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+            "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
+            "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+            "Intel( older versions of mkl 32 and 64 bit),"
+            "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
+    endif()
 
     ## look for the sequential version
     set(BLA_VENDOR "ACML")
@@ -259,42 +275,54 @@ endif ()
 include(FindPackageHandleStandardArgs)
 if(BLA_VENDOR MATCHES "Intel*")
     if(BLA_VENDOR MATCHES "Intel10_64lp*")
-        message(STATUS "BLAS found is Intel MKL:"
-                       "we manage two lists of libs,"
-                       " one sequential and one parallel if found (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
-        message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
+        if(NOT BLASEXT_FIND_QUIETLY)
+            message(STATUS "BLAS found is Intel MKL:"
+                           "we manage two lists of libs,"
+                           " one sequential and one parallel if found (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
+            message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
+        endif()
         find_package_handle_standard_args(BLAS DEFAULT_MSG
                                           BLAS_SEQ_LIBRARIES
                                           BLAS_LIBRARY_DIRS
                                           BLAS_INCLUDE_DIRS)
         if(BLAS_PAR_LIBRARIES)
-            message(STATUS "BLAS parallel libraries stored in BLAS_PAR_LIBRARIES")
+            if(NOT BLASEXT_FIND_QUIETLY)
+                message(STATUS "BLAS parallel libraries stored in BLAS_PAR_LIBRARIES")
+            endif()
             find_package_handle_standard_args(BLAS DEFAULT_MSG
                                               BLAS_PAR_LIBRARIES)
         endif()
     else()
-        message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
+        if(NOT BLASEXT_FIND_QUIETLY)
+            message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
+        endif()
         find_package_handle_standard_args(BLAS DEFAULT_MSG
                                           BLAS_SEQ_LIBRARIES
                                           BLAS_LIBRARY_DIRS
                                           BLAS_INCLUDE_DIRS)
     endif()
 elseif(BLA_VENDOR MATCHES "ACML*")
-    message(STATUS "BLAS found is ACML:"
-                    "we manage two lists of libs,"
-                    " one sequential and one parallel if found (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
-    message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")                    
+    if(NOT BLASEXT_FIND_QUIETLY)
+        message(STATUS "BLAS found is ACML:"
+                        "we manage two lists of libs,"
+                        " one sequential and one parallel if found (see BLAS_SEQ_LIBRARIES and BLAS_PAR_LIBRARIES)")
+        message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
+    endif()
     find_package_handle_standard_args(BLAS DEFAULT_MSG
                                       BLAS_SEQ_LIBRARIES
                                       BLAS_LIBRARY_DIRS
                                       BLAS_INCLUDE_DIRS)
     if(BLAS_PAR_LIBRARIES)
-        message(STATUS "BLAS parallel libraries stored in BLAS_PAR_LIBRARIES")
+        if(NOT BLASEXT_FIND_QUIETLY)
+            message(STATUS "BLAS parallel libraries stored in BLAS_PAR_LIBRARIES")
+        endif()
         find_package_handle_standard_args(BLAS DEFAULT_MSG
                                           BLAS_PAR_LIBRARIES)
     endif()
 else()
-    message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
+    if(NOT BLASEXT_FIND_QUIETLY)
+        message(STATUS "BLAS sequential libraries stored in BLAS_SEQ_LIBRARIES")
+    endif()
     find_package_handle_standard_args(BLAS DEFAULT_MSG
                                       BLAS_SEQ_LIBRARIES
                                       BLAS_LIBRARY_DIRS)

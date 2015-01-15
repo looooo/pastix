@@ -564,9 +564,9 @@ typedef struct Order_ Order;
 struct pastix_csc_s;
 typedef struct pastix_csc_s pastix_csc_t;
 
+void pastixInitParam( pastix_int_t *iparm,
+                      double       *dparm );
 void pastixInit( pastix_data_t **pastix_data,
-                 int            *argc,
-                 char         ***argv,
                  MPI_Comm        pastix_comm,
                  pastix_int_t   *iparm,
                  double         *dparm );

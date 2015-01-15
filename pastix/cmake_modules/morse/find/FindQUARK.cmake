@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find QUARK include dirs and libraries
 # Use this module by invoking find_package with the form:
 #  find_package(QUARK
@@ -10,8 +20,9 @@
 #  QUARK_INCLUDE_DIRS    - quark include directories
 #  QUARK_LIBRARY_DIRS    - Link directories for quark libraries
 #  QUARK_LIBRARIES       - quark component libraries to be linked
-# The user can give specific paths where to find the libraries:
-#  QUARK_DIR             - Where to find the base directory of QUARK
+# The user can give specific paths where to find the libraries adding cmake 
+# options at configure (ex: cmake path/to/project -DQUARK=path/to/quark):
+#  QUARK_DIR             - Where to find the base directory of quark
 #  QUARK_INCDIR          - Where to find the header files
 #  QUARK_LIBDIR          - Where to find the library files
 
@@ -34,7 +45,7 @@
 
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 
 # QUARK may depend on HWLOC
@@ -72,19 +83,21 @@ else()
     string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
     list(APPEND _inc_env "${_path_env}")
 endif()
+list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
+list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
 list(REMOVE_DUPLICATES _inc_env)
 
 
 # Try to find the quark header in the given paths
 # -------------------------------------------------
 # call cmake macro to find the header path
-if(DEFINED QUARK_INCDIR)
+if(QUARK_INCDIR)
     set(QUARK_quark.h_DIRS "QUARK_quark.h_DIRS-NOTFOUND")
     find_path(QUARK_quark.h_DIRS
       NAMES quark.h
       HINTS ${QUARK_INCDIR})
 else()
-    if(DEFINED QUARK_DIR)
+    if(QUARK_DIR)
         set(QUARK_quark.h_DIRS "QUARK_quark.h_DIRS-NOTFOUND")
         find_path(QUARK_quark.h_DIRS
           NAMES quark.h
@@ -94,14 +107,14 @@ else()
         set(QUARK_quark.h_DIRS "QUARK_quark.h_DIRS-NOTFOUND")
         find_path(QUARK_quark.h_DIRS
           NAMES quark.h
-          PATHS ${_inc_env})
+          HINTS ${_inc_env})
     endif()
 endif()
 mark_as_advanced(QUARK_quark.h_DIRS)
 
 # Print status if not found
 # -------------------------
-if (NOT QUARK_quark.h_DIRS)
+if (NOT QUARK_quark.h_DIRS AND NOT QUARK_FIND_QUIETLY)
     Print_Find_Header_Status(quark quark.h)
 endif ()
 
@@ -111,7 +124,9 @@ if (QUARK_quark.h_DIRS)
     set(QUARK_INCLUDE_DIRS "${QUARK_quark.h_DIRS}")
 else ()
     set(QUARK_INCLUDE_DIRS "QUARK_INCLUDE_DIRS-NOTFOUND")
-    message(STATUS "Looking for quark -- quark.h not found")
+    if(NOT QUARK_FIND_QUIETLY)
+        message(STATUS "Looking for quark -- quark.h not found")
+    endif()
 endif()
 
 
@@ -129,23 +144,22 @@ else()
     else()
         string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
     endif()
-    list(APPEND _lib_env "/usr/local/lib64")
-    list(APPEND _lib_env "/usr/lib64")
-    list(APPEND _lib_env "/usr/local/lib")
-    list(APPEND _lib_env "/usr/lib")
+    list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+    list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif()
+list(REMOVE_DUPLICATES _lib_env)
 
 # Try to find the quark lib in the given paths
 # ----------------------------------------------
 
 # call cmake macro to find the lib path
-if(DEFINED QUARK_LIBDIR)
+if(QUARK_LIBDIR)
     set(QUARK_quark_LIBRARY "QUARK_quark_LIBRARY-NOTFOUND")
     find_library(QUARK_quark_LIBRARY
         NAMES quark
         HINTS ${QUARK_LIBDIR})
 else()
-    if(DEFINED QUARK_DIR)
+    if(QUARK_DIR)
         set(QUARK_quark_LIBRARY "QUARK_quark_LIBRARY-NOTFOUND")
         find_library(QUARK_quark_LIBRARY
             NAMES quark
@@ -155,14 +169,14 @@ else()
         set(QUARK_quark_LIBRARY "QUARK_quark_LIBRARY-NOTFOUND")
         find_library(QUARK_quark_LIBRARY
             NAMES quark
-            PATHS ${_lib_env})
+            HINTS ${_lib_env})
     endif()
 endif()
 mark_as_advanced(QUARK_quark_LIBRARY)
 
 # Print status if not found
 # -------------------------
-if (NOT QUARK_quark_LIBRARY)
+if (NOT QUARK_quark_LIBRARY AND NOT QUARK_FIND_QUIETLY)
     Print_Find_Library_Status(quark libquark)
 endif ()
 
@@ -176,7 +190,9 @@ if (QUARK_quark_LIBRARY)
 else ()
     set(QUARK_LIBRARIES    "QUARK_LIBRARIES-NOTFOUND")
     set(QUARK_LIBRARY_DIRS "QUARK_LIBRARY_DIRS-NOTFOUND")
-    message(STATUS "Looking for quark -- lib quark not found")
+    if(NOT QUARK_FIND_QUIETLY)
+        message(STATUS "Looking for quark -- lib quark not found")
+    endif()
 endif ()
 
 
@@ -184,7 +200,6 @@ endif ()
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(QUARK DEFAULT_MSG
-#                                  QUARK_FOUND
                                   QUARK_LIBRARIES
                                   QUARK_INCLUDE_DIRS
                                   QUARK_LIBRARY_DIRS)

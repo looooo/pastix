@@ -1,3 +1,13 @@
+###
+#
+# @copyright (c) 2009-2014 The University of Tennessee and The University
+#                          of Tennessee Research Foundation.
+#                          All rights reserved.
+# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+#
+###
+#
 # - Find PTSCOTCH include dirs and libraries
 # Use this module by invoking find_package with the form:
 #  find_package(PTSCOTCH
@@ -10,8 +20,9 @@
 #  PTSCOTCH_INCLUDE_DIRS    - ptscotch include directories
 #  PTSCOTCH_LIBRARY_DIRS    - Link directories for ptscotch libraries
 #  PTSCOTCH_LIBRARIES       - ptscotch component libraries to be linked
-# The user can give specific paths where to find the libraries:
-#  PTSCOTCH_DIR             - Where to find the base directory of PTSCOTCH
+# The user can give specific paths where to find the libraries adding cmake 
+# options at configure (ex: cmake path/to/project -DPTSCOTCH=path/to/ptscotch):
+#  PTSCOTCH_DIR             - Where to find the base directory of ptscotch
 #  PTSCOTCH_INCDIR          - Where to find the header files
 #  PTSCOTCH_LIBDIR          - Where to find the library files
 
@@ -34,7 +45,7 @@
 
 
 # Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory of magmamorse
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
 include(PrintFindStatus)
 
 # PTSCOTCH may depend on MPI and Threads
@@ -83,19 +94,21 @@ else()
     string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
     list(APPEND _inc_env "${_path_env}")
 endif()
+list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
+list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
 list(REMOVE_DUPLICATES _inc_env)
 
 
 # Try to find the ptscotch header in the given paths
 # -------------------------------------------------
 # call cmake macro to find the header path
-if(DEFINED PTSCOTCH_INCDIR)
+if(PTSCOTCH_INCDIR)
     set(PTSCOTCH_ptscotch.h_DIRS "PTSCOTCH_ptscotch.h_DIRS-NOTFOUND")
     find_path(PTSCOTCH_ptscotch.h_DIRS
       NAMES ptscotch.h
       HINTS ${PTSCOTCH_INCDIR})
 else()
-    if(DEFINED PTSCOTCH_DIR)
+    if(PTSCOTCH_DIR)
         set(PTSCOTCH_ptscotch.h_DIRS "PTSCOTCH_ptscotch.h_DIRS-NOTFOUND")
         find_path(PTSCOTCH_ptscotch.h_DIRS
           NAMES ptscotch.h
@@ -105,14 +118,14 @@ else()
         set(PTSCOTCH_ptscotch.h_DIRS "PTSCOTCH_ptscotch.h_DIRS-NOTFOUND")
         find_path(PTSCOTCH_ptscotch.h_DIRS
           NAMES ptscotch.h
-          PATHS ${_inc_env})
+          HINTS ${_inc_env})
     endif()
 endif()
 mark_as_advanced(PTSCOTCH_ptscotch.h_DIRS)
 
 # Print status if not found
 # -------------------------
-if (NOT PTSCOTCH_ptscotch.h_DIRS)
+if (NOT PTSCOTCH_ptscotch.h_DIRS AND NOT PTSCOTCH_FIND_QUIETLY)
     Print_Find_Header_Status(ptscotch ptscotch.h)
 endif ()
 
@@ -122,7 +135,9 @@ if (PTSCOTCH_ptscotch.h_DIRS)
     set(PTSCOTCH_INCLUDE_DIRS "${PTSCOTCH_ptscotch.h_DIRS}")
 else ()
     set(PTSCOTCH_INCLUDE_DIRS "PTSCOTCH_INCLUDE_DIRS-NOTFOUND")
-    message(STATUS "Looking for ptscotch -- ptscotch.h not found")
+    if (NOT PTSCOTCH_FIND_QUIETLY)
+        message(STATUS "Looking for ptscotch -- ptscotch.h not found")
+    endif
 endif()
 
 
@@ -140,11 +155,10 @@ else()
     else()
         string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
     endif()
-    list(APPEND _lib_env "/usr/local/lib64")
-    list(APPEND _lib_env "/usr/lib64")
-    list(APPEND _lib_env "/usr/local/lib")
-    list(APPEND _lib_env "/usr/lib")
+    list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+    list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif()
+list(REMOVE_DUPLICATES _lib_env)
 
 # Try to find the ptscotch lib in the given paths
 # ----------------------------------------------
@@ -152,7 +166,7 @@ endif()
 set(PTSCOTCH_libs_to_find "ptscotch;scotch;scotcherrexit")
 
 # call cmake macro to find the lib path
-if(DEFINED PTSCOTCH_LIBDIR)
+if(PTSCOTCH_LIBDIR)
     foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
         set(PTSCOTCH_${ptscotch_lib}_LIBRARY "PTSCOTCH_${ptscotch_lib}_LIBRARY-NOTFOUND")
         find_library(PTSCOTCH_${ptscotch_lib}_LIBRARY
@@ -160,7 +174,7 @@ if(DEFINED PTSCOTCH_LIBDIR)
             HINTS ${PTSCOTCH_LIBDIR}) 
     endforeach()
 else()
-    if(DEFINED PTSCOTCH_DIR)  
+    if(PTSCOTCH_DIR)  
         foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
             set(PTSCOTCH_${ptscotch_lib}_LIBRARY "PTSCOTCH_${ptscotch_lib}_LIBRARY-NOTFOUND")
             find_library(PTSCOTCH_${ptscotch_lib}_LIBRARY
@@ -173,7 +187,7 @@ else()
             set(PTSCOTCH_${ptscotch_lib}_LIBRARY "PTSCOTCH_${ptscotch_lib}_LIBRARY-NOTFOUND")
             find_library(PTSCOTCH_${ptscotch_lib}_LIBRARY
                 NAMES ${ptscotch_lib}
-                PATHS ${_lib_env})  
+                HINTS ${_lib_env})  
         endforeach()
     endif()
 endif()
@@ -181,7 +195,7 @@ endif()
 # Print status if not found
 # -------------------------
 foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
-    if (NOT PTSCOTCH_${ptscotch_lib}_LIBRARY)
+    if (NOT PTSCOTCH_${ptscotch_lib}_LIBRARY AND NOT PTSCOTCH_FIND_QUIETLY)
         Print_Find_Library_Status(ptscotch ${ptscotch_lib})
     endif ()
 endforeach()
@@ -199,7 +213,9 @@ foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
         list(APPEND PTSCOTCH_LIBRARY_DIRS "${${ptscotch_lib}_lib_path}")
     else ()
         list(APPEND PTSCOTCH_LIBRARIES "${PTSCOTCH_${ptscotch_lib}_LIBRARY}")
-        message(STATUS "Looking for ptscotch -- lib ${ptscotch_lib} not found")
+        if (NOT PTSCOTCH_FIND_QUIETLY)
+            message(STATUS "Looking for ptscotch -- lib ${ptscotch_lib} not found")
+        endif()
     endif ()
     
     mark_as_advanced(PTSCOTCH_${ptscotch_lib}_LIBRARY)
@@ -211,7 +227,6 @@ endforeach()
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PTSCOTCH DEFAULT_MSG
-#                                  PTSCOTCH_FOUND
                                   PTSCOTCH_LIBRARIES
                                   PTSCOTCH_INCLUDE_DIRS
                                   PTSCOTCH_LIBRARY_DIRS)

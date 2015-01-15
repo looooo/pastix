@@ -671,6 +671,7 @@ pastix_ex_usage(void)
             "    --petsc_s      : PETSc symmetric\n"
             "    --petsc_h      : PETSc hermitian\n"
             "    --petsc_u      : PETSc unsymmetric\n"
+            " -G --graph        : SCOTCH Graph file\n"
             "\n"
             "Architecture arguments:\n"
             " -t --threads      : Number of threads\n"
