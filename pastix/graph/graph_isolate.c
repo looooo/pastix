@@ -345,11 +345,22 @@ int graphIsolateSupernode(       pastix_int_t   n,
     MALLOC_INTERN(tmpcolptr, isolate_n + 1, pastix_int_t);
     memset(tmpcolptr, 0, (isolate_n + 1)*sizeof(pastix_int_t));
 
+    pastix_int_t *sn_connected;
+    /* temporary array of connections to avoid double counting when extending */
+    MALLOC_INTERN(sn_connected, isolate_n, pastix_int_t);
+
+    /* NOTE: seems repetitive to go over the data twice. Could construct individual rows for each column
+             in temporary arrays, then combine them all in the end when we know exactly how large rows
+             should be */
+
     /* (i,j) in permutated ordering */
     /* (ip,jp) in initial ordering */
     tmpcolptr[0] = baseval;
     for (ip=fnode; ip<=lnode; ip++)
     {
+        memset(sn_connected, 0, (isolate_n)*sizeof(pastix_int_t));
+        sn_connected[ip-fnode] = 1;
+
         /* i^th vertex in the initial numbering */
         i = invp[ip];
         for (j = colptr[i]-baseval; j < colptr[i+1]-baseval; j++)
@@ -359,18 +370,25 @@ int graphIsolateSupernode(       pastix_int_t   n,
             /* Count edges in each column of the new graph */
             if ( jp >= fnode && jp <= lnode )
             {
+                assert(sn_connected[jp-fnode] == 0);
+                sn_connected[jp-fnode] = 1;
                 tmpcolptr[ip-fnode+1]++;
             }
-            /* else */
-            /* { /\* Look for connection at distance 1 *\/ */
-            /*     for(k = colptr[j]-baseval; k < colptr[j+1]-baseval; k++) */
-            /*     { */
-            /*         pastix_int_t = kp = perm[ rows[k]-baseval ]; */
-            /*         if ( kp >= fnode && kp <= lnode ) */
-            /*         { */
-            /*         } */
-            /*     } */
-            /* } */
+            else
+            { /* Look for connection at distance 1 */
+                for(k = colptr[rows[j]-baseval]-baseval; k < colptr[rows[j]+1-baseval]-baseval; k++)
+                {
+                    pastix_int_t kp = perm[ rows[k]-baseval ];
+                    if ( kp >= fnode && kp <= lnode )
+                    {
+                        if(!sn_connected[kp-fnode])
+                        {
+                            sn_connected[kp-fnode] = 1;
+                            tmpcolptr[ip-fnode+1]++;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -386,6 +404,9 @@ int graphIsolateSupernode(       pastix_int_t   n,
 
     for (ip=fnode; ip<=lnode; ip++)
     {
+        memset(sn_connected, 0, (isolate_n)*sizeof(pastix_int_t));
+        sn_connected[ip-fnode] = 1;
+
         /* i^th vertex in the initial numbering */
         i = invp[ip];
         for (j = colptr[i]-baseval; j < colptr[i+1]-baseval; j++)
@@ -395,8 +416,26 @@ int graphIsolateSupernode(       pastix_int_t   n,
             /* Count edges in each column of the new graph */
             if ( jp >= fnode && jp <= lnode )
             {
-                tmprows[row_counter] = jp - fnode;
+                assert(sn_connected[jp-fnode] == 0);
+                sn_connected[jp-fnode] = 1;
+                tmprows[row_counter] = jp-fnode;
                 row_counter++;
+            }
+            else
+            { /* Look for connection at distance 1 */
+                for(k = colptr[rows[j]-baseval]-baseval; k < colptr[rows[j]+1-baseval]-baseval; k++)
+                {
+                    pastix_int_t kp = perm[ rows[k]-baseval ];
+                    if ( kp >= fnode && kp <= lnode )
+                    {
+                        if(!sn_connected[kp-fnode])
+                        {
+                            sn_connected[kp-fnode] = 1;
+                            tmprows[row_counter] = kp-fnode;
+                            row_counter++;
+                        }
+                    }
+                }
             }
         }
     }
