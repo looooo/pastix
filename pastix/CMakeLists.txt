@@ -40,7 +40,7 @@ check_include_files(complex.h HAVE_COMPLEX_H)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" ON)
+    "Build PaStiX for distributed memory with MPI" OFF)
 
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA
@@ -267,7 +267,7 @@ endif (PASTIX_WITH_STARPU)
 if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH)
   if (SCOTCH_FOUND)
-    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS}" )
+    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS} ${SCOTCH_LIBRARY_DIRS} ${SCOTCH_LIBRARIES}" )
     include_directories( ${SCOTCH_INCLUDE_DIRS} )
     link_directories( ${SCOTCH_LIBRARY_DIRS} )
     link_libraries( ${SCOTCH_LIBRARIES} )

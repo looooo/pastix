@@ -16,6 +16,7 @@
 #include <assert.h>
 #include "pastix.h"
 #include "../matrix_drivers/drivers.h"
+#include "../symbol/symbol.h"
 #include <scotch.h>
 
 #ifdef FORCE_NOMPI
@@ -84,10 +85,19 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
+    orderingGregoire = 0;
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
-//    pastix_task_symbfact( pastix_data, NULL, NULL );
-//    pastix_task_blend( pastix_data );
-//    pastix_task_sopalin( pastix_data, &csc );
+    pastix_task_symbfact( pastix_data, NULL, NULL );
+
+    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    orderingGregoire = 1;
+    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
+    pastix_task_symbfact( pastix_data, NULL, NULL );
+
+    //pastix_task_blend( pastix_data );
+    //pastix_task_sopalin( pastix_data, &csc );
 
     //cscExit( csc );
     free(csc.colptr);

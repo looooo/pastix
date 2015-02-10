@@ -51,16 +51,16 @@ orderComputeClif( const pastix_graph_t *graph,
     SCOTCH_graphSave(sgraph, file);
     fclose(file);
 
-    {
-        pastix_int_t i;
-        fprintf(stderr, "cblknbr = %ld:\n", order->cblknbr);
-        for (i=0; i<=order->cblknbr; i++) {
-            fprintf(stderr, "%ld ", order->rangtab[i]);
-            if (i % 8 == 7 )
-                fprintf(stderr, "\n");
-        }
-        fprintf(stderr, "\n");
-    }
+    /* { */
+    /*     pastix_int_t i; */
+    /*     fprintf(stderr, "cblknbr = %ld:\n", order->cblknbr); */
+    /*     for (i=0; i<=order->cblknbr; i++) { */
+    /*         fprintf(stderr, "%ld ", order->rangtab[i]); */
+    /*         if (i % 8 == 7 ) */
+    /*             fprintf(stderr, "\n"); */
+    /*     } */
+    /*     fprintf(stderr, "\n"); */
+    /* } */
 
     file = fopen("before.map","w");
     SCOTCH_graphOrderSaveMap(sgraph, sorder, file);
@@ -185,6 +185,28 @@ orderComputeClif( const pastix_graph_t *graph,
             assert( n == graph->n );
             assert( rc == 2 );
 
+            if (orderingGregoire){
+                printf("\n\nAPPLY NEW ORDERING\n\n");
+
+                FILE *file_perm = fopen("perm.txt", "r");
+                pastix_int_t *saved_perm = malloc(n*sizeof(pastix_int_t));
+                memcpy(saved_perm, order->permtab, n*sizeof(pastix_int_t));
+
+                for (i=0; i<n; i++){
+                    int perm;
+                    int ret = fscanf(file_perm, "%d", &perm);
+                    /* Need inverse permutation */
+                    int j;
+                    for (j=0; j<n; j++){
+                        if (saved_perm[j] == i){
+                            order->permtab[j] = perm;
+                        }
+                    }
+                }
+                free(saved_perm);
+                fclose(file_perm);
+            }
+
             if ( dim == 2 ) {
                 pastix_int_t fnode = order->rangtab[ order->cblknbr-1 ];
 
@@ -232,6 +254,7 @@ orderComputeClif( const pastix_graph_t *graph,
             fclose(file);
             fclose(fileout);
         }
+
 
         /* Update the invp/perm arrays */
     /*     if (1) */
