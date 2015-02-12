@@ -627,6 +627,18 @@ install(TARGETS pastix
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
+# Install header files
+set(PASTIX_HDRS
+  include/pastix/api.h
+  include/pastix/old_api.h
+  include/pastix/datatypes.h
+  include/pastix/nompi.h
+  include/pastix/retro.h
+)
+install(FILES include/pastix.h DESTINATION include )
+install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
+
+
 add_subdirectory(example)
 
 FIND_PACKAGE(Doxygen)
