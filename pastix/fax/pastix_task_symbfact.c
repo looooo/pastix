@@ -317,6 +317,14 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
 
+    if (orderingGregoire == 0){
+        printf("\n\nCOMPUTE NEW ORDERING\n\n");
+        symbolDependencies( pastix_data->symbmtx );
+    }
+
+    symbolPrintStats( pastix_data->symbmtx );
+    symbolCheckGregoire( pastix_data->symbmtx );
+
     /* Rustine to be sure we have a tree
      * TODO: check difference with kassSymbolPatch */
 #define RUSTINE
@@ -344,16 +352,22 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /*
      * Dump an eps file of the symbolic factorization
      */
-#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    //#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     if (procnum == 0)
     {
         FILE *stream;
-        PASTIX_FOPEN(stream, "symbol.eps", "w");
+
+        if (orderingGregoire == 0){
+            PASTIX_FOPEN(stream, "symbol_before.eps", "w");
+        }
+        else{
+            PASTIX_FOPEN(stream, "symbol_after.eps", "w");
+        }
         symbolDraw(pastix_data->symbmtx,
                    stream);
         fclose(stream);
     }
-#endif
+    //#endif
 
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_ANALYSE  |

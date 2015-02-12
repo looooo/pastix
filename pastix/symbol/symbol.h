@@ -161,4 +161,8 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
 
 void symbolPrintStats( const SymbolMatrix * );
 
+void symbolCheckGregoire( const SymbolMatrix * );
+void symbolDependencies( const SymbolMatrix * );
+int orderingGregoire;
+
 #endif /* SYMBOL_H */
