@@ -1,45 +1,44 @@
 /**
+ * @file readrsa.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  $COPYRIGHTS$
  *
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
- * @precisions normal z -> c d s
  *
  **/
 #include "common.h"
 #include "drivers.h"
 
-/*
-  Function: FORTRAN_CALL(wreadmtc)
-
-  Declaration of the wreadmtc fortran function
-  defined in skitf.f.
-
-  Parameters:
-     tmp1      - Maximum number of column                                    (INPUT)
-     tmp2      - Maximum number of non zeros                                 (INPUT)
-     tmp3      - job to be done (see skitf file)                             (INPUT)
-     filename  - Path to the file to read from                               (INPUT)
-     len       - length of *filname*                                         (INPUT)
-     val       - Values of the elements of the matrix.                       (OUTPUT)
-     row       - Rows of the elements of the matrix.                         (OUTPUT)
-     col       - Index of first element of each column in *row* and *val*    (OUTPUT)
-     crhs      - Right hand side(s).                                         (OUTPUT)
-     nrhs      - Number of right hand side(s).                               (OUTPUT)
-     RhsType   - Right hand side type                                        (OUTPUT)
-     tmpNrow   - Number of rows.                                             (OUTPUT)
-     tmpNcol   - Number of columns.                                          (OUTPUT)
-     tmpNnzero - Number of non zeros.                                        (OUTPUT)
-     title     - name of the matrix.                                         (OUTPUT)
-     key       - key of the matrix (see skitf.f)                             (OUTPUT)
-     Type      - Type of the matrix                                          (OUTPUT)
-     ierr      - Error return value                                          (OUTPUT)
-
+/**
+ * Function: FORTRAN_CALL(wreadmtc)
+ *
+ * Declaration of the wreadmtc fortran function
+ * defined in skitf.f.
+ *
+ * Parameters:
+ *    tmp1      - Maximum number of column                                    (INPUT)
+ *    tmp2      - Maximum number of non zeros                                 (INPUT)
+ *    tmp3      - job to be done (see skitf file)                             (INPUT)
+ *    filename  - Path to the file to read from                               (INPUT)
+ *    len       - length of *filname*                                         (INPUT)
+ *    val       - Values of the elements of the matrix.                       (OUTPUT)
+ *    row       - Rows of the elements of the matrix.                         (OUTPUT)
+ *    col       - Index of first element of each column in *row* and *val*    (OUTPUT)
+ *    crhs      - Right hand side(s).                                         (OUTPUT)
+ *    nrhs      - Number of right hand side(s).                               (OUTPUT)
+ *    RhsType   - Right hand side type                                        (OUTPUT)
+ *    tmpNrow   - Number of rows.                                             (OUTPUT)
+ *    tmpNcol   - Number of columns.                                          (OUTPUT)
+ *    tmpNnzero - Number of non zeros.                                        (OUTPUT)
+ *    title     - name of the matrix.                                         (OUTPUT)
+ *    key       - key of the matrix (see skitf.f)                             (OUTPUT)
+ *    Type      - Type of the matrix                                          (OUTPUT)
+ *    ierr      - Error return value                                          (OUTPUT)
+ *
  */
 void
 FC_GLOBAL(wreadmtc,WREADMTC)(int        *tmp1,
@@ -88,11 +87,12 @@ FC_GLOBAL(wreadmtc,WREADMTC)(int        *tmp1,
  *          At exit, contains the type of the right hand side.
  *
  *******************************************************************************/
-void readRSAHeader( const char *filename,
-                    int        *N,
-                    int        *Nnz,
-                    char       *Type,
-                    char       *RhsType )
+void
+readRSAHeader( const char *filename,
+               int        *N,
+               int        *Nnz,
+               char       *Type,
+               char       *RhsType )
 {
     int     tmp;
     int    *col = NULL;
@@ -131,7 +131,9 @@ void readRSAHeader( const char *filename,
  *
  * @ingroup pastix_csc_driver
  *
- * readRSA - Read a RSA matrix file.
+ * readRSA - Read a RSA matrix file. This driver reads only real matrices, and
+ * does not support complex matrices.
+ * The matrix is returned in double, convert it to real if needed through TODO
  *
  *******************************************************************************
  *
@@ -156,8 +158,9 @@ void readRSAHeader( const char *filename,
  *          At exit, contains the type of the right hand side.
  *
  *******************************************************************************/
-void readRSA( const char   *filename,
-              pastix_csc_t *csc )
+void
+readRSA( const char   *filename,
+         pastix_csc_t *csc )
 {
     char    Type[4];
     char    RhsType[4];
@@ -226,6 +229,11 @@ void readRSA( const char   *filename,
     case 'H':
     case 'h':
         csc->mtxtype = PastixHermitian;
+        /**
+         * We should not arrive here, since the fortran driver is not able to
+         * read complex matrices
+         */
+        assert(0);
         break;
     case 'U':
     case 'u':
