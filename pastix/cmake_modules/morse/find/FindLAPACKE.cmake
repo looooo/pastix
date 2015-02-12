@@ -14,21 +14,21 @@
 #               [REQUIRED]             # Fail with error if lapacke is not found
 #               [COMPONENTS <libs>...] # required dependencies
 #              )
-# This module finds headers and lapacke library. 
+# This module finds headers and lapacke library.
 # Results are reported in variables:
 #  LAPACKE_FOUND           - True if headers and requested libraries were found
 #  LAPACKE_INCLUDE_DIRS    - lapacke include directories
 #  LAPACKE_LIBRARY_DIRS    - Link directories for lapacke libraries
 #  LAPACKE_LIBRARIES       - lapacke component libraries to be linked
-# The user can give specific paths where to find the libraries adding cmake 
+# The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DLAPACKE_DIR=path/to/lapacke):
 #  LAPACKE_DIR             - Where to find the base directory of lapacke
 #  LAPACKE_INCDIR          - Where to find the header files
 #  LAPACKE_LIBDIR          - Where to find the library files
-# LAPACKE could be directly embedded in LAPACK library (ex: Intel MKL) so that 
-# we test a lapacke function with the lapack libraries found and set LAPACKE 
-# variables to LAPACK ones if test is successful. To skip this feature and 
-# look for a stand alone lapacke, please add the following in your 
+# LAPACKE could be directly embedded in LAPACK library (ex: Intel MKL) so that
+# we test a lapacke function with the lapack libraries found and set LAPACKE
+# variables to LAPACK ones if test is successful. To skip this feature and
+# look for a stand alone lapacke, please add the following in your
 # CMakeLists.txt before to call find_package(LAPACKE):
 # set(LAPACKE_STANDALONE TRUE)
 
@@ -49,16 +49,18 @@
 # (To distribute this file outside of Morse, substitute the full
 #  License text for the above reference.)
 
-
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
+if (NOT LAPACKE_FOUND)
+    set(LAPACKE_DIR "" CACHE PATH "Root directory of LAPACKE library")
+    if (NOT LAPACKE_FIND_QUIETLY)
+        message(STATUS "A cache variable, namely LAPACKE_DIR, has been set to specify the install directory of LAPACKE")
+    endif()
+endif()
 
 # LAPACKE depends on LAPACK
 # try to find it specified as COMPONENTS during the call
 if (LAPACKE_FIND_COMPONENTS)
     foreach( component ${LAPACKE_FIND_COMPONENTS} )
-        if(${LAPACKE_FIND_REQUIRED_${component}} STREQUAL 1)
+        if(LAPACKE_FIND_REQUIRED_${component})
             find_package(${component} REQUIRED)
         else()
             find_package(${component})
@@ -71,6 +73,14 @@ if (LAPACKE_FIND_COMPONENTS)
     endforeach()
 endif ()
 
+# LAPACKE depends on LAPACK anyway, try to find it
+if (NOT LAPACK_FOUND)
+    if(LAPACKE_FIND_REQUIRED)
+        find_package(LAPACK REQUIRED)
+    else()
+        find_package(LAPACK)
+    endif()
+endif()
 
 # LAPACKE depends on LAPACK
 if (LAPACK_FOUND)
@@ -78,12 +88,12 @@ if (LAPACK_FOUND)
     if (NOT LAPACKE_STANDALONE)
         # check if a lapacke function exists in the LAPACK lib
         include(CheckFunctionExists)
-        set(CMAKE_REQUIRED_LIBRARIES "${LAPACK_LIBRARIES};${CMAKE_THREAD_LIBS_INIT};${LM}")
+        set(CMAKE_REQUIRED_LIBRARIES "${LAPACK_LIBRARIES}")
         unset(LAPACKE_WORKS CACHE)
         check_function_exists(LAPACKE_dgeqrf LAPACKE_WORKS)
         mark_as_advanced(LAPACKE_WORKS)
         set(CMAKE_REQUIRED_LIBRARIES)
-    
+
         if(LAPACKE_WORKS)
             if(NOT LAPACKE_FIND_QUIETLY)
                 message(STATUS "Looking for lapacke: test with lapack succeeds")
@@ -96,17 +106,17 @@ if (LAPACK_FOUND)
             endif()
         endif()
     endif (NOT LAPACKE_STANDALONE)
-        
+
     if (LAPACKE_STANDALONE OR NOT LAPACKE_WORKS)
-   
+
         if(NOT LAPACKE_WORKS AND NOT LAPACKE_FIND_QUIETLY)
             message(STATUS "Looking for lapacke : test with lapack fails")
         endif()
         # test fails: try to find LAPACKE lib exterior to LAPACK
-        
+
         # Try to find LAPACKE lib
         #######################
-        
+
         # Looking for include
         # -------------------
 
@@ -153,12 +163,6 @@ if (LAPACK_FOUND)
             endif()
         endif()
         mark_as_advanced(LAPACKE_lapacke.h_DIRS)
-        
-        # Print status if not found
-        # -------------------------
-        if (NOT LAPACKE_lapacke.h_DIRS)
-            Print_Find_Header_Status(lapacke lapacke.h)
-        endif ()        
 
         # If found, add path to cmake variable
         # ------------------------------------
@@ -215,12 +219,6 @@ if (LAPACK_FOUND)
             endif()
         endif()
         mark_as_advanced(LAPACKE_lapacke_LIBRARY)
-        
-        # Print status if not found
-        # -------------------------
-        if (NOT LAPACKE_lapacke_LIBRARY AND NOT LAPACKE_FIND_QUIETLY)
-            Print_Find_Library_Status(lapacke liblapacke)
-        endif ()
 
         # If found, add path to cmake variable
         # ------------------------------------
@@ -236,16 +234,62 @@ if (LAPACK_FOUND)
                 message(STATUS "Looking for lapacke -- lib lapacke not found")
             endif()
         endif ()
-        
+
+        if(LAPACKE_LIBRARIES)
+            # check a function to validate the find
+            if (LAPACKE_INCLUDE_DIRS)
+                set(CMAKE_REQUIRED_INCLUDES  "${LAPACKE_INCLUDE_DIRS}")
+            endif()
+            if (LAPACK_INCLUDE_DIRS)
+                list(APPEND CMAKE_REQUIRED_INCLUDES "${LAPACK_INCLUDE_DIRS}")
+            endif()
+            set(CMAKE_REQUIRED_LIBRARIES "${LAPACKE_LIBRARIES};${LAPACK_LIBRARIES};-lm")
+            if (CMAKE_Fortran_COMPILER MATCHES ".+gfortran.*")
+                list(APPEND CMAKE_REQUIRED_LIBRARIES "-lgfortran")
+            elseif (CMAKE_Fortran_COMPILER MATCHES ".+ifort.*")
+                list(APPEND CMAKE_REQUIRED_LIBRARIES "-lifcore")
+            endif()
+            if (LAPACKE_LIBRARY_DIRS)
+                set(CMAKE_REQUIRED_FLAGS "-L${LAPACKE_LIBRARY_DIRS}")
+            endif()
+            if (LAPACK_LIBRARY_DIRS)
+                set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${LAPACK_LIBRARY_DIRS}")
+            endif()
+
+            unset(LAPACKE_WORKS CACHE)
+            include(CheckFunctionExists)
+            check_function_exists(LAPACKE_dgeqrf LAPACKE_WORKS)
+            mark_as_advanced(LAPACKE_WORKS)
+
+            if(LAPACKE_WORKS)
+                set(LAPACKE_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES})
+                set(LAPACKE_LIBRARY_DIRS "${LAPACKE_LIBRARY_DIRS}" "${LAPACK_LIBRARY_DIRS}")
+                set(LAPACKE_INCLUDE_DIRS ${CMAKE_REQUIRED_INCLUDES})
+            else()
+                if(NOT LAPACKE_FIND_QUIETLY)
+                    message(STATUS "Looking for lapacke: test of LAPACKE_dgeqrf with lapacke and lapack libraries fails")
+                    message(STATUS "LAPACKE_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+                    message(STATUS "LAPACKE_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
+                    message(STATUS "LAPACKE_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+                    message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
+                    message(STATUS "Looking for lapacke : set LAPACKE_LIBRARIES to NOTFOUND")
+                endif()
+                set(LAPACKE_LIBRARIES "LAPACKE_LIBRARIES-NOTFOUND")
+            endif()
+            set(CMAKE_REQUIRED_INCLUDES)
+            set(CMAKE_REQUIRED_FLAGS)
+            set(CMAKE_REQUIRED_LIBRARIES)
+        endif(LAPACKE_LIBRARIES)
+
     endif (LAPACKE_STANDALONE OR NOT LAPACKE_WORKS)
-    
+
 else(LAPACK_FOUND)
 
     if (NOT LAPACKE_FIND_QUIETLY)
         message(STATUS "LAPACKE requires LAPACK but LAPACK has not been found."
             "Please look for LAPACK first.")
     endif()
-        
+
 endif(LAPACK_FOUND)
 
 
@@ -253,8 +297,4 @@ endif(LAPACK_FOUND)
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LAPACKE DEFAULT_MSG
-                                  LAPACKE_LIBRARIES
-                                  LAPACKE_LIBRARY_DIRS)
-#
-# TODO: Add possibility to check for specific functions in the library
-#
+                                  LAPACKE_LIBRARIES)

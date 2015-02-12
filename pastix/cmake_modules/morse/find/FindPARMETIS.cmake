@@ -13,14 +13,14 @@
 #  find_package(PARMETIS
 #               [REQUIRED]             # Fail with error if parmetis is not found
 #               [COMPONENTS <libs>...] # required dependencies
-#              )  
-# This module finds headers and parmetis library. 
+#              )
+# This module finds headers and parmetis library.
 # Results are reported in variables:
 #  PARMETIS_FOUND           - True if headers and requested libraries were found
 #  PARMETIS_INCLUDE_DIRS    - parmetis include directories
 #  PARMETIS_LIBRARY_DIRS    - Link directories for parmetis libraries
 #  PARMETIS_LIBRARIES       - parmetis component libraries to be linked
-# The user can give specific paths where to find the libraries adding cmake 
+# The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DPARMETIS_DIR=path/to/parmetis):
 #  PARMETIS_DIR             - Where to find the base directory of parmetis
 #  PARMETIS_INCDIR          - Where to find the header files
@@ -43,16 +43,18 @@
 # (To distribute this file outside of Morse, substitute the full
 #  License text for the above reference.)
 
-
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
+if (NOT PARMETIS_FOUND)
+    set(PARMETIS_DIR "" CACHE PATH "Root directory of PARMETIS library")
+    if (NOT PARMETIS_FIND_QUIETLY)
+        message(STATUS "A cache variable, namely PARMETIS_DIR, has been set to specify the install directory of PARMETIS")
+    endif()
+endif()
 
 # PARMETIS depends on MPI
 # try to find it specified as COMPONENTS during the call
 if( PARMETIS_FIND_COMPONENTS )
     foreach( component ${PARMETIS_FIND_COMPONENTS} )
-        if(${PARMETIS_FIND_REQUIRED_${component}} STREQUAL 1)
+        if(PARMETIS_FIND_REQUIRED_${component})
             find_package(${component} REQUIRED)
         else()
             find_package(${component})
@@ -108,7 +110,7 @@ else()
         find_path(PARMETIS_parmetis.h_DIRS
           NAMES parmetis.h
           HINTS ${PARMETIS_DIR}
-          PATH_SUFFIXES include)        
+          PATH_SUFFIXES include)
     else()
         set(PARMETIS_parmetis.h_DIRS "PARMETIS_parmetis.h_DIRS-NOTFOUND")
         find_path(PARMETIS_parmetis.h_DIRS
@@ -118,11 +120,6 @@ else()
 endif()
 mark_as_advanced(PARMETIS_parmetis.h_DIRS)
 
-# Print status if not found
-# -------------------------
-if (NOT PARMETIS_parmetis.h_DIRS AND NOT PARMETIS_FIND_QUIETLY)
-    Print_Find_Header_Status(parmetis parmetis.h)
-endif ()
 
 # If found, add path to cmake variable
 # ------------------------------------
@@ -162,9 +159,9 @@ if(PARMETIS_LIBDIR)
     set(PARMETIS_parmetis_LIBRARY "PARMETIS_parmetis_LIBRARY-NOTFOUND")
     find_library(PARMETIS_parmetis_LIBRARY
         NAMES parmetis
-        HINTS ${PARMETIS_LIBDIR})      
+        HINTS ${PARMETIS_LIBDIR})
 else()
-    if(PARMETIS_DIR)   
+    if(PARMETIS_DIR)
         set(PARMETIS_parmetis_LIBRARY "PARMETIS_parmetis_LIBRARY-NOTFOUND")
         find_library(PARMETIS_parmetis_LIBRARY
             NAMES parmetis
@@ -174,16 +171,10 @@ else()
         set(PARMETIS_parmetis_LIBRARY "PARMETIS_parmetis_LIBRARY-NOTFOUND")
         find_library(PARMETIS_parmetis_LIBRARY
             NAMES parmetis
-            HINTS ${_lib_env})        
+            HINTS ${_lib_env})
     endif()
 endif()
 mark_as_advanced(PARMETIS_parmetis_LIBRARY)
-
-# Print status if not found
-# -------------------------
-if (NOT PARMETIS_parmetis_LIBRARY AND NOT PARMETIS_FIND_QUIETLY)
-    Print_Find_Library_Status(parmetis libparmetis)
-endif ()
 
 # If found, add path to cmake variable
 # ------------------------------------
@@ -197,12 +188,45 @@ else ()
     set(PARMETIS_LIBRARY_DIRS "PARMETIS_LIBRARY_DIRS-NOTFOUND")
     if (NOT PARMETIS_FIND_QUIETLY)
         message(STATUS "Looking for parmetis -- lib parmetis not found")
-    endif
+    endif()
 endif ()
+
+if(PARMETIS_LIBRARIES)
+    # check a function to validate the find
+    if (PARMETIS_INCLUDE_DIRS)
+        set(CMAKE_REQUIRED_INCLUDES  "${PARMETIS_INCLUDE_DIRS}")
+    endif()
+    set(CMAKE_REQUIRED_LIBRARIES "${PARMETIS_LIBRARIES}")
+    if (PARMETIS_LIBRARY_DIRS)
+        set(CMAKE_REQUIRED_FLAGS "-L${PARMETIS_LIBRARY_DIRS}")
+    endif()
+
+    unset(PARMETIS_WORKS CACHE)
+    include(CheckFunctionExists)
+    check_function_exists(ParMETIS_V3_NodeND PARMETIS_WORKS)
+    mark_as_advanced(PARMETIS_WORKS)
+
+    if(PARMETIS_WORKS)
+        set(PARMETIS_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+    else()
+        if(NOT PARMETIS_FIND_QUIETLY)
+            message(STATUS "Looking for PARMETIS : test of ParMETIS_V3_NodeND with PARMETIS library fails")
+            message(STATUS "PARMETIS_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "PARMETIS_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
+            message(STATUS "PARMETIS_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
+            message(STATUS "Looking for PARMETIS : set PARMETIS_LIBRARIES to NOTFOUND")
+        endif()
+        set(PARMETIS_LIBRARIES "PARMETIS_LIBRARIES-NOTFOUND")
+    endif()
+    set(CMAKE_REQUIRED_INCLUDES)
+    set(CMAKE_REQUIRED_FLAGS)
+    set(CMAKE_REQUIRED_LIBRARIES)
+endif(PARMETIS_LIBRARIES)
 
 
 # check that PARMETIS has been found
-# ---------------------------------
+# ----------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PARMETIS DEFAULT_MSG
                                   PARMETIS_LIBRARIES

@@ -13,14 +13,14 @@
 #  find_package(TMG
 #               [REQUIRED]             # Fail with error if tmg is not found
 #               [COMPONENTS <libs>...] # required dependencies
-#              )  
-# This module finds headers and tmg library. 
+#              )
+# This module finds headers and tmg library.
 # Results are reported in variables:
 #  TMG_FOUND           - True if headers and requested libraries were found
 #  TMG_INCLUDE_DIRS    - tmg include directories
 #  TMG_LIBRARY_DIRS    - Link directories for tmg libraries
 #  TMG_LIBRARIES       - tmg component libraries to be linked
-# The user can give specific paths where to find the libraries adding cmake 
+# The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DTMG=path/to/tmg):
 #  TMG_DIR             - Where to find the base directory of tmg
 #  TMG_INCDIR          - Where to find the header files
@@ -44,23 +44,27 @@
 #  License text for the above reference.)
 
 
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
+if (NOT TMG_FOUND)
+    set(TMG_DIR "" CACHE PATH "Root directory of TMG library")
+    if (NOT TMG_FIND_QUIETLY)
+        message(STATUS "A cache variable, namely TMG_DIR, has been set to specify the install directory of TMG")
+    endif()
+endif()
+
 
 # used to test a TMG function after
 get_property(_LANGUAGES_ GLOBAL PROPERTY ENABLED_LANGUAGES)
 if (NOT _LANGUAGES_ MATCHES Fortran)
-include(CheckFunctionExists)
+    include(CheckFunctionExists)
 else (NOT _LANGUAGES_ MATCHES Fortran)
-include(CheckFortranFunctionExists)
+    include(CheckFortranFunctionExists)
 endif (NOT _LANGUAGES_ MATCHES Fortran)
 
 # TMG depends on LAPACK
 # try to find it specified as COMPONENTS during the call
 if (TMG_FIND_COMPONENTS)
     foreach( component ${TMG_FIND_COMPONENTS} )
-        if(${TMG_FIND_REQUIRED_${component}} STREQUAL 1)
+        if(TMG_FIND_REQUIRED_${component})
             find_package(${component} REQUIRED)
         else()
             find_package(${component})
@@ -73,20 +77,39 @@ if (TMG_FIND_COMPONENTS)
     endforeach()
 endif ()
 
+# TMG depends on LAPACK anyway, try to find it
+if (NOT LAPACK_FOUND)
+    if(TMG_FIND_REQUIRED)
+        find_package(LAPACK REQUIRED)
+    else()
+        find_package(LAPACK)
+    endif()
+endif()
+
 # TMG depends on LAPACK
 if (LAPACK_FOUND)
 
     # check if a tmg function exists in the LAPACK lib
-    set(CMAKE_REQUIRED_LIBRARIES "${LAPACK_LIBRARIES};${CMAKE_THREAD_LIBS_INIT};${LM}")
+    set(CMAKE_REQUIRED_LIBRARIES "${LAPACK_LIBRARIES}")
+    include(CheckFunctionExists)
+    include(CheckFortranFunctionExists)
     unset(TMG_WORKS CACHE)
-    check_function_exists(dlarnv TMG_WORKS)
+    if (NOT _LANGUAGES_ MATCHES Fortran)
+        check_function_exists(dlarnv TMG_WORKS)
+    else (NOT _LANGUAGES_ MATCHES Fortran)
+        check_fortran_function_exists(dlarnv TMG_WORKS)
+    endif (NOT _LANGUAGES_ MATCHES Fortran)
     if (TMG_WORKS)
         unset(TMG_WORKS CACHE)
-        check_function_exists(dlagsy TMG_WORKS)    
+        if (NOT _LANGUAGES_ MATCHES Fortran)
+            check_function_exists(dlagsy TMG_WORKS)
+        else (NOT _LANGUAGES_ MATCHES Fortran)
+            check_fortran_function_exists(dlagsy TMG_WORKS)
+        endif (NOT _LANGUAGES_ MATCHES Fortran)
         mark_as_advanced(TMG_WORKS)
-        set(CMAKE_REQUIRED_LIBRARIES)
     endif()
-    
+    set(CMAKE_REQUIRED_LIBRARIES)
+
     if(TMG_WORKS)
         if(NOT TMG_FIND_QUIETLY)
             message(STATUS "Looking for tmg: test with lapack succeeds")
@@ -97,13 +120,13 @@ if (LAPACK_FOUND)
         if(LAPACK_INCLUDE_DIRS)
             set(TMG_INCLUDE_DIRS "${LAPACK_INCLUDE_DIRS}")
         endif()
-    else()    
+    else()
 
         if(NOT TMG_FIND_QUIETLY)
             message(STATUS "Looking for tmg : test with lapack fails")
             message(STATUS "Looking for tmg : try to find it elsewhere")
         endif()
-        # test fails: try to find TMG lib exterior to LAPACK  
+        # test fails: try to find TMG lib exterior to LAPACK
 
         # Looking for lib tmg
         # -------------------
@@ -167,6 +190,61 @@ if (LAPACK_FOUND)
         if (TMG_LIBRARY_DIRS)
             list(REMOVE_DUPLICATES TMG_LIBRARY_DIRS)
         endif ()
+
+        # check a function to validate the find
+        if (TMG_INCLUDE_DIRS)
+            set(CMAKE_REQUIRED_INCLUDES  "${TMG_INCLUDE_DIRS}")
+        endif()
+        if (LAPACK_INCLUDE_DIRS)
+            list(APPEND CMAKE_REQUIRED_INCLUDES "${LAPACK_INCLUDE_DIRS}")
+        endif()
+        set(CMAKE_REQUIRED_LIBRARIES "${TMG_LIBRARIES};${LAPACK_LIBRARIES}")
+        if (TMG_LIBRARY_DIRS)
+            set(CMAKE_REQUIRED_FLAGS "-L${TMG_LIBRARY_DIRS}")
+        endif()
+        if (LAPACK_LIBRARY_DIRS)
+            set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${LAPACK_LIBRARY_DIRS}")
+        endif()
+
+        if(TMG_LIBRARIES)
+            unset(TMG_WORKS CACHE)
+            include(CheckFunctionExists)
+            include(CheckFortranFunctionExists)
+            if (NOT _LANGUAGES_ MATCHES Fortran)
+                check_function_exists(dlarnv TMG_WORKS)
+            else (NOT _LANGUAGES_ MATCHES Fortran)
+                check_fortran_function_exists(dlarnv TMG_WORKS)
+            endif (NOT _LANGUAGES_ MATCHES Fortran)
+            if (TMG_WORKS)
+                unset(TMG_WORKS CACHE)
+                if (NOT _LANGUAGES_ MATCHES Fortran)
+                    check_function_exists(dlagsy TMG_WORKS)
+                else (NOT _LANGUAGES_ MATCHES Fortran)
+                    check_fortran_function_exists(dlagsy TMG_WORKS)
+                endif (NOT _LANGUAGES_ MATCHES Fortran)
+                mark_as_advanced(TMG_WORKS)
+            endif()
+
+            if(TMG_WORKS)
+                set(TMG_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES})
+                set(TMG_LIBRARY_DIRS "${TMG_LIBRARY_DIRS}" "${LAPACK_LIBRARY_DIRS}")
+                set(TMG_INCLUDE_DIRS ${CMAKE_REQUIRED_INCLUDES})
+            else()
+                if(NOT TMG_FIND_QUIETLY)
+                    message(STATUS "Looking for tmg: test of dlarnv and dlagsy with tmg and lapack libraries fails")
+                    message(STATUS "TMG_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+                    message(STATUS "TMG_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
+                    message(STATUS "TMG_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+                    message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
+                    message(STATUS "Looking for tmg : set TMG_LIBRARIES to NOTFOUND")
+                endif()
+                set(TMG_LIBRARIES "TMG_LIBRARIES-NOTFOUND")
+            endif()
+            set(CMAKE_REQUIRED_INCLUDES)
+            set(CMAKE_REQUIRED_FLAGS)
+            set(CMAKE_REQUIRED_LIBRARIES)
+        endif(TMG_LIBRARIES)
+
     endif()
 
 else()
@@ -175,7 +253,7 @@ else()
         message(STATUS "TMG requires LAPACK but LAPACK has not been found."
             "Please look for LAPACK first.")
     endif()
-    
+
 endif()
 
 
@@ -183,8 +261,4 @@ endif()
 # -------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(TMG DEFAULT_MSG
-                                  TMG_LIBRARIES
-                                  TMG_LIBRARY_DIRS)
-#
-# TODO: Add possibility to check for specific functions in the library
-#
+                                  TMG_LIBRARIES)

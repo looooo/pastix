@@ -13,14 +13,14 @@
 #  find_package(QUARK
 #               [REQUIRED]             # Fail with error if quark is not found
 #               [COMPONENTS <libs>...] # required dependencies
-#              )  
-# This module finds headers and quark library. 
+#              )
+# This module finds headers and quark library.
 # Results are reported in variables:
 #  QUARK_FOUND           - True if headers and requested libraries were found
 #  QUARK_INCLUDE_DIRS    - quark include directories
 #  QUARK_LIBRARY_DIRS    - Link directories for quark libraries
 #  QUARK_LIBRARIES       - quark component libraries to be linked
-# The user can give specific paths where to find the libraries adding cmake 
+# The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DQUARK=path/to/quark):
 #  QUARK_DIR             - Where to find the base directory of quark
 #  QUARK_INCDIR          - Where to find the header files
@@ -44,15 +44,18 @@
 #  License text for the above reference.)
 
 
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
+if (NOT QUARK_FOUND)
+    set(QUARK_DIR "" CACHE PATH "Root directory of QUARK library")
+    if (NOT QUARK_FIND_QUIETLY)
+        message(STATUS "A cache variable, namely QUARK_DIR, has been set to specify the install directory of QUARK")
+    endif()
+endif()
 
 # QUARK may depend on HWLOC
 # try to find it specified as COMPONENTS during the call
 if( QUARK_FIND_COMPONENTS )
     foreach( component ${QUARK_FIND_COMPONENTS} )
-        if(${QUARK_FIND_REQUIRED_${component}} STREQUAL 1)
+        if(QUARK_FIND_REQUIRED_${component})
             find_package(${component} REQUIRED)
         else()
             find_package(${component})
@@ -63,6 +66,16 @@ if( QUARK_FIND_COMPONENTS )
             set(QUARK_${component}_FOUND FALSE)
         endif()
     endforeach()
+endif()
+
+# QUARK may depend on Threads, try to find it
+if (NOT Threads_FOUND)
+    find_package(Threads REQUIRED)
+endif()
+
+# QUARK may depend on HWLOC, try to find it
+if (NOT HWLOC_FOUND)
+    find_package(HWLOC)
 endif()
 
 # Looking for include
@@ -111,12 +124,6 @@ else()
     endif()
 endif()
 mark_as_advanced(QUARK_quark.h_DIRS)
-
-# Print status if not found
-# -------------------------
-if (NOT QUARK_quark.h_DIRS AND NOT QUARK_FIND_QUIETLY)
-    Print_Find_Header_Status(quark quark.h)
-endif ()
 
 # If found, add path to cmake variable
 # ------------------------------------
@@ -174,12 +181,6 @@ else()
 endif()
 mark_as_advanced(QUARK_quark_LIBRARY)
 
-# Print status if not found
-# -------------------------
-if (NOT QUARK_quark_LIBRARY AND NOT QUARK_FIND_QUIETLY)
-    Print_Find_Library_Status(quark libquark)
-endif ()
-
 # If found, add path to cmake variable
 # ------------------------------------
 if (QUARK_quark_LIBRARY)
@@ -195,6 +196,48 @@ else ()
     endif()
 endif ()
 
+if(QUARK_LIBRARIES)
+    # check a function to validate the find
+    if (QUARK_INCLUDE_DIRS)
+        set(CMAKE_REQUIRED_INCLUDES  "${QUARK_INCLUDE_DIRS}")
+    endif()
+    set(CMAKE_REQUIRED_LIBRARIES "${QUARK_LIBRARIES};${CMAKE_THREAD_LIBS_INIT}")
+    if (QUARK_LIBRARY_DIRS)
+        set(CMAKE_REQUIRED_FLAGS "-L${QUARK_LIBRARY_DIRS}")
+    endif()
+    if (HWLOC_FOUND)
+        if (HWLOC_INCLUDE_DIRS)
+            list(APPEND CMAKE_REQUIRED_INCLUDES "${HWLOC_INCLUDE_DIRS}")
+        endif()
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "${HWLOC_LIBRARIES}")
+        if (HWLOC_LIBRARY_DIRS)
+            set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${HWLOC_LIBRARY_DIRS}")
+        endif()
+    endif()
+
+    unset(QUARK_WORKS CACHE)
+    include(CheckFunctionExists)
+    check_function_exists(QUARK_New QUARK_WORKS)
+    mark_as_advanced(QUARK_WORKS)
+
+    if(QUARK_WORKS)
+        set(QUARK_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+    else()
+        if(NOT QUARK_FIND_QUIETLY)
+            message(STATUS "Looking for QUARK : test of QUARK_New with QUARK library fails")
+            message(STATUS "QUARK_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "QUARK_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
+            message(STATUS "QUARK_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
+            message(STATUS "Looking for QUARK : set QUARK_LIBRARIES to NOTFOUND")
+        endif()
+        set(QUARK_LIBRARIES "QUARK_LIBRARIES-NOTFOUND")
+    endif()
+    set(CMAKE_REQUIRED_INCLUDES)
+    set(CMAKE_REQUIRED_FLAGS)
+    set(CMAKE_REQUIRED_LIBRARIES)
+endif(QUARK_LIBRARIES)
+
 
 # check that QUARK has been found
 # ---------------------------------
@@ -203,6 +246,3 @@ find_package_handle_standard_args(QUARK DEFAULT_MSG
                                   QUARK_LIBRARIES
                                   QUARK_INCLUDE_DIRS
                                   QUARK_LIBRARY_DIRS)
-#
-# TODO: Add possibility to check for specific functions in the library
-#
