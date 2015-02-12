@@ -11,14 +11,14 @@
 # - Find LAPACK EXTENDED for MORSE projects: find include dirs and libraries
 #
 # This module allows to find LAPACK libraries by calling the official FindLAPACK module
-# and handles the creation of different library lists whether the user wishes to link 
+# and handles the creation of different library lists whether the user wishes to link
 # with a sequential LAPACK or a multihreaded (LAPACK_SEQ_LIBRARIES and LAPACK_PAR_LIBRARIES).
 # LAPACK is detected with a FindLAPACK call then if the LAPACK vendor is in the following list,
 # Intel mkl, Goto, Openlapack, ACML, IBMESSL
 # then the module tries find the corresponding multithreaded libraries
-# LAPACK_LIBRARIES does not exists anymore. 
+# LAPACK_LIBRARIES does not exists anymore.
 #
-# The following variables have been added to manage links with sequential or multithreaded 
+# The following variables have been added to manage links with sequential or multithreaded
 # versions:
 #  LAPACK_INCLUDE_DIRS  - LAPACK include directories
 #  LAPACK_LIBRARY_DIRS  - Link directories for LAPACK libraries
@@ -43,10 +43,6 @@
 #  License text for the above reference.)
 
 
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
-
 # LAPACKEXT depends on BLASEXT
 # call our extended module for BLAS
 #----------------------------------
@@ -64,7 +60,7 @@ if(BLA_VENDOR MATCHES "Intel*")
     ###
     # look for include path if the LAPACK vendor is Intel
     ###
-    
+
     # gather system include paths
     unset(_inc_env)
     if(WIN32)
@@ -82,13 +78,13 @@ if(BLA_VENDOR MATCHES "Intel*")
     list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
     list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
     list(REMOVE_DUPLICATES _inc_env)
-    
+
     if (BLAS_DIR)
         set(LAPACK_DIR ${BLAS_DIR})
     endif ()
     if (BLAS_INCDIR)
         set(LAPACK_INCDIR ${BLAS_INCDIR})
-    endif ()    
+    endif ()
     # find mkl.h inside known include paths
     set(LAPACK_mkl_lapack.h_INCLUDE_DIRS "LAPACK_mkl_lapack.h_INCLUDE_DIRS-NOTFOUND")
     if(LAPACK_INCDIR)
@@ -106,50 +102,50 @@ if(BLA_VENDOR MATCHES "Intel*")
                     NAMES mkl_lapack.h
                     HINTS ${_inc_env})
         endif()
-    endif()  
+    endif()
     mark_as_advanced(LAPACK_mkl_lapack.h_INCLUDE_DIRS)
-    # Print status if not found
-    # -------------------------
-    if (NOT LAPACK_mkl_lapack.h_INCLUDE_DIRS)
-        Print_Find_Header_Status(lapack mkl_lapack.h)
-    endif ()    
+    ## Print status if not found
+    ## -------------------------
+    #if (NOT LAPACK_mkl_lapack.h_INCLUDE_DIRS)
+    #    Print_Find_Header_Status(lapack mkl_lapack.h)
+    #endif ()
     set(LAPACK_INCLUDE_DIRS "")
     if(LAPACK_mkl_lapack.h_INCLUDE_DIRS)
         list(APPEND LAPACK_INCLUDE_DIRS "${LAPACK_mkl_lapack.h_INCLUDE_DIRS}" )
     endif()
-    
+
     ###
     # look for libs
     ###
-    
+
     if (BLA_VENDOR MATCHES "Intel10_64lp*")
         ## look for the sequential version
         set(BLA_VENDOR "Intel10_64lp_seq")
     endif()
-    
+
     if(LAPACKEXT_FIND_REQUIRED)
         find_package(LAPACK REQUIRED)
     else()
         find_package(LAPACK)
     endif()
-    
+
     if (LAPACK_FOUND)
         if(BLAS_SEQ_LIBRARIES)
             set(LAPACK_SEQ_LIBRARIES "${BLAS_SEQ_LIBRARIES}")
         else()
             set(LAPACK_SEQ_LIBRARIES "${LAPACK_SEQ_LIBRARIES-NOTFOUND}")
-        endif()     
+        endif()
         # if BLAS Intel 10 64 bit -> save sequential and multithreaded versions
         if(BLA_VENDOR MATCHES "Intel10_64lp*")
             if(BLAS_PAR_LIBRARIES)
                 set(LAPACK_PAR_LIBRARIES "${BLAS_PAR_LIBRARIES}")
             else()
                 set(LAPACK_PAR_LIBRARIES "${LAPACK_PAR_LIBRARIES-NOTFOUND}")
-            endif()         
-        endif()  
+            endif()
+        endif()
     endif()
-    
-elseif(BLA_VENDOR MATCHES "ACML*") 
+
+elseif(BLA_VENDOR MATCHES "ACML*")
 
     ###
     # look for libs
@@ -165,14 +161,14 @@ elseif(BLA_VENDOR MATCHES "ACML*")
             set(LAPACK_SEQ_LIBRARIES "${BLAS_SEQ_LIBRARIES}")
         else()
             set(LAPACK_SEQ_LIBRARIES "${LAPACK_SEQ_LIBRARIES-NOTFOUND}")
-        endif()    
+        endif()
         if(BLAS_PAR_LIBRARIES)
             set(LAPACK_PAR_LIBRARIES "${BLAS_PAR_LIBRARIES}")
         else()
             set(LAPACK_PAR_LIBRARIES "${LAPACK_PAR_LIBRARIES-NOTFOUND}")
-        endif()  
-    endif()   
-    
+        endif()
+    endif()
+
 else()
 
     ## look for a sequential version
@@ -198,12 +194,12 @@ else()
     else()
         find_package(LAPACK)
     endif()
-    
+
     if(LAPACK_FOUND)
         set(LAPACK_SEQ_LIBRARIES "${LAPACK_LIBRARIES}")
     else()
         set(LAPACK_SEQ_LIBRARIES "${LAPACK_SEQ_LIBRARIES-NOTFOUND}")
-    endif()    
+    endif()
     set(BLAS_PAR_LIBRARIES "${BLAS_PAR_LIBRARIES-NOTFOUND}")
 
 endif()
@@ -257,7 +253,7 @@ if(BLA_VENDOR MATCHES "Intel*")
             find_package_handle_standard_args(LAPACK DEFAULT_MSG
                                               LAPACK_PAR_LIBRARIES)
         endif()
-                          
+
     else()
         if(NOT LAPACKEXT_FIND_QUIETLY)
             message(STATUS "LAPACK sequential libraries stored in"
@@ -266,7 +262,7 @@ if(BLA_VENDOR MATCHES "Intel*")
         find_package_handle_standard_args(LAPACK DEFAULT_MSG
                                           LAPACK_SEQ_LIBRARIES
                                           LAPACK_LIBRARY_DIRS
-                                          LAPACK_INCLUDE_DIRS)    
+                                          LAPACK_INCLUDE_DIRS)
     endif()
 elseif(BLA_VENDOR MATCHES "ACML*")
     if(NOT LAPACKEXT_FIND_QUIETLY)

@@ -264,6 +264,25 @@ endif (PASTIX_WITH_STARPU)
 
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------
+if (PASTIX_ORDERING_PTSCOTCH)
+  find_package(PTSCOTCH)
+  if (PTSCOTCH_FOUND)
+    include_directories( ${PTSCOTCH_INCLUDE_DIRS} )
+    link_directories( ${PTSCOTCH_LIBRARY_DIRS} )
+    list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES} )
+  else (PTSCOTCH_FOUND)
+    message(ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
+  endif (PTSCOTCH_FOUND)
+
+  # Check coherency for integer size
+  if(PASTIX_INT64 AND NOT PTSCOTCH_Num_8)
+    message(ERROR "PASTIX_INT64 is enabled and provided PT-Scotch is not compiled with int64 support.")
+  endif()
+  if(NOT PASTIX_INT64 AND NOT PTSCOTCH_Num_4)
+    message(ERROR "PASTIX_INT64 is disabled and provided PT-Scotch is not compiled with int32 support.")
+  endif()
+endif()
+
 if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH)
   if (SCOTCH_FOUND)
@@ -274,17 +293,14 @@ if (PASTIX_ORDERING_SCOTCH)
   else()
     message(ERROR "Scotch is required but was not found. Please provide a Scotch library in your environment or configure with -DPASTIX_ORDERING_SCOTCH=OFF")
   endif()
-endif()
 
-if (PASTIX_ORDERING_PTSCOTCH)
-  find_package(PTSCOTCH)
-  if (PTSCOTCH_FOUND)
-    include_directories( ${PTSCOTCH_INCLUDE_DIRS} )
-    link_directories( ${PTSCOTCH_LIBRARY_DIRS} )
-    list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES} )
-  else (PTSCOTCH_FOUND)
-    message(ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
-  endif (PTSCOTCH_FOUND)
+  # Check coherency for integer size
+  if(PASTIX_INT64 AND NOT SCOTCH_Num_8)
+    message(ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support.")
+  endif()
+  if(NOT PASTIX_INT64 AND NOT SCOTCH_Num_4)
+    message(ERROR "PASTIX_INT64 is disabled and provided Scotch is not compiled with int32 support.")
+  endif()
 endif()
 
 
@@ -627,6 +643,18 @@ install(TARGETS pastix
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
+
+# Install header files
+set(PASTIX_HDRS
+  include/pastix/api.h
+  include/pastix/old_api.h
+  include/pastix/datatypes.h
+  include/pastix/nompi.h
+  include/pastix/retro.h
+)
+install(FILES include/pastix.h DESTINATION include )
+install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
+
 
 add_subdirectory(example)
 

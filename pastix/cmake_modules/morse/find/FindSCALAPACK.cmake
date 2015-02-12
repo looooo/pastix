@@ -8,36 +8,33 @@
 #
 ###
 #
-# - Find LAPACK library
-# This module finds an installed fortran library that implements the LAPACK
-# linear-algebra interface (see http://www.netlib.org/lapack/).
-#
-# The approach follows that taken for the autoconf macro file, acx_lapack.m4
-# (distributed at http://ac-archive.sourceforge.net/ac-archive/acx_lapack.html).
+# - Find SCALAPACK library
+# This module finds an installed fortran library that implements the SCALAPACK
+# linear-algebra interface.
 #
 # This module sets the following variables:
-#  LAPACK_FOUND - set to true if a library implementing the LAPACK interface
+#  SCALAPACK_FOUND - set to true if a library implementing the SCALAPACK interface
 #    is found
-#  LAPACK_LINKER_FLAGS - uncached list of required linker flags (excluding -l
+#  SCALAPACK_LINKER_FLAGS - uncached list of required linker flags (excluding -l
 #    and -L).
-#  LAPACK_LIBRARIES - uncached list of libraries (using full path name) to
-#    link against to use LAPACK
-#  LAPACK95_LIBRARIES - uncached list of libraries (using full path name) to
-#    link against to use LAPACK95
-#  LAPACK95_FOUND - set to true if a library implementing the LAPACK f95
+#  SCALAPACK_LIBRARIES - uncached list of libraries (using full path name) to
+#    link against to use SCALAPACK
+#  SCALAPACK95_LIBRARIES - uncached list of libraries (using full path name) to
+#    link against to use SCALAPACK95
+#  SCALAPACK95_FOUND - set to true if a library implementing the SCALAPACK f95
 #    interface is found
 #  BLA_STATIC  if set on this determines what kind of linkage we do (static)
 #  BLA_VENDOR  if set checks only the specified vendor, if not set checks
 #     all the possibilities
-#  BLA_F95     if set on tries to find the f95 interfaces for BLAS/LAPACK
+#  BLA_F95     if set on tries to find the f95 interfaces for BLAS/SCALAPACK
 # The user can give specific paths where to find the libraries adding cmake
-# options at configure (ex: cmake path/to/project -DLAPACK_DIR=path/to/lapack):
-#  LAPACK_DIR            - Where to find the base directory of lapack
-#  LAPACK_INCDIR         - Where to find the header files
-#  LAPACK_LIBDIR         - Where to find the library files
-# Note that if BLAS_DIR is set, it will also look for lapack in it
+# options at configure (ex: cmake path/to/project -DSCALAPACK_DIR=path/to/scalapack):
+#  SCALAPACK_DIR            - Where to find the base directory of scalapack
+#  SCALAPACK_INCDIR         - Where to find the header files
+#  SCALAPACK_LIBDIR         - Where to find the library files
+# Note that if BLAS_DIR is set, it will also look for scalapack in it
 ### List of vendors (BLA_VENDOR) valid in this module
-##  Intel(mkl), ACML,Apple, NAS, Generic
+##  Intel(mkl), ACML, Apple, NAS, Generic
 
 #=============================================================================
 # Copyright 2007-2009 Kitware, Inc.
@@ -113,19 +110,19 @@ macro(Print_Find_Library_Blas_Status _libname _lib_to_find)
 
 endmacro()
 
-if (NOT LAPACK_FOUND)
-    set(LAPACK_DIR "" CACHE PATH "Root directory of LAPACK library")
-    if (NOT LAPACK_FIND_QUIETLY)
-        message(STATUS "A cache variable, namely LAPACK_DIR, has been set to specify the install directory of LAPACK")
+if (NOT SCALAPACK_FOUND)
+    set(SCALAPACK_DIR "" CACHE PATH "Root directory of SCALAPACK library")
+    if (NOT SCALAPACK_FIND_QUIETLY)
+        message(STATUS "A cache variable, namely SCALAPACK_DIR, has been set to specify the install directory of SCALAPACK")
     endif()
-endif (NOT LAPACK_FOUND)
+endif (NOT SCALAPACK_FOUND)
 
-option(LAPACK_VERBOSE "Print some additional information during LAPACK
+option(SCALAPACK_VERBOSE "Print some additional information during SCALAPACK
 libraries detection" OFF)
 if (BLAS_VERBOSE)
-    set(LAPACK_VERBOSE ON)
+    set(SCALAPACK_VERBOSE ON)
 endif ()
-set(_lapack_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+set(_scalapack_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 get_property(_LANGUAGES_ GLOBAL PROPERTY ENABLED_LANGUAGES)
 if (NOT _LANGUAGES_ MATCHES Fortran)
@@ -134,12 +131,12 @@ else (NOT _LANGUAGES_ MATCHES Fortran)
 include(CheckFortranFunctionExists)
 endif (NOT _LANGUAGES_ MATCHES Fortran)
 
-set(LAPACK_FOUND FALSE)
-set(LAPACK95_FOUND FALSE)
+set(SCALAPACK_FOUND FALSE)
+set(SCALAPACK95_FOUND FALSE)
 
 # TODO: move this stuff to separate module
 
-macro(Check_Lapack_Libraries LIBRARIES _prefix _name _flags _list _blas _threads)
+macro(Check_Scalapack_Libraries LIBRARIES _prefix _name _flags _list _blaslapack _mpi _threads)
 # This macro checks for the existence of the combination of fortran libraries
 # given by _list.  If the combination is found, this macro checks (using the
 # Check_Fortran_Function_Exists macro) whether can link against that library
@@ -169,19 +166,19 @@ if (NOT _libdir)
   if (BLAS_LIBDIR)
     list(APPEND _libdir "${BLAS_LIBDIR}")
   endif ()
-  if (LAPACK_DIR)
-    list(APPEND _libdir "${LAPACK_DIR}")
-    list(APPEND _libdir "${LAPACK_DIR}/lib")
+  if (SCALAPACK_DIR)
+    list(APPEND _libdir "${SCALAPACK_DIR}")
+    list(APPEND _libdir "${SCALAPACK_DIR}/lib")
     if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-        list(APPEND _libdir "${LAPACK_DIR}/lib64")
-        list(APPEND _libdir "${LAPACK_DIR}/lib/intel64")
+        list(APPEND _libdir "${SCALAPACK_DIR}/lib64")
+        list(APPEND _libdir "${SCALAPACK_DIR}/lib/intel64")
     else()
-        list(APPEND _libdir "${LAPACK_DIR}/lib32")
-        list(APPEND _libdir "${LAPACK_DIR}/lib/ia32")
+        list(APPEND _libdir "${SCALAPACK_DIR}/lib32")
+        list(APPEND _libdir "${SCALAPACK_DIR}/lib/ia32")
     endif()
   endif ()
-  if (LAPACK_LIBDIR)
-    list(APPEND _libdir "${LAPACK_LIBDIR}")
+  if (SCALAPACK_LIBDIR)
+    list(APPEND _libdir "${SCALAPACK_LIBDIR}")
   endif ()
   if (WIN32)
     string(REPLACE ":" ";" _libdir2 "$ENV{LIB}")
@@ -195,8 +192,8 @@ if (NOT _libdir)
   list(APPEND _libdir "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif ()
 
-if (LAPACK_VERBOSE)
-    message("${Cyan}Try to find LAPACK libraries: ${_list}")
+if (SCALAPACK_VERBOSE)
+    message("${Cyan}Try to find SCALAPACK libraries: ${_list}")
 endif ()
 
 foreach(_library ${_list})
@@ -214,7 +211,7 @@ foreach(_library ${_list})
       endif (APPLE)
     else (BLA_STATIC)
                         if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        # for ubuntu's libblas3gf and liblapack3gf packages
+        # for ubuntu's libblas3gf and libscalapack3gf packages
         set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES} .so.3gf)
       endif ()
     endif (BLA_STATIC)
@@ -225,8 +222,8 @@ foreach(_library ${_list})
     mark_as_advanced(${_prefix}_${_library}_LIBRARY)
     # Print status if not found
     # -------------------------
-    if (NOT ${_prefix}_${_library}_LIBRARY AND NOT LAPACK_FIND_QUIETLY AND LAPACK_VERBOSE)
-        Print_Find_Library_Blas_Status(lapack ${_library} ${_libdir})
+    if (NOT ${_prefix}_${_library}_LIBRARY AND NOT SCALAPACK_FIND_QUIETLY AND SCALAPACK_VERBOSE)
+        Print_Find_Library_Blas_Status(scalapack ${_library} ${_libdir})
     endif ()
     set(${LIBRARIES} ${${LIBRARIES}} ${${_prefix}_${_library}_LIBRARY})
     set(_libraries_work ${${_prefix}_${_library}_LIBRARY})
@@ -236,15 +233,15 @@ endforeach(_library ${_list})
 if(_libraries_work)
   # Test this combination of libraries.
   if(UNIX AND BLA_STATIC)
-    set(CMAKE_REQUIRED_LIBRARIES ${_flags} "-Wl,--start-group" ${${LIBRARIES}} ${_blas} "-Wl,--end-group" ${_threads})
+    set(CMAKE_REQUIRED_LIBRARIES ${_flags} "-Wl,--start-group" ${${LIBRARIES}} ${_blaslapack} "-Wl,--end-group" ${_mpi} ${_threads})
   else(UNIX AND BLA_STATIC)
-    set(CMAKE_REQUIRED_LIBRARIES ${_flags} ${${LIBRARIES}} ${_blas} ${_threads})
+    set(CMAKE_REQUIRED_LIBRARIES ${_flags} ${${LIBRARIES}} ${_blaslapack} ${_mpi} ${_threads})
   endif(UNIX AND BLA_STATIC)
-  if (LAPACK_VERBOSE)
-      message("${Cyan}LAPACK libs found. Try to compile symbol ${_name} with"
+  if (SCALAPACK_VERBOSE)
+      message("${Cyan}SCALAPACK libs found. Try to compile symbol ${_name} with"
               "following libraries: ${CMAKE_REQUIRED_LIBRARIES}")
   endif ()
-  if(NOT LAPACK_FOUND)
+  if(NOT SCALAPACK_FOUND)
     unset(${_prefix}${_combined_name}_WORKS CACHE)
   endif()
   if (NOT _LANGUAGES_ MATCHES Fortran)
@@ -258,28 +255,45 @@ if(_libraries_work)
 endif(_libraries_work)
 
  if(_libraries_work)
-   set(${LIBRARIES} ${${LIBRARIES}} ${_blas} ${_threads})
+   set(${LIBRARIES} ${${LIBRARIES}} ${_blaslapack} ${_mpi} ${_threads})
  else(_libraries_work)
     set(${LIBRARIES} FALSE)
  endif(_libraries_work)
 
-endmacro(Check_Lapack_Libraries)
+endmacro(Check_Scalapack_Libraries)
 
 
-set(LAPACK_LINKER_FLAGS)
-set(LAPACK_LIBRARIES)
-set(LAPACK95_LIBRARIES)
+set(SCALAPACK_LINKER_FLAGS)
+set(SCALAPACK_LIBRARIES)
+set(SCALAPACK95_LIBRARIES)
 
 if (NOT BLAS_FOUND)
-    if(LAPACK_FIND_QUIETLY OR NOT LAPACK_FIND_REQUIRED)
-    find_package(BLAS)
-    else(LAPACK_FIND_QUIETLY OR NOT LAPACK_FIND_REQUIRED)
-    find_package(BLAS REQUIRED)
-    endif(LAPACK_FIND_QUIETLY OR NOT LAPACK_FIND_REQUIRED)
+    if(SCALAPACK_FIND_QUIETLY OR NOT SCALAPACK_FIND_REQUIRED)
+        find_package(BLAS)
+    else()
+        find_package(BLAS REQUIRED)
+    endif()
 endif ()
 
-if(BLAS_FOUND)
-  set(LAPACK_LINKER_FLAGS ${BLAS_LINKER_FLAGS})
+if (NOT LAPACK_FOUND)
+    if(SCALAPACK_FIND_QUIETLY OR NOT SCALAPACK_FIND_REQUIRED)
+        find_package(LAPACK)
+    else()
+        find_package(LAPACK REQUIRED)
+    endif()
+endif ()
+
+if (NOT MPI_FOUND)
+    if(SCALAPACK_FIND_QUIETLY OR NOT SCALAPACK_FIND_REQUIRED)
+        find_package(MPI)
+    else()
+        find_package(MPI REQUIRED)
+    endif()
+endif ()
+
+if(BLAS_FOUND AND LAPACK_FOUND AND MPI_FOUND)
+  set(SCALAPACK_LINKER_FLAGS ${BLAS_LINKER_FLAGS})
+  list(APPEND SCALAPACK_LINKER_FLAGS ${LAPACK_LINKER_FLAGS})
   if ($ENV{BLA_VENDOR} MATCHES ".+")
     set(BLA_VENDOR $ENV{BLA_VENDOR})
   else ($ENV{BLA_VENDOR} MATCHES ".+")
@@ -288,210 +302,149 @@ if(BLAS_FOUND)
     endif(NOT BLA_VENDOR)
   endif ($ENV{BLA_VENDOR} MATCHES ".+")
 
-if (BLA_VENDOR STREQUAL "Goto" OR BLA_VENDOR STREQUAL "All")
- if(NOT LAPACK_LIBRARIES)
-  check_lapack_libraries(
-  LAPACK_LIBRARIES
-  LAPACK
-  cheev
-  ""
-  "goto2"
-  "${BLAS_LIBRARIES}"
-  ""
-  )
- endif(NOT LAPACK_LIBRARIES)
-endif (BLA_VENDOR STREQUAL "Goto" OR BLA_VENDOR STREQUAL "All")
-
-
-#acml lapack
- if (BLA_VENDOR MATCHES "ACML.*" OR BLA_VENDOR STREQUAL "All")
-   if (BLAS_LIBRARIES MATCHES ".+acml.+")
-     set (LAPACK_LIBRARIES ${BLAS_LIBRARIES})
-   endif ()
- endif ()
-
-# Apple LAPACK library?
-if (BLA_VENDOR STREQUAL "Apple" OR BLA_VENDOR STREQUAL "All")
- if(NOT LAPACK_LIBRARIES)
-  check_lapack_libraries(
-  LAPACK_LIBRARIES
-  LAPACK
-  cheev
-  ""
-  "Accelerate"
-  "${BLAS_LIBRARIES}"
-  ""
-  )
- endif(NOT LAPACK_LIBRARIES)
-endif (BLA_VENDOR STREQUAL "Apple" OR BLA_VENDOR STREQUAL "All")
-if (BLA_VENDOR STREQUAL "NAS" OR BLA_VENDOR STREQUAL "All")
-  if ( NOT LAPACK_LIBRARIES )
-    check_lapack_libraries(
-    LAPACK_LIBRARIES
-    LAPACK
-    cheev
-    ""
-    "vecLib"
-    "${BLAS_LIBRARIES}"
-    ""
-    )
-  endif ( NOT LAPACK_LIBRARIES )
-endif (BLA_VENDOR STREQUAL "NAS" OR BLA_VENDOR STREQUAL "All")
-# Generic LAPACK library?
+# Generic SCALAPACK library
 if (BLA_VENDOR STREQUAL "Generic" OR
-    BLA_VENDOR STREQUAL "ATLAS" OR
     BLA_VENDOR STREQUAL "All")
-  if ( NOT LAPACK_LIBRARIES )
-    check_lapack_libraries(
-    LAPACK_LIBRARIES
-    LAPACK
-    cheev
+  if ( NOT SCALAPACK_LIBRARIES )
+    check_scalapack_libraries(
+    SCALAPACK_LIBRARIES
+    SCALAPACK
+    pdgemm
     ""
-    "lapack"
-    "${BLAS_LIBRARIES}"
-    ""
+    "scalapack" # scalapack lib to look for
+    "${LAPACK_LIBRARIES};${BLAS_LIBRARIES}" # blas and lapack libs
+    "${MPI_Fortran_LIBRARIES}" # mpi libs
+    ""          # threads libs
     )
-  endif ( NOT LAPACK_LIBRARIES )
+  endif ( NOT SCALAPACK_LIBRARIES )
 endif ()
-#intel lapack
-if (BLA_VENDOR MATCHES "Intel" OR BLA_VENDOR STREQUAL "All")
-  if (NOT WIN32)
-    set(LM "-lm")
-  endif ()
-  if (_LANGUAGES_ MATCHES C OR _LANGUAGES_ MATCHES CXX)
-    if(LAPACK_FIND_QUIETLY OR NOT LAPACK_FIND_REQUIRED)
-      find_PACKAGE(Threads)
-    else()
-      find_package(Threads REQUIRED)
-    endif()
-
-    set(LAPACK_SEARCH_LIBS "")
-
-    if (BLA_F95)
-      set(LAPACK_mkl_SEARCH_SYMBOL "CHEEV")
-      set(_LIBRARIES LAPACK95_LIBRARIES)
-      set(_BLAS_LIBRARIES ${BLAS95_LIBRARIES})
-
-      # old
-      list(APPEND LAPACK_SEARCH_LIBS
-        "mkl_lapack95")
-      # new >= 10.3
-      list(APPEND LAPACK_SEARCH_LIBS
-        "mkl_intel_c")
-      list(APPEND LAPACK_SEARCH_LIBS
-        "mkl_intel_lp64")
-    else()
-      set(LAPACK_mkl_SEARCH_SYMBOL "cheev")
-      set(_LIBRARIES LAPACK_LIBRARIES)
-      set(_BLAS_LIBRARIES ${BLAS_LIBRARIES})
-
-      # old
-      list(APPEND LAPACK_SEARCH_LIBS
-        "mkl_lapack")
-      # new >= 10.3
-      list(APPEND LAPACK_SEARCH_LIBS
-        "mkl_gf_lp64")
-    endif()
-
-    # First try empty lapack libs
-    if (NOT ${_LIBRARIES})
-      check_lapack_libraries(
-        ${_LIBRARIES}
-        BLAS
-        ${LAPACK_mkl_SEARCH_SYMBOL}
-        ""
-        ""
-        "${_BLAS_LIBRARIES}"
-        "${CMAKE_THREAD_LIBS_INIT};${LM}"
-        )
-    endif ()
+#intel scalapack
+#if (BLA_VENDOR MATCHES "Intel" OR BLA_VENDOR STREQUAL "All")
+#  if (NOT WIN32)
+#    set(LM "-lm")
+#  endif ()
+#  if (_LANGUAGES_ MATCHES C OR _LANGUAGES_ MATCHES CXX)
+#    if(SCALAPACK_FIND_QUIETLY OR NOT SCALAPACK_FIND_REQUIRED)
+#      find_PACKAGE(Threads)
+#    else()
+#      find_package(Threads REQUIRED)
+#    endif()
+#
+#    set(SCALAPACK_SEARCH_LIBS "")
+#
+#    if (BLA_F95)
+#      set(SCALAPACK_mkl_SEARCH_SYMBOL "PDGEMM")
+#      set(_LIBRARIES SCALAPACK95_LIBRARIES)
+#      set(_BLAS_LIBRARIES ${BLAS95_LIBRARIES})
+#      list(APPEND SCALAPACK_SEARCH_LIBS "mkl_scalapack_lp64")
+#    else()
+#      set(SCALAPACK_mkl_SEARCH_SYMBOL "pdgemm")
+#      set(_LIBRARIES SCALAPACK_LIBRARIES)
+#      set(_BLAS_LIBRARIES ${BLAS_LIBRARIES})
+#      list(APPEND SCALAPACK_SEARCH_LIBS "mkl_scalapack_lp64")
+#    endif()
+#
+    # First try empty scalapack libs
+#    if (NOT ${_LIBRARIES})
+#      check_scalapack_libraries(
+#        ${_LIBRARIES}
+#        BLAS
+#        ${SCALAPACK_mkl_SEARCH_SYMBOL}
+#        ""
+#        ""
+#        "${_BLAS_LIBRARIES}"
+#        "mkl_blacs_intelmpi_lp64"
+#        "${CMAKE_THREAD_LIBS_INIT};${LM}"
+#        )
+#    endif ()
     # Then try the search libs
-    foreach (IT ${LAPACK_SEARCH_LIBS})
-      if (NOT ${_LIBRARIES})
-        check_lapack_libraries(
-          ${_LIBRARIES}
-          BLAS
-          ${LAPACK_mkl_SEARCH_SYMBOL}
-          ""
-          "${IT}"
-          "${_BLAS_LIBRARIES}"
-          "${CMAKE_THREAD_LIBS_INIT};${LM}"
-          )
-      endif ()
-    endforeach ()
-  endif ()
-endif()
-else(BLAS_FOUND)
-  message(STATUS "LAPACK requires BLAS")
-endif(BLAS_FOUND)
+#    foreach (IT ${SCALAPACK_SEARCH_LIBS})
+#      if (NOT ${_LIBRARIES})
+#        check_scalapack_libraries(
+#          ${_LIBRARIES}
+#          BLAS
+#          ${SCALAPACK_mkl_SEARCH_SYMBOL}
+#          ""
+#          "${IT}"
+#          "${_BLAS_LIBRARIES}"
+#          "mkl_blacs_intelmpi_lp64"
+#          "${CMAKE_THREAD_LIBS_INIT};${LM}"
+#          )
+#      endif ()
+#    endforeach ()
+#  endif ()
+#endif()
+else(BLAS_FOUND AND LAPACK_FOUND AND MPI_FOUND)
+  message(STATUS "SCALAPACK requires BLAS, LAPACK, and MPI")
+endif(BLAS_FOUND AND LAPACK_FOUND AND MPI_FOUND)
 
 if(BLA_F95)
- if(LAPACK95_LIBRARIES)
-  set(LAPACK95_FOUND TRUE)
- else(LAPACK95_LIBRARIES)
-  set(LAPACK95_FOUND FALSE)
- endif(LAPACK95_LIBRARIES)
- if(NOT LAPACK_FIND_QUIETLY)
-  if(LAPACK95_FOUND)
-    message(STATUS "A library with LAPACK95 API found.")
-    message(STATUS "LAPACK_LIBRARIES ${LAPACK_LIBRARIES}")
-  else(LAPACK95_FOUND)
-    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but LAPACK 95 libraries could not be found or check of symbols failed."
-        "\nPlease indicate where to find LAPACK libraries. You have three options:\n"
-        "- Option 1: Provide the root directory of LAPACK library with cmake option: -DLAPACK_DIR=your/path/to/lapack\n"
+ if(SCALAPACK95_LIBRARIES)
+  set(SCALAPACK95_FOUND TRUE)
+ else(SCALAPACK95_LIBRARIES)
+  set(SCALAPACK95_FOUND FALSE)
+ endif(SCALAPACK95_LIBRARIES)
+ if(NOT SCALAPACK_FIND_QUIETLY)
+  if(SCALAPACK95_FOUND)
+    message(STATUS "A library with SCALAPACK95 API found.")
+    message(STATUS "SCALAPACK_LIBRARIES ${SCALAPACK_LIBRARIES}")
+  else(SCALAPACK95_FOUND)
+    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but SCALAPACK 95 libraries could not be found or check of symbols failed."
+        "\nPlease indicate where to find SCALAPACK libraries. You have three options:\n"
+        "- Option 1: Provide the root directory of SCALAPACK library with cmake option: -DSCALAPACK_DIR=your/path/to/scalapack\n"
         "- Option 2: Provide the directory where to find BLAS libraries with cmake option: -DBLAS_LIBDIR=your/path/to/blas/libs\n"
         "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"
-        "\nTo follow libraries detection more precisely you can activate a verbose mode with -DLAPACK_VERBOSE=ON at cmake configure."
+        "\nTo follow libraries detection more precisely you can activate a verbose mode with -DSCALAPACK_VERBOSE=ON at cmake configure."
         "\nYou could also specify a BLAS vendor to look for by setting -DBLA_VENDOR=blas_vendor_name."
         "\nList of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
         "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model), Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
         "Intel( older versions of mkl 32 and 64 bit), ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
-    if(LAPACK_FIND_REQUIRED)
+    if(SCALAPACK_FIND_REQUIRED)
       message(FATAL_ERROR
-      "A required library with LAPACK95 API not found. Please specify library location."
+      "A required library with SCALAPACK95 API not found. Please specify library location."
       )
-    else(LAPACK_FIND_REQUIRED)
+    else(SCALAPACK_FIND_REQUIRED)
       message(STATUS
-      "A library with LAPACK95 API not found. Please specify library location."
+      "A library with SCALAPACK95 API not found. Please specify library location."
       )
-    endif(LAPACK_FIND_REQUIRED)
-  endif(LAPACK95_FOUND)
- endif(NOT LAPACK_FIND_QUIETLY)
- set(LAPACK_FOUND "${LAPACK95_FOUND}")
- set(LAPACK_LIBRARIES "${LAPACK95_LIBRARIES}")
+    endif(SCALAPACK_FIND_REQUIRED)
+  endif(SCALAPACK95_FOUND)
+ endif(NOT SCALAPACK_FIND_QUIETLY)
+ set(SCALAPACK_FOUND "${SCALAPACK95_FOUND}")
+ set(SCALAPACK_LIBRARIES "${SCALAPACK95_LIBRARIES}")
 else(BLA_F95)
- if(LAPACK_LIBRARIES)
-  set(LAPACK_FOUND TRUE)
- else(LAPACK_LIBRARIES)
-  set(LAPACK_FOUND FALSE)
- endif(LAPACK_LIBRARIES)
+ if(SCALAPACK_LIBRARIES)
+  set(SCALAPACK_FOUND TRUE)
+ else(SCALAPACK_LIBRARIES)
+  set(SCALAPACK_FOUND FALSE)
+ endif(SCALAPACK_LIBRARIES)
 
- if(NOT LAPACK_FIND_QUIETLY)
-  if(LAPACK_FOUND)
-    message(STATUS "A library with LAPACK API found.")
-    message(STATUS "LAPACK_LIBRARIES ${LAPACK_LIBRARIES}")
-  else(LAPACK_FOUND)
-    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but LAPACK libraries could not be found or check of symbols failed."
-        "\nPlease indicate where to find LAPACK libraries. You have three options:\n"
-        "- Option 1: Provide the root directory of LAPACK library with cmake option: -DLAPACK_DIR=your/path/to/lapack\n"
+ if(NOT SCALAPACK_FIND_QUIETLY)
+  if(SCALAPACK_FOUND)
+    message(STATUS "A library with SCALAPACK API found.")
+    message(STATUS "SCALAPACK_LIBRARIES ${SCALAPACK_LIBRARIES}")
+  else(SCALAPACK_FOUND)
+    message(WARNING "BLA_VENDOR has been set to ${BLA_VENDOR} but SCALAPACK libraries could not be found or check of symbols failed."
+        "\nPlease indicate where to find SCALAPACK libraries. You have three options:\n"
+        "- Option 1: Provide the root directory of SCALAPACK library with cmake option: -DSCALAPACK_DIR=your/path/to/scalapack\n"
         "- Option 2: Provide the directory where to find BLAS libraries with cmake option: -DBLAS_LIBDIR=your/path/to/blas/libs\n"
         "- Option 3: Update your environment variable (Linux: LD_LIBRARY_PATH, Windows: LIB, Mac: DYLD_LIBRARY_PATH)\n"
-        "\nTo follow libraries detection more precisely you can activate a verbose mode with -DLAPACK_VERBOSE=ON at cmake configure."
+        "\nTo follow libraries detection more precisely you can activate a verbose mode with -DSCALAPACK_VERBOSE=ON at cmake configure."
         "\nYou could also specify a BLAS vendor to look for by setting -DBLA_VENDOR=blas_vendor_name."
         "\nList of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
         "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model), Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
         "Intel( older versions of mkl 32 and 64 bit), ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
-    if(LAPACK_FIND_REQUIRED)
+    if(SCALAPACK_FIND_REQUIRED)
       message(FATAL_ERROR
-      "A required library with LAPACK API not found. Please specify library location."
+      "A required library with SCALAPACK API not found. Please specify library location."
       )
-    else(LAPACK_FIND_REQUIRED)
+    else(SCALAPACK_FIND_REQUIRED)
       message(STATUS
-      "A library with LAPACK API not found. Please specify library location."
+      "A library with SCALAPACK API not found. Please specify library location."
       )
-    endif(LAPACK_FIND_REQUIRED)
-  endif(LAPACK_FOUND)
- endif(NOT LAPACK_FIND_QUIETLY)
+    endif(SCALAPACK_FIND_REQUIRED)
+  endif(SCALAPACK_FOUND)
+ endif(NOT SCALAPACK_FIND_QUIETLY)
 endif(BLA_F95)
 
-set(CMAKE_FIND_LIBRARY_SUFFIXES ${_lapack_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${_scalapack_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})

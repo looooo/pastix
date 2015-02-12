@@ -78,7 +78,8 @@
  *            based on reducing the computational cost (solve for ILU(k), or
  *            factorization for direct factorization).
  *          - IPARM_IO_STRATEGY will enable to load/store the result to files.
- *          If set to API_IO_SAVE, the symbmtx and the generated ordemesh is dump to file.
+ *          If set to API_IO_SAVE, the symbmtx and the generated ordemesh is
+ *          dump to file.
  *          If set to APÏ_IO_LOAD, the symbmtx (only) is loaded from the files.
  *
  * @param[in,out] perm

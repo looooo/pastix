@@ -13,14 +13,15 @@
 #  find_package(PTSCOTCH
 #               [REQUIRED]             # Fail with error if ptscotch is not found
 #               [COMPONENTS <libs>...] # required dependencies
-#              )  
-# This module finds headers and ptscotch library. 
+#              )
+# This module finds headers and ptscotch library.
 # Results are reported in variables:
 #  PTSCOTCH_FOUND           - True if headers and requested libraries were found
 #  PTSCOTCH_INCLUDE_DIRS    - ptscotch include directories
 #  PTSCOTCH_LIBRARY_DIRS    - Link directories for ptscotch libraries
 #  PTSCOTCH_LIBRARIES       - ptscotch component libraries to be linked
-# The user can give specific paths where to find the libraries adding cmake 
+#  PTSCOTCH_INTSIZE         - Number of octets occupied by a SCOTCH_Num
+# The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DPTSCOTCH=path/to/ptscotch):
 #  PTSCOTCH_DIR             - Where to find the base directory of ptscotch
 #  PTSCOTCH_INCDIR          - Where to find the header files
@@ -43,16 +44,18 @@
 # (To distribute this file outside of Morse, substitute the full
 #  License text for the above reference.)
 
-
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
+if (NOT PTSCOTCH_FOUND)
+    set(PTSCOTCH_DIR "" CACHE PATH "Root directory of PTSCOTCH library")
+    if (NOT PTSCOTCH_FIND_QUIETLY)
+        message(STATUS "A cache variable, namely PTSCOTCH_DIR, has been set to specify the install directory of PTSCOTCH")
+    endif()
+endif()
 
 # PTSCOTCH may depend on MPI and Threads
 # try to find it specified as COMPONENTS during the call
 if( PTSCOTCH_FIND_COMPONENTS )
     foreach( component ${PTSCOTCH_FIND_COMPONENTS} )
-        if(${PTSCOTCH_FIND_REQUIRED_${component}} STREQUAL 1)
+        if(PTSCOTCH_FIND_REQUIRED_${component})
             find_package(${component} REQUIRED)
         else()
             find_package(${component})
@@ -67,7 +70,7 @@ if( PTSCOTCH_FIND_COMPONENTS )
                 mark_as_advanced(MPI_LIBRARY)
                 mark_as_advanced(MPI_EXTRA_LIBRARY)
                 list(APPEND EXTRA_LIBRARIES ${MPI_C_LIBRARIES} )
-                include_directories( ${MPI_C_INCLUDE_PATH} )                
+                include_directories( ${MPI_C_INCLUDE_PATH} )
             endif()
         else()
             set(PTSCOTCH_${component}_FOUND FALSE)
@@ -75,6 +78,15 @@ if( PTSCOTCH_FIND_COMPONENTS )
     endforeach()
 endif()
 
+# PTSCOTCH may depend on Threads, try to find it
+if (NOT THREADS_FOUND)
+    find_package(Threads)
+endif()
+
+# PTSCOTCH may depend on MPI, try to find it
+if (NOT MPI_FOUND)
+    find_package(MPI)
+endif()
 
 # Looking for include
 # -------------------
@@ -113,7 +125,7 @@ else()
         find_path(PTSCOTCH_ptscotch.h_DIRS
           NAMES ptscotch.h
           HINTS ${PTSCOTCH_DIR}
-          PATH_SUFFIXES include)        
+          PATH_SUFFIXES include)
     else()
         set(PTSCOTCH_ptscotch.h_DIRS "PTSCOTCH_ptscotch.h_DIRS-NOTFOUND")
         find_path(PTSCOTCH_ptscotch.h_DIRS
@@ -123,12 +135,6 @@ else()
 endif()
 mark_as_advanced(PTSCOTCH_ptscotch.h_DIRS)
 
-# Print status if not found
-# -------------------------
-if (NOT PTSCOTCH_ptscotch.h_DIRS AND NOT PTSCOTCH_FIND_QUIETLY)
-    Print_Find_Header_Status(ptscotch ptscotch.h)
-endif ()
-
 # If found, add path to cmake variable
 # ------------------------------------
 if (PTSCOTCH_ptscotch.h_DIRS)
@@ -137,7 +143,7 @@ else ()
     set(PTSCOTCH_INCLUDE_DIRS "PTSCOTCH_INCLUDE_DIRS-NOTFOUND")
     if (NOT PTSCOTCH_FIND_QUIETLY)
         message(STATUS "Looking for ptscotch -- ptscotch.h not found")
-    endif
+    endif()
 endif()
 
 
@@ -171,10 +177,10 @@ if(PTSCOTCH_LIBDIR)
         set(PTSCOTCH_${ptscotch_lib}_LIBRARY "PTSCOTCH_${ptscotch_lib}_LIBRARY-NOTFOUND")
         find_library(PTSCOTCH_${ptscotch_lib}_LIBRARY
             NAMES ${ptscotch_lib}
-            HINTS ${PTSCOTCH_LIBDIR}) 
+            HINTS ${PTSCOTCH_LIBDIR})
     endforeach()
 else()
-    if(PTSCOTCH_DIR)  
+    if(PTSCOTCH_DIR)
         foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
             set(PTSCOTCH_${ptscotch_lib}_LIBRARY "PTSCOTCH_${ptscotch_lib}_LIBRARY-NOTFOUND")
             find_library(PTSCOTCH_${ptscotch_lib}_LIBRARY
@@ -183,22 +189,14 @@ else()
                 PATH_SUFFIXES lib lib32 lib64)
         endforeach()
     else()
-        foreach(scotch_lib ${PTSCOTCH_libs_to_find})
+        foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
             set(PTSCOTCH_${ptscotch_lib}_LIBRARY "PTSCOTCH_${ptscotch_lib}_LIBRARY-NOTFOUND")
             find_library(PTSCOTCH_${ptscotch_lib}_LIBRARY
                 NAMES ${ptscotch_lib}
-                HINTS ${_lib_env})  
+                HINTS ${_lib_env})
         endforeach()
     endif()
 endif()
-
-# Print status if not found
-# -------------------------
-foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
-    if (NOT PTSCOTCH_${ptscotch_lib}_LIBRARY AND NOT PTSCOTCH_FIND_QUIETLY)
-        Print_Find_Library_Status(ptscotch ${ptscotch_lib})
-    endif ()
-endforeach()
 
 set(PTSCOTCH_LIBRARIES "")
 set(PTSCOTCH_LIBRARY_DIRS "")
@@ -217,11 +215,96 @@ foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
             message(STATUS "Looking for ptscotch -- lib ${ptscotch_lib} not found")
         endif()
     endif ()
-    
+
     mark_as_advanced(PTSCOTCH_${ptscotch_lib}_LIBRARY)
-    
+
 endforeach()
 
+
+if(PTSCOTCH_LIBRARIES)
+    # check a function to validate the find
+    if (PTSCOTCH_INCLUDE_DIRS)
+        set(CMAKE_REQUIRED_INCLUDES  "${PTSCOTCH_INCLUDE_DIRS}")
+    endif()
+    set(CMAKE_REQUIRED_LIBRARIES "${PTSCOTCH_LIBRARIES}")
+    if(CMAKE_THREAD_LIBS_INIT)
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
+    endif()
+    if (PTSCOTCH_LIBRARY_DIRS)
+        set(CMAKE_REQUIRED_FLAGS "-L${PTSCOTCH_LIBRARY_DIRS}")
+    endif()
+    if (MPI_FOUND)
+        if (MPI_C_INCLUDE_PATH)
+            list(APPEND CMAKE_REQUIRED_INCLUDES "${MPI_C_INCLUDE_PATH}")
+        endif()
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_C_LIBRARIES}")
+    endif()
+
+    unset(PTSCOTCH_WORKS CACHE)
+    include(CheckFunctionExists)
+    check_function_exists(SCOTCH_dgraphInit PTSCOTCH_WORKS)
+    mark_as_advanced(PTSCOTCH_WORKS)
+
+    if(PTSCOTCH_WORKS)
+        set(PTSCOTCH_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+    else()
+        if(NOT PTSCOTCH_FIND_QUIETLY)
+            message(STATUS "Looking for PTSCOTCH : test of SCOTCH_dgraphInit with PTSCOTCH library fails")
+            message(STATUS "PTSCOTCH_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "PTSCOTCH_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
+            message(STATUS "PTSCOTCH_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
+            message(STATUS "Looking for PTSCOTCH : set PTSCOTCH_LIBRARIES to NOTFOUND")
+        endif()
+        set(PTSCOTCH_LIBRARIES "PTSCOTCH_LIBRARIES-NOTFOUND")
+    endif()
+    set(CMAKE_REQUIRED_INCLUDES)
+    set(CMAKE_REQUIRED_FLAGS)
+    set(CMAKE_REQUIRED_LIBRARIES)
+endif(PTSCOTCH_LIBRARIES)
+
+
+# Check the size of SCOTCH_Num
+# ---------------------------------
+set(CMAKE_REQUIRED_INCLUDES ${PTSCOTCH_INCLUDE_DIRS})
+
+include(CheckCSourceRuns)
+#stdio.h and stdint.h should be included by scotch.h directly
+set(PTSCOTCH_C_TEST_SCOTCH_Num_4 "
+#include <stdio.h>
+#include <stdint.h>
+#include <ptscotch.h>
+int main(int argc, char **argv) {
+  if (sizeof(SCOTCH_Num) == 4)
+    return 0;
+  else
+    return 1;
+}
+")
+
+set(PTSCOTCH_C_TEST_SCOTCH_Num_8 "
+#include <stdio.h>
+#include <stdint.h>
+#include <ptscotch.h>
+int main(int argc, char **argv) {
+  if (sizeof(SCOTCH_Num) == 8)
+    return 0;
+  else
+    return 1;
+}
+")
+check_c_source_runs("${PTSCOTCH_C_TEST_SCOTCH_Num_4}" PTSCOTCH_Num_4)
+if(NOT PTSCOTCH_Num_4)
+  check_c_source_runs("${PTSCOTCH_C_TEST_SCOTCH_Num_8}" PTSCOTCH_Num_8)
+  if(NOT PTSCOTCH_Num_8)
+    set(PTSCOTCH_INTSIZE -1)
+  else()
+    set(PTSCOTCH_INTSIZE 8)
+  endif()
+else()
+  set(PTSCOTCH_INTSIZE 4)
+endif()
+set(CMAKE_REQUIRED_INCLUDES "")
 
 # check that PTSCOTCH has been found
 # ---------------------------------

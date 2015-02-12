@@ -220,8 +220,8 @@ int cscReadFromFile( pastix_driver_t  driver,
 /*           *rhs = NULL; */
 /*           break; */
 /* #endif */
-#if defined(HAVE_SCOTCH)
         case PastixDriverGraph:
+#if defined(HAVE_SCOTCH)
         {
             SCOTCH_Graph sgraph;
             FILE *file = fopen( filename, "r" );
@@ -237,8 +237,14 @@ int cscReadFromFile( pastix_driver_t  driver,
             SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rows), NULL );
             fclose(file);
         }
-        break;
+#else
+        {
+            fprintf(stderr, "Scotch driver to read graph file unavailable.\n"
+                    "Compile with Scotch support to provide it\n");
+            return PASTIX_ERR_BADPARAMETER;
+        }
 #endif
+        break;
 
         case PastixDriverRSA:
         default:
@@ -393,6 +399,6 @@ int cscReadFromFile( pastix_driver_t  driver,
         /* MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm); */
     }
 
-    return EXIT_SUCCESS;
+    return PASTIX_SUCCESS;
 }
 

@@ -36,8 +36,19 @@ include(ColorizeMessage)
 # To find headers and libs
 include(FindHeadersAndLibs)
 
+# Some macros to print status when search for headers and libs
+# PrintFindStatus.cmake is in cmake_modules/morse/find directory
+include(PrintFindStatus)
+
+# Define some auxilary flags
+include(AuxilaryFlags)
+
 # Add the path where we handle our FindFOO.cmake to seek for liraries
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH}/find)
+
+option(MORSE_VERBOSE_FIND_PACKAGE "Add additional messages concerning no found packages" OFF)
+message("-- ${BoldGreen}MORSE_VERBOSE_FIND_PACKAGE is set to OFF, turn it ON to get"
+        "information about packages not found${ColourReset}")
 
 ##
 ## @end file MorseInit.cmake

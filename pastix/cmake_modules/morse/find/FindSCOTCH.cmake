@@ -13,14 +13,15 @@
 #  find_package(SCOTCH
 #               [REQUIRED]             # Fail with error if scotch is not found
 #               [COMPONENTS <libs>...] # required dependencies
-#              )  
-# This module finds headers and scotch library. 
+#              )
+# This module finds headers and scotch library.
 # Results are reported in variables:
 #  SCOTCH_FOUND           - True if headers and requested libraries were found
 #  SCOTCH_INCLUDE_DIRS    - scotch include directories
 #  SCOTCH_LIBRARY_DIRS    - Link directories for scotch libraries
 #  SCOTCH_LIBRARIES       - scotch component libraries to be linked
-# The user can give specific paths where to find the libraries adding cmake 
+#  SCOTCH_INTSIZE         - Number of octets occupied by a SCOTCH_Num
+# The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DSCOTCH=path/to/scotch):
 #  SCOTCH_DIR             - Where to find the base directory of scotch
 #  SCOTCH_INCDIR          - Where to find the header files
@@ -43,16 +44,18 @@
 # (To distribute this file outside of Morse, substitute the full
 #  License text for the above reference.)
 
-
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
+if (NOT SCOTCH_FOUND)
+    set(SCOTCH_DIR "" CACHE PATH "Root directory of SCOTCH library")
+    if (NOT SCOTCH_FIND_QUIETLY)
+        message(STATUS "A cache variable, namely SCOTCH_DIR, has been set to specify the install directory of SCOTCH")
+    endif()
+endif()
 
 # SCOTCH may depend on Threads
 # try to find it specified as COMPONENTS during the call
 if( SCOTCH_FIND_COMPONENTS )
     foreach( component ${SCOTCH_FIND_COMPONENTS} )
-        if(${SCOTCH_FIND_REQUIRED_${component}} STREQUAL 1)
+        if(SCOTCH_FIND_REQUIRED_${component})
             find_package(${component} REQUIRED)
         else()
             find_package(${component})
@@ -68,6 +71,10 @@ if( SCOTCH_FIND_COMPONENTS )
     endforeach()
 endif()
 
+# PTSCOTCH may depend on Threads, try to find it
+if (NOT THREADS_FOUND)
+    find_package(Threads)
+endif()
 
 # Looking for include
 # -------------------
@@ -106,7 +113,7 @@ else()
         find_path(SCOTCH_scotch.h_DIRS
           NAMES scotch.h
           HINTS ${SCOTCH_DIR}
-          PATH_SUFFIXES include)        
+          PATH_SUFFIXES include)
     else()
         set(SCOTCH_scotch.h_DIRS "SCOTCH_scotch.h_DIRS-NOTFOUND")
         find_path(SCOTCH_scotch.h_DIRS
@@ -115,12 +122,6 @@ else()
     endif()
 endif()
 mark_as_advanced(SCOTCH_scotch.h_DIRS)
-
-# Print status if not found
-# -------------------------
-if (NOT SCOTCH_scotch.h_DIRS AND NOT SCOTCH_FIND_QUIETLY)
-    Print_Find_Header_Status(scotch scotch.h)
-endif ()
 
 # If found, add path to cmake variable
 # ------------------------------------
@@ -164,7 +165,7 @@ if(SCOTCH_LIBDIR)
         set(SCOTCH_${scotch_lib}_LIBRARY "SCOTCH_${scotch_lib}_LIBRARY-NOTFOUND")
         find_library(SCOTCH_${scotch_lib}_LIBRARY
             NAMES ${scotch_lib}
-            HINTS ${SCOTCH_LIBDIR}) 
+            HINTS ${SCOTCH_LIBDIR})
     endforeach()
 else()
     if(SCOTCH_DIR)
@@ -180,18 +181,10 @@ else()
             set(SCOTCH_${scotch_lib}_LIBRARY "SCOTCH_${scotch_lib}_LIBRARY-NOTFOUND")
             find_library(SCOTCH_${scotch_lib}_LIBRARY
                 NAMES ${scotch_lib}
-                HINTS ${_lib_env})  
+                HINTS ${_lib_env})
         endforeach()
     endif()
 endif()
-
-# Print status if not found
-# -------------------------
-foreach(scotch_lib ${SCOTCH_libs_to_find})
-    if (NOT SCOTCH_${scotch_lib}_LIBRARY AND NOT SCOTCH_FIND_QUIETLY)
-        Print_Find_Library_Status(scotch ${scotch_lib})
-    endif ()
-endforeach()
 
 set(SCOTCH_LIBRARIES "")
 set(SCOTCH_LIBRARY_DIRS "")
@@ -210,10 +203,90 @@ foreach(scotch_lib ${SCOTCH_libs_to_find})
             message(STATUS "Looking for scotch -- lib ${scotch_lib} not found")
         endif()
     endif ()
-    
+
     mark_as_advanced(SCOTCH_${scotch_lib}_LIBRARY)
 
 endforeach()
+
+
+if(SCOTCH_LIBRARIES)
+    # check a function to validate the find
+    if (SCOTCH_INCLUDE_DIRS)
+        set(CMAKE_REQUIRED_INCLUDES  "${SCOTCH_INCLUDE_DIRS}")
+    endif()
+    set(CMAKE_REQUIRED_LIBRARIES "${SCOTCH_LIBRARIES}")
+    if(CMAKE_THREAD_LIBS_INIT)
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
+    endif()
+    if (SCOTCH_LIBRARY_DIRS)
+        set(CMAKE_REQUIRED_FLAGS "-L${SCOTCH_LIBRARY_DIRS}")
+    endif()
+
+    unset(SCOTCH_WORKS CACHE)
+    include(CheckFunctionExists)
+    check_function_exists(SCOTCH_graphInit SCOTCH_WORKS)
+    mark_as_advanced(SCOTCH_WORKS)
+
+    if(SCOTCH_WORKS)
+        set(SCOTCH_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+    else()
+        if(NOT SCOTCH_FIND_QUIETLY)
+            message(STATUS "Looking for SCOTCH : test of SCOTCH_graphInit with SCOTCH library fails")
+            message(STATUS "SCOTCH_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "SCOTCH_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
+            message(STATUS "SCOTCH_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
+            message(STATUS "Looking for SCOTCH : set SCOTCH_LIBRARIES to NOTFOUND")
+        endif()
+        set(SCOTCH_LIBRARIES "SCOTCH_LIBRARIES-NOTFOUND")
+    endif()
+    set(CMAKE_REQUIRED_INCLUDES)
+    set(CMAKE_REQUIRED_FLAGS)
+    set(CMAKE_REQUIRED_LIBRARIES)
+endif(SCOTCH_LIBRARIES)
+
+
+# Check the size of SCOTCH_Num
+# ---------------------------------
+set(CMAKE_REQUIRED_INCLUDES ${SCOTCH_INCLUDE_DIRS})
+
+include(CheckCSourceRuns)
+#stdio.h and stdint.h should be included by scotch.h directly
+set(SCOTCH_C_TEST_SCOTCH_Num_4 "
+#include <stdio.h>
+#include <stdint.h>
+#include <scotch.h>
+int main(int argc, char **argv) {
+  if (sizeof(SCOTCH_Num) == 4)
+    return 0;
+  else
+    return 1;
+}
+")
+
+set(SCOTCH_C_TEST_SCOTCH_Num_8 "
+#include <stdio.h>
+#include <stdint.h>
+#include <scotch.h>
+int main(int argc, char **argv) {
+  if (sizeof(SCOTCH_Num) == 8)
+    return 0;
+  else
+    return 1;
+}
+")
+check_c_source_runs("${SCOTCH_C_TEST_SCOTCH_Num_4}" SCOTCH_Num_4)
+if(NOT SCOTCH_Num_4)
+  check_c_source_runs("${SCOTCH_C_TEST_SCOTCH_Num_8}" SCOTCH_Num_8)
+  if(NOT SCOTCH_Num_8)
+    set(SCOTCH_INTSIZE -1)
+  else()
+    set(SCOTCH_INTSIZE 8)
+  endif()
+else()
+  set(SCOTCH_INTSIZE 4)
+endif()
+set(CMAKE_REQUIRED_INCLUDES "")
 
 # check that SCOTCH has been found
 # ---------------------------------

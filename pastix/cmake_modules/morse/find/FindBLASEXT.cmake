@@ -41,10 +41,6 @@
 #  License text for the above reference.)
 
 
-# Some macros to print status when search for headers and libs
-# PrintFindStatus.cmake is in cmake_modules/morse/find directory
-include(PrintFindStatus)
-
 # add a cache variable to let the user specify the BLAS vendor
 set(BLA_VENDOR "" CACHE STRING "list of possible BLAS vendor:
     Goto, ATLAS PhiPACK, CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL,
@@ -77,13 +73,6 @@ if(BLA_VENDOR STREQUAL "All" AND
     if(BLAS_mkl_intel_lp64_LIBRARY)
         set(BLA_VENDOR "Intel10_64lp")
     endif()
-elseif(BLA_VENDOR STREQUAL "All" AND BLAS_acml_LIBRARY)
-    set(BLA_VENDOR "ACML")
-endif()
-
-# Intel case
-if(BLA_VENDOR MATCHES "Intel*")
-
     if(NOT BLASEXT_FIND_QUIETLY)
         message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
             "have also potentially detected some BLAS libraries from the MKL."
@@ -98,6 +87,29 @@ if(BLA_VENDOR MATCHES "Intel*")
             "Intel( older versions of mkl 32 and 64 bit),"
             "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
     endif()
+    set(BLAS_FOUND "")
+elseif(BLA_VENDOR STREQUAL "All" AND BLAS_acml_LIBRARY)
+    set(BLA_VENDOR "ACML")
+    if(NOT BLASEXT_FIND_QUIETLY)
+        message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
+            "have also potentially detected some BLAS libraries from the ACML."
+            "We try to use this one.")
+        message(STATUS "If you want to force the use of one specific library, "
+            "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
+            "at cmake configure.")
+        message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
+            "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
+            "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
+            "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
+            "Intel( older versions of mkl 32 and 64 bit),"
+            "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
+    endif()
+    set(BLAS_FOUND "")
+endif()
+
+# Intel case
+if(BLA_VENDOR MATCHES "Intel*")
+
     ###
     # look for include path if the BLAS vendor is Intel
     ###
@@ -123,27 +135,30 @@ if(BLA_VENDOR MATCHES "Intel*")
     # find mkl.h inside known include paths
     set(BLAS_mkl.h_INCLUDE_DIRS "BLAS_mkl.h_INCLUDE_DIRS-NOTFOUND")
     if(BLAS_INCDIR)
+        set(BLAS_mkl.h_INCLUDE_DIRS "BLAS_mkl.h_INCLUDE_DIRS-NOTFOUND")
         find_path(BLAS_mkl.h_INCLUDE_DIRS
                 NAMES mkl.h
                 HINTS ${BLAS_INCDIR})
     else()
         if(BLAS_DIR)
+            set(BLAS_mkl.h_INCLUDE_DIRS "BLAS_mkl.h_INCLUDE_DIRS-NOTFOUND")
             find_path(BLAS_mkl.h_INCLUDE_DIRS
                     NAMES mkl.h
                     HINTS ${BLAS_DIR}
                     PATH_SUFFIXES include)
         else()
+            set(BLAS_mkl.h_INCLUDE_DIRS "BLAS_mkl.h_INCLUDE_DIRS-NOTFOUND")
             find_path(BLAS_mkl.h_INCLUDE_DIRS
                     NAMES mkl.h
                     HINTS ${_inc_env})
         endif()
     endif()
     mark_as_advanced(BLAS_mkl.h_INCLUDE_DIRS)
-    # Print status if not found
-    # -------------------------
-    if (NOT BLAS_mkl.h_INCLUDE_DIRS)
-        Print_Find_Header_Status(blas mkl.h)
-    endif ()
+    ## Print status if not found
+    ## -------------------------
+    #if (NOT BLAS_mkl.h_INCLUDE_DIRS AND MORSE_VERBOSE)
+    #    Print_Find_Header_Status(blas mkl.h)
+    #endif ()
     set(BLAS_INCLUDE_DIRS "")
     if(BLAS_mkl.h_INCLUDE_DIRS)
         list(APPEND BLAS_INCLUDE_DIRS "${BLAS_mkl.h_INCLUDE_DIRS}" )
@@ -157,6 +172,9 @@ if(BLA_VENDOR MATCHES "Intel*")
 
         ## look for the sequential version
         set(BLA_VENDOR "Intel10_64lp_seq")
+        if(NOT BLASEXT_FIND_QUIETLY)
+            message(STATUS "Look for the sequential version Intel10_64lp_seq")
+        endif()
 #         if(NOT BLAS_FOUND AND BLASEXT_FIND_REQUIRED)
         if(BLASEXT_FIND_REQUIRED)
             find_package(BLAS REQUIRED)
@@ -171,6 +189,9 @@ if(BLA_VENDOR MATCHES "Intel*")
 
         ## look for the multithreaded version
         set(BLA_VENDOR "Intel10_64lp")
+        if(NOT BLASEXT_FIND_QUIETLY)
+            message(STATUS "Look for the multithreaded version Intel10_64lp")
+        endif()
         find_package(BLAS)
         if(BLAS_FOUND)
             set(BLAS_PAR_LIBRARIES "${BLAS_LIBRARIES}")
@@ -190,21 +211,6 @@ if(BLA_VENDOR MATCHES "Intel*")
 
 # ACML case
 elseif(BLA_VENDOR MATCHES "ACML*")
-
-    if(NOT BLASEXT_FIND_QUIETLY)
-        message(STATUS "A BLAS library has been found (${BLAS_LIBRARIES}) but we"
-            "have also potentially detected some BLAS libraries from the ACML."
-            "We try to use this one.")
-        message(STATUS "If you want to force the use of one specific library, "
-            "please specify the BLAS vendor by setting -DBLA_VENDOR=blas_vendor_name"
-            "at cmake configure.")
-        message(STATUS "List of possible BLAS vendor: Goto, ATLAS PhiPACK, CXML, "
-            "DXML, SunPerf, SCSL, SGIMATH, IBMESSL, Intel10_32 (intel mkl v10 32 bit),"
-            "Intel10_64lp (intel mkl v10 64 bit, lp thread model, lp64 model),"
-            "Intel10_64lp_seq (intel mkl v10 64 bit, sequential code, lp64 model),"
-            "Intel( older versions of mkl 32 and 64 bit),"
-            "ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic")
-    endif()
 
     ## look for the sequential version
     set(BLA_VENDOR "ACML")
