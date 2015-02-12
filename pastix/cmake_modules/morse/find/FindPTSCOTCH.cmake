@@ -269,8 +269,10 @@ endif(PTSCOTCH_LIBRARIES)
 set(CMAKE_REQUIRED_INCLUDES ${PTSCOTCH_INCLUDE_DIRS})
 
 include(CheckCSourceRuns)
+#stdio.h and stdint.h should be included by scotch.h directly
 set(PTSCOTCH_C_TEST_SCOTCH_Num_4 "
 #include <stdio.h>
+#include <stdint.h>
 #include <ptscotch.h>
 int main(int argc, char **argv) {
   if (sizeof(SCOTCH_Num) == 4)
@@ -282,6 +284,7 @@ int main(int argc, char **argv) {
 
 set(PTSCOTCH_C_TEST_SCOTCH_Num_8 "
 #include <stdio.h>
+#include <stdint.h>
 #include <ptscotch.h>
 int main(int argc, char **argv) {
   if (sizeof(SCOTCH_Num) == 8)
@@ -290,7 +293,6 @@ int main(int argc, char **argv) {
     return 1;
 }
 ")
-set(CMAKE_REQUIRED_INCLUDES "")
 check_c_source_runs("${PTSCOTCH_C_TEST_SCOTCH_Num_4}" PTSCOTCH_Num_4)
 if(NOT PTSCOTCH_Num_4)
   check_c_source_runs("${PTSCOTCH_C_TEST_SCOTCH_Num_8}" PTSCOTCH_Num_8)
@@ -302,6 +304,7 @@ if(NOT PTSCOTCH_Num_4)
 else()
   set(PTSCOTCH_INTSIZE 4)
 endif()
+set(CMAKE_REQUIRED_INCLUDES "")
 
 # check that PTSCOTCH has been found
 # ---------------------------------

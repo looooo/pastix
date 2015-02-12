@@ -251,8 +251,10 @@ endif(SCOTCH_LIBRARIES)
 set(CMAKE_REQUIRED_INCLUDES ${SCOTCH_INCLUDE_DIRS})
 
 include(CheckCSourceRuns)
+#stdio.h and stdint.h should be included by scotch.h directly
 set(SCOTCH_C_TEST_SCOTCH_Num_4 "
 #include <stdio.h>
+#include <stdint.h>
 #include <scotch.h>
 int main(int argc, char **argv) {
   if (sizeof(SCOTCH_Num) == 4)
@@ -264,6 +266,7 @@ int main(int argc, char **argv) {
 
 set(SCOTCH_C_TEST_SCOTCH_Num_8 "
 #include <stdio.h>
+#include <stdint.h>
 #include <scotch.h>
 int main(int argc, char **argv) {
   if (sizeof(SCOTCH_Num) == 8)
@@ -272,7 +275,6 @@ int main(int argc, char **argv) {
     return 1;
 }
 ")
-set(CMAKE_REQUIRED_INCLUDES "")
 check_c_source_runs("${SCOTCH_C_TEST_SCOTCH_Num_4}" SCOTCH_Num_4)
 if(NOT SCOTCH_Num_4)
   check_c_source_runs("${SCOTCH_C_TEST_SCOTCH_Num_8}" SCOTCH_Num_8)
@@ -284,6 +286,7 @@ if(NOT SCOTCH_Num_4)
 else()
   set(SCOTCH_INTSIZE 4)
 endif()
+set(CMAKE_REQUIRED_INCLUDES "")
 
 # check that SCOTCH has been found
 # ---------------------------------
