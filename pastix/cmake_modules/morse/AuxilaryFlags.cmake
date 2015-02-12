@@ -28,8 +28,8 @@
 ###
 
 
-IF(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
-  list(APPEND CMAKE_Fortran_FLAGS "-cpp -ffree-form")
-ELSEIF(CMAKE_Fortran_COMPILER_ID MATCHES Intel)
-  list(APPEND CMAKE_Fortran_PREPROCESS_FLAG "-fpp")
-ENDIF()
+# IF(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
+#   list(APPEND CMAKE_Fortran_FLAGS "-cpp -ffree-form")
+# ELSEIF(CMAKE_Fortran_COMPILER_ID MATCHES Intel)
+#   list(APPEND CMAKE_Fortran_PREPROCESS_FLAG "-fpp")
+# ENDIF()
