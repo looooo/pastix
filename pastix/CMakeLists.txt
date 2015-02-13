@@ -565,6 +565,7 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/skitf.f
   matrix_drivers/readrsa.c
   matrix_drivers/readmm.c
+  matrix_drivers/readmmd.c
   matrix_drivers/mmio.c
 #
   sopalin/pastix_task_sopalin.c

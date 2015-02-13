@@ -84,7 +84,7 @@ d_readMM( FILE *file,
 			}
 			temprow[iter]=(int)temp1;
 			tempcol[iter]=(int)temp2;
-			tempval[iter]=(pastix_complex64_t)(re);
+			tempval[iter]=(double)(re);
 		}
 	}
 	
@@ -220,7 +220,7 @@ z_readMM( FILE *file,
 			
 			temprow[iter]=(int)temp1;
 			tempcol[iter]=(int)temp2;
-			tempval[iter]=(pastix_complex64_t)(re+im*I);
+			tempval[iter]=(double complex)(re+im*I);
 		}
 	}
 	

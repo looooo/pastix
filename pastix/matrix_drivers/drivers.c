@@ -163,11 +163,8 @@ int cscReadFromFile( pastix_driver_t  driver,
           readMM( filename, csc );
           break;
         case PastixDriverDMM:
-          /* printf("driver: DistributedMatrixMarket file: %s\n", filename); */
-          /* z_DistributedMatrixMarketRead(filename, */
-          /*                             ncol, &nrows, &nnz, */
-          /*                             colptr, rows, values, loc2glob, */
-          /*                             type, rhstype); */
+          printf("driver: DistributedMatrixMarket file: %s\n", filename);
+          readMMD( filename, csc );
           break;
         case PastixDriverPetscS:
         case PastixDriverPetscU:
@@ -181,14 +178,11 @@ int cscReadFromFile( pastix_driver_t  driver,
           /* if (driver_type == PETSCH) *type[1] = 'H'; */
           break;
         case PastixDriverCSCD:
-          /* printf("driver CSCdt file: %s\n", filename); */
-          /* z_cscdRead(filename, */
-          /*          colptr, rows, loc2glob, values, */
-          /*          rhs, ncol, &nnz, */
-          /*          pastix_comm); */
-
-          /* *type = (char *) malloc(4*sizeof(char)); */
-          /* sprintf(*type,"RSA"); */
+//           printf("driver CSCdt file: %s\n", filename);
+//           cscdRead(filename, /* dirname */
+//                    csc,
+//                    rhs,
+//                    pastix_comm);
           break;
         case PastixDriverLaplacian:
           /* if (mpirank == 0) */
