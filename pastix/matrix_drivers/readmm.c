@@ -1,5 +1,5 @@
 /**
- * @file readrsa.c
+ * @file readmm.c
  *
  *  $COPYRIGHTS$
  *
