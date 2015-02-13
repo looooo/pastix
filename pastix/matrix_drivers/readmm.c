@@ -309,9 +309,6 @@ z_readMM( FILE *file,
  * @param[out] Type
  *          At exit, contains the type of the matrix.
  *
- * @param[out] RhsType
- *          At exit, contains the type of the right hand side.
- *
  *******************************************************************************/
 void 
 readMM( const char   *filename,
@@ -319,11 +316,8 @@ readMM( const char   *filename,
 {
 	
 	char    Type[4];
-	char    RhsType[4];
 	FILE * file;
 	MM_typecode matcode;
-	
-	RhsType[0] = '\0';
 	
 	file = fopen (filename,"r");
 	if (file==NULL)

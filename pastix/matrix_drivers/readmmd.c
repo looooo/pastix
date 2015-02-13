@@ -22,7 +22,7 @@
  *
  * @ingroup pastix_csc_driver
  *
- * readMM - Read a matrix in Distributed Matrix Market format.
+ * readMMD - Read a matrix in Distributed Matrix Market format.
  * For more information about matrix market format see mmio.c/mmio.h
  * This driver can read complex and real matrices.
  *
@@ -43,9 +43,6 @@
  * @param[out] Type
  *          At exit, contains the type of the matrix.
  *
- * @param[out] RhsType
- *          At exit, contains the type of the right hand side.
- *
  *******************************************************************************/
 
 void
@@ -54,7 +51,6 @@ readMMD( const char   *filename,
 {
 
 	char    Type[4];
-	char    RhsType[4];
   FILE * file;
   int * tempcol, *g2l, *templ2g;
   int iter, iter2, baseval, mincol, maxcol;
@@ -108,8 +104,6 @@ readMMD( const char   *filename,
   strcpy(my_filename, filename);
   sprintf(my_filename,"%s/%s", dirname(my_filename), my_filename_s);
   fclose(file);
-
-  RhsType[0] = '\0';
 
   file = fopen (my_filename,"r");
   if (file==NULL)
