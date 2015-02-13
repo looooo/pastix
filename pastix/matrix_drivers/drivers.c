@@ -159,11 +159,8 @@ int cscReadFromFile( pastix_driver_t  driver,
           /*                type, rhstype); */
           break;
         case PastixDriverMM:
-          /* printf("driver: MatrixMarket file: %s\n", filename); */
-          /* z_MatrixMarketRead(filename, */
-          /*                  ncol, &nrows, &nnz, */
-          /*                  colptr, rows, values, */
-          /*                  type, rhstype); */
+          printf("driver: MatrixMarket file: %s\n", filename);
+          readMM( filename, csc );
           break;
         case PastixDriverDMM:
           /* printf("driver: DistributedMatrixMarket file: %s\n", filename); */
