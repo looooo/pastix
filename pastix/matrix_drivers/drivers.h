@@ -17,22 +17,22 @@
 
 typedef enum pastix_driver_e {
     PastixDriverRSA,
-    PastixDriverCHB,
-    PastixDriverCCC,
-    PastixDriverRCC,
-    PastixDriverOlaf,
-    PastixDriverPeer,
+    PastixDriverCHB,//
+    PastixDriverCCC,//
+    PastixDriverRCC,//
+    PastixDriverOlaf,//
+    PastixDriverPeer,//
     PastixDriverHB,
     PastixDriverIJV,
     PastixDriverMM,
-    PastixDriverDMM,
+    PastixDriverDMM,//*
     PastixDriverPetscS,
     PastixDriverPetscU,
     PastixDriverPetscH,
-    PastixDriverCSCD,
+    PastixDriverCSCD,//*
     PastixDriverLaplacian,
-    PastixDriverBRGM,
-    PastixDriverBRGMD,
+    PastixDriverBRGM,//
+    PastixDriverBRGMD,//
     PastixDriverGraph
 } pastix_driver_t;
 

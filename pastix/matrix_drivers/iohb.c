@@ -217,8 +217,8 @@ Fri Aug 15 16:29:47 EDT 1997
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "z_pastix.h"
-#include "z_read_matrix.h"
+#include "pastix.h"
+// #include "z_read_matrix.h"
 #include "common_drivers.h"
 #include "iohb.h"
 

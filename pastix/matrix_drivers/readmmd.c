@@ -1,5 +1,5 @@
 /**
- * @file readmm.c
+ * @file readmmd.c
  *
  *  $COPYRIGHTS$
  *
@@ -382,9 +382,11 @@ readMMD( const char   *filename,
 	{
 		memcpy(csc->avals, values_complex, Nnzero*sizeof(double complex));
 		memFree_null(tempval_complex);
+		memFree_null(values_complex);
 	}else{
 		memcpy(csc->avals, values_double, Nnzero*sizeof(double));
 		memFree_null(tempval_double);
+		memFree_null(values_double);
 	}
   memFree_null(temprow);
   memFree_null(tempcol);

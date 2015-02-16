@@ -113,11 +113,8 @@ int cscReadFromFile( pastix_driver_t  driver,
           /*         type, rhstype, rhs); */
           break;
         case PastixDriverCCC:
-          /* printf("driver: CCC file: %s\n", filename); */
-          /* z_cccRead(filename, */
-          /*         ncol, &nrows, &nnz, */
-          /*         colptr, rows, values, */
-          /*         type, rhstype); */
+//           printf("driver: CCC file: %s\n", filename);
+//           readCCC( filename, csc );
           break;
         case PastixDriverRCC:
           /* printf("driver: RCC file: %s\n", filename); */
@@ -145,11 +142,8 @@ int cscReadFromFile( pastix_driver_t  driver,
       /* peerRead2("rsaname", ncol, &nrows, &nnz, colptr, rows, values, type, rhstype, rhs); */
           break;
         case PastixDriverHB:
-          /* printf("driver: HB file: %s\n", filename); */
-          /* z_HBRead(filename, */
-          /*        ncol, &nrows, &nnz, */
-          /*        colptr, rows, values, */
-          /*        type, rhstype); */
+          printf("driver: HB file: %s\n", filename);
+          readHB( filename, csc );
           break;
         case PastixDriverIJV:
           /* printf("driver: 3files file: %s\n", filename); */
