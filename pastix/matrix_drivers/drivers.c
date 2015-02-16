@@ -146,11 +146,8 @@ int cscReadFromFile( pastix_driver_t  driver,
           readHB( filename, csc );
           break;
         case PastixDriverIJV:
-          /* printf("driver: 3files file: %s\n", filename); */
-          /* z_threeFilesRead(filename, */
-          /*                ncol, &nrows, &nnz, */
-          /*                colptr, rows, values, */
-          /*                type, rhstype); */
+          printf("driver: 3files file: %s\n", filename);
+          readIJV(filename, csc );
           break;
         case PastixDriverMM:
           printf("driver: MatrixMarket file: %s\n", filename);
@@ -166,8 +163,8 @@ int cscReadFromFile( pastix_driver_t  driver,
           printf("driver: PETSc file: %s\n", filename);
           readPETSC(filename, csc );
 
-          if (driver_type == PETSCS) csc->mtxtype = PastixSymmetric;
-          if (driver_type == PETSCH) csc->mtxtype = PastixHermitian; 
+          if (driver == PastixDriverPetscS) csc->mtxtype = PastixSymmetric;
+          if (driver == PastixDriverPetscH) csc->mtxtype = PastixHermitian; 
           break;
         case PastixDriverCSCD:
 //           printf("driver CSCdt file: %s\n", filename);
@@ -177,10 +174,9 @@ int cscReadFromFile( pastix_driver_t  driver,
 //                    pastix_comm);
           break;
         case PastixDriverLaplacian:
-          /* if (mpirank == 0) */
-          /*   printf("driver Laplacian\n"); */
-          /* z_genlaplacian(*ncol, &nnz, colptr, rows, values, rhs, type, rhstype); */
-          /* return EXIT_SUCCESS; */
+          if (mpirank == 0)
+            printf("driver Laplacian\n");
+          genlaplacian(csc);
           break;
 /* #ifdef FDUPROS */
 /*         case FDUP: */

@@ -252,7 +252,7 @@ readPETSC( const char   *filename,
 //   *RhsType = (char *) malloc(1*sizeof(char));
 //   (*RhsType)[0] = '\0';
 //   (*Type)[0] = 'R';
-	csc->flttype=PastixComplex;
+	csc->flttype=PastixComplex64;
 //   (*Type)[1] = 'U';
 	csc->mtxtype=PastixGeneral;
 //   (*Type)[2] = 'A';

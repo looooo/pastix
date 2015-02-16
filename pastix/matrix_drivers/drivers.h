@@ -16,24 +16,24 @@
 #include "csc.h"
 
 typedef enum pastix_driver_e {
-    PastixDriverRSA,
+    PastixDriverRSA, /* ok */
     PastixDriverCHB,//
     PastixDriverCCC,//
     PastixDriverRCC,//
     PastixDriverOlaf,//
     PastixDriverPeer,//
-    PastixDriverHB,
-    PastixDriverIJV,
-    PastixDriverMM,
-    PastixDriverDMM,//*
-    PastixDriverPetscS,
-    PastixDriverPetscU,
-    PastixDriverPetscH,
-    PastixDriverCSCD,//*
-    PastixDriverLaplacian,
+    PastixDriverHB, /* ok */
+    PastixDriverIJV, /* ok */
+    PastixDriverMM, /* ok */
+    PastixDriverDMM, /* ok */
+    PastixDriverPetscS, /* ok */
+    PastixDriverPetscU, /* ok */
+    PastixDriverPetscH, /* ok */
+    PastixDriverCSCD,//
+    PastixDriverLaplacian, /* TODO */
     PastixDriverBRGM,//
     PastixDriverBRGMD,//
-    PastixDriverGraph
+    PastixDriverGraph /* TODO */
 } pastix_driver_t;
 
 void pastix_ex_getoptions(int argc, char **argv,

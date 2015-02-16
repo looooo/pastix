@@ -20,7 +20,7 @@
  *
  * @ingroup pastix_csc_driver
  *
- * Interface to the Harwell-Boeing driver in C (iohb.c)
+ * readHB - Interface to the Harwell-Boeing driver in C (iohb.c)
  * This driver can read only real matrices.
  *
  *******************************************************************************
@@ -131,6 +131,6 @@ readHB( const char   *filename,
   memFree_null(tmpcol);
   memFree_null(tmprow);
   csc->n=(pastix_int_t)tmpNrow;
-  csc->n=(pastix_int_t)tmpNcol;
+  csc->gN=(pastix_int_t)tmpNcol;
   csc->dof=(pastix_int_t)tmpNnzero;
 }
