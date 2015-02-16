@@ -45,7 +45,8 @@
  *
  *******************************************************************************/
 
-void readHB( const char   *filename,
+void
+readHB( const char   *filename,
 						 pastix_csc_t *csc )
 {
   int      i;

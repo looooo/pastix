@@ -163,13 +163,11 @@ int cscReadFromFile( pastix_driver_t  driver,
         case PastixDriverPetscS:
         case PastixDriverPetscU:
         case PastixDriverPetscH:
-          /* printf("driver: PETSc file: %s\n", filename); */
-          /* z_PETScRead(filename, */
-          /*           ncol, &nrows, &nnz, */
-          /*           colptr, rows, values, */
-          /*           type, rhstype); */
-          /* if (driver_type == PETSCS) *type[1] = 'S'; */
-          /* if (driver_type == PETSCH) *type[1] = 'H'; */
+          printf("driver: PETSc file: %s\n", filename);
+          readPETSC(filename, csc );
+
+          if (driver_type == PETSCS) csc->mtxtype = PastixSymmetric;
+          if (driver_type == PETSCH) csc->mtxtype = PastixHermitian; 
           break;
         case PastixDriverCSCD:
 //           printf("driver CSCdt file: %s\n", filename);

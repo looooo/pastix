@@ -567,6 +567,7 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/readmm.c
   matrix_drivers/readmmd.c
   matrix_drivers/readhb.c
+  matrix_drivers/readpetsc.c
   matrix_drivers/iohb.c
   matrix_drivers/mmio.c
 #
