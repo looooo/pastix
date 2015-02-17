@@ -570,6 +570,7 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/readpetsc.c
   matrix_drivers/readijv.c
   matrix_drivers/laplacian.c
+  matrix_drivers/readcscd.c
   matrix_drivers/iohb.c
   matrix_drivers/mmio.c
 #

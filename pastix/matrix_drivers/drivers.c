@@ -169,11 +169,11 @@ int cscReadFromFile( pastix_driver_t  driver,
           if (driver == PastixDriverPetscH) csc->mtxtype = PastixHermitian; 
           break;
         case PastixDriverCSCD:
-//           printf("driver CSCdt file: %s\n", filename);
-//           cscdRead(filename, /* dirname */
-//                    csc,
-//                    rhs,
-//                    pastix_comm);
+          printf("driver CSCd file: %s\n", filename);
+          readCSCD(filename, /* dirname */
+                   csc,
+                   &rhs,
+                   pastix_comm);
           break;
         case PastixDriverLaplacian:
           if (mpirank == 0)
@@ -343,7 +343,7 @@ int cscReadFromFile( pastix_driver_t  driver,
     {
         pastix_int_t nnz;
 
-        fprintf(stderr, "Hello");
+        fprintf(stderr, "Hello\n");
         if (mpirank == 0) {
             nnz = csc->colptr[csc->gN] - csc->colptr[0];
         }
@@ -352,7 +352,7 @@ int cscReadFromFile( pastix_driver_t  driver,
         MPI_Bcast( &nnz, 1, PASTIX_MPI_INT, 0, pastix_comm );
 
         fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n",
-                mpirank, csc->mtxtype, csc->flttype, nnz, csc->gN );
+                mpirank, csc->mtxtype, csc->flttype, (long)nnz, (long)csc->gN );
 
         if ( mpirank != 0 )
         {
