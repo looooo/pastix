@@ -744,7 +744,7 @@ static struct option long_options[] =
 
 void pastix_ex_getoptions(int argc, char **argv,
                           pastix_int_t *iparam, double *dparam,
-                          pastix_driver_t *driver, char **filename)
+                          pastix_driver_t *driver, char **filename, int *n)
 {
     int opt = 0;
     int c;
@@ -813,7 +813,7 @@ void pastix_ex_getoptions(int argc, char **argv,
 
         case '9':
             *driver = PastixDriverLaplacian;
-            getfilename( filename, optarg, "rsaname" );
+						*n=atoi(optarg);
             break;
 
         case 'A':

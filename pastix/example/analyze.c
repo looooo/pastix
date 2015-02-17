@@ -47,6 +47,7 @@ int main (int argc, char **argv)
     /* int             ooc;                /\* OOC limit (Mo/percent depending on compilation options)   *\/ */
 
     pastix_csc_t    csc;
+    void *rhs     = NULL;
 
     /*******************************************/
     /*          MPI initialisation             */
@@ -91,9 +92,9 @@ int main (int argc, char **argv)
      */
     pastix_ex_getoptions( argc, argv,
                           iparm, dparm,
-                          &driver, &filename );
-
-    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+                          &driver, &filename , &csc.n);
+		
+    cscReadFromFile( driver, filename, &csc, &rhs, MPI_COMM_WORLD );
     free(filename);
 
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
