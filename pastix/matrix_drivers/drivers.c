@@ -84,11 +84,13 @@ int cscReadFromFile( pastix_driver_t  driver,
                      MPI_Comm         pastix_comm )
 {
     int mpirank;
+		void *rhs;
 
     csc->mtxtype = PastixGeneral;
     csc->flttype = PastixDouble;
     csc->gN  = 0;
-    csc->n   = 0;
+		if (driver != PastixDriverLaplacian)
+			csc->n   = 0;
     csc->dof = 1;
     csc->colptr = NULL;
     csc->rows   = NULL;
@@ -176,7 +178,7 @@ int cscReadFromFile( pastix_driver_t  driver,
         case PastixDriverLaplacian:
           if (mpirank == 0)
             printf("driver Laplacian\n");
-          genlaplacian(csc);
+          genlaplacian(csc,&rhs);
           break;
 /* #ifdef FDUPROS */
 /*         case FDUP: */
