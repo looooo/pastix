@@ -39,7 +39,7 @@ d_readMM( FILE         *file,
   int    *tempcol;
   int    *temprow;
   double *tempval;
-  double *values;
+  double *valptr;
   int iter, baseval;
   int total;
   int tmp;
@@ -60,7 +60,6 @@ d_readMM( FILE         *file,
   tempcol = (int *)    malloc(Nnzero*sizeof(int));
   temprow = (int *)    malloc(Nnzero*sizeof(int));
   tempval = (double *) malloc(Nnzero*sizeof(double));
-  values  = (double *) malloc(Nnzero*sizeof(double));
 
   if ((tempcol == NULL) || (temprow == NULL) || (tempval == NULL))
   {
@@ -145,12 +144,11 @@ d_readMM( FILE         *file,
     if (pos == limit)
       fprintf(stderr, "Erreur de lecture\n");
     
+    valptr=csc->avals+pos;
     csc->rows[pos] = temprow[iter];
-    values[pos] = tempval[iter];
+    *valptr = tempval[iter];
   }
-  memcpy(csc->avals, values, Nnzero*sizeof(double));
   memFree_null(tempval);
-  memFree_null(values);
   memFree_null(temprow);
   memFree_null(tempcol);
 }
@@ -181,7 +179,7 @@ z_readMM( FILE *file,
   int iter,baseval;
   int * temprow;
   pastix_complex64_t * tempval;
-  pastix_complex64_t * values;
+  pastix_complex64_t * valptr;
   int total;
   int tmp;
   int pos;
@@ -201,7 +199,6 @@ z_readMM( FILE *file,
   tempcol = (int *) malloc((Nnzero)*sizeof(int));
   temprow = (int *) malloc((Nnzero)*sizeof(int));
   tempval = (pastix_complex64_t *) malloc((Nnzero)*sizeof(pastix_complex64_t));
-  values = (pastix_complex64_t *) malloc((Nnzero)*sizeof(pastix_complex64_t));
 
   if ((tempcol==NULL) || (temprow == NULL) || (tempval == NULL))
   {
@@ -213,10 +210,10 @@ z_readMM( FILE *file,
   {
     pastix_int_t       *colptr = tempcol;
     pastix_int_t       *rowptr = temprow;
-    pastix_complex64_t *valptr = tempval;
     long temp1,temp2;
     double re,im;
     baseval = 9999999;
+    valptr = tempval;
     
     for (iter=0; iter<(Nnzero); iter++, colptr++, rowptr++, valptr++)
     {
@@ -282,12 +279,12 @@ z_readMM( FILE *file,
     if (pos == limit)
       fprintf(stderr, "Erreur de lecture\n");
     
+    valptr=csc->avals;
+    valptr+=pos;
     csc->rows[pos] = temprow[iter];
-    values[pos] = tempval[iter];
+    *valptr = tempval[iter];
   }
-  memcpy(csc->avals, values, Nnzero*sizeof(pastix_complex64_t));
   memFree_null(tempval);
-  memFree_null(values);
   memFree_null(temprow);
   memFree_null(tempcol);
 }

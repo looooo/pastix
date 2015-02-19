@@ -31,33 +31,33 @@ int swap_indians_int(int num)
 static inline
 pastix_complex64_t swap_indians_pastix_float_t(pastix_complex64_t d)
 {
-    size_t i;
-    union
-    {
-  pastix_complex64_t value;
-  char bytes[sizeof(pastix_complex64_t)];
-    } in, out;
-    in.value = d;
-    for (i = 0; i < sizeof(pastix_complex64_t); i++)
-	out.bytes[i] = in.bytes[sizeof(pastix_complex64_t)-1-i];
+  size_t i;
+  union
+  {
+    pastix_complex64_t value;
+    char bytes[sizeof(pastix_complex64_t)];
+  } in, out;
+  in.value = d;
+  for (i = 0; i < sizeof(pastix_complex64_t); i++)
+    out.bytes[i] = in.bytes[sizeof(pastix_complex64_t)-1-i];
 
-    return out.value;
+  return out.value;
 }
 
 static inline
 int swap_indians_int2(int d)
 {
-    size_t i;
-    union
-    {
-  int value;
-  char bytes[sizeof(int)];
-    } in, out;
-    in.value = d;
-    for (i = 0; i < sizeof(int); i++)
-  out.bytes[i] = in.bytes[sizeof(int)-1-i];
+  size_t i;
+  union
+  {
+    int value;
+    char bytes[sizeof(int)];
+  } in, out;
+  in.value = d;
+  for (i = 0; i < sizeof(int); i++)
+    out.bytes[i] = in.bytes[sizeof(int)-1-i];
 
-    return out.value;
+  return out.value;
 }
 
 #define SWAP_INDIANS(i)                                                 \
@@ -101,7 +101,7 @@ readPETSC( const char   *filename,
   int             * tempcol;
   int             * temprow;
   pastix_complex64_t  * tempval;
-  pastix_complex64_t  * tempval2;
+  pastix_complex64_t  * valptr;
   FILE            * file = fopen(filename, "rb");
   int rc;
 
@@ -163,7 +163,6 @@ readPETSC( const char   *filename,
   tempcol = (int *) malloc((Nnzero)*sizeof(int));
   temprow = (int *) malloc((Nnzero)*sizeof(int));
   tempval = (pastix_complex64_t  *) malloc((Nnzero)*sizeof(pastix_complex64_t));
-  tempval2 = (pastix_complex64_t  *) malloc((Nnzero)*sizeof(pastix_complex64_t));
 
   {
     int * ttrow = temprow;
@@ -230,26 +229,18 @@ readPETSC( const char   *filename,
     if (pos == limit)
       fprintf(stderr, "Erreur de lecture\n");
 
+    valptr=csc->avals+pos;
     csc->rows[pos] = temprow[iter];
-    tempval2[pos] = tempval[iter];
+    *valptr = tempval[iter];
   }
 
-  memcpy(csc->avals, tempval2, Nnzero*sizeof(pastix_complex64_t));
   memFree_null(tempval);
-  memFree_null(tempval2);
   memFree_null(temprow);
   memFree_null(tempcol);
-  csc->n=Ncol;
-  csc->gN=Ncol;
-  csc->dof=Nnzero;
-//   *Type = (char *) malloc(4*sizeof(char));
-//   *RhsType = (char *) malloc(1*sizeof(char));
-//   (*RhsType)[0] = '\0';
-//   (*Type)[0] = 'R';
-  csc->flttype=PastixComplex64;
-//   (*Type)[1] = 'U';
-  csc->mtxtype=PastixGeneral;
-//   (*Type)[2] = 'A';
+  csc->n       = Ncol;
+  csc->gN      = Ncol;
+  csc->flttype = PastixComplex64;
+  csc->mtxtype = PastixGeneral;
   csc->fmttype = PastixCSC;
 
   return;

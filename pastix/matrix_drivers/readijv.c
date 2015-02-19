@@ -51,11 +51,11 @@ threeFilesReadHeader(FILE         *infile,
 
   sscanf(line, "%ld %ld %ld", &temp1,&temp2,&temp3);
   if (temp1!=temp2)
-    {
-      temp2=temp1;
-      fgets(line,BUFSIZ,infile);
-      sscanf(line, "%ld", &temp3);
-    }
+  {
+    temp2=temp1;
+    fgets(line,BUFSIZ,infile);
+    sscanf(line, "%ld", &temp3);
+  }
 
   *Nrow = (pastix_int_t)temp1;
   *Ncol = (pastix_int_t)temp2;
@@ -99,7 +99,7 @@ readIJV( const char   *dirname,
   pastix_int_t Ncol;
   pastix_int_t Nnzero;
   double * tempval;
-  double * values;
+  double * valptr;
   pastix_int_t iter,baseval;
   pastix_int_t tmp,total,pos,limit;
 
@@ -115,35 +115,35 @@ readIJV( const char   *dirname,
   sprintf(filename,"%s/header",dirname);
   headerFile = fopen (filename,"r");
   if (headerFile==NULL)
-    {
-      fprintf(stderr,"cannot load %s\n", filename);
-      exit(-1);
-    }
+  {
+    fprintf(stderr,"cannot load %s\n", filename);
+    exit(-1);
+  }
   threeFilesReadHeader(headerFile,&Nrow,&Ncol,&Nnzero);
   fclose (headerFile);
 
   sprintf(filename,"%s/ia_threeFiles",dirname);
   iaFile = fopen(filename,"r");
   if (iaFile==NULL)
-    {
-      fprintf(stderr,"cannot load %s\n", filename);
-      exit(-1);
-    }
+  {
+    fprintf(stderr,"cannot load %s\n", filename);
+    exit(-1);
+  }
 
   sprintf(filename,"%s/ja_threeFiles",dirname);
   jaFile = fopen(filename,"r");
   if (jaFile==NULL)
-    {
-      fprintf(stderr,"cannot load %s\n", filename);
-      exit(-1);
-    }
+  {
+    fprintf(stderr,"cannot load %s\n", filename);
+    exit(-1);
+  }
   sprintf(filename,"%s/ra_threeFiles",dirname);
   raFile = fopen(filename,"r");
   if (raFile==NULL)
-    {
-      fprintf(stderr,"cannot load %s\n", filename);
-      exit(-1);
-    }
+  {
+    fprintf(stderr,"cannot load %s\n", filename);
+    exit(-1);
+  }
 
   /* Allocation memoire */
   tempcol = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
@@ -151,89 +151,84 @@ readIJV( const char   *dirname,
   tempval = (double *) malloc(Nnzero*sizeof(double));
 
   if ((tempcol==NULL) || (temprow == NULL) || (tempval == NULL))
-    {
-      fprintf(stderr, "threeFilesRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-      exit(-1);
-    }
+  {
+    fprintf(stderr, "threeFilesRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
+    exit(-1);
+  }
 
   /* Remplissage */
   for (iter=0; iter<Nnzero; iter++)
+  {
+    long temp1,temp2;
+    double tempv;
+    if ( 1 != fscanf(iaFile,"%ld\n", &temp1))
     {
-      long temp1,temp2;
-      double tempv;
-      if ( 1 != fscanf(iaFile,"%ld\n", &temp1))
-        {
-          fprintf(stderr, "ERROR: reading matrix\n");
-          exit(1);
-        }
-      temprow[iter]=(pastix_int_t)temp1;
-      if (1 != fscanf(jaFile,"%ld\n", &temp2))
-        {
-          fprintf(stderr, "ERROR: reading matrix\n");
-          exit(1);
-        }
-      tempcol[iter]=(pastix_int_t)temp2;
-      if (1 != fscanf(raFile,"%le\n", &tempv))
-        {
-          fprintf(stderr, "ERROR: reading matrix\n");
-          exit(1);
-        }
-      tempval[iter]= (double)tempv;
+      fprintf(stderr, "ERROR: reading matrix\n");
+      exit(1);
     }
+    temprow[iter]=(pastix_int_t)temp1;
+    if (1 != fscanf(jaFile,"%ld\n", &temp2))
+    {
+      fprintf(stderr, "ERROR: reading matrix\n");
+      exit(1);
+    }
+    tempcol[iter]=(pastix_int_t)temp2;
+    if (1 != fscanf(raFile,"%le\n", &tempv))
+    {
+      fprintf(stderr, "ERROR: reading matrix\n");
+      exit(1);
+    }
+    tempval[iter]= (double)tempv;
+  }
 
   fclose (iaFile);
   fclose (jaFile);
   fclose (raFile);
 
-  csc->colptr = (pastix_int_t *) malloc((Nrow+1)*sizeof(pastix_int_t));
-  memset(csc->colptr,0,(Nrow+1)*sizeof(pastix_int_t));
-  csc->rows = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
-  memset(csc->rows,0,Nnzero*sizeof(pastix_int_t));
+  csc->colptr = (pastix_int_t *) calloc(Nrow+1,sizeof(pastix_int_t));
+  csc->rows = (pastix_int_t *) calloc(Nnzero,sizeof(pastix_int_t));
   csc->avals = (double *) malloc(Nnzero*sizeof(double));
-  values = (double *) malloc(Nnzero*sizeof(double));
   if ((csc->colptr==NULL) || (csc->rows == NULL) || (csc->avals == NULL))
-    {
-      fprintf(stderr, "threeFilesRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-      exit(-1);
-    }
+  {
+    fprintf(stderr, "threeFilesRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
+    exit(-1);
+  }
 
   for (iter = 0; iter < Nnzero; iter ++)
-    {
-      csc->colptr[tempcol[iter]-1]++;
-    }
+  {
+    csc->colptr[tempcol[iter]-1]++;
+  }
 
   baseval=1; /* Attention on base a 1 */
   total = baseval;
 
   for (iter = 0; iter < Ncol+1; iter ++)
-    {
-      tmp = csc->colptr[iter];
-      csc->colptr[iter]=total;
-      total+=tmp;
-    }
+  {
+    tmp = csc->colptr[iter];
+    csc->colptr[iter]=total;
+    total+=tmp;
+  }
 
   for (iter = 0; iter < Nnzero; iter ++)
+  {
+
+    pos = csc->colptr[tempcol[iter]-1]-1;
+    limit = csc->colptr[tempcol[iter]]-1;
+    while(csc->rows[pos] != 0 && pos < limit)
     {
-
-      pos = csc->colptr[tempcol[iter]-1]-1;
-      limit = csc->colptr[tempcol[iter]]-1;
-      while(csc->rows[pos] != 0 && pos < limit)
-        {
-          pos++;
-        }
-      if (pos == limit)
-        fprintf(stderr, "Erreur de lecture\n");
-
-      csc->rows[pos] = temprow[iter];
-      values[pos] = tempval[iter];
+      pos++;
     }
-  memcpy(csc->avals, values, csc->dof*sizeof(double));
+    if (pos == limit)
+      fprintf(stderr, "Erreur de lecture\n");
+
+    valptr=csc->avals+pos;
+    csc->rows[pos] = temprow[iter];
+    *valptr = tempval[iter];
+  }
 
   csc->n=(pastix_int_t)Nrow;
   csc->gN=csc->n;
-  csc->dof=(pastix_int_t)Nnzero;
   csc->fmttype = PastixCSC;
-  memFree_null(values);
   memFree_null(tempval);
   memFree_null(temprow);
   memFree_null(tempcol);

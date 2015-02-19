@@ -157,6 +157,6 @@ genlaplacian( const char    *filename,
   csc->fmttype = PastixCSC;
 	memcpy(*rhs, rhs_temp, csc->n*sizeof(pastix_complex64_t));
   memFree_null(rhs_temp);
-	memcpy(csc->avals, values, csc->dof*sizeof(pastix_complex64_t));
+	memcpy(csc->avals, values, nnzeros*sizeof(pastix_complex64_t));
   memFree_null(values);
 }

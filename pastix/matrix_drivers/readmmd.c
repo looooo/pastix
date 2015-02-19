@@ -46,8 +46,8 @@ readMMD( const char   *filename,
   int * temprow;
   double * tempval_double;
   double complex * tempval_complex;
-  double * values_double;
-  double complex * values_complex;
+  double * valptr_double;
+  double complex * valptr_complex;
   int Nnzero;
   int total;
   int tmp;
@@ -77,18 +77,18 @@ readMMD( const char   *filename,
   fprintf(stdout, "%d files\n", tmpint);
 
   if (size != tmpint)
-    {
-      /* pour l'instant rien. au choix : recreer un nouveau comm mpi, refusionner la csc et la redecouper */
-      if (rank == 0)
-        fprintf(stderr, "Please rerun with %d processors\n", tmpint);
-      exit(EXIT_FAILURE);
-    }
+  {
+    /* pour l'instant rien. au choix : recreer un nouveau comm mpi, refusionner la csc et la redecouper */
+    if (rank == 0)
+      fprintf(stderr, "Please rerun with %d processors\n", tmpint);
+    exit(EXIT_FAILURE);
+  }
 
   for (i = 0; i < rank+1; i++)
-    {
-      fgets(line, BUFSIZ, file);
-      sscanf(line, "%s", my_filename_s);
-    }
+  {
+    fgets(line, BUFSIZ, file);
+    sscanf(line, "%s", my_filename_s);
+  }
   my_filename = (char*)malloc(sizeof(char)*(strlen(filename)+BUFSIZ));
   strcpy(my_filename, filename);
   sprintf(my_filename,"%s/%s", dirname(my_filename), my_filename_s);
@@ -179,21 +179,20 @@ readMMD( const char   *filename,
 
         iter2 = 0;
         column = temp2;
-        while ( iter2 < csc->n &&
-                templ2g[iter2] < column)
+        while ( iter2 < csc->n && templ2g[iter2] < column)
           iter2++;
         if ( !(iter2 < csc->n && (templ2g)[iter2] == column) )
+        {
+          while ( iter2 < csc->n )
           {
-            while ( iter2 < csc->n )
-              {
-                tmp = column;
-                column = (templ2g)[iter2];
-                (templ2g)[iter2] = tmp;
-                iter2++;
-              }
-            (templ2g)[iter2] = column;
-            (csc->n)++;
+            tmp = column;
+            column = (templ2g)[iter2];
+            (templ2g)[iter2] = tmp;
+            iter2++;
           }
+          (templ2g)[iter2] = column;
+          (csc->n)++;
+        }
 
         temprow[iter]=(int)temp1;
         tempcol[iter]=(int)temp2;
@@ -213,21 +212,20 @@ readMMD( const char   *filename,
 
         iter2 = 0;
         column = temp2;
-        while ( iter2 < csc->n &&
-                (templ2g)[iter2] < column)
+        while ( iter2 < csc->n && (templ2g)[iter2] < column)
           iter2++;
         if ( iter2 == csc->n || (templ2g)[iter2] != column )
+        {
+          while ( iter2 < csc->n )
           {
-            while ( iter2 < csc->n )
-              {
-                tmp = (templ2g)[iter2];
-                (templ2g)[iter2] = column;
-                column = tmp;
-                iter2++;
-              }
+            tmp = (templ2g)[iter2];
             (templ2g)[iter2] = column;
-            (csc->n)++;
+            column = tmp;
+            iter2++;
           }
+          (templ2g)[iter2] = column;
+          (csc->n)++;
+        }
 
         temprow[iter]=(int)temp1;
         tempcol[iter]=(int)temp2;
@@ -236,60 +234,56 @@ readMMD( const char   *filename,
     }
   }
 
-  (csc->loc2glob) = (int *) malloc((csc->n)*sizeof(int));
+  csc->loc2glob = (int *) malloc(csc->n*sizeof(int));
   memcpy(csc->loc2glob, templ2g, csc->n*sizeof(int));
   free(templ2g);
-  (csc->colptr) = (int *) malloc((csc->n+1)*sizeof(int));
-  memset(csc->colptr,0,(csc->n +1)*sizeof(int));
-  (csc->rows) = (int *) malloc(Nnzero*sizeof(int));
-  memset(csc->rows,0,Nnzero*sizeof(int));
+  csc->colptr = (int *) calloc(csc->n+1,sizeof(int));
+  csc->rows = (int *) calloc(Nnzero,sizeof(int));
   if (mm_is_complex(matcode))
   {
-    (csc->avals) = (double complex *) malloc(Nnzero*sizeof(double complex));
-    (values_complex) = (double complex *) malloc(Nnzero*sizeof(double complex));
+    csc->avals = (double complex *) malloc(Nnzero*sizeof(double complex));
   }else{
-    (csc->avals) = (double *) malloc(Nnzero*sizeof(double));
-    (values_double) = (double *) malloc(Nnzero*sizeof(double));
+    csc->avals = (double *) malloc(Nnzero*sizeof(double));
   }
 
-  if (((csc->colptr)==NULL) || ((csc->rows) == NULL) || ((csc->avals) == NULL))
-    {
-      fprintf(stderr, "z_MatrixMarketRead : Not enough memory (Nnzero %ld)\n",
-              (long)Nnzero);
-      exit(-1);
-    }
+  if ((csc->colptr==NULL) || (csc->rows == NULL) || (csc->avals == NULL))
+  {
+    fprintf(stderr, "z_MatrixMarketRead : Not enough memory (Nnzero %ld)\n",
+            (long)Nnzero);
+    exit(-1);
+  }
 
   /* Detection de la base */
-  mincol = (csc->loc2glob)[0];
-  maxcol = (csc->loc2glob)[csc->n-1];
+  mincol = csc->loc2glob[0];
+  maxcol = csc->loc2glob[csc->n-1];
   if (sizeof(int) == sizeof(int))
-    {
-      MPI_Allreduce(&mincol, &baseval, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
-      MPI_Allreduce(&maxcol, &csc->gN, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    }
+  {
+    MPI_Allreduce(&mincol, &baseval, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&maxcol, &csc->gN, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+  }
   else
-    {
-      MPI_Allreduce(&mincol, &baseval, 1, MPI_LONG, MPI_MIN, MPI_COMM_WORLD);
-      MPI_Allreduce(&maxcol, &csc->gN, 1, MPI_LONG, MPI_MAX, MPI_COMM_WORLD);
-    }
+  {
+    MPI_Allreduce(&mincol, &baseval, 1, MPI_LONG, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&maxcol, &csc->gN, 1, MPI_LONG, MPI_MAX, MPI_COMM_WORLD);
+  }
   if (baseval == 0)
+  {
+    for(iter=0; iter<Nnzero; iter++)
     {
-      for(iter=0; iter<Nnzero; iter++)
-        {
-          tempcol[iter]++;
-          temprow[iter]++;
-        }
-      for (iter = 0; iter < csc->n; iter++)
-        {
-          (csc->loc2glob)[iter]++;
-        }
+      tempcol[iter]++;
+      temprow[iter]++;
     }
+    for (iter = 0; iter < csc->n; iter++)
+    {
+      csc->loc2glob[iter]++;
+    }
+  }
 
   if (baseval > 1 || baseval < 0)
-    {
-      fprintf(stderr, "Baseval > 1 || baseval < 0\n");
-      exit(1);
-    }
+  {
+    fprintf(stderr, "Baseval > 1 || baseval < 0\n");
+    exit(1);
+  }
   baseval = 1;
   {
     /* Build loc2gloab */
@@ -298,27 +292,27 @@ readMMD( const char   *filename,
     int column;
     for (iter = 0; iter < Nnzero; iter ++)
       {
-        iter2 = 0;
-        column = tempcol[iter];
-        while ( iter2 < inserted_column &&
-                (csc->loc2glob)[iter2] < column)
-          iter2++;
-        if (iter2 < inserted_column && (csc->loc2glob)[iter2] == column)
-          continue;
+      iter2 = 0;
+      column = tempcol[iter];
+      while ( iter2 < inserted_column &&
+              csc->loc2glob[iter2] < column)
+        iter2++;
+      if (iter2 < inserted_column && csc->loc2glob[iter2] == column)
+        continue;
 
-        while ( iter2 < inserted_column )
-          {
-            tmp = column;
-            column = (csc->loc2glob)[iter2];
-            (csc->loc2glob)[iter2] = tmp;
-            iter2++;
-          }
-        (csc->loc2glob)[iter2] = column;
-        inserted_column++;
-        if (inserted_column == csc->n)
-          break;
+      while ( iter2 < inserted_column )
+      {
+        tmp = column;
+        column = csc->loc2glob[iter2];
+        csc->loc2glob[iter2] = tmp;
+        iter2++;
       }
-    assert(inserted_column == csc->n);
+      (csc->loc2glob)[iter2] = column;
+      inserted_column++;
+      if (inserted_column == csc->n)
+        break;
+    }
+  assert(inserted_column == csc->n);
   }
 
   {
@@ -327,55 +321,53 @@ readMMD( const char   *filename,
     for (iter = 0; iter < csc->gN; iter++)
       g2l[iter] = -1;
     for (iter = 0; iter < (csc->n); iter ++)
-      g2l[(csc->loc2glob)[iter]-1] = iter+1;
+      g2l[csc->loc2glob[iter]-1] = iter+1;
   }
 
   for (iter = 0; iter < Nnzero; iter ++)
     {
-      (csc->colptr)[g2l[tempcol[iter]-1]-1]++;
+      csc->colptr[g2l[tempcol[iter]-1]-1]++;
     }
 
   total = baseval;
   for (iter = 0; iter < (csc->n)+1; iter ++)
     {
-      tmp = (csc->colptr)[iter];
-      (csc->colptr)[iter]=total;
+      tmp = csc->colptr[iter];
+      csc->colptr[iter]=total;
       total+=tmp;
     }
 
   for (iter = 0; iter < Nnzero; iter ++)
     {
 
-      pos = (csc->colptr)[g2l[tempcol[iter]-1]-1]-1;
-      limit = (csc->colptr)[g2l[tempcol[iter]-1]]-1;
-      while((csc->rows)[pos] != 0 && pos < limit)
+      pos = csc->colptr[g2l[tempcol[iter]-1]-1]-1;
+      limit = csc->colptr[g2l[tempcol[iter]-1]]-1;
+      while(csc->rows[pos] != 0 && pos < limit)
         {
           pos++;
         }
       if (pos == limit)
         fprintf(stderr, "Read error %ld %ld %ld\n",
-                (long int)(csc->colptr)[g2l[tempcol[iter]-1]-1]-1,
+                (long int)csc->colptr[g2l[tempcol[iter]-1]-1]-1,
                 (long int)pos, (long int)limit);
 
       if (mm_is_complex(matcode))
       {
-        (csc->rows)[pos] = temprow[iter];
-        (values_complex)[pos] = tempval_complex[iter];
+        valptr_complex=csc->avals+pos;
+        csc->rows[pos] = temprow[iter];
+        *valptr_complex = tempval_complex[iter];
       }else{
-        (csc->rows)[pos] = temprow[iter];
-        (values_double)[pos] = tempval_double[iter];
+        valptr_double=csc->avals+pos;
+        csc->rows[pos] = temprow[iter];
+        *valptr_double = tempval_double[iter];
       }
     }
 
   if (mm_is_complex(matcode))
   {
-    memcpy(csc->avals, values_complex, Nnzero*sizeof(double complex));
     memFree_null(tempval_complex);
-    memFree_null(values_complex);
   }else{
-    memcpy(csc->avals, values_double, Nnzero*sizeof(double));
     memFree_null(tempval_double);
-    memFree_null(values_double);
   }
   memFree_null(temprow);
   memFree_null(tempcol);

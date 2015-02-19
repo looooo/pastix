@@ -58,7 +58,6 @@ readHB( const char   *filename,
 
   csc->n = Nrow2;
   csc->gN = csc->n;
-  csc->dof = Nnzero2;
 
 /*   fprintf(stderr,"Matrix in file %s is %ld x %ld, with %ld nonzeros with type %s;\n", */
 /*        filename, (long)*Nrow, (long)*Ncol, (long)*Nnzero, *Type); */
@@ -72,29 +71,29 @@ readHB( const char   *filename,
 
   tmpNrow=(int)csc->n;
   tmpNcol=(int)csc->n;
-  tmpNnzero=(int)csc->dof;
+  tmpNnzero=(int)Nnzero2;
 
 
   csc->colptr=(pastix_int_t*)malloc((csc->n +1)*sizeof(pastix_int_t));
   ASSERT(csc->colptr!=NULL,MOD_SI);
   tmpcol=(int*)malloc((tmpNrow+1)*sizeof(int));
   ASSERT(tmpcol!=NULL,MOD_SI);
-  csc->rows=(pastix_int_t*)malloc(csc->dof*sizeof(pastix_int_t));
+  csc->rows=(pastix_int_t*)malloc(Nnzero2*sizeof(pastix_int_t));
   ASSERT(csc->rows!=NULL,MOD_SI);
   tmprow=(int*)malloc(tmpNnzero*sizeof(int));
   ASSERT(tmprow!=NULL,MOD_SI);
-  csc->avals=(double*)malloc(csc->dof*sizeof(double));
+  csc->avals=(double*)malloc(Nnzero2*sizeof(double));
   ASSERT(csc->avals!=NULL,MOD_SI);
 
   nrhs=0;
-  tmpval = (double*)malloc(csc->dof*sizeof(double));
+  tmpval = (double*)malloc(tmpNnzero*sizeof(double));
 
   ierr = readHB_mat_double(filename, tmpcol, tmprow, tmpval);
   if(ierr == 0) {
     fprintf(stderr, "cannot read matrix (job=2)\n");
   }
 
-  memcpy(csc->avals, tmpval, csc->dof*sizeof(double));
+  memcpy(csc->avals, tmpval, tmpNnzero*sizeof(double));
 //   (*RhsType)[0]='\0';
 
   if (Type[0] == 'C' || Type[0] == 'c')
