@@ -46,6 +46,9 @@
 #define PastixGeneral       111
 #define PastixSymmetric     112
 #define PastixHermitian     113
+#define PastixCSC           111
+#define PastixCSR           112
+#define PastixIJV           113
 
 #define PASTIX_SUCESS  0
 

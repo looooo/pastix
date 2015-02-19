@@ -38,7 +38,7 @@ typedef enum pastix_driver_e {
 
 void pastix_ex_getoptions(int argc, char **argv,
                           pastix_int_t *iparam, double *dparam,
-                          pastix_driver_t *driver, char **filename, int *n);
+                          pastix_driver_t *driver, char **filename );
 
 
 void convertArrayToComplex64( pastix_int_t n, const double *A, void **B );

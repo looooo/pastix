@@ -1,5 +1,5 @@
 /**
- *
+ * 
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -34,15 +34,15 @@
 static inline int
 getfilename(char **filename, char *source, char *defaultname)
 {
-    if (source == NULL || source[0] == '-')
-    {
-        *filename = (char *) malloc((strlen(defaultname)+1)*sizeof(char));
-        strcpy(*filename,defaultname);
-        return 0;
-    }
-    *filename = (char *) malloc((strlen(source)+1)*sizeof(char));
-    strcpy(*filename,source);
-    return 1;
+  if (source == NULL || source[0] == '-')
+  {
+    *filename = (char *) malloc((strlen(defaultname)+1)*sizeof(char));
+    strcpy(*filename,defaultname);
+    return 0;
+  }
+  *filename = (char *) malloc((strlen(source)+1)*sizeof(char));
+  strcpy(*filename,source);
+  return 1;
 }
 
 
@@ -653,39 +653,39 @@ getfilename(char **filename, char *source, char *defaultname)
 static inline void
 pastix_ex_usage(void)
 {
-    fprintf(stderr,
-            "Matrix input (mandatory):\n"
-            " -0 --rsa          : RSA format (use Fortran, only real)\n"
-            " -1 --chb          : CHB format\n"
-            " -2 --ccc          : CCC format\n"
-            " -3 --rcc          : RCC format\n"
-            " -4 --olaf         : OLAF format\n"
-            " -5 --peer         : PEER format\n"
-            " -6 --hb           : HB (double) format\n"
-            " -7 --ijv          : IJV 3 files format\n"
-            " -8 --mm           : Matrix Market format\n"
-            "    --dmm          : Matrix Market distributed format\n"
-            " -9 --lap          : Generate a random 2D Laplacian of specified size\n"
-            "    --fdup         : BRGM (Fabrice Dupros)\n"
-            "    --fdupd        : BRGM (Fabrice Dupros) distributed\n"
-            "    --petsc_s      : PETSc symmetric\n"
-            "    --petsc_h      : PETSc hermitian\n"
-            "    --petsc_u      : PETSc unsymmetric\n"
-            " -G --graph        : SCOTCH Graph file\n"
-            "\n"
-            "Architecture arguments:\n"
-            " -t --threads      : Number of threads\n"
-            " -g --gpus         : Number of gpus\n"
-            "\n"
-            "Optional arguments:\n"
-            " -o --ord                      : Choose between ordering libraries [scotch|ptscotch|metis]\n"
-            " -i --iparm <IPARM_ID> <value> : set an integer parameter\n"
-            " -d --dparm <DPARM_ID> <value> : set a floating parameter\n"
-            "\n"
-            " -v --verbose      : extra verbose output\n"
-            " -h --help         : this message\n"
-            "\n"
-            );
+  fprintf(stderr,
+          "Matrix input (mandatory):\n"
+          " -0 --rsa          : RSA format (use Fortran, only real)\n"
+          " -1 --chb          : CHB format\n"
+          " -2 --ccc          : CCC format\n"
+          " -3 --rcc          : RCC format\n"
+          " -4 --olaf         : OLAF format\n"
+          " -5 --peer         : PEER format\n"
+          " -6 --hb           : HB (double) format\n"
+          " -7 --ijv          : IJV 3 files format\n"
+          " -8 --mm           : Matrix Market format\n"
+          "    --dmm          : Matrix Market distributed format\n"
+          " -9 --lap          : Generate a random 2D Laplacian of specified size\n"
+          "    --fdup         : BRGM (Fabrice Dupros)\n"
+          "    --fdupd        : BRGM (Fabrice Dupros) distributed\n"
+          "    --petsc_s      : PETSc symmetric\n"
+          "    --petsc_h      : PETSc hermitian\n"
+          "    --petsc_u      : PETSc unsymmetric\n"
+          " -G --graph        : SCOTCH Graph file\n"
+          "\n"
+          "Architecture arguments:\n"
+          " -t --threads      : Number of threads\n"
+          " -g --gpus         : Number of gpus\n"
+          "\n"
+          "Optional arguments:\n"
+          " -o --ord                      : Choose between ordering libraries [scotch|ptscotch|metis]\n"
+          " -i --iparm <IPARM_ID> <value> : set an integer parameter\n"
+          " -d --dparm <DPARM_ID> <value> : set a floating parameter\n"
+          "\n"
+          " -v --verbose      : extra verbose output\n"
+          " -h --help         : this message\n"
+          "\n"
+  );
 }
 
 #define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:t:g:o:i:d:v::h"
@@ -693,204 +693,204 @@ pastix_ex_usage(void)
 #if defined(HAVE_GETOPT_LONG)
 static struct option long_options[] =
 {
-    {"0",           required_argument,  0, '0'},
-    {"rsa",         required_argument,  0, '0'},
-    {"1",           required_argument,  0, '1'},
-    {"chb",         required_argument,  0, '1'},
-    {"2",           required_argument,  0, '2'},
-    {"ccc",         required_argument,  0, '2'},
-    {"3",           required_argument,  0, '3'},
-    {"rcc",         required_argument,  0, '3'},
-    {"4",           required_argument,  0, '4'},
-    {"olaf",        required_argument,  0, '4'},
-    {"5",           required_argument,  0, '5'},
-    {"peer",        required_argument,  0, '5'},
-    {"6",           required_argument,  0, '6'},
-    {"hb",          required_argument,  0, '6'},
-    {"7",           required_argument,  0, '7'},
-    {"ijv",         required_argument,  0, '7'},
-    {"8",           required_argument,  0, '8'},
-    {"mm",          required_argument,  0, '8'},
-    {"9",           required_argument,  0, '9'},
-    {"lap",         required_argument,  0, '9'},
-    {"dmm",         required_argument,  0, 'A'},
-    {"fdup",        required_argument,  0, 'B'},
-    {"fdupd",       required_argument,  0, 'C'},
-    {"petsc_s",     required_argument,  0, 'D'},
-    {"petsc_h",     required_argument,  0, 'E'},
-    {"petsc_u",     required_argument,  0, 'F'},
-    {"G",           required_argument,  0, 'G'},
-    {"graph",       required_argument,  0, 'G'},
-
-    {"threads",     required_argument,  0, 't'},
-    {"t",           required_argument,  0, 't'},
-    {"gpus",        required_argument,  0, 'g'},
-    {"g",           required_argument,  0, 'g'},
-
-    {"ord",         required_argument,  0, 'o'},
-    {"o",           required_argument,  0, 'o'},
-    {"iparm",       required_argument,  0, 'i'},
-    {"i",           required_argument,  0, 'i'},
-    {"dparm",       required_argument,  0, 'd'},
-    {"d",           required_argument,  0, 'd'},
-
-    {"verbose",     optional_argument,  0, 'v'},
-    {"v",           optional_argument,  0, 'v'},
-    {"help",        no_argument,        0, 'h'},
-    {"h",           no_argument,        0, 'h'},
-    {0, 0, 0, 0}
+  {"0",           required_argument,  0, '0'},
+  {"rsa",         required_argument,  0, '0'},
+  {"1",           required_argument,  0, '1'},
+  {"chb",         required_argument,  0, '1'},
+  {"2",           required_argument,  0, '2'},
+  {"ccc",         required_argument,  0, '2'},
+  {"3",           required_argument,  0, '3'},
+  {"rcc",         required_argument,  0, '3'},
+  {"4",           required_argument,  0, '4'},
+  {"olaf",        required_argument,  0, '4'},
+  {"5",           required_argument,  0, '5'},
+  {"peer",        required_argument,  0, '5'},
+  {"6",           required_argument,  0, '6'},
+  {"hb",          required_argument,  0, '6'},
+  {"7",           required_argument,  0, '7'},
+  {"ijv",         required_argument,  0, '7'},
+  {"8",           required_argument,  0, '8'},
+  {"mm",          required_argument,  0, '8'},
+  {"9",           required_argument,  0, '9'},
+  {"lap",         required_argument,  0, '9'},
+  {"dmm",         required_argument,  0, 'A'},
+  {"fdup",        required_argument,  0, 'B'},
+  {"fdupd",       required_argument,  0, 'C'},
+  {"petsc_s",     required_argument,  0, 'D'},
+  {"petsc_h",     required_argument,  0, 'E'},
+  {"petsc_u",     required_argument,  0, 'F'},
+  {"G",           required_argument,  0, 'G'},
+  {"graph",       required_argument,  0, 'G'},
+  
+  {"threads",     required_argument,  0, 't'},
+  {"t",           required_argument,  0, 't'},
+  {"gpus",        required_argument,  0, 'g'},
+  {"g",           required_argument,  0, 'g'},
+  
+  {"ord",         required_argument,  0, 'o'},
+  {"o",           required_argument,  0, 'o'},
+  {"iparm",       required_argument,  0, 'i'},
+  {"i",           required_argument,  0, 'i'},
+  {"dparm",       required_argument,  0, 'd'},
+  {"d",           required_argument,  0, 'd'},
+  
+  {"verbose",     optional_argument,  0, 'v'},
+  {"v",           optional_argument,  0, 'v'},
+  {"help",        no_argument,        0, 'h'},
+  {"h",           no_argument,        0, 'h'},
+  {0, 0, 0, 0}
 };
 #endif  /* defined(HAVE_GETOPT_LONG) */
 
 void pastix_ex_getoptions(int argc, char **argv,
                           pastix_int_t *iparam, double *dparam,
-                          pastix_driver_t *driver, char **filename, int *n)
+                          pastix_driver_t *driver, char **filename )
 {
-    int opt = 0;
-    int c;
-
-    if (argc == 1) {
-        pastix_ex_usage(); exit(0);
-    }
-
-    do
+  int opt = 0;
+  int c;
+  
+  if (argc == 1) {
+    pastix_ex_usage(); exit(0);
+  }
+  
+  do
+  {
+    #if defined(HAVE_GETOPT_LONG)
+    c = getopt_long_only(argc, argv, "",
+                         long_options, &opt);
+    #else
+    c = getopt(argc, argv, GETOPT_STRING);
+    (void) opt;
+    #endif  /* defined(HAVE_GETOPT_LONG) */
+    
+    //       printf("%c: %s = %s\n", c, long_options[opt].name, optarg);
+    switch(c)
     {
-#if defined(HAVE_GETOPT_LONG)
-        c = getopt_long_only(argc, argv, "",
-                        long_options, &opt);
-#else
-        c = getopt(argc, argv, GETOPT_STRING);
-        (void) opt;
-#endif  /* defined(HAVE_GETOPT_LONG) */
-
-        //       printf("%c: %s = %s\n", c, long_options[opt].name, optarg);
-        switch(c)
+      case '0':
+        *driver = PastixDriverRSA;
+        getfilename( filename, optarg, "rsaname" );
+        break;
+        
+      case '1':
+        *driver = PastixDriverCHB;
+        getfilename( filename, optarg, "chbname" );
+        break;
+        
+      case '2':
+        *driver = PastixDriverCCC;
+        getfilename( filename, optarg, "cccname" );
+        break;
+        
+      case '3':
+        *driver = PastixDriverRCC;
+        getfilename( filename, optarg, "rccname" );
+        break;
+        
+      case '4':
+        *driver = PastixDriverOlaf;
+        getfilename( filename, optarg, "olafname" );
+        break;
+        
+      case '5':
+        *driver = PastixDriverPeer;
+        getfilename( filename, optarg, "peername" );
+        break;
+        
+      case '6':
+        *driver = PastixDriverHB;
+        getfilename( filename, optarg, "hbname" );
+        break;
+        
+      case '7':
+        *driver = PastixDriverIJV;
+        getfilename( filename, optarg, "ijvname" );
+        break;
+        
+      case '8':
+        *driver = PastixDriverMM;
+        getfilename( filename, optarg, "mmname" );
+        break;
+        
+      case '9':
+        *driver = PastixDriverLaplacian;
+        getfilename( filename, optarg, "d:1000" );
+        break;
+        
+      case 'A':
+        *driver = PastixDriverDMM;
+        getfilename( filename, optarg, "dmmname" );
+        break;
+        
+      case 'B':
+        *driver = PastixDriverBRGM;
+        getfilename( filename, optarg, "brgmname" );
+        break;
+        
+      case 'C':
+        *driver = PastixDriverBRGMD;
+        getfilename( filename, optarg, "brgmdname" );
+        break;
+        
+      case 'D':
+        *driver = PastixDriverPetscS;
+        getfilename( filename, optarg, "petscname" );
+        break;
+        
+      case 'E':
+        *driver = PastixDriverPetscH;
+        getfilename( filename, optarg, "petscname" );
+        break;
+        
+      case 'F':
+        *driver = PastixDriverPetscU;
+        getfilename( filename, optarg, "petscname" );
+        break;
+        
+      case 'G':
+        *driver = PastixDriverGraph;
+        getfilename( filename, optarg, "graphname" );
+        break;
+        
+      case 't': iparam[IPARM_THREAD_NBR] = atoi(optarg); break;
+      case 'g': iparam[IPARM_GPUS_NBR] = atoi(optarg); break;
+      
+      case 'o':
+        if (strcmp(optarg, "scotch") == 0)
         {
-        case '0':
-            *driver = PastixDriverRSA;
-            getfilename( filename, optarg, "rsaname" );
-            break;
-
-        case '1':
-            *driver = PastixDriverCHB;
-            getfilename( filename, optarg, "chbname" );
-            break;
-
-        case '2':
-            *driver = PastixDriverCCC;
-            getfilename( filename, optarg, "cccname" );
-            break;
-
-        case '3':
-            *driver = PastixDriverRCC;
-            getfilename( filename, optarg, "rccname" );
-            break;
-
-        case '4':
-            *driver = PastixDriverOlaf;
-            getfilename( filename, optarg, "olafname" );
-            break;
-
-        case '5':
-            *driver = PastixDriverPeer;
-            getfilename( filename, optarg, "peername" );
-            break;
-
-        case '6':
-            *driver = PastixDriverHB;
-            getfilename( filename, optarg, "hbname" );
-            break;
-
-        case '7':
-            *driver = PastixDriverIJV;
-            getfilename( filename, optarg, "ijvname" );
-            break;
-
-        case '8':
-            *driver = PastixDriverMM;
-            getfilename( filename, optarg, "mmname" );
-            break;
-
-        case '9':
-            *driver = PastixDriverLaplacian;
-						*n=atoi(optarg);
-            break;
-
-        case 'A':
-            *driver = PastixDriverDMM;
-            getfilename( filename, optarg, "dmmname" );
-            break;
-
-        case 'B':
-            *driver = PastixDriverBRGM;
-            getfilename( filename, optarg, "brgmname" );
-            break;
-
-        case 'C':
-            *driver = PastixDriverBRGMD;
-            getfilename( filename, optarg, "brgmdname" );
-            break;
-
-        case 'D':
-            *driver = PastixDriverPetscS;
-            getfilename( filename, optarg, "petscname" );
-            break;
-
-        case 'E':
-            *driver = PastixDriverPetscH;
-            getfilename( filename, optarg, "petscname" );
-            break;
-
-        case 'F':
-            *driver = PastixDriverPetscU;
-            getfilename( filename, optarg, "petscname" );
-            break;
-
-        case 'G':
-            *driver = PastixDriverGraph;
-            getfilename( filename, optarg, "graphname" );
-            break;
-
-        case 't': iparam[IPARM_THREAD_NBR] = atoi(optarg); break;
-        case 'g': iparam[IPARM_GPUS_NBR] = atoi(optarg); break;
-
-        case 'o':
-            if (strcmp(optarg, "scotch") == 0)
-            {
-                iparam[IPARM_ORDERING] = API_ORDER_SCOTCH;
-            }
-            else if (strcmp(optarg, "metis") == 0)
-            {
-                iparam[IPARM_ORDERING] = API_ORDER_METIS;
-            }
-            else if (strcmp(optarg, "ptscotch") == 0)
-            {
-                iparam[IPARM_ORDERING] = API_ORDER_PTSCOTCH;
-            }
-            else {
-                fprintf(stderr, "Wrong values (ord=%s)!!!\nPossible values for ordering are: scotch, metis and ptscotch (Default scotch is chosen)\n", optarg);
-            }
-            break;
-
-        case 'i':
-            break;
-        case 'd':
-            break;
-
-        case 'v':
-            if(optarg)  iparam[IPARM_VERBOSE] = atoi(optarg);
-            else        iparam[IPARM_VERBOSE] = 2;
-            break;
-
-        case 'h': pastix_ex_usage(); exit(0);
-
-        case '?': /* getopt_long already printed an error message. */
-            exit(1);
-        default:
-            break;
+          iparam[IPARM_ORDERING] = API_ORDER_SCOTCH;
         }
-    } while(-1 != c);
-
-    //    int verbose = iparam[IPARM_VERBOSE];
+        else if (strcmp(optarg, "metis") == 0)
+        {
+          iparam[IPARM_ORDERING] = API_ORDER_METIS;
+        }
+        else if (strcmp(optarg, "ptscotch") == 0)
+        {
+          iparam[IPARM_ORDERING] = API_ORDER_PTSCOTCH;
+        }
+        else {
+          fprintf(stderr, "Wrong values (ord=%s)!!!\nPossible values for ordering are: scotch, metis and ptscotch (Default scotch is chosen)\n", optarg);
+        }
+        break;
+        
+      case 'i':
+        break;
+      case 'd':
+        break;
+        
+      case 'v':
+        if(optarg)  iparam[IPARM_VERBOSE] = atoi(optarg);
+        else        iparam[IPARM_VERBOSE] = 2;
+        break;
+        
+      case 'h': pastix_ex_usage(); exit(0);
+      
+      case '?': /* getopt_long already printed an error message. */
+        exit(1);
+      default:
+        break;
+    }
+  } while(-1 != c);
+  
+  //    int verbose = iparam[IPARM_VERBOSE];
 }
 

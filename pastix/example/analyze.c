@@ -17,10 +17,6 @@
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
 
-#ifdef FORCE_NOMPI
-#define MPI_COMM_WORLD 0
-#endif
-
 int main (int argc, char **argv)
 {
     pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
@@ -92,15 +88,15 @@ int main (int argc, char **argv)
      */
     pastix_ex_getoptions( argc, argv,
                           iparm, dparm,
-                          &driver, &filename , &csc.n);
-		
+                          &driver, &filename );
+
     cscReadFromFile( driver, filename, &csc, &rhs, MPI_COMM_WORLD );
     free(filename);
 
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
-    pastix_task_sopalin( pastix_data, &csc );
+    //pastix_task_sopalin( pastix_data, &csc );
 
     //cscExit( csc );
     free(csc.colptr);

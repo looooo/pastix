@@ -15,8 +15,6 @@
 #include "common.h"
 #include "drivers.h"
 #include "mmio.h"
-
-#define MIN(x,y) (((x)<(y))?(x):(y))
 /**
  * ******************************************************************************
  *
@@ -31,26 +29,17 @@
  * @param[in] filename
  *          The file containing the matrix.
  *
- * @param[out] Nrow
- *          At exit, contains the number of rows of the matrix.
- *
- * @param[out] Ncol
- *          At exit, contains the number of columns of the matrix.
- *
- * @param[out] Nnzero
- *          At exit, contains the number of non zero entries of the matrix.
- *
- * @param[out] Type
- *          At exit, contains the type of the matrix.
+ * @param[in] csc
+ *          At exit, contains the matrix in csc format.
  *
  *******************************************************************************/
 
 void
 readMMD( const char   *filename,
-				 pastix_csc_t *csc )
+          pastix_csc_t *csc )
 {
 
-	char    Type[4];
+  char    Type[4];
   FILE * file;
   int * tempcol, *g2l, *templ2g;
   int iter, iter2, baseval, mincol, maxcol;
@@ -117,29 +106,29 @@ readMMD( const char   *filename,
     fprintf(stderr,"Could not process Matrix Market banner.\n");
     exit(1);
   }
-	
-	if (mm_is_complex(matcode))
-	{
-		Type[0] = 'C';
-		csc->flttype=PastixComplex64;
-	}else{
-		Type[0] = 'R';
-		csc->flttype=PastixDouble;
-	}
-	
-	Type[1] = 'U';
-	csc->mtxtype=PastixGeneral;
-	if (mm_is_symmetric(matcode))
-	{
-		Type[1] = 'S';
-		csc->mtxtype=PastixSymmetric;
-	}else{
-		if (mm_is_hermitian(matcode))
-		{
-			Type[1] = 'H';
-			csc->mtxtype=PastixHermitian;
-		}
-	}
+
+  if (mm_is_complex(matcode))
+  {
+    Type[0] = 'C';
+    csc->flttype=PastixComplex64;
+  }else{
+    Type[0] = 'R';
+    csc->flttype=PastixDouble;
+  }
+
+  Type[1] = 'U';
+  csc->mtxtype=PastixGeneral;
+  if (mm_is_symmetric(matcode))
+  {
+    Type[1] = 'S';
+    csc->mtxtype=PastixSymmetric;
+  }else{
+    if (mm_is_hermitian(matcode))
+    {
+      Type[1] = 'H';
+      csc->mtxtype=PastixHermitian;
+    }
+  }
   Type[2] = 'A';
   Type[3] = '\0';
   /* find out size of sparse matrix .... */
@@ -154,22 +143,22 @@ readMMD( const char   *filename,
   tempcol = (int *) malloc(Nnzero*sizeof(int));
   templ2g = (int *) malloc(Nnzero*sizeof(int));
   temprow = (int *) malloc(Nnzero*sizeof(int));
-	if (mm_is_complex(matcode))
-	{
+  if (mm_is_complex(matcode))
+  {
     tempval_complex = (double complex *) malloc(Nnzero*sizeof(double complex));
-		if ((tempcol==NULL) || (temprow == NULL) || (tempval_complex == NULL))
-		{
-			fprintf(stderr, "MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-			exit(-1);
-		}
-	}else{
-		tempval_double = (double *) malloc(Nnzero*sizeof(double));
-		if ((tempcol==NULL) || (temprow == NULL) || (tempval_double == NULL))
-		{
-			fprintf(stderr, "MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-			exit(-1);
-		}
-	}
+    if ((tempcol==NULL) || (temprow == NULL) || (tempval_complex == NULL))
+    {
+      fprintf(stderr, "MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
+      exit(-1);
+    }
+  }else{
+    tempval_double = (double *) malloc(Nnzero*sizeof(double));
+    if ((tempcol==NULL) || (temprow == NULL) || (tempval_double == NULL))
+    {
+      fprintf(stderr, "MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
+      exit(-1);
+    }
+  }
 
 
   /* Remplissage */
@@ -254,14 +243,14 @@ readMMD( const char   *filename,
   memset(csc->colptr,0,(csc->n +1)*sizeof(int));
   (csc->rows) = (int *) malloc(Nnzero*sizeof(int));
   memset(csc->rows,0,Nnzero*sizeof(int));
-	if (mm_is_complex(matcode))
-	{
-		(csc->avals) = (double complex *) malloc(Nnzero*sizeof(double complex));
-		(values_complex) = (double complex *) malloc(Nnzero*sizeof(double complex));
-	}else{
-		(csc->avals) = (double *) malloc(Nnzero*sizeof(double));
-		(values_double) = (double *) malloc(Nnzero*sizeof(double));
-	}
+  if (mm_is_complex(matcode))
+  {
+    (csc->avals) = (double complex *) malloc(Nnzero*sizeof(double complex));
+    (values_complex) = (double complex *) malloc(Nnzero*sizeof(double complex));
+  }else{
+    (csc->avals) = (double *) malloc(Nnzero*sizeof(double));
+    (values_double) = (double *) malloc(Nnzero*sizeof(double));
+  }
 
   if (((csc->colptr)==NULL) || ((csc->rows) == NULL) || ((csc->avals) == NULL))
     {
@@ -364,32 +353,33 @@ readMMD( const char   *filename,
           pos++;
         }
       if (pos == limit)
-        fprintf(stderr, "Erreur de lecture %ld %ld %ld\n",
+        fprintf(stderr, "Read error %ld %ld %ld\n",
                 (long int)(csc->colptr)[g2l[tempcol[iter]-1]-1]-1,
                 (long int)pos, (long int)limit);
 
-			if (mm_is_complex(matcode))
-			{
-				(csc->rows)[pos] = temprow[iter];
-				(values_complex)[pos] = tempval_complex[iter];
-			}else{
-				(csc->rows)[pos] = temprow[iter];
-				(values_double)[pos] = tempval_double[iter];
-			}
+      if (mm_is_complex(matcode))
+      {
+        (csc->rows)[pos] = temprow[iter];
+        (values_complex)[pos] = tempval_complex[iter];
+      }else{
+        (csc->rows)[pos] = temprow[iter];
+        (values_double)[pos] = tempval_double[iter];
+      }
     }
 
-	if (mm_is_complex(matcode))
-	{
-		memcpy(csc->avals, values_complex, Nnzero*sizeof(double complex));
-		memFree_null(tempval_complex);
-		memFree_null(values_complex);
-	}else{
-		memcpy(csc->avals, values_double, Nnzero*sizeof(double));
-		memFree_null(tempval_double);
-		memFree_null(values_double);
-	}
+  if (mm_is_complex(matcode))
+  {
+    memcpy(csc->avals, values_complex, Nnzero*sizeof(double complex));
+    memFree_null(tempval_complex);
+    memFree_null(values_complex);
+  }else{
+    memcpy(csc->avals, values_double, Nnzero*sizeof(double));
+    memFree_null(tempval_double);
+    memFree_null(values_double);
+  }
   memFree_null(temprow);
   memFree_null(tempcol);
 
+  csc->fmttype = PastixCSC;
   free(my_filename);
 }

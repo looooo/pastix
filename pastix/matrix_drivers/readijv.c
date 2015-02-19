@@ -85,7 +85,7 @@ threeFilesReadHeader(FILE         *infile,
  *******************************************************************************/
 void
 readIJV( const char   *dirname,
-						  pastix_csc_t *csc )
+         pastix_csc_t *csc )
 {
 
   FILE * iaFile;
@@ -105,9 +105,9 @@ readIJV( const char   *dirname,
 
   filename = malloc(strlen(dirname)+10);
 
-	csc->flttype = PastixDouble;
-	csc->mtxtype = PastixGeneral;
-	
+  csc->flttype = PastixDouble;
+  csc->mtxtype = PastixGeneral;
+
 #ifdef TYPE_COMPLEX
   fprintf(stderr, "\nWARNING: This drivers reads non complex matrices, imaginary part will be 0\n\n");
 #endif
@@ -227,11 +227,12 @@ readIJV( const char   *dirname,
       csc->rows[pos] = temprow[iter];
       values[pos] = tempval[iter];
     }
-	memcpy(csc->avals, values, csc->dof*sizeof(double));
+  memcpy(csc->avals, values, csc->dof*sizeof(double));
 
   csc->n=(pastix_int_t)Nrow;
   csc->gN=csc->n;
   csc->dof=(pastix_int_t)Nnzero;
+  csc->fmttype = PastixCSC;
   memFree_null(values);
   memFree_null(tempval);
   memFree_null(temprow);

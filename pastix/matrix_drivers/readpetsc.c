@@ -34,8 +34,8 @@ pastix_complex64_t swap_indians_pastix_float_t(pastix_complex64_t d)
     size_t i;
     union
     {
-	pastix_complex64_t value;
-	char bytes[sizeof(pastix_complex64_t)];
+  pastix_complex64_t value;
+  char bytes[sizeof(pastix_complex64_t)];
     } in, out;
     in.value = d;
     for (i = 0; i < sizeof(pastix_complex64_t); i++)
@@ -50,12 +50,12 @@ int swap_indians_int2(int d)
     size_t i;
     union
     {
-	int value;
-	char bytes[sizeof(int)];
+  int value;
+  char bytes[sizeof(int)];
     } in, out;
     in.value = d;
     for (i = 0; i < sizeof(int); i++)
-	out.bytes[i] = in.bytes[sizeof(int)-1-i];
+  out.bytes[i] = in.bytes[sizeof(int)-1-i];
 
     return out.value;
 }
@@ -75,21 +75,15 @@ int swap_indians_int2(int d)
  *******************************************************************************
  *
  * @param[in] file
- *          The file opened in readMM which contains the matrix stored in Matrix Market format.
+ *          The file which contains the matrix stored in PETSc binary format.
  *
- * @param[out] Ncol
- *          At exit, contains the number of columns of the matrix.
- *
- * @param[out] Nnzero
- *          At exit, contains the number of non zero entries of the matrix.
- *
- * @param[out] Values
- *          At exit, contains the values of non zero entries of the matrix.
+ * @param[out] csc
+ *          At exit, contains the the matrix in csc format.
  *
  *******************************************************************************/
 void
 readPETSC( const char   *filename,
-								pastix_csc_t *csc )
+           pastix_csc_t *csc )
 {
   char           *  buffer;
   int            *  intbuff;
@@ -151,8 +145,8 @@ readPETSC( const char   *filename,
   if (fileLen*sizeof(char) != (4+(Nrow)+(Nnzero))*sizeof(int)+(Nnzero)*sizeof(pastix_complex64_t))
   {
     fprintf(stderr, "Error in z_PETScRead : Incorrect size of file (%ld != %ld) \n",
-	    (long)(fileLen*sizeof(char)),
-	    (long)(1*sizeof(char)+(3+(Nrow)+(Nnzero))*sizeof(int)+(Nnzero)*sizeof(pastix_complex64_t)));
+      (long)(fileLen*sizeof(char)),
+      (long)(1*sizeof(char)+(3+(Nrow)+(Nnzero))*sizeof(int)+(Nnzero)*sizeof(pastix_complex64_t)));
     exit(-1);
   }
   if (Nnzero == -1)
@@ -178,7 +172,7 @@ readPETSC( const char   *filename,
     {
       rowsize = SWAP_INDIANS(*(intbuff++));
       for (j = 0; j < rowsize; j++)
-	*(ttrow++) = i;
+        *(ttrow++) = i;
     }
   }
   for (i = 0; i < Nnzero; i++)
@@ -240,7 +234,7 @@ readPETSC( const char   *filename,
     tempval2[pos] = tempval[iter];
   }
 
-	memcpy(csc->avals, tempval2, Nnzero*sizeof(pastix_complex64_t));
+  memcpy(csc->avals, tempval2, Nnzero*sizeof(pastix_complex64_t));
   memFree_null(tempval);
   memFree_null(tempval2);
   memFree_null(temprow);
@@ -252,10 +246,11 @@ readPETSC( const char   *filename,
 //   *RhsType = (char *) malloc(1*sizeof(char));
 //   (*RhsType)[0] = '\0';
 //   (*Type)[0] = 'R';
-	csc->flttype=PastixComplex64;
+  csc->flttype=PastixComplex64;
 //   (*Type)[1] = 'U';
-	csc->mtxtype=PastixGeneral;
+  csc->mtxtype=PastixGeneral;
 //   (*Type)[2] = 'A';
+  csc->fmttype = PastixCSC;
 
   return;
 }

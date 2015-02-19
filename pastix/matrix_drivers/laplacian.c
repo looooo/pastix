@@ -34,14 +34,21 @@
  *
  *******************************************************************************
  *
+ * @param[in] filename
+ *          Path to the directory containing matrix.
+ * 
  * @param[in] csc
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
+ * 
+ * @param[in] rhs
+ *          At exit, contains the right hand side member.
  *
  *******************************************************************************/
 void
-genlaplacian(pastix_csc_t *csc
-                 , void **rhs )
+genlaplacian( const char    *filename,
+              pastix_csc_t  *csc,
+              void         **rhs )
 {
 
   pastix_int_t i;
@@ -147,6 +154,7 @@ genlaplacian(pastix_csc_t *csc
 // #endif
 //   sprintf (*rhstype,"???");
   csc->mtxtype = PastixSymmetric;
+  csc->fmttype = PastixCSC;
 	memcpy(*rhs, rhs_temp, csc->n*sizeof(pastix_complex64_t));
   memFree_null(rhs_temp);
 	memcpy(csc->avals, values, csc->dof*sizeof(pastix_complex64_t));

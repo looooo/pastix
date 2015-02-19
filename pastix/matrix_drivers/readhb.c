@@ -28,26 +28,14 @@
  * @param[in] filename
  *          The file containing the matrix.
  *
- * @param[out] Nrow
- *          At exit, contains the number of rows of the matrix.
- *
- * @param[out] Ncol
- *          At exit, contains the number of columns of the matrix.
- *
- * @param[out] Nnzero
- *          At exit, contains the number of non zero entries of the matrix.
- *
- * @param[out] Values
- *          At exit, contains the values of non zero entries of the matrix.
- *
- * @param[out] Type
- *          At exit, contains the type of the matrix.
+ * @param[in] csc
+ *          At exit, contains the matrix in csc format.
  *
  *******************************************************************************/
 
 void
 readHB( const char   *filename,
-						 pastix_csc_t *csc )
+        pastix_csc_t *csc )
 {
   int      i;
   int      nrhs;
@@ -59,7 +47,7 @@ readHB( const char   *filename,
   int      Nrow2;
   int      Ncol2;
   int      Nnzero2;
-	char    *Type;
+  char    *Type;
 #define dbl dou ## ble
   dbl  *tmpval; /* hack to avoid redefinition of double... */
   int      ierr;
@@ -106,31 +94,31 @@ readHB( const char   *filename,
     fprintf(stderr, "cannot read matrix (job=2)\n");
   }
 
-	memcpy(csc->avals, tmpval, csc->dof*sizeof(double));
+  memcpy(csc->avals, tmpval, csc->dof*sizeof(double));
 //   (*RhsType)[0]='\0';
 
-	if (Type[0] == 'C' || Type[0] == 'c')
-	{
-		csc->flttype=PastixComplex64;
-	}else{
-		csc->flttype=PastixDouble;
-	}
-	
-	if (Type[1] == 'S' || Type[1] == 's')
-	{
-		csc->mtxtype=PastixSymmetric;
-	}else if(Type[1] == 'H' || Type[1] == 'h')
-	{
-		csc->mtxtype=PastixHermitian;
-	}else if(Type[1] == 'U' || Type[1] == 'u')
-	{
-		csc->mtxtype=PastixGeneral;
-	}
+  if (Type[0] == 'C' || Type[0] == 'c')
+  {
+    csc->flttype=PastixComplex64;
+  }else{
+    csc->flttype=PastixDouble;
+  }
+
+  if (Type[1] == 'S' || Type[1] == 's')
+  {
+    csc->mtxtype=PastixSymmetric;
+  }else if(Type[1] == 'H' || Type[1] == 'h')
+  {
+    csc->mtxtype=PastixHermitian;
+  }else if(Type[1] == 'U' || Type[1] == 'u')
+  {
+    csc->mtxtype=PastixGeneral;
+  }
   for (i=0;i<tmpNrow+1;i++) (csc->colptr)[i]=(pastix_int_t)(tmpcol[i]);
   for (i=0;i<tmpNnzero;i++) (csc->rows)[i]=(pastix_int_t)(tmprow[i]);
   memFree_null(tmpcol);
   memFree_null(tmprow);
   csc->n=(pastix_int_t)tmpNrow;
   csc->gN=(pastix_int_t)tmpNcol;
-  csc->dof=(pastix_int_t)tmpNnzero;
+  csc->fmttype = PastixCSC;
 }

@@ -37,9 +37,9 @@
  *******************************************************************************/
 void
 readCSCD( const char          *dirname,
-				  pastix_csc_t        *csc,
-	        void               **rhs,
-	        MPI_Comm             pastix_comm)
+          pastix_csc_t        *csc,
+          void               **rhs,
+          MPI_Comm             pastix_comm )
 {
   const int          nbreltperline = 4; /* nbr of elt per line */
   FILE              *infile;
@@ -48,7 +48,7 @@ readCSCD( const char          *dirname,
   long               tempint1,   tempint2,   tempint3,   tempint4;
   double             tempfloat1, tempfloat2, tempfloat3, tempfloat4;
   double            *rhs_temp    = NULL;
-	double            *values      = NULL;
+  double            *values      = NULL;
   int                vertloc, edgeloc;
   int                iterelt;
   int               *vectsize    = NULL;
@@ -69,21 +69,21 @@ readCSCD( const char          *dirname,
     {
       infile = fopen(filename, "r");
       if (infile==NULL)
-	{
-	  fprintf(stderr,"cannot load %s\n", filename);
-	  exit(EXIT_FAILURE);
-	}
+  {
+    fprintf(stderr,"cannot load %s\n", filename);
+    exit(EXIT_FAILURE);
+  }
       fgets(line, BUFSIZ, infile);
       sscanf(line, "%d", &tmpint); /* Read number of filename */
       fprintf(stdout, "Nombre de fichier %d\n", tmpint);
       fclose(infile);
 
       if (nbproc != tmpint)
-	{
-	  if (myrank == 0)
-	    fprintf(stderr, "Veuillez fournir un communicateur MPI de %d processus\nActuellement, le communicateur contient %d processus\n", tmpint, nbproc);
-	  exit(EXIT_FAILURE);
-	}
+  {
+    if (myrank == 0)
+      fprintf(stderr, "Veuillez fournir un communicateur MPI de %d processus\nActuellement, le communicateur contient %d processus\n", tmpint, nbproc);
+    exit(EXIT_FAILURE);
+  }
     }
 
   infile = fopen(filename, "r");
@@ -143,7 +143,7 @@ readCSCD( const char          *dirname,
     {
       fgets(line,BUFSIZ,infile);
       sscanf(line,"%ld %ld %ld %ld",
-	     &tempint1, &tempint2, &tempint3, &tempint4);
+       &tempint1, &tempint2, &tempint3, &tempint4);
       (csc->loc2glob)[iterelt]   = (int)tempint1;
       (csc->loc2glob)[iterelt+1] = (int)tempint2;
       (csc->loc2glob)[iterelt+2] = (int)tempint3;
@@ -181,10 +181,10 @@ readCSCD( const char          *dirname,
     {
       fgets(line,BUFSIZ,infile);
       if (4 != sscanf(line,"%ld %ld %ld %ld", &tempint1, &tempint2, &tempint3, &tempint4))
-	{
-	  fprintf(stderr, "ERROR: reading colptr\n");
-	  exit(1);
-	}
+  {
+    fprintf(stderr, "ERROR: reading colptr\n");
+    exit(1);
+  }
       (csc->colptr)[iterelt]   = (int)tempint1;
       (csc->colptr)[iterelt+1] = (int)tempint2;
       (csc->colptr)[iterelt+2] = (int)tempint3;
@@ -196,20 +196,20 @@ readCSCD( const char          *dirname,
     case 1:
       fgets(line,BUFSIZ,infile);
       if (1 != sscanf(line,"%ld",&tempint1))
-	{
-	  fprintf(stderr, "ERROR: reading colptr\n");
-	  exit(1);
-	}
+  {
+    fprintf(stderr, "ERROR: reading colptr\n");
+    exit(1);
+  }
       (csc->colptr)[iterelt] += (int)tempint1;
       iterelt++;
       break;
     case 2:
       fgets(line,BUFSIZ,infile);
       if (2 != sscanf(line,"%ld %ld", &tempint1, &tempint2))
-	{
-	  fprintf(stderr, "ERROR: reading colptr\n");
-	  exit(1);
-	}
+  {
+    fprintf(stderr, "ERROR: reading colptr\n");
+    exit(1);
+  }
       (csc->colptr)[iterelt]   = (int)tempint1;
       (csc->colptr)[iterelt+1] = (int)tempint2;
       iterelt+=2;
@@ -217,10 +217,10 @@ readCSCD( const char          *dirname,
     case 3:
       fgets(line,BUFSIZ,infile);
       if (3 != sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3))
-	{
-	  fprintf(stderr, "ERROR: reading colptr\n");
-	  exit(1);
-	}
+  {
+    fprintf(stderr, "ERROR: reading colptr\n");
+    exit(1);
+  }
       (csc->colptr)[iterelt]   = (int)tempint1;
       (csc->colptr)[iterelt+1] = (int)tempint2;
       (csc->colptr)[iterelt+2] = (int)tempint3;
@@ -354,13 +354,14 @@ readCSCD( const char          *dirname,
       break;
     }
 
-	memcpy(csc->avals, values, edgeloc*sizeof(double));
+  memcpy(csc->avals, values, edgeloc*sizeof(double));
   memFree_null(values);
-	memcpy(*rhs, rhs_temp, vertloc*sizeof(double));
+  memcpy(*rhs, rhs_temp, vertloc*sizeof(double));
   memFree_null(rhs_temp);
   csc->n = vertloc;
   csc->flttype = PastixDouble;
   csc->mtxtype = PastixGeneral;
+  csc->fmttype = PastixCSC;
   fclose(infile);
   free(filename);
   free(vectsize);

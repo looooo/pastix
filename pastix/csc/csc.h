@@ -21,8 +21,9 @@
  * @struct pastix_csc_s - Csc structure.
  */
 struct pastix_csc_s {
-    int           mtxtype;   /*> Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.           */
+    int           mtxtype;   /*> Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.          */
     int           flttype;   /*> avals datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    int           fmttype;   /*> Matrix storage format: PastixCSC, PastixCSR, PastixIJV */
     pastix_int_t  gN;        /*< Global number of vertices                    */
     pastix_int_t  n;         /*< Number of local vertices                     */
     pastix_int_t  dof;       /*< Number of degree of freedom                  */
