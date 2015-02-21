@@ -15,8 +15,9 @@
 #include "common.h"
 #include "drivers.h"
 #include "pastix.h"
+
 /**
- * ******************************************************************************
+ *******************************************************************************
  *
  * @ingroup pastix_csc_driver
  *
@@ -37,29 +38,25 @@
  *          At exit, contains the number of non zero entries of the matrix.
  *
  *******************************************************************************/
-void
+int
 threeFilesReadHeader(FILE         *infile,
-                          pastix_int_t *Nrow,
-                          pastix_int_t *Ncol,
-                          pastix_int_t *Nnzero)
+                     pastix_int_t *Nrow,
+                     pastix_int_t *Ncol,
+                     pastix_int_t *Nnzero)
 {
-  char line[BUFSIZ];
-  long temp1,temp2,temp3;
+    long temp1,temp2,temp3;
 
-  /* ncol nrow nnzero */
-  fgets(line,BUFSIZ,infile);
+    /* ncol nrow nnzero */
+    if (fscanf(infile, "%ld %ld %ld\n", &temp1, &temp2, &temp3) != 3) {
+        Nrow = Ncol = Nnzero = 0;
+        fprintf(stderr, "readijv: Wrong format in header file\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    *Nrow   = (pastix_int_t)temp1;
+    *Ncol   = (pastix_int_t)temp2;
+    *Nnzero = (pastix_int_t)temp3;
 
-  sscanf(line, "%ld %ld %ld", &temp1,&temp2,&temp3);
-  if (temp1!=temp2)
-  {
-    temp2=temp1;
-    fgets(line,BUFSIZ,infile);
-    sscanf(line, "%ld", &temp3);
-  }
-
-  *Nrow = (pastix_int_t)temp1;
-  *Ncol = (pastix_int_t)temp2;
-  *Nnzero = (pastix_int_t)temp3;
+    return PASTIX_SUCCESS;
 }
 
 /**
@@ -83,153 +80,100 @@ threeFilesReadHeader(FILE         *infile,
  *          At exit, contains the matrix in csc format.
  *
  *******************************************************************************/
-void
+int
 readIJV( const char   *dirname,
          pastix_csc_t *csc )
 {
 
-  FILE * iaFile;
-  FILE * jaFile;
-  FILE * raFile;
-  FILE * headerFile;
-  char * filename;
-  pastix_int_t * tempcol;
-  pastix_int_t * temprow;
-  pastix_int_t Nrow;
-  pastix_int_t Ncol;
-  pastix_int_t Nnzero;
-  double * tempval;
-  double * valptr;
-  pastix_int_t iter,baseval;
-  pastix_int_t tmp,total,pos,limit;
+    FILE *iafile, *jafile, *rafile;
+    FILE *hdrfile;
+    char *filename;
+    pastix_int_t *tempcol;
+    pastix_int_t *temprow;
+    double       *tempval;
+    pastix_int_t  i, Nrow, Ncol, Nnzero;
 
-  filename = malloc(strlen(dirname)+10);
+    filename = malloc(strlen(dirname)+10);
 
-  csc->flttype = PastixDouble;
-  csc->mtxtype = PastixGeneral;
+    csc->flttype = PastixDouble;
+    csc->mtxtype = PastixGeneral;
+    csc->fmttype = PastixIJV;
+    csc->dof     = 1;
+    csc->loc2glob= NULL;
 
-#ifdef TYPE_COMPLEX
-  fprintf(stderr, "\nWARNING: This drivers reads non complex matrices, imaginary part will be 0\n\n");
-#endif
-
-  sprintf(filename,"%s/header",dirname);
-  headerFile = fopen (filename,"r");
-  if (headerFile==NULL)
-  {
-    fprintf(stderr,"cannot load %s\n", filename);
-    exit(-1);
-  }
-  threeFilesReadHeader(headerFile,&Nrow,&Ncol,&Nnzero);
-  fclose (headerFile);
-
-  sprintf(filename,"%s/ia_threeFiles",dirname);
-  iaFile = fopen(filename,"r");
-  if (iaFile==NULL)
-  {
-    fprintf(stderr,"cannot load %s\n", filename);
-    exit(-1);
-  }
-
-  sprintf(filename,"%s/ja_threeFiles",dirname);
-  jaFile = fopen(filename,"r");
-  if (jaFile==NULL)
-  {
-    fprintf(stderr,"cannot load %s\n", filename);
-    exit(-1);
-  }
-  sprintf(filename,"%s/ra_threeFiles",dirname);
-  raFile = fopen(filename,"r");
-  if (raFile==NULL)
-  {
-    fprintf(stderr,"cannot load %s\n", filename);
-    exit(-1);
-  }
-
-  /* Allocation memoire */
-  tempcol = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
-  temprow = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
-  tempval = (double *) malloc(Nnzero*sizeof(double));
-
-  if ((tempcol==NULL) || (temprow == NULL) || (tempval == NULL))
-  {
-    fprintf(stderr, "threeFilesRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-    exit(-1);
-  }
-
-  /* Remplissage */
-  for (iter=0; iter<Nnzero; iter++)
-  {
-    long temp1,temp2;
-    double tempv;
-    if ( 1 != fscanf(iaFile,"%ld\n", &temp1))
+    /* Read the header information */
     {
-      fprintf(stderr, "ERROR: reading matrix\n");
-      exit(1);
+        sprintf(filename,"%s/header",dirname);
+        hdrfile = fopen (filename,"r");
+        if (hdrfile == NULL)
+        {
+            fprintf(stderr,"readijv: Cannot open the header file (%s)\n", filename);
+            return PASTIX_ERR_BADPARAMETER;
+        }
+        threeFilesReadHeader(hdrfile, &Nrow, &Ncol, &Nnzero);
+        fclose(hdrfile);
     }
-    temprow[iter]=(pastix_int_t)temp1;
-    if (1 != fscanf(jaFile,"%ld\n", &temp2))
+
+    csc->gN      = Ncol;
+    csc->n       = Ncol;
+    csc->gnnz    = Nnzero;
+    csc->nnz     = Nnzero;
+    csc->colptr = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
+    csc->rows   = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
+    csc->avals  = (double *)       malloc(Nnzero*sizeof(double));
+
+    /* Open the 3 files */
+    sprintf(filename,"%s/ia_threeFiles",dirname);
+    iafile = fopen(filename,"r");
+    if (iafile == NULL)
     {
-      fprintf(stderr, "ERROR: reading matrix\n");
-      exit(1);
+        fprintf(stderr,"readijv: Cannot open the ia file (%s)\n", filename);
+        return PASTIX_ERR_BADPARAMETER;
     }
-    tempcol[iter]=(pastix_int_t)temp2;
-    if (1 != fscanf(raFile,"%le\n", &tempv))
+
+    sprintf(filename,"%s/ja_threeFiles",dirname);
+    jafile = fopen(filename,"r");
+    if (jafile == NULL)
     {
-      fprintf(stderr, "ERROR: reading matrix\n");
-      exit(1);
+        fprintf(stderr,"readijv: Cannot open the ja file (%s)\n", filename);
+        fclose(iafile);
+        return PASTIX_ERR_BADPARAMETER;
     }
-    tempval[iter]= (double)tempv;
-  }
 
-  fclose (iaFile);
-  fclose (jaFile);
-  fclose (raFile);
-
-  csc->colptr = (pastix_int_t *) calloc(Nrow+1,sizeof(pastix_int_t));
-  csc->rows = (pastix_int_t *) calloc(Nnzero,sizeof(pastix_int_t));
-  csc->avals = (double *) malloc(Nnzero*sizeof(double));
-  if ((csc->colptr==NULL) || (csc->rows == NULL) || (csc->avals == NULL))
-  {
-    fprintf(stderr, "threeFilesRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-    exit(-1);
-  }
-
-  for (iter = 0; iter < Nnzero; iter ++)
-  {
-    csc->colptr[tempcol[iter]-1]++;
-  }
-
-  baseval=1; /* Attention on base a 1 */
-  total = baseval;
-
-  for (iter = 0; iter < Ncol+1; iter ++)
-  {
-    tmp = csc->colptr[iter];
-    csc->colptr[iter]=total;
-    total+=tmp;
-  }
-
-  for (iter = 0; iter < Nnzero; iter ++)
-  {
-
-    pos = csc->colptr[tempcol[iter]-1]-1;
-    limit = csc->colptr[tempcol[iter]]-1;
-    while(csc->rows[pos] != 0 && pos < limit)
+    sprintf(filename,"%s/ra_threeFiles",dirname);
+    rafile = fopen(filename,"r");
+    if (rafile == NULL)
     {
-      pos++;
+        fprintf(stderr,"readijv: Cannot open the ra file (%s)\n", filename);
+        fclose(iafile);
+        fclose(jafile);
+        return PASTIX_ERR_BADPARAMETER;
     }
-    if (pos == limit)
-      fprintf(stderr, "Erreur de lecture\n");
 
-    valptr=csc->avals+pos;
-    csc->rows[pos] = temprow[iter];
-    *valptr = tempval[iter];
-  }
+    /* Read the files */
+    tempcol = csc->colptr;
+    temprow = csc->rows;
+    tempval = csc->avals;
 
-  csc->n=(pastix_int_t)Nrow;
-  csc->gN=csc->n;
-  csc->fmttype = PastixCSC;
-  memFree_null(tempval);
-  memFree_null(temprow);
-  memFree_null(tempcol);
+    for (i=0; i<Nnzero; i++, tempcol++, temprow++, tempval++)
+    {
+        long temp1, temp2;
+        double temp3;
+
+        if (( 1 != fscanf(iafile,"%ld\n", &temp1)) ||
+            ( 1 != fscanf(jafile,"%ld\n", &temp2)) ||
+            ( 1 != fscanf(rafile,"%le\n", &temp3)) )
+        {
+            fprintf(stderr, "ERROR: reading matrix\n");
+            return PASTIX_ERR_IO;
+        }
+        *temprow = (pastix_int_t)temp1;
+        *tempcol = (pastix_int_t)temp2;
+        *tempval = temp3;
+    }
+    fclose(iafile);
+    fclose(jafile);
+    fclose(rafile);
+
+    return PASTIX_SUCCESS;
 }
