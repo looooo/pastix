@@ -378,6 +378,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
     pastix_int_t dimi, dimj, dima, dimb;
     pastix_int_t ldw;
     pastix_int_t ret;
+    (void)ret;
 
     stride = cblk->stride;
     dima = cblk_colnbr( cblk );
