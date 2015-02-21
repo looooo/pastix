@@ -11,17 +11,16 @@
  *
  **/
 #include <stdio.h>
-#include <libgen.h>
 #include "common.h"
 #include "drivers.h"
 #include "iohb.h"
+
 /**
  * ******************************************************************************
  *
  * @ingroup pastix_csc_driver
  *
- * readHB - Interface to the Harwell-Boeing driver in C (iohb.c)
- * This driver can read only real matrices.
+ * readHB - Interface to the Harwell-Boeing C driver (iohb.c)
  *
  *******************************************************************************
  *
@@ -31,93 +30,91 @@
  * @param[in] csc
  *          At exit, contains the matrix in csc format.
  *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been read successfully
+ *      \retval PASTIX_ERR_IO if a problem occured in the Harwell Boeing driver
+ *
  *******************************************************************************/
-
-void
+int
 readHB( const char   *filename,
         pastix_csc_t *csc )
 {
-  int      i;
-  int      nrhs;
-  int      tmpNrow;
-  int      tmpNcol;
-  int      tmpNnzero;
-  int     *tmpcol;
-  int     *tmprow;
-  int      Nrow2;
-  int      Ncol2;
-  int      Nnzero2;
-  char    *Type;
-#define dbl dou ## ble
-  dbl  *tmpval; /* hack to avoid redefinition of double... */
-  int      ierr;
+    int M, N, nz, nrhs;
 
-  Type = (char *) malloc(4*sizeof(char));
+    /* Harwell Boeing is a variant of RSA */
+    csc->fmttype = PastixCSC;
 
-  readHB_info(filename, &Nrow2, &Ncol2, &Nnzero2, &Type, &nrhs);
+    /* Read header informations */
+    {
+        char Type[4];
 
-  csc->n = Nrow2;
-  csc->gN = csc->n;
+        readHB_info(filename, &M, &N, &nz, (char**)(&Type), &nrhs);
 
-/*   fprintf(stderr,"Matrix in file %s is %ld x %ld, with %ld nonzeros with type %s;\n", */
-/*        filename, (long)*Nrow, (long)*Ncol, (long)*Nnzero, *Type); */
-/*   fprintf(stderr,"%d right-hand-side(s) available.\n",nrhs); */
+        if ( M != N ) {
+            fprintf(stderr, "readHB: PaStiX does not support non square matrices (m=%d, N=%d\n", M, N);
+            return PASTIX_ERR_BADPARAMETER;
+        }
 
-/*   printf("RSA: Nrow=%ld Ncol=%ld Nnzero=%ld\n",(long)*Nrow,(long)*Ncol,(long)*Nnzero); */
-#ifdef TYPE_COMPLEX
-  fprintf(stderr,"Warning: z_HBRead is a real matrix driver, imaginary part will be 0\n");
-  exit(EXIT_FAILURE);
-#endif
+        csc->gN   = M;
+        csc->n    = M;
+        csc->gnnz = nz;
+        csc->nnz  = nz;
 
-  tmpNrow=(int)csc->n;
-  tmpNcol=(int)csc->n;
-  tmpNnzero=(int)Nnzero2;
+        /* Check float type */
+        switch( Type[0] ) {
+        case 'C':
+        case 'c':
+            csc->flttype = PastixComplex64;
+            break;
+        case 'R':
+        case 'r':
+            csc->flttype = PastixDouble;
+            break;
+        case 'P':
+        case 'p':
+            csc->flttype = PastixPattern;
+            break;
+        default:
+            fprintf(stderr, "readhb: Floating type unknown (%c)\n", Type[0]);
+        }
 
+        /* Check Symmetry */
+        switch( Type[1] ) {
+        case 'S':
+        case 's':
+            csc->mtxtype = PastixSymmetric;
+            break;
+        case 'H':
+        case 'h':
+            csc->mtxtype = PastixHermitian;
+            assert( csc->flttype == PastixDouble );
+            break;
+        case 'U':
+        case 'u':
+        default:
+            csc->mtxtype = PastixGeneral;
+        }
+    }
 
-  csc->colptr=(pastix_int_t*)malloc((csc->n +1)*sizeof(pastix_int_t));
-  ASSERT(csc->colptr!=NULL,MOD_SI);
-  tmpcol=(int*)malloc((tmpNrow+1)*sizeof(int));
-  ASSERT(tmpcol!=NULL,MOD_SI);
-  csc->rows=(pastix_int_t*)malloc(Nnzero2*sizeof(pastix_int_t));
-  ASSERT(csc->rows!=NULL,MOD_SI);
-  tmprow=(int*)malloc(tmpNnzero*sizeof(int));
-  ASSERT(tmprow!=NULL,MOD_SI);
-  csc->avals=(double*)malloc(Nnzero2*sizeof(double));
-  ASSERT(csc->avals!=NULL,MOD_SI);
+    /* Read the matrix and its values */
+    {
+        int    *colptr, *rowind;
+        double *aval;
+        int     rc;
 
-  nrhs=0;
-  tmpval = (double*)malloc(tmpNnzero*sizeof(double));
+        rc = readHB_newmat_double( filename, &M, &N, &nz,
+                                   &colptr, &rowind, (double**)(&(csc->avals)) );
 
-  ierr = readHB_mat_double(filename, tmpcol, tmprow, tmpval);
-  if(ierr == 0) {
-    fprintf(stderr, "cannot read matrix (job=2)\n");
-  }
+        if (rc == 0) {
+            fprintf(stderr, "readhb: Error in reading the HB matrix values\n");
+            return PASTIX_ERR_IO;
+        }
 
-  memcpy(csc->avals, tmpval, tmpNnzero*sizeof(double));
-//   (*RhsType)[0]='\0';
-
-  if (Type[0] == 'C' || Type[0] == 'c')
-  {
-    csc->flttype=PastixComplex64;
-  }else{
-    csc->flttype=PastixDouble;
-  }
-
-  if (Type[1] == 'S' || Type[1] == 's')
-  {
-    csc->mtxtype=PastixSymmetric;
-  }else if(Type[1] == 'H' || Type[1] == 'h')
-  {
-    csc->mtxtype=PastixHermitian;
-  }else if(Type[1] == 'U' || Type[1] == 'u')
-  {
-    csc->mtxtype=PastixGeneral;
-  }
-  for (i=0;i<tmpNrow+1;i++) (csc->colptr)[i]=(pastix_int_t)(tmpcol[i]);
-  for (i=0;i<tmpNnzero;i++) (csc->rows)[i]=(pastix_int_t)(tmprow[i]);
-  memFree_null(tmpcol);
-  memFree_null(tmprow);
-  csc->n=(pastix_int_t)tmpNrow;
-  csc->gN=(pastix_int_t)tmpNcol;
-  csc->fmttype = PastixCSC;
+        /* Move the colptr/rowind from int to pastix_int_t if different sizes */
+        csc->colptr = pastix_int_convert(csc->n+1, colptr);
+        csc->rows   = pastix_int_convert(csc->nnz, rowind);
+    }
+    return PASTIX_SUCCESS;
 }
