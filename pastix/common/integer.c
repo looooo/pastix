@@ -1,34 +1,34 @@
 /* Copyright 2004,2007-2009 ENSEIRB, INRIA & CNRS
-**
-** This file is part of the Scotch software package for static mapping,
-** graph partitioning and sparse matrix ordering.
-**
-** This software is governed by the CeCILL-C license under French law
-** and abiding by the rules of distribution of free software. You can
-** use, modify and/or redistribute the software under the terms of the
-** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
-** URL: "http://www.cecill.info".
-**
-** As a counterpart to the access to the source code and rights to copy,
-** modify and redistribute granted by the license, users are provided
-** only with a limited warranty and the software's author, the holder of
-** the economic rights, and the successive licensors have only limited
-** liability.
-**
-** In this respect, the user's attention is drawn to the risks associated
-** with loading, using, modifying and/or developing or reproducing the
-** software by the user in light of its specific status of free software,
-** that may mean that it is complicated to manipulate, and that also
-** therefore means that it is reserved for developers and experienced
-** professionals having in-depth computer knowledge. Users are therefore
-** encouraged to load and test the software's suitability as regards
-** their requirements in conditions enabling the security of their
-** systems and/or data to be ensured and, more generally, to use and
-** operate it in the same conditions as regards security.
-**
-** The fact that you are presently reading this means that you have had
-** knowledge of the CeCILL-C license and that you accept its terms.
-*/
+ **
+ ** This file is part of the Scotch software package for static mapping,
+ ** graph partitioning and sparse matrix ordering.
+ **
+ ** This software is governed by the CeCILL-C license under French law
+ ** and abiding by the rules of distribution of free software. You can
+ ** use, modify and/or redistribute the software under the terms of the
+ ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
+ ** URL: "http://www.cecill.info".
+ **
+ ** As a counterpart to the access to the source code and rights to copy,
+ ** modify and redistribute granted by the license, users are provided
+ ** only with a limited warranty and the software's author, the holder of
+ ** the economic rights, and the successive licensors have only limited
+ ** liability.
+ **
+ ** In this respect, the user's attention is drawn to the risks associated
+ ** with loading, using, modifying and/or developing or reproducing the
+ ** software by the user in light of its specific status of free software,
+ ** that may mean that it is complicated to manipulate, and that also
+ ** therefore means that it is reserved for developers and experienced
+ ** professionals having in-depth computer knowledge. Users are therefore
+ ** encouraged to load and test the software's suitability as regards
+ ** their requirements in conditions enabling the security of their
+ ** systems and/or data to be ensured and, more generally, to use and
+ ** operate it in the same conditions as regards security.
+ **
+ ** The fact that you are presently reading this means that you have had
+ ** knowledge of the CeCILL-C license and that you accept its terms.
+ */
 /************************************************************/
 /**                                                        **/
 /**   NAME       : integer.c                               **/
@@ -53,6 +53,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <time.h>
+#include <stdlib.h>
 #include "common.h"
 
 //TODO: move somewhere else
@@ -61,149 +62,149 @@
  * Iparm/Dparm functions
  */
 /*
-  Function: api_dumparm
+ Function: api_dumparm
 
-  Dump PaStiX parameters arrays to disk.
+ Dump PaStiX parameters arrays to disk.
 
-  Parameters:
-    stream - File opened in write mode
-    iparm  - integer parameters array
-    dparm  - floating parameters array
+ Parameters:
+ stream - File opened in write mode
+ iparm  - integer parameters array
+ dparm  - floating parameters array
 
  */
 void api_dumparm(FILE *stream,
                  pastix_int_t *iparm,
                  double *dparm)
 {
-  pastix_int_t i;
+    pastix_int_t i;
 
-  for (i=0; i<IPARM_SIZE; i++)
+    for (i=0; i<IPARM_SIZE; i++)
     {
-      fprintf(stream, "iparm[%ld] = %ld\n", (long) i, (long) iparm[i]);
+        fprintf(stream, "iparm[%ld] = %ld\n", (long) i, (long) iparm[i]);
     }
-  fprintf(stream, "----\n");
-  for (i=0; i<DPARM_SIZE; i++)
+    fprintf(stream, "----\n");
+    for (i=0; i<DPARM_SIZE; i++)
     {
-      fprintf(stream, "dparm[%ld] = %e\n", (long) i, dparm[i]);
+        fprintf(stream, "dparm[%ld] = %e\n", (long) i, dparm[i]);
     }
 }
 
 /*
-  Function: api_iparmreader
+ Function: api_iparmreader
 
-  Reads integer parameters file from disk.
+ Reads integer parameters file from disk.
 
-  The file must contain IPARM_SIZE lines starting with
-  the integer value corresponding.
+ The file must contain IPARM_SIZE lines starting with
+ the integer value corresponding.
 
-  TODO: return values instead of exit(-1)...
+ TODO: return values instead of exit(-1)...
 
-  Parameters:
-    filename - name of the file to read from.
-    iparmtab - Array where to store parameters.
+ Parameters:
+ filename - name of the file to read from.
+ iparmtab - Array where to store parameters.
 
-  Returns:
-    1        - if file couldn't be read.
-*/
+ Returns:
+ 1        - if file couldn't be read.
+ */
 int api_iparmreader (char         *filename,
                      pastix_int_t *iparmtab)
 {
-  FILE*   m_File;
-  int     i = 0;
-  char    szbuff[MAX_CHAR_PER_LINE];
-  char*   ret;
-  char*   token;
+    FILE*   m_File;
+    int     i = 0;
+    char    szbuff[MAX_CHAR_PER_LINE];
+    char*   ret;
+    char*   token;
 
 #ifdef PASTIX_LOG
-  fprintf(stderr, "-> api_iparmreader\n");
+    fprintf(stderr, "-> api_iparmreader\n");
 #endif
-  m_File = fopen(filename,"rt");
+    m_File = fopen(filename,"rt");
 
-  if(!m_File)
+    if(!m_File)
     {
 #ifdef PASTIX_LOG
-  fprintf(stderr, "<- api_iparmreader\n");
+        fprintf(stderr, "<- api_iparmreader\n");
 #endif
-      return 1;
+        return 1;
     }
 
-  while(!feof(m_File) && i < IPARM_SIZE)
+    while(!feof(m_File) && i < IPARM_SIZE)
     {
-      ret = fgets(szbuff, MAX_CHAR_PER_LINE, m_File);
-      if (ret == NULL)
+        ret = fgets(szbuff, MAX_CHAR_PER_LINE, m_File);
+        if (ret == NULL)
         {
-          EXIT(MOD_UNKNOWN, UNKNOWN_ERR);
+            EXIT(MOD_UNKNOWN, UNKNOWN_ERR);
         }
-      token = strtok(szbuff," ");
-      iparmtab[i] = (pastix_int_t)atol(token);
-      i++;
+        token = strtok(szbuff," ");
+        iparmtab[i] = (pastix_int_t)atol(token);
+        i++;
     }
 
-  fclose(m_File);
+    fclose(m_File);
 
 #ifdef PASTIX_LOG
-  fprintf(stderr, "<- api_iparmreader\n");
+    fprintf(stderr, "<- api_iparmreader\n");
 #endif
 
 #ifdef OOC
-/*   if (iparmtab[IPARM_OOC_THREAD] > 1) */
+    /*   if (iparmtab[IPARM_OOC_THREAD] > 1) */
     iparmtab[IPARM_OOC_THREAD] = 1;
 #endif
-  return 0;
+    return 0;
 }
 
 /*
-  Function: api_dparmreader
+ Function: api_dparmreader
 
-  Reads double parameters file from disk.
+ Reads double parameters file from disk.
 
-  The file must contain IPARM_SIZE lines starting with
-  the double value corresponding.
+ The file must contain IPARM_SIZE lines starting with
+ the double value corresponding.
 
-  See *atof* manual for the format required.
+ See *atof* manual for the format required.
 
-  TODO: return values instead of exit(-1)...
+ TODO: return values instead of exit(-1)...
 
-  Parameters:
-    filename - name of the file to read from.
-    dparmtab - Array where to store parameters.
+ Parameters:
+ filename - name of the file to read from.
+ dparmtab - Array where to store parameters.
 
-  Returns:
-    1        - if file couldn't be read.
-*/
+ Returns:
+ 1        - if file couldn't be read.
+ */
 int api_dparmreader(char * filename,
                     double *dparmtab)
 {
-  FILE*   m_File;
-  int     i = 0;
-  char    szbuff[MAX_CHAR_PER_LINE];
-  char*   ret;
-  char*   token;
+    FILE*   m_File;
+    int     i = 0;
+    char    szbuff[MAX_CHAR_PER_LINE];
+    char*   ret;
+    char*   token;
 
 #ifdef PASTIX_LOG
-  fprintf(stderr, "-> api_dparmreader\n");
+    fprintf(stderr, "-> api_dparmreader\n");
 #endif
-  m_File = fopen(filename,"rt");
+    m_File = fopen(filename,"rt");
 
-  if(!m_File) return 1;
+    if(!m_File) return 1;
 
-  while(!feof(m_File) && i < DPARM_SIZE)
+    while(!feof(m_File) && i < DPARM_SIZE)
     {
-      ret = fgets(szbuff, MAX_CHAR_PER_LINE, m_File);
-      if (ret == NULL)
+        ret = fgets(szbuff, MAX_CHAR_PER_LINE, m_File);
+        if (ret == NULL)
         {
-          EXIT(MOD_UNKNOWN, UNKNOWN_ERR);
+            EXIT(MOD_UNKNOWN, UNKNOWN_ERR);
         }
-      token = strtok(szbuff," ");
-      dparmtab[i] = atof(token);
-      i++;
+        token = strtok(szbuff," ");
+        dparmtab[i] = atof(token);
+        i++;
     }
-  fclose(m_File);
+    fclose(m_File);
 
 #ifdef PASTIX_LOG
-  fprintf(stderr, "<- api_dparmreader\n");
+    fprintf(stderr, "<- api_dparmreader\n");
 #endif
-  return 0;
+    return 0;
 }
 
 static inline pastix_int_t intRandVal(pastix_int_t ival) {
@@ -217,10 +218,10 @@ static inline pastix_int_t intRandVal(pastix_int_t ival) {
 /********************************/
 
 /* Fast read for pastix_int_t values.
-** It returns:
-** - 1  : on success.
-** - 0  : on error.
-*/
+ ** It returns:
+ ** - 1  : on success.
+ ** - 0  : on error.
+ */
 
 int
 intLoad (FILE * const         stream,               /*+ Stream to read from     +*/
@@ -265,10 +266,10 @@ intLoad (FILE * const         stream,               /*+ Stream to read from     
 }
 
 /* Write routine for pastix_int_t values.
-** It returns:
-** - 1  : on success.
-** - 0  : on error.
-*/
+ ** It returns:
+ ** - 1  : on success.
+ ** - 0  : on error.
+ */
 
 int
 intSave (FILE * const       stream,               /*+ Stream to write to +*/
@@ -284,11 +285,11 @@ intSave (FILE * const       stream,               /*+ Stream to write to +*/
 /**********************************/
 
 /* This routine fills an array with
-** consecutive pastix_int_t values, in
-** ascending order.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** consecutive pastix_int_t values, in
+ ** ascending order.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 void
 intAscn (pastix_int_t * const permtab,              /*+ Permutation array to build +*/
@@ -305,10 +306,10 @@ intAscn (pastix_int_t * const permtab,              /*+ Permutation array to bui
 }
 
 /* This routine computes a random permutation
-** of an array of pastix_int_t values.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** of an array of pastix_int_t values.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 void
 intPerm (pastix_int_t * const permtab,              /*+ Permutation array to build +*/
@@ -339,15 +340,15 @@ static volatile int intrandflag = 0;              /*+ Flag set if generator alre
 static unsigned int intrandseed = 1;              /*+ Random seed                               +*/
 
 /* This routine initializes the pseudo-random
-** generator if necessary. In order for multi-sequential
-** programs to have exactly the same behavior on any
-** process, the random seed does not depend on process
-** rank. This routine is not really thread-safe, so it
-** should not be called concurrently when it has never
-** been initialized before.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** generator if necessary. In order for multi-sequential
+ ** programs to have exactly the same behavior on any
+ ** process, the random seed does not depend on process
+ ** rank. This routine is not really thread-safe, so it
+ ** should not be called concurrently when it has never
+ ** been initialized before.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 void
 intRandInit (void)
@@ -366,11 +367,11 @@ intRandInit (void)
 }
 
 /* This routine reinitializes the pseudo-random
-** generator to its initial value. This routine
-** is not thread-safe.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** generator to its initial value. This routine
+ ** is not thread-safe.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 void
 intRandReset (void)
@@ -393,11 +394,11 @@ intRandReset (void)
 /*********************/
 
 /* This routine sorts an array of
-** pastix_int_t values by ascending order
-** on their first value, used as key.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** pastix_int_t values by ascending order
+ ** on their first value, used as key.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 #define INTSORTNAME                 intSort1asc1
 #define INTSORTSIZE                 (sizeof (pastix_int_t))
@@ -415,11 +416,11 @@ intRandReset (void)
 #undef INTSORTCMP
 
 /* This routine sorts an array of pairs of
-** pastix_int_t values by ascending order on their
-** first value, used as key.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** pastix_int_t values by ascending order on their
+ ** first value, used as key.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 #define INTSORTNAME                 intSort2asc1
 #define INTSORTSIZE                 (2 * sizeof (pastix_int_t))
@@ -440,11 +441,11 @@ intRandReset (void)
 #undef INTSORTCMP
 
 /* This routine sorts an array of 3-tuples of
-** pastix_int_t values by ascending order on their
-** first value, used as key.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** pastix_int_t values by ascending order on their
+ ** first value, used as key.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 #define INTSORTNAME                 intSort3asc1
 #define INTSORTSIZE                 (3 * sizeof (pastix_int_t))
@@ -468,12 +469,12 @@ intRandReset (void)
 #undef INTSORTCMP
 
 /* This routine sorts an array of pairs of
-** pastix_int_t values by ascending order on both
-** of their values, used as primary and
-** secondary keys.
-** It returns:
-** - VOID  : in all cases.
-*/
+ ** pastix_int_t values by ascending order on both
+ ** of their values, used as primary and
+ ** secondary keys.
+ ** It returns:
+ ** - VOID  : in all cases.
+ */
 
 #define INTSORTNAME                 intSort2asc2
 #define INTSORTSIZE                 (2 * sizeof (pastix_int_t))
@@ -493,38 +494,38 @@ intRandReset (void)
 #undef INTSORTSWAP
 #undef INTSORTCMP
 /*
-   Function: qsort2IntAsc
+ Function: qsort2IntAsc
 
-   Sort 2 arrays simultaneously, the first array is an
-   array of pastix_int_t and used as primary key for sorting.
-   The second array is an other array of pastix_int_t used
-   as secondary key.
+ Sort 2 arrays simultaneously, the first array is an
+ array of pastix_int_t and used as primary key for sorting.
+ The second array is an other array of pastix_int_t used
+ as secondary key.
 
-   Parameters:
-     pbase       - Array of pointers to the first element of each array to sort.
-     total_elems - Number of element in each array.
+ Parameters:
+ pbase       - Array of pointers to the first element of each array to sort.
+ total_elems - Number of element in each array.
 
-   Returns:
-     Nothing
+ Returns:
+ Nothing
 
-*/
+ */
 #define INTSORTNAME            qsort2IntAsc
 #define INTSORTSIZE(x)         (sizeof (pastix_int_t))
 #define INTSORTNTAB            2
 #define INTSORTSWAP(p,q)       do {                                     \
-    pastix_int_t     t;                                                   \
-    long    disp_p   = (((pastix_int_t*)p)-((pastix_int_t*)base_ptr));			\
-    long    disp_q   = (((pastix_int_t*)q)-((pastix_int_t*)base_ptr));			\
-    pastix_int_t   * int2ptr  = *(pbase+1);                               \
-    /* swap integers */                                                 \
-    t = *((pastix_int_t *) (p));                                          \
-    *((pastix_int_t *) (p)) = *((pastix_int_t *) (q));                      \
-    *((pastix_int_t *) (q)) = t;                                          \
-    /* swap on secont integer array */                                  \
-    t = int2ptr[disp_p];                                                \
-    int2ptr[disp_p] = int2ptr[disp_q];                                  \
-    int2ptr[disp_q] = t;                                                \
-  } while (0)
+        pastix_int_t     t;                                             \
+        long    disp_p   = (((pastix_int_t*)p)-((pastix_int_t*)base_ptr)); \
+        long    disp_q   = (((pastix_int_t*)q)-((pastix_int_t*)base_ptr)); \
+        pastix_int_t   * int2ptr  = *(pbase+1);                         \
+        /* swap integers */                                             \
+        t = *((pastix_int_t *) (p));                                    \
+        *((pastix_int_t *) (p)) = *((pastix_int_t *) (q));              \
+        *((pastix_int_t *) (q)) = t;                                    \
+        /* swap on secont integer array */                              \
+        t = int2ptr[disp_p];                                            \
+        int2ptr[disp_p] = int2ptr[disp_q];                              \
+        int2ptr[disp_q] = t;                                            \
+    } while (0)
 #define INTSORTCMP(p,q)  ((*((pastix_int_t *) (p)) < *((pastix_int_t *) (q))) || \
                           ((*((pastix_int_t *) (p)) == *((pastix_int_t *) (q))) && \
                            ((( pastix_int_t *)(*(pbase+1)))[(((pastix_int_t*)p)-((pastix_int_t*)base_ptr))] < \
@@ -537,38 +538,38 @@ intRandReset (void)
 #undef INTSORTNTAB
 
 /*
-   Function: qsort2SmallIntAsc
+ Function: qsort2SmallIntAsc
 
-   Sort 2 arrays simultaneously, the first array is an
-   array of integers (int) and used as primary key for sorting.
-   The second array is an other array of int used
-   as secondary key.
+ Sort 2 arrays simultaneously, the first array is an
+ array of integers (int) and used as primary key for sorting.
+ The second array is an other array of int used
+ as secondary key.
 
-   Parameters:
-     pbase       - Array of pointers to the first element of each array to sort.
-     total_elems - Number of element in each array.
+ Parameters:
+ pbase       - Array of pointers to the first element of each array to sort.
+ total_elems - Number of element in each array.
 
-   Returns:
-     Nothing
+ Returns:
+ Nothing
 
-*/
+ */
 #define INTSORTNAME            qsort2SmallIntAsc
 #define INTSORTSIZE(x)         (sizeof (int))
 #define INTSORTNTAB            2
-#define INTSORTSWAP(p,q)       do {					\
-    int     t;								\
-    long    disp_p   = (((int*)p)-((int*)base_ptr));			\
-    long    disp_q   = (((int*)q)-((int*)base_ptr));			\
-    int   * int2ptr  = *(pbase+1);						\
-    /* swap integers */							\
-    t = *((int *) (p));							\
-    *((int *) (p)) = *((int *) (q));					\
-    *((int *) (q)) = t;							\
-    /* swap on secont integer array */					\
-    t = int2ptr[disp_p];						\
-    int2ptr[disp_p] = int2ptr[disp_q];					\
-    int2ptr[disp_q] = t;						\
-  } while (0)
+#define INTSORTSWAP(p,q)       do {                             \
+        int     t;                                              \
+        long    disp_p   = (((int*)p)-((int*)base_ptr));        \
+        long    disp_q   = (((int*)q)-((int*)base_ptr));        \
+        int   * int2ptr  = *(pbase+1);                          \
+        /* swap integers */                                     \
+        t = *((int *) (p));                                     \
+        *((int *) (p)) = *((int *) (q));                        \
+        *((int *) (q)) = t;                                     \
+        /* swap on secont integer array */                      \
+        t = int2ptr[disp_p];                                    \
+        int2ptr[disp_p] = int2ptr[disp_q];                      \
+        int2ptr[disp_q] = t;                                    \
+        } while (0)
 #define INTSORTCMP(p,q)  ((*((int *) (p)) < *((int *) (q))) ||		\
                           ((*((int *) (p)) == *((int *) (q))) &&	\
                            ((( int *)(*(pbase+1)))[(((int*)p)-((int*)base_ptr))] < \
@@ -582,9 +583,9 @@ intRandReset (void)
 
 pastix_int_t
 pastix_intset_union(       pastix_int_t  n1,
-                     const pastix_int_t *set1,
+                           const pastix_int_t *set1,
                            pastix_int_t  n2,
-                     const pastix_int_t *set2,
+                           const pastix_int_t *set2,
                            pastix_int_t *set )
 {
     /********************************************************/
@@ -658,3 +659,25 @@ pastix_intset_union(       pastix_int_t  n1,
 
     return n;
 }
+
+pastix_int_t *
+pastix_int_convert( pastix_int_t n, int *input )
+{
+    if (sizeof(pastix_int_t) != sizeof(int)) {
+        pastix_int_t *output, *tmpo;
+        int *tmpi, i;
+
+        output = malloc( n * sizeof(pastix_int_t) );
+        tmpi = input;
+        tmpo = output;
+        for(i=0; i<n; i++, tmpi++, tmpo++) {
+            *tmpo = (pastix_int_t)(*tmpi);
+        }
+        free(input);
+        return output;
+    }
+    else {
+        return input;
+    }
+}
+
