@@ -677,7 +677,6 @@ pastix_int_convert( pastix_int_t n, int *input )
         return output;
     }
     else {
-        return input;
+        return (pastix_int_t*)input;
     }
 }
-
