@@ -45,6 +45,8 @@ readHB( const char   *filename,
 
     /* Harwell Boeing is a variant of RSA */
     csc->fmttype = PastixCSC;
+    csc->dof     = 1;
+    csc->loc2glob= NULL;
 
     /* Read header informations */
     {

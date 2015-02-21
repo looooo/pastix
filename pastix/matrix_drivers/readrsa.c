@@ -173,6 +173,35 @@ readRSA( const char   *filename,
 
     readRSAHeader(filename, &N, &Nnz, Type, RhsType );
 
+    switch( Type[1] ){
+    case 'S':
+    case 's':
+        csc->mtxtype = PastixSymmetric;
+        break;
+    case 'H':
+    case 'h':
+        csc->mtxtype = PastixHermitian;
+        /**
+         * We should not arrive here, since the fortran driver is not able to
+         * read complex matrices
+         */
+        assert(0);
+        break;
+    case 'U':
+    case 'u':
+    default:
+        csc->mtxtype = PastixGeneral;
+    }
+
+    csc->flttype = PastixDouble;
+    csc->fmttype = PastixCSC;
+    csc->gN      = N;
+    csc->n       = N;
+    csc->gnnz    = Nnz;
+    csc->nnz     = Nnz;
+    csc->dof     = 1;
+    csc->loc2glob= NULL;
+
     tmpcolptr = (int*) malloc( (N+1) * sizeof(int) );
     assert( tmpcolptr );
 
@@ -194,12 +223,6 @@ readRSA( const char   *filename,
     base = (tmpcolptr[0] == 0) ? 0 : 1;
     assert( (tmpcolptr[N]-base) == Nnz );
 
-    csc->flttype = PastixDouble;
-    csc->fmttype = PastixCSC;
-    csc->gN      = N;
-    csc->n       = N;
-    csc->gnnz    = Nnz;
-    csc->nnz     = Nnz;
     csc->colptr  = pastix_int_convert( N+1, tmpcolptr );
     csc->rows    = pastix_int_convert( Nnz, tmprows );
 
@@ -209,24 +232,5 @@ readRSA( const char   *filename,
         return PASTIX_ERR_IO;
     }
 
-    switch( Type[1] ){
-    case 'S':
-    case 's':
-        csc->mtxtype = PastixSymmetric;
-        break;
-    case 'H':
-    case 'h':
-        csc->mtxtype = PastixHermitian;
-        /**
-         * We should not arrive here, since the fortran driver is not able to
-         * read complex matrices
-         */
-        assert(0);
-        break;
-    case 'U':
-    case 'u':
-    default:
-        csc->mtxtype = PastixGeneral;
-    }
     return PASTIX_SUCCESS;
 }
