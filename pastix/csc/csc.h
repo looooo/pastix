@@ -2,9 +2,8 @@
  *
  * @file csc.h
  *
- *  PaStiX csc routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX sparse matrix routines to handle different format of sparse matrices.
+ *  $COPYRIGHTS$
  *
  * @version 5.1.0
  * @author Xavier Lacoste
@@ -17,23 +16,25 @@
 #define _CSC_H_
 
 /**
- * @ingroup pastix_csc
- * @struct pastix_csc_s - Csc structure.
+ * @ingroup pastix_spm
+ *
+ * @struct pastix_spm_s - Sparse matrix data structure
  */
-struct pastix_csc_s {
-    int           mtxtype;   /*> Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.          */
-    int           flttype;   /*> avals datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
-    int           fmttype;   /*> Matrix storage format: PastixCSC, PastixCSR, PastixIJV */
-    pastix_int_t  gN;        /*< Global number of vertices                    */
-    pastix_int_t  n;         /*< Number of local vertices                     */
-    pastix_int_t  dof;       /*< Number of degree of freedom                  */
-    pastix_int_t *colptr;    /*< List of indirections to rows for each vertex */
-    pastix_int_t *rows;      /*< List of edges for each vertex                */
-    pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global */
-    void         *avals;
+struct pastix_spm_s {
+    int           mtxtype;   /*< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.          */
+    int           flttype;   /*< avals datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    int           fmttype;   /*< Matrix storage format: PastixCSC, PastixCSR, PastixIJV                        */
+    pastix_int_t  gN;        /*< Global number of vertices in the compressed graph   */
+    pastix_int_t  n;         /*< Local number of vertices in the compressed graph    */
+    pastix_int_t  gnnz;      /*< Global number of non zeroes in the compressed graph */
+    pastix_int_t  nnz;       /*< Local number of non zeroes in the compressed graph  */
+    pastix_int_t  dof;       /*< Number of degrees of freedom per unknown            */
+    pastix_int_t *colptr;    /*< List of indirections to rows for each vertex        */
+    pastix_int_t *rows;      /*< List of edges for each vertex                       */
+    pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global        */
+    void         *avals;     /*< Values stored in the matrix                         */
 };
-typedef struct pastix_csc_s pastix_csc_t;
-
+typedef struct pastix_spm_s pastix_csc_t;
 
 int
 csc_load( pastix_int_t  *n,
@@ -56,5 +57,6 @@ csc_save( pastix_int_t  n,
 int cscLoad( pastix_csc_t *csc, FILE *infile );
 int cscSave( pastix_csc_t *csc, FILE *outfile );
 
+int spmConvert( int ofmttype, pastix_csc_t *ospm );
 
 #endif /* _CSC_H_ */
