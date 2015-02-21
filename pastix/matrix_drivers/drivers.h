@@ -1,7 +1,7 @@
 /**
+ * @file drivers.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  $COPYRIGHTS$
  *
  * @version 1.0.0
  * @author Mathieu Faverge
@@ -17,7 +17,6 @@
 
 typedef enum pastix_driver_e {
     PastixDriverRSA, /* ok */
-    PastixDriverCHB,//
     PastixDriverCCC,//
     PastixDriverRCC,//
     PastixDriverOlaf,//
@@ -52,7 +51,13 @@ int cscReadFromFile( pastix_driver_t  driver,
                      void           **rhs,
                      MPI_Comm         pastix_comm );
 
-void readRSA( char const    *filename,
-              pastix_csc_t  *csc );
+int readHB   ( const char *filename, pastix_csc_t *csc );
+int readRSA  ( const char *filename, pastix_csc_t *csc );
+int readIJV  ( const char *filename, pastix_csc_t *csc );
+int readMM   ( const char *filename, pastix_csc_t *csc );
+int readDMM  ( const char *filename, pastix_csc_t *csc );
+int readPETSC( const char *filename, pastix_csc_t *csc );
+int readCSCD ( const char *filename, pastix_csc_t *csc, void **rhs, MPI_Comm pastix_comm );
+int genLaplacian( const char *filename, pastix_csc_t *csc, void **rhs );
 
 #endif /* _DRIVER_H_ */
