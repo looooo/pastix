@@ -81,7 +81,7 @@ int swap_indians_int2(int d)
  *          At exit, contains the the matrix in csc format.
  *
  *******************************************************************************/
-void
+int
 readPETSC( const char   *filename,
            pastix_csc_t *csc )
 {
@@ -243,5 +243,5 @@ readPETSC( const char   *filename,
   csc->mtxtype = PastixGeneral;
   csc->fmttype = PastixCSC;
 
-  return;
+  return PASTIX_SUCCESS;
 }

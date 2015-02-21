@@ -13,7 +13,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h> 
+#include <string.h>
 #include "common.h"
 #include "drivers.h"
 #include "pastix.h"
@@ -129,14 +129,14 @@ get_size_from_name( const char    *filename,
  * >  0  0 -1  2
  *
  *******************************************************************************
- * 
+ *
  * @param[out] csc
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
- * 
+ *
  * @param[out] rhs
  *          At exit, contains the right hand side member.
- * 
+ *
  * @param[in] dim1
  *          contains the dimension of the 1D laplacian.
  *
@@ -156,9 +156,9 @@ z_gen1Dlaplacian( pastix_csc_t  *csc,
   csc->colptr  = NULL;
   csc->rows    = NULL;
   csc->avals   = NULL;
-  
+
   fprintf(stderr, "Laplacien 1D, n = %d\n",csc->n);
-  
+
   assert( csc->gN == dim1 );
 
   /* Allocating */
@@ -219,7 +219,7 @@ z_gen1Dlaplacian( pastix_csc_t  *csc,
     if (i != (csc->gN)-1)
     {
       (csc->rows)[j]    = i+2;
-      
+
       if (csc->flttype==PastixComplex64 || csc->flttype==PastixComplex32)
       {
         *valptr = - 1 +  2* _Complex_I;
@@ -277,17 +277,17 @@ z_gen1Dlaplacian( pastix_csc_t  *csc,
  * >  0  0 -1  0 -1  4
  *
  *******************************************************************************
- * 
+ *
  * @param[out] csc
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
- * 
+ *
  * @param[out] rhs
  *          At exit, contains the right hand side member.
- * 
+ *
  * @param[in] dim1
  *          contains the first dimension of the 2D grid of the laplacian.
- * 
+ *
  * @param[in] dim2
  *          contains the second dimension of the 2D grid of the laplacian.
  *
@@ -310,9 +310,9 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
   csc->rows    = NULL;
   csc->avals   = NULL;
   *rhs         = NULL;
-  
+
   fprintf(stderr, "Laplacien 2D, n = %d\n",csc->n);
-  
+
   assert( csc->gN == dim1*dim2 );
 
   /* Allocating */
@@ -346,14 +346,14 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
   }
 
   /* Building ia, ja and avals and rhs*/
-  
+
   csc->colptr[0] = 1;
   valptr = csc->avals;
   rhsptr = *rhs;
   *rhsptr = 1.;
   *(rhsptr+csc->gN-1) = 1.;
   k = 0;
-  
+
   for(i=0; i<dim2; i++)
   {
     for(j=1; j<=dim1; j++)
@@ -398,7 +398,7 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
       }
     }
   }
-  
+
   csc->mtxtype = PastixSymmetric;
   csc->fmttype = PastixCSC;
 }
@@ -423,20 +423,20 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
  * >  0  0  0 -1  0 -1 -1  6
  *
  *******************************************************************************
- * 
+ *
  * @param[out] csc
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
- * 
+ *
  * @param[out] rhs
  *          At exit, contains the right hand side member.
- * 
+ *
  * @param[in] dim1
  *          contains the first dimension of the 3D grid of the laplacian.
- * 
+ *
  * @param[in] dim2
  *          contains the second dimension of the 3D grid of the laplacian.
- * 
+ *
  * @param[in] dim3
  *          contains the third dimension of the 3D grid of the laplacian.
  *
@@ -461,7 +461,7 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
   csc->rows    = NULL;
   csc->avals   = NULL;
   *rhs         = NULL;
-  
+
   assert( csc->gN == dim1*dim2 );
 
   /* Allocating */
@@ -495,14 +495,14 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
   }
 
   /* Building ia, ja and avals and rhs*/
-  
+
   csc->colptr[0] = 1;
   valptr = csc->avals;
   rhsptr = *rhs;
   *rhsptr = 1.;
   *(rhsptr+csc->gN-1) = 1.;
   l = 0;
-  
+
   for(i=0; i<dim3; i++)
   {
     for(j=0; j<dim2; j++)
@@ -594,7 +594,7 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
       }
     }
   }
-  
+
   csc->mtxtype = PastixSymmetric;
   csc->fmttype = PastixCSC;
 }
@@ -612,17 +612,17 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
  *
  * @param[in] filename
  *          Path to the directory containing matrix.
- * 
+ *
  * @param[out] csc
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
- * 
+ *
  * @param[out] rhs
  *          At exit, contains the right hand side member.
  *
  *******************************************************************************/
-void
-genlaplacian( const char    *filename,
+int
+genLaplacian( const char    *filename,
                 pastix_csc_t  *csc,
                 void         **rhs )
 {
@@ -642,4 +642,6 @@ genlaplacian( const char    *filename,
   }else{
     z_gen3Dlaplacian(csc, rhs, dim1, dim2, dim3);
   }
+
+  return PASTIX_SUCCESS;
 }
