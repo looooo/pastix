@@ -7,6 +7,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
+ * @author Theophile Terraz
  * @date 2011-11-11
  *
  **/
@@ -15,347 +16,276 @@
 #include "mmio.h"
 
 /**
- * ******************************************************************************
+ *******************************************************************************
  *
  * @ingroup pastix_csc_driver
  *
- * d_readMM - Read a real matrix in Matrix Market file.
+ * z_readMM - Read the data part of a complex matrix in Matrix Market file.
  * For more information about matrix market format see mmio.c/mmio.h
  *
  *******************************************************************************
  *
  * @param[in] file
- *          The file opened in readMM which contains the matrix stored in Matrix Market format.
+ *          The file opened in readMM which contains the matrix stored in Matrix
+ *          Market format.
  *
- * @param[out] csc
- *          At exit, contains the the matrix in csc format.
+ * @param[in,out] csc
+ *          At exit, the data of the matrix are stored in the csc structure.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been read successfully
+ *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
  *
  *******************************************************************************/
-void 
-d_readMM( FILE         *file,
+int
+z_readMM( FILE *file,
           pastix_csc_t *csc )
 {
-  
-  int    *tempcol;
-  int    *temprow;
-  double *tempval;
-  double *valptr;
-  int iter, baseval;
-  int total;
-  int tmp;
-  int pos;
-  int Nnzero;
-  int limit;
-  int tmpncol, tmpnrow;
+    pastix_complex64_t *valptr;
+    pastix_int_t *colptr;
+    pastix_int_t *rowptr;
+    pastix_int_t i;
+    long row, col;
+    double re, im;
 
-  /* find out size of sparse matrix .... */
+    csc->avals = malloc( csc->nnz * sizeof(pastix_complex64_t) );
 
-  if (mm_read_mtx_crd_size(file, &tmpnrow, &tmpncol, &Nnzero) !=0)
-    exit(1);
+    colptr = csc->colptr;
+    rowptr = csc->rows;
+    valptr = (pastix_complex64_t*)(csc->avals);
 
-  csc->gN = tmpncol;
-  csc->n  = tmpncol;
-
-  /* Allocate memory */
-  tempcol = (int *)    malloc(Nnzero*sizeof(int));
-  temprow = (int *)    malloc(Nnzero*sizeof(int));
-  tempval = (double *) malloc(Nnzero*sizeof(double));
-
-  if ((tempcol == NULL) || (temprow == NULL) || (tempval == NULL))
-  {
-    fprintf(stderr, "d_readMM: Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-    exit(-1);
-  }
-
-  /* Fill in the matrix */
-  {
-    pastix_int_t *colptr = tempcol;
-    pastix_int_t *rowptr = temprow;
-    double       *valptr = tempval;
-    int64_t temp1, temp2;
-    double  re;
-    
-    baseval = 9999999;
-    for (iter=0; iter<(Nnzero);
-          iter++, colptr++, rowptr++, valptr++)
+    for (i=0; i<csc->nnz; i++, colptr++, rowptr++, valptr++)
     {
-      if (3 != fscanf(file,"%ld %ld %lg\n", &temp1, &temp2, &re))
-      {
-        fprintf(stderr, "ERROR: reading matrix (line %ld)\n",
-                (long int)iter);
-        exit(1);
-      }
-      *rowptr = temp1;
-      *colptr = temp2;
-      *valptr = re;
-      baseval = pastix_imin( baseval, temp2 );
+        if (4 != fscanf(file,"%ld %ld %lg %lg\n", &row, &col, &re, &im))
+        {
+            fprintf(stderr, "readmm: erro while reading matrix file (line %ld)\n", (long)i);
+            return PASTIX_ERR_IO;
+        }
+
+        *rowptr = (pastix_int_t)row;
+        *colptr = (pastix_int_t)col;
+        *valptr = (pastix_complex64_t)(re + im * I);
     }
-  }
-  assert( (baseval == 0) || (baseval == 1) );
 
-  csc->colptr = (pastix_int_t*) malloc((csc->n+1)*sizeof(pastix_int_t));
-  csc->rows   = (pastix_int_t*) malloc((Nnzero)  *sizeof(pastix_int_t));
-  csc->avals  = (double*)       malloc((Nnzero)  *sizeof(double));
-  memset(csc->colptr, 0, (csc->n+1) * sizeof(pastix_int_t));
-  memset(csc->rows,   0, (Nnzero)   * sizeof(pastix_int_t));
-
-  if ( (csc->colptr == NULL) || 
-       (csc->rows   == NULL) || 
-       (csc->avals  == NULL) )
-  {
-    fprintf(stderr, "d_readMM: Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-    exit(-1);
-  }
-
-  /* Base to 1, if not already done */
-  if (baseval == 0)
-  {
-    for(iter=0; iter<(Nnzero); iter++)
-    {
-      tempcol[iter]++;
-      temprow[iter]++;
-    }
-  }
-
-  for (iter = 0; iter < (Nnzero); iter ++)
-  {
-    csc->colptr[tempcol[iter]-1]++;
-  }
-
-  baseval=1; /* base 1 */
-  total = baseval;
-
-  for (iter = 0; iter < (csc->gN+1); iter ++)
-  {
-    tmp = csc->colptr[iter];
-    csc->colptr[iter]=total;
-    total+=tmp;
-  }
-
-  for (iter = 0; iter < (Nnzero); iter ++)
-  {
-    
-    pos = csc->colptr[tempcol[iter]-1]-1;
-    limit = csc->colptr[tempcol[iter]]-1;
-    while(csc->rows[pos] != 0 && pos < limit)
-    {
-      pos++;
-    }
-    if (pos == limit)
-      fprintf(stderr, "Erreur de lecture\n");
-    
-    valptr=csc->avals+pos;
-    csc->rows[pos] = temprow[iter];
-    *valptr = tempval[iter];
-  }
-  memFree_null(tempval);
-  memFree_null(temprow);
-  memFree_null(tempcol);
+    return PASTIX_SUCCESS;
 }
 
 /**
- * ******************************************************************************
+ *******************************************************************************
  *
  * @ingroup pastix_csc_driver
  *
- * z_readMM - Read a complex matrix in Matrix Market file.
+ * d_readMM - Read the data part of a real matrix in Matrix Market file.
  * For more information about matrix market format see mmio.c/mmio.h
  *
  *******************************************************************************
  *
  * @param[in] file
- *          The file opened in readMM which contains the matrix stored in Matrix Market format.
+ *          The file opened in readMM which contains the matrix stored in Matrix
+ *          Market format.
  *
- * @param[out] csc
- *          At exit, contains the the matrix in csc format.
+ * @param[in,out] csc
+ *          At exit, the data of the matrix are stored in the csc structure.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been read successfully
+ *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
  *
  *******************************************************************************/
-void
-z_readMM( FILE *file,
-        pastix_csc_t *csc )
+int
+d_readMM( FILE *file,
+          pastix_csc_t *csc )
 {
+    double       *valptr;
+    pastix_int_t *colptr;
+    pastix_int_t *rowptr;
+    pastix_int_t i;
+    long row, col;
+    double re;
 
-  int * tempcol;
-  int iter,baseval;
-  int * temprow;
-  pastix_complex64_t * tempval;
-  pastix_complex64_t * valptr;
-  int total;
-  int tmp;
-  int pos;
-  int Nnzero;
-  int limit;
-  int tmpncol,tmpnrow;
+    csc->avals = malloc( csc->nnz * sizeof(double) );
 
-  /* find out size of sparse matrix .... */
+    colptr = csc->colptr;
+    rowptr = csc->rows;
+    valptr = (double*)(csc->avals);
 
-  if (mm_read_mtx_crd_size(file, &tmpnrow, &tmpncol, &Nnzero) !=0)
-    exit(1);
-
-  csc->gN = tmpncol;
-  csc->n = tmpncol;
-
-  /* Memory allocation */
-  tempcol = (int *) malloc((Nnzero)*sizeof(int));
-  temprow = (int *) malloc((Nnzero)*sizeof(int));
-  tempval = (pastix_complex64_t *) malloc((Nnzero)*sizeof(pastix_complex64_t));
-
-  if ((tempcol==NULL) || (temprow == NULL) || (tempval == NULL))
-  {
-    fprintf(stderr, "z_MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-    exit(-1);
-  }
-
-  /* Fill in the matrix */
-  {
-    pastix_int_t       *colptr = tempcol;
-    pastix_int_t       *rowptr = temprow;
-    long temp1,temp2;
-    double re,im;
-    baseval = 9999999;
-    valptr = tempval;
-    
-    for (iter=0; iter<(Nnzero); iter++, colptr++, rowptr++, valptr++)
+    for (i=0; i<csc->nnz; i++, colptr++, rowptr++, valptr++)
     {
-      if (4 != fscanf(file,"%ld %ld %lg %lg\n", &temp1, &temp2, &re, &im))
-      {
-        fprintf(stderr, "ERROR: reading matrix (line %ld)\n",
-                (long int)iter);
-        exit(1);
-      }
-      *rowptr = temp1;
-      *colptr = temp2;
-      *valptr = (pastix_complex64_t)(re+im*I);
-      baseval = pastix_imin( baseval, temp2 );
+        if (3 != fscanf(file,"%ld %ld %lg\n", &row, &col, &re))
+        {
+            fprintf(stderr, "readmm: erro while reading matrix file (line %ld)\n", (long)i);
+            return PASTIX_ERR_IO;
+        }
+
+        *rowptr = (pastix_int_t)row;
+        *colptr = (pastix_int_t)col;
+        *valptr = re;
     }
-  }
-  assert( (baseval == 0) || (baseval == 1) );
 
-  csc->colptr = (int*) malloc((csc->n+1)*sizeof(int));
-  csc->rows = (int*) malloc((Nnzero)*sizeof(int));
-  csc->avals = (pastix_complex64_t *) malloc((Nnzero)*sizeof(pastix_complex64_t));
-  memset(csc->rows,0,(Nnzero)*sizeof(int));
-  memset(csc->colptr,0,(csc->n +1)*sizeof(int));
-  if (((csc->colptr)==NULL) || ((csc->rows) == NULL) || ((csc->avals) == NULL))
-  {
-    fprintf(stderr, "z_MatrixMarketRead : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
-    exit(-1);
-  }
-
-  /* Base to 1, if not already done */
-  if (baseval == 0)
-  {
-    for(iter=0; iter<(Nnzero); iter++)
-    {
-      tempcol[iter]++;
-      temprow[iter]++;
-    }
-  }
-
-  for (iter = 0; iter < (Nnzero); iter ++)
-  {
-    csc->colptr[tempcol[iter]-1]++;
-  }
-
-  baseval=1; /* base 1 */
-  total = baseval;
-
-  for (iter = 0; iter < (csc->gN)+1; iter ++)
-  {
-    tmp = csc->colptr[iter];
-    csc->colptr[iter]=total;
-    total+=tmp;
-  }
-
-  for (iter = 0; iter < (Nnzero); iter ++)
-  {
-    
-    pos = csc->colptr[tempcol[iter]-1]-1;
-    limit = csc->colptr[tempcol[iter]]-1;
-    while(csc->rows[pos] != 0 && pos < limit)
-    {
-      pos++;
-    }
-    if (pos == limit)
-      fprintf(stderr, "Erreur de lecture\n");
-    
-    valptr=csc->avals;
-    valptr+=pos;
-    csc->rows[pos] = temprow[iter];
-    *valptr = tempval[iter];
-  }
-  memFree_null(tempval);
-  memFree_null(temprow);
-  memFree_null(tempcol);
+    return PASTIX_SUCCESS;
 }
+
 /**
-* ******************************************************************************
-*
-* @ingroup pastix_csc_driver
-*
-* readMM - Read a matrix in Matrix Market file.
-* For more information about matrix market format see mmio.c/mmio.h
-*
-*******************************************************************************
-*
-* @param[in] filename
-*          The filename that contains the matrix stored in Matrix Market format.
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc_driver
+ *
+ * p_readMM - Read the data part of a pattern matrix in Matrix Market file.
+ * For more information about matrix market format see mmio.c/mmio.h
+ *
+ *******************************************************************************
+ *
+ * @param[in] file
+ *          The file opened in readMM which contains the matrix stored in Matrix
+ *          Market format.
+ *
+ * @param[in,out] csc
+ *          At exit, the data of the matrix are stored in the csc structure.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been read successfully
+ *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ *
+ *******************************************************************************/
+int
+p_readMM( FILE *file,
+          pastix_csc_t *csc )
+{
+    pastix_int_t *colptr;
+    pastix_int_t *rowptr;
+    pastix_int_t i;
+    long row, col;
+
+    csc->avals = NULL;
+
+    colptr = csc->colptr;
+    rowptr = csc->rows;
+
+    for (i=0; i<csc->nnz; i++, colptr++, rowptr++)
+    {
+        if (2 != fscanf(file,"%ld %ld\n", &row, &col))
+        {
+            fprintf(stderr, "readmm: erro while reading matrix file (line %ld)\n", (long)i);
+            return PASTIX_ERR_IO;
+        }
+
+        *rowptr = (pastix_int_t)row;
+        *colptr = (pastix_int_t)col;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc_driver
+ *
+ * readMM - Read a matrix in Matrix Market fill. This corresponds to
+ * IJV format with (%d %d[ %lf[ %lf]]) format per line.
+ * For more information about matrix market format see mmio.c/mmio.h
+ *
+ *******************************************************************************
+ *
+ * @param[in] filename
+ *          The filename that contains the matrix stored in Matrix Market format.
  *
  * @param[in] csc
  *          At exit, contains the matrix in csc format.
-*
-*******************************************************************************/
-void 
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been read successfully
+ *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ *
+ *******************************************************************************/
+int
 readMM( const char   *filename,
         pastix_csc_t *csc )
 {
+    MM_typecode matcode;
+    FILE *file;
 
-  char    Type[4];
-  FILE * file;
-  MM_typecode matcode;
-
-  file = fopen (filename,"r");
-  if (file==NULL)
-  {
-    fprintf(stderr,"cannot load %s\n", filename);
-    exit(-1);
-  }
-
-  if (mm_read_banner(file, &matcode) != 0)
-  {
-    fprintf(stderr,"Could not process Matrix Market banner.\n");
-    exit(1);
-  }
-
-  if (mm_is_complex(matcode))
-  {
-    Type[0] = 'C';
-    csc->flttype=PastixComplex64;
-  }else{
-    Type[0] = 'R';
-    csc->flttype=PastixDouble;
-  }
-
-  Type[1] = 'U';
-  csc->mtxtype=PastixGeneral;
-  if (mm_is_symmetric(matcode))
-  {
-    Type[1] = 'S';
-    csc->mtxtype=PastixSymmetric;
-  }else{
-    if (mm_is_hermitian(matcode))
+    file = fopen(filename,"r");
+    if (file == NULL)
     {
-      Type[1] = 'H';
-      csc->mtxtype=PastixHermitian;
+        fprintf(stderr,"readmm: Cannot open the file (%s)\n", filename);
+        return PASTIX_ERR_BADPARAMETER;
     }
-  }
-  Type[2] = 'A';
-  Type[3] = '\0';
 
-  if(mm_is_complex(matcode)){
-    z_readMM(file,csc);
-  }else{
-    d_readMM(file,csc);
-  }
-  csc->fmttype = PastixCSC;
- }
+    if (mm_read_banner(file, &matcode) != 0)
+    {
+        fprintf(stderr,"readmm: Could not process Matrix Market banner.\n");
+        return PASTIX_ERR_IO;
+    }
+
+    /* Float values type */
+    if (mm_is_complex(matcode)) {
+        csc->flttype = PastixComplex64;
+    }
+    else if (mm_is_real(matcode)) {
+        csc->flttype = PastixDouble;
+    }
+    else if (mm_is_pattern(matcode)) {
+        csc->flttype = PastixPattern;
+    }
+    else {
+        fprintf(stderr,"readmm: Unsupported type of matrix.\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /* Matrix structure */
+    if (mm_is_general(matcode)) {
+        csc->mtxtype = PastixGeneral;
+    }
+    else if (mm_is_symmetric(matcode)) {
+        csc->mtxtype = PastixSymmetric;
+    }
+    else if (mm_is_hermitian(matcode)) {
+        csc->mtxtype = PastixHermitian;
+    }
+    else {
+        fprintf(stderr,"readmm: Unsupported type of matrix.\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    csc->fmttype = PastixIJV;
+    csc->dof     = 1;
+    csc->loc2glob= NULL;
+
+    /* Read the size */
+    {
+        int m, n, nnz;
+        if (mm_read_mtx_crd_size(file, &m, &n, &nnz) != 0) {
+            fprintf(stderr, "readmm: error while reading matrix sizes\n");
+            return PASTIX_ERR_IO;
+        }
+
+        csc->gN   = n;
+        csc->n    = n;
+        csc->gnnz = nnz;
+        csc->nnz  = nnz;
+    }
+
+    csc->colptr = (pastix_int_t*)malloc(csc->nnz * sizeof(pastix_int_t));
+    csc->rows   = (pastix_int_t*)malloc(csc->nnz * sizeof(pastix_int_t));
+
+    switch( csc->flttype ) {
+    case PastixComplex64:
+        return z_readMM(file,csc);
+
+    case PastixDouble:
+        return d_readMM(file,csc);
+
+    case PastixPattern:
+    default:
+        return p_readMM(file,csc);
+    }
+}
