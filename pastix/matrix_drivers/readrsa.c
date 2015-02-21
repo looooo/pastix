@@ -145,89 +145,88 @@ readRSAHeader( const char *filename,
  * @param[in] csc
  *          At exit, contains the matrix in csc format.
  *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been read successfully
+ *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ *
  *******************************************************************************/
-void
+int
 readRSA( const char   *filename,
          pastix_csc_t *csc )
 {
-  char    Type[4];
-  char    RhsType[4];
-  int     i;
-  int     tmp;
-  char    title[72+1];
-  char    key[8+1];
-  int     nrhs;
-  int     len;
-  int     ierr;
-  double *crhs=NULL;
-  int     M, N, Nnz;
-  int    *tmpcolptr;
-  int    *tmprows;
-  int     base;
+    char    Type[4];
+    char    RhsType[4];
+    int     i;
+    int     tmp;
+    char    title[72+1];
+    char    key[8+1];
+    int     nrhs;
+    int     len;
+    int     ierr;
+    double *crhs=NULL;
+    int     M, N, Nnz;
+    int    *tmpcolptr;
+    int    *tmprows;
+    int     base;
 
-  readRSAHeader(filename, &N, &Nnz, Type, RhsType );
+    readRSAHeader(filename, &N, &Nnz, Type, RhsType );
 
-  tmpcolptr = (int*) malloc( (N+1) * sizeof(int) );
-  assert( tmpcolptr );
+    tmpcolptr = (int*) malloc( (N+1) * sizeof(int) );
+    assert( tmpcolptr );
 
-  tmprows = (int*) malloc( Nnz * sizeof(int) );
-  assert( tmprows );
+    tmprows = (int*) malloc( Nnz * sizeof(int) );
+    assert( tmprows );
 
-  /* RSA reads only double */
-  csc->flttype = PastixDouble;
-  csc->avals = (double*) malloc( Nnz * sizeof(double) );
-  assert( csc->avals );
+    /* RSA reads only double */
+    csc->avals = (double*) malloc( Nnz * sizeof(double) );
+    assert( csc->avals );
 
-  len  = strlen(filename);
-  tmp  = 2;
-  nrhs = 0;
+    len  = strlen(filename);
+    tmp  = 2;
+    nrhs = 0;
 
-  FC_GLOBAL(wreadmtc,WREADMTC)
-      (&N, &Nnz, &tmp, filename, &len, csc->avals, tmprows, tmpcolptr, crhs,
-        &nrhs, RhsType, &M, &N, &Nnz, title, key, Type, &ierr );
+    FC_GLOBAL(wreadmtc,WREADMTC)
+        (&N, &Nnz, &tmp, filename, &len, csc->avals, tmprows, tmpcolptr, crhs,
+         &nrhs, RhsType, &M, &N, &Nnz, title, key, Type, &ierr );
 
-  base = (tmpcolptr[0] == 0) ? 0 : 1;
-  assert( (tmpcolptr[N]-base) == Nnz );
+    base = (tmpcolptr[0] == 0) ? 0 : 1;
+    assert( (tmpcolptr[N]-base) == Nnz );
 
-  csc->gN = N;
-  csc->n  = N;
+    csc->flttype = PastixDouble;
+    csc->fmttype = PastixCSC;
+    csc->gN      = N;
+    csc->n       = N;
+    csc->gnnz    = Nnz;
+    csc->nnz     = Nnz;
+    csc->colptr  = pastix_int_convert( N+1, tmpcolptr );
+    csc->rows    = pastix_int_convert( Nnz, tmprows );
 
-  csc->colptr = (pastix_int_t*)malloc( (N+1) * sizeof(pastix_int_t) );
-  assert( csc->colptr );
-  for (i=0; i<N+1; i++)
-      (csc->colptr)[i] = (pastix_int_t)(tmpcolptr[i]);
-  memFree_null(tmpcolptr);
+    RhsType[0] = '\0';
+    if(ierr != 0) {
+        fprintf(stderr, "cannot read matrix (job=2)\n");
+        return PASTIX_ERR_IO;
+    }
 
-  csc->rows = (pastix_int_t*)malloc( Nnz * sizeof(pastix_int_t) );
-  assert( csc->rows );
-  for (i=0; i<Nnz; i++)
-      (csc->rows)[i] = (pastix_int_t)(tmprows[i]);
-  memFree_null(tmprows);
-
-  RhsType[0]='\0';
-  if(ierr != 0) {
-      fprintf(stderr, "cannot read matrix (job=2)\n");
-  }
-
-  switch( Type[1] ){
-  case 'S':
-  case 's':
-      csc->mtxtype = PastixSymmetric;
-      break;
-  case 'H':
-  case 'h':
-      csc->mtxtype = PastixHermitian;
-      /**
-        * We should not arrive here, since the fortran driver is not able to
-        * read complex matrices
-        */
-      assert(0);
-      break;
-  case 'U':
-  case 'u':
-  default:
-      csc->mtxtype = PastixGeneral;
-  }
-  csc->flttype = PastixDouble;
-  csc->fmttype = PastixCSC;
+    switch( Type[1] ){
+    case 'S':
+    case 's':
+        csc->mtxtype = PastixSymmetric;
+        break;
+    case 'H':
+    case 'h':
+        csc->mtxtype = PastixHermitian;
+        /**
+         * We should not arrive here, since the fortran driver is not able to
+         * read complex matrices
+         */
+        assert(0);
+        break;
+    case 'U':
+    case 'u':
+    default:
+        csc->mtxtype = PastixGeneral;
+    }
+    return PASTIX_SUCCESS;
 }
