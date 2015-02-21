@@ -335,7 +335,6 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
    FanInTarget  *ftgtptr;
    FanInTarget  *ftgttnd;
    Task         *taskptr;
-   Task         *tasknd;
 
    pastix_int_t          o;
 
