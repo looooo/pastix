@@ -158,7 +158,6 @@ readRSA( const char   *filename,
 {
     char    Type[4];
     char    RhsType[4];
-    int     i;
     int     tmp;
     char    title[72+1];
     char    key[8+1];
@@ -169,7 +168,6 @@ readRSA( const char   *filename,
     int     M, N, Nnz;
     int    *tmpcolptr;
     int    *tmprows;
-    int     base;
 
     readRSAHeader(filename, &N, &Nnz, Type, RhsType );
 
@@ -220,8 +218,7 @@ readRSA( const char   *filename,
         (&N, &Nnz, &tmp, filename, &len, csc->avals, tmprows, tmpcolptr, crhs,
          &nrhs, RhsType, &M, &N, &Nnz, title, key, Type, &ierr );
 
-    base = (tmpcolptr[0] == 0) ? 0 : 1;
-    assert( (tmpcolptr[N]-base) == Nnz );
+    assert( (tmpcolptr[N]-tmpcolptr[0]) == Nnz );
 
     csc->colptr  = pastix_int_convert( N+1, tmpcolptr );
     csc->rows    = pastix_int_convert( Nnz, tmprows );

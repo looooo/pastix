@@ -103,7 +103,6 @@ readHB( const char   *filename,
     /* Read the matrix and its values */
     {
         int    *colptr, *rowind;
-        double *aval;
         int     rc;
 
         rc = readHB_newmat_double( filename, &M, &N, &nz,
