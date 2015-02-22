@@ -119,6 +119,8 @@ int cscReadFromFile( pastix_driver_t  driver,
         default:
             readRSA( filename, csc );
         }
+
+        spmConvert( PastixCSC, csc );
     }
 
     /* #ifndef TYPE_COMPLEX */
