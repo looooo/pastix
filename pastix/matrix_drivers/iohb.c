@@ -268,6 +268,19 @@ int readHB_info(const char* filename, int* M, int* N, int* nz, char** Type,
     *nz   = Nnzero;
     if (Rhscrd == 0) {*Nrhs = 0;}
 
+    /*  In verbose mode, print some of the header information:   */
+    /*
+     if (verbose == 1)
+     {
+     printf("Reading from Harwell-Boeing file %s (verbose on)...\n",filename);
+     printf("  Title: %s\n",Title);
+     printf("  Key:   %s\n",Key);
+     printf("  The stored matrix is %i by %i with %i nonzeros.\n",
+     *M, *N, *nz );
+     printf("  %i right-hand--side(s) stored.\n",*Nrhs);
+     }
+     */
+
     return 1;
 }
 
@@ -495,7 +508,7 @@ int readHB_newmat_double(const char* filename, int* M, int* N, int* nonzeros,
                          int** colptr, int** rowind, double** val)
 {
     int Nrhs;
-    char *Type = NULL;
+    char *Type = malloc(sizeof(char)*4);
 
     readHB_info(filename, M, N, nonzeros, &Type, &Nrhs);
 
@@ -518,6 +531,7 @@ int readHB_newmat_double(const char* filename, int* M, int* N, int* nonzeros,
             if ( *val == NULL ) IOHBTerminate("Insufficient memory for val.\n");
         }
     }  /* No val[] space needed if pattern only */
+    free(Type);
     return readHB_mat_double(filename, *colptr, *rowind, *val);
 
 }
@@ -1485,10 +1499,13 @@ int ParseIfmt(char* fmt, int* perline, int* width)
     tmp = strchr(fmt,'(');
     tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,'I') - tmp - 1);
     *perline = atoi(tmp);
+    if (tmp) free(tmp);
+
     tmp = strchr(fmt,'I');
     tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,')') - tmp - 1);
     *width = atoi(tmp);
-    free(tmp);
+    if (tmp) free(tmp);
+
     return *width;
 }
 
@@ -1549,14 +1566,20 @@ int ParseRfmt(char* fmt, int* perline, int* width, int* prec, char* flag)
     tmp = strchr(fmt,'(');
     tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,*flag) - tmp - 1);
     *perline = atoi(tmp);
+    free(tmp);
     tmp = strchr(fmt,*flag);
     if ( strchr(fmt,'.') ) {
-        *prec = atoi( substr( fmt, strchr(fmt,'.') - fmt + 1, strchr(fmt,')') - strchr(fmt,'.')-1) );
+        char *tmp2 = substr( fmt, strchr(fmt,'.') - fmt + 1, strchr(fmt,')') - strchr(fmt,'.')-1);
+        *prec = atoi( tmp2 );
+        if (tmp2) free(tmp2);
         tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,'.') - tmp - 1);
     } else {
         tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,')') - tmp - 1);
     }
-    return *width = atoi(tmp);
+    *width = atoi(tmp);
+
+    if (tmp) free(tmp);
+    return *width;
 }
 
 char* substr(const char* S, const int pos, const int len)
