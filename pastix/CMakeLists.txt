@@ -512,6 +512,7 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/readrsa.c
   matrix_drivers/readmm.c
   matrix_drivers/readijv.c
+  matrix_drivers/readhb.c
 
   # Files that still require some changes
   blend/cand.c
@@ -569,7 +570,6 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
   #matrix_drivers/readmmd.c
-  matrix_drivers/readhb.c
   matrix_drivers/readpetsc.c
   matrix_drivers/laplacian.c
   matrix_drivers/readcscd.c
@@ -612,10 +612,11 @@ set(PASTIX_ALL_SRCS
 
   matrix_drivers/iohb.c
   matrix_drivers/mmio.c
+  matrix_drivers/skitf.f
+  matrix_drivers/readhb.c
   matrix_drivers/readijv.c
   matrix_drivers/readmm.c
   matrix_drivers/readrsa.c
-  matrix_drivers/skitf.f
 )
 
 if(PASTIX_WITH_STARPU)

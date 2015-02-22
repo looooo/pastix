@@ -35,6 +35,7 @@
  * @return
  *      \retval PASTIX_SUCCESS if the matrix has been read successfully
  *      \retval PASTIX_ERR_IO if a problem occured in the Harwell Boeing driver
+ *      \retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
  *
  *******************************************************************************/
 int
@@ -80,6 +81,7 @@ readHB( const char   *filename,
             break;
         default:
             fprintf(stderr, "readhb: Floating type unknown (%c)\n", Type[0]);
+            return PASTIX_ERR_BADPARAMETER;
         }
 
         /* Check Symmetry */
