@@ -204,6 +204,7 @@ p_readMM( FILE *file,
  * @return
  *      \retval PASTIX_SUCCESS if the matrix has been read successfully
  *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ *      \retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
  *
  *******************************************************************************/
 int

@@ -150,6 +150,7 @@ readRSAHeader( const char *filename,
  * @return
  *      \retval PASTIX_SUCCESS if the matrix has been read successfully
  *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ *      \retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
  *
  *******************************************************************************/
 int
@@ -187,8 +188,11 @@ readRSA( const char   *filename,
         break;
     case 'U':
     case 'u':
-    default:
         csc->mtxtype = PastixGeneral;
+        break;
+    default:
+        fprintf(stderr,"readmm: Unsupported type of matrix.\n");
+        return PASTIX_ERR_BADPARAMETER;
     }
 
     csc->flttype = PastixDouble;
