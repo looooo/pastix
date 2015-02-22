@@ -48,9 +48,15 @@
 #define PastixSymmetric     112
 #define PastixHermitian     113
 
-#define PastixCSC           1
-#define PastixCSR           2
-#define PastixIJV           3
+/** ****************************************************************************
+ * Sparse matrix format
+ **/
+typedef enum pastix_fmttype_e {
+    PastixCSC = 0,
+    PastixCSR = 1,
+    PastixIJV = 2
+} pastix_fmttype_t;
+
 
 #define PASTIX_SUCESS  0
 
