@@ -337,7 +337,7 @@ endif()
 #   set(METIS_LIBRARY_DIRS "${METIS_DIR}/lib")
 #   set(METIS_LIBRARIES    "metis")
 # endif()
-# 
+#
 # PaStiX might depend on GTG
 #---------------------------
 if (PASTIX_BLEND_GENTRACE)
@@ -401,7 +401,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kass")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
@@ -467,12 +466,13 @@ include(RulesPrecisions)
 set(generated_files "")
 set(SOURCES
   common/z_integer.c
+  csc/z_spm_convert_to_csc.c
   sopalin/sequential_zpotrf.c
   sopalin/coeftab_z.c
   )
 precisions_rules_py(generated_files
   "${SOURCES}"
-  PRECISIONS "s;d;c;z"
+  PRECISIONS "p;s;d;c;z"
   )
 
 #
@@ -576,6 +576,8 @@ set(PASTIX_LIB_SRCS
 #
   sopalin/pastix_task_sopalin.c
   sopalin/coeftab.c
+#
+  csc/csc.c
 #
   ${generated_files}
   )
@@ -707,4 +709,3 @@ endif()
 add_custom_target (tags
   COMMAND etags ${PASTIX_LIB_SRCS}
   DEPENDS ${PASTIX_LIB_SRCS} )
-
