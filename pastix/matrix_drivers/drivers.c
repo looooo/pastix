@@ -105,6 +105,11 @@ int cscReadFromFile( pastix_driver_t  driver,
             SCOTCH_graphLoad( &sgraph, file, 1, 0 );
             SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rows), NULL );
             fclose(file);
+
+            csc->flttype = PastixPattern;
+            csc->gN   = csc->n;
+            csc->gnnz = csc->colptr[ csc->n ];
+            csc->nnz  = csc->gnnz;
         }
 #else
         {
