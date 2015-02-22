@@ -51,9 +51,11 @@ readHB( const char   *filename,
 
     /* Read header informations */
     {
-        char Type[4];
+        char *Type;
+        Type = malloc(4*sizeof(char));
+        Type[0] ='a';
 
-        readHB_info(filename, &M, &N, &nz, (char**)(&Type), &nrhs);
+        readHB_info(filename, &M, &N, &nz, &Type, &nrhs);
 
         if ( M != N ) {
             fprintf(stderr, "readHB: PaStiX does not support non square matrices (m=%d, N=%d\n", M, N);
@@ -100,6 +102,7 @@ readHB( const char   *filename,
         default:
             csc->mtxtype = PastixGeneral;
         }
+        free(Type);
     }
 
     /* Read the matrix and its values */

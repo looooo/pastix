@@ -213,6 +213,7 @@ readMM( const char   *filename,
 {
     MM_typecode matcode;
     FILE *file;
+    int rc;
 
     file = fopen(filename,"r");
     if (file == NULL)
@@ -280,13 +281,18 @@ readMM( const char   *filename,
 
     switch( csc->flttype ) {
     case PastixComplex64:
-        return z_readMM(file,csc);
+        rc = z_readMM(file,csc);
+        break;
 
     case PastixDouble:
-        return d_readMM(file,csc);
+        rc = d_readMM(file,csc);
+        break;
 
     case PastixPattern:
     default:
-        return p_readMM(file,csc);
+        rc = p_readMM(file,csc);
     }
+
+    fclose(file);
+    return rc;
 }
