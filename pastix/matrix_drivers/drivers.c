@@ -81,14 +81,14 @@ int cscReadFromFile( pastix_driver_t  driver,
         case PastixDriverPetscU:
         case PastixDriverPetscH:
             printf("driver: PETSc file: %s\n", filename);
-            readPETSC( filename, csc );
+            //readPETSC( filename, csc );
             if (driver == PastixDriverPetscS) csc->mtxtype = PastixSymmetric;
             if (driver == PastixDriverPetscH) csc->mtxtype = PastixHermitian;
             break;
 
         case PastixDriverCSCD:
             printf("driver CSCd file: %s\n", filename);
-            readCSCD( filename, csc, rhs, pastix_comm );
+            //readCSCD( filename, csc, rhs, pastix_comm );
             break;
 
         case PastixDriverLaplacian:

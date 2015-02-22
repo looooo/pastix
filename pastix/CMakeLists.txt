@@ -570,9 +570,9 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
   #matrix_drivers/readmmd.c
-  matrix_drivers/readpetsc.c
+  #matrix_drivers/readpetsc.c
   matrix_drivers/laplacian.c
-  matrix_drivers/readcscd.c
+  #matrix_drivers/readcscd.c
 #
   sopalin/pastix_task_sopalin.c
   sopalin/coeftab.c
