@@ -25,8 +25,8 @@
  *
  *******************************************************************************
  *
- * @param[in] filename
- *          The file containing the matrix.
+ * @param[in] infile
+ *          The opened header file
  *
  * @param[out] Nrow
  *          At exit, contains the number of rows of the matrix.
@@ -36,6 +36,12 @@
  *
  * @param[out] Nnzero
  *          At exit, contains the number of non zero entries of the matrix.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the information has been read successfully
+ *      \retval PASTIX_ERR_BADPARAMETER if the header has a wrong format
  *
  *******************************************************************************/
 int
@@ -73,11 +79,19 @@ threeFilesReadHeader(FILE         *infile,
  *
  *******************************************************************************
  *
- * @param[in] filename
- *          The file containing the matrix.
+ * @param[in] dirname
+ *          Directory that contains the files.
  *
  * @param[out] csc
- *          At exit, contains the matrix in csc format.
+ *          At exit, contains the matrix in ijv format.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been read successfully
+ *      \retval PASTIX_ERR_IO if a problem occurs while reading the files
+ *      \retval PASTIX_ERR_BADPARAMETER if a problem occurs while opening the
+ *              files
  *
  *******************************************************************************/
 int
