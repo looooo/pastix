@@ -31,13 +31,10 @@ z_spmConvertIJV2CSC( int ofmttype, pastix_csc_t *spm )
     /* Backup the input */
     memcpy( &oldspm, spm, sizeof(pastix_csc_t) );
 
-    /* Check the baseval */
-    baseval = 999999999999;
-    otmp = oldspm.colptr;
-    for (i=0; i<spm->nnz; i++, otmp++)
-    {
-        baseval = pastix_imin( baseval, *otmp );
-    }
+    /*
+     * Check the baseval, we consider that arrays are sorted by columns or rows
+     */
+    baseval = pastix_imin( *(oldspm.colptr), *(oldspm.rows) );
 
     /* Compute the new colptr */
     spm->colptr = (pastix_int_t *) calloc(spm->n+1,sizeof(pastix_int_t));
@@ -76,7 +73,7 @@ z_spmConvertIJV2CSC( int ofmttype, pastix_csc_t *spm )
     {
         i = oldspm.colptr[j] - baseval;
 
-        spm->rows[  spm->colptr[i] ] = oldspm.rows[j];
+        spm->rows[ spm->colptr[i] ] = oldspm.rows[j];
 
 #if !defined(PRECISION_p)
         navals[ spm->colptr[i] ] = oavals[j];
