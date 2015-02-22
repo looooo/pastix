@@ -337,6 +337,9 @@ amalgamate_merge_col(pastix_int_t  a,
  *          On exit, contains the inverse permutation associated with the new
  *          amalgamated graph.
  *
+ * @param[in] pastix_comm
+ *          MPI communicator. Used only for printf in this function.
+ *
  *******************************************************************************/
 void
 amalgamate(double rat_cblk, double rat_blas,
