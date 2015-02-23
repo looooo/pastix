@@ -93,13 +93,6 @@ int main (int argc, char **argv)
 
     cscReadFromFile( driver, filename, &csc, &rhs, MPI_COMM_WORLD );
     free(filename);
-    
-    printf("test spmConvert\n");
-    if(spmConvert(PastixCSR,&csc)!=PASTIX_SUCCESS)
-        printf("problème1\n");
-    printf("test spmConvert2\n");
-    if(spmConvert(PastixCSC,&csc)!=PASTIX_SUCCESS)
-        printf("problème2\n");
 
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
