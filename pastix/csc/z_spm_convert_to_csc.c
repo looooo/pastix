@@ -110,7 +110,68 @@ z_spmConvertIJV2CSC( int ofmttype, pastix_csc_t *spm )
 int
 z_spmConvertCSR2CSC( int ofmttype, pastix_csc_t *spm )
 {
-    return z_spmConvertCSR2CSC(ofmttype, spm );
+    pastix_int_t       *row_csc;
+    pastix_int_t       *col_csc;
+#if !defined(PRECISION_p)
+    pastix_complex64_t *val_csc;
+    pastix_complex64_t  val;
+    pastix_complex64_t *valptr;
+#endif
+    pastix_int_t       *count;
+    pastix_int_t j, k, col, row, nnz, baseval;
+
+    baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
+    nnz=spm->rows[spm->gN]-baseval;
+    spm->fmttype=PastixCSC;
+
+    row_csc = malloc(nnz*sizeof(pastix_int_t));
+    col_csc = calloc(spm->gN+1,sizeof(pastix_int_t));
+    count = calloc(spm->gN,sizeof(pastix_int_t));
+
+    assert( row_csc );
+    assert( col_csc );
+    assert( count_csc );
+
+#if !defined(PRECISION_p)
+    val_csc = malloc(nnz*sizeof(pastix_complex64_t));
+    assert( val_csc );
+#endif
+
+    for (j=0;j<=nnz;j++){
+        col_csc[spm->colptr[j]]+=1;
+    }
+    col_csc[0]=0;
+    for (j=1;j<=spm->gN;j++){
+        col_csc[j]+=col_csc[j-1];
+    }
+    col_csc[0]=baseval;
+
+    assert( col_csc[spm->gN] == nnz+1 );
+
+    for (row=1;row<=spm->gN;row++){
+        for (k=0;k<spm->rows[row-baseval+1]-spm->rows[row-baseval];k++){
+            col=spm->colptr[spm->rows[row-baseval]-baseval+k];
+            row_csc[col_csc[col-baseval]-baseval+count[col-baseval]]=row;
+#if !defined(PRECISION_p)
+            valptr=spm->avals+spm->rows[row-baseval]-baseval+k;
+            val=*valptr;
+            val_csc[col_csc[col-baseval]-baseval+count[col-baseval]]=val;
+#endif
+            count[col-baseval]+=1;
+        }
+    }
+
+    memFree_null(count);
+    memFree_null(spm->colptr);
+    memFree_null(spm->rows);
+    spm->colptr=col_csc;
+    spm->rows  =row_csc;
+#if !defined(PRECISION_p)
+    memFree_null(spm->avals);
+    spm->avals =val_csc;
+#endif
+
+    return PASTIX_SUCCESS;
 }
 
 int
@@ -125,63 +186,57 @@ z_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm )
 #endif
     pastix_int_t       *count;
     pastix_int_t j, k, col, row, nnz, baseval;
-    
+
     baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
-    if(spm->fmttype==PastixCSC){
-        nnz=spm->colptr[spm->gN]-baseval;
-        spm->fmttype=PastixCSR;
-    }else if(spm->fmttype==PastixCSR){
-        nnz=spm->rows[spm->gN]-baseval;
-        spm->fmttype=PastixCSC;
-    }else if(spm->fmttype==PastixIJV){
-        printf("csc_to_csr: Matrix should be in csc or csr format\n");
-        return;
-    }
-    
-    if (NULL == (row_csr = calloc((spm->gN+1),sizeof(pastix_int_t))))
-        printf("csc_to_csr: Not enough memory (row_csr)\n");
-    if (NULL == (col_csr = malloc(nnz*sizeof(pastix_int_t))))
-        printf("csc_to_csr: Not enough memory (col_csr)\n");
+    nnz=spm->colptr[spm->gN]-baseval;
+    spm->fmttype=PastixCSR;
+
+    row_csr = calloc(spm->gN+1,sizeof(pastix_int_t));
+    col_csr = malloc(nnz*sizeof(pastix_int_t));
+    count = calloc(spm->gN,sizeof(pastix_int_t));
+
+    assert( row_csr );
+    assert( col_csr );
+    assert( count_csr );
+
 #if !defined(PRECISION_p)
-    if (NULL == (val_csr = malloc(nnz*sizeof(pastix_complex64_t))))
-        printf("csc_to_csr: Not enough memory (val_csr)\n");
+    val_csr = malloc(nnz*sizeof(pastix_complex64_t));
+    assert( val_csr );
 #endif
-    if (NULL == (count = calloc(spm->gN,sizeof(pastix_int_t))))
-        printf("csc_to_csr: Not enough memory (count)\n");
-    
+
     for (j=0;j<=nnz;j++){
         row_csr[spm->rows[j]]+=1;
     }
     row_csr[0]=0;
     for (j=1;j<=spm->gN;j++){
-        row_csr[j]+=row_csr[j-baseval];
+        row_csr[j]+=row_csr[j-1];
     }
-    row_csr[0]=1;
-    
+    row_csr[0]=baseval;
+
     assert( row_csr[spm->gN] == nnz+1 );
-    
+
     for (col=1;col<=spm->gN;col++){
-        for (k=1;k<=spm->colptr[col-baseval+1]-spm->colptr[col-baseval];k++){
-            row=spm->rows[spm->colptr[col-baseval]-baseval+k-1];
+        for (k=0;k<(spm->colptr[col-baseval+1]-spm->colptr[col-baseval]);k++){
+            row=spm->rows[spm->colptr[col-baseval]-baseval+k];
             col_csr[row_csr[row-baseval]-baseval+count[row-baseval]]=col;
 #if !defined(PRECISION_p)
-            valptr=spm->avals+spm->colptr[col-baseval]-baseval+k-1;
+            valptr=spm->avals+spm->colptr[col-baseval]-baseval+k;
             val=*valptr;
             val_csr[row_csr[row-baseval]-baseval+count[row-baseval]]=val;
 #endif
             count[row-baseval]+=1;
         }
     }
+
     memFree_null(count);
     memFree_null(spm->colptr);
     memFree_null(spm->rows);
-#if !defined(PRECISION_p)
-    memFree_null(spm->avals);
-#endif
     spm->colptr=col_csr;
     spm->rows  =row_csr;
 #if !defined(PRECISION_p)
+    memFree_null(spm->avals);
     spm->avals =val_csr;
 #endif
+
     return PASTIX_SUCCESS;
 }
