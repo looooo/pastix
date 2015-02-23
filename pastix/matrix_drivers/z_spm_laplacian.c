@@ -24,7 +24,7 @@
  * z_spmLaplacian1D - Generate a 1D laplacian matrix and an associated right
  * hand side member.
  *
- * Example :
+ * Example:
  * >  2 -1  0  0
  * > -1  2 -1  0
  * >  0 -1  2 -1
@@ -46,7 +46,7 @@
 void
 z_spmLaplacian1D( pastix_csc_t  *csc,
                   void         **rhs,
-                  long           dim1 )
+                  pastix_int_t   dim1 )
 {
     pastix_complex64_t *rhsptr;
     pastix_complex64_t *valptr;
@@ -78,7 +78,7 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
     assert( csc->avals  );
 #endif
 
-    /* Building ia, ja, avals and rhs */
+    /* Building ia, ja and avals*/
     colptr = csc->colptr;
     rowptr = csc->rows;
     valptr = (pastix_complex64_t*)(csc->avals);
@@ -115,22 +115,20 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
     *rhs = calloc(csc->n, sizeof(pastix_complex64_t));
     assert( *rhs );
     rhsptr = (pastix_complex64_t*)(*rhs);
-    rhsptr[0]         = 1.;
-    rhsptr[csc->gN-1] = 1.;
+    rhsptr[0]         = (pastix_complex64_t)1.;
+    rhsptr[csc->gN-1] = (pastix_complex64_t)1.;
 #endif
 }
 
-#if 0
 /**
  *******************************************************************************
  *
  * @ingroup pastix_csc_driver
  *
- * File: laplacian.c
+ * z_spmLaplacian2D - Generate a 2D laplacian matrix and an associated right
+ * hand side member.
  *
- * z_gen2Dlaplacian - Generate a 2D laplacian
- *
- * Example :
+ * Example:
  * >  4 -1  0 -1  0  0
  * > -1  4 -1  0 -1  0
  * >  0 -1  4  0  0 -1
@@ -140,7 +138,7 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  *
  *******************************************************************************
  *
- * @param[out] csc
+ * @param[in,out] csc
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
  *
@@ -154,66 +152,44 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  *          contains the second dimension of the 2D grid of the laplacian.
  *
  *******************************************************************************/
-static inline void
-z_gen2Dlaplacian( pastix_csc_t  *csc,
+void
+z_spmLaplacian2D( pastix_csc_t  *csc,
                   void         **rhs,
-                  long           dim1,
-                  long           dim2 )
+                  pastix_int_t   dim1,
+                  pastix_int_t   dim2 )
 {
-
-    pastix_int_t i;
-    pastix_int_t j;
-    pastix_int_t k;
-    pastix_complex64_t * valptr;
-    pastix_complex64_t * rhsptr;
-    pastix_int_t nnzeros = (2*(dim1)-1)*dim2 + (dim2-1)*dim1;
-    csc->n       = csc->gN;
+    pastix_complex64_t *rhsptr;
+    pastix_complex64_t *valptr;
+    pastix_int_t i, j, k;
+    pastix_int_t nnz = (2*(dim1)-1)*dim2 + (dim2-1)*dim1;
+    (void)rhsptr;
+    
+    csc->mtxtype  = PastixSymmetric;
+    csc->fmttype  = PastixCSC;
+    csc->gnnz     = nnz;
+    csc->nnz      = nnz;
+    csc->dof      = 1;
     csc->colptr  = NULL;
     csc->rows    = NULL;
     csc->avals   = NULL;
     *rhs         = NULL;
 
-    fprintf(stderr, "Laplacien 2D, n = %d\n",csc->n);
-
     assert( csc->gN == dim1*dim2 );
 
     /* Allocating */
-    if ((NULL == (csc->colptr = (pastix_int_t *)      malloc(((csc->gN)+1)*sizeof(pastix_int_t))  ))     ||
-        (NULL == (csc->rows   = (pastix_int_t *)      malloc((nnzeros)    *sizeof(pastix_int_t))  ))     ||
-        (NULL == (csc->avals  = (pastix_complex64_t *)malloc((nnzeros)    *sizeof(pastix_complex64_t)))) ||
-        (NULL == (*rhs        = (pastix_complex64_t *)calloc((csc->gN)    ,sizeof(pastix_complex64_t)))) )
-    {
-        fprintf(stderr, "Laplacien 2D, error in CSC allocation\n");
-        if (*rhs != NULL)
-        {
-            free(*rhs);
-            *rhs = NULL;
-        }
-        if (csc->avals != NULL)
-        {
-            free(csc->avals);
-            csc->avals = NULL;
-        }
-        if (csc->rows != NULL)
-        {
-            free(csc->rows);
-            csc->rows = NULL;
-        }
-        if (csc->colptr != NULL)
-        {
-            free(csc->colptr);
-            csc->colptr = NULL;
-        }
-        return;
-    }
+    csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
+    csc->rows   = malloc(nnz       *sizeof(pastix_int_t));
+    assert( csc->colptr );
+    assert( csc->rows   );
 
-    /* Building ia, ja and avals and rhs*/
+#if !defined(PRECISION_p)
+    csc->avals  = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( csc->avals  );
+#endif
 
+    /* Building ia, ja and avals */
     csc->colptr[0] = 1;
     valptr = csc->avals;
-    rhsptr = *rhs;
-    rhsptr[0]         = 1.;
-    rhsptr[csc->gN-1] = 1.;
     k = 0;
 
     for(i=0; i<dim2; i++)
@@ -228,41 +204,57 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
                 csc->rows[csc->colptr[k-1]-1]=k;
                 csc->rows[csc->colptr[k-1]  ]=k+1;
                 csc->rows[csc->colptr[k-1]+1]=k+dim1;
-                *valptr = 4.;
+#if !defined(PRECISION_p)
+                *valptr = (pastix_complex64_t)4.;
                 *(valptr+1) = -1.;
                 *(valptr+2) = -1.;
                 valptr += 3;
+#endif
             }
             else if(j==dim1 && i!=dim2-1)
             {
                 csc->colptr[k] = csc->colptr[k-1]+2;
                 csc->rows[csc->colptr[k-1]-1]=k;
                 csc->rows[csc->colptr[k-1]  ]=k+dim1;
-                *valptr = 4.;
+#if !defined(PRECISION_p)
+                *valptr = (pastix_complex64_t)4.;
                 *(valptr+1) = -1.;
                 valptr += 2;
+#endif
             }
             else if(j!=dim1 && i==dim2-1)
             {
                 csc->colptr[k] = csc->colptr[k-1]+2;
                 csc->rows[csc->colptr[k-1]-1]=k;
                 csc->rows[csc->colptr[k-1]  ]=k+1;
-                *valptr = 4.;
+#if !defined(PRECISION_p)
+                *valptr = (pastix_complex64_t)4.;
                 *(valptr+1) = -1;
                 valptr += 2;
+#endif
             }
             else /* if(j==dim1 && i==dim2-1) */
             {
                 csc->colptr[k] = csc->colptr[k-1]+1;
                 csc->rows[csc->colptr[k-1]-1]=k;
-                *valptr = 4.;
+#if !defined(PRECISION_p)
+                *valptr = (pastix_complex64_t)4.;
                 valptr += 1;
+#endif
             }
         }
     }
+    
+    assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
 
-    csc->mtxtype = PastixSymmetric;
-    csc->fmttype = PastixCSC;
+#if !defined(PRECISION_p)
+    /* Initialize RHS */
+    *rhs = calloc(csc->n, sizeof(pastix_complex64_t));
+    assert( *rhs );
+    rhsptr = (pastix_complex64_t*)(*rhs);
+    rhsptr[0]         = (pastix_complex64_t)1.;
+    rhsptr[csc->gN-1] = (pastix_complex64_t)1.;
+#endif
 }
 
 /**
@@ -270,11 +262,10 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
  *
  * @ingroup pastix_csc_driver
  *
- * File: laplacian.c
+ * z_spmLaplacian3D - Generate a 3D laplacian matrix and an associated right
+ * hand side member.
  *
- * z_gen3Dlaplacian - Generate a 3D laplacian
- *
- * Example :
+ * Example:
  * >  6 -1 -1  0 -1  0  0  0
  * > -1  6  0 -1  0 -1  0  0
  * > -1  0  6 -1  0  0 -1  0
@@ -286,7 +277,7 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
  *
  *******************************************************************************
  *
- * @param[out] csc
+ * @param[in,out] csc
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
  *
@@ -303,22 +294,25 @@ z_gen2Dlaplacian( pastix_csc_t  *csc,
  *          contains the third dimension of the 3D grid of the laplacian.
  *
  *******************************************************************************/
-static inline void
-z_gen3Dlaplacian( pastix_csc_t  *csc,
+void
+z_spmLaplacian3D( pastix_csc_t  *csc,
                   void         **rhs,
-                  long           dim1,
-                  long           dim2,
-                  long           dim3 )
+                  pastix_int_t   dim1,
+                  pastix_int_t   dim2,
+                  pastix_int_t   dim3 )
 {
 
-    pastix_int_t i;
-    pastix_int_t j;
-    pastix_int_t k;
-    pastix_int_t l;
-    pastix_complex64_t * valptr;
-    pastix_complex64_t * rhsptr;
-    pastix_int_t nnzeros = (2*(dim1)-1)*dim2*dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1);
-    csc->n       = csc->gN;
+    pastix_complex64_t *rhsptr;
+    pastix_complex64_t *valptr;
+    pastix_int_t i, j, k, l;
+    pastix_int_t nnz = (2*(dim1)-1)*dim2*dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1);
+    (void)rhsptr;
+    
+    csc->mtxtype  = PastixSymmetric;
+    csc->fmttype  = PastixCSC;
+    csc->gnnz     = nnz;
+    csc->nnz      = nnz;
+    csc->dof      = 1;
     csc->colptr  = NULL;
     csc->rows    = NULL;
     csc->avals   = NULL;
@@ -327,42 +321,19 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
     assert( csc->gN == dim1*dim2*dim3 );
 
     /* Allocating */
-    if ((NULL == (csc->colptr = (pastix_int_t *)      malloc(((csc->gN)+1)*sizeof(pastix_int_t))  ))     ||
-        (NULL == (csc->rows   = (pastix_int_t *)      malloc((nnzeros)    *sizeof(pastix_int_t))  ))     ||
-        (NULL == (csc->avals  = (pastix_complex64_t *)malloc((nnzeros)    *sizeof(pastix_complex64_t)))) ||
-        (NULL == (*rhs        = (pastix_complex64_t *)calloc((csc->gN)    ,sizeof(pastix_complex64_t)))) )
-    {
-        fprintf(stderr, "Laplacien 3D, error in CSC allocation\n");
-        if (*rhs != NULL)
-        {
-            free(*rhs);
-            *rhs = NULL;
-        }
-        if (csc->avals != NULL)
-        {
-            free(csc->avals);
-            csc->avals = NULL;
-        }
-        if (csc->rows != NULL)
-        {
-            free(csc->rows);
-            csc->rows = NULL;
-        }
-        if (csc->colptr != NULL)
-        {
-            free(csc->colptr);
-            csc->colptr = NULL;
-        }
-        return;
-    }
+    csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
+    csc->rows   = malloc(nnz       *sizeof(pastix_int_t));
+    assert( csc->colptr );
+    assert( csc->rows   );
 
-    /* Building ia, ja and avals and rhs*/
+#if !defined(PRECISION_p)
+    csc->avals  = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( csc->avals  );
+#endif
 
+    /* Building ia, ja and avals */
     csc->colptr[0] = 1;
     valptr = csc->avals;
-    rhsptr = *rhs;
-    *rhsptr = 1.;
-    *(rhsptr+csc->gN-1) = 1.;
     l = 0;
 
     for(i=0; i<dim3; i++)
@@ -380,11 +351,13 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
                     csc->rows[csc->colptr[l-1]  ]=l+1;
                     csc->rows[csc->colptr[l-1]+1]=l+dim1;
                     csc->rows[csc->colptr[l-1]+2]=l+dim1*dim2;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     *(valptr+1) = -1.;
                     *(valptr+2) = -1.;
                     *(valptr+3) = -1.;
                     valptr += 4;
+#endif
                 }
                 else if(k==dim1 && j!=dim2-1 && i!=dim3-1)
                 {
@@ -392,10 +365,12 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
                     csc->rows[csc->colptr[l-1]-1]=l;
                     csc->rows[csc->colptr[l-1]  ]=l+dim1;
                     csc->rows[csc->colptr[l-1]+1]=l+dim1*dim2;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     *(valptr+1) = -1.;
                     *(valptr+2) = -1.;
                     valptr += 3;
+#endif
                 }
                 else if(k!=dim1 && j==dim2-1 && i!=dim3-1)
                 {
@@ -403,10 +378,12 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
                     csc->rows[csc->colptr[l-1]-1]=l;
                     csc->rows[csc->colptr[l-1]  ]=l+1;
                     csc->rows[csc->colptr[l-1]+1]=l+dim1*dim2;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     *(valptr+1) = -1.;
                     *(valptr+2) = -1.;
                     valptr += 3;
+#endif
                 }
                 else if(k!=dim1 && j!=dim2-1 && i==dim3-1)
                 {
@@ -414,50 +391,67 @@ z_gen3Dlaplacian( pastix_csc_t  *csc,
                     csc->rows[csc->colptr[l-1]-1]=l;
                     csc->rows[csc->colptr[l-1]  ]=l+1;
                     csc->rows[csc->colptr[l-1]+1]=l+dim1;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     *(valptr+1) = -1.;
                     *(valptr+2) = -1.;
                     valptr += 3;
+#endif
                 }
                 else if(k==dim1 && j==dim2-1 && i!=dim3-1)
                 {
                     csc->colptr[l] = csc->colptr[l-1]+2;
                     csc->rows[csc->colptr[l-1]-1]=l;
                     csc->rows[csc->colptr[l-1]  ]=l+dim1*dim2;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     *(valptr+1) = -1.;
                     valptr += 2;
+#endif
                 }
                 else if(k!=dim1 && j==dim2-1 && i==dim3-1)
                 {
                     csc->colptr[l] = csc->colptr[l-1]+2;
                     csc->rows[csc->colptr[l-1]-1]=l;
                     csc->rows[csc->colptr[l-1]  ]=l+1;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     *(valptr+1) = -1.;
                     valptr += 2;
+#endif
                 }
                 else if(k==dim1 && j!=dim2-1 && i==dim3-1)
                 {
                     csc->colptr[l] = csc->colptr[l-1]+2;
                     csc->rows[csc->colptr[l-1]-1]=l;
                     csc->rows[csc->colptr[l-1]  ]=l+dim1;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     *(valptr+1) = -1.;
                     valptr += 2;
+#endif
                 }
                 else if(k==dim1 && j==dim2-1 && i==dim3-1)
                 {
                     csc->colptr[l] = csc->colptr[l-1]+1;
                     csc->rows[csc->colptr[l-1]-1]=l;
+#if !defined(PRECISION_p)
                     *valptr = 6.;
                     valptr += 1;
+#endif
                 }
             }
         }
     }
+    
+    assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
 
-    csc->mtxtype = PastixSymmetric;
-    csc->fmttype = PastixCSC;
-}
+#if !defined(PRECISION_p)
+    /* Initialize RHS */
+    *rhs = calloc(csc->n, sizeof(pastix_complex64_t));
+    assert( *rhs );
+    rhsptr = (pastix_complex64_t*)(*rhs);
+    rhsptr[0]         = (pastix_complex64_t)1.;
+    rhsptr[csc->gN-1] = (pastix_complex64_t)1.;
 #endif
+}

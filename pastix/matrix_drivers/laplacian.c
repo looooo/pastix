@@ -150,25 +150,25 @@ static void (*laplacian_table1D[6])(pastix_csc_t*, void**, pastix_int_t) =
     z_spmLaplacian1D
 };
 
-/* static void (*laplacian_table2D[6])(pastix_csc_t*, void**, pastix_int_t, pastix_int_t) = */
-/* { */
-/*     p_spmLaplacian2D, */
-/*     NULL, */
-/*     s_spmLaplacian2D, */
-/*     d_spmLaplacian2D, */
-/*     c_spmLaplacian2D, */
-/*     z_spmLaplacian2D */
-/* } */
+static void (*laplacian_table2D[6])(pastix_csc_t*, void**, pastix_int_t, pastix_int_t) =
+{
+    p_spmLaplacian2D,
+    NULL,
+    s_spmLaplacian2D,
+    d_spmLaplacian2D,
+    c_spmLaplacian2D,
+    z_spmLaplacian2D
+};
 
-/* static void (*laplacian_table3D[6])(pastix_csc_t*, void**, pastix_int_t, pastix_int_t, pastix_int_t) = */
-/* { */
-/*     p_spmLaplacian3D, */
-/*     NULL, */
-/*     s_spmLaplacian3D, */
-/*     d_spmLaplacian3D, */
-/*     c_spmLaplacian3D, */
-/*     z_spmLaplacian3D */
-/* } */
+static void (*laplacian_table3D[6])(pastix_csc_t*, void**, pastix_int_t, pastix_int_t, pastix_int_t) =
+{
+    p_spmLaplacian3D,
+    NULL,
+    s_spmLaplacian3D,
+    d_spmLaplacian3D,
+    c_spmLaplacian3D,
+    z_spmLaplacian3D
+};
 
 /**
  *******************************************************************************
@@ -203,10 +203,10 @@ genLaplacian( const char    *filename,
         return rc;
 
     if( dim3 > 0 ) {
-        //z_gen3Dlaplacian(csc, rhs, dim1, dim2, dim3);
+        laplacian_table3D[csc->flttype](csc, rhs, dim1, dim2, dim3);
     }
     else if (dim2 > 0) {
-        //z_gen2Dlaplacian(csc, rhs, dim1, dim2);
+        laplacian_table2D[csc->flttype](csc, rhs, dim1, dim2);
     }
     else {
         laplacian_table1D[csc->flttype](csc, rhs, dim1);
