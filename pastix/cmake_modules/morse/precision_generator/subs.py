@@ -49,8 +49,8 @@ subs = {
     ('', 'real',                 'real',                  'complex',                         r'\bcomplex'                          ),
     ('', 'float',                'double',                'float2',                          r'\bdouble2'                          ),
 
-    ('',                'float',           'double',          'pastix_complex32_t', r'\bpastix_complex64_t'),
-    ('',                'float',           'double',          'float',              r'\bdouble'            ),
+    ('int',             'float',           'double',          'pastix_complex32_t', r'\bpastix_complex64_t'),
+    ('int',             'float',           'double',          'float',              r'\bdouble'            ),
     ('PastixPattern',   'PastixFloat',     'PastixDouble',    'PastixComplex32',    r'\bPastixComplex64'   ),
     ('PastixPattern',   'PastixFloat',     'PastixDouble',    'PastixFloat',        r'\bPastixDouble'      ),
     ('PastixSymmetric', 'PastixSymmetric', 'PastixSymmetric', 'PastixHermitian',    r'\bPastixHermitian'   ),

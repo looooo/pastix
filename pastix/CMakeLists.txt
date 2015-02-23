@@ -404,6 +404,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
 set(modules bcsc kernels) #csc kernels sopalin matrix_drivers common)
@@ -467,6 +468,7 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   csc/z_spm_convert_to_csc.c
+  matrix_drivers/z_spm_laplacian.c
   sopalin/sequential_zpotrf.c
   sopalin/coeftab_z.c
   )
