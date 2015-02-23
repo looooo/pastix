@@ -102,7 +102,7 @@ z_spmConvertIJV2CSC( int ofmttype, pastix_csc_t *spm )
     if (oldspm.avals != NULL)
         free( oldspm.avals );
 
-    spm->fmttype = PastixIJV;
+    spm->fmttype = PastixCSC;
 
     return PASTIX_SUCCESS;
 }
