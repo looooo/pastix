@@ -1,5 +1,5 @@
 /**
- * @file drivers.c
+ * @file drivers.h
  *
  *  $COPYRIGHTS$
  *
