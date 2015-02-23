@@ -257,8 +257,8 @@ void z_PETScRead(char const      *filename,
   *RhsType = (char *) malloc(1*sizeof(char));
   (*RhsType)[0] = '\0';
   (*Type)[0] = 'R';
-  (*Type)[0] = 'U';
-  (*Type)[0] = 'A';
+  (*Type)[1] = 'U';
+  (*Type)[2] = 'A';
 
   return;
 }

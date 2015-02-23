@@ -1,0 +1,216 @@
+/**
+ * @file laplacian.c
+ *
+ *  $COPYRIGHTS$
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ *
+ **/
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "common.h"
+#include "drivers.h"
+#include "laplacian.h"
+
+static inline void
+laplacian_usage(void)
+{
+    fprintf(stderr,
+            "Usage: genLaplacian( \"[<type>:]<dim1>[:<dim2>[:<dim3>]]\" )\n"
+            "   <type> p = pattern only\n"
+            "          s = real simple\n"
+            "          d = real double [default]\n"
+            "          c = complex simple\n"
+            "          z = complex double\n"
+            "   <dim1> size of the first dimension of the 1D|2D|3D laplacian\n"
+            "   <dim2> size of the second dimension of the 2D|3D laplacian\n"
+            "   <dim3> size of the third dimension of the 3D laplacian\n"
+            "   Example:\n"
+            "     genLaplacian( \"z:10:20\" ) generates a 2D complex laplacian matrix of size 200.\n"
+            );
+}
+
+static inline int
+laplacian_parse_info( const char   *filename,
+                      pastix_csc_t *csc,
+                      pastix_int_t *dim1,
+                      pastix_int_t *dim2,
+                      pastix_int_t *dim3 )
+{
+    long tmp1, tmp2, tmp3;
+
+    /* Look for the datatype */
+    {
+        char flt;
+        char *tmpf = strdup( filename );
+
+        if ( sscanf( filename, "%c:%s", &flt, tmpf ) == 2 ) {
+            filename += 2;
+            switch( flt ){
+            case 'Z':
+            case 'z':
+                csc->flttype = PastixComplex64;
+                break;
+
+            case 'C':
+            case 'c':
+                csc->flttype = PastixComplex32;
+                break;
+
+            case 'D':
+            case 'd':
+                csc->flttype = PastixDouble;
+                break;
+
+            case 'S':
+            case 's':
+                csc->flttype = PastixFloat;
+                break;
+
+            case 'P':
+            case 'p':
+                csc->flttype = PastixPattern;
+                break;
+
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                csc->flttype = PastixDouble;
+                /*
+                 * The first dimension is only one character long so we come
+                 * back to the beginning of the string
+                 */
+                filename -= 2;
+                break;
+
+            default:
+                laplacian_usage();
+                return PASTIX_ERR_BADPARAMETER;
+            }
+        }
+        else {
+            csc->flttype = PastixDouble;
+        }
+
+        free(tmpf);
+    }
+
+    /* Scan the dimensions */
+    *dim1 = *dim2 = *dim3 = 0;
+
+    if ( sscanf( filename, "%ld:%ld:%ld", &tmp1, &tmp2, &tmp3 ) == 3 ) {
+        *dim1 = (pastix_int_t)tmp1;
+        *dim2 = (pastix_int_t)tmp2;
+        *dim3 = (pastix_int_t)tmp3;
+        csc->gN = (*dim1)*(*dim2)*(*dim3);
+    }
+    else if ( sscanf( filename, "%ld:%ld", &tmp1, &tmp2 ) == 2 ) {
+        *dim1 = (pastix_int_t)tmp1;
+        *dim2 = (pastix_int_t)tmp2;
+        csc->gN = (*dim1)*(*dim2);
+    }
+    else if ( sscanf( filename, "%ld", &tmp1 ) == 1 ) {
+        *dim1 = (pastix_int_t)tmp1;
+        csc->gN = *dim1;
+    }
+    else {
+        laplacian_usage();
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /* One of the dimension was set to 0 */
+    if ( csc->gN == 0 ) {
+        laplacian_usage();
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    csc->n = csc->gN;
+    return PASTIX_SUCCESS;
+}
+
+static void (*laplacian_table1D[6])(pastix_csc_t*, void**, pastix_int_t) =
+{
+    p_spmLaplacian1D,
+    NULL,
+    s_spmLaplacian1D,
+    d_spmLaplacian1D,
+    c_spmLaplacian1D,
+    z_spmLaplacian1D
+};
+
+/* static void (*laplacian_table2D[6])(pastix_csc_t*, void**, pastix_int_t, pastix_int_t) = */
+/* { */
+/*     p_spmLaplacian2D, */
+/*     NULL, */
+/*     s_spmLaplacian2D, */
+/*     d_spmLaplacian2D, */
+/*     c_spmLaplacian2D, */
+/*     z_spmLaplacian2D */
+/* } */
+
+/* static void (*laplacian_table3D[6])(pastix_csc_t*, void**, pastix_int_t, pastix_int_t, pastix_int_t) = */
+/* { */
+/*     p_spmLaplacian3D, */
+/*     NULL, */
+/*     s_spmLaplacian3D, */
+/*     d_spmLaplacian3D, */
+/*     c_spmLaplacian3D, */
+/*     z_spmLaplacian3D */
+/* } */
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc_driver
+ *
+ * genLaplacian - Generate a Laplacian of size csc->n
+ *
+ *******************************************************************************
+ *
+ * @param[in] filename
+ *          Path to the directory containing matrix.
+ *
+ * @param[out] csc
+ *          At start, contains the size of the laplacian in csc->n.
+ *          At exit, contains the matrix in csc format.
+ *
+ * @param[out] rhs
+ *          At exit, contains the right hand side member.
+ *
+ *******************************************************************************/
+int
+genLaplacian( const char    *filename,
+              pastix_csc_t  *csc,
+              void         **rhs )
+{
+    pastix_int_t dim1, dim2, dim3;
+    int rc;
+
+    rc = laplacian_parse_info(filename, csc, &dim1, &dim2, &dim3);
+    if (rc != PASTIX_SUCCESS)
+        return rc;
+
+    if( dim3 > 0 ) {
+        //z_gen3Dlaplacian(csc, rhs, dim1, dim2, dim3);
+    }
+    else if (dim2 > 0) {
+        //z_gen2Dlaplacian(csc, rhs, dim1, dim2);
+    }
+    else {
+        laplacian_table1D[csc->flttype](csc, rhs, dim1);
+    }
+
+    return PASTIX_SUCCESS;
+}

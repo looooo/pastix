@@ -275,6 +275,7 @@ pastixInit( pastix_data_t **pastix_data,
         char    procname[MPI_MAX_PROCESSOR_NAME];
         int     rc, key = pastix->procnum;
         int64_t color;
+        (void)rc;
 
         /**
          * Get hostname to generate a hash that will be the color of each node

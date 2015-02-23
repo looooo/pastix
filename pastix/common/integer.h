@@ -141,4 +141,6 @@ static inline pastix_int_t pastix_iceil( pastix_int_t a, pastix_int_t b) {
     return ( a + b - 1 ) / b;
 }
 
+pastix_int_t *pastix_int_convert( pastix_int_t n, int *input );
+
 #endif /* _INTEGER_H_ */
