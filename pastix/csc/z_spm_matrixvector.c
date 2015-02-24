@@ -54,14 +54,16 @@ int
 z_spmGeCSCv(pastix_complex64_t   alpha,
             pastix_csc_t        *csc  ,  
             pastix_complex64_t   beta ,
-            pastix_complex64_t **x    ,
-            pastix_complex64_t **b     )
+            void               **x    ,
+            void               **b     )
 {
     pastix_complex64_t *temp_Ax = NULL;
     pastix_complex64_t *valptr  = csc->avals;
+    pastix_complex64_t *bptr    = *b;
+    pastix_complex64_t *xptr    = *x;
     pastix_int_t        col, row, i, baseval;
 
-    if(csc->mtxtype!=PastixGeneral)
+    if(csc->mtxtype!=PastixGeneral || *x==NULL)
     {
         return PASTIX_ERR_MATRIX;
     }
@@ -71,20 +73,23 @@ z_spmGeCSCv(pastix_complex64_t   alpha,
     temp_Ax = calloc(csc->gN,sizeof(pastix_complex64_t));
     assert( temp_Ax );
     if(*b==NULL)
+    {
         *b = calloc(csc->gN,sizeof(pastix_complex64_t));
+        bptr = *b;
+    }
 
     for(col=0;col<csc->gN;col++)
     {
         for(i=csc->colptr[col];i<csc->colptr[col+1];i++)
         {
             row=csc->rows[i-baseval]-baseval;
-            temp_Ax[row]+=alpha*valptr[i-baseval]*(*x)[col];
+            temp_Ax[row]+=alpha*valptr[i-baseval]*xptr[col];
         }
     }
 
     for(i=0;i<csc->gN;i++)
     {
-        (*b)[i] = temp_Ax[i]+(*b)[i]*beta;
+        bptr[i] = temp_Ax[i]+bptr[i]*beta;
     }
 
     memFree_null(temp_Ax);
@@ -131,14 +136,16 @@ int
 z_spmSyCSCv(pastix_complex64_t   alpha,
             pastix_csc_t        *csc  ,  
             pastix_complex64_t   beta ,
-            pastix_complex64_t **x    ,
-            pastix_complex64_t **b     )
+            void               **x    ,
+            void               **b     )
 {
     pastix_complex64_t *temp_Ax = NULL;
     pastix_complex64_t *valptr  = csc->avals;
+    pastix_complex64_t *bptr    = *b;
+    pastix_complex64_t *xptr    = *x;
     pastix_int_t        col, row, i, baseval;
 
-    if(csc->mtxtype!=PastixSymmetric)
+    if(csc->mtxtype!=PastixSymmetric || *x==NULL)
     {
         return PASTIX_ERR_MATRIX;
     }
@@ -148,24 +155,27 @@ z_spmSyCSCv(pastix_complex64_t   alpha,
     temp_Ax = calloc(csc->gN,sizeof(pastix_complex64_t));
     assert( temp_Ax );
     if(*b==NULL)
+    {
         *b = calloc(csc->gN,sizeof(pastix_complex64_t));
+        bptr = *b;
+    }
 
     for(col=0;col<csc->gN;col++)
     {
         for(i=csc->colptr[col];i<csc->colptr[col+1];i++)
         {
             row=csc->rows[i-baseval]-baseval;
-            temp_Ax[row]+=alpha*valptr[i-baseval]*(*x)[col];
+            temp_Ax[row]+=alpha*valptr[i-baseval]*xptr[col];
             if(col!=row)
             {
-                temp_Ax[col]+=alpha*valptr[i-baseval]*(*x)[row];
+                temp_Ax[col]+=alpha*valptr[i-baseval]*xptr[row];
             }
         }
     }
 
     for(i=0;i<csc->gN;i++)
     {
-        (*b)[i] = temp_Ax[i]+(*b)[i]*beta;
+        bptr[i] = temp_Ax[i]+bptr[i]*beta;
     }
 
     memFree_null(temp_Ax);
@@ -213,14 +223,16 @@ int
 z_spmHeCSCv(pastix_complex64_t   alpha,
             pastix_csc_t        *csc  ,  
             pastix_complex64_t   beta ,
-            pastix_complex64_t **x    ,
-            pastix_complex64_t **b     )
+            void               **x    ,
+            void               **b     )
 {
     pastix_complex64_t *temp_Ax = NULL;
     pastix_complex64_t *valptr  = csc->avals;
+    pastix_complex64_t *bptr    = *b;
+    pastix_complex64_t *xptr    = *x;
     pastix_int_t        col, row, i, baseval;
 
-    if(csc->mtxtype!=PastixHermitian)
+    if(csc->mtxtype!=PastixHermitian || *x==NULL)
     {
         return PASTIX_ERR_MATRIX;
     }
@@ -230,22 +242,25 @@ z_spmHeCSCv(pastix_complex64_t   alpha,
     temp_Ax = calloc(csc->gN,sizeof(pastix_complex64_t));
     assert( temp_Ax );
     if(*b==NULL)
+    {
         *b = calloc(csc->gN,sizeof(pastix_complex64_t));
+        bptr = *b;
+    }
 
     for(col=0;col<csc->gN;col++)
     {
         for(i=csc->colptr[col];i<csc->colptr[col+1];i++)
         {
             row=csc->rows[i-baseval]-baseval;
-            temp_Ax[row]+=alpha*valptr[i-baseval]*(*x)[col];
+            temp_Ax[row]+=alpha*valptr[i-baseval]*xptr[col];
             if(col!=row)
-                temp_Ax[col]+=alpha*(creal(valptr[i-baseval]) - cimag(valptr[i-baseval])*I)*(*x)[row];
+                temp_Ax[col]+=alpha*(creal(valptr[i-baseval]) - cimag(valptr[i-baseval])*I)*xptr[row];
         }
     }
 
     for(i=0;i<csc->gN;i++)
     {
-        (*b)[i] = temp_Ax[i]+(*b)[i]*beta;
+        bptr[i] = temp_Ax[i]+bptr[i]*beta;
     }
 
     memFree_null(temp_Ax);
