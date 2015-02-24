@@ -103,6 +103,7 @@ int main (int argc, char **argv)
     free(csc.colptr);
     free(csc.rows);
     free(csc.avals);
+    free(rhs);
 
     /* if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD)) */
     /* { */
