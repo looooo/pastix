@@ -54,13 +54,12 @@ static int (*conversionTable[3][3][6])(int, pastix_csc_t*) = {
        d_spmConvertIJV2CSC,
        c_spmConvertIJV2CSC,
        z_spmConvertIJV2CSC },
-     /* { p_spmConvertIJV2CSR, */
-     /*   NULL, */
-     /*   s_spmConvertIJV2CSR, */
-     /*   d_spmConvertIJV2CSR, */
-     /*   c_spmConvertIJV2CSR, */
-     /*   z_spmConvertIJV2CSR }, */
-     { NULL, NULL, NULL, NULL, NULL, NULL },
+     { p_spmConvertIJV2CSR,
+       NULL,
+       s_spmConvertIJV2CSR,
+       d_spmConvertIJV2CSR,
+       c_spmConvertIJV2CSR,
+       z_spmConvertIJV2CSR },
      { NULL, NULL, NULL, NULL, NULL, NULL }}
 };
 
