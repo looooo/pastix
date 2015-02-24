@@ -16,7 +16,6 @@
 #include "common.h"
 #include "csc.h"
 
-
 int
 z_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm )
 {

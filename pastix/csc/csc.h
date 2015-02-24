@@ -57,28 +57,24 @@ csc_save( pastix_int_t  n,
 int cscLoad( pastix_csc_t *csc, FILE *infile );
 int cscSave( pastix_csc_t *csc, FILE *outfile );
 
-/* Not implemented */
 int z_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm );
 int c_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm );
 int d_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm );
 int s_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm );
 int p_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm );
 
-/* Not implemented */
 int z_spmConvertCSC2IJV( int ofmttype, pastix_csc_t *spm );
 int c_spmConvertCSC2IJV( int ofmttype, pastix_csc_t *spm );
 int d_spmConvertCSC2IJV( int ofmttype, pastix_csc_t *spm );
 int s_spmConvertCSC2IJV( int ofmttype, pastix_csc_t *spm );
 int p_spmConvertCSC2IJV( int ofmttype, pastix_csc_t *spm );
 
-/* Not implemented */
 int z_spmConvertCSR2CSC( int ofmttype, pastix_csc_t *spm );
 int c_spmConvertCSR2CSC( int ofmttype, pastix_csc_t *spm );
 int d_spmConvertCSR2CSC( int ofmttype, pastix_csc_t *spm );
 int s_spmConvertCSR2CSC( int ofmttype, pastix_csc_t *spm );
 int p_spmConvertCSR2CSC( int ofmttype, pastix_csc_t *spm );
 
-/* Not implemented */
 int z_spmConvertCSR2IJV( int ofmttype, pastix_csc_t *spm );
 int c_spmConvertCSR2IJV( int ofmttype, pastix_csc_t *spm );
 int d_spmConvertCSR2IJV( int ofmttype, pastix_csc_t *spm );
@@ -91,14 +87,25 @@ int d_spmConvertIJV2CSC( int ofmttype, pastix_csc_t *spm );
 int s_spmConvertIJV2CSC( int ofmttype, pastix_csc_t *spm );
 int p_spmConvertIJV2CSC( int ofmttype, pastix_csc_t *spm );
 
-/* Not implemented */
 int z_spmConvertIJV2CSR( int ofmttype, pastix_csc_t *spm );
 int c_spmConvertIJV2CSR( int ofmttype, pastix_csc_t *spm );
 int d_spmConvertIJV2CSR( int ofmttype, pastix_csc_t *spm );
 int s_spmConvertIJV2CSR( int ofmttype, pastix_csc_t *spm );
 int p_spmConvertIJV2CSR( int ofmttype, pastix_csc_t *spm );
 
-
 int spmConvert( int ofmttype, pastix_csc_t *ospm );
+
+int z_spmGeCSCv(pastix_complex64_t alpha, pastix_csc_t *csc, pastix_complex64_t beta, pastix_complex64_t **x, pastix_complex64_t **b);
+int c_spmGeCSCv(pastix_complex32_t alpha, pastix_csc_t *csc, pastix_complex32_t beta, pastix_complex32_t **x, pastix_complex32_t **b);
+int d_spmGeCSCv(double alpha, pastix_csc_t *csc, double beta, double **x, double **b);
+int s_spmGeCSCv(float alpha, pastix_csc_t *csc, float beta, float **x, float **b);
+
+int z_spmSyCSCv(pastix_complex64_t alpha, pastix_csc_t *csc, pastix_complex64_t beta, pastix_complex64_t **x, pastix_complex64_t **b);
+int c_spmSyCSCv(pastix_complex32_t alpha, pastix_csc_t *csc, pastix_complex32_t beta, pastix_complex32_t **x, pastix_complex32_t **b);
+int d_spmSyCSCv(double alpha, pastix_csc_t *csc, double beta, double **x, double **b);
+int s_spmSyCSCv(float alpha, pastix_csc_t *csc, float beta, float **x, float **b);
+
+int z_spmHeCSCv(pastix_complex64_t alpha, pastix_csc_t *csc, pastix_complex64_t beta, pastix_complex64_t **x, pastix_complex64_t **b);
+int c_spmHeCSCv(pastix_complex32_t alpha, pastix_csc_t *csc, pastix_complex32_t beta, pastix_complex32_t **x, pastix_complex32_t **b);
 
 #endif /* _CSC_H_ */
