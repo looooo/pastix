@@ -25,13 +25,12 @@ static int (*conversionTable[3][3][6])(int, pastix_csc_t*) = {
        d_spmConvertCSC2CSR,
        c_spmConvertCSC2CSR,
        z_spmConvertCSC2CSR },
-     { NULL, NULL, NULL, NULL, NULL, NULL }
-     /* { p_spmConvertCSC2IJV, */
-     /*   NULL, */
-     /*   s_spmConvertCSC2IJV, */
-     /*   d_spmConvertCSC2IJV, */
-     /*   c_spmConvertCSC2IJV, */
-     /*   z_spmConvertCSC2IJV } */},
+     { p_spmConvertCSC2IJV,
+       NULL,
+       s_spmConvertCSC2IJV,
+       d_spmConvertCSC2IJV,
+       c_spmConvertCSC2IJV,
+       z_spmConvertCSC2IJV }},
     /* From CSR */
     {{ p_spmConvertCSR2CSC,
        NULL,
@@ -40,13 +39,12 @@ static int (*conversionTable[3][3][6])(int, pastix_csc_t*) = {
        c_spmConvertCSR2CSC,
        z_spmConvertCSR2CSC },
      { NULL, NULL, NULL, NULL, NULL, NULL },
-     { NULL, NULL, NULL, NULL, NULL, NULL }
-     /* { p_spmConvertCSR2IJV, */
-     /*   NULL, */
-     /*   s_spmConvertCSR2IJV, */
-     /*   d_spmConvertCSR2IJV, */
-     /*   c_spmConvertCSR2IJV, */
-     /*   z_spmConvertCSR2IJV } */},
+     { p_spmConvertCSR2IJV,
+       NULL,
+       s_spmConvertCSR2IJV,
+       d_spmConvertCSR2IJV,
+       c_spmConvertCSR2IJV,
+       z_spmConvertCSR2IJV }},
     /* From IJV */
     {{ p_spmConvertIJV2CSC,
        NULL,

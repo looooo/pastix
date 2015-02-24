@@ -168,6 +168,8 @@ z_spmConvertCSR2CSC( int ofmttype, pastix_csc_t *spm )
 #if !defined(PRECISION_p)
     memFree_null(spm->avals);
     spm->avals =val_csc;
+#else
+    spm->avals =NULL;
 #endif
 
     return PASTIX_SUCCESS;
