@@ -108,4 +108,8 @@ int s_spmSyCSCv(float alpha, pastix_csc_t *csc, float beta, void **x, void **b);
 int z_spmHeCSCv(pastix_complex64_t alpha, pastix_csc_t *csc, pastix_complex64_t beta, void **x, void **b);
 int c_spmHeCSCv(pastix_complex32_t alpha, pastix_csc_t *csc, pastix_complex32_t beta, void **x, void **b);
 
+int z_spm_genRHS(pastix_csc_t *csc, void **rhs );
+int c_spm_genRHS(pastix_csc_t *csc, void **rhs );
+int d_spm_genRHS(pastix_csc_t *csc, void **rhs );
+int s_spm_genRHS(pastix_csc_t *csc, void **rhs );
 #endif /* _CSC_H_ */
