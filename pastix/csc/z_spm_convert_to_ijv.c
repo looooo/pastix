@@ -16,8 +16,28 @@
 #include "common.h"
 #include "csc.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * z_spmConvertCSC2IJV - convert a matrix in CSC format to a matrix in IJV
+ * format.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The csc matrix at enter,
+ *          the ijv matrix at exit.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 int
-z_spmConvertCSC2IJV( int ofmttype, pastix_csc_t *spm )
+z_spmConvertCSC2IJV( pastix_csc_t *spm )
 {
     pastix_int_t *col_ijv;
     pastix_int_t i, j, count, baseval, nnz;
@@ -49,8 +69,28 @@ z_spmConvertCSC2IJV( int ofmttype, pastix_csc_t *spm )
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * z_spmConvertCSR2IJV - convert a matrix in CSR format to a matrix in IJV
+ * format.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The csr matrix at enter,
+ *          the ijv matrix at exit.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 int
-z_spmConvertCSR2IJV( int ofmttype, pastix_csc_t *spm )
+z_spmConvertCSR2IJV( pastix_csc_t *spm )
 {
     pastix_int_t *row_ijv;
     pastix_int_t i, j, count, baseval, nnz;

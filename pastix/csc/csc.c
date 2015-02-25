@@ -16,7 +16,7 @@
 #include "common.h"
 #include "csc.h"
 
-static int (*conversionTable[3][3][6])(int, pastix_csc_t*) = {
+static int (*conversionTable[3][3][6])(pastix_csc_t*) = {
     /* From CSC */
     {{ NULL, NULL, NULL, NULL, NULL, NULL },
      { p_spmConvertCSC2CSR,
@@ -67,7 +67,7 @@ int
 spmConvert( int ofmttype, pastix_csc_t *ospm )
 {
     if ( conversionTable[ospm->fmttype][ofmttype][ospm->flttype] ) {
-        return conversionTable[ospm->fmttype][ofmttype][ospm->flttype]( ofmttype, ospm );
+        return conversionTable[ospm->fmttype][ofmttype][ospm->flttype]( ospm );
     }
     else {
         return PASTIX_SUCCESS;

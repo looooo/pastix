@@ -16,8 +16,28 @@
 #include "common.h"
 #include "csc.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * z_spmConvertCSC2CSR - convert a matrix in CSC format to a matrix in CSR
+ * format.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The csc matrix at enter,
+ *          the csr matrix at exit.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 int
-z_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm )
+z_spmConvertCSC2CSR( pastix_csc_t *spm )
 {
     pastix_int_t       *row_csr;
     pastix_int_t       *col_csr;
@@ -85,8 +105,28 @@ z_spmConvertCSC2CSR( int ofmttype, pastix_csc_t *spm )
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * z_spmConvertIJV2CSR - convert a matrix in IJV format to a matrix in CSR
+ * format.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The ijv matrix at enter,
+ *          the csr matrix at exit.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 int
-z_spmConvertIJV2CSR( int ofmttype, pastix_csc_t *spm )
+z_spmConvertIJV2CSR( pastix_csc_t *spm )
 {
 #if !defined(PRECISION_p)
     pastix_complex64_t *navals = NULL;
