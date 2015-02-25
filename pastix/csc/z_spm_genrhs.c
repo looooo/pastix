@@ -16,6 +16,17 @@
 #include "common.h"
 #include "csc.h"
 
+static int (*CSCv[3])(pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, void**, void**) =
+{
+    z_spmGeCSCv,
+    z_spmSyCSCv,
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    z_spmHeCSCv
+#else
+    NULL
+#endif
+};
+
 /**
  *******************************************************************************
  *
@@ -57,30 +68,23 @@ z_spm_genRHS(pastix_csc_t  *csc,
         return PASTIX_ERR_MATRIX;
 
     x=malloc(csc->gN*sizeof(pastix_complex64_t));
-    if(csc->flttype!=PastixComplex64 && csc->flttype!=PastixComplex32)
-    {
-        memset(x,1,csc->gN*sizeof(pastix_complex64_t));
-    }else{
-        memset(x,1+I,csc->gN*sizeof(pastix_complex64_t));
-    }
+    
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    memset(x,1+I,csc->gN*sizeof(pastix_complex64_t));
+#else
+    memset(x,1,csc->gN*sizeof(pastix_complex64_t));
+#endif
         
     if(*rhs != NULL)
         memFree_null(*rhs);
 
-    if(csc->mtxtype==PastixGeneral)
+    if(CSCv[csc->mtxtype-PastixGeneral])
     {
-        if(z_spmGeCSCv((pastix_complex64_t)1.,csc,(pastix_complex64_t)0.,&x,rhs)!=PASTIX_SUCCESS)
+        if(CSCv[csc->mtxtype-PastixGeneral] != PASTIX_SUCCESS)
+        {
             return PASTIX_ERR_MATRIX;
-    }
-    else if(csc->mtxtype==PastixSymmetric)
-    {
-        if(z_spmSyCSCv((pastix_complex64_t)1.,csc,(pastix_complex64_t)0.,&x,rhs)!=PASTIX_SUCCESS)
-            return PASTIX_ERR_MATRIX;
-    }
-    else if(csc->mtxtype==PastixHermitian)
-    {
-        if(z_spmHeCSCv((pastix_complex64_t)1.,csc,(pastix_complex64_t)0.,&x,rhs)!=PASTIX_SUCCESS)
-            return PASTIX_ERR_MATRIX;
+        }
+        
     }
 
     memFree_null(x);
