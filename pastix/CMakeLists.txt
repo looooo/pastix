@@ -584,6 +584,7 @@ set(PASTIX_LIB_SRCS
   sopalin/coeftab.c
 #
   csc/csc.c
+  csc/genrhs.c
 #
   ${generated_files}
   )
