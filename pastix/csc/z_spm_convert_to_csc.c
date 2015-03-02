@@ -149,68 +149,117 @@ z_spmConvertIJV2CSC( pastix_csc_t *spm )
 int
 z_spmConvertCSR2CSC( pastix_csc_t *spm )
 {
-    pastix_int_t       *row_csc;
-    pastix_int_t       *col_csc;
-#if !defined(PRECISION_p)
-    pastix_complex64_t *val_csc;
-    pastix_complex64_t  val;
-    pastix_complex64_t *valptr;
-#endif
-    pastix_int_t       *count;
-    pastix_int_t j, k, col, row, nnz, baseval;
+    assert( spm->loc2glob == NULL );
+    assert( spm->fmttype == PastixCSR );
 
-    baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
-    nnz=spm->rows[spm->gN]-baseval;
-    spm->fmttype=PastixCSC;
+    spm->fmttype = PastixCSC;
 
-    row_csc = malloc(nnz*sizeof(pastix_int_t));
-    col_csc = calloc(spm->gN+1,sizeof(pastix_int_t));
-    count = calloc(spm->gN,sizeof(pastix_int_t));
+    switch( spm->mtxtype ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+    {
+        /* Similar to PastixSymmetric case with conjugate of the values */
+        pastix_complex64_t *valptr = spm->avals;
+        pastix_int_t i;
 
-    assert( row_csc );
-    assert( col_csc );
-    assert( count_csc );
-
-#if !defined(PRECISION_p)
-    val_csc = malloc(nnz*sizeof(pastix_complex64_t));
-    assert( val_csc );
-#endif
-
-    for (j=0;j<=nnz;j++){
-        col_csc[spm->colptr[j]]+=1;
-    }
-    col_csc[0]=0;
-    for (j=1;j<=spm->gN;j++){
-        col_csc[j]+=col_csc[j-1];
-    }
-    col_csc[0]=baseval;
-
-    assert( col_csc[spm->gN] == nnz+1 );
-
-    for (row=1;row<=spm->gN;row++){
-        for (k=0;k<spm->rows[row-baseval+1]-spm->rows[row-baseval];k++){
-            col=spm->colptr[spm->rows[row-baseval]-baseval+k];
-            row_csc[col_csc[col-baseval]-baseval+count[col-baseval]]=row;
-#if !defined(PRECISION_p)
-            valptr=spm->avals+spm->rows[row-baseval]-baseval+k;
-            val=*valptr;
-            val_csc[col_csc[col-baseval]-baseval+count[col-baseval]]=val;
-#endif
-            count[col-baseval]+=1;
+        for(i=0; i<spm->nnz; i++, valptr++){
+            *valptr = conj( *valptr );
         }
     }
-
-    memFree_null(count);
-    memFree_null(spm->colptr);
-    memFree_null(spm->rows);
-    spm->colptr=col_csc;
-    spm->rows  =row_csc;
-#if !defined(PRECISION_p)
-    memFree_null(spm->avals);
-    spm->avals =val_csc;
-#else
-    spm->avals =NULL;
 #endif
+    case PastixSymmetric:
+    {
+        pastix_int_t *tmp;
+
+        /* Just need to swap the pointers */
+        tmp         = spm->rows;
+        spm->rows   = spm->colptr;
+        spm->colptr = tmp;
+
+        return PASTIX_SUCCESS;
+    }
+    break;
+
+    case PastixGeneral:
+    default:
+    {
+        pastix_int_t       *row_csc;
+        pastix_int_t       *col_csc;
+#if !defined(PRECISION_p)
+        pastix_complex64_t *val_csc;
+        pastix_complex64_t *valptr = (pastix_complex64_t*)(spm->avals);
+#endif
+        pastix_int_t j, k, col, row, nnz, baseval;
+
+        baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
+        nnz = spm->nnz;
+
+        row_csc = malloc(nnz * sizeof(pastix_int_t));
+        col_csc = calloc(spm->n+1,sizeof(pastix_int_t));
+
+        assert( row_csc );
+        assert( col_csc );
+
+#if !defined(PRECISION_p)
+        val_csc = malloc(nnz*sizeof(pastix_complex64_t));
+        assert( val_csc );
+#endif
+
+        /* Count the number of elements per column */
+        for (j=0; j<nnz; j++) {
+            col = spm->colptr[j] - baseval;
+            col_csc[ col+1 ] ++;
+        }
+
+        /* Compute the index of each column */
+        col_csc[0] = 0;
+        for (j=0; j<spm->n; j++){
+            col_csc[j+1] += col_csc[j];
+        }
+
+        assert( (col_csc[spm->gN]-baseval) == nnz );
+
+        for (row=0; row<spm->n; row++) {
+            pastix_int_t fcol = spm->rows[row  ] - baseval;
+            pastix_int_t lcol = spm->rows[row+1] - baseval;
+
+            for (k=fcol; k<lcol; k++) {
+                col = spm->colptr[k] - baseval;
+                j = col_csc[col];
+                row_csc[j] = row + baseval;
+
+#if !defined(PRECISION_p)
+                val_csc[j] = valptr[k];
+#endif
+                col_csc[col] ++;
+            }
+        }
+
+        /* Restore the colptr indexes */
+        {
+            pastix_int_t tmp, tmp2;
+
+            tmp = col_csc[0];
+            col_csc[0] = baseval;
+            for (j=0; j<spm->n; j++) {
+                tmp2 = col_csc[j+1];
+                col_csc[j+1] = tmp;
+                tmp = tmp2;
+            }
+        }
+
+        memFree_null(spm->colptr);
+        memFree_null(spm->rows);
+        spm->colptr = col_csc;
+        spm->rows   = row_csc;
+#if !defined(PRECISION_p)
+        memFree_null(spm->avals);
+        spm->avals = val_csc;
+#else
+        spm->avals = NULL;
+#endif
+    }
+    }
 
     return PASTIX_SUCCESS;
 }

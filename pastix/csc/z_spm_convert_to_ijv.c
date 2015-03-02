@@ -39,32 +39,30 @@
 int
 z_spmConvertCSC2IJV( pastix_csc_t *spm )
 {
-    pastix_int_t *col_ijv;
-    pastix_int_t i, j, count, baseval, nnz;
+    pastix_int_t *col_ijv, *colptr;
+    pastix_int_t i, j, baseval, nnz;
 
     /*
      * Check the baseval
      */
     baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
-    nnz=spm->colptr[spm->gN]-baseval;
-    spm->fmttype=PastixIJV;
+    nnz = spm->nnz;
+    spm->fmttype = PastixIJV;
 
     col_ijv = malloc(nnz*sizeof(pastix_int_t));
-
     assert( col_ijv );
 
-    count=0;
-    for(i=baseval;i<spm->gN+baseval;i++)
+    colptr = col_ijv;
+    for(i=0; i<spm->n; i++)
     {
-        for(j=spm->colptr[i-baseval];j<spm->colptr[i-baseval+1];j++)
+        for(j=spm->colptr[i]; j<spm->colptr[i+1]; j++)
         {
-            col_ijv[count]=i;
-            count++;
+            *colptr = i+baseval; colptr++;
         }
     }
 
     memFree_null(spm->colptr);
-    spm->colptr=col_ijv;
+    spm->colptr = col_ijv;
 
     return PASTIX_SUCCESS;
 }
@@ -92,32 +90,30 @@ z_spmConvertCSC2IJV( pastix_csc_t *spm )
 int
 z_spmConvertCSR2IJV( pastix_csc_t *spm )
 {
-    pastix_int_t *row_ijv;
-    pastix_int_t i, j, count, baseval, nnz;
+    pastix_int_t *row_ijv, *rowptr;
+    pastix_int_t i, j, baseval, nnz;
 
     /*
      * Check the baseval
      */
     baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
-    nnz=spm->rows[spm->gN]-baseval;
-    spm->fmttype=PastixIJV;
+    nnz = spm->nnz;
+    spm->fmttype = PastixIJV;
 
     row_ijv = malloc(nnz*sizeof(pastix_int_t));
-
     assert( row_ijv );
 
-    count=0;
-    for(i=baseval;i<spm->gN+baseval;i++)
+    rowptr = row_ijv;
+    for(i=0; i<spm->n; i++)
     {
-        for(j=spm->rows[i-baseval];j<spm->rows[i-baseval+1];j++)
+        for(j=spm->rows[i]; j<spm->rows[i+1]; j++)
         {
-            row_ijv[count]=i;
-            count++;
+            *rowptr = i+baseval; rowptr++;
         }
     }
 
     memFree_null(spm->rows);
-    spm->rows  =row_ijv;
+    spm->rows = row_ijv;
 
     return PASTIX_SUCCESS;
 }
