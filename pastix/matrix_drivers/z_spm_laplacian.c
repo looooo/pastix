@@ -56,6 +56,7 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
     (void)rhsptr;
 
     csc->mtxtype  = PastixSymmetric;
+    csc->flttype  = PastixComplex64;
     csc->fmttype  = PastixCSC;
     csc->gnnz     = nnz;
     csc->nnz      = nnz;
@@ -160,11 +161,13 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
 {
     pastix_complex64_t *rhsptr;
     pastix_complex64_t *valptr;
+    pastix_int_t *colptr, *rowptr;
     pastix_int_t i, j, k;
     pastix_int_t nnz = (2*(dim1)-1)*dim2 + (dim2-1)*dim1;
     (void)rhsptr;
-    
+
     csc->mtxtype  = PastixSymmetric;
+    csc->flttype  = PastixComplex64;
     csc->fmttype  = PastixCSC;
     csc->gnnz     = nnz;
     csc->nnz      = nnz;
@@ -187,64 +190,79 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
     assert( csc->avals  );
 #endif
 
-    /* Building ia, ja and avals */
-    csc->colptr[0] = 1;
-    valptr = csc->avals;
-    k = 0;
+    /* Building ia, ja and avals*/
+    colptr = csc->colptr;
+    rowptr = csc->rows;
+    valptr = (pastix_complex64_t*)(csc->avals);
 
-    for(i=0; i<dim2; i++)
+    /* Building ia, ja and avals */
+    *colptr = 1;
+    k = 1; /* Column index in the matrix ((i-1) * dim1 + j-1) */
+    for(i=1; i<=dim2; i++)
     {
         for(j=1; j<=dim1; j++)
         {
-            // column k = i*dim1+j of the matrix
-            k += 1;
-            if(j!=dim1 && i!=dim2-1)
+            if (i != dim2 )
             {
-                csc->colptr[k] = csc->colptr[k-1]+3;
-                csc->rows[csc->colptr[k-1]-1]=k;
-                csc->rows[csc->colptr[k-1]  ]=k+1;
-                csc->rows[csc->colptr[k-1]+1]=k+dim1;
+                if( j != dim1 )
+                {
+                    rowsptr[0] = k;
+                    rowsptr[1] = k+1;
+                    rowsptr[2] = k+dim1;
+                    rowsptr += 3;
 #if !defined(PRECISION_p)
-                *valptr = (pastix_complex64_t)4.;
-                *(valptr+1) = -1.;
-                *(valptr+2) = -1.;
-                valptr += 3;
+                    valptr[0] = (pastix_complex64_t) 4.;
+                    valptr[1] = (pastix_complex64_t)-1.;
+                    valptr[2] = (pastix_complex64_t)-1.;
+                    valptr += 3;
 #endif
+                    colptr[1] = colptr[0] + 3;
+                }
+                /* i != dim2 && j == dim1 */
+                else
+                {
+                    rowsptr[0] = k;
+                    rowsptr[1] = k+dim1;
+                    rowsptr += 2;
+#if !defined(PRECISION_p)
+                    valptr[0] = (pastix_complex64_t) 4.;
+                    valptr[1] = (pastix_complex64_t)-1.;
+                    valptr += 2;
+#endif
+                    colptr[1] = colptr[0] + 2;
+                }
             }
-            else if(j==dim1 && i!=dim2-1)
+            /* i == dim2 */
+            else
             {
-                csc->colptr[k] = csc->colptr[k-1]+2;
-                csc->rows[csc->colptr[k-1]-1]=k;
-                csc->rows[csc->colptr[k-1]  ]=k+dim1;
+                if( j != dim1 )
+                {
+                    rowsptr[0] = k;
+                    rowsptr[1] = k+1;
+                    rowsptr += 2;
 #if !defined(PRECISION_p)
-                *valptr = (pastix_complex64_t)4.;
-                *(valptr+1) = -1.;
-                valptr += 2;
+                    valptr[0] = (pastix_complex64_t) 4.;
+                    valptr[1] = (pastix_complex64_t)-1.;
+                    valptr += 2;
 #endif
-            }
-            else if(j!=dim1 && i==dim2-1)
-            {
-                csc->colptr[k] = csc->colptr[k-1]+2;
-                csc->rows[csc->colptr[k-1]-1]=k;
-                csc->rows[csc->colptr[k-1]  ]=k+1;
+                    colptr[1] = colptr[0] + 2;
+                }
+                /* i != dim2 && j == dim1 */
+                else
+                {
+                    rowsptr[0] = k;
+                    rowsptr += 1;
 #if !defined(PRECISION_p)
-                *valptr = (pastix_complex64_t)4.;
-                *(valptr+1) = -1;
-                valptr += 2;
+                    valptr[0] = (pastix_complex64_t) 4.;
+                    valptr += 1;
 #endif
+                    colptr[1] = colptr[0] + 1;
+                }
             }
-            else /* if(j==dim1 && i==dim2-1) */
-            {
-                csc->colptr[k] = csc->colptr[k-1]+1;
-                csc->rows[csc->colptr[k-1]-1]=k;
-#if !defined(PRECISION_p)
-                *valptr = (pastix_complex64_t)4.;
-                valptr += 1;
-#endif
-            }
+            colptr++; k++;
         }
     }
-    
+
     assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
 
 #if !defined(PRECISION_p)
@@ -304,11 +322,13 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
 
     pastix_complex64_t *rhsptr;
     pastix_complex64_t *valptr;
+    pastix_int_t *colptr, *rowptr;
     pastix_int_t i, j, k, l;
     pastix_int_t nnz = (2*(dim1)-1)*dim2*dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1);
     (void)rhsptr;
-    
+
     csc->mtxtype  = PastixSymmetric;
+    csc->flttype  = PastixComplex64;
     csc->fmttype  = PastixCSC;
     csc->gnnz     = nnz;
     csc->nnz      = nnz;
@@ -331,119 +351,141 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
     assert( csc->avals  );
 #endif
 
-    /* Building ia, ja and avals */
-    csc->colptr[0] = 1;
-    valptr = csc->avals;
-    l = 0;
+    /* Building ia, ja and avals*/
+    colptr = csc->colptr;
+    rowptr = csc->rows;
+    valptr = (pastix_complex64_t*)(csc->avals);
 
-    for(i=0; i<dim3; i++)
+    /* Building ia, ja and avals */
+    *colptr = 1;
+    l = 1; /* Column index in the matrix ((i-1) * dim1 * dim2 + (j-1) * dim1 + k-1) */
+    for(i=1; i<=dim3; i++)
     {
-        for(j=0; j<dim2; j++)
+        for(j=1; j<=dim2; j++)
         {
             for(k=1; k<=dim1; k++)
             {
-                // column l = i*dim1*dim2+j*dim1+k of the matrix
-                l += 1;
-                if(k!=dim1 && j!=dim2-1 && i!=dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+4;
-                    csc->rows[csc->colptr[l-1]-1]=l;
-                    csc->rows[csc->colptr[l-1]  ]=l+1;
-                    csc->rows[csc->colptr[l-1]+1]=l+dim1;
-                    csc->rows[csc->colptr[l-1]+2]=l+dim1*dim2;
+                if ( i != dim3 ) {
+                    if ( j != dim2 ) {
+                        if ( k != dim1 ) {
+                             /* i != dim3 && j != dim2 && k != dim1 */
+                            rowsptr[0] = l;
+                            rowsptr[1] = l+1;
+                            rowsptr[2] = l+dim1;
+                            rowsptr[3] = l+dim1*dim2;
+                            rowsptr += 4;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    *(valptr+1) = -1.;
-                    *(valptr+2) = -1.;
-                    *(valptr+3) = -1.;
-                    valptr += 4;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr[1] = (pastix_complex64_t)-1.;
+                            valptr[2] = (pastix_complex64_t)-1.;
+                            valptr[3] = (pastix_complex64_t)-1.;
+                            valptr += 4;
 #endif
-                }
-                else if(k==dim1 && j!=dim2-1 && i!=dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+3;
-                    csc->rows[csc->colptr[l-1]-1]=l;
-                    csc->rows[csc->colptr[l-1]  ]=l+dim1;
-                    csc->rows[csc->colptr[l-1]+1]=l+dim1*dim2;
+                            colptr[1] = colptr[0] + 4;
+                        }
+                        else {
+                             /* i != dim3 && j != dim2 && k == dim1 */
+                            rowsptr[0] = l;
+                            rowsptr[1] = l+dim1;
+                            rowsptr[2] = l+dim1*dim2;
+                            rowsptr += 3;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    *(valptr+1) = -1.;
-                    *(valptr+2) = -1.;
-                    valptr += 3;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr[1] = (pastix_complex64_t)-1.;
+                            valptr[2] = (pastix_complex64_t)-1.;
+                            valptr += 3;
 #endif
-                }
-                else if(k!=dim1 && j==dim2-1 && i!=dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+3;
-                    csc->rows[csc->colptr[l-1]-1]=l;
-                    csc->rows[csc->colptr[l-1]  ]=l+1;
-                    csc->rows[csc->colptr[l-1]+1]=l+dim1*dim2;
+                            colptr[1] = colptr[0] + 3;
+                        }
+                    }
+                    else {
+                        if ( k != dim1 ) {
+                             /* i != dim3 && j == dim2 && k != dim1 */
+                            rowsptr[0] = l;
+                            rowsptr[1] = l+1;
+                            rowsptr[2] = l+dim1*dim2;
+                            rowsptr += 3;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    *(valptr+1) = -1.;
-                    *(valptr+2) = -1.;
-                    valptr += 3;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr[1] = (pastix_complex64_t)-1.;
+                            valptr[2] = (pastix_complex64_t)-1.;
+                            valptr += 3;
 #endif
-                }
-                else if(k!=dim1 && j!=dim2-1 && i==dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+3;
-                    csc->rows[csc->colptr[l-1]-1]=l;
-                    csc->rows[csc->colptr[l-1]  ]=l+1;
-                    csc->rows[csc->colptr[l-1]+1]=l+dim1;
+                            colptr[1] = colptr[0] + 3;
+                        }
+                        else {
+                             /* i != dim3 && j == dim2 && k == dim1 */
+                            rowsptr[0] = l;
+                            rowsptr[1] = l+dim1*dim2;
+                            rowsptr += 2;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    *(valptr+1) = -1.;
-                    *(valptr+2) = -1.;
-                    valptr += 3;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr[1] = (pastix_complex64_t)-1.;
+                            valptr += 2;
 #endif
+                            colptr[1] = colptr[0] + 2;
+                        }
+                    }
                 }
-                else if(k==dim1 && j==dim2-1 && i!=dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+2;
-                    csc->rows[csc->colptr[l-1]-1]=l;
-                    csc->rows[csc->colptr[l-1]  ]=l+dim1*dim2;
+                else {
+                    if ( j != dim2 ) {
+                        if ( k != dim1 ) {
+                             /* i == dim3 && j != dim2 && k != dim1 */
+                            rowsptr[0] = l;
+                            rowsptr[1] = l+1;
+                            rowsptr[2] = l+dim1;
+                            rowsptr += 3;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    *(valptr+1) = -1.;
-                    valptr += 2;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr[1] = (pastix_complex64_t)-1.;
+                            valptr[2] = (pastix_complex64_t)-1.;
+                            valptr += 3;
 #endif
-                }
-                else if(k!=dim1 && j==dim2-1 && i==dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+2;
-                    csc->rows[csc->colptr[l-1]-1]=l;
-                    csc->rows[csc->colptr[l-1]  ]=l+1;
+                            colptr[1] = colptr[0] + 3;
+                        }
+                        else {
+                             /* i == dim3 && j != dim2 && k == dim1 */
+                            rowsptr[0] = l;
+                            rowsptr[1] = l+dim1;
+                            rowsptr += 2;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    *(valptr+1) = -1.;
-                    valptr += 2;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr[1] = (pastix_complex64_t)-1.;
+                            valptr += 2;
 #endif
-                }
-                else if(k==dim1 && j!=dim2-1 && i==dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+2;
-                    csc->rows[csc->colptr[l-1]-1]=l;
-                    csc->rows[csc->colptr[l-1]  ]=l+dim1;
+                            colptr[1] = colptr[0] + 2;
+                        }
+                    }
+                    else {
+                        if ( k != dim1 ) {
+                             /* i == dim3 && j == dim2 && k != dim1 */
+                            rowsptr[0] = l;
+                            rowsptr[1] = l+1;
+                            rowsptr += 2;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    *(valptr+1) = -1.;
-                    valptr += 2;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr[1] = (pastix_complex64_t)-1.;
+                            valptr += 2;
 #endif
-                }
-                else if(k==dim1 && j==dim2-1 && i==dim3-1)
-                {
-                    csc->colptr[l] = csc->colptr[l-1]+1;
-                    csc->rows[csc->colptr[l-1]-1]=l;
+                            colptr[1] = colptr[0] + 2;
+                        }
+                        else {
+                             /* i == dim3 && j == dim2 && k == dim1 */
+                            rowsptr[0] = l;
+                            rowsptr += 1;
 #if !defined(PRECISION_p)
-                    *valptr = 6.;
-                    valptr += 1;
+                            valptr[0] = (pastix_complex64_t) 6.;
+                            valptr += 1;
 #endif
+                            colptr[1] = colptr[0] + 1;
+                        }
+                    }
                 }
+                colptr++; l++;
             }
         }
     }
-    
+
     assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
 
 #if !defined(PRECISION_p)
