@@ -37,7 +37,7 @@
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
+ *      \retval PASTIX_SUCCESS if the rhs vector has been computed succesfully,
  *      \retval PASTIX_ERR_MATRIX if the csc matrix is not correct.
  *
  *******************************************************************************/
