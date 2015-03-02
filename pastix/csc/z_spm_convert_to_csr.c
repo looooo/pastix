@@ -39,70 +39,19 @@
 int
 z_spmConvertCSC2CSR( pastix_csc_t *spm )
 {
-    pastix_int_t       *row_csr;
-    pastix_int_t       *col_csr;
-#if !defined(PRECISION_p)
-    pastix_complex64_t *val_csr;
-    pastix_complex64_t  val;
-    pastix_complex64_t *valptr;
-#endif
-    pastix_int_t       *count;
-    pastix_int_t j, k, col, row, nnz, baseval;
+    pastix_int_t *tmp;
+    pastix_int_t  result;
 
-    baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
-    nnz=spm->colptr[spm->gN]-baseval;
-    spm->fmttype=PastixCSR;
+    /* Just need to swap the pointers and call z_spmConvertCSR2CSC */
+    tmp         = spm->rows;
+    spm->rows   = spm->colptr;
+    spm->colptr = tmp;
+    spm->fmttype = PastixCSR;
 
-    row_csr = calloc(spm->gN+1,sizeof(pastix_int_t));
-    col_csr = malloc(nnz*sizeof(pastix_int_t));
-    count = calloc(spm->gN,sizeof(pastix_int_t));
+    result = z_spmConvertCSR2CSC( spm );
+    spm->fmttype = PastixCSR;
 
-    assert( row_csr );
-    assert( col_csr );
-    assert( count_csr );
-
-#if !defined(PRECISION_p)
-    val_csr = malloc(nnz*sizeof(pastix_complex64_t));
-    assert( val_csr );
-#endif
-
-    for (j=0;j<=nnz;j++){
-        row_csr[spm->rows[j]]+=1;
-    }
-    row_csr[0]=0;
-    for (j=1;j<=spm->gN;j++){
-        row_csr[j]+=row_csr[j-1];
-    }
-    row_csr[0]=baseval;
-
-    assert( row_csr[spm->gN] == nnz+1 );
-
-    for (col=1;col<=spm->gN;col++){
-        for (k=0;k<(spm->colptr[col-baseval+1]-spm->colptr[col-baseval]);k++){
-            row=spm->rows[spm->colptr[col-baseval]-baseval+k];
-            col_csr[row_csr[row-baseval]-baseval+count[row-baseval]]=col;
-#if !defined(PRECISION_p)
-            valptr=spm->avals+spm->colptr[col-baseval]-baseval+k;
-            val=*valptr;
-            val_csr[row_csr[row-baseval]-baseval+count[row-baseval]]=val;
-#endif
-            count[row-baseval]+=1;
-        }
-    }
-
-    memFree_null(count);
-    memFree_null(spm->colptr);
-    memFree_null(spm->rows);
-    spm->colptr=col_csr;
-    spm->rows  =row_csr;
-#if !defined(PRECISION_p)
-    memFree_null(spm->avals);
-    spm->avals =val_csr;
-#else
-    spm->avals =NULL;
-#endif
-
-    return PASTIX_SUCCESS;
+    return result;
 }
 
 /**
