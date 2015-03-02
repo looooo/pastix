@@ -36,24 +36,18 @@
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
  *
- * @param[out] rhs
- *          At exit, contains the right hand side member.
- *
  * @param[in] dim1
  *          contains the dimension of the 1D laplacian.
  *
  *******************************************************************************/
 void
 z_spmLaplacian1D( pastix_csc_t  *csc,
-                  void         **rhs,
                   pastix_int_t   dim1 )
 {
-    pastix_complex64_t *rhsptr;
     pastix_complex64_t *valptr;
     pastix_int_t *colptr, *rowptr;
     pastix_int_t i, j;
     pastix_int_t nnz = 2*(csc->gN) - 1;
-    (void)rhsptr;
 
     csc->mtxtype  = PastixSymmetric;
     csc->flttype  = PastixComplex64;
@@ -90,7 +84,12 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
     {
         *rowptr = i+1;
 #if !defined(PRECISION_p)
-        *valptr = (pastix_complex64_t)2.;
+        if ( (i == 0) || (i == csc->gN-1) ) {
+            *valptr = (pastix_complex64_t)1.;
+        }
+        else {
+            *valptr = (pastix_complex64_t)2.;
+        }
 #endif
 
         j++; valptr++; rowptr++;
@@ -110,15 +109,6 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
     }
 
     assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
-
-#if !defined(PRECISION_p)
-    /* Initialize RHS */
-    *rhs = calloc(csc->n, sizeof(pastix_complex64_t));
-    assert( *rhs );
-    rhsptr = (pastix_complex64_t*)(*rhs);
-    rhsptr[0]         = (pastix_complex64_t)1.;
-    rhsptr[csc->gN-1] = (pastix_complex64_t)1.;
-#endif
 }
 
 /**
@@ -143,9 +133,6 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
  *
- * @param[out] rhs
- *          At exit, contains the right hand side member.
- *
  * @param[in] dim1
  *          contains the first dimension of the 2D grid of the laplacian.
  *
@@ -155,16 +142,13 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  *******************************************************************************/
 void
 z_spmLaplacian2D( pastix_csc_t  *csc,
-                  void         **rhs,
                   pastix_int_t   dim1,
                   pastix_int_t   dim2 )
 {
-    pastix_complex64_t *rhsptr;
     pastix_complex64_t *valptr;
     pastix_int_t *colptr, *rowptr;
     pastix_int_t i, j, k;
     pastix_int_t nnz = (2*(dim1)-1)*dim2 + (dim2-1)*dim1;
-    (void)rhsptr;
 
     csc->mtxtype  = PastixSymmetric;
     csc->flttype  = PastixComplex64;
@@ -175,7 +159,6 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
     csc->colptr  = NULL;
     csc->rows    = NULL;
     csc->avals   = NULL;
-    *rhs         = NULL;
 
     assert( csc->gN == dim1*dim2 );
 
@@ -202,77 +185,38 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
     {
         for(j=1; j<=dim1; j++)
         {
-            if (i != dim2 )
-            {
-                if( j != dim1 )
-                {
-                    rowsptr[0] = k;
-                    rowsptr[1] = k+1;
-                    rowsptr[2] = k+dim1;
-                    rowsptr += 3;
+            colptr[1] = colptr[0];
+
+            /* Diagonal value */
 #if !defined(PRECISION_p)
-                    valptr[0] = (pastix_complex64_t) 4.;
-                    valptr[1] = (pastix_complex64_t)-1.;
-                    valptr[2] = (pastix_complex64_t)-1.;
-                    valptr += 3;
+            *rowptr = k;
+            *valptr = (pastix_complex64_t) 4.;
 #endif
-                    colptr[1] = colptr[0] + 3;
-                }
-                /* i != dim2 && j == dim1 */
-                else
-                {
-                    rowsptr[0] = k;
-                    rowsptr[1] = k+dim1;
-                    rowsptr += 2;
+            valptr++; rowptr++; colptr[1]++;
+
+            /* Connexion along dimension 1 */
+            if (j < dim1) {
 #if !defined(PRECISION_p)
-                    valptr[0] = (pastix_complex64_t) 4.;
-                    valptr[1] = (pastix_complex64_t)-1.;
-                    valptr += 2;
+                *rowptr = k+1;
+                *valptr = (pastix_complex64_t)-1.;
 #endif
-                    colptr[1] = colptr[0] + 2;
-                }
+                valptr++; rowptr++; colptr[1]++;
             }
-            /* i == dim2 */
-            else
-            {
-                if( j != dim1 )
-                {
-                    rowsptr[0] = k;
-                    rowsptr[1] = k+1;
-                    rowsptr += 2;
+
+            /* Connexion along dimension 2 */
+            if (i < dim2) {
 #if !defined(PRECISION_p)
-                    valptr[0] = (pastix_complex64_t) 4.;
-                    valptr[1] = (pastix_complex64_t)-1.;
-                    valptr += 2;
+                *rowptr = k+dim1;
+                *valptr = (pastix_complex64_t)-1.;
 #endif
-                    colptr[1] = colptr[0] + 2;
-                }
-                /* i != dim2 && j == dim1 */
-                else
-                {
-                    rowsptr[0] = k;
-                    rowsptr += 1;
-#if !defined(PRECISION_p)
-                    valptr[0] = (pastix_complex64_t) 4.;
-                    valptr += 1;
-#endif
-                    colptr[1] = colptr[0] + 1;
-                }
+                valptr++; rowptr++; colptr[1]++;
             }
+
             colptr++; k++;
         }
     }
 
     assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
-
-#if !defined(PRECISION_p)
-    /* Initialize RHS */
-    *rhs = calloc(csc->n, sizeof(pastix_complex64_t));
-    assert( *rhs );
-    rhsptr = (pastix_complex64_t*)(*rhs);
-    rhsptr[0]         = (pastix_complex64_t)1.;
-    rhsptr[csc->gN-1] = (pastix_complex64_t)1.;
-#endif
 }
 
 /**
@@ -299,9 +243,6 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
  *          At start, contains the size of the laplacian in csc->n.
  *          At exit, contains the matrix in csc format.
  *
- * @param[out] rhs
- *          At exit, contains the right hand side member.
- *
  * @param[in] dim1
  *          contains the first dimension of the 3D grid of the laplacian.
  *
@@ -314,18 +255,15 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
  *******************************************************************************/
 void
 z_spmLaplacian3D( pastix_csc_t  *csc,
-                  void         **rhs,
                   pastix_int_t   dim1,
                   pastix_int_t   dim2,
                   pastix_int_t   dim3 )
 {
 
-    pastix_complex64_t *rhsptr;
     pastix_complex64_t *valptr;
     pastix_int_t *colptr, *rowptr;
     pastix_int_t i, j, k, l;
     pastix_int_t nnz = (2*(dim1)-1)*dim2*dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1);
-    (void)rhsptr;
 
     csc->mtxtype  = PastixSymmetric;
     csc->flttype  = PastixComplex64;
@@ -336,7 +274,6 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
     csc->colptr  = NULL;
     csc->rows    = NULL;
     csc->avals   = NULL;
-    *rhs         = NULL;
 
     assert( csc->gN == dim1*dim2*dim3 );
 
@@ -365,135 +302,47 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
         {
             for(k=1; k<=dim1; k++)
             {
-                if ( i != dim3 ) {
-                    if ( j != dim2 ) {
-                        if ( k != dim1 ) {
-                             /* i != dim3 && j != dim2 && k != dim1 */
-                            rowsptr[0] = l;
-                            rowsptr[1] = l+1;
-                            rowsptr[2] = l+dim1;
-                            rowsptr[3] = l+dim1*dim2;
-                            rowsptr += 4;
+
+                colptr[1] = colptr[0];
+
+                /* Diagonal value */
 #if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr[1] = (pastix_complex64_t)-1.;
-                            valptr[2] = (pastix_complex64_t)-1.;
-                            valptr[3] = (pastix_complex64_t)-1.;
-                            valptr += 4;
+                *rowptr = l;
+                *valptr = (pastix_complex64_t) 6.;
 #endif
-                            colptr[1] = colptr[0] + 4;
-                        }
-                        else {
-                             /* i != dim3 && j != dim2 && k == dim1 */
-                            rowsptr[0] = l;
-                            rowsptr[1] = l+dim1;
-                            rowsptr[2] = l+dim1*dim2;
-                            rowsptr += 3;
+                valptr++; rowptr++; colptr[1]++;
+
+                /* Connexion along dimension 1 */
+                if (k < dim1) {
 #if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr[1] = (pastix_complex64_t)-1.;
-                            valptr[2] = (pastix_complex64_t)-1.;
-                            valptr += 3;
+                    *rowptr = l+1;
+                    *valptr = (pastix_complex64_t)-1.;
 #endif
-                            colptr[1] = colptr[0] + 3;
-                        }
-                    }
-                    else {
-                        if ( k != dim1 ) {
-                             /* i != dim3 && j == dim2 && k != dim1 */
-                            rowsptr[0] = l;
-                            rowsptr[1] = l+1;
-                            rowsptr[2] = l+dim1*dim2;
-                            rowsptr += 3;
-#if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr[1] = (pastix_complex64_t)-1.;
-                            valptr[2] = (pastix_complex64_t)-1.;
-                            valptr += 3;
-#endif
-                            colptr[1] = colptr[0] + 3;
-                        }
-                        else {
-                             /* i != dim3 && j == dim2 && k == dim1 */
-                            rowsptr[0] = l;
-                            rowsptr[1] = l+dim1*dim2;
-                            rowsptr += 2;
-#if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr[1] = (pastix_complex64_t)-1.;
-                            valptr += 2;
-#endif
-                            colptr[1] = colptr[0] + 2;
-                        }
-                    }
+                    valptr++; rowptr++; colptr[1]++;
                 }
-                else {
-                    if ( j != dim2 ) {
-                        if ( k != dim1 ) {
-                             /* i == dim3 && j != dim2 && k != dim1 */
-                            rowsptr[0] = l;
-                            rowsptr[1] = l+1;
-                            rowsptr[2] = l+dim1;
-                            rowsptr += 3;
+
+                /* Connexion along dimension 2 */
+                if (j < dim2) {
 #if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr[1] = (pastix_complex64_t)-1.;
-                            valptr[2] = (pastix_complex64_t)-1.;
-                            valptr += 3;
+                    *rowptr = l+dim1;
+                    *valptr = (pastix_complex64_t)-1.;
 #endif
-                            colptr[1] = colptr[0] + 3;
-                        }
-                        else {
-                             /* i == dim3 && j != dim2 && k == dim1 */
-                            rowsptr[0] = l;
-                            rowsptr[1] = l+dim1;
-                            rowsptr += 2;
-#if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr[1] = (pastix_complex64_t)-1.;
-                            valptr += 2;
-#endif
-                            colptr[1] = colptr[0] + 2;
-                        }
-                    }
-                    else {
-                        if ( k != dim1 ) {
-                             /* i == dim3 && j == dim2 && k != dim1 */
-                            rowsptr[0] = l;
-                            rowsptr[1] = l+1;
-                            rowsptr += 2;
-#if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr[1] = (pastix_complex64_t)-1.;
-                            valptr += 2;
-#endif
-                            colptr[1] = colptr[0] + 2;
-                        }
-                        else {
-                             /* i == dim3 && j == dim2 && k == dim1 */
-                            rowsptr[0] = l;
-                            rowsptr += 1;
-#if !defined(PRECISION_p)
-                            valptr[0] = (pastix_complex64_t) 6.;
-                            valptr += 1;
-#endif
-                            colptr[1] = colptr[0] + 1;
-                        }
-                    }
+                    valptr++; rowptr++; colptr[1]++;
                 }
+
+                /* Connexion along dimension 3 */
+                if (i < dim3) {
+#if !defined(PRECISION_p)
+                    *rowptr = l+dim1*dim2;
+                    *valptr = (pastix_complex64_t)-1.;
+#endif
+                    valptr++; rowptr++; colptr[1]++;
+                }
+
                 colptr++; l++;
             }
         }
     }
 
     assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
-
-#if !defined(PRECISION_p)
-    /* Initialize RHS */
-    *rhs = calloc(csc->n, sizeof(pastix_complex64_t));
-    assert( *rhs );
-    rhsptr = (pastix_complex64_t*)(*rhs);
-    rhsptr[0]         = (pastix_complex64_t)1.;
-    rhsptr[csc->gN-1] = (pastix_complex64_t)1.;
-#endif
 }

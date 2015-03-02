@@ -94,7 +94,7 @@ int cscReadFromFile( pastix_driver_t  driver,
         case PastixDriverLaplacian:
             if (mpirank == 0)
                 printf("driver Laplacian: %s\n", filename);
-            genLaplacian( filename, csc, rhs );
+            genLaplacian( filename, csc );
             break;
 
         case PastixDriverGraph:
