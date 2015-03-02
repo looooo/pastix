@@ -25,10 +25,10 @@
  * hand side member.
  *
  * Example:
- * >  2 -1  0  0
+ * >  1 -1  0  0
  * > -1  2 -1  0
  * >  0 -1  2 -1
- * >  0  0 -1  2
+ * >  0  0 -1  1
  *
  *******************************************************************************
  *
@@ -120,12 +120,12 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  * hand side member.
  *
  * Example:
- * >  4 -1  0 -1  0  0
- * > -1  4 -1  0 -1  0
- * >  0 -1  4  0  0 -1
- * > -1  0  0  4 -1  0
- * >  0 -1  0 -1  4 -1
- * >  0  0 -1  0 -1  4
+ * >  2 -1  0 -1  0  0
+ * > -1  3 -1  0 -1  0
+ * >  0 -1  2  0  0 -1
+ * > -1  0  0  2 -1  0
+ * >  0 -1  0 -1  3 -1
+ * >  0  0 -1  0 -1  2
  *
  *******************************************************************************
  *
@@ -190,7 +190,11 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
             /* Diagonal value */
 #if !defined(PRECISION_p)
             *rowptr = k;
-            *valptr = (pastix_complex64_t) 4.;
+            *valptr = (pastix_complex64_t) 2.;
+                if (j < dim1 && k>1)
+                    *valptr += 1;
+                if (i < dim2 && k>1)
+                    *valptr += 1;
 #endif
             valptr++; rowptr++; colptr[1]++;
 
@@ -228,14 +232,14 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
  * hand side member.
  *
  * Example:
- * >  6 -1 -1  0 -1  0  0  0
- * > -1  6  0 -1  0 -1  0  0
- * > -1  0  6 -1  0  0 -1  0
- * >  0 -1 -1  6  0  0  0 -1
- * > -1  0  0  0  6 -1 -1  0
- * >  0 -1  0  0 -1  6  0 -1
- * >  0  0 -1  0 -1  0  6 -1
- * >  0  0  0 -1  0 -1 -1  6
+ * >  3 -1 -1  0 -1  0  0  0
+ * > -1  3  0 -1  0 -1  0  0
+ * > -1  0  3 -1  0  0 -1  0
+ * >  0 -1 -1  3  0  0  0 -1
+ * > -1  0  0  0  3 -1 -1  0
+ * >  0 -1  0  0 -1  3  0 -1
+ * >  0  0 -1  0 -1  0  3 -1
+ * >  0  0  0 -1  0 -1 -1  3
  *
  *******************************************************************************
  *
@@ -308,7 +312,13 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
                 /* Diagonal value */
 #if !defined(PRECISION_p)
                 *rowptr = l;
-                *valptr = (pastix_complex64_t) 6.;
+                *valptr = (pastix_complex64_t) 3.;
+                if (k < dim1 && k>1)
+                    *valptr += 1;
+                if (j < dim2 && k>1)
+                    *valptr += 1;
+                if (i < dim3 && k>1)
+                    *valptr += 1;
 #endif
                 valptr++; rowptr++; colptr[1]++;
 
