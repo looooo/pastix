@@ -184,8 +184,6 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
 
     ret = SCOTCH_stratGraphOrder (&stratdat, strat);
     if (ret == 0) {
-        SCOTCH_Ordering sorder;
-
         /* Compute graph ordering */
 #if 0
         ret = SCOTCH_graphOrderList(&scotchgraph,
@@ -198,22 +196,26 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
                                     (SCOTCH_Num *) ordemesh->rangtab,
                                     NULL);
 #else
-        ret = SCOTCH_graphOrderInit(&scotchgraph,
-                                    &sorder,
-                                    (SCOTCH_Num *) ordemesh->permtab,
-                                    (SCOTCH_Num *) ordemesh->peritab,
-                                    (SCOTCH_Num *)&ordemesh->cblknbr,
-                                    (SCOTCH_Num *) ordemesh->rangtab,
-                                    NULL);
+        {
+            SCOTCH_Ordering sorder;
 
-        ret = SCOTCH_graphOrderComputeList(&scotchgraph,
-                                           &sorder,
-                                           (SCOTCH_Num)   n,
-                                           (SCOTCH_Num *) NULL,
-                                           &stratdat);
-        orderComputeClif( graph, &scotchgraph, ordemesh, &sorder );
+            ret = SCOTCH_graphOrderInit(&scotchgraph,
+                                        &sorder,
+                                        (SCOTCH_Num *) ordemesh->permtab,
+                                        (SCOTCH_Num *) ordemesh->peritab,
+                                        (SCOTCH_Num *)&ordemesh->cblknbr,
+                                        (SCOTCH_Num *) ordemesh->rangtab,
+                                        NULL);
 
-        SCOTCH_graphOrderExit( &scotchgraph, &sorder );
+            ret = SCOTCH_graphOrderComputeList(&scotchgraph,
+                                               &sorder,
+                                               (SCOTCH_Num)   n,
+                                               (SCOTCH_Num *) NULL,
+                                               &stratdat);
+            orderComputeClif( graph, &scotchgraph, ordemesh, &sorder );
+
+            SCOTCH_graphOrderExit( &scotchgraph, &sorder );
+        }
 #endif
     }
 
