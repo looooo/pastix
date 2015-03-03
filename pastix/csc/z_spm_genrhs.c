@@ -16,7 +16,7 @@
 #include "common.h"
 #include "csc.h"
 
-static int (*CSCv[3])(pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, pastix_complex64_t*, pastix_complex64_t*) =
+static int (*CSCv[3])(char, pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, pastix_complex64_t*, pastix_complex64_t*) =
 {
     z_spmGeCSCv,
     z_spmSyCSCv,
@@ -49,7 +49,7 @@ static int (*CSCv[3])(pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, pas
  *
  * @return
  *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
- *      \retval PASTIX_ERR_MATRIX if the csc matrix is not correct.
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -59,13 +59,13 @@ z_spm_genRHS(pastix_csc_t  *csc,
     void *x = NULL;
 
     if(csc->avals==NULL)
-        return PASTIX_ERR_MATRIX;
+        return PASTIX_ERR_BADPARAMETER;
 
     if(csc->fmttype!=PastixCSC)
-        return PASTIX_ERR_MATRIX;
+        return PASTIX_ERR_BADPARAMETER;
 
     if(csc->gN<=0)
-        return PASTIX_ERR_MATRIX;
+        return PASTIX_ERR_BADPARAMETER;
 
     x=malloc(csc->gN*sizeof(pastix_complex64_t));
     
@@ -82,7 +82,7 @@ z_spm_genRHS(pastix_csc_t  *csc,
     {
         if(CSCv[csc->mtxtype-PastixGeneral] != PASTIX_SUCCESS)
         {
-            return PASTIX_ERR_MATRIX;
+            return PASTIX_ERR_BADPARAMETER;
         }
         
     }

@@ -38,7 +38,7 @@
  *
  * @return
  *      \retval PASTIX_SUCCESS if the rhs vector has been computed succesfully,
- *      \retval PASTIX_ERR_MATRIX if the csc matrix is not correct.
+ *      \retval PASTIX_ERR_BADPARAMETER if the csc matrix is not correct.
  *
  *******************************************************************************/
 int
@@ -63,6 +63,6 @@ genRHS(pastix_csc_t  *csc,
     }
     else
     {
-        return PASTIX_ERR_MATRIX;
+        return PASTIX_ERR_BADPARAMETER;
     }
 }
