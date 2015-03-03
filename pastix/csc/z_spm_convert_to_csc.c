@@ -243,7 +243,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
             col_csc[0] = baseval;
             for (j=0; j<spm->n; j++) {
                 tmp2 = col_csc[j+1];
-                col_csc[j+1] = tmp;
+                col_csc[j+1] = tmp + baseval;
                 tmp = tmp2;
             }
         }
