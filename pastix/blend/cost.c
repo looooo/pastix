@@ -17,6 +17,9 @@ costMatrixExit( CostMatrix *costmtx )
 {
     if(costmtx->bloktab != NULL)
 	memFree_null(costmtx->bloktab);
+
+    if(costmtx->cblkcost != NULL)
+	memFree_null(costmtx->cblkcost);
 }
 
 
