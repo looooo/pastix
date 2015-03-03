@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
+#include <csc.h>
 
 int main (int argc, char **argv)
 {
@@ -102,6 +103,7 @@ int main (int argc, char **argv)
     free(csc.colptr);
     free(csc.rows);
     free(csc.avals);
+    free(rhs);
 
     /* if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD)) */
     /* { */

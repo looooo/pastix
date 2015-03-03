@@ -468,6 +468,10 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   csc/z_spm_convert_to_csc.c
+  csc/z_spm_convert_to_csr.c
+  csc/z_spm_convert_to_ijv.c
+  csc/z_spm_matrixvector.c
+  csc/z_spm_genrhs.c
   matrix_drivers/z_spm_laplacian.c
   sopalin/sequential_zpotrf.c
   sopalin/coeftab_z.c
@@ -580,6 +584,7 @@ set(PASTIX_LIB_SRCS
   sopalin/coeftab.c
 #
   csc/csc.c
+  csc/genrhs.c
 #
   ${generated_files}
   )
