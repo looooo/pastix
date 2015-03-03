@@ -43,9 +43,20 @@
 #define PastixNoTrans       111
 #define PastixTrans         112
 #define PastixConjTrans     113
+
 #define PastixGeneral       111
 #define PastixSymmetric     112
 #define PastixHermitian     113
+
+/** ****************************************************************************
+ * Sparse matrix format
+ **/
+typedef enum pastix_fmttype_e {
+    PastixCSC = 0,
+    PastixCSR = 1,
+    PastixIJV = 2
+} pastix_fmttype_t;
+
 
 #define PASTIX_SUCESS  0
 
@@ -561,8 +572,8 @@ typedef struct pastix_graph_s pastix_graph_t;
 struct Order_;
 typedef struct Order_ Order;
 
-struct pastix_csc_s;
-typedef struct pastix_csc_s pastix_csc_t;
+struct pastix_spm_s;
+typedef struct pastix_spm_s pastix_csc_t;
 
 void pastixInitParam( pastix_int_t *iparm,
                       double       *dparm );

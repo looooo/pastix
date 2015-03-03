@@ -337,7 +337,7 @@ endif()
 #   set(METIS_LIBRARY_DIRS "${METIS_DIR}/lib")
 #   set(METIS_LIBRARIES    "metis")
 # endif()
-# 
+#
 # PaStiX might depend on GTG
 #---------------------------
 if (PASTIX_BLEND_GENTRACE)
@@ -401,10 +401,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kass")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
 set(modules bcsc kernels) #csc kernels sopalin matrix_drivers common)
@@ -467,12 +467,18 @@ include(RulesPrecisions)
 set(generated_files "")
 set(SOURCES
   common/z_integer.c
+  csc/z_spm_convert_to_csc.c
+  csc/z_spm_convert_to_csr.c
+  csc/z_spm_convert_to_ijv.c
+  csc/z_spm_matrixvector.c
+  csc/z_spm_genrhs.c
+  matrix_drivers/z_spm_laplacian.c
   sopalin/sequential_zpotrf.c
   sopalin/coeftab_z.c
   )
 precisions_rules_py(generated_files
   "${SOURCES}"
-  PRECISIONS "s;d;c;z"
+  PRECISIONS "p;s;d;c;z"
   )
 
 #
@@ -506,6 +512,13 @@ set(PASTIX_LIB_SRCS
   fax/symbol_kass_level.c
   fax/pastix_task_symbfact.c
   #
+  matrix_drivers/skitf.f
+  matrix_drivers/iohb.c
+  matrix_drivers/mmio.c
+  matrix_drivers/readrsa.c
+  matrix_drivers/readmm.c
+  matrix_drivers/readijv.c
+  matrix_drivers/readhb.c
 
   # Files that still require some changes
   blend/cand.c
@@ -562,11 +575,16 @@ set(PASTIX_LIB_SRCS
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
-  matrix_drivers/skitf.f
-  matrix_drivers/readrsa.c
+  #matrix_drivers/readmmd.c
+  #matrix_drivers/readpetsc.c
+  matrix_drivers/laplacian.c
+  #matrix_drivers/readcscd.c
 #
   sopalin/pastix_task_sopalin.c
   sopalin/coeftab.c
+#
+  csc/csc.c
+  csc/genrhs.c
 #
   ${generated_files}
   )
@@ -600,6 +618,14 @@ set(PASTIX_ALL_SRCS
   order/order_compute_scotch.c
   #order/order_compute_ptscotch.c
   order/order_compute_metis.c
+
+  matrix_drivers/iohb.c
+  matrix_drivers/mmio.c
+  matrix_drivers/skitf.f
+  matrix_drivers/readhb.c
+  matrix_drivers/readijv.c
+  matrix_drivers/readmm.c
+  matrix_drivers/readrsa.c
 )
 
 if(PASTIX_WITH_STARPU)
@@ -691,4 +717,3 @@ endif()
 add_custom_target (tags
   COMMAND etags ${PASTIX_LIB_SRCS}
   DEPENDS ${PASTIX_LIB_SRCS} )
-

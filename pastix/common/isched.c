@@ -187,6 +187,7 @@ void *isched_parallel_section(void *ptr)
     isched_t *isched = (isched_t*)(ptr);
     int action;
     int id = isched_rank( isched );
+    (void)id;
     assert(id != -1);
 
     /* Set thread affinity for the worker */

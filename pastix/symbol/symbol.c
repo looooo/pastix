@@ -183,7 +183,7 @@ symbolPrintStats( const SymbolMatrix *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
-    pastix_int_t itercblk, iterblok;
+    pastix_int_t itercblk;
     pastix_int_t cblknbr, bloknbr;
     pastix_int_t cblkmin, cblkmax;
     pastix_int_t blokmin, blokmax;

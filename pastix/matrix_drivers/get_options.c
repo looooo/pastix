@@ -88,8 +88,8 @@ getfilename(char **filename, char *source, char *defaultname)
 /*     { */
 /*       fprintf(stdout, "Usage : %s [option] \n",argv[0]); */
 /*       fprintf(stdout, "\toptions : \n"); */
-/*       fprintf(stdout, "\t\t -rsa     [filename]          driver RSA (use Fortran) \n"); */
-/*       fprintf(stdout, "\t\t -chb     [filename]          driver CHB\n"); */
+/*       fprintf(stdout, "\t\t -rsa     [filename]          driver RSA (use Fortran, double only) \n"); */
+/*       fprintf(stdout, "\t\t -hb      [filename]          driver Harwell Boeing (Similar RSA but in C with complex support\n"); */
 /*       fprintf(stdout, "\t\t -ccc     [filename]          driver CCC\n"); */
 /*       fprintf(stdout, "\t\t -rcc     [filename]          driver RCC\n"); */
 /*       fprintf(stdout, "\t\t -olaf    [filename]          driver OLAF\n"); */
@@ -97,7 +97,6 @@ getfilename(char **filename, char *source, char *defaultname)
 /*       fprintf(stdout, "\t\t -petsc_s [filename]          driver PETSc symmetric\n"); */
 /*       fprintf(stdout, "\t\t -petsc_h [filename]          driver PETSc hermitian\n"); */
 /*       fprintf(stdout, "\t\t -petsc_u [filename]          driver PETSc unsymmetric\n"); */
-/*       fprintf(stdout, "\t\t -hb      [filename]          driver HB (double)\n"); */
 /*       fprintf(stdout, "\t\t -3files  [filename]          driver IJV 3files \n"); */
 /*       fprintf(stdout, "\t\t -mm      [filename]          driver Matrix Market\n"); */
 /*       fprintf(stdout, "\t\t -dmm     [filename]          driver Matrix Market (distributed)\n"); */
@@ -141,18 +140,18 @@ getfilename(char **filename, char *source, char *defaultname)
 /*   size          - Size of the matrix (generated matrix only) */
 /* *\/ */
 /* int get_options(int              argc, */
-/* 		char           **argv, */
-/* 		pastix_driver_t  **driver_type, */
-/* 		char          ***filename, */
-/* 		int             *nbmatrices, */
-/* 		int             *nbthread, */
-/* 		int             *verbose, */
-/* 		int             *ordering, */
-/* 		int             *incomplete, */
-/* 		int             *level_of_fill, */
-/* 		int             *amalgamation, */
-/* 		int             *ooc, */
-/* 		pastix_int_t    *size) */
+/*              char           **argv, */
+/*              pastix_driver_t  **driver_type, */
+/*              char          ***filename, */
+/*              int             *nbmatrices, */
+/*              int             *nbthread, */
+/*              int             *verbose, */
+/*              int             *ordering, */
+/*              int             *incomplete, */
+/*              int             *level_of_fill, */
+/*              int             *amalgamation, */
+/*              int             *ooc, */
+/*              pastix_int_t    *size) */
 /* { */
 
 /*   int i = 1; */
@@ -175,344 +174,344 @@ getfilename(char **filename, char *source, char *defaultname)
 /*   while(i < argc) */
 /*     { */
 /*       if (argv[i][0] == '-') */
-/* 	{ */
+/*      { */
 
-/* 	  switch (argv[i][1]) { */
+/*        switch (argv[i][1]) { */
 
-/* 	  case 'c': */
-/* 	  case 'C': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-chb") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = CHB; */
-/* 		i+=getfilename(&(*filename)[(*nbmatrices)], */
-/* 			       (i+1<argc)?argv[i+1]:NULL, "rsaname"); */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      { */
-/* 		if (strcmp(argv[i], "-ccc") == 0) */
-/* 		  { */
-/* 		    (*driver_type)[(*nbmatrices)] = CCC; */
-/* 		    i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 				    (i+1<argc)?argv[i+1]:NULL, "dirname"); */
-/* 		    (*nbmatrices)++; */
-/* 		  } */
-/* 		else */
-/* 		  { */
-/* 		    if (strcmp(argv[i], "-cscd") == 0) */
-/* 		      { */
-/* 			(*driver_type)[(*nbmatrices)] = CSCD; */
-/* 			i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 					(i+1<argc)?argv[i+1]:NULL, "dirname"); */
-/* 			(*nbmatrices)++; */
-/* 		      } */
-/* 		    else */
-/* 		      goto unknown_option; */
-/* 		  } */
-/* 	      } */
-/* 	    break; */
-/* 	  case 'd': */
-/* 	  case 'D': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-dparmfile") == 0) */
-/* 	      { */
-/* 		i++; */
-/* 	      } */
-/* 	    else if (strcmp(argv[i], "-dparm") == 0) */
-/* 	      { */
-/* 		i+=2; */
-/* 	      } */
-/* 	    else if (strcmp(argv[i],"-dmm") == 0 || */
-/* 		     strcmp(argv[i],"distributedmatrixmarket") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = MMD; */
-/* 		i += getfilename(&(*filename)[(*nbmatrices)], */
-/* 				 (i+1<argc)?argv[i+1]:NULL, "mmname"); */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
+/*        case 'c': */
+/*        case 'C': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-chb") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = CHB; */
+/*              i+=getfilename(&(*filename)[(*nbmatrices)], */
+/*                             (i+1<argc)?argv[i+1]:NULL, "rsaname"); */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            { */
+/*              if (strcmp(argv[i], "-ccc") == 0) */
+/*                { */
+/*                  (*driver_type)[(*nbmatrices)] = CCC; */
+/*                  i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                                  (i+1<argc)?argv[i+1]:NULL, "dirname"); */
+/*                  (*nbmatrices)++; */
+/*                } */
+/*              else */
+/*                { */
+/*                  if (strcmp(argv[i], "-cscd") == 0) */
+/*                    { */
+/*                      (*driver_type)[(*nbmatrices)] = CSCD; */
+/*                      i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                                      (i+1<argc)?argv[i+1]:NULL, "dirname"); */
+/*                      (*nbmatrices)++; */
+/*                    } */
+/*                  else */
+/*                    goto unknown_option; */
+/*                } */
+/*            } */
+/*          break; */
+/*        case 'd': */
+/*        case 'D': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-dparmfile") == 0) */
+/*            { */
+/*              i++; */
+/*            } */
+/*          else if (strcmp(argv[i], "-dparm") == 0) */
+/*            { */
+/*              i+=2; */
+/*            } */
+/*          else if (strcmp(argv[i],"-dmm") == 0 || */
+/*                   strcmp(argv[i],"distributedmatrixmarket") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = MMD; */
+/*              i += getfilename(&(*filename)[(*nbmatrices)], */
+/*                               (i+1<argc)?argv[i+1]:NULL, "mmname"); */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
 /* #ifdef FDUPROS */
-/* 	  case 'f': */
-/* 	  case 'F': */
-/* 	    { */
-/* 	      str_tolower(argv[i]); */
-/* 	      if (strcmp(argv[i], "-fdup") == 0) */
-/* 		{ */
-/* 		  (*driver_type)[(*nbmatrices)] = FDUP; */
-/* 		  i+=getfilename(&(*filename)[(*nbmatrices)], */
-/* 				 (i+1<argc)?argv[i+1]:NULL, "dirname"); */
-/* 		  (*nbmatrices)++; */
-/* 		} */
-/* 	      else */
-/* 		{ */
-/* 		  if (strcmp(argv[i], "-fdupd") == 0) */
-/* 		    { */
-/* 		      (*driver_type)[(*nbmatrices)] = FDUP_DIST; */
-/* 		      i+=getfilename(&(*filename)[(*nbmatrices)], */
-/* 				     (i+1<argc)?argv[i+1]:NULL, "dirname"); */
-/* 		      (*nbmatrices)++; */
-/* 		    } */
-/* 		  else */
-/* 		    { */
-/* 		      goto unknown_option; */
-/* 		    } */
-/* 		} */
-/* 	    } */
-/* 	    break; */
+/*        case 'f': */
+/*        case 'F': */
+/*          { */
+/*            str_tolower(argv[i]); */
+/*            if (strcmp(argv[i], "-fdup") == 0) */
+/*              { */
+/*                (*driver_type)[(*nbmatrices)] = FDUP; */
+/*                i+=getfilename(&(*filename)[(*nbmatrices)], */
+/*                               (i+1<argc)?argv[i+1]:NULL, "dirname"); */
+/*                (*nbmatrices)++; */
+/*              } */
+/*            else */
+/*              { */
+/*                if (strcmp(argv[i], "-fdupd") == 0) */
+/*                  { */
+/*                    (*driver_type)[(*nbmatrices)] = FDUP_DIST; */
+/*                    i+=getfilename(&(*filename)[(*nbmatrices)], */
+/*                                   (i+1<argc)?argv[i+1]:NULL, "dirname"); */
+/*                    (*nbmatrices)++; */
+/*                  } */
+/*                else */
+/*                  { */
+/*                    goto unknown_option; */
+/*                  } */
+/*              } */
+/*          } */
+/*          break; */
 /* #endif */
 
-/* 	  case 'h': */
-/* 	  case 'H': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i],"-h") ==0 || strcmp(argv[i],"-help") ==0) */
-/* 	      goto usage; */
-/* 	    else */
-/* 	      if (strcmp(argv[i],"-hb") == 0 || */
-/* 		  strcmp(argv[i],"-harwell-boeing") == 0 || */
-/* 		  strcmp(argv[i],"-harwellboeing") == 0) */
-/* 		{ */
-/* 		  (*driver_type)[(*nbmatrices)] = HB; */
-/* 		  i+=getfilename(&(*filename)[(*nbmatrices)], */
-/* 				 (i+1<argc)?argv[i+1]:NULL, "rsaname"); */
-/* 		  (*nbmatrices)++; */
-/* 		} */
-/* 	    break; */
-/* 	  case 'i': */
-/* 	  case 'I': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-incomp") == 0) */
-/* 	      { */
-/* 		*incomplete    = API_YES; */
-/* 		*level_of_fill = atoi(argv[i+1]); */
-/* 		i++; */
-/* 		*amalgamation  = atoi(argv[i+1]); */
-/* 		i++; */
-/* 	      } */
-/* 	    else if (strcmp(argv[i], "-iparmfile") == 0) */
-/* 	      { */
-/* 		i++; */
-/* 	      } */
-/* 	    else if (strcmp(argv[i], "-iparm") == 0) */
-/* 	      { */
-/* 		i+=2; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
+/*        case 'h': */
+/*        case 'H': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i],"-h") ==0 || strcmp(argv[i],"-help") ==0) */
+/*            goto usage; */
+/*          else */
+/*            if (strcmp(argv[i],"-hb") == 0 || */
+/*                strcmp(argv[i],"-harwell-boeing") == 0 || */
+/*                strcmp(argv[i],"-harwellboeing") == 0) */
+/*              { */
+/*                (*driver_type)[(*nbmatrices)] = HB; */
+/*                i+=getfilename(&(*filename)[(*nbmatrices)], */
+/*                               (i+1<argc)?argv[i+1]:NULL, "rsaname"); */
+/*                (*nbmatrices)++; */
+/*              } */
+/*          break; */
+/*        case 'i': */
+/*        case 'I': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-incomp") == 0) */
+/*            { */
+/*              *incomplete    = API_YES; */
+/*              *level_of_fill = atoi(argv[i+1]); */
+/*              i++; */
+/*              *amalgamation  = atoi(argv[i+1]); */
+/*              i++; */
+/*            } */
+/*          else if (strcmp(argv[i], "-iparmfile") == 0) */
+/*            { */
+/*              i++; */
+/*            } */
+/*          else if (strcmp(argv[i], "-iparm") == 0) */
+/*            { */
+/*              i+=2; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
 
-/* 	  case 'k': */
-/* 	  case 'K': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-kass") == 0) */
-/* 	      { */
-/* 		*level_of_fill = -1; */
-/* 		*amalgamation  = atoi(argv[i+1]); */
-/* 		i++; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
-/* 	  case 'l': */
-/* 	  case 'L': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-lap") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = LAPLACIAN; */
-/* 		*size = atoi(argv[i+1]); */
-/* 		(*filename)[(*nbmatrices)] = NULL; */
-/* 		if (0 == *size) */
-/* 		  goto unknown_option; */
-/* 		i++; */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
+/*        case 'k': */
+/*        case 'K': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-kass") == 0) */
+/*            { */
+/*              *level_of_fill = -1; */
+/*              *amalgamation  = atoi(argv[i+1]); */
+/*              i++; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
+/*        case 'l': */
+/*        case 'L': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-lap") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = LAPLACIAN; */
+/*              *size = atoi(argv[i+1]); */
+/*              (*filename)[(*nbmatrices)] = NULL; */
+/*              if (0 == *size) */
+/*                goto unknown_option; */
+/*              i++; */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
 
-/* 	  case 'm': */
-/* 	  case 'M': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i],"-mm") == 0 || */
-/* 		strcmp(argv[i],"matrixmarket") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = MM; */
-/* 		i += getfilename(&(*filename)[(*nbmatrices)], */
-/* 				 (i+1<argc)?argv[i+1]:NULL, "mmname"); */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
+/*        case 'm': */
+/*        case 'M': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i],"-mm") == 0 || */
+/*              strcmp(argv[i],"matrixmarket") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = MM; */
+/*              i += getfilename(&(*filename)[(*nbmatrices)], */
+/*                               (i+1<argc)?argv[i+1]:NULL, "mmname"); */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
 
-/* 	  case 'o': */
-/* 	  case 'O': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i],"-olaf") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = OLAF; */
-/* 		i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 				(i+1<argc)?argv[i+1]:NULL, "olafcsr"); */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      { */
-/* 		if (strcmp(argv[i],"-ord") == 0) */
-/* 		  { */
-/* 		    if (EXIT_FAILURE == */
-/* 			getordering(ordering,(i+1<argc)?argv[i+1]:NULL)) */
-/* 		      goto usage; */
-/* 		    else */
-/* 		      i++; */
-/* 		  } */
-/* 		else */
-/* 		  { */
-/* 		    if (strcmp(argv[i], "-ooc") == 0) */
-/* 		      { */
-/* 			*ooc = atoi(argv[i+1]); */
-/* 			if (0 == *ooc) */
-/* 			  goto unknown_option; */
-/* 			i++; */
-/* 		      } */
-/* 		    else */
-/* 		      goto unknown_option; */
-/* 		  } */
-/* 	      } */
-/* 	    break; */
+/*        case 'o': */
+/*        case 'O': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i],"-olaf") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = OLAF; */
+/*              i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                              (i+1<argc)?argv[i+1]:NULL, "olafcsr"); */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            { */
+/*              if (strcmp(argv[i],"-ord") == 0) */
+/*                { */
+/*                  if (EXIT_FAILURE == */
+/*                      getordering(ordering,(i+1<argc)?argv[i+1]:NULL)) */
+/*                    goto usage; */
+/*                  else */
+/*                    i++; */
+/*                } */
+/*              else */
+/*                { */
+/*                  if (strcmp(argv[i], "-ooc") == 0) */
+/*                    { */
+/*                      *ooc = atoi(argv[i+1]); */
+/*                      if (0 == *ooc) */
+/*                        goto unknown_option; */
+/*                      i++; */
+/*                    } */
+/*                  else */
+/*                    goto unknown_option; */
+/*                } */
+/*            } */
+/*          break; */
 
-/* 	  case 'p': */
-/* 	  case 'P': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i],"-peer") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = PEER; */
-/* 		i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 				(i+1<argc)?argv[i+1]:NULL, "rsaname"); */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      { */
-/* 		if ( strcmp(argv[i], "-petsc_s") == 0 ) */
-/* 		  { */
-/* 		    (*driver_type)[(*nbmatrices)] = PETSCS; */
-/* 		    i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 				    (i+1<argc)?argv[i+1]:NULL, "PETSCFILE"); */
-/* 		    (*nbmatrices)++; */
-/* 		  } */
-/* 		else */
-/* 		  { */
-/* 		    if ( strcmp(argv[i], "-petsc_u") == 0 ) */
-/* 		      { */
-/* 			(*driver_type)[(*nbmatrices)] = PETSCU; */
-/* 			i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 					(i+1<argc)?argv[i+1]:NULL, "PETSCFILE"); */
-/* 			(*nbmatrices)++; */
-/* 		      } */
-/* 		  else */
-/* 		    { */
-/* 		      if ( strcmp(argv[i], "-petsc_h") == 0 ) */
-/* 			{ */
-/* 			  (*driver_type)[(*nbmatrices)] = PETSCH; */
-/* 			  i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 					  (i+1<argc)?argv[i+1]:NULL, "PETSCFILE"); */
-/* 			  (*nbmatrices)++; */
-/* 			} */
-/* 		      else { */
-/* 			goto unknown_option; */
-/* 		      } */
-/* 		    } */
-/* 		  } */
-/* 	      } */
-/* 	    break; */
+/*        case 'p': */
+/*        case 'P': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i],"-peer") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = PEER; */
+/*              i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                              (i+1<argc)?argv[i+1]:NULL, "rsaname"); */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            { */
+/*              if ( strcmp(argv[i], "-petsc_s") == 0 ) */
+/*                { */
+/*                  (*driver_type)[(*nbmatrices)] = PETSCS; */
+/*                  i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                                  (i+1<argc)?argv[i+1]:NULL, "PETSCFILE"); */
+/*                  (*nbmatrices)++; */
+/*                } */
+/*              else */
+/*                { */
+/*                  if ( strcmp(argv[i], "-petsc_u") == 0 ) */
+/*                    { */
+/*                      (*driver_type)[(*nbmatrices)] = PETSCU; */
+/*                      i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                                      (i+1<argc)?argv[i+1]:NULL, "PETSCFILE"); */
+/*                      (*nbmatrices)++; */
+/*                    } */
+/*                else */
+/*                  { */
+/*                    if ( strcmp(argv[i], "-petsc_h") == 0 ) */
+/*                      { */
+/*                        (*driver_type)[(*nbmatrices)] = PETSCH; */
+/*                        i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                                        (i+1<argc)?argv[i+1]:NULL, "PETSCFILE"); */
+/*                        (*nbmatrices)++; */
+/*                      } */
+/*                    else { */
+/*                      goto unknown_option; */
+/*                    } */
+/*                  } */
+/*                } */
+/*            } */
+/*          break; */
 
-/* 	  case 'r': */
-/* 	  case 'R': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i],"-rsa") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = RSA; */
-/* 		i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 				(i+1<argc)?argv[i+1]:NULL, "rsaname"); */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      { */
-/* 		if (strcmp(argv[i],"-rcc") == 0) */
-/* 		  { */
-/* 		    (*driver_type)[(*nbmatrices)] = RCC; */
-/* 		    i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 				    (i+1<argc)?argv[i+1]:NULL, "dirname"); */
-/* 		    (*nbmatrices)++; */
-/* 		  } */
-/* 		else */
-/* 		  goto unknown_option; */
-/* 	      } */
-/* 	    break; */
+/*        case 'r': */
+/*        case 'R': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i],"-rsa") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = RSA; */
+/*              i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                              (i+1<argc)?argv[i+1]:NULL, "rsaname"); */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            { */
+/*              if (strcmp(argv[i],"-rcc") == 0) */
+/*                { */
+/*                  (*driver_type)[(*nbmatrices)] = RCC; */
+/*                  i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                                  (i+1<argc)?argv[i+1]:NULL, "dirname"); */
+/*                  (*nbmatrices)++; */
+/*                } */
+/*              else */
+/*                goto unknown_option; */
+/*            } */
+/*          break; */
 
-/* 	  case 't': */
-/* 	  case 'T': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-t") == 0) */
-/* 	      { */
-/* 		*nbthread = atoi(argv[i+1]); */
-/* 		if (0 == *nbthread) */
-/* 		  goto unknown_option; */
-/* 		i++; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
+/*        case 't': */
+/*        case 'T': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-t") == 0) */
+/*            { */
+/*              *nbthread = atoi(argv[i+1]); */
+/*              if (0 == *nbthread) */
+/*                goto unknown_option; */
+/*              i++; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
 
-/* 	  case 'v': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-v") == 0) */
-/* 	      { */
-/* 		*verbose = atoi(argv[i+1]); */
-/* 		if (0 == *verbose) */
-/* 		  goto unknown_option; */
-/* 		i++; */
-/* 		(*verbose)--; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
-/* 	  case '3': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i],"-3files") == 0) */
-/* 	      { */
-/* 		(*driver_type)[(*nbmatrices)] = THREEFILES; */
-/* 		i+= getfilename(&(*filename)[(*nbmatrices)], */
-/* 				(i+1<argc)?argv[i+1]:NULL, "dirname"); */
-/* 		(*nbmatrices)++; */
-/* 	      } */
-/* 	    else */
-/* 	      goto unknown_option; */
-/* 	    break; */
+/*        case 'v': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-v") == 0) */
+/*            { */
+/*              *verbose = atoi(argv[i+1]); */
+/*              if (0 == *verbose) */
+/*                goto unknown_option; */
+/*              i++; */
+/*              (*verbose)--; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
+/*        case '3': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i],"-3files") == 0) */
+/*            { */
+/*              (*driver_type)[(*nbmatrices)] = THREEFILES; */
+/*              i+= getfilename(&(*filename)[(*nbmatrices)], */
+/*                              (i+1<argc)?argv[i+1]:NULL, "dirname"); */
+/*              (*nbmatrices)++; */
+/*            } */
+/*          else */
+/*            goto unknown_option; */
+/*          break; */
 
-/* 	  default: */
-/* 	  unknown_option: */
-/* 	    fprintf(stderr, */
-/* 		    "ERROR: main: unprocessed option (\"%s\")\n", argv[i]); */
-/* 	  usage: */
-/* 	    global_usage(MPI_COMM_WORLD,argv); */
-/* 	    free(*driver_type); */
-/* 	    free(*filename); */
-/* 	    MPI_Finalize(); */
-/* 	    return EXIT_FAILURE; */
+/*        default: */
+/*        unknown_option: */
+/*          fprintf(stderr, */
+/*                  "ERROR: main: unprocessed option (\"%s\")\n", argv[i]); */
+/*        usage: */
+/*          global_usage(MPI_COMM_WORLD,argv); */
+/*          free(*driver_type); */
+/*          free(*filename); */
+/*          MPI_Finalize(); */
+/*          return EXIT_FAILURE; */
 
-/* 	  } */
-/* 	} */
+/*        } */
+/*      } */
 /*       if (maxmatrices == (*nbmatrices)) */
-/* 	{ */
-/* 	  maxmatrices *=2; */
-/* 	  (*driver_type) = (pastix_driver_t*)realloc((*driver_type), */
-/* 						   maxmatrices * */
-/* 						   sizeof(pastix_driver_t)); */
-/* 	  (*filename)    = (char **       )realloc((*filename), */
-/* 						   maxmatrices*sizeof(char*)); */
-/* 	} */
+/*      { */
+/*        maxmatrices *=2; */
+/*        (*driver_type) = (pastix_driver_t*)realloc((*driver_type), */
+/*                                                 maxmatrices * */
+/*                                                 sizeof(pastix_driver_t)); */
+/*        (*filename)    = (char **       )realloc((*filename), */
+/*                                                 maxmatrices*sizeof(char*)); */
+/*      } */
 /*       i++; */
 /*     } */
 
@@ -548,73 +547,73 @@ getfilename(char **filename, char *source, char *defaultname)
 /*   while(i < argc) */
 /*     { */
 /*       if (argv[i][0] == '-') */
-/* 	{ */
-/* 	  switch (argv[i][1]) { */
+/*      { */
+/*        switch (argv[i][1]) { */
 
-/* 	  case 'd': */
-/* 	  case 'D': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-dparmfile") == 0) */
-/* 	      { */
-/* 		i++; */
-/* 		api_dparmreader(argv[i], dparm); */
-/* 	      } */
-/* 	    else if (strcmp(argv[i], "-dparm") == 0) */
-/* 	      { */
-/* 		int    dparm_idx; */
-/* 		double value; */
-/* 		char * endptr; */
-/* 		i++; */
-/* 		dparm_idx = (int)strtol(argv[i], &endptr, 10); */
-/* 		if (endptr == argv[i]) */
-/* 		  { */
-/* 		    if( 1 == api_str_to_int(argv[i], &dparm_idx)) */
-/* 		      goto unknown_option; */
-/* 		  } */
-/* 		i++; */
-/* 		value = (double)strtod(argv[i], &endptr); */
-/* 		if (endptr == argv[i]) */
-/* 		  goto unknown_option; */
-/* 		dparm[dparm_idx] = value; */
+/*        case 'd': */
+/*        case 'D': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-dparmfile") == 0) */
+/*            { */
+/*              i++; */
+/*              api_dparmreader(argv[i], dparm); */
+/*            } */
+/*          else if (strcmp(argv[i], "-dparm") == 0) */
+/*            { */
+/*              int    dparm_idx; */
+/*              double value; */
+/*              char * endptr; */
+/*              i++; */
+/*              dparm_idx = (int)strtol(argv[i], &endptr, 10); */
+/*              if (endptr == argv[i]) */
+/*                { */
+/*                  if( 1 == api_str_to_int(argv[i], &dparm_idx)) */
+/*                    goto unknown_option; */
+/*                } */
+/*              i++; */
+/*              value = (double)strtod(argv[i], &endptr); */
+/*              if (endptr == argv[i]) */
+/*                goto unknown_option; */
+/*              dparm[dparm_idx] = value; */
 
-/* 	      } */
-/* 	    break; */
-/* 	  case 'i': */
-/* 	  case 'I': */
-/* 	    str_tolower(argv[i]); */
-/* 	    if (strcmp(argv[i], "-iparmfile") == 0) */
-/* 	      { */
-/* 		i++; */
-/* 		api_iparmreader(argv[i], iparm); */
-/* 	      } */
-/* 	    else if (strcmp(argv[i], "-iparm") == 0) */
-/* 	      { */
-/* 		int iparm_idx, value; */
-/* 		char * endptr; */
-/* 		i++; */
-/* 		iparm_idx = (int)strtol(argv[i], &endptr, 10); */
-/* 		if (endptr == argv[i]) */
-/* 		  { */
-/* 		    if( 1 == api_str_to_int(argv[i], &iparm_idx)) */
-/* 		      goto unknown_option; */
-/* 		  } */
-/* 		i++; */
-/* 		value = (int)strtol(argv[i], &endptr, 10); */
-/* 		if (endptr == argv[i]) */
-/* 		  if( 1 == api_str_to_int(argv[i], &value)) */
-/* 		    goto unknown_option; */
-/* 		iparm[iparm_idx] = value; */
-/* 	      } */
-/* 	    break; */
-/* 	  } */
-/* 	} */
+/*            } */
+/*          break; */
+/*        case 'i': */
+/*        case 'I': */
+/*          str_tolower(argv[i]); */
+/*          if (strcmp(argv[i], "-iparmfile") == 0) */
+/*            { */
+/*              i++; */
+/*              api_iparmreader(argv[i], iparm); */
+/*            } */
+/*          else if (strcmp(argv[i], "-iparm") == 0) */
+/*            { */
+/*              int iparm_idx, value; */
+/*              char * endptr; */
+/*              i++; */
+/*              iparm_idx = (int)strtol(argv[i], &endptr, 10); */
+/*              if (endptr == argv[i]) */
+/*                { */
+/*                  if( 1 == api_str_to_int(argv[i], &iparm_idx)) */
+/*                    goto unknown_option; */
+/*                } */
+/*              i++; */
+/*              value = (int)strtol(argv[i], &endptr, 10); */
+/*              if (endptr == argv[i]) */
+/*                if( 1 == api_str_to_int(argv[i], &value)) */
+/*                  goto unknown_option; */
+/*              iparm[iparm_idx] = value; */
+/*            } */
+/*          break; */
+/*        } */
+/*      } */
 /*       i++; */
 /*     } */
 
 /*   return EXIT_SUCCESS; */
 /*  unknown_option: */
 /*   fprintf(stderr, */
-/* 	  "ERROR: main: unprocessed option (\"%s\")\n", argv[i]); */
+/*        "ERROR: main: unprocessed option (\"%s\")\n", argv[i]); */
 /*   global_usage(MPI_COMM_WORLD,argv); */
 /*   MPI_Finalize(); */
 /*   return EXIT_FAILURE; */
@@ -656,12 +655,11 @@ pastix_ex_usage(void)
     fprintf(stderr,
             "Matrix input (mandatory):\n"
             " -0 --rsa          : RSA format (use Fortran, only real)\n"
-            " -1 --chb          : CHB format\n"
+            " -1 --hb           : Harwell Boeing (RSA Driver in C, support real/complex)\n"
             " -2 --ccc          : CCC format\n"
             " -3 --rcc          : RCC format\n"
             " -4 --olaf         : OLAF format\n"
             " -5 --peer         : PEER format\n"
-            " -6 --hb           : HB (double) format\n"
             " -7 --ijv          : IJV 3 files format\n"
             " -8 --mm           : Matrix Market format\n"
             "    --dmm          : Matrix Market distributed format\n"
@@ -696,7 +694,7 @@ static struct option long_options[] =
     {"0",           required_argument,  0, '0'},
     {"rsa",         required_argument,  0, '0'},
     {"1",           required_argument,  0, '1'},
-    {"chb",         required_argument,  0, '1'},
+    {"hb",          required_argument,  0, '1'},
     {"2",           required_argument,  0, '2'},
     {"ccc",         required_argument,  0, '2'},
     {"3",           required_argument,  0, '3'},
@@ -705,8 +703,6 @@ static struct option long_options[] =
     {"olaf",        required_argument,  0, '4'},
     {"5",           required_argument,  0, '5'},
     {"peer",        required_argument,  0, '5'},
-    {"6",           required_argument,  0, '6'},
-    {"hb",          required_argument,  0, '6'},
     {"7",           required_argument,  0, '7'},
     {"ijv",         required_argument,  0, '7'},
     {"8",           required_argument,  0, '8'},
@@ -744,7 +740,7 @@ static struct option long_options[] =
 
 void pastix_ex_getoptions(int argc, char **argv,
                           pastix_int_t *iparam, double *dparam,
-                          pastix_driver_t *driver, char **filename)
+                          pastix_driver_t *driver, char **filename )
 {
     int opt = 0;
     int c;
@@ -757,7 +753,7 @@ void pastix_ex_getoptions(int argc, char **argv,
     {
 #if defined(HAVE_GETOPT_LONG)
         c = getopt_long_only(argc, argv, "",
-                        long_options, &opt);
+                             long_options, &opt);
 #else
         c = getopt(argc, argv, GETOPT_STRING);
         (void) opt;
@@ -772,8 +768,8 @@ void pastix_ex_getoptions(int argc, char **argv,
             break;
 
         case '1':
-            *driver = PastixDriverCHB;
-            getfilename( filename, optarg, "chbname" );
+            *driver = PastixDriverHB;
+            getfilename( filename, optarg, "hbname" );
             break;
 
         case '2':
@@ -796,11 +792,6 @@ void pastix_ex_getoptions(int argc, char **argv,
             getfilename( filename, optarg, "peername" );
             break;
 
-        case '6':
-            *driver = PastixDriverHB;
-            getfilename( filename, optarg, "hbname" );
-            break;
-
         case '7':
             *driver = PastixDriverIJV;
             getfilename( filename, optarg, "ijvname" );
@@ -813,7 +804,7 @@ void pastix_ex_getoptions(int argc, char **argv,
 
         case '9':
             *driver = PastixDriverLaplacian;
-            getfilename( filename, optarg, "rsaname" );
+            getfilename( filename, optarg, "d:1000" );
             break;
 
         case 'A':
@@ -893,4 +884,3 @@ void pastix_ex_getoptions(int argc, char **argv,
 
     //    int verbose = iparam[IPARM_VERBOSE];
 }
-
