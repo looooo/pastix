@@ -16,7 +16,7 @@
 #include "common.h"
 #include "csc.h"
 
-static int (*CSCv[3])(pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, void**, void**) =
+static int (*CSCv[3])(pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, pastix_complex64_t*, pastix_complex64_t*) =
 {
     z_spmGeCSCv,
     z_spmSyCSCv,

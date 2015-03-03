@@ -42,14 +42,52 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
     pastix_int_t *tmp;
     pastix_int_t  result;
 
-    /* Just need to swap the pointers and call z_spmConvertCSR2CSC */
-    tmp         = spm->rows;
-    spm->rows   = spm->colptr;
-    spm->colptr = tmp;
-    spm->fmttype = PastixCSR;
+    switch( spm->mtxtype ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+    {
+        /* Similar to PastixSymmetric case with conjugate of the values */
+        pastix_complex64_t *valptr = spm->avals;
+        pastix_int_t i;
 
-    result = z_spmConvertCSR2CSC( spm );
-    spm->fmttype = PastixCSR;
+        for(i=0; i<spm->nnz; i++, valptr++){
+            *valptr = conj( *valptr );
+        }
+    }
+#endif
+    case PastixSymmetric:
+    {
+        pastix_int_t *tmp;
+
+        /* Just need to swap the pointers */
+        tmp         = spm->rows;
+        spm->rows   = spm->colptr;
+        spm->colptr = tmp;
+
+        return PASTIX_SUCCESS;
+    }
+    break;
+
+    case PastixGeneral:
+    default:
+    {
+
+        /* transpose spm in CSC to trans(spm) in CSR */
+        tmp         = spm->rows;
+        spm->rows   = spm->colptr;
+        spm->colptr = tmp;
+        spm->fmttype = PastixCSR;
+        
+        /* convert trans(spm) in CSR to trans(spm) in CSC */
+        result = z_spmConvertCSR2CSC( spm );
+
+        /* transpose trans(spm) in CSC to obtain spm in CSR */
+        tmp         = spm->rows;
+        spm->rows   = spm->colptr;
+        spm->colptr = tmp;
+        spm->fmttype = PastixCSR;
+    }
+    }
 
     return result;
 }
