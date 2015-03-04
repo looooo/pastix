@@ -40,12 +40,12 @@
  * 
  * @param[in] csc
  *          The PastixGeneral csc.
- * 
- * @param[in] beta
- *          A scalar.
  *
  * @param[in] x
  *          The vector x.
+ * 
+ * @param[in] beta
+ *          A scalar.
  *
  * @param[in,out] y
  *          The vector y.
@@ -60,9 +60,9 @@
 int
 z_spmGeCSCv(char                trans,
             pastix_complex64_t  alpha,
-            pastix_csc_t       *csc  ,  
-            pastix_complex64_t  beta ,
+            pastix_csc_t       *csc  ,
             pastix_complex64_t *x    ,
+            pastix_complex64_t  beta ,
             pastix_complex64_t *y     )
 {
     pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->avals;
@@ -156,12 +156,12 @@ z_spmGeCSCv(char                trans,
  * 
  * @param[in] csc
  *          The PastixSymmetric csc.
- * 
- * @param[in] beta
- *          A scalar.
  *
  * @param[in] x
  *          The vector x.
+ * 
+ * @param[in] beta
+ *          A scalar.
  *
  * @param[in,out] y
  *          The vector y.
@@ -176,9 +176,9 @@ z_spmGeCSCv(char                trans,
 int
 z_spmSyCSCv(char                trans,
             pastix_complex64_t  alpha,
-            pastix_csc_t       *csc  ,  
-            pastix_complex64_t  beta ,
+            pastix_csc_t       *csc  ,
             pastix_complex64_t *x    ,
+            pastix_complex64_t  beta ,
             pastix_complex64_t *y     )
 {
     pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->avals;
@@ -285,12 +285,12 @@ z_spmSyCSCv(char                trans,
  * 
  * @param[in] csc
  *          The PastixHermitian csc.
- * 
- * @param[in] beta
- *          A scalar.
  *
  * @param[in] x
  *          The vector x.
+ * 
+ * @param[in] beta
+ *          A scalar.
  *
  * @param[in,out] y
  *          The vector y.
@@ -305,9 +305,9 @@ z_spmSyCSCv(char                trans,
 int
 z_spmHeCSCv(char                trans,
             pastix_complex64_t  alpha,
-            pastix_csc_t       *csc  ,  
-            pastix_complex64_t  beta ,
+            pastix_csc_t       *csc  ,
             pastix_complex64_t *x    ,
+            pastix_complex64_t  beta ,
             pastix_complex64_t *y     )
 {
     pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->avals;

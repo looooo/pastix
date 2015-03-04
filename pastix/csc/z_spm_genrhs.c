@@ -16,7 +16,7 @@
 #include "common.h"
 #include "csc.h"
 
-static int (*CSCv[3])(char, pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, pastix_complex64_t*, pastix_complex64_t*) =
+static int (*CSCv[3])(char, pastix_complex64_t, pastix_csc_t*, pastix_complex64_t*, pastix_complex64_t, pastix_complex64_t*) =
 {
     z_spmGeCSCv,
     z_spmSyCSCv,
@@ -80,7 +80,7 @@ z_spm_genRHS(pastix_csc_t  *csc,
 
     if(CSCv[csc->mtxtype-PastixGeneral])
     {
-        if(CSCv[csc->mtxtype-PastixGeneral] != PASTIX_SUCCESS)
+        if(CSCv[csc->mtxtype-PastixGeneral]('n',1,csc,1,x,rhs != PASTIX_SUCCESS)
         {
             return PASTIX_ERR_BADPARAMETER;
         }
