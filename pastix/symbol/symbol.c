@@ -51,6 +51,7 @@
 
 #include "common.h"
 #include "symbol.h"
+#include "order.h"
 
 /******************************************/
 /*                                        */
@@ -188,6 +189,8 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     pastix_int_t cblkmin, cblkmax;
     pastix_int_t blokmin, blokmax;
     double cblkavg, blokavg;
+    Clock timer;
+    clockStart(timer);
 
     cblknbr = symbptr->cblknbr;
     bloknbr = symbptr->bloknbr - cblknbr;
@@ -246,10 +249,13 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             "& %ld & %ld & %ld & %lf & %ld & %ld & %ld & %lf\n",
             cblknbr, cblkmin, cblkmax, cblkavg,
             bloknbr, blokmin, blokmax, blokavg );
+
+    clockStop(timer);
+    printf("Time to print stats %lf\n", clockVal(timer));
 }
 
 void
-symbolCheckGregoire( const SymbolMatrix *symbptr )
+symbolCheckProperties( const SymbolMatrix *symbptr, Order *order )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
@@ -282,136 +288,13 @@ symbolCheckGregoire( const SymbolMatrix *symbptr )
             previous_blok = blok->cblknum;
         }
     }
-    return;
-}
+    if (supernodesOrdering == 0){
+        Clock timer;
+        clockStart(timer);
+        symbolNewOrdering( symbptr, order );
+        clockStop(timer);
+        printf("TIME TO COMPUTE NEW ORDERING %lf\n", clockVal(timer));
 
-void
-symbolDependencies( const SymbolMatrix *symbptr )
-{
-    SymbolCblk *cblk;
-    SymbolBlok *blok;
-    pastix_int_t itercblk, iterblok;
-    pastix_int_t cblknbr, bloknbr;
-
-    cblknbr = symbptr->cblknbr;
-    bloknbr = symbptr->bloknbr - cblknbr;
-
-    cblk = symbptr->cblktab;
-    blok = symbptr->bloktab;
-
-    int i, j, l;
-    pastix_int_t k;
-
-    pastix_int_t nb_seps = symbptr->cblknbr;
-    int n = symbptr->nodenbr;
-
-    pastix_int_t **seps;
-    seps = malloc( nb_seps * sizeof(pastix_int_t*));
-
-    /* Init each separator */
-    seps[0] = NULL;
-    for (i=1; i < nb_seps; i++){
-        SymbolCblk *cblk  = symbptr->cblktab + i;
-        pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
-        seps[i] = malloc(i * size * sizeof(pastix_int_t));
-        memset(seps[i], 0, i * size * sizeof(pastix_int_t));
     }
-
-    pastix_int_t *sort;
-    sort = malloc(n * sizeof(pastix_int_t));
-    memset(sort, 0, n * sizeof(pastix_int_t));
-
-    /* Fill in lines for each extra-diagonal block */
-    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
-    {
-        pastix_int_t iterblok = cblk[0].bloknum + 1;
-        pastix_int_t lbloknum = cblk[1].bloknum;
-        pastix_int_t fill;
-        blok++;
-        for( ; iterblok < lbloknum; iterblok++, blok++)
-        {
-            SymbolCblk *cblk_tmp  = symbptr->cblktab + blok->cblknum;
-            pastix_int_t lastdiag = cblk_tmp->fcolnum;
-            for (fill = blok->frownum; fill<=blok->lrownum; fill++){
-                seps[blok->cblknum][(fill-lastdiag)*blok->cblknum + itercblk] = 1;
-            }
-        }
-    }
-
-
-    /* Compute new ordering for each separator */
-    for (l=1; l < nb_seps; l++){
-        SymbolCblk *cblk  = symbptr->cblktab + l;
-        pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
-        pastix_int_t diag = cblk->fcolnum;
-
-        pastix_int_t current = 0;
-        for (i=0; i<size; i++){
-            /* Line i is not integrated yet */
-            if (sort[diag+i] == 0){
-                k=0;
-                while(k < l && seps[l][l*i+k] == 0){k++;}
-
-                /* If the line is not empty */
-                if (seps[l][l*i+k] != 0){
-                    sort[diag+i] = current;
-                    if (current == 0){
-                        sort[diag+i] = -1;
-                    }
-                    current++;
-
-                    for (j=i+1; j<size; j++){
-
-                        /* Line j is not integrated yet */
-                        if (sort[diag+j] == 0){
-                            k = 0;
-                            while (k < l && seps[l][l*i+k] == seps[l][l*j+k]){
-                                k++;
-                            }
-
-                            /* If i and j have the same dependencies */
-                            if (k == l){
-                                sort[diag+j] = current;
-                                current++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        /* Fill in empty lines */
-        for (i=0; i<size; i++){
-            if (sort[diag+i] == 0){
-                sort[diag+i] = current++;
-            }
-
-            /* Special treatment for first line */
-            if (sort[diag+i] == -1){
-                sort[diag+i] = 0;
-            }
-            sort[diag+i]+= diag;
-        }
-    }
-
-    /* Complete with idendity otherwise */
-    for (i=0; i<n; i++){
-        if (sort[i] == 0){
-            sort[i] = i;
-        }
-    }
-
-    FILE *file = fopen("perm.txt", "w+");
-    for(i=0; i<n; i++){
-        fprintf(file, "%d\n", (int)sort[i]);
-    }
-    fclose(file);
-
-    /* Destroy separators */
-    for (i=0; i < nb_seps; i++){
-        free(seps[i]);
-    }
-    free(seps);
-    free(sort);
     return;
 }

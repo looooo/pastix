@@ -50,6 +50,7 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
 #define SYMBOL_VERSION              1
+int supernodesOrdering;
 
 /*
 **  The type and structure definitions.
@@ -160,9 +161,12 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
                        int ricar);
 
 void symbolPrintStats( const SymbolMatrix * );
+void symbolCheckProperties( const SymbolMatrix *, Order * );
+void symbolNewOrdering( const SymbolMatrix *, Order * );
 
-void symbolCheckGregoire( const SymbolMatrix * );
-void symbolDependencies( const SymbolMatrix * );
-int orderingGregoire;
+/* Internal routines for hamming vectors */
+int hamming_distance_symbol( int, int *, int, int, int *, int);
+void update_perm(int, int *, Order *, int, int, int *, int *);
+pastix_int_t dichotomic_search( pastix_int_t, const Order * );
 
 #endif /* SYMBOL_H */
