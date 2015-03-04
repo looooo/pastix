@@ -50,7 +50,6 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
 #define SYMBOL_VERSION              1
-int supernodesOrdering;
 
 /*
 **  The type and structure definitions.

@@ -511,6 +511,7 @@ set(PASTIX_LIB_SRCS
   fax/symbol_kass_direct.c
   fax/symbol_kass_level.c
   fax/pastix_task_symbfact.c
+  fax/pastix_task_reordering.c
   #
   matrix_drivers/skitf.f
   matrix_drivers/iohb.c

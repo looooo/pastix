@@ -18,6 +18,7 @@
 #include "../matrix_drivers/drivers.h"
 #include "../symbol/symbol.h"
 #include "../common/common.h"
+#include "../fax/fax.h"
 #include <csc.h>
 
 int main (int argc, char **argv)
@@ -47,7 +48,6 @@ int main (int argc, char **argv)
 
     pastix_csc_t    csc;
     void *rhs     = NULL;
-    Clock timer;
 
     /*******************************************/
     /*          MPI initialisation             */
@@ -97,18 +97,12 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, &rhs, MPI_COMM_WORLD );
     free(filename);
 
-    supernodesOrdering = 0;
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
-
-    clockStart(timer);
-
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
-    supernodesOrdering = 1;
-    pastix_task_symbfact( pastix_data, NULL, NULL );
 
-    clockStop(timer);
-    printf("TIME FOR SYMBOLIC FACTORIZATION AND RE-ORDERING %.3g s\n", (double)clockVal(timer));
+    /* RE-ORDERING CALL */
+    pastix_task_reordering( pastix_data );
 
     //pastix_task_blend( pastix_data );
     //pastix_task_sopalin( pastix_data, &csc );

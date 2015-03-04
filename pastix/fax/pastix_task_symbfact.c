@@ -156,13 +156,11 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         pastix_print(procnum, 0, "%s", OUT_STEP_FAX);
 
     /* Allocate the symbol matrix structure */
-    if (!supernodesOrdering){
-        if (pastix_data->symbmtx == NULL) {
-            MALLOC_INTERN( pastix_data->symbmtx, 1, SymbolMatrix );
-        }
-        else {
-            errorPrint("pastix_task_symbfact: Symbol Matrix already allocated !!!");
-        }
+    if (pastix_data->symbmtx == NULL) {
+        MALLOC_INTERN( pastix_data->symbmtx, 1, SymbolMatrix );
+    }
+    else {
+        errorPrint("pastix_task_symbfact: Symbol Matrix already allocated !!!");
     }
 
     /* Force Load of symbmtx */
@@ -311,13 +309,13 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
      * The graph is not useful anymore, we clean it
      */
 
-    if (supernodesOrdering){
-        if (pastix_data->graph != NULL)
-        {
-            graphExit( pastix_data->graph );
-            memFree_null( pastix_data->graph );
-        }
-    }
+    /* TODO: FREE SOMEWHERE */
+    /* The graph is required to compute twice the symbolic factorization */
+    /* if (pastix_data->graph != NULL) */
+    /* { */
+    /*     graphExit( pastix_data->graph ); */
+    /*     memFree_null( pastix_data->graph ); */
+    /* } */
 
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
@@ -352,22 +350,16 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /*
      * Dump an eps file of the symbolic factorization
      */
-    //#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     if (procnum == 0)
     {
         FILE *stream;
-
-        if (supernodesOrdering == 0){
-            PASTIX_FOPEN(stream, "symbol_before.eps", "w");
-        }
-        else{
-            PASTIX_FOPEN(stream, "symbol_after.eps", "w");
-        }
+        PASTIX_FOPEN(stream, "symbol.eps", "w");
         symbolDraw(pastix_data->symbmtx,
                    stream);
         fclose(stream);
     }
-    //#endif
+#endif
 
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_ANALYSE  |
@@ -377,11 +369,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     pastix_data->steps |= STEP_SYMBFACT;
 
     iparm[IPARM_START_TASK]++;
-
-    if (!supernodesOrdering){
-        memFree (pastix_data->symbmtx->cblktab);
-        memFree (pastix_data->symbmtx->bloktab);
-    }
 
     return PASTIX_SUCCESS;
 }

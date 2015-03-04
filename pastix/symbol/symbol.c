@@ -288,13 +288,5 @@ symbolCheckProperties( const SymbolMatrix *symbptr, Order *order )
             previous_blok = blok->cblknum;
         }
     }
-    if (supernodesOrdering == 0){
-        Clock timer;
-        clockStart(timer);
-        symbolNewOrdering( symbptr, order );
-        clockStop(timer);
-        printf("TIME TO COMPUTE NEW ORDERING %lf\n", clockVal(timer));
-
-    }
     return;
 }
