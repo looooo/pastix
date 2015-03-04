@@ -44,6 +44,10 @@ laplacian_parse_info( const char   *filename,
                       pastix_int_t *dim3 )
 {
     long tmp1, tmp2, tmp3;
+    csc->colptr   = NULL;
+    csc->rows     = NULL;
+    csc->avals    = NULL;
+    csc->loc2glob = NULL;
 
     /* Look for the datatype */
     {

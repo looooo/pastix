@@ -55,10 +55,6 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
     csc->gnnz     = nnz;
     csc->nnz      = nnz;
     csc->dof      = 1;
-    csc->colptr   = NULL;
-    csc->rows     = NULL;
-    csc->loc2glob = NULL;
-    csc->avals    = NULL;
 
     assert( csc->gN == dim1 );
 
@@ -156,9 +152,6 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
     csc->gnnz     = nnz;
     csc->nnz      = nnz;
     csc->dof      = 1;
-    csc->colptr  = NULL;
-    csc->rows    = NULL;
-    csc->avals   = NULL;
 
     assert( csc->gN == dim1*dim2 );
 
@@ -275,9 +268,6 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
     csc->gnnz     = nnz;
     csc->nnz      = nnz;
     csc->dof      = 1;
-    csc->colptr  = NULL;
-    csc->rows    = NULL;
-    csc->avals   = NULL;
 
     assert( csc->gN == dim1*dim2*dim3 );
 
