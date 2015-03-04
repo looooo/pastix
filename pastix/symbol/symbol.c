@@ -189,8 +189,6 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     pastix_int_t cblkmin, cblkmax;
     pastix_int_t blokmin, blokmax;
     double cblkavg, blokavg;
-    Clock timer;
-    clockStart(timer);
 
     cblknbr = symbptr->cblknbr;
     bloknbr = symbptr->bloknbr - cblknbr;
@@ -249,9 +247,6 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             "& %ld & %ld & %ld & %lf & %ld & %ld & %ld & %lf\n",
             cblknbr, cblkmin, cblkmax, cblkavg,
             bloknbr, blokmin, blokmax, blokavg );
-
-    clockStop(timer);
-    printf("Time to print stats %lf\n", clockVal(timer));
 }
 
 void
