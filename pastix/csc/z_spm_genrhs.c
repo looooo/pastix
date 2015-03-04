@@ -16,7 +16,7 @@
 #include "common.h"
 #include "csc.h"
 
-static int (*CSCv[3])(char, pastix_complex64_t, pastix_csc_t*, pastix_complex64_t, pastix_complex64_t*, pastix_complex64_t*) =
+static int (*CSCv[3])(char, pastix_complex64_t, pastix_csc_t*, pastix_complex64_t*, pastix_complex64_t, pastix_complex64_t*) =
 {
     z_spmGeCSCv,
     z_spmSyCSCv,
@@ -57,6 +57,7 @@ z_spm_genRHS(pastix_csc_t  *csc,
              void         **rhs )
 {
     void *x = NULL;
+    char n  = 'n';
 
     if(csc->avals==NULL)
         return PASTIX_ERR_BADPARAMETER;
@@ -70,17 +71,21 @@ z_spm_genRHS(pastix_csc_t  *csc,
     x=malloc(csc->gN*sizeof(pastix_complex64_t));
     
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    memset(x,1+I,csc->gN*sizeof(pastix_complex64_t));
+    memset(x,1.+I,csc->gN*sizeof(pastix_complex64_t));
 #else
-    memset(x,1,csc->gN*sizeof(pastix_complex64_t));
+    memset(x,1.,csc->gN*sizeof(pastix_complex64_t));
 #endif
         
-    if(*rhs != NULL)
-        memFree_null(*rhs);
+    if(*rhs == NULL)
+    {
+        *rhs=malloc(csc->gN*sizeof(pastix_complex64_t));
+        memset(*rhs,0.,csc->gN*sizeof(pastix_complex64_t));
+    }
+
 
     if(CSCv[csc->mtxtype-PastixGeneral])
     {
-        if(CSCv[csc->mtxtype-PastixGeneral] != PASTIX_SUCCESS)
+        if(CSCv[csc->mtxtype-PastixGeneral](n,1,csc,x,1,*rhs) != PASTIX_SUCCESS)
         {
             return PASTIX_ERR_BADPARAMETER;
         }

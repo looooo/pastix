@@ -208,6 +208,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
         /* Count the number of elements per column */
         for (j=0; j<nnz; j++) {
             col = spm->colptr[j] - baseval;
+            assert(col < spm->n );
             col_csc[ col+1 ] ++;
         }
 
@@ -217,7 +218,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
             col_csc[j+1] += col_csc[j];
         }
 
-        assert( (col_csc[spm->gN]-baseval) == nnz );
+        assert( (col_csc[spm->gN]) == nnz );
 
         for (row=0; row<spm->n; row++) {
             pastix_int_t fcol = spm->rows[row  ] - baseval;
@@ -243,7 +244,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
             col_csc[0] = baseval;
             for (j=0; j<spm->n; j++) {
                 tmp2 = col_csc[j+1];
-                col_csc[j+1] = tmp;
+                col_csc[j+1] = tmp + baseval;
                 tmp = tmp2;
             }
         }
