@@ -57,6 +57,7 @@ z_spm_genRHS(pastix_csc_t  *csc,
              void         **rhs )
 {
     void *x = NULL;
+    char n  = 'n';
 
     if(csc->avals==NULL)
         return PASTIX_ERR_BADPARAMETER;
@@ -80,7 +81,7 @@ z_spm_genRHS(pastix_csc_t  *csc,
 
     if(CSCv[csc->mtxtype-PastixGeneral])
     {
-        if(CSCv[csc->mtxtype-PastixGeneral]('n',1,csc,1,x,rhs != PASTIX_SUCCESS)
+        if(CSCv[csc->mtxtype-PastixGeneral](n,1,csc,x,1,*rhs) != PASTIX_SUCCESS)
         {
             return PASTIX_ERR_BADPARAMETER;
         }
