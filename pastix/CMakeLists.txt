@@ -572,6 +572,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_io.c
   symbol/symbol_tree.c
   symbol/symbol_rustine.c
+  symbol/symbol_reordering.c
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c

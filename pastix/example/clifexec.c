@@ -36,6 +36,7 @@ int main (int argc, char **argv)
     pastix_driver_t driver;        /* Matrix driver(s) requested by user                        */
     char           *filename;           /* Filename(s) given by user                                 */
     pastix_csc_t    csc;
+    void *rhs     = NULL;
 
     /*******************************************/
     /*          MPI initialisation             */
@@ -82,17 +83,9 @@ int main (int argc, char **argv)
                           iparm, dparm,
                           &driver, &filename );
 
-    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+    cscReadFromFile( driver, filename, &csc, &rhs, MPI_COMM_WORLD );
     free(filename);
 
-    orderingGregoire = 0;
-    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
-    pastix_task_symbfact( pastix_data, NULL, NULL );
-
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-
-    orderingGregoire = 1;
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
