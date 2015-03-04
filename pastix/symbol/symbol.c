@@ -51,6 +51,7 @@
 
 #include "common.h"
 #include "symbol.h"
+#include "order.h"
 
 /******************************************/
 /*                                        */
@@ -282,4 +283,49 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             "& %ld & %ld & %ld & %lf & %ld & %ld & %ld & %lf\n",
             cblknbr, cblkmin, cblkmax, cblkavg,
             bloknbr, blokmin, blokmax, blokavg );
+}
+
+void
+symbolCheckProperties( const SymbolMatrix *symbptr, Order *order )
+{
+    SymbolCblk *cblk;
+    SymbolBlok *blok;
+    pastix_int_t itercblk, iterblok;
+    pastix_int_t cblknbr, bloknbr;
+
+    cblknbr = symbptr->cblknbr;
+    bloknbr = symbptr->bloknbr - cblknbr;
+
+    cblk = symbptr->cblktab;
+    blok = symbptr->bloktab;
+
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t iterblok = cblk[0].bloknum + 1;
+        pastix_int_t lbloknum = cblk[1].bloknum;
+        pastix_int_t previous_line = -1;
+        pastix_int_t previous_blok = -1;
+
+        blok++;
+
+        /* Only extra diagonal */
+        for( ; iterblok < lbloknum; iterblok++, blok++)
+        {
+            if (blok->frownum == (previous_line + 1) && blok->cblknum == previous_blok){
+                printf("Symbolic Factorization is NOT OK\n");
+                exit(1);
+            }
+            previous_line = blok->lrownum;
+            previous_blok = blok->cblknum;
+        }
+    }
+    if (supernodesOrdering == 0){
+        Clock timer;
+        clockStart(timer);
+        symbolNewOrdering( symbptr, order );
+        clockStop(timer);
+        printf("TIME TO COMPUTE NEW ORDERING %lf\n", clockVal(timer));
+
+    }
+    return;
 }

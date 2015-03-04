@@ -113,6 +113,12 @@ if (PASTIX_WITH_MPI)
   target_link_libraries(analyze ${MPI_LIBRARIES})
 endif()
 
+add_executable(clifexec clifexec.c)
+target_link_libraries(clifexec ${PASTIX_EXAMPLES_LIBRARIES})
+if (PASTIX_WITH_MPI)
+  target_link_libraries(clifexec ${MPI_LIBRARIES})
+endif()
+
 #
 #-- CTests
 #

@@ -1,5 +1,5 @@
 /**
- *  @file: analyze.c
+ *  @file: clifexec.c
  *
  *  A simple example :
  *  read the matrix, check it is correct and correct it if needed,
@@ -14,11 +14,14 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
-#include <pastix.h>
+#include "pastix.h"
 #include "../matrix_drivers/drivers.h"
 #include "../symbol/symbol.h"
-#include "../common/common.h"
-#include <csc.h>
+#include <scotch.h>
+
+#ifdef FORCE_NOMPI
+#define MPI_COMM_WORLD 0
+#endif
 
 int main (int argc, char **argv)
 {
@@ -33,8 +36,7 @@ int main (int argc, char **argv)
     pastix_driver_t driver;        /* Matrix driver(s) requested by user                        */
     char           *filename;           /* Filename(s) given by user                                 */
     pastix_csc_t    csc;
-    void           *rhs = NULL;
-    Clock timer;
+    void *rhs     = NULL;
 
     /*******************************************/
     /*          MPI initialisation             */
@@ -84,88 +86,19 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, &rhs, MPI_COMM_WORLD );
     free(filename);
 
-    supernodesOrdering = 0;
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
-
-    clockStart(timer);
-
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
-    supernodesOrdering = 1;
-    pastix_task_symbfact( pastix_data, NULL, NULL );
-
-    clockStop(timer);
-    printf("TIME FOR SYMBOLIC FACTORIZATION AND RE-ORDERING %.3g s\n", (double)clockVal(timer));
-
-    pastix_task_blend( pastix_data );
-    pastix_task_sopalin( pastix_data, &csc );
+    //pastix_task_blend( pastix_data );
+    //pastix_task_sopalin( pastix_data, &csc );
 
     //cscExit( csc );
     free(csc.colptr);
     free(csc.rows);
-    free(csc.avals);
-    free(rhs);
-
-    /* if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD)) */
-    /* { */
-    /*     pastix_complex64_t *rhs     = NULL; */
-    /*     char           *type    = NULL; */
-    /*     char           *rhstype = NULL; */
-    /*     pastix_int_t    mat_type; */
-
-    /*     /\*******************************************\/ */
-    /*     /\*      Read Matrice                       *\/ */
-    /*     /\*******************************************\/ */
-    /*     read_matrix(filename[0], &ncol, &colptr, &rows, &values, */
-    /*                   &rhs, &type, &rhstype, driver_type[0], MPI_COMM_WORLD); */
-
-    /*     free(filename[0]); */
-    /*     free(filename); */
-    /*     free(driver_type); */
-    /*     free(rhs); */
-    /*     free(rhstype); */
-
-    /*     mat_type = API_SYM_NO; */
-    /*     if (MTX_ISSYM(type)) mat_type = API_SYM_YES; */
-    /*     if (MTX_ISHER(type)) mat_type = API_SYM_HER; */
-    /*     iparm[IPARM_SYM] = mat_type; */
-    /*     switch (mat_type) */
-    /*     { */
-    /*     case API_SYM_YES: */
-    /*         iparm[IPARM_FACTORIZATION] = API_FACT_LDLT; */
-    /*     break; */
-    /*     case API_SYM_HER: */
-    /*         iparm[IPARM_FACTORIZATION] = API_FACT_LDLH; */
-    /*         break; */
-    /*     default: */
-    /*         iparm[IPARM_FACTORIZATION] = API_FACT_LU; */
-    /*     } */
-
-    /*     free(type); */
-    /* } */
-    /* else */
-    /* { */
-    /*     iparm[IPARM_START_TASK] = API_TASK_SYMBFACT; */
-    /* } */
-
-    /* iparm[IPARM_END_TASK]            = API_TASK_ANALYSE; */
-    /* pastix(&pastix_data, MPI_COMM_WORLD, */
-    /*          ncol, colptr, rows, values, */
-    /*          NULL, NULL, NULL, 0, iparm, dparm); */
-
-    /* /\* Clean *\/ */
-    /* iparm[IPARM_START_TASK] = API_TASK_CLEAN; */
-    /* iparm[IPARM_END_TASK]   = API_TASK_CLEAN; */
-    /* pastix(&pastix_data, MPI_COMM_WORLD, */
-    /*        0, NULL, NULL, NULL, */
-    /*        NULL, NULL, NULL, 0, iparm, dparm); */
-
-    /* if (colptr != NULL) free(colptr); */
-    /* if (rows   != NULL) free(rows); */
-    /* if (values != NULL) free(values); */
+    //free(csc.avals);
 
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-#if defined(PASTIX_WITH_MPI)
+#ifndef FORCE_NOMPI
     MPI_Finalize();
 #endif
     return EXIT_SUCCESS;
