@@ -138,14 +138,21 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
 
     coeftabInit( pastix_data->solvmatr,
                  pastix_data->bcsc,
-                 0, 0 );
+                 csc->flttype == PastixPattern,
+                 csc->mtxtype == PastixGeneral );
     sbackup = solverBackupInit( pastix_data->solvmatr );
 
     {
         sopalin_data_t sopalin_data;
+        double timer;
+
+        clockStart(timer);
         sopalin_data.solvmtx = pastix_data->solvmatr;
 
         pastix_static_dpotrf( &sopalin_data );
+        clockStop(timer);
+        pastix_print( 0, 0, "--Factorization time: %g --\n", clockVal(timer));
+
         //pastix_static_dsytrf( &sopalin_data );
         //coeftab_ddump( pastix_data->solvmatr, "AfterFacto" );
     }
