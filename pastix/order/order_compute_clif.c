@@ -39,7 +39,6 @@ orderComputeClif( const pastix_graph_t *graph,
     pastix_int_t   new_cblknbr;
     pastix_int_t   i, vertnbr = order->rangtab[order->cblknbr - 1];
     pastix_int_t   sn_vertnbr = graph->n - vertnbr; /* This works for the last supernode */
-
     SCOTCH_graphBase( sgraph, 0 );
     orderBase( order, 0 );
 
@@ -185,28 +184,6 @@ orderComputeClif( const pastix_graph_t *graph,
             assert( n == graph->n );
             assert( rc == 2 );
 
-            if (orderingGregoire){
-                printf("\n\nAPPLY NEW ORDERING\n\n");
-
-                FILE *file_perm = fopen("perm.txt", "r");
-                pastix_int_t *saved_perm = malloc(n*sizeof(pastix_int_t));
-                memcpy(saved_perm, order->permtab, n*sizeof(pastix_int_t));
-
-                for (i=0; i<n; i++){
-                    int perm;
-                    int ret = fscanf(file_perm, "%d", &perm);
-                    /* Need inverse permutation */
-                    int j;
-                    for (j=0; j<n; j++){
-                        if (saved_perm[j] == i){
-                            order->permtab[j] = perm;
-                        }
-                    }
-                }
-                free(saved_perm);
-                fclose(file_perm);
-            }
-
             if ( dim == 2 ) {
                 pastix_int_t fnode = order->rangtab[ order->cblknbr-1 ];
 
@@ -254,7 +231,6 @@ orderComputeClif( const pastix_graph_t *graph,
             fclose(file);
             fclose(fileout);
         }
-
 
         /* Update the invp/perm arrays */
     /*     if (1) */

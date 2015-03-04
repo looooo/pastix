@@ -156,11 +156,13 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         pastix_print(procnum, 0, "%s", OUT_STEP_FAX);
 
     /* Allocate the symbol matrix structure */
-    if (pastix_data->symbmtx == NULL) {
-        MALLOC_INTERN( pastix_data->symbmtx, 1, SymbolMatrix );
-    }
-    else {
-        errorPrint("pastix_task_symbfact: Symbol Matrix already allocated !!!");
+    if (!supernodesOrdering){
+        if (pastix_data->symbmtx == NULL) {
+            MALLOC_INTERN( pastix_data->symbmtx, 1, SymbolMatrix );
+        }
+        else {
+            errorPrint("pastix_task_symbfact: Symbol Matrix already allocated !!!");
+        }
     }
 
     /* Force Load of symbmtx */
@@ -308,22 +310,20 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /*
      * The graph is not useful anymore, we clean it
      */
-    if (pastix_data->graph != NULL)
-    {
-        graphExit( pastix_data->graph );
-        memFree_null( pastix_data->graph );
+
+    if (supernodesOrdering){
+        if (pastix_data->graph != NULL)
+        {
+            graphExit( pastix_data->graph );
+            memFree_null( pastix_data->graph );
+        }
     }
 
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
 
-    if (orderingGregoire == 0){
-        printf("\n\nCOMPUTE NEW ORDERING\n\n");
-        symbolDependencies( pastix_data->symbmtx );
-    }
-
     symbolPrintStats( pastix_data->symbmtx );
-    symbolCheckGregoire( pastix_data->symbmtx );
+    symbolCheckProperties( pastix_data->symbmtx, ordemesh );
 
     /* Rustine to be sure we have a tree
      * TODO: check difference with kassSymbolPatch */
@@ -357,7 +357,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     {
         FILE *stream;
 
-        if (orderingGregoire == 0){
+        if (supernodesOrdering == 0){
             PASTIX_FOPEN(stream, "symbol_before.eps", "w");
         }
         else{
@@ -377,6 +377,11 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     pastix_data->steps |= STEP_SYMBFACT;
 
     iparm[IPARM_START_TASK]++;
+
+    if (!supernodesOrdering){
+        memFree (pastix_data->symbmtx->cblktab);
+        memFree (pastix_data->symbmtx->bloktab);
+    }
 
     return PASTIX_SUCCESS;
 }
