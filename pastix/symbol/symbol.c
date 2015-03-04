@@ -178,6 +178,42 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     return -1;
 }
 
+pastix_int_t
+symbolGetNNZ(const SymbolMatrix *symbptr)
+{
+    SymbolCblk *cblk;
+    SymbolBlok *blok;
+    pastix_int_t itercblk, iterblok;
+    pastix_int_t cblknbr;
+    pastix_int_t nnz = 0;
+
+    cblknbr = symbptr->cblknbr;
+    cblk = symbptr->cblktab;
+    blok = symbptr->bloktab;
+
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t iterblok = cblk[0].bloknum + 1;
+        pastix_int_t lbloknum = cblk[1].bloknum;
+
+        pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
+
+        /* Diagonal block */
+        blok++;
+        nnz += ( colnbr * (colnbr+1) ) / 2 - colnbr;
+
+        /* Off-diagonal blocks */
+        for( ; iterblok < lbloknum; iterblok++, blok++)
+        {
+            pastix_int_t rownbr = blok->lrownum - blok->frownum + 1;
+
+            nnz += rownbr * colnbr;
+        }
+    }
+
+    return nnz;
+}
+
 void
 symbolPrintStats( const SymbolMatrix *symbptr )
 {

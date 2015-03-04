@@ -305,6 +305,16 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
     } /* not API_IO_LOAD */
 
+    /* TODO: Move somewhere else */
+    set_iparm(iparm, IPARM_NNZEROS, symbolGetNNZ( pastix_data->symbmtx ));
+    {
+        double fillin = (double)iparm[ IPARM_NNZEROS ];
+        fillin /= (double)( graph->colptr[graph->n] - graph->colptr[0] );
+
+        fprintf(stdout, NNZERO_WITH_FILLIN_TH, iparm[ IPARM_NNZEROS ] );
+        fprintf(stdout, OUT_FILLIN_TH, fillin );
+    }
+
     /*
      * The graph is not useful anymore, we clean it
      */

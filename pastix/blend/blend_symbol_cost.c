@@ -412,7 +412,8 @@ void symbCost(pastix_int_t *iparm, double *dparm, const SymbolMatrix * symbmtx, 
         printf("SymbolCost: number of non-zero   %g \n",
                recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, dofptr));
     }
-    set_iparm(iparm, IPARM_NNZEROS,   (pastix_int_t)recursive_sum(0, symbmtx->cblknbr-1, nnz,        symbmtx, dofptr));
+
+    set_iparm(iparm, IPARM_NNZEROS, symbolGetNNZ( symbmtx ));
 
     if ( iparm[IPARM_FACTORIZATION] == API_FACT_LU ) {
         if ( (iparm[IPARM_FLOAT] == API_COMPLEXDOUBLE) ||
