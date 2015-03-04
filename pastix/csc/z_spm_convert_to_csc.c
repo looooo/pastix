@@ -218,7 +218,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
             col_csc[j+1] += col_csc[j];
         }
 
-        assert( (col_csc[spm->gN]-baseval) == nnz );
+        assert( (col_csc[spm->gN]) == nnz );
 
         for (row=0; row<spm->n; row++) {
             pastix_int_t fcol = spm->rows[row  ] - baseval;
