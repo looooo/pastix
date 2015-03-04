@@ -71,13 +71,17 @@ z_spm_genRHS(pastix_csc_t  *csc,
     x=malloc(csc->gN*sizeof(pastix_complex64_t));
     
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    memset(x,1+I,csc->gN*sizeof(pastix_complex64_t));
+    memset(x,1.+I,csc->gN*sizeof(pastix_complex64_t));
 #else
-    memset(x,1,csc->gN*sizeof(pastix_complex64_t));
+    memset(x,1.,csc->gN*sizeof(pastix_complex64_t));
 #endif
         
-    if(*rhs != NULL)
-        memFree_null(*rhs);
+    if(*rhs == NULL)
+    {
+        *rhs=malloc(csc->gN*sizeof(pastix_complex64_t));
+        memset(*rhs,0.,csc->gN*sizeof(pastix_complex64_t));
+    }
+
 
     if(CSCv[csc->mtxtype-PastixGeneral])
     {
