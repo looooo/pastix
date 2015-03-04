@@ -61,7 +61,7 @@ pastix_static_zpotrf( sopalin_data_t *sopalin_data )
                     /* /\*                   stolen ); *\/ */
 
             /* Compute */
-            core_zsytrfsp1d( datacode, cblk, 0.002397);
+            core_zpotrfsp1d( datacode, cblk, 0.002397);
             fprintf(stream, "i=%ld, task=%ld, cblk=%ld\n",
                     (long)ii, (long)i, (long)t->cblknum);
             coeftab_zdumpcblk( datacode, cblk, stream );
