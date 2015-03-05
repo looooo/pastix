@@ -57,7 +57,9 @@ z_spm_genRHS(pastix_csc_t  *csc,
              void         **rhs )
 {
     void *x = NULL;
+    pastix_complex64_t *xptr;
     char n  = 'n';
+    pastix_int_t i;
 
     if(csc->avals==NULL)
         return PASTIX_ERR_BADPARAMETER;
@@ -69,27 +71,32 @@ z_spm_genRHS(pastix_csc_t  *csc,
         return PASTIX_ERR_BADPARAMETER;
 
     x=malloc(csc->gN*sizeof(pastix_complex64_t));
-    
+    xptr = x;
+
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    memset(x,1.+I,csc->gN*sizeof(pastix_complex64_t));
+    for(i=0; i < csc->gN; i++, xptr++)
+    {
+        *xptr = (pastix_complex64_t)(1.+1.*I);
+    }
 #else
-    memset(x,1.,csc->gN*sizeof(pastix_complex64_t));
+    for(i=0; i < csc->gN; i++, xptr++)
+    {
+        *xptr = (pastix_complex64_t)1.;
+    }
 #endif
-        
+
     if(*rhs == NULL)
     {
         *rhs=malloc(csc->gN*sizeof(pastix_complex64_t));
-        memset(*rhs,0.,csc->gN*sizeof(pastix_complex64_t));
+        memset(*rhs,0,csc->gN*sizeof(pastix_complex64_t));
     }
-
 
     if(CSCv[csc->mtxtype-PastixGeneral])
     {
-        if(CSCv[csc->mtxtype-PastixGeneral](n,1,csc,x,1,*rhs) != PASTIX_SUCCESS)
+        if( CSCv[csc->mtxtype-PastixGeneral](n, 1., csc, x, 1., *rhs ) != PASTIX_SUCCESS )
         {
             return PASTIX_ERR_BADPARAMETER;
         }
-        
     }
 
     memFree_null(x);
