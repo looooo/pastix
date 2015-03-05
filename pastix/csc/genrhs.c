@@ -43,7 +43,7 @@
  *******************************************************************************/
 int
 genRHS(pastix_csc_t  *csc,
-             void         **rhs )
+       void         **rhs )
 {
     if(csc->flttype==PastixFloat)
     {

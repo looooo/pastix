@@ -16,17 +16,6 @@
 #include "common.h"
 #include "csc.h"
 
-static int (*CSCv[3])(char, pastix_complex64_t, pastix_csc_t*, pastix_complex64_t*, pastix_complex64_t, pastix_complex64_t*) =
-{
-    z_spmGeCSCv,
-    z_spmSyCSCv,
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    z_spmHeCSCv
-#else
-    NULL
-#endif
-};
-
 /**
  *******************************************************************************
  *
@@ -61,25 +50,25 @@ z_spm_genRHS(pastix_csc_t  *csc,
     char n  = 'n';
     pastix_int_t i;
 
-    if(csc->avals==NULL)
+    if( csc->avals == NULL )
         return PASTIX_ERR_BADPARAMETER;
 
-    if(csc->fmttype!=PastixCSC)
+    if( csc->fmttype != PastixCSC )
         return PASTIX_ERR_BADPARAMETER;
 
-    if(csc->gN<=0)
+    if( csc->gN <= 0 )
         return PASTIX_ERR_BADPARAMETER;
 
-    x=malloc(csc->gN*sizeof(pastix_complex64_t));
+    x=malloc( csc->gN * sizeof(pastix_complex64_t) );
     xptr = x;
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    for(i=0; i < csc->gN; i++, xptr++)
+    for( i=0; i < csc->gN; i++, xptr++ )
     {
         *xptr = (pastix_complex64_t)(1.+1.*I);
     }
 #else
-    for(i=0; i < csc->gN; i++, xptr++)
+    for( i=0; i < csc->gN; i++, xptr++ )
     {
         *xptr = (pastix_complex64_t)1.;
     }
@@ -87,16 +76,36 @@ z_spm_genRHS(pastix_csc_t  *csc,
 
     if(*rhs == NULL)
     {
-        *rhs=malloc(csc->gN*sizeof(pastix_complex64_t));
-        memset(*rhs,0,csc->gN*sizeof(pastix_complex64_t));
+        *rhs=malloc( csc->gN*sizeof( pastix_complex64_t ) );
+        memset( *rhs, 0, csc->gN * sizeof( pastix_complex64_t ) );
     }
 
-    if(CSCv[csc->mtxtype-PastixGeneral])
+    if( csc->mtxtype == PastixGeneral )
     {
-        if( CSCv[csc->mtxtype-PastixGeneral](n, 1., csc, x, 1., *rhs ) != PASTIX_SUCCESS )
+        if( z_spmGeCSCv( n, 1., csc, (pastix_complex64_t*)x, 1., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
         {
             return PASTIX_ERR_BADPARAMETER;
         }
+    }
+    else if( csc->mtxtype == PastixSymmetric )
+    {
+        if( z_spmSyCSCv( 1., csc, (pastix_complex64_t*)x, 1., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
+        {
+            return PASTIX_ERR_BADPARAMETER;
+        }
+    }
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    else if( csc->mtxtype == PastixHermitian )
+    {
+        if( z_spmHeCSCv( 1., csc, (pastix_complex64_t*)x, 1., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
+        {
+            return PASTIX_ERR_BADPARAMETER;
+        }
+    }
+#endif
+    else
+    {
+        return PASTIX_ERR_BADPARAMETER;
     }
 
     memFree_null(x);

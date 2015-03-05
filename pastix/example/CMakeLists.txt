@@ -108,11 +108,15 @@ add_custom_target(examples_headers DEPENDS ${generated_headers} )
 # endforeach()
 
 add_executable(analyze analyze.c)
-add_executable(tests spm_tests.c)
 target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
-target_link_libraries(tests ${PASTIX_EXAMPLES_LIBRARIES})
 if (PASTIX_WITH_MPI)
   target_link_libraries(analyze ${MPI_LIBRARIES})
+endif()
+
+add_executable(tests spm_tests.c)
+target_link_libraries(tests ${PASTIX_EXAMPLES_LIBRARIES})
+if (PASTIX_WITH_MPI)
+  target_link_libraries(tests ${MPI_LIBRARIES})
 endif()
 
 #
