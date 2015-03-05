@@ -190,11 +190,11 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
             /* Diagonal value */
 #if !defined(PRECISION_p)
             *rowptr = k;
-            *valptr = (pastix_complex64_t) 2.;
-                if (j < dim1 && k>1)
-                    *valptr += 1;
-                if (i < dim2 && k>1)
-                    *valptr += 1;
+            *valptr = (pastix_complex64_t) 4.;
+            if (j == dim1 || j == 1)
+                *valptr -= (pastix_complex64_t) 1.;
+            if (i == dim2 || i == 1)
+                *valptr -= (pastix_complex64_t) 1.;
 #endif
             valptr++; rowptr++; colptr[1]++;
 
@@ -312,13 +312,13 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
                 /* Diagonal value */
 #if !defined(PRECISION_p)
                 *rowptr = l;
-                *valptr = (pastix_complex64_t) 3.;
-                if (k < dim1 && k>1)
-                    *valptr += 1;
-                if (j < dim2 && k>1)
-                    *valptr += 1;
-                if (i < dim3 && k>1)
-                    *valptr += 1;
+                *valptr = (pastix_complex64_t) 6.;
+                if (k == dim1 || k == 1)
+                    *valptr -= (pastix_complex64_t) 1.;
+                if (j == dim2 || j == 1)
+                    *valptr -= (pastix_complex64_t) 1.;
+                if (i == dim3 || i == 1)
+                    *valptr -= (pastix_complex64_t) 1.;
 #endif
                 valptr++; rowptr++; colptr[1]++;
 
