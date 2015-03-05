@@ -40,7 +40,7 @@ check_include_files(complex.h HAVE_COMPLEX_H)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" ON)
+    "Build PaStiX for distributed memory with MPI" OFF)
 
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA
@@ -286,7 +286,7 @@ endif()
 if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH)
   if (SCOTCH_FOUND)
-    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS}" )
+    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS} ${SCOTCH_LIBRARY_DIRS} ${SCOTCH_LIBRARIES}" )
     include_directories( ${SCOTCH_INCLUDE_DIRS} )
     link_directories( ${SCOTCH_LIBRARY_DIRS} )
     link_libraries( ${SCOTCH_LIBRARIES} )
@@ -511,6 +511,7 @@ set(PASTIX_LIB_SRCS
   fax/symbol_kass_direct.c
   fax/symbol_kass_level.c
   fax/pastix_task_symbfact.c
+  fax/pastix_task_reordering.c
   #
   matrix_drivers/skitf.f
   matrix_drivers/iohb.c
@@ -572,6 +573,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_io.c
   symbol/symbol_tree.c
   symbol/symbol_rustine.c
+  symbol/symbol_reordering.c
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
@@ -636,6 +638,7 @@ if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_scotch.c
+    order/order_compute_clif.c
     )
 endif()
 if(PASTIX_ORDERING_PTSCOTCH) # AND HAVE_PTSCOTCH)
