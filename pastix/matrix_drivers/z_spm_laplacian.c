@@ -21,8 +21,7 @@
  *
  * @ingroup pastix_csc_driver
  *
- * z_spmLaplacian1D - Generate a 1D laplacian matrix and an associated right
- * hand side member.
+ * z_spmLaplacian1D - Generate a 1D laplacian matrix.
  *
  * Example:
  * >  1 -1  0  0
@@ -112,8 +111,7 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  *
  * @ingroup pastix_csc_driver
  *
- * z_spmLaplacian2D - Generate a 2D laplacian matrix and an associated right
- * hand side member.
+ * z_spmLaplacian2D - Generate a 2D laplacian matrix.
  *
  * Example:
  * >  2 -1  0 -1  0  0
@@ -181,8 +179,8 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
             colptr[1] = colptr[0];
 
             /* Diagonal value */
-#if !defined(PRECISION_p)
             *rowptr = k;
+#if !defined(PRECISION_p)
             *valptr = (pastix_complex64_t) 4.;
             if (j == dim1 || j == 1)
                 *valptr -= (pastix_complex64_t) 1.;
@@ -193,8 +191,8 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
 
             /* Connexion along dimension 1 */
             if (j < dim1) {
-#if !defined(PRECISION_p)
                 *rowptr = k+1;
+#if !defined(PRECISION_p)
                 *valptr = (pastix_complex64_t)-1.;
 #endif
                 valptr++; rowptr++; colptr[1]++;
@@ -202,8 +200,8 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
 
             /* Connexion along dimension 2 */
             if (i < dim2) {
-#if !defined(PRECISION_p)
                 *rowptr = k+dim1;
+#if !defined(PRECISION_p)
                 *valptr = (pastix_complex64_t)-1.;
 #endif
                 valptr++; rowptr++; colptr[1]++;
@@ -221,8 +219,7 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
  *
  * @ingroup pastix_csc_driver
  *
- * z_spmLaplacian3D - Generate a 3D laplacian matrix and an associated right
- * hand side member.
+ * z_spmLaplacian3D - Generate a 3D laplacian matrix.
  *
  * Example:
  * >  3 -1 -1  0 -1  0  0  0
@@ -300,8 +297,8 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
                 colptr[1] = colptr[0];
 
                 /* Diagonal value */
-#if !defined(PRECISION_p)
                 *rowptr = l;
+#if !defined(PRECISION_p)
                 *valptr = (pastix_complex64_t) 6.;
                 if (k == dim1 || k == 1)
                     *valptr -= (pastix_complex64_t) 1.;
@@ -314,8 +311,8 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
 
                 /* Connexion along dimension 1 */
                 if (k < dim1) {
-#if !defined(PRECISION_p)
                     *rowptr = l+1;
+#if !defined(PRECISION_p)
                     *valptr = (pastix_complex64_t)-1.;
 #endif
                     valptr++; rowptr++; colptr[1]++;
@@ -323,8 +320,8 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
 
                 /* Connexion along dimension 2 */
                 if (j < dim2) {
-#if !defined(PRECISION_p)
                     *rowptr = l+dim1;
+#if !defined(PRECISION_p)
                     *valptr = (pastix_complex64_t)-1.;
 #endif
                     valptr++; rowptr++; colptr[1]++;
@@ -332,8 +329,8 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
 
                 /* Connexion along dimension 3 */
                 if (i < dim3) {
-#if !defined(PRECISION_p)
                     *rowptr = l+dim1*dim2;
+#if !defined(PRECISION_p)
                     *valptr = (pastix_complex64_t)-1.;
 #endif
                     valptr++; rowptr++; colptr[1]++;
