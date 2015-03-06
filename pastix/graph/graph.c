@@ -21,7 +21,7 @@
  *
  * @ingroup pastix_graph
  *
- * graphClean - Free the graph structure given in parameter.
+ * graphExit - Free the graph structure given in parameter.
  *
  *******************************************************************************
  *
