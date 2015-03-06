@@ -14,6 +14,7 @@ set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VE
 # Add extra cmake module path and initialize morse cmake modules
 # --------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
+include(CheckSystem)
 
 set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse )
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
@@ -110,19 +111,6 @@ include(FortranCInterface)
 FortranCInterface_HEADER(common/FCmangle.h
   MACRO_NAMESPACE "FC_"
   SYMBOL_NAMESPACE "FC_")
-
-# Check for Thread library
-# ------------------------
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-find_package(Threads REQUIRED)
-if( THREADS_FOUND )
-    list(APPEND EXTRA_LIBS ${CMAKE_THREAD_LIBS_INIT})
-endif ()
-
-# Check for RT library
-# ------------------------
-find_library(RT rt)
-list(APPEND EXTRA_LIBS ${RT})
 
 # PaStiX depends on CBLAS
 #----------------------------
