@@ -101,6 +101,8 @@ pastix_task_blend(pastix_data_t *pastix_data)
     solverBlend( &ctrl, solvmatr, pastix_data->symbmtx, &dofstr );
     blendCtrlExit(&ctrl);
 
+    symbolPrintStats(pastix_data->symbmtx);
+
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
 
@@ -155,7 +157,7 @@ pastix_task_blend(pastix_data_t *pastix_data)
         }
     }
 
-    if (0)
+    if (1)
     {
         FILE *file = fopen("solvergen", "w");
         solverSave( solvmatr, file );

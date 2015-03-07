@@ -372,7 +372,7 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
 
 
 
-   /*fprintf(stream, "File header\n");*/
+   fprintf(stream, "File header\n");
    o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                  (long) solvptr->coefnbr,
                  (long) solvptr->ftgtnbr,
@@ -388,8 +388,9 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
                  (long) solvptr->gridldim,
                  (long) solvptr->gridcdim
                  ) == EOF);
+
    /* write cblk data */
-   /*fprintf(stream, "cblk data\n");*/
+   fprintf(stream, "cblk data\n");
    for (cblkptr = solvptr->cblktab, cblktnd = cblkptr + solvptr->cblknbr;
         (cblkptr < cblktnd) && (o == 0); cblkptr ++)
      {
@@ -399,14 +400,14 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
 
 
    /* write blok data */
-   /*fprintf(stream, "blok data\n");*/
+   fprintf(stream, "blok data\n");
    for (blokptr = solvptr->bloktab, bloktnd = blokptr + solvptr->bloknbr;
         (blokptr < bloktnd) && (o == 0); blokptr ++) {
      o = (fprintf (stream, "%ld\n",(long) blokptr->coefind) == EOF);
 
    }
 
-   /*fprintf(stream, "fan in target data\n");*/
+   fprintf(stream, "fan in target data\n");
    for (ftgtptr = solvptr->ftgttab,                /* Write fan in target data */
         ftgttnd = ftgtptr + solvptr->ftgtnbr;
         (ftgtptr < ftgttnd) && (o==0); ftgtptr ++) {
@@ -416,13 +417,13 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
      fprintf(stream, "\n");
    }
 
-   /*fprintf(stream, "indtab data\n");*/
+   fprintf(stream, "indtab data\n");
    for(i=0;i<solvptr->indnbr;i++)                   /** Write indtab **/
      fprintf(stream, "%ld\t", (long)solvptr->indtab[i]);
    fprintf(stream, "\n");
    fprintf(stream, "\n");
 
-   /*fprintf(stream, "task data\n");*/
+   fprintf(stream, "task data\n");
    {
        Task *taskend = solvptr->tasktab + solvptr->tasknbr;
        for (taskptr = solvptr->tasktab;                /* Write Task data */
@@ -436,7 +437,7 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
        }
    }
 
-   /*fprintf(stream, "ttsktab\n");*/
+   fprintf(stream, "ttsktab\n");
    for (i=0; i<solvptr->thrdnbr; i++) /* Write ttsktab */
      {
        fprintf(stream, "%ld\n", (long)solvptr->ttsknbr[i]);
@@ -446,19 +447,19 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
          }
      }
 
-   /*fprintf(stream, "proc2clust\n");*/
+   fprintf(stream, "proc2clust\n");
    for (i=0; i<solvptr->procnbr; i++) /* Write proc2clust */
      {
        fprintf(stream, "%ld\n", (long)solvptr->proc2clust[i]);
      }
 
-   /*fprintf(stream, "updo\n");*/
+   fprintf(stream, "updo\n");
    fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
            (long) solvptr->updovct.sm2xmax, (long) solvptr->updovct.sm2xsze, (long) solvptr->updovct.sm2xnbr,
            (long) solvptr->updovct.gcblk2listnbr, (long) solvptr->updovct.listptrnbr, (long) solvptr->updovct.listnbr,
            (long) solvptr->updovct.loc2globnbr, (long) solvptr->updovct.gcblknbr, (long) solvptr->updovct.gnodenbr);
 
-   /*fprintf(stream, "updown cblk\n");*/
+   fprintf(stream, "updown cblk\n");
    for (i=0; i<solvptr->cblknbr; i++)
      {
        fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
@@ -473,36 +474,35 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
          }
      }
 
-   /*fprintf(stream, "updown gcblk2list\n");*/
+   fprintf(stream, "updown gcblk2list\n");
    for (i=0; i<solvptr->updovct.gcblk2listnbr; i++)
      {
        fprintf(stream, "%ld\n", (long) solvptr->updovct.gcblk2list[i]);
      }
 
-   /*fprintf(stream, "updown listptr\n");*/
+   fprintf(stream, "updown listptr\n");
    for (i=0; i<solvptr->updovct.listptrnbr; i++)
      {
        fprintf(stream, "%ld\n", (long) solvptr->updovct.listptr[i]);
      }
 
-   /*fprintf(stream, "updown listcblk & listblok\n");*/
+   fprintf(stream, "updown listcblk & listblok\n");
    for (i=0; i<solvptr->updovct.listnbr; i++)
      {
        fprintf(stream, "%ld\t%ld\n", (long) solvptr->updovct.listcblk[i], (long) solvptr->updovct.listblok[i]);
      }
 
-   /*fprintf(stream, "updown loc2globcblk\n");*/
+   fprintf(stream, "updown loc2globcblk\n");
    for (i=0; i<solvptr->updovct.loc2globnbr; i++)
      {
        fprintf(stream, "%ld\n", (long) solvptr->updovct.loc2glob[i]);
      }
 
-   /*fprintf(stream, "updown lblk2gcblk\n");*/
+   fprintf(stream, "updown lblk2gcblk\n");
    for (i=0; i<solvptr->bloknbr; i++)
      {
        fprintf(stream, "%ld\n", (long) solvptr->updovct.lblk2gcblk[i]);
      }
-
 
    return o;
  }

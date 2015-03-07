@@ -475,4 +475,7 @@ SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
 int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
 void            solverBackupExit( SolverBackup_t *b );
 
+pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
+pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
+
 #endif /* SOLVER_H */

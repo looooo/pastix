@@ -84,7 +84,7 @@ int main (int argc, char **argv)
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
-    pastix_task_sopalin( pastix_data, &csc );
+    //pastix_task_sopalin( pastix_data, &csc );
 
     //cscExit( csc );
     free(csc.colptr);
