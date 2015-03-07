@@ -503,10 +503,11 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/skitf.f
   matrix_drivers/iohb.c
   matrix_drivers/mmio.c
-  matrix_drivers/readrsa.c
-  matrix_drivers/readmm.c
-  matrix_drivers/readijv.c
+  matrix_drivers/laplacian.c
   matrix_drivers/readhb.c
+  matrix_drivers/readijv.c
+  matrix_drivers/readmm.c
+  matrix_drivers/readrsa.c
 
   # Files that still require some changes
   blend/cand.c
@@ -552,20 +553,19 @@ set(PASTIX_LIB_SRCS
 #
   symbol/dof.c
   symbol/dof_io.c
-  symbol/symbol_base.c
   symbol/symbol.c
+  symbol/symbol_base.c
   symbol/symbol_check.c
-  symbol/symbol_cost.c
   symbol/symbol_draw.c
   symbol/symbol_io.c
-  symbol/symbol_tree.c
   symbol/symbol_rustine.c
+#  symbol/symbol_cost.c
+#  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
   #matrix_drivers/readmmd.c
   #matrix_drivers/readpetsc.c
-  matrix_drivers/laplacian.c
   #matrix_drivers/readcscd.c
 #
   sopalin/pastix_task_sopalin.c
@@ -580,6 +580,7 @@ set(PASTIX_LIB_SRCS
 
 
 set(PASTIX_ALL_SRCS
+  ${generated_files}
   #
   graph/graph.c
   graph/graph_isolate.c
@@ -607,9 +608,7 @@ set(PASTIX_ALL_SRCS
   #order/order_compute_ptscotch.c
   order/order_compute_metis.c
 
-  matrix_drivers/iohb.c
-  matrix_drivers/mmio.c
-  matrix_drivers/skitf.f
+  matrix_drivers/laplacian.c
   matrix_drivers/readhb.c
   matrix_drivers/readijv.c
   matrix_drivers/readmm.c

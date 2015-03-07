@@ -46,13 +46,14 @@
 /*
 **  The defines and includes.
 */
-
-#define SYMBOL_DRAW
-
 #include <time.h>
 #include "common.h"
 #include "symbol.h"
-#include "symbol_draw.h"
+
+/*+ Generic PostScript (tm) output definitions. +*/
+
+#define SYMBOL_PSDPI      72    /*+ PostScript dots-per-inch            +*/
+#define SYMBOL_PSPICTSIZE 6.6   /*+ PostScript picture size (in inches) +*/
 
 /*
 **  The static and global variables
