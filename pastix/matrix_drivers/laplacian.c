@@ -1,18 +1,16 @@
 /**
  * @file laplacian.c
  *
- *  This file contains the user routine to generate 1, 2 and 3 dimensional Laplacian
- *  matrices.
  *  $COPYRIGHTS$
  *
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @author Theophile Terraz
  * @date 2011-11-11
  *
  **/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,15 +18,6 @@
 #include "drivers.h"
 #include "laplacian.h"
 
-/**
- *******************************************************************************
- *
- * @ingroup pastix_csc_driver
- *
- * laplacian_usage - Print the usage information to generate correct Laplacian
- * matrices.
- *
- *******************************************************************************/
 static inline void
 laplacian_usage(void)
 {
@@ -47,33 +36,6 @@ laplacian_usage(void)
             );
 }
 
-/**
- *******************************************************************************
- *
- * @ingroup pastix_csc_driver
- *
- * laplacian_parse_info - Parse information given through the filename string to
- * configure the laplacian matrix to generate.
- *
- *******************************************************************************
- *
- * @param[in] filename
- *          Configuration string of the Laplacian. See laplacian_usage() for
- *          more information.
- *
- * @param[in,out] csc
- *          At start, an allocated csc structure that will store the Lapalcian
- *          matrix.
- *          At exit, the fields of the csc are initialized and especially the
- *          type, symmetry and number of unknows are setup.
- *
- *******************************************************************************
- *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been generated successfully
- *      \retval PASTIX_ERR_BADPARAMETER if the configuration string is incorrect
- *
- *******************************************************************************/
 static inline int
 laplacian_parse_info( const char   *filename,
                       pastix_csc_t *csc,
@@ -222,26 +184,11 @@ static void (*laplacian_table3D[6])(pastix_csc_t*, pastix_int_t, pastix_int_t, p
  *******************************************************************************
  *
  * @param[in] filename
- *          Configuration string of the Laplacian.
- *          [<type>:]<dim1>[:<dim2>[:<dim3>]]
- *             <type> p = pattern only\n"
- *                    s = real simple\n"
- *                    d = real double [default]\n"
- *                    c = complex simple\n"
- *                    z = complex double\n"
- *             <dim1> size of the first dimension of the 1D|2D|3D laplacian\n"
- *             <dim2> size of the second dimension of the 2D|3D laplacian\n"
- *             <dim3> size of the third dimension of the 3D laplacian\n"
+ *          Path to the directory containing matrix.
  *
- * @param[in,out] csc
- *          At start, an allocated csc structure.
- *          At exit, contains a laplacian matrix in the csc format.
- *
- *******************************************************************************
- *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been generated successfully
- *      \retval PASTIX_ERR_BADPARAMETER if the configuration string is incorrect
+ * @param[out] csc
+ *          At start, contains the size of the laplacian in csc->n.
+ *          At exit, contains the matrix in csc format.
  *
  *******************************************************************************/
 int

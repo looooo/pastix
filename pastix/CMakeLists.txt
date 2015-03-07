@@ -555,7 +555,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_base.c
   symbol/symbol.c
   symbol/symbol_check.c
-#  symbol/symbol_cost.c
+  symbol/symbol_cost.c
   symbol/symbol_draw.c
   symbol/symbol_io.c
   symbol/symbol_tree.c

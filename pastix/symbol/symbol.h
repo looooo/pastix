@@ -1,62 +1,123 @@
-/**
- *
- * @file symbol.h
- *
- *  PaStiX symbol structure routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
- *
- * @version 5.1.0
- * @author David Goudin
- * @author Francois Pelegrin
- * @author Mathieu Faverge
- * @author Pascal Henon
- * @author Pierre Ramet
- * @date 2013-06-24
- *
- **/
-#ifndef _SYMBOL_H_
-#define _SYMBOL_H_
+/* Copyright INRIA 2004
+**
+** This file is part of the Scotch distribution.
+**
+** The Scotch distribution is libre/free software; you can
+** redistribute it and/or modify it under the terms of the
+** GNU Lesser General Public License as published by the
+** Free Software Foundation; either version 2.1 of the
+** License, or (at your option) any later version.
+**
+** The Scotch distribution is distributed in the hope that
+** it will be useful, but WITHOUT ANY WARRANTY; without even
+** the implied warranty of MERCHANTABILITY or FITNESS FOR A
+** PARTICULAR PURPOSE. See the GNU Lesser General Public
+** License for more details.
+**
+** You should have received a copy of the GNU Lesser General
+** Public License along with the Scotch distribution; if not,
+** write to the Free Software Foundation, Inc.,
+** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+**
+** $Id: symbol.h 316 2005-06-06 16:17:44Z ramet $
+*/
+/************************************************************/
+/**                                                        **/
+/**   NAME       : symbol.h                                **/
+/**                                                        **/
+/**   AUTHORS    : David GOUDIN                            **/
+/**                Pascal HENON                            **/
+/**                Francois PELLEGRINI                     **/
+/**                Pierre RAMET                            **/
+/**                                                        **/
+/**   FUNCTION   : Part of a parallel direct block solver. **/
+/**                These lines are the data declarations   **/
+/**                for the symbolic matrix.                **/
+/**                                                        **/
+/**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
+/**                                 to     07 oct 1998     **/
+/**                # Version 0.1  : from : 21 mar 2002     **/
+/**                                 to     21 mar 2002     **/
+/**                # Version 1.0  : from : 03 jun 2002     **/
+/**                                 to     26 jun 2002     **/
+/**                # Version 1.3  : from : 10 apr 2003     **/
+/**                                 to     10 jun 2003     **/
+/**                # Version 3.0  : from : 28 feb 2004     **/
+/**                                 to     03 mar 2005     **/
+/**                                                        **/
+/************************************************************/
 
-/**
- * @ingroup pastix_symbol
- * @struct symbolcblk_s - Symbol column block structure.
- */
+#ifndef SYMBOL_H
+#define SYMBOL_H
+#define SYMBOL_VERSION              1
+
+/*
+**  The type and structure definitions.
+*/
+
+/*+ The column block structure. +*/
 typedef struct SymbolCblk_ {
-  pastix_int_t fcolnum;  /*< First column index               */
-  pastix_int_t lcolnum;  /*< Last column index (inclusive)    */
-  pastix_int_t bloknum;  /*< First block in column (diagonal) */
-  pastix_int_t brownum;  /*< First block in row facing the diagonal block in browtab/crowtab */
+  pastix_int_t                       fcolnum;              /*+ First column index               +*/
+  pastix_int_t                       lcolnum;              /*+ Last column index (inclusive)    +*/
+  pastix_int_t                       bloknum;              /*+ First block in column (diagonal) +*/
 } SymbolCblk;
 
-/**
- * @ingroup pastix_symbol
- * @struct symbolblok_s - Symbol block structure.
- */
+/*+ The column block structure. +*/
+
 typedef struct SymbolBlok_ {
-  pastix_int_t frownum;  /*< First row index            */
-  pastix_int_t lrownum;  /*< Last row index (inclusive) */
-  pastix_int_t cblknum;  /*< Facing column block        */
-  pastix_int_t levfval;  /*< Level-of-fill value        */
+  pastix_int_t                       frownum;              /*+ First row index            +*/
+  pastix_int_t                       lrownum;              /*+ Last row index (inclusive) +*/
+  pastix_int_t                       cblknum;              /*+ Facing column block        +*/
+  pastix_int_t                       levfval;              /*+ Level-of-fill value        +*/
 } SymbolBlok;
 
-/**
- * @ingroup pastix_symbol
- * @struct symbolmtx_s - Symbol matrix structure.
- */
+/*+ The symbolic block matrix. +*/
+
 typedef struct SymbolMatrix_ {
-  pastix_int_t            baseval;  /*< Base value for numberings         */
-  pastix_int_t            cblknbr;  /*< Number of column blocks           */
-  pastix_int_t            bloknbr;  /*< Number of blocks                  */
-  SymbolCblk   * restrict cblktab;  /*< Array of column blocks [+1,based] */
-  SymbolBlok   * restrict bloktab;  /*< Array of blocks [based]           */
-  pastix_int_t * restrict crowtab;  /*< Array of column blocks [based]    */
-  pastix_int_t * restrict browtab;  /*< Array of blocks [based]           */
-  pastix_int_t            nodenbr;  /*< Number of nodes in matrix         */
+  pastix_int_t                       baseval;              /*+ Base value for numberings         +*/
+  pastix_int_t                       cblknbr;              /*+ Number of column blocks           +*/
+  pastix_int_t                       bloknbr;              /*+ Number of blocks                  +*/
+  SymbolCblk * restrict     cblktab;              /*+ Array of column blocks [+1,based] +*/
+  SymbolBlok * restrict     bloktab;              /*+ Array of blocks [based]           +*/
+  pastix_int_t                       nodenbr;              /*+ Number of nodes in matrix         +*/
 #ifdef STARPU_GET_TASK_CTX
-  pastix_int_t            starpu_subtree_nbr;
+  pastix_int_t                       starpu_subtree_nbr;
 #endif
 } SymbolMatrix;
+
+/*+ The type of cost computations. +*/
+
+typedef enum SymbolCostType_ {
+  SYMBOLCOSTLDLT                                  /*+ Crout (i.e. LDLt) cost function +*/
+} SymbolCostType;
+
+/* Structure for keeping track of selected
+   blocks in the matrix pattern. The values
+   of the tables are the remaining values
+   for the yet unselected blocks.           */
+
+typedef struct SymbolKeepBlok_ {
+  pastix_int_t                       levfval;              /*+ Values for incomplete factorisation +*/
+  pastix_int_t                       nupdval;
+  pastix_int_t                       ctrival;
+  pastix_int_t                       ctroval;
+  pastix_int_t                       hghtval;
+} SymbolKeepBlok;
+
+typedef struct SymbolKeep_ {
+  pastix_int_t                       levfmax;              /*+ Maximum values for incomplete fax +*/
+  pastix_int_t                       nupdmax;
+  pastix_int_t                       ctrimax;
+  pastix_int_t                       ctromax;
+  pastix_int_t                       hghtmax;
+  unsigned char * restrict           keeptab;              /*+ Flag array for kept blocks      +*/
+  SymbolKeepBlok * restrict kblktab;              /*+ Block parameter array           +*/
+  double * restrict         levftab;              /*+ Area arrays for selected blocks +*/
+  double * restrict         nupdtab;
+  double * restrict         ctritab;
+  double * restrict         ctrotab;
+  double * restrict         hghttab;
+} SymbolKeep;
 
 /*
 **  The function prototypes.
@@ -70,6 +131,11 @@ int  symbolLoad          (SymbolMatrix * const symbptr, FILE * const stream);
 int  symbolSave          (const SymbolMatrix * const symbptr, FILE * const stream);
 int  symbolCheck         (const SymbolMatrix * const symbptr);
 int  symbolDraw          (const SymbolMatrix * const symbptr, FILE * const stream);
+int  symbolDrawFunc      (const SymbolMatrix * const symbptr,
+                          int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
+                          int (*) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
+                          void * const, FILE * const stream);
+void symbolDrawColor     (const pastix_int_t labl, float color[]);
 #ifdef DOF_H
 int  symbolCost          (const SymbolMatrix * const symbptr, const Dof * const deofptr,
                           const SymbolCostType typeval, double * const nnzptr, double * const opcptr);
