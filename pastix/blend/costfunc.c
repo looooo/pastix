@@ -150,6 +150,7 @@ double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const Symbol
     pastix_int_t i, j;
     pastix_int_t L, h, g;
     double cost = 0.0;
+    (void)costmtx;
 
     L    = (symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum + 1);
     L   *= (dofptr)->noddval;

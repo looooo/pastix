@@ -175,8 +175,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
  *   stream   - FILE * opened in write mode.
  */
 void
-coeftab_zdumpcblk( const SolverMatrix *solvmtx,
-                   const SolverCblk   *cblk,
+coeftab_zdumpcblk( const SolverCblk *cblk,
                    FILE *stream )
 {
     pastix_complex64_t *lcoeftab = cblk->lcoeftab;
@@ -252,7 +251,7 @@ coeftab_zdump( const SolverMatrix *solvmtx,
 
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        coeftab_zdumpcblk( solvmtx, cblk, stream );
+        coeftab_zdumpcblk( cblk, stream );
     }
 
     fclose( stream );

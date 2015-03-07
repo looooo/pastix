@@ -48,7 +48,6 @@ void convertArrayToFloat(     pastix_int_t n, const double *A, void **B );
 int cscReadFromFile( pastix_driver_t  driver,
                      char            *filename,
                      pastix_csc_t    *csc,
-                     void           **rhs,
                      MPI_Comm         pastix_comm );
 
 int readHB   ( const char *filename, pastix_csc_t *csc );

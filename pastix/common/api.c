@@ -410,6 +410,7 @@ pastixFinalize( pastix_data_t **pastix_data,
                 double         *dparm )
 {
     pastix_data_t *pastix = *pastix_data;
+    (void)pastix_comm; (void)iparm; (void)dparm;
 
     if ( pastix->graph != NULL )
     {

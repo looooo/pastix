@@ -323,6 +323,8 @@ computeConstantSplit( pastix_int_t *nblocksperline,
                       pastix_int_t max,
                       pastix_int_t authorized_percent )
 {
+    (void)nblocksperline;
+    (void)authorized_percent;
     if (step >= max)
         return max-1;
     assert( step > 1 );

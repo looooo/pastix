@@ -22,8 +22,7 @@
 /* #include "assert.h" */
 #include "task.h"
 
-void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab,
-               const Dof * dofptr, BlendCtrl *ctrl)
+void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
 {
     pastix_int_t i, j;
     pastix_int_t tasknbr = 0;

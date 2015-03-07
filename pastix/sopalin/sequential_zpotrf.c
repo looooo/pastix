@@ -19,6 +19,9 @@
 #include "common.h"
 #include "sopalin_data.h"
 
+void
+coeftab_zdumpcblk( const SolverCblk *cblk,
+                   FILE *stream );
 int
 core_zpotrfsp1d( SolverMatrix *solvmtx,
                  SolverCblk   *cblk,
@@ -64,7 +67,7 @@ pastix_static_zpotrf( sopalin_data_t *sopalin_data )
             core_zpotrfsp1d( datacode, cblk, 0.002397);
             fprintf(stream, "i=%ld, task=%ld, cblk=%ld\n",
                     (long)ii, (long)i, (long)t->cblknum);
-            coeftab_zdumpcblk( datacode, cblk, stream );
+            coeftab_zdumpcblk( cblk, stream );
             break;
 
         default:
