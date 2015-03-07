@@ -76,11 +76,11 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
 
     j = 0;
     *colptr = 1; colptr++; /* baseval */
-    for (i=0; i<csc->gN; i++, colptr++)
+    for (i=0; i<dim1; i++, colptr++)
     {
         *rowptr = i+1;
 #if !defined(PRECISION_p)
-        if ( (i == 0) || (i == csc->gN-1) ) {
+        if ( (i == 0) || (i == dim1-1) ) {
             *valptr = (pastix_complex64_t)1.;
         }
         else {
@@ -104,7 +104,7 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
         *colptr = j+1;
     }
 
-    assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
+    assert( (csc->colptr[ dim1 ] - csc->colptr[0]) == nnz );
 }
 
 /**

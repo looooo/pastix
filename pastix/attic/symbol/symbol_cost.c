@@ -58,6 +58,12 @@
 #include "symbol.h"
 #include "symbol_cost.h"
 
+/*+ The type of cost computations. +*/
+
+typedef enum SymbolCostType_ {
+  SYMBOLCOSTLDLT                                  /*+ Crout (i.e. LDLt) cost function +*/
+} SymbolCostType;
+
 /******************************************/
 /*                                        */
 /* The symbolic matrix handling routines. */

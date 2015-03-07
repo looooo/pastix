@@ -234,7 +234,7 @@ void solverBlend(BlendCtrl    *ctrl,
                   ctrl->total_nbcores );
 
         /* Create task array */
-        taskBuild(simuctrl, symbmtx, ctrl->candtab, dofptr, ctrl);
+        taskBuild(simuctrl, symbmtx, ctrl->candtab);
         clockStop(timer_current);
 
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {

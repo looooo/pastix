@@ -744,6 +744,7 @@ void pastix_ex_getoptions(int argc, char **argv,
 {
     int opt = 0;
     int c;
+    (void)dparam;
 
     if (argc == 1) {
         pastix_ex_usage(); exit(0);

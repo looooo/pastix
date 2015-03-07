@@ -14,6 +14,7 @@ set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VE
 # Add extra cmake module path and initialize morse cmake modules
 # --------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
+include(CheckSystem)
 
 set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse )
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
@@ -110,19 +111,6 @@ include(FortranCInterface)
 FortranCInterface_HEADER(common/FCmangle.h
   MACRO_NAMESPACE "FC_"
   SYMBOL_NAMESPACE "FC_")
-
-# Check for Thread library
-# ------------------------
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-find_package(Threads REQUIRED)
-if( THREADS_FOUND )
-    list(APPEND EXTRA_LIBS ${CMAKE_THREAD_LIBS_INIT})
-endif ()
-
-# Check for RT library
-# ------------------------
-find_library(RT rt)
-list(APPEND EXTRA_LIBS ${RT})
 
 # PaStiX depends on CBLAS
 #----------------------------
@@ -516,10 +504,11 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/skitf.f
   matrix_drivers/iohb.c
   matrix_drivers/mmio.c
-  matrix_drivers/readrsa.c
-  matrix_drivers/readmm.c
-  matrix_drivers/readijv.c
+  matrix_drivers/laplacian.c
   matrix_drivers/readhb.c
+  matrix_drivers/readijv.c
+  matrix_drivers/readmm.c
+  matrix_drivers/readrsa.c
 
   # Files that still require some changes
   blend/cand.c
@@ -565,21 +554,20 @@ set(PASTIX_LIB_SRCS
 #
   symbol/dof.c
   symbol/dof_io.c
-  symbol/symbol_base.c
   symbol/symbol.c
+  symbol/symbol_base.c
   symbol/symbol_check.c
-  symbol/symbol_cost.c
   symbol/symbol_draw.c
   symbol/symbol_io.c
-  symbol/symbol_tree.c
   symbol/symbol_rustine.c
   symbol/symbol_reordering.c
+#  symbol/symbol_cost.c
+#  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
   #matrix_drivers/readmmd.c
   #matrix_drivers/readpetsc.c
-  matrix_drivers/laplacian.c
   #matrix_drivers/readcscd.c
 #
   sopalin/pastix_task_sopalin.c
@@ -594,6 +582,7 @@ set(PASTIX_LIB_SRCS
 
 
 set(PASTIX_ALL_SRCS
+  ${generated_files}
   #
   graph/graph.c
   graph/graph_isolate.c
@@ -621,9 +610,7 @@ set(PASTIX_ALL_SRCS
   #order/order_compute_ptscotch.c
   order/order_compute_metis.c
 
-  matrix_drivers/iohb.c
-  matrix_drivers/mmio.c
-  matrix_drivers/skitf.f
+  matrix_drivers/laplacian.c
   matrix_drivers/readhb.c
   matrix_drivers/readijv.c
   matrix_drivers/readmm.c

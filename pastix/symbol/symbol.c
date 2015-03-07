@@ -1,125 +1,101 @@
-/* Copyright INRIA 2004
-**
-** This file is part of the Scotch distribution.
-**
-** The Scotch distribution is libre/free software; you can
-** redistribute it and/or modify it under the terms of the
-** GNU Lesser General Public License as published by the
-** Free Software Foundation; either version 2.1 of the
-** License, or (at your option) any later version.
-**
-** The Scotch distribution is distributed in the hope that
-** it will be useful, but WITHOUT ANY WARRANTY; without even
-** the implied warranty of MERCHANTABILITY or FITNESS FOR A
-** PARTICULAR PURPOSE. See the GNU Lesser General Public
-** License for more details.
-**
-** You should have received a copy of the GNU Lesser General
-** Public License along with the Scotch distribution; if not,
-** write to the Free Software Foundation, Inc.,
-** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-**
-** $Id: symbol.c 285 2005-03-10 10:25:31Z pelegrin $
-*/
-/************************************************************/
-/**                                                        **/
-/**   NAME       : symbol.c                                **/
-/**                                                        **/
-/**   AUTHORS    : David GOUDIN                            **/
-/**                Pascal HENON                            **/
-/**                Francois PELLEGRINI                     **/
-/**                Pierre RAMET                            **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                These lines are the general purpose     **/
-/**                routines for the symbolic matrix.       **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to     07 oct 1998     **/
-/**                # Version 0.1  : from : 03 dec 1998     **/
-/**                                 to     03 dec 1998     **/
-/**                # Version 3.0  : from : 29 feb 2004     **/
-/**                                 to     29 feb 2004     **/
-/**                                                        **/
-/************************************************************/
-
-/*
-**  The defines and includes.
-*/
-
-#define SYMBOL
-
+/**
+ *
+ * @file symbol.c
+ *
+ *  PaStiX symbol structure routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 5.1.0
+ * @author David Goudin
+ * @author Francois Pelegrin
+ * @author Mathieu Faverge
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
 #include "symbol.h"
 #include "order.h"
 
-/******************************************/
-/*                                        */
-/* The symbolic matrix handling routines. */
-/*                                        */
-/******************************************/
-
-/*+ This routine initializes the given
-*** symbolic block matrix structure.
-*** It returns:
-*** - 0  : in all cases.
-+*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolInit - Initialize the symbol structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] symbptr
+ *          The symbol structure to initialize.
+ *
+ *******************************************************************************/
 int
-symbolInit (
-SymbolMatrix * const        symbptr)
+symbolInit ( SymbolMatrix *symbptr )
 {
-  memset (symbptr, 0, sizeof (SymbolMatrix));
+    memset (symbptr, 0, sizeof (SymbolMatrix));
 #ifdef STARPU_GET_TASK_CTX
-  symbptr->starpu_subtree_nbr=1;
+    symbptr->starpu_subtree_nbr=1;
 #endif
-  return (0);
+    return (0);
 }
 
-/*+ This routine frees the contents
-*** of the given symbolic block matrix.
-*** It returns:
-*** - VOID  : in all cases.
-+*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolExit - Frees the contents of the given symbolic block matrix.Clean up
+ * the symbol structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] symbptr
+ *          The pointer to the structure to free.
+ *
+ *******************************************************************************/
 void
-symbolExit (
-SymbolMatrix * const        symbptr)
+symbolExit( SymbolMatrix *symbptr )
 {
-  if (symbptr->cblktab != NULL)
-    memFree_null (symbptr->cblktab);
-  if (symbptr->bloktab != NULL)
-    memFree_null (symbptr->bloktab);
-
-#ifdef SYMBOL_DEBUG
-  symbolInit (symbptr);
-#endif /* SYMBOL_DEBUG */
+    if (symbptr->cblktab != NULL)
+        memFree_null (symbptr->cblktab);
+    if (symbptr->bloktab != NULL)
+        memFree_null (symbptr->bloktab);
 }
 
-/*+ This routine reallocates the arrays
-*** of the given symbolic block matrix.
-*** It returns:
-*** - VOID  : in all cases.
-+*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolRealloc - Reallocates the data structure to optimize the memory
+ * alignment.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] symbptr
+ *          The pointer to the structure that needs to be reallocated.
+ *
+ *******************************************************************************/
 void
-symbolRealloc (
-SymbolMatrix * const        symbptr)
+symbolRealloc( SymbolMatrix *symbptr )
 {
-  SymbolCblk *        cblktab = NULL;
-  SymbolBlok *        bloktab = NULL;
+    SymbolCblk *cblktab = NULL;
+    SymbolBlok *bloktab = NULL;
 
-  if ((cblktab = (SymbolCblk *) memAlloc ((symbptr->cblknbr + 1) * sizeof (SymbolCblk))) == NULL)
-    return;                                       /* Cannot move smallest array */
-  memcpy  (cblktab, symbptr->cblktab, (symbptr->cblknbr + 1) * sizeof (SymbolCblk));
-  memFree (symbptr->cblktab);                     /* Move column block array */
-  symbptr->cblktab = cblktab;
+    /* Move column block array */
+    MALLOC_INTERN( cblktab, symbptr->cblknbr+1, SymbolCblk );
+    memcpy(cblktab, symbptr->cblktab, (symbptr->cblknbr + 1) * sizeof (SymbolCblk));
+    memFree(symbptr->cblktab);
+    symbptr->cblktab = cblktab;
 
-  if ((bloktab = (SymbolBlok *) memAlloc (symbptr->bloknbr * sizeof (SymbolBlok))) == NULL)
-    return;                                       /* Cannot move array */
-  memcpy  (bloktab, symbptr->bloktab, symbptr->bloknbr * sizeof (SymbolBlok));
-  memFree (symbptr->bloktab);                     /* Move column block array */
-  symbptr->bloktab = bloktab;
+    /* Move block array */
+    MALLOC_INTERN( bloktab, symbptr->bloknbr+1, SymbolBlok );
+    memcpy(bloktab, symbptr->bloktab, (symbptr->bloknbr + 1) * sizeof (SymbolBlok));
+    memFree(symbptr->bloktab);
+    symbptr->bloktab = bloktab;
 }
 
 /** Get face block for task E2 **/
@@ -179,12 +155,33 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     return -1;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolGetNNZ - Computes the number of non-zero elements stored in the
+ * symbol matrix in order to compute the fill-in. This routines returns the
+ * number of non-zero of the strictly lower part of the matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] symbptr
+ *          The symbol structure to study.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of non zero elements in the strictly lower part of the
+ *          full symbol matrix.
+ *
+ *******************************************************************************/
 pastix_int_t
 symbolGetNNZ(const SymbolMatrix *symbptr)
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
-    pastix_int_t itercblk, iterblok;
+    pastix_int_t itercblk;
     pastix_int_t cblknbr;
     pastix_int_t nnz = 0;
 
@@ -214,6 +211,82 @@ symbolGetNNZ(const SymbolMatrix *symbptr)
 
     return nnz;
 }
+
+#if 0
+void
+symbolBuildRowtab(SymbolMatrix *symbptr)
+{
+    SymbolCblk *cblk;
+    SymbolBlok *blok;
+    pastix_int_t *innbr, *browtab, *crowtab;
+    pastix_int_t  itercblk;
+    pastix_int_t  cblknbr;
+    pastix_int_t  edgenbr = symbptr->bloknbr - symbptr->cblknbr;
+
+    cblknbr = symbptr->cblknbr;
+
+    MALLOC_INTERN(innbr, cblknbr, pastix_int_t );
+    memset( innbr, 0, cblknbr * sizeof(pastix_int_t) );
+
+    /* Count the number of input edge per cblk */
+    cblk = symbptr->cblktab;
+    blok = symbptr->bloktab;
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t iterblok = cblk[0].bloknum + 1;
+        pastix_int_t lbloknum = cblk[1].bloknum;
+
+        /* Skip diagonal block */
+        blok++;
+
+        /* Off-diagonal blocks */
+        for( ; iterblok < lbloknum; iterblok++, blok++)
+        {
+            innbr[ blok->cblknum ]++;
+        }
+    }
+
+    /* Initialize the brownum fields */
+    cblk = symbptr->cblktab;
+    cblk->brownum = 0;
+    for(itercblk=0; itercblk<cblknbr-1; itercblk++, cblk++)
+    {
+        cblk[1].brownum = cblk[0].brownum + innbr[ itercblk ];
+        innbr[itercblk] = cblk[0].brownum;
+    }
+    assert( (cblk[0].brownum + innbr[itercblk]) == edgenbr );
+    innbr[itercblk] = cblk[0].brownum;
+
+    /* Initialize the browtab/crowtab */
+    MALLOC_INTERN(browtab, edgenbr, pastix_int_t );
+    MALLOC_INTERN(crowtab, edgenbr, pastix_int_t );
+
+    cblk = symbptr->cblktab;
+    blok = symbptr->bloktab;
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t iterblok = cblk[0].bloknum + 1;
+        pastix_int_t lbloknum = cblk[1].bloknum;
+
+        /* Skip diagonal block */
+        blok++;
+
+        /* Off-diagonal blocks */
+        for( ; iterblok < lbloknum; iterblok++, blok++)
+        {
+            crowtab[ innbr[ blok->cblknum ] ] = itercblk;
+            browtab[ innbr[ blok->cblknum ] ] = iterblok;
+            innbr[ blok->cblknum ]++;
+        }
+    }
+
+    symbptr->crowtab = crowtab;
+    symbptr->browtab = browtab;
+
+    memFree( innbr );
+    return;
+}
+#endif
 
 void
 symbolPrintStats( const SymbolMatrix *symbptr )
