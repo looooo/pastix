@@ -171,7 +171,10 @@ typedef struct SolverMatrix_ {
  */
 static inline
 int cblk_ishalo( SolverMatrix * datacode,
-                 SolverCblk   * cblk ) {
+                 SolverCblk   * cblk )
+{
+    (void)datacode;
+    (void)cblk;
 #ifdef PASTIX_WITH_STARPU
     if ((size_t)cblk >= (size_t)datacode->hcblktab &&
         (size_t)cblk < (size_t)(datacode->hcblktab+datacode->hcblknbr)) {
@@ -192,7 +195,10 @@ int cblk_ishalo( SolverMatrix * datacode,
  */
 static inline
 int cblk_isfanin( SolverMatrix * datacode,
-                  SolverCblk   * cblk ) {
+                  SolverCblk   * cblk )
+{
+    (void)datacode;
+    (void)cblk;
 #ifdef PASTIX_WITH_STARPU
     pastix_int_t clustnum;
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
@@ -253,7 +259,10 @@ pastix_int_t cblk_getnum( SolverMatrix * datacode,
  */
 static inline
 pastix_int_t hcblk_getnum( SolverMatrix * datacode,
-                           SolverCblk   * cblk ) {
+                           SolverCblk   * cblk )
+{
+    (void)datacode;
+    (void)cblk;
 #ifdef PASTIX_WITH_STARPU
     assert(cblk_ishalo(datacode, cblk) == API_YES);
     return cblk - datacode->hcblktab;
@@ -274,7 +283,11 @@ pastix_int_t hcblk_getnum( SolverMatrix * datacode,
 static inline
 pastix_int_t fblok_getnum( SolverMatrix * datacode,
                            SolverBlok   * blok,
-                           pastix_int_t   procnum ) {
+                           pastix_int_t   procnum )
+{
+    (void)datacode;
+    (void)blok;
+    (void)procnum;
 #ifdef PASTIX_WITH_STARPU
     return blok - datacode->fbloktab[procnum];
 
@@ -293,7 +306,10 @@ pastix_int_t fblok_getnum( SolverMatrix * datacode,
  */
 static inline
 pastix_int_t blok_getnum( SolverMatrix * datacode,
-                          SolverBlok   * blok ) {
+                          SolverBlok   * blok )
+{
+    (void)datacode;
+    (void)blok;
     return blok - datacode->bloktab;
 }
 
@@ -308,7 +324,10 @@ pastix_int_t blok_getnum( SolverMatrix * datacode,
  */
 static inline
 pastix_int_t hblok_getnum( SolverMatrix * datacode,
-                           SolverBlok   * blok ) {
+                           SolverBlok   * blok )
+{
+    (void)datacode;
+    (void)blok;
 #ifdef PASTIX_WITH_STARPU
     return blok - datacode->hbloktab;
 #else
@@ -328,7 +347,11 @@ pastix_int_t hblok_getnum( SolverMatrix * datacode,
 static inline
 pastix_int_t fcblk_getnum( SolverMatrix * datacode,
                            SolverCblk   * cblk,
-                           pastix_int_t   procnum ) {
+                           pastix_int_t   procnum )
+{
+    (void)datacode;
+    (void)cblk;
+    (void)procnum;
 #ifdef PASTIX_WITH_STARPU
     assert(cblk_isfanin(datacode, cblk) == API_YES);
     return cblk - datacode->fcblktab[procnum];
@@ -340,7 +363,10 @@ pastix_int_t fcblk_getnum( SolverMatrix * datacode,
 
 static inline
 pastix_int_t fcblk_getorigin( SolverMatrix * datacode,
-                              SolverMatrix * cblk ) {
+                              SolverMatrix * cblk )
+{
+    (void)datacode;
+    (void)cblk;
 #ifdef PASTIX_WITH_STARPU
     pastix_int_t clustnum;
     for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
@@ -409,7 +435,11 @@ pastix_int_t cblk_rownbr( SolverCblk * cblk ) {
 static inline
 pastix_int_t cblk_save( SolverCblk * cblk,
                         char * name,
-                        pastix_complex64_t * coef) {
+                        pastix_complex64_t * coef)
+{
+    (void)name;
+    (void)coef;
+    (void)cblk;
 #ifdef PASTIX_DUMP_CBLK
     pastix_int_t i,j;
     SolverBlok *b;
@@ -474,5 +504,8 @@ typedef struct SolverBackup_s SolverBackup_t;
 SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
 int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
 void            solverBackupExit( SolverBackup_t *b );
+
+pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
+pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
 
 #endif /* SOLVER_H */
