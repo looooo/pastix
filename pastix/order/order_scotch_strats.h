@@ -151,4 +151,8 @@
 #define PTSCOTCH_STRAT_PERSO  "c{rat=0.7,cpr=n{sep=/(vert>%ld)?m{vert=100,low=h{pass=10},asc=f{bal=0.2}}|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g},unc=n{sep=/(vert>%ld)?(m{vert=100,low=h{pass=10},asc=f{bal=0.2}})|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g}}"
 
 
+#define SCOTCH_STRAT_CLIF                                               \
+  "c{rat=0.7,"                                                          \
+  "  cpr=n{sep=(/((levl)<(120))?((m{asc=b{bnd=f{move=200,pass=1000,bal=0.2},org=(|h{pass=10})f{move=200,pass=1000,bal=0.2},width=3},low=h{pass=10},type=h,vert=100,rat=0.7}|m{asc=b{bnd=f{move=200,pass=1000,bal=0.2},org=(|h{pass=10})f{move=200,pass=1000,bal=0.2},width=3},low=h{pass=10},type=h,vert=100,rat=0.7}));),ole=s,ose=s},unc=n{sep=(/((levl)<(3))?((m{asc=b{bnd=f{move=200,pass=1000,bal=0.2},org=(|h{pass=10})f{move=200,pass=1000,bal=0.2},width=3},low=h{pass=10},type=h,vert=100,rat=0.7}|m{asc=b{bnd=f{move=200,pass=1000,bal=0.2},org=(|h{pass=10})f{move=200,pass=1000,bal=0.2},width=3},low=h{pass=10},type=h,vert=100,rat=0.7}));),ole=s,ose=s}}"
+
 #endif /* _ORDER_SCOTCH_STRATS_H_ */

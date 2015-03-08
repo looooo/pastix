@@ -101,6 +101,14 @@ int cscReadFromFile( pastix_driver_t  driver,
         {
             SCOTCH_Graph sgraph;
             FILE *file = fopen( filename, "r" );
+
+            /* Check integer compatibility */
+            if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
+                errorPrint("Inconsistent integer type\n");
+                fclose(file);
+                return PASTIX_ERR_INTEGER_TYPE;
+            }
+
             SCOTCH_graphLoad( &sgraph, file, 1, 0 );
             SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rows), NULL );
             fclose(file);
@@ -245,7 +253,7 @@ int cscReadFromFile( pastix_driver_t  driver,
     {
         pastix_int_t nnz;
 
-        fprintf(stderr, "Hello\n");
+        /* fprintf(stderr, "Hello\n"); */
         if (mpirank == 0) {
             nnz = csc->colptr[csc->gN] - csc->colptr[0];
         }
@@ -253,8 +261,8 @@ int cscReadFromFile( pastix_driver_t  driver,
         MPI_Bcast( csc, 2*sizeof(int)+3*sizeof(pastix_int_t), MPI_CHAR, 0, pastix_comm );
         MPI_Bcast( &nnz, 1, PASTIX_MPI_INT, 0, pastix_comm );
 
-        fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n",
-                mpirank, csc->mtxtype, csc->flttype, (long)nnz, (long)csc->gN );
+        /* fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n", */
+        /*         mpirank, csc->mtxtype, csc->flttype, (long)nnz, (long)csc->gN ); */
 
         if ( mpirank != 0 )
         {
