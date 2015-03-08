@@ -135,6 +135,9 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
     newsymb->cblknbr = oldsymb->cblknbr + extracblk->addcblk;
     MALLOC_INTERN(newsymb->cblktab, newsymb->cblknbr+1, SymbolCblk);
 
+    newsymb->crowtab = NULL;
+    newsymb->browtab = NULL;
+
     /* Allocate new candtab */
     MALLOC_INTERN(newcand, newsymb->cblknbr, Cand);
 

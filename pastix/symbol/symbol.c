@@ -66,6 +66,7 @@ symbolExit( SymbolMatrix *symbptr )
         memFree_null (symbptr->browtab);
     if (symbptr->crowtab != NULL)
         memFree_null (symbptr->crowtab);
+    memset (symbptr, 0, sizeof (SymbolMatrix));
 }
 
 /**
@@ -260,8 +261,8 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
     innbr[itercblk] = cblk[0].brownum;
 
     /* Initialize the browtab/crowtab */
-    MALLOC_INTERN(browtab, edgenbr, pastix_int_t );
     MALLOC_INTERN(crowtab, edgenbr, pastix_int_t );
+    MALLOC_INTERN(browtab, edgenbr, pastix_int_t );
 
     cblk = symbptr->cblktab;
     blok = symbptr->bloktab;
@@ -283,6 +284,12 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
         }
     }
 
+    if (symbptr->crowtab == NULL) {
+        memFree(symbptr->crowtab);
+    }
+    if (symbptr->browtab == NULL) {
+        memFree(symbptr->browtab);
+    }
     symbptr->crowtab = crowtab;
     symbptr->browtab = browtab;
 
