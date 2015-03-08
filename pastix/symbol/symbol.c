@@ -62,6 +62,10 @@ symbolExit( SymbolMatrix *symbptr )
         memFree_null (symbptr->cblktab);
     if (symbptr->bloktab != NULL)
         memFree_null (symbptr->bloktab);
+    if (symbptr->browtab != NULL)
+        memFree_null (symbptr->browtab);
+    if (symbptr->crowtab != NULL)
+        memFree_null (symbptr->crowtab);
 }
 
 /**
@@ -211,13 +215,12 @@ symbolGetNNZ(const SymbolMatrix *symbptr)
     return nnz;
 }
 
-#if 0
 void
 symbolBuildRowtab(SymbolMatrix *symbptr)
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
-    pastix_int_t *innbr, *browtab, *crowtab;
+    pastix_int_t *innbr, *intmp, *browtab, *crowtab;
     pastix_int_t  itercblk;
     pastix_int_t  cblknbr;
     pastix_int_t  edgenbr = symbptr->bloknbr - symbptr->cblknbr;
@@ -273,9 +276,10 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
         /* Off-diagonal blocks */
         for( ; iterblok < lbloknum; iterblok++, blok++)
         {
-            crowtab[ innbr[ blok->cblknum ] ] = itercblk;
-            browtab[ innbr[ blok->cblknum ] ] = iterblok;
-            innbr[ blok->cblknum ]++;
+            intmp = innbr + blok->cblknum;
+            crowtab[ *intmp ] = itercblk;
+            browtab[ *intmp ] = iterblok;
+            (*intmp)++;
         }
     }
 
@@ -285,7 +289,6 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
     memFree( innbr );
     return;
 }
-#endif
 
 void
 symbolPrintStats( const SymbolMatrix *symbptr )

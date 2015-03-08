@@ -54,7 +54,7 @@
  * node to compute the symbol matrix.
  * If symbolKass() is used, the perm and invp vector will be modified and
  * returned to the user. BE CAREFULL if you give your own ordering and wants to
- * keep both version because the one given will be overwritten.
+ * keep it because it will be overwritten by the updated one.
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_INCOMPLETE, IPARM_LEVEL_OF_FILL,
@@ -335,7 +335,8 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                    pastix_data->symbmtx );
 #endif
 
-    /* Realign data structure */
+    /* Build the browtabs and Realign data structure */
+    symbolBuildRowtab( pastix_data->symbmtx );
     symbolRealloc( pastix_data->symbmtx );
 
     /*
@@ -366,10 +367,10 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
 #endif
 
     /* Invalidate following steps, and add order step to the ones performed */
-    pastix_data->steps &= ~( STEP_ANALYSE  |
-                             STEP_NUMFACT  |
-                             STEP_SOLVE    |
-                             STEP_REFINE   );
+    pastix_data->steps &= ~( STEP_ANALYSE |
+                             STEP_NUMFACT |
+                             STEP_SOLVE   |
+                             STEP_REFINE  );
     pastix_data->steps |= STEP_SYMBFACT;
 
     iparm[IPARM_START_TASK]++;

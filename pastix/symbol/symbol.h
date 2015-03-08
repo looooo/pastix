@@ -26,6 +26,7 @@ typedef struct SymbolCblk_ {
   pastix_int_t fcolnum;  /*< First column index               */
   pastix_int_t lcolnum;  /*< Last column index (inclusive)    */
   pastix_int_t bloknum;  /*< First block in column (diagonal) */
+  pastix_int_t brownum;  /*< First block in row facing the diagonal block in browtab/crowtab */
 } SymbolCblk;
 
 /**
@@ -49,6 +50,8 @@ typedef struct SymbolMatrix_ {
   pastix_int_t            bloknbr;  /*< Number of blocks                  */
   SymbolCblk   * restrict cblktab;  /*< Array of column blocks [+1,based] */
   SymbolBlok   * restrict bloktab;  /*< Array of blocks [based]           */
+  pastix_int_t * restrict crowtab;  /*< Array of column blocks [based]    */
+  pastix_int_t * restrict browtab;  /*< Array of blocks [based]           */
   pastix_int_t            nodenbr;  /*< Number of nodes in matrix         */
 #ifdef STARPU_GET_TASK_CTX
   pastix_int_t            starpu_subtree_nbr;
@@ -59,16 +62,17 @@ typedef struct SymbolMatrix_ {
 **  The function prototypes.
 */
 
-int  symbolInit      (      SymbolMatrix *symbptr);
-void symbolExit      (      SymbolMatrix *symbptr);
-void symbolBase      (      SymbolMatrix *symbptr, const pastix_int_t baseval);
-void symbolRealloc   (      SymbolMatrix *symbptr);
-void symbolRustine   (      SymbolMatrix *symbptr, SymbolMatrix *symbptr2);
-int  symbolCheck     (const SymbolMatrix *symbptr);
-int  symbolSave      (const SymbolMatrix *symbptr, FILE *stream);
-int  symbolLoad      (      SymbolMatrix *symbptr, FILE *stream);
-int  symbolDraw      (const SymbolMatrix *symbptr, FILE *stream);
-void symbolPrintStats(const SymbolMatrix *symbptr);
+int  symbolInit       (      SymbolMatrix *symbptr);
+void symbolExit       (      SymbolMatrix *symbptr);
+void symbolBase       (      SymbolMatrix *symbptr, const pastix_int_t baseval);
+void symbolRealloc    (      SymbolMatrix *symbptr);
+void symbolRustine    (      SymbolMatrix *symbptr, SymbolMatrix *symbptr2);
+void symbolBuildRowtab(      SymbolMatrix *symbptr);
+int  symbolCheck      (const SymbolMatrix *symbptr);
+int  symbolSave       (const SymbolMatrix *symbptr, FILE *stream);
+int  symbolLoad       (      SymbolMatrix *symbptr, FILE *stream);
+int  symbolDraw       (const SymbolMatrix *symbptr, FILE *stream);
+void symbolPrintStats (const SymbolMatrix *symbptr);
 
 pastix_int_t
 symbolGetFacingBloknum(const SymbolMatrix *symbptr,
