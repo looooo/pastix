@@ -504,7 +504,7 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
     pastix_complex64_t *valptr;
     pastix_int_t *colptr, *rowptr;
     pastix_int_t i, j, k, l;
-    pastix_int_t nnz = (2*dim1-1)*dim2*dim3 + (3*dim1-2)*(dim2-1)*dim3 + (3*dim1-2)*(dim2-1)*(dim3-1);
+    pastix_int_t nnz = (2*dim1-1)*dim2*dim3 + (3*dim1-2)*(dim2-1)*dim3 + ((3*dim1-2)*dim2+2*(3*dim1-2)*(dim2-1))*(dim3-1);
 
     csc->mtxtype  = PastixSymmetric;
     csc->flttype  = PastixComplex64;

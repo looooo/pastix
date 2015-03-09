@@ -30,4 +30,16 @@ void d_spmLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, 
 void s_spmLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
 void p_spmLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
 
+void z_spmExtendedLaplacian2D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2 );
+void c_spmExtendedLaplacian2D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2 );
+void d_spmExtendedLaplacian2D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2 );
+void s_spmExtendedLaplacian2D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2 );
+void p_spmExtendedLaplacian2D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2 );
+
+void z_spmExtendedLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
+void c_spmExtendedLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
+void d_spmExtendedLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
+void s_spmExtendedLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
+void p_spmExtendedLaplacian3D( pastix_csc_t *csc, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
+
 #endif /* _LAPLACIAN_H_ */

@@ -212,6 +212,26 @@ static void (*laplacian_table3D[6])(pastix_csc_t*, pastix_int_t, pastix_int_t, p
     z_spmLaplacian3D
 };
 
+static void (*extended_laplacian_table2D[6])(pastix_csc_t*, pastix_int_t, pastix_int_t) =
+{
+    p_spmLaplacian2D,
+    NULL,
+    s_spmExtendedLaplacian2D,
+    d_spmExtendedLaplacian2D,
+    c_spmExtendedLaplacian2D,
+    z_spmExtendedLaplacian2D
+};
+
+static void (*extended_laplacian_table3D[6])(pastix_csc_t*, pastix_int_t, pastix_int_t, pastix_int_t) =
+{
+    p_spmExtendedLaplacian3D,
+    NULL,
+    s_spmExtendedLaplacian3D,
+    d_spmExtendedLaplacian3D,
+    c_spmExtendedLaplacian3D,
+    z_spmExtendedLaplacian3D
+};
+
 /**
  *******************************************************************************
  *
@@ -256,10 +276,10 @@ genLaplacian( const char    *filename,
         return rc;
 
     if( dim3 > 0 ) {
-        laplacian_table3D[csc->flttype](csc, dim1, dim2, dim3);
+        extended_laplacian_table3D[csc->flttype](csc, dim1, dim2, dim3);
     }
     else if (dim2 > 0) {
-        laplacian_table2D[csc->flttype](csc, dim1, dim2);
+        extended_laplacian_table2D[csc->flttype](csc, dim1, dim2);
     }
     else {
         laplacian_table1D[csc->flttype](csc, dim1);
