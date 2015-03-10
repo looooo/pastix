@@ -23,6 +23,15 @@
 #include <csc.h>
 #include <laplacian.h>
 
+#define TEST(f) printf("-- Test %s: ", f);
+#define CHECK printf("Check the CSC: "); ret = PASTIX_SUCCESS;
+#define RES(a) if(a != PASTIX_SUCCESS){printf("FAILED\n"); \
+               err++;} \
+               else{printf("SUCCESS\n");}
+#define RES_CHECK(a) if(a != PASTIX_SUCCESS){printf("FAILED\n"); \
+                     err= -1; break;} \
+                     else{printf("SUCCESS\n");}
+
 int
 s_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
 {
@@ -31,17 +40,18 @@ s_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
     float epsilon;
     pastix_int_t i;
 
+    /* TODO LAPACKE_dlamch_work */
     epsilon = 1E-15;
 
     for (i = 0; i < nnz; i++, valptr1++, valptr2++)
     {
         if ( fabs(*valptr1 - *valptr2) > epsilon )
         {
-            return 1;
+            return PASTIX_ERR_BADPARAMETER;
         }
     }
 
-    return 0;
+    return PASTIX_SUCCESS;
 }
 
 int
@@ -58,12 +68,11 @@ d_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
     {
         if ( fabs(*valptr1 - *valptr2) > epsilon )
         {
-            printf("error\n");
-            return 1;
+            return PASTIX_ERR_BADPARAMETER;
         }
     }
 
-    return 0;
+    return PASTIX_SUCCESS;
 }
 
 int
@@ -82,13 +91,12 @@ c_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
         {
             if ( fabs(cimag( *valptr1 ) - cimag( *valptr2 ) ) > epsilon )
             {
-                printf("error\n");
-                return 1;
+                return PASTIX_ERR_BADPARAMETER;
             }
         }
     }
 
-    return 0;
+    return PASTIX_SUCCESS;
 }
 
 int
@@ -107,13 +115,12 @@ z_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
         {
             if ( fabs(cimag( *valptr1 ) - cimag( *valptr2 ) ) > epsilon )
             {
-                printf("error\n");
-                return 1;
+                return PASTIX_ERR_BADPARAMETER;
             }
         }
     }
 
-    return 0;
+    return PASTIX_SUCCESS;
 }
 
 int main (int argc, char **argv)
@@ -125,6 +132,8 @@ int main (int argc, char **argv)
     void *avals          = NULL;
     void *rhs            = NULL;
     pastix_int_t i, n, nnz, baseval;
+    pastix_int_t ret = PASTIX_SUCCESS;
+    pastix_int_t err = 0;
     
     if( argc > 1 ) {
         filename = argv[1];
@@ -136,7 +145,29 @@ int main (int argc, char **argv)
     /* Generating a 3D laplacian */
     genLaplacian( filename, &csc );
 
-    printf("%ld non-zero coef\n",(long)csc.nnz);
+    printf("\n");
+    if(csc.flttype == PastixFloat)
+    {
+        printf("datatype: PastixFloat\n");
+    }
+    else if(csc.flttype == PastixDouble)
+    {
+        printf("datatype: PastixDouble\n");
+    }
+    else if(csc.flttype == PastixComplex32)
+    {
+        printf("datatype: PastixComplex32\n");
+    }
+    else if(csc.flttype == PastixComplex64)
+    {
+        printf("datatype: PastixComplex64\n");
+    }
+    else
+    {
+        printf("datatype: PastixPattern\n");
+    }
+
+    printf("CSC of size %ld with %ld non-zero\n",(long)csc.gN,(long)csc.nnz);
 
     for( baseval=1; baseval >= 0; baseval-- )
     {
@@ -190,232 +221,172 @@ int main (int argc, char **argv)
         }
 
         /* testing conversion routines */
-        printf("CSC2CSR: ");
-        if(spmConvert( PastixCSR, &csc ) != PASTIX_SUCCESS )
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
-        printf("OK\n");
+        TEST("spmConvertCSC2CSR")
+        ret = spmConvert( PastixCSR, &csc );
+        RES(ret)
 
         /*-------------------------------------------------*/
-        printf("CSR2IJV: ");
-        if(spmConvert( PastixIJV, &csc ) != PASTIX_SUCCESS )
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
-        printf("OK\n");
+        TEST("spmConvertCSR2IJV")
+        ret = spmConvert( PastixIJV, &csc );
+        RES(ret)
 
         /*-------------------------------------------------*/
-        printf("IJV2CSC: ");
-        if(spmConvert( PastixCSC, &csc ) != PASTIX_SUCCESS )
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
-        printf("OK\n");
+        TEST("spmConvertIJV2CSC")
+        ret = spmConvert( PastixCSC, &csc );
+        RES(ret)
 
         /* intermediate check of the csc */
         /*-------------------------------------------------*/
-        printf("size: ");
+        CHECK
         if (csc.n != n)
         {
-            printf("error: n=%ld, csc.n=%ld \n",(long)n,(long)csc.n);
-            return PASTIX_ERR_BADPARAMETER;
+            ret = PASTIX_ERR_BADPARAMETER;
         }
         if (csc.nnz != nnz)
         {
-            printf("error: nnz=%ld, csc.nnz=%ld \n",(long)nnz,(long)csc.nnz);
-            return PASTIX_ERR_BADPARAMETER;
+            ret = PASTIX_ERR_BADPARAMETER;
         }
-        printf("   OK\n");
 
-        printf("colptr: ");
         for (i = 0; i <= csc.n; i++)
         {
             if (csc.colptr[i] != colptr[i])
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }
-        printf(" OK\n");
 
-        printf("rows: ");
         for (i = 0; i < csc.nnz; i++)
         {
             if (csc.rows[i] != rows[i])
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }
-        printf("   OK\n");
 
         /* check avals */
-        printf("avals: ");
         if(csc.flttype == PastixFloat)
         {
             if (s_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixDouble)
         {
             if (d_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex32)
         {
             if (c_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex64)
         {
             if (z_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }
-        printf("  OK\n");
+        RES_CHECK(ret)
         /* end intermediate checking of the csc */
 
         /*-------------------------------------------------*/
-        printf("CSC2IJV: ");
-        if(spmConvert( PastixIJV, &csc ) != PASTIX_SUCCESS )
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
-        printf("OK\n");
+        TEST("spmConvertCSC2IJV")
+        ret = spmConvert( PastixIJV, &csc );
+        RES(ret)
 
         /*-------------------------------------------------*/
-        printf("IJV2CSR: ");
-        if(spmConvert( PastixCSR, &csc ) != PASTIX_SUCCESS )
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
-        printf("OK\n");
+        TEST("spmConvertIJV2CSR")
+        ret = spmConvert( PastixCSR, &csc );
+        RES(ret)
 
         /*-------------------------------------------------*/
-        printf("CSR2CSC: ");
-        if(spmConvert( PastixCSC, &csc ) != PASTIX_SUCCESS )
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
-        printf("OK\n");
+        TEST("spmConvertCSR2CSC")
+        ret = spmConvert( PastixCSC, &csc );
+        RES(ret)
 
         /* final check of the csc */
         /*-------------------------------------------------*/
-        printf("size: ");
+        CHECK
         if (csc.n != n)
         {
-            printf("error: n=%ld, csc.n=%ld \n",(long)n,(long)csc.n);
-            return PASTIX_ERR_BADPARAMETER;
+            ret = PASTIX_ERR_BADPARAMETER;
         }
         if (csc.nnz != nnz)
         {
-            printf("error: nnz=%ld, csc.nnz=%ld \n",(long)nnz,(long)csc.nnz);
-            return PASTIX_ERR_BADPARAMETER;
+            ret = PASTIX_ERR_BADPARAMETER;
         }
-        printf("   OK\n");
 
         /* check colptr */
-        printf("colptr: ");
         for (i = 0; i <= csc.n; i++)
         {
             if (csc.colptr[i] != colptr[i])
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }
-        printf(" OK\n");
 
         /* check rows */
-        printf("rows: ");
         for (i = 0; i < csc.nnz; i++)
         {
             if (csc.rows[i] != rows[i])
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }
-        printf("   OK\n");
 
         /* check avals */
-        printf("avals: ");
         if(csc.flttype == PastixFloat)
         {
             if (s_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixDouble)
         {
             if (d_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex32)
         {
             if (c_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex64)
         {
             if (z_compareAvals(csc.avals,avals,csc.nnz) > 0)
             {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
+                ret = PASTIX_ERR_BADPARAMETER;
             }
         }
-        printf("  OK\n");
+        RES_CHECK(ret)
         /*-------------------------------------------------*/
 
         /* testing the rhs generator */
-        printf("genRHS: ");
         /* first attempt with NULL RHS ans general csc*/
+        TEST("genRHS General")
         csc.mtxtype = PastixGeneral;
-        if (genRHS(&csc,&rhs) != PASTIX_SUCCESS)
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
+        ret = genRHS(&csc,&rhs);
+        RES(ret)
 
         /* second attempt with already filled-in RHS and hermitian csc*/
         if(csc.flttype == PastixComplex32 || csc.flttype == PastixComplex64)
         {
             csc.mtxtype=PastixHermitian;
-            if (genRHS(&csc,&rhs) != PASTIX_SUCCESS)
-            {
-                printf("error\n");
-                return PASTIX_ERR_BADPARAMETER;
-            }
+            TEST("genRHS Hermitian")
+            ret = genRHS(&csc,&rhs);
+            RES(ret)
         }
 
         /* last try with already filled-in RHS and symetric csc*/
         csc.mtxtype=PastixSymmetric;
-        if (genRHS(&csc,&rhs) != PASTIX_SUCCESS)
-        {
-            printf("error\n");
-            return PASTIX_ERR_BADPARAMETER;
-        }
-        printf(" OK\n");
+        TEST("genRHS Symmetric")
+        ret = genRHS(&csc,&rhs);
+        RES(ret)
 
         /* Free memory */
         free(colptr);
@@ -426,11 +397,32 @@ int main (int argc, char **argv)
             free(avals);
     /* end of the baseval loop */
     }
-    
+
     free(csc.colptr);
     free(csc.rows);
     if(csc.avals != NULL)
         free(csc.avals);
 
-    return 0;
+    if(err==0)
+    {
+        printf("\n  Result: everything is OK\n\n");
+        ret = PASTIX_SUCCESS;
+    }
+    else if(err==1)
+    {
+        printf("\n  Result: %d test failed\n\n",err);
+        ret = PASTIX_ERR_BADPARAMETER;
+    }
+    else if(err==-1)
+    {
+        printf("\n  Abort: matrix is not correct\n\n");
+        ret = PASTIX_ERR_BADPARAMETER;
+    }
+    else
+    {
+        printf("\n  Result: %d tests failed\n\n",err);
+        ret = PASTIX_ERR_BADPARAMETER;
+    }
+
+    return ret;
 }
