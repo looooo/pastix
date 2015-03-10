@@ -709,6 +709,7 @@ static struct option long_options[] =
     {"mm",          required_argument,  0, '8'},
     {"9",           required_argument,  0, '9'},
     {"lap",         required_argument,  0, '9'},
+    {"xlap",        required_argument,  0, 'x'},
     {"dmm",         required_argument,  0, 'A'},
     {"fdup",        required_argument,  0, 'B'},
     {"fdupd",       required_argument,  0, 'C'},
@@ -872,6 +873,11 @@ void pastix_ex_getoptions(int argc, char **argv,
         case 'v':
             if(optarg)  iparam[IPARM_VERBOSE] = atoi(optarg);
             else        iparam[IPARM_VERBOSE] = 2;
+            break;
+
+        case 'x':
+            *driver = PastixDriverXLaplacian;
+            getfilename( filename, optarg, "d:1000" );
             break;
 
         case 'h': pastix_ex_usage(); exit(0);

@@ -96,6 +96,12 @@ int cscReadFromFile( pastix_driver_t  driver,
             genLaplacian( filename, csc );
             break;
 
+        case PastixDriverXLaplacian:
+            if (mpirank == 0)
+                printf("driver Extended Laplacian: %s\n", filename);
+            genExtendedLaplacian( filename, csc );
+            break;
+
         case PastixDriverGraph:
 #if defined(HAVE_SCOTCH)
         {
