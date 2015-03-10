@@ -30,6 +30,7 @@ typedef enum pastix_driver_e {
     PastixDriverPetscH, /* ok */
     PastixDriverCSCD,//
     PastixDriverLaplacian, /* ok */
+    PastixDriverXLaplacian, /* ok */
     PastixDriverBRGM,//
     PastixDriverBRGMD,//
     PastixDriverGraph
