@@ -131,9 +131,11 @@ int main (int argc, char **argv)
     pastix_int_t *rows   = NULL;
     void *avals          = NULL;
     void *rhs            = NULL;
+    void *x              = NULL;
     pastix_int_t i, n, nnz, baseval;
     pastix_int_t ret = PASTIX_SUCCESS;
     pastix_int_t err = 0;
+    char trans;
     
     if( argc > 1 ) {
         filename = argv[1];
@@ -367,9 +369,12 @@ int main (int argc, char **argv)
         /*-------------------------------------------------*/
 
         /* testing the rhs generator */
-        /* first attempt with NULL RHS ans general csc*/
-        TEST("genRHS General")
-        csc.mtxtype = PastixGeneral;
+        /* Don't work with patern */
+        if(csc.flttype == PastixPattern)
+            continue;
+        /* first attempt with NULL RHS ans symetric csc*/
+        csc.mtxtype=PastixSymmetric;
+        TEST("genRHS Symmetric")
         ret = genRHS(&csc,&rhs);
         RES(ret)
 
@@ -382,19 +387,121 @@ int main (int argc, char **argv)
             RES(ret)
         }
 
-        /* last try with already filled-in RHS and symetric csc*/
-        csc.mtxtype=PastixSymmetric;
-        TEST("genRHS Symmetric")
+        /* last try with already filled-in RHS and general csc*/
+        TEST("genRHS General")
+        csc.mtxtype = PastixGeneral;
         ret = genRHS(&csc,&rhs);
         RES(ret)
 
         /* Free memory */
         free(colptr);
         free(rows);
-        free(rhs);
-        rhs = NULL;
         if(avals != NULL)
             free(avals);
+        
+        /*-------------------------------------------------*/
+
+        /* testing the matrix_vector productwith trans = 'n'*/
+        TEST("GeCSCv")
+        trans='n';
+        x=malloc( csc.gN * sizeof(pastix_complex64_t) );
+        memset( x, 0, csc.gN * sizeof( pastix_complex64_t ) );
+        if(csc.flttype == PastixFloat)
+        {
+            if( s_spmGeCSCv( trans, 1., &csc, (float*)rhs, 0., (float*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }else if(csc.flttype == PastixDouble)
+        {
+            if( d_spmGeCSCv( trans, 1., &csc, (double*)rhs, 0., (double*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }else if(csc.flttype == PastixComplex32)
+        {
+            if( c_spmGeCSCv( trans, 1., &csc, (pastix_complex32_t*)rhs, 0., (pastix_complex32_t*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }else if(csc.flttype == PastixComplex64)
+        {
+            if( z_spmGeCSCv( trans, 1., &csc, (pastix_complex64_t*)rhs, 0., (pastix_complex64_t*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }
+
+        /*-------------------------------------------------*/
+
+        /* testing the matrix_vector productwith trans = 't'*/
+        trans='t';
+        memset( x, 0, csc.gN * sizeof( pastix_complex64_t ) );
+        if(csc.flttype == PastixFloat)
+        {
+            if( s_spmGeCSCv( trans, 1., &csc, (float*)rhs, 0., (float*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }else if(csc.flttype == PastixDouble)
+        {
+            if( d_spmGeCSCv( trans, 1., &csc, (double*)rhs, 0., (double*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }else if(csc.flttype == PastixComplex32)
+        {
+            if( c_spmGeCSCv( trans, 1., &csc, (pastix_complex32_t*)rhs, 0., (pastix_complex32_t*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }else if(csc.flttype == PastixComplex64)
+        {
+            if( z_spmGeCSCv( trans, 1., &csc, (pastix_complex64_t*)rhs, 0., (pastix_complex64_t*)x ) != PASTIX_SUCCESS )
+            {
+                ret = PASTIX_ERR_BADPARAMETER;
+            }
+        }
+        
+        /*-------------------------------------------------*/
+
+        /* testing the matrix_vector productwith trans = 'c'*/
+        if(csc.flttype == PastixComplex64 || csc.flttype == PastixComplex64)
+        {
+            trans='c';
+            memset( x, 0, csc.gN * sizeof( pastix_complex64_t ) );
+            if(csc.flttype == PastixFloat)
+            {
+                if( s_spmGeCSCv( trans, 1., &csc, (float*)rhs, 0., (float*)x ) != PASTIX_SUCCESS )
+                {
+                    ret = PASTIX_ERR_BADPARAMETER;
+                }
+            }else if(csc.flttype == PastixDouble)
+            {
+                if( d_spmGeCSCv( trans, 1., &csc, (double*)rhs, 0., (double*)x ) != PASTIX_SUCCESS )
+                {
+                    ret = PASTIX_ERR_BADPARAMETER;
+                }
+            }else if(csc.flttype == PastixComplex32)
+            {
+                if( c_spmGeCSCv( trans, 1., &csc, (pastix_complex32_t*)rhs, 0., (pastix_complex32_t*)x ) != PASTIX_SUCCESS )
+                {
+                    ret = PASTIX_ERR_BADPARAMETER;
+                }
+            }else if(csc.flttype == PastixComplex64)
+            {
+                if( z_spmGeCSCv( trans, 1., &csc, (pastix_complex64_t*)rhs, 0., (pastix_complex64_t*)x ) != PASTIX_SUCCESS )
+                {
+                    ret = PASTIX_ERR_BADPARAMETER;
+                }
+            }
+        }
+        RES(ret)
+        
+        free(x);
+        x = NULL;
+        free(rhs);
+        rhs = NULL;
     /* end of the baseval loop */
     }
 
