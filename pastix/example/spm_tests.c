@@ -132,9 +132,9 @@ int main (int argc, char **argv)
     void *avals          = NULL;
     void *rhs            = NULL;
     pastix_int_t i, n, nnz, baseval;
-    pastix_int_t ret = PASTIX_SUCCESS;
-    pastix_int_t err = 0;
-    
+    int ret = PASTIX_SUCCESS;
+    int err = 0;
+
     if( argc > 1 ) {
         filename = argv[1];
     }

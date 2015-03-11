@@ -59,5 +59,6 @@ int readDMM  ( const char *filename, pastix_csc_t *csc );
 int readPETSC( const char *filename, pastix_csc_t *csc );
 int readCSCD ( const char *filename, pastix_csc_t *csc, void **rhs, MPI_Comm pastix_comm );
 int genLaplacian( const char *filename, pastix_csc_t *csc );
+int genExtendedLaplacian( const char *filename, pastix_csc_t *csc );
 
 #endif /* _DRIVER_H_ */
