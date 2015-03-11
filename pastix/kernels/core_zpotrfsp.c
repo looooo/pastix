@@ -152,19 +152,20 @@ static void core_zpotrfsp(pastix_int_t        n,
     pastix_complex64_t *tmp,*tmp1,*tmp2;
 
     /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
-    blocknbr = (pastix_int_t) ceil( (double)n/(double)MAXSIZEOFBLOCKS );
+    blocknbr = (n + MAXSIZEOFBLOCKS - 1) / MAXSIZEOFBLOCKS;
 
     for (k=0; k<blocknbr; k++) {
 
         blocksize = pastix_imin(MAXSIZEOFBLOCKS, n-k*MAXSIZEOFBLOCKS);
-        tmp  = A+(k*MAXSIZEOFBLOCKS)*(lda+1); /* Lk,k     */
-        tmp1 = tmp  + blocksize;              /* Lk+1,k   */
-        tmp2 = tmp1 + blocksize * lda;        /* Lk+1,k+1 */
+        tmp  = A+(k*MAXSIZEOFBLOCKS)*(lda+1);      /* Lk,k     */
 
         /* Factorize the diagonal block Akk*/
         core_zpotf2sp(blocksize, tmp, lda, nbpivot, criteria);
 
         if ((k*MAXSIZEOFBLOCKS+blocksize) < n) {
+
+            tmp1 = tmp  + blocksize;       /* Lk+1,k   */
+            tmp2 = tmp1 + blocksize * lda; /* Lk+1,k+1 */
 
             matrixsize = n-(k*MAXSIZEOFBLOCKS+blocksize);
 
