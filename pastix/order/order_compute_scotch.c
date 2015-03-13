@@ -186,8 +186,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
                                     (SCOTCH_Num *) ordemesh->peritab,
                                     (SCOTCH_Num *)&ordemesh->cblknbr,
                                     (SCOTCH_Num *) ordemesh->rangtab,
-                                    NULL);
-
+                                    (SCOTCH_Num *) ordemesh->treetab);
     }
 
     SCOTCH_stratExit (&stratdat);
