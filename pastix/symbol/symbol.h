@@ -88,8 +88,8 @@ void symbolCheckProperties( const SymbolMatrix *, Order * );
 void symbolNewOrdering( const SymbolMatrix *, Order * );
 
 /* Internal routines for hamming vectors */
-int hamming_distance_symbol( int, int *, int, int, int *, int);
-void update_perm(int, int *, Order *, int, int, int *, int *);
-pastix_int_t dichotomic_search( pastix_int_t, const Order * );
-
+int hamming_distance_symbol( int, int **, int *, int, int, int);
+void update_perm(int, Order *, int,
+                 int *, int **, int *,
+                 int *, int **, int *);
 #endif /* SYMBOL_H */
