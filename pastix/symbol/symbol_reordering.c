@@ -73,10 +73,10 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order )
 
     pastix_int_t *levels;
 
-    /* The chosen level to reduce computational cost */
+    /* The chosen level to reduce computational cost: no effects if set to 0 */
     /* A first comparison is computed according to upper levels */
     /* If hamming distances are equal, the computation goes through lower levels */
-    pastix_int_t split_level = 0;
+    pastix_int_t split_level = 7;
 
     /* Create the levels structure */
     levels = calloc(cblknbr, sizeof(pastix_int_t));
@@ -123,7 +123,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order )
             }
             else{
                 /* For upper levels in nested dissection */
-                if (crow[iterblok] <= split_level){
+                if (levels[crow[iterblok]] <= split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
                         up_vectors_size[index]++;
@@ -142,7 +142,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order )
 
         /* Initiate vectors structure */
         for (i=0; i<size; i++){
-            vectors[i]    = calloc(vectors_size[i], sizeof(int));
+            vectors[i]    = calloc(vectors_size[i],    sizeof(int));
             up_vectors[i] = calloc(up_vectors_size[i], sizeof(int));
         }
 
@@ -160,7 +160,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order )
             }
             else{
                 /* For upper levels in nested dissection */
-                if (crow[iterblok] <= split_level){
+                if (levels[crow[iterblok]] <= split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
                         up_vectors[index][up_current_pos[index]] = crow[iterblok];
