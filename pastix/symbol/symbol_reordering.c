@@ -53,8 +53,22 @@
 #include "symbol.h"
 #include "order.h"
 
+/* For split_level parameter */
+/* The chosen level to reduce computational cost: no effects if set to 0 */
+/* A first comparison is computed according to upper levels */
+/* If hamming distances are equal, the computation goes through lower levels */
+
+/* For stop_criteria parameter */
+/* Criteria to limit the number of comparisons when computing hamming distances */
+
+/* For stop_when_fitting parameter */
+/* Criteria to insert a line when no extra-blok is created */
+/* If set to 0, the algorithm will minimize the cut between two lines */
+
 void
-symbolNewOrdering( const SymbolMatrix *symbptr, Order *order )
+symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
+                   pastix_int_t split_level, int stop_criteria,
+                   int stop_when_fitting )
 {
     pastix_int_t itercblk, iterblok;
     pastix_int_t edgenbr = symbptr->bloknbr - symbptr->cblknbr;
@@ -73,10 +87,6 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order )
 
     pastix_int_t *levels;
 
-    /* The chosen level to reduce computational cost: no effects if set to 0 */
-    /* A first comparison is computed according to upper levels */
-    /* If hamming distances are equal, the computation goes through lower levels */
-    pastix_int_t split_level = 7;
 
     /* Create the levels structure */
     levels = calloc(cblknbr, sizeof(pastix_int_t));
@@ -185,7 +195,8 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order )
         /* Permute lines in the current supernode */
         update_perm(size, order, itercblk,
                     wmatrix, vectors, vectors_size,
-                    up_wmatrix, up_vectors, up_vectors_size);
+                    up_wmatrix, up_vectors, up_vectors_size,
+                    stop_criteria, stop_when_fitting);
         clockStop(timer);
         time_update_perm += clockVal(timer);
 
@@ -265,7 +276,8 @@ int hamming_distance_symbol(int n, int **vectors, int *vectors_size,
 
 void update_perm(int sn_nvertex, Order *order, int sn_id,
                  int *wmatrix, int **vectors, int *vectors_size,
-                 int *up_wmatrix, int **up_vectors, int *up_vectors_size){
+                 int *up_wmatrix, int **up_vectors, int *up_vectors_size,
+                 int stop_criteria, int stop_when_fitting){
 
     if ( sn_nvertex < 3 ) {
         return;
@@ -274,20 +286,12 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
     int  i, j, k, l, elected;
     int *tmpinvp = malloc(sn_nvertex*sizeof(int));
     int *tmplen  = malloc(sn_nvertex*sizeof(int));
-
-    /* Criteria to limit the number of comparisons when computing hamming distances */
-    int stop = INT_MAX;
-
-    /* Criteria to insert a line when no extra-blok is created */
-    /* If set to 0, the algorithm will minimize the cut between two lines */
-    int stop_when_fitting = 0;
-
     memset(tmplen, 0, sn_nvertex*sizeof(int));
 
     tmpinvp[0] = 0;
     tmpinvp[1] = 1;
 
-    wmatrix[ 1 * sn_nvertex + 0 ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, 1, 0, stop);
+    wmatrix[ 1 * sn_nvertex + 0 ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, 1, 0, stop_criteria);
 
     tmplen[0] = wmatrix[ 1 * sn_nvertex + 0 ];
     tmplen[1] = wmatrix[ 1 * sn_nvertex + 0 ];
@@ -295,8 +299,8 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
     for(i=2; i<sn_nvertex; i++) {
 
         /* Start by adding the row in first position */
-        wmatrix[ i * sn_nvertex + tmpinvp[0] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[0], stop);
-        wmatrix[ i * sn_nvertex + tmpinvp[1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[1], stop);
+        wmatrix[ i * sn_nvertex + tmpinvp[0] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[0], stop_criteria);
+        wmatrix[ i * sn_nvertex + tmpinvp[1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[1], stop_criteria);
 
         int minl =
             wmatrix[ i * sn_nvertex + tmpinvp[0] ] +
@@ -320,10 +324,10 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
                  up_wmatrix[ i * sn_nvertex + tmpinvp[j+1]] < DEEP_stop )
             {
                 if (wmatrix[ i * sn_nvertex + tmpinvp[j]] == -1)
-                    wmatrix[ i * sn_nvertex + tmpinvp[j]   ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[j], stop);
+                    wmatrix[ i * sn_nvertex + tmpinvp[j]   ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[j], stop_criteria);
 
                 if (wmatrix[ i * sn_nvertex + tmpinvp[j+1]] == -1)
-                    wmatrix[ i * sn_nvertex + tmpinvp[j+1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[j+1], stop);
+                    wmatrix[ i * sn_nvertex + tmpinvp[j+1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[j+1], stop_criteria);
 
                 l = wmatrix[ i * sn_nvertex + tmpinvp[j]   ] +
                     wmatrix[ i * sn_nvertex + tmpinvp[j+1] ] - tmplen[j];
@@ -371,7 +375,7 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
         }
 
         /* Test between last and first */
-        wmatrix[ i * sn_nvertex + tmpinvp[i-1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[i-1], stop);
+        wmatrix[ i * sn_nvertex + tmpinvp[i-1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[i-1], stop_criteria);
 
         l = wmatrix[ i * sn_nvertex + tmpinvp[i-1] ] +
             wmatrix[ i * sn_nvertex + tmpinvp[0  ] ] - tmplen[i-1];
@@ -380,7 +384,7 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
         }
 
         if (mpos > 0){
-            wmatrix[ i * sn_nvertex + tmpinvp[mpos-1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[mpos-1], stop);
+            wmatrix[ i * sn_nvertex + tmpinvp[mpos-1] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[mpos-1], stop_criteria);
             tmplen[mpos-1] = wmatrix[ i * sn_nvertex + tmpinvp[mpos-1] ];
         }
 
@@ -389,7 +393,7 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
             int tmpi, tmpl;
             k = i;
 
-            wmatrix[ i * sn_nvertex + tmpinvp[mpos] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[mpos], stop);
+            wmatrix[ i * sn_nvertex + tmpinvp[mpos] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[mpos], stop_criteria);
             l = wmatrix[ i * sn_nvertex + tmpinvp[mpos] ];
 
             /* Insert the line in the tmpinvp/tmplen arrays */
@@ -408,7 +412,7 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
         else {
             tmpinvp[i] = i;
 
-            wmatrix[ i * sn_nvertex + tmpinvp[0] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[0], stop);
+            wmatrix[ i * sn_nvertex + tmpinvp[0] ] = hamming_distance_symbol(sn_nvertex, vectors, vectors_size, i, tmpinvp[0], stop_criteria);
 
             tmplen[i]  = wmatrix[ i * sn_nvertex + tmpinvp[0] ];
         }

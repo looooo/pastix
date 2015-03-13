@@ -85,11 +85,13 @@ pastix_int_t symbolGetNNZ(const SymbolMatrix *symbptr);
 
 void symbolPrintStats( const SymbolMatrix * );
 void symbolCheckProperties( const SymbolMatrix *, Order * );
-void symbolNewOrdering( const SymbolMatrix *, Order * );
+void symbolNewOrdering( const SymbolMatrix *, Order *,
+                        pastix_int_t, int, int );
 
 /* Internal routines for hamming vectors */
 int hamming_distance_symbol( int, int **, int *, int, int, int);
 void update_perm(int, Order *, int,
                  int *, int **, int *,
-                 int *, int **, int *);
+                 int *, int **, int *,
+                 int, int);
 #endif /* SYMBOL_H */
