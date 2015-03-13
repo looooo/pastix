@@ -28,6 +28,7 @@ struct Order_ {
     pastix_int_t *permtab;   /*< Permutation array [based]           */
     pastix_int_t *peritab;   /*< Inverse permutation array [based]   */
     pastix_int_t *rangtab;   /*< Column block range array [based,+1] */
+    pastix_int_t *treetab;   /*< Partitioning tree [based]           */
 };
 
 /*
