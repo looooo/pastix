@@ -181,9 +181,6 @@ graphPrepare(      pastix_data_t   *pastix_data,
     }
     else
     {
-        /* Check that we use Fortran ordering */
-        assert( colptr[0] == 1 );
-
         /*
          * Centralized graph
          */
@@ -233,6 +230,9 @@ graphPrepare(      pastix_data_t   *pastix_data,
             MPI_Comm     pastix_comm = pastix_data->pastix_comm;
             pastix_int_t gN = 0;
             int copy_l2g = 1;
+
+            /* Check that we use Fortran ordering */
+            assert( colptr[0] == 1 );
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
             if (iparm[IPARM_SYM]==API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER) {

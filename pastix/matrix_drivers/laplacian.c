@@ -212,6 +212,26 @@ static void (*laplacian_table3D[6])(pastix_csc_t*, pastix_int_t, pastix_int_t, p
     z_spmLaplacian3D
 };
 
+static void (*extended_laplacian_table2D[6])(pastix_csc_t*, pastix_int_t, pastix_int_t) =
+{
+    p_spmLaplacian2D,
+    NULL,
+    s_spmExtendedLaplacian2D,
+    d_spmExtendedLaplacian2D,
+    c_spmExtendedLaplacian2D,
+    z_spmExtendedLaplacian2D
+};
+
+static void (*extended_laplacian_table3D[6])(pastix_csc_t*, pastix_int_t, pastix_int_t, pastix_int_t) =
+{
+    p_spmExtendedLaplacian3D,
+    NULL,
+    s_spmExtendedLaplacian3D,
+    d_spmExtendedLaplacian3D,
+    c_spmExtendedLaplacian3D,
+    z_spmExtendedLaplacian3D
+};
+
 /**
  *******************************************************************************
  *
@@ -260,6 +280,62 @@ genLaplacian( const char    *filename,
     }
     else if (dim2 > 0) {
         laplacian_table2D[csc->flttype](csc, dim1, dim2);
+    }
+    else {
+        laplacian_table1D[csc->flttype](csc, dim1);
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc_driver
+ *
+ * genExtendedLaplacian - Generate a extended Laplacian of size csc->n
+ *
+ *******************************************************************************
+ *
+ * @param[in] filename
+ *          Configuration string of the Laplacian.
+ *          [<type>:]<dim1>[:<dim2>[:<dim3>]]
+ *             <type> p = pattern only\n"
+ *                    s = real simple\n"
+ *                    d = real double [default]\n"
+ *                    c = complex simple\n"
+ *                    z = complex double\n"
+ *             <dim1> size of the first dimension of the 1D|2D|3D laplacian\n"
+ *             <dim2> size of the second dimension of the 2D|3D laplacian\n"
+ *             <dim3> size of the third dimension of the 3D laplacian\n"
+ *
+ * @param[in,out] csc
+ *          At start, an allocated csc structure.
+ *          At exit, contains a laplacian matrix in the csc format.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the matrix has been generated successfully
+ *      \retval PASTIX_ERR_BADPARAMETER if the configuration string is incorrect
+ *
+ *******************************************************************************/
+int
+genExtendedLaplacian( const char    *filename,
+                      pastix_csc_t  *csc )
+{
+    pastix_int_t dim1, dim2, dim3;
+    int rc;
+
+    rc = laplacian_parse_info(filename, csc, &dim1, &dim2, &dim3);
+    if (rc != PASTIX_SUCCESS)
+        return rc;
+
+    if( dim3 > 0 ) {
+        extended_laplacian_table3D[csc->flttype](csc, dim1, dim2, dim3);
+    }
+    else if (dim2 > 0) {
+        extended_laplacian_table2D[csc->flttype](csc, dim1, dim2);
     }
     else {
         laplacian_table1D[csc->flttype](csc, dim1);

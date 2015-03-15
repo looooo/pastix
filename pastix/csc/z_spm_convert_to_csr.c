@@ -77,7 +77,7 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
         spm->rows   = spm->colptr;
         spm->colptr = tmp;
         spm->fmttype = PastixCSR;
-        
+
         /* convert trans(spm) in CSR to trans(spm) in CSC */
         result = z_spmConvertCSR2CSC( spm );
 
@@ -130,6 +130,15 @@ z_spmConvertIJV2CSR( pastix_csc_t *spm )
      * Check the baseval, we consider that arrays are sorted by columns or rows
      */
     baseval = pastix_imin( *(oldspm.colptr), *(oldspm.rows) );
+    if ( ( baseval != 0 ) &&
+         ( baseval != 1 ) )
+    {
+        baseval = spm->n;
+        otmp = oldspm.colptr;
+        for(i=0; i<spm->nnz; i++, otmp++){
+            baseval = pastix_imin( *otmp, baseval );
+        }
+    }
 
     /* Compute the new rows (should be called rowptr) */
     spm->rows = (pastix_int_t *) calloc(spm->n+1,sizeof(pastix_int_t));
