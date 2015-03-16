@@ -45,7 +45,7 @@ z_spmConvertCSC2IJV( pastix_csc_t *spm )
     /*
      * Check the baseval
      */
-    baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
+    baseval = spmFindBase( spm );
     nnz = spm->nnz;
     spm->fmttype = PastixIJV;
 
@@ -96,7 +96,7 @@ z_spmConvertCSR2IJV( pastix_csc_t *spm )
     /*
      * Check the baseval
      */
-    baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
+    baseval = spmFindBase( spm );
     nnz = spm->nnz;
     spm->fmttype = PastixIJV;
 

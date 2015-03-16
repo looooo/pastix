@@ -80,7 +80,7 @@ z_spmGeCSCv(char                trans,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    baseval = pastix_imin( *(csc->colptr), *(csc->rows) );
+    baseval = spmFindBase( csc );
 
     /* first, y = beta*y */
     for( i=0; i < csc->gN; i++ )
@@ -188,7 +188,7 @@ z_spmSyCSCv(pastix_complex64_t  alpha,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    baseval = pastix_imin( *(csc->colptr), *(csc->rows) );
+    baseval = spmFindBase( csc );
 
     for( i=0; i < csc->gN; i++ )
     {
@@ -274,7 +274,7 @@ z_spmHeCSCv(pastix_complex64_t  alpha,
         yptr[i] *= beta;
     }
 
-    baseval = pastix_imin( *(csc->colptr), *(csc->rows) );
+    baseval = spmFindBase( csc );
 
     for( col=0; col < csc->gN; col++ )
     {

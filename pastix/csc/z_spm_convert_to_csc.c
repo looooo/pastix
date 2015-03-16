@@ -191,7 +191,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
 #endif
         pastix_int_t j, k, col, row, nnz, baseval;
 
-        baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
+        baseval = spmFindBase( spm );
         nnz = spm->nnz;
 
         row_csc = malloc(nnz * sizeof(pastix_int_t));
