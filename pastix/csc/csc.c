@@ -73,3 +73,29 @@ spmConvert( int ofmttype, pastix_csc_t *ospm )
         return PASTIX_SUCCESS;
     }
 }
+
+pastix_int_t
+spmFindBase( pastix_csc_t *spm )
+{
+
+    pastix_int_t i, *tmp, baseval;
+
+    /*
+     * Check the baseval, we consider that arrays are sorted by columns or rows
+     */
+    baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
+    /*
+     * if not:
+     */
+    if ( ( baseval != 0 ) &&
+         ( baseval != 1 ) )
+    {
+        baseval = spm->n;
+        tmp = spm->colptr;
+        for(i=0; i<spm->nnz; i++, tmp++){
+            baseval = pastix_imin( *tmp, baseval );
+        }
+    }
+
+    return baseval;
+}
