@@ -113,4 +113,6 @@ int c_spm_genRHS(pastix_csc_t *csc, void **rhs );
 int d_spm_genRHS(pastix_csc_t *csc, void **rhs );
 int s_spm_genRHS(pastix_csc_t *csc, void **rhs );
 int genRHS(pastix_csc_t *csc, void **rhs );
+
+pastix_int_t spmFindBase( pastix_csc_t *spm );
 #endif /* _CSC_H_ */
