@@ -23,6 +23,10 @@
 #ifndef _FLOPS_H_
 #define _FLOPS_H_
 
+#ifndef _PLASMA_H_
+#define PlasmaLeft  141
+#define PlasmaRight 142
+#endif
 /************************************************************************
  *           Generic formula coming from LAWN 41
  ***********************************************************************/
