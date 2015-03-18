@@ -395,6 +395,12 @@ enum API_FACT {
   API_FACT_LU   = 2, /* Factorisation LU */
   API_FACT_LDLH  = 3
 };
+typedef enum pastix_factotype_e {
+  PastixFactLLT  = 0, /* Factorisation de Cholesky */
+  PastixFactLDLT = 1, /* Factorisation de Crout */
+  PastixFactLU   = 2, /* Factorisation LU */
+  PastixFactLDLH = 3
+} pastix_factotype_t;
 
 /** Matrice symétrique ou non (0 : symétrique, 1 : non) */
 /*
