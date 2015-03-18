@@ -559,7 +559,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_draw.c
   symbol/symbol_io.c
   symbol/symbol_rustine.c
-#  symbol/symbol_cost.c
+  symbol/symbol_cost.c
 #  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
