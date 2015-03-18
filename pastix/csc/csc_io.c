@@ -319,12 +319,12 @@ readArrayOfFloat( FILE         *stream,
 
  Load a csc from disk.
 
- Fill *n*, *colptr*, *rows*, *values* and *dof* from *infile*.
+ Fill *n*, *colptr*, *rowptr*, *values* and *dof* from *infile*.
 
  Parameters:
  n       - number of columns
  colptr  - First cscd starting index of each column in *ja* and *a*
- rows    - Row of each element in first CSCD
+ rowptr    - Row of each element in first CSCD
  values  - value of each cscd in first CSCD (can be NULL)
  dof     - Number of degrees of freedom
  outfile - Output stream.
@@ -336,7 +336,7 @@ readArrayOfFloat( FILE         *stream,
 int
 csc_load( pastix_int_t  *n,
           pastix_int_t **colptr,
-          pastix_int_t **rows,
+          pastix_int_t **rowptr,
           int           *valtype,
           void         **values,
           int           *dof,
@@ -364,13 +364,13 @@ csc_load( pastix_int_t  *n,
     if ( rc != EXIT_SUCCESS )
         return rc;
 
-    /* Read the rows array */
+    /* Read the rowptr array */
     nnz = (*colptr)[*n]-(*colptr)[0];
-    *rows = NULL;
-    MALLOC_INTERN(*rows, nnz, pastix_int_t);
-    assert(*rows);
+    *rowptr = NULL;
+    MALLOC_INTERN(*rowptr, nnz, pastix_int_t);
+    assert(*rowptr);
 
-    rc = readArrayOfInteger( infile, nnz, *rows );
+    rc = readArrayOfInteger( infile, nnz, *rowptr );
     if ( rc != EXIT_SUCCESS )
         return rc;
 
@@ -425,9 +425,9 @@ cscLoad( pastix_csc_t  *csc,
 
     rc = csc_load( &(csc->n),
                    &(csc->colptr),
-                   &(csc->rows),
+                   &(csc->rowptr),
                    &(csc->flttype),
-                   &(csc->avals),
+                   &(csc->values),
                    &dof,
                    infile );
 
@@ -441,7 +441,7 @@ cscLoad( pastix_csc_t  *csc,
 int
 csc_save( pastix_int_t  n,
           pastix_int_t *colptr,
-          pastix_int_t *rows,
+          pastix_int_t *rowptr,
           int           ft,
           void         *values,
           int           dof,
@@ -462,10 +462,10 @@ csc_save( pastix_int_t  n,
     }
     if ((i-1)%4 !=3) fprintf(outfile, "\n");
 
-    /* Write rows */
+    /* Write rowptr */
     for (i=0; i<colptr[n]-1; i++)
     {
-        fprintf(outfile, "%ld ", (long)rows[i]);
+        fprintf(outfile, "%ld ", (long)rowptr[i]);
         if (i%4 == 3) fprintf(outfile, "\n");
     }
     if ((i-1)%4 !=3) fprintf(outfile, "\n");
@@ -493,9 +493,9 @@ cscSave( pastix_csc_t *csc,
 {
     return csc_save( csc->n,
                      csc->colptr,
-                     csc->rows,
+                     csc->rowptr,
                      csc->flttype,
-                     csc->avals,
+                     csc->values,
                      1,
                      outfile );
 }

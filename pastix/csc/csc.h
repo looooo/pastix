@@ -30,9 +30,9 @@ struct pastix_spm_s {
     pastix_int_t  nnz;       /*< Local number of non zeroes in the compressed graph  */
     pastix_int_t  dof;       /*< Number of degrees of freedom per unknown            */
     pastix_int_t *colptr;    /*< List of indirections to rows for each vertex        */
-    pastix_int_t *rows;      /*< List of edges for each vertex                       */
+    pastix_int_t *rowptr;    /*< List of edges for each vertex                       */
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global        */
-    void         *avals;     /*< Values stored in the matrix                         */
+    void         *values;    /*< Values stored in the matrix                         */
 };
 typedef struct pastix_spm_s pastix_csc_t;
 

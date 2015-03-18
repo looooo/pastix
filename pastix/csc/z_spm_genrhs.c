@@ -50,7 +50,7 @@ z_spm_genRHS(pastix_csc_t  *csc,
     char n  = 'n';
     pastix_int_t i;
 
-    if( csc->avals == NULL )
+    if( csc->values == NULL )
         return PASTIX_ERR_BADPARAMETER;
 
     if( csc->fmttype != PastixCSC )

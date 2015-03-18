@@ -106,14 +106,14 @@ z_spmConvertCSR2IJV( pastix_csc_t *spm )
     rowptr = row_ijv;
     for(i=0; i<spm->n; i++)
     {
-        for(j=spm->rows[i]; j<spm->rows[i+1]; j++)
+        for(j=spm->rowptr[i]; j<spm->rowptr[i+1]; j++)
         {
             *rowptr = i+baseval; rowptr++;
         }
     }
 
-    memFree_null(spm->rows);
-    spm->rows = row_ijv;
+    memFree_null(spm->rowptr);
+    spm->rowptr = row_ijv;
 
     return PASTIX_SUCCESS;
 }

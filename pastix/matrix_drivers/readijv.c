@@ -133,8 +133,8 @@ readIJV( const char   *dirname,
     csc->gnnz    = Nnzero;
     csc->nnz     = Nnzero;
     csc->colptr = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
-    csc->rows   = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
-    csc->avals  = (double *)       malloc(Nnzero*sizeof(double));
+    csc->rowptr = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
+    csc->values = (double *)       malloc(Nnzero*sizeof(double));
 
     /* Open the 3 files */
     sprintf(filename,"%s/ia_threeFiles",dirname);
@@ -166,8 +166,8 @@ readIJV( const char   *dirname,
 
     /* Read the files */
     tempcol = csc->colptr;
-    temprow = csc->rows;
-    tempval = csc->avals;
+    temprow = csc->rowptr;
+    tempval = csc->values;
 
     for (i=0; i<Nnzero; i++, tempcol++, temprow++, tempval++)
     {

@@ -78,21 +78,21 @@ z_spmConvertIJV2CSC( pastix_csc_t *spm )
     assert( total == spm->nnz );
 
     /* Sort the rows and avals arrays by column */
-    spm->rows  = malloc(spm->nnz * sizeof(pastix_int_t));
+    spm->rowptr = malloc(spm->nnz * sizeof(pastix_int_t));
 
 #if defined(PRECISION_p)
-    spm->avals = NULL;
+    spm->values = NULL;
 #else
-    spm->avals = malloc(spm->nnz * sizeof(pastix_complex64_t));
-    navals = (pastix_complex64_t*)(spm->avals);
-    oavals = (pastix_complex64_t*)(oldspm.avals);
+    spm->values = malloc(spm->nnz * sizeof(pastix_complex64_t));
+    navals = (pastix_complex64_t*)(spm->values);
+    oavals = (pastix_complex64_t*)(oldspm.values);
 #endif
 
     for (j=0; j<spm->nnz; j++)
     {
         i = oldspm.colptr[j] - baseval;
 
-        spm->rows[ spm->colptr[i] ] = oldspm.rows[j];
+        spm->rowptr[ spm->colptr[i] ] = oldspm.rowptr[j];
 
 #if !defined(PRECISION_p)
         navals[ spm->colptr[i] ] = oavals[j];
@@ -116,10 +116,10 @@ z_spmConvertIJV2CSC( pastix_csc_t *spm )
     assert( spm->colptr[ spm->n ] == (spm->nnz+baseval) );
 
     free( oldspm.colptr );
-    free( oldspm.rows );
+    free( oldspm.rowptr );
 
-    if (oldspm.avals != NULL)
-        free( oldspm.avals );
+    if (oldspm.values != NULL)
+        free( oldspm.values );
 
     spm->fmttype = PastixCSC;
 
@@ -159,7 +159,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
     case PastixHermitian:
     {
         /* Similar to PastixSymmetric case with conjugate of the values */
-        pastix_complex64_t *valptr = spm->avals;
+        pastix_complex64_t *valptr = spm->values;
         pastix_int_t i;
 
         for(i=0; i<spm->nnz; i++, valptr++){
@@ -172,8 +172,8 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
         pastix_int_t *tmp;
 
         /* Just need to swap the pointers */
-        tmp         = spm->rows;
-        spm->rows   = spm->colptr;
+        tmp         = spm->rowptr;
+        spm->rowptr = spm->colptr;
         spm->colptr = tmp;
 
         return PASTIX_SUCCESS;
@@ -187,7 +187,7 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
         pastix_int_t       *col_csc;
 #if !defined(PRECISION_p)
         pastix_complex64_t *val_csc;
-        pastix_complex64_t *valptr = (pastix_complex64_t*)(spm->avals);
+        pastix_complex64_t *valptr = (pastix_complex64_t*)(spm->values);
 #endif
         pastix_int_t j, k, col, row, nnz, baseval;
 
@@ -221,8 +221,8 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
         assert( (col_csc[spm->gN]) == nnz );
 
         for (row=0; row<spm->n; row++) {
-            pastix_int_t fcol = spm->rows[row  ] - baseval;
-            pastix_int_t lcol = spm->rows[row+1] - baseval;
+            pastix_int_t fcol = spm->rowptr[row  ] - baseval;
+            pastix_int_t lcol = spm->rowptr[row+1] - baseval;
 
             for (k=fcol; k<lcol; k++) {
                 col = spm->colptr[k] - baseval;
@@ -250,14 +250,14 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
         }
 
         memFree_null(spm->colptr);
-        memFree_null(spm->rows);
+        memFree_null(spm->rowptr);
         spm->colptr = col_csc;
-        spm->rows   = row_csc;
+        spm->rowptr = row_csc;
 #if !defined(PRECISION_p)
-        memFree_null(spm->avals);
-        spm->avals = val_csc;
+        memFree_null(spm->values);
+        spm->values = val_csc;
 #else
-        spm->avals = NULL;
+        spm->values = NULL;
 #endif
     }
     }

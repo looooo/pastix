@@ -83,7 +83,7 @@ spmFindBase( pastix_csc_t *spm )
     /*
      * Check the baseval, we consider that arrays are sorted by columns or rows
      */
-    baseval = pastix_imin( *(spm->colptr), *(spm->rows) );
+    baseval = pastix_imin( *(spm->colptr), *(spm->rowptr) );
     /*
      * if not:
      */

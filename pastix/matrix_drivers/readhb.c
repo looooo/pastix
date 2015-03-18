@@ -111,7 +111,7 @@ readHB( const char   *filename,
         int     rc;
 
         rc = readHB_newmat_double( filename, &M, &N, &nz,
-                                   &colptr, &rowind, (double**)(&(csc->avals)) );
+                                   &colptr, &rowind, (double**)(&(csc->values)) );
 
         if (rc == 0) {
             fprintf(stderr, "readhb: Error in reading the HB matrix values\n");
@@ -120,7 +120,7 @@ readHB( const char   *filename,
 
         /* Move the colptr/rowind from int to pastix_int_t if different sizes */
         csc->colptr = pastix_int_convert(csc->n+1, colptr);
-        csc->rows   = pastix_int_convert(csc->nnz, rowind);
+        csc->rowptr = pastix_int_convert(csc->nnz, rowind);
     }
     return PASTIX_SUCCESS;
 }

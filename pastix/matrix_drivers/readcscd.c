@@ -124,13 +124,13 @@ readCSCD( const char    *dirname,
     csc->loc2glob = (int *)   malloc(  vertloc   * sizeof(int));
     if ( (csc->loc2glob) == NULL)
         fprintf(stderr, "[P%d] z_cscdRead : Not enough memory for csc->loc2glob\n",myrank);
-    csc->rows      = (int *)   malloc(  edgeloc   * sizeof(int));
-    if (  (csc->rows)   == NULL)
-        fprintf(stderr, "[P%d] z_cscdRead : Not enough memory for csc->rows\n",myrank);
-    csc->avals   = (double *) malloc(  edgeloc   * sizeof(double));
+    csc->rowptr    = (int *)   malloc(  edgeloc   * sizeof(int));
+    if (  (csc->rowptr)   == NULL)
+        fprintf(stderr, "[P%d] z_cscdRead : Not enough memory for csc->rowptr\n",myrank);
+    csc->values  = (double *) malloc(  edgeloc   * sizeof(double));
     values       = (double *) malloc(  edgeloc   * sizeof(double));
-    if (  (csc->avals) == NULL || values == NULL )
-        fprintf(stderr, "[P%d] z_cscdRead : Not enough memory for csc->avals\n",myrank);
+    if (  (csc->values) == NULL || values == NULL )
+        fprintf(stderr, "[P%d] z_cscdRead : Not enough memory for csc->values\n",myrank);
     *rhs     = (double *) malloc(  vertloc   * sizeof(double));
     rhs_temp = (double *) malloc(  vertloc   * sizeof(double));
     if (   (*rhs)  == NULL || rhs_temp  == NULL)
@@ -248,10 +248,10 @@ readCSCD( const char    *dirname,
     {
         fgets(line,BUFSIZ,infile);
         sscanf(line,"%ld %ld %ld %ld", &tempint1,&tempint2,&tempint3,&tempint4);
-        (csc->rows)[iterelt]   = (int)tempint1;
-        (csc->rows)[iterelt+1] = (int)tempint2;
-        (csc->rows)[iterelt+2] = (int)tempint3;
-        (csc->rows)[iterelt+3] = (int)tempint4;
+        (csc->rowptr)[iterelt]   = (int)tempint1;
+        (csc->rowptr)[iterelt+1] = (int)tempint2;
+        (csc->rowptr)[iterelt+2] = (int)tempint3;
+        (csc->rowptr)[iterelt+3] = (int)tempint4;
 
     }
     switch (edgeloc-iterelt)
@@ -259,22 +259,22 @@ readCSCD( const char    *dirname,
     case 1:
         fgets(line,BUFSIZ,infile);
         sscanf(line,"%ld",&tempint1);
-        (csc->rows)[iterelt] = (int)tempint1;
+        (csc->rowptr)[iterelt] = (int)tempint1;
         iterelt++;
         break;
     case 2:
         fgets(line,BUFSIZ,infile);
         sscanf(line,"%ld %ld", &tempint1, &tempint2);
-        (csc->rows)[iterelt]   = (int)tempint1;
-        (csc->rows)[iterelt+1] = (int)tempint2;
+        (csc->rowptr)[iterelt]   = (int)tempint1;
+        (csc->rowptr)[iterelt+1] = (int)tempint2;
         iterelt+=2;
         break;
     case 3:
         fgets(line,BUFSIZ,infile);
         sscanf(line,"%ld %ld %ld", &tempint1, &tempint2, &tempint3);
-        (csc->rows)[iterelt]   = (int)tempint1;
-        (csc->rows)[iterelt+1] = (int)tempint2;
-        (csc->rows)[iterelt+2] = (int)tempint3;
+        (csc->rowptr)[iterelt]   = (int)tempint1;
+        (csc->rowptr)[iterelt+1] = (int)tempint2;
+        (csc->rowptr)[iterelt+2] = (int)tempint3;
         iterelt+=3;
         break;
     }
@@ -353,7 +353,7 @@ readCSCD( const char    *dirname,
         break;
     }
 
-    memcpy(csc->avals, values, edgeloc*sizeof(double));
+    memcpy(csc->values, values, edgeloc*sizeof(double));
     memFree_null(values);
     memcpy(*rhs, rhs_temp, vertloc*sizeof(double));
     memFree_null(rhs_temp);

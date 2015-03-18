@@ -65,7 +65,7 @@ z_spmGeCSCv(char                trans,
             pastix_complex64_t  beta,
             pastix_complex64_t *y )
 {
-    pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->avals;
+    pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->values;
     pastix_complex64_t *yptr    = y;
     pastix_complex64_t *xptr    = x;
     pastix_int_t        col, row, i, baseval;
@@ -94,7 +94,7 @@ z_spmGeCSCv(char                trans,
         {
             for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
             {
-                row = csc->rows[i-baseval]-baseval;
+                row = csc->rowptr[i-baseval]-baseval;
                 yptr[row] += alpha * valptr[i-baseval] * xptr[col];
             }
         }
@@ -105,7 +105,7 @@ z_spmGeCSCv(char                trans,
         {
             for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
             {
-                row = csc->rows[i-baseval]-baseval;
+                row = csc->rowptr[i-baseval]-baseval;
                 yptr[col] += alpha * valptr[i-baseval] * xptr[row];
             }
         }
@@ -117,7 +117,7 @@ z_spmGeCSCv(char                trans,
         {
             for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
             {
-                row = csc->rows[i-baseval]-baseval;
+                row = csc->rowptr[i-baseval]-baseval;
                 yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
             }
         }
@@ -173,7 +173,7 @@ z_spmSyCSCv(pastix_complex64_t  alpha,
             pastix_complex64_t  beta,
             pastix_complex64_t *y )
 {
-    pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->avals;
+    pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->values;
     pastix_complex64_t *yptr    = y;
     pastix_complex64_t *xptr    = x;
     pastix_int_t        col, row, i, baseval;
@@ -199,7 +199,7 @@ z_spmSyCSCv(pastix_complex64_t  alpha,
     {
         for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
         {
-            row = csc->rows[i-baseval]-baseval;
+            row = csc->rowptr[i-baseval]-baseval;
             yptr[row] += alpha * valptr[i-baseval] * xptr[col];
             if( col != row )
             {
@@ -254,7 +254,7 @@ z_spmHeCSCv(pastix_complex64_t  alpha,
             pastix_complex64_t  beta,
             pastix_complex64_t *y )
 {
-    pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->avals;
+    pastix_complex64_t *valptr  = (pastix_complex64_t*)csc->values;
     pastix_complex64_t *yptr    = y;
     pastix_complex64_t *xptr    = x;
     pastix_int_t        col, row, i, baseval;
@@ -280,7 +280,7 @@ z_spmHeCSCv(pastix_complex64_t  alpha,
     {
         for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
         {
-            row=csc->rows[i-baseval]-baseval;
+            row=csc->rowptr[i-baseval]-baseval;
             yptr[row] += alpha * valptr[i-baseval] * xptr[col];
             if( col != row )
                 yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];

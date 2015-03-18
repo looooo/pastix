@@ -192,15 +192,15 @@ readMMD( const char   *filename,
     memcpy(csc->loc2glob, templ2g, csc->n*sizeof(int));
     free(templ2g);
     csc->colptr = (int *) calloc(csc->n+1,sizeof(int));
-    csc->rows = (int *) calloc(Nnzero,sizeof(int));
+    csc->rowptr = (int *) calloc(Nnzero,sizeof(int));
     if (mm_is_complex(matcode))
     {
-        csc->avals = (double complex *) malloc(Nnzero*sizeof(double complex));
+        csc->values = (double complex *) malloc(Nnzero*sizeof(double complex));
     }else{
-        csc->avals = (double *) malloc(Nnzero*sizeof(double));
+        csc->values = (double *) malloc(Nnzero*sizeof(double));
     }
 
-    if ((csc->colptr==NULL) || (csc->rows == NULL) || (csc->avals == NULL))
+    if ((csc->colptr==NULL) || (csc->rowptr == NULL) || (csc->values == NULL))
     {
         fprintf(stderr, "z_MatrixMarketRead : Not enough memory (Nnzero %ld)\n",
                 (long)Nnzero);
@@ -296,7 +296,7 @@ readMMD( const char   *filename,
 
         pos = csc->colptr[g2l[tempcol[iter]-1]-1]-1;
         limit = csc->colptr[g2l[tempcol[iter]-1]]-1;
-        while(csc->rows[pos] != 0 && pos < limit)
+        while(csc->rowptr[pos] != 0 && pos < limit)
         {
             pos++;
         }
@@ -307,12 +307,12 @@ readMMD( const char   *filename,
 
         if (mm_is_complex(matcode))
         {
-            valptr_complex=csc->avals+pos;
-            csc->rows[pos] = temprow[iter];
+            valptr_complex=csc->values+pos;
+            csc->rowptr[pos] = temprow[iter];
             *valptr_complex = tempval_complex[iter];
         }else{
-            valptr_double=csc->avals+pos;
-            csc->rows[pos] = temprow[iter];
+            valptr_double=csc->values+pos;
+            csc->rowptr[pos] = temprow[iter];
             *valptr_double = tempval_double[iter];
         }
     }

@@ -60,19 +60,19 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
 
     /* Allocating */
     csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rows   = malloc(nnz       *sizeof(pastix_int_t));
+    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
     assert( csc->colptr );
-    assert( csc->rows   );
+    assert( csc->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->avals  = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->avals  );
+    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( csc->values );
 #endif
 
-    /* Building ia, ja and avals*/
+    /* Building ia, ja and values*/
     colptr = csc->colptr;
-    rowptr = csc->rows;
-    valptr = (pastix_complex64_t*)(csc->avals);
+    rowptr = csc->rowptr;
+    valptr = (pastix_complex64_t*)(csc->values);
 
     j = 0;
     *colptr = 1; colptr++; /* baseval */
@@ -157,21 +157,21 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
 
     /* Allocating */
     csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rows   = malloc(nnz       *sizeof(pastix_int_t));
+    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
     assert( csc->colptr );
-    assert( csc->rows   );
+    assert( csc->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->avals  = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->avals  );
+    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( csc->values );
 #endif
 
-    /* Building ia, ja and avals*/
+    /* Building ia, ja and values*/
     colptr = csc->colptr;
-    rowptr = csc->rows;
-    valptr = (pastix_complex64_t*)(csc->avals);
+    rowptr = csc->rowptr;
+    valptr = (pastix_complex64_t*)(csc->values);
 
-    /* Building ia, ja and avals */
+    /* Building ia, ja and values*/
     *colptr = 1;
     k = 1; /* Column index in the matrix ((i-1) * dim1 + j-1) */
     for(i=1; i<=dim2; i++)
@@ -273,21 +273,21 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
 
     /* Allocating */
     csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rows   = malloc(nnz       *sizeof(pastix_int_t));
+    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
     assert( csc->colptr );
-    assert( csc->rows   );
+    assert( csc->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->avals  = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->avals  );
+    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( csc->values );
 #endif
 
-    /* Building ia, ja and avals*/
+    /* Building ia, ja and values*/
     colptr = csc->colptr;
-    rowptr = csc->rows;
-    valptr = (pastix_complex64_t*)(csc->avals);
+    rowptr = csc->rowptr;
+    valptr = (pastix_complex64_t*)(csc->values);
 
-    /* Building ia, ja and avals */
+    /* Building ia, ja and values*/
     *colptr = 1;
     l = 1; /* Column index in the matrix ((i-1) * dim1 * dim2 + (j-1) * dim1 + k-1) */
     for(i=1; i<=dim3; i++)
@@ -389,21 +389,21 @@ z_spmExtendedLaplacian2D( pastix_csc_t  *csc,
 
     /* Allocating */
     csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rows   = malloc(nnz       *sizeof(pastix_int_t));
+    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
     assert( csc->colptr );
-    assert( csc->rows   );
+    assert( csc->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->avals  = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->avals  );
+    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( csc->values );
 #endif
 
-    /* Building ia, ja and avals*/
+    /* Building ia, ja and values*/
     colptr = csc->colptr;
-    rowptr = csc->rows;
-    valptr = (pastix_complex64_t*)(csc->avals);
+    rowptr = csc->rowptr;
+    valptr = (pastix_complex64_t*)(csc->values);
 
-    /* Building ia, ja and avals */
+    /* Building ia, ja and values*/
     *colptr = 1;
     k = 1; /* Column index in the matrix ((i-1) * dim1 + j-1) */
     for(i=1; i<=dim2; i++)
@@ -517,21 +517,21 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
 
     /* Allocating */
     csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rows   = malloc(nnz       *sizeof(pastix_int_t));
+    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
     assert( csc->colptr );
-    assert( csc->rows   );
+    assert( csc->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->avals  = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->avals  );
+    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( csc->values );
 #endif
 
-    /* Building ia, ja and avals*/
+    /* Building ia, ja and values*/
     colptr = csc->colptr;
-    rowptr = csc->rows;
-    valptr = (pastix_complex64_t*)(csc->avals);
+    rowptr = csc->rowptr;
+    valptr = (pastix_complex64_t*)(csc->values);
 
-    /* Building ia, ja and avals */
+    /* Building ia, ja and values*/
     *colptr = 1;
     l = 1; /* Column index in the matrix ((i-1) * dim1 * dim2 + (j-1) * dim1 + k-1) */
     for(i=1; i<=dim3; i++)
