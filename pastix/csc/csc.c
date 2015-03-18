@@ -99,3 +99,16 @@ spmFindBase( pastix_csc_t *spm )
 
     return baseval;
 }
+
+void
+spmExit( pastix_csc_t *spm )
+{
+    if(spm->colptr != NULL)
+        memFree_null(spm->colptr);
+    if(spm->rowptr != NULL)
+        memFree_null(spm->rowptr);
+    if(spm->loc2glob != NULL)
+        memFree_null(spm->loc2glob);
+    if(spm->values != NULL)
+        memFree_null(spm->values);
+}

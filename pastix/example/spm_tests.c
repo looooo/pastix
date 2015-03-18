@@ -726,10 +726,7 @@ int main (int argc, char **argv)
     /* end of the baseval loop */
     }
 
-    free(csc.colptr);
-    free(csc.rowptr);
-    if(csc.values != NULL)
-        free(csc.values);
+    spmExit( &csc );
 
     if(err==0)
     {

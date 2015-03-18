@@ -85,10 +85,7 @@ int main (int argc, char **argv)
     pastix_task_blend( pastix_data );
     //pastix_task_sopalin( pastix_data, &csc );
 
-    //cscExit( csc );
-    free(csc.colptr);
-    free(csc.rowptr);
-    free(csc.values);
+    spmExit( &csc );
 
     /* if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD)) */
     /* { */
