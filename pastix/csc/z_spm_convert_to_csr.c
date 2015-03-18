@@ -191,11 +191,7 @@ z_spmConvertIJV2CSR( pastix_csc_t *spm )
     }
     assert( spm->rowptr[ spm->n ] == (spm->nnz+baseval) );
 
-    free( oldspm.rowptr );
-    free( oldspm.colptr );
-
-    if (oldspm.values != NULL)
-        free( oldspm.values );
+    spmExit( &oldspm );
 
     spm->fmttype = PastixCSR;
 

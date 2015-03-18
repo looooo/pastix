@@ -115,11 +115,7 @@ z_spmConvertIJV2CSC( pastix_csc_t *spm )
     }
     assert( spm->colptr[ spm->n ] == (spm->nnz+baseval) );
 
-    free( oldspm.colptr );
-    free( oldspm.rowptr );
-
-    if (oldspm.values != NULL)
-        free( oldspm.values );
+    spmExit( &oldspm );
 
     spm->fmttype = PastixCSC;
 
@@ -249,12 +245,10 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
             }
         }
 
-        memFree_null(spm->colptr);
-        memFree_null(spm->rowptr);
+        spmExit( spm );
         spm->colptr = col_csc;
         spm->rowptr = row_csc;
 #if !defined(PRECISION_p)
-        memFree_null(spm->values);
         spm->values = val_csc;
 #else
         spm->values = NULL;
