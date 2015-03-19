@@ -609,4 +609,9 @@ int pastix_task_blend( pastix_data_t *pastix_data );
 int pastix_task_sopalin( pastix_data_t *pastix_data,
                           pastix_csc_t  *csc );
 
+/* TODO: integrate in iparm? */
+int split_level;
+int stop_criteria;
+int stop_when_fitting;
+
 #endif /* _PASTIX_H_ */
