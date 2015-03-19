@@ -233,10 +233,10 @@ int hamming_distance_symbol(int n, int **vectors, int *vectors_size,
     int *end1 = vectors[xi] + vectors_size[xi];
     int *end2 = vectors[xj] + vectors_size[xj];
 
-    if (vectors_size[xi] - vectors_size[xj] > stop){
+    if (vectors_size[xi] - vectors_size[xj] >= stop){
         return stop;
     }
-    if (vectors_size[xj] - vectors_size[xi] > stop){
+    if (vectors_size[xj] - vectors_size[xi] >= stop){
         return stop;
     }
 
@@ -249,13 +249,19 @@ int hamming_distance_symbol(int n, int **vectors, int *vectors_size,
         }
         else if( *set1 < *set2 )
         {
-            sum ++;
-            set1++;
+            while (( set1 < end1 ) && ( *set1 < *set2 ))
+            {
+                sum ++;
+                set1++;
+            }
         }
         else if( *set1 > *set2 )
         {
-            sum ++;
-            set2++;
+            while (( set2 < end2 ) && ( *set1 > *set2 ))
+            {
+                sum ++;
+                set2++;
+            }
         }
         else
         {
@@ -263,13 +269,18 @@ int hamming_distance_symbol(int n, int **vectors, int *vectors_size,
         }
 
         /* The computation is stopped if sum overlapped a given limit */
-        if (sum > stop){
-            return sum;
+        if (sum >= stop){
+            return stop;
         }
     }
 
     sum += end1-set1;
     sum += end2-set2;
+
+    if (sum >= stop){
+        return stop;
+    }
+
     return sum;
 }
 
@@ -308,8 +319,6 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
         int mpos = 1;
 
         int min_cut = -1;
-
-        int stop_loc = 1000;
         for(j=1; j<i-1; j++ ){
 
             int DEEP_stop = 1;
