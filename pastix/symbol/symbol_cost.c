@@ -165,7 +165,6 @@ typedef struct flops_function_s {
     double (*blkupdate)(pastix_int_t, pastix_int_t, pastix_int_t);
 } flops_function_t;
 
-
 static flops_function_t flopstable[2][4] = {
     {
         {flops_zgetrf_diag, flops_zgetrf_trsm, flops_zgetrf_update, flops_zgetrf_blkupdate },
@@ -291,6 +290,8 @@ symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,
            pastix_coeftype_t flttype, pastix_factotype_t factotype,
            pastix_int_t *nnz, double *thflops, double *rlflops )
 {
+    int iscomplex = (flttype == PastixComplex32) || (flttype == PastixComplex64);
+
     /* Compute NNZ */
     if ( nnz != NULL ) {
         *nnz = symbolGetNNZ( symbmtx );
@@ -299,14 +300,14 @@ symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,
     /* Compute theroritical flops */
     if ( thflops != NULL ) {
         *thflops = recursive_sum(0, symbmtx->cblknbr-1, sum1d,
-                                 &(flopstable[flttype][factotype]),
+                                 &(flopstable[iscomplex][factotype]),
                                  symbmtx, dofptr);
     }
 
     /* Compute real flops */
     if ( rlflops != NULL ) {
         *rlflops = recursive_sum(0, symbmtx->cblknbr-1, sum2d,
-                                 &(flopstable[flttype][factotype]),
+                                 &(flopstable[iscomplex][factotype]),
                                  symbmtx, dofptr);
     }
 }
