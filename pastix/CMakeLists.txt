@@ -519,7 +519,6 @@ set(PASTIX_LIB_SRCS
   blend/blendctrl.c
 
   blend/blend.c
-  blend/blend_symbol_cost.c
   blend/bulles.c
   blend/cost.c
   blend/costfunc.c
@@ -559,7 +558,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_draw.c
   symbol/symbol_io.c
   symbol/symbol_rustine.c
-#  symbol/symbol_cost.c
+  symbol/symbol_cost.c
 #  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c

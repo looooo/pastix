@@ -239,11 +239,14 @@ enum DPARM_ACCESS {
   DPARM_PRED_FACT_TIME          = 19,
   DPARM_FACT_TIME               = 20,
   DPARM_SOLV_TIME               = 21,
-  DPARM_FACT_FLOPS              = 22,
+  DPARM_FACT_THFLOPS            = 22,
+  DPARM_FACT_RLFLOPS            = 25,
   DPARM_SOLV_FLOPS              = 23,
   DPARM_RAFF_TIME               = 24,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
 };
+
+#define DPARM_FACT_FLOPS DPARM_FACT_THFLOPS
 
 /** Etapes de résolution de PaStiX */
 /*
@@ -395,6 +398,12 @@ enum API_FACT {
   API_FACT_LU   = 2, /* Factorisation LU */
   API_FACT_LDLH  = 3
 };
+typedef enum pastix_factotype_e {
+  PastixFactLLT  = 0, /* Factorisation de Cholesky */
+  PastixFactLDLT = 1, /* Factorisation de Crout */
+  PastixFactLU   = 2, /* Factorisation LU */
+  PastixFactLDLH = 3
+} pastix_factotype_t;
 
 /** Matrice symétrique ou non (0 : symétrique, 1 : non) */
 /*
@@ -530,10 +539,10 @@ enum API_ORDER {
  */
 /* _POS_ 61 */
 enum API_FLOAT {
-  API_REALSINGLE    = 0,
-  API_REALDOUBLE    = 1,
-  API_COMPLEXSINGLE = 2,
-  API_COMPLEXDOUBLE = 3
+  API_REALSINGLE    = 2,
+  API_REALDOUBLE    = 3,
+  API_COMPLEXSINGLE = 4,
+  API_COMPLEXDOUBLE = 5
 };
 
 /*
