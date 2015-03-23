@@ -91,8 +91,14 @@ void solverBlend(BlendCtrl    *ctrl,
         symbolCheck(symbmtx);
     }
 
-    if(ctrl->count_ops && ctrl->leader == clustnum)
-        symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
+    if(ctrl->count_ops && (ctrl->leader == clustnum)) {
+        symbolCost( symbmtx, dofptr,
+                      ctrl->iparm[IPARM_FLOAT],
+                      ctrl->iparm[IPARM_FACTORIZATION],
+                    &(ctrl->iparm[IPARM_NNZEROS]),
+                    &(ctrl->dparm[DPARM_FACT_THFLOPS]),
+                    &(ctrl->dparm[DPARM_FACT_RLFLOPS]) );
+    }
 
     /* Build the elimination tree from the symbolic partition */
     {
@@ -186,8 +192,14 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
     }
 
-    if(ctrl->count_ops && (ctrl->leader == clustnum))
-        symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
+    if(ctrl->count_ops && (ctrl->leader == clustnum)) {
+        symbolCost( symbmtx, dofptr,
+                      ctrl->iparm[IPARM_FLOAT],
+                      ctrl->iparm[IPARM_FACTORIZATION],
+                    &(ctrl->iparm[IPARM_NNZEROS]),
+                    &(ctrl->dparm[DPARM_FACT_THFLOPS]),
+                    &(ctrl->dparm[DPARM_FACT_RLFLOPS]) );
+    }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     {
