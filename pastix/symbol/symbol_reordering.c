@@ -53,6 +53,27 @@
 #include "symbol.h"
 #include "order.h"
 
+static inline pastix_int_t
+compute_cblklevel( const pastix_int_t *treetab,
+                         pastix_int_t *levels,
+                         pastix_int_t  cblknum )
+{
+    /* cblknum level has already been computed */
+    if ( levels[cblknum] != 0 ) {
+        return levels[cblknum];
+    }
+    else {
+        pastix_int_t father = treetab[cblknum];
+
+        if ( father == -1 ) {
+            return 1;
+        }
+        else {
+            return compute_cblklevel( treetab, levels, father ) + 1;
+        }
+    }
+}
+
 /* For split_level parameter */
 /* The chosen level to reduce computational cost: no effects if set to 0 */
 /* A first comparison is computed according to upper levels */
@@ -87,18 +108,12 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
 
     pastix_int_t *levels;
 
-
     /* Create the levels structure */
     levels = calloc(cblknbr, sizeof(pastix_int_t));
 
     /* Define the depth of each cblk */
     for (i=0; i<cblknbr; i++){
-        pastix_int_t father = order->treetab[i];
-        levels[i]++;
-        while (father != -1){
-            levels[i]++;
-            father = order->treetab[father];
-        }
+        levels[i] = compute_cblklevel( order->treetab, levels, i );
     }
 
     iterblok = 0;
