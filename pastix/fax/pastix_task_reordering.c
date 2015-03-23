@@ -5,12 +5,8 @@
 #include <string.h>
 #include <assert.h>
 #include <pastix.h>
-#include "../matrix_drivers/drivers.h"
-#include "../symbol/symbol.h"
-#include "../common/common.h"
-#include "../fax/fax.h"
-#include "../order/order.h"
-#include <csc.h>
+#include "common.h"
+#include "order.h"
 
 int
 pastix_task_reordering(pastix_data_t *pastix_data, pastix_int_t split_level,
