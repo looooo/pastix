@@ -519,7 +519,6 @@ set(PASTIX_LIB_SRCS
   blend/blendctrl.c
 
   blend/blend.c
-  blend/blend_symbol_cost.c
   blend/bulles.c
   blend/cost.c
   blend/costfunc.c
