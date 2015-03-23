@@ -549,10 +549,10 @@ void printSolverInfo(FILE *out, const SolverMatrix * solvmtx, const SymbolMatrix
 {
     pastix_int_t procnum = solvmtx->clustnum;
     double totalspace = memorySpaceCost(solvmtx);
-    fprintf(out,   " %ld : Number of operations             : %g \n", (long)procnum,
-            recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr));
-    fprintf(out,   " %ld : Number of Column Bloks           : %ld \n", (long)procnum, (long)symbmtx->cblknbr);
-    fprintf(out,   " %ld : Number of Bloks                  : %ld \n", (long)procnum, (long)symbmtx->bloknbr);
+    /* fprintf(out,   " %ld : Number of operations             : %g \n", (long)procnum, */
+    /*         recursive_sum(0, symbmtx->cblknbr-1, crout_blok, symbmtx, dofptr)); */
+    /* fprintf(out,   " %ld : Number of Column Bloks           : %ld \n", (long)procnum, (long)symbmtx->cblknbr); */
+    /* fprintf(out,   " %ld : Number of Bloks                  : %ld \n", (long)procnum, (long)symbmtx->bloknbr); */
     fprintf(out,   " %ld : Number of Non Null Coeff         : %ld --> %g Octs \n",
             (long)procnum, (long)solvmtx->coefnbr, (double)solvmtx->coefnbr*sizeof(double));
     fprintf(out,   " %ld : ExtraStructure Memory Space      : %g Octs \n", (long)procnum, totalspace - (double)solvmtx->coefnbr*sizeof(double));
