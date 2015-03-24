@@ -77,6 +77,7 @@ orderInit ( Order * const ordeptr,
 
      if (cblknbr != 0) {
         MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
+        MALLOC_INTERN(ordeptr->treetab, cblknbr+1, pastix_int_t);
     }
 
     return PASTIX_SUCCESS;
@@ -104,6 +105,8 @@ orderExit (Order * const ordeptr)
         return;
     }
 
+    if (ordeptr->treetab != NULL)
+        memFree_null (ordeptr->treetab);
     if (ordeptr->rangtab != NULL)
         memFree_null (ordeptr->rangtab);
     if (ordeptr->permtab != NULL)
