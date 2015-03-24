@@ -72,7 +72,7 @@ if( C_M32or64 )
 endif( C_M32or64 )
 
 # Set warnings for debug builds
-check_c_compiler_flag( "-wall" HAVE_WALL )
+check_c_compiler_flag( "-Wall" HAVE_WALL )
 if( HAVE_WALL )
     set( C_WFLAGS "${C_WFLAGS} -Wall" )
 endif( HAVE_WALL )
