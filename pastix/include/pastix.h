@@ -29,7 +29,6 @@
 #else
 #include "pastix/nompi.h"
 #endif
-#include "pastix/retro.h"
 
 /** ****************************************************************************
  *
