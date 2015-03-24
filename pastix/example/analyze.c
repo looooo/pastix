@@ -14,12 +14,10 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
 #include <pastix.h>
-#include "../matrix_drivers/drivers.h"
-#include "../symbol/symbol.h"
-#include "../common/common.h"
-#include "../fax/fax.h"
 #include <csc.h>
+#include "../matrix_drivers/drivers.h"
 
 int main (int argc, char **argv)
 {
@@ -34,7 +32,6 @@ int main (int argc, char **argv)
     pastix_driver_t driver;        /* Matrix driver(s) requested by user                        */
     char           *filename;           /* Filename(s) given by user                                 */
     pastix_csc_t    csc;
-    Clock           timer;
 
     /*******************************************/
     /*          MPI initialisation             */
