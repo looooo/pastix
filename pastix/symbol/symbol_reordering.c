@@ -120,8 +120,8 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
     for (itercblk=0; itercblk<cblknbr; itercblk++){
         clockStart(timer);
 
-        pastix_int_t size  = order->rangtab[itercblk+1] - order->rangtab[itercblk];
-        pastix_int_t stop = 0;
+        pastix_int_t size = order->rangtab[itercblk+1] - order->rangtab[itercblk];
+        pastix_int_t stop;
 
         int **vectors      = malloc(size * sizeof(int*));
         int * wmatrix      = malloc(size * size * sizeof(int)); /* Hamming distances */
@@ -137,8 +137,16 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
 
         pastix_int_t saved_iterblok = iterblok;
 
+        /* Start with the given split_level parameter */
+        /* This parameter should be approximated to minimize the following iterative process */
+        pastix_int_t local_split_level = split_level;
 
         /* Current for each line within the current cblk the number of contributions */
+        int sign = 0;
+
+      split:
+        stop     = 0;
+        iterblok = saved_iterblok;
         while (iterblok < end && stop == 0){
             SymbolBlok *blok = symbptr->bloktab + brow[iterblok];
 
@@ -148,7 +156,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             }
             else{
                 /* For upper levels in nested dissection */
-                if (levels[crow[iterblok]] <= split_level){
+                if (levels[crow[iterblok]] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
                         up_vectors_size[index]++;
@@ -164,6 +172,30 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             }
         }
 
+        pastix_int_t total    = 0; /* total of lower bloks */
+        pastix_int_t up_total = 0; /* total of upper bloks */
+        for (i=0; i<size; i++){
+            total    += vectors_size[i];
+            up_total += up_vectors_size[i];
+        }
+
+        /* If there are too many upper bloks */
+        if (total < 5 * up_total && total > 10 && up_total > 10 && sign <= 0){
+            local_split_level--;
+            memset(vectors_size   , 0, size*sizeof(int));
+            memset(up_vectors_size, 0, size*sizeof(int));
+            sign--;
+            goto split;
+        }
+
+        /* If there are too many lower bloks */
+        if (total > 3 * up_total && total > 10 && up_total > 10 && sign >= 0){
+            local_split_level++;
+            memset(vectors_size   , 0, size*sizeof(int));
+            memset(up_vectors_size, 0, size*sizeof(int));
+            sign++;
+            goto split;
+        }
 
         /* Initiate vectors structure */
         for (i=0; i<size; i++){
@@ -185,7 +217,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             }
             else{
                 /* For upper levels in nested dissection */
-                if (levels[crow[iterblok]] <= split_level){
+                if (levels[crow[iterblok]] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
                         up_vectors[index][up_current_pos[index]] = crow[iterblok];
