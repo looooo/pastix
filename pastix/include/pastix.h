@@ -29,7 +29,7 @@
 #else
 #include "pastix/nompi.h"
 #endif
-#include "pastix/retro.h"
+#include "pastix/old_api.h"
 
 /** ****************************************************************************
  *

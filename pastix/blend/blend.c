@@ -37,7 +37,6 @@
 #include "splitpartlocal.h"
 #include "solverMatrixGen.h"
 #include "solver_check.h"
-#include "symbol_cost.h"
 #include "task.h"
 #include "solver_check.h"
 #include "fanboth2.h"

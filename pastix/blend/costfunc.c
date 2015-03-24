@@ -18,7 +18,6 @@
 #include "blendctrl.h"
 #include "updown.h"
 #include "solver.h"
-#include "symbol_cost.h"
 #include "simu.h"
 #include "costfunc.h"
 

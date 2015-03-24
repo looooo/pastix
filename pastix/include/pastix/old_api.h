@@ -19,3 +19,19 @@ enum ERR_NUMBERS {
   MPI_ERR            = 16
 };
 
+/* _POS_ 4 */
+enum API_FACT {
+  API_FACT_LLT  = PastixFactLLT,
+  API_FACT_LDLT = PastixFactLDLT,
+  API_FACT_LU   = PastixFactLU,
+  API_FACT_LDLH = PastixFactLDLH
+};
+
+/* _POS_ 61 */
+enum API_FLOAT {
+  API_REALSINGLE    = PastixFloat,
+  API_REALDOUBLE    = PastixDouble,
+  API_COMPLEXSINGLE = PastixComplex32,
+  API_COMPLEXDOUBLE = PastixComplex64
+};
+
