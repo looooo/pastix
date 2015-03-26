@@ -138,8 +138,8 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     iparm = pastix_data->iparm;
     dparm = pastix_data->dparm;
 
-    if ( !(pastix_data->steps & STEP_INIT) ) {
-        errorPrint("pastix_task_symbfact: pastix_task_init() has to be called before calling this function");
+    if ( !(pastix_data->steps & STEP_ORDERING) ) {
+        errorPrint("pastix_task_symbfact: pastix_task_order() has to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
