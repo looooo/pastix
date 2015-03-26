@@ -182,8 +182,6 @@
                                       ( "MFLOPS" ) :                    \
                                       ( "GFLOPS" ))))
 
-char units[9] = { ' ', 'k', 'm', 'g', 't', 'p', 'e', 'z', 'y' };
-
 static inline double
 printflopsv( double flops )
 {
@@ -200,6 +198,7 @@ printflopsv( double flops )
 static inline char
 printflopsu( double flops )
 {
+    static char units[9] = { ' ', 'k', 'm', 'g', 't', 'p', 'e', 'z', 'y' };
     static double ratio = (double)(1<<10);
     int unit = 0;
 
