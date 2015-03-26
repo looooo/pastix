@@ -367,7 +367,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /*
      * Computes statistics and print informations
      */
-    symbolCost( pastix_data->symbmtx, NULL,
+    symbolCost( pastix_data->symbmtx,
                   iparm[IPARM_FLOAT],
                   iparm[IPARM_FACTORIZATION],
                 &(iparm[IPARM_NNZEROS]),
