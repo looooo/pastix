@@ -94,6 +94,7 @@ struct pastix_data_s {
 
     pastix_int_t     steps;              /*< Bitmask of the steps performed or not                               +*/
 
+    pastix_csc_t    *csc;                /*< Pointer to the user csc structure used as input                     +*/
     pastix_graph_t  *graph;              /*< Cleaned graph of the problem used within ordering
                                           *  and symbolic factorization steps.                                   +*/
     pastix_int_t     schur_n;            /*< Number of entries for the Schur complement                          +*/
