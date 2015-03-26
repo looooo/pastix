@@ -46,13 +46,13 @@ typedef struct SymbolBlok_ {
  */
 typedef struct SymbolMatrix_ {
   pastix_int_t            baseval;  /*< Base value for numberings         */
+  pastix_int_t            dof;      /*< Degrees of freedom per node (constant if > 0, unconstant if 0 (not implemented)) */
   pastix_int_t            cblknbr;  /*< Number of column blocks           */
   pastix_int_t            bloknbr;  /*< Number of blocks                  */
   SymbolCblk   * restrict cblktab;  /*< Array of column blocks [+1,based] */
   SymbolBlok   * restrict bloktab;  /*< Array of blocks [based]           */
   pastix_int_t * restrict crowtab;  /*< Array of column blocks [based]    */
   pastix_int_t * restrict browtab;  /*< Array of blocks [based]           */
-  pastix_int_t            nodenbr;  /*< Number of nodes in matrix         */
 #ifdef STARPU_GET_TASK_CTX
   pastix_int_t            starpu_subtree_nbr;
 #endif
@@ -85,7 +85,7 @@ pastix_int_t
 symbolGetNNZ(const SymbolMatrix *symbptr);
 
 void
-symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,
+symbolCost(const SymbolMatrix *symbmtx,
            pastix_coeftype_t flttype, pastix_factotype_t factotype,
            pastix_int_t *nnz, double *thflops, double *rlflops );
 

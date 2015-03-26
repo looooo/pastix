@@ -188,17 +188,18 @@ symbolGetNNZ(const SymbolMatrix *symbptr)
     pastix_int_t itercblk;
     pastix_int_t cblknbr;
     pastix_int_t nnz = 0;
+    pastix_int_t dof = symbptr->dof;
 
     cblknbr = symbptr->cblknbr;
-    cblk = symbptr->cblktab;
-    blok = symbptr->bloktab;
+    cblk    = symbptr->cblktab;
+    blok    = symbptr->bloktab;
 
     for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
     {
         pastix_int_t iterblok = cblk[0].bloknum + 1;
         pastix_int_t lbloknum = cblk[1].bloknum;
 
-        pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
+        pastix_int_t colnbr = dof * (cblk->lcolnum - cblk->fcolnum + 1);
 
         /* Diagonal block */
         blok++;
@@ -207,7 +208,7 @@ symbolGetNNZ(const SymbolMatrix *symbptr)
         /* Off-diagonal blocks */
         for( ; iterblok < lbloknum; iterblok++, blok++)
         {
-            pastix_int_t rownbr = blok->lrownum - blok->frownum + 1;
+            pastix_int_t rownbr = (blok->lrownum - blok->frownum + 1) * dof;
 
             nnz += rownbr * colnbr;
         }
@@ -302,7 +303,7 @@ symbolPrintStats( const SymbolMatrix *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
-    pastix_int_t itercblk;
+    pastix_int_t itercblk, dof;
     pastix_int_t cblknbr, bloknbr;
     pastix_int_t cblkmin, cblkmax;
     pastix_int_t blokmin, blokmax;
@@ -343,8 +344,13 @@ symbolPrintStats( const SymbolMatrix *symbptr )
         }
     }
 
-    cblkavg = cblkavg / (double)cblknbr;
-    blokavg = blokavg / (double)bloknbr;
+    dof = symbptr->dof;
+    blokmin *= dof;
+    blokmax *= dof;
+    cblkmin *= dof;
+    cblkmax *= dof;
+    cblkavg  = (cblkavg * (double)dof ) / (double)cblknbr;
+    blokavg  = (blokavg * (double)dof ) / (double)bloknbr;
 
     fprintf(stdout,
             "------ Stats Symbol Matrix ----------\n"
