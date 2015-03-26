@@ -128,7 +128,6 @@ kassBuildSymbol(      kass_csr_t   *P,
     symbmtx->baseval = 0;
     symbmtx->cblknbr = cblknbr;
     symbmtx->bloknbr = bloknbr;
-    symbmtx->nodenbr = n;
 
     MALLOC_INTERN(symbmtx->cblktab, cblknbr+1,        SymbolCblk);
     MALLOC_INTERN(symbmtx->bloktab, symbmtx->bloknbr, SymbolBlok);
