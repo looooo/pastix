@@ -77,7 +77,7 @@ void solverBlend(BlendCtrl    *ctrl,
 
     clockStart(timer_all);
 
-    if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print( clustnum, 0,
                       OUT_CLUSTNBR "" OUT_PROCNBR "" OUT_THRDNBR,
                       (long)clustnbr, (long)ctrl->local_nbcores, (long)ctrl->local_nbthrds);
@@ -183,7 +183,7 @@ void solverBlend(BlendCtrl    *ctrl,
     }
 
     if(ctrl->count_ops && (ctrl->leader == clustnum)) {
-        symbolCost( symbmtx, dofptr,
+        symbolCost( symbmtx,
                       ctrl->iparm[IPARM_FLOAT],
                       ctrl->iparm[IPARM_FACTORIZATION],
                     &(ctrl->iparm[IPARM_NNZEROS]),
