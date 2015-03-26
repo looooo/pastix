@@ -125,15 +125,15 @@ flops_dpotrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 static double
 flops_zgetrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 {
-    return FLOPS_ZGEMM( M, N, K ) + FLOPS_ZGEMM( M-N, N, K );
-    + 2. * (double)M * (double)N + 2. * (double)(M-N) * (double)(N); /* Add step */
+    return FLOPS_ZGEMM( M, N, K ) + FLOPS_ZGEMM( M-N, N, K )
+        + 2. * (double)M * (double)N + 2. * (double)(M-N) * (double)(N); /* Add step */
 }
 
 static inline double
 flops_dgetrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 {
-    return FLOPS_DGEMM( M, N, K ) + FLOPS_DGEMM( M-N, N, K );
-    + (double)M * (double)N + (double)(M-N) * (double)(N); /* Add step */
+    return FLOPS_DGEMM( M, N, K ) + FLOPS_DGEMM( M-N, N, K )
+        + (double)M * (double)N + (double)(M-N) * (double)(N); /* Add step */
 }
 
 static inline double
@@ -186,7 +186,7 @@ sum1d(const flops_function_t *fptr,
       const SymbolMatrix     *symbmtx,
       const Dof              *dofptr)
 {
-    double M, N, K;
+    double M, N;
     pastix_int_t k;
     double nbops = 0.;
 
