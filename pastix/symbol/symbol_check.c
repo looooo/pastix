@@ -87,7 +87,7 @@ symbolCheck (
     cblkmax = symbptr->cblknbr + (baseval - 1);
     bloktax = symbptr->bloktab - baseval;
     blokmax = symbptr->bloknbr + baseval;
-    nodemax = cblktax[ cblkmax ].lcolnum;
+    nodemax = symbptr->nodenbr;
 
     for (cblknum = bloknum = baseval;
          cblknum <= cblkmax; cblknum ++) {

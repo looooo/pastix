@@ -115,19 +115,16 @@ FILE * const                stream)
 {
   pastix_int_t cblknum;                    /* Number of current column block */
   pastix_int_t bloknum;                    /* Number of current block        */
-  pastix_int_t nodenbr;                    /* Number of nodes                */
   time_t       picttime;                   /* Creation time                  */
   double       pictsize;                   /* Number of distinct coordinates */
   int          o;
 
   time (&picttime);                               /* Get current time */
-
-  nodenbr = symbptr->cblktab[ symbptr->cblknbr ].lcolnum - symbptr->baseval;
-  pictsize = (double) (nodenbr + 1);     /* Get matrix size  */
+  pictsize = (double) (symbptr->nodenbr + 1);     /* Get matrix size  */
 
   fprintf (stream, "%%!PS-Adobe-2.0 EPSF-2.0\n"); /* Write header */
   fprintf (stream, "%%%%Title: symbolmatrix (%ld,%ld,%ld)\n",
-           (long) symbptr->cblknbr, (long) symbptr->bloknbr, (long)nodenbr);
+           (long) symbptr->cblknbr, (long) symbptr->bloknbr, (long)symbptr->nodenbr);
   fprintf (stream, "%%%%Creator: symbolDraw (LaBRI, Universite Bordeaux I)\n");
   fprintf (stream, "%%%%CreationDate: %s", ctime (&picttime));
   fprintf (stream, "%%%%BoundingBox: 0 0 %ld %ld\n",
@@ -145,7 +142,7 @@ FILE * const                stream)
   fprintf (stream, "%f dup scale\n",              /* Print scaling factor */
            (double) SYMBOL_PSDPI * SYMBOL_PSPICTSIZE / pictsize);
   fprintf (stream, "[ 1 0 0 -1 0 %d ] concat\n",  /* Reverse Y coordinate */
-           (int) (nodenbr + 1));
+           (int) (symbptr->nodenbr + 1));
 
   fprintf (stream, "0 0\n");                      /* Output fake column block */
   for (cblknum = 0, bloknum = 0; cblknum < symbptr->cblknbr; cblknum ++) {

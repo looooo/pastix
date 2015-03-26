@@ -49,8 +49,6 @@
 **  The defines and includes.
 */
 
-#define SYMBOL_IO
-
 #include "common.h"
 #include "symbol.h"
 
@@ -104,7 +102,7 @@ FILE * const                stream)
   symbptr->baseval = baseval;
   symbptr->cblknbr = cblknbr;
   symbptr->bloknbr = bloknbr;
-  //symbptr->nodenbr = nodenbr;
+  symbptr->nodenbr = nodenbr;
 
   for (cblknum = 0; cblknum < cblknbr; cblknum ++) {
     if ((intLoad (stream, &symbptr->cblktab[cblknum].fcolnum) + /* Read column blocks */
@@ -170,7 +168,7 @@ FILE * const                stream)
   o = (fprintf (stream, "1\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                 (long) symbptr->cblknbr,
                 (long) symbptr->bloknbr,
-                (long) symbptr->cblktab[ symbptr->cblknbr ].lcolnum - symbptr->baseval,
+                (long) symbptr->nodenbr,
                 (long) symbptr->baseval) == EOF);
   for (cblkptr = symbptr->cblktab, cblktnd = cblkptr + symbptr->cblknbr;
        (cblkptr < cblktnd) && (o == 0); cblkptr ++) {

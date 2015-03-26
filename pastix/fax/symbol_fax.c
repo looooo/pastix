@@ -495,6 +495,7 @@ symbolFax (SymbolMatrix * const   symbptr,
     symbptr->bloknbr = bloknum - baseval;
     symbptr->cblktab = cblktax + baseval;
     symbptr->bloktab = (SymbolBlok *) memRealloc (bloktax + baseval, (bloknum - baseval) * sizeof (SymbolBlok)); /* Set array to its exact size */
+    symbptr->nodenbr = vertnbr;
 
 #ifdef FAX_DEBUG
     if (symbolCheck (symbptr) != 0) {

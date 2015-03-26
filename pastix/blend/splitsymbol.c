@@ -210,7 +210,7 @@ computeNbBlocksPerLine( const SymbolMatrix *symbmtx,
     SymbolBlok   *curblok;
     pastix_int_t *nblocksperline;
     pastix_int_t  bloknum, line;
-    pastix_int_t  size = symbmtx->cblktab[ symbmtx->cblknbr ].lcolnum - symbmtx->baseval - frowsplit + 1;
+    pastix_int_t  size = symbmtx->nodenbr - frowsplit + 1;
 
     /*
      * Allocate the temporary buffer nblocksperline, nbblocksperline stores the
