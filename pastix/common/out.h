@@ -45,7 +45,14 @@
 #define OUT_SYMGRAPH          "   > Symmetrizing graph                        \n"
 #define OUT_NODIAG            "   > Removing diag                             \n"
 #define OUT_ORDERINIT         "   > Initiating ordering                       \n"
-#define OUT_STEP_FAX          " Symbolic Factorization :                      \n"
+
+#define OUT_STEP_FAX          " Symbolic Factorization :                     \n"
+#define OUT_FAX_METHOD        "   Algorithm used: %4s                       \n"
+#define OUT_GLOBAL_NNZL       "   Number of nonzeroes in L structure      %ld\n"
+#define OUT_GLOBAL_FILLIN     "   Fill-in                                 %lf\n"
+#define OUT_GLOBAL_THFLOPCNT  "   Number of theoretical flop            %.5g %cflops\n"
+#define OUT_GLOBAL_RLFLOPCNT  "   Number of performed flop              %.5g %cflops\n"
+
 #define OUT_STEP_KASS         " Kass :                                       \n"
 #define OUT_STEP_BLEND        " Analyse :                                    \n"
 #define OUT_STEP_NUMFACT_LU   " Numerical Factorization (LU) :\n"
@@ -174,4 +181,33 @@
                                     ( ((flops) < 1<<30 ) ?              \
                                       ( "MFLOPS" ) :                    \
                                       ( "GFLOPS" ))))
+
+char units[9] = { ' ', 'k', 'm', 'g', 't', 'p', 'e', 'z', 'y' };
+
+static inline double
+printflopsv( double flops )
+{
+    static double ratio = (double)(1<<10);
+    int unit = 0;
+
+    while ( (flops > ratio) && (unit < 9) ) {
+        flops /= ratio;
+        unit++;
+    }
+    return flops;
+}
+
+static inline char
+printflopsu( double flops )
+{
+    static double ratio = (double)(1<<10);
+    int unit = 0;
+
+    while ( (flops > ratio) && (unit < 9) ) {
+        flops /= ratio;
+        unit++;
+    }
+    return units[unit];
+}
+
 #endif /* _OUT_H_ */
