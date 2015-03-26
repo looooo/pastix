@@ -40,7 +40,7 @@ double costFtgtSend( const BlendCtrl   *ctrl,
 double          costFtgtAdd           (FanInTarget *, const Dof *);
 double          cblkMaxCost           (pastix_int_t, const CostMatrix *);
 double          totalCost             (pastix_int_t, const CostMatrix *);
-void            printSolverInfo       (FILE *, const SolverMatrix *, const SymbolMatrix *, const Dof * const dofptr);
+void            printSolverInfo       (FILE *, const SolverMatrix *);
 double          memorySpaceCost       (const SolverMatrix *);
 static double   solverSpaceCost       (const SolverMatrix *);
 static double   symbolSpaceCost       (const SymbolMatrix *);
