@@ -21,6 +21,7 @@
  *
  **/
 #include "common.h"
+#include "csc.h"
 #include "order.h"
 #include "fax.h"
 #include "kass.h"
@@ -59,7 +60,10 @@
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_INCOMPLETE, IPARM_LEVEL_OF_FILL,
  *   IPARM_AMALGAMATION_LVLCBLK, IPARM_AMALGAMATION_LVLBLAS,
- *   IPARM_IO_STRATEGY
+ *   IPARM_IO_STRATEGY, IPARM_FLOAT, IPARM_FACTORIZATION
+ *
+ * On exit, the following parameters are set:
+ *   IPARM_NNZEROS, DPARM_FACT_THFLOPS, DPARM_FACT_RLFLOPS
  *
  *******************************************************************************
  *
@@ -109,6 +113,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                      pastix_int_t  *invp )
 {
     pastix_int_t   *iparm;
+    double         *dparm;
     pastix_graph_t *graph;
     Order          *ordemesh;
     pastix_int_t    n;
@@ -131,6 +136,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm = pastix_data->iparm;
+    dparm = pastix_data->dparm;
 
     if ( !(pastix_data->steps & STEP_INIT) ) {
         errorPrint("pastix_task_symbfact: pastix_task_init() has to be called before calling this function");
@@ -153,7 +159,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
 
     print_debug(DBG_STEP, "-> pastix_task_symbfact\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-        pastix_print(procnum, 0, "%s", OUT_STEP_FAX);
+        pastix_print(procnum, 0, OUT_STEP_FAX );
 
     /* Allocate the symbol matrix structure */
     if (pastix_data->symbmtx == NULL) {
@@ -230,6 +236,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
              (iparm[IPARM_LEVEL_OF_FILL] != -1    ) &&
              (ordemesh->rangtab != NULL) )
         {
+            pastix_print(procnum, 0, OUT_FAX_METHOD, "Fax " );
             symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
                            nfax,                 /* Number of nodes */
                            colptrfax,            /* Nodes list      */
@@ -252,6 +259,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             tmpgraph.rows   = rowfax;
             tmpgraph.loc2glob = NULL;
 
+            pastix_print(procnum, 0, OUT_FAX_METHOD, "Kass" );
             symbolKass(iparm[IPARM_INCOMPLETE],
                        iparm[IPARM_LEVEL_OF_FILL],
                        iparm[IPARM_AMALGAMATION_LEVEL],
@@ -305,16 +313,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
     } /* not API_IO_LOAD */
 
-    /* TODO: Move somewhere else */
-    set_iparm(iparm, IPARM_NNZEROS, symbolGetNNZ( pastix_data->symbmtx ));
-    {
-        double fillin = (double)iparm[ IPARM_NNZEROS ];
-        fillin /= (double)( graph->colptr[graph->n] - graph->colptr[0] );
-
-        fprintf(stdout, NNZERO_WITH_FILLIN_TH, iparm[ IPARM_NNZEROS ] );
-        fprintf(stdout, OUT_FILLIN_TH, fillin );
-    }
-
     /*
      * The graph is not useful anymore, we clean it
      */
@@ -365,6 +363,30 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         fclose(stream);
     }
 #endif
+
+    /*
+     * Computes statistics and print informations
+     */
+    symbolCost( pastix_data->symbmtx, NULL,
+                  iparm[IPARM_FLOAT],
+                  iparm[IPARM_FACTORIZATION],
+                &(iparm[IPARM_NNZEROS]),
+                &(dparm[DPARM_FACT_THFLOPS]),
+                &(dparm[DPARM_FACT_RLFLOPS]) );
+
+    if ( procnum == 0 ) {
+        if ( iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+            double fillin = (double)iparm[ IPARM_NNZEROS ]
+                / (double)( (pastix_data->csc)->gnnz );
+
+            fprintf(stdout, OUT_GLOBAL_NNZL,   iparm[ IPARM_NNZEROS ] );
+            fprintf(stdout, OUT_GLOBAL_FILLIN, fillin );
+            if ( iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX ) {
+                fprintf(stdout, OUT_GLOBAL_FILLIN, fillin );
+                fprintf(stdout, OUT_GLOBAL_FILLIN, fillin );
+            }
+        }
+    }
 
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_ANALYSE |
