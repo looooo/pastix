@@ -262,7 +262,7 @@ void bubbleBuildTree(const BubbleTree * btree){
         {
             btree->sonstab[btree->nodetab[fathnum].fsonnum + sonsnbrtmp[fathnum]] = i;
             sonsnbrtmp[fathnum]++;
-            ASSERTDBG(sonsnbrtmp[fathnum] <= btree->nodetab[fathnum].sonsnbr, MOD_BLEND);
+            assert( sonsnbrtmp[fathnum] <= btree->nodetab[fathnum].sonsnbr );
         }
     }
     memFree_null(sonsnbrtmp);
