@@ -21,12 +21,13 @@
  * @struct pastix_graph_s - Graph structure.
  */
 struct pastix_graph_s {
-    pastix_int_t  gN;        /*< Global number of vertices                    */
-    pastix_int_t  n;         /*< Number of local vertices                     */
-    pastix_int_t *colptr;    /*< List of indirections to rows for each vertex */
-    pastix_int_t *rows;      /*< List of edges for each vertex                */
-    pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global */
-    pastix_int_t *glob2loc;  /*< Corresponding numbering from global to local */
+    pastix_int_t  gN;        /*< Global number of vertices in compressed graph  */
+    pastix_int_t  n;         /*< Number of local vertices in compressed graph   */
+    pastix_int_t  dof;       /*< Degre of freedom to move to uncompressed graph */
+    pastix_int_t *colptr;    /*< List of indirections to rows for each vertex   */
+    pastix_int_t *rows;      /*< List of edges for each vertex                  */
+    pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global   */
+    pastix_int_t *glob2loc;  /*< Corresponding numbering from global to local   */
 };
 
 /*

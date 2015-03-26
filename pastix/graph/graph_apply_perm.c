@@ -63,7 +63,8 @@ graphApplyPerm( const pastix_graph_t *graphA,
     pastix_int_t nnz;
     pastix_int_t baseval;
     pastix_int_t n = graphPA->n = graphA->n;
-    graphPA->gN = graphA->gN;
+    graphPA->gN  = graphA->gN;
+    graphPA->dof = graphA->dof;
     baseval = graphA->colptr[0];
 
     MALLOC_INTERN( graphPA->colptr, n+1, pastix_int_t );

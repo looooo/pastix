@@ -67,8 +67,9 @@ void graphLoad( const pastix_data_t  *pastix_data,
     MPI_Bcast(rows, colptr[ncol]-colptr[0], PASTIX_MPI_INT,
               0, pastix_data->pastix_comm);
 
-    graph->n        = ncol;
     graph->gN       = ncol;
+    graph->n        = ncol;
+    graph->dof      = dof;
     graph->colptr   = colptr;
     graph->rows     = rows;
     graph->loc2glob = NULL;
@@ -104,7 +105,8 @@ void graphSave( const pastix_data_t  *pastix_data,
         csc_save( graph->n,
                   graph->colptr,
                   graph->rows,
-                  0, NULL, 1, stream );
+                  0, NULL,
+                  graph->dof, stream );
         fclose(stream);
     }
 }
