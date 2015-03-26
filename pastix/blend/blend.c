@@ -90,15 +90,6 @@ void solverBlend(BlendCtrl    *ctrl,
         symbolCheck(symbmtx);
     }
 
-    if(ctrl->count_ops && (ctrl->leader == clustnum)) {
-        symbolCost( symbmtx, dofptr,
-                      ctrl->iparm[IPARM_FLOAT],
-                      ctrl->iparm[IPARM_FACTORIZATION],
-                    &(ctrl->iparm[IPARM_NNZEROS]),
-                    &(ctrl->dparm[DPARM_FACT_THFLOPS]),
-                    &(ctrl->dparm[DPARM_FACT_RLFLOPS]) );
-    }
-
     /* Build the elimination tree from the symbolic partition */
     {
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
