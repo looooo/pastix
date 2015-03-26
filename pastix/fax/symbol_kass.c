@@ -277,7 +277,7 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
 
         if(symbolCheck(symbmtx) != 0) {
             errorPrint("SymbolCheck on symbol matrix before patch failed !!!");
-            ASSERT(0, MOD_KASS);
+            assert(0);
         }
 
         /* Patch the symbol matrix */
@@ -296,7 +296,7 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
 
     if( symbolCheck(symbmtx) != 0 ) {
         errorPrint("SymbolCheck on final symbol matrix failed !!!");
-        ASSERT(0, MOD_KASS);
+        assert(0);
     }
 
     return PASTIX_SUCCESS;

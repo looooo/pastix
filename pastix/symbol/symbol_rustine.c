@@ -64,8 +64,7 @@ symbolRustine (SymbolMatrix *       matrsymb,
             }
             else
             {
-                ASSERT(bloknum2!=matrsymb2->cblktab[cblknum+1].bloknum,
-                       MOD_SOPALIN);
+                assert( bloknum2 != matrsymb2->cblktab[cblknum+1].bloknum );
                 add++;
                 bloktmp[iter].frownum = matrsymb2->bloktab[bloknum2].frownum;
                 bloktmp[iter].lrownum = matrsymb2->bloktab[bloknum2].frownum;
@@ -114,6 +113,6 @@ symbolRustine (SymbolMatrix *       matrsymb,
     matrsymb->bloktab = bloktmp;
     matrsymb->cblktab = cblktmp;
     matrsymb->bloknbr += add;
-    ASSERT(add<matrsymb->cblknbr,MOD_SOPALIN);
+    assert( add < matrsymb->cblknbr );
 }
 
