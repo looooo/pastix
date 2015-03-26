@@ -183,12 +183,12 @@ static flops_function_t flopstable[2][4] = {
 static double
 sum1d(const flops_function_t *fptr,
             pastix_int_t      cblknum,
-      const SymbolMatrix     *symbmtx,
-      const Dof              *dofptr)
+      const SymbolMatrix     *symbmtx)
 {
     double M, N;
     pastix_int_t k;
     double nbops = 0.;
+    double dof = (double)(symbmtx->dof);
 
     /*
      * Size of the factorization kernel (square)
@@ -205,10 +205,10 @@ sum1d(const flops_function_t *fptr,
         M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
     }
 
-#ifdef DOF_CONSTANT
-    N *= (double)dofptr->noddval;
-    M *= (double)dofptr->noddval;
-#endif
+    if ( dof > 0. ) {
+        N *= dof;
+        M *= dof;
+    }
 
     nbops = fptr->diag( N );
     if( M > 0 ) {
@@ -222,12 +222,12 @@ sum1d(const flops_function_t *fptr,
 static double
 sum2d(const flops_function_t *fptr,
             pastix_int_t      cblknum,
-      const SymbolMatrix     *symbmtx,
-      const Dof              *dofptr)
+      const SymbolMatrix     *symbmtx)
 {
     double M, N, K;
     pastix_int_t k;
     double nbops = 0.;
+    double dof = (double)(symbmtx->dof);
 
     /*
      * Size of the factorization kernel (square)
@@ -244,10 +244,8 @@ sum2d(const flops_function_t *fptr,
         M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
     }
 
-#ifdef DOF_CONSTANT
-    N *= (double)dofptr->noddval;
-    M *= (double)dofptr->noddval;
-#endif
+    N *= dof;
+    M *= dof;
 
     nbops = fptr->diag( N );
     if( M > 0 ) {
@@ -262,10 +260,8 @@ sum2d(const flops_function_t *fptr,
         k < symbmtx->cblktab[cblknum+1].bloknum-1; k++)
     {
         N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k  ].frownum + 1);
+        N *= dof;
 
-#ifdef DOF_CONSTANT
-        N *= (double)dofptr->noddval;
-#endif
         nbops += fptr->blkupdate( K, M, N );
 
         M -= N;
@@ -275,18 +271,18 @@ sum2d(const flops_function_t *fptr,
 
 static double
 recursive_sum(pastix_int_t a, pastix_int_t b,
-              double (*fval)(const flops_function_t *, pastix_int_t, const SymbolMatrix *, const Dof *),
-              flops_function_t *fptr, const SymbolMatrix * symbmtx, const Dof * dofptr)
+              double (*fval)(const flops_function_t *, pastix_int_t, const SymbolMatrix *),
+              flops_function_t *fptr, const SymbolMatrix * symbmtx)
 {
     if(a != b)
-        return recursive_sum(        a, (a+b)/2, fval, fptr, symbmtx, dofptr)
-            +  recursive_sum((a+b)/2+1,       b, fval, fptr, symbmtx, dofptr);
+        return recursive_sum(        a, (a+b)/2, fval, fptr, symbmtx)
+            +  recursive_sum((a+b)/2+1,       b, fval, fptr, symbmtx);
 
-    return fval(fptr, a, symbmtx, dofptr);
+    return fval(fptr, a, symbmtx);
 }
 
 void
-symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,
+symbolCost(const SymbolMatrix *symbmtx,
            pastix_coeftype_t flttype, pastix_factotype_t factotype,
            pastix_int_t *nnz, double *thflops, double *rlflops )
 {
@@ -301,13 +297,13 @@ symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,
     if ( thflops != NULL ) {
         *thflops = recursive_sum(0, symbmtx->cblknbr-1, sum1d,
                                  &(flopstable[iscomplex][factotype]),
-                                 symbmtx, dofptr);
+                                 symbmtx);
     }
 
     /* Compute real flops */
     if ( rlflops != NULL ) {
         *rlflops = recursive_sum(0, symbmtx->cblknbr-1, sum2d,
                                  &(flopstable[iscomplex][factotype]),
-                                 symbmtx, dofptr);
+                                 symbmtx);
     }
 }
