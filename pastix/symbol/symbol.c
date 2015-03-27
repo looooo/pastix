@@ -159,64 +159,6 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     return -1;
 }
 
-/**
- *******************************************************************************
- *
- * @ingroup pastix_symbol
- *
- * symbolGetNNZ - Computes the number of non-zero elements stored in the
- * symbol matrix in order to compute the fill-in. This routines returns the
- * number of non-zero of the strictly lower part of the matrix.
- *
- *******************************************************************************
- *
- * @param[in,out] symbptr
- *          The symbol structure to study.
- *
- *******************************************************************************
- *
- * @return
- *          The number of non zero elements in the strictly lower part of the
- *          full symbol matrix.
- *
- *******************************************************************************/
-pastix_int_t
-symbolGetNNZ(const SymbolMatrix *symbptr)
-{
-    SymbolCblk *cblk;
-    SymbolBlok *blok;
-    pastix_int_t itercblk;
-    pastix_int_t cblknbr;
-    pastix_int_t nnz = 0;
-    pastix_int_t dof = symbptr->dof;
-
-    cblknbr = symbptr->cblknbr;
-    cblk    = symbptr->cblktab;
-    blok    = symbptr->bloktab;
-
-    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
-    {
-        pastix_int_t iterblok = cblk[0].bloknum + 1;
-        pastix_int_t lbloknum = cblk[1].bloknum;
-
-        pastix_int_t colnbr = dof * (cblk->lcolnum - cblk->fcolnum + 1);
-
-        /* Diagonal block */
-        blok++;
-        nnz += ( colnbr * (colnbr+1) ) / 2 - colnbr;
-
-        /* Off-diagonal blocks */
-        for( ; iterblok < lbloknum; iterblok++, blok++)
-        {
-            pastix_int_t rownbr = (blok->lrownum - blok->frownum + 1) * dof;
-
-            nnz += rownbr * colnbr;
-        }
-    }
-
-    return nnz;
-}
-
 void
 symbolBuildRowtab(SymbolMatrix *symbptr)
 {

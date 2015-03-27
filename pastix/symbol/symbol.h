@@ -83,12 +83,12 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
                        pastix_int_t startsearch,
                        int ricar);
 
-pastix_int_t
-symbolGetNNZ(const SymbolMatrix *symbptr);
-
-void
-symbolCost(const SymbolMatrix *symbmtx,
-           pastix_coeftype_t flttype, pastix_factotype_t factotype,
-           pastix_int_t *nnz, double *thflops, double *rlflops );
+pastix_int_t symbolGetNNZ  ( const SymbolMatrix *symbptr);
+void         symbolGetFlops( const SymbolMatrix *symbmtx,
+                             pastix_coeftype_t flttype, pastix_factotype_t factotype,
+                             double *thflops, double *rlflops );
+void         symbolGetTimes( const SymbolMatrix *symbmtx,
+                             pastix_coeftype_t flttype, pastix_factotype_t factotype,
+                             double *thflops, double *rlflops );
 
 #endif /* SYMBOL_H */

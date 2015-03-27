@@ -288,10 +288,102 @@ recursive_sum(pastix_int_t a, pastix_int_t b,
     return fval(fptr, a, symbmtx);
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolGetNNZ - Computes the number of non-zero elements stored in the
+ * symbol matrix in order to compute the fill-in. This routines returns the
+ * number of non-zero of the strictly lower part of the matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The symbol structure to study.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of non zero elements in the strictly lower part of the
+ *          full symbol matrix.
+ *
+ *******************************************************************************/
+pastix_int_t
+symbolGetNNZ(const SymbolMatrix *symbptr)
+{
+    SymbolCblk *cblk;
+    SymbolBlok *blok;
+    pastix_int_t itercblk;
+    pastix_int_t cblknbr;
+    pastix_int_t nnz = 0;
+    pastix_int_t dof = symbptr->dof;
+
+    cblknbr = symbptr->cblknbr;
+    cblk    = symbptr->cblktab;
+    blok    = symbptr->bloktab;
+
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t iterblok = cblk[0].bloknum + 1;
+        pastix_int_t lbloknum = cblk[1].bloknum;
+
+        pastix_int_t colnbr = dof * (cblk->lcolnum - cblk->fcolnum + 1);
+
+        /* Diagonal block */
+        blok++;
+        nnz += ( colnbr * (colnbr+1) ) / 2 - colnbr;
+
+        /* Off-diagonal blocks */
+        for( ; iterblok < lbloknum; iterblok++, blok++)
+        {
+            pastix_int_t rownbr = (blok->lrownum - blok->frownum + 1) * dof;
+
+            nnz += rownbr * colnbr;
+        }
+    }
+
+    return nnz;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolGetFlops - Computes the number of theoritical and real flops to
+ * factorized the given symbolic matrix with the specified type of factorization
+ * and floating type.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The symbol structure to study.
+ *
+ * @param[in] flttype
+ *          The floating type of the elements in the matrix.
+ *          PastixPattern, PastixFloat, PastixDouble, PastixComplex32 or
+ *          PastixComplex64. In case of PastixPattern, values for PastixDouble
+ *          are returned.
+ *
+ * @param[in] factotype
+ *          The factorization algorithm to perform: PastixFactLLT,
+ *          PastixFactLDLT, PastixFactLDLH or PastixFactLU.
+ *
+ * @param[out] thflops
+ *          Returns the number of theoretical flops to perform.
+ *          NULL if not asked.
+ *
+ * @param[out] rlflops
+ *          Returns the number of real flops to perform, taking into account
+ *          copies and scatter operations.
+ *          NULL if not asked.
+ *
+ *******************************************************************************/
 void
-symbolCost(const SymbolMatrix *symbmtx,
-           pastix_coeftype_t flttype, pastix_factotype_t factotype,
-           pastix_int_t *nnz, double *thflops, double *rlflops )
+symbolGetFlops(const SymbolMatrix *symbmtx,
+               pastix_coeftype_t flttype, pastix_factotype_t factotype,
+               double *thflops, double *rlflops )
 {
     int iscomplex = (flttype == PastixComplex32) || (flttype == PastixComplex64);
 
