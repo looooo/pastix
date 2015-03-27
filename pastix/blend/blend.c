@@ -75,6 +75,7 @@ void solverBlend(BlendCtrl    *ctrl,
     pastix_int_t  clustnum = ctrl->clustnum;
     pastix_int_t  clustnbr = ctrl->clustnbr;
 
+    assert(symbmtx->dof > 0);
     clockStart(timer_all);
 
     if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
@@ -285,7 +286,7 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, " -- Generate the final SolverMatrix\n" );
         clockStart(timer_current);
 
-        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
+        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl);
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)

@@ -13,6 +13,6 @@
 /************************************************************/
 #ifndef SOLVERMATRIXGEN_H
 #define SOLVERMATRIXGEN_H
-pastix_int_t *               solverMatrixGen (const pastix_int_t, SolverMatrix *, const SymbolMatrix *, const SimuCtrl *, const BlendCtrl *, const Dof *);
-void                allSolverMatrixSave(const char *, const SymbolMatrix *, const SimuCtrl *, const BlendCtrl *, const Dof *);
+pastix_int_t *               solverMatrixGen (const pastix_int_t, SolverMatrix *, const SymbolMatrix *, const SimuCtrl *, const BlendCtrl *);
+//void                allSolverMatrixSave(const char *, const SymbolMatrix *, const SimuCtrl *, const BlendCtrl *, const Dof *);
 #endif /* SOLVERMATRIXGEN_H */
