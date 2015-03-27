@@ -3,27 +3,12 @@
 
 #define PERF_MODEL "AMD 6180  MKL"
 
-#define OPS_SCAL(i)     (i)
-#define OPS_COPY(i)     (i)
-/*
-#define OPS_AXPY(i)     (i)
-#define OPS_SWAP(i)     (i)
-#define OPS_GEMV(i,j)   ((i)*(j))
-#define OPS_TRSV(i,j)   (((i)*(i-1)*(j))/2.)
-#define OPS_GER(i,j)    ((i)*(j))
-*/
-#define OPS_GEMM(i,j,k) (2.*(i)*(j)*(k))
-#define OPS_TRSM(i,j)   ((i)*(i-1)*(j))
-#define OPS_PPF(i)      ((2.*(i)*(i)*(i)+3.*(i)*(i)-5.*(i))/6.)
-#define OPS_GEAM(i,j)   ((i)*(j))
-
-
 /**GEMM**/
 #define GEMM_A  2.429169e-10
 #define GEMM_B  2.724804e-10
 #define GEMM_C  1.328900e-09
 #define GEMM_D  1.148989e-07
-#define GEMM_E  -2.704179e-10
+#define GEMM_E -2.704179e-10
 #define GEMM_F  1.216278e-06
 #define PERF_GEMM(i,j,k) (GEMM_A*(double)(i)*(double)(j)*(double)(k)+GEMM_B*(double)(i)*(double)(j)+GEMM_C*(double)(j)*(double)(k)+GEMM_D*(double)(i)+GEMM_E*(double)(j)+GEMM_F)
 
