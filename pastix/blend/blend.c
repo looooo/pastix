@@ -75,7 +75,6 @@ void solverBlend(BlendCtrl    *ctrl,
     pastix_int_t  clustnum = ctrl->clustnum;
     pastix_int_t  clustnbr = ctrl->clustnbr;
 
-    assert(symbmtx->dof > 0);
     clockStart(timer_all);
 
     if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
@@ -184,12 +183,13 @@ void solverBlend(BlendCtrl    *ctrl,
     }
 
     if(ctrl->count_ops && (ctrl->leader == clustnum)) {
-        symbolCost( symbmtx,
-                      ctrl->iparm[IPARM_FLOAT],
-                      ctrl->iparm[IPARM_FACTORIZATION],
-                    &(ctrl->iparm[IPARM_NNZEROS]),
-                    &(ctrl->dparm[DPARM_FACT_THFLOPS]),
-                    &(ctrl->dparm[DPARM_FACT_RLFLOPS]) );
+        double thflops = 0.;
+        symbolGetFlops( symbmtx,
+                        ctrl->iparm[IPARM_FLOAT],
+                        ctrl->iparm[IPARM_FACTORIZATION],
+                        &thflops, &(ctrl->dparm[DPARM_FACT_RLFLOPS]) );
+
+        assert( thflops == ctrl->dparm[DPARM_FACT_THFLOPS] );
     }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
