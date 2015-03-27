@@ -4,7 +4,6 @@
 #include <assert.h>
 
 #include "common.h"
-#include "dof.h"
 #include "symbol.h"
 #include "flops.h"
 
@@ -140,22 +139,30 @@ static inline double
 flops_zsytrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 {
     /* If we consider that we stored the D * A^t somewhere */
-    //return FLOPS_ZGEMM( M, N, K ) + 2. * (double)M * (double)N;
+#if 0
+    return FLOPS_ZGEMM( M, N, K )
+        + 2. * (double)M * (double)N;
+#else
     /* If not, as it is the case in the runtime */
     return FLOPS_ZGEMM( M, N, K )
         + 2. * (double)M * (double)N   /* Add step   */
         + 6. * (double)M * (double)N;  /* Scale step */
+#endif
 }
 
 static inline double
 flops_dsytrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 {
     /* If we consider that we stored the D * A^t somewhere */
-    //return FLOPS_ZGEMM( M, N, K ) + (double)M * (double)N;
+#if 0
+    return FLOPS_DGEMM( M, N, K )
+        + (double)M * (double)N;
+#else
     /* If not, as it is the case in the runtime */
     return FLOPS_DGEMM( M, N, K )
         + (double)M * (double)N   /* Add step   */
         + (double)M * (double)N;  /* Scale step */
+#endif
 }
 
 typedef struct flops_function_s {
