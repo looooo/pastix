@@ -23,7 +23,6 @@
 #include "extendVector.h"
 #include "blendctrl.h"
 #include "blend.h"
-#include "dof.h"
 #include "solver.h"
 
 /**
@@ -93,6 +92,10 @@ pastix_task_blend(pastix_data_t *pastix_data)
     }
     if (symbptr == NULL) {
         errorPrint("pastix_task_analyze: the pastix_data->symbmtx has not been initialized, pastix_task_symbfact should be called first");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (symbptr->dof < 1) {
+        errorPrint("pastix_task_analyze: Dof number has not been correctly initialized");
         return PASTIX_ERR_BADPARAMETER;
     }
 
