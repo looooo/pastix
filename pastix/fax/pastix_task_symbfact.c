@@ -368,12 +368,11 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /*
      * Computes statistics and print informations
      */
-    symbolCost( pastix_data->symbmtx,
-                  iparm[IPARM_FLOAT],
-                  iparm[IPARM_FACTORIZATION],
-                &(iparm[IPARM_NNZEROS]),
-                &(dparm[DPARM_FACT_THFLOPS]),
-                &(dparm[DPARM_FACT_RLFLOPS]) );
+    iparm[IPARM_NNZEROS] = symbolGetNNZ( pastix_data->symbmtx );
+    symbolGetFlops( pastix_data->symbmtx,
+                    iparm[IPARM_FLOAT], iparm[IPARM_FACTORIZATION],
+                    &(dparm[DPARM_FACT_THFLOPS]),
+                    &(dparm[DPARM_FACT_RLFLOPS]) );
 
     if ( procnum == 0 ) {
         if ( iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
