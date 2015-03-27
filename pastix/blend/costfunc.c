@@ -26,16 +26,6 @@
 void   subtreeSetNullCost    (pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const SimuCtrl *,  pastix_int_t);
 double cblkComputeCost2DLocal(pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const Dof *, const SimuCtrl *);
 
-void costMatrixCorrect(CostMatrix *costmtx, const SymbolMatrix *symbmtx, Cand * candtab, const Dof * dofptr)
-{
-    pastix_int_t i;
-    for(i=0;i<symbmtx->cblknbr;i++)
-        if(candtab[i].cblktype == CBLK_1D)
-            cblkComputeCost(i, costmtx, symbmtx, dofptr);
-        else
-            cblkComputeCost2D(i, costmtx, symbmtx, dofptr);
-}
-
 #if 0
 /*+ Summ the subtree cost local node ; do not recompute node cost +*/
 double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, const SymbolMatrix *symbmtx,
