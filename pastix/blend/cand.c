@@ -140,7 +140,7 @@ candSubTreeBuild( pastix_int_t        rootnum,
     for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
          bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
     {
-        cost += costmtx->bloktab[ bloknum ].contrib;
+        cost += costmtx->blokcost[ bloknum ];
     }
 #endif
 

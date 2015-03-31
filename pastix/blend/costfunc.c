@@ -203,50 +203,34 @@ double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, cons
 
 /*+ Compute cost of the cblk, return total cost +*/
 
-/** Assure that cblkComputeCost and cblkCost compute the same things !!!! **/
+/** Assure that cblkComputeCost and cblkCost() compute the same things !!!! **/
 double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbmtx, const Dof * dofptr)
 {
     double contribsum;
     pastix_int_t l, h, g;
     pastix_int_t k;
-#ifndef DOF_CONSTANT
-    pastix_int_t i;
-#else
-    pastix_int_t noddval = ( dofptr == NULL ) ? 1 : dofptr->noddval;
-#endif
+    pastix_int_t noddval = symbmtx->dof;
 
     /** we need the height of cblk non empty lines  and the broadness
      of the cbl to compute the local compute cost **/
-#ifdef DOF_CONSTANT
-    l =  symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1;
+    l  = symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1;
     l *= noddval;
-#else
-    for(i=symbmtx->cblktab[cblknum].fcolnum;i<=symbmtx->cblktab[cblknum].lcolnum;i++)
-        l+= noddDlt(dofptr, i);
-#endif
 
     g = 0;
     for(k = symbmtx->cblktab[cblknum].bloknum;
         k < symbmtx->cblktab[cblknum+1].bloknum; k++)
     {
-#ifdef  DOF_CONSTANT
         g += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1) * noddval;
-#else
-        for(i=symbmtx->bloktab[k].frownum;i<=symbmtx->bloktab[k].lrownum;i++)
-            g+= noddDlt(dofptr, i);
-#endif
     }
 
-    /** retrieve diag height so let g be the odb non empty lines height **/
+    /* retrieve diag height so let g be the odb non empty lines height */
     g -= l;
 
     /** compute the local compute cost **/
-    if(l!=0)
-    {
+    if( l != 0 ) {
         contribsum = computeCost(l, g);
     }
-    else
-    {
+    else {
         contribsum = 0.;
     }
 
@@ -386,59 +370,6 @@ double contribAddCost(pastix_int_t h, pastix_int_t g)
     total = (double)(PERF_GEAM(g, h));
 
     return (total>0)?total:0;
-}
-
-
-double costFtgtSend( const BlendCtrl   *ctrl,
-                     const Dof         *dofptr,
-                     const FanInTarget *ftgt,
-                     pastix_int_t clustsrc,
-                     pastix_int_t sync_comm_nbr )
-{
-    pastix_int_t ddl_coefnbr = 0;
-    pastix_int_t ddl_delta   = 0;
-    pastix_int_t clustdst    = ctrl->core2clust[ftgt->infotab[FTGT_PROCDST]];
-    double startup, bandwidth;
-
-    if( clustsrc == clustdst )
-        return 0.0;
-
-    assert( clustsrc >= 0 );
-
-#ifdef DOF_CONSTANT
-    ddl_delta   = (ftgt->infotab[FTGT_LCOLNUM]-ftgt->infotab[FTGT_FCOLNUM]+1)*dofptr->noddval;
-    /*  ddl_coefnbr = (ftgt->indtab[ftgt->infotab[FTGT_BLOKNBR]]*(dofptr->noddval))*ddl_delta;*/
-    ddl_coefnbr = (ftgt->infotab[FTGT_LROWNUM] -  ftgt->infotab[FTGT_FROWNUM]+1)*ddl_delta*dofptr->noddval;
-#else
-    /** Oimbe Pas implemente **/
-    fprintf(stderr, "costFtgtSend not implemented for the case dof non constant \n");
-    EXIT(MOD_BLEND,NOTIMPLEMENTED_ERR);
-#endif
-
-    assert(ddl_coefnbr > 0);
-
-    getCommunicationCosts( ctrl, clustsrc, clustdst, sync_comm_nbr, &startup, &bandwidth);
-
-    return (startup + bandwidth * (ddl_coefnbr*sizeof(double) + MAXINFO * sizeof(pastix_int_t)));
-}
-
-double costFtgtAdd(FanInTarget *ftgt, const Dof * dofptr)
-{
-    pastix_int_t ddl_delta   = 0;
-    pastix_int_t ddl_stride  = 0;
-#ifdef DOF_CONSTANT
-    ddl_delta   = (ftgt->infotab[FTGT_LCOLNUM]-ftgt->infotab[FTGT_FCOLNUM]+1)*dofptr->noddval;
-    /*ddl_stride  = ftgt->indtab[ftgt->infotab[FTGT_BLOKNBR]]*(dofptr->noddval);*/
-    ddl_stride = (ftgt->infotab[FTGT_LROWNUM] -  ftgt->infotab[FTGT_FROWNUM]+1)*dofptr->noddval;
-#else
-    /** Oimbe Pas implemente **/
-    EXIT(MOD_BLEND,NOTIMPLEMENTED_ERR);
-#endif
-#ifdef DEBUG_BLEND
-    ASSERT(ddl_stride>0,MOD_BLEND);
-    ASSERT( ddl_delta>0,MOD_BLEND);
-#endif
-    return contribAddCost(ddl_stride, ddl_delta);
 }
 
 /**********************************************/

@@ -22,11 +22,44 @@
 #include "task.h"
 #include "updown.h"
 #include "solver.h"
-#include "costfunc.h"
+#include "perf.h"
 
 #if defined(PASTIX_BLEND_GENTRACE)
 #include <GTG.h>
 #endif
+
+static inline void
+simu_computeFtgtCosts( const BlendCtrl   *ctrl,
+                       const FanInTarget *ftgt,
+                       pastix_int_t dof,
+                       pastix_int_t clustsrc,
+                       pastix_int_t sync_comm_nbr,
+                       double *send, double *add )
+{
+    pastix_int_t M, N;
+    pastix_int_t clustdst = ctrl->core2clust[ftgt->infotab[FTGT_PROCDST]];
+    double startup, bandwidth, addcost;
+
+    *send = 0.;
+    *add  = 0.;
+
+    if( clustsrc == clustdst )
+        return;
+
+    assert( (clustsrc >= 0) && (clustdst >= 0) );
+
+    N = (ftgt->infotab[FTGT_LCOLNUM] - ftgt->infotab[FTGT_FCOLNUM] + 1) * dof;
+    M = (ftgt->infotab[FTGT_LROWNUM] - ftgt->infotab[FTGT_FROWNUM] + 1) * dof;
+
+    assert( (N > 0) && (M > 0) );
+
+    getCommunicationCosts( ctrl, clustsrc, clustdst, sync_comm_nbr, &startup, &bandwidth );
+
+    *send = (startup + bandwidth * (M * N * sizeof(double) + MAXINFO * sizeof(pastix_int_t)));
+    addcost = PERF_GEAM( M, N );
+    *add = addcost > 0. ? addcost : 0.0;
+    return;
+}
 
 static inline void
 simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
@@ -228,7 +261,6 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
 static inline void
 simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
                              const SymbolMatrix *symbptr,
-                             const Dof          *dofptr,
                              SimuCtrl           *simuctrl,
                              pastix_int_t        tasknum )
 {
@@ -274,13 +306,15 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
             {
                 if(simuctrl->ftgttab[simuctrl->bloktab[j].ftgtnum + i-simuctrl->bloktab[bloknum].ftgtnum].ftgt.infotab[FTGT_CTRBNBR]>0)
                 {
-                    simuctrl->ftgttab[i].costadd +=
-                        costFtgtAdd(&(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt), dofptr);
+                    double send, add;
 
-                    simuctrl->ftgttab[i].costsend +=
-                        costFtgtSend( ctrl, dofptr,
-                                      &(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt),
-                                      clustdst, ctrl->candtab[cblknum].lccandnum-ctrl->candtab[cblknum].fccandnum+1 );
+                    simu_computeFtgtCosts( ctrl, &(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt),
+                                           symbptr->dof, clustdst,
+                                           ctrl->candtab[cblknum].lccandnum - ctrl->candtab[cblknum].fccandnum + 1,
+                                           &send, &add );
+
+                    simuctrl->ftgttab[i].costadd  += add;
+                    simuctrl->ftgttab[i].costsend += send;
                 }
             }
 
@@ -417,7 +451,6 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
 static inline void
 simu_computeTask( const BlendCtrl    *ctrl,
                   const SymbolMatrix *symbptr,
-                  const Dof          *dofptr,
                   SimuCtrl           *simuctrl,
                   pastix_int_t        tasknum )
 {
@@ -448,12 +481,12 @@ simu_computeTask( const BlendCtrl    *ctrl,
             (procnum <= ctrl->candtab[cblknum].lcandnum) );
 
     /* Add factorization time to the diagonal blok */
-    timerAdd(&(sproc->timer), costmtx->bloktab[fbloknum].contrib);
+    timerAdd(&(sproc->timer), costmtx->blokcost[fbloknum]);
 
     for(i=fbloknum+1; i<lbloknum; i++)
     {
         /* Add trsm time of this off-diagonal block */
-        timerAdd(&(sproc->timer), costmtx->bloktab[i].contrib);
+        timerAdd(&(sproc->timer), costmtx->blokcost[i]);
 
         facingcblk = symbptr->bloktab[i].cblknum;
 
@@ -513,7 +546,7 @@ simu_computeTask( const BlendCtrl    *ctrl,
 
                 if( simuctrl->cblktab[facingcblk].ctrbcnt == 0 ) {
                     if (!local)
-                        simu_computeTaskReceiveTime(ctrl, symbptr, dofptr, simuctrl, facingtask );
+                        simu_computeTaskReceiveTime(ctrl, symbptr, simuctrl, facingtask );
 
                     /* Put the task in the ready heap of its local candidat processor */
                     simu_putInAllReadyQueues( ctrl, simuctrl, facingtask );
@@ -587,8 +620,7 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
 void
 simuRun( SimuCtrl           *simuctrl,
          const BlendCtrl    *ctrl,
-         const SymbolMatrix *symbptr,
-         const Dof          *dofptr )
+         const SymbolMatrix *symbptr )
 {
 
     pastix_int_t             i, j, b;
@@ -776,7 +808,7 @@ simuRun( SimuCtrl           *simuctrl,
         }
 
         /* Simulate the task computation */
-        simu_computeTask( ctrl, symbptr, dofptr, simuctrl, i );
+        simu_computeTask( ctrl, symbptr, simuctrl, i );
 
 #if defined(PASTIX_BLEND_GENTRACE)
         if (ctrl->clustnum == 0) {

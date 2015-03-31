@@ -109,7 +109,9 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX );
         clockStart(timer_current);
 
-        ctrl->costmtx = costMatrixBuild(symbmtx, dofptr);
+        ctrl->costmtx = costMatrixBuild( symbmtx,
+                                         ctrl->iparm[IPARM_FLOAT],
+                                         ctrl->iparm[IPARM_FACTORIZATION] );
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
@@ -247,7 +249,7 @@ void solverBlend(BlendCtrl    *ctrl,
         }
         clockStart(timer_current);
 
-        simuRun( simuctrl, ctrl, symbmtx, dofptr );
+        simuRun( simuctrl, ctrl, symbmtx );
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
