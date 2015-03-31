@@ -89,6 +89,6 @@ void         symbolGetFlops( const SymbolMatrix *symbmtx,
                              double *thflops, double *rlflops );
 void         symbolGetTimes( const SymbolMatrix *symbmtx,
                              pastix_coeftype_t flttype, pastix_factotype_t factotype,
-                             double *thflops, double *rlflops );
+                             double *cblkcost, double *blokcost );
 
 #endif /* SYMBOL_H */

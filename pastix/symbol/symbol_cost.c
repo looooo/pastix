@@ -5,211 +5,30 @@
 
 #include "common.h"
 #include "symbol.h"
-#include "flops.h"
-
-/**
- * Computations flops of diagonal blocks
- */
-static double
-flops_zgetrf_diag( pastix_int_t N ) {
-    return FLOPS_ZGETRF( N, N );
-}
-
-static inline double
-flops_dgetrf_diag( pastix_int_t N ) {
-    return FLOPS_DGETRF( N, N );
-}
-
-static inline double
-flops_zpotrf_diag( pastix_int_t N ) {
-    return FLOPS_ZPOTRF( N );
-}
-
-static inline double
-flops_dpotrf_diag( pastix_int_t N ) {
-    return FLOPS_DPOTRF( N );
-}
-
-static inline double
-flops_zsytrf_diag( pastix_int_t N ) {
-    return FLOPS_ZSYTRF( N );
-}
-
-static inline double
-flops_dsytrf_diag( pastix_int_t N ) {
-    return FLOPS_DSYTRF( N );
-}
-
-/**
- * Computations flops of the solve step
- */
-static inline double
-flops_zpotrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_ZTRSM( PlasmaRight, M, N );
-}
-
-static inline double
-flops_dpotrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_DTRSM( PlasmaRight, M, N );
-}
+#include "symbol_cost.h"
 
 static double
-flops_zgetrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return 2. * FLOPS_ZTRSM( PlasmaRight, M, N );
-}
-
-static inline double
-flops_dgetrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return 2. * FLOPS_DTRSM( PlasmaRight, M, N );
-}
-
-static inline double
-flops_zsytrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_ZTRSM( PlasmaRight, M, N ) + 6. * (double)N * (double)M;
-}
-
-static inline double
-flops_dsytrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_DTRSM( PlasmaRight, M, N ) + (double)N * (double)M;
-}
-
-/**
- * Theroretical computation flops of the update step
- */
-static inline double
-flops_zpotrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_ZHERK( K, M );
-}
-
-static inline double
-flops_dpotrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_DSYRK( K, M );
-}
-
-static double
-flops_zgetrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_ZGEMM( K, M, M );
-}
-
-static inline double
-flops_dgetrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_DGEMM( K, M, M );
-}
-
-static inline double
-flops_zsytrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_ZSYRK( K, M ) + 6. * (double)M * (double)M;
-}
-
-static inline double
-flops_dsytrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_DSYRK( K, M ) + 6. * (double)M * (double)M;
-}
-
-/**
- * Real computation flops of the update step
- */
-static inline double
-flops_zpotrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
+sum1d(const symbol_function_t *fptr,
+      const SymbolMatrix     *symbmtx,
+            pastix_int_t      cblknum)
 {
-    return FLOPS_ZGEMM( M, N, K ) + 2. * (double)M * (double)N;
-}
-
-static inline double
-flops_dpotrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
-{
-    return FLOPS_DGEMM( M, N, K ) + (double)M * (double)N;
-}
-
-static double
-flops_zgetrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
-{
-    return FLOPS_ZGEMM( M, N, K ) + FLOPS_ZGEMM( M-N, N, K )
-        + 2. * (double)M * (double)N + 2. * (double)(M-N) * (double)(N); /* Add step */
-}
-
-static inline double
-flops_dgetrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
-{
-    return FLOPS_DGEMM( M, N, K ) + FLOPS_DGEMM( M-N, N, K )
-        + (double)M * (double)N + (double)(M-N) * (double)(N); /* Add step */
-}
-
-static inline double
-flops_zsytrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
-{
-    /* If we consider that we stored the D * A^t somewhere */
-#if 0
-    return FLOPS_ZGEMM( M, N, K )
-        + 2. * (double)M * (double)N;
-#else
-    /* If not, as it is the case in the runtime */
-    return FLOPS_ZGEMM( M, N, K )
-        + 2. * (double)M * (double)N   /* Add step   */
-        + 6. * (double)M * (double)N;  /* Scale step */
-#endif
-}
-
-static inline double
-flops_dsytrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
-{
-    /* If we consider that we stored the D * A^t somewhere */
-#if 0
-    return FLOPS_DGEMM( M, N, K )
-        + (double)M * (double)N;
-#else
-    /* If not, as it is the case in the runtime */
-    return FLOPS_DGEMM( M, N, K )
-        + (double)M * (double)N   /* Add step   */
-        + (double)M * (double)N;  /* Scale step */
-#endif
-}
-
-typedef struct flops_function_s {
-    double (*diag     )(pastix_int_t);
-    double (*trsm     )(pastix_int_t, pastix_int_t);
-    double (*update   )(pastix_int_t, pastix_int_t);
-    double (*blkupdate)(pastix_int_t, pastix_int_t, pastix_int_t);
-} flops_function_t;
-
-static flops_function_t flopstable[2][4] = {
-    {
-        {flops_zgetrf_diag, flops_zgetrf_trsm, flops_zgetrf_update, flops_zgetrf_blkupdate },
-        {flops_zpotrf_diag, flops_zpotrf_trsm, flops_zpotrf_update, flops_zpotrf_blkupdate },
-        {flops_zsytrf_diag, flops_zsytrf_trsm, flops_zsytrf_update, flops_zsytrf_blkupdate },
-        {flops_zsytrf_diag, flops_zsytrf_trsm, flops_zsytrf_update, flops_zsytrf_blkupdate }
-    },
-    {
-        {flops_dgetrf_diag, flops_dgetrf_trsm, flops_dgetrf_update, flops_dgetrf_blkupdate },
-        {flops_dpotrf_diag, flops_dpotrf_trsm, flops_dpotrf_update, flops_dpotrf_blkupdate },
-        {flops_dsytrf_diag, flops_dsytrf_trsm, flops_dsytrf_update, flops_dsytrf_blkupdate },
-        {flops_dsytrf_diag, flops_dsytrf_trsm, flops_dsytrf_update, flops_dsytrf_blkupdate }
-    }
-};
-
-static double
-sum1d(const flops_function_t *fptr,
-            pastix_int_t      cblknum,
-      const SymbolMatrix     *symbmtx)
-{
-    double M, N;
-    pastix_int_t k;
+    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    pastix_int_t M, N, k;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
 
     /*
      * Size of the factorization kernel (square)
      */
-    N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    N = (cblk->lcolnum - cblk->fcolnum + 1);
 
     /*
      * Height of the TRSM to which apply the TRSM
      */
     M = 0;
-    for(k = symbmtx->cblktab[cblknum].bloknum+1;
-        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    for(k = cblk[0].bloknum+1; k < cblk[1].bloknum; k++)
     {
-        M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        M += (symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
     }
 
     if ( dof > 0. ) {
@@ -227,28 +46,27 @@ sum1d(const flops_function_t *fptr,
 }
 
 static double
-sum2d(const flops_function_t *fptr,
-            pastix_int_t      cblknum,
-      const SymbolMatrix     *symbmtx)
+sum2d(const symbol_function_t *fptr,
+      const SymbolMatrix     *symbmtx,
+            pastix_int_t      cblknum)
 {
-    double M, N, K;
-    pastix_int_t k;
+    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    pastix_int_t M, N, K, l;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
 
     /*
      * Size of the factorization kernel (square)
      */
-    N = (double)(symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1);
+    N = (cblk->lcolnum - cblk->fcolnum + 1);
 
     /*
      * Height of the TRSM to which apply the TRSM
      */
     M = 0;
-    for(k = symbmtx->cblktab[cblknum].bloknum+1;
-        k < symbmtx->cblktab[cblknum+1].bloknum; k++)
+    for(l = cblk[0].bloknum+1; l < cblk[1].bloknum; l++)
     {
-        M += (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k].frownum + 1);
+        M += (symbmtx->bloktab[l].lrownum - symbmtx->bloktab[l].frownum + 1);
     }
 
     N *= dof;
@@ -263,10 +81,9 @@ sum2d(const flops_function_t *fptr,
      * Compute the cost of each GEMM
      */
     K = N;
-    for(k = symbmtx->cblktab[cblknum].bloknum+1;
-        k < symbmtx->cblktab[cblknum+1].bloknum-1; k++)
+    for(l = cblk[0].bloknum+1; l < cblk[1].bloknum; l++)
     {
-        N = (double)(symbmtx->bloktab[k].lrownum - symbmtx->bloktab[k  ].frownum + 1);
+        N = (symbmtx->bloktab[l].lrownum - symbmtx->bloktab[l].frownum + 1);
         N *= dof;
 
         nbops += fptr->blkupdate( K, M, N );
@@ -277,15 +94,67 @@ sum2d(const flops_function_t *fptr,
 }
 
 static double
+sum2dext(const symbol_function_t *fptr,
+         const SymbolMatrix     *symbmtx,
+               pastix_int_t      cblknum,
+               double           *blokcost)
+{
+    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    pastix_int_t M, N, K, l;
+    double nbops = 0.;
+    double dof = (double)(symbmtx->dof);
+
+    /*
+     * Size of the factorization kernel (square)
+     */
+    N = (cblk->lcolnum - cblk->fcolnum + 1);
+
+    /*
+     * Height of the TRSM to which apply the TRSM
+     */
+    M = 0;
+    for(l = cblk[0].bloknum+1; l < cblk[1].bloknum; l++)
+    {
+        M += (symbmtx->bloktab[l].lrownum - symbmtx->bloktab[l].frownum + 1);
+    }
+
+    N *= dof;
+    M *= dof;
+
+    nbops = fptr->diag( N );
+    if( M > 0 ) {
+        nbops += fptr->trsm( M, N );
+    }
+    *blokcost = nbops;
+    blokcost++;
+
+    /*
+     * Compute the cost of each GEMM
+     */
+    K = N;
+    for(l = cblk[0].bloknum+1; l < cblk[1].bloknum; l++, blokcost++)
+    {
+        N = (symbmtx->bloktab[l].lrownum - symbmtx->bloktab[l].frownum + 1);
+        N *= dof;
+
+        *blokcost = fptr->blkupdate( K, M, N );
+        nbops += *blokcost;
+
+        M -= N;
+    }
+    return nbops;
+}
+
+static double
 recursive_sum(pastix_int_t a, pastix_int_t b,
-              double (*fval)(const flops_function_t *, pastix_int_t, const SymbolMatrix *),
-              flops_function_t *fptr, const SymbolMatrix * symbmtx)
+              double (*fval)(const symbol_function_t *, const SymbolMatrix *, pastix_int_t),
+              symbol_function_t *fptr, const SymbolMatrix * symbmtx)
 {
     if(a != b)
         return recursive_sum(        a, (a+b)/2, fval, fptr, symbmtx)
             +  recursive_sum((a+b)/2+1,       b, fval, fptr, symbmtx);
 
-    return fval(fptr, a, symbmtx);
+    return fval(fptr, symbmtx, a);
 }
 
 /**
@@ -387,11 +256,6 @@ symbolGetFlops(const SymbolMatrix *symbmtx,
 {
     int iscomplex = (flttype == PastixComplex32) || (flttype == PastixComplex64);
 
-    /* Compute NNZ */
-    if ( nnz != NULL ) {
-        *nnz = symbolGetNNZ( symbmtx );
-    }
-
     /* Compute theroritical flops */
     if ( thflops != NULL ) {
         *thflops = recursive_sum(0, symbmtx->cblknbr-1, sum1d,
@@ -404,5 +268,63 @@ symbolGetFlops(const SymbolMatrix *symbmtx,
         *rlflops = recursive_sum(0, symbmtx->cblknbr-1, sum2d,
                                  &(flopstable[iscomplex][factotype]),
                                  symbmtx);
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolGetFlops - Computes the number of theoritical and real flops to
+ * factorized the given symbolic matrix with the specified type of factorization
+ * and floating type.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The symbol structure to study.
+ *
+ * @param[in] flttype
+ *          The floating type of the elements in the matrix.
+ *          PastixPattern, PastixFloat, PastixDouble, PastixComplex32 or
+ *          PastixComplex64. In case of PastixPattern, values for PastixDouble
+ *          are returned.
+ *
+ * @param[in] factotype
+ *          The factorization algorithm to perform: PastixFactLLT,
+ *          PastixFactLDLT, PastixFactLDLH or PastixFactLU.
+ *
+ * @param[out] thflops
+ *          Returns the number of theoretical flops to perform.
+ *          NULL if not asked.
+ *
+ * @param[out] rlflops
+ *          Returns the number of real flops to perform, taking into account
+ *          copies and scatter operations.
+ *          NULL if not asked.
+ *
+ *******************************************************************************/
+void
+symbolGetTimes(const SymbolMatrix *symbmtx,
+               pastix_coeftype_t flttype, pastix_factotype_t factotype,
+               double *cblkcost, double *blokcost )
+{
+    double *cblkptr, *blokptr;
+    pastix_int_t i;
+    int iscomplex = (flttype == PastixComplex32) || (flttype == PastixComplex64);
+
+    memset( cblkcost, 0, symbmtx->cblknbr * sizeof(double) );
+
+    /* Initialize costs */
+    cblkptr = cblkcost;
+    blokptr = blokcost;
+
+    for(i=0; i<symbmtx->cblknbr; i++, cblkptr++) {
+        *cblkptr = sum2dext( &(perfstable[iscomplex][factotype]),
+                             symbmtx, i, blokcost );
+
+        blokptr += symbmtx->cblktab[i+1].bloknum
+            -      symbmtx->cblktab[i  ].bloknum;
     }
 }
