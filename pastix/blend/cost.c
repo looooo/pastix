@@ -34,8 +34,8 @@ costMatrixBuild( const SymbolMatrix *symbmtx,
     MALLOC_INTERN(costmtx, 1, CostMatrix);
     costMatrixInit(costmtx);
 
-    MALLOC_INTERN( costmtx->blokcost, symbmtx->bloknbr, double );
     MALLOC_INTERN( costmtx->cblkcost, symbmtx->cblknbr, double );
+    MALLOC_INTERN( costmtx->blokcost, symbmtx->bloknbr, double );
 
     symbolGetTimes( symbmtx, flttype, factotype,
                     costmtx->cblkcost, costmtx->blokcost );

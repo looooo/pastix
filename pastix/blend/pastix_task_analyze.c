@@ -113,7 +113,7 @@ pastix_task_blend(pastix_data_t *pastix_data)
     blendCtrlInit( &ctrl, procnum, procnbr,
                    iparm, dparm );
 
-    solverBlend( &ctrl, solvptr, symbptr, NULL );
+    solverBlend( &ctrl, solvptr, symbptr );
 
     blendCtrlExit(&ctrl);
 

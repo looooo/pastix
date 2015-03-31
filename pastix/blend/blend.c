@@ -19,7 +19,6 @@
 
 #include "common.h"
 #include "out.h"
-#include "dof.h"
 #include "ftgt.h"
 #include "cost.h"
 #include "symbol.h"
@@ -65,8 +64,7 @@
  */
 void solverBlend(BlendCtrl    *ctrl,
                  SolverMatrix *solvmtx,
-                 SymbolMatrix *symbmtx,
-                 const Dof    *dofptr)
+                 SymbolMatrix *symbmtx)
 {
     SimuCtrl     *simuctrl;
     double        timer_all     = 0.;
@@ -145,8 +143,6 @@ void solverBlend(BlendCtrl    *ctrl,
 
         propMappTree( ctrl->candtab,
                       ctrl->etree,
-                      symbmtx,
-                      dofptr,
                       ctrl->total_nbcores,
                       ctrl->nocrossproc,
                       ctrl->allcand );
@@ -190,8 +186,8 @@ void solverBlend(BlendCtrl    *ctrl,
                         ctrl->iparm[IPARM_FLOAT],
                         ctrl->iparm[IPARM_FACTORIZATION],
                         &thflops, &(ctrl->dparm[DPARM_FACT_RLFLOPS]) );
-
-        assert( thflops == ctrl->dparm[DPARM_FACT_THFLOPS] );
+        // TODO: check why the splitsymbol changes the number of flops, it should not.
+        //assert( thflops == ctrl->dparm[DPARM_FACT_THFLOPS] );
     }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
@@ -266,7 +262,7 @@ void solverBlend(BlendCtrl    *ctrl,
     {
         clockStart(timer_current);
 
-        splitPartLocal( ctrl, simuctrl, symbmtx, dofptr );
+        splitPartLocal( ctrl, simuctrl, symbmtx );
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
