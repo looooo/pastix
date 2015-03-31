@@ -310,21 +310,23 @@ symbolGetTimes(const SymbolMatrix *symbmtx,
                pastix_coeftype_t flttype, pastix_factotype_t factotype,
                double *cblkcost, double *blokcost )
 {
+    symbol_function_t *f;
     double *cblkptr, *blokptr;
     pastix_int_t i;
     int iscomplex = (flttype == PastixComplex32) || (flttype == PastixComplex64);
-
-    memset( cblkcost, 0, symbmtx->cblknbr * sizeof(double) );
+    f = &(perfstable[iscomplex][factotype]);
 
     /* Initialize costs */
     cblkptr = cblkcost;
     blokptr = blokcost;
 
     for(i=0; i<symbmtx->cblknbr; i++, cblkptr++) {
-        *cblkptr = sum2dext( &(perfstable[iscomplex][factotype]),
-                             symbmtx, i, blokcost );
+        *cblkptr = sum2dext( f, symbmtx, i, blokptr );
 
         blokptr += symbmtx->cblktab[i+1].bloknum
             -      symbmtx->cblktab[i  ].bloknum;
     }
+
+    assert( ( cblkptr - cblkcost ) == symbmtx->cblknbr );
+    assert( ( blokptr - blokcost ) == symbmtx->bloknbr );
 }
