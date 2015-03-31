@@ -17,13 +17,63 @@
 #include "common.h"
 #include "kass.h"
 #include "queue.h"
+#include "perf.h"
 
 /** 2 percents **/
 #define RAT_CBLK 0.02
 #define INFINI 1e9
 
-double cblk_time_fact (pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
-double cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr);
+static inline double
+cblk_time_fact(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
+{
+    /*******************************************/
+    /* Compute the time to compute a cblk      */
+    /* according to the BLAS modelization      */
+    /*******************************************/
+    double cost;
+    pastix_int_t i;
+    pastix_int_t L, G, H;
+
+    L = colnbr; /* Size of diagonal block        */
+    G = n-L;    /* Number of extra-diagonal rows */
+
+#define CHOLESKY
+#ifndef CHOLESKY
+    cost = PERF_SYTRF(L) + PERF_TRSM(L, G) +
+        (double)L * ( PERF_COPY(L) + PERF_SCAL(G) + PERF_COPY(G) );
+#else
+    cost = PERF_POTRF(L) + PERF_TRSM(L, G);
+#endif
+
+    /** Contributions **/
+    i = colnbr;
+    while(i < n)
+    {
+        H = 1;
+        i++;
+        while((i<n) && (ja[i] == ja[i-1]+1))
+        {
+            i++;
+            H++;
+        }
+        cost += (double)(PERF_GEMM(G, H, L));
+        G -= H;
+    }
+    return cost;
+}
+
+static inline double
+cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
+{
+    double cost;
+    pastix_int_t L;
+    (void)ja;
+
+    L = colnbr;
+
+    cost = PERF_TRSV(L) + PERF_GEMV(L, n-L);
+    return cost;
+}
 
 /**
  *******************************************************************************
