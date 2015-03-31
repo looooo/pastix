@@ -521,7 +521,7 @@ set(PASTIX_LIB_SRCS
   blend/blend.c
   blend/bulles.c
   blend/cost.c
-  blend/costfunc.c
+#  blend/costfunc.c
   blend/simu_run.c
 # blend/distribPart.c
   blend/extendVector.c
@@ -559,6 +559,8 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_io.c
   symbol/symbol_rustine.c
   symbol/symbol_cost.c
+  symbol/symbol_cost_flops.c
+  symbol/symbol_cost_perfs.c
 #  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
