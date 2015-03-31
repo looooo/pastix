@@ -98,15 +98,15 @@ perfs_dgetrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 
 symbol_function_t perfstable[2][4] = {
     {
-        {perfs_dgetrf_diag, perfs_dgetrf_trsm, NULL, perfs_dgetrf_blkupdate },
         {perfs_dpotrf_diag, perfs_dpotrf_trsm, NULL, perfs_dpotrf_blkupdate },
         {perfs_dsytrf_diag, perfs_dsytrf_trsm, NULL, perfs_dsytrf_blkupdate },
+        {perfs_dgetrf_diag, perfs_dgetrf_trsm, NULL, perfs_dgetrf_blkupdate },
         {perfs_dsytrf_diag, perfs_dsytrf_trsm, NULL, perfs_dsytrf_blkupdate }
     },
     {
-        {perfs_dgetrf_diag, perfs_dgetrf_trsm, NULL, perfs_dgetrf_blkupdate },
         {perfs_dpotrf_diag, perfs_dpotrf_trsm, NULL, perfs_dpotrf_blkupdate },
         {perfs_dsytrf_diag, perfs_dsytrf_trsm, NULL, perfs_dsytrf_blkupdate },
+        {perfs_dgetrf_diag, perfs_dgetrf_trsm, NULL, perfs_dgetrf_blkupdate },
         {perfs_dsytrf_diag, perfs_dsytrf_trsm, NULL, perfs_dsytrf_blkupdate }
     }
 };

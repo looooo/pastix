@@ -101,12 +101,12 @@ flops_dpotrf_update( pastix_int_t K, pastix_int_t M ) {
 
 static double
 flops_zgetrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_ZGEMM( K, M, M );
+    return FLOPS_ZGEMM( M, M, K );
 }
 
 static inline double
 flops_dgetrf_update( pastix_int_t K, pastix_int_t M ) {
-    return FLOPS_DGEMM( K, M, M );
+    return FLOPS_DGEMM( M, M, K );
 }
 
 static inline double
@@ -180,15 +180,15 @@ flops_dsytrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 
 symbol_function_t flopstable[2][4] = {
     {
-        {flops_zgetrf_diag, flops_zgetrf_trsm, flops_zgetrf_update, flops_zgetrf_blkupdate },
-        {flops_zpotrf_diag, flops_zpotrf_trsm, flops_zpotrf_update, flops_zpotrf_blkupdate },
-        {flops_zsytrf_diag, flops_zsytrf_trsm, flops_zsytrf_update, flops_zsytrf_blkupdate },
-        {flops_zsytrf_diag, flops_zsytrf_trsm, flops_zsytrf_update, flops_zsytrf_blkupdate }
-    },
-    {
-        {flops_dgetrf_diag, flops_dgetrf_trsm, flops_dgetrf_update, flops_dgetrf_blkupdate },
         {flops_dpotrf_diag, flops_dpotrf_trsm, flops_dpotrf_update, flops_dpotrf_blkupdate },
         {flops_dsytrf_diag, flops_dsytrf_trsm, flops_dsytrf_update, flops_dsytrf_blkupdate },
+        {flops_dgetrf_diag, flops_dgetrf_trsm, flops_dgetrf_update, flops_dgetrf_blkupdate },
         {flops_dsytrf_diag, flops_dsytrf_trsm, flops_dsytrf_update, flops_dsytrf_blkupdate }
+    },
+    {
+        {flops_zpotrf_diag, flops_zpotrf_trsm, flops_zpotrf_update, flops_zpotrf_blkupdate },
+        {flops_zsytrf_diag, flops_zsytrf_trsm, flops_zsytrf_update, flops_zsytrf_blkupdate },
+        {flops_zgetrf_diag, flops_zgetrf_trsm, flops_zgetrf_update, flops_zgetrf_blkupdate },
+        {flops_zsytrf_diag, flops_zsytrf_trsm, flops_zsytrf_update, flops_zsytrf_blkupdate }
     }
 };

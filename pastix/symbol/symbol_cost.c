@@ -254,7 +254,7 @@ symbolGetFlops(const SymbolMatrix *symbmtx,
                pastix_coeftype_t flttype, pastix_factotype_t factotype,
                double *thflops, double *rlflops )
 {
-    int iscomplex = (flttype == PastixComplex32) || (flttype == PastixComplex64);
+    int iscomplex = ((flttype == PastixComplex32) || (flttype == PastixComplex64)) ? 1 : 0;
 
     /* Compute theroritical flops */
     if ( thflops != NULL ) {
@@ -313,7 +313,7 @@ symbolGetTimes(const SymbolMatrix *symbmtx,
     symbol_function_t *f;
     double *cblkptr, *blokptr;
     pastix_int_t i;
-    int iscomplex = (flttype == PastixComplex32) || (flttype == PastixComplex64);
+    int iscomplex = ((flttype == PastixComplex32) || (flttype == PastixComplex64)) ? 1 : 0;
     f = &(perfstable[iscomplex][factotype]);
 
     /* Initialize costs */
