@@ -197,7 +197,7 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
              iterrow <= blok->lrownum;
              iterrow++, coefindx++)
         {
-            if ((cabs( lcoeftab[coefindx]) != 0.) &&
+            if ((cabs( lcoeftab[coefindx] ) > 0.) &&
                 (itercol <= iterrow))
             {
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -223,7 +223,7 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
                  iterrow <= blok->lrownum;
                  iterrow++, coefindx++)
             {
-                if (cabs( lcoeftab[coefindx]) != 0.)
+                if (cabs( lcoeftab[coefindx]) > 0.)
                 {
 #if defined(PRECISION_z) || defined(PRECISION_c)
                     fprintf(stream, "%ld %ld (%13e,%13e)\n",
