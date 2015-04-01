@@ -88,6 +88,7 @@ int isched_hwloc_distance( int id1, int id2 )
         obj2 = HWLOC_GET_PARENT(obj2);
         count++;
     }
+    return -1;
 }
 
 /**
@@ -247,8 +248,8 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
     /* Get the core of index cpu_index */
     core = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
     if (!core) {
-        WARNING(("isched_hwloc: unable to get the core of index %i (nb physical cores = %i )\n",
-                 cpu_index,  isched_hwloc_nb_real_cores()));
+        printf("isched_hwloc: unable to get the core of index %i (nb physical cores = %i )\n",
+                 cpu_index,  isched_hwloc_nb_real_cores());
         return -1;
     }
 
@@ -269,7 +270,7 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
 #else
         hwloc_bitmap_asprintf(&str, core->cpuset);
 #endif
-        WARNING(("isched_hwloc: couldn't bind to cpuset %s\n", str));
+        printf("isched_hwloc: couldn't bind to cpuset %s\n", str);
         free(str);
 
         /* Free our cpuset copy */
@@ -280,7 +281,7 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
 #endif
         return -1;
     }
-    DEBUG2(("Thread bound on core index %i, [HT %i ]\n", cpu_index, local_ht_index));
+    //printf("Thread bound on core index %i, [HT %i ]\n", cpu_index, local_ht_index);
 
     /* Get the number at Proc level*/
     cpu_index = core->os_index;
@@ -308,7 +309,7 @@ int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
         /* Get the core of index cpu */
         obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
         if (!obj) {
-            DEBUG3(("isched_hwloc_bind_on_mask_index: unable to get the core of index %i\n", cpu_index));
+            //printf("isched_hwloc_bind_on_mask_index: unable to get the core of index %i\n", cpu_index);
         } else {
             hwloc_bitmap_or(binding_mask, binding_mask, obj->cpuset);
         }
@@ -318,7 +319,7 @@ int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
     if (hwloc_set_cpubind(topology, binding_mask, HWLOC_CPUBIND_THREAD)) {
         char *str = NULL;
         hwloc_bitmap_asprintf(&str, binding_mask);
-        WARNING(("Couldn't bind to cpuset %s\n", str));
+        printf("Couldn't bind to cpuset %s\n", str);
         free(str);
         return -1;
     }
@@ -327,7 +328,7 @@ int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
     {
         char *str = NULL;
         hwloc_bitmap_asprintf(&str,  binding_mask);
-        DEBUG2(("Thread bound on the cpuset  %s\n", str));
+        //printf("Thread bound on the cpuset  %s\n", str);
         free(str);
     }
 #endif /* PASTIX_DEBUG_VERBOSE */
@@ -339,6 +340,31 @@ int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
     (void) cpuset;
     return -1;
 #endif /* HAVE_HWLOC_BITMAP */
+}
+
+int isched_hwloc_unbind()
+{
+#if defined(HAVE_HWLOC_BITMAP)
+    hwloc_obj_t      obj;      /* Hwloc object    */
+    hwloc_cpuset_t   cpuset;   /* HwLoc cpuset    */
+    isched_hwloc_init();
+
+    /* Get last one.  */
+    obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, 0);
+    if (!obj) {
+        fprintf(stderr, "plasma_unsetaffinity: Could not get object\n");
+        return PASTIX_ERR_UNKNOWN;
+    }
+
+#if !defined(HWLOC_BITMAP_H)
+    cpuset = hwloc_cpuset_dup(obj->cpuset);
+#else
+    cpuset = hwloc_bitmap_dup(obj->cpuset);
+#endif
+
+    isched_hwloc_bind_on_mask_index(cpuset);
+#endif
+    return PASTIX_SUCCESS;
 }
 
 int isched_hwloc_allow_ht(int htnb)

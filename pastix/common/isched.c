@@ -65,7 +65,7 @@ typedef struct isched_s {
     void            *pargs;
 } isched_t;
 
-int isched_bindthread(int cpu)
+int isched_setaffinity(int cpu)
 {
 #if defined(HAVE_HWLOC)
     {
@@ -122,6 +122,90 @@ int isched_bindthread(int cpu)
 #endif /* WITH_HWLOC     */
 
     return cpu;
+}
+
+int isched_unsetaffinity()
+{
+#if defined(HAVE_HWLOC)
+    {
+        return isched_hwloc_unbind();
+    }
+#else /* We bind thread ourself in funtion of the targetted architecture */
+#ifndef PLASMA_AFFINITY_DISABLE
+#if (defined PLASMA_OS_LINUX) || (defined PLASMA_OS_FREEBSD)
+    {
+        int i;
+#if (defined PLASMA_OS_LINUX)
+        cpu_set_t set;
+#elif (defined PLASMA_OS_FREEBSD)
+        cpuset_t set;
+#endif
+        CPU_ZERO( &set );
+
+        for(i=0; i<sys_corenbr; i++)
+            CPU_SET( i, &set );
+
+#if (defined HAVE_OLD_SCHED_SETAFFINITY)
+        if( sched_setaffinity( 0, &set ) < 0 )
+#else /* HAVE_OLD_SCHED_SETAFFINITY */
+#if (defined PLASMA_OS_LINUX)
+        if( sched_setaffinity( 0, sizeof(set), &set) < 0 )
+#elif (defined PLASMA_OS_FREEBSD)
+        if( cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, 0, sizeof(set), &set) < 0 )
+#endif
+#endif /* HAVE_OLD_SCHED_SETAFFINITY */
+            {
+                plasma_warning("plasma_unsetaffinity", "Could not unbind thread");
+                return PLASMA_ERR_UNEXPECTED;
+            }
+
+        return PLASMA_SUCCESS;
+    }
+#elif (defined PLASMA_OS_MACOS)
+    {
+        /* TODO: check how to unbind the main thread if necessary for OpenMP */
+        /* thread_affinity_policy_data_t ap; */
+        /* int                           ret; */
+
+        /* ap.affinity_tag = 1; /\* non-null affinity tag *\/ */
+        /* ret = thread_policy_set( mach_thread_self(), */
+        /*                          THREAD_AFFINITY_POLICY, */
+        /*                          (integer_t*) &ap, */
+        /*                          THREAD_AFFINITY_POLICY_COUNT */
+        /*     ); */
+        /* if(ret != 0) { */
+        /*     plasma_warning("plasma_unsetaffinity", "Could not unbind thread"); */
+        /*     return PLASMA_ERR_UNEXPECTED; */
+        /* } */
+
+        return PLASMA_SUCCESS;
+    }
+#elif (defined PLASMA_OS_WINDOWS)
+    {
+        int i;
+        DWORD mask = 0;
+
+        for(i=0; i<sys_corenbr; i++)
+            mask |= 1 << i;
+
+        if( SetThreadAffinityMask(GetCurrentThread(), mask) == 0) {
+            plasma_warning("plasma_unsetaffinity", "Could not unbind thread");
+            return PLASMA_ERR_UNEXPECTED;
+        }
+        return PLASMA_SUCCESS;
+    }
+#elif (defined PLASMA_OS_AIX)
+    {
+        /* TODO: check how to unbind the main thread if necessary for OpenMP */
+        /* tid_t self_ktid = thread_self (); */
+        /* bindprocessor(BINDTHREAD, self_ktid, rank); */
+        return PLASMA_SUCCESS;
+    }
+#else
+    return PLASMA_ERR_NOT_SUPPORTED;
+#endif
+#endif /* PLASMA_AFFINITY_DISABLE */
+#endif /* PLASMA_HWLOC */
 }
 
 /***************************************************************************//**
@@ -214,7 +298,7 @@ void *isched_parallel_section(void *ptr)
         isched_barrier(&(isched->barrier) );
     }
 
-    //isched_unsetaffinity();
+    isched_unsetaffinity();
     return NULL;
 }
 

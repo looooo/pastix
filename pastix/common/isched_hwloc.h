@@ -80,15 +80,18 @@ extern int isched_hwloc_fini(void);
 
 /**
  * Find the number of core of the architecture.
- *
  */
 extern int isched_hwloc_nb_real_cores();
 
 /**
  * Bind the current thread on the core of index cpu_index.
- *
  */
 int isched_hwloc_bind_on_core_index(int cpu_index);
+
+/**
+ * Unbind the current thread.
+ */
+int isched_hwloc_unbind();
 
 /**
  * Return the logical socket index for a core index (hwloc numbering).
@@ -117,7 +120,8 @@ int isched_hwloc_get_nb_objects(int level);
 
 
 /**
- * Find the number of core under the object number index at the topology depth level.
+ * Find the number of core under the object number index at the topology depth
+ * level.
  */
 unsigned int isched_hwloc_nb_cores_per_obj( int level, int index );
 
