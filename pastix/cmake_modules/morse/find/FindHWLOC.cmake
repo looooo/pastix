@@ -249,3 +249,14 @@ endif(NOT HWLOC_FOUND OR NOT HWLOC_LIBRARIES)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(HWLOC DEFAULT_MSG
                                   HWLOC_LIBRARIES)
+
+if(HWLOC_FOUND)
+  set(HWLOC_SAVE_CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES})
+  list(APPEND CMAKE_REQUIRED_INCLUDES ${HWLOC_INCLUDE_DIR})
+  check_struct_has_member( "struct hwloc_obj" parent hwloc.h HAVE_HWLOC_PARENT_MEMBER )
+  check_struct_has_member( "struct hwloc_cache_attr_s" size hwloc.h HAVE_HWLOC_CACHE_ATTR )
+  check_c_source_compiles( "#include <hwloc.h>
+    int main(void) { hwloc_obj_t o; o->type = HWLOC_OBJ_PU; return 0;}" HAVE_HWLOC_OBJ_PU)
+  check_library_exists(${HWLOC_LIBRARIES} hwloc_bitmap_free "" HAVE_HWLOC_BITMAP)
+  set(CMAKE_REQUIRED_INCLUDES ${HWLOC_SAVE_CMAKE_REQUIRED_INCLUDES})
+endif()
