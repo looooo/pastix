@@ -129,8 +129,8 @@ endif()
 find_package(HWLOC)
 set(HAVE_HWLOC ${HWLOC_FOUND})
 if( HWLOC_FOUND )
-  # list(APPEND EXTRA_SOURCES src/dague_hwloc.c)
-  list(APPEND EXTRA_LIBS ${HWLOC_LIBRARIES})
+  link_directories( ${HWLOC_LIBRARY_DIRS} )
+  link_libraries( ${HWLOC_LIBRARIES} )
   include_directories( ${HWLOC_INCLUDE_DIRS} )
 endif (HWLOC_FOUND)
 
@@ -171,8 +171,7 @@ if( PASTIX_WITH_CUDA )
         endif(CUDA_VERSION VERSION_LESS "3.0")
         set(CUDA_BUILD_EMULATION OFF)
         include_directories(${CUDA_INCLUDE_DIRS})
-        list(APPEND EXTRA_LIBRARIES ${CUDA_LIBRARIES}) # need CUDA libs to link.
-        list(APPEND EXTRA_SOURCES src/gpu_data.c)
+        link_libraries(${CUDA_LIBRARIES}) # need CUDA libs to link.
         set(saved_include "${CMAKE_REQUIRED_INCLUDES}")
         set(saved_libs "${CMAKE_REQUIRED_LIBRARIES}")
         set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${CUDA_INCLUDE_DIRS}")
@@ -305,27 +304,6 @@ if (PASTIX_ORDERING_METIS)
   endif()
 endif()
 
-# # the following  3 lines are temporary
-# mark_as_advanced(FORCE SCOTCH_DIR METIS_DIR BLAS_LIBRARY_DIRS BLAS_LIBRARIES)
-# set( SCOTCH_DIR        /opt/scotch/int64           CACHE PATH   "Scotch prefix directory")
-# set( METIS_DIR         /opt/metis                  CACHE PATH   "Metis prefix directory" )
-# set( GTG_DIR           /opt/traces                 CACHE PATH   "GTG prefix directory")
-
-# if (PASTIX_ORDERING_SCOTCH OR PASTIX_ORDERING_PTSCOTCH)
-#   include_directories("${SCOTCH_DIR}/include")
-#   set(SCOTCH_LIBRARY_DIRS "${SCOTCH_DIR}/lib")
-#   set(SCOTCH_LIBRARIES    "scotch;scotcherr")
-#   set(PTSCOTCH_LIBRARIES  "ptscotch;ptscotcherr")
-# endif()
-
-# # PaStiX might depend on Metis
-# #-----------------------------
-# if (PASTIX_ORDERING_METIS)
-#   include_directories("${METIS_DIR}/include")
-#   set(METIS_LIBRARY_DIRS "${METIS_DIR}/lib")
-#   set(METIS_LIBRARIES    "metis")
-# endif()
-#
 # PaStiX might depend on GTG
 #---------------------------
 if (PASTIX_BLEND_GENTRACE)
@@ -635,6 +613,11 @@ endif()
 if(PASTIX_ORDERING_METIS) # AND HAVE_METIS)
   list(APPEND PASTIX_LIB_SRCS
     order/order_compute_metis.c
+    )
+endif()
+if(HWLOC_FOUND)
+  list(APPEND PASTIX_LIB_SRCS
+    common/isched_hwloc.c
     )
 endif()
 
