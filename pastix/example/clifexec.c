@@ -1,5 +1,5 @@
 /**
- *  @file: analyze.c
+ *  @file: clifexec.c
  *
  *  A simple example :
  *  read the matrix, check it is correct and correct it if needed,
@@ -18,6 +18,10 @@
 #include <pastix.h>
 #include <csc.h>
 #include "../matrix_drivers/drivers.h"
+
+#ifdef FORCE_NOMPI
+#define MPI_COMM_WORLD 0
+#endif
 
 int main (int argc, char **argv)
 {
@@ -69,12 +73,7 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
     iparm[IPARM_FACTORIZATION] = API_FACT_LDLT;
-    iparm[IPARM_IO_STRATEGY] = API_IO_SAVE;
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-
-    split_level       = 0;
-    stop_criteria     = INT_MAX;
-    stop_when_fitting = 0;
 
     /**
      * Get options from command line
@@ -86,80 +85,16 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
-    printf("Reordering parameters are %d %d %d\n", split_level, stop_criteria, stop_when_fitting);
-    if (stop_when_fitting != 0 && stop_when_fitting != 1){
-        fprintf(stderr, "Fatal error in reordering parameters -R split_level:stop_criteria:stop_when_fitting\n");
-        exit(1);
-    }
-
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rowptr, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
-    pastix_task_reordering( pastix_data, split_level, stop_criteria, stop_when_fitting );
-    /* pastix_task_blend( pastix_data ); */
-    /* pastix_task_sopalin( pastix_data, &csc ); */
+
+    //pastix_task_blend( pastix_data );
+    //pastix_task_sopalin( pastix_data, &csc );
 
     spmExit( &csc );
 
-    /* if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD)) */
-    /* { */
-    /*     pastix_complex64_t *rhs     = NULL; */
-    /*     char           *type    = NULL; */
-    /*     char           *rhstype = NULL; */
-    /*     pastix_int_t    mat_type; */
-
-    /*     /\*******************************************\/ */
-    /*     /\*      Read Matrice                       *\/ */
-    /*     /\*******************************************\/ */
-    /*     read_matrix(filename[0], &ncol, &colptr, &rowptr, &values, */
-    /*                   &rhs, &type, &rhstype, driver_type[0], MPI_COMM_WORLD); */
-
-    /*     free(filename[0]); */
-    /*     free(filename); */
-    /*     free(driver_type); */
-    /*     free(rhs); */
-    /*     free(rhstype); */
-
-    /*     mat_type = API_SYM_NO; */
-    /*     if (MTX_ISSYM(type)) mat_type = API_SYM_YES; */
-    /*     if (MTX_ISHER(type)) mat_type = API_SYM_HER; */
-    /*     iparm[IPARM_SYM] = mat_type; */
-    /*     switch (mat_type) */
-    /*     { */
-    /*     case API_SYM_YES: */
-    /*         iparm[IPARM_FACTORIZATION] = API_FACT_LDLT; */
-    /*     break; */
-    /*     case API_SYM_HER: */
-    /*         iparm[IPARM_FACTORIZATION] = API_FACT_LDLH; */
-    /*         break; */
-    /*     default: */
-    /*         iparm[IPARM_FACTORIZATION] = API_FACT_LU; */
-    /*     } */
-
-    /*     free(type); */
-    /* } */
-    /* else */
-    /* { */
-    /*     iparm[IPARM_START_TASK] = API_TASK_SYMBFACT; */
-    /* } */
-
-    /* iparm[IPARM_END_TASK]            = API_TASK_ANALYSE; */
-    /* pastix(&pastix_data, MPI_COMM_WORLD, */
-    /*          ncol, colptr, rows, values, */
-    /*          NULL, NULL, NULL, 0, iparm, dparm); */
-
-    /* /\* Clean *\/ */
-    /* iparm[IPARM_START_TASK] = API_TASK_CLEAN; */
-    /* iparm[IPARM_END_TASK]   = API_TASK_CLEAN; */
-    /* pastix(&pastix_data, MPI_COMM_WORLD, */
-    /*        0, NULL, NULL, NULL, */
-    /*        NULL, NULL, NULL, 0, iparm, dparm); */
-
-    /* if (colptr != NULL) free(colptr); */
-    /* if (rows   != NULL) free(rows); */
-    /* if (values != NULL) free(values); */
-
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-#if defined(PASTIX_WITH_MPI)
+#ifndef FORCE_NOMPI
     MPI_Finalize();
 #endif
     return EXIT_SUCCESS;

@@ -117,6 +117,8 @@ pastix_task_blend(pastix_data_t *pastix_data)
 
     blendCtrlExit(&ctrl);
 
+    symbolPrintStats( pastix_data->symbmtx );
+
     /* Symbol is not used anymore */
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);

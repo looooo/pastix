@@ -28,6 +28,7 @@ struct Order_ {
     pastix_int_t *permtab;   /*< Permutation array [based]           */
     pastix_int_t *peritab;   /*< Inverse permutation array [based]   */
     pastix_int_t *rangtab;   /*< Column block range array [based,+1] */
+    pastix_int_t *treetab;   /*< Partitioning tree [based]           */
 };
 
 /*
@@ -60,6 +61,7 @@ void orderFindSupernodes( pastix_int_t  n,
 int  orderAddIsolate( Order        *ordemesh,
                       pastix_int_t  new_n,
                       const pastix_int_t *perm );
+
 
 #endif /* _ORDER_H_ */
 
