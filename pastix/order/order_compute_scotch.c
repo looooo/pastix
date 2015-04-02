@@ -158,8 +158,8 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
         if (iparm[IPARM_INCOMPLETE] == API_NO) {
             if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
                 pastix_print(procnum, 0, "%s", "Scotch direct strategy\n");
-            //sprintf(strat, SCOTCH_STRAT_DIRECT);
-            sprintf(strat, SCOTCH_STRAT_CLIF);
+            sprintf(strat, SCOTCH_STRAT_DIRECT);
+            //sprintf(strat, SCOTCH_STRAT_CLIF);
         }
         else {
             if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
@@ -185,7 +185,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
     ret = SCOTCH_stratGraphOrder (&stratdat, strat);
     if (ret == 0) {
         /* Compute graph ordering */
-#if 0
+#if 1
         ret = SCOTCH_graphOrderList(&scotchgraph,
                                     (SCOTCH_Num)   n,
                                     (SCOTCH_Num *) NULL,
