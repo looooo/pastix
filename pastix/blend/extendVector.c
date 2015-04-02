@@ -35,8 +35,8 @@ pastix_int_t extendint_Size(ExtendVectorINT *vec)
 
 pastix_int_t extendint_Read(ExtendVectorINT *vec, pastix_int_t eltnum)
 {
-  ASSERT(eltnum <= vec->eltnbr,MOD_BLEND);
-  return vec->inttab[eltnum];
+    assert(eltnum <= vec->eltnbr);
+    return vec->inttab[eltnum];
 }
 
 

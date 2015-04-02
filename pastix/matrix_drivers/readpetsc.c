@@ -187,10 +187,10 @@ readPETSC( const char   *filename,
 
   csc->colptr = (pastix_int_t *) malloc((Nrow+1)*sizeof(pastix_int_t));
   memset(csc->colptr,0,(Nrow+1)*sizeof(pastix_int_t));
-  csc->rows = (pastix_int_t *) malloc((Nnzero)*sizeof(pastix_int_t));
-  memset(csc->rows,0,(Nnzero)*sizeof(pastix_int_t));
-  csc->avals = (pastix_complex64_t *) malloc((Nnzero)*sizeof(pastix_complex64_t));
-  if ((csc->colptr==NULL) || (csc->rows == NULL) || (csc->avals == NULL))
+  csc->rowptr = (pastix_int_t *) malloc((Nnzero)*sizeof(pastix_int_t));
+  memset(csc->rowptr,0,(Nnzero)*sizeof(pastix_int_t));
+  csc->values = (pastix_complex64_t *) malloc((Nnzero)*sizeof(pastix_complex64_t));
+  if ((csc->colptr==NULL) || (csc->rowptr == NULL) || (csc->values == NULL))
   {
     fprintf(stderr, "petscread : Not enough memory (Nnzero %ld)\n",(long)Nnzero);
     exit(-1);
@@ -222,15 +222,15 @@ readPETSC( const char   *filename,
 
     pos = csc->colptr[tempcol[iter]-1]-1;
     limit = csc->colptr[tempcol[iter]]-1;
-    while(csc->rows[pos] != 0 && pos < limit)
+    while(csc->rowptr[pos] != 0 && pos < limit)
     {
       pos++;
     }
     if (pos == limit)
       fprintf(stderr, "Erreur de lecture\n");
 
-    valptr=csc->avals+pos;
-    csc->rows[pos] = temprow[iter];
+    valptr=csc->values+pos;
+    csc->rowptr[pos] = temprow[iter];
     *valptr = tempval[iter];
   }
 

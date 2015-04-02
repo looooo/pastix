@@ -159,63 +159,6 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     return -1;
 }
 
-/**
- *******************************************************************************
- *
- * @ingroup pastix_symbol
- *
- * symbolGetNNZ - Computes the number of non-zero elements stored in the
- * symbol matrix in order to compute the fill-in. This routines returns the
- * number of non-zero of the strictly lower part of the matrix.
- *
- *******************************************************************************
- *
- * @param[in,out] symbptr
- *          The symbol structure to study.
- *
- *******************************************************************************
- *
- * @return
- *          The number of non zero elements in the strictly lower part of the
- *          full symbol matrix.
- *
- *******************************************************************************/
-pastix_int_t
-symbolGetNNZ(const SymbolMatrix *symbptr)
-{
-    SymbolCblk *cblk;
-    SymbolBlok *blok;
-    pastix_int_t itercblk;
-    pastix_int_t cblknbr;
-    pastix_int_t nnz = 0;
-
-    cblknbr = symbptr->cblknbr;
-    cblk = symbptr->cblktab;
-    blok = symbptr->bloktab;
-
-    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
-    {
-        pastix_int_t iterblok = cblk[0].bloknum + 1;
-        pastix_int_t lbloknum = cblk[1].bloknum;
-
-        pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
-
-        /* Diagonal block */
-        blok++;
-        nnz += ( colnbr * (colnbr+1) ) / 2 - colnbr;
-
-        /* Off-diagonal blocks */
-        for( ; iterblok < lbloknum; iterblok++, blok++)
-        {
-            pastix_int_t rownbr = blok->lrownum - blok->frownum + 1;
-
-            nnz += rownbr * colnbr;
-        }
-    }
-
-    return nnz;
-}
-
 void
 symbolBuildRowtab(SymbolMatrix *symbptr)
 {
@@ -302,7 +245,7 @@ symbolPrintStats( const SymbolMatrix *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
-    pastix_int_t itercblk;
+    pastix_int_t itercblk, dof;
     pastix_int_t cblknbr, bloknbr;
     pastix_int_t cblkmin, cblkmax;
     pastix_int_t blokmin, blokmax;
@@ -343,8 +286,13 @@ symbolPrintStats( const SymbolMatrix *symbptr )
         }
     }
 
-    cblkavg = cblkavg / (double)cblknbr;
-    blokavg = blokavg / (double)bloknbr;
+    dof = symbptr->dof;
+    blokmin *= dof;
+    blokmax *= dof;
+    cblkmin *= dof;
+    cblkmax *= dof;
+    cblkavg  = (cblkavg * (double)dof ) / (double)cblknbr;
+    blokavg  = (blokavg * (double)dof ) / (double)bloknbr;
 
     fprintf(stdout,
             "------ Stats Symbol Matrix ----------\n"

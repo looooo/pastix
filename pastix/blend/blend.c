@@ -19,7 +19,6 @@
 
 #include "common.h"
 #include "out.h"
-#include "dof.h"
 #include "ftgt.h"
 #include "cost.h"
 #include "symbol.h"
@@ -37,7 +36,6 @@
 #include "splitpartlocal.h"
 #include "solverMatrixGen.h"
 #include "solver_check.h"
-#include "symbol_cost.h"
 #include "task.h"
 #include "solver_check.h"
 #include "fanboth2.h"
@@ -66,8 +64,7 @@
  */
 void solverBlend(BlendCtrl    *ctrl,
                  SolverMatrix *solvmtx,
-                 SymbolMatrix *symbmtx,
-                 const Dof    *dofptr)
+                 SymbolMatrix *symbmtx)
 {
     SimuCtrl     *simuctrl;
     double        timer_all     = 0.;
@@ -78,7 +75,7 @@ void solverBlend(BlendCtrl    *ctrl,
 
     clockStart(timer_all);
 
-    if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+    if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print( clustnum, 0,
                       OUT_CLUSTNBR "" OUT_PROCNBR "" OUT_THRDNBR,
                       (long)clustnbr, (long)ctrl->local_nbcores, (long)ctrl->local_nbthrds);
@@ -90,9 +87,6 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, OUT_BLEND_CHKSMBMTX );
         symbolCheck(symbmtx);
     }
-
-    if(ctrl->count_ops && ctrl->leader == clustnum)
-        symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
 
     /* Build the elimination tree from the symbolic partition */
     {
@@ -113,7 +107,9 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX );
         clockStart(timer_current);
 
-        ctrl->costmtx = costMatrixBuild(symbmtx, dofptr);
+        ctrl->costmtx = costMatrixBuild( symbmtx,
+                                         ctrl->iparm[IPARM_FLOAT],
+                                         ctrl->iparm[IPARM_FACTORIZATION] );
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
@@ -147,8 +143,6 @@ void solverBlend(BlendCtrl    *ctrl,
 
         propMappTree( ctrl->candtab,
                       ctrl->etree,
-                      symbmtx,
-                      dofptr,
                       ctrl->total_nbcores,
                       ctrl->nocrossproc,
                       ctrl->allcand );
@@ -186,8 +180,15 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
     }
 
-    if(ctrl->count_ops && (ctrl->leader == clustnum))
-        symbCost(ctrl->iparm, ctrl->dparm, symbmtx, dofptr);
+    if(ctrl->count_ops && (ctrl->leader == clustnum)) {
+        double thflops = 0.;
+        symbolGetFlops( symbmtx,
+                        ctrl->iparm[IPARM_FLOAT],
+                        ctrl->iparm[IPARM_FACTORIZATION],
+                        &thflops, &(ctrl->dparm[DPARM_FACT_RLFLOPS]) );
+        // TODO: check why the splitsymbol changes the number of flops, it should not.
+        //assert( thflops == ctrl->dparm[DPARM_FACT_THFLOPS] );
+    }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     {
@@ -244,7 +245,7 @@ void solverBlend(BlendCtrl    *ctrl,
         }
         clockStart(timer_current);
 
-        simuRun( simuctrl, ctrl, symbmtx, dofptr );
+        simuRun( simuctrl, ctrl, symbmtx );
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
@@ -261,7 +262,7 @@ void solverBlend(BlendCtrl    *ctrl,
     {
         clockStart(timer_current);
 
-        splitPartLocal( ctrl, simuctrl, symbmtx, dofptr );
+        splitPartLocal( ctrl, simuctrl, symbmtx );
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
@@ -283,7 +284,7 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, " -- Generate the final SolverMatrix\n" );
         clockStart(timer_current);
 
-        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl, dofptr);
+        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl);
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)

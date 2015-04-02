@@ -39,6 +39,28 @@ candInit( Cand *candtab,
 }
 
 void
+candSave( const Cand *candtab,
+          pastix_int_t cblknbr )
+{
+    FILE *f = fopen("candtab.txt", "w");
+    pastix_int_t i;
+    fprintf(f, "%ld\n", cblknbr );
+    for(i=0;i<cblknbr;i++)
+    {
+        fprintf(f, "%lf %ld %ld %ld %ld %ld %ld %d\n",
+                candtab[i].costlevel,
+                candtab[i].treelevel,
+                candtab[i].fcandnum,
+                candtab[i].lcandnum,
+                candtab[i].fccandnum,
+                candtab[i].lccandnum,
+                candtab[i].cluster,
+                candtab[i].cblktype );
+    }
+    fclose(f);
+}
+
+void
 candSetSubCandidate( Cand *candtab,
                      const EliminTree *etree,
                      pastix_int_t rootnum,
@@ -118,7 +140,7 @@ candSubTreeBuild( pastix_int_t        rootnum,
     for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
          bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
     {
-        cost += costmtx->bloktab[ bloknum ].contrib;
+        cost += costmtx->blokcost[ bloknum ];
     }
 #endif
 

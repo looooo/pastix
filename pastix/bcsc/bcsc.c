@@ -95,7 +95,7 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
     pastix_int_t  valuesize, baseval;
     pastix_int_t *globcol  = NULL;
     pastix_int_t *colptr = csc->colptr;
-    pastix_int_t *rows   = csc->rows;
+    pastix_int_t *rowptr = csc->rowptr;
     int dof = csc->dof;
     int sym = (csc->mtxtype == PastixSymmetric) || (csc->mtxtype == PastixHermitian);
 
@@ -132,7 +132,7 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
 
                 for (iterrow=frow; iterrow<lrow; iterrow++)
                 {
-                    pastix_int_t tmprow = rows[iterrow] - baseval;
+                    pastix_int_t tmprow = rowptr[iterrow] - baseval;
                     if (tmprow != itercol) {
                         newrow = ord->permtab[tmprow];
                         globcol[newrow]++;

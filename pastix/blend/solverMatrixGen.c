@@ -34,8 +34,7 @@
 void build_smx(UpDownVector          *updovct,
                const SymbolMatrix    *symbptr,
                const SimuCtrl        *simuptr,
-               const BlendCtrl *const ctrl,
-               const Dof       *const dofptr)
+               const BlendCtrl *const ctrl)
 {
     pastix_int_t i, j;
     pastix_int_t cursor = 0;
@@ -43,32 +42,29 @@ void build_smx(UpDownVector          *updovct,
     pastix_int_t Xnbr = 0;
     pastix_int_t localXnbr = 0;
     pastix_int_t delta;
+    pastix_int_t dof = symbptr->dof;
 
     for(i=0;i<symbptr->cblknbr;i++)
     {
-#ifdef DOF_CONSTANT
-        delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
+        delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof;
         /*if(cbprtab[i] == ctrl->procnum)*/
         if(simuptr->bloktab[symbptr->cblktab[i].bloknum].ownerclust == ctrl->clustnum)
             localXnbr += delta;
         Xnbr += delta;
-#else
-        EXIT(MOD_BLEND,INTERNAL_ERR);
-#endif
     }
 
     /** We build the whole second member **/
     for(i=0;i<symbptr->cblknbr;i++)
     {
         /** Compute xcolnbr **/
-        delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
+        delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof;
 
 
         /** Add delta in the ODB variable **/
         xcolnbr = 0;
         for(j=symbptr->cblktab[i].bloknum+1;j<symbptr->cblktab[i+1].bloknum;j++)
         {
-            xcolnbr += (symbptr->bloktab[j].lrownum - symbptr->bloktab[j].frownum + 1)*dofptr->noddval;
+            xcolnbr += (symbptr->bloktab[j].lrownum - symbptr->bloktab[j].frownum + 1)*dof;
         }
         /** We only count non diagonal terms **/
         /** Now add the height of the cblk (-1 for diagonal term) in the DIAGONAL variables **/
@@ -84,7 +80,7 @@ void build_smx(UpDownVector          *updovct,
     updovct->sm2xmax = 0;
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
+        delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof;
         if(updovct->sm2xmax < delta)
             updovct->sm2xmax = delta;
     }
@@ -94,7 +90,7 @@ void build_smx(UpDownVector          *updovct,
         /*if(cbprtab[i] == ctrl->procnum)*/
         if(simuptr->bloktab[symbptr->cblktab[i].bloknum].ownerclust == ctrl->clustnum)
         {
-            delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dofptr->noddval;
+            delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof;
 
             updovct->cblktab[j].sm2xind = cursor;
             j++;
@@ -109,8 +105,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 SolverMatrix *solvmtx,
                 const SymbolMatrix *symbmtx,
                 const SimuCtrl * simuctrl,
-                const BlendCtrl * ctrl,
-                const Dof * dofptr)
+                const BlendCtrl * ctrl)
 {
     pastix_int_t            p, c;
     pastix_int_t            cursor, cursor2;
@@ -133,6 +128,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t          * clust_highest    = NULL;
     pastix_int_t          * uprecvcblk       = NULL;
     pastix_int_t            flaglocal        = 0;
+    pastix_int_t            dof = symbmtx->dof;
 
     solverInit(solvmtx);
 
@@ -230,19 +226,19 @@ solverMatrixGen(const pastix_int_t clustnum,
         cblknum = 0;
         nodenbr = 0;
         coefnbr = 0;
-        for(i=0;i<symbmtx->cblknbr;i++, symbcblk++)
+        for(i=0; i<symbmtx->cblknbr; i++, symbcblk++)
         {
             SolverBlok  *fblokptr = solvblok;
             pastix_int_t fbloknum  = symbcblk[0].bloknum;
             pastix_int_t lbloknum  = symbcblk[1].bloknum;
             pastix_int_t stride    = 0;
-            pastix_int_t nbcolumns = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dofptr->noddval;
+            pastix_int_t nbcolumns = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
             pastix_int_t nbrows;
 
             flaglocal = 0;
 
             for( j=fbloknum; j<lbloknum; j++, symbblok++, simublok++ ) {
-                nbrows = (symbblok->lrownum - symbblok->frownum + 1) * dofptr->noddval;
+                nbrows = (symbblok->lrownum - symbblok->frownum + 1) * dof;
 
                 blokamax = pastix_imax( blokamax, nbrows * nbcolumns );
 
@@ -251,7 +247,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                     flaglocal = 1;
 
                     /* Init the blok */
-                    solvblok->frownum = symbblok->frownum * dofptr->noddval;
+                    solvblok->frownum = symbblok->frownum * dof;
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->cblknum = cblklocalnum[symbblok->cblknum];
                     solvblok->levfval = -1; /* Unused */
@@ -265,7 +261,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             {
                 /* Init the cblk */
                 solvcblk->fblokptr = fblokptr;
-                solvcblk->fcolnum  = symbcblk->fcolnum * dofptr->noddval;
+                solvcblk->fcolnum  = symbcblk->fcolnum * dof;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
                 solvcblk->stride   = stride;
                 solvcblk->procdiag = solvmtx->clustnum;
@@ -459,12 +455,12 @@ solverMatrixGen(const pastix_int_t clustnum,
                     memcpy(solvftgt->infotab, simuctrl->ftgttab[ftgtnum].ftgt.infotab, MAXINFO*sizeof(pastix_int_t));
 
                     /* Update with Degre of freedoms */
-                    solvftgt->infotab[FTGT_FCOLNUM] *= dofptr->noddval;
-                    solvftgt->infotab[FTGT_LCOLNUM] *= dofptr->noddval;
-                    solvftgt->infotab[FTGT_LCOLNUM] += dofptr->noddval - 1;
-                    solvftgt->infotab[FTGT_FROWNUM] *= dofptr->noddval;
-                    solvftgt->infotab[FTGT_LROWNUM] *= dofptr->noddval;
-                    solvftgt->infotab[FTGT_LROWNUM] += dofptr->noddval - 1;
+                    solvftgt->infotab[FTGT_FCOLNUM] *= dof;
+                    solvftgt->infotab[FTGT_LCOLNUM] *= dof;
+                    solvftgt->infotab[FTGT_LCOLNUM] += dof - 1;
+                    solvftgt->infotab[FTGT_FROWNUM] *= dof;
+                    solvftgt->infotab[FTGT_LROWNUM] *= dof;
+                    solvftgt->infotab[FTGT_LROWNUM] += dof - 1;
 
                     /* Convert to local numbering */
                     solvftgt->infotab[FTGT_TASKDST] = tasklocalnum[solvftgt->infotab[FTGT_TASKDST]];
@@ -646,7 +642,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         /** The initial symbol matrix is not expanded **/
         nodenbr = 0;
         for(i=0;i<symbmtx->cblknbr;i++)
-            nodenbr += (symbmtx->cblktab[i].lcolnum-symbmtx->cblktab[i].fcolnum+1)*dofptr->noddval;
+            nodenbr += (symbmtx->cblktab[i].lcolnum-symbmtx->cblktab[i].fcolnum+1) * dof;
         solvmtx->updovct.gnodenbr= nodenbr;
         /*fprintf(stderr," GNODENBR %ld \n", (long)solvmtx->updovct.gnodenbr);*/
 
@@ -862,7 +858,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         /*     Temporaire                */
         /*  Pour tester descente remonte */
         /*********************************/
-        build_smx(&(solvmtx->updovct), symbmtx, simuctrl, ctrl, dofptr);
+        build_smx(&(solvmtx->updovct), symbmtx, simuctrl, ctrl);
 
     }
     /*********************** END TRIANGULAR INFO BUILDING ******************************************/
@@ -1131,9 +1127,9 @@ solverMatrixGen(const pastix_int_t clustnum,
                         ftgtnum = extendint_Read(&(simuclust->ftgtsend[solvmtx->clustnum]),
                                                  ftgtBlokIdx);
                         infotab = simuctrl->ftgttab[ftgtnum].ftgt.infotab;
-                        fcblk->fcolnum = infotab[FTGT_FCOLNUM] * dofptr->noddval;
+                        fcblk->fcolnum = infotab[FTGT_FCOLNUM] * dof;
                         fcblk->lcolnum =
-                            (infotab[FTGT_LCOLNUM] + 1) * dofptr->noddval - 1;
+                            (infotab[FTGT_LCOLNUM] + 1) * dof - 1;
                         fcblk->fblokptr = fblok;
                         fcblk->stride  = 0;
                         fcblk->procdiag = solvmtx->clustnum;
@@ -1143,9 +1139,9 @@ solverMatrixGen(const pastix_int_t clustnum,
                             assert( solvmtx->proc2clust[infotab[FTGT_PROCDST]] ==
                                     solvmtx->clustnum );
                             assert( fblok - solvmtx->fbloktab[clustnum] < fBlokNbr );
-                            fblok->frownum = infotab[FTGT_FROWNUM] * dofptr->noddval;
+                            fblok->frownum = infotab[FTGT_FROWNUM] * dof;
                             fblok->lrownum = (infotab[FTGT_LROWNUM]+1) *
-                                dofptr->noddval - 1;
+                                dof - 1;
                             fblok->coefind = fcblk->stride;
 
                             fcblk->stride += infotab[FTGT_LROWNUM] -
@@ -1214,10 +1210,10 @@ solverMatrixGen(const pastix_int_t clustnum,
                                 solvmtx->gcblk2halo[dst_cblk] = -(halocblk+1);
                                 hcblk->fcolnum =
                                     symbmtx->cblktab[dst_cblk].fcolnum *
-                                    dofptr->noddval;
+                                    dof;
                                 hcblk->lcolnum =
                                     symbmtx->cblktab[dst_cblk].lcolnum *
-                                    dofptr->noddval + dofptr->noddval-1;
+                                    dof + dof-1;
                                 hcblk->stride   = 0;
                                 hcblk->fblokptr = hblok;
                                 hcblk->procdiag = simuctrl->bloktab[
@@ -1229,12 +1225,12 @@ solverMatrixGen(const pastix_int_t clustnum,
                                     pastix_int_t delta;
                                     delta  =  symbmtx->bloktab[bloc].lrownum -
                                         symbmtx->bloktab[bloc].frownum +1;
-                                    delta *=  dofptr->noddval;
+                                    delta *=  dof;
                                     hcblk->stride += delta;
                                     hblok->frownum = symbmtx->bloktab[bloc].frownum *
-                                        dofptr->noddval;
+                                        dof;
                                     hblok->lrownum = symbmtx->bloktab[bloc].lrownum *
-                                        dofptr->noddval + dofptr->noddval-1;
+                                        dof + dof-1;
                                     hblok->coefind = coefind;
                                     coefind += delta;
                                     hblok ++;
@@ -1264,10 +1260,10 @@ solverMatrixGen(const pastix_int_t clustnum,
                                     /* i updates local cblk add i to halo*/
                                     solvmtx->gcblk2halo[i] = -(halocblk+1);
                                     hcblk->fcolnum =
-                                        symbmtx->cblktab[i].fcolnum * dofptr->noddval;
+                                        symbmtx->cblktab[i].fcolnum * dof;
                                     hcblk->lcolnum =
-                                        symbmtx->cblktab[i].lcolnum * dofptr->noddval +
-                                        dofptr->noddval-1;
+                                        symbmtx->cblktab[i].lcolnum * dof +
+                                        dof-1;
                                     hcblk->stride   = 0;
                                     hcblk->fblokptr = hblok;
                                     hcblk->procdiag =
@@ -1280,13 +1276,13 @@ solverMatrixGen(const pastix_int_t clustnum,
                                         pastix_int_t delta;
                                         delta = symbmtx->bloktab[bloc].lrownum -
                                             symbmtx->bloktab[bloc].frownum +1;
-                                        hcblk->stride += delta * dofptr->noddval;
+                                        hcblk->stride += delta * dof;
                                         hblok->frownum =
                                             symbmtx->bloktab[bloc].frownum *
-                                            dofptr->noddval;
+                                            dof;
                                         hblok->lrownum =
                                             symbmtx->bloktab[bloc].lrownum *
-                                            dofptr->noddval + dofptr->noddval-1;
+                                            dof + dof-1;
                                         hblok->coefind = coefind;
                                         coefind += delta;
 

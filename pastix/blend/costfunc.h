@@ -17,7 +17,7 @@
 #endif
 
 
-void          costMatrixCorrect     (CostMatrix *, const SymbolMatrix *, Cand * candtab,  const Dof *);
+void            costMatrixCorrect     (CostMatrix *, const SymbolMatrix *, Cand * candtab,  const Dof *);
 double          subtreeUpdateCost     (pastix_int_t, CostMatrix *, const EliminTree *);
 double          subtreeUpdateCostLocal(pastix_int_t, const BlendCtrl *, const SymbolMatrix *, const SimuCtrl *, const Dof *, pastix_int_t);
 double          cblkComputeCost2D     (pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
@@ -40,7 +40,7 @@ double costFtgtSend( const BlendCtrl   *ctrl,
 double          costFtgtAdd           (FanInTarget *, const Dof *);
 double          cblkMaxCost           (pastix_int_t, const CostMatrix *);
 double          totalCost             (pastix_int_t, const CostMatrix *);
-void            printSolverInfo       (FILE *, const SolverMatrix *, const SymbolMatrix *, const Dof * const dofptr);
+void            printSolverInfo       (FILE *, const SolverMatrix *);
 double          memorySpaceCost       (const SolverMatrix *);
 static double   solverSpaceCost       (const SolverMatrix *);
 static double   symbolSpaceCost       (const SymbolMatrix *);

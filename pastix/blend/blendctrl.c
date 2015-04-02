@@ -92,11 +92,11 @@ int
 blendCtrlInit( BlendCtrl    *ctrl,
                pastix_int_t  procnum,
                pastix_int_t  procnbr,
-               pastix_int_t  local_coresnbr,
-               pastix_int_t  local_thrdsnbr,
                pastix_int_t *iparm,
                double       *dparm )
 {
+    pastix_int_t  local_coresnbr = iparm[IPARM_THREAD_NBR];
+    pastix_int_t  local_thrdsnbr = iparm[IPARM_THREAD_NBR];
     pastix_int_t i;
 
     /* Check parameters */
@@ -160,7 +160,7 @@ blendCtrlInit( BlendCtrl    *ctrl,
     ctrl->blcolmin = iparm[IPARM_MIN_BLOCKSIZE];
     ctrl->blcolmax = iparm[IPARM_MAX_BLOCKSIZE];
     ctrl->abs      = iparm[IPARM_ABS];
-    ctrl->updatecandtab = 0;
+    ctrl->updatecandtab = 1; /* TODO: Set to 1 to match former version of PaStiX, move back to 0 */
     if(ctrl->blcolmin > ctrl->blcolmax)
     {
         errorPrint("Parameter error : blocksize max < blocksize min (cf. iparm.txt).");

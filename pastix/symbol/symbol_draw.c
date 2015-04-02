@@ -113,18 +113,18 @@ int                         (* offdfunc) (const SymbolMatrix * const, const Symb
 void * const                dataptr,              /* Data structure for block coloring */
 FILE * const                stream)
 {
-  pastix_int_t                 cblknum;                    /* Number of current column block */
-  pastix_int_t                 bloknum;                    /* Number of current block        */
-  time_t              picttime;                   /* Creation time                  */
-  double              pictsize;                   /* Number of distinct coordinates */
-  int                 o;
+  pastix_int_t cblknum;                    /* Number of current column block */
+  pastix_int_t bloknum;                    /* Number of current block        */
+  time_t       picttime;                   /* Creation time                  */
+  double       pictsize;                   /* Number of distinct coordinates */
+  int          o;
 
   time (&picttime);                               /* Get current time */
   pictsize = (double) (symbptr->nodenbr + 1);     /* Get matrix size  */
 
   fprintf (stream, "%%!PS-Adobe-2.0 EPSF-2.0\n"); /* Write header */
   fprintf (stream, "%%%%Title: symbolmatrix (%ld,%ld,%ld)\n",
-           (long) symbptr->cblknbr, (long) symbptr->bloknbr, (long) symbptr->nodenbr);
+           (long) symbptr->cblknbr, (long) symbptr->bloknbr, (long)symbptr->nodenbr);
   fprintf (stream, "%%%%Creator: symbolDraw (LaBRI, Universite Bordeaux I)\n");
   fprintf (stream, "%%%%CreationDate: %s", ctime (&picttime));
   fprintf (stream, "%%%%BoundingBox: 0 0 %ld %ld\n",

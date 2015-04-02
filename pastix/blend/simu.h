@@ -101,7 +101,7 @@ typedef struct SimuCtrl_ {
 pastix_int_t simuInit   ( SimuCtrl *, const SymbolMatrix *, const Cand *, pastix_int_t, pastix_int_t );
 pastix_int_t simuRealloc( SimuCtrl *, pastix_int_t, pastix_int_t );
 void         simuExit   ( SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t );
-void         simuRun    ( SimuCtrl *, const BlendCtrl *, const SymbolMatrix *, const Dof * );
+void         simuRun    ( SimuCtrl *, const BlendCtrl *, const SymbolMatrix * );
 
 #define CLUST2INDEX(n,c) ((c) + simuctrl->bloktab[n].ftgtnum - simuctrl->bloktab[n].fccandnum)
 #define INDEX2CLUST(r,s) ((r) - simuctrl->bloktab[s].ftgtnum + simuctrl->bloktab[s].fccandnum)

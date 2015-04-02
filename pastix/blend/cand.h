@@ -58,6 +58,8 @@ void candSetClusterCand ( Cand *candtab,
                           pastix_int_t  cblknbr,
                           pastix_int_t *core2clust,
                           pastix_int_t  coresnbr );
+void candSave( const Cand *candtab,
+               pastix_int_t cblknbr );
 
 void candBuild( pastix_int_t autolevel, pastix_int_t level2D, double ratiolimit,
                 Cand               *candtab,

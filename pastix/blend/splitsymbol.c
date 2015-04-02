@@ -633,7 +633,9 @@ void splitSymbol( BlendCtrl    *ctrl,
         /* Update cost matrix to fill-in blank of newly generated blocks */
         costMatrixExit(ctrl->costmtx);
         memFree_null(ctrl->costmtx);
-        ctrl->costmtx = costMatrixBuild( symbmtx, NULL );
+        ctrl->costmtx = costMatrixBuild( symbmtx,
+                                         ctrl->iparm[IPARM_FLOAT],
+                                         ctrl->iparm[IPARM_FACTORIZATION] );
 
         if (ctrl->updatecandtab)
         {
