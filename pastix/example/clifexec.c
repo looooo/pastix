@@ -80,15 +80,14 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
-    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
+    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rowptr, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
     pastix_task_sopalin( pastix_data, &csc );
 
     //cscExit( csc );
     free(csc.colptr);
-    free(csc.rows);
-    free(csc.avals);
+    free(csc.rowptr);
 
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 #if defined(PASTIX_WITH_MPI)
