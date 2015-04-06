@@ -275,7 +275,7 @@ void *isched_parallel_section(void *ptr)
     assert(id != -1);
 
     /* Set thread affinity for the worker */
-    //isched_setaffinity( pastix->bindtab[isched_rank(pastix)], 0 );
+    isched_setaffinity( id );
     isched_barrier( &(isched->barrier) );
 
     while(1) {
