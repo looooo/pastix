@@ -21,6 +21,12 @@
 #include "solver.h"
 #include "bcsc.h"
 
+typedef struct isched_s isched_t;
+
+isched_t *scheduler = NULL;
+isched_t *ischedInit(int cores, int *coresbind);
+int ischedFinalize(isched_t *isched);
+
 /**
  *******************************************************************************
  *
@@ -381,6 +387,8 @@ pastixInit( pastix_data_t **pastix_data,
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
 
+    scheduler = ischedInit( -1, NULL );
+
     *pastix_data = pastix;
 }
 
@@ -408,6 +416,8 @@ pastixFinalize( pastix_data_t **pastix_data,
 {
     pastix_data_t *pastix = *pastix_data;
     (void)pastix_comm; (void)iparm; (void)dparm;
+
+    ischedFinalize( scheduler );
 
     if ( pastix->graph != NULL )
     {
