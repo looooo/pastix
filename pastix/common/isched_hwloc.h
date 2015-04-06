@@ -26,7 +26,9 @@
 /**
  * This file is available only if hwloc is available
  */
-#if defined(HAVE_HWLOC)
+#if !defined(HAVE_HWLOC)
+#error "This file should not be included if HwLoc is not available"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,7 +140,5 @@ int isched_hwloc_allow_ht(int htnb);
 int isched_hwloc_get_ht(void);
 
 END_C_DECLS
-
-#endif /* defined(HAVE_HWLOC) */
 
 #endif  /* ISCHED_HWLOC_H */

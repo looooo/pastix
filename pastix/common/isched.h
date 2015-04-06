@@ -1,6 +1,6 @@
 /**
  *
- * @file bindthread.h
+ * @file isched.h
  *
  * Copyright (c) 2008-2014 The University of Bordeaux, IPB, LaBRI, Inria -
  *                         Bordeaux-Sud-Ouest.  All rights reserved.
@@ -31,8 +31,23 @@ enum isched_action_e {
     ISCHED_ACT_FINALIZE
 };
 
-/* int pastix_bindthread(int cpu, int ht); */
-/* int pastix_bindthread_mask(hwloc_cpuset_t cpuset); */
+#if defined(HAVE_HWLOC)
+#include "isched_hwloc.h"
+#define isched_init               isched_hwloc_init
+#define isched_finalize           isched_hwloc_finalize
+#define isched_bind_on_core_index isched_hwloc_bind_on_core_index
+#define isched_unbind             isched_hwloc_unbind
+#else
+#define isched_init               isched_nohwloc_init
+#define isched_finalize           isched_nohwloc_finalize
+#define isched_bind_on_core_index isched_nohwloc_bind_on_core_index
+#define isched_unbind             isched_nohwloc_unbind
+#endif
+
+int  isched_init(void);
+void isched_finalize(void);
+int  isched_bind_on_core_index(int);
+int  isched_unbind();
 
 END_C_DECLS
 

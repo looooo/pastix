@@ -556,8 +556,6 @@ set(PASTIX_LIB_SRCS
   ${generated_files}
   )
 
-
-
 set(PASTIX_ALL_SRCS
   ${generated_files}
   #
@@ -618,6 +616,10 @@ endif()
 if(HWLOC_FOUND)
   list(APPEND PASTIX_LIB_SRCS
     common/isched_hwloc.c
+    )
+else()
+  list(APPEND PASTIX_LIB_SRCS
+    common/isched_nohwloc.c
     )
 endif()
 

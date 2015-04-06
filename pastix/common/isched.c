@@ -57,6 +57,8 @@ typedef struct isched_barrier_s {
 
 typedef struct isched_s {
     isched_barrier_t barrier;
+
+    pthread_attr_t   thread_attr;
     pthread_mutex_t  statuslock;
     pthread_cond_t   statuscond;
     volatile int     status;
@@ -64,149 +66,6 @@ typedef struct isched_s {
     void           (*pfunc)(void*);
     void            *pargs;
 } isched_t;
-
-int isched_setaffinity(int cpu)
-{
-#if defined(HAVE_HWLOC)
-    {
-        cpu = isched_hwloc_bind_on_core_index(cpu);
-        if(cpu == -1 ) {
-            fprintf(stderr, "Core binding on node %i failed\n", cpu);
-            return -1;
-        }
-    }
-#else /* We bind thread ourself in funtion of the targetted architecture */
-
-#if defined(HAVE_SCHED_SETAFFINITY)
-    {
-        cpu_set_t mask;
-        CPU_ZERO(&mask);
-        CPU_SET(cpu, &mask);
-
-#if defined(HAVE_OLD_SCHED_SETAFFINITY)
-        if(sched_setaffinity(0,&mask) < 0)
-#else /* HAVE_OLD_SCHED_SETAFFINITY */
-        if(sched_setaffinity(0,sizeof(mask),&mask) < 0)
-#endif /* HAVE_OLD_SCHED_SETAFFINITY */
-        {
-            return -1;
-        }
-    }
-#elif defined(ARCH_PPC)
-    {
-        tid_t self_ktid = thread_self();
-        bindprocessor(BINDTHREAD, self_ktid, cpu*2);
-    }
-#elif defined(ARCH_COMPAQ)
-    {
-        bind_to_cpu_id(getpid(), cpu, 0);
-    }
-#elif defined(MAC_OS_X)
-    {
-        thread_affinity_policy_data_t ap;
-        int                           ret;
-
-        ap.affinity_tag = 1; /* non-null affinity tag */
-        ret = thread_policy_set(
-                                mach_thread_self(),
-                                THREAD_AFFINITY_POLICY,
-                                (integer_t*) &ap,
-                                THREAD_AFFINITY_POLICY_COUNT
-                                );
-        if(ret != 0) {
-            return -1;
-        }
-    }
-#endif /* Architectures */
-
-#endif /* WITH_HWLOC     */
-
-    return cpu;
-}
-
-int isched_unsetaffinity()
-{
-#if defined(HAVE_HWLOC)
-    {
-        return isched_hwloc_unbind();
-    }
-#else /* We bind thread ourself in funtion of the targetted architecture */
-#ifndef PLASMA_AFFINITY_DISABLE
-#if (defined PLASMA_OS_LINUX) || (defined PLASMA_OS_FREEBSD)
-    {
-        int i;
-#if (defined PLASMA_OS_LINUX)
-        cpu_set_t set;
-#elif (defined PLASMA_OS_FREEBSD)
-        cpuset_t set;
-#endif
-        CPU_ZERO( &set );
-
-        for(i=0; i<sys_corenbr; i++)
-            CPU_SET( i, &set );
-
-#if (defined HAVE_OLD_SCHED_SETAFFINITY)
-        if( sched_setaffinity( 0, &set ) < 0 )
-#else /* HAVE_OLD_SCHED_SETAFFINITY */
-#if (defined PLASMA_OS_LINUX)
-        if( sched_setaffinity( 0, sizeof(set), &set) < 0 )
-#elif (defined PLASMA_OS_FREEBSD)
-        if( cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, 0, sizeof(set), &set) < 0 )
-#endif
-#endif /* HAVE_OLD_SCHED_SETAFFINITY */
-            {
-                plasma_warning("plasma_unsetaffinity", "Could not unbind thread");
-                return PLASMA_ERR_UNEXPECTED;
-            }
-
-        return PLASMA_SUCCESS;
-    }
-#elif (defined PLASMA_OS_MACOS)
-    {
-        /* TODO: check how to unbind the main thread if necessary for OpenMP */
-        /* thread_affinity_policy_data_t ap; */
-        /* int                           ret; */
-
-        /* ap.affinity_tag = 1; /\* non-null affinity tag *\/ */
-        /* ret = thread_policy_set( mach_thread_self(), */
-        /*                          THREAD_AFFINITY_POLICY, */
-        /*                          (integer_t*) &ap, */
-        /*                          THREAD_AFFINITY_POLICY_COUNT */
-        /*     ); */
-        /* if(ret != 0) { */
-        /*     plasma_warning("plasma_unsetaffinity", "Could not unbind thread"); */
-        /*     return PLASMA_ERR_UNEXPECTED; */
-        /* } */
-
-        return PLASMA_SUCCESS;
-    }
-#elif (defined PLASMA_OS_WINDOWS)
-    {
-        int i;
-        DWORD mask = 0;
-
-        for(i=0; i<sys_corenbr; i++)
-            mask |= 1 << i;
-
-        if( SetThreadAffinityMask(GetCurrentThread(), mask) == 0) {
-            plasma_warning("plasma_unsetaffinity", "Could not unbind thread");
-            return PLASMA_ERR_UNEXPECTED;
-        }
-        return PLASMA_SUCCESS;
-    }
-#elif (defined PLASMA_OS_AIX)
-    {
-        /* TODO: check how to unbind the main thread if necessary for OpenMP */
-        /* tid_t self_ktid = thread_self (); */
-        /* bindprocessor(BINDTHREAD, self_ktid, rank); */
-        return PLASMA_SUCCESS;
-    }
-#else
-    return PLASMA_ERR_NOT_SUPPORTED;
-#endif
-#endif /* PLASMA_AFFINITY_DISABLE */
-#endif /* PLASMA_HWLOC */
-}
 
 /***************************************************************************//**
  *  Busy-waiting barrier initialization
@@ -275,7 +134,7 @@ void *isched_parallel_section(void *ptr)
     assert(id != -1);
 
     /* Set thread affinity for the worker */
-    isched_setaffinity( id );
+    isched_bind_on_core_index( id );
     isched_barrier( &(isched->barrier) );
 
     while(1) {
@@ -298,7 +157,110 @@ void *isched_parallel_section(void *ptr)
         isched_barrier(&(isched->barrier) );
     }
 
-    isched_unsetaffinity();
+    isched_unbind();
     return NULL;
 }
 
+/* int ischedInit(int cores, int *coresbind) */
+/* { */
+/*     isched_t *isched; */
+/*     int status; */
+/*     int core; */
+
+/*     /\* Create context and insert in the context map *\/ */
+/*     isched = (isched_t*)malloc(sizeof(isched_t)); */
+/*     if (isched == NULL) { */
+/*         fprintf(stderr, "ischedInit: isched allocation failed\n"); */
+/*         return PASTIX_ERR_OUT_OF_RESOURCES; */
+/*     } */
+/*     status = plasma_context_insert(plasma, pthread_self()); */
+/*     if (status != PLASMA_SUCCESS) { */
+/*         plasma_fatal_error("PLASMA_Init", "plasma_context_insert() failed"); */
+/*         return PLASMA_ERR_OUT_OF_RESOURCES; */
+/*     } */
+/*     /\* Init number of cores and topology *\/ */
+/*     plasma_topology_init(); */
+
+/*     /\* Set number of cores *\/ */
+/*     if ( cores < 1 ) { */
+/*         plasma->world_size = plasma_get_numthreads(); */
+/*         if ( plasma->world_size == -1 ) { */
+/*             plasma->world_size = 1; */
+/*             plasma_warning("PLASMA_Init", "Could not find the number of cores: the thread number is set to 1"); */
+/*         } */
+/*     } */
+/*     else */
+/*       plasma->world_size = cores; */
+
+/*     if (plasma->world_size <= 0) { */
+/*         plasma_fatal_error("PLASMA_Init", "failed to get system size"); */
+/*         return PLASMA_ERR_NOT_FOUND; */
+/*     } */
+/*     /\* Check if not more cores than the hard limit *\/ */
+/*     if (plasma->world_size > CONTEXT_THREADS_MAX) { */
+/*         plasma_fatal_error("PLASMA_Init", "not supporting so many cores"); */
+/*         return PLASMA_ERR_INTERNAL_LIMIT; */
+/*     } */
+
+/*     /\* Get the size of each NUMA node *\/ */
+/*     plasma->group_size = plasma_get_numthreads_numa(); */
+/*     while ( ((plasma->world_size)%(plasma->group_size)) != 0 ) */
+/*         (plasma->group_size)--; */
+
+/*     /\* Initialize barriers *\/ */
+/*     isched_barrier_init(&(isched->barrier)); */
+
+/*     /\* Initialize default thread attributes *\/ */
+/*     status = pthread_attr_init(&plasma->thread_attr); */
+/*     if (status != 0) { */
+/*         plasma_fatal_error("PLASMA_Init", "pthread_attr_init() failed"); */
+/*         return status; */
+/*     } */
+/*     /\* Set scope to system *\/ */
+/*     status = pthread_attr_setscope(&plasma->thread_attr, PTHREAD_SCOPE_SYSTEM); */
+/*     if (status != 0) { */
+/*         plasma_fatal_error("PLASMA_Init", "pthread_attr_setscope() failed"); */
+/*         return status; */
+/*     } */
+/*     /\* Set concurrency *\/ */
+/*     status = pthread_setconcurrency(plasma->world_size); */
+/*     if (status != 0) { */
+/*         plasma_fatal_error("PLASMA_Init", "pthread_setconcurrency() failed"); */
+/*         return status; */
+/*     } */
+/*     /\*  Launch threads *\/ */
+/*     memset(plasma->thread_id,   0, CONTEXT_THREADS_MAX*sizeof(pthread_t)); */
+/*     if (coresbind != NULL) { */
+/*         memcpy(plasma->thread_bind, coresbind, plasma->world_size*sizeof(int)); */
+/*     } */
+/*     else { */
+/*         plasma_get_affthreads(plasma->thread_bind); */
+/*     } */
+/*     /\* Assign rank and thread ID for the master *\/ */
+/*     plasma->thread_rank[0] = 0; */
+/*     plasma->thread_id[0] = pthread_self(); */
+
+/*     for (core = 1; core < plasma->world_size; core++) { */
+/*         plasma->thread_rank[core] = core; */
+/*         pthread_create( */
+/*             &plasma->thread_id[core], */
+/*             &plasma->thread_attr, */
+/*              plasma_parallel_section, */
+/*              (void*)plasma); */
+/*     } */
+
+/*     /\* Ensure BLAS are sequential and set thread affinity for the master *\/ */
+/* #if defined(PLASMA_WITH_MKL) */
+/* #if defined(__ICC) || defined(__INTEL_COMPILER) */
+/*     kmp_set_defaults("KMP_AFFINITY=disabled"); */
+/* #endif */
+/* #endif */
+
+/*     /\* Initialize the dynamic scheduler *\/ */
+/*     plasma->quark =  QUARK_Setup(plasma->world_size); */
+/*     plasma_barrier(plasma); */
+
+/*     plasma_setlapack_sequential(plasma); */
+
+/*     return PLASMA_SUCCESS; */
+/* } */
