@@ -58,11 +58,15 @@ typedef struct isched_barrier_s {
 typedef struct isched_s {
     isched_barrier_t barrier;
 
+    int              world_size;
     pthread_attr_t   thread_attr;
+    int             *rank;
+    pthread_t       *tids;
+
     pthread_mutex_t  statuslock;
     pthread_cond_t   statuscond;
     volatile int     status;
-    pthread_t       *tids;
+
     void           (*pfunc)(void*);
     void            *pargs;
 } isched_t;
@@ -70,10 +74,11 @@ typedef struct isched_s {
 /***************************************************************************//**
  *  Busy-waiting barrier initialization
  **/
-void isched_barrier_init(isched_barrier_t *barrier)
+void isched_barrier_init(isched_barrier_t *barrier, int size)
 {
     barrier->id = 0;
     barrier->nblocked_thrds = 0;
+    barrier->size = size;
     pthread_mutex_init(&(barrier->synclock), NULL);
     pthread_cond_init( &(barrier->synccond), NULL);
 }
@@ -161,106 +166,179 @@ void *isched_parallel_section(void *ptr)
     return NULL;
 }
 
-/* int ischedInit(int cores, int *coresbind) */
-/* { */
-/*     isched_t *isched; */
-/*     int status; */
-/*     int core; */
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_isched
+ *
+ *  ischedInit - Initialize the stuctures of the internal thread scheduler.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cores
+ *          Number of cores to use (threads to launch).
+ *          If cores = 0, cores = PASTIX_NUM_THREADS if it is set, the
+ *          system number of core otherwise.
+ *
+ * @param[in] coresbind
+ *          Array to specify where to bind each thread.
+ *          Each thread i is binded to coresbind[hwloc(i)] if hwloc is
+ *          provided, or to coresbind[i] otherwise.
+ *          If coresbind = NULL, coresbind = PLASMA_AFF_THREADS if it
+ *          is set, the identity function otherwise.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS successful exit
+ *
+ ******************************************************************************/
+isched_t *ischedInit(int cores, int *coresbind)
+{
+    isched_t *isched;
+    int status;
+    int core;
 
-/*     /\* Create context and insert in the context map *\/ */
-/*     isched = (isched_t*)malloc(sizeof(isched_t)); */
-/*     if (isched == NULL) { */
-/*         fprintf(stderr, "ischedInit: isched allocation failed\n"); */
-/*         return PASTIX_ERR_OUT_OF_RESOURCES; */
-/*     } */
-/*     status = plasma_context_insert(plasma, pthread_self()); */
-/*     if (status != PLASMA_SUCCESS) { */
-/*         plasma_fatal_error("PLASMA_Init", "plasma_context_insert() failed"); */
-/*         return PLASMA_ERR_OUT_OF_RESOURCES; */
-/*     } */
-/*     /\* Init number of cores and topology *\/ */
-/*     plasma_topology_init(); */
+    /* Create context and insert in the context map */
+    MALLOC_INTERN(isched, 1, isched_t);
+    if (isched == NULL) {
+        fprintf(stderr, "ischedInit: isched allocation failed\n");
+        return PASTIX_ERR_OUTOFMEMORY;
+    }
+    pthread_mutex_init(&(isched->statuslock), NULL);
+    pthread_cond_init( &(isched->statuscond), NULL);
+    isched->status = ISCHED_ACT_STAND_BY;
+    isched->pfunc = NULL;
+    isched->pargs = NULL;
 
-/*     /\* Set number of cores *\/ */
-/*     if ( cores < 1 ) { */
-/*         plasma->world_size = plasma_get_numthreads(); */
-/*         if ( plasma->world_size == -1 ) { */
-/*             plasma->world_size = 1; */
-/*             plasma_warning("PLASMA_Init", "Could not find the number of cores: the thread number is set to 1"); */
-/*         } */
-/*     } */
-/*     else */
-/*       plasma->world_size = cores; */
+    /* Init number of cores and topology */
+    isched_init();
 
-/*     if (plasma->world_size <= 0) { */
-/*         plasma_fatal_error("PLASMA_Init", "failed to get system size"); */
-/*         return PLASMA_ERR_NOT_FOUND; */
-/*     } */
-/*     /\* Check if not more cores than the hard limit *\/ */
-/*     if (plasma->world_size > CONTEXT_THREADS_MAX) { */
-/*         plasma_fatal_error("PLASMA_Init", "not supporting so many cores"); */
-/*         return PLASMA_ERR_INTERNAL_LIMIT; */
-/*     } */
+    /* Set number of cores */
+    if ( cores < 1 ) {
+        //isched->world_size = pastix_getenv_int("PASTIX_NUM_THREADS", -1);
+        if ( isched->world_size == -1 ) {
+            isched->world_size = isched_world_size();
+            fprintf(stderr, "ischedInit: Could not find the number of cores: the thread number is set to %d", isched->world_size);
+        }
+    }
+    else
+        isched->world_size = cores;
 
-/*     /\* Get the size of each NUMA node *\/ */
-/*     plasma->group_size = plasma_get_numthreads_numa(); */
-/*     while ( ((plasma->world_size)%(plasma->group_size)) != 0 ) */
-/*         (plasma->group_size)--; */
+    if (isched->world_size <= 0) {
+        fprintf(stderr, "ischedInit: failed to get system size");
+        return PASTIX_ERR_INTERNAL;
+    }
 
-/*     /\* Initialize barriers *\/ */
-/*     isched_barrier_init(&(isched->barrier)); */
+    /* Initialize barriers */
+    isched_barrier_init( &(isched->barrier), isched->world_size );
 
-/*     /\* Initialize default thread attributes *\/ */
-/*     status = pthread_attr_init(&plasma->thread_attr); */
-/*     if (status != 0) { */
-/*         plasma_fatal_error("PLASMA_Init", "pthread_attr_init() failed"); */
-/*         return status; */
-/*     } */
-/*     /\* Set scope to system *\/ */
-/*     status = pthread_attr_setscope(&plasma->thread_attr, PTHREAD_SCOPE_SYSTEM); */
-/*     if (status != 0) { */
-/*         plasma_fatal_error("PLASMA_Init", "pthread_attr_setscope() failed"); */
-/*         return status; */
-/*     } */
-/*     /\* Set concurrency *\/ */
-/*     status = pthread_setconcurrency(plasma->world_size); */
-/*     if (status != 0) { */
-/*         plasma_fatal_error("PLASMA_Init", "pthread_setconcurrency() failed"); */
-/*         return status; */
-/*     } */
-/*     /\*  Launch threads *\/ */
-/*     memset(plasma->thread_id,   0, CONTEXT_THREADS_MAX*sizeof(pthread_t)); */
-/*     if (coresbind != NULL) { */
-/*         memcpy(plasma->thread_bind, coresbind, plasma->world_size*sizeof(int)); */
-/*     } */
-/*     else { */
-/*         plasma_get_affthreads(plasma->thread_bind); */
-/*     } */
-/*     /\* Assign rank and thread ID for the master *\/ */
-/*     plasma->thread_rank[0] = 0; */
-/*     plasma->thread_id[0] = pthread_self(); */
+    /* Initialize default thread attributes */
+    status = pthread_attr_init( &(isched->thread_attr) );
+    if (status != 0) {
+        fprintf(stderr, "ischedInit: pthread_attr_init() failed");
+        return status;
+    }
 
-/*     for (core = 1; core < plasma->world_size; core++) { */
-/*         plasma->thread_rank[core] = core; */
-/*         pthread_create( */
-/*             &plasma->thread_id[core], */
-/*             &plasma->thread_attr, */
-/*              plasma_parallel_section, */
-/*              (void*)plasma); */
-/*     } */
+    /* Set scope to system */
+    status = pthread_attr_setscope( &(isched->thread_attr), PTHREAD_SCOPE_SYSTEM );
+    if (status != 0) {
+        fprintf(stderr, "ischedInit: pthread_attr_setscope() failed");
+        return status;
+    }
 
-/*     /\* Ensure BLAS are sequential and set thread affinity for the master *\/ */
-/* #if defined(PLASMA_WITH_MKL) */
-/* #if defined(__ICC) || defined(__INTEL_COMPILER) */
-/*     kmp_set_defaults("KMP_AFFINITY=disabled"); */
-/* #endif */
-/* #endif */
+    /* /\* Set concurrency *\/ */
+    /* status = pthread_setconcurrency(isched->world_size); */
+    /* if (status != 0) { */
+    /*     fprintf(stderr, "ischedInit: pthread_setconcurrency() failed"); */
+    /*     return status; */
+    /* } */
 
-/*     /\* Initialize the dynamic scheduler *\/ */
-/*     plasma->quark =  QUARK_Setup(plasma->world_size); */
-/*     plasma_barrier(plasma); */
+    /*  Launch threads */
+    /* calloc(isched->tids, isched->world_size, sizeof(pthread_t)); */
+    /* if (coresbind != NULL) { */
+    /*     memcpy(isched->bindings, coresbind, isched->world_size * sizeof(int)); */
+    /* } */
+    /* else { */
+    /*     //plasma_get_affthreads(plasma->thread_bind); */
+    /* } */
 
-/*     plasma_setlapack_sequential(plasma); */
+    MALLOC_INTERN(isched->rank, isched->world_size, int);
+    MALLOC_INTERN(isched->tids, isched->world_size, pthread_t);
 
-/*     return PLASMA_SUCCESS; */
-/* } */
+    /* Assign rank and thread ID for the master */
+    isched->rank[0] = 0;
+    isched->tids[0] = pthread_self();
+
+    for (core = 1; core < isched->world_size; core++) {
+        isched->rank[core] = core;
+        pthread_create(
+            &isched->tids[core],
+            &isched->thread_attr,
+             isched_parallel_section,
+             (void*)isched);
+    }
+
+    return isched;
+}
+
+/**
+ *****************************************************************************
+ *
+ * @ingroup pastix_isched
+ *
+ *  ischedFinalize - Finalize the structures associated to the internal threads
+ *  scheduler.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS successful exit
+ *
+ ******************************************************************************/
+int ischedFinalize(isched_t *isched)
+{
+    int core;
+    int status;
+    void *exitcodep;
+
+    /* Terminate the dynamic scheduler */
+    isched_barrier(&(isched->barrier));
+
+    /* Set termination action */
+    pthread_mutex_lock(&isched->statuslock);
+    isched->status = ISCHED_ACT_FINALIZE;
+    pthread_mutex_unlock(&isched->statuslock);
+    pthread_cond_broadcast(&isched->statuscond);
+
+    /* Barrier and clear action */
+    isched_barrier(&(isched->barrier));
+    isched->status = ISCHED_ACT_STAND_BY;
+
+    // Join threads
+    for (core = 1; core < isched->world_size; core++) {
+        status = pthread_join(isched->tids[core], &exitcodep);
+        if (status != 0) {
+            fprintf(stderr, "ischedFinalize: pthread_join() failed");
+            return status;
+        }
+    }
+    isched_barrier_finalize(&(isched->barrier));
+
+    /* Unbind main thread */
+    isched_unbind();
+
+    /* Destroy thread attributes */
+    status = pthread_attr_destroy(&isched->thread_attr);
+    if (status != 0)
+        fprintf(stderr, "ischedFinalize: pthread_attr_destroy() failed");
+
+    /* Destroy topology */
+    isched_finalize();
+
+    memFree_null(isched->rank);
+    memFree_null(isched->tids);
+
+    memFree_null(isched);
+    return PASTIX_SUCCESS;
+}

@@ -90,8 +90,18 @@ void isched_nohwloc_finalize(){
     return;
 }
 
+unsigned int isched_nohwloc_world_size()
+{
+    if ( !topo_initialized )
+        isched_nohwloc_init();
+    return sys_corenbr;
+}
+
 int isched_nohwloc_bind_on_core_index(int cpu)
 {
+    if ( !topo_initialized )
+        isched_nohwloc_init();
+
 #if defined(HAVE_SCHED_SETAFFINITY)
     {
         cpu_set_t mask;
@@ -139,6 +149,9 @@ int isched_nohwloc_bind_on_core_index(int cpu)
 
 int isched_nohwloc_unbind()
 {
+    if ( !topo_initialized )
+        isched_nohwloc_init();
+
 #ifndef PLASMA_AFFINITY_DISABLE
 #if (defined PLASMA_OS_LINUX) || (defined PLASMA_OS_FREEBSD)
     {

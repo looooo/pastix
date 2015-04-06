@@ -37,17 +37,19 @@ enum isched_action_e {
 #define isched_finalize           isched_hwloc_finalize
 #define isched_bind_on_core_index isched_hwloc_bind_on_core_index
 #define isched_unbind             isched_hwloc_unbind
+#define isched_world_size         isched_hwloc_world_size
 #else
 #define isched_init               isched_nohwloc_init
 #define isched_finalize           isched_nohwloc_finalize
 #define isched_bind_on_core_index isched_nohwloc_bind_on_core_index
-#define isched_unbind             isched_nohwloc_unbind
+#define isched_world_size         isched_nohwloc_world_size
 #endif
 
 int  isched_init(void);
 void isched_finalize(void);
 int  isched_bind_on_core_index(int);
 int  isched_unbind();
+int  isched_world_size();
 
 END_C_DECLS
 

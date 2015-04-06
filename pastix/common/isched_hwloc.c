@@ -45,7 +45,7 @@ int isched_hwloc_init(void)
     return 0;
 }
 
-int isched_hwloc_fini(void)
+int isched_hwloc_finalize(void)
 {
     hwloc_topology_destroy(topology);
     first_init = 1;
@@ -134,7 +134,7 @@ int isched_hwloc_master_id( int level, int processor_id )
 }
 
 /**
- * Previously use for the vpmap initialisation form hardware.  Should be
+ * Previously use for the vpmap initialisation from hardware.  Should be
  * obsolete as we now rely on the native hwloc topology to extrat the vp
  * dedistribution.
  */
@@ -232,6 +232,11 @@ unsigned int isched_hwloc_nb_cores_per_obj( int level, int index )
     hwloc_obj_t obj = hwloc_get_obj_by_depth(topology, level, index);
     assert( obj != NULL );
     return hwloc_get_nbobjs_inside_cpuset_by_type(topology, obj->cpuset, HWLOC_OBJ_CORE);
+}
+
+unsigned int isched_hwloc_world_size()
+{
+    return isched_hwloc_nb_cores_per_obj( HWLOC_OBJ_MACHINE, 0 );
 }
 
 int isched_hwloc_nb_levels(void)
@@ -356,13 +361,12 @@ int isched_hwloc_unbind()
         return PASTIX_ERR_UNKNOWN;
     }
 
-#if !defined(HWLOC_BITMAP_H)
-    cpuset = hwloc_cpuset_dup(obj->cpuset);
-#else
     cpuset = hwloc_bitmap_dup(obj->cpuset);
-#endif
 
     isched_hwloc_bind_on_mask_index(cpuset);
+
+    /* Free our cpuset copy */
+    hwloc_bitmap_free(cpuset);
 #endif
     return PASTIX_SUCCESS;
 }
