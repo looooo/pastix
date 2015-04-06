@@ -375,7 +375,6 @@ pastixInit( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-
     // TODO
     //z_pastix_welcome_print(*pastix_data, colptr, n);
 
@@ -390,9 +389,7 @@ pastixInit( pastix_data_t **pastix_data,
  *
  * @ingroup pastix_common
  *
- * pastixInit - Initialize the iparm and dparm arrays to their default
- * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
- * API_NO.
+ * pastixFinalize -
  *
  *******************************************************************************
  *
