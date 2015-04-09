@@ -21,6 +21,8 @@
  *
  **/
 #include "common.h"
+#include <pthread.h>
+#include "isched_barrier.h"
 #include "isched.h"
 
 #if defined(HAVE_HWLOC)
@@ -47,122 +49,175 @@ extern kern_return_t thread_policy_set( thread_t               thread,
                                         mach_msg_type_number_t count);
 #endif  /* define(HAVE_HWLOC) */
 
-typedef struct isched_barrier_s {
-    volatile int    id;
-    volatile int    nblocked_thrds;
-    pthread_mutex_t synclock;
-    pthread_cond_t  synccond;
-    int size;
-} isched_barrier_t;
+#if ISCHED_IMPLEMENT_BARRIERS
 
+int
+isched_barrier_init(isched_barrier_t* barrier,
+                    const void* attr,
+                    unsigned int count)
+{
+    int rc;
+
+    if( 0 != (rc = pthread_mutex_init(&(barrier->mutex), attr)) ) {
+        return rc;
+    }
+
+    barrier->count      = count;
+    barrier->curcount   = 0;
+    barrier->generation = 0;
+    if( 0 != (rc = pthread_cond_init(&(barrier->cond), NULL)) ) {
+        pthread_mutex_destroy( &(barrier->mutex) );
+        return rc;
+    }
+    return 0;
+}
+
+int
+isched_barrier_wait(isched_barrier_t* barrier)
+{
+    int generation;
+
+    pthread_mutex_lock( &(barrier->mutex) );
+    if( (barrier->curcount + 1) == barrier->count) {
+        barrier->generation++;
+        barrier->curcount = 0;
+        pthread_cond_broadcast( &(barrier->cond) );
+        pthread_mutex_unlock( &(barrier->mutex) );
+        return 1;
+    }
+    barrier->curcount++;
+    generation = barrier->generation;
+    for(;;) {
+        pthread_cond_wait( &(barrier->cond), &(barrier->mutex) );
+        if( generation != barrier->generation ) {
+            break;
+        }
+    }
+    pthread_mutex_unlock( &(barrier->mutex) );
+    return 0;
+}
+
+int
+isched_barrier_destroy(isched_barrier_t* barrier)
+{
+    pthread_mutex_destroy( &(barrier->mutex) );
+    pthread_cond_destroy( &(barrier->cond) );
+    barrier->count    = 0;
+    barrier->curcount = 0;
+    return 0;
+}
+
+#endif  /* ISCHED_IMPLEMENT_BARRIERS */
+
+struct isched_s;
+typedef struct isched_s isched_t;
+
+/**
+ * Temporary stucture used at thread creation
+ */
+typedef struct __isched_init_s {
+    isched_t        *global_ctx;
+    int              rank;
+    int              bindto;
+} __isched_init_t;
+
+/**
+ * Thread structure of the execution context of one instance of the scheduler
+ */
+typedef struct isched_thread_s {
+    isched_t        *global_ctx;
+    int              rank;
+} isched_thread_t;
+
+/**
+ * Global structure of the execution context of one instance of the scheduler
+ */
 typedef struct isched_s {
-    isched_barrier_t barrier;
-
     int              world_size;
-    pthread_attr_t   thread_attr;
-    int             *rank;
-    pthread_t       *tids;
 
+    isched_barrier_t barrier;
     pthread_mutex_t  statuslock;
     pthread_cond_t   statuscond;
     volatile int     status;
+
+    pthread_t       *tids;
+    isched_thread_t *master;
 
     void           (*pfunc)(void*);
     void            *pargs;
 } isched_t;
 
-/***************************************************************************//**
- *  Busy-waiting barrier initialization
- **/
-void isched_barrier_init(isched_barrier_t *barrier, int size)
-{
-    barrier->id = 0;
-    barrier->nblocked_thrds = 0;
-    barrier->size = size;
-    pthread_mutex_init(&(barrier->synclock), NULL);
-    pthread_cond_init( &(barrier->synccond), NULL);
-}
-
-/***************************************************************************//**
- *  Busy-waiting barrier finalize
- **/
-void isched_barrier_finalize(isched_barrier_t *barrier)
-{
-    pthread_mutex_destroy(&(barrier->synclock));
-    pthread_cond_destroy( &(barrier->synccond));
-}
-
-/***************************************************************************//**
- *  Non busy-waiting barrier
- **/
-void isched_barrier(isched_barrier_t *barrier)
-{
-    int id;
-
-    pthread_mutex_lock(&(barrier->synclock));
-    id = barrier->id;
-    barrier->nblocked_thrds++;
-    if (barrier->nblocked_thrds == barrier->size) {
-        barrier->nblocked_thrds = 0;
-        barrier->id++;
-        pthread_cond_broadcast(&(barrier->synccond));
-    }
-    while (id == barrier->id)
-        pthread_cond_wait(&(barrier->synccond), &(barrier->synclock));
-    pthread_mutex_unlock(&(barrier->synclock));
-}
+void *isched_thread_init(void *ptr);
+void *isched_thread_destroy(isched_thread_t *ptr);
+void *isched_parallel_section(isched_thread_t *ctx);
 
 /***************************************************************************//**
  *  Returns core id
  **/
-int isched_rank( isched_t *isched )
+void *
+isched_thread_init(void *ptr)
 {
-    int rank;
-    pthread_t thread_id;
+    __isched_init_t *isched = (__isched_init_t*)(ptr);
+    isched_thread_t *thread_ctx;
 
-    thread_id = pthread_self();
-    for (rank = 0; rank < (isched->barrier).size; rank++)
-        if (pthread_equal( isched->tids[rank], thread_id ))
-            return rank;
-    return -1;
+    MALLOC_INTERN( thread_ctx, 1, isched_thread_t );
+
+    thread_ctx->global_ctx = isched->global_ctx;
+    thread_ctx->rank       = isched->rank;
+
+    /* Set thread affinity for the worker */
+    isched_topo_bind_on_core_index( isched->bindto );
+
+    if ( thread_ctx->rank != 0 ) {
+        return isched_parallel_section( thread_ctx );
+    }
+    else {
+        return (void*)thread_ctx;
+    }
+}
+
+void *
+isched_thread_destroy(isched_thread_t *ctx)
+{
+    isched_topo_unbind();
+    memFree_null( ctx );
+
+    return NULL;
 }
 
 /***************************************************************************//**
  *  Main thread control run by each working thread
  **/
-void *isched_parallel_section(void *ptr)
+void *
+isched_parallel_section(isched_thread_t *ctx)
 {
-    isched_t *isched = (isched_t*)(ptr);
+    isched_t *isched = ctx->global_ctx;
     int action;
-    int id = isched_rank( isched );
-    (void)id;
-    assert(id != -1);
 
-    /* Set thread affinity for the worker */
-    isched_bind_on_core_index( id );
-    isched_barrier( &(isched->barrier) );
+    /* Wait for everyone but the master thread to enter this section */
+    isched_barrier_wait( &(isched->barrier) );
 
     while(1) {
         pthread_mutex_lock( &(isched->statuslock) );
         while ((action = isched->status) == ISCHED_ACT_STAND_BY)
             pthread_cond_wait( &(isched->statuscond), &(isched->statuslock) );
         pthread_mutex_unlock( &(isched->statuslock) );
-        isched_barrier( &(isched->barrier) );
+        isched_barrier_wait( &(isched->barrier) );
 
         switch (action) {
             case ISCHED_ACT_PARALLEL:
                 isched->pfunc( isched->pargs );
                 break;
             case ISCHED_ACT_FINALIZE:
-                return NULL;
+                return isched_thread_destroy( ctx );
             default:
-                fprintf(stderr, "isched_parallel_section: undefined action");
+                fprintf(stderr, "isched_parallel_section: undefined action\n");
                 return NULL;
         }
-        isched_barrier(&(isched->barrier) );
+        isched_barrier_wait(&(isched->barrier) );
     }
 
-    isched_unbind();
+    isched_thread_destroy( ctx );
     return NULL;
 }
 
@@ -195,30 +250,33 @@ void *isched_parallel_section(void *ptr)
  ******************************************************************************/
 isched_t *ischedInit(int cores, int *coresbind)
 {
+    __isched_init_t *initdata;
     isched_t *isched;
-    int status;
     int core;
 
-    /* Create context and insert in the context map */
+    /* Init the isched structure */
     MALLOC_INTERN(isched, 1, isched_t);
     if (isched == NULL) {
         fprintf(stderr, "ischedInit: isched allocation failed\n");
-        return PASTIX_ERR_OUTOFMEMORY;
+        return NULL;
     }
+
     pthread_mutex_init(&(isched->statuslock), NULL);
     pthread_cond_init( &(isched->statuscond), NULL);
     isched->status = ISCHED_ACT_STAND_BY;
+
     isched->pfunc = NULL;
     isched->pargs = NULL;
 
+
     /* Init number of cores and topology */
-    isched_init();
+    isched_topo_init();
 
     /* Set number of cores */
     if ( cores < 1 ) {
         isched->world_size = pastix_getenv_get_value_int("PASTIX_NUM_THREADS", -1);
         if ( isched->world_size == -1 ) {
-            isched->world_size = isched_world_size();
+            isched->world_size = isched_topo_world_size();
             fprintf(stderr, "ischedInit: Could not find the number of cores: the thread number is set to %d", isched->world_size);
         }
     }
@@ -226,58 +284,63 @@ isched_t *ischedInit(int cores, int *coresbind)
         isched->world_size = cores;
 
     if (isched->world_size <= 0) {
-        fprintf(stderr, "ischedInit: failed to get system size");
-        return PASTIX_ERR_INTERNAL;
+        fprintf(stderr, "ischedInit: failed to get system size\n");
+        return NULL;
     }
 
-    /* Initialize barriers */
-    isched_barrier_init( &(isched->barrier), isched->world_size );
+    /* Initialize barrier */
+    isched_barrier_init( &(isched->barrier), NULL, isched->world_size );
+
+    /* If the given coresbind is NULL, try to get one from the environment */
+    if (coresbind == NULL) {
+        //coresbind = pastix_getenv_get_array_int("PASTIX_THREADS_AFFINITY", NULL );
+    }
+
+    MALLOC_INTERN( initdata, isched->world_size, __isched_init_t );
 
     /* Initialize default thread attributes */
-    status = pthread_attr_init( &(isched->thread_attr) );
-    if (status != 0) {
-        fprintf(stderr, "ischedInit: pthread_attr_init() failed");
-        return status;
+    if ( isched->world_size > 1 ) {
+        pthread_attr_t thread_attr;
+
+        /* Set attributes */
+        pthread_attr_init( &thread_attr );
+/*         pthread_attr_setscope(&thread_attr, PTHREAD_SCOPE_SYSTEM); */
+/* #ifdef __linux */
+/*         status = pthread_setconcurrency(isched->world_size); */
+/* #endif /\* __linux *\/ */
+
+        /*  Launch threads */
+        MALLOC_INTERN(isched->tids, isched->world_size, pthread_t);
+
+        for (core = 1; core < isched->world_size; core++) {
+            initdata[core].global_ctx = isched;
+            initdata[core].rank       = core;
+            initdata[core].bindto     = (coresbind == NULL) ? core : coresbind[core];
+
+            pthread_create(
+                &isched->tids[core],
+                &thread_attr,
+                isched_thread_init,
+                (void*)(initdata + core));
+        }
+
+        /* Destroy thread attributes */
+        pthread_attr_destroy(&thread_attr);
+    }
+    else {
+        isched->tids = NULL;
     }
 
-    /* Set scope to system */
-    status = pthread_attr_setscope( &(isched->thread_attr), PTHREAD_SCOPE_SYSTEM );
-    if (status != 0) {
-        fprintf(stderr, "ischedInit: pthread_attr_setscope() failed");
-        return status;
-    }
+    initdata[0].global_ctx = isched;
+    initdata[0].rank       = 0;
+    initdata[0].bindto     = (coresbind == NULL) ? 0 : coresbind[0];
+    isched->master = (isched_thread_t*)isched_thread_init( initdata );
 
-    /* /\* Set concurrency *\/ */
-    /* status = pthread_setconcurrency(isched->world_size); */
-    /* if (status != 0) { */
-    /*     fprintf(stderr, "ischedInit: pthread_setconcurrency() failed"); */
-    /*     return status; */
-    /* } */
+    /* Wait for the other threads to finish their initialization */
+    isched_barrier_wait( &(isched->barrier) );
 
-    /*  Launch threads */
-    /* calloc(isched->tids, isched->world_size, sizeof(pthread_t)); */
-    /* if (coresbind != NULL) { */
-    /*     memcpy(isched->bindings, coresbind, isched->world_size * sizeof(int)); */
-    /* } */
-    /* else { */
-    /*     //plasma_get_affthreads(plasma->thread_bind); */
-    /* } */
-
-    MALLOC_INTERN(isched->rank, isched->world_size, int);
-    MALLOC_INTERN(isched->tids, isched->world_size, pthread_t);
-
-    /* Assign rank and thread ID for the master */
-    isched->rank[0] = 0;
-    isched->tids[0] = pthread_self();
-
-    for (core = 1; core < isched->world_size; core++) {
-        isched->rank[core] = core;
-        pthread_create(
-            &isched->tids[core],
-            &isched->thread_attr,
-             isched_parallel_section,
-             (void*)isched);
-    }
+    /* Free temporary informations */
+    memFree_null(initdata);
 
     return isched;
 }
@@ -302,43 +365,34 @@ int ischedFinalize(isched_t *isched)
     int status;
     void *exitcodep;
 
-    /* Terminate the dynamic scheduler */
-    isched_barrier(&(isched->barrier));
-
-    /* Set termination action */
+    /* Make sure the threads exit the parallel function */
     pthread_mutex_lock(&isched->statuslock);
     isched->status = ISCHED_ACT_FINALIZE;
     pthread_mutex_unlock(&isched->statuslock);
     pthread_cond_broadcast(&isched->statuscond);
-
-    /* Barrier and clear action */
-    isched_barrier(&(isched->barrier));
+    isched_barrier_wait(&(isched->barrier));
     isched->status = ISCHED_ACT_STAND_BY;
 
     // Join threads
     for (core = 1; core < isched->world_size; core++) {
         status = pthread_join(isched->tids[core], &exitcodep);
         if (status != 0) {
-            fprintf(stderr, "ischedFinalize: pthread_join() failed");
+            fprintf(stderr, "ischedFinalize: pthread_join() failed\n");
             return status;
         }
     }
-    isched_barrier_finalize(&(isched->barrier));
 
     /* Unbind main thread */
-    isched_unbind();
+    isched_thread_destroy( isched->master );
 
-    /* Destroy thread attributes */
-    status = pthread_attr_destroy(&isched->thread_attr);
-    if (status != 0)
-        fprintf(stderr, "ischedFinalize: pthread_attr_destroy() failed");
+    isched_barrier_destroy(&(isched->barrier));
 
     /* Destroy topology */
-    isched_finalize();
+    isched_topo_destroy();
 
-    memFree_null(isched->rank);
     memFree_null(isched->tids);
-
     memFree_null(isched);
+
     return PASTIX_SUCCESS;
 }
+

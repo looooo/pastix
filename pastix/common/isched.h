@@ -33,23 +33,23 @@ enum isched_action_e {
 
 #if defined(HAVE_HWLOC)
 #include "isched_hwloc.h"
-#define isched_init               isched_hwloc_init
-#define isched_finalize           isched_hwloc_finalize
-#define isched_bind_on_core_index isched_hwloc_bind_on_core_index
-#define isched_unbind             isched_hwloc_unbind
-#define isched_world_size         isched_hwloc_world_size
+#define isched_topo_init               isched_hwloc_init
+#define isched_topo_destroy            isched_hwloc_destroy
+#define isched_topo_bind_on_core_index isched_hwloc_bind_on_core_index
+#define isched_topo_unbind             isched_hwloc_unbind
+#define isched_topo_world_size         isched_hwloc_world_size
 #else
-#define isched_init               isched_nohwloc_init
-#define isched_finalize           isched_nohwloc_finalize
-#define isched_bind_on_core_index isched_nohwloc_bind_on_core_index
-#define isched_world_size         isched_nohwloc_world_size
+#define isched_topo_init               isched_nohwloc_init
+#define isched_topo_destroy            isched_nohwloc_destroy
+#define isched_topo_bind_on_core_index isched_nohwloc_bind_on_core_index
+#define isched_topo_world_size         isched_nohwloc_world_size
 #endif
 
-int  isched_init(void);
-void isched_finalize(void);
-int  isched_bind_on_core_index(int);
-int  isched_unbind();
-int  isched_world_size();
+int  isched_topo_init(void);
+void isched_topo_destroy(void);
+int  isched_topo_bind_on_core_index(int);
+int  isched_topo_unbind();
+int  isched_topo_world_size();
 
 END_C_DECLS
 

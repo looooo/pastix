@@ -45,7 +45,7 @@ int isched_hwloc_init(void)
     return 0;
 }
 
-int isched_hwloc_finalize(void)
+int isched_hwloc_destroy(void)
 {
     hwloc_topology_destroy(topology);
     first_init = 1;

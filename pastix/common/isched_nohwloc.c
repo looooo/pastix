@@ -86,7 +86,7 @@ int isched_nohwloc_init() {
     pthread_mutex_unlock(&mutextopo);
 }
 
-void isched_nohwloc_finalize(){
+void isched_nohwloc_destroy(){
     return;
 }
 
