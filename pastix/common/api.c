@@ -352,9 +352,6 @@ pastixInit( pastix_data_t **pastix_data,
         iparm[IPARM_PID] = pastix->pastix_id;
     }
 
-
-
-
     pastix->sopar.bindtab    = NULL;
     pastix->sopar.b          = NULL;
     pastix->sopar.transcsc   = NULL;

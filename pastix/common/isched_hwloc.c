@@ -286,7 +286,6 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
 #endif
         return -1;
     }
-    //printf("Thread bound on core index %i, [HT %i ]\n", cpu_index, local_ht_index);
 
     /* Get the number at Proc level*/
     cpu_index = core->os_index;
