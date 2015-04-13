@@ -129,7 +129,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     bcscInit( csc,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
-              1,
+              csc->mtxtype == PastixGeneral,
               pastix_data->bcsc );
 
     if ( iparm[IPARM_FREE_CSCUSER] ) {
