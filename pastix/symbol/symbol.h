@@ -83,6 +83,21 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
                        pastix_int_t startsearch,
                        int ricar);
 
+void symbolCheckProperties( const SymbolMatrix * );
+void symbolNewOrdering( const SymbolMatrix *, Order *,
+                        pastix_int_t, int, int );
+
+/* Internal routines for hamming vectors */
+int hamming_distance_symbol( int **, int *, int, int, int);
+void update_perm(int, Order *, int,
+                 int *, int **, int *,
+                 int *, int **, int *,
+                 int, int);
+
+void
+symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,
+           pastix_coeftype_t flttype, pastix_factotype_t factotype,
+           pastix_int_t *nnz, double *thflops, double *rlflops );
 pastix_int_t symbolGetNNZ  ( const SymbolMatrix *symbptr);
 void         symbolGetFlops( const SymbolMatrix *symbmtx,
                              pastix_coeftype_t flttype, pastix_factotype_t factotype,
