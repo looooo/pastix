@@ -40,13 +40,15 @@
 /*
  * Steps of the pastix solver
  */
-#define STEP_INIT     (1 << 0)
-#define STEP_ORDERING (1 << 1)
-#define STEP_SYMBFACT (1 << 2)
-#define STEP_ANALYSE  (1 << 3)
-#define STEP_NUMFACT  (1 << 4)
-#define STEP_SOLVE    (1 << 5)
-#define STEP_REFINE   (1 << 6)
+#define STEP_INIT      (1 << 0)
+#define STEP_ORDERING  (1 << 1)
+#define STEP_SYMBFACT  (1 << 2)
+#define STEP_ANALYSE   (1 << 3)
+#define STEP_CSC2BCSC  (1 << 4)
+#define STEP_BCSC2CTAB (1 << 5)
+#define STEP_NUMFACT   (1 << 6)
+#define STEP_SOLVE     (1 << 7)
+#define STEP_REFINE    (1 << 8)
 
 struct pastix_bcsc_s;
 typedef struct pastix_bcsc_s pastix_bcsc_t;
