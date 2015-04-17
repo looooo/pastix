@@ -105,6 +105,7 @@ coeftabInit( const SolverMatrix  *datacode,
         dumpfunc = coeftab_sdump;
         break;
     case PastixDouble:
+    case PastixPattern:
     default:
         initfunc = coeftab_dinitcblk;
         dumpfunc = coeftab_ddump;
