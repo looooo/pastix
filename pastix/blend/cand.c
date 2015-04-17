@@ -105,7 +105,7 @@ candCheck( Cand *candtab, SymbolMatrix *symbmtx )
         for(j = symbmtx->cblktab[i].bloknum;
             j < symbmtx->cblktab[i+1].bloknum; j++)
         {
-            facecblknum = symbmtx->bloktab[j].cblknum;
+            facecblknum = symbmtx->bloktab[j].fcblknm;
 
             if( (candtab[i].fcandnum < candtab[facecblknum].fcandnum) ||
                 (candtab[i].lcandnum > candtab[facecblknum].lcandnum) )

@@ -249,7 +249,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                     /* Init the blok */
                     solvblok->frownum = symbblok->frownum * dof;
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
-                    solvblok->cblknum = cblklocalnum[symbblok->cblknum];
+                    solvblok->cblknum = cblklocalnum[symbblok->fcblknm];
                     solvblok->levfval = -1; /* Unused */
                     solvblok->coefind = stride;
 
@@ -832,7 +832,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         MALLOC_INTERN(solvmtx->updovct.lblk2gcblk, symbmtx->bloknbr, pastix_int_t);
         for(i=0;i<symbmtx->bloknbr;i++)
             if(simuctrl->bloktab[i].ownerclust == clustnum)
-                solvmtx->updovct.lblk2gcblk[bloklocalnum[i]] = symbmtx->bloktab[i].cblknum;
+                solvmtx->updovct.lblk2gcblk[bloklocalnum[i]] = symbmtx->bloktab[i].fcblknm;
 
         /* Compute the number of messages to receive during backward substitution */
         MALLOC_INTERN(uprecvcblk, symbmtx->cblknbr, pastix_int_t);

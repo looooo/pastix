@@ -328,7 +328,7 @@ symbolFax (SymbolMatrix * const   symbptr,
 
             bloktax[bloknum].frownum = cblktax[cblknum].fcolnum; /* Build diagonal block */
             bloktax[bloknum].lrownum = cblktax[cblknum].lcolnum;
-            bloktax[bloknum].cblknum = cblknum;
+            bloktax[bloknum].fcblknm = cblknum;
             bloktax[bloknum].levfval = 0;
             bloknum ++;
 
@@ -355,7 +355,7 @@ symbolFax (SymbolMatrix * const   symbptr,
                        (sorttab[sortnum] - 1 == sorttab[sortnum - 1]) &&
                        (sorttab[sortnum] < rangtax[cblkctr + 1])) ;
                 bloktax[bloknum].lrownum = sorttab[sortnum - 1]; /* Set end of block */
-                bloktax[bloknum].cblknum = cblkctr;
+                bloktax[bloknum].fcblknm = cblkctr;
                 bloktax[bloknum].levfval = 0;
                 bloknum ++;                               /* One more block */
             }
@@ -416,13 +416,13 @@ symbolFax (SymbolMatrix * const   symbptr,
 
                 for (blokctr = cblktax[cblkctr].bloknum + 2; /* For all blocks in contributing column block */
                      blokctr < cblktax[cblkctr + 1].bloknum; blokctr ++) {
-                    while ((tloktab[tloknum].cblknum < bloktax[blokctr].cblknum) || /* Skip unmatched chained blocks */
+                    while ((tloktab[tloknum].cblknum < bloktax[blokctr].fcblknm) || /* Skip unmatched chained blocks */
                            (tloktab[tloknum].lrownum < bloktax[blokctr].frownum - 1)) {
                         tloklst = tloknum;
                         tloknum = tloktab[tloknum].nextnum;
                     }
 
-                    if ((bloktax[blokctr].cblknum < tloktab[tloknum].cblknum) || /* If contributing block has no mate */
+                    if ((bloktax[blokctr].fcblknm < tloktab[tloknum].cblknum) || /* If contributing block has no mate */
                         (bloktax[blokctr].lrownum < tloktab[tloknum].frownum - 1)) {
                         pastix_int_t                 tloktmp;
 
@@ -439,7 +439,7 @@ symbolFax (SymbolMatrix * const   symbptr,
                             tloktab[tloklst].nextnum = tlokfre;   /* Chain new block                */
                         tloktab[tlokfre].frownum = bloktax[blokctr].frownum; /* Copy block data */
                         tloktab[tlokfre].lrownum = bloktax[blokctr].lrownum;
-                        tloktab[tlokfre].cblknum = bloktax[blokctr].cblknum;
+                        tloktab[tlokfre].cblknum = bloktax[blokctr].fcblknm;
                         tlokfre                  = tloktab[tlokfre].nextnum;
                         tloktab[tloktmp].nextnum = tloknum;   /* Complete chainimg                    */
                         tloknum                  = tloktab[tloklst].nextnum; /* Resume from new block */
@@ -475,13 +475,13 @@ symbolFax (SymbolMatrix * const   symbptr,
                  tloknum = tloktab[tloknum].nextnum, bloknum ++) { /* Copy block data to block array */
                 bloktax[bloknum].frownum = tloktab[tloknum].frownum;
                 bloktax[bloknum].lrownum = tloktab[tloknum].lrownum;
-                bloktax[bloknum].cblknum = tloktab[tloknum].cblknum;
+                bloktax[bloknum].fcblknm = tloktab[tloknum].cblknum;
                 bloktax[bloknum].levfval = 0;
             }
         }
         if ((bloknum - cblktax[cblknum].bloknum) > 2) { /* If more than one extra-diagonal blocks exist                 */
-            ctrbtax[cblknum] = ctrbtax[bloktax[cblktax[cblknum].bloknum + 1].cblknum]; /* Link contributing column blocks */
-            ctrbtax[bloktax[cblktax[cblknum].bloknum + 1].cblknum] = cblknum;
+            ctrbtax[cblknum] = ctrbtax[bloktax[cblktax[cblknum].bloknum + 1].fcblknm]; /* Link contributing column blocks */
+            ctrbtax[bloktax[cblktax[cblknum].bloknum + 1].fcblknm] = cblknum;
         }
     }
     cblktax[cblknum].fcolnum =                      /* Set last column block data */

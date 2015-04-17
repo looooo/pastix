@@ -104,7 +104,7 @@ symbolCheck (
 
         if ((bloktax[bloknum].frownum != cblktax[cblknum].fcolnum) ||
             (bloktax[bloknum].lrownum != cblktax[cblknum].lcolnum) ||
-            (bloktax[bloknum].cblknum != cblknum)                  ||
+            (bloktax[bloknum].fcblknm != cblknum)                  ||
             (bloktax[bloknum].levfval != 0)) {
             errorPrint ("symbolCheck: invalid diagonal block");
             assert(0);
@@ -112,10 +112,10 @@ symbolCheck (
         }
 
         for (bloknum ++; bloknum < cblktax[cblknum + 1].bloknum; bloknum ++) {
-            if ((bloktax[bloknum].cblknum <  baseval)                      ||
-                (bloktax[bloknum].cblknum >  cblkmax)                      ||
+            if ((bloktax[bloknum].fcblknm <  baseval)                      ||
+                (bloktax[bloknum].fcblknm >  cblkmax)                      ||
                 (bloktax[bloknum].frownum <= bloktax[bloknum - 1].lrownum) ||
-                (bloktax[bloknum].cblknum <  bloktax[bloknum - 1].cblknum)) {
+                (bloktax[bloknum].fcblknm <  bloktax[bloknum - 1].fcblknm)) {
                 errorPrint ("symbolCheck: invalid block array");
                 assert(0);
                 return     (1);

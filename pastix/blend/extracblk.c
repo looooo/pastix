@@ -169,7 +169,7 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
         addblok += (((sptcbnbw+1) * sptcbnbw) / 2) - 1;
         for(j=fbloknum+1; j<lbloknum; j++)
         {
-            pastix_int_t fcblknum = oldsymb->bloktab[j].cblknum;
+            pastix_int_t fcblknum = oldsymb->bloktab[j].fcblknm;
             pastix_int_t sptfcbnb = extracblk->sptcbnb[fcblknum];
 	    pastix_int_t sptcbnbh = 0;
 
@@ -295,7 +295,7 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
             {
                 curblok->frownum = curcblk[k].fcolnum;
                 curblok->lrownum = curcblk[k].lcolnum;
-                curblok->cblknum = curcblknum + k;
+                curblok->fcblknm = curcblknum + k;
                 curblok->levfval = -1;
             }
             /* Next cblk will have one block less on the diagonal */
@@ -303,9 +303,9 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
             /* Create other off diagonal blocks */
             for(k=fbloknum+1; k<lbloknum; k++)
             {
-                pastix_int_t fcblknum = oldsymb->bloktab[k].cblknum;
                 pastix_int_t frownum  = oldsymb->bloktab[k].frownum;
                 pastix_int_t lrownum  = oldsymb->bloktab[k].lrownum;
+                pastix_int_t fcblknum = oldsymb->bloktab[k].fcblknm;
                 pastix_int_t sptfcblk = extracblk->sptcblk[fcblknum];
                 pastix_int_t sptfcbnb = extracblk->sptcbnb[fcblknum];
 
@@ -331,7 +331,7 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
 
                         curblok->frownum = frownum;
                         curblok->lrownum = pastix_imin( lrownum, newfcblk->lcolnum );
-                        curblok->cblknum = newfcblknum + l;
+                        curblok->fcblknm = newfcblknum + l;
                         curblok->levfval = -1;
                         curblok++; curbloknum++;
 
@@ -345,7 +345,7 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
                 {
                     curblok->frownum = frownum;
                     curblok->lrownum = lrownum;
-                    curblok->cblknum = newnum[fcblknum];
+                    curblok->fcblknm = newnum[fcblknum];
                     curblok->levfval = -1;
                     curblok++; curbloknum++;
                 }

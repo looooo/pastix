@@ -84,6 +84,6 @@ const pastix_int_t                   baseval)              /*+ New base value   
   for (bloknum = 0; bloknum < symbptr->bloknbr; bloknum ++) {
     symbptr->bloktab[bloknum].frownum += baseadj;
     symbptr->bloktab[bloknum].lrownum += baseadj;
-    symbptr->bloktab[bloknum].cblknum += baseadj;
+    symbptr->bloktab[bloknum].fcblknm += baseadj;
   }
 }

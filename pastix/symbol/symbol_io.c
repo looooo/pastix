@@ -122,7 +122,7 @@ FILE * const                stream)
   for (bloknum = 0; bloknum < bloknbr; bloknum ++) {
     if ((intLoad (stream, &symbptr->bloktab[bloknum].frownum) + /* Read column blocks */
          intLoad (stream, &symbptr->bloktab[bloknum].lrownum) +
-         intLoad (stream, &symbptr->bloktab[bloknum].cblknum) != 3) ||
+         intLoad (stream, &symbptr->bloktab[bloknum].fcblknm) != 3) ||
         (symbptr->bloktab[bloknum].frownum > symbptr->bloktab[bloknum].lrownum)) {
       errorPrint ("symbolLoad: bad input (3)");
       symbolExit (symbptr);
@@ -183,7 +183,7 @@ FILE * const                stream)
       o = (fprintf (stream, "%ld\t%ld\t%ld\n",
                   (long) blokptr->frownum,
                   (long) blokptr->lrownum,
-                  (long) blokptr->cblknum/* , */
+                  (long) blokptr->fcblknm/* , */
                   /* (long) blokptr->levfval */) == EOF);
   }
 

@@ -114,7 +114,7 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     SymbolBlok *bdst;
     pastix_int_t i, fcblknum, fbloknum, lbloknum;
 
-    fcblknum = symbptr->bloktab[bloksrc].cblknum;
+    fcblknum = symbptr->bloktab[bloksrc].fcblknm;
     fbloknum = symbptr->cblktab[fcblknum].bloknum;
     lbloknum = symbptr->cblktab[fcblknum+1].bloknum;
 
@@ -188,7 +188,7 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
         /* Off-diagonal blocks */
         for( ; iterblok < lbloknum; iterblok++, blok++)
         {
-            innbr[ blok->cblknum ]++;
+            innbr[ blok->fcblknm ]++;
         }
     }
 
@@ -220,7 +220,7 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
         /* Off-diagonal blocks */
         for( ; iterblok < lbloknum; iterblok++, blok++)
         {
-            intmp = innbr + blok->cblknum;
+            intmp = innbr + blok->fcblknm;
             crowtab[ *intmp ] = itercblk;
             browtab[ *intmp ] = iterblok;
             (*intmp)++;
