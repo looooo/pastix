@@ -38,7 +38,8 @@ precisions_rules_py(generated_files
 ### Generate the lib
 add_library(pastix_bcsc
   ${generated_files}
-  bcsc.c   # Not finished
+  bcsc.c        # Not finished
+  bcsc_fake.c   # Not finished
 )
 
 install(TARGETS pastix_bcsc

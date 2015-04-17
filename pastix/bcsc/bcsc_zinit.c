@@ -1,4 +1,5 @@
 /**
+ * @file bcsc_zinit.c
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
@@ -285,7 +286,7 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
     }
 }
 
-static inline void
+void
 bcsc_zSort( const pastix_bcsc_t *bcsc,
             pastix_int_t        *rowtab,
             pastix_complex64_t  *valtab )

@@ -39,6 +39,12 @@ struct pastix_bcsc_s {
 typedef struct pastix_bcsc_s pastix_bcsc_t;
 
 
+void bcscInitCentralizedFake( const pastix_csc_t  *csc,
+                              const Order         *ord,
+                              const SolverMatrix  *solvmtx,
+                              const pastix_int_t  *col2cblk,
+                                    int            initAt,
+                                    pastix_bcsc_t *bcsc );
 void bcsc_zInitCentralized( const pastix_csc_t  *csc,
                             const Order         *ord,
                             const SolverMatrix  *solvmtx,
