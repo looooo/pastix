@@ -25,6 +25,91 @@ coeftabInit( const SolverMatrix  *datacode,
              pastix_int_t         fakefillin,
              pastix_int_t         factoLU );
 
+
+int
+pastix_subtask_csc2bcsc( pastix_data_t *pastix_data,
+                         pastix_csc_t  *csc )
+{
+    /**
+     * Check parameters
+     */
+    if (pastix_data == NULL) {
+        errorPrint("pastix_subtask_csc2bcsc: wrong pastix_data parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (csc == NULL) {
+        errorPrint("pastix_subtask_csc2bcsc: wrong csc parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( !(pastix_data->steps & STEP_ANALYSE) ) {
+        errorPrint("pastix_subtask_csc2bcsc: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /**
+     * Fill in the internal blocked CSC. We consider that if this step is called
+     * the csc values have changed so we need to update the blocked csc.
+     */
+    if (pastix_data->bcsc != NULL)
+    {
+        bcscExit( pastix_data->bcsc );
+        memFree_null( pastix_data->bcsc );
+    }
+
+    MALLOC_INTERN( pastix_data->bcsc, 1, pastix_bcsc_t );
+
+    bcscInit( csc,
+              pastix_data->ordemesh,
+              pastix_data->solvmatr,
+              ( (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU)
+                && (! pastix_data->iparm[IPARM_ONLY_RAFF]) ),
+              pastix_data->bcsc );
+
+    if ( pastix_data->iparm[IPARM_FREE_CSCUSER] ) {
+        spmExit( csc );
+    }
+
+    /* Invalidate following step, and add current step to the ones performed */
+    pastix_data->steps &= ~STEP_BCSC2CTAB;
+    pastix_data->steps |= STEP_CSC2BCSC;
+
+    return PASTIX_SUCCESS;
+}
+
+
+int
+pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
+                          pastix_csc_t  *csc )
+{
+    /**
+     * Check parameters
+     */
+    if (pastix_data == NULL) {
+        errorPrint("pastix_subtask_bcsc2ctab: wrong pastix_data parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (csc == NULL) {
+        errorPrint("pastix_subtask_bcsc2ctab: wrong csc parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
+        errorPrint("pastix_subtask_bcsc2ctab: All steps from pastix_task_init() to pastix_stask_blend() have to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    coeftabInit( pastix_data->solvmatr,
+                 pastix_data->bcsc,
+                 csc->flttype == PastixPattern,
+                 pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
+
+    /* Invalidate following step, and add current step to the ones performed */
+    pastix_data->steps &= ~STEP_NUMFACT;
+    pastix_data->steps |= STEP_BCSC2CTAB;
+
+    return PASTIX_SUCCESS;
+}
+
+
 /**
  *******************************************************************************
  *
@@ -66,6 +151,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
 /* #endif */
     pastix_int_t  procnum;
     pastix_int_t *iparm;
+    int rc;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
 
@@ -107,41 +193,15 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         }
     }
 
-    /**
-     * Fill in the internal blocked CSC. We consider that if this step is called
-     * the csc values have changed so we need to update the blocked csc.
-     */
-    if (pastix_data->bcsc != NULL)
-    {
-        bcscExit( pastix_data->bcsc );
-        memFree_null( pastix_data->bcsc );
-    }
+    rc = pastix_subtask_csc2bcsc( pastix_data, csc );
+    if (rc != PASTIX_SUCCESS)
+        return rc;
 
-    MALLOC_INTERN( pastix_data->bcsc, 1, pastix_bcsc_t );
+    rc = pastix_subtask_bcsc2ctab( pastix_data, csc );
+    if (rc != PASTIX_SUCCESS)
+        return rc;
 
-    /**
-     * Check that IPARM_ONLY_RAFF is not set, because we don't need to
-     * initialize the A^t array in this case and we should have never arrived
-     * here.
-     */
-    assert( !iparm[IPARM_ONLY_RAFF] );
-
-    bcscInit( csc,
-              pastix_data->ordemesh,
-              pastix_data->solvmatr,
-              pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU,
-              pastix_data->bcsc );
-
-    if ( iparm[IPARM_FREE_CSCUSER] ) {
-        spmExit( csc );
-    }
-
-    coeftabInit( pastix_data->solvmatr,
-                 pastix_data->bcsc,
-                 csc->flttype == PastixPattern,
-                 csc->mtxtype == PastixGeneral );
     sbackup = solverBackupInit( pastix_data->solvmatr );
-
     {
         sopalin_data_t sopalin_data;
         double timer;
@@ -155,12 +215,10 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
 
         //pastix_static_dsytrf( &sopalin_data );
         //coeftab_ddump( pastix_data->solvmatr, "AfterFacto" );
-    }
-
         /* sopalinInit( pastix_data, sopalin_data, 1 ); */
         /* sopalinFacto( pastix_data, sopalin_data ); */
         /* sopalinExit( sopalin_data ); */
-
+    }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
 
