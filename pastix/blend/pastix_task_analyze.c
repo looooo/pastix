@@ -128,8 +128,8 @@ pastix_task_blend(pastix_data_t *pastix_data)
 #endif
         if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
         {
-            iparm[IPARM_NNZEROS]       *=2;
-            dparm[DPARM_PRED_FACT_TIME]*=2.;
+            iparm[IPARM_NNZEROS]        *= 2;
+            dparm[DPARM_PRED_FACT_TIME] *= 2.;
         }
         dparm[DPARM_SOLV_FLOPS] = (double)iparm[IPARM_NNZEROS]; /* number of operations for solve */
 
