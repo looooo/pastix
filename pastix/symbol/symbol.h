@@ -26,7 +26,7 @@ typedef struct SymbolCblk_ {
     pastix_int_t fcolnum;  /*< First column index               */
     pastix_int_t lcolnum;  /*< Last column index (inclusive)    */
     pastix_int_t bloknum;  /*< First block in column (diagonal) */
-    pastix_int_t brownum;  /*< First block in row facing the diagonal block in browtab/crowtab */
+    pastix_int_t brownum;  /*< First block in row facing the diagonal block in browtab/crowtab, 0-based */
 } SymbolCblk;
 
 /**
