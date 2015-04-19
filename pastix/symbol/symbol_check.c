@@ -1,86 +1,60 @@
-/* Copyright INRIA 2004
- **
- ** This file is part of the Scotch distribution.
- **
- ** The Scotch distribution is libre/free software; you can
- ** redistribute it and/or modify it under the terms of the
- ** GNU Lesser General Public License as published by the
- ** Free Software Foundation; either version 2.1 of the
- ** License, or (at your option) any later version.
- **
- ** The Scotch distribution is distributed in the hope that
- ** it will be useful, but WITHOUT ANY WARRANTY; without even
- ** the implied warranty of MERCHANTABILITY or FITNESS FOR A
- ** PARTICULAR PURPOSE. See the GNU Lesser General Public
- ** License for more details.
- **
- ** You should have received a copy of the GNU Lesser General
- ** Public License along with the Scotch distribution; if not,
- ** write to the Free Software Foundation, Inc.,
- ** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
- **
- ** $Id: symbol_check.c 285 2005-03-10 10:25:31Z pelegrin $
- */
-/************************************************************/
-/**                                                        **/
-/**   NAME       : symbol_check.c                          **/
-/**                                                        **/
-/**   AUTHORS    : David GOUDIN                            **/
-/**                Pascal HENON                            **/
-/**                Francois PELLEGRINI                     **/
-/**                Pierre RAMET                            **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                This module checks the consistency of   **/
-/**                symbolic matrices.                      **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 29 sep 1998     **/
-/**                                 to     07 oct 1998     **/
-/**                # Version 1.0  : from : 03 jun 2002     **/
-/**                                 to     03 jun 2002     **/
-/**                # Version 3.0  : from : 29 feb 2004     **/
-/**                                 to     29 feb 2004     **/
-/**                                                        **/
-/************************************************************/
-
-/*
- **  The defines and includes.
- */
-
-#define SYMBOL_CHECK
-
+/**
+ *
+ * @file symbol_check.c
+ *
+ *  Copyright Inria 1999-2015
+ *
+ *  PaStiX symbol structure routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 5.1.0
+ * @author Francois Pelegrin
+ * @author David Goudin
+ * @author Pascal Henon
+ * @author Francois Pellegrini
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
 #include "symbol.h"
 
-/******************************************/
-/*                                        */
-/* The symbolic matrix handling routines. */
-/*                                        */
-/******************************************/
-
-/*+ This routine checks the consistency
- *** of the given symbolic block matrix.
- *** Because of incomplete factorization,
- *** from version 1.0, no check is performed
- *** regarding the existence of facing blocks
- *** in facing columns.
- *** It returns:
- *** - 0   : on success.
- *** - !0  : on error.
- +*/
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolCheck - Checks the consistency of the given symbolic block matrix.
+ * Because of incomplete factorization, from version 1.0, no check is performed
+ * regarding the existence of facing blocks in facing columns.
+ *
+ * TODO: Complete test set to check the brow informations.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The symbol structure to check.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval 0 if the symbol matrix is correct
+ *          \retval 1 if incorrect
+ *
+ *******************************************************************************/
 int
-symbolCheck (
-    const SymbolMatrix * const  symbptr)
+symbolCheck(const SymbolMatrix * const  symbptr)
 {
-    pastix_int_t                         baseval;            /* Base value                           */
-    const SymbolCblk * restrict cblktax;            /* Based access to cblktab              */
-    pastix_int_t                         cblkmax;            /* Maximum column block index           */
-    pastix_int_t                         cblknum;            /* Based number of current column block */
-    const SymbolBlok * restrict bloktax;            /* Based access to bloktab              */
-    pastix_int_t                         blokmax;            /* Maximum block index                  */
-    pastix_int_t                         bloknum;            /* Based number of current block        */
-    pastix_int_t                         nodemax;            /* Maximum node index                   */
+    pastix_int_t      baseval; /* Base value                           */
+    const SymbolCblk *cblktax; /* Based access to cblktab              */
+    pastix_int_t      cblkmax; /* Maximum column block index           */
+    pastix_int_t      cblknum; /* Based number of current column block */
+    const SymbolBlok *bloktax; /* Based access to bloktab              */
+    pastix_int_t      blokmax; /* Maximum block index                  */
+    pastix_int_t      bloknum; /* Based number of current block        */
+    pastix_int_t      nodemax; /* Maximum node index                   */
 
     baseval = symbptr->baseval;
     cblktax = symbptr->cblktab - baseval;
@@ -125,3 +99,4 @@ symbolCheck (
 
     return (0);
 }
+
