@@ -26,7 +26,7 @@ typedef struct SymbolCblk_ {
     pastix_int_t fcolnum;  /*< First column index               */
     pastix_int_t lcolnum;  /*< Last column index (inclusive)    */
     pastix_int_t bloknum;  /*< First block in column (diagonal) */
-    pastix_int_t brownum;  /*< First block in row facing the diagonal block in browtab/crowtab, 0-based */
+    pastix_int_t brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
 } SymbolCblk;
 
 /**
@@ -53,7 +53,6 @@ typedef struct SymbolMatrix_ {
     pastix_int_t            nodenbr;  /*< Number of node in the compressed symbol */
     SymbolCblk   * restrict cblktab;  /*< Array of column blocks [+1,based]       */
     SymbolBlok   * restrict bloktab;  /*< Array of blocks [based]                 */
-    pastix_int_t * restrict crowtab;  /*< Array of column blocks [based]          */
     pastix_int_t * restrict browtab;  /*< Array of blocks [based]                 */
 #ifdef STARPU_GET_TASK_CTX
     pastix_int_t            starpu_subtree_nbr;
