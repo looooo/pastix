@@ -34,6 +34,7 @@ symbolRustine (SymbolMatrix *       matrsymb,
         bloknum = matrsymb->cblktab[cblknum].bloknum;
         bloktmp[iter].frownum = matrsymb->bloktab[bloknum].frownum;
         bloktmp[iter].lrownum = matrsymb->bloktab[bloknum].lrownum;
+        bloktmp[iter].lcblknm = matrsymb->bloktab[bloknum].lcblknm;
         bloktmp[iter].fcblknm = matrsymb->bloktab[bloknum].fcblknm;
         bloktmp[iter].levfval = matrsymb->bloktab[bloknum].levfval;
         iter++;
@@ -50,10 +51,12 @@ symbolRustine (SymbolMatrix *       matrsymb,
 #ifdef RUSTIN_ADD_NEXT_CBLK
                 bloktmp[iter].frownum = matrsymb->cblktab[cblknum+1].fcolnum;
                 bloktmp[iter].lrownum = matrsymb->cblktab[cblknum+1].fcolnum;
+                bloktmp[iter].lcblknm = cblknum;
                 bloktmp[iter].fcblknm = cblknum+1;
 #else
                 bloktmp[iter].frownum = matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
                 bloktmp[iter].lrownum = matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
+                bloktmp[iter].lcblknm = cblknum;
                 bloktmp[iter].fcblknm = matrsymb->cblknbr-1;
 #endif
                 bloktmp[iter].levfval = matrsymb->bloktab[bloknum].levfval;
@@ -68,6 +71,7 @@ symbolRustine (SymbolMatrix *       matrsymb,
                 add++;
                 bloktmp[iter].frownum = matrsymb2->bloktab[bloknum2].frownum;
                 bloktmp[iter].lrownum = matrsymb2->bloktab[bloknum2].frownum;
+                bloktmp[iter].lcblknm = matrsymb2->bloktab[bloknum2].lcblknm;
                 bloktmp[iter].fcblknm = matrsymb2->bloktab[bloknum2].fcblknm;
                 bloktmp[iter].levfval = matrsymb2->bloktab[bloknum2].levfval;
                 iter++;
@@ -82,6 +86,7 @@ symbolRustine (SymbolMatrix *       matrsymb,
                 add++;
                 bloktmp[iter].frownum = matrsymb2->bloktab[bloknum2].frownum;
                 bloktmp[iter].lrownum = matrsymb2->bloktab[bloknum2].frownum;
+                bloktmp[iter].lcblknm = matrsymb2->bloktab[bloknum2].lcblknm;
                 bloktmp[iter].fcblknm = matrsymb2->bloktab[bloknum2].fcblknm;
                 bloktmp[iter].levfval = matrsymb2->bloktab[bloknum2].levfval;
                 iter++;
@@ -93,6 +98,7 @@ symbolRustine (SymbolMatrix *       matrsymb,
             {
                 bloktmp[iter].frownum = matrsymb->bloktab[bloknum].frownum;
                 bloktmp[iter].lrownum = matrsymb->bloktab[bloknum].lrownum;
+                bloktmp[iter].lcblknm = matrsymb->bloktab[bloknum].lcblknm;
                 bloktmp[iter].fcblknm = matrsymb->bloktab[bloknum].fcblknm;
                 bloktmp[iter].levfval = matrsymb->bloktab[bloknum].levfval;
                 iter++;
@@ -104,6 +110,7 @@ symbolRustine (SymbolMatrix *       matrsymb,
 
     bloktmp[iter].frownum = matrsymb->cblktab[matrsymb->cblknbr-1].fcolnum;
     bloktmp[iter].lrownum = matrsymb->cblktab[matrsymb->cblknbr-1].lcolnum;
+    bloktmp[iter].lcblknm = matrsymb->cblknbr-1;
     bloktmp[iter].fcblknm = matrsymb->cblknbr-1;
     bloktmp[iter].levfval = 0;
     cblktmp[matrsymb->cblknbr].bloknum+=add;

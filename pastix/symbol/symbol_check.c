@@ -86,7 +86,8 @@ symbolCheck(const SymbolMatrix * const  symbptr)
         }
 
         for (bloknum ++; bloknum < cblktax[cblknum + 1].bloknum; bloknum ++) {
-            if ((bloktax[bloknum].fcblknm <  baseval)                      ||
+            if ((bloktax[bloknum].lcblknm != cblknum)                      ||
+                (bloktax[bloknum].fcblknm <  baseval)                      ||
                 (bloktax[bloknum].fcblknm >  cblkmax)                      ||
                 (bloktax[bloknum].frownum <= bloktax[bloknum - 1].lrownum) ||
                 (bloktax[bloknum].fcblknm <  bloktax[bloknum - 1].fcblknm)) {
