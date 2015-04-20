@@ -145,6 +145,7 @@ kassBuildSymbol(      kass_csr_t   *P,
             j = P->rows[k][i];
             symbmtx->bloktab[ind].frownum = j;
             symbmtx->bloktab[ind].lrownum = P->rows[k][i+1];
+            symbmtx->bloktab[ind].lcblknm = k;
             symbmtx->bloktab[ind].fcblknm = node2cblk[j];
             symbmtx->bloktab[ind].levfval = 0;
             ind++;
@@ -276,6 +277,7 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
             /** Add a blok toward the father **/
             newbloktab[k].frownum = cblktab[ father[i] ].fcolnum;
             newbloktab[k].lrownum = cblktab[ father[i] ].fcolnum; /** OIMBE try lcolnum **/
+            newbloktab[k].lcblknm = i;
             newbloktab[k].fcblknm = father[i];
 #if defined(PASTIX_DEBUG_SYMBOL)
             if(father[i] != i)
