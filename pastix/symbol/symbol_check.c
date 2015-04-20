@@ -78,8 +78,7 @@ symbolCheck(const SymbolMatrix * const  symbptr)
 
         if ((bloktax[bloknum].frownum != cblktax[cblknum].fcolnum) ||
             (bloktax[bloknum].lrownum != cblktax[cblknum].lcolnum) ||
-            (bloktax[bloknum].fcblknm != cblknum)                  ||
-            (bloktax[bloknum].levfval != 0)) {
+            (bloktax[bloknum].fcblknm != cblknum)) {
             errorPrint ("symbolCheck: invalid diagonal block");
             assert(0);
             return     (1);

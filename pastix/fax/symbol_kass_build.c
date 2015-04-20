@@ -147,7 +147,6 @@ kassBuildSymbol(      kass_csr_t   *P,
             symbmtx->bloktab[ind].lrownum = P->rows[k][i+1];
             symbmtx->bloktab[ind].lcblknm = k;
             symbmtx->bloktab[ind].fcblknm = node2cblk[j];
-            symbmtx->bloktab[ind].levfval = 0;
             ind++;
 
             assert( node2cblk[j] == node2cblk[ P->rows[k][i+1] ] );
@@ -283,8 +282,6 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
             if(father[i] != i)
                 assert(cblktab[father[i]].fcolnum > cblktab[i].lcolnum);
 #endif
-
-            newbloktab[k].levfval = 0;
             k++;
         }
 

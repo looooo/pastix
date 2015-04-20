@@ -330,7 +330,6 @@ symbolFax (SymbolMatrix * const   symbptr,
             bloktax[bloknum].lrownum = cblktax[cblknum].lcolnum;
             bloktax[bloknum].lcblknm = cblknum;
             bloktax[bloknum].fcblknm = cblknum;
-            bloktax[bloknum].levfval = 0;
             bloknum ++;
 
             for (sortnum = 0; sortnum < sortnbr; ) {    /* For all entries in sorted array */
@@ -358,7 +357,6 @@ symbolFax (SymbolMatrix * const   symbptr,
                 bloktax[bloknum].lrownum = sorttab[sortnum - 1]; /* Set end of block */
                 bloktax[bloknum].lcblknm = cblknum;
                 bloktax[bloknum].fcblknm = cblkctr;
-                bloktax[bloknum].levfval = 0;
                 bloknum ++;                               /* One more block */
             }
         }
@@ -483,7 +481,6 @@ symbolFax (SymbolMatrix * const   symbptr,
                 bloktax[bloknum].lrownum = tloktab[tloknum].lrownum;
                 bloktax[bloknum].lcblknm = tloktab[tloknum].lcblknm;
                 bloktax[bloknum].fcblknm = tloktab[tloknum].fcblknm;
-                bloktax[bloknum].levfval = 0;
             }
         }
         if ((bloknum - cblktax[cblknum].bloknum) > 2) { /* If more than one extra-diagonal blocks exist                 */

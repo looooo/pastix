@@ -130,14 +130,14 @@ FILE * const                stream)
       return     (1);
     }
 
-    symbptr->bloktab[bloknum].levfval = 0;        /* Assume version 0 */
-    if ((versval > 0) &&
-        ((intLoad (stream, &symbptr->bloktab[bloknum].levfval) != 1) ||
-         (symbptr->bloktab[bloknum].levfval < 0))) {
-      errorPrint ("symbolLoad: bad input (4)");
-      symbolExit (symbptr);
-      symbolInit (symbptr);
-      return     (1);
+    {
+        pastix_int_t tmp;
+        if ((versval > 0) && (intLoad (stream, &tmp) != 1)) {
+            errorPrint ("symbolLoad: bad input (4)");
+            symbolExit (symbptr);
+            symbolInit (symbptr);
+            return     (1);
+        }
     }
   }
 
@@ -179,12 +179,10 @@ FILE * const                stream)
   }
   for (blokptr = symbptr->bloktab, bloktnd = blokptr + symbptr->bloknbr;
        (blokptr < bloktnd) && (o == 0); blokptr ++) {
-      /* o = (fprintf (stream, "%ld\t%ld\t%ld\t%ld\n", */
       o = (fprintf (stream, "%ld\t%ld\t%ld\n",
                   (long) blokptr->frownum,
                   (long) blokptr->lrownum,
-                  (long) blokptr->fcblknm/* , */
-                  /* (long) blokptr->levfval */) == EOF);
+                  (long) blokptr->fcblknm ) == EOF);
   }
 
   return (o);
