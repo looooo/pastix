@@ -118,8 +118,6 @@ pastix_task_blend(pastix_data_t *pastix_data)
     blendCtrlExit(&ctrl);
 
     /* Symbol is not used anymore */
-    symbolPrintStats( pastix_data->symbmtx );
-    symbolPrintNbBlocksFacing( pastix_data->symbmtx );
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
 

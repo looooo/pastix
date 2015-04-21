@@ -87,7 +87,6 @@ void solverBlend(BlendCtrl    *ctrl,
             pastix_print( clustnum, 0, OUT_BLEND_CHKSMBMTX );
         symbolCheck(symbmtx);
     }
-    symbolCheck(symbmtx);
 
     /* Build the elimination tree from the symbolic partition */
     {
@@ -207,8 +206,6 @@ void solverBlend(BlendCtrl    *ctrl,
         symbolSave( symbmtx, file );
         fclose(file);
     }
-
-    symbolCheck(symbmtx);
 
     /* Simulation step to perform the data distribution over the nodes and compute the priorities of each task */
     {
