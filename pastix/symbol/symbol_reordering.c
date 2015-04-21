@@ -154,7 +154,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             }
             else{
                 /* For upper levels in nested dissection */
-                if (levels[blok->fcblknm] <= local_split_level){
+                if (levels[blok->lcblknm] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
                         up_vectors_size[index]++;
@@ -215,17 +215,17 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             }
             else{
                 /* For upper levels in nested dissection */
-                if (levels[blok->fcblknm] <= local_split_level){
+                if (levels[blok->lcblknm] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
-                        up_vectors[index][up_current_pos[index]] = blok->fcblknm;
+                        up_vectors[index][up_current_pos[index]] = blok->lcblknm;
                         up_current_pos[index]++;
                     }
                 }
                 else{
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
-                        vectors[index][current_pos[index]] = blok->fcblknm;
+                        vectors[index][current_pos[index]] = blok->lcblknm;
                         current_pos[index]++;
                     }
                 }
