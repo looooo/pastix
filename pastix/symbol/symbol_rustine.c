@@ -113,9 +113,5 @@ symbolRustine (SymbolMatrix *       matrsymb,
     matrsymb->cblktab = cblktmp;
     matrsymb->bloknbr += add;
     assert( add < matrsymb->cblknbr );
-
-    if ((add > 0) || (matrsymb->browtab == NULL)) {
-        symbolBuildRowtab( matrsymb );
-    }
 }
 
