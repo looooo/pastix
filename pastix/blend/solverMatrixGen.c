@@ -107,28 +107,28 @@ solverMatrixGen(const pastix_int_t clustnum,
                 const SimuCtrl * simuctrl,
                 const BlendCtrl * ctrl)
 {
-    pastix_int_t            p, c;
-    pastix_int_t            cursor, cursor2;
-    pastix_int_t            flag;
-    pastix_int_t            i, j, k;
-    pastix_int_t            ftgtnum          = 0;
-    pastix_int_t            coefnbr          = 0;
-    pastix_int_t            nodenbr          = 0;
-    pastix_int_t            odb_nbr          = 0;
-    pastix_int_t            cblknum          = 0;
-    pastix_int_t            tasknum          = 0;
-    pastix_int_t            indnbr           = 0;
-    pastix_int_t          * cblklocalnum     = NULL;
-    pastix_int_t          * bloklocalnum     = NULL;
-    pastix_int_t          * tasklocalnum     = NULL;
-    pastix_int_t          * ftgtlocalnum     = NULL;
-    pastix_int_t          * bcofind          = NULL;
-    pastix_int_t          * clust_mask       = NULL;
-    pastix_int_t          * clust_first_cblk = NULL;
-    pastix_int_t          * clust_highest    = NULL;
-    pastix_int_t          * uprecvcblk       = NULL;
-    pastix_int_t            flaglocal        = 0;
-    pastix_int_t            dof = symbmtx->dof;
+    pastix_int_t  p, c;
+    pastix_int_t  cursor, cursor2;
+    pastix_int_t  flag;
+    pastix_int_t  i, j, k;
+    pastix_int_t  ftgtnum          = 0;
+    pastix_int_t  coefnbr          = 0;
+    pastix_int_t  nodenbr          = 0;
+    pastix_int_t  odb_nbr          = 0;
+    pastix_int_t  cblknum          = 0;
+    pastix_int_t  tasknum          = 0;
+    pastix_int_t  indnbr           = 0;
+    pastix_int_t *cblklocalnum     = NULL;
+    pastix_int_t *bloklocalnum     = NULL;
+    pastix_int_t *tasklocalnum     = NULL;
+    pastix_int_t *ftgtlocalnum     = NULL;
+    pastix_int_t *bcofind          = NULL;
+    pastix_int_t *clust_mask       = NULL;
+    pastix_int_t *clust_first_cblk = NULL;
+    pastix_int_t *clust_highest    = NULL;
+    pastix_int_t *uprecvcblk       = NULL;
+    pastix_int_t  flaglocal        = 0;
+    pastix_int_t  dof = symbmtx->dof;
 
     solverInit(solvmtx);
 
@@ -658,7 +658,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         for(i=0;i<symbmtx->cblknbr;i++)
         {
             pastix_int_t brownbr;
-            pastix_int_t finblknum, linblknum;
+            pastix_int_t fbrownum, lbrownum;
 
             /*if(cbprtab[i] == clustnum)*/
             if(simuctrl->bloktab[symbmtx->cblktab[i].bloknum].ownerclust == clustnum)
@@ -672,17 +672,17 @@ solverMatrixGen(const pastix_int_t clustnum,
 
 
                 brownbr = 0;
-                finblknum = symbmtx->cblktab[i].brownum;
-                linblknum = symbmtx->cblktab[i+1].brownum;
-                assert( finblknum != -1 );
-                assert( linblknum != -1 );
-                for(j=finblknum; j<linblknum; j++)
+                fbrownum = symbmtx->cblktab[i].brownum;
+                lbrownum = symbmtx->cblktab[i+1].brownum;
+                assert( fbrownum != -1 );
+                assert( lbrownum != -1 );
+                for(j=fbrownum; j<lbrownum; j++)
                 {
                     pastix_int_t cluster;
                     pastix_int_t cblk;
                     pastix_int_t bloknum = symbmtx->browtab[ j ];
                     cluster = simuctrl->bloktab[bloknum].ownerclust;
-                    cblk = ctrl->egraph->ownetab[bloknum];
+                    cblk = symbmtx->bloktab[bloknum].lcblknm;
 #ifdef DEBUG_M
                     ASSERT( ctrl->candtab[cblk].treelevel   <= 0,   MOD_BLEND);
                     ASSERT( ctrl->candtab[cblk].distrib     == D1,  MOD_BLEND);
@@ -738,7 +738,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                         solvmtx->updovct.cblktab[cursor].browcblktab[brownbr++] = clust_first_cblk[j];
                     }
 
-                solvmtx->updovct.cblktab[cursor].ctrbnbr = (pastix_int_t)ctrl->egraph->verttab[i].innbr;
+                solvmtx->updovct.cblktab[cursor].ctrbnbr = lbrownum - fbrownum;
                 cursor++;
             }
         }
@@ -751,10 +751,16 @@ solverMatrixGen(const pastix_int_t clustnum,
         MALLOC_INTERN(solvmtx->updovct.gcblk2list, symbmtx->cblknbr, pastix_int_t);
         for(i=0;i<symbmtx->cblknbr;i++)
         {
+            pastix_int_t fbrownum, lbrownum;
+
+            fbrownum = symbmtx->cblktab[i].brownum;
+            lbrownum = symbmtx->cblktab[i+1].brownum;
+
             solvmtx->updovct.gcblk2list[i] = -1;
             flag = 0;
-            for(j=0; j<ctrl->egraph->verttab[i].innbr;j++)
-                if( simuctrl->bloktab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]].ownerclust == clustnum)
+            for(j=fbrownum; j<lbrownum; j++) {
+                pastix_int_t bloknum = symbmtx->browtab[ j ];
+                if( simuctrl->bloktab[ bloknum ].ownerclust == clustnum)
                 {
                     if(flag == 0)
                     {
@@ -764,6 +770,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                     }
                     cursor2++;
                 }
+            }
         }
         solvmtx->updovct.gcblk2listnbr = symbmtx->cblknbr;
 
