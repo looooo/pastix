@@ -156,7 +156,7 @@ eTreeBuild(const SymbolMatrix *symbmtx)
         /* the father of the node is the facing block of the first odb */
         if( (symbmtx->cblktab[i+1].bloknum - symbmtx->cblktab[i].bloknum) > 1 )
         {
-            etree->nodetab[i].fathnum = symbmtx->bloktab[ symbmtx->cblktab[i].bloknum+1 ].cblknum;
+            etree->nodetab[i].fathnum = symbmtx->bloktab[ symbmtx->cblktab[i].bloknum+1 ].fcblknm;
             eTreeFather( etree, i ).sonsnbr++;
             totalsonsnbr++;
         }

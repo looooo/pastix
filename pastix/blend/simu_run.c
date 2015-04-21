@@ -488,7 +488,7 @@ simu_computeTask( const BlendCtrl    *ctrl,
         /* Add trsm time of this off-diagonal block */
         timerAdd(&(sproc->timer), costmtx->blokcost[i]);
 
-        facingcblk = symbptr->bloktab[i].cblknum;
+        facingcblk = symbptr->bloktab[i].fcblknm;
 
         /*
          * If only one candidate cluster, we can consider the facingcblk as

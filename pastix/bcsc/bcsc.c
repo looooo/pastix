@@ -206,6 +206,9 @@ bcscInitCentralized( const pastix_csc_t  *csc,
      * factorization.
      */
     switch( csc->flttype ) {
+    case PastixPattern:
+        bcscInitCentralizedFake( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        break;
     case PastixFloat:
         bcsc_sInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;

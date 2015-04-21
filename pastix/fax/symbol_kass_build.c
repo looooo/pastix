@@ -145,8 +145,8 @@ kassBuildSymbol(      kass_csr_t   *P,
             j = P->rows[k][i];
             symbmtx->bloktab[ind].frownum = j;
             symbmtx->bloktab[ind].lrownum = P->rows[k][i+1];
-            symbmtx->bloktab[ind].cblknum = node2cblk[j];
-            symbmtx->bloktab[ind].levfval = 0;
+            symbmtx->bloktab[ind].lcblknm = k;
+            symbmtx->bloktab[ind].fcblknm = node2cblk[j];
             ind++;
 
             assert( node2cblk[j] == node2cblk[ P->rows[k][i+1] ] );
@@ -155,7 +155,7 @@ kassBuildSymbol(      kass_csr_t   *P,
 #if defined(PASTIX_DEBUG_SYMBOL)
         assert(symbmtx->bloktab[symbmtx->cblktab[k].bloknum].frownum == symbmtx->cblktab[k].fcolnum);
         assert(symbmtx->bloktab[symbmtx->cblktab[k].bloknum].lrownum == symbmtx->cblktab[k].lcolnum);
-        assert(symbmtx->bloktab[symbmtx->cblktab[k].bloknum].cblknum == k);
+        assert(symbmtx->bloktab[symbmtx->cblktab[k].bloknum].fcblknm == k);
 #endif
     }
 
@@ -210,7 +210,7 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
      */
     for(i=0; i<symbmtx->cblknbr; i++)
         for(j=cblktab[i].bloknum+1; j<cblktab[i+1].bloknum; j++)
-            Q.nnz[ bloktab[j].cblknum ]++;
+            Q.nnz[ bloktab[j].fcblknm ]++;
 
     /* Allocate nFacingBlok integer for each diagonal blok */
     for(i=0;i<symbmtx->cblknbr;i++)
@@ -231,7 +231,7 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
     {
         for(j=cblktab[i].bloknum+1; j<cblktab[i+1].bloknum; j++)
         {
-            k = bloktab[j].cblknum;
+            k = bloktab[j].fcblknm;
             Q.rows[k][Q.nnz[k]++] = i;
         }
     }
@@ -271,18 +271,17 @@ kassPatchSymbol( SymbolMatrix *symbmtx )
         cblktab[i].bloknum = k;
         k++;
         odb = cblktab[i+1].bloknum-fbloknum;
-        if(odb <= 1 || bloktab[fbloknum+1].cblknum != father[i])
+        if(odb <= 1 || bloktab[fbloknum+1].fcblknm != father[i])
         {
             /** Add a blok toward the father **/
             newbloktab[k].frownum = cblktab[ father[i] ].fcolnum;
             newbloktab[k].lrownum = cblktab[ father[i] ].fcolnum; /** OIMBE try lcolnum **/
-            newbloktab[k].cblknum = father[i];
+            newbloktab[k].lcblknm = i;
+            newbloktab[k].fcblknm = father[i];
 #if defined(PASTIX_DEBUG_SYMBOL)
             if(father[i] != i)
                 assert(cblktab[father[i]].fcolnum > cblktab[i].lcolnum);
 #endif
-
-            newbloktab[k].levfval = 0;
             k++;
         }
 

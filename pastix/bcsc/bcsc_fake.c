@@ -1,8 +1,11 @@
 /**
- * @file bcsc_zinit.c
+ * @file bcsc_fake.c
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * TODO: Use random generator from PLASMA and check that L and U are correctly
+ * setup. 1. or 2. Those functions should be much simpler than this.
  *
  * @version 5.2
  * @author Mathieu Faverge
@@ -10,28 +13,30 @@
  * @author Xavier Lacoste
  * @date 2011-11-11
  *
- * @precisions normal z -> c d s
- *
  **/
 #include "common.h"
 #include "order.h"
 #include "csc.h"
 #include "bcsc.h"
 
-    /**
-     * Fill in the lower triangular part of the blocked csc with values and
-     * rows. The upper triangular part is done later if required through LU
-     * factorization.
-     */
+extern void
+bcsc_dSort( const pastix_bcsc_t *bcsc,
+            pastix_int_t        *rowtab,
+            double              *valtab );
+
+/**
+ * Fill in the lower triangular part of the blocked csc with values and
+ * rows. The upper triangular part is done later if required through LU
+ * factorization.
+ */
 static inline void
-bcsc_zInitA( const pastix_csc_t  *csc,
-             const Order         *ord,
-             const SolverMatrix  *solvmtx,
-             const pastix_int_t  *col2cblk,
-                   pastix_bcsc_t *bcsc )
+bcscInitFakeA( const pastix_csc_t  *csc,
+               const Order         *ord,
+               const SolverMatrix  *solvmtx,
+               const pastix_int_t  *col2cblk,
+                     pastix_bcsc_t *bcsc )
 {
-    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
-    pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
+    double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
     int dof = csc->dof;
@@ -75,7 +80,7 @@ bcsc_zInitA( const pastix_csc_t  *csc,
                      idofrow++, ival++, rowidx++, pos++)
                 {
                     bcsc->rowtab[ pos ] = rowidx;
-                    Lvalues[ pos ] = values[ ival ];
+                    Lvalues[ pos ] = (rowidx >= colidx) ? 1. : 2.;
                 }
 
                 coltab[ colidx ] += dof;
@@ -85,15 +90,14 @@ bcsc_zInitA( const pastix_csc_t  *csc,
     }
 }
 
-static inline void
-bcsc_zInitLt( const pastix_csc_t  *csc,
-              const Order         *ord,
-              const SolverMatrix  *solvmtx,
-              const pastix_int_t  *col2cblk,
-                    pastix_bcsc_t *bcsc )
+void
+bcscInitFakeLt( const pastix_csc_t  *csc,
+                const Order         *ord,
+                const SolverMatrix  *solvmtx,
+                const pastix_int_t  *col2cblk,
+                      pastix_bcsc_t *bcsc )
 {
-    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
-    pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
+    double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
     int dof = csc->dof;
@@ -142,7 +146,7 @@ bcsc_zInitLt( const pastix_csc_t  *csc,
                     pos = coltab[ rowidx ];
 
                     bcsc->rowtab[ pos ] = colidx;
-                    Lvalues[ pos ] = values[ ival ];
+                    Lvalues[ pos ] = (colidx >= rowidx) ? 1. : 2.;
 
                     coltab[ rowidx ]++;
                 }
@@ -150,85 +154,16 @@ bcsc_zInitLt( const pastix_csc_t  *csc,
         }
     }
 }
-
-#if defined(PRECISION_z) || defined(PRECISION_c)
-static inline void
-bcsc_zInitLh( const pastix_csc_t  *csc,
-              const Order         *ord,
-              const SolverMatrix  *solvmtx,
-              const pastix_int_t  *col2cblk,
-                    pastix_bcsc_t *bcsc )
-{
-    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
-    pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
-    pastix_int_t itercblk, itercol, baseval;
-    pastix_int_t i, ival, idofcol, idofrow;
-    int dof = csc->dof;
-
-    baseval = csc->colptr[0];
-
-    /**
-     * Initialize the value of the matrix A^t in the blocked csc format. This
-     * applies the permutation to the values array.
-     */
-    for (itercol=0; itercol<csc->gN; itercol++)
-    {
-        pastix_int_t frow, lrow;
-        pastix_int_t itercol2 = ord->permtab[itercol] * dof;
-
-        frow = csc->colptr[itercol]   - baseval;
-        lrow = csc->colptr[itercol+1] - baseval;
-
-        for (i=frow; i<lrow; i++)
-        {
-            pastix_int_t *coltab;
-            pastix_int_t fcolnum;
-            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
-            pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
-
-            itercblk = col2cblk[ iterrow2 ];
-
-            /* The block column is not stored locally, we skip it */
-            if ((itercblk == -1) || (iterrow == itercol))
-                continue;
-
-            coltab  = bcsc->cscftab[itercblk].coltab;
-            fcolnum = solvmtx->cblktab[itercblk].fcolnum;
-
-            ival = i * dof * dof;
-
-            for (idofcol = 0; idofcol < dof; idofcol++)
-            {
-                pastix_int_t colidx = itercol2 + idofcol;
-                pastix_int_t rowidx = iterrow2 - fcolnum;
-                pastix_int_t pos;
-
-                for (idofrow = 0; idofrow < dof;
-                     idofrow++, ival++, rowidx++, pos++)
-                {
-                    pos = coltab[ rowidx ];
-
-                    bcsc->rowtab[ pos ] = colidx;
-                    Lvalues[ pos ] = conj( values[ ival ] );
-
-                    coltab[ rowidx ]++;
-                }
-            }
-        }
-    }
-}
-#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 void
-bcsc_zInitAt( const pastix_csc_t  *csc,
-              const Order         *ord,
-              const SolverMatrix  *solvmtx,
-              const pastix_int_t  *col2cblk,
-                    pastix_int_t  *trowtab,
-                    pastix_bcsc_t *bcsc )
+bcscInitFakeAt( const pastix_csc_t  *csc,
+                const Order         *ord,
+                const SolverMatrix  *solvmtx,
+                const pastix_int_t  *col2cblk,
+                      pastix_int_t  *trowtab,
+                      pastix_bcsc_t *bcsc )
 {
-    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
-    pastix_complex64_t *Uvalues = (pastix_complex64_t*)(bcsc->Uvalues);
+    double *Uvalues = (double*)(bcsc->Uvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
     int dof = csc->dof;
@@ -277,7 +212,7 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
                     pos = coltab[ rowidx ];
 
                     trowtab[ pos ] = colidx;
-                    Uvalues[ pos ] = values[ ival ];
+                    Uvalues[ pos ] = (colidx >= rowidx) ? 2. : 1.; /*values[ ival ];*/
 
                     coltab[ rowidx ]++;
                 }
@@ -287,36 +222,12 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
 }
 
 void
-bcsc_zSort( const pastix_bcsc_t *bcsc,
-            pastix_int_t        *rowtab,
-            pastix_complex64_t  *valtab )
-{
-    bcsc_format_t *blockcol;
-    pastix_int_t itercblk, itercol, size;
-    void *sortptr[2];
-
-    blockcol = bcsc->cscftab;
-    for (itercblk=0; itercblk<bcsc->cscfnbr; itercblk++, blockcol++)
-    {
-        for (itercol=0; itercol<blockcol->colnbr; itercol++)
-        {
-            sortptr[0] = (void*)(rowtab + blockcol->coltab[itercol]);
-            sortptr[1] = (void*)(valtab + blockcol->coltab[itercol]);
-
-            size = blockcol->coltab[itercol+1] - blockcol->coltab[itercol];
-
-            z_qsortIntFloatAsc( sortptr, size );
-        }
-    }
-}
-
-void
-bcsc_zInitCentralized( const pastix_csc_t  *csc,
-                       const Order         *ord,
-                       const SolverMatrix  *solvmtx,
-                       const pastix_int_t  *col2cblk,
-                             int            initAt,
-                             pastix_bcsc_t *bcsc )
+bcscInitCentralizedFake( const pastix_csc_t  *csc,
+                         const Order         *ord,
+                         const SolverMatrix  *solvmtx,
+                         const pastix_int_t  *col2cblk,
+                               int            initAt,
+                               pastix_bcsc_t *bcsc )
 {
     pastix_int_t valuesize;
 
@@ -325,36 +236,31 @@ bcsc_zInitCentralized( const pastix_csc_t  *csc,
     /**
      * Initialize the blocked structure of the matrix A
      */
-    bcsc_zInitA( csc, ord, solvmtx, col2cblk, bcsc );
+    bcscInitFakeA( csc, ord, solvmtx, col2cblk, bcsc );
     if ( csc->mtxtype == PastixSymmetric ) {
-        bcsc_zInitLt( csc, ord, solvmtx, col2cblk, bcsc );
+        bcscInitFakeLt( csc, ord, solvmtx, col2cblk, bcsc );
     }
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    else if ( csc->mtxtype == PastixHermitian ) {
-        bcsc_zInitLh( csc, ord, solvmtx, col2cblk, bcsc );
-    }
-#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
     /* Restore the correct coltab arrays */
     bcsc_restore_coltab( bcsc );
 
     /* Sort the csc */
-    bcsc_zSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
+    bcsc_dSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
     if ( csc->mtxtype == PastixGeneral ) {
 	/* A^t is not required if only refinment is performed */
         if (initAt) {
             pastix_int_t *trowtab;
-            MALLOC_INTERN( bcsc->Uvalues, valuesize * pastix_size_of( bcsc->flttype ), char );
+            MALLOC_INTERN( bcsc->Uvalues, valuesize * sizeof( double ), char );
             MALLOC_INTERN( trowtab, valuesize, pastix_int_t);
 
-            bcsc_zInitAt( csc, ord, solvmtx, col2cblk, trowtab, bcsc );
+            bcscInitFakeAt( csc, ord, solvmtx, col2cblk, trowtab, bcsc );
 
             /* Restore the correct coltab arrays */
             bcsc_restore_coltab( bcsc );
 
 	    /* Sort the transposed csc */
-	    bcsc_zSort( bcsc, trowtab, bcsc->Uvalues );
+	    bcsc_dSort( bcsc, trowtab, bcsc->Uvalues );
 	    memFree( trowtab );
         }
     }

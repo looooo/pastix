@@ -64,8 +64,6 @@ symbolExit( SymbolMatrix *symbptr )
         memFree_null (symbptr->bloktab);
     if (symbptr->browtab != NULL)
         memFree_null (symbptr->browtab);
-    if (symbptr->crowtab != NULL)
-        memFree_null (symbptr->crowtab);
     memset (symbptr, 0, sizeof (SymbolMatrix));
 }
 
@@ -114,7 +112,7 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     SymbolBlok *bdst;
     pastix_int_t i, fcblknum, fbloknum, lbloknum;
 
-    fcblknum = symbptr->bloktab[bloksrc].cblknum;
+    fcblknum = symbptr->bloktab[bloksrc].fcblknm;
     fbloknum = symbptr->cblktab[fcblknum].bloknum;
     lbloknum = symbptr->cblktab[fcblknum+1].bloknum;
 
@@ -164,7 +162,7 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
-    pastix_int_t *innbr, *intmp, *browtab, *crowtab;
+    pastix_int_t *innbr, *intmp, *browtab;
     pastix_int_t  itercblk;
     pastix_int_t  cblknbr;
     pastix_int_t  edgenbr = symbptr->bloknbr - symbptr->cblknbr;
@@ -188,7 +186,7 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
         /* Off-diagonal blocks */
         for( ; iterblok < lbloknum; iterblok++, blok++)
         {
-            innbr[ blok->cblknum ]++;
+            innbr[ blok->fcblknm ]++;
         }
     }
 
@@ -203,8 +201,7 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
     assert( (cblk[0].brownum + innbr[itercblk]) == edgenbr );
     innbr[itercblk] = cblk[0].brownum;
 
-    /* Initialize the browtab/crowtab */
-    MALLOC_INTERN(crowtab, edgenbr, pastix_int_t );
+    /* Initialize the browtab */
     MALLOC_INTERN(browtab, edgenbr, pastix_int_t );
 
     cblk = symbptr->cblktab;
@@ -220,20 +217,15 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
         /* Off-diagonal blocks */
         for( ; iterblok < lbloknum; iterblok++, blok++)
         {
-            intmp = innbr + blok->cblknum;
-            crowtab[ *intmp ] = itercblk;
+            intmp = innbr + blok->fcblknm;
             browtab[ *intmp ] = iterblok;
             (*intmp)++;
         }
     }
 
-    if (symbptr->crowtab == NULL) {
-        memFree(symbptr->crowtab);
-    }
     if (symbptr->browtab == NULL) {
         memFree(symbptr->browtab);
     }
-    symbptr->crowtab = crowtab;
     symbptr->browtab = browtab;
 
     memFree( innbr );

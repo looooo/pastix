@@ -79,7 +79,7 @@ eGraphBuild( EliminGraph        *egraph,
      */
     for(i=0;i<symbmtx->bloknbr;i++)
     {
-        pastix_int_t cblknum = symbmtx->bloktab[i].cblknum;
+        pastix_int_t cblknum = symbmtx->bloktab[i].fcblknm;
         assert( cblknum >= 0 );
         assert( cblknum < symbmtx->cblknbr );
         egraph->verttab[ cblknum ].innbr++;
@@ -102,11 +102,11 @@ eGraphBuild( EliminGraph        *egraph,
         for(i=0;i<symbmtx->bloknbr;i++)
         {
             /* If this bloc is not a diag bloc register it*/
-            if(symbmtx->cblktab[symbmtx->bloktab[i].cblknum].bloknum != i)
+            if(symbmtx->cblktab[symbmtx->bloktab[i].fcblknm].bloknum != i)
             {
-                egraph->inbltab[ egraph->verttab[symbmtx->bloktab[i].cblknum].innum
-                                 + tmp[symbmtx->bloktab[i].cblknum] ] = i;
-                tmp[symbmtx->bloktab[i].cblknum]++;
+                egraph->inbltab[ egraph->verttab[symbmtx->bloktab[i].fcblknm].innum
+                                 + tmp[symbmtx->bloktab[i].fcblknm] ] = i;
+                tmp[symbmtx->bloktab[i].fcblknm]++;
             }
         }
         memFree_null(tmp);

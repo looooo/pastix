@@ -403,8 +403,8 @@ typedef enum pastix_factotype_e {
  */
 /* _POS_ 3 */
 enum API_SYM {
-  API_SYM_YES = 111, /* Matrice symetrique     */
-  API_SYM_NO  = 112,  /* Matrice non symetrique */
+  API_SYM_NO  = 111,  /* Matrice non symetrique */
+  API_SYM_YES = 112, /* Matrice symetrique     */
   API_SYM_HER = 113
 };
 
