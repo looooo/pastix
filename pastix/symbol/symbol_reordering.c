@@ -95,7 +95,6 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
     pastix_int_t edgenbr = symbptr->bloknbr - symbptr->cblknbr;
     pastix_int_t cblknbr = symbptr->cblknbr;
 
-    pastix_int_t *crow = symbptr->crowtab;
     pastix_int_t *brow = symbptr->browtab;
 
     Clock timer;
@@ -155,7 +154,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             }
             else{
                 /* For upper levels in nested dissection */
-                if (levels[crow[iterblok]] <= local_split_level){
+                if (levels[blok->fcblknm] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
                         up_vectors_size[index]++;
@@ -216,17 +215,17 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             }
             else{
                 /* For upper levels in nested dissection */
-                if (levels[crow[iterblok]] <= local_split_level){
+                if (levels[blok->fcblknm] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
-                        up_vectors[index][up_current_pos[index]] = crow[iterblok];
+                        up_vectors[index][up_current_pos[index]] = blok->fcblknm;
                         up_current_pos[index]++;
                     }
                 }
                 else{
                     for (i=blok->frownum; i<=blok->lrownum; i++){
                         int index = i - order->rangtab[itercblk];
-                        vectors[index][current_pos[index]] = crow[iterblok];
+                        vectors[index][current_pos[index]] = blok->fcblknm;
                         current_pos[index]++;
                     }
                 }
