@@ -658,6 +658,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         for(i=0;i<symbmtx->cblknbr;i++)
         {
             pastix_int_t brownbr;
+            pastix_int_t finblknum, linblknum;
 
             /*if(cbprtab[i] == clustnum)*/
             if(simuctrl->bloktab[symbmtx->cblktab[i].bloknum].ownerclust == clustnum)
@@ -671,12 +672,17 @@ solverMatrixGen(const pastix_int_t clustnum,
 
 
                 brownbr = 0;
-                for(j=0; j<ctrl->egraph->verttab[i].innbr;j++)
+                finblknum = symbmtx->cblktab[i].brownum;
+                linblknum = symbmtx->cblktab[i+1].brownum;
+                assert( finblknum != -1 );
+                assert( linblknum != -1 );
+                for(j=finblknum; j<linblknum; j++)
                 {
                     pastix_int_t cluster;
                     pastix_int_t cblk;
-                    cluster = simuctrl->bloktab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]].ownerclust;
-                    cblk = ctrl->egraph->ownetab[ctrl->egraph->inbltab[ctrl->egraph->verttab[i].innum+j]];
+                    pastix_int_t bloknum = symbmtx->browtab[ j ];
+                    cluster = simuctrl->bloktab[bloknum].ownerclust;
+                    cblk = ctrl->egraph->ownetab[bloknum];
 #ifdef DEBUG_M
                     ASSERT( ctrl->candtab[cblk].treelevel   <= 0,   MOD_BLEND);
                     ASSERT( ctrl->candtab[cblk].distrib     == D1,  MOD_BLEND);

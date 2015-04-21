@@ -246,6 +246,7 @@ symbolFax (SymbolMatrix * const   symbptr,
             cblktax[cblknum].fcolnum = colnum;          /* Set column block data */
             cblktax[cblknum].lcolnum = colmax - 1;
             cblktax[cblknum].bloknum = bloknum;
+            cblktax[cblknum].brownum = -1;
 
             degrsum = 0;
             for ( ; colnum < colmax; colnum ++) /* For all columns                                  */
@@ -491,6 +492,7 @@ symbolFax (SymbolMatrix * const   symbptr,
     cblktax[cblknum].fcolnum =                      /* Set last column block data */
         cblktax[cblknum].lcolnum = vertnbr + baseval;
     cblktax[cblknum].bloknum = bloknum;
+    cblktax[cblknum].brownum = -1;
 
     memFree (ctrbtax + baseval);                    /* Free contribution link array */
 
@@ -500,6 +502,7 @@ symbolFax (SymbolMatrix * const   symbptr,
     symbptr->cblktab = cblktax + baseval;
     symbptr->bloktab = (SymbolBlok *) memRealloc (bloktax + baseval, (bloknum - baseval) * sizeof (SymbolBlok)); /* Set array to its exact size */
     symbptr->nodenbr = vertnbr;
+    symbptr->browtab = NULL;
 
 #ifdef FAX_DEBUG
     if (symbolCheck (symbptr) != 0) {
