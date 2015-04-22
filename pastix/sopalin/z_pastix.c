@@ -175,14 +175,12 @@
  */
 #define print_onempi(fmt, ...) if(procnum == 0) fprintf(stdout, fmt, __VA_ARGS__)
 
-static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) = 
+static void (*sopalinRaff[4][4][4])(z_SolverMatrix*, SopalinParam*) = 
 {
 //  API_RAF_GMRES
     {
 //      API_FACT_LU
         {
-            NULL,
-            NULL,
             ge_s_gmres_thread,
             ge_d_gmres_thread,
             ge_c_gmres_thread,
@@ -190,8 +188,6 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
         },
 //      API_FACT_LLT
         {
-            NULL,
-            NULL,
             po_s_gmres_thread,
             po_d_gmres_thread,
             po_c_gmres_thread,
@@ -201,15 +197,11 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
         {
             NULL,
             NULL,
-            NULL,
-            NULL,
             he_c_gmres_thread,
             he_z_gmres_thread
         },
 //      API_FACT_LDLT
         {
-            NULL,
-            NULL,
             sy_s_gmres_thread,
             sy_d_gmres_thread,
             sy_c_gmres_thread,
@@ -220,8 +212,6 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
     {
 //      API_FACT_LU
         {
-            NULL,
-            NULL,
             ge_s_pivot_thread,
             ge_d_pivot_thread,
             ge_c_pivot_thread,
@@ -232,8 +222,6 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
             NULL,
             NULL,
             NULL,
-            NULL,
-            NULL,
             NULL
         },
 //      API_FACT_LDLH
@@ -241,14 +229,10 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
             NULL,
             NULL,
             NULL,
-            NULL,
-            NULL,
             NULL
         },
 //      API_FACT_LDLT
         {
-            NULL,
-            NULL,
             NULL,
             NULL,
             NULL,
@@ -262,16 +246,10 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
             NULL,
             NULL,
             NULL,
-            NULL,
-            NULL,
             NULL
         },
 //      API_FACT_LLT
         {
-            NULL,
-            NULL,
-            NULL,
-            NULL,
             po_s_grad_thread,
             po_d_grad_thread,
             po_c_grad_thread,
@@ -281,15 +259,11 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
         {
             NULL,
             NULL,
-            NULL,
-            NULL,
             he_c_grad_thread,
             he_z_grad_thread
         },
 //      API_FACT_LDLT
         {
-            NULL,
-            NULL,
             sy_s_grad_thread,
             sy_d_grad_thread,
             sy_c_grad_thread,
@@ -300,8 +274,6 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
     {
 //      API_FACT_LU
         {
-            NULL,
-            NULL,
             ge_s_bicgstab_thread,
             ge_d_bicgstab_thread,
             ge_c_bicgstab_thread,
@@ -312,8 +284,6 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
             NULL,
             NULL,
             NULL,
-            NULL,
-            NULL,
             NULL
         },
 //      API_FACT_LDLH
@@ -321,14 +291,10 @@ static void (*sopalinRaff[4][4][6])(z_SolverMatrix*, SopalinParam*) =
             NULL,
             NULL,
             NULL,
-            NULL,
-            NULL,
             NULL
         },
 //      API_FACT_LDLT
         {
-            NULL,
-            NULL,
             NULL,
             NULL,
             NULL,
@@ -1770,84 +1736,18 @@ int z_pastix_task_sopalin( z_pastix_data_t *pastix_data,
         }
 #endif
         sopar->gmresim = iparm[IPARM_GMRES_IM];
-        switch (iparm[IPARM_REFINEMENT])
+
+        if(sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FACTORIZATION]][iparm[IPARM_FLOAT]-2])
         {
-        case API_RAF_GMRES:
-            switch(iparm[IPARM_FACTORIZATION])
-            {
-            case API_FACT_LU:
-                ge_z_sopalin_updo_gmres_thread(solvmatr, sopar);
-                break;
-            case API_FACT_LLT:
-                po_z_sopalin_updo_gmres_thread(solvmatr, sopar);
-                break;
-            case API_FACT_LDLH:
-                he_z_sopalin_updo_gmres_thread(solvmatr, sopar);
-                break;
-            case API_FACT_LDLT:
-                sy_z_sopalin_updo_gmres_thread(solvmatr, sopar);
-                break;
-            default:
-                errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
-                return BADPARAMETER_ERR;
-            }
-            break;
-        case API_RAF_PIVOT:
-            switch(iparm[IPARM_FACTORIZATION])
-            {
-            case API_FACT_LU:
-                ge_z_sopalin_updo_pivot_thread(solvmatr, sopar);
-                break;
-            case API_FACT_LLT:
-            case API_FACT_LDLH:
-            case API_FACT_LDLT:
-                errorPrint("Refinement method and factorization type are incompatibles");
-                return BADPARAMETER_ERR;
-            default:
-                errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
-                return BADPARAMETER_ERR;
-            }
-            break;
-        case API_RAF_GRAD:
-            switch(iparm[IPARM_FACTORIZATION])
-            {
-            case API_FACT_LU:
-                errorPrint("Refinement method and factorization type are incompatibles");
-                return BADPARAMETER_ERR;
-            case API_FACT_LLT:
-                po_z_sopalin_updo_grad_thread(solvmatr, sopar);
-                break;
-            case API_FACT_LDLH:
-                he_z_sopalin_updo_grad_thread(solvmatr, sopar);
-                break;
-            case API_FACT_LDLT:
-                sy_z_sopalin_updo_grad_thread(solvmatr, sopar);
-                break;
-            default:
-                errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
-                return BADPARAMETER_ERR;
-            }
-            break;
-            /* case API_RAF_BICGSTAB: */
-            /*   switch(iparm[IPARM_FACTORIZATION]) */
-            /*     { */
-            /*     case API_FACT_LU: */
-            /*       ge_z_sopalin_updo_bicgstab_thread(solvmatr, sopar); */
-            /*       break; */
-            /*     case API_FACT_LLT: */
-            /*     case API_FACT_LDLH: */
-            /*     case API_FACT_LDLT: */
-            /*       errorPrint("Refinement method and factorization type are incompatibles"); */
-            /*       return BADPARAMETER_ERR; */
-            /*     default: */
-            /*       errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]); */
-            /*       return BADPARAMETER_ERR; */
-            /*     } */
-            /*   break; */
-        default:
-            errorPrint("Undefined refinement method : %ld", (long)iparm[IPARM_REFINEMENT]);
-            return BADPARAMETER_ERR;
+            sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FACTORIZATION]][iparm[IPARM_FLOAT]-2](solvmatr, sopar);
         }
+        else
+        {
+            errorPrint("Refinement method and factorization type are incompatibles");
+            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
+            return
+        }
+
         /* sopar->b was only needed for raff */
         memFree_null(sopar->b);
         iparm[IPARM_START_TASK]++;
@@ -2165,6 +2065,31 @@ void z_pastix_task_updown(z_pastix_data_t *pastix_data,
  b           - Right hand side.
  loc2glob    - local to global column number.
  */
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_raff
+ *
+ * z_pastix_task_raff - Reffinement task.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The PaStiX data structure.
+ * 
+ * @param[in] pastix_comm
+ *          The PaStiX MPI communicator.
+ * 
+ * @param[in] n
+ *          The matrix size.
+ * 
+ * @param[in,out] rhs
+ *          The rhight hand side member.
+ * 
+ * @param[in] loc2globn
+ *          The local to global column number.
+ *
+ *******************************************************************************/
 void z_pastix_task_raff(z_pastix_data_t *pastix_data,
                       MPI_Comm       pastix_comm,
                       pastix_int_t            n,
@@ -2252,91 +2177,14 @@ void z_pastix_task_raff(z_pastix_data_t *pastix_data,
     }
 #endif
     sopar->gmresim = iparm[IPARM_GMRES_IM];
-
-    switch (iparm[IPARM_REFINEMENT])
+    
+    if(sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FACTORIZATION]][iparm[IPARM_FLOAT]-2])
     {
-    case API_RAF_GMRES:
-        switch(iparm[IPARM_FACTORIZATION])
-        {
-        case API_FACT_LU:
-            ge_z_gmres_thread(solvmatr, sopar);
-            break;
-        case API_FACT_LLT:
-            po_z_gmres_thread(solvmatr, sopar);
-            break;
-        case API_FACT_LDLH:
-            he_z_gmres_thread(solvmatr, sopar);
-            break;
-        case API_FACT_LDLT:
-            sy_z_gmres_thread(solvmatr, sopar);
-            break;
-        default:
-            errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
-            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-            return;
-
-        }
-        break;
-    case API_RAF_PIVOT:
-        switch(iparm[IPARM_FACTORIZATION])
-        {
-        case API_FACT_LU:
-            ge_z_pivot_thread(solvmatr, sopar);
-            break;
-        case API_FACT_LLT:
-        case API_FACT_LDLH:
-        case API_FACT_LDLT:
-            errorPrint("Refinement method and factorization type are incompatibles");
-            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-            return;
-        default:
-            errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
-            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-            return;
-        }
-        break;
-    case API_RAF_GRAD:
-        switch(iparm[IPARM_FACTORIZATION])
-        {
-        case API_FACT_LU:
-            errorPrint("Refinement method and factorization type are incompatibles");
-            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-            return;
-        case API_FACT_LLT:
-            po_z_grad_thread(solvmatr, sopar);
-            break;
-        case API_FACT_LDLH:
-            he_z_grad_thread(solvmatr, sopar);
-            break;
-        case API_FACT_LDLT:
-            sy_z_grad_thread(solvmatr, sopar);
-            break;
-        default:
-            errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
-            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-            return;
-        }
-        break;
-        /* case API_RAF_BICGSTAB: */
-        /*   switch(iparm[IPARM_FACTORIZATION]) */
-        /*     { */
-        /*     case API_FACT_LU: */
-        /*       ge_z_bicgstab_thread(solvmatr, sopar); */
-        /*       break; */
-        /*     case API_FACT_LLT: */
-        /*     case API_FACT_LDLH: */
-        /*     case API_FACT_LDLT: */
-        /*       errorPrint("Refinement method and factorization type are incompatibles"); */
-        /*       iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR; */
-        /*       return; */
-        /*     default: */
-        /*       errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]); */
-        /*       iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR; */
-        /*       return; */
-        /*     } */
-        /*   break; */
-    default:
-        errorPrint("Undefined refinement method : %ld", (long)iparm[IPARM_REFINEMENT]);
+        sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FACTORIZATION]][iparm[IPARM_FLOAT]-2](solvmatr, sopar);
+    }
+    else
+    {
+        errorPrint("Refinement method and factorization type are incompatibles");
         iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
         return;
     }
