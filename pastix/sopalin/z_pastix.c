@@ -1736,18 +1736,84 @@ int z_pastix_task_sopalin( z_pastix_data_t *pastix_data,
         }
 #endif
         sopar->gmresim = iparm[IPARM_GMRES_IM];
-
-        if(sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FACTORIZATION]][iparm[IPARM_FLOAT]-2])
+        switch (iparm[IPARM_REFINEMENT])
         {
-            sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FACTORIZATION]][iparm[IPARM_FLOAT]-2](solvmatr, sopar);
+        case API_RAF_GMRES:
+            switch(iparm[IPARM_FACTORIZATION])
+            {
+            case API_FACT_LU:
+                ge_z_sopalin_updo_gmres_thread(solvmatr, sopar);
+                break;
+            case API_FACT_LLT:
+                po_z_sopalin_updo_gmres_thread(solvmatr, sopar);
+                break;
+            case API_FACT_LDLH:
+                he_z_sopalin_updo_gmres_thread(solvmatr, sopar);
+                break;
+            case API_FACT_LDLT:
+                sy_z_sopalin_updo_gmres_thread(solvmatr, sopar);
+                break;
+            default:
+                errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
+                return BADPARAMETER_ERR;
+            }
+            break;
+        case API_RAF_PIVOT:
+            switch(iparm[IPARM_FACTORIZATION])
+            {
+            case API_FACT_LU:
+                ge_z_sopalin_updo_pivot_thread(solvmatr, sopar);
+                break;
+            case API_FACT_LLT:
+            case API_FACT_LDLH:
+            case API_FACT_LDLT:
+                errorPrint("Refinement method and factorization type are incompatibles");
+                return BADPARAMETER_ERR;
+            default:
+                errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
+                return BADPARAMETER_ERR;
+            }
+            break;
+        case API_RAF_GRAD:
+            switch(iparm[IPARM_FACTORIZATION])
+            {
+            case API_FACT_LU:
+                errorPrint("Refinement method and factorization type are incompatibles");
+                return BADPARAMETER_ERR;
+            case API_FACT_LLT:
+                po_z_sopalin_updo_grad_thread(solvmatr, sopar);
+                break;
+            case API_FACT_LDLH:
+                he_z_sopalin_updo_grad_thread(solvmatr, sopar);
+                break;
+            case API_FACT_LDLT:
+                sy_z_sopalin_updo_grad_thread(solvmatr, sopar);
+                break;
+            default:
+                errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]);
+                return BADPARAMETER_ERR;
+            }
+            break;
+            /* case API_RAF_BICGSTAB: */
+            /*   switch(iparm[IPARM_FACTORIZATION]) */
+            /*     { */
+            /*     case API_FACT_LU: */
+            /*       ge_z_sopalin_updo_bicgstab_thread(solvmatr, sopar); */
+            /*       break; */
+            /*     case API_FACT_LLT: */
+            /*     case API_FACT_LDLH: */
+            /*     case API_FACT_LDLT: */
+            /*       errorPrint("Refinement method and factorization type are incompatibles"); */
+            /*       return BADPARAMETER_ERR; */
+            /*     default: */
+            /*       errorPrint("Undefined factorization type : %ld", (long)iparm[IPARM_FACTORIZATION]); */
+            /*       return BADPARAMETER_ERR; */
+            /*     } */
+            /*   break; */
+        default:
+            errorPrint("Undefined refinement method : %ld", (long)iparm[IPARM_REFINEMENT]);
+            return BADPARAMETER_ERR;
         }
-        else
-        {
-            errorPrint("Refinement method and factorization type are incompatibles");
-            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-            return
-        }
-
         /* sopar->b was only needed for raff */
         memFree_null(sopar->b);
         iparm[IPARM_START_TASK]++;
