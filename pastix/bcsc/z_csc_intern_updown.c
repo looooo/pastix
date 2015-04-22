@@ -57,10 +57,11 @@
  */
 void z_CscUpdownRhs(z_UpDownVector           *updovct,
                     const z_SolverMatrix     *solvmtx,
-                    const pastix_complex64_t *rhs,
+                    const void               *rhs,
                     const pastix_int_t       *invp,
                     int                       dof)
 {
+  pastix_complex64_t *rhsptr = rhs;
   pastix_int_t itercblk;
   pastix_int_t itercol;
   pastix_int_t itersm2x;
@@ -80,7 +81,7 @@ void z_CscUpdownRhs(z_UpDownVector           *updovct,
           for (i=0; i<updovct->sm2xnbr; i++)
             {
               updovct->sm2xtab[itersm2x + i*updovct->sm2xsze] =
-                rhs[indice + i*updovct->gnodenbr];
+                rhsptr[indice + i*updovct->gnodenbr];
             }
           itersm2x++;
         }
@@ -104,12 +105,13 @@ void z_CscUpdownRhs(z_UpDownVector           *updovct,
  */
 void z_CscdUpdownRhs(z_UpDownVector           *updovct,
                      const z_SolverMatrix     *solvmtx,
-                     const pastix_complex64_t *rhs,
+                     const void               *rhs,
                      const pastix_int_t       *invp,
                      const pastix_int_t       *g2l,
                      const pastix_int_t        ln,
                      int                       dof)
 {
+  pastix_complex64_t *rhsptr = rhs;
   pastix_int_t itercblk;
   pastix_int_t itercol;
   pastix_int_t itersm2x;
@@ -130,7 +132,7 @@ void z_CscdUpdownRhs(z_UpDownVector           *updovct,
           for (i=0; i<updovct->sm2xnbr; i++)
             {
               updovct->sm2xtab[itersm2x + i*updovct->sm2xsze] =
-                rhs[indice + i*ln];
+                rhsptr[indice + i*ln];
             }
           itersm2x++;
         }
@@ -155,13 +157,14 @@ void z_CscdUpdownRhs(z_UpDownVector           *updovct,
  */
 void z_CscRhsUpdown(const z_UpDownVector *updovct,
                     const z_SolverMatrix *solvmtx,
-                    pastix_complex64_t   *rhs,
+                    void                 *rhs,
                     const pastix_int_t    ncol,
                     const pastix_int_t   *invp,
                     const int             dof,
                     const int             rhsmaking,
                     MPI_Comm              comm)
 {
+  pastix_complex64_t *rhsptr = rhs;
   pastix_int_t    iter;
   pastix_int_t    itercblk;
   pastix_int_t    itersm2x;
@@ -183,7 +186,7 @@ void z_CscRhsUpdown(const z_UpDownVector *updovct,
     {
       rhs2[iter] = 0.0;
 #ifndef INOUT_ALLREDUCE
-      rhs[iter]  = 0.0;
+      rhsptr[iter]  = 0.0;
 #endif
     }
 
@@ -253,13 +256,14 @@ void z_CscRhsUpdown(const z_UpDownVector *updovct,
  */
 void z_CscdRhsUpdown(const z_UpDownVector *updovct,
                      const z_SolverMatrix *solvmtx,
-                     pastix_complex64_t   *x,
+                     void                 *x,
                      const pastix_int_t    ncol,
                      const pastix_int_t   *g2l,
                      const pastix_int_t   *invp,
                      int                   dof,
                      MPI_Comm              comm)
 {
+  pastix_complex64_t *xptr = x;
   pastix_int_t iter;
   pastix_int_t itercblk;
   pastix_int_t itersm2x;
@@ -271,7 +275,7 @@ void z_CscdRhsUpdown(const z_UpDownVector *updovct,
 
   for (iter=0; iter<size; iter++)
     {
-      x[iter]  = 0.0;
+      xptr[iter]  = 0.0;
     }
 
   for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++)
@@ -284,7 +288,7 @@ void z_CscdRhsUpdown(const z_UpDownVector *updovct,
           pastix_int_t i;
           for (i=0; i<updovct->sm2xnbr; i++)
             {
-              x[(g2l[invp[(itercol-itercol%dof)/dof]] - 1)*dof +
+              xptr[(g2l[invp[(itercol-itercol%dof)/dof]] - 1)*dof +
                 itercol%dof + i*ncol] = updovct->sm2xtab[itersm2x+i*
                                                          updovct->sm2xsze];
             }
