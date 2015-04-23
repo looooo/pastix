@@ -19,6 +19,35 @@
 #include "bcsc.h"
 #include "sopalin_data.h"
 
+// static void (*potrfTable[6])(sopalin_data_t*) = {
+static void (*sopalinFacto[4][6])(sopalin_data_t*) = 
+{
+    {
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL 
+    },
+    {
+        NULL,
+        NULL,
+        pastix_static_spotrf,
+        pastix_static_dpotrf,
+        pastix_static_cpotrf,
+        pastix_static_zpotrf 
+    },
+    {
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL 
+    }
+};
+
 void
 coeftabInit( const SolverMatrix  *datacode,
              const pastix_bcsc_t *bcsc,
@@ -209,7 +238,8 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         clockStart(timer);
         sopalin_data.solvmtx = pastix_data->solvmatr;
 
-        pastix_static_dpotrf( &sopalin_data );
+        sopalinFacto[csc->mtxtype][csc->flttype]( &sopalin_data );
+
         clockStop(timer);
         pastix_print( 0, 0, "--Factorization time: %g --\n", clockVal(timer));
 
