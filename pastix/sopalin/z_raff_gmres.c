@@ -18,20 +18,18 @@
  */
 
 /* Raffinement du second membre */
-#define z_gmres_smp         API_CALL(z_gmres_smp)
-#define z_gmres_thread      API_CALL(z_gmres_thread)
 
 void* z_gmres_smp        (void *arg);
 
 /* Lancement d'une des fonctions seules */
-void z_gmres_thread(z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
+void z_gmres_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
 
 /*
  ** Section: Threads routines
  */
 
 /*
- Function: API_CALL(z_gmres_smp)
+ Function: z_gmres_smp
 
  Function computing GMRES iterative reffinement.
 
@@ -47,77 +45,77 @@ typedef struct gmres_s
   volatile double     gmresro;           /*+ Norm of GMRES residue               +*/
 } gmres_t;
 
-void* API_CALL(z_gmres_smp)(void *arg)
+void* z_gmres_smp(void *arg)
 {
-  struct z_solver solveur = {NULL};
-  z_Pastix_Solveur(&solveur);
+  struct solver solveur = {NULL};
+  Pastix_Solveur(&solveur);
 
-  z_RAFF_INT               n            = solveur.N(arg);
+  RAFF_INT               n            = solveur.N(arg);
   Clock             raff_clk;
   double            t0           = 0;
   double            t3           = 0;
-  z_RAFF_FLOAT          *  gmrestemp    = NULL;
-  volatile z_RAFF_INT      gmresim      = 0;
-  volatile z_RAFF_INT      gmresmaxits  = 0;
-  z_RAFF_FLOAT          *  gmresb       = NULL;
-  z_RAFF_FLOAT          ** gmresvv      = NULL;
-  z_RAFF_FLOAT          ** gmreshh      = NULL;
-  z_RAFF_FLOAT          *  gmresc       = NULL;
-  z_RAFF_FLOAT          *  gmress       = NULL;
-  z_RAFF_FLOAT          *  gmresrs      = NULL;
-  z_RAFF_FLOAT          ** gmresw       = NULL;
-  z_RAFF_FLOAT             gmresalpha;
-  z_RAFF_FLOAT             gmrest;
-  volatile z_RAFF_INT      gmresiters   = 0;
-  z_RAFF_FLOAT          *  gmreswk1;
-  z_RAFF_FLOAT          *  gmreswk2     = NULL;
+  RAFF_FLOAT          *  gmrestemp    = NULL;
+  volatile RAFF_INT      gmresim      = 0;
+  volatile RAFF_INT      gmresmaxits  = 0;
+  RAFF_FLOAT          *  gmresb       = NULL;
+  RAFF_FLOAT          ** gmresvv      = NULL;
+  RAFF_FLOAT          ** gmreshh      = NULL;
+  RAFF_FLOAT          *  gmresc       = NULL;
+  RAFF_FLOAT          *  gmress       = NULL;
+  RAFF_FLOAT          *  gmresrs      = NULL;
+  RAFF_FLOAT          ** gmresw       = NULL;
+  RAFF_FLOAT             gmresalpha;
+  RAFF_FLOAT             gmrest;
+  volatile RAFF_INT      gmresiters   = 0;
+  RAFF_FLOAT          *  gmreswk1;
+  RAFF_FLOAT          *  gmreswk2     = NULL;
   volatile double   gmreseps     = 0;
   volatile double   gmresnormb;
-  volatile z_RAFF_INT      gmresi1      = 0;
-  volatile z_RAFF_INT      i = 0;
-  z_RAFF_INT               j, ii, k;
-  z_RAFF_FLOAT             beta;
-  z_RAFF_FLOAT          *  gmresx       = NULL;
+  volatile RAFF_INT      gmresi1      = 0;
+  volatile RAFF_INT      i = 0;
+  RAFF_INT               j, ii, k;
+  RAFF_FLOAT             beta;
+  RAFF_FLOAT          *  gmresx       = NULL;
   gmres_t        *  gmresdata;
   gmresim     = solveur.Krylov_Space(arg);
   gmresmaxits = solveur.Itermax(arg);
   gmreseps    = solveur.Eps(arg);
 
-  gmrestemp = solveur.Malloc(arg, n           * sizeof(z_RAFF_FLOAT));
-  gmresb    = solveur.Malloc(arg, n           * sizeof(z_RAFF_FLOAT));
-  gmresc    = solveur.Malloc(arg, gmresim     * sizeof(z_RAFF_FLOAT));
-  gmress    = solveur.Malloc(arg, gmresim     * sizeof(z_RAFF_FLOAT));
-  gmresrs   = solveur.Malloc(arg, (gmresim+1) * sizeof(z_RAFF_FLOAT));
+  gmrestemp = solveur.Malloc(arg, n           * sizeof(RAFF_FLOAT));
+  gmresb    = solveur.Malloc(arg, n           * sizeof(RAFF_FLOAT));
+  gmresc    = solveur.Malloc(arg, gmresim     * sizeof(RAFF_FLOAT));
+  gmress    = solveur.Malloc(arg, gmresim     * sizeof(RAFF_FLOAT));
+  gmresrs   = solveur.Malloc(arg, (gmresim+1) * sizeof(RAFF_FLOAT));
   gmresdata = solveur.Malloc(arg, 1           * sizeof(gmres_t));
-  gmresx    = solveur.Malloc(arg, n           * sizeof(z_RAFF_FLOAT));
+  gmresx    = solveur.Malloc(arg, n           * sizeof(RAFF_FLOAT));
 
   MONO_BEGIN(arg);
-  gmresvv = solveur.Malloc(arg, (gmresim+1) * sizeof(z_RAFF_FLOAT*));
-  gmreshh = solveur.Malloc(arg, gmresim     * sizeof(z_RAFF_FLOAT*));
-  gmresw  = solveur.Malloc(arg, gmresim     * sizeof(z_RAFF_FLOAT*));
+  gmresvv = solveur.Malloc(arg, (gmresim+1) * sizeof(RAFF_FLOAT*));
+  gmreshh = solveur.Malloc(arg, gmresim     * sizeof(RAFF_FLOAT*));
+  gmresw  = solveur.Malloc(arg, gmresim     * sizeof(RAFF_FLOAT*));
   for (i=0; i<gmresim; i++)
     {
-      gmresvv[i] = solveur.Malloc(arg, n           * sizeof(z_RAFF_FLOAT));
-      gmreshh[i] = solveur.Malloc(arg, (gmresim+1) * sizeof(z_RAFF_FLOAT));
-      gmresw[i]  = solveur.Malloc(arg, n           * sizeof(z_RAFF_FLOAT));
+      gmresvv[i] = solveur.Malloc(arg, n           * sizeof(RAFF_FLOAT));
+      gmreshh[i] = solveur.Malloc(arg, (gmresim+1) * sizeof(RAFF_FLOAT));
+      gmresw[i]  = solveur.Malloc(arg, n           * sizeof(RAFF_FLOAT));
     }
-  gmresvv[gmresim] = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
+  gmresvv[gmresim] = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
   MONO_END(arg);
   SYNCHRO(arg);
 
   /* Synchronisations */
-  gmrestemp  = (z_RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmrestemp, 0);
-  gmresb     = (z_RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresb,    1);
-  gmresc     = (z_RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresc,    2);
-  gmress     = (z_RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmress,    3);
-  gmresrs    = (z_RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresrs,   4);
-  gmresvv    = (z_RAFF_FLOAT **)solveur.Synchro(arg, (void*) gmresvv,   6);
-  gmreshh    = (z_RAFF_FLOAT **)solveur.Synchro(arg, (void*) gmreshh,   7);
-  gmresw     = (z_RAFF_FLOAT **)solveur.Synchro(arg, (void*) gmresw,    8);
+  gmrestemp  = (RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmrestemp, 0);
+  gmresb     = (RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresb,    1);
+  gmresc     = (RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresc,    2);
+  gmress     = (RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmress,    3);
+  gmresrs    = (RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresrs,   4);
+  gmresvv    = (RAFF_FLOAT **)solveur.Synchro(arg, (void*) gmresvv,   6);
+  gmreshh    = (RAFF_FLOAT **)solveur.Synchro(arg, (void*) gmreshh,   7);
+  gmresw     = (RAFF_FLOAT **)solveur.Synchro(arg, (void*) gmresw,    8);
   gmresdata  = (gmres_t*)solveur.Synchro(arg, (void*) gmresdata, 9);
 
   gmresnormb = (double)(*((double*)solveur.Synchro(arg, (void*) &gmresnormb, 10)));
-  gmresx     = (z_RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresx,    11);
+  gmresx     = (RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmresx,    11);
 
   gmresdata->gmresro = 0.0;
   gmresdata->gmresout_flag = 1;
@@ -143,23 +141,23 @@ void* API_CALL(z_gmres_smp)(void *arg)
       solveur.Dotc_Gmres(arg, gmresvv[0], gmresvv[0], &beta, 0);
 
 #ifdef TYPE_COMPLEX
-      gmresdata->gmresro = (z_RAFF_FLOAT)csqrt(beta);
+      gmresdata->gmresro = (RAFF_FLOAT)csqrt(beta);
 #else
-      gmresdata->gmresro = (z_RAFF_FLOAT)sqrt(beta);
+      gmresdata->gmresro = (RAFF_FLOAT)sqrt(beta);
 #endif
 
-      if ((double)ABS_FLOAT((z_RAFF_FLOAT)gmresdata->gmresro) <=
+      if ((double)ABS_FLOAT((RAFF_FLOAT)gmresdata->gmresro) <=
           gmreseps)
         {
           gmresdata->gmresout_flag = 0;
           break;
         }
 
-      gmrest = (z_RAFF_FLOAT)(1.0/gmresdata->gmresro);
+      gmrest = (RAFF_FLOAT)(1.0/gmresdata->gmresro);
 
       solveur.Scal(arg, gmrest, gmresvv[0], 1);
 
-      gmresrs[0] = (z_RAFF_FLOAT)gmresdata->gmresro;
+      gmresrs[0] = (RAFF_FLOAT)gmresdata->gmresro;
       gmresdata->gmresin_flag = 1;
       i=-1;
 
@@ -188,7 +186,7 @@ void* API_CALL(z_gmres_smp)(void *arg)
               /* vv[j]*vv[i1] */
               solveur.Dotc_Gmres(arg,gmresvv[gmresi1], gmresvv[j], &beta, 0);
 
-              gmreshh[i][j] = (z_RAFF_FLOAT)beta;
+              gmreshh[i][j] = (RAFF_FLOAT)beta;
             }
 
           SYNCHRO(arg);
@@ -203,9 +201,9 @@ void* API_CALL(z_gmres_smp)(void *arg)
           solveur.Dotc_Gmres(arg, gmresvv[gmresi1], gmresvv[gmresi1], &beta, 0);
 
 #ifdef TYPE_COMPLEX
-      gmrest = (z_RAFF_FLOAT)csqrt(beta);
+      gmrest = (RAFF_FLOAT)csqrt(beta);
 #else
-      gmrest = (z_RAFF_FLOAT)sqrt(beta);
+      gmrest = (RAFF_FLOAT)sqrt(beta);
 #endif
 
           gmreshh[i][gmresi1] = gmrest;
@@ -225,8 +223,8 @@ void* API_CALL(z_gmres_smp)(void *arg)
                 {
                   gmrest = gmreshh[i][j-1];
 #ifdef TYPE_COMPLEX
-                  gmreshh[i][j-1] = (z_RAFF_FLOAT)conj(gmresc[j-1])*gmrest +
-                    (z_RAFF_FLOAT)conj(gmress[j-1])*gmreshh[i][j];
+                  gmreshh[i][j-1] = (RAFF_FLOAT)conj(gmresc[j-1])*gmrest +
+                    (RAFF_FLOAT)conj(gmress[j-1])*gmreshh[i][j];
 #else /* TYPE_COMPLEX */
                   gmreshh[i][j-1] =  gmresc[j-1]*gmrest +
                     gmress[j-1]*gmreshh[i][j];
@@ -236,22 +234,22 @@ void* API_CALL(z_gmres_smp)(void *arg)
                 }
             }
 #ifdef TYPE_COMPLEX
-          gmrest = (z_RAFF_FLOAT)csqrt(ABS_FLOAT(gmreshh[i][i]*gmreshh[i][i])+
-                                       gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
+          gmrest = (RAFF_FLOAT)csqrt(ABS_FLOAT(gmreshh[i][i]*gmreshh[i][i])+
+                                     gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
 #else
-          gmrest = (z_RAFF_FLOAT)sqrt(gmreshh[i][i]*gmreshh[i][i]+
-                                      gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
+          gmrest = (RAFF_FLOAT)sqrt(gmreshh[i][i]*gmreshh[i][i]+
+                                    gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
 #endif
           if (ABS_FLOAT(gmrest) <= gmreseps)
-            gmrest = (z_RAFF_FLOAT)gmreseps;
+            gmrest = (RAFF_FLOAT)gmreseps;
 
           gmresc[i] = gmreshh[i][i]/gmrest;
           gmress[i] = gmreshh[i][gmresi1]/gmrest;
           gmresrs[gmresi1] = -gmress[i]*gmresrs[i];
 
 #ifdef TYPE_COMPLEX
-          gmresrs[i] = (z_RAFF_FLOAT)conj(gmresc[i])*gmresrs[i];
-          gmreshh[i][i] = (z_RAFF_FLOAT)conj(gmresc[i])*gmreshh[i][i] +
+          gmresrs[i] = (RAFF_FLOAT)conj(gmresc[i])*gmresrs[i];
+          gmreshh[i][i] = (RAFF_FLOAT)conj(gmresc[i])*gmreshh[i][i] +
           gmress[i]*gmreshh[i][gmresi1];
 #else
           gmresrs[i] = gmresc[i]*gmresrs[i];
@@ -341,7 +339,7 @@ void* API_CALL(z_gmres_smp)(void *arg)
 /*
 ** Section: Function creating threads
 */
-void API_CALL(z_gmres_thread)(z_SolverMatrix *datacode, z_SopalinParam *sopaparam)
+void z_gmres_thread(SolverMatrix *datacode, SopalinParam *sopaparam)
 {
-  z_raff_thread(datacode, sopaparam, &API_CALL(z_gmres_smp));
+  z_raff_thread(datacode, sopaparam, &z_gmres_smp);
 }

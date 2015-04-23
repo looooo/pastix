@@ -18,8 +18,6 @@
  */
 
 /* Raffinement du second membre */
-#define z_grad_smp          API_CALL(z_grad_smp)
-#define z_grad_thread       API_CALL(z_grad_thread)
 
 void* z_grad_smp         (void *arg);
 
@@ -31,7 +29,7 @@ void z_grad_thread (z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
 
 
 /*
- Function: API_CALL(z_grad_smp)
+ Function: z_grad_smp
 
  Refine the solution using conjugate gradian method.
 
@@ -40,42 +38,42 @@ void z_grad_thread (z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
  the <z_Sopalin_Data_t> structure and the thread number ID.
 
  */
-void* API_CALL(z_grad_smp)(void *arg)
+void* z_grad_smp(void *arg)
 {
   /* Choix du solveur */
-  struct z_solver solveur = {NULL};
-  z_Pastix_Solveur(&solveur);
+  struct solver solveur = {NULL};
+  Pastix_Solveur(&solveur);
 
   /* Variables */
   Clock  raff_clk;
   double t0      = 0;
   double t3      = 0;
-  z_RAFF_FLOAT  tmp     = 0.0;
-  z_RAFF_FLOAT  normr;
-  z_RAFF_FLOAT  normb;
-  z_RAFF_FLOAT  epsilon = solveur.Eps(arg);
-  z_RAFF_INT    itermax = solveur.Itermax(arg);
-  z_RAFF_INT    nb_iter = 0;
-  z_RAFF_INT    n       = solveur.N(arg);
+  RAFF_FLOAT  tmp     = 0.0;
+  RAFF_FLOAT  normr;
+  RAFF_FLOAT  normb;
+  RAFF_FLOAT  epsilon = solveur.Eps(arg);
+  RAFF_INT    itermax = solveur.Itermax(arg);
+  RAFF_INT    nb_iter = 0;
+  RAFF_INT    n       = solveur.N(arg);
 
-  z_RAFF_FLOAT *gradb = NULL;
-  z_RAFF_FLOAT *gradr = NULL;
-  z_RAFF_FLOAT *gradp = NULL;
-  z_RAFF_FLOAT *gradz = NULL;
-  z_RAFF_FLOAT *grad2 = NULL;
-  z_RAFF_FLOAT *alpha = NULL;
-  z_RAFF_FLOAT *beta  = NULL;
-  z_RAFF_FLOAT *gradx = NULL;
+  RAFF_FLOAT *gradb = NULL;
+  RAFF_FLOAT *gradr = NULL;
+  RAFF_FLOAT *gradp = NULL;
+  RAFF_FLOAT *gradz = NULL;
+  RAFF_FLOAT *grad2 = NULL;
+  RAFF_FLOAT *alpha = NULL;
+  RAFF_FLOAT *beta  = NULL;
+  RAFF_FLOAT *gradx = NULL;
 
   /* Initialisation des vecteurs */
-  gradb = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradr = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradp = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradz = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  grad2 = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  alpha = solveur.Malloc(arg,     sizeof(z_RAFF_FLOAT));
-  beta  = solveur.Malloc(arg,     sizeof(z_RAFF_FLOAT));
-  gradx = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
+  gradb = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradr = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradp = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradz = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  grad2 = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  alpha = solveur.Malloc(arg,     sizeof(RAFF_FLOAT));
+  beta  = solveur.Malloc(arg,     sizeof(RAFF_FLOAT));
+  gradx = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
 
   gradb = solveur.Synchro(arg, (void*) gradb, 0);
   gradr = solveur.Synchro(arg, (void*) gradr, 1);
@@ -157,7 +155,7 @@ void* API_CALL(z_grad_smp)(void *arg)
 /*
  ** Section: Function creating threads
  */
-void API_CALL(z_grad_thread)(z_SolverMatrix *datacode, z_SopalinParam *sopaparam)
+void z_grad_thread(SolverMatrix *datacode, SopalinParam *sopaparam)
 {
-  z_raff_thread(datacode, sopaparam, &API_CALL(z_grad_smp));
+  z_raff_thread(datacode, sopaparam, &z_grad_smp);
 }
