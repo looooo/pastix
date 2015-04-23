@@ -548,6 +548,7 @@ set(PASTIX_LIB_SRCS
   #matrix_drivers/readcscd.c
 #
   sopalin/pastix_task_sopalin.c
+  sopalin/pastix_task_raff.c
   sopalin/coeftab.c
 #
   csc/csc.c

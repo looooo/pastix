@@ -22,17 +22,41 @@
 #include "common.h"
 #include "csc.h"
 #include "bcsc.h"
+// #include "s_raff_functions.h"
+// #include "d_raff_functions.h"
+// #include "c_raff_functions.h"
+#include "z_raff_functions.h"
+// #include "s_csc_intern_updown.h"
+// #include "d_csc_intern_updown.h"
+// #include "c_csc_intern_updown.h"
+#include "z_csc_intern_updown.h"
 
-static void (*sopalinRaff[4])(SolverMatrix*, SopalinParam*) = 
+static void (*sopalinRaff[4][4])(SolverMatrix*, SopalinParam*) = 
 {
 //  API_RAF_GMRES
-    gmres_thread,
+    {
+        s_gmres_thread,
+        d_gmres_thread,
+        c_gmres_thread,
+        z_gmres_thread},
 //  API_RAF_PIVOT
-    pivot_thread,
+    {
+        s_pivot_thread,
+        d_pivot_thread,
+        c_pivot_thread,
+        z_pivot_thread},
 //  API_RAF_GRAD
-    grad_thread,
+    {
+        s_grad_thread,
+        d_grad_thread,
+        c_grad_thread,
+        z_grad_thread},
 //  API_RAF_BICGSTAB
-    bicgstab_thread
+    {
+        s_bicgstab_thread,
+        d_bicgstab_thread,
+        c_bicgstab_thread,
+        z_bicgstab_thread}
 };
 
 static void (*buildUpdoVect[4])(pastix_data_t*, pastix_int_t*, void*, MPI_Comm) = 
@@ -51,13 +75,15 @@ static void (*CscRhsUpdown[4])(UpDownVector*, SolverMatrix*, void*, pastix_int_t
     z_CscRhsUpdown
 };
 
-static void (*CscRhsUpdown[4])(UpDownVector*, SolverMatrix*, void*, pastix_int_t, pastix_int_t,  pastix_int_t, int, int, MPI_Comm) = 
+#ifdef PASTIX_DISTRIBUTED
+static void (*CscdRhsUpdown[4])(UpDownVector*, SolverMatrix*, void*, pastix_int_t, pastix_int_t,  pastix_int_t, int, int, MPI_Comm) = 
 {
     s_CscdRhsUpdown,
     d_CscdRhsUpdown,
     c_CscdRhsUpdown,
     z_CscdRhsUpdown
 };
+#endif
 
 /*
  Function: pastix_task_raff
@@ -208,7 +234,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 #endif
     sopar->gmresim = iparm[IPARM_GMRES_IM];
     
-    if(sopalinRaff[iparm[IPARM_REFINEMENT]](solvmatr, sopar) == NULL)
+    if(sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FLOAT]-2](solvmatr, sopar) == NULL)
     {
         errorPrint("Refinement method and factorization type are incompatibles");
         iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;

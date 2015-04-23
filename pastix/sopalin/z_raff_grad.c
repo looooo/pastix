@@ -14,16 +14,6 @@
 #include "z_raff_functions.h"
 
 /*
- ** Section: Functions declarations
- */
-
-/* Raffinement du second membre */
-
-void* z_grad_smp         (void *arg);
-
-/* Lancement d'une des fonctions seules */
-void z_grad_thread (z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
-/*
  ** Section: Threads routines
  */
 
@@ -41,7 +31,7 @@ void z_grad_thread (z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
 void* z_grad_smp(void *arg)
 {
   /* Choix du solveur */
-  struct solver solveur = {NULL};
+  struct z_solver solveur = {NULL};
   Pastix_Solveur(&solveur);
 
   /* Variables */

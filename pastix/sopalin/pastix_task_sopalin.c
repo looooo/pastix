@@ -18,6 +18,7 @@
 #include "csc.h"
 #include "bcsc.h"
 #include "sopalin_data.h"
+#include "z_raff_functions.h"
 
 // static void (*potrfTable[6])(sopalin_data_t*) = {
 static void (*sopalinFacto[4][6])(sopalin_data_t*) = 

@@ -72,7 +72,7 @@ void* z_pivotstatique_smp ( void *arg )
   SolverMatrix     *datacode     = sopalin_data->datacode;
   SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
-  PASTIX_INT        me           = argument->me;
+  pastix_int_t        me           = argument->me;
   int               iter         = 0;
 
   MONOTHREAD_BEGIN;

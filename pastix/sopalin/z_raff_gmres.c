@@ -14,17 +14,6 @@
 #include "z_raff_functions.h"
 
 /*
- ** Section: Functions declarations
- */
-
-/* Raffinement du second membre */
-
-void* z_gmres_smp        (void *arg);
-
-/* Lancement d'une des fonctions seules */
-void z_gmres_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
-
-/*
  ** Section: Threads routines
  */
 
@@ -40,15 +29,15 @@ void z_gmres_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
 
 typedef struct gmres_s
 {
-  volatile PASTIX_INT gmresout_flag;     /*+ Flag for GMRES outter loop          +*/
-  volatile PASTIX_INT gmresin_flag;      /*+ Flag for GMRES inner loop           +*/
+  volatile pastix_int_t gmresout_flag;     /*+ Flag for GMRES outter loop          +*/
+  volatile pastix_int_t gmresin_flag;      /*+ Flag for GMRES inner loop           +*/
   volatile double     gmresro;           /*+ Norm of GMRES residue               +*/
 } gmres_t;
 
 void* z_gmres_smp(void *arg)
 {
-  struct solver solveur = {NULL};
-  Pastix_Solveur(&solveur);
+  struct z_solver solveur = {NULL};
+  z_Pastix_Solveur(&solveur);
 
   RAFF_INT               n            = solveur.N(arg);
   Clock             raff_clk;
