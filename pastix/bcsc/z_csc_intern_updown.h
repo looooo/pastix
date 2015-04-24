@@ -149,4 +149,22 @@ void z_Csc2updown_X0(UpDownVector *updovct,
 		   int mode, 
 		   MPI_Comm comm);
 
+
+/*
+ Function: z_buildUpDoVect
+
+ Build z_UpDownVector from user B vector or
+ computes its to obtain $$ \forall i X[i] = 1 $$ or $$ \forall i X[i] = i $$
+ as the solution. (depending on iparm)
+
+ Parameters:
+ pastix_data - PaStiX global data structure.
+ loc2glob2   - Global  column number of local columns.
+ b           - User right-hand-side member.
+ pastix_comm - MPI communicator.
+ */
+int z_buildUpdoVect(z_pastix_data_t    *pastix_data,
+                    pastix_int_t       *loc2glob,
+                    pastix_complex64_t *b,
+                    MPI_Comm            pastix_comm);
 #endif /* Z_CSC_INTERN_UPDOWN_H */

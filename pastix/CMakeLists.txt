@@ -549,6 +549,12 @@ set(PASTIX_LIB_SRCS
 #
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_raff.c
+  sopalin/z_raff_bicgstab.c
+  sopalin/z_raff_gmres.c
+  sopalin/z_raff_pivot.c
+  sopalin/z_raff_grad.c
+  sopalin/z_raff_functions.c
+  bcsc/z_csc_intern_updown.c
   sopalin/coeftab.c
 #
   csc/csc.c
