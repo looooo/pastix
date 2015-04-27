@@ -17,6 +17,7 @@
  **/
 #include "common.h"
 #include "symbol.h"
+#include "order.h"
 
 /**
  *******************************************************************************
@@ -307,3 +308,38 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             bloknbr, blokmin, blokmax, blokavg );
 }
 
+void
+symbolCheckProperties( const SymbolMatrix *symbptr )
+{
+    SymbolCblk *cblk;
+    SymbolBlok *blok;
+    pastix_int_t itercblk;
+    pastix_int_t cblknbr;
+
+    cblknbr = symbptr->cblknbr;
+
+    cblk = symbptr->cblktab;
+    blok = symbptr->bloktab;
+
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t iterblok = cblk[0].bloknum + 1;
+        pastix_int_t lbloknum = cblk[1].bloknum;
+        pastix_int_t previous_line = -1;
+        pastix_int_t previous_blok = -1;
+
+        blok++;
+
+        /* Only extra diagonal */
+        for( ; iterblok < lbloknum; iterblok++, blok++)
+        {
+            if (blok->frownum == (previous_line + 1) && blok->cblknum == previous_blok){
+                printf("Symbolic Factorization is NOT OK\n");
+                exit(1);
+            }
+            previous_line = blok->lrownum;
+            previous_blok = blok->cblknum;
+        }
+    }
+    return;
+}
