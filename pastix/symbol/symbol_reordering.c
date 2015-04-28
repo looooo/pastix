@@ -503,3 +503,40 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
     free(tmpinvp);
     free(tmplen);
 }
+
+void
+symbolPrintComplexityReordering( const SymbolMatrix *symbptr, Order *order )
+{
+    pastix_int_t itercblk, iterblok;
+    pastix_int_t cblknbr;
+    pastix_int_t nbflops;
+
+    pastix_int_t end = symbptr->bloknbr - symbptr->cblknbr;
+
+    cblknbr = symbptr->cblknbr;
+    nbflops = 0;
+
+    iterblok = 0;
+    for(itercblk=0; itercblk<cblknbr; itercblk++)
+    {
+        SymbolCblk *cblk = symbptr->cblktab + itercblk;
+        pastix_int_t stop   = 0;
+        pastix_int_t width  = 0;
+        pastix_int_t nbcblk = 0;
+
+        while (iterblok < end && stop == 0){
+            SymbolBlok *blok = symbptr->bloktab + symbptr->browtab[iterblok];
+            if (blok->frownum <  order->rangtab[itercblk] ||
+                blok->lrownum >= order->rangtab[itercblk+1]){
+                stop = 1;
+            }
+            else{
+                nbcblk += blok->lrownum - blok->frownum + 1;
+                iterblok++;
+            }
+        }
+        width = cblk->lcolnum - cblk->fcolnum + 1;
+        nbflops += nbcblk * (width-1);
+    fprintf(stdout, " Number of operations in reordering: %ld\n", nbflops );
+}
+

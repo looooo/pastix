@@ -12,6 +12,8 @@ int
 pastix_task_reordering(pastix_data_t *pastix_data, pastix_int_t split_level,
                        int stop_criteria, int stop_when_fitting)
 {
+    /* symbolPrintComplexityReordering( pastix_data->symbmtx, pastix_data->ordemesh ); */
+
     Clock timer;
     clockStart(timer);
 

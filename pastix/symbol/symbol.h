@@ -85,6 +85,8 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
 void symbolCheckProperties( const SymbolMatrix * );
 void symbolNewOrdering( const SymbolMatrix *, Order *,
                         pastix_int_t, int, int );
+void symbolPrintComplexityReordering( const SymbolMatrix *symbptr,
+                                      Order *order );
 
 /* Internal routines for hamming vectors */
 int hamming_distance_symbol( int **, int *, int, int, int);
