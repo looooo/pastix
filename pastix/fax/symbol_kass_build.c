@@ -129,6 +129,7 @@ kassBuildSymbol(      kass_csr_t   *P,
     symbmtx->cblknbr = cblknbr;
     symbmtx->bloknbr = bloknbr;
     symbmtx->nodenbr = n;
+    symbmtx->browtab = NULL;
 
     MALLOC_INTERN(symbmtx->cblktab, cblknbr+1,        SymbolCblk);
     MALLOC_INTERN(symbmtx->bloktab, symbmtx->bloknbr, SymbolBlok);
@@ -139,6 +140,7 @@ kassBuildSymbol(      kass_csr_t   *P,
         symbmtx->cblktab[k].fcolnum = rangtab[k];
         symbmtx->cblktab[k].lcolnum = rangtab[k+1]-1;
         symbmtx->cblktab[k].bloknum = ind;
+        symbmtx->cblktab[k].brownum = -1;
 
         for(i=0; i < P->nnz[k]; i+=2)
         {
@@ -163,6 +165,7 @@ kassBuildSymbol(      kass_csr_t   *P,
     symbmtx->cblktab[cblknbr].fcolnum = symbmtx->cblktab[cblknbr-1].lcolnum+1;
     symbmtx->cblktab[cblknbr].lcolnum = symbmtx->cblktab[cblknbr-1].lcolnum+1;
     symbmtx->cblktab[cblknbr].bloknum = ind;
+    symbmtx->cblktab[cblknbr].brownum = -1;
 
     assert( ind == symbmtx->bloknbr );
     memFree(node2cblk);

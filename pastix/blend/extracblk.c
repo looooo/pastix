@@ -368,6 +368,8 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
     newsymb->cblktab[newsymb->cblknbr].lcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
     newsymb->cblktab[newsymb->cblknbr].bloknum = curbloknum;
 
+    symbolBuildRowtab( newsymb );
+
     extracblk->addblok = addblok;
     extracblk->addblof = facing_splitted_cnt;
 
