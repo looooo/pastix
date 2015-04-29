@@ -537,6 +537,7 @@ symbolPrintComplexityReordering( const SymbolMatrix *symbptr, Order *order )
         }
         width = cblk->lcolnum - cblk->fcolnum + 1;
         nbflops += nbcblk * (width-1);
+    }
     fprintf(stdout, " Number of operations in reordering: %ld\n", nbflops );
 }
 
