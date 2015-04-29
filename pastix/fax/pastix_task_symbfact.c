@@ -330,7 +330,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     symbolBase( pastix_data->symbmtx, 0 );
 
     symbolPrintStats( pastix_data->symbmtx );
-    symbolCheckProperties( pastix_data->symbmtx );
 
     /* Rustine to be sure we have a tree
      * TODO: check difference with kassSymbolPatch */
