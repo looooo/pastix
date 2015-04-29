@@ -91,8 +91,8 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
                    pastix_int_t split_level, int stop_criteria,
                    int stop_when_fitting )
 {
+    SymbolCblk  *cblk;
     pastix_int_t itercblk, iterblok;
-    pastix_int_t edgenbr = symbptr->bloknbr - symbptr->cblknbr;
     pastix_int_t cblknbr = symbptr->cblknbr;
 
     pastix_int_t *brow = symbptr->browtab;
@@ -101,9 +101,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
     double time_compute_vectors = 0.;
     double time_update_perm     = 0.;
 
-    pastix_int_t end   = edgenbr;
     pastix_int_t i;
-
     pastix_int_t *levels;
 
     /* Create the levels structure */
@@ -114,12 +112,11 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
         levels[i] = compute_cblklevel( order->treetab, levels, i );
     }
 
-    iterblok = 0;
-    for (itercblk=0; itercblk<cblknbr; itercblk++){
-        clockStart(timer);
+    cblk = symbptr->cblktab;
+    for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++){
 
-        pastix_int_t size = order->rangtab[itercblk+1] - order->rangtab[itercblk];
-        pastix_int_t stop;
+        clockStart(timer);
+        pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
 
         pastix_int_t **vectors      = malloc(size * sizeof(pastix_int_t*));
         pastix_int_t * wmatrix      = malloc(size * size * sizeof(pastix_int_t)); /* Hamming distances */
@@ -133,8 +130,6 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
         pastix_int_t * up_current_pos  = calloc(size, sizeof(pastix_int_t));
         memset(up_wmatrix, -1, size*size*sizeof(pastix_int_t));
 
-        pastix_int_t saved_iterblok = iterblok;
-
         /* Start with the given split_level parameter */
         /* This parameter should be approximated to minimize the following iterative process */
         pastix_int_t local_split_level = split_level;
@@ -143,30 +138,21 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
         pastix_int_t sign = 0;
 
       split:
-        stop     = 0;
-        iterblok = saved_iterblok;
-        while (iterblok < end && stop == 0){
+        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+        {
             SymbolBlok *blok = symbptr->bloktab + brow[iterblok];
-
-            if (blok->frownum <  order->rangtab[itercblk] ||
-                blok->lrownum >= order->rangtab[itercblk+1]){
-                stop = 1;
+            /* For upper levels in nested dissection */
+            if (levels[blok->lcblknm] <= local_split_level){
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - order->rangtab[itercblk];
+                    up_vectors_size[index]++;
+                }
             }
             else{
-                /* For upper levels in nested dissection */
-                if (levels[blok->lcblknm] <= local_split_level){
-                    for (i=blok->frownum; i<=blok->lrownum; i++){
-                        pastix_int_t index = i - order->rangtab[itercblk];
-                        up_vectors_size[index]++;
-                    }
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - order->rangtab[itercblk];
+                    vectors_size[index]++;
                 }
-                else{
-                    for (i=blok->frownum; i<=blok->lrownum; i++){
-                        pastix_int_t index = i - order->rangtab[itercblk];
-                        vectors_size[index]++;
-                    }
-                }
-                iterblok++;
             }
         }
 
@@ -201,35 +187,24 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
             up_vectors[i] = calloc(up_vectors_size[i], sizeof(pastix_int_t));
         }
 
-        iterblok = saved_iterblok;
-        stop = 0;
-
-
         /* Fill-in vectors structure with contributing cblks */
-        while (iterblok < end && stop == 0){
+        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+        {
             SymbolBlok *blok = symbptr->bloktab + brow[iterblok];
-
-            if (blok->frownum <  order->rangtab[itercblk] ||
-                blok->lrownum >= order->rangtab[itercblk+1]){
-                stop = 1;
+            /* For upper levels in nested dissection */
+            if (levels[blok->lcblknm] <= local_split_level){
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - order->rangtab[itercblk];
+                    up_vectors[index][up_current_pos[index]] = blok->lcblknm;
+                    up_current_pos[index]++;
+                }
             }
             else{
-                /* For upper levels in nested dissection */
-                if (levels[blok->lcblknm] <= local_split_level){
-                    for (i=blok->frownum; i<=blok->lrownum; i++){
-                        pastix_int_t index = i - order->rangtab[itercblk];
-                        up_vectors[index][up_current_pos[index]] = blok->lcblknm;
-                        up_current_pos[index]++;
-                    }
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - order->rangtab[itercblk];
+                    vectors[index][current_pos[index]] = blok->lcblknm;
+                    current_pos[index]++;
                 }
-                else{
-                    for (i=blok->frownum; i<=blok->lrownum; i++){
-                        pastix_int_t index = i - order->rangtab[itercblk];
-                        vectors[index][current_pos[index]] = blok->lcblknm;
-                        current_pos[index]++;
-                    }
-                }
-                iterblok++;
             }
         }
 
