@@ -87,12 +87,12 @@ void symbolNewOrdering( const SymbolMatrix *, Order *,
                         pastix_int_t, int, int );
 void symbolPrintComplexityReordering( const SymbolMatrix *symbptr );
 
-/* Internal routines for hamming vectors */
-int hamming_distance_symbol( int **, int *, int, int, int);
-void update_perm(int, Order *, int,
-                 int *, int **, int *,
-                 int *, int **, int *,
-                 int, int);
+/* Pastix_Int_Ternal routines for hamming vectors */
+pastix_int_t hamming_distance_symbol( pastix_int_t **, pastix_int_t *, pastix_int_t, pastix_int_t, pastix_int_t);
+void update_perm(pastix_int_t, Order *, pastix_int_t,
+                 pastix_int_t *, pastix_int_t **, pastix_int_t *,
+                 pastix_int_t *, pastix_int_t **, pastix_int_t *,
+                 pastix_int_t, pastix_int_t);
 
 void
 symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,

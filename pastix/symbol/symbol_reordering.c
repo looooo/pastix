@@ -55,8 +55,8 @@
 
 static inline pastix_int_t
 compute_cblklevel( const pastix_int_t *treetab,
-                         pastix_int_t *levels,
-                         pastix_int_t  cblknum )
+                   pastix_int_t *levels,
+                   pastix_int_t  cblknum )
 {
     /* cblknum level has already been computed */
     if ( levels[cblknum] != 0 ) {
@@ -121,17 +121,17 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
         pastix_int_t size = order->rangtab[itercblk+1] - order->rangtab[itercblk];
         pastix_int_t stop;
 
-        int **vectors      = malloc(size * sizeof(int*));
-        int * wmatrix      = malloc(size * size * sizeof(int)); /* Hamming distances */
-        int * vectors_size = calloc(size, sizeof(int));
-        int * current_pos  = calloc(size, sizeof(int));
-        memset(wmatrix, -1, size*size*sizeof(int));
+        pastix_int_t **vectors      = malloc(size * sizeof(pastix_int_t*));
+        pastix_int_t * wmatrix      = malloc(size * size * sizeof(pastix_int_t)); /* Hamming distances */
+        pastix_int_t * vectors_size = calloc(size, sizeof(pastix_int_t));
+        pastix_int_t * current_pos  = calloc(size, sizeof(pastix_int_t));
+        memset(wmatrix, -1, size*size*sizeof(pastix_int_t));
 
-        int **up_vectors      = malloc(size * sizeof(int*));
-        int * up_wmatrix      = malloc(size * size * sizeof(int));
-        int * up_vectors_size = calloc(size, sizeof(int));
-        int * up_current_pos  = calloc(size, sizeof(int));
-        memset(up_wmatrix, -1, size*size*sizeof(int));
+        pastix_int_t **up_vectors      = malloc(size * sizeof(pastix_int_t*));
+        pastix_int_t * up_wmatrix      = malloc(size * size * sizeof(pastix_int_t));
+        pastix_int_t * up_vectors_size = calloc(size, sizeof(pastix_int_t));
+        pastix_int_t * up_current_pos  = calloc(size, sizeof(pastix_int_t));
+        memset(up_wmatrix, -1, size*size*sizeof(pastix_int_t));
 
         pastix_int_t saved_iterblok = iterblok;
 
@@ -140,7 +140,7 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
         pastix_int_t local_split_level = split_level;
 
         /* Current for each line within the current cblk the number of contributions */
-        int sign = 0;
+        pastix_int_t sign = 0;
 
       split:
         stop     = 0;
@@ -156,13 +156,13 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
                 /* For upper levels in nested dissection */
                 if (levels[blok->lcblknm] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
-                        int index = i - order->rangtab[itercblk];
+                        pastix_int_t index = i - order->rangtab[itercblk];
                         up_vectors_size[index]++;
                     }
                 }
                 else{
                     for (i=blok->frownum; i<=blok->lrownum; i++){
-                        int index = i - order->rangtab[itercblk];
+                        pastix_int_t index = i - order->rangtab[itercblk];
                         vectors_size[index]++;
                     }
                 }
@@ -180,8 +180,8 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
         /* If there are too many upper bloks */
         if (total < 5 * up_total && total > 10 && up_total > 10 && sign <= 0){
             local_split_level--;
-            memset(vectors_size   , 0, size*sizeof(int));
-            memset(up_vectors_size, 0, size*sizeof(int));
+            memset(vectors_size   , 0, size*sizeof(pastix_int_t));
+            memset(up_vectors_size, 0, size*sizeof(pastix_int_t));
             sign--;
             goto split;
         }
@@ -189,16 +189,16 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
         /* If there are too many lower bloks */
         if (total > 3 * up_total && total > 10 && up_total > 10 && sign >= 0){
             local_split_level++;
-            memset(vectors_size   , 0, size*sizeof(int));
-            memset(up_vectors_size, 0, size*sizeof(int));
+            memset(vectors_size   , 0, size*sizeof(pastix_int_t));
+            memset(up_vectors_size, 0, size*sizeof(pastix_int_t));
             sign++;
             goto split;
         }
 
         /* Initiate vectors structure */
         for (i=0; i<size; i++){
-            vectors[i]    = calloc(vectors_size[i],    sizeof(int));
-            up_vectors[i] = calloc(up_vectors_size[i], sizeof(int));
+            vectors[i]    = calloc(vectors_size[i],    sizeof(pastix_int_t));
+            up_vectors[i] = calloc(up_vectors_size[i], sizeof(pastix_int_t));
         }
 
         iterblok = saved_iterblok;
@@ -217,14 +217,14 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
                 /* For upper levels in nested dissection */
                 if (levels[blok->lcblknm] <= local_split_level){
                     for (i=blok->frownum; i<=blok->lrownum; i++){
-                        int index = i - order->rangtab[itercblk];
+                        pastix_int_t index = i - order->rangtab[itercblk];
                         up_vectors[index][up_current_pos[index]] = blok->lcblknm;
                         up_current_pos[index]++;
                     }
                 }
                 else{
                     for (i=blok->frownum; i<=blok->lrownum; i++){
-                        int index = i - order->rangtab[itercblk];
+                        pastix_int_t index = i - order->rangtab[itercblk];
                         vectors[index][current_pos[index]] = blok->lcblknm;
                         current_pos[index]++;
                     }
@@ -269,14 +269,14 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
     free(levels);
 }
 
-int hamming_distance_symbol(int **vectors, int *vectors_size,
-                            int xi, int xj, int stop)
+pastix_int_t hamming_distance_symbol(pastix_int_t **vectors, pastix_int_t *vectors_size,
+                                     pastix_int_t xi, pastix_int_t xj, pastix_int_t stop)
 {
-    int sum = 0;
-    int *set1 = vectors[xi];
-    int *set2 = vectors[xj];
-    int *end1 = vectors[xi] + vectors_size[xi];
-    int *end2 = vectors[xj] + vectors_size[xj];
+    pastix_int_t sum = 0;
+    pastix_int_t *set1 = vectors[xi];
+    pastix_int_t *set2 = vectors[xj];
+    pastix_int_t *end1 = vectors[xi] + vectors_size[xi];
+    pastix_int_t *end2 = vectors[xj] + vectors_size[xj];
 
     if (vectors_size[xi] - vectors_size[xj] >= stop){
         return stop;
@@ -330,19 +330,19 @@ int hamming_distance_symbol(int **vectors, int *vectors_size,
 }
 
 
-void update_perm(int sn_nvertex, Order *order, int sn_id,
-                 int *wmatrix, int **vectors, int *vectors_size,
-                 int *up_wmatrix, int **up_vectors, int *up_vectors_size,
-                 int stop_criteria, int stop_when_fitting){
+void update_perm(pastix_int_t sn_nvertex, Order *order, pastix_int_t sn_id,
+                 pastix_int_t *wmatrix, pastix_int_t **vectors, pastix_int_t *vectors_size,
+                 pastix_int_t *up_wmatrix, pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
+                 pastix_int_t stop_criteria, pastix_int_t stop_when_fitting){
 
     if ( sn_nvertex < 3 ) {
         return;
     }
 
-    int  i, j, k, l, elected;
-    int *tmpinvp = malloc(sn_nvertex*sizeof(int));
-    int *tmplen  = malloc(sn_nvertex*sizeof(int));
-    memset(tmplen, 0, sn_nvertex*sizeof(int));
+    pastix_int_t  i, j, k, l, elected;
+    pastix_int_t *tmpinvp = malloc(sn_nvertex*sizeof(pastix_int_t));
+    pastix_int_t *tmplen  = malloc(sn_nvertex*sizeof(pastix_int_t));
+    memset(tmplen, 0, sn_nvertex*sizeof(pastix_int_t));
 
     tmpinvp[0] = 0;
     tmpinvp[1] = 1;
@@ -358,15 +358,15 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
         wmatrix[ i * sn_nvertex + tmpinvp[0] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[0], stop_criteria);
         wmatrix[ i * sn_nvertex + tmpinvp[1] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[1], stop_criteria);
 
-        int minl =
+        pastix_int_t minl =
             wmatrix[ i * sn_nvertex + tmpinvp[0] ] +
             wmatrix[ i * sn_nvertex + tmpinvp[1] ] - tmplen[0];
-        int mpos = 1;
+        pastix_int_t mpos = 1;
 
-        int min_cut = -1;
+        pastix_int_t min_cut = -1;
         for(j=1; j<i-1; j++ ){
 
-            int DEEP_stop = 1;
+            pastix_int_t DEEP_stop = 1;
 
             if (up_wmatrix[ i * sn_nvertex + tmpinvp[j]] == -1)
                 up_wmatrix[ i * sn_nvertex + tmpinvp[j]   ] = hamming_distance_symbol(up_vectors, up_vectors_size, i, tmpinvp[j], DEEP_stop);
@@ -444,7 +444,7 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
 
         if (mpos < i)
         {
-            int tmpi, tmpl;
+            pastix_int_t tmpi, tmpl;
             k = i;
 
             wmatrix[ i * sn_nvertex + tmpinvp[mpos] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[mpos], stop_criteria);
@@ -473,7 +473,7 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
     }
 
     /* Search the best split line */
-    int min_size = INT_MAX;
+    pastix_int_t min_size = INT_MAX;
     for (i=0; i<sn_nvertex; i++)
     {
         if (vectors_size[i] < min_size){
