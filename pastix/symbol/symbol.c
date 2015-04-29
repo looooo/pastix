@@ -333,12 +333,12 @@ symbolCheckProperties( const SymbolMatrix *symbptr )
         /* Only extra diagonal */
         for( ; iterblok < lbloknum; iterblok++, blok++)
         {
-            if (blok->frownum == (previous_line + 1) && blok->cblknum == previous_blok){
+            if (blok->frownum == (previous_line + 1) && (blok->lcblknm == previous_blok)){
                 printf("Symbolic Factorization is NOT OK\n");
                 exit(1);
             }
             previous_line = blok->lrownum;
-            previous_blok = blok->cblknum;
+            previous_blok = blok->lcblknm;
         }
     }
     return;
