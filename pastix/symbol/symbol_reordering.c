@@ -505,39 +505,41 @@ void update_perm(int sn_nvertex, Order *order, int sn_id,
 }
 
 void
-symbolPrintComplexityReordering( const SymbolMatrix *symbptr, Order *order )
+symbolPrintComplexityReordering( const SymbolMatrix *symbptr )
 {
+    SymbolCblk  *cblk;
     pastix_int_t itercblk, iterblok;
     pastix_int_t cblknbr;
     pastix_int_t nbflops;
 
-    pastix_int_t end = symbptr->bloknbr - symbptr->cblknbr;
-
+    cblk    = symbptr->cblktab;
     cblknbr = symbptr->cblknbr;
     nbflops = 0;
 
-    iterblok = 0;
-    for(itercblk=0; itercblk<cblknbr; itercblk++)
+    /**
+     * nbcblk is the number of non zeroes intersection between indivudal rows
+     * and block columns.
+     */
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
     {
-        SymbolCblk *cblk = symbptr->cblktab + itercblk;
-        pastix_int_t stop   = 0;
-        pastix_int_t width  = 0;
+        pastix_int_t width;
         pastix_int_t nbcblk = 0;
 
-        while (iterblok < end && stop == 0){
+        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+        {
             SymbolBlok *blok = symbptr->bloktab + symbptr->browtab[iterblok];
-            if (blok->frownum <  order->rangtab[itercblk] ||
-                blok->lrownum >= order->rangtab[itercblk+1]){
-                stop = 1;
-            }
-            else{
-                nbcblk += blok->lrownum - blok->frownum + 1;
-                iterblok++;
-            }
+            assert( blok->fcblknm == itercblk );
+
+            nbcblk += blok->lrownum - blok->frownum + 1;
         }
         width = cblk->lcolnum - cblk->fcolnum + 1;
         nbflops += nbcblk * (width-1);
+
+        if ( itercblk == (cblknbr-1) ) {
+            pastix_int_t localflops = nbcblk * (width-1);
+            fprintf(stdout, " Number of operations in reordering for last supernode: %ld (%lf)\n",
+                    localflops, (double)localflops / (double)(nbflops) * 100. );
+        }
     }
     fprintf(stdout, " Number of operations in reordering: %ld\n", nbflops );
 }
-
