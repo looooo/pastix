@@ -69,7 +69,9 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
     iparm[IPARM_FACTORIZATION] = API_FACT_LDLT;
-    iparm[IPARM_IO_STRATEGY] = API_IO_SAVE;
+    iparm[IPARM_IO_STRATEGY]   = API_IO_SAVE;
+    iparm[IPARM_MIN_BLOCKSIZE] = 60;
+    iparm[IPARM_MAX_BLOCKSIZE] = 120;
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     split_level       = 0;
@@ -95,7 +97,7 @@ int main (int argc, char **argv)
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rowptr, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_reordering( pastix_data, split_level, stop_criteria, stop_when_fitting );
-    /* pastix_task_blend( pastix_data ); */
+    pastix_task_blend( pastix_data );
     /* pastix_task_sopalin( pastix_data, &csc ); */
 
     spmExit( &csc );

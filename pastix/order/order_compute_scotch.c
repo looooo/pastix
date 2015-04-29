@@ -180,7 +180,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
     if (ret == 0) {
         /* Compute graph ordering */
 
-#if 1
+#if 0
         ret = SCOTCH_graphOrderList(&scotchgraph,
                                     (SCOTCH_Num)   n,
                                     (SCOTCH_Num *) NULL,
