@@ -583,9 +583,9 @@ intRandReset (void)
 
 pastix_int_t
 pastix_intset_union(       pastix_int_t  n1,
-                           const pastix_int_t *set1,
+                     const pastix_int_t *set1,
                            pastix_int_t  n2,
-                           const pastix_int_t *set2,
+                     const pastix_int_t *set2,
                            pastix_int_t *set )
 {
     /********************************************************/

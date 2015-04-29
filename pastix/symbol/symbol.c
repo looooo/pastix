@@ -17,6 +17,7 @@
  **/
 #include "common.h"
 #include "symbol.h"
+#include "order.h"
 
 /**
  *******************************************************************************
@@ -305,4 +306,3 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             cblknbr, cblkmin, cblkmax, cblkavg,
             bloknbr, blokmin, blokmax, blokavg );
 }
-
