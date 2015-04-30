@@ -319,11 +319,10 @@ pastix_task_order(      pastix_data_t *pastix_data,
          */
     case API_ORDER_PERSONAL:
         {
-            /* orderInit(ordemesh, n, 0); */
-            /* memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t)); */
-            /* memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t)); */
+            orderInit(ordemesh, n, 0);
+            memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
+            memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
 
-            orderLoad( ordemesh, NULL );
             memFree_null( ordemesh->rangtab );
             ordemesh->cblknbr = 0;
         }
@@ -345,6 +344,17 @@ pastix_task_order(      pastix_data_t *pastix_data,
 
     if (retval != PASTIX_SUCCESS )
         return retval;
+
+    /*
+     * If the rangtab or the treetab are not initialized, let's find it ourself
+     */
+    if (( ordemesh->rangtab == NULL ) ||
+        ( ordemesh->treetab == NULL ) )
+    {
+        graphBase( &subgraph, 0 );
+        orderBase( ordemesh, 0 );
+        orderFindSupernodes( &subgraph, ordemesh );
+    }
 
     /*
      * Add the isolated elements to the ordering structure
