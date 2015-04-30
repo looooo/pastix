@@ -64,102 +64,103 @@
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
-int
-z_bcscGemv(char                trans,
-           pastix_complex64_t  alpha,
-           pastix_bcsc_t      *bcsc,
-           pastix_complex64_t *x,
-           pastix_complex64_t  beta,
-           pastix_complex64_t *y )
-{
-    pastix_complex64_t *valptr  = (pastix_complex64_t*)bcsc->Lvalues;
-    pastix_complex64_t *yptr    = y;
-    pastix_complex64_t *xptr    = x;
-    pastix_int_t        bloc, col, row, i, j, baseval;
-
-    if(bcsc==NULL)
-    {
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    if(bcsc->mtxtype!=PastixGeneral || x==NULL)
-    {
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    baseval = bcsc->colptr[0];
-
-    /* first, y = beta*y */
-    for( i=0; i < csc->gN; i++ )
-    {
-        yptr[i] *= beta;
-    }
-
-    if( trans == 'n' || trans == 'N' )
-    {
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-            {
-                col += 1;
-                for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-                {
-                    row = bcsc->rowtab[i];
-                    yptr[row] += alpha * valptr[i] * xptr[col];
-                }
-            }
-        }
-    }
-    else if( trans == 't' || trans == 'T' )
-    {
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-            {
-                col += 1;
-                for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-                {
-                    row = bcsc->rowtab[i];
-                    yptr[col] += alpha * valptr[i] * xptr[row];
-                }
-            }
-        }
-    }
-#if defined(PRECISION_c) || defined(PRECISION_z)
-    else if( trans == 'c' || trans == 'C' )
-    {
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-            {
-                col += 1;
-                for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-                {
-                    row = bcsc->rowtab[i];
-                    yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
-                }
-            }
-        }
-    }
-#endif
-    else
-    {
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    return PASTIX_SUCCESS;
-
-}
+// int
+// z_bcscGemv(char                trans,
+//            pastix_complex64_t  alpha,
+//            pastix_bcsc_t      *bcsc,
+//            pastix_complex64_t *x,
+//            pastix_complex64_t  beta,
+//            pastix_complex64_t *y )
+// {
+//     pastix_complex64_t *valptr  = (pastix_complex64_t*)bcsc->Lvalues;
+//     pastix_complex64_t *yptr    = y;
+//     pastix_complex64_t *xptr    = x;
+//     pastix_int_t        bloc, col, row, i, j, baseval;
+// 
+//     if(bcsc==NULL)
+//     {
+//         return PASTIX_ERR_BADPARAMETER;
+//     }
+// 
+//     if(bcsc->mtxtype!=PastixGeneral || x==NULL)
+//     {
+//         return PASTIX_ERR_BADPARAMETER;
+//     }
+// 
+// //     baseval = bcsc->colptr[0];
+//     baseval = 0;
+// 
+//     /* first, y = beta*y */
+//     for( i=0; i < csc->gN; i++ )
+//     {
+//         yptr[i] *= beta;
+//     }
+// 
+//     if( trans == 'n' || trans == 'N' )
+//     {
+//         col = 0;
+//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+//         {
+//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
+//             {
+//                 col += 1;
+//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
+//                 {
+//                     row = bcsc->rowtab[i];
+//                     yptr[row] += alpha * valptr[i] * xptr[col];
+//                 }
+//             }
+//         }
+//     }
+//     else if( trans == 't' || trans == 'T' )
+//     {
+//         col = 0;
+//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+//         {
+//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
+//             {
+//                 col += 1;
+//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
+//                 {
+//                     row = bcsc->rowtab[i];
+//                     yptr[col] += alpha * valptr[i] * xptr[row];
+//                 }
+//             }
+//         }
+//     }
+// #if defined(PRECISION_c) || defined(PRECISION_z)
+//     else if( trans == 'c' || trans == 'C' )
+//     {
+//         col = 0;
+//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+//         {
+//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
+//             {
+//                 col += 1;
+//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
+//                 {
+//                     row = bcsc->rowtab[i];
+//                     yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+//                 }
+//             }
+//         }
+//     }
+// #endif
+//     else
+//     {
+//         return PASTIX_ERR_BADPARAMETER;
+//     }
+// 
+//     return PASTIX_SUCCESS;
+// 
+// }
 
 /**
  *******************************************************************************
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNorm1 - compute the norme norm of a general matrix.
+ * z_bcscNormMax - compute the max norm of a general matrix.
  *
  *******************************************************************************
  *
@@ -180,45 +181,34 @@ z_bcscGemv(char                trans,
  *
  *******************************************************************************/
 int
-z_bcscNorm1( void         *values,
-             pastix_int_t  n,
-             double        norm )
+z_bcscNormMax( void         *values,
+               pastix_int_t  n,
+               double       *norm )
 {
-    double scale = 0.;
-    double sum = 1.;
-    double temp;
-    pastix_complex64_t valptr = values;
-    pastix_int_t i, j, col, bloc, n;
+    double temp1;
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    double temp2;
+#endif
+    pastix_complex64_t *valptr = values;
+    pastix_int_t i;
     
-    col = 0;
-    for( i=0, i < n, i++ )
+    *norm = 0.;
+    for( i=0; i < n; i++ )
     {
 #if defined(PRECISION_c) || defined(PRECISION_z)
-        temp = fabs(creal(valptr[i]));
+        temp1 = pow(creal(valptr[i]),2.);
+        temp2 = pow(cimag(valptr[i]),2.);
+        temp1 = sqrt(temp1 + temp2);
 #else
-        temp = fabs((double)valptr[i]);
+        temp1 = fabs((double)valptr[i]);
 #endif
-        if(scale < temp)
+        if(*norm < temp1)
         {
-            sum = 1. + sum*(scale / temp);
-            scale = temp;
-        }else{
-            sum = sum + (temp / scale);
+            *norm = temp1;
         }
-#if defined(PRECISION_c) || defined(PRECISION_z)
-        temp = fabs(cimag(valptr[i]));
-        if(scale < temp)
-        {
-            sum = 1. + sum*(scale / temp);
-            scale = temp;
-        }else{
-            sum = sum + (temp / scale);
-        }
-#endif
-        norm = scale*sum;
     }
     
-    return PASTIX_SUCCESS
+    return PASTIX_SUCCESS;
 }
 
 /**
@@ -249,43 +239,48 @@ z_bcscNorm1( void         *values,
 int
 z_bcscNorm2( void         *values,
              pastix_int_t  n,
-             double        norm )
+             double       *norm )
 {
     double scale = 0.;
     double sum = 1.;
     double temp;
-    pastix_complex64_t valptr = values;
-    pastix_int_t i, j, col, bloc, n;
+    pastix_complex64_t *valptr = values;
+    pastix_int_t i;
     
-    col = 0;
-    for( i=0, i < n, i++ )
+    for( i=0; i < n; i++ )
     {
 #if defined(PRECISION_c) || defined(PRECISION_z)
         temp = fabs(creal(valptr[i]));
 #else
         temp = fabs((double)valptr[i]);
 #endif
-        if(scale < temp)
+        if(temp != 0.)
         {
-            sum = 1. + sum*pow((scale / temp), 2.);
-            scale = temp;
-        }else{
-            sum = sum + pow((double)(temp / scale), 2.);
+            if(scale < temp)
+            {
+                sum = 1. + sum*pow((scale / temp), 2.);
+                scale = temp;
+            }else{
+                sum = sum + pow((double)(temp / scale), 2.);
+            }
         }
 #if defined(PRECISION_c) || defined(PRECISION_z)
         temp = fabs(cimag(valptr[i]));
-        if(scale < temp)
+        if(temp != 0.)
         {
-            sum = 1. + sum*pow((double)(scale / temp), 2.);
-            scale = temp;
-        }else{
-            sum = sum + pow((double)(temp / scale), 2.);
+            if(scale < temp)
+            {
+                sum = 1. + sum*pow((double)(scale / temp), 2.);
+                scale = temp;
+            }else{
+                sum = sum + pow((double)(temp / scale), 2.);
+            }
         }
 #endif
-        norm = scale*sqrt(sum);
     }
+    *norm = scale*sqrt(sum);
     
-    return PASTIX_SUCCESS
+    return PASTIX_SUCCESS;
 }
 
 
