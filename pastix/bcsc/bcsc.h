@@ -32,8 +32,8 @@ struct pastix_bcsc_s {
     pastix_int_t   cscfnbr; /*> Number of fronts/column blocks.                                                */
     bcsc_format_t *cscftab; /*> Array of Block column structures of size cscfnbr. (<pastix_bcscFormat_t>)      */
     pastix_int_t  *rowtab;  /*> Array of rows in the matrix.                                                   */
-    void          *Lvalues; /*> Array of values of the lower triangular part w/  diagonal of the matrix.       */
-    void          *Uvalues; /*> Array of values of the upper triangular part w/o diagonal of the matrix.       */
+    void          *Lvalues; /*> Array of values of the matrix A                                                */
+    void          *Uvalues; /*> Array of values of the matrix A^t                                              */
 };
 
 typedef struct pastix_bcsc_s pastix_bcsc_t;
