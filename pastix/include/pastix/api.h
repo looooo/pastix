@@ -33,8 +33,7 @@
    IPARM_CSCD_CORRECT          - Indicate if the cscd has been redistributed after blend  Default: API_NO              IN
    IPARM_NBITER                - Number of iterations performed in refinement             Default: -                   OUT
    IPARM_TRACEFMT              - Trace format (see Trace modes)                           Default: API_TRACE_PAJE      IN
-   IPARM_GRAPHDIST             - Specify if the given graph is distributed or not         Default: API_YES             IN
-   IPARM_AMALGAMATION_LEVEL    - Amalgamation level                                       Default: 5                   IN
+
    IPARM_ORDERING              - Choose ordering                                          Default: API_ORDER_SCOTCH    IN
    IPARM_ORDERING_DEFAULT      - Use default ordering parameters with \scotch{} or \metis{} Default: API_YES           IN
 
@@ -54,6 +53,10 @@
    IPARM_METIS_PFACTOR         - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 0                      IN
    IPARM_METIS_SEED            - \metis{} parameters (see \metis{} Manual)                                                      Default: 3452                   IN
    IPARM_METIS_DBGLVL          - \metis{} parameters (see \metis{} Manual)                                                      Default: 0                      IN
+
+   IPARM_SF_KASS               - Force the use of KASS instead of Fax to perform the symbolic factorization  Default: API_NO                   IN
+   IPARM_AMALGAMATION_LVLCBLK  - Amalgamation level                                       Default: 5                   IN
+   IPARM_AMALGAMATION_LVLBLAS  - Amalgamation level                                       Default: 5                   IN
 
    IPARM_STATIC_PIVOTING       - Static pivoting                                          Default: -                   OUT
    IPARM_NNZEROS               - Number of nonzero entries in the factorized matrix       Default: -                   OUT
@@ -121,13 +124,32 @@ enum IPARM_ACCESS {
   IPARM_NBITER,
   IPARM_TRACEFMT,
   IPARM_GRAPHDIST,
-  IPARM_AMALGAMATION_LEVEL,
+
+  /* Ordering */
   IPARM_ORDERING,
   IPARM_ORDERING_DEFAULT,
   IPARM_SCOTCH_SWITCH_LEVEL,
   IPARM_SCOTCH_CMIN,
   IPARM_SCOTCH_CMAX,
   IPARM_SCOTCH_FRAT,
+
+  IPARM_METIS_CTYPE,
+  IPARM_METIS_RTYPE,
+  IPARM_METIS_NO2HOP,
+  IPARM_METIS_NSEPS,
+  IPARM_METIS_NITER,
+  IPARM_METIS_UFACTOR,
+  IPARM_METIS_COMPRESS,
+  IPARM_METIS_CCORDER,
+  IPARM_METIS_PFACTOR,
+  IPARM_METIS_SEED,
+  IPARM_METIS_DBGLVL,
+
+  /* Symbolic Factoization */
+  IPARM_SF_KASS,
+  IPARM_AMALGAMATION_LVLBLAS,
+  IPARM_AMALGAMATION_LVLCBLK,
+
   IPARM_STATIC_PIVOTING,
   IPARM_NNZEROS,
   IPARM_ALLOCATED_TERMS,
@@ -179,18 +201,6 @@ enum IPARM_ACCESS {
   IPARM_GPUS_NBR,
   IPARM_GPU_CRITERIUM,
 
-  IPARM_METIS_CTYPE,
-  IPARM_METIS_RTYPE,
-  IPARM_METIS_NO2HOP,
-  IPARM_METIS_NSEPS,
-  IPARM_METIS_NITER,
-  IPARM_METIS_UFACTOR,
-  IPARM_METIS_COMPRESS,
-  IPARM_METIS_CCORDER,
-  IPARM_METIS_PFACTOR,
-  IPARM_METIS_SEED,
-  IPARM_METIS_DBGLVL,
-
   IPARM_MURGE_MAY_REFINE,
 
   IPARM_SIZE
@@ -205,7 +215,8 @@ enum IPARM_ACCESS_DEPRECATED {
     IPARM_ORDERING_SWITCH_LEVEL = IPARM_SCOTCH_SWITCH_LEVEL,
     IPARM_ORDERING_CMIN         = IPARM_SCOTCH_CMIN,
     IPARM_ORDERING_CMAX         = IPARM_SCOTCH_CMAX,
-    IPARM_ORDERING_FRAT         = IPARM_SCOTCH_FRAT
+    IPARM_ORDERING_FRAT         = IPARM_SCOTCH_FRAT,
+    IPARM_AMALGAMATION_LEVEL    = IPARM_AMALGAMATION_LVLCBLK
 };
 
 /* Acces au tableau dparm */

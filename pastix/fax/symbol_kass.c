@@ -102,11 +102,6 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     MPI_Comm_rank(pastix_comm, &procnum);
 
     /* Check parameters correctness */
-    if ( (orderptr->rangtab != NULL) && (ilu == API_NO ) )
-    {
-        errorPrintW("symbolKass cannot be called for Direct factorization with supernodes already found");
-        return PASTIX_ERR_BADPARAMETER;
-    }
     if ( (ilu == API_NO) || (levelk < 0) ) {
         /* Forces levelk to -1 */
         levelk = -1;
@@ -242,8 +237,6 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
                 &newcblknbr, &newrangtab,
                 invp2, pastix_comm );
 
-    if( streetab != NULL ) memFree(streetab);
-
     if( orderptr->rangtab != NULL ) {
         memFree(orderptr->rangtab);
         orderptr->cblknbr = 0;
@@ -294,11 +287,6 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
                  (long)symbmtx->bloknbr);
     pastix_print(procnum, 0, "Number of non zero in final symbol matrix = %g, fillrate2 %.3g \n",
                  nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
-
-    if( symbolCheck(symbmtx) != 0 ) {
-        errorPrint("SymbolCheck on final symbol matrix failed !!!");
-        assert(0);
-    }
 
     return PASTIX_SUCCESS;
 }

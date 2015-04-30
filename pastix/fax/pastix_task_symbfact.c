@@ -185,6 +185,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /* Symbol matrix computed through Fax or Kass */
     else
     {
+        int fax;
         pastix_int_t  nfax;
         pastix_int_t *colptrfax;
         pastix_int_t *rowfax;
@@ -201,8 +202,18 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
         }
         /* End of parameters check */
 
+        if ( ((iparm[IPARM_ORDERING] == API_ORDER_SCOTCH) ||
+              (iparm[IPARM_ORDERING] == API_ORDER_PTSCOTCH)) &&
+             (iparm[IPARM_SF_KASS] == API_NO) )
+        {
+            fax = 1;
+        }
+        else {
+            fax = 0;
+        }
+
         /*
-         * Fax works with centralized interface, we convert the cscd to csc if required
+         * Fax/Kass work with centralized interface, we convert the cscd to csc if required
          */
 #if defined(PASTIX_DISTRIBUTED)
         if (graph->loc2glob != NULL)
@@ -233,9 +244,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
          * we use it to generate the symbol matrix structure.
          * This works only if direct factorization will be performed.
          */
-        if ( (iparm[IPARM_INCOMPLETE]    == API_NO) &&
-             (iparm[IPARM_LEVEL_OF_FILL] != -1    ) &&
-             (ordemesh->rangtab != NULL) )
+        if (fax)
         {
             pastix_print(procnum, 0, OUT_FAX_METHOD, "Fax " );
             symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
@@ -263,8 +272,8 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             pastix_print(procnum, 0, OUT_FAX_METHOD, "Kass" );
             symbolKass(iparm[IPARM_INCOMPLETE],
                        iparm[IPARM_LEVEL_OF_FILL],
-                       iparm[IPARM_AMALGAMATION_LEVEL],
-                       iparm[IPARM_AMALGAMATION_LEVEL],
+                       iparm[IPARM_AMALGAMATION_LVLCBLK],
+                       iparm[IPARM_AMALGAMATION_LVLBLAS],
                        pastix_data->symbmtx,
                        &tmpgraph,
                        ordemesh,
@@ -337,6 +346,13 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /* Build the browtabs and Realign data structure */
     symbolBuildRowtab( pastix_data->symbmtx );
     symbolRealloc( pastix_data->symbmtx );
+
+#if !defined(NDEBUG)
+    if( symbolCheck(pastix_data->symbmtx) != 0 ) {
+        errorPrint("pastix_task_symbfact: SymbolCheck on final symbol matrix failed !!!");
+        assert(0);
+    }
+#endif
 
     /*
      * Save the symbolic factorization
