@@ -12,17 +12,21 @@
 # Use this module by invoking find_package with the form:
 #  find_package(FXT
 #               [REQUIRED]) # Fail with error if fxt is not found
+#
 # This module finds headers and fxt library.
 # Results are reported in variables:
 #  FXT_FOUND           - True if headers and requested libraries were found
 #  FXT_INCLUDE_DIRS    - fxt include directories
 #  FXT_LIBRARY_DIRS    - Link directories for fxt libraries
 #  FXT_LIBRARIES       - fxt component libraries to be linked
+#
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DFXT_DIR=path/to/fxt):
 #  FXT_DIR             - Where to find the base directory of fxt
 #  FXT_INCDIR          - Where to find the header files
 #  FXT_LIBDIR          - Where to find the library files
+# The module can also look for the following environment variables if paths
+# are not given as cmake variable: FXT_DIR, FXT_INCDIR, FXT_LIBDIR
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -42,7 +46,7 @@
 #  License text for the above reference.)
 
 if (NOT FXT_FOUND)
-    set(FXT_DIR "" CACHE PATH "Root directory of FXT library")
+    set(FXT_DIR "" CACHE PATH "Installation directory of FXT library")
     if (NOT FXT_FIND_QUIETLY)
         message(STATUS "A cache variable, namely FXT_DIR, has been set to specify the install directory of FXT")
     endif()
@@ -70,9 +74,9 @@ if(PKG_CONFIG_EXECUTABLE)
         endif()
     endif()
 
-endif(PKG_CONFIG_EXECUTABLE)
+endif()
 
-if(NOT FXT_FOUND OR NOT FXT_LIBRARIES)
+if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT FXT_FOUND) OR (FXT_DIR) )
 
     if (NOT FXT_FIND_QUIETLY)
         message(STATUS "Looking for FXT - PkgConfig not used")
@@ -84,17 +88,27 @@ if(NOT FXT_FOUND OR NOT FXT_LIBRARIES)
     # Add system include paths to search include
     # ------------------------------------------
     unset(_inc_env)
-    if(WIN32)
-        string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+    set(ENV_FXT_DIR "$ENV{FXT_DIR}")
+    set(ENV_FXT_INCDIR "$ENV{FXT_INCDIR}")
+    if(ENV_FXT_INCDIR)
+        list(APPEND _inc_env "${ENV_FXT_INCDIR}")
+    elseif(ENV_FXT_DIR)
+        list(APPEND _inc_env "${ENV_FXT_DIR}")
+        list(APPEND _inc_env "${ENV_FXT_DIR}/include")
+        list(APPEND _inc_env "${ENV_FXT_DIR}/include/fxt")
     else()
-        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-        list(APPEND _inc_env "${_path_env}")
-        string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-        list(APPEND _inc_env "${_path_env}")
-        string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-        list(APPEND _inc_env "${_path_env}")
-        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-        list(APPEND _inc_env "${_path_env}")
+        if(WIN32)
+            string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+        else()
+            string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+            list(APPEND _inc_env "${_path_env}")
+            string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+            list(APPEND _inc_env "${_path_env}")
+            string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+            list(APPEND _inc_env "${_path_env}")
+            string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+            list(APPEND _inc_env "${_path_env}")
+        endif()
     endif()
     list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
     list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
@@ -114,7 +128,7 @@ if(NOT FXT_FOUND OR NOT FXT_LIBRARIES)
             find_path(FXT_fxt.h_DIRS
               NAMES fxt.h
               HINTS ${FXT_DIR}
-              PATH_SUFFIXES include)
+              PATH_SUFFIXES "include" "include/fxt")
         else()
             set(FXT_fxt.h_DIRS "FXT_fxt.h_DIRS-NOTFOUND")
             find_path(FXT_fxt.h_DIRS
@@ -146,16 +160,24 @@ if(NOT FXT_FOUND OR NOT FXT_LIBRARIES)
     # Add system library paths to search lib
     # --------------------------------------
     unset(_lib_env)
-    if(WIN32)
-        string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
+    set(ENV_FXT_LIBDIR "$ENV{FXT_LIBDIR}")
+    if(ENV_FXT_LIBDIR)
+        list(APPEND _lib_env "${ENV_FXT_LIBDIR}")
+    elseif(ENV_FXT_DIR)
+        list(APPEND _lib_env "${ENV_FXT_DIR}")
+        list(APPEND _lib_env "${ENV_FXT_DIR}/lib")
     else()
-        if(APPLE)
-            string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+        if(WIN32)
+            string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
         else()
-            string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+            if(APPLE)
+                string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+            else()
+                string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+            endif()
+            list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+            list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
         endif()
-        list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
-        list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif()
     list(REMOVE_DUPLICATES _lib_env)
 
@@ -203,16 +225,32 @@ if(NOT FXT_FOUND OR NOT FXT_LIBRARIES)
         list(REMOVE_DUPLICATES FXT_LIBRARY_DIRS)
     endif ()
 
+    # check a function to validate the find
     if(FXT_LIBRARIES)
-        # check a function to validate the find
-        if (FXT_INCLUDE_DIRS)
-            set(CMAKE_REQUIRED_INCLUDES  "${FXT_INCLUDE_DIRS}")
-        endif()
-        set(CMAKE_REQUIRED_LIBRARIES "${FXT_LIBRARIES}")
-        if (FXT_LIBRARY_DIRS)
-            set(CMAKE_REQUIRED_FLAGS     "-L${FXT_LIBRARY_DIRS}")
-        endif()
 
+        set(REQUIRED_INCDIRS)
+        set(REQUIRED_LIBDIRS)
+        set(REQUIRED_LIBS)
+
+        # FXT
+        if (FXT_INCLUDE_DIRS)
+            set(REQUIRED_INCDIRS "${FXT_INCLUDE_DIRS}")
+        endif()
+        if (FXT_LIBRARY_DIRS)
+            set(REQUIRED_LIBDIRS "${FXT_LIBRARY_DIRS}")
+        endif()
+        set(REQUIRED_LIBS "${FXT_LIBRARIES}")
+
+        # set required libraries for link
+        set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
+        set(CMAKE_REQUIRED_LIBRARIES)
+        foreach(lib_dir ${REQUIRED_LIBDIRS})
+            list(APPEND CMAKE_REQUIRED_LIBRARIES "-L${lib_dir}")
+        endforeach()
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LIBS}")
+        string(REGEX REPLACE "^ -" "-" CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+        # test link
         unset(FXT_WORKS CACHE)
         include(CheckFunctionExists)
         check_function_exists(fut_keychange FXT_WORKS)
@@ -221,24 +259,41 @@ if(NOT FXT_FOUND OR NOT FXT_LIBRARIES)
         if(NOT FXT_WORKS)
             if(NOT FXT_FIND_QUIETLY)
                 message(STATUS "Looking for fxt : test of fut_keychange with fxt library fails")
-                message(STATUS "FXT_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
-                message(STATUS "FXT_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
-                message(STATUS "FXT_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+                message(STATUS "CMAKE_REQUIRED_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+                message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
                 message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
-                message(STATUS "Looking for fxt : set FXT_LIBRARIES to NOTFOUND")
             endif()
-            set(FXT_LIBRARIES "FXT_LIBRARIES-NOTFOUND")
         endif()
         set(CMAKE_REQUIRED_INCLUDES)
         set(CMAKE_REQUIRED_FLAGS)
         set(CMAKE_REQUIRED_LIBRARIES)
     endif(FXT_LIBRARIES)
 
-endif(NOT FXT_FOUND OR NOT FXT_LIBRARIES)
+endif( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT FXT_FOUND) OR (FXT_DIR) )
 
+if (FXT_LIBRARIES)
+    if (FXT_LIBRARY_DIRS)
+        list(GET FXT_LIBRARY_DIRS 0 first_lib_path)
+    else()
+        list(GET FXT_LIBRARIES 0 first_lib)
+        get_filename_component(first_lib_path "${first_lib}" PATH)
+    endif()
+    if (${first_lib_path} MATCHES "/lib(32|64)?$")
+        string(REGEX REPLACE "/lib(32|64)?$" "" not_cached_dir "${first_lib_path}")
+        set(FXT_DIR_FOUND "${not_cached_dir}" CACHE PATH "Installation directory of FXT library" FORCE)
+    else()
+        set(FXT_DIR_FOUND "${first_lib_path}" CACHE PATH "Installation directory of FXT library" FORCE)
+    endif()
+endif()
 
 # check that FXT has been found
 # -------------------------------
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(FXT DEFAULT_MSG
-                                  FXT_LIBRARIES)
+if (PKG_CONFIG_EXECUTABLE AND FXT_FOUND)
+    find_package_handle_standard_args(FXT DEFAULT_MSG
+                                      FXT_LIBRARIES)
+else()
+    find_package_handle_standard_args(FXT DEFAULT_MSG
+                                      FXT_LIBRARIES
+                                      FXT_WORKS)
+endif()

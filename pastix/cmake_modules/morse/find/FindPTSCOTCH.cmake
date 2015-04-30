@@ -12,20 +12,31 @@
 # Use this module by invoking find_package with the form:
 #  find_package(PTSCOTCH
 #               [REQUIRED]             # Fail with error if ptscotch is not found
-#               [COMPONENTS <libs>...] # required dependencies
 #              )
+#
+#  PTSCOTCH depends on the following libraries:
+#   - Threads
+#   - MPI
+#
 # This module finds headers and ptscotch library.
 # Results are reported in variables:
-#  PTSCOTCH_FOUND           - True if headers and requested libraries were found
-#  PTSCOTCH_INCLUDE_DIRS    - ptscotch include directories
-#  PTSCOTCH_LIBRARY_DIRS    - Link directories for ptscotch libraries
-#  PTSCOTCH_LIBRARIES       - ptscotch component libraries to be linked
-#  PTSCOTCH_INTSIZE         - Number of octets occupied by a SCOTCH_Num
+#  PTSCOTCH_FOUND            - True if headers and requested libraries were found
+#  PTSCOTCH_LINKER_FLAGS     - list of required linker flags (excluding -l and -L)
+#  PTSCOTCH_INCLUDE_DIRS     - ptscotch include directories
+#  PTSCOTCH_LIBRARY_DIRS     - Link directories for ptscotch libraries
+#  PTSCOTCH_LIBRARIES        - ptscotch component libraries to be linked
+#  PTSCOTCH_INCLUDE_DIRS_DEP - ptscotch + dependencies include directories
+#  PTSCOTCH_LIBRARY_DIRS_DEP - ptscotch + dependencies link directories
+#  PTSCOTCH_LIBRARIES_DEP    - ptscotch libraries + dependencies
+#  PTSCOTCH_INTSIZE          - Number of octets occupied by a SCOTCH_Num
+#
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DPTSCOTCH=path/to/ptscotch):
-#  PTSCOTCH_DIR             - Where to find the base directory of ptscotch
-#  PTSCOTCH_INCDIR          - Where to find the header files
-#  PTSCOTCH_LIBDIR          - Where to find the library files
+#  PTSCOTCH_DIR              - Where to find the base directory of ptscotch
+#  PTSCOTCH_INCDIR           - Where to find the header files
+#  PTSCOTCH_LIBDIR           - Where to find the library files
+# The module can also look for the following environment variables if paths
+# are not given as cmake variable: PTSCOTCH_DIR, PTSCOTCH_INCDIR, PTSCOTCH_LIBDIR
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -45,47 +56,28 @@
 #  License text for the above reference.)
 
 if (NOT PTSCOTCH_FOUND)
-    set(PTSCOTCH_DIR "" CACHE PATH "Root directory of PTSCOTCH library")
+    set(PTSCOTCH_DIR "" CACHE PATH "Installation directory of PTSCOTCH library")
     if (NOT PTSCOTCH_FIND_QUIETLY)
         message(STATUS "A cache variable, namely PTSCOTCH_DIR, has been set to specify the install directory of PTSCOTCH")
     endif()
 endif()
 
-# PTSCOTCH may depend on MPI and Threads
-# try to find it specified as COMPONENTS during the call
-if( PTSCOTCH_FIND_COMPONENTS )
-    foreach( component ${PTSCOTCH_FIND_COMPONENTS} )
-        if(PTSCOTCH_FIND_REQUIRED_${component})
-            find_package(${component} REQUIRED)
-        else()
-            find_package(${component})
-        endif()
-        if(${component}_FOUND)
-            set(PTSCOTCH_${component}_FOUND TRUE)
-            if( THREADS_FOUND )
-                list(APPEND EXTRA_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-            endif ()
-            if (MPI_FOUND)
-                # should we have these variables available in gui modes?
-                mark_as_advanced(MPI_LIBRARY)
-                mark_as_advanced(MPI_EXTRA_LIBRARY)
-                list(APPEND EXTRA_LIBRARIES ${MPI_C_LIBRARIES} )
-                include_directories( ${MPI_C_INCLUDE_PATH} )
-            endif()
-        else()
-            set(PTSCOTCH_${component}_FOUND FALSE)
-        endif()
-    endforeach()
-endif()
-
 # PTSCOTCH may depend on Threads, try to find it
 if (NOT THREADS_FOUND)
-    find_package(Threads)
+    if (PTSCOTCH_FIND_REQUIRED)
+        find_package(Threads REQUIRED)
+    else()
+        find_package(Threads)
+    endif()
 endif()
 
 # PTSCOTCH may depend on MPI, try to find it
 if (NOT MPI_FOUND)
-    find_package(MPI)
+    if (PTSCOTCH_FIND_REQUIRED)
+        find_package(MPI REQUIRED)
+    else()
+        find_package(MPI)
+    endif()
 endif()
 
 # Looking for include
@@ -94,17 +86,27 @@ endif()
 # Add system include paths to search include
 # ------------------------------------------
 unset(_inc_env)
-if(WIN32)
-    string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+set(ENV_PTSCOTCH_DIR "$ENV{PTSCOTCH_DIR}")
+set(ENV_PTSCOTCH_INCDIR "$ENV{PTSCOTCH_INCDIR}")
+if(ENV_PTSCOTCH_INCDIR)
+    list(APPEND _inc_env "${ENV_PTSCOTCH_INCDIR}")
+elseif(ENV_PTSCOTCH_DIR)
+    list(APPEND _inc_env "${ENV_PTSCOTCH_DIR}")
+    list(APPEND _inc_env "${ENV_PTSCOTCH_DIR}/include")
+    list(APPEND _inc_env "${ENV_PTSCOTCH_DIR}/include/ptscotch")
 else()
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
+    if(WIN32)
+        string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+    else()
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+    endif()
 endif()
 list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
 list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
@@ -125,7 +127,7 @@ else()
         find_path(PTSCOTCH_ptscotch.h_DIRS
           NAMES ptscotch.h
           HINTS ${PTSCOTCH_DIR}
-          PATH_SUFFIXES include)
+          PATH_SUFFIXES "include" "include/ptscotch")
     else()
         set(PTSCOTCH_ptscotch.h_DIRS "PTSCOTCH_ptscotch.h_DIRS-NOTFOUND")
         find_path(PTSCOTCH_ptscotch.h_DIRS
@@ -153,16 +155,24 @@ endif()
 # Add system library paths to search lib
 # --------------------------------------
 unset(_lib_env)
-if(WIN32)
-    string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
+set(ENV_PTSCOTCH_LIBDIR "$ENV{PTSCOTCH_LIBDIR}")
+if(ENV_PTSCOTCH_LIBDIR)
+    list(APPEND _lib_env "${ENV_PTSCOTCH_LIBDIR}")
+elseif(ENV_PTSCOTCH_DIR)
+    list(APPEND _lib_env "${ENV_PTSCOTCH_DIR}")
+    list(APPEND _lib_env "${ENV_PTSCOTCH_DIR}/lib")
 else()
-    if(APPLE)
-        string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+    if(WIN32)
+        string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
     else()
-        string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        if(APPLE)
+            string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+        else()
+            string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        endif()
+        list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif()
-    list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
-    list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif()
 list(REMOVE_DUPLICATES _lib_env)
 
@@ -220,49 +230,89 @@ foreach(ptscotch_lib ${PTSCOTCH_libs_to_find})
 
 endforeach()
 
-
+# check a function to validate the find
 if(PTSCOTCH_LIBRARIES)
-    # check a function to validate the find
+
+    set(REQUIRED_LDFLAGS)
+    set(REQUIRED_INCDIRS)
+    set(REQUIRED_LIBDIRS)
+    set(REQUIRED_LIBS)
+
+    # PTSCOTCH
     if (PTSCOTCH_INCLUDE_DIRS)
-        set(CMAKE_REQUIRED_INCLUDES  "${PTSCOTCH_INCLUDE_DIRS}")
-    endif()
-    set(CMAKE_REQUIRED_LIBRARIES "${PTSCOTCH_LIBRARIES}")
-    if(CMAKE_THREAD_LIBS_INIT)
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
+        set(REQUIRED_INCDIRS  "${PTSCOTCH_INCLUDE_DIRS}")
     endif()
     if (PTSCOTCH_LIBRARY_DIRS)
-        set(CMAKE_REQUIRED_FLAGS "-L${PTSCOTCH_LIBRARY_DIRS}")
+        set(REQUIRED_LIBDIRS "${PTSCOTCH_LIBRARY_DIRS}")
     endif()
+    set(REQUIRED_LIBS "${PTSCOTCH_LIBRARIES}")
+    # MPI
     if (MPI_FOUND)
         if (MPI_C_INCLUDE_PATH)
             list(APPEND CMAKE_REQUIRED_INCLUDES "${MPI_C_INCLUDE_PATH}")
         endif()
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_C_LIBRARIES}")
+        if (MPI_C_LINK_FLAGS)
+            if (${MPI_C_LINK_FLAGS} MATCHES "  -")
+                string(REGEX REPLACE " -" "-" MPI_C_LINK_FLAGS ${MPI_C_LINK_FLAGS})
+            endif()
+            list(APPEND REQUIRED_LDFLAGS "${MPI_C_LINK_FLAGS}")
+        endif()
+        list(APPEND REQUIRED_LIBS "${MPI_C_LIBRARIES}")
+    endif()
+    # THREADS
+    if(CMAKE_THREAD_LIBS_INIT)
+        list(APPEND REQUIRED_LIBS "${CMAKE_THREAD_LIBS_INIT}")
     endif()
 
+    # set required libraries for link
+    set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
+    set(CMAKE_REQUIRED_LIBRARIES)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LDFLAGS}")
+    foreach(lib_dir ${REQUIRED_LIBDIRS})
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "-L${lib_dir}")
+    endforeach()
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LIBS}")
+    list(APPEND CMAKE_REQUIRED_FLAGS "${REQUIRED_FLAGS}")
+    string(REGEX REPLACE "^ -" "-" CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+    # test link
     unset(PTSCOTCH_WORKS CACHE)
     include(CheckFunctionExists)
     check_function_exists(SCOTCH_dgraphInit PTSCOTCH_WORKS)
     mark_as_advanced(PTSCOTCH_WORKS)
 
     if(PTSCOTCH_WORKS)
-        set(PTSCOTCH_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+        # save link with dependencies
+        set(PTSCOTCH_LIBRARIES_DEP "${REQUIRED_LIBS}")
+        set(PTSCOTCH_LIBRARY_DIRS_DEP "${REQUIRED_LIBDIRS}")
+        set(PTSCOTCH_INCLUDE_DIRS_DEP "${REQUIRED_INCDIRS}")
+        set(PTSCOTCH_LINKER_FLAGS "${REQUIRED_LDFLAGS}")
+        list(REMOVE_DUPLICATES PTSCOTCH_LIBRARY_DIRS_DEP)
+        list(REMOVE_DUPLICATES PTSCOTCH_INCLUDE_DIRS_DEP)
+        list(REMOVE_DUPLICATES PTSCOTCH_LINKER_FLAGS)
     else()
         if(NOT PTSCOTCH_FIND_QUIETLY)
             message(STATUS "Looking for PTSCOTCH : test of SCOTCH_dgraphInit with PTSCOTCH library fails")
-            message(STATUS "PTSCOTCH_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
-            message(STATUS "PTSCOTCH_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
-            message(STATUS "PTSCOTCH_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "CMAKE_REQUIRED_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
             message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
-            message(STATUS "Looking for PTSCOTCH : set PTSCOTCH_LIBRARIES to NOTFOUND")
         endif()
-        set(PTSCOTCH_LIBRARIES "PTSCOTCH_LIBRARIES-NOTFOUND")
     endif()
     set(CMAKE_REQUIRED_INCLUDES)
     set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_LIBRARIES)
 endif(PTSCOTCH_LIBRARIES)
 
+if (PTSCOTCH_LIBRARIES)
+    list(GET PTSCOTCH_LIBRARIES 0 first_lib)
+    get_filename_component(first_lib_path "${first_lib}" PATH)
+    if (${first_lib_path} MATCHES "/lib(32|64)?$")
+        string(REGEX REPLACE "/lib(32|64)?$" "" not_cached_dir "${first_lib_path}")
+        set(PTSCOTCH_DIR_FOUND "${not_cached_dir}" CACHE PATH "Installation directory of PTSCOTCH library" FORCE)
+    else()
+        set(PTSCOTCH_DIR_FOUND "${first_lib_path}" CACHE PATH "Installation directory of PTSCOTCH library" FORCE)
+    endif()
+endif()
 
 # Check the size of SCOTCH_Num
 # ---------------------------------
@@ -311,8 +361,7 @@ set(CMAKE_REQUIRED_INCLUDES "")
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PTSCOTCH DEFAULT_MSG
                                   PTSCOTCH_LIBRARIES
-                                  PTSCOTCH_INCLUDE_DIRS
-                                  PTSCOTCH_LIBRARY_DIRS)
+                                  PTSCOTCH_WORKS)
 #
 # TODO: Add possibility to check for specific functions in the library
 #

@@ -12,19 +12,34 @@
 # Use this module by invoking find_package with the form:
 #  find_package(QUARK
 #               [REQUIRED]             # Fail with error if quark is not found
-#               [COMPONENTS <libs>...] # required dependencies
+#               [COMPONENTS <comp1> <comp2> ...] # dependencies
 #              )
+#
+#  QUARK depends on the following libraries:
+#   - Threads
+#
+#  COMPONENTS are optional libraries QUARK could be linked with,
+#  Use it to drive detection of a specific compilation chain
+#  COMPONENTS can be some of the following:
+#   - HWLOC: to activate detection of QUARK linked with hwloc
+#
 # This module finds headers and quark library.
 # Results are reported in variables:
-#  QUARK_FOUND           - True if headers and requested libraries were found
-#  QUARK_INCLUDE_DIRS    - quark include directories
-#  QUARK_LIBRARY_DIRS    - Link directories for quark libraries
-#  QUARK_LIBRARIES       - quark component libraries to be linked
+#  QUARK_FOUND            - True if headers and requested libraries were found
+#  QUARK_INCLUDE_DIRS     - quark include directories
+#  QUARK_LIBRARY_DIRS     - Link directories for quark libraries
+#  QUARK_LIBRARIES        - quark component libraries to be linked
+#  QUARK_INCLUDE_DIRS_DEP - quark + dependencies include directories
+#  QUARK_LIBRARY_DIRS_DEP - quark + dependencies link directories
+#  QUARK_LIBRARIES_DEP    - quark libraries + dependencies
+#
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DQUARK=path/to/quark):
-#  QUARK_DIR             - Where to find the base directory of quark
-#  QUARK_INCDIR          - Where to find the header files
-#  QUARK_LIBDIR          - Where to find the library files
+#  QUARK_DIR              - Where to find the base directory of quark
+#  QUARK_INCDIR           - Where to find the header files
+#  QUARK_LIBDIR           - Where to find the library files
+# The module can also look for the following environment variables if paths
+# are not given as cmake variable: QUARK_DIR, QUARK_INCDIR, QUARK_LIBDIR
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -45,7 +60,7 @@
 
 
 if (NOT QUARK_FOUND)
-    set(QUARK_DIR "" CACHE PATH "Root directory of QUARK library")
+    set(QUARK_DIR "" CACHE PATH "Installation directory of QUARK library")
     if (NOT QUARK_FIND_QUIETLY)
         message(STATUS "A cache variable, namely QUARK_DIR, has been set to specify the install directory of QUARK")
     endif()
@@ -53,29 +68,32 @@ endif()
 
 # QUARK may depend on HWLOC
 # try to find it specified as COMPONENTS during the call
+set(QUARK_LOOK_FOR_HWLOC FALSE)
+
 if( QUARK_FIND_COMPONENTS )
     foreach( component ${QUARK_FIND_COMPONENTS} )
-        if(QUARK_FIND_REQUIRED_${component})
-            find_package(${component} REQUIRED)
-        else()
-            find_package(${component})
-        endif()
-        if(${component}_FOUND)
-            set(QUARK_${component}_FOUND TRUE)
-        else()
-            set(QUARK_${component}_FOUND FALSE)
+        if(${component} STREQUAL "HWLOC")
+            set(QUARK_LOOK_FOR_HWLOC TRUE)
         endif()
     endforeach()
 endif()
 
 # QUARK may depend on Threads, try to find it
 if (NOT Threads_FOUND)
-    find_package(Threads REQUIRED)
+    if (QUARK_FIND_REQUIRED)
+        find_package(Threads REQUIRED)
+    else()
+        find_package(Threads)
+    endif()
 endif()
 
 # QUARK may depend on HWLOC, try to find it
-if (NOT HWLOC_FOUND)
-    find_package(HWLOC)
+if (NOT HWLOC_FOUND AND QUARK_LOOK_FOR_HWLOC)
+    if (QUARK_FIND_REQUIRED AND QUARK_FIND_REQUIRED_HWLOC)
+        find_package(HWLOC REQUIRED)
+    else()
+        find_package(HWLOC)
+    endif()
 endif()
 
 # Looking for include
@@ -84,17 +102,28 @@ endif()
 # Add system include paths to search include
 # ------------------------------------------
 unset(_inc_env)
-if(WIN32)
-    string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+set(ENV_QUARK_DIR "$ENV{QUARK_DIR}")
+set(ENV_QUARK_INCDIR "$ENV{QUARK_INCDIR}")
+if(ENV_QUARK_INCDIR)
+    list(APPEND _inc_env "${ENV_QUARK_INCDIR}")
+elseif(ENV_QUARK_DIR)
+    list(APPEND _inc_env "${ENV_QUARK_DIR}")
+    list(APPEND _inc_env "${ENV_QUARK_DIR}/include")
+    list(APPEND _inc_env "${ENV_QUARK_DIR}/include/quark")
+    list(APPEND _inc_env "${ENV_QUARK_DIR}/include/plasma")
 else()
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
+    if(WIN32)
+        string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+    else()
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+    endif()
 endif()
 list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
 list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
@@ -115,7 +144,7 @@ else()
         find_path(QUARK_quark.h_DIRS
           NAMES quark.h
           HINTS ${QUARK_DIR}
-          PATH_SUFFIXES include)
+          PATH_SUFFIXES "include" "include/quark" "include/plasma")
     else()
         set(QUARK_quark.h_DIRS "QUARK_quark.h_DIRS-NOTFOUND")
         find_path(QUARK_quark.h_DIRS
@@ -143,16 +172,24 @@ endif()
 # Add system library paths to search lib
 # --------------------------------------
 unset(_lib_env)
-if(WIN32)
-    string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
+set(ENV_QUARK_LIBDIR "$ENV{QUARK_LIBDIR}")
+if(ENV_QUARK_LIBDIR)
+    list(APPEND _lib_env "${ENV_QUARK_LIBDIR}")
+elseif(ENV_QUARK_DIR)
+    list(APPEND _lib_env "${ENV_QUARK_DIR}")
+    list(APPEND _lib_env "${ENV_QUARK_DIR}/lib")
 else()
-    if(APPLE)
-        string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+    if(WIN32)
+        string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
     else()
-        string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        if(APPLE)
+            string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+        else()
+            string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        endif()
+        list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif()
-    list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
-    list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif()
 list(REMOVE_DUPLICATES _lib_env)
 
@@ -196,53 +233,91 @@ else ()
     endif()
 endif ()
 
+# check a function to validate the find
 if(QUARK_LIBRARIES)
-    # check a function to validate the find
-    if (QUARK_INCLUDE_DIRS)
-        set(CMAKE_REQUIRED_INCLUDES  "${QUARK_INCLUDE_DIRS}")
-    endif()
-    set(CMAKE_REQUIRED_LIBRARIES "${QUARK_LIBRARIES};${CMAKE_THREAD_LIBS_INIT}")
-    if (QUARK_LIBRARY_DIRS)
-        set(CMAKE_REQUIRED_FLAGS "-L${QUARK_LIBRARY_DIRS}")
-    endif()
-    if (HWLOC_FOUND)
-        if (HWLOC_INCLUDE_DIRS)
-            list(APPEND CMAKE_REQUIRED_INCLUDES "${HWLOC_INCLUDE_DIRS}")
-        endif()
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${HWLOC_LIBRARIES}")
-        if (HWLOC_LIBRARY_DIRS)
-            set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${HWLOC_LIBRARY_DIRS}")
-        endif()
-    endif()
 
+    set(REQUIRED_INCDIRS)
+    set(REQUIRED_LIBDIRS)
+    set(REQUIRED_LIBS)
+
+    # QUARK
+    if (QUARK_INCLUDE_DIRS)
+        set(REQUIRED_INCDIRS "${QUARK_INCLUDE_DIRS}")
+    endif()
+    if (QUARK_LIBRARY_DIRS)
+        set(REQUIRED_LIBDIRS "${QUARK_LIBRARY_DIRS}")
+    endif()
+    set(REQUIRED_LIBS "${QUARK_LIBRARIES}")
+    # HWLOC
+    if (HWLOC_FOUND AND QUARK_LOOK_FOR_HWLOC)
+        if (HWLOC_INCLUDE_DIRS)
+            list(APPEND REQUIRED_INCDIRS "${HWLOC_INCLUDE_DIRS}")
+        endif()
+        if (HWLOC_LIBRARY_DIRS)
+            list(APPEND REQUIRED_LIBDIRS "${HWLOC_LIBRARY_DIRS}")
+        endif()
+        foreach(lib ${HWLOC_LIBRARIES})
+            if (EXISTS ${lib} OR ${lib} MATCHES "^-")
+                list(APPEND REQUIRED_LIBS "${lib}")
+            else()
+                list(APPEND REQUIRED_LIBS "-l${lib}")
+            endif()
+        endforeach()
+    endif()
+    # THREADS
+    list(APPEND REQUIRED_LIBS "${CMAKE_THREAD_LIBS_INIT}")
+
+    # set required libraries for link
+    set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
+    set(CMAKE_REQUIRED_LIBRARIES)
+    foreach(lib_dir ${REQUIRED_LIBDIRS})
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "-L${lib_dir}")
+    endforeach()
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LIBS}")
+    string(REGEX REPLACE "^ -" "-" CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+    # test link
     unset(QUARK_WORKS CACHE)
     include(CheckFunctionExists)
     check_function_exists(QUARK_New QUARK_WORKS)
     mark_as_advanced(QUARK_WORKS)
 
     if(QUARK_WORKS)
-        set(QUARK_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+        # save link with dependencies
+        set(QUARK_LIBRARIES_DEP "${REQUIRED_LIBS}")
+        set(QUARK_LIBRARY_DIRS_DEP "${REQUIRED_LIBDIRS}")
+        set(QUARK_INCLUDE_DIRS_DEP "${REQUIRED_INCDIRS}")
+        list(REMOVE_DUPLICATES QUARK_LIBRARY_DIRS_DEP)
+        list(REMOVE_DUPLICATES QUARK_INCLUDE_DIRS_DEP)
     else()
         if(NOT QUARK_FIND_QUIETLY)
             message(STATUS "Looking for QUARK : test of QUARK_New with QUARK library fails")
-            message(STATUS "QUARK_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
-            message(STATUS "QUARK_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
-            message(STATUS "QUARK_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "CMAKE_REQUIRED_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
             message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
-            message(STATUS "Looking for QUARK : set QUARK_LIBRARIES to NOTFOUND")
+            message(STATUS "Maybe QUARK is linked with specific libraries like. "
+            "Have you tried with COMPONENTS (HWLOC)? See the explanation in FindQUARK.cmake.")
         endif()
-        set(QUARK_LIBRARIES "QUARK_LIBRARIES-NOTFOUND")
     endif()
     set(CMAKE_REQUIRED_INCLUDES)
     set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_LIBRARIES)
 endif(QUARK_LIBRARIES)
 
+if (QUARK_LIBRARIES)
+    list(GET QUARK_LIBRARIES 0 first_lib)
+    get_filename_component(first_lib_path "${first_lib}" PATH)
+    if (${first_lib_path} MATCHES "/lib(32|64)?$")
+        string(REGEX REPLACE "/lib(32|64)?$" "" not_cached_dir "${first_lib_path}")
+        set(QUARK_DIR_FOUND "${not_cached_dir}" CACHE PATH "Installation directory of QUARK library" FORCE)
+    else()
+        set(QUARK_DIR_FOUND "${first_lib_path}" CACHE PATH "Installation directory of QUARK library" FORCE)
+    endif()
+endif()
 
 # check that QUARK has been found
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(QUARK DEFAULT_MSG
                                   QUARK_LIBRARIES
-                                  QUARK_INCLUDE_DIRS
-                                  QUARK_LIBRARY_DIRS)
+                                  QUARK_WORKS)

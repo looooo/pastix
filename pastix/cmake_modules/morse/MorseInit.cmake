@@ -47,8 +47,8 @@ include(AuxilaryFlags)
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH}/find)
 
 option(MORSE_VERBOSE_FIND_PACKAGE "Add additional messages concerning no found packages" OFF)
-message("-- ${BoldGreen}MORSE_VERBOSE_FIND_PACKAGE is set to OFF, turn it ON to get"
-        "information about packages not found${ColourReset}")
+#message("-- ${BoldGreen}MORSE_VERBOSE_FIND_PACKAGE is set to OFF, turn it ON to get"
+#        "information about packages not found${ColourReset}")
 
 ##
 ## @end file MorseInit.cmake
