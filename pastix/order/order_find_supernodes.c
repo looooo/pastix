@@ -361,11 +361,8 @@ compute_elimination_tree(      pastix_int_t n,
  *
  *******************************************************************************/
 void
-orderFindSupernodes(       pastix_int_t  n,
-                     const pastix_int_t *ia,
-                     const pastix_int_t *ja,
-                     Order * const ordeptr,
-                     pastix_int_t *treetab )
+orderFindSupernodes( const pastix_graph_t *graph,
+                     Order * const ordeptr )
 {
     pastix_int_t *father     = NULL; /** father[i] is the father of node i in he elimination tree of A **/
     pastix_int_t *T;                 /** T[j] is the number of node in the subtree rooted in node j in
@@ -373,25 +370,29 @@ orderFindSupernodes(       pastix_int_t  n,
     pastix_int_t *S          = NULL; /** S[i] is the number of sons for node i in the elimination tree **/
     pastix_int_t *isleaf     = NULL;
     pastix_int_t *prev_rownz = NULL;
+    pastix_int_t *treetab    = NULL;
     pastix_int_t i, j, k;
     pastix_int_t pi, pj;
 
     pastix_int_t  snodenbr;
     pastix_int_t *perm = ordeptr->permtab;
     pastix_int_t *invp = ordeptr->peritab;
+    pastix_int_t  n  = graph->n;
+    pastix_int_t *ia = graph->colptr;
+    pastix_int_t *ja = graph->rows;
 
-    assert( ia[0] == 0 );
+    assert( graph->colptr[0] == 0 );
 
-    /* Free the rangtab array if existing */
-    if ( ordeptr->cblknbr < n ) {
-        if ( ordeptr->rangtab != NULL ) memFree_null( ordeptr->rangtab );
+    /* Free the rangtab/treetab array if existing */
+    if ( ordeptr->rangtab != NULL ) {
+        memFree_null( ordeptr->rangtab );
+    }
+    if ( ordeptr->treetab != NULL ) {
+        memFree_null( ordeptr->treetab );
     }
 
-    MALLOC_INTERN(S,          n,   pastix_int_t);
-    MALLOC_INTERN(father,     n,   pastix_int_t);
-    MALLOC_INTERN(isleaf,     n,   pastix_int_t);
-    MALLOC_INTERN(prev_rownz, n,   pastix_int_t);
-    MALLOC_INTERN(T,          n+1, pastix_int_t);
+    MALLOC_INTERN(S,      n, pastix_int_t);
+    MALLOC_INTERN(father, n, pastix_int_t);
 
 #if defined(PASTIX_DEBUG_ORDERING)
     /** Check that the permutation vector is 0 based **/
@@ -424,6 +425,7 @@ orderFindSupernodes(       pastix_int_t  n,
      * Compute the postorder of the elimination tree
      * Warning: This operation modifies perm and invp
      */
+    MALLOC_INTERN(T, n+1, pastix_int_t);
     compute_post_order(n, father, perm, invp, T);
 
     /*
@@ -431,6 +433,8 @@ orderFindSupernodes(       pastix_int_t  n,
      */
     compute_subtree_size(n, father, invp, T);
 
+    MALLOC_INTERN(isleaf,     n, pastix_int_t);
+    MALLOC_INTERN(prev_rownz, n, pastix_int_t);
     bzero(isleaf,     sizeof(pastix_int_t)*n);
     bzero(prev_rownz, sizeof(pastix_int_t)*n);
 
@@ -450,6 +454,7 @@ orderFindSupernodes(       pastix_int_t  n,
             }
         }
     }
+    memFree(prev_rownz);
 
     /*
      * Compute the number of sons of each node in the elimination tree
@@ -473,18 +478,13 @@ orderFindSupernodes(       pastix_int_t  n,
         }
     T[snodenbr] = n;
 
-    /*
-     * Save result to ordeptr (switch former rangtab and new one allocated to
-     * restricted array)
-     */
-    ordeptr->cblknbr = snodenbr;
-    MALLOC_INTERN( ordeptr->rangtab, snodenbr+1, pastix_int_t );
-    memcpy( ordeptr->rangtab, T, (snodenbr+1)*sizeof(pastix_int_t) );
+    memFree(isleaf);
 
     /*
      * If the treetab is required, we compute it before to free the local data.
      */
-    if(treetab != NULL)
+    MALLOC_INTERN( ordeptr->treetab, snodenbr, pastix_int_t );
+    treetab = ordeptr->treetab;
     {
         pastix_int_t dad;
 
@@ -512,10 +512,16 @@ orderFindSupernodes(       pastix_int_t  n,
         }
     }
 
-    memFree(prev_rownz);
-    memFree(isleaf);
     memFree(father);
     memFree(S);
+
+    /*
+     * Save result to ordeptr (switch former rangtab and new one allocated to
+     * restricted array)
+     */
+    ordeptr->cblknbr = snodenbr;
+    MALLOC_INTERN( ordeptr->rangtab, snodenbr+1, pastix_int_t );
+    memcpy( ordeptr->rangtab, T, (snodenbr+1)*sizeof(pastix_int_t) );
     memFree(T);
 
     /* Check that the order is 0 based */

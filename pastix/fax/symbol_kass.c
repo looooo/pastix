@@ -85,9 +85,9 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
 {
     kass_csr_t graphPA, graphL;
     pastix_int_t snodenbr;
-    pastix_int_t *snodetab   = NULL;
-    pastix_int_t *streetab    = NULL;
-    pastix_int_t *ia         = NULL;
+    pastix_int_t *snodetab = NULL;
+    pastix_int_t *streetab = NULL;
+    pastix_int_t *ia       = NULL;
     pastix_int_t  i, j, n;
     pastix_int_t *perm;
     pastix_int_t *invp;
@@ -134,16 +134,16 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
      * If we do incomplete factorization, we drop the supernode factorization
      * given by Scotch and recompute a new one.
      */
-    if ( (orderptr->rangtab == NULL) || (ilu == API_YES ) )
-    {
-        Clock timer;
+    /* if ( (orderptr->rangtab == NULL) || (ilu == API_YES ) ) */
+    /* { */
+    /*     Clock timer; */
 
-        MALLOC_INTERN(streetab, csc->n, pastix_int_t);
-        clockStart(timer);
-        orderFindSupernodes( csc->n, csc->colptr, csc->rows, orderptr, streetab );
-        clockStop(timer);
-        pastix_print(procnum, 0, "Time to find the supernodes %.3g s \n", clockVal(timer));
-    }
+    /*     MALLOC_INTERN(streetab, csc->n, pastix_int_t); */
+    /*     clockStart(timer); */
+    /*     orderFindSupernodes( csc->n, csc->colptr, csc->rows, orderptr, streetab ); */
+    /*     clockStop(timer); */
+    /*     pastix_print(procnum, 0, "Time to find the supernodes %.3g s \n", clockVal(timer)); */
+    /* } */
 
     n  = csc->n;
     ia = csc->colptr;
@@ -151,6 +151,7 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     invp     = orderptr->peritab;
     snodenbr = orderptr->cblknbr;
     snodetab = orderptr->rangtab;
+    streetab = orderptr->treetab;
 
     /* Create the graph of P A */
     kass_csrInit( n, &graphPA );
