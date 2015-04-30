@@ -113,11 +113,13 @@ orderAddIsolate(       Order        *ordemesh,
     assert( ordesave.treetab != NULL );
     memcpy( &(ordemesh->treetab), &(ordesave.treetab), ordesave.cblknbr * sizeof(pastix_int_t) );
     for(i=0; i < ordesave.cblknbr; i++)  {
-        if ( ordemesh->rangtab[i] == i ) {
-            ordemesh->rangtab[ i ] = ordesave.cblknbr + baseval;
+        assert( ordemesh->treetab[i] != i );
+        /* This was a root, we connect it to the last one */
+        if ( ordemesh->treetab[i] == -1 ) {
+            ordemesh->treetab[ i ] = ordesave.cblknbr + baseval;
         }
     }
-    ordemesh->rangtab[ ordesave.cblknbr ] = ordesave.cblknbr + baseval;
+    ordemesh->treetab[ ordesave.cblknbr ] = -1;
 
     orderExit( &ordesave );
     return PASTIX_SUCCESS;

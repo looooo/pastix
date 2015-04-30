@@ -220,8 +220,7 @@ compute_post_order(      pastix_int_t n,
  *          Array of size n.
  *          On entry, an allocated array of size n.
  *          On exit, father[i] = father of ith node on the eliminination
- *          tree. If node i is a root then father[i] = itreetab[s] is the number
- *          of the father of supernode i on the supernodal elimination tree.
+ *          tree. If node i is a root then father[i] = i.
  *
  *******************************************************************************/
 static inline void
@@ -290,7 +289,7 @@ compute_elimination_tree(      pastix_int_t n,
 
     for(i=0;i<n;i++)
         if(father[i] == -1)
-            father[i]=i;
+            father[i] = i;
 
 #if defined(PASTIX_DEBUG_ORDERING)
     /*** Check to see if a father has a lower rank in the permutation array than one of its sons ***/
@@ -504,11 +503,11 @@ orderFindSupernodes( const pastix_graph_t *graph,
                     k = dad;
             }
             treetab[i] = k;
-            if(k==snodenbr)
+            if(k == snodenbr)
             {
-                treetab[i] = i; /** This is a root **/
+                treetab[i] = -1; /** This is a root **/
             }
-            assert(treetab[i] >= i);
+            assert((treetab[i] == -1) || (treetab[i] >= i));
         }
     }
 
