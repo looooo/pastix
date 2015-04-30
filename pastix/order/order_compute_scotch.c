@@ -206,11 +206,15 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
 #if defined(FORGET_PARTITION)
     ordemesh->cblknbr = 0;
     if (ordemesh->rangtab != NULL) memFree_null(ordemesh->rangtab);
+    if (ordemesh->treetab != NULL) memFree_null(ordemesh->treetab);
 #else
     /* Redimensionnement de rangtab a cblknbr */
     ordemesh->rangtab =
         (pastix_int_t *) memRealloc (ordemesh->rangtab,
                                      (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
+    ordemesh->treetab =
+        (pastix_int_t *) memRealloc (ordemesh->treetab,
+                                     (ordemesh->cblknbr)*sizeof (pastix_int_t));
 #endif
 
     return PASTIX_SUCCESS;
