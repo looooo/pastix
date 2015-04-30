@@ -259,7 +259,7 @@ int cscReadFromFile( pastix_driver_t  driver,
     {
         pastix_int_t nnz;
 
-        fprintf(stderr, "Hello\n");
+        /* fprintf(stderr, "Hello\n"); */
         if (mpirank == 0) {
             nnz = csc->colptr[csc->gN] - csc->colptr[0];
         }
@@ -267,8 +267,8 @@ int cscReadFromFile( pastix_driver_t  driver,
         MPI_Bcast( csc, 2*sizeof(int)+3*sizeof(pastix_int_t), MPI_CHAR, 0, pastix_comm );
         MPI_Bcast( &nnz, 1, PASTIX_MPI_INT, 0, pastix_comm );
 
-        fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n",
-                mpirank, csc->mtxtype, csc->flttype, (long)nnz, (long)csc->gN );
+        /* fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n", */
+        /*         mpirank, csc->mtxtype, csc->flttype, (long)nnz, (long)csc->gN ); */
 
         if ( mpirank != 0 )
         {
