@@ -1,54 +1,18 @@
-/* Copyright INRIA 2004
- **
- ** This file is part of the Scotch distribution.
- **
- ** The Scotch distribution is libre/free software; you can
- ** redistribute it and/or modify it under the terms of the
- ** GNU Lesser General Public License as published by the
- ** Free Software Foundation; either version 2.1 of the
- ** License, or (at your option) any later version.
- **
- ** The Scotch distribution is distributed in the hope that
- ** it will be useful, but WITHOUT ANY WARRANTY; without even
- ** the implied warranty of MERCHANTABILITY or FITNESS FOR A
- ** PARTICULAR PURPOSE. See the GNU Lesser General Public
- ** License for more details.
- **
- ** You should have received a copy of the GNU Lesser General
- ** Public License along with the Scotch distribution; if not,
- ** write to the Free Software Foundation, Inc.,
- ** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
- **
- ** $Id: symbol.c 285 2005-03-10 10:25:31Z pelegrin $
- */
-/************************************************************/
-/**                                                        **/
-/**   NAME       : symbol.c                                **/
-/**                                                        **/
-/**   AUTHORS    : David GOUDIN                            **/
-/**                Pascal HENON                            **/
-/**                Francois PELLEGRINI                     **/
-/**                Pierre RAMET                            **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                These lines are the general purpose     **/
-/**                routines for the symbolic matrix.       **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to     07 oct 1998     **/
-/**                # Version 0.1  : from : 03 dec 1998     **/
-/**                                 to     03 dec 1998     **/
-/**                # Version 3.0  : from : 29 feb 2004     **/
-/**                                 to     29 feb 2004     **/
-/**                                                        **/
-/************************************************************/
-
-/*
- **  The defines and includes.
- */
-
-#define SYMBOL
-
+/**
+ *
+ * @file symbol_reordering.c
+ *
+ *  PaStiX symbol structure routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @version 5.1.0
+ * @author Gregoire Pichon
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @date 2015-04
+ *
+ **/
 #include "common.h"
 #include "symbol.h"
 #include "order.h"
@@ -72,236 +36,6 @@ compute_cblklevel( const pastix_int_t *treetab,
             return compute_cblklevel( treetab, levels, father ) + 1;
         }
     }
-}
-
-/* For split_level parameter */
-/* The chosen level to reduce computational cost: no effects if set to 0 */
-/* A first comparison is computed according to upper levels */
-/* If hamming distances are equal, the computation goes through lower levels */
-
-/* For stop_criteria parameter */
-/* Criteria to limit the number of comparisons when computing hamming distances */
-
-/* For stop_when_fitting parameter */
-/* Criteria to insert a line when no extra-blok is created */
-/* If set to 0, the algorithm will minimize the cut between two lines */
-
-void
-symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
-                   pastix_int_t split_level, int stop_criteria,
-                   int stop_when_fitting )
-{
-    SymbolCblk  *cblk;
-    pastix_int_t itercblk, iterblok;
-    pastix_int_t cblknbr = symbptr->cblknbr;
-
-    pastix_int_t *brow = symbptr->browtab;
-
-    Clock timer;
-    double time_compute_vectors = 0.;
-    double time_update_perm     = 0.;
-
-    pastix_int_t i;
-    pastix_int_t *levels;
-
-    /* Create the levels structure */
-    levels = calloc(cblknbr, sizeof(pastix_int_t));
-
-    /* Define the depth of each cblk */
-    for (i=0; i<cblknbr; i++){
-        levels[i] = compute_cblklevel( order->treetab, levels, i );
-    }
-
-    cblk = symbptr->cblktab;
-    for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++){
-
-        clockStart(timer);
-        pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
-
-        pastix_int_t **vectors      = malloc(size * sizeof(pastix_int_t*));
-        pastix_int_t * wmatrix      = malloc(size * size * sizeof(pastix_int_t)); /* Hamming distances */
-        pastix_int_t * vectors_size = calloc(size, sizeof(pastix_int_t));
-        pastix_int_t * current_pos  = calloc(size, sizeof(pastix_int_t));
-        memset(wmatrix, -1, size*size*sizeof(pastix_int_t));
-
-        pastix_int_t **up_vectors      = malloc(size * sizeof(pastix_int_t*));
-        pastix_int_t * up_wmatrix      = malloc(size * size * sizeof(pastix_int_t));
-        pastix_int_t * up_vectors_size = calloc(size, sizeof(pastix_int_t));
-        pastix_int_t * up_current_pos  = calloc(size, sizeof(pastix_int_t));
-        memset(up_wmatrix, -1, size*size*sizeof(pastix_int_t));
-
-        /* Start with the given split_level parameter */
-        /* This parameter should be approximated to minimize the following iterative process */
-        pastix_int_t local_split_level = split_level;
-
-        /* Current for each line within the current cblk the number of contributions */
-        pastix_int_t sign = 0;
-
-      split:
-        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
-        {
-            SymbolBlok *blok = symbptr->bloktab + brow[iterblok];
-            /* For upper levels in nested dissection */
-            if (levels[blok->lcblknm] <= local_split_level){
-                for (i=blok->frownum; i<=blok->lrownum; i++){
-                    pastix_int_t index = i - order->rangtab[itercblk];
-                    up_vectors_size[index]++;
-                }
-            }
-            else{
-                for (i=blok->frownum; i<=blok->lrownum; i++){
-                    pastix_int_t index = i - order->rangtab[itercblk];
-                    vectors_size[index]++;
-                }
-            }
-        }
-
-        pastix_int_t total    = 0; /* total of lower bloks */
-        pastix_int_t up_total = 0; /* total of upper bloks */
-        for (i=0; i<size; i++){
-            total    += vectors_size[i];
-            up_total += up_vectors_size[i];
-        }
-
-        /* If there are too many upper bloks */
-        if (total < 5 * up_total && total > 10 && up_total > 10 && sign <= 0){
-            local_split_level--;
-            memset(vectors_size   , 0, size*sizeof(pastix_int_t));
-            memset(up_vectors_size, 0, size*sizeof(pastix_int_t));
-            sign--;
-            goto split;
-        }
-
-        /* If there are too many lower bloks */
-        if (total > 3 * up_total && total > 10 && up_total > 10 && sign >= 0){
-            local_split_level++;
-            memset(vectors_size   , 0, size*sizeof(pastix_int_t));
-            memset(up_vectors_size, 0, size*sizeof(pastix_int_t));
-            sign++;
-            goto split;
-        }
-
-        /* Initiate vectors structure */
-        for (i=0; i<size; i++){
-            vectors[i]    = calloc(vectors_size[i],    sizeof(pastix_int_t));
-            up_vectors[i] = calloc(up_vectors_size[i], sizeof(pastix_int_t));
-        }
-
-        /* Fill-in vectors structure with contributing cblks */
-        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
-        {
-            SymbolBlok *blok = symbptr->bloktab + brow[iterblok];
-            /* For upper levels in nested dissection */
-            if (levels[blok->lcblknm] <= local_split_level){
-                for (i=blok->frownum; i<=blok->lrownum; i++){
-                    pastix_int_t index = i - order->rangtab[itercblk];
-                    up_vectors[index][up_current_pos[index]] = blok->lcblknm;
-                    up_current_pos[index]++;
-                }
-            }
-            else{
-                for (i=blok->frownum; i<=blok->lrownum; i++){
-                    pastix_int_t index = i - order->rangtab[itercblk];
-                    vectors[index][current_pos[index]] = blok->lcblknm;
-                    current_pos[index]++;
-                }
-            }
-        }
-
-        clockStop(timer);
-        time_compute_vectors += clockVal(timer);
-
-        clockStart(timer);
-        /* Permute lines in the current supernode */
-        update_perm(size, order, itercblk,
-                    wmatrix, vectors, vectors_size,
-                    up_wmatrix, up_vectors, up_vectors_size,
-                    stop_criteria, stop_when_fitting);
-        clockStop(timer);
-        time_update_perm += clockVal(timer);
-
-        for (i=0; i<size; i++){
-            free(vectors[i]);
-            free(up_vectors[i]);
-        }
-        free(vectors);
-        free(wmatrix);
-        free(vectors_size);
-        free(current_pos);
-        free(up_vectors);
-        free(up_wmatrix);
-        free(up_vectors_size);
-        free(up_current_pos);
-    }
-
-    printf("Time to compute vectors  %lf s\n", time_compute_vectors);
-    printf("Time to update  perm     %lf s\n", time_update_perm);
-
-    /* Update the permutation */
-    for (i=0; i<symbptr->nodenbr; i++) {
-        order->permtab[ order->peritab[i] ] = i;
-    }
-    free(levels);
-}
-
-pastix_int_t hamming_distance_symbol(pastix_int_t **vectors, pastix_int_t *vectors_size,
-                                     pastix_int_t xi, pastix_int_t xj, pastix_int_t stop)
-{
-    pastix_int_t sum = 0;
-    pastix_int_t *set1 = vectors[xi];
-    pastix_int_t *set2 = vectors[xj];
-    pastix_int_t *end1 = vectors[xi] + vectors_size[xi];
-    pastix_int_t *end2 = vectors[xj] + vectors_size[xj];
-
-    if (vectors_size[xi] - vectors_size[xj] >= stop){
-        return stop;
-    }
-    if (vectors_size[xj] - vectors_size[xi] >= stop){
-        return stop;
-    }
-
-    while((set1 < end1) && (set2 < end2))
-    {
-        if( *set1 == *set2)
-        {
-            set1++;
-            set2++;
-        }
-        else if( *set1 < *set2 )
-        {
-            while (( set1 < end1 ) && ( *set1 < *set2 ))
-            {
-                sum ++;
-                set1++;
-            }
-        }
-        else if( *set1 > *set2 )
-        {
-            while (( set2 < end2 ) && ( *set1 > *set2 ))
-            {
-                sum ++;
-                set2++;
-            }
-        }
-        else
-        {
-            assert(0);
-        }
-
-        /* The computation is stopped if sum overlapped a given limit */
-        if (sum >= stop){
-            return stop;
-        }
-    }
-
-    sum += end1-set1;
-    sum += end2-set2;
-
-    if (sum >= stop){
-        return stop;
-    }
-
-    return sum;
 }
 
 
@@ -448,6 +182,7 @@ void update_perm(pastix_int_t sn_nvertex, Order *order, pastix_int_t sn_id,
     }
 
     /* Search the best split line */
+    /* TODO */
     pastix_int_t min_size = INT_MAX;
     for (i=0; i<sn_nvertex; i++)
     {
@@ -477,6 +212,326 @@ void update_perm(pastix_int_t sn_nvertex, Order *order, pastix_int_t sn_id,
     free(sn_connected);
     free(tmpinvp);
     free(tmplen);
+}
+
+static inline
+void symbol_reorder_cblk( const SymbolMatrix *symbptr,
+                            const SymbolCblk   *cblk,
+                            Order              *order,
+                            const pastix_int_t *levels,
+                            pastix_int_t        cblklvl,
+                            pastix_int_t       *depthweight,
+                            pastix_int_t        depthmax,
+                            pastix_int_t        split_level,
+                            int                 stop_criteria,
+                            int                 stop_when_fitting,
+                            double             *time_compute_vectors,
+                            double             *time_update_perm)
+{
+    SymbolBlok *blok;
+    pastix_int_t **up_vectors, *up_vectors_size;
+    pastix_int_t **lw_vectors, *lw_vectors_size;
+    pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
+    pastix_int_t local_split_level = split_level;
+    pastix_int_t i, iterblok;
+    pastix_int_t *brow = symbptr->browtab;
+    double timer;
+
+    pastix_int_t *lw_wmatrix;
+    pastix_int_t *up_wmatrix;
+
+    /**
+     * Compute hamming vectors in two subsets:
+     *   - The upper subset contains the cblk with level higher than the split_level
+     *     in the elimination tree, (or depth lower than levels[cblk])
+     *   - The lower subset contains the cblk with level lower than the split_level
+     *     in the elimination tree, (or depth higher than levels[cblk])
+     *
+     * The delimitation between the lower and upper levels is made such that
+     * the upper level represents 17% to 25% of the total number of cblk.
+     */
+    clockStart(timer);
+    {
+        pastix_int_t weight = 0;
+
+        /* Compute the weigth of each level */
+        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+        {
+            pastix_int_t blokweight;
+            blok = symbptr->bloktab + brow[iterblok];
+            blokweight = blok->lrownum - blok->frownum + 1;
+            depthweight[ levels[ blok->lcblknm ] - 1 ] += blokweight;
+            weight += blokweight;
+        }
+
+        /**
+         * Compute the split_level:
+         *    We start with the given split_level parameter
+         *    and we try to correct it to minimize the following iterative process
+         */
+        {
+            /* Current for each line within the current cblk the number of contributions */
+            pastix_int_t up_total = 0;
+            pastix_int_t lw_total = 0;
+            pastix_int_t sign = 0;
+
+          split:
+            up_total = 0;
+            lw_total = 0;
+
+            for(i=0; i<local_split_level; i++)
+            {
+                up_total += depthweight[i];
+            }
+            for(; i<depthmax; i++)
+            {
+                lw_total += depthweight[i];
+            }
+
+            /* If there are too many upper bloks */
+            if ( (lw_total < (5 * up_total)) &&
+                 (lw_total > 10) && (up_total > 10) && (sign <= 0))
+            {
+                local_split_level--;
+                sign--;
+                goto split;
+            }
+
+            /* If there are too many lower bloks */
+            if ( (lw_total > (3 * up_total)) &&
+                 (lw_total > 10) && (up_total > 10) && (sign >= 0) )
+            {
+                local_split_level++;
+                sign++;
+                goto split;
+            }
+
+            /* Adjust to depth of the level array */
+            /* symbol_reorder_cblk( symbptr, cblk, order, */
+            /*                      levels, levels[itercblk], */
+            /*                      depthweight + levels[itercblk], maxdepth-levels[itercblk], */
+            /*                      split_level, stop_criteria, stop_when_fitting, */
+        /*                      &time_compute_vectors, &time_update_perm); */
+            /* local_split_level += cblklvl; */
+            /* for(i=0; (i<local_split_level) && (depthweight[i] != 0); i++) */
+            /* for(; (i<depthmax) && (depthweight[i] != 0); i++) */
+        }
+
+        /* Compute the Hamming vector size for each row of the cblk */
+        MALLOC_INTERN(up_vectors_size, size, pastix_int_t);
+        memset(up_vectors_size, 0, size * sizeof(pastix_int_t));
+        MALLOC_INTERN(lw_vectors_size, size, pastix_int_t);
+        memset(lw_vectors_size, 0, size * sizeof(pastix_int_t));
+
+        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+        {
+            blok = symbptr->bloktab + brow[iterblok];
+
+            /* For upper levels in nested dissection */
+            if (levels[blok->lcblknm] <= local_split_level){
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - cblk->fcolnum;
+                    up_vectors_size[index]++;
+                }
+            }
+            else{
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - cblk->fcolnum;
+                    lw_vectors_size[index]++;
+                }
+            }
+        }
+
+        /* Initiate Hamming vectors structure */
+        MALLOC_INTERN(lw_vectors, size, pastix_int_t*);
+        MALLOC_INTERN(up_vectors, size, pastix_int_t*);
+        for (i=0; i<size; i++) {
+            MALLOC_INTERN(lw_vectors[i], lw_vectors_size[i], pastix_int_t);
+            MALLOC_INTERN(up_vectors[i], up_vectors_size[i], pastix_int_t);
+            memset(lw_vectors[i], 0, lw_vectors_size[i] * sizeof(pastix_int_t));
+            memset(up_vectors[i], 0, up_vectors_size[i] * sizeof(pastix_int_t));
+        }
+        memset(lw_vectors_size, 0, size * sizeof(pastix_int_t));
+        memset(up_vectors_size, 0, size * sizeof(pastix_int_t));
+
+        /* Fill-in vectors structure with contributing cblks */
+        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+        {
+            blok = symbptr->bloktab + brow[iterblok];
+
+            /* For upper levels in nested dissection */
+            if (levels[blok->lcblknm] <= local_split_level) {
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - cblk->fcolnum;
+                    up_vectors[index][up_vectors_size[index]] = blok->lcblknm;
+                    up_vectors_size[index]++;
+                }
+            }
+            else{
+                for (i=blok->frownum; i<=blok->lrownum; i++){
+                    pastix_int_t index = i - cblk->fcolnum;
+                    lw_vectors[index][lw_vectors_size[index]] = blok->lcblknm;
+                    lw_vectors_size[index]++;
+                }
+            }
+        }
+    }
+    clockStop(timer);
+    *time_compute_vectors += clockVal(timer);
+
+    clockStart(timer);
+    {
+        lw_wmatrix = malloc(size * size * sizeof(pastix_int_t)); /* Hamming distances */
+        up_wmatrix = malloc(size * size * sizeof(pastix_int_t));
+        memset(up_wmatrix, -1, size*size*sizeof(pastix_int_t));
+        memset(lw_wmatrix, -1, size*size*sizeof(pastix_int_t));
+
+        /* Permute lines in the current supernode */
+        update_perm(size, order, cblk - symbptr->cblktab,
+                    lw_wmatrix, lw_vectors, lw_vectors_size,
+                    up_wmatrix, up_vectors, up_vectors_size,
+                    stop_criteria, stop_when_fitting);
+
+        memFree_null(lw_wmatrix);
+        memFree_null(up_wmatrix);
+    }
+    clockStop(timer);
+    *time_update_perm += clockVal(timer);
+
+    for (i=0; i<size; i++){
+        memFree_null(lw_vectors[i]);
+        memFree_null(up_vectors[i]);
+    }
+    memFree_null(lw_vectors);
+    memFree_null(up_vectors);
+    memFree_null(lw_vectors_size);
+    memFree_null(up_vectors_size);
+}
+
+/* For split_level parameter */
+/* The chosen level to reduce computational cost: no effects if set to 0 */
+/* A first comparison is computed according to upper levels */
+/* If hamming distances are equal, the computation goes through lower levels */
+
+/* For stop_criteria parameter */
+/* Criteria to limit the number of comparisons when computing hamming distances */
+
+/* For stop_when_fitting parameter */
+/* Criteria to insert a line when no extra-blok is created */
+/* If set to 0, the algorithm will minimize the cut between two lines */
+
+void
+symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
+                   pastix_int_t split_level, int stop_criteria,
+                   int stop_when_fitting )
+{
+    SymbolCblk  *cblk;
+    pastix_int_t itercblk;
+    pastix_int_t cblknbr = symbptr->cblknbr;
+
+    double time_compute_vectors = 0.;
+    double time_update_perm     = 0.;
+
+    pastix_int_t i, maxdepth;
+    pastix_int_t *levels, *depthweight;
+
+    /* Create the level array to compute the depth of each cblk and the maximum depth */
+    {
+        maxdepth = 0;
+        levels = calloc(cblknbr, sizeof(pastix_int_t));
+
+        for (i=0; i<cblknbr; i++) {
+            levels[i] = compute_cblklevel( order->treetab, levels, i );
+            maxdepth = pastix_imax( maxdepth, levels[i] );
+        }
+    }
+
+    /**
+     * Solves the Traveler Salesman Problem on each cblk to minimize the number
+     * of off-diagonal blocks per row
+     */
+    cblk = symbptr->cblktab;
+    MALLOC_INTERN( depthweight, maxdepth, pastix_int_t );
+    for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
+
+        memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
+
+        symbol_reorder_cblk( symbptr, cblk, order,
+                             levels, levels[itercblk],
+                             depthweight, maxdepth,
+                             split_level, stop_criteria, stop_when_fitting,
+                             &time_compute_vectors, &time_update_perm);
+    }
+
+    printf("Time to compute vectors  %lf s\n", time_compute_vectors);
+    printf("Time to update  perm     %lf s\n", time_update_perm);
+
+    /* Update the permutation */
+    for (i=0; i<symbptr->nodenbr; i++) {
+        order->permtab[ order->peritab[i] ] = i;
+    }
+    memFree_null(levels);
+    memFree_null(depthweight);
+}
+
+pastix_int_t hamming_distance_symbol(pastix_int_t **vectors, pastix_int_t *vectors_size,
+                                     pastix_int_t xi, pastix_int_t xj, pastix_int_t stop)
+{
+    pastix_int_t sum = 0;
+    pastix_int_t *set1 = vectors[xi];
+    pastix_int_t *set2 = vectors[xj];
+    pastix_int_t *end1 = vectors[xi] + vectors_size[xi];
+    pastix_int_t *end2 = vectors[xj] + vectors_size[xj];
+
+    if (vectors_size[xi] - vectors_size[xj] >= stop){
+        return stop;
+    }
+    if (vectors_size[xj] - vectors_size[xi] >= stop){
+        return stop;
+    }
+
+    while((set1 < end1) && (set2 < end2))
+    {
+        if( *set1 == *set2)
+        {
+            set1++;
+            set2++;
+        }
+        else if( *set1 < *set2 )
+        {
+            while (( set1 < end1 ) && ( *set1 < *set2 ))
+            {
+                sum ++;
+                set1++;
+            }
+        }
+        else if( *set1 > *set2 )
+        {
+            while (( set2 < end2 ) && ( *set1 > *set2 ))
+            {
+                sum ++;
+                set2++;
+            }
+        }
+        else
+        {
+            assert(0);
+        }
+
+        /* The computation is stopped if sum overlapped a given limit */
+        if (sum >= stop){
+            return stop;
+        }
+    }
+
+    sum += end1-set1;
+    sum += end2-set2;
+
+    if (sum >= stop){
+        return stop;
+    }
+
+    return sum;
 }
 
 void
