@@ -136,6 +136,9 @@ void update_perm(pastix_int_t size, Order *order, pastix_int_t sn_id,
                     j = i;
                 }
             }
+            else{
+                lw_after_pos = -1;
+            }
         }
 
         /* Test between last and first */
