@@ -90,8 +90,8 @@ void symbolPrintComplexityReordering( const SymbolMatrix *symbptr );
 /* Pastix_Int_Ternal routines for hamming vectors */
 pastix_int_t hamming_distance_symbol( pastix_int_t **, pastix_int_t *, pastix_int_t, pastix_int_t, pastix_int_t);
 void update_perm(pastix_int_t, Order *, pastix_int_t,
-                 pastix_int_t *, pastix_int_t **, pastix_int_t *,
-                 pastix_int_t *, pastix_int_t **, pastix_int_t *,
+                 pastix_int_t **, pastix_int_t *,
+                 pastix_int_t **, pastix_int_t *,
                  pastix_int_t, pastix_int_t);
 
 void
