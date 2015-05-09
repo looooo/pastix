@@ -368,6 +368,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/reffinement")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
@@ -546,7 +547,16 @@ set(PASTIX_LIB_SRCS
   #matrix_drivers/readcscd.c
 #
   sopalin/pastix_task_sopalin.c
+#   bcsc/z_csc_intern_updown.c
   sopalin/coeftab.c
+  bcsc/bcsc_zcompute.c
+#
+#   reffinement/pastix_task_raff.c
+#   reffinement/z_raff_functions.c
+#   reffinement/z_raff_bicgstab.c
+#   reffinement/z_raff_gmres.c
+#   reffinement/z_raff_pivot.c
+#   reffinement/z_raff_grad.c
 #
   csc/csc.c
   csc/genrhs.c
