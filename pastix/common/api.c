@@ -66,7 +66,9 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
     iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
     iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
-    iparm[IPARM_AMALGAMATION_LEVEL]    = 5;                   /* Amalgamation level                                   */
+    iparm[IPARM_SF_KASS]               = API_NO;              /* Force KASS */
+    iparm[IPARM_AMALGAMATION_LVLCBLK]  = 5;                   /* Amalgamation level                                   */
+    iparm[IPARM_AMALGAMATION_LVLBLAS]  = 5;                   /* Amalgamation level                                   */
 
     /**
      * Ordering parameters

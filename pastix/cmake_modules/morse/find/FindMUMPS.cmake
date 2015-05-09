@@ -11,24 +11,40 @@
 # - Find MUMPS include dirs and libraries
 # Use this module by invoking find_package with the form:
 #  find_package(MUMPS
-#               [REQUIRED]             # Fail with error if mumps is not found
-#               [COMPONENTS <libs>...] # required dependencies
+#               [REQUIRED] # Fail with error if mumps is not found
+#               [COMPONENTS <comp1> <comp2> ...] # dependencies
 #              )
-#  COMPONENTS can be one of the following:
-#   MPI: to activate detection of the parallel MPI version (default behaviour)
-#   SEQ: to activate detection of sequential version (exclude MPI version)
-#   SCOTCH: to activate detection of MUMPS linked with SCOTCH
-#   METIS: to activate detection of MUMPS linked with METIS
+#
+#  MUMPS depends on the following libraries:
+#   - Threads
+#   - BLAS
+#
+#  COMPONENTS are optional libraries MUMPS could be linked with,
+#  Use it to drive detection of a specific compilation chain
+#  COMPONENTS can be some of the following:
+#   - MPI: to activate detection of the parallel MPI version (default)
+#        it looks for Threads, BLAS, MPI and ScaLAPACK libraries
+#   - SEQ: to activate detection of sequential version (exclude MPI version)
+#        it looks for Threads and BLAS libraries
+#   - SCOTCH: to activate detection of MUMPS linked with SCOTCH
+#   - METIS: to activate detection of MUMPS linked with METIS
+#
 # This module finds headers and mumps library.
 # Results are reported in variables:
-#  MUMPS_FOUND           - True if headers and requested libraries were found
-#  MUMPS_INCLUDE_DIRS    - mumps include directories
-#  MUMPS_LIBRARY_DIRS    - Link directories for mumps libraries
+#  MUMPS_FOUND            - True if headers and requested libraries were found
+#  MUMPS_LINKER_FLAGS     - list of required linker flags (excluding -l and -L)
+#  MUMPS_INCLUDE_DIRS     - mumps include directories
+#  MUMPS_LIBRARY_DIRS     - Link directories for mumps libraries
+#  MUMPS_LIBRARIES        - mumps libraries
+#  MUMPS_INCLUDE_DIRS_DEP - mumps + dependencies include directories
+#  MUMPS_LIBRARY_DIRS_DEP - mumps + dependencies link directories
+#  MUMPS_LIBRARIES_DEP    - mumps libraries + dependencies
+#
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DMUMPS_DIR=path/to/mumps):
-#  MUMPS_DIR             - Where to find the base directory of mumps
-#  MUMPS_INCDIR          - Where to find the header files
-#  MUMPS_LIBDIR          - Where to find the library files
+#  MUMPS_DIR              - Where to find the base directory of mumps
+# The module can also look for the following environment variables if paths
+# are not given as cmake variable: MUMPS_DIR
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -49,15 +65,18 @@
 
 
 if (NOT MUMPS_FOUND)
-    set(MUMPS_DIR "" CACHE PATH "Root directory of MUMPS library")
+    set(MUMPS_DIR "" CACHE PATH "Installation directory of MUMPS library")
     if (NOT MUMPS_FIND_QUIETLY)
         message(STATUS "A cache variable, namely MUMPS_DIR, has been set to specify the install directory of MUMPS")
     endif()
 endif()
 
-# Try to find MUMPS dependencies if specified as COMPONENTS during the call
-set(MUMPS_LOOK_FOR_SEQ OFF)
+# Set the version to find
 set(MUMPS_LOOK_FOR_MPI ON)
+set(MUMPS_LOOK_FOR_SEQ OFF)
+set(MUMPS_LOOK_FOR_SCOTCH OFF)
+set(MUMPS_LOOK_FOR_METIS OFF)
+
 if( MUMPS_FIND_COMPONENTS )
     foreach( component ${MUMPS_FIND_COMPONENTS} )
         if (${component} STREQUAL "SEQ")
@@ -66,26 +85,15 @@ if( MUMPS_FIND_COMPONENTS )
             set(MUMPS_LOOK_FOR_MPI OFF)
         endif()
         if (${component} STREQUAL "MPI")
-            # means we look for the sequential version of MUMPS (without MPI)
+            # means we look for the MPI version of MUMPS (default)
             set(MUMPS_LOOK_FOR_MPI ON)
             set(MUMPS_LOOK_FOR_SEQ OFF)
         endif()
-        if (NOT ${component} STREQUAL "SEQ")
-            if(MUMPS_FIND_REQUIRED_${component})
-                find_package(${component} REQUIRED)
-            else()
-                find_package(${component})
-            endif()
+        if (${component} STREQUAL "SCOTCH")
+            set(MUMPS_LOOK_FOR_SCOTCH ON)
         endif()
-        if(${component}_FOUND)
-            set(MUMPS_${component}_FOUND TRUE)
-            # should we have these variables available in gui modes?
-            if (MPI_FOUND)
-                mark_as_advanced(MPI_LIBRARY)
-                mark_as_advanced(MPI_EXTRA_LIBRARY)
-            endif()
-        else()
-            set(MUMPS_${component}_FOUND FALSE)
+        if (${component} STREQUAL "METIS")
+            set(MUMPS_LOOK_FOR_METIS ON)
         endif()
     endforeach()
 endif()
@@ -114,10 +122,12 @@ endif()
 if (NOT MUMPS_FIND_QUIETLY)
     message(STATUS "Looking for MUMPS - Try to detect pthread")
 endif()
-if (MUMPS_FIND_REQUIRED)
-    find_package(Threads REQUIRED)
-else()
-    find_package(Threads)
+if (NOT Threads_FOUND)
+    if (MUMPS_FIND_REQUIRED)
+        find_package(Threads REQUIRED)
+    else()
+        find_package(Threads)
+    endif()
 endif()
 set(MUMPS_EXTRA_LIBRARIES "")
 if( THREADS_FOUND )
@@ -129,10 +139,12 @@ endif ()
 if (NOT MUMPS_FIND_QUIETLY)
     message(STATUS "Looking for MUMPS - Try to detect BLAS")
 endif()
-if (MUMPS_FIND_REQUIRED)
-    find_package(BLASEXT REQUIRED)
-else()
-    find_package(BLASEXT)
+if (NOT BLASEXT_FOUND)
+    if (MUMPS_FIND_REQUIRED)
+        find_package(BLASEXT REQUIRED)
+    else()
+        find_package(BLASEXT)
+    endif()
 endif()
 
 # Optional dependencies
@@ -140,7 +152,7 @@ endif()
 
 # MUMPS may depend on MPI
 #------------------------
-if (NOT MPI_FOUND AND NOT MUMPS_LOOK_FOR_SEQ)
+if (NOT MPI_FOUND AND MUMPS_LOOK_FOR_MPI)
     if (NOT MUMPS_FIND_QUIETLY)
         message(STATUS "Looking for MUMPS - Try to detect MPI")
     endif()
@@ -150,7 +162,7 @@ if (NOT MPI_FOUND AND NOT MUMPS_LOOK_FOR_SEQ)
     if(NOT MPI_C_COMPILER)
         set(MPI_C_COMPILER mpicc)
     endif()
-    if (MUMPS_FIND_REQUIRED AND MUMPS_LOOK_FOR_MPI)
+    if (MUMPS_FIND_REQUIRED AND MUMPS_FIND_REQUIRED_MPI)
         find_package(MPI REQUIRED)
     else()
         find_package(MPI)
@@ -159,25 +171,25 @@ if (NOT MPI_FOUND AND NOT MUMPS_LOOK_FOR_SEQ)
         mark_as_advanced(MPI_LIBRARY)
         mark_as_advanced(MPI_EXTRA_LIBRARY)
     endif()
-endif (NOT MPI_FOUND AND NOT MUMPS_LOOK_FOR_SEQ)
+endif (NOT MPI_FOUND AND MUMPS_LOOK_FOR_MPI)
 
 # MUMPS may depend on ScaLAPACK (if MPI version)
 #-----------------------------------------------
-if (NOT SCALAPACK_FOUND AND NOT MUMPS_LOOK_FOR_SEQ)
+if (NOT SCALAPACK_FOUND AND MUMPS_LOOK_FOR_MPI)
     if (NOT MUMPS_FIND_QUIETLY)
         message(STATUS "Looking for MUMPS - Try to detect SCALAPACK")
     endif()
     # SCALAPACK is a required dependency if MPI is used
-    if (MUMPS_FIND_REQUIRED AND MUMPS_LOOK_FOR_MPI)
+    if (MUMPS_FIND_REQUIRED AND MUMPS_FIND_REQUIRED_MPI)
         find_package(SCALAPACK REQUIRED)
     else()
         find_package(SCALAPACK)
     endif()
-endif (NOT SCALAPACK_FOUND AND NOT MUMPS_LOOK_FOR_SEQ)
+endif (NOT SCALAPACK_FOUND AND MUMPS_LOOK_FOR_MPI)
 
 # MUMPS may depends on SCOTCH
 #----------------------------
-if (NOT SCOTCH_FOUND)
+if (NOT SCOTCH_FOUND AND MUMPS_LOOK_FOR_SCOTCH)
     if (NOT MUMPS_FIND_QUIETLY)
         message(STATUS "Looking for MUMPS - Try to detect SCOTCH")
     endif()
@@ -190,7 +202,7 @@ endif()
 
 # MUMPS may depends on METIS
 #---------------------------
-if (NOT METIS_FOUND)
+if (NOT METIS_FOUND AND MUMPS_LOOK_FOR_METIS)
     if (NOT MUMPS_FIND_QUIETLY)
         message(STATUS "Looking for MUMPS - Try to detect METIS")
     endif()
@@ -215,22 +227,22 @@ if(MUMPS_DIR)
     set(MUMPS_smumps_c.h_DIRS "MUMPS_smumps_c.h_DIRS-NOTFOUND")
     find_path(MUMPS_smumps_c.h_DIRS
       NAMES smumps_c.h
-      HINTS ${MUMPS_DIR}
+      HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
       PATH_SUFFIXES "include")
     set(MUMPS_dmumps_c.h_DIRS "MUMPS_dmumps_c.h_DIRS-NOTFOUND")
     find_path(MUMPS_dmumps_c.h_DIRS
       NAMES dmumps_c.h
-      HINTS ${MUMPS_DIR}
+      HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
       PATH_SUFFIXES "include")
     set(MUMPS_cmumps_c.h_DIRS "MUMPS_cmumps_c.h_DIRS-NOTFOUND")
     find_path(MUMPS_cmumps_c.h_DIRS
       NAMES cmumps_c.h
-      HINTS ${MUMPS_DIR}
+      HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
       PATH_SUFFIXES "include")
     set(MUMPS_zmumps_c.h_DIRS "MUMPS_zmumps_c.h_DIRS-NOTFOUND")
     find_path(MUMPS_zmumps_c.h_DIRS
       NAMES zmumps_c.h
-      HINTS ${MUMPS_DIR}
+      HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
       PATH_SUFFIXES "include")
 else()
     if (MUMPS_FIND_REQUIRED)
@@ -290,6 +302,7 @@ else ()
     endif()
 endif()
 
+
 # Looking for lib
 # ---------------
 
@@ -301,37 +314,37 @@ if(MUMPS_DIR)
     set(MUMPS_smumps_LIBRARY "MUMPS_smumps_LIBRARY-NOTFOUND")
     find_library(MUMPS_smumps_LIBRARY
                  NAMES smumps
-                 HINTS ${MUMPS_DIR}
+                 HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
                  PATH_SUFFIXES lib)
     set(MUMPS_dmumps_LIBRARY "MUMPS_dmumps_LIBRARY-NOTFOUND")
     find_library(MUMPS_dmumps_LIBRARY
                  NAMES dmumps
-                 HINTS ${MUMPS_DIR}
+                 HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
                  PATH_SUFFIXES lib)
     set(MUMPS_cmumps_LIBRARY "MUMPS_cmumps_LIBRARY-NOTFOUND")
     find_library(MUMPS_cmumps_LIBRARY
                  NAMES cmumps
-                 HINTS ${MUMPS_DIR}
+                 HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
                  PATH_SUFFIXES lib)
     set(MUMPS_zmumps_LIBRARY "MUMPS_zmumps_LIBRARY-NOTFOUND")
     find_library(MUMPS_zmumps_LIBRARY
                  NAMES zmumps
-                 HINTS ${MUMPS_DIR}
+                 HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
                  PATH_SUFFIXES lib)
     set(MUMPS_mumps_common_LIBRARY "MUMPS_mumps_common_LIBRARY-NOTFOUND")
     find_library(MUMPS_mumps_common_LIBRARY
                  NAMES mumps_common
-                 HINTS ${MUMPS_DIR}
+                 HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
                  PATH_SUFFIXES lib)
     set(MUMPS_mpiseq_LIBRARY "MUMPS_mpiseq_LIBRARY-NOTFOUND")
     find_library(MUMPS_mpiseq_LIBRARY
                  NAMES mpiseq
-                 HINTS ${MUMPS_DIR}
+                 HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
                  PATH_SUFFIXES libseq)
     set(MUMPS_pord_LIBRARY "MUMPS_pord_LIBRARY-NOTFOUND")
     find_library(MUMPS_pord_LIBRARY
                  NAMES pord
-                 HINTS ${MUMPS_DIR}
+                 HINTS "${MUMPS_DIR}" "$ENV{MUMPS_DIR}"
                  PATH_SUFFIXES lib)
 else()
     if (MUMPS_FIND_REQUIRED)
@@ -396,7 +409,7 @@ else ()
         message(STATUS "Looking for mumps -- libzmumps.a not found")
     endif()
 endif()
-list(REMOVE_DUPLICATES MUMPS_LIBRARY_DIRS)
+
 # check that one precision arithmetic at least has been discovered
 if (NOT MUMPS_PREC_S AND NOT MUMPS_PREC_D AND NOT MUMPS_PREC_C AND NOT MUMPS_PREC_S)
     if (MUMPS_FIND_REQUIRED)
@@ -430,6 +443,7 @@ if (MUMPS_mpiseq_LIBRARY)
         list(APPEND MUMPS_LIBRARIES "${MUMPS_mpiseq_LIBRARY}")
         get_filename_component(mpiseq_lib_path ${MUMPS_mpiseq_LIBRARY} PATH)
         list(APPEND MUMPS_LIBRARY_DIRS "${mpiseq_lib_path}")
+        list(APPEND MUMPS_INCLUDE_DIRS "${mpiseq_lib_path}")
     endif()
 else ()
     if (MUMPS_FIND_REQUIRED AND MUMPS_LOOK_FOR_SEQ)
@@ -456,77 +470,114 @@ else ()
         endif()
     endif()
 endif()
+list(REMOVE_DUPLICATES MUMPS_LIBRARY_DIRS)
+list(REMOVE_DUPLICATES MUMPS_INCLUDE_DIRS)
 
-
+# check a function to validate the find
 if(MUMPS_LIBRARIES)
-    # check a function to validate the find
+
+    set(REQUIRED_LDFLAGS)
+    set(REQUIRED_INCDIRS)
+    set(REQUIRED_LIBDIRS)
+    set(REQUIRED_LIBS)
+
+    # MUMPS
     if (MUMPS_INCLUDE_DIRS)
-        set(CMAKE_REQUIRED_INCLUDES "${MUMPS_INCLUDE_DIRS}")
+        set(REQUIRED_INCDIRS "${MUMPS_INCLUDE_DIRS}")
     endif()
-    set(CMAKE_REQUIRED_FLAGS)
     foreach(libdir ${MUMPS_LIBRARY_DIRS})
         if (libdir)
-            set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${libdir}")
+            list(APPEND REQUIRED_LIBDIRS "${libdir}")
         endif()
     endforeach()
-    set(CMAKE_REQUIRED_LIBRARIES "${MUMPS_LIBRARIES}")
-    if (BLAS_FOUND)
-        if (BLAS_INCLUDE_DIRS)
-            list(APPEND CMAKE_REQUIRED_INCLUDES "${BLAS_INCLUDE_DIRS}")
-        endif()
-        foreach(libdir ${BLAS_LIBRARY_DIRS})
-            if (libdir)
-                set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${libdir}")
-            endif()
-        endforeach()
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${BLAS_LIBRARIES}")
-    endif()
-    if (SCALAPACK_FOUND AND MUMPS_LOOK_FOR_MPI OR MUMPS_FIND_REQUIRED_MPI)
+    set(REQUIRED_LIBS "${MUMPS_LIBRARIES}")
+    # SCALAPACK
+    if (MUMPS_LOOK_FOR_MPI AND SCALAPACK_FOUND)
         if (SCALAPACK_INCLUDE_DIRS)
-            list(APPEND CMAKE_REQUIRED_INCLUDES "${SCALAPACK_INCLUDE_DIRS}")
+            list(APPEND REQUIRED_INCDIRS "${SCALAPACK_INCLUDE_DIRS}")
         endif()
         foreach(libdir ${SCALAPACK_LIBRARY_DIRS})
             if (libdir)
-                set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${libdir}")
+                list(APPEND REQUIRED_LIBDIRS "${libdir}")
             endif()
         endforeach()
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${SCALAPACK_LIBRARIES}")
-    endif()
-    if (MPI_FOUND AND MUMPS_LOOK_FOR_MPI OR MUMPS_FIND_REQUIRED_MPI)
-        if (MPI_C_INCLUDE_PATH)
-            list(APPEND CMAKE_REQUIRED_INCLUDES "${MPI_C_INCLUDE_PATH}")
+        list(APPEND REQUIRED_LIBS "${SCALAPACK_LIBRARIES}")
+        if (SCALAPACK_LINKER_FLAGS)
+            list(APPEND REQUIRED_LDFLAGS "${SCALAPACK_LINKER_FLAGS}")
         endif()
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_C_LIBRARIES}")
     endif()
-    if (MUMPS_FIND_REQUIRED_SCOTCH)
+    # MPI
+    if (MUMPS_LOOK_FOR_MPI AND MPI_FOUND)
+        if (MPI_C_INCLUDE_PATH)
+            list(APPEND REQUIRED_INCDIRS "${MPI_C_INCLUDE_PATH}")
+        endif()
+        if (MPI_Fortran_LINK_FLAGS)
+            if (${MPI_Fortran_LINK_FLAGS} MATCHES "  -")
+                string(REGEX REPLACE " -" "-" MPI_Fortran_LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
+            endif()
+            list(APPEND REQUIRED_LDFLAGS "${MPI_Fortran_LINK_FLAGS}")
+        endif()
+        list(APPEND REQUIRED_LIBS "${MPI_Fortran_LIBRARIES}")
+    endif()
+    # BLAS
+    if (BLAS_FOUND)
+        if (BLAS_INCLUDE_DIRS)
+            list(APPEND REQUIRED_INCDIRS "${BLAS_INCLUDE_DIRS}")
+        endif()
+        foreach(libdir ${BLAS_LIBRARY_DIRS})
+            if (libdir)
+                list(APPEND REQUIRED_LIBDIRS "${libdir}")
+            endif()
+        endforeach()
+        list(APPEND REQUIRED_LIBS "${BLAS_LIBRARIES}")
+        if (BLAS_LINKER_FLAGS)
+            list(APPEND REQUIRED_LDFLAGS "${BLAS_LINKER_FLAGS}")
+        endif()
+    endif()
+    # SCOTCH
+    if (MUMPS_LOOK_FOR_SCOTCH AND SCOTCH_FOUND)
         if (SCOTCH_INCLUDE_DIRS)
-            list(APPEND CMAKE_REQUIRED_INCLUDES "${SCOTCH_INCLUDE_DIRS}")
+            list(APPEND REQUIRED_INCDIRS "${SCOTCH_INCLUDE_DIRS}")
         endif()
         foreach(libdir ${SCOTCH_LIBRARY_DIRS})
             if (libdir)
-                set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${libdir}")
+                list(APPEND REQUIRED_LIBDIRS "${libdir}")
             endif()
         endforeach()
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${SCOTCH_LIBRARIES}")
+        list(APPEND REQUIRED_LIBS "${SCOTCH_LIBRARIES}")
     endif()
-    if (MUMPS_FIND_REQUIRED_METIS)
+    # METIS
+    if (MUMPS_LOOK_FOR_METIS AND METIS_FOUND)
         if (METIS_INCLUDE_DIRS)
-            list(APPEND CMAKE_REQUIRED_INCLUDES "${METIS_INCLUDE_DIRS}")
+            list(APPEND REQUIRED_INCDIRS "${METIS_INCLUDE_DIRS}")
         endif()
         foreach(libdir ${METIS_LIBRARY_DIRS})
             if (libdir)
-                set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${libdir}")
+                list(APPEND REQUIRED_LIBDIRS "${libdir}")
             endif()
         endforeach()
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${METIS_LIBRARIES}")
+        list(APPEND REQUIRED_LIBS "${METIS_LIBRARIES}")
     endif()
+    # Fortran
     if (CMAKE_Fortran_COMPILER MATCHES ".+gfortran.*")
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "-lgfortran")
+        list(APPEND REQUIRED_LIBS "-lgfortran")
     elseif (CMAKE_Fortran_COMPILER MATCHES ".+ifort.*")
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "-lifcore")
+        list(APPEND REQUIRED_LIBS "-lifcore")
     endif()
-    list(APPEND CMAKE_REQUIRED_LIBRARIES ${MUMPS_EXTRA_LIBRARIES})
+    # EXTRA LIBS such that pthread, m, rt
+    list(APPEND REQUIRED_LIBS ${MUMPS_EXTRA_LIBRARIES})
 
+    # set required libraries for link
+    set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
+    set(CMAKE_REQUIRED_LIBRARIES)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LDFLAGS}")
+    foreach(lib_dir ${REQUIRED_LIBDIRS})
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "-L${lib_dir}")
+    endforeach()
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LIBS}")
+    string(REGEX REPLACE "^ -" "-" CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+    # test link
     include(CheckFortranFunctionExists)
     unset(MUMPS_PREC_S_WORKS CACHE)
     check_fortran_function_exists(smumps MUMPS_PREC_S_WORKS)
@@ -546,76 +597,45 @@ if(MUMPS_LIBRARIES)
         set(MUMPS_WORKS TRUE)
     endif()
 
-    if (NOT MUMPS_WORKS)
-        if (SCOTCH_FOUND AND NOT MUMPS_FIND_REQUIRED_SCOTCH)
-            if (SCOTCH_INCLUDE_DIRS)
-                list(APPEND CMAKE_REQUIRED_INCLUDES "${SCOTCH_INCLUDE_DIRS}")
-            endif()
-            foreach(libdir ${SCOTCH_LIBRARY_DIRS})
-                if (libdir)
-                    set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${libdir}")
-                endif()
-            endforeach()
-            list(APPEND CMAKE_REQUIRED_LIBRARIES "${SCOTCH_LIBRARIES}")
-        endif()
-        check_fortran_function_exists(smumps MUMPS_PREC_S_WORKS)
-        check_fortran_function_exists(dmumps MUMPS_PREC_D_WORKS)
-        check_fortran_function_exists(cmumps MUMPS_PREC_C_WORKS)
-        check_fortran_function_exists(zmumps MUMPS_PREC_Z_WORKS)
-    endif()
-
-    set(MUMPS_WORKS FALSE)
-    if(MUMPS_PREC_S_WORKS OR MUMPS_PREC_D_WORKS OR MUMPS_PREC_C_WORKS OR MUMPS_PREC_Z_WORKS)
-        set(MUMPS_WORKS TRUE)
-    endif()
-
-    if (NOT MUMPS_WORKS)
-        if (METIS_FOUND AND NOT MUMPS_FIND_REQUIRED_METIS)
-            if (METIS_INCLUDE_DIRS)
-                list(APPEND CMAKE_REQUIRED_INCLUDES "${METIS_INCLUDE_DIRS}")
-            endif()
-            foreach(libdir ${METIS_LIBRARY_DIRS})
-                if (libdir)
-                    set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${libdir}")
-                endif()
-            endforeach()
-            list(APPEND CMAKE_REQUIRED_LIBRARIES "${METIS_LIBRARIES}")
-        endif()
-        check_fortran_function_exists(smumps MUMPS_PREC_S_WORKS)
-        check_fortran_function_exists(dmumps MUMPS_PREC_D_WORKS)
-        check_fortran_function_exists(cmumps MUMPS_PREC_C_WORKS)
-        check_fortran_function_exists(zmumps MUMPS_PREC_Z_WORKS)
-    endif()
-
-    set(MUMPS_WORKS FALSE)
-    if(MUMPS_PREC_S_WORKS OR MUMPS_PREC_D_WORKS OR MUMPS_PREC_C_WORKS OR MUMPS_PREC_Z_WORKS)
-        set(MUMPS_WORKS TRUE)
-    endif()
-
     if(MUMPS_WORKS)
-        string(REPLACE " -L" ";" CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
-        set(MUMPS_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
-        set(MUMPS_LIBRARY_DIRS "${CMAKE_REQUIRED_FLAGS}")
-        set(MUMPS_INCLUDE_DIRS "${CMAKE_REQUIRED_INCLUDES}")
+        # save link with dependencies
+        set(MUMPS_LIBRARIES_DEP "${REQUIRED_LIBS}")
+        set(MUMPS_LIBRARY_DIRS_DEP "${REQUIRED_LIBDIRS}")
+        set(MUMPS_INCLUDE_DIRS_DEP "${REQUIRED_INCDIRS}")
+        set(MUMPS_LINKER_FLAGS "${REQUIRED_LDFLAGS}")
+        list(REMOVE_DUPLICATES MUMPS_LIBRARY_DIRS_DEP)
+        list(REMOVE_DUPLICATES MUMPS_INCLUDE_DIRS_DEP)
+        list(REMOVE_DUPLICATES MUMPS_LINKER_FLAGS)
     else()
         if(NOT MUMPS_FIND_QUIETLY)
             message(STATUS "Looking for MUMPS : test of [sdcz]mumps() fails")
-            message(STATUS "MUMPS_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
-            message(STATUS "MUMPS_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
-            message(STATUS "MUMPS_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "CMAKE_REQUIRED_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
             message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
-            message(STATUS "Looking for mumps : set MUMPS_LIBRARIES to NOTFOUND")
+            message(STATUS "Maybe MUMPS is linked with specific libraries. "
+            "Have you tried with COMPONENTS (MPI/SEQ, SCOTCH, METIS)? "
+            "See the explanation in FindMUMPS.cmake.")
         endif()
-        set(MUMPS_LIBRARIES "MUMPS_LIBRARIES-NOTFOUND")
     endif()
     set(CMAKE_REQUIRED_INCLUDES)
     set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_LIBRARIES)
 endif(MUMPS_LIBRARIES)
 
+if (MUMPS_LIBRARIES)
+    list(GET MUMPS_LIBRARIES 0 first_lib)
+    get_filename_component(first_lib_path "${first_lib}" PATH)
+    if (${first_lib_path} MATCHES "/lib(32|64)?$")
+        string(REGEX REPLACE "/lib(32|64)?$" "" not_cached_dir "${first_lib_path}")
+        set(MUMPS_DIR_FOUND "${not_cached_dir}" CACHE PATH "Installation directory of MUMPS library" FORCE)
+    else()
+        set(MUMPS_DIR_FOUND "${first_lib_path}" CACHE PATH "Installation directory of MUMPS library" FORCE)
+    endif()
+endif()
 
 # check that MUMPS has been found
-# ---------------------------------
+# -------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MUMPS DEFAULT_MSG
-                                  MUMPS_LIBRARIES)
+                                  MUMPS_LIBRARIES
+                                  MUMPS_WORKS)

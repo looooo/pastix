@@ -12,8 +12,8 @@
 # Use this module by invoking find_package with the form:
 #  find_package(SCOTCH
 #               [REQUIRED]             # Fail with error if scotch is not found
-#               [COMPONENTS <libs>...] # required dependencies
 #              )
+#
 # This module finds headers and scotch library.
 # Results are reported in variables:
 #  SCOTCH_FOUND           - True if headers and requested libraries were found
@@ -21,11 +21,14 @@
 #  SCOTCH_LIBRARY_DIRS    - Link directories for scotch libraries
 #  SCOTCH_LIBRARIES       - scotch component libraries to be linked
 #  SCOTCH_INTSIZE         - Number of octets occupied by a SCOTCH_Num
+#
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DSCOTCH=path/to/scotch):
 #  SCOTCH_DIR             - Where to find the base directory of scotch
 #  SCOTCH_INCDIR          - Where to find the header files
 #  SCOTCH_LIBDIR          - Where to find the library files
+# The module can also look for the following environment variables if paths
+# are not given as cmake variable: SCOTCH_DIR, SCOTCH_INCDIR, SCOTCH_LIBDIR
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -45,35 +48,19 @@
 #  License text for the above reference.)
 
 if (NOT SCOTCH_FOUND)
-    set(SCOTCH_DIR "" CACHE PATH "Root directory of SCOTCH library")
+    set(SCOTCH_DIR "" CACHE PATH "Installation directory of SCOTCH library")
     if (NOT SCOTCH_FIND_QUIETLY)
         message(STATUS "A cache variable, namely SCOTCH_DIR, has been set to specify the install directory of SCOTCH")
     endif()
 endif()
 
-# SCOTCH may depend on Threads
-# try to find it specified as COMPONENTS during the call
-if( SCOTCH_FIND_COMPONENTS )
-    foreach( component ${SCOTCH_FIND_COMPONENTS} )
-        if(SCOTCH_FIND_REQUIRED_${component})
-            find_package(${component} REQUIRED)
-        else()
-            find_package(${component})
-        endif()
-        if(${component}_FOUND)
-            set(SCOTCH_${component}_FOUND TRUE)
-            if( THREADS_FOUND )
-                list(APPEND EXTRA_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-            endif ()
-        else()
-            set(SCOTCH_${component}_FOUND FALSE)
-        endif()
-    endforeach()
-endif()
-
-# PTSCOTCH may depend on Threads, try to find it
+# SCOTCH may depend on Threads, try to find it
 if (NOT THREADS_FOUND)
-    find_package(Threads)
+    if (SCOTCH_FIND_REQUIRED)
+        find_package(Threads REQUIRED)
+    else()
+        find_package(Threads)
+    endif()
 endif()
 
 # Looking for include
@@ -82,17 +69,27 @@ endif()
 # Add system include paths to search include
 # ------------------------------------------
 unset(_inc_env)
-if(WIN32)
-    string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+set(ENV_SCOTCH_DIR "$ENV{SCOTCH_DIR}")
+set(ENV_SCOTCH_INCDIR "$ENV{SCOTCH_INCDIR}")
+if(ENV_SCOTCH_INCDIR)
+    list(APPEND _inc_env "${ENV_SCOTCH_INCDIR}")
+elseif(ENV_SCOTCH_DIR)
+    list(APPEND _inc_env "${ENV_SCOTCH_DIR}")
+    list(APPEND _inc_env "${ENV_SCOTCH_DIR}/include")
+    list(APPEND _inc_env "${ENV_SCOTCH_DIR}/include/scotch")
 else()
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
+    if(WIN32)
+        string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+    else()
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+    endif()
 endif()
 list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
 list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
@@ -113,7 +110,7 @@ else()
         find_path(SCOTCH_scotch.h_DIRS
           NAMES scotch.h
           HINTS ${SCOTCH_DIR}
-          PATH_SUFFIXES include)
+          PATH_SUFFIXES "include" "include/scotch")
     else()
         set(SCOTCH_scotch.h_DIRS "SCOTCH_scotch.h_DIRS-NOTFOUND")
         find_path(SCOTCH_scotch.h_DIRS
@@ -141,16 +138,24 @@ endif()
 # Add system library paths to search lib
 # --------------------------------------
 unset(_lib_env)
-if(WIN32)
-    string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
+set(ENV_SCOTCH_LIBDIR "$ENV{SCOTCH_LIBDIR}")
+if(ENV_SCOTCH_LIBDIR)
+    list(APPEND _lib_env "${ENV_SCOTCH_LIBDIR}")
+elseif(ENV_SCOTCH_DIR)
+    list(APPEND _lib_env "${ENV_SCOTCH_DIR}")
+    list(APPEND _lib_env "${ENV_SCOTCH_DIR}/lib")
 else()
-    if(APPLE)
-        string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+    if(WIN32)
+        string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
     else()
-        string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        if(APPLE)
+            string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+        else()
+            string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        endif()
+        list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif()
-    list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
-    list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif()
 list(REMOVE_DUPLICATES _lib_env)
 
@@ -208,43 +213,67 @@ foreach(scotch_lib ${SCOTCH_libs_to_find})
 
 endforeach()
 
-
+# check a function to validate the find
 if(SCOTCH_LIBRARIES)
-    # check a function to validate the find
+
+    set(REQUIRED_INCDIRS)
+    set(REQUIRED_LIBDIRS)
+    set(REQUIRED_LIBS)
+
+    # SCOTCH
     if (SCOTCH_INCLUDE_DIRS)
-        set(CMAKE_REQUIRED_INCLUDES  "${SCOTCH_INCLUDE_DIRS}")
-    endif()
-    set(CMAKE_REQUIRED_LIBRARIES "${SCOTCH_LIBRARIES}")
-    if(CMAKE_THREAD_LIBS_INIT)
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
+        set(REQUIRED_INCDIRS  "${SCOTCH_INCLUDE_DIRS}")
     endif()
     if (SCOTCH_LIBRARY_DIRS)
-        set(CMAKE_REQUIRED_FLAGS "-L${SCOTCH_LIBRARY_DIRS}")
+        set(REQUIRED_LIBDIRS "${SCOTCH_LIBRARY_DIRS}")
+    endif()
+    set(REQUIRED_LIBS "${SCOTCH_LIBRARIES}")
+    # THREADS
+    if(CMAKE_THREAD_LIBS_INIT)
+        list(APPEND REQUIRED_LIBS "${CMAKE_THREAD_LIBS_INIT}")
     endif()
 
+    # set required libraries for link
+    set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
+    set(CMAKE_REQUIRED_LIBRARIES)
+    foreach(lib_dir ${REQUIRED_LIBDIRS})
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "-L${lib_dir}")
+    endforeach()
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LIBS}")
+    string(REGEX REPLACE "^ -" "-" CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+    # test link
     unset(SCOTCH_WORKS CACHE)
     include(CheckFunctionExists)
     check_function_exists(SCOTCH_graphInit SCOTCH_WORKS)
     mark_as_advanced(SCOTCH_WORKS)
 
     if(SCOTCH_WORKS)
-        set(SCOTCH_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+        # save link with dependencies
+        set(SCOTCH_LIBRARIES "${REQUIRED_LIBS}")
     else()
         if(NOT SCOTCH_FIND_QUIETLY)
             message(STATUS "Looking for SCOTCH : test of SCOTCH_graphInit with SCOTCH library fails")
-            message(STATUS "SCOTCH_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
-            message(STATUS "SCOTCH_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
-            message(STATUS "SCOTCH_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "CMAKE_REQUIRED_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
             message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
-            message(STATUS "Looking for SCOTCH : set SCOTCH_LIBRARIES to NOTFOUND")
         endif()
-        set(SCOTCH_LIBRARIES "SCOTCH_LIBRARIES-NOTFOUND")
     endif()
     set(CMAKE_REQUIRED_INCLUDES)
     set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_LIBRARIES)
 endif(SCOTCH_LIBRARIES)
 
+if (SCOTCH_LIBRARIES)
+    list(GET SCOTCH_LIBRARIES 0 first_lib)
+    get_filename_component(first_lib_path "${first_lib}" PATH)
+    if (${first_lib_path} MATCHES "/lib(32|64)?$")
+        string(REGEX REPLACE "/lib(32|64)?$" "" not_cached_dir "${first_lib_path}")
+        set(SCOTCH_DIR_FOUND "${not_cached_dir}" CACHE PATH "Installation directory of SCOTCH library" FORCE)
+    else()
+        set(SCOTCH_DIR_FOUND "${first_lib_path}" CACHE PATH "Installation directory of SCOTCH library" FORCE)
+    endif()
+endif()
 
 # Check the size of SCOTCH_Num
 # ---------------------------------
@@ -293,8 +322,7 @@ set(CMAKE_REQUIRED_INCLUDES "")
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SCOTCH DEFAULT_MSG
                                   SCOTCH_LIBRARIES
-                                  SCOTCH_INCLUDE_DIRS
-                                  SCOTCH_LIBRARY_DIRS)
+                                  SCOTCH_WORKS)
 #
 # TODO: Add possibility to check for specific functions in the library
 #

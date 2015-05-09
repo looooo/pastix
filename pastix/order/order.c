@@ -77,6 +77,7 @@ orderInit ( Order * const ordeptr,
 
      if (cblknbr != 0) {
         MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
+        MALLOC_INTERN(ordeptr->treetab, cblknbr,   pastix_int_t);
     }
 
     return PASTIX_SUCCESS;
@@ -104,12 +105,14 @@ orderExit (Order * const ordeptr)
         return;
     }
 
-    if (ordeptr->rangtab != NULL)
-        memFree_null (ordeptr->rangtab);
     if (ordeptr->permtab != NULL)
         memFree_null (ordeptr->permtab);
     if (ordeptr->peritab != NULL)
         memFree_null (ordeptr->peritab);
+    if (ordeptr->rangtab != NULL)
+        memFree_null (ordeptr->rangtab);
+    if (ordeptr->treetab != NULL)
+        memFree_null (ordeptr->treetab);
 
     memset(ordeptr, 0, sizeof(Order) );
 }
@@ -155,11 +158,6 @@ orderBase (Order * const ordeptr,
     if (baseadj == 0)                     /* If base already set */
 	return;
 
-    if (ordeptr->rangtab != NULL) {
-        for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++)
-            ordeptr->rangtab[cblknum] += baseadj;
-    }
-
     if (ordeptr->permtab != NULL) {
 	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++)
 	    ordeptr->permtab[vertnum] += baseadj;
@@ -167,6 +165,15 @@ orderBase (Order * const ordeptr,
     if (ordeptr->peritab != NULL) {
 	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++)
 	    ordeptr->peritab[vertnum] += baseadj;
+    }
+
+    if (ordeptr->rangtab != NULL) {
+        for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++)
+            ordeptr->rangtab[cblknum] += baseadj;
+    }
+    if (ordeptr->treetab != NULL) {
+        for (cblknum = 0; cblknum < ordeptr->cblknbr; cblknum ++)
+            ordeptr->treetab[cblknum] += baseadj;
     }
 
     ordeptr->baseval = baseval;

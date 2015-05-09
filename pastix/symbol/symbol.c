@@ -193,13 +193,12 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
     /* Initialize the brownum fields */
     cblk = symbptr->cblktab;
     cblk->brownum = 0;
-    for(itercblk=0; itercblk<cblknbr-1; itercblk++, cblk++)
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
     {
         cblk[1].brownum = cblk[0].brownum + innbr[ itercblk ];
         innbr[itercblk] = cblk[0].brownum;
     }
-    assert( (cblk[0].brownum + innbr[itercblk]) == edgenbr );
-    innbr[itercblk] = cblk[0].brownum;
+    assert( cblk[0].brownum == edgenbr );
 
     /* Initialize the browtab */
     MALLOC_INTERN(browtab, edgenbr, pastix_int_t );

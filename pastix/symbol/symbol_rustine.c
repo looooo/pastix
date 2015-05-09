@@ -25,6 +25,7 @@ symbolRustine (SymbolMatrix *       matrsymb,
         cblktmp[i].fcolnum = matrsymb->cblktab[i].fcolnum;
         cblktmp[i].lcolnum = matrsymb->cblktab[i].lcolnum;
         cblktmp[i].bloknum = matrsymb->cblktab[i].bloknum;
+        cblktmp[i].brownum = matrsymb->cblktab[i].brownum;
     }
 
     iter=0,add=0;

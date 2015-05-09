@@ -69,6 +69,7 @@ symbolCheck(const SymbolMatrix * const  symbptr)
             (cblktax[cblknum].lcolnum     >  nodemax)                  ||
             (cblktax[cblknum].bloknum     >  blokmax)                  ||
             (cblktax[cblknum].fcolnum     >  cblktax[cblknum].lcolnum) ||
+            ((cblktax[cblknum].brownum != -1) && (cblktax[cblknum + 1].brownum < cblktax[cblknum].brownum)) ||
             (cblktax[cblknum + 1].fcolnum <= cblktax[cblknum].lcolnum) ||
             (cblktax[cblknum + 1].bloknum <= cblktax[cblknum].bloknum)) {
             errorPrint ("symbolCheck: invalid column block array");
@@ -97,6 +98,8 @@ symbolCheck(const SymbolMatrix * const  symbptr)
         }
     }
 
+    assert( (cblktax[cblknum].brownum == -1) ||
+            (cblktax[cblknum].brownum == (symbptr->bloknbr - symbptr->cblknbr)) );
     return (0);
 }
 

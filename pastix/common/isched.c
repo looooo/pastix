@@ -121,32 +121,6 @@ typedef struct __isched_init_s {
     int              bindto;
 } __isched_init_t;
 
-/**
- * Thread structure of the execution context of one instance of the scheduler
- */
-typedef struct isched_thread_s {
-    isched_t        *global_ctx;
-    int              rank;
-} isched_thread_t;
-
-/**
- * Global structure of the execution context of one instance of the scheduler
- */
-typedef struct isched_s {
-    int              world_size;
-
-    isched_barrier_t barrier;
-    pthread_mutex_t  statuslock;
-    pthread_cond_t   statuscond;
-    volatile int     status;
-
-    pthread_t       *tids;
-    isched_thread_t *master;
-
-    void           (*pfunc)(void*);
-    void            *pargs;
-} isched_t;
-
 void *isched_thread_init(void *ptr);
 void *isched_thread_destroy(isched_thread_t *ptr);
 void *isched_parallel_section(isched_thread_t *ctx);
@@ -206,7 +180,7 @@ isched_parallel_section(isched_thread_t *ctx)
 
         switch (action) {
             case ISCHED_ACT_PARALLEL:
-                isched->pfunc( isched->pargs );
+                isched->pfunc( ctx->rank, isched->pargs );
                 break;
             case ISCHED_ACT_FINALIZE:
                 return isched_thread_destroy( ctx );

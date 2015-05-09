@@ -12,19 +12,22 @@
 # Use this module by invoking find_package with the form:
 #  find_package(PARMETIS
 #               [REQUIRED]             # Fail with error if parmetis is not found
-#               [COMPONENTS <libs>...] # required dependencies
 #              )
+#
 # This module finds headers and parmetis library.
 # Results are reported in variables:
 #  PARMETIS_FOUND           - True if headers and requested libraries were found
 #  PARMETIS_INCLUDE_DIRS    - parmetis include directories
 #  PARMETIS_LIBRARY_DIRS    - Link directories for parmetis libraries
 #  PARMETIS_LIBRARIES       - parmetis component libraries to be linked
+#
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DPARMETIS_DIR=path/to/parmetis):
 #  PARMETIS_DIR             - Where to find the base directory of parmetis
 #  PARMETIS_INCDIR          - Where to find the header files
 #  PARMETIS_LIBDIR          - Where to find the library files
+# The module can also look for the following environment variables if paths
+# are not given as cmake variable: PARMETIS_DIR, PARMETIS_INCDIR, PARMETIS_LIBDIR
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -44,32 +47,10 @@
 #  License text for the above reference.)
 
 if (NOT PARMETIS_FOUND)
-    set(PARMETIS_DIR "" CACHE PATH "Root directory of PARMETIS library")
+    set(PARMETIS_DIR "" CACHE PATH "Installation directory of PARMETIS library")
     if (NOT PARMETIS_FIND_QUIETLY)
         message(STATUS "A cache variable, namely PARMETIS_DIR, has been set to specify the install directory of PARMETIS")
     endif()
-endif()
-
-# PARMETIS depends on MPI
-# try to find it specified as COMPONENTS during the call
-if( PARMETIS_FIND_COMPONENTS )
-    foreach( component ${PARMETIS_FIND_COMPONENTS} )
-        if(PARMETIS_FIND_REQUIRED_${component})
-            find_package(${component} REQUIRED)
-        else()
-            find_package(${component})
-        endif()
-        if(${component}_FOUND)
-            set(PARMETIS_${component}_FOUND TRUE)
-            # should we have these variables available in gui modes?
-            if (MPI_FOUND)
-                mark_as_advanced(MPI_LIBRARY)
-                mark_as_advanced(MPI_EXTRA_LIBRARY)
-            endif()
-        else()
-            set(PARMETIS_${component}_FOUND FALSE)
-        endif()
-    endforeach()
 endif()
 
 
@@ -79,17 +60,27 @@ endif()
 # Add system include paths to search include
 # ------------------------------------------
 unset(_inc_env)
-if(WIN32)
-    string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+set(ENV_PARMETIS_DIR "$ENV{PARMETIS_DIR}")
+set(ENV_PARMETIS_INCDIR "$ENV{PARMETIS_INCDIR}")
+if(ENV_PARMETIS_INCDIR)
+    list(APPEND _inc_env "${ENV_PARMETIS_INCDIR}")
+elseif(ENV_PARMETIS_DIR)
+    list(APPEND _inc_env "${ENV_PARMETIS_DIR}")
+    list(APPEND _inc_env "${ENV_PARMETIS_DIR}/include")
+    list(APPEND _inc_env "${ENV_PARMETIS_DIR}/include/parmetis")
 else()
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
+    if(WIN32)
+        string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+    else()
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+    endif()
 endif()
 list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
 list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
@@ -110,7 +101,7 @@ else()
         find_path(PARMETIS_parmetis.h_DIRS
           NAMES parmetis.h
           HINTS ${PARMETIS_DIR}
-          PATH_SUFFIXES include)
+          PATH_SUFFIXES "include" "include/parmetis")
     else()
         set(PARMETIS_parmetis.h_DIRS "PARMETIS_parmetis.h_DIRS-NOTFOUND")
         find_path(PARMETIS_parmetis.h_DIRS
@@ -139,16 +130,24 @@ endif()
 # Add system library paths to search lib
 # --------------------------------------
 unset(_lib_env)
-if(WIN32)
-    string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
+set(ENV_PARMETIS_LIBDIR "$ENV{PARMETIS_LIBDIR}")
+if(ENV_PARMETIS_LIBDIR)
+    list(APPEND _lib_env "${ENV_PARMETIS_LIBDIR}")
+elseif(ENV_PARMETIS_DIR)
+    list(APPEND _lib_env "${ENV_PARMETIS_DIR}")
+    list(APPEND _lib_env "${ENV_PARMETIS_DIR}/lib")
 else()
-    if(APPLE)
-        string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+    if(WIN32)
+        string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
     else()
-        string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        if(APPLE)
+            string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+        else()
+            string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        endif()
+        list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif()
-    list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
-    list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif()
 list(REMOVE_DUPLICATES _lib_env)
 
@@ -191,47 +190,71 @@ else ()
     endif()
 endif ()
 
+# check a function to validate the find
 if(PARMETIS_LIBRARIES)
-    # check a function to validate the find
+
+    set(REQUIRED_INCDIRS)
+    set(REQUIRED_LIBDIRS)
+    set(REQUIRED_LIBS)
+
+    # PARMETIS
     if (PARMETIS_INCLUDE_DIRS)
-        set(CMAKE_REQUIRED_INCLUDES  "${PARMETIS_INCLUDE_DIRS}")
+        set(REQUIRED_INCDIRS "${PARMETIS_INCLUDE_DIRS}")
     endif()
-    set(CMAKE_REQUIRED_LIBRARIES "${PARMETIS_LIBRARIES}")
     if (PARMETIS_LIBRARY_DIRS)
-        set(CMAKE_REQUIRED_FLAGS "-L${PARMETIS_LIBRARY_DIRS}")
+        set(REQUIRED_LIBDIRS "${PARMETIS_LIBRARY_DIRS}")
+    endif()
+    set(REQUIRED_LIBS "${PARMETIS_LIBRARIES}")
+    # m
+    if(UNIX OR WIN32)
+        list(APPEND REQUIRED_LIBS "-lm")
     endif()
 
+    # set required libraries for link
+    set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
+    set(CMAKE_REQUIRED_LIBRARIES)
+    foreach(lib_dir ${REQUIRED_LIBDIRS})
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "-L${lib_dir}")
+    endforeach()
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LIBS}")
+    string(REGEX REPLACE "^ -" "-" CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+    # test link
     unset(PARMETIS_WORKS CACHE)
     include(CheckFunctionExists)
     check_function_exists(ParMETIS_V3_NodeND PARMETIS_WORKS)
     mark_as_advanced(PARMETIS_WORKS)
 
-    if(PARMETIS_WORKS)
-        set(PARMETIS_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
-    else()
+    if(NOT PARMETIS_WORKS)
         if(NOT PARMETIS_FIND_QUIETLY)
             message(STATUS "Looking for PARMETIS : test of ParMETIS_V3_NodeND with PARMETIS library fails")
-            message(STATUS "PARMETIS_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
-            message(STATUS "PARMETIS_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
-            message(STATUS "PARMETIS_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "CMAKE_REQUIRED_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
             message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
-            message(STATUS "Looking for PARMETIS : set PARMETIS_LIBRARIES to NOTFOUND")
         endif()
-        set(PARMETIS_LIBRARIES "PARMETIS_LIBRARIES-NOTFOUND")
     endif()
     set(CMAKE_REQUIRED_INCLUDES)
     set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_LIBRARIES)
 endif(PARMETIS_LIBRARIES)
 
+if (PARMETIS_LIBRARIES)
+    list(GET PARMETIS_LIBRARIES 0 first_lib)
+    get_filename_component(first_lib_path "${first_lib}" PATH)
+    if (${first_lib_path} MATCHES "/lib(32|64)?$")
+        string(REGEX REPLACE "/lib(32|64)?$" "" not_cached_dir "${first_lib_path}")
+        set(PARMETIS_DIR_FOUND "${not_cached_dir}" CACHE PATH "Installation directory of PARMETIS library" FORCE)
+    else()
+        set(PARMETIS_DIR_FOUND "${first_lib_path}" CACHE PATH "Installation directory of PARMETIS library" FORCE)
+    endif()
+endif()
 
 # check that PARMETIS has been found
 # ----------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PARMETIS DEFAULT_MSG
                                   PARMETIS_LIBRARIES
-                                  PARMETIS_INCLUDE_DIRS
-                                  PARMETIS_LIBRARY_DIRS)
+                                  PARMETIS_WORKS)
 #
 # TODO: Add possibility to check for specific functions in the library
 #

@@ -38,7 +38,7 @@
  *          Integer array of size cblknbr.
  *          The supernode partition for the entry graph.
  *
- * @param[in,out] treetab
+ * @param[out] treetab
  *          Integer array of size cblknbr.
  *          On exit, the array contains the tree associated to the supernode
  *          partition.

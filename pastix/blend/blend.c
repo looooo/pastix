@@ -207,21 +207,6 @@ void solverBlend(BlendCtrl    *ctrl,
         fclose(file);
     }
 
-    /* Build the elimination graph from the new symbolic partition */
-    {
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH2 );
-        clockStart(timer_current);
-
-        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
-        eGraphInit(ctrl->egraph);
-        eGraphBuild(ctrl->egraph, symbmtx);
-
-        clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
-    }
-
     /* Simulation step to perform the data distribution over the nodes and compute the priorities of each task */
     {
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
@@ -250,6 +235,21 @@ void solverBlend(BlendCtrl    *ctrl,
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
             pastix_print( clustnum, 0, "  -- Data distribution computed at time: %g --\n", clockVal(timer_current) );
+    }
+
+    /* Build the elimination graph from the new symbolic partition */
+    {
+        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH2 );
+        clockStart(timer_current);
+
+        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
+        eGraphInit(ctrl->egraph);
+        eGraphBuild(ctrl->egraph, symbmtx);
+
+        clockStop(timer_current);
+        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+            pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
     }
 
 #ifdef PASTIX_DYNSCHED

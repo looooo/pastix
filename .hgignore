@@ -3,6 +3,7 @@ doxygen/*
 \._.*
 .*\.o$
 .*\.a$
+.*\.pyc$
 CMakeCache.txt$
 CMakeScripts$
 CMakeFiles$
@@ -19,4 +20,5 @@ pastix/TAGS$
 pastix/include/pastix/config.h$
 pastix/out/*
 pastix/example/toto/*
-pastix/build
+pastix/build*
+pastix/cmake_modules/common/FCmangle.h

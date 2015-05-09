@@ -13,8 +13,6 @@
 #include "blendctrl.h"
 #include "simu.h"
 
-#define TIMEBASE 10.0
-
 pastix_int_t
 simuInit( SimuCtrl     *simuctrl,
           const SymbolMatrix *symbptr,

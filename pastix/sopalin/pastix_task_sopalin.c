@@ -49,6 +49,35 @@ static void (*sopalinFacto[4][6])(sopalin_data_t*) =
     }
 };
 
+// static void (*potrfTable[6])(sopalin_data_t*) = {
+static void (*sopalinFacto[4][6])(sopalin_data_t*) = 
+{
+    {
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL 
+    },
+    {
+        NULL,
+        NULL,
+        pastix_static_spotrf,
+        pastix_static_dpotrf,
+        pastix_static_cpotrf,
+        pastix_static_zpotrf 
+    },
+    {
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL 
+    }
+};
+
 void
 coeftabInit( const SolverMatrix  *datacode,
              const pastix_bcsc_t *bcsc,

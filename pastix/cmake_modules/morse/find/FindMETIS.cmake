@@ -12,19 +12,22 @@
 # Use this module by invoking find_package with the form:
 #  find_package(METIS
 #               [REQUIRED]             # Fail with error if metis is not found
-#               [COMPONENTS <libs>...] # required dependencies
 #              )
+#
 # This module finds headers and metis library.
 # Results are reported in variables:
 #  METIS_FOUND           - True if headers and requested libraries were found
 #  METIS_INCLUDE_DIRS    - metis include directories
 #  METIS_LIBRARY_DIRS    - Link directories for metis libraries
 #  METIS_LIBRARIES       - metis component libraries to be linked
+#
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DMETIS_DIR=path/to/metis):
 #  METIS_DIR             - Where to find the base directory of metis
 #  METIS_INCDIR          - Where to find the header files
 #  METIS_LIBDIR          - Where to find the library files
+# The module can also look for the following environment variables if paths
+# are not given as cmake variable: METIS_DIR, METIS_INCDIR, METIS_LIBDIR
 
 #=============================================================================
 # Copyright 2012-2013 Inria
@@ -44,7 +47,7 @@
 #  License text for the above reference.)
 
 if (NOT METIS_FOUND)
-    set(METIS_DIR "" CACHE PATH "Root directory of METIS library")
+    set(METIS_DIR "" CACHE PATH "Installation directory of METIS library")
     if (NOT METIS_FIND_QUIETLY)
         message(STATUS "A cache variable, namely METIS_DIR, has been set to specify the install directory of METIS")
     endif()
@@ -56,17 +59,27 @@ endif()
 # Add system include paths to search include
 # ------------------------------------------
 unset(_inc_env)
-if(WIN32)
-    string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+set(ENV_METIS_DIR "$ENV{METIS_DIR}")
+set(ENV_METIS_INCDIR "$ENV{METIS_INCDIR}")
+if(ENV_METIS_INCDIR)
+    list(APPEND _inc_env "${ENV_METIS_INCDIR}")
+elseif(ENV_METIS_DIR)
+    list(APPEND _inc_env "${ENV_METIS_DIR}")
+    list(APPEND _inc_env "${ENV_METIS_DIR}/include")
+    list(APPEND _inc_env "${ENV_METIS_DIR}/include/metis")
 else()
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-    list(APPEND _inc_env "${_path_env}")
-    string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-    list(APPEND _inc_env "${_path_env}")
+    if(WIN32)
+        string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
+    else()
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+        list(APPEND _inc_env "${_path_env}")
+        string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+        list(APPEND _inc_env "${_path_env}")
+    endif()
 endif()
 list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
 list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
@@ -87,7 +100,7 @@ else()
         find_path(METIS_metis.h_DIRS
           NAMES metis.h
           HINTS ${METIS_DIR}
-          PATH_SUFFIXES include)
+          PATH_SUFFIXES "include" "include/metis")
     else()
         set(METIS_metis.h_DIRS "METIS_metis.h_DIRS-NOTFOUND")
         find_path(METIS_metis.h_DIRS
@@ -116,16 +129,24 @@ endif()
 # Add system library paths to search lib
 # --------------------------------------
 unset(_lib_env)
-if(WIN32)
-    string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
+set(ENV_METIS_LIBDIR "$ENV{METIS_LIBDIR}")
+if(ENV_METIS_LIBDIR)
+    list(APPEND _lib_env "${ENV_METIS_LIBDIR}")
+elseif(ENV_METIS_DIR)
+    list(APPEND _lib_env "${ENV_METIS_DIR}")
+    list(APPEND _lib_env "${ENV_METIS_DIR}/lib")
 else()
-    if(APPLE)
-        string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+    if(WIN32)
+        string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
     else()
-        string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        if(APPLE)
+            string(REPLACE ":" ";" _lib_env "$ENV{DYLD_LIBRARY_PATH}")
+        else()
+            string(REPLACE ":" ";" _lib_env "$ENV{LD_LIBRARY_PATH}")
+        endif()
+        list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
     endif()
-    list(APPEND _lib_env "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
-    list(APPEND _lib_env "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
 endif()
 list(REMOVE_DUPLICATES _lib_env)
 
@@ -169,46 +190,71 @@ else ()
     endif()
 endif ()
 
+# check a function to validate the find
 if(METIS_LIBRARIES)
-    # check a function to validate the find
+
+    set(REQUIRED_INCDIRS)
+    set(REQUIRED_LIBDIRS)
+    set(REQUIRED_LIBS)
+
+    # METIS
     if (METIS_INCLUDE_DIRS)
-        set(CMAKE_REQUIRED_INCLUDES  "${METIS_INCLUDE_DIRS}")
+        set(REQUIRED_INCDIRS  "${METIS_INCLUDE_DIRS}")
     endif()
-    set(CMAKE_REQUIRED_LIBRARIES "${METIS_LIBRARIES}")
     if (METIS_LIBRARY_DIRS)
-        set(CMAKE_REQUIRED_FLAGS "-L${METIS_LIBRARY_DIRS}")
+        set(REQUIRED_LIBDIRS "${METIS_LIBRARY_DIRS}")
+    endif()
+    set(REQUIRED_LIBS "${METIS_LIBRARIES}")
+    # m
+    if(UNIX OR WIN32)
+        list(APPEND REQUIRED_LIBS "-lm")
     endif()
 
+    # set required libraries for link
+    set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
+    set(CMAKE_REQUIRED_LIBRARIES)
+    foreach(lib_dir ${REQUIRED_LIBDIRS})
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "-L${lib_dir}")
+    endforeach()
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${REQUIRED_LIBS}")
+    string(REGEX REPLACE "^ -" "-" CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+    # test link
     unset(METIS_WORKS CACHE)
     include(CheckFunctionExists)
     check_function_exists(METIS_NodeND METIS_WORKS)
     mark_as_advanced(METIS_WORKS)
 
-    if(METIS_WORKS)
-        set(METIS_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
-    else()
+    if(NOT METIS_WORKS)
         if(NOT METIS_FIND_QUIETLY)
             message(STATUS "Looking for METIS : test of METIS_NodeND with METIS library fails")
-            message(STATUS "METIS_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
-            message(STATUS "METIS_LIBRARY_DIRS: ${CMAKE_REQUIRED_FLAGS}")
-            message(STATUS "METIS_INCLUDE_DIRS: ${CMAKE_REQUIRED_INCLUDES}")
+            message(STATUS "CMAKE_REQUIRED_LIBRARIES: ${CMAKE_REQUIRED_LIBRARIES}")
+            message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
             message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
-            message(STATUS "Looking for METIS : set METIS_LIBRARIES to NOTFOUND")
         endif()
-        set(METIS_LIBRARIES "METIS_LIBRARIES-NOTFOUND")
     endif()
     set(CMAKE_REQUIRED_INCLUDES)
     set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_LIBRARIES)
 endif(METIS_LIBRARIES)
 
+if (METIS_LIBRARIES)
+    list(GET METIS_LIBRARIES 0 first_lib)
+    get_filename_component(first_lib_path "${first_lib}" PATH)
+    if (${first_lib_path} MATCHES "/lib(32|64)?$")
+        string(REGEX REPLACE "/lib(32|64)?$" "" not_cached_dir "${first_lib_path}")
+        set(METIS_DIR_FOUND "${not_cached_dir}" CACHE PATH "Installation directory of METIS library" FORCE)
+    else()
+        set(METIS_DIR_FOUND "${first_lib_path}" CACHE PATH "Installation directory of METIS library" FORCE)
+    endif()
+endif()
+
 # check that METIS has been found
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(METIS DEFAULT_MSG
                                   METIS_LIBRARIES
-                                  METIS_INCLUDE_DIRS
-                                  METIS_LIBRARY_DIRS)
+                                  METIS_WORKS)
 #
 # TODO: Add possibility to check for specific functions in the library
 #
