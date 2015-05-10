@@ -520,9 +520,8 @@ set(PASTIX_LIB_SRCS
   common/api.c
   common/errors.c
   common/integer.c
-  common/memory.c
   common/isched.c
-#  common/isched_hwloc.c
+  common/memory.c
 #  common/trace.c
 #
 #
