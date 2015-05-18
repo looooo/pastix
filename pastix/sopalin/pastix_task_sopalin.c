@@ -20,14 +20,8 @@
 #include "sopalin_data.h"
 #include "z_raff_functions.h"
 
-static void (*sopalinFacto[4][4])(sopalin_data_t*) =
+static void (*sopalinFacto[3][4])(sopalin_data_t*) =
 {
-    {
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    },
     {
         pastix_static_spotrf,
         pastix_static_dpotrf,
@@ -238,7 +232,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         clockStart(timer);
         sopalin_data.solvmtx = pastix_data->solvmatr;
 
-        sopalinFacto[csc->mtxtype][csc->flttype-2]( &sopalin_data );
+        sopalinFacto[csc->mtxtype-111][csc->flttype-2]( &sopalin_data );
 
         clockStop(timer);
         pastix_print( 0, 0, "--Factorization time: %g --\n", clockVal(timer));
