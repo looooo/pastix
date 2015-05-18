@@ -29,10 +29,10 @@
  *
  * @param[in] csc
  *          The PastixGeneral csc.
- * 
+ *
  * @param[in,out] rhs
- *          The generated rhight hand side member, 
- *          reallocated if allocated at enter.
+ *          The generated right hand side member, reallocated if allocated on
+ *          entry.
  *
  *******************************************************************************
  *
