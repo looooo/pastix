@@ -64,96 +64,96 @@
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
-// int
-// z_bcscGemv(char                trans,
-//            pastix_complex64_t  alpha,
-//            pastix_bcsc_t      *bcsc,
-//            pastix_complex64_t *x,
-//            pastix_complex64_t  beta,
-//            pastix_complex64_t *y )
-// {
-//     pastix_complex64_t *valptr  = (pastix_complex64_t*)bcsc->Lvalues;
-//     pastix_complex64_t *yptr    = y;
-//     pastix_complex64_t *xptr    = x;
-//     pastix_int_t        bloc, col, row, i, j, baseval;
-// 
-//     if(bcsc==NULL)
-//     {
-//         return PASTIX_ERR_BADPARAMETER;
-//     }
-// 
-//     if(bcsc->mtxtype!=PastixGeneral || x==NULL)
-//     {
-//         return PASTIX_ERR_BADPARAMETER;
-//     }
-// 
-// //     baseval = bcsc->colptr[0];
-//     baseval = 0;
-// 
-//     /* first, y = beta*y */
-//     for( i=0; i < csc->gN; i++ )
-//     {
-//         yptr[i] *= beta;
-//     }
-// 
-//     if( trans == 'n' || trans == 'N' )
-//     {
-//         col = 0;
-//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-//         {
-//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-//             {
-//                 col += 1;
-//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-//                 {
-//                     row = bcsc->rowtab[i];
-//                     yptr[row] += alpha * valptr[i] * xptr[col];
-//                 }
-//             }
-//         }
-//     }
-//     else if( trans == 't' || trans == 'T' )
-//     {
-//         col = 0;
-//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-//         {
-//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-//             {
-//                 col += 1;
-//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-//                 {
-//                     row = bcsc->rowtab[i];
-//                     yptr[col] += alpha * valptr[i] * xptr[row];
-//                 }
-//             }
-//         }
-//     }
-// #if defined(PRECISION_c) || defined(PRECISION_z)
-//     else if( trans == 'c' || trans == 'C' )
-//     {
-//         col = 0;
-//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-//         {
-//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-//             {
-//                 col += 1;
-//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-//                 {
-//                     row = bcsc->rowtab[i];
-//                     yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
-//                 }
-//             }
-//         }
-//     }
-// #endif
-//     else
-//     {
-//         return PASTIX_ERR_BADPARAMETER;
-//     }
-// 
-//     return PASTIX_SUCCESS;
-// 
-// }
+int
+z_bcscGemv(char                trans,
+           pastix_complex64_t  alpha,
+           pastix_bcsc_t      *bcsc,
+           void               *x,
+           pastix_complex64_t  beta,
+           void               *y )
+{
+    pastix_complex64_t *Lvalptr  = (pastix_complex64_t*)bcsc->Lvalues;
+    pastix_complex64_t *Uvalptr  = (pastix_complex64_t*)bcsc->Uvalues;
+    pastix_complex64_t *yptr    = (pastix_complex64_t*)y;
+    pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
+    pastix_int_t        bloc, col, i, j;
+
+    if(bcsc==NULL)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if(bcsc->mtxtype!=PastixGeneral || x==NULL)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /* first, y = beta*y */
+    col = 0;
+    for( bloc = 0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        for( i = 0; i < bcsc->cscftab[bloc].colnbr; i++ )
+        {
+            yptr[col] *= beta;
+            col+=1;
+        }
+    }
+
+    if( trans == 'n' || trans == 'N' )
+    {
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
+                }
+                col += 1;
+            }
+        }
+    }
+    else if( trans == 't' || trans == 'T' )
+    {
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    yptr[bcsc->rowtab[i]] += alpha * Uvalptr[i] * xptr[col];
+                }
+                col += 1;
+            }
+        }
+    }
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    else if( trans == 'c' || trans == 'C' )
+    {
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    yptr[bcsc->rowtab[i]] += alpha * conj( Uvalptr[i] ) * xptr[col];
+                }
+                col += 1;
+            }
+        }
+    }
+#endif
+    else
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    return PASTIX_SUCCESS;
+
+}
 
 /**
  *******************************************************************************
@@ -283,7 +283,53 @@ z_bcscNorm2( void         *values,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscBerr - Compute the operation $$ berr= max_{i}(\\frac{|r1_{i}|}{|r2_{i}|}) $$.
+ *
+ *******************************************************************************
+ *
+ * @param[in] r1
+ *          The vector r.
+ * 
+ * @param[in] r2
+ *          The vector b.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ * 
+ * @param[out] berr
+ *          The returned result.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscBerr( void         *r1,
+            void         *r2,
+            pastix_int_t  n,
+            double       *berr )
+{
+    pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
+    pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
+    *berr = 0.;
+    pastix_int_t i;
 
+    for( i = 0; i < n; i++)
+    {
+        if( fabs(r1ptr[i])/abs(r2ptr[i]) > berr )
+            *berr = fabs(r1ptr[i])/abs(r2ptr[i]);
+    }
+
+    return PASTIX_SUCCESS;
+}
 
 
 
