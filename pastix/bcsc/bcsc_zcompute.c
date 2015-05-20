@@ -42,6 +42,9 @@
  * @param[in] trans
  *          The operation to be performed.
  *
+ * @param[in] n
+ *          Number of columns of the matrix.
+ * 
  * @param[in] alpha
  *          A scalar.
  * 
@@ -66,37 +69,37 @@
  *******************************************************************************/
 int
 z_bcscGemv(char                trans,
+           pastix_int_t        n, /* size of the matrix */
            pastix_complex64_t  alpha,
            pastix_bcsc_t      *bcsc,
            void               *x,
            pastix_complex64_t  beta,
            void               *y )
 {
-    pastix_complex64_t *Lvalptr  = (pastix_complex64_t*)bcsc->Lvalues;
-    pastix_complex64_t *Uvalptr  = (pastix_complex64_t*)bcsc->Uvalues;
+    pastix_complex64_t *Lvalptr = NULL;
+    pastix_complex64_t *Uvalptr = NULL;
     pastix_complex64_t *yptr    = (pastix_complex64_t*)y;
     pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
     pastix_int_t        bloc, col, i, j;
 
-    if(bcsc==NULL)
+    if(bcsc==NULL || y==NULL || x== NULL)
     {
         return PASTIX_ERR_BADPARAMETER;
     }
-
-    if(bcsc->mtxtype!=PastixGeneral || x==NULL)
-    {
-        return PASTIX_ERR_BADPARAMETER;
-    }
+    Lvalptr = bcsc->Lvalues;
+    Uvalptr = bcsc->Uvalues;
 
     /* first, y = beta*y */
-    col = 0;
-    for( bloc = 0; bloc < bcsc->cscfnbr; bloc++ )
+    if( beta != (pastix_complex64_t)0.0 )
     {
-        for( i = 0; i < bcsc->cscftab[bloc].colnbr; i++ )
+        for( col = 0; col < n; col++ )
         {
             yptr[col] *= beta;
-            col+=1;
         }
+    }
+    else if( beta == (pastix_complex64_t)0.0 )
+    {
+        memset(yptr,0.0,n*sizeof(pastix_complex64_t));
     }
 
     if( trans == 'n' || trans == 'N' )
@@ -324,8 +327,8 @@ z_bcscBerr( void         *r1,
 
     for( i = 0; i < n; i++)
     {
-        if( fabs(r1ptr[i])/abs(r2ptr[i]) > berr )
-            *berr = fabs(r1ptr[i])/abs(r2ptr[i]);
+        if( fabs(r1ptr[i])/fabs(r2ptr[i]) > *berr )
+            *berr = fabs(r1ptr[i])/fabs(r2ptr[i]);
     }
 
     return PASTIX_SUCCESS;
