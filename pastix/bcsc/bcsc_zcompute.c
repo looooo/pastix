@@ -77,7 +77,7 @@ z_bcscGemv(char                trans,
            void               *y )
 {
     pastix_complex64_t *Lvalptr = NULL;
-    pastix_complex64_t *Uvalptr = NULL;
+//     pastix_complex64_t *Uvalptr = NULL;
     pastix_complex64_t *yptr    = (pastix_complex64_t*)y;
     pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
     pastix_int_t        bloc, col, i, j;
@@ -87,7 +87,7 @@ z_bcscGemv(char                trans,
         return PASTIX_ERR_BADPARAMETER;
     }
     Lvalptr = bcsc->Lvalues;
-    Uvalptr = bcsc->Uvalues;
+//     Uvalptr = bcsc->Uvalues;
 
     /* first, y = beta*y */
     if( beta != (pastix_complex64_t)0.0 )
@@ -126,7 +126,8 @@ z_bcscGemv(char                trans,
             {
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-                    yptr[bcsc->rowtab[i]] += alpha * Uvalptr[i] * xptr[col];
+//                     yptr[bcsc->rowtab[i]] += alpha * Uvalptr[i] * xptr[col];
+                    yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
                 }
                 col += 1;
             }
@@ -142,7 +143,8 @@ z_bcscGemv(char                trans,
             {
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-                    yptr[bcsc->rowtab[i]] += alpha * conj( Uvalptr[i] ) * xptr[col];
+//                     yptr[bcsc->rowtab[i]] += alpha * conj( Uvalptr[i] ) * xptr[col];
+                    yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
                 }
                 col += 1;
             }
