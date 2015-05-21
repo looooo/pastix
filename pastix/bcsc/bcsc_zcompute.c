@@ -34,7 +34,7 @@
  *              TRANS = 'N' or 'n'   y := alpha*A*x + beta*y
  *              TRANS = 'T' or 't'   y := alpha*A**T*x + beta*y
  *              TRANS = 'C' or 'c'   y := alpha*A**H*x + beta*y
- * x and y are two vectors of size csc->gN,
+ * x and y are two vectors of size n,
  * alpha and beta are scalars.
  *
  *******************************************************************************
@@ -181,7 +181,7 @@ z_bcscGemv(char                trans,
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
@@ -237,7 +237,7 @@ z_bcscNormMax( void         *values,
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
@@ -298,10 +298,10 @@ z_bcscNorm2( void         *values,
  *******************************************************************************
  *
  * @param[in] r1
- *          The vector r.
+ *          The vector r1.
  * 
  * @param[in] r2
- *          The vector b.
+ *          The vector r2.
  *
  * @param[in] n
  *          The size of the vectors.
@@ -312,7 +312,7 @@ z_bcscNorm2( void         *values,
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_SUCCESS if the berr has been computed succesfully,
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
@@ -324,19 +324,194 @@ z_bcscBerr( void         *r1,
 {
     pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
     pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
-    *berr = 0.;
     pastix_int_t i;
+
+    if(r1==NULL || r1== NULL)
+        return PASTIX_ERR_BADPARAMETER;
+
+    *berr = 0.;
 
     for( i = 0; i < n; i++)
     {
+#if defined(PRECISION_c) || defined(PRECISION_z)
+        if( fabs(sqrt(pow(creal(r1ptr[i],2.))+pow(cimag(r1ptr[i],2.)))) / fabs(sqrt(pow(creal(r2ptr[i],2.))+pow(cimag(r2ptr[i],2.)))) > *berr )
+            *berr = fabs(sqrt(pow(creal(r1ptr[i],2.))+pow(cimag(r1ptr[i],2.)))) / fabs(sqrt(pow(creal(r2ptr[i],2.))+pow(cimag(r2ptr[i],2.))));
+#else
         if( fabs(r1ptr[i])/fabs(r2ptr[i]) > *berr )
-            *berr = fabs(r1ptr[i])/fabs(r2ptr[i]);
+            *berr = fabs(r1ptr[i]) / fabs(r2ptr[i]);
+#endif
     }
 
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscNormErr - Computes the norm 2 of r1 and the norm 2 of r2 
+ *                 and return the quotient of these two vectors.
+ *
+ *******************************************************************************
+ *
+ * @param[in] r1
+ *          The vector r1.
+ * 
+ * @param[in] r2
+ *          The vector r2.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ * 
+ * @param[out] err
+ *          The returned result.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the err has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscNormErr( void         *r1,
+               void         *r2,
+               pastix_int_t  n,
+               double       *err )
+{
+    double              norm2r1;
+    double              norm2r2;
 
+    if(r1==NULL || r1== NULL)
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( z_bcscNorm2(r1, n, &norm2r1) != PASTIX_SUCCESS )
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( z_bcscNorm2(r2, n, &norm2r2) != PASTIX_SUCCESS )
+        return PASTIX_ERR_BADPARAMETER;
+
+    *err = norm2r1/norm2r2;
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscScal - Multiply a vector by a scalaire x <- alpha*x.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] x
+ *          The vector x.
+ * 
+ * @param[in] alpha
+ *          The scalar alpha.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ * 
+ * @param[in] smxnbr
+ *          The number of vectors (multi-right-hand-side method).
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the x vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscScal( void               *x,
+            pastix_complex64_t  alpha,
+            pastix_int_t        n,
+            pastix_int_t        smxnbr )
+{
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_int_t i;
+
+    if(x==NULL)
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( alpha == (pastix_complex64_t)0.0 )
+    {
+        memset(xptr,0.0,smxnbr*n*sizeof(pastix_complex64_t));
+        return PASTIX_SUCCESS;
+    }
+
+    for( i = 0; i < n*smxnbr; i++)
+    {
+        *xptr *=alpha;
+        xptr ++;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscAxpy - compute y<-alpha*x+y.
+ *
+ *******************************************************************************
+ * 
+ * @param[in] alpha
+ *          A scalar.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[in,out] y
+ *          The vector y.
+ * 
+ * @param[in] smxnbr
+ *          The number of vectors (multi-right-hand-side method).
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscAxpy(pastix_complex64_t  alpha,
+           void               *x,
+           pastix_int_t        n, /* size of the matrix */
+           void               *y,
+           pastix_int_t        smxnbr )
+{
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    pastix_int_t i;
+
+    if(y==NULL || x== NULL)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( alpha == (pastix_complex64_t)0.0 )
+    {
+        return PASTIX_SUCCESS;
+    }
+    
+    for(i = 0; i < n*smxnbr; i++)
+    {
+        *yptr = *yptr + alpha * *xptr;
+        yptr++;
+        xptr++;
+    }
+
+    return PASTIX_SUCCESS;
+}
 
 
 /* Pivot : */
