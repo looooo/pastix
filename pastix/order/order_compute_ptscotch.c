@@ -91,6 +91,11 @@ orderComputePTScotch(       pastix_data_t  *pastix_data,
         return PASTIX_ERR_INTEGER_TYPE;
     }
 
+     /* Enable this define to fix the SCOTCH random generator */
+#if defined(SCOTCH_FIX_SEED)
+    _SCOTCHintRandInit();
+#endif
+
     gN     = graph->gN;
     n      = graph->n;
     colptr = graph->colptr;

@@ -81,6 +81,12 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
         errorPrint("Inconsistent integer type\n");
         return PASTIX_ERR_INTEGER_TYPE;
     }
+
+     /* Enable this define to fix the SCOTCH random generator */
+#if defined(SCOTCH_FIX_SEED)
+    _SCOTCHintRandInit();
+#endif
+
     /* Centralized */
 #if 0
     if (iparm[IPARM_GRAPHDIST] == API_NO) {

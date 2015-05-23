@@ -14,7 +14,6 @@ set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VE
 # Add extra cmake module path and initialize morse cmake modules
 # --------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
-include(CheckSystem)
 
 set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse )
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
@@ -26,6 +25,9 @@ set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.p
 set( RP_PASTIX_PRECISIONS  "s;d;c;z" )
 include(RulesPrecisions)
 
+### System parameter detection
+include(CheckSystem)
+
 ### Misc options
 option(BUILD_SHARED_LIBS
   "Build shared libraries" OFF)
@@ -34,10 +36,6 @@ option(BUILD_64bits
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo and MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
-
-### System parameter detection
-include(CheckIncludeFiles)
-check_include_files(complex.h HAVE_COMPLEX_H)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
@@ -523,9 +521,8 @@ set(PASTIX_LIB_SRCS
   common/api.c
   common/errors.c
   common/integer.c
-  common/memory.c
   common/isched.c
-#  common/isched_hwloc.c
+  common/memory.c
 #  common/trace.c
 #
 #

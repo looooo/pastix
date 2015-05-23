@@ -78,6 +78,13 @@ if(PASTIX_WITH_STARPU)
   endif(PASTIX_WITH_MPI)
 endif(PASTIX_WITH_STARPU)
 
+if (PASTIX_WITH_MPI)
+  set(PASTIX_EXAMPLES_LIBRARIES
+    ${PASTIX_EXAMPLES_LIBRARIES}
+    ${MPI_LIBRARIES}
+    )
+endif()
+
 set(HEADERS z_utils.h)
 precisions_rules_py(generated_headers
                     "${HEADERS}"
@@ -109,9 +116,6 @@ add_custom_target(examples_headers DEPENDS ${generated_headers} )
 
 add_executable(analyze analyze.c)
 target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
-if (PASTIX_WITH_MPI)
-  target_link_libraries(analyze ${MPI_LIBRARIES})
-endif()
 
 add_executable(clifexec clifexec.c)
 target_link_libraries(clifexec ${PASTIX_EXAMPLES_LIBRARIES})
@@ -121,9 +125,6 @@ endif()
 
 add_executable(tests spm_tests.c)
 target_link_libraries(tests ${PASTIX_EXAMPLES_LIBRARIES})
-if (PASTIX_WITH_MPI)
-  target_link_libraries(tests ${MPI_LIBRARIES})
-endif()
 
 #
 #-- CTests
