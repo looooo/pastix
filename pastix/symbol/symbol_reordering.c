@@ -39,125 +39,129 @@ compute_cblklevel( const pastix_int_t *treetab,
 }
 
 
-void update_perm(pastix_int_t sn_nvertex, Order *order, pastix_int_t sn_id,
-                 pastix_int_t *wmatrix, pastix_int_t **vectors, pastix_int_t *vectors_size,
-                 pastix_int_t *up_wmatrix, pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
+void update_perm(pastix_int_t size, Order *order, pastix_int_t sn_id,
+                 pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
+                 pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
                  pastix_int_t stop_criteria, pastix_int_t stop_when_fitting){
 
-    if ( sn_nvertex < 3 ) {
+    if ( size < 3 ) {
         return;
     }
 
     pastix_int_t  i, j, k, l, elected;
-    pastix_int_t *tmpinvp = malloc(sn_nvertex*sizeof(pastix_int_t));
-    pastix_int_t *tmplen  = malloc(sn_nvertex*sizeof(pastix_int_t));
-    memset(tmplen, 0, sn_nvertex*sizeof(pastix_int_t));
+    pastix_int_t *tmpinvp;
+    pastix_int_t *tmplen;
+    pastix_int_t distance;
+
+    MALLOC_INTERN(tmpinvp, size, pastix_int_t);
+    MALLOC_INTERN(tmplen,  size, pastix_int_t);
+    memset(tmplen, 0, size*sizeof(pastix_int_t));
 
     tmpinvp[0] = 0;
     tmpinvp[1] = 1;
 
-    wmatrix[ 1 * sn_nvertex + 0 ] = hamming_distance_symbol(vectors, vectors_size, 1, 0, stop_criteria);
+    distance = hamming_distance(lw_vectors, lw_vectors_size, 1, 0, stop_criteria);
 
-    tmplen[0] = wmatrix[ 1 * sn_nvertex + 0 ];
-    tmplen[1] = wmatrix[ 1 * sn_nvertex + 0 ];
+    tmplen[0] = distance;
+    tmplen[1] = distance;
 
-    for(i=2; i<sn_nvertex; i++) {
+
+    for(i=2; i<size; i++) {
+        pastix_int_t first_pos;
+        pastix_int_t last_pos;
+
+        pastix_int_t lw_before_pos;
+        pastix_int_t lw_after_pos;
+
+        pastix_int_t up_before_pos;
+        pastix_int_t up_after_pos;
+
 
         /* Start by adding the row in first position */
-        wmatrix[ i * sn_nvertex + tmpinvp[0] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[0], stop_criteria);
-        wmatrix[ i * sn_nvertex + tmpinvp[1] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[1], stop_criteria);
+        lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[0], stop_criteria);
+        lw_after_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[1], stop_criteria);
+        up_after_pos  = hamming_distance(up_vectors, up_vectors_size, i, tmpinvp[1], 1);
 
-        pastix_int_t minl =
-            wmatrix[ i * sn_nvertex + tmpinvp[0] ] +
-            wmatrix[ i * sn_nvertex + tmpinvp[1] ] - tmplen[0];
+        pastix_int_t minl = lw_before_pos + lw_after_pos - tmplen[0];
         pastix_int_t mpos = 1;
 
         pastix_int_t min_cut = -1;
         for(j=1; j<i-1; j++ ){
 
-            pastix_int_t DEEP_stop = 1;
+            up_before_pos = up_after_pos;
+            up_after_pos  = hamming_distance(up_vectors, up_vectors_size, i, tmpinvp[j+1], 1);
 
-            if (up_wmatrix[ i * sn_nvertex + tmpinvp[j]] == -1)
-                up_wmatrix[ i * sn_nvertex + tmpinvp[j]   ] = hamming_distance_symbol(up_vectors, up_vectors_size, i, tmpinvp[j], DEEP_stop);
-
-            if (up_wmatrix[ i * sn_nvertex + tmpinvp[j+1]] == -1)
-                up_wmatrix[ i * sn_nvertex + tmpinvp[j+1] ] = hamming_distance_symbol(up_vectors, up_vectors_size, i, tmpinvp[j+1], DEEP_stop);
-
-            if ( up_wmatrix[ i * sn_nvertex + tmpinvp[j  ]] < DEEP_stop ||
-                 up_wmatrix[ i * sn_nvertex + tmpinvp[j+1]] < DEEP_stop )
+            if ( up_before_pos < 1 ||
+                 up_after_pos  < 1 )
             {
-                if (wmatrix[ i * sn_nvertex + tmpinvp[j]] == -1)
-                    wmatrix[ i * sn_nvertex + tmpinvp[j]   ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[j], stop_criteria);
 
-                if (wmatrix[ i * sn_nvertex + tmpinvp[j+1]] == -1)
-                    wmatrix[ i * sn_nvertex + tmpinvp[j+1] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[j+1], stop_criteria);
+                /* If split was used previously, this first distance may not be already computed */
+                if (lw_after_pos == -1)
+                    lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[j], stop_criteria);
+                else
+                    lw_before_pos = lw_after_pos;
 
-                l = wmatrix[ i * sn_nvertex + tmpinvp[j]   ] +
-                    wmatrix[ i * sn_nvertex + tmpinvp[j+1] ] - tmplen[j];
 
+                lw_after_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[j+1], stop_criteria);
+
+                l = lw_before_pos + lw_after_pos - tmplen[j];
+
+
+                /* Minimize the cut between two lines, for the same TSP result */
+                if ( l == minl ) {
+                    if (lw_before_pos < min_cut){
+                        min_cut = lw_before_pos;
+                        minl = l; mpos = j+1;
+                    }
+                    if (lw_after_pos < min_cut){
+                        min_cut = lw_after_pos;
+                        minl = l; mpos = j+1;
+                    }
+                }
+
+                /* Position that minimizes TSP */
                 if ( l < minl ) {
                     minl = l; mpos = j+1;
 
-                    min_cut = wmatrix[ i * sn_nvertex + tmpinvp[j]];
-                    if (wmatrix[ i * sn_nvertex + tmpinvp[j+1]] < min_cut){
-                        min_cut = wmatrix[ i * sn_nvertex + tmpinvp[j+1]];
-                    }
-
-                    /* WARNING: SUPPLEMENTARY TEST */
-                    if (stop_when_fitting == 1){
-                        if (l == 0){
-                            j = i;
-                        }
+                    min_cut = lw_before_pos;
+                    if (lw_after_pos < min_cut){
+                        min_cut = lw_after_pos;
                     }
                 }
 
-                if (stop_when_fitting == 0){
-                    if ( l == minl ) {
-                        if (wmatrix[ i * sn_nvertex + tmpinvp[j]] < min_cut){
-                            min_cut = wmatrix[ i * sn_nvertex + tmpinvp[j]];
-                            minl = l; mpos = j+1;
-                        }
-                        if (wmatrix[ i * sn_nvertex + tmpinvp[j+1]] < min_cut){
-                            min_cut = wmatrix[ i * sn_nvertex + tmpinvp[j+1]];
-                            minl = l; mpos = j+1;
-                        }
-                    }
-
-                    if (wmatrix[ i * sn_nvertex + tmpinvp[j]] == 0){
-                        min_cut = wmatrix[ i * sn_nvertex + tmpinvp[j]];
-                        minl = l; mpos = j+1;
-                        j = i;
-                    }
-                    else if (wmatrix[ i * sn_nvertex + tmpinvp[j+1]] == 0){
-                        min_cut = wmatrix[ i * sn_nvertex + tmpinvp[j+1]];
-                        minl = l; mpos = j+1;
-                        j = i;
-                    }
+                /* Stop if two lines are equal (already done tmpinvp[j]) */
+                if (lw_after_pos == 0){
+                    min_cut = 0;
+                    minl = l; mpos = j+1;
+                    j = i;
                 }
+            }
+            else{
+                lw_after_pos = -1;
             }
         }
 
         /* Test between last and first */
-        wmatrix[ i * sn_nvertex + tmpinvp[i-1] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[i-1], stop_criteria);
+        first_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[0  ], stop_criteria);
+        last_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[i-1], stop_criteria);
 
-        l = wmatrix[ i * sn_nvertex + tmpinvp[i-1] ] +
-            wmatrix[ i * sn_nvertex + tmpinvp[0  ] ] - tmplen[i-1];
+        lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[mpos-1], stop_criteria);
+        lw_after_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[mpos  ], stop_criteria);
+
+        l = first_pos + last_pos - tmplen[i-1];
         if ( l < minl ) {
             minl = l; mpos = i;
         }
 
         if (mpos > 0){
-            wmatrix[ i * sn_nvertex + tmpinvp[mpos-1] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[mpos-1], stop_criteria);
-            tmplen[mpos-1] = wmatrix[ i * sn_nvertex + tmpinvp[mpos-1] ];
+            tmplen[mpos-1] = lw_before_pos;
         }
 
         if (mpos < i)
         {
             pastix_int_t tmpi, tmpl;
             k = i;
-
-            wmatrix[ i * sn_nvertex + tmpinvp[mpos] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[mpos], stop_criteria);
-            l = wmatrix[ i * sn_nvertex + tmpinvp[mpos] ];
+            l = lw_after_pos;
 
             /* Insert the line in the tmpinvp/tmplen arrays */
             for(j=mpos; j<i+1; j++ )
@@ -174,59 +178,60 @@ void update_perm(pastix_int_t sn_nvertex, Order *order, pastix_int_t sn_id,
         }
         else {
             tmpinvp[i] = i;
-
-            wmatrix[ i * sn_nvertex + tmpinvp[0] ] = hamming_distance_symbol(vectors, vectors_size, i, tmpinvp[0], stop_criteria);
-
-            tmplen[i]  = wmatrix[ i * sn_nvertex + tmpinvp[0] ];
+            tmplen[i]  = first_pos;
         }
     }
+
+
 
     /* Search the best split line */
     /* TODO */
     pastix_int_t min_size = INT_MAX;
-    for (i=0; i<sn_nvertex; i++)
+    for (i=0; i<size; i++)
     {
-        if (vectors_size[i] < min_size){
-            min_size = vectors_size[i];
+        if (lw_vectors_size[i] < min_size){
+            min_size = lw_vectors_size[i];
         }
     }
 
     elected = 0;
-    for (i=0; i<sn_nvertex; i++)
+    for (i=0; i<size; i++)
     {
-        if (vectors_size[tmpinvp[i]] == min_size){
+        if (lw_vectors_size[tmpinvp[i]] == min_size){
             elected = i;
         }
     }
 
+
     pastix_int_t *sn_connected;
-    MALLOC_INTERN(sn_connected, sn_nvertex, pastix_int_t);
+    MALLOC_INTERN(sn_connected, size, pastix_int_t);
     {
         pastix_int_t *peritab = order->peritab + order->rangtab[sn_id];
-        for (i=0; i<sn_nvertex; i++)
+        for (i=0; i<size; i++)
         {
-            sn_connected[i] = peritab[ tmpinvp[(i + elected)%sn_nvertex] ];
+            sn_connected[i] = peritab[ tmpinvp[(i + elected)%size] ];
         }
-        memcpy( peritab, sn_connected, sn_nvertex * sizeof(pastix_int_t) );
+        memcpy( peritab, sn_connected, size * sizeof(pastix_int_t) );
     }
-    free(sn_connected);
-    free(tmpinvp);
-    free(tmplen);
+
+    memFree_null(sn_connected);
+    memFree_null(tmpinvp);
+    memFree_null(tmplen);
 }
 
 static inline
 void symbol_reorder_cblk( const SymbolMatrix *symbptr,
-                            const SymbolCblk   *cblk,
-                            Order              *order,
-                            const pastix_int_t *levels,
-                            pastix_int_t        cblklvl,
-                            pastix_int_t       *depthweight,
-                            pastix_int_t        depthmax,
-                            pastix_int_t        split_level,
-                            int                 stop_criteria,
-                            int                 stop_when_fitting,
-                            double             *time_compute_vectors,
-                            double             *time_update_perm)
+                          const SymbolCblk   *cblk,
+                          Order              *order,
+                          const pastix_int_t *levels,
+                          pastix_int_t        cblklvl,
+                          pastix_int_t       *depthweight,
+                          pastix_int_t        depthmax,
+                          pastix_int_t        split_level,
+                          int                 stop_criteria,
+                          int                 stop_when_fitting,
+                          double             *time_compute_vectors,
+                          double             *time_update_perm)
 {
     SymbolBlok *blok;
     pastix_int_t **up_vectors, *up_vectors_size;
@@ -236,9 +241,6 @@ void symbol_reorder_cblk( const SymbolMatrix *symbptr,
     pastix_int_t i, iterblok;
     pastix_int_t *brow = symbptr->browtab;
     double timer;
-
-    pastix_int_t *lw_wmatrix;
-    pastix_int_t *up_wmatrix;
 
     /**
      * Compute hamming vectors in two subsets:
@@ -311,7 +313,7 @@ void symbol_reorder_cblk( const SymbolMatrix *symbptr,
             /*                      levels, levels[itercblk], */
             /*                      depthweight + levels[itercblk], maxdepth-levels[itercblk], */
             /*                      split_level, stop_criteria, stop_when_fitting, */
-        /*                      &time_compute_vectors, &time_update_perm); */
+            /*                      &time_compute_vectors, &time_update_perm); */
             /* local_split_level += cblklvl; */
             /* for(i=0; (i<local_split_level) && (depthweight[i] != 0); i++) */
             /* for(; (i<depthmax) && (depthweight[i] != 0); i++) */
@@ -376,24 +378,17 @@ void symbol_reorder_cblk( const SymbolMatrix *symbptr,
             }
         }
     }
+
     clockStop(timer);
     *time_compute_vectors += clockVal(timer);
 
     clockStart(timer);
     {
-        lw_wmatrix = malloc(size * size * sizeof(pastix_int_t)); /* Hamming distances */
-        up_wmatrix = malloc(size * size * sizeof(pastix_int_t));
-        memset(up_wmatrix, -1, size*size*sizeof(pastix_int_t));
-        memset(lw_wmatrix, -1, size*size*sizeof(pastix_int_t));
-
         /* Permute lines in the current supernode */
         update_perm(size, order, cblk - symbptr->cblktab,
-                    lw_wmatrix, lw_vectors, lw_vectors_size,
-                    up_wmatrix, up_vectors, up_vectors_size,
+                    lw_vectors, lw_vectors_size,
+                    up_vectors, up_vectors_size,
                     stop_criteria, stop_when_fitting);
-
-        memFree_null(lw_wmatrix);
-        memFree_null(up_wmatrix);
     }
     clockStop(timer);
     *time_update_perm += clockVal(timer);
@@ -474,8 +469,8 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
     memFree_null(depthweight);
 }
 
-pastix_int_t hamming_distance_symbol(pastix_int_t **vectors, pastix_int_t *vectors_size,
-                                     pastix_int_t xi, pastix_int_t xj, pastix_int_t stop)
+pastix_int_t hamming_distance(pastix_int_t **vectors, pastix_int_t *vectors_size,
+                              pastix_int_t xi, pastix_int_t xj, pastix_int_t stop)
 {
     pastix_int_t sum = 0;
     pastix_int_t *set1 = vectors[xi];
