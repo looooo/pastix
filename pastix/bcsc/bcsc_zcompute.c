@@ -29,12 +29,12 @@
  * @ingroup pastix_bcsc
  *
  * z_bcscGemv - compute the matrix-vector product y=alpha*A**trans*x+beta*y.
- * A is a PastixGeneral bcsc, 
+ * A is a PastixGeneral bcsc,
  * trans specifies the operation to be performed as follows:
  *              TRANS = 'N' or 'n'   y := alpha*A*x + beta*y
  *              TRANS = 'T' or 't'   y := alpha*A**T*x + beta*y
  *              TRANS = 'C' or 'c'   y := alpha*A**H*x + beta*y
- * x and y are two vectors of size csc->gN,
+ * x and y are two vectors of size n,
  * alpha and beta are scalars.
  *
  *******************************************************************************
@@ -42,15 +42,18 @@
  * @param[in] trans
  *          The operation to be performed.
  *
+ * @param[in] n
+ *          Number of columns of the matrix.
+ *
  * @param[in] alpha
  *          A scalar.
- * 
+ *
  * @param[in] csc
  *          The PastixGeneral csc.
  *
  * @param[in] x
  *          The vector x.
- * 
+ *
  * @param[in] beta
  *          A scalar.
  *
@@ -64,96 +67,98 @@
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
-// int
-// z_bcscGemv(char                trans,
-//            pastix_complex64_t  alpha,
-//            pastix_bcsc_t      *bcsc,
-//            pastix_complex64_t *x,
-//            pastix_complex64_t  beta,
-//            pastix_complex64_t *y )
-// {
-//     pastix_complex64_t *valptr  = (pastix_complex64_t*)bcsc->Lvalues;
-//     pastix_complex64_t *yptr    = y;
-//     pastix_complex64_t *xptr    = x;
-//     pastix_int_t        bloc, col, row, i, j, baseval;
-// 
-//     if(bcsc==NULL)
-//     {
-//         return PASTIX_ERR_BADPARAMETER;
-//     }
-// 
-//     if(bcsc->mtxtype!=PastixGeneral || x==NULL)
-//     {
-//         return PASTIX_ERR_BADPARAMETER;
-//     }
-// 
-// //     baseval = bcsc->colptr[0];
-//     baseval = 0;
-// 
-//     /* first, y = beta*y */
-//     for( i=0; i < csc->gN; i++ )
-//     {
-//         yptr[i] *= beta;
-//     }
-// 
-//     if( trans == 'n' || trans == 'N' )
-//     {
-//         col = 0;
-//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-//         {
-//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-//             {
-//                 col += 1;
-//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-//                 {
-//                     row = bcsc->rowtab[i];
-//                     yptr[row] += alpha * valptr[i] * xptr[col];
-//                 }
-//             }
-//         }
-//     }
-//     else if( trans == 't' || trans == 'T' )
-//     {
-//         col = 0;
-//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-//         {
-//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-//             {
-//                 col += 1;
-//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-//                 {
-//                     row = bcsc->rowtab[i];
-//                     yptr[col] += alpha * valptr[i] * xptr[row];
-//                 }
-//             }
-//         }
-//     }
-// #if defined(PRECISION_c) || defined(PRECISION_z)
-//     else if( trans == 'c' || trans == 'C' )
-//     {
-//         col = 0;
-//         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-//         {
-//             for( j=0; j < bcsc->cscftab[bloc]->colnbr; j++ )
-//             {
-//                 col += 1;
-//                 for( i=bcsc->coltab[col]; i<csc->coltab[col+1]; i++ )
-//                 {
-//                     row = bcsc->rowtab[i];
-//                     yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
-//                 }
-//             }
-//         }
-//     }
-// #endif
-//     else
-//     {
-//         return PASTIX_ERR_BADPARAMETER;
-//     }
-// 
-//     return PASTIX_SUCCESS;
-// 
-// }
+int
+z_bcscGemv(char                trans,
+           pastix_int_t        n, /* size of the matrix */
+           pastix_complex64_t  alpha,
+           pastix_bcsc_t      *bcsc,
+           void               *x,
+           pastix_complex64_t  beta,
+           void               *y )
+{
+    pastix_complex64_t *Lvalptr = NULL;
+//     pastix_complex64_t *Uvalptr = NULL;
+    pastix_complex64_t *yptr    = (pastix_complex64_t*)y;
+    pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
+    pastix_int_t        bloc, col, i, j;
+
+    if(bcsc==NULL || y==NULL || x== NULL)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    Lvalptr = bcsc->Lvalues;
+//     Uvalptr = bcsc->Uvalues;
+
+    /* first, y = beta*y */
+    if( beta != (pastix_complex64_t)0.0 )
+    {
+        for( col = 0; col < n; col++ )
+        {
+            yptr[col] *= beta;
+        }
+    }
+    else if( beta == (pastix_complex64_t)0.0 )
+    {
+        memset(yptr,0.0,n*sizeof(pastix_complex64_t));
+    }
+
+    if( trans == 'n' || trans == 'N' )
+    {
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
+                }
+                col += 1;
+            }
+        }
+    }
+    else if( trans == 't' || trans == 'T' )
+    {
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+//                     yptr[bcsc->rowtab[i]] += alpha * Uvalptr[i] * xptr[col];
+                    yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
+                }
+                col += 1;
+            }
+        }
+    }
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    else if( trans == 'c' || trans == 'C' )
+    {
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+//                     yptr[bcsc->rowtab[i]] += alpha * conj( Uvalptr[i] ) * xptr[col];
+                    yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
+                }
+                col += 1;
+            }
+        }
+    }
+#endif
+    else
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    return PASTIX_SUCCESS;
+
+}
 
 /**
  *******************************************************************************
@@ -169,14 +174,14 @@
  *
  * @param[in] n
  *          The number of elements in the array A.
- * 
+ *
  * @param[out] norm
  *          The norm of the matrix A.
  *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
@@ -191,7 +196,7 @@ z_bcscNormMax( void         *values,
 #endif
     pastix_complex64_t *valptr = values;
     pastix_int_t i;
-    
+
     *norm = 0.;
     for( i=0; i < n; i++ )
     {
@@ -207,7 +212,7 @@ z_bcscNormMax( void         *values,
             *norm = temp1;
         }
     }
-    
+
     return PASTIX_SUCCESS;
 }
 
@@ -225,14 +230,14 @@ z_bcscNormMax( void         *values,
  *
  * @param[in] n
  *          The number of elements in the array A.
- * 
+ *
  * @param[out] norm
  *          The norm of the matrix A.
  *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
@@ -246,7 +251,7 @@ z_bcscNorm2( void         *values,
     double temp;
     pastix_complex64_t *valptr = values;
     pastix_int_t i;
-    
+
     for( i=0; i < n; i++ )
     {
 #if defined(PRECISION_c) || defined(PRECISION_z)
@@ -279,13 +284,234 @@ z_bcscNorm2( void         *values,
 #endif
     }
     *norm = scale*sqrt(sum);
-    
+
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscBerr - Compute the operation $$ berr= max_{i}(\\frac{|r1_{i}|}{|r2_{i}|}) $$.
+ *
+ *******************************************************************************
+ *
+ * @param[in] r1
+ *          The vector r1.
+ *
+ * @param[in] r2
+ *          The vector r2.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[out] berr
+ *          The returned result.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the berr has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscBerr( void         *r1,
+            void         *r2,
+            pastix_int_t  n,
+            double       *berr )
+{
+    pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
+    pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
+    pastix_int_t i;
 
+    if(r1==NULL || r1== NULL)
+        return PASTIX_ERR_BADPARAMETER;
 
+    *berr = 0.;
 
+    for( i = 0; i < n; i++)
+    {
+#if defined(PRECISION_c) || defined(PRECISION_z)
+        if( fabs(sqrt(pow(creal(r1ptr[i],2.))+pow(cimag(r1ptr[i],2.)))) / fabs(sqrt(pow(creal(r2ptr[i],2.))+pow(cimag(r2ptr[i],2.)))) > *berr )
+            *berr = fabs(sqrt(pow(creal(r1ptr[i],2.))+pow(cimag(r1ptr[i],2.)))) / fabs(sqrt(pow(creal(r2ptr[i],2.))+pow(cimag(r2ptr[i],2.))));
+#else
+        if( fabs(r1ptr[i])/fabs(r2ptr[i]) > *berr )
+            *berr = fabs(r1ptr[i]) / fabs(r2ptr[i]);
+#endif
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscNormErr - Computes the norm 2 of r1 and the norm 2 of r2
+ *                 and return the quotient of these two vectors.
+ *
+ *******************************************************************************
+ *
+ * @param[in] r1
+ *          The vector r1.
+ *
+ * @param[in] r2
+ *          The vector r2.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[out] err
+ *          The returned result.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the err has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscNormErr( void         *r1,
+               void         *r2,
+               pastix_int_t  n,
+               double       *err )
+{
+    double              norm2r1;
+    double              norm2r2;
+
+    if(r1==NULL || r1== NULL)
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( z_bcscNorm2(r1, n, &norm2r1) != PASTIX_SUCCESS )
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( z_bcscNorm2(r2, n, &norm2r2) != PASTIX_SUCCESS )
+        return PASTIX_ERR_BADPARAMETER;
+
+    *err = norm2r1/norm2r2;
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscScal - Multiply a vector by a scalaire x <- alpha*x.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] x
+ *          The vector x.
+ *
+ * @param[in] alpha
+ *          The scalar alpha.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[in] smxnbr
+ *          The number of vectors (multi-right-hand-side method).
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the x vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscScal( void               *x,
+            pastix_complex64_t  alpha,
+            pastix_int_t        n,
+            pastix_int_t        smxnbr )
+{
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_int_t i;
+
+    if(x==NULL)
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( alpha == (pastix_complex64_t)0.0 )
+    {
+        memset(xptr,0.0,smxnbr*n*sizeof(pastix_complex64_t));
+        return PASTIX_SUCCESS;
+    }
+
+    for( i = 0; i < n*smxnbr; i++)
+    {
+        *xptr *=alpha;
+        xptr ++;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscAxpy - compute y<-alpha*x+y.
+ *
+ *******************************************************************************
+ *
+ * @param[in] alpha
+ *          A scalar.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[in,out] y
+ *          The vector y.
+ *
+ * @param[in] smxnbr
+ *          The number of vectors (multi-right-hand-side method).
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscAxpy(pastix_complex64_t  alpha,
+           void               *x,
+           pastix_int_t        n, /* size of the matrix */
+           void               *y,
+           pastix_int_t        smxnbr )
+{
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    pastix_int_t i;
+
+    if(y==NULL || x== NULL)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if( alpha == (pastix_complex64_t)0.0 )
+    {
+        return PASTIX_SUCCESS;
+    }
+
+    for(i = 0; i < n*smxnbr; i++)
+    {
+        *yptr = *yptr + alpha * *xptr;
+        yptr++;
+        xptr++;
+    }
+
+    return PASTIX_SUCCESS;
+}
 
 
 /* Pivot : */
