@@ -38,11 +38,77 @@ compute_cblklevel( const pastix_int_t *treetab,
     }
 }
 
+static inline pastix_int_t
+hamming_distance(pastix_int_t **vectors,
+                 pastix_int_t  *vectors_size,
+                 pastix_int_t   xi,
+                 pastix_int_t   xj,
+                 pastix_int_t   stop)
+{
+    pastix_int_t sum = 0;
+    pastix_int_t *set1 = vectors[xi];
+    pastix_int_t *set2 = vectors[xj];
+    pastix_int_t *end1 = vectors[xi] + vectors_size[xi];
+    pastix_int_t *end2 = vectors[xj] + vectors_size[xj];
 
-void update_perm(pastix_int_t size, Order *order, pastix_int_t sn_id,
-                 pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
-                 pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
-                 pastix_int_t stop_criteria, pastix_int_t stop_when_fitting){
+    if (vectors_size[xi] - vectors_size[xj] >= stop){
+        return stop;
+    }
+    if (vectors_size[xj] - vectors_size[xi] >= stop){
+        return stop;
+    }
+
+    while((set1 < end1) && (set2 < end2))
+    {
+        if( *set1 == *set2)
+        {
+            set1++;
+            set2++;
+        }
+        else if( *set1 < *set2 )
+        {
+            while (( set1 < end1 ) && ( *set1 < *set2 ))
+            {
+                sum ++;
+                set1++;
+            }
+        }
+        else if( *set1 > *set2 )
+        {
+            while (( set2 < end2 ) && ( *set1 > *set2 ))
+            {
+                sum ++;
+                set2++;
+            }
+        }
+        else
+        {
+            assert(0);
+        }
+
+        /* The computation is stopped if sum overlapped a given limit */
+        if (sum >= stop){
+            return stop;
+        }
+    }
+
+    sum += end1-set1;
+    sum += end2-set2;
+
+    if (sum >= stop){
+        return stop;
+    }
+
+    return sum;
+}
+
+
+static inline void
+symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
+                   pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
+                   pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
+                   pastix_int_t stop_criteria, pastix_int_t stop_when_fitting)
+{
 
     if ( size < 3 ) {
         return;
@@ -182,8 +248,6 @@ void update_perm(pastix_int_t size, Order *order, pastix_int_t sn_id,
         }
     }
 
-
-
     /* Search the best split line */
     /* TODO */
     pastix_int_t min_size = INT_MAX;
@@ -219,19 +283,19 @@ void update_perm(pastix_int_t size, Order *order, pastix_int_t sn_id,
     memFree_null(tmplen);
 }
 
-static inline
-void symbol_reorder_cblk( const SymbolMatrix *symbptr,
-                          const SymbolCblk   *cblk,
-                          Order              *order,
-                          const pastix_int_t *levels,
-                          pastix_int_t        cblklvl,
-                          pastix_int_t       *depthweight,
-                          pastix_int_t        depthmax,
-                          pastix_int_t        split_level,
-                          int                 stop_criteria,
-                          int                 stop_when_fitting,
-                          double             *time_compute_vectors,
-                          double             *time_update_perm)
+static inline void
+symbol_reorder_cblk( const SymbolMatrix *symbptr,
+                     const SymbolCblk   *cblk,
+                     Order              *order,
+                     const pastix_int_t *levels,
+                     pastix_int_t        cblklvl,
+                     pastix_int_t       *depthweight,
+                     pastix_int_t        depthmax,
+                     pastix_int_t        split_level,
+                     int                 stop_criteria,
+                     int                 stop_when_fitting,
+                     double             *time_compute_vectors,
+                     double             *time_update_perm)
 {
     SymbolBlok *blok;
     pastix_int_t **up_vectors, *up_vectors_size;
@@ -384,11 +448,11 @@ void symbol_reorder_cblk( const SymbolMatrix *symbptr,
 
     clockStart(timer);
     {
-        /* Permute lines in the current supernode */
-        update_perm(size, order, cblk - symbptr->cblktab,
-                    lw_vectors, lw_vectors_size,
-                    up_vectors, up_vectors_size,
-                    stop_criteria, stop_when_fitting);
+        /* Apply the pseudo-TSP algorithm to the rows in the current supernode */
+        symbol_reorder_tsp(size, order, cblk - symbptr->cblktab,
+                           lw_vectors, lw_vectors_size,
+                           up_vectors, up_vectors_size,
+                           stop_criteria, stop_when_fitting);
     }
     clockStop(timer);
     *time_update_perm += clockVal(timer);
@@ -416,9 +480,11 @@ void symbol_reorder_cblk( const SymbolMatrix *symbptr,
 /* If set to 0, the algorithm will minimize the cut between two lines */
 
 void
-symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
-                   pastix_int_t split_level, int stop_criteria,
-                   int stop_when_fitting )
+symbolReordering( const SymbolMatrix *symbptr,
+                  Order *order,
+                  pastix_int_t split_level,
+                  int stop_criteria,
+                  int stop_when_fitting )
 {
     SymbolCblk  *cblk;
     pastix_int_t itercblk;
@@ -469,68 +535,8 @@ symbolNewOrdering( const SymbolMatrix *symbptr, Order *order,
     memFree_null(depthweight);
 }
 
-pastix_int_t hamming_distance(pastix_int_t **vectors, pastix_int_t *vectors_size,
-                              pastix_int_t xi, pastix_int_t xj, pastix_int_t stop)
-{
-    pastix_int_t sum = 0;
-    pastix_int_t *set1 = vectors[xi];
-    pastix_int_t *set2 = vectors[xj];
-    pastix_int_t *end1 = vectors[xi] + vectors_size[xi];
-    pastix_int_t *end2 = vectors[xj] + vectors_size[xj];
-
-    if (vectors_size[xi] - vectors_size[xj] >= stop){
-        return stop;
-    }
-    if (vectors_size[xj] - vectors_size[xi] >= stop){
-        return stop;
-    }
-
-    while((set1 < end1) && (set2 < end2))
-    {
-        if( *set1 == *set2)
-        {
-            set1++;
-            set2++;
-        }
-        else if( *set1 < *set2 )
-        {
-            while (( set1 < end1 ) && ( *set1 < *set2 ))
-            {
-                sum ++;
-                set1++;
-            }
-        }
-        else if( *set1 > *set2 )
-        {
-            while (( set2 < end2 ) && ( *set1 > *set2 ))
-            {
-                sum ++;
-                set2++;
-            }
-        }
-        else
-        {
-            assert(0);
-        }
-
-        /* The computation is stopped if sum overlapped a given limit */
-        if (sum >= stop){
-            return stop;
-        }
-    }
-
-    sum += end1-set1;
-    sum += end2-set2;
-
-    if (sum >= stop){
-        return stop;
-    }
-
-    return sum;
-}
-
 void
-symbolPrintComplexityReordering( const SymbolMatrix *symbptr )
+symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
 {
     SymbolCblk  *cblk;
     pastix_int_t itercblk, iterblok;

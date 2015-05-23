@@ -83,21 +83,13 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
                        int ricar);
 
 void symbolCheckProperties( const SymbolMatrix * );
-void symbolNewOrdering( const SymbolMatrix *, Order *,
-                        pastix_int_t, int, int );
-void symbolPrintComplexityReordering( const SymbolMatrix *symbptr );
 
-/* Pastix_Int_Ternal routines for hamming vectors */
-pastix_int_t hamming_distance( pastix_int_t **, pastix_int_t *, pastix_int_t, pastix_int_t, pastix_int_t);
-void update_perm(pastix_int_t, Order *, pastix_int_t,
-                 pastix_int_t **, pastix_int_t *,
-                 pastix_int_t **, pastix_int_t *,
-                 pastix_int_t, pastix_int_t);
+void symbolReordering( const SymbolMatrix *, Order *, pastix_int_t, int, int );
+void symbolReorderingPrintComplexity( const SymbolMatrix *symbptr );
 
-void
-symbolCost(const SymbolMatrix *symbmtx, const Dof *dofptr,
-           pastix_coeftype_t flttype, pastix_factotype_t factotype,
-           pastix_int_t *nnz, double *thflops, double *rlflops );
+void         symbolCost( const SymbolMatrix *symbmtx, const Dof *dofptr,
+                         pastix_coeftype_t flttype, pastix_factotype_t factotype,
+                         pastix_int_t *nnz, double *thflops, double *rlflops );
 pastix_int_t symbolGetNNZ  ( const SymbolMatrix *symbptr);
 void         symbolGetFlops( const SymbolMatrix *symbmtx,
                              pastix_coeftype_t flttype, pastix_factotype_t factotype,
