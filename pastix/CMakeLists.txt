@@ -436,6 +436,7 @@ set(SOURCES
   csc/z_spm_convert_to_ijv.c
   csc/z_spm_matrixvector.c
   csc/z_spm_genrhs.c
+  csc/z_spm_norm.c
   matrix_drivers/z_spm_laplacian.c
   sopalin/sequential_zpotrf.c
   sopalin/coeftab_z.c
