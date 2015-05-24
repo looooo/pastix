@@ -401,6 +401,13 @@ typedef enum pastix_factotype_e {
   PastixFactLDLH = 3
 } pastix_factotype_t;
 
+typedef enum pastix_normtype_e {
+    PastixOneNorm       = 171,
+    PastixFrobeniusNorm = 174,
+    PastixInfNorm       = 175,
+    PastixMaxNorm       = 177
+} pastix_normtype_t;
+
 /** Matrice symétrique ou non (0 : symétrique, 1 : non) */
 /*
   Enum: API_SYM
