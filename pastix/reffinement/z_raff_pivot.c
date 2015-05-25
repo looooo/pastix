@@ -16,20 +16,18 @@
 */
 
 /* Raffinement du second membre */
-#define z_pivotstatique_smp API_CALL(z_pivotstatique_smp)
-#define z_pivot_thread      API_CALL(z_pivot_thread)
 
 void* z_pivotstatique_smp(void *arg);
 
 /* Lancement d'une des fonctions seules */
-void z_pivot_thread(z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
+void z_pivot_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
 
 /*
 ** Section: Threads routines
 */
 
 /*
- * Function: API_CALL(z_pivotstatique_smp)
+ * Function: z_pivotstatique_smp
  *
  * Refine the solution.
  *
@@ -56,7 +54,7 @@ void z_pivot_thread(z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
  *
  * Parameters:
  *   arg - Pointer to a <sopthread_data_t> structure containing
- *         the <z_Sopalin_Data_t> structure and the thread number ID.
+ *         the <Sopalin_Data_t> structure and the thread number ID.
  */
 void* z_pivotstatique_smp ( void *arg )
 {
@@ -70,11 +68,11 @@ void* z_pivotstatique_smp ( void *arg )
   pastix_complex64_t * volatile  lur2         = NULL;
   double            tmp_berr     = 0.0;
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
-  z_SopalinParam     *sopar        = sopalin_data->sopar;
+  Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
+  SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
-  PASTIX_INT               me           = argument->me;
+  pastix_int_t        me           = argument->me;
   int               iter         = 0;
 
   MONOTHREAD_BEGIN;
@@ -178,7 +176,7 @@ void* z_pivotstatique_smp ( void *arg )
           RAFF_CLOCK_STOP;
           t1 = RAFF_CLOCK_GET;
 
-          API_CALL(z_up_down_smp)(arg);
+          z_up_down_smp(arg);
 
           SYNCHRO_THREAD;
 
@@ -281,22 +279,22 @@ void* z_pivotstatique_smp ( void *arg )
 */
 
 /*
-  Function: API_CALL(z_pivot_thread)
+  Function: z_pivot_thread
 
   Launch sopaparam->nbthrdcomm threads which will compute
-  <API_CALL(z_pivotstatique_smp)>.
+  <z_pivotstatique_smp>.
 
   Parameters:
-  datacode  - PaStiX <z_SolverMatrix> structure.
-  sopaparam - <z_SopalinParam> parameters structure.
+  datacode  - PaStiX <SolverMatrix> structure.
+  sopaparam - <SopalinParam> parameters structure.
 */
-void API_CALL(z_pivot_thread)(z_SolverMatrix *datacode,
-                            z_SopalinParam *sopaparam)
+void z_pivot_thread(SolverMatrix *datacode,
+                    SopalinParam *sopaparam)
 {
-  z_Sopalin_Data_t *sopalin_data = NULL;
+  Sopalin_Data_t *sopalin_data = NULL;
   BackupSolve_t b;
 
-  MALLOC_INTERN(sopalin_data, 1, z_Sopalin_Data_t);
+  MALLOC_INTERN(sopalin_data, 1, Sopalin_Data_t);
 
   z_solve_backup(datacode,&b);
   z_sopalin_init(sopalin_data, datacode, sopaparam, 0);
@@ -304,8 +302,8 @@ void API_CALL(z_pivot_thread)(z_SolverMatrix *datacode,
   sopalin_launch_thread(sopalin_data,
                         SOLV_PROCNUM,          SOLV_PROCNBR,                datacode->btree,
                         sopalin_data->sopar->iparm[IPARM_VERBOSE],
-                        SOLV_THRDNBR,          API_CALL(z_pivotstatique_smp), sopalin_data,
-                        sopaparam->nbthrdcomm, API_CALL(z_sopalin_updo_comm), sopalin_data,
+                        SOLV_THRDNBR,          z_pivotstatique_smp, sopalin_data,
+                        sopaparam->nbthrdcomm, z_sopalin_updo_comm, sopalin_data,
                         OOC_THREAD_NBR,        z_ooc_thread,                  sopalin_data);
 
   z_sopalin_clean(sopalin_data, 2);
