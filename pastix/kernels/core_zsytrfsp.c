@@ -17,7 +17,6 @@
 #include "common.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
-//#include "../sopalin/sopalin_acces.h"
 #include "../blend/solver.h"
 
 static pastix_complex64_t zone  =  1.;
@@ -275,7 +274,7 @@ int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
  *******************************************************************************
  *
  * @return
- *         \retval PASTIX_SUCCESS on successful exit.
+ *          \retval PASTIX_SUCCESS on successful exit.
  *
  *******************************************************************************/
 int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
@@ -454,11 +453,11 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
  *******************************************************************************
  *
  * @param[in] cblk
- *          Syinter to the structure representing the panel to factorize in the
+ *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
  * @param[in,out] L
- *          The syinter to the matrix storing the coefficients of the
+ *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
  * @param[in] criteria
