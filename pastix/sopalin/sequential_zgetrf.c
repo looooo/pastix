@@ -1,6 +1,6 @@
 /**
  *
- * @file sequential_zpotrf.c
+ * @file sequential_zgetrf.c
  *
  *  PaStiX factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -21,7 +21,7 @@
 #include "pastix_zcores.h"
 
 void
-pastix_static_zpotrf( sopalin_data_t *sopalin_data )
+pastix_static_zgetrf( sopalin_data_t *sopalin_data )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk *cblk;
@@ -42,25 +42,8 @@ pastix_static_zpotrf( sopalin_data_t *sopalin_data )
         switch( t->taskid )
         {
         case COMP_1D:
-                    /* /\* Wait for contributions *\/ */
-                    /* API_CALL(z_wait_contrib_comp_1d)(sopalin_data, me, i); */
-
-                    /* z_ooc_wait_task(sopalin_data,i, me); */
-                    /* z_ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me); */
-
-                    /* /\* trace_begin_task1(thread_data->tracefile, *\/ */
-                    /* /\*                   SOPALIN_CLOCK_TRACE, *\/ */
-                    /* /\*                   SOLV_PROCNUM, me, *\/ */
-                    /* /\*                   STATE_COMP1D, *\/ */
-                    /* /\*                   TASK_PROC( i ), *\/ */
-                    /* /\*                   SOLV_TASKTAB[i], *\/ */
-                    /* /\*                   stolen ); *\/ */
-
             /* Compute */
-            core_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold);
-            /* fprintf(stream, "i=%ld, task=%ld, cblk=%ld\n", */
-            /*         (long)ii, (long)i, (long)t->cblknum); */
-            /* coeftab_zdumpcblk( cblk, stream ); */
+            core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold );
             break;
 
         default:
