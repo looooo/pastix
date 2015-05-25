@@ -359,6 +359,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/csc")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
@@ -371,7 +373,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
-set(modules bcsc kernels) #csc kernels sopalin matrix_drivers common)
+set(modules csc bcsc kernels) #csc kernels sopalin matrix_drivers common)
 # if (PASTIX_WITH_STARPU)
 #   list(APPEND modules starpu)
 # endif (PASTIX_WITH_STARPU)
@@ -438,7 +440,12 @@ set(SOURCES
   csc/z_spm_genrhs.c
   csc/z_spm_norm.c
   matrix_drivers/z_spm_laplacian.c
+  #
+  sopalin/sequential_zgetrf.c
+  sopalin/sequential_zhetrf.c
   sopalin/sequential_zpotrf.c
+  sopalin/sequential_zsytrf.c
+  #
   sopalin/coeftab_z.c
   )
 precisions_rules_py(generated_files
@@ -554,6 +561,11 @@ set(PASTIX_LIB_SRCS
   ${generated_files}
   )
 
+set_source_files_properties(
+  csc/csc.c
+  PROPERTIES DEPENDS spm_headers
+  )
+
 set(PASTIX_ALL_SRCS
   ${generated_files}
   #
@@ -626,6 +638,7 @@ add_library(pastix
   )
 
 add_dependencies(pastix
+  spm_headers
   kernels_headers
   pastix_bcsc
   pastix_kernels
