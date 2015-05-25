@@ -20,31 +20,31 @@
 #include "sopalin_data.h"
 
 // static void (*potrfTable[6])(sopalin_data_t*) = {
-static void (*sopalinFacto[4][6])(sopalin_data_t*) = 
+static void (*sopalinFacto[4][4])(sopalin_data_t*) =
 {
     {
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL 
-    },
-    {
-        NULL,
-        NULL,
         pastix_static_spotrf,
         pastix_static_dpotrf,
         pastix_static_cpotrf,
-        pastix_static_zpotrf 
+        pastix_static_zpotrf
     },
     {
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL 
+        pastix_static_ssytrf,
+        pastix_static_dsytrf,
+        pastix_static_csytrf,
+        pastix_static_zsytrf
+    },
+    {
+        pastix_static_sgetrf,
+        pastix_static_dgetrf,
+        pastix_static_cgetrf,
+        pastix_static_zgetrf
+    },
+    {
+        pastix_static_ssytrf,
+        pastix_static_dsytrf,
+        pastix_static_chetrf,
+        pastix_static_zhetrf
     }
 };
 
@@ -174,6 +174,7 @@ int
 pastix_task_sopalin( pastix_data_t *pastix_data,
                      pastix_csc_t  *csc )
 {
+    sopalin_data_t  sopalin_data;
     SolverBackup_t *sbackup;
 /* #ifdef PASTIX_WITH_MPI */
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
@@ -222,6 +223,14 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         }
     }
 
+
+    /* Compute the norm of A, to scale the epsilon parameter for pivoting */
+    {
+        pastix_print( 0, 0, "-- ||A||_2  =                                   " );
+        pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( PastixFrobeniusNorm, csc );
+        pastix_print( 0, 0, "%lg\n", pastix_data->dparm[ DPARM_A_NORM ] );
+    }
+
     rc = pastix_subtask_csc2bcsc( pastix_data, csc );
     if (rc != PASTIX_SUCCESS)
         return rc;
@@ -230,18 +239,37 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     if (rc != PASTIX_SUCCESS)
         return rc;
 
-    sbackup = solverBackupInit( pastix_data->solvmatr );
+    /* Prepare the sopalin_data structure */
     {
-        sopalin_data_t sopalin_data;
-        double timer;
-
-        clockStart(timer);
         sopalin_data.solvmtx = pastix_data->solvmatr;
 
-        sopalinFacto[csc->mtxtype][csc->flttype]( &sopalin_data );
+        /* TODO: might change the behavior: if the user wants a ratio of the norm, it could compute it himself */
+        if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] < 0. ) {
+            sopalin_data.diagthreshold = - pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ];
+        }
+        else if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] == 0. ) {
+            if ( (csc->flttype == PastixFloat) || (csc->flttype == PastixComplex32) )
+                sopalin_data.diagthreshold = 1e-7  * pastix_data->dparm[DPARM_A_NORM];
+            else
+                sopalin_data.diagthreshold = 1e-15 * pastix_data->dparm[DPARM_A_NORM];
+        }
+        else {
+            sopalin_data.diagthreshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
+        }
+    }
 
+    sbackup = solverBackupInit( pastix_data->solvmatr );
+    {
+        void (*factofct)( sopalin_data_t *);
+        double timer;
+
+        factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][csc->flttype-2];
+        assert(sopalinFacto);
+
+        clockStart(timer);
+        factofct( &sopalin_data );
         clockStop(timer);
-        pastix_print( 0, 0, "--Factorization time: %g --\n", clockVal(timer));
+        pastix_print( 0, 0, OUT_TIME_FACT, clockVal(timer) );
 
         //pastix_static_dsytrf( &sopalin_data );
         //coeftab_ddump( pastix_data->solvmatr, "AfterFacto" );
