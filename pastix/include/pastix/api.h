@@ -254,6 +254,7 @@ enum DPARM_ACCESS {
   DPARM_FACT_RLFLOPS            = 25,
   DPARM_SOLV_FLOPS              = 23,
   DPARM_RAFF_TIME               = 24,
+  DPARM_A_NORM                  = 25,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
 };
 
