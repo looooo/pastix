@@ -16,6 +16,12 @@
 #include "common.h"
 #include "csc.h"
 
+#include "z_spm.h"
+#include "c_spm.h"
+#include "d_spm.h"
+#include "s_spm.h"
+#include "p_spm.h"
+
 static int (*conversionTable[3][3][6])(pastix_csc_t*) = {
     /* From CSC */
     {{ NULL, NULL, NULL, NULL, NULL, NULL },
@@ -75,7 +81,7 @@ spmConvert( int ofmttype, pastix_csc_t *ospm )
 }
 
 pastix_int_t
-spmFindBase( pastix_csc_t *spm )
+spmFindBase( const pastix_csc_t *spm )
 {
 
     pastix_int_t i, *tmp, baseval;
@@ -98,6 +104,32 @@ spmFindBase( pastix_csc_t *spm )
     }
 
     return baseval;
+}
+
+double
+spmNorm( int ntype,
+         const pastix_csc_t *csc )
+{
+    double tmp;
+
+    switch (csc->flttype) {
+    case PastixFloat:
+        tmp = (double)s_spmNorm( ntype, csc );
+        return tmp;
+
+    case PastixDouble:
+        return d_spmNorm( ntype, csc );
+
+    case PastixComplex32:
+        tmp = (double)c_spmNorm( ntype, csc );
+        return tmp;
+
+    case PastixComplex64:
+        return z_spmNorm( ntype, csc );
+
+    default:
+        return -1.;
+    }
 }
 
 void

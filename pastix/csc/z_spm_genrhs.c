@@ -15,6 +15,7 @@
  **/
 #include "common.h"
 #include "csc.h"
+#include "z_spm.h"
 
 /**
  *******************************************************************************
@@ -29,9 +30,9 @@
  *
  * @param[in] csc
  *          The PastixGeneral csc.
- * 
+ *
  * @param[in,out] rhs
- *          The generated rhight hand side member, 
+ *          The generated rhight hand side member,
  *          reallocated if allocated at enter.
  *
  *******************************************************************************

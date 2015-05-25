@@ -21,14 +21,14 @@ static inline void
 frobenius_update( double *scale, double *sumsq, double *value )
 {
     double ratio;
-    if (*value != 0. ){
-        if ( *scale < *value ) {
-            ratio = *scale / * value;
+    if ( (*value) != 0. ){
+        if ( (*scale) < (*value) ) {
+            ratio = (*scale) / (*value);
             *sumsq = 1. + (*sumsq) * ratio * ratio;
             *scale = *value;
         } else {
-            ratio = *value / *scale;
-            *sumsq = *sumsq + ratio * ratio;
+            ratio = (*value) / (*scale);
+            *sumsq = (*sumsq) + ratio * ratio;
         }
     }
 }
@@ -143,13 +143,13 @@ z_spmFrobeniusNorm( const pastix_csc_t *csc )
  *******************************************************************************/
 double
 z_spmNorm( int ntype,
-           const pastix_csc_t *csc )
+           const pastix_csc_t *csc)
 {
     double norm = 0.;
 
     if(csc == NULL)
     {
-        return PASTIX_ERR_BADPARAMETER;
+        return -1.;
     }
 
     switch( ntype ) {
@@ -171,7 +171,7 @@ z_spmNorm( int ntype,
 
     default:
         fprintf(stderr, "z_spmNorm: invalid norm type\n");
-        return 0.;
+        return -1.;
     }
 
     return norm;
