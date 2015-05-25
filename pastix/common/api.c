@@ -192,12 +192,13 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_STARPU_CTX_NBR]     = -1;
     iparm[IPARM_PRODUCE_STATS]      = API_NO;
 
-    dparm[DPARM_EPSILON_REFINEMENT] = 0.;
+    dparm[DPARM_EPSILON_REFINEMENT] =  0.;
     dparm[DPARM_RELATIVE_ERROR]     = -1.;
     dparm[DPARM_SCALED_RESIDUAL]    = -1.;
-    dparm[DPARM_EPSILON_MAGN_CTRL]  = 0.;
-    dparm[DPARM_FACT_FLOPS]         = 0.;
-    dparm[DPARM_SOLV_FLOPS]         = 0.;
+    dparm[DPARM_EPSILON_MAGN_CTRL]  =  0.;
+    dparm[DPARM_FACT_FLOPS]         =  0.;
+    dparm[DPARM_SOLV_FLOPS]         =  0.;
+    dparm[DPARM_A_NORM]             = -1.;
 }
 
 /**
