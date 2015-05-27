@@ -88,6 +88,7 @@ typedef struct SolverCblk_  {
     pastix_int_t    lcolnum;  /*+ Last column index (inclusive)          +*/
     SolverBlok     *fblokptr; /*+ First block in column (diagonal)       +*/
     pastix_int_t    stride;   /*+ Column block stride                    +*/
+    pastix_int_t    lcolidx;  /*+ Local first column index to now location in the updown vector +*/
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
     pastix_int_t    gcblknum; /*+ Global column block index              +*/
     void          * lcoeftab; /*+ Coefficients access vector             +*/
