@@ -77,7 +77,6 @@ typedef struct SolverBlok_ {
     pastix_int_t frownum;       /*+ First row index            +*/
     pastix_int_t lrownum;       /*+ Last row index (inclusive) +*/
     pastix_int_t cblknum;       /*+ Facing column block        +*/
-    pastix_int_t levfval;       /*+ Level-of-fill value        +*/
     pastix_int_t coefind;       /*+ Index in coeftab           +*/
 } SolverBlok;
 

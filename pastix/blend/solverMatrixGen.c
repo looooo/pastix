@@ -250,7 +250,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                     solvblok->frownum = symbblok->frownum * dof;
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->cblknum = cblklocalnum[symbblok->fcblknm];
-                    solvblok->levfval = -1; /* Unused */
                     solvblok->coefind = stride;
 
                     stride += nbrows;
