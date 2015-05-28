@@ -71,7 +71,7 @@ void solverCheck(SolverMatrix *solvmtx)
                               case COMP_1D:
                                 {
                                   pastix_int_t facebloknum, facecblknum;
-                                  facecblknum = solvmtx->bloktab[j].cblknum;
+                                  facecblknum = solvmtx->bloktab[j].fcblknm;
                                   assert(facecblknum >= 0);
                                   assert(facecblknum == solvmtx->tasktab[tasknum].cblknum);
                                   facebloknum = solvmtx->cblktab[facecblknum].fblokptr-solvmtx->bloktab;

@@ -100,7 +100,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     for (bloknum = 0; bloknum < bloknbr; bloknum ++) {
         if ((intLoad (stream, &solvptr->bloktab[bloknum].frownum) + /* Read column blocks */
              intLoad (stream, &solvptr->bloktab[bloknum].lrownum) +
-             intLoad (stream, &solvptr->bloktab[bloknum].cblknum) != 3) ||
+             intLoad (stream, &solvptr->bloktab[bloknum].fcblknm) != 3) ||
             (solvptr->bloktab[bloknum].frownum > solvptr->bloktab[bloknum].lrownum)) {
             errorPrint ("solverLoad: bad input (3)");
             solverExit (solvptr);
@@ -366,10 +366,9 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
             o = (fprintf (stream, "%ld\t%ld\t%ld\n",/* "%ld\t%ld\t%ld\t%ld\n", */
                           (long) blokptr->frownum,
                           (long) blokptr->lrownum,
-                          (long) blokptr->cblknum/* , */
+                          (long) blokptr->fcblknm/* , */
                           /* (long) blokptr->levfval */) == EOF);
         }
-
     }
 
 

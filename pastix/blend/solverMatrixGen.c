@@ -249,7 +249,8 @@ solverMatrixGen(const pastix_int_t clustnum,
                     /* Init the blok */
                     solvblok->frownum = symbblok->frownum * dof;
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
-                    solvblok->cblknum = cblklocalnum[symbblok->fcblknm];
+                    solvblok->fcblknm = cblklocalnum[symbblok->fcblknm];
+                    solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
                     solvblok->coefind = stride;
 
                     stride += nbrows;
@@ -860,7 +861,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 for (solvblok =  solvmtx->cblktab[cblknum+1].fblokptr-1;
                      solvblok >= solvmtx->cblktab[cblknum].fblokptr+1; solvblok--)
                     /* if the contribution is not local */
-                    if (solvmtx->bloktab[k].cblknum <= 0)
+                    if (solvmtx->bloktab[k].fcblknm <= 0)
                         uprecvcblk[solvmtx->updovct.lblk2gcblk[k]] = 1;
             }
         solvmtx->updovct.upmsgnbr = 0;

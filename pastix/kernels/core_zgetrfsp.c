@@ -621,7 +621,7 @@ core_zgetrfsp1d( SolverMatrix *solvmtx,
     blok = cblk->fblokptr+1;
     for( ; blok < lblk; blok++ )
     {
-        fcblk = (solvmtx->cblktab + blok->cblknum);
+        fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         core_zgetrfsp1d_gemm( cblk, blok, fcblk,
                               L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );

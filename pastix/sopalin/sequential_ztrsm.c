@@ -74,7 +74,7 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
 
                     /* Apply the update */
                     for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++ ) {
-                        SolverCblk *fcbk = datacode->cblktab + blok->cblknum;
+                        SolverCblk *fcbk = datacode->cblktab + blok->fcblknm;
                         tempm = blok->lrownum - blok->frownum + 1;
 
                         cblas_zgemm(
@@ -110,7 +110,7 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
 
                     /* Apply the update */
                     /* for (blok = cblk->fblokptr; blok < cblk[1].fcblkptr; blok++ ) { */
-                    /*     SolverCblk *fcbk = datacode->cblktab + blok->cblknum; */
+                    /*     SolverCblk *fcbk = datacode->cblktab + blok->fcblknm; */
                     /*     tempm = blok->lrownum - fcblk->stride - tempn; */
 
                     /*     cblas_zgemm( */
