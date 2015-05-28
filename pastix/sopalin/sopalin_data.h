@@ -23,6 +23,10 @@ struct sopalin_data_s {
 };
 typedef struct sopalin_data_s sopalin_data_t;
 
+void pastix_static_ztrsm( int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex64_t *b, int ldb );
+void pastix_static_ctrsm( int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex32_t *b, int ldb );
+void pastix_static_dtrsm( int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, double *b, int ldb );
+void pastix_static_strsm( int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, float *b, int ldb );
 
 void pastix_static_zgetrf( sopalin_data_t *sopalin_data );
 void pastix_static_cgetrf( sopalin_data_t *sopalin_data );
