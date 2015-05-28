@@ -441,6 +441,7 @@ set(SOURCES
   csc/z_spm_norm.c
   matrix_drivers/z_spm_laplacian.c
   #
+  sopalin/sequential_ztrsm.c
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c
   sopalin/sequential_zpotrf.c
@@ -552,8 +553,9 @@ set(PASTIX_LIB_SRCS
   #matrix_drivers/readpetsc.c
   #matrix_drivers/readcscd.c
 #
-  sopalin/pastix_task_sopalin.c
   sopalin/coeftab.c
+  sopalin/pastix_task_sopalin.c
+  sopalin/pastix_task_solve.c
 #
   csc/csc.c
   csc/genrhs.c
