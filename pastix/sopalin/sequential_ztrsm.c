@@ -31,9 +31,9 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                      int nrhs, pastix_complex64_t *b, int ldb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk;
+    SolverCblk *cblk, *fcbk;
     SolverBlok *blok;
-    pastix_int_t i, ii, tempm, tempn;
+    pastix_int_t i, j, ii, tempm, tempn;
     pastix_int_t ttsknbr, *ttsktab;
     Task *t;
 
@@ -74,15 +74,16 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
 
                     /* Apply the update */
                     for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++ ) {
-                        SolverCblk *fcbk = datacode->cblktab + blok->fcblknm;
+                        fcbk  = datacode->cblktab + blok->fcblknm;
                         tempm = blok->lrownum - blok->frownum + 1;
+                        assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
                         cblas_zgemm(
                             CblasColMajor, CblasNoTrans, CblasNoTrans,
                             tempm, nrhs, tempn,
                             CBLAS_SADDR(mzone), cblk->lcoeftab, cblk->stride,
                                                 b + cblk->lcolidx, ldb,
-                            CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                            CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - cblk->fcolnum, ldb );
                     }
                 }
             }
@@ -109,17 +110,19 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
-                    /* for (blok = cblk->fblokptr; blok < cblk[1].fcblkptr; blok++ ) { */
-                    /*     SolverCblk *fcbk = datacode->cblktab + blok->fcblknm; */
-                    /*     tempm = blok->lrownum - fcblk->stride - tempn; */
+                    for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
+                        blok = datacode->bloktab + datacode->browtab[j];
+                        fcbk = datacode->cblktab + blok->lcblknm;
+                        tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
+                        tempn = blok->lrownum - blok->frownum + 1;
 
-                    /*     cblas_zgemm( */
-                    /*         CblasColMajor, CblasNoTrans, CblasNoTrans, */
-                    /*         tempm, nrhs, tempn, */
-                    /*         CBLAS_SADDR(mzone), cblk->lcoeftab, cblk->stride, */
-                    /*                             b + cblk->lcolidx, ldb, */
-                    /*         CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb ); */
-                    /* } */
+                        cblas_zgemm(
+                            CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                            tempm, nrhs, tempn,
+                            CBLAS_SADDR(mzone), fcbk->lcoeftab + blok->coefind, fcbk->stride,
+                                                b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                            CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                    }
                 }
             }
         }
