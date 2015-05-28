@@ -117,6 +117,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t  odb_nbr          = 0;
     pastix_int_t  cblknum          = 0;
     pastix_int_t  tasknum          = 0;
+    pastix_int_t  brownbr          = 0;
     pastix_int_t  indnbr           = 0;
     pastix_int_t *cblklocalnum     = NULL;
     pastix_int_t *bloklocalnum     = NULL;
@@ -190,13 +191,16 @@ solverMatrixGen(const pastix_int_t clustnum,
                 bloklocalnum[j] = localindex[c];
                 localindex[c]++;
 
-                if (c == clustnum)
+                if (c == clustnum) {
                     flaglocal = 1;
+                }
             }
 
             if(flaglocal) {
                 cblklocalnum[i] = cblknum;
                 cblknum++;
+                brownbr += symbmtx->cblktab[i+1].brownum - symbmtx->cblktab[i].brownum;
+                assert( brownbr <= symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
             }
             else {
                 cblklocalnum[i] = -i-1;
@@ -215,6 +219,9 @@ solverMatrixGen(const pastix_int_t clustnum,
     /* Allocate the cblktab and bloktab with the computed size */
     MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
     MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
+    MALLOC_INTERN(solvmtx->browtab, brownbr,            pastix_int_t);
+    assert( brownbr == symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
+    memcpy( solvmtx->browtab, symbmtx->browtab, brownbr * sizeof(pastix_int_t) );
     {
         SolverCblk *solvcblk = solvmtx->cblktab;
         SolverBlok *solvblok = solvmtx->bloktab;
@@ -265,6 +272,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
                 solvcblk->stride   = stride;
                 solvcblk->lcolidx  = nodenbr;
+                solvcblk->brownum  = symbcblk->brownum;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
@@ -287,10 +295,12 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
             solvcblk->stride   = 0;
             solvcblk->lcolidx  = nodenbr;
+            solvcblk->brownum  = symbcblk->brownum;
             solvcblk->procdiag = -1;
             solvcblk->lcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
+            solvcblk->gpuid    = -1;
         }
 
         solvmtx->nodenbr = nodenbr;
