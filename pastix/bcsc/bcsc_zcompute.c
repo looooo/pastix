@@ -68,7 +68,7 @@
  *
  *******************************************************************************/
 int
-z_bcscGemv(char                trans,
+z_bcscGemv(int                 trans,
            pastix_int_t        n, /* size of the matrix */
            pastix_complex64_t  alpha,
            pastix_bcsc_t      *bcsc,
@@ -102,8 +102,8 @@ z_bcscGemv(char                trans,
         memset(yptr,0.0,n*sizeof(pastix_complex64_t));
     }
 
-    if( trans == 'n' || trans == 'N' )
-    {
+    switch (trans) {
+    case PastixNoTrans:
         col = 0;
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
@@ -116,9 +116,8 @@ z_bcscGemv(char                trans,
                 col += 1;
             }
         }
-    }
-    else if( trans == 't' || trans == 'T' )
-    {
+    break;
+    case PastixTrans:
         col = 0;
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
@@ -132,10 +131,9 @@ z_bcscGemv(char                trans,
                 col += 1;
             }
         }
-    }
+    break;
 #if defined(PRECISION_c) || defined(PRECISION_z)
-    else if( trans == 'c' || trans == 'C' )
-    {
+    case PastixConjTrans:
         col = 0;
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
@@ -144,15 +142,18 @@ z_bcscGemv(char                trans,
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
 //                     yptr[bcsc->rowtab[i]] += alpha * conj( Uvalptr[i] ) * xptr[col];
+#if defined(PRECISION_z)
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
+#elseif defined(PRECISION_c)
+                    yptr[col] += alpha * conjf( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
+#endif
                 }
                 col += 1;
             }
         }
-    }
+    break;
 #endif
-    else
-    {
+    default:
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -324,6 +325,9 @@ z_bcscBerr( void         *r1,
 {
     pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
     pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    pastix_complex64_t Re1, Re2, Im1, Im3, module1, module2;
+#endif
     pastix_int_t i;
 
     if(r1==NULL || r1== NULL)
@@ -334,11 +338,19 @@ z_bcscBerr( void         *r1,
     for( i = 0; i < n; i++)
     {
 #if defined(PRECISION_c) || defined(PRECISION_z)
-        if( fabs(sqrt(pow(creal(r1ptr[i],2.))+pow(cimag(r1ptr[i],2.)))) / fabs(sqrt(pow(creal(r2ptr[i],2.))+pow(cimag(r2ptr[i],2.)))) > *berr )
-            *berr = fabs(sqrt(pow(creal(r1ptr[i],2.))+pow(cimag(r1ptr[i],2.)))) / fabs(sqrt(pow(creal(r2ptr[i],2.))+pow(cimag(r2ptr[i],2.))));
+        Re1 = creal(r1ptr[i]);
+        Re2 = creal(r1ptr[i]);
+        Im1 = cimag(r2ptr[i]);
+        Im2 = cimag(r2ptr[i]);
+        module1 = sqrt(Re1*Re1 + Im1*Im1);
+        module2 = sqrt(Re2*Re2 + Im2*Im2);
+        if( module2 > 0)
+            if( module1 / module2 > *berr )
+                *berr = module1 / module2;
 #else
-        if( fabs(r1ptr[i])/fabs(r2ptr[i]) > *berr )
-            *berr = fabs(r1ptr[i]) / fabs(r2ptr[i]);
+        if(r2ptr != 0)
+            if( fabs(r1ptr[i] / r2ptr[i]) > *berr )
+                *berr = fabs(r1ptr[i] / r2ptr[i]);
 #endif
     }
 
