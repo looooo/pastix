@@ -402,30 +402,48 @@ typedef enum pastix_factotype_e {
   PastixFactLDLH = 3
 } pastix_factotype_t;
 
+#define PastixGeneral       111
+#define PastixSymmetric     112
+#define PastixHermitian     113
+
+/** ****************************************************************************
+ *
+ *  PaStiX constants - Compatible with CBLAS & LAPACK
+ *  The naming and numbering is consistent with:
+ *
+ *    1) CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
+ *    2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
+ *    3) Plasma (http://icl.cs.utk.edu/plasma/index.html)
+ *
+ **/
+typedef enum pastix_trans_e {
+    PastixNoTrans   = 111,
+    PastixTrans     = 112,
+    PastixConjTrans = 113
+} pastix_trans_t;
+
+typedef enum pastix_uplo_e {
+    PastixUpper      = 121,
+    PastixLower      = 122,
+    PastixUpperLower = 123
+} pastix_uplo_t;
+
+typedef enum pastix_diag_e {
+    PastixNonUnit = 131,
+    PastixUnit    = 132
+} pastix_diag_t;
+
+typedef enum pastix_side_e {
+    PastixLeft  = 141,
+    PastixRight = 142
+} pastix_side_t;
+
 typedef enum pastix_normtype_e {
     PastixOneNorm       = 171,
     PastixFrobeniusNorm = 174,
     PastixInfNorm       = 175,
     PastixMaxNorm       = 177
 } pastix_normtype_t;
-
-/** Matrice symétrique ou non (0 : symétrique, 1 : non) */
-/*
-  Enum: API_SYM
-
-  Symmetric modes (index IPARM_SYM)
-
-  API_SYM_YES - Symmetric matrix
-  API_SYM_NO  - Nonsymmetric matrix
-  API_SYM_HER - Hermitian
-
- */
-/* _POS_ 3 */
-enum API_SYM {
-  API_SYM_NO  = 111,  /* Matrice non symetrique */
-  API_SYM_YES = 112, /* Matrice symetrique     */
-  API_SYM_HER = 113
-};
 
 /** Supressing user CSC(D) when not usefull anymore */
 /*

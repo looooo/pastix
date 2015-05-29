@@ -32,23 +32,6 @@
 #include "pastix/old_api.h"
 
 /** ****************************************************************************
- *
- *  PaStiX constants - Compatible with CBLAS & LAPACK
- *  The naming and numbering is consistent with:
- *
- *    1) CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz),
- *    2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/).
- *
- **/
-#define PastixNoTrans       111
-#define PastixTrans         112
-#define PastixConjTrans     113
-
-#define PastixGeneral       111
-#define PastixSymmetric     112
-#define PastixHermitian     113
-
-/** ****************************************************************************
  * Sparse matrix format
  **/
 typedef enum pastix_fmttype_e {
@@ -603,5 +586,10 @@ int pastix_task_blend( pastix_data_t *pastix_data );
 
 int pastix_task_sopalin( pastix_data_t *pastix_data,
                           pastix_csc_t  *csc );
+
+int
+pastix_task_solve( pastix_data_t *pastix_data,
+                   const pastix_csc_t  *csc,
+                       int nrhs, void *b, int ldb );
 
 #endif /* _PASTIX_H_ */

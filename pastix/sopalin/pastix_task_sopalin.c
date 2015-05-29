@@ -258,6 +258,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     }
 
     sbackup = solverBackupInit( pastix_data->solvmatr );
+    pastix_data->solvmatr->restore = 2;
     {
         void (*factofct)( sopalin_data_t *);
         double timer;
