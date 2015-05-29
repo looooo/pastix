@@ -28,18 +28,18 @@
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscGemv - compute the matrix-vector product y=alpha*A**PastixTrans*x+beta*y.
+ * z_bcscGemv - compute the matrix-vector product y=alpha*A**trans*x+beta*y.
  * A is a PastixGeneral bcsc,
  * trans specifies the operation to be performed as follows:
- *              PastixTrans = PastixNoTrans   y := alpha*A*x + beta*y
- *              PastixTrans = PastixTrans     y := alpha*A**T*x + beta*y
- *              PastixTrans = PastixConjTrans y := alpha*A**H*x + beta*y
+ *              trans = PastixNoTrans   y := alpha*A*x + beta*y
+ *              trans = PastixTrans     y := alpha*A**T*x + beta*y
+ *              trans = PastixConjTrans y := alpha*A**H*x + beta*y
  * x and y are two vectors of size n,
  * alpha and beta are scalars.
  *
  *******************************************************************************
  *
- * @param[in] PastixTrans
+ * @param[in] trans
  *          The operation to be performed.
  *
  * @param[in] n
@@ -68,7 +68,7 @@
  *
  *******************************************************************************/
 int
-z_bcscGemv(int                 PastixTrans,
+z_bcscGemv(pastix_trans_t      trans,
            pastix_int_t        n, /* size of the matrix */
            pastix_complex64_t  alpha,
            pastix_bcsc_t      *bcsc,
