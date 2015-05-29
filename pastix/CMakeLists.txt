@@ -370,6 +370,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/reffinement")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
