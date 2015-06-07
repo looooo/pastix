@@ -128,21 +128,21 @@ pastix_task_solve( pastix_data_t *pastix_data,
             break;
 
         case PastixFactLDLT:
-            /* pastix_static_trsm( bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
+            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
             /* //diag; */
-            /* pastix_static_trsm( bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
+            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
             break;
 
         case PastixFactLDLH:
-            /* pastix_static_trsm( bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
+            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
             /* //diag; */
-            /* pastix_static_trsm( bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
+            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
             break;
 
         case PastixFactLU:
         default:
-            /* pastix_static_trsm( bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
-            /* pastix_static_trsm( bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
+            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
+            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
             break;
         }
         clockStop(timer);
