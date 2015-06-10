@@ -18,13 +18,11 @@
  */
 
 /* Raffinement du second membre */
-#define z_bicgstab_smp         API_CALL(z_bicgstab_smp)
-#define z_bicgstab_thread      API_CALL(z_bicgstab_thread)
 
 void* z_bicgstab_smp(void *arg);
 
 /* Lancement d'une des fonctions seules */
-void z_bicgstab_thread(z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
+void z_bicgstab_thread(SolverMatrix *datacode, SopalinParam *sopaparam);
 
 
 /*
@@ -45,7 +43,7 @@ void z_bicgstab_thread(z_SolverMatrix *datacode, z_SopalinParam *sopaparam);
  *   arg - Pointer to a <sopthread_data_t> structure containing
  *         the <z_Sopalin_Data_t> structure and the thread number ID.
  */
-void* API_CALL(z_bicgstab_smp) ( void *arg )
+void* z_bicgstab_smp ( void *arg )
 {
   /* Choix du solveur */
   struct z_solver solveur = {NULL};
@@ -54,51 +52,51 @@ void* API_CALL(z_bicgstab_smp) ( void *arg )
   Clock   raff_clk;
   double  t0      = 0;
   double  t3      = 0;
-  z_RAFF_INT     n       = solveur.N(arg);
-  z_RAFF_FLOAT   normb   = 0.0;
-  z_RAFF_FLOAT   normr   = 0.0;
+  RAFF_INT     n       = solveur.N(arg);
+  RAFF_FLOAT   normb   = 0.0;
+  RAFF_FLOAT   normr   = 0.0;
   int     nb_iter = 0;
-  z_RAFF_FLOAT   epsilon = solveur.Eps(arg);
-  z_RAFF_INT     itermax = solveur.Itermax(arg);
-  z_RAFF_FLOAT   tmp     = 0.0;
+  RAFF_FLOAT   epsilon = solveur.Eps(arg);
+  RAFF_INT     itermax = solveur.Itermax(arg);
+  RAFF_FLOAT   tmp     = 0.0;
 
-  z_RAFF_FLOAT * gradb  = NULL; /* Second membre b */
-  z_RAFF_FLOAT * gradr  = NULL; /* Solution actuelle */
-  z_RAFF_FLOAT * gradr2 = NULL; /* Condition initiale bis r^ */
-  z_RAFF_FLOAT * gradp  = NULL;
-  z_RAFF_FLOAT * grady  = NULL;
-  z_RAFF_FLOAT * gradv  = NULL;
-  z_RAFF_FLOAT * grads  = NULL;
-  z_RAFF_FLOAT * gradz  = NULL;
-  z_RAFF_FLOAT * gradt  = NULL;
-  z_RAFF_FLOAT * grad2  = NULL; /* Vecteurs de transition */
-  z_RAFF_FLOAT * grad3  = NULL;
+  RAFF_FLOAT * gradb  = NULL; /* Second membre b */
+  RAFF_FLOAT * gradr  = NULL; /* Solution actuelle */
+  RAFF_FLOAT * gradr2 = NULL; /* Condition initiale bis r^ */
+  RAFF_FLOAT * gradp  = NULL;
+  RAFF_FLOAT * grady  = NULL;
+  RAFF_FLOAT * gradv  = NULL;
+  RAFF_FLOAT * grads  = NULL;
+  RAFF_FLOAT * gradz  = NULL;
+  RAFF_FLOAT * gradt  = NULL;
+  RAFF_FLOAT * grad2  = NULL; /* Vecteurs de transition */
+  RAFF_FLOAT * grad3  = NULL;
 
   /* Alpha et Beta ne sont utilisés que par le thread 0 */
-  z_RAFF_FLOAT * alpha = NULL;
-  z_RAFF_FLOAT * beta  = NULL;
-  z_RAFF_FLOAT * v1    = NULL;
-  z_RAFF_FLOAT * v2    = NULL;
-  z_RAFF_FLOAT * w     = NULL;
-  z_RAFF_FLOAT * gradx = NULL;
+  RAFF_FLOAT * alpha = NULL;
+  RAFF_FLOAT * beta  = NULL;
+  RAFF_FLOAT * v1    = NULL;
+  RAFF_FLOAT * v2    = NULL;
+  RAFF_FLOAT * w     = NULL;
+  RAFF_FLOAT * gradx = NULL;
 
-  gradb  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradr  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradr2 = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradp  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  grady  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradv  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  grads  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradz  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  gradt  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  grad2  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  grad3  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
-  alpha  = solveur.Malloc(arg, 1 * sizeof(z_RAFF_FLOAT));
-  beta   = solveur.Malloc(arg, 1 * sizeof(z_RAFF_FLOAT));
-  v1     = solveur.Malloc(arg, 1 * sizeof(z_RAFF_FLOAT));
-  v2     = solveur.Malloc(arg, 1 * sizeof(z_RAFF_FLOAT));
-  w      = solveur.Malloc(arg, 1 * sizeof(z_RAFF_FLOAT));
-  gradx  = solveur.Malloc(arg, n * sizeof(z_RAFF_FLOAT));
+  gradb  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradr  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradr2 = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradp  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  grady  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradv  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  grads  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradz  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradt  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  grad2  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  grad3  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  alpha  = solveur.Malloc(arg, 1 * sizeof(RAFF_FLOAT));
+  beta   = solveur.Malloc(arg, 1 * sizeof(RAFF_FLOAT));
+  v1     = solveur.Malloc(arg, 1 * sizeof(RAFF_FLOAT));
+  v2     = solveur.Malloc(arg, 1 * sizeof(RAFF_FLOAT));
+  w      = solveur.Malloc(arg, 1 * sizeof(RAFF_FLOAT));
+  gradx  = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
 
   gradb  = solveur.Synchro(arg, (void*) gradb,  0);
   gradr  = solveur.Synchro(arg, (void*) gradr,  1);
@@ -244,7 +242,7 @@ void* API_CALL(z_bicgstab_smp) ( void *arg )
 /*
 ** Section: Function creating threads
 */
-void API_CALL(z_bicgstab_thread)(z_SolverMatrix *datacode, z_SopalinParam *sopaparam)
+void z_bicgstab_thread(SolverMatrix *datacode, SopalinParam *sopaparam)
 {
-  z_raff_thread(datacode, sopaparam, &API_CALL(z_bicgstab_smp));
+  z_raff_thread(datacode, sopaparam, &z_bicgstab_smp);
 }

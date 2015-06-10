@@ -14,9 +14,9 @@
 /*
   File: z_csc_intern_updown.h
 
-  Build z_UpDownVector from user right-hand-side and CSCd.
-  Retrieve soltion from z_UpDownVector.
-  Construct z_UpDownVector such as X[i] = 1, or X[i] = i.
+  Build UpDownVector from user right-hand-side and CSCd.
+  Retrieve soltion from UpDownVector.
+  Construct UpDownVector such as X[i] = 1, or X[i] = i.
 
 */
 #ifndef Z_CSC_INTERN_UPDOWN_H
@@ -25,17 +25,17 @@
 /*
   Function: z_CscdUpdownRhs
 
-  Fill-in z_UpDownVector structure from user right-hand-side member.
+  Fill-in UpDownVector structure from user right-hand-side member.
 
   Parameters:
-    updovct - z_UpDownVector structure to fill-in.
+    updovct - UpDownVector structure to fill-in.
     symbmtx - Solver matrix.
     rhs     - Right-hand-side member.
     perm    - reverse permutation tabular.
     dof      - Number of degree of freedom.
  */
-void z_CscUpdownRhs(z_UpDownVector       *updovct,
-		  const z_SolverMatrix *symbmtx, 
+void z_CscUpdownRhs(UpDownVector       *updovct,
+		  const SolverMatrix *symbmtx, 
 		  const pastix_complex64_t        *rhs, 
 		  const pastix_int_t          *perm,
 		  int                 dof);
@@ -43,18 +43,18 @@ void z_CscUpdownRhs(z_UpDownVector       *updovct,
 /*
   Function: z_CscdUpdownRhs
 
-  Fill-in z_UpDownVector structure from user distributed right-hand-side member.
+  Fill-in UpDownVector structure from user distributed right-hand-side member.
 
   Parameters:
-    updovct - z_UpDownVector structure to fill-in.
+    updovct - UpDownVector structure to fill-in.
     symbmtx - Solver matrix.
     rhs     - Right-hand-side member.
     invp    - reverse permutation tabular.
     g2l     - local numbers of global nodes, if not local contains -owner
     dof      - Number of degree of freedom.
  */
-void z_CscdUpdownRhs(z_UpDownVector       *updovct,
-		   const z_SolverMatrix *symbmtx, 
+void z_CscdUpdownRhs(UpDownVector       *updovct,
+		   const SolverMatrix *symbmtx, 
 		   const pastix_complex64_t        *rhs, 
 		   const pastix_int_t          *invp,
 		   const pastix_int_t          *g2l,
@@ -64,10 +64,10 @@ void z_CscdUpdownRhs(z_UpDownVector       *updovct,
 /*
   Function:z_CscdRhsUpdown
 
-  Builds solution from z_UpDownVector structure
+  Builds solution from UpDownVector structure
 
   Parameters:
-    updovct  - z_UpDownVector structure containing the solution.
+    updovct  - UpDownVector structure containing the solution.
     symbmtx  - Solver matrix structure.
     rhs      - Solution to fill.
     ncol     - Number of columns in local matrix.
@@ -75,8 +75,8 @@ void z_CscdUpdownRhs(z_UpDownVector       *updovct,
     comm     - MPI communicator.
   
  */
-void z_CscRhsUpdown(const z_UpDownVector *updovct, 
-		  const z_SolverMatrix *symbmtx, 
+void z_CscRhsUpdown(const UpDownVector *updovct, 
+		  const SolverMatrix *symbmtx, 
 		  pastix_complex64_t              *rhs, 
 		  const pastix_int_t           ncol,
 		  const pastix_int_t          *invp,
@@ -88,10 +88,10 @@ void z_CscRhsUpdown(const z_UpDownVector *updovct,
   Function:z_CscdRhsUpdown
 
   Builds distributed solution from
-  z_UpDownVector structure
+  UpDownVector structure
 
   Parameters:
-    updovct  - z_UpDownVector structure containing the solution.
+    updovct  - UpDownVector structure containing the solution.
     symbmtx  - Solver matrix structure.
     x        - Solution to fill.
     ncol     - Number of columns in local matrix.
@@ -101,8 +101,8 @@ void z_CscRhsUpdown(const z_UpDownVector *updovct,
     comm     - MPI communicator.
   
  */
-void z_CscdRhsUpdown(const z_UpDownVector *updovct, 
-		   const z_SolverMatrix *symbmtx, 
+void z_CscdRhsUpdown(const UpDownVector *updovct, 
+		   const SolverMatrix *symbmtx, 
 		   pastix_complex64_t              *x,
 		   const pastix_int_t           ncol, 
 		   const pastix_int_t          *g2l,
@@ -113,19 +113,19 @@ void z_CscdRhsUpdown(const z_UpDownVector *updovct,
 /*
   Function: z_Csc2updown
 
-  Fill-in z_UpDownVector structure such as the solution of
+  Fill-in UpDownVector structure such as the solution of
   the system Ax=b is x_i=1 (API_RHS_1) or x_i=i (API_RHS_I). 
 
   Parameters:
     cscmtx   - internal CSCd matrix.
-    updovct  - z_UpDownVector structure to fill-in.
+    updovct  - UpDownVector structure to fill-in.
     symbmtx  - Solver matrix.
     mode     - wanted solution API_RHS_1 or API_RHS_I.
     comm     - MPI communicator.
 */
 void z_Csc2updown(const z_CscMatrix    *cscmtx, 
-		z_UpDownVector       *updovct,
-		const z_SolverMatrix *symbmtx, 
+		UpDownVector       *updovct,
+		const SolverMatrix *symbmtx, 
 		int                 mode,
 		MPI_Comm            comm);
 
@@ -139,14 +139,32 @@ void z_Csc2updown(const z_CscMatrix    *cscmtx,
   (iparm[IPARM_ONLY_RAFF] == API_YES)
 
   Parameters:
-    updovct - z_UpDownVector structure were to copy B as the first X0 used for raffinement.
+    updovct - UpDownVector structure were to copy B as the first X0 used for raffinement.
     symbmtx - Solver matrix.
     mode    - Rule to construct X0 (API_RHS_1 : X0[i] = 1, API_RHS_I : X0[i] = i).
     comm    - MPI_Communicator.
 */
-void z_Csc2updown_X0(z_UpDownVector *updovct, 
-		   /*const*/ z_SolverMatrix *symbmtx, 
+void z_Csc2updown_X0(UpDownVector *updovct, 
+		   /*const*/ SolverMatrix *symbmtx, 
 		   int mode, 
 		   MPI_Comm comm);
 
+
+/*
+ Function: z_buildUpDoVect
+
+ Build z_UpDownVector from user B vector or
+ computes its to obtain $$ \forall i X[i] = 1 $$ or $$ \forall i X[i] = i $$
+ as the solution. (depending on iparm)
+
+ Parameters:
+ pastix_data - PaStiX global data structure.
+ loc2glob2   - Global  column number of local columns.
+ b           - User right-hand-side member.
+ pastix_comm - MPI communicator.
+ */
+int z_buildUpdoVect(z_pastix_data_t    *pastix_data,
+                    pastix_int_t       *loc2glob,
+                    pastix_complex64_t *b,
+                    MPI_Comm            pastix_comm);
 #endif /* Z_CSC_INTERN_UPDOWN_H */

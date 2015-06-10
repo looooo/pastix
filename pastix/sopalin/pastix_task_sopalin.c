@@ -18,8 +18,8 @@
 #include "csc.h"
 #include "bcsc.h"
 #include "sopalin_data.h"
+#include "z_raff_functions.h"
 
-// static void (*potrfTable[6])(sopalin_data_t*) = {
 static void (*sopalinFacto[4][4])(sopalin_data_t*) =
 {
     {
@@ -53,7 +53,6 @@ coeftabInit( const SolverMatrix  *datacode,
              const pastix_bcsc_t *bcsc,
              pastix_int_t         fakefillin,
              pastix_int_t         factoLU );
-
 
 int
 pastix_subtask_csc2bcsc( pastix_data_t *pastix_data,
