@@ -132,6 +132,55 @@ spmNorm( int ntype,
     }
 }
 
+int
+spmMatVec(      int           trans,
+          const void         *alpha,
+          const pastix_csc_t *csc,
+          const void         *x,
+          const void         *beta,
+                void         *y )
+{
+    switch (csc->mtxtype) {
+    case PastixHermitian:
+        switch (csc->flttype) {
+        case PastixFloat:
+            return s_spmSyCSCv( *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_spmHeCSCv( *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_spmHeCSCv( *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_spmSyCSCv( *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    case PastixSymmetric:
+        switch (csc->flttype) {
+        case PastixFloat:
+            return s_spmSyCSCv( *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_spmSyCSCv( *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_spmSyCSCv( *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_spmSyCSCv( *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    case PastixGeneral:
+    default:
+        switch (csc->flttype) {
+        case PastixFloat:
+            return s_spmGeCSCv( trans, *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_spmGeCSCv( trans, *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_spmGeCSCv( trans, *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_spmGeCSCv( trans, *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    }
+}
+
 void
 spmExit( pastix_csc_t *spm )
 {
