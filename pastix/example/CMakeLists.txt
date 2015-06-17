@@ -9,6 +9,8 @@ include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 include_directories(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/")
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/")
 link_directories(
+  ${LAPACKE_LIBRARY_DIRS}
+  ${LAPACK_LIBRARY_DIRS}
   ${CBLAS_LIBRARY_DIRS}
   ${BLAS_LIBRARY_DIRS}
 )
@@ -18,6 +20,8 @@ set(PASTIX_EXAMPLES_LIBRARIES
   pastix_bcsc
   pastix_kernels
   pastix
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES}
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}

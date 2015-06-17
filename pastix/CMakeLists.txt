@@ -122,6 +122,13 @@ if(CBLAS_FOUND)
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
+find_package(LAPACKEXT REQUIRED)
+find_package(LAPACKE REQUIRED)
+if(LAPACKE_FOUND)
+    message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
+    include_directories(${LAPACKE_INCLUDE_DIRS})
+endif()
+
 # PaStiX depends on HwLoc
 #---------------------------
 find_package(HWLOC)
