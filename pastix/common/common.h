@@ -203,18 +203,21 @@ int pastix_getenv_get_value_int(char * string, int default_value) {
     return (int)ret;
 }
 
+/* **************************************** */
 
-static inline int pastix_size_of(int type)
+static inline void set_iparm(pastix_int_t *iparm, enum IPARM_ACCESS offset, pastix_int_t value)
 {
-    switch(type) {
-    case PastixFloat:     return   sizeof(float);
-    case PastixDouble:    return   sizeof(double);
-    case PastixComplex32: return 2*sizeof(float);
-    case PastixComplex64: return 2*sizeof(double);
-    default:
-        fprintf(stderr, "pastix_size_of: invalide type parameter\n");
-        return -1;
-    }
+    if (iparm != NULL) iparm[offset] = (pastix_int_t)value;
 }
+
+static inline void set_dparm(double *dparm, enum DPARM_ACCESS offset, double value)
+{
+    if (dparm != NULL) dparm[offset] = (double)value;
+}
+
+void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);
+int  api_dparmreader(char * filename, double       *dparmtab);
+int  api_iparmreader(char * filename, pastix_int_t *iparmtab);
+
 #endif /* _COMMON_H_ */
 
