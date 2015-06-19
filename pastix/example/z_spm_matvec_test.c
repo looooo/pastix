@@ -62,7 +62,7 @@ z_spm2dense( const pastix_csc_t *spm )
     case PastixHermitian:
         for(i=0; i<spm->n; i++, colptr++)
         {
-            for(j=colptr[0]; j<spm->colptr[1]; j++, rowptr++, valptr++)
+            for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
             {
                 A[ i * lda + (*rowptr - baseval) ] = *valptr;
                 A[ (*rowptr - baseval) * lda + i ] = conj(*valptr);
@@ -73,7 +73,7 @@ z_spm2dense( const pastix_csc_t *spm )
     case PastixSymmetric:
         for(i=0; i<spm->n; i++, colptr++)
         {
-            for(j=colptr[0]; j<spm->colptr[1]; j++, rowptr++, valptr++)
+            for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
             {
                 A[ i * lda + (*rowptr - baseval) ] = *valptr;
                 A[ (*rowptr - baseval) * lda + i ] = *valptr;
@@ -84,7 +84,7 @@ z_spm2dense( const pastix_csc_t *spm )
     default:
         for(i=0; i<spm->n; i++, colptr++)
         {
-            for(j=colptr[0]; j<spm->colptr[1]; j++, rowptr++, valptr++)
+            for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
             {
                 A[ i * lda + (*rowptr - baseval) ] = *valptr;
             }
