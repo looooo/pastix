@@ -138,6 +138,9 @@ target_link_libraries(spm_convert_tests ${PASTIX_EXAMPLES_LIBRARIES})
 add_executable(spm_matvec_tests spm_matvec_tests.c)
 target_link_libraries(spm_matvec_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
+add_executable(spm_norm_tests spm_norm_tests.c)
+target_link_libraries(spm_norm_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
+
 #
 #-- CTests
 #
