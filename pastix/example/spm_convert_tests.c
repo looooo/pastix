@@ -95,24 +95,19 @@ int main (int argc, char **argv)
 {
     char *filename;
     pastix_csc_t  csc, csc2;
+    pastix_driver_t driver;
     int mtxtype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
-    if( argc > 1 ) {
-        filename = argv[1];
-    }
-    else {
-        filename = "d:20:20:20";
-    }
+    pastix_ex_getoptions( argc, argv,
+                          NULL, NULL,
+                          &driver, &filename );
+
+    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+    free(filename);
 
     printf(" -- SPM Conversion Test --\n");
-
-    /* Generating a 3D laplacian */
-    if ( genLaplacian( filename, &csc ) != PASTIX_SUCCESS ) {
-        fprintf(stderr, "Incorrect test parameter. Accept only laplacian\n");
-        return EXIT_FAILURE;
-    }
 
     /* Allocate backup */
     memcpy( &csc2, &csc, sizeof(pastix_csc_t) );

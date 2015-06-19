@@ -41,26 +41,21 @@ char* mtxnames[] = { "General", "Symmetric", "Hermitian" };
 
 int main (int argc, char **argv)
 {
+    pastix_csc_t    csc;
+    pastix_driver_t driver;
     char *filename;
-    pastix_csc_t csc;
     int mtxtype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
-    if( argc > 1 ) {
-        filename = argv[1];
-    }
-    else {
-        filename = "d:20:20:20";
-    }
+    pastix_ex_getoptions( argc, argv,
+                          NULL, NULL,
+                          &driver, &filename );
+
+    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+    free(filename);
 
     printf(" -- SPM Matrix-Vector Test --\n");
-
-    /* Generating a 3D laplacian */
-    if ( genLaplacian( filename, &csc ) != PASTIX_SUCCESS ) {
-        fprintf(stderr, "Incorrect test parameter. Accept only laplacian\n");
-        return EXIT_FAILURE;
-    }
 
     printf(" Datatype: %s\n", fltnames[csc.flttype] );
     for( baseval=0; baseval<2; baseval++ )
