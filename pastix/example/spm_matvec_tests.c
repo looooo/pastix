@@ -75,6 +75,7 @@ int main (int argc, char **argv)
             {
                 continue;
             }
+            csc.mtxtype = mtxtype;
 
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
             printf("   -- Test Matrix * Vector : ");

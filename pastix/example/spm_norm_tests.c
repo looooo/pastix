@@ -54,7 +54,7 @@ int main (int argc, char **argv)
         filename = "d:20:20:20";
     }
 
-    printf(" -- SPM Matrix-Vector Test --\n");
+    printf(" -- SPM Norms Test --\n");
 
     /* Generating a 3D laplacian */
     if ( genLaplacian( filename, &csc ) != PASTIX_SUCCESS ) {
@@ -75,9 +75,9 @@ int main (int argc, char **argv)
             {
                 continue;
             }
+            csc.mtxtype = mtxtype;
 
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
-            printf("   -- Test Matrix * Vector : ");
 
             switch( csc.flttype ){
             case PastixComplex64:
