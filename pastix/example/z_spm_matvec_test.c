@@ -167,3 +167,94 @@ z_spm_matvec_check( int trans, const pastix_csc_t *spm )
     return info_solution;
 }
 
+/*------------------------------------------------------------------------
+ *  Check the accuracy of the solution
+ */
+int
+z_spm_norm_check( const pastix_csc_t *spm )
+{
+    pastix_complex64_t *A;
+    double norms, normd;
+    double eps, result;
+    int ret = 0;
+
+    eps = LAPACKE_dlamch_work('e');
+
+    /* Create a dense backup of spm */
+    A = z_spm2dense( spm );
+
+    /**
+     * Test Norm Max
+     */
+    printf(" -- Test norm Max :");
+    norms = spmNorm( PastixMaxNorm, spm );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gN, spm->gN,  A, spm->gN );
+    result = fabs(norms - normd) / (normd * eps);
+
+    if ( result < 1. ) {
+        printf("SUCCESS !\n");
+    } else {
+        printf("FAILED !\n");
+        ret++;
+    }
+
+    printf("   Nsparse = %e, Ndense = %e\n", norms, normd );
+    printf("  | Nsparse - Ndense | / Ndense = %e\n", result);
+
+    /**
+     * Test Norm Inf
+     */
+    printf(" -- Test norm Inf :");
+    norms = spmNorm( PastixInfNorm, spm );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
+    result = fabs(norms - normd) / (normd * eps);
+
+    if ( result < 1. ) {
+        printf("SUCCESS !\n");
+    } else {
+        printf("FAILED !\n");
+        ret++;
+    }
+
+    printf("   Nsparse = %e, Ndense = %e\n", norms, normd );
+    printf("  | Nsparse - Ndense | / Ndense = %e\n", result);
+
+    /**
+     * Test Norm One
+     */
+    printf(" -- Test norm One :");
+    norms = spmNorm( PastixOneNorm, spm );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'O', spm->gN, spm->gN,  A, spm->gN );
+    result = fabs(norms - normd) / (normd * eps);
+
+    if ( result < 1. ) {
+        printf("SUCCESS !\n");
+    } else {
+        printf("FAILED !\n");
+        ret++;
+    }
+
+    printf("   Nsparse = %e, Ndense = %e\n", norms, normd );
+    printf("  | Nsparse - Ndense | / Ndense = %e\n", result);
+
+    /**
+     * Test Norm Froebenius
+     */
+    printf(" -- Test norm Frb :");
+    norms = spmNorm( PastixFrobeniusNorm, spm );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', spm->gN, spm->gN,  A, spm->gN );
+    result = fabs(norms - normd) / (normd * eps);
+
+    if ( result < 1. ) {
+        printf("SUCCESS !\n");
+    } else {
+        printf("FAILED !\n");
+        ret++;
+    }
+
+    printf("   Nsparse = %e, Ndense = %e\n", norms, normd );
+    printf("  | Nsparse - Ndense | / Ndense = %e\n", result);
+
+    free(A);
+    return ret;
+}
