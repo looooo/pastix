@@ -45,17 +45,18 @@
  *
  *******************************************************************************/
 static inline void
-frobenius_update( double *scale, double *sumsq, double *value )
+frobenius_update( int nb, double *scale, double *sumsq, double *value )
 {
+    double absval = fabs(*value);
     double ratio;
-    if ( (*value) != 0. ){
-        if ( (*scale) < (*value) ) {
-            ratio = (*scale) / (*value);
-            *sumsq = 1. + (*sumsq) * ratio * ratio;
-            *scale = *value;
+    if ( absval != 0. ){
+        if ( (*scale) < absval ) {
+            ratio = (*scale) / absval;
+            *sumsq = (double)nb + (*sumsq) * ratio * ratio;
+            *scale = absval;
         } else {
-            ratio = (*value) / (*scale);
-            *sumsq = (*sumsq) + ratio * ratio;
+            ratio = absval / (*scale);
+            *sumsq = (*sumsq) + (double)nb * ratio * ratio;
         }
     }
 }
@@ -84,18 +85,68 @@ frobenius_update( double *scale, double *sumsq, double *value )
 double
 z_spmFrobeniusNorm( const pastix_csc_t *spm )
 {
-    pastix_int_t i;
+    pastix_int_t i, j, baseval;
     double *valptr = (double*)spm->values;
     double scale = 1.;
     double sumsq = 0.;
 
-    for(i=0; i <spm->nnz; i++, valptr++) {
-        frobenius_update( &scale, &sumsq, valptr );
+    if (spm->mtxtype == PastixGeneral) {
+        for(i=0; i <spm->nnz; i++, valptr++) {
+            frobenius_update( 1, &scale, &sumsq, valptr );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-        valptr++;
-        frobenius_update( &scale, &sumsq, valptr );
+            valptr++;
+            frobenius_update( 1, &scale, &sumsq, valptr );
 #endif
+        }
+    }
+    else {
+        pastix_int_t *colptr = spm->colptr;
+        pastix_int_t *rowptr = spm->rowptr;
+        int nb;
+        baseval = spmFindBase( spm );
+
+        switch( spm->fmttype ){
+        case PastixCSC:
+            for(i=0; i<spm->n; i++, colptr++) {
+                for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++) {
+                    nb = ( i == (*rowptr-baseval) ) ? 1 : 2;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    valptr++;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+#endif
+                }
+            }
+            break;
+        case PastixCSR:
+            for(i=0; i<spm->n; i++, rowptr++) {
+                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++) {
+                    nb = ( i == (*colptr-baseval) ) ? 1 : 2;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    valptr++;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+#endif
+                }
+            }
+            break;
+        case PastixIJV:
+            for(i=0; i <spm->nnz; i++, valptr++, colptr++, rowptr++) {
+                nb = ( *rowptr == *colptr ) ? 1 : 2;
+                frobenius_update( nb, &scale, &sumsq, valptr );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                valptr++;
+                frobenius_update( nb, &scale, &sumsq, valptr );
+#endif
+            }
+            break;
+        default:
+            fprintf(stderr, "z_spmFrobeniusNorm: Unknown Format\n");
+        }
     }
 
     return scale * sqrt( sumsq );
