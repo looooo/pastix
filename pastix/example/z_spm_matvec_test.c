@@ -22,7 +22,6 @@
 #include <csc.h>
 #include <cblas.h>
 #include <lapacke.h>
-
 #include <z_spm.h>
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -164,7 +163,7 @@ z_spm_matvec_check( int trans, const pastix_csc_t *spm )
     }
 
     free(A); free(x); free(y0); free(ys); free(yd);
-    
+
     return info_solution;
 }
 
