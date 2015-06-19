@@ -23,7 +23,8 @@ int cscReadFromFile( pastix_driver_t  driver,
                      pastix_csc_t    *csc,
                      MPI_Comm         pastix_comm )
 {
-    int mpirank;
+    int mpirank = 0;
+    int mpiinit;
 
     csc->mtxtype  = PastixGeneral;
     csc->flttype  = PastixDouble;
@@ -38,7 +39,10 @@ int cscReadFromFile( pastix_driver_t  driver,
     csc->values   = NULL;
     csc->loc2glob = NULL;
 
-    MPI_Comm_rank( pastix_comm, &mpirank );
+    MPI_Initialized( &mpiinit );
+    if (mpiinit) {
+        MPI_Comm_rank( pastix_comm, &mpirank );
+    }
 
     if ( (mpirank == 0)                    ||
          (driver == PastixDriverLaplacian) ||
@@ -255,11 +259,10 @@ int cscReadFromFile( pastix_driver_t  driver,
     /*         } */
     /*     } */
 
-    if ( 1 )
+    if ( mpiinit )
     {
         pastix_int_t nnz;
 
-        fprintf(stderr, "Hello\n");
         if (mpirank == 0) {
             nnz = csc->colptr[csc->gN] - csc->colptr[0];
         }
