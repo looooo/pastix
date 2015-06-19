@@ -163,6 +163,8 @@ z_spm_matvec_check( int trans, const pastix_csc_t *spm )
         info_solution = 0;
     }
 
+    free(A); free(x); free(y0); free(ys); free(yd);
+    
     return info_solution;
 }
 
