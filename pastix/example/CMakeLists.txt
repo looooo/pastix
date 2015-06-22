@@ -5,10 +5,23 @@ include(array2d)
 set(generated_files "")
 set(generated_headers "")
 
+### Generate the dsparse wrappers for all required precisions
+set(SOURCES
+  z_spm_matvec_test.c
+)
+
+precisions_rules_py(generated_files
+   "${SOURCES}"
+   PRECISIONS "p;s;d;c;z")
+
+add_library(spm_test ${generated_files} )
+
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 include_directories(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/")
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/")
 link_directories(
+  ${LAPACKE_LIBRARY_DIRS}
+  ${LAPACK_LIBRARY_DIRS}
   ${CBLAS_LIBRARY_DIRS}
   ${BLAS_LIBRARY_DIRS}
 )
@@ -18,6 +31,8 @@ set(PASTIX_EXAMPLES_LIBRARIES
   pastix_bcsc
   pastix_kernels
   pastix
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES}
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
@@ -117,8 +132,14 @@ add_custom_target(examples_headers DEPENDS ${generated_headers} )
 add_executable(analyze analyze.c)
 target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
 
-add_executable(tests spm_tests.c)
-target_link_libraries(tests ${PASTIX_EXAMPLES_LIBRARIES})
+add_executable(spm_convert_tests spm_convert_tests.c)
+target_link_libraries(spm_convert_tests ${PASTIX_EXAMPLES_LIBRARIES})
+
+add_executable(spm_matvec_tests spm_matvec_tests.c)
+target_link_libraries(spm_matvec_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
+
+add_executable(spm_norm_tests spm_norm_tests.c)
+target_link_libraries(spm_norm_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
 #
 #-- CTests

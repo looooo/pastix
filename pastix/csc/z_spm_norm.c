@@ -1,7 +1,7 @@
 /**
  * @file z_spm_norm.c
  *
- *  PaSTiX SPM management routines.
+ *  PaStiX spm computational routines.
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
@@ -10,99 +10,144 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2011-11-11
+ * @author Theophile Terraz
+ * @date 2015-06-01
  * @precisions normal z -> c d s
  *
  **/
 #include "common.h"
 #include "csc.h"
+#include "z_spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_internal
+ *
+ * frobenius_update - Update the couple (scale, sumsq) with one element when
+ * computing the Froebnius norm.
+ *
+ * The frobenius norm is equal to scale * sqrt( sumsq ), this method allows to
+ * avoid overflow in the sum square computation.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] scale
+ *           On entry, the former scale
+ *           On exit, the update scale to take into account the value
+ *
+ * @param[in,out] sumsq
+ *           On entry, the former sumsq
+ *           On exit, the update sumsq to take into account the value
+ *
+ * @param[in] value
+ *          The value to integrate into the couple (scale, sumsq)
+ *
+ *******************************************************************************/
 static inline void
-frobenius_update( double *scale, double *sumsq, double *value )
+frobenius_update( int nb, double *scale, double *sumsq, double *value )
 {
+    double absval = fabs(*value);
     double ratio;
-    if ( (*value) != 0. ){
-        if ( (*scale) < (*value) ) {
-            ratio = (*scale) / (*value);
-            *sumsq = 1. + (*sumsq) * ratio * ratio;
-            *scale = *value;
+    if ( absval != 0. ){
+        if ( (*scale) < absval ) {
+            ratio = (*scale) / absval;
+            *sumsq = (double)nb + (*sumsq) * ratio * ratio;
+            *scale = absval;
         } else {
-            ratio = (*value) / (*scale);
-            *sumsq = (*sumsq) + ratio * ratio;
+            ratio = absval / (*scale);
+            *sumsq = (*sumsq) + (double)nb * ratio * ratio;
         }
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_internal
+ *
+ * z_spmFrobeniusNorm - Compute the Frobenius norm of the non distributed given
+ * spm structure.
+ *
+ *  ||A|| = sqrt( sum( a_ij ^ 2 ) )
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The spm from which the norm need to be computed.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *           The computed norm
+ *
+ *******************************************************************************/
 double
-z_spmMaxNorm( const pastix_csc_t *csc )
+z_spmFrobeniusNorm( const pastix_csc_t *spm )
 {
-    pastix_int_t i;
-    pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
-    double tmp, norm = 0.;
-
-    for(i=0; i <csc->nnz; i++, valptr++) {
-        tmp = cabs( *valptr );
-        norm = norm > tmp ? norm : tmp;
-    }
-
-    // TODO:
-    // Thread reduction, and distributed reduction
-    return norm;
-}
-
-double
-z_spmInfNorm( const pastix_csc_t *csc )
-{
-    pastix_int_t i;
-    pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
-    double tmp, norm = 0.;
-
-    for(i=0; i <csc->nnz; i++, valptr++) {
-        tmp = cabs( *valptr );
-        norm = norm > tmp ? norm : tmp;
-    }
-
-    // TODO: Fix to really compute the Inf norm
-    // Thread reduction, and distributed reduction
-    return norm;
-}
-
-double
-z_spmOneNorm( const pastix_csc_t *csc )
-{
-    pastix_int_t i;
-    pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
-    double tmp, norm = 0.;
-
-    for(i=0; i <csc->nnz; i++, valptr++) {
-        tmp = cabs( *valptr );
-        norm = norm > tmp ? norm : tmp;
-    }
-
-    // TODO: Fix to really compute the One norm
-    // Thread reduction, and distributed reduction
-    return norm;
-}
-
-double
-z_spmFrobeniusNorm( const pastix_csc_t *csc )
-{
-    pastix_int_t i;
-    double *valptr = (double*)csc->values;
+    pastix_int_t i, j, baseval;
+    double *valptr = (double*)spm->values;
     double scale = 1.;
     double sumsq = 0.;
 
-    for(i=0; i <csc->nnz; i++, valptr++) {
-        frobenius_update( &scale, &sumsq, valptr );
+    if (spm->mtxtype == PastixGeneral) {
+        for(i=0; i <spm->nnz; i++, valptr++) {
+            frobenius_update( 1, &scale, &sumsq, valptr );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-        valptr++;
-        frobenius_update( &scale, &sumsq, valptr );
+            valptr++;
+            frobenius_update( 1, &scale, &sumsq, valptr );
 #endif
+        }
     }
+    else {
+        pastix_int_t *colptr = spm->colptr;
+        pastix_int_t *rowptr = spm->rowptr;
+        int nb;
+        baseval = spmFindBase( spm );
 
-    // TODO:
-    // Thread reduction, and distributed reduction
+        switch( spm->fmttype ){
+        case PastixCSC:
+            for(i=0; i<spm->n; i++, colptr++) {
+                for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++) {
+                    nb = ( i == (*rowptr-baseval) ) ? 1 : 2;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    valptr++;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+#endif
+                }
+            }
+            break;
+        case PastixCSR:
+            for(i=0; i<spm->n; i++, rowptr++) {
+                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++) {
+                    nb = ( i == (*colptr-baseval) ) ? 1 : 2;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    valptr++;
+                    frobenius_update( nb, &scale, &sumsq, valptr );
+#endif
+                }
+            }
+            break;
+        case PastixIJV:
+            for(i=0; i <spm->nnz; i++, valptr++, colptr++, rowptr++) {
+                nb = ( *rowptr == *colptr ) ? 1 : 2;
+                frobenius_update( nb, &scale, &sumsq, valptr );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                valptr++;
+                frobenius_update( nb, &scale, &sumsq, valptr );
+#endif
+            }
+            break;
+        default:
+            fprintf(stderr, "z_spmFrobeniusNorm: Unknown Format\n");
+        }
+    }
 
     return scale * sqrt( sumsq );
 }
@@ -110,63 +155,161 @@ z_spmFrobeniusNorm( const pastix_csc_t *csc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup spm_internal
  *
- * z_spmHeCSCv - compute the matrix-vector product y=alpha*A**trans*x+beta*y.
- * A is a PastixHermitian csc,
- * x and y are two vectors of size csc->gN,
- * alpha and beta are scalars.
+ * z_spmMaxNorm - Compute the Max norm of the non distributed given spm
+ * structure.
+ *
+ *  ||A|| = max( abs(a_ij) )
  *
  *******************************************************************************
  *
- * @param[in] alpha
- *          A scalar.
- *
- * @param[in] csc
- *          The PastixHermitian csc.
- *
- * @param[in] x
- *          The vector x.
- *
- * @param[in] beta
- *          A scalar.
- *
- * @param[in,out] y
- *          The vector y.
+ * @param[in] spm
+ *           The spm from which the norm need to be computed.
  *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *           The computed norm
+ *
+ *******************************************************************************/
+double
+z_spmMaxNorm( const pastix_csc_t *spm )
+{
+    pastix_int_t i;
+    pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
+    double tmp, norm = 0.;
+
+    for(i=0; i <spm->nnz; i++, valptr++) {
+        tmp = cabs( *valptr );
+        norm = norm > tmp ? norm : tmp;
+    }
+
+    return norm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_internal
+ *
+ * z_spmInfNorm - Compute the Infinite norm of the non distributed given spm
+ * structure.
+ *
+ *  ||A|| =
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The spm from which the norm need to be computed.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *           The computed norm
+ *
+ *******************************************************************************/
+double
+z_spmInfNorm( const pastix_csc_t *spm )
+{
+    pastix_int_t i;
+    pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
+    double tmp, norm = 0.;
+
+    for(i=0; i <spm->nnz; i++, valptr++) {
+        tmp = cabs( *valptr );
+        norm = norm > tmp ? norm : tmp;
+    }
+
+    return norm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_internal
+ *
+ * z_spmOneNorm - Compute the One norm of the non distributed given spm
+ * structure.
+ *
+ *  ||A|| =
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The spm from which the norm need to be computed.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *           The computed norm
+ *
+ *******************************************************************************/
+double
+z_spmOneNorm( const pastix_csc_t *spm )
+{
+    pastix_int_t i;
+    pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
+    double tmp, norm = 0.;
+
+    for(i=0; i <spm->nnz; i++, valptr++) {
+        tmp = cabs( *valptr );
+        norm = norm > tmp ? norm : tmp;
+    }
+
+    return norm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * z_spmNorm - Compute the norm of an spm matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] type
+ *          = PastixMaxNorm: Max norm
+ *          = PastixOneNorm: One norm
+ *          = PastixInfNorm: Infinity norm
+ *          = PastixFrobeniusNorm: Frobenius norm
+ *
+ * @param[in] spm
+ *          The spm structure describing the matrix.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval The norm of the matrix spm
  *
  *******************************************************************************/
 double
 z_spmNorm( int ntype,
-           const pastix_csc_t *csc)
+           const pastix_csc_t *spm)
 {
     double norm = 0.;
 
-    if(csc == NULL)
+    if(spm == NULL)
     {
         return -1.;
     }
 
     switch( ntype ) {
     case PastixMaxNorm:
-        norm = z_spmMaxNorm( csc );
+        norm = z_spmMaxNorm( spm );
         break;
 
     case PastixInfNorm:
-        norm = z_spmInfNorm( csc );
+        norm = z_spmInfNorm( spm );
         break;
 
     case PastixOneNorm:
-        norm = z_spmOneNorm( csc );
+        norm = z_spmOneNorm( spm );
         break;
 
     case PastixFrobeniusNorm:
-        norm = z_spmFrobeniusNorm( csc );
+        norm = z_spmFrobeniusNorm( spm );
         break;
 
     default:

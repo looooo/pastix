@@ -18,7 +18,6 @@
 #include "csc.h"
 #include "bcsc.h"
 #include "sopalin_data.h"
-#include "z_raff_functions.h"
 
 static void (*sopalinFacto[4][4])(sopalin_data_t*) =
 {

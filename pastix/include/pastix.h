@@ -21,8 +21,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
-#include "pastix/datatypes.h"
 #include "pastix/api.h"
+#include "pastix/datatypes.h"
 #include <math.h>
 #if defined(HAVE_MPI)
 #include <mpi.h>

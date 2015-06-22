@@ -47,6 +47,39 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
         if (uplo == PastixUpper) {
             /*  We store U^t, so we swap uplo and trans */
             if (trans == PastixNoTrans) {
+                for (ii=ttsknbr-1; ii>=0; ii--){
+                    i = ttsktab[ii];
+                    t = datacode->tasktab + i;
+                    cblk = datacode->cblktab + t->cblknum;
+
+                    if ( t->taskid != COMP_1D )
+                        continue;
+
+                    tempn = cblk->lcolnum - cblk->fcolnum + 1;
+
+                    /* Solve the diagonal block */
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        CblasTrans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs, CBLAS_SADDR(zone),
+                        cblk->ucoeftab,    cblk->stride,
+                        b + cblk->lcolidx, ldb );
+
+                    /* Apply the update */
+                    for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
+                        blok = datacode->bloktab + datacode->browtab[j];
+                        fcbk = datacode->cblktab + blok->lcblknm;
+                        tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
+                        tempn = blok->lrownum - blok->frownum + 1;
+
+                        cblas_zgemm(
+                            CblasColMajor, CblasTrans, CblasNoTrans,
+                            tempm, nrhs, tempn,
+                            CBLAS_SADDR(mzone), fcbk->ucoeftab + blok->coefind, fcbk->stride,
+                            b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                            CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                    }
+                }
             }
         }
         else {
@@ -126,5 +159,10 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                 }
             }
         }
+    }
+    /**
+     * Right
+     */
+    else {
     }
 }

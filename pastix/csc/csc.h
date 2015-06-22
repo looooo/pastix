@@ -57,12 +57,15 @@ csc_save( pastix_int_t  n,
 int cscLoad( pastix_csc_t *csc, FILE *infile );
 int cscSave( pastix_csc_t *csc, FILE *outfile );
 
-int spmConvert( int ofmttype, pastix_csc_t *ospm );
 
 int genRHS(pastix_csc_t *csc, void **rhs );
 
+void         spmInit( pastix_csc_t *spm );
+void         spmExit( pastix_csc_t *spm );
+void         spmBase( pastix_csc_t *spm, int baseval );
+int          spmConvert( int ofmttype, pastix_csc_t *ospm );
 pastix_int_t spmFindBase( const pastix_csc_t *spm );
 double       spmNorm( int ntype, const pastix_csc_t *csc );
-void         spmExit( pastix_csc_t *spm );
+int          spmMatVec(int trans, const void *alpha, const pastix_csc_t *csc, const void *x, const void *beta, void *y );
 
 #endif /* _CSC_H_ */

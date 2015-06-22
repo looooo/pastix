@@ -23,7 +23,8 @@
  * @ingroup pastix_csc
  *
  * z_spmConvertCSC2CSR - convert a matrix in CSC format to a matrix in CSR
- * format.
+ * format. If the matrix is PastixSymmetric or PastixHermitian, then the
+ * transpose or respectively the conjugate is returned.
  *
  *******************************************************************************
  *
@@ -61,9 +62,10 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
         pastix_int_t *tmp;
 
         /* Just need to swap the pointers */
-        tmp         = spm->rowptr;
-        spm->rowptr = spm->colptr;
-        spm->colptr = tmp;
+        tmp          = spm->rowptr;
+        spm->rowptr  = spm->colptr;
+        spm->colptr  = tmp;
+        spm->fmttype = PastixCSR;
 
         return PASTIX_SUCCESS;
     }
@@ -72,20 +74,19 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
     case PastixGeneral:
     default:
     {
-
-        /* transpose spm in CSC to trans(spm) in CSR */
-        tmp         = spm->rowptr;
-        spm->rowptr = spm->colptr;
-        spm->colptr = tmp;
+        /* Transpose the spm in CSC to trans(spm) in CSR */
+        tmp          = spm->rowptr;
+        spm->rowptr  = spm->colptr;
+        spm->colptr  = tmp;
         spm->fmttype = PastixCSR;
 
-        /* convert trans(spm) in CSR to trans(spm) in CSC */
+        /* Convert trans(spm) in CSR to trans(spm) in CSC */
         result = z_spmConvertCSR2CSC( spm );
 
-        /* transpose trans(spm) in CSC to obtain spm in CSR */
-        tmp         = spm->rowptr;
-        spm->rowptr   = spm->colptr;
-        spm->colptr = tmp;
+        /* Transpose trans(spm) in CSC to obtain the spm in CSR */
+        tmp          = spm->rowptr;
+        spm->rowptr  = spm->colptr;
+        spm->colptr  = tmp;
         spm->fmttype = PastixCSR;
     }
     }

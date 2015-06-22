@@ -69,6 +69,30 @@ static int (*conversionTable[3][3][6])(pastix_csc_t*) = {
 
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmConvert - Convert the storage format of the given sparse matrix from any
+ * of the following format: PastixCSC, PastixCSR, or PastixIJV to one of these.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ofmttype
+ *          The output format of the sparse matrix. It might be PastixCSC,
+ *          PastixCSR, or PastixIJV.
+ *
+ * @param[in,out] spm
+ *          The sparse matrix structure to convert.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *        \retval PASTIX_SUCCESS if the conversion happened successfuly
+ *        \retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
+ *
+ *******************************************************************************/
 int
 spmConvert( int ofmttype, pastix_csc_t *ospm )
 {
@@ -80,6 +104,23 @@ spmConvert( int ofmttype, pastix_csc_t *ospm )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmFindBase - Search the base used in the spm structure given as parameter.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix structure.
+ *
+ ********************************************************************************
+ *
+ * @return  The baseval used in the given sparse matrix structure.
+ *
+ *******************************************************************************/
 pastix_int_t
 spmFindBase( const pastix_csc_t *spm )
 {
@@ -106,6 +147,49 @@ spmFindBase( const pastix_csc_t *spm )
     return baseval;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmNorm - Return the ntype norm of the sparse matrix spm.
+ *
+ *     spmNorm = ( max(abs(spm(i,j))), NORM = PastixMaxNorm
+ *               (
+ *               ( norm1(spm),         NORM = PastixOneNorm
+ *               (
+ *               ( normI(spm),         NORM = PastixInfNorm
+ *               (
+ *               ( normF(spm),         NORM = PastixFrobeniusNorm
+ *
+ *  where norm1 denotes the one norm of a matrix (maximum column sum),
+ *  normI denotes the infinity norm of a matrix (maximum row sum) and
+ *  normF denotes the Frobenius norm of a matrix (square root of sum
+ *  of squares). Note that max(abs(spm(i,j))) is not a consistent matrix
+ *  norm.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ntype
+ *          = PastixMaxNorm: Max norm
+ *          = PastixOneNorm: One norm
+ *          = PastixInfNorm: Infinity norm
+ *          = PastixFrobeniusNorm: Frobenius norm
+ *
+ * @param[in] spm
+ *          The sparse matrix structure.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *          \retval the norm described above. Note that for simplicity, even if
+ *          the norm of single real or single complex matrix is computed with
+ *          single precision, the returned norm is stored in double precision
+ *          number.
+ *          \retval -1., if the floating point of the sparse matrix is
+ *          undefined.
+ *
+ *******************************************************************************/
 double
 spmNorm( int ntype,
          const pastix_csc_t *csc )
@@ -132,6 +216,19 @@ spmNorm( int ntype,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmExit - Free the spm structure given as parameter
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to free.
+ *
+ *******************************************************************************/
 void
 spmExit( pastix_csc_t *spm )
 {
@@ -144,3 +241,120 @@ spmExit( pastix_csc_t *spm )
     if(spm->values != NULL)
         memFree_null(spm->values);
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmBase - Rebase the spm to the given value.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to rebase.
+ *
+ * @param[in] baseval
+ *          The base value to use in the graph (0 or 1).
+ *
+ *******************************************************************************/
+void spmBase( pastix_csc_t *spm,
+              int           baseval )
+{
+    pastix_int_t baseadj;
+    pastix_int_t i, n, nnz;
+
+    /* Parameter checks */
+    if ( spm == NULL ) {
+        errorPrint("spmBase: spm pointer is NULL");
+        return;
+    }
+    if ( (spm->colptr == NULL) ||
+         (spm->rowptr == NULL) )
+    {
+        errorPrint("spmBase: spm pointer is not correctly initialized");
+        return;
+    }
+    if ( (baseval != 0) &&
+         (baseval != 1) )
+    {
+        errorPrint("spmBase: baseval is incorrect, must be 0 or 1");
+        return;
+    }
+
+    baseadj = baseval - spmFindBase( spm );
+    if (baseadj == 0)
+	return;
+
+    n   = spm->n;
+    nnz = spm->colptr[n] - spm->colptr[0];
+
+    for (i = 0; i <= n; i++) {
+        spm->colptr[i] += baseadj;
+    }
+    for (i = 0; i < nnz; i++) {
+        spm->rowptr[i] += baseadj;
+    }
+
+    if (spm->loc2glob != NULL) {
+        for (i = 0; i < n; i++) {
+            spm->loc2glob[i] += baseadj;
+        }
+    }
+    return;
+}
+
+
+/**
+ * TODO: Maybe we should move down the cast of the parameters to the lowest
+ * functions, and simplify this one to have identical calls to all subfunction
+ */
+int
+spmMatVec(      int           trans,
+          const void         *alpha,
+          const pastix_csc_t *csc,
+          const void         *x,
+          const void         *beta,
+                void         *y )
+{
+    switch (csc->mtxtype) {
+    case PastixHermitian:
+        switch (csc->flttype) {
+        case PastixFloat:
+            return s_spmSyCSCv( *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_spmHeCSCv( *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_spmHeCSCv( *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_spmSyCSCv( *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    case PastixSymmetric:
+        switch (csc->flttype) {
+        case PastixFloat:
+            return s_spmSyCSCv( *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_spmSyCSCv( *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_spmSyCSCv( *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_spmSyCSCv( *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    case PastixGeneral:
+    default:
+        switch (csc->flttype) {
+        case PastixFloat:
+            return s_spmGeCSCv( trans, *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_spmGeCSCv( trans, *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_spmGeCSCv( trans, *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_spmGeCSCv( trans, *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    }
+}
+

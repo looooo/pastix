@@ -122,6 +122,13 @@ if(CBLAS_FOUND)
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
+find_package(LAPACKEXT REQUIRED)
+find_package(LAPACKE REQUIRED)
+if(LAPACKE_FOUND)
+    message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
+    include_directories(${LAPACKE_INCLUDE_DIRS})
+endif()
+
 # PaStiX depends on HwLoc
 #---------------------------
 find_package(HWLOC)
@@ -434,12 +441,14 @@ include(RulesPrecisions)
 set(generated_files "")
 set(SOURCES
   common/z_integer.c
+  #
+  csc/z_spm_norm.c
   csc/z_spm_convert_to_csc.c
   csc/z_spm_convert_to_csr.c
   csc/z_spm_convert_to_ijv.c
+  #
   csc/z_spm_matrixvector.c
   csc/z_spm_genrhs.c
-  csc/z_spm_norm.c
   matrix_drivers/z_spm_laplacian.c
   #
   sopalin/sequential_ztrsm.c
