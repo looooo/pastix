@@ -212,36 +212,78 @@ z_spmMaxNorm( const pastix_csc_t *spm )
 double
 z_spmInfNorm( const pastix_csc_t *spm )
 {
-    pastix_int_t col, i;
+    pastix_int_t col, row, i, baseval;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
     double norm = 0.;
     double *summcol;
     
     MALLOC_INTERN( summcol, spm->gN, double);
     memset( summcol, 0, spm->gN * sizeof(double) );
+    baseval = spmFindBase( spm );
 
-    for( col=0; col < spm->gN; col++ )
-    {
-        for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
-        {
-            summcol[spm->rowptr[i]] += cabs( valptr[i] );
-        }
-    }
-    switch (spm->mtxtype) {
-    case PastixSymmetric:
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    case PastixHermitian:
-#endif
+    switch( spm->fmttype ){
+    case PastixCSC:
         for( col=0; col < spm->gN; col++ )
         {
-            for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
+            for( i=spm->colptr[col]-baseval; i<spm->colptr[col+1]-baseval; i++ )
             {
-                summcol[col] += cabs( valptr[i] );
+                summcol[spm->rowptr[i]-baseval] += cabs( valptr[i] );
             }
         }
-    break;
-    case PastixGeneral:
-    break;
+        switch (spm->mtxtype) {
+        case PastixSymmetric:
+    #if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+    #endif
+            for( col=0; col < spm->gN; col++ )
+            {
+                for( i=spm->colptr[col]-baseval+1; i<spm->colptr[col+1]-baseval; i++ )
+                {
+                    summcol[col] += cabs( valptr[i] );
+                }
+            }
+            break;
+        case PastixGeneral:
+            break;
+        default:
+            memFree_null( summcol );
+            return PASTIX_ERR_BADPARAMETER;
+        }
+        break;
+
+    case PastixCSR:
+        for( row=0; row < spm->gN; row++ )
+        {
+            for( i=spm->rowptr[row]-baseval; i<spm->rowptr[row+1]-baseval; i++ )
+            {
+                summcol[spm->colptr[i]-baseval] += cabs( valptr[i] );
+            }
+        }
+        switch (spm->mtxtype) {
+        case PastixSymmetric:
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+#endif
+            for( row=0; row < spm->gN; row++ )
+            {
+                for( i=spm->rowptr[row]-baseval+1; i<spm->rowptr[row+1]-baseval; i++ )
+                {
+                    summcol[row] += cabs( valptr[i] );
+                }
+            }
+            break;
+        case PastixGeneral:
+            break;
+        default:
+            memFree_null( summcol );
+            return PASTIX_ERR_BADPARAMETER;
+        }
+        break;
+
+    case PastixIJV:
+//         TODO
+        break;
+
     default:
         memFree_null( summcol );
         return PASTIX_ERR_BADPARAMETER;
@@ -283,36 +325,78 @@ z_spmInfNorm( const pastix_csc_t *spm )
 double
 z_spmOneNorm( const pastix_csc_t *spm )
 {
-    pastix_int_t col, i;
+    pastix_int_t col, row, i, baseval;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
     double norm = 0.;
     double *summrow;
     
     MALLOC_INTERN( summrow, spm->gN, double);
     memset( summrow, 0, spm->gN * sizeof(double) );
+    baseval = spmFindBase( spm );
 
-    for( col=0; col < spm->gN; col++ )
-    {
-        for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
-        {
-            summrow[col] += cabs( valptr[i] );
-        }
-    }
-    switch (spm->mtxtype) {
-    case PastixSymmetric:
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    case PastixHermitian:
-#endif
+    switch( spm->fmttype ){
+    case PastixCSC:
         for( col=0; col < spm->gN; col++ )
         {
-            for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
+            for( i=spm->colptr[col]-baseval; i<spm->colptr[col+1]-baseval; i++ )
             {
-                summrow[spm->rowptr[i]] += cabs( valptr[i] );
+                summrow[col] += cabs( valptr[i] );
             }
         }
+        switch (spm->mtxtype) {
+        case PastixSymmetric:
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+#endif
+            for( col=0; col < spm->gN; col++ )
+            {
+                for( i=spm->colptr[col]-baseval+1; i<spm->colptr[col+1]-baseval; i++ )
+                {
+                    summrow[spm->rowptr[i]-baseval] += cabs( valptr[i] );
+                }
+            }
+            break;
+        case PastixGeneral:
+            break;
+        default:
+            memFree_null( summrow );
+            return PASTIX_ERR_BADPARAMETER;
+        }
         break;
-    case PastixGeneral:
+
+    case PastixCSR:
+        for( row=0; row < spm->gN; row++ )
+        {
+            for( i=spm->rowptr[row]-baseval; i<spm->rowptr[row+1]-baseval; i++ )
+            {
+                summrow[row] += cabs( valptr[i] );
+            }
+        }
+        switch (spm->mtxtype) {
+        case PastixSymmetric:
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+#endif
+            for( row=0; row < spm->gN; row++ )
+            {
+                for( i=spm->rowptr[row]-baseval+1; i<spm->rowptr[row+1]-baseval; i++ )
+                {
+                    summrow[spm->colptr[i]-baseval] += cabs( valptr[i] );
+                }
+            }
+            break;
+        case PastixGeneral:
+            break;
+        default:
+            memFree_null( summrow );
+            return PASTIX_ERR_BADPARAMETER;
+        }
         break;
+
+    case PastixIJV:
+//         TODO
+        break;
+
     default:
         memFree_null( summrow );
         return PASTIX_ERR_BADPARAMETER;
