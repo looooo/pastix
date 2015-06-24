@@ -48,8 +48,8 @@
  * @param[in] alpha
  *          A scalar.
  *
- * @param[in] csc
- *          The PastixGeneral csc.
+ * @param[in] bcsc
+ *          The PastixGeneral bcsc.
  *
  * @param[in] x
  *          The vector x.
@@ -173,9 +173,6 @@ z_bcscGemv(pastix_trans_t      trans,
  * @param[in] values
  *          The values array of the matrix.
  *
- * @param[in] n
- *          The number of elements in the array A.
- *
  * @param[out] norm
  *          The norm of the matrix A.
  *
@@ -187,30 +184,27 @@ z_bcscGemv(pastix_trans_t      trans,
  *
  *******************************************************************************/
 int
-z_bcscNormMax( void         *values,
-               pastix_int_t  n,
+z_bcscNormMax( pastix_bcsc_t *bcsc,
                double       *norm )
 {
-    double temp1;
-#if defined(PRECISION_c) || defined(PRECISION_z)
-    double temp2;
-#endif
-    pastix_complex64_t *valptr = values;
-    pastix_int_t i;
+    double temp;
+    pastix_complex64_t *valptr = bcsc->values;
+    pastix_int_t i, j, bloc;
 
     *norm = 0.;
-    for( i=0; i < n; i++ )
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-        temp1 = pow(creal(valptr[i]),2.);
-        temp2 = pow(cimag(valptr[i]),2.);
-        temp1 = sqrt(temp1 + temp2);
-#else
-        temp1 = fabs((double)valptr[i]);
-#endif
-        if(*norm < temp1)
+        for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
         {
-            *norm = temp1;
+            for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+            {
+                temp = cabs(valptr[i]);
+                if(*norm < temp)
+                {
+                    *norm = temp;
+                }
+            }
+            col += 1;
         }
     }
 
@@ -222,8 +216,8 @@ z_bcscNormMax( void         *values,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNorm0 - compute the norm 0 of a general matrix.
- * Norm 0 is equal to the maximum value of the sum of the
+ * z_bcscNormInf - compute the infinity norm of a general matrix.
+ * The infinity norm is equal to the maximum value of the sum of the
  * Absolute values of the elements of each rows.
  *
  *******************************************************************************
@@ -245,14 +239,11 @@ z_bcscNormMax( void         *values,
  *
  *******************************************************************************/
 int
-z_bcscNorm0( pastix_bcsc_t *bcsc,
-             pastix_int_t  n,
-             double        *norm )
+z_bcscNormInf( pastix_bcsc_t *bcsc,
+               pastix_int_t  n,
+               double        *norm )
 {
-    double temp1;
-#if defined(PRECISION_c) || defined(PRECISION_z)
-    double temp2;
-#endif
+    double temp;
     double *summcol;
     pastix_complex64_t *valptr = bcsc->Lvalues;
     int i,j,bloc
@@ -265,47 +256,35 @@ z_bcscNorm0( pastix_bcsc_t *bcsc,
     {
         for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
         {
-            for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+            for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-                temp1 = pow(creal(valptr[i]),2.);
-                temp2 = pow(cimag(valptr[i]),2.);
-                temp1 = sqrt(temp1 + temp2);
-#else
-                temp1 = fabs((double)valptr[i]);
-#endif
-                summcol[bcsc->rowtab[i]] += temp1
+                summcol[bcsc->rowtab[i]] += cabs(valptr[i]);
             }
             col += 1;
         }
     }
     switch (bcsc->mtxtype) {
     case PastixSymetric:
+#if defined(PRECISION_z) || defined(PRECISION_c)
     case PastixHermitian:
+#endif
         col = 0;
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
             for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
             {
-                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-                    temp1 = pow(creal(valptr[i]),2.);
-                    temp2 = pow(cimag(valptr[i]),2.);
-                    temp1 = sqrt(temp1 + temp2);
-#else
-                    temp1 = fabs((double)valptr[i]);
-#endif
-                    summcol[col] += temp1
+                    summcol[col] += cabs(valptr[i]);
                 }
                 col += 1;
             }
-        }  
+        }
     break;
     case PastixGeneral:
     break;
     default:
-        memFree_null( sumcol );
+        memFree_null( summcol );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -326,7 +305,7 @@ z_bcscNorm0( pastix_bcsc_t *bcsc,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNorm1 - compute the norm 1 of a general matrix.
+ * z_bcscNormOne - compute the norm 1 of a general matrix.
  * Norm 1 is equal to the maximum value of the sum of the
  * Absolute values of the elements of each columns.
  *
@@ -349,14 +328,10 @@ z_bcscNorm0( pastix_bcsc_t *bcsc,
  *
  *******************************************************************************/
 int
-z_bcscNorm1( pastix_bcsc_t *bcsc,
-             pastix_int_t  n,
-             double        *norm )
+z_bcscNormOne( pastix_bcsc_t *bcsc,
+               pastix_int_t  n,
+               double        *norm )
 {
-    double temp1;
-#if defined(PRECISION_c) || defined(PRECISION_z)
-    double temp2;
-#endif
     double *summrow;
     pastix_complex64_t *valptr = bcsc->Lvalues;
     int i,j,bloc
@@ -371,21 +346,16 @@ z_bcscNorm1( pastix_bcsc_t *bcsc,
         {
             for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-                temp1 = pow(creal(valptr[i]),2.);
-                temp2 = pow(cimag(valptr[i]),2.);
-                temp1 = sqrt(temp1 + temp2);
-#else
-                temp1 = fabs((double)valptr[i]);
-#endif
-                summrow[col] += temp1
+                summrow[col] += cabs(valptr[i]);
             }
             col += 1;
         }
     }  
     switch (bcsc->mtxtype) {
     case PastixSymetric:
+#if defined(PRECISION_z) || defined(PRECISION_c)
     case PastixHermitian:
+#endif
         col = 0;
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
@@ -393,14 +363,7 @@ z_bcscNorm1( pastix_bcsc_t *bcsc,
             {
                 for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-                    temp1 = pow(creal(valptr[i]),2.);
-                    temp2 = pow(cimag(valptr[i]),2.);
-                    temp1 = sqrt(temp1 + temp2);
-#else
-                    temp1 = fabs((double)valptr[i]);
-#endif
-                    summrow[bcsc->rowtab[i]] += temp1
+                    summrow[bcsc->rowtab[i]] += cabs(valptr[i]);
                 }
                 col += 1;
             }
@@ -420,7 +383,7 @@ z_bcscNorm1( pastix_bcsc_t *bcsc,
             *norm = summrow[i];
         }
     }
-    memFree_null( sumrow );
+    memFree_null( summrow );
 
     return PASTIX_SUCCESS;
 }
@@ -430,18 +393,15 @@ z_bcscNorm1( pastix_bcsc_t *bcsc,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNorm2 - compute the frobenius norm of a general matrix.
+ * z_bcscFrobeniusNorm - compute the frobenius norm of a general matrix.
  *
  *******************************************************************************
  *
- * @param[in] values
- *          The values array of the matrix.
- *
- * @param[in] n
- *          The number of elements in the array A.
+ * @param[in] bcsc
+ *          The Pastix bcsc.
  *
  * @param[out] norm
- *          The norm of the matrix A.
+ *          The norm of the matrix.
  *
  *******************************************************************************
  *
@@ -451,47 +411,64 @@ z_bcscNorm1( pastix_bcsc_t *bcsc,
  *
  *******************************************************************************/
 int
-z_bcscNorm2( void         *values,
-             pastix_int_t  n,
-             double       *norm )
+z_bcscFrobeniusNorm( pastix_bcsc_t *bcsc,
+                     double       *norm )
 {
     double scale = 0.;
     double sum = 1.;
-    double temp;
-    pastix_complex64_t *valptr = values;
-    pastix_int_t i;
+    double temp, nb;
+    pastix_complex64_t *valptr = bcsc->values;
+    pastix_int_t i, j;
 
-    for( i=0; i < n; i++ )
+    if (bcsc->mtxtype == PastixGeneral)
     {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-        temp = fabs(creal(valptr[i]));
-#else
-        temp = fabs((double)valptr[i]);
-#endif
-        if(temp != 0.)
+        nb = 1.;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
-            if(scale < temp)
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
             {
-                sum = 1. + sum*pow((scale / temp), 2.);
-                scale = temp;
-            }else{
-                sum = sum + pow((double)(temp / scale), 2.);
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    if(temp != 0.)
+                    {
+                        if(scale < temp)
+                        {
+                            sum = nb + sum*pow((scale / temp), 2.);
+                            scale = temp;
+                        }else{
+                            sum = sum + nb*pow((double)(temp / scale), 2.);
+                        }
+                    }
+                }
+                col += 1;
             }
         }
-#if defined(PRECISION_c) || defined(PRECISION_z)
-        temp = fabs(cimag(valptr[i]));
-        if(temp != 0.)
+    }else{
+        for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
         {
-            if(scale < temp)
+            for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-                sum = 1. + sum*pow((double)(scale / temp), 2.);
-                scale = temp;
-            }else{
-                sum = sum + pow((double)(temp / scale), 2.);
+                temp = cabs(valptr[i]);
+                if(rowptr[i] == col)
+                {
+                    nb = 1.;
+                }else{
+                    nb = 2.;
+                }
+                if(temp != 0.)
+                {
+                    if(scale < temp)
+                    {
+                        sum = nb + sum*pow((scale / temp), 2.);
+                        scale = temp;
+                    }else{
+                        sum = sum + nb*pow((double)(temp / scale), 2.);
+                    }
+                }
             }
+            col += 1;
         }
-#endif
-    }
+    }    
     *norm = scale*sqrt(sum);
 
     return PASTIX_SUCCESS;
@@ -533,9 +510,7 @@ z_bcscBerr( void         *r1,
 {
     pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
     pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
-#if defined(PRECISION_c) || defined(PRECISION_z)
-    pastix_complex64_t Re1, Re2, Im1, Im3, module1, module2;
-#endif
+    pastix_complex64_t module1, module2;
     pastix_int_t i;
 
     if(r1==NULL || r1== NULL)
@@ -545,21 +520,11 @@ z_bcscBerr( void         *r1,
 
     for( i = 0; i < n; i++)
     {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-        Re1 = creal(r1ptr[i]);
-        Re2 = creal(r1ptr[i]);
-        Im1 = cimag(r2ptr[i]);
-        Im2 = cimag(r2ptr[i]);
-        module1 = sqrt(Re1*Re1 + Im1*Im1);
-        module2 = sqrt(Re2*Re2 + Im2*Im2);
+        module1 = cabs(r1ptr[i]);
+        module2 = cabs(r2ptr[i]);
         if( module2 > 0)
             if( module1 / module2 > *berr )
                 *berr = module1 / module2;
-#else
-        if(r2ptr != 0)
-            if( fabs(r1ptr[i] / r2ptr[i]) > *berr )
-                *berr = fabs(r1ptr[i] / r2ptr[i]);
-#endif
     }
 
     return PASTIX_SUCCESS;
@@ -600,17 +565,48 @@ z_bcscNormErr( void         *r1,
                pastix_int_t  n,
                double       *err )
 {
-    double              norm2r1;
-    double              norm2r2;
+    double norm2r1;
+    double norm2r2;
+    double scale = 0.;
+    double sum = 1.;
+    double temp, nb;
 
-    if(r1==NULL || r1== NULL)
+    if(r1==NULL || r2== NULL)
         return PASTIX_ERR_BADPARAMETER;
 
-    if( z_bcscNorm2(r1, n, &norm2r1) != PASTIX_SUCCESS )
-        return PASTIX_ERR_BADPARAMETER;
+    for( i = 0; i < n; i++ )
+    {
+        temp = cabs(r1[i]);
+        if(temp != 0.)
+        {
+            if(scale < temp)
+            {
+                sum = 1. + sum*pow((scale / temp), 2.);
+                scale = temp;
+            }else{
+                sum = sum + pow((double)(temp / scale), 2.);
+            }
+        }
+    }
+    norm2r1 = scale*sqrt(sum);
 
-    if( z_bcscNorm2(r2, n, &norm2r2) != PASTIX_SUCCESS )
-        return PASTIX_ERR_BADPARAMETER;
+    scale = 0.;
+    sum=1.;
+    for( i = 0; i < n; i++ )
+    {
+        temp = cabs(r2[i]);
+        if(temp != 0.)
+        {
+            if(scale < temp)
+            {
+                sum = 1. + sum*pow((scale / temp), 2.);
+                scale = temp;
+            }else{
+                sum = sum + pow((double)(temp / scale), 2.);
+            }
+        }
+    }
+    norm2r2 = scale*sqrt(sum);
 
     *err = norm2r1/norm2r2;
 
