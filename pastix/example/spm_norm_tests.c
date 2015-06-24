@@ -1,8 +1,8 @@
 /**
  *
- * @file spm_matvec_test.c
+ * @file spm_norm_test.c
  *
- * Tests and validate the spm_matvec routines.
+ * Tests and validate the spm_norm routines.
  *
  * @version 5.1.0
  * @author Mathieu Faverge
