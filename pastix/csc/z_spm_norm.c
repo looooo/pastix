@@ -196,7 +196,7 @@ z_spmMaxNorm( const pastix_csc_t *spm )
  * z_spmInfNorm - Compute the Infinite norm of the non distributed given spm
  * structure.
  *
- *  ||A|| =
+ *  ||A|| = max_i( sum_j(|a_ij|) )
  *
  *******************************************************************************
  *
@@ -212,14 +212,49 @@ z_spmMaxNorm( const pastix_csc_t *spm )
 double
 z_spmInfNorm( const pastix_csc_t *spm )
 {
-    pastix_int_t i;
+    pastix_int_t col, i;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
-    double tmp, norm = 0.;
+    double norm = 0.;
+    double *summcol;
+    
+    MALLOC_INTERN( summcol, spm->gN, double);
+    memset( summcol, 0, spm->gN * sizeof(double) );
 
-    for(i=0; i <spm->nnz; i++, valptr++) {
-        tmp = cabs( *valptr );
-        norm = norm > tmp ? norm : tmp;
+    for( col=0; col < spm->gN; col++ )
+    {
+        for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
+        {
+            summcol[spm->rowptr[i]] += cabs( valptr[i] );
+        }
     }
+    switch (spm->mtxtype) {
+    case PastixSymmetric:
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+#endif
+        for( col=0; col < spm->gN; col++ )
+        {
+            for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
+            {
+                summcol[col] += cabs( valptr[i] );
+            }
+        }
+    break;
+    case PastixGeneral:
+    break;
+    default:
+        memFree_null( summcol );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    for( i=0; i<spm->gN; i++)
+    {
+        if(norm < summcol[i])
+        {
+            norm = summcol[i];
+        }
+    }
+    memFree_null( summcol );
 
     return norm;
 }
@@ -232,7 +267,7 @@ z_spmInfNorm( const pastix_csc_t *spm )
  * z_spmOneNorm - Compute the One norm of the non distributed given spm
  * structure.
  *
- *  ||A|| =
+ *  ||A|| = max_j( sum_i(|a_ij|) )
  *
  *******************************************************************************
  *
@@ -248,14 +283,49 @@ z_spmInfNorm( const pastix_csc_t *spm )
 double
 z_spmOneNorm( const pastix_csc_t *spm )
 {
-    pastix_int_t i;
+    pastix_int_t col, i;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
-    double tmp, norm = 0.;
+    double norm = 0.;
+    double *summrow;
+    
+    MALLOC_INTERN( summrow, spm->gN, double);
+    memset( summrow, 0, spm->gN * sizeof(double) );
 
-    for(i=0; i <spm->nnz; i++, valptr++) {
-        tmp = cabs( *valptr );
-        norm = norm > tmp ? norm : tmp;
+    for( col=0; col < spm->gN; col++ )
+    {
+        for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
+        {
+            summrow[col] += cabs( valptr[i] );
+        }
     }
+    switch (spm->mtxtype) {
+    case PastixSymmetric:
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+#endif
+        for( col=0; col < spm->gN; col++ )
+        {
+            for( i=spm->colptr[col]; i<spm->colptr[col+1]; i++ )
+            {
+                summrow[spm->rowptr[i]] += cabs( valptr[i] );
+            }
+        }
+        break;
+    case PastixGeneral:
+        break;
+    default:
+        memFree_null( summrow );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    for( i=0; i<spm->gN; i++)
+    {
+        if(norm < summrow[i])
+        {
+            norm = summrow[i];
+        }
+    }
+    memFree_null( summrow );
 
     return norm;
 }
