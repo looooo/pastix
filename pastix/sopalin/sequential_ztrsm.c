@@ -33,6 +33,7 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk *cblk, *fcbk;
     SolverBlok *blok;
+    pastix_complex64_t *coeftab;
     pastix_int_t i, j, ii, tempm, tempn;
     pastix_int_t ttsknbr, *ttsktab;
     Task *t;
@@ -71,11 +72,12 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         fcbk = datacode->cblktab + blok->lcblknm;
                         tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                         tempn = blok->lrownum - blok->frownum + 1;
+                        coeftab = (pastix_complex64_t*)(fcbk->ucoeftab);
 
                         cblas_zgemm(
                             CblasColMajor, CblasTrans, CblasNoTrans,
                             tempm, nrhs, tempn,
-                            CBLAS_SADDR(mzone), fcbk->ucoeftab + blok->coefind, fcbk->stride,
+                            CBLAS_SADDR(mzone), coeftab + blok->coefind, fcbk->stride,
                             b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
                             CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                     }
@@ -96,17 +98,18 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         continue;
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
+                    coeftab = (pastix_complex64_t*)(cblk->lcoeftab);
 
                     /* Solve the diagonal block */
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
                         CblasNoTrans, (enum CBLAS_DIAG)diag,
                         tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->lcoeftab, cblk->stride,
+                        coeftab, cblk->stride,
                         b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
-                    for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++ ) {
+                    for (blok = cblk[0].fblokptr; blok < cblk[1].fblokptr; blok++ ) {
                         fcbk  = datacode->cblktab + blok->fcblknm;
                         tempm = blok->lrownum - blok->frownum + 1;
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
@@ -114,9 +117,9 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         cblas_zgemm(
                             CblasColMajor, CblasNoTrans, CblasNoTrans,
                             tempm, nrhs, tempn,
-                            CBLAS_SADDR(mzone), cblk->lcoeftab, cblk->stride,
+                            CBLAS_SADDR(mzone), coeftab + blok->coefind, cblk->stride,
                                                 b + cblk->lcolidx, ldb,
-                            CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - cblk->fcolnum, ldb );
+                            CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
                     }
                 }
             }
@@ -148,11 +151,12 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         fcbk = datacode->cblktab + blok->lcblknm;
                         tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                         tempn = blok->lrownum - blok->frownum + 1;
+                        coeftab = (pastix_complex64_t*)(fcbk->lcoeftab);
 
                         cblas_zgemm(
                             CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
                             tempm, nrhs, tempn,
-                            CBLAS_SADDR(mzone), fcbk->lcoeftab + blok->coefind, fcbk->stride,
+                            CBLAS_SADDR(mzone), coeftab + blok->coefind, fcbk->stride,
                                                 b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
                             CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                     }
