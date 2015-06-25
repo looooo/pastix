@@ -1,5 +1,5 @@
 /**
- * @file bcsc_zinit.c
+ * @file z_bcsc_init.c
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
@@ -17,14 +17,15 @@
 #include "order.h"
 #include "csc.h"
 #include "bcsc.h"
+#include "z_bcsc.h"
 
-    /**
-     * Fill in the lower triangular part of the blocked csc with values and
-     * rows. The upper triangular part is done later if required through LU
-     * factorization.
-     */
+/**
+ * Fill in the lower triangular part of the blocked csc with values and
+ * rows. The upper triangular part is done later if required through LU
+ * factorization.
+ */
 static inline void
-bcsc_zInitA( const pastix_csc_t  *csc,
+z_bcscInitA( const pastix_csc_t  *csc,
              const Order         *ord,
              const SolverMatrix  *solvmtx,
              const pastix_int_t  *col2cblk,
@@ -86,7 +87,7 @@ bcsc_zInitA( const pastix_csc_t  *csc,
 }
 
 static inline void
-bcsc_zInitLt( const pastix_csc_t  *csc,
+z_bcscInitLt( const pastix_csc_t  *csc,
               const Order         *ord,
               const SolverMatrix  *solvmtx,
               const pastix_int_t  *col2cblk,
@@ -153,7 +154,7 @@ bcsc_zInitLt( const pastix_csc_t  *csc,
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 static inline void
-bcsc_zInitLh( const pastix_csc_t  *csc,
+z_bcscInitLh( const pastix_csc_t  *csc,
               const Order         *ord,
               const SolverMatrix  *solvmtx,
               const pastix_int_t  *col2cblk,
@@ -220,7 +221,7 @@ bcsc_zInitLh( const pastix_csc_t  *csc,
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 void
-bcsc_zInitAt( const pastix_csc_t  *csc,
+z_bcscInitAt( const pastix_csc_t  *csc,
               const Order         *ord,
               const SolverMatrix  *solvmtx,
               const pastix_int_t  *col2cblk,
@@ -287,7 +288,7 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
 }
 
 void
-bcsc_zSort( const pastix_bcsc_t *bcsc,
+z_bcscSort( const pastix_bcsc_t *bcsc,
             pastix_int_t        *rowtab,
             pastix_complex64_t  *valtab )
 {
@@ -311,7 +312,7 @@ bcsc_zSort( const pastix_bcsc_t *bcsc,
 }
 
 void
-bcsc_zInitCentralized( const pastix_csc_t  *csc,
+z_bcscInitCentralized( const pastix_csc_t  *csc,
                        const Order         *ord,
                        const SolverMatrix  *solvmtx,
                        const pastix_int_t  *col2cblk,
@@ -325,13 +326,13 @@ bcsc_zInitCentralized( const pastix_csc_t  *csc,
     /**
      * Initialize the blocked structure of the matrix A
      */
-    bcsc_zInitA( csc, ord, solvmtx, col2cblk, bcsc );
+    z_bcscInitA( csc, ord, solvmtx, col2cblk, bcsc );
     if ( csc->mtxtype == PastixSymmetric ) {
-        bcsc_zInitLt( csc, ord, solvmtx, col2cblk, bcsc );
+        z_bcscInitLt( csc, ord, solvmtx, col2cblk, bcsc );
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
     else if ( csc->mtxtype == PastixHermitian ) {
-        bcsc_zInitLh( csc, ord, solvmtx, col2cblk, bcsc );
+        z_bcscInitLh( csc, ord, solvmtx, col2cblk, bcsc );
     }
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
@@ -339,7 +340,7 @@ bcsc_zInitCentralized( const pastix_csc_t  *csc,
     bcsc_restore_coltab( bcsc );
 
     /* Sort the csc */
-    bcsc_zSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
+    z_bcscSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
     if ( csc->mtxtype == PastixGeneral ) {
 	/* A^t is not required if only refinment is performed */
@@ -348,13 +349,13 @@ bcsc_zInitCentralized( const pastix_csc_t  *csc,
             MALLOC_INTERN( bcsc->Uvalues, valuesize * pastix_size_of( bcsc->flttype ), char );
             MALLOC_INTERN( trowtab, valuesize, pastix_int_t);
 
-            bcsc_zInitAt( csc, ord, solvmtx, col2cblk, trowtab, bcsc );
+            z_bcscInitAt( csc, ord, solvmtx, col2cblk, trowtab, bcsc );
 
             /* Restore the correct coltab arrays */
             bcsc_restore_coltab( bcsc );
 
 	    /* Sort the transposed csc */
-	    bcsc_zSort( bcsc, trowtab, bcsc->Uvalues );
+	    z_bcscSort( bcsc, trowtab, bcsc->Uvalues );
 	    memFree( trowtab );
         }
     }

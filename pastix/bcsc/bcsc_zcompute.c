@@ -12,16 +12,10 @@
  * @precisions normal z -> c d s
  *
  **/
-/*
-  File: bcsc_zcompute.c
-
-  Functions computing operations on the BCSC.
-
-*/
-
+#include <math.h>
 #include "common.h"
 #include "bcsc.h"
-#include "math.h"
+#include "z_bcsc.h"
 
 /**
  *******************************************************************************
@@ -350,7 +344,7 @@ z_bcscNormOne( pastix_bcsc_t *bcsc,
             }
             col += 1;
         }
-    }  
+    }
     switch (bcsc->mtxtype) {
     case PastixSymetric:
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -468,7 +462,7 @@ z_bcscFrobeniusNorm( pastix_bcsc_t *bcsc,
             }
             col += 1;
         }
-    }    
+    }
     *norm = scale*sqrt(sum);
 
     return PASTIX_SUCCESS;

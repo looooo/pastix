@@ -15,6 +15,10 @@
 #define _BCSC_H
 
 #include "common.h"
+#include "z_bcsc.h"
+#include "c_bcsc.h"
+#include "d_bcsc.h"
+#include "s_bcsc.h"
 
 struct bcsc_format_s {
     pastix_int_t   colnbr; /*> Number of columns in the block column.                                    */
@@ -45,33 +49,6 @@ void bcscInitCentralizedFake( const pastix_csc_t  *csc,
                               const pastix_int_t  *col2cblk,
                                     int            initAt,
                                     pastix_bcsc_t *bcsc );
-void bcsc_zInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
-
-void bcsc_cInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
-
-void bcsc_dInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
-
-void bcsc_sInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
 
 pastix_int_t
 bcsc_init_centralized_coltab( const pastix_csc_t  *csc,

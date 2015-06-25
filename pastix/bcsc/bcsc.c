@@ -210,16 +210,16 @@ bcscInitCentralized( const pastix_csc_t  *csc,
         bcscInitCentralizedFake( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixFloat:
-        bcsc_sInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        s_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixDouble:
-        bcsc_dInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        d_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex32:
-        bcsc_cInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        c_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex64:
-        bcsc_zInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        z_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     default:
         fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input csc\n");
