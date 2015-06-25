@@ -111,7 +111,7 @@ z_spm_matvec_check( int trans, const pastix_csc_t *spm )
 
     CORE_zplrnt( 1, 1, &alpha, 1, 1, start, 0, seed ); start++;
     CORE_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
-
+    
     x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
     CORE_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
 
@@ -191,7 +191,7 @@ z_spm_norm_check( const pastix_csc_t *spm )
     normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gN, spm->gN,  A, spm->gN );
     result = fabs(norms - normd) / (normd * eps);
 
-    if ( result < 1. ) {
+    if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
     } else {
         printf("FAILED !\n");
@@ -208,8 +208,9 @@ z_spm_norm_check( const pastix_csc_t *spm )
     norms = spmNorm( PastixInfNorm, spm );
     normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
     result = fabs(norms - normd) / (normd * eps);
+    result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
 
-    if ( result < 1. ) {
+    if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
     } else {
         printf("FAILED !\n");
@@ -226,8 +227,9 @@ z_spm_norm_check( const pastix_csc_t *spm )
     norms = spmNorm( PastixOneNorm, spm );
     normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'O', spm->gN, spm->gN,  A, spm->gN );
     result = fabs(norms - normd) / (normd * eps);
+    result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
 
-    if ( result < 1. ) {
+    if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
     } else {
         printf("FAILED !\n");
@@ -238,14 +240,15 @@ z_spm_norm_check( const pastix_csc_t *spm )
     printf("  | Nsparse - Ndense | / Ndense = %e\n", result);
 
     /**
-     * Test Norm Froebenius
+     * Test Norm Frobenius
      */
     printf(" -- Test norm Frb :");
     norms = spmNorm( PastixFrobeniusNorm, spm );
     normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', spm->gN, spm->gN,  A, spm->gN );
-    result = fabs(norms - normd) / (normd * eps);
+    result = abs(norms - normd) / (normd * eps);
+    result = result / ((double)spm->gnnz);
 
-    if ( result < 1. ) {
+    if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
     } else {
         printf("FAILED !\n");

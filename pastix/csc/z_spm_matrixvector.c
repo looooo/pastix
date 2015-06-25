@@ -88,59 +88,65 @@ z_spmGeCSCv(      int                 trans,
     baseval = spmFindBase( csc );
 
     /* first, y = beta*y */
-    for( i=0; i < csc->gN; i++ )
-    {
-        yptr[i] *= beta;
+    if( beta == 0. ) {
+        memset( yptr, 0, csc->gN * sizeof(pastix_complex64_t) );
+    }
+    else {
+        for( i=0; i<csc->gN; i++, yptr++ ) {
+            (*yptr) *= beta;
+        }
+        yptr = y;
     }
 
-    /**
-     * PastixNoTrans
-     */
-    if( trans == PastixNoTrans )
-    {
-        for( col=0; col < csc->gN; col++ )
+    if( alpha != 0. ) {
+        /**
+         * PastixNoTrans
+         */
+        if( trans == PastixNoTrans )
         {
-            for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+            for( col=0; col < csc->gN; col++ )
             {
-                row = csc->rowptr[i-baseval]-baseval;
-                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
+                for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+                {
+                    row = csc->rowptr[i-baseval]-baseval;
+                    yptr[row] += alpha * valptr[i-baseval] * xptr[col];
+                }
             }
         }
-    }
-    /**
-     * PastixTrans
-     */
-    else if( trans == PastixTrans )
-    {
-        for( col=0; col < csc->gN; col++ )
+        /**
+         * PastixTrans
+         */
+        else if( trans == PastixTrans )
         {
-            for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+            for( col=0; col < csc->gN; col++ )
             {
-                row = csc->rowptr[i-baseval]-baseval;
-                yptr[col] += alpha * valptr[i-baseval] * xptr[row];
+                for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+                {
+                    row = csc->rowptr[i-baseval]-baseval;
+                    yptr[col] += alpha * valptr[i-baseval] * xptr[row];
+                }
             }
         }
-    }
 #if defined(PRECISION_c) || defined(PRECISION_z)
-    else if( trans == PastixConjTrans )
-    {
-        for( col=0; col < csc->gN; col++ )
+        else if( trans == PastixConjTrans )
         {
-            for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+            for( col=0; col < csc->gN; col++ )
             {
-                row = csc->rowptr[i-baseval]-baseval;
-                yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+                for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+                {
+                    row = csc->rowptr[i-baseval]-baseval;
+                    yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+                }
             }
         }
-    }
 #endif
-    else
-    {
-        return PASTIX_ERR_BADPARAMETER;
+        else
+        {
+            return PASTIX_ERR_BADPARAMETER;
+        }
     }
 
     return PASTIX_SUCCESS;
-
 }
 
 /**
@@ -202,26 +208,33 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
 
     baseval = spmFindBase( csc );
 
-    for( i=0; i < csc->gN; i++ )
-    {
-        yptr[i] *= beta;
+    /* First, y = beta*y */
+    if( beta == 0. ) {
+        memset( yptr, 0, csc->gN * sizeof(pastix_complex64_t) );
+    }
+    else {
+        for( i=0; i<csc->gN; i++, yptr++ ) {
+            (*yptr) *= beta;
+        }
+        yptr = y;
     }
 
-    for( col=0; col < csc->gN; col++ )
-    {
-        for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
+    if( alpha != 0. ) {
+        for( col=0; col < csc->gN; col++ )
         {
-            row = csc->rowptr[i-baseval]-baseval;
-            yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-            if( col != row )
+            for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
             {
-                yptr[col] += alpha * valptr[i-baseval] * xptr[row];
+                row = csc->rowptr[i-baseval]-baseval;
+                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
+                if( col != row )
+                {
+                    yptr[col] += alpha * valptr[i-baseval] * xptr[row];
+                }
             }
         }
     }
 
     return PASTIX_SUCCESS;
-
 }
 
 #if defined(PRECISION_c) || defined(PRECISION_z)
@@ -282,25 +295,32 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    for( i=0; i < csc->gN; i++ )
-    {
-        yptr[i] *= beta;
+    /* First, y = beta*y */
+    if( beta == 0. ) {
+        memset( yptr, 0, csc->gN * sizeof(pastix_complex64_t) );
+    }
+    else {
+        for( i=0; i<csc->gN; i++, yptr++ ) {
+            (*yptr) *= beta;
+        }
+        yptr = y;
     }
 
     baseval = spmFindBase( csc );
 
-    for( col=0; col < csc->gN; col++ )
-    {
-        for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
+    if( alpha != 0. ) {
+        for( col=0; col < csc->gN; col++ )
         {
-            row=csc->rowptr[i-baseval]-baseval;
-            yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-            if( col != row )
-                yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+            for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
+            {
+                row=csc->rowptr[i-baseval]-baseval;
+                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
+                if( col != row )
+                    yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+            }
         }
     }
 
     return PASTIX_SUCCESS;
-
 }
 #endif
