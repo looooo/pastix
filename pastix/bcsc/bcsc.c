@@ -15,6 +15,11 @@
 #include "csc.h"
 #include "bcsc.h"
 
+#include "z_bcsc.h"
+#include "c_bcsc.h"
+#include "d_bcsc.h"
+#include "s_bcsc.h"
+
 static inline pastix_int_t
 bcsc_init_coltab( const SolverMatrix  *solvmtx,
                   const pastix_int_t  *newcoltab,

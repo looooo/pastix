@@ -14,12 +14,6 @@
 #ifndef _BCSC_H
 #define _BCSC_H
 
-#include "common.h"
-#include "z_bcsc.h"
-#include "c_bcsc.h"
-#include "d_bcsc.h"
-#include "s_bcsc.h"
-
 struct bcsc_format_s {
     pastix_int_t   colnbr; /*> Number of columns in the block column.                                    */
     pastix_int_t * coltab; /*> Array of indexes of the start of each column in the row and value arrays. */
