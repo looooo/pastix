@@ -188,8 +188,9 @@ z_bcscNormMax( pastix_bcsc_t *bcsc,
                double       *norm )
 {
     double temp;
-    pastix_complex64_t *valptr = bcsc->values;
+    pastix_complex64_t *valptr = bcsc->Lvalues;
     pastix_int_t i, j, bloc;
+    pastix_int_t col = 0;
 
     *norm = 0.;
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
@@ -205,6 +206,27 @@ z_bcscNormMax( pastix_bcsc_t *bcsc,
                 }
             }
             col += 1;
+        }
+    }
+
+    if(bcsc->mtxtype == PastixGeneral)
+    {
+        col = 0;
+        *valptr = bcsc->Uvalues;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    temp = cabs(valptr[i]);
+                    if(*norm < temp)
+                    {
+                        *norm = temp;
+                    }
+                }
+                col += 1;
+            }
         }
     }
 
@@ -263,29 +285,20 @@ z_bcscNormInf( pastix_bcsc_t *bcsc,
             col += 1;
         }
     }
-    switch (bcsc->mtxtype) {
-    case PastixSymetric:
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    case PastixHermitian:
-#endif
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+
+    *valptr = bcsc->Uvalues
+    col = 0;
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
         {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+//          !!  A vérifier !!
+            for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-                for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    summcol[col] += cabs(valptr[i]);
-                }
-                col += 1;
+                summcol[bcsc->rowtab[i]] += cabs(valptr[i]);
             }
+            col += 1;
         }
-    break;
-    case PastixGeneral:
-    break;
-    default:
-        memFree_null( summcol );
-        return PASTIX_ERR_BADPARAMETER;
     }
 
     for( i=0; i<n; i++)
@@ -350,30 +363,21 @@ z_bcscNormOne( pastix_bcsc_t *bcsc,
             }
             col += 1;
         }
-    }  
-    switch (bcsc->mtxtype) {
-    case PastixSymetric:
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    case PastixHermitian:
-#endif
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    }
+
+    *valptr = bcsc->Uvalues
+    col = 0;
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
         {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+//          !!  A vérifier !!
+            for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-                for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    summrow[bcsc->rowtab[i]] += cabs(valptr[i]);
-                }
-                col += 1;
+                summrow[col] += cabs(valptr[i]);
             }
+            col += 1;
         }
-    break;
-    case PastixGeneral:
-    break;
-    default:
-        memFree_null( sumcol );
-        return PASTIX_ERR_BADPARAMETER;
     }
 
     for( i=0; i<n; i++)
@@ -416,59 +420,55 @@ z_bcscFrobeniusNorm( pastix_bcsc_t *bcsc,
 {
     double scale = 0.;
     double sum = 1.;
-    double temp, nb;
-    pastix_complex64_t *valptr = bcsc->values;
+    double temp;
+    pastix_complex64_t *valptr = bcsc->Lvalues;
     pastix_int_t i, j;
 
-    if (bcsc->mtxtype == PastixGeneral)
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
-        nb = 1.;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
-            {
-                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    if(temp != 0.)
-                    {
-                        if(scale < temp)
-                        {
-                            sum = nb + sum*pow((scale / temp), 2.);
-                            scale = temp;
-                        }else{
-                            sum = sum + nb*pow((double)(temp / scale), 2.);
-                        }
-                    }
-                }
-                col += 1;
-            }
-        }
-    }else{
         for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
         {
             for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-                temp = cabs(valptr[i]);
-                if(rowptr[i] == col)
-                {
-                    nb = 1.;
-                }else{
-                    nb = 2.;
-                }
+                temp = cabs( valptr[i] )
                 if(temp != 0.)
                 {
                     if(scale < temp)
                     {
-                        sum = nb + sum*pow((scale / temp), 2.);
+                        sum = 1 + sum*pow((scale / temp), 2.);
                         scale = temp;
                     }else{
-                        sum = sum + nb*pow((double)(temp / scale), 2.);
+                        sum = sum + pow((double)(temp / scale), 2.);
                     }
                 }
             }
-            col += 1;
         }
-    }    
+    }
+
+    *valptr = bcsc->Uvalues
+
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+        {
+//          !!  A vérifier !!
+            for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+            {
+                temp = cabs( valptr[i] )
+                if(temp != 0.)
+                {
+                    if(scale < temp)
+                    {
+                        sum = 1 + sum*pow((scale / temp), 2.);
+                        scale = temp;
+                    }else{
+                        sum = sum + pow((double)(temp / scale), 2.);
+                    }
+                }
+            }
+        }
+    }
+
     *norm = scale*sqrt(sum);
 
     return PASTIX_SUCCESS;
