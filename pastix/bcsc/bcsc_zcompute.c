@@ -173,26 +173,21 @@ z_bcscGemv(pastix_trans_t      trans,
  * @param[in] values
  *          The values array of the matrix.
  *
- * @param[out] norm
- *          The norm of the matrix A.
- *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *      \retval The norm of the matrix.
  *
  *******************************************************************************/
-int
-z_bcscNormMax( pastix_bcsc_t *bcsc,
-               double       *norm )
+double
+z_bcscMaxNorm( pastix_bcsc_t *bcsc )
 {
     double temp;
+    double norm = 0.;
     pastix_complex64_t *valptr = bcsc->Lvalues;
     pastix_int_t i, j, bloc;
     pastix_int_t col = 0;
 
-    *norm = 0.;
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
         for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
@@ -200,9 +195,9 @@ z_bcscNormMax( pastix_bcsc_t *bcsc,
             for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
                 temp = cabs(valptr[i]);
-                if(*norm < temp)
+                if(norm < temp)
                 {
-                    *norm = temp;
+                    norm = temp;
                 }
             }
             col += 1;
@@ -220,9 +215,9 @@ z_bcscNormMax( pastix_bcsc_t *bcsc,
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
                     temp = cabs(valptr[i]);
-                    if(*norm < temp)
+                    if(norm < temp)
                     {
-                        *norm = temp;
+                        norm = temp;
                     }
                 }
                 col += 1;
@@ -230,7 +225,7 @@ z_bcscNormMax( pastix_bcsc_t *bcsc,
         }
     }
 
-    return PASTIX_SUCCESS;
+    return norm;
 }
 
 /**
@@ -247,29 +242,25 @@ z_bcscNormMax( pastix_bcsc_t *bcsc,
  * @param[in] bcsc
  *          The Pastix bcsc.
  *
- * @param[in] n
- *          The size of the matrix.
- *
- * @param[out] norm
- *          The norm of the matrix A.
- *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *      \retval The norm of the matrix.
  *
  *******************************************************************************/
-int
-z_bcscNormInf( pastix_bcsc_t *bcsc,
-               pastix_int_t  n,
-               double        *norm )
+double
+z_bcscInfNorm( pastix_bcsc_t *bcsc )
 {
-    double temp;
     double *summcol;
+    double norm = 0.;
     pastix_complex64_t *valptr = bcsc->Lvalues;
-    int i,j,bloc
+    int n,i,j,bloc
 
+    n = 0;
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        n += bcsc->cscftab->colnbr
+    }
     MALLOC_INTERN( summcol, n, double);
     memset( summcol, 0, n * sizeof(double) );
     *norm = 0.;
@@ -303,14 +294,14 @@ z_bcscNormInf( pastix_bcsc_t *bcsc,
 
     for( i=0; i<n; i++)
     {
-        if(*norm < summcol[i])
+        if(norm < summcol[i])
         {
-            *norm = summcol[i];
+            norm = summcol[i];
         }
     }
     memFree_null( sumcol );
 
-    return PASTIX_SUCCESS;
+    return norm;
 }
 
 /**
@@ -327,31 +318,27 @@ z_bcscNormInf( pastix_bcsc_t *bcsc,
  * @param[in] bcsc
  *          The Pastix bcsc.
  *
- * @param[in] n
- *          The size of the matrix.
- *
- * @param[out] norm
- *          The norm of the matrix A.
- *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *      \retval The norm of the matrix.
  *
  *******************************************************************************/
-int
-z_bcscNormOne( pastix_bcsc_t *bcsc,
-               pastix_int_t  n,
-               double        *norm )
+double
+z_bcscOneNorm( pastix_bcsc_t *bcsc )
 {
     double *summrow;
+    double norm = 0.;
     pastix_complex64_t *valptr = bcsc->Lvalues;
-    int i,j,bloc
+    int n,i,j,bloc
 
+    n = 0;
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        n += bcsc->cscftab->colnbr
+    }
     MALLOC_INTERN( summrow, n, double);
     memset( summrow, 0, n * sizeof(double) );
-    *norm = 0.;
     col = 0;
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
@@ -382,14 +369,14 @@ z_bcscNormOne( pastix_bcsc_t *bcsc,
 
     for( i=0; i<n; i++)
     {
-        if(*norm < summrow[i])
+        if(norm < summrow[i])
         {
-            *norm = summrow[i];
+            norm = summrow[i];
         }
     }
     memFree_null( summrow );
 
-    return PASTIX_SUCCESS;
+    return norm;
 }
 
 /**
@@ -404,23 +391,19 @@ z_bcscNormOne( pastix_bcsc_t *bcsc,
  * @param[in] bcsc
  *          The Pastix bcsc.
  *
- * @param[out] norm
- *          The norm of the matrix.
- *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the norm has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *      \retval The norm of the matrix
  *
  *******************************************************************************/
-int
-z_bcscFrobeniusNorm( pastix_bcsc_t *bcsc,
-                     double       *norm )
+double
+z_bcscFrobeniusNorm( pastix_bcsc_t *bcsc)
 {
     double scale = 0.;
     double sum = 1.;
     double temp;
+    double norm;
     pastix_complex64_t *valptr = bcsc->Lvalues;
     pastix_int_t i, j;
 
@@ -469,9 +452,9 @@ z_bcscFrobeniusNorm( pastix_bcsc_t *bcsc,
         }
     }
 
-    *norm = scale*sqrt(sum);
+    norm = scale*sqrt(sum);
 
-    return PASTIX_SUCCESS;
+    return norm;
 }
 
 /**
@@ -611,6 +594,66 @@ z_bcscNormErr( void         *r1,
     *err = norm2r1/norm2r2;
 
     return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_spmNorm - Compute the norm of an bcsc matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] type
+ *          = PastixMaxNorm: Max norm
+ *          = PastixOneNorm: One norm
+ *          = PastixInfNorm: Infinity norm
+ *          = PastixFrobeniusNorm: Frobenius norm
+ *
+ * @param[in] bcsc
+ *          The spm structure describing the matrix.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval The norm of the matrix.
+ *
+ *******************************************************************************/
+double
+z_bcscNorm( pastix_normtype_t ntype,
+            const pastix_bcsc_t *bcsc )
+{
+    double norm = 0.;
+
+    if(bcsc == NULL)
+    {
+        return -1.;
+    }
+
+    switch( ntype ) {
+    case PastixMaxNorm:
+        norm = z_bcscMaxNorm( bcsc );
+        break;
+
+    case PastixInfNorm:
+        norm = z_bcscInfNorm( bcsc );
+        break;
+
+    case PastixOneNorm:
+        norm = z_bcscOneNorm( bcsc );
+        break;
+
+    case PastixFrobeniusNorm:
+        norm = z_bcscFrobeniusNorm( bcsc );
+        break;
+
+    default:
+        fprintf(stderr, "z_spmNorm: invalid norm type\n");
+        return -1.;
+    }
+
+    return norm;
 }
 
 /**
