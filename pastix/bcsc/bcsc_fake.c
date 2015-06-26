@@ -18,11 +18,7 @@
 #include "order.h"
 #include "csc.h"
 #include "bcsc.h"
-
-extern void
-bcsc_dSort( const pastix_bcsc_t *bcsc,
-            pastix_int_t        *rowtab,
-            double              *valtab );
+#include "d_bcsc.h"
 
 /**
  * Fill in the lower triangular part of the blocked csc with values and
@@ -245,7 +241,7 @@ bcscInitCentralizedFake( const pastix_csc_t  *csc,
     bcsc_restore_coltab( bcsc );
 
     /* Sort the csc */
-    bcsc_dSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
+    d_bcscSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
     if ( csc->mtxtype == PastixGeneral ) {
 	/* A^t is not required if only refinment is performed */
@@ -260,7 +256,7 @@ bcscInitCentralizedFake( const pastix_csc_t  *csc,
             bcsc_restore_coltab( bcsc );
 
 	    /* Sort the transposed csc */
-	    bcsc_dSort( bcsc, trowtab, bcsc->Uvalues );
+	    d_bcscSort( bcsc, trowtab, bcsc->Uvalues );
 	    memFree( trowtab );
         }
     }

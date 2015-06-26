@@ -368,12 +368,12 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/csc")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
@@ -652,6 +652,7 @@ add_library(pastix
 add_dependencies(pastix
   spm_headers
   kernels_headers
+  bcsc_headers
   pastix_bcsc
   pastix_kernels
 )
