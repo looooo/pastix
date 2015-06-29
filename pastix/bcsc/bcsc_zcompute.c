@@ -666,36 +666,33 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the berr has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *      \retval the error.
  *
  *******************************************************************************/
-int
+double
 z_bcscBerr( void         *r1,
             void         *r2,
-            pastix_int_t  n,
-            double       *berr )
+            pastix_int_t  n )
 {
     pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
     pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
     double module1, module2;
+    double berr = 0.;
     pastix_int_t i;
 
     if(r1==NULL || r1== NULL)
         return PASTIX_ERR_BADPARAMETER;
-
-    *berr = 0.;
 
     for( i = 0; i < n; i++)
     {
         module1 = cabs(r1ptr[i]);
         module2 = cabs(r2ptr[i]);
         if( module2 > 0.)
-            if( module1 / module2 > *berr )
-                *berr = module1 / module2;
+            if( module1 / module2 > berr )
+                berr = module1 / module2;
     }
 
-    return PASTIX_SUCCESS;
+    return berr;
 }
 
 /**
@@ -717,21 +714,16 @@ z_bcscBerr( void         *r1,
  * @param[in] n
  *          The size of the vectors.
  *
- * @param[out] err
- *          The returned result.
- *
  *******************************************************************************
  *
  * @return
- *      \retval PASTIX_SUCCESS if the err has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *      \retval The error
  *
  *******************************************************************************/
-int
+double
 z_bcscNormErr( void         *r1,
                void         *r2,
-               pastix_int_t  n,
-               double       *err )
+               pastix_int_t  n )
 {
     double norm2r1;
     double norm2r2;
@@ -781,9 +773,7 @@ z_bcscNormErr( void         *r1,
     }
     norm2r2 = scale*sqrt(sum);
 
-    *err = norm2r1/norm2r2;
-
-    return PASTIX_SUCCESS;
+    return norm2r1/norm2r2;
 }
 
 /**
@@ -935,7 +925,7 @@ z_bcscScal( void               *x,
 int
 z_bcscAxpy(pastix_complex64_t  alpha,
            void               *x,
-           pastix_int_t        n, /* size of the matrix */
+           pastix_int_t        n, /* size of the vectors */
            void               *y,
            pastix_int_t        smxnbr )
 {
