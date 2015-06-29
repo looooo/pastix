@@ -325,11 +325,13 @@ z_bcscHemv(pastix_complex64_t  alpha,
             {
                 yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
                 if( bcsc->rowtab[i] != col )
+                {
 #if defined(PRECISION_z)
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[col];
 #elseif defined(PRECISION_c)
                     yptr[col] += alpha * conjf( Lvalptr[i] ) * xptr[col];
 #endif
+                }
             }
             col += 1;
         }
