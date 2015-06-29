@@ -73,7 +73,6 @@ z_bcscGemv(pastix_trans_t      trans,
            void               *y )
 {
     pastix_complex64_t *Lvalptr = NULL;
-//     pastix_complex64_t *Uvalptr = NULL;
     pastix_complex64_t *yptr    = (pastix_complex64_t*)y;
     pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
     pastix_int_t        bloc, col, i, j, n;
@@ -84,7 +83,6 @@ z_bcscGemv(pastix_trans_t      trans,
     }
     Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
     n = bcsc->n;
-//     Uvalptr = bcsc->Uvalues;
 
     /* first, y = beta*y */
     if( beta != (pastix_complex64_t)0.0 )
@@ -122,7 +120,6 @@ z_bcscGemv(pastix_trans_t      trans,
             {
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-//                     yptr[bcsc->rowtab[i]] += alpha * Uvalptr[i] * xptr[col];
                     yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
                 }
                 col += 1;
@@ -152,6 +149,190 @@ z_bcscGemv(pastix_trans_t      trans,
 #endif
     default:
         return PASTIX_ERR_BADPARAMETER;
+    }
+
+    return PASTIX_SUCCESS;
+
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscSymv - compute the matrix-vector product y=alpha*A*x+beta*y.
+ * A is a PastixSymmetric bcsc,
+ * x and y are two vectors of size n,
+ * alpha and beta are scalars.
+ *
+ *******************************************************************************
+ *
+ * @param[in] alpha
+ *          A scalar.
+ *
+ * @param[in] bcsc
+ *          The PastixSymmetric bcsc.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] beta
+ *          A scalar.
+ *
+ * @param[in,out] y
+ *          The vector y.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscSymv(pastix_complex64_t  alpha,
+           pastix_bcsc_t      *bcsc,
+           void               *x,
+           pastix_complex64_t  beta,
+           void               *y )
+{
+    pastix_complex64_t *Lvalptr = NULL;
+    pastix_complex64_t *yptr    = (pastix_complex64_t*)y;
+    pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
+    pastix_int_t        bloc, col, i, j, n;
+
+    if(bcsc==NULL || y==NULL || x== NULL)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if(bcsc->mtxtype != PastixSymmetric)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
+    n = bcsc->n;
+
+    /* first, y = beta*y */
+    if( beta != (pastix_complex64_t)0.0 )
+    {
+        for( col = 0; col < n; col++ )
+        {
+            yptr[col] *= beta;
+        }
+    }
+    else if( beta == (pastix_complex64_t)0.0 )
+    {
+        memset(yptr,0.0,n*sizeof(pastix_complex64_t));
+    }
+
+    col = 0;
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+        {
+            for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+            {
+                yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
+                if( bcsc->rowtab[i] != col )
+                    yptr[col] += alpha * Lvalptr[i] * xptr[col];
+            }
+            col += 1;
+        }
+    }
+
+    return PASTIX_SUCCESS;
+
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscHemv - compute the matrix-vector product y=alpha*A*x+beta*y.
+ * A is a PastixHermitian bcsc,
+ * x and y are two vectors of size n,
+ * alpha and beta are scalars.
+ *
+ *******************************************************************************
+ *
+ * @param[in] alpha
+ *          A scalar.
+ *
+ * @param[in] bcsc
+ *          The PastixHermitian bcsc.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] beta
+ *          A scalar.
+ *
+ * @param[in,out] y
+ *          The vector y.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_bcscHemv(pastix_complex64_t  alpha,
+           pastix_bcsc_t      *bcsc,
+           void               *x,
+           pastix_complex64_t  beta,
+           void               *y )
+{
+    pastix_complex64_t *Lvalptr = NULL;
+    pastix_complex64_t *yptr    = (pastix_complex64_t*)y;
+    pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
+    pastix_int_t        bloc, col, i, j, n;
+
+    if(bcsc==NULL || y==NULL || x== NULL)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if(bcsc->mtxtype != PastixHermitian)
+    {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
+    n = bcsc->n;
+
+    /* first, y = beta*y */
+    if( beta != (pastix_complex64_t)0.0 )
+    {
+        for( col = 0; col < n; col++ )
+        {
+            yptr[col] *= beta;
+        }
+    }
+    else if( beta == (pastix_complex64_t)0.0 )
+    {
+        memset(yptr,0.0,n*sizeof(pastix_complex64_t));
+    }
+
+    col = 0;
+    for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+    {
+        for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+        {
+            for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+            {
+                yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
+                if( bcsc->rowtab[i] != col )
+#if defined(PRECISION_z)
+                    yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[col];
+#elseif defined(PRECISION_c)
+                    yptr[col] += alpha * conjf( Lvalptr[i] ) * xptr[col];
+#endif
+            }
+            col += 1;
+        }
     }
 
     return PASTIX_SUCCESS;
@@ -272,7 +453,7 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
 
     if(bcsc->mtxtype != PastixGeneral)
     {
-//          !!  A vérifier !!
+// TODO check it is good
         valptr = (pastix_complex64_t*)bcsc->Uvalues;
         col = 0;
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
@@ -352,7 +533,7 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
         {
             for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
             {
-//          !!  A vérifier !!
+// TODO check it is good
                 for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
                     summrow[col] += cabs(valptr[i]);
@@ -415,7 +596,9 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
                     {
                         sum = 1 + sum*pow((scale / temp), 2.);
                         scale = temp;
-                    }else{
+                    }
+                    else
+                    {
                         sum = sum + pow((double)(temp / scale), 2.);
                     }
                 }
@@ -425,7 +608,7 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
 
     if(bcsc->mtxtype != PastixGeneral)
     {
-//          !!  A vérifier !!
+// TODO check it is good
         valptr = bcsc->Uvalues;
 
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
@@ -441,7 +624,9 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
                         {
                             sum = 1 + sum*pow((scale / temp), 2.);
                             scale = temp;
-                        }else{
+                        }
+                        else
+                        {
                             sum = sum + pow((double)(temp / scale), 2.);
                         }
                     }
@@ -565,7 +750,9 @@ z_bcscNormErr( void         *r1,
             {
                 sum = 1. + sum*pow((scale / temp), 2.);
                 scale = temp;
-            }else{
+            }
+            else
+            {
                 sum = sum + pow((double)(temp / scale), 2.);
             }
         }
@@ -583,7 +770,9 @@ z_bcscNormErr( void         *r1,
             {
                 sum = 1. + sum*pow((scale / temp), 2.);
                 scale = temp;
-            }else{
+            }
+            else
+            {
                 sum = sum + pow((double)(temp / scale), 2.);
             }
         }

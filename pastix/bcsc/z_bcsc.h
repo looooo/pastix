@@ -35,16 +35,14 @@ int z_bcscGemv(      pastix_trans_t      trans,
                      pastix_complex64_t  beta,
                      pastix_complex64_t *y );
 
-int z_bcscSymv(      pastix_int_t        n,
-                     pastix_complex64_t  alpha,
+int z_bcscSymv(      pastix_complex64_t  alpha,
                const pastix_bcsc_t      *bcsc,
                const pastix_complex64_t *x,
                      pastix_complex64_t  beta,
                      pastix_complex64_t *y );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-int z_bcscHemv(      pastix_int_t        n,
-                     pastix_complex64_t  alpha,
+int z_bcscHemv(      pastix_complex64_t  alpha,
                const pastix_bcsc_t      *bcsc,
                const pastix_complex64_t *x,
                      pastix_complex64_t  beta,
