@@ -29,7 +29,6 @@ void z_bcscInitCentralized( const pastix_csc_t  *csc,
                                   pastix_bcsc_t *bcsc );
 
 int z_bcscGemv(      pastix_trans_t      trans,
-                     pastix_int_t        n,
                      pastix_complex64_t  alpha,
                const pastix_bcsc_t      *bcsc,
                const pastix_complex64_t *x,

@@ -43,6 +43,7 @@ add_library(pastix_bcsc
   ${generated_files}
   bcsc.c        # Not finished
   bcsc_fake.c   # Not finished
+  bcsc_zcompute.c   # Not finished
 )
 
 install(TARGETS pastix_bcsc
