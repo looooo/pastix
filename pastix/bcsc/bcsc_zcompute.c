@@ -135,7 +135,6 @@ z_bcscGemv(pastix_trans_t      trans,
             {
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-//                     yptr[bcsc->rowtab[i]] += alpha * conj( Uvalptr[i] ) * xptr[col];
 #if defined(PRECISION_z)
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
 #elseif defined(PRECISION_c)
@@ -346,7 +345,7 @@ z_bcscHemv(pastix_complex64_t  alpha,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNormMax - compute the max norm of a general matrix.
+ * z_bcscNormMax - compute the max norm of a bcsc matrix.
  *
  *******************************************************************************
  *
@@ -384,27 +383,6 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
         }
     }
 
-    if(bcsc->mtxtype != PastixGeneral)
-    {
-        col = 0;
-        valptr = (pastix_complex64_t*)bcsc->Uvalues;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
-            {
-                for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    temp = cabs(valptr[i]);
-                    if(norm < temp)
-                    {
-                        norm = temp;
-                    }
-                }
-                col += 1;
-            }
-        }
-    }
-
     return norm;
 }
 
@@ -413,7 +391,7 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNormInf - compute the infinity norm of a general matrix.
+ * z_bcscNormInf - compute the infinity norm of a bcsc matrix.
  * The infinity norm is equal to the maximum value of the sum of the
  * Absolute values of the elements of each rows.
  *
@@ -439,7 +417,6 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
     n = bcsc->n;
     MALLOC_INTERN( summcol, n, double);
     memset( summcol, 0, n * sizeof(double) );
-    norm = 0.;
     col = 0;
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
@@ -488,7 +465,7 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNormOne - compute the norm 1 of a general matrix.
+ * z_bcscNormOne - compute the norm 1 of a bcsc matrix.
  * Norm 1 is equal to the maximum value of the sum of the
  * Absolute values of the elements of each columns.
  *
@@ -562,7 +539,7 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscFrobeniusNorm - compute the frobenius norm of a general matrix.
+ * z_bcscFrobeniusNorm - compute the frobenius norm of a bcsc matrix.
  *
  *******************************************************************************
  *
@@ -582,7 +559,7 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
     double sum = 1.;
     double temp;
     double norm;
-    pastix_complex64_t *valptr = bcsc->Lvalues;
+    pastix_complex64_t *valptr = (pastix_complex64_t*)bcsc->Lvalues;
     pastix_int_t i, j, bloc;
 
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
@@ -611,7 +588,7 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
     if(bcsc->mtxtype != PastixGeneral)
     {
 // TODO check it is good
-        valptr = bcsc->Uvalues;
+        valptr = bcsc->(pastix_complex64_t*)Uvalues;
 
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
@@ -638,6 +615,66 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
     }
 
     norm = scale*sqrt(sum);
+
+    return norm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscNorm - Compute the norm of an bcsc matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] type
+ *          = PastixMaxNorm: Max norm
+ *          = PastixOneNorm: One norm
+ *          = PastixInfNorm: Infinity norm
+ *          = PastixFrobeniusNorm: Frobenius norm
+ *
+ * @param[in] bcsc
+ *          The bcsc structure describing the matrix.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval The norm of the matrix.
+ *
+ *******************************************************************************/
+double
+z_bcscNorm( pastix_normtype_t ntype,
+            const pastix_bcsc_t *bcsc )
+{
+    double norm = 0.;
+
+    if(bcsc == NULL)
+    {
+        return -1.;
+    }
+
+    switch( ntype ) {
+    case PastixMaxNorm:
+        norm = z_bcscMaxNorm( bcsc );
+        break;
+
+    case PastixInfNorm:
+        norm = z_bcscInfNorm( bcsc );
+        break;
+
+    case PastixOneNorm:
+        norm = z_bcscOneNorm( bcsc );
+        break;
+
+    case PastixFrobeniusNorm:
+        norm = z_bcscFrobeniusNorm( bcsc );
+        break;
+
+    default:
+        fprintf(stderr, "z_spmNorm: invalid norm type\n");
+        return -1.;
+    }
 
     return norm;
 }
@@ -774,66 +811,6 @@ z_bcscNormErr( void         *r1,
     norm2r2 = scale*sqrt(sum);
 
     return norm2r1/norm2r2;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * z_spmNorm - Compute the norm of an bcsc matrix
- *
- *******************************************************************************
- *
- * @param[in] type
- *          = PastixMaxNorm: Max norm
- *          = PastixOneNorm: One norm
- *          = PastixInfNorm: Infinity norm
- *          = PastixFrobeniusNorm: Frobenius norm
- *
- * @param[in] bcsc
- *          The spm structure describing the matrix.
- *
- *******************************************************************************
- *
- * @return
- *      \retval The norm of the matrix.
- *
- *******************************************************************************/
-double
-z_bcscNorm( pastix_normtype_t ntype,
-            const pastix_bcsc_t *bcsc )
-{
-    double norm = 0.;
-
-    if(bcsc == NULL)
-    {
-        return -1.;
-    }
-
-    switch( ntype ) {
-    case PastixMaxNorm:
-        norm = z_bcscMaxNorm( bcsc );
-        break;
-
-    case PastixInfNorm:
-        norm = z_bcscInfNorm( bcsc );
-        break;
-
-    case PastixOneNorm:
-        norm = z_bcscOneNorm( bcsc );
-        break;
-
-    case PastixFrobeniusNorm:
-        norm = z_bcscFrobeniusNorm( bcsc );
-        break;
-
-    default:
-        fprintf(stderr, "z_spmNorm: invalid norm type\n");
-        return -1.;
-    }
-
-    return norm;
 }
 
 /**
