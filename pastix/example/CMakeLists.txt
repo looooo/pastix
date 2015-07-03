@@ -8,6 +8,7 @@ set(generated_headers "")
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
   z_spm_matvec_test.c
+  z_bcsc_tests.c
 )
 
 precisions_rules_py(generated_files
@@ -140,6 +141,9 @@ target_link_libraries(spm_matvec_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
 add_executable(spm_norm_tests spm_norm_tests.c)
 target_link_libraries(spm_norm_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
+
+add_executable(bcsc_norm_tests bcsc_norm_tests.c)
+target_link_libraries(bcsc_norm_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
 #
 #-- CTests
