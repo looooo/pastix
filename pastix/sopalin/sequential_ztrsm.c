@@ -109,7 +109,7 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
-                    for (blok = cblk[0].fblokptr; blok < cblk[1].fblokptr; blok++ ) {
+                    for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
                         fcbk  = datacode->cblktab + blok->fcblknm;
                         tempm = blok->lrownum - blok->frownum + 1;
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
@@ -152,6 +152,8 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                         tempn = blok->lrownum - blok->frownum + 1;
                         coeftab = (pastix_complex64_t*)(fcbk->lcoeftab);
+
+                        assert( blok->lcblknm !=  t->cblknum);
 
                         cblas_zgemm(
                             CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
