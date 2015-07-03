@@ -22,6 +22,7 @@
 #include "common.h"
 #include "bcsc.h"
 #include <math.h>
+#include "frobeniusupdate.h"
 
 /**
  *******************************************************************************
@@ -110,47 +111,32 @@ z_bcscNormErr( void         *r1,
     double norm2r2;
     double scale = 0.;
     double sum = 1.;
-    double temp;
+    double* valptr = (double*)r1;
     int i;
 
     if(r1==NULL || r2== NULL)
         return PASTIX_ERR_BADPARAMETER;
 
-    for( i = 0; i < n; i++ )
+    for( i = 0; i < n; i++, valptr++ )
     {
-        temp = cabs(((pastix_complex64_t*)r1)[i]);
-        if(temp != 0.)
-        {
-            if(scale < temp)
-            {
-                sum = 1. + sum*pow((scale / temp), 2.);
-                scale = temp;
-            }
-            else
-            {
-                sum = sum + pow((double)(temp / scale), 2.);
-            }
-        }
+        frobenius_update( 1, &scale, &sum, valptr);
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        valptr++;
+        frobenius_update( 1, &scale, &sum, valptr);
+#endif
     }
     norm2r1 = scale*sqrt(sum);
 
     scale = 0.;
     sum=1.;
+    valptr = (double*)r2;
     for( i = 0; i < n; i++ )
     {
-        temp = cabs(((pastix_complex64_t*)r2)[i]);
-        if(temp != 0.)
-        {
-            if(scale < temp)
-            {
-                sum = 1. + sum*pow((scale / temp), 2.);
-                scale = temp;
-            }
-            else
-            {
-                sum = sum + pow((double)(temp / scale), 2.);
-            }
-        }
+        frobenius_update( 1, &scale, &sum, valptr);
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        valptr++;
+        frobenius_update( 1, &scale, &sum, valptr);
+#endif
     }
     norm2r2 = scale*sqrt(sum);
 
