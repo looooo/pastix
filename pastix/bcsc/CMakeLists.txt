@@ -31,6 +31,7 @@ set_source_files_properties( bcsc.h PROPERTIES DEPENDS bcsc_headers )
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
   bcsc_zinit.c # Not finished
+  bcsc_zcompute.c   # Not finished
 )
 
 precisions_rules_py(generated_files
@@ -38,12 +39,13 @@ precisions_rules_py(generated_files
   PRECISIONS "s;d;c;z"
   )
 
+set_source_files_properties( ${generated_files} PROPERTIES DEPENDS bcsc_headers )
+
 ### Generate the lib
 add_library(pastix_bcsc
   ${generated_files}
   bcsc.c        # Not finished
   bcsc_fake.c   # Not finished
-  bcsc_zcompute.c   # Not finished
 )
 
 install(TARGETS pastix_bcsc

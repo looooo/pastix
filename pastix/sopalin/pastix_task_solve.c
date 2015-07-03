@@ -17,7 +17,13 @@
 #include "common.h"
 #include "csc.h"
 #include "bcsc.h"
+#include "order.h"
 #include "sopalin_data.h"
+
+#include "z_bcsc.h"
+#include "c_bcsc.h"
+#include "d_bcsc.h"
+#include "s_bcsc.h"
 
 void
 pastix_static_trsm( int flttype, int side, int uplo, int trans, int diag,
@@ -112,8 +118,32 @@ pastix_task_solve( pastix_data_t *pastix_data,
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
 
+    orderBase( pastix_data->ordemesh, 0 );
     sbackup = solverBackupInit( pastix_data->solvmatr );
     pastix_data->solvmatr->restore = 1;
+
+    switch( pastix_data->bcsc->flttype ) {
+    case PastixComplex64:
+        z_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->peritab );
+        break;
+
+    case PastixComplex32:
+        c_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->peritab );
+        break;
+
+    case PastixFloat:
+        s_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->peritab );
+        break;
+
+    case PastixDouble:
+    default:
+        d_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->peritab );
+    }
+
     {
         sopalin_data_t sopalin_data;
         double timer;
@@ -148,6 +178,28 @@ pastix_task_solve( pastix_data_t *pastix_data,
         clockStop(timer);
 
         pastix_print( 0, 0, OUT_TIME_SOLV, clockVal(timer) );
+    }
+
+    switch( pastix_data->bcsc->flttype ) {
+    case PastixComplex64:
+        z_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->permtab );
+        break;
+
+    case PastixComplex32:
+        c_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->permtab );
+        break;
+
+    case PastixFloat:
+        s_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->permtab );
+        break;
+
+    case PastixDouble:
+    default:
+        d_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+                         pastix_data->ordemesh->permtab );
     }
 
     solverBackupRestore( pastix_data->solvmatr, sbackup );

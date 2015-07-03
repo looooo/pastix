@@ -137,7 +137,7 @@ z_bcscGemv(pastix_trans_t      trans,
                 {
 #if defined(PRECISION_z)
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
-#elseif defined(PRECISION_c)
+#elif defined(PRECISION_c)
                     yptr[col] += alpha * conjf( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
 #endif
                 }
@@ -327,7 +327,7 @@ z_bcscHemv(pastix_complex64_t  alpha,
                 {
 #if defined(PRECISION_z)
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[col];
-#elseif defined(PRECISION_c)
+#elif defined(PRECISION_c)
                     yptr[col] += alpha * conjf( Lvalptr[i] ) * xptr[col];
 #endif
                 }
@@ -937,3 +937,49 @@ z_bcscAxpy(pastix_complex64_t  alpha,
 /* rberror = ||r||/||b|| */
 /* Copy */
 /* GEMM */
+
+int z_bcscApplyPerm( pastix_int_t m,
+                     pastix_int_t n,
+                     pastix_complex64_t *A,
+                     pastix_int_t lda,
+                     pastix_int_t *perm )
+{
+    pastix_int_t i, j, k;
+    (void)lda;
+
+    if ( n == 1 ) {
+        pastix_complex64_t tmp;
+        for(k=0; k<m; k++) {
+            i = k;
+            j = perm[i];
+
+            /* Cycle already seen */
+            if ( j < 0 ) {
+                continue;
+            }
+
+            /* Mark the i^th element as being seen */
+            perm[i] = -j-1;
+
+            while( j != k ) {
+
+                tmp = A[j];
+                A[j] = A[k];
+                A[k] = tmp;
+
+                i = j;
+                j = perm[i];
+                perm[i] = -j-1;
+
+                assert( (j != i) && (j >= 0) );
+            }
+        }
+
+        for(k=0; k<m; k++) {
+            assert(perm[k] < 0);
+            perm[k] = - perm[k] - 1;
+        }
+    }
+
+    return PASTIX_SUCCESS;
+}
