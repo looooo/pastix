@@ -28,7 +28,7 @@
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNormMax - compute the max norm of a bcsc matrix.
+ * z_bcscMaxNorm - compute the max norm of a bcsc matrix.
  *
  *******************************************************************************
  *
@@ -48,7 +48,6 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
     double norm = 0.;
     pastix_complex64_t *valptr = (pastix_complex64_t*)bcsc->Lvalues;
     pastix_int_t i, j, bloc;
-    pastix_int_t col = 0;
 
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
@@ -62,7 +61,6 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
                     norm = temp;
                 }
             }
-            col += 1;
         }
     }
 
@@ -74,7 +72,7 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNormInf - compute the infinity norm of a bcsc matrix.
+ * z_bcscInfNorm - compute the infinity norm of a bcsc matrix.
  * The infinity norm is equal to the maximum value of the sum of the
  * Absolute values of the elements of each rows.
  *
@@ -95,12 +93,11 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
     double *summcol;
     double norm = 0.;
     pastix_complex64_t *valptr = (pastix_complex64_t*)bcsc->Lvalues;
-    int n,i,j,bloc,col;
+    int n,i,j,bloc;
 
     n = bcsc->n;
     MALLOC_INTERN( summcol, n, double);
     memset( summcol, 0, n * sizeof(double) );
-    col = 0;
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
         for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
@@ -109,7 +106,6 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
             {
                 summcol[bcsc->rowtab[i]] += cabs(valptr[i]);
             }
-            col += 1;
         }
     }
 
@@ -117,7 +113,6 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
     {
 // TODO check if this is good
         valptr = (pastix_complex64_t*)bcsc->Uvalues;
-        col = 0;
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
             for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
@@ -126,7 +121,6 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
                 {
                     summcol[bcsc->rowtab[i]] += cabs(valptr[i]);
                 }
-                col += 1;
             }
         }
     }
@@ -148,7 +142,7 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNormOne - compute the norm 1 of a bcsc matrix.
+ * z_bcscOneNorm - compute the norm 1 of a bcsc matrix.
  * Norm 1 is equal to the maximum value of the sum of the
  * Absolute values of the elements of each columns.
  *
