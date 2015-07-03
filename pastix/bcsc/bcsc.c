@@ -180,6 +180,8 @@ bcscInitCentralized( const pastix_csc_t  *csc,
 
     bcsc->mtxtype = csc->mtxtype;
     bcsc->flttype = csc->flttype;
+    bcsc->gN      = csc->gN;
+    bcsc->n       = csc->n;
 
     assert( csc->loc2glob == NULL );
 
