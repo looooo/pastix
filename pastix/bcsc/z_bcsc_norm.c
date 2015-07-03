@@ -248,14 +248,13 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
     {
         for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
         {
-            for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++, valptr++; )
+            for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++, valptr++ )
             {
                 frobenius_update( 1, &scale, &sum, valptr);
 #if defined(PRECISION_z) || defined(PRECISION_c)
                 valptr++;
                 frobenius_update( 1, &scale, &sum, valptr);
 #endif
-                
             }
         }
     }
@@ -263,27 +262,19 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
     if(bcsc->mtxtype != PastixGeneral)
     {
 // TODO check if this is good
-        valptr = bcsc->(pastix_complex64_t*)Uvalues;
+        valptr = (double*)bcsc->Uvalues;
 
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
             for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
             {
-                for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                for( i = bcsc->cscftab[bloc].coltab[j]+1; i < bcsc->cscftab[bloc].coltab[j+1]; i++, valptr++ )
                 {
-                    temp = cabs( valptr[i] );
-                    if(temp != 0.)
-                    {
-                        if(scale < temp)
-                        {
-                            sum = 1 + sum*pow((scale / temp), 2.);
-                            scale = temp;
-                        }
-                        else
-                        {
-                            sum = sum + pow((double)(temp / scale), 2.);
-                        }
-                    }
+                frobenius_update( 1, &scale, &sum, valptr);
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                valptr++;
+                frobenius_update( 1, &scale, &sum, valptr);
+#endif
                 }
             }
         }

@@ -32,6 +32,8 @@ set_source_files_properties( bcsc.h PROPERTIES DEPENDS bcsc_headers )
 set(SOURCES
   bcsc_zinit.c # Not finished
   bcsc_zcompute.c   # Not finished
+  z_bcsc_norm.c   # Not finished
+  z_bcsc_matrixvector.c   # Not finished
 )
 
 precisions_rules_py(generated_files
