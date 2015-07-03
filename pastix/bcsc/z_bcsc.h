@@ -51,4 +51,9 @@ int z_bcscHemv(      pastix_complex64_t  alpha,
 
 double z_bcscNorm( pastix_normtype_t ntype, const pastix_bcsc_t *bcsc );
 
+int z_bcscApplyPerm( pastix_int_t m,
+                     pastix_int_t n,
+                     pastix_complex64_t *A,
+                     pastix_int_t lda,
+                     pastix_int_t *perm );
 #endif /* _Z_BCSC_H_ */
