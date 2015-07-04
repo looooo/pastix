@@ -125,23 +125,23 @@ pastix_task_solve( pastix_data_t *pastix_data,
     switch( pastix_data->bcsc->flttype ) {
     case PastixComplex64:
         z_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->peritab );
+                         pastix_data->ordemesh->permtab );
         break;
 
     case PastixComplex32:
         c_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->peritab );
+                         pastix_data->ordemesh->permtab );
         break;
 
     case PastixFloat:
         s_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->peritab );
+                         pastix_data->ordemesh->permtab );
         break;
 
     case PastixDouble:
     default:
         d_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->peritab );
+                         pastix_data->ordemesh->permtab );
     }
 
     {
@@ -183,23 +183,23 @@ pastix_task_solve( pastix_data_t *pastix_data,
     switch( pastix_data->bcsc->flttype ) {
     case PastixComplex64:
         z_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->permtab );
+                         pastix_data->ordemesh->peritab );
         break;
 
     case PastixComplex32:
         c_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->permtab );
+                         pastix_data->ordemesh->peritab );
         break;
 
     case PastixFloat:
         s_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->permtab );
+                         pastix_data->ordemesh->peritab );
         break;
 
     case PastixDouble:
     default:
         d_bcscApplyPerm( csc->gN, nrhs, b, ldb,
-                         pastix_data->ordemesh->permtab );
+                         pastix_data->ordemesh->peritab );
     }
 
     solverBackupRestore( pastix_data->solvmatr, sbackup );
