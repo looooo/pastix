@@ -119,5 +119,5 @@ coeftabInit( const SolverMatrix  *datacode,
         initfunc( datacode, bcsc, itercblk, fakefillin, factoLU );
     }
 
-    dumpfunc( datacode, "lcoeftab.txt" );
+    //dumpfunc( datacode, "lcoeftab.txt" );
 }
