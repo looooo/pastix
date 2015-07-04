@@ -52,7 +52,7 @@ extraCblkInc( ExtraCblk_t *extracblk )
         extracblk->sizcblk += extrasize;
 
         /* Add 5% of original cblknbr to the cblktab */
-        MALLOC_INTERN( extracblk->cblktab, extracblk->cblknbr, SymbolCblk );
+        MALLOC_INTERN( extracblk->cblktab, extracblk->sizcblk, SymbolCblk );
         memcpy(extracblk->cblktab, tmp, sizeof(SymbolCblk)*extracblk->curcblk);
 
         memFree_null(tmp);
