@@ -55,15 +55,16 @@ kassBuildSymbol(      kass_csr_t   *P,
     pastix_int_t *tmp = NULL;
     pastix_int_t *node2cblk  = NULL;
     pastix_int_t *ja         = NULL;
-    pastix_int_t n, bloknbr;
+    pastix_int_t n, bloknbr, tmpsize;
 
     assert( cblknbr == P->n );
     n = rangtab[cblknbr];
     bloknbr = 0;
 
     /**** First we transform the P matrix to find the block ****/
-    MALLOC_INTERN(tmp,        2*cblknbr, pastix_int_t);
-    MALLOC_INTERN(node2cblk,  n,         pastix_int_t);
+    tmpsize = pastix_iceil( n, 2 );
+    MALLOC_INTERN(tmp,        tmpsize, pastix_int_t);
+    MALLOC_INTERN(node2cblk,  n,       pastix_int_t);
 
     for(k=0;k<cblknbr;k++)
         for(i=rangtab[k];i<rangtab[k+1];i++)
@@ -94,6 +95,7 @@ kassBuildSymbol(      kass_csr_t   *P,
                    (node2cblk[ja[l]] == cblknum) )
                 l++;
 
+            assert(ind < tmpsize);
             tmp[ind++] = ja[j];
             tmp[ind++] = ja[l-1];
             assert( (ja[l-1] - ja[j] + 1 ) == (l-j) );
