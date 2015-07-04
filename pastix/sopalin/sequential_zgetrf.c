@@ -29,10 +29,6 @@ pastix_static_zgetrf( sopalin_data_t *sopalin_data )
     pastix_int_t tasknbr, *tasktab;
     Task *t;
 
-#if defined(PASTIX_DEBUG_FACTO)
-    FILE *stream = fopen("getrf_L.txt", "w");
-#endif
-
     tasknbr = datacode->ttsknbr[0];
     tasktab = datacode->ttsktab[0];
 
@@ -53,10 +49,9 @@ pastix_static_zgetrf( sopalin_data_t *sopalin_data )
             errorPrint("Taskid unknown for task %ld\n", (long)i);
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
+    }
 
 #if defined(PASTIX_DEBUG_FACTO)
-        coeftab_zdumpcblk( cblk, stream );
+    coeftab_zdump( datacode, "getrf_L.txt" );
 #endif
-    }
-    fclose(stream);
 }
