@@ -28,7 +28,10 @@ pastix_static_zpotrf( sopalin_data_t *sopalin_data )
     pastix_int_t  i, ii;
     pastix_int_t tasknbr, *tasktab;
     Task *t;
-    FILE *stream = fopen("facto.txt", "w");
+
+#if defined(PASTIX_DEBUG_FACTO)
+    FILE *stream = fopen("potrf_L.txt", "w");
+#endif
 
     tasknbr = datacode->ttsknbr[0];
     tasktab = datacode->ttsktab[0];
@@ -42,31 +45,18 @@ pastix_static_zpotrf( sopalin_data_t *sopalin_data )
         switch( t->taskid )
         {
         case COMP_1D:
-                    /* /\* Wait for contributions *\/ */
-                    /* API_CALL(z_wait_contrib_comp_1d)(sopalin_data, me, i); */
-
-                    /* z_ooc_wait_task(sopalin_data,i, me); */
-                    /* z_ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me); */
-
-                    /* /\* trace_begin_task1(thread_data->tracefile, *\/ */
-                    /* /\*                   SOPALIN_CLOCK_TRACE, *\/ */
-                    /* /\*                   SOLV_PROCNUM, me, *\/ */
-                    /* /\*                   STATE_COMP1D, *\/ */
-                    /* /\*                   TASK_PROC( i ), *\/ */
-                    /* /\*                   SOLV_TASKTAB[i], *\/ */
-                    /* /\*                   stolen ); *\/ */
-
             /* Compute */
             core_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold);
-            /* fprintf(stream, "i=%ld, task=%ld, cblk=%ld\n", */
-            /*         (long)ii, (long)i, (long)t->cblknum); */
-            /* coeftab_zdumpcblk( cblk, stream ); */
             break;
 
         default:
             errorPrint("Taskid unknown for task %ld\n", (long)i);
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
+
+#if defined(PASTIX_DEBUG_FACTO)
+        coeftab_zdumpcblk( cblk, stream );
+#endif
     }
     fclose(stream);
 }
