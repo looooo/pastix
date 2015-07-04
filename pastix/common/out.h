@@ -41,10 +41,12 @@
 #define OUT_OPT_INT           "        INTEGER TYPE        :                   %s\n"
 #define OUT_OPT_FLOAT         "        FLOAT TYPE          :                   %s %s\n"
 #define OUT_OPT_END           " +--------------------------------------------------------------------+\n"
+
 #define OUT_STEP_ORDER        " Ordering :                                    \n"
-#define OUT_SYMGRAPH          "   > Symmetrizing graph                        \n"
-#define OUT_NODIAG            "   > Removing diag                             \n"
-#define OUT_ORDERINIT         "   > Initiating ordering                       \n"
+#define OUT_SYMGRAPH          "   Symmetrizing graph                          \n"
+#define OUT_NODIAG            "   Removing diag                               \n"
+#define OUT_ORDERINIT         "   Initiating ordering                         \n"
+#define OUT_ORDER_METHOD      "   Algorithm used: %s\n"
 
 #define OUT_STEP_FAX          " Symbolic Factorization :                     \n"
 #define OUT_FAX_METHOD        "   Algorithm used: %4s                       \n"

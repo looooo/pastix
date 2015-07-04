@@ -28,7 +28,6 @@ pastix_static_zhetrf( sopalin_data_t *sopalin_data )
     pastix_int_t  i, ii;
     pastix_int_t tasknbr, *tasktab;
     Task *t;
-    FILE *stream = fopen("facto.txt", "w");
 
     tasknbr = datacode->ttsknbr[0];
     tasktab = datacode->ttsktab[0];
@@ -51,5 +50,8 @@ pastix_static_zhetrf( sopalin_data_t *sopalin_data )
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
     }
-    fclose(stream);
+
+#if defined(PASTIX_DEBUG_FACTO)
+    coeftab_zdump( datacode, "hetrf_L.txt" );
+#endif
 }

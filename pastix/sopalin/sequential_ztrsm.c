@@ -100,6 +100,9 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
                     coeftab = (pastix_complex64_t*)(cblk->lcoeftab);
 
+                    /* In sequential */
+                    assert( cblk->fcolnum == cblk->lcolidx );
+
                     /* Solve the diagonal block */
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
@@ -112,6 +115,8 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
                         fcbk  = datacode->cblktab + blok->fcblknm;
                         tempm = blok->lrownum - blok->frownum + 1;
+
+                        assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
                         cblas_zgemm(
