@@ -70,6 +70,7 @@ int main (int argc, char **argv)
 
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
+    csc.mtxtype = PastixGeneral;
 
     pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rowptr, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
