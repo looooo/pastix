@@ -288,3 +288,54 @@ bcscExit( pastix_bcsc_t *bcsc )
     }
 }
 
+int
+bcscMatVec(      int            trans,
+           const void          *alpha,
+           const pastix_bcsc_t *bcsc,
+           const void          *x,
+           const void          *beta,
+                 void          *y )
+{
+    switch (bcsc->mtxtype) {
+    case PastixHermitian:
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        switch (bcsc->flttype) {
+        case PastixFloat:
+            return s_bcscSymv( *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_bcscHemv( *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_bcscHemv( *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_bcscSymv( *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
+    case PastixSymmetric:
+        switch (bcsc->flttype) {
+        case PastixFloat:
+            return s_bcscSymv( *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_bcscSymv( *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_bcscSymv( *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_bcscSymv( *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    case PastixGeneral:
+    default:
+        switch (bcsc->flttype) {
+        case PastixFloat:
+            return s_bcscGemv( trans, *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
+        case PastixComplex32:
+            return c_bcscGemv( trans, *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+        case PastixComplex64:
+            return z_bcscGemv( trans, *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+        case PastixDouble:
+        default:
+            return d_bcscGemv( trans, *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
+        }
+    }
+}
+

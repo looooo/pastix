@@ -63,4 +63,11 @@ void bcscInit( const pastix_csc_t  *csc,
 
 void bcscExit( pastix_bcsc_t *bcsc );
 
+int bcscMatVec(      int            trans,
+               const void          *alpha,
+               const pastix_bcsc_t *bcsc,
+               const void          *x,
+               const void          *beta,
+                     void          *y );
+
 #endif /* CSC_H */
