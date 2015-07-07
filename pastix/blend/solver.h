@@ -89,14 +89,15 @@ typedef struct SolverMatrix_ {
                      2:After Factorization +*/
     pastix_int_t            baseval; /*+ Base value for numberings                         +*/
 
-    pastix_int_t            nodenbr; /*+ Number of nodes before dof extension              +*/
-    pastix_int_t            coefnbr; /*+ Number of coefficients (node after dof extension) +*/
-    pastix_int_t            gcblknbr; /*+ Global number of column blocks                    +*/
-    pastix_int_t            cblknbr; /*+ Number of column blocks                   +*/
-    pastix_int_t            bloknbr; /*+ Number of blocks                          +*/
-    SolverCblk   * restrict cblktab; /*+ Array of solver column blocks             +*/
-    SolverBlok   * restrict bloktab; /*+ Array of solver blocks                    +*/
-    pastix_int_t * restrict browtab; /*< Array of blocks                            */
+    pastix_int_t            nodenbr; /*< Number of nodes before dof extension              */
+    pastix_int_t            coefnbr; /*< Number of coefficients (node after dof extension) */
+    pastix_int_t            gcblknbr;/*< Global number of column blocks                    */
+    pastix_int_t            cblknbr; /*< Number of column blocks                   */
+    pastix_int_t            bloknbr; /*< Number of blocks                          */
+    pastix_int_t            brownbr; /*< Size of the browtab array                 */
+    SolverCblk   * restrict cblktab; /*< Array of solver column blocks             */
+    SolverBlok   * restrict bloktab; /*< Array of solver blocks                    */
+    pastix_int_t * restrict browtab; /*< Array of blocks                           */
 
 #ifdef PASTIX_WITH_STARPU
     /* All this part concern halo of the local matrix
