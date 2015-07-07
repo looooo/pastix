@@ -41,13 +41,11 @@ int z_bcscSymv(      pastix_complex64_t  alpha,
                      pastix_complex64_t  beta,
                      pastix_complex64_t *y );
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
 int z_bcscHemv(      pastix_complex64_t  alpha,
                const pastix_bcsc_t      *bcsc,
                const pastix_complex64_t *x,
                      pastix_complex64_t  beta,
                      pastix_complex64_t *y );
-#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 double z_bcscNorm( pastix_normtype_t ntype, const pastix_bcsc_t *bcsc );
 

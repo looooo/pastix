@@ -81,21 +81,22 @@ z_bcscGemv(pastix_trans_t      trans,
         return PASTIX_ERR_BADPARAMETER;
     }
     Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
-    n = bcsc->n;
+    n = bcsc->gN;
 
     /* first, y = beta*y */
     if( beta != (pastix_complex64_t)0.0 )
     {
-        for( col = 0; col < n; col++ )
+        for( col = 0; col < n; col++, yptr++ )
         {
-            yptr[col] *= beta;
+            (*yptr) *= beta;
         }
     }
     else if( beta == (pastix_complex64_t)0.0 )
     {
-        memset(yptr,0.0,n*sizeof(pastix_complex64_t));
+        memset(yptr, 0, n * sizeof(pastix_complex64_t));
     }
 
+    yptr = (pastix_complex64_t*)y;
     switch (trans) {
     case PastixNoTrans:
         col = 0;
@@ -134,11 +135,7 @@ z_bcscGemv(pastix_trans_t      trans,
             {
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-#if defined(PRECISION_z)
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
-#elif defined(PRECISION_c)
-                    yptr[col] += alpha * conjf( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
-#endif
                 }
                 col += 1;
             }
@@ -209,21 +206,22 @@ z_bcscSymv(pastix_complex64_t  alpha,
     }
 
     Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
-    n = bcsc->n;
+    n = bcsc->gN;
 
     /* first, y = beta*y */
     if( beta != (pastix_complex64_t)0.0 )
     {
-        for( col = 0; col < n; col++ )
+        for( col = 0; col < n; col++, yptr++ )
         {
-            yptr[col] *= beta;
+            (*yptr) *= beta;
         }
     }
     else if( beta == (pastix_complex64_t)0.0 )
     {
-        memset(yptr,0.0,n*sizeof(pastix_complex64_t));
+        memset(yptr,0,n*sizeof(pastix_complex64_t));
     }
 
+    yptr = (pastix_complex64_t*)y;
     col = 0;
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
@@ -233,7 +231,7 @@ z_bcscSymv(pastix_complex64_t  alpha,
             {
                 yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
                 if( bcsc->rowtab[i] != col )
-                    yptr[col] += alpha * Lvalptr[i] * xptr[col];
+                    yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
             }
             col += 1;
         }
@@ -304,16 +302,17 @@ z_bcscHemv(pastix_complex64_t  alpha,
     /* first, y = beta*y */
     if( beta != (pastix_complex64_t)0.0 )
     {
-        for( col = 0; col < n; col++ )
+        for( col = 0; col < n; col++, yptr++ )
         {
-            yptr[col] *= beta;
+            (*yptr) *= beta;
         }
     }
     else if( beta == (pastix_complex64_t)0.0 )
     {
-        memset(yptr,0.0,n*sizeof(pastix_complex64_t));
+        memset(yptr,0,n*sizeof(pastix_complex64_t));
     }
 
+    yptr = (pastix_complex64_t*)y;
     col = 0;
     for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
     {
@@ -324,10 +323,10 @@ z_bcscHemv(pastix_complex64_t  alpha,
                 yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
                 if( bcsc->rowtab[i] != col )
                 {
-#if defined(PRECISION_z)
-                    yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[col];
-#elif defined(PRECISION_c)
-                    yptr[col] += alpha * conjf( Lvalptr[i] ) * xptr[col];
+#if defined(PRECISION_c) || defined(PRECISION_z)
+                    yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
+#else
+                    yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
 #endif
                 }
             }
@@ -336,5 +335,4 @@ z_bcscHemv(pastix_complex64_t  alpha,
     }
 
     return PASTIX_SUCCESS;
-
 }

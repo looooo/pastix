@@ -25,7 +25,93 @@
 #include <lapacke.h>
 #include <z_spm.h>
 #include <z_bcsc.h>
+#include <bcsc.h>
+#include <order.h>
 
+void CORE_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
+                  int gM, int m0, int n0, unsigned long long int seed );
+
+int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
+                const pastix_complex64_t *A, int LDA,
+                      pastix_complex64_t *B, int LDB);
+
+
+/*------------------------------------------------------------------------
+ *  Check the accuracy of the solution
+ */
+int
+z_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pastix_data )
+{
+    unsigned long long int seed = 35469;
+    pastix_complex64_t *x, *y0, *ys, *yd;
+    pastix_complex64_t alpha, beta;
+    pastix_int_t *perm;
+
+    double Anorm, Xnorm, Y0norm, Ysnorm, Ydnorm, Rnorm;
+    double eps, result;
+    int info_solution, start = 1;
+
+    eps = LAPACKE_dlamch_work('e');
+
+    CORE_zplrnt( 1, 1, &alpha, 1, 1, start, 0, seed ); start++;
+    CORE_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
+    
+    x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
+    CORE_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
+
+    y0 = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
+    CORE_zplrnt( spm->gN, 1, y0, spm->gN, 1, start, 0, seed ); start += spm->gN;
+
+    /* Allocate cs/cd */
+    ys    = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
+    yd    = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
+    perm  = (pastix_int_t*)malloc(spm->gN * sizeof(pastix_int_t));
+
+    /* Initialize cs/cd */
+    memcpy( ys, y0, spm->gN * sizeof(pastix_complex64_t) );
+    memcpy( yd, y0, spm->gN * sizeof(pastix_complex64_t) );
+
+    /* Compute the spm matrix-vector product */
+    spmMatVec( trans, &alpha, spm, x, &beta, ys );
+
+    /* Compute the bcsc matrix-vector product */
+    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
+    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
+
+    bcscMatVec( trans, &alpha, pastix_data->bcsc, x, &beta, yd );
+
+    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
+    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
+
+//     Anorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
+    Anorm  = spmNorm( PastixInfNorm, spm );
+    Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,        x, spm->gN );
+    Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       y0, spm->gN );
+    Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       ys, spm->gN );
+    Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       yd, spm->gN );
+
+    core_zgeadd(PastixNoTrans, spm->gN, 1, -1., ys, spm->gN, yd, spm->gN);
+    Rnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gN, 1, yd, spm->gN );
+
+    if ( 1 ) {
+        printf("  ||A||_inf = %e, ||x||_inf = %e, ||y||_inf = %e\n"
+               "  ||spm(a*A*x+b*y)||_inf = %e, ||bcsc(a*A*x+b*y)||_inf = %e, ||R||_m = %e\n",
+               Anorm, Xnorm, Y0norm, Ysnorm, Ydnorm, Rnorm);
+    }
+
+    result = Rnorm / ((Anorm + Xnorm + Y0norm) * spm->gN* eps);
+    if (  isinf(Ydnorm) || isinf(Ysnorm) ||
+          isnan(result) || isinf(result) || (result > 10.0) ) {
+        info_solution = 1;
+    }
+    else {
+        info_solution = 0;
+    }
+
+    free(x); free(y0); free(ys); free(yd); free(perm);
+
+    return info_solution;
+}
 
 /*------------------------------------------------------------------------
  *  Check the accuracy of the solution

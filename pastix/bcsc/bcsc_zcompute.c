@@ -1,5 +1,9 @@
 /**
- *
+ * 
+ * @file bcsc_zcompute.c
+ * 
+ *  Functions computing operations on the BCSC.
+ * 
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -12,16 +16,9 @@
  * @precisions normal z -> c d s
  *
  **/
-/*
-  File: bcsc_zcompute.c
-
-  Functions computing operations on the BCSC.
-
-*/
-
 #include "common.h"
-#include "bcsc.h"
 #include <math.h>
+#include "bcsc.h"
 #include "frobeniusupdate.h"
 
 /**

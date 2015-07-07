@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_task_sopalin.c
+ * @file pastix_task_solve.c
  *
  *  PaStiX factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,

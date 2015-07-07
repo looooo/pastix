@@ -298,19 +298,18 @@ bcscMatVec(      int            trans,
 {
     switch (bcsc->mtxtype) {
     case PastixHermitian:
-#if defined(PRECISION_z) || defined(PRECISION_c)
         switch (bcsc->flttype) {
         case PastixFloat:
             return s_bcscSymv( *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
         case PastixComplex32:
             return c_bcscHemv( *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
         case PastixComplex64:
+        printf("plop !\n");
             return z_bcscHemv( *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
         case PastixDouble:
         default:
             return d_bcscSymv( *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
         }
-#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
     case PastixSymmetric:
         switch (bcsc->flttype) {
         case PastixFloat:
@@ -336,6 +335,36 @@ bcscMatVec(      int            trans,
         default:
             return d_bcscGemv( trans, *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
         }
+    }
+}
+
+void
+bcscApplyPerm( pastix_bcsc_t *bcsc,
+               pastix_int_t n,
+               void *b,
+               pastix_int_t ldb,
+               pastix_int_t *perm )
+{   
+    switch( bcsc->flttype ) {
+    case PastixComplex64:
+        z_bcscApplyPerm( bcsc->gN, n, b, ldb,
+                         perm );
+        break;
+
+    case PastixComplex32:
+        c_bcscApplyPerm( bcsc->gN, n, b, ldb,
+                         perm );
+        break;
+
+    case PastixFloat:
+        s_bcscApplyPerm( bcsc->gN, n, b, ldb,
+                         perm );
+        break;
+
+    case PastixDouble:
+    default:
+        d_bcscApplyPerm( bcsc->gN, n, b, ldb,
+                         perm );
     }
 }
 
