@@ -131,7 +131,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     printf(" -- Test norm Max :");
     norms = spmNorm( PastixMaxNorm, spm );
     normd = z_bcscNorm( PastixMaxNorm, bcsc );
-    result = fabs(norms - normd) / (normd * eps);
+    result = fabs(norms - normd) / (norms * eps);
 
     if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
@@ -141,7 +141,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     }
 
     printf("   Nspm = %e, Nbcsc = %e\n", norms, normd );
-    printf("  | Nspm - Nbcsc | / Nbcsc = %e\n", result);
+    printf("  | Nspm - Nbcsc | / Nspm = %e\n", result);
 
     /**
      * Test Norm Inf
@@ -149,7 +149,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     printf(" -- Test norm Inf :");
     norms = spmNorm( PastixInfNorm, spm );
     normd = z_bcscNorm( PastixInfNorm, bcsc );
-    result = fabs(norms - normd) / (normd * eps);
+    result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
 
     if ( (result >= 0.) && (result < 1.) ) {
@@ -160,7 +160,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     }
 
     printf("   Nspm = %e, Nbcsc = %e\n", norms, normd );
-    printf("  | Nspm - Nbcsc | / Nbcsc = %e\n", result);
+    printf("  | Nspm - Nbcsc | / Nspm = %e\n", result);
 
     /**
      * Test Norm One
@@ -168,7 +168,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     printf(" -- Test norm One :");
     norms = spmNorm( PastixOneNorm, spm );
     normd = z_bcscNorm( PastixOneNorm, bcsc );
-    result = fabs(norms - normd) / (normd * eps);
+    result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
 
     if ( (result >= 0.) && (result < 1.) ) {
@@ -179,7 +179,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     }
 
     printf("   Nspm = %e, Nbcsc = %e\n", norms, normd );
-    printf("  | Nspm - Nbcsc | / Nbcsc = %e\n", result);
+    printf("  | Nspm - Nbcsc | / Nspm = %e\n", result);
 
     /**
      * Test Norm Frobenius
@@ -187,7 +187,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     printf(" -- Test norm Frb :");
     norms = spmNorm( PastixFrobeniusNorm, spm );
     normd = z_bcscNorm( PastixFrobeniusNorm, bcsc );
-    result = abs(norms - normd) / (normd * eps);
+    result = abs(norms - normd) / (norms * eps);
     result = result / ((double)spm->gnnz);
 
     if ( (result >= 0.) && (result < 1.) ) {
@@ -198,7 +198,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     }
 
     printf("   Nspm = %e, Nbcsc = %e\n", norms, normd );
-    printf("  | Nspm - Nbcsc | / Nbcsc = %e\n", result);
+    printf("  | Nspm - Nbcsc | / Nspm = %e\n", result);
 
     return ret;
 }
