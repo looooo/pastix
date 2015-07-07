@@ -22,6 +22,7 @@
 #include "common.h"
 #include "z_csc.h"
 #include "bcsc.h"
+#include "z_bcsc.h"
 // #include "s_raff_functions.h"
 // #include "d_raff_functions.h"
 // #include "c_raff_functions.h"
@@ -31,7 +32,7 @@
 // #include "c_csc_intern_updown.h"
 #include "z_csc_intern_updown.h"
 
-static void (*sopalinRaff[4][4])(SolverMatrix*, SopalinParam*) = 
+static int (*sopalinRaff[4][4])(SolverMatrix*, SopalinParam*) = 
 {
 //  API_RAF_GMRES
     {
@@ -59,31 +60,13 @@ static void (*sopalinRaff[4][4])(SolverMatrix*, SopalinParam*) =
         z_bicgstab_thread}
 };
 
-static void (*buildUpdoVect[4])(pastix_data_t*, pastix_int_t*, void*, MPI_Comm) = 
+static void (*bcscApplyPerm[4])(pastix_int_t, pastix_int_t, void*, pastix_int_t, pastix_int_t*) = 
 {
     s_buildUpdoVect,
     d_buildUpdoVect,
     c_buildUpdoVect,
     z_buildUpdoVect
 };
-
-static void (*CscRhsUpdown[4])(UpDownVector*, SolverMatrix*, void*, pastix_int_t,  pastix_int_t, int, int, MPI_Comm) = 
-{
-    s_CscRhsUpdown,
-    d_CscRhsUpdown,
-    c_CscRhsUpdown,
-    z_CscRhsUpdown
-};
-
-#ifdef PASTIX_DISTRIBUTED
-static void (*CscdRhsUpdown[4])(UpDownVector*, SolverMatrix*, void*, pastix_int_t, pastix_int_t,  pastix_int_t, int, int, MPI_Comm) = 
-{
-    s_CscdRhsUpdown,
-    d_CscdRhsUpdown,
-    c_CscdRhsUpdown,
-    z_CscdRhsUpdown
-};
-#endif
 
 /*
  Function: pastix_task_raff
@@ -183,43 +166,19 @@ void pastix_task_raff(pastix_data_t *pastix_data,
         /* setting sopar->b for reffinement */
         if (sopar->b == NULL)
         {
-            switch(iparm[IPARM_FLOAT])
-            {
-            case API_REALSINGLE:
-                MALLOC_INTERN(sopar->b,
-                              solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                              pastix_float_t);
-            break;
-            case API_REALDOUBLE:
-                MALLOC_INTERN(sopar->b,
-                              solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                              pastix_double_t);
-            break;
-            case API_COMPLEXSINGLE:
-                MALLOC_INTERN(sopar->b,
-                              solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                              pastix_complex32_t);
-            break;
-            case API_COMPLEXDOUBLE:
-            default:
-                MALLOC_INTERN(sopar->b,
-                              solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
-                              pastix_complex64_t);
-                
-            }
+
+        if( PASTIX_SUCCESS != bcscApplyPerm[iparm[IPARM_FLOAT]-2]( pastix_data->bcsc->gN,
+                                                                   1,
+                                                                   b,
+                                                                   pastix_data->bcsc->gN,
+                                                                   pastix_data->ordemesh->permtab )
+        {
+            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
+            return;
         }
-
-        tmp = solvmatr->updovct.sm2xtab;
-        solvmatr->updovct.sm2xtab = sopar->b;
-
-        buildUpdoVect[iparm[IPARM_FLOAT]-2](pastix_data,
-                                          loc2glob,
-                                          b,
-                                          pastix_comm);
-
-        sopar->b = solvmatr->updovct.sm2xtab;
-        solvmatr->updovct.sm2xtab = tmp;
-
+        
+        MALLOC_INTERN(sopar->b, solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze * pastix_size_of( iparm[IPARM_FLOAT] ), char );
+        memcpy(sopar->b, b, pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
     }
 
     sopar->itermax     = iparm[IPARM_ITERMAX];
@@ -248,44 +207,41 @@ void pastix_task_raff(pastix_data_t *pastix_data,
     memFree_null(sopar->b);
 
     /* b <- solution */
-    if (iparm[IPARM_GRAPHDIST] == API_NO)
-    {
-        CscRhsUpdown[iparm[IPARM_FLOAT]-2](&(solvmatr->updovct),
-                                           solvmatr,
-                                           b, n, ordemesh->peritab,
-                                           iparm[IPARM_DOF_NBR],
-                                           iparm[IPARM_RHS_MAKING],
-                                           pastix_comm);
-    }
-#ifdef PASTIX_DISTRIBUTED
-    else
-    {
-        CscdRhsUpdown[iparm[IPARM_FLOAT]-2](&(solvmatr->updovct),
-                                            solvmatr,
-                                            b, n,
-                                            pastix_data->glob2loc,
-                                            ordemesh->peritab,
-                                            iparm[IPARM_DOF_NBR], pastix_comm);
-    }
-#endif
+//         CscRhsUpdown[iparm[IPARM_FLOAT]-2](&(solvmatr->updovct),
+//                                            solvmatr,
+//                                            b, n, ordemesh->peritab,
+//                                            iparm[IPARM_DOF_NBR],
+//                                            iparm[IPARM_RHS_MAKING],
+//                                            pastix_comm);
+        memcpy(b, &(solvmatr->updovct), pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
 
-    /* Fin du roerdering */
-
-    srafftime = (double)dparm[DPARM_RAFF_TIME];
-    MPI_Reduce(&srafftime,&rrafftime,1,MPI_DOUBLE,MPI_MAX,0,pastix_comm);
-
-    if ((procnum == 0) && (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT))
-    {
-        fprintf(stdout, OUT_RAFF_ITER_NORM, (long)iparm[IPARM_NBITER], (double)dparm[DPARM_RELATIVE_ERROR]);
-        if (iparm[IPARM_PRODUCE_STATS] == API_YES) {
-            if (dparm[DPARM_RELATIVE_ERROR] > 0)
-                print_onempi(OUT_PREC1, dparm[DPARM_RELATIVE_ERROR]);
-            if (dparm[DPARM_SCALED_RESIDUAL] > 0)
-                print_onempi(OUT_PREC2, dparm[DPARM_SCALED_RESIDUAL]);
+        if( PASTIX_SUCCESS != bcscApplyPerm[iparm[IPARM_FLOAT]-2]( pastix_data->bcsc->gN,
+                                                                   1,
+                                                                   b,
+                                                                   pastix_data->bcsc->gN,
+                                                                   pastix_data->ordemesh->peritab )
+        {
+            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
+            return;
         }
 
-        fprintf(stdout, OUT_TIME_RAFF, rrafftime);
-    }
+    /* Fin du reordering */
+
+//     srafftime = (double)dparm[DPARM_RAFF_TIME];
+//     MPI_Reduce(&srafftime,&rrafftime,1,MPI_DOUBLE,MPI_MAX,0,pastix_comm);
+
+//     if ((procnum == 0) && (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT))
+//     {
+//         fprintf(stdout, OUT_RAFF_ITER_NORM, (long)iparm[IPARM_NBITER], (double)dparm[DPARM_RELATIVE_ERROR]);
+//         if (iparm[IPARM_PRODUCE_STATS] == API_YES) {
+//             if (dparm[DPARM_RELATIVE_ERROR] > 0)
+//                 print_onempi(OUT_PREC1, dparm[DPARM_RELATIVE_ERROR]);
+//             if (dparm[DPARM_SCALED_RESIDUAL] > 0)
+//                 print_onempi(OUT_PREC2, dparm[DPARM_SCALED_RESIDUAL]);
+//         }
+// 
+//         fprintf(stdout, OUT_TIME_RAFF, rrafftime);
+//     }
     iparm[IPARM_START_TASK]++;
 
     return;

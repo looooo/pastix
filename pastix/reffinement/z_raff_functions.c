@@ -19,36 +19,36 @@
  */
 
 #include "common.h"
-#include <pthread.h>
-#include "z_tools.h"
-#ifdef PASTIX_EZTRACE
-#  include "pastix_eztrace.h"
-#else
-#  include "trace.h"
-#endif
-#include "sopalin_define.h"
-#include "symbol.h"
-#include "z_csc.h"
-#include "z_updown.h"
-#include "queue.h"
-#include "bulles.h"
-#include "z_ftgt.h"
-#include "z_solver.h"
-#include "sopalin_thread.h"
-#include "stack.h"
-#include "z_sopalin3d.h"
-#include "z_sopalin_init.h"
-#include "perf.h"
-#include "out.h"
-#include "z_coefinit.h"
-#include "z_ooc.h"
-#include "order.h"
-#include "z_debug_dump.h"
-#include "sopalin_acces.h"
-#include "z_csc_intern_compute.h"
-#ifdef PASTIX_WITH_STARPU
-#  include "starpu_zsubmit_tasks.h"
-#endif
+
+//#include "z_tools.h"
+//#ifdef PASTIX_EZTRACE
+//#  include "pastix_eztrace.h"
+//#else
+//#  include "trace.h"
+//#endif
+//#include "sopalin_define.h"
+//#include "symbol.h"
+//#include "z_csc.h"
+//#include "z_updown.h"
+//#include "queue.h"
+//#include "bulles.h"
+//#include "z_ftgt.h"
+//#include "z_solver.h"
+//#include "sopalin_thread.h"
+//#include "stack.h"
+//#include "z_sopalin3d.h"
+//#include "z_sopalin_init.h"
+//#include "perf.h"
+//#include "out.h"
+//#include "z_coefinit.h"
+//#include "z_ooc.h"
+//#include "order.h"
+//#include "z_debug_dump.h"
+//#include "sopalin_acces.h"
+//#include "z_csc_intern_compute.h"
+//#ifdef PASTIX_WITH_STARPU
+//#  include "starpu_zsubmit_tasks.h"
+//#endif
 
 static pastix_complex64_t fun   = 1.0;
 #define z_up_down_smp API_CALL(z_up_down_smp)

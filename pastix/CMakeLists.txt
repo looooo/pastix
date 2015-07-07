@@ -370,13 +370,14 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/csc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
+#include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/reffinement")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
@@ -456,6 +457,12 @@ set(SOURCES
   sopalin/sequential_zhetrf.c
   sopalin/sequential_zpotrf.c
   sopalin/sequential_zsytrf.c
+  #
+  reffinement/z_raff_functions.c
+  reffinement/z_raff_gmres.c
+  reffinement/z_raff_bicgstab.c
+  reffinement/z_raff_grad.c
+  reffinement/z_raff_pivot.c
   #
   sopalin/coeftab_z.c
   )
@@ -612,6 +619,8 @@ set(PASTIX_ALL_SRCS
   matrix_drivers/readijv.c
   matrix_drivers/readmm.c
   matrix_drivers/readrsa.c
+  #
+  reffinement/pastix_task_raff.c
 )
 
 if(PASTIX_WITH_STARPU)
@@ -653,6 +662,7 @@ add_dependencies(pastix
   spm_headers
   kernels_headers
   bcsc_headers
+  sopalin_headers
   pastix_bcsc
   pastix_kernels
 )
