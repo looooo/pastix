@@ -45,7 +45,6 @@ z_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pa
     unsigned long long int seed = 35469;
     pastix_complex64_t *x, *y0, *ys, *yd;
     pastix_complex64_t alpha, beta;
-    pastix_int_t *perm;
 
     double Anorm, Xnorm, Y0norm, Ysnorm, Ydnorm, Rnorm;
     double eps, result;
@@ -65,7 +64,6 @@ z_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pa
     /* Allocate cs/cd */
     ys    = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
     yd    = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    perm  = (pastix_int_t*)malloc(spm->gN * sizeof(pastix_int_t));
 
     /* Initialize cs/cd */
     memcpy( ys, y0, spm->gN * sizeof(pastix_complex64_t) );
@@ -108,7 +106,7 @@ z_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pa
         info_solution = 0;
     }
 
-    free(x); free(y0); free(ys); free(yd); free(perm);
+    free(x); free(y0); free(ys); free(yd);
 
     return info_solution;
 }
