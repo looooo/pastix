@@ -42,6 +42,10 @@ void solverRealloc(SolverMatrix *solvmtx)
     memcpy(solvmtx->bloktab, tmp->bloktab,
            solvmtx->bloknbr*sizeof(SolverBlok));
 
+    MALLOC_INTERN(solvmtx->browtab, solvmtx->brownbr, pastix_int_t);
+    memcpy(solvmtx->browtab, tmp->browtab,
+           solvmtx->brownbr*sizeof(pastix_int_t));
+
     solvblok = solvmtx->bloktab;
     for (solvcblk = solvmtx->cblktab; solvcblk  < solvmtx->cblktab + solvmtx->cblknbr; solvcblk++) {
         pastix_int_t bloknbr = (solvcblk+1)->fblokptr - solvcblk->fblokptr;
@@ -189,6 +193,8 @@ void solverExit(SolverMatrix *solvmtx)
     }
     if(solvmtx->bloktab)
         memFree_null(solvmtx->bloktab);
+    if(solvmtx->browtab)
+        memFree_null(solvmtx->browtab);
     if(solvmtx->ftgttab)
         memFree_null(solvmtx->ftgttab);
     if(solvmtx->tasktab)
@@ -246,6 +252,7 @@ void solverInit(SolverMatrix *solvmtx)
 {
     solvmtx->cblktab = NULL;
     solvmtx->bloktab = NULL;
+    solvmtx->browtab = NULL;
     solvmtx->coefnbr = 0;
     solvmtx->ftgtnbr = 0;
 
@@ -256,6 +263,7 @@ void solverInit(SolverMatrix *solvmtx)
     solvmtx->baseval = 0;
     solvmtx->cblknbr = 0;
     solvmtx->bloknbr = 0;
+    solvmtx->brownbr = 0;
     solvmtx->nodenbr = 0;
 #if defined(PASTIX_WITH_STARPU)
     solvmtx->hcblktab = NULL;
