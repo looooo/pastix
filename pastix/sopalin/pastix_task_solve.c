@@ -54,6 +54,29 @@ pastix_static_trsm( int flttype, int side, int uplo, int trans, int diag,
     }
 }
 
+void
+pastix_static_diag( int flttype,
+                    sopalin_data_t *sopalin_data,
+                    int nrhs, void *b, int ldb )
+{
+    switch (flttype) {
+    case PastixComplex64:
+        sequential_zdiag( sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
+        break;
+    case PastixComplex32:
+        sequential_cdiag( sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
+        break;
+    case PastixDouble:
+        sequential_ddiag( sopalin_data, nrhs, (double *)b, ldb );
+        break;
+    case PastixFloat:
+        sequential_sdiag( sopalin_data, nrhs, (float *)b, ldb );
+        break;
+    default:
+        fprintf(stderr, "Unknown floating point arithmetic\n" );
+    }
+}
+
 /**
  *******************************************************************************
  *
@@ -159,13 +182,13 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
         case PastixFactLDLT:
             pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
-            /* //diag; */
+            pastix_static_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
             pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
             break;
 
         case PastixFactLDLH:
             pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
-            /* //diag; */
+            pastix_static_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
             pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
             break;
 

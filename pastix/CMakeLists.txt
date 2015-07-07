@@ -462,6 +462,7 @@ set(SOURCES
   matrix_drivers/z_spm_laplacian.c
   #
   sopalin/sequential_ztrsm.c
+  sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c
   sopalin/sequential_zpotrf.c
