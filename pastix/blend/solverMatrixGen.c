@@ -206,8 +206,9 @@ solverMatrixGen(const pastix_int_t clustnum,
                 cblklocalnum[i] = -i-1;
             }
         }
-        solvmtx->bloknbr = localindex[clustnum];
         solvmtx->cblknbr = cblknum;
+        solvmtx->bloknbr = localindex[clustnum];
+        solvmtx->brownbr = brownbr;
 
         memFree_null(localindex);
     }
@@ -217,9 +218,9 @@ solverMatrixGen(const pastix_int_t clustnum,
      */
 
     /* Allocate the cblktab and bloktab with the computed size */
-    MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk);
-    MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok);
-    MALLOC_INTERN(solvmtx->browtab, brownbr,            pastix_int_t);
+    MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk  );
+    MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok  );
+    MALLOC_INTERN(solvmtx->browtab, solvmtx->brownbr,   pastix_int_t);
     assert( brownbr == symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
     memcpy( solvmtx->browtab, symbmtx->browtab, brownbr * sizeof(pastix_int_t) );
     {

@@ -34,12 +34,7 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
     SolverCblk *cblk, *fcbk;
     SolverBlok *blok;
     pastix_complex64_t *coeftab;
-    pastix_int_t i, j, ii, tempm, tempn;
-    pastix_int_t ttsknbr, *ttsktab;
-    Task *t;
-
-    ttsknbr = datacode->ttsknbr[0];
-    ttsktab = datacode->ttsktab[0];
+    pastix_int_t i, j, tempm, tempn;
 
     /*
      *  Left / Upper / NoTrans
@@ -48,13 +43,8 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
         if (uplo == PastixUpper) {
             /*  We store U^t, so we swap uplo and trans */
             if (trans == PastixNoTrans) {
-                for (ii=ttsknbr-1; ii>=0; ii--){
-                    i = ttsktab[ii];
-                    t = datacode->tasktab + i;
-                    cblk = datacode->cblktab + t->cblknum;
-
-                    if ( t->taskid != COMP_1D )
-                        continue;
+                cblk = datacode->cblktab + datacode->cblknbr - 1;
+                for (i=0; i<datacode->cblknbr; i++, cblk--){
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
@@ -89,13 +79,8 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
              *  Left / Lower / NoTrans
              */
             if (trans == PastixNoTrans) {
-                for (ii=0; ii<ttsknbr; ii++){
-                    i = ttsktab[ii];
-                    t = datacode->tasktab + i;
-                    cblk = datacode->cblktab + t->cblknum;
-
-                    if ( t->taskid != COMP_1D )
-                        continue;
+                cblk = datacode->cblktab;
+                for (i=0; i<datacode->cblknbr; i++, cblk++){
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
                     coeftab = (pastix_complex64_t*)(cblk->lcoeftab);
@@ -132,13 +117,8 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
              *  Left / Lower / [Conj]Trans
              */
             else {
-                for (ii=ttsknbr-1; ii>=0; ii--){
-                    i = ttsktab[ii];
-                    t = datacode->tasktab + i;
-                    cblk = datacode->cblktab + t->cblknum;
-
-                    if ( t->taskid != COMP_1D )
-                        continue;
+                cblk = datacode->cblktab + datacode->cblknbr - 1;
+                for (i=0; i<datacode->cblknbr; i++, cblk--){
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
@@ -157,8 +137,6 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                         tempn = blok->lrownum - blok->frownum + 1;
                         coeftab = (pastix_complex64_t*)(fcbk->lcoeftab);
-
-                        assert( blok->lcblknm !=  t->cblknum);
 
                         cblas_zgemm(
                             CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,

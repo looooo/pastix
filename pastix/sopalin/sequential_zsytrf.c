@@ -24,31 +24,13 @@ void
 pastix_static_zsytrf( sopalin_data_t *sopalin_data )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk;
-    pastix_int_t  i, ii;
-    pastix_int_t tasknbr, *tasktab;
-    Task *t;
+    SolverCblk   *cblk;
+    pastix_int_t  i;
 
-    tasknbr = datacode->ttsknbr[0];
-    tasktab = datacode->ttsktab[0];
-
-    for (ii=0; ii<tasknbr; ii++){
-        i = tasktab[ii];
-        t = datacode->tasktab + i;
-        cblk = datacode->cblktab + t->cblknum;
-
-        /* Compute task */
-        switch( t->taskid )
-        {
-        case COMP_1D:
-            /* Compute */
-            core_zsytrfsp1d( datacode, cblk, sopalin_data->diagthreshold );
-            break;
-
-        default:
-            errorPrint("Taskid unknown for task %ld\n", (long)i);
-            EXIT(MOD_SOPALIN,INTERNAL_ERR);
-        }
+    cblk = datacode->cblktab;
+    for (i=0; i<datacode->cblknbr; i++, cblk++){
+        /* Compute */
+        core_zsytrfsp1d( datacode, cblk, sopalin_data->diagthreshold );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
