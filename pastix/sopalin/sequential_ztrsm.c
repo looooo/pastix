@@ -138,8 +138,6 @@ pastix_static_ztrsm( int side, int uplo, int trans, int diag,
                         tempn = blok->lrownum - blok->frownum + 1;
                         coeftab = (pastix_complex64_t*)(fcbk->lcoeftab);
 
-                        assert( blok->lcblknm !=  t->cblknum);
-
                         cblas_zgemm(
                             CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
                             tempm, nrhs, tempn,
