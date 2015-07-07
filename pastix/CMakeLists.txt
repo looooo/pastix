@@ -101,6 +101,16 @@ option(FORGET_PARTITION
 option(COMPACT_SMX
   "Optimization for solve computations (TODO: check if not obsolete because results don't converge)" OFF)
 
+# Options to increase verbosity while debuging
+option(PASTIX_DEBUG_GRAPH
+  "Debug the graph data structure" OFF)
+option(PASTIX_DEBUG_SYMBOL
+  "Debug the symbol matrix factorization" OFF)
+option(PASTIX_DEBUG_BLEND
+  "Debug the analyze step" OFF)
+option(PASTIX_DEBUG_FACTO
+  "Debug the factorization step" OFF)
+
 ###############################################################################
 # Look for dependencies #
 #########################

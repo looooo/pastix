@@ -60,6 +60,12 @@
 #cmakedefine PASTIX_DISTRIBUTED
 #cmakedefine PASTIX_THREAD_COMM
 
+/* Debug */
+#cmakedefine PASTIX_DEBUG_GRAPH
+#cmakedefine PASTIX_DEBUG_SYMBOL
+#cmakedefine PASTIX_DEBUG_BLEND
+#cmakedefine PASTIX_DEBUG_FACTO
+
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
 
