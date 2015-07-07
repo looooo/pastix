@@ -26,27 +26,27 @@
 #include "s_bcsc.h"
 
 void
-pastix_static_trsm( int flttype, int side, int uplo, int trans, int diag,
-                    sopalin_data_t *sopalin_data,
-                    int nrhs, void *b, int ldb )
+pastix_trsm( int flttype, int side, int uplo, int trans, int diag,
+             sopalin_data_t *sopalin_data,
+             int nrhs, void *b, int ldb )
 {
     switch (flttype) {
     case PastixComplex64:
-        pastix_static_ztrsm( side, uplo, trans, diag,
+        sequential_ztrsm( side, uplo, trans, diag,
                              sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
         break;
     case PastixComplex32:
-        pastix_static_ctrsm( side, uplo, trans, diag,
+        sequential_ctrsm( side, uplo, trans, diag,
                              sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
         break;
     case PastixDouble:
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        pastix_static_dtrsm( side, uplo, trans, diag,
+        sequential_dtrsm( side, uplo, trans, diag,
                              sopalin_data, nrhs, (double *)b, ldb );
         break;
     case PastixFloat:
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        pastix_static_strsm( side, uplo, trans, diag,
+        sequential_strsm( side, uplo, trans, diag,
                              sopalin_data, nrhs, (float *)b, ldb );
         break;
     default:
@@ -55,9 +55,9 @@ pastix_static_trsm( int flttype, int side, int uplo, int trans, int diag,
 }
 
 void
-pastix_static_diag( int flttype,
-                    sopalin_data_t *sopalin_data,
-                    int nrhs, void *b, int ldb )
+pastix_diag( int flttype,
+             sopalin_data_t *sopalin_data,
+             int nrhs, void *b, int ldb )
 {
     switch (flttype) {
     case PastixComplex64:
@@ -176,26 +176,26 @@ pastix_task_solve( pastix_data_t *pastix_data,
         clockStart(timer);
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLT:
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb );
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
             break;
 
         case PastixFactLDLT:
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
-            pastix_static_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
             break;
 
         case PastixFactLDLH:
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
-            pastix_static_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
             break;
 
         case PastixFactLU:
         default:
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
-            pastix_static_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
             break;
         }
         clockStop(timer);
