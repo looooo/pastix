@@ -20,8 +20,7 @@
 #include "order.h"
 #include "solver.h"
 #include "bcsc.h"
-
-typedef struct isched_s isched_t;
+#include "isched.h"
 
 isched_t *scheduler = NULL;
 isched_t *ischedInit(int cores, int *coresbind);
@@ -388,6 +387,7 @@ pastixInit( pastix_data_t **pastix_data,
     pastix->steps = STEP_INIT;
 
     scheduler = ischedInit( -1, NULL );
+    pastix->iparm[IPARM_THREAD_NBR] = scheduler->world_size;
 
     *pastix_data = pastix;
 }
