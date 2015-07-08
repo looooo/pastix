@@ -50,11 +50,11 @@ z_readMM( FILE *file,
     long row, col;
     double re, im;
 
-    csc->avals = malloc( csc->nnz * sizeof(pastix_complex64_t) );
+    csc->values = malloc( csc->nnz * sizeof(pastix_complex64_t) );
 
     colptr = csc->colptr;
-    rowptr = csc->rows;
-    valptr = (pastix_complex64_t*)(csc->avals);
+    rowptr = csc->rowptr;
+    valptr = (pastix_complex64_t*)(csc->values);
 
     for (i=0; i<csc->nnz; i++, colptr++, rowptr++, valptr++)
     {
@@ -107,11 +107,11 @@ d_readMM( FILE *file,
     long row, col;
     double re;
 
-    csc->avals = malloc( csc->nnz * sizeof(double) );
+    csc->values = malloc( csc->nnz * sizeof(double) );
 
     colptr = csc->colptr;
-    rowptr = csc->rows;
-    valptr = (double*)(csc->avals);
+    rowptr = csc->rowptr;
+    valptr = (double*)(csc->values);
 
     for (i=0; i<csc->nnz; i++, colptr++, rowptr++, valptr++)
     {
@@ -162,10 +162,10 @@ p_readMM( FILE *file,
     pastix_int_t i;
     long row, col;
 
-    csc->avals = NULL;
+    csc->values = NULL;
 
     colptr = csc->colptr;
-    rowptr = csc->rows;
+    rowptr = csc->rowptr;
 
     for (i=0; i<csc->nnz; i++, colptr++, rowptr++)
     {
@@ -277,7 +277,7 @@ readMM( const char   *filename,
     }
 
     csc->colptr = (pastix_int_t*)malloc(csc->nnz * sizeof(pastix_int_t));
-    csc->rows   = (pastix_int_t*)malloc(csc->nnz * sizeof(pastix_int_t));
+    csc->rowptr = (pastix_int_t*)malloc(csc->nnz * sizeof(pastix_int_t));
 
     switch( csc->flttype ) {
     case PastixComplex64:

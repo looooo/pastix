@@ -19,7 +19,6 @@
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
-#include "dof.h"
 #include "extendVector.h"
 #include "blendctrl.h"
 #include "queue.h"
@@ -28,8 +27,6 @@
 
 typedef struct propmap_s {
     const EliminTree   *etree;
-    /* const SymbolMatrix *symbmtx; */
-    /* const Dof          *dofptr; */
     Cand               *candtab;
     pastix_int_t        candnbr;
     int                 nocrossproc;
@@ -304,21 +301,15 @@ propMappSubtree( propmap_t    *pmptr,
 void
 propMappTree( Cand               *candtab,
               const EliminTree   *etree,
-              const SymbolMatrix *symbmtx,
-              const Dof          *dofptr,
               pastix_int_t        candnbr,
               int nocrossproc, int allcand )
 {
     propmap_t pmdata;
     pastix_int_t p;
 
-    (void)dofptr; (void)symbmtx;
-
     /* Prepare the stucture */
     pmdata.candtab     = candtab;
     pmdata.etree       = etree;
-    /* pmdata.symbmtx     = symbmtx; */
-    /* pmdata.dofptr      = dofptr; */
     pmdata.candnbr     = candnbr;
     pmdata.nocrossproc = nocrossproc;
 

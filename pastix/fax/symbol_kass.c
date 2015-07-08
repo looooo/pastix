@@ -18,11 +18,6 @@
 #include "graph.h"
 #include "kass.h"
 
-extern double nnz(pastix_int_t cblknum, const SymbolMatrix * symbmtx, const Dof * dofptr);
-extern double recursive_sum(pastix_int_t a, pastix_int_t b,
-                            double (*fval)(pastix_int_t, const SymbolMatrix *, const Dof *),
-                            const SymbolMatrix * symbmtx, const Dof * dofptr);
-
 /**
  *******************************************************************************
  *
@@ -271,25 +266,25 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     kassBuildSymbol( &graphL, newcblknbr, newrangtab, symbmtx );
     kass_csrClean( &graphL );
 
-    /* Pacth the symbol matrix to have a real elimination tree */
+    /* Patch the symbol matrix to have a real elimination tree */
     if (levelk != -1) {
-        nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, NULL);
+        nnzS = symbolGetNNZ( symbmtx );
 
-        pastix_print(procnum, 0, "Number of block in the non patched symbol matrix = %ld \n",
+        pastix_print(procnum, 0, "Number of blocks in the non patched symbol matrix = %ld \n",
                      (long)symbmtx->bloknbr);
-        pastix_print(procnum, 0, "Number of non zero in the non patched symbol matrix = %g, fillrate1 %.3g \n",
+        pastix_print(procnum, 0, "Number of non zeroes in the non patched symbol matrix = %g, fillrate1 %.3g \n",
                      nnzS+n, (nnzS+n)/(ia[n]/2.0 +n) );
 
         if(symbolCheck(symbmtx) != 0) {
             errorPrint("SymbolCheck on symbol matrix before patch failed !!!");
-            ASSERT(0, MOD_KASS);
+            assert(0);
         }
 
         /* Patch the symbol matrix */
         kassPatchSymbol( symbmtx );
     }
 
-    nnzS = recursive_sum(0, symbmtx->cblknbr-1, nnz, symbmtx, NULL);
+    nnzS = symbolGetNNZ( symbmtx );
 
     clockStop(timer);
     pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
@@ -301,7 +296,7 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
 
     if( symbolCheck(symbmtx) != 0 ) {
         errorPrint("SymbolCheck on final symbol matrix failed !!!");
-        ASSERT(0, MOD_KASS);
+        assert(0);
     }
 
     return PASTIX_SUCCESS;

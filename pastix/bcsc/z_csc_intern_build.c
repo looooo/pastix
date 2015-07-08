@@ -63,7 +63,7 @@
  * of the block index.                                                        *
  *                                                                            *
  * Parameters:                                                                *
- *   newcoltab - array containing starting index of each column in rows and   *
+ *   newcoltab - array containing starting index of each column in rowptr and *
  *               values, using new ordering.                                  *
  *                                                                            *
  ******************************************************************************/

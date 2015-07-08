@@ -33,10 +33,10 @@
                      else{printf("SUCCESS\n");}
 
 int
-s_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
+s_compareAvals(void *values1, void *values2, pastix_int_t nnz)
 {
-    float *valptr1 = (float*)avals1;
-    float *valptr2 = (float*)avals2;
+    float *valptr1 = (float*)values1;
+    float *valptr2 = (float*)values2;
     float epsilon;
     pastix_int_t i;
 
@@ -55,10 +55,10 @@ s_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
 }
 
 int
-d_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
+d_compareAvals(void *values1, void *values2, pastix_int_t nnz)
 {
-    double *valptr1 = (double*)avals1;
-    double *valptr2 = (double*)avals2;
+    double *valptr1 = (double*)values1;
+    double *valptr2 = (double*)values2;
     double epsilon;
     pastix_int_t i;
 
@@ -76,10 +76,10 @@ d_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
 }
 
 int
-c_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
+c_compareAvals(void *values1, void *values2, pastix_int_t nnz)
 {
-    pastix_complex32_t *valptr1 = (pastix_complex32_t*)avals1;
-    pastix_complex32_t *valptr2 = (pastix_complex32_t*)avals2;
+    pastix_complex32_t *valptr1 = (pastix_complex32_t*)values1;
+    pastix_complex32_t *valptr2 = (pastix_complex32_t*)values2;
     float epsilon;
     pastix_int_t i;
 
@@ -100,10 +100,10 @@ c_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
 }
 
 int
-z_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
+z_compareAvals(void *values1, void *values2, pastix_int_t nnz)
 {
-    pastix_complex64_t *valptr1 = (pastix_complex64_t*)avals1;
-    pastix_complex64_t *valptr2 = (pastix_complex64_t*)avals2;
+    pastix_complex64_t *valptr1 = (pastix_complex64_t*)values1;
+    pastix_complex64_t *valptr2 = (pastix_complex64_t*)values2;
     double epsilon;
     pastix_int_t i;
 
@@ -126,7 +126,7 @@ z_compareAvals(void *avals1, void *avals2, pastix_int_t nnz)
 int
 s_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pastix_int_t baseval )
 {
-    float *avalsptr;
+    float *valuesptr;
     float *rhsptr = (float*)rhs;
     float *x1ptr = (float*)x1;
     float *x2ptr = (float*)x2;
@@ -135,8 +135,8 @@ s_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pasti
 
     for( i=0; i < csc->gN; i++ )
     {
-        avalsptr = (float*)csc->avals + csc->colptr[i] - baseval;
-        x3ptr[i] += *avalsptr * rhsptr[i];
+        valuesptr = (float*)csc->values + csc->colptr[i] - baseval;
+        x3ptr[i] += *valuesptr * rhsptr[i];
         x1ptr[i] += x2ptr[i];
     }
     return s_compareAvals(x1, x3 , csc->gN);
@@ -145,7 +145,7 @@ s_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pasti
 int
 d_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pastix_int_t baseval )
 {
-    double *avalsptr;
+    double *valuesptr;
     double *rhsptr = (double*)rhs;
     double *x1ptr = (double*)x1;
     double *x2ptr = (double*)x2;
@@ -154,8 +154,8 @@ d_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pasti
 
     for( i=0; i < csc->gN; i++ )
     {
-        avalsptr = (double*)csc->avals + csc->colptr[i] - baseval;
-        x3ptr[i] += *avalsptr * rhsptr[i];
+        valuesptr = (double*)csc->values + csc->colptr[i] - baseval;
+        x3ptr[i] += *valuesptr * rhsptr[i];
         x1ptr[i] += x2ptr[i];
     }
     return d_compareAvals(x1, x3 , csc->gN);
@@ -164,7 +164,7 @@ d_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pasti
 int
 c_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pastix_int_t baseval )
 {
-    pastix_complex32_t *avalsptr;
+    pastix_complex32_t *valuesptr;
     pastix_complex32_t *rhsptr = (pastix_complex32_t*)rhs;
     pastix_complex32_t *x1ptr = (pastix_complex32_t*)x1;
     pastix_complex32_t *x2ptr = (pastix_complex32_t*)x2;
@@ -173,8 +173,8 @@ c_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pasti
 
     for( i=0; i < csc->gN; i++ )
     {
-        avalsptr = (pastix_complex32_t*)csc->avals + csc->colptr[i] - baseval;
-        x3ptr[i] += *avalsptr * rhsptr[i];
+        valuesptr = (pastix_complex32_t*)csc->values + csc->colptr[i] - baseval;
+        x3ptr[i] += *valuesptr * rhsptr[i];
         x1ptr[i] += x2ptr[i];
     }
     return c_compareAvals(x1, x3 , csc->gN);
@@ -183,7 +183,7 @@ c_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pasti
 int
 z_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pastix_int_t baseval )
 {
-    pastix_complex64_t *avalsptr;
+    pastix_complex64_t *valuesptr;
     pastix_complex64_t *rhsptr = (pastix_complex64_t*)rhs;
     pastix_complex64_t *x1ptr = (pastix_complex64_t*)x1;
     pastix_complex64_t *x2ptr = (pastix_complex64_t*)x2;
@@ -192,8 +192,8 @@ z_checkProduct(void *x1, void *x2, void *x3, pastix_csc_t *csc, void *rhs, pasti
 
     for( i=0; i < csc->gN; i++ )
     {
-        avalsptr = (pastix_complex64_t*)csc->avals + csc->colptr[i] - baseval;
-        x3ptr[i] += *avalsptr * rhsptr[i];
+        valuesptr = (pastix_complex64_t*)csc->values + csc->colptr[i] - baseval;
+        x3ptr[i] += *valuesptr * rhsptr[i];
         x1ptr[i] += x2ptr[i];
     }
     return z_compareAvals(x1, x3 , csc->gN);
@@ -204,8 +204,8 @@ int main (int argc, char **argv)
     char *filename;
     pastix_csc_t csc;
     pastix_int_t *colptr = NULL;
-    pastix_int_t *rows   = NULL;
-    void *avals          = NULL;
+    pastix_int_t *rowptr = NULL;
+    void *values          = NULL;
     void *rhs            = NULL;
     void *x1             = NULL;
     void *x2             = NULL;
@@ -263,41 +263,41 @@ int main (int argc, char **argv)
             }
             for(i=0;i<csc.nnz;i++)
             {
-                csc.rows[i]-=1;
+                csc.rowptr[i]-=1;
             }
         }
 
         /* Backup the csc */
         printf("Backup the csc\n");
         colptr = malloc((csc.n+1)*sizeof(pastix_int_t));
-        rows   = malloc( csc.nnz *sizeof(pastix_int_t));
+        rowptr = malloc( csc.nnz *sizeof(pastix_int_t));
         memcpy(colptr,csc.colptr,(csc.n+1)*sizeof(pastix_int_t));
-        memcpy(rows,csc.rows,(csc.nnz)*sizeof(pastix_int_t));
+        memcpy(rowptr,csc.rowptr,(csc.nnz)*sizeof(pastix_int_t));
         n=csc.n;
         nnz=csc.nnz;
         if(csc.flttype == PastixFloat)
         {
-            avals  = malloc(nnz       *sizeof(float));
-            memcpy(avals,csc.avals,nnz*sizeof(float));
+            values  = malloc(nnz       *sizeof(float));
+            memcpy(values,csc.values,nnz*sizeof(float));
         }
         else if(csc.flttype == PastixDouble)
         {
-            avals  = malloc(nnz       *sizeof(double));
-            memcpy(avals,csc.avals,nnz*sizeof(double));
+            values  = malloc(nnz       *sizeof(double));
+            memcpy(values,csc.values,nnz*sizeof(double));
         }
         else if(csc.flttype == PastixComplex32)
         {
-            avals  = malloc(nnz       *sizeof(pastix_complex32_t));
-            memcpy(avals,csc.avals,nnz*sizeof(pastix_complex32_t));
+            values  = malloc(nnz       *sizeof(pastix_complex32_t));
+            memcpy(values,csc.values,nnz*sizeof(pastix_complex32_t));
         }
         else if(csc.flttype == PastixComplex64)
         {
-            avals  = malloc(nnz       *sizeof(pastix_complex64_t));
-            memcpy(avals,csc.avals,nnz*sizeof(pastix_complex64_t));
+            values  = malloc(nnz       *sizeof(pastix_complex64_t));
+            memcpy(values,csc.values,nnz*sizeof(pastix_complex64_t));
         }
         else
         {
-            avals = NULL;
+            values = NULL;
         }
 
         /* testing conversion routines */
@@ -337,34 +337,34 @@ int main (int argc, char **argv)
 
         for (i = 0; i < csc.nnz; i++)
         {
-            if (csc.rows[i] != rows[i])
+            if (csc.rowptr[i] != rowptr[i])
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }
 
-        /* check avals */
+        /* check values */
         if(csc.flttype == PastixFloat)
         {
-            if (s_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (s_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixDouble)
         {
-            if (d_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (d_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex32)
         {
-            if (c_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (c_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex64)
         {
-            if (z_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (z_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
@@ -411,34 +411,34 @@ int main (int argc, char **argv)
         /* check rows */
         for (i = 0; i < csc.nnz; i++)
         {
-            if (csc.rows[i] != rows[i])
+            if (csc.rowptr[i] != rowptr[i])
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }
 
-        /* check avals */
+        /* check values */
         if(csc.flttype == PastixFloat)
         {
-            if (s_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (s_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixDouble)
         {
-            if (d_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (d_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex32)
         {
-            if (c_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (c_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
         }else if(csc.flttype == PastixComplex64)
         {
-            if (z_compareAvals(csc.avals,avals,csc.nnz) > 0)
+            if (z_compareAvals(csc.values,values,csc.nnz) > 0)
             {
                 ret = PASTIX_ERR_BADPARAMETER;
             }
@@ -473,9 +473,9 @@ int main (int argc, char **argv)
 
         /* Free memory */
         free(colptr);
-        free(rows);
-        if(avals != NULL)
-            free(avals);
+        free(rowptr);
+        if(values != NULL)
+            free(values);
         
         /*-------------------------------------------------*/
         /* The matrix is symetric. To test all matrix vector products, */
@@ -726,10 +726,7 @@ int main (int argc, char **argv)
     /* end of the baseval loop */
     }
 
-    free(csc.colptr);
-    free(csc.rows);
-    if(csc.avals != NULL)
-        free(csc.avals);
+    spmExit( &csc );
 
     if(err==0)
     {

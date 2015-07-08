@@ -519,10 +519,9 @@ set(PASTIX_LIB_SRCS
   blend/blendctrl.c
 
   blend/blend.c
-  blend/blend_symbol_cost.c
   blend/bulles.c
   blend/cost.c
-  blend/costfunc.c
+#  blend/costfunc.c
   blend/simu_run.c
 # blend/distribPart.c
   blend/extendVector.c
@@ -559,7 +558,9 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_draw.c
   symbol/symbol_io.c
   symbol/symbol_rustine.c
-#  symbol/symbol_cost.c
+  symbol/symbol_cost.c
+  symbol/symbol_cost_flops.c
+  symbol/symbol_cost_perfs.c
 #  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
@@ -663,7 +664,6 @@ set(PASTIX_HDRS
   include/pastix/old_api.h
   include/pastix/datatypes.h
   include/pastix/nompi.h
-  include/pastix/retro.h
 )
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )

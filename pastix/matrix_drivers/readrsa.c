@@ -211,21 +211,21 @@ readRSA( const char   *filename,
     assert( tmprows );
 
     /* RSA reads only double */
-    csc->avals = (double*) malloc( Nnz * sizeof(double) );
-    assert( csc->avals );
+    csc->values = (double*) malloc( Nnz * sizeof(double) );
+    assert( csc->values );
 
     len  = strlen(filename);
     tmp  = 2;
     nrhs = 0;
 
     FC_GLOBAL(wreadmtc,WREADMTC)
-        (&N, &Nnz, &tmp, filename, &len, csc->avals, tmprows, tmpcolptr, crhs,
+        (&N, &Nnz, &tmp, filename, &len, csc->values, tmprows, tmpcolptr, crhs,
          &nrhs, RhsType, &M, &N, &Nnz, title, key, Type, &ierr );
 
     assert( (tmpcolptr[N]-tmpcolptr[0]) == Nnz );
 
     csc->colptr  = pastix_int_convert( N+1, tmpcolptr );
-    csc->rows    = pastix_int_convert( Nnz, tmprows );
+    csc->rowptr  = pastix_int_convert( Nnz, tmprows );
 
     RhsType[0] = '\0';
     if(ierr != 0) {

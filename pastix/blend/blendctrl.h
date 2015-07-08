@@ -78,8 +78,6 @@ typedef struct BlendCtrl_ {
 int  blendCtrlInit ( BlendCtrl *ctrl,
                      pastix_int_t  clustnum,
                      pastix_int_t  clustnbr,
-                     pastix_int_t  local_procnbr,
-                     pastix_int_t  local_thrdnbr,
                      pastix_int_t *iparam,
                      double       *dparam );
 

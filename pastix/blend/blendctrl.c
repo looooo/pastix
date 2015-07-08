@@ -92,11 +92,11 @@ int
 blendCtrlInit( BlendCtrl    *ctrl,
                pastix_int_t  procnum,
                pastix_int_t  procnbr,
-               pastix_int_t  local_coresnbr,
-               pastix_int_t  local_thrdsnbr,
                pastix_int_t *iparm,
                double       *dparm )
 {
+    pastix_int_t  local_coresnbr = iparm[IPARM_THREAD_NBR];
+    pastix_int_t  local_thrdsnbr = iparm[IPARM_THREAD_NBR];
     pastix_int_t i;
 
     /* Check parameters */

@@ -58,35 +58,35 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
  */
 typedef struct SopalinParam_ {
     pastix_bcsc_t *bcsc;          /*+ Compress Sparse Column matrix                    +*/
-  double          epsilonraff;     /*+ epsilon to stop reffinement                      +*/
-  double          rberror;         /*+ ||r||/||b||                                      +*/
-  double          espilondiag;     /*+ epsilon critere for diag control                 +*/
-  void *b;               /*+ b vector (RHS and solution)                      +*/
-  void *transcsc;        /*+ transpose csc                                    +*/
-  pastix_int_t    itermax;         /*+ max number of iteration                          +*/
-  pastix_int_t    diagchange;      /*+ number of change of diag                         +*/
-  pastix_int_t    gmresim;         /*+ Krylov subspace size for GMRES                   +*/
-  pastix_int_t    fakefact;        /*+ Flag indicating if we want fake factorisation    +*/
-  pastix_int_t    usenocsc;        /*+ Flag indicating if we want to use the intern CSC +*/
-  int             factotype;       /*+ Type of factorization                            +*/
-  int             symmetric;       /*+ Symmetric                                        +*/
-  MPI_Comm        pastix_comm;     /*+ MPI communicator                                 +*/
-  int             type_comm;       /*+ Communication mode                               +*/
-  int             nbthrdcomm;      /*+ Communication's thread number                    +*/
-  pastix_int_t   *iparm;           /*+ In/Out integer parameters                        +*/
-  double         *dparm;           /*+ In/Out float parameters                          +*/
-  int            *bindtab;         /*+ Define where to bin threads                      +*/
-  int             stopthrd;        /*+ Boolean for communication thread controlling     +*/
-  int             schur;           /*+ If API_YES won't compute last diag               +*/
-  pastix_int_t    n;               /*+ size of the matrix                               +*/
-  pastix_int_t    gN;
+    double          epsilonraff;     /*+ epsilon to stop reffinement                      +*/
+    double          rberror;         /*+ ||r||/||b||                                      +*/
+    double          espilondiag;     /*+ epsilon critere for diag control                 +*/
+    void *b;               /*+ b vector (RHS and solution)                      +*/
+    void *transcsc;        /*+ transpose csc                                    +*/
+    pastix_int_t    itermax;         /*+ max number of iteration                          +*/
+    pastix_int_t    diagchange;      /*+ number of change of diag                         +*/
+    pastix_int_t    gmresim;         /*+ Krylov subspace size for GMRES                   +*/
+    pastix_int_t    fakefact;        /*+ Flag indicating if we want fake factorisation    +*/
+    pastix_int_t    usenocsc;        /*+ Flag indicating if we want to use the intern CSC +*/
+    int             factotype;       /*+ Type of factorization                            +*/
+    int             symmetric;       /*+ Symmetric                                        +*/
+    MPI_Comm        pastix_comm;     /*+ MPI communicator                                 +*/
+    int             type_comm;       /*+ Communication mode                               +*/
+    int             nbthrdcomm;      /*+ Communication's thread number                    +*/
+    pastix_int_t   *iparm;           /*+ In/Out integer parameters                        +*/
+    double         *dparm;           /*+ In/Out float parameters                          +*/
+    int            *bindtab;         /*+ Define where to bin threads                      +*/
+    int             stopthrd;        /*+ Boolean for communication thread controlling     +*/
+    int             schur;           /*+ If API_YES won't compute last diag               +*/
+    pastix_int_t    n;               /*+ size of the matrix                               +*/
+    pastix_int_t    gN;
 } SopalinParam;
 
 /*
-   struct: pastix_data_t
+ struct: pastix_data_t
 
-   Structure used to store datas for a step by step execution.
-*/
+ Structure used to store datas for a step by step execution.
+ */
 
 struct pastix_data_s {
     pastix_int_t    *iparm;              /*< Store integer parameters (input/output)                             +*/
@@ -94,6 +94,7 @@ struct pastix_data_s {
 
     pastix_int_t     steps;              /*< Bitmask of the steps performed or not                               +*/
 
+    pastix_csc_t    *csc;                /*< Pointer to the user csc structure used as input                     +*/
     pastix_graph_t  *graph;              /*< Cleaned graph of the problem used within ordering
                                           *  and symbolic factorization steps.                                   +*/
     pastix_int_t     schur_n;            /*< Number of entries for the Schur complement                          +*/
@@ -107,6 +108,7 @@ struct pastix_data_s {
     pastix_int_t     n2;                 /*< Local number of columns without DoF                                 +*/
 
     SolverMatrix    *solvmatr;           /*+ Matrix informations                                                 +*/
+
     pastix_bcsc_t   *bcsc;               /*+ Compress Sparse Column matrix                                       +*/
 
     SopalinParam     sopar;              /*+ Sopalin parameters                                                  +*/

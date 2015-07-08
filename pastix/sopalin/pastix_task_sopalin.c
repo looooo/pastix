@@ -133,7 +133,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
               pastix_data->bcsc );
 
     if ( iparm[IPARM_FREE_CSCUSER] ) {
-        //TODO: cscExit( csc );
+        spmExit( csc );
     }
 
     coeftabInit( pastix_data->solvmatr,

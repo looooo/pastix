@@ -47,7 +47,7 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
     case PastixHermitian:
     {
         /* Similar to PastixSymmetric case with conjugate of the values */
-        pastix_complex64_t *valptr = spm->avals;
+        pastix_complex64_t *valptr = spm->values;
         pastix_int_t i;
 
         for(i=0; i<spm->nnz; i++, valptr++){
@@ -60,8 +60,8 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
         pastix_int_t *tmp;
 
         /* Just need to swap the pointers */
-        tmp         = spm->rows;
-        spm->rows   = spm->colptr;
+        tmp         = spm->rowptr;
+        spm->rowptr = spm->colptr;
         spm->colptr = tmp;
 
         return PASTIX_SUCCESS;
@@ -73,8 +73,8 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
     {
 
         /* transpose spm in CSC to trans(spm) in CSR */
-        tmp         = spm->rows;
-        spm->rows   = spm->colptr;
+        tmp         = spm->rowptr;
+        spm->rowptr = spm->colptr;
         spm->colptr = tmp;
         spm->fmttype = PastixCSR;
 
@@ -82,8 +82,8 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
         result = z_spmConvertCSR2CSC( spm );
 
         /* transpose trans(spm) in CSC to obtain spm in CSR */
-        tmp         = spm->rows;
-        spm->rows   = spm->colptr;
+        tmp         = spm->rowptr;
+        spm->rowptr   = spm->colptr;
         spm->colptr = tmp;
         spm->fmttype = PastixCSR;
     }
@@ -129,23 +129,14 @@ z_spmConvertIJV2CSR( pastix_csc_t *spm )
     /*
      * Check the baseval, we consider that arrays are sorted by columns or rows
      */
-    baseval = pastix_imin( *(oldspm.colptr), *(oldspm.rows) );
-    if ( ( baseval != 0 ) &&
-         ( baseval != 1 ) )
-    {
-        baseval = spm->n;
-        otmp = oldspm.colptr;
-        for(i=0; i<spm->nnz; i++, otmp++){
-            baseval = pastix_imin( *otmp, baseval );
-        }
-    }
+    baseval = spmFindBase( spm );
 
-    /* Compute the new rows (should be called rowptr) */
-    spm->rows = (pastix_int_t *) calloc(spm->n+1,sizeof(pastix_int_t));
+    /* Compute the new rowptr */
+    spm->rowptr = (pastix_int_t *) calloc(spm->n+1,sizeof(pastix_int_t));
 
     /* Compute the number of edges per row */
-    spmptx = spm->rows - baseval;
-    otmp   = oldspm.rows;
+    spmptx = spm->rowptr - baseval;
+    otmp   = oldspm.rowptr;
     for (i=0; i<spm->nnz; i++, otmp++)
     {
         spmptx[ *otmp ] ++;
@@ -153,7 +144,7 @@ z_spmConvertIJV2CSR( pastix_csc_t *spm )
 
     /* Compute the indexes in C numbering for the following sort */
     total = 0;
-    spmptx = spm->rows;
+    spmptx = spm->rowptr;
     for (i=0; i<(spm->n+1); i++, spmptx++)
     {
         tmp = *spmptx;
@@ -166,45 +157,41 @@ z_spmConvertIJV2CSR( pastix_csc_t *spm )
     spm->colptr  = malloc(spm->nnz * sizeof(pastix_int_t));
 
 #if defined(PRECISION_p)
-    spm->avals = NULL;
+    spm->values = NULL;
 #else
-    spm->avals = malloc(spm->nnz * sizeof(pastix_complex64_t));
-    navals = (pastix_complex64_t*)(spm->avals);
-    oavals = (pastix_complex64_t*)(oldspm.avals);
+    spm->values = malloc(spm->nnz * sizeof(pastix_complex64_t));
+    navals = (pastix_complex64_t*)(spm->values);
+    oavals = (pastix_complex64_t*)(oldspm.values);
 #endif
 
     for (j=0; j<spm->nnz; j++)
     {
-        i = oldspm.rows[j] - baseval;
+        i = oldspm.rowptr[j] - baseval;
 
-        spm->colptr[ spm->rows[i] ] = oldspm.colptr[j];
+        spm->colptr[ spm->rowptr[i] ] = oldspm.colptr[j];
 
 #if !defined(PRECISION_p)
-        navals[ spm->rows[i] ] = oavals[j];
+        navals[ spm->rowptr[i] ] = oavals[j];
 #endif
-        (spm->rows[i])++;
+        (spm->rowptr[i])++;
 
-        assert( spm->rows[i] <= spm->rows[i+1] );
+        assert( spm->rowptr[i] <= spm->rowptr[i+1] );
     }
 
     /* Rebuild the rows (rowptr) with the correct baseval */
-    tmp = spm->rows[0];
-    spm->rows[0] = baseval;
+    tmp = spm->rowptr[0];
+    spm->rowptr[0] = baseval;
 
-    spmptx = spm->rows + 1;
+    spmptx = spm->rowptr + 1;
     for (i=1; i<(spm->n+1); i++, spmptx++)
     {
         total = *spmptx;
         *spmptx = tmp + baseval;
         tmp = total;
     }
-    assert( spm->rows[ spm->n ] == (spm->nnz+baseval) );
+    assert( spm->rowptr[ spm->n ] == (spm->nnz+baseval) );
 
-    free( oldspm.rows );
-    free( oldspm.colptr );
-
-    if (oldspm.avals != NULL)
-        free( oldspm.avals );
+    spmExit( &oldspm );
 
     spm->fmttype = PastixCSR;
 

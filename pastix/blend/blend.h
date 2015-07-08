@@ -41,20 +41,16 @@
  *   local_nbthrds - Number of threads.
  *   clustnum   - Processor ID number.
  *   option     - Blend parameters.
- *   dofptr     -
  */
 void solverBlend(BlendCtrl    *ctrl,
                  SolverMatrix *solvmtx,
-                 SymbolMatrix *symbmtx,
-                 const Dof    *dofptr);
+                 SymbolMatrix *symbmtx);
 
 void splitSymbol( BlendCtrl    *ctrl,
                   SymbolMatrix *symbmtx );
 
 void propMappTree( Cand               *candtab,
                    const EliminTree   *etree,
-                   const SymbolMatrix *symbmtx,
-                   const Dof          *dofptr,
                    pastix_int_t        candnbr,
                    int nocrossproc, int allcand );
 

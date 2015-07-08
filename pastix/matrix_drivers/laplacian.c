@@ -83,8 +83,8 @@ laplacian_parse_info( const char   *filename,
 {
     long tmp1, tmp2, tmp3;
     csc->colptr   = NULL;
-    csc->rows     = NULL;
-    csc->avals    = NULL;
+    csc->rowptr   = NULL;
+    csc->values   = NULL;
     csc->loc2glob = NULL;
 
     /* Look for the datatype */

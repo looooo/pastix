@@ -239,11 +239,14 @@ enum DPARM_ACCESS {
   DPARM_PRED_FACT_TIME          = 19,
   DPARM_FACT_TIME               = 20,
   DPARM_SOLV_TIME               = 21,
-  DPARM_FACT_FLOPS              = 22,
+  DPARM_FACT_THFLOPS            = 22,
+  DPARM_FACT_RLFLOPS            = 25,
   DPARM_SOLV_FLOPS              = 23,
   DPARM_RAFF_TIME               = 24,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
 };
+
+#define DPARM_FACT_FLOPS DPARM_FACT_THFLOPS
 
 /** Etapes de résolution de PaStiX */
 /*
@@ -377,24 +380,15 @@ enum API_RAF {
   API_RAF_BICGSTAB = 3
 };
 
-/** Type de facto utilisée (LLT,LDLT,LU)*/
-/*
-  Enum: API_FACT
-
-  Factorization modes (index IPARM_FACTORISATION)
-
-  API_FACT_LLT  - $LL^t$ Factorization
-  API_FACT_LDLT - $LDL^t$ Factorization
-  API_FACT_LU   - $LU$ Factorization
-  API_FACT_LDLH - $LDL^h$ hermitian factorization
-*/
-/* _POS_ 4 */
-enum API_FACT {
-  API_FACT_LLT  = 0, /* Factorisation de Cholesky */
-  API_FACT_LDLT = 1, /* Factorisation de Crout */
-  API_FACT_LU   = 2, /* Factorisation LU */
-  API_FACT_LDLH  = 3
-};
+/**
+ * Factorization algorithms available for IPARM_FACTORIZATION parameter
+ */
+typedef enum pastix_factotype_e {
+  PastixFactLLT  = 0,
+  PastixFactLDLT = 1,
+  PastixFactLU   = 2,
+  PastixFactLDLH = 3
+} pastix_factotype_t;
 
 /** Matrice symétrique ou non (0 : symétrique, 1 : non) */
 /*
@@ -518,23 +512,17 @@ enum API_ORDER {
   API_ORDER_PTSCOTCH  = 4
 };
 
-/*
-  Enum: API_FLOAT
-
-  Ordering modes (index IPARM_ORDERING)
-
-  API_REALSINGLE    - Use \scotch{} ordering
-  API_REALDOUBLE    - Use \metis{} ordering
-  API_COMPLEXSINGLE - Apply user's permutation
-  API_COMPLEXDOUBLE - Load ordering from disk
+/**
+ * Type of elements used in the value array of the matrix and defined th IPARM_FLOAT parameter.
+ * (Start at 2 for compatibility with Plasma in case of kernels use)
  */
-/* _POS_ 61 */
-enum API_FLOAT {
-  API_REALSINGLE    = 0,
-  API_REALDOUBLE    = 1,
-  API_COMPLEXSINGLE = 2,
-  API_COMPLEXDOUBLE = 3
-};
+typedef enum pastix_coeftype_e {
+    PastixPattern   = 0,
+    PastixFloat     = 2,
+    PastixDouble    = 3,
+    PastixComplex32 = 4,
+    PastixComplex64 = 5
+} pastix_coeftype_t;
 
 /*
  * Enum: API_GPU_CRITERIUM

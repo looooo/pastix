@@ -34,8 +34,8 @@ int cscReadFromFile( pastix_driver_t  driver,
     csc->nnz      = 0;
     csc->dof      = 1;
     csc->colptr   = NULL;
-    csc->rows     = NULL;
-    csc->avals    = NULL;
+    csc->rowptr   = NULL;
+    csc->values   = NULL;
     csc->loc2glob = NULL;
 
     MPI_Comm_rank( pastix_comm, &mpirank );
@@ -116,7 +116,7 @@ int cscReadFromFile( pastix_driver_t  driver,
             }
 
             SCOTCH_graphLoad( &sgraph, file, 1, 0 );
-            SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rows), NULL );
+            SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rowptr), NULL );
             fclose(file);
 
             csc->flttype = PastixPattern;
@@ -273,8 +273,8 @@ int cscReadFromFile( pastix_driver_t  driver,
         if ( mpirank != 0 )
         {
             csc->colptr = (pastix_int_t *) malloc((csc->gN+1) * sizeof(pastix_int_t));
-            csc->rows   = (pastix_int_t *) malloc(nnz * sizeof(pastix_int_t));
-            csc->avals  = (void *)         malloc(nnz * pastix_size_of( csc->flttype ));
+            csc->rowptr = (pastix_int_t *) malloc(nnz * sizeof(pastix_int_t));
+            csc->values = (void *)         malloc(nnz * pastix_size_of( csc->flttype ));
             csc->loc2glob = NULL;
             csc->loc2glob = NULL;
             /* csc->rhs    = (void *) malloc((*ncol)*sizeof(pastix_complex64_t)); */
@@ -282,8 +282,8 @@ int cscReadFromFile( pastix_driver_t  driver,
         }
 
         MPI_Bcast( csc->colptr, csc->gN+1, PASTIX_MPI_INT, 0, pastix_comm );
-        MPI_Bcast( csc->rows,   nnz,       PASTIX_MPI_INT, 0, pastix_comm );
-        MPI_Bcast( csc->avals,  nnz * pastix_size_of( csc->flttype ), MPI_CHAR, 0, pastix_comm );
+        MPI_Bcast( csc->rowptr, nnz,       PASTIX_MPI_INT, 0, pastix_comm );
+        MPI_Bcast( csc->values, nnz * pastix_size_of( csc->flttype ), MPI_CHAR, 0, pastix_comm );
         /* MPI_Bcast(*rhs,    *ncol,   PASTIX_MPI_FLOAT, 0, pastix_comm); */
         /* MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm); */
     }

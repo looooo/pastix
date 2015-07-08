@@ -37,21 +37,21 @@ void solverCheck(SolverMatrix *solvmtx)
         cblknum = solvmtx->tasktab[i].cblknum;
         bloknum = solvmtx->tasktab[i].bloknum;
         indnum  = solvmtx->tasktab[i].indnum;
-        ASSERT(cblknum < solvmtx->cblknbr,MOD_BLEND);
-        ASSERT(bloknum < solvmtx->bloknbr,MOD_BLEND);
+        assert(cblknum < solvmtx->cblknbr);
+        assert(bloknum < solvmtx->bloknbr);
         if(indnum >= solvmtx->indnbr)
           printf("tasknbr %ld Tasknum %ld type %ld indnum %ld indnbr %ld \n", (long)solvmtx->tasknbr, (long)i, (long)solvmtx->tasktab[i].taskid, (long)indnum, (long)solvmtx->indnbr);
         /** OIMBE ce test foire (ligne precedente) si il y a du 1D jusqu'au bout !! mais a priori on s'en fout **/
         /*if(solvmtx->tasktab[i].taskid != 0 && solvmtx->cblktab[solvmtx->tasktab[i].cblknum]
-          ASSERT(indnum < solvmtx->indnbr,MOD_BLEND);*/
+          assert(indnum < solvmtx->indnbr);*/
         if(indnum >= solvmtx->indnbr)
           printf("cblknbr %ld cblknum %ld indnum %ld indnbr %ld \n", (long)solvmtx->cblknbr, (long)solvmtx->tasktab[i].cblknum, (long)indnum, (long)solvmtx->indnbr);
-        ASSERT(solvmtx->tasktab[i].taskid >= 0,MOD_BLEND);
-        ASSERT(solvmtx->tasktab[i].prionum >= 0,MOD_BLEND);
+        assert(solvmtx->tasktab[i].taskid >= 0);
+        assert(solvmtx->tasktab[i].prionum >= 0);
         switch(solvmtx->tasktab[i].taskid)
           {
             case COMP_1D:
-              ASSERT(bloknum  == (solvmtx->cblktab[cblknum].fblokptr-solvmtx->bloktab),MOD_BLEND);
+              assert(bloknum  == (solvmtx->cblktab[cblknum].fblokptr-solvmtx->bloktab));
               for(j = bloknum+1;j<solvmtx->cblktab[cblknum+1].fblokptr-solvmtx->bloktab;j++)
                 {
                   for(k=j;k<solvmtx->cblktab[cblknum+1].fblokptr-solvmtx->bloktab;k++)
@@ -72,8 +72,8 @@ void solverCheck(SolverMatrix *solvmtx)
                                 {
                                   pastix_int_t facebloknum, facecblknum;
                                   facecblknum = solvmtx->bloktab[j].cblknum;
-                                  ASSERT(facecblknum >= 0,MOD_BLEND);
-                                  ASSERT(facecblknum == solvmtx->tasktab[tasknum].cblknum,MOD_BLEND);
+                                  assert(facecblknum >= 0);
+                                  assert(facecblknum == solvmtx->tasktab[tasknum].cblknum);
                                   facebloknum = solvmtx->cblktab[facecblknum].fblokptr-solvmtx->bloktab;
 
                                   while ( ! (    ( solvmtx->bloktab[k].frownum >= solvmtx->bloktab[facebloknum].frownum &&
@@ -84,10 +84,10 @@ void solverCheck(SolverMatrix *solvmtx)
                                                    solvmtx->bloktab[k].lrownum >= solvmtx->bloktab[facebloknum].lrownum)))
                                     facebloknum++;
 
-                                  ASSERT(solvmtx->bloktab[k].frownum >= solvmtx->bloktab[facebloknum].frownum,MOD_BLEND);
-                                  ASSERT(solvmtx->bloktab[k].lrownum <= solvmtx->bloktab[facebloknum].lrownum,MOD_BLEND);
-                                  ASSERT(solvmtx->bloktab[j].frownum >= solvmtx->cblktab[facecblknum].fcolnum,MOD_BLEND);
-                                  ASSERT(solvmtx->bloktab[j].lrownum <= solvmtx->cblktab[facecblknum].lcolnum,MOD_BLEND);
+                                  assert(solvmtx->bloktab[k].frownum >= solvmtx->bloktab[facebloknum].frownum);
+                                  assert(solvmtx->bloktab[k].lrownum <= solvmtx->bloktab[facebloknum].lrownum);
+                                  assert(solvmtx->bloktab[j].frownum >= solvmtx->cblktab[facecblknum].fcolnum);
+                                  assert(solvmtx->bloktab[j].lrownum <= solvmtx->cblktab[facecblknum].lcolnum);
                                 }
                                 break;
                               default:
@@ -102,10 +102,10 @@ void solverCheck(SolverMatrix *solvmtx)
                           ftgtnum = solvmtx->indtab[indnum];
 
 
-                          ASSERT(solvmtx->bloktab[j].frownum >= solvmtx->ftgttab[ftgtnum].infotab[FTGT_FCOLNUM],MOD_BLEND);
-                          ASSERT(solvmtx->bloktab[j].lrownum <= solvmtx->ftgttab[ftgtnum].infotab[FTGT_LCOLNUM],MOD_BLEND);
-                          ASSERT(solvmtx->bloktab[k].frownum >= solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM],MOD_BLEND);
-                          ASSERT(solvmtx->bloktab[k].lrownum <= solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM],MOD_BLEND);
+                          assert(solvmtx->bloktab[j].frownum >= solvmtx->ftgttab[ftgtnum].infotab[FTGT_FCOLNUM]);
+                          assert(solvmtx->bloktab[j].lrownum <= solvmtx->ftgttab[ftgtnum].infotab[FTGT_LCOLNUM]);
+                          assert(solvmtx->bloktab[k].frownum >= solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM]);
+                          assert(solvmtx->bloktab[k].lrownum <= solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM]);
 
                           solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT]--;
 
@@ -130,15 +130,15 @@ void solverCheck(SolverMatrix *solvmtx)
       }
     for(i=0;i<solvmtx->ftgtnbr;i++)
       {
-        ASSERT(solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR]>0,MOD_BLEND);
-        ASSERT(solvmtx->ftgttab[i].infotab[FTGT_CTRBCNT]==0,MOD_BLEND);
+        assert(solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR]>0);
+        assert(solvmtx->ftgttab[i].infotab[FTGT_CTRBCNT]==0);
       }
 
     /** Reset the ftgt ctrbcnt **/
     for(i=0;i<solvmtx->ftgtnbr;i++)
       {
-        ASSERT(solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR]>0,MOD_BLEND);
-        ASSERT(solvmtx->ftgttab[i].infotab[FTGT_CTRBCNT]==0,MOD_BLEND);
+        assert(solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR]>0);
+        assert(solvmtx->ftgttab[i].infotab[FTGT_CTRBCNT]==0);
         solvmtx->ftgttab[i].infotab[FTGT_CTRBCNT] = solvmtx->ftgttab[i].infotab[FTGT_CTRBNBR];
       }
 
@@ -151,7 +151,7 @@ void solverCheck(SolverMatrix *solvmtx)
     if(total != solvmtx->tasknbr)
       fprintf(stderr, " total %ld tasknbr %ld \n", (long)total, (long)solvmtx->tasknbr);
 
-    ASSERT(total == solvmtx->tasknbr,MOD_BLEND);
+    assert(total == solvmtx->tasknbr);
 
 #ifdef DEBUG_BLEND
     {
@@ -169,7 +169,7 @@ void solverCheck(SolverMatrix *solvmtx)
           }
 
       for(i=0;i<solvmtx->tasknbr;i++)
-        ASSERT(flag[i] == 1,MOD_BLEND);
+        assert(flag[i] == 1);
 
       memFree(flag);
     }

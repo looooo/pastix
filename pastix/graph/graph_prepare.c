@@ -334,6 +334,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
 
     graphBase( tmpgraph, 1 );
 
+    // TODO: take it from the csc or from a parameter
+    tmpgraph->dof = 1;
     *graph = tmpgraph;
     return PASTIX_SUCCESS;
 }

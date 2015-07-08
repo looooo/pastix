@@ -29,7 +29,7 @@ bcsc_zInitA( const pastix_csc_t  *csc,
              const pastix_int_t  *col2cblk,
                    pastix_bcsc_t *bcsc )
 {
-    pastix_complex64_t *avals   = (pastix_complex64_t*)(csc->avals);
+    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
@@ -39,7 +39,7 @@ bcsc_zInitA( const pastix_csc_t  *csc,
 
     /**
      * Initialize the value of the matrix A in the blocked csc format. This
-     * applies the permutation to the avals array.
+     * applies the permutation to the values array.
      */
     for (itercol=0; itercol<csc->gN; itercol++)
     {
@@ -60,7 +60,7 @@ bcsc_zInitA( const pastix_csc_t  *csc,
 
         for (i=frow; i<lrow; i++)
         {
-            pastix_int_t iterrow  = csc->rows[i]-baseval;
+            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
             ival = i * dof * dof;
 
@@ -74,7 +74,7 @@ bcsc_zInitA( const pastix_csc_t  *csc,
                      idofrow++, ival++, rowidx++, pos++)
                 {
                     bcsc->rowtab[ pos ] = rowidx;
-                    Lvalues[ pos ] = avals[ ival ];
+                    Lvalues[ pos ] = values[ ival ];
                 }
 
                 coltab[ colidx ] += dof;
@@ -91,7 +91,7 @@ bcsc_zInitLt( const pastix_csc_t  *csc,
               const pastix_int_t  *col2cblk,
                     pastix_bcsc_t *bcsc )
 {
-    pastix_complex64_t *avals   = (pastix_complex64_t*)(csc->avals);
+    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
@@ -101,7 +101,7 @@ bcsc_zInitLt( const pastix_csc_t  *csc,
 
     /**
      * Initialize the value of the matrix A^t in the blocked csc format. This
-     * applies the permutation to the avals array.
+     * applies the permutation to the values array.
      */
     for (itercol=0; itercol<csc->gN; itercol++)
     {
@@ -115,7 +115,7 @@ bcsc_zInitLt( const pastix_csc_t  *csc,
         {
             pastix_int_t *coltab;
             pastix_int_t fcolnum;
-            pastix_int_t iterrow  = csc->rows[i]-baseval;
+            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
 
             itercblk = col2cblk[ iterrow2 ];
@@ -141,7 +141,7 @@ bcsc_zInitLt( const pastix_csc_t  *csc,
                     pos = coltab[ rowidx ];
 
                     bcsc->rowtab[ pos ] = colidx;
-                    Lvalues[ pos ] = avals[ ival ];
+                    Lvalues[ pos ] = values[ ival ];
 
                     coltab[ rowidx ]++;
                 }
@@ -158,7 +158,7 @@ bcsc_zInitLh( const pastix_csc_t  *csc,
               const pastix_int_t  *col2cblk,
                     pastix_bcsc_t *bcsc )
 {
-    pastix_complex64_t *avals   = (pastix_complex64_t*)(csc->avals);
+    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
@@ -168,7 +168,7 @@ bcsc_zInitLh( const pastix_csc_t  *csc,
 
     /**
      * Initialize the value of the matrix A^t in the blocked csc format. This
-     * applies the permutation to the avals array.
+     * applies the permutation to the values array.
      */
     for (itercol=0; itercol<csc->gN; itercol++)
     {
@@ -182,7 +182,7 @@ bcsc_zInitLh( const pastix_csc_t  *csc,
         {
             pastix_int_t *coltab;
             pastix_int_t fcolnum;
-            pastix_int_t iterrow  = csc->rows[i]-baseval;
+            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
 
             itercblk = col2cblk[ iterrow2 ];
@@ -208,7 +208,7 @@ bcsc_zInitLh( const pastix_csc_t  *csc,
                     pos = coltab[ rowidx ];
 
                     bcsc->rowtab[ pos ] = colidx;
-                    Lvalues[ pos ] = conj( avals[ ival ] );
+                    Lvalues[ pos ] = conj( values[ ival ] );
 
                     coltab[ rowidx ]++;
                 }
@@ -226,7 +226,7 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
                     pastix_int_t  *trowtab,
                     pastix_bcsc_t *bcsc )
 {
-    pastix_complex64_t *avals   = (pastix_complex64_t*)(csc->avals);
+    pastix_complex64_t *values  = (pastix_complex64_t*)(csc->values);
     pastix_complex64_t *Uvalues = (pastix_complex64_t*)(bcsc->Uvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
@@ -236,7 +236,7 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
 
     /**
      * Initialize the value of the matrix A^t in the blocked csc format. This
-     * applies the permutation to the avals array.
+     * applies the permutation to the values array.
      */
     for (itercol=0; itercol<csc->gN; itercol++)
     {
@@ -250,7 +250,7 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
         {
             pastix_int_t *coltab;
             pastix_int_t fcolnum;
-            pastix_int_t iterrow  = csc->rows[i]-baseval;
+            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
 
             itercblk = col2cblk[ iterrow2 ];
@@ -276,7 +276,7 @@ bcsc_zInitAt( const pastix_csc_t  *csc,
                     pos = coltab[ rowidx ];
 
                     trowtab[ pos ] = colidx;
-                    Uvalues[ pos ] = avals[ ival ];
+                    Uvalues[ pos ] = values[ ival ];
 
                     coltab[ rowidx ]++;
                 }

@@ -80,15 +80,12 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
-    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rows, NULL, NULL, NULL );
+    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rowptr, NULL, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
     //pastix_task_sopalin( pastix_data, &csc );
 
-    //cscExit( csc );
-    free(csc.colptr);
-    free(csc.rows);
-    free(csc.avals);
+    spmExit( &csc );
 
     /* if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD)) */
     /* { */
@@ -100,7 +97,7 @@ int main (int argc, char **argv)
     /*     /\*******************************************\/ */
     /*     /\*      Read Matrice                       *\/ */
     /*     /\*******************************************\/ */
-    /*     read_matrix(filename[0], &ncol, &colptr, &rows, &values, */
+    /*     read_matrix(filename[0], &ncol, &colptr, &rowptr, &values, */
     /*                   &rhs, &type, &rhstype, driver_type[0], MPI_COMM_WORLD); */
 
     /*     free(filename[0]); */

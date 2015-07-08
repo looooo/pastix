@@ -3,57 +3,42 @@
 
 #define PERF_MODEL "AMD 6180  MKL"
 
-#define OPS_SCAL(i)     (i)
-#define OPS_COPY(i)     (i)
-/*
-#define OPS_AXPY(i)     (i)
-#define OPS_SWAP(i)     (i)
-#define OPS_GEMV(i,j)   ((i)*(j))
-#define OPS_TRSV(i,j)   (((i)*(i-1)*(j))/2.)
-#define OPS_GER(i,j)    ((i)*(j))
-*/
-#define OPS_GEMM(i,j,k) (2.*(i)*(j)*(k))
-#define OPS_TRSM(i,j)   ((i)*(i-1)*(j))
-#define OPS_PPF(i)      ((2.*(i)*(i)*(i)+3.*(i)*(i)-5.*(i))/6.)
-#define OPS_GEAM(i,j)   ((i)*(j))
-
-
 /**GEMM**/
 #define GEMM_A  2.429169e-10
 #define GEMM_B  2.724804e-10
 #define GEMM_C  1.328900e-09
 #define GEMM_D  1.148989e-07
-#define GEMM_E  -2.704179e-10
+#define GEMM_E -2.704179e-10
 #define GEMM_F  1.216278e-06
 #define PERF_GEMM(i,j,k) (GEMM_A*(double)(i)*(double)(j)*(double)(k)+GEMM_B*(double)(i)*(double)(j)+GEMM_C*(double)(j)*(double)(k)+GEMM_D*(double)(i)+GEMM_E*(double)(j)+GEMM_F)
 
 
 /**GEAM**/
-#define GEAM_A  1.358111e-09
-#define GEAM_B -4.416379e-09
-#define GEAM_C 2.270780e-08
+#define GEAM_A   1.358111e-09
+#define GEAM_B  -4.416379e-09
+#define GEAM_C   2.270780e-08
 #define GEAM_D  -3.335563e-07
 #define PERF_GEAM(i,j)   (GEAM_A*(double)(i)*(double)(j)+GEAM_B*(double)(i)+GEAM_C*(double)(j)+GEAM_D)
 
-/**TRSM**/
+/**TRSM (Works only for right case) **/
 #define TRSM_A 2.626177e-10
 #define TRSM_B 3.976198e-08
 #define TRSM_C 3.255168e-06
-#define PERF_TRSM(i,j)   (TRSM_A*(double)(i)*(double)(i)*(double)(j)+TRSM_B*(double)(i)+TRSM_C)
+#define PERF_TRSM( i, j )   (TRSM_A*(double)(i)*(double)(i)*(double)(j)+TRSM_B*(double)(i)+TRSM_C)
 
-/**POF**/
-#define POF_A 2.439599e-11
-#define POF_B 1.707006e-08
-#define POF_C -1.469893e-07
-#define POF_D 4.071507e-07
-#define PERF_POF(i) (POF_A*(double)(i)*(double)(i)*(double)(i)+POF_B*(double)(i)*(double)(i)+POF_C*(double)(i)+POF_D)
+/**POTRF**/
+#define POTRF_A  2.439599e-11
+#define POTRF_B  1.707006e-08
+#define POTRF_C -1.469893e-07
+#define POTRF_D  4.071507e-07
+#define PERF_POTRF(i) (POTRF_A*(double)(i)*(double)(i)*(double)(i)+POTRF_B*(double)(i)*(double)(i)+POTRF_C*(double)(i)+POTRF_D)
 
 /**PPF**/
-#define PPF_A 2.439599e-11
-#define PPF_B 1.707006e-08
+#define PPF_A  2.439599e-11
+#define PPF_B  1.707006e-08
 #define PPF_C -1.469893e-07
-#define PPF_D 4.071507e-07
-#define PERF_PPF(i) (PPF_A*(double)(i)*(double)(i)*(double)(i)+PPF_B*(double)(i)*(double)(i)+PPF_C*(double)(i)+PPF_D)
+#define PPF_D  4.071507e-07
+#define PERF_SYTRF(i) (PPF_A*(double)(i)*(double)(i)*(double)(i)+PPF_B*(double)(i)*(double)(i)+PPF_C*(double)(i)+PPF_D)
 
 /**SCAL**/
 #define SCAL_A 4.371793e-10
@@ -73,7 +58,7 @@
 /**GEMV**/
 #define GEMV_A  6.192657e-10
 #define GEMV_B -2.884799e-09
-#define GEMV_C 7.594831e-10
+#define GEMV_C  7.594831e-10
 #define GEMV_D  3.575035e-07
 #define PERF_GEMV(i,j)   (GEMV_A*(double)(i)*(double)(j)+GEMV_B*(double)(i)+GEMV_C*(double)(j)+GEMV_D)
 

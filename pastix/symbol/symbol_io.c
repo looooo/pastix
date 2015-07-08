@@ -49,8 +49,6 @@
 **  The defines and includes.
 */
 
-#define SYMBOL_IO
-
 #include "common.h"
 #include "symbol.h"
 
@@ -143,6 +141,8 @@ FILE * const                stream)
     }
   }
 
+  // TODO: store the value and read it
+  symbptr->dof = 1;
   return (0);
 }
 

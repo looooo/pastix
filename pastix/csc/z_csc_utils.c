@@ -380,7 +380,7 @@ void z_csc_noDiag(pastix_int_t        baseval,
 */
 int z_csc_check_doubles(pastix_int_t         n,
                         pastix_int_t        *colptr,
-                        pastix_int_t       **rows,
+                        pastix_int_t       **rowptr,
                         pastix_complex64_t **values,
                         int                  dof,
                         int                  flag,
@@ -402,13 +402,13 @@ int z_csc_check_doubles(pastix_int_t         n,
     {
       for (j = colptr[i]-1; j < colptr[i+1]-1; j = k)
         {
-          (*rows)[index]   = (*rows)[j];
+          (*rowptr)[index]   = (*rowptr)[j];
           if (values != NULL)
             for (d = 0; d < dof*dof; d++)
               (*values)[index*dof*dof+d] = (*values)[j*dof*dof+d];
 
           k = j+1;
-          while (k < colptr[i+1]-1 && (*rows)[j] == (*rows)[k])
+          while (k < colptr[i+1]-1 && (*rowptr)[j] == (*rowptr)[k])
             {
               if (flag == API_NO)
                 return API_NO;
@@ -443,22 +443,22 @@ int z_csc_check_doubles(pastix_int_t         n,
             MALLOC_INTERN(tmpvals, lastindex*dof*dof, pastix_complex64_t);
         }
 
-      memcpy(tmprows, *rows,   lastindex*sizeof(pastix_int_t));
+      memcpy(tmprows, *rowptr,   lastindex*sizeof(pastix_int_t));
       if (values != NULL)
         memcpy(tmpvals, *values, lastindex*dof*dof*sizeof(pastix_complex64_t));
       if (flagalloc == API_NO)
         {
-          free(*rows);
+          free(*rowptr);
           if (values != NULL)
             free(*values);
         }
       else
         {
-          memFree_null(*rows);
+          memFree_null(*rowptr);
           if (values != NULL)
             memFree_null(*values);
         }
-      *rows   = tmprows;
+      *rowptr   = tmprows;
       if (values != NULL)
         *values = tmpvals;
     }
