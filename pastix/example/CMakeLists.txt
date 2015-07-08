@@ -133,6 +133,9 @@ add_custom_target(examples_headers DEPENDS ${generated_headers} )
 add_executable(analyze analyze.c)
 target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
 
+add_executable(clifexec clifexec.c)
+target_link_libraries(clifexec ${PASTIX_EXAMPLES_LIBRARIES})
+
 add_executable(spm_convert_tests spm_convert_tests.c)
 target_link_libraries(spm_convert_tests ${PASTIX_EXAMPLES_LIBRARIES})
 
