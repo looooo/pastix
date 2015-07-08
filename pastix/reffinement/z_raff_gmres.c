@@ -78,7 +78,7 @@ void* z_gmres_smp(void *arg)
   gmresdata = solveur.Malloc(arg, 1           * sizeof(gmres_t));
   gmresx    = solveur.Malloc(arg, n           * sizeof(RAFF_FLOAT));
 
-  MONO_BEGIN(arg);
+//   MONO_BEGIN(arg);
   gmresvv = solveur.Malloc(arg, (gmresim+1) * sizeof(RAFF_FLOAT*));
   gmreshh = solveur.Malloc(arg, gmresim     * sizeof(RAFF_FLOAT*));
   gmresw  = solveur.Malloc(arg, gmresim     * sizeof(RAFF_FLOAT*));
@@ -89,8 +89,8 @@ void* z_gmres_smp(void *arg)
       gmresw[i]  = solveur.Malloc(arg, n           * sizeof(RAFF_FLOAT));
     }
   gmresvv[gmresim] = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
-  MONO_END(arg);
-  SYNCHRO(arg);
+//   MONO_END(arg);
+//   SYNCHRO(arg);
 
   /* Synchronisations */
   gmrestemp  = (RAFF_FLOAT * )solveur.Synchro(arg, (void*) gmrestemp, 0);
@@ -117,7 +117,7 @@ void* z_gmres_smp(void *arg)
   gmresalpha = -1.0;
   gmresiters = 0;
 
-  RAFF_CLOCK_INIT;
+//   RAFF_CLOCK_INIT;
 
   while (gmresdata->gmresout_flag)
     {
@@ -129,7 +129,7 @@ void* z_gmres_smp(void *arg)
       /* ro = vv[0].vv[0] */
       solveur.Dotc_Gmres(arg, gmresvv[0], gmresvv[0], &beta, 0);
 
-#ifdef TYPE_COMPLEX
+#if defined(PRECISION_z) || defined(PRECISION_c)
       gmresdata->gmresro = (RAFF_FLOAT)csqrt(beta);
 #else
       gmresdata->gmresro = (RAFF_FLOAT)sqrt(beta);
