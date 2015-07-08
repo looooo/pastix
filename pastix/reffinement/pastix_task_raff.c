@@ -1,7 +1,11 @@
 /**
+ * 
+ * @file pastix_task_raff.c
+ * 
+ * PaStiX reffinement functions implementations.
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ * LaBRI, University of Bordeaux 1 and IPB.
  *
  * @version 1.0.0
  * @author Mathieu Faverge
@@ -12,13 +16,6 @@
  * @date 2011-11-11
  *
  **/
-/*
- * File: pastix_task_raff.c
- *
- * PaStiX reffinement functions implementations.
- *
- */
-
 #include "common.h"
 #include "z_csc.h"
 #include "bcsc.h"
@@ -32,7 +29,7 @@
 // #include "c_csc_intern_updown.h"
 #include "z_csc_intern_updown.h"
 
-static int (*sopalinRaff[4][4])(SolverMatrix*, SopalinParam*) = 
+static void (*sopalinRaff[4][4])(SolverMatrix*, SopalinParam*) = 
 {
 //  API_RAF_GMRES
     {
@@ -60,12 +57,12 @@ static int (*sopalinRaff[4][4])(SolverMatrix*, SopalinParam*) =
         z_bicgstab_thread}
 };
 
-static void (*bcscApplyPerm[4])(pastix_int_t, pastix_int_t, void*, pastix_int_t, pastix_int_t*) = 
+static int (*bcscApplyPerm[4])(pastix_int_t, pastix_int_t, void*, pastix_int_t, pastix_int_t*) = 
 {
-    s_buildUpdoVect,
-    d_buildUpdoVect,
-    c_buildUpdoVect,
-    z_buildUpdoVect
+    s_bcscApplyPerm,
+    d_bcscApplyPerm,
+    c_bcscApplyPerm,
+    z_bcscApplyPerm
 };
 
 /*
@@ -125,24 +122,6 @@ void pastix_task_raff(pastix_data_t *pastix_data,
     void          * tmp;
 
     print_debug(DBG_STEP, "->pastix_task_raff\n");
-#ifndef PASTIX_UPDO_ISEND
-    if (THREAD_COMM_ON)
-    {
-        if (procnum == 0)
-            errorPrintW("THREAD_COMM require -DPASTIX_UPDO_ISEND,"
-                        " force API_THREAD_MULTIPLE");
-        sopar->iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_MULTIPLE;
-    }
-#endif /* PASTIX_UPDO_ISEND */
-#ifndef STORAGE
-    if (THREAD_COMM_ON)
-    {
-        if (procnum == 0)
-            errorPrintW("THREAD_COMM require -DSTORAGE,"
-                        " force API_THREAD_MULTIPLE");
-        sopar->iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_MULTIPLE;
-    }
-#endif /* STORAGE */
 
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         print_onempi("%s", OUT_STEP_REFF);
@@ -183,15 +162,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 
     sopar->itermax     = iparm[IPARM_ITERMAX];
     sopar->epsilonraff = dparm[DPARM_EPSILON_REFINEMENT];
-#ifdef OOC
-    if (iparm[IPARM_GMRES_IM] != 1)
-    {
-        iparm[IPARM_GMRES_IM] = 1;
-        if (procnum == 0)
-            errorPrintW("IPARM_GMRES_IM force to 1 when using OOC");
-    }
-#endif
-    sopar->gmresim = iparm[IPARM_GMRES_IM];
+    sopar->gmresim     = iparm[IPARM_GMRES_IM];
     
     if(sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FLOAT]-2](solvmatr, sopar) == NULL)
     {
@@ -213,7 +184,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 //                                            iparm[IPARM_DOF_NBR],
 //                                            iparm[IPARM_RHS_MAKING],
 //                                            pastix_comm);
-        memcpy(b, &(solvmatr->updovct), pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
+        memcpy(b, &(solvmatr->updovct.sm2xtab), pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
 
         if( PASTIX_SUCCESS != bcscApplyPerm[iparm[IPARM_FLOAT]-2]( pastix_data->bcsc->gN,
                                                                    1,
