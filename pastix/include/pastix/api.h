@@ -254,6 +254,7 @@ enum DPARM_ACCESS {
   DPARM_FACT_RLFLOPS            = 25,
   DPARM_SOLV_FLOPS              = 23,
   DPARM_RAFF_TIME               = 24,
+  DPARM_A_NORM                  = 25,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
 };
 
@@ -401,23 +402,48 @@ typedef enum pastix_factotype_e {
   PastixFactLDLH = 3
 } pastix_factotype_t;
 
-/** Matrice symétrique ou non (0 : symétrique, 1 : non) */
-/*
-  Enum: API_SYM
+#define PastixGeneral       111
+#define PastixSymmetric     112
+#define PastixHermitian     113
 
-  Symmetric modes (index IPARM_SYM)
+/** ****************************************************************************
+ *
+ *  PaStiX constants - Compatible with CBLAS & LAPACK
+ *  The naming and numbering is consistent with:
+ *
+ *    1) CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
+ *    2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
+ *    3) Plasma (http://icl.cs.utk.edu/plasma/index.html)
+ *
+ **/
+typedef enum pastix_trans_e {
+    PastixNoTrans   = 111,
+    PastixTrans     = 112,
+    PastixConjTrans = 113
+} pastix_trans_t;
 
-  API_SYM_YES - Symmetric matrix
-  API_SYM_NO  - Nonsymmetric matrix
-  API_SYM_HER - Hermitian
+typedef enum pastix_uplo_e {
+    PastixUpper      = 121,
+    PastixLower      = 122,
+    PastixUpperLower = 123
+} pastix_uplo_t;
 
- */
-/* _POS_ 3 */
-enum API_SYM {
-  API_SYM_NO  = 111,  /* Matrice non symetrique */
-  API_SYM_YES = 112, /* Matrice symetrique     */
-  API_SYM_HER = 113
-};
+typedef enum pastix_diag_e {
+    PastixNonUnit = 131,
+    PastixUnit    = 132
+} pastix_diag_t;
+
+typedef enum pastix_side_e {
+    PastixLeft  = 141,
+    PastixRight = 142
+} pastix_side_t;
+
+typedef enum pastix_normtype_e {
+    PastixOneNorm       = 171,
+    PastixFrobeniusNorm = 174,
+    PastixInfNorm       = 175,
+    PastixMaxNorm       = 177
+} pastix_normtype_t;
 
 /** Supressing user CSC(D) when not usefull anymore */
 /*
@@ -636,21 +662,5 @@ enum pastix_error_e {
   PASTIX_ERR_STEP_ORDER     = 15,
   PASTIX_ERR_MPI            = 16
 };
-
-/* **************************************** */
-
-static inline void set_iparm(pastix_int_t *iparm, enum IPARM_ACCESS offset, pastix_int_t value)
-{
-    if (iparm != NULL) iparm[offset] = (pastix_int_t)value;
-}
-
-static inline void set_dparm(double *dparm, enum DPARM_ACCESS offset, double value)
-{
-    if (dparm != NULL) dparm[offset] = (double)value;
-}
-
-void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);
-int  api_dparmreader(char * filename, double       *dparmtab);
-int  api_iparmreader(char * filename, pastix_int_t *iparmtab);
 
 #endif /* _PASTIX_API_H_ */

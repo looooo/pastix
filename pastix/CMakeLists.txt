@@ -101,6 +101,16 @@ option(FORGET_PARTITION
 option(COMPACT_SMX
   "Optimization for solve computations (TODO: check if not obsolete because results don't converge)" OFF)
 
+# Options to increase verbosity while debuging
+option(PASTIX_DEBUG_GRAPH
+  "Debug the graph data structure" OFF)
+option(PASTIX_DEBUG_SYMBOL
+  "Debug the symbol matrix factorization" OFF)
+option(PASTIX_DEBUG_BLEND
+  "Debug the analyze step" OFF)
+option(PASTIX_DEBUG_FACTO
+  "Debug the factorization step" OFF)
+
 ###############################################################################
 # Look for dependencies #
 #########################
@@ -112,14 +122,21 @@ FortranCInterface_HEADER(common/FCmangle.h
 
 # PaStiX depends on CBLAS
 #----------------------------
+find_package(CBLAS REQUIRED)
+set(HAVE_CBLAS ${CBLAS_FOUND})
 find_package(BLASEXT REQUIRED)
 set(HAVE_BLAS ${BLAS_FOUND})
 
-find_package(CBLAS REQUIRED)
-set(HAVE_CBLAS ${CBLAS_FOUND})
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
+endif()
+
+find_package(LAPACKE REQUIRED)
+find_package(LAPACKEXT REQUIRED)
+if(LAPACKE_FOUND)
+    message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
+    include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
 
 # PaStiX depends on HwLoc
@@ -359,19 +376,22 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/csc")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/reffinement")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
-set(modules bcsc kernels) #csc kernels sopalin matrix_drivers common)
+set(modules csc bcsc kernels) #csc kernels sopalin matrix_drivers common)
 # if (PASTIX_WITH_STARPU)
 #   list(APPEND modules starpu)
 # endif (PASTIX_WITH_STARPU)
@@ -431,13 +451,23 @@ include(RulesPrecisions)
 set(generated_files "")
 set(SOURCES
   common/z_integer.c
+  #
+  csc/z_spm_norm.c
   csc/z_spm_convert_to_csc.c
   csc/z_spm_convert_to_csr.c
   csc/z_spm_convert_to_ijv.c
+  #
   csc/z_spm_matrixvector.c
   csc/z_spm_genrhs.c
   matrix_drivers/z_spm_laplacian.c
+  #
+  sopalin/sequential_ztrsm.c
+  sopalin/sequential_zdiag.c
+  sopalin/sequential_zgetrf.c
+  sopalin/sequential_zhetrf.c
   sopalin/sequential_zpotrf.c
+  sopalin/sequential_zsytrf.c
+  #
   sopalin/coeftab_z.c
   )
 precisions_rules_py(generated_files
@@ -546,13 +576,19 @@ set(PASTIX_LIB_SRCS
   #matrix_drivers/readpetsc.c
   #matrix_drivers/readcscd.c
 #
-  sopalin/pastix_task_sopalin.c
   sopalin/coeftab.c
+  sopalin/pastix_task_sopalin.c
+  sopalin/pastix_task_solve.c
 #
   csc/csc.c
   csc/genrhs.c
 #
   ${generated_files}
+  )
+
+set_source_files_properties(
+  csc/csc.c
+  PROPERTIES DEPENDS spm_headers
   )
 
 set(PASTIX_ALL_SRCS
@@ -628,7 +664,9 @@ add_library(pastix
   )
 
 add_dependencies(pastix
+  spm_headers
   kernels_headers
+  bcsc_headers
   pastix_bcsc
   pastix_kernels
 )

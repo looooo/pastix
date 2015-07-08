@@ -140,10 +140,13 @@ subs = {
     ('', 'Workspace_s',    'Workspace_d',    'Workspace_c',    'Workspace_z'     ),
     ('', 'workspace_s',    'workspace_d',    'workspace_c',    'workspace_z'     ),
 
-    ('p_spm', 's_spm', 'd_spm', 'c_spm', 'z_spm' ),
+    ('p_spm',  's_spm',  'd_spm',  'c_spm',  'z_spm'  ),
+    ('p_bcsc', 's_bcsc', 'd_bcsc', 'c_bcsc', 'z_bcsc' ),
     ('', 'csc_s',          'csc_d',          'csc_c',          'csc_z'           ),
     ('', 'sequential_s',   'sequential_d',   'sequential_c',   'sequential_z'    ),
     ('', 'coeftab_s',      'coeftab_d',      'coeftab_c',      'coeftab_z'       ),
+    ('', 'thread_s',       'thread_d',       'thread_c',       'thread_z'        ),
+    ('', 'thread_ps',      'thread_pd',      'thread_pc',      'thread_pz'       ),
 
     # ----- Complex numbers
     # \b regexp here avoids conjugate -> conjfugate,

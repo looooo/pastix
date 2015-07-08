@@ -101,7 +101,7 @@ solverBackupInit( const SolverMatrix *solvmtx )
         MALLOC_INTERN(b->symbol_cblknum, solvmtx->bloknbr, pastix_int_t);
 
         for (i=0; i<solvmtx->bloknbr; i++, blok++)
-            b->symbol_cblknum[i] = blok->cblknum;
+            b->symbol_cblknum[i] = blok->fcblknm;
     }
 
     b->symbol_nodenbr = solvmtx->nodenbr;
@@ -186,7 +186,7 @@ solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b )
         SolverBlok *blok = solvmtx->bloktab;
 
         for (i=0; i<solvmtx->bloknbr; i++, blok++) {
-            blok->cblknum = b->symbol_cblknum[i];
+            blok->fcblknm = b->symbol_cblknum[i];
         }
     }
     solvmtx->nodenbr = b->symbol_nodenbr;

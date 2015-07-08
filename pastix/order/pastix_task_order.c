@@ -281,6 +281,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
          * Scotch Ordering
          */
     case API_ORDER_SCOTCH:
+        pastix_print(procnum, 0, OUT_ORDER_METHOD, "Scotch" );
 #if defined(HAVE_SCOTCH)
         retval = orderComputeScotch( pastix_data, &subgraph );
 #else
@@ -293,6 +294,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
          * PT-Scotch Ordering
          */
     case API_ORDER_PTSCOTCH:
+        pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
 #if defined(HAVE_PTSCOTCH)
         retval = orderComputePTScotch( pastix_data, &subgraph );
 #else
@@ -305,6 +307,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
          *  METIS ordering
          */
     case API_ORDER_METIS:
+        pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
 #if defined(HAVE_METIS)
         retval = orderComputeMetis( pastix_data, &subgraph );
         assert( ordemesh->rangtab == NULL );
@@ -319,10 +322,38 @@ pastix_task_order(      pastix_data_t *pastix_data,
          */
     case API_ORDER_PERSONAL:
         {
-            orderInit(ordemesh, n, 0);
-            memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
-            memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
+            pastix_int_t i;
 
+            orderInit(ordemesh, n, 0);
+            if (perm == NULL) {
+                if (invp == NULL) {
+                    pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (identity)" );
+                    for(i=0; i<n; i++) {
+                        ordemesh->permtab[i] = i;
+                        ordemesh->peritab[i] = i;
+                    }
+                }
+                else {
+                    pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from invp)" );
+                    // TODO: generate perm from invp
+                    assert(0);
+                    memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
+                }
+            }
+            else {
+                if (invp == NULL) {
+                    pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from perm)" );
+                    // TODO: generate invp from perm
+                    assert(0);
+                    memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
+                }
+                else {
+                    pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (perm/invp)" );
+                    memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
+                    memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
+                }
+            }
+            /* Destroy the rangtab */
             memFree_null( ordemesh->rangtab );
             ordemesh->cblknbr = 0;
         }
@@ -332,6 +363,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
          * Load ordering
          */
     case API_ORDER_LOAD:
+        pastix_print(procnum, 0, OUT_ORDER_METHOD, "Load" );
         retval = orderLoad( ordemesh, NULL );
         break;
 

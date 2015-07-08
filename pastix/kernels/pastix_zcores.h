@@ -45,11 +45,6 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L,
                           pastix_complex64_t *U);
 
-int core_zgetrfsp1d( SolverCblk         *cblk,
-                     pastix_complex64_t *L,
-                     pastix_complex64_t *U,
-                     double              criteria);
-
 void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
                            SolverBlok         *blok,
                            SolverCblk         *fcblk,
@@ -59,7 +54,11 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *Cu,
                            pastix_complex64_t *work );
 
-#if defined(PRECISION_z)
+int core_zgetrfsp1d( SolverMatrix *solvmtx,
+                     SolverCblk   *cblk,
+                     double        criteria );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
 int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
@@ -68,11 +67,6 @@ int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
 int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L);
 
-int core_zhetrfsp1d( SolverCblk         *cblk,
-                     pastix_complex64_t *L,
-                     double              criteria,
-                     pastix_complex64_t *work );
-
 void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
                            SolverBlok         *blok,
                            SolverCblk         *fcblk,
@@ -80,7 +74,12 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2 );
-#endif /* defined(PRECISION_z) */
+
+int core_zhetrfsp1d( SolverMatrix *solvmtx,
+                     SolverCblk   *cblk,
+                     double        criteria );
+
+#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -108,10 +107,6 @@ int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
 int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L );
 
-int core_zsytrfsp1d( SolverMatrix *solvmtx,
-                     SolverCblk   *cblk,
-                     double        criteria );
-
 void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
                            SolverBlok         *blok,
                            SolverCblk         *fcblk,
@@ -119,5 +114,9 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *C,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2);
+
+int core_zsytrfsp1d( SolverMatrix *solvmtx,
+                     SolverCblk   *cblk,
+                     double        criteria );
 
 #endif /* _CORE_Z_H_ */

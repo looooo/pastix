@@ -100,4 +100,18 @@ extern pastix_complex32_t csqrtf(pastix_complex32_t z);
 
 #endif /* HAVE_COMPLEX_H */
 
+
+static inline int pastix_size_of(int type)
+{
+    switch(type) {
+    case PastixFloat:     return   sizeof(float);
+    case PastixDouble:    return   sizeof(double);
+    case PastixComplex32: return 2*sizeof(float);
+    case PastixComplex64: return 2*sizeof(double);
+    default:
+        fprintf(stderr, "pastix_size_of: invalide type parameter\n");
+        return -1;
+    }
+}
+
 #endif /* _PASTIX_DATATYPES_H_ */

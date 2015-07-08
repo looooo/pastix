@@ -15,6 +15,11 @@
 #include "csc.h"
 #include "bcsc.h"
 
+#include "z_bcsc.h"
+#include "c_bcsc.h"
+#include "d_bcsc.h"
+#include "s_bcsc.h"
+
 static inline pastix_int_t
 bcsc_init_coltab( const SolverMatrix  *solvmtx,
                   const pastix_int_t  *newcoltab,
@@ -175,6 +180,8 @@ bcscInitCentralized( const pastix_csc_t  *csc,
 
     bcsc->mtxtype = csc->mtxtype;
     bcsc->flttype = csc->flttype;
+    bcsc->gN      = csc->gN;
+    bcsc->n       = csc->n;
 
     assert( csc->loc2glob == NULL );
 
@@ -210,16 +217,16 @@ bcscInitCentralized( const pastix_csc_t  *csc,
         bcscInitCentralizedFake( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixFloat:
-        bcsc_sInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        s_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixDouble:
-        bcsc_dInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        d_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex32:
-        bcsc_cInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        c_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex64:
-        bcsc_zInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        z_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     default:
         fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input csc\n");

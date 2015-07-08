@@ -872,6 +872,10 @@ void pastix_ex_getoptions(int argc, char **argv,
             {
                 iparam[IPARM_ORDERING] = API_ORDER_PTSCOTCH;
             }
+            else if (strcmp(optarg, "personal") == 0)
+            {
+                iparam[IPARM_ORDERING] = API_ORDER_PERSONAL;
+            }
             else {
                 fprintf(stderr, "Wrong values (ord=%s)!!!\nPossible values for ordering are: scotch, metis and ptscotch (Default scotch is chosen)\n", optarg);
             }

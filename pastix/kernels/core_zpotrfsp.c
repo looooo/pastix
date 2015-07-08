@@ -17,7 +17,6 @@
 #include "common.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
-//#include "../sopalin/sopalin_acces.h"
 #include "../blend/solver.h"
 
 static pastix_complex64_t zone  =  1.;
@@ -214,7 +213,8 @@ static void core_zpotrfsp(pastix_int_t        n,
  *******************************************************************************
  *
  * @return
- *          The number of static pivoting during factorization of the diagonal block.
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
  *
  *******************************************************************************/
 int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
@@ -242,8 +242,7 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *
  * @ingroup pastix_kernel
  *
- * core_zpotrfsp1d_trsm - Computes the Cholesky factorization of one panel and apply
- * all the trsm updates to this panel.
+ * core_zpotrfsp1d_trsm - Apply all the trsm updates to one panel.
  *
  *******************************************************************************
  *
@@ -285,7 +284,6 @@ int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
         /* the first off-diagonal block in column block address */
         fL = L + blok[1].coefind;
 
-        /* Three terms version, no need to keep L and L*D */
         cblas_ztrsm(CblasColMajor,
                     CblasRight, CblasLower,
                     CblasConjTrans, CblasNonUnit,
@@ -325,10 +323,8 @@ int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
+ * @param[in,out] work
+ *          Temporary buffer used in cblas_zgemm().
  *
  *******************************************************************************
  *
@@ -352,12 +348,12 @@ void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
     pastix_int_t dimi, dimj, dima, dimb;
 
     stride = cblk->stride;
-    dima = cblk->lcolnum - cblk->fcolnum + 1;
+    dima = cblk_colnbr( cblk );
 
     /* First blok */
     indblok = blok->coefind;
 
-    dimj = blok->lrownum - blok->frownum + 1;
+    dimj = blok_rownbr( blok );
     dimi = stride - indblok;
 
     /* Matrix A = Aik */
@@ -508,7 +504,7 @@ core_zpotrfsp1d( SolverMatrix *solvmtx,
     blok = cblk->fblokptr+1;
     for( ; blok < lblk; blok++ )
     {
-        fcblk = (solvmtx->cblktab + blok->cblknum);
+        fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         core_zpotrfsp1d_gemm( cblk, blok, fcblk,
                               L, fcblk->lcoeftab, work );

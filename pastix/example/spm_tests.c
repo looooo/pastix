@@ -23,6 +23,12 @@
 #include <csc.h>
 #include <laplacian.h>
 
+#include <s_spm.h>
+#include <d_spm.h>
+#include <c_spm.h>
+#include <z_spm.h>
+#include <p_spm.h>
+
 #define TEST(f) printf("-- Test %s: ", f);
 #define CHECK printf("Check the CSC: "); ret = PASTIX_SUCCESS;
 #define RES(a) if(a != PASTIX_SUCCESS){printf("FAILED\n"); \
@@ -476,7 +482,7 @@ int main (int argc, char **argv)
         free(rowptr);
         if(values != NULL)
             free(values);
-        
+
         /*-------------------------------------------------*/
         /* The matrix is symetric. To test all matrix vector products, */
         /* we will compare x3(1+Tr(A)) = (A+At)rhs and (x1 + x2) = (A)rhs + (At)rhs. */
@@ -551,7 +557,7 @@ int main (int argc, char **argv)
         }
 
         RES(ret)
-        
+
         /*-------------------------------------------------*/
 
         /* testing the symetric matrix_vector product */
@@ -714,7 +720,7 @@ int main (int argc, char **argv)
 
             RES_CHECK(ret)
         }
-        
+
         free(x1);
         x1 = NULL;
         free(x2);

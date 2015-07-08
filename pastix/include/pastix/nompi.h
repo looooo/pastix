@@ -103,6 +103,7 @@ typedef struct MPI_Status{
 #define MPI_Barrier(comm)
 #define MPI_Op_create(function, commute, op)
 #define MPI_Init(argc, argv)
+#define MPI_Initialized(_init_) do { *(_init_) = 1; } while(0);
 #define MPI_Finalize()
 #define MPI_Comm_split(comm, color, id, new_comm)
 

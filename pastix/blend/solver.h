@@ -1,40 +1,21 @@
 /**
- * solver.h -- SolverMatrix description.
+ * @file solver.h
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
  * @version 1.0.0
- * @author Mathieu Faverge
+ * @author David Goudin
+ * @author Pascal Henon
+ * @author Francois Pellegrini
  * @author Pierre Ramet
+ * @author Mathieu Faverge
  * @author Xavier Lacoste
  * @date 2011-11-11
  *
  **/
-
-
-/************************************************************/
-/**                                                        **/
-/**   NAME       : solver.h                                **/
-/**                                                        **/
-/**   AUTHORS    : David GOUDIN                            **/
-/**                Pascal HENON                            **/
-/**                Francois PELLEGRINI                     **/
-/**                Pierre RAMET                            **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                These lines are the data declarations   **/
-/**                for the solver matrix.                  **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to     28 oct 1998     **/
-/**                # Version 1.0  : from : 06 jun 2002     **/
-/**                                 to     06 jun 2002     **/
-/**                                                        **/
-/************************************************************/
-
-#ifndef SOLVER_H
-#define SOLVER_H
+#ifndef _SOLVER_H_
+#define _SOLVER_H_
 
 #include "ftgt.h"
 #include "updown.h"
@@ -74,24 +55,28 @@ typedef struct Task_ {
 /*+ Solver block structure. +*/
 
 typedef struct SolverBlok_ {
-    pastix_int_t frownum;       /*+ First row index            +*/
-    pastix_int_t lrownum;       /*+ Last row index (inclusive) +*/
-    pastix_int_t cblknum;       /*+ Facing column block        +*/
-    pastix_int_t levfval;       /*+ Level-of-fill value        +*/
-    pastix_int_t coefind;       /*+ Index in coeftab           +*/
+    pastix_int_t frownum;  /*+ First row index            +*/
+    pastix_int_t lrownum;  /*+ Last row index (inclusive) +*/
+    pastix_int_t lcblknm;  /*< Local column block         */
+    pastix_int_t fcblknm;  /*< Facing column block        */
+    pastix_int_t coefind;  /*+ Index in coeftab           +*/
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
 
 typedef struct SolverCblk_  {
-    pastix_int_t    fcolnum;  /*+ First column index                     +*/
-    pastix_int_t    lcolnum;  /*+ Last column index (inclusive)          +*/
-    SolverBlok     *fblokptr; /*+ First block in column (diagonal)       +*/
-    pastix_int_t    stride;   /*+ Column block stride                    +*/
+    pastix_int_t  fcolnum;  /*< First column index                     */
+    pastix_int_t  lcolnum;  /*< Last column index (inclusive)          */
+    SolverBlok   *fblokptr; /*< First block in column (diagonal)       */
+    pastix_int_t  stride;   /*< Column block stride                    */
+    pastix_int_t  lcolidx;  /*< Local first column index to the location in the updown vector    */
+    pastix_int_t  brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t  gcblknum; /*< Global column block index              */
+    void         *lcoeftab; /*< Coefficients access vector             */
+    void         *ucoeftab; /*< Coefficients access vector             */
+
+    /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
-    pastix_int_t    gcblknum; /*+ Global column block index              +*/
-    void          * lcoeftab; /*+ Coefficients access vector             +*/
-    void          * ucoeftab; /*+ Coefficients access vector             +*/
     pastix_int_t    gpuid;
 } SolverCblk;
 
@@ -104,13 +89,15 @@ typedef struct SolverMatrix_ {
                      2:After Factorization +*/
     pastix_int_t            baseval; /*+ Base value for numberings                         +*/
 
-    pastix_int_t            nodenbr; /*+ Number of nodes before dof extension              +*/
-    pastix_int_t            coefnbr; /*+ Number of coefficients (node after dof extension) +*/
-    pastix_int_t            gcblknbr; /*+ Global number of column blocks                    +*/
-    pastix_int_t            cblknbr; /*+ Number of column blocks                   +*/
-    pastix_int_t            bloknbr; /*+ Number of blocks                          +*/
-    SolverCblk * restrict cblktab; /*+ Array of solver column blocks             +*/
-    SolverBlok * restrict bloktab; /*+ Array of solver blocks                    +*/
+    pastix_int_t            nodenbr; /*< Number of nodes before dof extension              */
+    pastix_int_t            coefnbr; /*< Number of coefficients (node after dof extension) */
+    pastix_int_t            gcblknbr;/*< Global number of column blocks                    */
+    pastix_int_t            cblknbr; /*< Number of column blocks                   */
+    pastix_int_t            bloknbr; /*< Number of blocks                          */
+    pastix_int_t            brownbr; /*< Size of the browtab array                 */
+    SolverCblk   * restrict cblktab; /*< Array of solver column blocks             */
+    SolverBlok   * restrict bloktab; /*< Array of solver blocks                    */
+    pastix_int_t * restrict browtab; /*< Array of blocks                           */
 
 #ifdef PASTIX_WITH_STARPU
     /* All this part concern halo of the local matrix
@@ -508,4 +495,4 @@ void            solverBackupExit( SolverBackup_t *b );
 pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
 pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
 
-#endif /* SOLVER_H */
+#endif /* _SOLVER_H_*/

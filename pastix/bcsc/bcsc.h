@@ -14,8 +14,6 @@
 #ifndef _BCSC_H
 #define _BCSC_H
 
-#include "common.h"
-
 struct bcsc_format_s {
     pastix_int_t   colnbr; /*> Number of columns in the block column.                                    */
     pastix_int_t * coltab; /*> Array of indexes of the start of each column in the row and value arrays. */
@@ -27,6 +25,8 @@ typedef struct bcsc_format_s bcsc_format_t;
  * Internal column block distributed CSC matrix.
  */
 struct pastix_bcsc_s {
+    int            gN;      /*> Global number of vertices                                                      */
+    int            n;       /*> Local number of vertices                                                       */
     int            mtxtype; /*> Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.           */
     int            flttype; /*> valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
     pastix_int_t   cscfnbr; /*> Number of fronts/column blocks.                                                */
@@ -45,33 +45,6 @@ void bcscInitCentralizedFake( const pastix_csc_t  *csc,
                               const pastix_int_t  *col2cblk,
                                     int            initAt,
                                     pastix_bcsc_t *bcsc );
-void bcsc_zInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
-
-void bcsc_cInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
-
-void bcsc_dInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
-
-void bcsc_sInitCentralized( const pastix_csc_t  *csc,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
 
 pastix_int_t
 bcsc_init_centralized_coltab( const pastix_csc_t  *csc,

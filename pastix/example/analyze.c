@@ -17,7 +17,15 @@
 #include <limits.h>
 #include <pastix.h>
 #include <csc.h>
+#include <lapacke.h>
 #include "../matrix_drivers/drivers.h"
+
+void CORE_dplrnt( int m, int n, double *A, int lda,
+                  int gM, int m0, int n0, unsigned long long int seed );
+
+int core_dgeadd(int trans, int M, int N, double alpha,
+                const double *A, int LDA,
+                double *B, int LDB);
 
 int main (int argc, char **argv)
 {
@@ -68,10 +76,12 @@ int main (int argc, char **argv)
      * Initialize parameters to default values
      */
     pastixInitParam( iparm, dparm );
+
     iparm[IPARM_FACTORIZATION] = API_FACT_LDLT;
     iparm[IPARM_IO_STRATEGY]   = API_IO_SAVE;
     iparm[IPARM_MIN_BLOCKSIZE] = 60;
     iparm[IPARM_MAX_BLOCKSIZE] = 120;
+
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     split_level       = 0;
@@ -98,8 +108,100 @@ int main (int argc, char **argv)
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_reordering( pastix_data, split_level, stop_criteria, stop_when_fitting );
     pastix_task_blend( pastix_data );
+
     /* pastix_task_sopalin( pastix_data, &csc ); */
 
+    if (0)
+    {
+        double normA, normB, normX, normR, result, eps;
+        double mdone = -1.;
+        double done  = 1.;
+        double dzero = 0.;
+        int loud = 4;
+        size_t size = pastix_size_of( csc.flttype ) * csc.gN;
+        void *x0 = malloc( size );
+        void *x  = malloc( size );
+        void *b  = malloc( size );
+
+        switch( csc.flttype ) {
+        case PastixComplex64:
+            CORE_zplrnt( csc.gN, 1, x0, 1, 1, 0, 0, 243759 );
+            break;
+        case PastixComplex32:
+            CORE_cplrnt( csc.gN, 1, x0, 1, 1, 0, 0, 243759 );
+            break;
+        case PastixDouble:
+            CORE_dplrnt( csc.gN, 1, x0, 1, 1, 0, 0, 243759 );
+            break;
+        case PastixFloat:
+            CORE_splrnt( csc.gN, 1, x0, 1, 1, 0, 0, 243759 );
+            break;
+        default:
+            ;
+        }
+        /* Copy b to x */
+        //if (0)
+        {
+            pastix_int_t i;
+            double *lb = (double*)x0;
+            for(i=0; i<csc.gN; i++) {
+                lb[i] = (double)i+1;
+            }
+        }
+        spmMatVec( PastixNoTrans, &done, &csc, x0, &dzero, b );
+        memcpy( x, b, size );
+
+        {
+            int PRHS_ii;
+            fprintf(stdout,"%s (Proc %d) : ", "RHS", 0);
+            for (PRHS_ii= 0; PRHS_ii<csc.gN; PRHS_ii++)
+                fprintf(stdout,"%.3g ", ((double*)b)[PRHS_ii]);
+            fprintf(stdout,"\n");
+        }
+        pastix_task_solve( pastix_data, &csc, 1, x, csc.gN );
+
+        eps = LAPACKE_dlamch( 'e' );
+        normB = LAPACKE_dlange( LAPACK_COL_MAJOR, 'I', csc.gN, 1, b, csc.gN );
+        normX = LAPACKE_dlange( LAPACK_COL_MAJOR, 'I', csc.gN, 1, x, csc.gN );
+        normA = dparm[DPARM_A_NORM];
+
+        spmMatVec( PastixNoTrans, &mdone, &csc, x, &done, b );
+        normR = LAPACKE_dlange( LAPACK_COL_MAJOR, 'I', csc.gN, 1, b, csc.gN );
+
+        {
+            int PRHS_ii;
+            fprintf(stdout,"%s (Proc %d) : ", "SOL", 0);
+            for (PRHS_ii= 0; PRHS_ii<csc.gN; PRHS_ii++)
+                fprintf(stdout,"%.3g ",((double*)x)[PRHS_ii]);
+            fprintf(stdout,"\n");
+        }
+        result = normR / ( ( normA * normX + normB ) * csc.gN * eps ) ;
+
+        if ( loud > 2 ) {
+            printf("============\n");
+            printf("Checking the Residual of the solution \n");
+            if ( loud > 3 )
+                printf( "-- ||A||_oo = %e, ||x_0||_oo = %e, ||x||_oo = %e, ||b||_oo= %e, ||A x - b||_oo = %e\n",
+                        normA,
+                        LAPACKE_dlange( LAPACK_COL_MAJOR, 'I', csc.gN, 1, x0, csc.gN ),
+                        normX, normB, normR );
+
+            printf("-- ||Ax-b||_oo/((||A||_oo||x||_+||b||_oo).N.eps) = %e \n", result);
+        }
+
+        if (  isnan(normX) || isinf(normX) || isnan(result) || isinf(result) || (result > 60.0) ) {
+            if( loud ) printf("-- Solution is suspicious ! \n");
+        }
+        else{
+            if( loud ) printf("-- Solution is CORRECT ! \n");
+        }
+
+        core_dgeadd( PastixNoTrans, csc.gN, 1, -1., x0, 1, x, 1 );
+        normR = LAPACKE_dlange( LAPACK_COL_MAJOR, 'M', csc.gN, 1, x, csc.gN );
+        printf( "-- ||X0-X||_oo = %e\n", normR );
+
+        free(x0); free(x); free(b);
+    }
     spmExit( &csc );
 
     /* if (!PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD)) */

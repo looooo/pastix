@@ -15,6 +15,7 @@
  **/
 #include "common.h"
 #include "csc.h"
+#include "z_spm.h"
 
 /**
  *******************************************************************************
@@ -128,7 +129,8 @@ z_spmConvertIJV2CSC( pastix_csc_t *spm )
  * @ingroup pastix_csc
  *
  * z_spmConvertCSR2CSC - convert a matrix in CSR format to a matrix in CSC
- * format.
+ * format. If the matrix is PastixSymmetric or PastixHermitian, then the
+ * transpose or respectively the conjugate is returned.
  *
  *******************************************************************************
  *
@@ -168,9 +170,10 @@ z_spmConvertCSR2CSC( pastix_csc_t *spm )
         pastix_int_t *tmp;
 
         /* Just need to swap the pointers */
-        tmp         = spm->rowptr;
-        spm->rowptr = spm->colptr;
-        spm->colptr = tmp;
+        tmp          = spm->rowptr;
+        spm->rowptr  = spm->colptr;
+        spm->colptr  = tmp;
+        spm->fmttype = PastixCSC;
 
         return PASTIX_SUCCESS;
     }

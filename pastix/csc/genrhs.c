@@ -16,6 +16,11 @@
 #include "common.h"
 #include "csc.h"
 
+#include "z_spm.h"
+#include "c_spm.h"
+#include "d_spm.h"
+#include "s_spm.h"
+
 /**
  *******************************************************************************
  *

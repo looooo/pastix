@@ -17,7 +17,6 @@
 #include "common.h"
 #include "pastix_zcores.h"
 #include <cblas.h>
-#include "../sopalin/sopalin_acces.h"
 #include "../blend/solver.h"
 
 static pastix_complex64_t zone  =  1.;
@@ -53,7 +52,7 @@ static pastix_complex64_t zzero =  0.;
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
  *******************************************************************************
@@ -191,7 +190,6 @@ static void core_zgetrfsp(pastix_int_t        n,
     }
 }
 
-
 /**
  *******************************************************************************
  *
@@ -230,25 +228,25 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *U,
                            double              criteria)
 {
-    pastix_int_t dima, stride;
-    pastix_int_t nbpivot = 0;
+    pastix_int_t  ncols, stride;
+    pastix_int_t  nbpivot = 0;
 
-    dima    = cblk->lcolnum - cblk->fcolnum + 1;
+    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = cblk->stride;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
-    core_zgeadd( CblasTrans, dima, dima, 1.0,
+    core_zgeadd( CblasTrans, ncols, ncols, 1.0,
                  U, stride,
                  L, stride );
 
     /* Factorize diagonal block (two terms version with workspace) */
-    core_zgetrfsp(dima, L, stride, &nbpivot, criteria);
+    core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
 
     /* Transpose Akk in ucoeftab */
-    core_zgetro(dima, dima, L, stride, U, stride);
+    core_zgetro(ncols, ncols, L, stride, U, stride);
 
     return nbpivot;
 }
@@ -277,7 +275,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *******************************************************************************
  *
  * @return
- *          \retval PASTIX_SUCCESS on successful exit
+ *         \retval PASTIX_SUCCESS on successful exit.
  *
  *******************************************************************************/
 int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
@@ -355,17 +353,15 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
  *          factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d( SolverCblk         *cblk,
-                     pastix_complex64_t *L,
-                     pastix_complex64_t *U,
-                     double              criteria)
+int core_zgetrfsp1d_panel( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           double              criteria)
 {
     pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, L, U, criteria);
     core_zgetrfsp1d_trsm(cblk, L, U);
     return nbpivot;
 }
-
-
 
 /**
  *******************************************************************************
@@ -437,7 +433,6 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     stride  = cblk->stride;
     dima = cblk->lcolnum - cblk->fcolnum + 1;
 
-
     /* First blok */
     indblok = blok->coefind;
 
@@ -474,7 +469,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     /* for all following blocks in block column */
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
-        /* Find facing bloknum */
+        /* Find facing blok */
         while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
@@ -493,7 +488,6 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
         /* Displacement to next block */
         wtmp += dimb;
     }
-
 
     /*
      * Compute update on U
@@ -570,3 +564,70 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
         wtmp += dimb;
     }
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgetrfsp1d - Computes the Cholesky factorization of one panel, apply all
+ * the trsm updates to this panel, and apply all updates to the right with no
+ * lock.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+int
+core_zgetrfsp1d( SolverMatrix *solvmtx,
+                 SolverCblk   *cblk,
+                 double        criteria )
+{
+    pastix_complex64_t *L = cblk->lcoeftab;
+    pastix_complex64_t *U = cblk->ucoeftab;
+    pastix_complex64_t *work = NULL;
+    SolverCblk  *fcblk;
+    SolverBlok  *blok, *lblk;
+    pastix_int_t nbpivot;
+
+    nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria);
+
+    blok = cblk->fblokptr + 1; /* this diagonal block */
+    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+    if ( blok < lblk ) {
+        pastix_int_t maxarea = 0;
+        for( ; blok < lblk; blok++ )
+        {
+            maxarea = pastix_imax( maxarea, blok_rownbr( blok ) * cblk->stride );
+        }
+        MALLOC_INTERN( work, maxarea, pastix_complex64_t );
+    }
+
+    /* if there are off-diagonal supernodes in the column */
+    blok = cblk->fblokptr+1;
+    for( ; blok < lblk; blok++ )
+    {
+        fcblk = (solvmtx->cblktab + blok->fcblknm);
+
+        core_zgetrfsp1d_gemm( cblk, blok, fcblk,
+                              L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
+    }
+
+    memFree_null( work );
+    return nbpivot;
+}
+

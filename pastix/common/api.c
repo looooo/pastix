@@ -20,8 +20,7 @@
 #include "order.h"
 #include "solver.h"
 #include "bcsc.h"
-
-typedef struct isched_s isched_t;
+#include "isched.h"
 
 isched_t *scheduler = NULL;
 isched_t *ischedInit(int cores, int *coresbind);
@@ -192,12 +191,13 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_STARPU_CTX_NBR]     = -1;
     iparm[IPARM_PRODUCE_STATS]      = API_NO;
 
-    dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
+    dparm[DPARM_EPSILON_REFINEMENT] =  0.;
     dparm[DPARM_RELATIVE_ERROR]     = -1.;
     dparm[DPARM_SCALED_RESIDUAL]    = -1.;
-    dparm[DPARM_EPSILON_MAGN_CTRL]  = 1e-31;
-    dparm[DPARM_FACT_FLOPS]         = 0.;
-    dparm[DPARM_SOLV_FLOPS]         = 0.;
+    dparm[DPARM_EPSILON_MAGN_CTRL]  =  0.;
+    dparm[DPARM_FACT_FLOPS]         =  0.;
+    dparm[DPARM_SOLV_FLOPS]         =  0.;
+    dparm[DPARM_A_NORM]             = -1.;
 }
 
 /**
@@ -387,6 +387,7 @@ pastixInit( pastix_data_t **pastix_data,
     pastix->steps = STEP_INIT;
 
     scheduler = ischedInit( -1, NULL );
+    pastix->iparm[IPARM_THREAD_NBR] = scheduler->world_size;
 
     *pastix_data = pastix;
 }

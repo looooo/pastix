@@ -215,7 +215,7 @@ kassFactDirect(const kass_csr_t   *graphA,
         nrow = graphL->nnz[i];
 
         assert( nrow >= ncol );
-        assert( nrow <  graphA->n );
+        assert( nrow <= graphA->n );
 
         nnz += (ncol*(ncol+1))/2;
         nnz += (ncol*(nrow-ncol));

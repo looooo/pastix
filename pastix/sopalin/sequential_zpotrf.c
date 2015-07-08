@@ -1,6 +1,6 @@
 /**
  *
- * @file sequential_zpotrf.c
+ * @file sopalin_zpotrf.c
  *
  *  PaStiX factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -17,63 +17,81 @@
  *
  **/
 #include "common.h"
+#include "isched.h"
 #include "sopalin_data.h"
+#include "pastix_zcores.h"
 
 void
-coeftab_zdumpcblk( const SolverCblk *cblk,
-                   FILE *stream );
-int
-core_zpotrfsp1d( SolverMatrix *solvmtx,
-                 SolverCblk   *cblk,
-                 double        criteria );
-
-void
-pastix_static_zpotrf( sopalin_data_t *sopalin_data )
+sequential_zpotrf( sopalin_data_t *sopalin_data )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk;
+    SolverCblk   *cblk;
+    pastix_int_t  i;
+
+    cblk = datacode->cblktab;
+    for (i=0; i<datacode->cblknbr; i++, cblk++){
+        /* Compute */
+        core_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold );
+    }
+
+#if defined(PASTIX_DEBUG_FACTO)
+    coeftab_zdump( datacode, "potrf_L.txt" );
+#endif
+}
+
+void
+thread_pzpotrf( int rank, void *args )
+{
+    sopalin_data_t *sopalin_data = (sopalin_data_t*)args;
+    SolverMatrix *datacode = sopalin_data->solvmtx;
+    SolverCblk   *cblk;
+    Task         *t;
     pastix_int_t  i, ii;
-    pastix_int_t tasknbr, *tasktab;
-    Task *t;
-    FILE *stream = fopen("facto.txt", "w");
+    pastix_int_t  tasknbr, *tasktab;
 
-    tasknbr = datacode->ttsknbr[0];
-    tasktab = datacode->ttsktab[0];
+    tasknbr = datacode->ttsknbr[rank];
+    tasktab = datacode->ttsktab[rank];
 
-    for (ii=0; ii<tasknbr; ii++){
+    for (ii=0; ii<tasknbr; ii++) {
         i = tasktab[ii];
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
-        /* Compute task */
-        switch( t->taskid )
-        {
-        case COMP_1D:
-                    /* /\* Wait for contributions *\/ */
-                    /* API_CALL(z_wait_contrib_comp_1d)(sopalin_data, me, i); */
-
-                    /* z_ooc_wait_task(sopalin_data,i, me); */
-                    /* z_ooc_wait_for_cblk(sopalin_data, TASK_CBLKNUM(i),me); */
-
-                    /* /\* trace_begin_task1(thread_data->tracefile, *\/ */
-                    /* /\*                   SOPALIN_CLOCK_TRACE, *\/ */
-                    /* /\*                   SOLV_PROCNUM, me, *\/ */
-                    /* /\*                   STATE_COMP1D, *\/ */
-                    /* /\*                   TASK_PROC( i ), *\/ */
-                    /* /\*                   SOLV_TASKTAB[i], *\/ */
-                    /* /\*                   stolen ); *\/ */
-
-            /* Compute */
-            core_zpotrfsp1d( datacode, cblk, 0.002397);
-            fprintf(stream, "i=%ld, task=%ld, cblk=%ld\n",
-                    (long)ii, (long)i, (long)t->cblknum);
-            coeftab_zdumpcblk( cblk, stream );
-            break;
-
-        default:
-            errorPrint("Taskid unknown for task %ld\n", (long)i);
-            EXIT(MOD_SOPALIN,INTERNAL_ERR);
-        }
+        /* Compute */
+        core_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold );
     }
-    fclose(stream);
+
+#if defined(PASTIX_DEBUG_FACTO)
+    isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
+    if (rank == 0) {
+        coeftab_zdump( datacode, "potrf_L.txt" );
+    }
+    isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
+#endif
+}
+
+
+void
+thread_zpotrf( sopalin_data_t *sopalin_data )
+{
+    isched_parallel_call( sopalin_data->sched, thread_pzpotrf, sopalin_data );
+}
+
+static void (*zpotrf_table[4])(sopalin_data_t *) = {
+    sequential_zpotrf,
+    thread_zpotrf,
+    NULL,
+    NULL
+};
+
+void
+sopalin_zpotrf( sopalin_data_t *sopalin_data )
+{
+    int sched = 0;
+    void (*zpotrf)(sopalin_data_t *) = zpotrf_table[ sched ];
+
+    if (zpotrf == NULL) {
+        zpotrf = thread_zpotrf;
+    }
+    zpotrf( sopalin_data );
 }

@@ -15,6 +15,7 @@
  **/
 #include "common.h"
 #include "bcsc.h"
+#include "isched.h"
 
 void
 coeftab_zinitcblk( const SolverMatrix  *solvmtx,
@@ -56,7 +57,12 @@ void
 coeftab_sdump( const SolverMatrix *solvmtx,
                const char   *filename );
 
-/* Section: Functions */
+struct coeftabinit_s {
+    const SolverMatrix  *datacode;
+    const pastix_bcsc_t *bcsc;
+    int fakefillin;
+    int factoLU;
+};
 
 /*
  * Function: z_CoefMatrix_Allocate
@@ -76,13 +82,14 @@ coeftab_sdump( const SolverMatrix *solvmtx,
  *     assigned to each thread.)
  */
 void
-coeftabInit( const SolverMatrix  *datacode,
-             const pastix_bcsc_t *bcsc,
-             int fakefillin,
-             int factoLU )
+pcoeftabInit( int rank, void *args )
 {
+    struct coeftabinit_s *ciargs = (struct coeftabinit_s*)args;
+    const SolverMatrix  *datacode = ciargs->datacode;
+    const pastix_bcsc_t *bcsc     = ciargs->bcsc;
+    int fakefillin = ciargs->fakefillin;
+    int factoLU    = ciargs->factoLU;
     pastix_int_t i, itercblk;
-    pastix_int_t bubnum = 0;
     pastix_int_t task;
     void (*initfunc)(const SolverMatrix*,
                      const pastix_bcsc_t*,
@@ -111,13 +118,32 @@ coeftabInit( const SolverMatrix  *datacode,
         dumpfunc = coeftab_ddump;
     }
 
-    for (i=0; i < datacode->ttsknbr[bubnum]; i++)
+    for (i=0; i < datacode->ttsknbr[rank]; i++)
     {
-        task = datacode->ttsktab[bubnum][i];
+        task = datacode->ttsktab[rank][i];
         itercblk = datacode->tasktab[task].cblknum;
 
         initfunc( datacode, bcsc, itercblk, fakefillin, factoLU );
     }
 
-    dumpfunc( datacode, "lcoeftab.txt" );
+    //dumpfunc( datacode, "lcoeftab.txt" );
+}
+
+void
+coeftabInit( const SolverMatrix  *datacode,
+             const pastix_bcsc_t *bcsc,
+             int fakefillin,
+             int factoLU )
+{
+    extern isched_t *scheduler;
+    struct coeftabinit_s args;
+
+    args.datacode   = datacode;
+    args.bcsc       = bcsc;
+    args.fakefillin = fakefillin;
+    args.factoLU    = factoLU;
+
+    isched_parallel_call( scheduler, pcoeftabInit, &args );
+
+    //dumpfunc( datacode, "lcoeftab.txt" );
 }

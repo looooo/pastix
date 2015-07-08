@@ -15,6 +15,7 @@
  **/
 #include "common.h"
 #include "csc.h"
+#include "z_spm.h"
 
 /**
  *******************************************************************************
@@ -29,9 +30,9 @@
  *
  * @param[in] csc
  *          The PastixGeneral csc.
- * 
+ *
  * @param[in,out] rhs
- *          The generated rhight hand side member, 
+ *          The generated rhight hand side member,
  *          reallocated if allocated at enter.
  *
  *******************************************************************************
@@ -82,14 +83,14 @@ z_spm_genRHS(pastix_csc_t  *csc,
 
     if( csc->mtxtype == PastixGeneral )
     {
-        if( z_spmGeCSCv( n, 1., csc, (pastix_complex64_t*)x, 1., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
+        if( z_spmGeCSCv( n, 1., csc, (pastix_complex64_t*)x, 0., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
         {
             return PASTIX_ERR_BADPARAMETER;
         }
     }
     else if( csc->mtxtype == PastixSymmetric )
     {
-        if( z_spmSyCSCv( 1., csc, (pastix_complex64_t*)x, 1., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
+        if( z_spmSyCSCv( 1., csc, (pastix_complex64_t*)x, 0., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
         {
             return PASTIX_ERR_BADPARAMETER;
         }
@@ -97,7 +98,7 @@ z_spm_genRHS(pastix_csc_t  *csc,
 #if defined(PRECISION_z) || defined(PRECISION_c)
     else if( csc->mtxtype == PastixHermitian )
     {
-        if( z_spmHeCSCv( 1., csc, (pastix_complex64_t*)x, 1., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
+        if( z_spmHeCSCv( 1., csc, (pastix_complex64_t*)x, 0., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
         {
             return PASTIX_ERR_BADPARAMETER;
         }
