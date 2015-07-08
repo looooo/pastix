@@ -19,6 +19,8 @@
  */
 
 #include "common.h"
+#include "z_csc.h"
+#include "z_bcsc.h"
 
 //#include "z_tools.h"
 //#ifdef PASTIX_EZTRACE
@@ -51,9 +53,9 @@
 //#endif
 
 static pastix_complex64_t fun   = 1.0;
-#define z_up_down_smp API_CALL(z_up_down_smp)
+// #define z_up_down_smp API_CALL(z_up_down_smp)
 void* z_up_down_smp ( void *arg );
-#define z_sopalin_updo_comm API_CALL(z_sopalin_updo_comm)
+// #define z_sopalin_updo_comm API_CALL(z_sopalin_updo_comm)
 void *z_sopalin_updo_comm ( void *arg );
 
 
@@ -147,11 +149,11 @@ void z_Pastix_End(void* arg, pastix_complex64_t tmp, pastix_int_t nb_iter, doubl
   pastix_int_t        me           = argument->me;
 
   sopalin_data->stop = tmp;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
-  SYNCHRO_THREAD;
+//   MULTITHREAD_END(0);
+//   SYNCHRO_THREAD;
 
   sopar->rberror = tmp;
   sopar->itermax = nb_iter;
@@ -159,21 +161,22 @@ void z_Pastix_End(void* arg, pastix_complex64_t tmp, pastix_int_t nb_iter, doubl
   if (sopar->iparm[IPARM_PRODUCE_STATS] == API_YES) {
     pastix_complex64_t *r, *s;
 
-    MONOTHREAD_BEGIN;
+//     MONOTHREAD_BEGIN;
     MALLOC_INTERN(r, UPDOWN_SM2XSZE, pastix_complex64_t);
     MALLOC_INTERN(s, UPDOWN_SM2XSZE, pastix_complex64_t);
     sopalin_data->ptr_raff[0] = (void *)r;
     sopalin_data->ptr_raff[1] = (void *)s;
-    MONOTHREAD_END;
-    SYNCHRO_THREAD;
+//     MONOTHREAD_END;
+//     SYNCHRO_THREAD;
 
     r = (pastix_complex64_t *)sopalin_data->ptr_raff[0];
     s = (pastix_complex64_t *)sopalin_data->ptr_raff[1];
-    MULTITHREAD_BEGIN;
+//     MULTITHREAD_BEGIN;
     /* compute r = b - Ax */
-    z_CscbMAx(sopalin_data, me, r, sopar->b, sopar->cscmtx,
-            &(datacode->updovct), datacode, PASTIX_COMM,
-            sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+//     z_CscbMAx(sopalin_data, me, r, sopar->b, sopar->cscmtx,
+//             &(datacode->updovct), datacode, PASTIX_COMM,
+//             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+    z_bcscGemv( -1.0, sopar->cscmtx, &(datacode->updovct), 1.0, sopar->b)
     /* |A||x| + |b| */
     z_CscAxPb( sopalin_data, me, s, sopar->b, sopar->cscmtx,
              &(datacode->updovct), datacode, PASTIX_COMM,
@@ -181,7 +184,7 @@ void z_Pastix_End(void* arg, pastix_complex64_t tmp, pastix_int_t nb_iter, doubl
     z_CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
             1, &(sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL]),
             PASTIX_COMM);
-    MULTITHREAD_END(1);
+//     MULTITHREAD_END(1);
   }
 
   MONOTHREAD_BEGIN;

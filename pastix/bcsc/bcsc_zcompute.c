@@ -18,7 +18,9 @@
  **/
 #include "common.h"
 #include <math.h>
+#include <lapacke.h>
 #include "bcsc.h"
+#include "z_bcsc.h"
 #include "frobeniusupdate.h"
 
 /**
@@ -256,10 +258,47 @@ z_bcscAxpy(pastix_complex64_t  alpha,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscAxpb - compute |A||x| + |b|
+ *
+ *******************************************************************************
+ *
+ * @param[in] A
+ *          The Pastix bcsc.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] b
+ *          The vector b.
+ *
+ *******************************************************************************
+ *
+ * @return 
+ *      \retval The solution
+ *
+ *******************************************************************************/
+double
+z_bcscAxpb( const pastix_bcsc_t *bcsc,
+            void                *x,
+            void                *b )
+{
+    double normA, normX, normB;
+
+    normX = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', bcsc->gN, 1, x, bcsc->gN );
+    normB = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', bcsc->gN, 1, b, bcsc->gN );
+    normA = z_bcscNorm( PastixFrobeniusNorm, bcsc );
+
+    return (normA * normX + normB);
+}
+
 
 /* Pivot : */
 /* r=b-ax */
-/* r'=|A||x|+|b| */
 /* tmp_berr =  max_i(|r_i|/|r'_i|)*/
 /* rberror = ||r||/||b|| */
 /* Copy */
