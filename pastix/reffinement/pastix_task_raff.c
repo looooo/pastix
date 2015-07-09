@@ -145,6 +145,10 @@ void pastix_task_raff(pastix_data_t *pastix_data,
         /* setting sopar->b for reffinement */
         if (sopar->b == NULL)
         {
+          MALLOC_INTERN(sopar->b,
+                        solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze,
+                        PASTIX_FLOAT);
+        }
 
         if( PASTIX_SUCCESS != bcscApplyPerm[iparm[IPARM_FLOAT]-2]( pastix_data->bcsc->gN,
                                                                    1,
@@ -156,7 +160,6 @@ void pastix_task_raff(pastix_data_t *pastix_data,
             return;
         }
         
-        MALLOC_INTERN(sopar->b, solvmatr->updovct.sm2xnbr*solvmatr->updovct.sm2xsze * pastix_size_of( iparm[IPARM_FLOAT] ), char );
         memcpy(sopar->b, b, pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
     }
 
@@ -216,4 +219,4 @@ void pastix_task_raff(pastix_data_t *pastix_data,
     iparm[IPARM_START_TASK]++;
 
     return;
-} 
+}
