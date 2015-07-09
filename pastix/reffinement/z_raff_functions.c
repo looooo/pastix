@@ -71,10 +71,10 @@ pastix_complex64_t *z_Pastix_Synchro_Vect(void *arg, void *x, int nb)
   pastix_int_t        me           = argument->me;
   z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
-  MONOTHREAD_BEGIN;
+//   MONOTHREAD_BEGIN;
   sopalin_data->ptr_raff[nb] = x;
-  MONOTHREAD_END;
-  SYNCHRO_THREAD;
+//   MONOTHREAD_END;
+//   SYNCHRO_THREAD;
   return (pastix_complex64_t*) sopalin_data->ptr_raff[nb];
 }
 
@@ -84,10 +84,10 @@ void *z_Pastix_Malloc(void *arg, size_t size)
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   pastix_int_t        me           = argument->me;
   void *x = NULL;
-  MONOTHREAD_BEGIN;
+//   MONOTHREAD_BEGIN;
   MALLOC_INTERN(x, size, char);
   memset(x, 0, size);
-  MONOTHREAD_END;
+//   MONOTHREAD_END;
   return x;
 }
 
@@ -96,9 +96,9 @@ void z_Pastix_Free(void *arg, void *x)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
   pastix_int_t        me           = argument->me;
-  MONOTHREAD_BEGIN;
+//   MONOTHREAD_BEGIN;
   memFree_null(x);
-  MONOTHREAD_END;
+//   MONOTHREAD_END;
 }
 
 
@@ -115,7 +115,7 @@ void z_Pastix_Verbose(void *arg, double t0, double t3, double tmp, pastix_int_t 
   pastix_int_t        me           = argument->me;
   sopalin_data->count_iter = nb_iter;
   sopalin_data->stop = tmp;
-  MONOTHREAD_BEGIN;
+//   MONOTHREAD_BEGIN;
   if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
     {
       double rst = 0.0;
@@ -135,7 +135,7 @@ void z_Pastix_Verbose(void *arg, double t0, double t3, double tmp, pastix_int_t 
           fprintf(stdout, OUT_ITERRAFF_ERR, err);
         }
     }
-  MONOTHREAD_END;
+//   MONOTHREAD_END;
 }
 
 /* Affichage final */
@@ -178,34 +178,35 @@ void z_Pastix_End(void* arg, pastix_complex64_t tmp, pastix_int_t nb_iter, doubl
 //             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
     z_bcscGemv( -1.0, sopar->cscmtx, &(datacode->updovct), 1.0, sopar->b)
     /* |A||x| + |b| */
-    z_CscAxPb( sopalin_data, me, s, sopar->b, sopar->cscmtx,
-             &(datacode->updovct), datacode, PASTIX_COMM,
-             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+//     z_CscAxPb( sopalin_data, me, s, sopar->b, sopar->cscmtx,
+//              &(datacode->updovct), datacode, PASTIX_COMM,
+//              sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+    s = z_bcscAxpb();
     z_CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
             1, &(sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL]),
             PASTIX_COMM);
 //     MULTITHREAD_END(1);
   }
 
-  MONOTHREAD_BEGIN;
-
-  if (THREAD_COMM_ON)
-    {
-      if (sopar->iparm[IPARM_END_TASK] >= API_TASK_REFINE)
-        {
-          MUTEX_LOCK(&(sopalin_data->mutex_comm));
-          sopalin_data->step_comm = COMMSTEP_END;
-          print_debug(DBG_THCOMM, "%s:%d END\n", __FILE__, __LINE__);
-          MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-          pthread_cond_broadcast(&(sopalin_data->cond_comm));
-        }
-    }
-#ifdef OOC
-  z_ooc_stop_thread(sopalin_data);
-#endif
+//   MONOTHREAD_BEGIN;
+// 
+//   if (THREAD_COMM_ON)
+//     {
+//       if (sopar->iparm[IPARM_END_TASK] >= API_TASK_REFINE)
+//         {
+//           MUTEX_LOCK(&(sopalin_data->mutex_comm));
+//           sopalin_data->step_comm = COMMSTEP_END;
+//           print_debug(DBG_THCOMM, "%s:%d END\n", __FILE__, __LINE__);
+//           MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
+//           pthread_cond_broadcast(&(sopalin_data->cond_comm));
+//         }
+//     }
+// #ifdef OOC
+//   z_ooc_stop_thread(sopalin_data);
+// #endif
   sopar->dparm[DPARM_RAFF_TIME] = t;
-  MONOTHREAD_END;
-  SYNCHRO_THREAD;
+//   MONOTHREAD_END;
+//   SYNCHRO_THREAD;
 }
 
 /* Vecteur solution X */
@@ -222,11 +223,11 @@ void Pastix_X(void *arg, pastix_complex64_t *x)
   if (sopar->iparm[IPARM_ONLY_RAFF] == API_NO)
     for (i=0;i<UPDOWN_SM2XSZE*UPDOWN_SM2XNBR;i++)
       UPDOWN_SM2XTAB[i]=0.0;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscCopy(sopalin_data, me, UPDOWN_SM2XTAB, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(1);
-  SYNCHRO_THREAD;
+//   MULTITHREAD_END(1);
+//   SYNCHRO_THREAD;
 }
 
 /* Taille d'un vecteur */
@@ -256,11 +257,11 @@ void z_Pastix_B(void *arg, pastix_complex64_t *b)
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscCopy(sopalin_data, me, sopar->b, b,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
-  SYNCHRO_THREAD;
+//   MULTITHREAD_END(0);
+//   SYNCHRO_THREAD;
 }
 
 /* Epsilon */
@@ -299,7 +300,7 @@ void z_Pastix_Mult(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *bet
   z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
   pastix_int_t        me           = argument->me;
-  MONOTHREAD_BEGIN;
+//   MONOTHREAD_BEGIN;
 #ifdef MULT_SMX_RAFF
   {
     pastix_int_t itersmx;
@@ -311,9 +312,9 @@ void z_Pastix_Mult(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *bet
 #else
   zeta[0]=alpha[0]*beta[0];
 #endif
-  MONOTHREAD_END;
-  if (flag)
-    SYNCHRO_THREAD;
+//   MONOTHREAD_END;
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 /* Division pour plusieurs second membres */
@@ -323,7 +324,7 @@ void z_Pastix_Div(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *beta
   z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
   pastix_int_t        me           = argument->me;
-  MONOTHREAD_BEGIN;
+//   MONOTHREAD_BEGIN;
 #ifdef MULT_SMX_RAFF
   {
     pastix_int_t itersmx;
@@ -335,9 +336,9 @@ void z_Pastix_Div(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *beta
 #else
   zeta[0]=alpha[0]/beta[0];
 #endif
-  MONOTHREAD_END;
-  if (flag)
-    SYNCHRO_THREAD;
+//   MONOTHREAD_END;
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 /* Calcul de la norme de frobenius */
@@ -349,11 +350,11 @@ pastix_complex64_t z_Pastix_Norm2(void* arg, pastix_complex64_t *x)
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
   double            normx;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   normx = z_CscNormFro(sopalin_data, me, x,
                      UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(1);
-  NOSMP_SYNC_COEF(normx);
+//   MULTITHREAD_END(1);
+//   NOSMP_SYNC_COEF(normx);
   return normx;
 }
 
@@ -365,13 +366,13 @@ void z_Pastix_Copy(void *arg, pastix_complex64_t *s, pastix_complex64_t *d, int 
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscCopy(sopalin_data, me, s, d,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
+//   MULTITHREAD_END(0);
 
-  if (flag)
-    SYNCHRO_THREAD;
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 /* Application du préconditionneur */
@@ -384,25 +385,25 @@ void z_Pastix_Precond(void *arg, pastix_complex64_t *s, pastix_complex64_t *d, i
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscCopy(sopalin_data, me, s, UPDOWN_SM2XTAB,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(1);
+//   MULTITHREAD_END(1);
   /* M-1 updo -> updo */
 #ifdef PRECOND
   if (sopar->iparm[IPARM_ONLY_RAFF] == API_NO)
     {
-      SYNCHRO_THREAD;
+//       SYNCHRO_THREAD;
       API_CALL(z_up_down_smp)(arg);
-      SYNCHRO_THREAD;
+//       SYNCHRO_THREAD;
     }
 #endif
   MULTITHREAD_BEGIN;
   z_CscCopy(sopalin_data, me, UPDOWN_SM2XTAB, d,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
-  if (flag)
-    SYNCHRO_THREAD;
+//   MULTITHREAD_END(0);
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 /* Calcul de alpha * x */
@@ -413,12 +414,12 @@ void z_Pastix_Scal(void *arg, pastix_complex64_t alpha, pastix_complex64_t *x, i
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscScal(sopalin_data, me, alpha, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
-  if (flag)
-    SYNCHRO_THREAD;
+//   MULTITHREAD_END(0);
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 /* Calcul du produit scalaire */
@@ -429,12 +430,12 @@ void z_Pastix_Dotc(void *arg, pastix_complex64_t *x, pastix_complex64_t *y, past
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscGradBeta(sopalin_data, me, x, y,
               UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, r, pastix_comm);
-  MULTITHREAD_END(0);
-  if (flag)
-    SYNCHRO_THREAD;
+//   MULTITHREAD_END(0);
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 void z_Pastix_Dotc_Gmres(void *arg, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int flag)
@@ -444,11 +445,11 @@ void z_Pastix_Dotc_Gmres(void *arg, pastix_complex64_t *x, pastix_complex64_t *y
   z_SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscGmresBeta(sopalin_data, me, x, y,
                UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, r, pastix_comm);
-  MULTITHREAD_END(0);
-  SYNC_COEF(*r);
+//   MULTITHREAD_END(0);
+//   SYNC_COEF(*r);
 }
 
 /* Produit matrice vecteur */
@@ -460,11 +461,11 @@ void z_Pastix_Ax(void *arg, pastix_complex64_t *x, pastix_complex64_t *r)
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscAx(sopalin_data, me, sopalin_data->sopar->cscmtx, x, r,
         datacode, &(datacode->updovct), pastix_comm,
         sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
-  MULTITHREAD_END(1);
+//   MULTITHREAD_END(1);
 }
 
 
@@ -478,16 +479,16 @@ void z_Pastix_bMAx(void *arg, pastix_complex64_t *b, pastix_complex64_t *x, past
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
-  SYNCHRO_THREAD;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_END(0);
+//   SYNCHRO_THREAD;
+//   MULTITHREAD_BEGIN;
   z_CscbMAx(sopalin_data, me, r, b, sopalin_data->sopar->cscmtx,
           &(datacode->updovct), datacode, pastix_comm,
           sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
-  MULTITHREAD_END(1);
+//   MULTITHREAD_END(1);
 }
 
 void z_Pastix_BYPX(void *arg, pastix_complex64_t *beta, pastix_complex64_t *y, pastix_complex64_t *x, int flag)
@@ -503,30 +504,30 @@ void z_Pastix_BYPX(void *arg, pastix_complex64_t *beta, pastix_complex64_t *y, p
     pastix_int_t itersmx;
     for (itersmx=0; itersmx<UPDOWN_SM2XNBR; itersmx++)
       {
-        MULTITHREAD_BEGIN;
+//         MULTITHREAD_BEGIN;
         z_CscScal(sopalin_data, me, beta[itersmx], x+(itersmx*UPDOWN_SM2XSZE),
                 UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-        MULTITHREAD_END(0);
-        SYNCHRO_THREAD;
+//         MULTITHREAD_END(0);
+//         SYNCHRO_THREAD;
       }
   }
-  MONOTHREAD_BEGIN;
+//   MONOTHREAD_BEGIN;
   SOPALIN_GEAM("N","N",UPDOWN_SM2XSZE,UPDOWN_SM2XNBR, fun,
                y, UPDOWN_SM2XSZE, x, UPDOWN_SM2XSZE);
-  MONOTHREAD_END;
+//   MONOTHREAD_END;
 #else
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscScal(sopalin_data, me, beta[0], x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
-  SYNCHRO_THREAD;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_END(0);
+//   SYNCHRO_THREAD;
+//   MULTITHREAD_BEGIN;
   z_CscAXPY(sopalin_data, me, fun, y, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
+//   MULTITHREAD_END(0);
 #endif
-  if (flag)
-    SYNCHRO_THREAD;
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 
@@ -544,21 +545,21 @@ void z_Pastix_AXPY(void *arg, double coeff, pastix_complex64_t *alpha, pastix_co
     for(itersmx=0; itersmx<UPDOWN_SM2XNBR; itersmx++)
       {
         tmp_flt = (pastix_complex64_t) alpha[itersmx] * coeff;
-        MULTITHREAD_BEGIN;
+//         MULTITHREAD_BEGIN;
         z_CscAXPY(sopalin_data, me, tmp_flt, y+(itersmx*UPDOWN_SM2XSZE), x+(itersmx*UPDOWN_SM2XSZE),
                 UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-        MULTITHREAD_END(1);
+//         MULTITHREAD_END(1);
       }
   }
 #else
   tmp_flt = (pastix_complex64_t) alpha[0] * coeff;
-  MULTITHREAD_BEGIN;
+//   MULTITHREAD_BEGIN;
   z_CscAXPY(sopalin_data, me, tmp_flt, y, x,
           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  MULTITHREAD_END(0);
+//   MULTITHREAD_END(0);
 #endif
-  if (flag)
-    SYNCHRO_THREAD;
+//   if (flag)
+//     SYNCHRO_THREAD;
 }
 
 
