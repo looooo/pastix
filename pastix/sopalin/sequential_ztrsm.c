@@ -26,9 +26,9 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t mzone = -1.0;
 
 void
-pastix_static_ztrsm( int side, int uplo, int trans, int diag,
-                     sopalin_data_t *sopalin_data,
-                     int nrhs, pastix_complex64_t *b, int ldb )
+sequential_ztrsm( int side, int uplo, int trans, int diag,
+                  sopalin_data_t *sopalin_data,
+                  int nrhs, pastix_complex64_t *b, int ldb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk *cblk, *fcbk;

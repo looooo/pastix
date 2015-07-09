@@ -15,36 +15,17 @@
  *
  **/
 #include "common.h"
+#include "isched.h"
 #include "csc.h"
 #include "bcsc.h"
 #include "sopalin_data.h"
 
 static void (*sopalinFacto[4][4])(sopalin_data_t*) =
 {
-    {
-        pastix_static_spotrf,
-        pastix_static_dpotrf,
-        pastix_static_cpotrf,
-        pastix_static_zpotrf
-    },
-    {
-        pastix_static_ssytrf,
-        pastix_static_dsytrf,
-        pastix_static_csytrf,
-        pastix_static_zsytrf
-    },
-    {
-        pastix_static_sgetrf,
-        pastix_static_dgetrf,
-        pastix_static_cgetrf,
-        pastix_static_zgetrf
-    },
-    {
-        pastix_static_ssytrf,
-        pastix_static_dsytrf,
-        pastix_static_chetrf,
-        pastix_static_zhetrf
-    }
+    { sopalin_spotrf, sopalin_dpotrf, sopalin_cpotrf, sopalin_zpotrf },
+    { sopalin_ssytrf, sopalin_dsytrf, sopalin_csytrf, sopalin_zsytrf },
+    { sopalin_sgetrf, sopalin_dgetrf, sopalin_cgetrf, sopalin_zgetrf },
+    { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
 };
 
 void
@@ -172,6 +153,7 @@ int
 pastix_task_sopalin( pastix_data_t *pastix_data,
                      pastix_csc_t  *csc )
 {
+    extern isched_t *scheduler;
     sopalin_data_t  sopalin_data;
     SolverBackup_t *sbackup;
 /* #ifdef PASTIX_WITH_MPI */
@@ -255,6 +237,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
             sopalin_data.diagthreshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
         }
     }
+    sopalin_data.sched = scheduler;
 
     sbackup = solverBackupInit( pastix_data->solvmatr );
     pastix_data->solvmatr->restore = 2;
