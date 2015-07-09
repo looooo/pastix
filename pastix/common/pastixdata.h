@@ -16,7 +16,6 @@
 #include "dof.h"
 #include "ftgt.h"
 #include "symbol.h"
-#include "updown.h"
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
@@ -33,7 +32,6 @@
 /* #include "sopalin3d.h" */
 /* #include "sopalin_init.h" */
 /* #include "sopalin_option.h" */
-/* #include "csc_intern_updown.h" */
 /* #include "csc_intern_build.h" */
 /* #include "coefinit.h" */
 

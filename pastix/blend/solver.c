@@ -60,26 +60,26 @@ sizeofsolver(const SolverMatrix *solvptr,
 
   /* UpDownVector */
   /* TODO: 2D    */
-  if (iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
-    {
-      /* UpDownCblk */
-      result += solvptr->cblknbr      *sizeof(UpDownCblk);
-      for (iter=0; iter<solvptr->cblknbr; iter++)
-        {
-          /* browproctab / browcblktab */
-          result += 2*solvptr->updovct.cblktab[iter].browprocnbr*sizeof(pastix_int_t);
-        }
-      /* gcblk2list */
-      result += solvptr->updovct.gcblk2listnbr*sizeof(pastix_int_t);
-      /* listptr */
-      result += solvptr->updovct.listptrnbr   *sizeof(pastix_int_t);
-      /* listcblk / listblok */
-      result += 2*solvptr->updovct.listnbr    *sizeof(pastix_int_t);
-      /* loc2glob */
-      result += solvptr->updovct.loc2globnbr  *sizeof(pastix_int_t);
-      /* lblk2gcblk */
-      result += solvptr->bloknbr              *sizeof(pastix_int_t);
-    }
+  /* if (iparm[IPARM_DISTRIBUTION_LEVEL] == 0) */
+  /*   { */
+  /*     /\* UpDownCblk *\/ */
+  /*     result += solvptr->cblknbr      *sizeof(UpDownCblk); */
+  /*     for (iter=0; iter<solvptr->cblknbr; iter++) */
+  /*       { */
+  /*         /\* browproctab / browcblktab *\/ */
+  /*         result += 2*solvptr->updovct.cblktab[iter].browprocnbr*sizeof(pastix_int_t); */
+  /*       } */
+  /*     /\* gcblk2list *\/ */
+  /*     result += solvptr->updovct.gcblk2listnbr*sizeof(pastix_int_t); */
+  /*     /\* listptr *\/ */
+  /*     result += solvptr->updovct.listptrnbr   *sizeof(pastix_int_t); */
+  /*     /\* listcblk / listblok *\/ */
+  /*     result += 2*solvptr->updovct.listnbr    *sizeof(pastix_int_t); */
+  /*     /\* loc2glob *\/ */
+  /*     result += solvptr->updovct.loc2globnbr  *sizeof(pastix_int_t); */
+  /*     /\* lblk2gcblk *\/ */
+  /*     result += solvptr->bloknbr              *sizeof(pastix_int_t); */
+  /*   } */
 
   return result;
 }

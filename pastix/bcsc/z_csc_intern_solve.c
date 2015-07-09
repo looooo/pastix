@@ -19,7 +19,6 @@
 #include "z_csc.h"
 #include "symbol.h"
 #include "z_ftgt.h"
-#include "z_updown.h"
 #include "queue.h"
 #include "bulles.h"
 #include "z_solver.h"
