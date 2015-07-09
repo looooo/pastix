@@ -16,6 +16,7 @@
  * @precisions normal z -> s d c
  *
  **/
+#include <cblas.h>
 #include "common.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
