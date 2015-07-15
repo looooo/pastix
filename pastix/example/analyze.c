@@ -75,7 +75,6 @@ int main (int argc, char **argv)
      * Initialize parameters to default values
      */
     pastixInitParam( iparm, dparm );
-    iparm[IPARM_FACTORIZATION] = API_FACT_LU;
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
@@ -88,7 +87,7 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
-    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rowptr, NULL, NULL, NULL );
+    pastix_task_order( pastix_data, &csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
     pastix_task_sopalin( pastix_data, &csc );
@@ -127,17 +126,18 @@ int main (int argc, char **argv)
             pastix_int_t i;
             double *lb = (double*)x0;
             for(i=0; i<csc.gN; i++) {
-                lb[i] = (double)i+1;
+                lb[i] = (double)(i+1);
             }
         }
         spmMatVec( PastixNoTrans, &done, &csc, x0, &dzero, b );
         memcpy( x, b, size );
 
+        if (1)
         {
             int PRHS_ii;
             fprintf(stdout,"%s (Proc %d) : ", "RHS", 0);
             for (PRHS_ii= 0; PRHS_ii<csc.gN; PRHS_ii++)
-                fprintf(stdout,"%.3g ", ((double*)b)[PRHS_ii]);
+                fprintf(stdout,"%.3g ", ((double*)x0)[PRHS_ii]);
             fprintf(stdout,"\n");
         }
         pastix_task_solve( pastix_data, &csc, 1, x, csc.gN );
@@ -150,6 +150,7 @@ int main (int argc, char **argv)
         spmMatVec( PastixNoTrans, &mdone, &csc, x, &done, b );
         normR = LAPACKE_dlange( LAPACK_COL_MAJOR, 'I', csc.gN, 1, b, csc.gN );
 
+        if (1)
         {
             int PRHS_ii;
             fprintf(stdout,"%s (Proc %d) : ", "SOL", 0);

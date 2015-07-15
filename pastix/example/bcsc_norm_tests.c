@@ -72,7 +72,7 @@ int main (int argc, char **argv)
     free(filename);
     csc.mtxtype = PastixGeneral;
 
-    pastix_task_order( pastix_data, csc.n, csc.colptr, csc.rowptr, NULL, NULL, NULL );
+    pastix_task_order( pastix_data, &csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
 
@@ -86,7 +86,7 @@ int main (int argc, char **argv)
               ( (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU)
                 && (! pastix_data->iparm[IPARM_ONLY_RAFF]) ),
               pastix_data->bcsc );
-    
+
     printf(" Datatype: %s\n", fltnames[csc.flttype] );
     spmBase( &csc, baseval );
 
