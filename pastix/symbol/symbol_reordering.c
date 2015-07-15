@@ -45,6 +45,14 @@ hamming_distance(pastix_int_t **vectors,
                  pastix_int_t   xj,
                  pastix_int_t   stop)
 {
+    /* For the fictive vertex */
+    if (xi == -1){
+        return vectors_size[xj];
+    }
+    if (xj == -1){
+        return vectors_size[xi];
+    }
+
     pastix_int_t sum = 0;
     pastix_int_t *set1 = vectors[xi];
     pastix_int_t *set2 = vectors[xj];
@@ -119,20 +127,20 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
     pastix_int_t *tmplen;
     pastix_int_t distance;
 
-    MALLOC_INTERN(tmpinvp, size, pastix_int_t);
-    MALLOC_INTERN(tmplen,  size, pastix_int_t);
-    memset(tmplen, 0, size*sizeof(pastix_int_t));
+    MALLOC_INTERN(tmpinvp, size+1, pastix_int_t);
+    MALLOC_INTERN(tmplen,  size+1, pastix_int_t);
+    memset(tmplen, 0, (size+1)*sizeof(pastix_int_t));
 
-    tmpinvp[0] = 0;
-    tmpinvp[1] = 1;
+    tmpinvp[0] = -1;
+    tmpinvp[1] = 0;
 
-    distance = hamming_distance(lw_vectors, lw_vectors_size, 1, 0, stop_criteria);
+    distance = hamming_distance(lw_vectors, lw_vectors_size, 0, -1, stop_criteria);
 
     tmplen[0] = distance;
     tmplen[1] = distance;
 
-
-    for(i=2; i<size; i++) {
+    pastix_int_t min_cut = -1;
+    for(i=1; i<size; i++) {
         pastix_int_t first_pos;
         pastix_int_t last_pos;
 
@@ -142,7 +150,6 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
         pastix_int_t up_before_pos;
         pastix_int_t up_after_pos;
 
-
         /* Start by adding the row in first position */
         lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[0], stop_criteria);
         lw_after_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[1], stop_criteria);
@@ -150,10 +157,9 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
 
         pastix_int_t minl = lw_before_pos + lw_after_pos - tmplen[0];
         pastix_int_t mpos = 1;
-
         pastix_int_t min_cut = -1;
-        for(j=1; j<i-1; j++ ){
 
+        for(j=1; j<i; j++ ){
             up_before_pos = up_after_pos;
             up_after_pos  = hamming_distance(up_vectors, up_vectors_size, i, tmpinvp[j+1], 1);
 
@@ -195,6 +201,15 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
                     }
                 }
 
+                if ( l < minl ) {
+                    minl = l; mpos = j+1;
+                    min_cut = lw_before_pos;
+                    if (lw_after_pos < min_cut){
+                        min_cut = lw_after_pos;
+                    }
+                }
+
+
                 /* Stop if two lines are equal (already done tmpinvp[j]) */
                 if (lw_after_pos == 0){
                     min_cut = 0;
@@ -205,32 +220,33 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
             else{
                 lw_after_pos = -1;
             }
+
         }
 
         /* Test between last and first */
-        first_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[0  ], stop_criteria);
-        last_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[i-1], stop_criteria);
+        first_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[0], stop_criteria);
+        last_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[i], stop_criteria);
 
         lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[mpos-1], stop_criteria);
         lw_after_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[mpos  ], stop_criteria);
 
-        l = first_pos + last_pos - tmplen[i-1];
+        l = first_pos + last_pos - tmplen[i];
         if ( l < minl ) {
-            minl = l; mpos = i;
+            minl = l; mpos = i+1;
         }
 
         if (mpos > 0){
             tmplen[mpos-1] = lw_before_pos;
         }
 
-        if (mpos < i)
+        if (mpos < (i+1))
         {
             pastix_int_t tmpi, tmpl;
             k = i;
             l = lw_after_pos;
 
             /* Insert the line in the tmpinvp/tmplen arrays */
-            for(j=mpos; j<i+1; j++ )
+            for(j=mpos; j<i+2; j++ )
             {
                 tmpi = tmpinvp[j];
                 tmpl = tmplen[j];
@@ -243,29 +259,18 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
             }
         }
         else {
-            tmpinvp[i] = i;
-            tmplen[i]  = first_pos;
-        }
-    }
-
-    /* Search the best split line */
-    /* TODO */
-    pastix_int_t min_size = INT_MAX;
-    for (i=0; i<size; i++)
-    {
-        if (lw_vectors_size[i] < min_size){
-            min_size = lw_vectors_size[i];
+            tmpinvp[i+1] = i;
+            tmplen[i+1]  = first_pos;
         }
     }
 
     elected = 0;
     for (i=0; i<size; i++)
     {
-        if (lw_vectors_size[tmpinvp[i]] == min_size){
+        if (tmpinvp[i] == -1){
             elected = i;
         }
     }
-
 
     pastix_int_t *sn_connected;
     MALLOC_INTERN(sn_connected, size, pastix_int_t);
@@ -273,7 +278,7 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
         pastix_int_t *peritab = order->peritab + order->rangtab[sn_id];
         for (i=0; i<size; i++)
         {
-            sn_connected[i] = peritab[ tmpinvp[(i + elected)%size] ];
+            sn_connected[i] = peritab[ tmpinvp[(i + 1 + elected)%(size+1)] ];
         }
         memcpy( peritab, sn_connected, size * sizeof(pastix_int_t) );
     }
