@@ -65,14 +65,10 @@ BODY
 
     SolverCblk *cblk = datacode->cblktab + k;
 
-#if !defined(DAGUE_DRY_RUN)
-
     core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold );
 
-    fprintf(stderr, "FACTO( %d )\n", k );
 #if defined(PASTIX_DEBUG_FACTO)
     //coeftab_zdump( datacode, "getrf_L.txt" );
-#endif
 #endif
 }
 END
@@ -163,19 +159,14 @@ BODY
     //work = (dague_complex64_t *)dague_private_memory_pop( p_work );
     {
         pastix_int_t tmparea = blok_rownbr( blok ) * (lcblk->stride - blok->coefind);
-
         MALLOC_INTERN( work, tmparea, pastix_complex64_t );
     }
 
-#if !defined(DAGUE_DRY_RUN)
     core_zgetrfsp1d_gemm( lcblk, blok, fcblk, Al, Au, Cl, Cu, work );
-#endif
 
     {
         memFree_null( work );
     }
-
-    fprintf(stderr, "UPDATE( %d )\n", bloknum );
 
     //dague_private_memory_push( p_work, (void *)work );
   end:
