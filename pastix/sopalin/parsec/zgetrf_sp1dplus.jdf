@@ -13,8 +13,10 @@ extern "C" %{
 #include "parsec/sparse-matrix.h"
 
 #if defined(HAVE_CUDA)
-extern int *gpu_counter;
+#include <dague/devices/cuda/dev_cuda.h>
+#include "parsec/cuda_zgemmsp.h"
 #endif  /* defined(HAVE_CUDA) */
+
 %}
 
 /* Globals
@@ -38,9 +40,9 @@ k = 0 .. cblknbr
 
 browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
 browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
-lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
 lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
 :dataA(0, k) // Should match SOLV_COEFTAB(k)
@@ -58,11 +60,6 @@ RW U <- ( browk0 == browk1 ) ? dataA(1, k) : Cu GEMM( lastbrow )
      //; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
 {
-#if defined(HAVE_CUDA)
-    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 0, k ) );
-    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 1, k ) );
-#endif  /* defined(HAVE_CUDA) */
-
     SolverCblk *cblk = datacode->cblktab + k;
 
     core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold );
@@ -82,13 +79,14 @@ GEMM(bloknum)
 // Execution space
 bloknum = 1 .. bloknbr
 
-brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %}
 lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->lcblknm; %}
 fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
 first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
-prev    = inline_c %{ if ((brownum != -1) && (brownum > first)) return datacode->browtab[brownum-1]; else return 0;%}
-next    = inline_c %{ if ((brownum != -1) && (brownum < last))  return datacode->browtab[brownum+1]; else return 0;%}
+
+brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %}
+prev    = inline_c %{ if ((brownum == -1) || (brownum <= first)) return 0; else return datacode->browtab[brownum-1]; %}
+next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else return datacode->browtab[brownum+1]; %}
 
 // Parallel partitioning
 :dataA(0, fcblknm)
@@ -111,6 +109,27 @@ RW    Cu <- ( brownum == -1 ) || (first == brownum ) ? dataA( 1, fcblknm )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
+BODY [type=CUDA]
+{
+    int rc = 0;
+    /* If diagonal block, we skip */
+    if (brownum == -1) {
+        goto end;
+    }
+
+    SolverCblk *lcblk = datacode->cblktab + lcblknm;
+    SolverCblk *fcblk = datacode->cblktab + fcblknm;
+    SolverBlok *blok  = datacode->bloktab + bloknum;
+    pastix_complex64_t *work;
+
+    rc = gpu_zgetrfsp_gemm( context, this_task, (last == brownum ),
+                            lcblk, blok, fcblk, Al, Au, Cl, Cu );
+
+  end:
+    return rc;
+}
+END
+
 BODY
 {
     /* If diagonal block, we skip */
@@ -122,39 +141,6 @@ BODY
     SolverCblk *fcblk = datacode->cblktab + fcblknm;
     SolverBlok *blok  = datacode->bloktab + bloknum;
     pastix_complex64_t *work;
-
-#if defined(HAVE_CUDA)
-    printlog(
-        "thread %d compute_1dgemm START ( k=%d, fcblk=%d, cblk=%d, prev=%d, next=%d )\n",
-        context->eu_id, k, fcblk, cblk, prev, next);
-
-    if( dague_active_gpu() > 0 ) {
-        int rc;
-
-        if( 0 == (rc = gpu_zgetrfsp_gemm( context, this_task,
-                                          (next == 0),
-                                          cblk, k, fcblk,
-                                          descA)) ) {
-            printlog("thread %d compute_1dgemm( k=%d, fcblk=%d, cblk=%d, prev=%d, next=%d ) - GPU(0)\n",
-                     context->eu_id, k, fcblk, cblk, prev, next);
-            goto end;
-        }
-        if( -1 == rc ) {
-            printlog("thread %d compute_1dgemm( k=%d, fcblk=%d, cblk=%d, prev=%d, next=%d ) - GPU(-1)\n",
-                     context->eu_id, k, fcblk, cblk, prev, next);
-            /* We're done, but the task has been already destroyed */
-            return -1;
-        }
-        if( -2 == rc ) {
-            /* The GPU failed to execute this task, but the task was already rescheduled */
-            fprintf(stderr, "Unable to disable GPU at runtime. Fatal error.\n");
-            exit(2);
-        }
-        /* Continue with the task on the cores */
-    }
-    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 0, fcblk ) );
-    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 1, fcblk ) );
-#endif  /* defined(HAVE_CUDA) && defined(PRECISION_s) */
 
     //work = (dague_complex64_t *)dague_private_memory_pop( p_work );
     {
