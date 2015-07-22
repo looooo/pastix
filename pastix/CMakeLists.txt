@@ -277,16 +277,27 @@ if (PASTIX_WITH_PARSEC)
         list(APPEND PARSEC_COMPONENT_LIST "CUDA")
     endif()
 
-    find_package(PARSEC REQUIRED
-      COMPONENTS ${PARSEC_COMPONENT_LIST})
+    # find_package(PARSEC REQUIRED
+    #   COMPONENTS ${PARSEC_COMPONENT_LIST})
+    include(FindPkgConfig)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_EXECUTABLE)
+      pkg_search_module(PARSEC parsec)
+    endif()
+    if ( PARSEC_FOUND )
+    else()
+      set(PARSEC_FOUND ON)
+      set(PARSEC_INCLUDE_DIRS "/opt/parsec/include")
+      set(PARSEC_LIBRARY_DIRS "/opt/parsec/lib")
+    endif()
 
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
         include_directories(${PARSEC_INCLUDE_DIRS})
         link_directories(${PARSEC_LIBRARY_DIRS})
 
-    else(PARSEC_FOUND)
-        message(ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the Parsec library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
+    # else(PARSEC_FOUND)
+    #     message(ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the Parsec library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
     endif()
 
 endif (PASTIX_WITH_PARSEC)
