@@ -214,6 +214,8 @@ solverMatrixGen(const pastix_int_t clustnum,
     MALLOC_INTERN(solvmtx->cblktab, solvmtx->cblknbr+1, SolverCblk  );
     MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok  );
     MALLOC_INTERN(solvmtx->browtab, solvmtx->brownbr,   pastix_int_t);
+
+    /* TODO: Fix that in distributed mode */
     assert( brownbr == symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
     memcpy( solvmtx->browtab, symbmtx->browtab, brownbr * sizeof(pastix_int_t) );
     {
@@ -253,6 +255,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                     solvblok->fcblknm = cblklocalnum[symbblok->fcblknm];
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
                     solvblok->coefind = stride;
+                    solvblok->browind = -1;
 
                     stride += nbrows;
                     solvblok++;
@@ -303,6 +306,14 @@ solverMatrixGen(const pastix_int_t clustnum,
 
         assert( solvmtx->cblknbr == cblknum );
         assert( solvmtx->bloknbr == solvblok - solvmtx->bloktab );
+    }
+
+    /***************************************************************************
+     * Update browind fields
+     */
+    for(i=0; i<brownbr; i++)
+    {
+        solvmtx->bloktab[ solvmtx->browtab[i] ].browind = i;
     }
 
     /***************************************************************************

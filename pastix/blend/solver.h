@@ -54,11 +54,12 @@ typedef struct Task_ {
 /*+ Solver block structure. +*/
 
 typedef struct SolverBlok_ {
-    pastix_int_t frownum;  /*+ First row index            +*/
-    pastix_int_t lrownum;  /*+ Last row index (inclusive) +*/
+    pastix_int_t frownum;  /*< First row index            */
+    pastix_int_t lrownum;  /*< Last row index (inclusive) */
     pastix_int_t lcblknm;  /*< Local column block         */
     pastix_int_t fcblknm;  /*< Facing column block        */
-    pastix_int_t coefind;  /*+ Index in coeftab           +*/
+    pastix_int_t coefind;  /*< Index in coeftab           */
+    pastix_int_t browind;  /*< Index in browtab           */
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
