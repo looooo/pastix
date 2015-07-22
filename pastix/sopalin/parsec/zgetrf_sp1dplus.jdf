@@ -1,0 +1,184 @@
+extern "C" %{
+  /**
+   * PLASMA include for defined and constants.
+   *
+   * @precisions normal z -> s d c
+   *
+   */
+#include <dague.h>
+#include <dague/data_distribution.h>
+#include "common.h"
+#include "pastix_zcores.h"
+#include "sopalin_data.h"
+#include "parsec/sparse-matrix.h"
+
+#if defined(HAVE_CUDA)
+extern int *gpu_counter;
+#endif  /* defined(HAVE_CUDA) */
+%}
+
+/* Globals
+ */
+dataA        [type = "dague_ddesc_t *" ]
+sopalin_data [type = "sopalin_data_t *" ]
+//p_work   [type = "dague_memory_pool_t *" size = "datacode->coefmax * sizeof(dague_complex64_t)"]
+
+descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
+datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+
+/**************************************************
+ *                GETRF_TRSM                      *
+ **************************************************/
+GETRF_TRSM(k) [high_priority = on]
+
+// Execution space
+k = 0 .. cblknbr
+
+browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
+browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
+lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
+firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
+lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+
+// Parallel partitioning
+:dataA(0, k) // Should match SOLV_COEFTAB(k)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+RW L <- ( browk0 == browk1 ) ? dataA(0, k) : Cl GEMM( lastbrow )
+     -> Al GEMM(firstblok .. lastblok)
+     -> dataA(0, k)
+
+RW U <- ( browk0 == browk1 ) ? dataA(1, k) : Cu GEMM( lastbrow )
+     -> Au GEMM(firstblok .. lastblok)
+     -> dataA(1, k)
+
+     //; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+#if defined(HAVE_CUDA)
+    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 0, k ) );
+    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 1, k ) );
+#endif  /* defined(HAVE_CUDA) */
+
+    SolverCblk *cblk = datacode->cblktab + k;
+
+#if !defined(DAGUE_DRY_RUN)
+
+    core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold );
+
+    fprintf(stderr, "FACTO( %d )\n", k );
+#if defined(PASTIX_DEBUG_FACTO)
+    //coeftab_zdump( datacode, "getrf_L.txt" );
+#endif
+#endif
+}
+END
+
+/**************************************************
+ *                      GEMM                      *
+ **************************************************/
+
+GEMM(bloknum)
+
+// Execution space
+bloknum = 1 .. bloknbr
+
+brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %}
+lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->lcblknm; %}
+fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
+first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
+last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
+prev    = inline_c %{ if ((brownum != -1) && (brownum > first)) return datacode->browtab[brownum-1]; else return 0;%}
+next    = inline_c %{ if ((brownum != -1) && (brownum < last))  return datacode->browtab[brownum+1]; else return 0;%}
+
+// Parallel partitioning
+:dataA(0, fcblknm)
+
+// Parameters
+READ  Al <- ( brownum != -1) ? L GETRF_TRSM( lcblknm ) : dataA( 0, fcblknm )
+READ  Au <- ( brownum != -1) ? U GETRF_TRSM( lcblknm ) : dataA( 1, fcblknm )
+
+RW    Cl <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm )
+         <- ( brownum != -1 ) && (first != brownum ) ? Cl GEMM( prev )
+
+         -> ( brownum != -1 ) && (last == brownum ) ? L GETRF_TRSM( fcblknm )
+         -> ( brownum != -1 ) && (last != brownum ) ? Cl GEMM( next )
+
+RW    Cu <- ( brownum == -1 ) || (first == brownum ) ? dataA( 1, fcblknm )
+         <- ( brownum != -1 ) && (first != brownum ) ? Cu GEMM( prev )
+
+         -> ( brownum != -1 ) && (last == brownum ) ? U GETRF_TRSM( fcblknm )
+         -> ( brownum != -1 ) && (last != brownum ) ? Cu GEMM( next )
+
+//; inline_c %{ return - TASK_PRIONUM(fcblk); %}
+
+BODY
+{
+    /* If diagonal block, we skip */
+    if (brownum == -1) {
+        goto end;
+    }
+
+    SolverCblk *lcblk = datacode->cblktab + lcblknm;
+    SolverCblk *fcblk = datacode->cblktab + fcblknm;
+    SolverBlok *blok  = datacode->bloktab + bloknum;
+    pastix_complex64_t *work;
+
+#if defined(HAVE_CUDA)
+    printlog(
+        "thread %d compute_1dgemm START ( k=%d, fcblk=%d, cblk=%d, prev=%d, next=%d )\n",
+        context->eu_id, k, fcblk, cblk, prev, next);
+
+    if( dague_active_gpu() > 0 ) {
+        int rc;
+
+        if( 0 == (rc = gpu_zgetrfsp_gemm( context, this_task,
+                                          (next == 0),
+                                          cblk, k, fcblk,
+                                          descA)) ) {
+            printlog("thread %d compute_1dgemm( k=%d, fcblk=%d, cblk=%d, prev=%d, next=%d ) - GPU(0)\n",
+                     context->eu_id, k, fcblk, cblk, prev, next);
+            goto end;
+        }
+        if( -1 == rc ) {
+            printlog("thread %d compute_1dgemm( k=%d, fcblk=%d, cblk=%d, prev=%d, next=%d ) - GPU(-1)\n",
+                     context->eu_id, k, fcblk, cblk, prev, next);
+            /* We're done, but the task has been already destroyed */
+            return -1;
+        }
+        if( -2 == rc ) {
+            /* The GPU failed to execute this task, but the task was already rescheduled */
+            fprintf(stderr, "Unable to disable GPU at runtime. Fatal error.\n");
+            exit(2);
+        }
+        /* Continue with the task on the cores */
+    }
+    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 0, fcblk ) );
+    moesi_master_update( descA->super.moesi_map, SPARSE_KEY( descA, 1, fcblk ) );
+#endif  /* defined(HAVE_CUDA) && defined(PRECISION_s) */
+
+    //work = (dague_complex64_t *)dague_private_memory_pop( p_work );
+    {
+        pastix_int_t tmparea = blok_rownbr( blok ) * (lcblk->stride - blok->coefind);
+
+        MALLOC_INTERN( work, tmparea, pastix_complex64_t );
+    }
+
+#if !defined(DAGUE_DRY_RUN)
+    core_zgetrfsp1d_gemm( lcblk, blok, fcblk, Al, Au, Cl, Cu, work );
+#endif
+
+    {
+        memFree_null( work );
+    }
+
+    fprintf(stderr, "UPDATE( %d )\n", bloknum );
+
+    //dague_private_memory_push( p_work, (void *)work );
+  end:
+    ;
+}
+END
