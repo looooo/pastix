@@ -97,6 +97,9 @@ isched_parallel_call( isched_t *isched, void (*func)(int, void*), void *args )
     isched_barrier_wait( &(isched->barrier) );
 }
 
+isched_t *ischedInit(int cores, int *coresbind);
+int ischedFinalize(isched_t *isched);
+
 END_C_DECLS
 
 #endif /* BINDTHREAD_H */

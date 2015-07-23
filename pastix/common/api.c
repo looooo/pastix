@@ -17,14 +17,13 @@
 #if defined(HAVE_METIS)
 #include <metis.h>
 #endif
+#if defined(PASTIX_WITH_PARSEC)
+#include <dague.h>
+#endif
 #include "order.h"
 #include "solver.h"
 #include "bcsc.h"
 #include "isched.h"
-
-isched_t *scheduler = NULL;
-isched_t *ischedInit(int cores, int *coresbind);
-int ischedFinalize(isched_t *isched);
 
 /**
  *******************************************************************************
@@ -117,7 +116,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_FACTORIZATION]         = API_FACT_LDLT;       /* LdLt     */
     iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
     iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
-    iparm[IPARM_THREAD_NBR]            = 1;                   /* thread/mpi */
+    iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
     iparm[IPARM_CUDA_NBR]              = 0;                   /* CUDA devices */
     iparm[IPARM_DISTRIBUTION_LEVEL]    = 0;                   /* 1d / 2d */
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
@@ -205,6 +204,84 @@ pastixInitParam( pastix_int_t *iparm,
  *
  * @ingroup pastix_common
  *
+ * apiInitMPI - Internal function that setups the multiple communcators in order
+ * to perform the ordering step in MPI only mode, and the factorization in
+ * MPI+Thread mode with the same amount of ressources.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] pastix_data
+ *          The integer array of parameters to initialize.
+ *
+ * @param[in,out] dparm
+ *          The floating point array of parameters to initialize.
+ *
+ *******************************************************************************/
+static inline void
+apiInitMPI( pastix_data_t *pastix,
+            MPI_Comm       comm,
+            int autosplit )
+{
+    /**
+     * Setup all communicators for autosplitmode and initialize number/rank of
+     * processes.
+     */
+    pastix->pastix_comm = comm;
+    MPI_Comm_size(comm, &(pastix->procnbr));
+    MPI_Comm_rank(comm, &(pastix->procnum));
+
+#if defined(PASTIX_WITH_MPI)
+    if ( autosplit )
+    {
+        int     i, len;
+        char    procname[MPI_MAX_PROCESSOR_NAME];
+        int     rc, key = pastix->procnum;
+        int64_t color;
+        (void)rc;
+
+        /**
+         * Get hostname to generate a hash that will be the color of each node
+         * MPI_Get_processor_name is not used as it can returned different
+         * strings for processes of a same physical node.
+         */
+        rc = gethostname(procname, MPI_MAX_PROCESSOR_NAME-1);
+        assert(rc == 0);
+        procname[MPI_MAX_PROCESSOR_NAME-1] = '\0';
+        len = strlen( procname );
+
+        /* Compute hash */
+        color = 0;
+        for (i = 0; i < len; i++) {
+            color = color*256*sizeof(char) + procname[i];
+        }
+
+        /* Create intra-node communicator */
+        MPI_Comm_split(comm, color, key, &(pastix->intra_node_comm));
+        MPI_Comm_size(pastix->intra_node_comm, &(pastix->intra_node_procnbr));
+        MPI_Comm_rank(pastix->intra_node_comm, &(pastix->intra_node_procnum));
+
+        /* Create inter-node communicator */
+        MPI_Comm_split(comm, pastix->intra_node_procnum, key, &(pastix->inter_node_comm));
+        MPI_Comm_size(pastix->inter_node_comm, &(pastix->inter_node_procnbr));
+        MPI_Comm_rank(pastix->inter_node_comm, &(pastix->inter_node_procnum));
+    }
+    else
+#endif
+    {
+        pastix->intra_node_comm    = MPI_COMM_SELF;
+        pastix->intra_node_procnbr = 1;
+        pastix->intra_node_procnum = 0;
+        pastix->inter_node_comm    = comm;
+        pastix->inter_node_procnbr = pastix->procnbr;
+        pastix->inter_node_procnum = pastix->procnum;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_common
+ *
  * pastixInit - Initialize the iparm and dparm arrays to their default
  * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
  * API_NO.
@@ -237,6 +314,9 @@ pastixInit( pastix_data_t **pastix_data,
         if ( !flag ) {
             MPI_Init_thread( NULL, NULL, MPI_THREAD_MULTIPLE, &provided );
         }
+        else {
+            MPI_Query_thread( &provided );
+        }
     }
 #endif
 
@@ -253,8 +333,28 @@ pastixInit( pastix_data_t **pastix_data,
     if ( iparm[IPARM_MODIFY_PARAMETER] == API_NO ) {
         pastixInitParam( iparm, dparm );
     }
+
     pastix->iparm = iparm;
     pastix->dparm = dparm;
+
+    pastix->steps = 0;
+
+    pastix->isched = NULL;
+#if defined(PASTIX_WITH_PARSEC)
+    pastix->parsec = 0;
+#endif
+
+    apiInitMPI( pastix, pastix_comm, iparm[IPARM_AUTOSPLIT_COMM] );
+
+    if ( (pastix->intra_node_procnbr > 1) &&
+         (pastix->iparm[IPARM_THREAD_NBR] != -1 ) ) {
+        pastix_print( pastix->procnum, 0,
+                      "WARNING: Thread number forced by MPI autosplit feature\n" );
+        iparm[IPARM_THREAD_NBR] = pastix->intra_node_procnbr;
+    }
+
+    pastix->isched = ischedInit( pastix->iparm[IPARM_THREAD_NBR], NULL );
+    pastix->iparm[IPARM_THREAD_NBR] = pastix->isched->world_size;
 
     pastix->graph      = NULL;
     pastix->schur_n    = 0;
@@ -262,116 +362,61 @@ pastixInit( pastix_data_t **pastix_data,
     pastix->zeros_n    = 0;
     pastix->zeros_list = NULL;
     pastix->ordemesh   = NULL;
+
     pastix->symbmtx    = NULL;
 
-    pastix->gN = -1;
-    pastix->n2 = -1;
-    pastix->solvmatr   = NULL;
     pastix->bcsc       = NULL;
+    pastix->solvmatr   = NULL;
 
-    /**
-     * Setup all communicators for autosplitmode and initialize number/rank of
-     * processes.
-     */
-    pastix->pastix_comm = pastix_comm;
-    MPI_Comm_size(pastix_comm, &(pastix->procnbr));
-    MPI_Comm_rank(pastix_comm, &(pastix->procnum));
+/*     if (pastix->procnum == 0) */
+/*     { */
+/*         pastix->pastix_id = getpid(); */
+/*     } */
+/*     MPI_Bcast(&(pastix->pastix_id), 1, PASTIX_MPI_INT, 0, pastix_comm); */
 
-    if (iparm[IPARM_AUTOSPLIT_COMM] == API_YES)
-    {
-        int     i, len;
-        char    procname[MPI_MAX_PROCESSOR_NAME];
-        int     rc, key = pastix->procnum;
-        int64_t color;
-        (void)rc;
+/* #ifdef WITH_SEM_BARRIER */
+/*     if (pastix->intra_node_procnbr > 1) */
+/*     { */
+/*         char sem_name[256]; */
+/*         sprintf(sem_name, "/pastix_%d", pastix->pastix_id); */
+/*         OPEN_SEM(pastix->sem_barrier, sem_name, 0); */
+/*     } */
+/* #endif */
 
-        /**
-         * Get hostname to generate a hash that will be the color of each node
-         * MPI_Get_processor_name is not used as it can returned different
-         * strings for processes of a same physical node.
-         */
-        rc = gethostname(procname, MPI_MAX_PROCESSOR_NAME-1);
-        assert(rc == 0);
-        procname[MPI_MAX_PROCESSOR_NAME-1] = '\0';
-        len = strlen( procname );
+/*     if (iparm != NULL) */
+/*     { */
+/*         if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) */
+/*         { */
+/*             fprintf(stdout, "AUTOSPLIT_COMM : global rank : %d," */
+/*                     " inter node rank %d," */
+/*                     " intra node rank %d, threads %d\n", */
+/*                     (int)(pastix->procnum), */
+/*                     (int)(pastix->inter_node_procnum), */
+/*                     (int)(pastix->intra_node_procnum), */
+/*                     (int)iparm[IPARM_THREAD_NBR]); */
+/*         } */
 
-        /* Compute hash */
-        color = 0;
-        for (i = 0; i < len; i++) {
-            color = color*256*sizeof(char) + procname[i];
-        }
+/*         iparm[IPARM_PID] = pastix->pastix_id; */
+/*     } */
 
-        /* Create intra-node communicator */
-        MPI_Comm_split(pastix_comm, color, key, &(pastix->intra_node_comm));
-        MPI_Comm_size(pastix->intra_node_comm, &(pastix->intra_node_procnbr));
-        MPI_Comm_rank(pastix->intra_node_comm, &(pastix->intra_node_procnum));
+/*     pastix->sopar.bindtab    = NULL; */
+/*     pastix->sopar.b          = NULL; */
+/*     pastix->sopar.transcsc   = NULL; */
+/*     pastix->sopar.stopthrd   = API_NO; */
+/*     pastix->bindtab          = NULL; */
+/*     pastix->cscInternFilled  = API_NO; */
 
-        /* Create inter-node communicator */
-        MPI_Comm_split(pastix_comm, pastix->intra_node_procnum, key, &(pastix->inter_node_comm));
-        MPI_Comm_size(pastix->inter_node_comm, &(pastix->inter_node_procnbr));
-        MPI_Comm_rank(pastix->inter_node_comm, &(pastix->inter_node_procnum));
-    }
-    else
-    {
-        pastix->intra_node_comm = MPI_COMM_SELF;
-        pastix->intra_node_procnbr = 1;
-        pastix->intra_node_procnum = 0;
-        pastix->inter_node_comm = pastix_comm;
-        pastix->inter_node_procnbr = pastix->procnbr;
-        pastix->inter_node_procnum = pastix->procnum;
-    }
-
-    iparm[IPARM_THREAD_NBR] = pastix->intra_node_procnbr;
-
-    if (pastix->procnum == 0)
-    {
-        pastix->pastix_id = getpid();
-    }
-    MPI_Bcast(&(pastix->pastix_id), 1, PASTIX_MPI_INT, 0, pastix_comm);
-
-#ifdef WITH_SEM_BARRIER
-    if (pastix->intra_node_procnbr > 1)
-    {
-        char sem_name[256];
-        sprintf(sem_name, "/pastix_%d", pastix->pastix_id);
-        OPEN_SEM(pastix->sem_barrier, sem_name, 0);
-    }
-#endif
-
-    if (iparm != NULL)
-    {
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-        {
-            fprintf(stdout, "AUTOSPLIT_COMM : global rank : %d,"
-                    " inter node rank %d,"
-                    " intra node rank %d, threads %d\n",
-                    (int)(pastix->procnum),
-                    (int)(pastix->inter_node_procnum),
-                    (int)(pastix->intra_node_procnum),
-                    (int)iparm[IPARM_THREAD_NBR]);
-        }
-
-        iparm[IPARM_PID] = pastix->pastix_id;
-    }
-
-    pastix->sopar.bindtab    = NULL;
-    pastix->sopar.b          = NULL;
-    pastix->sopar.transcsc   = NULL;
-    pastix->sopar.stopthrd   = API_NO;
-    pastix->bindtab          = NULL;
-    pastix->cscInternFilled  = API_NO;
-
-#ifdef PASTIX_DISTRIBUTED
-    pastix->malrhsd_int      = API_NO;
-    pastix->l2g_int          = NULL;
-    pastix->mal_l2g_int      = API_NO;
-    pastix->glob2loc         = NULL;
-    pastix->PTS_permtab      = NULL;
-    pastix->PTS_peritab      = NULL;
-#endif
-    pastix->schur_tab        = NULL;
-    pastix->schur_tab_set    = API_NO;
-    pastix->scaling  = API_NO;
+/* #ifdef PASTIX_DISTRIBUTED */
+/*     pastix->malrhsd_int      = API_NO; */
+/*     pastix->l2g_int          = NULL; */
+/*     pastix->mal_l2g_int      = API_NO; */
+/*     pastix->glob2loc         = NULL; */
+/*     pastix->PTS_permtab      = NULL; */
+/*     pastix->PTS_peritab      = NULL; */
+/* #endif */
+/*     pastix->schur_tab        = NULL; */
+/*     pastix->schur_tab_set    = API_NO; */
+/*     pastix->scaling  = API_NO; */
 
     /* DIRTY Initialization for Scotch */
     srand(1);
@@ -385,9 +430,6 @@ pastixInit( pastix_data_t **pastix_data,
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
-
-    scheduler = ischedInit( -1, NULL );
-    pastix->iparm[IPARM_THREAD_NBR] = scheduler->world_size;
 
     *pastix_data = pastix;
 }
@@ -417,7 +459,7 @@ pastixFinalize( pastix_data_t **pastix_data,
     pastix_data_t *pastix = *pastix_data;
     (void)pastix_comm; (void)iparm; (void)dparm;
 
-    ischedFinalize( scheduler );
+    ischedFinalize( pastix->isched );
 
     if ( pastix->graph != NULL )
     {
