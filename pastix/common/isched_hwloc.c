@@ -379,7 +379,7 @@ int isched_hwloc_allow_ht(int htnb)
     if (htnb > 1){
         int pu_per_core = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU)/hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
         if( htnb > pu_per_core){
-            printf("Warning:: HT:: There not enought logical processors to consider %i HyperThreads per core (set up to %i)\n", htnb,  pu_per_core);
+            printf("Warning:: HT:: There are not enough logical processors to consider %i HyperThreads per core (set up to %i)\n", htnb,  pu_per_core);
             ht=pu_per_core;
         }else{
             ht=htnb;
