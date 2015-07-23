@@ -729,7 +729,6 @@ set(PASTIX_HDRS
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
-
 add_subdirectory(example)
 
 FIND_PACKAGE(Doxygen)
