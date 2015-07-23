@@ -32,6 +32,7 @@ sizeofsolver(const SolverMatrix *solvptr,
 {
   pastix_int_t result=sizeof(SolverMatrix);
   pastix_int_t iter;
+  (void)iparm;
 
   /* cblk and blocks arrays */
   result += solvptr->cblknbr*sizeof(SolverCblk);
