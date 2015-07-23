@@ -209,8 +209,6 @@ pastix_task_order(      pastix_data_t *pastix_data,
      */
     graphPrepare( pastix_data, csc->gN, csc->colptr, csc->rowptr, csc->loc2glob, &(pastix_data->graph) );
     graph = pastix_data->graph;
-    pastix_data->n2 = graph->n;
-    pastix_data->gN = graph->gN;
 
     /*
      * Isolate Shur elements
@@ -463,7 +461,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
 
     /* Backup the csc pointer for further information */
     pastix_data->csc = csc;
-    
+
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_SYMBFACT |
                              STEP_ANALYSE  |
