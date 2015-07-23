@@ -31,8 +31,9 @@
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "costfunc.h"
-#include "splitpartlocal.h"
+/* #include "dof.h" */
+/* #include "costfunc.h" */
+/* #include "splitpartlocal.h" */
 #include "solverMatrixGen.h"
 #include "solver_check.h"
 #include "task.h"
