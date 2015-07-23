@@ -13,6 +13,7 @@
 #ifndef PASTIX_DATA_H_
 #define PASTIX_DATA_H_
 
+#include "isched.h"
 #if defined(PASTIX_WITH_PARSEC)
 #include <dague.h>
 #endif
@@ -22,21 +23,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-
-/* #include "assembly.h" */
-/* #include "param_blend.h" */
-/* #include "order.h" */
-/* #include "fax.h" */
-/* #include "kass.h" */
-/* #include "blend.h" */
-/* #include "solverRealloc.h" */
-/* #include "sopalin_thread.h" */
-/* #include "stack.h" */
-/* #include "sopalin3d.h" */
-/* #include "sopalin_init.h" */
-/* #include "sopalin_option.h" */
-/* #include "csc_intern_build.h" */
-/* #include "coefinit.h" */
 
 /*
  * Steps of the pastix solver
@@ -60,7 +46,7 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
   Parameters for factorisation, updown and reffinement.
  */
 typedef struct SopalinParam_ {
-    pastix_bcsc_t *bcsc;          /*+ Compress Sparse Column matrix                    */
+    pastix_bcsc_t  *bcsc;          /*+ Compress Sparse Column matrix                    */
     double          epsilonraff;     /*+ epsilon to stop reffinement                      */
     double          rberror;         /*+ ||r||/||b||                                      */
     double          espilondiag;     /*+ epsilon critere for diag control                 */
@@ -97,9 +83,19 @@ struct pastix_data_s {
 
     pastix_int_t     steps;              /*< Bitmask of the steps performed or not                               */
 
-    isched_t        *isched;             /*< Internal scheduler structure that is always available                */
+    MPI_Comm         pastix_comm;        /*< PaStiX MPI communicator used for the ordering step                  */
+    MPI_Comm         intra_node_comm;    /*< PaStiX intra node MPI communicator used for synchronizations        */
+    MPI_Comm         inter_node_comm;    /*< PaStiX inter node MPI communicator used for the factorization       */
+    int              procnbr;            /*< Total number of MPI processes                                       */
+    int              procnum;            /*< Local MPI rank                                                      */
+    int              intra_node_procnbr; /*< Number of MPI tasks in intra node communicator                      */
+    int              intra_node_procnum; /*< Local MPI rank in intra node communicator                           */
+    int              inter_node_procnbr; /*< Number of MPI tasks in inter node communicator                      */
+    int              inter_node_procnum; /*< Local MPI rank in inter node communicator                           */
+
+    isched_t        *isched;             /*< Internal scheduler structure that is always available               */
 #if defined(PASTIX_WITH_PARSEC)
-    dague_context_t *parsec;             /*< PaRSEC Context if available                                          */
+    dague_context_t *parsec;             /*< PaRSEC Context if available                                         */
 #endif
 
     const pastix_csc_t *csc;             /*< Pointer to the user csc structure used as input                     */
@@ -117,16 +113,15 @@ struct pastix_data_s {
     pastix_bcsc_t   *bcsc;               /*< Csc after reordering grouped by cblk                                */
     SolverMatrix    *solvmatr;           /*< Solver informations associted to the matrix problem                 */
 
-
     /**
      * Former fields that are no longer used for now
      */
     SopalinParam     sopar;              /* Sopalin parameters                                                  */
 #ifdef PASTIX_DISTRIBUTED
-#ifdef WITH_SCOTCH
+#if defined(PASTIX_ORDERING_SCOTCH)
     pastix_int_t    *PTS_permtab;
     pastix_int_t    *PTS_peritab;
-#endif /* WITH_SCOTCH */
+#endif /* PASTIX_ORDERING_SCOTCH */
     pastix_int_t    *glob2loc;           /*+ local column number of global column, or -(owner+1) is not local    */
     pastix_int_t     ncol_int;           /*+ Number of local columns in internal CSCD                            */
     pastix_int_t    *l2g_int;            /*+ Local to global column numbers in internal CSCD                     */
@@ -138,16 +133,6 @@ struct pastix_data_s {
     /* int              malsmx;             /\*+ boolean indicating if solvmatr->updovct.sm2xtab has been allocated  +*\/ */
     /* int              malslv;             /\*+ boolean indicating if solvmatr has been allocated                   +*\/ */
     /* int              malcof;             /\*+ boolean indicating if coeficients tabular(s) has(ve) been allocated +*\/ */
-
-    MPI_Comm         pastix_comm;        /*+ PaStiX MPI communicator                                             */
-    MPI_Comm         intra_node_comm;    /*+ PaStiX intra node MPI communicator                                  */
-    MPI_Comm         inter_node_comm;    /*+ PaStiX inter node MPI communicator                                  */
-    int              procnbr;            /*+ Number of MPI tasks                                                 */
-    int              procnum;            /*+ Local MPI rank                                                      */
-    int              intra_node_procnbr; /*+ Number of MPI tasks in node_comm                                    */
-    int              intra_node_procnum; /*+ Local MPI rank in node_comm                                         */
-    int              inter_node_procnbr; /*+ Number of MPI tasks in node_comm                                    */
-    int              inter_node_procnum; /*+ Local MPI rank in node_comm                                         */
 
     int             *bindtab;            /*+ Tabular giving for each thread a CPU to bind it too                 */
     void            *schur_tab;
