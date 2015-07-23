@@ -234,7 +234,7 @@ unsigned int isched_hwloc_nb_cores_per_obj( int level, int index )
     return hwloc_get_nbobjs_inside_cpuset_by_type(topology, obj->cpuset, HWLOC_OBJ_CORE);
 }
 
-unsigned int isched_hwloc_world_size()
+int isched_hwloc_world_size()
 {
     return isched_hwloc_nb_cores_per_obj( HWLOC_OBJ_MACHINE, 0 );
 }
