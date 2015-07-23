@@ -304,8 +304,15 @@ pastixInit( pastix_data_t **pastix_data,
     pastix_data_t *pastix;
 
     /**
+     * Allocate pastix_data structure when we enter PaStiX for the first time.
+     */
+    MALLOC_INTERN(pastix, 1, pastix_data_t);
+    memset( pastix, 0, sizeof(pastix_data_t) );
+
+    /**
      * Check if MPI is initialized
      */
+    pastix->initmpi = 0;
 #if defined(PASTIX_WITH_MPI)
     {
         int provided = MPI_THREAD_SINGLE;
@@ -313,18 +320,13 @@ pastixInit( pastix_data_t **pastix_data,
         MPI_Initialized(&flag);
         if ( !flag ) {
             MPI_Init_thread( NULL, NULL, MPI_THREAD_MULTIPLE, &provided );
+            pastix->initmpi = 1;
         }
         else {
             MPI_Query_thread( &provided );
         }
     }
 #endif
-
-    /**
-     * Allocate pastix_data structure when we enter PaStiX for the first time.
-     */
-    MALLOC_INTERN(pastix, 1, pastix_data_t);
-    memset( pastix, 0, sizeof(pastix_data_t) );
 
     /**
      * Initialize iparm/dparm vectors and set them to default values if not set
@@ -490,5 +492,11 @@ pastixFinalize( pastix_data_t **pastix_data,
         bcscExit( pastix->bcsc );
         memFree_null( pastix->bcsc );
     }
+
+#if defined(PASTIX_WITH_MPI)
+    if ( pastix->initmpi ) {
+        MPI_Finalize();
+    }
+#endif
     memFree_null(*pastix_data);
 }

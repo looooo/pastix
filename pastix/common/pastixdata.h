@@ -86,6 +86,7 @@ struct pastix_data_s {
     MPI_Comm         pastix_comm;        /*< PaStiX MPI communicator used for the ordering step                  */
     MPI_Comm         intra_node_comm;    /*< PaStiX intra node MPI communicator used for synchronizations        */
     MPI_Comm         inter_node_comm;    /*< PaStiX inter node MPI communicator used for the factorization       */
+    int              initmpi;            /*< MPI Initialized by PaStiX                                           */
     int              procnbr;            /*< Total number of MPI processes                                       */
     int              procnum;            /*< Local MPI rank                                                      */
     int              intra_node_procnbr; /*< Number of MPI tasks in intra node communicator                      */
