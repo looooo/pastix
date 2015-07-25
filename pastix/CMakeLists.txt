@@ -621,7 +621,6 @@ set(PASTIX_LIB_SRCS
   sopalin/pastix_task_solve.c
 #
   csc/csc.c
-  csc/genrhs.c
 #
   ${generated_files}
   )
