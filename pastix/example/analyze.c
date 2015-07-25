@@ -22,7 +22,6 @@ int main (int argc, char **argv)
      * Initialize parameters to default values
      */
     pastixInitParam( iparm, dparm );
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Get options from command line
@@ -30,6 +29,11 @@ int main (int argc, char **argv)
     pastix_ex_getoptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
+
+    /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Read the sparse matrix with the driver
