@@ -22,10 +22,10 @@ set(HEADERS
 ### Generate .c files from .jdf for all required precisions
 set(JDF
   # zcsc2cblk.jdf
-  # zpotrf_sp1dplus.jdf
+  zpotrf_sp1dplus.jdf
   zgetrf_sp1dplus.jdf
-  # zhetrf_sp1dplus.jdf
-  # zsytrf_sp1dplus.jdf
+  zhetrf_sp1dplus.jdf
+  zsytrf_sp1dplus.jdf
   # # Solvers
   # zpotrs_sp1dplus.jdf
 )

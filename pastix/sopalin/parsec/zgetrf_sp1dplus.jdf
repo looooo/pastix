@@ -16,7 +16,6 @@ extern "C" %{
 #include <dague/devices/cuda/dev_cuda.h>
 #include "parsec/cuda_zgemmsp.h"
 #endif  /* defined(HAVE_CUDA) */
-
 %}
 
 /* Globals
@@ -32,6 +31,8 @@ bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->blokn
 
 /**************************************************
  *                GETRF_TRSM                      *
+ * panel factorization: do trf of diagonal and    *
+ *                    : trsm on off-diagonal      *
  **************************************************/
 GETRF_TRSM(k) [high_priority = on]
 
@@ -72,6 +73,8 @@ END
 
 /**************************************************
  *                      GEMM                      *
+ * update the trailing matrix with the panel      *
+ * k-th block updating corresponding.
  **************************************************/
 
 GEMM(bloknum)
