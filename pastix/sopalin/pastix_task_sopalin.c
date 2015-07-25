@@ -29,10 +29,8 @@ static void (*sopalinFacto[4][4])(sopalin_data_t*) =
 };
 
 void
-coeftabInit( const SolverMatrix  *datacode,
-             const pastix_bcsc_t *bcsc,
-             pastix_int_t         fakefillin,
-             pastix_int_t         factoLU );
+coeftabInit( const pastix_data_t *pastix_data,
+             int fakefillin, int factoLU );
 
 int
 pastix_subtask_csc2bcsc( pastix_data_t *pastix_data,
@@ -105,8 +103,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    coeftabInit( pastix_data->solvmatr,
-                 pastix_data->bcsc,
+    coeftabInit( pastix_data,
                  csc->flttype == PastixPattern,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
 
@@ -153,7 +150,6 @@ int
 pastix_task_sopalin( pastix_data_t *pastix_data,
                      pastix_csc_t  *csc )
 {
-    extern isched_t *scheduler;
     sopalin_data_t  sopalin_data;
     SolverBackup_t *sbackup;
 /* #ifdef PASTIX_WITH_MPI */
@@ -237,7 +233,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
             sopalin_data.diagthreshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
         }
     }
-    sopalin_data.sched = scheduler;
+    sopalin_data.sched = pastix_data->isched;
 
     sbackup = solverBackupInit( pastix_data->solvmatr );
     pastix_data->solvmatr->restore = 2;
