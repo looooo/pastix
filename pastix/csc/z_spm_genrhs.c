@@ -13,27 +13,143 @@
  *
  * @precisions normal z -> c s d
  **/
+#include <lapacke.h>
 #include "common.h"
 #include "csc.h"
 #include "z_spm.h"
+#include "kernels/pastix_zcores.h"
+
+#define Rnd64_A  6364136223846793005ULL
+#define Rnd64_C  1ULL
+#define RndF_Mul 5.4210108624275222e-20f
+#define RndD_Mul 5.4210108624275222e-20
+
+static inline unsigned long long int
+Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
+  unsigned long long int a_k, c_k, ran;
+  int i;
+
+  a_k = Rnd64_A;
+  c_k = Rnd64_C;
+
+  ran = seed;
+  for (i = 0; n; n >>= 1, ++i) {
+    if (n & 1)
+      ran = a_k * ran + c_k;
+    c_k *= (a_k + 1);
+    a_k *= a_k;
+  }
+
+  return ran;
+}
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+#define NBELEM   2
+#else
+#define NBELEM   1
+#endif
 
 /**
  *******************************************************************************
  *
  * @ingroup pastix_csc
  *
- * z_spm_genRHS - generate a RHS such as the solution of Ax=rhs
- * is a vector of size csc->gN with all its values equal to 1+I
- * in complex cases, 1 in real cases.
+ *  z_spmRndVect generates a random vector for testing purpose.
  *
  *******************************************************************************
  *
- * @param[in] csc
- *          The PastixGeneral csc.
+ * @param[in] m
+ *         The number of rows of the tile A. m >= 0.
  *
- * @param[in,out] rhs
- *          The generated rhight hand side member,
- *          reallocated if allocated at enter.
+ * @param[in] n
+ *         The number of columns of the tile A. n >= 0.
+ *
+ * @param[in,out] A
+ *         On entry, the m-by-n tile to be initialized.
+ *         On exit, the tile initialized in the mtxtype format.
+ *
+ * @param[in] lda
+ *         The leading dimension of the tile A. lda >= max(1,m).
+ *
+ * @param[in] gM
+ *         The global number of rows of the full matrix, A is belonging to. gM >= (m0+M).
+ *
+ * @param[in] m0
+ *         The index of the first row of tile A in the full matrix. m0 >= 0.
+ *
+ * @param[in] n0
+ *         The index of the first column of tile A in the full matrix. n0 >= 0.
+ *
+ * @param[in] seed
+ *         The seed used for random generation. Must be the same for
+ *         all tiles initialized with this routine.
+ *
+ ******************************************************************************/
+void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
+                   int gM, int m0, int n0, unsigned long long int seed )
+{
+    pastix_complex64_t *tmp = A;
+    int64_t i, j;
+    unsigned long long int ran, jump;
+
+    jump = (unsigned long long int)m0 + (unsigned long long int)n0 * (unsigned long long int)gM;
+
+    for (j=0; j<n; ++j ) {
+        ran = Rnd64_jump( NBELEM*jump, seed );
+        for (i = 0; i < m; ++i) {
+            *tmp = (0.5f - ran * RndF_Mul) * scale;
+            ran  = Rnd64_A * ran + Rnd64_C;
+#ifdef COMPLEX
+            *tmp += (I*(0.5f - ran * RndF_Mul)) * scale;
+            ran   = Rnd64_A * ran + Rnd64_C;
+#endif
+            tmp++;
+        }
+        tmp  += lda-i;
+        jump += gM;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
+ * matrix to test a problem with a solver.
+ *
+ *******************************************************************************
+ *
+ * @param[in] type
+ *          Defines how to compute the vector b.
+ *          - PastixRhsOne:  b is computed such that x = 1 [ + I ]
+ *          - PastixRhsI:    b is computed such that x = i [ + i * I ]
+ *          - PastixRhsRndX: b is computed by matrix-vector product, such that
+ *            is a random vector in the range [-0.5, 0.5]
+ *          - PastixRhsRndB: b is computed randomly and x is not computed.
+ *
+ * @param[in] nrhs
+ *          Defines the number of right hand side that must be generated.
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ * @param[out] x
+ *          On exit, if x != NULL, then the x vector(s) generated to compute b
+ *          is returned. Must be of size at least ldx * spm->n.
+ *
+ * @param[in] ldx
+ *          Defines the leading dimension of x when multiple right hand sides
+ *          are available. ldx >= spm->n.
+ *
+ * @param[in,out] b
+ *          b must be an allocated matrix of size at least ldb * nrhs.
+ *          On exit, b is initialized as defined by the type parameter.
+ *
+ * @param[in] ldb
+ *          Defines the leading dimension of b when multiple right hand sides
+ *          are available. ldb >= spm->n.
  *
  *******************************************************************************
  *
@@ -43,73 +159,232 @@
  *
  *******************************************************************************/
 int
-z_spm_genRHS(pastix_csc_t  *csc,
-             void         **rhs )
+z_spmGenRHS( int type, int nrhs,
+             const pastix_csc_t  *spm,
+             void                *x, int ldx,
+             void                *b, int ldb )
 {
-    void *x = NULL;
-    pastix_complex64_t *xptr;
-    char n  = 'n';
-    pastix_int_t i;
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *bptr = (pastix_complex64_t*)b;
+    pastix_int_t i, j;
+    int rc;
 
-    if( csc->values == NULL )
+    if (( spm == NULL ) ||
+        ( spm->values == NULL )) {
         return PASTIX_ERR_BADPARAMETER;
-
-    if( csc->fmttype != PastixCSC )
-        return PASTIX_ERR_BADPARAMETER;
-
-    if( csc->gN <= 0 )
-        return PASTIX_ERR_BADPARAMETER;
-
-    x=malloc( csc->gN * sizeof(pastix_complex64_t) );
-    xptr = x;
-
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    for( i=0; i < csc->gN; i++, xptr++ )
-    {
-        *xptr = (pastix_complex64_t)(1.+1.*I);
     }
+
+    /* Other format not supported for now */
+    if( spm->fmttype != PastixCSC )
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( spm->gN <= 0 )
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( nrhs <= 0 )
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( (nrhs > 1) && (ldx < spm->n) )
+        return PASTIX_ERR_BADPARAMETER;
+
+    if( (nrhs > 1) && (ldb < spm->n) )
+        return PASTIX_ERR_BADPARAMETER;
+
+    if (nrhs == 1) {
+        ldb = spm->n;
+        ldx = spm->n;
+    }
+
+    /* We don't handle distributed spm for now */
+    assert( spm->n == spm->gN );
+
+    /* If random b, we do it and exit */
+    if ( type == PastixRhsRndB ) {
+        /* Compute the spm norm to scale the b vector */
+        double norm = z_spmNorm( PastixFrobeniusNorm, spm );
+
+        z_spmRndVect( norm, spm->n, nrhs, bptr, ldb,
+                      spm->gN, 0, 0, 24356 );
+        return PASTIX_SUCCESS;
+    }
+
+    if ( (type == PastixRhsOne  ) ||
+         (type == PastixRhsI    ) ||
+         (type == PastixRhsRndX ) )
+    {
+        if ( xptr == NULL ) {
+            MALLOC_INTERN( xptr, ldx * nrhs, pastix_complex64_t );
+        }
+
+        switch( type ) {
+        case PastixRhsOne:
+            for( j=0; j<nrhs; j++ )
+            {
+                for( i=0; i<spm->n; i++, xptr++ )
+                {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    *xptr = (pastix_complex64_t)(1.+1.*I);
 #else
-    for( i=0; i < csc->gN; i++, xptr++ )
-    {
-        *xptr = (pastix_complex64_t)1.;
-    }
+                    *xptr = (pastix_complex64_t)1.;
 #endif
+                }
+                xptr += ldx-i;
+            }
+            xptr -= nrhs * ldx;
+            break;
 
-    if(*rhs == NULL)
-    {
-        *rhs=malloc( csc->gN*sizeof( pastix_complex64_t ) );
-        memset( *rhs, 0, csc->gN * sizeof( pastix_complex64_t ) );
-    }
-
-    if( csc->mtxtype == PastixGeneral )
-    {
-        if( z_spmGeCSCv( n, 1., csc, (pastix_complex64_t*)x, 0., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
-        {
-            return PASTIX_ERR_BADPARAMETER;
-        }
-    }
-    else if( csc->mtxtype == PastixSymmetric )
-    {
-        if( z_spmSyCSCv( 1., csc, (pastix_complex64_t*)x, 0., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
-        {
-            return PASTIX_ERR_BADPARAMETER;
-        }
-    }
+        case PastixRhsI:
+            for( j=0; j<nrhs; j++ )
+            {
+                for( i=0; i<spm->n; i++, xptr++ )
+                {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    else if( csc->mtxtype == PastixHermitian )
-    {
-        if( z_spmHeCSCv( 1., csc, (pastix_complex64_t*)x, 0., (pastix_complex64_t*)(*rhs) ) != PASTIX_SUCCESS )
-        {
-            return PASTIX_ERR_BADPARAMETER;
-        }
-    }
+                    *xptr = (pastix_complex64_t)(i + i * I);
+#else
+                    *xptr = (pastix_complex64_t)i;
 #endif
-    else
-    {
-        return PASTIX_ERR_BADPARAMETER;
+                }
+                xptr += ldx-i;
+            }
+            xptr -= nrhs * ldx;
+            break;
+
+        case PastixRhsRndX:
+        default:
+            z_spmRndVect( 1., spm->n, nrhs, xptr, ldx,
+                          spm->gN, 0, 0, 24356 );
+        }
+
+        switch ( spm->mtxtype ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+            rc = z_spmHeCSCv( 1., spm, xptr, 0., bptr );
+            break;
+#endif
+        case PastixSymmetric:
+            rc = z_spmSyCSCv( 1., spm, xptr, 0., bptr );
+            break;
+        case PastixGeneral:
+        default:
+            rc = z_spmGeCSCv( PastixNoTrans, 1., spm, xptr, 0., bptr );
+        }
+
+        if ( x == NULL ) {
+            memFree_null(xptr);
+        }
+        return rc;
     }
 
-    memFree_null(x);
+    fprintf(stderr, "z_spmGenRHS: Generator not implemented yet\n");
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * z_spmCheckAxb - Check the backward error, and the forward error if x0 is
+ * provided.
+ *
+ *******************************************************************************
+ *
+ * @param[in] nrhs
+ *          Defines the number of right hand side that must be generated.
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ * @param[in,out] x0
+ *          If x0 != NULL, the forward error is computed.
+ *          On exit, x0 stores (x0-x)
+ *
+ * @param[in] ldx0
+ *          Defines the leading dimension of x0 when multiple right hand sides
+ *          are available. ldx0 >= spm->n.
+ *
+ * @param[in,out] b
+ *          b is a matrix of size at least ldb * nrhs.
+ *          On exit, b stores Ax-b.
+ *
+ * @param[in] ldb
+ *          Defines the leading dimension of b when multiple right hand sides
+ *          are available. ldb >= spm->n.
+ *
+ * @param[in] x
+ *          Contains the solution computed by the solver.
+ *
+ * @param[in] ldx
+ *          Defines the leading dimension of x when multiple right hand sides
+ *          are available. ldx >= spm->n.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+z_spmCheckAxb( int nrhs,
+               const pastix_csc_t  *spm,
+                     void *x0, int ldx0,
+                     void *b,  int ldb,
+               const void *x,  int ldx )
+{
+    static pastix_complex64_t mzone = (pastix_complex64_t)-1.;
+    static pastix_complex64_t zone  = (pastix_complex64_t) 1.;
+    double normA, normB, normX, normX0, normR;
+    double backward, forward, eps;
+    int failure = 0;
+
+    eps = LAPACKE_dlamch('e');
+
+    /**
+     * Compute the starting norms
+     */
+    normA = spmNorm( PastixFrobeniusNorm, spm );
+    normX = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x, ldx );
+    normB = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, b, ldb );
+
+    printf( "   || A ||_oo                                   %e\n"
+            "   || b ||_oo                                   %e\n"
+            "   || x ||_oo                                   %e\n",
+            normA, normB, normX );
+
+    /**
+     * Compute r = A * x - b
+     */
+    spmMatVec( PastixNoTrans, &mzone, spm, x, &zone, b );
+    normR = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, b, ldb );
+
+    backward = normR / ( normA * normX + normB );
+    failure = isnan(normX) || isinf(normX) || isnan(backward) || isinf(backward) || ((backward / eps) > 1.e3);
+
+    printf( "   ||b-Ax||_oo                                  %e\n"
+            "   ||b-Ax||_oo / (||A||_oo ||x||_oo + ||b||_oo) %e (%s)\n",
+            normR, backward,
+            failure ? "FAILED" : "SUCCESS" );
+
+    /**
+     * Compute r = x0 - x
+     */
+    if ( x0 != NULL ) {
+        normX0 = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
+        core_zgeadd( PastixNoTrans, spm->n, nrhs, -1., x, ldx, x0, ldx0 );
+        normR = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
+
+        forward = normR / normX0;
+        failure = isnan(normX) || isinf(normX) || isnan(forward) || isinf(forward) || ((forward / eps) > 1.e3);
+
+        printf( "   ||x_0||_oo                                   %e\n"
+                "   ||x_0-x||_oo                                 %e\n"
+                "   ||x_0-x||_oo / ||x_0||_oo                    %e (%s)\n",
+                normX0, normR, forward,
+                failure ? "FAILED" : "SUCCESS" );
+    }
 
     return PASTIX_SUCCESS;
 }

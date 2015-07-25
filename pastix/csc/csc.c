@@ -358,3 +358,141 @@ spmMatVec(      int           trans,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
+ * matrix to test a problem with a solver.
+ *
+ *******************************************************************************
+ *
+ * @param[in] type
+ *          Defines how to compute the vector b.
+ *          - PastixRhsOne:  b is computed such that x = 1 [ + I ]
+ *          - PastixRhsI:    b is computed such that x = i [ + i * I ]
+ *          - PastixRhsRndX: b is computed by matrix-vector product, such that
+ *            is a random vector in the range [-0.5, 0.5]
+ *          - PastixRhsRndB: b is computed randomly and x is not computed.
+ *
+ * @param[in] nrhs
+ *          Defines the number of right hand side that must be generated.
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ * @param[out] x
+ *          On exit, if x != NULL, then the x vector(s) generated to compute b
+ *          is returned. Must be of size at least ldx * spm->n.
+ *
+ * @param[in] ldx
+ *          Defines the leading dimension of x when multiple right hand sides
+ *          are available. ldx >= spm->n.
+ *
+ * @param[in,out] b
+ *          b must be an allocated matrix of size at least ldb * nrhs.
+ *          On exit, b is initialized as defined by the type parameter.
+ *
+ * @param[in] ldb
+ *          Defines the leading dimension of b when multiple right hand sides
+ *          are available. ldb >= spm->n.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+spmGenRHS( int type, int nrhs,
+           const pastix_csc_t  *spm,
+           void                *x, int ldx,
+           void                *b, int ldb )
+{
+    static int (*ptrfunc[4])(int, int,
+                             const pastix_csc_t *,
+                             void *, int, void *, int) =
+        {
+            s_spmGenRHS, d_spmGenRHS, c_spmGenRHS, z_spmGenRHS
+        };
+
+    int id = spm->flttype - PastixFloat;
+    if ( (id < 0) || (id > 3) ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    else {
+        return ptrfunc[id](type, nrhs, spm, x, ldx, b, ldb );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_csc
+ *
+ * spmCheckAxb - Check the backward error, and the forward error if x0 is
+ * provided.
+ *
+ *******************************************************************************
+ *
+ * @param[in] nrhs
+ *          Defines the number of right hand side that must be generated.
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ * @param[in,out] x0
+ *          If x0 != NULL, the forward error is computed.
+ *          On exit, x0 stores (x0-x)
+ *
+ * @param[in] ldx0
+ *          Defines the leading dimension of x0 when multiple right hand sides
+ *          are available. ldx0 >= spm->n.
+ *
+ * @param[in,out] b
+ *          b is a matrix of size at least ldb * nrhs.
+ *          On exit, b stores Ax-b.
+ *
+ * @param[in] ldb
+ *          Defines the leading dimension of b when multiple right hand sides
+ *          are available. ldb >= spm->n.
+ *
+ * @param[in] x
+ *          Contains the solution computed by the solver.
+ *
+ * @param[in] ldx
+ *          Defines the leading dimension of x when multiple right hand sides
+ *          are available. ldx >= spm->n.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+spmCheckAxb( int nrhs,
+             const pastix_csc_t  *spm,
+                   void *x0, int ldx0,
+                   void *b,  int ldb,
+             const void *x,  int ldx )
+{
+    static int (*ptrfunc[4])(int, const pastix_csc_t *,
+                             void *, int, void *, int, const void *, int) =
+        {
+            s_spmCheckAxb, d_spmCheckAxb, c_spmCheckAxb, z_spmCheckAxb
+        };
+
+    int id = spm->flttype - PastixFloat;
+    if ( (id < 0) || (id > 3) ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    else {
+        return ptrfunc[id](nrhs, spm, x0, ldx0, b, ldb, x, ldx );
+    }
+}
