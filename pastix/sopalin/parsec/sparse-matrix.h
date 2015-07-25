@@ -65,7 +65,7 @@ typedef struct sparse_context_s {
 } sparse_context_t;
 
 void sparse_matrix_init( sparse_matrix_desc_t *desc,
-                         const SolverMatrix *solvmtx, int typesize, int nodes, int myrank);
+                         SolverMatrix *solvmtx, int typesize, int nodes, int myrank);
 void sparse_matrix_destroy( sparse_matrix_desc_t *desc );
 
 void sparse_vector_init( sparse_vector_desc_t *desc,

@@ -150,7 +150,7 @@ static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, cha
 #endif
 
 void sparse_matrix_init( sparse_matrix_desc_t *desc,
-                         const SolverMatrix *solvmtx, int typesize, int nodes, int myrank)
+                         SolverMatrix *solvmtx, int typesize, int nodes, int myrank)
 {
     dague_ddesc_t *o = (dague_ddesc_t*)desc;
 
