@@ -1,5 +1,9 @@
 /**
  *
+ * @file: z_raff_functions.c
+ *
+ *  Functions computing operations for reffinement methods
+ *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -11,15 +15,8 @@
  * @precisions normal z -> c d s
  *
  **/
-/*
- * File: z_raff_functions.c
- *
- * Functions computing operations for reffinement methods
- *
- */
-
 #include "common.h"
-#include "z_csc.h"
+#include "z_spm.h"
 #include "z_bcsc.h"
 
 //#include "z_tools.h"

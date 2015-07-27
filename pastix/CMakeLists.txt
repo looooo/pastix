@@ -427,10 +427,11 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/reffinement")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/reffinement")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
-set(modules csc bcsc kernels) #csc kernels sopalin matrix_drivers common)
+set(modules csc bcsc kernels reffinement) #csc kernels sopalin matrix_drivers common)
 # if (PASTIX_WITH_STARPU)
 #   list(APPEND modules starpu)
 # endif (PASTIX_WITH_STARPU)
@@ -511,11 +512,11 @@ set(SOURCES
   sopalin/sequential_zpotrf.c
   sopalin/sequential_zsytrf.c
   #
-  reffinement/z_raff_functions.c
-  reffinement/z_raff_gmres.c
-  reffinement/z_raff_bicgstab.c
-  reffinement/z_raff_grad.c
-  reffinement/z_raff_pivot.c
+#   reffinement/z_raff_functions.c
+#   reffinement/z_raff_gmres.c
+#   reffinement/z_raff_bicgstab.c
+#   reffinement/z_raff_grad.c
+#   reffinement/z_raff_pivot.c
   #
   sopalin/coeftab_z.c
   )
