@@ -1,8 +1,7 @@
- 
 /**
- * 
- * @File z_bcsc_matrixvector.c
- * 
+ *
+ * @file z_bcsc_matrixvector.c
+ *
  * Functions computing matrix-vector products for the BCSC
  *
  * PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -12,13 +11,13 @@
  * @author Mathieu Faverge
  * @author Théophile terraz
  * @date 2015-01-01
- * 
+ *
  * @precisions normal z -> c d s
  *
  **/
+#include <math.h>
 #include "common.h"
 #include "bcsc.h"
-#include <math.h>
 
 /**
  *******************************************************************************
@@ -79,7 +78,7 @@ z_bcscGemv(pastix_trans_t      trans,
         return PASTIX_ERR_BADPARAMETER;
     }
     Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
-    n = bcsc->gN;
+    n = bcsc->n;
 
     /* first, y = beta*y */
     if( beta != (pastix_complex64_t)0.0 )
@@ -96,34 +95,6 @@ z_bcscGemv(pastix_trans_t      trans,
 
     yptr = (pastix_complex64_t*)y;
     switch (trans) {
-    case PastixNoTrans:
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
-            {
-                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
-                }
-                col += 1;
-            }
-        }
-    break;
-    case PastixTrans:
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
-            {
-                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
-                }
-                col += 1;
-            }
-        }
-    break;
 #if defined(PRECISION_c) || defined(PRECISION_z)
     case PastixConjTrans:
         col = 0;
@@ -140,8 +111,35 @@ z_bcscGemv(pastix_trans_t      trans,
         }
     break;
 #endif
+    case PastixTrans:
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
+                }
+                col += 1;
+            }
+        }
+    break;
+
+    case PastixNoTrans:
     default:
-        return PASTIX_ERR_BADPARAMETER;
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
+                }
+                col += 1;
+            }
+        }
     }
 
     return PASTIX_SUCCESS;
@@ -204,7 +202,7 @@ z_bcscSymv(pastix_complex64_t  alpha,
     }
 
     Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
-    n = bcsc->gN;
+    n = bcsc->n;
 
     /* first, y = beta*y */
     if( beta != (pastix_complex64_t)0.0 )
@@ -321,11 +319,7 @@ z_bcscHemv(pastix_complex64_t  alpha,
                 yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
                 if( bcsc->rowtab[i] != col )
                 {
-#if defined(PRECISION_c) || defined(PRECISION_z)
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
-#else
-                    yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
-#endif
                 }
             }
             col += 1;
