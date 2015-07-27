@@ -77,7 +77,7 @@ typedef struct isched_s {
 #endif
 
 int  isched_topo_init(void);
-void isched_topo_destroy(void);
+int  isched_topo_destroy(void);
 int  isched_topo_bind_on_core_index(int);
 int  isched_topo_unbind();
 int  isched_topo_world_size();
@@ -96,6 +96,9 @@ isched_parallel_call( isched_t *isched, void (*func)(int, void*), void *args )
     func( isched->master->rank, args );
     isched_barrier_wait( &(isched->barrier) );
 }
+
+isched_t *ischedInit(int cores, int *coresbind);
+int ischedFinalize(isched_t *isched);
 
 END_C_DECLS
 

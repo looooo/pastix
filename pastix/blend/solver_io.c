@@ -10,7 +10,6 @@
 #include "ftgt.h"
 #include "queue.h"
 #include "bulles.h"
-#include "updown.h"
 #include "solver.h"
 #include "solverRealloc.h"
 #include "solver_io.h"
@@ -244,83 +243,83 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
         intLoad(stream, &(solvptr->proc2clust[i]));
     }
 
-    if(  intLoad (stream, &(solvptr->updovct.sm2xmax)) + /** Read updown **/
-         intLoad (stream, &(solvptr->updovct.sm2xsze)) +
-         intLoad (stream, &(solvptr->updovct.sm2xnbr)) +
-         intLoad (stream, &(solvptr->updovct.gcblk2listnbr)) +
-         intLoad (stream, &(solvptr->updovct.listptrnbr)) +
-         intLoad (stream, &(solvptr->updovct.listnbr)) +
-         intLoad (stream, &(solvptr->updovct.loc2globnbr)) +
-         intLoad (stream, &(solvptr->updovct.gcblknbr)) +
-         intLoad (stream, &(solvptr->updovct.gnodenbr))
-         != 9)
-    {
-        errorPrint ("solverLoad: bad input (1)");
-        return     (1);
-    }
+    /* if(  intLoad (stream, &(solvptr->updovct.sm2xmax)) + /\** Read updown **\/ */
+    /*      intLoad (stream, &(solvptr->updovct.sm2xsze)) + */
+    /*      intLoad (stream, &(solvptr->updovct.sm2xnbr)) + */
+    /*      intLoad (stream, &(solvptr->updovct.gcblk2listnbr)) + */
+    /*      intLoad (stream, &(solvptr->updovct.listptrnbr)) + */
+    /*      intLoad (stream, &(solvptr->updovct.listnbr)) + */
+    /*      intLoad (stream, &(solvptr->updovct.loc2globnbr)) + */
+    /*      intLoad (stream, &(solvptr->updovct.gcblknbr)) + */
+    /*      intLoad (stream, &(solvptr->updovct.gnodenbr)) */
+    /*      != 9) */
+    /* { */
+    /*     errorPrint ("solverLoad: bad input (1)"); */
+    /*     return     (1); */
+    /* } */
 
-    MALLOC_INTERN(solvptr->updovct.cblktab,    solvptr->cblknbr,       UpDownCblk);
-    MALLOC_INTERN(solvptr->updovct.gcblk2list, solvptr->updovct.gcblk2listnbr, pastix_int_t);
-    MALLOC_INTERN(solvptr->updovct.listptr,    solvptr->updovct.listptrnbr,    pastix_int_t);
-    MALLOC_INTERN(solvptr->updovct.listcblk,   solvptr->updovct.listnbr,       pastix_int_t);
-    MALLOC_INTERN(solvptr->updovct.listblok,   solvptr->updovct.listnbr,       pastix_int_t);
-    MALLOC_INTERN(solvptr->updovct.loc2glob,   solvptr->updovct.loc2globnbr,   pastix_int_t);
-    MALLOC_INTERN(solvptr->updovct.lblk2gcblk, solvptr->bloknbr,       pastix_int_t);
+    /* MALLOC_INTERN(solvptr->updovct.cblktab,    solvptr->cblknbr,       UpDownCblk); */
+    /* MALLOC_INTERN(solvptr->updovct.gcblk2list, solvptr->updovct.gcblk2listnbr, pastix_int_t); */
+    /* MALLOC_INTERN(solvptr->updovct.listptr,    solvptr->updovct.listptrnbr,    pastix_int_t); */
+    /* MALLOC_INTERN(solvptr->updovct.listcblk,   solvptr->updovct.listnbr,       pastix_int_t); */
+    /* MALLOC_INTERN(solvptr->updovct.listblok,   solvptr->updovct.listnbr,       pastix_int_t); */
+    /* MALLOC_INTERN(solvptr->updovct.loc2glob,   solvptr->updovct.loc2globnbr,   pastix_int_t); */
+    /* MALLOC_INTERN(solvptr->updovct.lblk2gcblk, solvptr->bloknbr,       pastix_int_t); */
 
-    for (i=0;i<solvptr->cblknbr;i++)
-    {
-        intLoad(stream, &(solvptr->updovct.cblktab[i].sm2xind));
-        intLoad(stream, &(solvptr->updovct.cblktab[i].browprocnbr));
-        intLoad(stream, &(solvptr->updovct.cblktab[i].msgnbr));
-        {
-            pastix_int_t msgcnt = solvptr->updovct.cblktab[i].msgcnt;
-            intLoad(stream, &msgcnt);
-        }
-        intLoad(stream, &(solvptr->updovct.cblktab[i].ctrbnbr));
-        {
-            pastix_int_t ctrbcnt = solvptr->updovct.cblktab[i].ctrbcnt;
-            intLoad(stream, &ctrbcnt);
-        }
+    /* for (i=0;i<solvptr->cblknbr;i++) */
+    /* { */
+    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].sm2xind)); */
+    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].browprocnbr)); */
+    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].msgnbr)); */
+    /*     { */
+    /*         pastix_int_t msgcnt = solvptr->updovct.cblktab[i].msgcnt; */
+    /*         intLoad(stream, &msgcnt); */
+    /*     } */
+    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].ctrbnbr)); */
+    /*     { */
+    /*         pastix_int_t ctrbcnt = solvptr->updovct.cblktab[i].ctrbcnt; */
+    /*         intLoad(stream, &ctrbcnt); */
+    /*     } */
 
-        MALLOC_INTERN(solvptr->updovct.cblktab[i].browproctab,
-                      solvptr->updovct.cblktab[i].browprocnbr,
-                      pastix_int_t);
-        MALLOC_INTERN(solvptr->updovct.cblktab[i].browcblktab,
-                      solvptr->updovct.cblktab[i].browprocnbr,
-                      pastix_int_t);
+    /*     MALLOC_INTERN(solvptr->updovct.cblktab[i].browproctab, */
+    /*                   solvptr->updovct.cblktab[i].browprocnbr, */
+    /*                   pastix_int_t); */
+    /*     MALLOC_INTERN(solvptr->updovct.cblktab[i].browcblktab, */
+    /*                   solvptr->updovct.cblktab[i].browprocnbr, */
+    /*                   pastix_int_t); */
 
-        for (j=0;j<solvptr->updovct.cblktab[i].browprocnbr;j++)
-        {
-            intLoad(stream, &(solvptr->updovct.cblktab[i].browproctab[j]));
-            intLoad(stream, &(solvptr->updovct.cblktab[i].browcblktab[j]));
-        }
-    }
+    /*     for (j=0;j<solvptr->updovct.cblktab[i].browprocnbr;j++) */
+    /*     { */
+    /*         intLoad(stream, &(solvptr->updovct.cblktab[i].browproctab[j])); */
+    /*         intLoad(stream, &(solvptr->updovct.cblktab[i].browcblktab[j])); */
+    /*     } */
+    /* } */
 
-    for (i=0;i<solvptr->updovct.gcblk2listnbr;i++)
-    {
-        intLoad(stream, &(solvptr->updovct.gcblk2list[i]));
-    }
+    /* for (i=0;i<solvptr->updovct.gcblk2listnbr;i++) */
+    /* { */
+    /*     intLoad(stream, &(solvptr->updovct.gcblk2list[i])); */
+    /* } */
 
-    for (i=0;i<solvptr->updovct.listptrnbr;i++)
-    {
-        intLoad(stream, &(solvptr->updovct.listptr[i]));
-    }
+    /* for (i=0;i<solvptr->updovct.listptrnbr;i++) */
+    /* { */
+    /*     intLoad(stream, &(solvptr->updovct.listptr[i])); */
+    /* } */
 
-    for (i=0;i<solvptr->updovct.listnbr;i++)
-    {
-        intLoad(stream, &(solvptr->updovct.listcblk[i]));
-        intLoad(stream, &(solvptr->updovct.listblok[i]));
-    }
+    /* for (i=0;i<solvptr->updovct.listnbr;i++) */
+    /* { */
+    /*     intLoad(stream, &(solvptr->updovct.listcblk[i])); */
+    /*     intLoad(stream, &(solvptr->updovct.listblok[i])); */
+    /* } */
 
-    for (i=0;i<solvptr->updovct.loc2globnbr;i++)
-    {
-        intLoad(stream, &(solvptr->updovct.loc2glob[i]));
-    }
+    /* for (i=0;i<solvptr->updovct.loc2globnbr;i++) */
+    /* { */
+    /*     intLoad(stream, &(solvptr->updovct.loc2glob[i])); */
+    /* } */
 
-    for (i=0;i<solvptr->bloknbr;i++)
-    {
-        intLoad(stream, &(solvptr->updovct.lblk2gcblk[i]));
-    }
+    /* for (i=0;i<solvptr->bloknbr;i++) */
+    /* { */
+    /*     intLoad(stream, &(solvptr->updovct.lblk2gcblk[i])); */
+    /* } */
 
     return (0);
 }
@@ -453,56 +452,56 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
         fprintf(stream, "%ld\n", (long)solvptr->proc2clust[i]);
     }
 
-    /*fprintf(stream, "updo\n");*/
-    fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
-            (long) solvptr->updovct.sm2xmax, (long) solvptr->updovct.sm2xsze, (long) solvptr->updovct.sm2xnbr,
-            (long) solvptr->updovct.gcblk2listnbr, (long) solvptr->updovct.listptrnbr, (long) solvptr->updovct.listnbr,
-            (long) solvptr->updovct.loc2globnbr, (long) solvptr->updovct.gcblknbr, (long) solvptr->updovct.gnodenbr);
+    /* /\*fprintf(stream, "updo\n");*\/ */
+    /* fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", */
+    /*         (long) solvptr->updovct.sm2xmax, (long) solvptr->updovct.sm2xsze, (long) solvptr->updovct.sm2xnbr, */
+    /*         (long) solvptr->updovct.gcblk2listnbr, (long) solvptr->updovct.listptrnbr, (long) solvptr->updovct.listnbr, */
+    /*         (long) solvptr->updovct.loc2globnbr, (long) solvptr->updovct.gcblknbr, (long) solvptr->updovct.gnodenbr); */
 
-    /*fprintf(stream, "updown cblk\n");*/
-    for (i=0; i<solvptr->cblknbr; i++)
-    {
-        fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
-                (long) solvptr->updovct.cblktab[i].sm2xind, (long) solvptr->updovct.cblktab[i].browprocnbr, (long) solvptr->updovct.cblktab[i].msgnbr,
-                (long) solvptr->updovct.cblktab[i].msgcnt, (long) solvptr->updovct.cblktab[i].ctrbnbr, (long) solvptr->updovct.cblktab[i].ctrbcnt);
+    /* /\*fprintf(stream, "updown cblk\n");*\/ */
+    /* for (i=0; i<solvptr->cblknbr; i++) */
+    /* { */
+    /*     fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", */
+    /*             (long) solvptr->updovct.cblktab[i].sm2xind, (long) solvptr->updovct.cblktab[i].browprocnbr, (long) solvptr->updovct.cblktab[i].msgnbr, */
+    /*             (long) solvptr->updovct.cblktab[i].msgcnt, (long) solvptr->updovct.cblktab[i].ctrbnbr, (long) solvptr->updovct.cblktab[i].ctrbcnt); */
 
-        for (j=0; j<solvptr->updovct.cblktab[i].browprocnbr; j++)
-        {
-            fprintf(stream, "%ld\t%ld\t\n",
-                    (long) solvptr->updovct.cblktab[i].browproctab[j],
-                    (long) solvptr->updovct.cblktab[i].browcblktab[j]);
-        }
-    }
+    /*     for (j=0; j<solvptr->updovct.cblktab[i].browprocnbr; j++) */
+    /*     { */
+    /*         fprintf(stream, "%ld\t%ld\t\n", */
+    /*                 (long) solvptr->updovct.cblktab[i].browproctab[j], */
+    /*                 (long) solvptr->updovct.cblktab[i].browcblktab[j]); */
+    /*     } */
+    /* } */
 
-    /*fprintf(stream, "updown gcblk2list\n");*/
-    for (i=0; i<solvptr->updovct.gcblk2listnbr; i++)
-    {
-        fprintf(stream, "%ld\n", (long) solvptr->updovct.gcblk2list[i]);
-    }
+    /* /\*fprintf(stream, "updown gcblk2list\n");*\/ */
+    /* for (i=0; i<solvptr->updovct.gcblk2listnbr; i++) */
+    /* { */
+    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.gcblk2list[i]); */
+    /* } */
 
-    /*fprintf(stream, "updown listptr\n");*/
-    for (i=0; i<solvptr->updovct.listptrnbr; i++)
-    {
-        fprintf(stream, "%ld\n", (long) solvptr->updovct.listptr[i]);
-    }
+    /* /\*fprintf(stream, "updown listptr\n");*\/ */
+    /* for (i=0; i<solvptr->updovct.listptrnbr; i++) */
+    /* { */
+    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.listptr[i]); */
+    /* } */
 
-    /*fprintf(stream, "updown listcblk & listblok\n");*/
-    for (i=0; i<solvptr->updovct.listnbr; i++)
-    {
-        fprintf(stream, "%ld\t%ld\n", (long) solvptr->updovct.listcblk[i], (long) solvptr->updovct.listblok[i]);
-    }
+    /* /\*fprintf(stream, "updown listcblk & listblok\n");*\/ */
+    /* for (i=0; i<solvptr->updovct.listnbr; i++) */
+    /* { */
+    /*     fprintf(stream, "%ld\t%ld\n", (long) solvptr->updovct.listcblk[i], (long) solvptr->updovct.listblok[i]); */
+    /* } */
 
-    /*fprintf(stream, "updown loc2globcblk\n");*/
-    for (i=0; i<solvptr->updovct.loc2globnbr; i++)
-    {
-        fprintf(stream, "%ld\n", (long) solvptr->updovct.loc2glob[i]);
-    }
+    /* /\*fprintf(stream, "updown loc2globcblk\n");*\/ */
+    /* for (i=0; i<solvptr->updovct.loc2globnbr; i++) */
+    /* { */
+    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.loc2glob[i]); */
+    /* } */
 
-    /*fprintf(stream, "updown lblk2gcblk\n");*/
-    for (i=0; i<solvptr->bloknbr; i++)
-    {
-        fprintf(stream, "%ld\n", (long) solvptr->updovct.lblk2gcblk[i]);
-    }
+    /* /\*fprintf(stream, "updown lblk2gcblk\n");*\/ */
+    /* for (i=0; i<solvptr->bloknbr; i++) */
+    /* { */
+    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.lblk2gcblk[i]); */
+    /* } */
 
 
     return o;

@@ -373,6 +373,17 @@ enum API_RHS {
   API_RHS_0 = 3  /* Initialisation en mode ONLY_RAFF d'une solution X0(i) = 0 */
 };
 
+/**
+ * Type of RHS generated to test the solver
+ */
+typedef enum pastix_rhstype_e {
+  PastixRhsOne,
+  PastixRhsI,
+  PastixRhsRndX,
+  PastixRhsRndB
+} pastix_rhstype_t;
+
+
 /** Type de raffinement utilisé */
 /*
   Enum: API_RAF

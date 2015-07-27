@@ -16,6 +16,7 @@
  *
  **/
 #include "common.h"
+#include "csc.h"
 #include "graph.h"
 #include "order.h"
 
@@ -110,13 +111,11 @@
  *******************************************************************************/
 int
 pastix_task_order(      pastix_data_t *pastix_data,
-                        pastix_int_t   n,
-                  const pastix_int_t  *colptr,
-                  const pastix_int_t  *rows,
-                  const pastix_int_t  *loc2glob,
+                  const pastix_csc_t  *csc,
                         pastix_int_t  *perm,
                         pastix_int_t  *invp)
 {
+    pastix_int_t    n;
     pastix_int_t    schur_n;
     pastix_int_t   *schur_colptr;
     pastix_int_t   *schur_rows;
@@ -143,15 +142,12 @@ pastix_task_order(      pastix_data_t *pastix_data,
         errorPrint("pastix_task_order: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (colptr == NULL) {
-        errorPrint("pastix_task_order: wrong colptr parameter");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    if (rows == NULL) {
-        errorPrint("pastix_task_order: wrong rows parameter");
+    if (csc == NULL) {
+        errorPrint("pastix_task_order: wrong csc parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm = pastix_data->iparm;
+    n = csc->n;
 
     if ( !(pastix_data->steps & STEP_INIT) ) {
         errorPrint("pastix_task_order: pastix_task_init() has to be called before calling this function");
@@ -211,10 +207,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
      * operations as symmetrizing the graph and removing the diagonal
      * coefficients
      */
-    graphPrepare( pastix_data, n, colptr, rows, loc2glob, &(pastix_data->graph) );
+    graphPrepare( pastix_data, csc->gN, csc->colptr, csc->rowptr, csc->loc2glob, &(pastix_data->graph) );
     graph = pastix_data->graph;
-    pastix_data->n2 = graph->n;
-    pastix_data->gN = graph->gN;
 
     /*
      * Isolate Shur elements
@@ -233,9 +227,9 @@ pastix_task_order(      pastix_data_t *pastix_data,
                      &schur_perm,
                      NULL);
 
-        schur_n = n - pastix_data->schur_n;
+        schur_n = graph->n - pastix_data->schur_n;
     } else {
-        schur_n      = n;
+        schur_n      = graph->n;
         schur_colptr = graph->colptr;
         schur_rows   = graph->rows;
     }
@@ -322,8 +316,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
          */
     case API_ORDER_PERSONAL:
         {
-            pastix_int_t i;
-
+            pastix_int_t i, n;
+            n = csc->gN;
             orderInit(ordemesh, n, 0);
             if (perm == NULL) {
                 if (invp == NULL) {
@@ -439,7 +433,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
      * Remark: No need to copy back for personal
      */
     if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
-        if (loc2glob == NULL) {
+        if (csc->loc2glob == NULL) {
             if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
             if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
         }
@@ -451,7 +445,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
                 pastix_int_t i;
 
                 for(i=0; i<n; i++) {
-                    perm[i] = permtab[loc2glob[i]];
+                    perm[i] = permtab[csc->loc2glob[i]];
                 }
             }
             if (invp != NULL) {
@@ -459,11 +453,14 @@ pastix_task_order(      pastix_data_t *pastix_data,
                 pastix_int_t i;
 
                 for(i=0; i<n; i++) {
-                    invp[i] = peritab[loc2glob[i]];
+                    invp[i] = peritab[csc->loc2glob[i]];
                 }
             }
         }
     }
+
+    /* Backup the csc pointer for further information */
+    pastix_data->csc = csc;
 
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_SYMBFACT |

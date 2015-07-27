@@ -6,7 +6,6 @@
 #include "ftgt.h"
 #include "queue.h"
 #include "bulles.h"
-#include "updown.h"
 #include "solver.h"
 /* #include "assert.h" */
 #include "solverRealloc.h"

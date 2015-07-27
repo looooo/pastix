@@ -26,8 +26,6 @@ precisions_rules_py(generated_headers
 add_custom_target(bcsc_headers
   DEPENDS ${generated_headers} )
 
-set_source_files_properties( bcsc.h PROPERTIES DEPENDS bcsc_headers )
-
 ### Generate the dsparse wrappers for all required precisions
 set(SOURCES
   bcsc_zinit.c # Not finished

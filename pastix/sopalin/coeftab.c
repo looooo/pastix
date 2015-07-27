@@ -126,24 +126,22 @@ pcoeftabInit( int rank, void *args )
         initfunc( datacode, bcsc, itercblk, fakefillin, factoLU );
     }
 
+    (void)dumpfunc;
     //dumpfunc( datacode, "lcoeftab.txt" );
 }
 
 void
-coeftabInit( const SolverMatrix  *datacode,
-             const pastix_bcsc_t *bcsc,
-             int fakefillin,
-             int factoLU )
+coeftabInit( const pastix_data_t *pastix_data,
+             int fakefillin, int factoLU )
 {
-    extern isched_t *scheduler;
     struct coeftabinit_s args;
 
-    args.datacode   = datacode;
-    args.bcsc       = bcsc;
+    args.datacode   = pastix_data->solvmatr;
+    args.bcsc       = pastix_data->bcsc;
     args.fakefillin = fakefillin;
     args.factoLU    = factoLU;
 
-    isched_parallel_call( scheduler, pcoeftabInit, &args );
+    isched_parallel_call( pastix_data->isched, pcoeftabInit, &args );
 
     //dumpfunc( datacode, "lcoeftab.txt" );
 }

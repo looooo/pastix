@@ -175,8 +175,8 @@ z_spmInfNorm( const pastix_csc_t *spm )
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
     double norm = 0.;
     double *summcol;
-    
-    MALLOC_INTERN( summcol, spm->gN, double);
+
+    MALLOC_INTERN( summcol, spm->gN, double );
     memset( summcol, 0, spm->gN * sizeof(double) );
     baseval = spmFindBase( spm );
 
@@ -308,8 +308,8 @@ z_spmOneNorm( const pastix_csc_t *spm )
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
     double norm = 0.;
     double *summrow;
-    
-    MALLOC_INTERN( summrow, spm->gN, double);
+
+    MALLOC_INTERN( summrow, spm->gN, double );
     memset( summrow, 0, spm->gN * sizeof(double) );
     baseval = spmFindBase( spm );
 

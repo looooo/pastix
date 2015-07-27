@@ -16,10 +16,18 @@
  * @precisions normal z -> s d c
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "isched.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
+
+#if defined(PASTIX_WITH_PARSEC)
+#include <dague.h>
+#include <dague/data.h>
+#include <dague/data_distribution.h>
+#include "parsec/sparse-matrix.h"
+#endif
 
 void
 sequential_zgetrf( sopalin_data_t *sopalin_data )
@@ -77,10 +85,32 @@ thread_zgetrf( sopalin_data_t *sopalin_data )
     isched_parallel_call( sopalin_data->sched, thread_pzgetrf, sopalin_data );
 }
 
+#if defined(PASTIX_WITH_PARSEC)
+void
+parsec_zgetrf( sopalin_data_t *sopalin_data )
+{
+    sparse_matrix_desc_t desc;
+    dague_context_t *ctx;
+    int argc = 0;
+
+    ctx = dague_init( -1, &argc, NULL );
+    sparse_matrix_init( &desc, sopalin_data->solvmtx,
+                        pastix_size_of( PastixComplex64 ), 1, 0 );
+    dsparse_zgetrf_sp( ctx, &desc, sopalin_data );
+    sparse_matrix_destroy( &desc );
+
+    dague_fini( &ctx );
+}
+#endif
+
 static void (*zgetrf_table[4])(sopalin_data_t *) = {
     sequential_zgetrf,
     thread_zgetrf,
+#if defined(PASTIX_WITH_PARSEC)
+    parsec_zgetrf,
+#else
     NULL,
+#endif
     NULL
 };
 

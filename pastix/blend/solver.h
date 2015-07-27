@@ -18,7 +18,6 @@
 #define _SOLVER_H_
 
 #include "ftgt.h"
-#include "updown.h"
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
 /*
@@ -55,11 +54,12 @@ typedef struct Task_ {
 /*+ Solver block structure. +*/
 
 typedef struct SolverBlok_ {
-    pastix_int_t frownum;  /*+ First row index            +*/
-    pastix_int_t lrownum;  /*+ Last row index (inclusive) +*/
+    pastix_int_t frownum;  /*< First row index            */
+    pastix_int_t lrownum;  /*< Last row index (inclusive) */
     pastix_int_t lcblknm;  /*< Local column block         */
     pastix_int_t fcblknm;  /*< Facing column block        */
-    pastix_int_t coefind;  /*+ Index in coeftab           +*/
+    pastix_int_t coefind;  /*< Index in coeftab           */
+    pastix_int_t browind;  /*< Index in browtab           */
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
@@ -69,7 +69,7 @@ typedef struct SolverCblk_  {
     pastix_int_t  lcolnum;  /*< Last column index (inclusive)          */
     SolverBlok   *fblokptr; /*< First block in column (diagonal)       */
     pastix_int_t  stride;   /*< Column block stride                    */
-    pastix_int_t  lcolidx;  /*< Local first column index to the location in the updown vector    */
+    pastix_int_t  lcolidx;  /*< Local first column index to the location in the rhs vector    */
     pastix_int_t  brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t  gcblknum; /*< Global column block index              */
     void         *lcoeftab; /*< Coefficients access vector             */
@@ -144,7 +144,6 @@ typedef struct SolverMatrix_ {
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
-    UpDownVector              updovct;              /*+ UpDown vector                             +*/
 } SolverMatrix;
 
 /**

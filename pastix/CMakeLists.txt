@@ -264,6 +264,44 @@ if (PASTIX_WITH_STARPU)
 
 endif (PASTIX_WITH_STARPU)
 
+# PaStiX might depend on Parsec
+#------------------------------
+if (PASTIX_WITH_PARSEC)
+
+    # Create list of components in order to make a single call to find_package(starpu...)
+    set(PARSEC_COMPONENT_LIST "HWLOC")
+    if(PASTIX_WITH_MPI)
+        list(APPEND PARSEC_COMPONENT_LIST "MPI")
+    endif()
+    if(PASTIX_WITH_CUDA)
+        list(APPEND PARSEC_COMPONENT_LIST "CUDA")
+    endif()
+
+    # find_package(PARSEC REQUIRED
+    #   COMPONENTS ${PARSEC_COMPONENT_LIST})
+    include(FindPkgConfig)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_EXECUTABLE)
+      pkg_search_module(PARSEC parsec)
+    endif()
+    if ( PARSEC_FOUND )
+    else()
+      set(PARSEC_FOUND ON)
+      set(PARSEC_INCLUDE_DIRS "/opt/parsec/include")
+      set(PARSEC_LIBRARY_DIRS "/opt/parsec/lib")
+    endif()
+
+    # Add definition and include_dir if found
+    if(PARSEC_FOUND)
+        include_directories(${PARSEC_INCLUDE_DIRS})
+        link_directories(${PARSEC_LIBRARY_DIRS})
+
+    # else(PARSEC_FOUND)
+    #     message(ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the Parsec library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
+    endif()
+
+endif (PASTIX_WITH_PARSEC)
+
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------
 if (PASTIX_ORDERING_PTSCOTCH)
@@ -405,6 +443,10 @@ set(modules csc bcsc kernels) #csc kernels sopalin matrix_drivers common)
 foreach (module ${modules})
    add_subdirectory(${module})
 endforeach()
+
+if (PASTIX_WITH_PARSEC)
+  add_subdirectory(sopalin/parsec)
+endif()
 
 # # declare dependencies on headers generation
 # set(modules_with_libs ${modules})
@@ -586,7 +628,6 @@ set(PASTIX_LIB_SRCS
   sopalin/pastix_task_solve.c
 #
   csc/csc.c
-  csc/genrhs.c
 #
   ${generated_files}
   )
@@ -696,7 +737,6 @@ set(PASTIX_HDRS
 )
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
-
 
 add_subdirectory(example)
 

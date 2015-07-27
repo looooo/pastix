@@ -46,6 +46,14 @@ if(PASTIX_WITH_STARPU)
     pastix_starpu)
 endif(PASTIX_WITH_STARPU)
 
+if(PASTIX_WITH_PARSEC)
+  set(PASTIX_EXAMPLES_LIBRARIES
+    ${PASTIX_EXAMPLES_LIBRARIES}
+    pastix_parsec
+    ${PARSEC_LIBRARIES}
+    )
+endif(PASTIX_WITH_PARSEC)
+
 if (PASTIX_ORDERING_SCOTCH)
   link_directories(${SCOTCH_LIBRARY_DIRS})
 
@@ -132,6 +140,9 @@ add_custom_target(examples_headers DEPENDS ${generated_headers} )
 
 add_executable(analyze analyze.c)
 target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
+
+add_executable(simple simple.c)
+target_link_libraries(simple ${PASTIX_EXAMPLES_LIBRARIES})
 
 add_executable(spm_convert_tests spm_convert_tests.c)
 target_link_libraries(spm_convert_tests ${PASTIX_EXAMPLES_LIBRARIES})

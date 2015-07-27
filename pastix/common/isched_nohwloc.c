@@ -86,11 +86,11 @@ int isched_nohwloc_init() {
     pthread_mutex_unlock(&mutextopo);
 }
 
-void isched_nohwloc_destroy(){
-    return;
+int isched_nohwloc_destroy(){
+    return 0;
 }
 
-unsigned int isched_nohwloc_world_size()
+int isched_nohwloc_world_size()
 {
     if ( !topo_initialized )
         isched_nohwloc_init();
