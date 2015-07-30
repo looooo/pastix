@@ -630,6 +630,8 @@ set(PASTIX_LIB_SRCS
 #
   csc/csc.c
 #
+  reffinement/pastix_task_raff.c
+#
   ${generated_files}
   )
 
@@ -673,7 +675,7 @@ set(PASTIX_ALL_SRCS
   matrix_drivers/readmm.c
   matrix_drivers/readrsa.c
   #
-  reffinement/pastix_task_raff.c
+#   reffinement/pastix_task_raff.c
 )
 
 if(PASTIX_WITH_STARPU)

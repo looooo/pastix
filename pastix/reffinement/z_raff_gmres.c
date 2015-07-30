@@ -11,6 +11,7 @@
  * @precisions normal z -> c d s
  *
  **/
+#include "bcsc.h"
 #include "z_raff_functions.h"
 
 /*
@@ -328,7 +329,7 @@ void* z_gmres_smp(void *arg)
 /*
 ** Section: Function creating threads
 */
-void z_gmres_thread(SolverMatrix *datacode, SopalinParam *sopaparam)
+void gmres_thread(pastix_bcsc_t *bcsc, SopalinParam *sopaparam)
 {
-  z_raff_thread(datacode, sopaparam, &z_gmres_smp);
+  z_raff_thread(bcsc, sopaparam, &z_gmres_smp);
 }

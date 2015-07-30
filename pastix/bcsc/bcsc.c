@@ -338,33 +338,58 @@ bcscMatVec(      int            trans,
     }
 }
 
-void
+int
 bcscApplyPerm( pastix_bcsc_t *bcsc,
-               pastix_int_t n,
-               void *b,
-               pastix_int_t ldb,
-               pastix_int_t *perm )
-{   
+               pastix_int_t   n,
+               void          *b,
+               pastix_int_t   ldb,
+               pastix_int_t  *perm )
+{
     switch( bcsc->flttype ) {
     case PastixComplex64:
-        z_bcscApplyPerm( bcsc->gN, n, b, ldb,
-                         perm );
+        if( PASTIX_SUCCESS != z_bcscApplyPerm( bcsc->gN,
+                                               n,
+                                               b,
+                                               ldb,
+                                               perm ))
+        {
+            return PASTIX_ERR_BADPARAMETER;
+        }
         break;
 
     case PastixComplex32:
-        c_bcscApplyPerm( bcsc->gN, n, b, ldb,
-                         perm );
+        if( PASTIX_SUCCESS != c_bcscApplyPerm( bcsc->gN,
+                                               n,
+                                               b,
+                                               ldb,
+                                               perm ))
+        {
+            return PASTIX_ERR_BADPARAMETER;
+        }
         break;
 
     case PastixFloat:
-        s_bcscApplyPerm( bcsc->gN, n, b, ldb,
-                         perm );
+        if( PASTIX_SUCCESS != s_bcscApplyPerm( bcsc->gN,
+                                               n,
+                                               b,
+                                               ldb,
+                                               perm ))
+        {
+            return PASTIX_ERR_BADPARAMETER;
+        }
         break;
 
     case PastixDouble:
     default:
-        d_bcscApplyPerm( bcsc->gN, n, b, ldb,
-                         perm );
+        if( PASTIX_SUCCESS != d_bcscApplyPerm( bcsc->gN,
+                                               n,
+                                               b,
+                                               ldb,
+                                               perm ))
+        {
+            return PASTIX_ERR_BADPARAMETER;
+        }
     }
+    return PASTIX_SUCCESS;
 }
 

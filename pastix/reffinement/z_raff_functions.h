@@ -196,7 +196,7 @@ void z_Pastix_Solveur(struct z_solver *);
  datacode  - PaStiX <SolverMatrix> structure.
  sopaparam - <SopalinParam> parameters structure.
  */
-void z_raff_thread(SolverMatrix *, SopalinParam *, void*(*)(void *));
+void z_raff_thread(pastix_bcsc_t*, SopalinParam *, void*(*)(void *));
 
 #endif
 /* Raffinement du second membre */
@@ -205,31 +205,19 @@ void* s_gmres_smp        (void *);
 void* d_gmres_smp        (void *);
 void* c_gmres_smp        (void *);
 void* z_gmres_smp        (void *);
-void s_gmres_thread(SolverMatrix *, SopalinParam *);
-void d_gmres_thread(SolverMatrix *, SopalinParam *);
-void c_gmres_thread(SolverMatrix *, SopalinParam *);
-void z_gmres_thread(SolverMatrix *, SopalinParam *);
+void gmres_thread(pastix_bcsc_t*, SopalinParam *);
 void* s_grad_smp         (void *);
 void* d_grad_smp         (void *);
 void* c_grad_smp         (void *);
 void* z_grad_smp         (void *);
-void s_grad_thread (SolverMatrix *, SopalinParam *);
-void d_grad_thread (SolverMatrix *, SopalinParam *);
-void c_grad_thread (SolverMatrix *, SopalinParam *);
-void z_grad_thread (SolverMatrix *, SopalinParam *);
+void grad_thread (pastix_bcsc_t*, SopalinParam *);
 void* s_pivotstatique_smp(void *);
 void* d_pivotstatique_smp(void *);
 void* c_pivotstatique_smp(void *);
 void* z_pivotstatique_smp(void *);
-void s_pivot_thread(SolverMatrix *, SopalinParam *);
-void d_pivot_thread(SolverMatrix *, SopalinParam *);
-void c_pivot_thread(SolverMatrix *, SopalinParam *);
-void z_pivot_thread(SolverMatrix *, SopalinParam *);
+void pivot_thread(pastix_bcsc_t*, SopalinParam *);
 void* s_bicgstab_smp(void *);
 void* d_bicgstab_smp(void *);
 void* c_bicgstab_smp(void *);
 void* z_bicgstab_smp(void *);
-void s_bicgstab_thread(SolverMatrix *, SopalinParam *);
-void d_bicgstab_thread(SolverMatrix *, SopalinParam *);
-void c_bicgstab_thread(SolverMatrix *, SopalinParam *);
-void z_bicgstab_thread(SolverMatrix *, SopalinParam *);
+void bicgstab_thread(pastix_bcsc_t*, SopalinParam *);

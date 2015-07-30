@@ -70,4 +70,9 @@ int bcscMatVec(      int            trans,
                const void          *beta,
                      void          *y );
 
+int bcscApplyPerm( pastix_bcsc_t *bcsc,
+                   pastix_int_t   n,
+                   void          *b,
+                   pastix_int_t   ldb,
+                   pastix_int_t  *perm );
 #endif /* CSC_H */

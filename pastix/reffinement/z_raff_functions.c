@@ -18,6 +18,8 @@
 #include "common.h"
 #include "z_spm.h"
 #include "z_bcsc.h"
+#include "sopalin_thread.h"
+#include "sopalin_data.h"
 
 //#include "z_tools.h"
 //#ifdef PASTIX_EZTRACE
@@ -62,24 +64,24 @@ void *z_sopalin_updo_comm ( void *arg );
 /*** ALLOCATIONS ET SYNCHRONISATIONS ***/
 
 /* Synchronise le vecteur x dans la nb-ieme variable de la structure */
-pastix_complex64_t *z_Pastix_Synchro_Vect(void *arg, void *x, int nb)
-{
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  pastix_int_t        me           = argument->me;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
-//   MONOTHREAD_BEGIN;
-  sopalin_data->ptr_raff[nb] = x;
-//   MONOTHREAD_END;
-//   SYNCHRO_THREAD;
-  return (pastix_complex64_t*) sopalin_data->ptr_raff[nb];
-}
+// pastix_complex64_t *z_Pastix_Synchro_Vect(void *arg, void *x, int nb)
+// {
+//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
+//   pastix_int_t        me           = argument->me;
+//   sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+//   SolverMatrix     *datacode     = sopalin_data->datacode;
+// //   MONOTHREAD_BEGIN;
+//   sopalin_data->ptr_raff[nb] = x;
+// //   MONOTHREAD_END;
+// //   SYNCHRO_THREAD;
+//   return (pastix_complex64_t*) sopalin_data->ptr_raff[nb];
+// }
 
 /* Alloue un vecteur de taille size octets */
 void *z_Pastix_Malloc(void *arg, size_t size)
 {
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  pastix_int_t        me           = argument->me;
+//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
+//   pastix_int_t        me           = argument->me;
   void *x = NULL;
 //   MONOTHREAD_BEGIN;
   MALLOC_INTERN(x, size, char);
@@ -91,8 +93,8 @@ void *z_Pastix_Malloc(void *arg, size_t size)
 /* Libere un vecteur */
 void z_Pastix_Free(void *arg, void *x)
 {
-  sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  pastix_int_t        me           = argument->me;
+//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
+//   pastix_int_t        me           = argument->me;
 //   MONOTHREAD_BEGIN;
   memFree_null(x);
 //   MONOTHREAD_END;
@@ -105,11 +107,11 @@ void z_Pastix_Free(void *arg, void *x)
 void z_Pastix_Verbose(void *arg, double t0, double t3, double tmp, pastix_int_t nb_iter)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+//   SolverMatrix     *datacode     = sopalin_data->datacode;
   z_SopalinParam     *sopar        = sopalin_data->sopar;
-  MPI_Comm          pastix_comm  = PASTIX_COMM;
-  pastix_int_t        me           = argument->me;
+//   MPI_Comm          pastix_comm  = PASTIX_COMM;
+//   pastix_int_t        me           = argument->me;
   sopalin_data->count_iter = nb_iter;
   sopalin_data->stop = tmp;
 //   MONOTHREAD_BEGIN;
@@ -120,17 +122,17 @@ void z_Pastix_Verbose(void *arg, double t0, double t3, double tmp, pastix_int_t 
       double err, stop = tmp;
 
       stt = t3 - t0;
-      MyMPI_Reduce(&stop, &err, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
-      MyMPI_Reduce(&stt,  &rtt, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
+//       MyMPI_Reduce(&stop, &err, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
+//       MyMPI_Reduce(&stt,  &rtt, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
 
-      if (SOLV_PROCNUM == 0)
-        {
+//       if (SOLV_PROCNUM == 0)
+//         {
           fprintf(stdout, OUT_ITERRAFF_ITER, (int)sopalin_data->count_iter);
           if (sopar->iparm[IPARM_ONLY_RAFF] == API_NO)
             fprintf(stdout, OUT_ITERRAFF_TTS, rst);
           fprintf(stdout, OUT_ITERRAFF_TTT, stt);
           fprintf(stdout, OUT_ITERRAFF_ERR, err);
-        }
+//         }
     }
 //   MONOTHREAD_END;
 }
@@ -139,11 +141,11 @@ void z_Pastix_Verbose(void *arg, double t0, double t3, double tmp, pastix_int_t 
 void z_Pastix_End(void* arg, pastix_complex64_t tmp, pastix_int_t nb_iter, double t, pastix_complex64_t *x)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
   z_SopalinParam     *sopar        = sopalin_data->sopar;
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
-  MPI_Comm          pastix_comm  = PASTIX_COMM;
-  pastix_int_t        me           = argument->me;
+//   SolverMatrix     *datacode     = sopalin_data->datacode;
+//   MPI_Comm          pastix_comm  = PASTIX_COMM;
+//   pastix_int_t        me           = argument->me;
 
   sopalin_data->stop = tmp;
 //   MULTITHREAD_BEGIN;
@@ -210,8 +212,8 @@ void z_Pastix_End(void* arg, pastix_complex64_t tmp, pastix_int_t nb_iter, doubl
 void Pastix_X(void *arg, pastix_complex64_t *x)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
@@ -231,8 +233,8 @@ void Pastix_X(void *arg, pastix_complex64_t *x)
 pastix_int_t z_Pastix_n(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   return UPDOWN_SM2XSZE;
 }
 
@@ -240,8 +242,8 @@ pastix_int_t z_Pastix_n(void *arg)
 pastix_int_t z_Pastix_m(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   return UPDOWN_SM2XNBR;
 }
 
@@ -249,9 +251,9 @@ pastix_int_t z_Pastix_m(void *arg)
 void z_Pastix_B(void *arg, pastix_complex64_t *b)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
   z_SopalinParam     *sopar        = sopalin_data->sopar;
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 //   MULTITHREAD_BEGIN;
@@ -265,7 +267,7 @@ void z_Pastix_B(void *arg, pastix_complex64_t *b)
 pastix_complex64_t z_Pastix_Eps(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   return sopar->epsilonraff;
 }
@@ -274,7 +276,7 @@ pastix_complex64_t z_Pastix_Eps(void *arg)
 pastix_int_t z_Pastix_Itermax(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   return sopar->itermax;
 }
@@ -284,7 +286,7 @@ pastix_int_t z_Pastix_Itermax(void *arg)
 pastix_int_t z_Pastix_Krylov_Space(void *arg)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   return sopar->gmresim;
 }
@@ -294,8 +296,8 @@ pastix_int_t z_Pastix_Krylov_Space(void *arg)
 void z_Pastix_Mult(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *beta, pastix_complex64_t *zeta, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   pastix_int_t        me           = argument->me;
 //   MONOTHREAD_BEGIN;
 #ifdef MULT_SMX_RAFF
@@ -318,8 +320,8 @@ void z_Pastix_Mult(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *bet
 void z_Pastix_Div(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *beta, pastix_complex64_t *zeta, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   pastix_int_t        me           = argument->me;
 //   MONOTHREAD_BEGIN;
 #ifdef MULT_SMX_RAFF
@@ -342,8 +344,8 @@ void z_Pastix_Div(void *arg, pastix_complex64_t *alpha, pastix_complex64_t *beta
 pastix_complex64_t z_Pastix_Norm2(void* arg, pastix_complex64_t *x)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
   double            normx;
@@ -359,8 +361,8 @@ pastix_complex64_t z_Pastix_Norm2(void* arg, pastix_complex64_t *x)
 void z_Pastix_Copy(void *arg, pastix_complex64_t *s, pastix_complex64_t *d, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 //   MULTITHREAD_BEGIN;
@@ -376,8 +378,8 @@ void z_Pastix_Copy(void *arg, pastix_complex64_t *s, pastix_complex64_t *d, int 
 void z_Pastix_Precond(void *arg, pastix_complex64_t *s, pastix_complex64_t *d, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
@@ -407,8 +409,8 @@ void z_Pastix_Precond(void *arg, pastix_complex64_t *s, pastix_complex64_t *d, i
 void z_Pastix_Scal(void *arg, pastix_complex64_t alpha, pastix_complex64_t *x, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 //   MULTITHREAD_BEGIN;
@@ -423,8 +425,8 @@ void z_Pastix_Scal(void *arg, pastix_complex64_t alpha, pastix_complex64_t *x, i
 void z_Pastix_Dotc(void *arg, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 //   MULTITHREAD_BEGIN;
@@ -438,8 +440,8 @@ void z_Pastix_Dotc(void *arg, pastix_complex64_t *x, pastix_complex64_t *y, past
 void z_Pastix_Dotc_Gmres(void *arg, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 //   MULTITHREAD_BEGIN;
@@ -453,8 +455,8 @@ void z_Pastix_Dotc_Gmres(void *arg, pastix_complex64_t *x, pastix_complex64_t *y
 void z_Pastix_Ax(void *arg, pastix_complex64_t *x, pastix_complex64_t *r)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
@@ -470,8 +472,8 @@ void z_Pastix_Ax(void *arg, pastix_complex64_t *x, pastix_complex64_t *r)
 void z_Pastix_bMAx(void *arg, pastix_complex64_t *b, pastix_complex64_t *x, pastix_complex64_t *r)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   z_SopalinParam     *sopar        = sopalin_data->sopar;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
@@ -491,8 +493,8 @@ void z_Pastix_bMAx(void *arg, pastix_complex64_t *b, pastix_complex64_t *x, past
 void z_Pastix_BYPX(void *arg, pastix_complex64_t *beta, pastix_complex64_t *y, pastix_complex64_t *x, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
 
@@ -531,8 +533,8 @@ void z_Pastix_BYPX(void *arg, pastix_complex64_t *beta, pastix_complex64_t *y, p
 void z_Pastix_AXPY(void *arg, double coeff, pastix_complex64_t *alpha, pastix_complex64_t *x, pastix_complex64_t *y, int flag)
 {
   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-  z_Sopalin_Data_t   *sopalin_data = (z_Sopalin_Data_t *)(argument->data);
-  z_SolverMatrix     *datacode     = sopalin_data->datacode;
+  sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
+  SolverMatrix     *datacode     = sopalin_data->datacode;
   MPI_Comm          pastix_comm  = PASTIX_COMM;
   pastix_int_t        me           = argument->me;
   pastix_complex64_t      tmp_flt;
@@ -613,15 +615,15 @@ void z_Pastix_Solveur(struct z_solver *solveur)
  <method_smp)>.
 
  Parameters:
- datacode  - PaStiX <z_SolverMatrix> structure.
+ datacode  - PaStiX <SolverMatrix> structure.
  sopaparam - <z_SopalinParam> parameters structure.
  */
-void z_raff_thread(z_SolverMatrix *datacode, z_SopalinParam *sopaparam, void*(*method)(void *))
+void z_raff_thread(SolverMatrix *datacode, z_SopalinParam *sopaparam, void*(*method)(void *))
 {
-  z_Sopalin_Data_t *sopalin_data = NULL;
+  sopalin_data_t *sopalin_data = NULL;
   BackupSolve_t b;
 
-  MALLOC_INTERN(sopalin_data, 1, z_Sopalin_Data_t);
+  MALLOC_INTERN(sopalin_data, 1, sopalin_data_t);
 
   z_solve_backup(datacode,&b);
   z_sopalin_init(sopalin_data, datacode, sopaparam, 0);
