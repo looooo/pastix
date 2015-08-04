@@ -49,6 +49,29 @@ int z_bcscHemv(      pastix_complex64_t  alpha,
 
 double z_bcscNorm( pastix_normtype_t ntype, const pastix_bcsc_t *bcsc );
 
+double z_bcscBerr( void         *r1,
+                   void         *r2,
+                   pastix_int_t  n );
+
+double z_bcscNormErr( void         *r1,
+                      void         *r2,
+                      pastix_int_t  n );
+
+int z_bcscScal( void               *x,
+                pastix_complex64_t  alpha,
+                pastix_int_t        n,
+                pastix_int_t        smxnbr );
+
+int z_bcscAxpy(pastix_complex64_t  alpha,
+               void               *x,
+               pastix_int_t        n,
+               void               *y,
+               pastix_int_t        smxnbr );
+
+double z_bcscAxpb( const pastix_bcsc_t *bcsc,
+                   void                *x,
+                   void                *b );
+
 double z_bcscDotc( void                *x,
                    void                *y,
                    pastix_int_t         n);
