@@ -49,6 +49,12 @@ int z_bcscHemv(      pastix_complex64_t  alpha,
 
 double z_bcscNorm( pastix_normtype_t ntype, const pastix_bcsc_t *bcsc );
 
+double z_bcscDotc( void                *x,
+                   void                *y,
+                   pastix_int_t         n);
+
+double z_vectFrobeniusNorm( void *, pastix_int_t );
+
 int z_bcscApplyPerm( pastix_int_t m,
                      pastix_int_t n,
                      pastix_complex64_t *A,

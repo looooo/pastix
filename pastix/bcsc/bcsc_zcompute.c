@@ -304,6 +304,98 @@ z_bcscAxpb( const pastix_bcsc_t *bcsc,
 /* Copy */
 /* GEMM */
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscDotc - compute the scalar product x.y
+ *
+ *******************************************************************************
+ *
+ * @param[in] x
+ *          The vector x.
+ * 
+ * @param[in] y
+ *          The vector y.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval the scalar product of x and y.
+ *
+ *******************************************************************************/
+double
+z_bcscDotc( void                *x,
+            void                *y,
+            pastix_int_t         n )
+{
+    int i;
+    double *xptr = (double*)x;
+    double *yptr = (double*)y;
+    double r = 0.;
+
+    for (i=0; i<n; i++, xptr++, yptr++)
+    {
+        r = r + *xptr * (*yptr);
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        xptr++;
+        yptr++;
+        r = r + *xptr * (*yptr);
+#endif
+    }
+
+    return r;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_vectFrobeniusNorm - compute the Frobenius norm of a vector.
+ *
+ *******************************************************************************
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] n
+ *          The size of the vector x.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval the Frobenius norm of x.
+ *
+ *******************************************************************************/
+double
+z_vectFrobeniusNorm( void        *x,
+                     pastix_int_t n )
+{
+    double scale = 0.;
+    double sum = 1.;
+    double norm;
+    double *valptr = (double*)x;
+    pastix_int_t i;
+
+    for( i=0; i < n; i++, valptr++ )
+    {
+        frobenius_update( 1, &scale, &sum, valptr);
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        valptr++;
+        frobenius_update( 1, &scale, &sum, valptr);
+#endif
+    }
+
+    norm = scale*sqrt(sum);
+
+    return norm;
+}
+
 int z_bcscApplyPerm( pastix_int_t m,
                      pastix_int_t n,
                      pastix_complex64_t *A,
