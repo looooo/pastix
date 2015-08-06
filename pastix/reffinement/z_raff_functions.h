@@ -71,41 +71,41 @@ typedef pastix_complex64_t RAFF_FLOAT;
 pastix_complex64_t *z_Pastix_Synchro_Vect(void *, void *, int);
 
 /* Alloue un vecteur de taille size octets */
-void *z_Pastix_Malloc(void *, size_t );
+void *z_Pastix_Malloc(size_t );
 
 /* Libere un vecteur */
-void z_Pastix_Free(void *, void *);
+void z_Pastix_Free(void *);
 
 
 /*** GESTION DE L'INTERFACE ***/
 
 /* Affichage à chaque itération et communication de certaines informations à la structure */
-void z_Pastix_Verbose(void *, double, double, double, pastix_int_t);
+void z_Pastix_Verbose(double, double, double, pastix_int_t);
 
 /* Affichage final */
-void z_Pastix_End(void*, pastix_complex64_t, pastix_int_t, double, pastix_complex64_t *);
+void z_Pastix_End(SopalinParam*, pastix_complex64_t, pastix_int_t, double, pastix_complex64_t*, pastix_complex64_t*);
 
 /* Vecteur solution X */
-void Pastix_X(void *, pastix_complex64_t *);
+void z_Pastix_X(pastix_data_t *, void *, pastix_complex64_t *);
 
 /* Taille d'un vecteur */
-pastix_int_t z_Pastix_n(void *);
+pastix_int_t z_Pastix_n(SopalinParam *);
 
 /* Nombre de second membres */
 pastix_int_t z_Pastix_m(void *);
 
 /* Second membre */
-void z_Pastix_B(void *, pastix_complex64_t *);
+void z_Pastix_B(void *, pastix_complex64_t *, pastix_int_t);
 
 /* Epsilon */
-pastix_complex64_t z_Pastix_Eps(void *);
+pastix_complex64_t z_Pastix_Eps(SopalinParam *);
 
 /* Itermax */
-pastix_int_t z_Pastix_Itermax(void *);
+pastix_int_t z_Pastix_Itermax(SopalinParam *);
 
 
 /* Itermax */
-pastix_int_t z_Pastix_Krylov_Space(void *);
+pastix_int_t z_Pastix_Krylov_Space(SopalinParam *);
 
 /*** OPERATIONS DE BASE ***/
 /* Multiplication pour plusieurs second membres */
@@ -115,32 +115,32 @@ void z_Pastix_Mult(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_co
 void z_Pastix_Div(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
 /* Calcul de la norme de frobenius */
-pastix_complex64_t z_Pastix_Norm2(void *, pastix_complex64_t *);
+pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *, pastix_int_t );
 
 /* Copie d'un vecteur */
 void z_Pastix_Copy(void *, pastix_complex64_t *, pastix_complex64_t *, int);
 
 /* Application du préconditionneur */
-void z_Pastix_Precond(void *, pastix_complex64_t *, pastix_complex64_t *, int);
+void z_Pastix_Precond(pastix_data_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
 /* Calcul de alpha * x */
-void z_Pastix_Scal(void *, pastix_complex64_t, pastix_complex64_t *, int);
+void z_Pastix_Scal(pastix_int_t, pastix_complex64_t, pastix_complex64_t *, int);
 
 /* Calcul du produit scalaire */
-void z_Pastix_Dotc(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+void z_Pastix_Dotc(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
-void z_Pastix_Dotc_Gmres(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+void z_Pastix_Dotc_Gmres(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
 /* Produit matrice vecteur */
-void z_Pastix_Ax(void *, pastix_complex64_t *, pastix_complex64_t *);
+void z_Pastix_Ax(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *);
 
 
 /*** A MODIFIER! ***/
-void z_Pastix_bMAx(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
+void z_Pastix_bMAx(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 
 void z_Pastix_BYPX(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
-void z_Pastix_AXPY(void *, double, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+void z_Pastix_AXPY(pastix_int_t, double, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
 pastix_int_t z_Pastix_me(void *);
 
@@ -148,37 +148,37 @@ struct z_solver
 {
   /*** ALLOCATIONS ET SYNCHRONISATIONS ***/
   pastix_complex64_t* (* Synchro)(void *, void *, int);
-  void* (* Malloc)(void*, size_t);
-  void (* Free)(void*, void*);
+  void* (* Malloc)(size_t);
+  void (* Free)(void*);
 
   /*** GESTION DE L'INTERFACE ***/
-  void (* Verbose)(void *, double, double, double, pastix_int_t);
-  void (* End)(void* , pastix_complex64_t, pastix_int_t, double, pastix_complex64_t*);
-  void (* X)(void *, pastix_complex64_t*);
-  pastix_int_t (* N)(void *);
-  void (* B)(void *, pastix_complex64_t*);
-  pastix_complex64_t (* Eps)(void *);
-  pastix_int_t (* Itermax)(void *);
-  pastix_int_t (* Krylov_Space)(void *);
+  void (* Verbose)(double, double, double, pastix_int_t);
+  void (* End)(SopalinParam*, pastix_complex64_t, pastix_int_t, double, pastix_complex64_t*, pastix_complex64_t*);
+  void (* X)(pastix_data_t *, void *, pastix_complex64_t *);
+  pastix_int_t (* N)(SopalinParam *);
+  void (* B)(void *, pastix_complex64_t *, pastix_int_t);
+  pastix_complex64_t (* Eps)(SopalinParam *);
+  pastix_int_t (* Itermax)(SopalinParam *);
+  pastix_int_t (* Krylov_Space)(SopalinParam *);
   pastix_int_t (* me)(void *);
 
 
   /*** OPERATIONS DE BASE ***/
   void (* Mult)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
   void (* Div)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
-  void (* Dotc_Gmres)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+  void (* Dotc_Gmres)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
-  pastix_complex64_t (* Norm)(void* , pastix_complex64_t *);
+  pastix_complex64_t (* Norm)(pastix_complex64_t *, pastix_int_t);
   void (* Copy)(void *, pastix_complex64_t *, pastix_complex64_t *, int);
-  void (* Precond)(void *, pastix_complex64_t *, pastix_complex64_t *, int);
+  void (* Precond)(pastix_data_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
-  void (* Scal)(void *, pastix_complex64_t, pastix_complex64_t *, int);
-  void (* Dotc)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
-  void (* Ax)(void *, pastix_complex64_t *, pastix_complex64_t *);
+  void (* Scal)(pastix_int_t, pastix_complex64_t, pastix_complex64_t *, int);
+  void (* Dotc)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+  void (* Ax)(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *);
 
-  void (* bMAx)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
+  void (* bMAx)(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
   void (* BYPX)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
-  void (* AXPY)(void *, double, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+  void (* AXPY)(pastix_int_t, double, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 };
 
 void z_Pastix_Solveur(struct z_solver *);
@@ -196,28 +196,28 @@ void z_Pastix_Solveur(struct z_solver *);
  datacode  - PaStiX <SolverMatrix> structure.
  sopaparam - <SopalinParam> parameters structure.
  */
-void z_raff_thread(pastix_bcsc_t*, SopalinParam *, void*(*)(void *));
+// void z_raff_thread(pastix_bcsc_t*, SopalinParam *, void*(*)(void *));
 
 #endif
 /* Raffinement du second membre */
 
-void* s_gmres_smp        (void *);
-void* d_gmres_smp        (void *);
-void* c_gmres_smp        (void *);
-void* z_gmres_smp        (void *);
-void gmres_thread(pastix_bcsc_t*, SopalinParam *);
+void s_gmres_smp        (pastix_data_t *, void *, void *);
+void d_gmres_smp        (pastix_data_t *, void *, void *);
+void c_gmres_smp        (pastix_data_t *, void *, void *);
+void z_gmres_smp        (pastix_data_t *, void *, void *);
+void gmres_thread(pastix_data_t *, void *, void *);
 void* s_grad_smp         (void *);
 void* d_grad_smp         (void *);
 void* c_grad_smp         (void *);
 void* z_grad_smp         (void *);
-void grad_thread (pastix_bcsc_t*, SopalinParam *);
+void grad_thread (pastix_data_t *, void *, void *);
 void* s_pivotstatique_smp(void *);
 void* d_pivotstatique_smp(void *);
 void* c_pivotstatique_smp(void *);
 void* z_pivotstatique_smp(void *);
-void pivot_thread(pastix_bcsc_t*, SopalinParam *);
+void pivot_thread(pastix_data_t *, void *, void *);
 void* s_bicgstab_smp(void *);
 void* d_bicgstab_smp(void *);
 void* c_bicgstab_smp(void *);
 void* z_bicgstab_smp(void *);
-void bicgstab_thread(pastix_bcsc_t*, SopalinParam *);
+void bicgstab_thread(pastix_data_t *, void *, void *);

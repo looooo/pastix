@@ -23,7 +23,7 @@
 // #include "d_bcsc.h"
 // #include "c_bcsc.h"
 // #include "z_bcsc.h"
-// #include "s_raff_functions.h"
+// // #include "s_raff_functions.h"
 // #include "d_raff_functions.h"
 // #include "c_raff_functions.h"
 #include "z_raff_functions.h"
@@ -33,16 +33,48 @@
 // #include "z_csc_intern_updown.h"
 #include "order.h"
 
-static void (*sopalinRaff[4])(pastix_bcsc_t*, SopalinParam*) = 
+static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) = 
 {
 //  API_RAF_GMRES
-    gmres_thread,
+    {
+    s_gmres_smp,
+    d_gmres_smp,
+    c_gmres_smp,
+    z_gmres_smp
+    },
 //  API_RAF_PIVOT
-    pivot_thread,
+    {
+//     s_pivot_smp,
+//     d_pivot_smp,
+//     c_pivot_smp,
+//     z_pivot_smp
+    NULL,
+    NULL,
+    NULL,
+    NULL
+    },
 //  API_RAF_GRAD
-    grad_thread,
+    {
+//     s_grad_smp,
+//     d_grad_smp,
+//     c_grad_smp,
+//     z_grad_smp
+    NULL,
+    NULL,
+    NULL,
+    NULL
+    },
 //  API_RAF_BICGSTAB
-    bicgstab_thread
+    {
+//     s_bicgstab_smp,
+//     d_bicgstab_smp,
+//     c_bicgstab_smp,
+//     z_bicgstab_smp
+    NULL,
+    NULL,
+    NULL,
+    NULL
+    }
 };
 
 // static int (*bcscApplyPerm[4])(pastix_int_t, pastix_int_t, void*, pastix_int_t, pastix_int_t*) = 
@@ -94,45 +126,46 @@ static void (*sopalinRaff[4])(pastix_bcsc_t*, SopalinParam*) =
  *
  *******************************************************************************/
 void pastix_task_raff(pastix_data_t *pastix_data,
-                      void          *b,
-                      pastix_int_t   rhsnbr)
+                      void          *x,
+                      pastix_int_t   rhsnbr,
+                      void          *b)
 {
     pastix_int_t  * iparm    = pastix_data->iparm;
     double        * dparm    = pastix_data->dparm;
     SopalinParam  * sopar    = &(pastix_data->sopar);
 //     SolverMatrix  * solvmatr = &(pastix_data->solvmatr);
     Order         * ordemesh = pastix_data->ordemesh;
-    double          srafftime,rrafftime;
+//     double          srafftime,rrafftime;
 //     pastix_int_t    procnum  = pastix_data->procnum;
-    void          * tmp;
+//     void          * tmp;
+    double timer;
 
     print_debug(DBG_STEP, "->pastix_task_raff\n");
 
-    if (sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
-    {
-//         if (procnum == 0)
-            errorPrintW("Refinment step incompatible with 2D distribution");
-        return;
-    }
+//     if (sopar->iparm[IPARM_DISTRIBUTION_LEVEL] != 0)
+//     {
+// //         if (procnum == 0)
+//             errorPrintW("Refinment step incompatible with 2D distribution");
+//         return;
+//     }
 
     if (rhsnbr > 1)
     {
-        errorPrintW("Reffinement works only with 1 rhs, please call them one after the other.");
+//         errorPrintW("Reffinement works only with 1 rhs, please call them one after the other.");
         rhsnbr = 1;
     }
 
-    if (iparm[IPARM_ONLY_RAFF] == API_YES )
-    {
+//     if (iparm[IPARM_ONLY_RAFF] == API_YES )
+//     {
 
         /* setting sopar->b for reffinement */
-        if (sopar->b == NULL)
-        {
-          MALLOC_INTERN(sopar->b,
-                        rhsnbr * pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ),
-                        char );
-        }
+//         if (sopar->b == NULL)
+//         {
+//           MALLOC_INTERN(sopar->b,
+//                         rhsnbr * pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ),
+//                         char );
+//         }
 
- 
         if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
                                              1,
                                              b,
@@ -142,27 +175,59 @@ void pastix_task_raff(pastix_data_t *pastix_data,
             iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
             return;
         }
+
+        if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
+                                             1,
+                                             x,
+                                             pastix_data->bcsc->gN,
+                                             ordemesh->permtab ))
+        {
+            iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
+            return;
+        }
         
-        memcpy(sopar->b, b, pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
-    }
+//         memcpy(sopar->b, b, pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
+//     }
+//     {
+//         double *bptr = (double*)b;
+//         fprintf(stdout, "b[0] = %g +I%g\n", bptr[0],bptr[1]);
+//         bptr = (double*)sopar->b;
+//         fprintf(stdout, "sopar->b[0] = %g +I%g\n", bptr[0],bptr[1]);
+//     }
 
     sopar->itermax     = iparm[IPARM_ITERMAX];
     sopar->epsilonraff = dparm[DPARM_EPSILON_REFINEMENT];
+    sopar->epsilonraff = 1.0E-12;
     sopar->gmresim     = iparm[IPARM_GMRES_IM];
-    
-    sopalinRaff[iparm[IPARM_REFINEMENT]](pastix_data->bcsc, sopar);
+
+    clockStart(timer);
+//     sopalinRaff[iparm[IPARM_REFINEMENT]](pastix_data, x, b);
+    sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FLOAT]-2](pastix_data, x, b);
+//     gmres_thread(pastix_data, x, b);
+    clockStop(timer);
+    pastix_print( 0, 0, OUT_TIME_RAFF, clockVal(timer) );
 
     dparm[DPARM_RELATIVE_ERROR] = sopar->rberror;
     iparm[IPARM_NBITER]         = sopar->itermax;
 
     /* sopar->b was only needed for raff */
 
-    memcpy(b, sopar->b, pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
+//     memcpy(b, sopar->b, pastix_data->bcsc->gN * pastix_size_of( iparm[IPARM_FLOAT] ));
 
-    memFree_null(sopar->b);
+//     memFree_null(sopar->b);
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
                                          1,
                                          b,
+                                         pastix_data->bcsc->gN,
+                                         ordemesh->peritab ))
+    {
+        iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
+        return;
+    }
+
+    if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
+                                         1,
+                                         x,
                                          pastix_data->bcsc->gN,
                                          ordemesh->peritab ))
     {

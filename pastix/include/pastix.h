@@ -589,4 +589,9 @@ pastix_task_solve( pastix_data_t *pastix_data,
                    const pastix_csc_t  *csc,
                        int nrhs, void *b, int ldb );
 
+void pastix_task_raff(pastix_data_t *pastix_data,
+                      void          *x,
+                      pastix_int_t   rhsnbr,
+                      void          *b);
+
 #endif /* _PASTIX_H_ */

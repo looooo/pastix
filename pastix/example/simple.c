@@ -27,7 +27,7 @@ int main (int argc, char **argv)
     pastix_driver_t driver;
     char           *filename;
     pastix_csc_t    csc;
-    void           *x0, *x, *b;
+    void           *x0, *x, *b, *rhssaved;
     size_t          size;
     int             check = 2;
     int             nrhs = 1;
@@ -90,11 +90,18 @@ int main (int argc, char **argv)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, &csc, NULL, csc.n, x, csc.n );
     }
+    rhssaved = malloc( size );
+    memcpy( rhssaved, b, size );
 
     /**
      * Solve the linear system
      */
     pastix_task_solve( pastix_data, &csc, nrhs, x, csc.n );
+
+//     memset(x, 0, size);
+    pastix_task_raff(pastix_data, x, nrhs, b);
+//     memcpy( x, b, size );
+//     memcpy( b, rhssaved, size );
 
     if ( check )
     {
@@ -102,7 +109,7 @@ int main (int argc, char **argv)
 
         if (x0) free(x0);
 
-        free(x); free(b);
+        free(x); free(b); free(rhssaved);
     }
     spmExit( &csc );
 
