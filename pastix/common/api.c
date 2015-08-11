@@ -64,9 +64,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
     iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
     iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
-    iparm[IPARM_SF_KASS]               = API_NO;              /* Force KASS */
-    iparm[IPARM_AMALGAMATION_LVLCBLK]  = 5;                   /* Amalgamation level                                   */
-    iparm[IPARM_AMALGAMATION_LVLBLAS]  = 5;                   /* Amalgamation level                                   */
 
     /**
      * Ordering parameters
@@ -103,8 +100,21 @@ pastixInitParam( pastix_int_t *iparm,
     }
 
     /**
-     * End of ordering parameters
-     ******************************************/
+     * Symbolic factorization parameters
+     */
+    iparm[IPARM_SF_KASS]               = API_NO;              /* Force KASS */
+    iparm[IPARM_AMALGAMATION_LVLCBLK]  = 5;                   /* Amalgamation level                                   */
+    iparm[IPARM_AMALGAMATION_LVLBLAS]  = 5;                   /* Amalgamation level                                   */
+
+    /**
+     * Runtime parameters
+     */
+    iparm[IPARM_SCHEDULER]             = 0;                   /* cpu/node */
+    iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
+    iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
+    iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
+    iparm[IPARM_CUDA_NBR]              = 0;                   /* CUDA devices */
+
 
     iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
     iparm[IPARM_NNZEROS]               = 0;                   /* memory space for coefficients                        */
@@ -114,10 +124,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */
     iparm[IPARM_ISOLATE_ZEROS]         = API_NO;              /* Isolate null diagonal terms at the end of the matrix */
     iparm[IPARM_FACTORIZATION]         = API_FACT_LDLT;       /* LdLt     */
-    iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
-    iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
-    iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
-    iparm[IPARM_CUDA_NBR]              = 0;                   /* CUDA devices */
+
     iparm[IPARM_DISTRIBUTION_LEVEL]    = 0;                   /* 1d / 2d */
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
     iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
