@@ -26,7 +26,7 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t mzone = -1.0;
 
 void
-sequential_ztrsm( int side, int uplo, int trans, int diag,
+sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
                   sopalin_data_t *sopalin_data,
                   int nrhs, pastix_complex64_t *b, int ldb )
 {
@@ -35,6 +35,7 @@ sequential_ztrsm( int side, int uplo, int trans, int diag,
     SolverBlok *blok;
     pastix_complex64_t *coeftab;
     pastix_int_t i, j, tempm, tempn;
+    (void)pastix_data;
 
     /*
      *  Left / Upper / NoTrans
