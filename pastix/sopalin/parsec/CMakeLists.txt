@@ -38,9 +38,9 @@ jdf_rules(generated_files "${generated_jdf}")
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
   #zcsc2cblk_wrapper.c
-  #zsytrf_sp1dplus_wrapper.c
-  #zhetrf_sp1dplus_wrapper.c
-  #zpotrf_sp1dplus_wrapper.c
+  zsytrf_sp1dplus_wrapper.c
+  zhetrf_sp1dplus_wrapper.c
+  zpotrf_sp1dplus_wrapper.c
   zgetrf_sp1dplus_wrapper.c
   #zpotrs_sp1dplus_wrapper.c
 )
