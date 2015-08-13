@@ -304,7 +304,6 @@ bcscMatVec(      int            trans,
         case PastixComplex32:
             return c_bcscHemv( *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
         case PastixComplex64:
-        printf("plop !\n");
             return z_bcscHemv( *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
         case PastixDouble:
         default:

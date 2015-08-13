@@ -225,8 +225,9 @@ z_bcscSymv(pastix_complex64_t  alpha,
         {
             for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-                yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
-                if( bcsc->rowtab[i] != col )
+                if( bcsc->rowtab[i] >= col )
+                    yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
+                if( bcsc->rowtab[i] > col )
                     yptr[col] += alpha * Lvalptr[i] * xptr[bcsc->rowtab[i]];
             }
             col += 1;
@@ -316,11 +317,10 @@ z_bcscHemv(pastix_complex64_t  alpha,
         {
             for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
             {
-                yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
-                if( bcsc->rowtab[i] != col )
-                {
+                if( bcsc->rowtab[i] >= col )
+                    yptr[bcsc->rowtab[i]] += alpha * Lvalptr[i] * xptr[col];
+                if( bcsc->rowtab[i] > col )
                     yptr[col] += alpha * conj( Lvalptr[i] ) * xptr[bcsc->rowtab[i]];
-                }
             }
             col += 1;
         }
