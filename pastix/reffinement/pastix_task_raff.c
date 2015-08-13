@@ -202,7 +202,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 
     clockStart(timer);
 //     sopalinRaff[iparm[IPARM_REFINEMENT]](pastix_data, x, b);
-    sopalinRaff[iparm[IPARM_REFINEMENT]][iparm[IPARM_FLOAT]-2](pastix_data, x, b);
+    sopalinRaff[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2](pastix_data, x, b);
 //     gmres_thread(pastix_data, x, b);
     clockStop(timer);
     pastix_print( 0, 0, OUT_TIME_RAFF, clockVal(timer) );

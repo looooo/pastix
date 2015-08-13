@@ -54,14 +54,11 @@
 //#  include "starpu_zsubmit_tasks.h"
 //#endif
 
-static pastix_complex64_t fun   = 1.0;
+// static pastix_complex64_t fun   = 1.0;
 // #define z_up_down_smp API_CALL(z_up_down_smp)
-void* z_up_down_smp ( void *arg );
+// void* z_up_down_smp ( void *arg );
 // #define z_sopalin_updo_comm API_CALL(z_sopalin_updo_comm)
-void *z_sopalin_updo_comm ( void *arg );
-
-
-#include "z_raff_functions.h"
+// void *z_sopalin_updo_comm ( void *arg );
 
 
 /*** ALLOCATIONS ET SYNCHRONISATIONS ***/
@@ -111,7 +108,7 @@ void z_Pastix_Verbose(double t0, double t3, double tmp, pastix_int_t nb_iter)
 //   sopalin_data->stop = tmp;
 //   MONOTHREAD_BEGIN;
 //   if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-    {
+//     {
       double rst = 0.0;
       double stt, rtt;
       double err, stop = tmp;
@@ -130,12 +127,12 @@ void z_Pastix_Verbose(double t0, double t3, double tmp, pastix_int_t nb_iter)
           fprintf(stdout, OUT_ITERRAFF_TTT, stt);
           fprintf(stdout, OUT_ITERRAFF_ERR, err);
 //         }
-    }
+//     }
 //   MONOTHREAD_END;
 }
 
 /* Affichage final */
-void z_Pastix_End(SopalinParam *sopar, pastix_complex64_t tmp, pastix_int_t nb_iter, double t, pastix_complex64_t *x, pastix_complex64_t *gmresx)
+void z_Pastix_End(SopalinParam *sopar, pastix_complex64_t tmp, pastix_int_t nb_iter, double t, void *x, pastix_complex64_t *gmresx)
 {
 //   sopthread_data_t *argument     = (sopthread_data_t *)arg;
 //   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
@@ -143,11 +140,19 @@ void z_Pastix_End(SopalinParam *sopar, pastix_complex64_t tmp, pastix_int_t nb_i
 //   SolverMatrix     *datacode     = sopalin_data->datacode;
 //   MPI_Comm          pastix_comm  = PASTIX_COMM;
 //   PASTIX_INT        me           = argument->me;
+    pastix_complex64_t *xptr = (pastix_complex64_t *)x;
+    pastix_int_t        n = sopar->gN;
+    pastix_int_t i;
 
 //   sopalin_data->stop = tmp;
 //   CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
 //           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-  memcpy(x,gmresx,sopar->gN * sizeof(pastix_complex64_t));
+//   memcpy(x,gmresx,sopar->gN * sizeof(pastix_complex64_t));
+    for (i=0; i<n; i++)
+      xptr[i] = gmresx[i];
+
+//   if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
+//   {
 //   MULTITHREAD_END(0);
 //   SYNCHRO_THREAD;
 
@@ -190,16 +195,16 @@ void z_Pastix_X(pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx)
   pastix_int_t        n = pastix_data->bcsc->gN;
   pastix_complex64_t *xptr = (pastix_complex64_t *)x;
 
-  if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
-  {
-    for (i=0; i<n; i++, xptr++)
-      gmresx[i]=0.0;
-  }
-  else
-  {
+//   if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
+//   {
     for (i=0; i<n; i++, xptr++)
       gmresx[i]= *xptr;
-  }
+//   }
+//   else
+//   {
+//     for (i=0; i<n; i++, xptr++)
+//       gmresx[i]=0.0;
+//   }
 }
 
 /* Taille d'un vecteur */
@@ -220,7 +225,14 @@ pastix_int_t z_Pastix_n(SopalinParam *sopar)
 /* Second membre */
 void z_Pastix_B(void *b, pastix_complex64_t *raffb, pastix_int_t n)
 {
-  memcpy(raffb, b, n * sizeof( pastix_complex64_t ));
+  pastix_complex64_t *bptr = (pastix_complex64_t *)b;
+  pastix_int_t i;
+
+  for (i=0; i<n; i++, bptr++)
+  {
+      raffb[i]= *bptr;
+  }
+//   memcpy(raffb, b, n * sizeof( pastix_complex64_t ));
 }
 
 /* Epsilon */
@@ -295,7 +307,8 @@ pastix_int_t z_Pastix_Krylov_Space(SopalinParam *sopar)
 pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *x, pastix_int_t n)
 {
   double normx;
-  normx = z_vectFrobeniusNorm(x, n);
+  void *xptr = (void*)x;
+  normx = z_vectFrobeniusNorm(xptr, n);
   return normx;
 }
 
@@ -320,9 +333,10 @@ pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *x, pastix_int_t n)
 void z_Pastix_Precond(pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_complex64_t *d, int flag)
 {
   pastix_int_t n = pastix_data->bcsc->gN;
+  pastix_int_t nrhs = 1;
+  void* bptr = (void*)d;
 
   memcpy(d, s, n * sizeof( pastix_complex64_t ));
-#ifdef PRECOND
   if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
     {
         sopalin_data_t sopalin_data;
@@ -330,30 +344,29 @@ void z_Pastix_Precond(pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_
 
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLT:
-            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, d, n );
-            sequential_ztrsm( PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, d, n );
+            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, bptr, n );
+            sequential_ztrsm( PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
         case PastixFactLDLT:
-            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, d, n );
-            sequential_zdiag( &sopalin_data, nrhs, d, n );
-            sequential_ztrsm( PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, d, n );
+            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
+            sequential_zdiag( &sopalin_data, nrhs, bptr, n );
+            sequential_ztrsm( PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
         case PastixFactLDLH:
-            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, d, n );
-            sequential_zdiag( &sopalin_data, nrhs, d, n );
-            sequential_ztrsm( PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, d, n );
+            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
+            sequential_zdiag( &sopalin_data, nrhs, bptr, n );
+            sequential_ztrsm( PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
         case PastixFactLU:
         default:
-            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, d, n );
-            sequential_ztrsm( PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, d, n );
+            sequential_ztrsm( PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, bptr, n );
+            sequential_ztrsm( PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
             break;
         }
     }
-#endif
 }
 
 /* Calcul de alpha * x */
@@ -370,22 +383,55 @@ void z_Pastix_Dotc(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y,
 
 void z_Pastix_Dotc_Gmres(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int flag)
 {
-  *r = z_bcscDotc(x, y, n);
+  (*r) = z_bcscDotc(x, y, n);
 }
 
 /* Produit matrice vecteur */
 void z_Pastix_Ax(pastix_bcsc_t *bcsc, pastix_complex64_t *x, pastix_complex64_t *r)
 {
-    memcpy(r, x, bcsc->gN * sizeof( pastix_complex64_t ));
-    z_bcscGemv(PastixNoTrans, 1., bcsc, x, 0., r );
+    pastix_int_t alpha = 1.0;
+    pastix_int_t beta = 0.0;
+    void* xptr = (void*)x;
+    void* yptr = (void*)r;
+
+    switch (bcsc->mtxtype) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+        z_bcscHemv(alpha, bcsc, xptr, beta, yptr );
+        break;
+#endif
+    case PastixSymmetric:
+        z_bcscSymv(alpha, bcsc, xptr, beta, yptr );
+        break;
+    case PastixGeneral:
+    default:
+        z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
+    }
 }
 
 
 /*** A MODIFIER! ***/
 void z_Pastix_bMAx(pastix_bcsc_t *bcsc, pastix_complex64_t *b, pastix_complex64_t *x, pastix_complex64_t *r)
 {
+    pastix_int_t alpha = -1.0;
+    pastix_int_t beta = 1.0;
+    void* xptr = (void*)x;
+    void* yptr = (void*)r;
+
     memcpy(r, b, bcsc->gN * sizeof( pastix_complex64_t ));
-    z_bcscGemv(PastixNoTrans, -1., bcsc, x, 1., r );
+    switch (bcsc->mtxtype) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+        z_bcscHemv(alpha, bcsc, xptr, beta, yptr );
+        break;
+#endif
+    case PastixSymmetric:
+        z_bcscSymv(alpha, bcsc, xptr, beta, yptr );
+        break;
+    case PastixGeneral:
+    default:
+        z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
+    }
 }
 
 // void z_Pastix_BYPX(void *arg, pastix_complex64_t *beta, pastix_complex64_t *y, pastix_complex64_t *x, int flag)
@@ -430,7 +476,9 @@ void z_Pastix_bMAx(pastix_bcsc_t *bcsc, pastix_complex64_t *b, pastix_complex64_
 
 void z_Pastix_AXPY(pastix_int_t n, double coeff, pastix_complex64_t *alpha, pastix_complex64_t *x, pastix_complex64_t *y, int flag)
 {
-    z_bcscAxpy( coeff*(*alpha), y, n, x, 1 );
+    void *yptr = (void*)y;
+    void *xptr = (void*)x;
+    z_bcscAxpy( coeff*(*alpha), yptr, n, xptr, 1 );
 }
 
 

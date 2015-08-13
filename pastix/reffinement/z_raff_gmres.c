@@ -112,6 +112,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   gmresdata->gmresro = 0.0;
   gmresdata->gmresout_flag = 1;
 
+  sopaparam->gN = n;
   solveur.B(b, gmresb, n);
   gmresnormb = solveur.Norm(gmresb, n);
 
@@ -218,7 +219,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
               for (j=1; j<=i;j++)
                 {
                   gmrest = gmreshh[i][j-1];
-#ifdef TYPE_COMPLEX
+#if defined(PRECISION_z) || defined(PRECISION_c)
                   gmreshh[i][j-1] = (pastix_complex64_t)conj(gmresc[j-1])*gmrest +
                     (pastix_complex64_t)conj(gmress[j-1])*gmreshh[i][j];
 #else /* TYPE_COMPLEX */
@@ -229,7 +230,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
                     gmresc[j-1]*gmreshh[i][j];
                 }
             }
-#ifdef TYPE_COMPLEX
+#if defined(PRECISION_z) || defined(PRECISION_c)
           gmrest = (pastix_complex64_t)csqrt(cabs(gmreshh[i][i]*gmreshh[i][i])+
                                      gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
 #else
@@ -243,7 +244,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
           gmress[i] = gmreshh[i][gmresi1]/gmrest;
           gmresrs[gmresi1] = -gmress[i]*gmresrs[i];
 
-#ifdef TYPE_COMPLEX
+#if defined(PRECISION_z) || defined(PRECISION_c)
           gmresrs[i] = (pastix_complex64_t)conj(gmresc[i])*gmresrs[i];
           gmreshh[i][i] = (pastix_complex64_t)conj(gmresc[i])*gmreshh[i][i] +
           gmress[i]*gmreshh[i][gmresi1];

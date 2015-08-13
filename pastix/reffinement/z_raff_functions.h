@@ -83,7 +83,7 @@ void z_Pastix_Free(void *);
 void z_Pastix_Verbose(double, double, double, pastix_int_t);
 
 /* Affichage final */
-void z_Pastix_End(SopalinParam*, pastix_complex64_t, pastix_int_t, double, pastix_complex64_t*, pastix_complex64_t*);
+void z_Pastix_End(SopalinParam*, pastix_complex64_t, pastix_int_t, double, void*, pastix_complex64_t*);
 
 /* Vecteur solution X */
 void z_Pastix_X(pastix_data_t *, void *, pastix_complex64_t *);
@@ -153,7 +153,7 @@ struct z_solver
 
   /*** GESTION DE L'INTERFACE ***/
   void (* Verbose)(double, double, double, pastix_int_t);
-  void (* End)(SopalinParam*, pastix_complex64_t, pastix_int_t, double, pastix_complex64_t*, pastix_complex64_t*);
+  void (* End)(SopalinParam*, pastix_complex64_t, pastix_int_t, double, void*, pastix_complex64_t*);
   void (* X)(pastix_data_t *, void *, pastix_complex64_t *);
   pastix_int_t (* N)(SopalinParam *);
   void (* B)(void *, pastix_complex64_t *, pastix_int_t);
