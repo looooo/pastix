@@ -72,9 +72,9 @@ double z_bcscAxpb( const pastix_bcsc_t *bcsc,
                    void                *x,
                    void                *b );
 
-double z_bcscDotc( void                *x,
-                   void                *y,
-                   pastix_int_t         n);
+pastix_complex64_t z_bcscDotc( void                *x,
+                               void                *y,
+                               pastix_int_t         n);
 
 double z_vectFrobeniusNorm( void *, pastix_int_t );
 

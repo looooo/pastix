@@ -250,7 +250,7 @@ z_bcscAxpy(pastix_complex64_t  alpha,
 
     for(i = 0; i < n*smxnbr; i++)
     {
-        *yptr = *yptr + alpha * *xptr;
+        *yptr = *yptr + alpha * (*xptr);
         yptr++;
         xptr++;
     }
@@ -328,22 +328,21 @@ z_bcscAxpb( const pastix_bcsc_t *bcsc,
  *      \retval the scalar product of x and y.
  *
  *******************************************************************************/
-double
+pastix_complex64_t
 z_bcscDotc( void                *x,
             void                *y,
             pastix_int_t         n )
 {
     int i;
-    double *xptr = (double*)x;
-    double *yptr = (double*)y;
-    double r = 0.;
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    pastix_complex64_t r = 0.0;
 
     for (i=0; i<n; i++, xptr++, yptr++)
     {
-        r = r + *xptr * (*yptr);
 #if defined(PRECISION_z) || defined(PRECISION_c)
-        xptr++;
-        yptr++;
+        r = r + *xptr * conj(*yptr);
+#else
         r = r + *xptr * (*yptr);
 #endif
     }
