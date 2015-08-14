@@ -47,7 +47,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 {
   struct z_solver solveur = {NULL};
   z_Pastix_Solveur(&solveur);
-  SopalinParam                 * sopaparam    = &(pastix_data->sopar);
   pastix_bcsc_t                * bcsc         = pastix_data->bcsc;
   pastix_int_t                   n            = bcsc->gN;
   Clock                          raff_clk;
@@ -76,9 +75,9 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   pastix_complex64_t             beta;
   pastix_complex64_t          *  gmresx       = NULL;
   gmres_t                     *  gmresdata;
-  gmresim     = solveur.Krylov_Space(sopaparam);
-  gmresmaxits = solveur.Itermax(sopaparam);
-  gmreseps    = solveur.Eps(sopaparam);
+  gmresim     = solveur.Krylov_Space(pastix_data);
+  gmresmaxits = solveur.Itermax(pastix_data);
+  gmreseps    = solveur.Eps(pastix_data);
 
   gmrestemp = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
   gmresb    = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
@@ -271,7 +270,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   clockStop((raff_clk));
   t3 = clockGet();
 
-  solveur.End(sopaparam, gmresdata->gmresro/gmresnormb, gmresiters, t3, x, gmresx);
+  solveur.End(pastix_data, gmresdata->gmresro/gmresnormb, gmresiters, t3, x, gmresx);
 
   solveur.Free((void*) gmrestemp);
   solveur.Free((void*) gmresb);

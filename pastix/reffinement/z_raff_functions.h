@@ -83,13 +83,13 @@ void z_Pastix_Free(void *);
 void z_Pastix_Verbose(double, double, double, pastix_int_t);
 
 /* Affichage final */
-void z_Pastix_End(SopalinParam*, pastix_complex64_t, pastix_int_t, double, void*, pastix_complex64_t*);
+void z_Pastix_End(pastix_data_t *, pastix_complex64_t, pastix_int_t, double, void*, pastix_complex64_t*);
 
 /* Vecteur solution X */
 void z_Pastix_X(pastix_data_t *, void *, pastix_complex64_t *);
 
 /* Taille d'un vecteur */
-pastix_int_t z_Pastix_n(SopalinParam *);
+pastix_int_t z_Pastix_n(pastix_data_t *);
 
 /* Nombre de second membres */
 pastix_int_t z_Pastix_m(void *);
@@ -98,14 +98,14 @@ pastix_int_t z_Pastix_m(void *);
 void z_Pastix_B(void *, pastix_complex64_t *, pastix_int_t);
 
 /* Epsilon */
-pastix_complex64_t z_Pastix_Eps(SopalinParam *);
+pastix_complex64_t z_Pastix_Eps(pastix_data_t *);
 
 /* Itermax */
-pastix_int_t z_Pastix_Itermax(SopalinParam *);
+pastix_int_t z_Pastix_Itermax(pastix_data_t *);
 
 
 /* Itermax */
-pastix_int_t z_Pastix_Krylov_Space(SopalinParam *);
+pastix_int_t z_Pastix_Krylov_Space(pastix_data_t *);
 
 /*** OPERATIONS DE BASE ***/
 /* Multiplication pour plusieurs second membres */
@@ -153,13 +153,13 @@ struct z_solver
 
   /*** GESTION DE L'INTERFACE ***/
   void (* Verbose)(double, double, double, pastix_int_t);
-  void (* End)(SopalinParam*, pastix_complex64_t, pastix_int_t, double, void*, pastix_complex64_t*);
+  void (* End)(pastix_data_t *, pastix_complex64_t, pastix_int_t, double, void*, pastix_complex64_t*);
   void (* X)(pastix_data_t *, void *, pastix_complex64_t *);
-  pastix_int_t (* N)(SopalinParam *);
+  pastix_int_t (* N)(pastix_data_t *);
   void (* B)(void *, pastix_complex64_t *, pastix_int_t);
-  pastix_complex64_t (* Eps)(SopalinParam *);
-  pastix_int_t (* Itermax)(SopalinParam *);
-  pastix_int_t (* Krylov_Space)(SopalinParam *);
+  pastix_complex64_t (* Eps)(pastix_data_t *);
+  pastix_int_t (* Itermax)(pastix_data_t *);
+  pastix_int_t (* Krylov_Space)(pastix_data_t *);
   pastix_int_t (* me)(void *);
 
 

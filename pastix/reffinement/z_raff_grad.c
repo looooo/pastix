@@ -38,7 +38,6 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
   z_Pastix_Solveur(&solveur);
 
   /* Variables */
-  SopalinParam      * sopar = &(pastix_data->sopar);
   pastix_bcsc_t     * bcsc      = pastix_data->bcsc;
   pastix_int_t        n         = bcsc->gN;
   Clock               raff_clk;
@@ -47,8 +46,8 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
   pastix_complex64_t  tmp       = 0.0;
   pastix_complex64_t  normr;
   pastix_complex64_t  normb;
-  pastix_complex64_t  epsilon   = solveur.Eps(sopar);
-  pastix_int_t        itermax   = solveur.Itermax(sopar);
+  pastix_complex64_t  epsilon   = solveur.Eps(pastix_data);
+  pastix_int_t        itermax   = solveur.Itermax(pastix_data);
   pastix_int_t        nb_iter   = 0;
 
   pastix_complex64_t *gradb = NULL;
@@ -128,7 +127,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
       t0 = t3;
     }
 
-  solveur.End(sopar, tmp, nb_iter, t3, x, gradx);
+  solveur.End(pastix_data, tmp, nb_iter, t3, x, gradx);
 
   solveur.Free((void*) gradb);
   solveur.Free((void*) gradr);

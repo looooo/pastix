@@ -55,17 +55,15 @@ void z_Pastix_Verbose(double t0, double t3, double tmp, pastix_int_t nb_iter)
 }
 
 /* Affichage final */
-void z_Pastix_End(SopalinParam *sopar, pastix_complex64_t tmp, pastix_int_t nb_iter, double t, void *x, pastix_complex64_t *gmresx)
+void z_Pastix_End(pastix_data_t *pastix_data, pastix_complex64_t tmp, pastix_int_t nb_iter, double t, void *x, pastix_complex64_t *gmresx)
 {
     pastix_complex64_t *xptr = (pastix_complex64_t *)x;
-    pastix_int_t        n = sopar->gN;
+    pastix_int_t        n = pastix_data->bcsc->gN;
     pastix_int_t i;
 
     for (i=0; i<n; i++)
       xptr[i] = gmresx[i];
 
-    sopar->rberror = tmp;
-    sopar->itermax = nb_iter;
 
 //   if (sopar->iparm[IPARM_PRODUCE_STATS] == API_YES) {
 //     PASTIX_FLOAT *r, *s;
@@ -116,9 +114,9 @@ void z_Pastix_X(pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx)
 }
 
 /* Taille d'un vecteur */
-pastix_int_t z_Pastix_n(SopalinParam *sopar)
+pastix_int_t z_Pastix_n(pastix_data_t *pastix_data)
 {
-  return sopar->gN;
+  return pastix_data->bcsc->gN;
 }
 
 /* Second membre */
@@ -134,22 +132,22 @@ void z_Pastix_B(void *b, pastix_complex64_t *raffb, pastix_int_t n)
 }
 
 /* Epsilon */
-pastix_complex64_t z_Pastix_Eps(SopalinParam *sopar)
+pastix_complex64_t z_Pastix_Eps(pastix_data_t *pastix_data)
 {
-  return sopar->epsilonraff;
+  return pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 }
 
 /* Itermax */
-pastix_int_t z_Pastix_Itermax(SopalinParam *sopar)
+pastix_int_t z_Pastix_Itermax(pastix_data_t *pastix_data)
 {
-  return sopar->itermax;
+  return pastix_data->iparm[IPARM_ITERMAX];
 }
 
 
 /* Itermax */
-pastix_int_t z_Pastix_Krylov_Space(SopalinParam *sopar)
+pastix_int_t z_Pastix_Krylov_Space(pastix_data_t *pastix_data)
 {
-  return sopar->gmresim;
+  return pastix_data->iparm[IPARM_GMRES_IM];
 }
 
 /*** OPERATIONS DE BASE ***/
