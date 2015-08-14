@@ -122,18 +122,10 @@ void pastix_task_raff(pastix_data_t *pastix_data,
             return;
         }
 
-//     sopar->itermax     = iparm[IPARM_ITERMAX];
-//     sopar->epsilonraff = dparm[DPARM_EPSILON_REFINEMENT];
-//     sopar->gmresim     = iparm[IPARM_GMRES_IM];
-//     sopar->gN          = pastix_data->bcsc->gN;
-
     clockStart(timer);
     sopalinRaff[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2](pastix_data, x, b);
     clockStop(timer);
     pastix_print( 0, 0, OUT_TIME_RAFF, clockVal(timer) );
-
-//     dparm[DPARM_RELATIVE_ERROR] = sopar->rberror;
-//     iparm[IPARM_NBITER]         = sopar->itermax;
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
                                          1,

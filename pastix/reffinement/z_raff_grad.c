@@ -7,6 +7,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
+ * @author Theophile Terraz
  * @date 2011-11-11
  * @precisions normal z -> c d s
  *
@@ -16,21 +17,25 @@
 #include "z_raff_functions.h"
 #include "solver.h"
 
-/*
- ** Section: Threads routines
- */
-
-
-/*
- Function: z_grad_smp
-
- Refine the solution using conjugate gradian method.
-
- Parameters:
- arg - Pointer to a <sopthread_data_t> structure containing
- the <z_Sopalin_Data_t> structure and the thread number ID.
-
- */
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_raff
+ *
+ * z_grad_smp - Refine the solution using conjugate gradian method.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The PaStiX data structure that describes the solver instance.
+ * 
+ * @param[in] x
+ *          The solution vector.
+ * 
+ * @param[in] b
+ *          The right hand side member (only one).
+ *
+ *******************************************************************************/
 void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 {
   /* Choix du solveur */
