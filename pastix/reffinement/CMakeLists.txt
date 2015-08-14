@@ -27,7 +27,7 @@ z_raff_functions.c
 # z_raff_functions_sy.c
 z_raff_gmres.c
 z_raff_grad.c
-# z_raff_pivot.c
+z_raff_pivot.c
 z_raff_bicgstab.c
 )
 

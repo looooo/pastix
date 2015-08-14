@@ -32,14 +32,10 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
     },
 //  API_RAF_PIVOT
     {
-//     s_pivot_smp,
-//     d_pivot_smp,
-//     c_pivot_smp,
-//     z_pivot_smp
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    s_pivot_smp,
+    d_pivot_smp,
+    c_pivot_smp,
+    z_pivot_smp
     },
 //  API_RAF_GRAD
     {

@@ -201,23 +201,23 @@ void z_Pastix_Solveur(struct z_solver *);
 #endif
 /* Raffinement du second membre */
 
-void s_gmres_smp        (pastix_data_t *, void *, void *);
-void d_gmres_smp        (pastix_data_t *, void *, void *);
-void c_gmres_smp        (pastix_data_t *, void *, void *);
-void z_gmres_smp        (pastix_data_t *, void *, void *);
+void s_gmres_smp   (pastix_data_t *, void *, void *);
+void d_gmres_smp   (pastix_data_t *, void *, void *);
+void c_gmres_smp   (pastix_data_t *, void *, void *);
+void z_gmres_smp   (pastix_data_t *, void *, void *);
 
-void s_grad_smp         (pastix_data_t *, void *, void *);
-void d_grad_smp         (pastix_data_t *, void *, void *);
-void c_grad_smp         (pastix_data_t *, void *, void *);
-void z_grad_smp         (pastix_data_t *, void *, void *);
+void s_grad_smp    (pastix_data_t *, void *, void *);
+void d_grad_smp    (pastix_data_t *, void *, void *);
+void c_grad_smp    (pastix_data_t *, void *, void *);
+void z_grad_smp    (pastix_data_t *, void *, void *);
 
-void s_pivotstatique_smp(pastix_data_t *, void *, void *);
-void d_pivotstatique_smp(pastix_data_t *, void *, void *);
-void c_pivotstatique_smp(pastix_data_t *, void *, void *);
-void z_pivotstatique_smp(pastix_data_t *, void *, void *);
+void s_pivot_smp   (pastix_data_t *, void *, void *);
+void d_pivot_smp   (pastix_data_t *, void *, void *);
+void c_pivot_smp   (pastix_data_t *, void *, void *);
+void z_pivot_smp   (pastix_data_t *, void *, void *);
 
-void s_bicgstab_smp     (pastix_data_t *, void *, void *);
-void d_bicgstab_smp     (pastix_data_t *, void *, void *);
-void c_bicgstab_smp     (pastix_data_t *, void *, void *);
-void z_bicgstab_smp     (pastix_data_t *, void *, void *);
+void s_bicgstab_smp(pastix_data_t *, void *, void *);
+void d_bicgstab_smp(pastix_data_t *, void *, void *);
+void c_bicgstab_smp(pastix_data_t *, void *, void *);
+void z_bicgstab_smp(pastix_data_t *, void *, void *);
 
