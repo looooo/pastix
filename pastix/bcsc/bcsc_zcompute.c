@@ -28,6 +28,44 @@
  *
  * @ingroup pastix_bcsc
  *
+ * z_bcscNormErr - Computes the norm 2 of r and the norm 2 of b
+ *                 and return the quotient of these two vectors.
+ *
+ *******************************************************************************
+ *
+ * @param[in] r
+ *          The vector r.
+ *
+ * @param[in] b
+ *          The vector b.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval the quotient.
+ *
+ *******************************************************************************/
+double
+z_bcscNormErr( void         *r,
+               void         *b,
+               pastix_int_t  n )
+{
+    double norm1, norm2;
+
+    norm1 = z_vectFrobeniusNorm( r, n );
+    norm2 = z_vectFrobeniusNorm( b, n );
+
+    return norm1 / norm2;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
  * z_bcscBerr - Compute the operation $$ berr= max_{i}(\\frac{|r1_{i}|}{|r2_{i}|}) $$.
  *
  *******************************************************************************
@@ -40,9 +78,6 @@
  *
  * @param[in] n
  *          The size of the vectors.
- *
- * @param[out] berr
- *          The returned result.
  *
  *******************************************************************************
  *
@@ -61,9 +96,6 @@ z_bcscBerr( void         *r1,
     double berr = 0.;
     pastix_int_t i;
 
-    if(r1==NULL || r1== NULL)
-        return PASTIX_ERR_BADPARAMETER;
-
     for( i = 0; i < n; i++)
     {
         module1 = cabs(r1ptr[i]);
@@ -74,72 +106,6 @@ z_bcscBerr( void         *r1,
     }
 
     return berr;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * z_bcscNormErr - Computes the norm 2 of r1 and the norm 2 of r2
- *                 and return the quotient of these two vectors.
- *
- *******************************************************************************
- *
- * @param[in] r1
- *          The vector r1.
- *
- * @param[in] r2
- *          The vector r2.
- *
- * @param[in] n
- *          The size of the vectors.
- *
- *******************************************************************************
- *
- * @return
- *      \retval The error
- *
- *******************************************************************************/
-double
-z_bcscNormErr( void         *r1,
-               void         *r2,
-               pastix_int_t  n )
-{
-    double norm2r1;
-    double norm2r2;
-    double scale = 0.;
-    double sum = 1.;
-    double* valptr = (double*)r1;
-    int i;
-
-    if(r1==NULL || r2== NULL)
-        return PASTIX_ERR_BADPARAMETER;
-
-    for( i = 0; i < n; i++, valptr++ )
-    {
-        frobenius_update( 1, &scale, &sum, valptr);
-#if defined(PRECISION_z) || defined(PRECISION_c)
-        valptr++;
-        frobenius_update( 1, &scale, &sum, valptr);
-#endif
-    }
-    norm2r1 = scale*sqrt(sum);
-
-    scale = 0.;
-    sum=1.;
-    valptr = (double*)r2;
-    for( i = 0; i < n; i++ )
-    {
-        frobenius_update( 1, &scale, &sum, valptr);
-#if defined(PRECISION_z) || defined(PRECISION_c)
-        valptr++;
-        frobenius_update( 1, &scale, &sum, valptr);
-#endif
-    }
-    norm2r2 = scale*sqrt(sum);
-
-    return norm2r1/norm2r2;
 }
 
 /**
@@ -263,7 +229,7 @@ z_bcscAxpy(pastix_complex64_t  alpha,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscAxpb - compute |A||x| + |b|
+ * z_bcscAxpb - compute r = |A||x| + |b|
  *
  *******************************************************************************
  *
@@ -276,24 +242,75 @@ z_bcscAxpy(pastix_complex64_t  alpha,
  * @param[in] b
  *          The vector b.
  *
- *******************************************************************************
- *
- * @return 
- *      \retval The solution
- *
+ * @param[out] r
+ *          The result.
  *******************************************************************************/
-double
-z_bcscAxpb( const pastix_bcsc_t *bcsc,
+void
+z_bcscAxpb( pastix_trans_t       trans,
+            const pastix_bcsc_t *bcsc,
             void                *x,
-            void                *b )
+            void                *b,
+            void                *r )
 {
-    double normA, normX, normB;
+    pastix_complex64_t *Lvalptr = NULL;
+    pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
+    pastix_complex64_t *bptr    = (pastix_complex64_t*)b;
+    pastix_complex64_t *rptr    = (pastix_complex64_t*)r;
+    pastix_int_t        bloc, col, i, j, n;
 
-    normX = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', bcsc->gN, 1, x, bcsc->gN );
-    normB = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', bcsc->gN, 1, b, bcsc->gN );
-    normA = z_bcscNorm( PastixFrobeniusNorm, bcsc );
+    Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
+    n = bcsc->n;
 
-    return (normA * normX + normB);
+    switch (trans) {
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    case PastixConjTrans:
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    rptr[col] += cabs( conj( Lvalptr[i] ) ) * cabs( xptr[bcsc->rowtab[i]] );
+                }
+                col += 1;
+            }
+        }
+    break;
+#endif
+    case PastixTrans:
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    rptr[col] += cabs( Lvalptr[i] ) * cabs( xptr[bcsc->rowtab[i]] );
+                }
+                col += 1;
+            }
+        }
+    break;
+
+    case PastixNoTrans:
+    default:
+        col = 0;
+        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
+        {
+            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
+            {
+                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
+                {
+                    rptr[bcsc->rowtab[i]] += cabs( Lvalptr[i] ) * cabs( xptr[col] );
+                }
+                col += 1;
+            }
+        }
+    }
+    
+    for( i=0; i<n; i++, rptr++, bptr++)
+        *rptr += cabs( *bptr );
 }
 
 
