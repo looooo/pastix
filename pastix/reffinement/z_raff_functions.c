@@ -10,6 +10,7 @@
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
+ * @author Theophile Terraz
  * @author Xavier Lacoste
  * @date 2011-11-11
  * @precisions normal z -> c d s
@@ -23,59 +24,6 @@
 #include "sopalin_data.h"
 #include "solver.h"
 #include "z_raff_functions.h"
-
-//#include "z_tools.h"
-//#ifdef PASTIX_EZTRACE
-//#  include "pastix_eztrace.h"
-//#else
-//#  include "trace.h"
-//#endif
-//#include "sopalin_define.h"
-//#include "symbol.h"
-//#include "z_csc.h"
-//#include "z_updown.h"
-//#include "queue.h"
-//#include "bulles.h"
-//#include "z_ftgt.h"
-//#include "z_solver.h"
-//#include "sopalin_thread.h"
-//#include "stack.h"
-//#include "z_sopalin3d.h"
-//#include "z_sopalin_init.h"
-//#include "perf.h"
-//#include "out.h"
-//#include "z_coefinit.h"
-//#include "z_ooc.h"
-//#include "order.h"
-//#include "z_debug_dump.h"
-//#include "sopalin_acces.h"
-//#include "z_csc_intern_compute.h"
-//#ifdef PASTIX_WITH_STARPU
-//#  include "starpu_zsubmit_tasks.h"
-//#endif
-
-// static pastix_complex64_t fun   = 1.0;
-// #define z_up_down_smp API_CALL(z_up_down_smp)
-// void* z_up_down_smp ( void *arg );
-// #define z_sopalin_updo_comm API_CALL(z_sopalin_updo_comm)
-// void *z_sopalin_updo_comm ( void *arg );
-
-
-/*** ALLOCATIONS ET SYNCHRONISATIONS ***/
-
-/* Synchronise le vecteur x dans la nb-ieme variable de la structure */
-// pastix_complex64_t *z_Pastix_Synchro_Vect(void *arg, void *x, int nb)
-// {
-//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-//   pastix_int_t        me           = argument->me;
-//   sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
-//   SolverMatrix     *datacode     = sopalin_data->datacode;
-// //   MONOTHREAD_BEGIN;
-//   sopalin_data->ptr_raff[nb] = x;
-// //   MONOTHREAD_END;
-// //   SYNCHRO_THREAD;
-//   return (pastix_complex64_t*) sopalin_data->ptr_raff[nb];
-// }
 
 /* Alloue un vecteur de taille size octets */
 void *z_Pastix_Malloc(size_t size)
@@ -98,66 +46,26 @@ void z_Pastix_Free( void *x)
 /* Affichage à chaque itération et communication de certaines informations à la structure */
 void z_Pastix_Verbose(double t0, double t3, double tmp, pastix_int_t nb_iter)
 {
-//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-//   sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
-//   SolverMatrix     *datacode     = sopalin_data->datacode;
-//   SopalinParam     *sopar        = sopalin_data->sopar;
-//   MPI_Comm          pastix_comm  = PASTIX_COMM;
-//   pastix_int_t        me           = argument->me;
-//   sopalin_data->count_iter = nb_iter;
-//   sopalin_data->stop = tmp;
-//   MONOTHREAD_BEGIN;
-//   if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-//     {
-      double rst = 0.0;
-      double stt, rtt;
-      double err, stop = tmp;
+    double stt;
 
-      stt = t3 - t0;
-      err = stop;
-      rtt = stt;
-//       MyMPI_Reduce(&stop, &err, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
-//       MyMPI_Reduce(&stt,  &rtt, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
-
-//       if (SOLV_PROCNUM == 0)
-//         {
-          fprintf(stdout, OUT_ITERRAFF_ITER, (int)nb_iter);
-//           if (sopar->iparm[IPARM_ONLY_RAFF] == API_NO)
-            fprintf(stdout, OUT_ITERRAFF_TTS, rst);
-          fprintf(stdout, OUT_ITERRAFF_TTT, stt);
-          fprintf(stdout, OUT_ITERRAFF_ERR, err);
-//         }
-//     }
-//   MONOTHREAD_END;
+    stt = t3 - t0;
+    fprintf(stdout, OUT_ITERRAFF_ITER, (int)nb_iter);
+    fprintf(stdout, OUT_ITERRAFF_TTT, stt);
+    fprintf(stdout, OUT_ITERRAFF_ERR, tmp);
 }
 
 /* Affichage final */
 void z_Pastix_End(SopalinParam *sopar, pastix_complex64_t tmp, pastix_int_t nb_iter, double t, void *x, pastix_complex64_t *gmresx)
 {
-//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-//   Sopalin_Data_t   *sopalin_data = (Sopalin_Data_t *)(argument->data);
-//   SopalinParam     *sopar        = sopalin_data->sopar;
-//   SolverMatrix     *datacode     = sopalin_data->datacode;
-//   MPI_Comm          pastix_comm  = PASTIX_COMM;
-//   PASTIX_INT        me           = argument->me;
     pastix_complex64_t *xptr = (pastix_complex64_t *)x;
     pastix_int_t        n = sopar->gN;
     pastix_int_t i;
 
-//   sopalin_data->stop = tmp;
-//   CscCopy(sopalin_data, me, x, UPDOWN_SM2XTAB,
-//           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-//   memcpy(x,gmresx,sopar->gN * sizeof(pastix_complex64_t));
     for (i=0; i<n; i++)
       xptr[i] = gmresx[i];
 
-//   if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
-//   {
-//   MULTITHREAD_END(0);
-//   SYNCHRO_THREAD;
-
-  sopar->rberror = tmp;
-  sopar->itermax = nb_iter;
+    sopar->rberror = tmp;
+    sopar->itermax = nb_iter;
 
 //   if (sopar->iparm[IPARM_PRODUCE_STATS] == API_YES) {
 //     PASTIX_FLOAT *r, *s;
@@ -195,16 +103,16 @@ void z_Pastix_X(pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx)
   pastix_int_t        n = pastix_data->bcsc->gN;
   pastix_complex64_t *xptr = (pastix_complex64_t *)x;
 
-//   if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
-//   {
+  if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
+  {
     for (i=0; i<n; i++, xptr++)
       gmresx[i]= *xptr;
-//   }
-//   else
-//   {
-//     for (i=0; i<n; i++, xptr++)
-//       gmresx[i]=0.0;
-//   }
+  }
+  else
+  {
+    for (i=0; i<n; i++, xptr++)
+      gmresx[i]=0.0;
+  }
 }
 
 /* Taille d'un vecteur */
@@ -212,15 +120,6 @@ pastix_int_t z_Pastix_n(SopalinParam *sopar)
 {
   return sopar->gN;
 }
-
-/* Nombre de second membres */
-// pastix_int_t z_Pastix_m(void *arg)
-// {
-//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-//   sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
-//   SolverMatrix     *datacode     = sopalin_data->datacode;
-//   return UPDOWN_SM2XNBR;
-// }
 
 /* Second membre */
 void z_Pastix_B(void *b, pastix_complex64_t *raffb, pastix_int_t n)
@@ -232,7 +131,6 @@ void z_Pastix_B(void *b, pastix_complex64_t *raffb, pastix_int_t n)
   {
       raffb[i]= *bptr;
   }
-//   memcpy(raffb, b, n * sizeof( pastix_complex64_t ));
 }
 
 /* Epsilon */
@@ -330,7 +228,7 @@ pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *x, pastix_int_t n)
 // }
 
 /* Application du préconditionneur */
-void z_Pastix_Precond(pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_complex64_t *d, int flag)
+void z_Pastix_Precond(pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_complex64_t *d)
 {
   pastix_int_t n = pastix_data->bcsc->gN;
   pastix_int_t nrhs = 1;
@@ -370,18 +268,18 @@ void z_Pastix_Precond(pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_
 }
 
 /* Calcul de alpha * x */
-void z_Pastix_Scal(pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x, int flag)
+void z_Pastix_Scal(pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x)
 {
     z_bcscScal( x, alpha, n, 1);
 }
 
 /* Calcul du produit scalaire */
-void z_Pastix_Dotc(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int flag)
+void z_Pastix_Dotc(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r)
 {
   *r = z_bcscDotc(x, y, n);
 }
 
-void z_Pastix_Dotc_Gmres(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int flag)
+void z_Pastix_Dotc_Gmres(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r)
 {
   (*r) = z_bcscDotc(x, y, n);
 }
@@ -409,8 +307,6 @@ void z_Pastix_Ax(pastix_bcsc_t *bcsc, pastix_complex64_t *x, pastix_complex64_t 
     }
 }
 
-
-/*** A MODIFIER! ***/
 void z_Pastix_bMAx(pastix_bcsc_t *bcsc, pastix_complex64_t *b, pastix_complex64_t *x, pastix_complex64_t *r)
 {
     pastix_int_t alpha = -1.0;
@@ -474,7 +370,7 @@ void z_Pastix_bMAx(pastix_bcsc_t *bcsc, pastix_complex64_t *b, pastix_complex64_
 // }
 
 
-void z_Pastix_AXPY(pastix_int_t n, double coeff, pastix_complex64_t *alpha, pastix_complex64_t *x, pastix_complex64_t *y, int flag)
+void z_Pastix_AXPY(pastix_int_t n, double coeff, pastix_complex64_t *alpha, pastix_complex64_t *x, pastix_complex64_t *y)
 {
     void *yptr = (void*)y;
     void *xptr = (void*)x;
@@ -492,7 +388,6 @@ pastix_int_t z_Pastix_me(void *arg)
 void z_Pastix_Solveur(struct z_solver *solveur)
 {
   /*** ALLOCATIONS ET SYNCHRONISATIONS ***/
-//   solveur->Synchro     = &z_Pastix_Synchro_Vect;
   solveur->Malloc      = &z_Pastix_Malloc;
   solveur->Free        = &z_Pastix_Free;
 
@@ -508,12 +403,9 @@ void z_Pastix_Solveur(struct z_solver *solveur)
   solveur->Krylov_Space = &z_Pastix_Krylov_Space;
 
   /*** OPERATIONS DE BASE ***/
-//   solveur->Mult     = &z_Pastix_Mult;
-//   solveur->Div      = &z_Pastix_Div;
   solveur->Dotc_Gmres = &z_Pastix_Dotc_Gmres;
 
   solveur->Norm    = &z_Pastix_Norm2;
-//   solveur->Copy    = &z_Pastix_Copy;
   solveur->Precond = &z_Pastix_Precond;
 
   solveur->Scal    = &z_Pastix_Scal;
@@ -522,40 +414,4 @@ void z_Pastix_Solveur(struct z_solver *solveur)
 
   solveur->AXPY    = &z_Pastix_AXPY;
   solveur->bMAx    = &z_Pastix_bMAx;
-//   solveur->BYPX    = &z_Pastix_BYPX;
 }
-
-/*
- ** Section: Function creating threads
- */
-/*
- Function: method)
-
- Launch sopaparam->nbthrdcomm threads which will compute
- <method_smp)>.
-
- Parameters:
- datacode  - PaStiX <SolverMatrix> structure.
- sopaparam - <SopalinParam> parameters structure.
- */
-// void z_raff_thread(SolverMatrix *datacode, SopalinParam *sopaparam, void*(*method)(void *))
-// {
-//   sopalin_data_t *sopalin_data = NULL;
-//   BackupSolve_t b;
-// 
-//   MALLOC_INTERN(sopalin_data, 1, sopalin_data_t);
-// 
-//   z_solve_backup(datacode,&b);
-//   z_sopalin_init(sopalin_data, datacode, sopaparam, 0);
-// 
-//   sopalin_launch_thread(sopalin_data,
-//                         SOLV_PROCNUM,          SOLV_PROCNBR,                datacode->btree,
-//                         sopalin_data->sopar->iparm[IPARM_VERBOSE],
-//                         SOLV_THRDNBR,          method,                      sopalin_data,
-//                         sopaparam->nbthrdcomm, API_CALL(z_sopalin_updo_comm), sopalin_data,
-//                         OOC_THREAD_NBR,        z_ooc_thread,                  sopalin_data);
-// 
-//   z_sopalin_clean(sopalin_data, 2);
-//   z_solve_restore(datacode,&b);
-//   memFree_null(sopalin_data);
-// }

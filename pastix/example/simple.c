@@ -89,6 +89,7 @@ int main (int argc, char **argv)
     }
     else {
         spmGenRHS( PastixRhsRndB, nrhs, &csc, NULL, csc.n, x, csc.n );
+        memcpy( b, x, size );
     }
 
     /**

@@ -6,6 +6,7 @@
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
+ * @author Theophile Terraz
  * @author Xavier Lacoste
  * @date 2011-11-11
  * @precisions normal z -> c d s
@@ -16,32 +17,36 @@
 #include "z_raff_functions.h"
 #include "solver.h"
 
-/*
- ** Section: Threads routines
- */
-
-/*
- Function: z_gmres_smp
-
- Function computing GMRES iterative reffinement.
-
- Parameters:
- arg - Pointer to a <sopthread_data_t> structure containing
- the <z_Sopalin_Data_t> structure and the thread number ID.
- */
-
 typedef struct gmres_s
 {
   volatile pastix_int_t gmresout_flag;     /*+ Flag for GMRES outter loop          +*/
   volatile pastix_int_t gmresin_flag;      /*+ Flag for GMRES inner loop           +*/
-  volatile double     gmresro;           /*+ Norm of GMRES residue               +*/
+  volatile double     gmresro;             /*+ Norm of GMRES residue               +*/
 } gmres_t;
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_raff
+ *
+ * z_gmres_smp - Function computing GMRES iterative reffinement.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The PaStiX data structure that describes the solver instance.
+ * 
+ * @param[in] x
+ *          The solution vector.
+ * 
+ * @param[in] b
+ *          The right hand side member (only one).
+ *
+ *******************************************************************************/
 void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 {
   struct z_solver solveur = {NULL};
   z_Pastix_Solveur(&solveur);
-//   SolverMatrix                 * datacode     = pastix_data->solvmatr;
   SopalinParam                 * sopaparam    = &(pastix_data->sopar);
   pastix_bcsc_t                * bcsc         = pastix_data->bcsc;
   pastix_int_t                   n            = bcsc->gN;
@@ -92,27 +97,9 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
       gmresw[i]  = (pastix_complex64_t *)solveur.Malloc(n           * sizeof(pastix_complex64_t));
     }
   gmresvv[gmresim] = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-//   MONO_END(arg);
-//   SYNCHRO(arg);
-
-  /* Synchronisations */
-//   gmrestemp  = (pastix_complex64_t * )solveur.Synchro(arg, (void*) gmrestemp, 0);
-//   gmresb     = (pastix_complex64_t * )solveur.Synchro(arg, (void*) gmresb,    1);
-//   gmresc     = (pastix_complex64_t * )solveur.Synchro(arg, (void*) gmresc,    2);
-//   gmress     = (pastix_complex64_t * )solveur.Synchro(arg, (void*) gmress,    3);
-//   gmresrs    = (pastix_complex64_t * )solveur.Synchro(arg, (void*) gmresrs,   4);
-//   gmresvv    = (pastix_complex64_t **)solveur.Synchro(arg, (void*) gmresvv,   6);
-//   gmreshh    = (pastix_complex64_t **)solveur.Synchro(arg, (void*) gmreshh,   7);
-//   gmresw     = (pastix_complex64_t **)solveur.Synchro(arg, (void*) gmresw,    8);
-//   gmresdata  = (gmres_t*)solveur.Synchro(arg, (void*) gmresdata, 9);
-// 
-//   gmresnormb = (double)(*((double*)solveur.Synchro(arg, (void*) &gmresnormb, 10)));
-//   gmresx     = (pastix_complex64_t * )solveur.Synchro(arg, (void*) gmresx,    11);
-
   gmresdata->gmresro = 0.0;
   gmresdata->gmresout_flag = 1;
 
-  sopaparam->gN = n;
   solveur.B(b, gmresb, n);
   gmresnormb = solveur.Norm(gmresb, n);
 
@@ -121,7 +108,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   gmresalpha = -1.0;
   gmresiters = 0;
 
-//   RAFF_CLOCK_INIT;
   clockInit(raff_clk);clockStart(raff_clk);
 
   while (gmresdata->gmresout_flag)
@@ -132,7 +118,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
       solveur.bMAx(bcsc, gmresb, gmresx, gmresvv[0]);
 
       /* ro = vv[0].vv[0] */
-      solveur.Dotc_Gmres(n, gmresvv[0], gmresvv[0], &beta, 0);
+      solveur.Dotc_Gmres(n, gmresvv[0], gmresvv[0], &beta);
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
       gmresdata->gmresro = (pastix_complex64_t)csqrt(beta);
@@ -149,7 +135,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
       gmrest = (pastix_complex64_t)(1.0/gmresdata->gmresro);
 
-      solveur.Scal(n, gmrest, gmresvv[0], 1);
+      solveur.Scal(n, gmrest, gmresvv[0]);
 
       gmresrs[0] = (pastix_complex64_t)gmresdata->gmresro;
       gmresdata->gmresin_flag = 1;
@@ -157,9 +143,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
       while(gmresdata->gmresin_flag)
         {
-//           RAFF_CLOCK_STOP;
           clockStop((raff_clk));
-//           t0 = RAFF_CLOCK_GET;
           t0 = clockGet();
 
           i++;
@@ -168,8 +152,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
           gmreswk1 = gmresvv[i];
           gmreswk2 = gmresw[i];
 
-//           SYNCHRO(arg);
-          solveur.Precond(pastix_data, gmreswk1, gmreswk2, 1);
+          solveur.Precond(pastix_data, gmreswk1, gmreswk2);
 
           gmreswk1 = gmresvv[gmresi1];
 
@@ -180,21 +163,18 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
           for (j=0; j<=i; j++)
             {
               /* vv[j]*vv[i1] */
-              solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[j], &beta, 0);
+              solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[j], &beta);
 
               gmreshh[i][j] = (pastix_complex64_t)beta;
             }
 
-//           SYNCHRO(arg);
-
           for (j=0;j<=i;j++)
             {
               gmresalpha = -gmreshh[i][j];
-              solveur.AXPY(n, 1.0, &gmresalpha, gmresvv[gmresi1], gmresvv[j], 0);
+              solveur.AXPY(n, 1.0, &gmresalpha, gmresvv[gmresi1], gmresvv[j]);
             }
 
-//           SYNCHRO(arg);
-          solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[gmresi1], &beta, 0);
+          solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[gmresi1], &beta);
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
       gmrest = (pastix_complex64_t)csqrt(beta);
@@ -208,11 +188,8 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             {
 //               gmrest = fun / gmrest;
               gmrest = 1.0 / gmrest;
-              solveur.Scal(n, gmrest, gmresvv[gmresi1], 0);
+              solveur.Scal(n, gmrest, gmresvv[gmresi1]);
             }
-
-//           SYNCHRO(arg);
-//           MONO_BEGIN(arg);
 
           if (i != 0)
             {
@@ -222,10 +199,10 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 #if defined(PRECISION_z) || defined(PRECISION_c)
                   gmreshh[i][j-1] = (pastix_complex64_t)conj(gmresc[j-1])*gmrest +
                     (pastix_complex64_t)conj(gmress[j-1])*gmreshh[i][j];
-#else /* TYPE_COMPLEX */
+#else
                   gmreshh[i][j-1] =  gmresc[j-1]*gmrest +
                     gmress[j-1]*gmreshh[i][j];
-#endif /* TYPE_COMPLEX */
+#endif
                   gmreshh[i][j]   = -gmress[j-1]*gmrest +
                     gmresc[j-1]*gmreshh[i][j];
                 }
@@ -255,26 +232,17 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 #endif
           gmresdata->gmresro = cabs(gmresrs[gmresi1]);
 
-//           MONO_END(arg);
-
           gmresiters++;
 
-//           MONO_BEGIN(arg);
           if ((i+1 >= gmresim) || (gmresdata->gmresro/gmresnormb <= gmreseps) || (gmresiters >= gmresmaxits))
             {
               gmresdata->gmresin_flag = 0;
             }
-//           MONO_END(arg);
 
-//           RAFF_CLOCK_STOP;
           clockStop((raff_clk));
-//           t3 = RAFF_CLOCK_GET;
           t3 = clockGet();
           solveur.Verbose(t0, t3, gmresdata->gmresro/gmresnormb, gmresiters);
-//           SYNCHRO(arg);
         }
-
-//       MONO_BEGIN(arg);
 
       gmresrs[i] = gmresrs[i]/gmreshh[i][i];
       for (ii=2; ii<=i+1; ii++)
@@ -288,15 +256,11 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
           gmresrs[k] = gmrest/gmreshh[k][k];
         }
 
-//       MONO_END(arg);
-//       SYNCHRO(arg);
-
       for (j=0; j<=i;j++)
         {
           gmrest = gmresrs[j];
-          solveur.AXPY(n, 1.0, &gmrest, gmresx, gmresw[j], 0);
+          solveur.AXPY(n, 1.0, &gmrest, gmresx, gmresw[j]);
         }
-//       SYNCHRO(arg);
 
       if ((gmresdata->gmresro/gmresnormb<= gmreseps) || (gmresiters >= gmresmaxits))
         {
@@ -304,9 +268,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
         }
     }
 
-//   RAFF_CLOCK_STOP;
   clockStop((raff_clk));
-//   t3 = RAFF_CLOCK_GET;
   t3 = clockGet();
 
   solveur.End(sopaparam, gmresdata->gmresro/gmresnormb, gmresiters, t3, x, gmresx);
@@ -319,7 +281,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   solveur.Free((void*) gmresdata);
   solveur.Free((void*) gmresx);
 
-//   MONO_BEGIN(arg);
   for (i=0; i<gmresim; i++)
     {
       solveur.Free(gmresvv[i]);
@@ -332,20 +293,4 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   solveur.Free(gmresvv);
   solveur.Free(gmreshh);
   solveur.Free(gmresw);
-//   MONO_END(arg);
-
-//   return 0;
 }
-
-/*
-** Section: Function creating threads
-*/
-// void gmres_thread(pastix_data_t *pastix_data, void *x, void *b)
-// {
-// //   z_raff_thread(bcsc, sopaparam, &z_gmres_smp);
-//     int i;
-//     double *bptr = (double*)b;
-//     for(i=0; i<pastix_data->bcsc->gN*2; i+=2, bptr+=2)
-//         fprintf(stdout, "++     b[0] = %g +I%g\n", bptr[0],bptr[1]);
-//     z_gmres_smp(pastix_data, x, b);
-// }
