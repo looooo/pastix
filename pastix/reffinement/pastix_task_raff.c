@@ -43,14 +43,10 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
     },
 //  API_RAF_GRAD
     {
-//     s_grad_smp,
-//     d_grad_smp,
-//     c_grad_smp,
-//     z_grad_smp
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    s_grad_smp,
+    d_grad_smp,
+    c_grad_smp,
+    z_grad_smp
     },
 //  API_RAF_BICGSTAB
     {

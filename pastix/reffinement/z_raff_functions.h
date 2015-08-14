@@ -138,7 +138,7 @@ void z_Pastix_Ax(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *);
 /*** A MODIFIER! ***/
 void z_Pastix_bMAx(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 
-// void z_Pastix_BYPX(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+void z_Pastix_BYPX(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 
 void z_Pastix_AXPY(pastix_int_t, double, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 
@@ -177,7 +177,7 @@ struct z_solver
   void (* Ax)(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *);
 
   void (* bMAx)(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
-//   void (* BYPX)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
+  void (* BYPX)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
   void (* AXPY)(pastix_int_t, double, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 };
 
@@ -205,19 +205,19 @@ void s_gmres_smp        (pastix_data_t *, void *, void *);
 void d_gmres_smp        (pastix_data_t *, void *, void *);
 void c_gmres_smp        (pastix_data_t *, void *, void *);
 void z_gmres_smp        (pastix_data_t *, void *, void *);
-void gmres_thread(pastix_data_t *, void *, void *);
-void* s_grad_smp         (void *);
-void* d_grad_smp         (void *);
-void* c_grad_smp         (void *);
-void* z_grad_smp         (void *);
-void grad_thread (pastix_data_t *, void *, void *);
-void* s_pivotstatique_smp(void *);
-void* d_pivotstatique_smp(void *);
-void* c_pivotstatique_smp(void *);
-void* z_pivotstatique_smp(void *);
-void pivot_thread(pastix_data_t *, void *, void *);
-void* s_bicgstab_smp(void *);
-void* d_bicgstab_smp(void *);
-void* c_bicgstab_smp(void *);
-void* z_bicgstab_smp(void *);
-void bicgstab_thread(pastix_data_t *, void *, void *);
+
+void s_grad_smp         (pastix_data_t *, void *, void *);
+void d_grad_smp         (pastix_data_t *, void *, void *);
+void c_grad_smp         (pastix_data_t *, void *, void *);
+void z_grad_smp         (pastix_data_t *, void *, void *);
+
+void s_pivotstatique_smp(pastix_data_t *, void *, void *);
+void d_pivotstatique_smp(pastix_data_t *, void *, void *);
+void c_pivotstatique_smp(pastix_data_t *, void *, void *);
+void z_pivotstatique_smp(pastix_data_t *, void *, void *);
+
+void s_bicgstab_smp     (pastix_data_t *, void *, void *);
+void d_bicgstab_smp     (pastix_data_t *, void *, void *);
+void c_bicgstab_smp     (pastix_data_t *, void *, void *);
+void z_bicgstab_smp     (pastix_data_t *, void *, void *);
+

@@ -11,7 +11,10 @@
  * @precisions normal z -> c d s
  *
  **/
+#include "common.h"
+#include "bcsc.h"
 #include "z_raff_functions.h"
+#include "solver.h"
 
 /*
  ** Section: Threads routines
@@ -28,124 +31,111 @@
  the <z_Sopalin_Data_t> structure and the thread number ID.
 
  */
-void* z_grad_smp(void *arg)
+void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 {
   /* Choix du solveur */
   struct z_solver solveur = {NULL};
-  Pastix_Solveur(&solveur);
+  z_Pastix_Solveur(&solveur);
 
   /* Variables */
-  Clock  raff_clk;
-  double t0      = 0;
-  double t3      = 0;
-  RAFF_FLOAT  tmp     = 0.0;
-  RAFF_FLOAT  normr;
-  RAFF_FLOAT  normb;
-  RAFF_FLOAT  epsilon = solveur.Eps(arg);
-  RAFF_INT    itermax = solveur.Itermax(arg);
-  RAFF_INT    nb_iter = 0;
-  RAFF_INT    n       = solveur.N(arg);
+  SopalinParam      * sopar = &(pastix_data->sopar);
+  pastix_bcsc_t     * bcsc      = pastix_data->bcsc;
+  pastix_int_t        n         = bcsc->gN;
+  Clock               raff_clk;
+  double              t0        = 0;
+  double              t3        = 0;
+  pastix_complex64_t  tmp       = 0.0;
+  pastix_complex64_t  normr;
+  pastix_complex64_t  normb;
+  pastix_complex64_t  epsilon   = solveur.Eps(sopar);
+  pastix_int_t        itermax   = solveur.Itermax(sopar);
+  pastix_int_t        nb_iter   = 0;
 
-  RAFF_FLOAT *gradb = NULL;
-  RAFF_FLOAT *gradr = NULL;
-  RAFF_FLOAT *gradp = NULL;
-  RAFF_FLOAT *gradz = NULL;
-  RAFF_FLOAT *grad2 = NULL;
-  RAFF_FLOAT *alpha = NULL;
-  RAFF_FLOAT *beta  = NULL;
-  RAFF_FLOAT *gradx = NULL;
+  pastix_complex64_t *gradb = NULL;
+  pastix_complex64_t *gradr = NULL;
+  pastix_complex64_t *gradp = NULL;
+  pastix_complex64_t *gradz = NULL;
+  pastix_complex64_t *grad2 = NULL;
+  pastix_complex64_t *alpha = NULL;
+  pastix_complex64_t *beta  = NULL;
+  pastix_complex64_t *gradx = NULL;
 
   /* Initialisation des vecteurs */
-  gradb = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
-  gradr = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
-  gradp = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
-  gradz = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
-  grad2 = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
-  alpha = solveur.Malloc(arg,     sizeof(RAFF_FLOAT));
-  beta  = solveur.Malloc(arg,     sizeof(RAFF_FLOAT));
-  gradx = solveur.Malloc(arg, n * sizeof(RAFF_FLOAT));
+  gradb = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
+  gradr = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
+  gradp = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
+  gradz = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
+  grad2 = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
+  alpha = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
+  beta  = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
+  gradx = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
 
-  gradb = solveur.Synchro(arg, (void*) gradb, 0);
-  gradr = solveur.Synchro(arg, (void*) gradr, 1);
-  gradp = solveur.Synchro(arg, (void*) gradp, 2);
-  gradz = solveur.Synchro(arg, (void*) gradz, 3);
-  grad2 = solveur.Synchro(arg, (void*) grad2, 4);
-  gradx = solveur.Synchro(arg, (void*) gradx, 5);
-  alpha = solveur.Synchro(arg, (void*) alpha, 6);
-  beta  = solveur.Synchro(arg, (void*) beta,  7);
+  clockInit(raff_clk);clockStart(raff_clk);
 
-  RAFF_CLOCK_INIT;
-
-  solveur.B(arg, gradb);
-  solveur.X(arg, gradx);
+  solveur.B(b, gradb, n);
+  solveur.X(pastix_data, x, gradx);
 
   /* r=b-ax */
-  solveur.bMAx(arg, gradb, gradx, gradr);
-  normb = solveur.Norm(arg, gradb);
-  normr = solveur.Norm(arg, gradr);
+  solveur.bMAx(bcsc, gradb, gradx, gradr);
+  normb = solveur.Norm(gradb, n);
+  normr = solveur.Norm(gradr, n);
   tmp = normr / normb;
 
   /* z = M-1 r */
-  solveur.Precond(arg, gradr, gradz, 1);
+  solveur.Precond(pastix_data, gradr, gradz);
 
-  solveur.Copy(arg, gradz, gradp, 1);
+//   solveur.Copy(arg, gradz, gradp, 1);
+  memcpy(gradp, gradz, n * sizeof( pastix_complex64_t ));
 
   while (((double)tmp > (double)epsilon) && (nb_iter < itermax))
     {
-      RAFF_CLOCK_STOP;
-      t0 = RAFF_CLOCK_GET;
+      clockStop((raff_clk));
+      t0 = clockGet();
       nb_iter++;
 
       /* grad2 = A * p */
-      solveur.Ax(arg, gradp, grad2);
+      solveur.Ax(bcsc, gradp, grad2);
 
       /* alpha = <r, z> / <Ap, p> */
-      solveur.Dotc(arg, gradr, gradz, beta, 0);
-      solveur.Dotc(arg, grad2, gradp, alpha, 1);
-      solveur.Div(arg, beta, alpha, alpha, 1);
+      solveur.Dotc(n, gradr, gradz, beta);
+      solveur.Dotc(n, grad2, gradp, alpha);
+//       solveur.Div(arg, beta, alpha, alpha, 1);
+      alpha[0] = beta[0] / alpha[0];
 
       /* x = x + alpha * p */
-      solveur.AXPY(arg, 1, alpha, gradx, gradp, 0);
+      solveur.AXPY(n, 1, alpha, gradx, gradp);
 
       /* r = r - alpha * A * p */
-      solveur.AXPY(arg, -1, alpha, gradr, grad2, 1);
+      solveur.AXPY(n, -1, alpha, gradr, grad2);
 
       /* z = M-1 * r */
-      solveur.Precond(arg, gradr, gradz, 1);
+      solveur.Precond(pastix_data, gradr, gradz);
 
       /* beta = <r', z> / <r, z> */
-      solveur.Dotc(arg, gradr, gradz, alpha, 0);
-      solveur.Div(arg, alpha, beta, beta, 1);
+      solveur.Dotc(n, gradr, gradz, alpha);
+//       solveur.Div(arg, alpha, beta, beta, 1);
+      beta[0] = alpha[0] / beta[0];
 
       /* p = z + beta * p */
-      solveur.BYPX(arg, beta, gradz, gradp, 1);
+      solveur.BYPX(n, beta, gradz, gradp);
 
-      normr = solveur.Norm(arg, gradr);
+      normr = solveur.Norm(gradr, n);
       tmp = normr / normb;
 
-      RAFF_CLOCK_STOP;
-      t3 = RAFF_CLOCK_GET;
-      solveur.Verbose(arg, t0, t3, tmp, nb_iter);
+      clockStop((raff_clk));
+      t3 = clockGet();
+      solveur.Verbose(t0, t3, tmp, nb_iter);
       t0 = t3;
     }
 
-  solveur.End(arg, tmp, nb_iter, t3, gradx);
+  solveur.End(sopar, tmp, nb_iter, t3, x, gradx);
 
-  solveur.Free(arg, (void*) gradb);
-  solveur.Free(arg, (void*) gradr);
-  solveur.Free(arg, (void*) gradp);
-  solveur.Free(arg, (void*) gradz);
-  solveur.Free(arg, (void*) grad2);
-  solveur.Free(arg, (void*) alpha);
-  solveur.Free(arg, (void*) beta);
-  solveur.Free(arg, (void*) gradx);
-  return 0;
-}
-
-/*
- ** Section: Function creating threads
- */
-void z_grad_thread(SolverMatrix *datacode, SopalinParam *sopaparam)
-{
-  z_raff_thread(datacode, sopaparam, &z_grad_smp);
+  solveur.Free((void*) gradb);
+  solveur.Free((void*) gradr);
+  solveur.Free((void*) gradp);
+  solveur.Free((void*) gradz);
+  solveur.Free((void*) grad2);
+  solveur.Free((void*) alpha);
+  solveur.Free((void*) beta);
+  solveur.Free((void*) gradx);
 }

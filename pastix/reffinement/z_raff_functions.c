@@ -330,44 +330,15 @@ void z_Pastix_bMAx(pastix_bcsc_t *bcsc, pastix_complex64_t *b, pastix_complex64_
     }
 }
 
-// void z_Pastix_BYPX(void *arg, pastix_complex64_t *beta, pastix_complex64_t *y, pastix_complex64_t *x, int flag)
-// {
-//   sopthread_data_t *argument     = (sopthread_data_t *)arg;
-//   sopalin_data_t   *sopalin_data = (sopalin_data_t *)(argument->data);
-//   SolverMatrix     *datacode     = sopalin_data->datacode;
-//   MPI_Comm          pastix_comm  = PASTIX_COMM;
-//   pastix_int_t        me           = argument->me;
-// 
-// #ifdef MULT_SMX_RAFF
-//   {
-//     pastix_int_t itersmx;
-//     for (itersmx=0; itersmx<UPDOWN_SM2XNBR; itersmx++)
-//       {
-// //         MULTITHREAD_BEGIN;
-//         z_CscScal(sopalin_data, me, beta[itersmx], x+(itersmx*UPDOWN_SM2XSZE),
-//                 UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-// //         MULTITHREAD_END(0);
-// //         SYNCHRO_THREAD;
-//       }
-//   }
-// //   MONOTHREAD_BEGIN;
-//   SOPALIN_GEAM("N","N",UPDOWN_SM2XSZE,UPDOWN_SM2XNBR, fun,
-//                y, UPDOWN_SM2XSZE, x, UPDOWN_SM2XSZE);
-// //   MONOTHREAD_END;
-// #else
-// //   MULTITHREAD_BEGIN;
-//   z_CscScal(sopalin_data, me, beta[0], x,
-//           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-// //   MULTITHREAD_END(0);
-// //   SYNCHRO_THREAD;
-// //   MULTITHREAD_BEGIN;
-//   z_CscAXPY(sopalin_data, me, fun, y, x,
-//           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
-// //   MULTITHREAD_END(0);
-// #endif
-// //   if (flag)
-// //     SYNCHRO_THREAD;
-// }
+/* x = y + beta * x */
+void z_Pastix_BYPX(pastix_int_t n, pastix_complex64_t *beta, pastix_complex64_t *y, pastix_complex64_t *x)
+{
+    void *yptr = (void*)y;
+    void *xptr = (void*)x;
+
+    z_bcscScal( xptr, *beta, n, 1);
+    z_bcscAxpy( 1, yptr, n, xptr, 1 );
+}
 
 
 void z_Pastix_AXPY(pastix_int_t n, double coeff, pastix_complex64_t *alpha, pastix_complex64_t *x, pastix_complex64_t *y)
@@ -414,4 +385,5 @@ void z_Pastix_Solveur(struct z_solver *solveur)
 
   solveur->AXPY    = &z_Pastix_AXPY;
   solveur->bMAx    = &z_Pastix_bMAx;
+  solveur->BYPX    = &z_Pastix_BYPX;
 }
