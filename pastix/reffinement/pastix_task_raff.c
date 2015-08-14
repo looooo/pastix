@@ -50,14 +50,10 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
     },
 //  API_RAF_BICGSTAB
     {
-//     s_bicgstab_smp,
-//     d_bicgstab_smp,
-//     c_bicgstab_smp,
-//     z_bicgstab_smp
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    s_bicgstab_smp,
+    d_bicgstab_smp,
+    c_bicgstab_smp,
+    z_bicgstab_smp
     }
 };
 
@@ -89,8 +85,6 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                       void          *b)
 {
     pastix_int_t  * iparm    = pastix_data->iparm;
-    double        * dparm    = pastix_data->dparm;
-    SopalinParam  * sopar    = &(pastix_data->sopar);
     Order         * ordemesh = pastix_data->ordemesh;
     double timer;
 

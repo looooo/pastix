@@ -514,7 +514,7 @@ set(SOURCES
   #
   reffinement/z_raff_functions.c
   reffinement/z_raff_gmres.c
-#   reffinement/z_raff_bicgstab.c
+  reffinement/z_raff_bicgstab.c
   reffinement/z_raff_grad.c
 #   reffinement/z_raff_pivot.c
   #
