@@ -69,9 +69,12 @@
    IPARM_RHSD_CHECK            - Set to API_NO to avoid RHS redistribution                Default: API_YES             IN
    IPARM_FACTORIZATION         - Factorization mode (see Factorization modes)             Default: API_FACT_LDLT       IN
    IPARM_NNZEROS_BLOCK_LOCAL   - Number of nonzero entries in the local block factorized matrix Default: -                   OUT
+
+   IPARM_SCHEDULER
    IPARM_CPU_BY_NODE           - Number of CPUs per SMP node                              Default: 0                   IN
    IPARM_BINDTHRD              - Thread binding mode (see Thread binding modes)           Default: API_BIND_AUTO       IN
    IPARM_THREAD_NBR            - Number of threads per MPI process                        Default: 1                   IN
+
    IPARM_DISTRIBUTION_LEVEL    - Distribution level IGNORE                                Default:                     IN
    IPARM_LEVEL_OF_FILL         - Level of fill for incomplete factorization               Default: 1                   IN
    IPARM_IO_STRATEGY           - IO strategy (see Checkpoints modes)                      Default: API_IO_NO           IN
@@ -125,14 +128,19 @@ enum IPARM_ACCESS {
   IPARM_TRACEFMT,
   IPARM_GRAPHDIST,
 
-  /* Ordering */
+  /*
+   * Ordering
+   */
   IPARM_ORDERING,
   IPARM_ORDERING_DEFAULT,
+
+  /* Subset for Scotch */
   IPARM_SCOTCH_SWITCH_LEVEL,
   IPARM_SCOTCH_CMIN,
   IPARM_SCOTCH_CMAX,
   IPARM_SCOTCH_FRAT,
 
+  /* Subset for Metis */
   IPARM_METIS_CTYPE,
   IPARM_METIS_RTYPE,
   IPARM_METIS_NO2HOP,
@@ -161,9 +169,6 @@ enum IPARM_ACCESS {
   IPARM_RHSD_CHECK,
   IPARM_FACTORIZATION,
   IPARM_NNZEROS_BLOCK_LOCAL,
-  IPARM_CPU_BY_NODE,
-  IPARM_BINDTHRD,
-  IPARM_THREAD_NBR,
   IPARM_DISTRIBUTION_LEVEL,
   IPARM_LEVEL_OF_FILL,
   IPARM_IO_STRATEGY,
@@ -179,9 +184,18 @@ enum IPARM_ACCESS {
   IPARM_OOC_LIMIT,
   IPARM_OOC_THREAD,
   IPARM_OOC_ID,
+
+  IPARM_SCHEDULER,
+  IPARM_CPU_BY_NODE,
+  IPARM_BINDTHRD,
+  IPARM_THREAD_NBR,
   IPARM_NB_SMP_NODE_USED,
   IPARM_THREAD_COMM_MODE,
   IPARM_NB_THREAD_COMM,
+  IPARM_GPUS_NBR,
+  IPARM_GPU_CRITERIUM,
+  IPARM_CUDA_NBR,
+
   IPARM_FILL_MATRIX,
   IPARM_INERTIA,
   IPARM_ESP_NBTASKS,
@@ -193,14 +207,10 @@ enum IPARM_ACCESS {
   IPARM_FLOAT,
   IPARM_PID,
   IPARM_ERROR_NUMBER,
-  IPARM_CUDA_NBR,
   IPARM_TRANSPOSE_SOLVE,
   IPARM_STARPU_CTX_DEPTH,
   IPARM_STARPU_CTX_NBR,
   IPARM_PRODUCE_STATS,
-  IPARM_GPUS_NBR,
-  IPARM_GPU_CRITERIUM,
-
   IPARM_MURGE_MAY_REFINE,
 
   IPARM_SIZE

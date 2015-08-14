@@ -22,12 +22,13 @@
 #include "pastix_zcores.h"
 
 void
-sequential_zdiag( sopalin_data_t *sopalin_data,
+sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
                   int nrhs, pastix_complex64_t *b, int ldb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk   *cblk;
     pastix_int_t  i, j, k;
+    (void)pastix_data;
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){

@@ -3,64 +3,66 @@
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
- * @precisions normal z -> c
+ * @precisions normal z -> s d c
  *
  */
-#include "dague_internal.h"
-#include "dsparse.h"
-#include "data_dist/sparse-matrix/pastix_internal/pastix_internal.h"
+#include <dague.h>
+#include <dague/data_distribution.h>
+#include "common.h"
+#include "sopalin_data.h"
+#include "parsec/sparse-matrix.h"
 
-#include "memory_pool.h"
-#include "zsytrf_sp1dplus.h"
+typedef struct dague_zsytrf_sp1dplus_handle dague_zsytrf_sp1dplus_handle_t;
 
-dague_object_t*
-dsparse_zsytrf_sp_New(sparse_matrix_desc_t *A)
+extern dague_zsytrf_sp1dplus_handle_t *dague_zsytrf_sp1dplus_new(dague_ddesc_t * dataA /* data dataA */, sopalin_data_t * sopalin_data);
+
+dague_handle_t*
+dsparse_zsytrf_sp_New( sparse_matrix_desc_t *A,
+                       sopalin_data_t *sopalin_data )
 {
-    dague_zsytrf_sp1dplus_object_t *dague_zsytrf_sp = NULL;
+    dague_zsytrf_sp1dplus_handle_t *dague_zsytrf_sp = NULL;
 
-    dague_zsytrf_sp = dague_zsytrf_sp1dplus_new(A, (dague_ddesc_t *)A, NULL, NULL );
+    dague_zsytrf_sp = dague_zsytrf_sp1dplus_new( (dague_ddesc_t*)A, sopalin_data );
 
-    dague_zsytrf_sp->p_work1 = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
-    dague_private_memory_init( dague_zsytrf_sp->p_work1, (A->pastix_data->solvmatr).coefmax * sizeof(dague_complex64_t) );
+    /* dague_zsytrf_sp->p_work = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t)); */
+    /* dague_private_memory_init( dague_zsytrf_sp->p_work, (A->pastix_data->solvmatr).coefmax * sizeof(dague_complex64_t) ); */
 
-    dague_zsytrf_sp->p_work2 = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
-    dague_private_memory_init( dague_zsytrf_sp->p_work2, (A->pastix_data->solvmatr).coefmax * sizeof(dague_complex64_t) );
-
-    /* dsparse_add2arena_tile(((dague_zsytrf_Url_object_t*)dague_zsytrf)->arenas[DAGUE_zsytrf_Url_DEFAULT_ARENA],  */
+    /* dsparse_add2arena_tile(((dague_zsytrf_Url_handle_t*)dague_zsytrf)->arenas[DAGUE_zsytrf_Url_DEFAULT_ARENA],  */
     /*                        A->mb*A->nb*sizeof(dague_complex64_t), */
     /*                        DAGUE_ARENA_ALIGNMENT_SSE, */
     /*                        MPI_DOUBLE_COMPLEX, A->mb); */
 
-    return (dague_object_t*)dague_zsytrf_sp;
+    return (dague_handle_t*)dague_zsytrf_sp;
 }
 
 void
-dsparse_zsytrf_sp_Destruct( dague_object_t *o )
+dsparse_zsytrf_sp_Destruct( dague_handle_t *o )
 {
-    dague_zsytrf_sp1dplus_object_t *dague_zsytrf_sp = NULL;
-    dague_zsytrf_sp = (dague_zsytrf_sp1dplus_object_t *)o;
+    (void)o;
+    /* dague_zsytrf_sp1dplus_handle_t *dague_zsytrf_sp = NULL; */
+    /* dague_zsytrf_sp = (dague_zsytrf_sp1dplus_handle_t *)o; */
 
     /*dsparse_datatype_undefine_type( &(osytrf->arenas[DAGUE_zsytrf_Url_DEFAULT_ARENA]->opaque_dtt) );*/
 
-    dague_private_memory_fini( dague_zsytrf_sp->p_work1 );
-    free( dague_zsytrf_sp->p_work1 );
-    dague_private_memory_fini( dague_zsytrf_sp->p_work2 );
-    free( dague_zsytrf_sp->p_work2 );
+    /* dague_private_memory_fini( dague_zsytrf_sp->p_work ); */
+    /* free( dague_zsytrf_sp->p_work ); */
 
-    DAGUE_INTERNAL_OBJECT_DESTRUCT(o);
+    //DAGUE_INTERNAL_HANDLE_DESTRUCT(o);
 }
 
-int dsparse_zsytrf_sp( dague_context_t *dague, sparse_matrix_desc_t *A)
+int dsparse_zsytrf_sp( dague_context_t *dague,
+                       sparse_matrix_desc_t *A,
+                       sopalin_data_t *sopalin_data )
 {
-    dague_object_t *dague_zsytrf_sp = NULL;
+    dague_handle_t *dague_zsytrf_sp = NULL;
     int info = 0;
 
-    dague_zsytrf_sp = dsparse_zsytrf_sp_New( A );
+    dague_zsytrf_sp = dsparse_zsytrf_sp_New( A, sopalin_data );
 
     if ( dague_zsytrf_sp != NULL )
     {
-        dague_enqueue( dague, (dague_object_t*)dague_zsytrf_sp);
-        dague_progress( dague );
+        dague_enqueue( dague, (dague_handle_t*)dague_zsytrf_sp);
+        dague_context_wait( dague );
         dsparse_zsytrf_sp_Destruct( dague_zsytrf_sp );
     }
     return info;

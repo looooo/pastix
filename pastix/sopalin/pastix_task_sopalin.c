@@ -20,7 +20,7 @@
 #include "bcsc.h"
 #include "sopalin_data.h"
 
-static void (*sopalinFacto[4][4])(sopalin_data_t*) =
+static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 {
     { sopalin_spotrf, sopalin_dpotrf, sopalin_cpotrf, sopalin_zpotrf },
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_csytrf, sopalin_zsytrf },
@@ -233,19 +233,18 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
             sopalin_data.diagthreshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
         }
     }
-    sopalin_data.sched = pastix_data->isched;
 
     sbackup = solverBackupInit( pastix_data->solvmatr );
     pastix_data->solvmatr->restore = 2;
     {
-        void (*factofct)( sopalin_data_t *);
+        void (*factofct)( pastix_data_t *, sopalin_data_t *);
         double timer;
 
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][csc->flttype-2];
         assert(sopalinFacto);
 
         clockStart(timer);
-        factofct( &sopalin_data );
+        factofct( pastix_data, &sopalin_data );
         clockStop(timer);
         pastix_print( 0, 0, OUT_TIME_FACT, clockVal(timer) );
 

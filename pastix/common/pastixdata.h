@@ -40,36 +40,36 @@
 struct pastix_bcsc_s;
 typedef struct pastix_bcsc_s pastix_bcsc_t;
 
-/*
-  struct: SopalinParam_
+/* /\* */
+/*   struct: SopalinParam_ */
 
-  Parameters for factorisation, updown and reffinement.
- */
-typedef struct SopalinParam_ {
-    pastix_bcsc_t  *bcsc;          /*+ Compress Sparse Column matrix                    */
-    double          epsilonraff;     /*+ epsilon to stop reffinement                      */
-    double          rberror;         /*+ ||r||/||b||                                      */
-    double          espilondiag;     /*+ epsilon critere for diag control                 */
-    void *b;               /*+ b vector (RHS and solution)                      */
-    void *transcsc;        /*+ transpose csc                                    */
-    pastix_int_t    itermax;         /*+ max number of iteration                          */
-    pastix_int_t    diagchange;      /*+ number of change of diag                         */
-    pastix_int_t    gmresim;         /*+ Krylov subspace size for GMRES                   */
-    pastix_int_t    fakefact;        /*+ Flag indicating if we want fake factorisation    */
-    pastix_int_t    usenocsc;        /*+ Flag indicating if we want to use the intern CSC */
-    int             factotype;       /*+ Type of factorization                            */
-    int             symmetric;       /*+ Symmetric                                        */
-    MPI_Comm        pastix_comm;     /*+ MPI communicator                                 */
-    int             type_comm;       /*+ Communication mode                               */
-    int             nbthrdcomm;      /*+ Communication's thread number                    */
-    pastix_int_t   *iparm;           /*+ In/Out integer parameters                        */
-    double         *dparm;           /*+ In/Out float parameters                          */
-    int            *bindtab;         /*+ Define where to bin threads                      */
-    int             stopthrd;        /*+ Boolean for communication thread controlling     */
-    int             schur;           /*+ If API_YES won't compute last diag               */
-    pastix_int_t    n;               /*+ size of the matrix                               */
-    pastix_int_t    gN;
-} SopalinParam;
+/*   Parameters for factorisation, updown and reffinement. */
+/*  *\/ */
+/* typedef struct SopalinParam_ { */
+/*     pastix_bcsc_t  *bcsc;          /\*+ Compress Sparse Column matrix                    *\/ */
+/*     double          epsilonraff;     /\*+ epsilon to stop reffinement                      *\/ */
+/*     double          rberror;         /\*+ ||r||/||b||                                      *\/ */
+/*     double          espilondiag;     /\*+ epsilon critere for diag control                 *\/ */
+/*     void *b;               /\*+ b vector (RHS and solution)                      *\/ */
+/*     void *transcsc;        /\*+ transpose csc                                    *\/ */
+/*     pastix_int_t    itermax;         /\*+ max number of iteration                          *\/ */
+/*     pastix_int_t    diagchange;      /\*+ number of change of diag                         *\/ */
+/*     pastix_int_t    gmresim;         /\*+ Krylov subspace size for GMRES                   *\/ */
+/*     pastix_int_t    fakefact;        /\*+ Flag indicating if we want fake factorisation    *\/ */
+/*     pastix_int_t    usenocsc;        /\*+ Flag indicating if we want to use the intern CSC *\/ */
+/*     int             factotype;       /\*+ Type of factorization                            *\/ */
+/*     int             symmetric;       /\*+ Symmetric                                        *\/ */
+/*     MPI_Comm        pastix_comm;     /\*+ MPI communicator                                 *\/ */
+/*     int             type_comm;       /\*+ Communication mode                               *\/ */
+/*     int             nbthrdcomm;      /\*+ Communication's thread number                    *\/ */
+/*     pastix_int_t   *iparm;           /\*+ In/Out integer parameters                        *\/ */
+/*     double         *dparm;           /\*+ In/Out float parameters                          *\/ */
+/*     int            *bindtab;         /\*+ Define where to bin threads                      *\/ */
+/*     int             stopthrd;        /\*+ Boolean for communication thread controlling     *\/ */
+/*     int             schur;           /\*+ If API_YES won't compute last diag               *\/ */
+/*     pastix_int_t    n;               /\*+ size of the matrix                               *\/ */
+/*     pastix_int_t    gN; */
+/* } SopalinParam; */
 
 /*
  struct: pastix_data_t
@@ -117,7 +117,7 @@ struct pastix_data_s {
     /**
      * Former fields that are no longer used for now
      */
-    SopalinParam     sopar;              /* Sopalin parameters                                                  */
+    /* SopalinParam     sopar;              /\* Sopalin parameters                                                  *\/ */
 #ifdef PASTIX_DISTRIBUTED
 #if defined(PASTIX_ORDERING_SCOTCH)
     pastix_int_t    *PTS_permtab;
@@ -126,14 +126,8 @@ struct pastix_data_s {
     pastix_int_t    *glob2loc;           /*+ local column number of global column, or -(owner+1) is not local    */
     pastix_int_t     ncol_int;           /*+ Number of local columns in internal CSCD                            */
     pastix_int_t    *l2g_int;            /*+ Local to global column numbers in internal CSCD                     */
-    /* int              malrhsd_int;        /\*+ Indicates if internal distributed rhs has been allocated            +*\/ */
-    /* int              mal_l2g_int; */
     void  *b_int;              /*+ Local part of the right-hand-side                                   */
 #endif /* PASTIX_DISTRIBUTED */
-    /* int              malcsc;             /\*+ boolean indicating if solvmatr->cscmtx has beek allocated           +*\/ */
-    /* int              malsmx;             /\*+ boolean indicating if solvmatr->updovct.sm2xtab has been allocated  +*\/ */
-    /* int              malslv;             /\*+ boolean indicating if solvmatr has been allocated                   +*\/ */
-    /* int              malcof;             /\*+ boolean indicating if coeficients tabular(s) has(ve) been allocated +*\/ */
 
     int             *bindtab;            /*+ Tabular giving for each thread a CPU to bind it too                 */
     void            *schur_tab;

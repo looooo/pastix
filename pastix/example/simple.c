@@ -58,7 +58,6 @@ int main (int argc, char **argv)
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-    iparm[IPARM_FACTORIZATION] = API_FACT_LU;
     pastix_task_order( pastix_data, &csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );

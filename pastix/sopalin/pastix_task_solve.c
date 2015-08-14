@@ -25,28 +25,45 @@
 #include "d_bcsc.h"
 #include "s_bcsc.h"
 
+#if defined(PASTIX_DEBUG_SOLVE)
+static inline void dump_rhs( char *name, int n, double *b )
+{
+    int i;
+    fprintf(stderr,"%s :", name );
+    for (i=0; i<n; i++) {
+        if (i%10 == 0)
+            fprintf(stderr, "\n");
+        fprintf(stderr,"%e ", b[i]);
+    }
+    fprintf(stderr,"\n");
+}
+#else
+#define dump_rhs(...) do {} while(0)
+#endif
+
 void
-pastix_trsm( int flttype, int side, int uplo, int trans, int diag,
+pastix_trsm( pastix_data_t *pastix_data,
+             int flttype, int side, int uplo, int trans, int diag,
              sopalin_data_t *sopalin_data,
              int nrhs, void *b, int ldb )
 {
     switch (flttype) {
     case PastixComplex64:
-        sequential_ztrsm( side, uplo, trans, diag,
+        sequential_ztrsm( pastix_data, side, uplo, trans, diag,
                              sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
         break;
     case PastixComplex32:
-        sequential_ctrsm( side, uplo, trans, diag,
+        sequential_ctrsm( pastix_data, side, uplo, trans, diag,
                              sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
         break;
     case PastixDouble:
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        sequential_dtrsm( side, uplo, trans, diag,
+        sequential_dtrsm( pastix_data, side, uplo, trans, diag,
                              sopalin_data, nrhs, (double *)b, ldb );
         break;
     case PastixFloat:
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        sequential_strsm( side, uplo, trans, diag,
+        sequential_strsm( pastix_data, side, uplo, trans, diag,
                              sopalin_data, nrhs, (float *)b, ldb );
         break;
     default:
@@ -55,22 +72,22 @@ pastix_trsm( int flttype, int side, int uplo, int trans, int diag,
 }
 
 void
-pastix_diag( int flttype,
+pastix_diag( pastix_data_t *pastix_data, int flttype,
              sopalin_data_t *sopalin_data,
              int nrhs, void *b, int ldb )
 {
     switch (flttype) {
     case PastixComplex64:
-        sequential_zdiag( sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
+        sequential_zdiag( pastix_data, sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
         break;
     case PastixComplex32:
-        sequential_cdiag( sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
+        sequential_cdiag( pastix_data, sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
         break;
     case PastixDouble:
-        sequential_ddiag( sopalin_data, nrhs, (double *)b, ldb );
+        sequential_ddiag( pastix_data, sopalin_data, nrhs, (double *)b, ldb );
         break;
     case PastixFloat:
-        sequential_sdiag( sopalin_data, nrhs, (float *)b, ldb );
+        sequential_sdiag( pastix_data, sopalin_data, nrhs, (float *)b, ldb );
         break;
     default:
         fprintf(stderr, "Unknown floating point arithmetic\n" );
@@ -176,26 +193,33 @@ pastix_task_solve( pastix_data_t *pastix_data,
         clockStart(timer);
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLT:
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb );
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            dump_rhs( "AfterPerm", csc->gN, b );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            dump_rhs( "AfterDown", csc->gN, b );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            dump_rhs( "AfterUp", csc->gN, b );
             break;
 
         case PastixFactLDLT:
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
-            pastix_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
+            dump_rhs( "AfterPerm", csc->gN, b );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
+            dump_rhs( "AfterDown", csc->gN, b );
+            pastix_diag( pastix_data, pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
+            dump_rhs( "AfterDiag", csc->gN, b );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
+            dump_rhs( "AfterUp", csc->gN, b );
             break;
 
         case PastixFactLDLH:
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
-            pastix_diag( pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_diag( pastix_data, pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
             break;
 
         case PastixFactLU:
         default:
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
-            pastix_trsm( pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
+            pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
             break;
         }
         clockStop(timer);
@@ -227,6 +251,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
+
+    dump_rhs( "Final", csc->gN, b );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |
