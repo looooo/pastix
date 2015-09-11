@@ -9,7 +9,7 @@
  */
 #include <pastix.h>
 #include <csc.h>
-#include <lapacke.h>
+#include <limits.h>
 #include "../matrix_drivers/drivers.h"
 
 int main (int argc, char **argv)
@@ -34,8 +34,6 @@ int main (int argc, char **argv)
     iparm[IPARM_IO_STRATEGY]   = API_IO_SAVE;
     iparm[IPARM_MIN_BLOCKSIZE] = 60;
     iparm[IPARM_MAX_BLOCKSIZE] = 120;
-
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     split_level       = 0;
     stop_criteria     = INT_MAX;

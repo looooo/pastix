@@ -87,9 +87,6 @@ void symbolCheckProperties( const SymbolMatrix * );
 void symbolReordering( const SymbolMatrix *, Order *, pastix_int_t, int, int );
 void symbolReorderingPrintComplexity( const SymbolMatrix *symbptr );
 
-void         symbolCost( const SymbolMatrix *symbmtx, const Dof *dofptr,
-                         pastix_coeftype_t flttype, pastix_factotype_t factotype,
-                         pastix_int_t *nnz, double *thflops, double *rlflops );
 pastix_int_t symbolGetNNZ  ( const SymbolMatrix *symbptr);
 void         symbolGetFlops( const SymbolMatrix *symbmtx,
                              pastix_coeftype_t flttype, pastix_factotype_t factotype,
