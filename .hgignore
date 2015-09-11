@@ -16,9 +16,9 @@ CPackSourceConfig\.cmake$
 install_manifest.txt$
 CTestTestfile\.cmake$
 DartConfiguration\.tcl$
-pastix/TAGS$
-pastix/include/pastix/config.h$
-pastix/out/*
-pastix/example/toto/*
-pastix/build*
-pastix/cmake_modules/common/FCmangle.h
+TAGS$
+include/pastix/config.h$
+out/*
+example/toto/*
+build*
+cmake_modules/common/FCmangle.h
