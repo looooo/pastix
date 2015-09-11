@@ -686,7 +686,7 @@ pastix_ex_usage(void)
             );
 }
 
-#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:t:g:o:i:d:f:s:v::h"
+#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:R:t:g:o:i:d:f:s:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 static struct option long_options[] =
@@ -739,6 +739,8 @@ static struct option long_options[] =
     {"v",           optional_argument,  0, 'v'},
     {"help",        no_argument,        0, 'h'},
     {"h",           no_argument,        0, 'h'},
+
+    {"R",           required_argument,  0, 'R'},
     {0, 0, 0, 0}
 };
 #endif  /* defined(HAVE_GETOPT_LONG) */
@@ -846,6 +848,16 @@ void pastix_ex_getoptions(int argc, char **argv,
         case 'G':
             *driver = PastixDriverGraph;
             getfilename( filename, optarg, "graphname" );
+            break;
+
+        case 'R':
+            /* TODO: add through IPARM */
+            getfilename( filename, optarg, "d:1000" );
+            if ( sscanf( *filename, "%d:%d:%d", &split_level, &stop_criteria, &stop_when_fitting ) != 3 ) {
+                fprintf(stderr, "Fatal error in reordering parameters -R split_level:stop_criteria:stop_when_fitting\n");
+                exit(1);
+            }
+
             break;
 
         case 't': iparam[IPARM_THREAD_NBR] = atoi(optarg); break;

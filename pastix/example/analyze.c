@@ -23,6 +23,17 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
 
+    iparm[IPARM_FACTORIZATION] = API_FACT_LDLT;
+    iparm[IPARM_IO_STRATEGY]   = API_IO_SAVE;
+    iparm[IPARM_MIN_BLOCKSIZE] = 60;
+    iparm[IPARM_MAX_BLOCKSIZE] = 120;
+
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    split_level       = 0;
+    stop_criteria     = INT_MAX;
+    stop_when_fitting = 0;
+
     /**
      * Get options from command line
      */
@@ -41,11 +52,18 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
+    printf("Reordering parameters are %d %d %d\n", split_level, stop_criteria, stop_when_fitting);
+    if (stop_when_fitting != 0 && stop_when_fitting != 1){
+        fprintf(stderr, "Fatal error in reordering parameters -R split_level:stop_criteria:stop_when_fitting\n");
+        exit(1);
+    }
+
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_task_order( pastix_data, &csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
+    pastix_task_reordering( pastix_data, split_level, stop_criteria, stop_when_fitting );
     pastix_task_blend( pastix_data );
 
     spmExit( &csc );
