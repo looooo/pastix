@@ -12,13 +12,6 @@
 #include <lapacke.h>
 #include "../matrix_drivers/drivers.h"
 
-void CORE_dplrnt( int m, int n, double *A, int lda,
-                  int gM, int m0, int n0, unsigned long long int seed );
-
-int core_dgeadd(int trans, int M, int N, double alpha,
-                const double *A, int LDA,
-                double *B, int LDB);
-
 int main (int argc, char **argv)
 {
     pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
