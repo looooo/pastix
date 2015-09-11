@@ -21,50 +21,6 @@
  *
  * @ingroup pastix_common
  *
- * api_str_to_int -
- *
- *******************************************************************************
- *
- * @param[in] string
- *          The string to convert to int.
- *
- * @param[in] value
- *          The string to convert to int.
- *
- *******************************************************************************
- *
- * @return
- *      \retval PASTIX_SUCCESS if the integer has been computed succesfully.
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
- *
- *******************************************************************************/
-int api_str_to_int( char * string, int * value)
-{
-    char c = string[0];
-    if(0 == strcmp("i", &c))
-    {
-        *value = iparm_to_int(string);
-    }
-    else if(0 == strcmp("d", &c))
-    {
-        *value = dparm_to_int(string);
-    }
-    else if(0 == strcmp("a", &c))
-    {
-        *value = api_to_int(string);
-    }
-    else
-    {
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    return PASTIX_SUCCESS;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_common
- *
  * iparm_to_int -
  *
  *******************************************************************************
@@ -658,5 +614,35 @@ int api_to_int( char * string )
     {
         return API_GPU_CRITERION_PRIORITY;
     }
-    return -1;
+    if(0 == strcmp("pastixfactllt", string))
+    {
+        return PastixFactLLT;
+    }
+    if(0 == strcmp("pastixfactldlt", string))
+    {
+        return PastixFactLDLT;
+    }
+    if(0 == strcmp("pastixfactlu", string))
+    {
+        return PastixFactLU;
+    }
+    if(0 == strcmp("pastixfactldlh", string))
+    {
+        return PastixFactLDLH;
+    }
+    if(atoi(string) == 0)
+    {
+        if(0 == strcmp("0", string))
+        {
+            return 0;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        return atoi(string);
+    }
 }
