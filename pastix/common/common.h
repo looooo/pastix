@@ -217,6 +217,10 @@ static inline void set_dparm(double *dparm, enum DPARM_ACCESS offset, double val
 void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);
 int  api_dparmreader(char * filename, double       *dparmtab);
 int  api_iparmreader(char * filename, pastix_int_t *iparmtab);
+int  api_str_to_int( char * string, int * value);
+int  dparm_to_int( char * string);
+int  iparm_to_int( char * string);
+int  api_to_int( char * string);
 
 #endif /* _COMMON_H_ */
 

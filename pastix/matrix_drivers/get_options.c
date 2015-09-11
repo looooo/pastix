@@ -11,9 +11,11 @@
  *
  */
 #include "common.h"
+#include <ctype.h>
 #if defined(HAVE_GETOPT_H)
 #include <getopt.h>
 #endif  /* defined(HAVE_GETOPT_H) */
+#include <string.h>
 #include "drivers.h"
 
 /**
@@ -49,24 +51,22 @@ getfilename(char **filename, char *source, char *defaultname)
 /* int api_iparmreader(char * filename, pastix_int_t *iparmtab); */
 /* int api_dparmreader(char * filename, double       *dparmtab); */
 
-/* /\* */
 /*   Function: str_tolower */
 
 /*   Rewrites *string* in lower case. */
 
 /*   Parameters: */
-/*     string - string to rewrite in lower case. */
-/* *\/ */
-/* int str_tolower(char * string) */
-/* { */
-/*   int j = 0; */
-/*   while (string[j] != '\0') */
-/*     { */
-/*       string[j] = (char)tolower(string[j]); */
-/*       j++; */
-/*     } */
-/*   return EXIT_SUCCESS; */
-/* } */
+/*   string - string to rewrite in lower case. */
+void str_tolower(char * string)
+{
+  int j = 0;
+  while (string[j] != '\0')
+    {
+      string[j] = (char)tolower(string[j]);
+      j++;
+    }
+  return;
+}
 
 /* /\* */
 /*   Function: global_usage */
@@ -739,6 +739,9 @@ static struct option long_options[] =
     {"v",           optional_argument,  0, 'v'},
     {"help",        no_argument,        0, 'h'},
     {"h",           no_argument,        0, 'h'},
+    {"iparmfile",   no_argument,        0, 'i'},
+    {"iparm",       no_argument,        0, 'i'},
+    {"i",           no_argument,        0, 'i'},
     {0, 0, 0, 0}
 };
 #endif  /* defined(HAVE_GETOPT_LONG) */
@@ -748,7 +751,7 @@ void pastix_ex_getoptions(int argc, char **argv,
                           pastix_driver_t *driver, char **filename )
 {
     int opt = 0;
-    int c;
+    int c, i;
     (void)dparam;
 
     if (argc == 1) {
@@ -890,8 +893,49 @@ void pastix_ex_getoptions(int argc, char **argv,
             break;
 
         case 'i':
+            i = optind-2;
+            str_tolower(argv[i]);
+            if (strcmp(argv[i], "-iparm") == 0)
+              {
+                int iparm_idx, value;
+                char * endptr;
+                i++;
+                iparm_idx = (int)strtol(argv[i], &endptr, 10);
+                if (endptr == argv[i])
+                  {
+                    if( 1 == api_str_to_int(argv[i], &iparm_idx))
+                      goto unknown_option;
+                  }
+                i++;
+                value = (int)strtol(argv[i], &endptr, 10);
+                if (endptr == argv[i])
+                  if( 1 == api_str_to_int(argv[i], &value))
+                    goto unknown_option;
+                iparam[iparm_idx] = value;
+              }
             break;
         case 'd':
+            i = optind-2;
+            str_tolower(argv[i]);
+            if (strcmp(argv[i], "-dparm") == 0)
+              {
+                int    dparm_idx;
+                double value;
+                char * endptr;
+                i++;
+                dparm_idx = (int)strtol(argv[i], &endptr, 10);
+                if (endptr == argv[i])
+                  {
+                    if( 1 == api_str_to_int(argv[i], &dparm_idx))
+                      goto unknown_option;
+                  }
+                i++;
+                value = (double)strtod(argv[i], &endptr);
+                if (endptr == argv[i])
+                  goto unknown_option;
+                dparam[dparm_idx] = value;
+
+              }
             break;
 
         case 'v':
@@ -912,6 +956,12 @@ void pastix_ex_getoptions(int argc, char **argv,
             break;
         }
     } while(-1 != c);
+
+    return;
+
+    unknown_option:
+    fprintf(stderr, "ERROR: main: unprocessed option (\"%s\")\n", argv[i]);
+    pastix_ex_usage(); exit(0);
 
     //    int verbose = iparam[IPARM_VERBOSE];
 }
