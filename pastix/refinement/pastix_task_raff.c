@@ -92,15 +92,16 @@ void pastix_task_raff(pastix_data_t *pastix_data,
         rhsnbr = 1;
     }
 
-     /* Prepare the refinment threshold, if not set by the user */
+    /* Prepare the refinment threshold, if not set by the user */
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
-        if ( (csc->flttype == PastixFloat) || (csc->flttype == PastixComplex32) )
+        if ( (pastix_data->bcsc->flttype == PastixFloat) ||
+             (pastix_data->bcsc->flttype == PastixComplex32) )
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
         else
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
     }
 
-   if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
+    if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
                                          1,
                                          b,
                                          pastix_data->bcsc->gN,
