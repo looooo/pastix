@@ -11,7 +11,6 @@
  * @date 2011-11-11
  *
  **/
-
 #include "common.h"
 #include "drivers.h"
 #if defined(HAVE_SCOTCH)
