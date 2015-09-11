@@ -33,7 +33,7 @@ void CORE_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
 
 int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
                 const pastix_complex64_t *A, int LDA,
-                      pastix_complex64_t *B, int LDB);
+                pastix_complex64_t *B, int LDB);
 
 
 /*------------------------------------------------------------------------
@@ -54,7 +54,7 @@ z_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pa
 
     CORE_zplrnt( 1, 1, &alpha, 1, 1, start, 0, seed ); start++;
     CORE_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
-    
+
     x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
     CORE_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
 
@@ -81,7 +81,7 @@ z_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pa
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
 
-//     Anorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
+    // Anorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
     Anorm  = spmNorm( PastixInfNorm, spm );
     Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,        x, spm->gN );
     Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       y0, spm->gN );

@@ -27,16 +27,16 @@
  *
  * @param[in] string
  *          The string to convert to int.
- * 
+ *
  * @param[in] value
  *          The string to convert to int.
  *
  *******************************************************************************
  *
- * @return 
+ * @return
  *      \retval PASTIX_SUCCESS if the integer has been computed succesfully.
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
- * 
+ *
  *******************************************************************************/
 int api_str_to_int( char * string, int * value)
 {
@@ -74,9 +74,9 @@ int api_str_to_int( char * string, int * value)
  *
  *******************************************************************************
  *
- * @return 
+ * @return
  *      \retval value The returned integer.
- * 
+ *
  *******************************************************************************/
 int iparm_to_int( char * string)
 {
@@ -389,9 +389,9 @@ int iparm_to_int( char * string)
  *
  *******************************************************************************
  *
- * @return 
+ * @return
  *      \retval value The returned integer.
- * 
+ *
  *******************************************************************************/
 int dparm_to_int( char * string)
 {
@@ -420,11 +420,11 @@ int dparm_to_int( char * string)
  *
  *******************************************************************************
  *
- * @return 
+ * @return
  *      \retval value The returned integer.
- * 
+ *
  *******************************************************************************/
-int api_to_int( char * string)
+int api_to_int( char * string )
 {
     if(0 == strcmp("api_task_init", string))
     {
