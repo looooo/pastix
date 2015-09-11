@@ -197,7 +197,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_STARPU_CTX_NBR]     = -1;
     iparm[IPARM_PRODUCE_STATS]      = API_NO;
 
-    dparm[DPARM_EPSILON_REFINEMENT] =  1.0E-12;
+    dparm[DPARM_EPSILON_REFINEMENT] = -1.;
     dparm[DPARM_RELATIVE_ERROR]     = -1.;
     dparm[DPARM_SCALED_RESIDUAL]    = -1.;
     dparm[DPARM_EPSILON_MAGN_CTRL]  =  0.;
