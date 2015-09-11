@@ -718,7 +718,7 @@ add_dependencies(pastix
   spm_headers
   kernels_headers
   bcsc_headers
-  sopalin_headers
+  refinement_headers
   pastix_bcsc
   pastix_kernels
 )
