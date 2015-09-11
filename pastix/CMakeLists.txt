@@ -418,16 +418,15 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/csc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
-#include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/refinement")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/refinement")
 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/refinement")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/refinement")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
@@ -496,29 +495,28 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
-  csc/z_spm_norm.c
   csc/z_spm_convert_to_csc.c
   csc/z_spm_convert_to_csr.c
   csc/z_spm_convert_to_ijv.c
-  #
-  csc/z_spm_matrixvector.c
   csc/z_spm_genrhs.c
+  csc/z_spm_matrixvector.c
+  csc/z_spm_norm.c
+  #
   matrix_drivers/z_spm_laplacian.c
   #
-  sopalin/sequential_ztrsm.c
+  sopalin/coeftab_z.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c
   sopalin/sequential_zpotrf.c
   sopalin/sequential_zsytrf.c
+  sopalin/sequential_ztrsm.c
   #
+  refinement/z_raff_bicgstab.c
   refinement/z_raff_functions.c
   refinement/z_raff_gmres.c
-  refinement/z_raff_bicgstab.c
   refinement/z_raff_grad.c
   refinement/z_raff_pivot.c
-  #
-  sopalin/coeftab_z.c
   )
 precisions_rules_py(generated_files
   "${SOURCES}"
