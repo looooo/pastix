@@ -66,11 +66,11 @@ int z_bcscScal( void               *x,
                 pastix_int_t        n,
                 pastix_int_t        smxnbr );
 
-int z_bcscAxpy(pastix_complex64_t  alpha,
-               void               *x,
-               pastix_int_t        n,
-               void               *y,
-               pastix_int_t        smxnbr );
+int z_bcscAxpy( pastix_int_t        n,
+                pastix_int_t        smxnbr,
+                pastix_complex64_t  alpha,
+                void               *x,
+                void               *y );
 
 void z_bcscAxpb( pastix_trans_t       trans,
                  const pastix_bcsc_t *bcsc,
@@ -78,9 +78,9 @@ void z_bcscAxpb( pastix_trans_t       trans,
                  void                *b,
                  void                *r );
 
-pastix_complex64_t z_bcscDotc( void                *x,
-                               void                *y,
-                               pastix_int_t         n);
+pastix_complex64_t z_bcscDotc( pastix_int_t  n,
+                               void         *x,
+                               void         *y );
 
 double z_vectFrobeniusNorm( void *, pastix_int_t );
 

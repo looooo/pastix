@@ -1,9 +1,9 @@
 /**
- * 
+ *
  * @file bcsc_zcompute.c
- * 
+ *
  *  Functions computing operations on the BCSC.
- * 
+ *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -29,7 +29,9 @@
  * @ingroup pastix_bcsc
  *
  * z_bcscNormErr - Computes the norm 2 of r and the norm 2 of b
- *                 and return the quotient of these two vectors.
+ *                 and return the quotient of these two values:
+ *
+ *                         || r ||_2 / ||b||_2
  *
  *******************************************************************************
  *
@@ -100,9 +102,8 @@ z_bcscBerr( void         *r1,
     {
         module1 = cabs(r1ptr[i]);
         module2 = cabs(r2ptr[i]);
-        if( module2 > 0.)
-            if( module1 / module2 > berr )
-                berr = module1 / module2;
+        if( (module2 > 0.) && ((module1 / module2) > berr) )
+            berr = module1 / module2;
     }
 
     return berr;
@@ -168,9 +169,16 @@ z_bcscScal( void               *x,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscAxpy - compute y<-alpha*x+y.
+ * z_bcscAxpy - Compute y <- alpha * x + y.
+ * TODO: Look at zgeadd
  *
  *******************************************************************************
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[in] smxnbr
+ *          The number of vectors (multi-right-hand-side method).
  *
  * @param[in] alpha
  *          A scalar.
@@ -178,14 +186,8 @@ z_bcscScal( void               *x,
  * @param[in] x
  *          The vector x.
  *
- * @param[in] n
- *          The size of the vectors.
- *
  * @param[in,out] y
  *          The vector y.
- *
- * @param[in] smxnbr
- *          The number of vectors (multi-right-hand-side method).
  *
  *******************************************************************************
  *
@@ -195,11 +197,11 @@ z_bcscScal( void               *x,
  *
  *******************************************************************************/
 int
-z_bcscAxpy(pastix_complex64_t  alpha,
+z_bcscAxpy(pastix_int_t        n,
+           pastix_int_t        smxnbr,
+           pastix_complex64_t  alpha,
            void               *x,
-           pastix_int_t        n, /* size of the vectors */
-           void               *y,
-           pastix_int_t        smxnbr )
+           void               *y)
 {
     pastix_complex64_t *xptr = (pastix_complex64_t*)x;
     pastix_complex64_t *yptr = (pastix_complex64_t*)y;
@@ -230,6 +232,7 @@ z_bcscAxpy(pastix_complex64_t  alpha,
  * @ingroup pastix_bcsc
  *
  * z_bcscAxpb - compute r = |A||x| + |b|
+ * TODO: Check that we needs it and if yes, rename it
  *
  *******************************************************************************
  *
@@ -308,18 +311,10 @@ z_bcscAxpb( pastix_trans_t       trans,
             }
         }
     }
-    
+
     for( i=0; i<n; i++, rptr++, bptr++)
         *rptr += cabs( *bptr );
 }
-
-
-/* Pivot : */
-/* r=b-ax */
-/* tmp_berr =  max_i(|r_i|/|r'_i|)*/
-/* rberror = ||r||/||b|| */
-/* Copy */
-/* GEMM */
 
 /**
  *******************************************************************************
@@ -327,12 +322,13 @@ z_bcscAxpb( pastix_trans_t       trans,
  * @ingroup pastix_bcsc
  *
  * z_bcscDotc - compute the scalar product x.y
+ * TODO: Do we need it, see cblas_zdotc
  *
  *******************************************************************************
  *
  * @param[in] x
  *          The vector x.
- * 
+ *
  * @param[in] y
  *          The vector y.
  *
@@ -346,9 +342,9 @@ z_bcscAxpb( pastix_trans_t       trans,
  *
  *******************************************************************************/
 pastix_complex64_t
-z_bcscDotc( void                *x,
-            void                *y,
-            pastix_int_t         n )
+z_bcscDotc( pastix_int_t         n,
+            void                *x,
+            void                *y )
 {
     int i;
     pastix_complex64_t *xptr = (pastix_complex64_t*)x;

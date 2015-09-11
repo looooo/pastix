@@ -28,16 +28,16 @@
 /* Alloue un vecteur de taille size octets */
 void *z_Pastix_Malloc(size_t size)
 {
-  void *x = NULL;
-  MALLOC_INTERN(x, size, char);
-  memset(x, 0, size);
-  return x;
+    void *x = NULL;
+    MALLOC_INTERN(x, size, char);
+    memset(x, 0, size);
+    return x;
 }
 
 /* Libere un vecteur */
 void z_Pastix_Free( void *x)
 {
-  memFree_null(x);
+    memFree_null(x);
 }
 
 
@@ -62,92 +62,92 @@ void z_Pastix_End(pastix_data_t *pastix_data, pastix_complex64_t tmp, pastix_int
     pastix_int_t i;
 
     for (i=0; i<n; i++)
-      xptr[i] = gmresx[i];
+        xptr[i] = gmresx[i];
 
 
-//   if (sopar->iparm[IPARM_PRODUCE_STATS] == API_YES) {
-//     PASTIX_FLOAT *r, *s;
-// 
-//     MONOTHREAD_BEGIN;
-//     MALLOC_INTERN(r, UPDOWN_SM2XSZE, PASTIX_FLOAT);
-//     MALLOC_INTERN(s, UPDOWN_SM2XSZE, PASTIX_FLOAT);
-//     sopalin_data->ptr_raff[0] = (void *)r;
-//     sopalin_data->ptr_raff[1] = (void *)s;
-//     MONOTHREAD_END;
-//     SYNCHRO_THREAD;
-// 
-//     r = (PASTIX_FLOAT *)sopalin_data->ptr_raff[0];
-//     s = (PASTIX_FLOAT *)sopalin_data->ptr_raff[1];
-//     MULTITHREAD_BEGIN;
-//     /* compute r = b - Ax */
-//     CscbMAx(sopalin_data, me, r, sopar->b, sopar->cscmtx,
-//             &(datacode->updovct), datacode, PASTIX_COMM,
-//             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
-//     /* |A||x| + |b| */
-//     CscAxPb( sopalin_data, me, s, sopar->b, sopar->cscmtx,
-//              &(datacode->updovct), datacode, PASTIX_COMM,
-//              sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
-//     CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
-//             1, &(sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL]),
-//             PASTIX_COMM);
-//     MULTITHREAD_END(1);
-//   }
+    //   if (sopar->iparm[IPARM_PRODUCE_STATS] == API_YES) {
+    //     PASTIX_FLOAT *r, *s;
+    //
+    //     MONOTHREAD_BEGIN;
+    //     MALLOC_INTERN(r, UPDOWN_SM2XSZE, PASTIX_FLOAT);
+    //     MALLOC_INTERN(s, UPDOWN_SM2XSZE, PASTIX_FLOAT);
+    //     sopalin_data->ptr_raff[0] = (void *)r;
+    //     sopalin_data->ptr_raff[1] = (void *)s;
+    //     MONOTHREAD_END;
+    //     SYNCHRO_THREAD;
+    //
+    //     r = (PASTIX_FLOAT *)sopalin_data->ptr_raff[0];
+    //     s = (PASTIX_FLOAT *)sopalin_data->ptr_raff[1];
+    //     MULTITHREAD_BEGIN;
+    //     /* compute r = b - Ax */
+    //     CscbMAx(sopalin_data, me, r, sopar->b, sopar->cscmtx,
+    //             &(datacode->updovct), datacode, PASTIX_COMM,
+    //             sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+    //     /* |A||x| + |b| */
+    //     CscAxPb( sopalin_data, me, s, sopar->b, sopar->cscmtx,
+    //              &(datacode->updovct), datacode, PASTIX_COMM,
+    //              sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
+    //     CscBerr(sopalin_data, me, r, s, UPDOWN_SM2XSZE,
+    //             1, &(sopalin_data->sopar->dparm[DPARM_SCALED_RESIDUAL]),
+    //             PASTIX_COMM);
+    //     MULTITHREAD_END(1);
+    //   }
 }
 
 /* Vecteur solution X */
 void z_Pastix_X(pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx)
 {
-  pastix_int_t        i;
-  pastix_int_t        n = pastix_data->bcsc->gN;
-  pastix_complex64_t *xptr = (pastix_complex64_t *)x;
+    pastix_int_t        i;
+    pastix_int_t        n = pastix_data->bcsc->gN;
+    pastix_complex64_t *xptr = (pastix_complex64_t *)x;
 
-  if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
-  {
-    for (i=0; i<n; i++, xptr++)
-      gmresx[i]= *xptr;
-  }
-  else
-  {
-    for (i=0; i<n; i++, xptr++)
-      gmresx[i]=0.0;
-  }
+    if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
+    {
+        for (i=0; i<n; i++, xptr++)
+            gmresx[i]= *xptr;
+    }
+    else
+    {
+        for (i=0; i<n; i++, xptr++)
+            gmresx[i]=0.0;
+    }
 }
 
 /* Taille d'un vecteur */
 pastix_int_t z_Pastix_n(pastix_data_t *pastix_data)
 {
-  return pastix_data->bcsc->gN;
+    return pastix_data->bcsc->gN;
 }
 
 /* Second membre */
 void z_Pastix_B(void *b, pastix_complex64_t *raffb, pastix_int_t n)
 {
-  pastix_complex64_t *bptr = (pastix_complex64_t *)b;
-  pastix_int_t i;
+    pastix_complex64_t *bptr = (pastix_complex64_t *)b;
+    pastix_int_t i;
 
-  for (i=0; i<n; i++, bptr++)
-  {
-      raffb[i]= *bptr;
-  }
+    for (i=0; i<n; i++, bptr++)
+    {
+        raffb[i]= *bptr;
+    }
 }
 
 /* Epsilon */
 pastix_complex64_t z_Pastix_Eps(pastix_data_t *pastix_data)
 {
-  return pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
+    return pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 }
 
 /* Itermax */
 pastix_int_t z_Pastix_Itermax(pastix_data_t *pastix_data)
 {
-  return pastix_data->iparm[IPARM_ITERMAX];
+    return pastix_data->iparm[IPARM_ITERMAX];
 }
 
 
 /* Itermax */
 pastix_int_t z_Pastix_Krylov_Space(pastix_data_t *pastix_data)
 {
-  return pastix_data->iparm[IPARM_GMRES_IM];
+    return pastix_data->iparm[IPARM_GMRES_IM];
 }
 
 /*** OPERATIONS DE BASE ***/
@@ -202,10 +202,10 @@ pastix_int_t z_Pastix_Krylov_Space(pastix_data_t *pastix_data)
 /* Calcul de la norme de frobenius */
 pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *x, pastix_int_t n)
 {
-  double normx;
-  void *xptr = (void*)x;
-  normx = z_vectFrobeniusNorm(xptr, n);
-  return normx;
+    double normx;
+    void *xptr = (void*)x;
+    normx = z_vectFrobeniusNorm(xptr, n);
+    return normx;
 }
 
 /* Copie d'un vecteur */
@@ -220,7 +220,7 @@ pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *x, pastix_int_t n)
 //   z_CscCopy(sopalin_data, me, s, d,
 //           UPDOWN_SM2XSZE, UPDOWN_SM2XNBR, pastix_comm);
 // //   MULTITHREAD_END(0);
-// 
+//
 // //   if (flag)
 // //     SYNCHRO_THREAD;
 // }
@@ -228,12 +228,12 @@ pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *x, pastix_int_t n)
 /* Application du préconditionneur */
 void z_Pastix_Precond(pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_complex64_t *d)
 {
-  pastix_int_t n = pastix_data->bcsc->gN;
-  pastix_int_t nrhs = 1;
-  void* bptr = (void*)d;
+    pastix_int_t n = pastix_data->bcsc->gN;
+    pastix_int_t nrhs = 1;
+    void* bptr = (void*)d;
 
-  memcpy(d, s, n * sizeof( pastix_complex64_t ));
-  if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
+    memcpy(d, s, n * sizeof( pastix_complex64_t ));
+    if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
     {
         sopalin_data_t sopalin_data;
         sopalin_data.solvmtx = pastix_data->solvmatr;
@@ -274,12 +274,12 @@ void z_Pastix_Scal(pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t 
 /* Calcul du produit scalaire */
 void z_Pastix_Dotc(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r)
 {
-  *r = z_bcscDotc(x, y, n);
+    *r = z_bcscDotc(n, x, y);
 }
 
 void z_Pastix_Dotc_Gmres(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r)
 {
-  (*r) = z_bcscDotc(x, y, n);
+    (*r) = z_bcscDotc(n, x, y);
 }
 
 /* Produit matrice vecteur */
@@ -335,7 +335,7 @@ void z_Pastix_BYPX(pastix_int_t n, pastix_complex64_t *beta, pastix_complex64_t 
     void *xptr = (void*)x;
 
     z_bcscScal( xptr, *beta, n, 1);
-    z_bcscAxpy( 1, yptr, n, xptr, 1 );
+    z_bcscAxpy( n, 1, 1., yptr, xptr );
 }
 
 
@@ -343,45 +343,45 @@ void z_Pastix_AXPY(pastix_int_t n, double coeff, pastix_complex64_t *alpha, past
 {
     void *yptr = (void*)y;
     void *xptr = (void*)x;
-    z_bcscAxpy( coeff*(*alpha), yptr, n, xptr, 1 );
+    z_bcscAxpy( n, 1, coeff*(*alpha), yptr, xptr );
 }
 
 
 pastix_int_t z_Pastix_me(void *arg)
 {
-  sopthread_data_t *argument = (sopthread_data_t *)arg;
-  pastix_int_t        me       = argument->me;
-  return me;
+    sopthread_data_t *argument = (sopthread_data_t *)arg;
+    pastix_int_t        me       = argument->me;
+    return me;
 }
 
 void z_Pastix_Solveur(struct z_solver *solveur)
 {
-  /*** ALLOCATIONS ET SYNCHRONISATIONS ***/
-  solveur->Malloc      = &z_Pastix_Malloc;
-  solveur->Free        = &z_Pastix_Free;
+    /*** ALLOCATIONS ET SYNCHRONISATIONS ***/
+    solveur->Malloc      = &z_Pastix_Malloc;
+    solveur->Free        = &z_Pastix_Free;
 
-  /*** GESTION DE L'INTERFACE ***/
-  solveur->Verbose = &z_Pastix_Verbose;
-  solveur->End     = &z_Pastix_End;
-  solveur->X       = &z_Pastix_X;
-  solveur->N       = &z_Pastix_n;
-  solveur->B       = &z_Pastix_B;
-  solveur->Eps     = &z_Pastix_Eps;
-  solveur->Itermax = &z_Pastix_Itermax;
-  solveur->me      = &z_Pastix_me;
-  solveur->Krylov_Space = &z_Pastix_Krylov_Space;
+    /*** GESTION DE L'INTERFACE ***/
+    solveur->Verbose = &z_Pastix_Verbose;
+    solveur->End     = &z_Pastix_End;
+    solveur->X       = &z_Pastix_X;
+    solveur->N       = &z_Pastix_n;
+    solveur->B       = &z_Pastix_B;
+    solveur->Eps     = &z_Pastix_Eps;
+    solveur->Itermax = &z_Pastix_Itermax;
+    solveur->me      = &z_Pastix_me;
+    solveur->Krylov_Space = &z_Pastix_Krylov_Space;
 
-  /*** OPERATIONS DE BASE ***/
-  solveur->Dotc_Gmres = &z_Pastix_Dotc_Gmres;
+    /*** OPERATIONS DE BASE ***/
+    solveur->Dotc_Gmres = &z_Pastix_Dotc_Gmres;
 
-  solveur->Norm    = &z_Pastix_Norm2;
-  solveur->Precond = &z_Pastix_Precond;
+    solveur->Norm    = &z_Pastix_Norm2;
+    solveur->Precond = &z_Pastix_Precond;
 
-  solveur->Scal    = &z_Pastix_Scal;
-  solveur->Dotc    = &z_Pastix_Dotc;
-  solveur->Ax      = &z_Pastix_Ax;
+    solveur->Scal    = &z_Pastix_Scal;
+    solveur->Dotc    = &z_Pastix_Dotc;
+    solveur->Ax      = &z_Pastix_Ax;
 
-  solveur->AXPY    = &z_Pastix_AXPY;
-  solveur->bMAx    = &z_Pastix_bMAx;
-  solveur->BYPX    = &z_Pastix_BYPX;
+    solveur->AXPY    = &z_Pastix_AXPY;
+    solveur->bMAx    = &z_Pastix_bMAx;
+    solveur->BYPX    = &z_Pastix_BYPX;
 }
