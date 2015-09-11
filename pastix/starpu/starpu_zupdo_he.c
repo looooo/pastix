@@ -14,7 +14,7 @@
 /*
  * File: starpu_zupdo.c
  *
- * Functions computing operations for reffinement methods
+ * Functions computing operations for refinement methods
  *
  */
 

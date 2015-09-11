@@ -14,7 +14,7 @@
 /*
  * File: z_sopalin3d.c
  *
- * Functions computing operations for reffinement methods
+ * Functions computing operations for refinement methods
  *
  */
 #define CHOL_SOPALIN

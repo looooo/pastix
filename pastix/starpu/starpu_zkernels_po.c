@@ -14,7 +14,7 @@
 /*
  * File: starpu_zkernels.c
  *
- * Functions computing operations for reffinement methods
+ * Functions computing operations for refinement methods
  *
  */
 #define CHOL_SOPALIN

@@ -133,7 +133,7 @@ void z_Csc2updown(const z_CscMatrix    *cscmtx,
 /*
   Function: z_Csc2updown_X0
 
-  Fill-in initial X0 for reffinement if we don't want to use
+  Fill-in initial X0 for refinement if we don't want to use
   Solve step.
 
   (iparm[IPARM_ONLY_RAFF] == API_YES)

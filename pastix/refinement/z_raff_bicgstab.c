@@ -22,7 +22,7 @@
  *
  * @ingroup pastix_raff
  *
- * z_bicgstab_smp - Function computing bicgstab iterative reffinement.
+ * z_bicgstab_smp - Function computing bicgstab iterative refinement.
  *
  *******************************************************************************
  *

@@ -15,7 +15,7 @@ precisions_rules_py(generated_headers
                     "${HEADERS}"
                     PRECISIONS "p;s;d;c;z")
 
-add_custom_target(reffinement_headers
+add_custom_target(refinement_headers
   DEPENDS ${generated_headers} )
 
 ### Generate the dsparse wrappers for all required precisions
@@ -36,6 +36,6 @@ z_raff_bicgstab.c
 #   PRECISIONS "s;d;c;z"
 #   )
 
-# set_source_files_properties( ${generated_files} PROPERTIES DEPENDS reffinement_headers )
+# set_source_files_properties( ${generated_files} PROPERTIES DEPENDS refinement_headers )
 
 

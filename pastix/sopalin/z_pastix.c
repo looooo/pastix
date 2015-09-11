@@ -1415,7 +1415,7 @@ int z_pastix_task_sopalin( z_pastix_data_t *pastix_data,
             /* Pour l'instant uniquement si on est en 1d */
             if (iparm[IPARM_DISTRIBUTION_LEVEL] == 0)
             {
-                /* setting sopar->b for reffinement */
+                /* setting sopar->b for refinement */
                 /* Only 1 rhs is saved in sopar->b */
                 if (sopar->b == NULL)
                 {
@@ -1491,7 +1491,7 @@ int z_pastix_task_sopalin( z_pastix_data_t *pastix_data,
                           b,
 #endif
                           pastix_comm);
-            /* setting sopar->b for reffinement */
+            /* setting sopar->b for refinement */
             if (sopar->b == NULL)
             {
                 MALLOC_INTERN(sopar->b,
@@ -1821,7 +1821,7 @@ void z_pastix_task_updown(z_pastix_data_t *pastix_data,
 
     if (iparm[IPARM_ONLY_RAFF] == API_NO)
     {
-        /* setting sopar->b for reffinement */
+        /* setting sopar->b for refinement */
         /* Only 1 rhs is saved in sopar->b */
         if (sopar->b == NULL)
         {

@@ -14,7 +14,7 @@
 /*
  * File: z_raff_functions.h
  *
- * Functions computing operations for reffinement methods
+ * Functions computing operations for refinement methods
  *
  */
 

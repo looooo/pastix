@@ -2,7 +2,7 @@
  *
  * @file: z_raff_functions.c
  *
- *  Functions computing operations for reffinement methods
+ *  Functions computing operations for refinement methods
  *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.

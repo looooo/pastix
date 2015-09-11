@@ -156,7 +156,7 @@ typedef enum COMMSTEP {
 /*
   Define: SMP_RAFF
 
-  Add multi-threading in reffinement steps.
+  Add multi-threading in refinement steps.
 
  Deactivated if FORCE_NOSMP ou NOSMP_RAFF is defined.
  */

@@ -2,7 +2,7 @@
  * 
  * @file pastix_task_raff.c
  * 
- * PaStiX reffinement functions implementations.
+ * PaStiX refinement functions implementations.
  *
  * PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  * LaBRI, University of Bordeaux 1 and IPB.

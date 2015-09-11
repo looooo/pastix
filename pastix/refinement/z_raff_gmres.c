@@ -29,7 +29,7 @@ typedef struct gmres_s
  *
  * @ingroup pastix_raff
  *
- * z_gmres_smp - Function computing GMRES iterative reffinement.
+ * z_gmres_smp - Function computing GMRES iterative refinement.
  *
  *******************************************************************************
  *

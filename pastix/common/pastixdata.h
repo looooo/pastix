@@ -43,11 +43,11 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
 /* /\* */
 /*   struct: SopalinParam_ */
 
-/*   Parameters for factorisation, updown and reffinement. */
+/*   Parameters for factorisation, updown and refinement. */
 /*  *\/ */
 /* typedef struct SopalinParam_ { */
 /*     pastix_bcsc_t  *bcsc;          /\*+ Compress Sparse Column matrix                    *\/ */
-/*     double          epsilonraff;     /\*+ epsilon to stop reffinement                      *\/ */
+/*     double          epsilonraff;     /\*+ epsilon to stop refinement                      *\/ */
 /*     double          rberror;         /\*+ ||r||/||b||                                      *\/ */
 /*     double          espilondiag;     /\*+ epsilon critere for diag control                 *\/ */
 /*     void *b;               /\*+ b vector (RHS and solution)                      *\/ */

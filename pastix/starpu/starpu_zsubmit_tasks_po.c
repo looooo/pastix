@@ -14,7 +14,7 @@
 /*
  * File: starpu_zsubmit_tasks.c
  *
- * Functions computing operations for reffinement methods
+ * Functions computing operations for refinement methods
  *
  */
 #define CHOL_SOPALIN

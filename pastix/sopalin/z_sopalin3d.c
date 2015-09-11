@@ -1337,7 +1337,7 @@ void* API_CALL(z_sopalin_updo_gmres_smp)(void *arg)
  Function: API_CALL(z_sopalin_updo_gmres_thread)
 
  Function launching computing, communicating and out of core threads on
- the factorization, solve and reffinement (using GMRES) steps.
+ the factorization, solve and refinement (using GMRES) steps.
 
  Initiate the <z_Sopalin_Data_t> structure, launch threads, clean and restore.
 
@@ -1419,7 +1419,7 @@ void* API_CALL(z_sopalin_updo_grad_smp)(void *arg)
  Function: API_CALL(z_sopalin_updo_grad_thread)
 
  Function launching computing, communicating and out of core threads on
- the factorization, solve and reffinement (using conjugate grandient) steps.
+ the factorization, solve and refinement (using conjugate grandient) steps.
 
  Initiate the <z_Sopalin_Data_t> structure, launch threads, clean and restore.
 
@@ -1498,7 +1498,7 @@ void* API_CALL(z_sopalin_updo_pivot_smp)(void *arg)
  Function: API_CALL(z_sopalin_updo_pivot_thread)
 
  Function launching computing, communicating and out of core threads on
- the factorization, solve and reffinement (using pivoting refinement) steps.
+ the factorization, solve and refinement (using pivoting refinement) steps.
 
  Initiate the <z_Sopalin_Data_t> structure, launch threads, clean and restore.
 
@@ -1574,7 +1574,7 @@ void* API_CALL(sopalin_updo_bicgstab_smp)(void *arg)
  Function: API_CALL(sopalin_updo_bicgstab_thread)
 
  Function launching computing, communicating and out of core threads on
- the factorization, solve and reffinement (using bicgstab refinement) steps.
+ the factorization, solve and refinement (using bicgstab refinement) steps.
 
  Initiate the <z_Sopalin_Data_t> structure, launch threads, clean and restore.
 

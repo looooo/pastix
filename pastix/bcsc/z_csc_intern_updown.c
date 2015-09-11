@@ -403,7 +403,7 @@ void z_Csc2updown(const z_CscMatrix    *cscmtx,
 /*
   Function: z_Csc2updown_X0
 
-  Fill-in initial X0 for reffinement if we don't want to use
+  Fill-in initial X0 for refinement if we don't want to use
   Solve step.
 
   (iparm[IPARM_ONLY_RAFF] == API_YES)
@@ -530,7 +530,7 @@ int z_buildUpdoVect(z_pastix_data_t    *pastix_data,
             }
         }
 
-        /* In updo step, if we only want to use reffinement.
+        /* In updo step, if we only want to use refinement.
          Set first solution.
          */
         if ((iparm[IPARM_ONLY_RAFF] == API_YES) && (iparm[IPARM_START_TASK] < API_TASK_REFINE))
