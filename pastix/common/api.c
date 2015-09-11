@@ -123,7 +123,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_MAX_BLOCKSIZE]         = 120;                 /* max blocksize                                        */
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */
     iparm[IPARM_ISOLATE_ZEROS]         = API_NO;              /* Isolate null diagonal terms at the end of the matrix */
-    iparm[IPARM_FACTORIZATION]         = API_FACT_LDLT;       /* LdLt     */
+    iparm[IPARM_FACTORIZATION]         = API_FACT_LU;         /* LU by default     */
 
     iparm[IPARM_DISTRIBUTION_LEVEL]    = 0;                   /* 1d / 2d */
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
