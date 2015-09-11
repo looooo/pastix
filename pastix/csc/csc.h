@@ -58,7 +58,8 @@ int cscLoad( pastix_csc_t *csc, FILE *infile );
 int cscSave( pastix_csc_t *csc, FILE *outfile );
 
 
-int genRHS(pastix_csc_t *csc, void **rhs );
+int spmGenRHS(int type, int nrhs, const pastix_csc_t *spm, void *x, int ldx, void *b, int ldb );
+int spmCheckAxb( int nrhs, const pastix_csc_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
 
 void         spmInit( pastix_csc_t *spm );
 void         spmExit( pastix_csc_t *spm );

@@ -45,6 +45,11 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L,
                           pastix_complex64_t *U);
 
+int core_zgetrfsp1d_panel( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           double              criteria);
+
 void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
                            SolverBlok         *blok,
                            SolverCblk         *fcblk,
@@ -67,6 +72,11 @@ int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
 int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L);
 
+int core_zhetrfsp1d_panel( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           double              criteria,
+                           pastix_complex64_t *work);
+
 void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
                            SolverBlok         *blok,
                            SolverCblk         *fcblk,
@@ -88,9 +98,9 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
 int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L );
 
-int core_zpotrfsp1d( SolverMatrix *solvmtx,
-                     SolverCblk   *cblk,
-                     double        criteria );
+int core_zpotrfsp1d_panel( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           double              criteria);
 
 void core_zpotrfsp1d_gemm(SolverCblk         *cblk,
                           SolverBlok         *blok,
@@ -99,6 +109,10 @@ void core_zpotrfsp1d_gemm(SolverCblk         *cblk,
                           pastix_complex64_t *C,
                           pastix_complex64_t *work);
 
+int core_zpotrfsp1d( SolverMatrix *solvmtx,
+                     SolverCblk   *cblk,
+                     double        criteria );
+
 int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
@@ -106,6 +120,11 @@ int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
 
 int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L );
+
+int core_zsytrfsp1d_panel( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           double              criteria,
+                           pastix_complex64_t *work);
 
 void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
                            SolverBlok         *blok,

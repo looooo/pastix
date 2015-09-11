@@ -24,7 +24,6 @@
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "updown.h"
 #include "solver.h"
 #include "solverRealloc.h"
 #include "elimin.h"
@@ -32,8 +31,9 @@
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "costfunc.h"
-#include "splitpartlocal.h"
+/* #include "dof.h" */
+/* #include "costfunc.h" */
+/* #include "splitpartlocal.h" */
 #include "solverMatrixGen.h"
 #include "solver_check.h"
 #include "task.h"

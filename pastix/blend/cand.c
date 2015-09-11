@@ -223,7 +223,6 @@ candBuild( pastix_int_t autolevel, pastix_int_t level2D, double ratiolimit,
     candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
 
     /* Let's set the cblk type of each node */
-    /* For now, it sets the distrib field and not the cblktype field */
     if(autolevel)
     {
         candSubTreeDistribWithSize( eTreeRoot(etree), CBLK_SPLIT, (pastix_int_t)ratiolimit,

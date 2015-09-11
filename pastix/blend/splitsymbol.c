@@ -13,10 +13,8 @@
 #include "bulles.h"
 #include "blendctrl.h"
 #include "ftgt.h"
-#include "updown.h"
 #include "solver.h"
 #include "simu.h"
-#include "costfunc.h"
 #include "smart_cblk_split.h"
 
 #include "extracblk.h"

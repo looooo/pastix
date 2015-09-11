@@ -686,7 +686,7 @@ pastix_ex_usage(void)
             );
 }
 
-#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:t:g:o:i:d:v::h"
+#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:t:g:o:i:d:f:s:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 static struct option long_options[] =
@@ -726,6 +726,10 @@ static struct option long_options[] =
 
     {"ord",         required_argument,  0, 'o'},
     {"o",           required_argument,  0, 'o'},
+    {"fact",        required_argument,  0, 'f'},
+    {"f",           required_argument,  0, 'f'},
+    {"sched",       required_argument,  0, 's'},
+    {"s",           required_argument,  0, 's'},
     {"iparm",       required_argument,  0, 'i'},
     {"i",           required_argument,  0, 'i'},
     {"dparm",       required_argument,  0, 'd'},
@@ -867,6 +871,22 @@ void pastix_ex_getoptions(int argc, char **argv,
             else {
                 fprintf(stderr, "Wrong values (ord=%s)!!!\nPossible values for ordering are: scotch, metis and ptscotch (Default scotch is chosen)\n", optarg);
             }
+            break;
+
+        case 'f': {
+            int factotype = atoi( optarg );
+            if ( (factotype >= 0) && (factotype <= 3)){
+                iparam[IPARM_FACTORIZATION] = factotype;
+            }
+        }
+            break;
+
+        case 's': {
+            int schedtype = atoi( optarg );
+            if ( (schedtype >= 0) && (schedtype <= 3)){
+                iparam[IPARM_SCHEDULER] = schedtype;
+            }
+        }
             break;
 
         case 'i':

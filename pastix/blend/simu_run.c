@@ -20,7 +20,6 @@
 #include "simu.h"
 #include "dof.h"
 #include "task.h"
-#include "updown.h"
 #include "solver.h"
 #include "perf.h"
 

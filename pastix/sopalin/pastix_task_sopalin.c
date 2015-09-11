@@ -20,7 +20,7 @@
 #include "bcsc.h"
 #include "sopalin_data.h"
 
-static void (*sopalinFacto[4][4])(sopalin_data_t*) =
+static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 {
     { sopalin_spotrf, sopalin_dpotrf, sopalin_cpotrf, sopalin_zpotrf },
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_csytrf, sopalin_zsytrf },
@@ -29,10 +29,8 @@ static void (*sopalinFacto[4][4])(sopalin_data_t*) =
 };
 
 void
-coeftabInit( const SolverMatrix  *datacode,
-             const pastix_bcsc_t *bcsc,
-             pastix_int_t         fakefillin,
-             pastix_int_t         factoLU );
+coeftabInit( const pastix_data_t *pastix_data,
+             int fakefillin, int factoLU );
 
 int
 pastix_subtask_csc2bcsc( pastix_data_t *pastix_data,
@@ -105,8 +103,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    coeftabInit( pastix_data->solvmatr,
-                 pastix_data->bcsc,
+    coeftabInit( pastix_data,
                  csc->flttype == PastixPattern,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
 
@@ -153,7 +150,6 @@ int
 pastix_task_sopalin( pastix_data_t *pastix_data,
                      pastix_csc_t  *csc )
 {
-    extern isched_t *scheduler;
     sopalin_data_t  sopalin_data;
     SolverBackup_t *sbackup;
 /* #ifdef PASTIX_WITH_MPI */
@@ -237,19 +233,18 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
             sopalin_data.diagthreshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
         }
     }
-    sopalin_data.sched = scheduler;
 
     sbackup = solverBackupInit( pastix_data->solvmatr );
     pastix_data->solvmatr->restore = 2;
     {
-        void (*factofct)( sopalin_data_t *);
+        void (*factofct)( pastix_data_t *, sopalin_data_t *);
         double timer;
 
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][csc->flttype-2];
         assert(sopalinFacto);
 
         clockStart(timer);
-        factofct( &sopalin_data );
+        factofct( pastix_data, &sopalin_data );
         clockStop(timer);
         pastix_print( 0, 0, OUT_TIME_FACT, clockVal(timer) );
 

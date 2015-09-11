@@ -6,7 +6,6 @@
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "updown.h"
 #include "solver.h"
 #include "elimin.h"
 #include "cost.h"

@@ -1,0 +1,154 @@
+extern "C" %{
+  /**
+   * PLASMA include for defined and constants.
+   *
+   * @precisions normal z -> c d s
+   *
+   */
+#include <dague.h>
+#include <dague/data_distribution.h>
+#include "common.h"
+#include "pastix_zcores.h"
+#include "sopalin_data.h"
+#include "parsec/sparse-matrix.h"
+
+#if defined(HAVE_CUDA)
+#include <dague/devices/cuda/dev_cuda.h>
+#include "parsec/cuda_zgemmsp.h"
+#endif  /* defined(HAVE_CUDA) */
+%}
+
+/* Globals
+ */
+dataA        [type = "dague_ddesc_t *" ]
+sopalin_data [type = "sopalin_data_t *" ]
+//p_work   [type = "dague_memory_pool_t *" size = "datacode->coefmax * sizeof(dague_complex64_t)"]
+
+descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
+datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+
+/**************************************************
+ *                SYTRF_TRSM                      *
+ * panel factorization: do trf of diagonal and    *
+ *                    : trsm on off-diagonal      *
+ **************************************************/
+SYTRF_TRSM(k) [high_priority = on]
+
+// Execution space
+k = 0 .. cblknbr
+
+browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
+browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
+firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
+lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
+
+// Parallel partitioning
+:dataA(0, k) // Should match SOLV_COEFTAB(k)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+RW L <- ( browk0 == browk1 ) ? dataA(0, k) : C GEMM( lastbrow )
+     -> A GEMM(firstblok .. lastblok)
+     -> dataA(0, k)
+
+     //; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+    SolverCblk *cblk = datacode->cblktab + k;
+    pastix_complex64_t *work;
+    pastix_int_t tmparea = cblk_colnbr( cblk );
+
+    tmparea = tmparea * tmparea;
+    MALLOC_INTERN( work, tmparea, pastix_complex64_t );
+    core_zsytrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, work );
+    memFree_null(work);
+}
+END
+
+/**************************************************
+ *                      GEMM                      *
+ * update the trailing matrix with the panel      *
+ * k-th block updating corresponding.
+ **************************************************/
+
+GEMM(bloknum)
+
+// Execution space
+bloknum = 1 .. bloknbr
+
+lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->lcblknm; %}
+fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
+first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
+last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
+
+brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %}
+prev    = inline_c %{ if ((brownum == -1) || (brownum <= first)) return 0; else return datacode->browtab[brownum-1]; %}
+next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else return datacode->browtab[brownum+1]; %}
+
+// Parallel partitioning
+:dataA(0, fcblknm)
+
+// Parameters
+READ  A  <- ( brownum != -1) ? L SYTRF_TRSM( lcblknm ) : dataA( 0, fcblknm )
+
+RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm )
+         <- ( brownum != -1 ) && (first != brownum ) ? C GEMM( prev )
+
+         -> ( brownum != -1 ) && (last == brownum ) ? L SYTRF_TRSM( fcblknm )
+         -> ( brownum != -1 ) && (last != brownum ) ? C GEMM( next )
+
+//; inline_c %{ return - TASK_PRIONUM(fcblk); %}
+
+BODY [type=CUDA]
+{
+    int rc = 0;
+    /* If diagonal block, we skip */
+    if (brownum == -1) {
+        goto end;
+    }
+
+    SolverCblk *lcblk = datacode->cblktab + lcblknm;
+    SolverCblk *fcblk = datacode->cblktab + fcblknm;
+    SolverBlok *blok  = datacode->bloktab + bloknum;
+    pastix_complex64_t *work;
+
+    rc = gpu_zsytrfsp_gemm( context, this_task, (last == brownum ),
+                            lcblk, blok, fcblk, A, C );
+
+  end:
+    return rc;
+}
+END
+
+BODY
+{
+    /* If diagonal block, we skip */
+    if (brownum == -1) {
+        goto end;
+    }
+
+    SolverCblk *lcblk = datacode->cblktab + lcblknm;
+    SolverCblk *fcblk = datacode->cblktab + fcblknm;
+    SolverBlok *blok  = datacode->bloktab + bloknum;
+    pastix_complex64_t *work;
+
+    //work = (dague_complex64_t *)dague_private_memory_pop( p_work );
+    {
+        pastix_int_t tmparea = blok_rownbr( blok ) * (lcblk->stride - blok->coefind);
+        MALLOC_INTERN( work, tmparea, pastix_complex64_t );
+    }
+
+    core_zsytrfsp1d_gemm( lcblk, blok, fcblk, A, C, work, NULL );
+
+    {
+        memFree_null( work );
+    }
+
+    //dague_private_memory_push( p_work, (void *)work );
+  end:
+    ;
+}
+END

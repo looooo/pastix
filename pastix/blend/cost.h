@@ -39,8 +39,6 @@ void          costMatrixExit   (CostMatrix *);
 pastix_int_t  costLoad         (CostMatrix *, FILE *);
 pastix_int_t  costSave         (CostMatrix *, FILE *);
 CostMatrix   *costMatrixBuild  (const SymbolMatrix *, pastix_coeftype_t, pastix_factotype_t);
-double        cblkComputeCost  (pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
-void          cblkComputeCostLL(pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
 
 #undef static
 

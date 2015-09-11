@@ -37,7 +37,6 @@
 #include "timing.h"
 #include "trace.h"
 #include "pastixdata.h"
-/* #include "redefine_functions.h" */
 
 /********************************************************************
  * Errors functions

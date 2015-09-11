@@ -16,7 +16,6 @@
 #include "bulles.h"
 #include "extendVector.h"
 #include "blendctrl.h"
-#include "updown.h"
 #include "solver.h"
 #include "simu.h"
 #include "costfunc.h"

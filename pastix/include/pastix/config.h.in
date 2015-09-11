@@ -56,6 +56,10 @@
 #cmakedefine FORGET_PARTITION
 #cmakedefine COMPACT_SMX
 
+/* Scheduling options */
+#cmakedefine PASTIX_WITH_PARSEC
+#cmakedefine PASTIX_WITH_STARPU
+
 #cmakedefine PASTIX_FUNNELED
 #cmakedefine PASTIX_DISTRIBUTED
 #cmakedefine PASTIX_THREAD_COMM
