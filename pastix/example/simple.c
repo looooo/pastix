@@ -81,6 +81,9 @@ int main (int argc, char **argv)
     }
     else {
         spmGenRHS( PastixRhsRndB, nrhs, &csc, NULL, csc.n, x, csc.n );
+
+        /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
+        b = malloc( size );
         memcpy( b, x, size );
     }
 
