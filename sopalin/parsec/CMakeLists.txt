@@ -5,8 +5,6 @@ set(generated_files "")
 set(generated_jdf "")
 set(generated_headers "")
 
-include_directories("/opt/parsec/include")
-
 set(EXTRA_SOURCES
   sparse-matrix.c
 )
@@ -53,8 +51,6 @@ add_library(pastix_parsec
   ${generated_headers}
   ${generated_files}
   ${EXTRA_SOURCES})
-
-add_dependencies(pastix_parsec pastix_parsec_includes)
 
 ### Generate the lib
 if (MPI_FOUND)
