@@ -90,11 +90,11 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   gmreshh   = (pastix_complex64_t **)solveur.Malloc(gmresim * sizeof(pastix_complex64_t*));
   gmresw    = (pastix_complex64_t **)solveur.Malloc(gmresim * sizeof(pastix_complex64_t*));
   for (i=0; i<gmresim; i++)
-    {
+  {
       gmresvv[i] = (pastix_complex64_t *)solveur.Malloc(n           * sizeof(pastix_complex64_t));
       gmreshh[i] = (pastix_complex64_t *)solveur.Malloc((gmresim+1) * sizeof(pastix_complex64_t));
       gmresw[i]  = (pastix_complex64_t *)solveur.Malloc(n           * sizeof(pastix_complex64_t));
-    }
+  }
   gmresvv[gmresim] = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
   gmresdata->gmresro = 0.0;
   gmresdata->gmresout_flag = 1;
@@ -110,7 +110,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   clockInit(raff_clk);clockStart(raff_clk);
 
   while (gmresdata->gmresout_flag)
-    {
+  {
       gmreswk2 = gmresvv[0];
 
       /* gmresvv[0] = b - A * x */
@@ -119,18 +119,14 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
       /* ro = vv[0].vv[0] */
       solveur.Dotc_Gmres(n, gmresvv[0], gmresvv[0], &beta, bcsc->mtxtype);
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
       gmresdata->gmresro = (pastix_complex64_t)csqrt(beta);
-#else
-      gmresdata->gmresro = (pastix_complex64_t)sqrt(beta);
-#endif
 
       if ((double)cabs((pastix_complex64_t)gmresdata->gmresro) <=
           gmreseps)
-        {
+      {
           gmresdata->gmresout_flag = 0;
           break;
-        }
+      }
 
       gmrest = (pastix_complex64_t)(1.0/gmresdata->gmresro);
 
@@ -141,7 +137,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
       i=-1;
 
       while(gmresdata->gmresin_flag)
-        {
+      {
           clockStop((raff_clk));
           t0 = clockGet();
 
@@ -160,59 +156,45 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
           /* classical gram - schmidt */
           for (j=0; j<=i; j++)
-            {
+          {
               /* vv[j]*vv[i1] */
               solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[j], &beta, bcsc->mtxtype);
 
               gmreshh[i][j] = (pastix_complex64_t)beta;
-            }
+          }
 
           for (j=0;j<=i;j++)
-            {
+          {
               gmresalpha = -gmreshh[i][j];
               solveur.AXPY(n, 1.0, &gmresalpha, gmresvv[gmresi1], gmresvv[j]);
-            }
+          }
 
           solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[gmresi1], &beta, bcsc->mtxtype);
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
       gmrest = (pastix_complex64_t)csqrt(beta);
-#else
-      gmrest = (pastix_complex64_t)sqrt(beta);
-#endif
 
           gmreshh[i][gmresi1] = gmrest;
 
           if (cabs(gmrest) > 10e-50)
-            {
+          {
 //               gmrest = fun / gmrest;
               gmrest = 1.0 / gmrest;
               solveur.Scal(n, gmrest, gmresvv[gmresi1]);
-            }
+          }
 
           if (i != 0)
-            {
+          {
               for (j=1; j<=i;j++)
-                {
+              {
                   gmrest = gmreshh[i][j-1];
-#if defined(PRECISION_z) || defined(PRECISION_c)
                   gmreshh[i][j-1] = (pastix_complex64_t)conj(gmresc[j-1])*gmrest +
-                    (pastix_complex64_t)conj(gmress[j-1])*gmreshh[i][j];
-#else
-                  gmreshh[i][j-1] =  gmresc[j-1]*gmrest +
-                    gmress[j-1]*gmreshh[i][j];
-#endif
+                                    (pastix_complex64_t)conj(gmress[j-1])*gmreshh[i][j];
                   gmreshh[i][j]   = -gmress[j-1]*gmrest +
-                    gmresc[j-1]*gmreshh[i][j];
-                }
-            }
-#if defined(PRECISION_z) || defined(PRECISION_c)
+                                    gmresc[j-1]*gmreshh[i][j];
+              }
+          }
           gmrest = (pastix_complex64_t)csqrt(cabs(gmreshh[i][i]*gmreshh[i][i])+
                                      gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
-#else
-          gmrest = (pastix_complex64_t)sqrt(gmreshh[i][i]*gmreshh[i][i]+
-                                    gmreshh[i][gmresi1]*gmreshh[i][gmresi1]);
-#endif
           if (cabs(gmrest) <= gmreseps)
             gmrest = (pastix_complex64_t)gmreseps;
 
@@ -220,52 +202,46 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
           gmress[i] = gmreshh[i][gmresi1]/gmrest;
           gmresrs[gmresi1] = -gmress[i]*gmresrs[i];
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
           gmresrs[i] = (pastix_complex64_t)conj(gmresc[i])*gmresrs[i];
           gmreshh[i][i] = (pastix_complex64_t)conj(gmresc[i])*gmreshh[i][i] +
           gmress[i]*gmreshh[i][gmresi1];
-#else
-          gmresrs[i] = gmresc[i]*gmresrs[i];
-          gmreshh[i][i] = gmresc[i]*gmreshh[i][i] +
-          gmress[i]*gmreshh[i][gmresi1];
-#endif
           gmresdata->gmresro = cabs(gmresrs[gmresi1]);
 
           gmresiters++;
 
           if ((i+1 >= gmresim) || (gmresdata->gmresro/gmresnormb <= gmreseps) || (gmresiters >= gmresmaxits))
-            {
+          {
               gmresdata->gmresin_flag = 0;
-            }
+          }
 
           clockStop((raff_clk));
           t3 = clockGet();
           solveur.Verbose(t0, t3, gmresdata->gmresro/gmresnormb, gmresiters);
-        }
+      }
 
       gmresrs[i] = gmresrs[i]/gmreshh[i][i];
       for (ii=2; ii<=i+1; ii++)
-        {
+      {
           k = i-ii+1;
           gmrest = gmresrs[k];
           for (j=k+1; j<=i; j++)
-            {
+          {
               gmrest = gmrest - gmreshh[j][k]*gmresrs[j];
-            }
+          }
           gmresrs[k] = gmrest/gmreshh[k][k];
-        }
+      }
 
       for (j=0; j<=i;j++)
-        {
+      {
           gmrest = gmresrs[j];
           solveur.AXPY(n, 1.0, &gmrest, gmresx, gmresw[j]);
-        }
+      }
 
       if ((gmresdata->gmresro/gmresnormb<= gmreseps) || (gmresiters >= gmresmaxits))
-        {
+      {
           gmresdata->gmresout_flag = 0;
-        }
-    }
+      }
+  }
 
   clockStop((raff_clk));
   t3 = clockGet();
@@ -281,11 +257,11 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   solveur.Free((void*) gmresx);
 
   for (i=0; i<gmresim; i++)
-    {
+  {
       solveur.Free(gmresvv[i]);
       solveur.Free(gmreshh[i]);
       solveur.Free(gmresw[i]);
-    }
+  }
 
   solveur.Free(gmresvv[gmresim]);
 
