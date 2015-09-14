@@ -368,6 +368,49 @@ z_bcscDotc( pastix_int_t         n,
  *
  * @ingroup pastix_bcsc
  *
+ * z_bcscDotcGmres - compute the scalar product x.y for Gmres.
+ * TODO: Do we need it, see cblas_zdotc
+ *
+ *******************************************************************************
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] y
+ *          The vector y.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval the scalar product of x and y.
+ *
+ *******************************************************************************/
+pastix_complex64_t
+z_bcscDotcGmres( pastix_int_t         n,
+                 void                *x,
+                 void                *y )
+{
+    int i;
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    pastix_complex64_t r = 0.0;
+
+    for (i=0; i<n; i++, xptr++, yptr++)
+    {
+        r = r + *xptr * (*yptr);
+    }
+
+    return r;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
  * z_vectFrobeniusNorm - compute the Frobenius norm of a vector.
  *
  *******************************************************************************

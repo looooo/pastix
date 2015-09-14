@@ -82,6 +82,10 @@ pastix_complex64_t z_bcscDotc( pastix_int_t  n,
                                void         *x,
                                void         *y );
 
+pastix_complex64_t z_bcscDotcGmres( pastix_int_t  n,
+                                    void         *x,
+                                    void         *y );
+
 double z_vectFrobeniusNorm( void *, pastix_int_t );
 
 int z_bcscApplyPerm( pastix_int_t m,

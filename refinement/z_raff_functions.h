@@ -129,7 +129,7 @@ void z_Pastix_Scal(pastix_int_t, pastix_complex64_t, pastix_complex64_t *);
 /* Calcul du produit scalaire */
 void z_Pastix_Dotc(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 
-void z_Pastix_Dotc_Gmres(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
+void z_Pastix_Dotc_Gmres(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
 /* Produit matrice vecteur */
 void z_Pastix_Ax(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *);
@@ -166,7 +166,7 @@ struct z_solver
   /*** OPERATIONS DE BASE ***/
 //   void (* Mult)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 //   void (* Div)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
-  void (* Dotc_Gmres)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
+  void (* Dotc_Gmres)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
   pastix_complex64_t (* Norm)(pastix_complex64_t *, pastix_int_t);
 //   void (* Copy)(void *, pastix_complex64_t *, pastix_complex64_t *, int);

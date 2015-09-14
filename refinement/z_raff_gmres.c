@@ -117,7 +117,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
       solveur.bMAx(bcsc, gmresb, gmresx, gmresvv[0]);
 
       /* ro = vv[0].vv[0] */
-      solveur.Dotc_Gmres(n, gmresvv[0], gmresvv[0], &beta);
+      solveur.Dotc_Gmres(n, gmresvv[0], gmresvv[0], &beta, bcsc->mtxtype);
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
       gmresdata->gmresro = (pastix_complex64_t)csqrt(beta);
@@ -162,7 +162,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
           for (j=0; j<=i; j++)
             {
               /* vv[j]*vv[i1] */
-              solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[j], &beta);
+              solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[j], &beta, bcsc->mtxtype);
 
               gmreshh[i][j] = (pastix_complex64_t)beta;
             }
@@ -173,7 +173,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
               solveur.AXPY(n, 1.0, &gmresalpha, gmresvv[gmresi1], gmresvv[j]);
             }
 
-          solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[gmresi1], &beta);
+          solveur.Dotc_Gmres(n, gmresvv[gmresi1], gmresvv[gmresi1], &beta, bcsc->mtxtype);
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
       gmrest = (pastix_complex64_t)csqrt(beta);

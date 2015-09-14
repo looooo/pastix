@@ -277,9 +277,16 @@ void z_Pastix_Dotc(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y,
     *r = z_bcscDotc(n, x, y);
 }
 
-void z_Pastix_Dotc_Gmres(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r)
+void z_Pastix_Dotc_Gmres(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int mtxtype)
 {
-    (*r) = z_bcscDotc(n, x, y);
+    if(mtxtype == PastixHermitian)
+    {
+        *r = z_bcscDotcGmres(n, x, y);
+    }
+    else
+    {
+        *r = z_bcscDotc(n, x, y);
+    }
 }
 
 /* Produit matrice vecteur */
