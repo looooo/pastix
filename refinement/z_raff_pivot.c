@@ -140,7 +140,7 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
           t2 = clockGet();
 
           /* updo_vect <= updo_vect (ie PRECOND(B-AX_i)) + lur2 (ie X_i) */
-          z_bcscAxpy( 1.0, (void*)lur2, n, x, 1 );
+          z_bcscAxpy( n, 1, 1.0, (void*)lur2, x );
 
           /* lastberr = berr */
           lberr = berr;
