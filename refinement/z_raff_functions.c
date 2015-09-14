@@ -272,21 +272,16 @@ void z_Pastix_Scal(pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t 
 }
 
 /* Calcul du produit scalaire */
+#if defined(PRECISION_z) || defined(PRECISION_c)
 void z_Pastix_Dotc(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r)
 {
     *r = z_bcscDotc(n, x, y);
 }
+#endif
 
-void z_Pastix_Dotc_Gmres(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r, int mtxtype)
+void z_Pastix_Dotu(pastix_int_t n, pastix_complex64_t *x, pastix_complex64_t *y, pastix_complex64_t *r)
 {
-    if(mtxtype == PastixHermitian)
-    {
-        *r = z_bcscDotcGmres(n, x, y);
-    }
-    else
-    {
-        *r = z_bcscDotc(n, x, y);
-    }
+    *r = z_bcscDotu(n, x, y);
 }
 
 /* Produit matrice vecteur */
@@ -379,7 +374,6 @@ void z_Pastix_Solveur(struct z_solver *solveur)
     solveur->Krylov_Space = &z_Pastix_Krylov_Space;
 
     /*** OPERATIONS DE BASE ***/
-    solveur->Dotc_Gmres = &z_Pastix_Dotc_Gmres;
 
     solveur->Norm    = &z_Pastix_Norm2;
     solveur->Precond = &z_Pastix_Precond;

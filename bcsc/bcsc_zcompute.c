@@ -316,6 +316,7 @@ z_bcscAxpb( pastix_trans_t       trans,
         *rptr += cabs( *bptr );
 }
 
+#if defined(PRECISION_z) || defined(PRECISION_c)
 /**
  *******************************************************************************
  *
@@ -353,15 +354,12 @@ z_bcscDotc( pastix_int_t         n,
 
     for (i=0; i<n; i++, xptr++, yptr++)
     {
-#if defined(PRECISION_z) || defined(PRECISION_c)
         r = r + *xptr * conj(*yptr);
-#else
-        r = r + *xptr * (*yptr);
-#endif
     }
 
     return r;
 }
+#endif
 
 /**
  *******************************************************************************
@@ -389,9 +387,9 @@ z_bcscDotc( pastix_int_t         n,
  *
  *******************************************************************************/
 pastix_complex64_t
-z_bcscDotcGmres( pastix_int_t         n,
-                 void                *x,
-                 void                *y )
+z_bcscDotu( pastix_int_t         n,
+            void                *x,
+            void                *y )
 {
     int i;
     pastix_complex64_t *xptr = (pastix_complex64_t*)x;
