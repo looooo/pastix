@@ -38,6 +38,7 @@
 #  PARSEC_LIBRARY_DIRS_DEP       - parsec + dependencies link directories
 #  PARSEC_LIBRARIES_DEP          - parsec libraries + dependencies
 #  PARSEC_daguepp_BIN_DIR        - path to parsec driver daguepp
+#  PARSEC_DAGUEPP                - PaRSEC jdf compiler
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DPARSEC=path/to/parsec):
 #  PARSEC_DIR                    - Where to find the base directory of parsec
@@ -615,4 +616,13 @@ else()
                                       PARSEC_LIBRARIES
                                       PARSEC_daguepp_BIN_DIR
                                       PARSEC_WORKS)
+endif()
+
+if ( PARSEC_daguepp_BIN_DIR )
+    find_program(PARSEC_DAGUEPP
+      NAMES daguepp
+      HINTS ${PARSEC_daguepp_BIN_DIR}
+      )
+else()
+    set(PARSEC_DAGUEPP "PARSEC_DAGUEPP-NOTFOUND")
 endif()
