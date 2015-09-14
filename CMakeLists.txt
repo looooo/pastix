@@ -277,8 +277,8 @@ if (PASTIX_WITH_PARSEC)
         list(APPEND PARSEC_COMPONENT_LIST "CUDA")
     endif()
 
-    # find_package(PARSEC REQUIRED
-    #   COMPONENTS ${PARSEC_COMPONENT_LIST})
+    find_package(PARSEC REQUIRED
+      COMPONENTS ${PARSEC_COMPONENT_LIST})
     include(FindPkgConfig)
     find_package(PkgConfig QUIET)
     if(PKG_CONFIG_EXECUTABLE)
@@ -296,8 +296,8 @@ if (PASTIX_WITH_PARSEC)
         include_directories(${PARSEC_INCLUDE_DIRS})
         link_directories(${PARSEC_LIBRARY_DIRS})
 
-    # else(PARSEC_FOUND)
-    #     message(ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the Parsec library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
+    else(PARSEC_FOUND)
+        message(ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
     endif()
 
 endif (PASTIX_WITH_PARSEC)
@@ -445,7 +445,7 @@ foreach (module ${modules})
 endforeach()
 
 if (PASTIX_WITH_PARSEC)
-  add_subdirectory(sopalin/parsec)
+    add_subdirectory(sopalin/parsec)
 endif()
 
 # # declare dependencies on headers generation
