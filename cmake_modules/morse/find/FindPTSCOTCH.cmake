@@ -132,7 +132,8 @@ else()
         set(PTSCOTCH_ptscotch.h_DIRS "PTSCOTCH_ptscotch.h_DIRS-NOTFOUND")
         find_path(PTSCOTCH_ptscotch.h_DIRS
           NAMES ptscotch.h
-          HINTS ${_inc_env})
+          HINTS ${_inc_env}
+          PATH_SUFFIXES "scotch")
     endif()
 endif()
 mark_as_advanced(PTSCOTCH_ptscotch.h_DIRS)
@@ -262,6 +263,21 @@ if(PTSCOTCH_LIBRARIES)
     # THREADS
     if(CMAKE_THREAD_LIBS_INIT)
         list(APPEND REQUIRED_LIBS "${CMAKE_THREAD_LIBS_INIT}")
+    endif()
+    set(Z_LIBRARY "Z_LIBRARY-NOTFOUND")
+    find_library(Z_LIBRARY NAMES z)
+    if(Z_LIBRARY)
+        list(APPEND REQUIRED_LIBS "-lz")
+    endif()
+    set(M_LIBRARY "M_LIBRARY-NOTFOUND")
+    find_library(M_LIBRARY NAMES m)
+    if(M_LIBRARY)
+        list(APPEND REQUIRED_LIBS "-lm")
+    endif()
+    set(RT_LIBRARY "RT_LIBRARY-NOTFOUND")
+    find_library(RT_LIBRARY NAMES rt)
+    if(RT_LIBRARY)
+        list(APPEND REQUIRED_LIBS "-lrt")
     endif()
 
     # set required libraries for link

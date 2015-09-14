@@ -54,7 +54,7 @@
 #   - BLAS libraries can be detected from different ways
 #     Here is the order of precedence:
 #     1) we look in cmake variable BLAS_LIBDIR or BLAS_DIR (we guess the libdirs) if defined
-#     2) we look in environnement variable BLAS_LIBDIR or BLAS_DIR (we guess the libdirs) if defined
+#     2) we look in environment variable BLAS_LIBDIR or BLAS_DIR (we guess the libdirs) if defined
 #     3) we look in common environnment variables depending on the system (INCLUDE, C_INCLUDE_PATH, CPATH - LIB, DYLD_LIBRARY_PATH, LD_LIBRARY_PATH)
 #     4) we look in common system paths depending on the system, see for example paths contained in the following cmake variables:
 #       - CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES, CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES
@@ -76,25 +76,25 @@
 
 
 # Set some colors
-if(NOT WIN32)
-    string(ASCII 27 Esc)
-    set(ColourReset "${Esc}[m")
-    set(ColourBold  "${Esc}[1m")
-    set(Red         "${Esc}[31m")
-    set(Green       "${Esc}[32m")
-    set(Yellow      "${Esc}[33m")
-    set(Blue        "${Esc}[34m")
-    set(Magenta     "${Esc}[35m")
-    set(Cyan        "${Esc}[36m")
-    set(White       "${Esc}[37m")
-    set(BoldRed     "${Esc}[1;31m")
-    set(BoldGreen   "${Esc}[1;32m")
-    set(BoldYellow  "${Esc}[1;33m")
-    set(BoldBlue    "${Esc}[1;34m")
-    set(BoldMagenta "${Esc}[1;35m")
-    set(BoldCyan    "${Esc}[1;36m")
-    set(BoldWhite   "${Esc}[1;37m")
-endif()
+#if(NOT WIN32)
+#    string(ASCII 27 Esc)
+#    set(ColourReset "${Esc}[m")
+#    set(ColourBold  "${Esc}[1m")
+#    set(Red         "${Esc}[31m")
+#    set(Green       "${Esc}[32m")
+#    set(Yellow      "${Esc}[33m")
+#    set(Blue        "${Esc}[34m")
+#    set(Magenta     "${Esc}[35m")
+#    set(Cyan        "${Esc}[36m")
+#    set(White       "${Esc}[37m")
+#    set(BoldRed     "${Esc}[1;31m")
+#    set(BoldGreen   "${Esc}[1;32m")
+#    set(BoldYellow  "${Esc}[1;33m")
+#    set(BoldBlue    "${Esc}[1;34m")
+#    set(BoldMagenta "${Esc}[1;35m")
+#    set(BoldCyan    "${Esc}[1;36m")
+#    set(BoldWhite   "${Esc}[1;37m")
+#endif()
 
 ## Some macros to print status when search for headers and libs
 # This macro informs why the _lib_to_find file has not been found
@@ -1028,16 +1028,20 @@ endif (BLA_VENDOR STREQUAL "NAS" OR BLA_VENDOR STREQUAL "All")
 # Generic BLAS library?
 if (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
 
-    if(NOT BLAS_LIBRARIES)
-        check_fortran_libraries(
-        BLAS_LIBRARIES
-        BLAS
-        sgemm
-        ""
-        "blas"
-        ""
-        )
-    endif()
+    set(BLAS_SEARCH_LIBS "blas;blas_LINUX;blas_MAC;blas_WINDOWS")
+    foreach (SEARCH_LIB ${BLAS_SEARCH_LIBS})
+        if (BLAS_LIBRARIES)
+        else ()
+            check_fortran_libraries(
+            BLAS_LIBRARIES
+            BLAS
+            sgemm
+            ""
+            "${SEARCH_LIB}"
+            ""
+            )
+        endif()
+    endforeach ()
 
 endif (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
 

@@ -381,7 +381,8 @@ else()
         set(PASTIX_pastix.h_DIRS "PASTIX_pastix.h_DIRS-NOTFOUND")
         find_path(PASTIX_pastix.h_DIRS
           NAMES pastix.h
-          HINTS ${_inc_env})
+          HINTS ${_inc_env}
+          PATH_SUFFIXES "pastix")
     endif()
 endif()
 mark_as_advanced(PASTIX_pastix.h_DIRS)
@@ -613,6 +614,12 @@ if(PASTIX_LIBRARIES)
             endif()
         endforeach()
         list(APPEND REQUIRED_LIBS "${METIS_LIBRARIES}")
+    endif()
+    # Fortran
+    if (CMAKE_Fortran_COMPILER MATCHES ".+gfortran.*")
+        list(APPEND REQUIRED_LIBS "-lgfortran")
+    elseif (CMAKE_Fortran_COMPILER MATCHES ".+ifort.*")
+        list(APPEND REQUIRED_LIBS "-lifcore")
     endif()
     # EXTRA LIBS such that pthread, m, rt
     list(APPEND REQUIRED_LIBS ${PASTIX_EXTRA_LIBRARIES})
