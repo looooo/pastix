@@ -9,6 +9,10 @@
 #
 macro(jdf_rules jdf_rules_OUTPUTLIST jdf_rules_SOURCES)
 
+  # if (NOT ${PARSEC_DAGUEPP})
+  #   message(ERROR "PaRSEC compiler daguepp is not defined")
+  # endif()
+
   foreach(jdf_rules_SOURCE ${jdf_rules_SOURCES})
     # Remove .jdf if present
     string(REGEX REPLACE ".jdf" "" jdf_rules_SRC ${jdf_rules_SOURCE})
@@ -25,17 +29,17 @@ macro(jdf_rules jdf_rules_OUTPUTLIST jdf_rules_SOURCES)
 
       add_custom_command(
         OUTPUT ${jdf_rules_OSRC}.h ${jdf_rules_OSRC}.c
-        COMMAND ${daguepp_EXE} ${DAGUEPP_CFLAGS} ${ADDITIONAL_DAGUEPP_CFLAGS} -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
+        COMMAND ${PARSEC_DAGUEPP} ${DAGUEPP_CFLAGS} ${ADDITIONAL_DAGUEPP_CFLAGS} -E -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
         MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_SRC}.jdf
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_SRC}.jdf ${daguepp_EXE})
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_SRC}.jdf ${PARSEC_DAGUEPP})
 
     else( jdf_rules_IsInBinaryDir )
 
       add_custom_command(
         OUTPUT ${jdf_rules_OSRC}.h ${jdf_rules_OSRC}.c
-        COMMAND ${daguepp_EXE} ${DAGUEPP_CFLAGS} ${ADDITIONAL_DAGUEPP_CFLAGS} -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
+        COMMAND ${PARSEC_DAGUEPP} ${DAGUEPP_CFLAGS} ${ADDITIONAL_DAGUEPP_CFLAGS} -E -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
         MAIN_DEPENDENCY ${jdf_rules_SRC}.jdf
-        DEPENDS ${jdf_rules_SRC}.jdf ${daguepp_EXE})
+        DEPENDS ${jdf_rules_SRC}.jdf ${PARSEC_DAGUEPP})
 
     endif( jdf_rules_IsInBinaryDir )
 
