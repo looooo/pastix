@@ -43,7 +43,7 @@ macro(jdf_rules jdf_rules_OUTPUTLIST jdf_rules_SOURCES)
 
     endif( jdf_rules_IsInBinaryDir )
 
-    set_source_files_properties(${jdf_rules_OSRC}.c PROPERTIES COMPILE_FLAGS "-I${PARSEC_INCLUDE_DIRS}/daguepp")
+    set_source_files_properties(${jdf_rules_OSRC}.c PROPERTIES COMPILE_FLAGS "-I${PARSEC_DIR_FOUND}/include/daguepp")
     list(APPEND ${jdf_rules_OUTPUTLIST} "${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.h;${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.c")
 
   endforeach()
