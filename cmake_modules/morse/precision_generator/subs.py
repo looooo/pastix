@@ -353,12 +353,6 @@ subs = {
     # BLAS, with precision
     ('', 'sasum',          'dasum',          'scasum',         'dzasum'          ),
     ('', 'sasum',          'dasum',          'casum',          'zasum'           ),
-    ('', 'Dot',            'Dot',            'Dotc',           'Dotc'            ),
-    ('', 'Dot',            'Dot',            'Dotu',           'Dotu'            ),
-    ('', 'dot',            'dot',            'dotc',           'dotc'            ),
-    ('', 'dot',            'dot',            'dotu',           'dotu'            ),
-    ('', 'DOT',            'DOT',            'DOTC',           'DOTC'            ),
-    ('', 'DOT',            'DOT',            'DOTU',           'DOTU'            ),
     ('', 'sger',           'dger',           'cgerc',          'zgerc'           ),
     ('', 'sger',           'dger',           'cgeru',          'zgeru'           ),
     ('', 'snrm2',          'dnrm2',          'scnrm2',         'dznrm2'          ),
@@ -409,6 +403,10 @@ subs = {
     # BLAS, without precision
     # must be after BLAS with precision
     # Ex: cublasZhemm -> cublasShemm -> cublasSsymm
+    ('', 'Dot',            'Dot',            'Dotc',           'Dotc'            ),
+    ('', 'Dot',            'Dot',            'Dotu',           'Dotu'            ),
+    ('', 'dot',            'dot',            'dotc',           'dotc'            ),
+    ('', 'dot',            'dot',            'dotu',           'dotu'            ),
     ('', 'ger',            'ger',            'gerc',           'gerc'            ),
     ('', 'ger',            'ger',            'geru',           'geru'            ),
     ('', 'nrm2',           'nrm2',           'cnrm2',          'znrm2'           ),  # dznrm2 -> dnrm2
@@ -627,6 +625,8 @@ subs = {
     # BLAS, WITHOUT PRECISION
     # MUST BE AFTER BLAS WITH PRECISION
     # EX: CUBLASZHEMM -> CUBLASSHEMM -> CUBLASSSYMM
+    ('', 'DOT',            'DOT',            'DOTC',           'DOTC'            ),
+    ('', 'DOT',            'DOT',            'DOTU',           'DOTU'            ),
     ('', 'GER',            'GER',            'GERC',           'GERC'            ),
     ('', 'GER',            'GER',            'GERU',           'GERU'            ),
     ('', 'NRM2',           'NRM2',           'CNRM2',          'ZNRM2'           ),  # DZNRM2 -> DNRM2
