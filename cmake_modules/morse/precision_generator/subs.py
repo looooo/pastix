@@ -353,9 +353,12 @@ subs = {
     # BLAS, with precision
     ('', 'sasum',          'dasum',          'scasum',         'dzasum'          ),
     ('', 'sasum',          'dasum',          'casum',          'zasum'           ),
-    ('', 'sdot',           'ddot',           'cdotc',          'zdotc'           ),
     ('', 'Dot',            'Dot',            'Dotc',           'Dotc'            ),
     ('', 'Dot',            'Dot',            'Dotu',           'Dotu'            ),
+    ('', 'dot',            'dot',            'dotc',           'dotc'            ),
+    ('', 'dot',            'dot',            'dotu',           'dotu'            ),
+    ('', 'DOT',            'DOT',            'DOTC',           'DOTC'            ),
+    ('', 'DOT',            'DOT',            'DOTU',           'DOTU'            ),
     ('', 'sger',           'dger',           'cgerc',          'zgerc'           ),
     ('', 'sger',           'dger',           'cgeru',          'zgeru'           ),
     ('', 'snrm2',          'dnrm2',          'scnrm2',         'dznrm2'          ),
@@ -406,9 +409,6 @@ subs = {
     # BLAS, without precision
     # must be after BLAS with precision
     # Ex: cublasZhemm -> cublasShemm -> cublasSsymm
-    ('', 'dot',            'dot',            'dotc',           'dotc'            ),
-    ('', 'dot_sub',        'dot_sub',        'dotc_sub',       'dotc_sub'        ),
-    ('', 'dot_sub',        'dot_sub',        'dotu_sub',       'dotu_sub'        ),
     ('', 'ger',            'ger',            'gerc',           'gerc'            ),
     ('', 'ger',            'ger',            'geru',           'geru'            ),
     ('', 'nrm2',           'nrm2',           'cnrm2',          'znrm2'           ),  # dznrm2 -> dnrm2
@@ -578,9 +578,6 @@ subs = {
 
     # ----- BLAS AND LAPACK, WHERE COMPLEX BASE NAME != REAL BASE NAME
     # BLAS, WITH PRECISION
-    ('', 'SDOT',           'DDOT',           'CDOTC',          'ZDOTC'           ),
-    ('', 'SDOT_SUB',       'DDOT_SUB',       'CDOTC_SUB',      'ZDOTC_SUB'       ),
-    ('', 'SDOT_SUB',       'DDOT_SUB',       'CDOTU_SUB',      'ZDOTU_SUB'       ),
     ('', 'SGER',           'DGER',           'CGERC',          'ZGERC'           ),
     ('', 'SGER',           'DGER',           'CGERU',          'ZGERU'           ),
     ('', 'SNRM2',          'DNRM2',          'SCNRM2',         'DZNRM2'          ),
@@ -630,9 +627,6 @@ subs = {
     # BLAS, WITHOUT PRECISION
     # MUST BE AFTER BLAS WITH PRECISION
     # EX: CUBLASZHEMM -> CUBLASSHEMM -> CUBLASSSYMM
-    ('', 'DOT',            'DOT',            'DOTC',           'DOTC'            ),
-    ('', 'DOT_SUB',        'DOT_SUB',        'DOTC_SUB',       'DOTC_SUB'        ),
-    ('', 'DOT_SUB',        'DOT_SUB',        'DOTU_SUB',       'DOTU_SUB'        ),
     ('', 'GER',            'GER',            'GERC',           'GERC'            ),
     ('', 'GER',            'GER',            'GERU',           'GERU'            ),
     ('', 'NRM2',           'NRM2',           'CNRM2',          'ZNRM2'           ),  # DZNRM2 -> DNRM2
