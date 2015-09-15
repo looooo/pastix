@@ -322,8 +322,7 @@ z_bcscAxpb( pastix_trans_t       trans,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscDotc - compute the scalar product x.y
- * TODO: Do we need it, see cblas_zdotc
+ * z_bcscDotc - compute the scalar product x.conj(y).
  *
  *******************************************************************************
  *
@@ -339,7 +338,7 @@ z_bcscAxpb( pastix_trans_t       trans,
  *******************************************************************************
  *
  * @return
- *      \retval the scalar product of x and y.
+ *      \retval the scalar product of x and conj(y).
  *
  *******************************************************************************/
 pastix_complex64_t
@@ -366,8 +365,7 @@ z_bcscDotc( pastix_int_t         n,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscDotcGmres - compute the scalar product x.y for Gmres.
- * TODO: Do we need it, see cblas_zdotc
+ * z_bcscDotu - compute the scalar product x.y.
  *
  *******************************************************************************
  *
