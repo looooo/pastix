@@ -316,13 +316,56 @@ z_bcscAxpb( pastix_trans_t       trans,
         *rptr += cabs( *bptr );
 }
 
+#if defined(PRECISION_z) || defined(PRECISION_c)
 /**
  *******************************************************************************
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscDotc - compute the scalar product x.y
- * TODO: Do we need it, see cblas_zdotc
+ * z_bcscDotc - compute the scalar product x.conj(y).
+ *
+ *******************************************************************************
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] y
+ *          The vector y.
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval the scalar product of x and conj(y).
+ *
+ *******************************************************************************/
+pastix_complex64_t
+z_bcscDotc( pastix_int_t         n,
+            void                *x,
+            void                *y )
+{
+    int i;
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    pastix_complex64_t r = 0.0;
+
+    for (i=0; i<n; i++, xptr++, yptr++)
+    {
+        r = r + *xptr * conj(*yptr);
+    }
+
+    return r;
+}
+#endif
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * z_bcscDotu - compute the scalar product x.y.
  *
  *******************************************************************************
  *
@@ -342,7 +385,7 @@ z_bcscAxpb( pastix_trans_t       trans,
  *
  *******************************************************************************/
 pastix_complex64_t
-z_bcscDotc( pastix_int_t         n,
+z_bcscDotu( pastix_int_t         n,
             void                *x,
             void                *y )
 {
@@ -353,11 +396,7 @@ z_bcscDotc( pastix_int_t         n,
 
     for (i=0; i<n; i++, xptr++, yptr++)
     {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-        r = r + *xptr * conj(*yptr);
-#else
         r = r + *xptr * (*yptr);
-#endif
     }
 
     return r;

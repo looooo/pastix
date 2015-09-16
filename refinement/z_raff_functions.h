@@ -115,7 +115,7 @@ pastix_int_t z_Pastix_Krylov_Space(pastix_data_t *);
 // void z_Pastix_Div(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 
 /* Calcul de la norme de frobenius */
-pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *, pastix_int_t );
+pastix_complex64_t z_Pastix_Norm2(pastix_complex64_t *, pastix_int_t);
 
 /* Copie d'un vecteur */
 // void z_Pastix_Copy(void *, pastix_complex64_t *, pastix_complex64_t *, int);
@@ -127,9 +127,11 @@ void z_Pastix_Precond(pastix_data_t *, pastix_complex64_t *, pastix_complex64_t 
 void z_Pastix_Scal(pastix_int_t, pastix_complex64_t, pastix_complex64_t *);
 
 /* Calcul du produit scalaire */
+#if defined(PRECISION_z) || defined(PRECISION_c)
 void z_Pastix_Dotc(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
+#endif
 
-void z_Pastix_Dotc_Gmres(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
+void z_Pastix_Dotu(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 
 /* Produit matrice vecteur */
 void z_Pastix_Ax(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *);
@@ -166,7 +168,6 @@ struct z_solver
   /*** OPERATIONS DE BASE ***/
 //   void (* Mult)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
 //   void (* Div)(void *, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *, int);
-  void (* Dotc_Gmres)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
 
   pastix_complex64_t (* Norm)(pastix_complex64_t *, pastix_int_t);
 //   void (* Copy)(void *, pastix_complex64_t *, pastix_complex64_t *, int);

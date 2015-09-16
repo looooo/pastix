@@ -78,7 +78,13 @@ void z_bcscAxpb( pastix_trans_t       trans,
                  void                *b,
                  void                *r );
 
+#if defined(PRECISION_z) || defined(PRECISION_c)
 pastix_complex64_t z_bcscDotc( pastix_int_t  n,
+                               void         *x,
+                               void         *y );
+#endif
+
+pastix_complex64_t z_bcscDotu( pastix_int_t  n,
                                void         *x,
                                void         *y );
 
