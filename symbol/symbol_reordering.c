@@ -115,7 +115,7 @@ static inline void
 symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
                    pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
                    pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
-                   pastix_int_t stop_criteria, pastix_int_t stop_when_fitting)
+                   pastix_int_t stop_criteria)
 {
 
     if ( size < 3 ) {
@@ -298,7 +298,6 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
                      pastix_int_t        depthmax,
                      pastix_int_t        split_level,
                      int                 stop_criteria,
-                     int                 stop_when_fitting,
                      double             *time_compute_vectors,
                      double             *time_update_perm)
 {
@@ -376,16 +375,6 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
                 sign++;
                 goto split;
             }
-
-            /* Adjust to depth of the level array */
-            /* symbol_reorder_cblk( symbptr, cblk, order, */
-            /*                      levels, levels[itercblk], */
-            /*                      depthweight + levels[itercblk], maxdepth-levels[itercblk], */
-            /*                      split_level, stop_criteria, stop_when_fitting, */
-            /*                      &time_compute_vectors, &time_update_perm); */
-            /* local_split_level += cblklvl; */
-            /* for(i=0; (i<local_split_level) && (depthweight[i] != 0); i++) */
-            /* for(; (i<depthmax) && (depthweight[i] != 0); i++) */
         }
 
         /* Compute the Hamming vector size for each row of the cblk */
@@ -457,7 +446,7 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
         symbol_reorder_tsp(size, order, cblk - symbptr->cblktab,
                            lw_vectors, lw_vectors_size,
                            up_vectors, up_vectors_size,
-                           stop_criteria, stop_when_fitting);
+                           stop_criteria);
     }
     clockStop(timer);
     *time_update_perm += clockVal(timer);
@@ -480,16 +469,11 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
 /* For stop_criteria parameter */
 /* Criteria to limit the number of comparisons when computing hamming distances */
 
-/* For stop_when_fitting parameter */
-/* Criteria to insert a line when no extra-blok is created */
-/* If set to 0, the algorithm will minimize the cut between two lines */
-
 void
 symbolReordering( const SymbolMatrix *symbptr,
                   Order *order,
                   pastix_int_t split_level,
-                  int stop_criteria,
-                  int stop_when_fitting )
+                  int stop_criteria )
 {
     SymbolCblk  *cblk;
     pastix_int_t itercblk;
@@ -525,7 +509,7 @@ symbolReordering( const SymbolMatrix *symbptr,
         symbol_reorder_cblk( symbptr, cblk, order,
                              levels, levels[itercblk],
                              depthweight, maxdepth,
-                             split_level, stop_criteria, stop_when_fitting,
+                             split_level, stop_criteria,
                              &time_compute_vectors, &time_update_perm);
     }
 

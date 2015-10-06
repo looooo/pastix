@@ -579,10 +579,7 @@ int pastix_task_symbfact(pastix_data_t *pastix_data,
                          pastix_int_t  *perm,
                          pastix_int_t  *invp);
 
-int pastix_task_reordering(pastix_data_t *pastix_data,
-                           pastix_int_t split_level,
-                           int stop_criteria,
-                           int stop_when_fitting);
+int pastix_task_reordering(pastix_data_t *pastix_data);
 
 int pastix_task_blend( pastix_data_t *pastix_data );
 
@@ -597,10 +594,5 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                       void          *x,
                       pastix_int_t   rhsnbr,
                       void          *b);
-
-/* TODO: integrate in iparm? */
-int split_level;
-int stop_criteria;
-int stop_when_fitting;
 
 #endif /* _PASTIX_H_ */

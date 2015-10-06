@@ -9,8 +9,7 @@
 #include "order.h"
 
 int
-pastix_task_reordering(pastix_data_t *pastix_data, pastix_int_t split_level,
-                       int stop_criteria, int stop_when_fitting)
+pastix_task_reordering(pastix_data_t *pastix_data)
 {
     Clock timer;
 
@@ -20,7 +19,8 @@ pastix_task_reordering(pastix_data_t *pastix_data, pastix_int_t split_level,
     clockStart(timer);
 
     symbolReordering( pastix_data->symbmtx, pastix_data->ordemesh,
-                      split_level, stop_criteria, stop_when_fitting );
+                      pastix_data->iparm[IPARM_REORDERING_SPLIT],
+                      pastix_data->iparm[IPARM_REORDERING_STOP] );
 
     /* !!! We have to save the new ordering !!! */
     /* int retval = orderSave( pastix_data->ordemesh, NULL ); */

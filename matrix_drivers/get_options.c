@@ -861,16 +861,6 @@ void pastix_ex_getoptions(int argc, char **argv,
             getfilename( filename, optarg, "graphname" );
             break;
 
-        case 'R':
-            /* TODO: add through IPARM */
-            getfilename( filename, optarg, "d:1000" );
-            if ( sscanf( *filename, "%d:%d:%d", &split_level, &stop_criteria, &stop_when_fitting ) != 3 ) {
-                fprintf(stderr, "Fatal error in reordering parameters -R split_level:stop_criteria:stop_when_fitting\n");
-                exit(1);
-            }
-
-            break;
-
         case 't': iparam[IPARM_THREAD_NBR] = atoi(optarg); break;
         case 'g': iparam[IPARM_GPUS_NBR] = atoi(optarg); break;
 

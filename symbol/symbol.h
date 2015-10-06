@@ -84,7 +84,7 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
 
 void symbolCheckProperties( const SymbolMatrix * );
 
-void symbolReordering( const SymbolMatrix *, Order *, pastix_int_t, int, int );
+void symbolReordering( const SymbolMatrix *, Order *, pastix_int_t, int);
 void symbolReorderingPrintComplexity( const SymbolMatrix *symbptr );
 
 pastix_int_t symbolGetNNZ  ( const SymbolMatrix *symbptr);
