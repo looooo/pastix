@@ -114,7 +114,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t  odb_nbr          = 0;
     pastix_int_t  cblknum          = 0;
     pastix_int_t  tasknum          = 0;
-    pastix_int_t  brownbr          = 0;
+    pastix_int_t  brownum          = 0;
     pastix_int_t  indnbr           = 0;
     pastix_int_t *cblklocalnum     = NULL;
     pastix_int_t *bloklocalnum     = NULL;
@@ -192,7 +192,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             if(flaglocal) {
                 cblklocalnum[i] = cblknum;
                 cblknum++;
-                brownbr += symbmtx->cblktab[i+1].brownum - symbmtx->cblktab[i].brownum;
+                brownum += symbmtx->cblktab[i+1].brownum - symbmtx->cblktab[i].brownum;
                 assert( brownbr <= symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
             }
             else {
@@ -201,13 +201,13 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
         solvmtx->cblknbr = cblknum;
         solvmtx->bloknbr = localindex[clustnum];
-        solvmtx->brownbr = brownbr;
+        solvmtx->brownbr = brownum;
 
         memFree_null(localindex);
     }
 
     /***************************************************************************
-     * Fill in bloktab and cblktab
+     * Fill in the local bloktab and cblktab
      */
 
     /* Allocate the cblktab and bloktab with the computed size */
@@ -215,9 +215,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok  );
     MALLOC_INTERN(solvmtx->browtab, solvmtx->brownbr,   pastix_int_t);
 
-    /* TODO: Fix that in distributed mode */
-    assert( brownbr == symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
-    memcpy( solvmtx->browtab, symbmtx->browtab, brownbr * sizeof(pastix_int_t) );
     {
         SolverCblk *solvcblk = solvmtx->cblktab;
         SolverBlok *solvblok = solvmtx->bloktab;
@@ -227,6 +224,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
 
         cblknum = 0;
+        brownum = 0;
         nodenbr = 0;
         coefnbr = 0;
         for(i=0; i<symbmtx->cblknbr; i++, symbcblk++)
@@ -263,18 +261,30 @@ solverMatrixGen(const pastix_int_t clustnum,
             }
             if(flaglocal)
             {
+                pastix_int_t brownbr;
+
                 /* Init the cblk */
                 solvcblk->fblokptr = fblokptr;
                 solvcblk->fcolnum  = symbcblk->fcolnum * dof;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
                 solvcblk->stride   = stride;
                 solvcblk->lcolidx  = nodenbr;
-                solvcblk->brownum  = symbcblk->brownum;
+                solvcblk->brownum  = brownum;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
                 solvcblk->gpuid    = -1;
+
+                /* Copy browtab information */
+                brownbr = symbmtx->cblktab[i+1].brownum
+                    -     symbmtx->cblktab[i].brownum;
+                memcpy( solvmtx->browtab + brownum,
+                        symbmtx->browtab + symbmtx->cblktab[i].brownum,
+                        brownbr * sizeof(pastix_int_t) );
+                brownum += brownbr;
+
+                assert( brownum <= solvmtx->brownbr );
 
                 /* Extra statistic informations */
                 nodenbr += nbcolumns;
@@ -311,9 +321,12 @@ solverMatrixGen(const pastix_int_t clustnum,
     /***************************************************************************
      * Update browind fields
      */
-    for(i=0; i<brownbr; i++)
+    for(i=0; i<solvmtx->brownbr; i++)
     {
-        solvmtx->bloktab[ solvmtx->browtab[i] ].browind = i;
+        pastix_int_t bloknum = solvmtx->browtab[i];
+        if ( simuctrl->bloktab[bloknum].ownerclust == clustnum ) {
+            solvmtx->bloktab[ bloknum ].browind = i;
+        }
     }
 
     /***************************************************************************
