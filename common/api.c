@@ -107,6 +107,12 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_AMALGAMATION_LVLBLAS]  = 5;                   /* Amalgamation level                                   */
 
     /**
+     * Reordering parameters
+     */
+    iparm[IPARM_REORDERING_SPLIT] = 0;                   /* Split level for reordering                           */
+    iparm[IPARM_REORDERING_STOP]  = INT_MAX;             /* Stop criteria for reordering                         */
+
+    /**
      * Runtime parameters
      */
     iparm[IPARM_SCHEDULER]             = 0;                   /* cpu/node */

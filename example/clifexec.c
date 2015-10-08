@@ -1,8 +1,9 @@
 /**
- *  @file: analyze.c
+ *  @file: clifexec.c
  *
- *  A simple example that performs only the analyses steps onto the given graph.
- *  These tests doesn't require the values of the matrix.
+ *  A simple example :
+ *  read the matrix, check it is correct and correct it if needed,
+ *  then run pastix in one call.
  *
  */
 #include <pastix.h>
@@ -24,17 +25,11 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
 
-    iparm[IPARM_FACTORIZATION] = API_FACT_LDLT;
-    iparm[IPARM_IO_STRATEGY]   = API_IO_SAVE;
-    iparm[IPARM_MIN_BLOCKSIZE] = 60;
-    iparm[IPARM_MAX_BLOCKSIZE] = 120;
-
-
     /**
-     * Reordering parameters for extra heuristics
+     * Initialize parameters to default values
      */
-    iparm[IPARM_REORDERING_SPLIT] = 0;
-    iparm[IPARM_REORDERING_STOP]  = INT_MAX;
+    pastixInitParam( iparm, dparm );
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Get options from command line
@@ -54,16 +49,11 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
-    printf("Reordering parameters are %ld %ld\n", iparm[IPARM_REORDERING_SPLIT],
-           iparm[IPARM_REORDERING_STOP]);
-
     /**
-     * Perform ordering, symbolic factorization, and analyze steps
+     * Perform ordering, symbolic factorization
      */
     pastix_task_order( pastix_data, &csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
-    pastix_task_reordering( pastix_data );
-    pastix_task_blend( pastix_data );
 
     spmExit( &csc );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );

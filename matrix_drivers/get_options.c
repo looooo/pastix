@@ -693,7 +693,7 @@ pastix_ex_usage(void)
             );
 }
 
-#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:t:g:o:i:d:f:s:v::h"
+#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:R:t:g:o:i:d:f:s:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 static struct option long_options[] =
@@ -749,6 +749,9 @@ static struct option long_options[] =
     /*{"iparmfile",   no_argument,        0, 'i'},*/
     {"iparm",       no_argument,        0, 'i'},
     {"i",           no_argument,        0, 'i'},
+
+    {"R",           required_argument,  0, 'R'},
+
     {0, 0, 0, 0}
 };
 #endif  /* defined(HAVE_GETOPT_LONG) */

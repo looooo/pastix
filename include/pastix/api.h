@@ -58,6 +58,9 @@
    IPARM_AMALGAMATION_LVLCBLK  - Amalgamation level                                       Default: 5                   IN
    IPARM_AMALGAMATION_LVLBLAS  - Amalgamation level                                       Default: 5                   IN
 
+   IPARM_REORDERING_SPLIT      - Reordering split level                                   Default: 0                   IN
+   IPARM_REORDERING_STOP       - Reordering stop criteria                                 Default: INT_MAX             IN
+
    IPARM_STATIC_PIVOTING       - Static pivoting                                          Default: -                   OUT
    IPARM_NNZEROS               - Number of nonzero entries in the factorized matrix       Default: -                   OUT
    IPARM_ALLOCATED_TERMS       - Maximum memory allocated for matrix terms                Default: -                   OUT
@@ -157,6 +160,10 @@ enum IPARM_ACCESS {
   IPARM_SF_KASS,
   IPARM_AMALGAMATION_LVLBLAS,
   IPARM_AMALGAMATION_LVLCBLK,
+
+  /* Reordering */
+  IPARM_REORDERING_SPLIT,
+  IPARM_REORDERING_STOP,
 
   IPARM_STATIC_PIVOTING,
   IPARM_NNZEROS,
