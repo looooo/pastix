@@ -64,18 +64,6 @@ int  graphIsolate(       pastix_int_t   n,
                          pastix_int_t **new_perm,
                          pastix_int_t **new_invp );
 
-int graphIsolateSupernode(       pastix_int_t   n,
-			   const pastix_int_t  *colptr,
-			   const pastix_int_t  *rows,
-			   const pastix_int_t  *perm,
-			   const pastix_int_t  *invp,
-                                 pastix_int_t   fnode,
-                                 pastix_int_t   lnode,
-				 pastix_int_t   isolate_n,
-			   const pastix_int_t  *isolate_list,
-				 pastix_int_t **new_colptr,
-				 pastix_int_t **new_rows );
-
 int graphApplyPerm( const pastix_graph_t *graphA,
                     const pastix_int_t   *perm,
                           pastix_graph_t *graphPA );

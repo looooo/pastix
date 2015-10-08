@@ -305,3 +305,4 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             cblknbr, cblkmin, cblkmax, cblkavg,
             bloknbr, blokmin, blokmax, blokavg );
 }
+

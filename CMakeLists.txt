@@ -39,7 +39,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" OFF)
+    "Build PaStiX for distributed memory with MPI" ON)
 
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA
@@ -137,7 +137,8 @@ find_package(LAPACKEXT REQUIRED)
 if(LAPACKE_FOUND)
     message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
     include_directories(${LAPACKE_INCLUDE_DIRS})
-endif()
+  endif()
+      include_directories("/home/gpichon/Documents/pastix")
 
 # PaStiX depends on HwLoc
 #---------------------------
@@ -326,7 +327,7 @@ endif()
 if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH)
   if (SCOTCH_FOUND)
-    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS} ${SCOTCH_LIBRARY_DIRS} ${SCOTCH_LIBRARIES}" )
+    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS}" )
     include_directories( ${SCOTCH_INCLUDE_DIRS} )
     link_directories( ${SCOTCH_LIBRARY_DIRS} )
     link_libraries( ${SCOTCH_LIBRARIES} )
@@ -613,10 +614,10 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_draw.c
   symbol/symbol_io.c
   symbol/symbol_rustine.c
-  symbol/symbol_reordering.c
   symbol/symbol_cost.c
   symbol/symbol_cost_flops.c
   symbol/symbol_cost_perfs.c
+  symbol/symbol_reordering.c
 #  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
@@ -687,7 +688,6 @@ if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_scotch.c
-    order/order_compute_clif.c
     )
 endif()
 if(PASTIX_ORDERING_PTSCOTCH) # AND HAVE_PTSCOTCH)
