@@ -193,7 +193,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 cblklocalnum[i] = cblknum;
                 cblknum++;
                 brownum += symbmtx->cblktab[i+1].brownum - symbmtx->cblktab[i].brownum;
-                assert( brownbr <= symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
+                assert( brownum <= symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
             }
             else {
                 cblklocalnum[i] = -i-1;
