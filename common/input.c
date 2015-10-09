@@ -160,6 +160,14 @@ int iparm_to_int( char * string)
     {
         return IPARM_AMALGAMATION_LVLBLAS;
     }
+    if(0 == strcmp("iparm_reordering_split", string))
+    {
+        return IPARM_REORDERING_SPLIT;
+    }
+    if(0 == strcmp("iparm_reordering_stop", string))
+    {
+        return IPARM_REORDERING_STOP;
+    }
     if(0 == strcmp("iparm_baseval", string))
     {
         return IPARM_BASEVAL;

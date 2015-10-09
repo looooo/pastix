@@ -337,7 +337,9 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
 
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
-    symbolPrintStats( pastix_data->symbmtx );
+
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        symbolPrintStats( pastix_data->symbmtx );
 
     /* Rustine to be sure we have a tree
      * TODO: check difference with kassSymbolPatch */

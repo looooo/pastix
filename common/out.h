@@ -48,6 +48,9 @@
 #define OUT_ORDERINIT         "   Initiating ordering                         \n"
 #define OUT_ORDER_METHOD      "   Algorithm used: %s\n"
 
+#define OUT_REORDERING_PARAMS " Reordering parameters are %ld for split_level and %ld for stop_criteria\n"
+#define OUT_REORDERING_TIME   " Time for reordering %.3g s\n"
+
 #define OUT_STEP_FAX          " Symbolic Factorization :                     \n"
 #define OUT_FAX_METHOD        "   Algorithm used: %4s                       \n"
 #define OUT_GLOBAL_NNZL       "   Number of nonzeroes in L structure      %ld\n"
