@@ -280,7 +280,7 @@ bcscExit( pastix_bcsc_t *bcsc )
         memFree_null( bcsc->rowtab );
 
         if ( (bcsc->Uvalues != NULL) &&
-             (bcsc->Lvalues != bcsc->Lvalues) ) {
+             (bcsc->Uvalues != bcsc->Lvalues) ) {
             memFree_null( bcsc->Uvalues );
         }
 
