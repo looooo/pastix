@@ -905,14 +905,17 @@ void pastix_ex_getoptions(int argc, char **argv,
 
             /* Get iparm index */
             iparm_idx = iparm_to_int( optarg );
-            if ( iparm_idx == -1 )
+            if ( iparm_idx == -1 ) {
+                fprintf(stderr, "Couldn't find value for %s\n", optarg );
                 goto unknown_option;
+            }
 
             /* Get iparm value */
             iparm_val = api_to_int( argv[optind] );
-            if ( iparm_val == -1 )
+            if ( iparm_val == -1 ){
+                fprintf(stderr, "Couldn't find value for %s\n", argv[optind] );
                 goto unknown_option;
-
+            }
             iparam[iparm_idx] = iparm_val;
         }
         break;
@@ -955,6 +958,6 @@ void pastix_ex_getoptions(int argc, char **argv,
     return;
 
   unknown_option:
-    fprintf(stderr, "ERROR: unknown option\n");
+    fprintf(stderr, "ERROR: Unknown option\n");
     pastix_ex_usage(); exit(0);
 }
