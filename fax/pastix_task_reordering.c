@@ -27,7 +27,7 @@
  *          - IPARM_IO_STRATEGY will enable to load/store the result to files.
  *          If set to API_IO_SAVE, the symbmtx and the generated ordemesh is
  *          dump to file.
- *          If set to APÏ_IO_LOAD, the symbmtx (only) is loaded from the files.
+ *          If set to API_IO_LOAD, the symbmtx (only) is loaded from the files.
  *
  *******************************************************************************
  *
@@ -49,7 +49,7 @@ pastix_task_reordering(pastix_data_t *pastix_data)
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_symbfact: wrong pastix_data parameter");
+        errorPrint("pastix_task_reordering: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm    = pastix_data->iparm;
