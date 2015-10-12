@@ -112,7 +112,7 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
     /**
      * Allocate and initialize globcol that contains the number of elements in
      * each column of the input matrix
-     * Globcol is equivalent to the calssic colptr for the internal blocked
+     * Globcol is equivalent to the classic colptr for the internal blocked
      * csc. The blocked csc integrate the perumtation computed within order
      * structure.
      */
@@ -146,7 +146,7 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
             }
         }
 
-        /* Compute displacements */
+        /* Compute displacements to update the colptr array */
         {
             pastix_int_t tmp, idx;
 
