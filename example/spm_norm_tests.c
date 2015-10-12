@@ -44,7 +44,7 @@ int main (int argc, char **argv)
     pastix_csc_t    csc;
     pastix_driver_t driver;
     char *filename;
-    int mtxtype, baseval;
+    int csctype, mtxtype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
@@ -55,6 +55,7 @@ int main (int argc, char **argv)
     cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
     free(filename);
 
+    csctype = csc.mtxtype;
     printf(" -- SPM Norms Test --\n");
 
     printf(" Datatype: %s\n", fltnames[csc.flttype] );
@@ -71,7 +72,7 @@ int main (int argc, char **argv)
                 continue;
             }
             if ( (mtxtype != PastixGeneral) &&
-                 (csc.mtxtype == PastixGeneral) )
+                 (csctype == PastixGeneral) )
             {
                 continue;
             }
