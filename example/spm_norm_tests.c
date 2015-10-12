@@ -70,6 +70,11 @@ int main (int argc, char **argv)
             {
                 continue;
             }
+            if ( (mtxtype != PastixGeneral) &&
+                 (csc.mtxtype == PastixGeneral) )
+            {
+                continue;
+            }
             csc.mtxtype = mtxtype;
 
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
