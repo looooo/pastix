@@ -51,10 +51,10 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
                     /* Solve the diagonal block */
                     cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasTrans, (enum CBLAS_DIAG)diag,
+                        CblasColMajor, CblasLeft, CblasUpper,
+                        CblasNoTrans, (enum CBLAS_DIAG)diag,
                         tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->ucoeftab,    cblk->stride,
+                        cblk->dcoeftab,    tempn,
                         b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
@@ -94,7 +94,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                         CblasColMajor, CblasLeft, CblasLower,
                         CblasNoTrans, (enum CBLAS_DIAG)diag,
                         tempn, nrhs, CBLAS_SADDR(zone),
-                        coeftab, cblk->stride,
+                        cblk->dcoeftab, tempn,
                         b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
@@ -128,7 +128,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                         CblasColMajor, CblasLeft, CblasLower,
                         (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                         tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->lcoeftab,    cblk->stride,
+                        cblk->dcoeftab,    tempn,
                         b + cblk->lcolidx, ldb );
 
                     /* Apply the update */

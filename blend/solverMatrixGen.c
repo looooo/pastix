@@ -30,73 +30,6 @@
 #include "solver_io.h"
 #include "solverMatrixGen.h"
 
-/* void build_smx(UpDownVector          *updovct, */
-/*                const SymbolMatrix    *symbptr, */
-/*                const SimuCtrl        *simuptr, */
-/*                const BlendCtrl *const ctrl) */
-/* { */
-/*     pastix_int_t i, j; */
-/*     pastix_int_t cursor = 0; */
-/*     pastix_int_t xcolnbr = 0; */
-/*     pastix_int_t Xnbr = 0; */
-/*     pastix_int_t localXnbr = 0; */
-/*     pastix_int_t delta; */
-/*     pastix_int_t dof = symbptr->dof; */
-
-/*     for(i=0;i<symbptr->cblknbr;i++) */
-/*     { */
-/*         delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof; */
-/*         /\*if(cbprtab[i] == ctrl->procnum)*\/ */
-/*         if(simuptr->bloktab[symbptr->cblktab[i].bloknum].ownerclust == ctrl->clustnum) */
-/*             localXnbr += delta; */
-/*         Xnbr += delta; */
-/*     } */
-
-/*     /\** We build the whole second member **\/ */
-/*     for(i=0;i<symbptr->cblknbr;i++) */
-/*     { */
-/*         /\** Compute xcolnbr **\/ */
-/*         delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof; */
-
-
-/*         /\** Add delta in the ODB variable **\/ */
-/*         xcolnbr = 0; */
-/*         for(j=symbptr->cblktab[i].bloknum+1;j<symbptr->cblktab[i+1].bloknum;j++) */
-/*         { */
-/*             xcolnbr += (symbptr->bloktab[j].lrownum - symbptr->bloktab[j].frownum + 1)*dof; */
-/*         } */
-/*         /\** We only count non diagonal terms **\/ */
-/*         /\** Now add the height of the cblk (-1 for diagonal term) in the DIAGONAL variables **\/ */
-/*         xcolnbr += delta-1; */
-/*     } */
-
-/*     /\** Now we fill the local second member **\/ */
-/*     updovct->sm2xsze = localXnbr; */
-/*     updovct->sm2xnbr = 1; */
-/*     updovct->sm2xtab = NULL; */
-
-/*     /\* Find the sm2xmax = cblk the broadest on other proc *\/ */
-/*     updovct->sm2xmax = 0; */
-/*     for(i=0;i<symbptr->cblknbr;i++) */
-/*     { */
-/*         delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof; */
-/*         if(updovct->sm2xmax < delta) */
-/*             updovct->sm2xmax = delta; */
-/*     } */
-
-/*     j = 0; */
-/*     for(i=0;i<symbptr->cblknbr;i++) */
-/*         /\*if(cbprtab[i] == ctrl->procnum)*\/ */
-/*         if(simuptr->bloktab[symbptr->cblktab[i].bloknum].ownerclust == ctrl->clustnum) */
-/*         { */
-/*             delta = (symbptr->cblktab[i].lcolnum - symbptr->cblktab[i].fcolnum + 1)*dof; */
-
-/*             updovct->cblktab[j].sm2xind = cursor; */
-/*             j++; */
-/*             cursor += delta; */
-/*         } */
-/* } */
-
 
 pastix_int_t *
 solverMatrixGen(const pastix_int_t clustnum,
@@ -272,6 +205,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvcblk->brownum  = brownum;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
+                solvcblk->dcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
                 solvcblk->gpuid    = -1;
@@ -305,6 +239,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->brownum  = symbcblk->brownum;
             solvcblk->procdiag = -1;
             solvcblk->lcoeftab = NULL;
+            solvcblk->dcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
             solvcblk->gpuid    = -1;
