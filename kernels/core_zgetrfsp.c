@@ -224,29 +224,23 @@ static void core_zgetrfsp(pastix_int_t        n,
  *
  *******************************************************************************/
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *U,
+                           pastix_complex64_t *D,
+                           pastix_complex64_t *nul,
                            double              criteria)
 {
-    pastix_int_t  ncols, stride;
-    pastix_int_t  nbpivot = 0;
+    (void) nul;
+    pastix_int_t ncols, stride_D;
+    pastix_int_t nbpivot = 0;
 
-    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
+    ncols    = cblk->lcolnum - cblk->fcolnum + 1;
+    stride_D = cblk->lcolnum - cblk->fcolnum + 1;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
-    /* core_zgeadd( CblasTrans, ncols, ncols, 1.0, */
-    /*              U, stride, */
-    /*              L, stride ); */
-
     /* Factorize diagonal block (two terms version with workspace) */
-    core_zgetrfsp(ncols, L, ncols, &nbpivot, criteria);
-
-    /* Transpose Akk in ucoeftab */
-    /* core_zgetro(ncols, ncols, L, stride, U, stride); */
+    core_zgetrfsp(ncols, D, stride_D, &nbpivot, criteria);
 
     return nbpivot;
 }
@@ -294,7 +288,8 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
     /* vertical dimension */
     dimb = stride - dima;
 
-    pastix_int_t ncols = cblk->lcolnum - cblk->fcolnum + 1;
+    pastix_complex64_t *D = cblk->dcoeftab;
+    pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
 
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
@@ -304,19 +299,69 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
         fU = U + fblok[1].coefind;
 
 
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasUpper,
-                    CblasNoTrans, CblasNonUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), cblk->dcoeftab,  ncols,
-                                       fL, stride);
-
+        /* First solve */
         cblas_ztrsm(CblasColMajor,
                     CblasRight, CblasLower,
                     CblasTrans, CblasUnit,
                     dimb, dima,
-                    CBLAS_SADDR(zone), cblk->dcoeftab,  ncols,
+                    CBLAS_SADDR(zone), D,  stride_D,
                                        fU, stride);
+
+        /* Good one??? */
+        cblas_ztrsm(CblasColMajor,
+                    CblasRight, CblasUpper,
+                    CblasTrans, CblasNonUnit,
+                    dimb, dima,
+                    CBLAS_SADDR(zone), D,  stride_D,
+                                       fU, stride);
+
+
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+static int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
+                                  pastix_complex64_t *L,
+                                  pastix_complex64_t *U)
+{
+    SolverBlok *fblok, *lblok;
+    pastix_complex64_t *fL, *fU;
+    pastix_int_t dima, dimb, stride;
+
+    dima    = cblk->lcolnum - cblk->fcolnum + 1;
+    stride  = cblk->stride;
+    fblok = cblk->fblokptr;   /* this diagonal block */
+    lblok = cblk[1].fblokptr; /* the next diagonal block */
+
+    /* vertical dimension */
+    dimb = stride - dima;
+
+    pastix_complex64_t *D = cblk->dcoeftab;
+    pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
+
+    /* if there is an extra-diagonal bloc in column block */
+    if ( fblok+1 < lblok )
+    {
+        /* first extra-diagonal bloc in column block address */
+        fL = L + fblok[1].coefind;
+        fU = U + fblok[1].coefind;
+
+        /* Second solve */
+        cblas_ztrsm(CblasColMajor,
+                    CblasRight, CblasUpper,
+                    CblasNoTrans, CblasNonUnit,
+                    dimb, dima,
+                    CBLAS_SADDR(zone), D,  stride_D,
+                                       fL, stride);
+
+        /* Good one??? */
+        cblas_ztrsm(CblasColMajor,
+                    CblasRight, CblasLower,
+                    CblasNoTrans, CblasUnit,
+                    dimb, dima,
+                    CBLAS_SADDR(zone), D,  stride_D,
+                                       fL, stride);
     }
 
     return PASTIX_SUCCESS;
@@ -361,7 +406,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *U,
                            double              criteria)
 {
-    pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, cblk->dcoeftab, NULL, criteria);
+    pastix_complex64_t *D = cblk->dcoeftab;
+    pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, D, NULL, criteria);
     core_zgetrfsp1d_trsm(cblk, L, U);
     return nbpivot;
 }
@@ -433,12 +479,11 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     pastix_int_t stride, stridefc, indblok;
     pastix_int_t dimi, dimj, dima, dimb;
 
-    pastix_complex64_t *Cd;
-    Cd = fcblk->dcoeftab;
-
-
     stride  = cblk->stride;
     dima = cblk->lcolnum - cblk->fcolnum + 1;
+
+    pastix_complex64_t *Cd = fcblk->dcoeftab;
+    pastix_int_t stride_D = fcblk->lcolnum - fcblk->fcolnum + 1;
 
     /* First blok */
     indblok = blok->coefind;
@@ -469,9 +514,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
 
     /* Move the pointer to the top of the right column */
     stridefc = fcblk->stride;
-    pastix_int_t ncols = fcblk->lcolnum - fcblk->fcolnum + 1;
     C = Cl + (blok->frownum - fcblk->fcolnum) * stridefc;
-
 
     lblok = cblk[1].fblokptr;
 
@@ -492,12 +535,12 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
         pastix_cblk_lock( fcblk );
 
         /* If the blok modifies a diagonal block */
-        if (fblok->coefind + iterblok->frownum - fblok->frownum < ncols){
-            Aij = Cd + (blok->frownum - fcblk->fcolnum) * ncols
+        if (fblok->coefind + iterblok->frownum - fblok->frownum < stride_D){
+            Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
                 + fblok->coefind + iterblok->frownum - fblok->frownum;
             core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
                          wtmp, dimi,
-                         Aij,  ncols );
+                         Aij,  stride_D );
         }
         else{
             core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
@@ -543,14 +586,13 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
         if (!is_block_inside_fblock( iterblok, fblok ))
              break;
 
-        pastix_int_t ncols = fcblk->lcolnum - fcblk->fcolnum + 1;
-        Aij = C + (iterblok->frownum - fblok->frownum)*ncols;
+        Aij = C + (iterblok->frownum - fblok->frownum)*stride_D;
         dimb = iterblok->lrownum - iterblok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
         core_zgeadd( CblasTrans, dimj, dimb, -1.0,
                      wtmp, dimi,
-                     Aij,  ncols);
+                     Aij,  stride_D);
         pastix_cblk_unlock( fcblk );
 
         /* Displacement to next block */
@@ -652,6 +694,9 @@ core_zgetrfsp1d( SolverMatrix *solvmtx,
     }
 
     memFree_null( work );
+
+    core_zgetrfsp1d_trsm2(cblk, L, U);
+
     return nbpivot;
 }
 

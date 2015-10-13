@@ -59,7 +59,6 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
 
                 if ( solvblok < solvblok2 )
                 {
-                    pastix_int_t ncols = solvcblk->lcolnum - solvcblk->fcolnum + 1;
                     pastix_int_t i, j;
                     i = solvblok->coefind + rownum - solvblok->frownum;
                     j = itercoltab;
@@ -68,22 +67,22 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
                         dcoeftab[i*ncols + j] = Uvalues[iterval];
                         dcoeftab[j*ncols + i] = Lvalues[iterval];
                     }
+                    else{
+                        coefindx  = solvblok->coefind;
+                        coefindx += rownum - solvblok->frownum;
+                        coefindx += solvcblk->stride * itercoltab;
+                        lcoeftab[coefindx] = Lvalues[iterval];
 
-                    coefindx  = solvblok->coefind;
-                    coefindx += rownum - solvblok->frownum;
-                    coefindx += solvcblk->stride * itercoltab;
-
-                    lcoeftab[coefindx] = Lvalues[iterval];
-
-                    if ( (ucoeftab != NULL) &&
-                         (solvcblk->fblokptr != solvblok) )
-                    {
+                        if ( (ucoeftab != NULL) &&
+                             (solvcblk->fblokptr != solvblok) )
+                        {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                        if (bcsc->mtxtype == PastixHermitian)
-                            ucoeftab[coefindx] = conj(Uvalues[iterval]);
-                        else
+                            if (bcsc->mtxtype == PastixHermitian)
+                                ucoeftab[coefindx] = conj(Uvalues[iterval]);
+                            else
 #endif
-                            ucoeftab[coefindx] = Uvalues[iterval];
+                                ucoeftab[coefindx] = Uvalues[iterval];
+                        }
                     }
                 }
                 else {
