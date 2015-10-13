@@ -236,7 +236,9 @@ graphPrepare(      pastix_data_t   *pastix_data,
             assert( colptr[0] == 1 );
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
-            if (iparm[IPARM_SYM]==API_SYM_YES || iparm[IPARM_SYM] == API_SYM_HER) {
+            if ( (csc->mtxtype == PastixSymmetric) ||
+                 (csc->mtxtype == PastixHermitian) )
+            {
                 cscd_symgraph_int(n, colptr, rows, NULL,
                                   &(tmpgraph->n),
                                   &(tmpgraph->colptr),
@@ -244,7 +246,9 @@ graphPrepare(      pastix_data_t   *pastix_data,
                                   loc2glob,
                                   pastix_comm, API_YES );
                 assert( n == tmpgraph->n );
-            } else {
+            }
+            else
+            {
                 pastix_int_t nnz = colptr[n]-colptr[0];
                 tmpgraph->n = n;
                 MALLOC_INTERN(tmpgraph->colptr, (n+1), pastix_int_t);

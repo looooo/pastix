@@ -35,21 +35,3 @@ enum API_FLOAT {
   API_COMPLEXDOUBLE = PastixComplex64
 };
 
-/** Matrice symétrique ou non (0 : symétrique, 1 : non) */
-/*
-  Enum: API_SYM
-
-  Symmetric modes (index IPARM_SYM)
-
-  API_SYM_YES - Symmetric matrix
-  API_SYM_NO  - Nonsymmetric matrix
-  API_SYM_HER - Hermitian
-
- */
-/* _POS_ 3 */
-enum API_SYM {
-  API_SYM_NO  = 111,  /* Matrice non symetrique */
-  API_SYM_YES = 112, /* Matrice symetrique     */
-  API_SYM_HER = 113
-};
-
