@@ -47,12 +47,9 @@ int  graphSymmetrize(       pastix_int_t    n,
                       const pastix_int_t   *loc2glob,
                             pastix_graph_t *newgraph );
 
-int  graphPrepare(      pastix_data_t   *pastix_data,
-                        pastix_int_t     n,
-                  const pastix_int_t    *colptr,
-                  const pastix_int_t    *rows,
-                  const pastix_int_t    *loc2glob,
-                        pastix_graph_t **graph );
+int  graphPrepare(       pastix_data_t   *pastix_data,
+                   const pastix_csc_t    *csc,
+                         pastix_graph_t **graph );
 
 int  graphIsolate(       pastix_int_t   n,
                    const pastix_int_t  *colptr,

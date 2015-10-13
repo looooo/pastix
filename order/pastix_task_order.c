@@ -207,7 +207,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
      * operations as symmetrizing the graph and removing the diagonal
      * coefficients
      */
-    graphPrepare( pastix_data, csc->gN, csc->colptr, csc->rowptr, csc->loc2glob, &(pastix_data->graph) );
+    graphPrepare( pastix_data, csc, &(pastix_data->graph) );
     graph = pastix_data->graph;
 
     /*

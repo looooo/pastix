@@ -98,7 +98,7 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
     n = bcsc->n;
     MALLOC_INTERN( summcol, n, double);
     memset( summcol, 0, n * sizeof(double) );
-    
+
     if(bcsc->mtxtype == PastixGeneral)
     {
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
@@ -174,7 +174,7 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
     MALLOC_INTERN( summrow, n, double);
     memset( summrow, 0, n * sizeof(double) );
     col = 0;
-    
+
     if(bcsc->mtxtype == PastixGeneral)
     {
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
