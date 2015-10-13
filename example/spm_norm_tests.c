@@ -48,6 +48,9 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
+    /**
+     * Get options from command line
+     */
     pastix_ex_getoptions( argc, argv,
                           NULL, NULL,
                           &driver, &filename );
