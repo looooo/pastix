@@ -224,10 +224,6 @@ int iparm_to_int( char * string)
     {
         return IPARM_REFINEMENT;
     }
-    if(0 == strcmp("iparm_sym", string))
-    {
-        return IPARM_SYM;
-    }
     if(0 == strcmp("iparm_incomplete", string))
     {
         return IPARM_INCOMPLETE;
