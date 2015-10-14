@@ -92,9 +92,9 @@ z_spmSort( pastix_csc_t *csc )
  * @ingroup pastix_spm
  * @ingroup pastix_internal
  *
- * z_spmSort - This routine sorts the subarray of edges of each vertex in a
- * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
- * format is used.
+ * z_spmMergeDuplicate - This routine merge the multiple entries in a sparse
+ * matrix by suming their values together. The sparse matrix needs to be sorted
+ * first (see z_spmSort()).
  *
  * WARNING: This function should NOT be called if dof is greater than 1.
  *
@@ -102,8 +102,13 @@ z_spmSort( pastix_csc_t *csc )
  *
  * @param[in,out] spm
  *          On entry, the pointer to the sparse matrix structure.
- *          On exit, the same sparse matrix with subarrays of edges sorted by
- *          ascending order.
+ *          On exit, the reduced sparse matrix of multiple entries were present
+ *          in it. The multiple values for a same vertex are sum up together.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *          \retval The number of vertices that were merged
  *
  *******************************************************************************/
 pastix_int_t
@@ -171,6 +176,109 @@ z_spmMergeDuplicate( pastix_csc_t *csc )
             free(csc->values);
             csc->values = newval;
 #endif
+        }
+    }
+
+    return merge;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ * @ingroup pastix_internal
+ *
+ * z_spmSort - This routine sorts the subarray of edges of each vertex in a
+ * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
+ * format is used.
+ *
+ * WARNING: This function should NOT be called if dof is greater than 1.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          On entry, the pointer to the sparse matrix structure.
+ *          On exit, the same sparse matrix with subarrays of edges sorted by
+ *          ascending order.
+ *
+ *******************************************************************************/
+pastix_int_t
+z_spmSymmetrize( pastix_csc_t *csc )
+{
+    pastix_int_t *colptr, *coltmp;
+    pastix_int_t *rowptr, *rowtmp;
+    pastix_int_t *newol, *toaddtab, toaddcnt, taddsze;
+    pastix_int_t  n       = csc->n;
+    pastix_int_t  dof2    = csc->dof * csc->dof;
+    pastix_int_t  i, j, k, r, size;
+    pastix_int_t  baseval;
+
+    if ( (csc->fmttype == PastixCSC) || (csc->fmttype == PastixCSR) ) {
+        if (csc->fmttype == PastixCSC) {
+            colptr = csc->colptr;
+            coltmp = csc->colptr;
+            rowptr = csc->rowptr;
+            rowtmp = csc->rowptr;
+        }
+        else {
+            colptr = csc->rowptr;
+            coltmp = csc->rowptr;
+            rowptr = csc->colptr;
+            rowtmp = csc->colptr;
+        }
+
+        baseval  = colptr[0];
+        toaddcnt = 0;
+        toaddsze = 0;
+        for (i=0; i<n; i++, coltmp++)
+        {
+            size = coltmp[1] - coltmp[0];
+            for (r=0; r<size; r++, rowtmp++ )
+            {
+                j = rowtmp[0]-baseval;
+                if ( i != j ) {
+                    /* Look for the element (j, i) */
+                    pastix_int_t frow = colptr[ j ];
+                    pastix_int_t lrow = colptr[ j+1 ];
+                    int found = 0;
+
+                    for (k = frow; (k < lrow); k++)
+                    {
+                        if (i == (rowptr[k]-baseval))
+                        {
+                            found = 1;
+                            break;
+                        }
+                        else if ( i < (rowptr[k]-baseval))
+                        {
+                            /* The csc is sorted so we will not find it later */
+                            break;
+                        }
+                    }
+
+                    if ( !found ) {
+                        if ( newcol == NULL ) {
+                            newcol = malloc( (csc->n+1) * sizeof(pastix_int_t) );
+                            for (k=0; k<csc->n; k++) {
+                                newcol[k] = colptr[k+1] - colptr[k];
+                            }
+
+                            /* Let's start with a buffer that will contain 5% of extra elements */
+                            toaddsze = pastix_imax( 0.05 * (double)csc->nnz, 1 );
+                            MALLOC_INTERN(toaddtab, 2*toaddsze, pastix_int_t);
+                        }
+
+                        if (toaddcnt >= toaddsze) {
+                            toaddsze *= 2;
+                            toaddtab = (pastix_int_t*)memRealloc(toadd, 2*toaddsze*sizeof(pastix_int_t));
+                        }
+
+                        toaddtab[ toaddcnt * 2     ] = j;
+                        toaddtab[ toaddcnt * 2 + 1 ] = i;
+                        toaddcnt++;
+                    }
+                }
+            }
         }
     }
 

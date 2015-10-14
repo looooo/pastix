@@ -271,7 +271,9 @@ spmSort( pastix_csc_t *csc )
  *
  * @ingroup pastix_spm
  *
- * spmMergeDuplicate - This routine merge the multiple entries in a sparse matrix by suming their values together. The sparse matrix needs to be sorted first.
+ * spmMergeDuplicate - This routine merge the multiple entries in a sparse
+ * matrix by suming their values together. The sparse matrix needs to be sorted
+ * first (see spmSort()).
  *
  * WARNING: Not implemented for CSR and IJV format.
  *
