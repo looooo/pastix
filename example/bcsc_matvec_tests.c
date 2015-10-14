@@ -49,9 +49,8 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
     pastix_driver_t driver;             /* Matrix driver(s) requested by user               */
     pastix_csc_t   *csc, *csc2;
-    pastix_bcsc_t   bcsc;
     char *filename;                     /* Filename(s) given by user                        */
-    int csctype, mtxtype;
+    int mtxtype;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
@@ -77,7 +76,6 @@ int main (int argc, char **argv)
         free(csc);
         csc = csc2;
     }
-    csctype = csc->mtxtype;
 
     /**
      * Run preprocessing steps required to generate the blocked csc
@@ -89,10 +87,12 @@ int main (int argc, char **argv)
     /**
      * Generate the blocked csc
      */
+    pastix_data->bcsc = malloc( sizeof(pastix_bcsc_t) );
     bcscInit( csc,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
-              1, &bcsc );
+              csc->mtxtype == PastixGeneral,
+              pastix_data->bcsc );
 
     printf(" -- BCSC MatVec Test --\n");
     printf(" Datatype: %s\n", fltnames[csc->flttype] );
@@ -100,18 +100,18 @@ int main (int argc, char **argv)
 
     for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
     {
+        if ( ((mtxtype == PastixGeneral) && (csc->mtxtype != PastixGeneral)) ||
+             ((mtxtype != PastixGeneral) && (csc->mtxtype == PastixGeneral)) )
+        {
+            continue;
+        }
         if ( (mtxtype == PastixHermitian) &&
                 ((csc->flttype != PastixComplex64) && (csc->flttype != PastixComplex32)) )
         {
             continue;
         }
-        if ( (mtxtype != PastixGeneral) &&
-             (csctype == PastixGeneral) )
-        {
-            continue;
-        }
         csc->mtxtype  = mtxtype;
-        bcsc.mtxtype = mtxtype;
+        pastix_data->bcsc->mtxtype = mtxtype;
 
         printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
         printf("   -- Test Matrix * Vector : ");
@@ -138,7 +138,7 @@ int main (int argc, char **argv)
 
     spmExit( csc );
     free( csc );
-    bcscExit( &bcsc );
+
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     if( err == 0 ) {
