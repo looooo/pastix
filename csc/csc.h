@@ -22,7 +22,7 @@
  */
 struct pastix_spm_s {
     int           mtxtype;   /*< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.          */
-    int           flttype;   /*< avals datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    int           flttype;   /*< avals datatype: PastixPattern, PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
     int           fmttype;   /*< Matrix storage format: PastixCSC, PastixCSR, PastixIJV                        */
     pastix_int_t  gN;        /*< Global number of vertices in the compressed graph   */
     pastix_int_t  n;         /*< Local number of vertices in the compressed graph    */
@@ -61,12 +61,19 @@ int cscSave( pastix_csc_t *csc, FILE *outfile );
 int spmGenRHS(int type, int nrhs, const pastix_csc_t *spm, void *x, int ldx, void *b, int ldb );
 int spmCheckAxb( int nrhs, const pastix_csc_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
 
-void         spmInit( pastix_csc_t *spm );
-void         spmExit( pastix_csc_t *spm );
-void         spmBase( pastix_csc_t *spm, int baseval );
-int          spmConvert( int ofmttype, pastix_csc_t *ospm );
-pastix_int_t spmFindBase( const pastix_csc_t *spm );
-double       spmNorm( int ntype, const pastix_csc_t *csc );
-int          spmMatVec(int trans, const void *alpha, const pastix_csc_t *csc, const void *x, const void *beta, void *y );
+void          spmInit( pastix_csc_t *spm );
+void          spmExit( pastix_csc_t *spm );
+pastix_csc_t *spmCopy( const pastix_csc_t *spm );
+void          spmBase( pastix_csc_t *spm, int baseval );
+int           spmConvert( int ofmttype, pastix_csc_t *ospm );
+pastix_int_t  spmFindBase( const pastix_csc_t *spm );
+double        spmNorm( int ntype, const pastix_csc_t *csc );
+int           spmMatVec(int trans, const void *alpha, const pastix_csc_t *csc, const void *x, const void *beta, void *y );
+
+int           spmSort( pastix_csc_t *csc );
+pastix_int_t  spmMergeDuplicate( pastix_csc_t *csc );
+pastix_int_t  spmSymmetrize( pastix_csc_t *csc );
+
+pastix_csc_t *spmCheckAndCorrect( pastix_csc_t *csc );
 
 #endif /* _CSC_H_ */

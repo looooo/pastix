@@ -161,9 +161,8 @@ z_spmMergeDuplicate( pastix_csc_t *csc )
                 ((merge != 0) && (csc->nnz - merge == idx)) );
 
         if (merge > 0) {
-            printf("spmMergeDuplicate: %ld elements were merged\n", (int64_t)merge);
-
             csc->nnz = csc->nnz - merge;
+            csc->gnnz = csc->nnz;
 
             newrow = malloc( csc->nnz * sizeof(pastix_int_t) );
             memcpy( newrow, csc->rowptr, csc->nnz * sizeof(pastix_int_t) );
@@ -188,48 +187,53 @@ z_spmMergeDuplicate( pastix_csc_t *csc )
  * @ingroup pastix_spm
  * @ingroup pastix_internal
  *
- * z_spmSort - This routine sorts the subarray of edges of each vertex in a
- * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
- * format is used.
- *
- * WARNING: This function should NOT be called if dof is greater than 1.
+ * z_spmSymmetrize - This routine corrects the sparse matrix structure if it's
+ * pattern is not symmetric. It returns the new symmetric pattern with zeores on
+ * the new entries.
  *
  *******************************************************************************
  *
  * @param[in,out] spm
  *          On entry, the pointer to the sparse matrix structure.
- *          On exit, the same sparse matrix with subarrays of edges sorted by
- *          ascending order.
+ *          On exit, the same sparse matrix with extra entires that makes it
+ *          pattern symmetric.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          \retval Returns the number of elements added to the matrix.
  *
  *******************************************************************************/
 pastix_int_t
 z_spmSymmetrize( pastix_csc_t *csc )
 {
-    pastix_int_t *colptr, *coltmp;
-    pastix_int_t *rowptr, *rowtmp;
-    pastix_int_t *newol, *toaddtab, toaddcnt, taddsze;
+    pastix_complex64_t *oldval, *valtmp, *newval = NULL;
+    pastix_int_t *oldcol, *coltmp, *newcol = NULL;
+    pastix_int_t *oldrow, *rowtmp, *newrow = NULL;
+    pastix_int_t *toaddtab, *toaddtmp, toaddcnt, toaddsze;
     pastix_int_t  n       = csc->n;
     pastix_int_t  dof2    = csc->dof * csc->dof;
     pastix_int_t  i, j, k, r, size;
     pastix_int_t  baseval;
 
+    toaddcnt = 0;
+    toaddsze = 0;
+
     if ( (csc->fmttype == PastixCSC) || (csc->fmttype == PastixCSR) ) {
         if (csc->fmttype == PastixCSC) {
-            colptr = csc->colptr;
+            oldcol = csc->colptr;
             coltmp = csc->colptr;
-            rowptr = csc->rowptr;
+            oldrow = csc->rowptr;
             rowtmp = csc->rowptr;
         }
         else {
-            colptr = csc->rowptr;
+            oldcol = csc->rowptr;
             coltmp = csc->rowptr;
-            rowptr = csc->colptr;
+            oldrow = csc->colptr;
             rowtmp = csc->colptr;
         }
 
-        baseval  = colptr[0];
-        toaddcnt = 0;
-        toaddsze = 0;
+        baseval  = oldcol[0];
         for (i=0; i<n; i++, coltmp++)
         {
             size = coltmp[1] - coltmp[0];
@@ -238,18 +242,18 @@ z_spmSymmetrize( pastix_csc_t *csc )
                 j = rowtmp[0]-baseval;
                 if ( i != j ) {
                     /* Look for the element (j, i) */
-                    pastix_int_t frow = colptr[ j ];
-                    pastix_int_t lrow = colptr[ j+1 ];
+                    pastix_int_t frow = oldcol[ j ] - baseval;
+                    pastix_int_t lrow = oldcol[ j+1 ] - baseval;
                     int found = 0;
 
                     for (k = frow; (k < lrow); k++)
                     {
-                        if (i == (rowptr[k]-baseval))
+                        if (i == (oldrow[k]-baseval))
                         {
                             found = 1;
                             break;
                         }
-                        else if ( i < (rowptr[k]-baseval))
+                        else if ( i < (oldrow[k]-baseval))
                         {
                             /* The csc is sorted so we will not find it later */
                             break;
@@ -260,7 +264,7 @@ z_spmSymmetrize( pastix_csc_t *csc )
                         if ( newcol == NULL ) {
                             newcol = malloc( (csc->n+1) * sizeof(pastix_int_t) );
                             for (k=0; k<csc->n; k++) {
-                                newcol[k] = colptr[k+1] - colptr[k];
+                                newcol[k] = oldcol[k+1] - oldcol[k];
                             }
 
                             /* Let's start with a buffer that will contain 5% of extra elements */
@@ -270,9 +274,12 @@ z_spmSymmetrize( pastix_csc_t *csc )
 
                         if (toaddcnt >= toaddsze) {
                             toaddsze *= 2;
-                            toaddtab = (pastix_int_t*)memRealloc(toadd, 2*toaddsze*sizeof(pastix_int_t));
+                            toaddtab = (pastix_int_t*)memRealloc(toaddtab, 2*toaddsze*sizeof(pastix_int_t));
                         }
 
+                        /* Newcol stores the number of elements per column */
+                        newcol[ j ]++;
+                        /* toaddtab stores the couples (j, i) to be added in the final sparse matrix */
                         toaddtab[ toaddcnt * 2     ] = j;
                         toaddtab[ toaddcnt * 2 + 1 ] = i;
                         toaddcnt++;
@@ -280,8 +287,88 @@ z_spmSymmetrize( pastix_csc_t *csc )
                 }
             }
         }
+
+        if (toaddcnt > 0) {
+            pastix_int_t newsize, oldsize;
+
+            /* Sort the array per column */
+            intSort2asc1(toaddtab, toaddcnt);
+
+            csc->nnz = csc->nnz + toaddcnt;
+            csc->gnnz = csc->nnz;
+
+            newrow = malloc( csc->nnz        * sizeof(pastix_int_t) );
+#if !defined(PRECISION_p)
+            newval = malloc( csc->nnz * dof2 * sizeof(pastix_complex64_t) );
+#endif
+            coltmp = newcol;
+            rowtmp = newrow;
+            valtmp = newval;
+            oldval = csc->values;
+            toaddtmp = toaddtab;
+
+            newsize = coltmp[0];
+            coltmp[0] = baseval;
+            for (i=0; i<n; i++, coltmp++, oldcol++)
+            {
+                /* Copy the existing elements */
+                oldsize = oldcol[1] - oldcol[0];
+                memcpy( rowtmp, oldrow, oldsize * sizeof(pastix_int_t) );
+#if !defined(PRECISION_p)
+                memcpy( valtmp, oldval, oldsize * dof2 * sizeof(pastix_complex64_t) );
+#endif
+
+                oldrow += oldsize;
+                rowtmp += oldsize;
+                oldval += oldsize * dof2;
+                valtmp += oldsize * dof2;
+
+                /* Some elements have been added */
+                assert( newsize >= oldsize );
+                if ( newsize > oldsize ) {
+                    int added = 0;
+                    int tobeadded = newsize - oldsize;
+
+                    /* At least one element is equal to i */
+                    assert( toaddtmp[0] == i );
+
+                    /* Let's add the new vertices */
+                    while( (added < tobeadded) && (toaddtmp[0] == i) ) {
+                        rowtmp[0] = toaddtmp[1] + baseval;
+                        rowtmp++; toaddtmp+=2; added++;
+                    }
+                    assert( added == tobeadded );
+
+#if !defined(PRECISION_p)
+                    /* Add 0.s for the associated values */
+                    memset( valtmp, 0, added * dof2 * sizeof(pastix_complex64_t) );
+                    valtmp += added * dof2;
+#endif
+                }
+
+                /* Use oldsize as temporary variable to update the new colptr */
+                oldsize = newsize;
+                newsize = coltmp[1];
+                coltmp[1] = coltmp[0] + oldsize;
+            }
+
+            assert( coltmp[0]-baseval == csc->nnz );
+            free( toaddtab );
+            free( csc->colptr );
+            free( csc->rowptr );
+            free( csc->values );
+            if (csc->fmttype == PastixCSC) {
+                csc->colptr = newcol;
+                csc->rowptr = newrow;
+            }
+            else {
+                csc->colptr = newrow;
+                csc->rowptr = newcol;
+            }
+            csc->values = newval;
+        }
     }
 
-    return merge;
+    return toaddcnt;
 }
 
