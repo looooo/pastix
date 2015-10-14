@@ -495,6 +495,7 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
+  csc/z_spm.c
   csc/z_spm_convert_to_csc.c
   csc/z_spm_convert_to_csr.c
   csc/z_spm_convert_to_ijv.c
