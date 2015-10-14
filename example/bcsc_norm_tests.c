@@ -51,7 +51,6 @@ int main (int argc, char **argv)
     pastix_csc_t   *csc, *csc2;
     pastix_bcsc_t   bcsc;
     char *filename;                     /* Filename(s) given by user                        */
-    int csctype, mtxtype;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
@@ -77,7 +76,6 @@ int main (int argc, char **argv)
         free(csc);
         csc = csc2;
     }
-    csctype = csc->mtxtype;
 
     /**
      * Run preprocessing steps required to generate the blocked csc
@@ -92,48 +90,32 @@ int main (int argc, char **argv)
     bcscInit( csc,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
-              1, &bcsc );
+              csc->mtxtype == PastixGeneral, &bcsc );
 
     printf(" -- BCSC Norms Test --\n");
     printf(" Datatype: %s\n", fltnames[csc->flttype] );
     spmBase( csc, 0 );
 
-    for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
-    {
-        if ( (mtxtype == PastixHermitian) &&
-                ((csc->flttype != PastixComplex64) && (csc->flttype != PastixComplex32)) )
-        {
-            continue;
-        }
-        if ( (mtxtype != PastixGeneral) &&
-             (csctype == PastixGeneral) )
-        {
-            continue;
-        }
-        csc->mtxtype  = mtxtype;
-        bcsc.mtxtype = mtxtype;
+    printf("   Matrix type : %s\n", mtxnames[csc->mtxtype - PastixGeneral] );
 
-        printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
+    switch( csc->flttype ){
+    case PastixComplex64:
+        ret = z_bcsc_norm_check( csc, &bcsc );
+        break;
 
-        switch( csc->flttype ){
-        case PastixComplex64:
-            ret = z_bcsc_norm_check( csc, &bcsc );
-            break;
+    case PastixComplex32:
+        ret = c_bcsc_norm_check( csc, &bcsc );
+        break;
 
-        case PastixComplex32:
-            ret = c_bcsc_norm_check( csc, &bcsc );
-            break;
+    case PastixFloat:
+        ret = s_bcsc_norm_check( csc, &bcsc );
+        break;
 
-        case PastixFloat:
-            ret = s_bcsc_norm_check( csc, &bcsc );
-            break;
-
-        case PastixDouble:
-        default:
-            ret = d_bcsc_norm_check( csc, &bcsc );
-        }
-        PRINT_RES(ret);
+    case PastixDouble:
+    default:
+        ret = d_bcsc_norm_check( csc, &bcsc );
     }
+    PRINT_RES(ret);
 
     spmExit( csc );
     free( csc );
