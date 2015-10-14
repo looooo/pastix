@@ -221,6 +221,103 @@ spmNorm( int ntype,
  *
  * @ingroup pastix_spm
  *
+ * spmSort - This routine sorts the subarray of edges of each vertex in a
+ * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
+ * format is used.
+ *
+ * WARNING: This function should NOT be called if dof is greater than 1.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          On entry, the pointer to the sparse matrix structure.
+ *          On exit, the same sparse matrix with subarrays of edges sorted by
+ *          ascending order.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *          \retval PASTIX_SUCCESS if the sort was called
+ *          \retval PASTIX_ERR_BADPARAMETER, if the given spm was incorrect.
+ *
+ *******************************************************************************/
+int
+spmSort( pastix_csc_t *csc )
+{
+    switch (csc->flttype) {
+    case PastixPattern:
+        p_spmSort( csc );
+        break;
+    case PastixFloat:
+        s_spmSort( csc );
+        break;
+    case PastixDouble:
+        d_spmSort( csc );
+        break;
+    case PastixComplex32:
+        c_spmSort( csc );
+        break;
+    case PastixComplex64:
+        z_spmSort( csc );
+        break;
+    default:
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmMergeDuplicate - This routine merge the multiple entries in a sparse matrix by suming their values together. The sparse matrix needs to be sorted first.
+ *
+ * WARNING: Not implemented for CSR and IJV format.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          On entry, the pointer to the sparse matrix structure.
+ *          On exit, the reduced sparse matrix of multiple entries were present
+ *          in it. The multiple values for a same vertex are sum up together.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *          \retval If >=0, the number of vertices that were merged
+ *          \retval PASTIX_ERR_BADPARAMETER, if the given spm was incorrect.
+ *
+ *******************************************************************************/
+pastix_int_t
+spmMergeDuplicate( pastix_csc_t *csc )
+{
+    switch (csc->flttype) {
+    case PastixPattern:
+        return p_spmMergeDuplicate( csc );
+
+    case PastixFloat:
+        return s_spmMergeDuplicate( csc );
+
+    case PastixDouble:
+        return d_spmMergeDuplicate( csc );
+
+    case PastixComplex32:
+        return c_spmMergeDuplicate( csc );
+
+    case PastixComplex64:
+        return z_spmMergeDuplicate( csc );
+
+    default:
+        return PASTIX_ERR_BADPARAMETER;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
  * spmExit - Free the spm structure given as parameter
  *
  *******************************************************************************
@@ -240,6 +337,51 @@ spmExit( pastix_csc_t *spm )
         memFree_null(spm->loc2glob);
     if(spm->values != NULL)
         memFree_null(spm->values);
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmCopy - Duplicate the spm data structure given as parameter.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix to copy.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The copy of the sparse matrix.
+ *
+ *******************************************************************************/
+pastix_csc_t *
+spmCopy( const pastix_csc_t *spm )
+{
+    pastix_csc_t *newspm = (pastix_csc_t*)malloc(sizeof(pastix_csc_t));
+
+    memcpy( newspm, spm, sizeof(pastix_csc_t));
+
+    if(spm->colptr != NULL) {
+        newspm->colptr = (pastix_int_t*)malloc((spm->n+1) * sizeof(pastix_int_t));
+        memcpy( newspm->colptr, spm->colptr, (spm->n+1) * sizeof(pastix_int_t));
+    }
+    if(spm->rowptr != NULL) {
+        newspm->rowptr = (pastix_int_t*)malloc(spm->nnz * sizeof(pastix_int_t));
+        memcpy( newspm->rowptr, spm->rowptr, spm->nnz * sizeof(pastix_int_t));
+    }
+    if(spm->loc2glob != NULL) {
+        newspm->loc2glob = (pastix_int_t*)malloc(spm->n * sizeof(pastix_int_t));
+        memcpy( newspm->loc2glob, spm->loc2glob, spm->n * sizeof(pastix_int_t));
+    }
+    if(spm->values != NULL) {
+        size_t valsize = spm->nnz * pastix_size_of( spm->flttype );
+        newspm->values = malloc(valsize);
+        memcpy( newspm->values, spm->values, valsize);
+    }
+    return newspm;
 }
 
 /**
