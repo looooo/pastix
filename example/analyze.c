@@ -11,12 +11,12 @@
 
 int main (int argc, char **argv)
 {
-    pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
-    pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
-    double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
-    pastix_driver_t driver;        /* Matrix driver(s) requested by user                        */
-    char           *filename;           /* Filename(s) given by user                                 */
-    pastix_csc_t    csc;
+    pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
+    pastix_int_t    iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
+    double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
+    pastix_driver_t driver;
+    char           *filename;
+    pastix_csc_t   *csc, *csc2;
 
     /**
      * Initialize parameters to default values
@@ -38,17 +38,25 @@ int main (int argc, char **argv)
     /**
      * Read the sparse matrix with the driver
      */
-    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+    csc = malloc( sizeof( pastix_csc_t ) );
+    cscReadFromFile( driver, filename, csc, MPI_COMM_WORLD );
     free(filename);
+    csc2 = spmCheckAndCorrect( csc );
+    if ( csc2 != csc ) {
+        spmExit( csc );
+        free(csc);
+        csc = csc2;
+    }
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-    pastix_task_order( pastix_data, &csc, NULL, NULL );
+    pastix_task_order( pastix_data, csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
 
-    spmExit( &csc );
+    spmExit( csc );
+    free( csc );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     return EXIT_SUCCESS;

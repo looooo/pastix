@@ -48,7 +48,7 @@ int main (int argc, char **argv)
     pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                    */
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
     pastix_driver_t driver;             /* Matrix driver(s) requested by user               */
-    pastix_csc_t    csc;
+    pastix_csc_t   *csc, *csc2;
     pastix_bcsc_t   bcsc;
     char *filename;                     /* Filename(s) given by user                        */
     int csctype, mtxtype;
@@ -68,32 +68,40 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+    csc = malloc( sizeof( pastix_csc_t ) );
+    cscReadFromFile( driver, filename, csc, MPI_COMM_WORLD );
     free(filename);
-    csctype = csc.mtxtype;
+    csc2 = spmCheckAndCorrect( csc );
+    if ( csc2 != csc ) {
+        spmExit( csc );
+        free(csc);
+        csc = csc2;
+    }
+    csctype = csc->mtxtype;
 
     /**
      * Run preprocessing steps required to generate the blocked csc
      */
-    pastix_task_order( pastix_data, &csc, NULL, NULL );
+    pastix_task_order( pastix_data, csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
 
     /**
      * Generate the blocked csc
      */
-    bcscInit( &csc,
+    bcscInit( csc,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
               1, &bcsc );
 
     printf(" -- BCSC Norms Test --\n");
-    printf(" Datatype: %s\n", fltnames[csc.flttype] );
+    printf(" Datatype: %s\n", fltnames[csc->flttype] );
+    spmBase( csc, 0 );
 
     for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
     {
         if ( (mtxtype == PastixHermitian) &&
-                ((csc.flttype != PastixComplex64) && (csc.flttype != PastixComplex32)) )
+                ((csc->flttype != PastixComplex64) && (csc->flttype != PastixComplex32)) )
         {
             continue;
         }
@@ -102,32 +110,33 @@ int main (int argc, char **argv)
         {
             continue;
         }
-        csc.mtxtype  = mtxtype;
+        csc->mtxtype  = mtxtype;
         bcsc.mtxtype = mtxtype;
 
         printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
 
-        switch( csc.flttype ){
+        switch( csc->flttype ){
         case PastixComplex64:
-            ret = z_bcsc_norm_check( &csc, &bcsc );
+            ret = z_bcsc_norm_check( csc, &bcsc );
             break;
 
         case PastixComplex32:
-            ret = c_bcsc_norm_check( &csc, &bcsc );
+            ret = c_bcsc_norm_check( csc, &bcsc );
             break;
 
         case PastixFloat:
-            ret = s_bcsc_norm_check( &csc, &bcsc );
+            ret = s_bcsc_norm_check( csc, &bcsc );
             break;
 
         case PastixDouble:
         default:
-            ret = d_bcsc_norm_check( &csc, &bcsc );
+            ret = d_bcsc_norm_check( csc, &bcsc );
         }
         PRINT_RES(ret);
     }
 
-    spmExit( &csc );
+    spmExit( csc );
+    free( csc );
     bcscExit( &bcsc );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
