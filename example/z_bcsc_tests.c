@@ -148,7 +148,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     norms = spmNorm( PastixInfNorm, spm );
     normd = z_bcscNorm( PastixInfNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
-    result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
+    result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
 
     if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
@@ -167,7 +167,7 @@ z_bcsc_norm_check( const pastix_csc_t *spm, const pastix_bcsc_t *bcsc )
     norms = spmNorm( PastixOneNorm, spm );
     normd = z_bcscNorm( PastixOneNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
-    result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
+    result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
 
     if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
