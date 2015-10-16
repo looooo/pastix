@@ -40,6 +40,7 @@ int s_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t
     }
 
 char* fltnames[] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
+char* transnames[] = { "NoTrans", "Trans", "ConjTrans" };
 char* mtxnames[] = { "General", "Symmetric", "Hermitian" };
 
 int main (int argc, char **argv)
@@ -50,7 +51,7 @@ int main (int argc, char **argv)
     pastix_driver_t driver;             /* Matrix driver(s) requested by user               */
     pastix_csc_t   *csc, *csc2;
     char *filename;                     /* Filename(s) given by user                        */
-    int mtxtype;
+    int t;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
@@ -76,6 +77,7 @@ int main (int argc, char **argv)
         free(csc);
         csc = csc2;
     }
+    spmBase( csc, 0 );
 
     /**
      * Run preprocessing steps required to generate the blocked csc
@@ -95,43 +97,33 @@ int main (int argc, char **argv)
               pastix_data->bcsc );
 
     printf(" -- BCSC MatVec Test --\n");
-    printf(" Datatype: %s\n", fltnames[csc->flttype] );
-    spmBase( csc, 0 );
+    printf("   Datatype    : %s\n", fltnames[csc->flttype] );
+    printf("   Matrix type : %s\n", mtxnames[csc->mtxtype - PastixGeneral] );
 
-    for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
+    for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
     {
-        if ( ((mtxtype == PastixGeneral) && (csc->mtxtype != PastixGeneral)) ||
-             ((mtxtype != PastixGeneral) && (csc->mtxtype == PastixGeneral)) )
+        if ( (t == PastixConjTrans) &&
+             ((csc->flttype != PastixComplex64) && (csc->flttype != PastixComplex32)) )
         {
             continue;
         }
-        if ( (mtxtype == PastixHermitian) &&
-                ((csc->flttype != PastixComplex64) && (csc->flttype != PastixComplex32)) )
-        {
-            continue;
-        }
-        csc->mtxtype  = mtxtype;
-        pastix_data->bcsc->mtxtype = mtxtype;
-
-        printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
-        printf("   -- Test Matrix * Vector : ");
-
+        printf("   trans = %s\n", transnames[t - PastixNoTrans] );
         switch( csc->flttype ){
         case PastixComplex64:
-            ret = z_bcsc_matvec_check( PastixNoTrans, csc, pastix_data );
+            ret = z_bcsc_matvec_check( t, csc, pastix_data );
             break;
 
         case PastixComplex32:
-            ret = c_bcsc_matvec_check( PastixNoTrans, csc, pastix_data );
+            ret = c_bcsc_matvec_check( t, csc, pastix_data );
             break;
 
         case PastixFloat:
-            ret = s_bcsc_matvec_check( PastixNoTrans, csc, pastix_data );
+            ret = s_bcsc_matvec_check( t, csc, pastix_data );
             break;
 
         case PastixDouble:
         default:
-            ret = d_bcsc_matvec_check( PastixNoTrans, csc, pastix_data );
+            ret = d_bcsc_matvec_check( t, csc, pastix_data );
         }
         PRINT_RES(ret);
     }

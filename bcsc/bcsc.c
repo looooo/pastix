@@ -288,6 +288,52 @@ bcscExit( pastix_bcsc_t *bcsc )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * bcscMatVec - Compute the matrix-vector product
+ *         y = alpha * op(A) * x + beta * y,
+ * where A is given in the bcsc format, x and y are two vectors of size n, and
+ * alpha and beta are two scalars.
+ * The op function is specified by the trans parameter and performs the
+ * operation as follows:
+ *              trans = PastixNoTrans   y := alpha*A       *x + beta*y
+ *              trans = PastixTrans     y := alpha*A'      *x + beta*y
+ *              trans = PastixConjTrans y := alpha*conj(A')*x + beta*y
+ *
+ *******************************************************************************
+ *
+ * @param[in] trans
+ *          Specifies whether the matrix A from the bcsc is transposed, not
+ *          transposed or conjugate transposed:
+ *            = PastixNoTrans:   A is not transposed;
+ *            = PastixTrans:     A is transposed;
+ *            = PastixConjTrans: A is conjugate transposed.
+ *
+ * @param[in] alpha
+ *          alpha specifies the scalar alpha
+ *
+ * @param[in] bcsc
+ *          The bcsc structure describing the matrix A.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] beta
+ *          beta specifies the scalar beta
+ *
+ * @param[in,out] y
+ *          The vector y.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
 int
 bcscMatVec(      int            trans,
            const void          *alpha,
@@ -296,44 +342,16 @@ bcscMatVec(      int            trans,
            const void          *beta,
                  void          *y )
 {
-    switch (bcsc->mtxtype) {
-    case PastixHermitian:
-        switch (bcsc->flttype) {
-        case PastixFloat:
-            return s_bcscSymv( *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
-        case PastixComplex32:
-            return c_bcscHemv( *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
-        case PastixComplex64:
-            return z_bcscHemv( *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
-        case PastixDouble:
-        default:
-            return d_bcscSymv( *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
-        }
-    case PastixSymmetric:
-        switch (bcsc->flttype) {
-        case PastixFloat:
-            return s_bcscSymv( *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
-        case PastixComplex32:
-            return c_bcscSymv( *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
-        case PastixComplex64:
-            return z_bcscSymv( *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
-        case PastixDouble:
-        default:
-            return d_bcscSymv( *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
-        }
-    case PastixGeneral:
+    switch (bcsc->flttype) {
+    case PastixFloat:
+        return s_bcscGemv( trans, *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
+    case PastixComplex32:
+        return c_bcscGemv( trans, *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+    case PastixComplex64:
+        return z_bcscGemv( trans, *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+    case PastixDouble:
     default:
-        switch (bcsc->flttype) {
-        case PastixFloat:
-            return s_bcscGemv( trans, *((const float*)alpha), bcsc, (const float*)x, *((const float*)beta), (float*)y );
-        case PastixComplex32:
-            return c_bcscGemv( trans, *((const pastix_complex32_t*)alpha), bcsc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
-        case PastixComplex64:
-            return z_bcscGemv( trans, *((const pastix_complex64_t*)alpha), bcsc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
-        case PastixDouble:
-        default:
-            return d_bcscGemv( trans, *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
-        }
+        return d_bcscGemv( trans, *((const double*)alpha), bcsc, (const double*)x, *((const double*)beta), (double*)y );
     }
 }
 

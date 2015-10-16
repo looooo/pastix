@@ -292,19 +292,7 @@ void z_Pastix_Ax(pastix_bcsc_t *bcsc, pastix_complex64_t *x, pastix_complex64_t 
     void* xptr = (void*)x;
     void* yptr = (void*)r;
 
-    switch (bcsc->mtxtype) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    case PastixHermitian:
-        z_bcscHemv(alpha, bcsc, xptr, beta, yptr );
-        break;
-#endif
-    case PastixSymmetric:
-        z_bcscSymv(alpha, bcsc, xptr, beta, yptr );
-        break;
-    case PastixGeneral:
-    default:
-        z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
-    }
+    z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
 }
 
 void z_Pastix_bMAx(pastix_bcsc_t *bcsc, pastix_complex64_t *b, pastix_complex64_t *x, pastix_complex64_t *r)
@@ -315,19 +303,7 @@ void z_Pastix_bMAx(pastix_bcsc_t *bcsc, pastix_complex64_t *b, pastix_complex64_
     void* yptr = (void*)r;
 
     memcpy(r, b, bcsc->gN * sizeof( pastix_complex64_t ));
-    switch (bcsc->mtxtype) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    case PastixHermitian:
-        z_bcscHemv(alpha, bcsc, xptr, beta, yptr );
-        break;
-#endif
-    case PastixSymmetric:
-        z_bcscSymv(alpha, bcsc, xptr, beta, yptr );
-        break;
-    case PastixGeneral:
-    default:
-        z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
-    }
+    z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
 }
 
 /* x = y + beta * x */
