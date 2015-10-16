@@ -1,6 +1,5 @@
 extern "C" %{
 #define PRECISION_z
-
     /**
      * PLASMA include for defined and constants.
      *
@@ -9,6 +8,7 @@ extern "C" %{
      */
 #include <dague.h>
 #include <dague/data_distribution.h>
+#include <dague/private_mempool.h>
 #include "common.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
@@ -24,12 +24,14 @@ extern "C" %{
  */
 dataA        [type = "dague_ddesc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
-//p_work   [type = "dague_memory_pool_t *" size = "datacode->coefmax * sizeof(dague_complex64_t)"]
 
 descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
 datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+
+p_work1  [type = "dague_memory_pool_t *" size = "pastix_imax(datacode->gemmmax, datacode->diagmax) * sizeof(pastix_complex64_t)"]
+p_work2  [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
 
 /**************************************************
  *                HETRF_TRSM                      *
@@ -60,13 +62,13 @@ RW L <- ( browk0 == browk1 ) ? dataA(0, k) : C GEMM( lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    pastix_complex64_t *work;
-    pastix_int_t tmparea = cblk_colnbr( cblk );
+    pastix_complex64_t *work1;
 
-    tmparea = tmparea * tmparea;
-    MALLOC_INTERN( work, tmparea, pastix_complex64_t );
-    core_zhetrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, work );
-    memFree_null(work);
+    work1 = (pastix_complex64_t *)dague_private_memory_pop( p_work1 );
+
+    core_zhetrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, work1 );
+
+    dague_private_memory_push( p_work1, (void *)work1 );
 }
 END
 
@@ -135,21 +137,15 @@ BODY
     SolverCblk *lcblk = datacode->cblktab + lcblknm;
     SolverCblk *fcblk = datacode->cblktab + fcblknm;
     SolverBlok *blok  = datacode->bloktab + bloknum;
-    pastix_complex64_t *work;
+    pastix_complex64_t *work1, *work2;
 
-    //work = (dague_complex64_t *)dague_private_memory_pop( p_work );
-    {
-        pastix_int_t tmparea = blok_rownbr( blok ) * (lcblk->stride - blok->coefind);
-        MALLOC_INTERN( work, tmparea, pastix_complex64_t );
-    }
+    work1 = (pastix_complex64_t *)dague_private_memory_pop( p_work1 );
+    work2 = (pastix_complex64_t *)dague_private_memory_pop( p_work2 );
 
-    core_zhetrfsp1d_gemm( lcblk, blok, fcblk, A, C, work, NULL );
+    core_zhetrfsp1d_gemm( lcblk, blok, fcblk, A, C, work1, work2 );
 
-    {
-        memFree_null( work );
-    }
-
-    //dague_private_memory_push( p_work, (void *)work );
+    dague_private_memory_push( p_work1, (void *)work1 );
+    dague_private_memory_push( p_work2, (void *)work2 );
   end:
     ;
 }

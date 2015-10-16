@@ -7,6 +7,7 @@ extern "C" %{
    */
 #include <dague.h>
 #include <dague/data_distribution.h>
+#include <dague/private_mempool.h>
 #include "common.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
@@ -22,12 +23,13 @@ extern "C" %{
  */
 dataA        [type = "dague_ddesc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
-//p_work   [type = "dague_memory_pool_t *" size = "datacode->coefmax * sizeof(dague_complex64_t)"]
 
 descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
 datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+
+p_work   [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
 
 /**************************************************
  *                GETRF_TRSM                      *
@@ -145,19 +147,11 @@ BODY
     SolverBlok *blok  = datacode->bloktab + bloknum;
     pastix_complex64_t *work;
 
-    //work = (dague_complex64_t *)dague_private_memory_pop( p_work );
-    {
-        pastix_int_t tmparea = blok_rownbr( blok ) * (lcblk->stride - blok->coefind);
-        MALLOC_INTERN( work, tmparea, pastix_complex64_t );
-    }
+    work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
 
     core_zgetrfsp1d_gemm( lcblk, blok, fcblk, Al, Au, Cl, Cu, work );
 
-    {
-        memFree_null( work );
-    }
-
-    //dague_private_memory_push( p_work, (void *)work );
+    dague_private_memory_push( p_work, (void *)work );
   end:
     ;
 }
