@@ -249,27 +249,6 @@ void solverExit(SolverMatrix *solvmtx)
 
 void solverInit(SolverMatrix *solvmtx)
 {
-    solvmtx->cblktab = NULL;
-    solvmtx->bloktab = NULL;
-    solvmtx->browtab = NULL;
-    solvmtx->coefnbr = 0;
-    solvmtx->ftgtnbr = 0;
-
-    solvmtx->ftgttab = NULL;
-    solvmtx->coefmax = 0;
     memset(solvmtx, 0, sizeof (SolverMatrix));
-
-    solvmtx->baseval = 0;
-    solvmtx->cblknbr = 0;
-    solvmtx->bloknbr = 0;
-    solvmtx->brownbr = 0;
-    solvmtx->nodenbr = 0;
-#if defined(PASTIX_WITH_STARPU)
-    solvmtx->hcblktab = NULL;
-    solvmtx->hbloktab = NULL;
-    solvmtx->gcblk2halo = NULL;
-    solvmtx->fcblktab = NULL;
-    solvmtx->fbloktab = NULL;
-    solvmtx->fcblknbr = NULL;
-#endif /* defined(PASTIX_WITH_STARPU) */
+    return;
 }
