@@ -592,13 +592,13 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zgetrfsp1d( SolverMatrix *solvmtx,
-                 SolverCblk   *cblk,
-                 double        criteria )
+core_zgetrfsp1d( SolverMatrix       *solvmtx,
+                 SolverCblk         *cblk,
+                 double              criteria,
+                 pastix_complex64_t *work)
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     pastix_complex64_t *U = cblk->ucoeftab;
-    pastix_complex64_t *work = NULL;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
@@ -607,15 +607,6 @@ core_zgetrfsp1d( SolverMatrix *solvmtx,
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
-
-    if ( blok < lblk ) {
-        pastix_int_t maxarea = 0;
-        for( ; blok < lblk; blok++ )
-        {
-            maxarea = pastix_imax( maxarea, blok_rownbr( blok ) * cblk->stride );
-        }
-        MALLOC_INTERN( work, maxarea, pastix_complex64_t );
-    }
 
     /* if there are off-diagonal supernodes in the column */
     blok = cblk->fblokptr+1;
@@ -627,7 +618,6 @@ core_zgetrfsp1d( SolverMatrix *solvmtx,
                               L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
     }
 
-    memFree_null( work );
     return nbpivot;
 }
 

@@ -240,7 +240,7 @@ int core_zgemdm(int transA, int transB,
     if ( transA == CblasNoTrans )
     {
         /* WORK = A * D */
-      for (j=0; j<K; j++, wD++) {
+        for (j=0; j<K; j++, wD++) {
             delta = *wD;
             cblas_zcopy(M, &A[LDA*j], 1,       &w[M*j], 1);
             cblas_zscal(M, CBLAS_SADDR(delta), &w[M*j], 1);
