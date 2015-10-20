@@ -17,12 +17,38 @@
 #include "symbol.h"
 #include "order.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * compute_cblklevel - Computes the level of supernode cblknum, with Scotch
+ * treetab.
+ *
+ *******************************************************************************
+ *
+ * @param[in] treetab
+ *          The pointer to the elimination tree from Scotch.
+ *
+ * @param[in] levels
+ *          The supernode array which contains levels. Used to check if
+ *          the level was already computed.
+ *
+ * @param[in] cblknum
+ *          The supernode for which the level is computed.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will return the level of cblknum.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 compute_cblklevel( const pastix_int_t *treetab,
-                   pastix_int_t *levels,
-                   pastix_int_t  cblknum )
+                   const pastix_int_t *levels,
+                   pastix_int_t        cblknum )
 {
-    /* cblknum level has already been computed */
+    /* If cblknum level has already been computed */
     if ( levels[cblknum] != 0 ) {
         return levels[cblknum];
     }
@@ -38,84 +64,157 @@ compute_cblklevel( const pastix_int_t *treetab,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * hamming_distance - Computes the distance between two rows of a same
+ * supernode.
+ *
+ *******************************************************************************
+ *
+ * @param[in] vectors
+ *          The pointer to the sets of contributing supernodes for
+ *          each row of the current supernode.
+ *
+ * @param[in] vectors_size
+ *          The pointer to the sizes of each set of contributing
+ *          supernode, to stop the computation when a row have been totally
+ *          covered.
+ *
+ * @param[in] xi
+ *          The index of the first row.
+ *
+ * @param[in] xj
+ *          The index of the second row.
+ *
+ * @param[in] stop
+ *          The stop criteria to disregard rows that are far away.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will return the distance between rows xi and xj.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
-hamming_distance(pastix_int_t **vectors,
-                 pastix_int_t  *vectors_size,
-                 pastix_int_t   xi,
-                 pastix_int_t   xj,
-                 pastix_int_t   stop)
+hamming_distance( pastix_int_t **vectors,
+                  pastix_int_t  *vectors_size,
+                  pastix_int_t   xi,
+                  pastix_int_t   xj,
+                  pastix_int_t   stop )
 {
     /* For the fictive vertex */
-    if (xi == -1){
+    if ( xi == -1 ) {
         return vectors_size[xj];
     }
-    if (xj == -1){
+    if ( xj == -1 ) {
         return vectors_size[xi];
     }
 
-    pastix_int_t sum = 0;
+    pastix_int_t sum   = 0;
     pastix_int_t *set1 = vectors[xi];
     pastix_int_t *set2 = vectors[xj];
     pastix_int_t *end1 = vectors[xi] + vectors_size[xi];
     pastix_int_t *end2 = vectors[xj] + vectors_size[xj];
 
-    if (vectors_size[xi] - vectors_size[xj] >= stop){
+    if ( vectors_size[xi] - vectors_size[xj] >= stop ) {
         return stop;
     }
-    if (vectors_size[xj] - vectors_size[xi] >= stop){
+    if ( vectors_size[xj] - vectors_size[xi] >= stop ) {
         return stop;
     }
 
-    while((set1 < end1) && (set2 < end2))
-    {
-        if( *set1 == *set2)
-        {
+    while( ( set1 < end1 ) && ( set2 < end2 ) ) {
+        if( *set1 == *set2 ) {
             set1++;
             set2++;
         }
-        else if( *set1 < *set2 )
-        {
-            while (( set1 < end1 ) && ( *set1 < *set2 ))
-            {
+        else if( *set1 < *set2 ) {
+            while ( ( set1 < end1 ) && ( *set1 < *set2 ) ) {
                 sum ++;
                 set1++;
             }
         }
-        else if( *set1 > *set2 )
-        {
-            while (( set2 < end2 ) && ( *set1 > *set2 ))
-            {
+        else if( *set1 > *set2 ) {
+            while ( ( set2 < end2 ) && ( *set1 > *set2 ) ) {
                 sum ++;
                 set2++;
             }
         }
-        else
-        {
-            assert(0);
+        else {
+            errorPrint("reordering: fatal error occured");
         }
 
-        /* The computation is stopped if sum overlapped a given limit */
-        if (sum >= stop){
+        /* The computation is stopped if sum overlapped a given limit (stop criteria) */
+        if ( sum >= stop ) {
             return stop;
         }
     }
 
-    sum += end1-set1;
-    sum += end2-set2;
+    sum += end1 - set1;
+    sum += end2 - set2;
 
-    if (sum >= stop){
+    if ( sum >= stop ) {
         return stop;
     }
 
     return sum;
 }
 
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbol_reorder_tsp - reorder rows of a supernode with the nearest insertion
+ * TSP heuristic.
+ *
+ *******************************************************************************
+ *
+ * @param[in] size
+ *          Number of rows in the current supernode.
+ *
+ * @param[in, out] order
+ *          The pointer to the ordering structure. At exit, this
+ *          ordering is updated with the new ordering for the current supernode
+ *          being reordered.
+ *
+ * @param[in] sn_id
+ *          Identifier for the current supernode.
+ *
+ * @param[in] lw_vectors
+ *          The pointer to the sets of lower contributing
+ *          supernodes for each row of the current supernode. Those lower
+ *          contributing supernodes correspond to supernodes with a level higher
+ *          than split_level criteria.
+ *
+ * @param[in] lw_vectors_size
+ *          The pointer to the sizes of each set of lower contributing
+ *          supernode, to stop the computation when a row have been totally
+ *          covered.
+ *
+ * @param[in] up_vectors
+ *          The pointer to the sets of upper contributing
+ *          supernodes for each row of the current supernode. Those upper
+ *          contributing supernodes correspond to supernodes with a level smaller
+ *          than split_level criteria.
+ *
+ * @param[in] up_vectors_size
+ *          The pointer to the sizes of each set of upper contributing
+ *          supernode, to stop the computation when a row have been totally
+ *          covered.
+ *
+ * @param[in] stop_criteria
+ *          The stop criteria to disregard rows that are far away.
+ *
+ *******************************************************************************/
 static inline void
-symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
-                   pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
-                   pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
-                   pastix_int_t stop_criteria)
+symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
+                    pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
+                    pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
+                    pastix_int_t stop_criteria )
 {
 
     if ( size < 3 ) {
@@ -125,22 +224,22 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
     pastix_int_t  i, j, k, l, elected;
     pastix_int_t *tmpinvp;
     pastix_int_t *tmplen;
-    pastix_int_t distance;
+    pastix_int_t  distance;
 
-    MALLOC_INTERN(tmpinvp, size+1, pastix_int_t);
-    MALLOC_INTERN(tmplen,  size+1, pastix_int_t);
-    memset(tmplen, 0, (size+1)*sizeof(pastix_int_t));
+    MALLOC_INTERN( tmpinvp, size+1, pastix_int_t );
+    MALLOC_INTERN( tmplen,  size+1, pastix_int_t );
+    memset( tmplen, 0, ( size + 1 ) * sizeof(pastix_int_t) );
 
     tmpinvp[0] = -1;
     tmpinvp[1] = 0;
 
-    distance = hamming_distance(lw_vectors, lw_vectors_size, 0, -1, stop_criteria);
+    distance = hamming_distance( lw_vectors, lw_vectors_size, 0, -1, stop_criteria );
 
     tmplen[0] = distance;
     tmplen[1] = distance;
 
     pastix_int_t min_cut = -1;
-    for(i=1; i<size; i++) {
+    for (i=1; i<size; i++) {
         pastix_int_t first_pos;
         pastix_int_t last_pos;
 
@@ -151,103 +250,115 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
         pastix_int_t up_after_pos;
 
         /* Start by adding the row in first position */
-        lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[0], stop_criteria);
-        lw_after_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[1], stop_criteria);
-        up_after_pos  = hamming_distance(up_vectors, up_vectors_size, i, tmpinvp[1], 1);
+        lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                          tmpinvp[0], stop_criteria );
+        lw_after_pos  = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                          tmpinvp[1], stop_criteria );
+        up_after_pos  = hamming_distance( up_vectors, up_vectors_size, i,
+                                          tmpinvp[1], 1 );
 
-        pastix_int_t minl = lw_before_pos + lw_after_pos - tmplen[0];
-        pastix_int_t mpos = 1;
+        pastix_int_t minl    = lw_before_pos + lw_after_pos - tmplen[0];
+        pastix_int_t mpos    = 1;
         pastix_int_t min_cut = -1;
 
-        for(j=1; j<i; j++ ){
+        for (j=1; j<i; j++) {
             up_before_pos = up_after_pos;
-            up_after_pos  = hamming_distance(up_vectors, up_vectors_size, i, tmpinvp[j+1], 1);
+            up_after_pos  = hamming_distance( up_vectors, up_vectors_size, i,
+                                              tmpinvp[j+1], 1 );
 
             if ( up_before_pos < 1 ||
-                 up_after_pos  < 1 )
-            {
+                 up_after_pos  < 1 ) {
 
                 /* If split was used previously, this first distance may not be already computed */
-                if (lw_after_pos == -1)
-                    lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[j], stop_criteria);
+                if ( lw_after_pos == -1 )
+                    lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                                      tmpinvp[j], stop_criteria );
                 else
                     lw_before_pos = lw_after_pos;
 
 
-                lw_after_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[j+1], stop_criteria);
+                lw_after_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                                 tmpinvp[j+1], stop_criteria );
 
                 l = lw_before_pos + lw_after_pos - tmplen[j];
 
 
                 /* Minimize the cut between two lines, for the same TSP result */
                 if ( l == minl ) {
-                    if (lw_before_pos < min_cut){
+                    if ( lw_before_pos < min_cut ) {
                         min_cut = lw_before_pos;
-                        minl = l; mpos = j+1;
+                        minl    = l;
+                        mpos    = j + 1;
                     }
-                    if (lw_after_pos < min_cut){
+                    if ( lw_after_pos < min_cut ) {
                         min_cut = lw_after_pos;
-                        minl = l; mpos = j+1;
+                        minl    = l;
+                        mpos    = j + 1;
                     }
                 }
 
                 /* Position that minimizes TSP */
                 if ( l < minl ) {
-                    minl = l; mpos = j+1;
-
+                    minl    = l;
+                    mpos   =  j + 1;
                     min_cut = lw_before_pos;
-                    if (lw_after_pos < min_cut){
+                    if ( lw_after_pos < min_cut ) {
                         min_cut = lw_after_pos;
                     }
                 }
 
                 if ( l < minl ) {
-                    minl = l; mpos = j+1;
+                    minl    = l;
+                    mpos    = j + 1;
                     min_cut = lw_before_pos;
-                    if (lw_after_pos < min_cut){
+                    if ( lw_after_pos < min_cut ) {
                         min_cut = lw_after_pos;
                     }
                 }
 
 
                 /* Stop if two lines are equal (already done tmpinvp[j]) */
-                if (lw_after_pos == 0){
+                if ( lw_after_pos == 0 ) {
                     min_cut = 0;
-                    minl = l; mpos = j+1;
-                    j = i;
+                    minl    = l;
+                    mpos    = j + 1;
+                    j       = i;
                 }
             }
-            else{
+            else {
                 lw_after_pos = -1;
             }
 
         }
 
         /* Test between last and first */
-        first_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[0], stop_criteria);
-        last_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[i], stop_criteria);
+        first_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                      tmpinvp[0], stop_criteria );
+        last_pos  = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                      tmpinvp[i], stop_criteria );
 
-        lw_before_pos = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[mpos-1], stop_criteria);
-        lw_after_pos  = hamming_distance(lw_vectors, lw_vectors_size, i, tmpinvp[mpos  ], stop_criteria);
+        lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                          tmpinvp[mpos-1], stop_criteria );
+        lw_after_pos  = hamming_distance( lw_vectors, lw_vectors_size, i,
+                                          tmpinvp[mpos  ], stop_criteria);
 
         l = first_pos + last_pos - tmplen[i];
         if ( l < minl ) {
-            minl = l; mpos = i+1;
+            minl = l;
+            mpos = i + 1;
         }
 
-        if (mpos > 0){
+        if ( mpos > 0 ) {
             tmplen[mpos-1] = lw_before_pos;
         }
 
-        if (mpos < (i+1))
-        {
+        if ( mpos < ( i + 1 ) ) {
             pastix_int_t tmpi, tmpl;
             k = i;
             l = lw_after_pos;
 
             /* Insert the line in the tmpinvp/tmplen arrays */
-            for(j=mpos; j<i+2; j++ )
-            {
+            for (j=mpos; j<i+2; j++) {
                 tmpi = tmpinvp[j];
                 tmpl = tmplen[j];
 
@@ -265,50 +376,88 @@ symbol_reorder_tsp(pastix_int_t size, Order *order, pastix_int_t sn_id,
     }
 
     elected = 0;
-    for (i=0; i<size; i++)
-    {
-        if (tmpinvp[i] == -1){
+    for (i=0; i<size; i++) {
+        if ( tmpinvp[i] == -1 ) {
             elected = i;
         }
     }
 
     pastix_int_t *sn_connected;
-    MALLOC_INTERN(sn_connected, size, pastix_int_t);
+    MALLOC_INTERN( sn_connected, size, pastix_int_t );
     {
         pastix_int_t *peritab = order->peritab + order->rangtab[sn_id];
-        for (i=0; i<size; i++)
-        {
+        for (i=0; i<size; i++) {
             sn_connected[i] = peritab[ tmpinvp[(i + 1 + elected)%(size+1)] ];
         }
         memcpy( peritab, sn_connected, size * sizeof(pastix_int_t) );
     }
 
-    memFree_null(sn_connected);
-    memFree_null(tmpinvp);
-    memFree_null(tmplen);
+    memFree_null( sn_connected );
+    memFree_null( tmpinvp );
+    memFree_null( tmplen );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbol_reorder_cblk - reorders a supernode, but computing the set of
+ * contributing supernodes for each row, before calling a TSP heuristic to
+ * minimize the Hamilonian Path.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbolic structure.
+ *
+ * @param[in] cblk
+ *          The pointer to the current supernode being reordered.
+ *
+ * @param[in, out] order
+ *          The ordering providing by Scotch. This ordering will be
+ *          updated with the new rows permutation for the current supernode.
+ *
+ * @param[out] levels
+ *          The pointer to the levels structure, giving the level of
+ *          each supernode in the elimination tree. To be computed inside.
+ *
+ * @param[in, out] depthweight
+ *          This array provides the number of supernodes
+ *          corresponding to depth from 1 to depthmax.
+ *
+ * @param[in] depthmax
+ *          The maximum depth in the elimination tree.
+ *
+ * @param[in] split_level
+ *          Parameter to activate the split level heuristic,
+ *          dividing distances computations into two stages: for upper and for
+ *          lower contruibuting supernodes. If a resulting distance for upper
+ *          supernodes is large enough, the computation is stopped, as long as
+ *          it will be large taking into account lower contributing supernodes.
+ *
+ * @param[in] stop_criteria
+ *          The stop criteria to disregard rows that are far away.
+ *
+ *******************************************************************************/
 static inline void
 symbol_reorder_cblk( const SymbolMatrix *symbptr,
                      const SymbolCblk   *cblk,
                      Order              *order,
                      const pastix_int_t *levels,
-                     pastix_int_t        cblklvl,
                      pastix_int_t       *depthweight,
                      pastix_int_t        depthmax,
                      pastix_int_t        split_level,
-                     int                 stop_criteria,
-                     double             *time_compute_vectors,
-                     double             *time_update_perm)
+                     int                 stop_criteria )
 {
     SymbolBlok *blok;
     pastix_int_t **up_vectors, *up_vectors_size;
     pastix_int_t **lw_vectors, *lw_vectors_size;
-    pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
+
+    pastix_int_t size              = cblk->lcolnum - cblk->fcolnum + 1;
     pastix_int_t local_split_level = split_level;
     pastix_int_t i, iterblok;
     pastix_int_t *brow = symbptr->browtab;
-    double timer;
 
     /**
      * Compute hamming vectors in two subsets:
@@ -320,16 +469,15 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
      * The delimitation between the lower and upper levels is made such that
      * the upper level represents 17% to 25% of the total number of cblk.
      */
-    clockStart(timer);
     {
         pastix_int_t weight = 0;
 
         /* Compute the weigth of each level */
-        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
-        {
+        for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++) {
             pastix_int_t blokweight;
-            blok = symbptr->bloktab + brow[iterblok];
+            blok       = symbptr->bloktab + brow[iterblok];
             blokweight = blok->lrownum - blok->frownum + 1;
+
             depthweight[ levels[ blok->lcblknm ] - 1 ] += blokweight;
             weight += blokweight;
         }
@@ -343,25 +491,22 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
             /* Current for each line within the current cblk the number of contributions */
             pastix_int_t up_total = 0;
             pastix_int_t lw_total = 0;
-            pastix_int_t sign = 0;
+            pastix_int_t sign     = 0;
 
           split:
             up_total = 0;
             lw_total = 0;
 
-            for(i=0; i<local_split_level; i++)
-            {
+            for (i=0; i<local_split_level; i++) {
                 up_total += depthweight[i];
             }
-            for(; i<depthmax; i++)
-            {
+            for (; i<depthmax; i++) {
                 lw_total += depthweight[i];
             }
 
             /* If there are too many upper bloks */
             if ( (lw_total < (5 * up_total)) &&
-                 (lw_total > 10) && (up_total > 10) && (sign <= 0))
-            {
+                 (lw_total > 10) && (up_total > 10) && (sign <= 0)) {
                 local_split_level--;
                 sign--;
                 goto split;
@@ -369,8 +514,7 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
 
             /* If there are too many lower bloks */
             if ( (lw_total > (3 * up_total)) &&
-                 (lw_total > 10) && (up_total > 10) && (sign >= 0) )
-            {
+                 (lw_total > 10) && (up_total > 10) && (sign >= 0) ) {
                 local_split_level++;
                 sign++;
                 goto split;
@@ -378,24 +522,23 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
         }
 
         /* Compute the Hamming vector size for each row of the cblk */
-        MALLOC_INTERN(up_vectors_size, size, pastix_int_t);
-        memset(up_vectors_size, 0, size * sizeof(pastix_int_t));
-        MALLOC_INTERN(lw_vectors_size, size, pastix_int_t);
-        memset(lw_vectors_size, 0, size * sizeof(pastix_int_t));
+        MALLOC_INTERN( up_vectors_size, size, pastix_int_t );
+        memset( up_vectors_size, 0, size * sizeof(pastix_int_t) );
+        MALLOC_INTERN( lw_vectors_size, size, pastix_int_t );
+        memset( lw_vectors_size, 0, size * sizeof(pastix_int_t) );
 
-        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
-        {
+        for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++) {
             blok = symbptr->bloktab + brow[iterblok];
 
             /* For upper levels in nested dissection */
-            if (levels[blok->lcblknm] <= local_split_level){
-                for (i=blok->frownum; i<=blok->lrownum; i++){
+            if (levels[blok->lcblknm] <= local_split_level) {
+                for (i=blok->frownum; i<=blok->lrownum; i++) {
                     pastix_int_t index = i - cblk->fcolnum;
                     up_vectors_size[index]++;
                 }
             }
-            else{
-                for (i=blok->frownum; i<=blok->lrownum; i++){
+            else {
+                for (i=blok->frownum; i<=blok->lrownum; i++) {
                     pastix_int_t index = i - cblk->fcolnum;
                     lw_vectors_size[index]++;
                 }
@@ -411,24 +554,24 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
             memset(lw_vectors[i], 0, lw_vectors_size[i] * sizeof(pastix_int_t));
             memset(up_vectors[i], 0, up_vectors_size[i] * sizeof(pastix_int_t));
         }
-        memset(lw_vectors_size, 0, size * sizeof(pastix_int_t));
-        memset(up_vectors_size, 0, size * sizeof(pastix_int_t));
+        memset( lw_vectors_size, 0, size * sizeof(pastix_int_t) );
+        memset( up_vectors_size, 0, size * sizeof(pastix_int_t) );
 
         /* Fill-in vectors structure with contributing cblks */
-        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+        for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
         {
             blok = symbptr->bloktab + brow[iterblok];
 
             /* For upper levels in nested dissection */
             if (levels[blok->lcblknm] <= local_split_level) {
-                for (i=blok->frownum; i<=blok->lrownum; i++){
+                for (i=blok->frownum; i<=blok->lrownum; i++) {
                     pastix_int_t index = i - cblk->fcolnum;
                     up_vectors[index][up_vectors_size[index]] = blok->lcblknm;
                     up_vectors_size[index]++;
                 }
             }
             else{
-                for (i=blok->frownum; i<=blok->lrownum; i++){
+                for (i=blok->frownum; i<=blok->lrownum; i++) {
                     pastix_int_t index = i - cblk->fcolnum;
                     lw_vectors[index][lw_vectors_size[index]] = blok->lcblknm;
                     lw_vectors_size[index]++;
@@ -437,50 +580,59 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
         }
     }
 
-    clockStop(timer);
-    *time_compute_vectors += clockVal(timer);
+    /* Apply the pseudo-TSP algorithm to the rows in the current supernode */
+    symbol_reorder_tsp( size, order, cblk - symbptr->cblktab,
+                        lw_vectors, lw_vectors_size,
+                        up_vectors, up_vectors_size,
+                        stop_criteria );
 
-    clockStart(timer);
-    {
-        /* Apply the pseudo-TSP algorithm to the rows in the current supernode */
-        symbol_reorder_tsp(size, order, cblk - symbptr->cblktab,
-                           lw_vectors, lw_vectors_size,
-                           up_vectors, up_vectors_size,
-                           stop_criteria);
+    for (i=0; i<size; i++) {
+        memFree_null( lw_vectors[i] );
+        memFree_null( up_vectors[i] );
     }
-    clockStop(timer);
-    *time_update_perm += clockVal(timer);
-
-    for (i=0; i<size; i++){
-        memFree_null(lw_vectors[i]);
-        memFree_null(up_vectors[i]);
-    }
-    memFree_null(lw_vectors);
-    memFree_null(up_vectors);
-    memFree_null(lw_vectors_size);
-    memFree_null(up_vectors_size);
+    memFree_null( lw_vectors );
+    memFree_null( up_vectors );
+    memFree_null( lw_vectors_size );
+    memFree_null( up_vectors_size );
 }
 
-/* For split_level parameter */
-/* The chosen level to reduce computational cost: no effects if set to 0 */
-/* A first comparison is computed according to upper levels */
-/* If hamming distances are equal, the computation goes through lower levels */
-
-/* For stop_criteria parameter */
-/* Criteria to limit the number of comparisons when computing hamming distances */
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolReordering - Computes the reordering on the complete matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbolic structure.
+ *
+ * @param[in, out] order
+ *         The ordering providing by Scotch. This ordering will be
+ *          updated with the new rows permutation for each supernode that is not
+ *          a leaf in the elimination tree.
+ *
+ * @param[in] split_level
+ *          Parameter to activate the split level heuristic,
+ *          dividing distances computations into two stages: for upper and for
+ *          lower contruibuting supernodes. If a resulting distance for upper
+ *          supernodes is large enough, the computation is stopped, as long as
+ *          it will be large taking into account lower contributing supernodes.
+ *
+ * @param[in] stop_criteria
+ *          The stop criteria to disregard rows that are far away.
+ *
+ *******************************************************************************/
 void
 symbolReordering( const SymbolMatrix *symbptr,
-                  Order *order,
-                  pastix_int_t split_level,
-                  int stop_criteria )
+                  Order              *order,
+                  pastix_int_t        split_level,
+                  int                 stop_criteria )
 {
     SymbolCblk  *cblk;
     pastix_int_t itercblk;
     pastix_int_t cblknbr = symbptr->cblknbr;
-
-    double time_compute_vectors = 0.;
-    double time_update_perm     = 0.;
 
     pastix_int_t i, maxdepth;
     pastix_int_t *levels, *depthweight;
@@ -488,7 +640,7 @@ symbolReordering( const SymbolMatrix *symbptr,
     /* Create the level array to compute the depth of each cblk and the maximum depth */
     {
         maxdepth = 0;
-        levels = calloc(cblknbr, sizeof(pastix_int_t));
+        levels   = calloc( cblknbr, sizeof(pastix_int_t) );
 
         for (i=0; i<cblknbr; i++) {
             levels[i] = compute_cblklevel( order->treetab, levels, i );
@@ -507,23 +659,33 @@ symbolReordering( const SymbolMatrix *symbptr,
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
 
         symbol_reorder_cblk( symbptr, cblk, order,
-                             levels, levels[itercblk],
+                             levels,
                              depthweight, maxdepth,
-                             split_level, stop_criteria,
-                             &time_compute_vectors, &time_update_perm);
+                             split_level, stop_criteria );
     }
-
-    printf("Time to compute vectors  %lf s\n", time_compute_vectors);
-    printf("Time to update  perm     %lf s\n", time_update_perm);
 
     /* Update the permutation */
     for (i=0; i<symbptr->nodenbr; i++) {
         order->permtab[ order->peritab[i] ] = i;
     }
-    memFree_null(levels);
-    memFree_null(depthweight);
+    memFree_null( levels );
+    memFree_null( depthweight );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * symbolReorderingPrintComplexity - Computes the number of operations required
+ * to compute the reordering on the complete matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbolic structure.
+ *
+ *******************************************************************************/
 void
 symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
 {
@@ -540,13 +702,11 @@ symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
      * nbcblk is the number of non zeroes intersection between indivudal rows
      * and block columns.
      */
-    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
-    {
+    for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
         pastix_int_t width;
         pastix_int_t nbcblk = 0;
 
-        for(iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
-        {
+        for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++) {
             SymbolBlok *blok = symbptr->bloktab + symbptr->browtab[iterblok];
             assert( blok->fcblknm == itercblk );
 
