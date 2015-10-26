@@ -185,6 +185,9 @@ void solverExit(SolverMatrix *solvmtx)
             if (solvmtx->cblktab[i].lcoeftab)
                 memFree_null(solvmtx->cblktab[i].lcoeftab);
 
+            if (solvmtx->cblktab[i].dcoeftab)
+                memFree_null(solvmtx->cblktab[i].dcoeftab);
+
             if (solvmtx->cblktab[i].ucoeftab)
                 memFree_null(solvmtx->cblktab[i].ucoeftab);
         }
