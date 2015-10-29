@@ -130,6 +130,8 @@ FILE * const                stream)
       return     (1);
     }
 
+    /* This block is required for old file compatibility: will be removed */
+    if (0)
     {
         pastix_int_t tmp;
         if ((versval > 0) && (intLoad (stream, &tmp) != 1)) {
