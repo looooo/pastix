@@ -114,7 +114,7 @@ solverMatrixGen(const pastix_int_t clustnum,
     pastix_int_t  odb_nbr          = 0;
     pastix_int_t  cblknum          = 0;
     pastix_int_t  tasknum          = 0;
-    pastix_int_t  brownbr          = 0;
+    pastix_int_t  brownum          = 0;
     pastix_int_t  indnbr           = 0;
     pastix_int_t *cblklocalnum     = NULL;
     pastix_int_t *bloklocalnum     = NULL;
@@ -126,7 +126,6 @@ solverMatrixGen(const pastix_int_t clustnum,
 
     solverInit(solvmtx);
 
-    solvmtx->restore  = 0;
 #ifdef PASTIX_DYNSCHED
     solvmtx->btree    = ctrl->btree;
 #endif
@@ -146,9 +145,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     /* Copy the vector used to get a cluster number from a processor number */
     MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
     memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
-
-    /** Be sure initialized **/
-    solvmtx->coefmax = 0;
 
     /***************************************************************************
      * Compute local indices to compress the symbol information into solver
@@ -192,8 +188,8 @@ solverMatrixGen(const pastix_int_t clustnum,
             if(flaglocal) {
                 cblklocalnum[i] = cblknum;
                 cblknum++;
-                brownbr += symbmtx->cblktab[i+1].brownum - symbmtx->cblktab[i].brownum;
-                assert( brownbr <= symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
+                brownum += symbmtx->cblktab[i+1].brownum - symbmtx->cblktab[i].brownum;
+                assert( brownum <= symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
             }
             else {
                 cblklocalnum[i] = -i-1;
@@ -201,13 +197,13 @@ solverMatrixGen(const pastix_int_t clustnum,
         }
         solvmtx->cblknbr = cblknum;
         solvmtx->bloknbr = localindex[clustnum];
-        solvmtx->brownbr = brownbr;
+        solvmtx->brownbr = brownum;
 
         memFree_null(localindex);
     }
 
     /***************************************************************************
-     * Fill in bloktab and cblktab
+     * Fill in the local bloktab and cblktab
      */
 
     /* Allocate the cblktab and bloktab with the computed size */
@@ -215,9 +211,6 @@ solverMatrixGen(const pastix_int_t clustnum,
     MALLOC_INTERN(solvmtx->bloktab, solvmtx->bloknbr,   SolverBlok  );
     MALLOC_INTERN(solvmtx->browtab, solvmtx->brownbr,   pastix_int_t);
 
-    /* TODO: Fix that in distributed mode */
-    assert( brownbr == symbmtx->cblktab[ symbmtx->cblknbr ].brownum );
-    memcpy( solvmtx->browtab, symbmtx->browtab, brownbr * sizeof(pastix_int_t) );
     {
         SolverCblk *solvcblk = solvmtx->cblktab;
         SolverBlok *solvblok = solvmtx->bloktab;
@@ -227,6 +220,7 @@ solverMatrixGen(const pastix_int_t clustnum,
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
 
         cblknum = 0;
+        brownum = 0;
         nodenbr = 0;
         coefnbr = 0;
         for(i=0; i<symbmtx->cblknbr; i++, symbcblk++)
@@ -235,7 +229,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             pastix_int_t fbloknum  = symbcblk[0].bloknum;
             pastix_int_t lbloknum  = symbcblk[1].bloknum;
             pastix_int_t stride    = 0;
-            pastix_int_t nbcolumns = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
+            pastix_int_t nbcols = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
             pastix_int_t nbrows;
 
             flaglocal = 0;
@@ -243,7 +237,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             for( j=fbloknum; j<lbloknum; j++, symbblok++, simublok++ ) {
                 nbrows = (symbblok->lrownum - symbblok->frownum + 1) * dof;
 
-                blokamax = pastix_imax( blokamax, nbrows * nbcolumns );
+                blokamax = pastix_imax( blokamax, nbrows * nbcols );
 
                 if(simublok->ownerclust == clustnum)
                 {
@@ -263,22 +257,34 @@ solverMatrixGen(const pastix_int_t clustnum,
             }
             if(flaglocal)
             {
+                pastix_int_t brownbr;
+
                 /* Init the cblk */
                 solvcblk->fblokptr = fblokptr;
                 solvcblk->fcolnum  = symbcblk->fcolnum * dof;
-                solvcblk->lcolnum  = solvcblk->fcolnum + nbcolumns - 1;
+                solvcblk->lcolnum  = solvcblk->fcolnum + nbcols - 1;
                 solvcblk->stride   = stride;
                 solvcblk->lcolidx  = nodenbr;
-                solvcblk->brownum  = symbcblk->brownum;
+                solvcblk->brownum  = brownum;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
                 solvcblk->gpuid    = -1;
 
+                /* Copy browtab information */
+                brownbr = symbmtx->cblktab[i+1].brownum
+                    -     symbmtx->cblktab[i].brownum;
+                memcpy( solvmtx->browtab + brownum,
+                        symbmtx->browtab + symbmtx->cblktab[i].brownum,
+                        brownbr * sizeof(pastix_int_t) );
+                brownum += brownbr;
+
+                assert( brownum <= solvmtx->brownbr );
+
                 /* Extra statistic informations */
-                nodenbr += nbcolumns;
-                coefnbr += stride * nbcolumns;
+                nodenbr += nbcols;
+                coefnbr += stride * nbcols;
 
                 cblknum++; solvcblk++;
             }
@@ -311,9 +317,12 @@ solverMatrixGen(const pastix_int_t clustnum,
     /***************************************************************************
      * Update browind fields
      */
-    for(i=0; i<brownbr; i++)
+    for(i=0; i<solvmtx->brownbr; i++)
     {
-        solvmtx->bloktab[ solvmtx->browtab[i] ].browind = i;
+        pastix_int_t bloknum = solvmtx->browtab[i];
+        if ( simuctrl->bloktab[bloknum].ownerclust == clustnum ) {
+            solvmtx->bloktab[ bloknum ].browind = i;
+        }
     }
 
     /***************************************************************************
@@ -569,11 +578,12 @@ solverMatrixGen(const pastix_int_t clustnum,
     /***************************************************************************
      * Compute the maximum area of the temporary buffer used during computation
      *
-     * It is either:
-     *    - The panel of a diagonal block used in hetrf/sytrf factorizations of
-     *      width MAXSIZEOFBLOCKS = 64
-     *    - The area of the GEMM computation in a compacted update when done on
-     *      CPUs
+     * During this loop, we compute the maximum area that will be used as
+     * temporary buffers, and statistics:
+     *    - diagmax: Only for hetrf/sytrf factorization, this the maximum size
+     *               of a panel of MAXSIZEOFBLOCKS width in a diagonal block
+     *    - gemmmax: For all, this is the maximum area used to compute the
+     *               compacted gemm on a CPU.
      *
      * Rk: This loop is not merged with the main block loop, since strides have
      * to be peviously computed.
@@ -597,15 +607,6 @@ solverMatrixGen(const pastix_int_t clustnum,
             SolverBlok *lblok = solvcblk[1].fblokptr;
             pastix_int_t m = solvcblk->stride;
             pastix_int_t n = solvblok->lrownum - solvblok->frownum + 1;
-
-            /* Temporary buffer for factorization is required only if the block
-             * is larger than the blocking size */
-            diagarea = n * pastix_imin( 64, pastix_imax( 0, n - 64) );
-            if ( diagarea > diagmax ) {
-                diagmax = diagarea;
-                maxd_m = n;
-                maxd_n = pastix_imin( 64, pastix_imax( 0, n - 64) );
-            }
 
             /*
              * Compute the surface of the panel for LDLt factorization
@@ -636,13 +637,14 @@ solverMatrixGen(const pastix_int_t clustnum,
             }
         }
 
-        solvmtx->coefmax = pastix_imax( gemmmax, diagmax );
+        solvmtx->diagmax = diagmax;
+        solvmtx->gemmmax = gemmmax;
         if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
-            fprintf(stdout,
-                    "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
-                    "         update   %ld (%ld x %ld)\n",
-                    diagmax, maxd_m, maxd_n,
-                    gemmmax, maxg_m, maxg_n );
+            pastix_print(clustnum, 0,
+                         "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
+                         "         update   %ld (%ld x %ld)\n",
+                         diagmax, maxd_m, maxd_n,
+                         gemmmax, maxg_m, maxg_n );
         }
     }
 

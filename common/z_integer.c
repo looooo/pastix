@@ -85,8 +85,9 @@
 
 */
 
+static size_t intsortsize[2] = { sizeof(pastix_int_t), sizeof(pastix_complex64_t) };
 #define INTSORTNAME            z_qsortIntFloatAsc
-#define INTSORTSIZE(x)         ((x==0)?(sizeof (pastix_int_t)):(sizeof (pastix_complex64_t)))
+#define INTSORTSIZE(x)         (intsortsize[x])
 #define INTSORTNTAB            2
 #define INTSORTSWAP(p,q)       do {					\
     pastix_int_t     t;								\

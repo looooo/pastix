@@ -38,7 +38,6 @@ struct pastix_bcsc_s {
 
 typedef struct pastix_bcsc_s pastix_bcsc_t;
 
-
 void bcscInitCentralizedFake( const pastix_csc_t  *csc,
                               const Order         *ord,
                               const SolverMatrix  *solvmtx,

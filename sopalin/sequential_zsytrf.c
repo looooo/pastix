@@ -32,32 +32,46 @@ void
 sequential_zsytrf( pastix_data_t  *pastix_data,
                    sopalin_data_t *sopalin_data )
 {
-    SolverMatrix *datacode = pastix_data->solvmatr;
-    SolverCblk   *cblk;
-    double        threshold = sopalin_data->diagthreshold;
+    SolverMatrix       *datacode = pastix_data->solvmatr;
+    SolverCblk         *cblk;
+    double              threshold = sopalin_data->diagthreshold;
+    pastix_complex64_t *work1, *work2;
     pastix_int_t  i;
     (void)pastix_data;
+
+    MALLOC_INTERN( work1, pastix_imax(datacode->gemmmax, datacode->diagmax),
+                   pastix_complex64_t );
+    MALLOC_INTERN( work2, datacode->gemmmax, pastix_complex64_t );
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
         /* Compute */
-        core_zsytrfsp1d( datacode, cblk, threshold );
+        core_zsytrfsp1d( datacode, cblk, threshold,
+                         work1, work2 );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( datacode, "sytrf_L.txt" );
 #endif
+
+    memFree_null( work1 );
+    memFree_null( work2 );
 }
 
 void
 thread_pzsytrf( int rank, void *args )
 {
-    sopalin_data_t *sopalin_data = (sopalin_data_t*)args;
-    SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk   *cblk;
-    Task         *t;
+    sopalin_data_t     *sopalin_data = (sopalin_data_t*)args;
+    SolverMatrix       *datacode = sopalin_data->solvmtx;
+    SolverCblk         *cblk;
+    Task               *t;
+    pastix_complex64_t *work1, *work2;
     pastix_int_t  i, ii;
     pastix_int_t  tasknbr, *tasktab;
+
+    MALLOC_INTERN( work1, pastix_imax(datacode->gemmmax, datacode->diagmax),
+                   pastix_complex64_t );
+    MALLOC_INTERN( work2, datacode->gemmmax, pastix_complex64_t );
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
@@ -68,7 +82,8 @@ thread_pzsytrf( int rank, void *args )
         cblk = datacode->cblktab + t->cblknum;
 
         /* Compute */
-        core_zsytrfsp1d( datacode, cblk, sopalin_data->diagthreshold );
+        core_zsytrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
+                         work1, work2 );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
@@ -78,6 +93,9 @@ thread_pzsytrf( int rank, void *args )
     }
     isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
 #endif
+
+    memFree_null( work1 );
+    memFree_null( work2 );
 }
 
 

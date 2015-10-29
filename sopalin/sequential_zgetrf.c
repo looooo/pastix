@@ -32,32 +32,40 @@ void
 sequential_zgetrf( pastix_data_t  *pastix_data,
                    sopalin_data_t *sopalin_data )
 {
-    SolverMatrix *datacode = pastix_data->solvmatr;
-    SolverCblk   *cblk;
-    double        threshold = sopalin_data->diagthreshold;
+    SolverMatrix       *datacode = pastix_data->solvmatr;
+    SolverCblk         *cblk;
+    double              threshold = sopalin_data->diagthreshold;
+    pastix_complex64_t *work;
     pastix_int_t  i;
     (void)pastix_data;
+
+    MALLOC_INTERN( work, datacode->gemmmax, pastix_complex64_t );
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
         /* Compute */
-        core_zgetrfsp1d( datacode, cblk, threshold );
+        core_zgetrfsp1d( datacode, cblk, threshold, work );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( datacode, "getrf_L.txt" );
 #endif
+
+    memFree_null( work );
 }
 
 void
 thread_pzgetrf( int rank, void *args )
 {
-    sopalin_data_t *sopalin_data = (sopalin_data_t*)args;
-    SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk   *cblk;
-    Task         *t;
+    sopalin_data_t     *sopalin_data = (sopalin_data_t*)args;
+    SolverMatrix       *datacode = sopalin_data->solvmtx;
+    SolverCblk         *cblk;
+    Task               *t;
+    pastix_complex64_t *work;
     pastix_int_t  i, ii;
     pastix_int_t  tasknbr, *tasktab;
+
+    MALLOC_INTERN( work, datacode->gemmmax, pastix_complex64_t );
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
@@ -68,7 +76,7 @@ thread_pzgetrf( int rank, void *args )
         cblk = datacode->cblktab + t->cblknum;
 
         /* Compute */
-        core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold );
+        core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
@@ -78,6 +86,8 @@ thread_pzgetrf( int rank, void *args )
     }
     isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
 #endif
+
+    memFree_null( work );
 }
 
 void

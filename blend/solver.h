@@ -123,7 +123,8 @@ typedef struct SolverMatrix_ {
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
     FanInTarget * restrict  ftgttab;              /*+ Fanintarget access vector                 +*/
 
-    pastix_int_t              coefmax;              /*+ Working block max size (cblk coeff 1D)    +*/
+    pastix_int_t              diagmax;              /*+ Maximum size required during diagonal block factorization (hetrf/sytrf) +*/
+    pastix_int_t              gemmmax;              /*+ Maximum size required during GEMM computation                           +*/
     pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
     pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/
 

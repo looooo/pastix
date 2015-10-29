@@ -130,9 +130,9 @@ const pastix_int_t                   total_elems)          /*+ Number of entries
 
           char *mid = lo + INTSORTSIZE(0) * ((hi - lo) / INTSORTSIZE(0) >> 1);
 
-          if (INTSORTCMP ((void *) mid, (void *) lo))
+          if (INTSORTCMP (mid, lo))
             INTSORTSWAP (mid, lo);
-          if (INTSORTCMP ((void *) hi, (void *) mid))
+          if (INTSORTCMP (hi, mid))
             INTSORTSWAP (mid, hi);
           else
             goto jump_over;

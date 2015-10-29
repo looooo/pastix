@@ -59,9 +59,10 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *Cu,
                            pastix_complex64_t *work );
 
-int core_zgetrfsp1d( SolverMatrix *solvmtx,
-                     SolverCblk   *cblk,
-                     double        criteria );
+int core_zgetrfsp1d( SolverMatrix       *solvmtx,
+                     SolverCblk         *cblk,
+                     double              criteria,
+                     pastix_complex64_t *work );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
@@ -85,9 +86,11 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2 );
 
-int core_zhetrfsp1d( SolverMatrix *solvmtx,
-                     SolverCblk   *cblk,
-                     double        criteria );
+int core_zhetrfsp1d( SolverMatrix       *solvmtx,
+                     SolverCblk         *cblk,
+                     double              criteria,
+                     pastix_complex64_t *work1,
+                     pastix_complex64_t *work2 );
 
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
@@ -109,9 +112,10 @@ void core_zpotrfsp1d_gemm(SolverCblk         *cblk,
                           pastix_complex64_t *C,
                           pastix_complex64_t *work);
 
-int core_zpotrfsp1d( SolverMatrix *solvmtx,
-                     SolverCblk   *cblk,
-                     double        criteria );
+int core_zpotrfsp1d( SolverMatrix       *solvmtx,
+                     SolverCblk         *cblk,
+                     double              criteria,
+                     pastix_complex64_t *work );
 
 int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -134,8 +138,10 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
                            pastix_complex64_t *work1,
                            pastix_complex64_t *work2);
 
-int core_zsytrfsp1d( SolverMatrix *solvmtx,
-                     SolverCblk   *cblk,
-                     double        criteria );
+int core_zsytrfsp1d( SolverMatrix       *solvmtx,
+                     SolverCblk         *cblk,
+                     double              criteria,
+                     pastix_complex64_t *work1,
+                     pastix_complex64_t *work2 );
 
 #endif /* _CORE_Z_H_ */

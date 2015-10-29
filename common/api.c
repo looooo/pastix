@@ -136,7 +136,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
     iparm[IPARM_RHS_MAKING]            = API_RHS_B;           /* generate rhs */
     iparm[IPARM_REFINEMENT]            = API_RAF_GMRES;       /* gmres */
-    iparm[IPARM_SYM]                   = API_SYM_YES;         /* Symmetric */
     iparm[IPARM_INCOMPLETE]            = API_NO;              /* direct */
     iparm[IPARM_ABS]                   = 1;                   /* ABS level to 1 */
     iparm[IPARM_ESP]                   = API_NO;              /* no esp */

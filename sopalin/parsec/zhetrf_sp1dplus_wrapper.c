@@ -8,13 +8,11 @@
  */
 #include <dague.h>
 #include <dague/data_distribution.h>
+#include <dague/private_mempool.h>
 #include "common.h"
 #include "sopalin_data.h"
 #include "parsec/sparse-matrix.h"
-
-typedef struct dague_zhetrf_sp1dplus_handle dague_zhetrf_sp1dplus_handle_t;
-
-extern dague_zhetrf_sp1dplus_handle_t *dague_zhetrf_sp1dplus_new(dague_ddesc_t * dataA /* data dataA */, sopalin_data_t * sopalin_data);
+#include "parsec/zhetrf_sp1dplus.h"
 
 dague_handle_t*
 dsparse_zhetrf_sp_New( sparse_matrix_desc_t *A,
@@ -22,15 +20,19 @@ dsparse_zhetrf_sp_New( sparse_matrix_desc_t *A,
 {
     dague_zhetrf_sp1dplus_handle_t *dague_zhetrf_sp = NULL;
 
-    dague_zhetrf_sp = dague_zhetrf_sp1dplus_new( (dague_ddesc_t*)A, sopalin_data );
+    dague_zhetrf_sp = dague_zhetrf_sp1dplus_new( (dague_ddesc_t*)A, sopalin_data, NULL, NULL );
 
-    /* dague_zhetrf_sp->p_work = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t)); */
-    /* dague_private_memory_init( dague_zhetrf_sp->p_work, (A->pastix_data->solvmatr).coefmax * sizeof(dague_complex64_t) ); */
+    dague_zhetrf_sp->p_work1 = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
+    dague_private_memory_init( dague_zhetrf_sp->p_work1,
+                               pastix_imax(sopalin_data->solvmtx->gemmmax,
+                                           sopalin_data->solvmtx->diagmax) * sizeof(pastix_complex64_t) );
 
-    /* dsparse_add2arena_tile(((dague_zhetrf_Url_handle_t*)dague_zhetrf)->arenas[DAGUE_zhetrf_Url_DEFAULT_ARENA],  */
-    /*                        A->mb*A->nb*sizeof(dague_complex64_t), */
-    /*                        DAGUE_ARENA_ALIGNMENT_SSE, */
-    /*                        MPI_DOUBLE_COMPLEX, A->mb); */
+    dague_zhetrf_sp->p_work2 = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
+    dague_private_memory_init( dague_zhetrf_sp->p_work2, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
+
+    /* dague_matrix_add2arena_rect( dague_zhetrf_sp->arenas[DAGUE_zhetrf_sp1dplus_DEFAULT_ARENA], */
+    /*                              dague_datatype_double_complex_t, */
+    /*                              sopalin_data->solvmtx->gemmmax, 1, 1 ); */
 
     return (dague_handle_t*)dague_zhetrf_sp;
 }
@@ -39,15 +41,19 @@ void
 dsparse_zhetrf_sp_Destruct( dague_handle_t *o )
 {
     (void)o;
-    /* dague_zhetrf_sp1dplus_handle_t *dague_zhetrf_sp = NULL; */
-    /* dague_zhetrf_sp = (dague_zhetrf_sp1dplus_handle_t *)o; */
+    dague_zhetrf_sp1dplus_handle_t *dague_zhetrf_sp = NULL;
+    dague_zhetrf_sp = (dague_zhetrf_sp1dplus_handle_t *)o;
 
-    /*dsparse_datatype_undefine_type( &(ohetrf->arenas[DAGUE_zhetrf_Url_DEFAULT_ARENA]->opaque_dtt) );*/
+    /*dague_matrix_del2arena( dague_zhetrf_sp->arenas[DAGUE_zhetrf_sp1dplus_DEFAULT_ARENA] );*/
 
-    /* dague_private_memory_fini( dague_zhetrf_sp->p_work ); */
-    /* free( dague_zhetrf_sp->p_work ); */
+    dague_private_memory_fini( dague_zhetrf_sp->p_work1 );
+    free( dague_zhetrf_sp->p_work1 );
 
-    //DAGUE_INTERNAL_HANDLE_DESTRUCT(o);
+    dague_private_memory_fini( dague_zhetrf_sp->p_work2 );
+    free( dague_zhetrf_sp->p_work2 );
+
+    /* o->destructor(o); */
+    /* o = NULL; */
 }
 
 int dsparse_zhetrf_sp( dague_context_t *dague,

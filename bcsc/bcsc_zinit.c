@@ -258,7 +258,7 @@ z_bcscInitAt( const pastix_csc_t  *csc,
             itercblk = col2cblk[ iterrow2 ];
 
             /* The block column is not stored locally, we skip it */
-            if ((itercblk == -1) || (iterrow == itercol))
+            if (itercblk == -1)
                 continue;
 
             coltab  = bcsc->cscftab[itercblk].coltab;
@@ -273,7 +273,7 @@ z_bcscInitAt( const pastix_csc_t  *csc,
                 pastix_int_t pos;
 
                 for (idofrow = 0; idofrow < dof;
-                     idofrow++, ival++, rowidx++, pos++)
+                     idofrow++, ival++, rowidx++)
                 {
                     pos = coltab[ rowidx ];
 
@@ -301,10 +301,14 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
     {
         for (itercol=0; itercol<blockcol->colnbr; itercol++)
         {
+            int i;
             sortptr[0] = (void*)(rowtab + blockcol->coltab[itercol]);
             sortptr[1] = (void*)(valtab + blockcol->coltab[itercol]);
 
             size = blockcol->coltab[itercol+1] - blockcol->coltab[itercol];
+            for (i=0; i<size; i++) {
+                assert( rowtab[ blockcol->coltab[itercol] + i ] != -1);
+            }
 
             z_qsortIntFloatAsc( sortptr, size );
         }
@@ -345,9 +349,13 @@ z_bcscInitCentralized( const pastix_csc_t  *csc,
     if ( csc->mtxtype == PastixGeneral ) {
 	/* A^t is not required if only refinment is performed */
         if (initAt) {
-            pastix_int_t *trowtab;
+            pastix_int_t *trowtab, i;
             MALLOC_INTERN( bcsc->Uvalues, valuesize * pastix_size_of( bcsc->flttype ), char );
             MALLOC_INTERN( trowtab, valuesize, pastix_int_t);
+
+            for (i=0; i<valuesize; i++) {
+                trowtab[i] = -1;
+            }
 
             z_bcscInitAt( csc, ord, solvmtx, col2cblk, trowtab, bcsc );
 

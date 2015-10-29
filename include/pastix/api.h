@@ -83,7 +83,6 @@
    IPARM_IO_STRATEGY           - IO strategy (see Checkpoints modes)                      Default: API_IO_NO           IN
    IPARM_RHS_MAKING            - Right-hand-side making (see Right-hand-side modes)      Default: API_RHS_B           IN
    IPARM_REFINEMENT            - Refinement type (see Refinement modes)                   Default: API_RAF_GMRES       IN
-   IPARM_SYM                   - Symmetric matrix mode (see Symmetric modes)              Default: API_SYM_YES         IN
    IPARM_INCOMPLETE            - Incomplete factorization                                 Default: API_NO              IN
    IPARM_ABS                   - ABS level (Automatic Blocksize Splitting)                Default: 1                   IN
    IPARM_ESP                   - ESP (Enhanced Sparse Parallelism)                        Default: API_NO              IN
@@ -181,7 +180,6 @@ enum IPARM_ACCESS {
   IPARM_IO_STRATEGY,
   IPARM_RHS_MAKING,
   IPARM_REFINEMENT,
-  IPARM_SYM,
   IPARM_INCOMPLETE,
   IPARM_ABS,
   IPARM_ESP,
@@ -530,7 +528,7 @@ enum API_BIND_MODE {
 /*
   Enum: API_BOOLEAN
 
-  Boolean modes (All boolean except IPARM_SYM)
+  Boolean modes (All boolean)
 
   API_NO  - No
   API_YES - Yes

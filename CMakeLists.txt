@@ -286,6 +286,7 @@ if (PASTIX_WITH_PARSEC)
     endif()
     if ( PARSEC_FOUND )
     else()
+      message(ERROR "PaRSEC not FOUND")
       set(PARSEC_FOUND ON)
       set(PARSEC_INCLUDE_DIRS "/opt/parsec/include")
       set(PARSEC_LIBRARY_DIRS "/opt/parsec/lib")
@@ -293,8 +294,10 @@ if (PASTIX_WITH_PARSEC)
 
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
-        include_directories(${PARSEC_INCLUDE_DIRS})
-        link_directories(${PARSEC_LIBRARY_DIRS})
+      include_directories(${PARSEC_INCLUDE_DIRS_DEP})
+      include_directories(${PARSEC_INCLUDE_DIRS}/daguepp)
+
+      link_directories(${PARSEC_LIBRARY_DIRS_DEP})
 
     else(PARSEC_FOUND)
         message(ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
@@ -445,6 +448,7 @@ foreach (module ${modules})
 endforeach()
 
 if (PASTIX_WITH_PARSEC)
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
     add_subdirectory(sopalin/parsec)
 endif()
 
@@ -495,6 +499,7 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
+  csc/z_spm.c
   csc/z_spm_convert_to_csc.c
   csc/z_spm_convert_to_csr.c
   csc/z_spm_convert_to_ijv.c

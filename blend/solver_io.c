@@ -123,7 +123,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
 
     if(  intLoad (stream, &solvptr->coefnbr) +
          intLoad (stream, &solvptr->ftgtnbr) +
-         intLoad (stream, &solvptr->coefmax) +
+         intLoad (stream, &solvptr->gemmmax) +
          intLoad (stream, &solvptr->nbftmax) +
          intLoad (stream, &solvptr->arftmax) +
          intLoad (stream, &clustnum) +
@@ -376,7 +376,7 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
     o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                   (long) solvptr->coefnbr,
                   (long) solvptr->ftgtnbr,
-                  (long) solvptr->coefmax,
+                  (long) solvptr->gemmmax,
                   (long) solvptr->nbftmax,
                   (long) solvptr->arftmax,
                   (long) solvptr->clustnum,

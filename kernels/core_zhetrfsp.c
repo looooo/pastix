@@ -508,37 +508,23 @@ int core_zhetrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zhetrfsp1d( SolverMatrix *solvmtx,
-                 SolverCblk   *cblk,
-                 double        criteria )
+core_zhetrfsp1d( SolverMatrix       *solvmtx,
+                 SolverCblk         *cblk,
+                 double              criteria,
+                 pastix_complex64_t *work1,
+                 pastix_complex64_t *work2)
 {
     pastix_complex64_t *L = cblk->lcoeftab;
-    pastix_complex64_t *work1 = NULL;
-    pastix_complex64_t *work2 = NULL;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
-    pastix_int_t maxarea;
-
-    blok = cblk->fblokptr; /* this diagonal block */
-    lblk = cblk[1].fblokptr;   /* the next diagonal block */
-
-    maxarea = blok_rownbr( blok ) * blok_rownbr( blok );
-    blok++;
-    if ( blok < lblk ) {
-       for( ; blok < lblk; blok++ )
-        {
-            maxarea = pastix_imax( maxarea, (blok_rownbr( blok )+1) * cblk->stride );
-        }
-    }
-    MALLOC_INTERN( work1, maxarea, pastix_complex64_t );
-    MALLOC_INTERN( work2, cblk->stride * cblk_colnbr(cblk), pastix_complex64_t );
 
     /* if there are off-diagonal supernodes in the column */
     nbpivot = core_zhetrfsp1d_hetrf(cblk, L, criteria, work1);
     core_zhetrfsp1d_trsm(cblk, L);
 
-    blok = cblk->fblokptr+1;
+    blok = cblk->fblokptr+1;   /* this diagonal block */
+    lblk = cblk[1].fblokptr;   /* the next diagonal block */
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
@@ -548,8 +534,6 @@ core_zhetrfsp1d( SolverMatrix *solvmtx,
                               work1, work2 );
     }
 
-    memFree_null( work1 );
-    memFree_null( work2 );
     return nbpivot;
 }
 
