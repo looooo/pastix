@@ -327,14 +327,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
      * The graph is not useful anymore, we clean it
      */
 
-    /* TODO: FREE SOMEWHERE */
-    /* The graph is required to compute twice the symbolic factorization */
-    /* if (pastix_data->graph != NULL) */
-    /* { */
-    /*     graphExit( pastix_data->graph ); */
-    /*     memFree_null( pastix_data->graph ); */
-    /* } */
-
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
 

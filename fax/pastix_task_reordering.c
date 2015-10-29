@@ -88,11 +88,5 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     pastix_print(procnum, 0, OUT_REORDERING_TIME,
                  (double)clockVal(timer));
 
-    if (pastix_data->graph != NULL)
-    {
-        graphExit( pastix_data->graph );
-        memFree_null( pastix_data->graph );
-    }
-
     return PASTIX_SUCCESS;
 }
