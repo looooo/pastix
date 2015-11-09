@@ -73,6 +73,7 @@ typedef struct SolverCblk_  {
     pastix_int_t  brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t  gcblknum; /*< Global column block index              */
     void         *lcoeftab; /*< Coefficients access vector             */
+    void         *dcoeftab; /*< Coefficients access vector             */
     void         *ucoeftab; /*< Coefficients access vector             */
 
     /* Check if really required */

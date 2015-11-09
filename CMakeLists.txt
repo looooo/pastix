@@ -692,6 +692,7 @@ if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_scotch.c
+    order/order_compute_clif.c
     )
 endif()
 if(PASTIX_ORDERING_PTSCOTCH) # AND HAVE_PTSCOTCH)
