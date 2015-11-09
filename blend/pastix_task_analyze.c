@@ -79,6 +79,16 @@ pastix_task_blend(pastix_data_t *pastix_data)
         return PASTIX_ERR_BADPARAMETER;
     }
 
+
+    /*
+     * Free graph structure
+     */
+    if (pastix_data->graph != NULL) {
+        graphExit( pastix_data->graph );
+        memFree_null( pastix_data->graph );
+    }
+
+
     iparm   = pastix_data->iparm;
     dparm   = pastix_data->dparm;
     procnbr = pastix_data->inter_node_procnbr;
@@ -116,6 +126,9 @@ pastix_task_blend(pastix_data_t *pastix_data)
     solverBlend( &ctrl, solvptr, symbptr );
 
     blendCtrlExit(&ctrl);
+
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        symbolPrintStats( pastix_data->symbmtx );
 
     /* Symbol is not used anymore */
     symbolExit(pastix_data->symbmtx);

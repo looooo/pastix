@@ -58,6 +58,7 @@ int main (int argc, char **argv)
      */
     pastix_task_order( pastix_data, csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
+    pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
 
     /**
