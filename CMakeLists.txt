@@ -135,8 +135,8 @@ endif()
 find_package(LAPACKE REQUIRED)
 find_package(LAPACKEXT REQUIRED)
 if(LAPACKE_FOUND)
-    message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
-    include_directories(${LAPACKE_INCLUDE_DIRS})
+  message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
+  include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
 
 # PaStiX depends on HwLoc
@@ -558,6 +558,7 @@ set(PASTIX_LIB_SRCS
   fax/symbol_kass_direct.c
   fax/symbol_kass_level.c
   fax/pastix_task_symbfact.c
+  fax/pastix_task_reordering.c
   #
   matrix_drivers/skitf.f
   matrix_drivers/iohb.c
@@ -620,6 +621,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_cost.c
   symbol/symbol_cost_flops.c
   symbol/symbol_cost_perfs.c
+  symbol/symbol_reordering.c
 #  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c

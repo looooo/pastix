@@ -326,14 +326,12 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /*
      * The graph is not useful anymore, we clean it
      */
-    if (pastix_data->graph != NULL)
-    {
-        graphExit( pastix_data->graph );
-        memFree_null( pastix_data->graph );
-    }
 
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
+
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        symbolPrintStats( pastix_data->symbmtx );
 
     /* Rustine to be sure we have a tree
      * TODO: check difference with kassSymbolPatch */
