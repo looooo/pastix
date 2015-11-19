@@ -17,6 +17,12 @@
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
 
+
+#ifdef INCLUDE_HODLR
+#include "cHODLR_Matrix.h"
+#endif
+
+
 #include "ftgt.h"
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
@@ -75,6 +81,14 @@ typedef struct SolverCblk_  {
     void         *lcoeftab; /*< Coefficients access vector             */
     void         *dcoeftab; /*< Coefficients access vector             */
     void         *ucoeftab; /*< Coefficients access vector             */
+
+    /* For managing HODLR structures */
+    cHODLR        cMatrix;
+    pastix_int_t  is_HODLR;
+    pastix_int_t *split;
+    pastix_int_t  split_size;
+    void         *dcoeftab_HODLR; /*< Low-rank updates             */
+
 
     /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/

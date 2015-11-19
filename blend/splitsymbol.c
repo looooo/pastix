@@ -481,8 +481,8 @@ splitSmart( const BlendCtrl    *ctrl,
  ctrl    -
  dofptr  -
  */
-void splitSymbol( BlendCtrl    *ctrl,
-                  SymbolMatrix *symbmtx )
+void splitSymbol_classic( BlendCtrl    *ctrl,
+                          SymbolMatrix *symbmtx )
 {
     ExtraCblk_t extracblk;
 
@@ -651,6 +651,110 @@ void splitSymbol( BlendCtrl    *ctrl,
                        ctrl->etree,
                        symbmtx,
                        ctrl->costmtx );
+        }
+    }
+}
+
+
+
+void splitSymbol( BlendCtrl    *ctrl,
+                  SymbolMatrix *symbmtx )
+{
+    Cand *candtab = ctrl->candtab;
+    pastix_int_t cblknum;
+    pastix_int_t authorized_percent;
+    authorized_percent = 200;
+
+    /* Just for last supernode right now */
+    for(cblknum = symbmtx->cblknbr-1; cblknum<symbmtx->cblknbr; cblknum++) {
+
+        symbmtx->cblktab[cblknum].split = NULL;
+
+        pastix_int_t fcolnum = symbmtx->cblktab[cblknum].fcolnum;
+        pastix_int_t lcolnum = symbmtx->cblktab[cblknum].lcolnum;
+        pastix_int_t size    = lcolnum - fcolnum + 1;
+        pastix_int_t width   = size;
+
+        pastix_int_t *nblocksperline;
+        nblocksperline = computeNbBlocksPerLine( symbmtx, -1 );
+        nblocksperline += 1;
+
+        pastix_int_t candnbr;
+        candnbr = candtab[ cblknum ].lcandnum
+            -     candtab[ cblknum ].fcandnum + 1;
+
+
+        pastix_int_t nseq, step;
+        nseq = computeNbSplit( ctrl, candnbr, width );
+        if (nseq <= 1)
+            continue;
+
+        /* Adapt the step to the segments number */
+        step = pastix_iceil( width,  nseq );
+        assert( step > 0 );
+        nseq--;
+
+        pastix_int_t fcol, lcol;
+        pastix_int_t total = 0;
+        fcol = fcolnum;
+
+
+        /* First pass to measure the number of split */
+        pastix_int_t nb_parts = 0;
+        while( fcol <= lcolnum ) {
+            lcol = fcol + computeSmallestSplit( nblocksperline + fcol,
+                                                step, width,
+                                                authorized_percent );
+            assert( (lcol > fcol) && (lcol <= lcolnum) );
+            width = width - (lcol - fcol + 1);
+            fcol = lcol + 1;
+
+            if (fcol - fcolnum != 0)
+                nb_parts++;
+        }
+
+        /* Don't count last cut */
+        nb_parts--;
+
+        /* Stop if supernode is not split */
+        if (nb_parts < 2){
+            symbmtx->cblktab[cblknum].split_size = 0;
+            symbmtx->cblktab[cblknum].split      = NULL;
+        }
+        else{
+            symbmtx->cblktab[cblknum].split_size = nb_parts;
+            symbmtx->cblktab[cblknum].split      = malloc((nb_parts)*sizeof(pastix_int_t));
+
+            pastix_int_t *split = symbmtx->cblktab[cblknum].split;
+            pastix_int_t index  = 0;
+
+            /* Second pass to assign split */
+            width = size;
+            fcol  = fcolnum;
+            while( fcol <= lcolnum ) {
+                lcol = fcol + computeSmallestSplit( nblocksperline + fcol,
+                                                    step, width,
+                                                    authorized_percent );
+                assert( (lcol > fcol) && (lcol <= lcolnum) );
+                width = width - (lcol - fcol + 1);
+                total += lcol-fcol+1;
+
+                /* printf("New dense block from %ld to %ld (size %ld) tot %ld\n", */
+                /*        fcol, lcol, lcol-fcol+1, total); */
+
+                if (fcol - fcolnum != 0)
+                    split[index++] = fcol - fcolnum;
+                fcol = lcol + 1;
+            }
+
+            if (0)
+            {
+                pastix_int_t i;
+                printf("Cblknum %ld\n", cblknum);
+                for (i=0; i<nb_parts; i++){
+                    printf("Split %ld is %ld\n", i, split[i]);
+                }
+            }
         }
     }
 }
