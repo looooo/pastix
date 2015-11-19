@@ -23,6 +23,10 @@ static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
 static pastix_complex64_t zzero =  0.;
 
+#ifdef INCLUDE_HODLR
+#include "cHODLR_Matrix.h"
+#endif
+
 /**
  *******************************************************************************
  *
@@ -223,6 +227,19 @@ static void core_zgetrfsp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
+pastix_int_t
+static compute_cblklevel( pastix_int_t cblknum )
+{
+    /* cblknum level has already been computed */
+    pastix_int_t father = treetab[cblknum];
+    if ( father == -1 ) {
+        return 1;
+    }
+    else {
+        return compute_cblklevel( father ) + 1;
+    }
+}
+
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *D,
                            pastix_complex64_t *nul,
@@ -232,6 +249,8 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     pastix_int_t ncols, stride_D;
     pastix_int_t nbpivot = 0;
 
+    pastix_int_t level = compute_cblklevel( current_cblk );
+
     ncols    = cblk->lcolnum - cblk->fcolnum + 1;
     stride_D = cblk->lcolnum - cblk->fcolnum + 1;
 
@@ -239,9 +258,97 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
-    /* Factorize diagonal block (two terms version with workspace) */
-    core_zgetrfsp(ncols, D, stride_D, &nbpivot, criteria);
+    pastix_complex64_t tolerance;
+    pastix_int_t       levels, split, threshold;
 
+    char *lvls = getenv("LEVELS");
+    levels     = atoi(lvls);
+    char *tol  = getenv("TOLERANCE");
+    tolerance  = atof(tol);
+    char *splt = getenv("SPLIT");
+    split      = atoi(splt);
+    char *thr  = getenv("THRESHOLD");
+    threshold  = atoi(thr);
+
+    if (current_cblk == 0){
+        printf("Compression parameters: Tolerance %f, Levels %ld, Split %ld, Threshold %ld\n",
+               tolerance, levels, split, threshold);
+        printf(" Size | Level | Sparse Storage | HODLR_Storage | Dense_Storage |   Gain (Mo)   | HODLR compression+factorization | Dense factorization | TRSM on U | TRSM on L | Bloks size\n");
+    }
+
+    /* TODO: add properly */
+    current_cblk++;
+
+    pastix_int_t n = stride_D;
+    if (n > split){ //&& level <= levels){
+        Clock timer;
+        clockStart(timer);
+
+        /* Print size, level */
+        printf("%5ld  %5ld ", n, level);
+
+
+        /* Get sparse matrix size */
+        pastix_int_t sparse_storage = 0;
+        pastix_int_t i, j;
+        for (i=0; i<n; i++){
+            for (j=0; j<n; j++){
+                if (cabs(D[n*i+j]) != 0.0)
+                    sparse_storage++;
+            }
+        }
+        printf("%9ld   ", sparse_storage);
+
+
+        /* Add sparse matrix and low-rank updates */
+        pastix_complex64_t *D_HODLR = cblk->dcoeftab_HODLR;
+        core_zgeadd( CblasNoTrans, n, n, 1.0,
+                     D_HODLR, n,
+                     D, n );
+
+
+        cHODLR schur_H;
+        pastix_int_t split_size = cblk->split_size;
+        if (split_size == 0){
+            schur_H = newHODLR(n, n, D, threshold, "SVD");
+        }
+        else{
+            schur_H = newHODLR(n, n, D, threshold, "SVD");
+            /* schur_H = newHODLR_Tree(n, n, D, threshold, "SVD", split_size, cblk->split); */
+        }
+
+        gain_D += cStoreLR(schur_H, tolerance, 1);
+
+        cblk->is_HODLR = 1;
+        cblk->cMatrix  = schur_H;
+
+        clockStop(timer);
+        /* Print compression+factorization time */
+        printf("%32.3g ", (double)clockVal(timer));
+    }
+    /* else */
+    {
+        Clock timer;
+        clockStart(timer);
+
+        core_zgetrfsp(ncols, D, stride_D, &nbpivot, criteria);
+
+        clockStop(timer);
+        if (cblk->is_HODLR == 1){
+            /* Print dense factorisation time */
+            printf("%20.3g ", (double)clockVal(timer));
+        }
+    }
+
+    /* Symmetric case */
+    double local_memory = n*n*8/1000000.;
+    local_memory += (cblk->stride - n)*n*8/1000000.;
+    total_memory += local_memory;
+
+    /* Unsymmetric case */
+    local_memory  = n*n*8/1000000.;
+    local_memory  += 2*(cblk->stride - n)*n*8/1000000.;
+    total_memory2 += local_memory;
     return nbpivot;
 }
 
@@ -276,8 +383,9 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L,
                           pastix_complex64_t *U)
 {
+    (void)L;
     SolverBlok *fblok, *lblok;
-    pastix_complex64_t *fL, *fU;
+    pastix_complex64_t *fU;
     pastix_int_t dima, dimb, stride;
 
     dima    = cblk->lcolnum - cblk->fcolnum + 1;
@@ -291,42 +399,86 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
     pastix_complex64_t *D = cblk->dcoeftab;
     pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
 
+
+    /* To compress by facing cblk */
+    if (0)
+    {
+        SymbolBlok *blok;
+        pastix_int_t totalsize = 0;
+        pastix_int_t nb_bloks  = 0;
+
+        pastix_int_t facing    = 0;
+        pastix_int_t localsize = 0;
+        if ( fblok+1 < lblok ){
+            while (totalsize != dimb){
+
+                blok = &fblok[nb_bloks+1];
+                pastix_int_t bloksize  = blok->lrownum - blok->frownum + 1;
+
+                if (blok->fcblknm != facing){
+                    if (facing != 0)
+                        printf("Total facing %ld is %ld\n", facing, localsize);
+                    facing    = blok->fcblknm;
+                    localsize = bloksize;
+                }
+                else{
+                    localsize += bloksize;
+                }
+
+                totalsize += bloksize;
+                nb_bloks++;
+            }
+
+            if (facing != 0)
+                printf("Total facing %ld is %ld\n", facing, localsize);
+        }
+    }
+
+
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
     {
         /* first extra-diagonal bloc in column block address */
-        fL = L + fblok[1].coefind;
         fU = U + fblok[1].coefind;
 
 
-        /* First solve */
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasLower,
-                    CblasTrans, CblasUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), D,  stride_D,
-                                       fU, stride);
+        char *splt         = getenv("SPLIT");
+        pastix_int_t split = atoi(splt);
+        if (cblk->is_HODLR == 1){
+            int rank;
+            gain_U += compress_SVD(fU, dima, dimb, &rank);
+        }
 
-        /* Good one??? */
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasUpper,
-                    CblasTrans, CblasNonUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), D,  stride_D,
-                                       fU, stride);
-
-
+        /* Solve on U */
+        if (cblk->is_HODLR == 0){
+            cblas_ztrsm(CblasColMajor,
+                        CblasRight, CblasLower,
+                        CblasTrans, CblasUnit,
+                        dimb, dima,
+                        CBLAS_SADDR(zone), D,  stride_D,
+                        fU, stride);
+            cblas_ztrsm(CblasColMajor,
+                        CblasRight, CblasUpper,
+                        CblasTrans, CblasNonUnit,
+                        dimb, dima,
+                        CBLAS_SADDR(zone), D,  stride_D,
+                        fU, stride);
+        }
+        else{
+            cLU_TRSM(cblk->cMatrix, fU, dimb, dima, stride);
+        }
     }
 
     return PASTIX_SUCCESS;
 }
 
-static int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
-                                  pastix_complex64_t *L,
-                                  pastix_complex64_t *U)
+int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U)
 {
+    (void)U;
     SolverBlok *fblok, *lblok;
-    pastix_complex64_t *fL, *fU;
+    pastix_complex64_t *fL;
     pastix_int_t dima, dimb, stride;
 
     dima    = cblk->lcolnum - cblk->fcolnum + 1;
@@ -345,23 +497,14 @@ static int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
     {
         /* first extra-diagonal bloc in column block address */
         fL = L + fblok[1].coefind;
-        fU = U + fblok[1].coefind;
 
-        /* Second solve */
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasUpper,
-                    CblasNoTrans, CblasNonUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), D,  stride_D,
-                                       fL, stride);
-
-        /* Good one??? */
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasLower,
-                    CblasNoTrans, CblasUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), D,  stride_D,
-                                       fL, stride);
+        /* Solve on L */
+        char *splt         = getenv("SPLIT");
+        pastix_int_t split = atoi(splt);
+        if (cblk->is_HODLR == 1){
+            int rank;
+            gain_L += compress_SVD(fL, dima, dimb, &rank);
+        }
     }
 
     return PASTIX_SUCCESS;
@@ -408,7 +551,14 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
 {
     pastix_complex64_t *D = cblk->dcoeftab;
     pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, D, NULL, criteria);
+
+    /* Compress + TRSM U */
     core_zgetrfsp1d_trsm(cblk, L, U);
+
+    /* Compress L */
+    if (cblk->is_HODLR)
+        core_zgetrfsp1d_trsm2(cblk, L, U);
+
     return nbpivot;
 }
 
@@ -536,11 +686,48 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
 
         /* If the blok modifies a diagonal block */
         if (fblok->coefind + iterblok->frownum - fblok->frownum < stride_D){
-            Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
-                + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                         wtmp, dimi,
-                         Aij,  stride_D );
+
+            char *lvls             = getenv("LEVELS");
+            pastix_int_t levels    = atoi(lvls);
+            char *splt             = getenv("SPLIT");
+            pastix_int_t split     = atoi(splt);
+            char *thr              = getenv("THRESHOLD");
+            pastix_int_t threshold = atoi(thr);
+
+            pastix_int_t local_level     = compute_cblklevel(current_cblk);
+            pastix_complex64_t *Cd_HODLR = fcblk->dcoeftab_HODLR;
+
+            if (1){
+
+                if (stride_D > split && local_level <= levels){
+                    pastix_int_t split_size = cblk->split_size;
+                    cHODLR schur_H          = newHODLR(stride_D, stride_D, Cd_HODLR, threshold, "SVD");
+
+                    Aij = Cd_HODLR + (blok->frownum - fcblk->fcolnum) * stride_D
+                        + fblok->coefind + iterblok->frownum - fblok->frownum;
+                    core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                                 wtmp, dimi,
+                                 Aij,  stride_D );
+                }
+
+                else{
+                    Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
+                        + fblok->coefind + iterblok->frownum - fblok->frownum;
+                    core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                                 wtmp, dimi,
+                                 Aij,  stride_D );
+                }
+            }
+
+            else{
+                Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
+                    + fblok->coefind + iterblok->frownum - fblok->frownum;
+                core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                             wtmp, dimi,
+                             Aij,  stride_D );
+            }
+
+
         }
         else{
             core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
@@ -656,7 +843,6 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
  *
  *******************************************************************************/
 
-int nb;
 int
 core_zgetrfsp1d( SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
@@ -684,7 +870,10 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
                               L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
     }
 
-    core_zgetrfsp1d_trsm2(cblk, L, U);
+
+    if (cblk->is_HODLR)
+        printf("\n");
+
     return nbpivot;
 }
 

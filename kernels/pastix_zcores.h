@@ -45,6 +45,11 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L,
                           pastix_complex64_t *U);
 
+/* TODO: add properly */
+int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *U);
+
 int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,

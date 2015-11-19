@@ -4,6 +4,9 @@ set(generated_files "")
 set(generated_headers "")
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(BEFORE "/usr/local/include/eigen")
+include_directories(BEFORE "${HODLR_SOURCE_DIR}/include/")
+include_directories(BEFORE "${HODLR_BINARY_DIR}/src/")
 
 set(HEADERS
   pastix_zcores.h
@@ -90,6 +93,14 @@ add_dependencies(pastix_kernels kernels_headers)
 #   ${CBLAS_LIBRARY_DIRS}
 #   ${BLAS_LIBRARY_DIRS}
 # )
+
+if(PASTIX_WITH_HODLR)
+  add_library(HODLR STATIC IMPORTED)
+  set_target_properties(HODLR PROPERTIES
+    IMPORTED_LOCATION "${HODLR_BINARY_DIR}/src/libHODLRSolver.a"
+    IMPORTED_LINK_INTERFACE_LANGUAGES "CXX")
+  target_link_libraries(pastix_kernels HODLR)
+endif() #PASTIX_WITH_HODLR
 
 # set(TESTING_KERNELS_LIBRARIES
 #   pastix
