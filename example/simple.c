@@ -28,6 +28,13 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
 
+    iparm[IPARM_MIN_BLOCKSIZE] = 10;
+    iparm[IPARM_MAX_BLOCKSIZE] = 20;
+
+    iparm[IPARM_ITERMAX]          = 100;
+    iparm[IPARM_REORDERING_SPLIT] = 0;
+    /* iparm[IPARM_GMRES_IM]   = 50; /\* GMRES restart *\/ */
+    /* iparm[IPARM_REFINEMENT] = API_RAF_BICGSTAB; */
     /**
      * Get options from command line
      */
@@ -39,6 +46,15 @@ int main (int argc, char **argv)
      * Startup PaStiX
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+
+    current_cblk  = 0;
+    total_memory  = 0.;
+    total_memory2 = 0.;
+
+    gain_L = 0 ;
+    gain_D = 0 ;
+    gain_U = 0 ;
 
     /**
      * Read the sparse matrix with the driver
@@ -65,6 +81,9 @@ int main (int argc, char **argv)
      * Perform the numerical factorization
      */
     pastix_task_sopalin( pastix_data, csc );
+
+    printf("Total memory of the solver %10f Mo (symmetric) %10f (unsymmetric)\n", total_memory, total_memory2);
+    printf("Gain_L %10f Mo Gain_D %10f Mo, Gain_U %10f Mo\n", gain_L, gain_D, gain_U);
 
     /**
      * Generates the b and x vector such that A * x = b

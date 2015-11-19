@@ -596,4 +596,13 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                       pastix_int_t   rhsnbr,
                       void          *b);
 
+/* TODO: add properly */
+pastix_int_t *treetab;
+pastix_int_t current_cblk;
+double total_memory;
+double total_memory2;
+
+double gain_L;
+double gain_D;
+double gain_U;
 #endif /* _PASTIX_H_ */

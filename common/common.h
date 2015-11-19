@@ -38,6 +38,10 @@
 #include "trace.h"
 #include "pastixdata.h"
 
+#ifdef INCLUDE_HODLR
+#include "cHODLR_Matrix.h"
+#endif
+
 /********************************************************************
  * Errors functions
  */
