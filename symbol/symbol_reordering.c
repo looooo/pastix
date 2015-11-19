@@ -17,6 +17,16 @@
 #include "symbol.h"
 #include "order.h"
 
+static inline void
+symbol_reorder_cblk_hmatrix( const SymbolMatrix *symbptr,
+                             const SymbolCblk   *cblk,
+                             Order              *order,
+                             const pastix_int_t *levels,
+                             pastix_int_t       *depthweight,
+                             pastix_int_t        depthmax,
+                             pastix_int_t        split_level,
+                             int                 stop_criteria );
+
 /**
  *******************************************************************************
  *
@@ -723,3 +733,115 @@ symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
     }
     fprintf(stdout, " Number of operations in reordering: %ld\n", nbflops );
 }
+
+
+
+
+
+/* For HODLR decomposition */
+
+int
+cmpint2(const void *p1, const void *p2)
+{
+    const long *a = (const long *)p1;
+    const long *b = (const long *)p2;
+    return (long) *a - *b;
+}
+
+static inline void
+symbol_reorder_cblk_hmatrix( const SymbolMatrix *symbptr,
+                             const SymbolCblk   *cblk,
+                             Order              *order,
+                             const pastix_int_t *levels,
+                             pastix_int_t       *depthweight,
+                             pastix_int_t        depthmax,
+                             pastix_int_t        split_level,
+                             int                 stop_criteria )
+{
+    (void)depthweight;
+    (void)depthmax;
+    SymbolBlok *blok;
+    pastix_int_t *vectors_hash;
+    pastix_int_t i, iterblok;
+
+    pastix_int_t size  = cblk->lcolnum - cblk->fcolnum + 1;
+    pastix_int_t *brow = symbptr->browtab;
+
+    MALLOC_INTERN( vectors_hash, size, pastix_int_t );
+    memset( vectors_hash, 0, size * sizeof(pastix_int_t) );
+
+    pastix_int_t *weight;
+    MALLOC_INTERN( weight, symbptr->cblknbr, pastix_int_t );
+    pastix_int_t current = 0;
+    for (i=0; i<symbptr->cblknbr; i++) {
+        if ( levels[i] <= split_level ) {
+            weight[i] = current++;
+        }
+    }
+
+    for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++)
+    {
+        blok = symbptr->bloktab + brow[iterblok];
+
+        /* For upper levels in nested dissection */
+        if (levels[blok->lcblknm] <= split_level) {
+            for (i=blok->frownum; i<=blok->lrownum; i++) {
+                pastix_int_t index = i - cblk->fcolnum;
+                vectors_hash[index] += 1 << weight[blok->lcblknm];
+            }
+        }
+    }
+
+    pastix_int_t sn_id = cblk - symbptr->cblktab;
+
+    if (sn_id == symbptr->cblknbr - 1){
+        pastix_int_t *tmp_hash;
+        MALLOC_INTERN( tmp_hash, size, pastix_int_t );
+        memcpy( tmp_hash, vectors_hash, size * sizeof(pastix_int_t) );
+
+        pastix_int_t *tmp;
+        MALLOC_INTERN( tmp, size, pastix_int_t );
+
+        qsort(tmp_hash, size, sizeof(pastix_int_t), cmpint2);
+
+        pastix_int_t j;
+        for (i=0; i<size; i++){
+            for (j=0; j<size; j++){
+                if (tmp_hash[i] == vectors_hash[j]){
+                    tmp[i] = j;
+                    vectors_hash[j] = 0;
+                    break;
+                }
+            }
+        }
+
+        pastix_int_t current = 0;
+        pastix_int_t total   = 0;
+
+        for (i=0; i<size; i++){
+            if (tmp_hash[i] != current){
+                /* printf("Got %ld lines (%ld)\n", total, i); */
+                current = tmp_hash[i];
+                total   = 1;
+            }
+            else{
+                total++;
+            }
+        }
+        /* printf("Got %ld lines (%ld)\n", total, size); */
+
+        pastix_int_t *peritab = order->peritab + order->rangtab[sn_id];
+        memcpy( tmp_hash, peritab, size * sizeof(pastix_int_t) );
+
+        for (i=0; i<size; i++) {
+            peritab[i] = tmp_hash[tmp[i]];
+        }
+
+        memFree_null( tmp );
+        memFree_null( tmp_hash );
+    }
+
+    memFree_null( vectors_hash );
+    memFree_null( weight );
+}
+
