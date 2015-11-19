@@ -250,8 +250,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
         default:
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
 
-            pastix_dsolve( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
-            pastix_dsolve( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
+            /* pastix_dsolve( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb ); */
+            /* pastix_dsolve( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
 
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
             break;

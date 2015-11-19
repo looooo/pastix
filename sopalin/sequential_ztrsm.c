@@ -49,22 +49,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
-                    /* Solve the diagonal block */
-                    pastix_complex64_t *tmp;
-                    MALLOC_INTERN( tmp, tempn*tempn, pastix_complex64_t );
-                    memset( tmp, 0, tempn*tempn*sizeof(pastix_complex64_t) );
-                    pastix_int_t k;
-                    for (k=0; k<tempn; k++){
-                        tmp[tempn*k+k] = 1.0;
-                    }
-
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasUpper,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        tmp,    tempn,
-                        b + cblk->lcolidx, ldb );
-
                     /* Apply the update */
                     for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
                         blok = datacode->bloktab + datacode->browtab[j];
@@ -97,21 +81,32 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     /* In sequential */
                     assert( cblk->fcolnum == cblk->lcolidx );
 
-                    /* Solve the diagonal block */
-                    pastix_complex64_t *tmp;
-                    MALLOC_INTERN( tmp, tempn*tempn, pastix_complex64_t );
-                    memset( tmp, 0, tempn*tempn*sizeof(pastix_complex64_t) );
-                    pastix_int_t k;
-                    for (k=0; k<tempn; k++){
-                        tmp[tempn*k+k] = 1.0;
+                    if (cblk->is_HODLR == 0){
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasNoTrans, CblasUnit,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            cblk->dcoeftab, tempn,
+                            b + cblk->lcolidx, ldb );
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasUpper,
+                            CblasNoTrans, CblasNonUnit,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            cblk->dcoeftab,    tempn,
+                            b + cblk->lcolidx, ldb );
+                    }
+                    else{
+                        pastix_complex64_t *B = b + cblk->lcolidx;
+                        pastix_complex64_t *R = malloc(tempn*sizeof(pastix_complex64_t));
+                        cLU_Solve(cblk->cMatrix, tempn, B, R);
+
+                        cblas_zcopy(tempn, R, 1,
+                                    B, 1);
+                        free(R);
                     }
 
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        tmp, tempn,
-                        b + cblk->lcolidx, ldb );
+
+
 
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -138,22 +133,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                 for (i=0; i<datacode->cblknbr; i++, cblk--){
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
-
-                    /* Solve the diagonal block */
-                    pastix_complex64_t *tmp;
-                    MALLOC_INTERN( tmp, tempn*tempn, pastix_complex64_t );
-                    memset( tmp, 0, tempn*tempn*sizeof(pastix_complex64_t) );
-                    pastix_int_t k;
-                    for (k=0; k<tempn; k++){
-                        tmp[tempn*k+k] = 1.0;
-                    }
-
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        tmp,    tempn,
-                        b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
                     for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
@@ -189,10 +168,8 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
 
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk, *fcbk;
-    SolverBlok *blok;
-    pastix_complex64_t *coeftab;
-    pastix_int_t i, j, tempm, tempn;
+    SolverCblk *cblk;
+    pastix_int_t i, tempn;
     (void)pastix_data;
 
     /*
@@ -207,13 +184,15 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
-                    /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasUpper,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->dcoeftab,    tempn,
-                        b + cblk->lcolidx, ldb );
+                    /* Solve the diagonal block (only for LU blocks) */
+                    if (cblk->is_HODLR == 0){
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasUpper,
+                            CblasNoTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            cblk->dcoeftab,    tempn,
+                            b + cblk->lcolidx, ldb );
+                    }
                 }
             }
         }
@@ -226,37 +205,34 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
                 for (i=0; i<datacode->cblknbr; i++, cblk++){
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
-                    coeftab = (pastix_complex64_t*)(cblk->lcoeftab);
 
                     /* In sequential */
                     assert( cblk->fcolnum == cblk->lcolidx );
 
-                    /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->dcoeftab, tempn,
-                        b + cblk->lcolidx, ldb );
+                    /* Solve the diagonal block (only for LU blocks) */
+                    if (cblk->is_HODLR == 0){
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasNoTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            cblk->dcoeftab, tempn,
+                            b + cblk->lcolidx, ldb );
+                    }
+                    else{
+                        pastix_complex64_t *B = b + cblk->lcolidx;
+                        pastix_complex64_t *R = malloc(tempn*sizeof(pastix_complex64_t));
+                        cLU_Solve(cblk->cMatrix, tempn, B, R);
+
+                        cblas_zcopy(tempn, R, 1,
+                                    B, 1);
+                        free(R);
+                    }
                 }
             }
             /*
              *  Left / Lower / [Conj]Trans
              */
             else {
-                cblk = datacode->cblktab + datacode->cblknbr - 1;
-                for (i=0; i<datacode->cblknbr; i++, cblk--){
-
-                    tempn = cblk->lcolnum - cblk->fcolnum + 1;
-
-                    /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->dcoeftab,    tempn,
-                        b + cblk->lcolidx, ldb );
-                }
             }
         }
     }

@@ -123,6 +123,29 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
     sparse_matrix_destroy( &desc );
 
     dague_fini( &(pastix_data->parsec) );
+
+
+    /* TODO: add to the DAG */
+
+   /* SolverMatrix       *datacode = sopalin_data->solvmtx; */
+    /* SolverCblk         *cblk; */
+    /* Task               *t; */
+    /* pastix_int_t        tasknbr, *tasktab; */
+    /* tasknbr = datacode->ttsknbr[0]; */
+    /* tasktab = datacode->ttsktab[0]; */
+
+    /* pastix_int_t i, ii; */
+    /* for (ii=0; ii<tasknbr; ii++) { */
+    /*     i = tasktab[ii]; */
+    /*     t = datacode->tasktab + i; */
+    /*     cblk = datacode->cblktab + t->cblknum; */
+
+    /*     pastix_complex64_t *L = cblk->lcoeftab; */
+    /*     pastix_complex64_t *U = cblk->ucoeftab; */
+
+    /*     /\* Compute *\/ */
+    /*     core_zgetrfsp1d_trsm2(cblk, L, U); */
+    /* } */
 }
 #endif
 
