@@ -98,9 +98,9 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     pos  = key;
     size = cblk->stride * (cblk->lcolnum - cblk->fcolnum + 1) * spmtx->typesze;
 
-    return dague_data_get( spmtx->data_map + pos, mat, key,
-                           (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
-                           size );
+    return dague_data_create( spmtx->data_map + pos, mat, key,
+                              (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
+                              size );
 }
 
 static dague_data_t *
@@ -121,9 +121,9 @@ sparse_matrix_data_of_key(dague_ddesc_t *mat, dague_data_key_t key )
     pos  = key;
     size = cblk->stride * (cblk->lcolnum - cblk->fcolnum + 1) * spmtx->typesze;
 
-    return dague_data_get( spmtx->data_map + pos, mat, key,
-                           (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
-                           size );
+    return dague_data_create( spmtx->data_map + pos, mat, key,
+                              (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
+                              size );
 }
 
 #ifdef DAGUE_PROF_TRACE
