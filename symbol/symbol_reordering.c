@@ -171,6 +171,8 @@ hamming_distance( pastix_int_t **vectors,
  * symbol_reorder_tsp - reorder rows of a supernode with the nearest insertion
  * TSP heuristic.
  *
+ * See reordering paper (TODO: Put link to the paper when published)
+ *
  *******************************************************************************
  *
  * @param[in] size
@@ -216,20 +218,21 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
                     pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
                     pastix_int_t stop_criteria )
 {
-
-    if ( size < 3 ) {
-        return;
-    }
-
     pastix_int_t  i, j, k, l, elected;
     pastix_int_t *tmpinvp;
     pastix_int_t *tmplen;
     pastix_int_t  distance;
 
+
+    if ( size < 3 ) {
+        return;
+    }
+
     MALLOC_INTERN( tmpinvp, size+1, pastix_int_t );
     MALLOC_INTERN( tmplen,  size+1, pastix_int_t );
     memset( tmplen, 0, ( size + 1 ) * sizeof(pastix_int_t) );
 
+    /* Insert a ghost element with no connexion to any supernodes */
     tmpinvp[0] = -1;
     tmpinvp[1] = 0;
 
@@ -238,7 +241,6 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
     tmplen[0] = distance;
     tmplen[1] = distance;
 
-    pastix_int_t min_cut = -1;
     for (i=1; i<size; i++) {
         pastix_int_t first_pos;
         pastix_int_t last_pos;
@@ -249,6 +251,10 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
         pastix_int_t up_before_pos;
         pastix_int_t up_after_pos;
 
+        pastix_int_t minl;
+        pastix_int_t mpos;
+        pastix_int_t min_cut;
+
         /* Start by adding the row in first position */
         lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
                                           tmpinvp[0], stop_criteria );
@@ -257,9 +263,9 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
         up_after_pos  = hamming_distance( up_vectors, up_vectors_size, i,
                                           tmpinvp[1], 1 );
 
-        pastix_int_t minl    = lw_before_pos + lw_after_pos - tmplen[0];
-        pastix_int_t mpos    = 1;
-        pastix_int_t min_cut = -1;
+        minl    = lw_before_pos + lw_after_pos - tmplen[0];
+        mpos    = 1;
+        min_cut = -1;
 
         for (j=1; j<i; j++) {
             up_before_pos = up_after_pos;
@@ -375,6 +381,7 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
         }
     }
 
+    /* Look for the ghost element */
     elected = 0;
     for (i=0; i<size; i++) {
         if ( tmpinvp[i] == -1 ) {
@@ -382,17 +389,19 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
         }
     }
 
-    pastix_int_t *sn_connected;
-    MALLOC_INTERN( sn_connected, size, pastix_int_t );
+    /* Apply the local permutation to the global one */
     {
+        pastix_int_t *sn_connected;
         pastix_int_t *peritab = order->peritab + order->rangtab[sn_id];
+
+        MALLOC_INTERN( sn_connected, size, pastix_int_t );
         for (i=0; i<size; i++) {
             sn_connected[i] = peritab[ tmpinvp[(i + 1 + elected)%(size+1)] ];
         }
         memcpy( peritab, sn_connected, size * sizeof(pastix_int_t) );
+        memFree_null( sn_connected );
     }
 
-    memFree_null( sn_connected );
     memFree_null( tmpinvp );
     memFree_null( tmplen );
 }
@@ -470,11 +479,11 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
      * the upper level represents 17% to 25% of the total number of cblk.
      */
     {
+        pastix_int_t blokweight;
         pastix_int_t weight = 0;
 
         /* Compute the weigth of each level */
         for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++) {
-            pastix_int_t blokweight;
             blok       = symbptr->bloktab + brow[iterblok];
             blokweight = blok->lrownum - blok->frownum + 1;
 
