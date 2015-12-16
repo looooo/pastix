@@ -39,6 +39,7 @@ int
 orderCheck (const Order * const  ordeptr)
 {
     pastix_int_t         baseval;                  /* Node base value            */
+    pastix_int_t         cblkmax;                  /* Maximum supernode value    */
     pastix_int_t         vnodmax;                  /* Maximum node value         */
     pastix_int_t         vnodnum;                  /* Number of current node     */
     pastix_int_t         rangnum;                  /* Current column block index */
@@ -67,8 +68,11 @@ orderCheck (const Order * const  ordeptr)
     peritax = ordeptr->peritab - baseval; /* Set based accesses */
     vnodmax = ordeptr->rangtab[ordeptr->cblknbr] - 1;
 
-    assert(vnodmax == ordeptr->vertnbr);
+    assert((ordeptr->rangtab[ordeptr->cblknbr] - baseval) == ordeptr->vertnbr);
 
+    /**
+     * Check the values in rangtab
+     */
     for (rangnum = 0; rangnum < ordeptr->cblknbr; rangnum ++)
     {
         if ((ordeptr->rangtab[rangnum] <  baseval) ||
@@ -82,6 +86,9 @@ orderCheck (const Order * const  ordeptr)
 
     permtax = ordeptr->permtab - baseval;
 
+    /**
+     * Check perm and invp, as well as the symmetry between the two
+     */
     for (vnodnum = baseval;
          vnodnum <= vnodmax; vnodnum ++)
     {
@@ -95,6 +102,26 @@ orderCheck (const Order * const  ordeptr)
             errorPrint ("orderCheck: invalid permutation arrays");
             return PASTIX_ERR_BADPARAMETER;
         }
+    }
+
+    /**
+     * Check the treetab
+     */
+    cblkmax = ordeptr->cblknbr - baseval;
+    for (rangnum = 0; rangnum < ordeptr->cblknbr-1; rangnum ++)
+    {
+        if ((ordeptr->treetab[rangnum] <  baseval) ||
+            (ordeptr->treetab[rangnum] >  cblkmax) ||
+            (ordeptr->treetab[rangnum] <  rangnum+baseval) )
+        {
+            errorPrint ("orderCheck: invalid range array in treetab");
+            return PASTIX_ERR_BADPARAMETER;
+        }
+    }
+    if (ordeptr->treetab[rangnum] != -1)
+    {
+        errorPrint ("orderCheck: invalid father for cblknbr-1 node");
+        return PASTIX_ERR_BADPARAMETER;
     }
 
     return PASTIX_SUCESS;
