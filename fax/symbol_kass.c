@@ -23,10 +23,9 @@
  *
  * @ingroup pastix_symbfact
  *
- * symbolKass - This function generateds the symbol matrix when an ibomplete
- * factorization will be performed or the supernode partition doesn't exists or
- * has been destroyed.
- * The symbol matrix and the supernode partition associated are returned.
+ * symbolKass - This function generates the symbol matrix whith an amalgamation
+ * algorithm to gather together small blocks in larger one.
+ * The symbol matrix and the associated supernode partition are returned.
  * See after for the different parameters.
  *
  *******************************************************************************
