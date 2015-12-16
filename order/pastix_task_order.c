@@ -461,6 +461,10 @@ pastix_task_order(      pastix_data_t *pastix_data,
         }
     }
 
+#if !defined(NDEBUG)
+    orderCheck( ordemesh );
+#endif
+
     /* Backup the csc pointer for further information */
     pastix_data->csc = csc;
 
