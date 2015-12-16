@@ -123,23 +123,6 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     graphBase( csc, 0 );
     orderBase( orderptr, 0 );
 
-    /*
-     * If the supernode partition is not provided by the ordering library,
-     * we compute it from scratch.
-     * If we do incomplete factorization, we drop the supernode factorization
-     * given by Scotch and recompute a new one.
-     */
-    /* if ( (orderptr->rangtab == NULL) || (ilu == API_YES ) ) */
-    /* { */
-    /*     Clock timer; */
-
-    /*     MALLOC_INTERN(streetab, csc->n, pastix_int_t); */
-    /*     clockStart(timer); */
-    /*     orderFindSupernodes( csc->n, csc->colptr, csc->rows, orderptr, streetab ); */
-    /*     clockStop(timer); */
-    /*     pastix_print(procnum, 0, "Time to find the supernodes %.3g s \n", clockVal(timer)); */
-    /* } */
-
     n  = csc->n;
     ia = csc->colptr;
     perm     = orderptr->permtab;
