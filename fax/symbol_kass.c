@@ -93,6 +93,7 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     pastix_int_t *invp2;
     pastix_int_t  newcblknbr;
     pastix_int_t *newrangtab = NULL;
+    pastix_int_t *newtreetab = NULL;
     pastix_int_t  nnzA, nnzL;
     Clock timer;
     double nnzS;
@@ -216,15 +217,19 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
                 (double)rat_blas / 100.,
                 &graphL, nnzL,
                 snodenbr, snodetab, streetab,
-                &newcblknbr, &newrangtab,
+                &newcblknbr, &newrangtab, &newtreetab,
                 invp2, pastix_comm );
 
     if( orderptr->rangtab != NULL ) {
         memFree(orderptr->rangtab);
         orderptr->cblknbr = 0;
     }
+    if( orderptr->treetab != NULL ) {
+        memFree(orderptr->treetab);
+    }
     orderptr->cblknbr = newcblknbr;
     orderptr->rangtab = newrangtab;
+    orderptr->treetab = newtreetab;
 
     /*
      * invp2 is the invp vector generated for PA

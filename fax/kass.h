@@ -53,7 +53,8 @@ void amalgamate(double rat_cblk, double rat_blas,
                 const pastix_int_t  *snodetab,
                 pastix_int_t  *treetab,
                 pastix_int_t  *cblknbr,
-                pastix_int_t **rangtab,
+                pastix_int_t **newrangtab,
+                pastix_int_t **newtreetab,
                 pastix_int_t  *nodetab,
                 MPI_Comm pastix_comm );
 
