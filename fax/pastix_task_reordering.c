@@ -43,12 +43,13 @@
 int
 pastix_task_reordering(pastix_data_t *pastix_data)
 {
+    //EliminTree   *etree;
     Clock         timer;
     pastix_int_t *iparm;
     Order        *ordemesh;
     pastix_int_t  procnum;
 
-    /*
+    /**
      * Check parameters
      */
     if (pastix_data == NULL) {
@@ -74,6 +75,16 @@ pastix_task_reordering(pastix_data_t *pastix_data)
         symbolReorderingPrintComplexity( pastix_data->symbmtx );
 
     clockStart(timer);
+
+    /**
+     * Build the elimination tree from the symbolic partition to reorder the
+     * supernodes
+     */
+    //etree = eTreeBuild(symbmtx);
+
+    /**
+     * Reorder the rows of each supernode in order to compact coupling blocks
+     */
     symbolReordering( pastix_data->symbmtx, ordemesh,
                       iparm[IPARM_REORDERING_SPLIT],
                       iparm[IPARM_REORDERING_STOP] );
@@ -96,6 +107,18 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
     clockStop(timer);
+
+#if !defined(NDEBUG)
+    if ( orderCheck( ordemesh ) != 0) {
+        errorPrint("pastix_task_reordering: orderCheck on final ordering failed !!!");
+        assert(0);
+    }
+    if( symbolCheck(pastix_data->symbmtx) != 0 ) {
+        errorPrint("pastix_task_reordering: symbolCheck on final symbol matrix failed !!!");
+        assert(0);
+    }
+#endif
+
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
         pastix_print(procnum, 0, OUT_REORDERING_TIME,
                      (double)clockVal(timer));
