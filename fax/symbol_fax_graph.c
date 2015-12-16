@@ -84,7 +84,8 @@
  *
  * @param[in] ordeptr
  *          The ordering structure that contains the permutation and inverse
- *          permutation vector, as weel as the list of supernodes.
+ *          permutation vector, as well as the list of supernodes and the
+ *          associated tree.
  *
  *******************************************************************************
  *
