@@ -53,8 +53,13 @@
  * Both algorithms are working with a centralized version of the graph and are
  * on every nodes. If a distributed graph has been used, it is gather on each
  * node to compute the symbol matrix.
- * If symbolKass() is used, the perm and invp vector will be modified and
- * returned to the user. BE CAREFULL if you give your own ordering and wants to
+ * If symbolKass() is used, the ordering structure will be modified due to the assembly step. Then, permutation, inverse permutation, partition, and partition tree are modified internally.*
+ * The new permutation arrays perm and invp can be returned to the user if 
+
+  and invp vector will be modified and
+ * returned to the user. The associated partition with its tree will be updated
+ * accordingly.
+ * BE CAREFULL if you give your own ordering and wants to
  * keep it because it will be overwritten by the updated one.
  *
  * This routine is affected by the following parameters:
@@ -278,6 +283,45 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                        &tmpgraph,
                        ordemesh,
                        pastix_data->pastix_comm);
+
+#if defined(PASTIX_DISTRIBUTED)
+            if (PTS_perm != NULL)
+            {
+                gN = n;
+
+                MALLOC_INTERN(tmpperm, gN, pastix_int_t);
+                MALLOC_INTERN(tmpperi, gN, pastix_int_t);
+                for (i = 0; i < gN; i++)
+                    tmpperm[i] = ordemesh->permtab[PTS_perm[i]-1];
+
+                memFree_null(ordemesh->permtab);
+                ordemesh->permtab = tmpperm;
+
+                for (i = 0; i < gN; i++)
+                    tmpperi[i] = PTS_rev_perm[ordemesh->peritab[i]]-1;
+                memFree_null(ordemesh->peritab);
+                ordemesh->peritab = tmpperi;
+
+                memFree_null(PTS_perm);
+                memFree_null(PTS_rev_perm);
+            }
+#endif /* defined(PASTIX_DISTRIBUTED) */
+
+            /*
+             * Save the new ordering structure
+             */
+            if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
+            {
+                if (procnum == 0) {
+                    orderSave( ordemesh, NULL );
+                }
+            }
+
+            /*
+             * Return the new ordering to the user
+             */
+            if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
+            if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
         }
 
         if ( graph->loc2glob != NULL )
@@ -286,41 +330,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             memFree_null(rowfax);
         }
 
-#if defined(PASTIX_DISTRIBUTED)
-        if (PTS_perm != NULL)
-        {
-            gN = n;
-
-            MALLOC_INTERN(tmpperm, gN, pastix_int_t);
-            MALLOC_INTERN(tmpperi, gN, pastix_int_t);
-            for (i = 0; i < gN; i++)
-                tmpperm[i] = ordemesh->permtab[PTS_perm[i]-1];
-
-            memFree_null(ordemesh->permtab);
-            ordemesh->permtab = tmpperm;
-
-            for (i = 0; i < gN; i++)
-                tmpperi[i] = PTS_rev_perm[ordemesh->peritab[i]]-1;
-            memFree_null(ordemesh->peritab);
-            ordemesh->peritab = tmpperi;
-
-            memFree_null(PTS_perm);
-            memFree_null(PTS_rev_perm);
-        }
-#endif /* defined(PASTIX_DISTRIBUTED) */
-
-        /*
-         * Save the new ordering structure
-         */
-        if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
-        {
-            if (procnum == 0) {
-                orderSave( ordemesh, NULL );
-            }
-        }
-
-        if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
-        if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
     } /* not API_IO_LOAD */
 
     /*
