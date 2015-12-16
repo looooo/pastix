@@ -329,12 +329,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             memFree_null(colptrfax);
             memFree_null(rowfax);
         }
-
     } /* not API_IO_LOAD */
-
-    /*
-     * The graph is not useful anymore, we clean it
-     */
 
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
@@ -355,8 +350,12 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     symbolRealloc( pastix_data->symbmtx );
 
 #if !defined(NDEBUG)
+    if ( orderCheck( ordemesh ) != 0) {
+        errorPrint("pastix_task_symbfact: orderCheck on final ordering after symbolic factorization failed !!!");
+        assert(0);
+    }
     if( symbolCheck(pastix_data->symbmtx) != 0 ) {
-        errorPrint("pastix_task_symbfact: SymbolCheck on final symbol matrix failed !!!");
+        errorPrint("pastix_task_symbfact: symbolCheck on final symbol matrix failed !!!");
         assert(0);
     }
 #endif
