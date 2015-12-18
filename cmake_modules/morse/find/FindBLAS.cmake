@@ -43,9 +43,12 @@
 ##########
 ### List of vendors (BLA_VENDOR) valid in this module
 ########## List of vendors (BLA_VENDOR) valid in this module
-##  Goto,ATLAS PhiPACK,CXML,DXML,SunPerf,SCSL,SGIMATH,IBMESSL,Intel10_32 (intel mkl v10 32 bit),Intel10_64lp (intel mkl v10 64 bit,lp thread model, lp64 model),
+##  Open (for OpenBlas), Eigen (for EigenBlas), Goto, ATLAS PhiPACK,
+##  CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL,
+##  Intel10_32 (intel mkl v10 32 bit), Intel10_64lp (intel mkl v10 64 bit,lp thread model, lp64 model),
 ##  Intel10_64lp_seq (intel mkl v10 64 bit,sequential code, lp64 model),
-##  Intel( older versions of mkl 32 and 64 bit), ACML,ACML_MP,ACML_GPU,Apple, NAS, Generic
+##  Intel( older versions of mkl 32 and 64 bit),
+##  ACML, ACML_MP, ACML_GPU, Apple, NAS, Generic
 # C/CXX should be enabled to use Intel mkl
 ###
 # We handle different modes to find the dependency
@@ -457,7 +460,38 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
     endif()
 
     if (UNIX AND NOT WIN32)
-        set(LM "-lm")
+        # m
+        find_library(M_LIBRARY
+            NAMES m
+            HINTS ${_libdir})
+        if(M_LIBRARY)
+            set(LM "-lm")
+        else()
+            set(LM "")
+        endif()
+        # Fortran
+        set(LGFORTRAN "")
+        if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+            find_library(
+                FORTRAN_gfortran_LIBRARY
+                NAMES gfortran
+                HINTS ${_libdir}
+                )
+            mark_as_advanced(FORTRAN_gfortran_LIBRARY)
+            if (FORTRAN_gfortran_LIBRARY)
+                set(LGFORTRAN "${FORTRAN_gfortran_LIBRARY}")
+            endif()
+        elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
+            find_library(
+                FORTRAN_ifcore_LIBRARY
+                NAMES ifcore
+                HINTS ${_libdir}
+                )
+            mark_as_advanced(FORTRAN_ifcore_LIBRARY)
+            if (FORTRAN_ifcore_LIBRARY)
+                set(LGFORTRAN "{FORTRAN_ifcore_LIBRARY}")
+            endif()
+        endif()
         set(BLAS_COMPILER_FLAGS "")
         if (NOT BLA_VENDOR STREQUAL "Intel10_64lp_seq")
             if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
@@ -688,6 +722,7 @@ if (BLA_VENDOR STREQUAL "Goto" OR BLA_VENDOR STREQUAL "All")
 endif (BLA_VENDOR STREQUAL "Goto" OR BLA_VENDOR STREQUAL "All")
 
 
+# OpenBlas
 if (BLA_VENDOR STREQUAL "Open" OR BLA_VENDOR STREQUAL "All")
 
     if(NOT BLAS_LIBRARIES)
@@ -703,6 +738,36 @@ if (BLA_VENDOR STREQUAL "Open" OR BLA_VENDOR STREQUAL "All")
     endif()
 
 endif (BLA_VENDOR STREQUAL "Open" OR BLA_VENDOR STREQUAL "All")
+
+
+# EigenBlas
+if (BLA_VENDOR STREQUAL "Eigen" OR BLA_VENDOR STREQUAL "All")
+
+    if(NOT BLAS_LIBRARIES)
+        # eigenblas (http://eigen.tuxfamily.org/index.php?title=Main_Page)
+        check_fortran_libraries(
+        BLAS_LIBRARIES
+        BLAS
+        sgemm
+        ""
+        "eigen_blas"
+        ""
+        )
+    endif()
+
+    if(NOT BLAS_LIBRARIES)
+        # eigenblas (http://eigen.tuxfamily.org/index.php?title=Main_Page)
+        check_fortran_libraries(
+        BLAS_LIBRARIES
+        BLAS
+        sgemm
+        ""
+        "eigen_blas_static"
+        ""
+        )
+    endif()
+
+endif (BLA_VENDOR STREQUAL "Eigen" OR BLA_VENDOR STREQUAL "All")
 
 
 if (BLA_VENDOR STREQUAL "ATLAS" OR BLA_VENDOR STREQUAL "All")
@@ -1038,7 +1103,7 @@ if (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
             sgemm
             ""
             "${SEARCH_LIB}"
-            ""
+            "${LGFORTRAN}"
             )
         endif()
     endforeach ()

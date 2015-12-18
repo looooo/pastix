@@ -3,7 +3,7 @@
 # @copyright (c) 2009-2014 The University of Tennessee and The University
 #                          of Tennessee Research Foundation.
 #                          All rights reserved.
-# @copyright (c) 2012-2014 Inria. All rights reserved.
+# @copyright (c) 2012-2015 Inria. All rights reserved.
 # @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
 #
 ###
@@ -25,6 +25,7 @@
 #   - BLAS: to activate the detection of StarPU linked with BLAS
 #   - MAGMA: to activate the detection of StarPU linked with MAGMA
 #   - FXT: to activate the detection of StarPU linked with FxT
+#   - SIMGRID: to activate the detection of StarPU linked with SimGrid
 #
 # Results are reported in variables:
 #  STARPU_FOUND                  - True if headers and requested libraries were found
@@ -81,6 +82,7 @@ set(STARPU_LOOK_FOR_MPI FALSE)
 set(STARPU_LOOK_FOR_BLAS FALSE)
 set(STARPU_LOOK_FOR_MAGMA FALSE)
 set(STARPU_LOOK_FOR_FXT FALSE)
+set(STARPU_LOOK_FOR_SIMGRID FALSE)
 
 if( STARPU_FIND_COMPONENTS )
     foreach( component ${STARPU_FIND_COMPONENTS} )
@@ -96,6 +98,8 @@ if( STARPU_FIND_COMPONENTS )
             set(STARPU_LOOK_FOR_MAGMA TRUE)
         elseif(${component} STREQUAL "FXT")
             set(STARPU_LOOK_FOR_FXT TRUE)
+        elseif(${component} STREQUAL "SIMGRID")
+            set(STARPU_LOOK_FOR_SIMGRID TRUE)
         endif()
     endforeach()
 endif()
@@ -162,6 +166,15 @@ if (NOT FXT_FOUND AND STARPU_LOOK_FOR_FXT)
         find_package(FXT REQUIRED)
     else()
         find_package(FXT)
+    endif()
+endif()
+
+# STARPU may depend on SIMGRID, try to find it
+if (NOT SIMGRID_FOUND AND STARPU_LOOK_FOR_SIMGRID)
+    if (STARPU_FIND_REQUIRED AND STARPU_FIND_REQUIRED_SIMGRID)
+        find_package(SIMGRID REQUIRED)
+    else()
+        find_package(SIMGRID)
     endif()
 endif()
 
@@ -735,6 +748,22 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT STARPU_FOUND) 
                 endif()
             endforeach()
         endif()
+        # SIMGRID
+        if (SIMGRID_FOUND AND STARPU_LOOK_FOR_SIMGRID)
+            if (SIMGRID_INCLUDE_DIRS)
+                list(APPEND REQUIRED_INCDIRS "${SIMGRID_INCLUDE_DIRS}")
+            endif()
+            if (SIMGRID_LIBRARY_DIRS)
+                list(APPEND REQUIRED_LIBDIRS "${SIMGRID_LIBRARY_DIRS}")
+            endif()
+            foreach(lib ${SIMGRID_LIBRARIES})
+                if (EXISTS ${lib} OR ${lib} MATCHES "^-")
+                    list(APPEND REQUIRED_LIBS "${lib}")
+                else()
+                    list(APPEND REQUIRED_LIBS "-l${lib}")
+                endif()
+            endforeach()
+        endif()
         # BLAS
         if (BLAS_FOUND AND STARPU_LOOK_FOR_BLAS)
             if (BLAS_INCLUDE_DIRS)
@@ -749,10 +778,26 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT STARPU_FOUND) 
             endif()
         endif()
         # Fortran
-        if (CMAKE_Fortran_COMPILER MATCHES ".+gfortran.*")
-            list(APPEND REQUIRED_LIBS "-lgfortran")
-        elseif (CMAKE_Fortran_COMPILER MATCHES ".+ifort.*")
-            list(APPEND REQUIRED_LIBS "-lifcore")
+        if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+            find_library(
+                FORTRAN_gfortran_LIBRARY
+                NAMES gfortran
+                HINTS ${_lib_env}
+                )
+            mark_as_advanced(FORTRAN_gfortran_LIBRARY)
+            if (FORTRAN_gfortran_LIBRARY AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+                list(APPEND REQUIRED_LIBS "${FORTRAN_gfortran_LIBRARY}")
+            endif()
+        elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
+            find_library(
+                FORTRAN_ifcore_LIBRARY
+                NAMES ifcore
+                HINTS ${_lib_env}
+                )
+            mark_as_advanced(FORTRAN_ifcore_LIBRARY)
+            if (FORTRAN_ifcore_LIBRARY)
+                list(APPEND REQUIRED_LIBS "${FORTRAN_ifcore_LIBRARY}")
+            endif()
         endif()
 
         # set required libraries for link
@@ -836,7 +881,7 @@ if(NOT STARPU_FIND_QUIETLY)
         message(STATUS "StarPU shared memory libraries stored in STARPU_SHM_LIBRARIES")
     endif()
 endif()
-if (PKG_CONFIG_EXECUTABLE AND STARPU_SHM_FOUND)
+if (PKG_CONFIG_EXECUTABLE AND STARPU_SHM_FOUND AND NOT STARPU_GIVEN_BY_USER)
     find_package_handle_standard_args(STARPU DEFAULT_MSG
                                       STARPU_SHM_LIBRARIES)
 else()
@@ -848,7 +893,7 @@ if(STARPU_LOOK_FOR_MPI)
     if(STARPU_MPI_LIBRARIES AND NOT STARPU_FIND_QUIETLY)
         message(STATUS "StarPU mpi libraries stored in STARPU_MPI_LIBRARIES")
     endif()
-    if (PKG_CONFIG_EXECUTABLE AND STARPU_MPI_FOUND)
+    if (PKG_CONFIG_EXECUTABLE AND STARPU_MPI_FOUND AND NOT STARPU_GIVEN_BY_USER)
         find_package_handle_standard_args(STARPU DEFAULT_MSG
                                           STARPU_MPI_LIBRARIES)
     else()

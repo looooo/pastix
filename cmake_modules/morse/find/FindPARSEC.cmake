@@ -38,7 +38,7 @@
 #  PARSEC_LIBRARY_DIRS_DEP       - parsec + dependencies link directories
 #  PARSEC_LIBRARIES_DEP          - parsec libraries + dependencies
 #  PARSEC_daguepp_BIN_DIR        - path to parsec driver daguepp
-#  PARSEC_DAGUEPP                - PaRSEC jdf compiler
+#  PARSEC_DAGUEPP                - parsec jdf compiler
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DPARSEC=path/to/parsec):
 #  PARSEC_DIR                    - Where to find the base directory of parsec
@@ -529,10 +529,26 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT PARSEC_FOUND) 
             list(APPEND REQUIRED_LIBS "${CUDA_CUBLAS_LIBRARIES};${CUDA_CUDART_LIBRARY};${CUDA_CUDA_LIBRARY}")
         endif()
         # Fortran
-        if (CMAKE_Fortran_COMPILER MATCHES ".+gfortran.*")
-            list(APPEND REQUIRED_LIBS "-lgfortran")
-        elseif (CMAKE_Fortran_COMPILER MATCHES ".+ifort.*")
-            list(APPEND REQUIRED_LIBS "-lifcore")
+        if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+            find_library(
+                FORTRAN_gfortran_LIBRARY
+                NAMES gfortran
+                HINTS ${_lib_env}
+                )
+            mark_as_advanced(FORTRAN_gfortran_LIBRARY)
+            if (FORTRAN_gfortran_LIBRARY)
+                list(APPEND REQUIRED_LIBS "${FORTRAN_gfortran_LIBRARY}")
+            endif()
+        elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
+            find_library(
+                FORTRAN_ifcore_LIBRARY
+                NAMES ifcore
+                HINTS ${_lib_env}
+                )
+            mark_as_advanced(FORTRAN_ifcore_LIBRARY)
+            if (FORTRAN_ifcore_LIBRARY)
+                list(APPEND REQUIRED_LIBS "${FORTRAN_ifcore_LIBRARY}")
+            endif()
         endif()
         # EXTRA LIBS such that pthread, m, rt
         list(APPEND REQUIRED_LIBS ${PARSEC_EXTRA_LIBRARIES})
@@ -620,9 +636,8 @@ endif()
 
 if ( PARSEC_daguepp_BIN_DIR )
     find_program(PARSEC_DAGUEPP
-      NAMES daguepp
-      HINTS ${PARSEC_daguepp_BIN_DIR}
-      )
+        NAMES daguepp
+        HINTS ${PARSEC_daguepp_BIN_DIR})
 else()
     set(PARSEC_DAGUEPP "PARSEC_DAGUEPP-NOTFOUND")
 endif()
