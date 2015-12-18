@@ -16,7 +16,7 @@
  *
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "graph.h"
 #include "order.h"
 

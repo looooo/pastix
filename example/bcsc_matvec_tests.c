@@ -21,7 +21,7 @@
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
 #include "common.h"
-#include <csc.h>
+#include <spm.h>
 #include <bcsc.h>
 #include "sopalin_data.h"
 
@@ -49,7 +49,7 @@ int main (int argc, char **argv)
     pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                    */
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
     pastix_driver_t driver;             /* Matrix driver(s) requested by user               */
-    pastix_csc_t   *csc, *csc2;
+    pastix_spm_t   *spm, *spm2;
     char *filename;                     /* Filename(s) given by user                        */
     int t;
     int ret = PASTIX_SUCCESS;
@@ -68,21 +68,21 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    csc = malloc( sizeof( pastix_csc_t ) );
-    cscReadFromFile( driver, filename, csc, MPI_COMM_WORLD );
+    spm = malloc( sizeof( pastix_spm_t ) );
+    cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
-    csc2 = spmCheckAndCorrect( csc );
-    if ( csc2 != csc ) {
-        spmExit( csc );
-        free(csc);
-        csc = csc2;
+    spm2 = spmCheckAndCorrect( spm );
+    if ( spm2 != spm ) {
+        spmExit( spm );
+        free(spm);
+        spm = spm2;
     }
-    spmBase( csc, 0 );
+    spmBase( spm, 0 );
 
     /**
      * Run preprocessing steps required to generate the blocked csc
      */
-    pastix_task_order( pastix_data, csc, NULL, NULL );
+    pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_blend( pastix_data );
 
@@ -90,46 +90,46 @@ int main (int argc, char **argv)
      * Generate the blocked csc
      */
     pastix_data->bcsc = malloc( sizeof(pastix_bcsc_t) );
-    bcscInit( csc,
+    bcscInit( spm,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
-              csc->mtxtype == PastixGeneral,
+              spm->mtxtype == PastixGeneral,
               pastix_data->bcsc );
 
     printf(" -- BCSC MatVec Test --\n");
-    printf("   Datatype    : %s\n", fltnames[csc->flttype] );
-    printf("   Matrix type : %s\n", mtxnames[csc->mtxtype - PastixGeneral] );
+    printf("   Datatype    : %s\n", fltnames[spm->flttype] );
+    printf("   Matrix type : %s\n", mtxnames[spm->mtxtype - PastixGeneral] );
 
     for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
     {
         if ( (t == PastixConjTrans) &&
-             ((csc->flttype != PastixComplex64) && (csc->flttype != PastixComplex32)) )
+             ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) )
         {
             continue;
         }
         printf("   trans = %s\n", transnames[t - PastixNoTrans] );
-        switch( csc->flttype ){
+        switch( spm->flttype ){
         case PastixComplex64:
-            ret = z_bcsc_matvec_check( t, csc, pastix_data );
+            ret = z_bcsc_matvec_check( t, spm, pastix_data );
             break;
 
         case PastixComplex32:
-            ret = c_bcsc_matvec_check( t, csc, pastix_data );
+            ret = c_bcsc_matvec_check( t, spm, pastix_data );
             break;
 
         case PastixFloat:
-            ret = s_bcsc_matvec_check( t, csc, pastix_data );
+            ret = s_bcsc_matvec_check( t, spm, pastix_data );
             break;
 
         case PastixDouble:
         default:
-            ret = d_bcsc_matvec_check( t, csc, pastix_data );
+            ret = d_bcsc_matvec_check( t, spm, pastix_data );
         }
         PRINT_RES(ret);
     }
 
-    spmExit( csc );
-    free( csc );
+    spmExit( spm );
+    free( spm );
 
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 

@@ -13,13 +13,13 @@
  **/
 
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "laplacian.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * z_spmLaplacian1D - Generate a 1D laplacian matrix.
  *
@@ -31,9 +31,9 @@
  *
  *******************************************************************************
  *
- * @param[in,out] csc
- *          At start, an allocated csc structure.
- *          Contains the size of the laplacian in csc->n.
+ * @param[in,out] spm
+ *          At start, an allocated spm structure.
+ *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
  *
  * @param[in] dim1
@@ -41,38 +41,38 @@
  *
  *******************************************************************************/
 void
-z_spmLaplacian1D( pastix_csc_t  *csc,
+z_spmLaplacian1D( pastix_spm_t  *spm,
                   pastix_int_t   dim1 )
 {
     pastix_complex64_t *valptr;
     pastix_int_t *colptr, *rowptr;
     pastix_int_t i, j;
-    pastix_int_t nnz = 2*(csc->gN) - 1;
+    pastix_int_t nnz = 2*(spm->gN) - 1;
 
-    csc->mtxtype  = PastixSymmetric;
-    csc->flttype  = PastixComplex64;
-    csc->fmttype  = PastixCSC;
-    csc->gnnz     = nnz;
-    csc->nnz      = nnz;
-    csc->dof      = 1;
+    spm->mtxtype  = PastixSymmetric;
+    spm->flttype  = PastixComplex64;
+    spm->fmttype  = PastixCSC;
+    spm->gnnz     = nnz;
+    spm->nnz      = nnz;
+    spm->dof      = 1;
 
-    assert( csc->gN == dim1 );
+    assert( spm->gN == dim1 );
 
     /* Allocating */
-    csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
-    assert( csc->colptr );
-    assert( csc->rowptr );
+    spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
+    spm->rowptr = malloc(nnz       *sizeof(pastix_int_t));
+    assert( spm->colptr );
+    assert( spm->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->values );
+    spm->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( spm->values );
 #endif
 
     /* Building ia, ja and values*/
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
-    valptr = (pastix_complex64_t*)(csc->values);
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
 
     j = 0;
     *colptr = 1; colptr++; /* baseval */
@@ -90,7 +90,7 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
 
         j++; valptr++; rowptr++;
 
-        if (i < csc->gN-1) {
+        if (i < spm->gN-1) {
             *rowptr = i+2;
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -104,13 +104,13 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
         *colptr = j+1;
     }
 
-    assert( (csc->colptr[ dim1 ] - csc->colptr[0]) == nnz );
+    assert( (spm->colptr[ dim1 ] - spm->colptr[0]) == nnz );
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * z_spmLaplacian2D - Generate a 2D laplacian matrix.
  *
@@ -124,9 +124,9 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  *
  *******************************************************************************
  *
- * @param[in,out] csc
- *          At start, an allocated csc structure.
- *          Contains the size of the laplacian in csc->n.
+ * @param[in,out] spm
+ *          At start, an allocated spm structure.
+ *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
  *
  * @param[in] dim1
@@ -137,7 +137,7 @@ z_spmLaplacian1D( pastix_csc_t  *csc,
  *
  *******************************************************************************/
 void
-z_spmLaplacian2D( pastix_csc_t  *csc,
+z_spmLaplacian2D( pastix_spm_t  *spm,
                   pastix_int_t   dim1,
                   pastix_int_t   dim2 )
 {
@@ -146,30 +146,30 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
     pastix_int_t i, j, k;
     pastix_int_t nnz = (2*(dim1)-1)*dim2 + (dim2-1)*dim1;
 
-    csc->mtxtype  = PastixSymmetric;
-    csc->flttype  = PastixComplex64;
-    csc->fmttype  = PastixCSC;
-    csc->gnnz     = nnz;
-    csc->nnz      = nnz;
-    csc->dof      = 1;
+    spm->mtxtype  = PastixSymmetric;
+    spm->flttype  = PastixComplex64;
+    spm->fmttype  = PastixCSC;
+    spm->gnnz     = nnz;
+    spm->nnz      = nnz;
+    spm->dof      = 1;
 
-    assert( csc->gN == dim1*dim2 );
+    assert( spm->gN == dim1*dim2 );
 
     /* Allocating */
-    csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
-    assert( csc->colptr );
-    assert( csc->rowptr );
+    spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
+    spm->rowptr = malloc(nnz       *sizeof(pastix_int_t));
+    assert( spm->colptr );
+    assert( spm->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->values );
+    spm->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( spm->values );
 #endif
 
     /* Building ia, ja and values*/
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
-    valptr = (pastix_complex64_t*)(csc->values);
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
 
     /* Building ia, ja and values*/
     *colptr = 1;
@@ -213,13 +213,13 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
         }
     }
 
-    assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
+    assert( (spm->colptr[ spm->gN ] - spm->colptr[0]) == nnz );
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * z_spmLaplacian3D - Generate a 3D laplacian matrix.
  *
@@ -235,9 +235,9 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
  *
  *******************************************************************************
  *
- * @param[in,out] csc
- *          At start, an allocated csc structure.
- *          Contains the size of the laplacian in csc->n.
+ * @param[in,out] spm
+ *          At start, an allocated spm structure.
+ *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
  *
  * @param[in] dim1
@@ -251,7 +251,7 @@ z_spmLaplacian2D( pastix_csc_t  *csc,
  *
  *******************************************************************************/
 void
-z_spmLaplacian3D( pastix_csc_t  *csc,
+z_spmLaplacian3D( pastix_spm_t  *spm,
                   pastix_int_t   dim1,
                   pastix_int_t   dim2,
                   pastix_int_t   dim3 )
@@ -262,30 +262,30 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
     pastix_int_t i, j, k, l;
     pastix_int_t nnz = (2*(dim1)-1)*dim2*dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1);
 
-    csc->mtxtype  = PastixSymmetric;
-    csc->flttype  = PastixComplex64;
-    csc->fmttype  = PastixCSC;
-    csc->gnnz     = nnz;
-    csc->nnz      = nnz;
-    csc->dof      = 1;
+    spm->mtxtype  = PastixSymmetric;
+    spm->flttype  = PastixComplex64;
+    spm->fmttype  = PastixCSC;
+    spm->gnnz     = nnz;
+    spm->nnz      = nnz;
+    spm->dof      = 1;
 
-    assert( csc->gN == dim1*dim2*dim3 );
+    assert( spm->gN == dim1*dim2*dim3 );
 
     /* Allocating */
-    csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
-    assert( csc->colptr );
-    assert( csc->rowptr );
+    spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
+    spm->rowptr = malloc(nnz       *sizeof(pastix_int_t));
+    assert( spm->colptr );
+    assert( spm->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->values );
+    spm->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( spm->values );
 #endif
 
     /* Building ia, ja and values*/
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
-    valptr = (pastix_complex64_t*)(csc->values);
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
 
     /* Building ia, ja and values*/
     *colptr = 1;
@@ -344,21 +344,21 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
         }
     }
 
-    assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
+    assert( (spm->colptr[ spm->gN ] - spm->colptr[0]) == nnz );
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * z_spmExtendedLaplacian2D - Generate a 2D extended laplacian matrix.
  *
  *******************************************************************************
  *
- * @param[in,out] csc
- *          At start, an allocated csc structure.
- *          Contains the size of the laplacian in csc->n.
+ * @param[in,out] spm
+ *          At start, an allocated spm structure.
+ *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
  *
  * @param[in] dim1
@@ -369,7 +369,7 @@ z_spmLaplacian3D( pastix_csc_t  *csc,
  *
  *******************************************************************************/
 void
-z_spmExtendedLaplacian2D( pastix_csc_t  *csc,
+z_spmExtendedLaplacian2D( pastix_spm_t  *spm,
                           pastix_int_t   dim1,
                           pastix_int_t   dim2 )
 {
@@ -378,30 +378,30 @@ z_spmExtendedLaplacian2D( pastix_csc_t  *csc,
     pastix_int_t i, j, k;
     pastix_int_t nnz = (2*(dim1)-1)*dim2 + (dim2-1)*(3*dim1-2);
 
-    csc->mtxtype  = PastixSymmetric;
-    csc->flttype  = PastixComplex64;
-    csc->fmttype  = PastixCSC;
-    csc->gnnz     = nnz;
-    csc->nnz      = nnz;
-    csc->dof      = 1;
+    spm->mtxtype  = PastixSymmetric;
+    spm->flttype  = PastixComplex64;
+    spm->fmttype  = PastixCSC;
+    spm->gnnz     = nnz;
+    spm->nnz      = nnz;
+    spm->dof      = 1;
 
-    assert( csc->gN == dim1*dim2 );
+    assert( spm->gN == dim1*dim2 );
 
     /* Allocating */
-    csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
-    assert( csc->colptr );
-    assert( csc->rowptr );
+    spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
+    spm->rowptr = malloc(nnz       *sizeof(pastix_int_t));
+    assert( spm->colptr );
+    assert( spm->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->values );
+    spm->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( spm->values );
 #endif
 
     /* Building ia, ja and values*/
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
-    valptr = (pastix_complex64_t*)(csc->values);
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
 
     /* Building ia, ja and values*/
     *colptr = 1;
@@ -443,15 +443,15 @@ z_spmExtendedLaplacian2D( pastix_csc_t  *csc,
                     *valptr = (pastix_complex64_t)-0.5;
 #endif
                     valptr++; rowptr++; colptr[1]++;
-                    
+
                 }
-                
+
                 *rowptr = k+dim1;
 #if !defined(PRECISION_p)
                 *valptr = (pastix_complex64_t)-1.;
 #endif
                 valptr++; rowptr++; colptr[1]++;
-                
+
                 if (j < dim1)
                 {
                     *rowptr = k+dim1+1;
@@ -459,7 +459,7 @@ z_spmExtendedLaplacian2D( pastix_csc_t  *csc,
                     *valptr = (pastix_complex64_t)-0.5;
 #endif
                     valptr++; rowptr++; colptr[1]++;
-                    
+
                 }
             }
 
@@ -467,21 +467,21 @@ z_spmExtendedLaplacian2D( pastix_csc_t  *csc,
         }
     }
 
-    assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
+    assert( (spm->colptr[ spm->gN ] - spm->colptr[0]) == nnz );
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * z_spmExtendedLaplacian3D - Generate a 3D extended laplacian matrix.
  *
  *******************************************************************************
  *
- * @param[in,out] csc
- *          At start, an allocated csc structure.
- *          Contains the size of the laplacian in csc->n.
+ * @param[in,out] spm
+ *          At start, an allocated spm structure.
+ *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
  *
  * @param[in] dim1
@@ -495,7 +495,7 @@ z_spmExtendedLaplacian2D( pastix_csc_t  *csc,
  *
  *******************************************************************************/
 void
-z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
+z_spmExtendedLaplacian3D( pastix_spm_t  *spm,
                           pastix_int_t   dim1,
                           pastix_int_t   dim2,
                           pastix_int_t   dim3 )
@@ -506,30 +506,30 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
     pastix_int_t i, j, k, l;
     pastix_int_t nnz = (2*dim1-1)*dim2*dim3 + (3*dim1-2)*(dim2-1)*dim3 + ((3*dim1-2)*dim2+2*(3*dim1-2)*(dim2-1))*(dim3-1);
 
-    csc->mtxtype  = PastixSymmetric;
-    csc->flttype  = PastixComplex64;
-    csc->fmttype  = PastixCSC;
-    csc->gnnz     = nnz;
-    csc->nnz      = nnz;
-    csc->dof      = 1;
+    spm->mtxtype  = PastixSymmetric;
+    spm->flttype  = PastixComplex64;
+    spm->fmttype  = PastixCSC;
+    spm->gnnz     = nnz;
+    spm->nnz      = nnz;
+    spm->dof      = 1;
 
-    assert( csc->gN == dim1*dim2*dim3 );
+    assert( spm->gN == dim1*dim2*dim3 );
 
     /* Allocating */
-    csc->colptr = malloc((csc->n+1)*sizeof(pastix_int_t));
-    csc->rowptr = malloc(nnz       *sizeof(pastix_int_t));
-    assert( csc->colptr );
-    assert( csc->rowptr );
+    spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
+    spm->rowptr = malloc(nnz       *sizeof(pastix_int_t));
+    assert( spm->colptr );
+    assert( spm->rowptr );
 
 #if !defined(PRECISION_p)
-    csc->values = malloc(nnz       *sizeof(pastix_complex64_t));
-    assert( csc->values );
+    spm->values = malloc(nnz       *sizeof(pastix_complex64_t));
+    assert( spm->values );
 #endif
 
     /* Building ia, ja and values*/
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
-    valptr = (pastix_complex64_t*)(csc->values);
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
 
     /* Building ia, ja and values*/
     *colptr = 1;
@@ -584,15 +584,15 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
                         *valptr = (pastix_complex64_t)-0.5;
 #endif
                         valptr++; rowptr++; colptr[1]++;
-                        
+
                     }
-                    
+
                     *rowptr = l+dim1;
 #if !defined(PRECISION_p)
                     *valptr = (pastix_complex64_t)-1.;
 #endif
                     valptr++; rowptr++; colptr[1]++;
-                
+
                     if (k < dim1)
                     {
                         *rowptr = l+dim1+1;
@@ -600,7 +600,7 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
                         *valptr = (pastix_complex64_t)-0.5;
 #endif
                         valptr++; rowptr++; colptr[1]++;
-                        
+
                     }
                 }
 
@@ -615,7 +615,7 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
                             *valptr = (pastix_complex64_t)-0.25;
 #endif
                             valptr++; rowptr++; colptr[1]++;
-                            
+
                         }
 
                         *rowptr = l+dim1*dim2-dim1;
@@ -641,7 +641,7 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
                         *valptr = (pastix_complex64_t)-0.5;
 #endif
                         valptr++; rowptr++; colptr[1]++;
-                        
+
                     }
 
                     *rowptr = l+dim1*dim2;
@@ -657,7 +657,7 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
                         *valptr = (pastix_complex64_t)-0.5;
 #endif
                         valptr++; rowptr++; colptr[1]++;
-                        
+
                     }
 
                     if( j < dim2 )
@@ -695,5 +695,5 @@ z_spmExtendedLaplacian3D( pastix_csc_t  *csc,
         }
     }
 
-    assert( (csc->colptr[ csc->gN ] - csc->colptr[0]) == nnz );
+    assert( (spm->colptr[ spm->gN ] - spm->colptr[0]) == nnz );
 }

@@ -19,7 +19,7 @@
 #include <string.h>
 #include <assert.h>
 #include <pastix.h>
-#include <csc.h>
+#include <spm.h>
 #include <cblas.h>
 #include <lapacke.h>
 #include <z_spm.h>
@@ -36,7 +36,7 @@ int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
                       pastix_complex64_t *B, int LDB);
 
 pastix_complex64_t *
-z_spm2dense( const pastix_csc_t *spm )
+z_spm2dense( const pastix_spm_t *spm )
 {
     pastix_int_t i, j, lda, baseval;
     pastix_complex64_t *A, *valptr;
@@ -97,7 +97,7 @@ z_spm2dense( const pastix_csc_t *spm )
  *  Check the accuracy of the solution
  */
 int
-z_spm_matvec_check( int trans, const pastix_csc_t *spm )
+z_spm_matvec_check( int trans, const pastix_spm_t *spm )
 {
     unsigned long long int seed = 35469;
     pastix_complex64_t *A, *x, *y0, *ys, *yd;
@@ -171,7 +171,7 @@ z_spm_matvec_check( int trans, const pastix_csc_t *spm )
  *  Check the accuracy of the solution
  */
 int
-z_spm_norm_check( const pastix_csc_t *spm )
+z_spm_norm_check( const pastix_spm_t *spm )
 {
     pastix_complex64_t *A;
     double norms, normd;

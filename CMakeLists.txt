@@ -505,7 +505,7 @@ set(PASTIX_LIB_SRCS
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   graph/graph_io.c  # Not finished
-  spm/csc_io.c  # Not finished
+  spm/spm_io.c  # Not finished
   #
   order/order.c
   order/order_add_isolate.c
@@ -596,7 +596,7 @@ set(PASTIX_LIB_SRCS
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
 #
-  spm/csc.c
+  spm/spm.c
 #
   refinement/pastix_task_raff.c
 #
@@ -604,7 +604,7 @@ set(PASTIX_LIB_SRCS
   )
 
 set_source_files_properties(
-  spm/csc.c
+  spm/spm.c
   PROPERTIES DEPENDS spm_headers
   )
 

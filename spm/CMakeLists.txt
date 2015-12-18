@@ -25,7 +25,7 @@ set(SOURCES
 
 set(spm_headers
   ${generated_headers}
-  csc.h
+  spm.h
   )
 
 ### Generate the sources in all precisions
@@ -35,15 +35,15 @@ precisions_rules_py(generated_sources
 
 set(spm_sources
   ${generated_sources}
-  csc.c
-  csc_io.c
+  spm.c
+  spm_io.c
   )
 
 add_custom_target(spm_headers_tgt
   DEPENDS ${spm_headers} )
 
 set_source_files_properties(
-  spm/csc.c
+  spm/spm.c
   PROPERTIES DEPENDS spm_headers_tgt
   )
 

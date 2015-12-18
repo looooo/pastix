@@ -18,7 +18,6 @@
  **/
 #include <cblas.h>
 #include "common.h"
-#include "csc.h"
 #include "bcsc.h"
 #include "sopalin_data.h"
 

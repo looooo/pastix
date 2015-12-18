@@ -7,7 +7,7 @@
  *
  */
 #include <pastix.h>
-#include <csc.h>
+#include <spm.h>
 #include "../matrix_drivers/drivers.h"
 
 int main (int argc, char **argv)
@@ -17,7 +17,7 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
     pastix_driver_t driver;
     char           *filename;
-    pastix_csc_t   *csc, *csc2;
+    pastix_spm_t   *spm, *spm2;
     void           *x0, *x, *b;
     size_t          size;
     int             check = 2;
@@ -43,20 +43,20 @@ int main (int argc, char **argv)
     /**
      * Read the sparse matrix with the driver
      */
-    csc = malloc( sizeof( pastix_csc_t ) );
-    cscReadFromFile( driver, filename, csc, MPI_COMM_WORLD );
+    spm = malloc( sizeof( pastix_spm_t ) );
+    cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
-    csc2 = spmCheckAndCorrect( csc );
-    if ( csc2 != csc ) {
-        spmExit( csc );
-        free(csc);
-        csc = csc2;
+    spm2 = spmCheckAndCorrect( spm );
+    if ( spm2 != spm ) {
+        spmExit( spm );
+        free(spm);
+        spm = spm2;
     }
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-    pastix_task_order( pastix_data, csc, NULL, NULL );
+    pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
     pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
@@ -64,13 +64,13 @@ int main (int argc, char **argv)
     /**
      * Perform the numerical factorization
      */
-    pastix_task_sopalin( pastix_data, csc );
+    pastix_task_sopalin( pastix_data, spm );
 
     /**
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( csc->flttype ) * csc->n;
+    size = pastix_size_of( spm->flttype ) * spm->n;
     x = malloc( size );
 
     if ( check )
@@ -82,11 +82,11 @@ int main (int argc, char **argv)
         } else {
             x0 = NULL;
         }
-        spmGenRHS( PastixRhsRndX, nrhs, csc, x0, csc->n, b, csc->n );
+        spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( PastixRhsRndB, nrhs, csc, NULL, csc->n, x, csc->n );
+        spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         b = malloc( size );
@@ -96,20 +96,20 @@ int main (int argc, char **argv)
     /**
      * Solve the linear system
      */
-    pastix_task_solve( pastix_data, csc, nrhs, x, csc->n );
+    pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
 
     pastix_task_raff(pastix_data, x, nrhs, b);
 
     if ( check )
     {
-        spmCheckAxb( nrhs, csc, x0, csc->n, b, csc->n, x, csc->n );
+        spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if (x0) free(x0);
 
         free(x); free(b);
     }
-    spmExit( csc );
-    free( csc );
+    spmExit( spm );
+    free( spm );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     return EXIT_SUCCESS;

@@ -15,7 +15,7 @@
  *
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "bcsc.h"
 #include "order.h"
 #include "sopalin_data.h"
@@ -114,7 +114,7 @@ pastix_diag( pastix_data_t *pastix_data, int flttype,
  *          The pastix_data structure that describes the solver instance.
  *          On exit, ...
  *
- * @param[in,out] csc
+ * @param[in,out] spm
  *          ...
  *
  *******************************************************************************
@@ -127,7 +127,7 @@ pastix_diag( pastix_data_t *pastix_data, int flttype,
  *******************************************************************************/
 int
 pastix_task_solve( pastix_data_t *pastix_data,
-                   const pastix_csc_t  *csc,
+                   const pastix_spm_t  *spm,
                    int nrhs, void *b, int ldb )
 {
     SolverBackup_t *sbackup;
@@ -146,8 +146,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
         errorPrint("pastix_task_sopalin: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (csc == NULL) {
-        errorPrint("pastix_task_sopalin: wrong csc parameter");
+    if (spm == NULL) {
+        errorPrint("pastix_task_sopalin: wrong spm parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_ANALYSE) ) {
@@ -164,23 +164,23 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
     switch( pastix_data->bcsc->flttype ) {
     case PastixComplex64:
-        z_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        z_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->permtab );
         break;
 
     case PastixComplex32:
-        c_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        c_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->permtab );
         break;
 
     case PastixFloat:
-        s_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        s_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->permtab );
         break;
 
     case PastixDouble:
     default:
-        d_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        d_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->permtab );
     }
 
@@ -193,21 +193,21 @@ pastix_task_solve( pastix_data_t *pastix_data,
         clockStart(timer);
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLT:
-            dump_rhs( "AfterPerm", csc->gN, b );
+            dump_rhs( "AfterPerm", spm->gN, b );
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, b, ldb );
-            dump_rhs( "AfterDown", csc->gN, b );
+            dump_rhs( "AfterDown", spm->gN, b );
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
-            dump_rhs( "AfterUp", csc->gN, b );
+            dump_rhs( "AfterUp", spm->gN, b );
             break;
 
         case PastixFactLDLT:
-            dump_rhs( "AfterPerm", csc->gN, b );
+            dump_rhs( "AfterPerm", spm->gN, b );
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, b, ldb );
-            dump_rhs( "AfterDown", csc->gN, b );
+            dump_rhs( "AfterDown", spm->gN, b );
             pastix_diag( pastix_data, pastix_data->bcsc->flttype, &sopalin_data, nrhs, b, ldb );
-            dump_rhs( "AfterDiag", csc->gN, b );
+            dump_rhs( "AfterDiag", spm->gN, b );
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, b, ldb );
-            dump_rhs( "AfterUp", csc->gN, b );
+            dump_rhs( "AfterUp", spm->gN, b );
             break;
 
         case PastixFactLDLH:
@@ -229,30 +229,30 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
     switch( pastix_data->bcsc->flttype ) {
     case PastixComplex64:
-        z_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        z_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->peritab );
         break;
 
     case PastixComplex32:
-        c_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        c_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->peritab );
         break;
 
     case PastixFloat:
-        s_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        s_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->peritab );
         break;
 
     case PastixDouble:
     default:
-        d_bcscApplyPerm( csc->gN, nrhs, b, ldb,
+        d_bcscApplyPerm( spm->gN, nrhs, b, ldb,
                          pastix_data->ordemesh->peritab );
     }
 
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
 
-    dump_rhs( "Final", csc->gN, b );
+    dump_rhs( "Final", spm->gN, b );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |

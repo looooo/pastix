@@ -2,7 +2,7 @@
  *
  * @file z_spm_genrhs.c
  *
- *  PaStiX csc routines
+ *  PaStiX spm routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -15,7 +15,7 @@
  **/
 #include <lapacke.h>
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "z_spm.h"
 #include "kernels/pastix_zcores.h"
 
@@ -52,7 +52,7 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  *  z_spmRndVect generates a random vector for testing purpose.
  *
@@ -113,7 +113,7 @@ void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
  * matrix to test a problem with a solver.
@@ -160,7 +160,7 @@ void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
  *******************************************************************************/
 int
 z_spmGenRHS( int type, int nrhs,
-             const pastix_csc_t  *spm,
+             const pastix_spm_t  *spm,
              void                *x, int ldx,
              void                *b, int ldb )
 {
@@ -283,7 +283,7 @@ z_spmGenRHS( int type, int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmCheckAxb - Check the backward error, and the forward error if x0 is
  * provided.
@@ -329,7 +329,7 @@ z_spmGenRHS( int type, int nrhs,
  *******************************************************************************/
 int
 z_spmCheckAxb( int nrhs,
-               const pastix_csc_t  *spm,
+               const pastix_spm_t  *spm,
                      void *x0, int ldx0,
                      void *b,  int ldb,
                const void *x,  int ldx )

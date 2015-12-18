@@ -1,8 +1,8 @@
 /**
  *
- * @file csc_io.c
+ * @file spm_io.c
  *
- *  PaStiX csc routines
+ *  PaStiX spm routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -14,7 +14,7 @@
  *
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 
 static inline int
 readArrayOfInteger( FILE         *stream,
@@ -28,7 +28,7 @@ readArrayOfInteger( FILE         *stream,
     for (i=0; i<(n-3); i+=4)
     {
         if (4 != fscanf(stream, "%ld %ld %ld %ld", &tmp1, &tmp2, &tmp3, &tmp4)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
 
@@ -43,7 +43,7 @@ readArrayOfInteger( FILE         *stream,
     {
     case 3:
         if (3 != fscanf(stream, "%ld %ld %ld", &tmp1, &tmp2, &tmp3)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
 
@@ -53,7 +53,7 @@ readArrayOfInteger( FILE         *stream,
         break;
     case 2:
         if (2 != fscanf(stream, "%ld %ld", &tmp1, &tmp2)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
 
@@ -62,7 +62,7 @@ readArrayOfInteger( FILE         *stream,
         break;
     case 1:
         if (1 != fscanf(stream, "%ld", &tmp1)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
 
@@ -88,7 +88,7 @@ readArrayOfComplex64( FILE               *stream,
         if (8 != fscanf(stream, "%lg %lg %lg %lg %lg %lg %lg %lg",
                         &tmp1, &tmp2, &tmp3, &tmp4,
                         &tmp5, &tmp6, &tmp7, &tmp8)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex64_t)(tmp1 + I * tmp2);
@@ -104,7 +104,7 @@ readArrayOfComplex64( FILE               *stream,
         if (6 != fscanf(stream, "%lg %lg %lg %lg %lg %lg",
                         &tmp1, &tmp2, &tmp3, &tmp4,
                         &tmp5, &tmp6)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex64_t)(tmp1 + I * tmp2);
@@ -115,7 +115,7 @@ readArrayOfComplex64( FILE               *stream,
     case 2:
         if (4 != fscanf(stream, "%lg %lg %lg %lg",
                         &tmp1, &tmp2, &tmp3, &tmp4)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex64_t)(tmp1 + I * tmp2);
@@ -125,7 +125,7 @@ readArrayOfComplex64( FILE               *stream,
     case 1:
         if (2 != fscanf(stream, "%lg %lg",
                         &tmp1, &tmp2)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex64_t)(tmp1 + I * tmp2);
@@ -150,7 +150,7 @@ readArrayOfComplex32( FILE               *stream,
         if (8 != fscanf(stream, "%g %g %g %g %g %g %g %g",
                         &tmp1, &tmp2, &tmp3, &tmp4,
                         &tmp5, &tmp6, &tmp7, &tmp8)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex32_t)(tmp1 + I * tmp2);
@@ -166,7 +166,7 @@ readArrayOfComplex32( FILE               *stream,
         if (6 != fscanf(stream, "%g %g %g %g %g %g",
                         &tmp1, &tmp2, &tmp3, &tmp4,
                         &tmp5, &tmp6)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex32_t)(tmp1 + I * tmp2);
@@ -177,7 +177,7 @@ readArrayOfComplex32( FILE               *stream,
     case 2:
         if (4 != fscanf(stream, "%g %g %g %g",
                         &tmp1, &tmp2, &tmp3, &tmp4)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex32_t)(tmp1 + I * tmp2);
@@ -187,7 +187,7 @@ readArrayOfComplex32( FILE               *stream,
     case 1:
         if (2 != fscanf(stream, "%g %g",
                         &tmp1, &tmp2)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (pastix_complex32_t)(tmp1 + I * tmp2);
@@ -210,7 +210,7 @@ readArrayOfDouble( FILE         *stream,
     {
         if (4 != fscanf(stream, "%lg %lg %lg %lg",
                         &tmp1, &tmp2, &tmp3, &tmp4)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (double)(tmp1);
@@ -225,7 +225,7 @@ readArrayOfDouble( FILE         *stream,
     case 3:
         if (1 != fscanf(stream, "%lg %lg %lg",
                         &tmp1, &tmp2, &tmp3)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (double)(tmp1);
@@ -236,7 +236,7 @@ readArrayOfDouble( FILE         *stream,
     case 2:
         if (2 != fscanf(stream, "%lg %lg",
                         &tmp1, &tmp2)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (double)(tmp1);
@@ -246,7 +246,7 @@ readArrayOfDouble( FILE         *stream,
     case 1:
         if (1 != fscanf(stream, "%lg",
                         &tmp1)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (double)(tmp1);
@@ -269,7 +269,7 @@ readArrayOfFloat( FILE         *stream,
     {
         if (4 != fscanf(stream, "%g %g %g %g",
                         &tmp1, &tmp2, &tmp3, &tmp4)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (float)(tmp1);
@@ -284,7 +284,7 @@ readArrayOfFloat( FILE         *stream,
     case 3:
         if (3 != fscanf(stream, "%g %g %g",
                         &tmp1, &tmp2, &tmp3)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (float)(tmp1);
@@ -295,7 +295,7 @@ readArrayOfFloat( FILE         *stream,
     case 2:
         if (2 != fscanf(stream, "%g %g",
                         &tmp1, &tmp2)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (float)(tmp1);
@@ -304,7 +304,7 @@ readArrayOfFloat( FILE         *stream,
 
     case 1:
         if (1 != fscanf(stream, "%g", &tmp1)){
-            errorPrint("cscLoad: Wrong input format");
+            errorPrint("spmLoad: Wrong input format");
             return EXIT_FAILURE;
         }
         array[i  ] = (float)(tmp1);
@@ -315,9 +315,9 @@ readArrayOfFloat( FILE         *stream,
 }
 
 /*
- Function: csc_load
+ Function: spm_load
 
- Load a csc from disk.
+ Load a spm from disk.
 
  Fill *n*, *colptr*, *rowptr*, *values* and *dof* from *infile*.
 
@@ -348,7 +348,7 @@ csc_load( pastix_int_t  *n,
 
     /* Read the header file */
     if (3 != fscanf(infile, "%ld %ld %d\n", &tmp1, &tmp2, &ft)) {
-        errorPrint("cscLoad:line 1: Wrong input");
+        errorPrint("spmLoad:line 1: Wrong input");
         return EXIT_FAILURE;
     }
 
@@ -418,21 +418,21 @@ csc_load( pastix_int_t  *n,
 }
 
 int
-cscLoad( pastix_csc_t  *csc,
+spmLoad( pastix_spm_t  *spm,
          FILE          *infile )
 {
     int rc, dof = 1;
 
-    rc = csc_load( &(csc->n),
-                   &(csc->colptr),
-                   &(csc->rowptr),
-                   &(csc->flttype),
-                   &(csc->values),
+    rc = csc_load( &(spm->n),
+                   &(spm->colptr),
+                   &(spm->rowptr),
+                   &(spm->flttype),
+                   &(spm->values),
                    &dof,
                    infile );
 
-    csc->gN = csc->n;
-    csc->loc2glob = NULL;
+    spm->gN = spm->n;
+    spm->loc2glob = NULL;
 
     return rc;
 }
@@ -488,14 +488,14 @@ csc_save( pastix_int_t  n,
 }
 
 int
-cscSave( pastix_csc_t *csc,
+spmSave( pastix_spm_t *spm,
          FILE         *outfile )
 {
-    return csc_save( csc->n,
-                     csc->colptr,
-                     csc->rowptr,
-                     csc->flttype,
-                     csc->values,
+    return csc_save( spm->n,
+                     spm->colptr,
+                     spm->rowptr,
+                     spm->flttype,
+                     spm->values,
                      1,
                      outfile );
 }

@@ -1,8 +1,8 @@
 /**
  *
- * @file csc.c
+ * @file spm.c
  *
- *  PaStiX csc routines
+ *  PaStiX spm routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -14,7 +14,7 @@
  *
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 
 #include "z_spm.h"
 #include "c_spm.h"
@@ -22,7 +22,7 @@
 #include "s_spm.h"
 #include "p_spm.h"
 
-static int (*conversionTable[3][3][6])(pastix_csc_t*) = {
+static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
     /* From CSC */
     {{ NULL, NULL, NULL, NULL, NULL, NULL },
      { p_spmConvertCSC2CSR,
@@ -94,7 +94,7 @@ static int (*conversionTable[3][3][6])(pastix_csc_t*) = {
  *
  *******************************************************************************/
 int
-spmConvert( int ofmttype, pastix_csc_t *ospm )
+spmConvert( int ofmttype, pastix_spm_t *ospm )
 {
     if ( conversionTable[ospm->fmttype][ofmttype][ospm->flttype] ) {
         return conversionTable[ospm->fmttype][ofmttype][ospm->flttype]( ospm );
@@ -122,7 +122,7 @@ spmConvert( int ofmttype, pastix_csc_t *ospm )
  *
  *******************************************************************************/
 pastix_int_t
-spmFindBase( const pastix_csc_t *spm )
+spmFindBase( const pastix_spm_t *spm )
 {
 
     pastix_int_t i, *tmp, baseval;
@@ -192,24 +192,24 @@ spmFindBase( const pastix_csc_t *spm )
  *******************************************************************************/
 double
 spmNorm( int ntype,
-         const pastix_csc_t *csc )
+         const pastix_spm_t *spm )
 {
     double tmp;
 
-    switch (csc->flttype) {
+    switch (spm->flttype) {
     case PastixFloat:
-        tmp = (double)s_spmNorm( ntype, csc );
+        tmp = (double)s_spmNorm( ntype, spm );
         return tmp;
 
     case PastixDouble:
-        return d_spmNorm( ntype, csc );
+        return d_spmNorm( ntype, spm );
 
     case PastixComplex32:
-        tmp = (double)c_spmNorm( ntype, csc );
+        tmp = (double)c_spmNorm( ntype, spm );
         return tmp;
 
     case PastixComplex64:
-        return z_spmNorm( ntype, csc );
+        return z_spmNorm( ntype, spm );
 
     default:
         return -1.;
@@ -242,23 +242,23 @@ spmNorm( int ntype,
  *
  *******************************************************************************/
 int
-spmSort( pastix_csc_t *csc )
+spmSort( pastix_spm_t *spm )
 {
-    switch (csc->flttype) {
+    switch (spm->flttype) {
     case PastixPattern:
-        p_spmSort( csc );
+        p_spmSort( spm );
         break;
     case PastixFloat:
-        s_spmSort( csc );
+        s_spmSort( spm );
         break;
     case PastixDouble:
-        d_spmSort( csc );
+        d_spmSort( spm );
         break;
     case PastixComplex32:
-        c_spmSort( csc );
+        c_spmSort( spm );
         break;
     case PastixComplex64:
-        z_spmSort( csc );
+        z_spmSort( spm );
         break;
     default:
         return PASTIX_ERR_BADPARAMETER;
@@ -292,23 +292,23 @@ spmSort( pastix_csc_t *csc )
  *
  *******************************************************************************/
 pastix_int_t
-spmMergeDuplicate( pastix_csc_t *csc )
+spmMergeDuplicate( pastix_spm_t *spm )
 {
-    switch (csc->flttype) {
+    switch (spm->flttype) {
     case PastixPattern:
-        return p_spmMergeDuplicate( csc );
+        return p_spmMergeDuplicate( spm );
 
     case PastixFloat:
-        return s_spmMergeDuplicate( csc );
+        return s_spmMergeDuplicate( spm );
 
     case PastixDouble:
-        return d_spmMergeDuplicate( csc );
+        return d_spmMergeDuplicate( spm );
 
     case PastixComplex32:
-        return c_spmMergeDuplicate( csc );
+        return c_spmMergeDuplicate( spm );
 
     case PastixComplex64:
-        return z_spmMergeDuplicate( csc );
+        return z_spmMergeDuplicate( spm );
 
     default:
         return PASTIX_ERR_BADPARAMETER;
@@ -341,23 +341,23 @@ spmMergeDuplicate( pastix_csc_t *csc )
  *
  *******************************************************************************/
 pastix_int_t
-spmSymmetrize( pastix_csc_t *csc )
+spmSymmetrize( pastix_spm_t *spm )
 {
-    switch (csc->flttype) {
+    switch (spm->flttype) {
     case PastixPattern:
-        return p_spmSymmetrize( csc );
+        return p_spmSymmetrize( spm );
 
     case PastixFloat:
-        return s_spmSymmetrize( csc );
+        return s_spmSymmetrize( spm );
 
     case PastixDouble:
-        return d_spmSymmetrize( csc );
+        return d_spmSymmetrize( spm );
 
     case PastixComplex32:
-        return c_spmSymmetrize( csc );
+        return c_spmSymmetrize( spm );
 
     case PastixComplex64:
-        return z_spmSymmetrize( csc );
+        return z_spmSymmetrize( spm );
 
     default:
         return PASTIX_ERR_BADPARAMETER;
@@ -396,23 +396,23 @@ spmSymmetrize( pastix_csc_t *csc )
  *                  pointer.
  *
  *******************************************************************************/
-pastix_csc_t *
-spmCheckAndCorrect( pastix_csc_t *csc )
+pastix_spm_t *
+spmCheckAndCorrect( pastix_spm_t *spm )
 {
-    pastix_csc_t *newcsc = NULL;
+    pastix_spm_t *newspm = NULL;
     pastix_int_t count;
 
     /* Let's work on a copy */
-    newcsc = spmCopy( csc );
+    newspm = spmCopy( spm );
 
     /* PaStiX works on CSC matrices */
-    spmConvert( PastixCSC, newcsc );
+    spmConvert( PastixCSC, newspm );
 
     /* Sort the rowptr for each column */
-    spmSort( newcsc );
+    spmSort( newspm );
 
     /* Merge the duplicated entries by summing the values */
-    count = spmMergeDuplicate( newcsc );
+    count = spmMergeDuplicate( newspm );
     if ( count > 0 ) {
         fprintf(stderr, "spmCheckAndCorrect: %ld entries have been merged\n", (int64_t)count );
     }
@@ -422,29 +422,29 @@ spmCheckAndCorrect( pastix_csc_t *csc )
      * part, otherwise, we symmetrize the graph to get A+A^t, new values are set
      * to 0.
      */
-    if ( newcsc->mtxtype == PastixGeneral ) {
-        count = spmSymmetrize( newcsc );
+    if ( newspm->mtxtype == PastixGeneral ) {
+        count = spmSymmetrize( newspm );
         if ( count > 0 ) {
             fprintf(stderr, "spmCheckAndCorrect: %ld entries have been added for symmetry\n", (int64_t)count );
         }
     }
     else {
-        //spmToLower( newcsc );
+        //spmToLower( newspm );
     }
 
     /**
      * Check if we return the new one, or the original one because no changes
      * have been made
      */
-    if (( csc->fmttype != newcsc->fmttype ) ||
-        ( csc->nnz     != newcsc->nnz     ) )
+    if (( spm->fmttype != newspm->fmttype ) ||
+        ( spm->nnz     != newspm->nnz     ) )
     {
-        return newcsc;
+        return newspm;
     }
     else {
-        spmExit( newcsc );
-        free(newcsc);
-        return (pastix_csc_t*)csc;
+        spmExit( newspm );
+        free(newspm);
+        return (pastix_spm_t*)spm;
     }
 }
 
@@ -462,7 +462,7 @@ spmCheckAndCorrect( pastix_csc_t *csc )
  *
  *******************************************************************************/
 void
-spmExit( pastix_csc_t *spm )
+spmExit( pastix_spm_t *spm )
 {
     if(spm->colptr != NULL)
         memFree_null(spm->colptr);
@@ -492,12 +492,12 @@ spmExit( pastix_csc_t *spm )
  *          The copy of the sparse matrix.
  *
  *******************************************************************************/
-pastix_csc_t *
-spmCopy( const pastix_csc_t *spm )
+pastix_spm_t *
+spmCopy( const pastix_spm_t *spm )
 {
-    pastix_csc_t *newspm = (pastix_csc_t*)malloc(sizeof(pastix_csc_t));
+    pastix_spm_t *newspm = (pastix_spm_t*)malloc(sizeof(pastix_spm_t));
 
-    memcpy( newspm, spm, sizeof(pastix_csc_t));
+    memcpy( newspm, spm, sizeof(pastix_spm_t));
 
     if(spm->colptr != NULL) {
         newspm->colptr = (pastix_int_t*)malloc((spm->n+1) * sizeof(pastix_int_t));
@@ -535,7 +535,7 @@ spmCopy( const pastix_csc_t *spm )
  *          The base value to use in the graph (0 or 1).
  *
  *******************************************************************************/
-void spmBase( pastix_csc_t *spm,
+void spmBase( pastix_spm_t *spm,
               int           baseval )
 {
     pastix_int_t baseadj;
@@ -589,48 +589,48 @@ void spmBase( pastix_csc_t *spm,
 int
 spmMatVec(      int           trans,
           const void         *alpha,
-          const pastix_csc_t *csc,
+          const pastix_spm_t *spm,
           const void         *x,
           const void         *beta,
                 void         *y )
 {
-    switch (csc->mtxtype) {
+    switch (spm->mtxtype) {
     case PastixHermitian:
-        switch (csc->flttype) {
+        switch (spm->flttype) {
         case PastixFloat:
-            return s_spmSyCSCv( *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+            return s_spmSyCSCv( *((const float*)alpha), spm, (const float*)x, *((const float*)beta), (float*)y );
         case PastixComplex32:
-            return c_spmHeCSCv( *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+            return c_spmHeCSCv( *((const pastix_complex32_t*)alpha), spm, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
         case PastixComplex64:
-            return z_spmHeCSCv( *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+            return z_spmHeCSCv( *((const pastix_complex64_t*)alpha), spm, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
         case PastixDouble:
         default:
-            return d_spmSyCSCv( *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+            return d_spmSyCSCv( *((const double*)alpha), spm, (const double*)x, *((const double*)beta), (double*)y );
         }
     case PastixSymmetric:
-        switch (csc->flttype) {
+        switch (spm->flttype) {
         case PastixFloat:
-            return s_spmSyCSCv( *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+            return s_spmSyCSCv( *((const float*)alpha), spm, (const float*)x, *((const float*)beta), (float*)y );
         case PastixComplex32:
-            return c_spmSyCSCv( *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+            return c_spmSyCSCv( *((const pastix_complex32_t*)alpha), spm, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
         case PastixComplex64:
-            return z_spmSyCSCv( *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+            return z_spmSyCSCv( *((const pastix_complex64_t*)alpha), spm, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
         case PastixDouble:
         default:
-            return d_spmSyCSCv( *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+            return d_spmSyCSCv( *((const double*)alpha), spm, (const double*)x, *((const double*)beta), (double*)y );
         }
     case PastixGeneral:
     default:
-        switch (csc->flttype) {
+        switch (spm->flttype) {
         case PastixFloat:
-            return s_spmGeCSCv( trans, *((const float*)alpha), csc, (const float*)x, *((const float*)beta), (float*)y );
+            return s_spmGeCSCv( trans, *((const float*)alpha), spm, (const float*)x, *((const float*)beta), (float*)y );
         case PastixComplex32:
-            return c_spmGeCSCv( trans, *((const pastix_complex32_t*)alpha), csc, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
+            return c_spmGeCSCv( trans, *((const pastix_complex32_t*)alpha), spm, (const pastix_complex32_t*)x, *((const pastix_complex32_t*)beta), (pastix_complex32_t*)y );
         case PastixComplex64:
-            return z_spmGeCSCv( trans, *((const pastix_complex64_t*)alpha), csc, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
+            return z_spmGeCSCv( trans, *((const pastix_complex64_t*)alpha), spm, (const pastix_complex64_t*)x, *((const pastix_complex64_t*)beta), (pastix_complex64_t*)y );
         case PastixDouble:
         default:
-            return d_spmGeCSCv( trans, *((const double*)alpha), csc, (const double*)x, *((const double*)beta), (double*)y );
+            return d_spmGeCSCv( trans, *((const double*)alpha), spm, (const double*)x, *((const double*)beta), (double*)y );
         }
     }
 }
@@ -638,7 +638,7 @@ spmMatVec(      int           trans,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
  * matrix to test a problem with a solver.
@@ -685,12 +685,12 @@ spmMatVec(      int           trans,
  *******************************************************************************/
 int
 spmGenRHS( int type, int nrhs,
-           const pastix_csc_t  *spm,
+           const pastix_spm_t  *spm,
            void                *x, int ldx,
            void                *b, int ldb )
 {
     static int (*ptrfunc[4])(int, int,
-                             const pastix_csc_t *,
+                             const pastix_spm_t *,
                              void *, int, void *, int) =
         {
             s_spmGenRHS, d_spmGenRHS, c_spmGenRHS, z_spmGenRHS
@@ -708,7 +708,7 @@ spmGenRHS( int type, int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * spmCheckAxb - Check the backward error, and the forward error if x0 is
  * provided.
@@ -754,12 +754,12 @@ spmGenRHS( int type, int nrhs,
  *******************************************************************************/
 int
 spmCheckAxb( int nrhs,
-             const pastix_csc_t  *spm,
+             const pastix_spm_t  *spm,
                    void *x0, int ldx0,
                    void *b,  int ldb,
              const void *x,  int ldx )
 {
-    static int (*ptrfunc[4])(int, const pastix_csc_t *,
+    static int (*ptrfunc[4])(int, const pastix_spm_t *,
                              void *, int, void *, int, const void *, int) =
         {
             s_spmCheckAxb, d_spmCheckAxb, c_spmCheckAxb, z_spmCheckAxb

@@ -16,7 +16,7 @@
  *
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "z_spm.h"
 #include "frobeniusupdate.h"
 
@@ -42,7 +42,7 @@
  *
  *******************************************************************************/
 double
-z_spmFrobeniusNorm( const pastix_csc_t *spm )
+z_spmFrobeniusNorm( const pastix_spm_t *spm )
 {
     pastix_int_t i, j, baseval;
     double *valptr = (double*)spm->values;
@@ -133,7 +133,7 @@ z_spmFrobeniusNorm( const pastix_csc_t *spm )
  *
  *******************************************************************************/
 double
-z_spmMaxNorm( const pastix_csc_t *spm )
+z_spmMaxNorm( const pastix_spm_t *spm )
 {
     pastix_int_t i;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
@@ -169,7 +169,7 @@ z_spmMaxNorm( const pastix_csc_t *spm )
  *
  *******************************************************************************/
 double
-z_spmInfNorm( const pastix_csc_t *spm )
+z_spmInfNorm( const pastix_spm_t *spm )
 {
     pastix_int_t col, row, i, baseval;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
@@ -284,7 +284,7 @@ z_spmInfNorm( const pastix_csc_t *spm )
  *
  *******************************************************************************/
 double
-z_spmOneNorm( const pastix_csc_t *spm )
+z_spmOneNorm( const pastix_spm_t *spm )
 {
     pastix_int_t col, row, i, baseval;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
@@ -403,7 +403,7 @@ z_spmOneNorm( const pastix_csc_t *spm )
  *******************************************************************************/
 double
 z_spmNorm( int ntype,
-           const pastix_csc_t *spm)
+           const pastix_spm_t *spm)
 {
     double norm = 0.;
 

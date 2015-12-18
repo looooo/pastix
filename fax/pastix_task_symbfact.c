@@ -21,7 +21,7 @@
  *
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "order.h"
 #include "fax.h"
 #include "kass.h"

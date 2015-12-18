@@ -6,7 +6,7 @@
  *
  */
 #include <pastix.h>
-#include <csc.h>
+#include <spm.h>
 #include <limits.h>
 #include "../matrix_drivers/drivers.h"
 
