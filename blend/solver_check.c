@@ -11,7 +11,7 @@
 #include "cost.h"
 #include "cand.h"
 #include "extendVector.h"
-#include "dof.h"
+/* #include "dof.h" */
 /* #include "extrastruct.h" */
 /* #include "param_comm.h" */
 #include "blendctrl.h"

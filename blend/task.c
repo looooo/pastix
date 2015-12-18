@@ -9,7 +9,7 @@
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
-#include "dof.h"
+/* #include "dof.h" */
 #include "bulles.h"
 #include "blendctrl.h"
 #include "simu.h"

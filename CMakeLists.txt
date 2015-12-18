@@ -399,7 +399,6 @@ install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pasti
 #   "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc")
 # install(FILES "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc" DESTINATION lib/pkgconfig)
 
-add_definitions(-DDOF_CONSTANT)
 add_definitions(-DX_ARCHi686_pc_linux)
 
 execute_process(COMMAND "./myversion.sh" OUTPUT_VARIABLE PASTIX_VERSION)
@@ -610,8 +609,6 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
 #
 #
-  symbol/dof.c
-  symbol/dof_io.c
   symbol/symbol.c
   symbol/symbol_base.c
   symbol/symbol_check.c

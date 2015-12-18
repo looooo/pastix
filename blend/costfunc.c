@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <math.h>
 #include "common.h"
-#include "dof.h"
 #include "cost.h"
 #include "ftgt.h"
 #include "symbol.h"
@@ -22,13 +21,14 @@
 
 #define BLEND_CHOLESKY /** LLt version **/
 
-void   subtreeSetNullCost    (pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const SimuCtrl *,  pastix_int_t);
-double cblkComputeCost2DLocal(pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const Dof *, const SimuCtrl *);
+double cblkComputeCost2DLocal(pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const SimuCtrl *);
 
 #if 0
+void   subtreeSetNullCost    (pastix_int_t, const BlendCtrl * ctrl, const SymbolMatrix *, const SimuCtrl *,  pastix_int_t);
+
 /*+ Summ the subtree cost local node ; do not recompute node cost +*/
 double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, const SymbolMatrix *symbmtx,
-                              const SimuCtrl *simuctrl, const Dof * dofptr,  pastix_int_t clustnum)
+                              const SimuCtrl *simuctrl, pastix_int_t clustnum)
 {
 
     CostMatrix *costmtx = ctrl->costmtx;
@@ -50,7 +50,7 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
     else
     {
         /* Update cost */
-        costmtx->cblktab[rootnum].total = cblkComputeCost2DLocal(rootnum, ctrl, symbmtx, dofptr, simuctrl);
+        costmtx->cblktab[rootnum].total = cblkComputeCost2DLocal(rootnum, ctrl, symbmtx, simuctrl);
     }
 
     costmtx->cblktab[rootnum].subtree = costmtx->cblktab[rootnum].total;
@@ -60,7 +60,7 @@ double subtreeUpdateCostLocal(pastix_int_t rootnum, const BlendCtrl * ctrl, cons
     {
         for(i=0;i<etree->nodetab[rootnum].sonsnbr;i++)
             costmtx->cblktab[rootnum].subtree += subtreeUpdateCostLocal(eTreeSonI(etree, rootnum, i), ctrl,
-                                                                        symbmtx, simuctrl, dofptr, clustnum);
+                                                                        symbmtx, simuctrl, clustnum);
     }
 #ifdef DEBUG_BLEND
     else
@@ -133,26 +133,27 @@ void subtreeSetNullCost(pastix_int_t rootnum, const BlendCtrl * ctrl,
 }
 #endif
 
-double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbptr, const Dof * dofptr)
+double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbptr)
 {
     pastix_int_t i, j;
     pastix_int_t L, h, g;
+    pastix_int_t noddval = symbptr->dof;
     double cost = 0.0;
     (void)costmtx;
 
     L    = (symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum + 1);
-    L   *= (dofptr)->noddval;
+    L   *= noddval;
     cost = DIAGCost(L);
     for(i=symbptr->cblktab[cblknum].bloknum+1;i<symbptr->cblktab[cblknum+1].bloknum;i++)
     {
         h = symbptr->bloktab[i].lrownum - symbptr->bloktab[i].frownum + 1;
-        h *= (dofptr)->noddval;
+        h *= noddval;
         cost += E1Cost(L, h);
         for(j=i;j<symbptr->cblktab[cblknum+1].bloknum;j++)
         {
 
             g = symbptr->bloktab[j].lrownum - symbptr->bloktab[j].frownum + 1;
-            g *= (dofptr)->noddval;
+            g *= noddval;
             cost += E2Cost(L, h, g);
 #ifdef DEBUG_BLEND
             ASSERT(L > 0,MOD_BLEND);
@@ -167,15 +168,19 @@ double cblkComputeCost2D(pastix_int_t cblknum, CostMatrix *costmtx, const Symbol
     return cost;
 }
 
-double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, const SymbolMatrix *symbptr,
-                              const Dof * dofptr, const SimuCtrl *simuctrl)
+double
+cblkComputeCost2DLocal(      pastix_int_t  cblknum,
+                       const BlendCtrl    *ctrl,
+                       const SymbolMatrix *symbptr,
+                       const SimuCtrl     *simuctrl)
 {
-    double      cost = 0.0;
-    pastix_int_t         i, j;
-    pastix_int_t         L, h, g;
+    double       cost = 0.0;
+    pastix_int_t i, j;
+    pastix_int_t L, h, g;
+    pastix_int_t noddval = symbptr->dof;
 
     L  = (symbptr->cblktab[cblknum].lcolnum - symbptr->cblktab[cblknum].fcolnum + 1);
-    L *= (dofptr)->noddval;
+    L *= noddval;
 
     /*  if (simuctrl->bloktab[symbptr->cblktab[cblknum].bloknum].tasknum != -1)*/
     if ( simuctrl->bloktab[symbptr->cblktab[cblknum].bloknum].ownerclust == ctrl->clustnum)
@@ -187,13 +192,13 @@ double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, cons
             continue;
 
         h     = symbptr->bloktab[i].lrownum - symbptr->bloktab[i].frownum + 1;
-        h    *= (dofptr)->noddval;
+        h    *= noddval;
         cost += E1Cost(L, h);
 
         for(j=i; j<symbptr->cblktab[cblknum+1].bloknum; j++)
         {
             g     = symbptr->bloktab[j].lrownum - symbptr->bloktab[j].frownum + 1;
-            g    *= (dofptr)->noddval;
+            g    *= noddval;
             cost += E2Cost(L, h, g);
         }
     }
@@ -203,7 +208,7 @@ double cblkComputeCost2DLocal(pastix_int_t cblknum, const BlendCtrl * ctrl, cons
 /*+ Compute cost of the cblk, return total cost +*/
 
 /** Assure that cblkComputeCost and cblkCost() compute the same things !!!! **/
-double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbmtx, const Dof * dofptr)
+double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbmtx)
 {
     double contribsum;
     pastix_int_t l, h, g;
@@ -264,8 +269,7 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 
         //ASSERT(costmtx->cblktab[cblknum].total > 0,MOD_BLEND);
         cost2 = cblkCost(symbmtx->cblktab[cblknum+1].bloknum -  symbmtx->cblktab[cblknum].bloknum,
-                         &(symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum]),
-                         dofptr);
+                         &(symbmtx->bloktab[symbmtx->cblktab[cblknum].bloknum]));
         /* Values should be equals but we accept the machine computational error */
         /* ASSERT(costmtx->cblktab[cblknum].total - cost2 < 10e-15, */
         /*        MOD_BLEND); */
@@ -277,13 +281,13 @@ double cblkComputeCost(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMa
 }
 
 /** Assure that cblkComputeCost and cblkCost compute the same things !!!! **/
-void cblkComputeCostLL(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbmtx, const Dof * dofptr)
+void cblkComputeCostLL(pastix_int_t cblknum, CostMatrix *costmtx, const SymbolMatrix *symbmtx)
 {
     double contribsum;
     pastix_int_t fbloknum, lbloknum, fcblknum;
     pastix_int_t l, h, g;
     pastix_int_t k;
-    pastix_int_t noddval = ( dofptr == NULL ) ? 1 : dofptr->noddval;
+    pastix_int_t noddval = symbmtx->dof;
 
     /* Compute the height and width of the cblk */
     l =  symbmtx->cblktab[cblknum].lcolnum - symbmtx->cblktab[cblknum].fcolnum + 1;

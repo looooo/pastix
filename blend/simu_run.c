@@ -18,7 +18,6 @@
 #include "bulles.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "dof.h"
 #include "task.h"
 #include "solver.h"
 #include "perf.h"

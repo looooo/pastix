@@ -11,7 +11,6 @@
 #  include <cuda_runtime_api.h>
 #  include "blend_distributeOnGPU.h"
 #endif
-#include "dof.h"
 #include "cost.h"
 #include "ftgt.h"
 #include "symbol.h"
