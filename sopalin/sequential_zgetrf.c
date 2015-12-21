@@ -28,6 +28,18 @@
 #include "parsec/sparse-matrix.h"
 #endif
 
+pastix_int_t static compute_cblklevel( pastix_int_t cblknum )
+{
+    /* cblknum level has already been computed */
+    pastix_int_t father = treetab[cblknum];
+    if ( father == -1 ) {
+        return 1;
+    }
+    else {
+        return compute_cblklevel( father ) + 1;
+    }
+}
+
 void
 sequential_zgetrf( pastix_data_t  *pastix_data,
                    sopalin_data_t *sopalin_data )
@@ -36,15 +48,56 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     SolverCblk         *cblk;
     double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work;
-    pastix_int_t  i;
+    pastix_int_t  i, j;
     (void)pastix_data;
 
     MALLOC_INTERN( work, datacode->gemmmax, pastix_complex64_t );
 
     cblk = datacode->cblktab;
-    for (i=0; i<datacode->cblknbr; i++, cblk++){
-        /* Compute */
-        core_zgetrfsp1d( datacode, cblk, threshold, work );
+    current_cblk = 0;
+
+    /* To apply contributions with a depth-first search */
+    /* Warning: does not work with parallel implementations */
+    if (0){
+        pastix_int_t max_level = 0;
+        for (i=0; i<datacode->cblknbr; i++){
+            pastix_int_t level = compute_cblklevel( current_cblk++ );
+            if (level > max_level)
+                max_level = level;
+        }
+
+        for (j=max_level; j>=1; j--){
+            pastix_int_t id_b = 0;
+
+            char *tol        = getenv("TOLERANCE");
+            double tolerance = atof(tol);
+
+            char env_char[256];
+            double new_tol = 0.00001; //tolerance / (1 << j);
+            sprintf(env_char, "%lf", new_tol);
+            setenv("HODLR_TOLERANCE", &env_char, 1);
+
+            current_cblk = 0;
+            cblk         = datacode->cblktab;
+
+            for (i=0; i<datacode->cblknbr; i++, cblk++){
+                pastix_int_t level = compute_cblklevel( id_b++ );
+
+                if (level == j){
+                    printf("Supernode %d level %d Tolerance %lf\n", current_cblk, level, new_tol);
+                    core_zgetrfsp1d( datacode, cblk, threshold, work );
+                }
+                else{
+                    current_cblk++;
+                }
+            }
+        }
+    }
+
+    else{
+        for (i=0; i<datacode->cblknbr; i++, cblk++){
+            core_zgetrfsp1d( datacode, cblk, threshold, work );
+        }
     }
 
 #if defined(PASTIX_DEBUG_FACTO)

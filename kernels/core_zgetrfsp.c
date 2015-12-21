@@ -227,8 +227,7 @@ static void core_zgetrfsp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
-pastix_int_t
-static compute_cblklevel( pastix_int_t cblknum )
+static pastix_int_t compute_cblklevel( pastix_int_t cblknum )
 {
     /* cblknum level has already been computed */
     pastix_int_t father = treetab[cblknum];
@@ -246,47 +245,48 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            double              criteria)
 {
     (void) nul;
-    pastix_int_t ncols, stride_D;
+    pastix_int_t ncols, n;
     pastix_int_t nbpivot = 0;
 
-    pastix_int_t level = compute_cblklevel( current_cblk );
+    ncols = cblk->lcolnum - cblk->fcolnum + 1;
 
-    ncols    = cblk->lcolnum - cblk->fcolnum + 1;
-    stride_D = cblk->lcolnum - cblk->fcolnum + 1;
+    /* n corresponds to the size of diagonal block (n-by-n supported) */
+    n = cblk->lcolnum - cblk->fcolnum + 1;
+
+    /* Level in the elimination tree of the supernode beeing factorized */
+    pastix_int_t level = compute_cblklevel( current_cblk );
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     pastix_complex64_t tolerance;
-    pastix_int_t       levels, split, threshold;
+    pastix_int_t       levels, split, threshold, hodlrtree;
 
     char *lvls = getenv("LEVELS");
     levels     = atoi(lvls);
     char *tol  = getenv("TOLERANCE");
     tolerance  = atof(tol);
-    char *splt = getenv("SPLIT");
+    char *splt = getenv("SPLITSIZE");
     split      = atoi(splt);
     char *thr  = getenv("THRESHOLD");
     threshold  = atoi(thr);
+    char *tree = getenv("HODLRTREE");
+    hodlrtree  = atoi(tree);
 
     if (current_cblk == 0){
-        printf("Compression parameters: Tolerance %f, Levels %ld, Split %ld, Threshold %ld\n",
-               tolerance, levels, split, threshold);
         printf(" Size | Level | Sparse Storage | HODLR_Storage | Dense_Storage |   Gain (Mo)   | HODLR compression+factorization | Dense factorization | TRSM on U | TRSM on L | Bloks size\n");
     }
 
-    /* TODO: add properly */
+    /* TODO: remove */
     current_cblk++;
 
-    pastix_int_t n = stride_D;
     if (n > split){ //&& level <= levels){
         Clock timer;
         clockStart(timer);
 
         /* Print size, level */
         printf("%5ld  %5ld ", n, level);
-
 
         /* Get sparse matrix size */
         pastix_int_t sparse_storage = 0;
@@ -301,20 +301,27 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 
 
         /* Add sparse matrix and low-rank updates */
-        pastix_complex64_t *D_HODLR = cblk->dcoeftab_HODLR;
-        core_zgeadd( CblasNoTrans, n, n, 1.0,
-                     D_HODLR, n,
-                     D, n );
+        /* pastix_complex64_t *D_HODLR = cblk->dcoeftab_HODLR; */
+        /* core_zgeadd( CblasNoTrans, n, n, 1.0, */
+        /*              D_HODLR, n, */
+        /*              D, n ); */
 
 
         cHODLR schur_H;
+
+        /* Number of partitions returned by SplitSymbol() */
         pastix_int_t split_size = cblk->split_size;
+
         if (split_size == 0){
             schur_H = newHODLR(n, n, D, threshold, "SVD");
         }
         else{
-            schur_H = newHODLR(n, n, D, threshold, "SVD");
-            /* schur_H = newHODLR_Tree(n, n, D, threshold, "SVD", split_size, cblk->split); */
+            if (hodlrtree == 0){
+                schur_H = newHODLR(n, n, D, threshold, "SVD");
+            }
+            else{
+                schur_H = newHODLR_Tree(n, n, D, threshold, "SVD", split_size, cblk->split);
+            }
         }
 
         gain_D += cStoreLR(schur_H, tolerance, 1);
@@ -323,6 +330,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
         cblk->cMatrix  = schur_H;
 
         clockStop(timer);
+
         /* Print compression+factorization time */
         printf("%32.3g ", (double)clockVal(timer));
     }
@@ -331,7 +339,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
         Clock timer;
         clockStart(timer);
 
-        core_zgetrfsp(ncols, D, stride_D, &nbpivot, criteria);
+        core_zgetrfsp(ncols, D, n, &nbpivot, criteria);
 
         clockStop(timer);
         if (cblk->is_HODLR == 1){
@@ -346,7 +354,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     total_memory += local_memory;
 
     /* Unsymmetric case */
-    local_memory  = n*n*8/1000000.;
+    local_memory   = n*n*8/1000000.;
     local_memory  += 2*(cblk->stride - n)*n*8/1000000.;
     total_memory2 += local_memory;
     return nbpivot;
@@ -440,10 +448,6 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
     {
         /* first extra-diagonal bloc in column block address */
         fU = U + fblok[1].coefind;
-
-
-        char *splt         = getenv("SPLIT");
-        pastix_int_t split = atoi(splt);
         if (cblk->is_HODLR == 1){
             int rank;
             gain_U += compress_SVD(fU, dima, dimb, &rank);
@@ -489,9 +493,6 @@ int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
     /* vertical dimension */
     dimb = stride - dima;
 
-    pastix_complex64_t *D = cblk->dcoeftab;
-    pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
-
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
     {
@@ -499,8 +500,6 @@ int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
         fL = L + fblok[1].coefind;
 
         /* Solve on L */
-        char *splt         = getenv("SPLIT");
-        pastix_int_t split = atoi(splt);
         if (cblk->is_HODLR == 1){
             int rank;
             gain_L += compress_SVD(fL, dima, dimb, &rank);
@@ -550,7 +549,7 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            double              criteria)
 {
     pastix_complex64_t *D = cblk->dcoeftab;
-    pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, D, NULL, criteria);
+    pastix_int_t nbpivot  = core_zgetrfsp1d_getrf(cblk, D, NULL, criteria);
 
     /* Compress + TRSM U */
     core_zgetrfsp1d_trsm(cblk, L, U);
@@ -633,7 +632,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     dima = cblk->lcolnum - cblk->fcolnum + 1;
 
     pastix_complex64_t *Cd = fcblk->dcoeftab;
-    pastix_int_t stride_D = fcblk->lcolnum - fcblk->fcolnum + 1;
+    pastix_int_t stride_D  = fcblk->lcolnum - fcblk->fcolnum + 1;
 
     /* First blok */
     indblok = blok->coefind;
@@ -689,45 +688,47 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
 
             char *lvls             = getenv("LEVELS");
             pastix_int_t levels    = atoi(lvls);
-            char *splt             = getenv("SPLIT");
+            char *splt             = getenv("SPLITSIZE");
             pastix_int_t split     = atoi(splt);
             char *thr              = getenv("THRESHOLD");
             pastix_int_t threshold = atoi(thr);
+            char *tree             = getenv("HODLRTREE");
+            pastix_int_t hodlrtree = atoi(tree);
 
-            pastix_int_t local_level     = compute_cblklevel(current_cblk);
-            pastix_complex64_t *Cd_HODLR = fcblk->dcoeftab_HODLR;
+            (void) levels;
+            /* pastix_int_t local_level = compute_cblklevel(current_cblk); */
 
             if (1){
+                pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
 
-                if (stride_D > split && local_level <= levels){
-                    pastix_int_t split_size = cblk->split_size;
-                    cHODLR schur_H          = newHODLR(stride_D, stride_D, Cd_HODLR, threshold, "SVD");
+                if (n > split){ // && local_level <= levels){
 
-                    Aij = Cd_HODLR + (blok->frownum - fcblk->fcolnum) * stride_D
-                        + fblok->coefind + iterblok->frownum - fblok->frownum;
-                    core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                                 wtmp, dimi,
-                                 Aij,  stride_D );
-                }
+                    pastix_int_t local_threshold = threshold;
+                    if (local_threshold >= n)
+                        local_threshold = 1;
 
-                else{
-                    Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
-                        + fblok->coefind + iterblok->frownum - fblok->frownum;
-                    core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                                 wtmp, dimi,
-                                 Aij,  stride_D );
+                    /* Number of partitions returned by SplitSymbol() */
+                    pastix_int_t split_size = fcblk->split_size;
+
+                    if (split_size == 0){
+                        cHODLR schur_H = newHODLR(n, n, Cd, local_threshold, "SVD");
+                    }
+                    else{
+                        if (hodlrtree == 0){
+                            cHODLR schur_H = newHODLR(n, n, Cd, local_threshold, "SVD");
+                        }
+                        else{
+                            cHODLR schur_H = newHODLR_Tree(n, n, Cd, local_threshold, "SVD", split_size, fcblk->split);
+                        }
+                    }
                 }
             }
 
-            else{
-                Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
-                    + fblok->coefind + iterblok->frownum - fblok->frownum;
-                core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                             wtmp, dimi,
-                             Aij,  stride_D );
-            }
-
-
+            Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
+                + fblok->coefind + iterblok->frownum - fblok->frownum;
+            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                         wtmp, dimi,
+                         Aij,  stride_D );
         }
         else{
             core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,

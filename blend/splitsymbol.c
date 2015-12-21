@@ -665,6 +665,11 @@ void splitSymbol( BlendCtrl    *ctrl,
     pastix_int_t authorized_percent;
     authorized_percent = 200;
 
+    for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++) {
+        symbmtx->cblktab[cblknum].split_size = 0;
+        symbmtx->cblktab[cblknum].split      = NULL;
+    }
+
     /* Just for last supernode right now */
     for(cblknum = symbmtx->cblknbr-1; cblknum<symbmtx->cblknbr; cblknum++) {
 
@@ -717,11 +722,7 @@ void splitSymbol( BlendCtrl    *ctrl,
         nb_parts--;
 
         /* Stop if supernode is not split */
-        if (nb_parts < 2){
-            symbmtx->cblktab[cblknum].split_size = 0;
-            symbmtx->cblktab[cblknum].split      = NULL;
-        }
-        else{
+        if (nb_parts >= 2){
             symbmtx->cblktab[cblknum].split_size = nb_parts;
             symbmtx->cblktab[cblknum].split      = malloc((nb_parts)*sizeof(pastix_int_t));
 

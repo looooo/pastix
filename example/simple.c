@@ -28,13 +28,79 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
 
-    iparm[IPARM_MIN_BLOCKSIZE] = 10;
-    iparm[IPARM_MAX_BLOCKSIZE] = 20;
+
+    /**
+     * Check if parameters are well set
+     */
+    char *lvls = getenv("LEVELS");
+    if (lvls == NULL){
+        printf("Set LEVELS variable\n");
+        exit(1);
+    }
+    pastix_int_t levels = atoi(lvls);
+
+    char *tol  = getenv("TOLERANCE");
+    if (tol == NULL){
+        printf("Set TOLERANCE variable\n");
+        exit(1);
+    }
+    double tolerance = atof(tol);
+
+    char *splt = getenv("SPLITSIZE");
+    if (splt == NULL){
+        printf("Set SPLITSIZE variable\n");
+        exit(1);
+    }
+    pastix_int_t splitsize = atoi(splt);
+
+    char *thr  = getenv("THRESHOLD");
+    if (thr == NULL){
+        printf("Set THRESHOLD variable\n");
+        exit(1);
+    }
+    pastix_int_t threshold = atoi(thr);
+    if (threshold > splitsize){
+        printf("Threshold (%ld) should be lower than splitsize (%ld)\n",
+               threshold, splitsize);
+        exit(1);
+    }
+
+    char *tree = getenv("HODLRTREE");
+    if (tree == NULL){
+        printf("Set HODLRTREE (0- unactive, 1- active)\n");
+        exit(1);
+    }
+    pastix_int_t hodlrtree = atoi(tree);
+    if (hodlrtree != 0 && hodlrtree != 1){
+        printf("Set correctly HODLRTREE (0- unactive, 1- active)\n");
+        exit(1);
+    }
+
+    char *ordo = getenv("REORDERING");
+    if (ordo == NULL){
+        printf("Set REORDERING (0- unactive, 1- active)\n");
+        exit(1);
+    }
+    pastix_int_t reordering = atoi(ordo);
+    if (reordering != 0 && reordering != 1){
+        printf("Set correctly REORDERING (0- unactive, 1- active)\n");
+        exit(1);
+    }
+
+    printf("\tH-PaStiX parameters are\n");
+    printf("\tSPLITSIZE %ld THRESHOLD %ld\n", splitsize, threshold);
+    printf("\tTOLERANCE %.3g\n", tolerance);
+    printf("\tHODLRTREE %ld\n", hodlrtree);
+    printf("\tREORDERING %ld\n", reordering);
+    printf("\tLEVELS %ld (unused right now)\n", levels);
+
+    iparm[IPARM_MIN_BLOCKSIZE] = 40;
+    iparm[IPARM_MAX_BLOCKSIZE] = 60;
+
+    printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
 
     iparm[IPARM_ITERMAX]          = 100;
     iparm[IPARM_REORDERING_SPLIT] = 0;
-    /* iparm[IPARM_GMRES_IM]   = 50; /\* GMRES restart *\/ */
-    /* iparm[IPARM_REFINEMENT] = API_RAF_BICGSTAB; */
     /**
      * Get options from command line
      */
@@ -74,7 +140,9 @@ int main (int argc, char **argv)
      */
     pastix_task_order( pastix_data, csc, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
-    pastix_task_reordering( pastix_data );
+
+    if (reordering == 1)
+        pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
 
     /**

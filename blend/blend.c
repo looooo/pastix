@@ -297,6 +297,9 @@ void solverBlend(BlendCtrl    *ctrl,
     /* Move split structure from symbmtx to solvmtx */
     pastix_int_t cblknum;
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++) {
+        solvmtx->cblktab[cblknum].split      = NULL;
+        solvmtx->cblktab[cblknum].split_size = 0;
+
         if (symbmtx->cblktab[cblknum].split != NULL){
             pastix_int_t split_size = symbmtx->cblktab[cblknum].split_size;
 
