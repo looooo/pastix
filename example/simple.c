@@ -87,11 +87,35 @@ int main (int argc, char **argv)
         exit(1);
     }
 
+
+    char *comp = getenv("COMPRESS");
+    if (comp == NULL){
+        printf("Set COMPRESS (0- unactive, 1- active)\n");
+        exit(1);
+    }
+    pastix_int_t compress = atoi(comp);
+    if (compress != 0 && compress != 1){
+        printf("Set correctly COMPRESS (0- unactive, 1- active)\n");
+        exit(1);
+    }
+
+    char *face = getenv("FACING");
+    if (face == NULL){
+        printf("Set FACING (0- unactive, 1- active)\n");
+        exit(1);
+    }
+    pastix_int_t facing = atoi(face);
+    if (facing != 0 && facing != 1){
+        printf("Set correctly FACING (0- unactive, 1- active)\n");
+        exit(1);
+    }
+
     printf("\tH-PaStiX parameters are\n");
     printf("\tSPLITSIZE %ld THRESHOLD %ld\n", splitsize, threshold);
     printf("\tTOLERANCE %.3g\n", tolerance);
     printf("\tHODLRTREE %ld\n", hodlrtree);
     printf("\tREORDERING %ld\n", reordering);
+    printf("\tCOMPRESS %ld\n", compress);
     printf("\tLEVELS %ld (unused right now)\n", levels);
 
     iparm[IPARM_MIN_BLOCKSIZE] = 40;
