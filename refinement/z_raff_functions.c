@@ -17,6 +17,7 @@
  *
  **/
 #include "common.h"
+#include "spm.h"
 #include "z_spm.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
