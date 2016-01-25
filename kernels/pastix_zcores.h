@@ -8,8 +8,8 @@
 #ifndef _PASTIX_ZCORES_H_
 #define _PASTIX_ZCORES_H_
 
-#define pastix_cblk_lock( cblk_ )
-#define pastix_cblk_unlock( cblk_ )
+#define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
+#define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
 void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,

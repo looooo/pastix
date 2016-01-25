@@ -259,6 +259,7 @@ solverMatrixGen(const pastix_int_t clustnum,
                 pastix_int_t brownbr;
 
                 /* Init the cblk */
+                solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
                 solvcblk->fblokptr = fblokptr;
                 solvcblk->fcolnum  = symbcblk->fcolnum * dof;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcols - 1;

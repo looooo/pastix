@@ -65,6 +65,7 @@ typedef struct SolverBlok_ {
 /*+ Solver column block structure. +*/
 
 typedef struct SolverCblk_  {
+    pastix_atomic_lock_t lock;
     pastix_int_t  fcolnum;  /*< First column index                     */
     pastix_int_t  lcolnum;  /*< Last column index (inclusive)          */
     SolverBlok   *fblokptr; /*< First block in column (diagonal)       */
