@@ -157,7 +157,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
     }
 
     if ((iparm[IPARM_SCHUR] == API_YES) &&
-        (pastix_data->schur_n > 0) )
+        (pastix_data->schur_n > 0))
     {
         /*
          * If ordering is set to API_ORDER_PERSONAL or API_ORDER_LOAD, we
@@ -165,7 +165,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
          * permutation array
          */
         if ((iparm[IPARM_ORDERING] == API_ORDER_PERSONAL) ||
-            (iparm[IPARM_ORDERING] == API_ORDER_LOAD) ) {
+            (iparm[IPARM_ORDERING] == API_ORDER_LOAD)) {
             do_schur = 0;
         }
     } else {

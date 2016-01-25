@@ -247,12 +247,6 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         factofct( pastix_data, &sopalin_data );
         clockStop(timer);
         pastix_print( 0, 0, OUT_TIME_FACT, clockVal(timer) );
-
-        //pastix_static_dsytrf( &sopalin_data );
-        //coeftab_ddump( pastix_data->solvmatr, "AfterFacto" );
-        /* sopalinInit( pastix_data, sopalin_data, 1 ); */
-        /* sopalinFacto( pastix_data, sopalin_data ); */
-        /* sopalinExit( sopalin_data ); */
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
