@@ -41,7 +41,7 @@
  *
  * The function is a *centralized* algorithm to generate the symbol matrix
  * structure associated to the problem. It takes as input the ordemesh structure
- * (permutaion array, inverse permutation array, and optionnal supernodes
+ * (permutation array, inverse permutation array, and optionnal supernodes
  * array) and returns the modified ordemesh structure if changed, and the
  * symbolic structure.
  *  - If (PT-)Scotch has been used, it generates the structure with
@@ -53,14 +53,14 @@
  * Both algorithms are working with a centralized version of the graph and are
  * on every nodes. If a distributed graph has been used, it is gather on each
  * node to compute the symbol matrix.
- * If symbolKass() is used, the ordering structure will be modified due to the assembly step. Then, permutation, inverse permutation, partition, and partition tree are modified internally.*
- * The new permutation arrays perm and invp can be returned to the user if 
-
-  and invp vector will be modified and
+ * If symbolKass() is used, the ordering structure will be modified due to the
+ * assembly step. Then, permutation, inverse permutation, partition, and
+ * partition tree are modified internally. The new permutation arrays perm and
+ * invp can be returned to the user if and invp vector will be modified and
  * returned to the user. The associated partition with its tree will be updated
  * accordingly.
- * BE CAREFULL if you give your own ordering and wants to
- * keep it because it will be overwritten by the updated one.
+ * BE CAREFULL if you give your own ordering and wants to keep it because it
+ * will be overwritten by the updated one.
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_INCOMPLETE, IPARM_LEVEL_OF_FILL,
