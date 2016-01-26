@@ -505,6 +505,7 @@ set(PASTIX_LIB_SRCS
   order/order_add_isolate.c
   order/order_check.c
   order/order_find_supernodes.c
+  order/order_apply_level_order.c
   order/order_io.c
   order/pastix_task_order.c
   #
