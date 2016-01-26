@@ -6,11 +6,11 @@
 #include <sys/stat.h>
 
 #include "common.h"
-#ifdef PASTIX_WITH_CUDA
-#  include <cuda.h>
-#  include <cuda_runtime_api.h>
-#  include "blend_distributeOnGPU.h"
-#endif
+/* #ifdef PASTIX_WITH_CUDA */
+/* #  include <cuda.h> */
+/* #  include <cuda_runtime_api.h> */
+/* #  include "blend_distributeOnGPU.h" */
+/* #endif */
 #include "cost.h"
 #include "ftgt.h"
 #include "symbol.h"
@@ -900,7 +900,7 @@ solverMatrixGen(const pastix_int_t clustnum,
 /*     } */
     /*********************** END TRIANGULAR INFO BUILDING ******************************************/
 
-#ifdef PASTIX_WITH_CUDA
+#if defined(PASTIX_WITH_CUDA) & 0
   if (ctrl->iparm[IPARM_STARPU] == API_YES &&
       ctrl->iparm[IPARM_CUDA_NBR] > 0) {
     size_t free, total;

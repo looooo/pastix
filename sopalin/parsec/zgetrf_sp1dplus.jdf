@@ -13,10 +13,10 @@ extern "C" %{
 #include "sopalin_data.h"
 #include "parsec/sparse-matrix.h"
 
-#if defined(HAVE_CUDA)
-#include <dague/devices/cuda/dev_cuda.h>
-#include "parsec/cuda_zgemmsp.h"
-#endif  /* defined(HAVE_CUDA) */
+/* #if defined(HAVE_CUDA) */
+/* #include <dague/devices/cuda/dev_cuda.h> */
+/* #include "parsec/cuda_zgemmsp.h" */
+/* #endif  /\* defined(HAVE_CUDA) *\/ */
 %}
 
 /* Globals
@@ -114,26 +114,26 @@ RW    Cu <- ( brownum == -1 ) || (first == brownum ) ? dataA( 1, fcblknm )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-BODY [type=CUDA]
-{
-    int rc = 0;
-    /* If diagonal block, we skip */
-    if (brownum == -1) {
-        goto end;
-    }
+/* BODY [type=CUDA] */
+/* { */
+/*     int rc = 0; */
+/*     /\* If diagonal block, we skip *\/ */
+/*     if (brownum == -1) { */
+/*         goto end; */
+/*     } */
 
-    SolverCblk *lcblk = datacode->cblktab + lcblknm;
-    SolverCblk *fcblk = datacode->cblktab + fcblknm;
-    SolverBlok *blok  = datacode->bloktab + bloknum;
-    pastix_complex64_t *work;
+/*     SolverCblk *lcblk = datacode->cblktab + lcblknm; */
+/*     SolverCblk *fcblk = datacode->cblktab + fcblknm; */
+/*     SolverBlok *blok  = datacode->bloktab + bloknum; */
+/*     pastix_complex64_t *work; */
 
-    rc = gpu_zgetrfsp_gemm( context, this_task, (last == brownum ),
-                            lcblk, blok, fcblk, Al, Au, Cl, Cu );
+/*     rc = gpu_zgetrfsp_gemm( context, this_task, (last == brownum ), */
+/*                             lcblk, blok, fcblk, Al, Au, Cl, Cu ); */
 
-  end:
-    return rc;
-}
-END
+/*   end: */
+/*     return rc; */
+/* } */
+/* END */
 
 BODY
 {
