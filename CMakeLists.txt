@@ -284,13 +284,6 @@ if (PASTIX_WITH_PARSEC)
     if(PKG_CONFIG_EXECUTABLE)
       pkg_search_module(PARSEC parsec)
     endif()
-    if ( PARSEC_FOUND )
-    else()
-      message(ERROR "PaRSEC not FOUND")
-      set(PARSEC_FOUND ON)
-      set(PARSEC_INCLUDE_DIRS "/opt/parsec/include")
-      set(PARSEC_LIBRARY_DIRS "/opt/parsec/lib")
-    endif()
 
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
