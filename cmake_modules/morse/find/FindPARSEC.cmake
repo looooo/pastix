@@ -152,6 +152,21 @@ if(UNIX AND NOT APPLE)
     endif()
 endif()
 
+# Try to find libdl
+if (NOT PARSEC_FIND_QUIETLY)
+    message(STATUS "Looking for PARSEC - Try to detect libdl")
+endif()
+set(PARSEC_DL_LIBRARIES "")
+find_library(
+    PARSEC_DL_LIBRARY
+    NAMES dl
+    )
+mark_as_advanced(PARSEC_DL_LIBRARY)
+if (PARSEC_DL_LIBRARY)
+    list(APPEND PARSEC_DL_LIBRARIES "${PARSEC_DL_LIBRARY}")
+    list(APPEND PARSEC_EXTRA_LIBRARIES "${PARSEC_DL_LIBRARY}")
+endif()
+
 # PARSEC may depend on HWLOC, try to find it
 if (NOT HWLOC_FOUND AND PARSEC_LOOK_FOR_HWLOC)
     if (PARSEC_FIND_REQUIRED)
@@ -550,7 +565,7 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT PARSEC_FOUND) 
                 list(APPEND REQUIRED_LIBS "${FORTRAN_ifcore_LIBRARY}")
             endif()
         endif()
-        # EXTRA LIBS such that pthread, m, rt
+        # EXTRA LIBS such that pthread, m, rt, dl
         list(APPEND REQUIRED_LIBS ${PARSEC_EXTRA_LIBRARIES})
 
         # set required libraries for link
