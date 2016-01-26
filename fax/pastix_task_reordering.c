@@ -43,7 +43,6 @@
 int
 pastix_task_reordering(pastix_data_t *pastix_data)
 {
-    //EliminTree   *etree;
     Clock         timer;
     pastix_int_t *iparm;
     Order        *ordemesh;
@@ -75,12 +74,6 @@ pastix_task_reordering(pastix_data_t *pastix_data)
         symbolReorderingPrintComplexity( pastix_data->symbmtx );
 
     clockStart(timer);
-
-    /**
-     * Build the elimination tree from the symbolic partition to reorder the
-     * supernodes
-     */
-    //etree = eTreeBuild(symbmtx);
 
     /**
      * Reorder the rows of each supernode in order to compact coupling blocks
