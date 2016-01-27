@@ -56,8 +56,9 @@ int  orderPrepareCSC(pastix_data_t *pastix_data,
 void orderFindSupernodes( const pastix_graph_t *graph,
                           Order * const ordeptr );
 
-int  orderAddIsolate( Order        *ordemesh,
-                      pastix_int_t  new_n,
+int  orderApplyLevelOrder( Order *ordeptr );
+int  orderAddIsolate( Order              *ordeptr,
+                      pastix_int_t        new_n,
                       const pastix_int_t *perm );
 
 #endif /* _ORDER_H_ */
