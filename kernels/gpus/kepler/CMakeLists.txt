@@ -9,7 +9,7 @@ set(generated_headers "")
 
 ### Generate .c files from .jdf for all required precisions
 set(SOURCES
-  zgemm_vbatched.cu
+  pastix_zgemm_vbatched.cu
 )
 
 precisions_rules_py(cuda_generated_files

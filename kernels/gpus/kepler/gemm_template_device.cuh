@@ -41,8 +41,7 @@ void gemm_template_device_nn(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    int offsetA, int offsetB )
+    T alpha, T beta )
 {
 #if (__CUDA_ARCH__ >= 200)
     int idx = threadIdx.x;  // thread's m dimension
@@ -230,8 +229,7 @@ void gemm_template_device_nt(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    int offsetA, int offsetB )
+    T alpha, T beta )
 {
 #if (__CUDA_ARCH__ >= 200)
     int idx = threadIdx.x;  // thread's m dimension
@@ -423,8 +421,7 @@ void gemm_template_device_tn(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    int offsetA, int offsetB )
+    T alpha, T beta )
 {
 #if (__CUDA_ARCH__ >= 200)
     int idx = threadIdx.x;  // thread's m dimension
@@ -619,8 +616,7 @@ void gemm_template_device_tt(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    int offsetA, int offsetB )
+    T alpha, T beta )
 {
 #if (__CUDA_ARCH__ >= 200)
     int idx = threadIdx.x;  // thread's m dimension

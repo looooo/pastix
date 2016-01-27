@@ -208,7 +208,7 @@ pastix_zgemm_vbatched(
         case 0: // nn
             {
                 gemm_template_vbatched_nn<cuDoubleComplex, version(NN,18), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
             }
             break;
         case 1: // nt
@@ -217,13 +217,13 @@ pastix_zgemm_vbatched(
                 {
                     // version 58
                     gemm_template_vbatched_nt<cuDoubleComplex, version(NT,58), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
                 }
                 else
                 {
                     // version 29
                     gemm_template_vbatched_nt<cuDoubleComplex, version(NT,29), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
                 }
             }
             break;
@@ -233,13 +233,13 @@ pastix_zgemm_vbatched(
                 {
                     // version 58
                     gemm_template_vbatched_nt<cuDoubleComplex, version(NT,58), 0, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
                 }
                 else
                 {
                     // version 29
                     gemm_template_vbatched_nt<cuDoubleComplex, version(NT,29), 0, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
                 }
             }
             break;
@@ -247,42 +247,42 @@ pastix_zgemm_vbatched(
             {
                 // version 72
                 gemm_template_vbatched_tn<cuDoubleComplex, version(TN,72), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
             }
             break;
         case 6: // cn
             {
                 // version 72
                 gemm_template_vbatched_tn<cuDoubleComplex, version(TN,72), 1, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
             }
             break;
         case 4: // tt
             {
                 // version 13
                 gemm_template_vbatched_tt<cuDoubleComplex, version(TT,13), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
             }
             break;
         case 5: // tc
             {
                 // version 13
                 gemm_template_vbatched_tt<cuDoubleComplex, version(TT,13), 0, 1>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
             }
             break;
         case 7: // ct
             {
                 // version 13
                 gemm_template_vbatched_tt<cuDoubleComplex, version(TT,13), 1, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
             }
             break;
         case 8: // cc
             {
                 // version 13
                 gemm_template_vbatched_tt<cuDoubleComplex, version(TT,13), 1, 1>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, offsetA, offsetB, batchCount, stream, max_m, max_n);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, batchCount, stream, max_m, max_n);
             }
             break;
         default:; // propose something
