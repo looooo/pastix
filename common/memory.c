@@ -383,7 +383,7 @@ void * memAllocGroup (void **  memptr,
   while (memloc != NULL) {               /* As long as not NULL pointer    */
     memoff  = (memoff + (sizeof (double) - 1)) &
       (~ (sizeof (double) - 1)); /* Pad  */
-    *memloc = blkptr + memoff;           /* Set argument address           */
+    *memloc = (char*)blkptr + memoff;    /* Set argument address           */
     memoff += va_arg (memlist, size_t);  /* Accumulate padded sizes        */
     /* Get next argument pointer      */
     memloc  = (void **) va_arg (memlist, void *);
@@ -453,7 +453,7 @@ void * memReallocGroup (void * oldptr,
     /* Pad */
     memoff  = (memoff + (sizeof (double) - 1)) & (~ (sizeof (double) - 1));
     /* Set argument address */
-    *memloc = blkptr + memoff;
+    *memloc = (char*)blkptr + memoff;
     /* Accumulate padded sizes */
     memoff += va_arg (memlist, size_t);
   }
@@ -491,9 +491,9 @@ void * memOffset (void * memptr,
   while ((memloc = va_arg (memlist, void **)) != NULL) {
     /* As long as not NULL pointer */
     memoff  = (memoff + (sizeof (double) - 1)) & (~ (sizeof (double) - 1));
-    *memloc = (void *) memptr + memoff;           /* Set argument address    */
+    *memloc = (char *) memptr + memoff;           /* Set argument address    */
     memoff += va_arg (memlist, size_t);           /* Accumulate padded sizes */
   }
 
-  return ((void *) ((void *) memptr + memoff));
+  return ((void *) ((char *) memptr + memoff));
 }
