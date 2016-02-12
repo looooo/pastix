@@ -24,11 +24,7 @@ foreach( _cudafile ${cuda_generated_files} )
       ${_cudafile}
       ${CMAKE_CURRENT_BINARY_DIR}/${_cudafile}
       cuda_generated_files "${cuda_generated_files}")
-    get_property(TOTO SOURCE ${CMAKE_CURRENT_BINARY_DIR}/${_cudafile} PROPERTY COMPILE_FLAGS)
-  else()
-    get_property(TOTO SOURCE ${_cudafile} PROPERTY COMPILE_FLAGS)
   endif( _IsInBinaryDir )
-  message(STATUS "Property for ${_cudafile} is ${TOTO}")
 endforeach()
 
 # For Fermi
@@ -52,10 +48,13 @@ foreach( _smtarget ${CUDA_SM_TARGETS} )
   cuda_add_library(pastix_cucores_sm${_smtarget}
     ${cuda_generated_files})
   cuda_add_cublas_to_target( pastix_cucores_sm${_smtarget} )
-  install(TARGETS pastix_cucores_sm${_smtarget} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib )
+  install(TARGETS pastix_cucores_sm${_smtarget}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib )
   # if( NOT CMAKE_BUILD_SHARED_LIBS )
-  #   target_link_libraries( pastix pastix_cucores_sm${_smtarget} )
+  #   target_link_libraries( pastix_cucores pastix_cucores_sm${_smtarget} )
   # endif()
 endforeach()
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS_BACKUP})
 
 cuda_build_clean_target()
