@@ -13,10 +13,21 @@ extern "C" %{
 #include "sopalin_data.h"
 #include "parsec/sparse-matrix.h"
 
-/* #if defined(HAVE_CUDA) */
-/* #include <dague/devices/cuda/dev_cuda.h> */
-/* #include "parsec/cuda_zgemmsp.h" */
-/* #endif  /\* defined(HAVE_CUDA) *\/ */
+#if defined(HAVE_CUDA)
+#include <cuComplex.h>
+#endif  /* defined(HAVE_CUDA) */
+
+typedef void (*pastix_zgemm_vbatched_nt_t)
+    (pastix_trans_t transB,
+     pastix_int_t m[32], pastix_int_t n, pastix_int_t k,
+     cuDoubleComplex alpha,
+     cuDoubleComplex const * dA, pastix_int_t ldda,
+     cuDoubleComplex const * dB, pastix_int_t lddb,
+     cuDoubleComplex beta,
+     cuDoubleComplex       * dC_array[32], pastix_int_t lddc,
+     pastix_int_t max_m, pastix_int_t batchCount,
+     const pastix_int_t Acoefind[32], cudaStream_t stream );
+
 %}
 
 /* Globals
@@ -56,12 +67,32 @@ RW L <- ( browk0 == browk1 ) ? dataA(0, k) : C GEMM( lastbrow )
      -> A GEMM(firstblok .. lastblok)
      -> dataA(0, k)
 
-     //; inline_c %{ return - TASK_PRIONUM(k); %}
+/* WRITE Ms -> Ms GEMM(firstblok .. lastblok)  [type=MYINT count="(lastblok - firstblok + 1)"] */
+/* WRITE As -> As GEMM(firstblok .. lastblok)  [type=MYINT count="(lastblok - firstblok + 1)"] */
+
+//; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
 
     core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
+
+#if defined(HAVE_CUDA) && 0
+    {
+        pastix_int_t *lMs = (pastix_int_t*)Ms;
+        pastix_int_t *lAs = (pastix_int_t*)As;
+
+        SolverBlok *blok  = cblk[0].fblokptr + 1;
+        SolverBlok *lblok = cblk[1].fblokptr;
+        int i;
+
+        for (i=0; blok<lblok; blok++, i++) {
+            lMs[i] = blok->lrownum - blok->frownum + 1;
+            lAs[i] = blok->coefind;
+        }
+    }
+#endif /* defined(HAVE_CUDA) */
+
 }
 END
 
@@ -97,28 +128,94 @@ RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm )
          -> ( brownum != -1 ) && (last == brownum ) ? L POTRF_TRSM( fcblknm )
          -> ( brownum != -1 ) && (last != brownum ) ? C GEMM( next )
 
+/* READ Ms  <- ( brownum != -1) ? Ms POTRF_TRSM(lcblknm) : dataA( 0, fcblknm ) /\* Unused *\/ */
+/* READ As  <- ( brownum != -1) ? As POTRF_TRSM(lcblknm) : dataA( 0, fcblknm ) /\* Unused *\/ */
+
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-/* BODY [type=CUDA] */
-/* { */
-/*     int rc = 0; */
-/*     /\* If diagonal block, we skip *\/ */
-/*     if (brownum == -1) { */
-/*         goto end; */
-/*     } */
+BODY [type=CUDA device="-2"
+      dyld=pastix_zgemm_vbatched_nt
+      dyldtype=pastix_zgemm_vbatched_nt_t ]
+{
+    /* Compute only if non diagonal block */
+    if (brownum != -1) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+        cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
+#else
+        double zone  =  1.;
+        double mzone = -1.;
+#endif
 
-/*     SolverCblk *lcblk = datacode->cblktab + lcblknm; */
-/*     SolverCblk *fcblk = datacode->cblktab + fcblknm; */
-/*     SolverBlok *blok  = datacode->bloktab + bloknum; */
-/*     pastix_complex64_t *work; */
+        pastix_int_t     Ms[32]; /* = (pastix_int_t*)Ms; */
+        pastix_int_t     As[32]; /* = (pastix_int_t*)As; */
+        cuDoubleComplex *Cs[32];
+        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        SolverBlok *blok  = datacode->bloktab + bloknum;
+        SolverBlok *iterblok, *fblok, *lblok;
 
-/*     rc = gpu_zpotrfsp_gemm( context, this_task, (last == brownum ), */
-/*                             lcblk, blok, fcblk, A, C ); */
+        int count = lcblk[1].fblokptr - blok;
+        /* int index = blok - lcblk[0].fblokptr - 1; */
+        int max_m = 0;
+        int N = blok->lrownum  - blok->frownum  + 1;
+        int K = lcblk->lcolnum - lcblk->fcolnum + 1;
+        int i;
+        /* lMs += index; */
+        /* lAs += index; */
 
-/*   end: */
-/*     return rc; */
-/* } */
-/* END */
+        fblok = fcblk->fblokptr;
+        lblok = lcblk[1].fblokptr;
+
+        /* Move the pointer to the top of the right column */
+        C = C + (blok->frownum - fcblk->fcolnum) * fcblk->stride;
+
+        for (iterblok=blok, i=0; iterblok<lblok; iterblok++, i++) {
+            /* Find facing blok */
+            while (!is_block_inside_fblock( iterblok, fblok ))
+            {
+                fblok++;
+                assert( fblok < fcblk[1].fblokptr );
+            }
+
+            Ms[i] = iterblok->lrownum - iterblok->frownum + 1;
+            As[i] = iterblok->coefind;
+            Cs[i] = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+
+            max_m = pastix_imax( max_m, Ms[i] );
+
+            if (i == 31) {
+                dyld_fn(
+                    PastixConjTrans, Ms, N, K,
+                    /* alpha  */  mzone,
+                    /* A      */  A,                 lcblk->stride,
+                    /* B      */  A + blok->coefind, lcblk->stride,
+                    /* beta   */  zone,
+                    /* C      */  Cs,                fcblk->stride,
+                    max_m, 32, As,
+                    gpu_stream->cuda_stream );
+                i = -1;
+                count -= 32;
+                /* lMs += 32; */
+                /* lAs += 32; */
+                max_m = 0;
+            }
+        }
+
+        if (count > 0) {
+            dyld_fn(
+                PastixConjTrans, Ms, N, K,
+                /* alpha  */  mzone,
+                /* A      */  A,                 lcblk->stride,
+                /* B      */  A + blok->coefind, lcblk->stride,
+                /* beta   */  zone,
+                /* C      */  Cs,                fcblk->stride,
+                max_m, count, As,
+                gpu_stream->cuda_stream );
+        }
+    }
+}
+END
 
 BODY
 {
