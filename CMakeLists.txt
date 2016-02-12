@@ -288,8 +288,7 @@ if (PASTIX_WITH_PARSEC)
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
       include_directories(${PARSEC_INCLUDE_DIRS_DEP})
-      include_directories(${PARSEC_INCLUDE_DIRS}/daguepp)
-
+      #include_directories(${PARSEC_INCLUDE_DIRS}/daguepp)
       link_directories(${PARSEC_LIBRARY_DIRS_DEP})
 
     else(PARSEC_FOUND)
@@ -693,6 +692,10 @@ install(TARGETS pastix
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
+
+if (PASTIX_WITH_CUDA AND CUDA_FOUND)
+    add_subdirectory(kernels/gpus/kepler)
+endif()
 
 # Install header files
 set(PASTIX_HDRS
