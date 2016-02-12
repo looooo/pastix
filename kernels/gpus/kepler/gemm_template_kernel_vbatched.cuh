@@ -246,11 +246,11 @@ template <class T, const int DIM_X, const int DIM_Y, const int BLK_M, const int 
 	 const int CONJA, const int CONJB>
 static __global__
 void pastix_gemm_template_vbatched_nt_kernel(
-    pastix_int_t *M, int N, int K,
+    pastix_int_t M[32], int N, int K,
     T const *A,      int LDA,
     T const *B,      int LDB,
-    T      **Carray, int LDC,
-    const pastix_int_t *Acoefind,
+    T       *Carray[32], int LDC,
+    const pastix_int_t Acoefind[32],
     T alpha, T beta)
 {
     const int batchid = blockIdx.z;
@@ -269,12 +269,12 @@ template <class T, const int DIM_X, const int DIM_Y, const int BLK_M, const int 
 	 const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
 	 const int CONJA, const int CONJB>
 void pastix_gemm_template_vbatched_nt(
-    pastix_int_t *m, pastix_int_t n, pastix_int_t k,
+    pastix_int_t m[32], pastix_int_t n, pastix_int_t k,
     T const * dA,       pastix_int_t ldda,
     T const * dB,       pastix_int_t lddb,
-    T      ** dC_array, pastix_int_t lddc,
+    T       * dC_array[32], pastix_int_t lddc,
     T alpha, T beta,
-    pastix_int_t batchCount, const pastix_int_t *Acoefind,
+    pastix_int_t batchCount, const pastix_int_t Acoefind[32],
     cudaStream_t stream, pastix_int_t max_m)
 {
     dim3 dimBlock(DIM_X, DIM_Y);

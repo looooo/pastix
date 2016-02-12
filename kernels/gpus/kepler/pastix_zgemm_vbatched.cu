@@ -142,13 +142,13 @@ extern "C"
 void
 pastix_zgemm_vbatched_nt(
     pastix_trans_t transB,
-    pastix_int_t *m, pastix_int_t n, pastix_int_t k,
+    pastix_int_t m[32], pastix_int_t n, pastix_int_t k,
     cuDoubleComplex alpha,
     cuDoubleComplex const * dA, pastix_int_t ldda,
     cuDoubleComplex const * dB, pastix_int_t lddb,
     cuDoubleComplex beta,
-    cuDoubleComplex      ** dC_array, pastix_int_t lddc,
-    pastix_int_t max_m, pastix_int_t batchCount, const pastix_int_t *Acoefind, cudaStream_t stream )
+    cuDoubleComplex       * dC_array[32], pastix_int_t lddc,
+    pastix_int_t max_m, pastix_int_t batchCount, const pastix_int_t Acoefind[32], cudaStream_t stream )
 {
     assert( transB != PastixNoTrans );
 
