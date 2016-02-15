@@ -174,12 +174,6 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     o->data_of     = sparse_matrix_data_of;
     o->data_of_key = sparse_matrix_data_of_key;
 
-#ifdef DAGUE_PROF_TRACE
-    o->key_to_string = sparse_matrix_key_to_string;
-    o->key_dim = NULL; /* Initialized when the matrix is read */
-    o->key     = NULL; /* Initialized when the matrix is read */
-#endif /* DAGUE_PROF_TRACE */
-
     desc->typesze   = typesize;
     desc->solvmtx   = solvmtx;
     desc->gpu_limit = 0;
