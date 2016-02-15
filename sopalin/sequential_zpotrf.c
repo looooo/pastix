@@ -26,6 +26,10 @@
 #include <dague/data.h>
 #include <dague/data_distribution.h>
 #include "parsec/sparse-matrix.h"
+
+int dsparse_zpotrf_sp( dague_context_t *dague,
+                       sparse_matrix_desc_t *A,
+                       sopalin_data_t *sopalin_data );
 #endif
 
 void
