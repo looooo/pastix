@@ -46,11 +46,14 @@ if(PASTIX_WITH_STARPU)
     pastix_starpu)
 endif(PASTIX_WITH_STARPU)
 
+message(STATUS "Parsec libs: ${PARSEC_LIBRARIES}")
 if(PASTIX_WITH_PARSEC)
   set(PASTIX_EXAMPLES_LIBRARIES
     ${PASTIX_EXAMPLES_LIBRARIES}
     pastix_parsec
     ${PARSEC_LIBRARIES}
+    dague_distribution
+    dague_distribution_matrix
     ${PARSEC_EXTRA_LIBRARIES}
     )
 endif(PASTIX_WITH_PARSEC)
