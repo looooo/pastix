@@ -83,7 +83,7 @@ thread_pzgetrf( int rank, void *args )
         core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
+#if defined(PASTIX_DEBUG_FACTO) && 0
     isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
     if (rank == 0) {
         coeftab_zdump( datacode, "getrf_L.txt" );
@@ -127,6 +127,10 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
     sparse_matrix_destroy( &desc );
 
     dague_fini( &(pastix_data->parsec) );
+
+#if defined(PASTIX_DEBUG_FACTO)
+    coeftab_zdump( pastix_data->solvmatr, "getrf_L.txt" );
+#endif
 }
 #endif
 

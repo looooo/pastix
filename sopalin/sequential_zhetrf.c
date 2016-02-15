@@ -86,7 +86,7 @@ thread_pzhetrf( int rank, void *args )
                          work1, work2 );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
+#if defined(PASTIX_DEBUG_FACTO) && 0
     isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
     if (rank == 0) {
         coeftab_zdump( datacode, "hetrf_L.txt" );
@@ -106,7 +106,7 @@ thread_zhetrf( pastix_data_t  *pastix_data,
     isched_parallel_call( pastix_data->isched, thread_pzhetrf, sopalin_data );
 }
 
-#if defined(PASTIX_WITH_PARSEC)
+#if defined(PASTIX_WITH_PARSEC) && 0
 void
 parsec_zhetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
@@ -138,7 +138,7 @@ parsec_zhetrf( pastix_data_t  *pastix_data,
 static void (*zhetrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zhetrf,
     thread_zhetrf,
-#if defined(PASTIX_WITH_PARSEC)
+#if defined(PASTIX_WITH_PARSEC) && 0
     parsec_zhetrf,
 #else
     NULL,

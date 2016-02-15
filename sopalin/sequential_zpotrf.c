@@ -83,7 +83,7 @@ thread_pzpotrf( int rank, void *args )
         core_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
+#if defined(PASTIX_DEBUG_FACTO) && 0
     isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
     if (rank == 0) {
         coeftab_zdump( datacode, "potrf_L.txt" );
