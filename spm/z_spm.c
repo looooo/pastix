@@ -210,7 +210,8 @@ z_spmSymmetrize( pastix_spm_t *spm )
     pastix_complex64_t *oldval, *valtmp, *newval = NULL;
     pastix_int_t *oldcol, *coltmp, *newcol = NULL;
     pastix_int_t *oldrow, *rowtmp, *newrow = NULL;
-    pastix_int_t *toaddtab, *toaddtmp, toaddcnt, toaddsze;
+    pastix_int_t *toaddtab = NULL;
+    pastix_int_t *toaddtmp, toaddcnt, toaddsze;
     pastix_int_t  n       = spm->n;
     pastix_int_t  dof2    = spm->dof * spm->dof;
     pastix_int_t  i, j, k, r, size;
