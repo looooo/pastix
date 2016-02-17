@@ -556,6 +556,7 @@ struct Order_;
 typedef struct Order_ Order;
 
 struct pastix_spm_s;
+typedef struct pastix_spm_s pastix_spm_t;
 typedef struct pastix_spm_s pastix_csc_t;
 
 void pastixInitParam( pastix_int_t *iparm,
