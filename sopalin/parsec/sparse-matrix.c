@@ -164,7 +164,6 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     o->key_dim       = NULL;
     o->key           = NULL;
 #endif
-    o->memory_registration_status    = MEMORY_STATUS_UNREGISTERED;
     o->key_base = NULL;
 
     o->rank_of     = sparse_matrix_rank_of;
@@ -173,6 +172,10 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     o->vpid_of_key = sparse_matrix_vpid_of_key;
     o->data_of     = sparse_matrix_data_of;
     o->data_of_key = sparse_matrix_data_of_key;
+
+    o->memory_registration_status = MEMORY_STATUS_UNREGISTERED;
+    o->register_memory   = NULL;
+    o->unregister_memory = NULL;
 
     desc->typesze   = typesize;
     desc->solvmtx   = solvmtx;
