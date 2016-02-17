@@ -241,7 +241,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         double timer;
 
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][spm->flttype-2];
-        assert(sopalinFacto);
+        assert(factofct);
 
         clockStart(timer);
         factofct( pastix_data, &sopalin_data );

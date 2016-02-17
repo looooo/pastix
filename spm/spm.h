@@ -34,8 +34,6 @@ struct pastix_spm_s {
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global        */
     void         *values;    /*< Values stored in the matrix                         */
 };
-typedef struct pastix_spm_s pastix_spm_t;
-typedef struct pastix_spm_s pastix_csc_t;
 
 int
 csc_load( pastix_int_t  *n,
