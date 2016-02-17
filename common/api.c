@@ -287,6 +287,7 @@ apiInitMPI( pastix_data_t *pastix,
         pastix->inter_node_procnbr = pastix->procnbr;
         pastix->inter_node_procnum = pastix->procnum;
     }
+    (void)autosplit;
 }
 
 /**

@@ -109,9 +109,6 @@ isched_barrier_destroy(isched_barrier_t* barrier)
 
 #endif  /* ISCHED_IMPLEMENT_BARRIERS */
 
-struct isched_s;
-typedef struct isched_s isched_t;
-
 /**
  * Temporary stucture used at thread creation
  */

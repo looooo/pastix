@@ -47,7 +47,7 @@ typedef struct isched_thread_s {
 /**
  * Global structure of the execution context of one instance of the scheduler
  */
-typedef struct isched_s {
+struct isched_s {
     int              world_size;
 
     isched_barrier_t barrier;
@@ -60,7 +60,7 @@ typedef struct isched_s {
 
     void           (*pfunc)(int, void*);
     void            *pargs;
-} isched_t;
+};
 
 #if defined(HAVE_HWLOC)
 #include "isched_hwloc.h"
