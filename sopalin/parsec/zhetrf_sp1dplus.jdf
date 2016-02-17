@@ -1,5 +1,4 @@
 extern "C" %{
-#define PRECISION_z
     /**
      * PLASMA include for defined and constants.
      *
