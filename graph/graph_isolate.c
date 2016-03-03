@@ -317,6 +317,13 @@ int graphIsolateSupernode(       pastix_int_t   n,
     pastix_int_t  iter_isolate = 0;
     pastix_int_t  iter_non_isolate  = 0;
 
+    (void) iter_non_isolate;
+    (void) iter_isolate;
+    (void) other_n;
+    (void) tmpinvp;
+    (void) tmpperm;
+    (void) isolate_list;
+
     if (isolate_n > n) {
         errorPrintW( "Number of columns to isolate greater than the columns in the GRAPH matrix\n");
         return PASTIX_ERR_BADPARAMETER;

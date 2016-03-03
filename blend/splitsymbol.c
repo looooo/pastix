@@ -748,7 +748,7 @@ void splitSymbol( BlendCtrl    *ctrl,
                 fcol = lcol + 1;
             }
 
-            if (0)
+            if (1)
             {
                 pastix_int_t i;
                 printf("Cblknum %ld\n", cblknum);
@@ -757,5 +757,6 @@ void splitSymbol( BlendCtrl    *ctrl,
                 }
             }
         }
+        /* memFree_null( nblocksperline ); */
     }
 }

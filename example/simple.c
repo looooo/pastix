@@ -9,6 +9,8 @@
 #include <pastix.h>
 #include <csc.h>
 #include "../matrix_drivers/drivers.h"
+#include "../order/order.h"
+#include "../common/common.h"
 
 int main (int argc, char **argv)
 {
@@ -113,9 +115,10 @@ int main (int argc, char **argv)
     printf("\tH-PaStiX parameters are\n");
     printf("\tSPLITSIZE %ld THRESHOLD %ld\n", splitsize, threshold);
     printf("\tTOLERANCE %.3g\n", tolerance);
-    printf("\tHODLRTREE %ld\n", hodlrtree);
+    printf("\tHODLRTREE %ld (on last supernode right now)\n", hodlrtree);
     printf("\tREORDERING %ld\n", reordering);
     printf("\tCOMPRESS %ld\n", compress);
+    printf("\tFACING %ld\n", facing);
     printf("\tLEVELS %ld (unused right now)\n", levels);
 
     iparm[IPARM_MIN_BLOCKSIZE] = 40;
@@ -125,6 +128,7 @@ int main (int argc, char **argv)
 
     iparm[IPARM_ITERMAX]          = 100;
     iparm[IPARM_REORDERING_SPLIT] = 0;
+
     /**
      * Get options from command line
      */

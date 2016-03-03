@@ -81,7 +81,10 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     /* In sequential */
                     assert( cblk->fcolnum == cblk->lcolidx );
 
-                    if (cblk->is_HODLR == 0){
+#ifdef INCLUDE_HODLR
+                    if (cblk->is_HODLR == 0)
+#endif
+                    {
                         cblas_ztrsm(
                             CblasColMajor, CblasLeft, CblasLower,
                             CblasNoTrans, CblasUnit,
@@ -95,6 +98,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                             cblk->dcoeftab,    tempn,
                             b + cblk->lcolidx, ldb );
                     }
+#ifdef INCLUDE_HODLR
                     else{
                         pastix_complex64_t *B = b + cblk->lcolidx;
                         pastix_complex64_t *R = malloc(tempn*sizeof(pastix_complex64_t));
@@ -104,9 +108,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                                     B, 1);
                         free(R);
                     }
-
-
-
+#endif
 
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -185,7 +187,10 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
                     /* Solve the diagonal block (only for LU blocks) */
-                    if (cblk->is_HODLR == 0){
+#ifdef INCLUDE_HODLR
+                    if (cblk->is_HODLR == 0)
+#endif
+                    {
                         cblas_ztrsm(
                             CblasColMajor, CblasLeft, CblasUpper,
                             CblasNoTrans, (enum CBLAS_DIAG)diag,
@@ -210,7 +215,10 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
                     assert( cblk->fcolnum == cblk->lcolidx );
 
                     /* Solve the diagonal block (only for LU blocks) */
-                    if (cblk->is_HODLR == 0){
+#ifdef INCLUDE_HODLR
+                    if (cblk->is_HODLR == 0)
+#endif
+                    {
                         cblas_ztrsm(
                             CblasColMajor, CblasLeft, CblasLower,
                             CblasNoTrans, (enum CBLAS_DIAG)diag,
@@ -218,6 +226,7 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
                             cblk->dcoeftab, tempn,
                             b + cblk->lcolidx, ldb );
                     }
+#ifdef INCLUDE_HODLR
                     else{
                         pastix_complex64_t *B = b + cblk->lcolidx;
                         pastix_complex64_t *R = malloc(tempn*sizeof(pastix_complex64_t));
@@ -227,6 +236,7 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
                                     B, 1);
                         free(R);
                     }
+#endif
                 }
             }
             /*

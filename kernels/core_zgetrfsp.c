@@ -229,6 +229,8 @@ static void core_zgetrfsp(pastix_int_t        n,
  *******************************************************************************/
 static pastix_int_t compute_cblklevel( pastix_int_t cblknum )
 {
+    /* WARNING: TODO REMOVE !!! */
+    return -1;
     /* cblknum level has already been computed */
     pastix_int_t father = treetab[cblknum];
     if ( father == -1 ) {
@@ -255,6 +257,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 
     /* Level in the elimination tree of the supernode beeing factorized */
     pastix_int_t level = compute_cblklevel( current_cblk );
+    (void) level;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
@@ -274,6 +277,13 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     char *tree = getenv("HODLRTREE");
     hodlrtree  = atoi(tree);
 
+    (void) levels;
+    (void) tolerance;
+    (void) split;
+    (void) threshold;
+    (void) hodlrtree;
+
+#ifdef INCLUDE_HODLR
     if (current_cblk == 0){
         printf(" Size | Level | Sparse Storage | HODLR_Storage | Dense_Storage |   Gain (Mo)   | HODLR compression+factorization | Dense factorization | TRSM on U | TRSM on L | Bloks size\n");
     }
@@ -281,7 +291,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     /* TODO: remove */
     current_cblk++;
 
-    if (n > split){ //&& level <= levels){
+    if (n > split && level <= levels){
         Clock timer;
         clockStart(timer);
 
@@ -312,17 +322,25 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
         /* Number of partitions returned by SplitSymbol() */
         pastix_int_t split_size = cblk->split_size;
 
+        pastix_int_t nb_parts;
+        pastix_int_t *parts;
+
         if (split_size == 0){
-            schur_H = newHODLR(n, n, D, threshold, "SVD");
+            schur_H = newHODLR(n, n, D, threshold, "SVD", &nb_parts, &parts);
         }
         else{
             if (hodlrtree == 0){
-                schur_H = newHODLR(n, n, D, threshold, "SVD");
+                schur_H = newHODLR(n, n, D, threshold, "SVD", &nb_parts, &parts);
             }
             else{
-                schur_H = newHODLR_Tree(n, n, D, threshold, "SVD", split_size, cblk->split);
+                schur_H = newHODLR_Tree(n, n, D, threshold, "SVD",
+                                        split_size, cblk->split,
+                                        &nb_parts, &parts);
             }
         }
+
+        cblk->nb_parts = nb_parts;
+        cblk->parts    = parts;
 
         gain_D += cStoreLR(schur_H, tolerance, 1);
 
@@ -334,6 +352,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
         /* Print compression+factorization time */
         printf("%32.3g ", (double)clockVal(timer));
     }
+#endif
     /* else */
     {
         Clock timer;
@@ -342,10 +361,13 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
         core_zgetrfsp(ncols, D, n, &nbpivot, criteria);
 
         clockStop(timer);
+
+#ifdef INCLUDE_HODLR
         if (cblk->is_HODLR == 1){
             /* Print dense factorisation time */
             printf("%20.3g ", (double)clockVal(timer));
         }
+#endif
     }
 
     /* Symmetric case */
@@ -407,10 +429,11 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
     pastix_complex64_t *D = cblk->dcoeftab;
     pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
 
+    /* To compress by facing cblk */
+#ifdef INCLUDE_HODLR
     char *face          = getenv("FACING");
     pastix_int_t facing = atoi(face);
 
-    /* To compress by facing cblk */
     if ( fblok+1 < lblok && facing == 1)
     {
         SymbolBlok *blok;
@@ -432,7 +455,6 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                         fU = U + fblok[1].coefind + current;
                         if (cblk->is_HODLR == 1){
                             int rank;
-                            /* printf("\nSVD %5ld %5ld (previously %5ld) current %5ld\n", dima, localsize, dimb, current); */
                             gain_U += compress_SVD(fU, dima, localsize, &rank);
                         }
                     }
@@ -451,28 +473,32 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
 
             if (facing != 0){
                 fU = U + fblok[1].coefind + current;
+
                 if (cblk->is_HODLR == 1){
                     int rank;
-                    /* printf("\nSVD %5ld %5ld (previously %5ld) current %5ld\n", dima, localsize, dimb, current); */
                     gain_U += compress_SVD(fU, dima, localsize, &rank);
                 }
             }
         }
     }
-
+#endif
 
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
     {
         /* first extra-diagonal bloc in column block address */
         fU = U + fblok[1].coefind;
+
+#ifdef INCLUDE_HODLR
         if (cblk->is_HODLR == 1 && facing == 0){
             int rank;
             gain_U += compress_SVD(fU, dima, dimb, &rank);
         }
 
         /* Solve on U */
-        if (cblk->is_HODLR == 0){
+        if (cblk->is_HODLR == 0)
+#endif
+        {
             cblas_ztrsm(CblasColMajor,
                         CblasRight, CblasLower,
                         CblasTrans, CblasUnit,
@@ -486,9 +512,11 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                         CBLAS_SADDR(zone), D,  stride_D,
                         fU, stride);
         }
+#ifdef INCLUDE_HODLR
         else{
             cLU_TRSM(cblk->cMatrix, fU, dimb, dima, stride);
         }
+#endif
     }
 
     return PASTIX_SUCCESS;
@@ -510,18 +538,22 @@ int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
 
     /* vertical dimension */
     dimb = stride - dima;
+    (void) dimb;
 
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
     {
         /* first extra-diagonal bloc in column block address */
         fL = L + fblok[1].coefind;
+        (void) fL;
 
         /* Solve on L */
+#ifdef INCLUDE_HODLR
         if (cblk->is_HODLR == 1){
             int rank;
             gain_L += compress_SVD(fL, dima, dimb, &rank);
         }
+#endif
     }
 
     return PASTIX_SUCCESS;
@@ -573,8 +605,10 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
     core_zgetrfsp1d_trsm(cblk, L, U);
 
     /* Compress L */
+#ifdef INCLUDE_HODLR
     if (cblk->is_HODLR)
         core_zgetrfsp1d_trsm2(cblk, L, U);
+#endif
 
     return nbpivot;
 }
@@ -695,10 +729,8 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-
         Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
         dimb = iterblok->lrownum - iterblok->frownum + 1;
-
         pastix_cblk_lock( fcblk );
 
         /* If the blok modifies a diagonal block */
@@ -716,51 +748,65 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
             pastix_int_t compress  = atoi(comp);
 
             (void) levels;
+            (void) split;
+            (void) threshold;
+            (void) hodlrtree;
+            (void) compress;
             /* pastix_int_t local_level = compute_cblklevel(current_cblk); */
 
-            if (compress == 1){
-                pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
+#ifdef INCLUDE_HODLR
+            /* COMPRESS / UNCOMPRESS */
+            pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
+            if (compress == 1 && n > split){
+                pastix_int_t i;
+                pastix_int_t  nb_parts = fcblk->nb_parts;
+                pastix_int_t *parts    = fcblk->parts;
 
-                if (n > split){ // && local_level <= levels){
+                pastix_int_t current = 0;
+                while (parts[current+1] < (iterblok->frownum - fblok->frownum)){
+                    current += 2;
+                }
 
-                    pastix_int_t local_threshold = threshold;
-                    /* if (local_threshold >= n) */
-                    /*     local_threshold = 1; */
+                while (parts[current] <= (iterblok->lrownum - fblok->frownum)
+                       && current < 2*nb_parts){
+                    pastix_int_t start, end;
+                    start = pastix_imax(parts[current]   - iterblok->frownum + fblok->frownum, 0);
+                    end   = pastix_imin(parts[current+1] - iterblok->frownum + fblok->frownum,
+                                        iterblok->lrownum - iterblok->frownum);
 
-                    /* Number of partitions returned by SplitSymbol() */
-                    pastix_int_t split_size = fcblk->split_size;
+                    Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
+                        + fblok->coefind + iterblok->frownum - fblok->frownum;
 
-                    cHODLR schur_H;
-                    if (split_size == 0){
-                        schur_H = newHODLR(n, n, Cd, local_threshold, "SVD");
-                    }
-                    else{
-                        if (hodlrtree == 0){
-                            schur_H = newHODLR(n, n, Cd, local_threshold, "SVD");
-                        }
-                        else{
-                            schur_H = newHODLR_Tree(n, n, Cd, local_threshold, "SVD", split_size, fcblk->split);
-                        }
-                    }
-                    delHODLR(schur_H);
+                    core_zgeadd( CblasNoTrans, end-start+1, dimj, -1.0,
+                                 wtmp + start, dimi,
+                                 Aij  + start, stride_D );
+                    current+=2;
+
+                    fcblk->nb_contributions++;
+                    fcblk->surface += (end-start+1) * dimj;
                 }
             }
 
-            Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
-                + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                         wtmp, dimi,
-                         Aij,  stride_D );
+            /* Contribution to a non-HODLR structure */
+            else
+#endif
+            {
+                Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
+                    + fblok->coefind + iterblok->frownum - fblok->frownum;
+                core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                             wtmp, dimi,
+                             Aij,  stride_D );
+            }
         }
         else{
             core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
                          wtmp, dimi,
                          Aij,  stridefc );
         }
-        pastix_cblk_unlock( fcblk );
 
-        /* Displacement to next block */
         wtmp += dimb;
+
+        pastix_cblk_unlock( fcblk );
     }
 
     /*
@@ -883,19 +929,73 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     blok = cblk->fblokptr + 1; /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
 
+    char *splt             = getenv("SPLITSIZE");
+    pastix_int_t split     = atoi(splt);
+    char *thr              = getenv("THRESHOLD");
+    pastix_int_t threshold = atoi(thr);
+    char *tree             = getenv("HODLRTREE");
+    pastix_int_t hodlrtree = atoi(tree);
+
+    (void) split;
+    (void) threshold;
+    (void) hodlrtree;
+
     /* if there are off-diagonal supernodes in the column */
     blok = cblk->fblokptr+1;
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
+#ifdef INCLUDE_HODLR
+        pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
+        if (n > split && fcblk->is_HODLR == 0){
+            printf ("\033[34;01mFirst time we touch cblk of size %ld (contrib from %ld)\033[00m\n", n, current_cblk-1);
+
+            pastix_int_t nb_parts;
+            pastix_int_t *parts;
+            cHODLR schur_H;
+
+            if (fcblk->split_size == 0){
+                /* printf ("\033[34;01mNo user tree used\033[00m\n"); */
+                schur_H = newHODLR(n, n, fcblk->dcoeftab, threshold,
+                                   "SVD", &nb_parts, &parts);
+            }
+            else{
+                if (hodlrtree == 0){
+                    /* printf ("\033[34;01mNo user tree used\033[00m\n"); */
+                    schur_H = newHODLR(n, n, fcblk->dcoeftab, threshold,
+                                       "SVD", &nb_parts, &parts);
+                }
+                else{
+                    /* printf ("\033[32;01mUser tree with %ld parts used\033[00m\n", */
+                    /*         fcblk->split_size); */
+                    schur_H = newHODLR_Tree(n, n, fcblk->dcoeftab, threshold,
+                                            "SVD", fcblk->split_size, fcblk->split,
+                                            &nb_parts, &parts);
+                }
+            }
+
+            fcblk->is_HODLR         = 1;
+            fcblk->cMatrix          = schur_H;
+            fcblk->nb_parts         = nb_parts;
+            fcblk->parts            = parts;
+            fcblk->nb_contributions = 0;
+            fcblk->surface          = 0;
+            /* delHODLR(schur_H); */
+        }
+#endif
+
         core_zgetrfsp1d_gemm( cblk, blok, fcblk,
                               L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
+
     }
 
-
-    if (cblk->is_HODLR)
-        printf("\n");
+#ifdef INCLUDE_HODLR
+    if (cblk->is_HODLR){
+        printf(" %ld contributions, surface %ld \n",
+               cblk->nb_contributions, cblk->surface);
+    }
+#endif
 
     return nbpivot;
 }

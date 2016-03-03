@@ -59,6 +59,15 @@ void sopalin_ssytrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
                           sopalin_data_t *sopalin_data,
                           int nrhs, pastix_complex64_t *b, int ldb );
+void sequential_c_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+                          sopalin_data_t *sopalin_data,
+                          int nrhs, pastix_complex32_t *b, int ldb );
+void sequential_d_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+                          sopalin_data_t *sopalin_data,
+                          int nrhs, double *b, int ldb );
+void sequential_s_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+                          sopalin_data_t *sopalin_data,
+                          int nrhs, float *b, int ldb );
 
 #endif /* _SOPALIN_DATA_H_ */
 

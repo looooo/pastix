@@ -249,6 +249,7 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
     tmplen[1] = distance;
 
     pastix_int_t min_cut = -1;
+    (void) min_cut;
     for (i=1; i<size; i++) {
         pastix_int_t first_pos;
         pastix_int_t last_pos;
@@ -666,6 +667,7 @@ symbolReordering( const SymbolMatrix *symbptr,
     MALLOC_INTERN( depthweight, maxdepth, pastix_int_t );
     for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
 
+        /* printf("CBLK %ld %ld\n", itercblk, cblk->lcolnum - cblk->fcolnum + 1); */
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
 
         symbol_reorder_cblk( symbptr, cblk, order,
@@ -760,6 +762,7 @@ symbol_reorder_cblk_hmatrix( const SymbolMatrix *symbptr,
 {
     (void)depthweight;
     (void)depthmax;
+    (void)stop_criteria;
     SymbolBlok *blok;
     pastix_int_t *vectors_hash;
     pastix_int_t i, iterblok;

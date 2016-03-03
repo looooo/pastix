@@ -28,7 +28,8 @@
 #include "parsec/sparse-matrix.h"
 #endif
 
-pastix_int_t static compute_cblklevel( pastix_int_t cblknum )
+#ifdef INCLUDE_HODLR
+static pastix_int_t compute_cblklevel( pastix_int_t cblknum )
 {
     /* cblknum level has already been computed */
     pastix_int_t father = treetab[cblknum];
@@ -39,6 +40,7 @@ pastix_int_t static compute_cblklevel( pastix_int_t cblknum )
         return compute_cblklevel( father ) + 1;
     }
 }
+#endif
 
 void
 sequential_zgetrf( pastix_data_t  *pastix_data,
@@ -48,7 +50,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     SolverCblk         *cblk;
     double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work;
-    pastix_int_t  i, j;
+    pastix_int_t  i;
     (void)pastix_data;
 
     MALLOC_INTERN( work, datacode->gemmmax, pastix_complex64_t );
@@ -58,6 +60,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
     /* To apply contributions with a depth-first search */
     /* Warning: does not work with parallel implementations */
+#ifdef INCLUDE_HODLR
+    pastix_int_t  j;
     if (0){
         pastix_int_t max_level = 0;
         for (i=0; i<datacode->cblknbr; i++){
@@ -84,7 +88,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 pastix_int_t level = compute_cblklevel( id_b++ );
 
                 if (level == j){
-                    printf("Supernode %d level %d Tolerance %lf\n", current_cblk, level, new_tol);
+                    printf("Supernode %ld level %ld Tolerance %lf\n", current_cblk, level, new_tol);
                     core_zgetrfsp1d( datacode, cblk, threshold, work );
                 }
                 else{
@@ -94,7 +98,9 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
         }
     }
 
-    else{
+    else
+#endif
+    {
         for (i=0; i<datacode->cblknbr; i++, cblk++){
             core_zgetrfsp1d( datacode, cblk, threshold, work );
         }

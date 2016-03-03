@@ -83,12 +83,18 @@ typedef struct SolverCblk_  {
     void         *ucoeftab; /*< Coefficients access vector             */
 
     /* For managing HODLR structures */
+#ifdef INCLUDE_HODLR
     cHODLR        cMatrix;
+    void         *dcoeftab_HODLR; /*< Low-rank updates             */
     pastix_int_t  is_HODLR;
+    pastix_int_t  nb_contributions;
+    pastix_int_t  surface;
+#endif
+    /* Splitting parts to build hierarchical format */
     pastix_int_t *split;
     pastix_int_t  split_size;
-    void         *dcoeftab_HODLR; /*< Low-rank updates             */
-
+    pastix_int_t *parts;
+    pastix_int_t  nb_parts;
 
     /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
