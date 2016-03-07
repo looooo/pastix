@@ -38,9 +38,9 @@
 #include "trace.h"
 #include "pastixdata.h"
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
 #include "cHODLR_Matrix.h"
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
 
 /********************************************************************
  * Errors functions

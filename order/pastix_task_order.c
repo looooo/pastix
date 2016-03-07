@@ -717,6 +717,23 @@ pastix_task_order(      pastix_data_t *pastix_data,
 
     iparm[IPARM_START_TASK]++;
 
+
+    if (rangtab_current != 0){
+        ordemesh->cblknbr = rangtab_current;
+
+        free(ordemesh->rangtab);
+        ordemesh->rangtab = malloc((rangtab_current+1)* sizeof(pastix_int_t));
+
+        pastix_int_t i;
+        for (i=0; i<=rangtab_current; i++){
+            ordemesh->rangtab[i] = rangtab_new[i];
+        }
+
+        memcpy(ordemesh->permtab, permtab_saved, n*sizeof(pastix_int_t));
+        memcpy(ordemesh->peritab, peritab_saved, n*sizeof(pastix_int_t));
+
+    }
+
     /* Manual ordering for regular grids */
     if (0){
         pastix_int_t sep = 30; //sqrt(n);

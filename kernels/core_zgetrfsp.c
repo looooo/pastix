@@ -18,14 +18,90 @@
 #include "pastix_zcores.h"
 #include <cblas.h>
 #include "../blend/solver.h"
+//#include <lapacke.h>
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
 static pastix_complex64_t zzero =  0.;
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
 #include "cHODLR_Matrix.h"
+#endif /* defined(PASTIX_WITH_HODLR) */
+
+pastix_int_t z_compress_LR(pastix_complex64_t *fL,
+                           pastix_int_t dima,
+                           pastix_int_t dimb,
+                           double *s,
+                           pastix_complex64_t *u,
+                           pastix_complex64_t *v,
+                           pastix_int_t stride){
+
+    double superb[dimb];
+    pastix_complex64_t *block;
+    pastix_int_t        ret;
+    pastix_int_t        i;
+
+    pastix_int_t dim_min = dima;
+    if (dimb < dim_min)
+        dim_min = dimb;
+
+    block = malloc( dima * dimb * sizeof(pastix_complex64_t));
+    for (i=0; i<dima; i++){
+        memcpy( block + i *dimb, fL + i * stride, dimb * sizeof(pastix_complex64_t));
+    }
+
+    ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
+                          dimb, dima, block, dimb,
+                          s, u, dimb, v, dima, superb );
+    if( ret != 0 ){
+        printf("SVD FAILED %ld\n\n", ret);
+        exit(1);
+    }
+
+    char *tol        = getenv("TOLERANCE");
+    double tolerance = atof(tol);
+
+    pastix_int_t rank = dim_min;
+    for (i=0; i<dim_min-1; i++){
+        if (s[i] / s[0] < tolerance){
+            rank = i+1;
+            printf("Block of size %ld %ld has rank %ld (min %ld) %.3g\n", dima, dimb, rank, dim_min, s[i]);
+            break;
+        }
+    }
+
+    for (i=rank; i<dim_min; i++){
+        s[i] = 0;
+    }
+
+#ifdef PREC_DOUBLE
+    for (i=0; i<dim_min; i++){
+        cblas_dscal(dimb, s[i], &(u[i*dimb]), 1);
+    }
 #endif
+
+    return rank;
+}
+
+void z_uncompress_LR(pastix_complex64_t *fL,
+                     pastix_int_t dima,
+                     pastix_int_t dimb,
+                     double *s,
+                     pastix_complex64_t *u,
+                     pastix_complex64_t *v,
+                     pastix_int_t rank,
+                     pastix_int_t stride){
+
+    pastix_int_t dim_min = dima;
+    if (dimb < dim_min)
+        dim_min = dimb;
+
+    cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                dimb, dima, dima,
+                CBLAS_SADDR(zone),  u,  dimb,
+                                    v,  dima,
+                CBLAS_SADDR(zzero), fL, stride);
+}
 
 /**
  *******************************************************************************
@@ -283,7 +359,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     (void) threshold;
     (void) hodlrtree;
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
     if (current_cblk == 0){
         printf(" Size | Level | Sparse Storage | HODLR_Storage | Dense_Storage |   Gain (Mo)   | HODLR compression+factorization | Dense factorization | TRSM on U | TRSM on L | Bloks size\n");
     }
@@ -352,7 +428,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
         /* Print compression+factorization time */
         printf("%32.3g ", (double)clockVal(timer));
     }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
     /* else */
     {
         Clock timer;
@@ -362,12 +438,12 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 
         clockStop(timer);
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
         if (cblk->is_HODLR == 1){
             /* Print dense factorisation time */
             printf("%20.3g ", (double)clockVal(timer));
         }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
     }
 
     /* Symmetric case */
@@ -430,7 +506,7 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
     pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
 
     /* To compress by facing cblk */
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
     char *face          = getenv("FACING");
     pastix_int_t facing = atoi(face);
 
@@ -481,7 +557,7 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
             }
         }
     }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
 
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
@@ -489,7 +565,7 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
         /* first extra-diagonal bloc in column block address */
         fU = U + fblok[1].coefind;
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
         if (cblk->is_HODLR == 1 && facing == 0){
             int rank;
             gain_U += compress_SVD(fU, dima, dimb, &rank);
@@ -497,26 +573,87 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
 
         /* Solve on U */
         if (cblk->is_HODLR == 0)
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
         {
-            cblas_ztrsm(CblasColMajor,
-                        CblasRight, CblasLower,
-                        CblasTrans, CblasUnit,
-                        dimb, dima,
-                        CBLAS_SADDR(zone), D,  stride_D,
-                        fU, stride);
-            cblas_ztrsm(CblasColMajor,
-                        CblasRight, CblasUpper,
-                        CblasTrans, CblasNonUnit,
-                        dimb, dima,
-                        CBLAS_SADDR(zone), D,  stride_D,
-                        fU, stride);
+
+
+            pastix_int_t rank;
+            double *s;
+            pastix_complex64_t *u, *v;
+
+            pastix_int_t dim_min = dima;
+            if (dimb < dim_min)
+                dim_min = dimb;
+
+            s = malloc( dim_min * sizeof(double));
+            u = malloc( dimb * dimb * sizeof(pastix_complex64_t));
+            v = malloc( dima * dima * sizeof(pastix_complex64_t));
+
+            memset(s, 0, dim_min     * sizeof(double));
+            memset(u, 0, dimb * dimb * sizeof(pastix_complex64_t));
+            memset(v, 0, dima * dima * sizeof(pastix_complex64_t));
+
+            if (dimb > dima){
+                rank = z_compress_LR(fU, dima, dimb,
+                                     s, u, v, stride);
+
+                cblas_ztrsm(CblasColMajor,
+                            CblasRight, CblasLower,
+                            CblasTrans, CblasUnit,
+                            rank, dima,
+                            CBLAS_SADDR(zone), D,  stride_D,
+                            v, dima);
+                cblas_ztrsm(CblasColMajor,
+                            CblasRight, CblasUpper,
+                            CblasTrans, CblasNonUnit,
+                            rank, dima,
+                            CBLAS_SADDR(zone), D,  stride_D,
+                            v, dima);
+
+                z_uncompress_LR(fU, dima, dimb,
+                                s, u, v, rank, stride);
+            }
+            else{
+                cblas_ztrsm(CblasColMajor,
+                            CblasRight, CblasLower,
+                            CblasTrans, CblasUnit,
+                            dimb, dima,
+                            CBLAS_SADDR(zone), D,  stride_D,
+                            fU, stride);
+                cblas_ztrsm(CblasColMajor,
+                            CblasRight, CblasUpper,
+                            CblasTrans, CblasNonUnit,
+                            dimb, dima,
+                            CBLAS_SADDR(zone), D,  stride_D,
+                            fU, stride);
+            }
+
+            free(s);
+            free(u);
+            free(v);
+
+
+            /* DENSE */
+            /* cblas_ztrsm(CblasColMajor, */
+            /*             CblasRight, CblasLower, */
+            /*             CblasTrans, CblasUnit, */
+            /*             dimb, dima, */
+            /*             CBLAS_SADDR(zone), D,  stride_D, */
+            /*             fU, stride); */
+            /* cblas_ztrsm(CblasColMajor, */
+            /*             CblasRight, CblasUpper, */
+            /*             CblasTrans, CblasNonUnit, */
+            /*             dimb, dima, */
+            /*             CBLAS_SADDR(zone), D,  stride_D, */
+            /*             fU, stride); */
+
+
         }
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
         else{
             cLU_TRSM(cblk->cMatrix, fU, dimb, dima, stride);
         }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
     }
 
     return PASTIX_SUCCESS;
@@ -548,12 +685,32 @@ int core_zgetrfsp1d_trsm2( SolverCblk         *cblk,
         (void) fL;
 
         /* Solve on L */
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
         if (cblk->is_HODLR == 1){
             int rank;
             gain_L += compress_SVD(fL, dima, dimb, &rank);
         }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
+
+
+        /* pastix_int_t rank; */
+        /* double *s; */
+        /* pastix_complex64_t *u, *v; */
+
+        /* pastix_int_t dim_min = dima; */
+        /* if (dimb < dim_min) */
+        /*     dim_min = dimb; */
+
+        /* s = malloc( dim_min * sizeof(double)); */
+        /* u = malloc( dimb * dimb * sizeof(pastix_complex64_t)); */
+        /* v = malloc( dima * dima * sizeof(pastix_complex64_t)); */
+
+        /* rank = z_compress_LR(fL, dima, dimb, */
+        /*                      s, u, v); */
+
+        /* z_uncompress_LR(fL, dima, dimb, */
+        /*                 s, u, v, rank); */
+
     }
 
     return PASTIX_SUCCESS;
@@ -603,12 +760,13 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
 
     /* Compress + TRSM U */
     core_zgetrfsp1d_trsm(cblk, L, U);
+    core_zgetrfsp1d_trsm2(cblk, L, U);
 
     /* Compress L */
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
     if (cblk->is_HODLR)
         core_zgetrfsp1d_trsm2(cblk, L, U);
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
 
     return nbpivot;
 }
@@ -754,7 +912,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
             (void) compress;
             /* pastix_int_t local_level = compute_cblklevel(current_cblk); */
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
             /* COMPRESS / UNCOMPRESS */
             pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
             if (compress == 1 && n > split){
@@ -789,7 +947,7 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
 
             /* Contribution to a non-HODLR structure */
             else
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
             {
                 Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
                     + fblok->coefind + iterblok->frownum - fblok->frownum;
@@ -946,7 +1104,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
         pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
         if (n > split && fcblk->is_HODLR == 0){
             printf ("\033[34;01mFirst time we touch cblk of size %ld (contrib from %ld)\033[00m\n", n, current_cblk-1);
@@ -983,19 +1141,19 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
             fcblk->surface          = 0;
             /* delHODLR(schur_H); */
         }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
 
         core_zgetrfsp1d_gemm( cblk, blok, fcblk,
                               L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
 
     }
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
     if (cblk->is_HODLR){
         printf(" %ld contributions, surface %ld \n",
                cblk->nb_contributions, cblk->surface);
     }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
 
     return nbpivot;
 }

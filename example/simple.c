@@ -89,7 +89,6 @@ int main (int argc, char **argv)
         exit(1);
     }
 
-
     char *comp = getenv("COMPRESS");
     if (comp == NULL){
         printf("Set COMPRESS (0- unactive, 1- active)\n");
@@ -121,12 +120,12 @@ int main (int argc, char **argv)
     printf("\tFACING %ld\n", facing);
     printf("\tLEVELS %ld (unused right now)\n", levels);
 
-    iparm[IPARM_MIN_BLOCKSIZE] = 40;
-    iparm[IPARM_MAX_BLOCKSIZE] = 60;
+    iparm[IPARM_MIN_BLOCKSIZE] = 200;
+    iparm[IPARM_MAX_BLOCKSIZE] = 300;
 
     printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
 
-    iparm[IPARM_ITERMAX]          = 100;
+    iparm[IPARM_ITERMAX]          = 10;
     iparm[IPARM_REORDERING_SPLIT] = 0;
 
     /**
@@ -172,6 +171,39 @@ int main (int argc, char **argv)
     if (reordering == 1)
         pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
+
+    /**
+     * Perform reordering after splitting
+     */
+    /* pastix_task_symbfact( pastix_data, NULL, NULL ); */
+    /* pastix_task_reordering( pastix_data ); */
+    /* pastix_task_blend( pastix_data ); */
+
+    /**
+     * Perform ordering, symbolic factorization, and analyze steps
+     * Second run to build new split cblk
+     */
+    /* rangtab_new     = malloc(csc->n * sizeof(pastix_int_t)); */
+    /* rangtab_current = 0; */
+    /* memset(rangtab_new, 0, csc->n * sizeof(pastix_int_t)); */
+
+    /* Perform ordering, symbolic factorization, and analyze steps */
+    /* rangtab_new[rangtab_current] = csc->n; */
+
+    /* permtab_saved = malloc(csc->n*sizeof(pastix_int_t)); */
+    /* peritab_saved = malloc(csc->n*sizeof(pastix_int_t)); */
+    /* memcpy(permtab_saved, pastix_data->ordemesh->permtab, csc->n*sizeof(pastix_int_t)); */
+    /* memcpy(peritab_saved, pastix_data->ordemesh->peritab, csc->n*sizeof(pastix_int_t)); */
+
+    /* pastix_task_order( pastix_data, csc, NULL, NULL ); */
+    /* pastix_task_symbfact( pastix_data, NULL, NULL ); */
+
+    /* if (reordering == 1) */
+    /*     pastix_task_reordering( pastix_data ); */
+
+    /* rangtab_current = 0; */
+    /* pastix_task_blend( pastix_data ); */
+
 
     /**
      * Perform the numerical factorization

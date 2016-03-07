@@ -57,6 +57,9 @@ void z_Pastix_Verbose(double t0, double t3, double tmp, pastix_int_t nb_iter)
 /* Affichage final */
 void z_Pastix_End(pastix_data_t *pastix_data, pastix_complex64_t tmp, pastix_int_t nb_iter, double t, void *x, pastix_complex64_t *gmresx)
 {
+    (void) tmp;
+    (void) nb_iter;
+    (void) t;
     pastix_complex64_t *xptr = (pastix_complex64_t *)x;
     pastix_int_t        n = pastix_data->bcsc->gN;
     pastix_int_t i;

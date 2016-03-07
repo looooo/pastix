@@ -481,7 +481,7 @@ splitSmart( const BlendCtrl    *ctrl,
  ctrl    -
  dofptr  -
  */
-void splitSymbol_classic( BlendCtrl    *ctrl,
+void splitSymbol( BlendCtrl    *ctrl,
                           SymbolMatrix *symbmtx )
 {
     ExtraCblk_t extracblk;
@@ -657,26 +657,35 @@ void splitSymbol_classic( BlendCtrl    *ctrl,
 
 
 
-void splitSymbol( BlendCtrl    *ctrl,
+void splitSymbol_classic( BlendCtrl    *ctrl,
                   SymbolMatrix *symbmtx )
 {
     Cand *candtab = ctrl->candtab;
     pastix_int_t cblknum;
     pastix_int_t authorized_percent;
-    authorized_percent = 200;
+    authorized_percent = 10;
+
+    /* for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++) { */
+    /*     symbmtx->cblktab[cblknum].split_size = 0; */
+    /*     symbmtx->cblktab[cblknum].split      = NULL; */
+
+    /*     rangtab_new[rangtab_current++] = symbmtx->cblktab[cblknum].fcolnum; */
+    /* } */
+
 
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++) {
-        symbmtx->cblktab[cblknum].split_size = 0;
-        symbmtx->cblktab[cblknum].split      = NULL;
-    }
 
-    /* Just for last supernode right now */
-    for(cblknum = symbmtx->cblknbr-1; cblknum<symbmtx->cblknbr; cblknum++) {
+        /* Just for last supernode right now */
+        rangtab_new[rangtab_current++] = symbmtx->cblktab[cblknum].fcolnum;
 
         symbmtx->cblktab[cblknum].split = NULL;
 
         pastix_int_t fcolnum = symbmtx->cblktab[cblknum].fcolnum;
         pastix_int_t lcolnum = symbmtx->cblktab[cblknum].lcolnum;
+
+        if (lcolnum - fcolnum + 1 < 500)
+            continue;
+
         pastix_int_t size    = lcolnum - fcolnum + 1;
         pastix_int_t width   = size;
 
@@ -752,8 +761,9 @@ void splitSymbol( BlendCtrl    *ctrl,
             {
                 pastix_int_t i;
                 printf("Cblknum %ld\n", cblknum);
-                for (i=0; i<nb_parts; i++){
+                for (i=1; i<nb_parts; i++){
                     printf("Split %ld is %ld\n", i, split[i]);
+                    rangtab_new[rangtab_current++] = symbmtx->cblktab[cblknum].fcolnum + split[i];
                 }
             }
         }

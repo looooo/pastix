@@ -39,7 +39,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" ON)
+    "Build PaStiX for distributed memory with MPI" OFF)
 
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA
@@ -96,7 +96,10 @@ option(PASTIX_BLEND_GENTRACE
   "Allow trace generation in Blend simulation" OFF)
 
 option(PASTIX_WITH_HODLR
-  "Build Pastix with Amir's HODLR code" ON)
+  "Build Pastix with Amir's HODLR code" OFF)
+
+option(PASTIX_WITH_LR
+  "Build Pastix LR operations" ON)
 
 # Options to check
 option(FORGET_PARTITION
@@ -379,7 +382,7 @@ if(PASTIX_WITH_HODLR)
     message(SEND_ERROR "The path to HODLR binary directory must be specified")
   endif()
   include_directories("${HODLR_SOURCE_DIR}/include")
-  add_definitions(-DINCLUDE_HODLR)
+###  add_definitions(-DINCLUDE_HODLR)
 endif()
 
 #

@@ -605,4 +605,10 @@ double total_memory2;
 double gain_L;
 double gain_D;
 double gain_U;
+
+pastix_int_t *rangtab_new;
+pastix_int_t *permtab_saved;
+pastix_int_t *peritab_saved;
+pastix_int_t  rangtab_current;
+
 #endif /* _PASTIX_H_ */

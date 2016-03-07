@@ -71,6 +71,7 @@ pastix_task_reordering(pastix_data_t *pastix_data)
                       iparm[IPARM_REORDERING_SPLIT],
                       iparm[IPARM_REORDERING_STOP] );
 
+
     if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
     {
         if (procnum == 0) {

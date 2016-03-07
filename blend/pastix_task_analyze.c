@@ -83,10 +83,10 @@ pastix_task_blend(pastix_data_t *pastix_data)
     /*
      * Free graph structure
      */
-    if (pastix_data->graph != NULL) {
-        graphExit( pastix_data->graph );
-        memFree_null( pastix_data->graph );
-    }
+    /* if (pastix_data->graph != NULL) { */
+    /*     graphExit( pastix_data->graph ); */
+    /*     memFree_null( pastix_data->graph ); */
+    /* } */
 
 
     iparm   = pastix_data->iparm;
@@ -146,9 +146,20 @@ pastix_task_blend(pastix_data_t *pastix_data)
     /* if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) */
     symbolPrintStats( pastix_data->symbmtx );
 
+    {
+        printf("DUMP new symbolic factorization\n\n");
+
+        FILE *stream;
+        PASTIX_FOPEN(stream, "symbol.eps", "w");
+        symbolDraw(pastix_data->symbmtx,
+                   stream);
+        fclose(stream);
+    }
+
+    /* TODO: free somewhere */
     /* Symbol is not used anymore */
-    symbolExit(pastix_data->symbmtx);
-    memFree_null(pastix_data->symbmtx);
+    /* symbolExit(pastix_data->symbmtx); */
+    /* memFree_null(pastix_data->symbmtx); */
 
     /* Computes and print statistics */
     {

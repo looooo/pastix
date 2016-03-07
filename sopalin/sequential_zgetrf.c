@@ -28,7 +28,7 @@
 #include "parsec/sparse-matrix.h"
 #endif
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
 static pastix_int_t compute_cblklevel( pastix_int_t cblknum )
 {
     /* cblknum level has already been computed */
@@ -40,7 +40,7 @@ static pastix_int_t compute_cblklevel( pastix_int_t cblknum )
         return compute_cblklevel( father ) + 1;
     }
 }
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
 
 void
 sequential_zgetrf( pastix_data_t  *pastix_data,
@@ -60,7 +60,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
     /* To apply contributions with a depth-first search */
     /* Warning: does not work with parallel implementations */
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
     pastix_int_t  j;
     if (0){
         pastix_int_t max_level = 0;
@@ -99,7 +99,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     }
 
     else
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
     {
         for (i=0; i<datacode->cblknbr; i++, cblk++){
             core_zgetrfsp1d( datacode, cblk, threshold, work );

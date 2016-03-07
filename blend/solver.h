@@ -18,9 +18,9 @@
 #define _SOLVER_H_
 
 
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
 #include "cHODLR_Matrix.h"
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
 
 
 #include "ftgt.h"
@@ -66,6 +66,14 @@ typedef struct SolverBlok_ {
     pastix_int_t fcblknm;  /*< Facing column block        */
     pastix_int_t coefind;  /*< Index in coeftab           */
     pastix_int_t browind;  /*< Index in browtab           */
+
+    /* LR format: A = U_A V_A^T */
+#if defined(PASTIX_WITH_LR)
+    pastix_int_t  fullform; /*< Defines if the blok is full or LR */
+    pastix_int_t *coefU;    /*< U coefficients */
+    pastix_int_t *coefV;    /*< V coefficients */
+
+#endif /* defined(PASTIX_WITH_LR) */
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
@@ -83,13 +91,13 @@ typedef struct SolverCblk_  {
     void         *ucoeftab; /*< Coefficients access vector             */
 
     /* For managing HODLR structures */
-#ifdef INCLUDE_HODLR
+#if defined(PASTIX_WITH_HODLR)
     cHODLR        cMatrix;
     void         *dcoeftab_HODLR; /*< Low-rank updates             */
     pastix_int_t  is_HODLR;
     pastix_int_t  nb_contributions;
     pastix_int_t  surface;
-#endif
+#endif /* defined(PASTIX_WITH_HODLR) */
     /* Splitting parts to build hierarchical format */
     pastix_int_t *split;
     pastix_int_t  split_size;

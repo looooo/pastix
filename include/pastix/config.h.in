@@ -73,6 +73,9 @@
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
 
+#cmakedefine PASTIX_WITH_HODLR
+#cmakedefine PASTIX_WITH_LR
+
 #if defined(PASTIX_INT64)
 #define FORCE_INT64
 #define INTSSIZE64
