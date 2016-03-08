@@ -79,6 +79,9 @@ thread_pzpotrf( int rank, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
+        /* Wait */
+        do {} while( cblk->ctrbcnt );
+
         /* Compute */
         core_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }

@@ -79,6 +79,9 @@ thread_pzgetrf( int rank, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
+        /* Wait */
+        do {} while( cblk->ctrbcnt );
+
         /* Compute */
         core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }

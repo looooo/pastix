@@ -81,6 +81,9 @@ thread_pzsytrf( int rank, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
+        /* Wait */
+        do {} while( cblk->ctrbcnt );
+
         /* Compute */
         core_zsytrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
                          work1, work2 );
