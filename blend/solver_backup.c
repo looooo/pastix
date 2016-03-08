@@ -106,6 +106,13 @@ solverBackupInit( const SolverMatrix *solvmtx )
 
     b->symbol_nodenbr = solvmtx->nodenbr;
 
+    {
+        SolverCblk *cblk = solvmtx->cblktab;
+        for (i=0; i<solvmtx->cblknbr; i++, cblk++)
+        {
+            cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
+        }
+    }
     return b;
 }
 
