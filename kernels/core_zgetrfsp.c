@@ -430,13 +430,13 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     pastix_int_t stride, stridefc, indblok;
     pastix_int_t dimi, dimj, dima, dimb;
 
-    stride  = cblk->stride;
-    dima = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = cblk->stride;
+    dima   = cblk->lcolnum - cblk->fcolnum + 1;
 
     /* First blok */
     indblok = blok->coefind;
 
-    dimj = blok->lrownum - blok->frownum + 1;
+    dimj = blok_rownbr( blok );
     dimi = stride - indblok;
 
     /* Matrix A = Aik */
@@ -563,6 +563,8 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
         /* Displacement to next block */
         wtmp += dimb;
     }
+
+    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
 }
 
 /**

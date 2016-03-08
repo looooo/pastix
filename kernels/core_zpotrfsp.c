@@ -232,9 +232,7 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     /* Factorize diagonal block */
-    pastix_cblk_lock( cblk );
     core_zpotrfsp(ncols, L, stride, &nbpivot, criteria );
-    pastix_cblk_unlock( cblk );
 
     return nbpivot;
 }
@@ -286,14 +284,12 @@ int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
         /* the first off-diagonal block in column block address */
         fL = L + blok[1].coefind;
 
-        pastix_cblk_lock( cblk );
         cblas_ztrsm(CblasColMajor,
                     CblasRight, CblasLower,
                     CblasConjTrans, CblasNonUnit,
                     nrows, ncols,
                     CBLAS_SADDR(zone), L,  stride,
                                        fL, stride);
-        pastix_cblk_unlock( cblk );
     }
 
     return PASTIX_SUCCESS;
@@ -352,7 +348,7 @@ void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
     pastix_int_t dimi, dimj, dima, dimb;
 
     stride = cblk->stride;
-    dima = cblk_colnbr( cblk );
+    dima   = cblk_colnbr( cblk );
 
     /* First blok */
     indblok = blok->coefind;
@@ -406,6 +402,8 @@ void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
         /* Displacement to next block */
         work += dimb;
     }
+
+    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
 }
 
 /**

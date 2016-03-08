@@ -434,6 +434,8 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
         /* Displacement to next block */
         work1 += dimb;
     }
+
+    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
 }
 
 /**
