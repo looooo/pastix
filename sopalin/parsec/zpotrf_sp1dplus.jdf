@@ -186,7 +186,7 @@ BODY [type=CUDA device="-2"
             max_m = pastix_imax( max_m, Ms[i] );
 
             if (i == 31) {
-                dyld_fn(
+                dague_body.dyld_fn(
                     PastixConjTrans, Ms, N, K,
                     /* alpha  */  mzone,
                     /* A      */  A,                 lcblk->stride,
@@ -204,7 +204,7 @@ BODY [type=CUDA device="-2"
         }
 
         if (count > 0) {
-            dyld_fn(
+            dague_body.dyld_fn(
                 PastixConjTrans, Ms, N, K,
                 /* alpha  */  mzone,
                 /* A      */  A,                 lcblk->stride,

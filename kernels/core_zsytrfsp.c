@@ -530,7 +530,7 @@ core_zsytrfsp1d( SolverMatrix       *solvmtx,
     nbpivot = core_zsytrfsp1d_sytrf(cblk, L, criteria, work1);
     core_zsytrfsp1d_trsm(cblk, L);
 
-    blok = cblk->fblokptr+1; /* this diagonal block */
+    blok = cblk->fblokptr+1;   /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
     for( ; blok < lblk; blok++ )
     {
