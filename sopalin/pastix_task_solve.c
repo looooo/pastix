@@ -138,7 +138,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
     pastix_int_t *iparm;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
-
+    (void)procnum;
+    
     /*
      * Check parameters
      */
