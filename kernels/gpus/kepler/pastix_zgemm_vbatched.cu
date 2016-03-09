@@ -140,15 +140,25 @@
 extern "C"
 #endif
 void
+/* pastix_zgemm_vbatched_nt( */
+/*     pastix_trans_t transB, */
+/*     pastix_int_t m[32], pastix_int_t n, pastix_int_t k, */
+/*     cuDoubleComplex alpha, */
+/*     cuDoubleComplex const * dA, pastix_int_t ldda, */
+/*     cuDoubleComplex const * dB, pastix_int_t lddb, */
+/*     cuDoubleComplex beta, */
+/*     cuDoubleComplex       * dC_array[32], pastix_int_t lddc, */
+/*     pastix_int_t max_m, pastix_int_t batchCount, const pastix_int_t Acoefind[32], cudaStream_t stream ) */
 pastix_zgemm_vbatched_nt(
+    gemm_params_t params,
     pastix_trans_t transB,
-    pastix_int_t m[32], pastix_int_t n, pastix_int_t k,
+    pastix_int_t n, pastix_int_t k,
     cuDoubleComplex alpha,
     cuDoubleComplex const * dA, pastix_int_t ldda,
     cuDoubleComplex const * dB, pastix_int_t lddb,
     cuDoubleComplex beta,
-    cuDoubleComplex       * dC_array[32], pastix_int_t lddc,
-    pastix_int_t max_m, pastix_int_t batchCount, const pastix_int_t Acoefind[32], cudaStream_t stream )
+    pastix_int_t lddc,
+    pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream )
 {
     assert( transB != PastixNoTrans );
 
@@ -163,13 +173,14 @@ pastix_zgemm_vbatched_nt(
         {
             // version 58
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,58), 0, 0>
-                (m, n, k, dA, ldda, dB, lddb, dC_array, lddc, alpha, beta, batchCount, Acoefind, stream, max_m);
+                //(m, n, k, dA, ldda, dB, lddb, dC_array, lddc, alpha, beta, batchCount, Acoefind, stream, max_m);
+                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
         }
         else
         {
             // version 29
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,29), 0, 0>
-                (m, n, k, dA, ldda, dB, lddb, dC_array, lddc, alpha, beta, batchCount, Acoefind, stream, max_m);
+                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
         }
     }
     else if (transB == PastixConjTrans)
@@ -178,13 +189,13 @@ pastix_zgemm_vbatched_nt(
         {
             // version 58
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,58), 0, 1>
-                (m, n, k, dA, ldda, dB, lddb, dC_array, lddc, alpha, beta, batchCount, Acoefind, stream, max_m);
+                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
         }
         else
         {
             // version 29
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,29), 0, 1>
-                (m, n, k, dA, ldda, dB, lddb, dC_array, lddc, alpha, beta, batchCount, Acoefind, stream, max_m);
+                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
         }
     }
 }

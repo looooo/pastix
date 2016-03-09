@@ -16,16 +16,34 @@ extern "C" %{
 #if defined(DAGUE_HAVE_CUDA)
 #include <cuComplex.h>
 
+typedef struct gemm_params_s{
+    int M[32];
+    int Acoefind[32];
+    void *Carray[32];
+} gemm_params_t;
+
+/* typedef void (*pastix_zgemm_vbatched_nt_t) */
+/*     (pastix_trans_t transB, */
+/*      pastix_int_t m[32], pastix_int_t n, pastix_int_t k, */
+/*      cuDoubleComplex alpha, */
+/*      cuDoubleComplex const * dA, pastix_int_t ldda, */
+/*      cuDoubleComplex const * dB, pastix_int_t lddb, */
+/*      cuDoubleComplex beta, */
+/*      cuDoubleComplex       * dC_array[32], pastix_int_t lddc, */
+/*      pastix_int_t max_m, pastix_int_t batchCount, */
+/*      const pastix_int_t Acoefind[32], cudaStream_t stream ); */
+
 typedef void (*pastix_zgemm_vbatched_nt_t)
-    (pastix_trans_t transB,
-     pastix_int_t m[32], pastix_int_t n, pastix_int_t k,
+    (gemm_params_t params,
+     pastix_trans_t transB,
+     pastix_int_t n, pastix_int_t k,
      cuDoubleComplex alpha,
      cuDoubleComplex const * dA, pastix_int_t ldda,
      cuDoubleComplex const * dB, pastix_int_t lddb,
      cuDoubleComplex beta,
-     cuDoubleComplex       * dC_array[32], pastix_int_t lddc,
+     pastix_int_t lddc,
      pastix_int_t max_m, pastix_int_t batchCount,
-     const pastix_int_t Acoefind[32], cudaStream_t stream );
+     cudaStream_t stream );
 
 #endif  /* defined(HAVE_CUDA) */
 %}
@@ -38,7 +56,7 @@ sopalin_data [type = "sopalin_data_t *" ]
 descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
 datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
-bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 1)"       ]
 
 p_work   [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
 
@@ -63,12 +81,9 @@ lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k) : C GEMM( lastbrow )
+RW L <- ( browk0 == browk1 ) ? C GEMM( firstblok-1 ) : C GEMM( lastbrow )
      -> A GEMM(firstblok .. lastblok)
      -> dataA(0, k)
-
-/* WRITE Ms -> Ms GEMM(firstblok .. lastblok)  [type=MYINT count="(lastblok - firstblok + 1)"] */
-/* WRITE As -> As GEMM(firstblok .. lastblok)  [type=MYINT count="(lastblok - firstblok + 1)"] */
 
 //; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
@@ -96,25 +111,64 @@ BODY
 }
 END
 
-/**************************************************
- *                      GEMM                      *
- * update the trailing matrix with the panel      *
+/**
+ *       GEMM
+ *
+ * To have a contiguous range of GEMM to release in the potrf, they are numbered
+ * with the indexes of the off-diagonal blocks, diagonal block included.
+ * Thus, the diagonal block tasks which doesn't perfom computations are used as
+ * DATA_IN tasks. This is mandatory when using the GPU, due to the versioning
+ * bumped by the cpu version of the diagonal block that coccurs when computing
+ * the diagonal blocks.
+ *
+ * For all off-diagonal blocks, it updates the trailing matrix with the panel
  * k-th block updating corresponding.
- **************************************************/
-
+ *
+ */
 GEMM(bloknum)
 
 // Execution space
-bloknum = 1 .. bloknbr
+bloknum = 0 .. bloknbr
 
 lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->lcblknm; %}
 fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
 first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
 
-brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %}
-prev    = inline_c %{ if ((brownum == -1) || (brownum <= first)) return 0; else return datacode->browtab[brownum-1]; %}
-next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else return datacode->browtab[brownum+1]; %}
+brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
+prev    = inline_c %{
+    assert( first >= 0 );
+    /* If bloknum is a diagonal block, they are no previous */
+    if (brownum == -1) {
+        return 0;
+    }
+    /* Now, if we are doing the first gemm on fcblk, then we got the C from the diagonal block */
+    else if (brownum == first) {
+        return datacode->cblktab[fcblknm].fblokptr - datacode->bloktab;
+    } else {
+        assert( brownum > first );
+        /* Otherwise we return the previous block in the list of blocks facing fcblk */
+        return datacode->browtab[brownum-1];
+    }
+    %}
+next    = inline_c %{
+    /* If we are on a diagonal blok */
+    if (brownum == -1) {
+        /* If this is not a leaf */
+        if (last >= first) {
+            return datacode->browtab[first];
+        } else {
+            return 0;
+        }
+    } else {
+        /* if we are the last one, we return 0 to avoid overflow */
+        if (brownum >= last) {
+            return 0;
+        } else {
+            return datacode->browtab[brownum+1];
+        }
+    }
+    %}
 
 // Parallel partitioning
 :dataA(0, fcblknm)
@@ -122,20 +176,20 @@ next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else 
 // Parameters
 READ  A  <- ( brownum != -1) ? L POTRF_TRSM( lcblknm ) : dataA( 0, fcblknm )
 
-RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm )
-         <- ( brownum != -1 ) && (first != brownum ) ? C GEMM( prev )
+RW    C  <- ( brownum == -1 ) ? dataA( 0, fcblknm )
+         <- ( brownum != -1 ) ? C GEMM( prev )
 
-         -> ( brownum != -1 ) && (last == brownum ) ? L POTRF_TRSM( fcblknm )
-         -> ( brownum != -1 ) && (last != brownum ) ? C GEMM( next )
-
-/* READ Ms  <- ( brownum != -1) ? Ms POTRF_TRSM(lcblknm) : dataA( 0, fcblknm ) /\* Unused *\/ */
-/* READ As  <- ( brownum != -1) ? As POTRF_TRSM(lcblknm) : dataA( 0, fcblknm ) /\* Unused *\/ */
+         -> ( brownum != -1 ) && ( last == brownum ) ? L POTRF_TRSM( fcblknm )
+         -> ( brownum != -1 ) && ( last != brownum ) ? C GEMM( next )
+         -> ( brownum == -1 ) && ( last >= first   ) ? C GEMM( next )
+         -> ( brownum == -1 ) && ( last <  first   ) ? L POTRF_TRSM( fcblknm )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-BODY [type=CUDA device="-2"
-      dyld=pastix_zgemm_vbatched_nt
-      dyldtype=pastix_zgemm_vbatched_nt_t ]
+BODY [type=CUDA
+      device=inline_c %{ if (brownum == -1) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
+      /* dyld=pastix_zgemm_vbatched_nt */
+      /* dyldtype=pastix_zgemm_vbatched_nt_t ] */
 {
 #if defined(DAGUE_HAVE_CUDA) && defined(PASTIX_WITH_CUDA)
     /* Compute only if non diagonal block */
@@ -148,9 +202,12 @@ BODY [type=CUDA device="-2"
         double mzone = -1.;
 #endif
 
-        pastix_int_t     Ms[32]; /* = (pastix_int_t*)Ms; */
-        pastix_int_t     As[32]; /* = (pastix_int_t*)As; */
-        cuDoubleComplex *Cs[32];
+        /* pastix_int_t     Ms[32]; /\* = (pastix_int_t*)Ms; *\/ */
+        /* pastix_int_t     As[32]; /\* = (pastix_int_t*)As; *\/ */
+        /* cuDoubleComplex *Cs[32]; */
+        gemm_params_t params;
+        cuDoubleComplex *lA = (cuDoubleComplex*)A;
+        cuDoubleComplex *lC = (cuDoubleComplex*)C;
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
@@ -165,11 +222,13 @@ BODY [type=CUDA device="-2"
         /* lMs += index; */
         /* lAs += index; */
 
+        fprintf(stderr, "BacthCount: %d\n", count );
+
         fblok = fcblk->fblokptr;
         lblok = lcblk[1].fblokptr;
 
         /* Move the pointer to the top of the right column */
-        C = C + (blok->frownum - fcblk->fcolnum) * fcblk->stride;
+        lC = lC + (blok->frownum - fcblk->fcolnum) * fcblk->stride;
 
         for (iterblok=blok, i=0; iterblok<lblok; iterblok++, i++) {
             /* Find facing blok */
@@ -179,21 +238,23 @@ BODY [type=CUDA device="-2"
                 assert( fblok < fcblk[1].fblokptr );
             }
 
-            Ms[i] = iterblok->lrownum - iterblok->frownum + 1;
-            As[i] = iterblok->coefind;
-            Cs[i] = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+            params.M[i]        = iterblok->lrownum - iterblok->frownum + 1;
+            params.Acoefind[i] = iterblok->coefind;
+            params.Carray[i]   = lC + fblok->coefind + iterblok->frownum - fblok->frownum;
 
-            max_m = pastix_imax( max_m, Ms[i] );
+            max_m = pastix_imax( max_m, params.M[i] );
 
             if (i == 31) {
-                dague_body.dyld_fn(
-                    PastixConjTrans, Ms, N, K,
+                //dague_body.dyld_fn(
+                pastix_zgemm_vbatched_nt(
+                    params,
+                    PastixConjTrans, /*Ms,*/ N, K,
                     /* alpha  */  mzone,
-                    /* A      */  A,                 lcblk->stride,
-                    /* B      */  A + blok->coefind, lcblk->stride,
+                    /* A      */  lA,                 lcblk->stride,
+                    /* B      */  lA + blok->coefind, lcblk->stride,
                     /* beta   */  zone,
-                    /* C      */  Cs,                fcblk->stride,
-                    max_m, 32, As,
+                    /* C      */ /* Cs,       */          fcblk->stride,
+                    max_m, 32, /*As,*/
                     gpu_stream->cuda_stream );
                 i = -1;
                 count -= 32;
@@ -204,14 +265,16 @@ BODY [type=CUDA device="-2"
         }
 
         if (count > 0) {
-            dague_body.dyld_fn(
-                PastixConjTrans, Ms, N, K,
+            //dague_body.dyld_fn(
+            pastix_zgemm_vbatched_nt(
+                params,
+                PastixConjTrans, /*Ms, */N, K,
                 /* alpha  */  mzone,
-                /* A      */  A,                 lcblk->stride,
-                /* B      */  A + blok->coefind, lcblk->stride,
+                /* A      */  lA,                 lcblk->stride,
+                /* B      */  lA + blok->coefind, lcblk->stride,
                 /* beta   */  zone,
-                /* C      */  Cs,                fcblk->stride,
-                max_m, count, As,
+                /* C      */  /*Cs,*/                 fcblk->stride,
+                max_m, count, /*As,*/
                 gpu_stream->cuda_stream );
         }
     }
