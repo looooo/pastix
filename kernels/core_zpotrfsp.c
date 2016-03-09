@@ -21,7 +21,6 @@
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
-static pastix_complex64_t zzero =  0.;
 
 /**
  *******************************************************************************
@@ -300,117 +299,6 @@ int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
  *
  * @ingroup pastix_kernel
  *
- * core_zpotrfsp1d_gemm - Computes the Cholesky factorization of one panel and
- * apply all the trsm updates to this panel.
- *
- *******************************************************************************
- *
- * @param[in] cblk
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
- *
- * @param[in] blok
- *          The pointer to the data structure that describes the blok from which
- *          we compute the contributions.
- *
- * @param[in] fcblk
- *          The pointer to the data structure that describes the panel on
- *          which we compute the contributions. Next column blok must be
- *          accessible through fcblk[1].
- *
- * @param[in,out] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
- *
- * @param[in,out] work
- *          Temporary buffer used in cblas_zgemm().
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
- *
- *******************************************************************************/
-void core_zpotrfsp1d_gemm( SolverCblk         *cblk,
-                           SolverBlok         *blok,
-                           SolverCblk         *fcblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *C,
-                           pastix_complex64_t *work)
-{
-    SolverBlok *iterblok;
-    SolverBlok *lblok;  /* Last block   */
-    SolverBlok *fblok;  /* facing block */
-
-    pastix_complex64_t *Aik, *Aij;
-    pastix_int_t stride, stridefc, indblok;
-    pastix_int_t dimi, dimj, dima, dimb;
-
-    stride = cblk->stride;
-    dima   = cblk_colnbr( cblk );
-
-    /* First blok */
-    indblok = blok->coefind;
-
-    dimj = blok_rownbr( blok );
-    dimi = stride - indblok;
-
-    /* Matrix A = Aik */
-    Aik = L + indblok;
-
-    /* Compute the contribution */
-    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasConjTrans,
-                 dimi, dimj, dima,
-                 CBLAS_SADDR(zone),   Aik,  stride,
-                                      Aik,  stride,
-                 CBLAS_SADDR(zzero),  work, dimi );
-
-    /*
-     * Add contribution to facing cblk
-     * A(i,i+1:n) += work1
-     */
-
-    /* Get the first block of the distant panel */
-    fblok = fcblk->fblokptr;
-
-    /* Move the pointer to the top of the right column */
-    stridefc = fcblk->stride;
-    C = C + (blok->frownum - fcblk->fcolnum) * stridefc;
-
-    lblok = cblk[1].fblokptr;
-
-    /* for all following blocks in block column */
-    for (iterblok=blok; iterblok<lblok; iterblok++) {
-
-        /* Find facing blok */
-        while (!is_block_inside_fblock( iterblok, fblok ))
-        {
-            fblok++;
-            assert( fblok < fcblk[1].fblokptr );
-        }
-
-        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-        dimb = iterblok->lrownum - iterblok->frownum + 1;
-
-        pastix_cblk_lock( fcblk );
-        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                     work, dimi,
-                     Aij,  stridefc );
-        pastix_cblk_unlock( fcblk );
-
-        /* Displacement to next block */
-        work += dimb;
-    }
-
-    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_kernel
- *
  * core_zpotrfsp1d - Computes the Cholesky factorization of one panel and apply
  * all the trsm updates to this panel.
  *
@@ -487,19 +375,20 @@ core_zpotrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
-    core_zpotrfsp1d_trsm(cblk, L);
+    nbpivot = core_zpotrfsp1d_panel(cblk, L, criteria);
 
-    blok = cblk->fblokptr + 1; /* this diagonal block */
-    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+    blok = cblk->fblokptr + 1; /* First off-diagonal block */
+    lblk = cblk[1].fblokptr;   /* Next diagonal block      */
 
-    /* if there are off-diagonal supernodes in the column */
+    /* If there are off-diagonal blocks, perform the updates */
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
-        core_zpotrfsp1d_gemm( cblk, blok, fcblk,
-                              L, fcblk->lcoeftab, work );
+        core_zgemmsp( PastixLower, PastixConjTrans, cblk, blok, fcblk,
+                      L, L, fcblk->lcoeftab, work );
+
+        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
 
     return nbpivot;

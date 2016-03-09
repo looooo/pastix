@@ -19,13 +19,6 @@ int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
                 const pastix_complex64_t *A, int LDA,
                       pastix_complex64_t *B, int LDB);
 
-int core_zgeaddsp1d( SolverCblk * cblk1,
-                     SolverCblk * cblk2,
-                     pastix_complex64_t * L1,
-                     pastix_complex64_t * L2,
-                     pastix_complex64_t * U1,
-                     pastix_complex64_t * U2 );
-
 int core_zgemdm(int transA, int transB,
                 int M, int N, int K,
                       pastix_complex64_t  alpha,
@@ -35,6 +28,27 @@ int core_zgemdm(int transA, int transB,
                       pastix_complex64_t *C,    int LDC,
                 const pastix_complex64_t *D,    int incD,
                       pastix_complex64_t *WORK, int LWORK);
+
+int core_zgeaddsp1d( SolverCblk * cblk1,
+                     SolverCblk * cblk2,
+                     pastix_complex64_t * L1,
+                     pastix_complex64_t * L2,
+                     pastix_complex64_t * U1,
+                     pastix_complex64_t * U2 );
+
+void core_zgemmsp( int diag, int trans,
+                   SolverCblk         *cblk,
+                   SolverBlok         *blok,
+                   SolverCblk         *fcblk,
+                   pastix_complex64_t *A,
+                   pastix_complex64_t *B,
+                   pastix_complex64_t *C,
+                   pastix_complex64_t *work );
+
+int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           double              criteria);
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -49,15 +63,6 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria);
-
-void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
-                           SolverBlok         *blok,
-                           SolverCblk         *fcblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *U,
-                           pastix_complex64_t *Cl,
-                           pastix_complex64_t *Cu,
-                           pastix_complex64_t *work );
 
 int core_zgetrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
@@ -104,13 +109,6 @@ int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
 int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria);
-
-void core_zpotrfsp1d_gemm(SolverCblk         *cblk,
-                          SolverBlok         *blok,
-                          SolverCblk         *fcblk,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *C,
-                          pastix_complex64_t *work);
 
 int core_zpotrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,

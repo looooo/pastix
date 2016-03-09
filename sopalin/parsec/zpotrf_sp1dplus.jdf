@@ -13,9 +13,8 @@ extern "C" %{
 #include "sopalin_data.h"
 #include "parsec/sparse-matrix.h"
 
-#if defined(HAVE_CUDA)
+#if defined(DAGUE_HAVE_CUDA)
 #include <cuComplex.h>
-#endif  /* defined(HAVE_CUDA) */
 
 typedef void (*pastix_zgemm_vbatched_nt_t)
     (pastix_trans_t transB,
@@ -28,6 +27,7 @@ typedef void (*pastix_zgemm_vbatched_nt_t)
      pastix_int_t max_m, pastix_int_t batchCount,
      const pastix_int_t Acoefind[32], cudaStream_t stream );
 
+#endif  /* defined(HAVE_CUDA) */
 %}
 
 /* Globals
@@ -137,6 +137,7 @@ BODY [type=CUDA device="-2"
       dyld=pastix_zgemm_vbatched_nt
       dyldtype=pastix_zgemm_vbatched_nt_t ]
 {
+#if defined(DAGUE_HAVE_CUDA) && defined(PASTIX_WITH_CUDA)
     /* Compute only if non diagonal block */
     if (brownum != -1) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -214,6 +215,7 @@ BODY [type=CUDA device="-2"
                 gpu_stream->cuda_stream );
         }
     }
+#endif /* defined(DAGUE_HAVE_CUDA) && defined(PASTIX_WITH_CUDA) */
 }
 END
 
@@ -231,7 +233,8 @@ BODY
 
     work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
 
-    core_zpotrfsp1d_gemm( lcblk, blok, fcblk, A, C, work );
+    core_zgemmsp( PastixLower, PastixConjTrans, lcblk, blok, fcblk,
+                  A, A, C, work );
 
     dague_private_memory_push( p_work, (void *)work );
   end:

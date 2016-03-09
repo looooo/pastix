@@ -149,7 +149,15 @@ BODY
 
     work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
 
-    core_zgetrfsp1d_gemm( lcblk, blok, fcblk, Al, Au, Cl, Cu, work );
+    /* Update on L */
+    core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
+                  Al, Au, Cl, work );
+
+    /* Update on U */
+    if ( blok+1 < lcblk[1].fblokptr ) {
+        core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
+                      Au, Al, Cu, work );
+    }
 
     dague_private_memory_push( p_work, (void *)work );
   end:
