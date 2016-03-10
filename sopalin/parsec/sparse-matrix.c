@@ -94,9 +94,9 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     va_end(ap);
 
     cblk = spmtx->solvmtx->cblktab + cblknum;
-    key  = spm_data_key( spmtx->solvmtx, cblknum, uplo );
+    key  = spm_data_key( spmtx->solvmtx, cblknum, (uplo ? 1 : 0) );
     pos  = key;
-    size = (size_t)cblk->stride * (size_t)(cblk->lcolnum - cblk->fcolnum + 1) * (size_t)spmtx->typesze;
+    size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
     return dague_data_create( spmtx->data_map + pos, mat, key,
                               (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
@@ -150,19 +150,16 @@ static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, cha
 #endif
 
 void sparse_matrix_init( sparse_matrix_desc_t *desc,
-                         SolverMatrix *solvmtx, int typesize, int nodes, int myrank)
+                         SolverMatrix *solvmtx, int typesize,
+                         int nodes, int myrank)
 {
     dague_ddesc_t *o = (dague_ddesc_t*)desc;
 
-    /* Super setup */
-    o->nodes     = nodes;
-    o->myrank    = myrank;
+    dague_ddesc_init( o, nodes, myrank );
 
     o->data_key      = sparse_matrix_data_key;
 #if defined(DAGUE_PROF_TRACE)
     o->key_to_string = sparse_matrix_key_to_string;
-    o->key_dim       = NULL;
-    o->key           = NULL;
 #endif
     o->key_base = NULL;
 
@@ -173,21 +170,10 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     o->data_of     = sparse_matrix_data_of;
     o->data_of_key = sparse_matrix_data_of_key;
 
-    o->memory_registration_status = MEMORY_STATUS_UNREGISTERED;
-    o->register_memory   = NULL;
-    o->unregister_memory = NULL;
-
     desc->typesze   = typesize;
     desc->solvmtx   = solvmtx;
     desc->gpu_limit = 0;
     desc->data_map  = (dague_data_t**)calloc( 2 * solvmtx->cblknbr, sizeof(dague_data_t*) );
-
-/*     DEBUG(("sparse_matrix_init: desc = %p, mtype = %zu, \n" */
-/*            "\tnodes = %u, cores = %u, myrank = %u\n", */
-/*            desc, (size_t) desc->super.mtype,  */
-/*            desc->super.super.nodes,  */
-/*            desc->super.super.cores, */
-/*            desc->super.super.myrank)); */
 }
 
 void sparse_matrix_destroy( sparse_matrix_desc_t *desc )
