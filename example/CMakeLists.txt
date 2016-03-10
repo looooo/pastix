@@ -27,6 +27,11 @@ link_directories(
   ${BLAS_LIBRARY_DIRS}
 )
 
+message(STATUS "LAPACKE_LIBRARIES:    ${LAPACKE_LIBRARIES}")
+message(STATUS "LAPACK_SEQ_LIBRARIES: ${LAPACK_SEQ_LIBRARIES}")
+message(STATUS "CBLAS_LIBRARIES:      ${CBLAS_LIBRARIES}")
+message(STATUS "BLAS_SEQ_LIBRARIES:   ${BLAS_SEQ_LIBRARIES}")
+
 set(PASTIX_EXAMPLES_LIBRARIES
   pastix
   pastix_bcsc
@@ -34,7 +39,7 @@ set(PASTIX_EXAMPLES_LIBRARIES
   pastix
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
-  ${CBLAS_LIBRARIES}
+  #  ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
   m
@@ -51,6 +56,7 @@ if(PASTIX_WITH_PARSEC)
   set(PASTIX_EXAMPLES_LIBRARIES
     ${PASTIX_EXAMPLES_LIBRARIES}
     pastix_parsec
+    pastix_cucores_sm35
     ${PARSEC_LIBRARIES}
     dague_distribution
     dague_distribution_matrix

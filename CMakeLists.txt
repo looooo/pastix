@@ -682,6 +682,7 @@ add_dependencies(pastix
   refinement_headers
   pastix_bcsc
   pastix_kernels
+  pastix_cucores_sm35
 )
 
 # foreach (module2 ${modules})
