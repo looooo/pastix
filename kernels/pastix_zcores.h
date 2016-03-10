@@ -142,4 +142,26 @@ int core_zsytrfsp1d( SolverMatrix       *solvmtx,
                      pastix_complex64_t *work1,
                      pastix_complex64_t *work2 );
 
+#if defined(PASTIX_WITH_CUDA)
+#include <cuda.h>
+#include <cuComplex.h>
+
+typedef struct gemm_params_s{
+    int M[32];
+    int Acoefind[32];
+    void *Carray[32];
+} gemm_params_t;
+
+void pastix_zgemm_vbatched_nt(
+    gemm_params_t params,
+    pastix_trans_t transB,
+    pastix_int_t n, pastix_int_t k,
+    cuDoubleComplex alpha,
+    cuDoubleComplex const * dA, pastix_int_t ldda,
+    cuDoubleComplex const * dB, pastix_int_t lddb,
+    cuDoubleComplex beta,
+    pastix_int_t lddc,
+    pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream );
+#endif
+
 #endif /* _CORE_Z_H_ */
