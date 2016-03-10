@@ -45,7 +45,7 @@ dsparse_zgetrf_sp_Destruct( dague_handle_t *handle )
     dague_private_memory_fini( dague_zgetrf_sp->p_work );
     free( dague_zgetrf_sp->p_work );
 
-    handle->destructor(handle);
+    dague_handle_free( handle );
 }
 
 int dsparse_zgetrf_sp( dague_context_t *dague,
