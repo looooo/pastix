@@ -102,7 +102,7 @@ void gpu_zgemmsp( int uplo, int trans,
     SolverBlok *lblok;
 
     pastix_int_t stride, stridef, indblok;
-    pastix_int_t N, K, max_m;
+    pastix_int_t N, K, max_m = 0;
     int i, shift, count;
 
     shift = (uplo == PastixUpper) ? 1 : 0;
@@ -128,8 +128,6 @@ void gpu_zgemmsp( int uplo, int trans,
     /* Get the last block to stop the iteration */
     lblok = cblk[1].fblokptr;
     count = (lblok - blok) - shift;
-
-    //fprintf(stderr, "BacthCount: %d\n", count );
 
     for (iterblok=blok+shift, i=0; iterblok<lblok; iterblok++, i++) {
         /* Find facing blok */
