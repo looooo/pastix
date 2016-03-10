@@ -680,9 +680,10 @@ add_dependencies(pastix
   kernels_headers
   bcsc_headers
   refinement_headers
+)
+target_link_libraries(pastix
   pastix_bcsc
   pastix_kernels
-  pastix_cucores_sm35
 )
 
 # foreach (module2 ${modules})
@@ -693,10 +694,6 @@ install(TARGETS pastix
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
-
-if (PASTIX_WITH_CUDA AND CUDA_FOUND)
-    add_subdirectory(kernels/gpus/kepler)
-endif()
 
 # Install header files
 set(PASTIX_HDRS
