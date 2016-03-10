@@ -78,7 +78,7 @@ END
 GEMM(bloknum)
 
 // Execution space
-bloknum = 0 .. bloknbr
+bloknum = 1 .. bloknbr
 
 lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->lcblknm; %}
 fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
@@ -99,7 +99,7 @@ prev    = inline_c %{
     }
     %}
 next    = inline_c %{
-    /* If we are on a diagonal blok, or if we are the alst one, there is no next */
+    /* If we are on a diagonal blok, or if we are the last one, there is no next */
     if ((brownum == -1) || (brownum >= last) ){
         return 0;
     } else {
@@ -113,12 +113,12 @@ next    = inline_c %{
 // Parameters
 READ  A  <- (brownum != -1) ? L POTRF_TRSM( lcblknm ) : NULL
 
-RW    C  <-  (brownum == -1) ? NULL
-         <- ((brownum != -1) && (brownum == first)) ? dataA( 0, fcblknm )
-         <- ((brownum != -1) && (brownum != first)) ? C GEMM( prev )
+RW    C  <- (brownum == -1) ? NULL
+         <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm )
+         <- (brownum != -1) && (brownum != first) ? C GEMM( prev )
 
-         -> ((brownum != -1) && (brownum == last)) ? L POTRF_TRSM( fcblknm )
-         -> ((brownum != -1) && (brownum != last)) ? C GEMM( next )
+         -> (brownum != -1) && (brownum == last)  ? L POTRF_TRSM( fcblknm )
+         -> (brownum != -1) && (brownum != last)  ? C GEMM( next )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
