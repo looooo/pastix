@@ -162,6 +162,15 @@ void pastix_zgemm_vbatched_nt(
     cuDoubleComplex beta,
     pastix_int_t lddc,
     pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream );
+
+void gpu_zgemmsp( int uplo, int trans,
+                  SolverCblk      *cblk,
+                  SolverBlok      *blok,
+                  SolverCblk      *fcblk,
+                  cuDoubleComplex *A,
+                  cuDoubleComplex *B,
+                  cuDoubleComplex *C,
+                  cudaStream_t stream );
 #endif
 
 #endif /* _CORE_Z_H_ */

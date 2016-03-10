@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgemmsp.c
+ * @file gpu_zgemmsp.c
  *
  *  PaStiX kernel routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -19,15 +19,12 @@
 #include <cblas.h>
 #include "../blend/solver.h"
 
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t zzero =  0.;
-
 /**
  *******************************************************************************
  *
  * @ingroup pastix_kernel
  *
- * core_zgemmsp - Computes the updates associated to one off-diagonal block.
+ * gpu_zgemmsp - Computes the updates associated to one off-diagonal block.
  *
  *******************************************************************************
  *
@@ -83,24 +80,30 @@ static pastix_complex64_t zzero =  0.;
  *          block.
  *
  *******************************************************************************/
-void core_zgemmsp( int uplo, int trans,
-                   SolverCblk         *cblk,
-                   SolverBlok         *blok,
-                   SolverCblk         *fcblk,
-                   pastix_complex64_t *A,
-                   pastix_complex64_t *B,
-                   pastix_complex64_t *C,
-                   pastix_complex64_t *work )
+void gpu_zgemmsp( int uplo, int trans,
+                  SolverCblk      *cblk,
+                  SolverBlok      *blok,
+                  SolverCblk      *fcblk,
+                  cuDoubleComplex *A,
+                  cuDoubleComplex *B,
+                  cuDoubleComplex *C,
+                  cudaStream_t stream )
 {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+#else
+    double mzone = -1.;
+    double zone  =  1.;
+#endif
+    gemm_params_t params;
     SolverBlok *iterblok;
     SolverBlok *fblok;
     SolverBlok *lblok;
 
-    pastix_complex64_t *tmpC;
-    pastix_complex64_t *wtmp;
     pastix_int_t stride, stridef, indblok;
-    pastix_int_t M, N, K, m;
-    int shift;
+    pastix_int_t N, K, max_m;
+    int i, shift, count;
 
     shift = (uplo == PastixUpper) ? 1 : 0;
 
@@ -112,37 +115,23 @@ void core_zgemmsp( int uplo, int trans,
     indblok = blok->coefind;
 
     N = blok_rownbr( blok );
-    M = stride - indblok - (shift * N);
 
-    /* Matrix A = Aik */
-    A = A + indblok + (shift * N);
+    /* Move B to the right pointer */
     B = B + indblok;
-
-    /*
-     * Compute update A * B'
-     */
-    wtmp = work;
-    cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
-                 M, N, K,
-                 CBLAS_SADDR(zone),  A,    stride,
-                                     B,    stride,
-                 CBLAS_SADDR(zzero), wtmp, M  );
-
-    /*
-     * Add contribution to C in fcblk
-     */
-
-    /* Get the first block of the distant panel */
-    fblok = fcblk->fblokptr;
 
     /* Move the pointer to the top of the right column */
     C = C + (blok->frownum - fcblk->fcolnum) * stridef;
 
+    /* Get the first block of the distant panel */
+    fblok = fcblk->fblokptr;
+
+    /* Get the last block to stop the iteration */
     lblok = cblk[1].fblokptr;
+    count = (lblok - blok) - shift;
 
-    /* for all following blocks in block column */
-    for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
+    //fprintf(stderr, "BacthCount: %d\n", count );
 
+    for (iterblok=blok+shift, i=0; iterblok<lblok; iterblok++, i++) {
         /* Find facing blok */
         while (!is_block_inside_fblock( iterblok, fblok ))
         {
@@ -150,17 +139,40 @@ void core_zgemmsp( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        tmpC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-        m = blok_rownbr( iterblok );
+        params.M[i]        = blok_rownbr( iterblok );
+        params.Acoefind[i] = iterblok->coefind;
+        params.Carray[i]   = C + fblok->coefind + iterblok->frownum - fblok->frownum;
 
-        pastix_cblk_lock( fcblk );
-        core_zgeadd( CblasNoTrans, m, N, -1.0,
-		     wtmp, M,
-		     tmpC, stridef );
-        pastix_cblk_unlock( fcblk );
+        max_m = pastix_imax( max_m, params.M[i] );
 
-        /* Displacement to next block */
-        wtmp += m;
+        if (i == 31) {
+            pastix_zgemm_vbatched_nt(
+                params, trans, N, K,
+                /* alpha  */  mzone,
+                /* A      */  A, stride,
+                /* B      */  B, stride,
+                /* beta   */  zone,
+                /* C      */     stridef,
+                max_m, 32,
+                stream );
+
+            /* Restart the loop */
+            i = -1;
+            count -= 32;
+            max_m = 0;
+        }
+    }
+
+    if (count > 0) {
+        pastix_zgemm_vbatched_nt(
+            params, trans, N, K,
+            /* alpha  */  mzone,
+            /* A      */  A, stride,
+            /* B      */  B, stride,
+            /* beta   */  zone,
+            /* C      */     stridef,
+            max_m, count,
+            stream );
     }
 }
 
