@@ -169,7 +169,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         coeftab_zffbcsc( solvmtx, bcsc, itercblk );
     }
 
-#if defined(DAGUE_DEBUG)
+#if defined(PASTIX_DUMP_COEFTAB)
     {
         FILE *f;
         char *filename;
@@ -188,7 +188,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
             free( filename );
         }
     }
-#endif /* defined(DAGUE_DEBUG) */
+#endif /* defined(PASTIX_DUMP_COEFTAB) */
 }
 
 /*
