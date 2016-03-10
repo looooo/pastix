@@ -18,7 +18,7 @@
 #include "pastix_zcores.h"
 #include <cblas.h>
 #include "../blend/solver.h"
-//#include <lapacke.h>
+#include <lapacke.h>
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -65,20 +65,19 @@ pastix_int_t z_compress_LR(pastix_complex64_t *fL,
     for (i=0; i<dim_min-1; i++){
         if (s[i] / s[0] < tolerance){
             rank = i+1;
-            printf("Block of size %ld %ld has rank %ld (min %ld) %.3g\n", dima, dimb, rank, dim_min, s[i]);
             break;
         }
     }
+
+    /* printf("Block of size %ld %ld has rank %ld (min %ld) %.3g\n", dima, dimb, rank, dim_min, s[rank]); */
 
     for (i=rank; i<dim_min; i++){
         s[i] = 0;
     }
 
-#ifdef PREC_DOUBLE
     for (i=0; i<dim_min; i++){
         cblas_dscal(dimb, s[i], &(u[i*dimb]), 1);
     }
-#endif
 
     return rank;
 }
@@ -86,21 +85,183 @@ pastix_int_t z_compress_LR(pastix_complex64_t *fL,
 void z_uncompress_LR(pastix_complex64_t *fL,
                      pastix_int_t dima,
                      pastix_int_t dimb,
-                     double *s,
                      pastix_complex64_t *u,
                      pastix_complex64_t *v,
-                     pastix_int_t rank,
-                     pastix_int_t stride){
+                     pastix_int_t stride,
+                     pastix_int_t rank){
 
-    pastix_int_t dim_min = dima;
-    if (dimb < dim_min)
-        dim_min = dimb;
+    pastix_int_t dim_min = pastix_imin(dima, dimb);
 
+    /* TODO: change demi to zone */
     cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                dimb, dima, dima,
+                dimb, dima, rank,
                 CBLAS_SADDR(zone),  u,  dimb,
                                     v,  dima,
                 CBLAS_SADDR(zzero), fL, stride);
+}
+
+void z_add_LR(pastix_complex64_t *u1,
+              pastix_complex64_t *v1,
+              pastix_complex64_t *u2,
+              pastix_complex64_t *v2,
+              pastix_int_t dim_u1,
+              pastix_int_t dim_v1,
+              pastix_int_t rank_1,
+              pastix_int_t dim_u2,
+              pastix_int_t dim_v2,
+              pastix_int_t rank_2,
+              pastix_int_t x2,
+              pastix_int_t y2){
+
+    /* Idem for block u2 v2^T */
+    /* u1 is of size dim_u1 * rank_1 */
+    /* v1 is of size dim_u1 * rank_1 */
+
+    /* We suppose u1 v1^T is the matrix which receive the contribution */
+    /* Then, dim_u1 >= dim_u2 and dim_v1 >= dim_v2 */
+    /* (x2, y2) represents the first index of u2 v2^T contributing to u1 v1^T */
+
+    pastix_int_t dim_u = pastix_imax(dim_u1, dim_u2);
+    pastix_int_t dim_v = pastix_imax(dim_v1, dim_v2);
+    pastix_int_t rank = rank_1 + rank_2;
+    pastix_int_t i, j;
+
+    /* u1v1^T + u2v2^T = (u1 u2) (v1 v2)^T */
+    /* Compute QR decomposition of (u1 u2) = Q1 R1 */
+    /* Compute QR decomposition of (v1 v2) = Q2 R2 */
+    /* Compute SVD of R1 R2^T = u \sigma v^T*/
+    /* Final solution is (Q1 u \sigma^[1/2]) (Q2 v \sigma^[1/2])^T */
+
+    pastix_complex64_t *u1u2, *v1v2;
+    u1u2 = malloc( dim_u * rank * sizeof(pastix_complex64_t));
+    v1v2 = malloc( dim_v * rank * sizeof(pastix_complex64_t));
+
+    /* TODO: apply when dim_u1 != dim_u2 AND dim_v1 != dim_v2 */
+    /* memset(u1u2, 0, dim_u * (rank_1 + rank_2) * sizeof(pastix_complex64_t)); */
+    /* memset(v1v2, 0, dim_v * (rank_1 + rank_2) * sizeof(pastix_complex64_t)); */
+    memcpy(u1u2,                  u1, dim_u1 * rank_1 * sizeof(pastix_complex64_t));
+    memcpy(u1u2 + dim_u * rank_1, u2, dim_u2 * rank_2 * sizeof(pastix_complex64_t));
+
+    for (i=0; i<dim_v; i++){
+        for (j=0; j<rank_1; j++){
+            v1v2[dim_v * j + i]            = v1[i * dim_v1 + j];
+        }
+        for (j=0; j<rank_2; j++){
+            v1v2[dim_v * (rank_1 + j) + i] = v2[i * dim_v2 + j];
+        }
+    }
+
+    pastix_int_t ret;
+    pastix_int_t minMN_1     = pastix_imin(dim_u, rank);
+    pastix_complex64_t *tau1 = malloc( minMN_1 * sizeof(pastix_complex64_t));
+
+    /* Rank is too high for u1u2 */
+    if (minMN_1 == dim_u){
+        return;
+    }
+    ret = LAPACKE_zgeqrf( CblasColMajor, dim_u, rank,
+                          u1u2, dim_u, tau1 );
+
+
+    pastix_int_t minMN_2     = pastix_imin(dim_v, rank);
+    pastix_complex64_t *tau2 = malloc( minMN_2 * sizeof(pastix_complex64_t));
+
+    /* Rank is too high for v1v2 */
+    if (minMN_2 == dim_v){
+        return;
+    }
+    ret = LAPACKE_zgeqrf( CblasColMajor, dim_v, rank,
+                          v1v2, dim_v, tau2 );
+
+
+    pastix_complex64_t *R1, *R2, *R;
+    R1 = malloc(rank * rank * sizeof(pastix_complex64_t));
+    R2 = malloc(rank * rank * sizeof(pastix_complex64_t));
+    R  = malloc(rank * rank * sizeof(pastix_complex64_t));
+    memset(R1, 0, rank * rank * sizeof(pastix_complex64_t));
+    memset(R2, 0, rank * rank * sizeof(pastix_complex64_t));
+    memset(R , 0, rank * rank * sizeof(pastix_complex64_t));
+
+    for (i=0; i<rank; i++){
+        memcpy(R1 + rank * i, u1u2 + dim_u * i, (i+1) * sizeof(pastix_complex64_t));
+        memcpy(R2 + rank * i, v1v2 + dim_v * i, (i+1) * sizeof(pastix_complex64_t));
+    }
+
+    /* Compute R1 R2 */
+    cblas_zgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+                rank, rank, rank,
+                CBLAS_SADDR(zone),  R1, rank,
+                                    R2, rank,
+                CBLAS_SADDR(zzero), R,  rank);
+
+    double superb[rank];
+    double *s;
+    pastix_complex64_t *u, *v;
+    s = malloc( rank * sizeof(double));
+    u = malloc( rank * rank * sizeof(pastix_complex64_t));
+    v = malloc( rank * rank * sizeof(pastix_complex64_t));
+
+    ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
+                          rank, rank, R, rank,
+                          s, u, rank, v, rank, superb );
+
+    /* Keep rank as constant wrt the block receiving contribution */
+    for (i=rank_1; i<rank; i++){
+        if (fabs(s[i]) > 1e-16){
+            printf("Strange as we add two identical matrices %.3g\n", s[i]);
+        }
+    }
+
+    /* Scal u as before to take into account singular values */
+    for (i=0; i<rank; i++){
+        cblas_dscal(rank, s[i], &(u[rank * i]), 1);
+    }
+
+    memset(u1, 0, dim_u * rank_1 * sizeof(pastix_complex64_t));
+
+    for (i=0; i<rank_1; i++){
+        memcpy(u1 + dim_u * i, u + rank * i, rank * sizeof(pastix_complex64_t));
+    }
+
+    /* We need non-transposed version of v */
+    pastix_complex64_t *v3;
+    v3 = malloc(  dim_v * dim_v * sizeof(pastix_complex64_t));
+
+    for (i=0; i<rank_1; i++){
+        for (j=0; j<rank_1; j++){
+            v3[dim_v * j + i] = v[rank * i + j];
+        }
+    }
+
+    ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
+                         dim_u1, rank_1, rank_1, //minMN_1, /* to be replaced by rank */
+                         u1u2, dim_u, tau1,
+                         u1, dim_u1);
+
+    /* We are suppose to apply this on right */
+    ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
+                         dim_v1, rank_1, rank_1, //minMN_2, /* to be replaced by rank */
+                         v1v2, dim_v, tau2,
+                         v3, dim_v1);
+
+
+    /* memset(u1, 0, dim_u * rank_1 * sizeof(pastix_complex64_t)); */
+    /* memset(v1, 0, dim_v * rank_1 * sizeof(pastix_complex64_t)); */
+
+    /* We added two identical matrices */
+    for (i=0; i<dim_u1; i++){
+        for (j=0; j<dim_u1; j++){
+            u1[dim_u1*i+j] *= 0.5;
+        }
+    }
+    for (i=0; i<dim_v1; i++){
+        for (j=0; j<dim_v1; j++){
+            v1[dim_v1*j+i] = v3[dim_v1*i+j];
+        }
+    }
+
+    printf("Rank was OK to add the two LR structures u %ld %ld %ld\n", dim_u, rank_1, rank_2);
+    return;
 }
 
 /**
@@ -581,9 +742,7 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
             double *s;
             pastix_complex64_t *u, *v;
 
-            pastix_int_t dim_min = dima;
-            if (dimb < dim_min)
-                dim_min = dimb;
+            pastix_int_t dim_min = pastix_imin(dima, dimb);
 
             s = malloc( dim_min * sizeof(double));
             u = malloc( dimb * dimb * sizeof(pastix_complex64_t));
@@ -593,9 +752,35 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
             memset(u, 0, dimb * dimb * sizeof(pastix_complex64_t));
             memset(v, 0, dima * dima * sizeof(pastix_complex64_t));
 
-            if (dimb > dima){
+            /* if (dimb > dima){ */
+            if (1){
                 rank = z_compress_LR(fU, dima, dimb,
                                      s, u, v, stride);
+
+                /* Add two identical LR matrices */
+                pastix_int_t i, j;
+
+                /* Set to 0 to see if it changes the world */
+                /* for (i=rank; i<dimb; i++){ */
+                /*     for (j=0; j<dimb; j++){ */
+                /*         u[i*dimb+j] = 0; */
+                /*     } */
+                /* } */
+                /* for (i=rank; i<dima; i++){ */
+                /*     for (j=0; j<dima; j++){ */
+                /*         v[j*dima+i] = 0; */
+                /*     } */
+                /* } */
+
+                z_add_LR(u, v,
+                         u, v,
+                         dimb, dima, rank,
+                         dimb, dima, rank,
+                         0, 0);
+
+                double mem_dense = dima*dimb*8./1000000.;
+                double mem_SVD   = rank*(dima+dimb)*8./1000000.;
+                gain_U += mem_dense - mem_SVD;
 
                 cblas_ztrsm(CblasColMajor,
                             CblasRight, CblasLower,
@@ -610,10 +795,12 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                             CBLAS_SADDR(zone), D,  stride_D,
                             v, dima);
 
+                /* TODO: update rank */
                 z_uncompress_LR(fU, dima, dimb,
-                                s, u, v, rank, stride);
+                                u, v, stride, rank);
             }
-            else{
+            else
+            {
                 cblas_ztrsm(CblasColMajor,
                             CblasRight, CblasLower,
                             CblasTrans, CblasUnit,
