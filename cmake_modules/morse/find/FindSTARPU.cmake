@@ -4,7 +4,7 @@
 #                          of Tennessee Research Foundation.
 #                          All rights reserved.
 # @copyright (c) 2012-2015 Inria. All rights reserved.
-# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+# @copyright (c) 2012-2016 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
 #
 ###
 #
@@ -103,6 +103,24 @@ if( STARPU_FIND_COMPONENTS )
         endif()
     endforeach()
 endif()
+
+# STARPU may depend on pthread, try to find it
+find_package(Threads)
+if( THREADS_FOUND )
+    list(APPEND STARPU_EXTRA_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+endif ()
+# STARPU may depend on libm, try to find it
+find_library(M_m_LIBRARY NAMES m)
+mark_as_advanced(M_m_LIBRARY)
+if( M_m_LIBRARY )
+    list(APPEND STARPU_EXTRA_LIBRARIES ${M_m_LIBRARY})
+endif ()
+# STARPU may depend on librt, try to find it
+find_library(RT_rt_LIBRARY NAMES m)
+mark_as_advanced(RT_rt_LIBRARY)
+if( RT_rt_LIBRARY )
+    list(APPEND STARPU_EXTRA_LIBRARIES ${RT_rt_LIBRARY})
+endif ()
 
 # STARPU may depend on HWLOC, try to find it
 if (NOT HWLOC_FOUND AND STARPU_LOOK_FOR_HWLOC)
@@ -245,9 +263,17 @@ if(PKG_CONFIG_EXECUTABLE AND NOT STARPU_GIVEN_BY_USER)
     endif()
 
     if(STARPU_MPI_LIBRARIES)
+        if (STARPU_LOOK_FOR_SIMGRID)
+            # Cmake does not fetch explicit libfxt.a static paths from pkg-config...
+            find_package(FXT)
+            string(REGEX MATCH "[^;]*/libfxt.a" FXT_STATIC_LIB "${STARPU_MPI_LDFLAGS_OTHER}")
+            list(APPEND STARPU_MPI_LIBRARIES "${FXT_STATIC_LIB}")
+        endif()
         set(STARPU_LIBRARIES "${STARPU_MPI_LIBRARIES}")
+        set(STARPU_LINKER_FLAGS "${STARPU_MPI_LDFLAGS_OTHER}")
     elseif(STARPU_SHM_LIBRARIES)
         set(STARPU_LIBRARIES "${STARPU_SHM_LIBRARIES}")
+        set(STARPU_LINKER_FLAGS "${STARPU_SHM_LDFLAGS_OTHER}")
     else()
         set(STARPU_LIBRARIES "STARPU_LIBRARIES-NOTFOUND")
     endif()
@@ -763,6 +789,7 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT STARPU_FOUND) 
                     list(APPEND REQUIRED_LIBS "-l${lib}")
                 endif()
             endforeach()
+            list(APPEND REQUIRED_FLAGS "-include starpu_simgrid_wrap.h")
         endif()
         # BLAS
         if (BLAS_FOUND AND STARPU_LOOK_FOR_BLAS)
@@ -799,6 +826,8 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT STARPU_FOUND) 
                 list(APPEND REQUIRED_LIBS "${FORTRAN_ifcore_LIBRARY}")
             endif()
         endif()
+        # EXTRA LIBS such that pthread, m, rt
+        list(APPEND REQUIRED_LIBS ${STARPU_EXTRA_LIBRARIES})
 
         # set required libraries for link
         set(CMAKE_REQUIRED_INCLUDES "${REQUIRED_INCDIRS}")
@@ -837,7 +866,7 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT STARPU_FOUND) 
                 message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
                 message(STATUS "Check in CMakeFiles/CMakeError.log to figure out why it fails")
                 message(STATUS "Maybe STARPU is linked with specific libraries. "
-                "Have you tried with COMPONENTS (HWLOC, CUDA, MPI, BLAS, MAGMA, FXT)? "
+                "Have you tried with COMPONENTS (HWLOC, CUDA, MPI, BLAS, MAGMA, FXT, SIMGRID)? "
                 "See the explanation in FindSTARPU.cmake.")
             endif()
         endif()
@@ -872,7 +901,7 @@ endif()
 include(FindPackageHandleStandardArgs)
 if(NOT STARPU_FIND_QUIETLY)
     if(STARPU_SHM_FOUND)
-        message(STATUS "StarPU has been found.")
+        message(STATUS "StarPU library has been found.")
         if(STARPU_MPI_LIBRARIES)
             message(STATUS "The mpi version of StarPU has been found so that we manage"
                            "two lists of libs, one sequential and one parallel (see"
