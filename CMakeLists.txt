@@ -554,7 +554,6 @@ set(PASTIX_LIB_SRCS
   blend/solver_io.c
 # blend/splitpartlocal.c
   blend/task.c
-#  blend/blend_distributeOnGPU.c
   blend/solver.c
   blend/solver_backup.c
   blend/pastix_task_analyze.c
@@ -596,6 +595,13 @@ set(PASTIX_LIB_SRCS
 #
   ${generated_files}
   )
+
+if(PASTIX_WITH_CUDA)
+  set(PASTIX_LIB_SRCS
+    ${PASTIX_LIB_SRCS}
+    blend/solver_compute_gpu_distrib.c
+    )
+endif()
 
 set_source_files_properties(
   spm/spm.c

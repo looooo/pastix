@@ -123,7 +123,7 @@ typedef struct SolverMatrix_ {
 
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
-    FanInTarget * restrict  ftgttab;              /*+ Fanintarget access vector                 +*/
+    FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
 
     pastix_int_t              diagmax;              /*+ Maximum size required during diagonal block factorization (hetrf/sytrf) +*/
     pastix_int_t              gemmmax;              /*+ Maximum size required during GEMM computation                           +*/
@@ -496,5 +496,12 @@ void            solverBackupExit( SolverBackup_t *b );
 
 pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
 pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
+
+int solverComputeGPUDistrib( SolverMatrix *solvmtx,
+                             int           ngpus,
+                             int           memory_percentage,
+                             size_t        eltsize,
+                             int           criterium,
+                             int           factotype );
 
 #endif /* _SOLVER_H_*/

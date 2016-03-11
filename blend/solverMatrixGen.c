@@ -6,11 +6,6 @@
 #include <sys/stat.h>
 
 #include "common.h"
-/* #ifdef PASTIX_WITH_CUDA */
-/* #  include <cuda.h> */
-/* #  include <cuda_runtime_api.h> */
-/* #  include "blend_distributeOnGPU.h" */
-/* #endif */
 #include "cost.h"
 #include "ftgt.h"
 #include "symbol.h"
@@ -98,11 +93,11 @@
 
 
 pastix_int_t *
-solverMatrixGen(const pastix_int_t clustnum,
-                SolverMatrix *solvmtx,
+solverMatrixGen(const pastix_int_t  clustnum,
+                SolverMatrix       *solvmtx,
                 const SymbolMatrix *symbmtx,
-                const SimuCtrl * simuctrl,
-                const BlendCtrl * ctrl)
+                const SimuCtrl     *simuctrl,
+                const BlendCtrl    *ctrl)
 {
     pastix_int_t  p, c;
     pastix_int_t  cursor;
@@ -304,7 +299,7 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->lcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
-            solvcblk->gpuid    = -1;
+            solvcblk->gpuid    = -2;
         }
 
         solvmtx->nodenbr = nodenbr;
@@ -901,46 +896,18 @@ solverMatrixGen(const pastix_int_t clustnum,
 /*     } */
     /*********************** END TRIANGULAR INFO BUILDING ******************************************/
 
-#if defined(PASTIX_WITH_CUDA) & 0
-  if (ctrl->iparm[IPARM_STARPU] == API_YES &&
-      ctrl->iparm[IPARM_CUDA_NBR] > 0) {
-    size_t free, total;
-    int pageSize = 128*1024;
-    int iter;
-    switch (ctrl->iparm[IPARM_FLOAT]) {
-    case API_REALSINGLE:
-      pageSize*=sizeof(float);
-      break;
-    case API_REALDOUBLE:
-      pageSize*=sizeof(double);
-      break;
-    case API_COMPLEXSINGLE:
-      pageSize*=2*sizeof(float);
-      break;
-    case API_COMPLEXDOUBLE:
-      pageSize*=2*sizeof(double);
-      break;
-    default:
-      errorPrint("Unkwnown type");
-      return NULL; /* FLOAT_TYPE_ERR; */
+#if defined(PASTIX_WITH_CUDA)
+    if (ctrl->iparm[IPARM_CUDA_NBR] > 0) {
+        size_t eltsize = 32 * 1024 * (pastix_size_of(ctrl->iparm[IPARM_FLOAT]) / sizeof(float));
+        solverComputeGPUDistrib( solvmtx,
+                                 ctrl->iparm[IPARM_GPU_NBR],
+                                 0.7,
+                                 eltsize,
+                                 ctrl->iparm[IPARM_GPU_CRITERIUM],
+                                 ctrl->iparm[IPARM_FACTORIZATION] );
     }
-    for (iter = 0; iter < ctrl->iparm[IPARM_CUDA_NBR]; iter++) {
-      cudaSetDevice(iter);
-      cudaFree(0);
-      cuMemGetInfo(&free, &total);
-      fprintf(stdout, "GPU%d free %.2g %s total %.2g %s\n", iter,
-              MEMORY_WRITE(free), MEMORY_UNIT_WRITE(free),
-              MEMORY_WRITE(total), MEMORY_UNIT_WRITE(total));
-    }
-    blend_distributeOnGPU(solvmtx,
-                          (double)GPU_MAX_FILL*free,
-                          pageSize,
-                          ctrl->iparm[IPARM_GPU_CRITERIUM],
-                          ctrl->iparm[IPARM_CUDA_NBR],
-                          ctrl->iparm[IPARM_FLOAT],
-                          ctrl->iparm[IPARM_FACTORIZATION]);
-  }
 #endif
+
 #if defined(PASTIX_WITH_STARPU)
     /************************************************************************/
     /*  Fill the halo information                                           */
