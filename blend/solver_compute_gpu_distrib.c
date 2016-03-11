@@ -50,7 +50,7 @@ typedef struct _gpu_elem_ {
 
 int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           ngpus,
-                             int           memory_percentage,
+                             double        memory_percentage,
                              size_t        eltsize,
                              int           criterium,
                              int           factotype )
@@ -175,7 +175,7 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
         cudaSetDevice(i);
         cudaMemGetInfo( &initial_free_mem, &total_mem );
 
-        how_much_we_allocate = (memory_percentage * initial_free_mem) / 100;
+        how_much_we_allocate = (memory_percentage * (double)initial_free_mem) / 100.;
         how_much_we_allocate = pastix_iceil( how_much_we_allocate, eltsize );
 
         egpu->id = i;

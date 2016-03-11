@@ -499,7 +499,7 @@ pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
 
 int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           ngpus,
-                             int           memory_percentage,
+                             double        memory_percentage,
                              size_t        eltsize,
                              int           criterium,
                              int           factotype );
