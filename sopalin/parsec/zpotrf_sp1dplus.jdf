@@ -86,20 +86,27 @@ first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
 
 brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
-prev    = inline_c %{
+prev = inline_c %{
     assert( first >= 0 );
-    /* If bloknum is a diagonal block, or if it is the first one applied on C, there is no previous */
+    /**
+     * If bloknum is a diagonal block, or if it is the first one applied on C,
+     * there is no previous
+     */
     if ((brownum == -1) || (brownum == first) ) {
         return 0;
     }
-    /* Otherwise we return the previous block in the list of blocks facing fcblk */
+    /**
+     * Otherwise we return the previous block in the list of blocks facing fcblk
+     */
     else {
         assert( brownum > first );
         return datacode->browtab[brownum-1];
     }
     %}
-next    = inline_c %{
-    /* If we are on a diagonal blok, or if we are the last one, there is no next */
+next = inline_c %{
+    /**
+     * If we are on a diagonal blok, or if we are the last one, there is no next
+     */
     if ((brownum == -1) || (brownum >= last) ){
         return 0;
     } else {
