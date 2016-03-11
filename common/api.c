@@ -119,8 +119,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
     iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
     iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
-    iparm[IPARM_CUDA_NBR]              = 0;                   /* CUDA devices */
-
+    iparm[IPARM_GPU_NBR]               = 0;                   /* CUDA devices */
 
     iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
     iparm[IPARM_NNZEROS]               = 0;                   /* memory space for coefficients                        */
@@ -197,10 +196,12 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_RHSD_CHECK]         = API_YES;
     iparm[IPARM_STARPU]             = API_NO;
     iparm[IPARM_AUTOSPLIT_COMM]     = API_NO;
-    iparm[IPARM_FLOAT]              = API_REALDOUBLE;
+    iparm[IPARM_FLOAT]              = PastixDouble;
     iparm[IPARM_STARPU_CTX_DEPTH]   = 3;
     iparm[IPARM_STARPU_CTX_NBR]     = -1;
     iparm[IPARM_PRODUCE_STATS]      = API_NO;
+
+    iparm[IPARM_GPU_CRITERIUM]      = API_GPU_CRITERION_FLOPS;
 
     dparm[DPARM_EPSILON_REFINEMENT] = -1.;
     dparm[DPARM_RELATIVE_ERROR]     = -1.;
