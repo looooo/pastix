@@ -43,8 +43,24 @@ typedef enum pastix_fmttype_e {
 
 #define PASTIX_SUCESS  0
 
+/**
+ * Main structure of the pastix solver associated to a given problem
+ */
 struct pastix_data_s;
 typedef struct pastix_data_s pastix_data_t;
+
+struct pastix_graph_s;
+typedef struct pastix_graph_s pastix_graph_t;
+
+struct Order_;
+typedef struct Order_ Order;
+
+struct pastix_spm_s;
+typedef struct pastix_spm_s pastix_spm_t;
+typedef struct pastix_spm_s pastix_csc_t;
+
+struct SolverMatrix_;
+typedef struct SolverMatrix_ SolverMatrix;
 
 /*
  * Group: Main PaStiX functions
@@ -548,16 +564,6 @@ void pastix_unscale ( pastix_data_t *pastix_data, pastix_int_t sym);
 
 unsigned long pastix_getMemoryUsage(void);
 unsigned long pastix_getMaxMemoryUsage(void);
-
-struct pastix_graph_s;
-typedef struct pastix_graph_s pastix_graph_t;
-
-struct Order_;
-typedef struct Order_ Order;
-
-struct pastix_spm_s;
-typedef struct pastix_spm_s pastix_spm_t;
-typedef struct pastix_spm_s pastix_csc_t;
 
 void pastixInitParam( pastix_int_t *iparm,
                       double       *dparm );

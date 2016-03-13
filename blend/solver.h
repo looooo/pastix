@@ -85,7 +85,7 @@ typedef struct SolverCblk_  {
 /*+ Solver matrix structure. +*/
 
 /* All data are local to one cluster */
-typedef struct SolverMatrix_ {
+struct SolverMatrix_ {
     int restore; /*+ Flag to indicate if it is require to restore data with
                      solverBackupRestore: 0: No need, 1:After solve,
                      2:After Factorization +*/
@@ -151,7 +151,7 @@ typedef struct SolverMatrix_ {
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
-} SolverMatrix;
+};
 
 /**
  * Indicates whether a column block is in halo.
