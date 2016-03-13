@@ -18,6 +18,7 @@
  **/
 #include "common.h"
 #include "isched.h"
+#include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
@@ -25,7 +26,6 @@
 #include <dague.h>
 #include <dague/data.h>
 #include <dague/data_distribution.h>
-#include "parsec/sparse-matrix.h"
 
 int dsparse_zpotrf_sp( dague_context_t *dague,
                        sparse_matrix_desc_t *A,
@@ -111,25 +111,19 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
 {
     sparse_matrix_desc_t desc;
     dague_context_t *ctx;
-    int argc = 0;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {
-        pastix_data->parsec = dague_init( -1, &argc, NULL );
+        int argc = 0;
+        pastix_parsec_init( pastix_data, &argc, NULL );
     }
     ctx = pastix_data->parsec;
-
-    /* Create the matrix descriptor */
-    sparse_matrix_init( &desc, sopalin_data->solvmtx,
-                        pastix_size_of( PastixComplex64 ), 1, 0 );
 
     /* Run the facto */
     dsparse_zpotrf_sp( ctx, &desc, sopalin_data );
 
     /* Destroy the decriptor */
     sparse_matrix_destroy( &desc );
-
-    dague_fini( &(pastix_data->parsec) );
 }
 #endif
 

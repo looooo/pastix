@@ -18,6 +18,7 @@
  **/
 #include <cblas.h>
 #include "common.h"
+#include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 

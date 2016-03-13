@@ -593,6 +593,13 @@ set(PASTIX_LIB_SRCS
   ${generated_files}
   )
 
+if(PASTIX_WITH_PARSEC)
+  set(PASTIX_LIB_SRCS
+    ${PASTIX_LIB_SRCS}
+    common/parsec.c
+    )
+endif()
+
 if(PASTIX_WITH_CUDA)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}

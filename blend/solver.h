@@ -101,6 +101,10 @@ typedef struct SolverMatrix_ {
     SolverBlok   * restrict bloktab; /*< Array of solver blocks                    */
     pastix_int_t * restrict browtab; /*< Array of blocks                           */
 
+#if defined(PASTIX_WITH_PARSEC)
+    sparse_matrix_desc_t   *parsec_desc;
+#endif
+
 #ifdef PASTIX_WITH_STARPU
     /* All this part concern halo of the local matrix
      * ie: column blocks which will:

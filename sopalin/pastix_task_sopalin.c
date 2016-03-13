@@ -18,6 +18,7 @@
 #include "isched.h"
 #include "spm.h"
 #include "bcsc.h"
+#include "solver.h"
 #include "sopalin_data.h"
 
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
@@ -106,6 +107,23 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
     coeftabInit( pastix_data,
                  spm->flttype == PastixPattern,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
+
+#if defined(PASTIX_WITH_PARSEC)
+    {
+        sparse_matrix_desc_t *sdesc = pastix_data->solvmatr->parsec_desc;
+        if ( sdesc != NULL ) {
+            sparse_matrix_destroy( sdesc );
+        }
+        else {
+            sdesc = (sparse_matrix_desc_t*)malloc(sizeof(sparse_matrix_desc_t));
+        }
+
+        /* Create the matrix descriptor */
+        sparse_matrix_init( sdesc, pastix_data->solvmatr,
+                            pastix_size_of( spm->flttype ), 1, 0 );
+        pastix_data->solvmatr->parsec_desc = sdesc;
+    }
+#endif
 
     /* Invalidate following step, and add current step to the ones performed */
     pastix_data->steps &= ~STEP_NUMFACT;
@@ -198,7 +216,6 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
             pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LDLT);
         }
     }
-
 
     /* Compute the norm of A, to scale the epsilon parameter for pivoting */
     {

@@ -39,6 +39,10 @@
 #include "trace.h"
 #include "pastixdata.h"
 
+#if defined(PASTIX_WITH_PARSEC)
+#include "sopalin/parsec/pastix_parsec.h"
+#endif
+
 /********************************************************************
  * Errors functions
  */

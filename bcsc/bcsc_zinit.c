@@ -16,6 +16,7 @@
 #include "common.h"
 #include "order.h"
 #include "spm.h"
+#include "solver.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
 

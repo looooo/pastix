@@ -18,6 +18,7 @@
  **/
 #include "common.h"
 #include "isched.h"
+#include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
@@ -25,7 +26,6 @@
 #include <dague.h>
 #include <dague/data.h>
 #include <dague/data_distribution.h>
-#include "parsec/sparse-matrix.h"
 #endif
 
 void

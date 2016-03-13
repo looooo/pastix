@@ -18,6 +18,7 @@
  **/
 #include "common.h"
 #include "isched.h"
+#include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
@@ -25,7 +26,6 @@
 #include <dague.h>
 #include <dague/data.h>
 #include <dague/data_distribution.h>
-#include "parsec/sparse-matrix.h"
 
 int dsparse_zgetrf_sp( dague_context_t *dague,
                        sparse_matrix_desc_t *A,

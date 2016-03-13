@@ -10,8 +10,8 @@
 #include <dague/data_distribution.h>
 #include <dague/private_mempool.h>
 #include "common.h"
+#include "solver.h"
 #include "sopalin_data.h"
-#include "parsec/sparse-matrix.h"
 #include "parsec/zsytrf_sp1dplus.h"
 
 dague_handle_t*

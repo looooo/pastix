@@ -16,6 +16,7 @@
  *
  **/
 #include "common.h"
+#include "solver.h"
 
 /**
  * @ingroup pastix_solver

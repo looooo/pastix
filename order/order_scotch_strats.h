@@ -54,7 +54,7 @@
   ""                        "vert=100,"                                 \
   ""                        "low=h{pass=10},"                           \
   ""                        "asc=f{bal=0.2}};,"                         \
-  ""      "ole=f{cmin=0,cmax=100000,frat=0.0},"                       \
+  ""      "ole=f{cmin=15,cmax=100000,frat=0.08},"                       \
   ""      "ose=g},"                                                     \
   """unc=n{sep=/(vert>120)?(m{rat=0.8,"                                 \
   ""                         "vert=100,"                                \

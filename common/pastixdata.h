@@ -22,7 +22,6 @@
 #include "symbol.h"
 #include "queue.h"
 #include "bulles.h"
-#include "solver.h"
 
 /*
  * Steps of the pastix solver
@@ -36,6 +35,9 @@
 #define STEP_NUMFACT   (1 << 6)
 #define STEP_SOLVE     (1 << 7)
 #define STEP_REFINE    (1 << 8)
+
+struct SolverMatrix_;
+typedef struct SolverMatrix_ SolverMatrix;
 
 struct pastix_bcsc_s;
 typedef struct pastix_bcsc_s pastix_bcsc_t;

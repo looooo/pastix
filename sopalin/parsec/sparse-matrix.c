@@ -9,23 +9,15 @@
  *
  **/
 #define _GNU_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <errno.h>
-#include <stdarg.h>
-#include <stdint.h>
+#include "common.h"
+#include "solver.h"
+#include "sopalin/parsec/pastix_parsec.h"
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif /* HAVE_MPI */
 #include <dague.h>
 #include <dague/data.h>
 #include <dague/data_distribution.h>
 
 #include "common.h"
-#include "parsec/sparse-matrix.h"
 
 static inline uint32_t
 spm_data_key( const SolverMatrix *solvmtx,
@@ -161,7 +153,6 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
 #if defined(DAGUE_PROF_TRACE)
     o->key_to_string = sparse_matrix_key_to_string;
 #endif
-    o->key_base = NULL;
 
     o->rank_of     = sparse_matrix_rank_of;
     o->rank_of_key = sparse_matrix_rank_of_key;
@@ -172,7 +163,6 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
 
     desc->typesze   = typesize;
     desc->solvmtx   = solvmtx;
-    desc->gpu_limit = 0;
     desc->data_map  = (dague_data_t**)calloc( 2 * solvmtx->cblknbr, sizeof(dague_data_t*) );
 }
 

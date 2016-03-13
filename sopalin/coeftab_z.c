@@ -17,6 +17,7 @@
  **/
 #define _GNU_SOURCE
 #include "common.h"
+#include "solver.h"
 #include "bcsc.h"
 
 void

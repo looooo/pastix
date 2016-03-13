@@ -12,8 +12,8 @@
 #include <dague/arena.h>
 #include <data_dist/matrix/matrix.h>
 #include "common.h"
+#include "solver.h"
 #include "sopalin_data.h"
-#include "parsec/sparse-matrix.h"
 #include "parsec/zpotrf_sp1dplus.h"
 
 dague_handle_t*

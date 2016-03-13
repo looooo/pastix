@@ -15,6 +15,7 @@
  **/
 #include <lapacke.h>
 #include "common.h"
+#include "solver.h"
 #include "spm.h"
 #include "z_spm.h"
 #include "kernels/pastix_zcores.h"

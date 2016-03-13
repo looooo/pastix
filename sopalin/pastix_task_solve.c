@@ -18,6 +18,7 @@
 #include "spm.h"
 #include "bcsc.h"
 #include "order.h"
+#include "solver.h"
 #include "sopalin_data.h"
 
 #include "z_bcsc.h"

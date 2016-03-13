@@ -369,8 +369,22 @@ pastixInit( pastix_data_t **pastix_data,
         iparm[IPARM_THREAD_NBR] = pastix->intra_node_procnbr;
     }
 
+    /**
+     * Start the internal threads
+     */
     pastix->isched = ischedInit( pastix->iparm[IPARM_THREAD_NBR], NULL );
     pastix->iparm[IPARM_THREAD_NBR] = pastix->isched->world_size;
+
+    /**
+     * Start PaRSEC if compiled with it and scheduler set to PaRSEC
+     */
+#if defined(PASTIX_WITH_PARSEC)
+    if ( pastix->parsec == NULL &&
+         iparm[IPARM_SCHEDULER] == 2 ) {
+        int argc = 0;
+        pastix_parsec_init( pastix, &argc, NULL );
+    }
+#endif /* defined(PASTIX_WITH_PARSEC) */
 
     pastix->graph      = NULL;
     pastix->schur_n    = 0;
@@ -474,6 +488,12 @@ pastixFinalize( pastix_data_t **pastix_data,
 {
     pastix_data_t *pastix = *pastix_data;
     (void)pastix_comm; (void)iparm; (void)dparm;
+
+#if defined(PASTIX_WITH_PARSEC)
+    if (pastix->parsec != NULL) {
+        pastix_parsec_finalize( pastix );
+    }
+#endif /* defined(PASTIX_WITH_PARSEC) */
 
     ischedFinalize( pastix->isched );
 
