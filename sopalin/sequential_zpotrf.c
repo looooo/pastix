@@ -121,9 +121,6 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
 
     /* Run the facto */
     dsparse_zpotrf_sp( ctx, &desc, sopalin_data );
-
-    /* Destroy the decriptor */
-    sparse_matrix_destroy( &desc );
 }
 #endif
 

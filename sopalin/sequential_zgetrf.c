@@ -111,29 +111,16 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
 {
     sparse_matrix_desc_t desc;
     dague_context_t *ctx;
-    int argc = 0;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {
-        pastix_data->parsec = dague_init( -1, &argc, NULL );
+        int argc = 0;
+        pastix_parsec_init( pastix_data, &argc, NULL );
     }
     ctx = pastix_data->parsec;
 
-    /* Create the matrix descriptor */
-    sparse_matrix_init( &desc, sopalin_data->solvmtx,
-                        pastix_size_of( PastixComplex64 ), 1, 0 );
-
     /* Run the facto */
     dsparse_zgetrf_sp( ctx, &desc, sopalin_data );
-
-    /* Destroy the decriptor */
-    sparse_matrix_destroy( &desc );
-
-    dague_fini( &(pastix_data->parsec) );
-
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( pastix_data->solvmatr, "getrf_L.txt" );
-#endif
 }
 #endif
 
