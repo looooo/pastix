@@ -109,7 +109,6 @@ void
 parsec_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
-    sparse_matrix_desc_t desc;
     dague_context_t *ctx;
 
     /* Start PaRSEC */
@@ -120,7 +119,7 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
     ctx = pastix_data->parsec;
 
     /* Run the facto */
-    dsparse_zpotrf_sp( ctx, &desc, sopalin_data );
+    dsparse_zpotrf_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
 }
 #endif
 
