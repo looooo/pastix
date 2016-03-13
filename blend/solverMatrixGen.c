@@ -901,7 +901,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
         size_t eltsize = 32 * 1024 * (pastix_size_of(ctrl->iparm[IPARM_FLOAT]) / sizeof(float));
         solverComputeGPUDistrib( solvmtx,
                                  ctrl->iparm[IPARM_GPU_NBR],
-                                 0.7,
+                                 ctrl->iparm[IPARM_GPU_MEMORY_PERCENTAGE],
                                  eltsize,
                                  ctrl->iparm[IPARM_GPU_CRITERIUM],
                                  ctrl->iparm[IPARM_FACTORIZATION] );

@@ -25,6 +25,7 @@
 void pastix_parsec_init( pastix_data_t *pastix,
                          int *argc, char **argv[] )
 {
+    extern char **environ;
     pastix_int_t *iparm = pastix->iparm;
     char *value;
     int rc;
@@ -32,6 +33,12 @@ void pastix_parsec_init( pastix_data_t *pastix,
     if (iparm[IPARM_GPU_NBR] > 0) {
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_NBR]));
         dague_setenv_mca_param( "device_cuda_enabled", value, &environ );
+
+        rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_MEMORY_BLOCK_SIZE]));
+        dague_setenv_mca_param( "device_cuda_memory_block_size", value, &environ );
+
+        rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_MEMORY_PERCENTAGE]));
+        dague_setenv_mca_param( "device_cuda_memory_use", value, &environ );
 
         if (iparm[IPARM_VERBOSE] > 2) {
             dague_setenv_mca_param( "device_show_statistics", "1", &environ );

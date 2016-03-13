@@ -119,7 +119,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
     iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
     iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
-    iparm[IPARM_GPU_NBR]               = 0;                   /* CUDA devices */
 
     iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
     iparm[IPARM_NNZEROS]               = 0;                   /* memory space for coefficients                        */
@@ -201,7 +200,10 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_STARPU_CTX_NBR]     = -1;
     iparm[IPARM_PRODUCE_STATS]      = API_NO;
 
-    iparm[IPARM_GPU_CRITERIUM]      = API_GPU_CRITERION_FLOPS;
+    iparm[IPARM_GPU_NBR]               = 0;                   /* CUDA devices */
+    iparm[IPARM_GPU_CRITERIUM]         = API_GPU_CRITERION_FLOPS;
+    iparm[IPARM_GPU_MEMORY_PERCENTAGE] = 95;
+    iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] = 32 * 1024;
 
     dparm[DPARM_EPSILON_REFINEMENT] = -1.;
     dparm[DPARM_RELATIVE_ERROR]     = -1.;
@@ -489,12 +491,6 @@ pastixFinalize( pastix_data_t **pastix_data,
     pastix_data_t *pastix = *pastix_data;
     (void)pastix_comm; (void)iparm; (void)dparm;
 
-#if defined(PASTIX_WITH_PARSEC)
-    if (pastix->parsec != NULL) {
-        pastix_parsec_finalize( pastix );
-    }
-#endif /* defined(PASTIX_WITH_PARSEC) */
-
     ischedFinalize( pastix->isched );
 
     if ( pastix->graph != NULL )
@@ -526,6 +522,12 @@ pastixFinalize( pastix_data_t **pastix_data,
         bcscExit( pastix->bcsc );
         memFree_null( pastix->bcsc );
     }
+
+#if defined(PASTIX_WITH_PARSEC)
+    if (pastix->parsec != NULL) {
+        pastix_parsec_finalize( pastix );
+    }
+#endif /* defined(PASTIX_WITH_PARSEC) */
 
 #if defined(PASTIX_WITH_MPI)
     if ( pastix->initmpi ) {

@@ -24,6 +24,8 @@
 #include "solver.h"
 #include "flops.h"
 
+#define PASTIX_GPU_MEMORY_WRITE  0.7
+
 #ifndef PASTIX_GPU_MIN_NBPAGES
 #  define PASTIX_GPU_MIN_NBPAGES 0
 #endif
@@ -175,7 +177,15 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
         cudaSetDevice(i);
         cudaMemGetInfo( &initial_free_mem, &total_mem );
 
-        how_much_we_allocate = (memory_percentage * (double)initial_free_mem) / 100.;
+        /**
+         * PaRSEC allocated percent * initial_free_mem memory,
+         * Unfortunatelly we can't get the information about how much memory has
+         * been allocated, thus we base our computations on the total
+         * memory. And for aour static mapping, we use only 70% of the allocated
+         * memory.
+         */
+        how_much_we_allocate = ((double)memory_percentage * (double)total_mem) / 100.;
+        how_much_we_allocate = how_much_we_allocate * PASTIX_GPU_MEMORY_WRITE;
         how_much_we_allocate = pastix_iceil( how_much_we_allocate, eltsize );
 
         egpu->id = i;
