@@ -150,6 +150,12 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
         memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
 
+        /* Malloc LR structures  */
+        MALLOC_INTERN( cblk->u_LR, coefnbr, pastix_complex64_t );
+        memset( cblk->u_LR, 0, coefnbr * sizeof(pastix_complex64_t) );
+
+        MALLOC_INTERN( cblk->v_LR, coefnbr, pastix_complex64_t );
+        memset( cblk->v_LR, 0, coefnbr * sizeof(pastix_complex64_t) );
     }
     else {
         cblk->dcoeftab = NULL;
@@ -157,6 +163,10 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 #if defined(PASTIX_WITH_HODLR)
         cblk->dcoeftab_HODLR = NULL;
 #endif /* defined(PASTIX_WITH_HODLR) */
+
+        /* LR structures */
+        cblk->u_LR = NULL;
+        cblk->v_LR = NULL;
     }
 
     /**

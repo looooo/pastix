@@ -101,6 +101,87 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     else
 #endif /* defined(PASTIX_WITH_HODLR) */
     {
+
+        /* Compress information coming from A */
+        for (i=0; i<datacode->cblknbr; i++, cblk++){
+            pastix_int_t dima, dimb;
+
+            SolverBlok *blok = cblk->fblokptr;
+            pastix_complex64_t *U = cblk->ucoeftab;
+            /* Horizontal dimension */
+            dima = cblk->lcolnum - cblk->fcolnum + 1;
+            /* Vertical dimension */
+            dimb = cblk->stride  - dima;
+
+            /* Size of the diagonal blok */
+            pastix_int_t totalsize = 0;
+            pastix_int_t tot = 0;
+
+            /* First pass to count the number of off-diagonal blocks */
+            blok++;
+            while (totalsize != dimb){
+                totalsize += blok->lrownum - blok->frownum + 1;
+                tot++;
+                blok++;
+            }
+
+            printf("\nCBLK %ld got %ld off-diag (SIZE %ld %ld)\n", i, tot, dima, dimb);
+
+            cblk->rank = malloc(tot * sizeof(pastix_int_t));
+            memset(cblk->rank, -1, tot * sizeof(pastix_int_t));
+
+            /* Second pass to compress each off-diagonal block */
+            blok = cblk->fblokptr + 1;
+            totalsize = 0;
+            tot = 0;
+
+            while (totalsize != dimb)
+            {
+                pastix_int_t bloksize    = blok->lrownum - blok->frownum + 1;
+                pastix_complex64_t *data = U + dima + totalsize;
+
+                double *s;
+                pastix_int_t dim_min = pastix_imin(dima, bloksize);
+                s = malloc( dim_min * sizeof(double));
+                memset(s, 0, dim_min * sizeof(double));
+
+                /* printf("BLOK  starts at %ld with size %ld\n", dima + totalsize, bloksize); */
+
+                pastix_complex64_t *u, *v;
+                pastix_int_t rank = -1;
+                u = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
+                v = malloc( dima     * dima     * sizeof(pastix_complex64_t));
+                memset(u, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
+                memset(v, 0, dima     * dima     * sizeof(pastix_complex64_t));
+
+                if (bloksize > 1){
+                    rank = z_compress_LR(data, dima, bloksize,
+                                         s,
+                                         u, bloksize,
+                                         v, dima,
+                                         cblk->stride);
+                    /* if (rank != -1){ */
+                    /*     z_uncompress_LR(data, dima, bloksize, */
+                    /*                     u, bloksize, */
+                    /*                     v, dima, */
+                    /*                     cblk->stride, rank); */
+                    /* } */
+                }
+
+                blok->u_LR = u;
+                blok->v_LR = u;
+                blok->rank = rank;
+                cblk->rank[tot] = rank;
+
+                /* printf("Compress blok %ld %ld with rank %ld\n", dima, bloksize, rank); */
+
+                totalsize += bloksize;
+                tot++;
+                blok++;
+            }
+        }
+
+        cblk = datacode->cblktab;
         for (i=0; i<datacode->cblknbr; i++, cblk++){
             core_zgetrfsp1d( datacode, cblk, threshold, work );
         }

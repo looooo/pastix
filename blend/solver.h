@@ -72,8 +72,13 @@ typedef struct SolverBlok_ {
     pastix_int_t  fullform; /*< Defines if the blok is full or LR */
     pastix_int_t *coefU;    /*< U coefficients */
     pastix_int_t *coefV;    /*< V coefficients */
-
 #endif /* defined(PASTIX_WITH_LR) */
+
+    /* LR structures */
+    void        *u_LR;
+    void        *v_LR;
+    pastix_int_t rank;
+
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
@@ -99,10 +104,16 @@ typedef struct SolverCblk_  {
     pastix_int_t  surface;
 #endif /* defined(PASTIX_WITH_HODLR) */
     /* Splitting parts to build hierarchical format */
+
     pastix_int_t *split;
     pastix_int_t  split_size;
     pastix_int_t *parts;
     pastix_int_t  nb_parts;
+
+    /* LR structures */
+    void         *u_LR;
+    void         *v_LR;
+    pastix_int_t *rank;
 
     /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
