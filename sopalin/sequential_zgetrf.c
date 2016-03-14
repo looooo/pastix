@@ -108,6 +108,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
             SolverBlok *blok = cblk->fblokptr;
             pastix_complex64_t *U = cblk->ucoeftab;
+            pastix_complex64_t *L = cblk->lcoeftab;
+
             /* Horizontal dimension */
             dima = cblk->lcolnum - cblk->fcolnum + 1;
             /* Vertical dimension */
@@ -125,10 +127,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 blok++;
             }
 
-            printf("\nCBLK %ld got %ld off-diag (SIZE %ld %ld)\n", i, tot, dima, dimb);
-
-            cblk->rank = malloc(tot * sizeof(pastix_int_t));
-            memset(cblk->rank, -1, tot * sizeof(pastix_int_t));
+            /* printf("\nCBLK %ld got %ld off-diag (SIZE %ld %ld)\n", i, tot, dima, dimb); */
 
             /* Second pass to compress each off-diagonal block */
             blok = cblk->fblokptr + 1;
@@ -138,7 +137,6 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
             while (totalsize != dimb)
             {
                 pastix_int_t bloksize    = blok->lrownum - blok->frownum + 1;
-                pastix_complex64_t *data = U + dima + totalsize;
 
                 double *s;
                 pastix_int_t dim_min = pastix_imin(dima, bloksize);
@@ -147,18 +145,26 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
                 /* printf("BLOK  starts at %ld with size %ld\n", dima + totalsize, bloksize); */
 
-                pastix_complex64_t *u, *v;
-                pastix_int_t rank = -1;
-                u = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
-                v = malloc( dima     * dima     * sizeof(pastix_complex64_t));
-                memset(u, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
-                memset(v, 0, dima     * dima     * sizeof(pastix_complex64_t));
+                pastix_complex64_t *uU, *vU;
+                pastix_int_t rankU = -1;
+                uU = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
+                vU = malloc( dima     * dima     * sizeof(pastix_complex64_t));
+                memset(uU, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
+                memset(vU, 0, dima     * dima     * sizeof(pastix_complex64_t));
+
+                pastix_complex64_t *uL, *vL;
+                pastix_int_t rankL = -1;
+                uL = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
+                vL = malloc( dima     * dima     * sizeof(pastix_complex64_t));
+                memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
+                memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
 
                 if (bloksize > 1){
-                    rank = z_compress_LR(data, dima, bloksize,
+                    pastix_complex64_t *data = U + dima + totalsize;
+                    rankU = z_compress_LR(data, dima, bloksize,
                                          s,
-                                         u, bloksize,
-                                         v, dima,
+                                         uU, bloksize,
+                                         vU, dima,
                                          cblk->stride);
                     /* if (rank != -1){ */
                     /*     z_uncompress_LR(data, dima, bloksize, */
@@ -166,14 +172,23 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                     /*                     v, dima, */
                     /*                     cblk->stride, rank); */
                     /* } */
+
+                    data = L + dima + totalsize;
+                    rankL = z_compress_LR(data, dima, bloksize,
+                                          s,
+                                          uL, bloksize,
+                                          vL, dima,
+                                          cblk->stride);
                 }
 
-                blok->u_LR = u;
-                blok->v_LR = u;
-                blok->rank = rank;
-                cblk->rank[tot] = rank;
+                blok->coefU_u_LR = uU;
+                blok->coefU_v_LR = vU;
+                blok->rankU      = rankU;
+                blok->coefL_u_LR = uL;
+                blok->coefL_v_LR = vL;
+                blok->rankL      = rankL;
 
-                /* printf("Compress blok %ld %ld with rank %ld\n", dima, bloksize, rank); */
+                printf("Compress blok %ld %ld with ranks %ld %ld\n", dima, bloksize, rankU, rankL);
 
                 totalsize += bloksize;
                 tot++;

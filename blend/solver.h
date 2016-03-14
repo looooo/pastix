@@ -75,9 +75,12 @@ typedef struct SolverBlok_ {
 #endif /* defined(PASTIX_WITH_LR) */
 
     /* LR structures */
-    void        *u_LR;
-    void        *v_LR;
-    pastix_int_t rank;
+    void        *coefU_u_LR;
+    void        *coefU_v_LR;
+    void        *coefL_u_LR;
+    void        *coefL_v_LR;
+    pastix_int_t rankU;
+    pastix_int_t rankL;
 
 } SolverBlok;
 
@@ -109,11 +112,6 @@ typedef struct SolverCblk_  {
     pastix_int_t  split_size;
     pastix_int_t *parts;
     pastix_int_t  nb_parts;
-
-    /* LR structures */
-    void         *u_LR;
-    void         *v_LR;
-    pastix_int_t *rank;
 
     /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/

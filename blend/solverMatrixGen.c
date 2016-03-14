@@ -214,10 +214,6 @@ solverMatrixGen(const pastix_int_t clustnum,
                 solvcblk->is_HODLR = 0;
                 solvcblk->dcoeftab_HODLR = NULL;
 
-                solvcblk->u_LR = NULL;
-                solvcblk->v_LR = NULL;
-                solvcblk->rank = NULL;
-
 #endif /* defined(PASTIX_WITH_HODLR) */
 
                 /* Copy browtab information */
@@ -260,11 +256,6 @@ solverMatrixGen(const pastix_int_t clustnum,
             solvcblk->dcoeftab_HODLR = NULL;
 #endif /* defined(PASTIX_WITH_HODLR) */
         }
-
-        solvcblk->u_LR = NULL;
-        solvcblk->v_LR = NULL;
-        solvcblk->rank = NULL;
-
 
         solvmtx->nodenbr = nodenbr;
         solvmtx->coefnbr = coefnbr;
