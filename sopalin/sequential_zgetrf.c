@@ -166,11 +166,11 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                                          uU, bloksize,
                                          vU, dima,
                                          cblk->stride);
-                    /* if (rank != -1){ */
+                    /* if (rankU != -1){ */
                     /*     z_uncompress_LR(data, dima, bloksize, */
-                    /*                     u, bloksize, */
-                    /*                     v, dima, */
-                    /*                     cblk->stride, rank); */
+                    /*                     uU, bloksize, */
+                    /*                     vU, dima, */
+                    /*                     cblk->stride, rankU); */
                     /* } */
 
                     data = L + dima + totalsize;
@@ -179,6 +179,14 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                                           uL, bloksize,
                                           vL, dima,
                                           cblk->stride);
+
+                    /* if (rankL != -1){ */
+                    /*     z_uncompress_LR(data, dima, bloksize, */
+                    /*                     uL, bloksize, */
+                    /*                     vL, dima, */
+                    /*                     cblk->stride, rankL); */
+                    /* } */
+
                 }
 
                 blok->coefU_u_LR = uU;

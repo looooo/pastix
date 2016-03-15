@@ -809,8 +809,8 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
 
                 pastix_int_t rank = blok->rankU;
                 if (rank != -1){
-                    printf("TRSM on a compressed blok of rank %ld (cblk %ld)\n",
-                           blok->rankU, current_cblk);
+                    /* printf("TRSM on a compressed blok of rank %ld (cblk %ld)\n", */
+                    /*        blok->rankU, current_cblk); */
 
                     pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
                     pastix_complex64_t *u = blok->coefU_u_LR;
@@ -961,8 +961,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
     pastix_int_t nbpivot  = core_zgetrfsp1d_getrf(cblk, D, NULL, criteria);
 
     /* Compress + TRSM U */
-    core_zgetrfsp1d_trsm(cblk, cblk->lcoeftab, cblk->ucoeftab);
-    core_zgetrfsp1d_trsm2(cblk, cblk->lcoeftab, cblk->ucoeftab);
+    core_zgetrfsp1d_trsm(cblk, L, U);
+    core_zgetrfsp1d_trsm2(cblk, L, U);
 
     /* Compress L */
 #if defined(PASTIX_WITH_HODLR)
@@ -1256,6 +1256,179 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     }
 }
 
+
+
+
+
+
+
+
+
+void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
+                              SolverBlok         *blok,
+                              SolverCblk         *fcblk,
+                              pastix_complex64_t *L,
+                              pastix_complex64_t *U,
+                              pastix_complex64_t *Cl,
+                              pastix_complex64_t *Cu,
+                              pastix_complex64_t *work )
+{
+    SolverBlok *iterblok;
+    SolverBlok *fblok;
+    SolverBlok *lblok;
+
+    pastix_complex64_t *Aik, *Akj, *Aij, *C;
+    pastix_int_t stride, stridefc, indblok;
+    pastix_int_t dimi, dimj, dima, dimb;
+
+    stride  = cblk->stride;
+    dima = cblk->lcolnum - cblk->fcolnum + 1;
+
+    pastix_complex64_t *Cd = fcblk->dcoeftab;
+    pastix_int_t stride_D  = fcblk->lcolnum - fcblk->fcolnum + 1;
+
+    /* First blok */
+    indblok = blok->coefind;
+
+    dimj = blok->lrownum - blok->frownum + 1;
+    dimi = stride - indblok;
+
+    /* Matrix A = Aik */
+    Aik = L + indblok;
+    Akj = U + indblok;
+
+    /* Get the first block of the distant panel */
+    fblok = fcblk->fblokptr;
+
+    /* Move the pointer to the top of the right column */
+    stridefc = fcblk->stride;
+    C = Cl + (blok->frownum - fcblk->fcolnum) * stridefc;
+
+    lblok = cblk[1].fblokptr;
+
+    /* for all following blocks in block column */
+    for (iterblok=blok; iterblok<lblok; iterblok++) {
+
+        /* Find facing blok */
+        while (!is_block_inside_fblock( iterblok, fblok ))
+        {
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
+        }
+
+        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
+        pastix_cblk_lock( fcblk );
+
+        Aik = L + iterblok->coefind;
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                     dimb, dimj, dima,
+                     CBLAS_SADDR(zone),  Aik,  stride,
+                                         Akj,  stride,
+                     CBLAS_SADDR(zzero), work, dimi  );
+
+        /* If the blok modifies a diagonal block */
+        if (fblok->coefind + iterblok->frownum - fblok->frownum < stride_D){
+            Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
+                + fblok->coefind + iterblok->frownum - fblok->frownum;
+            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                         work, dimi,
+                         Aij,  stride_D );
+        }
+
+        /* If the block modifies an off-diagonal blok */
+        else{
+
+            Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+            dimb = iterblok->lrownum - iterblok->frownum + 1;
+            dimj = blok->lrownum - blok->frownum + 1;
+
+            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                         work, dimi,
+                         Aij,  stridefc );
+
+            /* No more LR, we received a dense contribution */
+            fblok->rankU = -1;
+        }
+
+        pastix_cblk_unlock( fcblk );
+    }
+
+    /*
+     * Compute update on U
+     */
+    Aik = U + indblok;
+    Akj = L + indblok;
+
+    /* Restore data */
+    fblok = fcblk->fblokptr;
+
+    /*
+     * Add contribution to facing cblk
+     */
+    C  = Cd + (blok->frownum - fcblk->fcolnum);
+    Cu = Cu + (blok->frownum - fcblk->fcolnum) * stridefc;
+
+    /*
+     * Update on L part (blocks facing diagonal block)
+     */
+    for (iterblok=blok+1; iterblok<lblok; iterblok++) {
+
+        /* Find facing bloknum */
+        if (!is_block_inside_fblock( iterblok, fblok ))
+             break;
+
+        Aij = C + (iterblok->frownum - fblok->frownum)*stride_D;
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
+
+        Aik = U + iterblok->coefind;
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                     dimb, dimj, dima,
+                     CBLAS_SADDR(zone),  Aik,  stride,
+                     Akj,  stride,
+                     CBLAS_SADDR(zzero), work, dimi  );
+
+        pastix_cblk_lock( fcblk );
+        core_zgeadd( CblasTrans, dimj, dimb, -1.0,
+                     work, dimi,
+                     Aij,  stride_D);
+        pastix_cblk_unlock( fcblk );
+    }
+
+    C = Cu;
+
+    /*
+     * For all following blocks in block column,
+     * Update is done on U directly
+     */
+    /* Keep updating on U */
+    for (; iterblok<lblok; iterblok++) {
+
+        /* Find facing bloknum */
+        while (!is_block_inside_fblock( iterblok, fblok ))
+        {
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
+        }
+
+        dimb = iterblok->lrownum - iterblok->frownum + 1;
+        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+
+        Aik = U + iterblok->coefind;
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                     dimb, dimj, dima,
+                     CBLAS_SADDR(zone),  Aik,  stride,
+                     Akj,  stride,
+                     CBLAS_SADDR(zzero), work, dimi  );
+
+        pastix_cblk_lock( fcblk );
+        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                     work, dimi,
+                     Aij,  stridefc );
+        pastix_cblk_unlock( fcblk );
+    }
+}
+
 /**
  *******************************************************************************
  *
@@ -1311,11 +1484,16 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     (void) threshold;
     (void) hodlrtree;
 
-    /* if there are off-diagonal supernodes in the column */
     blok = cblk->fblokptr+1;
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
+
+        core_zgetrfsp1d_gemm_LR( cblk, blok, fcblk,
+                                 L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
+
+    }
+
 
 #if defined(PASTIX_WITH_HODLR)
         pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
@@ -1355,11 +1533,6 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
             /* delHODLR(schur_H); */
         }
 #endif /* defined(PASTIX_WITH_HODLR) */
-
-        core_zgetrfsp1d_gemm( cblk, blok, fcblk,
-                              L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
-
-    }
 
 #if defined(PASTIX_WITH_HODLR)
     if (cblk->is_HODLR){
