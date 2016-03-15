@@ -159,35 +159,32 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
                 memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
 
-                if (bloksize > 1){
-                    pastix_complex64_t *data = U + dima + totalsize;
-                    rankU = z_compress_LR(data, dima, bloksize,
-                                         s,
-                                         uU, bloksize,
-                                         vU, dima,
-                                         cblk->stride);
-                    /* if (rankU != -1){ */
-                    /*     z_uncompress_LR(data, dima, bloksize, */
-                    /*                     uU, bloksize, */
-                    /*                     vU, dima, */
-                    /*                     cblk->stride, rankU); */
-                    /* } */
+                pastix_complex64_t *data = U + dima + totalsize;
+                rankU = z_compress_LR(data, dima, bloksize,
+                                      s,
+                                      uU, bloksize,
+                                      vU, dima,
+                                      cblk->stride);
+                /* if (rankU != -1){ */
+                /*     z_uncompress_LR(data, dima, bloksize, */
+                /*                     uU, bloksize, */
+                /*                     vU, dima, */
+                /*                     cblk->stride, rankU); */
+                /* } */
 
-                    data = L + dima + totalsize;
-                    rankL = z_compress_LR(data, dima, bloksize,
-                                          s,
-                                          uL, bloksize,
-                                          vL, dima,
-                                          cblk->stride);
+                data = L + dima + totalsize;
+                rankL = z_compress_LR(data, dima, bloksize,
+                                      s,
+                                      uL, bloksize,
+                                      vL, dima,
+                                      cblk->stride);
 
-                    /* if (rankL != -1){ */
-                    /*     z_uncompress_LR(data, dima, bloksize, */
-                    /*                     uL, bloksize, */
-                    /*                     vL, dima, */
-                    /*                     cblk->stride, rankL); */
-                    /* } */
-
-                }
+                /* if (rankL != -1){ */
+                /*     z_uncompress_LR(data, dima, bloksize, */
+                /*                     uL, bloksize, */
+                /*                     vL, dima, */
+                /*                     cblk->stride, rankL); */
+                /* } */
 
                 blok->coefU_u_LR = uU;
                 blok->coefU_v_LR = vU;
@@ -196,7 +193,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 blok->coefL_v_LR = vL;
                 blok->rankL      = rankL;
 
-                printf("Compress blok %ld %ld with ranks %ld %ld\n", dima, bloksize, rankU, rankL);
+                if (rankU < 1 || rankL < 1)
+                    printf("Compress blok %ld %ld with ranks %ld %ld\n", dima, bloksize, rankU, rankL);
 
                 totalsize += bloksize;
                 tot++;
