@@ -78,8 +78,6 @@ pastix_int_t z_compress_LR(pastix_complex64_t *fL,
         }
     }
 
-    /* printf("Block of size %ld %ld has rank %ld (min %ld) %.3g\n", dima, dimb, rank, dim_min, s[rank]); */
-
     for (i=rank; i<dim_min; i++){
         s[i] = 0;
     }
@@ -136,29 +134,20 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     pastix_int_t rank  = rank_1 + rank_2;
     pastix_int_t i, j;
 
-    if (dim_u2 + x2 > dim_u1 || dim_v2 + y2 > dim_v1){
-        printf("Dimensions are not correct\n");
+    if (dim_u2 > dim_u1 || dim_v2 > dim_v1){
+        printf("\n\nDimensions are not correct\n\n");
+        exit(1);
     }
 
     pastix_int_t minMN_1 = pastix_imin(dim_u, rank);
     /* Rank is too high for u1u2 */
     if (minMN_1 == dim_u){
-        for (i=rank_1; i<dim_u1; i++){
-            for (j=0; j<dim_u1; j++){
-                u1[i*dim_u1+j] = 0;
-            }
-        }
         return -1;
     }
 
     pastix_int_t minMN_2 = pastix_imin(dim_v, rank);
     /* Rank is too high for v1v2 */
     if (minMN_2 == dim_v){
-        for (i=rank_1; i<dim_u1; i++){
-            for (j=0; j<dim_u1; j++){
-                u1[i*dim_u1+j] = 0;
-            }
-        }
         return -1;
     }
 
@@ -176,9 +165,13 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     memset(u1u2, 0, dim_u * rank * sizeof(pastix_complex64_t));
     memset(v1v2, 0, dim_v * rank * sizeof(pastix_complex64_t));
 
+    /* printf("DIM %ld %ld %ld\n", dim_u1, dim_u2, dim_u); */
+
     memcpy(u1u2, u1, dim_u1 * rank_1 * sizeof(pastix_complex64_t));
     for (i=0; i<rank_2; i++){
-        memcpy(u1u2 + dim_u * (rank_1 + i) + x2, u2 + i *dim_u2, dim_u2 * sizeof(pastix_complex64_t));
+        for (j=0; j<dim_u2; j++){
+            u1u2[dim_u * (rank_1 + i) + x2 + j] = u2[i * dim_u2 + j];
+        }
     }
 
     for (i=0; i<dim_v1; i++){
@@ -196,11 +189,13 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
 
     pastix_int_t ret;
     pastix_complex64_t *tau1 = malloc( minMN_1 * sizeof(pastix_complex64_t));
+    memset(tau1, 0, minMN_1 * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf( CblasColMajor, dim_u, rank,
                           u1u2, dim_u, tau1 );
 
 
     pastix_complex64_t *tau2 = malloc( minMN_2 * sizeof(pastix_complex64_t));
+    memset(tau2, 0, minMN_2 * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf( CblasColMajor, dim_v, rank,
                           v1v2, dim_v, tau2 );
 
@@ -231,10 +226,18 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     s = malloc( rank * sizeof(double));
     u = malloc( rank * rank * sizeof(pastix_complex64_t));
     v = malloc( rank * rank * sizeof(pastix_complex64_t));
+    memset(s, 0, rank * sizeof(double));
+    memset(u, 0, rank * rank * sizeof(pastix_complex64_t));
+    memset(v, 0, rank * rank * sizeof(pastix_complex64_t));
 
     ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
                           rank, rank, R, rank,
                           s, u, rank, v, rank, superb );
+
+    if (ret != 0){
+        printf("LAPACKE_zgesvd FAILED\n");
+        exit(1);
+    }
 
     /* Keep rank as constant wrt the block receiving contribution */
     /* for (i=rank_1; i<rank; i++){ */
@@ -244,12 +247,27 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     /*     } */
     /* } */
 
+    pastix_int_t new_rank = rank;
+    char *tol             = getenv("TOLERANCE");
+    double tolerance      = atof(tol);
+
+    /* for (i=0; i<rank-1; i++){ */
+    /*     if (s[i] / s[0] < tolerance){ */
+    /*         new_rank = i+1; */
+    /*         break; */
+    /*     } */
+    /* } */
+    /* for (i=new_rank; i<rank; i++){ */
+    /*     s[i] = 0; */
+    /* } */
+
+
     /* Scal u as before to take into account singular values */
     for (i=0; i<rank; i++){
         cblas_dscal(rank, s[i], &(u[rank * i]), 1);
     }
 
-    memset(u1, 0, dim_u1 * rank * sizeof(pastix_complex64_t));
+    memset(u1, 0, dim_u1 * dim_u1 * sizeof(pastix_complex64_t));
 
     for (i=0; i<rank; i++){
         memcpy(u1 + dim_u * i, u + rank * i, rank * sizeof(pastix_complex64_t));
@@ -267,13 +285,13 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     }
 
     ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
-                         dim_u1, rank, rank, //minMN_1, /* to be replaced by rank */
+                         dim_u, rank, minMN_1, /* to be replaced by rank */
                          u1u2, dim_u, tau1,
                          u1, dim_u1);
 
     /* We are suppose to apply this on right */
     ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
-                         dim_v1, rank, rank, //minMN_2, /* to be replaced by rank */
+                         dim_v, rank, minMN_2, /* to be replaced by rank */
                          v1v2, dim_v, tau2,
                          v3, dim_v1);
 
@@ -285,9 +303,10 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     /*     } */
     /* } */
 
-    for (i=0; i<dim_v1; i++){
+    memset(v1, 0, dim_v * dim_v * sizeof(pastix_complex64_t));
+    for (i=0; i<rank; i++){
         for (j=0; j<dim_v1; j++){
-            v1[dim_v1*j+i] = v3[dim_v1*i+j];
+            v1[dim_v1 * j + i] = v3[dim_v1 * i + j];
         }
     }
 
@@ -298,13 +317,14 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
         }
     }
 
-    printf("Rank was OK to add the two LR structures %ld %ld %ld\n", dim_u, rank_1, rank_2);
+    printf("Rank was OK to add the two LR structures %ld %ld %ld %ld\n",
+           dim_u, rank_1, rank_2, new_rank);
 
     free(R);
     free(R1);
     free(R2);
     //free(v3);
-    return;
+    return new_rank;
 }
 
 /**
@@ -1413,7 +1433,8 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
             uF = fblok->coefL_u_LR;
             vF = fblok->coefL_v_LR;
 
-            if (rankL != -1 && rankU != -1 && rankF != -1
+            if (rankL != -1 && rankU != -1 && rankF != -1 &&
+                iterblok->rankU != -1 && blok->rankL != -1 && fblok->rankU != -1
                 && rankL < dimj && rankU < dimb && rankF < dimj && rankL < dimb){
 
             /* if(0){ */
@@ -1471,28 +1492,22 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                                  uU,   dimj,
                                  CBLAS_SADDR(zzero), tmp,  dimi );
 
-
-
                     pastix_int_t sizeF = fblok->lrownum - fblok->frownum + 1;
+                    pastix_int_t ldv2  = dimi;
+                    pastix_int_t ret   = -1;
 
-                    /* We need to transpose tmp */
-                    pastix_complex64_t *tmp2;
-                    tmp2 = malloc(dimi * dimi * sizeof(pastix_complex64_t *));
-                    pastix_int_t i, j;
-                    for (i=0; i<dimi; i++){
-                        for (j=0; j<dimi; j++){
-                            tmp2[dimi*i+j] = tmp[dimi*j+i];
-                        }
-                    }
-
-                    pastix_int_t ldv2 = dimi;
-                    pastix_int_t ret;
+                    /* printf("Decalage %ld %ld on blok %ld %ld contrib %ld %ld\n", */
+                    /*        iterblok->frownum - fblok->frownum, */
+                    /*        blok->frownum - fcblk->fcolnum, */
+                    /*        sizeF, stride_D, */
+                    /*        dimb, dimj); */
 
                     ret = z_add_LR(uF, vF,
-                                   uL, tmp,
-                                   sizeF, stride_D, rankF,
-                                   dimb, dimj, rankL, ldv2,
-                                   iterblok->frownum - fblok->frownum, blok->frownum - fcblk->fcolnum);
+                                       uL, tmp,
+                                       sizeF, stride_D, rankF,
+                                       dimb, dimj, rankL, ldv2,
+                                       iterblok->frownum - fblok->frownum,
+                                       blok->frownum - fcblk->fcolnum);
 
                     if (ret == -1){
                         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -1510,7 +1525,7 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                         fblok->rankL = -1;
                     }
                     else{
-                        fblok->rankL = pastix_imin(rankF+rankL, pastix_imin(stride_D, sizeF));
+                        fblok->rankL = ret;
                         printf("RankF is %ld\n", fblok->rankL);
                     }
 
@@ -1519,26 +1534,26 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                     {
                         if (fblok->rankL != -1){
                             Aij = Cl + fblok->coefind;
-                            z_uncompress_LR(Aij, stride_D, dimb,
+                            z_uncompress_LR(Aij, stride_D, sizeF,
                                             uF, sizeF,
                                             vF, stride_D,
                                             stridefc, fblok->rankL);
                             fblok->rankL = -1;
                         }
-                        if (rankL != -1){
-                            z_uncompress_LR(Aik, dima, dimb,
-                                        uL, dimb,
-                                            vL, dima,
-                                            stride, rankL);
-                            iterblok->rankL = -1;
-                        }
-                        if (rankU != -1){
-                            z_uncompress_LR(Akj, dima, dimj,
-                                            uU, dimj,
-                                            vU, dima,
-                                            stride, rankU);
-                            blok->rankU = -1;
-                        }
+                        /* if (rankL != -1){ */
+                        /*     z_uncompress_LR(Aik, dima, dimb, */
+                        /*                 uL, dimb, */
+                        /*                     vL, dima, */
+                        /*                     stride, rankL); */
+                        /*     iterblok->rankL = -1; */
+                        /* } */
+                        /* if (rankU != -1){ */
+                        /*     z_uncompress_LR(Akj, dima, dimj, */
+                        /*                     uU, dimj, */
+                        /*                     vU, dima, */
+                        /*                     stride, rankU); */
+                        /*     blok->rankU = -1; */
+                        /* } */
                     }
 
                     /* Without LR */
@@ -1571,16 +1586,16 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 /*                     stride, rankU); */
                 /*     blok->rankU = -1; */
                 /* } */
-                /* if (rankF != -1){ */
-                /*     pastix_int_t dimb = fblok->lrownum - fblok->frownum + 1; */
-                /*     Aij = Cl + fblok->coefind; */
+                if (rankF != -1){
+                     pastix_int_t dimb = fblok->lrownum - fblok->frownum + 1;
+                    Aij = Cl + fblok->coefind;
 
-                /*     z_uncompress_LR(Aij, stride_D, dimb, */
-                /*                     uF, dimb, */
-                /*                     vF, stride_D, */
-                /*                     stridefc, rankF); */
-                /*     fblok->rankL = -1; */
-                /* } */
+                    z_uncompress_LR(Aij, stride_D, dimb,
+                                    uF, dimb,
+                                    vF, stride_D,
+                                    stridefc, rankF);
+                    fblok->rankL = -1;
+                }
 
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
