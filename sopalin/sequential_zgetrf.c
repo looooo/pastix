@@ -159,13 +159,45 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
                 memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
 
+                /* if (0){ */
+                /* /\* if (dima > 500 && bloksize > 1000){ *\/ */
+                /*     FILE *file; */
+                /*     file = fopen("matrix","w"); */
+
+                /*     fprintf(file, "DIMENSIONS %ld lines %ld columns\n", dima, bloksize); */
+
+                /*     pastix_int_t i, j; */
+                /*     pastix_int_t nnz = 0; */
+                /*     for (i=0; i<dima; i++){ */
+                /*         for (j=0; j<bloksize; j++){ */
+                /*             /\* fprintf(file, "%.3g ", data[i * cblk->stride + j]); *\/ */
+                /*             if (data[i * cblk->stride + j] != 0){ */
+                /*                 printf("NNZ in A at %ld %ld\n", i, j); */
+                /*                 nnz++; */
+                /*             } */
+                /*         } */
+                /*         for (j=0; j<dima; j++){ */
+                /*             if (fabs(uU[dima * i + j]) > 1e-16){ */
+                /*                 printf("NNZ in u at %ld %ld is %.3g\n", i, j, uU[dima * i + j]); */
+                /*             } */
+                /*         } */
+                /*         /\* fprintf(file, "\n"); *\/ */
+                /*     } */
+                /*     printf("DIMA %ld BLOKSIZE %ld RANK %ld NNZ %ld\n", dima, bloksize, rankU, nnz); */
+
+                /*     fclose(file); */
+                /*     exit(1); */
+                /* } */
+
+
                 pastix_complex64_t *data;
                 data = U + dima + totalsize;
-                rankU = z_compress_LR(data, dima, bloksize,
-                                      s,
-                                      uU, bloksize,
-                                      vU, dima,
-                                      cblk->stride);
+                if (dima > 50 && bloksize > 50)
+                    rankU = z_compress_LR(data, dima, bloksize,
+                                          s,
+                                          uU, bloksize,
+                                          vU, dima,
+                                          cblk->stride);
 
                 /* if (rankU != -1){ */
                 /*     z_uncompress_LR(data, dima, bloksize, */
@@ -177,11 +209,23 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
 
                 data = L + dima + totalsize;
-                rankL = z_compress_LR(data, dima, bloksize,
-                                      s,
-                                      uL, bloksize,
-                                      vL, dima,
-                                      cblk->stride);
+
+                if (dima > 50 && bloksize > 50)
+                    rankL = z_compress_LR(data, dima, bloksize,
+                                          s,
+                                          uL, bloksize,
+                                          vL, dima,
+                                          cblk->stride);
+
+                /* double mem_dense = dima*bloksize*8./1000000.; */
+                /* double mem_SVD   = rankL*(dima+bloksize)*8./1000000.; */
+                /* if (mem_SVD < mem_dense) */
+                /*     gain_L += mem_dense - mem_SVD; */
+
+                /* mem_SVD   = rankU*(dima+bloksize)*8./1000000.; */
+                /* if (mem_SVD < mem_dense) */
+                /*     gain_U += mem_dense - mem_SVD; */
+
 
                 /* if (rankL != -1){ */
                 /*     z_uncompress_LR(data, dima, bloksize, */
