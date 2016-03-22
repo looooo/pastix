@@ -86,7 +86,7 @@ pastix_int_t z_compress_LR(pastix_complex64_t *fL,
         cblas_dscal(dimb, s[i], &(u[i*ldu]), 1);
     }
 
-    //free(block);
+    free(block);
     return rank;
 }
 
@@ -199,7 +199,6 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     ret = LAPACKE_zgeqrf( CblasColMajor, dim_v, rank,
                           v1v2, dim_v, tau2 );
 
-
     pastix_complex64_t *R1, *R2, *R;
     R1 = malloc(rank * rank * sizeof(pastix_complex64_t));
     R2 = malloc(rank * rank * sizeof(pastix_complex64_t));
@@ -212,6 +211,14 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
         memcpy(R1 + rank * i, u1u2 + dim_u * i, (i+1) * sizeof(pastix_complex64_t));
         memcpy(R2 + rank * i, v1v2 + dim_v * i, (i+1) * sizeof(pastix_complex64_t));
     }
+
+    /* printf("RANKS %ld %ld\n", rank_1, rank_2); */
+    /* for (i=0; i<rank; i++){ */
+    /*     for (j=0; j<rank; j++){ */
+    /*         printf("%10.3g ", R2[i*rank+j]); */
+    /*     } */
+    /*     printf("\n"); */
+    /* } */
 
     /* Compute R1 R2 */
     cblas_zgemm(CblasColMajor, CblasNoTrans, CblasTrans,
@@ -320,10 +327,17 @@ pastix_int_t z_add_LR(pastix_complex64_t *u1,
     printf("Rank was OK to add the two LR structures %ld %ld %ld %ld\n",
            dim_u, rank_1, rank_2, new_rank);
 
+    free(u1u2);
+    free(v1v2);
+    free(u);
+    free(s);
+    free(v);
+    free(tau1);
+    free(tau2);
     free(R);
     free(R1);
     free(R2);
-    //free(v3);
+    free(v3);
     return new_rank;
 }
 
@@ -853,14 +867,8 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                     /* printf("TRSM on a compressed blok of rank %ld (cblk %ld)\n", */
                     /*        blok->rankU, current_cblk); */
 
-                    pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
                     pastix_complex64_t *u = blok->coefU_u_LR;
                     pastix_complex64_t *v = blok->coefU_v_LR;
-
-                    double mem_dense = dima*dimb*8./1000000.;
-                    double mem_SVD   = rank*(dima+dimb)*8./1000000.;
-                    if (mem_SVD < mem_dense)
-                        gain_U += mem_dense - mem_SVD;
 
                     cblas_ztrsm(CblasColMajor,
                                 CblasRight, CblasLower,
@@ -874,12 +882,6 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                                 rank, dima,
                                 CBLAS_SADDR(zone), D, stride_D,
                                 v, dima);
-
-                    /* TODO: remove */
-                    z_uncompress_LR(fU, dima, dimb,
-                                    u, dimb,
-                                    v, dima,
-                                    stride, rank);
                 }
                 else{
                     cblas_ztrsm(CblasColMajor,
@@ -913,7 +915,7 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
 {
     (void)L;
     SolverBlok *fblok, *lblok;
-    pastix_complex64_t *fU;
+    pastix_complex64_t *fU, *fL;
     pastix_int_t dima, dimb, stride;
 
     dima    = cblk->lcolnum - cblk->fcolnum + 1;
@@ -926,7 +928,6 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
 
     pastix_complex64_t *D = cblk->dcoeftab;
     pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
-
 
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
@@ -941,8 +942,10 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
             /* Update the data blok */
             fU = U + blok->coefind;
 
+            double mem_dense = dima*dimb*8./1000000.;
             pastix_int_t rank = blok->rankU;
             if (rank != -1){
+                /* printf("Uncompress U block\n"); */
                 pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
                 pastix_complex64_t *u = blok->coefU_u_LR;
                 pastix_complex64_t *v = blok->coefU_v_LR;
@@ -951,6 +954,30 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
                                 u, dimb,
                                 v, dima,
                                 stride, rank);
+
+                double mem_SVD   = rank*(dima+dimb)*8./1000000.;
+                if (mem_SVD < mem_dense)
+                    gain_U += mem_dense - mem_SVD;
+            }
+
+
+            fL = L + blok->coefind;
+
+            rank = blok->rankL;
+            if (rank != -1){
+                /* printf("Uncompress L block\n"); */
+                pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+                pastix_complex64_t *u = blok->coefL_u_LR;
+                pastix_complex64_t *v = blok->coefL_v_LR;
+
+                z_uncompress_LR(fL, dima, dimb,
+                                u, dimb,
+                                v, dima,
+                                stride, rank);
+
+                double mem_SVD   = rank*(dima+dimb)*8./1000000.;
+                if (mem_SVD < mem_dense)
+                    gain_L += mem_dense - mem_SVD;
             }
         }
     }
@@ -1402,6 +1429,32 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
         /* If the blok modifies a diagonal block */
         if (fblok->coefind + iterblok->frownum - fblok->frownum < stride_D){
+
+            /* Uncompress U and L factors if those blocks are compressed */
+            pastix_int_t rank = blok->rankU;
+            if (rank != -1){
+                pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+                pastix_complex64_t *u = blok->coefU_u_LR;
+                pastix_complex64_t *v = blok->coefU_v_LR;
+
+                z_uncompress_LR(Akj, dima, dimb,
+                                u, dimb,
+                                v, dima,
+                                cblk->stride, rank);
+            }
+
+            rank = iterblok->rankL;
+            if (rank != -1){
+                pastix_int_t dimb     = iterblok->lrownum - iterblok->frownum + 1;
+                pastix_complex64_t *u = iterblok->coefL_u_LR;
+                pastix_complex64_t *v = iterblok->coefL_v_LR;
+
+                z_uncompress_LR(Aik, dima, dimb,
+                                u, dimb,
+                                v, dima,
+                                cblk->stride, rank);
+            }
+
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                          dimb, dimj, dima,
                          CBLAS_SADDR(zone),  Aik,  stride,
@@ -1433,170 +1486,110 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
             uF = fblok->coefL_u_LR;
             vF = fblok->coefL_v_LR;
 
-            if (rankL != -1 && rankU != -1 && rankF != -1 &&
-                iterblok->rankU != -1 && blok->rankL != -1 && fblok->rankU != -1
-                && rankL < dimj && rankU < dimb && rankF < dimj && rankL < dimb){
+            if (rankL != -1 && rankU != -1 && rankF != -1){
 
-            /* if(0){ */
-
-                printf("Simple operation LR <- LR * LR %ld %ld %ld\n", dima, dimb, dimj);
+                /* printf("Simple operation LR <- LR * LR %ld %ld %ld\n", dima, dimb, dimj); */
+                /* printf("Decalage %ld %ld on blok %ld %ld contrib %ld %ld\n", */
+                /*        iterblok->frownum - fblok->frownum, */
+                /*        blok->frownum - fcblk->fcolnum, */
+                /*        sizeF, stride_D, */
+                /*        dimb, dimj); */
 
                 pastix_complex64_t *tmp;
                 tmp = malloc(dimi * dimi * sizeof(pastix_complex64_t *));
                 memset(tmp, 0, dimi * dimi * sizeof(pastix_complex64_t *));
 
-                /* Just check to uncompress off-diagonal bloks */
-                if (0){
-                    if (rankL != -1){
-                        z_uncompress_LR(Aik, dima, dimb,
-                                        uL, dimb,
-                                        vL, dima,
-                                        stride, rankL);
-                        iterblok->rankL = -1;
-                    }
-                    if (rankU != -1){
-                        z_uncompress_LR(Akj, dima, dimj,
-                                        uU, dimj,
-                                        vU, dima,
-                                        stride, rankU);
-                        blok->rankU = -1;
-                    }
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                             rankL, rankU, dima,
+                             CBLAS_SADDR(zone),  vL,   dima,
+                             vU,   dima,
+                             CBLAS_SADDR(zzero), work, dimi );
 
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                                 dimb, dimj, dima,
-                                 CBLAS_SADDR(zone),  Aik,  stride,
-                                                     Akj,  stride,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                             rankL, dimj, rankU,
+                             CBLAS_SADDR(zone),  work, dimi,
+                             uU,   dimj,
+                             CBLAS_SADDR(zzero), tmp,  dimi );
+
+                pastix_int_t sizeF = fblok->lrownum - fblok->frownum + 1;
+                pastix_int_t ldv2  = dimi;
+                pastix_int_t ret   = -1;
+
+                ret = z_add_LR(uF, vF,
+                               uL, tmp,
+                               sizeF, stride_D, rankF,
+                               dimb, dimj, rankL, ldv2,
+                               iterblok->frownum - fblok->frownum,
+                               blok->frownum - fcblk->fcolnum);
+
+                if (ret == -1){
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                                 dimb, dimj, rankL,
+                                 CBLAS_SADDR(zone),  uL,   dimb,
+                                 tmp,  dimi,
                                  CBLAS_SADDR(zzero), work, dimi  );
 
+                    /* Uncompress: dense contribution */
+                    if (fblok->rankL != -1){
+                        Aij = Cl + fblok->coefind;
+                        z_uncompress_LR(Aij, stride_D, sizeF,
+                                        uF, sizeF,
+                                        vF, stride_D,
+                                        stridefc, fblok->rankL);
+                        fblok->rankL = -1;
+                    }
                     Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
 
                     core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
                                  work, dimi,
                                  Aij,  stridefc );
 
-                    /* No more LR, we received a dense contribution */
                     fblok->rankL = -1;
                 }
-
                 else{
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                                 rankL, rankU, dima,
-                                 CBLAS_SADDR(zone),  vL,   dima,
-                                 vU,   dima,
-                                 CBLAS_SADDR(zzero), work, dimi );
-
-
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                                 rankL, dimj, rankU,
-                                 CBLAS_SADDR(zone),  work, dimi,
-                                 uU,   dimj,
-                                 CBLAS_SADDR(zzero), tmp,  dimi );
-
-                    pastix_int_t sizeF = fblok->lrownum - fblok->frownum + 1;
-                    pastix_int_t ldv2  = dimi;
-                    pastix_int_t ret   = -1;
-
-                    /* printf("Decalage %ld %ld on blok %ld %ld contrib %ld %ld\n", */
-                    /*        iterblok->frownum - fblok->frownum, */
-                    /*        blok->frownum - fcblk->fcolnum, */
-                    /*        sizeF, stride_D, */
-                    /*        dimb, dimj); */
-
-                    ret = z_add_LR(uF, vF,
-                                       uL, tmp,
-                                       sizeF, stride_D, rankF,
-                                       dimb, dimj, rankL, ldv2,
-                                       iterblok->frownum - fblok->frownum,
-                                       blok->frownum - fcblk->fcolnum);
-
-                    if (ret == -1){
-                        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                                     dimb, dimj, rankL,
-                                     CBLAS_SADDR(zone),  uL,   dimb,
-                                     tmp,  dimi,
-                                     CBLAS_SADDR(zzero), work, dimi  );
-
-                        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-
-                        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                                     work, dimi,
-                                     Aij,  stridefc );
-
-                        fblok->rankL = -1;
-                    }
-                    else{
-                        fblok->rankL = ret;
-                        printf("RankF is %ld\n", fblok->rankL);
-                    }
-
-
-                    /* We uncompress everything */
-                    {
-                        if (fblok->rankL != -1){
-                            Aij = Cl + fblok->coefind;
-                            z_uncompress_LR(Aij, stride_D, sizeF,
-                                            uF, sizeF,
-                                            vF, stride_D,
-                                            stridefc, fblok->rankL);
-                            fblok->rankL = -1;
-                        }
-                        /* if (rankL != -1){ */
-                        /*     z_uncompress_LR(Aik, dima, dimb, */
-                        /*                 uL, dimb, */
-                        /*                     vL, dima, */
-                        /*                     stride, rankL); */
-                        /*     iterblok->rankL = -1; */
-                        /* } */
-                        /* if (rankU != -1){ */
-                        /*     z_uncompress_LR(Akj, dima, dimj, */
-                        /*                     uU, dimj, */
-                        /*                     vU, dima, */
-                        /*                     stride, rankU); */
-                        /*     blok->rankU = -1; */
-                        /* } */
-                    }
-
-                    /* Without LR */
-                    /* cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans, */
-                    /*              dimb, dimj, rankL, */
-                    /*              CBLAS_SADDR(zone),  uL,   dimb, */
-                    /*              tmp,  dimi, */
-                    /*              CBLAS_SADDR(zzero), work, dimi  ); */
-
-                    /* Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum; */
-
-                    /* core_zgeadd( CblasNoTrans, dimb, dimj, -1.0, */
-                    /*              work, dimi, */
-                    /*              Aij,  stridefc ); */
-
+                    fblok->rankL = ret;
                 }
+                free(tmp);
             }
             else{
-                /* if (rankL != -1){ */
-                /*     z_uncompress_LR(Aik, dima, dimb, */
-                /*                     uL, dimb, */
-                /*                     vL, dima, */
-                /*                     stride, rankL); */
-                /*     iterblok->rankL = -1; */
-                /* } */
-                /* if (rankU != -1){ */
-                /*     z_uncompress_LR(Akj, dima, dimj, */
-                /*                     uU, dimj, */
-                /*                     vU, dima, */
-                /*                     stride, rankU); */
-                /*     blok->rankU = -1; */
-                /* } */
-                if (rankF != -1){
-                     pastix_int_t dimb = fblok->lrownum - fblok->frownum + 1;
+
+                /* Uncompress U factor */
+                pastix_int_t rank = blok->rankU;
+                if (rank != -1){
+                    pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+                    pastix_complex64_t *u = blok->coefU_u_LR;
+                    pastix_complex64_t *v = blok->coefU_v_LR;
+
+                    z_uncompress_LR(Akj, dima, dimb,
+                                    u, dimb,
+                                    v, dima,
+                                    cblk->stride, rank);
+                }
+
+                /* Uncompress L factor */
+                rank = iterblok->rankL;
+                if (rank != -1){
+                    pastix_int_t dimb     = iterblok->lrownum - iterblok->frownum + 1;
+                    pastix_complex64_t *u = iterblok->coefL_u_LR;
+                    pastix_complex64_t *v = iterblok->coefL_v_LR;
+
+                    z_uncompress_LR(Aik, dima, dimb,
+                                    u, dimb,
+                                    v, dima,
+                                    cblk->stride, rank);
+                }
+
+                /* Uncompress because we receive a dense contribution */
+                if (fblok->rankL != -1){
+                    pastix_int_t dimb = fblok->lrownum - fblok->frownum + 1;
                     Aij = Cl + fblok->coefind;
 
                     z_uncompress_LR(Aij, stride_D, dimb,
                                     uF, dimb,
                                     vF, stride_D,
-                                    stridefc, rankF);
+                                    stridefc, fblok->rankL);
                     fblok->rankL = -1;
                 }
-
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                              dimb, dimj, dima,
@@ -1609,9 +1602,6 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
                              work, dimi,
                              Aij,  stridefc );
-
-                /* No more LR, we received a dense contribution */
-                fblok->rankL = -1;
             }
         }
 
@@ -1644,8 +1634,33 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
         Aij = C + (iterblok->frownum - fblok->frownum)*stride_D;
         dimb = iterblok->lrownum - iterblok->frownum + 1;
-
         Aik = U + iterblok->coefind;
+
+        /* Uncompress, we are doing a dense operations */
+        pastix_int_t rank = iterblok->rankU;
+        if (rank != -1){
+            pastix_int_t dimb     = iterblok->lrownum - iterblok->frownum + 1;
+            pastix_complex64_t *u = iterblok->coefU_u_LR;
+            pastix_complex64_t *v = iterblok->coefU_v_LR;
+
+            z_uncompress_LR(Aik, dima, dimb,
+                            u, dimb,
+                            v, dima,
+                            cblk->stride, rank);
+        }
+
+        rank = blok->rankL;
+        if (rank != -1){
+            pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+            pastix_complex64_t *u = blok->coefL_u_LR;
+            pastix_complex64_t *v = blok->coefL_v_LR;
+
+            z_uncompress_LR(Akj, dima, dimb,
+                            u, dimb,
+                            v, dima,
+                            cblk->stride, rank);
+        }
+
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                      dimb, dimj, dima,
                      CBLAS_SADDR(zone),  Aik,  stride,
@@ -1677,8 +1692,48 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
         dimb = iterblok->lrownum - iterblok->frownum + 1;
         Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-
         Aik = U + iterblok->coefind;
+
+        /* Uncompress, we are doing a dense operations */
+        pastix_int_t rank = iterblok->rankU;
+        if (rank != -1){
+            pastix_int_t dimb     = iterblok->lrownum - iterblok->frownum + 1;
+            pastix_complex64_t *u = iterblok->coefU_u_LR;
+            pastix_complex64_t *v = iterblok->coefU_v_LR;
+
+            z_uncompress_LR(Aik, dima, dimb,
+                            u, dimb,
+                            v, dima,
+                            cblk->stride, rank);
+        }
+
+        rank = blok->rankL;
+        if (rank != -1){
+            pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+            pastix_complex64_t *u = blok->coefL_u_LR;
+            pastix_complex64_t *v = blok->coefL_v_LR;
+
+            z_uncompress_LR(Akj, dima, dimb,
+                            u, dimb,
+                            v, dima,
+                            cblk->stride, rank);
+        }
+
+        /* rank = fblok->rankU; */
+        /* if (rank != -1){ */
+        /*     pastix_int_t dima     = fcblk->lcolnum - fcblk->fcolnum + 1; */
+        /*     pastix_int_t dimb     = fblok->lrownum - fblok->frownum + 1; */
+        /*     pastix_complex64_t *u = fblok->coefU_u_LR; */
+        /*     pastix_complex64_t *v = fblok->coefU_v_LR; */
+
+        /*     Aij = C + fblok->coefind; */
+        /*     z_uncompress_LR(Aij, dima, dimb, */
+        /*                     u, dimb, */
+        /*                     v, dima, */
+        /*                     fcblk->stride, rank); */
+        /* } */
+
+        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                      dimb, dimj, dima,
                      CBLAS_SADDR(zone),  Aik,  stride,
@@ -1734,6 +1789,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
+    printf("CBLK %ld STRIDE %ld\n", current_cblk, cblk->stride);
     nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria);
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
@@ -1760,8 +1816,8 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
 
     }
 
-    /* TODO: replace operation in sequential_ztrsm.c */
-    /* core_zgetrfsp1d_uncompress(cblk, L, U); */
+    /* Uncompress for sequential_ztrsm.c still implemented in dense fashion */
+    core_zgetrfsp1d_uncompress(cblk, L, U);
 
 
 #if defined(PASTIX_WITH_HODLR)
