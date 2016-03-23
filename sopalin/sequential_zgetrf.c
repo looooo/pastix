@@ -188,11 +188,12 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 /*     fclose(file); */
                 /*     exit(1); */
                 /* } */
-
+                pastix_int_t compress_size = 100;
+                pastix_int_t compress_blok = 50;
 
                 pastix_complex64_t *data;
                 data = U + dima + totalsize;
-                if (dima > 50 && bloksize > 50)
+                if (dima > compress_size && bloksize > compress_blok)
                     rankU = z_compress_LR(data, dima, bloksize,
                                           s,
                                           uU, bloksize,
@@ -210,7 +211,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
                 data = L + dima + totalsize;
 
-                if (dima > 50 && bloksize > 50)
+                if (dima > compress_size && bloksize > compress_blok)
                     rankL = z_compress_LR(data, dima, bloksize,
                                           s,
                                           uL, bloksize,

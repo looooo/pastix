@@ -120,8 +120,8 @@ int main (int argc, char **argv)
     printf("\tFACING %ld\n", facing);
     printf("\tLEVELS %ld (unused right now)\n", levels);
 
-    iparm[IPARM_MIN_BLOCKSIZE] = 100;
-    iparm[IPARM_MAX_BLOCKSIZE] = 150;
+    iparm[IPARM_MIN_BLOCKSIZE] = 80;
+    iparm[IPARM_MAX_BLOCKSIZE] = 100;
 
     printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
 
