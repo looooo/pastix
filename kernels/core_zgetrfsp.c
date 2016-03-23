@@ -1,12 +1,3 @@
-/* TODO */
-/* Replace uncompress operation by smart LR gemms to avoid LR * LR transformed into dense * dense */
-/* Solve on U or L depending on the mimimum rank */
-
-/* Create new kernels */
-/* dense <- LR * LR: for diagonal blocks for instance */
-/* dense <- dense * LR: idem */
-/* LR <- dense * LR: reduce complexity */
-
 /**
  *
  * @file core_zgetrfsp.c
@@ -36,68 +27,6 @@ static pastix_complex64_t zzero =  0.;
 #if defined(PASTIX_WITH_HODLR)
 #include "cHODLR_Matrix.h"
 #endif /* defined(PASTIX_WITH_HODLR) */
-
-pastix_int_t z_compress_LR(pastix_complex64_t *fL,
-                           pastix_int_t dima,
-                           pastix_int_t dimb,
-                           double *s,
-                           pastix_complex64_t *u,
-                           pastix_int_t ldu,
-                           pastix_complex64_t *v,
-                           pastix_int_t ldv,
-                           pastix_int_t stride){
-
-    double superb[dimb];
-    pastix_complex64_t *block;
-    pastix_int_t        ret;
-    pastix_int_t        i;
-
-    pastix_int_t dim_min = dima;
-    if (dimb < dim_min)
-        dim_min = dimb;
-
-    block = malloc( dima * dimb * sizeof(pastix_complex64_t));
-    if (block == NULL){
-        printf("STRANGE\n");
-        exit(1);
-    }
-    for (i=0; i<dima; i++){
-        memcpy( block + i * dimb, fL + i * stride, dimb * sizeof(pastix_complex64_t));
-    }
-
-    /* memset(block, 0, dima * dimb * sizeof(pastix_complex64_t)); */
-
-    ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
-                          dimb, dima, block, dimb,
-                          s, u, ldu, v, ldv, superb );
-
-    if( ret != 0 ){
-        printf("SVD FAILED %ld\n\n", ret);
-        return -1;
-    }
-
-    char *tol        = getenv("TOLERANCE");
-    double tolerance = atof(tol);
-
-    pastix_int_t rank = dim_min;
-    for (i=0; i<dim_min-1; i++){
-        if (s[i] / s[0] < tolerance){
-            rank = i+1;
-            break;
-        }
-    }
-
-    for (i=rank; i<dim_min; i++){
-        s[i] = 0;
-    }
-
-    for (i=0; i<dim_min; i++){
-        cblas_dscal(dimb, s[i], &(u[i*ldu]), 1);
-    }
-
-    free(block);
-    return rank;
-}
 
 void z_uncompress_LR(pastix_complex64_t *fL,
                      pastix_int_t dima,
@@ -827,44 +756,6 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
         if (cblk->is_HODLR == 0)
 #endif /* defined(PASTIX_WITH_HODLR) */
         {
-
-            /* We do not compress here, but in A cf sequential_zgetrf.c */
-            if (0){
-                printf("TOTO\n");
-                pastix_int_t rank = -1;
-                double *s;
-                pastix_complex64_t *u, *v;
-
-                pastix_int_t dim_min = pastix_imin(dima, dimb);
-
-                s = malloc( dim_min * sizeof(double));
-                u = malloc( dimb * dimb * sizeof(pastix_complex64_t));
-                v = malloc( dima * dima * sizeof(pastix_complex64_t));
-
-                memset(s, 0, dim_min     * sizeof(double));
-                memset(u, 0, dimb * dimb * sizeof(pastix_complex64_t));
-                memset(v, 0, dima * dima * sizeof(pastix_complex64_t));
-
-                rank = z_compress_LR(fU, dima, dimb,
-                                     s, u, dimb, v, dima, stride);
-
-                /* Add two identical LR matrices */
-                 z_add_LR(u, v,
-                          u, v,
-                          dimb, dima, rank,
-                          dimb, dima, rank,
-                          dimb, dima,
-                          0, 0);
-
-                 z_uncompress_LR(fU, dima, dimb,
-                                 u, dimb,
-                                 v, dima,
-                                 stride, rank);
-
-                free(s);
-                free(u);
-                free(v);
-            }
 
             pastix_int_t total = dimb;
             SolverBlok *blok   = fblok;

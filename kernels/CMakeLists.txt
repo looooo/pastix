@@ -49,6 +49,7 @@ set(SOURCES
   core_zhetrfsp.c
   core_zpotrfsp.c
   core_zgetrfsp.c
+  core_zgelrops.c
 )
 
 precisions_rules_py(generated_files
