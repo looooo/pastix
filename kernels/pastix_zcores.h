@@ -11,6 +11,9 @@
 #define pastix_cblk_lock( cblk_ )
 #define pastix_cblk_unlock( cblk_ )
 
+#define L_side 0
+#define U_side 1
+
 pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
                                 pastix_int_t stride,
                                 pastix_int_t dimb,
@@ -46,6 +49,25 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
                            pastix_int_t ld_v2,
                            pastix_int_t x2,
                            pastix_int_t y2);
+
+void core_z_lr2dense(SolverBlok *blok,
+                     pastix_complex64_t *A,
+                     pastix_int_t stride,
+                     pastix_int_t width,
+                     pastix_int_t side);
+
+void core_zproduct_lr(SolverBlok *blok1,
+                      pastix_complex64_t *A1,
+                      pastix_int_t stride1,
+                      pastix_int_t width1,
+                      pastix_int_t side1,
+                      SolverBlok *blok2,
+                      pastix_complex64_t *A2,
+                      pastix_int_t stride2,
+                      pastix_int_t width2,
+                      pastix_int_t side2,
+                      pastix_complex64_t *work,
+                      pastix_int_t ldwork);
 
 void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,

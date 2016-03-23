@@ -16,6 +16,7 @@
 #include "pastix_zcores.h"
 #include <cblas.h>
 #include <lapacke.h>
+#include "solver.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
@@ -375,3 +376,75 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     return new_rank;
 }
 
+
+void core_z_lr2dense(SolverBlok *blok,
+                     pastix_complex64_t *A,
+                     pastix_int_t stride,
+                     pastix_int_t width,
+                     pastix_int_t side){
+
+    switch (side){
+    case L_side:
+        if (blok->rankL != -1){
+            pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+            pastix_complex64_t *u = blok->coefL_u_LR;
+            pastix_complex64_t *v = blok->coefL_v_LR;
+
+            core_z_uncompress_LR(A, stride,
+                                 dimb, width,
+                                 u, dimb,
+                                 v, width,
+                                 blok->rankL);
+        }
+        break;
+    case U_side:
+        if (blok->rankU != -1){
+            pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+            pastix_complex64_t *u = blok->coefU_u_LR;
+            pastix_complex64_t *v = blok->coefU_v_LR;
+
+            core_z_uncompress_LR(A, stride,
+                                 dimb, width,
+                                 u, dimb,
+                                 v, width,
+                                 blok->rankU);
+        }
+        break;
+    default:
+        printf("Wrong operation\n");
+        exit(1);
+        break;
+    }
+}
+
+void core_zproduct_lr(SolverBlok *blok1,
+                      pastix_complex64_t *A1,
+                      pastix_int_t stride1,
+                      pastix_int_t width1,
+                      pastix_int_t side1,
+                      SolverBlok *blok2,
+                      pastix_complex64_t *A2,
+                      pastix_int_t stride2,
+                      pastix_int_t width2,
+                      pastix_int_t side2,
+                      pastix_complex64_t *work,
+                      pastix_int_t ldwork){
+
+    assert(width1 == width2);
+
+    pastix_int_t dimb = blok1->lrownum - blok1->frownum + 1;
+    pastix_int_t dimj = blok2->lrownum - blok2->frownum + 1;
+    pastix_int_t dima = width1;
+
+    core_z_lr2dense(blok1, A1, stride1,
+                    width1, side1);
+
+    core_z_lr2dense(blok2, A2, stride2,
+                    width2, side2);
+
+    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                 dimb, dimj, dima,
+                 CBLAS_SADDR(zone),  A1, stride1,
+                                     A2, stride2,
+                 CBLAS_SADDR(zzero), work, ldwork  );
+}
