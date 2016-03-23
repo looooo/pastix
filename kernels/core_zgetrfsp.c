@@ -28,244 +28,6 @@ static pastix_complex64_t zzero =  0.;
 #include "cHODLR_Matrix.h"
 #endif /* defined(PASTIX_WITH_HODLR) */
 
-pastix_int_t z_add_LR(pastix_complex64_t *u1,
-                      pastix_complex64_t *v1,
-                      pastix_complex64_t *u2,
-                      pastix_complex64_t *v2,
-                      pastix_int_t dim_u1,
-                      pastix_int_t dim_v1,
-                      pastix_int_t rank_1,
-                      pastix_int_t dim_u2,
-                      pastix_int_t dim_v2,
-                      pastix_int_t rank_2,
-                      pastix_int_t ldv_u2,
-                      pastix_int_t ldv_v2,
-                      pastix_int_t x2,
-                      pastix_int_t y2){
-
-    /* Idem for block u2 v2^T */
-    /* u1 is of size dim_u1 * rank_1 */
-    /* v1 is of size dim_u1 * rank_1 */
-
-    /* We suppose u1 v1^T is the matrix which receive the contribution */
-    /* Then, dim_u1 >= dim_u2 and dim_v1 >= dim_v2 */
-    /* (x2, y2) represents the first index of u2 v2^T contributing to u1 v1^T */
-
-    /* printf("Contribution size %ld %ld rank %ld on size %ld %ld rank %ld\n", */
-    /*        dim_u2, dim_v2, rank_2, dim_u1, dim_v1, rank_1); */
-
-    pastix_int_t dim_u = pastix_imax(dim_u1, dim_u2);
-    pastix_int_t dim_v = pastix_imax(dim_v1, dim_v2);
-    pastix_int_t rank  = rank_1 + rank_2;
-    pastix_int_t i, j;
-
-    if (dim_u2 > dim_u1 || dim_v2 > dim_v1){
-        printf("\n\nDimensions are not correct\n\n");
-        exit(1);
-    }
-
-    pastix_int_t minMN_1 = pastix_imin(dim_u, rank);
-    /* Rank is too high for u1u2 */
-    if (minMN_1 == dim_u){
-        return -1;
-    }
-
-    pastix_int_t minMN_2 = pastix_imin(dim_v, rank);
-    /* Rank is too high for v1v2 */
-    if (minMN_2 == dim_v){
-        return -1;
-    }
-
-    /* u1v1^T + u2v2^T = (u1 u2) (v1 v2)^T */
-    /* Compute QR decomposition of (u1 u2) = Q1 R1 */
-    /* Compute QR decomposition of (v1 v2) = Q2 R2 */
-    /* Compute SVD of R1 R2^T = u \sigma v^T*/
-    /* Final solution is (Q1 u \sigma^[1/2]) (Q2 v \sigma^[1/2])^T */
-
-    pastix_complex64_t *u1u2, *v1v2;
-    u1u2 = malloc( dim_u * rank * sizeof(pastix_complex64_t));
-    v1v2 = malloc( dim_v * rank * sizeof(pastix_complex64_t));
-
-    /* TODO: apply when dim_u1 != dim_u2 AND dim_v1 != dim_v2 */
-    memset(u1u2, 0, dim_u * rank * sizeof(pastix_complex64_t));
-    memset(v1v2, 0, dim_v * rank * sizeof(pastix_complex64_t));
-
-    /* printf("DIM %ld %ld %ld\n", dim_u1, dim_u2, dim_u); */
-
-    memcpy(u1u2, u1, dim_u1 * rank_1 * sizeof(pastix_complex64_t));
-    for (i=0; i<rank_2; i++){
-        for (j=0; j<dim_u2; j++){
-            u1u2[dim_u * (rank_1 + i) + x2 + j] = u2[i * ldv_u2 + j];
-        }
-    }
-
-    for (i=0; i<dim_v1; i++){
-        for (j=0; j<rank_1; j++){
-            v1v2[dim_v * j + i]                 = v1[i * dim_v1 + j];
-        }
-    }
-
-    /* WARNING: minus because of the extend add */
-    for (i=0; i<dim_v2; i++){
-        for (j=0; j<rank_2; j++){
-            v1v2[dim_v * (rank_1 + j) + i + y2] = -v2[i * ldv_v2 + j];
-        }
-    }
-
-    pastix_int_t ret;
-    pastix_complex64_t *tau1 = malloc( minMN_1 * sizeof(pastix_complex64_t));
-    memset(tau1, 0, minMN_1 * sizeof(pastix_complex64_t));
-    ret = LAPACKE_zgeqrf( CblasColMajor, dim_u, rank,
-                          u1u2, dim_u, tau1 );
-
-
-    pastix_complex64_t *tau2 = malloc( minMN_2 * sizeof(pastix_complex64_t));
-    memset(tau2, 0, minMN_2 * sizeof(pastix_complex64_t));
-    ret = LAPACKE_zgeqrf( CblasColMajor, dim_v, rank,
-                          v1v2, dim_v, tau2 );
-
-    pastix_complex64_t *R1, *R2, *R;
-    R1 = malloc(rank * rank * sizeof(pastix_complex64_t));
-    R2 = malloc(rank * rank * sizeof(pastix_complex64_t));
-    R  = malloc(rank * rank * sizeof(pastix_complex64_t));
-    memset(R1, 0, rank * rank * sizeof(pastix_complex64_t));
-    memset(R2, 0, rank * rank * sizeof(pastix_complex64_t));
-    //    memset(R , 0, rank * rank * sizeof(pastix_complex64_t));
-
-    for (i=0; i<rank; i++){
-        memcpy(R1 + rank * i, u1u2 + dim_u * i, (i+1) * sizeof(pastix_complex64_t));
-        memcpy(R2 + rank * i, v1v2 + dim_v * i, (i+1) * sizeof(pastix_complex64_t));
-    }
-
-    /* printf("RANKS %ld %ld\n", rank_1, rank_2); */
-    /* for (i=0; i<rank; i++){ */
-    /*     for (j=0; j<rank; j++){ */
-    /*         printf("%10.3g ", R2[i*rank+j]); */
-    /*     } */
-    /*     printf("\n"); */
-    /* } */
-
-    /* Compute R1 R2 */
-    cblas_zgemm(CblasColMajor, CblasNoTrans, CblasTrans,
-                rank, rank, rank,
-                CBLAS_SADDR(zone),  R1, rank,
-                R2, rank,
-                CBLAS_SADDR(zzero), R,  rank);
-
-    double superb[rank];
-    double *s;
-    pastix_complex64_t *u, *v;
-    s = malloc( rank * sizeof(double));
-    u = malloc( rank * rank * sizeof(pastix_complex64_t));
-    v = malloc( rank * rank * sizeof(pastix_complex64_t));
-    /* memset(s, 0, rank * sizeof(double)); */
-    /* memset(u, 0, rank * rank * sizeof(pastix_complex64_t)); */
-    /* memset(v, 0, rank * rank * sizeof(pastix_complex64_t)); */
-
-    ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
-                          rank, rank, R, rank,
-                          s, u, rank, v, rank, superb );
-
-    if (ret != 0){
-        printf("LAPACKE_zgesvd FAILED\n");
-        exit(1);
-    }
-
-    /* Keep rank as constant wrt the block receiving contribution */
-    /* for (i=rank_1; i<rank; i++){ */
-    /*     if (fabs(s[i]) > 1e-16){ */
-    /*         printf("Strange as we add two identical matrices 0 %.3g i-1 %.3g i %.3g\n", */
-    /*                s[0], s[i-1], s[i]); */
-    /*     } */
-    /* } */
-
-    pastix_int_t new_rank = rank;
-    char *tol             = getenv("TOLERANCE");
-    double tolerance      = atof(tol);
-
-    for (i=0; i<rank-1; i++){
-        if (s[i] / s[0] < tolerance){
-            new_rank = i+1;
-            break;
-        }
-    }
-    for (i=new_rank; i<rank; i++){
-        s[i] = 0;
-    }
-
-
-    /* Scal u as before to take into account singular values */
-    for (i=0; i<rank; i++){
-        cblas_dscal(rank, s[i], &(u[rank * i]), 1);
-    }
-
-    memset(u1, 0, dim_u1 * dim_u1 * sizeof(pastix_complex64_t));
-
-    for (i=0; i<rank; i++){
-        memcpy(u1 + dim_u * i, u + rank * i, rank * sizeof(pastix_complex64_t));
-    }
-
-    /* We need non-transposed version of v */
-    pastix_complex64_t *v3;
-    v3 = malloc(  dim_v * dim_v * sizeof(pastix_complex64_t));
-    memset(v3, 0, dim_v * dim_v * sizeof(pastix_complex64_t));
-
-    for (i=0; i<rank; i++){
-        for (j=0; j<rank; j++){
-            v3[dim_v * j + i] = v[rank * i + j];
-        }
-    }
-
-    ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
-                         dim_u, rank, minMN_1, /* to be replaced by rank */
-                         u1u2, dim_u, tau1,
-                         u1, dim_u1);
-
-    /* We are suppose to apply this on right */
-    ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
-                         dim_v, rank, minMN_2, /* to be replaced by rank */
-                         v1v2, dim_v, tau2,
-                         v3, dim_v1);
-
-
-    /* We added two identical matrices */
-    /* for (i=0; i<dim_u1; i++){ */
-    /*     for (j=0; j<dim_u1; j++){ */
-    /*         u1[dim_u1*i+j] *= 0.5; */
-    /*     } */
-    /* } */
-
-    memset(v1, 0, dim_v * dim_v * sizeof(pastix_complex64_t));
-    for (i=0; i<rank; i++){
-        for (j=0; j<dim_v1; j++){
-            v1[dim_v1 * j + i] = v3[dim_v1 * i + j];
-        }
-    }
-
-    /* Set unused part of u to 0 */
-    for (i=rank; i<dim_u1; i++){
-        for (j=0; j<dim_u1; j++){
-            u1[i*dim_u1+j] = 0;
-        }
-    }
-
-    /* printf("Rank was OK to add the two LR structures %ld %ld %ld %ld\n", */
-    /*        dim_u, rank_1, rank_2, new_rank); */
-
-    free(u1u2);
-    free(v1v2);
-    free(u);
-    free(s);
-    free(v);
-    free(tau1);
-    free(tau2);
-    free(R);
-    free(R1);
-    free(R2);
-    free(v3);
-    return new_rank;
-}
-
 /**
  *******************************************************************************
  *
@@ -1399,13 +1161,12 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 pastix_int_t ldv2  = dimi;
                 pastix_int_t ret   = -1;
 
-                ret = z_add_LR(uF, vF,
-                               uL, tmp,
-                               sizeF, stride_D, rankF,
-                               dimb, dimj, rankL,
-                               dimb, ldv2,
-                               iterblok->frownum - fblok->frownum,
-                               blok->frownum - fcblk->fcolnum);
+                ret = core_z_add_LR(uF, vF,
+                                    sizeF, stride_D, rankF, sizeF, stride_D,
+                                    uL, tmp,
+                                    dimb, dimj, rankL, dimb, ldv2,
+                                    iterblok->frownum - fblok->frownum,
+                                    blok->frownum - fcblk->fcolnum);
 
                 if (ret == -1){
                     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -1507,13 +1268,12 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                         tmp[i*dimb + i] = 1;
                     }
 
-                    ret = z_add_LR(uF, vF,
-                                   tmp, work,
-                                   sizeF, stride_D, rankF,
-                                   dimb, dimj, dimb,
-                                   dimb, dimi,
-                                   iterblok->frownum - fblok->frownum,
-                                   blok->frownum - fcblk->fcolnum);
+                    ret = core_z_add_LR(uF, vF,
+                                        sizeF, stride_D, rankF, sizeF, stride_D,
+                                        tmp, work,
+                                        dimb, dimj, dimb, dimb, dimi,
+                                        iterblok->frownum - fblok->frownum,
+                                        blok->frownum - fcblk->fcolnum);
                 }
                 else{
                     tmp = malloc(dimj * dimj * sizeof(pastix_complex64_t *));
@@ -1523,13 +1283,12 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                         tmp[i*dimj + i] = 1;
                     }
 
-                    ret = z_add_LR(uF, vF,
-                                   work, tmp,
-                                   sizeF, stride_D, rankF,
-                                   dimb, dimj, dimj,
-                                   dimi, dimj,
-                                   iterblok->frownum - fblok->frownum,
-                                   blok->frownum - fcblk->fcolnum);
+                    ret = core_z_add_LR(uF, vF,
+                                        sizeF, stride_D, rankF, sizeF, stride_D,
+                                        work, tmp,
+                                        dimb, dimj, dimj, dimi, dimj,
+                                        iterblok->frownum - fblok->frownum,
+                                        blok->frownum - fcblk->fcolnum);
                 }
 
                 if (ret == -1){
@@ -1768,13 +1527,12 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 for (i=0; i<dimb; i++){
                     tmp[i*dimb + i] = 1;
                 }
-                ret = z_add_LR(uF, vF,
-                               tmp, work,
-                               sizeF, stride_D, rankF,
-                               dimb, dimj, dimb,
-                               dimb, dimi,
-                               iterblok->frownum - fblok->frownum,
-                               blok->frownum - fcblk->fcolnum);
+                ret = core_z_add_LR(uF, vF,
+                                    sizeF, stride_D, rankF, sizeF, stride_D,
+                                    tmp, work,
+                                    dimb, dimj, dimb, dimb, dimi,
+                                    iterblok->frownum - fblok->frownum,
+                                    blok->frownum - fcblk->fcolnum);
             }
             else{
                 tmp = malloc(dimj * dimj * sizeof(pastix_complex64_t *));
@@ -1784,13 +1542,12 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 for (i=0; i<dimj; i++){
                     tmp[i*dimj + i] = 1;
                 }
-                ret = z_add_LR(uF, vF,
-                               work, tmp,
-                               sizeF, stride_D, rankF,
-                               dimb, dimj, dimj,
-                               dimi, dimj,
-                               iterblok->frownum - fblok->frownum,
-                               blok->frownum - fcblk->fcolnum);
+                ret = core_z_add_LR(uF, vF,
+                                    sizeF, stride_D, rankF, sizeF, stride_D,
+                                    work, tmp,
+                                    dimb, dimj, dimj, dimi, dimj,
+                                    iterblok->frownum - fblok->frownum,
+                                    blok->frownum - fcblk->fcolnum);
             }
 
 

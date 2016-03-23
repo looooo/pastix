@@ -30,6 +30,23 @@ void core_z_uncompress_LR(pastix_complex64_t *fL,
                           pastix_int_t ldv,
                           pastix_int_t rank);
 
+pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
+                           pastix_complex64_t *v1,
+                           pastix_int_t dim_u1,
+                           pastix_int_t dim_v1,
+                           pastix_int_t rank_1,
+                           pastix_int_t ld_u1,
+                           pastix_int_t ld_v1,
+                           pastix_complex64_t *u2,
+                           pastix_complex64_t *v2,
+                           pastix_int_t dim_u2,
+                           pastix_int_t dim_v2,
+                           pastix_int_t rank_2,
+                           pastix_int_t ld_u2,
+                           pastix_int_t ld_v2,
+                           pastix_int_t x2,
+                           pastix_int_t y2);
+
 void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
