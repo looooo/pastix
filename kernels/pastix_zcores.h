@@ -11,24 +11,24 @@
 #define pastix_cblk_lock( cblk_ )
 #define pastix_cblk_unlock( cblk_ )
 
-pastix_int_t z_compress_LR(pastix_complex64_t *fL,
-                           pastix_int_t stride,
-                           pastix_int_t dimb,
-                           pastix_int_t dima,
-                           pastix_complex64_t *u,
-                           pastix_int_t ldu,
-                           pastix_complex64_t *v,
-                           pastix_int_t ldv);
+pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
+                                pastix_int_t stride,
+                                pastix_int_t dimb,
+                                pastix_int_t dima,
+                                pastix_complex64_t *u,
+                                pastix_int_t ldu,
+                                pastix_complex64_t *v,
+                                pastix_int_t ldv);
 
-void z_uncompress_LR(pastix_complex64_t *fL,
-                     pastix_int_t dima,
-                     pastix_int_t dimb,
-                     pastix_complex64_t *u,
-                     pastix_int_t ldu,
-                     pastix_complex64_t *v,
-                     pastix_int_t ldv,
-                     pastix_int_t stride,
-                     pastix_int_t rank);
+void core_z_uncompress_LR(pastix_complex64_t *fL,
+                          pastix_int_t stride,
+                          pastix_int_t dimb,
+                          pastix_int_t dima,
+                          pastix_complex64_t *u,
+                          pastix_int_t ldu,
+                          pastix_complex64_t *v,
+                          pastix_int_t ldv,
+                          pastix_int_t rank);
 
 void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,

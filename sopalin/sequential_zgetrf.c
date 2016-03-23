@@ -156,17 +156,18 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 pastix_complex64_t *data;
                 data = U + dima + totalsize;
                 if (dima > compress_size && bloksize > compress_blok)
-                    rankU = z_compress_LR(data, cblk->stride,
-                                          bloksize, dima,
-                                          uU, bloksize,
-                                          vU, dima);
+                    rankU = core_z_compress_LR(data, cblk->stride,
+                                               bloksize, dima,
+                                               uU, bloksize,
+                                               vU, dima);
 
                 /* Uncompress to check if the accuracy is consistent */
                 /* if (rankU != -1){ */
-                /*     z_uncompress_LR(data, dima, bloksize, */
+                /*     core_z_uncompress_LR(data, cblk->stride, */
+                /*                     bloksize, dima, */
                 /*                     uU, bloksize, */
                 /*                     vU, dima, */
-                /*                     cblk->stride, rankU); */
+                /*                     rankU); */
                 /* } */
                 /* rankU = -1; */
 
@@ -174,17 +175,18 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 data = L + dima + totalsize;
 
                 if (dima > compress_size && bloksize > compress_blok)
-                    rankL = z_compress_LR(data, cblk->stride,
-                                          bloksize, dima,
-                                          uL, bloksize,
-                                          vL, dima);
+                    rankL = core_z_compress_LR(data, cblk->stride,
+                                               bloksize, dima,
+                                               uL, bloksize,
+                                               vL, dima);
 
                 /* Uncompress to check if the accuracy is consistent */
                 /* if (rankL != -1){ */
-                /*     z_uncompress_LR(data, dima, bloksize, */
+                /*     core_z_uncompress_LR(data, cblk->stride, */
+                /*                     bloksize, dima, */
                 /*                     uL, bloksize, */
                 /*                     vL, dima, */
-                /*                     cblk->stride, rankL); */
+                /*                     rankL); */
                 /* } */
                 /* rankL = -1; */
 
