@@ -527,14 +527,11 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
     pastix_int_t dimj = blok2->lrownum - blok2->frownum + 1;
     pastix_int_t dima = width1;
 
+    pastix_complex64_t *uL, *vL, *uU, *vU, *uF, *vF;
+    pastix_int_t rankL, rankU, rankF;
+
     /* Operation L * U contributes to L */
     if (side1 == L_side && side2 == U_side && side3 == L_side){
-        pastix_complex64_t *uL, *vL, *uU, *vU, *uF, *vF;
-        pastix_int_t rankL, rankU, rankF;
-
-        pastix_int_t ret;
-        pastix_int_t sizeF = blok3->lrownum - blok3->frownum + 1;
-
         rankL = blok1->rankL;
         rankU = blok2->rankU;
         rankF = blok3->rankL;
@@ -545,142 +542,191 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         vU = blok2->coefU_v_LR;
         uF = blok3->coefL_u_LR;
         vF = blok3->coefL_v_LR;
+    }
+    else if (side1 == L_side && side2 == U_side && side3 == U_side){
+        rankL = blok1->rankL;
+        rankU = blok2->rankU;
+        rankF = blok3->rankU;
 
-        /* Perform LR * LR */
-        if (rankU != -1 && rankL != -1){
-            printf("Operation not supported yet\n\n");
-            exit(1);
-        }
-
-        /* Perform dense matrix */
-        else if (rankU == -1 && rankL == -1){
-
-            if (dima < dimb && dima < dimj){
-                /* Add matrix of rank dima */
-                ret = core_z_add_LR(uF, vF,
-                                    sizeF, width3, rankF, sizeF, width3,
-                                    A1, A2, CblasTrans,
-                                    dimb, dimj, dima,
-                                    stride1, stride2,
-                                    blok1->frownum - blok3->frownum,
-                                    blok2->frownum - offset);
-
-                if (ret == -1){
-                    /* A1 A2 matrix-matrix product was not form */
-                    if (dima < dimb && dima < dimj){
-                        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                                     dimb, dimj, dima,
-                                     CBLAS_SADDR(zone),  A1,  stride1,
-                                     A2,  stride2,
-                                     CBLAS_SADDR(zzero), work, dimb );
-                    }
-                }
-            }
-            else{
-                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                             dimb, dimj, dima,
-                             CBLAS_SADDR(zone),  A1,  stride1,
-                                                 A2,  stride2,
-                             CBLAS_SADDR(zzero), work, dimb );
-
-                if (dimb < dimj){
-                    /* Add matrix of rank dimb */
-                    ret = core_z_add_LR(uF, vF,
-                                        sizeF, width3, rankF, sizeF, width3,
-                                        NULL, work, CblasNoTrans,
-                                        dimb, dimj, dimb, dimb, dimb,
-                                        blok1->frownum - blok3->frownum,
-                                        blok2->frownum - offset);
-
-                }
-                else{
-                    /* Add matrix of rank dimj */
-                    ret = core_z_add_LR(uF, vF,
-                                        sizeF, width3, rankF, sizeF, width3,
-                                        work, NULL, CblasNoTrans,
-                                        dimb, dimj, dimj, dimb, dimj,
-                                        blok1->frownum - blok3->frownum,
-                                        blok2->frownum - offset);
-                }
-            }
-        }
-
-        /* Perform dense * LR */
-        else if (rankU == -1 && rankL != -1){
-            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                         rankL, dimj, dima,
-                         CBLAS_SADDR(zone),  vL, dima,
-                         A2, stride2,
-                         CBLAS_SADDR(zzero), work, dimb  );
-
-            ret = core_z_add_LR(uF, vF,
-                                sizeF, width3, rankF, sizeF, width3,
-                                uL, work, CblasNoTrans,
-                                dimb, dimj, rankL, dimb, dimb,
-                                blok1->frownum - blok3->frownum,
-                                blok2->frownum - offset);
-
-            /* TODO: enhance, but requires memory... */
-            /* Form A1 A2 for dense contribution */
-            if (ret == -1){
-                core_z_lr2dense(blok1, A1, stride1,
-                                width1, side1);
-
-                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                             dimb, dimj, dima,
-                             CBLAS_SADDR(zone),  A1,  stride1,
-                             A2,  stride2,
-                             CBLAS_SADDR(zzero), work, dimb );
-            }
-        }
-
-        /* Perform LR * dense */
-        else if (rankU != -1 && rankL == -1){
-            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                         dimb, rankU, dima,
-                         CBLAS_SADDR(zone),  A1, stride1,
-                         vU, dima,
-                         CBLAS_SADDR(zzero), work, dimb  );
-
-            ret = core_z_add_LR(uF, vF,
-                                sizeF, width3, rankF, sizeF, width3,
-                                work, uU, CblasTrans,
-                                dimb, dimj, rankU, dimb, dimj,
-                                blok1->frownum - blok3->frownum,
-                                blok2->frownum - offset);
-
-            /* TODO: enhance, but requires memory... */
-            /* Form A1 A2 for dense contribution */
-            if (ret == -1){
-                core_z_lr2dense(blok2, A2, stride2,
-                                width2, side2);
-
-                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                             dimb, dimj, dima,
-                             CBLAS_SADDR(zone),  A1,  stride1,
-                             A2,  stride2,
-                             CBLAS_SADDR(zzero), work, dimb );
-            }
-        }
-
-
-        /* Uncompress the block and perform dense update if rank became too large */
-        if (ret == -1){
-            core_z_lr2dense(blok3, A3, stride3,
-                            width3, L_side);
-            blok3->rankL = -1;
-
-            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                         work, dimb,
-                         A3_contrib,  stride3 );
-        }
-        else{
-            blok3->rankL = ret;
-        }
-
+        uL = blok1->coefL_u_LR;
+        vL = blok1->coefL_v_LR;
+        uU = blok2->coefU_u_LR;
+        vU = blok2->coefU_v_LR;
+        uF = blok3->coefU_u_LR;
+        vF = blok3->coefU_v_LR;
     }
     else{
         printf("Operation not supported yet\n\n");
         exit(1);
+    }
+
+    pastix_int_t ret;
+    pastix_int_t sizeF = blok3->lrownum - blok3->frownum + 1;
+
+    /* Perform LR * LR */
+    if (rankU != -1 && rankL != -1){
+
+        pastix_complex64_t *tmp;
+        tmp = malloc(dimj * dimj * sizeof(pastix_complex64_t *));
+
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                     rankL, rankU, dima,
+                     CBLAS_SADDR(zone),  vL,   dima,
+                                         vU,   dima,
+                     CBLAS_SADDR(zzero), work, dimb );
+
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                     rankL, dimj, rankU,
+                     CBLAS_SADDR(zone),  work, dimb,
+                                         uU,   dimj,
+                     CBLAS_SADDR(zzero), tmp,  dimj );
+
+        ret = core_z_add_LR(uF, vF,
+                            sizeF, width3, rankF, sizeF, width3,
+                            uL, tmp, CblasNoTrans,
+                            dimb, dimj, rankL,
+                            dimb, dimj,
+                            blok1->frownum - blok3->frownum,
+                            blok2->frownum - offset);
+
+        /* TODO: enhance, but requires memory... */
+        /* Form A1 A2 for dense contribution */
+        if (ret == -1){
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                         dimb, dimj, rankL,
+                         CBLAS_SADDR(zone),  uL,   dimb,
+                                             tmp,  dimj,
+                         CBLAS_SADDR(zzero), work, dimb  );
+        }
+
+        free(tmp);
+    }
+
+    /* Perform dense matrix */
+    else if (rankU == -1 && rankL == -1){
+
+        if (dima < dimb && dima < dimj){
+            /* Add matrix of rank dima */
+            ret = core_z_add_LR(uF, vF,
+                                sizeF, width3, rankF, sizeF, width3,
+                                A1, A2, CblasTrans,
+                                dimb, dimj, dima,
+                                stride1, stride2,
+                                blok1->frownum - blok3->frownum,
+                                blok2->frownum - offset);
+
+            if (ret == -1){
+                /* A1 A2 matrix-matrix product was not form */
+                if (dima < dimb && dima < dimj){
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                                 dimb, dimj, dima,
+                                 CBLAS_SADDR(zone),  A1,  stride1,
+                                 A2,  stride2,
+                                 CBLAS_SADDR(zzero), work, dimb );
+                }
+            }
+        }
+        else{
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                         dimb, dimj, dima,
+                         CBLAS_SADDR(zone),  A1,  stride1,
+                         A2,  stride2,
+                         CBLAS_SADDR(zzero), work, dimb );
+
+            if (dimb < dimj){
+                /* Add matrix of rank dimb */
+                ret = core_z_add_LR(uF, vF,
+                                    sizeF, width3, rankF, sizeF, width3,
+                                    NULL, work, CblasNoTrans,
+                                    dimb, dimj, dimb, dimb, dimb,
+                                    blok1->frownum - blok3->frownum,
+                                    blok2->frownum - offset);
+
+            }
+            else{
+                /* Add matrix of rank dimj */
+                ret = core_z_add_LR(uF, vF,
+                                    sizeF, width3, rankF, sizeF, width3,
+                                    work, NULL, CblasNoTrans,
+                                    dimb, dimj, dimj, dimb, dimj,
+                                    blok1->frownum - blok3->frownum,
+                                    blok2->frownum - offset);
+            }
+        }
+    }
+
+    /* Perform dense * LR */
+    else if (rankU == -1 && rankL != -1){
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                     rankL, dimj, dima,
+                     CBLAS_SADDR(zone),  vL, dima,
+                     A2, stride2,
+                     CBLAS_SADDR(zzero), work, dimb  );
+
+        ret = core_z_add_LR(uF, vF,
+                            sizeF, width3, rankF, sizeF, width3,
+                            uL, work, CblasNoTrans,
+                            dimb, dimj, rankL, dimb, dimb,
+                            blok1->frownum - blok3->frownum,
+                            blok2->frownum - offset);
+
+        /* TODO: enhance, but requires memory... */
+        /* Form A1 A2 for dense contribution */
+        if (ret == -1){
+            core_z_lr2dense(blok1, A1, stride1,
+                            width1, side1);
+
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                         dimb, dimj, dima,
+                         CBLAS_SADDR(zone),  A1,  stride1,
+                         A2,  stride2,
+                         CBLAS_SADDR(zzero), work, dimb );
+        }
+    }
+
+    /* Perform LR * dense */
+    else if (rankU != -1 && rankL == -1){
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                     dimb, rankU, dima,
+                     CBLAS_SADDR(zone),  A1, stride1,
+                     vU, dima,
+                     CBLAS_SADDR(zzero), work, dimb  );
+
+        ret = core_z_add_LR(uF, vF,
+                            sizeF, width3, rankF, sizeF, width3,
+                            work, uU, CblasTrans,
+                            dimb, dimj, rankU, dimb, dimj,
+                            blok1->frownum - blok3->frownum,
+                            blok2->frownum - offset);
+
+        /* TODO: enhance, but requires memory... */
+        /* Form A1 A2 for dense contribution */
+        if (ret == -1){
+            core_z_lr2dense(blok2, A2, stride2,
+                            width2, side2);
+
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                         dimb, dimj, dima,
+                         CBLAS_SADDR(zone),  A1,  stride1,
+                         A2,  stride2,
+                         CBLAS_SADDR(zzero), work, dimb );
+        }
+    }
+
+
+    /* Uncompress the block and perform dense update if rank became too large */
+    if (ret == -1){
+        core_z_lr2dense(blok3, A3, stride3,
+                        width3, side3);
+
+        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                     work, dimb,
+                     A3_contrib, stride3 );
+    }
+    if (side1 == L_side && side2 == U_side && side3 == L_side){
+        blok3->rankL = ret;
+    }
+    else if (side1 == L_side && side2 == U_side && side3 == U_side){
+        blok3->rankU = ret;
     }
 }
