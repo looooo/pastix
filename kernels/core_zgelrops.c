@@ -199,6 +199,7 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
                            pastix_int_t ld_v1,
                            pastix_complex64_t *u2,
                            pastix_complex64_t *v2,
+                           pastix_int_t trans,
                            pastix_int_t dim_u2,
                            pastix_int_t dim_v2,
                            pastix_int_t rank_2,
@@ -257,7 +258,10 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     /* WARNING: minus because of the extend add */
     for (i=0; i<dim_v2; i++){
         for (j=0; j<rank_2; j++){
-            v1v2[dim_v * (rank_1 + j) + i + y2] = -v2[i * ld_v2 + j];
+            if (trans == CblasNoTrans)
+                v1v2[dim_v * (rank_1 + j) + i + y2] = -v2[i * ld_v2 + j];
+            else
+                v1v2[dim_v * (rank_1 + j) + i + y2] = -v2[j * ld_v2 + i];
         }
     }
 
@@ -377,6 +381,15 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_z_lr2dense - If the u v^T matrix is still used, uncompress it into A
+ *
+ *
+ *******************************************************************************/
 void core_z_lr2dense(SolverBlok *blok,
                      pastix_complex64_t *A,
                      pastix_int_t stride,
@@ -417,18 +430,31 @@ void core_z_lr2dense(SolverBlok *blok,
     }
 }
 
-void core_zproduct_lr(SolverBlok *blok1,
-                      pastix_complex64_t *A1,
-                      pastix_int_t stride1,
-                      pastix_int_t width1,
-                      pastix_int_t side1,
-                      SolverBlok *blok2,
-                      pastix_complex64_t *A2,
-                      pastix_int_t stride2,
-                      pastix_int_t width2,
-                      pastix_int_t side2,
-                      pastix_complex64_t *work,
-                      pastix_int_t ldwork){
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zproduct_lr2dense - Compute work = A1 * A2
+ * A1, A2 maybe dense or LR
+ * work has to be dense
+ *
+ *
+ *******************************************************************************/
+void core_zproduct_lr2dense(SolverBlok *blok1,
+                            pastix_complex64_t *A1,
+                            pastix_int_t stride1,
+                            pastix_int_t width1,
+                            pastix_int_t side1,
+                            SolverBlok *blok2,
+                            pastix_complex64_t *A2,
+                            pastix_int_t stride2,
+                            pastix_int_t width2,
+                            pastix_int_t side2,
+                            pastix_complex64_t *work,
+                            pastix_int_t ldwork){
+
+    /* TODO: enhance if A1 and/or A2 are really LR */
 
     assert(width1 == width2);
 
@@ -447,4 +473,156 @@ void core_zproduct_lr(SolverBlok *blok1,
                  CBLAS_SADDR(zone),  A1, stride1,
                                      A2, stride2,
                  CBLAS_SADDR(zzero), work, ldwork  );
+}
+
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zproduct_lr2lr - Update uF vF^T with A1 * A2
+ * A1, A2 maybe dense or LR
+ * uf vF^T is necessary LR
+ *
+ *
+ *******************************************************************************/
+void core_zproduct_lr2lr(SolverBlok *blok1,
+                         pastix_complex64_t *A1,
+                         pastix_int_t stride1,
+                         pastix_int_t width1,
+                         pastix_int_t side1,
+                         SolverBlok *blok2,
+                         pastix_complex64_t *A2,
+                         pastix_int_t stride2,
+                         pastix_int_t width2,
+                         pastix_int_t side2,
+                         SolverBlok *blok3,
+                         pastix_complex64_t *A3,
+                         pastix_complex64_t *A3_contrib,
+                         pastix_int_t stride3,
+                         pastix_int_t width3,
+                         pastix_int_t side3,
+                         pastix_int_t offset,
+                         pastix_complex64_t *work){
+
+    pastix_int_t dimb = blok1->lrownum - blok1->frownum + 1;
+    pastix_int_t dimj = blok2->lrownum - blok2->frownum + 1;
+    pastix_int_t dima = width1;
+
+    /* Operation L * U contributes to L */
+    if (side1 == L_side && side2 == U_side && side3 == L_side){
+        pastix_complex64_t *uL, *vL, *uU, *vU, *uF, *vF;
+        pastix_int_t rankL, rankU, rankF;
+
+        rankL = blok1->rankL;
+        rankU = blok2->rankU;
+        rankF = blok3->rankL;
+
+        uL = blok1->coefL_u_LR;
+        vL = blok1->coefL_v_LR;
+        uU = blok2->coefU_u_LR;
+        vU = blok2->coefU_v_LR;
+        uF = blok3->coefL_u_LR;
+        vF = blok3->coefL_v_LR;
+
+        /* Perform LR * LR */
+        if (rankU != -1 && rankL != -1){
+            printf("Operation not supported yet\n\n");
+            exit(1);
+        }
+
+        /* Perform dense matrix */
+        else if (rankU == -1 && rankL == -1){
+
+            pastix_int_t ret;
+            pastix_int_t sizeF = blok3->lrownum - blok3->frownum + 1;
+
+            if (dima < dimb && dima < dimj){
+                /* Add matrix of rank dima */
+                ret = core_z_add_LR(uF, vF,
+                                    sizeF, width3, rankF, sizeF, width3,
+                                    A1, A2, CblasTrans,
+                                    dimb, dimj, dima,
+                                    stride1, stride2,
+                                    blok1->frownum - blok3->frownum,
+                                    blok2->frownum - offset);
+            }
+            else{
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                             dimb, dimj, dima,
+                             CBLAS_SADDR(zone),  A1,  stride1,
+                                                 A2,  stride2,
+                             CBLAS_SADDR(zzero), work, dimb );
+
+                pastix_int_t dim_min = pastix_imin(dimb, dimj);
+                pastix_complex64_t *tmp;
+                tmp = malloc(dim_min * dim_min * sizeof(pastix_complex64_t *));
+                memset(tmp, 0, dim_min * dim_min * sizeof(pastix_complex64_t *));
+                pastix_int_t i;
+                for (i=0; i<dim_min; i++){
+                    tmp[i*dim_min + i] = 1;
+                }
+
+                if (dimb < dimj){
+                    /* Add matrix of rank dimb */
+                    ret = core_z_add_LR(uF, vF,
+                                        sizeF, width3, rankF, sizeF, width3,
+                                        tmp, work, CblasNoTrans,
+                                        dimb, dimj, dimb, dimb, dimb,
+                                        blok1->frownum - blok3->frownum,
+                                        blok2->frownum - offset);
+
+                }
+                else{
+                    /* Add matrix of rank dimj */
+                    ret = core_z_add_LR(uF, vF,
+                                        sizeF, width3, rankF, sizeF, width3,
+                                        work, tmp, CblasNoTrans,
+                                        dimb, dimj, dimj, dimb, dimj,
+                                        blok1->frownum - blok3->frownum,
+                                        blok2->frownum - offset);
+                }
+            }
+
+            if (ret == -1){
+                core_z_lr2dense(blok3, A3, stride3,
+                                width3, L_side);
+                blok3->rankL = -1;
+
+                /* A1 A2 matrix-matrix product was not form if dima is smaller than dimb and dimj */
+                if (dima < dimb && dima < dimj){
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                                 dimb, dimj, dima,
+                                 CBLAS_SADDR(zone),  A1,  stride1,
+                                 A2,  stride2,
+                                 CBLAS_SADDR(zzero), work, dimb );
+                }
+
+                core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
+                             work, dimb,
+                             A3_contrib,  stride3 );
+            }
+            else{
+                blok3->rankL = ret;
+            }
+        }
+
+        /* Perform dense * LR */
+        else if (rankU == -1 && rankL != -1){
+            printf("Operation not supported yet\n\n");
+            exit(1);
+        }
+
+        /* Perform LR * dense */
+        else if (rankU != -1 && rankL == -1){
+            printf("Operation not supported yet\n\n");
+            exit(1);
+        }
+
+    }
+    else{
+        printf("Operation not supported yet\n\n");
+        exit(1);
+    }
 }

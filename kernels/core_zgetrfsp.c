@@ -1074,11 +1074,11 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
         /* If the blok modifies a diagonal block */
         if (fblok->coefind + iterblok->frownum - fblok->frownum < stride_D){
 
-            core_zproduct_lr(iterblok, Aik, stride,
-                             dima, L_side,
-                             blok, Akj, stride,
-                             dima, U_side,
-                             work, dimi);
+            core_zproduct_lr2dense(iterblok, Aik, stride,
+                                   dima, L_side,
+                                   blok, Akj, stride,
+                                   dima, U_side,
+                                   work, dimi);
 
             Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
                 + fblok->coefind + iterblok->frownum - fblok->frownum;
@@ -1107,7 +1107,6 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
             /* Each blok is LR */
             if (rankL != -1 && rankU != -1 && rankF != -1){
-
                 pastix_complex64_t *tmp;
                 tmp = malloc(dimi * dimi * sizeof(pastix_complex64_t *));
 
@@ -1129,7 +1128,7 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
                 ret = core_z_add_LR(uF, vF,
                                     sizeF, stride_D, rankF, sizeF, stride_D,
-                                    uL, tmp,
+                                    uL, tmp, CblasNoTrans,
                                     dimb, dimj, rankL, dimb, ldv2,
                                     iterblok->frownum - fblok->frownum,
                                     blok->frownum - fcblk->fcolnum);
@@ -1164,13 +1163,26 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
             /* The blok receiving a contribution is still LR */
             else if (rankF != -1){
 
+                if (blok->rankU == -1 && iterblok->rankL == -1){
+                    core_zproduct_lr2lr(iterblok, Aik, stride,
+                                        dima, L_side,
+                                        blok, Akj, stride,
+                                        dima, U_side,
+                                        fblok, Cl + fblok->coefind,
+                                        C + fblok->coefind + iterblok->frownum - fblok->frownum,
+                                        stridefc,
+                                        stride_D, L_side,
+                                        fcblk->fcolnum,
+                                        work);
+                }
+
                 /* No need to uncompress */
                 if (blok->rankU == -1 && iterblok->rankL == -1){
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                                 dimb, dimj, dima,
-                                 CBLAS_SADDR(zone),  Aik,  stride,
-                                                     Akj,  stride,
-                                 CBLAS_SADDR(zzero), work, dimi  );
+                    /* cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans, */
+                    /*              dimb, dimj, dima, */
+                    /*              CBLAS_SADDR(zone),  Aik,  stride, */
+                    /*                                  Akj,  stride, */
+                    /*              CBLAS_SADDR(zzero), work, dimi  ); */
                 }
                 /* Uncompress L factor */
                 else if (iterblok->rankL != -1){
@@ -1217,6 +1229,8 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 }
 
 
+                if (blok->rankU != -1 || iterblok->rankL != -1){
+                /* if (1){ */
 
                 pastix_int_t sizeF = fblok->lrownum - fblok->frownum + 1;
                 pastix_int_t ret   = -1;
@@ -1232,7 +1246,7 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
                     ret = core_z_add_LR(uF, vF,
                                         sizeF, stride_D, rankF, sizeF, stride_D,
-                                        tmp, work,
+                                        tmp, work, CblasNoTrans,
                                         dimb, dimj, dimb, dimb, dimi,
                                         iterblok->frownum - fblok->frownum,
                                         blok->frownum - fcblk->fcolnum);
@@ -1247,7 +1261,7 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
                     ret = core_z_add_LR(uF, vF,
                                         sizeF, stride_D, rankF, sizeF, stride_D,
-                                        work, tmp,
+                                        work, tmp, CblasNoTrans,
                                         dimb, dimj, dimj, dimi, dimj,
                                         iterblok->frownum - fblok->frownum,
                                         blok->frownum - fcblk->fcolnum);
@@ -1274,28 +1288,16 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 }
                 free(tmp);
 
-            }
+                }}
 
             /* The blok receiving a contribution is dense */
             else{
 
-                /* TODO: replace by LR * LR kernel */
-                /* Uncompress U and L factors if those blocks are compressed */
-                core_z_lr2dense(blok, Akj, stride,
-                                dima, U_side);
-                core_z_lr2dense(iterblok, Aik, stride,
-                                dima, L_side);
-
-                Aij = Cl + fblok->coefind;
-                core_z_lr2dense(fblok, Aij, stridefc,
-                                stride_D, L_side);
-                fblok->rankL = -1;
-
-                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                             dimb, dimj, dima,
-                             CBLAS_SADDR(zone),  Aik,  stride,
-                             Akj,  stride,
-                             CBLAS_SADDR(zzero), work, dimi  );
+                core_zproduct_lr2dense(iterblok, Aik, stride,
+                                       dima, L_side,
+                                       blok, Akj, stride,
+                                       dima, U_side,
+                                       work, dimi);
 
                 Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
 
@@ -1336,18 +1338,11 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
         dimb = iterblok->lrownum - iterblok->frownum + 1;
         Aik = U + iterblok->coefind;
 
-        /* Uncompress, we are doing a dense operations */
-        core_z_lr2dense(iterblok, Aik, stride,
-                        dima, U_side);
-
-        core_z_lr2dense(blok, Akj, stride,
-                        dima, L_side);
-
-        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                     dimb, dimj, dima,
-                     CBLAS_SADDR(zone),  Aik,  stride,
-                     Akj,  stride,
-                     CBLAS_SADDR(zzero), work, dimi  );
+        core_zproduct_lr2dense(iterblok, Aik, stride,
+                               dima, U_side,
+                               blok, Akj, stride,
+                               dima, L_side,
+                               work, dimi);
 
         pastix_cblk_lock( fcblk );
         core_zgeadd( CblasTrans, dimj, dimb, -1.0,
@@ -1425,7 +1420,7 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 }
                 ret = core_z_add_LR(uF, vF,
                                     sizeF, stride_D, rankF, sizeF, stride_D,
-                                    tmp, work,
+                                    tmp, work, CblasNoTrans,
                                     dimb, dimj, dimb, dimb, dimi,
                                     iterblok->frownum - fblok->frownum,
                                     blok->frownum - fcblk->fcolnum);
@@ -1440,7 +1435,7 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                 }
                 ret = core_z_add_LR(uF, vF,
                                     sizeF, stride_D, rankF, sizeF, stride_D,
-                                    work, tmp,
+                                    work, tmp, CblasNoTrans,
                                     dimb, dimj, dimj, dimi, dimj,
                                     iterblok->frownum - fblok->frownum,
                                     blok->frownum - fcblk->fcolnum);
@@ -1467,25 +1462,12 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
         }
 
         else{
-            /* Uncompress, we are doing a dense operations */
 
-            core_z_lr2dense(iterblok, Aik, stride,
-                            dima, U_side);
-
-            core_z_lr2dense(blok, Akj, stride,
-                            dima, L_side);
-
-            Aij = Cu + fblok->coefind;
-            core_z_lr2dense(fblok, Aij, fcblk->stride,
-                            fcblk->lcolnum - fcblk->fcolnum + 1, U_side);
-            fblok->rankU = -1;
-
-            Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                         dimb, dimj, dima,
-                         CBLAS_SADDR(zone),  Aik,  stride,
-                         Akj,  stride,
-                         CBLAS_SADDR(zzero), work, dimi  );
+            core_zproduct_lr2dense(iterblok, Aik, stride,
+                                   dima, U_side,
+                                   blok, Akj, stride,
+                                   dima, L_side,
+                                   work, dimi);
 
             pastix_cblk_lock( fcblk );
             core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
