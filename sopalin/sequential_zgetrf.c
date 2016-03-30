@@ -150,8 +150,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
                 memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
 
-                pastix_int_t compress_size = 100;
-                pastix_int_t compress_blok = 50;
+                pastix_int_t compress_size = 192;
+                pastix_int_t compress_blok = 192;
 
                 pastix_complex64_t *data;
                 data = U + dima + totalsize;
@@ -160,6 +160,13 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                                                bloksize, dima,
                                                uU, bloksize,
                                                vU, dima);
+
+                if (rankU != -1){
+                    pastix_int_t i;
+                    for (i=0; i<dima; i++){
+                        memset(data + cblk->stride * i, 0, bloksize * sizeof(pastix_complex64_t));
+                    }
+                }
 
                 /* Uncompress to check if the accuracy is consistent */
                 /* if (rankU != -1){ */
@@ -180,6 +187,14 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                                                uL, bloksize,
                                                vL, dima);
 
+                /* TODO: set blok to zero has it will be used has a local memory */
+                if (rankL != -1){
+                    pastix_int_t i;
+                    for (i=0; i<dima; i++){
+                        memset(data + cblk->stride * i, 0, bloksize * sizeof(pastix_complex64_t));
+                    }
+                }
+
                 /* Uncompress to check if the accuracy is consistent */
                 /* if (rankL != -1){ */
                 /*     core_z_uncompress_LR(data, cblk->stride, */
@@ -196,6 +211,20 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 blok->coefL_u_LR = uL;
                 blok->coefL_v_LR = vL;
                 blok->rankL      = rankL;
+
+                blok->Lsurface = 0;
+                blok->Lxmin    = 1000000;
+                blok->Lxmax    = 0;
+                blok->Lymin    = 100000;
+                blok->Lymax    = 0;
+                blok->Lupdates = 0;
+
+                blok->Usurface = 0;
+                blok->Uxmin    = 1000000;
+                blok->Uxmax    = 0;
+                blok->Uymin    = 100000;
+                blok->Uymax    = 0;
+                blok->Uupdates = 0;
 
                 totalsize += bloksize;
                 tot++;

@@ -121,11 +121,11 @@ int main (int argc, char **argv)
     printf("\tLEVELS %ld (unused right now)\n", levels);
 
     iparm[IPARM_MIN_BLOCKSIZE] = 80;
-    iparm[IPARM_MAX_BLOCKSIZE] = 100;
+    iparm[IPARM_MAX_BLOCKSIZE] = 192;
 
     printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
 
-    iparm[IPARM_ITERMAX]          = 10;
+    iparm[IPARM_ITERMAX]          = 100;
     iparm[IPARM_REORDERING_SPLIT] = 0;
 
     /**
