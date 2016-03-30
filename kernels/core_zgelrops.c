@@ -18,8 +18,8 @@
 #include <lapacke.h>
 #include "solver.h"
 
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t zzero =  0.;
+static pastix_complex64_t zzero = 0.;
+static pastix_complex64_t zone  = 1.;
 
 /**
  *******************************************************************************
@@ -69,6 +69,7 @@ pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
     if (dimb < dim_min)
         dim_min = dimb;
 
+    /* TODO: remove this copy, we can erase the matrix in most cases */
     /* Note that we have to copy fL because LAPACKE_zgesvd erases the matrix */
     block  = malloc( dima * dimb * sizeof(pastix_complex64_t) );
     s      = malloc( dim_min * sizeof(double) );
@@ -94,7 +95,7 @@ pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
 
     pastix_int_t rank = dim_min;
     for (i=0; i<dim_min-1; i++){
-        if (s[i] / s[0] < tolerance){
+        if (s[i] < tolerance) { /// s[0] < tolerance || s[i] < 0.5*tolerance){
             rank = i+1;
             break;
         }
@@ -212,6 +213,9 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     (void)ld_u1;
     (void)ld_v1;
 
+    struct timeval t1, t2;
+    gettimeofday(&t1, NULL);
+
     pastix_int_t dim_u = pastix_imax(dim_u1, dim_u2);
     pastix_int_t dim_v = pastix_imax(dim_v1, dim_v2);
     pastix_int_t rank  = rank_1 + rank_2;
@@ -225,12 +229,14 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     pastix_int_t minMN_1 = pastix_imin(dim_u, rank);
     /* Rank is too high for u1u2 */
     if (minMN_1 == dim_u){
+        /* printf("BLOK WILL BE UNCOMPRESSED %ld %ld\n", dim_u, rank); */
         return -1;
     }
 
     pastix_int_t minMN_2 = pastix_imin(dim_v, rank);
     /* Rank is too high for v1v2 */
     if (minMN_2 == dim_v){
+        /* printf("BLOK WILL BE UNCOMPRESSED %ld %ld\n", dim_v, rank); */
         return -1;
     }
 
@@ -333,11 +339,14 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     double tolerance      = atof(tol);
 
     for (i=0; i<rank-1; i++){
-        if (s[i] / s[0] < tolerance){
+        if (s[i] / s[0] < tolerance){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
             new_rank = i+1;
             break;
         }
     }
+
+    /* if (new_rank > 4*sqrt(dim_v1)) */
+    /*     new_rank = 4*sqrt(dim_v1); */
 
     /* Scal u as before to take into account singular values */
     for (i=0; i<rank; i++){
@@ -394,6 +403,10 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     free(R1);
     free(R2);
     free(v3);
+
+    gettimeofday(&t2, NULL);
+    /* printf("Time %.3g (us)\n", (t2.tv_sec-t1.tv_sec) + (t2.tv_usec-t1.tv_usec)/1000000.); */
+    gain_D += (t2.tv_sec-t1.tv_sec) + (t2.tv_usec-t1.tv_usec)/1000000.;
     return new_rank;
 }
 
@@ -420,6 +433,18 @@ void core_z_lr2dense(SolverBlok *blok,
             pastix_complex64_t *u = blok->coefL_u_LR;
             pastix_complex64_t *v = blok->coefL_v_LR;
 
+            if (blok->Lupdates != 0){
+                core_zupdate_lr(blok, A,
+                                stride, width, L_side,
+                                blok->Lxmin, blok->Lxmax, blok->Lymin, blok->Lymax);
+                blok->Lsurface = 0;
+                blok->Lupdates = 0;
+                blok->Lxmin    = 1000000;
+                blok->Lxmax    = 0;
+                blok->Lymin    = 1000000;
+                blok->Lymax    = 0;
+            }
+
             core_z_uncompress_LR(A, stride,
                                  dimb, width,
                                  u, dimb,
@@ -432,6 +457,18 @@ void core_z_lr2dense(SolverBlok *blok,
             pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
             pastix_complex64_t *u = blok->coefU_u_LR;
             pastix_complex64_t *v = blok->coefU_v_LR;
+
+            if (blok->Uupdates != 0){
+                core_zupdate_lr(blok, A,
+                                stride, width, U_side,
+                                blok->Uxmin, blok->Uxmax, blok->Uymin, blok->Uymax);
+                blok->Usurface = 0;
+                blok->Uupdates = 0;
+                blok->Uxmin    = 1000000;
+                blok->Uxmax    = 0;
+                blok->Uymin    = 1000000;
+                blok->Uymax    = 0;
+            }
 
             core_z_uncompress_LR(A, stride,
                                  dimb, width,
@@ -560,7 +597,7 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         exit(1);
     }
 
-    pastix_int_t ret;
+    pastix_int_t ret   = -1;
     pastix_int_t sizeF = blok3->lrownum - blok3->frownum + 1;
 
     /* Perform LR * LR */
@@ -617,13 +654,11 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
 
             if (ret == -1){
                 /* A1 A2 matrix-matrix product was not form */
-                if (dima < dimb && dima < dimj){
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
-                                 dimb, dimj, dima,
-                                 CBLAS_SADDR(zone),  A1,  stride1,
-                                 A2,  stride2,
-                                 CBLAS_SADDR(zzero), work, dimb );
-                }
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                             dimb, dimj, dima,
+                             CBLAS_SADDR(zone),  A1,  stride1,
+                             A2,  stride2,
+                             CBLAS_SADDR(zzero), work, dimb );
             }
         }
         else{
@@ -727,6 +762,85 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         blok3->rankL = ret;
     }
     else if (side1 == L_side && side2 == U_side && side3 == U_side){
+        blok3->rankU = ret;
+    }
+}
+
+
+void core_zupdate_lr(SolverBlok *blok3,
+                     pastix_complex64_t *A3,
+                     pastix_int_t stride3,
+                     pastix_int_t width3,
+                     pastix_int_t side3,
+                     pastix_int_t xmin,
+                     pastix_int_t xmax,
+                     pastix_int_t ymin,
+                     pastix_int_t ymax){
+
+    pastix_complex64_t *uF, *vF;
+    pastix_int_t rankF;
+
+    if (side3 == L_side){
+        rankF = blok3->rankL;
+        uF = blok3->coefL_u_LR;
+        vF = blok3->coefL_v_LR;
+    }
+    else{
+        rankF = blok3->rankU;
+        uF = blok3->coefU_u_LR;
+        vF = blok3->coefU_v_LR;
+    }
+
+    pastix_int_t ret   = -1;
+    pastix_int_t sizeF = blok3->lrownum - blok3->frownum + 1;
+
+    pastix_int_t dimb = xmax - xmin;
+    pastix_int_t dimj = ymax - ymin;
+
+    /* printf("BLOK %ld %ld CONTRIB MIN %ld %ld MAX %ld %ld(dims %ld %ld) with rank %ld\n", */
+    /*        sizeF, width3, */
+    /*        xmin, ymin, */
+    /*        xmax, ymax, */
+    /*        dimb, dimj, */
+    /*        rankF); */
+
+    if (dimb < dimj){
+        /* Add matrix of rank dimb */
+        ret = core_z_add_LR(uF, vF,
+                            sizeF, width3, rankF, sizeF, width3,
+                            NULL, A3 + stride3 * ymin + xmin, CblasNoTrans,
+                            dimb, dimj, dimb, dimb, stride3,
+                            xmin,
+                            ymin);
+
+    }
+    else{
+        /* Add matrix of rank dimj */
+        ret = core_z_add_LR(uF, vF,
+                            sizeF, width3, rankF, sizeF, width3,
+                            A3 + stride3 * ymin + xmin, NULL, CblasNoTrans,
+                            dimb, dimj, dimj, stride3, dimj,
+                            xmin,
+                            ymin);
+    }
+
+    /* Set the blok to zero for next updates */
+    pastix_int_t i;
+    for (i=0; i<dimj; i++){
+        memset(A3 + stride3 * (i + ymin) + xmin, 0, dimb * sizeof(pastix_complex64_t));
+    }
+
+    /* Uncompress the block and perform dense update if rank became too large */
+    if (ret == -1){
+        printf("ERROR NOT SUPPORTED\n\n");
+        core_z_lr2dense(blok3, A3, stride3,
+                        width3, side3);
+    }
+
+    if (side3 == L_side){
+        blok3->rankL = ret;
+    }
+    else{
         blok3->rankU = ret;
     }
 }

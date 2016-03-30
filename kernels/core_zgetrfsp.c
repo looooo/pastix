@@ -24,6 +24,8 @@ static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
 static pastix_complex64_t zzero =  0.;
 
+static pastix_int_t surface_max = 20;
+
 #if defined(PASTIX_WITH_HODLR)
 #include "cHODLR_Matrix.h"
 #endif /* defined(PASTIX_WITH_HODLR) */
@@ -508,12 +510,29 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                 /* Update the data blok */
                 fU = U + blok->coefind;
 
+
+                /* TODO: uncompress if some contributions remain */
+                if (blok->Lupdates != 0 && blok->rankL != -1){
+                    core_zupdate_lr(blok, L + blok->coefind,
+                                    stride, dima, L_side,
+                                    blok->Lxmin, blok->Lxmax, blok->Lymin, blok->Lymax);
+                    blok->Lsurface = 0;
+                    blok->Lupdates = 0;
+                }
+
+                if (blok->Uupdates != 0 && blok->rankU != -1){
+                    core_zupdate_lr(blok, U + blok->coefind,
+                                    stride, dima, U_side,
+                                    blok->Uxmin, blok->Uxmax, blok->Uymin, blok->Uymax);
+                    blok->Usurface = 0;
+                    blok->Uupdates = 0;
+                }
+
                 pastix_int_t rank = blok->rankU;
                 if (rank != -1){
                     /* printf("TRSM LR version\n"); */
                     /*        blok->rankU, current_cblk); */
 
-                    pastix_complex64_t *u = blok->coefU_u_LR;
                     pastix_complex64_t *v = blok->coefU_v_LR;
 
                     cblas_ztrsm(CblasColMajor,
@@ -572,9 +591,6 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
     /* vertical dimension */
     dimb = stride - dima;
 
-    pastix_complex64_t *D = cblk->dcoeftab;
-    pastix_int_t stride_D = cblk->lcolnum - cblk->fcolnum + 1;
-
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
     {
@@ -590,7 +606,9 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
 
             double mem_dense = dima*dimb*8./1000000.;
             if (blok->rankU != -1){
-                printf("Uncompress U block SIZE %ld %ld RANK %ld\n", dima, dimb, blok->rankU);
+                printf("Uncompress U block SIZE %ld %ld RANK %ld (surface %ld)\n",
+                       dima, dimb,
+                       blok->rankU, blok->Usurface);
                 pastix_complex64_t *u = blok->coefU_u_LR;
                 pastix_complex64_t *v = blok->coefU_v_LR;
 
@@ -599,6 +617,7 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
                                      u, dimb,
                                      v, dima,
                                      blok->rankU);
+                blok->rankU = -1;
 
                 double mem_SVD = blok->rankU * (dima + dimb) * 8. / 1000000.;
                 if (mem_SVD < mem_dense)
@@ -609,7 +628,9 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
             fL = L + blok->coefind;
 
             if (blok->rankL != -1){
-                printf("Uncompress L block SIZE %ld %ld RANK %ld\n", dima, dimb, blok->rankL);
+                printf("Uncompress L block SIZE %ld %ld RANK %ld (surface %ld)\n",
+                       dima, dimb,
+                       blok->rankL, blok->Lsurface);
                 pastix_complex64_t *u = blok->coefL_u_LR;
                 pastix_complex64_t *v = blok->coefL_v_LR;
 
@@ -618,6 +639,7 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
                                      u, dimb,
                                      v, dima,
                                      blok->rankL);
+                blok->rankL = -1;
 
                 double mem_SVD = blok->rankL * (dima + dimb) * 8. / 1000000.;
                 if (mem_SVD < mem_dense)
@@ -1055,7 +1077,12 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
     lblok = cblk[1].fblokptr;
 
+    /* TODO: apply contributions by facing cblk !!! */
+
     /* for all following blocks in block column */
+    SolverBlok *current, *iterblok2, *fblok2;
+    current = NULL;
+    pastix_int_t number = 0;
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
@@ -1064,6 +1091,7 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
             fblok++;
             assert( fblok < fcblk[1].fblokptr );
         }
+
 
         Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
         dimb = iterblok->lrownum - iterblok->frownum + 1;
@@ -1089,26 +1117,107 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
         /* If the block modifies an off-diagonal blok */
         else{
-            pastix_int_t rankL, rankU, rankF;
-            rankL = iterblok->rankL;
-            rankU = blok->rankU;
-            rankF = fblok->rankL;
 
             /* The blok receiving a contribution is LR */
-            if (rankF != -1){
-                core_zproduct_lr2lr(iterblok, Aik, stride,
-                                    dima, L_side,
-                                    blok, Akj, stride,
-                                    dima, U_side,
-                                    fblok, Cl + fblok->coefind,
-                                    C + fblok->coefind + iterblok->frownum - fblok->frownum,
-                                    stridefc,
-                                    stride_D, L_side,
-                                    fcblk->fcolnum,
-                                    work);
+            if (fblok->rankL != -1){
+
+                if (dimb < surface_max || dimj < surface_max){
+
+                    pastix_int_t new_xmin, new_xmax, new_ymin, new_ymax;
+                    pastix_int_t new_xsize, new_ysize;
+                    new_xmin = pastix_imin(fblok->Lxmin, iterblok->frownum - fblok->frownum);
+                    new_xmax = pastix_imax(fblok->Lxmax, iterblok->frownum - fblok->frownum + dimb);
+                    new_ymin = pastix_imin(fblok->Lymin, blok->frownum - fcblk->fcolnum);
+                    new_ymax = pastix_imax(fblok->Lymax, blok->frownum - fcblk->fcolnum + dimj);
+
+                    new_xsize = new_xmax - new_xmin;
+                    new_ysize = new_ymax - new_ymin;
+
+                    /* Uncompress, blok would had a too large structure */
+                    if ((new_xsize > surface_max && new_ysize > surface_max)
+                        && fblok->Lupdates != 0){
+                        /* printf("%ld updates\n", fblok->Lupdates); */
+                        core_zupdate_lr(fblok, Cl + fblok->coefind,
+                                        stridefc, stride_D, L_side,
+                                        fblok->Lxmin, fblok->Lxmax, fblok->Lymin, fblok->Lymax);
+                        fblok->Lsurface = 0;
+                        fblok->Lupdates = 0;
+                        fblok->Lxmin    = 1000000;
+                        fblok->Lxmax    = 0;
+                        fblok->Lymin    = 1000000;
+                        fblok->Lymax    = 0;
+                    }
+
+                    fblok->Lsurface += dimb * dimj;
+                    fblok->Lupdates ++;
+
+                    /* Columns impacted */
+                    fblok->Lymin = pastix_imin(fblok->Lymin, blok->frownum - fcblk->fcolnum);
+                    fblok->Lymax = pastix_imax(fblok->Lymax, blok->frownum - fcblk->fcolnum + dimj);
+
+                    /* Rows impacted */
+                    fblok->Lxmin = pastix_imin(fblok->Lxmin, iterblok->frownum - fblok->frownum);
+                    fblok->Lxmax = pastix_imax(fblok->Lxmax, iterblok->frownum - fblok->frownum + dimb);
+
+                    /* Add dense update */
+                    core_zproduct_lr2dense(iterblok, Aik, stride,
+                                           dima, L_side,
+                                           blok, Akj, stride,
+                                           dima, U_side,
+                                           work, dimi);
+
+                    Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+
+                    /* Warning, the -1.0 will appear in adding with LR structure */
+                    core_zgeadd( CblasNoTrans, dimb, dimj, 1.0,
+                                 work, dimi,
+                                 Aij,  stridefc );
+
+                }
+
+                /* LR blok receiving a contribution from a dense * dense product */
+                if (dimb >= surface_max && dimj >= surface_max)
+                    core_zproduct_lr2lr(iterblok, Aik, stride,
+                                        dima, L_side,
+                                        blok, Akj, stride,
+                                        dima, U_side,
+                                        fblok, Cl + fblok->coefind,
+                                        C + fblok->coefind + iterblok->frownum - fblok->frownum,
+                                        stridefc,
+                                        stride_D, L_side,
+                                        fcblk->fcolnum,
+                                        work);
             }
             /* The blok receiving a contribution is dense */
             else{
+
+                /* We need to apply contributions before uncompressing */
+                if (iterblok->rankL != -1 && iterblok->Lupdates != 0){
+                    core_zupdate_lr(iterblok, Cl + iterblok->coefind,
+                                    stridefc, stride_D, L_side,
+                                    iterblok->Lxmin, iterblok->Lxmax,
+                                    iterblok->Lymin, iterblok->Lymax);
+                    iterblok->Lsurface = 0;
+                    iterblok->Lupdates = 0;
+                    iterblok->Lxmin    = 1000000;
+                    iterblok->Lxmax    = 0;
+                    iterblok->Lymin    = 1000000;
+                    iterblok->Lymax    = 0;
+                }
+
+                if (blok->rankU != -1 && blok->Uupdates != 0){
+                    core_zupdate_lr(blok, Cu + blok->coefind,
+                                    stridefc, stride_D, U_side,
+                                    blok->Uxmin, blok->Uxmax,
+                                    blok->Uymin, blok->Uymax);
+                    blok->Usurface = 0;
+                    blok->Uupdates = 0;
+                    blok->Uxmin    = 1000000;
+                    blok->Uxmax    = 0;
+                    blok->Uymin    = 1000000;
+                    blok->Uymax    = 0;
+                }
+
                 core_zproduct_lr2dense(iterblok, Aik, stride,
                                        dima, L_side,
                                        blok, Akj, stride,
@@ -1122,7 +1231,6 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                              Aij,  stridefc );
             }
         }
-
         pastix_cblk_unlock( fcblk );
     }
 
@@ -1188,30 +1296,105 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
         Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
         Aik = U + iterblok->coefind;
 
-        pastix_int_t rankL, rankU, rankF;
-        rankL = iterblok->rankL;
-        rankU = blok->rankU;
-        rankF = fblok->rankU;
-
         /* The blok receiving a contribution is LR */
-        if (rankF != -1){
-            core_zproduct_lr2lr(iterblok, Aik, stride,
-                                dima, L_side,
-                                blok, Akj, stride,
-                                dima, U_side,
-                                fblok, Cu + fblok->coefind,
-                                C + fblok->coefind + iterblok->frownum - fblok->frownum,
-                                stridefc,
-                                stride_D, U_side,
-                                fcblk->fcolnum,
-                                work);
+        if (fblok->rankU != -1){
+
+                if (dimb < surface_max || dimj < surface_max){
+
+                    pastix_int_t new_xmin, new_xmax, new_ymin, new_ymax;
+                    pastix_int_t new_xsize, new_ysize;
+                    new_xmin = pastix_imin(fblok->Uxmin, iterblok->frownum - fblok->frownum);
+                    new_xmax = pastix_imax(fblok->Uxmax, iterblok->frownum - fblok->frownum + dimb);
+                    new_ymin = pastix_imin(fblok->Uymin, blok->frownum - fcblk->fcolnum);
+                    new_ymax = pastix_imax(fblok->Uymax, blok->frownum - fcblk->fcolnum + dimj);
+
+                    new_xsize = new_xmax - new_xmin;
+                    new_ysize = new_ymax - new_ymin;
+
+                    /* Uncompress, blok would had a too large structure */
+                    if ((new_xsize > surface_max && new_ysize > surface_max)
+                        && fblok->Uupdates != 0){
+                        core_zupdate_lr(fblok, Cu + fblok->coefind,
+                                        stridefc, stride_D, U_side,
+                                        fblok->Uxmin, fblok->Uxmax, fblok->Uymin, fblok->Uymax);
+                        fblok->Usurface = 0;
+                        fblok->Uupdates = 0;
+                        fblok->Uxmin    = 1000000;
+                        fblok->Uxmax    = 0;
+                        fblok->Uymin    = 1000000;
+                        fblok->Uymax    = 0;
+                    }
+
+                    fblok->Usurface += dimb * dimj;
+                    fblok->Uupdates ++;
+
+                    /* Columns impacted */
+                    fblok->Uymin = pastix_imin(fblok->Uymin, blok->frownum - fcblk->fcolnum);
+                    fblok->Uymax = pastix_imax(fblok->Uymax, blok->frownum - fcblk->fcolnum + dimj);
+
+                    /* Rows impacted */
+                    fblok->Uxmin = pastix_imin(fblok->Uxmin, iterblok->frownum - fblok->frownum);
+                    fblok->Uxmax = pastix_imax(fblok->Uxmax, iterblok->frownum - fblok->frownum + dimb);
+
+                    /* Add dense update */
+                    core_zproduct_lr2dense(iterblok, Aik, stride,
+                                           dima, L_side,
+                                           blok, Akj, stride,
+                                           dima, U_side,
+                                           work, dimi);
+
+                    /* Warning, the -1.0 will appear in adding with LR structure */
+                    core_zgeadd( CblasNoTrans, dimb, dimj, 1.0,
+                                 work, dimi,
+                                 Aij,  stridefc );
+                }
+
+                /* LR blok receiving a contribution from a dense * dense product */
+                if (dimb >= surface_max && dimj >= surface_max)
+                    core_zproduct_lr2lr(iterblok, Aik, stride,
+                                        dima, L_side,
+                                        blok, Akj, stride,
+                                        dima, U_side,
+                                        fblok, Cu + fblok->coefind,
+                                        C + fblok->coefind + iterblok->frownum - fblok->frownum,
+                                        stridefc,
+                                        stride_D, U_side,
+                                        fcblk->fcolnum,
+                                        work);
         }
         /* The blok receiving a contribution is dense */
         else{
+            /* We need to apply contributions before uncompressing */
+            if (iterblok->rankL != -1 && iterblok->Lupdates != 0){
+                core_zupdate_lr(iterblok, Cl + iterblok->coefind,
+                                stridefc, stride_D, L_side,
+                                iterblok->Lxmin, iterblok->Lxmax,
+                                iterblok->Lymin, iterblok->Lymax);
+                iterblok->Lsurface = 0;
+                iterblok->Lupdates = 0;
+                iterblok->Lxmin    = 1000000;
+                iterblok->Lxmax    = 0;
+                iterblok->Lymin    = 1000000;
+                iterblok->Lymax    = 0;
+            }
+
+            if (blok->rankU != -1 && blok->Uupdates != 0){
+                core_zupdate_lr(blok, Cu + blok->coefind,
+                                stridefc, stride_D, U_side,
+                                blok->Uxmin, blok->Uxmax,
+                                blok->Uymin, blok->Uymax);
+                blok->Usurface = 0;
+                blok->Uupdates = 0;
+                blok->Uxmin    = 1000000;
+                blok->Uxmax    = 0;
+                blok->Uymin    = 1000000;
+                blok->Uymax    = 0;
+            }
+
             core_zproduct_lr2dense(iterblok, Aik, stride,
-                                   dima, U_side,
-                                   blok, Akj, stride,
                                    dima, L_side,
+                                   blok, Akj, stride,
+                                   dima, U_side,
                                    work, dimi);
 
             pastix_cblk_lock( fcblk );
