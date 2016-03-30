@@ -125,6 +125,7 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
 {
     pastix_int_t i, cblknum;
 
+    /* TODO: change!!!! */
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++)
     {
         pastix_int_t candnbr;
@@ -143,8 +144,15 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
             -   symbmtx->cblktab[cblknum].fcolnum + 1;
 
         nseq = computeNbSplit( ctrl, candnbr, width );
-        if (nseq < 4)
+        if (nseq == 1 && width > (192 * 1.5))
+            nseq = 2;
+
+        if (nseq > 1)
+            printf("Split cblk %ld size %ld into %ld parts\n", cblknum, width, nseq);
+
+        if (nseq < 2)
             continue;
+
 
         /* Adapt the step to the segments number */
         step = width / nseq; //pastix_iceil( width,  nseq );
@@ -152,31 +160,31 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
         nseq--;
 
         /* Create the new cblk */
-#ifdef SMART_CBLK_SPLIT
-        {
-            pastix_int_t fcolnum = symbmtx->cblktab[cblknum].fcolnum;
-            pastix_int_t *seq;
-            smart_cblk_split(ctrl,
-                             symbmtx,
-                             cblknum,
-                             candnbr,
-                             ctrl->blcolmin,
-                             ctrl->blcolmax,
-                             &nseq,
-                             &seq);
-
-            for(i=0;i<nseq;i++)
-            {
-                extraCblkAdd( extracblk,
-                              fcolnum + seq[2*i],
-                              fcolnum + seq[2*i+1] );
-            }
-
-            extraCblkAdd( extracblk,
-                          fcolnum + seq[2*nseq],
-                          symbmtx->cblktab[cblknum].lcolnum );
-        }
-#else
+//#ifdef SMART_CBLK_SPLIT
+//        {
+//            pastix_int_t fcolnum = symbmtx->cblktab[cblknum].fcolnum;
+//            pastix_int_t *seq;
+//            smart_cblk_split(ctrl,
+//                             symbmtx,
+//                             cblknum,
+//                             candnbr,
+//                             ctrl->blcolmin,
+//                             ctrl->blcolmax,
+//                             &nseq,
+//                             &seq);
+//
+//            for(i=0;i<nseq;i++)
+//            {
+//                extraCblkAdd( extracblk,
+//                              fcolnum + seq[2*i],
+//                              fcolnum + seq[2*i+1] );
+//            }
+//
+//            extraCblkAdd( extracblk,
+//                          fcolnum + seq[2*nseq],
+//                          symbmtx->cblktab[cblknum].lcolnum );
+//        }
+//#else
         {
             pastix_int_t fcolnum = symbmtx->cblktab[cblknum].fcolnum;
 
@@ -191,7 +199,7 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
                           fcolnum + step * nseq,
                           symbmtx->cblktab[cblknum].lcolnum );
         }
-#endif
+        //#endif
         /*
          * Mark the cblk as being splitted
          */
