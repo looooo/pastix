@@ -148,6 +148,7 @@ int main (int argc, char **argv)
     gain_L = 0 ;
     gain_D = 0 ;
     gain_U = 0 ;
+    tot_surface = 0.;
 
     /**
      * Read the sparse matrix with the driver
@@ -212,6 +213,7 @@ int main (int argc, char **argv)
 
     printf("Total memory of the solver %10f Mo (symmetric) %10f (unsymmetric)\n", total_memory, total_memory2);
     printf("Gain_L %10f Mo Gain_D %10f Mo, Gain_U %10f Mo\n", gain_L, gain_D, gain_U);
+    printf("Extra memory %.3g Mo\n", tot_surface);
 
     /**
      * Generates the b and x vector such that A * x = b

@@ -339,7 +339,7 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     double tolerance      = atof(tol);
 
     for (i=0; i<rank-1; i++){
-        if (s[i] / s[0] < tolerance){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
+        if (s[i] < tolerance){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
             new_rank = i+1;
             break;
         }
@@ -437,7 +437,6 @@ void core_z_lr2dense(SolverBlok *blok,
                 core_zupdate_lr(blok, A,
                                 stride, width, L_side,
                                 blok->Lxmin, blok->Lxmax, blok->Lymin, blok->Lymax);
-                blok->Lsurface = 0;
                 blok->Lupdates = 0;
                 blok->Lxmin    = 1000000;
                 blok->Lxmax    = 0;
@@ -462,7 +461,6 @@ void core_z_lr2dense(SolverBlok *blok,
                 core_zupdate_lr(blok, A,
                                 stride, width, U_side,
                                 blok->Uxmin, blok->Uxmax, blok->Uymin, blok->Uymax);
-                blok->Usurface = 0;
                 blok->Uupdates = 0;
                 blok->Uxmin    = 1000000;
                 blok->Uxmax    = 0;
@@ -580,15 +578,15 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         uF = blok3->coefL_u_LR;
         vF = blok3->coefL_v_LR;
     }
-    else if (side1 == L_side && side2 == U_side && side3 == U_side){
-        rankL = blok1->rankL;
-        rankU = blok2->rankU;
+    else if (side1 == U_side && side2 == L_side && side3 == U_side){
+        rankL = blok1->rankU;
+        rankU = blok2->rankL;
         rankF = blok3->rankU;
 
-        uL = blok1->coefL_u_LR;
-        vL = blok1->coefL_v_LR;
-        uU = blok2->coefU_u_LR;
-        vU = blok2->coefU_v_LR;
+        uL = blok1->coefU_u_LR;
+        vL = blok1->coefU_v_LR;
+        uU = blok2->coefL_u_LR;
+        vU = blok2->coefL_v_LR;
         uF = blok3->coefU_u_LR;
         vF = blok3->coefU_v_LR;
     }
@@ -758,10 +756,10 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
                      work, dimb,
                      A3_contrib, stride3 );
     }
-    if (side1 == L_side && side2 == U_side && side3 == L_side){
+    if (side3 == L_side){
         blok3->rankL = ret;
     }
-    else if (side1 == L_side && side2 == U_side && side3 == U_side){
+    else if (side3 == U_side){
         blok3->rankU = ret;
     }
 }

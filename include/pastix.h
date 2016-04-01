@@ -605,6 +605,7 @@ double total_memory2;
 double gain_L;
 double gain_D;
 double gain_U;
+double tot_surface;
 
 pastix_int_t *rangtab_new;
 pastix_int_t *permtab_saved;
