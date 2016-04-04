@@ -20,6 +20,7 @@
 
 static pastix_complex64_t zzero = 0.;
 static pastix_complex64_t zone  = 1.;
+static pastix_complex64_t mzone = -1.;
 
 /**
  *******************************************************************************
@@ -213,8 +214,8 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     (void)ld_u1;
     (void)ld_v1;
 
-    struct timeval t1, t2;
-    gettimeofday(&t1, NULL);
+    Clock timer;
+    clockStart(timer);
 
     pastix_int_t dim_u = pastix_imax(dim_u1, dim_u2);
     pastix_int_t dim_v = pastix_imax(dim_v1, dim_v2);
@@ -345,14 +346,10 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
         }
     }
 
-    /* if (new_rank > 4*sqrt(dim_v1)) */
-    /*     new_rank = 4*sqrt(dim_v1); */
-
     /* Scal u as before to take into account singular values */
     for (i=0; i<rank; i++){
         cblas_dscal(rank, s[i], &(u[rank * i]), 1);
     }
-
     for (i=0; i<rank; i++){
         memcpy(u1 + dim_u * i, u + rank * i, rank * sizeof(pastix_complex64_t));
         memset(u1 + dim_u * i + rank, 0, (dim_u1 - rank) * sizeof(pastix_complex64_t));
@@ -404,9 +401,8 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
     free(R2);
     free(v3);
 
-    gettimeofday(&t2, NULL);
-    /* printf("Time %.3g (us)\n", (t2.tv_sec-t1.tv_sec) + (t2.tv_usec-t1.tv_usec)/1000000.); */
-    gain_D += (t2.tv_sec-t1.tv_sec) + (t2.tv_usec-t1.tv_usec)/1000000.;
+    clockStop(timer);
+    time_recomp += clockVal(timer);
     return new_rank;
 }
 
@@ -765,6 +761,45 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
 }
 
 
+/* We add current zone by modifying the beta parameter in gemm */
+void core_z_lr2dense_special(SolverBlok *blok,
+                             pastix_complex64_t *A,
+                             pastix_int_t stride,
+                             pastix_int_t width,
+                             pastix_int_t side){
+
+    switch (side){
+    case L_side:
+        if (blok->rankL != -1){
+            pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+            pastix_complex64_t *u = blok->coefL_u_LR;
+            pastix_complex64_t *v = blok->coefL_v_LR;
+            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                        dimb, width, blok->rankL,
+                        CBLAS_SADDR(zone),  u,  dimb,
+                                            v,  width,
+                        CBLAS_SADDR(mzone), A, stride);
+        }
+        break;
+    case U_side:
+        if (blok->rankU != -1){
+            pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
+            pastix_complex64_t *u = blok->coefU_u_LR;
+            pastix_complex64_t *v = blok->coefU_v_LR;
+            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                        dimb, width, blok->rankU,
+                        CBLAS_SADDR(zone),  u,  dimb,
+                                            v,  width,
+                        CBLAS_SADDR(mzone), A, stride);
+        }
+        break;
+    default:
+        printf("Wrong operation\n");
+        exit(1);
+        break;
+    }
+}
+
 void core_zupdate_lr(SolverBlok *blok3,
                      pastix_complex64_t *A3,
                      pastix_int_t stride3,
@@ -822,17 +857,20 @@ void core_zupdate_lr(SolverBlok *blok3,
                             ymin);
     }
 
-    /* Set the blok to zero for next updates */
-    pastix_int_t i;
-    for (i=0; i<dimj; i++){
-        memset(A3 + stride3 * (i + ymin) + xmin, 0, dimb * sizeof(pastix_complex64_t));
-    }
 
     /* Uncompress the block and perform dense update if rank became too large */
     if (ret == -1){
-        printf("ERROR NOT SUPPORTED\n\n");
-        core_z_lr2dense(blok3, A3, stride3,
-                        width3, side3);
+        blok3->Lupdates = 0;
+        blok3->Uupdates = 0;
+        core_z_lr2dense_special(blok3, A3, stride3,
+                                width3, side3);
+    }
+    /* Set the blok to zero for next updates */
+    else{
+        pastix_int_t i;
+        for (i=0; i<dimj; i++){
+            memset(A3 + stride3 * (i + ymin) + xmin, 0, dimb * sizeof(pastix_complex64_t));
+        }
     }
 
     if (side3 == L_side){

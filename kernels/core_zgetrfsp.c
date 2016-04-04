@@ -24,8 +24,6 @@ static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
 static pastix_complex64_t zzero =  0.;
 
-static pastix_int_t surface_max = 0;
-
 #if defined(PASTIX_WITH_HODLR)
 #include "cHODLR_Matrix.h"
 #endif /* defined(PASTIX_WITH_HODLR) */
@@ -731,11 +729,19 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            double              criteria)
 {
     pastix_complex64_t *D = cblk->dcoeftab;
+
+    Clock timer;
+    clockStart(timer);
     pastix_int_t nbpivot  = core_zgetrfsp1d_getrf(cblk, D, NULL, criteria);
+    clockStop(timer);
+    time_fact += clockVal(timer);
 
     /* Compress + TRSM U */
+    clockStart(timer);
     core_zgetrfsp1d_trsm(cblk, L, U);
     core_zgetrfsp1d_trsm2(cblk, L, U);
+    clockStop(timer);
+    time_trsm += clockVal(timer);
 
     /* Compress L */
 #if defined(PASTIX_WITH_HODLR)
@@ -1123,6 +1129,9 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
             /* The blok receiving a contribution is LR */
             if (fblok->rankL != -1){
 
+                char *surf = getenv("SURFACE");
+                pastix_int_t surface_max = atoi(surf);
+
                 if (dimb < surface_max && dimj < surface_max){
 
                     pastix_int_t new_xmin, new_xmax, new_ymin, new_ymax;
@@ -1301,6 +1310,9 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
         /* The blok receiving a contribution is LR */
         if (fblok->rankU != -1){
 
+                char *surf = getenv("SURFACE");
+                pastix_int_t surface_max = atoi(surf);
+
                 if (dimb < surface_max && dimj < surface_max){
 
                     pastix_int_t new_xmin, new_xmax, new_ymin, new_ymax;
@@ -1464,6 +1476,9 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     (void) threshold;
     (void) hodlrtree;
 
+    Clock timer;
+    clockStart(timer);
+
     blok = cblk->fblokptr+1;
     for( ; blok < lblk; blok++ )
     {
@@ -1474,9 +1489,14 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
 
     }
 
-    /* Uncompress for sequential_ztrsm.c still implemented in dense fashion */
-    core_zgetrfsp1d_uncompress(cblk, L, U);
+    clockStop(timer);
+    time_update += clockVal(timer);
 
+    /* Uncompress for sequential_ztrsm.c still implemented in dense fashion */
+    clockStart(timer);
+    core_zgetrfsp1d_uncompress(cblk, L, U);
+    clockStop(timer);
+    time_uncomp += clockVal(timer);
 
 #if defined(PASTIX_WITH_HODLR)
     pastix_int_t n = fcblk->lcolnum - fcblk->fcolnum + 1;
