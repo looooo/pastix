@@ -607,6 +607,13 @@ double gain_D;
 double gain_U;
 double tot_surface;
 
+double time_comp;
+double time_uncomp;
+double time_recomp;
+double time_fact;
+double time_trsm;
+double time_update;
+
 pastix_int_t *rangtab_new;
 pastix_int_t *permtab_saved;
 pastix_int_t *peritab_saved;

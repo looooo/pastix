@@ -111,17 +111,30 @@ int main (int argc, char **argv)
         exit(1);
     }
 
+    char *surf = getenv("SURFACE");
+    if (surf == NULL){
+        printf("Set SURFACE\n");
+        exit(1);
+    }
+    pastix_int_t surface = atoi(surf);
+    if (surface < 0){
+        printf("Set correctly SURFACE (integer >= 0)\n");
+        exit(1);
+    }
+
     printf("\tH-PaStiX parameters are\n");
     printf("\tSPLITSIZE %ld THRESHOLD %ld\n", splitsize, threshold);
     printf("\tTOLERANCE %.3g\n", tolerance);
-    printf("\tHODLRTREE %ld (on last supernode right now)\n", hodlrtree);
     printf("\tREORDERING %ld\n", reordering);
-    printf("\tCOMPRESS %ld\n", compress);
-    printf("\tFACING %ld\n", facing);
-    printf("\tLEVELS %ld (unused right now)\n", levels);
+    printf("\t SURFACE %ld\n", surface);
+
+    /* printf("\tHODLRTREE %ld (on last supernode right now)\n", hodlrtree); */
+    /* printf("\tCOMPRESS %ld\n", compress); */
+    /* printf("\tFACING %ld\n", facing); */
+    /* printf("\tLEVELS %ld (unused right now)\n", levels); */
 
     iparm[IPARM_MIN_BLOCKSIZE] = 80;
-    iparm[IPARM_MAX_BLOCKSIZE] = 192;
+    iparm[IPARM_MAX_BLOCKSIZE] = splitsize;
 
     printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
 
@@ -149,6 +162,13 @@ int main (int argc, char **argv)
     gain_D = 0 ;
     gain_U = 0 ;
     tot_surface = 0.;
+
+    time_comp    = 0.0;
+    time_uncomp  = 0.0;
+    time_recomp  = 0.0;
+    time_fact    = 0.0;
+    time_trsm    = 0.0;
+    time_update  = 0.0;
 
     /**
      * Read the sparse matrix with the driver
@@ -214,6 +234,14 @@ int main (int argc, char **argv)
     printf("Total memory of the solver %10f Mo (symmetric) %10f (unsymmetric)\n", total_memory, total_memory2);
     printf("Gain_L %10f Mo Gain_D %10f Mo, Gain_U %10f Mo\n", gain_L, gain_D, gain_U);
     printf("Extra memory %.3g Mo\n", tot_surface);
+
+    printf("Time compression   %10.3g s\n", time_comp  );
+    printf("Time uncompression %10.3g s\n", time_uncomp);
+    printf("Time recompression %10.3g s\n", time_recomp);
+    printf("Time factorization %10.3g s\n", time_fact  );
+    printf("Time trsm panel    %10.3g s\n", time_trsm  );
+    printf("Time update        %10.3g s\n", time_update);
+    printf("\n");
 
     /**
      * Generates the b and x vector such that A * x = b

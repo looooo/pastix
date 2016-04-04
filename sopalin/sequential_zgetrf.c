@@ -103,6 +103,9 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     {
 
         /* Compress information coming from A */
+        Clock timer;
+        clockStart(timer);
+
         for (i=0; i<datacode->cblknbr; i++, cblk++){
             pastix_int_t dima, dimb;
 
@@ -150,8 +153,11 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
                 memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
 
-                pastix_int_t compress_size = 192;
-                pastix_int_t compress_blok = 192;
+                char *splt = getenv("SPLITSIZE");
+                pastix_int_t splitsize = atoi(splt);
+
+                pastix_int_t compress_size = splitsize;
+                pastix_int_t compress_blok = splitsize;
 
                 pastix_complex64_t *data;
                 data = U + dima + totalsize;
@@ -231,6 +237,9 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 blok++;
             }
         }
+
+        clockStop(timer);
+        time_comp += clockVal(timer);
 
         cblk = datacode->cblktab;
         for (i=0; i<datacode->cblknbr; i++, cblk++){

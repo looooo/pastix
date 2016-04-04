@@ -144,7 +144,11 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
             -   symbmtx->cblktab[cblknum].fcolnum + 1;
 
         nseq = computeNbSplit( ctrl, candnbr, width );
-        if (nseq == 1 && width > (192 * 1.5))
+
+        char *splt = getenv("SPLITSIZE");
+        pastix_int_t splitsize = atoi(splt);
+
+        if (nseq == 1 && width > (splitsize * 1.5))
             nseq = 2;
 
         if (nseq > 1)
