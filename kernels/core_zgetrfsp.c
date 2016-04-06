@@ -321,8 +321,7 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
             /* Update the data blok */
             fU = U + blok->coefind;
 
-
-            /* TODO: uncompress if some contributions remain */
+            /* Apply waiting contributions (cf surface to aggregate contributions) */
             if (blok->Lupdates != 0 && blok->rankL != -1){
                 core_zupdate_lr(blok, L + blok->coefind,
                                 stride, dima, L_side,
@@ -1213,7 +1212,6 @@ core_zgetrfsp1d_LR( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    /* printf("CBLK %ld STRIDE %ld\n", current_cblk, cblk->stride); */
     nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria);
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
