@@ -141,7 +141,6 @@ if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
-include_directories("/home/pichon")
 
 # PaStiX depends on HwLoc
 #---------------------------
