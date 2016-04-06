@@ -52,7 +52,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     Clock timer;
     clockStart(timer);
 
-    pastix_int_t splitsize = pastix_data->iparm[IPARM_COMPRESS_SIZE];
+    pastix_int_t splitsize     = pastix_data->iparm[IPARM_COMPRESS_SIZE];
     pastix_int_t compress_cblk = splitsize / 2;
     pastix_int_t compress_blok = 10; //splitsize;
 

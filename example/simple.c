@@ -52,12 +52,6 @@ int main (int argc, char **argv)
         exit(1);
     }
 
-    printf("\tH-PaStiX parameters are\n");
-    printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
-    printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
-    printf("\tTOLERANCE %.3g\n", tolerance);
-    printf("\t SURFACE %ld\n", surface);
-
     iparm[IPARM_ITERMAX]          = 100;
     iparm[IPARM_REORDERING_SPLIT] = 0;
 
@@ -73,6 +67,11 @@ int main (int argc, char **argv)
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
+    printf("\tH-PaStiX parameters are\n");
+    printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
+    printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
+    printf("\tTOLERANCE %.3g\n", tolerance);
+    printf("\t SURFACE %ld\n", surface);
 
     current_cblk  = 0;
     total_memory  = 0.;

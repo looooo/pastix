@@ -336,23 +336,19 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                 blok->Uupdates = 0;
             }
 
-            pastix_int_t rank = blok->rankU;
-            if (rank != -1){
-                /* printf("TRSM LR version\n"); */
-                /*        blok->rankU, current_cblk); */
-
+            if (blok->rankU != -1){
                 pastix_complex64_t *v = blok->coefU_v_LR;
 
                 cblas_ztrsm(CblasColMajor,
                             CblasRight, CblasLower,
                             CblasTrans, CblasUnit,
-                            rank, dima,
+                            blok->rankU, dima,
                             CBLAS_SADDR(zone), D, stride_D,
                             v, dima);
                 cblas_ztrsm(CblasColMajor,
                             CblasRight, CblasUpper,
                             CblasTrans, CblasNonUnit,
-                            rank, dima,
+                            blok->rankU, dima,
                             CBLAS_SADDR(zone), D, stride_D,
                             v, dima);
             }
@@ -408,9 +404,9 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
 
             double mem_dense = dima*dimb*8./1000000.;
             if (blok->rankU != -1){
-                printf("Uncompress U block SIZE %ld %ld RANK %ld (surface %.3g Mo)\n",
-                       dima, dimb,
-                       blok->rankU, blok->Usurface*8./1000000.);
+                /* printf("Uncompress U block SIZE %ld %ld RANK %ld (surface %.3g Mo)\n", */
+                /*        dima, dimb, */
+                /*        blok->rankU, blok->Usurface*8./1000000.); */
                 pastix_complex64_t *u = blok->coefU_u_LR;
                 pastix_complex64_t *v = blok->coefU_v_LR;
 
@@ -431,9 +427,9 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
             fL = L + blok->coefind;
 
             if (blok->rankL != -1){
-                printf("Uncompress L block SIZE %ld %ld RANK %ld (surface %.3g Mo)\n",
-                       dima, dimb,
-                       blok->rankL, blok->Lsurface*8./1000000.);
+                /* printf("Uncompress L block SIZE %ld %ld RANK %ld (surface %.3g Mo)\n", */
+                /*        dima, dimb, */
+                /*        blok->rankL, blok->Lsurface*8./1000000.); */
                 pastix_complex64_t *u = blok->coefL_u_LR;
                 pastix_complex64_t *v = blok->coefL_v_LR;
 

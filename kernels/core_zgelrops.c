@@ -81,15 +81,14 @@ core_z_compress_LR(pastix_complex64_t *fL,
         memcpy( block + i * dimb, fL + i * stride, dimb * sizeof(pastix_complex64_t) );
     }
 
-    ret = LAPACKE_zgesvd( CblasColMajor, 'S', 'S',
+    ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
                           dimb, dima,
                           block, dimb,
                           s, u, ldu, v, ldv,
                           superb );
 
     if( ret != 0 ){
-        printf("SVD FAILED %ld\n\n", ret);
-        exit(1);
+        errorPrint("SVD FAILED");
     }
 
     char *tol        = getenv("TOLERANCE");
@@ -229,25 +228,35 @@ core_z_add_LR(pastix_complex64_t *u1,
     pastix_int_t i, j;
 
     if (dim_u2 > dim_u1 || dim_v2 > dim_v1){
-        printf("nDimensions are not correct\n");
-        exit(1);
+        errorPrint("Dimensions are not correct");
     }
 
     pastix_int_t minMN_1 = pastix_imin(dim_u, rank);
     /* Rank is too high for u1u2 */
     if (minMN_1 == dim_u){
-        /* printf("BLOK WILL BE UNCOMPRESSED %ld %ld\n", dim_u, rank); */
         return -1;
     }
 
     pastix_int_t minMN_2 = pastix_imin(dim_v, rank);
     /* Rank is too high for v1v2 */
     if (minMN_2 == dim_v){
-        /* printf("BLOK WILL BE UNCOMPRESSED %ld %ld\n", dim_v, rank); */
         return -1;
     }
 
     pastix_complex64_t *u1u2, *v1v2;
+    pastix_int_t ret;
+    pastix_complex64_t *tau1;
+    pastix_complex64_t *tau2;
+
+    /* Matrices for computing SVD of R1 R2^T */
+    pastix_complex64_t *R1, *R2, *R;
+
+    /* SVD entry parameters */
+    double *s, *superb;
+    pastix_complex64_t *u, *v;
+
+    pastix_int_t new_rank;
+
     u1u2 = malloc( dim_u * rank * sizeof(pastix_complex64_t));
     v1v2 = malloc( dim_v * rank * sizeof(pastix_complex64_t));
 
@@ -295,17 +304,15 @@ core_z_add_LR(pastix_complex64_t *u1,
         }
     }
 
-    pastix_int_t ret;
-    pastix_complex64_t *tau1 = malloc( minMN_1 * sizeof(pastix_complex64_t));
+    tau1 = malloc( minMN_1 * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf( CblasColMajor, dim_u, rank,
                           u1u2, dim_u, tau1 );
 
 
-    pastix_complex64_t *tau2 = malloc( minMN_2 * sizeof(pastix_complex64_t));
+    tau2 = malloc( minMN_2 * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf( CblasColMajor, dim_v, rank,
                           v1v2, dim_v, tau2 );
 
-    pastix_complex64_t *R1, *R2, *R;
     R1 = malloc(rank * rank * sizeof(pastix_complex64_t));
     R2 = malloc(rank * rank * sizeof(pastix_complex64_t));
     R  = malloc(rank * rank * sizeof(pastix_complex64_t));
@@ -324,24 +331,20 @@ core_z_add_LR(pastix_complex64_t *u1,
                                     R2, rank,
                 CBLAS_SADDR(zzero), R,  rank);
 
-    double *superb;
-    double *s;
-    pastix_complex64_t *u, *v;
     s = malloc( rank * sizeof(double));
     u = malloc( rank * rank * sizeof(pastix_complex64_t));
     v = malloc( rank * rank * sizeof(pastix_complex64_t));
     superb = malloc( rank * sizeof(double));
 
-    ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
+    ret = LAPACKE_zgesvd( CblasColMajor, 'S', 'S',
                           rank, rank, R, rank,
                           s, u, rank, v, rank, superb );
 
     if (ret != 0){
-        printf("LAPACKE_zgesvd FAILED\n");
-        exit(1);
+        errorPrint("LAPACKE_zgesvd FAILED");
     }
 
-    pastix_int_t new_rank = rank;
+    new_rank = rank;
     char *tol             = getenv("TOLERANCE");
     double tolerance      = atof(tol);
 
@@ -391,9 +394,6 @@ core_z_add_LR(pastix_complex64_t *u1,
             v1[dim_v1 * j + i] = v3[dim_v1 * i + j];
         }
     }
-
-    /* printf("Rank was OK to add the two LR structures %ld %ld %ld %ld\n", */
-    /*        dim_u, rank_1, rank_2, new_rank); */
 
     free(u1u2);
     free(v1v2);
@@ -479,8 +479,7 @@ void core_z_lr2dense(SolverBlok *blok,
         }
         break;
     default:
-        printf("Wrong operation\n");
-        exit(1);
+        errorPrint("Wrong operation");
         break;
     }
 }
@@ -568,6 +567,17 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
     pastix_complex64_t *uL, *vL, *uU, *vU, *uF, *vF;
     pastix_int_t rankL, rankU, rankF;
 
+    rankL = -1;
+    rankU = -1;
+    rankF = -1;
+
+    uL = NULL;
+    vL = NULL;
+    uU = NULL;
+    vU = NULL;
+    uF = NULL;
+    vF = NULL;
+
     /* Operation L * U contributes to L */
     if (side1 == L_side && side2 == U_side && side3 == L_side){
         rankL = blok1->rankL;
@@ -594,8 +604,7 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         vF = blok3->coefU_v_LR;
     }
     else{
-        printf("Operation not supported yet\n\n");
-        exit(1);
+        errorPrint("Operation not supported yet");
     }
 
     pastix_int_t ret   = -1;
@@ -801,8 +810,7 @@ void core_z_lr2dense_special(SolverBlok *blok,
         }
         break;
     default:
-        printf("Wrong operation\n");
-        exit(1);
+        errorPrint("Wrong operation");
         break;
     }
 }
