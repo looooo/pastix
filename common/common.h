@@ -39,10 +39,6 @@
 #include "trace.h"
 #include "pastixdata.h"
 
-#if defined(PASTIX_WITH_HODLR)
-#include "cHODLR_Matrix.h"
-#endif /* defined(PASTIX_WITH_HODLR) */
-
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
 #endif

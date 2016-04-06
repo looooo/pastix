@@ -205,13 +205,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
 
                 solvcblk->split    = NULL;
 
-#if defined(PASTIX_WITH_HODLR)
-                solvcblk->cMatrix  = NULL;
-                solvcblk->is_HODLR = 0;
-                solvcblk->dcoeftab_HODLR = NULL;
-
-#endif /* defined(PASTIX_WITH_HODLR) */
-
                 /* Copy browtab information */
                 brownbr = symbmtx->cblktab[i+1].brownum
                     -     symbmtx->cblktab[i].brownum;
@@ -246,11 +239,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
             solvcblk->gcblknum = -1;
             solvcblk->gpuid    = -2;
 
-#if defined(PASTIX_WITH_HODLR)
-            solvcblk->cMatrix        = NULL;
-            solvcblk->is_HODLR       = 0;
-            solvcblk->dcoeftab_HODLR = NULL;
-#endif /* defined(PASTIX_WITH_HODLR) */
         }
 
         solvmtx->nodenbr = nodenbr;

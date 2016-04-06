@@ -44,10 +44,6 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
     pastix_int_t itercoltab, iterval, coefindx;
     pastix_int_t ncols = solvcblk->lcolnum - solvcblk->fcolnum + 1;
 
-#if defined(PASTIX_WITH_HODLR)
-    pastix_complex64_t *dcoeftab_HODLR = solvcblk->dcoeftab_HODLR;
-#endif /* defined(PASTIX_WITH_HODLR) */
-
     for (itercoltab=0; itercoltab<csccblk->colnbr; itercoltab++)
     {
         pastix_int_t frow = csccblk->coltab[itercoltab];
@@ -149,11 +145,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         memset( cblk->dcoeftab, 0, cblk_colnbr( cblk ) * cblk_colnbr( cblk ) * sizeof(pastix_complex64_t) );
 
         /* Extra diagonal block for low-rank updates */
-#if defined(PASTIX_WITH_HODLR)
-        MALLOC_INTERN( cblk->dcoeftab_HODLR, cblk_colnbr( cblk ) * cblk_colnbr( cblk ), pastix_complex64_t );
-        memset( cblk->dcoeftab_HODLR, 0, cblk_colnbr( cblk ) * cblk_colnbr( cblk ) * sizeof(pastix_complex64_t) );
-#endif /* defined(PASTIX_WITH_HODLR) */
-
         MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
         memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
 
@@ -161,9 +152,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     else {
         cblk->dcoeftab = NULL;
         cblk->ucoeftab = NULL;
-#if defined(PASTIX_WITH_HODLR)
-        cblk->dcoeftab_HODLR = NULL;
-#endif /* defined(PASTIX_WITH_HODLR) */
     }
 
     /**

@@ -82,34 +82,18 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     /* In sequential */
                     assert( cblk->fcolnum == cblk->lcolidx );
 
-#if defined(PASTIX_WITH_HODLR)
-                    if (cblk->is_HODLR == 0)
-#endif /* defined(PASTIX_WITH_HODLR) */
-                    {
-                        cblas_ztrsm(
-                            CblasColMajor, CblasLeft, CblasLower,
-                            CblasNoTrans, CblasUnit,
-                            tempn, nrhs, CBLAS_SADDR(zone),
-                            cblk->dcoeftab, tempn,
-                            b + cblk->lcolidx, ldb );
-                        cblas_ztrsm(
-                            CblasColMajor, CblasLeft, CblasUpper,
-                            CblasNoTrans, CblasNonUnit,
-                            tempn, nrhs, CBLAS_SADDR(zone),
-                            cblk->dcoeftab,    tempn,
-                            b + cblk->lcolidx, ldb );
-                    }
-#if defined(PASTIX_WITH_HODLR)
-                    else{
-                        pastix_complex64_t *B = b + cblk->lcolidx;
-                        pastix_complex64_t *R = malloc(tempn*sizeof(pastix_complex64_t));
-                        cLU_Solve(cblk->cMatrix, tempn, B, R);
-
-                        cblas_zcopy(tempn, R, 1,
-                                    B, 1);
-                        free(R);
-                    }
-#endif /* defined(PASTIX_WITH_HODLR) */
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        CblasNoTrans, CblasUnit,
+                        tempn, nrhs, CBLAS_SADDR(zone),
+                        cblk->dcoeftab, tempn,
+                        b + cblk->lcolidx, ldb );
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasUpper,
+                        CblasNoTrans, CblasNonUnit,
+                        tempn, nrhs, CBLAS_SADDR(zone),
+                        cblk->dcoeftab,    tempn,
+                        b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -187,18 +171,12 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
                     /* Solve the diagonal block (only for LU blocks) */
-#if defined(PASTIX_WITH_HODLR)
-                    if (cblk->is_HODLR == 0)
-#endif /* defined(PASTIX_WITH_HODLR) */
-
-                    {
-                        cblas_ztrsm(
-                            CblasColMajor, CblasLeft, CblasUpper,
-                            CblasNoTrans, (enum CBLAS_DIAG)diag,
-                            tempn, nrhs, CBLAS_SADDR(zone),
-                            cblk->dcoeftab,    tempn,
-                            b + cblk->lcolidx, ldb );
-                    }
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasUpper,
+                        CblasNoTrans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs, CBLAS_SADDR(zone),
+                        cblk->dcoeftab,    tempn,
+                        b + cblk->lcolidx, ldb );
                 }
             }
         }
@@ -216,28 +194,12 @@ sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, 
                     assert( cblk->fcolnum == cblk->lcolidx );
 
                     /* Solve the diagonal block (only for LU blocks) */
-#if defined(PASTIX_WITH_HODLR)
-                    if (cblk->is_HODLR == 0)
-#endif /* defined(PASTIX_WITH_HODLR) */
-                    {
-                        cblas_ztrsm(
-                            CblasColMajor, CblasLeft, CblasLower,
-                            CblasNoTrans, (enum CBLAS_DIAG)diag,
-                            tempn, nrhs, CBLAS_SADDR(zone),
-                            cblk->dcoeftab, tempn,
-                            b + cblk->lcolidx, ldb );
-                    }
-#if defined(PASTIX_WITH_HODLR)
-                    else{
-                        pastix_complex64_t *B = b + cblk->lcolidx;
-                        pastix_complex64_t *R = malloc(tempn*sizeof(pastix_complex64_t));
-                        cLU_Solve(cblk->cMatrix, tempn, B, R);
-
-                        cblas_zcopy(tempn, R, 1,
-                                    B, 1);
-                        free(R);
-                    }
-#endif /* defined(PASTIX_WITH_HODLR) */
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        CblasNoTrans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs, CBLAS_SADDR(zone),
+                        cblk->dcoeftab, tempn,
+                        b + cblk->lcolidx, ldb );
                 }
             }
             /*

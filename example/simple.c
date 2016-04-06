@@ -34,13 +34,6 @@ int main (int argc, char **argv)
     /**
      * Check if parameters are well set
      */
-    char *lvls = getenv("LEVELS");
-    if (lvls == NULL){
-        printf("Set LEVELS variable\n");
-        exit(1);
-    }
-    pastix_int_t levels = atoi(lvls);
-
     char *tol  = getenv("TOLERANCE");
     if (tol == NULL){
         printf("Set TOLERANCE variable\n");
@@ -55,29 +48,6 @@ int main (int argc, char **argv)
     }
     pastix_int_t splitsize = atoi(splt);
 
-    char *thr  = getenv("THRESHOLD");
-    if (thr == NULL){
-        printf("Set THRESHOLD variable\n");
-        exit(1);
-    }
-    pastix_int_t threshold = atoi(thr);
-    if (threshold > splitsize){
-        printf("Threshold (%ld) should be lower than splitsize (%ld)\n",
-               threshold, splitsize);
-        exit(1);
-    }
-
-    char *tree = getenv("HODLRTREE");
-    if (tree == NULL){
-        printf("Set HODLRTREE (0- unactive, 1- active)\n");
-        exit(1);
-    }
-    pastix_int_t hodlrtree = atoi(tree);
-    if (hodlrtree != 0 && hodlrtree != 1){
-        printf("Set correctly HODLRTREE (0- unactive, 1- active)\n");
-        exit(1);
-    }
-
     char *ordo = getenv("REORDERING");
     if (ordo == NULL){
         printf("Set REORDERING (0- unactive, 1- active)\n");
@@ -86,28 +56,6 @@ int main (int argc, char **argv)
     pastix_int_t reordering = atoi(ordo);
     if (reordering != 0 && reordering != 1){
         printf("Set correctly REORDERING (0- unactive, 1- active)\n");
-        exit(1);
-    }
-
-    char *comp = getenv("COMPRESS");
-    if (comp == NULL){
-        printf("Set COMPRESS (0- unactive, 1- active)\n");
-        exit(1);
-    }
-    pastix_int_t compress = atoi(comp);
-    if (compress != 0 && compress != 1){
-        printf("Set correctly COMPRESS (0- unactive, 1- active)\n");
-        exit(1);
-    }
-
-    char *face = getenv("FACING");
-    if (face == NULL){
-        printf("Set FACING (0- unactive, 1- active)\n");
-        exit(1);
-    }
-    pastix_int_t facing = atoi(face);
-    if (facing != 0 && facing != 1){
-        printf("Set correctly FACING (0- unactive, 1- active)\n");
         exit(1);
     }
 
@@ -123,15 +71,10 @@ int main (int argc, char **argv)
     }
 
     printf("\tH-PaStiX parameters are\n");
-    printf("\tSPLITSIZE %ld THRESHOLD %ld\n", splitsize, threshold);
+    printf("\tSPLITSIZE %ld\n", splitsize);
     printf("\tTOLERANCE %.3g\n", tolerance);
     printf("\tREORDERING %ld\n", reordering);
     printf("\t SURFACE %ld\n", surface);
-
-    /* printf("\tHODLRTREE %ld (on last supernode right now)\n", hodlrtree); */
-    /* printf("\tCOMPRESS %ld\n", compress); */
-    /* printf("\tFACING %ld\n", facing); */
-    /* printf("\tLEVELS %ld (unused right now)\n", levels); */
 
     iparm[IPARM_MIN_BLOCKSIZE] = 80;
     iparm[IPARM_MAX_BLOCKSIZE] = splitsize;

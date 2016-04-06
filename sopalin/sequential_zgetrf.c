@@ -32,20 +32,6 @@ int dsparse_zgetrf_sp( dague_context_t *dague,
                        sopalin_data_t *sopalin_data );
 #endif
 
-#if defined(PASTIX_WITH_HODLR)
-static pastix_int_t compute_cblklevel( pastix_int_t cblknum )
-{
-    /* cblknum level has already been computed */
-    pastix_int_t father = treetab[cblknum];
-    if ( father == -1 ) {
-        return 1;
-    }
-    else {
-        return compute_cblklevel( father ) + 1;
-    }
-}
-#endif /* defined(PASTIX_WITH_HODLR) */
-
 void
 sequential_zgetrf( pastix_data_t  *pastix_data,
                    sopalin_data_t *sopalin_data )
@@ -62,193 +48,148 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     cblk = datacode->cblktab;
     current_cblk = 0;
 
-    /* To apply contributions with a depth-first search */
-    /* Warning: does not work with parallel implementations */
-#if defined(PASTIX_WITH_HODLR)
-    pastix_int_t  j;
-    if (0){
-        pastix_int_t max_level = 0;
-        for (i=0; i<datacode->cblknbr; i++){
-            pastix_int_t level = compute_cblklevel( current_cblk++ );
-            if (level > max_level)
-                max_level = level;
+    /* Compress information coming from A */
+    Clock timer;
+    clockStart(timer);
+
+    for (i=0; i<datacode->cblknbr; i++, cblk++){
+        pastix_int_t dima, dimb;
+
+        SolverBlok *blok = cblk->fblokptr;
+        pastix_complex64_t *U = cblk->ucoeftab;
+        pastix_complex64_t *L = cblk->lcoeftab;
+
+        /* Horizontal dimension */
+        dima = cblk->lcolnum - cblk->fcolnum + 1;
+        /* Vertical dimension */
+        dimb = cblk->stride  - dima;
+
+        /* Size of the diagonal blok */
+        pastix_int_t totalsize = 0;
+        pastix_int_t tot = 0;
+
+        /* First pass to count the number of off-diagonal blocks */
+        blok++;
+        while (totalsize != dimb){
+            totalsize += blok->lrownum - blok->frownum + 1;
+            tot++;
+            blok++;
         }
 
-        for (j=max_level; j>=1; j--){
-            pastix_int_t id_b = 0;
+        /* Second pass to compress each off-diagonal block */
+        blok = cblk->fblokptr + 1;
+        totalsize = 0;
+        tot = 0;
 
-            char *tol        = getenv("TOLERANCE");
-            double tolerance = atof(tol);
+        while (totalsize != dimb)
+        {
+            pastix_int_t bloksize    = blok->lrownum - blok->frownum + 1;
 
-            char env_char[256];
-            double new_tol = 0.00001; //tolerance / (1 << j);
-            sprintf(env_char, "%lf", new_tol);
-            setenv("HODLR_TOLERANCE", &env_char, 1);
+            pastix_complex64_t *uU, *vU;
+            pastix_int_t rankU = -1;
+            uU = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
+            vU = malloc( dima     * dima     * sizeof(pastix_complex64_t));
+            memset(uU, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
+            memset(vU, 0, dima     * dima     * sizeof(pastix_complex64_t));
 
-            current_cblk = 0;
-            cblk         = datacode->cblktab;
+            pastix_complex64_t *uL, *vL;
+            pastix_int_t rankL = -1;
+            uL = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
+            vL = malloc( dima     * dima     * sizeof(pastix_complex64_t));
+            memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
+            memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
 
-            for (i=0; i<datacode->cblknbr; i++, cblk++){
-                pastix_int_t level = compute_cblklevel( id_b++ );
+            char *splt = getenv("SPLITSIZE");
+            pastix_int_t splitsize = atoi(splt);
 
-                if (level == j){
-                    printf("Supernode %ld level %ld Tolerance %lf\n", current_cblk, level, new_tol);
-                    core_zgetrfsp1d( datacode, cblk, threshold, work );
-                }
-                else{
-                    current_cblk++;
+            pastix_int_t compress_size = splitsize / 2;
+            pastix_int_t compress_blok = 10; //splitsize;
+
+            pastix_complex64_t *data;
+            data = U + dima + totalsize;
+            if (dima > compress_size && bloksize > compress_blok)
+                rankU = core_z_compress_LR(data, cblk->stride,
+                                           bloksize, dima,
+                                           uU, bloksize,
+                                           vU, dima);
+
+            if (rankU != -1){
+                pastix_int_t i;
+                for (i=0; i<dima; i++){
+                    memset(data + cblk->stride * i, 0, bloksize * sizeof(pastix_complex64_t));
                 }
             }
+
+            /* Uncompress to check if the accuracy is consistent */
+            /* if (rankU != -1){ */
+            /*     core_z_uncompress_LR(data, cblk->stride, */
+            /*                     bloksize, dima, */
+            /*                     uU, bloksize, */
+            /*                     vU, dima, */
+            /*                     rankU); */
+            /* } */
+            /* rankU = -1; */
+
+
+            data = L + dima + totalsize;
+
+            if (dima > compress_size && bloksize > compress_blok)
+                rankL = core_z_compress_LR(data, cblk->stride,
+                                           bloksize, dima,
+                                           uL, bloksize,
+                                           vL, dima);
+
+            /* TODO: set blok to zero has it will be used has a local memory */
+            if (rankL != -1){
+                pastix_int_t i;
+                for (i=0; i<dima; i++){
+                    memset(data + cblk->stride * i, 0, bloksize * sizeof(pastix_complex64_t));
+                }
+            }
+
+            /* Uncompress to check if the accuracy is consistent */
+            /* if (rankL != -1){ */
+            /*     core_z_uncompress_LR(data, cblk->stride, */
+            /*                     bloksize, dima, */
+            /*                     uL, bloksize, */
+            /*                     vL, dima, */
+            /*                     rankL); */
+            /* } */
+            /* rankL = -1; */
+
+            blok->coefU_u_LR = uU;
+            blok->coefU_v_LR = vU;
+            blok->rankU      = rankU;
+            blok->coefL_u_LR = uL;
+            blok->coefL_v_LR = vL;
+            blok->rankL      = rankL;
+
+            blok->Lsurface = 0;
+            blok->Lxmin    = 1000000;
+            blok->Lxmax    = 0;
+            blok->Lymin    = 100000;
+            blok->Lymax    = 0;
+            blok->Lupdates = 0;
+
+            blok->Usurface = 0;
+            blok->Uxmin    = 1000000;
+            blok->Uxmax    = 0;
+            blok->Uymin    = 100000;
+            blok->Uymax    = 0;
+            blok->Uupdates = 0;
+
+            totalsize += bloksize;
+            tot++;
+            blok++;
         }
     }
 
-    else
-#endif /* defined(PASTIX_WITH_HODLR) */
-    {
+    clockStop(timer);
+    time_comp += clockVal(timer);
 
-        /* Compress information coming from A */
-        Clock timer;
-        clockStart(timer);
-
-        for (i=0; i<datacode->cblknbr; i++, cblk++){
-            pastix_int_t dima, dimb;
-
-            SolverBlok *blok = cblk->fblokptr;
-            pastix_complex64_t *U = cblk->ucoeftab;
-            pastix_complex64_t *L = cblk->lcoeftab;
-
-            /* Horizontal dimension */
-            dima = cblk->lcolnum - cblk->fcolnum + 1;
-            /* Vertical dimension */
-            dimb = cblk->stride  - dima;
-
-            /* Size of the diagonal blok */
-            pastix_int_t totalsize = 0;
-            pastix_int_t tot = 0;
-
-            /* First pass to count the number of off-diagonal blocks */
-            blok++;
-            while (totalsize != dimb){
-                totalsize += blok->lrownum - blok->frownum + 1;
-                tot++;
-                blok++;
-            }
-
-            /* Second pass to compress each off-diagonal block */
-            blok = cblk->fblokptr + 1;
-            totalsize = 0;
-            tot = 0;
-
-            while (totalsize != dimb)
-            {
-                pastix_int_t bloksize    = blok->lrownum - blok->frownum + 1;
-
-                pastix_complex64_t *uU, *vU;
-                pastix_int_t rankU = -1;
-                uU = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
-                vU = malloc( dima     * dima     * sizeof(pastix_complex64_t));
-                memset(uU, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
-                memset(vU, 0, dima     * dima     * sizeof(pastix_complex64_t));
-
-                pastix_complex64_t *uL, *vL;
-                pastix_int_t rankL = -1;
-                uL = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
-                vL = malloc( dima     * dima     * sizeof(pastix_complex64_t));
-                memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
-                memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
-
-                char *splt = getenv("SPLITSIZE");
-                pastix_int_t splitsize = atoi(splt);
-
-                pastix_int_t compress_size = splitsize;
-                pastix_int_t compress_blok = splitsize;
-
-                pastix_complex64_t *data;
-                data = U + dima + totalsize;
-                if (dima > compress_size && bloksize > compress_blok)
-                    rankU = core_z_compress_LR(data, cblk->stride,
-                                               bloksize, dima,
-                                               uU, bloksize,
-                                               vU, dima);
-
-                if (rankU != -1){
-                    pastix_int_t i;
-                    for (i=0; i<dima; i++){
-                        memset(data + cblk->stride * i, 0, bloksize * sizeof(pastix_complex64_t));
-                    }
-                }
-
-                /* Uncompress to check if the accuracy is consistent */
-                /* if (rankU != -1){ */
-                /*     core_z_uncompress_LR(data, cblk->stride, */
-                /*                     bloksize, dima, */
-                /*                     uU, bloksize, */
-                /*                     vU, dima, */
-                /*                     rankU); */
-                /* } */
-                /* rankU = -1; */
-
-
-                data = L + dima + totalsize;
-
-                if (dima > compress_size && bloksize > compress_blok)
-                    rankL = core_z_compress_LR(data, cblk->stride,
-                                               bloksize, dima,
-                                               uL, bloksize,
-                                               vL, dima);
-
-                /* TODO: set blok to zero has it will be used has a local memory */
-                if (rankL != -1){
-                    pastix_int_t i;
-                    for (i=0; i<dima; i++){
-                        memset(data + cblk->stride * i, 0, bloksize * sizeof(pastix_complex64_t));
-                    }
-                }
-
-                /* Uncompress to check if the accuracy is consistent */
-                /* if (rankL != -1){ */
-                /*     core_z_uncompress_LR(data, cblk->stride, */
-                /*                     bloksize, dima, */
-                /*                     uL, bloksize, */
-                /*                     vL, dima, */
-                /*                     rankL); */
-                /* } */
-                /* rankL = -1; */
-
-                blok->coefU_u_LR = uU;
-                blok->coefU_v_LR = vU;
-                blok->rankU      = rankU;
-                blok->coefL_u_LR = uL;
-                blok->coefL_v_LR = vL;
-                blok->rankL      = rankL;
-
-                blok->Lsurface = 0;
-                blok->Lxmin    = 1000000;
-                blok->Lxmax    = 0;
-                blok->Lymin    = 100000;
-                blok->Lymax    = 0;
-                blok->Lupdates = 0;
-
-                blok->Usurface = 0;
-                blok->Uxmin    = 1000000;
-                blok->Uxmax    = 0;
-                blok->Uymin    = 100000;
-                blok->Uymax    = 0;
-                blok->Uupdates = 0;
-
-                totalsize += bloksize;
-                tot++;
-                blok++;
-            }
-        }
-
-        clockStop(timer);
-        time_comp += clockVal(timer);
-
-        cblk = datacode->cblktab;
-        for (i=0; i<datacode->cblknbr; i++, cblk++){
-            core_zgetrfsp1d_LR( datacode, cblk, threshold, work );
-        }
+    cblk = datacode->cblktab;
+    for (i=0; i<datacode->cblknbr; i++, cblk++){
+        core_zgetrfsp1d_LR( datacode, cblk, threshold, work );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)

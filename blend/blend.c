@@ -173,7 +173,6 @@ void solverBlend(BlendCtrl    *ctrl,
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
             pastix_print( clustnum, 0, "-- Spliting initial partition Version 2\n" );
 
-        /* Find suitable HODLR decomposition */
         splitSymbol(ctrl, symbmtx);
 
         clockStop(timer_current);
