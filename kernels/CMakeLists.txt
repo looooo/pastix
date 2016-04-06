@@ -74,7 +74,6 @@ if(PASTIX_WITH_HODLR)
 endif() #PASTIX_WITH_HODLR
 
 target_link_libraries( pastix_kernels
-  pastix_cucores_sm35
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
   ${CBLAS_LIBRARIES}
@@ -82,3 +81,8 @@ target_link_libraries( pastix_kernels
   ${EXTRA_LIBS}
 )
 
+if(PASTIX_WITH_CUDA)
+  target_link_libraries( pastix_kernels
+    pastix_cucores_sm35
+    )
+endif()
