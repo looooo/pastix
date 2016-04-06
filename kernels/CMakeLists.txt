@@ -55,10 +55,16 @@ add_library(pastix_kernels ${generated_files} )
 add_dependencies(pastix_kernels kernels_headers)
 
 target_link_libraries( pastix_kernels
-  pastix_cucores_sm35
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
 )
+
+if(PASTIX_WITH_CUDA)
+  target_link_libraries( pastix_kernels
+    pastix_cucores_sm35
+    )
+endif()
+
