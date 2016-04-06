@@ -18,6 +18,7 @@
  **/
 #include "common.h"
 #include "isched.h"
+#include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
@@ -25,7 +26,6 @@
 #include <dague.h>
 #include <dague/data.h>
 #include <dague/data_distribution.h>
-#include "parsec/sparse-matrix.h"
 #endif
 
 void
@@ -81,12 +81,15 @@ thread_pzhetrf( int rank, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
+        /* Wait */
+        do {} while( cblk->ctrbcnt );
+
         /* Compute */
         core_zhetrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
                          work1, work2 );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
+#if defined(PASTIX_DEBUG_FACTO) && 0
     isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
     if (rank == 0) {
         coeftab_zdump( datacode, "hetrf_L.txt" );
@@ -98,7 +101,6 @@ thread_pzhetrf( int rank, void *args )
     memFree_null( work2 );
 }
 
-
 void
 thread_zhetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
@@ -106,39 +108,29 @@ thread_zhetrf( pastix_data_t  *pastix_data,
     isched_parallel_call( pastix_data->isched, thread_pzhetrf, sopalin_data );
 }
 
-#if defined(PASTIX_WITH_PARSEC)
+#if defined(PASTIX_WITH_PARSEC) && 0
 void
 parsec_zhetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
-    sparse_matrix_desc_t desc;
     dague_context_t *ctx;
-    int argc = 0;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {
-        pastix_data->parsec = dague_init( -1, &argc, NULL );
+        int argc = 0;
+        pastix_parsec_init( pastix_data, &argc, NULL );
     }
     ctx = pastix_data->parsec;
 
-    /* Create the matrix descriptor */
-    sparse_matrix_init( &desc, sopalin_data->solvmtx,
-                        pastix_size_of( PastixComplex64 ), 1, 0 );
-
     /* Run the facto */
-    dsparse_zhetrf_sp( ctx, &desc, sopalin_data );
-
-    /* Destroy the decriptor */
-    sparse_matrix_destroy( &desc );
-
-    dague_fini( &(pastix_data->parsec) );
+    dsparse_zhetrf_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
 }
 #endif
 
 static void (*zhetrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zhetrf,
     thread_zhetrf,
-#if defined(PASTIX_WITH_PARSEC)
+#if defined(PASTIX_WITH_PARSEC) && 0
     parsec_zhetrf,
 #else
     NULL,

@@ -20,12 +20,12 @@
 #include <time.h>
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
-#include <csc.h>
+#include <spm.h>
 
-int z_spm_norm_check( const pastix_csc_t *spm );
-int c_spm_norm_check( const pastix_csc_t *spm );
-int d_spm_norm_check( const pastix_csc_t *spm );
-int s_spm_norm_check( const pastix_csc_t *spm );
+int z_spm_norm_check( const pastix_spm_t *spm );
+int c_spm_norm_check( const pastix_spm_t *spm );
+int d_spm_norm_check( const pastix_spm_t *spm );
+int s_spm_norm_check( const pastix_spm_t *spm );
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \
@@ -41,10 +41,10 @@ char* mtxnames[] = { "General", "Symmetric", "Hermitian" };
 
 int main (int argc, char **argv)
 {
-    pastix_csc_t    csc;
+    pastix_spm_t    spm;
     pastix_driver_t driver;
     char *filename;
-    int csctype, mtxtype, baseval;
+    int spmtype, mtxtype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
@@ -55,55 +55,55 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+    cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
 
-    csctype = csc.mtxtype;
+    spmtype = spm.mtxtype;
     printf(" -- SPM Norms Test --\n");
 
-    printf(" Datatype: %s\n", fltnames[csc.flttype] );
+    printf(" Datatype: %s\n", fltnames[spm.flttype] );
     for( baseval=0; baseval<2; baseval++ )
     {
         printf(" Baseval : %d\n", baseval );
-        spmBase( &csc, baseval );
+        spmBase( &spm, baseval );
 
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
-                 ((csc.flttype != PastixComplex64) && (csc.flttype != PastixComplex32)) )
+                 ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)) )
             {
                 continue;
             }
             if ( (mtxtype != PastixGeneral) &&
-                 (csctype == PastixGeneral) )
+                 (spmtype == PastixGeneral) )
             {
                 continue;
             }
-            csc.mtxtype = mtxtype;
+            spm.mtxtype = mtxtype;
 
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
 
-            switch( csc.flttype ){
+            switch( spm.flttype ){
             case PastixComplex64:
-                ret = z_spm_norm_check( &csc );
+                ret = z_spm_norm_check( &spm );
                 break;
 
             case PastixComplex32:
-                ret = c_spm_norm_check( &csc );
+                ret = c_spm_norm_check( &spm );
                 break;
 
             case PastixFloat:
-                ret = s_spm_norm_check( &csc );
+                ret = s_spm_norm_check( &spm );
                 break;
 
             case PastixDouble:
             default:
-                ret = d_spm_norm_check( &csc );
+                ret = d_spm_norm_check( &spm );
             }
             PRINT_RES(ret);
         }
     }
-    spmExit( &csc  );
+    spmExit( &spm  );
 
     if( err == 0 ) {
         printf(" -- All tests PASSED --\n");

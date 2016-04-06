@@ -2,7 +2,7 @@
  *
  * @file z_spm_convert_to_csr.c
  *
- *  PaStiX csc routines
+ *  PaStiX spm routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -14,13 +14,13 @@
  * @precisions normal z -> c d s p
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "z_spm.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmConvertCSC2CSR - convert a matrix in CSC format to a matrix in CSR
  * format. If the matrix is PastixSymmetric or PastixHermitian, then the
@@ -39,7 +39,7 @@
  *
  *******************************************************************************/
 int
-z_spmConvertCSC2CSR( pastix_csc_t *spm )
+z_spmConvertCSC2CSR( pastix_spm_t *spm )
 {
     pastix_int_t *tmp;
     pastix_int_t  result;
@@ -97,7 +97,7 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmConvertIJV2CSR - convert a matrix in IJV format to a matrix in CSR
  * format.
@@ -115,7 +115,7 @@ z_spmConvertCSC2CSR( pastix_csc_t *spm )
  *
  *******************************************************************************/
 int
-z_spmConvertIJV2CSR( pastix_csc_t *spm )
+z_spmConvertIJV2CSR( pastix_spm_t *spm )
 {
 #if !defined(PRECISION_p)
     pastix_complex64_t *navals = NULL;
@@ -123,10 +123,10 @@ z_spmConvertIJV2CSR( pastix_csc_t *spm )
 #endif
     pastix_int_t       *spmptx, *otmp;
     pastix_int_t i, j, tmp, baseval, total;
-    pastix_csc_t oldspm;
+    pastix_spm_t oldspm;
 
     /* Backup the input */
-    memcpy( &oldspm, spm, sizeof(pastix_csc_t) );
+    memcpy( &oldspm, spm, sizeof(pastix_spm_t) );
 
     /*
      * Check the baseval, we consider that arrays are sorted by columns or rows

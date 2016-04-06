@@ -859,7 +859,7 @@ void pastix_ex_getoptions(int argc, char **argv,
             break;
 
         case 't': iparam[IPARM_THREAD_NBR] = atoi(optarg); break;
-        case 'g': iparam[IPARM_GPUS_NBR] = atoi(optarg); break;
+        case 'g': iparam[IPARM_GPU_NBR] = atoi(optarg); break;
 
         case 'o':
             if (strcmp(optarg, "scotch") == 0)

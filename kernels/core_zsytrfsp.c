@@ -15,9 +15,9 @@
  *
  **/
 #include "common.h"
-#include "pastix_zcores.h"
 #include <cblas.h>
-#include "../blend/solver.h"
+#include "blend/solver.h"
+#include "pastix_zcores.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -440,6 +440,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
         /* Displacement to next block */
         work1 += dimb;
     }
+    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
 }
 
 /**
@@ -529,7 +530,7 @@ core_zsytrfsp1d( SolverMatrix       *solvmtx,
     nbpivot = core_zsytrfsp1d_sytrf(cblk, L, criteria, work1);
     core_zsytrfsp1d_trsm(cblk, L);
 
-    blok = cblk->fblokptr+1; /* this diagonal block */
+    blok = cblk->fblokptr+1;   /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
     for( ; blok < lblk; blok++ )
     {

@@ -9,14 +9,10 @@ extern "C" %{
 #include <dague/data_distribution.h>
 #include <dague/private_mempool.h>
 #include "common.h"
+#include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
-#include "parsec/sparse-matrix.h"
 
-#if defined(HAVE_CUDA)
-#include <dague/devices/cuda/dev_cuda.h>
-#include "parsec/cuda_zgemmsp.h"
-#endif  /* defined(HAVE_CUDA) */
 %}
 
 /* Globals
@@ -48,7 +44,7 @@ lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cbl
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
-:dataA(0, k) // Should match SOLV_COEFTAB(k)
+:dataA(0, k)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
@@ -56,21 +52,29 @@ RW L <- ( browk0 == browk1 ) ? dataA(0, k) : C GEMM( lastbrow )
      -> A GEMM(firstblok .. lastblok)
      -> dataA(0, k)
 
-     //; inline_c %{ return - TASK_PRIONUM(k); %}
+//; inline_c %{ return - TASK_PRIONUM(k); %}
+
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-
     core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
 }
 END
 
-/**************************************************
- *                      GEMM                      *
- * update the trailing matrix with the panel      *
+/**
+ *       GEMM
+ *
+ * To have a contiguous range of GEMM to release in the potrf, they are numbered
+ * with the indexes of the off-diagonal blocks, diagonal block included.
+ * Thus, the diagonal block tasks which doesn't perfom computations are used as
+ * DATA_IN tasks. This is mandatory when using the GPU, due to the versioning
+ * bumped by the cpu version of the diagonal block that coccurs when computing
+ * the diagonal blocks.
+ *
+ * For all off-diagonal blocks, it updates the trailing matrix with the panel
  * k-th block updating corresponding.
- **************************************************/
-
+ *
+ */
 GEMM(bloknum)
 
 // Execution space
@@ -81,63 +85,82 @@ fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return
 first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
 
-brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %}
-prev    = inline_c %{ if ((brownum == -1) || (brownum <= first)) return 0; else return datacode->browtab[brownum-1]; %}
-next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else return datacode->browtab[brownum+1]; %}
+brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
+prev = inline_c %{
+    assert( first >= 0 );
+    /**
+     * If bloknum is a diagonal block, or if it is the first one applied on C,
+     * there is no previous
+     */
+    if ((brownum == -1) || (brownum == first) ) {
+        return 0;
+    }
+    /**
+     * Otherwise we return the previous block in the list of blocks facing fcblk
+     */
+    else {
+        assert( brownum > first );
+        return datacode->browtab[brownum-1];
+    }
+    %}
+next = inline_c %{
+    /**
+     * If we are on a diagonal blok, or if we are the last one, there is no next
+     */
+    if ((brownum == -1) || (brownum >= last) ){
+        return 0;
+    } else {
+        return datacode->browtab[brownum+1];
+    }
+    %}
 
 // Parallel partitioning
 :dataA(0, fcblknm)
 
 // Parameters
-READ  A  <- ( brownum != -1) ? L POTRF_TRSM( lcblknm ) : dataA( 0, fcblknm )
+READ  A  <- (brownum != -1) ? L POTRF_TRSM( lcblknm ) : NULL
 
-RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm )
-         <- ( brownum != -1 ) && (first != brownum ) ? C GEMM( prev )
+RW    C  <- (brownum == -1) ? NULL
+         <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm )
+         <- (brownum != -1) && (brownum != first) ? C GEMM( prev )
 
-         -> ( brownum != -1 ) && (last == brownum ) ? L POTRF_TRSM( fcblknm )
-         -> ( brownum != -1 ) && (last != brownum ) ? C GEMM( next )
+         -> (brownum != -1) && (brownum == last)  ? L POTRF_TRSM( fcblknm )
+         -> (brownum != -1) && (brownum != last)  ? C GEMM( next )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-BODY [type=CUDA]
+BODY [type=CUDA device=inline_c %{ if (brownum == -1) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
+      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
 {
-    int rc = 0;
-    /* If diagonal block, we skip */
-    if (brownum == -1) {
-        goto end;
+    /* Compute only if non diagonal block */
+    if (brownum != -1) {
+        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        SolverBlok *blok  = datacode->bloktab + bloknum;
+
+        gpu_zgemmsp( PastixLower, PastixConjTrans,
+                     lcblk, blok, fcblk,
+                     A, A, C,
+                     dague_body.stream );
     }
-
-    SolverCblk *lcblk = datacode->cblktab + lcblknm;
-    SolverCblk *fcblk = datacode->cblktab + fcblknm;
-    SolverBlok *blok  = datacode->bloktab + bloknum;
-    pastix_complex64_t *work;
-
-    rc = gpu_zpotrfsp_gemm( context, this_task, (last == brownum ),
-                            lcblk, blok, fcblk, A, C );
-
-  end:
-    return rc;
 }
 END
 
 BODY
 {
     /* If diagonal block, we skip */
-    if (brownum == -1) {
-        goto end;
+    if (brownum != -1) {
+        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        SolverBlok *blok  = datacode->bloktab + bloknum;
+        pastix_complex64_t *work;
+
+        work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
+
+        core_zgemmsp( PastixLower, PastixConjTrans, lcblk, blok, fcblk,
+                      A, A, C, work );
+
+        dague_private_memory_push( p_work, (void *)work );
     }
-
-    SolverCblk *lcblk = datacode->cblktab + lcblknm;
-    SolverCblk *fcblk = datacode->cblktab + fcblknm;
-    SolverBlok *blok  = datacode->bloktab + bloknum;
-    pastix_complex64_t *work;
-
-    work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
-
-    core_zpotrfsp1d_gemm( lcblk, blok, fcblk, A, C, work );
-
-    dague_private_memory_push( p_work, (void *)work );
-  end:
-    ;
 }
 END

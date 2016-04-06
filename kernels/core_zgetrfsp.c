@@ -15,10 +15,9 @@
  *
  **/
 #include "common.h"
-#include "pastix_zcores.h"
 #include <cblas.h>
-#include "../blend/solver.h"
-#include <lapacke.h>
+#include "blend/solver.h"
+#include "pastix_zcores.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -1035,14 +1034,6 @@ void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
     }
 }
 
-
-
-
-
-
-
-
-
 void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                               SolverBlok         *blok,
                               SolverCblk         *fcblk,
@@ -1446,12 +1437,74 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-
 int
 core_zgetrfsp1d( SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
                  double              criteria,
                  pastix_complex64_t *work)
+{
+    pastix_complex64_t *L = cblk->lcoeftab;
+    pastix_complex64_t *U = cblk->ucoeftab;
+    SolverCblk  *fcblk;
+    SolverBlok  *blok, *lblk;
+    pastix_int_t nbpivot;
+
+    nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria);
+
+    blok = cblk->fblokptr + 1; /* this diagonal block */
+    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+    /* if there are off-diagonal supernodes in the column */
+    for( ; blok < lblk; blok++ )
+    {
+        fcblk = (solvmtx->cblktab + blok->fcblknm);
+
+        /* Update on L */
+        core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
+                      L, U, fcblk->lcoeftab, work );
+
+        /* Update on U */
+        if ( blok+1 < lblk ) {
+            core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
+                          U, L, fcblk->ucoeftab, work );
+        }
+        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
+    }
+
+    return nbpivot;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgetrfsp1d - Computes the Cholesky factorization of one panel, apply all
+ * the trsm updates to this panel, and apply all updates to the right with no
+ * lock.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] criteria
+ *          Threshold use for static pivoting. If diagonal value is under this
+ *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          pivots is incremented.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal block.
+ *
+ *******************************************************************************/
+int
+core_zgetrfsp1d_LR( SolverMatrix       *solvmtx,
+                    SolverCblk         *cblk,
+                    double              criteria,
+                    pastix_complex64_t *work)
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     pastix_complex64_t *U = cblk->ucoeftab;
@@ -1479,7 +1532,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     Clock timer;
     clockStart(timer);
 
-    blok = cblk->fblokptr+1;
+    /* if there are off-diagonal supernodes in the column */
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
@@ -1487,6 +1540,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
         core_zgetrfsp1d_gemm_LR( cblk, blok, fcblk,
                                  L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
 
+        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
 
     clockStop(timer);

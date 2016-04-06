@@ -17,10 +17,10 @@
 #endif
 
 
-void            costMatrixCorrect     (CostMatrix *, const SymbolMatrix *, Cand * candtab,  const Dof *);
+void            costMatrixCorrect     (CostMatrix *, const SymbolMatrix *, Cand *);
 double          subtreeUpdateCost     (pastix_int_t, CostMatrix *, const EliminTree *);
-double          subtreeUpdateCostLocal(pastix_int_t, const BlendCtrl *, const SymbolMatrix *, const SimuCtrl *, const Dof *, pastix_int_t);
-double          cblkComputeCost2D     (pastix_int_t, CostMatrix *, const SymbolMatrix *, const Dof *);
+double          subtreeUpdateCostLocal(pastix_int_t, const BlendCtrl *, const SymbolMatrix *, const SimuCtrl *, pastix_int_t);
+double          cblkComputeCost2D     (pastix_int_t, CostMatrix *, const SymbolMatrix *);
 
 /** 2D **/
 double          DIAGCost              (pastix_int_t);
@@ -31,13 +31,12 @@ static double   computeCost           (pastix_int_t, pastix_int_t);
 static double   contribCompCost       (pastix_int_t, pastix_int_t, pastix_int_t);
 static double   contribAddCost        (pastix_int_t, pastix_int_t);
 double costFtgtSend( const BlendCtrl   *ctrl,
-                     const Dof         *dofptr,
                      const FanInTarget *ftgt,
                      pastix_int_t clustsrc,
                      pastix_int_t sync_comm_nbr );
 
 
-double          costFtgtAdd           (FanInTarget *, const Dof *);
+double          costFtgtAdd           (FanInTarget *);
 double          cblkMaxCost           (pastix_int_t, const CostMatrix *);
 double          totalCost             (pastix_int_t, const CostMatrix *);
 void            printSolverInfo       (FILE *, const SolverMatrix *);

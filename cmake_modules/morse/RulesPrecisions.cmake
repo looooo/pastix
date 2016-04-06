@@ -30,6 +30,11 @@
 cmake_minimum_required(VERSION 2.8)
 include(CMakeDependentOption)
 
+if(POLICY CMP0054)
+    cmake_policy(SET CMP0054 NEW)
+endif()
+
+
 set(RP_GENDEPENDENCIES ${MORSE_CMAKE_MODULE_PATH}/precision_generator/genDependencies.py)
 set(RP_CODEGEN         ${MORSE_CMAKE_MODULE_PATH}/precision_generator/codegen.py)
 

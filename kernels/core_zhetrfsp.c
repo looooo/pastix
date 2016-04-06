@@ -15,9 +15,9 @@
  *
  **/
 #include "common.h"
-#include "pastix_zcores.h"
 #include <cblas.h>
-#include "../blend/solver.h"
+#include "blend/solver.h"
+#include "pastix_zcores.h"
 
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
@@ -81,7 +81,7 @@ static void core_zhetf2sp(pastix_int_t        n,
         /* Scale the diagonal to compute L((k+1):n,k) */
         cblas_zscal(n-k-1, CBLAS_SADDR( zalpha ), Amk, 1 );
 
-        dalpha = (double)(-(*Akk));
+        dalpha = -1. * creal(*Akk);
 
         /* Move to next Akk */
         Akk += (lda+1);
@@ -434,6 +434,7 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
         /* Displacement to next block */
         work1 += dimb;
     }
+    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
 }
 
 /**

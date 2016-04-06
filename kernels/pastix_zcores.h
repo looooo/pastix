@@ -8,8 +8,8 @@
 #ifndef _PASTIX_ZCORES_H_
 #define _PASTIX_ZCORES_H_
 
-#define pastix_cblk_lock( cblk_ )
-#define pastix_cblk_unlock( cblk_ )
+#define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
+#define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
 #define L_side 0
 #define U_side 1
@@ -107,13 +107,6 @@ int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
                 const pastix_complex64_t *A, int LDA,
                       pastix_complex64_t *B, int LDB);
 
-int core_zgeaddsp1d( SolverCblk * cblk1,
-                     SolverCblk * cblk2,
-                     pastix_complex64_t * L1,
-                     pastix_complex64_t * L2,
-                     pastix_complex64_t * U1,
-                     pastix_complex64_t * U2 );
-
 int core_zgemdm(int transA, int transB,
                 int M, int N, int K,
                       pastix_complex64_t  alpha,
@@ -123,6 +116,27 @@ int core_zgemdm(int transA, int transB,
                       pastix_complex64_t *C,    int LDC,
                 const pastix_complex64_t *D,    int incD,
                       pastix_complex64_t *WORK, int LWORK);
+
+int core_zgeaddsp1d( SolverCblk * cblk1,
+                     SolverCblk * cblk2,
+                     pastix_complex64_t * L1,
+                     pastix_complex64_t * L2,
+                     pastix_complex64_t * U1,
+                     pastix_complex64_t * U2 );
+
+void core_zgemmsp( int diag, int trans,
+                   SolverCblk         *cblk,
+                   SolverBlok         *blok,
+                   SolverCblk         *fcblk,
+                   pastix_complex64_t *A,
+                   pastix_complex64_t *B,
+                   pastix_complex64_t *C,
+                   pastix_complex64_t *work );
+
+int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           double              criteria);
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -143,19 +157,15 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *U,
                            double              criteria);
 
-void core_zgetrfsp1d_gemm( SolverCblk         *cblk,
-                           SolverBlok         *blok,
-                           SolverCblk         *fcblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *U,
-                           pastix_complex64_t *Cl,
-                           pastix_complex64_t *Cu,
-                           pastix_complex64_t *work );
-
 int core_zgetrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
                      double              criteria,
                      pastix_complex64_t *work );
+
+int core_zgetrfsp1d_LR( SolverMatrix       *solvmtx,
+                        SolverCblk         *cblk,
+                        double              criteria,
+                        pastix_complex64_t *work);
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
@@ -198,13 +208,6 @@ int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria);
 
-void core_zpotrfsp1d_gemm(SolverCblk         *cblk,
-                          SolverBlok         *blok,
-                          SolverCblk         *fcblk,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *C,
-                          pastix_complex64_t *work);
-
 int core_zpotrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
                      double              criteria,
@@ -236,5 +239,36 @@ int core_zsytrfsp1d( SolverMatrix       *solvmtx,
                      double              criteria,
                      pastix_complex64_t *work1,
                      pastix_complex64_t *work2 );
+
+#if defined(PASTIX_WITH_CUDA)
+#include <cuda.h>
+#include <cuComplex.h>
+
+typedef struct gemm_params_s{
+    int M[32];
+    int Acoefind[32];
+    void *Carray[32];
+} gemm_params_t;
+
+void pastix_zgemm_vbatched_nt(
+    gemm_params_t params,
+    pastix_trans_t transB,
+    pastix_int_t n, pastix_int_t k,
+    cuDoubleComplex alpha,
+    cuDoubleComplex const * dA, pastix_int_t ldda,
+    cuDoubleComplex const * dB, pastix_int_t lddb,
+    cuDoubleComplex beta,
+    pastix_int_t lddc,
+    pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream );
+
+void gpu_zgemmsp( int uplo, int trans,
+                  SolverCblk      *cblk,
+                  SolverBlok      *blok,
+                  SolverCblk      *fcblk,
+                  cuDoubleComplex *A,
+                  cuDoubleComplex *B,
+                  cuDoubleComplex *C,
+                  cudaStream_t stream );
+#endif
 
 #endif /* _CORE_Z_H_ */

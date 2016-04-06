@@ -129,10 +129,7 @@ FortranCInterface_HEADER(common/FCmangle.h
 # PaStiX depends on CBLAS
 #----------------------------
 find_package(CBLAS REQUIRED)
-set(HAVE_CBLAS ${CBLAS_FOUND})
 find_package(BLASEXT REQUIRED)
-set(HAVE_BLAS ${BLAS_FOUND})
-
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
@@ -291,18 +288,10 @@ if (PASTIX_WITH_PARSEC)
     if(PKG_CONFIG_EXECUTABLE)
       pkg_search_module(PARSEC parsec)
     endif()
-    if ( PARSEC_FOUND )
-    else()
-      message(ERROR "PaRSEC not FOUND")
-      set(PARSEC_FOUND ON)
-      set(PARSEC_INCLUDE_DIRS "/opt/parsec/include")
-      set(PARSEC_LIBRARY_DIRS "/opt/parsec/lib")
-    endif()
 
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
       include_directories(${PARSEC_INCLUDE_DIRS_DEP})
-      include_directories(${PARSEC_INCLUDE_DIRS}/daguepp)
       link_directories(${PARSEC_LIBRARY_DIRS_DEP})
 
     else(PARSEC_FOUND)
@@ -416,7 +405,6 @@ install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pasti
 #   "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc")
 # install(FILES "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc" DESTINATION lib/pkgconfig)
 
-add_definitions(-DDOF_CONSTANT)
 add_definitions(-DX_ARCHi686_pc_linux)
 
 execute_process(COMMAND "./myversion.sh" OUTPUT_VARIABLE PASTIX_VERSION)
@@ -428,14 +416,15 @@ add_definitions(${TOTO})
 #add_subdirectory(tools)
 #add_subdirectory(matrix_drivers)
 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/csc")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/csc")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/spm")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/refinement")
@@ -450,16 +439,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 # Sub modules
-set(modules csc bcsc kernels refinement) #csc kernels sopalin matrix_drivers common)
-# if (PASTIX_WITH_STARPU)
-#   list(APPEND modules starpu)
-# endif (PASTIX_WITH_STARPU)
-# # For each modules add -I compilation flag and then include module
-# foreach (module ${modules})
-#   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/${module}")
-#   include_directories("${CMAKE_CURRENT_BINARY_DIR}/${module}")
-# endforeach()
-# # include modules
+set(modules bcsc kernels refinement) #csc kernels sopalin matrix_drivers common)
 foreach (module ${modules})
    add_subdirectory(${module})
 endforeach()
@@ -469,60 +449,34 @@ if (PASTIX_WITH_PARSEC)
     add_subdirectory(sopalin/parsec)
 endif()
 
-# # declare dependencies on headers generation
-# set(modules_with_libs ${modules})
-# list(REMOVE_ITEM modules_with_libs include matrix_drivers)
-# message(STATUS ${modules_with_libs})
-# foreach (module ${modules_with_libs})
-#   foreach (module2 ${modules})
-#     add_dependencies(pastix_${module} ${module2}_headers)
-#   endforeach()
-# endforeach()
-# foreach (module2 ${modules})
-#   add_dependencies(read_matrix ${module2}_headers)
-# endforeach()
-
-# macro(solver_rules _output_files _sources_files)
-#   foreach(_source_file ${_sources_files})
-
-#     set(_source_file "${CMAKE_CURRENT_SOURCE_DIR}/${_source_file}")
-#     string(REGEX REPLACE "^(.*).c$" "\\1" _prefix "${_source_file}")
-
-#     add_custom_command(OUTPUT ${_prefix}_he.c COMMAND cp ${_source_file} ${_prefix}_he.c DEPENDS ${_source_file} )
-#     add_custom_command(OUTPUT ${_prefix}_sy.c COMMAND cp ${_source_file} ${_prefix}_sy.c DEPENDS ${_source_file} )
-#     add_custom_command(OUTPUT ${_prefix}_po.c COMMAND cp ${_source_file} ${_prefix}_po.c DEPENDS ${_source_file} )
-#     add_custom_command(OUTPUT ${_prefix}_ge.c COMMAND cp ${_source_file} ${_prefix}_ge.c DEPENDS ${_source_file} )
-
-#     set_source_files_properties(${_prefix}_he.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN -DHERMITIAN" )
-#     set_source_files_properties(${_prefix}_sy.c PROPERTIES COMPILE_FLAGS "-UCHOL_SOPALIN" )
-#     set_source_files_properties(${_prefix}_po.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN" )
-#     set_source_files_properties(${_prefix}_ge.c PROPERTIES COMPILE_FLAGS "-DCHOL_SOPALIN -DSOPALIN_LU" )
-
-#     list(APPEND ${_output_files}
-#       ${_prefix}_he.c
-#       ${_prefix}_sy.c
-#       ${_prefix}_po.c
-#       ${_prefix}_ge.c
-#       )
-
-#   endforeach()
-# endmacro()
-
-
 include(RulesPrecisions)
-
 # reset variables
 set(generated_files "")
+set(generated_headers "")
+
+set(HEADERS
+  spm/z_spm.h
+)
+
+### generate the dsparse_cores headers for all possible precisions
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  TARGETDIR  "spm"
+  PRECISIONS "p;s;d;c;z")
+
+add_custom_target( spm_headers
+  DEPENDS ${generated_headers} )
+
 set(SOURCES
   common/z_integer.c
   #
-  csc/z_spm.c
-  csc/z_spm_convert_to_csc.c
-  csc/z_spm_convert_to_csr.c
-  csc/z_spm_convert_to_ijv.c
-  csc/z_spm_genrhs.c
-  csc/z_spm_matrixvector.c
-  csc/z_spm_norm.c
+  spm/z_spm.c
+  spm/z_spm_convert_to_csc.c
+  spm/z_spm_convert_to_csr.c
+  spm/z_spm_convert_to_ijv.c
+  spm/z_spm_genrhs.c
+  spm/z_spm_matrixvector.c
+  spm/z_spm_norm.c
   #
   matrix_drivers/z_spm_laplacian.c
   #
@@ -558,12 +512,13 @@ set(PASTIX_LIB_SRCS
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   graph/graph_io.c  # Not finished
-  csc/csc_io.c  # Not finished
+  spm/spm_io.c  # Not finished
   #
   order/order.c
   order/order_add_isolate.c
   order/order_check.c
   order/order_find_supernodes.c
+  order/order_apply_level_order.c
   order/order_io.c
   order/pastix_task_order.c
   order/order_compute_clif.c
@@ -614,7 +569,6 @@ set(PASTIX_LIB_SRCS
   blend/solver_io.c
 # blend/splitpartlocal.c
   blend/task.c
-#  blend/blend_distributeOnGPU.c
   blend/solver.c
   blend/solver_backup.c
   blend/pastix_task_analyze.c
@@ -628,8 +582,6 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
 #
 #
-  symbol/dof.c
-  symbol/dof_io.c
   symbol/symbol.c
   symbol/symbol_base.c
   symbol/symbol_check.c
@@ -652,15 +604,29 @@ set(PASTIX_LIB_SRCS
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
 #
-  csc/csc.c
+  spm/spm.c
 #
   refinement/pastix_task_raff.c
 #
   ${generated_files}
   )
 
+if(PASTIX_WITH_PARSEC)
+  set(PASTIX_LIB_SRCS
+    ${PASTIX_LIB_SRCS}
+    common/parsec.c
+    )
+endif()
+
+if(PASTIX_WITH_CUDA)
+  set(PASTIX_LIB_SRCS
+    ${PASTIX_LIB_SRCS}
+    blend/solver_compute_gpu_distrib.c
+    )
+endif()
+
 set_source_files_properties(
-  csc/csc.c
+  spm/spm.c
   PROPERTIES DEPENDS spm_headers
   )
 
@@ -742,6 +708,8 @@ add_dependencies(pastix
   kernels_headers
   bcsc_headers
   refinement_headers
+)
+target_link_libraries(pastix
   pastix_bcsc
   pastix_kernels
 )

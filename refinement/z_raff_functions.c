@@ -17,6 +17,7 @@
  *
  **/
 #include "common.h"
+#include "spm.h"
 #include "z_spm.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
@@ -63,6 +64,9 @@ void z_Pastix_End(pastix_data_t *pastix_data, pastix_complex64_t tmp, pastix_int
     pastix_complex64_t *xptr = (pastix_complex64_t *)x;
     pastix_int_t        n = pastix_data->bcsc->gN;
     pastix_int_t i;
+    (void)tmp;
+    (void)nb_iter;
+    (void)t;
 
     for (i=0; i<n; i++)
         xptr[i] = gmresx[i];

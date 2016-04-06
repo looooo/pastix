@@ -18,6 +18,7 @@
  **/
 #include "common.h"
 #include "isched.h"
+#include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
@@ -25,7 +26,10 @@
 #include <dague.h>
 #include <dague/data.h>
 #include <dague/data_distribution.h>
-#include "parsec/sparse-matrix.h"
+
+int dsparse_zgetrf_sp( dague_context_t *dague,
+                       sparse_matrix_desc_t *A,
+                       sopalin_data_t *sopalin_data );
 #endif
 
 #if defined(PASTIX_WITH_HODLR)
@@ -243,7 +247,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
         cblk = datacode->cblktab;
         for (i=0; i<datacode->cblknbr; i++, cblk++){
-            core_zgetrfsp1d( datacode, cblk, threshold, work );
+            core_zgetrfsp1d_LR( datacode, cblk, threshold, work );
         }
     }
 
@@ -275,11 +279,14 @@ thread_pzgetrf( int rank, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
+        /* Wait */
+        do {} while( cblk->ctrbcnt );
+
         /* Compute */
         core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
+#if defined(PASTIX_DEBUG_FACTO) && 0
     isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
     if (rank == 0) {
         coeftab_zdump( datacode, "getrf_L.txt" );
@@ -302,50 +309,17 @@ void
 parsec_zgetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
-    sparse_matrix_desc_t desc;
     dague_context_t *ctx;
-    int argc = 0;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {
-        pastix_data->parsec = dague_init( -1, &argc, NULL );
+        int argc = 0;
+        pastix_parsec_init( pastix_data, &argc, NULL );
     }
     ctx = pastix_data->parsec;
 
-    /* Create the matrix descriptor */
-    sparse_matrix_init( &desc, sopalin_data->solvmtx,
-                        pastix_size_of( PastixComplex64 ), 1, 0 );
-
     /* Run the facto */
-    dsparse_zgetrf_sp( ctx, &desc, sopalin_data );
-
-    /* Destroy the decriptor */
-    sparse_matrix_destroy( &desc );
-
-    dague_fini( &(pastix_data->parsec) );
-
-
-    /* TODO: add to the DAG */
-
-   /* SolverMatrix       *datacode = sopalin_data->solvmtx; */
-    /* SolverCblk         *cblk; */
-    /* Task               *t; */
-    /* pastix_int_t        tasknbr, *tasktab; */
-    /* tasknbr = datacode->ttsknbr[0]; */
-    /* tasktab = datacode->ttsktab[0]; */
-
-    /* pastix_int_t i, ii; */
-    /* for (ii=0; ii<tasknbr; ii++) { */
-    /*     i = tasktab[ii]; */
-    /*     t = datacode->tasktab + i; */
-    /*     cblk = datacode->cblktab + t->cblknum; */
-
-    /*     pastix_complex64_t *L = cblk->lcoeftab; */
-    /*     pastix_complex64_t *U = cblk->ucoeftab; */
-
-    /*     /\* Compute *\/ */
-    /*     core_zgetrfsp1d_trsm2(cblk, L, U); */
-    /* } */
+    dsparse_zgetrf_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
 }
 #endif
 

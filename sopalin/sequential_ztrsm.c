@@ -18,7 +18,7 @@
  **/
 #include <cblas.h>
 #include "common.h"
-#include "csc.h"
+#include "solver.h"
 #include "bcsc.h"
 #include "sopalin_data.h"
 

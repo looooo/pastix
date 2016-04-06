@@ -2,7 +2,7 @@
  *
  * @file z_spm_convert_to_ijv.c
  *
- *  PaStiX csc routines
+ *  PaStiX spm routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -14,13 +14,13 @@
  * @precisions normal z -> c d s p
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "z_spm.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmConvertCSC2IJV - convert a matrix in CSC format to a matrix in IJV
  * format.
@@ -38,7 +38,7 @@
  *
  *******************************************************************************/
 int
-z_spmConvertCSC2IJV( pastix_csc_t *spm )
+z_spmConvertCSC2IJV( pastix_spm_t *spm )
 {
     pastix_int_t *col_ijv, *colptr;
     pastix_int_t i, j, baseval, nnz;
@@ -71,7 +71,7 @@ z_spmConvertCSC2IJV( pastix_csc_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmConvertCSR2IJV - convert a matrix in CSR format to a matrix in IJV
  * format.
@@ -89,7 +89,7 @@ z_spmConvertCSC2IJV( pastix_csc_t *spm )
  *
  *******************************************************************************/
 int
-z_spmConvertCSR2IJV( pastix_csc_t *spm )
+z_spmConvertCSR2IJV( pastix_spm_t *spm )
 {
     pastix_int_t *row_ijv, *rowptr;
     pastix_int_t i, j, baseval, nnz;

@@ -35,7 +35,7 @@
  *
  * @param[in] rangtab
  *          Integer array of size cblknbr+1.
- *          Containes the supernode partition of the graph.
+ *          Contains the supernode partition of the graph.
  *
  * @param[out] symbmtx
  *          On entry, an initialized structure of symbol matrix (see symbolInit()).

@@ -23,10 +23,9 @@
  *
  * @ingroup pastix_symbfact
  *
- * symbolKass - This function generateds the symbol matrix when an ibomplete
- * factorization will be performed or the supernode partition doesn't exists or
- * has been destroyed.
- * The symbol matrix and the supernode partition associated are returned.
+ * symbolKass - This function generates the symbol matrix whith an amalgamation
+ * algorithm to gather together small blocks in larger one.
+ * The symbol matrix and the associated supernode partition are returned.
  * See after for the different parameters.
  *
  *******************************************************************************
@@ -94,6 +93,7 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     pastix_int_t *invp2;
     pastix_int_t  newcblknbr;
     pastix_int_t *newrangtab = NULL;
+    pastix_int_t *newtreetab = NULL;
     pastix_int_t  nnzA, nnzL;
     Clock timer;
     double nnzS;
@@ -122,23 +122,6 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     /* Convert Fortran to C numbering */
     graphBase( csc, 0 );
     orderBase( orderptr, 0 );
-
-    /*
-     * If the supernode partition is not provided by the ordering library,
-     * we compute it from scratch.
-     * If we do incomplete factorization, we drop the supernode factorization
-     * given by Scotch and recompute a new one.
-     */
-    /* if ( (orderptr->rangtab == NULL) || (ilu == API_YES ) ) */
-    /* { */
-    /*     Clock timer; */
-
-    /*     MALLOC_INTERN(streetab, csc->n, pastix_int_t); */
-    /*     clockStart(timer); */
-    /*     orderFindSupernodes( csc->n, csc->colptr, csc->rows, orderptr, streetab ); */
-    /*     clockStop(timer); */
-    /*     pastix_print(procnum, 0, "Time to find the supernodes %.3g s \n", clockVal(timer)); */
-    /* } */
 
     n  = csc->n;
     ia = csc->colptr;
@@ -234,15 +217,19 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
                 (double)rat_blas / 100.,
                 &graphL, nnzL,
                 snodenbr, snodetab, streetab,
-                &newcblknbr, &newrangtab,
+                &newcblknbr, &newrangtab, &newtreetab,
                 invp2, pastix_comm );
 
     if( orderptr->rangtab != NULL ) {
         memFree(orderptr->rangtab);
         orderptr->cblknbr = 0;
     }
+    if( orderptr->treetab != NULL ) {
+        memFree(orderptr->treetab);
+    }
     orderptr->cblknbr = newcblknbr;
     orderptr->rangtab = newrangtab;
+    orderptr->treetab = newtreetab;
 
     /*
      * invp2 is the invp vector generated for PA

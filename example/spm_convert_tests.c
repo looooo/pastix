@@ -20,7 +20,7 @@
 #include <assert.h>
 #include <time.h>
 #include <pastix.h>
-#include <csc.h>
+#include <spm.h>
 #include "../matrix_drivers/drivers.h"
 
 #define PRINT_RES(_ret_)                        \
@@ -35,52 +35,52 @@
 char* fltnames[] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
 char* mtxnames[] = { "General", "Symmetric", "Hermitian" };
 
-int cscComp( const pastix_csc_t *csc1,
-             const pastix_csc_t *csc2 )
+int spmComp( const pastix_spm_t *spm1,
+             const pastix_spm_t *spm2 )
 {
     pastix_int_t *colptr1, *colptr2;
     pastix_int_t *rowptr1, *rowptr2;
     int          *valptr1, *valptr2;
     pastix_int_t  i;
 
-    if ( csc1->fmttype != PastixCSC ) {
-        fprintf(stderr, "Function made to compare only two CSC matrices\n");
+    if ( spm1->fmttype != PastixCSC ) {
+        fprintf(stderr, "Function made to compare only two SPM matrices\n");
         return -1;
     }
 
-    if ((csc1->mtxtype != csc2->mtxtype) ||
-        (csc1->flttype != csc2->flttype) ||
-        (csc1->fmttype != csc2->fmttype) ||
-        (csc1->gN      != csc2->gN     ) ||
-        (csc1->n       != csc2->n      ) ||
-        (csc1->gnnz    != csc2->gnnz   ) ||
-        (csc1->nnz     != csc2->nnz    ) ||
-        (csc1->dof     != csc2->dof    ) )
+    if ((spm1->mtxtype != spm2->mtxtype) ||
+        (spm1->flttype != spm2->flttype) ||
+        (spm1->fmttype != spm2->fmttype) ||
+        (spm1->gN      != spm2->gN     ) ||
+        (spm1->n       != spm2->n      ) ||
+        (spm1->gnnz    != spm2->gnnz   ) ||
+        (spm1->nnz     != spm2->nnz    ) ||
+        (spm1->dof     != spm2->dof    ) )
     {
         return 1;
     }
 
-    colptr1 = csc1->colptr;
-    colptr2 = csc2->colptr;
-    for (i=0; i<=csc1->n; i++, colptr1++, colptr2++) {
+    colptr1 = spm1->colptr;
+    colptr2 = spm2->colptr;
+    for (i=0; i<=spm1->n; i++, colptr1++, colptr2++) {
         if (*colptr1 != *colptr2 ) {
             return 2;
         }
     }
 
-    rowptr1 = csc1->rowptr;
-    rowptr2 = csc2->rowptr;
-    for (i=0; i<csc1->nnz; i++, rowptr1++, rowptr2++) {
+    rowptr1 = spm1->rowptr;
+    rowptr2 = spm2->rowptr;
+    for (i=0; i<spm1->nnz; i++, rowptr1++, rowptr2++) {
         if (*rowptr1 != *rowptr2 ) {
             return 3;
         }
     }
 
     /* Check values */
-    if (csc1->values != NULL) {
-        pastix_int_t size = csc1->nnz * (pastix_size_of( csc1->flttype ) / sizeof(int));
-        valptr1 = (int*)(csc1->values);
-        valptr2 = (int*)(csc2->values);
+    if (spm1->values != NULL) {
+        pastix_int_t size = spm1->nnz * (pastix_size_of( spm1->flttype ) / sizeof(int));
+        valptr1 = (int*)(spm1->values);
+        valptr2 = (int*)(spm2->values);
         for (i=0; i<size; i++, valptr1++, valptr2++) {
             if (*valptr1 != *valptr2) {
                 return 4;
@@ -94,7 +94,7 @@ int cscComp( const pastix_csc_t *csc1,
 int main (int argc, char **argv)
 {
     char *filename;
-    pastix_csc_t  csc, csc2;
+    pastix_spm_t  spm, spm2;
     pastix_driver_t driver;
     int mtxtype, baseval;
     int ret = PASTIX_SUCCESS;
@@ -104,42 +104,42 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    cscReadFromFile( driver, filename, &csc, MPI_COMM_WORLD );
+    cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
 
     printf(" -- SPM Conversion Test --\n");
 
     /* Allocate backup */
-    memcpy( &csc2, &csc, sizeof(pastix_csc_t) );
-    csc2.colptr = malloc((csc.n+1)*sizeof(pastix_int_t));
-    csc2.rowptr = malloc( csc.nnz *sizeof(pastix_int_t));
-    if (csc.values != NULL)
-        csc2.values = malloc(csc.nnz * pastix_size_of( csc.flttype ));
+    memcpy( &spm2, &spm, sizeof(pastix_spm_t) );
+    spm2.colptr = malloc((spm.n+1)*sizeof(pastix_int_t));
+    spm2.rowptr = malloc( spm.nnz *sizeof(pastix_int_t));
+    if (spm.values != NULL)
+        spm2.values = malloc(spm.nnz * pastix_size_of( spm.flttype ));
 
-    printf(" Datatype: %s\n", fltnames[csc.flttype] );
+    printf(" Datatype: %s\n", fltnames[spm.flttype] );
     for( baseval=0; baseval<2; baseval++ )
     {
         printf(" Baseval : %d\n", baseval );
-        spmBase( &csc, baseval );
+        spmBase( &spm, baseval );
 
         /**
-         * Backup the csc
+         * Backup the spm
          */
-        memcpy(csc2.colptr, csc.colptr, (csc.n+1)*sizeof(pastix_int_t));
-        memcpy(csc2.rowptr, csc.rowptr,  csc.nnz * sizeof(pastix_int_t));
-        if (csc.values != NULL) {
-            memcpy(csc2.values, csc.values, csc.nnz * pastix_size_of( csc.flttype ));
+        memcpy(spm2.colptr, spm.colptr, (spm.n+1)*sizeof(pastix_int_t));
+        memcpy(spm2.rowptr, spm.rowptr,  spm.nnz * sizeof(pastix_int_t));
+        if (spm.values != NULL) {
+            memcpy(spm2.values, spm.values, spm.nnz * pastix_size_of( spm.flttype ));
         }
 
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
-                 ((csc.flttype != PastixComplex64) && (csc.flttype != PastixComplex32)) )
+                 ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)) )
             {
                 continue;
             }
-            csc.mtxtype  = mtxtype;
-            csc2.mtxtype = mtxtype;
+            spm.mtxtype  = mtxtype;
+            spm2.mtxtype = mtxtype;
 
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
 
@@ -147,18 +147,18 @@ int main (int argc, char **argv)
              * Test cycle CSC -> CSR -> IJV -> CSC
              */
             printf("   -- Test Conversion CSC -> CSR: ");
-            ret = spmConvert( PastixCSR, &csc );
-            ret = (ret != PASTIX_SUCCESS) || (csc.fmttype != PastixCSR );
+            ret = spmConvert( PastixCSR, &spm );
+            ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixCSR );
             PRINT_RES(ret);
 
             printf("   -- Test Conversion CSR -> IJV: ");
-            ret = spmConvert( PastixIJV, &csc );
-            ret = (ret != PASTIX_SUCCESS) || (csc.fmttype != PastixIJV );
+            ret = spmConvert( PastixIJV, &spm );
+            ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixIJV );
             PRINT_RES(ret);
 
             printf("   -- Test Conversion IJV -> CSC: ");
-            ret = spmConvert( PastixCSC, &csc );
-            ret = (ret != PASTIX_SUCCESS) || (csc.fmttype != PastixCSC );
+            ret = spmConvert( PastixCSC, &spm );
+            ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixCSC );
             PRINT_RES(ret);
 
             /**
@@ -167,8 +167,8 @@ int main (int argc, char **argv)
              * in the function.
              */
             if (mtxtype == PastixGeneral) {
-                printf("   -- Check the csc after cycle : ");
-                ret = cscComp( &csc2, &csc );
+                printf("   -- Check the spm after cycle : ");
+                ret = spmComp( &spm2, &spm );
                 PRINT_RES(ret);
             }
 
@@ -176,29 +176,29 @@ int main (int argc, char **argv)
              * Test second cycle CSC -> IJV -> CSR -> CSC
              */
             printf("   -- Test Conversion CSC -> IJV: ");
-            ret = spmConvert( PastixIJV, &csc );
-            ret = (ret != PASTIX_SUCCESS) || (csc.fmttype != PastixIJV );
+            ret = spmConvert( PastixIJV, &spm );
+            ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixIJV );
             PRINT_RES(ret);
 
             printf("   -- Test Conversion IJV -> CSR: ");
-            ret = spmConvert( PastixCSR, &csc );
-            ret = (ret != PASTIX_SUCCESS) || (csc.fmttype != PastixCSR );
+            ret = spmConvert( PastixCSR, &spm );
+            ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixCSR );
             PRINT_RES(ret);
 
             printf("   -- Test Conversion CSR -> CSC: ");
-            ret = spmConvert( PastixCSC, &csc );
-            ret = (ret != PASTIX_SUCCESS) || (csc.fmttype != PastixCSC );
+            ret = spmConvert( PastixCSC, &spm );
+            ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixCSC );
             PRINT_RES(ret);
 
             /* Check that we came back to the initial state */
-            printf("   -- Check the csc after cycle : ");
-            ret = cscComp( &csc2, &csc );
+            printf("   -- Check the spm after cycle : ");
+            ret = spmComp( &spm2, &spm );
             PRINT_RES(ret);
         }
         printf("\n");
     }
-    spmExit( &csc  );
-    spmExit( &csc2 );
+    spmExit( &spm  );
+    spmExit( &spm2 );
 
     if( err == 0 ) {
         printf(" -- All tests PASSED --\n");

@@ -7,12 +7,15 @@
  * @ingroup pastix_reordering
  * @ingroup pastix
  *
- * pastix_task_reordering - Reorders unknowns given a Scotch parition and the
- * corresponding symbolc factoriszation
+ * pastix_task_reordering - Apply the reordering step, to reorder unknowns
+ * within each supernode. It takes as input the ordering provided by
+ * pastix_task_order(), and the symbolic factorization computed by
+ * pastix_task_symbfact(). It returns boths structures Order and Symbol updated.
  *
- * The function is an algorithm to reorder the problem. It takes as input the
- * ordemesh structure, as well as the symbolic factorization and returns both a
- * new ordemesh and a new symbolic factorization.
+ * This function reorders the unknowns of the problem based on traveller
+ * salesman problem to gather together the contibutions facing each supernodes.
+ *
+ * See reordering paper (TODO: Put link to the paper when published)
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_IO_STRATEGY, IPARM_REORDERING_SPLIT,
@@ -25,7 +28,7 @@
  *          exit, the field symbmtx is updated with the new symbol matrix, and
  *          the field ordemesh is updated with the new ordering.
  *          - IPARM_IO_STRATEGY will enable to load/store the result to files.
- *          If set to API_IO_SAVE, the symbmtx and the generated ordemesh is
+ *          If set to API_IO_SAVE, the symbmtx and the generated ordemesh are
  *          dump to file.
  *          If set to API_IO_LOAD, the symbmtx (only) is loaded from the files.
  *
@@ -45,7 +48,7 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     Order        *ordemesh;
     pastix_int_t  procnum;
 
-    /*
+    /**
      * Check parameters
      */
     if (pastix_data == NULL) {
@@ -56,22 +59,30 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     procnum  = pastix_data->procnum;
     ordemesh = pastix_data->ordemesh;
 
-    /* Compute the Reordering complexity */
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-        symbolReorderingPrintComplexity( pastix_data->symbmtx );
+    assert(ordemesh->rangtab);
+    assert(ordemesh->treetab);
 
+    /* Start the step */
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+        pastix_print(procnum, 0, OUT_STEP_REORDER,
+                     iparm[IPARM_REORDERING_SPLIT],
+                     iparm[IPARM_REORDERING_STOP]);
+    }
+
+    /* Print the reordering complexity */
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+        symbolReorderingPrintComplexity( pastix_data->symbmtx );
 
     clockStart(timer);
 
-    pastix_print(procnum, 0, OUT_REORDERING_PARAMS,
-                 iparm[IPARM_REORDERING_SPLIT],
-                 iparm[IPARM_REORDERING_STOP]);
-
+    /**
+     * Reorder the rows of each supernode in order to compact coupling blocks
+     */
     symbolReordering( pastix_data->symbmtx, ordemesh,
                       iparm[IPARM_REORDERING_SPLIT],
                       iparm[IPARM_REORDERING_STOP] );
 
-
+    /* Backup the new ordering */
     if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
     {
         if (procnum == 0) {
@@ -83,11 +94,27 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     memFree_null(pastix_data->symbmtx);
     pastix_data->symbmtx = NULL;
 
+    /* Re-build the symbolic structure */
+    /* TODO: Create a function to update the symbolic factorization, instead of computing it from scratch,
+     this can be easily made in // per column, as opposed to the symbolic factorization itself */
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
     clockStop(timer);
-    pastix_print(procnum, 0, OUT_REORDERING_TIME,
-                 (double)clockVal(timer));
 
+#if !defined(NDEBUG)
+    if ( orderCheck( ordemesh ) != 0) {
+        errorPrint("pastix_task_reordering: orderCheck on final ordering failed !!!");
+        assert(0);
+    }
+    if( symbolCheck(pastix_data->symbmtx) != 0 ) {
+        errorPrint("pastix_task_reordering: symbolCheck on final symbol matrix failed !!!");
+        assert(0);
+    }
+#endif
+
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+        pastix_print(procnum, 0, OUT_REORDERING_TIME,
+                     (double)clockVal(timer));
+    }
     return PASTIX_SUCCESS;
 }

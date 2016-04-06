@@ -2,7 +2,7 @@
  *
  * @file z_spm_matrixvector.c
  *
- *  PaStiX csc routines
+ *  PaStiX spm routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -14,13 +14,13 @@
  * @precisions normal z -> c d s
  **/
 #include "common.h"
-#include "csc.h"
+#include "spm.h"
 #include "z_spm.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm
  *
  * z_spmGeCSCv - compute the matrix-vector product:
  *          y = alpha * op( A ) + beta * y
@@ -65,7 +65,7 @@
 int
 z_spmGeCSCv(      int                 trans,
                   pastix_complex64_t  alpha,
-            const pastix_csc_t       *csc,
+            const pastix_spm_t       *csc,
             const pastix_complex64_t *x,
                   pastix_complex64_t  beta,
                   pastix_complex64_t *y )
@@ -186,7 +186,7 @@ z_spmGeCSCv(      int                 trans,
  *******************************************************************************/
 int
 z_spmSyCSCv(      pastix_complex64_t  alpha,
-            const pastix_csc_t       *csc,
+            const pastix_spm_t       *csc,
             const pastix_complex64_t *x,
                   pastix_complex64_t  beta,
                   pastix_complex64_t *y )
@@ -275,7 +275,7 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
  *******************************************************************************/
 int
 z_spmHeCSCv(      pastix_complex64_t  alpha,
-            const pastix_csc_t       *csc,
+            const pastix_spm_t       *csc,
             const pastix_complex64_t *x,
                   pastix_complex64_t  beta,
                   pastix_complex64_t *y )

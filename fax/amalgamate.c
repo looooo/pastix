@@ -377,9 +377,14 @@ amalgamate_merge_col(pastix_int_t  a,
  * @param[out] cblknbr
  *          The number of supernodes found after amalgamation process.
  *
- * @param[out] rangtab
+ * @param[out] newrangtab
  *          Integer array of size cblknbr+1.
  *          On exit, contains the new supernode partition found with
+ *          amalgamation process.
+ *
+ * @param[out] newtreetab
+ *          Integer array of size cblknbr.
+ *          On exit, contains the new supernode tree found with
  *          amalgamation process.
  *
  * @param[out] nodetab
@@ -399,7 +404,8 @@ amalgamate(double rat_cblk, double rat_blas,
            const pastix_int_t  *snodetab,
                  pastix_int_t  *treetab,
                  pastix_int_t  *cblknbr,
-                 pastix_int_t **rangtab,
+                 pastix_int_t **newrangtab,
+                 pastix_int_t **newtreetab,
                  pastix_int_t  *nodetab,
                  MPI_Comm       pastix_comm )
 {
@@ -414,7 +420,7 @@ amalgamate(double rat_cblk, double rat_blas,
     pastix_int_t *colweight = NULL;
 
     pastix_int_t  i, j, k, ind;
-    pastix_int_t  father;
+    pastix_int_t  father, newfather;
     pastix_int_t  n, nn, nbcblk_merged;
     pastix_int_t  fillwhile, fillcblk, fillblas, fill;
 
@@ -765,23 +771,25 @@ amalgamate(double rat_cblk, double rat_blas,
     /* Create the new numering array of the comptacted supernodes (stored in
      * tmp) and compute the size of each supernode */
     newnum = tmp;
-    MALLOC_INTERN(*rangtab, n-nbcblk_merged+1, pastix_int_t);
-    memset(newnum,   0,                   n * sizeof(pastix_int_t));
-    memset(*rangtab, 0, (n-nbcblk_merged+1) * sizeof(pastix_int_t));
+    MALLOC_INTERN(*newrangtab, n-nbcblk_merged+1, pastix_int_t);
+    MALLOC_INTERN(*newtreetab, n-nbcblk_merged+1, pastix_int_t);
+    memset(newnum,      0,                      n * sizeof(pastix_int_t));
+    memset(*newrangtab, 0,    (n-nbcblk_merged+1) * sizeof(pastix_int_t));
+    memset(*newtreetab, 0xff, (n-nbcblk_merged)   * sizeof(pastix_int_t));
 
     k = 0;
     for(i=0;i<n;i++) {
         if(colweight[i] > 0) {
             newnum[i] = k++;
-            (*rangtab)[ k ] = colweight[i];
+            (*newrangtab)[ k ] = colweight[i];
         }
     }
     assert( k == (n-nbcblk_merged) );
     *cblknbr = k;
 
-    /* Create the rangtab */
+    /* Create the newrangtab */
     for(i=0; i<k; i++)
-        (*rangtab)[i+1] += (*rangtab)[i];
+        (*newrangtab)[i+1] += (*newrangtab)[i];
 
     /* Create the invp vector to adapt to the new partition */
     for(i=0;i<n;i++)
@@ -797,17 +805,29 @@ amalgamate(double rat_cblk, double rat_blas,
             }
         }
 
-        if(snodetab != NULL)
-            for(j=snodetab[i];j<snodetab[i+1];j++)
-                nodetab[(*rangtab)[newnum[father]]++] = j;
-        else
-            nodetab[(*rangtab)[newnum[father]]++] = i;
+        newfather = newnum[father];
+        if(snodetab != NULL) {
+            for(j=snodetab[i]; j<snodetab[i+1]; j++) {
+                nodetab[(*newrangtab)[newfather]++] = j;
+            }
+        }
+        else {
+            nodetab[(*newrangtab)[newfather]++] = i;
+        }
+
+        if ( treetab[ father ] != -1 ) {
+            (*newtreetab)[ newfather ] = newnum[ treetab[father] ];
+        }
+        else {
+            (*newtreetab)[ newfather ] = -1;
+        }
     }
 
-    /* Reset rangtab to its real value */
-    for(i=*cblknbr; i>0; i--)
-        (*rangtab)[i] = (*rangtab)[i-1];
-    (*rangtab)[0] = 0;
+    /* Reset newrangtab to its real value */
+    for(i=*cblknbr; i>0; i--) {
+        (*newrangtab)[i] = (*newrangtab)[i-1];
+    }
+    (*newrangtab)[0] = 0;
 
     /* Compact the graph to remove merged nodes */
     kass_csrCompact( graphL );

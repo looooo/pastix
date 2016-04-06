@@ -48,7 +48,7 @@
 #define OUT_ORDERINIT         "   Initiating ordering                         \n"
 #define OUT_ORDER_METHOD      "   Algorithm used: %s\n"
 
-#define OUT_REORDERING_PARAMS " Reordering :                                 \n"\
+#define OUT_STEP_REORDER      " Reordering :                                 \n"\
                               "   Split level                             %ld\n"\
                               "   Stoping criteria                        %ld\n"
 #define OUT_REORDERING_TIME   "   Time for reordering                     %.3g s\n"

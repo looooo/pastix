@@ -27,14 +27,15 @@ link_directories(
   ${BLAS_LIBRARY_DIRS}
 )
 
+message(STATUS "LAPACKE_LIBRARIES:    ${LAPACKE_LIBRARIES}")
+message(STATUS "LAPACK_SEQ_LIBRARIES: ${LAPACK_SEQ_LIBRARIES}")
+message(STATUS "CBLAS_LIBRARIES:      ${CBLAS_LIBRARIES}")
+message(STATUS "BLAS_SEQ_LIBRARIES:   ${BLAS_SEQ_LIBRARIES}")
+
 set(PASTIX_EXAMPLES_LIBRARIES
-  pastix
-  pastix_bcsc
-  pastix_kernels
   pastix
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
-  ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   ${EXTRA_LIBS}
   m
@@ -46,11 +47,15 @@ if(PASTIX_WITH_STARPU)
     pastix_starpu)
 endif(PASTIX_WITH_STARPU)
 
+message(STATUS "Parsec libs: ${PARSEC_LIBRARIES}")
 if(PASTIX_WITH_PARSEC)
   set(PASTIX_EXAMPLES_LIBRARIES
     ${PASTIX_EXAMPLES_LIBRARIES}
     pastix_parsec
     ${PARSEC_LIBRARIES}
+    dague_distribution
+    dague_distribution_matrix
+    ${PARSEC_EXTRA_LIBRARIES}
     )
 endif(PASTIX_WITH_PARSEC)
 

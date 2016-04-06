@@ -150,7 +150,7 @@ eTreeBuild(const SymbolMatrix *symbmtx)
     }
 
     totalsonsnbr = 0;
-    for(i=0;i < symbmtx->cblknbr;i++)
+    for(i=0; i<symbmtx->cblknbr; i++)
     {
         /* If the cblk has at least one extra diagonal block,          */
         /* the father of the node is the facing block of the first odb */
@@ -181,7 +181,7 @@ eTreeBuild(const SymbolMatrix *symbmtx)
 
     /* Set the index of the first sons */
     sonstabcur = 0;
-    for(i=0;i < symbmtx->cblknbr; i++)
+    for(i=0; i<symbmtx->cblknbr; i++)
     {
         etree->nodetab[i].fsonnum = sonstabcur;
         sonstabcur += etree->nodetab[i].sonsnbr;
@@ -190,14 +190,14 @@ eTreeBuild(const SymbolMatrix *symbmtx)
 
     /* Fill the sonstab */
     /* No need to go to the root */
-    for(i=0;i < symbmtx->cblknbr-1;i++)
+    for(i=0; i<symbmtx->cblknbr-1; i++)
     {
         etree->sonstab[ eTreeFather(etree, i).fsonnum++] = i;
     }
 
     /* Restore fsonnum fields */
     sonstabcur = 0;
-    for(i=0;i < symbmtx->cblknbr; i++)
+    for(i=0; i<symbmtx->cblknbr; i++)
     {
         etree->nodetab[i].fsonnum = sonstabcur;
         sonstabcur += etree->nodetab[i].sonsnbr;

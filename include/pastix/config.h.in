@@ -11,12 +11,22 @@
 #cmakedefine PASTIX_WITH_STARPU_PROFILING
 
 #cmakedefine PASTIX_DUMP_CBLK
+
 /* system */
 #cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_SCHED_SETAFFINITY
 #cmakedefine HAVE_CLOCK_GETTIME
 /* #cmakedefine HAVE_ASPRINTF */
 /* #cmakedefine HAVE_VASPRINTF */
+#cmakedefine HAVE_ATOMIC_GCC_32_BUILTINS
+#cmakedefine HAVE_ATOMIC_GCC_64_BUILTINS
+#cmakedefine HAVE_ATOMIC_GCC_128_BUILTINS
+#cmakedefine HAVE_ATOMIC_XLC_32_BUILTINS
+#cmakedefine HAVE_ATOMIC_XLC_64_BUILTINS
+#cmakedefine HAVE_ATOMIC_MIPOSPRO_32_BUILTINS
+#cmakedefine HAVE_ATOMIC_MIPOSPRO_64_BUILTINS
+#cmakedefine HAVE_ATOMIC_SUN_32
+#cmakedefine HAVE_ATOMIC_SUN_64
 #cmakedefine HAVE_STDARG_H
 #cmakedefine HAVE_UNISTD_H
 #cmakedefine HAVE_VA_COPY
@@ -30,6 +40,7 @@
 #cmakedefine HAVE_STRING_H
 #cmakedefine HAVE_COMPLEX_H
 
+/* Architecture */
 #cmakedefine ARCH_X86
 #cmakedefine ARCH_X86_64
 #cmakedefine ARCH_PPC

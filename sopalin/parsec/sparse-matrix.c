@@ -9,23 +9,15 @@
  *
  **/
 #define _GNU_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <errno.h>
-#include <stdarg.h>
-#include <stdint.h>
+#include "common.h"
+#include "solver.h"
+#include "sopalin/parsec/pastix_parsec.h"
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif /* HAVE_MPI */
 #include <dague.h>
 #include <dague/data.h>
 #include <dague/data_distribution.h>
 
 #include "common.h"
-#include "parsec/sparse-matrix.h"
 
 static inline uint32_t
 spm_data_key( const SolverMatrix *solvmtx,
@@ -94,13 +86,13 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     va_end(ap);
 
     cblk = spmtx->solvmtx->cblktab + cblknum;
-    key  = spm_data_key( spmtx->solvmtx, cblknum, uplo );
+    key  = spm_data_key( spmtx->solvmtx, cblknum, (uplo ? 1 : 0) );
     pos  = key;
-    size = cblk->stride * (cblk->lcolnum - cblk->fcolnum + 1) * spmtx->typesze;
+    size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
-    return dague_data_get( spmtx->data_map + pos, mat, key,
-                           (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
-                           size );
+    return dague_data_create( spmtx->data_map + pos, mat, key,
+                              (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
+                              size );
 }
 
 static dague_data_t *
@@ -121,9 +113,9 @@ sparse_matrix_data_of_key(dague_ddesc_t *mat, dague_data_key_t key )
     pos  = key;
     size = cblk->stride * (cblk->lcolnum - cblk->fcolnum + 1) * spmtx->typesze;
 
-    return dague_data_get( spmtx->data_map + pos, mat, key,
-                           (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
-                           size );
+    return dague_data_create( spmtx->data_map + pos, mat, key,
+                              (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
+                              size );
 }
 
 #ifdef DAGUE_PROF_TRACE
@@ -150,21 +142,17 @@ static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, cha
 #endif
 
 void sparse_matrix_init( sparse_matrix_desc_t *desc,
-                         SolverMatrix *solvmtx, int typesize, int nodes, int myrank)
+                         SolverMatrix *solvmtx, int typesize,
+                         int nodes, int myrank)
 {
     dague_ddesc_t *o = (dague_ddesc_t*)desc;
 
-    /* Super setup */
-    o->nodes     = nodes;
-    o->myrank    = myrank;
+    dague_ddesc_init( o, nodes, myrank );
 
     o->data_key      = sparse_matrix_data_key;
 #if defined(DAGUE_PROF_TRACE)
     o->key_to_string = sparse_matrix_key_to_string;
-    o->key_dim       = NULL;
-    o->key           = NULL;
 #endif
-    o->memory_registration_status    = MEMORY_STATUS_UNREGISTERED;
 
     o->rank_of     = sparse_matrix_rank_of;
     o->rank_of_key = sparse_matrix_rank_of_key;
@@ -173,28 +161,24 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     o->data_of     = sparse_matrix_data_of;
     o->data_of_key = sparse_matrix_data_of_key;
 
-#ifdef DAGUE_PROF_TRACE
-    o->key_to_string = sparse_matrix_key_to_string;
-    o->key_dim = NULL; /* Initialized when the matrix is read */
-    o->key     = NULL; /* Initialized when the matrix is read */
-#endif /* DAGUE_PROF_TRACE */
-
-    desc->typesze = typesize;
-    desc->solvmtx = NULL;
-    desc->gpu_limit = 0;
-
-    desc->solvmtx  = solvmtx;
-    desc->data_map = (dague_data_t**)calloc( 2 * solvmtx->cblknbr, sizeof(dague_data_t*) );
-
-/*     DEBUG(("sparse_matrix_init: desc = %p, mtype = %zu, \n" */
-/*            "\tnodes = %u, cores = %u, myrank = %u\n", */
-/*            desc, (size_t) desc->super.mtype,  */
-/*            desc->super.super.nodes,  */
-/*            desc->super.super.cores, */
-/*            desc->super.super.myrank)); */
+    desc->typesze   = typesize;
+    desc->solvmtx   = solvmtx;
+    desc->data_map  = (dague_data_t**)calloc( 2 * solvmtx->cblknbr, sizeof(dague_data_t*) );
 }
 
 void sparse_matrix_destroy( sparse_matrix_desc_t *desc )
 {
-    (void)desc;
+    if ( desc->data_map != NULL ) {
+        dague_data_t **data = desc->data_map;
+        int i;
+
+        for(i=0; i<2*desc->solvmtx->cblknbr; i++, data++)
+        {
+            dague_data_destroy( *data );
+        }
+
+        free( desc->data_map );
+        desc->data_map = NULL;
+    }
+    dague_ddesc_destroy( (dague_ddesc_t*)desc );
 }

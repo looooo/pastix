@@ -16,6 +16,7 @@
 #include "common.h"
 #include "bcsc.h"
 #include "isched.h"
+#include "solver.h"
 
 void
 coeftab_zinitcblk( const SolverMatrix  *solvmtx,

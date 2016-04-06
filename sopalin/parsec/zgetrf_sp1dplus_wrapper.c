@@ -9,9 +9,11 @@
 #include <dague.h>
 #include <dague/data_distribution.h>
 #include <dague/private_mempool.h>
+#include <dague/arena.h>
+#include <data_dist/matrix/matrix.h>
 #include "common.h"
+#include "solver.h"
 #include "sopalin_data.h"
-#include "parsec/sparse-matrix.h"
 #include "parsec/zgetrf_sp1dplus.h"
 
 dague_handle_t*
@@ -25,27 +27,25 @@ dsparse_zgetrf_sp_New( sparse_matrix_desc_t *A,
     dague_zgetrf_sp->p_work = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
     dague_private_memory_init( dague_zgetrf_sp->p_work, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
 
-    /* dague_matrix_add2arena_rect( dague_zgetrf_sp->arenas[DAGUE_zgetrf_sp1dplus_DEFAULT_ARENA], */
-    /*                              dague_datatype_double_complex_t, */
-    /*                              sopalin_data->solvmtx->gemmmax, 1, 1 ); */
+    dague_matrix_add2arena_rect( dague_zgetrf_sp->arenas[DAGUE_zgetrf_sp1dplus_DEFAULT_ARENA],
+                                 dague_datatype_double_complex_t,
+                                 /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
 
     return (dague_handle_t*)dague_zgetrf_sp;
 }
 
 void
-dsparse_zgetrf_sp_Destruct( dague_handle_t *o )
+dsparse_zgetrf_sp_Destruct( dague_handle_t *handle )
 {
-    (void)o;
     dague_zgetrf_sp1dplus_handle_t *dague_zgetrf_sp = NULL;
-    dague_zgetrf_sp = (dague_zgetrf_sp1dplus_handle_t *)o;
+    dague_zgetrf_sp = (dague_zgetrf_sp1dplus_handle_t *)handle;
 
-    /*dague_matrix_del2arena( dague_zgetrf_sp->arenas[DAGUE_zgetrf_sp1dplus_DEFAULT_ARENA] );*/
+    dague_matrix_del2arena( dague_zgetrf_sp->arenas[DAGUE_zgetrf_sp1dplus_DEFAULT_ARENA] );
 
     dague_private_memory_fini( dague_zgetrf_sp->p_work );
     free( dague_zgetrf_sp->p_work );
 
-    /* o->destructor(o); */
-    /* o = NULL; */
+    dague_handle_free( handle );
 }
 
 int dsparse_zgetrf_sp( dague_context_t *dague,

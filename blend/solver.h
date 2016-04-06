@@ -101,16 +101,18 @@ typedef struct SolverBlok_ {
 /*+ Solver column block structure. +*/
 
 typedef struct SolverCblk_  {
-    pastix_int_t  fcolnum;  /*< First column index                     */
-    pastix_int_t  lcolnum;  /*< Last column index (inclusive)          */
-    SolverBlok   *fblokptr; /*< First block in column (diagonal)       */
-    pastix_int_t  stride;   /*< Column block stride                    */
-    pastix_int_t  lcolidx;  /*< Local first column index to the location in the rhs vector    */
-    pastix_int_t  brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
-    pastix_int_t  gcblknum; /*< Global column block index              */
-    void         *lcoeftab; /*< Coefficients access vector             */
-    void         *dcoeftab; /*< Coefficients access vector             */
-    void         *ucoeftab; /*< Coefficients access vector             */
+    pastix_atomic_lock_t lock;     /*< Lock to protect computation on the cblk */
+    volatile int32_t     ctrbcnt;  /*< Number of contribution to receive       */
+    pastix_int_t         fcolnum;  /*< First column index                      */
+    pastix_int_t         lcolnum;  /*< Last column index (inclusive)           */
+    SolverBlok          *fblokptr; /*< First block in column (diagonal)        */
+    pastix_int_t         stride;   /*< Column block stride                     */
+    pastix_int_t         lcolidx;  /*< Local first column index to the location in the rhs vector       */
+    pastix_int_t         brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t         gcblknum; /*< Global column block index               */
+    void                *lcoeftab; /*< Coefficients access vector              */
+    void                *dcoeftab; /*< Coefficients access vector              */
+    void                *ucoeftab; /*< Coefficients access vector              */
 
     /* For managing HODLR structures */
 #if defined(PASTIX_WITH_HODLR)
@@ -135,7 +137,7 @@ typedef struct SolverCblk_  {
 /*+ Solver matrix structure. +*/
 
 /* All data are local to one cluster */
-typedef struct SolverMatrix_ {
+struct SolverMatrix_ {
     int restore; /*+ Flag to indicate if it is require to restore data with
                      solverBackupRestore: 0: No need, 1:After solve,
                      2:After Factorization +*/
@@ -150,6 +152,10 @@ typedef struct SolverMatrix_ {
     SolverCblk   * restrict cblktab; /*< Array of solver column blocks             */
     SolverBlok   * restrict bloktab; /*< Array of solver blocks                    */
     pastix_int_t * restrict browtab; /*< Array of blocks                           */
+
+#if defined(PASTIX_WITH_PARSEC)
+    sparse_matrix_desc_t   *parsec_desc;
+#endif
 
 #ifdef PASTIX_WITH_STARPU
     /* All this part concern halo of the local matrix
@@ -173,7 +179,7 @@ typedef struct SolverMatrix_ {
 
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
-    FanInTarget * restrict  ftgttab;              /*+ Fanintarget access vector                 +*/
+    FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
 
     pastix_int_t              diagmax;              /*+ Maximum size required during diagonal block factorization (hetrf/sytrf) +*/
     pastix_int_t              gemmmax;              /*+ Maximum size required during GEMM computation                           +*/
@@ -197,7 +203,7 @@ typedef struct SolverMatrix_ {
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
-} SolverMatrix;
+};
 
 /**
  * Indicates whether a column block is in halo.
@@ -546,5 +552,12 @@ void            solverBackupExit( SolverBackup_t *b );
 
 pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
 pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
+
+int solverComputeGPUDistrib( SolverMatrix *solvmtx,
+                             int           ngpus,
+                             double        memory_percentage,
+                             size_t        eltsize,
+                             int           criterium,
+                             int           factotype );
 
 #endif /* _SOLVER_H_*/
