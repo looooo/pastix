@@ -53,8 +53,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     clockStart(timer);
 
     pastix_int_t splitsize     = pastix_data->iparm[IPARM_COMPRESS_SIZE];
-    pastix_int_t compress_cblk = splitsize / 2;
-    pastix_int_t compress_blok = 10; //splitsize;
+    pastix_int_t compress_cblk = splitsize;
+    pastix_int_t compress_blok = 10;
 
     for (i=0; i<datacode->cblknbr; i++, cblk++){
         pastix_int_t dima, dimb;
@@ -104,12 +104,6 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                         }
                         blok->coefU_u_LR = uU;
                         blok->coefU_v_LR = vU;
-                        blok->Usurface = 0;
-                        blok->Uxmin    = 1000000;
-                        blok->Uxmax    = 0;
-                        blok->Uymin    = 100000;
-                        blok->Uymax    = 0;
-                        blok->Uupdates = 0;
                     }
                 }
 
@@ -133,12 +127,6 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                         }
                         blok->coefL_u_LR = uL;
                         blok->coefL_v_LR = vL;
-                        blok->Lsurface = 0;
-                        blok->Lxmin    = 1000000;
-                        blok->Lxmax    = 0;
-                        blok->Lymin    = 100000;
-                        blok->Lymax    = 0;
-                        blok->Lupdates = 0;
                     }
                 }
 

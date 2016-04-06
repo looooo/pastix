@@ -383,6 +383,7 @@ core_z_add_LR(pastix_complex64_t *u1,
                          u1u2, dim_u, tau1,
                          u1, dim_u1);
 
+    /* TODO: checker if 'R' 'T' can be realized */
     ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
                          dim_v, rank, minMN_2,
                          v1v2, dim_v, tau2,
@@ -436,17 +437,6 @@ void core_z_lr2dense(SolverBlok *blok,
             pastix_complex64_t *u = blok->coefL_u_LR;
             pastix_complex64_t *v = blok->coefL_v_LR;
 
-            if (blok->Lupdates != 0){
-                core_zupdate_lr(blok, A,
-                                stride, width, L_side,
-                                blok->Lxmin, blok->Lxmax, blok->Lymin, blok->Lymax);
-                blok->Lupdates = 0;
-                blok->Lxmin    = 1000000;
-                blok->Lxmax    = 0;
-                blok->Lymin    = 1000000;
-                blok->Lymax    = 0;
-            }
-
             core_z_uncompress_LR(A, stride,
                                  dimb, width,
                                  u, dimb,
@@ -459,17 +449,6 @@ void core_z_lr2dense(SolverBlok *blok,
             pastix_int_t dimb     = blok->lrownum - blok->frownum + 1;
             pastix_complex64_t *u = blok->coefU_u_LR;
             pastix_complex64_t *v = blok->coefU_v_LR;
-
-            if (blok->Uupdates != 0){
-                core_zupdate_lr(blok, A,
-                                stride, width, U_side,
-                                blok->Uxmin, blok->Uxmax, blok->Uymin, blok->Uymax);
-                blok->Uupdates = 0;
-                blok->Uxmin    = 1000000;
-                blok->Uxmax    = 0;
-                blok->Uymin    = 1000000;
-                blok->Uymax    = 0;
-            }
 
             core_z_uncompress_LR(A, stride,
                                  dimb, width,
@@ -509,7 +488,6 @@ void core_zproduct_lr2dense(SolverBlok *blok1,
                             pastix_int_t ldwork){
 
     /* TODO: enhance if A1 and/or A2 are really LR */
-
     assert(width1 == width2);
 
     pastix_int_t dimb = blok1->lrownum - blok1->frownum + 1;
@@ -614,7 +592,8 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
     if (rankU != -1 && rankL != -1){
 
         pastix_complex64_t *tmp;
-        tmp = malloc(dimj * dimj * sizeof(pastix_complex64_t *));
+        pastix_int_t stride_tmp = pastix_imax(dimj, dimb);
+        tmp = malloc(dimj * stride_tmp * sizeof(pastix_complex64_t *));
 
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                      rankL, rankU, dima,
@@ -626,13 +605,13 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
                      rankL, dimj, rankU,
                      CBLAS_SADDR(zone),  work, dimb,
                                          uU,   dimj,
-                     CBLAS_SADDR(zzero), tmp,  dimj );
+                     CBLAS_SADDR(zzero), tmp,  stride_tmp );
 
         ret = core_z_add_LR(uF, vF,
                             sizeF, width3, rankF, sizeF, width3,
                             uL, tmp, CblasNoTrans,
                             dimb, dimj, rankL,
-                            dimb, dimj,
+                            dimb, stride_tmp,
                             blok1->frownum - blok3->frownum,
                             blok2->frownum - offset);
 
@@ -642,7 +621,7 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          dimb, dimj, rankL,
                          CBLAS_SADDR(zone),  uL,   dimb,
-                                             tmp,  dimj,
+                                             tmp,  stride_tmp,
                          CBLAS_SADDR(zzero), work, dimb  );
         }
 
@@ -812,86 +791,5 @@ void core_z_lr2dense_special(SolverBlok *blok,
     default:
         errorPrint("Wrong operation");
         break;
-    }
-}
-
-void core_zupdate_lr(SolverBlok *blok3,
-                     pastix_complex64_t *A3,
-                     pastix_int_t stride3,
-                     pastix_int_t width3,
-                     pastix_int_t side3,
-                     pastix_int_t xmin,
-                     pastix_int_t xmax,
-                     pastix_int_t ymin,
-                     pastix_int_t ymax){
-
-    pastix_complex64_t *uF, *vF;
-    pastix_int_t rankF;
-
-    if (side3 == L_side){
-        rankF = blok3->rankL;
-        uF = blok3->coefL_u_LR;
-        vF = blok3->coefL_v_LR;
-    }
-    else{
-        rankF = blok3->rankU;
-        uF = blok3->coefU_u_LR;
-        vF = blok3->coefU_v_LR;
-    }
-
-    pastix_int_t ret   = -1;
-    pastix_int_t sizeF = blok3->lrownum - blok3->frownum + 1;
-
-    pastix_int_t dimb = xmax - xmin;
-    pastix_int_t dimj = ymax - ymin;
-
-    /* printf("BLOK %ld %ld CONTRIB MIN %ld %ld MAX %ld %ld(dims %ld %ld) with rank %ld\n", */
-    /*        sizeF, width3, */
-    /*        xmin, ymin, */
-    /*        xmax, ymax, */
-    /*        dimb, dimj, */
-    /*        rankF); */
-
-    if (dimb < dimj){
-        /* Add matrix of rank dimb */
-        ret = core_z_add_LR(uF, vF,
-                            sizeF, width3, rankF, sizeF, width3,
-                            NULL, A3 + stride3 * ymin + xmin, CblasNoTrans,
-                            dimb, dimj, dimb, dimb, stride3,
-                            xmin,
-                            ymin);
-
-    }
-    else{
-        /* Add matrix of rank dimj */
-        ret = core_z_add_LR(uF, vF,
-                            sizeF, width3, rankF, sizeF, width3,
-                            A3 + stride3 * ymin + xmin, NULL, CblasNoTrans,
-                            dimb, dimj, dimj, stride3, dimj,
-                            xmin,
-                            ymin);
-    }
-
-
-    /* Uncompress the block and perform dense update if rank became too large */
-    if (ret == -1){
-        blok3->Lupdates = 0;
-        blok3->Uupdates = 0;
-        core_z_lr2dense_special(blok3, A3, stride3,
-                                width3, side3);
-    }
-    /* Set the blok to zero for next updates */
-    else{
-        pastix_int_t i;
-        for (i=0; i<dimj; i++){
-            memset(A3 + stride3 * (i + ymin) + xmin, 0, dimb * sizeof(pastix_complex64_t));
-        }
-    }
-
-    if (side3 == L_side){
-        blok3->rankL = ret;
-    }
-    else{
-        blok3->rankU = ret;
     }
 }

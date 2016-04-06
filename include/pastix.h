@@ -612,7 +612,6 @@ double total_memory2;
 double gain_L;
 double gain_D;
 double gain_U;
-double tot_surface;
 
 double time_comp;
 double time_uncomp;

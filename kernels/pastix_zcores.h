@@ -89,16 +89,6 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
                          pastix_int_t offset,
                          pastix_complex64_t *work);
 
-void core_zupdate_lr(SolverBlok *blok3,
-                     pastix_complex64_t *A3,
-                     pastix_int_t stride3,
-                     pastix_int_t width3,
-                     pastix_int_t side3,
-                     pastix_int_t xmin,
-                     pastix_int_t xmax,
-                     pastix_int_t ymin,
-                     pastix_int_t ymax);
-
 void core_zgetro(int m, int n,
                  pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);

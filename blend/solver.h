@@ -61,13 +61,6 @@ typedef struct SolverBlok_ {
     pastix_int_t coefind;  /*< Index in coeftab           */
     pastix_int_t browind;  /*< Index in browtab           */
 
-    /* LR format: A = U_A V_A^T */
-#if defined(PASTIX_WITH_LR)
-    pastix_int_t  fullform; /*< Defines if the blok is full or LR */
-    pastix_int_t *coefU;    /*< U coefficients */
-    pastix_int_t *coefV;    /*< V coefficients */
-#endif /* defined(PASTIX_WITH_LR) */
-
     /* LR structures */
     void        *coefU_u_LR;
     void        *coefU_v_LR;
@@ -75,21 +68,6 @@ typedef struct SolverBlok_ {
     void        *coefL_v_LR;
     pastix_int_t rankU;
     pastix_int_t rankL;
-
-    pastix_int_t Lsurface;
-    pastix_int_t Lxmin;
-    pastix_int_t Lxmax;
-    pastix_int_t Lymin;
-    pastix_int_t Lymax;
-    pastix_int_t Lupdates;
-
-    pastix_int_t Usurface;
-    pastix_int_t Uxmin;
-    pastix_int_t Uxmax;
-    pastix_int_t Uymin;
-    pastix_int_t Uymax;
-    pastix_int_t Uupdates;
-
 } SolverBlok;
 
 /*+ Solver column block structure. +*/

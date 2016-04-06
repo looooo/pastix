@@ -41,17 +41,6 @@ int main (int argc, char **argv)
     }
     double tolerance = atof(tol);
 
-    char *surf = getenv("SURFACE");
-    if (surf == NULL){
-        printf("Set SURFACE\n");
-        exit(1);
-    }
-    pastix_int_t surface = atoi(surf);
-    if (surface < 0){
-        printf("Set correctly SURFACE (integer >= 0)\n");
-        exit(1);
-    }
-
     iparm[IPARM_ITERMAX]          = 100;
     iparm[IPARM_REORDERING_SPLIT] = 0;
 
@@ -71,7 +60,6 @@ int main (int argc, char **argv)
     printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
     printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
     printf("\tTOLERANCE %.3g\n", tolerance);
-    printf("\t SURFACE %ld\n", surface);
 
     current_cblk  = 0;
     total_memory  = 0.;
@@ -80,7 +68,6 @@ int main (int argc, char **argv)
     gain_L = 0 ;
     gain_D = 0 ;
     gain_U = 0 ;
-    tot_surface = 0.;
 
     time_comp    = 0.0;
     time_uncomp  = 0.0;
@@ -151,11 +138,10 @@ int main (int argc, char **argv)
 
     printf("Total memory of the solver %10f Mo (symmetric) %10f (unsymmetric)\n", total_memory, total_memory2);
     printf("Gain_L %10f Mo Gain_D %10f Mo, Gain_U %10f Mo\n", gain_L, gain_D, gain_U);
-    printf("Extra memory %.3g Mo\n", tot_surface);
 
     printf("Time compression   %10.3g s\n", time_comp  );
     printf("Time uncompression %10.3g s\n", time_uncomp);
-    printf("Time recompression %10.3g s\n", time_recomp);
+    printf("Time recompression %10.3g s (included in Time update)\n", time_recomp);
     printf("Time factorization %10.3g s\n", time_fact  );
     printf("Time trsm panel    %10.3g s\n", time_trsm  );
     printf("Time update        %10.3g s\n", time_update);

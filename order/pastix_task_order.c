@@ -631,7 +631,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         orderFindSupernodes( &subgraph, ordemesh );
     }
 
-    orderApplyLevelOrder( ordemesh );
+    /* orderApplyLevelOrder( ordemesh ); */
 
     /*
      * Add the isolated elements to the ordering structure
