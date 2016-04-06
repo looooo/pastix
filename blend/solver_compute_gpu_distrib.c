@@ -241,7 +241,11 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
         {
             ecblk->cblk->gpuid = -2;
             devices_cblk[0] += 1;
-            devices_gemm[0] += ecblk->updates;
+            if (factotype == PastixFactLU) {
+                devices_gemm[0] += 2 * ecblk->updates - 1;
+            } else {
+                devices_gemm[0] += ecblk->updates;
+            }
         }
         else
         {
@@ -263,7 +267,11 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
             }
 
             devices_cblk[gpuid+1] += 1;
-            devices_gemm[gpuid+1] += ecblk->updates;
+            if (factotype == PastixFactLU) {
+                devices_gemm[gpuid+1] += 2 * ecblk->updates - 1;
+            } else {
+                devices_gemm[gpuid+1] += ecblk->updates;
+            }
         }
 
         if (pushgpu)
