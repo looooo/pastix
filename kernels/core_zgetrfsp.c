@@ -1079,9 +1079,6 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
     /* TODO: apply contributions by facing cblk !!! */
 
     /* for all following blocks in block column */
-    SolverBlok *current, *iterblok2, *fblok2;
-    current = NULL;
-    pastix_int_t number = 0;
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
