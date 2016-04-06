@@ -89,25 +89,24 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
             pastix_int_t rankU = -1;
             uU = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
             vU = malloc( dima     * dima     * sizeof(pastix_complex64_t));
-            memset(uU, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
-            memset(vU, 0, dima     * dima     * sizeof(pastix_complex64_t));
+            /* memset(uU, 0, bloksize * bloksize * sizeof(pastix_complex64_t)); */
+            /* memset(vU, 0, dima     * dima     * sizeof(pastix_complex64_t)); */
 
             pastix_complex64_t *uL, *vL;
             pastix_int_t rankL = -1;
             uL = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
             vL = malloc( dima     * dima     * sizeof(pastix_complex64_t));
-            memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t));
-            memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t));
+            /* memset(uL, 0, bloksize * bloksize * sizeof(pastix_complex64_t)); */
+            /* memset(vL, 0, dima     * dima     * sizeof(pastix_complex64_t)); */
 
-            char *splt = getenv("SPLITSIZE");
-            pastix_int_t splitsize = atoi(splt);
+            pastix_int_t splitsize = pastix_data->iparm[IPARM_COMPRESS_SIZE];
 
-            pastix_int_t compress_size = splitsize / 2;
+            pastix_int_t compress_cblk = splitsize / 2;
             pastix_int_t compress_blok = 10; //splitsize;
 
             pastix_complex64_t *data;
             data = U + dima + totalsize;
-            if (dima > compress_size && bloksize > compress_blok)
+            if (dima > compress_cblk && bloksize > compress_blok)
                 rankU = core_z_compress_LR(data, cblk->stride,
                                            bloksize, dima,
                                            uU, bloksize,
@@ -133,13 +132,14 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 
             data = L + dima + totalsize;
 
-            if (dima > compress_size && bloksize > compress_blok)
+            if (dima > compress_cblk && bloksize > compress_blok)
                 rankL = core_z_compress_LR(data, cblk->stride,
                                            bloksize, dima,
                                            uL, bloksize,
                                            vL, dima);
 
             /* TODO: set blok to zero has it will be used has a local memory */
+            /* This is needed when using an extra surface to aggregate some contributions */
             if (rankL != -1){
                 pastix_int_t i;
                 for (i=0; i<dima; i++){

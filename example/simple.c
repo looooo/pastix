@@ -41,24 +41,6 @@ int main (int argc, char **argv)
     }
     double tolerance = atof(tol);
 
-    char *splt = getenv("SPLITSIZE");
-    if (splt == NULL){
-        printf("Set SPLITSIZE variable\n");
-        exit(1);
-    }
-    pastix_int_t splitsize = atoi(splt);
-
-    char *ordo = getenv("REORDERING");
-    if (ordo == NULL){
-        printf("Set REORDERING (0- unactive, 1- active)\n");
-        exit(1);
-    }
-    pastix_int_t reordering = atoi(ordo);
-    if (reordering != 0 && reordering != 1){
-        printf("Set correctly REORDERING (0- unactive, 1- active)\n");
-        exit(1);
-    }
-
     char *surf = getenv("SURFACE");
     if (surf == NULL){
         printf("Set SURFACE\n");
@@ -71,15 +53,10 @@ int main (int argc, char **argv)
     }
 
     printf("\tH-PaStiX parameters are\n");
-    printf("\tSPLITSIZE %ld\n", splitsize);
-    printf("\tTOLERANCE %.3g\n", tolerance);
-    printf("\tREORDERING %ld\n", reordering);
-    printf("\t SURFACE %ld\n", surface);
-
-    iparm[IPARM_MIN_BLOCKSIZE] = 80;
-    iparm[IPARM_MAX_BLOCKSIZE] = splitsize;
-
     printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
+    printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
+    printf("\tTOLERANCE %.3g\n", tolerance);
+    printf("\t SURFACE %ld\n", surface);
 
     iparm[IPARM_ITERMAX]          = 100;
     iparm[IPARM_REORDERING_SPLIT] = 0;
@@ -132,8 +109,7 @@ int main (int argc, char **argv)
     pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
-    if (reordering == 1)
-        pastix_task_reordering( pastix_data );
+    pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
 
     /**

@@ -125,7 +125,6 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
 {
     pastix_int_t i, cblknum;
 
-    /* TODO: change!!!! */
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++)
     {
         pastix_int_t candnbr;
@@ -145,8 +144,8 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
 
         nseq = computeNbSplit( ctrl, candnbr, width );
 
-        char *splt = getenv("SPLITSIZE");
-        pastix_int_t splitsize = atoi(splt);
+        /* Regular splitting is imposed right now */
+        pastix_int_t splitsize = ctrl->iparm[IPARM_MAX_BLOCKSIZE];
 
         if (nseq == 1 && width > (splitsize * 1.5))
             nseq = 2;

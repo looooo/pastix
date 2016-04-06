@@ -67,6 +67,7 @@
    IPARM_BASEVAL               - Baseval used for the matrix                              Default: 0                   IN
    IPARM_MIN_BLOCKSIZE         - Minimum block size                                       Default: 60                  IN
    IPARM_MAX_BLOCKSIZE         - Maximum block size                                       Default: 120                 IN
+   IPARM_COMPRESS_SIZE         - Minimum size to compress a supernode                     Default: 120                 IN
    IPARM_SCHUR                 - Schur mode                                               Default: API_NO              IN
    IPARM_ISOLATE_ZEROS         - Isolate null diagonal terms at the end of the matrix     Default: API_NO              IN
    IPARM_RHSD_CHECK            - Set to API_NO to avoid RHS redistribution                Default: API_YES             IN
@@ -170,6 +171,7 @@ enum IPARM_ACCESS {
   IPARM_BASEVAL,
   IPARM_MIN_BLOCKSIZE,
   IPARM_MAX_BLOCKSIZE,
+  IPARM_COMPRESS_SIZE,
   IPARM_SCHUR,
   IPARM_ISOLATE_ZEROS,
   IPARM_RHSD_CHECK,
