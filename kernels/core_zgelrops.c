@@ -13,10 +13,10 @@
  *
  **/
 #include "common.h"
-#include "pastix_zcores.h"
 #include <cblas.h>
 #include <lapacke.h>
-#include "solver.h"
+#include "blend/solver.h"
+#include "pastix_zcores.h"
 
 static pastix_complex64_t zzero = 0.;
 static pastix_complex64_t zone  = 1.;
@@ -51,21 +51,22 @@ static pastix_complex64_t mzone = -1.;
  *          The rank of the compressed structure.
  *
  *******************************************************************************/
-pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
-                                pastix_int_t stride,
-                                pastix_int_t dimb,
-                                pastix_int_t dima,
-                                pastix_complex64_t *u,
-                                pastix_int_t ldu,
-                                pastix_complex64_t *v,
-                                pastix_int_t ldv){
-
+pastix_int_t
+core_z_compress_LR(pastix_complex64_t *fL,
+                   pastix_int_t stride,
+                   pastix_int_t dimb,
+                   pastix_int_t dima,
+                   pastix_complex64_t *u,
+                   pastix_int_t ldu,
+                   pastix_complex64_t *v,
+                   pastix_int_t ldv)
+{
     pastix_complex64_t *block;
     pastix_int_t        ret;
     pastix_int_t        i;
     double             *s;
     double             *superb;
-
+    pastix_complex64_t  alpha;
     pastix_int_t dim_min = dima;
     if (dimb < dim_min)
         dim_min = dimb;
@@ -103,7 +104,8 @@ pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
     }
 
     for (i=0; i<rank; i++){
-        cblas_dscal(dimb, s[i], &(u[i*ldu]), 1);
+        alpha = s[i];
+        cblas_zscal(dimb, CBLAS_SADDR(alpha), u + i*ldu, 1);
     }
 
     free(block);
@@ -141,16 +143,17 @@ pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
  *          The rank of the compressed structure.
  *
  *******************************************************************************/
-void core_z_uncompress_LR(pastix_complex64_t *fL,
-                          pastix_int_t stride,
-                          pastix_int_t dimb,
-                          pastix_int_t dima,
-                          pastix_complex64_t *u,
-                          pastix_int_t ldu,
-                          pastix_complex64_t *v,
-                          pastix_int_t ldv,
-                          pastix_int_t rank){
-
+void
+core_z_uncompress_LR(pastix_complex64_t *fL,
+                     pastix_int_t stride,
+                     pastix_int_t dimb,
+                     pastix_int_t dima,
+                     pastix_complex64_t *u,
+                     pastix_int_t ldu,
+                     pastix_complex64_t *v,
+                     pastix_int_t ldv,
+                     pastix_int_t rank)
+{
     cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                 dimb, dima, rank,
                 CBLAS_SADDR(zone),  u,  ldu,
@@ -192,23 +195,26 @@ void core_z_uncompress_LR(pastix_complex64_t *fL,
  *          The new rank of u1 v1^T or -1 if ranks are too large for recompression
  *
  *******************************************************************************/
-pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
-                           pastix_complex64_t *v1,
-                           pastix_int_t dim_u1,
-                           pastix_int_t dim_v1,
-                           pastix_int_t rank_1,
-                           pastix_int_t ld_u1,
-                           pastix_int_t ld_v1,
-                           pastix_complex64_t *u2,
-                           pastix_complex64_t *v2,
-                           pastix_int_t trans,
-                           pastix_int_t dim_u2,
-                           pastix_int_t dim_v2,
-                           pastix_int_t rank_2,
-                           pastix_int_t ld_u2,
-                           pastix_int_t ld_v2,
-                           pastix_int_t x2,
-                           pastix_int_t y2){
+pastix_int_t
+core_z_add_LR(pastix_complex64_t *u1,
+              pastix_complex64_t *v1,
+              pastix_int_t dim_u1,
+              pastix_int_t dim_v1,
+              pastix_int_t rank_1,
+              pastix_int_t ld_u1,
+              pastix_int_t ld_v1,
+              pastix_complex64_t *u2,
+              pastix_complex64_t *v2,
+              pastix_int_t trans,
+              pastix_int_t dim_u2,
+              pastix_int_t dim_v2,
+              pastix_int_t rank_2,
+              pastix_int_t ld_u2,
+              pastix_int_t ld_v2,
+              pastix_int_t x2,
+              pastix_int_t y2)
+{
+    pastix_complex64_t alpha;
 
     /* Unused parameters right now */
     (void)ld_u1;
@@ -348,7 +354,8 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
 
     /* Scal u as before to take into account singular values */
     for (i=0; i<rank; i++){
-        cblas_dscal(rank, s[i], &(u[rank * i]), 1);
+        alpha = s[i];
+        cblas_zscal(rank, CBLAS_SADDR(alpha), u + rank * i, 1);
     }
     for (i=0; i<rank; i++){
         memcpy(u1 + dim_u * i, u + rank * i, rank * sizeof(pastix_complex64_t));
@@ -368,12 +375,12 @@ pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
         memset(v3 + dim_v * j + rank, 0, (dim_v - rank) * sizeof(pastix_complex64_t));
     }
 
-    ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
+    ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
                          dim_u, rank, minMN_1,
                          u1u2, dim_u, tau1,
                          u1, dim_u1);
 
-    ret = LAPACKE_dormqr(CblasColMajor, 'L', 'N',
+    ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
                          dim_v, rank, minMN_2,
                          v1v2, dim_v, tau2,
                          v3, dim_v1);
