@@ -7,7 +7,7 @@
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
  * @version 1.0.0
- * @author Grégoire Pichon
+ * @author Gregoire Pichon
  * @date 2016-23-03
  * @precisions normal z -> c d s
  *
@@ -69,7 +69,7 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Query the workspace needed for the gesvd
      */
-    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'A', 'A',
+    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
                                m, n, NULL, m,
                                NULL, NULL, ldu, NULL, ldv,
                                &ws, lwork
@@ -97,7 +97,7 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
     LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
                         A, lda, Acpy, m );
 
-    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'A', 'A',
+    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
                                m, n, Acpy, m,
                                s, u, ldu, v, ldv,
                                zwork, lwork
@@ -106,6 +106,7 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
 #endif
                                );
 
+    assert(ret == 0);
     if( ret != 0 ){
         errorPrint("SVD Failed\n");
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
@@ -113,7 +114,7 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
 
     for (i=0; i<minMN; i++){
         if (s[i] < tol) { /// s[0] < tolerance || s[i] < 0.5*tolerance){
-            rank = i;
+            rank = i+1;
             break;
         }
     }
@@ -347,7 +348,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
                 CblasRight, CblasLower,
                 CblasNoTrans, CblasNonUnit,
                 rank, rank, CBLAS_SADDR(alpha),
-                v1v2, N, R, rank);
+                v1v2, rank, R, rank);
 
     /**
      * Compute svd(R) = u \sigma v^t
@@ -359,6 +360,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
                           rank, rank, R, rank,
                           s, u, rank, v, rank, superb );
 
+    assert(ret == 0);
     if (ret != 0) {
         errorPrint("LAPACKE_zgesvd FAILED");
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
@@ -372,17 +374,19 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     new_rank = rank;
     tmp = u;
     for (i=0; i<rank; i++, tmp+=rank){
+        cblas_zscal(rank, CBLAS_SADDR(s[i]), tmp, 1);
         if (s[i] < tol){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
-            new_rank = i;
+            new_rank = i+1;
             break;
         }
-        cblas_zscal(rank, CBLAS_SADDR(s[i]), tmp, 1);
     }
     if (new_rank == 0) {
-        errorPrint("Rank null");
-        EXIT(MOD_SOPALIN, INTERNAL_ERR);
+        fprintf(stderr, "Rank null\n");
+        /* errorPrint("Rank null\n", */
+        /*            EXIT(MOD_SOPALIN, INTERNAL_ERR); */
     }
 
+    /* Copy u at the top of u2 */
     tmp = u2;
     for (i=0; i<new_rank; i++, tmp+=ldu2, u+=rank) {
         memcpy(tmp, u,              rank * sizeof(pastix_complex64_t));
@@ -397,7 +401,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     /**
      * And the final V^T = [v^t 0 ] Q2
      */
-    assert( ldv2 < new_rank );
+    assert( ldv2 >= new_rank );
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', new_rank, rank,
                          v, rank, v2, ldv2 );
     LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', new_rank, N-rank,
@@ -405,7 +409,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
 
     ret = LAPACKE_zunmlq(LAPACK_COL_MAJOR, 'R', 'N',
                          new_rank, N, minMN_2,
-                         v1v2, N, tau2,
+                         v1v2, rank, tau2,
                          v2, ldv2);
 
     free(u1u2);
@@ -506,6 +510,13 @@ core_z_add_LR(pastix_complex64_t *u1,
         return -1;
     }
 
+    /* Now that we restrain the space of U, let's make sure we don't have a rank
+     * larger than the space available
+     * To be changed in a future version in add_LR2 since this one will disappear */
+    if (rank > pastix_imin(ld_u1, ld_v1) ) {
+        return -1;
+    }
+
     pastix_complex64_t *u1u2, *v1v2;
     pastix_int_t ret;
     pastix_complex64_t *tau1;
@@ -603,6 +614,7 @@ core_z_add_LR(pastix_complex64_t *u1,
                           rank, rank, R, rank,
                           s, u, rank, v, rank, superb );
 
+    assert(ret == 0);
     if (ret != 0){
         errorPrint("LAPACKE_zgesvd FAILED");
     }
@@ -613,7 +625,7 @@ core_z_add_LR(pastix_complex64_t *u1,
 
     for (i=0; i<rank-1; i++){
         if (s[i] < tolerance){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
-            new_rank = i;
+            new_rank = i + 1;
             break;
         }
     }
@@ -768,6 +780,31 @@ void core_zproduct_lr2dense(SolverBlok *blok1,
                  CBLAS_SADDR(zzero), work, ldwork  );
 }
 
+pastix_int_t
+core_zlradd(double tol, pastix_complex64_t alpha,
+            pastix_int_t M1, pastix_int_t N1, pastix_int_t r1,
+            const pastix_complex64_t *u1, pastix_int_t ldu1,
+            const pastix_complex64_t *v1, pastix_int_t ldv1,
+            pastix_int_t M2, pastix_int_t N2, pastix_int_t r2,
+            pastix_complex64_t *u2, pastix_int_t ldu2,
+            pastix_complex64_t *v2, pastix_int_t ldv2,
+            pastix_int_t offx, pastix_int_t offy)
+{
+#define OLD_EXTENDADD
+#if defined(OLD_EXTENDADD)
+    return core_z_add_LR( u2, v2,
+                          M2, N2, r2, ldu2, ldv2,
+                          u1, v1, CblasNoTrans,
+                          M1, N1, r1, ldu1, ldv1,
+                          offx, offy);
+#else
+    return core_z_add_LR2( tol, alpha,
+                           M1, N1, r1, u1, ldu1, v1, ldv1,
+                           M2, N2, r2, u2, ldu2, v2, ldv2,
+                           offx, offy);
+#endif
+}
+
 
 /**
  *******************************************************************************
@@ -804,7 +841,12 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
     pastix_int_t dima = width1;
 
     pastix_complex64_t *uL, *vL, *uU, *vU, *uF, *vF;
+    pastix_complex64_t *Au, *Av, *Bu, *Bv, *Cu, *Cv;
     pastix_int_t rankL, rankU, rankF;
+    pastix_int_t rkA, rkB, rkC;
+
+    char *tolerance = getenv("TOLERANCE");
+    double tol = atof(tolerance);
 
     rankL = -1;
     rankU = -1;
@@ -846,6 +888,16 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         errorPrint("Operation not supported yet");
     }
 
+    Au = uL;
+    Av = vL;
+    Bu = uU;
+    Bv = vU;
+    Cu = uF;
+    Cv = vF;
+    rkA = rankL;
+    rkB = rankU;
+    rkC = rankF;
+
     pastix_int_t ret   = -1;
     pastix_int_t sizeF = blok3->lrownum - blok3->frownum + 1;
 
@@ -856,6 +908,11 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         pastix_int_t stride_tmp = pastix_imax(dimj, dimb);
         tmp = malloc(dimj * stride_tmp * sizeof(pastix_complex64_t *));
 
+        /**
+         * Let's compute A * B = Au Av^h (Bu Bv^h)' in two steps
+         *    1) w = Av^h Bv^h' that is normally the smaller of the three products
+         *    2) If M < N, Au * w, or w * Bu' otherwise
+         */
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                      rankL, rankU, dima,
                      CBLAS_SADDR(zone),  vL,   dima,
@@ -868,13 +925,16 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
                                          uU,   dimj,
                      CBLAS_SADDR(zzero), tmp,  stride_tmp );
 
-        ret = core_z_add_LR(uF, vF,
-                            sizeF, width3, rankF, sizeF, width3,
-                            uL, tmp, CblasNoTrans,
-                            dimb, dimj, rankL,
-                            dimb, stride_tmp,
-                            blok1->frownum - blok3->frownum,
-                            blok2->frownum - offset);
+        ret = core_zlradd( tol, -1,
+                           /* A*B */
+                           dimb, dimj, rankL,
+                           uL, dimb, tmp, stride_tmp,
+                           /* C */
+                           sizeF, width3, rankF,
+                           uF, sizeF, vF, width3,
+                           /* offset */
+                           blok1->frownum - blok3->frownum,
+                           blok2->frownum - offset);
 
         /* TODO: enhance, but requires memory... */
         /* Form A1 A2 for dense contribution */
@@ -920,22 +980,29 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
 
             if (dimb < dimj){
                 /* Add matrix of rank dimb */
-                ret = core_z_add_LR(uF, vF,
-                                    sizeF, width3, rankF, sizeF, width3,
-                                    NULL, work, CblasNoTrans,
-                                    dimb, dimj, dimb, dimb, dimb,
-                                    blok1->frownum - blok3->frownum,
-                                    blok2->frownum - offset);
-
+                ret = core_zlradd( tol, -1,
+                                   /* A*B */
+                                   dimb, dimj, dimb,
+                                   NULL, dimb, work, dimb,
+                                   /* C */
+                                   sizeF, width3, rankF,
+                                   uF, sizeF, vF, width3,
+                                   /* offset */
+                                   blok1->frownum - blok3->frownum,
+                                   blok2->frownum - offset);
             }
             else{
                 /* Add matrix of rank dimj */
-                ret = core_z_add_LR(uF, vF,
-                                    sizeF, width3, rankF, sizeF, width3,
-                                    work, NULL, CblasNoTrans,
-                                    dimb, dimj, dimj, dimb, dimj,
-                                    blok1->frownum - blok3->frownum,
-                                    blok2->frownum - offset);
+                ret = core_zlradd( tol, -1,
+                                   /* A*B */
+                                   dimb, dimj, dimj,
+                                   work, dimj, NULL, dimj,
+                                   /* C */
+                                   sizeF, width3, rankF,
+                                   uF, sizeF, vF, width3,
+                                   /* offset */
+                                   blok1->frownum - blok3->frownum,
+                                   blok2->frownum - offset);
             }
         }
     }
@@ -948,12 +1015,16 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
                      A2, stride2,
                      CBLAS_SADDR(zzero), work, dimb  );
 
-        ret = core_z_add_LR(uF, vF,
-                            sizeF, width3, rankF, sizeF, width3,
-                            uL, work, CblasNoTrans,
-                            dimb, dimj, rankL, dimb, dimb,
-                            blok1->frownum - blok3->frownum,
-                            blok2->frownum - offset);
+        ret = core_zlradd( tol, -1,
+                           /* A*B */
+                           dimb, dimj, rankL,
+                           uL, dimb, work, dimb,
+                           /* C */
+                           sizeF, width3, rankF,
+                           uF, sizeF, vF, width3,
+                           /* offset */
+                           blok1->frownum - blok3->frownum,
+                           blok2->frownum - offset);
 
         /* TODO: enhance, but requires memory... */
         /* Form A1 A2 for dense contribution */
@@ -971,10 +1042,11 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
 
     /* Perform LR * dense */
     else if (rankU != -1 && rankL == -1){
+        /* TODO: Change to Al * (Av^t * B) or you compute dense * LR ????? */
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
                      dimb, rankU, dima,
                      CBLAS_SADDR(zone),  A1, stride1,
-                     vU, dima,
+                                         vU, dima,
                      CBLAS_SADDR(zzero), work, dimb  );
 
         ret = core_z_add_LR(uF, vF,
