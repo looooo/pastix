@@ -78,6 +78,7 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
 #endif
                                );
 
+    lwork = ws;
     zsize = ws;
     zsize += m * n; /* Copy of the matrix A */
 
@@ -112,7 +113,7 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
 
     for (i=0; i<minMN; i++){
         if (s[i] < tol) { /// s[0] < tolerance || s[i] < 0.5*tolerance){
-            rank = i+1;
+            rank = i;
             break;
         }
     }
@@ -202,6 +203,260 @@ core_z_uncompress_LR( pastix_int_t m, pastix_int_t n, pastix_int_t rank,
  *          The new rank of u1 v1^T or -1 if ranks are too large for recompression
  *
  *******************************************************************************/
+pastix_int_t
+core_z_add_LR2(double tol, pastix_complex64_t alpha,
+               pastix_int_t M1, pastix_int_t N1, pastix_int_t r1,
+               const pastix_complex64_t *u1, pastix_int_t ldu1,
+               const pastix_complex64_t *v1, pastix_int_t ldv1,
+               pastix_int_t M2, pastix_int_t N2, pastix_int_t r2,
+               pastix_complex64_t *u2, pastix_int_t ldu2,
+               pastix_complex64_t *v2, pastix_int_t ldv2,
+               pastix_int_t offx, pastix_int_t offy)
+{
+    pastix_int_t rank  = r1 + r2;
+    pastix_int_t M = M2;
+    pastix_int_t N = N2;
+    pastix_int_t minMN_1 = pastix_imin(M, rank);
+    pastix_int_t minMN_2 = pastix_imin(N, rank);
+    pastix_int_t i;
+    pastix_complex64_t *u1u2, *v1v2, *R, *u, *v;
+    pastix_complex64_t *tau1, *tau2;
+    pastix_int_t ret;
+
+    /* SVD entry parameters */
+    double *s, *superb;
+    pastix_complex64_t *tmp;
+
+    pastix_int_t new_rank;
+    Clock timer;
+    clockStart(timer);
+
+    /* Unused parameters right now */
+    if (M1+offx > M2 || N1+offy > N2){
+        errorPrint("Dimensions are not correct");
+    }
+
+    /* Rank is too high for u1u2 */
+    if (minMN_1 == M){
+        return -1;
+    }
+
+    /* Rank is too high for v1v2 */
+    if (minMN_2 == N){
+        return -1;
+    }
+
+    /**
+     * Concatenate U2 and U1 in u1u2
+     *  [ u2  0  ]
+     *  [ u2  u1 ]
+     *  [ u2  0  ]
+     */
+    u1u2 = malloc( M * rank * sizeof(pastix_complex64_t));
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M2, r2,
+                         u2, ldu2, u1u2, M );
+
+    tmp = u1u2 + r2 * M;
+    if (u1 == NULL) {
+        if (M1 != M2) {
+            /* Set to 0 */
+            memset(tmp, 0, M * r1 * sizeof(pastix_complex64_t));
+
+            /* Set diagonal */
+            tmp += offx;
+            for (i=0; i<r1; i++, tmp += M+1) {
+                *tmp = 1.;
+            }
+        }
+        else {
+            assert( offx == 0 );
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 0., 1.,
+                                 M1, r1, tmp + offx, M );
+        }
+    }
+    else{
+        if (M1 != M) {
+            memset(tmp, 0, M * r1 * sizeof(pastix_complex64_t));
+        }
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, r1,
+                             u1, ldu1, tmp + offx, M );
+    }
+
+    /**
+     * Perform QR factorization on u1u2 = (Q1 R1)
+     */
+    tau1 = malloc( minMN_1 * sizeof(pastix_complex64_t));
+    ret = LAPACKE_zgeqrf( LAPACK_COL_MAJOR, M, rank,
+                          u1u2, M, tau1 );
+
+    /**
+     * Concatenate V2 and V1 in v1v2
+     *  [ v2^h v2^h v2^h ]
+     *  [ 0    v1^h 0    ]
+     */
+    v1v2 = malloc( N * rank * sizeof(pastix_complex64_t));
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', r2, N2,
+                         v2, ldv2, v1v2, rank );
+
+    tmp = v1v2 + r2;
+    if (v1 == NULL) {
+        if (N1 != N2) {
+            /* Set to 0 */
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 0., 0.,
+                                 r1, N1, tmp, rank );
+
+            /* Set diagonal */
+            tmp += offy * rank;
+            for (i=0; i<r1; i++, tmp += rank+1) {
+                *tmp = 1.;
+            }
+        }
+        else {
+            assert( offy == 0 );
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 0., 1.,
+                                 r1, N1, tmp + offy * rank, rank );
+        }
+    }
+    else{
+        LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 0., 0.,
+                             r1, N1, tmp, rank );
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', r1, N1,
+                             v1, ldv1, tmp + offy * rank, rank );
+    }
+
+    /**
+     * Perform LQ factorization on v1v2 = (L2 Q2)
+     */
+    tau2 = malloc( minMN_2 * sizeof(pastix_complex64_t));
+    ret = LAPACKE_zgelqf( LAPACK_COL_MAJOR, rank, N,
+                          v1v2, rank, tau2 );
+
+    /**
+     * Compute R = alpha R1 L2
+     */
+    R = malloc( 3 * rank * rank * sizeof(pastix_complex64_t));
+    u = R + rank * rank;
+    v = u + rank * rank;
+
+    memset(R, 0, rank * rank * sizeof(pastix_complex64_t));
+
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'U', rank, rank,
+                         u1u2, M, R, rank );
+
+    cblas_ztrmm(CblasColMajor,
+                CblasRight, CblasLower,
+                CblasNoTrans, CblasNonUnit,
+                rank, rank, CBLAS_SADDR(alpha),
+                v1v2, N, R, rank);
+
+    /**
+     * Compute svd(R) = u \sigma v^t
+     */
+    s = malloc( rank * sizeof(double));
+    superb = malloc( rank * sizeof(double));
+
+    ret = LAPACKE_zgesvd( CblasColMajor, 'S', 'S',
+                          rank, rank, R, rank,
+                          s, u, rank, v, rank, superb );
+
+    if (ret != 0) {
+        errorPrint("LAPACKE_zgesvd FAILED");
+        EXIT(MOD_SOPALIN, INTERNAL_ERR);
+    }
+
+    /**
+     * Let's now compute the final U = Q1 ([u] \sigma)
+     *                                     [0]
+     */
+    /* First, let's scale the small u and compute the new rank */
+    new_rank = rank;
+    tmp = u;
+    for (i=0; i<rank; i++, tmp+=rank){
+        if (s[i] < tol){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
+            new_rank = i;
+            break;
+        }
+        cblas_zscal(rank, CBLAS_SADDR(s[i]), tmp, 1);
+    }
+    if (new_rank == 0) {
+        errorPrint("Rank null");
+        EXIT(MOD_SOPALIN, INTERNAL_ERR);
+    }
+
+    tmp = u2;
+    for (i=0; i<new_rank; i++, tmp+=ldu2, u+=rank) {
+        memcpy(tmp, u,              rank * sizeof(pastix_complex64_t));
+        memset(tmp + rank, 0, (M - rank) * sizeof(pastix_complex64_t));
+    }
+
+    ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
+                         M, new_rank, minMN_1,
+                         u1u2, M, tau1,
+                         u2,   ldu2);
+
+    /**
+     * And the final V^T = [v^t 0 ] Q2
+     */
+    assert( ldv2 < new_rank );
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', new_rank, rank,
+                         v, rank, v2, ldv2 );
+    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', new_rank, N-rank,
+                         0., 0., v2 + ldv2 * rank, ldv2 );
+
+    ret = LAPACKE_zunmlq(LAPACK_COL_MAJOR, 'R', 'N',
+                         new_rank, N, minMN_2,
+                         v1v2, N, tau2,
+                         v2, ldv2);
+
+    free(u1u2);
+    free(v1v2);
+    free(s);
+    free(superb);
+    free(tau1);
+    free(tau2);
+    free(R);
+
+    clockStop(timer);
+    time_recomp += clockVal(timer);
+    return new_rank;
+}
+
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_z_add_LR - Adds two LR structure u1 v1^T and (-u2) v2^T into u1 v1^T
+ *
+ *    u1v1^T + u2v2^T = (u1 u2) (v1 v2)^T
+ *    Compute QR decomposition of (u1 u2) = Q1 R1
+ *    Compute QR decomposition of (v1 v2) = Q2 R2
+ *    Compute SVD of R1 R2^T = u \sigma v^T
+ *    Final solution is (Q1 u \sigma^[1/2]) (Q2 v \sigma^[1/2])^T
+ *
+ *******************************************************************************
+ *
+ * @param[in, out] u1 v1
+ *          LR structure where v1 is stored transposed
+ *          u1 factor of size dim_u1 * rank_1 with ld_u1 as leading dimension
+ *          v1 factor of size dim_v1 * rank_1 with ld_v1 as leading dimension
+ *
+ * @param[in] u2 v2
+ *          Pointer to the u factor of LR representation of size dimb * rank
+ *          Leading dimension is ldu
+ *
+ * @param[in] x2, y2
+ *          Position where u2 v2 is added into u1 v1 (which is larger)
+ *
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The new rank of u1 v1^T or -1 if ranks are too large for recompression
+ *
+ *******************************************************************************
+ */
 pastix_int_t
 core_z_add_LR(pastix_complex64_t *u1,
               pastix_complex64_t *v1,
@@ -358,7 +613,7 @@ core_z_add_LR(pastix_complex64_t *u1,
 
     for (i=0; i<rank-1; i++){
         if (s[i] < tolerance){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
-            new_rank = i+1;
+            new_rank = i;
             break;
         }
     }
