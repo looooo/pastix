@@ -14,24 +14,17 @@
 #define L_side 0
 #define U_side 1
 
-pastix_int_t core_z_compress_LR(pastix_complex64_t *fL,
-                                pastix_int_t stride,
-                                pastix_int_t dimb,
-                                pastix_int_t dima,
-                                pastix_complex64_t *u,
-                                pastix_int_t ldu,
-                                pastix_complex64_t *v,
-                                pastix_int_t ldv);
+pastix_int_t
+core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
+                   const pastix_complex64_t *A, pastix_int_t lda,
+                   pastix_complex64_t *u, pastix_int_t ldu,
+                   pastix_complex64_t *v, pastix_int_t ldv);
 
-void core_z_uncompress_LR(pastix_complex64_t *fL,
-                          pastix_int_t stride,
-                          pastix_int_t dimb,
-                          pastix_int_t dima,
-                          pastix_complex64_t *u,
-                          pastix_int_t ldu,
-                          pastix_complex64_t *v,
-                          pastix_int_t ldv,
-                          pastix_int_t rank);
+void
+core_z_uncompress_LR( pastix_int_t m, pastix_int_t n, pastix_int_t rank,
+                      const pastix_complex64_t *u, pastix_int_t ldu,
+                      const pastix_complex64_t *v, pastix_int_t ldv,
+                      pastix_complex64_t *A, pastix_int_t lda );
 
 pastix_int_t core_z_add_LR(pastix_complex64_t *u1,
                            pastix_complex64_t *v1,

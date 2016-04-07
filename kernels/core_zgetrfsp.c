@@ -395,11 +395,10 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
                 pastix_complex64_t *u = blok->coefU_u_LR;
                 pastix_complex64_t *v = blok->coefU_v_LR;
 
-                core_z_uncompress_LR(fU, stride,
-                                     dimb, dima,
+                core_z_uncompress_LR(dimb, dima, blok->rankU,
                                      u, dimb,
                                      v, dima,
-                                     blok->rankU);
+                                     fU, stride );
                 double mem_SVD = blok->rankU * (dima + dimb) * 8. / 1000000.;
                 if (mem_SVD < mem_dense)
                     gain_U += mem_dense - mem_SVD;
@@ -417,11 +416,11 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
                 pastix_complex64_t *u = blok->coefL_u_LR;
                 pastix_complex64_t *v = blok->coefL_v_LR;
 
-                core_z_uncompress_LR(fL, stride,
-                                     dimb, dima,
+                core_z_uncompress_LR(dimb, dima, blok->rankL,
                                      u, dimb,
                                      v, dima,
-                                     blok->rankL);
+                                     fL, stride );
+
                 double mem_SVD = blok->rankL * (dima + dimb) * 8. / 1000000.;
                 if (mem_SVD < mem_dense)
                     gain_L += mem_dense - mem_SVD;

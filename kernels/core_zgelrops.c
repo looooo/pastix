@@ -52,64 +52,77 @@ static pastix_complex64_t mzone = -1.;
  *
  *******************************************************************************/
 pastix_int_t
-core_z_compress_LR(pastix_complex64_t *fL,
-                   pastix_int_t stride,
-                   pastix_int_t dimb,
-                   pastix_int_t dima,
-                   pastix_complex64_t *u,
-                   pastix_int_t ldu,
-                   pastix_complex64_t *v,
-                   pastix_int_t ldv)
+core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
+                   const pastix_complex64_t *A, pastix_int_t lda,
+                   pastix_complex64_t *u, pastix_int_t ldu,
+                   pastix_complex64_t *v, pastix_int_t ldv)
 {
-    pastix_complex64_t *block;
+    pastix_complex64_t *zwork, *Acpy, ws;
+    double             *rwork, *s;
     pastix_int_t        ret;
     pastix_int_t        i;
-    double             *s;
-    double             *superb;
-    pastix_complex64_t  alpha;
-    pastix_int_t dim_min = dima;
-    if (dimb < dim_min)
-        dim_min = dimb;
+    pastix_int_t        minMN = pastix_imin( m, n );
+    pastix_int_t        rank = minMN;
+    pastix_int_t        lwork = -1;
+    pastix_int_t        zsize, rsize;
+
+    /**
+     * Query the workspace needed for the gesvd
+     */
+    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'A', 'A',
+                               m, n, NULL, m,
+                               NULL, NULL, ldu, NULL, ldv,
+                               &ws, lwork
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                               , NULL
+#endif
+                               );
+
+    zsize = ws;
+    zsize += m * n; /* Copy of the matrix A */
+
+    rsize = minMN;
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    rsize += 5 * minMN;
+#endif
+
+    zwork = malloc( zsize * sizeof(pastix_complex64_t) + rsize * sizeof(double) );
+    rwork = (double*)(zwork + zsize);
 
     /* TODO: remove this copy, we can erase the matrix in most cases */
-    /* Note that we have to copy fL because LAPACKE_zgesvd erases the matrix */
-    block  = malloc( dima * dimb * sizeof(pastix_complex64_t) );
-    s      = malloc( dim_min * sizeof(double) );
-    superb = malloc( dimb * sizeof(double) );
+    Acpy = zwork + lwork;
+    s    = rwork;
 
-    for (i=0; i<dima; i++){
-        memcpy( block + i * dimb, fL + i * stride, dimb * sizeof(pastix_complex64_t) );
-    }
+    LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
+                        A, lda, Acpy, m );
 
-    ret = LAPACKE_zgesvd( CblasColMajor, 'A', 'A',
-                          dimb, dima,
-                          block, dimb,
-                          s, u, ldu, v, ldv,
-                          superb );
+    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'A', 'A',
+                               m, n, Acpy, m,
+                               s, u, ldu, v, ldv,
+                               zwork, lwork
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                               , rwork + minMN
+#endif
+                               );
 
     if( ret != 0 ){
-        errorPrint("SVD FAILED");
+        errorPrint("SVD Failed\n");
+        EXIT(MOD_SOPALIN, INTERNAL_ERR);
     }
 
-    char *tol        = getenv("TOLERANCE");
-    double tolerance = atof(tol);
-
-    pastix_int_t rank = dim_min;
-    for (i=0; i<dim_min-1; i++){
-        if (s[i] < tolerance) { /// s[0] < tolerance || s[i] < 0.5*tolerance){
+    for (i=0; i<minMN; i++){
+        if (s[i] < tol) { /// s[0] < tolerance || s[i] < 0.5*tolerance){
             rank = i+1;
             break;
         }
     }
 
-    for (i=0; i<rank; i++){
-        alpha = s[i];
-        cblas_zscal(dimb, CBLAS_SADDR(alpha), u + i*ldu, 1);
+    /* Scale u with the singular values */
+    for (i=0; i<rank; i++, u += ldu){
+        cblas_zscal(m, CBLAS_SADDR(s[i]), u, 1);
     }
 
-    free(block);
-    free(s);
-    free(superb);
+    free(zwork);
     return rank;
 }
 
@@ -143,21 +156,16 @@ core_z_compress_LR(pastix_complex64_t *fL,
  *
  *******************************************************************************/
 void
-core_z_uncompress_LR(pastix_complex64_t *fL,
-                     pastix_int_t stride,
-                     pastix_int_t dimb,
-                     pastix_int_t dima,
-                     pastix_complex64_t *u,
-                     pastix_int_t ldu,
-                     pastix_complex64_t *v,
-                     pastix_int_t ldv,
-                     pastix_int_t rank)
+core_z_uncompress_LR( pastix_int_t m, pastix_int_t n, pastix_int_t rank,
+                      const pastix_complex64_t *u, pastix_int_t ldu,
+                      const pastix_complex64_t *v, pastix_int_t ldv,
+                            pastix_complex64_t *A, pastix_int_t lda )
 {
     cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                dimb, dima, rank,
-                CBLAS_SADDR(zone),  u,  ldu,
-                                    v,  ldv,
-                CBLAS_SADDR(zzero), fL, stride);
+                m, n, rank,
+                CBLAS_SADDR(zone),  u, ldu,
+                                    v, ldv,
+                CBLAS_SADDR(zzero), A, lda);
 }
 
 /**
@@ -282,7 +290,7 @@ core_z_add_LR(pastix_complex64_t *u1,
 
     for (i=0; i<dim_v1; i++){
         for (j=0; j<rank_1; j++){
-            v1v2[dim_v * j + i]                 = v1[i * dim_v1 + j];
+            v1v2[dim_v * j + i] = v1[i * dim_v1 + j];
         }
     }
 
@@ -437,11 +445,10 @@ void core_z_lr2dense(SolverBlok *blok,
             pastix_complex64_t *u = blok->coefL_u_LR;
             pastix_complex64_t *v = blok->coefL_v_LR;
 
-            core_z_uncompress_LR(A, stride,
-                                 dimb, width,
+            core_z_uncompress_LR(dimb, width, blok->rankL,
                                  u, dimb,
                                  v, width,
-                                 blok->rankL);
+                                 A, stride);
         }
         break;
     case U_side:
@@ -450,11 +457,10 @@ void core_z_lr2dense(SolverBlok *blok,
             pastix_complex64_t *u = blok->coefU_u_LR;
             pastix_complex64_t *v = blok->coefU_v_LR;
 
-            core_z_uncompress_LR(A, stride,
-                                 dimb, width,
+            core_z_uncompress_LR(dimb, width, blok->rankU,
                                  u, dimb,
                                  v, width,
-                                 blok->rankU);
+                                 A, stride);
         }
         break;
     default:

@@ -55,6 +55,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     pastix_int_t splitsize     = pastix_data->iparm[IPARM_COMPRESS_SIZE];
     pastix_int_t compress_cblk = splitsize;
     pastix_int_t compress_blok = 10;
+    char  *tolerance = getenv("TOLERANCE");
+    double tol = atof(tolerance);
 
     for (i=0; i<datacode->cblknbr; i++, cblk++){
         pastix_int_t dima, dimb;
@@ -90,8 +92,9 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                     data = U + dima + dimb - total;
                     uU = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
                     vU = malloc( dima     * dima     * sizeof(pastix_complex64_t));
-                    rankU = core_z_compress_LR(data, cblk->stride,
-                                               bloksize, dima,
+
+                    rankU = core_z_compress_LR(tol, bloksize, dima,
+                                               data, cblk->stride,
                                                uU, bloksize,
                                                vU, dima);
 
@@ -114,8 +117,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                     data = L + dima + dimb - total;
                     uL = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
                     vL = malloc( dima     * dima     * sizeof(pastix_complex64_t));
-                    rankL = core_z_compress_LR(data, cblk->stride,
-                                               bloksize, dima,
+                    rankL = core_z_compress_LR(tol, bloksize, dima,
+                                               data, cblk->stride,
                                                uL, bloksize,
                                                vL, dima);
                     /* Set blok to zero has it will be used has a local memory */
