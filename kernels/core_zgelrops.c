@@ -1038,7 +1038,7 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
                 ret = core_zlradd( tol, -1,
                                    /* A*B */
                                    dimb, dimj, dimj,
-                                   work, dimj, NULL, dimj,
+                                   work, dimb, NULL, dimj,
                                    /* C */
                                    sizeF, width3, rankF,
                                    uF, sizeF, vF, width3,
