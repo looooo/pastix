@@ -354,20 +354,23 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
             /* Set diagonal */
             tmp += offy * rank;
             for (i=0; i<r1; i++, tmp += rank+1) {
-                *tmp = 1.;
+                *tmp = alpha;
             }
         }
         else {
             assert( offy == 0 );
             LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', r1, N,
-                                 0., 1., tmp + offy * rank, rank );
+                                 0., alpha, tmp + offy * rank, rank );
         }
     }
     else{
-        LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', r1, N,
-                             0., 0., tmp, rank );
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', r1, N1,
-                             v1, ldv1, tmp + offy * rank, rank );
+        if (N1 != N) {
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', r1, N,
+                                 0., 0., tmp, rank );
+        }
+        core_zgeadd( PastixNoTrans, r1, N1,
+                     alpha, v1,                ldv1,
+                        1., tmp + offy * rank, rank );
     }
 
     /**
@@ -392,7 +395,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     cblas_ztrmm(CblasColMajor,
                 CblasRight, CblasLower,
                 CblasNoTrans, CblasNonUnit,
-                rank, rank, CBLAS_SADDR(alpha),
+                rank, rank, CBLAS_SADDR(zone),
                 v1v2, rank, R, rank);
 
     /**
@@ -568,35 +571,47 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
                           u2u1, M, tauU );
 
 
+    /**
+     * Concatenate V2 and V1 in v1v2
+     *  [ v2  0  ]
+     *  [ v2  v1 ]
+     *  [ v2  0  ]
+     */
     v2v1 = malloc( N * rank * sizeof(pastix_complex64_t));
-    if (N2 != N1)
-        memset(v2v1, 0, N * rank * sizeof(pastix_complex64_t));
-    for (i=0; i<N2; i++){
-        for (j=0; j<r2; j++){
-            v2v1[N * j + i] = v2[i * N2 + j];
-        }
-    }
+    core_zgetro( r2, N, v2, ldv2, v2v1, N );
 
-    /* For identity matrix */
-    if (v1 == NULL){
-        for (j=0; j<r1; j++){
-            v2v1[N * (r2 + j) + j + offy] = -1;
-        }
-    }
-    /* WARNING: minus because of the extend add */
-    else{
-        for (i=0; i<N1; i++){
-            for (j=0; j<r1; j++){
-                //if (trans == CblasNoTrans)
-                    v2v1[N * (r2 + j) + i + offy] = -v1[i * ldv1 + j];
-                /* else */
-                /*     v2v1[N * (r2 + j) + i + offy] = -v1[j * ldv1 + i]; */
+    tmp = v2v1 + r2 * N;
+    if (v1 == NULL) {
+        if (N1 != N2) {
+            /* Set to 0 */
+            memset(tmp, 0, N * r1 * sizeof(pastix_complex64_t));
+
+            /* Set diagonal */
+            tmp += offy;
+            for (i=0; i<r1; i++, tmp += N+1) {
+                *tmp = alpha;
             }
         }
+        else {
+            assert( offy == 0 );
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N, r1,
+                                 0., alpha, tmp + offy, N );
+        }
+    }
+    else{
+        if (N1 != N) {
+            memset(tmp, 0, N * r1 * sizeof(pastix_complex64_t));
+        }
+        core_zgeadd( PastixConjTrans, N1, r1,
+                     alpha, v1,         ldv1,
+                     0.,    tmp + offy, N );
     }
 
+    /**
+     * Perform QR factorization on v2v1 = (Q1 R1)
+     */
     tauV = malloc( minMN_v * sizeof(pastix_complex64_t));
-    ret = LAPACKE_zgeqrf( CblasColMajor, N, rank,
+    ret = LAPACKE_zgeqrf( LAPACK_COL_MAJOR, N, rank,
                           v2v1, N, tauV );
 
     Ru = malloc(rank * rank * sizeof(pastix_complex64_t));
@@ -1348,9 +1363,9 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
         core_z_lr2dense(blok3, A3, stride3,
                         width3, side3);
 
-        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                     work, dimb,
-                     A3_contrib, stride3 );
+        core_zgeadd( CblasNoTrans, dimb, dimj,
+                     -1.0, work, dimb,
+                      1.0, A3_contrib, stride3 );
     }
     if (side3 == L_side){
         blok3->rankL = ret;

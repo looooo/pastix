@@ -44,7 +44,7 @@
  *
  ******************************************************************************/
 void core_zgetro(int m, int n,
-                 pastix_complex64_t *A, int lda,
+                 const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb)
 {
     int i, j;
@@ -58,9 +58,10 @@ void core_zgetro(int m, int n,
 }
 
 void core_zaxpyt(int m, int n, pastix_complex64_t alpha,
-                 pastix_complex64_t *A, int lda,
+                 const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb)
 {
+    pastix_complex64_t *lA, *lB;
     int i, j;
 
     /* rectangular transposition (use workspace) */

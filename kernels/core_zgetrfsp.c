@@ -560,9 +560,9 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
             Aij = Cd + (blok->frownum - fcblk->fcolnum) * stride_D
                 + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                         work, dimi,
-                         Aij,  stride_D );
+            core_zgeadd( CblasNoTrans, dimb, dimj,
+                         -1.0, work, dimi,
+                          1.0, Aij,  stride_D );
         }
 
         /* If the block modifies an off-diagonal blok */
@@ -593,9 +593,9 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
 
                 Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
 
-                core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                             work, dimi,
-                             Aij,  stridefc );
+                core_zgeadd( CblasNoTrans, dimb, dimj,
+                             -1.0, work, dimi,
+                              1.0, Aij,  stridefc );
             }
         }
         pastix_cblk_unlock( fcblk );
@@ -636,9 +636,9 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                                work, dimi);
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( CblasTrans, dimj, dimb, -1.0,
-                     work, dimi,
-                     Aij,  stride_D);
+        core_zgeadd( CblasTrans, dimj, dimb,
+                     -1.0, work, dimi,
+                      1.0, Aij,  stride_D);
         pastix_cblk_unlock( fcblk );
     }
 
@@ -687,9 +687,9 @@ void core_zgetrfsp1d_gemm_LR( SolverCblk         *cblk,
                                    work, dimi);
 
             pastix_cblk_lock( fcblk );
-            core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                         work, dimi,
-                         Aij,  stridefc );
+            core_zgeadd( CblasNoTrans, dimb, dimj,
+                         -1.0, work, dimi,
+                          1.0, Aij,  stridefc );
             pastix_cblk_unlock( fcblk );
         }
     }

@@ -158,9 +158,9 @@ void core_zgemmsp( int uplo, int trans,
 
         pastix_cblk_lock( fcblk );
         if ( fcblk->cblktype & CBLK_DENSE ) {
-            core_zgeadd( CblasNoTrans, m, N, -1.0,
-                         wtmp, M,
-                         tmpC, stridef );
+            core_zgeadd( CblasNoTrans, m, N,
+                         -1.0, wtmp, M,
+                          1.0, tmpC, stridef );
         }
         else {
             pastix_lrblock_t *lrblock = fblok->LRblock + shift;

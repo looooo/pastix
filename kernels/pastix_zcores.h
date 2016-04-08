@@ -82,12 +82,18 @@ void core_zproduct_lr2lr(SolverBlok *blok1,
                          pastix_complex64_t *work);
 
 void core_zgetro(int m, int n,
-                 pastix_complex64_t *A, int lda,
+                 const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
 
-int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
-                const pastix_complex64_t *A, int LDA,
-                      pastix_complex64_t *B, int LDB);
+void core_zgetrox(pastix_complex64_t alpha, int m, int n,
+                  const pastix_complex64_t *A, int lda,
+                  pastix_complex64_t *B, int ldb);
+
+int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
+                       pastix_complex64_t  alpha,
+                 const pastix_complex64_t *A, pastix_int_t LDA,
+                       pastix_complex64_t  beta,
+                       pastix_complex64_t *B, pastix_int_t LDB);
 
 int core_zgemdm(int transA, int transB,
                 int M, int N, int K,
