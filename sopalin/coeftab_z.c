@@ -19,6 +19,8 @@
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
+#include <lapacke.h>
+#include "pastix_zcores.h"
 
 void
 coeftab_zdumpcblk( const SolverCblk *cblk,
@@ -26,6 +28,107 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
                    FILE *stream );
 
 /* Section: Functions */
+void
+coeftab_zcompress( SolverCblk *cblk,
+                   double      tol)
+{
+    pastix_lrblock_t *LRblocks;
+    SolverBlok *blok  = cblk[0].fblokptr;
+    SolverBlok *lblok = cblk[1].fblokptr;
+
+    pastix_int_t ncols = cblk_colnbr( cblk );
+    int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
+
+    /* One allocation per cblk */
+    LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
+
+    /**
+     * Diagonal block (Not compressed)
+     */
+    LRblocks->rk    = -1;
+    LRblocks->rkmax = -1;
+    LRblocks->u     = malloc( ncols * ncols * sizeof(pastix_complex64_t) );
+    LRblocks->v     = NULL;
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
+                         cblk->lcoeftab, cblk->stride, LRblocks->u, ncols );
+    blok->LRblock = LRblocks; LRblocks++;
+
+    if (factoLU) {
+        LRblocks->rk    = -1;
+        LRblocks->rkmax = -1;
+        LRblocks->u     = malloc( ncols * ncols * sizeof(pastix_complex64_t) );
+        LRblocks->v     = NULL;
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
+                             cblk->ucoeftab, cblk->stride, LRblocks->u, ncols );
+        LRblocks++;
+    }
+
+    for (blok++; blok<lblok; blok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+
+        blok->LRblock = LRblocks;
+        core_zge2lr( tol, nrows, ncols,
+                     cblk->lcoeftab + blok->coefind, cblk->stride,
+                     blok->LRblock );
+        LRblocks++;
+
+        if (factoLU) {
+            core_zge2lr( tol, nrows, ncols,
+                         cblk->ucoeftab + blok->coefind, cblk->stride,
+                         blok->LRblock+1 );
+            LRblocks++;
+        }
+    }
+
+    /**
+     * Free the dense version
+     */
+    free(cblk->lcoeftab); cblk->lcoeftab = NULL;
+    if (cblk->ucoeftab) {
+        free(cblk->ucoeftab); cblk->ucoeftab = NULL;
+    }
+}
+
+void
+coeftab_zuncompress( SolverCblk *cblk )
+{
+    SolverBlok *blok  = cblk[0].fblokptr;
+    SolverBlok *lblok = cblk[1].fblokptr;
+
+    pastix_int_t ncols = cblk_colnbr( cblk );
+    int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
+
+    /* One allocation per cblk */
+    assert( cblk->lcoeftab == NULL );
+    cblk->lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
+
+    if ( factoLU ) {
+        assert( cblk->ucoeftab == NULL );
+        cblk->ucoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
+    }
+
+    for (; blok<lblok; blok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+
+        core_zlr2ge( nrows, ncols,
+                     blok->LRblock,
+                     cblk->lcoeftab + blok->coefind, cblk->stride );
+
+        if (factoLU) {
+            core_zlr2ge( nrows, ncols,
+                         blok->LRblock+1,
+                         cblk->ucoeftab + blok->coefind, cblk->stride );
+        }
+    }
+
+    /**
+     * Free all the LRblock structures associtaed to the cblk
+     */
+    free(cblk->fblokptr->LRblock);
+}
+
 
 void
 coeftab_zffbcsc( const SolverMatrix  *solvmtx,
@@ -134,6 +237,11 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
     pastix_int_t j;
 
+    /* TODO: cleanup to pass that as arguments */
+    int compress_size = 192;
+    char  *tolerance = getenv("TOLERANCE");
+    double tol = atof(tolerance);
+
     /* If not NULL, allocated to store the shur complement for exemple */
     assert( cblk->lcoeftab == NULL );
 
@@ -155,7 +263,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     }
 
     /**
-     * Fake initializatuion of the bloc column such that:
+     * Fake initialization of the bloc column such that:
      *       - L is filled with 1.
      *       - U is filled with 2.
      *       - The diagonal is made dominant
@@ -207,6 +315,14 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         }
     }
 #endif /* defined(PASTIX_DUMP_COEFTAB) */
+
+    /**
+     * Try to compress the cblk if needs to be compressed
+     * TODO: change the criteria based on the level in the tree
+     */
+    /* if ( cblk_colnbr( cblk ) >= compress_size ) { */
+    /*     coeftab_zcompress( cblk, tol ); */
+    /* } */
 }
 
 /*

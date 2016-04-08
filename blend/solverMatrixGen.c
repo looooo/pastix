@@ -178,6 +178,8 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->coefind = stride;
                     solvblok->browind = -1;
 
+                    solvblok->LRblock = NULL;
+
                     stride += nbrows;
                     solvblok++;
                 }
@@ -189,6 +191,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 /* Init the cblk */
                 solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
                 solvcblk->ctrbcnt  = -1;
+                solvcblk->cblktype = CBLK_DENSE;
                 solvcblk->fblokptr = fblokptr;
                 solvcblk->fcolnum  = symbcblk->fcolnum * dof;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcols - 1;
@@ -227,6 +230,8 @@ solverMatrixGen(const pastix_int_t  clustnum,
         if (cblknum > 0)
         {
             solvcblk->fblokptr = solvblok;
+            solvcblk->ctrbcnt  = -1;
+            solvcblk->cblktype = CBLK_DENSE;
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
             solvcblk->stride   = 0;
@@ -238,7 +243,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
             solvcblk->gpuid    = -2;
-
         }
 
         solvmtx->nodenbr = nodenbr;

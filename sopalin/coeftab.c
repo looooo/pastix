@@ -63,6 +63,8 @@ struct coeftabinit_s {
     const pastix_bcsc_t *bcsc;
     int fakefillin;
     int factoLU;
+    int compress_size;
+    double tol;
 };
 
 /*

@@ -50,9 +50,14 @@ typedef struct Task_ {
 #endif
 } Task;
 
+/*+ Rank-k matrix structure +*/
+typedef struct pastix_lrblock_s {
+    int rk, rkmax;
+    void *u;
+    void *v;
+} pastix_lrblock_t;
 
 /*+ Solver block structure. +*/
-
 typedef struct SolverBlok_ {
     pastix_int_t frownum;  /*< First row index            */
     pastix_int_t lrownum;  /*< Last row index (inclusive) */
@@ -62,6 +67,8 @@ typedef struct SolverBlok_ {
     pastix_int_t browind;  /*< Index in browtab           */
 
     /* LR structures */
+    pastix_lrblock_t *LRblock;
+
     void        *coefU_u_LR;
     void        *coefU_v_LR;
     void        *coefL_u_LR;
@@ -75,6 +82,8 @@ typedef struct SolverBlok_ {
 typedef struct SolverCblk_  {
     pastix_atomic_lock_t lock;     /*< Lock to protect computation on the cblk */
     volatile int32_t     ctrbcnt;  /*< Number of contribution to receive       */
+    int8_t               cblktype; /*< Type of cblk                            */
+    int8_t               gpuid;
     pastix_int_t         fcolnum;  /*< First column index                      */
     pastix_int_t         lcolnum;  /*< Last column index (inclusive)           */
     SolverBlok          *fblokptr; /*< First block in column (diagonal)        */
@@ -83,16 +92,16 @@ typedef struct SolverCblk_  {
     pastix_int_t         brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         gcblknum; /*< Global column block index               */
     void                *lcoeftab; /*< Coefficients access vector              */
-    void                *dcoeftab; /*< Coefficients access vector              */
     void                *ucoeftab; /*< Coefficients access vector              */
+
+    /* Check if really required */
+    void           *dcoeftab; /*< Coefficients access vector              */
+    pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
 
     /* Splitting parts to build hierarchical format */
     pastix_int_t *split;
     pastix_int_t  split_size;
 
-    /* Check if really required */
-    pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
-    pastix_int_t    gpuid;
 } SolverCblk;
 
 /*+ Solver matrix structure. +*/
@@ -393,7 +402,7 @@ pastix_int_t fcblk_getorigin( SolverMatrix * datacode,
  * @returns the number of columns in the column block.
  */
 static inline
-pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
+pastix_int_t cblk_colnbr( const SolverCblk *cblk ) {
     return cblk->lcolnum - cblk->fcolnum + 1;
 }
 
@@ -405,7 +414,7 @@ pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
  * @returns the number of columns in the column block.
  */
 static inline
-pastix_int_t cblk_bloknbr( SolverCblk * cblk ) {
+pastix_int_t cblk_bloknbr( const SolverCblk *cblk ) {
     return (cblk+1)->fblokptr - cblk->fblokptr + 1;
 }
 

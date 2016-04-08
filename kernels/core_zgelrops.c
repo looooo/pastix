@@ -128,6 +128,48 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
     return rank;
 }
 
+void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  pastix_lrblock_t *Alr )
+{
+    Alr->rkmax = pastix_imin( m, n );
+    Alr->u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t));
+    Alr->v = malloc( n * Alr->rkmax * sizeof(pastix_complex64_t));
+
+    Alr->rk = core_z_compress_LR( tol, m, n, A, lda,
+                                  Alr->u, m, Alr->v, Alr->rkmax );
+
+    /* Could not compress */
+    if ( Alr->rk == -1 ) {
+        if ( n != Alr->rkmax ) {
+            Alr->u = realloc( Alr->u, m * n * sizeof(pastix_complex64_t) );
+        }
+        free( Alr->v );
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                             A, lda, Alr->u, m );
+    }
+}
+
+void core_zlr2ge( pastix_int_t m, pastix_int_t n,
+                  pastix_lrblock_t *Alr,
+                  const pastix_complex64_t *A, pastix_int_t lda )
+{
+    if ( Alr->rk == -1 ) {
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                             Alr->u, m, A, lda );
+        free(Alr->u);
+    }
+    else {
+        core_z_uncompress_LR( m, n, Alr->rk,
+                              Alr->u, m, Alr->v, Alr->rkmax,
+                              A, lda );
+        free(Alr->u);
+        free(Alr->v);
+        Alr->rk = -1;
+        Alr->rkmax = -1;
+    }
+}
+
 /**
  *******************************************************************************
  *

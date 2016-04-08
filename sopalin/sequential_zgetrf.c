@@ -58,7 +58,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     char  *tolerance = getenv("TOLERANCE");
     double tol = atof(tolerance);
 
-    for (i=0; i<datacode->cblknbr; i++, cblk++){
+    for (i=0; i<datacode->cblknbr; i++, cblk++) {
         pastix_int_t dima, dimb;
         SolverBlok *fblok, *lblok;
         pastix_complex64_t *U, *L;
@@ -86,12 +86,15 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                 blok++;
                 bloksize = blok->lrownum - blok->frownum + 1;
 
+                /* TODO: Need to factorize thos two call and reduce the v space to (dima * rkm) */
                 if (dima > compress_cblk && bloksize > compress_blok){
                     pastix_complex64_t *uU, *vU;
                     pastix_complex64_t *data;
                     data = U + dima + dimb - total;
-                    uU = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
-                    vU = malloc( dima     * dima     * sizeof(pastix_complex64_t));
+
+                    rankU = pastix_imin( bloksize, dima );
+                    uU = malloc( bloksize * rankU * sizeof(pastix_complex64_t));
+                    vU = malloc( dima     * dima  * sizeof(pastix_complex64_t));
 
                     rankU = core_z_compress_LR(tol, bloksize, dima,
                                                data, cblk->stride,
@@ -115,8 +118,10 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                     pastix_complex64_t *uL, *vL;
                     pastix_complex64_t *data;
                     data = L + dima + dimb - total;
-                    uL = malloc( bloksize * bloksize * sizeof(pastix_complex64_t));
-                    vL = malloc( dima     * dima     * sizeof(pastix_complex64_t));
+
+                    rankL = pastix_imin( bloksize, dima );
+                    uL = malloc( bloksize * rankL * sizeof(pastix_complex64_t));
+                    vL = malloc( dima     * dima  * sizeof(pastix_complex64_t));
                     rankL = core_z_compress_LR(tol, bloksize, dima,
                                                data, cblk->stride,
                                                uL, bloksize,
@@ -133,8 +138,8 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
                     }
                 }
 
-                blok->rankU      = rankU;
-                blok->rankL      = rankL;
+                blok->rankU = rankU;
+                blok->rankL = rankL;
                 total -= bloksize;
             }
         }

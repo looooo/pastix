@@ -14,6 +14,13 @@
 #define L_side 0
 #define U_side 1
 
+void core_zlr2ge( pastix_int_t m, pastix_int_t n,
+                  pastix_lrblock_t *Alr,
+                  const pastix_complex64_t *A, pastix_int_t lda );
+void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  pastix_lrblock_t *Alr );
+
 pastix_int_t
 core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
                    const pastix_complex64_t *A, pastix_int_t lda,
