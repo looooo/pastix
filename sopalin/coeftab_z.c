@@ -39,6 +39,9 @@ coeftab_zcompress_one( SolverCblk *cblk,
     pastix_int_t ncols = cblk_colnbr( cblk );
     int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
 
+    pastix_int_t local_gain_L = ncols * cblk->stride;
+    pastix_int_t local_gain_U = ncols * cblk->stride;
+
     /* One allocation per cblk */
     LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
 
@@ -53,6 +56,8 @@ coeftab_zcompress_one( SolverCblk *cblk,
                          cblk->lcoeftab, cblk->stride, LRblocks->u, ncols );
     blok->LRblock = LRblocks; LRblocks++;
 
+    local_gain_L -= ncols * ncols;
+
     if (factoLU) {
         LRblocks->rk    = -1;
         LRblocks->rkmax = -1;
@@ -61,6 +66,8 @@ coeftab_zcompress_one( SolverCblk *cblk,
         LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
                              cblk->ucoeftab, cblk->stride, LRblocks->u, ncols );
         LRblocks++;
+
+        local_gain_U -= ncols * ncols;
     }
 
     for (blok++; blok<lblok; blok++)
@@ -73,11 +80,15 @@ coeftab_zcompress_one( SolverCblk *cblk,
                      blok->LRblock );
         LRblocks++;
 
+        local_gain_L -= ((nrows+ncols) * blok->LRblock[0].rk);
+
         if (factoLU) {
             core_zge2lr( tol, nrows, ncols,
                          cblk->ucoeftab + blok->coefind, cblk->stride,
                          blok->LRblock+1 );
             LRblocks++;
+
+            local_gain_U -= ((nrows+ncols) * blok->LRblock[1].rk);
         }
     }
 
@@ -85,8 +96,10 @@ coeftab_zcompress_one( SolverCblk *cblk,
      * Free the dense version
      */
     free(cblk->lcoeftab); cblk->lcoeftab = NULL;
+    //gain_L += local_gain_L * sizeof(pastix_complex64_t) * 1.e-6;
     if (cblk->ucoeftab) {
         free(cblk->ucoeftab); cblk->ucoeftab = NULL;
+        //gain_U += local_gain_U * sizeof(pastix_complex64_t) * 1.e-6;
     }
 }
 
