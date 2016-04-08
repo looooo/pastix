@@ -483,13 +483,22 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
                 pastix_complex64_t *v2, pastix_int_t ldv2,
                 pastix_int_t offx, pastix_int_t offy)
 {
-    Clock timer;
-    clockStart(timer);
-
+    pastix_int_t rank  = r1 + r2;
     pastix_int_t M = pastix_imax(M1, M2);
     pastix_int_t N = pastix_imax(N1, N2);
-    pastix_int_t rank  = r1 + r2;
-    pastix_int_t i, j;
+    pastix_int_t minMN_u = pastix_imin(M, rank);
+    pastix_int_t minMN_v = pastix_imin(N, rank);
+    pastix_int_t i, ret, new_rank;
+    pastix_complex64_t *u2u1, *v2v1, *R, *u, *v;
+    pastix_complex64_t *tauU, *tauV, *tmp;
+
+    /* SVD entry parameters */
+    pastix_int_t j;
+    pastix_complex64_t *Ru, *Rv;
+    double *s, *superb;
+
+    Clock timer;
+    clockStart(timer);
 
     assert(M == M2);
     assert(N == N2);
@@ -498,13 +507,11 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
         return -1;
     }
 
-    pastix_int_t minMN_u = pastix_imin(M, rank);
     /* Rank is too high for u2u1 */
     if (minMN_u == M){
         return -1;
     }
 
-    pastix_int_t minMN_v = pastix_imin(N, rank);
     /* Rank is too high for v2v1 */
     if (minMN_v == N){
         return -1;
@@ -517,43 +524,53 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
         return -1;
     }
 
-    pastix_complex64_t *u2u1, *v2v1;
-    pastix_int_t ret;
-    pastix_complex64_t *tauU;
-    pastix_complex64_t *tauV;
-
-    /* Matrices for computing SVD of Ru Rv^T */
-    pastix_complex64_t *Ru, *Rv, *R;
-
-    /* SVD entry parameters */
-    double *s, *superb;
-    pastix_complex64_t *u, *v;
-
-    pastix_int_t new_rank;
-
+    /**
+     * Concatenate U2 and U1 in u1u2
+     *  [ u2  0  ]
+     *  [ u2  u1 ]
+     *  [ u2  0  ]
+     */
     u2u1 = malloc( M * rank * sizeof(pastix_complex64_t));
-    v2v1 = malloc( N * rank * sizeof(pastix_complex64_t));
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, r2,
+                         u2, ldu2, u2u1, M );
 
-    /* Complete with zeroes if adding a small block in a larger structure */
-    if (M2 != M1)
-        memset(u2u1 + M2 * r2, 0, M2 * r1 * sizeof(pastix_complex64_t));
-    if (N2 != N1)
-        memset(v2v1, 0, N * rank * sizeof(pastix_complex64_t));
+    tmp = u2u1 + r2 * M;
+    if (u1 == NULL) {
+        if (M1 != M2) {
+            /* Set to 0 */
+            memset(tmp, 0, M * r1 * sizeof(pastix_complex64_t));
 
-    memcpy(u2u1, u2, M2 * r2 * sizeof(pastix_complex64_t));
-
-    /* For identity matrix */
-    if (u1 == NULL){
-        for (i=0; i<r1; i++){
-            u2u1[M * (r2 + i) + offx + i] = 1;
+            /* Set diagonal */
+            tmp += offx;
+            for (i=0; i<r1; i++, tmp += M+1) {
+                *tmp = 1.;
+            }
+        }
+        else {
+            assert( offx == 0 );
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, r1,
+                                 0., 1., tmp + offx, M );
         }
     }
     else{
-        for (i=0; i<r1; i++){
-            memcpy(u2u1 + M * (r2 + i) + offx, u1 + i * ldu1, M1 * sizeof(pastix_complex64_t));
+        if (M1 != M) {
+            memset(tmp, 0, M * r1 * sizeof(pastix_complex64_t));
         }
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, r1,
+                             u1, ldu1, tmp + offx, M );
     }
 
+    /**
+     * Perform QR factorization on u2u1 = (Q1 R1)
+     */
+    tauU = malloc( minMN_u * sizeof(pastix_complex64_t));
+    ret = LAPACKE_zgeqrf( LAPACK_COL_MAJOR, M, rank,
+                          u2u1, M, tauU );
+
+
+    v2v1 = malloc( N * rank * sizeof(pastix_complex64_t));
+    if (N2 != N1)
+        memset(v2v1, 0, N * rank * sizeof(pastix_complex64_t));
     for (i=0; i<N2; i++){
         for (j=0; j<r2; j++){
             v2v1[N * j + i] = v2[i * N2 + j];
@@ -577,11 +594,6 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
             }
         }
     }
-
-    tauU = malloc( minMN_u * sizeof(pastix_complex64_t));
-    ret = LAPACKE_zgeqrf( CblasColMajor, M, rank,
-                          u2u1, M, tauU );
-
 
     tauV = malloc( minMN_v * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf( CblasColMajor, N, rank,
