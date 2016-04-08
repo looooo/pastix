@@ -29,8 +29,8 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
 
 /* Section: Functions */
 void
-coeftab_zcompress( SolverCblk *cblk,
-                   double      tol)
+coeftab_zcompress_one( SolverCblk *cblk,
+                       double      tol)
 {
     pastix_lrblock_t *LRblocks;
     SolverBlok *blok  = cblk[0].fblokptr;
@@ -91,7 +91,7 @@ coeftab_zcompress( SolverCblk *cblk,
 }
 
 void
-coeftab_zuncompress( SolverCblk *cblk )
+coeftab_zuncompress_one( SolverCblk *cblk )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -129,6 +129,17 @@ coeftab_zuncompress( SolverCblk *cblk )
     free(cblk->fblokptr->LRblock);
 }
 
+
+void
+coeftab_zuncompress( SolverMatrix *solvmtx )
+{
+    SolverCblk *cblk  = solvmtx->cblktab;
+    pastix_int_t cblknum;
+
+    for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
+        coeftab_zuncompress_one( cblk );
+    }
+}
 
 void
 coeftab_zffbcsc( const SolverMatrix  *solvmtx,
@@ -239,8 +250,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 
     /* TODO: cleanup to pass that as arguments */
     int compress_size = 192;
-    char  *tolerance = getenv("TOLERANCE");
-    double tol = atof(tolerance);
 
     /* If not NULL, allocated to store the shur complement for exemple */
     assert( cblk->lcoeftab == NULL );
@@ -320,9 +329,15 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      * Try to compress the cblk if needs to be compressed
      * TODO: change the criteria based on the level in the tree
      */
-    /* if ( cblk_colnbr( cblk ) >= compress_size ) { */
-    /*     coeftab_zcompress( cblk, tol ); */
-    /* } */
+    if(0)
+    {
+        char  *tolerance = getenv("TOLERANCE");
+        double tol = atof(tolerance);
+        if ( cblk_colnbr( cblk ) >= compress_size ) {
+            coeftab_zcompress_one( cblk, tol );
+            cblk->cblktype &= ~(CBLK_DENSE);
+        }
+    }
 }
 
 /*

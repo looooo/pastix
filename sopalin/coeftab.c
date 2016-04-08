@@ -17,46 +17,7 @@
 #include "bcsc.h"
 #include "isched.h"
 #include "solver.h"
-
-void
-coeftab_zinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
-
-void
-coeftab_cinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
-
-void
-coeftab_dinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
-
-void
-coeftab_sinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
-
-void
-coeftab_zdump( const SolverMatrix *solvmtx,
-               const char   *filename );
-
-void
-coeftab_cdump( const SolverMatrix *solvmtx,
-               const char   *filename );
-
-void
-coeftab_ddump( const SolverMatrix *solvmtx,
-               const char   *filename );
-
-void
-coeftab_sdump( const SolverMatrix *solvmtx,
-               const char   *filename );
+#include "coeftab.h"
 
 struct coeftabinit_s {
     const SolverMatrix  *datacode;
