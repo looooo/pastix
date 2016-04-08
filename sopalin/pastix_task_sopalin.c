@@ -18,7 +18,8 @@
 #include "isched.h"
 #include "spm.h"
 #include "bcsc.h"
-#include "solver.h"
+#include "blend/solver.h"
+#include "coeftab.h"
 #include "sopalin_data.h"
 
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
@@ -27,6 +28,11 @@ static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_csytrf, sopalin_zsytrf },
     { sopalin_sgetrf, sopalin_dgetrf, sopalin_cgetrf, sopalin_zgetrf },
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
+};
+
+static void (*coeftabUncompress[4])(SolverMatrix*) =
+{
+    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
 };
 
 void
@@ -131,7 +137,6 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
 
     return PASTIX_SUCCESS;
 }
-
 
 /**
  *******************************************************************************
@@ -267,6 +272,9 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
+
+    /* Let's uncompress the cblk because the solve doesn't know how to deal ith compressed information */
+    //coeftabUncompress[spm->flttype-2]( pastix_data->solvmatr );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |

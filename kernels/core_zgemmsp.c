@@ -102,6 +102,9 @@ void core_zgemmsp( int uplo, int trans,
     pastix_int_t M, N, K, m;
     int shift;
 
+    char  *tolerance = getenv("TOLERANCE");
+    double tol = atof(tolerance);
+
     shift = (uplo == PastixUpper) ? 1 : 0;
 
     stride  = cblk->stride;
@@ -154,9 +157,41 @@ void core_zgemmsp( int uplo, int trans,
         m = blok_rownbr( iterblok );
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( CblasNoTrans, m, N, -1.0,
-		     wtmp, M,
-		     tmpC, stridef );
+        if ( fcblk->cblktype & CBLK_DENSE ) {
+            core_zgeadd( CblasNoTrans, m, N, -1.0,
+                         wtmp, M,
+                         tmpC, stridef );
+        }
+        else {
+            pastix_lrblock_t *lrblock = fblok->LRblock + shift;
+            if ( m < N ) {
+                core_zlradd( tol, -1,
+                             /* A*B */
+                             m, N, m,
+                             NULL, m, wtmp, M,
+                             /* C */
+                             blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                             lrblock->rk,
+                             lrblock->u, blok_rownbr( fblok ),
+                             lrblock->v, lrblock->rkmax,
+                             /* offset */
+                             iterblok->frownum - fblok->frownum,
+                             blok->frownum - fcblk->fcolnum);
+            }
+            else {
+                core_zlradd( tol, -1,
+                             /* A*B */
+                             m, N, m, wtmp, M, NULL, m,
+                             /* C */
+                             blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                             lrblock->rk,
+                             lrblock->u, blok_rownbr( fblok ),
+                             lrblock->v, lrblock->rkmax,
+                             /* offset */
+                             iterblok->frownum - fblok->frownum,
+                             blok->frownum - fcblk->fcolnum);
+            }
+        }
         pastix_cblk_unlock( fcblk );
 
         /* Displacement to next block */

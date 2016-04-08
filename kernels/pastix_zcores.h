@@ -22,6 +22,16 @@ void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
                   pastix_lrblock_t *Alr );
 
 pastix_int_t
+core_zlradd(double tol, pastix_complex64_t alpha,
+            pastix_int_t M1, pastix_int_t N1, pastix_int_t r1,
+            const pastix_complex64_t *u1, pastix_int_t ldu1,
+            const pastix_complex64_t *v1, pastix_int_t ldv1,
+            pastix_int_t M2, pastix_int_t N2, pastix_int_t r2,
+            pastix_complex64_t *u2, pastix_int_t ldu2,
+            pastix_complex64_t *v2, pastix_int_t ldv2,
+            pastix_int_t offx, pastix_int_t offy);
+
+pastix_int_t
 core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
                    const pastix_complex64_t *A, pastix_int_t lda,
                    pastix_complex64_t *u, pastix_int_t ldu,
