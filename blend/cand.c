@@ -19,6 +19,7 @@
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
+#include "solver.h"
 
 void
 candInit( Cand *candtab,

@@ -20,6 +20,18 @@
 #include "ftgt.h"
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
+
+/**
+ *  The type and structure definitions.
+ *  Define the mask for th cblks:
+ *   - 1st bit: The cblk will always be treated as one task, or can generate dynamic smaller update
+ *   - 2nd bit: The cblk is dense, or is compressed
+ *   - 3rd bit: Part of the Schur complement or not (Will not be factorized if yes)
+ */
+#define CBLK_SPLIT (1 << 0)
+#define CBLK_DENSE (1 << 1)
+#define CBLK_SCHUR (1 << 2)
+
 /*
  **  The type and structure definitions.
  */
