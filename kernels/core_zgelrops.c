@@ -152,7 +152,7 @@ void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
 
 void core_zlr2ge( pastix_int_t m, pastix_int_t n,
                   pastix_lrblock_t *Alr,
-                  const pastix_complex64_t *A, pastix_int_t lda )
+                  pastix_complex64_t *A, pastix_int_t lda )
 {
     if ( Alr->rk == -1 ) {
         LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
