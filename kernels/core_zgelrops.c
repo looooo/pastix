@@ -475,12 +475,12 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
 
 pastix_int_t
 core_z_add_LR3( double tol, pastix_complex64_t alpha,
-                pastix_int_t M2, pastix_int_t N2, pastix_int_t r2,
-                const pastix_complex64_t *u2, pastix_int_t ldu2,
-                const pastix_complex64_t *v2, pastix_int_t ldv2,
                 pastix_int_t M1, pastix_int_t N1, pastix_int_t r1,
-                pastix_complex64_t *u1, pastix_int_t ldu1,
-                pastix_complex64_t *v1, pastix_int_t ldv1,
+                const pastix_complex64_t *u1, pastix_int_t ldu1,
+                const pastix_complex64_t *v1, pastix_int_t ldv1,
+                pastix_int_t M2, pastix_int_t N2, pastix_int_t r2,
+                pastix_complex64_t *u2, pastix_int_t ldu2,
+                pastix_complex64_t *v2, pastix_int_t ldv2,
                 pastix_int_t offx, pastix_int_t offy)
 {
     Clock timer;
@@ -491,36 +491,39 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
     pastix_int_t rank  = r1 + r2;
     pastix_int_t i, j;
 
-    if (M2 > M1 || N2 > N1){
+    assert(M == M2);
+    assert(N == N2);
+    if (M1+offx > M2 || N1+offy > N2){
         errorPrint("Dimensions are not correct");
-    }
-
-    pastix_int_t minMN_1 = pastix_imin(M, rank);
-    /* Rank is too high for u1u2 */
-    if (minMN_1 == M){
         return -1;
     }
 
-    pastix_int_t minMN_2 = pastix_imin(N, rank);
-    /* Rank is too high for v1v2 */
-    if (minMN_2 == N){
+    pastix_int_t minMN_u = pastix_imin(M, rank);
+    /* Rank is too high for u2u1 */
+    if (minMN_u == M){
+        return -1;
+    }
+
+    pastix_int_t minMN_v = pastix_imin(N, rank);
+    /* Rank is too high for v2v1 */
+    if (minMN_v == N){
         return -1;
     }
 
     /* Now that we restrain the space of U, let's make sure we don't have a rank
      * larger than the space available
-     * To be changed in a future version in add_LR2 since this one will disappear */
-    if (rank > pastix_imin(ldu1, ldv1) ) {
+     * To be changed in a future version in add_LRv since this one will disappear */
+    if (rank > pastix_imin(ldu2, ldv2) ) {
         return -1;
     }
 
-    pastix_complex64_t *u1u2, *v1v2;
+    pastix_complex64_t *u2u1, *v2v1;
     pastix_int_t ret;
-    pastix_complex64_t *tau1;
-    pastix_complex64_t *tau2;
+    pastix_complex64_t *tauU;
+    pastix_complex64_t *tauV;
 
-    /* Matrices for computing SVD of R1 R2^T */
-    pastix_complex64_t *R1, *R2, *R;
+    /* Matrices for computing SVD of Ru Rv^T */
+    pastix_complex64_t *Ru, *Rv, *R;
 
     /* SVD entry parameters */
     double *s, *superb;
@@ -528,78 +531,78 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
 
     pastix_int_t new_rank;
 
-    u1u2 = malloc( M * rank * sizeof(pastix_complex64_t));
-    v1v2 = malloc( N * rank * sizeof(pastix_complex64_t));
+    u2u1 = malloc( M * rank * sizeof(pastix_complex64_t));
+    v2v1 = malloc( N * rank * sizeof(pastix_complex64_t));
 
     /* Complete with zeroes if adding a small block in a larger structure */
-    if (M1 != M2)
-        memset(u1u2 + M1 * r1, 0, M1 * r2 * sizeof(pastix_complex64_t));
-    if (N1 != N2)
-        memset(v1v2, 0, N * rank * sizeof(pastix_complex64_t));
+    if (M2 != M1)
+        memset(u2u1 + M2 * r2, 0, M2 * r1 * sizeof(pastix_complex64_t));
+    if (N2 != N1)
+        memset(v2v1, 0, N * rank * sizeof(pastix_complex64_t));
 
-    memcpy(u1u2, u1, M1 * r1 * sizeof(pastix_complex64_t));
+    memcpy(u2u1, u2, M2 * r2 * sizeof(pastix_complex64_t));
 
     /* For identity matrix */
-    if (u2 == NULL){
-        for (i=0; i<r2; i++){
-            u1u2[M * (r1 + i) + offx + i] = 1;
+    if (u1 == NULL){
+        for (i=0; i<r1; i++){
+            u2u1[M * (r2 + i) + offx + i] = 1;
         }
     }
     else{
-        for (i=0; i<r2; i++){
-            memcpy(u1u2 + M * (r1 + i) + offx, u2 + i * ldu2, M2 * sizeof(pastix_complex64_t));
+        for (i=0; i<r1; i++){
+            memcpy(u2u1 + M * (r2 + i) + offx, u1 + i * ldu1, M1 * sizeof(pastix_complex64_t));
         }
     }
 
-    for (i=0; i<N1; i++){
-        for (j=0; j<r1; j++){
-            v1v2[N * j + i] = v1[i * N1 + j];
+    for (i=0; i<N2; i++){
+        for (j=0; j<r2; j++){
+            v2v1[N * j + i] = v2[i * N2 + j];
         }
     }
 
     /* For identity matrix */
-    if (v2 == NULL){
-        for (j=0; j<r2; j++){
-            v1v2[N * (r1 + j) + j + offy] = -1;
+    if (v1 == NULL){
+        for (j=0; j<r1; j++){
+            v2v1[N * (r2 + j) + j + offy] = -1;
         }
     }
     /* WARNING: minus because of the extend add */
     else{
-        for (i=0; i<N2; i++){
-            for (j=0; j<r2; j++){
+        for (i=0; i<N1; i++){
+            for (j=0; j<r1; j++){
                 //if (trans == CblasNoTrans)
-                    v1v2[N * (r1 + j) + i + offy] = -v2[i * ldv2 + j];
+                    v2v1[N * (r2 + j) + i + offy] = -v1[i * ldv1 + j];
                 /* else */
-                /*     v1v2[N * (r1 + j) + i + offy] = -v2[j * ldv2 + i]; */
+                /*     v2v1[N * (r2 + j) + i + offy] = -v1[j * ldv1 + i]; */
             }
         }
     }
 
-    tau1 = malloc( minMN_1 * sizeof(pastix_complex64_t));
+    tauU = malloc( minMN_u * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf( CblasColMajor, M, rank,
-                          u1u2, M, tau1 );
+                          u2u1, M, tauU );
 
 
-    tau2 = malloc( minMN_2 * sizeof(pastix_complex64_t));
+    tauV = malloc( minMN_v * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf( CblasColMajor, N, rank,
-                          v1v2, N, tau2 );
+                          v2v1, N, tauV );
 
-    R1 = malloc(rank * rank * sizeof(pastix_complex64_t));
-    R2 = malloc(rank * rank * sizeof(pastix_complex64_t));
+    Ru = malloc(rank * rank * sizeof(pastix_complex64_t));
+    Rv = malloc(rank * rank * sizeof(pastix_complex64_t));
     R  = malloc(rank * rank * sizeof(pastix_complex64_t));
-    memset(R1, 0, rank * rank * sizeof(pastix_complex64_t));
-    memset(R2, 0, rank * rank * sizeof(pastix_complex64_t));
+    memset(Ru, 0, rank * rank * sizeof(pastix_complex64_t));
+    memset(Rv, 0, rank * rank * sizeof(pastix_complex64_t));
 
     for (i=0; i<rank; i++){
-        memcpy(R1 + rank * i, u1u2 + M * i, (i+1) * sizeof(pastix_complex64_t));
-        memcpy(R2 + rank * i, v1v2 + N * i, (i+1) * sizeof(pastix_complex64_t));
+        memcpy(Ru + rank * i, u2u1 + M * i, (i+1) * sizeof(pastix_complex64_t));
+        memcpy(Rv + rank * i, v2v1 + N * i, (i+1) * sizeof(pastix_complex64_t));
     }
 
-    /* Compute R1 R2^T */
+    /* Compute Ru Rv^T */
     cblas_zgemm(CblasColMajor, CblasNoTrans, CblasTrans,
                 rank, rank, rank,
-                CBLAS_SADDR(zone),  R1, rank,
-                                    R2, rank,
+                CBLAS_SADDR(zone),  Ru, rank,
+                                    Rv, rank,
                 CBLAS_SADDR(zzero), R,  rank);
 
     s = malloc( rank * sizeof(double));
@@ -617,7 +620,7 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
     }
 
     new_rank = rank;
-    for (i=0; i<rank-1; i++){
+    for (i=0; i<rank; i++){
         if (s[i] < tol){ /// s[0] < tolerancep || s[i] < 0.5*tolerance){
             new_rank = i + 1;
             break;
@@ -629,8 +632,8 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
         cblas_zscal(rank, CBLAS_SADDR(s[i]), u + rank * i, 1);
     }
     for (i=0; i<rank; i++){
-        memcpy(u1 + M * i, u + rank * i, rank * sizeof(pastix_complex64_t));
-        memset(u1 + M * i + rank, 0, (M1 - rank) * sizeof(pastix_complex64_t));
+        memcpy(u2 + M * i, u + rank * i, rank * sizeof(pastix_complex64_t));
+        memset(u2 + M * i + rank, 0, (M2 - rank) * sizeof(pastix_complex64_t));
     }
 
     /* We need non-transposed version of v */
@@ -647,34 +650,34 @@ core_z_add_LR3( double tol, pastix_complex64_t alpha,
     }
 
     ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
-                         M, rank, minMN_1,
-                         u1u2, M, tau1,
-                         u1, M1);
+                         M, rank, minMN_u,
+                         u2u1, M, tauU,
+                         u2, M2);
 
     /* TODO: checker if 'R' 'T' can be realized */
     ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
-                         N, rank, minMN_2,
-                         v1v2, N, tau2,
-                         v3, N1);
+                         N, rank, minMN_v,
+                         v2v1, N, tauV,
+                         v3, N2);
 
 
     for (i=0; i<rank; i++){
-        for (j=0; j<N1; j++){
-            v1[N1 * j + i] = v3[N1 * i + j];
+        for (j=0; j<N2; j++){
+            v2[N2 * j + i] = v3[N2 * i + j];
         }
     }
 
-    free(u1u2);
-    free(v1v2);
+    free(u2u1);
+    free(v2v1);
     free(u);
     free(s);
     free(v);
     free(superb);
-    free(tau1);
-    free(tau2);
+    free(tauU);
+    free(tauV);
     free(R);
-    free(R1);
-    free(R2);
+    free(Ru);
+    free(Rv);
     free(v3);
 
     clockStop(timer);
