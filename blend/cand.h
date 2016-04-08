@@ -16,20 +16,16 @@
 #ifndef _CAND_H_
 #define _CAND_H_
 
-/*
-**  The type and structure definitions.
-*/
-#define D1 0
-#define D2 1
-#define DENSE 3
-
-typedef enum cblktype_e {
-    CBLK_1D,
-    CBLK_SPLIT,
-    CBLK_H,
-    CBLK_DENSE,
-    CBLK_SHUR
-} cblktype_t;
+/**
+ *  The type and structure definitions.
+ *  Define the mask for th cblks:
+ *   - 1st bit: The cblk will always be treated as one task, or can generate dynamic smaller update
+ *   - 2nd bit: The cblk is dense, or is compressed
+ *   - 3rd bit: Part of the Schur complement or not (Will not be factorized if yes)
+ */
+#define CBLK_SPLIT (1 << 0)
+#define CBLK_DENSE (1 << 1)
+#define CBLK_SCHUR (1 << 2)
 
 #define CLUSTER   1
 #define NOCLUSTER 0
@@ -43,7 +39,7 @@ typedef struct Cand_{
     pastix_int_t fccandnum;    /*+ first cluster number of the cluster candidate group +*/
     pastix_int_t lccandnum;    /*+ last cluster number of the cluster candidate group +*/
     pastix_int_t cluster;      /*+ Cluster id on which the task will be executed +*/
-    cblktype_t   cblktype;     /*+ type of the distribution +*/
+    int8_t       cblktype;     /*+ type of the distribution +*/
 } Cand;
 
 void candInit           ( Cand *candtab,

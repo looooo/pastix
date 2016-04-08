@@ -34,7 +34,7 @@ candInit( Cand *candtab,
         candtab[i].fccandnum = -1;
         candtab[i].lccandnum = -1;
         candtab[i].cluster   = -1;
-        candtab[i].cblktype  = CBLK_1D;
+        candtab[i].cblktype  = CBLK_DENSE | CBLK_SPLIT;
     }
 }
 
@@ -170,18 +170,16 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
 {
     pastix_int_t i, son;
 
-    if(cblktype == CBLK_1D)
-    {
-        candtab[ rootnum ].cblktype = CBLK_1D;
-    }
-    else
-    {
+    if(cblktype & CBLK_SPLIT) {
         pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
 
         if(width >= ratiolimit)
-            candtab[ rootnum ].cblktype = CBLK_SPLIT;
+            candtab[ rootnum ].cblktype = cblktype;
         else
-            candtab[ rootnum ].cblktype = CBLK_1D;
+            candtab[ rootnum ].cblktype = cblktype & (~CBLK_SPLIT);
+    }
+    else {
+        candtab[ rootnum ].cblktype = cblktype;
     }
 
     for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
@@ -201,9 +199,9 @@ candDistribWithDepth( pastix_int_t depth,
     for(i=0;i<cblknbr;i++)
     {
         if( candtab[i].treelevel > depth )
-            candtab[i].cblktype = CBLK_SPLIT;
+            candtab[i].cblktype = CBLK_DENSE | CBLK_SPLIT;
         else
-            candtab[i].cblktype = CBLK_1D;
+            candtab[i].cblktype = CBLK_DENSE;
     }
 }
 
