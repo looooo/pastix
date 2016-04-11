@@ -471,7 +471,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
      */
     /* First, let's scale the small u and compute the new rank */
     tmp = u;
-    for (i=0; i<rank; i++, tmp+=rank){
+    for (i=0; i<new_rank; i++, tmp+=rank){
         cblas_zscal(rank, CBLAS_SADDR(s[i]), tmp, 1);
     }
     if (new_rank == 0) {
@@ -482,13 +482,13 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
 
     /* Copy u at the top of u2 */
     tmp = u2;
-    for (i=0; i<rank; i++, tmp+=ldu2, u+=rank) {
+    for (i=0; i<new_rank; i++, tmp+=ldu2, u+=rank) {
         memcpy(tmp, u,              rank * sizeof(pastix_complex64_t));
         memset(tmp + rank, 0, (M - rank) * sizeof(pastix_complex64_t));
     }
 
     ret = LAPACKE_zunmqr_work(LAPACK_COL_MAJOR, 'L', 'N',
-                              M, rank, minU,
+                              M, new_rank, minU,
                               u1u2, M, tauU,
                               u2,   ldu2,
                               zbuf, lwork);
@@ -497,13 +497,13 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
      * And the final V^T = [v^t 0 ] Q2
      */
     assert( ldv2 >= new_rank );
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', rank, rank,
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', new_rank, rank,
                          v, rank, v2, ldv2 );
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', rank, N-rank,
+    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', new_rank, N-rank,
                          0., 0., v2 + ldv2 * rank, ldv2 );
 
     ret = LAPACKE_zunmlq_work(LAPACK_COL_MAJOR, 'R', 'N',
-                              rank, N, minV,
+                              new_rank, N, minV,
                               v1v2, rank, tauV,
                               v2, ldv2,
                               zbuf, lwork);
