@@ -261,16 +261,13 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     pastix_int_t N = pastix_imax(N2, N1);
     pastix_int_t minU = pastix_imin(M, rank);
     pastix_int_t minV = pastix_imin(N, rank);
-    pastix_int_t i;
+    pastix_int_t i, ret, lwork, new_rank;
     pastix_complex64_t *u1u2, *v1v2, *R, *u, *v;
-    pastix_complex64_t *tauU, *tauV, *zbuf;
-    pastix_int_t ret, lwork;
-    size_t wzsize;
+    pastix_complex64_t *tmp, *zbuf, *tauU, *tauV;
+    pastix_complex64_t  querysize;
+    double *s;
+    size_t wzsize, wdsize;
 
-    /* SVD entry parameters */
-    double *s, *superb;
-    pastix_complex64_t *tmp;
-    pastix_int_t new_rank;
     Clock timer;
 
     clockStart(timer);
@@ -293,21 +290,48 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
         return -1;
     }
 
+    /**
+     * Let's compute the size of the workspace
+     */
+
     /* u1u2 and v1v2 */
     wzsize = (M+N) * rank;
     /* tauU and tauV */
     wzsize += minU + minV;
 
-    /* max( QR/LQ ws, (R + u + v ) */
-    lwork = pastix_imax( M, N ) * 32;
-    wzsize += pastix_imax( lwork, 3 * rank * rank );
-    zbuf = malloc( wzsize * sizeof(pastix_complex64_t) );
+    /* Storage of R, u and v */
+    wzsize += 3 * rank * rank;
 
-    u1u2 = zbuf;
+    /* QR/LQ workspace */
+    lwork = pastix_imax( M, N ) * 32;
+
+    /* Workspace needed for the gesvd */
+    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
+                               rank, rank, NULL, rank,
+                               NULL, NULL, rank, NULL, rank,
+                               &querysize, -1
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                               , NULL
+#endif
+                               );
+
+    lwork = pastix_imax( lwork, querysize );
+    wzsize += lwork;
+
+    wdsize = rank;
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    wdsize += 5 * rank;
+#endif
+
+    zbuf = malloc( wzsize * sizeof(pastix_complex64_t) + wdsize * sizeof(double) );
+    s    = (double*)(zbuf + wzsize);
+
+    u1u2 = zbuf + lwork;
     tauU = u1u2 + M * rank;
     v1v2 = tauU + minU;
     tauV = v1v2 + N * rank;
     R    = tauV + minV;
+
 
     /**
      * Concatenate U2 and U1 in u1u2
@@ -315,7 +339,6 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
      *  [ u2  u1 ]
      *  [ u2  0  ]
      */
-    u1u2 = zbuf;
     //u1u2 = malloc( M * rank * sizeof(pastix_complex64_t));
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, r2,
                          u2, ldu2, u1u2, M );
@@ -351,7 +374,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
      */
     //tauU = malloc( minU * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, rank,
-                               u1u2, M, tauU, R, lwork );
+                               u1u2, M, tauU, zbuf, lwork );
 
     /**
      * Concatenate V2 and V1 in v1v2
@@ -396,7 +419,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
      */
     //tauV = malloc( minV * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgelqf_work( LAPACK_COL_MAJOR, rank, N,
-                               v1v2, rank, tauV, R, lwork );
+                               v1v2, rank, tauV, zbuf, lwork );
 
     /**
      * Compute R = alpha R1 L2
@@ -419,12 +442,14 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     /**
      * Compute svd(R) = u \sigma v^t
      */
-    s = malloc( rank * sizeof(double));
-    superb = malloc( rank * sizeof(double));
-
-    ret = LAPACKE_zgesvd( CblasColMajor, 'S', 'S',
-                          rank, rank, R, rank,
-                          s, u, rank, v, rank, superb );
+    ret = LAPACKE_zgesvd_work( CblasColMajor, 'S', 'S',
+                               rank, rank, R, rank,
+                               s, u, rank, v, rank,
+                               zbuf, lwork
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                               , s + rank
+#endif
+                               );
 
     assert(ret == 0);
     if (ret != 0) {
@@ -462,10 +487,11 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
         memset(tmp + rank, 0, (M - rank) * sizeof(pastix_complex64_t));
     }
 
-    ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
-                         M, rank, minU,
-                         u1u2, M, tauU,
-                         u2,   ldu2);
+    ret = LAPACKE_zunmqr_work(LAPACK_COL_MAJOR, 'L', 'N',
+                              M, rank, minU,
+                              u1u2, M, tauU,
+                              u2,   ldu2,
+                              zbuf, lwork);
 
     /**
      * And the final V^T = [v^t 0 ] Q2
@@ -476,17 +502,12 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', rank, N-rank,
                          0., 0., v2 + ldv2 * rank, ldv2 );
 
-    ret = LAPACKE_zunmlq(LAPACK_COL_MAJOR, 'R', 'N',
-                         rank, N, minV,
-                         v1v2, rank, tauV,
-                         v2, ldv2);
+    ret = LAPACKE_zunmlq_work(LAPACK_COL_MAJOR, 'R', 'N',
+                              rank, N, minV,
+                              v1v2, rank, tauV,
+                              v2, ldv2,
+                              zbuf, lwork);
 
-    /* free(u1u2); */
-    /* free(v1v2); */
-    free(s);
-    free(superb);
-    /* free(tauU); */
-    /* free(tauV); */
     free(zbuf);
 
     clockStop(timer);
