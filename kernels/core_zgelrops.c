@@ -370,7 +370,7 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
         }
         core_zgeadd( PastixNoTrans, r1, N1,
                      alpha, v1,                ldv1,
-                        1., tmp + offy * rank, rank );
+                        0., tmp + offy * rank, rank );
     }
 
     /**
@@ -1085,7 +1085,7 @@ core_zlradd(double tol, pastix_complex64_t alpha,
                           M1, N1, r1, ldu1, ldv1,
                           offx, offy);
 #else
-    return core_z_add_LR3( tol, alpha,
+    return core_z_add_LR2( tol, alpha,
                            M1, N1, r1, u1, ldu1, v1, ldv1,
                            M2, N2, r2, u2, ldu2, v2, ldv2,
                            offx, offy);
