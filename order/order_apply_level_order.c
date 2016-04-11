@@ -178,12 +178,17 @@ orderApplyLevelOrder( Order *order )
         for(i=0; i<order->cblknbr; i++) {
             node = sorted[i];
             sonsnbr = etree->nodetab[node].sonsnbr;
+            /**
+             * We put the sons in reverse order to keep the original order
+             * betwen the brothers. This matters for the Minimum Degree part of
+             * the ordering algorithm.
+             */
             for(s=0; s<sonsnbr; s++) {
                 pastix_int_t son = eTreeSonI(etree, node, s);
-                sorted[ pos ] = son;
-                pos++;
+                sorted[ pos + sonsnbr-1-s ] = son;
                 etree->nodetab[ son ].fathnum = order->cblknbr - i - 1;
             }
+            pos += sonsnbr;
         }
         assert(pos == order->cblknbr);
     }
