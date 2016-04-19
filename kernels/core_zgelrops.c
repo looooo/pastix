@@ -274,8 +274,14 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     assert(M2 == M);
     assert(N2 == N);
 
+    if (rank == 0 || r1 == 0){
+        return rank;
+    }
+
     /* Unused parameters right now */
-    if (M1+offx > M2 || N1+offy > N2){
+    if ( ((M1 + offx) > M2) ||
+         ((N1 + offy) > N2) )
+    {
         errorPrint("Dimensions are not correct");
         return -1;
     }
@@ -331,7 +337,6 @@ core_z_add_LR2(double tol, pastix_complex64_t alpha,
     v1v2 = tauU + minU;
     tauV = v1v2 + N * rank;
     R    = tauV + minV;
-
 
     /**
      * Concatenate U2 and U1 in u1u2
