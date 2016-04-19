@@ -227,11 +227,11 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *U,
                            double              criteria)
 {
-    pastix_int_t  ncols, stride;
-    pastix_int_t  nbpivot = 0;
+    pastix_int_t ncols, stride;
+    pastix_int_t nbpivot = 0;
 
-    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
+    ncols  = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = cblk->stride;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
@@ -241,7 +241,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                  U, stride,
                  L, stride );
 
-    /* Factorize diagonal block (two terms version with workspace) */
+    /* Factorize diagonal block */
     core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
 
     /* Transpose Akk in ucoeftab */
@@ -282,13 +282,12 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *U)
 {
     SolverBlok *fblok, *lblok;
-    pastix_complex64_t *fL, *fU;
     pastix_int_t dima, dimb, stride;
 
-    dima    = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
-    fblok = cblk->fblokptr;   /* this diagonal block */
-    lblok = cblk[1].fblokptr; /* the next diagonal block */
+    dima   = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = cblk->stride;
+    fblok  = cblk->fblokptr;   /* this diagonal block */
+    lblok  = cblk[1].fblokptr; /* the next diagonal block */
 
     /* vertical dimension */
     dimb = stride - dima;
@@ -296,6 +295,8 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
     /* if there is an extra-diagonal bloc in column block */
     if ( fblok+1 < lblok )
     {
+        pastix_complex64_t *fL, *fU;
+
         /* first extra-diagonal bloc in column block address */
         fL = L + fblok[1].coefind;
         fU = U + fblok[1].coefind;
@@ -406,7 +407,6 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
 
     /* if there are off-diagonal supernodes in the column */
-    blok = cblk->fblokptr + 1;
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
@@ -425,4 +425,3 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
 
     return nbpivot;
 }
-
