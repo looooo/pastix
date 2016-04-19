@@ -809,9 +809,21 @@ core_zgetrfsp1d_LR( SolverMatrix       *solvmtx,
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
-        core_zgetrfsp1d_gemm_LR( cblk, blok, fcblk,
-                                 L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
+        if ( cblk->cblktype & CBLK_DENSE && 0) {
+            /* Update on L */
+            core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
+                          L, U, fcblk->lcoeftab, work );
 
+            /* Update on U */
+            if ( blok+1 < lblk ) {
+                core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
+                              U, L, fcblk->ucoeftab, work );
+            }
+        }
+        else {
+            core_zgetrfsp1d_gemm_LR( cblk, blok, fcblk,
+                                     L, U, fcblk->lcoeftab, fcblk->ucoeftab, work );
+        }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
 
