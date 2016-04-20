@@ -20,6 +20,7 @@
 #include "solver.h"
 #include "bcsc.h"
 #include <lapacke.h>
+#include "coeftab.h"
 #include "pastix_zcores.h"
 
 void
@@ -87,9 +88,10 @@ coeftab_zcompress_one( SolverCblk *cblk,
         blok->coefL_u_LR = LRblocks->u;
         blok->coefL_v_LR = LRblocks->v;
         blok->rankL      = LRblocks->rk;
-        LRblocks++;
 
-        gainL -= ((nrows+ncols) * blok->LRblock[0].rk);
+        gainL -= (LRblocks->rk == -1) ? nrows * ncols
+            : ((nrows+ncols) * blok->LRblock[0].rk);
+        LRblocks++;
 
         if (factoLU) {
             core_zge2lr( tol, nrows, ncols,
@@ -98,12 +100,21 @@ coeftab_zcompress_one( SolverCblk *cblk,
             blok->coefU_u_LR = LRblocks->u;
             blok->coefU_v_LR = LRblocks->v;
             blok->rankU      = LRblocks->rk;
+            gainU -= (LRblocks->rk == -1) ? nrows * ncols
+                : ((nrows+ncols) * blok->LRblock[0].rk);
             LRblocks++;
-
-            gainU -= ((nrows+ncols) * blok->LRblock[1].rk);
         }
     }
 
+    cblk->cblktype &= ~(CBLK_DENSE);
+    if (gainL + gainU > 0.) {
+        assert( gainL+gainU < 2*ncols*cblk->stride );
+        fprintf( stderr, "Compression: %ld / %ld\n",
+                 gainL+gainU, 2*ncols*cblk->stride );
+    }
+    else {
+        fprintf( stderr, "Compression: No gain\n" );
+    }
     /**
      * Free the dense version
      */
@@ -151,6 +162,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
 
     cblk->lcoeftab = lcoeftab;
     cblk->ucoeftab = ucoeftab;
+    cblk->cblktype |= CBLK_DENSE;
 
     /**
      * Free all the LRblock structures associated to the cblk
@@ -168,7 +180,6 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         if (!(cblk->cblktype & CBLK_DENSE)) {
             coeftab_zuncompress_one( cblk, 1 );
-            cblk->cblktype |= CBLK_DENSE;
         }
     }
 }
@@ -380,11 +391,10 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         char  *tolerance = getenv("TOLERANCE");
         double tol = atof(tolerance);
 
-        if (cblk_colnbr( cblk ) >= compress_size)
+        if (0 && cblk_colnbr( cblk ) >= compress_size)
         {
             fprintf(stderr, "Try to compress a block\n");
             coeftab_zcompress_one( cblk, tol );
-            cblk->cblktype &= ~(CBLK_DENSE);
         }
     }
 }
