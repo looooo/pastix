@@ -128,9 +128,10 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
     return rank;
 }
 
-void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
-                  const pastix_complex64_t *A, pastix_int_t lda,
-                  pastix_lrblock_t *Alr )
+void
+core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+             const pastix_complex64_t *A, pastix_int_t lda,
+             pastix_lrblock_t *Alr )
 {
     Alr->rkmax = pastix_imin( m, n );
     Alr->u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t));
@@ -140,33 +141,16 @@ void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
                                   Alr->u, m, Alr->v, Alr->rkmax );
 
     /* Could not compress */
-    if ( Alr->rk == -1 ) {
+    if ( (Alr->rk == -1) ||
+         ((Alr->rk * 2) >  Alr->rkmax) )
+    {
         if ( n != Alr->rkmax ) {
             Alr->u = realloc( Alr->u, m * n * sizeof(pastix_complex64_t) );
         }
-        free( Alr->v );
+        free( Alr->v ); Alr->v = NULL;
+        Alr->rk = -1;
         LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
                              A, lda, Alr->u, m );
-    }
-}
-
-void core_zlr2ge( pastix_int_t m, pastix_int_t n,
-                  pastix_lrblock_t *Alr,
-                  pastix_complex64_t *A, pastix_int_t lda )
-{
-    if ( Alr->rk == -1 ) {
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                             Alr->u, m, A, lda );
-        free(Alr->u);
-    }
-    else {
-        core_z_uncompress_LR( m, n, Alr->rk,
-                              Alr->u, m, Alr->v, Alr->rkmax,
-                              A, lda );
-        free(Alr->u);
-        free(Alr->v);
-        Alr->rk = -1;
-        Alr->rkmax = -1;
     }
 }
 
@@ -210,6 +194,30 @@ core_z_uncompress_LR( pastix_int_t m, pastix_int_t n, pastix_int_t rank,
                 CBLAS_SADDR(zone),  u, ldu,
                                     v, ldv,
                 CBLAS_SADDR(zzero), A, lda);
+}
+
+void
+core_zlr2ge( pastix_int_t m, pastix_int_t n,
+             pastix_lrblock_t *Alr,
+             pastix_complex64_t *A, pastix_int_t lda )
+{
+    if ( Alr->rk == -1 ) {
+        assert(Alr->u != NULL && Alr->v == NULL);
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                             Alr->u, m, A, lda );
+        free(Alr->u);
+    }
+    else {
+        assert(Alr->u != NULL && Alr->v != NULL);
+        core_z_uncompress_LR( m, n, Alr->rk,
+                              Alr->u, m,
+                              Alr->v, Alr->rkmax,
+                              A,      lda );
+        free(Alr->u);
+        free(Alr->v);
+        Alr->rk = -1;
+        Alr->rkmax = -1;
+    }
 }
 
 /**
