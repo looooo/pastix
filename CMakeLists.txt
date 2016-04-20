@@ -546,7 +546,7 @@ set(PASTIX_LIB_SRCS
 # blend/partbuild.c
 # blend/smart_cblk_split.c
   blend/solverMatrixGen.c
-  blend/solverRealloc.c
+  blend/solver_copy.c
   blend/solver_check.c
   blend/solver_io.c
 # blend/splitpartlocal.c
