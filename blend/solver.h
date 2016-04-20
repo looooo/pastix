@@ -522,18 +522,14 @@ static inline int is_block_inside_fblock( SolverBlok *blok,
 pastix_int_t sizeofsolver(const SolverMatrix *solvptr,
                           pastix_int_t *iparm );
 
-void                     solverExit           (SolverMatrix *);
-void                     solverInit           (SolverMatrix *);
-
-struct SolverBackup_s;
-typedef struct SolverBackup_s SolverBackup_t;
-
-SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
-int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
-void            solverBackupExit( SolverBackup_t *b );
+void solverInit(SolverMatrix *);
+void solverExit(SolverMatrix *);
 
 pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
 pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
+
+void          solverRealloc(SolverMatrix *);
+SolverMatrix *solverCopy(const SolverMatrix *);
 
 int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           ngpus,
@@ -541,5 +537,12 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              size_t        eltsize,
                              int           criterium,
                              int           factotype );
+
+struct SolverBackup_s;
+typedef struct SolverBackup_s SolverBackup_t;
+
+SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
+int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
+void            solverBackupExit( SolverBackup_t *b );
 
 #endif /* _SOLVER_H_*/

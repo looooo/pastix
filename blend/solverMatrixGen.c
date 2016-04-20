@@ -20,7 +20,6 @@
 #include "solver_check.h"
 #include "task.h"
 #include "fanboth2.h"
-#include "solverRealloc.h"
 #include "solver_io.h"
 #include "solverMatrixGen.h"
 
