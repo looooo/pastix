@@ -95,35 +95,35 @@ pastix_diag( pastix_data_t *pastix_data, int flttype,
     }
 }
 
-void
-pastix_dsolve( pastix_data_t *pastix_data,
-               int flttype, int side, int uplo, int trans, int diag,
-               sopalin_data_t *sopalin_data,
-               int nrhs, void *b, int ldb )
-{
-    switch (flttype) {
-    case PastixComplex64:
-        sequential_z_Dsolve( pastix_data, side, uplo, trans, diag,
-                          sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
-        break;
-    case PastixComplex32:
-        sequential_c_Dsolve( pastix_data, side, uplo, trans, diag,
-                          sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
-        break;
-    case PastixDouble:
-        trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        sequential_d_Dsolve( pastix_data, side, uplo, trans, diag,
-                          sopalin_data, nrhs, (double *)b, ldb );
-        break;
-    case PastixFloat:
-        trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        sequential_s_Dsolve( pastix_data, side, uplo, trans, diag,
-                          sopalin_data, nrhs, (float *)b, ldb );
-        break;
-    default:
-        fprintf(stderr, "Unknown floating point arithmetic\n" );
-    }
-}
+/* void */
+/* pastix_dsolve( pastix_data_t *pastix_data, */
+/*                int flttype, int side, int uplo, int trans, int diag, */
+/*                sopalin_data_t *sopalin_data, */
+/*                int nrhs, void *b, int ldb ) */
+/* { */
+/*     switch (flttype) { */
+/*     case PastixComplex64: */
+/*         sequential_z_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (pastix_complex64_t *)b, ldb ); */
+/*         break; */
+/*     case PastixComplex32: */
+/*         sequential_c_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (pastix_complex32_t *)b, ldb ); */
+/*         break; */
+/*     case PastixDouble: */
+/*         trans = (trans == PastixConjTrans) ? PastixTrans : trans; */
+/*         sequential_d_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (double *)b, ldb ); */
+/*         break; */
+/*     case PastixFloat: */
+/*         trans = (trans == PastixConjTrans) ? PastixTrans : trans; */
+/*         sequential_s_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (float *)b, ldb ); */
+/*         break; */
+/*     default: */
+/*         fprintf(stderr, "Unknown floating point arithmetic\n" ); */
+/*     } */
+/* } */
 
 /**
  *******************************************************************************

@@ -36,7 +36,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     pastix_complex64_t *coeftab;
     pastix_int_t i, j, tempm, tempn;
     (void)pastix_data;
-    (void)diag;
 
     /*
      *  Left / Upper / NoTrans
@@ -49,6 +48,14 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                 for (i=0; i<datacode->cblknbr; i++, cblk--){
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
+
+                    /* Solve the diagonal block */
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        CblasTrans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs, CBLAS_SADDR(zone),
+                        cblk->ucoeftab,    cblk->stride,
+                        b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
                     for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
@@ -82,17 +89,12 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     /* In sequential */
                     assert( cblk->fcolnum == cblk->lcolidx );
 
+                    /* Solve the diagonal block */
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, CblasUnit,
+                        CblasNoTrans, (enum CBLAS_DIAG)diag,
                         tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->dcoeftab, tempn,
-                        b + cblk->lcolidx, ldb );
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasUpper,
-                        CblasNoTrans, CblasNonUnit,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->dcoeftab,    tempn,
+                        coeftab, cblk->stride,
                         b + cblk->lcolidx, ldb );
 
                     /* Apply the update */
@@ -121,6 +123,14 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
+                    /* Solve the diagonal block */
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs, CBLAS_SADDR(zone),
+                        cblk->lcoeftab,    cblk->stride,
+                        b + cblk->lcolidx, ldb );
+
                     /* Apply the update */
                     for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
                         blok = datacode->bloktab + datacode->browtab[j];
@@ -137,75 +147,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                             CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                     }
                 }
-            }
-        }
-    }
-    /**
-     * Right
-     */
-    else {
-    }
-}
-
-
-void
-sequential_z_Dsolve( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
-                     sopalin_data_t *sopalin_data,
-                     int nrhs, pastix_complex64_t *b, int ldb )
-
-{
-    SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk;
-    pastix_int_t i, tempn;
-    (void)pastix_data;
-    /*
-     *  Left / Upper / NoTrans
-     */
-    if (side == PastixLeft) {
-        if (uplo == PastixUpper) {
-            /*  We store U^t, so we swap uplo and trans */
-            if (trans == PastixNoTrans) {
-                cblk = datacode->cblktab + datacode->cblknbr - 1;
-                for (i=0; i<datacode->cblknbr; i++, cblk--){
-
-                    tempn = cblk->lcolnum - cblk->fcolnum + 1;
-
-                    /* Solve the diagonal block (only for LU blocks) */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasUpper,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->dcoeftab,    tempn,
-                        b + cblk->lcolidx, ldb );
-                }
-            }
-        }
-        else {
-            /*
-             *  Left / Lower / NoTrans
-             */
-            if (trans == PastixNoTrans) {
-                cblk = datacode->cblktab;
-                for (i=0; i<datacode->cblknbr; i++, cblk++){
-
-                    tempn = cblk->lcolnum - cblk->fcolnum + 1;
-
-                    /* In sequential */
-                    assert( cblk->fcolnum == cblk->lcolidx );
-
-                    /* Solve the diagonal block (only for LU blocks) */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->dcoeftab, tempn,
-                        b + cblk->lcolidx, ldb );
-                }
-            }
-            /*
-             *  Left / Lower / [Conj]Trans
-             */
-            else {
             }
         }
     }

@@ -183,12 +183,12 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
     SolverBlok *solvblok;
     SolverBlok *solvblok2 = (solvcblk+1)->fblokptr;
     pastix_complex64_t *lcoeftab = solvcblk->lcoeftab;
-    pastix_complex64_t *dcoeftab = solvcblk->dcoeftab;
+    //pastix_complex64_t *dcoeftab = solvcblk->dcoeftab;
     pastix_complex64_t *ucoeftab = solvcblk->ucoeftab;
     pastix_complex64_t *Lvalues = bcsc->Lvalues;
     pastix_complex64_t *Uvalues = bcsc->Uvalues;
     pastix_int_t itercoltab, iterval, coefindx;
-    pastix_int_t ncols = solvcblk->lcolnum - solvcblk->fcolnum + 1;
+    //    pastix_int_t ncols = solvcblk->lcolnum - solvcblk->fcolnum + 1;
 
     for (itercoltab=0; itercoltab<csccblk->colnbr; itercoltab++)
     {
@@ -212,31 +212,47 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
 
                 if ( solvblok < solvblok2 )
                 {
-                    pastix_int_t i, j;
-                    i = solvblok->coefind + rownum - solvblok->frownum;
-                    j = itercoltab;
+                    coefindx  = solvblok->coefind;
+                    coefindx += rownum - solvblok->frownum;
+                    coefindx += solvcblk->stride * itercoltab;
 
-                    if (i < ncols){
-                        dcoeftab[i*ncols + j] = Uvalues[iterval];
-                        dcoeftab[j*ncols + i] = Lvalues[iterval];
-                    }
-                    else{
-                        coefindx  = solvblok->coefind;
-                        coefindx += rownum - solvblok->frownum;
-                        coefindx += solvcblk->stride * itercoltab;
-                        lcoeftab[coefindx] = Lvalues[iterval];
+                    lcoeftab[coefindx] = Lvalues[iterval];
 
-                        if ( (ucoeftab != NULL) &&
-                             (rownum > (solvcblk->fcolnum + itercoltab)) )
-                        {
+                    if ( (ucoeftab != NULL) &&
+                         (rownum > (solvcblk->fcolnum + itercoltab)) )
+                    {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                            if (bcsc->mtxtype == PastixHermitian)
-                                ucoeftab[coefindx] = conj(Uvalues[iterval]);
-                            else
+                        if (bcsc->mtxtype == PastixHermitian)
+                            ucoeftab[coefindx] = conj(Uvalues[iterval]);
+                        else
 #endif
-                                ucoeftab[coefindx] = Uvalues[iterval];
-                        }
+                            ucoeftab[coefindx] = Uvalues[iterval];
                     }
+/*                     pastix_int_t i, j; */
+/*                     i = solvblok->coefind + rownum - solvblok->frownum; */
+/*                     j = itercoltab; */
+
+/*                     if (i < ncols){ */
+/*                         dcoeftab[i*ncols + j] = Uvalues[iterval]; */
+/*                         dcoeftab[j*ncols + i] = Lvalues[iterval]; */
+/*                     } */
+/*                     else{ */
+/*                         coefindx  = solvblok->coefind; */
+/*                         coefindx += rownum - solvblok->frownum; */
+/*                         coefindx += solvcblk->stride * itercoltab; */
+/*                         lcoeftab[coefindx] = Lvalues[iterval]; */
+
+/*                         if ( (ucoeftab != NULL) && */
+/*                              (rownum > (solvcblk->fcolnum + itercoltab)) ) */
+/*                         { */
+/* #if defined(PRECISION_z) || defined(PRECISION_c) */
+/*                             if (bcsc->mtxtype == PastixHermitian) */
+/*                                 ucoeftab[coefindx] = conj(Uvalues[iterval]); */
+/*                             else */
+/* #endif */
+/*                                 ucoeftab[coefindx] = Uvalues[iterval]; */
+/*                         } */
+/*                     } */
                 }
                 else {
                     /* printf("ILU: csc2solv drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n", */
@@ -358,7 +374,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      * Try to compress the cblk if needs to be compressed
      * TODO: change the criteria based on the level in the tree
      */
-    if(0)
     {
         /* TODO: cleanup to pass that as arguments */
         int compress_size = 80;

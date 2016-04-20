@@ -273,8 +273,8 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
 
-    /* Let's uncompress the cblk because the solve doesn't know how to deal ith compressed information */
-    //coeftabUncompress[spm->flttype-2]( pastix_data->solvmatr );
+    /* Let's uncompress the cblk because the solve doesn't know how to deal with compressed information */
+    coeftabUncompress[spm->flttype-2]( pastix_data->solvmatr );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |
