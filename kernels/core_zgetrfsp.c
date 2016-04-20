@@ -326,8 +326,11 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
             SolverBlok *blok;
             pastix_lrblock_t *lrblock;
 
+            assert(fblok->LRblock[0].rk == -1 &&
+                   fblok->LRblock[1].rk == -1);
             L = fblok->LRblock[0].u;
             U = fblok->LRblock[1].u;
+            stride = dima;
 
             for(blok = fblok+1; blok<lblok; blok++) {
 
@@ -676,7 +679,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
-        if ( cblk->cblktype & CBLK_DENSE) {
+        if ( cblk->cblktype & CBLK_DENSE ) {
             /* Update on L */
             core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
                           L, U, fcblk->lcoeftab, work );

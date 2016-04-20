@@ -30,7 +30,7 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
 /* Section: Functions */
 void
 coeftab_zcompress_one( SolverCblk *cblk,
-                       double      tol)
+                       double      tol )
 {
     pastix_lrblock_t   *LRblocks;
     SolverBlok         *blok     = cblk[0].fblokptr;
