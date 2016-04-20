@@ -223,18 +223,15 @@ static void core_zgetrfsp(pastix_int_t        n,
  *
  *******************************************************************************/
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
-                           pastix_complex64_t *D,
-                           pastix_complex64_t *nul,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
                            double              criteria)
 {
-    (void) nul;
-    pastix_int_t ncols, n;
+    pastix_int_t ncols, stride;
     pastix_int_t nbpivot = 0;
 
-    ncols = cblk->lcolnum - cblk->fcolnum + 1;
-
-    /* n corresponds to the size of diagonal block (n-by-n supported) */
-    n = cblk->lcolnum - cblk->fcolnum + 1;
+    ncols  = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = ncols;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
@@ -242,7 +239,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 
     Clock timer;
     clockStart(timer);
-    core_zgetrfsp(ncols, D, n, &nbpivot, criteria);
+    core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
     clockStop(timer);
 
     /* Symmetric case */
@@ -254,6 +251,8 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     local_memory   = n*n*8/1000000.;
     local_memory  += 2*(cblk->stride - n)*n*8/1000000.;
     total_memory2 += local_memory;
+
+    (void)U;
     return nbpivot;
 }
 
@@ -365,10 +364,10 @@ int core_zgetrfsp1d_uncompress( SolverCblk         *cblk,
     pastix_complex64_t *fU, *fL;
     pastix_int_t dima, dimb, stride;
 
-    dima    = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
-    fblok = cblk->fblokptr;   /* this diagonal block */
-    lblok = cblk[1].fblokptr; /* the next diagonal block */
+    dima   = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = cblk->stride;
+    fblok  = cblk->fblokptr;   /* this diagonal block */
+    lblok  = cblk[1].fblokptr; /* the next diagonal block */
 
     /* vertical dimension */
     dimb = stride - dima;
