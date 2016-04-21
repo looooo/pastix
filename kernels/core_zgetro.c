@@ -61,7 +61,6 @@ void core_zaxpyt(int m, int n, pastix_complex64_t alpha,
                  const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb)
 {
-    pastix_complex64_t *lA, *lB;
     int i, j;
 
     /* rectangular transposition (use workspace) */
