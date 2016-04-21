@@ -6,7 +6,8 @@
 
 /*+ Realloc the solver matrix in a contiguous way +*/
 void solver_copy(const SolverMatrix *solvin,
-                 SolverMatrix *solvout)
+                 SolverMatrix *solvout,
+                 int flttype )
 {
     SolverCblk *solvcblk;
     SolverBlok *solvblok;
@@ -38,6 +39,33 @@ void solver_copy(const SolverMatrix *solvin,
         pastix_int_t bloknbr = (solvcblk+1)->fblokptr - solvcblk->fblokptr;
         solvcblk->fblokptr = solvblok;
         solvblok+= bloknbr;
+
+        if ( flttype == -1 ) {
+            solvcblk->lcoeftab = NULL;
+            solvcblk->ucoeftab = NULL;
+        }
+        else {
+            void *lcoeftab = solvcblk->lcoeftab;
+            void *ucoeftab = solvcblk->ucoeftab;
+            size_t size = cblk_colnbr( solvcblk ) * solvcblk->stride
+                * pastix_size_of( flttype );
+
+            if ( lcoeftab ) {
+                MALLOC_INTERN( solvcblk->lcoeftab, size, char );
+                memcpy(solvcblk->lcoeftab, lcoeftab, size );
+            }
+            else {
+                solvcblk->lcoeftab = NULL;
+            }
+
+            if ( ucoeftab ) {
+                MALLOC_INTERN( solvcblk->ucoeftab, size, char );
+                memcpy(solvcblk->ucoeftab, ucoeftab, size );
+            }
+            else {
+                solvcblk->ucoeftab = NULL;
+            }
+        }
     }
     solvcblk->fblokptr = solvblok;
 
@@ -157,14 +185,15 @@ void solver_copy(const SolverMatrix *solvin,
 }
 
 SolverMatrix *
-solverCopy(const SolverMatrix *solvin)
+solverCopy(const SolverMatrix *solvin,
+           int flttype )
 {
     SolverMatrix *solvout;
 
     MALLOC_INTERN(solvout, 1, SolverMatrix);
     memcpy(solvout, solvin, sizeof(SolverMatrix));
 
-    solver_copy( solvin, solvout );
+    solver_copy( solvin, solvout, flttype );
 
     return solvout;
 }
@@ -178,7 +207,7 @@ solverRealloc(SolverMatrix *solvmtx)
     /** copy general info **/
     memcpy(tmp, solvmtx, sizeof(SolverMatrix));
 
-    solver_copy( tmp, solvmtx );
+    solver_copy( tmp, solvmtx, -1 );
 
     /** Free the former solver matrix **/
     solverExit(tmp);

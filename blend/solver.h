@@ -528,8 +528,8 @@ void solverExit(SolverMatrix *);
 pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
 pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
 
-void          solverRealloc(SolverMatrix *);
-SolverMatrix *solverCopy(const SolverMatrix *);
+void          solverRealloc(SolverMatrix *solvptr);
+SolverMatrix *solverCopy(const SolverMatrix *solvptr, int flttype);
 
 int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           ngpus,
