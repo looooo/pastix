@@ -30,15 +30,6 @@ static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
 };
 
-static void (*coeftabUncompress[4])(SolverMatrix*) =
-{
-    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
-};
-
-void
-coeftabInit( const pastix_data_t *pastix_data,
-             int fakefillin, int factoLU );
-
 int
 pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
                          pastix_spm_t  *spm )
