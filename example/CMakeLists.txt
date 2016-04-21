@@ -164,6 +164,12 @@ target_link_libraries(bcsc_norm_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 add_executable(bcsc_matvec_tests bcsc_matvec_tests.c)
 target_link_libraries(bcsc_matvec_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
+add_executable(compress_bfacto_test compress_bfacto_test.c)
+target_link_libraries(compress_bfacto_test ${PASTIX_EXAMPLES_LIBRARIES})
+
+add_executable(compress_afacto_test compress_afacto_test.c)
+target_link_libraries(compress_afacto_test ${PASTIX_EXAMPLES_LIBRARIES})
+
 #
 #-- CTests
 #

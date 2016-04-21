@@ -590,12 +590,15 @@ int pastix_task_reordering(pastix_data_t *pastix_data);
 
 int pastix_task_blend( pastix_data_t *pastix_data );
 
+int pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
+                             pastix_spm_t  *spm );
+int pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
+                              pastix_spm_t  *spm );
 int pastix_task_sopalin( pastix_data_t *pastix_data,
                           pastix_csc_t  *csc );
 
-int
-pastix_task_solve( pastix_data_t *pastix_data,
-                   const pastix_csc_t  *csc,
+int pastix_task_solve( pastix_data_t *pastix_data,
+                       const pastix_csc_t  *csc,
                        int nrhs, void *b, int ldb );
 
 void pastix_task_raff(pastix_data_t *pastix_data,
