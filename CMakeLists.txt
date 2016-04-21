@@ -463,6 +463,8 @@ set(SOURCES
   matrix_drivers/z_spm_laplacian.c
   #
   sopalin/coeftab_z.c
+  sopalin/coeftab_zcompress.c
+  sopalin/coeftab_zdiff.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c

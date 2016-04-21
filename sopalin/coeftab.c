@@ -19,6 +19,11 @@
 #include "solver.h"
 #include "coeftab.h"
 
+void (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*) =
+{
+    coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
+};
+
 struct coeftabinit_s {
     const SolverMatrix  *datacode;
     const pastix_bcsc_t *bcsc;

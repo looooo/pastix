@@ -17,7 +17,7 @@
 #ifndef _COEFTAB_H_
 #define _COEFTAB_H_
 
-void coeftab_zcompress_one( SolverCblk *cblk, double tol);
+pastix_int_t coeftab_zcompress_one( SolverCblk *cblk, double tol);
 void coeftab_zuncompress_one( SolverCblk *cblk, int factoLU );
 void coeftab_zuncompress( SolverMatrix *solvmtx );
 void coeftab_zffbcsc( const SolverMatrix  *solvmtx,
@@ -33,7 +33,7 @@ void coeftab_zdumpcblk( const SolverCblk *cblk,
 void coeftab_zdump( const SolverMatrix *solvmtx,
                     const char   *filename );
 
-void coeftab_ccompress_one( SolverCblk *cblk, float tol );
+pastix_int_t coeftab_ccompress_one( SolverCblk *cblk, float tol );
 void coeftab_cuncompress_one( SolverCblk *cblk, int factoLU );
 void coeftab_cuncompress( SolverMatrix *solvmtx );
 void coeftab_cffbcsc( const SolverMatrix  *solvmtx,
@@ -49,7 +49,7 @@ void coeftab_cdumpcblk( const SolverCblk *cblk,
 void coeftab_cdump( const SolverMatrix *solvmtx,
                     const char   *filename );
 
-void coeftab_dcompress_one( SolverCblk *cblk, double tol );
+pastix_int_t coeftab_dcompress_one( SolverCblk *cblk, double tol );
 void coeftab_duncompress_one( SolverCblk *cblk, int factoLU );
 void coeftab_duncompress( SolverMatrix *solvmtx );
 void coeftab_dffbcsc( const SolverMatrix  *solvmtx,
@@ -65,7 +65,7 @@ void coeftab_ddumpcblk( const SolverCblk *cblk,
 void coeftab_ddump( const SolverMatrix *solvmtx,
                     const char   *filename );
 
-void coeftab_scompress_one( SolverCblk *cblk, float tol);
+pastix_int_t coeftab_scompress_one( SolverCblk *cblk, float tol);
 void coeftab_suncompress_one( SolverCblk *cblk, int factoLU );
 void coeftab_suncompress( SolverMatrix *solvmtx );
 void coeftab_sffbcsc( const SolverMatrix  *solvmtx,
@@ -80,5 +80,16 @@ void coeftab_sdumpcblk( const SolverCblk *cblk,
                         FILE *stream );
 void coeftab_sdump( const SolverMatrix *solvmtx,
                     const char   *filename );
+
+
+void coeftab_zcompress( SolverMatrix *solvmtx );
+void coeftab_ccompress( SolverMatrix *solvmtx );
+void coeftab_dcompress( SolverMatrix *solvmtx );
+void coeftab_scompress( SolverMatrix *solvmtx );
+
+void coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB );
+void coeftab_cdiff( const SolverMatrix *solvA, SolverMatrix *solvB );
+void coeftab_ddiff( const SolverMatrix *solvA, SolverMatrix *solvB );
+void coeftab_sdiff( const SolverMatrix *solvA, SolverMatrix *solvB );
 
 #endif /* _COEFTAB_H_ */
