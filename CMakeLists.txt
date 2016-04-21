@@ -399,6 +399,7 @@ add_definitions(${TOTO})
 #add_subdirectory(matrix_drivers)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
@@ -432,15 +433,15 @@ if (PASTIX_WITH_PARSEC)
 endif()
 
 include(RulesPrecisions)
-# reset variables
-set(generated_files "")
-set(generated_headers "")
 
+##
+# Headers from spm directory
+##
+set(generated_headers "")
 set(HEADERS
   spm/z_spm.h
 )
 
-### generate the dsparse_cores headers for all possible precisions
 precisions_rules_py(generated_headers
   "${HEADERS}"
   TARGETDIR  "spm"
@@ -449,6 +450,26 @@ precisions_rules_py(generated_headers
 add_custom_target( spm_headers
   DEPENDS ${generated_headers} )
 
+##
+# Headers from sopalin directory
+##
+set(generated_headers "")
+set(HEADERS
+  sopalin/coeftab_z.h
+)
+
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  TARGETDIR  "sopalin"
+  PRECISIONS "p;s;d;c;z")
+
+add_custom_target( sopalin_headers
+  DEPENDS ${generated_headers} )
+
+##
+# Source files
+##
+set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
@@ -614,6 +635,11 @@ set_source_files_properties(
   PROPERTIES DEPENDS spm_headers
   )
 
+set_source_files_properties(
+  sopalin/coeftab.h
+  PROPERTIES DEPENDS sopalin_headers
+  )
+
 set(PASTIX_ALL_SRCS
   ${generated_files}
   #
@@ -692,6 +718,7 @@ add_dependencies(pastix
   kernels_headers
   bcsc_headers
   refinement_headers
+  sopalin_headers
 )
 target_link_libraries(pastix
   pastix_bcsc

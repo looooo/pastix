@@ -17,6 +17,20 @@
 #ifndef _COEFTAB_H_
 #define _COEFTAB_H_
 
+#include "sopalin/coeftab_z.h"
+#include "sopalin/coeftab_c.h"
+#include "sopalin/coeftab_d.h"
+#include "sopalin/coeftab_s.h"
+
+void
+coeftabInit( const pastix_data_t *pastix_data,
+             int fakefillin, int factoLU );
+
+
+void (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*);
+void (*coeftabUncompress[4])(SolverMatrix*);
+void (*coeftabCompress[4])(SolverMatrix*);
+
 pastix_int_t coeftab_zcompress_one( SolverCblk *cblk, double tol);
 void coeftab_zuncompress_one( SolverCblk *cblk, int factoLU );
 void coeftab_zuncompress( SolverMatrix *solvmtx );
