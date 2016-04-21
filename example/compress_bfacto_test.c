@@ -84,7 +84,16 @@ int main (int argc, char **argv)
     coeftabUncompress[spm->flttype-2]( copy );
 
     /* Let's check the difference between the two matrices */
-    coeftabDiff[spm->flttype-2]( pastix_data->solvmatr, copy );
+    rc = coeftabDiff[spm->flttype-2]( pastix_data->solvmatr, copy );
+    if (rc) {
+        fprintf(stderr,
+                " -- Test compression on matrix before factorization: FAILED !!! --\n"
+                "    %d cblk have not been correctly compressed\n",
+                rc );
+    }
+    else {
+        fprintf(stderr, " -- Test compression on matrix before factorization: SUCCESS ! --\n" );
+    }
 
     spmExit( spm );
     free( spm );

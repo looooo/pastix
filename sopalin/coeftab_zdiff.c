@@ -21,7 +21,7 @@
 #include "coeftab.h"
 #include "pastix_zcores.h"
 
-void
+int
 coeftab_zdiffcblk( const SolverCblk *cblkA,
                   SolverCblk *cblkB )
 {
@@ -33,6 +33,7 @@ coeftab_zdiffcblk( const SolverCblk *cblkA,
     pastix_int_t        stride = cblkA->stride;
     double normL, normU, normfAL, normfAU, normcAL, normcAU, resL, resU, eps;
     int factoLU = (ucoefA == NULL) ? 0 : 1;
+    int rc = 0;
 
     assert( ncols  == cblk_colnbr( cblkB ) );
     assert( stride == cblkB->stride );
@@ -70,6 +71,7 @@ coeftab_zdiffcblk( const SolverCblk *cblkA,
     if ( resL > 10 ) {
         fprintf(stderr, "KO on L: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
                 normfAL, normcAL, normL, resL );
+        rc++;
     }
     /* else { */
     /*     fprintf(stderr, "Ok on L: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n", */
@@ -79,24 +81,29 @@ coeftab_zdiffcblk( const SolverCblk *cblkA,
     if ( resU > 10 ) {
         fprintf(stderr, "KO on U: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
                 normfAU, normcAU, normU, resU );
+        rc++;
     }
     /* else { */
     /*     fprintf(stderr, "Ok on U: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n", */
     /*             normfAU, normcAU, normU, resU ); */
     /* } */
-    return;
+
+    return rc;
 }
 
 
-void
+int
 coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB )
 {
     SolverCblk *cblkA = solvA->cblktab;
     SolverCblk *cblkB = solvB->cblktab;
     pastix_int_t cblknum;
+    int rc = 0;
 
     for(cblknum=0; cblknum<solvA->cblknbr; cblknum++, cblkA++, cblkB++) {
-        coeftab_zdiffcblk( cblkA, cblkB );
+        rc += coeftab_zdiffcblk( cblkA, cblkB );
     }
+
+    return rc;
 }
 
