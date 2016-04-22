@@ -158,9 +158,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
 
     if ( factoLU ) {
-        MALLOC_INTERN( cblk->dcoeftab, cblk_colnbr( cblk ) * cblk_colnbr( cblk ), pastix_complex64_t );
-        memset( cblk->dcoeftab, 0, cblk_colnbr( cblk ) * cblk_colnbr( cblk ) * sizeof(pastix_complex64_t) );
-
         /* Extra diagonal block for low-rank updates */
         MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
         memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
