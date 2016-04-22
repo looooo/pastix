@@ -94,6 +94,8 @@ int main (int argc, char **argv)
     else {
         fprintf(stderr, " -- Test compression on matrix before factorization: SUCCESS ! --\n" );
     }
+    solverExit( copy );
+    free(copy);
 
     spmExit( spm );
     free( spm );
