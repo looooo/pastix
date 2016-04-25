@@ -102,6 +102,8 @@ void core_zgemmsp( int uplo, int trans,
     pastix_int_t M, N, K, m;
     int shift;
 
+    pastix_lrblock_t *lrblock;
+    pastix_int_t rownbr;
     char  *tolerance = getenv("TOLERANCE");
     double tol = atof(tolerance);
 
@@ -163,50 +165,155 @@ void core_zgemmsp( int uplo, int trans,
                           1.0, tmpC, stridef );
         }
         else {
-            pastix_lrblock_t *lrblock = fblok->LRblock + shift;
-            pastix_int_t rownbr = blok_rownbr(fblok);
-            if ( lrblock->rk == -1 ) {
-                tmpC = lrblock->u
-                    + (blok->frownum - fcblk->fcolnum) * rownbr
-                    + iterblok->frownum - fblok->frownum;
-                core_zgeadd( CblasNoTrans, m, N,
-                             -1.0, wtmp, M,
-                              1.0, tmpC, rownbr );
-            }
-            else {
-                if ( m < N ) {
-                    core_zlradd( tol, -1,
-                                 /* A*B */
-                                 m, N, m,
-                                 NULL, m, wtmp, M,
-                                 /* C */
-                                 blok_rownbr( fblok ), cblk_colnbr( fcblk ),
-                                 lrblock->rk,
-                                 lrblock->u, blok_rownbr( fblok ),
-                                 lrblock->v, lrblock->rkmax,
-                                 /* offset */
-                                 iterblok->frownum - fblok->frownum,
-                                 blok->frownum - fcblk->fcolnum);
-                }
-                else {
-                    core_zlradd( tol, -1,
-                                 /* A*B */
-                                 m, N, m, wtmp, M, NULL, m,
-                                 /* C */
-                                 blok_rownbr( fblok ), cblk_colnbr( fcblk ),
-                                 lrblock->rk,
-                                 lrblock->u, blok_rownbr( fblok ),
-                                 lrblock->v, lrblock->rkmax,
-                                 /* offset */
-                                 iterblok->frownum - fblok->frownum,
-                                 blok->frownum - fcblk->fcolnum);
-                }
-            }
+            lrblock = fblok->LRblock + shift;
+            rownbr = blok_rownbr(fblok);
+
+            core_zgradd( tol, -1.,
+                         /* AB */
+                         m, N, wtmp, M,
+                         /* C */
+                         rownbr, cblk_colnbr( fcblk ), lrblock,
+                         /* offset */
+                         iterblok->frownum - fblok->frownum,
+                         blok->frownum - fcblk->fcolnum);
         }
         pastix_cblk_unlock( fcblk );
 
         /* Displacement to next block */
         wtmp += m;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgemmsp - Computes the updates associated to one off-diagonal block.
+ *
+ *******************************************************************************
+ *
+ * @param[in] uplo
+ *          If uplo == PastixLower, the contribution of:
+ *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
+ *          C, otherwise the contribution:
+ *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
+ *          to C.
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the B matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and B pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The block from which we compute the contributions.
+ *
+ * @param[in] fcblk
+ *          The pointer to the data structure that describes the panel on which
+ *          we compute the contributions. The C pointer must be one of the
+ *          oceftab from this fcblk. Next column blok must be accessible through
+ *          fcblk[1].
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
+ *          the coefficients of the panel, if Symmetric/Hermitian cases or if
+ *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
+ *          cblk.stride -by- cblk.width
+ *
+ * @param[in,out] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+void core_zgemmsp_lr( int uplo, int trans,
+                      SolverCblk         *cblk,
+                      SolverBlok         *blok,
+                      SolverCblk         *fcblk,
+                      pastix_complex64_t *work )
+{
+    SolverBlok *iterblok;
+    SolverBlok *fblok;
+    SolverBlok *lblok;
+
+    pastix_complex64_t *C, *tmpC;
+    pastix_int_t M, N, K;
+    int shift;
+
+    pastix_lrblock_t *lrA, *lrB;
+
+    char  *tolerance = getenv("TOLERANCE");
+    double tol = atof(tolerance);
+
+    assert( !(cblk->cblktype & CBLK_DENSE) );
+
+    shift = (uplo == PastixUpper) ? 1 : 0;
+    C =  (uplo == PastixUpper) ? fcblk->ucoeftab : fcblk->lcoeftab;
+
+    /* Get the dimension of B */
+    lrB = blok->LRblock + ( 1 - shift );
+    K = cblk_colnbr( cblk );
+    N = blok_rownbr( blok );
+
+    /**
+     * Add contribution to C in fcblk:
+     *    Get the first facing block of the distant panel, and the last block of
+     *    the current cblk
+     */
+    fblok = fcblk->fblokptr;
+    lblok = cblk[1].fblokptr;
+
+    /* for all following blocks in block column */
+    for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
+
+        /* Find facing blok */
+        while (!is_block_inside_fblock( iterblok, fblok ))
+        {
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
+        }
+
+        lrA = iterblok->LRblock + shift;
+        M = blok_rownbr( iterblok );
+
+        pastix_cblk_lock( fcblk );
+        if ( fcblk->cblktype & CBLK_DENSE ) {
+            tmpC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+            core_zlrmge( PastixNoTrans, trans,
+                         M, N, K,
+                         lrA, lrB, tmpC, fcblk->stride,
+                         work, -1 );
+        }
+        else {
+            core_zlrmm( tol, PastixNoTrans, trans,
+                        M, N, K,
+                        blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                        iterblok->frownum - fblok->frownum,
+                        (blok->frownum - fcblk->fcolnum),
+                        lrA, lrB,
+                        fblok->LRblock + shift,
+                        work, -1 );
+        }
+        pastix_cblk_unlock( fcblk );
     }
 }
 

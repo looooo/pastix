@@ -138,11 +138,15 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
                      blok->LRblock,
                      lcoeftab + blok->coefind, cblk->stride );
 
+        free( blok->LRblock[0].u ); blok->LRblock[0].u = NULL;
+        free( blok->LRblock[0].v ); blok->LRblock[0].v = NULL;
         if (factoLU) {
             core_zlr2ge( nrows, ncols,
                          blok->LRblock+1,
                          ucoeftab + blok->coefind, cblk->stride );
-        }
+            free( blok->LRblock[1].u ); blok->LRblock[1].u = NULL;
+            free( blok->LRblock[1].v ); blok->LRblock[1].v = NULL;
+       }
     }
 
     cblk->lcoeftab = lcoeftab;
