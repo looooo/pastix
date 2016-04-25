@@ -80,13 +80,6 @@ typedef struct SolverBlok_ {
 
     /* LR structures */
     pastix_lrblock_t *LRblock;
-
-    void        *coefU_u_LR;
-    void        *coefU_v_LR;
-    void        *coefL_u_LR;
-    void        *coefL_v_LR;
-    pastix_int_t rankU;
-    pastix_int_t rankL;
 } SolverBlok;
 
 /*+ Solver column block structure. +*/

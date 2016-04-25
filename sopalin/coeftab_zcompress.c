@@ -35,6 +35,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
     pastix_int_t        gainL    = ncols * cblk->stride;
     pastix_int_t        gainU    = ncols * cblk->stride;
     int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
+    int ret;
 
     /* One allocation per cblk */
     LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
@@ -43,28 +44,22 @@ coeftab_zcompress_one( SolverCblk *cblk,
      * Diagonal block (Not compressed)
      */
     LRblocks->rk    = -1;
-    LRblocks->rkmax = -1;
+    LRblocks->rkmax = ncols;
     LRblocks->u     = malloc( ncols * ncols * sizeof(pastix_complex64_t) );
     LRblocks->v     = NULL;
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
                          lcoeftab, cblk->stride, LRblocks->u, ncols );
-    blok->coefL_u_LR = LRblocks->u;
-    blok->coefL_v_LR = LRblocks->v;
-    blok->rankL      = LRblocks->rk;
     blok->LRblock = LRblocks; LRblocks++;
 
     gainL -= ncols * ncols;
 
     if (factoLU) {
         LRblocks->rk    = -1;
-        LRblocks->rkmax = -1;
+        LRblocks->rkmax = ncols;
         LRblocks->u     = malloc( ncols * ncols * sizeof(pastix_complex64_t) );
         LRblocks->v     = NULL;
         LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
                              ucoeftab, cblk->stride, LRblocks->u, ncols );
-        blok->coefU_u_LR = LRblocks->u;
-        blok->coefU_v_LR = LRblocks->v;
-        blok->rankU      = LRblocks->rk;
         LRblocks++;
 
         gainU -= ncols * ncols;
@@ -75,24 +70,21 @@ coeftab_zcompress_one( SolverCblk *cblk,
         pastix_int_t nrows = blok_rownbr( blok );
 
         blok->LRblock = LRblocks;
-        core_zge2lr( tol, nrows, ncols,
-                     lcoeftab + blok->coefind, cblk->stride,
-                     blok->LRblock );
-        blok->coefL_u_LR = LRblocks->u;
-        blok->coefL_v_LR = LRblocks->v;
-        blok->rankL      = LRblocks->rk;
+        ret = core_zge2lr( tol, nrows, ncols,
+                           lcoeftab + blok->coefind, cblk->stride,
+                           blok->LRblock );
+        assert( ret == 0 );
 
         gainL -= (LRblocks->rk == -1) ? nrows * ncols
             : ((nrows+ncols) * LRblocks->rk);
         LRblocks++;
 
         if (factoLU) {
-            core_zge2lr( tol, nrows, ncols,
-                         ucoeftab + blok->coefind, cblk->stride,
-                         blok->LRblock+1 );
-            blok->coefU_u_LR = LRblocks->u;
-            blok->coefU_v_LR = LRblocks->v;
-            blok->rankU      = LRblocks->rk;
+            ret = core_zge2lr( tol, nrows, ncols,
+                               ucoeftab + blok->coefind, cblk->stride,
+                               blok->LRblock+1 );
+            assert( ret == 0 );
+
             gainU -= (LRblocks->rk == -1) ? nrows * ncols
                 : ((nrows+ncols) * LRblocks->rk);
             LRblocks++;
@@ -120,6 +112,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     pastix_int_t ncols = cblk_colnbr( cblk );
     pastix_complex64_t *lcoeftab = NULL;
     pastix_complex64_t *ucoeftab = NULL;
+    int ret;
 
     /* One allocation per cblk */
     assert( cblk->lcoeftab == NULL );
@@ -134,16 +127,18 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     {
         pastix_int_t nrows = blok_rownbr( blok );
 
-        core_zlr2ge( nrows, ncols,
-                     blok->LRblock,
-                     lcoeftab + blok->coefind, cblk->stride );
+        ret = core_zlr2ge( nrows, ncols,
+                           blok->LRblock,
+                           lcoeftab + blok->coefind, cblk->stride );
+        assert( ret == 0 );
 
         free( blok->LRblock[0].u ); blok->LRblock[0].u = NULL;
         free( blok->LRblock[0].v ); blok->LRblock[0].v = NULL;
         if (factoLU) {
-            core_zlr2ge( nrows, ncols,
-                         blok->LRblock+1,
-                         ucoeftab + blok->coefind, cblk->stride );
+            ret = core_zlr2ge( nrows, ncols,
+                               blok->LRblock+1,
+                               ucoeftab + blok->coefind, cblk->stride );
+            assert( ret == 0 );
             free( blok->LRblock[1].u ); blok->LRblock[1].u = NULL;
             free( blok->LRblock[1].v ); blok->LRblock[1].v = NULL;
        }
