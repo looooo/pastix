@@ -745,6 +745,7 @@ install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
 add_subdirectory(example)
+add_subdirectory(testing)
 
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)
