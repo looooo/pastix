@@ -11,9 +11,6 @@
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
-#define L_side 0
-#define U_side 1
-
 /**
  *******************************************************************************
  *
@@ -78,11 +75,6 @@ void core_zlr2ge( pastix_int_t m, pastix_int_t n,
                   const pastix_lrblock_t *Alr,
                   pastix_complex64_t *A, pastix_int_t lda );
 
-
-
-
-
-
 int
 core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
@@ -113,59 +105,6 @@ core_zlrmge( int transA, int transB,
                    pastix_complex64_t *C, int ldc,
              pastix_complex64_t *work, pastix_int_t ldwork );
 
-/* int core_zlrm2( int transA, int transB, */
-/*                 pastix_int_t M, pastix_int_t N, pastix_int_t K, */
-/*                 const pastix_lrblock_t *A, */
-/*                 const pastix_lrblock_t *B, */
-/*                 pastix_lrblock_t *AB, */
-/*                 pastix_complex64_t *work, */
-/*                 pastix_int_t ldwork ); */
-
-
-
-/* pastix_int_t */
-/* core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n, */
-/*                    const pastix_complex64_t *A, pastix_int_t lda, */
-/*                    pastix_complex64_t *u, pastix_int_t ldu, */
-/*                    pastix_complex64_t *v, pastix_int_t ldv); */
-
-/* void core_z_lr2dense(SolverBlok *blok, */
-/*                      pastix_complex64_t *A, */
-/*                      pastix_int_t stride, */
-/*                      pastix_int_t width, */
-/*                      pastix_int_t side); */
-
-/* void core_zproduct_lr2dense(SolverBlok *blok1, */
-/*                             pastix_complex64_t *A1, */
-/*                             pastix_int_t stride1, */
-/*                             pastix_int_t width1, */
-/*                             pastix_int_t side1, */
-/*                             SolverBlok *blok2, */
-/*                             pastix_complex64_t *A2, */
-/*                             pastix_int_t stride2, */
-/*                             pastix_int_t width2, */
-/*                             pastix_int_t side2, */
-/*                             pastix_complex64_t *work, */
-/*                             pastix_int_t ldwork); */
-
-/* void core_zproduct_lr2lr(SolverBlok *blok1, */
-/*                          pastix_complex64_t *A1, */
-/*                          pastix_int_t stride1, */
-/*                          pastix_int_t width1, */
-/*                          pastix_int_t side1, */
-/*                          SolverBlok *blok2, */
-/*                          pastix_complex64_t *A2, */
-/*                          pastix_int_t stride2, */
-/*                          pastix_int_t width2, */
-/*                          pastix_int_t side2, */
-/*                          SolverBlok *blok3, */
-/*                          pastix_complex64_t *A3, */
-/*                          pastix_complex64_t *A3_contrib, */
-/*                          pastix_int_t stride3, */
-/*                          pastix_int_t width3, */
-/*                          pastix_int_t side3, */
-/*                          pastix_int_t offset, */
-/*                          pastix_complex64_t *work); */
 
 void core_zgetro(int m, int n,
                  const pastix_complex64_t *A, int lda,
