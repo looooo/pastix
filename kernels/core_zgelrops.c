@@ -52,20 +52,37 @@ static pastix_complex64_t zone  = 1.;
  *          The rank of the compressed structure.
  *
  *******************************************************************************/
-pastix_int_t
-core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
-                   const pastix_complex64_t *A, pastix_int_t lda,
-                   pastix_complex64_t *u, pastix_int_t ldu,
-                   pastix_complex64_t *v, pastix_int_t ldv)
+int
+core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
+             const pastix_complex64_t *A, pastix_int_t lda,
+             pastix_lrblock_t *Alr )
 {
-    pastix_complex64_t *zwork, *Acpy, ws;
+    pastix_complex64_t *u, *v, *zwork, *Acpy, ws;
     double             *rwork, *s, tolabs, tolrel;
-    pastix_int_t        ret;
-    pastix_int_t        i;
+    pastix_int_t        i, ret, ldu, ldv;
     pastix_int_t        minMN = pastix_imin( m, n );
-    pastix_int_t        rank = minMN;
     pastix_int_t        lwork = -1;
     pastix_int_t        zsize, rsize;
+
+#if !defined(NDEBUG)
+    if ( m < 0 ) {
+        return -2;
+    }
+    if ( n < 0 ) {
+        return -3;
+    }
+    if ( lda < m ) {
+        return -5;
+    }
+    if ( (Alr->u == NULL) || (Alr->v == NULL) || (Alr->rkmax < minMN) ) {
+        return -6;
+    }
+#endif
+
+    u = Alr->u;
+    v = Alr->v;
+    ldu = m;
+    ldv = Alr->rkmax;
 
     /**
      * Query the workspace needed for the gesvd
@@ -91,7 +108,6 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
     zwork = malloc( zsize * sizeof(pastix_complex64_t) + rsize * sizeof(double) );
     rwork = (double*)(zwork + zsize);
 
-    /* TODO: remove this copy, we can erase the matrix in most cases */
     Acpy = zwork + lwork;
     s    = rwork;
 
@@ -141,10 +157,10 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
             break;
         }
     }
-    rank = i;
+    Alr->rk = i;
 
     free(zwork);
-    return rank;
+    return 0;
 }
 
 /**
@@ -177,7 +193,7 @@ core_z_compress_LR(double tol, pastix_int_t m, pastix_int_t n,
  *          representation of A
  *
  *******************************************************************************/
-void
+int
 core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
              const pastix_complex64_t *A, pastix_int_t lda,
              pastix_lrblock_t *Alr )
@@ -185,22 +201,32 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
     int ret;
     //pastix_complex64_t *tmp;
 
+    Alr->rk = -1;
     Alr->rkmax = pastix_imin( m, n );
     //tmp =  malloc( (m+n) * Alr->rkmax * sizeof(pastix_complex64_t));
     //Alr->u = tmp;
     //Alr->v = tmp + m * Alr->rkmax;
-    Alr->u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t));
-    Alr->v = malloc( n * Alr->rkmax * sizeof(pastix_complex64_t));
+    Alr->u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t) );
+    Alr->v = malloc( n * Alr->rkmax * sizeof(pastix_complex64_t) );
 
-    Alr->rk = core_z_compress_LR( tol, m, n, A, lda,
-                                  Alr->u, m, Alr->v, Alr->rkmax );
+    /**
+     * Compress the dense matrix with the temporary space just allocated
+     */
+    ret = core_zge2lrx( tol, m, n, A, lda, Alr );
+    if ( ret != 0 ) {
+        free(Alr->u); Alr->u = NULL;
+        free(Alr->v); Alr->v = NULL;
+        return ret;
+    }
 
-    if ( (Alr->rk == -1) ||
-         ((Alr->rk * 2) > Alr->rkmax) )
+    /* The rank should have been set */
+    assert(Alr->rk != -1);
+
+    /**
+     * It is not interesting to compress, wo we store the dense version in Alr
+     */
+    if ( (Alr->rk * 2) > Alr->rkmax )
     {
-        /**
-         * Could not compress, restore dense version
-         */
         if ( n != Alr->rkmax ) {
             Alr->u = realloc( Alr->u, m * n * sizeof(pastix_complex64_t) );
         }
@@ -216,6 +242,9 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
 #endif
         assert(ret == 0);
     }
+    /**
+     * The rank is nul, we free everything
+     */
     else if (Alr->rk == 0)
     {
         /**
@@ -227,6 +256,9 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
         Alr->v = NULL;
         Alr->rkmax = 0;
     }
+    /**
+     * The rank is non nul, we compress the stored information
+     */
     else {
         pastix_complex64_t *u = Alr->u;
         pastix_complex64_t *v = Alr->v;
@@ -253,6 +285,8 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
         Alr->rkmax = Alr->rk;
     }
     assert( Alr->rk <= Alr->rkmax);
+
+    return 0;
 }
 
 /**
@@ -281,15 +315,39 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
  *          The leading dimension of the matrix A. lda >= max(1, m)
  *
  *******************************************************************************/
-void
+int
 core_zlr2ge( pastix_int_t m, pastix_int_t n,
              const pastix_lrblock_t *Alr,
              pastix_complex64_t *A, pastix_int_t lda )
 {
     int ret;
-    assert( Alr->rk <= Alr->rkmax);
+
+#if !defined(NDEBUG)
+    if ( m < 0 ) {
+        return -1;
+    }
+    if ( n < 0 ) {
+        return -2;
+    }
+    if (Alr == NULL || Alr->rk > Alr->rkmax) {
+        return -3;
+    }
+    if ( lda < m ) {
+        return -5;
+    }
     if ( Alr->rk == -1 ) {
-        assert(Alr->u != NULL && Alr->v == NULL);
+        if (Alr->u == NULL || Alr->v != NULL || Alr->rkmax < m) {
+            return -6;
+        }
+    }
+    else {
+        if (Alr->u == NULL || Alr->v == NULL) {
+            return -6;
+        }
+    }
+#endif
+
+    if ( Alr->rk == -1 ) {
 #if defined(WITH_LAPACKE_WORK)
         ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', m, n,
                               Alr->u, m, A, lda );
@@ -300,17 +358,19 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
         assert( ret == 0 );
     }
     else if ( Alr->rk == 0 ) {
-        LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
-                             0., 0., A, lda );
+        ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
+                                   0., 0., A, lda );
+        assert( ret == 0 );
     }
     else {
-        assert(Alr->u != NULL && Alr->v != NULL);
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     m, n, Alr->rk,
                     CBLAS_SADDR(zone),  Alr->u, m,
                                         Alr->v, Alr->rkmax,
                     CBLAS_SADDR(zzero), A, lda);
     }
+
+    return 0;
 }
 
 /**
@@ -520,8 +580,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
             }
             else {
                 assert( offx == 0 );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, M1,
-                                     0., 1., tmp + offx, M );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, M1,
+                                           0., 1., tmp + offx, M );
+                assert( ret == 0 );
             }
         }
         else {
@@ -593,8 +654,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
          */
         if ( M1 < N1 ) {
             if (N1 != N) {
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M1, N,
-                                     0., 0., tmp, rank );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M1, N,
+                                           0., 0., tmp, rank );
+                assert( ret == 0 );
             }
             core_zgeadd( transA1, M1, N1,
                          alpha, A->u, A->rkmax,
@@ -606,8 +668,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
         else {
             if (N1 != N2) {
                 /* Set to 0 */
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                     0., 0., tmp, rank );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
+                                           0., 0., tmp, rank );
+                assert(ret == 0);
 
                 /* Set diagonal */
                 tmp += offy * rank;
@@ -617,8 +680,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
             }
             else {
                 assert( offy == 0 );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                     0., alpha, tmp + offy * rank, rank );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
+                                           0., alpha, tmp + offy * rank, rank );
+                assert( ret == 0 );
             }
         }
     }
@@ -628,8 +692,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     else {
         int ldav = (transA1 == PastixNoTrans) ? A->rkmax : N;
         if (N1 != N) {
-            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', A->rk, N,
-                                 0., 0., tmp, rank );
+            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', A->rk, N,
+                                       0., 0., tmp, rank );
+            assert(ret == 0);
         }
         core_zgeadd( transA1, A->rk, N1,
                      alpha, A->v,              ldav,
@@ -800,8 +865,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      *                                     [0]
      */
 #if defined(WITH_LAPACKE_WORK)
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
-                         0., 0., B->u, M );
+    ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
+                               0., 0., B->u, M );
+    assert(ret == 0);
     ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', rank, new_rank,
                           u, rank, B->u, M );
     assert(ret == 0);

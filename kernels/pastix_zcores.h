@@ -41,9 +41,10 @@
  *          representation of A. U and v matrices are internally allocated.
  *
  *******************************************************************************/
-void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
-                  const pastix_complex64_t *A, pastix_int_t lda,
-                  pastix_lrblock_t *Alr );
+int
+core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+             const pastix_complex64_t *A, pastix_int_t lda,
+             pastix_lrblock_t *Alr );
 
 /**
  *******************************************************************************
@@ -71,9 +72,10 @@ void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
  *          The leading dimension of the matrix A. lda >= max(1, m)
  *
  *******************************************************************************/
-void core_zlr2ge( pastix_int_t m, pastix_int_t n,
-                  const pastix_lrblock_t *Alr,
-                  pastix_complex64_t *A, pastix_int_t lda );
+int
+core_zlr2ge( pastix_int_t m, pastix_int_t n,
+             const pastix_lrblock_t *Alr,
+             pastix_complex64_t *A, pastix_int_t lda );
 
 int
 core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
