@@ -298,7 +298,7 @@ void core_zgemmsp_lr( int uplo, int trans,
         pastix_cblk_lock( fcblk );
         if ( fcblk->cblktype & CBLK_DENSE ) {
             tmpC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zlrmge( PastixNoTrans, trans,
+            core_zlrmge( tol, PastixNoTrans, trans,
                          M, N, K,
                          lrA, lrB, tmpC, fcblk->stride,
                          work, -1 );

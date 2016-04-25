@@ -222,8 +222,10 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
     /* The rank should have been set */
     assert(Alr->rk != -1);
 
+    Alr->rk = Alr->rkmax;
+
     /**
-     * It is not interesting to compress, wo we store the dense version in Alr
+     * It is not interesting to compress, so we store the dense version in Alr
      */
     if ( (Alr->rk * 2) > Alr->rkmax )
     {
@@ -1283,76 +1285,24 @@ core_zlrmm( double tol, int transA, int transB,
  *
  *******************************************************************************/
 int
-core_zlrmge( int transA, int transB,
+core_zlrmge( double tol, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              const pastix_lrblock_t *A,
              const pastix_lrblock_t *B,
                    pastix_complex64_t *C, int ldc,
              pastix_complex64_t *work, pastix_int_t ldwork )
 {
-    pastix_complex64_t *tmp = NULL;
-    pastix_lrblock_t AB;
-    pastix_int_t required = 0;
-    int transV = PastixNoTrans;
-    int ldab, allocated = 0;
+    pastix_lrblock_t lrC;
 
-    assert(transA == PastixNoTrans);
-    assert(transB != PastixNoTrans);
+    lrC.rk = -1;
+    lrC.rkmax = ldc;
+    lrC.u = C;
+    lrC.v = NULL;
 
-    assert( A->rk <= A->rkmax);
-    assert( B->rk <= B->rkmax);
-
-    /* Quick return if multiplication by 0 */
-    if ( A->rk == 0 || B->rk == 0 ) {
-        return 0;
-    }
-
-    if ( A->rk != -1 ) {
-        if ( B->rk != -1 ) {
-            required = pastix_imin( A->rk * ( N + B->rk ),
-                                    B->rk * ( M + A->rk ) );
-        }
-        else {
-            required = A->rk * N;
-        }
-    }
-    else {
-        if ( B->rk != -1 ) {
-            required = B->rk * M;
-        }
-        else {
-            required = M * N;
-        }
-    }
-
-    if ( required <= ldwork ) {
-        tmp = work;
-    }
-    else {
-        tmp = malloc( required * sizeof(pastix_complex64_t));
-        allocated = 1;
-    }
-
-    transV = core_zlrm2( transA, transB, M, N, K,
-                         A, B, &AB, tmp, required );
-
-    ldab = (transV == PastixNoTrans) ? AB.rkmax : N;
-    if ( AB.rk == -1 ) {
-        core_zgeadd( PastixNoTrans, M, N,
-                     -1., tmp, M,
-                      1., C, ldc );
-    }
-    else {
-        cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
-                     M, N, AB.rk,
-                     CBLAS_SADDR(zone),  AB.u, M,
-                                         AB.v, ldab,
-                     CBLAS_SADDR(zzero), C, ldc );
-    }
-
-    if ( allocated ) {
-        free(tmp);
-    }
+    core_zlrmm( tol, transA, transB, M, N, K,
+                M, N, 0, 0,
+                A, B, &lrC,
+                work, ldwork );
 
     return 0;
 }

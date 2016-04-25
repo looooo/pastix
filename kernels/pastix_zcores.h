@@ -100,7 +100,7 @@ core_zlrmm( double tol, int transA, int transB,
             pastix_complex64_t *work, pastix_int_t ldwork );
 
 int
-core_zlrmge( int transA, int transB,
+core_zlrmge( double tol, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              const pastix_lrblock_t *A,
              const pastix_lrblock_t *B,
