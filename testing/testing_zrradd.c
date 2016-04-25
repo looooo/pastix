@@ -36,7 +36,7 @@ int testing_zrradd(int argc, char **argv)
     int RA = atoi(argv[3]);
     int RB = atoi(argv[6]);
 
-    double eps;
+    double eps, res;
     pastix_complex64_t *uA, *vA, *uB, *vB;
     pastix_complex64_t *A, *B, *C;
     pastix_lrblock_t    LR_A, LR_B;
@@ -44,7 +44,7 @@ int testing_zrradd(int argc, char **argv)
     pastix_int_t LDA = MA;
     pastix_int_t LDB = MB;
 
-    pastix_complex64_t alpha = 1.0;
+    pastix_complex64_t alpha = -1.0;
     pastix_complex64_t *B_tmp;
 
     double norm_LR, norm_dense, norm_diff;
@@ -124,7 +124,7 @@ int testing_zrradd(int argc, char **argv)
     /* Add A and B with a classical dense operation */
     B_tmp = B + offx + LDB * offy;
     core_zgeadd( CblasNoTrans, MA, NA,
-                 1.0, A, LDA,
+                 alpha, A, LDA,
                  1.0, B_tmp, LDB );
 
     printf(" The rank of A+B is %d\n", LR_B.rk);
@@ -139,13 +139,16 @@ int testing_zrradd(int argc, char **argv)
                  -1., B, LDB,
                   1., C, LDB );
 
-    norm_diff    = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', MB, NB,
+    norm_diff    = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'm', MB, NB,
                                         C, LDB, NULL );
+
+    res = norm_diff / ( eps * norm_dense );
 
     printf(" ||full(A)+full(B)|| = %e, ||comp(A)+comp(B)|| = %e\n", norm_dense, norm_LR);
     printf(" ||(full(A)+full(B)) - (comp(A)+comp(B))|| = %e\n", norm_diff);
+    printf(" res = %e\n", res);
 
-    if (norm_diff < 10*tolerance){
+    if (res < 10){
         printf("***************************************************\n");
         printf(" ---- TESTING ZRRADD...................... PASSED !\n");
         printf("***************************************************\n");
