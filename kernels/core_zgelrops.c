@@ -951,7 +951,7 @@ core_zgradd( double tol, pastix_complex64_t alpha,
     }
 
     /**
-     * The rank is too big, we need to uncompress/compress C
+     * The rank is too big, we need to uncompress/compress B
      */
     if ( ((B->rk + M1) > rmax) &&
          ((B->rk + N1) > rmax) )
