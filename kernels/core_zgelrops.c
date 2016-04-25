@@ -147,11 +147,11 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     tolrel = tol * s[0];
     tolabs = tol * tol;
     for (i=0; i<minMN; i++, u+=ldu){
-        if ( (s[i] > tolabs) &&
-             (s[i] > tolrel) )
+        if ( (s[i] >= tolabs) &&
+             (s[i] >= tolrel) )
         /* if (s[i] > tol) */
         {
-            cblas_zscal(m, CBLAS_SADDR(s[i]), u, 1);
+            cblas_zdscal(m, s[i], u, 1);
         }
         else {
             break;
@@ -768,11 +768,11 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     tolrel = tol * s[0];
     tolabs = tol * tol;
     for (i=0; i<rank; i++, tmp+=rank){
-        if ( (s[i] > tolabs) &&
-             (s[i] > tolrel) )
+        if ( (s[i] >= tolabs) &&
+             (s[i] >= tolrel) )
         /* if (s[i] > tol) */
         {
-            cblas_zscal(rank, CBLAS_SADDR(s[i]), tmp, 1);
+            cblas_zdscal(rank, s[i], tmp, 1);
         }
         else {
             break;
