@@ -27,6 +27,7 @@ add_library(testing ${generated_files} ${generated_headers})
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 include_directories(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/")
 include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/")
+
 link_directories(
   ${LAPACKE_LIBRARY_DIRS}
   ${LAPACK_LIBRARY_DIRS}
@@ -41,6 +42,7 @@ message(STATUS "BLAS_SEQ_LIBRARIES:   ${BLAS_SEQ_LIBRARIES}")
 
 set(PASTIX_TESTINGS_LIBRARIES
   testing
+  pastix_kernels
   pastix
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
