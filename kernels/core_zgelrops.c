@@ -468,19 +468,10 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, N,
                                      0., 0., u, M );
             }
-#if defined(WITH_LAPACKE_WORK)
-            ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M1, N1,
-                                  A->u, A->rkmax,
-                                  u + B->rkmax * offy + offx, B->rkmax );
-#else
-            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, N1,
-                                       A->u, A->rkmax,
-                                       u + B->rkmax * offy + offx, B->rkmax );
-#endif
+            ret = core_zgeadd( PastixNoTrans, M1, N1,
+                               alpha, A->u, A->rkmax,
+                               0., u + B->rkmax * offy + offx, B->rkmax );
             assert(ret == 0);
-
-            /* Scale the matrix to apply alpha */
-            cblas_zdscal(M1*N1, alpha, B->u, 1);
         }
         else {
             u = malloc( M * A->rk * sizeof(pastix_complex64_t));
@@ -499,29 +490,20 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                                      0., 0., v, B->rkmax );
             }
 
-#if defined(WITH_LAPACKE_WORK)
-            ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                                  A->u, M1,
-                                  u + offx, M2 );
+            ret = core_zgeadd( PastixNoTrans, M1, A->rk,
+                               alpha, A->u, M1,
+                               0., u + offx, M );
             assert(ret == 0);
-
+#if defined(WITH_LAPACKE_WORK)
             ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', A->rk, N1,
                                   A->v, A->rkmax,
                                   v + B->rkmax * offy, B->rkmax );
 #else
-            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                                       A->u, M1,
-                                       u + offx, M2 );
-            assert(ret == 0);
-
             ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', A->rk, N1,
                                        A->v, A->rkmax,
                                        v + B->rkmax * offy, B->rkmax );
 #endif
             assert(ret == 0);
-
-            /* Scale the matrix to apply alpha */
-            cblas_zdscal(M*A->rk, alpha, B->u, 1);
         }
         assert( B->rk <= B->rkmax);
         return A->rk;
