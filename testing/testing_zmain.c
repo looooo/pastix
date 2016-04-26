@@ -35,6 +35,16 @@ int main (int argc, char **argv)
      */
     if ( strcmp(func, "RRADD") == 0 ) {
         info = testing_zrradd( argc, argv );
+    } else if (strcmp(func, "GRADD") == 0 ) {
+        info = testing_zgradd( argc, argv );
+    } else if (strcmp(func, "LRM2") == 0 ) {
+        info = testing_zlrm2( argc, argv );
+    } else if (strcmp(func, "LRMM") == 0 ) {
+        info = testing_zlrmm( argc, argv );
+    } else if (strcmp(func, "LRMGE") == 0 ) {
+        info = testing_zlrmge( argc, argv );
+    } else if (strcmp(func, "GE2LR") == 0 ) {
+        info = testing_zge2lr( argc, argv );
     } else {
         fprintf(stderr, "Function unknown\n");
     }

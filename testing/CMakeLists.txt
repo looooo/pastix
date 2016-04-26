@@ -16,6 +16,11 @@ precisions_rules_py(generated_headers
 # Add testing files
 set(SOURCES
   testing_zrradd.c
+  testing_zgradd.c
+  testing_zlrm2.c
+  testing_zlrmm.c
+  testing_zlrmge.c
+  testing_zge2lr.c
 )
 
 precisions_rules_py(generated_files

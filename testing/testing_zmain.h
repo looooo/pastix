@@ -23,5 +23,10 @@ extern int IONE;
 extern int ISEED[4];
 
 int testing_zrradd(int argc, char **argv);
+int testing_zgradd(int argc, char **argv);
+int testing_zlrm2(int argc, char **argv);
+int testing_zlrmm(int argc, char **argv);
+int testing_zlrmge(int argc, char **argv);
+int testing_zge2lr(int argc, char **argv);
 
 #endif /* TESTING_ZMAIN_H */
