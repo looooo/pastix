@@ -459,11 +459,16 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      */
     if (B->rk == 0) {
         if ( A->rk == -1 ) {
-            u = malloc( M2 * N2 * sizeof(pastix_complex64_t));
+            u = malloc( M * N * sizeof(pastix_complex64_t));
             B->rk = -1;
-            B->rkmax = M2;
+            B->rkmax = M;
             B->u = u;
             B->v = NULL;
+
+            if ( M1 != M || N1 != N ) {
+                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, N,
+                                     0., 0., u, M );
+            }
 #if defined(WITH_LAPACKE_WORK)
             ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M1, N1,
                                   A->u, A->rkmax,
@@ -476,12 +481,22 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
             assert(ret == 0);
         }
         else {
-            u = malloc( M2 * A->rk * sizeof(pastix_complex64_t));
-            v = malloc( N2 * A->rk * sizeof(pastix_complex64_t));
+            u = malloc( M * A->rk * sizeof(pastix_complex64_t));
+            v = malloc( N * A->rk * sizeof(pastix_complex64_t));
             B->rk = A->rk;
             B->rkmax = A->rk;
             B->u = u;
             B->v = v;
+
+            if ( M1 != M ) {
+                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
+                                     0., 0., u, M );
+            }
+            if ( N1 != N ) {
+                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
+                                     0., 0., v, B->rkmax );
+            }
+
 #if defined(WITH_LAPACKE_WORK)
             ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M1, A->rk,
                                   A->u, M1,
@@ -1252,7 +1267,6 @@ core_zlrmm( double tol, int transA, int transB,
      * The destination matrix is low rank
      */
     else {
-        assert(0);
         assert(beta == 1.);
         if ( AB.rk == -1 ) {
             core_zgradd( tol, alpha,
