@@ -801,14 +801,14 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
         if ( A->rk == -1 ) {
                 core_zgeadd( transA1, M1, N1,
                              alpha, A->u,              A->rkmax,
-                             zzero, zbuf + offy * M + offx, M);
+                             zone, zbuf + offy * M + offx, M);
         }
         else {
             cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M1, N1, A->rk,
                     CBLAS_SADDR(alpha), A->u, M1,
                                         A->v, A->rkmax,
-                    CBLAS_SADDR(zzero), zbuf + offy * M + offx, M);
+                    CBLAS_SADDR(zone), zbuf + offy * M + offx, M);
         }
         free(B->u);
         free(B->v);
@@ -999,7 +999,7 @@ core_zgradd( double tol, pastix_complex64_t alpha,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrm2 - Computes the product of two low rank matrices and returns the rsult in AB
+ * core_zlrm2 - Computes the product of two low rank matrices and returns the result in AB
  *
  *******************************************************************************/
 int core_zlrm2( int transA, int transB,
