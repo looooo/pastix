@@ -20,6 +20,7 @@
 
 static pastix_complex64_t zzero = 0.;
 static pastix_complex64_t zone  = 1.;
+static pastix_complex64_t mzone = -1.;
 
 #define WITH_LAPACKE_WORK
 
@@ -221,8 +222,6 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
 
     /* The rank should have been set */
     assert(Alr->rk != -1);
-
-    Alr->rk = Alr->rkmax;
 
     /**
      * It is not interesting to compress, so we store the dense version in Alr
@@ -781,7 +780,6 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
         }
     }
     new_rank = i;
-    B->rk = new_rank;
 
     /**
      * First case: The rank is too big, so we decide to uncompress the result
@@ -829,6 +827,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
         return 0;
     }
 
+    B->rk = new_rank;
     assert(rank <= M && rank <= N);
 
     /**
@@ -1026,7 +1025,6 @@ int core_zlrm2( int transA, int transB,
     }
 
     if ( A->rk != -1 ) {
-
         /**
          * A and B are both low rank
          */
@@ -1149,14 +1147,14 @@ int core_zlrm2( int transA, int transB,
             else {
                 assert( (M * N) <= ldwork );
                 AB->rk = -1;
-                AB->rkmax = -1;
-                AB->u = NULL;
+                AB->rkmax = M;
+                AB->u = work;
                 AB->v = NULL;
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                              M, N, K,
                              CBLAS_SADDR(zone),  A->u, A->rkmax,
-                             B->u, B->rkmax,
+                                                 B->u, B->rkmax,
                              CBLAS_SADDR(zzero), work, M );
             }
         }
@@ -1178,11 +1176,10 @@ core_zlrmm( double tol, int transA, int transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
             pastix_int_t offx, pastix_int_t offy,
-            const pastix_lrblock_t *A,
-            const pastix_lrblock_t *B,
-            pastix_lrblock_t *C,
-            pastix_complex64_t *work,
-            pastix_int_t ldwork )
+            pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                      const pastix_lrblock_t *B,
+            pastix_complex64_t beta,        pastix_lrblock_t *C,
+            pastix_complex64_t *work, pastix_int_t ldwork )
 {
     pastix_complex64_t *tmp = NULL;
     pastix_lrblock_t AB;
@@ -1236,32 +1233,35 @@ core_zlrmm( double tol, int transA, int transB,
     if (C->rk == -1) {
         pastix_complex64_t *Cptr = C->u;
         int ldab = (transV == PastixNoTrans) ? AB.rkmax : N;
+        Cptr += C->rkmax * offy + offx;
 
         if ( AB.rk == -1 ) {
             core_zgeadd( PastixNoTrans, M, N,
-                         -1., tmp, M,
-                          1., Cptr + Cm * offy + offx, Cm );
+                         alpha, AB.u, AB.rkmax,
+                         beta,  Cptr, C->rkmax );
         }
         else {
             cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                          M, N, AB.rk,
-                         CBLAS_SADDR(zone),  AB.u, M,
+                         CBLAS_SADDR(alpha), AB.u, M,
                                              AB.v, ldab,
-                         CBLAS_SADDR(zzero), Cptr + Cm * offy + offx, Cm );
+                         CBLAS_SADDR(beta),  Cptr, C->rkmax );
         }
     }
      /**
      * The destination matrix is low rank
      */
     else {
+        assert(0);
+        assert(beta == 1.);
         if ( AB.rk == -1 ) {
-            core_zgradd( tol, -1.,
-                         M, N, tmp, M,
+            core_zgradd( tol, alpha,
+                         M, N, tmp, AB.rkmax,
                          Cm, Cn, C,
                          offx, offy );
         }
         else {
-            core_zrradd( tol, transV, -1.,
+            core_zrradd( tol, transV, alpha,
                          M, N, &AB,
                          Cm, Cn, C,
                          offx, offy );
@@ -1287,9 +1287,9 @@ core_zlrmm( double tol, int transA, int transB,
 int
 core_zlrmge( double tol, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
-             const pastix_lrblock_t *A,
-             const pastix_lrblock_t *B,
-                   pastix_complex64_t *C, int ldc,
+             pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                       const pastix_lrblock_t *B,
+             pastix_complex64_t beta, pastix_complex64_t *C, int ldc,
              pastix_complex64_t *work, pastix_int_t ldwork )
 {
     pastix_lrblock_t lrC;
@@ -1301,7 +1301,7 @@ core_zlrmge( double tol, int transA, int transB,
 
     core_zlrmm( tol, transA, transB, M, N, K,
                 M, N, 0, 0,
-                A, B, &lrC,
+                alpha, A, B, beta, &lrC,
                 work, ldwork );
 
     return 0;

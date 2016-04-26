@@ -94,17 +94,17 @@ core_zlrmm( double tol, int transA, int transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
             pastix_int_t offx, pastix_int_t offy,
-            const pastix_lrblock_t *A,
-            const pastix_lrblock_t *B,
-                  pastix_lrblock_t *C,
+            pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                      const pastix_lrblock_t *B,
+            pastix_complex64_t beta,  pastix_lrblock_t *C,
             pastix_complex64_t *work, pastix_int_t ldwork );
 
 int
 core_zlrmge( double tol, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
-             const pastix_lrblock_t *A,
-             const pastix_lrblock_t *B,
-                   pastix_complex64_t *C, int ldc,
+             pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                       const pastix_lrblock_t *B,
+             pastix_complex64_t beta,  pastix_complex64_t *C, int ldc,
              pastix_complex64_t *work, pastix_int_t ldwork );
 
 

@@ -255,8 +255,8 @@ void core_zgemmsp_lr( int uplo, int trans,
     SolverBlok *fblok;
     SolverBlok *lblok;
 
-    pastix_complex64_t *C, *tmpC;
-    pastix_int_t M, N, K;
+    pastix_complex64_t *C, *Cfull;
+    pastix_int_t M, N, K, stridef;
     int shift;
 
     pastix_lrblock_t *lrA, *lrB;
@@ -267,10 +267,14 @@ void core_zgemmsp_lr( int uplo, int trans,
     assert( !(cblk->cblktype & CBLK_DENSE) );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
-    C =  (uplo == PastixUpper) ? fcblk->ucoeftab : fcblk->lcoeftab;
 
-    /* Get the dimension of B */
-    lrB = blok->LRblock + ( 1 - shift );
+    /* Move the Cfull pointer to the top of the right column */
+    stridef = fcblk->stride;
+    Cfull = (uplo == PastixUpper) ? fcblk->ucoeftab : fcblk->lcoeftab;
+    Cfull = Cfull + (blok->frownum - fcblk->fcolnum) * stridef;
+
+    /* Get the B block and its dimensions */
+    lrB = (uplo == PastixUpper) ? blok->LRblock : blok->LRblock+1;
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -297,10 +301,10 @@ void core_zgemmsp_lr( int uplo, int trans,
 
         pastix_cblk_lock( fcblk );
         if ( fcblk->cblktype & CBLK_DENSE ) {
-            tmpC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+            C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
             core_zlrmge( tol, PastixNoTrans, trans,
                          M, N, K,
-                         lrA, lrB, tmpC, fcblk->stride,
+                         -1., lrA, lrB, 1., C, stridef,
                          work, -1 );
         }
         else {
@@ -309,8 +313,8 @@ void core_zgemmsp_lr( int uplo, int trans,
                         blok_rownbr( fblok ), cblk_colnbr( fcblk ),
                         iterblok->frownum - fblok->frownum,
                         (blok->frownum - fcblk->fcolnum),
-                        lrA, lrB,
-                        fblok->LRblock + shift,
+                        -1., lrA, lrB,
+                        1., fblok->LRblock + shift,
                         work, -1 );
         }
         pastix_cblk_unlock( fcblk );
