@@ -478,6 +478,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                                        u + B->rkmax * offy + offx, B->rkmax );
 #endif
             assert(ret == 0);
+
+            /* Scale the matrix to apply alpha */
+            cblas_zdscal(M1*N1, alpha, B->u, 1);
         }
         else {
             u = malloc( M * A->rk * sizeof(pastix_complex64_t));
@@ -516,6 +519,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                                        v + B->rkmax * offy, B->rkmax );
 #endif
             assert(ret == 0);
+
+            /* Scale the matrix to apply alpha */
+            cblas_zdscal(M*A->rk, alpha, B->u, 1);
         }
         assert( B->rk <= B->rkmax);
         return A->rk;
