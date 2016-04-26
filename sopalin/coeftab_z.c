@@ -228,12 +228,11 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      */
     {
         /* TODO: cleanup to pass that as arguments */
-        int compress_size = 80;
+        int compress_size = 192;
         char  *tolerance = getenv("TOLERANCE");
         double tol = atof(tolerance);
 
-        //if (0 && cblk_colnbr( cblk ) >= compress_size)
-        if ( cblk[0].brownum == cblk[1].brownum )
+        if (cblk_colnbr( cblk ) >= compress_size)
         {
             fprintf(stderr, "Try to compress a block\n");
             coeftab_zcompress_one( cblk, tol );
