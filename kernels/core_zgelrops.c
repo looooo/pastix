@@ -1099,7 +1099,7 @@ int core_zlrm2( int transA, int transB,
             cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                          A->rk, N, K,
                          CBLAS_SADDR(zone),  A->v,  A->rkmax,
-                                                     B->u,  K,
+                                             B->u,  N,
                          CBLAS_SADDR(zzero), AB->v, AB->rkmax );
         }
     }
