@@ -20,9 +20,8 @@
 
 static pastix_complex64_t zzero = 0.;
 static pastix_complex64_t zone  = 1.;
-static pastix_complex64_t mzone = -1.;
 
-#define WITH_LAPACKE_WORK
+//#define WITH_LAPACKE_WORK
 
 /**
  *******************************************************************************
