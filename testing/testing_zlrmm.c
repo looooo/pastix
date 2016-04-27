@@ -118,7 +118,7 @@ int testing_zlrmm(int argc, char **argv)
                          dmax, MA, K,
                          'N', A, LDA, work );
 
-    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, K, NB,
+    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, NB, K,
                          'U', ISEED,
                          'N', S_B, mode, minMN_B,
                          dmax, NB, K,
