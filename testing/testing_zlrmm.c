@@ -56,11 +56,11 @@ int testing_zlrmm(int argc, char **argv)
     double *S_A, *S_B, *S_C;
 
     pastix_int_t LDA = MA;
-    pastix_int_t LDB = K;
+    pastix_int_t LDB = NB;
     pastix_int_t LDC = MC;
 
     int transA = PastixNoTrans;
-    int transB = PastixNoTrans;
+    int transB = PastixTrans;
 
     MALLOC_INTERN(A , MA * K , pastix_complex64_t);
     MALLOC_INTERN(B , NB * K , pastix_complex64_t);
@@ -121,7 +121,7 @@ int testing_zlrmm(int argc, char **argv)
     LAPACKE_zlatms_work( LAPACK_COL_MAJOR, K, NB,
                          'U', ISEED,
                          'N', S_B, mode, minMN_B,
-                         dmax, K, NB,
+                         dmax, NB, K,
                          'N', B, LDB, work );
 
     LAPACKE_zlatms_work( LAPACK_COL_MAJOR, MC, NC,
@@ -151,7 +151,7 @@ int testing_zlrmm(int argc, char **argv)
                  &LR_A );
 
     core_zge2lr( tolerance,
-                 K, NB,
+                 NB, K,
                  B, LDB,
                  &LR_B );
 
