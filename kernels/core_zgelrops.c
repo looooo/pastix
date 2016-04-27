@@ -462,6 +462,11 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      */
     if (B->rk == 0) {
         if ( A->rk == -1 ) {
+            /**
+             * TODO: This case can be improved by compressing A, and then
+             * copying it into B, however the criterai to keep A compressed or
+             * not must be based on B dimension, and not on A ones
+             */
             u = malloc( M * N * sizeof(pastix_complex64_t));
             B->rk = -1;
             B->rkmax = M;
@@ -477,7 +482,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                                0., u + B->rkmax * offy + offx, B->rkmax );
             assert(ret == 0);
 
-            /* TODO: try to compress B, which potentially receives a small dense contribution */
+            core_zge2lr( tol, M, N, u, M, B );
+            free(u);
         }
         else {
             u = malloc( M * A->rk * sizeof(pastix_complex64_t));
@@ -974,23 +980,18 @@ core_zgradd( double tol, pastix_complex64_t alpha,
     /**
      * The rank is too big, we need to uncompress/compress B
      */
-    if ( (((B->rk + M1) > rmax) &&
-          ((B->rk + N1) > rmax)) || B->rk == 0)
+    if ( ((B->rk + M1) > rmax) &&
+         ((B->rk + N1) > rmax) )
     {
         pastix_complex64_t *work = malloc( M2 * N2 * sizeof(pastix_complex64_t) );
-        if (B->rk > 0){
-            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                         M2, N2, B->rk,
-                         CBLAS_SADDR(zone),  B->u, ldub,
-                         B->v, B->rkmax,
-                         CBLAS_SADDR(zzero), work, M2 );
-            free(B->u);
-            free(B->v);
-        }
-        else{
-            /* It is maybe better to compress A if B->rk == 0 */
-            memset(work, 0, M2 * N2 * sizeof(pastix_complex64_t));
-        }
+
+        assert(B->rk > 0);
+
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                     M2, N2, B->rk,
+                     CBLAS_SADDR(zone),  B->u, ldub,
+                                         B->v, B->rkmax,
+                     CBLAS_SADDR(zzero), work, M2 );
 
         core_zgeadd( PastixNoTrans, M1, N1,
                      alpha, A, lda,
