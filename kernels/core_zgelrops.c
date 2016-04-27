@@ -476,6 +476,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                                alpha, A->u, ldau,
                                0., u + B->rkmax * offy + offx, B->rkmax );
             assert(ret == 0);
+
+            /* TODO: try to compress B, which potentially receives a small dense contribution */
         }
         else {
             u = malloc( M * A->rk * sizeof(pastix_complex64_t));
@@ -972,21 +974,27 @@ core_zgradd( double tol, pastix_complex64_t alpha,
     /**
      * The rank is too big, we need to uncompress/compress B
      */
-    if ( ((B->rk + M1) > rmax) &&
-         ((B->rk + N1) > rmax) )
+    if ( (((B->rk + M1) > rmax) &&
+          ((B->rk + N1) > rmax)) || B->rk == 0)
     {
         pastix_complex64_t *work = malloc( M2 * N2 * sizeof(pastix_complex64_t) );
-        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                     M2, N2, B->rk,
-                     CBLAS_SADDR(zone),  B->u, ldub,
-                                         B->v, B->rkmax,
-                     CBLAS_SADDR(zzero), work, M2 );
+        if (B->rk > 0){
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                         M2, N2, B->rk,
+                         CBLAS_SADDR(zone),  B->u, ldub,
+                         B->v, B->rkmax,
+                         CBLAS_SADDR(zzero), work, M2 );
+            free(B->u);
+            free(B->v);
+        }
+        else{
+            /* It is maybe better to compress A if B->rk == 0 */
+            memset(work, 0, M2 * N2 * sizeof(pastix_complex64_t));
+        }
 
         core_zgeadd( PastixNoTrans, M1, N1,
                      alpha, A, lda,
                      1.,    work + M2 * offy + offx, M2 );
-        free(B->u);
-        free(B->v);
 
         core_zge2lr( tol, M2, N2, work, M2, B );
         rank = B->rk;
@@ -1300,6 +1308,9 @@ core_zlrmm( double tol, int transA, int transB,
                                  CBLAS_SADDR(beta),  C->u, ldcu,
                                  C->v, ldcv,
                                  CBLAS_SADDR(zzero), work, Cm );
+                }
+                else{
+                    memset(work, 0, Cm * Cn * sizeof(pastix_complex64_t) );
                 }
 
                 /* Add A*B */
