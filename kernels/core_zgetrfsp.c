@@ -343,8 +343,8 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                 /* Solve the lower part */
                 lrblock = blok->LRblock;
 
-                if (lrblock->rk != -1) {
-                    if (lrblock->rkmax != 0){
+                if (lrblock->rk != 0){
+                    if (lrblock->rk != -1) {
                         cblas_ztrsm(CblasColMajor,
                                     CblasRight, CblasUpper,
                                     CblasNoTrans, CblasNonUnit,
@@ -352,22 +352,22 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                                     CBLAS_SADDR(zone), L, stride,
                                     lrblock->v, lrblock->rkmax);
                     }
-                }
-                else {
-                    dimb = blok_rownbr( blok );
-                    cblas_ztrsm(CblasColMajor,
-                                CblasRight, CblasUpper,
-                                CblasNoTrans, CblasNonUnit,
-                                dimb, dima,
-                                CBLAS_SADDR(zone), L, stride,
-                                lrblock->u, dimb);
+                    else {
+                        dimb = blok_rownbr( blok );
+                        cblas_ztrsm(CblasColMajor,
+                                    CblasRight, CblasUpper,
+                                    CblasNoTrans, CblasNonUnit,
+                                    dimb, dima,
+                                    CBLAS_SADDR(zone), L, stride,
+                                    lrblock->u, lrblock->rkmax);
+                    }
                 }
 
                 /* Solve the upper part */
                 lrblock++;
 
-                if (lrblock->rk != -1) {
-                    if (lrblock->rkmax != 0){
+                if (lrblock->rk != 0) {
+                    if (lrblock->rk != -1) {
                         cblas_ztrsm(CblasColMajor,
                                     CblasRight, CblasUpper,
                                     CblasNoTrans, CblasUnit,
@@ -375,15 +375,15 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                                     CBLAS_SADDR(zone), U, stride,
                                     lrblock->v, lrblock->rkmax);
                     }
-                }
-                else {
-                    dimb = blok_rownbr( blok );
-                    cblas_ztrsm(CblasColMajor,
-                                CblasRight, CblasUpper,
-                                CblasNoTrans, CblasUnit,
-                                dimb, dima,
-                                CBLAS_SADDR(zone), U, stride,
-                                lrblock->u, dimb);
+                    else {
+                        dimb = blok_rownbr( blok );
+                        cblas_ztrsm(CblasColMajor,
+                                    CblasRight, CblasUpper,
+                                    CblasNoTrans, CblasUnit,
+                                    dimb, dima,
+                                    CBLAS_SADDR(zone), U, stride,
+                                    lrblock->u, lrblock->rkmax);
+                    }
                 }
             }
         }
