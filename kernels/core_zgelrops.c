@@ -1292,12 +1292,15 @@ core_zlrmm( double tol, int transA, int transB,
             if ( AB.rk + C->rk > pastix_imin(M, N) ) {
                 pastix_complex64_t *work = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
 
-                /* Uncompress C */
-                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                             Cm, Cn, C->rk,
-                             CBLAS_SADDR(beta),  C->u, ldcu,
-                                                 C->v, ldcv,
-                             CBLAS_SADDR(zzero), work, Cm );
+                /* Do not uncompress a null LR structure */
+                if (C->rk > 0){
+                    /* Uncompress C */
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                                 Cm, Cn, C->rk,
+                                 CBLAS_SADDR(beta),  C->u, ldcu,
+                                 C->v, ldcv,
+                                 CBLAS_SADDR(zzero), work, Cm );
+                }
 
                 /* Add A*B */
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
