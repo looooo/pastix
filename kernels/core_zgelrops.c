@@ -953,18 +953,21 @@ core_zgradd( double tol, pastix_complex64_t alpha,
 {
     pastix_lrblock_t lrA;
     pastix_int_t rmax = pastix_imin( M2, N2 );
-    pastix_int_t rank;
+    pastix_int_t rank, ldub;
 
     assert( B->rk <= B->rkmax);
 
     if ( B->rk == -1 ) {
         pastix_complex64_t *tmp = B->u;
-        tmp += + M2 * offy + offx;
+        ldub = B->rkmax;
+        tmp += ldub * offy + offx;
         core_zgeadd( CblasNoTrans, M1, N1,
                      alpha, A,   lda,
-                       1.0, tmp, M2 );
-        return -1;
+                       1.0, tmp, ldub );
+        return 0;
     }
+
+    ldub = M2;
 
     /**
      * The rank is too big, we need to uncompress/compress B
@@ -975,7 +978,7 @@ core_zgradd( double tol, pastix_complex64_t alpha,
         pastix_complex64_t *work = malloc( M2 * N2 * sizeof(pastix_complex64_t) );
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                      M2, N2, B->rk,
-                     CBLAS_SADDR(zone),  B->u, M2,
+                     CBLAS_SADDR(zone),  B->u, ldub,
                                          B->v, B->rkmax,
                      CBLAS_SADDR(zzero), work, M2 );
 
@@ -997,7 +1000,7 @@ core_zgradd( double tol, pastix_complex64_t alpha,
         lrA.rkmax = lda;
         lrA.u = A;
         lrA.v = NULL;
-        rank = core_zrradd( tol, PastixNoTrans, -1,
+        rank = core_zrradd( tol, PastixNoTrans, alpha,
                             M1, N1, &lrA,
                             M2, N2, B,
                             offx, offy );
@@ -1023,6 +1026,7 @@ int core_zlrm2( int transA, int transB,
                 pastix_complex64_t *work,
                 pastix_int_t ldwork )
 {
+    pastix_int_t ldau, ldav, ldbu, ldbv;
     int transV = PastixNoTrans;
 
     assert( A->rk  <= A->rkmax);
@@ -1038,6 +1042,11 @@ int core_zlrm2( int transA, int transB,
         AB->v = NULL;
         return transV;
     }
+
+    ldau = (A->rk == -1) ? A->rkmax : M;
+    ldav = A->rkmax;
+    ldbu = (B->rk == -1) ? B->rkmax : N;
+    ldbv = B->rkmax;
 
     if ( A->rk != -1 ) {
         /**
@@ -1060,14 +1069,14 @@ int core_zlrm2( int transA, int transB,
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                              A->rk, B->rk, K,
-                             CBLAS_SADDR(zone),  A->v, A->rkmax,
-                                                 B->v, B->rkmax,
+                             CBLAS_SADDR(zone),  A->v, ldav,
+                                                 B->v, ldbv,
                              CBLAS_SADDR(zzero), work, A->rk );
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                              A->rk, N, B->rk,
                              CBLAS_SADDR(zone),  work,  A->rk,
-                                                 B->u,  N,
+                                                 B->u,  ldbu,
                              CBLAS_SADDR(zzero), AB->v, AB->rkmax );
             }
             else {
@@ -1083,13 +1092,13 @@ int core_zlrm2( int transA, int transB,
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                              A->rk, B->rk, K,
-                             CBLAS_SADDR(zone),  A->v, A->rkmax,
-                                                 B->v, B->rkmax,
+                             CBLAS_SADDR(zone),  A->v, ldav,
+                                                 B->v, ldbv,
                              CBLAS_SADDR(zzero), work, A->rk );
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                              M, B->rk, A->rk,
-                             CBLAS_SADDR(zone),  A->u,  M,
+                             CBLAS_SADDR(zone),  A->u,  ldau,
                                                  work,  A->rk,
                              CBLAS_SADDR(zzero), AB->u, M );
 
@@ -1113,8 +1122,8 @@ int core_zlrm2( int transA, int transB,
 
             cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                          A->rk, N, K,
-                         CBLAS_SADDR(zone),  A->v,  A->rkmax,
-                                             B->u,  N,
+                         CBLAS_SADDR(zone),  A->v,  ldav,
+                                             B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->v, AB->rkmax );
         }
     }
@@ -1136,8 +1145,8 @@ int core_zlrm2( int transA, int transB,
 
             cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                          M, B->rk, K,
-                         CBLAS_SADDR(zone),  A->u,  M,
-                                             B->v,  B->rkmax,
+                         CBLAS_SADDR(zone),  A->u,  ldau,
+                                             B->v,  ldbv,
                          CBLAS_SADDR(zzero), AB->u, M );
 
             transV = transB;
@@ -1168,8 +1177,8 @@ int core_zlrm2( int transA, int transB,
 
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
                              M, N, K,
-                             CBLAS_SADDR(zone),  A->u, A->rkmax,
-                                                 B->u, B->rkmax,
+                             CBLAS_SADDR(zone),  A->u, ldau,
+                                                 B->u, ldbu,
                              CBLAS_SADDR(zzero), work, M );
             }
         }
@@ -1198,6 +1207,7 @@ core_zlrmm( double tol, int transA, int transB,
 {
     pastix_complex64_t *tmp = NULL;
     pastix_lrblock_t AB;
+    pastix_int_t ldabu, ldabv, ldcu, ldcv;
     pastix_int_t required = 0;
     int transV;
     int allocated = 0;
@@ -1242,45 +1252,70 @@ core_zlrmm( double tol, int transA, int transB,
     transV = core_zlrm2( transA, transB, M, N, K,
                          A, B, &AB, tmp, required );
 
+    ldabu = (AB.rk == -1) ? AB.rkmax : M;
+    ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
+    ldcu = (C->rk == -1) ? C->rkmax : Cm;
+    ldcv = C->rkmax;
+
     /**
      * The destination matrix is full rank
      */
     if (C->rk == -1) {
         pastix_complex64_t *Cptr = C->u;
-        int ldab = (transV == PastixNoTrans) ? AB.rkmax : N;
-        Cptr += C->rkmax * offy + offx;
+        Cptr += ldcu * offy + offx;
 
         if ( AB.rk == -1 ) {
             core_zgeadd( PastixNoTrans, M, N,
-                         alpha, AB.u, AB.rkmax,
-                         beta,  Cptr, C->rkmax );
+                         alpha, AB.u, ldabu,
+                         beta,  Cptr, ldcu );
         }
         else {
             cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                          M, N, AB.rk,
-                         CBLAS_SADDR(alpha), AB.u, M,
-                                             AB.v, ldab,
-                         CBLAS_SADDR(beta),  Cptr, C->rkmax );
+                         CBLAS_SADDR(alpha), AB.u, ldabu,
+                                             AB.v, ldabv,
+                         CBLAS_SADDR(beta),  Cptr, ldcu );
         }
     }
      /**
      * The destination matrix is low rank
      */
     else {
-        assert(beta == 1.);
         if ( AB.rk == -1 ) {
+            assert(beta == 1.);
             core_zgradd( tol, alpha,
                          M, N, tmp, AB.rkmax,
                          Cm, Cn, C,
                          offx, offy );
         }
         else {
-            /* Need to handle correctly this case */
-            assert( AB.rk + C->rk <= pastix_imin(M, N) );
-            core_zrradd( tol, transV, alpha,
-                         M, N, &AB,
-                         Cm, Cn, C,
-                         offx, offy );
+            if ( AB.rk + C->rk > pastix_imin(M, N) ) {
+                pastix_complex64_t *work = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
+
+                /* Uncompress C */
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                             Cm, Cn, C->rk,
+                             CBLAS_SADDR(beta),  C->u, ldcu,
+                                                 C->v, ldcv,
+                             CBLAS_SADDR(zzero), work, Cm );
+
+                /* Add A*B */
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                             M, N, AB.rk,
+                             CBLAS_SADDR(alpha), AB.u, M,
+                                                 AB.v, AB.rkmax,
+                             CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
+
+                core_zge2lr( tol, Cm, Cn, work, Cm, C );
+                free(work);
+            }
+            else {
+                /* Need to handle correctly this case */
+                core_zrradd( tol, transV, alpha,
+                             M, N, &AB,
+                             Cm, Cn, C,
+                             offx, offy );
+            }
         }
     }
 
