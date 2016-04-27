@@ -342,13 +342,16 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
 
                 /* Solve the lower part */
                 lrblock = blok->LRblock;
+
                 if (lrblock->rk != -1) {
-                    cblas_ztrsm(CblasColMajor,
-                                CblasRight, CblasUpper,
-                                CblasNoTrans, CblasNonUnit,
-                                lrblock->rk, dima,
-                                CBLAS_SADDR(zone), L, stride,
-                                lrblock->v, lrblock->rkmax);
+                    if (lrblock->rkmax != 0){
+                        cblas_ztrsm(CblasColMajor,
+                                    CblasRight, CblasUpper,
+                                    CblasNoTrans, CblasNonUnit,
+                                    lrblock->rk, dima,
+                                    CBLAS_SADDR(zone), L, stride,
+                                    lrblock->v, lrblock->rkmax);
+                    }
                 }
                 else {
                     dimb = blok_rownbr( blok );
@@ -362,13 +365,16 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
 
                 /* Solve the upper part */
                 lrblock++;
+
                 if (lrblock->rk != -1) {
-                    cblas_ztrsm(CblasColMajor,
-                                CblasRight, CblasUpper,
-                                CblasNoTrans, CblasUnit,
-                                lrblock->rk, dima,
-                                CBLAS_SADDR(zone), U, stride,
-                                lrblock->v, lrblock->rkmax);
+                    if (lrblock->rkmax != 0){
+                        cblas_ztrsm(CblasColMajor,
+                                    CblasRight, CblasUpper,
+                                    CblasNoTrans, CblasUnit,
+                                    lrblock->rk, dima,
+                                    CBLAS_SADDR(zone), U, stride,
+                                    lrblock->v, lrblock->rkmax);
+                    }
                 }
                 else {
                     dimb = blok_rownbr( blok );
