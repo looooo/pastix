@@ -110,6 +110,13 @@ int testing_zrradd(int argc, char **argv)
                  &LR_B,
                  B, LDB );
 
+    core_zge2lr( tolerance,
+                 MA, NA,
+                 A, LDA,
+                 &LR_A );
+
+    printf(" The rank of A is %d B is %d\n", LR_A.rk, LR_B.rk);
+
     /* Add A and B in their LR format */
     core_zrradd(tolerance, CblasNoTrans, alpha,
                 MA, NA, &LR_A,

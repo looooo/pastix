@@ -69,6 +69,7 @@ if(TMG_FOUND)
 
   set(EXECUTABLE
     testing_zmain.c
+    testing_zrun.c
     )
 
   precisions_rules_py(generated_files
@@ -78,6 +79,8 @@ if(TMG_FOUND)
   foreach(prec s d c z)
     add_executable(testing_${prec}main testing_${prec}main.c)
     target_link_libraries(testing_${prec}main ${PASTIX_TESTINGS_LIBRARIES})
+    add_executable(testing_${prec}run testing_${prec}run.c)
+    target_link_libraries(testing_${prec}run ${PASTIX_TESTINGS_LIBRARIES})
   endforeach()
 else()
   message(STATUS "libtmg not found -- Can't compile testings")

@@ -56,11 +56,14 @@ int testing_zlrmm(int argc, char **argv)
     double *S_A, *S_B, *S_C;
 
     pastix_int_t LDA = MA;
-    pastix_int_t LDB = NB;
+    pastix_int_t LDB = K;
     pastix_int_t LDC = MC;
 
     int transA = PastixNoTrans;
     int transB = PastixTrans;
+
+    double alpha = -1.0;
+    double beta  = 1.0;
 
     MALLOC_INTERN(A , MA * K , pastix_complex64_t);
     MALLOC_INTERN(B , NB * K , pastix_complex64_t);
@@ -81,7 +84,7 @@ int testing_zlrmm(int argc, char **argv)
     eps = LAPACKE_dlamch_work('e');
 
     printf("\n");
-    printf("------ TESTS FOR PASTIX ZZLRMM ROUTINE -------  \n");
+    printf("------ TESTS FOR PASTIX ZLRMM ROUTINE -------  \n");
     printf("            Size of the Matrix A %8ld by %8ld\n", MA, K);
     printf("            Size of the Matrix B %8ld by %8ld\n", K, NB);
     printf("            Size of the Matrix C %8ld by %8ld\n", MC, NC);
@@ -93,12 +96,12 @@ int testing_zlrmm(int argc, char **argv)
     printf(" Computational tests pass if scaled residuals are less than 10.\n");
 
     /*----------------------------------------------------------
-     *  TESTING ZZLRMM
+     *  TESTING ZLRMM
      */
     if (mode == 0){
         pastix_int_t i;
         S_A[0] = 1;
-        S_B[0] = 1.2;
+        S_B[0] = 1.;
         S_C[0] = 1.125;
         for (i=1; i<minMN_A; i++){
             S_A[i] = S_A[i-1] / 1.1;
@@ -118,10 +121,10 @@ int testing_zlrmm(int argc, char **argv)
                          dmax, MA, K,
                          'N', A, LDA, work );
 
-    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, NB, K,
+    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, K, NB,
                          'U', ISEED,
                          'N', S_B, mode, minMN_B,
-                         dmax, NB, K,
+                         dmax, K, NB,
                          'N', B, LDB, work );
 
     LAPACKE_zlatms_work( LAPACK_COL_MAJOR, MC, NC,
@@ -163,8 +166,6 @@ int testing_zlrmm(int argc, char **argv)
     printf(" The rank of A is %d B is %d C is %d\n", LR_A.rk, LR_B.rk, LR_C.rk);
 
     /* Compute A*B + C */
-    double alpha = -1.0;
-    double beta  = 1.0;
     core_zlrmm( tolerance, transA, transB,
                 MA, NB, K,
                 MC, NC,
@@ -180,7 +181,6 @@ int testing_zlrmm(int argc, char **argv)
                  C2, LDC );
 
     pastix_complex64_t *Cptr = C + offy * LDC + offx;
-
     cblas_zgemm( CblasColMajor, transA, transB,
                  MA, NB, K,
                  CBLAS_SADDR(alpha), A, LDA,
@@ -198,7 +198,7 @@ int testing_zlrmm(int argc, char **argv)
                  -1., C2, LDC,
                   1., C,  LDC );
 
-    norm_diff    = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'm', MC, NC,
+    norm_diff  = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'm', MC, NC,
                                         C, LDC, NULL );
 
     res = norm_diff / ( eps * norm_dense );
@@ -209,12 +209,12 @@ int testing_zlrmm(int argc, char **argv)
 
     if (res < 10){
         printf("***************************************************\n");
-        printf(" ---- TESTING ZZLRMM...................... PASSED !\n");
+        printf(" ---- TESTING ZLRMM ...................... PASSED !\n");
         printf("***************************************************\n");
     }
     else{
         printf("***************************************************\n");
-        printf(" ---- TESTING ZZLRMM.................. SUSPICIOUS !\n");
+        printf(" ---- TESTING ZLRMM .................. SUSPICIOUS !\n");
         printf("***************************************************\n");
     }
 
