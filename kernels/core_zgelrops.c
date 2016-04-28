@@ -672,6 +672,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
 
     tmp = v1v2 + B->rk;
     if ( A->rk == -1 ) {
+        assert( transA1 == PastixNoTrans );
         /**
          * A is full of rank M1, so it is integrated into v1v2
          */
@@ -681,7 +682,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                                            0., 0., tmp, rank );
                 assert( ret == 0 );
             }
-            core_zgeadd( transA1, M1, N1,
+            core_zgeadd( PastixNoTrans, M1, N1,
                          alpha, A->u, ldau,
                          0., tmp + offy * rank, rank );
         }
