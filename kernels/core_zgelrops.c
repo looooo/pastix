@@ -341,7 +341,7 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
             return -6;
         }
     }
-    else {
+    else if ( Alr->rk != 0){
         if (Alr->u == NULL || Alr->v == NULL) {
             return -6;
         }
