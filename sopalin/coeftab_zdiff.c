@@ -98,10 +98,15 @@ coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB )
     SolverCblk *cblkA = solvA->cblktab;
     SolverCblk *cblkB = solvB->cblktab;
     pastix_int_t cblknum;
-    int rc = 0;
+    int rc       = 0;
+    int saved_rc = 0;
 
     for(cblknum=0; cblknum<solvA->cblknbr; cblknum++, cblkA++, cblkB++) {
         rc += coeftab_zdiffcblk( cblkA, cblkB );
+        if ( rc != saved_rc ){
+            fprintf(stderr, "CBLK %ld was not correctly compressed\n", cblknum);
+            saved_rc = rc;
+        }
     }
 
     return rc;

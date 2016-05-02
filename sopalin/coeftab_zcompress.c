@@ -103,13 +103,15 @@ coeftab_zcompress_one( SolverCblk *cblk,
     return gainL + gainU;
 }
 
-void
+pastix_int_t
 coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
 
     pastix_int_t ncols = cblk_colnbr( cblk );
+    pastix_int_t        gainL    = 0;
+    pastix_int_t        gainU    = 0;
     pastix_complex64_t *lcoeftab = NULL;
     pastix_complex64_t *ucoeftab = NULL;
     int ret;
@@ -127,18 +129,35 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     {
         pastix_int_t nrows = blok_rownbr( blok );
 
-        ret = core_zlr2ge( nrows, ncols,
-                           blok->LRblock,
-                           lcoeftab + blok->coefind, cblk->stride );
-        assert( ret == 0 );
+        if (blok->LRblock[0].rk >= 0){
+            gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rk));
+        }
+        if (blok->LRblock[1].rk >= 0 && factoLU){
+            gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rk));
+        }
+
+        /* printf("UNCOMPRESS BLOK RANKS %d %d (DIM %ld %ld)\n", */
+        /*        blok->LRblock[0].rk, */
+        /*        blok->LRblock[1].rk, */
+        /*        ncols, nrows); */
+
+        if (blok->LRblock[0].rk != 0){
+            ret = core_zlr2ge( nrows, ncols,
+                               blok->LRblock,
+                               lcoeftab + blok->coefind, cblk->stride );
+            assert( ret == 0 );
+        }
 
         free( blok->LRblock[0].u ); blok->LRblock[0].u = NULL;
         free( blok->LRblock[0].v ); blok->LRblock[0].v = NULL;
+
         if (factoLU) {
-            ret = core_zlr2ge( nrows, ncols,
-                               blok->LRblock+1,
-                               ucoeftab + blok->coefind, cblk->stride );
-            assert( ret == 0 );
+            if (blok->LRblock[1].rk != 0){
+                ret = core_zlr2ge( nrows, ncols,
+                                   blok->LRblock+1,
+                                   ucoeftab + blok->coefind, cblk->stride );
+                assert( ret == 0 );
+            }
             free( blok->LRblock[1].u ); blok->LRblock[1].u = NULL;
             free( blok->LRblock[1].v ); blok->LRblock[1].v = NULL;
        }
@@ -152,6 +171,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
      * Free all the LRblock structures associated to the cblk
      */
     free(cblk->fblokptr->LRblock);
+    return gainL + gainU;
 }
 
 
@@ -160,12 +180,33 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
 {
     SolverCblk *cblk  = solvmtx->cblktab;
     pastix_int_t cblknum;
+    char  *tolerance = getenv("TOLERANCE");
+    double tol = atof(tolerance);
+    pastix_int_t gain = 0;
+    pastix_int_t original = 0;
+    double memgain, memoriginal;
+    int factoLU = 1;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
+        original += cblk_colnbr( cblk ) * cblk->stride;
         if (!(cblk->cblktype & CBLK_DENSE)) {
-            coeftab_zuncompress_one( cblk, 1 );
+            gain += coeftab_zuncompress_one( cblk, 1 );
         }
     }
+
+    if ( factoLU ) {
+        original *= 2;
+    }
+
+    memgain     = gain     * pastix_size_of( PastixComplex64 );
+    memoriginal = original * pastix_size_of( PastixComplex64 );
+    fprintf( stdout,
+             "  Compression : Tolerance         %e\n"
+             "                Elements removed  %ld / %ld\n"
+             "                Memory saved      %.3g %s / %.3g %s\n",
+             tol, gain, original,
+             MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
+             MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
 }
 
 void
@@ -178,7 +219,7 @@ coeftab_zcompress( SolverMatrix *solvmtx )
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
     double memgain, memoriginal;
-    int factoLU = 0;
+    int factoLU = 1;
 
     if ( solvmtx->cblktab[0].ucoeftab ) {
         factoLU = 1;

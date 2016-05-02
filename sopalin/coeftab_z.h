@@ -22,7 +22,7 @@
 pastix_int_t coeftab_zcompress_one( SolverCblk *cblk, double tol);
 void coeftab_zcompress( SolverMatrix *solvmtx );
 
-void coeftab_zuncompress_one( SolverCblk *cblk, int factoLU );
+pastix_int_t coeftab_zuncompress_one( SolverCblk *cblk, int factoLU );
 void coeftab_zuncompress( SolverMatrix *solvmtx );
 
 void coeftab_zffbcsc( const SolverMatrix  *solvmtx,
