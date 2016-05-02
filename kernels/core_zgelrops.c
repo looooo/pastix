@@ -452,7 +452,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     }
 
     ldau = (A->rk == -1) ? A->rkmax : M1;
-    ldav = (transA1 == PastixNoTrans) ? A->rkmax : N;
+    ldav = (transA1 == PastixNoTrans) ? A->rkmax : N1;
     ldbu = M;
     ldbv = B->rkmax;
 
