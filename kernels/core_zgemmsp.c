@@ -131,7 +131,7 @@ void core_zgemmsp( int uplo, int trans,
                  M, N, K,
                  CBLAS_SADDR(zone),  A,    stride,
                                      B,    stride,
-                 CBLAS_SADDR(zzero), wtmp, M  );
+                 CBLAS_SADDR(zzero), wtmp, M );
 
     /*
      * Add contribution to C in fcblk

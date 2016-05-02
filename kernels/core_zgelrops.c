@@ -215,23 +215,30 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
              pastix_lrblock_t *Alr )
 {
     int ret;
-    /* pastix_complex64_t *tmp; */
+    pastix_complex64_t *u, *v;
 
     Alr->rk = -1;
     Alr->rkmax = pastix_imin( m, n );
-    /* tmp =  malloc( (m+n) * Alr->rkmax * sizeof(pastix_complex64_t)); */
-    /* Alr->u = tmp; */
-    /* Alr->v = tmp + m * Alr->rkmax; */
-    Alr->u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t) );
-    Alr->v = malloc( n * Alr->rkmax * sizeof(pastix_complex64_t) );
+
+    u = malloc( (m+n) * Alr->rkmax * sizeof(pastix_complex64_t));
+    v = u + m * Alr->rkmax;
+
+    /* u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t) ); */
+    /* v = malloc( n * Alr->rkmax * sizeof(pastix_complex64_t) ); */
+
+    Alr->u = u;
+    Alr->v = v;
 
     /**
      * Compress the dense matrix with the temporary space just allocated
      */
     ret = core_zge2lrx( tol, m, n, A, lda, Alr );
+
     if ( ret != 0 ) {
-        free(Alr->u); Alr->u = NULL;
-        free(Alr->v); Alr->v = NULL;
+        free(Alr->u);
+        Alr->u = NULL;
+        /* free(Alr->v); */
+        Alr->v = NULL;
         return ret;
     }
 
@@ -246,7 +253,7 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
         if ( n != Alr->rkmax ) {
             Alr->u = realloc( Alr->u, m * n * sizeof(pastix_complex64_t) );
         }
-        free(Alr->v);
+        /* free(Alr->v); */
         Alr->v = NULL;
         Alr->rk = -1;
         Alr->rkmax = m;
@@ -263,7 +270,7 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
          * The rank is nul, we free everything
          */
         free(Alr->u);
-        free(Alr->v);
+        /* free(Alr->v); */
         Alr->u = NULL;
         Alr->v = NULL;
         Alr->rkmax = 0;
@@ -272,10 +279,10 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
      * The rank is non nul, we compress the stored information
      */
     else {
-        pastix_complex64_t *u = malloc( m * Alr->rk * sizeof(pastix_complex64_t) );
-        pastix_complex64_t *v = malloc( n * Alr->rk * sizeof(pastix_complex64_t) );
-        /* pastix_complex64_t *u = malloc( (m+n) * Alr->rk * sizeof(pastix_complex64_t) ); */
-        /* pastix_complex64_t *v = u + m * Alr->rk; */
+        /* pastix_complex64_t *u = malloc( m * Alr->rk * sizeof(pastix_complex64_t) ); */
+        /* pastix_complex64_t *v = malloc( n * Alr->rk * sizeof(pastix_complex64_t) ); */
+        pastix_complex64_t *u = malloc( (m+n) * Alr->rk * sizeof(pastix_complex64_t) );
+        pastix_complex64_t *v = u + m * Alr->rk;
 
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, Alr->rk,
                                    Alr->u, m, u, m );
@@ -285,7 +292,7 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
         assert(ret == 0);
 
         free(Alr->u);
-        free(Alr->v);
+        /* free(Alr->v); */
         Alr->u = u;
         Alr->v = v;
         Alr->rkmax = Alr->rk;
@@ -464,7 +471,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
         if ( A->rk == -1 ) {
             /**
              * TODO: This case can be improved by compressing A, and then
-             * copying it into B, however the criterai to keep A compressed or
+             * copying it into B, however the criteria to keep A compressed or
              * not must be based on B dimension, and not on A ones
              */
             u = malloc( M * N * sizeof(pastix_complex64_t));
@@ -486,8 +493,11 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
             free(u);
         }
         else {
-            u = malloc( M * A->rk * sizeof(pastix_complex64_t));
-            v = malloc( N * A->rk * sizeof(pastix_complex64_t));
+            /* u = malloc( M * A->rk * sizeof(pastix_complex64_t)); */
+            /* v = malloc( N * A->rk * sizeof(pastix_complex64_t)); */
+            u = malloc( (M+N) * A->rk * sizeof(pastix_complex64_t));
+            v = u + M * A->rk;
+
             B->rk = A->rk;
             B->rkmax = A->rk;
             B->u = u;
@@ -778,7 +788,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                         CBLAS_SADDR(zone), zbuf + offy * M + offx, M);
         }
         free(B->u);
-        free(B->v);
+        /* free(B->v); */
         B->rk = -1;
         B->rkmax = M;
         B->u = zbuf;
@@ -788,7 +798,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     }
     else if ( new_rank == 0 ) {
         free(B->u);
-        free(B->v);
+        /* free(B->v); */
         B->rk = 0;
         B->rkmax = 0;
         B->u = NULL;
@@ -805,20 +815,22 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      * because it wasn't big enough
      */
     if ( new_rank > B->rkmax ) {
+        pastix_complex64_t *Bu, *Bv;
         /**
          * We use a temporary buffer to allow pointer arithmetic
          */
-        /* pastix_complex64_t *uv = malloc( new_rank * (M+N) * sizeof(pastix_complex64_t)); */
 
-        /* free(B->u); */
-        /* B->u = uv; */
-        /* B->v = uv + M * new_rank; */
-        /* B->rkmax = new_rank; */
+        Bu = malloc( new_rank * (M+N) * sizeof(pastix_complex64_t));
+        Bv = Bu + M * new_rank;
+
+        /* Bu = malloc( M * new_rank * sizeof(pastix_complex64_t)); */
+        /* Bv = malloc( N * new_rank * sizeof(pastix_complex64_t)); */
 
         free(B->u);
-        free(B->v);
-        B->u = malloc( new_rank * M * sizeof(pastix_complex64_t));
-        B->v = malloc( new_rank * N * sizeof(pastix_complex64_t));
+        /* free(B->v); */
+        B->u = Bu;
+        B->v = Bv;
+
         ldbv = new_rank;
 #if defined(PASTIX_LR_CHECKNAN)
         LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
@@ -926,6 +938,8 @@ core_zgradd( double tol, pastix_complex64_t alpha,
                      alpha, A, lda,
                      1.,    work + M2 * offy + offx, M2 );
 
+        free(B->u);
+        /* free(B->v); */
         core_zge2lr( tol, M2, N2, work, M2, B );
         rank = B->rk;
         free(work);
@@ -1250,6 +1264,8 @@ core_zlrmm( double tol, int transA, int transB,
                                                  AB.v, ldabv,
                              CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
 
+                free(C->u);
+                /* free(C->v); */
                 core_zge2lr( tol, Cm, Cn, work, Cm, C );
                 free(work);
             }
