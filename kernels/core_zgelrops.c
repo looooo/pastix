@@ -21,7 +21,40 @@
 static pastix_complex64_t zzero = 0.;
 static pastix_complex64_t zone  = 1.;
 
-//#define WITH_LAPACKE_WORK
+//#define PASTIX_LR_CHECKNAN
+#if defined(PASTIX_LR_CHECKNAN)
+#define LAPACKE_zlacpy_work LAPACKE_zlacpy
+#define LAPACKE_zlaset_work LAPACKE_zlaset
+
+#define LAPACKE_zunmlq_work( _layout_, _side_, _trans_, _m_, _n_, _k_, _a_, _lda_, _tau_, _c_, _ldc_, _w_, _ldw_ ) \
+    LAPACKE_zunmlq( _layout_, _side_, _trans_, _m_, _n_, _k_, _a_, _lda_, _tau_, _c_, _ldc_ )
+#define LAPACKE_zunmqr_work( _layout_, _side_, _trans_, _m_, _n_, _k_, _a_, _lda_, _tau_, _c_, _ldc_, _w_, _ldw_ ) \
+    LAPACKE_zunmqr( _layout_, _side_, _trans_, _m_, _n_, _k_, _a_, _lda_, _tau_, _c_, _ldc_ )
+
+#define LAPACKE_zgeqrf_work( _layout_, _m_, _n_, _a_, _lda_, _tau_, _w_, _ldw_ ) \
+    LAPACKE_zgeqrf( _layout_, _m_, _n_, _a_, _lda_, _tau_ )
+#define LAPACKE_zgelqf_work( _layout_, _m_, _n_, _a_, _lda_, _tau_, _w_, _ldw_ ) \
+    LAPACKE_zgelqf( _layout_, _m_, _n_, _a_, _lda_, _tau_ )
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+#define MYLAPACKE_zgesvd_work( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, _w_, _ldw_, _rw_ ) \
+    LAPACKE_zgesvd( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, (double*)(_w_) )
+#else
+#define MYLAPACKE_zgesvd_work( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, _w_, _ldw_, _rw_ ) \
+    LAPACKE_zgesvd( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, (double*)(_w_) )
+#endif
+
+#else
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+#define MYLAPACKE_zgesvd_work( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, _w_, _ldw_, _rw_ ) \
+    LAPACKE_zgesvd_work( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, _w_, _ldw_, _rw_ )
+#else
+#define MYLAPACKE_zgesvd_work( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, _w_, _ldw_, _rw_ ) \
+    LAPACKE_zgesvd_work( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, _w_, _ldw_ )
+#endif
+
+#endif /* defined(PASTIX_LR_CHECKNAN) */
 
 /**
  *******************************************************************************
@@ -87,15 +120,14 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Query the workspace needed for the gesvd
      */
-    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
-                               m, n, NULL, m,
-                               NULL, NULL, ldu, NULL, ldv,
-                               &ws, lwork
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                               , NULL
+#if defined(PASTIX_LR_CHECKNAN)
+    ws = minMN;
+#else
+    ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
+                                 m, n, NULL, m,
+                                 NULL, NULL, ldu, NULL, ldv,
+                                 &ws, lwork, NULL );
 #endif
-                               );
-
     lwork = ws;
     zsize = ws;
     zsize += m * n; /* Copy of the matrix A */
@@ -114,30 +146,14 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Backup the original matrix before to overwrite it with the SVD
      */
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zlacpy(LAPACK_COL_MAJOR, 'A', m, n,
-                         A, lda, Acpy, m );
-#else
     ret = LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
                               A, lda, Acpy, m );
-#endif
     assert( ret == 0 );
 
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zgesvd( LAPACK_COL_MAJOR, 'S', 'S',
-                          m, n, Acpy, m,
-                          s, u, ldu, v, ldv,
-                          (double*)zwork );
-#else
-    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
-                               m, n, Acpy, m,
-                               s, u, ldu, v, ldv,
-                               zwork, lwork
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                               , rwork + minMN
-#endif
-                               );
-#endif
+    ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
+                                 m, n, Acpy, m,
+                                 s, u, ldu, v, ldv,
+                                 zwork, lwork, rwork + minMN );
     assert(ret == 0);
     if( ret != 0 ){
         errorPrint("SVD Failed\n");
@@ -199,13 +215,13 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
              pastix_lrblock_t *Alr )
 {
     int ret;
-    //pastix_complex64_t *tmp;
+    /* pastix_complex64_t *tmp; */
 
     Alr->rk = -1;
     Alr->rkmax = pastix_imin( m, n );
-    //tmp =  malloc( (m+n) * Alr->rkmax * sizeof(pastix_complex64_t));
-    //Alr->u = tmp;
-    //Alr->v = tmp + m * Alr->rkmax;
+    /* tmp =  malloc( (m+n) * Alr->rkmax * sizeof(pastix_complex64_t)); */
+    /* Alr->u = tmp; */
+    /* Alr->v = tmp + m * Alr->rkmax; */
     Alr->u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t) );
     Alr->v = malloc( n * Alr->rkmax * sizeof(pastix_complex64_t) );
 
@@ -234,13 +250,8 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
         Alr->v = NULL;
         Alr->rk = -1;
         Alr->rkmax = m;
-#if defined(WITH_LAPACKE_WORK)
-        ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', m, n,
-                              A, lda, Alr->u, m );
-#else
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
                                    A, lda, Alr->u, m );
-#endif
         assert(ret == 0);
     }
     /**
@@ -261,28 +272,22 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
      * The rank is non nul, we compress the stored information
      */
     else {
-        pastix_complex64_t *u = Alr->u;
-        pastix_complex64_t *v = Alr->v;
+        pastix_complex64_t *u = malloc( m * Alr->rk * sizeof(pastix_complex64_t) );
+        pastix_complex64_t *v = malloc( n * Alr->rk * sizeof(pastix_complex64_t) );
+        /* pastix_complex64_t *u = malloc( (m+n) * Alr->rk * sizeof(pastix_complex64_t) ); */
+        /* pastix_complex64_t *v = u + m * Alr->rk; */
 
-        Alr->u = malloc( m * Alr->rk * sizeof(pastix_complex64_t) );
-        Alr->v = malloc( n * Alr->rk * sizeof(pastix_complex64_t) );
-
-#if defined(WITH_LAPACKE_WORK)
-        ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', m, Alr->rk,
-                                   u, m, Alr->u, m );
-        assert(ret == 0);
-        ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', Alr->rk, n,
-                              v, Alr->rkmax, Alr->v, Alr->rk );
-#else
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, Alr->rk,
-                                   u, m, Alr->u, m );
+                                   Alr->u, m, u, m );
         assert(ret == 0);
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', Alr->rk, n,
-                                   v, Alr->rkmax, Alr->v, Alr->rk );
-#endif
+                                   Alr->v, Alr->rkmax, v, Alr->rk );
         assert(ret == 0);
 
-        free(u); free(v);
+        free(Alr->u);
+        free(Alr->v);
+        Alr->u = u;
+        Alr->v = v;
         Alr->rkmax = Alr->rk;
     }
     assert( Alr->rk <= Alr->rkmax);
@@ -349,13 +354,8 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
 #endif
 
     if ( Alr->rk == -1 ) {
-#if defined(WITH_LAPACKE_WORK)
-        ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', m, n,
-                              Alr->u, Alr->rkmax, A, lda );
-#else
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
                                    Alr->u, Alr->rkmax, A, lda );
-#endif
         assert( ret == 0 );
     }
     else if ( Alr->rk == 0 ) {
@@ -502,15 +502,9 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
                                      0., 0., v, B->rkmax );
             }
 
-#if defined(WITH_LAPACKE_WORK)
-            ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                                  A->u, ldau,
-                                  u + offx, M );
-#else
             ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
                                        A->u, ldau,
                                        u + offx, M );
-#endif
             assert(ret == 0);
 
             ret = core_zgeadd( transA1, A->rk, N1,
@@ -544,15 +538,14 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     lwork = pastix_imax( M, N ) * 32;
 
     /* Workspace needed for the gesvd */
-    ret = LAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
-                               rank, rank, NULL, rank,
-                               NULL, NULL, rank, NULL, rank,
-                               &querysize, -1
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                               , NULL
+#if defined(PASTIX_LR_CHECKNAN)
+    querysize = rank;
+#else
+    ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
+                                 rank, rank, NULL, rank,
+                                 NULL, NULL, rank, NULL, rank,
+                                 &querysize, -1, NULL);
 #endif
-                               );
-
     lwork = pastix_imax( lwork, querysize );
     wzsize += lwork;
 
@@ -577,13 +570,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      *  [ u2  0  ]
      */
     //u1u2 = malloc( M * rank * sizeof(pastix_complex64_t));
-#if defined(WITH_LAPACKE_WORK)
-    LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M, B->rk,
-                    B->u, ldbu, u1u2, M );
-#else
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
                          B->u, ldbu, u1u2, M );
-#endif
 
     tmp = u1u2 + B->rk * M;
     if ( A->rk == -1 ) {
@@ -615,13 +603,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
             if (M1 != M) {
                 memset(tmp, 0, M * N1 * sizeof(pastix_complex64_t));
             }
-#if defined(WITH_LAPACKE_WORK)
-            ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M1, N1,
-                                  A->u, ldau, tmp + offx, M );
-#else
             ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, N1,
                                        A->u, ldau, tmp + offx, M );
-#endif
             assert(ret == 0);
         }
     }
@@ -632,13 +615,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
         if (M1 != M) {
             memset(tmp, 0, M * A->rk * sizeof(pastix_complex64_t));
         }
-#if defined(WITH_LAPACKE_WORK)
-        ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                              A->u, ldau, tmp + offx, M );
-#else
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
                                    A->u, ldau, tmp + offx, M );
-#endif
         assert(ret == 0);
     }
 
@@ -646,13 +624,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      * Perform QR factorization on u1u2 = (Q1 R1)
      */
     //tauU = malloc( minU * sizeof(pastix_complex64_t));
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zgeqrf( LAPACK_COL_MAJOR, M, rank,
-                          u1u2, M, tauU );
-#else
     ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, rank,
                                u1u2, M, tauU, zbuf, lwork );
-#endif
     assert( ret == 0 );
 
     /**
@@ -661,13 +634,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      *  [ 0    v1^h 0    ]
      */
     //v1v2 = malloc( N * rank * sizeof(pastix_complex64_t));
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', B->rk, N,
-                          B->v, ldbv, v1v2, rank );
-#else
     ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
                                B->v, ldbv, v1v2, rank );
-#endif
     assert(ret == 0);
 
     tmp = v1v2 + B->rk;
@@ -728,13 +696,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      * Perform LQ factorization on v1v2 = (L2 Q2)
      */
     //tauV = malloc( minV * sizeof(pastix_complex64_t));
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zgelqf( LAPACK_COL_MAJOR, rank, N,
-                          v1v2, rank, tauV );
-#else
     ret = LAPACKE_zgelqf_work( LAPACK_COL_MAJOR, rank, N,
                                v1v2, rank, tauV, zbuf, lwork );
-#endif
     assert(ret == 0);
     /**
      * Compute R = alpha R1 L2
@@ -745,13 +708,8 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
 
     memset(R, 0, rank * rank * sizeof(pastix_complex64_t));
 
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'U', rank, rank,
-                          u1u2, M, R, rank );
-#else
     ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'U', rank, rank,
                                u1u2, M, R, rank );
-#endif
     assert(ret == 0);
 
     cblas_ztrmm(CblasColMajor,
@@ -763,21 +721,10 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     /**
      * Compute svd(R) = u \sigma v^t
      */
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zgesvd( CblasColMajor, 'S', 'S',
-                          rank, rank, R, rank,
-                          s, u, rank, v, rank,
-                          (double*)zbuf);
-#else
-    ret = LAPACKE_zgesvd_work( CblasColMajor, 'S', 'S',
-                               rank, rank, R, rank,
-                               s, u, rank, v, rank,
-                               zbuf, lwork
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                               , s + rank
-#endif
-                               );
-#endif
+    ret = MYLAPACKE_zgesvd_work( CblasColMajor, 'S', 'S',
+                                 rank, rank, R, rank,
+                                 s, u, rank, v, rank,
+                                 zbuf, lwork, s + rank );
     assert(ret == 0);
     if (ret != 0) {
         errorPrint("LAPACKE_zgesvd FAILED");
@@ -873,7 +820,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
         B->u = malloc( new_rank * M * sizeof(pastix_complex64_t));
         B->v = malloc( new_rank * N * sizeof(pastix_complex64_t));
         ldbv = new_rank;
-#if defined(WITH_LAPACKE_WORK)
+#if defined(PASTIX_LR_CHECKNAN)
         LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
                              NAN, NAN, B->u, ldbu );
         LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', new_rank, N,
@@ -889,7 +836,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
      * Let's now compute the final U = Q1 ([u] \sigma)
      *                                     [0]
      */
-#if defined(WITH_LAPACKE_WORK)
+#if defined(PASTIX_LR_CHECKNAN)
     ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
                                0., 0., B->u, ldbu );
     assert(ret == 0);
@@ -904,49 +851,30 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     }
 #endif
 
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zunmqr(LAPACK_COL_MAJOR, 'L', 'N',
-                              M, new_rank, minU,
-                              u1u2, M, tauU,
-                              B->u, ldbu);
-#else
     ret = LAPACKE_zunmqr_work(LAPACK_COL_MAJOR, 'L', 'N',
                               M, new_rank, minU,
                               u1u2, M, tauU,
                               B->u, ldbu,
                               zbuf, lwork);
-#endif
     assert( ret == 0 );
 
     /**
      * And the final V^T = [v^t 0 ] Q2
      */
     tmp = B->v;
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', new_rank, rank,
-                         v, rank, B->v, ldbv );
-#else
     ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', new_rank, rank,
                                v, rank, B->v, ldbv );
-#endif
     assert( ret == 0 );
 
     ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', new_rank, N-rank,
                                0., 0., tmp + ldbv * rank, ldbv );
     assert( ret == 0 );
 
-#if defined(WITH_LAPACKE_WORK)
-    ret = LAPACKE_zunmlq(LAPACK_COL_MAJOR, 'R', 'N',
-                         new_rank, N, minV,
-                         v1v2, rank, tauV,
-                         B->v, ldbv);
-#else
     ret = LAPACKE_zunmlq_work(LAPACK_COL_MAJOR, 'R', 'N',
                               new_rank, N, minV,
                               v1v2, rank, tauV,
                               B->v, ldbv,
                               zbuf, lwork);
-#endif
     assert( ret == 0 );
 
     free(zbuf);
