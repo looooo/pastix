@@ -132,34 +132,29 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
         if (blok->LRblock[0].rk >= 0){
             gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rk));
         }
-        if (blok->LRblock[1].rk >= 0 && factoLU){
-            gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rk));
-        }
+        ret = core_zlr2ge( nrows, ncols,
+                           blok->LRblock,
+                           lcoeftab + blok->coefind, cblk->stride );
+        assert( ret == 0 );
 
-        /* printf("UNCOMPRESS BLOK RANKS %d %d (DIM %ld %ld)\n", */
-        /*        blok->LRblock[0].rk, */
-        /*        blok->LRblock[1].rk, */
-        /*        ncols, nrows); */
-
-        if (blok->LRblock[0].rk != 0){
-            ret = core_zlr2ge( nrows, ncols,
-                               blok->LRblock,
-                               lcoeftab + blok->coefind, cblk->stride );
-            assert( ret == 0 );
-        }
-
-        free( blok->LRblock[0].u ); blok->LRblock[0].u = NULL;
-        free( blok->LRblock[0].v ); blok->LRblock[0].v = NULL;
+        free( blok->LRblock[0].u );
+        blok->LRblock[0].u = NULL;
+        /* free( blok->LRblock[0].v ); */
+        blok->LRblock[0].v = NULL;
 
         if (factoLU) {
-            if (blok->LRblock[1].rk != 0){
-                ret = core_zlr2ge( nrows, ncols,
-                                   blok->LRblock+1,
-                                   ucoeftab + blok->coefind, cblk->stride );
-                assert( ret == 0 );
+            if (blok->LRblock[1].rk >= 0){
+                gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rk));
             }
-            free( blok->LRblock[1].u ); blok->LRblock[1].u = NULL;
-            free( blok->LRblock[1].v ); blok->LRblock[1].v = NULL;
+            ret = core_zlr2ge( nrows, ncols,
+                               blok->LRblock+1,
+                               ucoeftab + blok->coefind, cblk->stride );
+            assert( ret == 0 );
+
+            free( blok->LRblock[1].u );
+            blok->LRblock[1].u = NULL;
+            /* free( blok->LRblock[1].v ); */
+            blok->LRblock[1].v = NULL;
        }
     }
 
