@@ -1308,7 +1308,7 @@ core_zlrmm( double tol, int transA, int transB,
                     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                                  Cm, Cn, C->rk,
                                  CBLAS_SADDR(beta),  C->u, ldcu,
-                                 C->v, ldcv,
+                                                     C->v, ldcv,
                                  CBLAS_SADDR(zzero), work, Cm );
                 }
                 else{
@@ -1316,10 +1316,10 @@ core_zlrmm( double tol, int transA, int transB,
                 }
 
                 /* Add A*B */
-                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                              M, N, AB.rk,
-                             CBLAS_SADDR(alpha), AB.u, M,
-                                                 AB.v, AB.rkmax,
+                             CBLAS_SADDR(alpha), AB.u, ldabu,
+                                                 AB.v, ldabv,
                              CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
 
                 core_zge2lr( tol, Cm, Cn, work, Cm, C );
