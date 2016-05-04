@@ -57,22 +57,41 @@ static pastix_complex64_t zone  = 1.;
 #endif /* defined(PASTIX_LR_CHECKNAN) */
 
 int
-core_zlrinit( pastix_int_t M, pastix_int_t N,
-              pastix_lrblock_t *A )
+core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
+               pastix_lrblock_t *A )
 {
     pastix_complex64_t *u, *v;
 
-    Alr->rk = 0;
-    Alr->rkmax = pastix_imin( M, N );
-
-    u = malloc( (M+N) * Alr->rkmax * sizeof(pastix_complex64_t));
-    v = u + M * Alr->rkmax;
+    A->rk = 0;
+    A->rkmax = rkmax;
 
     /* u = malloc( M * Alr->rkmax * sizeof(pastix_complex64_t) ); */
     /* v = malloc( N * Alr->rkmax * sizeof(pastix_complex64_t) ); */
 
-    Alr->u = u;
-    Alr->v = v;
+    u = malloc( (M+N) * rkmax * sizeof(pastix_complex64_t));
+    v = u + M * rkmax;
+
+    A->u = u;
+    A->v = v;
+
+    return 0;
+}
+
+int
+core_zlrfree( pastix_lrblock_t *A )
+{
+    if ( A->rk == -1 ) {
+        free(A->u);
+        A->u = NULL;
+    }
+    else {
+        free(A->u);
+        /* free(Alr->v); */
+        A->u = NULL;
+        A->v = NULL;
+    }
+    A->rk = 0;
+    A->rkmax = 0;
 
     return 0;
 }
@@ -82,18 +101,21 @@ core_zlrsze( pastix_int_t M, pastix_int_t N,
              pastix_lrblock_t *A, int newrk, int newrkmax )
 {
     pastix_int_t minmn = pastix_imin( M, N );
-    newrkmax = pastix_imax( newrk, newrkmax );
+
+    newrkmax = (newrkmax == -1) ? A->rkmax : newrkmax;
+    newrkmax = pastix_imax( A->rkmax, newrkmax );
+    assert( newrkmax >= newrk );
 
     /**
-     * It is not interesting to compress, so we store the dense version in Alr
+     * It is not interesting to compress, so we alloc space to store the full matrix
      */
     if ( (newrk * 2) > minmn )
     {
-        Alr->u = realloc( Alr->u, M * N * sizeof(pastix_complex64_t) );
-        /* free(Alr->v); */
-        Alr->v = NULL;
-        Alr->rk = -1;
-        Alr->rkmax = M;
+        A->u = realloc( A->u, M * N * sizeof(pastix_complex64_t) );
+        /* free(A->v); */
+        A->v = NULL;
+        A->rk = -1;
+        A->rkmax = M;
         return -1;
     }
     /**
@@ -105,35 +127,45 @@ core_zlrsze( pastix_int_t M, pastix_int_t N,
          * The rank is nul, we free everything
          */
         free(A->u);
-        /* free(Alr->v); */
+        /* free(A->v); */
         A->u = NULL;
         A->v = NULL;
-        A->rkmax = 0;
+        A->rkmax = newrkmax;
+        A->rk = newrk;
     }
     /**
-     * The rank is non null, we compress the stored information
+     * The rank is non null, we allocate the correct amount of space, and
+     * compress the stored information if necessary
      */
     else {
-        /* pastix_complex64_t *u = malloc( m * newrkmax * sizeof(pastix_complex64_t) ); */
-        /* pastix_complex64_t *v = malloc( n * newrkmax * sizeof(pastix_complex64_t) ); */
-        pastix_complex64_t *u = malloc( (m+n) * newrkmax * sizeof(pastix_complex64_t) );
-        pastix_complex64_t *v = u + m * newrkmax;
+        pastix_complex64_t *u, *v;
+        int ret;
 
-        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, newrk,
-                                   Alr->u, m, u, m );
-        assert(ret == 0);
-        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', newrk, n,
-                                   Alr->v, Alr->rkmax, v, newrkmax );
-        assert(ret == 0);
+        assert( newrkmax >= A->rkmax );
+        if ( newrkmax > A->rkmax ) {
+            /* u = malloc( M * newrkmax * sizeof(pastix_complex64_t) ); */
+            /* v = malloc( N * newrkmax * sizeof(pastix_complex64_t) ); */
+            u = malloc( (M+N) * newrkmax * sizeof(pastix_complex64_t) );
+            v = u + M * newrkmax;
 
-        free(Alr->u);
-        /* free(Alr->v); */
-        Alr->u = u;
-        Alr->v = v;
-        Alr->rk = newrk;
-        Alr->rkmax = newrkmax;
+            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, newrk,
+                                       A->u, M, u, M );
+            assert(ret == 0);
+            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', newrk, N,
+                                       A->v, A->rkmax, v, newrkmax );
+            assert(ret == 0);
+
+            free(A->u);
+            /* free(A->v); */
+            A->u = u;
+            A->v = v;
+        }
+        A->rk = newrk;
+        A->rkmax = newrkmax;
+
+        (void)ret;
     }
-    assert( Alr->rk <= Alr->rkmax);
+    assert( A->rk <= A->rkmax);
     return 0;
 }
 
