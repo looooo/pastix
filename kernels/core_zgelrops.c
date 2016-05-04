@@ -102,9 +102,7 @@ core_zlrsze( pastix_int_t M, pastix_int_t N,
 {
     pastix_int_t minmn = pastix_imin( M, N );
 
-    newrkmax = (newrkmax == -1) ? A->rkmax : newrkmax;
-    newrkmax = pastix_imax( A->rkmax, newrkmax );
-    assert( newrkmax >= newrk );
+    newrkmax = (newrkmax == -1) ? newrk : newrkmax;
 
     /**
      * It is not interesting to compress, so we alloc space to store the full matrix
@@ -141,8 +139,7 @@ core_zlrsze( pastix_int_t M, pastix_int_t N,
         pastix_complex64_t *u, *v;
         int ret;
 
-        assert( newrkmax >= A->rkmax );
-        if ( newrkmax > A->rkmax ) {
+        if ( newrkmax != A->rkmax ) {
             /* u = malloc( M * newrkmax * sizeof(pastix_complex64_t) ); */
             /* v = malloc( N * newrkmax * sizeof(pastix_complex64_t) ); */
             u = malloc( (M+N) * newrkmax * sizeof(pastix_complex64_t) );
