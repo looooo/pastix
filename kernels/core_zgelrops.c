@@ -286,7 +286,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     Alr->rk = i;
 
     free(zwork);
-    return 0;
+    return i;
 }
 
 /**
@@ -325,89 +325,34 @@ core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
              pastix_lrblock_t *Alr )
 {
     int ret;
-    pastix_complex64_t *u, *v;
-
-    Alr->rk = -1;
-    Alr->rkmax = pastix_imin( m, n );
-
-    u = malloc( (m+n) * Alr->rkmax * sizeof(pastix_complex64_t));
-    v = u + m * Alr->rkmax;
-
-    /* u = malloc( m * Alr->rkmax * sizeof(pastix_complex64_t) ); */
-    /* v = malloc( n * Alr->rkmax * sizeof(pastix_complex64_t) ); */
-
-    Alr->u = u;
-    Alr->v = v;
+    /**
+     * Allocate a temorary Low rank matrix
+     */
+    core_zlralloc( m, n, pastix_imin( m, n ), Alr );
 
     /**
      * Compress the dense matrix with the temporary space just allocated
      */
     ret = core_zge2lrx( tol, m, n, A, lda, Alr );
 
-    if ( ret != 0 ) {
-        free(Alr->u);
-        Alr->u = NULL;
-        /* free(Alr->v); */
-        Alr->v = NULL;
+    if ( ret < 0 ) {
+        core_zlrfree( Alr );
         return ret;
     }
 
-    /* The rank should have been set */
-    assert(Alr->rk != -1);
+    /**
+     * Resize the space used by the low rank matrix
+     */
+    ret = core_zlrsze( m, n, Alr, ret, -1 );
 
     /**
-     * It is not interesting to compress, so we store the dense version in Alr
+     * It was not interesting to compress, so we store the dense version in Alr
      */
-    if ( (Alr->rk * 2) > Alr->rkmax )
-    {
-        if ( n != Alr->rkmax ) {
-            Alr->u = realloc( Alr->u, m * n * sizeof(pastix_complex64_t) );
-        }
-        /* free(Alr->v); */
-        Alr->v = NULL;
-        Alr->rk = -1;
-        Alr->rkmax = m;
+    if (ret == -1) {
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                                   A, lda, Alr->u, m );
+                                   A, lda, Alr->u, Alr->rkmax );
         assert(ret == 0);
     }
-    /**
-     * The rank is nul, we free everything
-     */
-    else if (Alr->rk == 0)
-    {
-        /**
-         * The rank is nul, we free everything
-         */
-        free(Alr->u);
-        /* free(Alr->v); */
-        Alr->u = NULL;
-        Alr->v = NULL;
-        Alr->rkmax = 0;
-    }
-    /**
-     * The rank is non nul, we compress the stored information
-     */
-    else {
-        /* pastix_complex64_t *u = malloc( m * Alr->rk * sizeof(pastix_complex64_t) ); */
-        /* pastix_complex64_t *v = malloc( n * Alr->rk * sizeof(pastix_complex64_t) ); */
-        pastix_complex64_t *u = malloc( (m+n) * Alr->rk * sizeof(pastix_complex64_t) );
-        pastix_complex64_t *v = u + m * Alr->rk;
-
-        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, Alr->rk,
-                                   Alr->u, m, u, m );
-        assert(ret == 0);
-        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', Alr->rk, n,
-                                   Alr->v, Alr->rkmax, v, Alr->rk );
-        assert(ret == 0);
-
-        free(Alr->u);
-        /* free(Alr->v); */
-        Alr->u = u;
-        Alr->v = v;
-        Alr->rkmax = Alr->rk;
-    }
-    assert( Alr->rk <= Alr->rkmax);
 
     return 0;
 }
