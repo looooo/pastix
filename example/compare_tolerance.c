@@ -106,7 +106,7 @@ int main (int argc, char **argv)
     rc = coeftabDiff[spm->flttype-2]( lr, dense );
     if (rc) {
         fprintf(stderr,
-                " -- Test factors between tolerances %f and %s: FAILED !!! -- \n"
+                " -- Test factors between tolerances %e and %s: FAILED !!! -- \n"
                 "    %d cblk have not been correctly compressed\n",
                 init_tolerance, tolerance, rc );
     }

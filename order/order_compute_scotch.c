@@ -202,7 +202,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
                                     (SCOTCH_Num *) ordemesh->rangtab,
                                     (SCOTCH_Num *) ordemesh->treetab);
 
-        treetab = ordemesh->treetab;
+        /* treetab = ordemesh->treetab; */
 #else
         {
             SCOTCH_Ordering sorder;
@@ -214,7 +214,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
                                         (SCOTCH_Num *)&ordemesh->cblknbr,
                                         (SCOTCH_Num *) ordemesh->rangtab,
                                         (SCOTCH_Num *) ordemesh->treetab);
-            treetab = ordemesh->treetab;
+            /* treetab = ordemesh->treetab; */
 
             ret = SCOTCH_graphOrderComputeList(&scotchgraph,
                                                &sorder,

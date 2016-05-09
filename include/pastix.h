@@ -606,26 +606,10 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                       pastix_int_t   rhsnbr,
                       void          *b);
 
-/* TODO: add properly */
-pastix_int_t *treetab;
-pastix_int_t current_cblk;
-double total_memory;
-double total_memory2;
-
-double gain_L;
-double gain_D;
-double gain_U;
-
-double time_comp;
-double time_uncomp;
-double time_recomp;
-double time_fact;
-double time_trsm;
-double time_update;
-
-pastix_int_t *rangtab_new;
-pastix_int_t *permtab_saved;
-pastix_int_t *peritab_saved;
-pastix_int_t  rangtab_current;
+/* Used to perform reordering after splitting */
+/* pastix_int_t *rangtab_new; */
+/* pastix_int_t *permtab_saved; */
+/* pastix_int_t *peritab_saved; */
+/* pastix_int_t  rangtab_current; */
 
 #endif /* _PASTIX_H_ */

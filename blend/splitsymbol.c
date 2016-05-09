@@ -686,7 +686,7 @@ void splitSymbol_classic( BlendCtrl    *ctrl,
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++) {
 
         /* Just for last supernode right now */
-        rangtab_new[rangtab_current++] = symbmtx->cblktab[cblknum].fcolnum;
+        /* rangtab_new[rangtab_current++] = symbmtx->cblktab[cblknum].fcolnum; */
 
         symbmtx->cblktab[cblknum].split = NULL;
 
@@ -773,7 +773,7 @@ void splitSymbol_classic( BlendCtrl    *ctrl,
                 printf("Cblknum %ld\n", cblknum);
                 for (i=1; i<nb_parts; i++){
                     printf("Split %ld is %ld\n", i, split[i]);
-                    rangtab_new[rangtab_current++] = symbmtx->cblktab[cblknum].fcolnum + split[i];
+                    /* rangtab_new[rangtab_current++] = symbmtx->cblktab[cblknum].fcolnum + split[i]; */
                 }
             }
         }

@@ -61,21 +61,6 @@ int main (int argc, char **argv)
     printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
     printf("\tTOLERANCE %.3g\n", tolerance);
 
-    current_cblk  = 0;
-    total_memory  = 0.;
-    total_memory2 = 0.;
-
-    gain_L = 0 ;
-    gain_D = 0 ;
-    gain_U = 0 ;
-
-    time_comp    = 0.0;
-    time_uncomp  = 0.0;
-    time_recomp  = 0.0;
-    time_fact    = 0.0;
-    time_trsm    = 0.0;
-    time_update  = 0.0;
-
     /**
      * Read the sparse matrix with the driver
      */
@@ -135,17 +120,6 @@ int main (int argc, char **argv)
      * Perform the numerical factorization
      */
     pastix_task_sopalin( pastix_data, spm );
-
-    printf("Total memory of the solver %10f Mo (symmetric) %10f (unsymmetric)\n", total_memory, total_memory2);
-    printf("Gain_L %10f Mo Gain_D %10f Mo, Gain_U %10f Mo\n", gain_L, gain_D, gain_U);
-
-    printf("Time compression   %10.3g s\n", time_comp  );
-    printf("Time uncompression %10.3g s\n", time_uncomp);
-    printf("Time recompression %10.3g s (included in Time update)\n", time_recomp);
-    printf("Time factorization %10.3g s\n", time_fact  );
-    printf("Time trsm panel    %10.3g s\n", time_trsm  );
-    printf("Time update        %10.3g s\n", time_update);
-    printf("\n");
 
     /**
      * Generates the b and x vector such that A * x = b
