@@ -826,7 +826,7 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
 
         /* Uncompress B */
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                    M, N, B->rk,
+                    M, N, Bbackup.rk,
                     CBLAS_SADDR(zone),  Bbackup.u, ldbu,
                                         Bbackup.v, ldbv,
                     CBLAS_SADDR(zzero), u, M );
