@@ -130,7 +130,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
         pastix_int_t nrows = blok_rownbr( blok );
 
         if (blok->LRblock[0].rk >= 0){
-            gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rk));
+            gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rkmax));
         }
         ret = core_zlr2ge( nrows, ncols,
                            blok->LRblock,
@@ -144,7 +144,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
 
         if (factoLU) {
             if (blok->LRblock[1].rk >= 0){
-                gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rk));
+                gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rkmax));
             }
             ret = core_zlr2ge( nrows, ncols,
                                blok->LRblock+1,
