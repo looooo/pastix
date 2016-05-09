@@ -281,12 +281,12 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
 
     tolrel = tol * s[0];
     tolabs = tol * tol;
-    for (i=0; i<minMN; i++, u+=ldu){
+    for (i=0; i<minMN; i++, v+=1){
         if ( (s[i] >= tolabs) &&
              (s[i] >= tolrel) )
         /* if (s[i] > tol) */
         {
-            cblas_zdscal(m, s[i], u, 1);
+            cblas_zdscal(n, s[i], v, ldv);
         }
         else {
             break;
@@ -799,15 +799,15 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     /**
      * Let's compute the new rank of the result
      */
-    tmp = u;
+    tmp = v;
     tolrel = tol * s[0];
     tolabs = tol * tol;
-    for (i=0; i<rank; i++, tmp+=rank){
+    for (i=0; i<rank; i++, tmp+=1){
         if ( (s[i] >= tolabs) &&
              (s[i] >= tolrel) )
         /* if (s[i] > tol) */
         {
-            cblas_zdscal(rank, s[i], tmp, 1);
+            cblas_zdscal(rank, s[i], tmp, rank);
         }
         else {
             break;
