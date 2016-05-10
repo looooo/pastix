@@ -11,6 +11,10 @@
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
+int core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_lrblock_t *A );
+int core_zlrfree( pastix_lrblock_t *A );
+int core_zlrsze( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax );
+
 /**
  *******************************************************************************
  *
@@ -147,12 +151,6 @@ void core_zgemmsp( int diag, int trans,
                    pastix_complex64_t *B,
                    pastix_complex64_t *C,
                    pastix_complex64_t *work );
-
-void core_zgemmsp_lr( int uplo, int trans,
-                      SolverCblk         *cblk,
-                      SolverBlok         *blok,
-                      SolverCblk         *fcblk,
-                      pastix_complex64_t *work );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,

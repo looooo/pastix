@@ -43,23 +43,19 @@ coeftab_zcompress_one( SolverCblk *cblk,
     /**
      * Diagonal block (Not compressed)
      */
-    LRblocks->rk    = -1;
-    LRblocks->rkmax = ncols;
-    LRblocks->u     = malloc( ncols * ncols * sizeof(pastix_complex64_t) );
-    LRblocks->v     = NULL;
+    core_zlralloc( ncols, ncols, -1, LRblocks );
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
-                         lcoeftab, cblk->stride, LRblocks->u, ncols );
+                         lcoeftab,    cblk->stride,
+                         LRblocks->u, LRblocks->rkmax );
     blok->LRblock = LRblocks; LRblocks++;
 
     gainL -= ncols * ncols;
 
     if (factoLU) {
-        LRblocks->rk    = -1;
-        LRblocks->rkmax = ncols;
-        LRblocks->u     = malloc( ncols * ncols * sizeof(pastix_complex64_t) );
-        LRblocks->v     = NULL;
+        core_zlralloc( ncols, ncols, -1, LRblocks );
         LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
-                             ucoeftab, cblk->stride, LRblocks->u, ncols );
+                             ucoeftab,    cblk->stride,
+                             LRblocks->u, LRblocks->rkmax );
         LRblocks++;
 
         gainU -= ncols * ncols;
@@ -136,11 +132,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
                            blok->LRblock,
                            lcoeftab + blok->coefind, cblk->stride );
         assert( ret == 0 );
-
-        free( blok->LRblock[0].u );
-        blok->LRblock[0].u = NULL;
-        /* free( blok->LRblock[0].v ); */
-        blok->LRblock[0].v = NULL;
+        core_zlrfree( blok->LRblock );
 
         if (factoLU) {
             if (blok->LRblock[1].rk >= 0){
@@ -150,12 +142,8 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
                                blok->LRblock+1,
                                ucoeftab + blok->coefind, cblk->stride );
             assert( ret == 0 );
-
-            free( blok->LRblock[1].u );
-            blok->LRblock[1].u = NULL;
-            /* free( blok->LRblock[1].v ); */
-            blok->LRblock[1].v = NULL;
-       }
+            core_zlrfree( blok->LRblock+1 );
+        }
     }
 
     cblk->lcoeftab = lcoeftab;
