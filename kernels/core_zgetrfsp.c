@@ -762,25 +762,14 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
-        if ( cblk->cblktype & CBLK_DENSE ) {
-            /* Update on L */
-            core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
-                          L, U, fcblk->lcoeftab, work );
+        /* Update on L */
+        core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
+                      L, U, fcblk->lcoeftab, work );
 
-            /* Update on U */
-            if ( blok+1 < lblk ) {
-                core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
-                              U, L, fcblk->ucoeftab, work );
-            }
-        }
-        else {
-            /* Update on L */
-            core_zgemmsp_lr( PastixLower, PastixTrans, cblk, blok, fcblk, work );
-
-            /* Update on U */
-            if ( blok+1 < lblk ) {
-                core_zgemmsp_lr( PastixUpper, PastixTrans, cblk, blok, fcblk, work );
-            }
+        /* Update on U */
+        if ( blok+1 < lblk ) {
+            core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
+                          U, L, fcblk->ucoeftab, work );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
