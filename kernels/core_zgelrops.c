@@ -1165,6 +1165,141 @@ int core_zlrm2( int transA, int transB,
  *
  * @ingroup pastix_kernel
  *
+ * core_zlrm3 - A * B with two Low rank matrices
+ *
+ *******************************************************************************/
+int core_zlrm3( double tol,
+                int transA, int transB,
+                pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                const pastix_lrblock_t *A,
+                const pastix_lrblock_t *B,
+                pastix_lrblock_t *AB )
+{
+    pastix_int_t ldau, ldav, ldbu, ldbv;
+    int transV = PastixNoTrans;
+    pastix_complex64_t *work2;
+    pastix_lrblock_t rArB;
+
+    assert( A->rk  <= A->rkmax);
+    assert( B->rk  <= B->rkmax);
+    assert(transA == PastixNoTrans);
+    assert(transB != PastixNoTrans);
+
+    /* Quick return if multiplication by 0 */
+    if ( A->rk == 0 || B->rk == 0 ) {
+        AB->rk = 0;
+        AB->rkmax = 0;
+        AB->u = NULL;
+        AB->v = NULL;
+        return transV;
+    }
+
+    ldau = (A->rk == -1) ? A->rkmax : M;
+    ldav = A->rkmax;
+    ldbu = (B->rk == -1) ? B->rkmax : N;
+    ldbv = B->rkmax;
+
+    work2 = malloc( A->rk * B->rk * sizeof(pastix_complex64_t));
+
+
+    /**
+     * Let's compute A * B' = Au Av^h (Bu Bv^h)' with the smallest ws
+     */
+    cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                 A->rk, B->rk, K,
+                 CBLAS_SADDR(zone),  A->v, ldav,
+                                     B->v, ldbv,
+                 CBLAS_SADDR(zzero), work2, A->rk );
+
+    /**
+     * Try to compress (Av^h Bv^h')
+     */
+    core_zge2lr( tol, A->rk, B->rk, work2, A->rk, &rArB );
+
+    /**
+     * The rank of AB is not smaller than min(rankA, rankB)
+     */
+    if (rArB.rk == -1){
+        if ( A->rk < B->rk ) {
+            /**
+             *    ABu = Au
+             *    ABv = (Av^h Bv^h') * Bu'
+             */
+            pastix_complex64_t *work = malloc( A->rk * N * sizeof(pastix_complex64_t));
+
+            assert( (A->rk * ( N + B->rk )) <= ldwork );
+            AB->rk = A->rk;
+            AB->rkmax = A->rk;
+            AB->u = A->u;
+            AB->v = work;
+
+            cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                         A->rk, N, B->rk,
+                         CBLAS_SADDR(zone),  work2,  A->rk,
+                         B->u,  ldbu,
+                         CBLAS_SADDR(zzero), AB->v, AB->rkmax );
+        }
+        else {
+            /**
+             *    ABu = Au * (Av^h Bv^h')
+             *    ABv = Bu'
+             */
+            pastix_complex64_t *work = malloc( B->rk * M * sizeof(pastix_complex64_t));
+
+            assert( (B->rk * ( M + A->rk )) <= ldwork );
+            AB->rk = B->rk;
+            AB->rkmax = B->rk;
+            AB->u = work;
+            AB->v = B->u;
+
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                         M, B->rk, A->rk,
+                         CBLAS_SADDR(zone),  A->u,  ldau,
+                         work2,  A->rk,
+                         CBLAS_SADDR(zzero), AB->u, M );
+
+            transV = transB;
+        }
+    }
+    else if (rArB.rk == 0){
+        AB->rk    = 0;
+        AB->rkmax = 0;
+        AB->u = NULL;
+        AB->v = NULL;
+    }
+    /**
+     * The rank of AB is smaller than min(rankA, rankB)
+     */
+    else{
+        pastix_complex64_t *work = malloc( (M + N) * rArB.rk * sizeof(pastix_complex64_t));
+
+        AB->rk    = rArB.rk;
+        AB->rkmax = rArB.rk;
+        AB->u = work;
+        AB->v = work + M * rArB.rk;
+
+        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                     M, rArB.rk, A->rk,
+                     CBLAS_SADDR(zone),  A->u,   ldau,
+                                         rArB.u, A->rk,
+                     CBLAS_SADDR(zzero), AB->u,  M );
+
+        cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                     rArB.rk, N, B->rk,
+                     CBLAS_SADDR(zone),  rArB.v, rArB.rkmax,
+                                         B->u, ldbu,
+                     CBLAS_SADDR(zzero), AB->v, rArB.rk );
+    }
+    core_zlrfree(&rArB);
+    free(work2);
+    return transV;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
  * core_zlrmm - A * B + C with three Low rank matrices
  *
  *******************************************************************************/
@@ -1198,8 +1333,9 @@ core_zlrmm( double tol, int transA, int transB,
 
     if ( A->rk != -1 ) {
         if ( B->rk != -1 ) {
-            required = pastix_imin( A->rk * ( N + B->rk ),
-                                    B->rk * ( M + A->rk ) );
+            required = 0;
+            /* required = pastix_imin( A->rk * ( N + B->rk ), */
+            /*                         B->rk * ( M + A->rk ) ); */
         }
         else {
             required = A->rk * N;
@@ -1222,8 +1358,19 @@ core_zlrmm( double tol, int transA, int transB,
         allocated = 1;
     }
 
-    transV = core_zlrm2( transA, transB, M, N, K,
-                         A, B, &AB, tmp, required );
+    if (A->rk != -1 && B->rk != -1){
+        /* Note that in this case tmp is not used anymore */
+        /* For instance, AB.rk != -1 */
+        transV = core_zlrm3( tol, transA, transB, M, N, K,
+                             A, B, &AB );
+
+        if (AB.rk == 0)
+            return 0;
+    }
+    else{
+        transV = core_zlrm2( transA, transB, M, N, K,
+                             A, B, &AB, tmp, required );
+    }
 
     ldabu = (AB.rk == -1) ? AB.rkmax : M;
     ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
