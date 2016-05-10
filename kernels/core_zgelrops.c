@@ -1132,14 +1132,14 @@ int core_zlrm2( int transA, int transB,
              * TODO: return low rank matrix:
              *             AB.u = A, AB.v = B' when K is small
              */
-            if ( 2*K < pastix_imin( M, N ) ) {
-                AB->rk = K;
-                AB->rkmax = B->rkmax;
-                AB->u = A->u;
-                AB->v = B->u;
-                transV = transB;
-            }
-            else {
+            /* if ( 2*K < pastix_imin( M, N ) ) { */
+            /*     AB->rk = K; */
+            /*     AB->rkmax = B->rkmax; */
+            /*     AB->u = A->u; */
+            /*     AB->v = B->u; */
+            /*     transV = transB; */
+            /* } */
+            /* else { */
                 assert( (M * N) <= ldwork );
                 AB->rk = -1;
                 AB->rkmax = M;
@@ -1151,7 +1151,7 @@ int core_zlrm2( int transA, int transB,
                              CBLAS_SADDR(zone),  A->u, ldau,
                                                  B->u, ldbu,
                              CBLAS_SADDR(zzero), work, M );
-            }
+            /* } */
         }
     }
     assert( AB->rk <= AB->rkmax);
