@@ -946,7 +946,6 @@ core_zgradd( double tol, pastix_complex64_t alpha,
          ((B->rk + N1) > rmax) )
     {
         pastix_complex64_t *work = malloc( M2 * N2 * sizeof(pastix_complex64_t) );
-
         assert(B->rk > 0);
 
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -959,8 +958,7 @@ core_zgradd( double tol, pastix_complex64_t alpha,
                      alpha, A, lda,
                      1.,    work + M2 * offy + offx, M2 );
 
-        free(B->u);
-        /* free(B->v); */
+        core_zlrfree(B);
         core_zge2lr( tol, M2, N2, work, M2, B );
         rank = B->rk;
         free(work);
@@ -1227,7 +1225,7 @@ int core_zlrm3( double tol,
              */
             pastix_complex64_t *work = malloc( A->rk * N * sizeof(pastix_complex64_t));
 
-            assert( (A->rk * ( N + B->rk )) <= ldwork );
+            //assert( (A->rk * ( N + B->rk )) <= lwork );
             AB->rk = A->rk;
             AB->rkmax = A->rk;
             AB->u = A->u;
@@ -1246,7 +1244,7 @@ int core_zlrm3( double tol,
              */
             pastix_complex64_t *work = malloc( B->rk * M * sizeof(pastix_complex64_t));
 
-            assert( (B->rk * ( M + A->rk )) <= ldwork );
+            //assert( (B->rk * ( M + A->rk )) <= lwork );
             AB->rk = B->rk;
             AB->rkmax = B->rk;
             AB->u = work;
@@ -1432,8 +1430,7 @@ core_zlrmm( double tol, int transA, int transB,
                                                  AB.v, ldabv,
                              CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
 
-                free(C->u);
-                /* free(C->v); */
+                core_zlrfree(C);
                 core_zge2lr( tol, Cm, Cn, work, Cm, C );
                 free(work);
             }
