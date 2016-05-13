@@ -734,6 +734,9 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
  *******************************************************************************
  *
  * @return
@@ -744,7 +747,8 @@ int
 core_zgetrfsp1d( SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
                  double              criteria,
-                 pastix_complex64_t *work)
+                 pastix_complex64_t *work,
+                 double              tol )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     pastix_complex64_t *U = cblk->ucoeftab;
@@ -764,12 +768,14 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
 
         /* Update on L */
         core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
-                      L, U, fcblk->lcoeftab, work );
+                      L, U, fcblk->lcoeftab, work,
+                      tol );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
             core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
-                          U, L, fcblk->ucoeftab, work );
+                          U, L, fcblk->ucoeftab, work,
+                          tol );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }

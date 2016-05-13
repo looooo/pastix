@@ -180,6 +180,7 @@ struct SolverMatrix_ {
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
 
     pastix_int_t              compress_size;
+    double                    tolerance;
 };
 
 /**

@@ -30,17 +30,6 @@ int main (int argc, char **argv)
      */
     pastixInitParam( iparm, dparm );
 
-
-    /**
-     * Check if parameters are well set
-     */
-    char *tol  = getenv("TOLERANCE");
-    if (tol == NULL){
-        printf("Set TOLERANCE variable\n");
-        exit(1);
-    }
-    double tolerance = atof(tol);
-
     /**
      * Get options from command line
      */
@@ -56,7 +45,7 @@ int main (int argc, char **argv)
     printf("\tH-PaStiX parameters are\n");
     printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
     printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
-    printf("\tTOLERANCE %.3g\n", tolerance);
+    printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
 
     /**
      * Read the sparse matrix with the driver

@@ -163,8 +163,7 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
 {
     SolverCblk *cblk  = solvmtx->cblktab;
     pastix_int_t cblknum;
-    char  *tolerance = getenv("TOLERANCE");
-    double tol = atof(tolerance);
+    double tol = solvmtx->tolerance;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
     double memgain, memoriginal;
@@ -197,8 +196,7 @@ coeftab_zcompress( SolverMatrix *solvmtx )
 {
     SolverCblk *cblk  = solvmtx->cblktab;
     pastix_int_t cblknum;
-    char  *tolerance = getenv("TOLERANCE");
-    double tol = atof(tolerance);
+    double tol = solvmtx->tolerance;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
     double memgain, memoriginal;

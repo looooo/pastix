@@ -76,6 +76,9 @@ static pastix_complex64_t zzero =  0.;
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
  *******************************************************************************
  *
  * @return
@@ -91,7 +94,8 @@ core_zgemmsp_fullfull( int uplo, int trans,
                        pastix_complex64_t *A,
                        pastix_complex64_t *B,
                        pastix_complex64_t *C,
-                       pastix_complex64_t *work )
+                       pastix_complex64_t *work,
+                       double              tol )
 {
     SolverBlok *iterblok;
     SolverBlok *fblok;
@@ -105,8 +109,6 @@ core_zgemmsp_fullfull( int uplo, int trans,
 
     pastix_lrblock_t *lrblock;
     pastix_int_t rownbr;
-    char  *tolerance = getenv("TOLERANCE");
-    double tol = atof(tolerance);
 
     assert(cblk->cblktype  & CBLK_DENSE);
     //assert(fcblk->cblktype & CBLK_DENSE);
@@ -238,6 +240,9 @@ core_zgemmsp_fullfull( int uplo, int trans,
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
  *******************************************************************************
  *
  * @return
@@ -252,7 +257,8 @@ core_zgemmsp_fulllr( int uplo, int trans,
                      SolverCblk         *fcblk,
                      pastix_complex64_t *A,
                      pastix_complex64_t *B,
-                     pastix_complex64_t *work )
+                     pastix_complex64_t *work,
+                     double              tol)
 {
     SolverBlok *iterblok;
     SolverBlok *fblok;
@@ -262,9 +268,6 @@ core_zgemmsp_fulllr( int uplo, int trans,
     pastix_int_t stride;
     pastix_int_t M, N, K;
     int shift;
-
-    char  *tolerance = getenv("TOLERANCE");
-    double tol = atof(tolerance);
 
     assert(cblk->cblktype  & CBLK_DENSE);
     assert(!(fcblk->cblktype & CBLK_DENSE));
@@ -374,6 +377,9 @@ core_zgemmsp_fulllr( int uplo, int trans,
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
  *******************************************************************************
  *
  * @return
@@ -386,7 +392,8 @@ core_zgemmsp_lr( int uplo, int trans,
                  SolverCblk         *cblk,
                  SolverBlok         *blok,
                  SolverCblk         *fcblk,
-                 pastix_complex64_t *work )
+                 pastix_complex64_t *work,
+                 double              tol )
 {
     SolverBlok *iterblok;
     SolverBlok *fblok;
@@ -397,9 +404,6 @@ core_zgemmsp_lr( int uplo, int trans,
     int shift;
 
     pastix_lrblock_t *lrA, *lrB;
-
-    char  *tolerance = getenv("TOLERANCE");
-    double tol = atof(tolerance);
 
     assert( !(cblk->cblktype & CBLK_DENSE) );
 
@@ -512,6 +516,9 @@ core_zgemmsp_lr( int uplo, int trans,
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
  *******************************************************************************
  *
  * @return
@@ -526,25 +533,25 @@ void core_zgemmsp( int uplo, int trans,
                    pastix_complex64_t *A,
                    pastix_complex64_t *B,
                    pastix_complex64_t *C,
-                   pastix_complex64_t *work )
+                   pastix_complex64_t *work,
+                   double              tol )
 {
-    /* char  *tolerance = getenv("TOLERANCE"); */
-    /* double tol = atof(tolerance); */
-
     if ( cblk->cblktype & CBLK_DENSE ) {
         if ( fcblk->cblktype & CBLK_DENSE ) {
             core_zgemmsp_fullfull( uplo, trans,
                                    cblk, blok, fcblk,
-                                   A, B, C, work );
+                                   A, B, C, work,
+                                   tol );
         }
         else {
             core_zgemmsp_fulllr( uplo, trans,
                                  cblk, blok, fcblk,
-                                 A, B, work );
+                                 A, B, work,
+                                 tol );
         }
     }
     else {
-        core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work );
+        core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work, tol );
     }
 }
 

@@ -68,13 +68,12 @@ pcoeftabInit( int rank, void *args )
     const pastix_bcsc_t *bcsc     = ciargs->bcsc;
     int fakefillin = ciargs->fakefillin;
     int factoLU    = ciargs->factoLU;
-    pastix_int_t compress_size = datacode->compress_size;
     pastix_int_t i, itercblk;
     pastix_int_t task;
     void (*initfunc)(const SolverMatrix*,
                      const pastix_bcsc_t*,
                      pastix_int_t,
-                     int, int, int) = NULL;
+                     int, int) = NULL;
     void (*dumpfunc)(const SolverMatrix*,
                      const char *) = NULL;
 
@@ -103,7 +102,7 @@ pcoeftabInit( int rank, void *args )
         task = datacode->ttsktab[rank][i];
         itercblk = datacode->tasktab[task].cblknum;
 
-        initfunc( datacode, bcsc, itercblk, fakefillin, factoLU, compress_size );
+        initfunc( datacode, bcsc, itercblk, fakefillin, factoLU );
     }
 
     (void)dumpfunc;

@@ -213,6 +213,8 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_FACT_FLOPS]         =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
     dparm[DPARM_A_NORM]             = -1.;
+
+    dparm[DPARM_COMPRESS_TOLERANCE] = 0.01;
 }
 
 /**

@@ -367,6 +367,10 @@ int dparm_to_int( char * string)
     {
         return DPARM_EPSILON_MAGN_CTRL;
     }
+    if(0 == strcmp("dparm_compress_tolerance", string))
+    {
+        return DPARM_COMPRESS_TOLERANCE;
+    }
     return -1;
 }
 

@@ -145,11 +145,13 @@ void
 coeftab_zinitcblk( const SolverMatrix  *solvmtx,
                    const pastix_bcsc_t *bcsc,
                    pastix_int_t itercblk,
-                   int fakefillin, int factoLU,
-                   int compress_size )
+                   int fakefillin, int factoLU )
 {
     SolverCblk *cblk = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
+
+    pastix_int_t compress_size = solvmtx->compress_size;
+    double tol                 = solvmtx->tolerance;
     pastix_int_t j;
 
     /* If not NULL, allocated to store the shur complement for exemple */
@@ -228,10 +230,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      * TODO: change the criteria based on the level in the tree
      */
     {
-        /* TODO: cleanup to pass that as arguments */
-        char  *tolerance = getenv("TOLERANCE");
-        double tol = atof(tolerance);
-
         if (cblk_colnbr( cblk ) >= compress_size)
         {
             /* fprintf(stderr, "Try to compress a block\n"); */

@@ -150,7 +150,8 @@ void core_zgemmsp( int diag, int trans,
                    pastix_complex64_t *A,
                    pastix_complex64_t *B,
                    pastix_complex64_t *C,
-                   pastix_complex64_t *work );
+                   pastix_complex64_t *work,
+                   double              tol );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -174,7 +175,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
 int core_zgetrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
                      double              criteria,
-                     pastix_complex64_t *work );
+                     pastix_complex64_t *work,
+                     double              tol );
 
 int core_zgetrfsp1d_LR( SolverMatrix       *solvmtx,
                         SolverCblk         *cblk,

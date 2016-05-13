@@ -258,6 +258,7 @@ enum IPARM_ACCESS_DEPRECATED {
    DPARM_SOLV_FLOPS         - Solve flops (rate!)                               Default: -                OUT
    DPARM_RAFF_TIME          - Time for Refinement step (wallclock)              Default: -                OUT
    DPARM_SIZE               - Dparm Size         IGNORE                         Default: -                IN
+   DPARM_COMPRESS_TOLERANCE - Tolerance for low-rank kernels                    Default: 0.01             IN
  */
 enum DPARM_ACCESS {
   DPARM_FILL_IN                 = 1,
@@ -275,6 +276,7 @@ enum DPARM_ACCESS {
   DPARM_SOLV_FLOPS              = 23,
   DPARM_RAFF_TIME               = 24,
   DPARM_A_NORM                  = 25,
+  DPARM_COMPRESS_TOLERANCE      = 26,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
 };
 
