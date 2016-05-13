@@ -145,7 +145,8 @@ void
 coeftab_zinitcblk( const SolverMatrix  *solvmtx,
                    const pastix_bcsc_t *bcsc,
                    pastix_int_t itercblk,
-                   int fakefillin, int factoLU )
+                   int fakefillin, int factoLU,
+                   int compress_size )
 {
     SolverCblk *cblk = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
@@ -228,7 +229,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      */
     {
         /* TODO: cleanup to pass that as arguments */
-        int compress_size = 128;
         char  *tolerance = getenv("TOLERANCE");
         double tol = atof(tolerance);
 

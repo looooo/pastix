@@ -41,9 +41,6 @@ int main (int argc, char **argv)
     }
     double tolerance = atof(tol);
 
-    iparm[IPARM_ITERMAX]          = 100;
-    iparm[IPARM_REORDERING_SPLIT] = 0;
-
     /**
      * Get options from command line
      */

@@ -178,6 +178,8 @@ struct SolverMatrix_ {
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
+
+    pastix_int_t              compress_size;
 };
 
 /**

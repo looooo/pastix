@@ -101,6 +101,9 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    /* Copy the compress_size parameter into the SolverMatrix structure */
+    pastix_data->solvmatr->compress_size = pastix_data->iparm[IPARM_COMPRESS_SIZE];
+
     coeftabInit( pastix_data,
                  spm->flttype == PastixPattern,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
