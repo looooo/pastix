@@ -20,6 +20,408 @@
 #include "graph.h"
 #include "order.h"
 
+
+void order_grid2D_wide(pastix_int_t *rangtab,
+                       pastix_int_t *peritab,
+                       pastix_int_t *cblknbr,
+                       pastix_int_t x0,
+                       pastix_int_t xn,
+                       pastix_int_t y0,
+                       pastix_int_t yn,
+                       pastix_int_t max_number,
+                       pastix_int_t lda,
+                       pastix_int_t *current_rangtab){
+
+    pastix_int_t nx = xn-x0;
+    pastix_int_t ny = yn-y0;
+    /* printf("Treating a subgraph of size %ld %ld\n", nx, ny); */
+
+    /* The subgraph is small enough */
+    if (nx <= 4 && ny <= 4){
+        cblknbr[0] ++;
+        /* printf("Treating cblk %ld\n", cblknbr[0]); */
+        pastix_int_t i, j;
+        pastix_int_t current = 0;
+        for (i=x0; i<xn; i++){
+            for (j=y0; j<yn; j++){
+                pastix_int_t index = i + lda * j;
+                peritab[index] = max_number - current;
+                /* printf("Fitting 1a %ld with %ld\n", index, max_number - current); */
+                current++;
+            }
+        }
+
+        rangtab[current_rangtab[0]] = max_number;
+        current_rangtab[0]++;
+        return;
+    }
+
+    cblknbr[0] ++;
+    /* printf("Treating cblk %ld\n", cblknbr[0]); */
+
+    /* In which direction do we cut? 0 for x, 1 for y */
+    pastix_int_t dir = 0;
+    if (ny > nx)
+        dir = 1;
+
+    /* If we cut in direction x */
+    if (dir == 0){
+
+        rangtab[current_rangtab[0]] = max_number;
+        current_rangtab[0]++;
+
+        pastix_int_t i;
+        for (i=0; i<ny; i++){
+            pastix_int_t index = x0 + nx/2 + lda*(y0+i) - 1;
+            peritab[index] = max_number - i;
+            /* printf("Fitting 1a %ld with %ld\n", index, max_number - i); */
+        }
+        for (i=0; i<ny; i++){
+            pastix_int_t index = x0 + nx/2 + lda*(y0+i);
+            peritab[index] = max_number - ny - i;
+            /* printf("Fitting 1b %ld with %ld\n", index, max_number - ny - i); */
+        }
+
+        order_grid2D_wide(rangtab, peritab, cblknbr,
+                          x0, xn-nx/2-1, y0, yn, max_number - 2*ny,
+                          lda, current_rangtab);
+
+        order_grid2D_wide(rangtab, peritab, cblknbr,
+                          x0+nx/2+1, xn, y0, yn, max_number - 2*ny - ny*(nx/2-1),
+                     lda, current_rangtab);
+
+    }
+
+    /* If we cut in direction y */
+    else{
+        rangtab[current_rangtab[0]] = max_number;
+        current_rangtab[0]++;
+
+        pastix_int_t i;
+        for (i=0; i<nx; i++){
+            pastix_int_t index = lda*(y0+ny/2-1) + x0 + i;
+            peritab[index] = max_number - i;
+            /* printf("Fitting 2a %ld with %ld\n", index, max_number - i); */
+        }
+        for (i=0; i<nx; i++){
+            pastix_int_t index = lda*(y0+ny/2) + x0 + i;
+            peritab[index] = max_number - nx - i;
+            /* printf("Fitting 2b %ld with %ld\n", index, max_number - nx - i); */
+        }
+
+        /* printf("Parameters %ld %ld %ld %ld\n", x0, xn, y0, yn/2-1); */
+        order_grid2D_wide(rangtab, peritab, cblknbr,
+                          x0, xn, y0, yn-ny/2-1, max_number - 2*nx,
+                          lda, current_rangtab);
+
+        order_grid2D_wide(rangtab, peritab, cblknbr,
+                          x0, xn, y0+ny/2+1, yn, max_number - 2*nx - nx*(ny/2-1),
+                          lda, current_rangtab);
+    }
+}
+
+void order_grid3D_wide(pastix_int_t *rangtab,
+                       pastix_int_t *peritab,
+                       pastix_int_t *cblknbr,
+                       pastix_int_t x0,
+                       pastix_int_t xn,
+                       pastix_int_t y0,
+                       pastix_int_t yn,
+                       pastix_int_t z0,
+                       pastix_int_t zn,
+                       pastix_int_t max_number,
+                       pastix_int_t lda,
+                       pastix_int_t *current_rangtab,
+                       pastix_int_t *treetab,
+                       pastix_int_t current_treetab){
+
+    pastix_int_t nx = xn-x0;
+    pastix_int_t ny = yn-y0;
+    pastix_int_t nz = zn-z0;
+    /* printf("Treating a subgraph of size %ld %ld %ld\n", nx, ny, nz); */
+
+    /* The subgraph is small enough */
+    if (nx <= 4 && ny <= 4 && nz <= 4){
+        cblknbr[0] ++;
+        /* printf("Treating cblk %ld\n", cblknbr[0]); */
+        pastix_int_t i, j, k;
+        pastix_int_t current = 0;
+        for (i=x0; i<xn; i++){
+            for (j=y0; j<yn; j++){
+                for (k=z0; k<zn; k++){
+                    pastix_int_t index = i + lda * j + lda*lda * k;
+                    peritab[index] = max_number - current;
+                    current++;
+                }
+            }
+        }
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number;
+        current_rangtab[0]++;
+        return;
+    }
+
+    cblknbr[0] ++;
+    /* printf("Treating cblk %ld\n", cblknbr[0]); */
+
+    /* In which direction do we cut? 0 for x, 1 for y */
+    pastix_int_t dir = 0;
+    if (ny > nx)
+        dir = 1;
+    if (nz > nx && nz > ny)
+        dir = 2;
+
+    /* If we cut in direction x */
+    if (dir == 0){
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number;
+        current_rangtab[0]++;
+
+        pastix_int_t i, j;
+        pastix_int_t current = 0;
+        for (i=0; i<ny; i++){
+            for (j=0; j<nz; j++){
+                pastix_int_t index = x0 + nx/2 + lda*(y0+i) - 1 + lda*lda*(z0+j);
+                peritab[index] = max_number - current;
+                current++;
+            }
+        }
+        for (i=0; i<ny; i++){
+            for (j=0; j<nz; j++){
+                pastix_int_t index = x0 + nx/2 + lda*(y0+i) + lda*lda*(z0+j);
+                peritab[index] = max_number - current;
+                current++;
+            }
+        }
+
+        order_grid3D_wide(rangtab, peritab, cblknbr,
+                          x0, xn-nx/2-1, y0, yn, z0, zn, max_number - 2*ny*nz,
+                          lda, current_rangtab,
+                          treetab, current_treetab+1);
+
+        order_grid3D_wide(rangtab, peritab, cblknbr,
+                          x0+nx/2+1, xn, y0, yn, z0, zn, max_number - nx*ny*nz /2 - ny*nz,
+                          lda, current_rangtab,
+                          treetab, current_treetab+1);
+
+    }
+
+    /* If we cut in direction y */
+    else if (dir == 1){
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number;
+        current_rangtab[0]++;
+
+        pastix_int_t i, j;
+        pastix_int_t current = 0;
+        for (i=0; i<nx; i++){
+            for (j=0; j<nz; j++){
+                pastix_int_t index = lda*(y0+ny/2-1) + x0 + i  + lda*lda*(z0+j);
+                peritab[index] = max_number - current;
+                current++;
+            }
+        }
+        for (i=0; i<nx; i++){
+            for (j=0; j<nz; j++){
+                pastix_int_t index = lda*(y0+ny/2) + x0 + i + lda*lda*(z0+j);
+                peritab[index] = max_number - current;
+                current++;
+            }
+        }
+
+        order_grid3D_wide(rangtab, peritab, cblknbr,
+                          x0, xn, y0, yn-ny/2-1, z0, zn, max_number - 2*nx*nz,
+                          lda, current_rangtab,
+                          treetab, current_treetab+1);
+
+        order_grid3D_wide(rangtab, peritab, cblknbr,
+                          x0, xn, y0+ny/2+1, yn, z0, zn, max_number - nx*ny*nz /2 - nx*nz,
+                          lda, current_rangtab,
+                          treetab, current_treetab+1);
+    }
+
+    /* If we cut in direction y */
+    else{
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number;
+        current_rangtab[0]++;
+
+        pastix_int_t i, j;
+        pastix_int_t current = 0;
+        for (i=0; i<nx; i++){
+            for (j=0; j<ny; j++){
+                pastix_int_t index = lda*lda*(z0+nz/2-1) + x0 + i + lda * (y0+j);
+                peritab[index] = max_number - current;
+                current++;
+            }
+        }
+        for (i=0; i<nx; i++){
+            for (j=0; j<ny; j++){
+                pastix_int_t index = lda*lda*(z0+nz/2) + x0 + i + lda * (y0+j);
+                peritab[index] = max_number - current;
+                current++;
+            }
+        }
+
+        order_grid3D_wide(rangtab, peritab, cblknbr,
+                          x0, xn, y0, yn, z0, zn-nz/2-1, max_number - 2*nx*ny,
+                          lda, current_rangtab,
+                          treetab, current_treetab+1);
+
+        order_grid3D_wide(rangtab, peritab, cblknbr,
+                          x0, xn, y0, yn, z0+nz/2+1, zn, max_number - nx*ny*nz /2 - nx*ny,
+                          lda, current_rangtab,
+                          treetab, current_treetab+1);
+    }
+}
+
+void order_grid3D_classic(pastix_int_t *rangtab,
+                          pastix_int_t *peritab,
+                          pastix_int_t *cblknbr,
+                          pastix_int_t x0,
+                          pastix_int_t xn,
+                          pastix_int_t y0,
+                          pastix_int_t yn,
+                          pastix_int_t z0,
+                          pastix_int_t zn,
+                          pastix_int_t *max_number,
+                          pastix_int_t lda,
+                          pastix_int_t *current_rangtab,
+                          pastix_int_t *treetab,
+                          pastix_int_t current_treetab){
+
+    pastix_int_t nx = xn-x0;
+    pastix_int_t ny = yn-y0;
+    pastix_int_t nz = zn-z0;
+
+    /* printf("Treating a subgraph of size %ld %ld %ld\n", nx, ny, nz); */
+
+    /* The subgraph is small enough */
+    /* if (nx <= 4 && ny <= 4 && nz <= 4){ */
+    if (nx*ny*nz < 10){
+        cblknbr[0] ++;
+        printf("Treating small clique %ld\n", nx*ny*nz);
+        pastix_int_t i, j, k;
+        pastix_int_t current = 0;
+        for (i=x0; i<xn; i++){
+            for (j=y0; j<yn; j++){
+                for (k=z0; k<zn; k++){
+                    pastix_int_t index = i + lda * j + lda*lda * k;
+                    peritab[index] = max_number[0] - current;
+                    current++;
+                }
+            }
+        }
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number[0];
+        max_number[0] -= current;
+        current_rangtab[0]++;
+        return;
+    }
+
+    cblknbr[0] ++;
+
+    /* In which direction do we cut? 0 for x, 1 for y */
+    pastix_int_t dir = 0;
+    if (ny > nx)
+        dir = 1;
+    if (nz > nx && nz > ny)
+        dir = 2;
+
+    /* If we cut in direction x */
+    if (dir == 0){
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number[0];
+        current_rangtab[0]++;
+
+        pastix_int_t i, j;
+        pastix_int_t current = 0;
+        for (i=0; i<ny; i++){
+            for (j=0; j<nz; j++){
+                pastix_int_t index = x0 + nx/2 + lda*(y0+i) + lda*lda*(z0+j);
+                peritab[index] = max_number[0] - current;
+                current++;
+            }
+        }
+        max_number[0] -= current;
+
+        order_grid3D_classic(rangtab, peritab, cblknbr,
+                             x0, x0 + nx/2, y0, yn, z0, zn, max_number,
+                             lda, current_rangtab,
+                             treetab, current_treetab+1);
+
+        order_grid3D_classic(rangtab, peritab, cblknbr,
+                             x0+nx/2+1, xn, y0, yn, z0, zn, max_number,
+                             lda, current_rangtab,
+                             treetab, current_treetab+1);
+
+    }
+
+    /* If we cut in direction y */
+    else if (dir == 1){
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number[0];
+        current_rangtab[0]++;
+
+        pastix_int_t i, j;
+        pastix_int_t current = 0;
+        for (i=0; i<nx; i++){
+            for (j=0; j<nz; j++){
+                pastix_int_t index = lda*(y0+ny/2) + x0 + i  + lda*lda*(z0+j);
+                peritab[index] = max_number[0] - current;
+                current++;
+            }
+        }
+        max_number[0] -= current;
+
+        order_grid3D_classic(rangtab, peritab, cblknbr,
+                             x0, xn, y0, y0+ny/2, z0, zn, max_number,
+                             lda, current_rangtab,
+                             treetab, current_treetab+1);
+
+        order_grid3D_classic(rangtab, peritab, cblknbr,
+                             x0, xn, y0+ny/2+1, yn, z0, zn, max_number,
+                             lda, current_rangtab,
+                             treetab, current_treetab+1);
+    }
+
+    /* If we cut in direction z */
+    else{
+
+        treetab[current_rangtab[0]] = current_treetab;
+        rangtab[current_rangtab[0]] = max_number[0];
+        current_rangtab[0]++;
+
+        pastix_int_t i, j;
+        pastix_int_t current = 0;
+        for (i=0; i<nx; i++){
+            for (j=0; j<ny; j++){
+                pastix_int_t index = lda*lda*(z0+nz/2) + x0 + i + lda * (y0+j);
+                peritab[index] = max_number[0] - current;
+                current++;
+            }
+        }
+        max_number[0] -= current;
+
+        order_grid3D_classic(rangtab, peritab, cblknbr,
+                             x0, xn, y0, yn, z0, z0+nz/2, max_number,
+                             lda, current_rangtab,
+                             treetab, current_treetab+1);
+
+        order_grid3D_classic(rangtab, peritab, cblknbr,
+                             x0, xn, y0, yn, z0+nz/2+1, zn, max_number,
+                             lda, current_rangtab,
+                             treetab, current_treetab+1);
+    }
+}
+
 /**
  *******************************************************************************
  *
@@ -111,251 +513,6 @@
  *          \retval PASTIX_ERR_INTERNAL if an error occurs internally to Scotch.
  *
  *******************************************************************************/
-
-void order_grid2D(pastix_int_t *rangtab,
-                  pastix_int_t *peritab,
-                  pastix_int_t *cblknbr,
-                  pastix_int_t x0,
-                  pastix_int_t xn,
-                  pastix_int_t y0,
-                  pastix_int_t yn,
-                  pastix_int_t max_number,
-                  pastix_int_t lda,
-                  pastix_int_t *current_rangtab){
-
-    pastix_int_t nx = xn-x0;
-    pastix_int_t ny = yn-y0;
-    printf("Treating a subgraph of size %ld %ld\n", nx, ny);
-
-    /* The subgraph is small enough */
-    if (nx <= 4 && ny <= 4){
-        cblknbr[0] ++;
-        printf("Treating cblk %ld\n", cblknbr[0]);
-        pastix_int_t i, j;
-        pastix_int_t current = 0;
-        for (i=x0; i<xn; i++){
-            for (j=y0; j<yn; j++){
-                pastix_int_t index = i + lda * j;
-                peritab[index] = max_number - current;
-                printf("Fitting 1a %ld with %ld\n", index, max_number - current);
-                current++;
-            }
-        }
-
-        rangtab[current_rangtab[0]] = max_number;
-        current_rangtab[0]++;
-        return;
-    }
-
-    cblknbr[0] ++;
-    printf("Treating cblk %ld\n", cblknbr[0]);
-
-    /* In which direction do we cut? 0 for x, 1 for y */
-    pastix_int_t dir = 0;
-    if (ny > nx)
-        dir = 1;
-
-    /* If we cut in direction x */
-    if (dir == 0){
-
-        rangtab[current_rangtab[0]] = max_number;
-        current_rangtab[0]++;
-
-        pastix_int_t i;
-        for (i=0; i<ny; i++){
-            pastix_int_t index = x0 + nx/2 + lda*(y0+i) - 1;
-            peritab[index] = max_number - i;
-            printf("Fitting 1a %ld with %ld\n", index, max_number - i);
-        }
-        for (i=0; i<ny; i++){
-            pastix_int_t index = x0 + nx/2 + lda*(y0+i);
-            peritab[index] = max_number - ny - i;
-            printf("Fitting 1b %ld with %ld\n", index, max_number - ny - i);
-        }
-
-        order_grid2D(rangtab, peritab, cblknbr,
-                     x0, xn-nx/2-1, y0, yn, max_number - 2*ny,
-                     lda, current_rangtab);
-
-        order_grid2D(rangtab, peritab, cblknbr,
-                     x0+nx/2+1, xn, y0, yn, max_number - 2*ny - ny*(nx/2-1),
-                     lda, current_rangtab);
-
-    }
-
-    /* If we cut in direction y */
-    else{
-        rangtab[current_rangtab[0]] = max_number;
-        current_rangtab[0]++;
-
-        pastix_int_t i;
-        for (i=0; i<nx; i++){
-            pastix_int_t index = lda*(y0+ny/2-1) + x0 + i;
-            peritab[index] = max_number - i;
-            printf("Fitting 2a %ld with %ld\n", index, max_number - i);
-        }
-        for (i=0; i<nx; i++){
-            pastix_int_t index = lda*(y0+ny/2) + x0 + i;
-            peritab[index] = max_number - nx - i;
-            printf("Fitting 2b %ld with %ld\n", index, max_number - nx - i);
-        }
-
-        printf("Parameters %ld %ld %ld %ld\n", x0, xn, y0, yn/2-1);
-        order_grid2D(rangtab, peritab, cblknbr,
-                     x0, xn, y0, yn-ny/2-1, max_number - 2*nx,
-                     lda, current_rangtab);
-
-        order_grid2D(rangtab, peritab, cblknbr,
-                     x0, xn, y0+ny/2+1, yn, max_number - 2*nx - nx*(ny/2-1),
-                     lda, current_rangtab);
-    }
-}
-
-void order_grid3D(pastix_int_t *rangtab,
-                  pastix_int_t *peritab,
-                  pastix_int_t *cblknbr,
-                  pastix_int_t x0,
-                  pastix_int_t xn,
-                  pastix_int_t y0,
-                  pastix_int_t yn,
-                  pastix_int_t z0,
-                  pastix_int_t zn,
-                  pastix_int_t max_number,
-                  pastix_int_t lda,
-                  pastix_int_t *current_rangtab){
-
-    pastix_int_t nx = xn-x0;
-    pastix_int_t ny = yn-y0;
-    pastix_int_t nz = zn-z0;
-    printf("Treating a subgraph of size %ld %ld %ld\n", nx, ny, nz);
-
-    /* The subgraph is small enough */
-    if (nx <= 4 && ny <= 4 && nz <= 4){
-        cblknbr[0] ++;
-        printf("Treating cblk %ld\n", cblknbr[0]);
-        pastix_int_t i, j, k;
-        pastix_int_t current = 0;
-        for (i=x0; i<xn; i++){
-            for (j=y0; j<yn; j++){
-                for (k=z0; k<zn; k++){
-                    pastix_int_t index = i + lda * j + lda*lda * k;
-                    peritab[index] = max_number - current;
-                    current++;
-                }
-            }
-        }
-
-        rangtab[current_rangtab[0]] = max_number;
-        current_rangtab[0]++;
-        return;
-    }
-
-    cblknbr[0] ++;
-    printf("Treating cblk %ld\n", cblknbr[0]);
-
-    /* In which direction do we cut? 0 for x, 1 for y */
-    pastix_int_t dir = 0;
-    if (ny > nx)
-        dir = 1;
-    if (nz > nx && nz > ny)
-        dir = 2;
-
-    /* If we cut in direction x */
-    if (dir == 0){
-
-        rangtab[current_rangtab[0]] = max_number;
-        current_rangtab[0]++;
-
-        pastix_int_t i, j;
-        pastix_int_t current = 0;
-        for (i=0; i<ny; i++){
-            for (j=0; j<nz; j++){
-                pastix_int_t index = x0 + nx/2 + lda*(y0+i) - 1 + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
-                current++;
-            }
-        }
-        for (i=0; i<ny; i++){
-            for (j=0; j<nz; j++){
-                pastix_int_t index = x0 + nx/2 + lda*(y0+i) + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
-                current++;
-            }
-        }
-
-        order_grid3D(rangtab, peritab, cblknbr,
-                     x0, xn-nx/2-1, y0, yn, z0, zn, max_number - 2*ny*nz,
-                     lda, current_rangtab);
-
-        order_grid3D(rangtab, peritab, cblknbr,
-                     x0+nx/2+1, xn, y0, yn, z0, zn, max_number - nx*ny*nz /2 - ny*nz,
-                     lda, current_rangtab);
-
-    }
-
-    /* If we cut in direction y */
-    else if (dir == 1){
-        rangtab[current_rangtab[0]] = max_number;
-        current_rangtab[0]++;
-
-        pastix_int_t i, j;
-        pastix_int_t current = 0;
-        for (i=0; i<nx; i++){
-            for (j=0; j<nz; j++){
-                pastix_int_t index = lda*(y0+ny/2-1) + x0 + i  + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
-                current++;
-            }
-        }
-        for (i=0; i<nx; i++){
-            for (j=0; j<nz; j++){
-                pastix_int_t index = lda*(y0+ny/2) + x0 + i + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
-                current++;
-            }
-        }
-
-        order_grid3D(rangtab, peritab, cblknbr,
-                     x0, xn, y0, yn-ny/2-1, z0, zn, max_number - 2*nx*nz,
-                     lda, current_rangtab);
-
-        order_grid3D(rangtab, peritab, cblknbr,
-                     x0, xn, y0+ny/2+1, yn, z0, zn, max_number - nx*ny*nz /2 - nx*nz,
-                     lda, current_rangtab);
-    }
-
-    /* If we cut in direction y */
-    else{
-        rangtab[current_rangtab[0]] = max_number;
-        current_rangtab[0]++;
-
-        pastix_int_t i, j;
-        pastix_int_t current = 0;
-        for (i=0; i<nx; i++){
-            for (j=0; j<ny; j++){
-                pastix_int_t index = lda*lda*(z0+nz/2-1) + x0 + i + lda * (y0+j);
-                peritab[index] = max_number - current;
-                current++;
-            }
-        }
-        for (i=0; i<nx; i++){
-            for (j=0; j<ny; j++){
-                pastix_int_t index = lda*lda*(z0+nz/2) + x0 + i + lda * (y0+j);
-                peritab[index] = max_number - current;
-                current++;
-            }
-        }
-
-        order_grid3D(rangtab, peritab, cblknbr,
-                     x0, xn, y0, yn, z0, zn-nz/2-1, max_number - 2*nx*ny,
-                     lda, current_rangtab);
-
-        order_grid3D(rangtab, peritab, cblknbr,
-                     x0, xn, y0, yn, z0+nz/2+1, zn, max_number - nx*ny*nz /2 - nx*ny,
-                     lda, current_rangtab);
-    }
-}
-
 int
 pastix_task_order(      pastix_data_t *pastix_data,
                   const pastix_csc_t  *csc,
@@ -631,7 +788,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         orderFindSupernodes( &subgraph, ordemesh );
     }
 
-    orderApplyLevelOrder( ordemesh );
+    /* orderApplyLevelOrder( ordemesh ); */
 
     /*
      * Add the isolated elements to the ordering structure
@@ -745,13 +902,24 @@ pastix_task_order(      pastix_data_t *pastix_data,
 
     /* Manual ordering for regular grids */
     if (0){
-        pastix_int_t sep = 30; //sqrt(n);
-        pastix_int_t i = 0;
-        while (i != sep && i < sep+1){
-            printf("2*i+2 %ld\n", i);
-            i = 2*i+2;
-        }
+        pastix_int_t sep = 47; //sqrt(n);
+        pastix_int_t i = 2;
 
+        /* Graphs for using wide separators */
+        /* while (i != sep && i < sep+1){ */
+        /*     printf("2*i+2 %ld\n", i); */
+        /*     i = 2*i+2; */
+        /* } */
+        /* if (i != sep){ */
+        /*     printf("The given graph size is not correct for manual ordering (2D/3D graph of size 2^n*4-2)\n"); */
+        /*     exit(1); */
+        /* } */
+
+        /* Graphs for using classical separators */
+        while (i != sep && i < sep+1){
+            printf("2*i+1 %ld\n", i);
+            i = 2*i+1;
+        }
         if (i != sep){
             printf("The given graph size is not correct for manual ordering (2D/3D graph of size 2^n*4-2)\n");
             exit(1);
@@ -763,28 +931,38 @@ pastix_task_order(      pastix_data_t *pastix_data,
         pastix_int_t current_rangtab = 0;
 
         if (sep * sep == n){
-            order_grid2D(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
-                         0, sep, 0, sep, n-1, sep, &current_rangtab);
+            order_grid2D_wide(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
+                              0, sep, 0, sep, n-1, sep, &current_rangtab);
         }
         else{
-            order_grid3D(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
-                         0, sep, 0, sep, 0, sep, n-1, sep, &current_rangtab);
+            /* order_grid3D_wide(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr, */
+            /*                   0, sep, 0, sep, 0, sep, n-1, sep, &current_rangtab, */
+            /*                   ordemesh->treetab, 1); */
+            pastix_int_t current_number = n-1;
+
+            order_grid3D_classic(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
+                                 0, sep, 0, sep, 0, sep, &current_number, sep, &current_rangtab,
+                                 ordemesh->treetab, 1);
         }
 
         for (i=0; i<n; i++){
             ordemesh->peritab[ordemesh->permtab[i]] = i;
         }
 
-        pastix_int_t *saved = malloc(n*sizeof(pastix_int_t));
-        memcpy(saved, ordemesh->rangtab, n*sizeof(pastix_int_t));
+        pastix_int_t *saved_rangtab = malloc(n*sizeof(pastix_int_t));
+        memcpy(saved_rangtab, ordemesh->rangtab, n*sizeof(pastix_int_t));
+        pastix_int_t *saved_treetab = malloc(n*sizeof(pastix_int_t));
+        memcpy(saved_treetab, ordemesh->treetab, n*sizeof(pastix_int_t));
+
         ordemesh->rangtab[0] = 0;
         for (i=0; i<ordemesh->cblknbr; i++){
-            ordemesh->treetab[i] = -1;
-            ordemesh->rangtab[i+1] = saved[ordemesh->cblknbr - i - 1]+1;
-            /* printf("Rangtab %ld is %ld (%ld)\n", i, ordemesh->rangtab[i], saved[i]); */
+            ordemesh->rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
+            ordemesh->treetab[i]   = ordemesh->cblknbr-1; //saved_treetab[ordemesh->cblknbr - i - 1];
+            /* printf("Rangtab %ld is %ld Treetab is %ld\n", */
+            /*        i, ordemesh->rangtab[i], */
+            /*        ordemesh->treetab[i]); */
         }
-        ordemesh->rangtab[ordemesh->cblknbr] = n;
-        ordemesh->treetab[ordemesh->cblknbr] = -1;
+        ordemesh->treetab[ordemesh->cblknbr-1] = -1;
 
         printf("WE GOT %ld CBLK\n", ordemesh->cblknbr);
         printf("MANUAL ORDERING IS COMPUTED\n\n");
