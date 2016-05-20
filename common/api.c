@@ -111,6 +111,7 @@ pastixInitParam( pastix_int_t *iparm,
      */
     iparm[IPARM_REORDERING_SPLIT] = 0;                   /* Split level for reordering                           */
     iparm[IPARM_REORDERING_STOP]  = INT_MAX;             /* Stop criteria for reordering                         */
+    iparm[IPARM_OPTIMAL_ORDERING] = 0;                   /* Ordering for regular grids/cubes                     */
 
     /**
      * Runtime parameters

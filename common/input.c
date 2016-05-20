@@ -168,6 +168,10 @@ int iparm_to_int( char * string)
     {
         return IPARM_REORDERING_STOP;
     }
+    if(0 == strcmp("iparm_optimal_ordering", string))
+    {
+        return IPARM_OPTIMAL_ORDERING;
+    }
     if(0 == strcmp("iparm_baseval", string))
     {
         return IPARM_BASEVAL;

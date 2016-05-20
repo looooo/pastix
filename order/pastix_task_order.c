@@ -499,8 +499,10 @@ pastix_task_order(      pastix_data_t *pastix_data,
     /* } */
 
     /* Manual ordering for regular grids */
-    if (1){
-        pastix_int_t sep = 47; //sqrt(n);
+    if (iparm[IPARM_OPTIMAL_ORDERING] != 0){
+        printf("\n\nUsing optimal ordering on regular grids/cubes\n");
+
+        pastix_int_t sep = iparm[IPARM_OPTIMAL_ORDERING];
         pastix_int_t i = 2;
 
         /* Graphs for using wide separators */
@@ -515,11 +517,10 @@ pastix_task_order(      pastix_data_t *pastix_data,
 
         /* Graphs for using classical separators */
         while (i != sep && i < sep+1){
-            printf("2*i+1 %ld\n", i);
             i = 2*i+1;
         }
         if (i != sep){
-            printf("The given graph size is not correct for manual ordering (2D/3D graph of size 2^n*4-2)\n");
+            printf("The given graph size is not correct for manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n", i, 2*i+1);
             exit(1);
         }
 
@@ -562,8 +563,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         }
         ordemesh->treetab[ordemesh->cblknbr-1] = -1;
 
-        printf("WE GOT %ld CBLK\n", ordemesh->cblknbr);
-        printf("MANUAL ORDERING IS COMPUTED\n\n");
+        printf("Manual ordering was correctly computed\n\n");
     }
 
     return PASTIX_SUCCESS;

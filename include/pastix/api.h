@@ -60,6 +60,7 @@
 
    IPARM_REORDERING_SPLIT      - Reordering split level                                   Default: 0                   IN
    IPARM_REORDERING_STOP       - Reordering stop criteria                                 Default: INT_MAX             IN
+   IPARM_OPTIMAL_ORDERING      - Ordering for grids/cubes. Parameter is dimension         Default: 0             IN
 
    IPARM_STATIC_PIVOTING       - Static pivoting                                          Default: -                   OUT
    IPARM_NNZEROS               - Number of nonzero entries in the factorized matrix       Default: -                   OUT
@@ -164,6 +165,7 @@ enum IPARM_ACCESS {
   /* Reordering */
   IPARM_REORDERING_SPLIT,
   IPARM_REORDERING_STOP,
+  IPARM_OPTIMAL_ORDERING,
 
   IPARM_STATIC_PIVOTING,
   IPARM_NNZEROS,
