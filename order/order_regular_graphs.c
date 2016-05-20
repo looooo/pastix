@@ -291,7 +291,7 @@ void order_grid2D_classic(pastix_int_t *peritab,
 
     /* The subgraph is small enough */
     /* if (nx <= 4 && ny <= 4 && nz <= 4){ */
-    if (nx*ny < 10){
+    if (nx*ny < 50){
         pastix_int_t i, j;
         pastix_int_t current = 0;
         for (i=0; i<nx; i++){

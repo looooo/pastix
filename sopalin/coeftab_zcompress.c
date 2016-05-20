@@ -112,6 +112,8 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     pastix_complex64_t *ucoeftab = NULL;
     int ret;
 
+    printf("\nUNCOMPRESS CBLK\n");
+
     /* One allocation per cblk */
     assert( cblk->lcoeftab == NULL );
     lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
@@ -124,6 +126,10 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
+
+        printf("Uncompress with ranks %d %d (size %ld %ld)\n",
+               blok->LRblock[0].rk, blok->LRblock[1].rk,
+               nrows, ncols);
 
         if (blok->LRblock[0].rk >= 0){
             gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rkmax));
@@ -148,12 +154,12 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
 
     cblk->lcoeftab = lcoeftab;
     cblk->ucoeftab = ucoeftab;
-    cblk->cblktype |= CBLK_DENSE;
 
     /**
      * Free all the LRblock structures associated to the cblk
      */
-    free(cblk->fblokptr->LRblock);
+    /* cblk->cblktype |= CBLK_DENSE; */
+    /* free(cblk->fblokptr->LRblock); */
     return gainL + gainU;
 }
 

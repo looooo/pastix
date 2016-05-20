@@ -107,6 +107,13 @@ int main (int argc, char **argv)
      */
     pastix_task_sopalin( pastix_data, spm );
 
+    FILE *stream;
+    PASTIX_FOPEN(stream, "symbol.eps", "w");
+    symbolDraw_compress(pastix_data->symbmtx,
+                        pastix_data->solvmatr,
+                        stream);
+    fclose(stream);
+
     /**
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.

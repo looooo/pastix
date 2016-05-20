@@ -76,6 +76,7 @@ int  symbolSave       (const SymbolMatrix *symbptr, FILE *stream);
 int  symbolLoad       (      SymbolMatrix *symbptr, FILE *stream);
 int  symbolDraw       (const SymbolMatrix *symbptr, FILE *stream);
 void symbolPrintStats (const SymbolMatrix *symbptr);
+int  symbolDraw_compress (const SymbolMatrix *symbptr, const SolverMatrix *solvptr, FILE *stream);
 
 pastix_int_t
 symbolGetFacingBloknum(const SymbolMatrix *symbptr,
