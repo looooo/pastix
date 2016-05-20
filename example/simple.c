@@ -66,7 +66,7 @@ int main (int argc, char **argv)
     pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
-    pastix_task_reordering( pastix_data );
+    /* pastix_task_reordering( pastix_data ); */
     pastix_task_blend( pastix_data );
 
     /**
@@ -109,9 +109,8 @@ int main (int argc, char **argv)
 
     FILE *stream;
     PASTIX_FOPEN(stream, "symbol.eps", "w");
-    symbolDraw_compress(pastix_data->symbmtx,
-                        pastix_data->solvmatr,
-                        stream);
+    solverDraw(pastix_data->solvmatr,
+               stream);
     fclose(stream);
 
     /**

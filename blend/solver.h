@@ -541,4 +541,6 @@ SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
 int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
 void            solverBackupExit( SolverBackup_t *b );
 
+int             solverDraw( const SolverMatrix *solvptr, FILE *stream );
+
 #endif /* _SOLVER_H_*/

@@ -49,82 +49,29 @@
 #include <time.h>
 #include "common.h"
 #include "symbol.h"
+#include "solver.h"
 
 /*+ Generic PostScript (tm) output definitions. +*/
 
 #define SYMBOL_PSDPI      72    /*+ PostScript dots-per-inch            +*/
 #define SYMBOL_PSPICTSIZE 6.6   /*+ PostScript picture size (in inches) +*/
 
-/*
-**  The static and global variables
-*/
-
-static float                symbolDrawColorTab[16][3] = {
-                              { 1.00, 0.00, 0.00 }, /* Red          */
-                              { 0.00, 1.00, 0.00 }, /* Green        */
-                              { 1.00, 1.00, 0.00 }, /* Yellow       */
-                              { 0.00, 0.00, 1.00 }, /* Blue         */
-                              { 1.00, 0.00, 1.00 }, /* Magenta      */
-                              { 0.00, 1.00, 1.00 }, /* Cyan         */
-                              { 1.00, 0.50, 0.20 }, /* Orange       */
-                              { 0.30, 0.55, 0.00 }, /* Olive        */
-                              { 0.72, 0.47, 0.47 }, /* Dark pink    */
-                              { 0.33, 0.33, 0.81 }, /* Sea blue     */
-                              { 1.00, 0.63, 0.63 }, /* Pink         */
-                              { 0.62, 0.44, 0.65 }, /* Violet       */
-                              { 0.60, 0.80, 0.70 }, /* Pale green   */
-                              { 0.47, 0.20, 0.00 }, /* Brown        */
-                              { 0.00, 0.68, 0.68 }, /* Turquoise    */
-                              { 0.81, 0.00, 0.40 } }; /* Purple     */
-
-/******************************************/
-/*                                        */
-/* The symbolic matrix handling routines. */
-/*                                        */
-/******************************************/
-
-/*+ This routine returns one of 16 predefined,
-*** visually distinct distinct colors.
-+*/
-
-void
-symbolDrawColor (
-const pastix_int_t                   labl,
-float                       color[])
-{
-  color[0] = (float) symbolDrawColorTab[(labl - 1) % 16][0];
-  color[1] = (float) symbolDrawColorTab[(labl - 1) % 16][1];
-  color[2] = (float) symbolDrawColorTab[(labl - 1) % 16][2];
-}
-
-/*+ This routine writes to the given stream
-*** a PostScript (tm) picture of the symbolic
-*** block matrix.
-*** It returns:
-*** - 0   : on success.
-*** - !0  : on error.
-+*/
-
 int
-symbolDrawFunc (
-const SymbolMatrix * const  symbptr,
-int                         (* diagfunc) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
-int                         (* offdfunc) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
-void * const                dataptr,              /* Data structure for block coloring */
+solverDrawFunc (
+const SolverMatrix * const  solvptr,
 FILE * const                stream)
 {
   pastix_int_t cblknum;                    /* Number of current column block */
-  pastix_int_t bloknum;                    /* Number of current block        */
   time_t       picttime;                   /* Creation time                  */
   double       pictsize;                   /* Number of distinct coordinates */
   int          o;
 
   time (&picttime);                               /* Get current time */
-  pictsize = (double) (symbptr->nodenbr + 1);     /* Get matrix size  */
+  pictsize = (double) (solvptr->nodenbr + 1);     /* Get matrix size  */
 
   fprintf (stream, "%%!PS-Adobe-2.0 EPSF-2.0\n"); /* Write header */
   fprintf (stream, "%%%%Title: symbolmatrix (%ld,%ld,%ld)\n",
-           (long) symbptr->cblknbr, (long) symbptr->bloknbr, (long)symbptr->nodenbr);
+           (long) solvptr->cblknbr, (long) solvptr->bloknbr, (long)solvptr->nodenbr);
   fprintf (stream, "%%%%Creator: symbolDraw (LaBRI, Universite Bordeaux I)\n");
   fprintf (stream, "%%%%CreationDate: %s", ctime (&picttime));
   fprintf (stream, "%%%%BoundingBox: 0 0 %ld %ld\n",
@@ -142,18 +89,15 @@ FILE * const                stream)
   fprintf (stream, "%f dup scale\n",              /* Print scaling factor */
            (double) SYMBOL_PSDPI * SYMBOL_PSPICTSIZE / pictsize);
   fprintf (stream, "[ 1 0 0 -1 0 %d ] concat\n",  /* Reverse Y coordinate */
-           (int) (symbptr->nodenbr + 1));
+           (int) (solvptr->nodenbr + 1));
 
   fprintf (stream, "0 0\n");                      /* Output fake column block */
-  for (cblknum = 0, bloknum = 0; cblknum < symbptr->cblknbr; cblknum ++) {
+  for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {
     float               coloval[3];               /* Color of diagonal block and previous color */
-    pastix_int_t                 blokend;                  /* Number of end block for column             */
 
-    coloval[0] =
-    coloval[1] =
+    coloval[0] = 0.5;
+    coloval[1] = 0.5;
     coloval[2] = 0.5;
-    if (diagfunc != NULL)                         /* Always display diagonal blocks */
-      diagfunc (symbptr, &symbptr->bloktab[bloknum], dataptr, coloval);
     if ((coloval[0] == coloval[1]) &&
         (coloval[1] == coloval[2]))
       fprintf (stream, "%.2g g ",
@@ -162,38 +106,61 @@ FILE * const                stream)
       fprintf (stream, "%.2g %.2g %.2g r \n",
                (float) coloval[0], (float) coloval[1], (float) coloval[2]);
 
+    SolverCblk *cblk   = &solvptr->cblktab[cblknum];
+
     fprintf (stream, "%ld\t%ld\tc\n",             /* Begin new column block */
-             (long) (symbptr->cblktab[cblknum].fcolnum - symbptr->baseval),
-             (long) (symbptr->cblktab[cblknum].lcolnum - symbptr->baseval + 1));
+             (long) (cblk->fcolnum - solvptr->baseval),
+             (long) (cblk->lcolnum - solvptr->baseval + 1));
 
-    for (bloknum ++, blokend = symbptr->cblktab[cblknum + 1].bloknum; /* Skip diagonal block */
-         bloknum < blokend; bloknum ++) {
+    pastix_int_t ncols = cblk_colnbr( cblk );
+    SolverBlok *blok   = cblk[0].fblokptr+1;
+    SolverBlok *lblok  = cblk[1].fblokptr;
+
+    for (; blok<lblok; blok++)
+    {
       float               colbval[3];             /* Color of off-diagonal block */
+      coloval[0] = colbval[0];                /* Save new color data */
+      coloval[1] = colbval[1];
+      coloval[2] = colbval[2];
 
-      colbval[0] =
-      colbval[1] =
-      colbval[2] = 0.0;
-      if ((offdfunc == NULL) || (offdfunc (symbptr, &symbptr->bloktab[bloknum], dataptr, colbval) != 0)) { /* If block is kept */
-        if ((coloval[0] != colbval[0]) ||         /* If change with respect to previous  color */
-            (coloval[1] != colbval[1]) ||
-            (coloval[2] != colbval[2])) {
-          coloval[0] = colbval[0];                /* Save new color data */
-          coloval[1] = colbval[1];
-          coloval[2] = colbval[2];
+      float color2 = (float)coloval[2];
 
-          if ((coloval[0] == coloval[1]) &&
-              (coloval[1] == coloval[2]))
-              fprintf (stream, "%.2g g ",
-                       (float) coloval[0]);
-          else
-              fprintf (stream, "%.2g %.2g %.2g r \n",
-                       (float) coloval[0], (float) coloval[1], (float) coloval[2]);
-        }
-
-        fprintf (stream, "%ld\t%ld\tb\n",         /* Write block in column block */
-                 (long) (symbptr->bloktab[bloknum].frownum - symbptr->baseval),
-                 (long) (symbptr->bloktab[bloknum].lrownum - symbptr->baseval + 1));
+      if ( cblk->cblktype & CBLK_DENSE ) {
       }
+      else{
+          pastix_int_t nrows = blok_rownbr( blok );
+
+          pastix_int_t conso_dense = 2*nrows*ncols;
+          pastix_int_t conso_LR    = 0;
+          if (blok->LRblock[0].rk != -1){
+              conso_LR += (((nrows+ncols) * blok->LRblock[0].rk));
+          }
+          else{
+              conso_LR += nrows*ncols;
+          }
+          if (blok->LRblock[1].rk != -1){
+              conso_LR += (((nrows+ncols) * blok->LRblock[1].rk));
+          }
+          else{
+              conso_LR += nrows*ncols;
+          }
+
+          double gain = 1.0 * conso_dense / conso_LR;
+          printf("Conso LR %ld Dense %ld Gain %f Blok %p\n", conso_LR, conso_dense, gain, blok);
+
+          color2 += gain/5.;
+      }
+
+      if (color2 != 0.5)
+          fprintf (stream, "%.2g %.2g %.2g r \n",
+                   color2, 0., 0.);
+      else
+          fprintf (stream, "%.2g %.2g %.2g r \n",
+                   color2, 0.5, 0.5);
+
+      fprintf (stream, "%ld\t%ld\tb\n",         /* Write block in column block */
+               (long) (blok->frownum - solvptr->baseval),
+               (long) (blok->lrownum - solvptr->baseval + 1));
     }
   }
   fprintf (stream, "pop pop\n");                  /* Purge last column block indices */
@@ -212,9 +179,9 @@ FILE * const                stream)
 +*/
 
 int
-symbolDraw (
-const SymbolMatrix * const  symbptr,
+solverDraw (
+const SolverMatrix * const  solvptr,
 FILE * const                stream)
 {
-  return (symbolDrawFunc (symbptr, NULL, NULL, NULL, stream));
+    return (solverDrawFunc (solvptr, stream));
 }

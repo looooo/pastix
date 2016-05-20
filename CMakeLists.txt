@@ -578,6 +578,7 @@ set(PASTIX_LIB_SRCS
   blend/solver.c
   blend/solver_backup.c
   blend/pastix_task_analyze.c
+  blend/solver_draw.c
 
   common/api.c
   common/errors.c
