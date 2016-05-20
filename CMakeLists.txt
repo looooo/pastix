@@ -527,6 +527,7 @@ set(PASTIX_LIB_SRCS
   order/order_io.c
   order/pastix_task_order.c
   order/order_compute_clif.c
+  order/order_regular_graphs.c
   #
   fax/amalgamate.c
   fax/symbol_fax_graph.c

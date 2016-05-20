@@ -61,6 +61,47 @@ int  orderAddIsolate( Order              *ordeptr,
                       pastix_int_t        new_n,
                       const pastix_int_t *perm );
 
+void order_grid2D_wide(pastix_int_t *rangtab,
+                       pastix_int_t *peritab,
+                       pastix_int_t *cblknbr,
+                       pastix_int_t x0,
+                       pastix_int_t xn,
+                       pastix_int_t y0,
+                       pastix_int_t yn,
+                       pastix_int_t max_number,
+                       pastix_int_t lda,
+                       pastix_int_t *current_rangtab);
+
+void order_grid3D_wide(pastix_int_t *rangtab,
+                       pastix_int_t *peritab,
+                       pastix_int_t *cblknbr,
+                       pastix_int_t x0,
+                       pastix_int_t xn,
+                       pastix_int_t y0,
+                       pastix_int_t yn,
+                       pastix_int_t z0,
+                       pastix_int_t zn,
+                       pastix_int_t max_number,
+                       pastix_int_t lda,
+                       pastix_int_t *current_rangtab,
+                       pastix_int_t *treetab,
+                       pastix_int_t current_treetab);
+
+void order_grid3D_classic(pastix_int_t *rangtab,
+                          pastix_int_t *peritab,
+                          pastix_int_t *cblknbr,
+                          pastix_int_t x0,
+                          pastix_int_t xn,
+                          pastix_int_t y0,
+                          pastix_int_t yn,
+                          pastix_int_t z0,
+                          pastix_int_t zn,
+                          pastix_int_t *max_number,
+                          pastix_int_t lda,
+                          pastix_int_t *current_rangtab,
+                          pastix_int_t *treetab,
+                          pastix_int_t current_treetab);
+
 
 #endif /* _ORDER_H_ */
 
