@@ -117,6 +117,34 @@ simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
 
 
 static inline void
+simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
+                        const SimuCtrl     *simuctrl )
+{
+    FILE *fd1 = fopen( "contribblok.txt", "w" );
+    FILE *fd2 = fopen( "contribcblk.txt", "w" );
+    pastix_int_t i, j;
+    SymbolCblk *curcblk;
+
+    curcblk = symbptr->cblktab;
+    for(i=0; i<symbptr->cblknbr; i++, curcblk++)
+    {
+        pastix_int_t fbloknum = curcblk[0].bloknum + 1;
+        pastix_int_t lbloknum = curcblk[1].bloknum;
+
+        /* 1D cblk computed */
+        for(j=fbloknum; j<lbloknum; j++)
+        {
+            fprintf(fd1, "%ld %ld\n", j, simuctrl->bloktab[j].ctrbcnt);
+        }
+        fprintf(fd2, "%ld %ld\n", i, simuctrl->cblktab[i].ctrbcnt);
+    }
+
+    fclose( fd1 );
+    fclose( fd2 );
+}
+
+
+static inline void
 simu_putInAllReadyQueues(const BlendCtrl *ctrl,
                          SimuCtrl        *simuctrl,
                          pastix_int_t     tasknum )
@@ -680,6 +708,10 @@ simuRun( SimuCtrl           *simuctrl,
 
     /* Compute number of contributions per blocks, cblks, tasks */
     simu_computeBlockCtrbNbr( symbptr, simuctrl, ctrl->ricar );
+
+    if ( ctrl->iparm[IPARM_VERBOSE] > 4 ) {
+        simu_printBlockCtrbNbr( symbptr, simuctrl );
+    }
 
     /*
      * All ready tasks are put in the task heaps of their respective candidates
