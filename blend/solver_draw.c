@@ -129,7 +129,6 @@ FILE * const                stream)
                    0.5, 0.5, 0.5);
       }
       else{
-          float color2 = (float)coloval[2];
           pastix_int_t nrows = blok_rownbr( blok );
 
           pastix_int_t conso_dense = 2*nrows*ncols;
@@ -150,14 +149,24 @@ FILE * const                stream)
           double gain = 1.0 * conso_dense / conso_LR;
           printf("Conso LR %ld Dense %ld Gain %f Blok %p\n", conso_LR, conso_dense, gain, blok);
 
-          color2 += gain/7.;
-
-          /* TODO: manage color (green, orange, red) depending on compression rate */
-          if (color2 > 1){
-              color2 = 0.5;
+          /* There is no compression */
+          if (gain == 1.){
+              fprintf(stream, "%.2g %.2g %.2g r \n",
+                      0., 0., 0.);
           }
-          fprintf (stream, "%.2g %.2g %.2g r \n",
-                   color2, 0., 0.);
+          /* Small amount of compression: red */
+          else if (gain < 5.){
+              fprintf(stream, "%.2g %.2g %.2g r \n",
+                      gain / 5., 0., 0.);
+          }
+          /* Huge amount of compression */
+          else{
+              float color = (gain-5) / 7.;
+              if (color > 1)
+                  color = 1.;
+              fprintf(stream, "%.2g %.2g %.2g r \n",
+                       0., color, 0.);
+          }
       }
 
       fprintf (stream, "%ld\t%ld\tb\n",         /* Write block in column block */
