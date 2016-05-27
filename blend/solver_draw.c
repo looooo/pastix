@@ -123,11 +123,13 @@ FILE * const                stream)
       coloval[1] = colbval[1];
       coloval[2] = colbval[2];
 
-      float color2 = (float)coloval[2];
 
       if ( cblk->cblktype & CBLK_DENSE ) {
+          fprintf (stream, "%.2g %.2g %.2g r \n",
+                   0.5, 0.5, 0.5);
       }
       else{
+          float color2 = (float)coloval[2];
           pastix_int_t nrows = blok_rownbr( blok );
 
           pastix_int_t conso_dense = 2*nrows*ncols;
@@ -148,15 +150,15 @@ FILE * const                stream)
           double gain = 1.0 * conso_dense / conso_LR;
           printf("Conso LR %ld Dense %ld Gain %f Blok %p\n", conso_LR, conso_dense, gain, blok);
 
-          color2 += gain/5.;
-      }
+          color2 += gain/7.;
 
-      if (color2 != 0.5)
+          /* TODO: manage color (green, orange, red) depending on compression rate */
+          if (color2 > 1){
+              color2 = 0.5;
+          }
           fprintf (stream, "%.2g %.2g %.2g r \n",
                    color2, 0., 0.);
-      else
-          fprintf (stream, "%.2g %.2g %.2g r \n",
-                   color2, 0.5, 0.5);
+      }
 
       fprintf (stream, "%ld\t%ld\tb\n",         /* Write block in column block */
                (long) (blok->frownum - solvptr->baseval),
