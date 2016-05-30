@@ -95,6 +95,36 @@ pastix_diag( pastix_data_t *pastix_data, int flttype,
     }
 }
 
+/* void */
+/* pastix_dsolve( pastix_data_t *pastix_data, */
+/*                int flttype, int side, int uplo, int trans, int diag, */
+/*                sopalin_data_t *sopalin_data, */
+/*                int nrhs, void *b, int ldb ) */
+/* { */
+/*     switch (flttype) { */
+/*     case PastixComplex64: */
+/*         sequential_z_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (pastix_complex64_t *)b, ldb ); */
+/*         break; */
+/*     case PastixComplex32: */
+/*         sequential_c_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (pastix_complex32_t *)b, ldb ); */
+/*         break; */
+/*     case PastixDouble: */
+/*         trans = (trans == PastixConjTrans) ? PastixTrans : trans; */
+/*         sequential_d_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (double *)b, ldb ); */
+/*         break; */
+/*     case PastixFloat: */
+/*         trans = (trans == PastixConjTrans) ? PastixTrans : trans; */
+/*         sequential_s_Dsolve( pastix_data, side, uplo, trans, diag, */
+/*                           sopalin_data, nrhs, (float *)b, ldb ); */
+/*         break; */
+/*     default: */
+/*         fprintf(stderr, "Unknown floating point arithmetic\n" ); */
+/*     } */
+/* } */
+
 /**
  *******************************************************************************
  *
@@ -136,6 +166,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
     pastix_int_t  procnum;
+    (void) procnum;
     pastix_int_t *iparm;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
@@ -221,6 +252,10 @@ pastix_task_solve( pastix_data_t *pastix_data,
         case PastixFactLU:
         default:
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb );
+
+            /* pastix_dsolve( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, b, ldb ); */
+            /* pastix_dsolve( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb ); */
+
             pastix_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, b, ldb );
             break;
         }

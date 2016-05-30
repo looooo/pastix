@@ -111,6 +111,7 @@ pastixInitParam( pastix_int_t *iparm,
      */
     iparm[IPARM_REORDERING_SPLIT] = 0;                   /* Split level for reordering                           */
     iparm[IPARM_REORDERING_STOP]  = INT_MAX;             /* Stop criteria for reordering                         */
+    iparm[IPARM_OPTIMAL_ORDERING] = 0;                   /* Ordering for regular grids/cubes                     */
 
     /**
      * Runtime parameters
@@ -125,6 +126,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ALLOCATED_TERMS]       = 0;                   /* number of non zero in factorized sparse matrix       */
     iparm[IPARM_MIN_BLOCKSIZE]         = 60;                  /* min blocksize                                        */
     iparm[IPARM_MAX_BLOCKSIZE]         = 120;                 /* max blocksize                                        */
+    iparm[IPARM_COMPRESS_SIZE]         = 120;                 /* minimum size to compress a supernode */
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */
     iparm[IPARM_ISOLATE_ZEROS]         = API_NO;              /* Isolate null diagonal terms at the end of the matrix */
     iparm[IPARM_FACTORIZATION]         = API_FACT_LU;         /* LU by default     */
@@ -212,6 +214,8 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_FACT_FLOPS]         =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
     dparm[DPARM_A_NORM]             = -1.;
+
+    dparm[DPARM_COMPRESS_TOLERANCE] = 0.01;
 }
 
 /**

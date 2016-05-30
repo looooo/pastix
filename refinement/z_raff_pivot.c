@@ -63,6 +63,10 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
   pastix_int_t         itermax;
   double               epsilonraff;
 
+  (void) rberror;
+  (void) t0;
+  (void) t1;
+  (void) t2;
   itermax     = solveur.Itermax(pastix_data);
   epsilonraff = solveur.Eps(pastix_data);
 

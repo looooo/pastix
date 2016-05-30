@@ -386,7 +386,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         orderFindSupernodes( &subgraph, ordemesh );
     }
 
-    orderApplyLevelOrder( ordemesh );
+    /* orderApplyLevelOrder( ordemesh ); */
 
     /*
      * Add the isolated elements to the ordering structure
@@ -479,5 +479,92 @@ pastix_task_order(      pastix_data_t *pastix_data,
     pastix_data->steps |= STEP_ORDERING;
 
     iparm[IPARM_START_TASK]++;
+
+
+    /* Useful to perform reordering after splitting */
+    /* if (rangtab_current != 0){ */
+    /*     ordemesh->cblknbr = rangtab_current; */
+
+    /*     free(ordemesh->rangtab); */
+    /*     ordemesh->rangtab = malloc((rangtab_current+1)* sizeof(pastix_int_t)); */
+
+    /*     pastix_int_t i; */
+    /*     for (i=0; i<=rangtab_current; i++){ */
+    /*         ordemesh->rangtab[i] = rangtab_new[i]; */
+    /*     } */
+
+    /*     memcpy(ordemesh->permtab, permtab_saved, n*sizeof(pastix_int_t)); */
+    /*     memcpy(ordemesh->peritab, peritab_saved, n*sizeof(pastix_int_t)); */
+
+    /* } */
+
+    /* Manual ordering for regular grids */
+    if (iparm[IPARM_OPTIMAL_ORDERING] != 0){
+        printf("\n\nUsing optimal ordering on regular grids/cubes\n");
+
+        pastix_int_t sep = iparm[IPARM_OPTIMAL_ORDERING];
+        pastix_int_t i = 2;
+
+        /* Graphs for using wide separators */
+        /* while (i != sep && i < sep+1){ */
+        /*     printf("2*i+2 %ld\n", i); */
+        /*     i = 2*i+2; */
+        /* } */
+        /* if (i != sep){ */
+        /*     printf("The given graph size is not correct for manual ordering (2D/3D graph of size 2^n*4-2)\n"); */
+        /*     exit(1); */
+        /* } */
+
+        /* Graphs for using classical separators */
+        while (i != sep && i < sep+1){
+            i = 2*i+1;
+        }
+        if (i != sep){
+            printf("The given graph size is not correct for manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n", i, 2*i+1);
+            exit(1);
+        }
+
+        ordemesh->rangtab = malloc((n+1)* sizeof(pastix_int_t));
+        ordemesh->treetab = malloc((n+1) * sizeof(pastix_int_t));
+        ordemesh->cblknbr = 0;
+        pastix_int_t current_rangtab = 0;
+
+        if (sep * sep == n){
+            order_grid2D_wide(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
+                              0, sep, 0, sep, n-1, sep, &current_rangtab);
+        }
+        else{
+            /* order_grid3D_wide(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr, */
+            /*                   0, sep, 0, sep, 0, sep, n-1, sep, &current_rangtab, */
+            /*                   ordemesh->treetab, 1); */
+            pastix_int_t current_number = n-1;
+
+            order_grid3D_classic(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
+                                 0, sep, 0, sep, 0, sep, &current_number, sep, &current_rangtab,
+                                 ordemesh->treetab, 1);
+        }
+
+        for (i=0; i<n; i++){
+            ordemesh->peritab[ordemesh->permtab[i]] = i;
+        }
+
+        pastix_int_t *saved_rangtab = malloc(n*sizeof(pastix_int_t));
+        memcpy(saved_rangtab, ordemesh->rangtab, n*sizeof(pastix_int_t));
+        pastix_int_t *saved_treetab = malloc(n*sizeof(pastix_int_t));
+        memcpy(saved_treetab, ordemesh->treetab, n*sizeof(pastix_int_t));
+
+        ordemesh->rangtab[0] = 0;
+        for (i=0; i<ordemesh->cblknbr; i++){
+            ordemesh->rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
+            ordemesh->treetab[i]   = ordemesh->cblknbr-1; //saved_treetab[ordemesh->cblknbr - i - 1];
+            /* printf("Rangtab %ld is %ld Treetab is %ld\n", */
+            /*        i, ordemesh->rangtab[i], */
+            /*        ordemesh->treetab[i]); */
+        }
+        ordemesh->treetab[ordemesh->cblknbr-1] = -1;
+
+        printf("Manual ordering was correctly computed\n\n");
+    }
+
     return PASTIX_SUCCESS;
 }

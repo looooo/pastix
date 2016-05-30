@@ -9,6 +9,8 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
+#include "../order/order.h"
+#include "../common/common.h"
 
 int main (int argc, char **argv)
 {
@@ -40,6 +42,11 @@ int main (int argc, char **argv)
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
+    printf("\tH-PaStiX parameters are\n");
+    printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
+    printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
+    printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
+
     /**
      * Read the sparse matrix with the driver
      */
@@ -58,13 +65,53 @@ int main (int argc, char **argv)
      */
     pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
-    pastix_task_reordering( pastix_data );
+
+    /* pastix_task_reordering( pastix_data ); */
     pastix_task_blend( pastix_data );
+
+    /**
+     * Perform reordering after splitting
+     */
+    /* pastix_task_symbfact( pastix_data, NULL, NULL ); */
+    /* pastix_task_reordering( pastix_data ); */
+    /* pastix_task_blend( pastix_data ); */
+
+    /**
+     * Perform ordering, symbolic factorization, and analyze steps
+     * Second run to build new split cblk
+     */
+    /* rangtab_new     = malloc(csc->n * sizeof(pastix_int_t)); */
+    /* rangtab_current = 0; */
+    /* memset(rangtab_new, 0, csc->n * sizeof(pastix_int_t)); */
+
+    /* Perform ordering, symbolic factorization, and analyze steps */
+    /* rangtab_new[rangtab_current] = csc->n; */
+
+    /* permtab_saved = malloc(csc->n*sizeof(pastix_int_t)); */
+    /* peritab_saved = malloc(csc->n*sizeof(pastix_int_t)); */
+    /* memcpy(permtab_saved, pastix_data->ordemesh->permtab, csc->n*sizeof(pastix_int_t)); */
+    /* memcpy(peritab_saved, pastix_data->ordemesh->peritab, csc->n*sizeof(pastix_int_t)); */
+
+    /* pastix_task_order( pastix_data, csc, NULL, NULL ); */
+    /* pastix_task_symbfact( pastix_data, NULL, NULL ); */
+
+    /* if (reordering == 1) */
+    /*     pastix_task_reordering( pastix_data ); */
+
+    /* rangtab_current = 0; */
+    /* pastix_task_blend( pastix_data ); */
+
 
     /**
      * Perform the numerical factorization
      */
     pastix_task_sopalin( pastix_data, spm );
+
+    FILE *stream;
+    PASTIX_FOPEN(stream, "symbol.eps", "w");
+    solverDraw(pastix_data->solvmatr,
+               stream);
+    fclose(stream);
 
     /**
      * Generates the b and x vector such that A * x = b

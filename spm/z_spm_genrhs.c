@@ -374,7 +374,9 @@ z_spmCheckAxb( int nrhs,
      */
     if ( x0 != NULL ) {
         normX0 = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
-        core_zgeadd( PastixNoTrans, spm->n, nrhs, -1., x, ldx, x0, ldx0 );
+        core_zgeadd( PastixNoTrans, spm->n, nrhs,
+                     -1., x,  ldx,
+                      1., x0, ldx0 );
         normR = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
 
         forward = normR / normX0;

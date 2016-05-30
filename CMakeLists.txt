@@ -39,7 +39,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" ON)
+    "Build PaStiX for distributed memory with MPI" OFF)
 
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA
@@ -285,7 +285,6 @@ if (PASTIX_WITH_PARSEC)
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
       include_directories(${PARSEC_INCLUDE_DIRS_DEP})
-      #include_directories(${PARSEC_INCLUDE_DIRS}/daguepp)
       link_directories(${PARSEC_LIBRARY_DIRS_DEP})
 
     else(PARSEC_FOUND)
@@ -400,6 +399,7 @@ add_definitions(${TOTO})
 #add_subdirectory(matrix_drivers)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
@@ -433,15 +433,15 @@ if (PASTIX_WITH_PARSEC)
 endif()
 
 include(RulesPrecisions)
-# reset variables
-set(generated_files "")
-set(generated_headers "")
 
+##
+# Headers from spm directory
+##
+set(generated_headers "")
 set(HEADERS
   spm/z_spm.h
 )
 
-### generate the dsparse_cores headers for all possible precisions
 precisions_rules_py(generated_headers
   "${HEADERS}"
   TARGETDIR  "spm"
@@ -450,6 +450,26 @@ precisions_rules_py(generated_headers
 add_custom_target( spm_headers
   DEPENDS ${generated_headers} )
 
+##
+# Headers from sopalin directory
+##
+set(generated_headers "")
+set(HEADERS
+  sopalin/coeftab_z.h
+)
+
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  TARGETDIR  "sopalin"
+  PRECISIONS "p;s;d;c;z")
+
+add_custom_target( sopalin_headers
+  DEPENDS ${generated_headers} )
+
+##
+# Source files
+##
+set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
@@ -464,6 +484,8 @@ set(SOURCES
   matrix_drivers/z_spm_laplacian.c
   #
   sopalin/coeftab_z.c
+  sopalin/coeftab_zcompress.c
+  sopalin/coeftab_zdiff.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c
@@ -504,6 +526,8 @@ set(PASTIX_LIB_SRCS
   order/order_apply_level_order.c
   order/order_io.c
   order/pastix_task_order.c
+  order/order_compute_clif.c
+  order/order_regular_graphs.c
   #
   fax/amalgamate.c
   fax/symbol_fax_graph.c
@@ -546,7 +570,7 @@ set(PASTIX_LIB_SRCS
 # blend/partbuild.c
 # blend/smart_cblk_split.c
   blend/solverMatrixGen.c
-  blend/solverRealloc.c
+  blend/solver_copy.c
   blend/solver_check.c
   blend/solver_io.c
 # blend/splitpartlocal.c
@@ -554,6 +578,7 @@ set(PASTIX_LIB_SRCS
   blend/solver.c
   blend/solver_backup.c
   blend/pastix_task_analyze.c
+  blend/solver_draw.c
 
   common/api.c
   common/errors.c
@@ -610,6 +635,11 @@ endif()
 set_source_files_properties(
   spm/spm.c
   PROPERTIES DEPENDS spm_headers
+  )
+
+set_source_files_properties(
+  sopalin/coeftab.h
+  PROPERTIES DEPENDS sopalin_headers
   )
 
 set(PASTIX_ALL_SRCS
@@ -690,6 +720,7 @@ add_dependencies(pastix
   kernels_headers
   bcsc_headers
   refinement_headers
+  sopalin_headers
 )
 target_link_libraries(pastix
   pastix_bcsc
@@ -716,6 +747,7 @@ install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
 add_subdirectory(example)
+add_subdirectory(testing)
 
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)
