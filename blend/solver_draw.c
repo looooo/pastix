@@ -80,14 +80,16 @@ FILE * const                stream)
   fprintf (stream, "%%%%Pages: 0\n");
   fprintf (stream, "%%%%EndComments\n");          /* Write shortcuts */
   fprintf (stream, "/c { 4 2 roll pop pop newpath 2 copy 2 copy moveto dup lineto dup lineto closepath fill } bind def\n");
+  fprintf (stream, "/d { 4 2 roll pop pop newpath 2 copy 2 copy moveto dup lineto dup lineto closepath } bind def\n");
   fprintf (stream, "/b { 4 copy 2 index exch moveto lineto dup 3 index lineto exch lineto closepath fill pop } bind def\n");
+  fprintf (stream, "/a { 4 copy 2 index exch moveto lineto dup 3 index lineto exch lineto closepath pop } bind def\n");
   fprintf (stream, "/r { setrgbcolor } bind def\n");
   fprintf (stream, "/g { setgray } bind def\n");
 
-  fprintf (stream, "gsave\n");                    /* Save context         */
   fprintf (stream, "0 setlinecap\n");             /* Use miter caps       */
   fprintf (stream, "%f dup scale\n",              /* Print scaling factor */
            (double) SYMBOL_PSDPI * SYMBOL_PSPICTSIZE / pictsize);
+  fprintf (stream, "/Times-Roman 80 selectfont\n"); /* activate text in eps file */
   fprintf (stream, "[ 1 0 0 -1 0 %d ] concat\n",  /* Reverse Y coordinate */
            (int) (solvptr->nodenbr + 1));
 
@@ -147,7 +149,7 @@ FILE * const                stream)
           }
 
           double gain = 1.0 * conso_dense / conso_LR;
-          printf("Conso LR %ld Dense %ld Gain %f Blok %p\n", conso_LR, conso_dense, gain, blok);
+          /* printf("Conso LR %ld Dense %ld Gain %f Blok %p\n", conso_LR, conso_dense, gain, blok); */
 
           /* There is no compression */
           if (gain == 1.){
@@ -174,8 +176,51 @@ FILE * const                stream)
                (long) (blok->lrownum - solvptr->baseval + 1));
     }
   }
+
+#if defined(PASTIX_BLEND_GENTRACE)
+  /* Plot numbers */
+  int nb_bloks = 0;
+  FILE *fd = fopen( "contribblok.txt", "r" );
+
+  fprintf (stream, "0 0\n");                      /* Output fake column block */
+  for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {
+    SolverCblk *cblk   = &solvptr->cblktab[cblknum];
+
+    fprintf (stream, "0.5 g %ld\t%ld\tc\n",             /* Begin new column block */
+             (long) (cblk->fcolnum - solvptr->baseval),
+             (long) (cblk->lcolnum - solvptr->baseval + 1));
+
+    SolverBlok *blok   = cblk[0].fblokptr+1;
+    SolverBlok *lblok  = cblk[1].fblokptr;
+
+    for (; blok<lblok; blok++)
+    {
+      int unused, nb_contrib;
+      fscanf(fd, "%d %d\n", &unused, &nb_contrib);
+      printf("NB_CONTRIB is %d\n", nb_contrib);
+      if ( cblk->cblktype & CBLK_DENSE ) {
+          fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
+                   (long) (blok->frownum - solvptr->baseval),
+                   (long) (blok->lrownum - solvptr->baseval + 1));
+      }
+      else{
+          fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
+                   (long) (blok->frownum - solvptr->baseval),
+                   (long) (blok->lrownum - solvptr->baseval + 1));
+          fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 0.0 1.0 1.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",         /* Write block in column block */
+                   (long) (blok->frownum - solvptr->baseval),
+                   (long) (blok->lrownum - solvptr->baseval + 1),
+                   nb_contrib);
+      }
+      nb_bloks++;
+    }
+  }
+  fclose(fd);
+#endif
+
   fprintf (stream, "pop pop\n");                  /* Purge last column block indices */
-  o = fprintf (stream, "grestore\nshowpage\n");   /* Restore context                 */
+  o = fprintf (stream, "showpage\n");   /* Restore context                 */
+
 
   return ((o != EOF) ? 0 : 1);
 }
