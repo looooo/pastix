@@ -277,6 +277,10 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
     curcblknum = 0;
     curcblk = newsymb->cblktab;
     curblok = newsymb->bloktab;
+
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    SymbolCblk *cblk = newsymb->cblktab;
+#endif
     for(i=0; i<oldsymb->cblknbr; i++)
     {
         pastix_int_t fbloknum = oldsymb->cblktab[i  ].bloknum;
@@ -288,6 +292,11 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
         {
             /* Store diagonal bloknum */
             curcblk->bloknum = curbloknum;
+
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+            cblk->split_cblk = sptcbnbw-j-1;
+            cblk++;
+#endif
 
             /* Create odb due to the splitting of the diag blok */
             for(k=0; k<(sptcbnbw-j); k++, curbloknum++, curblok++)

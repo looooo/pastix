@@ -520,8 +520,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
             i = 2*i+1;
         }
         if (i != sep){
-            printf("The given graph size is not correct for manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n", i, 2*i+1);
-            exit(1);
+            printf("\n\nThe given graph size is not correct for optimal manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n\n", i, 2*i+1);
+            /* exit(1); */
         }
 
         ordemesh->rangtab = malloc((n+1)* sizeof(pastix_int_t));

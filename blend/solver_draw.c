@@ -59,7 +59,8 @@
 int
 solverDrawFunc (
 const SolverMatrix * const  solvptr,
-FILE * const                stream)
+FILE * const                stream,
+int                         verbose )
 {
   pastix_int_t cblknum;                    /* Number of current column block */
   time_t       picttime;                   /* Creation time                  */
@@ -89,7 +90,7 @@ FILE * const                stream)
   fprintf (stream, "0 setlinecap\n");             /* Use miter caps       */
   fprintf (stream, "%f dup scale\n",              /* Print scaling factor */
            (double) SYMBOL_PSDPI * SYMBOL_PSPICTSIZE / pictsize);
-  fprintf (stream, "/Times-Roman 80 selectfont\n"); /* activate text in eps file */
+  fprintf (stream, "/Times-Roman 70 selectfont\n"); /* activate text in eps file */
   fprintf (stream, "[ 1 0 0 -1 0 %d ] concat\n",  /* Reverse Y coordinate */
            (int) (solvptr->nodenbr + 1));
 
@@ -177,45 +178,62 @@ FILE * const                stream)
     }
   }
 
-#if defined(PASTIX_BLEND_GENTRACE)
   /* Plot numbers */
-  int nb_bloks = 0;
-  FILE *fd = fopen( "contribblok.txt", "r" );
+  if (verbose > 4){
+    int nb_bloks = 0;
+    int nb_cblks = 0;
+    FILE *fd1 = fopen( "contribblok.txt", "r" );
+    FILE *fd2 = fopen( "contribcblk.txt", "r" );
+    int original_cblk = 1;
+    double color = 0.2;
 
-  fprintf (stream, "0 0\n");                      /* Output fake column block */
-  for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {
-    SolverCblk *cblk   = &solvptr->cblktab[cblknum];
-
-    fprintf (stream, "0.5 g %ld\t%ld\tc\n",             /* Begin new column block */
-             (long) (cblk->fcolnum - solvptr->baseval),
-             (long) (cblk->lcolnum - solvptr->baseval + 1));
-
-    SolverBlok *blok   = cblk[0].fblokptr+1;
-    SolverBlok *lblok  = cblk[1].fblokptr;
-
-    for (; blok<lblok; blok++)
-    {
+    fprintf (stream, "0 0\n");                      /* Output fake column block */
+    for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {
+      SolverCblk *cblk   = &solvptr->cblktab[cblknum];
       int unused, nb_contrib;
-      fscanf(fd, "%d %d\n", &unused, &nb_contrib);
-      if ( cblk->cblktype & CBLK_DENSE ) {
-          fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
-                   (long) (blok->frownum - solvptr->baseval),
-                   (long) (blok->lrownum - solvptr->baseval + 1));
-      }
-      else{
-          fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
-                   (long) (blok->frownum - solvptr->baseval),
-                   (long) (blok->lrownum - solvptr->baseval + 1));
-          fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 1.0 1.0 1.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",
-                   (long) (blok->frownum - solvptr->baseval),
-                   (long) (blok->lrownum - solvptr->baseval + 1),
+      fscanf(fd2, "%d %d %d\n", &unused, &nb_contrib, &original_cblk);
+
+      fprintf (stream, "%.2g g %ld\t%ld\tc\n",             /* Begin new column block */
+               color,
+               (long) (cblk->fcolnum - solvptr->baseval),
+               (long) (cblk->lcolnum - solvptr->baseval + 1));
+      if ( ! (cblk->cblktype & CBLK_DENSE) ) {
+          fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 0.0 0.0 0.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",
+                   (long) (cblk->fcolnum - solvptr->baseval),
+                   (long) (cblk->lcolnum - solvptr->baseval + 1),
                    nb_contrib);
       }
-      nb_bloks++;
+
+      SolverBlok *blok   = cblk[0].fblokptr+1;
+      SolverBlok *lblok  = cblk[1].fblokptr;
+
+      for (; blok<lblok; blok++)
+      {
+        int unused, nb_contrib;
+        fscanf(fd1, "%d %d\n", &unused, &nb_contrib);
+        fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
+                 (long) (blok->frownum - solvptr->baseval),
+                 (long) (blok->lrownum - solvptr->baseval + 1));
+        if ( ! (cblk->cblktype & CBLK_DENSE) ) {
+            fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 1.0 1.0 1.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",
+                     (long) (blok->frownum - solvptr->baseval),
+                     (long) (blok->lrownum - solvptr->baseval + 1),
+                     nb_contrib);
+        }
+        nb_bloks++;
+      }
+
+      if (original_cblk == 0){
+          if (color < 0.3)
+              color = 0.8;
+          else
+              color = 0.2;
+      }
+      nb_cblks++;
     }
+    fclose(fd1);
+    fclose(fd2);
   }
-  fclose(fd);
-#endif
 
   fprintf (stream, "pop pop\n");                  /* Purge last column block indices */
   o = fprintf (stream, "showpage\n");   /* Restore context                 */
@@ -236,7 +254,8 @@ FILE * const                stream)
 int
 solverDraw (
 const SolverMatrix * const  solvptr,
-FILE * const                stream)
+FILE * const                stream,
+int verbose )
 {
-    return (solverDrawFunc (solvptr, stream));
+    return (solverDrawFunc (solvptr, stream, verbose));
 }

@@ -146,15 +146,13 @@ pastix_task_blend(pastix_data_t *pastix_data)
     /* if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) */
     symbolPrintStats( pastix_data->symbmtx );
 
-    {
-        printf("DUMP new symbolic factorization\n\n");
-
-        FILE *stream;
-        PASTIX_FOPEN(stream, "symbol.eps", "w");
-        symbolDraw(pastix_data->symbmtx,
-                   stream);
-        fclose(stream);
-    }
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    FILE *stream;
+    PASTIX_FOPEN(stream, "symbol.eps", "w");
+    symbolDraw(pastix_data->symbmtx,
+               stream);
+    fclose(stream);
+#endif
 
     /* TODO: free somewhere */
     /* Symbol is not used anymore */

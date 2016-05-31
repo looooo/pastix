@@ -11,6 +11,7 @@
 #include "../matrix_drivers/drivers.h"
 #include "../order/order.h"
 #include "../common/common.h"
+#include "../blend/solver.h"
 
 int main (int argc, char **argv)
 {
@@ -66,7 +67,7 @@ int main (int argc, char **argv)
     pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
-    /* pastix_task_reordering( pastix_data ); */
+    pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
 
     /**
@@ -107,11 +108,14 @@ int main (int argc, char **argv)
      */
     pastix_task_sopalin( pastix_data, spm );
 
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     FILE *stream;
     PASTIX_FOPEN(stream, "symbol.eps", "w");
     solverDraw(pastix_data->solvmatr,
-               stream);
+               stream,
+               iparm[IPARM_VERBOSE]);
     fclose(stream);
+#endif
 
     /**
      * Generates the b and x vector such that A * x = b
