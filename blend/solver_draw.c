@@ -163,7 +163,7 @@ FILE * const                stream)
           }
           /* Huge amount of compression */
           else{
-              float color = (gain-5) / 7.;
+              float color = 0.5 + (gain-5) / 10.;
               if (color > 1)
                   color = 1.;
               fprintf(stream, "%.2g %.2g %.2g r \n",
@@ -197,7 +197,6 @@ FILE * const                stream)
     {
       int unused, nb_contrib;
       fscanf(fd, "%d %d\n", &unused, &nb_contrib);
-      printf("NB_CONTRIB is %d\n", nb_contrib);
       if ( cblk->cblktype & CBLK_DENSE ) {
           fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
                    (long) (blok->frownum - solvptr->baseval),
@@ -207,7 +206,7 @@ FILE * const                stream)
           fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
                    (long) (blok->frownum - solvptr->baseval),
                    (long) (blok->lrownum - solvptr->baseval + 1));
-          fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 0.0 1.0 1.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",         /* Write block in column block */
+          fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 1.0 1.0 1.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",
                    (long) (blok->frownum - solvptr->baseval),
                    (long) (blok->lrownum - solvptr->baseval + 1),
                    nb_contrib);
