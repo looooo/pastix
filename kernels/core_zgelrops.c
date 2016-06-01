@@ -98,7 +98,7 @@ core_zlrfree( pastix_lrblock_t *A )
         A->u = NULL;
         A->v = NULL;
     }
-    /* A->rk = 0; */
+    A->rk = 0;
     A->rkmax = 0;
 
     return 0;
