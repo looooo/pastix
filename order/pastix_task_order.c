@@ -386,7 +386,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         orderFindSupernodes( &subgraph, ordemesh );
     }
 
-    /* orderApplyLevelOrder( ordemesh ); */
+    orderApplyLevelOrder( ordemesh );
 
     /*
      * Add the isolated elements to the ordering structure
@@ -556,14 +556,26 @@ pastix_task_order(      pastix_data_t *pastix_data,
         ordemesh->rangtab[0] = 0;
         for (i=0; i<ordemesh->cblknbr; i++){
             ordemesh->rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
-            ordemesh->treetab[i]   = ordemesh->cblknbr-1; //saved_treetab[ordemesh->cblknbr - i - 1];
-            /* printf("Rangtab %ld is %ld Treetab is %ld\n", */
-            /*        i, ordemesh->rangtab[i], */
-            /*        ordemesh->treetab[i]); */
+            ordemesh->treetab[i]   = saved_treetab[ordemesh->cblknbr - i - 1]; //ordemesh->cblknbr-1;
+            printf("Rangtab %ld is %ld Treetab is %ld\n",
+                   i, ordemesh->rangtab[i],
+                   ordemesh->treetab[i]);
+        }
+        for (i=0; i<ordemesh->cblknbr-1; i++){
+            pastix_int_t j;
+            for (j=i+1; j<ordemesh->cblknbr; j++){
+                if (ordemesh->treetab[j] < ordemesh->treetab[i]){
+                    ordemesh->treetab[i] = j;
+                    break;
+                }
+            }
+            printf("Treetab %ld is %ld\n",
+                   i, ordemesh->treetab[i]);
         }
         ordemesh->treetab[ordemesh->cblknbr-1] = -1;
 
         printf("Manual ordering was correctly computed\n\n");
+        orderApplyLevelOrder( ordemesh );
     }
 
     return PASTIX_SUCCESS;
