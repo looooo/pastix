@@ -268,6 +268,15 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
 
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    FILE *stream;
+    PASTIX_FOPEN(stream, "symbol.eps", "w");
+    solverDraw(pastix_data->solvmatr,
+               stream,
+               iparm[IPARM_VERBOSE]);
+    fclose(stream);
+#endif
+
     /* Let's uncompress the cblk because the solve doesn't know how to deal with compressed information */
     coeftabUncompress[spm->flttype-2]( pastix_data->solvmatr );
 

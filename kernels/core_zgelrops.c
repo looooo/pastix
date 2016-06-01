@@ -98,8 +98,7 @@ core_zlrfree( pastix_lrblock_t *A )
         A->u = NULL;
         A->v = NULL;
     }
-    /* We need to keep a non null rank for statistics */
-    /* A->rk = 0; */
+    A->rk = 0;
     A->rkmax = 0;
 
     return 0;
@@ -852,7 +851,6 @@ core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
     else if ( new_rank == 0 ) {
         core_zlrfree(B);
         free(zbuf);
-        B->rk = 0;
         return 0;
     }
 
