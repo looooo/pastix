@@ -50,12 +50,23 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
                     /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->ucoeftab,    cblk->stride,
-                        b + cblk->lcolidx, ldb );
+                    if ( cblk->cblktype & CBLK_DENSE ) {
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            cblk->ucoeftab,    cblk->stride,
+                            b + cblk->lcolidx, ldb );
+                    }
+                    else{
+                        pastix_lrblock_t LR = cblk->fblokptr->LRblock[1];
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            LR.u,    tempn,
+                            b + cblk->lcolidx, ldb );
+                    }
 
                     /* Apply the update */
                     for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j--) {
@@ -75,7 +86,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                                 cblas_zgemm(
                                     CblasColMajor, CblasTrans, CblasNoTrans,
                                     tempm, nrhs, tempn,
-                                    CBLAS_SADDR(mzone), coeftab + blok->coefind, fcbk->stride,
+                                    CBLAS_SADDR(mzone), LR.u, tempn,
                                     b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
                                     CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                                 break;
@@ -127,12 +138,23 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     assert( cblk->fcolnum == cblk->lcolidx );
 
                     /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        coeftab, cblk->stride,
-                        b + cblk->lcolidx, ldb );
+                    if ( cblk->cblktype & CBLK_DENSE ) {
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasNoTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            coeftab, cblk->stride,
+                            b + cblk->lcolidx, ldb );
+                    }
+                    else{
+                        pastix_lrblock_t LR = cblk->fblokptr->LRblock[0];
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasNoTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            LR.u, tempn,
+                            b + cblk->lcolidx, ldb );
+                    }
 
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -152,7 +174,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                                 cblas_zgemm(
                                     CblasColMajor, CblasNoTrans, CblasNoTrans,
                                     tempm, nrhs, tempn,
-                                    CBLAS_SADDR(mzone), coeftab + blok->coefind, cblk->stride,
+                                    CBLAS_SADDR(mzone), LR.u, tempm,
                                     b + cblk->lcolidx, ldb,
                                     CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
                                 break;
