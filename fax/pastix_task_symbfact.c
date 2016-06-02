@@ -30,8 +30,6 @@
 #include "cscd_utils_intern.h"
 #endif /* defined(PASTIX_DISTRIBUTED) */
 
-#define PASTIX_SYMBOL_DUMP_SYMBMTX
-
 /**
  *******************************************************************************
  *

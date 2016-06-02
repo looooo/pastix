@@ -557,9 +557,9 @@ pastix_task_order(      pastix_data_t *pastix_data,
         for (i=0; i<ordemesh->cblknbr; i++){
             ordemesh->rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
             ordemesh->treetab[i]   = saved_treetab[ordemesh->cblknbr - i - 1]; //ordemesh->cblknbr-1;
-            printf("Rangtab %ld is %ld Treetab is %ld\n",
-                   i, ordemesh->rangtab[i],
-                   ordemesh->treetab[i]);
+            /* printf("Rangtab %ld is %ld Treetab is %ld\n", */
+            /*        i, ordemesh->rangtab[i], */
+            /*        ordemesh->treetab[i]); */
         }
         for (i=0; i<ordemesh->cblknbr-1; i++){
             pastix_int_t j;
@@ -569,8 +569,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
                     break;
                 }
             }
-            printf("Treetab %ld is %ld\n",
-                   i, ordemesh->treetab[i]);
+            /* printf("Treetab %ld is %ld\n", */
+            /*        i, ordemesh->treetab[i]); */
         }
         ordemesh->treetab[ordemesh->cblknbr-1] = -1;
 
