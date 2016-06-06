@@ -72,7 +72,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
         assert( ret == 0 );
 
         gainL -= (LRblocks->rk == -1) ? nrows * ncols
-            : ((nrows+ncols) * LRblocks->rk);
+            : (2 * (nrows+ncols) * LRblocks->rk);
         LRblocks++;
 
         if (factoLU) {
@@ -82,7 +82,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
             assert( ret == 0 );
 
             gainU -= (LRblocks->rk == -1) ? nrows * ncols
-                : ((nrows+ncols) * LRblocks->rk);
+                : (2 * (nrows+ncols) * LRblocks->rk);
             LRblocks++;
         }
     }
@@ -112,8 +112,6 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     pastix_complex64_t *ucoeftab = NULL;
     int ret;
 
-    /* printf("\nUNCOMPRESS CBLK\n"); */
-
     /* One allocation per cblk */
     assert( cblk->lcoeftab == NULL );
     lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
@@ -126,29 +124,28 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
-
         /* printf("Uncompress with ranks %d %d (size %ld %ld)\n", */
         /*        blok->LRblock[0].rk, blok->LRblock[1].rk, */
         /*        nrows, ncols); */
 
         if (blok->LRblock[0].rk >= 0){
-            gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rkmax));
+            gainL += ((nrows * ncols) - (2 * (nrows+ncols) * blok->LRblock[0].rkmax));
         }
-        ret = core_zlr2ge( nrows, ncols,
-                           blok->LRblock,
-                           lcoeftab + blok->coefind, cblk->stride );
-        assert( ret == 0 );
-        core_zlrfree( blok->LRblock );
+        /* ret = core_zlr2ge( nrows, ncols, */
+        /*                    blok->LRblock, */
+        /*                    lcoeftab + blok->coefind, cblk->stride ); */
+        /* assert( ret == 0 ); */
+        /* core_zlrfree( blok->LRblock ); */
 
         if (factoLU) {
             if (blok->LRblock[1].rk >= 0){
-                gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rkmax));
+                gainU += ((nrows * ncols) - (2 * (nrows+ncols) * blok->LRblock[1].rkmax));
             }
-            ret = core_zlr2ge( nrows, ncols,
-                               blok->LRblock+1,
-                               ucoeftab + blok->coefind, cblk->stride );
-            assert( ret == 0 );
-            core_zlrfree( blok->LRblock+1 );
+            /* ret = core_zlr2ge( nrows, ncols, */
+            /*                    blok->LRblock+1, */
+            /*                    ucoeftab + blok->coefind, cblk->stride ); */
+            /* assert( ret == 0 ); */
+            /* core_zlrfree( blok->LRblock+1 ); */
         }
     }
 
