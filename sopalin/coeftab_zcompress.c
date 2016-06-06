@@ -72,7 +72,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
         assert( ret == 0 );
 
         gainL -= (LRblocks->rk == -1) ? nrows * ncols
-            : (2 * (nrows+ncols) * LRblocks->rk);
+            : ((nrows+ncols) * LRblocks->rk);
         LRblocks++;
 
         if (factoLU) {
@@ -82,7 +82,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
             assert( ret == 0 );
 
             gainU -= (LRblocks->rk == -1) ? nrows * ncols
-                : (2 * (nrows+ncols) * LRblocks->rk);
+                : ((nrows+ncols) * LRblocks->rk);
             LRblocks++;
         }
     }
@@ -129,7 +129,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
         /*        nrows, ncols); */
 
         if (blok->LRblock[0].rk >= 0){
-            gainL += ((nrows * ncols) - (2 * (nrows+ncols) * blok->LRblock[0].rkmax));
+            gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rkmax));
         }
         /* ret = core_zlr2ge( nrows, ncols, */
         /*                    blok->LRblock, */
@@ -139,7 +139,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
 
         if (factoLU) {
             if (blok->LRblock[1].rk >= 0){
-                gainU += ((nrows * ncols) - (2 * (nrows+ncols) * blok->LRblock[1].rkmax));
+                gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rkmax));
             }
             /* ret = core_zlr2ge( nrows, ncols, */
             /*                    blok->LRblock+1, */
