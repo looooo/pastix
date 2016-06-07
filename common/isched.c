@@ -137,7 +137,9 @@ isched_thread_init(void *ptr)
     thread_ctx->rank       = isched->rank;
 
     /* Set thread affinity for the worker */
-    isched_topo_bind_on_core_index( isched->bindto );
+    if ( isched->bindto != -1 ) {
+        isched_topo_bind_on_core_index( isched->bindto );
+    }
 
     if ( thread_ctx->rank != 0 ) {
         return isched_parallel_section( thread_ctx );
@@ -304,7 +306,7 @@ isched_t *ischedInit(int cores, int *coresbind)
 
     initdata[0].global_ctx = isched;
     initdata[0].rank       = 0;
-    initdata[0].bindto     = (coresbind == NULL) ? 0 : coresbind[0];
+    initdata[0].bindto     = (coresbind == NULL) ? -1 : coresbind[0];
     isched->master = (isched_thread_t*)isched_thread_init( initdata );
 
     /* Wait for the other threads to finish their initialization */
