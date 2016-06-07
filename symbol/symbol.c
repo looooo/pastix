@@ -240,16 +240,19 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     pastix_int_t cblknbr, bloknbr;
     pastix_int_t cblkmin, cblkmax;
     pastix_int_t blokmin, blokmax;
-    double cblkavg, blokavg;
+    double cblkavg1, blokavg1;
+    double cblkavg2, blokavg2;
 
-    cblknbr = symbptr->cblknbr;
-    bloknbr = symbptr->bloknbr - cblknbr;
-    cblkmin = 99999999999;
-    cblkmax = 0;
-    cblkavg = 0;
-    blokmin = 99999999999;
-    blokmax = 0;
-    blokavg = 0;
+    cblknbr  = symbptr->cblknbr;
+    bloknbr  = symbptr->bloknbr - cblknbr;
+    cblkmin  = 99999999999;
+    cblkmax  = 0;
+    cblkavg1 = 0;
+    cblkavg2 = 0;
+    blokmin  = 99999999999;
+    blokmax  = 0;
+    blokavg1 = 0;
+    blokavg2 = 0;
 
     cblk = symbptr->cblktab;
     blok = symbptr->bloktab;
@@ -263,7 +266,8 @@ symbolPrintStats( const SymbolMatrix *symbptr )
 
         cblkmin = pastix_imin( cblkmin, colnbr );
         cblkmax = pastix_imax( cblkmax, colnbr );
-        cblkavg += colnbr;
+        cblkavg1 += colnbr;
+        cblkavg2 += colnbr * colnbr;
         blok++;
 
         /* Only extra diagonal */
@@ -273,7 +277,8 @@ symbolPrintStats( const SymbolMatrix *symbptr )
 
             blokmin = pastix_imin( blokmin, rownbr );
             blokmax = pastix_imax( blokmax, rownbr );
-            blokavg += rownbr;
+            blokavg1 += rownbr;
+            blokavg2 += rownbr * rownbr;
         }
     }
 
@@ -282,27 +287,31 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     blokmax *= dof;
     cblkmin *= dof;
     cblkmax *= dof;
-    cblkavg  = (cblkavg * (double)dof ) / (double)cblknbr;
-    blokavg  = (blokavg * (double)dof ) / (double)bloknbr;
+    cblkavg1 = (cblkavg1 * (double)dof ) / (double)cblknbr;
+    blokavg1 = (blokavg1 * (double)dof ) / (double)bloknbr;
+    cblkavg2 = sqrt( ((cblkavg2 * (double)dof * (double)dof) / (double)cblknbr) - cblkavg1 * cblkavg1 );
+    blokavg2 = sqrt( ((blokavg2 * (double)dof * (double)dof) / (double)bloknbr) - blokavg1 * blokavg1 );
 
     fprintf(stdout,
             "------ Stats Symbol Matrix ----------\n"
-            " Number of cblk  : %ld\n"
-            " Number of blok  : %ld\n"
-            " Cblk min width  : %ld\n"
-            " Cblk max width  : %ld\n"
-            " Cblk avg width  : %lf\n"
-            " Blok min height : %ld\n"
-            " Blok max height : %ld\n"
-            " Blok avg height : %lf\n"
+            " Number of cblk    : %ld\n"
+            " Number of blok    : %ld\n"
+            " Cblk width min    : %ld\n"
+            " Cblk width max    : %ld\n"
+            " Cblk width avg    : %lf\n"
+            " Cblk width stdev  : %lf\n"
+            " Blok height min   : %ld\n"
+            " Blok height max   : %ld\n"
+            " Blok height avg   : %lf\n"
+            " Blok height stdev : %lf\n"
             "-------------------------------------\n",
             cblknbr, bloknbr,
-            cblkmin, cblkmax, cblkavg,
-            blokmin, blokmax, blokavg );
+            cblkmin, cblkmax, cblkavg1, cblkavg2,
+            blokmin, blokmax, blokavg1, blokavg2 );
 
-    fprintf(stdout,
-            "& %ld & %ld & %ld & %lf & %ld & %ld & %ld & %lf\n",
-            cblknbr, cblkmin, cblkmax, cblkavg,
-            bloknbr, blokmin, blokmax, blokavg );
+    /* fprintf(stdout, */
+    /*         "& %ld & %ld & %ld & %lf & %ld & %ld & %ld & %lf\n", */
+    /*         cblknbr, cblkmin, cblkmax, cblkavg1, */
+    /*         bloknbr, blokmin, blokmax, blokavg1 ); */
 }
 
