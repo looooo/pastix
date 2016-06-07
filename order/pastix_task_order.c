@@ -534,14 +534,11 @@ pastix_task_order(      pastix_data_t *pastix_data,
                               0, sep, 0, sep, n-1, sep, &current_rangtab);
         }
         else{
-            /* order_grid3D_wide(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr, */
-            /*                   0, sep, 0, sep, 0, sep, n-1, sep, &current_rangtab, */
-            /*                   ordemesh->treetab, 1); */
             pastix_int_t current_number = n-1;
-
-            order_grid3D_classic(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
-                                 0, sep, 0, sep, 0, sep, &current_number, sep, &current_rangtab,
-                                 ordemesh->treetab, 1);
+            /* call order_grid3D_classic() otherwise */
+            order_grid3D_wide(ordemesh->rangtab, ordemesh->permtab, &ordemesh->cblknbr,
+                              0, sep, 0, sep, 0, sep, &current_number, sep, &current_rangtab,
+                              ordemesh->treetab, 1);
         }
 
         for (i=0; i<n; i++){
@@ -556,10 +553,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
         ordemesh->rangtab[0] = 0;
         for (i=0; i<ordemesh->cblknbr; i++){
             ordemesh->rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
-            ordemesh->treetab[i]   = saved_treetab[ordemesh->cblknbr - i - 1]; //ordemesh->cblknbr-1;
-            /* printf("Rangtab %ld is %ld Treetab is %ld\n", */
-            /*        i, ordemesh->rangtab[i], */
-            /*        ordemesh->treetab[i]); */
+            ordemesh->treetab[i]   = saved_treetab[ordemesh->cblknbr - i - 1];
+            /* printf("Rangtab %ld %ld\n", ordemesh->rangtab[i], ordemesh->rangtab[i+1]); */
         }
         for (i=0; i<ordemesh->cblknbr-1; i++){
             pastix_int_t j;
@@ -569,8 +564,6 @@ pastix_task_order(      pastix_data_t *pastix_data,
                     break;
                 }
             }
-            /* printf("Treetab %ld is %ld\n", */
-            /*        i, ordemesh->treetab[i]); */
         }
         ordemesh->treetab[ordemesh->cblknbr-1] = -1;
 

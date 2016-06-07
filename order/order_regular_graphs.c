@@ -127,7 +127,7 @@ void order_grid3D_wide(pastix_int_t *rangtab,
                        pastix_int_t yn,
                        pastix_int_t z0,
                        pastix_int_t zn,
-                       pastix_int_t max_number,
+                       pastix_int_t *max_number,
                        pastix_int_t lda,
                        pastix_int_t *current_rangtab,
                        pastix_int_t *treetab,
@@ -136,32 +136,31 @@ void order_grid3D_wide(pastix_int_t *rangtab,
     pastix_int_t nx = xn-x0;
     pastix_int_t ny = yn-y0;
     pastix_int_t nz = zn-z0;
-    /* printf("Treating a subgraph of size %ld %ld %ld\n", nx, ny, nz); */
 
     /* The subgraph is small enough */
-    if (nx <= 4 && ny <= 4 && nz <= 4){
+    /* if (nx <= 4 && ny <= 4 && nz <= 4){ */
+    if (nx*ny*nz < 64){
         cblknbr[0] ++;
-        /* printf("Treating cblk %ld\n", cblknbr[0]); */
         pastix_int_t i, j, k;
         pastix_int_t current = 0;
         for (i=x0; i<xn; i++){
             for (j=y0; j<yn; j++){
                 for (k=z0; k<zn; k++){
                     pastix_int_t index = i + lda * j + lda*lda * k;
-                    peritab[index] = max_number - current;
+                    peritab[index] = max_number[0] - current;
                     current++;
                 }
             }
         }
 
         treetab[current_rangtab[0]] = current_treetab;
-        rangtab[current_rangtab[0]] = max_number;
+        rangtab[current_rangtab[0]] = max_number[0];
+        max_number[0] -= current;
         current_rangtab[0]++;
         return;
     }
 
     cblknbr[0] ++;
-    /* printf("Treating cblk %ld\n", cblknbr[0]); */
 
     /* In which direction do we cut? 0 for x, 1 for y */
     pastix_int_t dir = 0;
@@ -174,7 +173,7 @@ void order_grid3D_wide(pastix_int_t *rangtab,
     if (dir == 0){
 
         treetab[current_rangtab[0]] = current_treetab;
-        rangtab[current_rangtab[0]] = max_number;
+        rangtab[current_rangtab[0]] = max_number[0];
         current_rangtab[0]++;
 
         pastix_int_t i, j;
@@ -182,25 +181,26 @@ void order_grid3D_wide(pastix_int_t *rangtab,
         for (i=0; i<ny; i++){
             for (j=0; j<nz; j++){
                 pastix_int_t index = x0 + nx/2 + lda*(y0+i) - 1 + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
+                peritab[index] = max_number[0] - current;
                 current++;
             }
         }
         for (i=0; i<ny; i++){
             for (j=0; j<nz; j++){
                 pastix_int_t index = x0 + nx/2 + lda*(y0+i) + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
+                peritab[index] = max_number[0] - current;
                 current++;
             }
         }
+        max_number[0] -= current;
 
         order_grid3D_wide(rangtab, peritab, cblknbr,
-                          x0, xn-nx/2-1, y0, yn, z0, zn, max_number - 2*ny*nz,
+                          x0, x0 + nx/2 - 1, y0, yn, z0, zn, max_number,
                           lda, current_rangtab,
                           treetab, current_treetab+1);
 
         order_grid3D_wide(rangtab, peritab, cblknbr,
-                          x0+nx/2+1, xn, y0, yn, z0, zn, max_number - nx*ny*nz /2 - ny*nz,
+                          x0+nx/2+1, xn, y0, yn, z0, zn, max_number,
                           lda, current_rangtab,
                           treetab, current_treetab+1);
 
@@ -210,7 +210,7 @@ void order_grid3D_wide(pastix_int_t *rangtab,
     else if (dir == 1){
 
         treetab[current_rangtab[0]] = current_treetab;
-        rangtab[current_rangtab[0]] = max_number;
+        rangtab[current_rangtab[0]] = max_number[0];
         current_rangtab[0]++;
 
         pastix_int_t i, j;
@@ -218,34 +218,35 @@ void order_grid3D_wide(pastix_int_t *rangtab,
         for (i=0; i<nx; i++){
             for (j=0; j<nz; j++){
                 pastix_int_t index = lda*(y0+ny/2-1) + x0 + i  + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
+                peritab[index] = max_number[0] - current;
                 current++;
             }
         }
         for (i=0; i<nx; i++){
             for (j=0; j<nz; j++){
                 pastix_int_t index = lda*(y0+ny/2) + x0 + i + lda*lda*(z0+j);
-                peritab[index] = max_number - current;
+                peritab[index] = max_number[0] - current;
                 current++;
             }
         }
+        max_number[0] -= current;
 
         order_grid3D_wide(rangtab, peritab, cblknbr,
-                          x0, xn, y0, yn-ny/2-1, z0, zn, max_number - 2*nx*nz,
+                          x0, xn, y0, y0+ny/2-1, z0, zn, max_number,
                           lda, current_rangtab,
                           treetab, current_treetab+1);
 
         order_grid3D_wide(rangtab, peritab, cblknbr,
-                          x0, xn, y0+ny/2+1, yn, z0, zn, max_number - nx*ny*nz /2 - nx*nz,
+                          x0, xn, y0+ny/2+1, yn, z0, zn, max_number,
                           lda, current_rangtab,
                           treetab, current_treetab+1);
     }
 
-    /* If we cut in direction y */
+    /* If we cut in direction z */
     else{
 
         treetab[current_rangtab[0]] = current_treetab;
-        rangtab[current_rangtab[0]] = max_number;
+        rangtab[current_rangtab[0]] = max_number[0];
         current_rangtab[0]++;
 
         pastix_int_t i, j;
@@ -253,25 +254,26 @@ void order_grid3D_wide(pastix_int_t *rangtab,
         for (i=0; i<nx; i++){
             for (j=0; j<ny; j++){
                 pastix_int_t index = lda*lda*(z0+nz/2-1) + x0 + i + lda * (y0+j);
-                peritab[index] = max_number - current;
+                peritab[index] = max_number[0] - current;
                 current++;
             }
         }
         for (i=0; i<nx; i++){
             for (j=0; j<ny; j++){
                 pastix_int_t index = lda*lda*(z0+nz/2) + x0 + i + lda * (y0+j);
-                peritab[index] = max_number - current;
+                peritab[index] = max_number[0] - current;
                 current++;
             }
         }
+        max_number[0] -= current;
 
         order_grid3D_wide(rangtab, peritab, cblknbr,
-                          x0, xn, y0, yn, z0, zn-nz/2-1, max_number - 2*nx*ny,
+                          x0, xn, y0, yn, z0, z0+nz/2-1, max_number,
                           lda, current_rangtab,
                           treetab, current_treetab+1);
 
         order_grid3D_wide(rangtab, peritab, cblknbr,
-                          x0, xn, y0, yn, z0+nz/2+1, zn, max_number - nx*ny*nz /2 - nx*ny,
+                          x0, xn, y0, yn, z0+nz/2+1, zn, max_number,
                           lda, current_rangtab,
                           treetab, current_treetab+1);
     }
