@@ -334,9 +334,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-        symbolPrintStats( pastix_data->symbmtx );
-
     /* Rustine to be sure we have a tree
      * TODO: check difference with kassSymbolPatch */
 #define RUSTINE
@@ -397,6 +394,9 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                     &(dparm[DPARM_FACT_RLFLOPS]) );
 
     if ( procnum == 0 ) {
+        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+            symbolPrintStats( pastix_data->symbmtx );
+
         if ( iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
             double fillin = (double)iparm[ IPARM_NNZEROS ]
                 / (double)( (pastix_data->csc)->gnnz );
