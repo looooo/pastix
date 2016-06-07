@@ -1257,6 +1257,8 @@ int core_zlrm3( double tol,
                          CBLAS_SADDR(zzero), AB->u, M );
 
             transV = transB;
+
+            free(work);
         }
     }
     else if (rArB.rk == 0){
@@ -1287,6 +1289,8 @@ int core_zlrm3( double tol,
                      CBLAS_SADDR(zone),  rArB.v, rArB.rkmax,
                                          B->u, ldbu,
                      CBLAS_SADDR(zzero), AB->v, rArB.rk );
+
+        free(work);
     }
     core_zlrfree(&rArB);
     free(work2);
@@ -1309,7 +1313,8 @@ core_zlrmm( double tol, int transA, int transB,
             pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                       const pastix_lrblock_t *B,
             pastix_complex64_t beta,        pastix_lrblock_t *C,
-            pastix_complex64_t *work, pastix_int_t ldwork )
+            pastix_complex64_t *work, pastix_int_t ldwork,
+            SolverCblk *fcblk )
 {
     pastix_complex64_t *tmp = NULL;
     pastix_lrblock_t AB;
@@ -1369,6 +1374,8 @@ core_zlrmm( double tol, int transA, int transB,
         transV = core_zlrm2( transA, transB, M, N, K,
                              A, B, &AB, tmp, required );
     }
+
+    pastix_cblk_lock( fcblk );
 
     ldabu = (AB.rk == -1) ? AB.rkmax : M;
     ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
@@ -1443,6 +1450,7 @@ core_zlrmm( double tol, int transA, int transB,
             }
         }
     }
+    pastix_cblk_unlock( fcblk );
 
     if ( allocated ) {
         free(tmp);
@@ -1466,7 +1474,8 @@ core_zlrmge( double tol, int transA, int transB,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                        const pastix_lrblock_t *B,
              pastix_complex64_t beta, pastix_complex64_t *C, int ldc,
-             pastix_complex64_t *work, pastix_int_t ldwork )
+             pastix_complex64_t *work, pastix_int_t ldwork,
+             SolverCblk *fcblk )
 {
     pastix_lrblock_t lrC;
 
@@ -1478,7 +1487,8 @@ core_zlrmge( double tol, int transA, int transB,
     core_zlrmm( tol, transA, transB, M, N, K,
                 M, N, 0, 0,
                 alpha, A, B, beta, &lrC,
-                work, ldwork );
+                work, ldwork,
+                fcblk );
 
     return 0;
 }

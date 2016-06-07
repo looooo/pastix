@@ -101,7 +101,8 @@ core_zlrmm( double tol, int transA, int transB,
             pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                       const pastix_lrblock_t *B,
             pastix_complex64_t beta,  pastix_lrblock_t *C,
-            pastix_complex64_t *work, pastix_int_t ldwork );
+            pastix_complex64_t *work, pastix_int_t ldwork,
+            SolverCblk *fcblk );
 
 int
 core_zlrmge( double tol, int transA, int transB,
@@ -109,8 +110,8 @@ core_zlrmge( double tol, int transA, int transB,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                        const pastix_lrblock_t *B,
              pastix_complex64_t beta,  pastix_complex64_t *C, int ldc,
-             pastix_complex64_t *work, pastix_int_t ldwork );
-
+             pastix_complex64_t *work, pastix_int_t ldwork,
+             SolverCblk *fcblk );
 
 void core_zgetro(int m, int n,
                  const pastix_complex64_t *A, int lda,

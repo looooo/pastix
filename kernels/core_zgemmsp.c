@@ -111,7 +111,7 @@ core_zgemmsp_fullfull( int uplo, int trans,
     pastix_int_t rownbr;
 
     assert(cblk->cblktype  & CBLK_DENSE);
-    //assert(fcblk->cblktype & CBLK_DENSE);
+    assert(fcblk->cblktype & CBLK_DENSE);
 
     shift = (uplo == PastixUpper) ? 1 : 0;
 
@@ -165,20 +165,20 @@ core_zgemmsp_fullfull( int uplo, int trans,
         m = blok_rownbr( iterblok );
 
         pastix_cblk_lock( fcblk );
-        if ( fcblk->cblktype & CBLK_DENSE ) {
-            core_zgeadd( CblasNoTrans, m, N,
-                         -1.0, wtmp, M,
-                          1.0, tmpC, stridef );
-        }
-        else {
-            lrblock = fblok->LRblock + shift;
-            rownbr = blok_rownbr( fblok );
-            core_zgradd( tol, -1.,
-                         m, N, wtmp, M,
-                         rownbr, cblk_colnbr( fcblk ), lrblock,
-                         iterblok->frownum - fblok->frownum,
-                         blok->frownum - fcblk->fcolnum );
-        }
+        /* if ( fcblk->cblktype & CBLK_DENSE ) { */
+        core_zgeadd( CblasNoTrans, m, N,
+                     -1.0, wtmp, M,
+                     1.0, tmpC, stridef );
+        /* } */
+        /* else { */
+        /*     lrblock = fblok->LRblock + shift; */
+        /*     rownbr = blok_rownbr( fblok ); */
+        /*     core_zgradd( tol, -1., */
+        /*                  m, N, wtmp, M, */
+        /*                  rownbr, cblk_colnbr( fcblk ), lrblock, */
+        /*                  iterblok->frownum - fblok->frownum, */
+        /*                  blok->frownum - fcblk->fcolnum ); */
+        /* } */
         pastix_cblk_unlock( fcblk );
 
         /* Displacement to next block */
@@ -310,7 +310,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
 
         lrC = fblok->LRblock + shift;
 
-        pastix_cblk_lock( fcblk );
+        /* pastix_cblk_lock( fcblk ); */
         core_zlrmm( tol, PastixNoTrans, trans,
                     M, N, K,
                     blok_rownbr( fblok ), cblk_colnbr( fcblk ),
@@ -318,8 +318,9 @@ core_zgemmsp_fulllr( int uplo, int trans,
                     (blok->frownum - fcblk->fcolnum),
                     -1., &lrA, &lrB,
                      1., lrC,
-                    work, -1 );
-        pastix_cblk_unlock( fcblk );
+                    work, -1,
+                    fcblk );
+        /* pastix_cblk_unlock( fcblk ); */
     }
 }
 
@@ -440,13 +441,14 @@ core_zgemmsp_lr( int uplo, int trans,
         lrA = iterblok->LRblock + shift;
         M = blok_rownbr( iterblok );
 
-        pastix_cblk_lock( fcblk );
+        /* pastix_cblk_lock( fcblk ); */
         if ( fcblk->cblktype & CBLK_DENSE ) {
             C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
             core_zlrmge( tol, PastixNoTrans, trans,
                          M, N, K,
                          -1., lrA, lrB, 1., C, stridef,
-                         work, -1 );
+                         work, -1,
+                         fcblk );
         }
         else {
             core_zlrmm( tol, PastixNoTrans, trans,
@@ -456,9 +458,10 @@ core_zgemmsp_lr( int uplo, int trans,
                         (blok->frownum - fcblk->fcolnum),
                         -1., lrA, lrB,
                          1., fblok->LRblock + shift,
-                        work, -1 );
+                        work, -1,
+                        fcblk );
         }
-        pastix_cblk_unlock( fcblk );
+        /* pastix_cblk_unlock( fcblk ); */
     }
 }
 
