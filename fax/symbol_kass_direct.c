@@ -6,7 +6,7 @@
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * This file contains croutines to create the graph of the direct
+ * This file contains routines to create the graph of the direct
  * factorization of a graph A.
  *
  * @version 5.1.0
