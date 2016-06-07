@@ -37,6 +37,17 @@ solverExit(SolverMatrix *solvmtx)
 
             if (solvmtx->cblktab[i].ucoeftab)
                 memFree_null(solvmtx->cblktab[i].ucoeftab);
+
+            if (! (solvmtx->cblktab[i].cblktype & CBLK_DENSE)) {
+                SolverBlok *blok  = solvmtx->cblktab[i].fblokptr;
+                SolverBlok *lblok = solvmtx->cblktab[i+1].fblokptr;
+
+                for (; blok<lblok; blok++) {
+                    core_zlrfree(blok->LRblock);
+                    core_zlrfree(blok->LRblock+1);
+                }
+                free(solvmtx->cblktab[i].fblokptr->LRblock);
+            }
         }
         memFree_null(solvmtx->cblktab);
     }

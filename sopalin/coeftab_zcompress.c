@@ -113,13 +113,13 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     int ret;
 
     /* One allocation per cblk */
-    assert( cblk->lcoeftab == NULL );
-    lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
+    /* assert( cblk->lcoeftab == NULL ); */
+    /* lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) ); */
 
-    if ( factoLU ) {
-        assert( cblk->ucoeftab == NULL );
-        ucoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
-    }
+    /* if ( factoLU ) { */
+    /*     assert( cblk->ucoeftab == NULL ); */
+    /*     ucoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) ); */
+    /* } */
 
     for (; blok<lblok; blok++)
     {

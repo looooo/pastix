@@ -172,7 +172,8 @@ int testing_zlrmm(int argc, char **argv)
                 offx, offy,
                 alpha, &LR_A, &LR_B,
                 beta , &LR_C,
-                NULL, -1 );
+                NULL, -1,
+                NULL );
 
     printf(" New rank of C is %d\n", LR_C.rk);
 
