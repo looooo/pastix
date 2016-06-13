@@ -18,7 +18,8 @@
 #include "isched.h"
 #include "spm.h"
 #include "bcsc.h"
-#include "solver.h"
+#include "blend/solver.h"
+#include "coeftab.h"
 #include "sopalin_data.h"
 
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
@@ -28,10 +29,6 @@ static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
     { sopalin_sgetrf, sopalin_dgetrf, sopalin_cgetrf, sopalin_zgetrf },
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
 };
-
-void
-coeftabInit( const pastix_data_t *pastix_data,
-             int fakefillin, int factoLU );
 
 int
 pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
@@ -104,6 +101,10 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    /* Copy the compress_size parameter into the SolverMatrix structure */
+    pastix_data->solvmatr->compress_size = pastix_data->iparm[IPARM_COMPRESS_SIZE];
+    pastix_data->solvmatr->tolerance     = pastix_data->dparm[DPARM_COMPRESS_TOLERANCE];
+
     coeftabInit( pastix_data,
                  spm->flttype == PastixPattern,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
@@ -131,7 +132,6 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
 
     return PASTIX_SUCCESS;
 }
-
 
 /**
  *******************************************************************************
@@ -267,6 +267,18 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
+
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    FILE *stream;
+    PASTIX_FOPEN(stream, "symbol.eps", "w");
+    solverDraw(pastix_data->solvmatr,
+               stream,
+               iparm[IPARM_VERBOSE]);
+    fclose(stream);
+#endif
+
+    /* Let's uncompress the cblk because the solve doesn't know how to deal with compressed information */
+    coeftabUncompress[spm->flttype-2]( pastix_data->solvmatr );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |

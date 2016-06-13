@@ -30,15 +30,8 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
     /* Count number of task */
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        switch(candtab[i].cblktype)
-        {
-        case CBLK_1D:
-        case CBLK_SPLIT:
+        if ( candtab[i].cblktype & (~CBLK_SCHUR) ) {
             tasknbr++;
-            break;
-        default:
-            fprintf(stderr, "Task No %ld has wrong type \n", (long)i);
-            EXIT(MOD_BLEND,INTERNAL_ERR);
         }
     }
 
@@ -52,10 +45,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
     tasknbr = 0;
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        switch(candtab[i].cblktype)
-        {
-        case CBLK_1D:
-        case CBLK_SPLIT:
+        if ( candtab[i].cblktype & (~CBLK_SCHUR) ) {
             task->taskid   = COMP_1D;
             task->prionum  = -1;
             task->cblknum  = i;
@@ -75,11 +65,6 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
             }
             tasknbr++;
             task++;
-            break;
-
-        default:
-            fprintf(stderr, "Task No %ld has wrong type \n", (long)i);
-            EXIT(MOD_BLEND,INTERNAL_ERR);
         }
     }
 

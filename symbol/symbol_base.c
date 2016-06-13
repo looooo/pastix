@@ -55,6 +55,7 @@ symbolBase ( SymbolMatrix * const symbptr,
         cblk->fcolnum += baseadj;
         cblk->lcolnum += baseadj;
         cblk->bloknum += baseadj;
+        cblk->split    = NULL;
     }
 
     blok = symbptr->bloktab;

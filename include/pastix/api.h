@@ -60,6 +60,7 @@
 
    IPARM_REORDERING_SPLIT      - Reordering split level                                   Default: 0                   IN
    IPARM_REORDERING_STOP       - Reordering stop criteria                                 Default: INT_MAX             IN
+   IPARM_OPTIMAL_ORDERING      - Ordering for grids/cubes. Parameter is dimension         Default: 0             IN
 
    IPARM_STATIC_PIVOTING       - Static pivoting                                          Default: -                   OUT
    IPARM_NNZEROS               - Number of nonzero entries in the factorized matrix       Default: -                   OUT
@@ -67,6 +68,7 @@
    IPARM_BASEVAL               - Baseval used for the matrix                              Default: 0                   IN
    IPARM_MIN_BLOCKSIZE         - Minimum block size                                       Default: 60                  IN
    IPARM_MAX_BLOCKSIZE         - Maximum block size                                       Default: 120                 IN
+   IPARM_COMPRESS_SIZE         - Minimum size to compress a supernode                     Default: 120                 IN
    IPARM_SCHUR                 - Schur mode                                               Default: API_NO              IN
    IPARM_ISOLATE_ZEROS         - Isolate null diagonal terms at the end of the matrix     Default: API_NO              IN
    IPARM_RHSD_CHECK            - Set to API_NO to avoid RHS redistribution                Default: API_YES             IN
@@ -163,6 +165,7 @@ enum IPARM_ACCESS {
   /* Reordering */
   IPARM_REORDERING_SPLIT,
   IPARM_REORDERING_STOP,
+  IPARM_OPTIMAL_ORDERING,
 
   IPARM_STATIC_PIVOTING,
   IPARM_NNZEROS,
@@ -170,6 +173,7 @@ enum IPARM_ACCESS {
   IPARM_BASEVAL,
   IPARM_MIN_BLOCKSIZE,
   IPARM_MAX_BLOCKSIZE,
+  IPARM_COMPRESS_SIZE,
   IPARM_SCHUR,
   IPARM_ISOLATE_ZEROS,
   IPARM_RHSD_CHECK,
@@ -256,6 +260,7 @@ enum IPARM_ACCESS_DEPRECATED {
    DPARM_SOLV_FLOPS         - Solve flops (rate!)                               Default: -                OUT
    DPARM_RAFF_TIME          - Time for Refinement step (wallclock)              Default: -                OUT
    DPARM_SIZE               - Dparm Size         IGNORE                         Default: -                IN
+   DPARM_COMPRESS_TOLERANCE - Tolerance for low-rank kernels                    Default: 0.01             IN
  */
 enum DPARM_ACCESS {
   DPARM_FILL_IN                 = 1,
@@ -273,6 +278,7 @@ enum DPARM_ACCESS {
   DPARM_SOLV_FLOPS              = 23,
   DPARM_RAFF_TIME               = 24,
   DPARM_A_NORM                  = 25,
+  DPARM_COMPRESS_TOLERANCE      = 26,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
 };
 

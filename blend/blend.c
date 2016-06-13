@@ -25,7 +25,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-#include "solverRealloc.h"
 #include "elimin.h"
 #include "extendVector.h"
 #include "cand.h"
@@ -290,6 +289,29 @@ void solverBlend(BlendCtrl    *ctrl,
         if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
             pastix_print( clustnum, 0, "  -- Solver Matrix structure computed at time: %g --\n", clockVal(timer_current) );
     }
+
+    /* /\* Move split structure from symbmtx to solvmtx *\/ */
+    /* pastix_int_t cblknum; */
+    /* for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++) { */
+    /*     solvmtx->cblktab[cblknum].split      = NULL; */
+    /*     solvmtx->cblktab[cblknum].split_size = 0; */
+
+    /*     if (symbmtx->cblktab[cblknum].split != NULL){ */
+    /*         pastix_int_t split_size = symbmtx->cblktab[cblknum].split_size; */
+
+    /*         solvmtx->cblktab[cblknum].split      = symbmtx->cblktab[cblknum].split; */
+    /*         solvmtx->cblktab[cblknum].split_size = split_size; */
+
+    /*         if (0) */
+    /*         { */
+    /*             printf("Cblknm %ld Size %ld\n", cblknum, solvmtx->cblktab[cblknum].split_size); */
+    /*             pastix_int_t k; */
+    /*             for (k=0; k<split_size; k++){ */
+    /*                 printf("Marker at %ld\n", solvmtx->cblktab[cblknum].split[k]); */
+    /*             } */
+    /*         } */
+    /*     } */
+    /* } */
 
     /*if(ctrl->count_ops)
      {

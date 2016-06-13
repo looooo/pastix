@@ -136,7 +136,11 @@ simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
         {
             fprintf(fd1, "%ld %ld\n", j, simuctrl->bloktab[j].ctrbcnt);
         }
-        fprintf(fd2, "%ld %ld\n", i, simuctrl->cblktab[i].ctrbcnt);
+/* #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX) */
+        fprintf(fd2, "%ld %ld %ld\n", i, simuctrl->cblktab[i].ctrbcnt, curcblk->split_cblk);
+/* #else */
+/*         fprintf(fd2, "%ld %ld\n", i, simuctrl->cblktab[i].ctrbcnt); */
+/* #endif */
     }
 
     fclose( fd1 );
@@ -729,7 +733,7 @@ simuRun( SimuCtrl           *simuctrl,
             assert( simuctrl->tasktab[tasknum].taskid == COMP_1D );
 
             assert(simuctrl->tasktab[tasknum].cblknum == i);
-            assert(ctrl->candtab[i].cblktype == CBLK_1D);
+            //assert(ctrl->candtab[i].cblktype == CBLK_1D);
 
             simu_putInAllReadyQueues( ctrl, simuctrl, tasknum );
         }
@@ -872,9 +876,8 @@ simuRun( SimuCtrl           *simuctrl,
 
 #ifdef DEBUG_BLEND
     for(i=0;i<simuctrl->cblknbr;i++)
-        if(ctrl->candtab[i].cblktype == CBLK_1D)
-            if(simuctrl->ownetab[i] < 0) /** Check valid for 1D distribution only **/
-                fprintf(stderr, "CBLK %ld has no processor \n", (long)i);
+        if(simuctrl->ownetab[i] < 0) /** Check valid for 1D distribution only **/
+            fprintf(stderr, "CBLK %ld has no processor \n", (long)i);
 
     for(i=0;i<symbptr->bloknbr;i++)
         if(!(simuctrl->bloktab[i].ownerclust>=0))

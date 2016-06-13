@@ -17,52 +17,30 @@
 #include "bcsc.h"
 #include "isched.h"
 #include "solver.h"
+#include "coeftab.h"
 
-void
-coeftab_zinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
+int (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*) =
+{
+    coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
+};
 
-void
-coeftab_cinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
+void (*coeftabUncompress[4])(SolverMatrix*) =
+{
+    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
+};
 
-void
-coeftab_dinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
-
-void
-coeftab_sinitcblk( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int fakefillin, int factoLU );
-
-void
-coeftab_zdump( const SolverMatrix *solvmtx,
-               const char   *filename );
-
-void
-coeftab_cdump( const SolverMatrix *solvmtx,
-               const char   *filename );
-
-void
-coeftab_ddump( const SolverMatrix *solvmtx,
-               const char   *filename );
-
-void
-coeftab_sdump( const SolverMatrix *solvmtx,
-               const char   *filename );
+void (*coeftabCompress[4])(SolverMatrix*) =
+{
+    coeftab_scompress, coeftab_dcompress, coeftab_ccompress, coeftab_zcompress
+};
 
 struct coeftabinit_s {
     const SolverMatrix  *datacode;
     const pastix_bcsc_t *bcsc;
     int fakefillin;
     int factoLU;
+    int compress_size;
+    double tol;
 };
 
 /*

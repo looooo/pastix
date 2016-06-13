@@ -40,7 +40,7 @@ void         pqueuePrint(pastix_queue_t *);
 
 static inline void
 pqueuePush1(pastix_queue_t *q, pastix_int_t elt, double key1) {
-    return pqueuePush2( q, elt, key1, 0 );
+    pqueuePush2( q, elt, key1, 0 );
 }
 
 static inline pastix_int_t
