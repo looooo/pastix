@@ -70,38 +70,36 @@ int main (int argc, char **argv)
     pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
 
-    /**
-     * Perform reordering after splitting
-     */
-    /* pastix_task_symbfact( pastix_data, NULL, NULL ); */
-    /* pastix_task_reordering( pastix_data ); */
-    /* pastix_task_blend( pastix_data ); */
 
-    /**
-     * Perform ordering, symbolic factorization, and analyze steps
-     * Second run to build new split cblk
-     */
-    /* rangtab_new     = malloc(csc->n * sizeof(pastix_int_t)); */
-    /* rangtab_current = 0; */
-    /* memset(rangtab_new, 0, csc->n * sizeof(pastix_int_t)); */
+    /* Run another symbolic factorization to eliminate zero blocks created by splitting */
+    {
+        pastix_int_t new_cblknbr = pastix_data->symbmtx->cblknbr;
+        pastix_int_t i;
 
-    /* Perform ordering, symbolic factorization, and analyze steps */
-    /* rangtab_new[rangtab_current] = csc->n; */
+        pastix_data->ordemesh->cblknbr = new_cblknbr;
+        pastix_data->ordemesh->rangtab = malloc((new_cblknbr+1) * sizeof(pastix_int_t));
+        pastix_data->ordemesh->treetab = malloc((new_cblknbr+1) * sizeof(pastix_int_t));
 
-    /* permtab_saved = malloc(csc->n*sizeof(pastix_int_t)); */
-    /* peritab_saved = malloc(csc->n*sizeof(pastix_int_t)); */
-    /* memcpy(permtab_saved, pastix_data->ordemesh->permtab, csc->n*sizeof(pastix_int_t)); */
-    /* memcpy(peritab_saved, pastix_data->ordemesh->peritab, csc->n*sizeof(pastix_int_t)); */
+        SymbolCblk *cblk = pastix_data->symbmtx->cblktab;
+        for (i=0; i<new_cblknbr; i++, cblk++){
+            pastix_data->ordemesh->rangtab[i] = cblk->fcolnum;
+            pastix_data->ordemesh->treetab[i] = i+1;
+        }
+        pastix_data->ordemesh->rangtab[new_cblknbr] = spm->n;
+        pastix_data->ordemesh->treetab[new_cblknbr-1] = -1;
 
-    /* pastix_task_order( pastix_data, csc, NULL, NULL ); */
-    /* pastix_task_symbfact( pastix_data, NULL, NULL ); */
+        symbolExit(pastix_data->symbmtx);
+        memFree_null(pastix_data->symbmtx);
+        pastix_data->symbmtx = NULL;
 
-    /* if (reordering == 1) */
-    /*     pastix_task_reordering( pastix_data ); */
+        /* The symbolic structure was already split, avoid another splitting */
+        iparm[IPARM_MIN_BLOCKSIZE] = 100000000000;
+        iparm[IPARM_MAX_BLOCKSIZE] = 100000000000;
 
-    /* rangtab_current = 0; */
-    /* pastix_task_blend( pastix_data ); */
-
+        pastix_task_symbfact( pastix_data, NULL, NULL );
+        pastix_task_reordering( pastix_data );
+        pastix_task_blend( pastix_data );
+    }
 
     /**
      * Perform the numerical factorization
