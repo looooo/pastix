@@ -184,8 +184,11 @@ int                         verbose )
     int nb_cblks = 0;
     FILE *fd1 = fopen( "contribblok.txt", "r" );
     FILE *fd2 = fopen( "contribcblk.txt", "r" );
+    FILE *fd3 = fopen( "stats.txt", "w" );
     int original_cblk = 1;
     double color = 0.2;
+
+    fprintf(fd3, "%ld\n", solvptr->bloknbr-solvptr->cblknbr);
 
     fprintf (stream, "0 0\n");                      /* Output fake column block */
     for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {
@@ -204,12 +207,15 @@ int                         verbose )
                    nb_contrib);
       }
 
+      pastix_int_t ncols = cblk_colnbr( cblk );
       SolverBlok *blok   = cblk[0].fblokptr+1;
       SolverBlok *lblok  = cblk[1].fblokptr;
 
       for (; blok<lblok; blok++)
       {
         int unused, nb_contrib;
+        double gain = 0;
+
         fscanf(fd1, "%d %d\n", &unused, &nb_contrib);
         fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
                  (long) (blok->frownum - solvptr->baseval),
@@ -219,8 +225,28 @@ int                         verbose )
                      (long) (blok->frownum - solvptr->baseval),
                      (long) (blok->lrownum - solvptr->baseval + 1),
                      nb_contrib);
+
+            pastix_int_t nrows = blok_rownbr( blok );
+            pastix_int_t conso_dense = 2*nrows*ncols;
+            pastix_int_t conso_LR    = 0;
+            if (blok->LRblock[0].rk != -1){
+                conso_LR += (((nrows+ncols) * blok->LRblock[0].rk));
+            }
+            else{
+                conso_LR += nrows*ncols;
+            }
+            if (blok->LRblock[1].rk != -1){
+                conso_LR += (((nrows+ncols) * blok->LRblock[1].rk));
+            }
+            else{
+                conso_LR += nrows*ncols;
+            }
+
+            gain = 1.0 * conso_dense / conso_LR;
         }
         nb_bloks++;
+
+        fprintf(fd3, "%d\n%f\n", nb_contrib, gain);
       }
 
       if (original_cblk == 0){
@@ -233,6 +259,7 @@ int                         verbose )
     }
     fclose(fd1);
     fclose(fd2);
+    fclose(fd3);
   }
 
   fprintf (stream, "pop pop\n");                  /* Purge last column block indices */
