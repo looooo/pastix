@@ -6,8 +6,8 @@
  *
  **/
 
-#include <pastix.h>
-#include <testing_zmain.h>
+#include "pastix.h"
+#include "testing_zmain.h"
 
 int   IONE     = 1;
 int   ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */

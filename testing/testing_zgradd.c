@@ -6,7 +6,7 @@
  * @precisions normal z -> c d s
  *
  */
-#include <testing_zmain.h>
+#include "testing_zmain.h"
 
 int testing_zgradd(int argc, char **argv)
 {

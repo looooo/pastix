@@ -136,11 +136,11 @@ simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
         {
             fprintf(fd1, "%ld %ld\n", j, simuctrl->bloktab[j].ctrbcnt);
         }
-/* #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX) */
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
         fprintf(fd2, "%ld %ld %ld\n", i, simuctrl->cblktab[i].ctrbcnt, curcblk->split_cblk);
-/* #else */
-/*         fprintf(fd2, "%ld %ld\n", i, simuctrl->cblktab[i].ctrbcnt); */
-/* #endif */
+#else
+        fprintf(fd2, "%ld %ld\n", i, simuctrl->cblktab[i].ctrbcnt);
+#endif
     }
 
     fclose( fd1 );
