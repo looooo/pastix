@@ -1262,7 +1262,7 @@ int core_zlrm3( double tol,
 
             transV = transB;
 
-            free(work);
+            /* free(work); */
         }
     }
     else if (rArB.rk == 0){
@@ -1294,7 +1294,7 @@ int core_zlrm3( double tol,
                                          B->u, ldbu,
                      CBLAS_SADDR(zzero), AB->v, rArB.rk );
 
-        free(work);
+        /* free(work); */
     }
     core_zlrfree(&rArB);
     free(work2);
