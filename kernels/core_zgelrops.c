@@ -74,6 +74,10 @@ core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
         /* u = malloc( M * rkmax * sizeof(pastix_complex64_t) ); */
         /* v = malloc( N * rkmax * sizeof(pastix_complex64_t) ); */
         u = malloc( (M+N) * rkmax * sizeof(pastix_complex64_t));
+
+        /* To avoid uninitialised values in valgrind. Lapacke doc (xgesvd) is not correct */
+        memset(u, 0, (M+N) * rkmax * sizeof(pastix_complex64_t));
+
         v = u + M * rkmax;
 
         A->rk = 0;
