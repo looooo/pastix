@@ -20,6 +20,18 @@
 #include "ftgt.h"
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
+
+/**
+ *  The type and structure definitions.
+ *  Define the mask for th cblks:
+ *   - 1st bit: The cblk will always be treated as one task, or can generate dynamic smaller update
+ *   - 2nd bit: The cblk is dense, or is compressed
+ *   - 3rd bit: Part of the Schur complement or not (Will not be factorized if yes)
+ */
+#define CBLK_SPLIT (1 << 0)
+#define CBLK_DENSE (1 << 1)
+#define CBLK_SCHUR (1 << 2)
+
 /*
  **  The type and structure definitions.
  */
@@ -52,7 +64,6 @@ typedef struct Task_ {
 
 
 /*+ Solver block structure. +*/
-
 typedef struct SolverBlok_ {
     pastix_int_t frownum;  /*< First row index            */
     pastix_int_t lrownum;  /*< Last row index (inclusive) */
@@ -67,6 +78,8 @@ typedef struct SolverBlok_ {
 typedef struct SolverCblk_  {
     pastix_atomic_lock_t lock;     /*< Lock to protect computation on the cblk */
     volatile int32_t     ctrbcnt;  /*< Number of contribution to receive       */
+    int8_t               cblktype; /*< Type of cblk                            */
+    int8_t               gpuid;
     pastix_int_t         fcolnum;  /*< First column index                      */
     pastix_int_t         lcolnum;  /*< Last column index (inclusive)           */
     SolverBlok          *fblokptr; /*< First block in column (diagonal)        */
@@ -79,7 +92,6 @@ typedef struct SolverCblk_  {
 
     /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
-    pastix_int_t    gpuid;
 } SolverCblk;
 
 /*+ Solver matrix structure. +*/
@@ -380,7 +392,7 @@ pastix_int_t fcblk_getorigin( SolverMatrix * datacode,
  * @returns the number of columns in the column block.
  */
 static inline
-pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
+pastix_int_t cblk_colnbr( const SolverCblk *cblk ) {
     return cblk->lcolnum - cblk->fcolnum + 1;
 }
 
@@ -392,7 +404,7 @@ pastix_int_t cblk_colnbr( SolverCblk * cblk ) {
  * @returns the number of columns in the column block.
  */
 static inline
-pastix_int_t cblk_bloknbr( SolverCblk * cblk ) {
+pastix_int_t cblk_bloknbr( const SolverCblk *cblk ) {
     return (cblk+1)->fblokptr - cblk->fblokptr + 1;
 }
 
@@ -404,7 +416,7 @@ pastix_int_t cblk_bloknbr( SolverCblk * cblk ) {
  * @returns the number of rows in the block.
  */
 static inline
-pastix_int_t blok_rownbr( SolverBlok * blok ) {
+pastix_int_t blok_rownbr( const SolverBlok * blok ) {
     return blok->lrownum - blok->frownum + 1;
 }
 
@@ -416,7 +428,7 @@ pastix_int_t blok_rownbr( SolverBlok * blok ) {
  * @returns the number of rows in the column block.
  */
 static inline
-pastix_int_t cblk_rownbr( SolverCblk * cblk ) {
+pastix_int_t cblk_rownbr( const SolverCblk * cblk ) {
     pastix_int_t rownbr = 0;
     SolverBlok * blok;
     for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++)
@@ -464,8 +476,8 @@ pastix_int_t cblk_save( SolverCblk * cblk,
  * @retval false  if the first block is not included in the second one.
  */
 #  if defined(NAPA_SOPALIN)
-static inline int is_block_inside_fblock( SolverBlok *blok,
-                                          SolverBlok *fblok ) {
+static inline int is_block_inside_fblock( const SolverBlok *blok,
+                                          const SolverBlok *fblok ) {
     return (((blok->frownum >= fblok->frownum) &&
              (blok->lrownum <= fblok->lrownum)) ||
             ((blok->frownum <= fblok->frownum) &&
@@ -476,8 +488,8 @@ static inline int is_block_inside_fblock( SolverBlok *blok,
              (blok->lrownum >= fblok->lrownum)));
 }
 #  else
-static inline int is_block_inside_fblock( SolverBlok *blok,
-                                          SolverBlok *fblok ) {
+static inline int is_block_inside_fblock( const SolverBlok *blok,
+                                          const SolverBlok *fblok ) {
     return ((blok->frownum >= fblok->frownum) &&
             (blok->lrownum <= fblok->lrownum));
 }
@@ -488,8 +500,21 @@ static inline int is_block_inside_fblock( SolverBlok *blok,
 pastix_int_t sizeofsolver(const SolverMatrix *solvptr,
                           pastix_int_t *iparm );
 
-void                     solverExit           (SolverMatrix *);
-void                     solverInit           (SolverMatrix *);
+void solverInit(SolverMatrix *);
+void solverExit(SolverMatrix *);
+
+pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
+pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
+
+void          solverRealloc(SolverMatrix *solvptr);
+SolverMatrix *solverCopy(const SolverMatrix *solvptr, int flttype);
+
+int solverComputeGPUDistrib( SolverMatrix *solvmtx,
+                             int           ngpus,
+                             double        memory_percentage,
+                             size_t        eltsize,
+                             int           criterium,
+                             int           factotype );
 
 struct SolverBackup_s;
 typedef struct SolverBackup_s SolverBackup_t;
@@ -498,14 +523,6 @@ SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
 int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
 void            solverBackupExit( SolverBackup_t *b );
 
-pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
-pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
-
-int solverComputeGPUDistrib( SolverMatrix *solvmtx,
-                             int           ngpus,
-                             double        memory_percentage,
-                             size_t        eltsize,
-                             int           criterium,
-                             int           factotype );
+int             solverDraw( const SolverMatrix *solvptr, FILE *stream, int verbose );
 
 #endif /* _SOLVER_H_*/

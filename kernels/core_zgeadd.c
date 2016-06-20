@@ -69,52 +69,131 @@
  *          \retval 1, not yet implemented
  *
  ******************************************************************************/
-int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
-                const pastix_complex64_t *A, int LDA,
-                      pastix_complex64_t *B, int LDB)
+int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
+                       pastix_complex64_t  alpha,
+                 const pastix_complex64_t *A, pastix_int_t LDA,
+                       pastix_complex64_t  beta,
+                       pastix_complex64_t *B, pastix_int_t LDB)
 {
-    int j;
+    int i, j;
 
 #if defined(PASTIX_DEBUG)
-    if (M < 0) {
-        //coreblas_error(1, "Illegal value of M");
+    if ((trans != PastixNoTrans) &&
+        (trans != PastixTrans)   &&
+        (trans != PastixConjTrans))
+    {
+        //coreblas_error(1, "illegal value of trans");
         return -1;
     }
-    if (N < 0) {
-        //coreblas_error(2, "Illegal value of N");
+
+    if (M < 0) {
+        //coreblas_error(2, "Illegal value of M");
         return -2;
     }
-    if ( (LDA < pastix_imax(1,M)) && (M > 0) ) {
-        //coreblas_error(5, "Illegal value of LDA");
-        return -5;
+    if (N < 0) {
+        coreblas_error(3, "Illegal value of N");
+        return -3;
     }
-    if ( (LDB < pastix_imax(1,M)) && (M > 0) ) {
-        //coreblas_error(7, "Illegal value of LDB");
-        return -7;
+    if ( ((trans == PastixNoTrans) && (LDA < max(1,M)) && (M > 0)) ||
+         ((trans != PastixNoTrans) && (LDA < max(1,N)) && (N > 0)) )
+    {
+        //coreblas_error(6, "Illegal value of LDA");
+        return -6;
+    }
+    if ( (LDB < max(1,M)) && (M > 0) ) {
+        //coreblas_error(8, "Illegal value of LDB");
+        return -8;
     }
 #endif
 
-    if (trans == CblasNoTrans) {
-        if (M == LDA && M == LDB)
-            cblas_zaxpy(M*N, CBLAS_SADDR(alpha), A, 1, B, 1);
+    switch( trans ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixConjTrans:
+        if ( alpha == 0. ) {
+            for (j=0; j<N; j++) {
+                for(i=0; i<M; i++, B++) {
+                    *B = beta * (*B);
+                }
+                B += LDB-M;
+            }
+        }
+        else if ( beta == 0. ) {
+            for (j=0; j<N; j++, A++) {
+                for(i=0; i<M; i++, B++) {
+                    *B = alpha * conj(A[LDA*i]);
+                }
+                B += LDB-M;
+            }
+        }
         else {
-            for (j = 0; j < N; j++)
-                cblas_zaxpy(M, CBLAS_SADDR(alpha), A + j*LDA, 1, B + j*LDB, 1);
+            for (j=0; j<N; j++, A++) {
+                for(i=0; i<M; i++, B++) {
+                    *B = beta * (*B) + alpha * conj(A[LDA*i]);
+                }
+                B += LDB-M;
+            }
+        }
+        break;
+#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
+
+    case PastixTrans:
+        if ( alpha == 0. ) {
+            for (j=0; j<N; j++) {
+                for(i=0; i<M; i++, B++) {
+                    *B = beta * (*B);
+                }
+                B += LDB-M;
+            }
+        }
+        else if ( beta == 0. ) {
+            for (j=0; j<N; j++, A++) {
+                for(i=0; i<M; i++, B++) {
+                    *B = alpha * A[LDA*i];
+                }
+                B += LDB-M;
+            }
+        }
+        else {
+            for (j=0; j<N; j++, A++) {
+                for(i=0; i<M; i++, B++) {
+                    *B = beta * (*B) + alpha * A[LDA*i];
+                }
+                B += LDB-M;
+            }
+        }
+        break;
+
+    case PastixNoTrans:
+    default:
+        if ( alpha == 0. ) {
+            for (j=0; j<N; j++) {
+                for(i=0; i<M; i++, B++) {
+                    *B = beta * (*B);
+                }
+                B += LDB-M;
+            }
+        }
+        else if ( beta == 0. ) {
+            for (j=0; j<N; j++) {
+                for(i=0; i<M; i++, B++, A++) {
+                    *B = alpha * (*A);
+                }
+                A += LDA-M;
+                B += LDB-M;
+            }
+        }
+        else {
+            for (j=0; j<N; j++) {
+                for(i=0; i<M; i++, B++, A++) {
+                    *B = beta * (*B) + alpha * (*A);
+                }
+                A += LDA-M;
+                B += LDB-M;
+            }
         }
     }
-    else if (trans == CblasTrans ) {
-        for (j = 0; j < N; j++)
-            cblas_zaxpy(M, CBLAS_SADDR(alpha), A + j, LDA, B + j*LDB, 1);
-
-    }
-    /* trans == CblasConjTrans */
-    else {
-        return -10;
-    }
-
     return PASTIX_SUCCESS;
 }
-
 
 /**
  ******************************************************************************
@@ -193,18 +272,18 @@ core_zgeaddsp1d(SolverCblk * cblk1,
             iterblok->frownum - fblok->frownum;
         nrow = iterblok->lrownum - iterblok->frownum + 1;
         core_zgeadd( CblasNoTrans,
-                     nrow, ncol1, 1.0,
-		     ga, cblk1->stride,
-		     gb, cblk2->stride );
+                     nrow, ncol1,
+                     1.0, ga, cblk1->stride,
+		     1.0, gb, cblk2->stride );
         if (U != NULL) {
             ga = U + iterblok->coefind;
             gb = Cu + cblk2->stride*(cblk1->fcolnum-cblk2->fcolnum) +
                 fblok->coefind +
                 iterblok->frownum - fblok->frownum;
             core_zgeadd( CblasNoTrans,
-                         nrow, ncol1, 1.0,
-                         ga, cblk1->stride,
-                         gb, cblk2->stride );
+                         nrow, ncol1,
+                         1.0, ga, cblk1->stride,
+                         1.0, gb, cblk2->stride );
         }
     }
     return PASTIX_SUCCESS;

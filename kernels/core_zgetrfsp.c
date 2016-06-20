@@ -237,9 +237,9 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
-    core_zgeadd( CblasTrans, ncols, ncols, 1.0,
-                 U, stride,
-                 L, stride );
+    core_zgeadd( CblasTrans, ncols, ncols,
+                 1.0, U, stride,
+                 1.0, L, stride );
 
     /* Factorize diagonal block */
     core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
@@ -306,14 +306,14 @@ int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
                     CblasNoTrans, CblasNonUnit,
                     dimb, dima,
                     CBLAS_SADDR(zone), L,  stride,
-                                       fL, stride);
+                    fL, stride);
 
         cblas_ztrsm(CblasColMajor,
                     CblasRight, CblasUpper,
                     CblasNoTrans, CblasUnit,
                     dimb, dima,
                     CBLAS_SADDR(zone), U,  stride,
-                                       fU, stride);
+                    fU, stride);
     }
 
     return PASTIX_SUCCESS;
@@ -358,7 +358,9 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *U,
                            double              criteria)
 {
-    pastix_int_t nbpivot = core_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    pastix_int_t nbpivot;
+
+    nbpivot = core_zgetrfsp1d_getrf(cblk, L, U, criteria);
     core_zgetrfsp1d_trsm(cblk, L, U);
     return nbpivot;
 }
@@ -380,7 +382,7 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
  *******************************************************************************

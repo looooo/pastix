@@ -432,9 +432,9 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
         dimb = iterblok->lrownum - iterblok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( CblasNoTrans, dimb, dimj, -1.0,
-                     work1, dimi,
-                     Aij,   stridefc );
+        core_zgeadd( CblasNoTrans, dimb, dimj,
+                     -1.0, work1, dimi,
+                      1.0, Aij,   stridefc );
         pastix_cblk_unlock( fcblk );
 
         /* Displacement to next block */

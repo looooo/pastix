@@ -12,12 +12,14 @@
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
 void core_zgetro(int m, int n,
-                 pastix_complex64_t *A, int lda,
+                 const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
 
-int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
-                const pastix_complex64_t *A, int LDA,
-                      pastix_complex64_t *B, int LDB);
+int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
+                       pastix_complex64_t  alpha,
+                 const pastix_complex64_t *A, pastix_int_t LDA,
+                       pastix_complex64_t  beta,
+                       pastix_complex64_t *B, pastix_int_t LDB);
 
 int core_zgemdm(int transA, int transB,
                 int M, int N, int K,
@@ -37,13 +39,13 @@ int core_zgeaddsp1d( SolverCblk * cblk1,
                      pastix_complex64_t * U2 );
 
 void core_zgemmsp( int diag, int trans,
-                   SolverCblk         *cblk,
-                   SolverBlok         *blok,
-                   SolverCblk         *fcblk,
-                   pastix_complex64_t *A,
-                   pastix_complex64_t *B,
-                   pastix_complex64_t *C,
-                   pastix_complex64_t *work );
+                   const SolverCblk         *cblk,
+                   const SolverBlok         *blok,
+                         SolverCblk         *fcblk,
+                   const pastix_complex64_t *A,
+                   const pastix_complex64_t *B,
+                         pastix_complex64_t *C,
+                         pastix_complex64_t *work );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,

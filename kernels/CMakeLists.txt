@@ -67,4 +67,3 @@ if(PASTIX_WITH_CUDA)
     pastix_cucores_sm35
     )
 endif()
-

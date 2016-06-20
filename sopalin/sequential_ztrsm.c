@@ -46,7 +46,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
             if (trans == PastixNoTrans) {
                 cblk = datacode->cblktab + datacode->cblknbr - 1;
                 for (i=0; i<datacode->cblknbr; i++, cblk--){
-
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
                     /* Solve the diagonal block */

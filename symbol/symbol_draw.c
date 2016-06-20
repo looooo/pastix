@@ -183,11 +183,11 @@ FILE * const                stream)
 
           if ((coloval[0] == coloval[1]) &&
               (coloval[1] == coloval[2]))
-            fprintf (stream, "%.2g g ",
-                     (float) coloval[0]);
+              fprintf (stream, "%.2g g ",
+                       (float) coloval[0]);
           else
-            fprintf (stream, "%.2g %.2g %.2g r \n",
-                     (float) coloval[0], (float) coloval[1], (float) coloval[2]);
+              fprintf (stream, "%.2g %.2g %.2g r \n",
+                       (float) coloval[0], (float) coloval[1], (float) coloval[2]);
         }
 
         fprintf (stream, "%ld\t%ld\tb\n",         /* Write block in column block */

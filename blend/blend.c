@@ -25,7 +25,6 @@
 #include "queue.h"
 #include "bulles.h"
 #include "solver.h"
-#include "solverRealloc.h"
 #include "elimin.h"
 #include "extendVector.h"
 #include "cand.h"
