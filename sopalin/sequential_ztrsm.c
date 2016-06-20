@@ -24,6 +24,7 @@
 
 static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t mzone = -1.0;
+static pastix_complex64_t zzero =  0.0;
 
 void
 sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
@@ -49,27 +50,75 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     tempn = cblk->lcolnum - cblk->fcolnum + 1;
 
                     /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        cblk->ucoeftab,    cblk->stride,
-                        b + cblk->lcolidx, ldb );
+                    if ( cblk->cblktype & CBLK_DENSE ) {
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            cblk->ucoeftab,    cblk->stride,
+                            b + cblk->lcolidx, ldb );
+                    }
+                    else{
+                        pastix_lrblock_t LR = cblk->fblokptr->LRblock[1];
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            LR.u,    tempn,
+                            b + cblk->lcolidx, ldb );
+                    }
 
                     /* Apply the update */
-                    for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
+                    for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j--) {
                         blok = datacode->bloktab + datacode->browtab[j];
                         fcbk = datacode->cblktab + blok->lcblknm;
                         tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                         tempn = blok->lrownum - blok->frownum + 1;
                         coeftab = (pastix_complex64_t*)(fcbk->ucoeftab);
 
-                        cblas_zgemm(
-                            CblasColMajor, CblasTrans, CblasNoTrans,
-                            tempm, nrhs, tempn,
-                            CBLAS_SADDR(mzone), coeftab + blok->coefind, fcbk->stride,
-                            b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
-                            CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                        if ( ! (fcbk->cblktype & CBLK_DENSE)) {
+                            pastix_lrblock_t LR = blok->LRblock[1];
+                            pastix_complex64_t *tmp;
+                            switch (LR.rk){
+                            case 0:
+                                break;
+                            case -1:
+                                cblas_zgemm(
+                                    CblasColMajor, CblasTrans, CblasNoTrans,
+                                    tempm, nrhs, tempn,
+                                    CBLAS_SADDR(mzone), LR.u, tempn,
+                                    b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                                    CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                                break;
+                            default:
+                                MALLOC_INTERN( tmp, LR.rk * nrhs, pastix_complex64_t);
+
+                                cblas_zgemm(
+                                    CblasColMajor, CblasTrans, CblasNoTrans,
+                                    LR.rk, nrhs, tempn,
+                                    CBLAS_SADDR(zone), LR.u, tempn,
+                                    b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                                    CBLAS_SADDR(zzero),  tmp,  LR.rk );
+
+                                cblas_zgemm(
+                                    CblasColMajor, CblasTrans, CblasNoTrans,
+                                    tempm, nrhs, LR.rk,
+                                    CBLAS_SADDR(mzone), LR.v, LR.rkmax,
+                                    tmp, LR.rk,
+                                    CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+
+                                memFree_null(tmp);
+                                break;
+                            }
+                        }
+                        else{
+                            cblas_zgemm(
+                                CblasColMajor, CblasTrans, CblasNoTrans,
+                                tempm, nrhs, tempn,
+                                CBLAS_SADDR(mzone), coeftab + blok->coefind, fcbk->stride,
+                                b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                                CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                        }
                     }
                 }
             }
@@ -89,12 +138,23 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                     assert( cblk->fcolnum == cblk->lcolidx );
 
                     /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs, CBLAS_SADDR(zone),
-                        coeftab, cblk->stride,
-                        b + cblk->lcolidx, ldb );
+                    if ( cblk->cblktype & CBLK_DENSE ) {
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasNoTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            coeftab, cblk->stride,
+                            b + cblk->lcolidx, ldb );
+                    }
+                    else{
+                        pastix_lrblock_t LR = cblk->fblokptr->LRblock[0];
+                        cblas_ztrsm(
+                            CblasColMajor, CblasLeft, CblasLower,
+                            CblasNoTrans, (enum CBLAS_DIAG)diag,
+                            tempn, nrhs, CBLAS_SADDR(zone),
+                            LR.u, tempn,
+                            b + cblk->lcolidx, ldb );
+                    }
 
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -104,12 +164,49 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                         assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
-                        cblas_zgemm(
-                            CblasColMajor, CblasNoTrans, CblasNoTrans,
-                            tempm, nrhs, tempn,
-                            CBLAS_SADDR(mzone), coeftab + blok->coefind, cblk->stride,
-                                                b + cblk->lcolidx, ldb,
-                            CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
+                        if ( ! (cblk->cblktype & CBLK_DENSE)) {
+                            pastix_lrblock_t LR = blok->LRblock[0];
+                            pastix_complex64_t *tmp;
+                            switch (LR.rk){
+                            case 0:
+                                break;
+                            case -1:
+                                cblas_zgemm(
+                                    CblasColMajor, CblasNoTrans, CblasNoTrans,
+                                    tempm, nrhs, tempn,
+                                    CBLAS_SADDR(mzone), LR.u, tempm,
+                                    b + cblk->lcolidx, ldb,
+                                    CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
+                                break;
+                            default:
+                                MALLOC_INTERN( tmp, LR.rk * nrhs, pastix_complex64_t);
+
+                                cblas_zgemm(
+                                    CblasColMajor, CblasNoTrans, CblasNoTrans,
+                                    LR.rk, nrhs, tempn,
+                                    CBLAS_SADDR(zone), LR.v, LR.rkmax,
+                                    b + cblk->lcolidx, ldb,
+                                    CBLAS_SADDR(zzero), tmp, LR.rk);
+
+                                cblas_zgemm(
+                                    CblasColMajor, CblasNoTrans, CblasNoTrans,
+                                    tempm, nrhs, LR.rk,
+                                    CBLAS_SADDR(mzone), LR.u, tempm,
+                                    tmp, LR.rk,
+                                    CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
+
+                                memFree_null(tmp);
+                                break;
+                            }
+                        }
+                        else{
+                            cblas_zgemm(
+                                CblasColMajor, CblasNoTrans, CblasNoTrans,
+                                tempm, nrhs, tempn,
+                                CBLAS_SADDR(mzone), coeftab + blok->coefind, cblk->stride,
+                                                    b + cblk->lcolidx, ldb,
+                                CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
+                        }
                     }
                 }
             }

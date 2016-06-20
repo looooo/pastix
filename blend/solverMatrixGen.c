@@ -177,6 +177,8 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->coefind = stride;
                     solvblok->browind = -1;
 
+                    solvblok->LRblock = NULL;
+
                     stride += nbrows;
                     solvblok++;
                 }
@@ -197,9 +199,13 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 solvcblk->brownum  = brownum;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
+                solvcblk->dcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
                 solvcblk->gpuid    = -1;
+
+
+                solvcblk->split    = NULL;
 
                 /* Copy browtab information */
                 brownbr = symbmtx->cblktab[i+1].brownum
@@ -232,6 +238,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
             solvcblk->brownum  = symbcblk->brownum;
             solvcblk->procdiag = -1;
             solvcblk->lcoeftab = NULL;
+            solvcblk->dcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
             solvcblk->gpuid    = -2;

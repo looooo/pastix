@@ -386,7 +386,7 @@ core_zpotrfsp1d( SolverMatrix       *solvmtx,
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         core_zgemmsp( PastixLower, PastixConjTrans, cblk, blok, fcblk,
-                      L, L, fcblk->lcoeftab, work );
+                      L, L, fcblk->lcoeftab, work, 0 );
 
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }

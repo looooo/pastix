@@ -19,7 +19,6 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
-static pastix_complex64_t mzone =  -1.;
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
 
@@ -28,8 +27,7 @@ static pastix_complex64_t zzero =  0.;
  *
  * @ingroup pastix_kernel
  *
- * core_zgemmsp_1d1d - Computes the updates associated to one off-diagonal block
- * between two cblk stored as 1D block columns.
+ * core_zgemmsp - Computes the updates associated to one off-diagonal block.
  *
  *******************************************************************************
  *
@@ -78,6 +76,9 @@ static pastix_complex64_t zzero =  0.;
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
  *******************************************************************************
  *
  * @return
@@ -86,14 +87,15 @@ static pastix_complex64_t zzero =  0.;
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_1d1d( int uplo, int trans,
-                   const SolverCblk         *cblk,
-                   const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
-                   const pastix_complex64_t *A,
-                   const pastix_complex64_t *B,
-                         pastix_complex64_t *C,
-                         pastix_complex64_t *work )
+core_zgemmsp_fullfull( int uplo, int trans,
+                       const SolverCblk         *cblk,
+                       const SolverBlok         *blok,
+                             SolverCblk         *fcblk,
+                       const pastix_complex64_t *A,
+                       const pastix_complex64_t *B,
+                             pastix_complex64_t *C,
+                             pastix_complex64_t *work,
+                             double              tol )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -105,9 +107,11 @@ core_zgemmsp_1d1d( int uplo, int trans,
     pastix_int_t M, N, K, m;
     int shift;
 
-    /* Both cblk and fcblk are stored in 1D */
-    assert(!(cblk->cblktype  & CBLK_SPLIT));
-    assert(!(fcblk->cblktype & CBLK_SPLIT));
+    pastix_lrblock_t *lrblock;
+    pastix_int_t rownbr;
+
+    assert(cblk->cblktype  & CBLK_DENSE);
+    assert(fcblk->cblktype & CBLK_DENSE);
 
     shift = (uplo == PastixUpper) ? 1 : 0;
 
@@ -176,8 +180,7 @@ core_zgemmsp_1d1d( int uplo, int trans,
  *
  * @ingroup pastix_kernel
  *
- * core_zgemmsp_1d2d - Computes the updates associated to one off-diagonal block
- * between a cblk stored in 1D storage, and one stored in 2D.
+ * core_zgemmsp - Computes the updates associated to one off-diagonal block.
  *
  *******************************************************************************
  *
@@ -237,37 +240,36 @@ core_zgemmsp_1d1d( int uplo, int trans,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_1d2d( int uplo, int trans,
-                   const SolverCblk         *cblk,
-                   const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
-                   const pastix_complex64_t *A,
-                   const pastix_complex64_t *B,
-                         pastix_complex64_t *C )
+core_zgemmsp_fulllr( int uplo, int trans,
+                     const SolverCblk         *cblk,
+                     const SolverBlok         *blok,
+                           SolverCblk         *fcblk,
+                           pastix_complex64_t *A,
+                           pastix_complex64_t *B,
+                           pastix_complex64_t *work,
+                           double              tol)
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
     const SolverBlok *lblok;
-    const pastix_complex64_t *blokA;
-    const pastix_complex64_t *blokB;
-    pastix_complex64_t *blokC;
+    pastix_lrblock_t lrA, lrB, *lrC;
 
-    pastix_int_t stride, stridef;
+    pastix_int_t stride;
     pastix_int_t M, N, K;
     int shift;
 
-    /* cblk is stored in 1D and fcblk in 2D */
-    assert(!(cblk->cblktype & CBLK_SPLIT));
-    assert( fcblk->cblktype & CBLK_SPLIT );
+    assert(cblk->cblktype  & CBLK_DENSE);
+    assert(!(fcblk->cblktype & CBLK_DENSE));
 
     shift = (uplo == PastixUpper) ? 1 : 0;
     stride  = cblk->stride;
 
     /* Get the B block and its dimensions */
-    blokB = B + blok->coefind;
+    lrB.rk = -1;
+    lrB.rkmax = stride;
+    lrB.u = B + blok->coefind;
+    lrB.v = NULL;
 
-    stride  = cblk->stride;
-    stridef = fcblk->stride;
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -279,9 +281,6 @@ core_zgemmsp_1d2d( int uplo, int trans,
     fblok = fcblk->fblokptr;
     lblok = cblk[1].fblokptr;
 
-    /* Move the pointer to the top of the right column */
-    C = C + (blok->frownum - fcblk->fcolnum) * stridef;
-
     for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
@@ -292,18 +291,25 @@ core_zgemmsp_1d2d( int uplo, int trans,
         }
 
         /* Get the A block and its dimensions */
-        blokA = A + iterblok->coefind;
+        lrA.rk = -1;
+        lrA.rkmax = stride;
+        lrA.u = A + iterblok->coefind;
+        lrA.v = NULL;
         M = blok_rownbr( iterblok );
 
-        blokC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        lrC = fblok->LRblock + shift;
 
-        pastix_cblk_lock( fcblk );
-        cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
-                     M, N, K,
-                     CBLAS_SADDR(mzone), blokA, stride,
-                                         blokB, stride,
-                     CBLAS_SADDR(zone),  blokC, stridef );
-        pastix_cblk_unlock( fcblk );
+        /* pastix_cblk_lock( fcblk ); */
+        core_zlrmm( tol, PastixNoTrans, trans,
+                    M, N, K,
+                    blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                    iterblok->frownum - fblok->frownum,
+                    (blok->frownum - fcblk->fcolnum),
+                    -1., &lrA, &lrB,
+                     1., lrC,
+                    work, -1,
+                    fcblk );
+        /* pastix_cblk_unlock( fcblk ); */
     }
 }
 
@@ -312,8 +318,7 @@ core_zgemmsp_1d2d( int uplo, int trans,
  *
  * @ingroup pastix_kernel
  *
- * core_zgemmsp_2d2d - Computes the updates associated to one off-diagonal block
- * between two cblk stored in 2D.
+ * core_zgemmsp - Computes the updates associated to one off-diagonal block.
  *
  *******************************************************************************
  *
@@ -373,37 +378,34 @@ core_zgemmsp_1d2d( int uplo, int trans,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_2d2d( int uplo, int trans,
-                   const SolverCblk         *cblk,
-                   const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
-                   const pastix_complex64_t *A,
-                   const pastix_complex64_t *B,
-                         pastix_complex64_t *C )
+core_zgemmsp_lr( int uplo, int trans,
+                 const SolverCblk         *cblk,
+                 const SolverBlok         *blok,
+                       SolverCblk         *fcblk,
+                       pastix_complex64_t *work,
+                       double              tol )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
     const SolverBlok *lblok;
-    const pastix_complex64_t *blokA;
-    const pastix_complex64_t *blokB;
-    pastix_complex64_t *blokC;
 
-    pastix_int_t stride, stridef;
-    pastix_int_t M, N, K;
+    pastix_complex64_t *C, *Cfull;
+    pastix_int_t M, N, K, stridef;
     int shift;
 
-    /* cblk is stored in 1D and fcblk in 2D */
-    assert(!(cblk->cblktype & CBLK_SPLIT));
-    assert( fcblk->cblktype & CBLK_SPLIT );
+    pastix_lrblock_t *lrA, *lrB;
+
+    assert( !(cblk->cblktype & CBLK_DENSE) );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
-    stride  = cblk->stride;
+
+    /* Move the Cfull pointer to the top of the right column */
+    stridef = fcblk->stride;
+    Cfull = (uplo == PastixUpper) ? fcblk->ucoeftab : fcblk->lcoeftab;
+    Cfull = Cfull + (blok->frownum - fcblk->fcolnum) * stridef;
 
     /* Get the B block and its dimensions */
-    blokB = B + blok->coefind;
-
-    stride  = cblk->stride;
-    stridef = fcblk->stride;
+    lrB = (uplo == PastixUpper) ? blok->LRblock : blok->LRblock+1;
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -415,9 +417,7 @@ core_zgemmsp_2d2d( int uplo, int trans,
     fblok = fcblk->fblokptr;
     lblok = cblk[1].fblokptr;
 
-    /* Move the pointer to the top of the right column */
-    C = C + (blok->frownum - fcblk->fcolnum) * stridef;
-
+    /* for all following blocks in block column */
     for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
@@ -427,19 +427,30 @@ core_zgemmsp_2d2d( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        /* Get the A block and its dimensions */
-        blokA = A + iterblok->coefind;
+        lrA = iterblok->LRblock + shift;
         M = blok_rownbr( iterblok );
 
-        blokC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-
-        pastix_cblk_lock( fcblk );
-        cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
-                     M, N, K,
-                     CBLAS_SADDR(mzone), blokA, stride,
-                                         blokB, stride,
-                     CBLAS_SADDR(zone),  blokC, stridef );
-        pastix_cblk_unlock( fcblk );
+        /* pastix_cblk_lock( fcblk ); */
+        if ( fcblk->cblktype & CBLK_DENSE ) {
+            C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
+            core_zlrmge( tol, PastixNoTrans, trans,
+                         M, N, K,
+                         -1., lrA, lrB, 1., C, stridef,
+                         work, -1,
+                         fcblk );
+        }
+        else {
+            core_zlrmm( tol, PastixNoTrans, trans,
+                        M, N, K,
+                        blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                        iterblok->frownum - fblok->frownum,
+                        (blok->frownum - fcblk->fcolnum),
+                        -1., lrA, lrB,
+                         1., fblok->LRblock + shift,
+                        work, -1,
+                        fcblk );
+        }
+        /* pastix_cblk_unlock( fcblk ); */
     }
 }
 
@@ -511,27 +522,28 @@ void core_zgemmsp( int uplo, int trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
                          SolverCblk         *fcblk,
-                   const pastix_complex64_t *A,
-                   const pastix_complex64_t *B,
-                   pastix_complex64_t *C,
-                   pastix_complex64_t *work )
+                         pastix_complex64_t *A,
+                         pastix_complex64_t *B,
+                         pastix_complex64_t *C,
+                         pastix_complex64_t *work,
+                         double              tol )
 {
-    if ( cblk->cblktype & CBLK_SPLIT ) {
-        if ( fcblk->cblktype & CBLK_SPLIT ) {
-            core_zgemmsp_2d2d( uplo, trans,
-                               cblk, blok, fcblk,
-                               A, B, C );
+    if ( cblk->cblktype & CBLK_DENSE ) {
+        if ( fcblk->cblktype & CBLK_DENSE ) {
+            core_zgemmsp_fullfull( uplo, trans,
+                                   cblk, blok, fcblk,
+                                   A, B, C, work,
+                                   tol );
         }
         else {
-            core_zgemmsp_1d2d( uplo, trans,
-                               cblk, blok, fcblk,
-                               A, B, C );
+            core_zgemmsp_fulllr( uplo, trans,
+                                 cblk, blok, fcblk,
+                                 A, B, work,
+                                 tol );
         }
     }
     else {
-        core_zgemmsp_1d1d( uplo, trans,
-                           cblk, blok, fcblk,
-                           A, B, C, work );
+        core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work, tol );
     }
 }
 

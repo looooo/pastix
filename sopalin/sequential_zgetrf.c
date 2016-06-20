@@ -40,6 +40,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     SolverCblk         *cblk;
     double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work;
+    double              tol = datacode->tolerance;
     pastix_int_t  i;
     (void)pastix_data;
 
@@ -48,7 +49,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
         /* Compute */
-        core_zgetrfsp1d( datacode, cblk, threshold, work );
+        core_zgetrfsp1d( datacode, cblk, threshold, work, tol );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
@@ -66,6 +67,7 @@ thread_pzgetrf( int rank, void *args )
     SolverCblk         *cblk;
     Task               *t;
     pastix_complex64_t *work;
+    double              tol = datacode->tolerance;
     pastix_int_t  i, ii;
     pastix_int_t  tasknbr, *tasktab;
 
@@ -83,7 +85,7 @@ thread_pzgetrf( int rank, void *args )
         do {} while( cblk->ctrbcnt );
 
         /* Compute */
-        core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
+        core_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work, tol );
     }
 
 #if defined(PASTIX_DEBUG_FACTO) && 0
