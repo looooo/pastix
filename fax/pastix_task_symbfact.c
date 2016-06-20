@@ -343,7 +343,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
 #endif
 
     /* Build the browtabs and Realign data structure */
-    symbolPrintStats( pastix_data->symbmtx );
     symbolBuildRowtab( pastix_data->symbmtx );
     symbolRealloc( pastix_data->symbmtx );
 

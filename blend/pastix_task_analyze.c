@@ -143,8 +143,8 @@ pastix_task_blend(pastix_data_t *pastix_data)
 
     blendCtrlExit(&ctrl);
 
-    /* if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) */
-    symbolPrintStats( pastix_data->symbmtx );
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        symbolPrintStats( pastix_data->symbmtx );
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     FILE *stream;

@@ -43,7 +43,7 @@ add_custom_target(spm_headers_tgt
   DEPENDS ${spm_headers} )
 
 set_source_files_properties(
-  spm/spm.c
+  spm.c
   PROPERTIES DEPENDS spm_headers_tgt
   )
 

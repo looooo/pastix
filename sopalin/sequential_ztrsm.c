@@ -204,7 +204,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                                 CblasColMajor, CblasNoTrans, CblasNoTrans,
                                 tempm, nrhs, tempn,
                                 CBLAS_SADDR(mzone), coeftab + blok->coefind, cblk->stride,
-                                b + cblk->lcolidx, ldb,
+                                                    b + cblk->lcolidx, ldb,
                                 CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
                         }
                     }

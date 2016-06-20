@@ -333,4 +333,3 @@ coeftab_zdump( const SolverMatrix *solvmtx,
 
     fclose( stream );
 }
-

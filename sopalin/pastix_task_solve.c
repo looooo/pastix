@@ -166,7 +166,6 @@ pastix_task_solve( pastix_data_t *pastix_data,
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
     pastix_int_t  procnum;
-    (void) procnum;
     pastix_int_t *iparm;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */

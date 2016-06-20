@@ -124,8 +124,8 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
     iparm[IPARM_NNZEROS]               = 0;                   /* memory space for coefficients                        */
     iparm[IPARM_ALLOCATED_TERMS]       = 0;                   /* number of non zero in factorized sparse matrix       */
-    iparm[IPARM_MIN_BLOCKSIZE]         = 60;                  /* min blocksize                                        */
-    iparm[IPARM_MAX_BLOCKSIZE]         = 120;                 /* max blocksize                                        */
+    iparm[IPARM_MIN_BLOCKSIZE]         = 160;                 /* min blocksize                                        */
+    iparm[IPARM_MAX_BLOCKSIZE]         = 320;                 /* max blocksize (at least 2*min_blocksize)             */
     iparm[IPARM_COMPRESS_SIZE]         = 120;                 /* minimum size to compress a supernode */
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */
     iparm[IPARM_ISOLATE_ZEROS]         = API_NO;              /* Isolate null diagonal terms at the end of the matrix */
