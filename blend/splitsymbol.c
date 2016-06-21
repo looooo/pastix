@@ -94,7 +94,7 @@ computeNbSplit( const BlendCtrl *ctrl,
         }
         else
         {
-            nseq = pastix_iceil( width, blas_min_col );
+            nseq = pastix_iceil( width, blas_max_col );
         }
     }
 
