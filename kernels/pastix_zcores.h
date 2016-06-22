@@ -47,19 +47,20 @@ void core_zgemmsp( int diag, int trans,
                          pastix_complex64_t *C,
                          pastix_complex64_t *work );
 
-int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *U,
-                           double              criteria);
+void core_ztrsmsp( int side, int uplo, int trans, int diag,
+                         SolverCblk         *cblk,
+                   const pastix_complex64_t *A,
+                         pastix_complex64_t *C );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria);
 
-int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *U);
+int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
+                           pastix_complex64_t *L,
+                           pastix_complex64_t *U,
+                           double              criteria);
 
 int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -104,9 +105,6 @@ int core_zhetrfsp1d( SolverMatrix       *solvmtx,
 int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria );
-
-int core_zpotrfsp1d_trsm( SolverCblk         *cblk,
-                          pastix_complex64_t *L );
 
 int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,

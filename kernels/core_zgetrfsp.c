@@ -255,75 +255,6 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *
  * @ingroup pastix_kernel
  *
- * core_zgetrfsp1d_trsm - Apply all the trsm updates on one panel.
- *
- *******************************************************************************
- *
- * @param[in] cblk
- *          Pointer to the structure representing the panel to factorize in the
- *          cblktab array.  Next column blok must be accessible through cblk[1].
- *
- * @param[in,out] L
- *          The pointer to the lower matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
- *
- * @param[in,out] U
- *          The pointer to the upper matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
- *
- *******************************************************************************
- *
- * @return
- *         \retval PASTIX_SUCCESS on successful exit.
- *
- *******************************************************************************/
-int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *U)
-{
-    SolverBlok *fblok, *lblok;
-    pastix_int_t dima, dimb, stride;
-
-    dima   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride = cblk->stride;
-    fblok  = cblk->fblokptr;   /* this diagonal block */
-    lblok  = cblk[1].fblokptr; /* the next diagonal block */
-
-    /* vertical dimension */
-    dimb = stride - dima;
-
-    /* if there is an extra-diagonal bloc in column block */
-    if ( fblok+1 < lblok )
-    {
-        pastix_complex64_t *fL, *fU;
-
-        /* first extra-diagonal bloc in column block address */
-        fL = L + fblok[1].coefind;
-        fU = U + fblok[1].coefind;
-
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasUpper,
-                    CblasNoTrans, CblasNonUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), L,  stride,
-                    fL, stride);
-
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasUpper,
-                    CblasNoTrans, CblasUnit,
-                    dimb, dima,
-                    CBLAS_SADDR(zone), U,  stride,
-                    fU, stride);
-    }
-
-    return PASTIX_SUCCESS;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_kernel
- *
  * core_zgetrfsp1d - Computes the LU factorization of one panel and apply
  * all the trsm updates to this panel.
  *
@@ -361,7 +292,13 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
     pastix_int_t nbpivot;
 
     nbpivot = core_zgetrfsp1d_getrf(cblk, L, U, criteria);
-    core_zgetrfsp1d_trsm(cblk, L, U);
+    /**
+     * We exploit the fact tha the upper triangle is stored at the top of the L
+     * column, and by transposition the L part of the diagonal block is
+     * similarly stored in the U panel
+     */
+    core_ztrsmsp(PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L);
+    core_ztrsmsp(PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U);
     return nbpivot;
 }
 

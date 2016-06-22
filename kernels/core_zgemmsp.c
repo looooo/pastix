@@ -267,7 +267,6 @@ core_zgemmsp_1d2d( int uplo, int trans,
     blokB = B + blok->coefind;
 
     stride  = cblk->stride;
-    stridef = fcblk->stride;
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -279,9 +278,6 @@ core_zgemmsp_1d2d( int uplo, int trans,
     fblok = fcblk->fblokptr;
     lblok = cblk[1].fblokptr;
 
-    /* Move the pointer to the top of the right column */
-    C = C + (blok->frownum - fcblk->fcolnum) * stridef;
-
     for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
@@ -291,11 +287,15 @@ core_zgemmsp_1d2d( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
+        stridef = blok_rownbr(fblok);
+
         /* Get the A block and its dimensions */
         blokA = A + iterblok->coefind;
         M = blok_rownbr( iterblok );
 
-        blokC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        blokC = C + fblok->coefind
+            + iterblok->frownum - fblok->frownum
+            + (blok->frownum - fcblk->fcolnum) * stridef;
 
         pastix_cblk_lock( fcblk );
         cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
@@ -388,8 +388,7 @@ core_zgemmsp_2d2d( int uplo, int trans,
     const pastix_complex64_t *blokB;
     pastix_complex64_t *blokC;
 
-    pastix_int_t stride, stridef;
-    pastix_int_t M, N, K;
+    pastix_int_t M, N, K, lda, ldb, ldc;
     int shift;
 
     /* cblk is stored in 1D and fcblk in 2D */
@@ -397,13 +396,11 @@ core_zgemmsp_2d2d( int uplo, int trans,
     assert( fcblk->cblktype & CBLK_SPLIT );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
-    stride  = cblk->stride;
 
     /* Get the B block and its dimensions */
     blokB = B + blok->coefind;
 
-    stride  = cblk->stride;
-    stridef = fcblk->stride;
+    ldb = blok_rownbr( blok );
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -415,9 +412,6 @@ core_zgemmsp_2d2d( int uplo, int trans,
     fblok = fcblk->fblokptr;
     lblok = cblk[1].fblokptr;
 
-    /* Move the pointer to the top of the right column */
-    C = C + (blok->frownum - fcblk->fcolnum) * stridef;
-
     for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
@@ -427,18 +421,23 @@ core_zgemmsp_2d2d( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
+        ldc = blok_rownbr(fblok);
+
         /* Get the A block and its dimensions */
         blokA = A + iterblok->coefind;
         M = blok_rownbr( iterblok );
+        lda = M;
 
-        blokC = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        blokC = C + fblok->coefind
+            + iterblok->frownum - fblok->frownum
+            + (blok->frownum - fcblk->fcolnum) * ldc;
 
         pastix_cblk_lock( fcblk );
         cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
                      M, N, K,
-                     CBLAS_SADDR(mzone), blokA, stride,
-                                         blokB, stride,
-                     CBLAS_SADDR(zone),  blokC, stridef );
+                     CBLAS_SADDR(mzone), blokA, lda,
+                                         blokB, ldb,
+                     CBLAS_SADDR(zone),  blokC, ldc );
         pastix_cblk_unlock( fcblk );
     }
 }
@@ -516,8 +515,8 @@ void core_zgemmsp( int uplo, int trans,
                    pastix_complex64_t *C,
                    pastix_complex64_t *work )
 {
-    if ( cblk->cblktype & CBLK_SPLIT ) {
-        if ( fcblk->cblktype & CBLK_SPLIT ) {
+    if ( fcblk->cblktype & CBLK_SPLIT ) {
+        if ( cblk->cblktype & CBLK_SPLIT ) {
             core_zgemmsp_2d2d( uplo, trans,
                                cblk, blok, fcblk,
                                A, B, C );
