@@ -251,6 +251,8 @@ bcscInit( const pastix_csc_t  *csc,
 
     if ( csc->loc2glob == NULL )
         bcscInitCentralized( csc, ord, solvmtx, initAt, bcsc );
+    else
+        fprintf(stderr, "bcscInit: Distributed CSC not yet supported");
 
     clockStop(time);
     fprintf(stdout, "CscdOrdistrib: %.3g s\n", clockVal(time));
