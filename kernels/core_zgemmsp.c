@@ -392,7 +392,7 @@ core_zgemmsp_2d2d( int uplo, int trans,
     int shift;
 
     /* cblk is stored in 1D and fcblk in 2D */
-    assert(!(cblk->cblktype & CBLK_SPLIT));
+    assert( cblk->cblktype  & CBLK_SPLIT );
     assert( fcblk->cblktype & CBLK_SPLIT );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
