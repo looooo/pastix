@@ -22,6 +22,7 @@ set(SOURCES
   core_zgeadd.c
   core_zplrnt.c
   core_zgemmsp.c
+  core_ztrsmsp.c
   # Kernels
   core_zsytrfsp.c
   core_zhetrfsp.c
