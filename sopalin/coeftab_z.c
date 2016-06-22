@@ -67,7 +67,12 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
                 {
                     coefindx  = solvblok->coefind;
                     coefindx += rownum - solvblok->frownum;
-                    coefindx += solvcblk->stride * itercoltab;
+                    if (solvcblk->cblktype & CBLK_SPLIT) {
+                        coefindx += itercoltab * blok_rownbr( solvblok );
+                    }
+                    else {
+                        coefindx += itercoltab * solvcblk->stride;
+                    }
 
                     lcoeftab[coefindx] = Lvalues[iterval];
 
@@ -221,7 +226,12 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
         /* Diagonal Block */
         blok     = cblk->fblokptr;
         coefindx = blok->coefind;
-        coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+        if (cblk->cblktype & CBLK_SPLIT) {
+            coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
+        }
+        else {
+            coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+        }
 
         for (iterrow  = blok->frownum;
              iterrow <= blok->lrownum;
@@ -247,7 +257,12 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
         while( blok < (cblk+1)->fblokptr )
         {
             coefindx  = blok->coefind;
-            coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+            if (cblk->cblktype & CBLK_SPLIT) {
+                coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
+            }
+            else {
+                coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+            }
 
             for (iterrow  = blok->frownum;
                  iterrow <= blok->lrownum;
