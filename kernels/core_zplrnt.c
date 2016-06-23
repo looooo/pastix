@@ -81,7 +81,7 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
  *         all tiles initialized with this routine.
  *
  ******************************************************************************/
-void CORE_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
+void core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
                   int gM, int m0, int n0, unsigned long long int seed )
 {
     pastix_complex64_t *tmp = A;

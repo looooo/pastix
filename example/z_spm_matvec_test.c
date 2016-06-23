@@ -19,21 +19,13 @@
 #include <string.h>
 #include <assert.h>
 #include <pastix.h>
+#include <common.h>
 #include <spm.h>
 #include <cblas.h>
 #include <lapacke.h>
 #include <z_spm.h>
-
-#if defined(PRECISION_z) || defined(PRECISION_c)
-#define CBLAS_SADDR(_ptr_) &(_ptr_)
-#endif
-
-void CORE_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
-                  int gM, int m0, int n0, unsigned long long int seed );
-
-int core_zgeadd(int trans, int M, int N, pastix_complex64_t alpha,
-                const pastix_complex64_t *A, int LDA,
-                      pastix_complex64_t *B, int LDB);
+#include "blend/solver.h"
+#include "kernels/pastix_zcores.h"
 
 pastix_complex64_t *
 z_spm2dense( const pastix_spm_t *spm )
@@ -109,14 +101,14 @@ z_spm_matvec_check( int trans, const pastix_spm_t *spm )
 
     eps = LAPACKE_dlamch_work('e');
 
-    CORE_zplrnt( 1, 1, &alpha, 1, 1, start, 0, seed ); start++;
-    CORE_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
+    core_zplrnt( 1, 1, &alpha, 1, 1, start, 0, seed ); start++;
+    core_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
 
     x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    CORE_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
+    core_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
 
     y0 = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    CORE_zplrnt( spm->gN, 1, y0, spm->gN, 1, start, 0, seed ); start += spm->gN;
+    core_zplrnt( spm->gN, 1, y0, spm->gN, 1, start, 0, seed ); start += spm->gN;
 
     /* Create a dense backup of spm */
     A = z_spm2dense( spm );
@@ -144,7 +136,9 @@ z_spm_matvec_check( int trans, const pastix_spm_t *spm )
     Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       ys, spm->gN );
     Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       yd, spm->gN );
 
-    core_zgeadd(PastixNoTrans, spm->gN, 1, -1., ys, spm->gN, yd, spm->gN);
+    core_zgeadd(PastixNoTrans, spm->gN, 1,
+                -1., ys, spm->gN,
+                 1., yd, spm->gN);
     Rnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gN, 1, yd, spm->gN );
 
     if ( 1 ) {

@@ -245,13 +245,16 @@ core_zgeaddsp1d(SolverCblk * cblk1,
                 pastix_complex64_t * L,
                 pastix_complex64_t * Cl,
                 pastix_complex64_t * U,
-                pastix_complex64_t * Cu) {
+                pastix_complex64_t * Cu)
+{
     SolverBlok *iterblok;
     SolverBlok *firstblok;
     SolverBlok *lastblok;
     SolverBlok *fblok;
     pastix_int_t ncol1 = cblk1->lcolnum - cblk1->fcolnum + 1;
     pastix_complex64_t *ga, *gb;
+
+    assert(0 /* Outdated */);
 
     firstblok = cblk1->fblokptr;
     lastblok  = cblk1[1].fblokptr;
