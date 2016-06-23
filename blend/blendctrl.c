@@ -160,7 +160,7 @@ blendCtrlInit( BlendCtrl    *ctrl,
     ctrl->blcolmin = iparm[IPARM_MIN_BLOCKSIZE];
     ctrl->blcolmax = iparm[IPARM_MAX_BLOCKSIZE];
     ctrl->abs      = iparm[IPARM_ABS];
-    ctrl->updatecandtab = 1; /* TODO: Set to 1 to match former version of PaStiX, move back to 0 */
+    ctrl->updatecandtab = 0; /* TODO: Set to 1 to match former version of PaStiX, move back to 0 */
     if(ctrl->blcolmin > ctrl->blcolmax)
     {
         errorPrint("Parameter error : blocksize max < blocksize min (cf. iparm.txt).");
@@ -168,7 +168,7 @@ blendCtrlInit( BlendCtrl    *ctrl,
     }
 
     /* 2D options */
-    ctrl->autolevel  = 0;
+    ctrl->autolevel  = 1;
     ctrl->level2D    = 100000000;
     ctrl->level2D    = iparm[IPARM_DISTRIBUTION_LEVEL];
     ctrl->ratiolimit = 0.0;

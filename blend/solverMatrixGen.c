@@ -143,13 +143,14 @@ solverMatrixGen(const pastix_int_t  clustnum,
         SymbolCblk *symbcblk = symbmtx->cblktab;
         SymbolBlok *symbblok = symbmtx->bloktab;
         SimuBlok   *simublok = simuctrl->bloktab;
+        Cand       *candcblk = ctrl->candtab;
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
 
         cblknum = 0;
         brownum = 0;
         nodenbr = 0;
         coefnbr = 0;
-        for(i=0; i<symbmtx->cblknbr; i++, symbcblk++)
+        for(i=0; i<symbmtx->cblknbr; i++, symbcblk++, candcblk++)
         {
             SolverBlok  *fblokptr = solvblok;
             pastix_int_t fbloknum  = symbcblk[0].bloknum;
@@ -157,6 +158,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
             pastix_int_t stride    = 0;
             pastix_int_t nbcols = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
             pastix_int_t nbrows;
+            pastix_int_t split = candcblk->cblktype & CBLK_SPLIT;
 
             flaglocal = 0;
 
@@ -174,7 +176,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->fcblknm = cblklocalnum[symbblok->fcblknm];
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
-                    solvblok->coefind = stride;
+                    solvblok->coefind = split ? stride * nbcols : stride;
                     solvblok->browind = -1;
 
                     stride += nbrows;
@@ -185,10 +187,13 @@ solverMatrixGen(const pastix_int_t  clustnum,
             {
                 pastix_int_t brownbr;
 
+                if ( split ) {
+                    fprintf(stderr, "Split cblk %ld (%ld x %ld)\n", i, stride, nbcols );
+                }
                 /* Init the cblk */
                 solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
                 solvcblk->ctrbcnt  = -1;
-                solvcblk->cblktype = CBLK_DENSE;
+                solvcblk->cblktype = candcblk->cblktype;
                 solvcblk->fblokptr = fblokptr;
                 solvcblk->fcolnum  = symbcblk->fcolnum * dof;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcols - 1;
