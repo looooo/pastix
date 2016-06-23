@@ -11,6 +11,9 @@
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
+void core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
+                  int gM, int m0, int n0, unsigned long long int seed );
+
 void core_zgetro(int m, int n,
                  const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
@@ -172,5 +175,9 @@ void gpu_zgemmsp( int uplo, int trans,
                   cuDoubleComplex *C,
                   cudaStream_t stream );
 #endif
+
+void solve_ztrsmsp( int side, int uplo, int trans, int diag,
+                    SolverMatrix *datacode, SolverCblk *cblk,
+                    int nrhs, pastix_complex64_t *b, int ldb );
 
 #endif /* _CORE_Z_H_ */

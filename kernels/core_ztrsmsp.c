@@ -19,7 +19,8 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
-static pastix_complex64_t zone  =  1.;
+static pastix_complex64_t  zone =  1.;
+static pastix_complex64_t mzone = -1.;
 
 /**
  *******************************************************************************
@@ -102,6 +103,7 @@ core_ztrsmsp_1d( int side, int uplo, int trans, int diag,
     /* if there is an extra-diagonal bloc in column block */
     assert( fblok + 1 < cblk[1].fblokptr );
     assert( blok_rownbr( fblok) == N );
+    assert(!(cblk->cblktype & CBLK_SPLIT));
 
     /* first extra-diagonal bloc in column block address */
     C = C + fblok[1].coefind;
@@ -196,6 +198,7 @@ core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
     lda   = blok_rownbr( fblok );
 
     assert( blok_rownbr(fblok) == N );
+    assert( cblk->cblktype & CBLK_SPLIT );
 
     for (blok=fblok+1; blok<lblok; blok++) {
 
@@ -293,4 +296,199 @@ void core_ztrsmsp( int side, int uplo, int trans, int diag,
         }
     }
 }
+
+
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_ztrsmsp - Computes the updates associated to one off-diagonal block.
+ *
+ *******************************************************************************
+ *
+ * @param[in] uplo
+ *          If uplo == PastixLower, the contribution of:
+ *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
+ *          C, otherwise the contribution:
+ *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
+ *          to C.
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the B matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and B pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The block from which we compute the contributions.
+ *
+ * @param[in] fcblk
+ *          The pointer to the data structure that describes the panel on which
+ *          we compute the contributions. The C pointer must be one of the
+ *          oceftab from this fcblk. Next column blok must be accessible through
+ *          fcblk[1].
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
+ *          the coefficients of the panel, if Symmetric/Hermitian cases or if
+ *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
+ *          cblk.stride -by- cblk.width
+ *
+ * @param[in,out] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+void solve_ztrsmsp( int side, int uplo, int trans, int diag,
+                    SolverMatrix *datacode, SolverCblk *cblk,
+                    int nrhs, pastix_complex64_t *b, int ldb )
+{
+    SolverCblk *fcbk;
+    SolverBlok *blok;
+    pastix_complex64_t *A;
+    pastix_int_t j, tempm, tempn, lda;
+
+    tempn = cblk->lcolnum - cblk->fcolnum + 1;
+    lda = (cblk->cblktype & CBLK_SPLIT) ? blok_rownbr( cblk->fblokptr ) : cblk->stride;
+
+    /*
+     *  Left / Upper / NoTrans
+     */
+    if (side == PastixLeft) {
+        if (uplo == PastixUpper) {
+            A = (pastix_complex64_t*)(cblk->ucoeftab);
+
+            /*  We store U^t, so we swap uplo and trans */
+            if (trans == PastixNoTrans) {
+
+                /* Solve the diagonal block */
+                cblas_ztrsm(
+                    CblasColMajor, CblasLeft, CblasLower,
+                    CblasTrans, (enum CBLAS_DIAG)diag,
+                    tempn, nrhs,
+                    CBLAS_SADDR(zone), A, lda,
+                                       b + cblk->lcolidx, ldb );
+
+                /* Apply the update */
+                for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
+                    blok = datacode->bloktab + datacode->browtab[j];
+                    fcbk = datacode->cblktab + blok->lcblknm;
+                    tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
+                    tempn = blok->lrownum - blok->frownum + 1;
+                    A   = (pastix_complex64_t*)(fcbk->ucoeftab);
+                    lda = (fcbk->cblktype & CBLK_SPLIT) ? tempn : fcbk->stride;
+
+                    cblas_zgemm(
+                        CblasColMajor, CblasTrans, CblasNoTrans,
+                        tempm, nrhs, tempn,
+                        CBLAS_SADDR(mzone), A + blok->coefind, lda,
+                                            b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                        CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                }
+            }
+            /*
+             *  Left / Upper / [Conj]Trans
+             */
+            else {
+            }
+        }
+        else {
+            A = (pastix_complex64_t*)(cblk->lcoeftab);
+
+            /*
+             *  Left / Lower / NoTrans
+             */
+            if (trans == PastixNoTrans) {
+
+                /* In sequential */
+                assert( cblk->fcolnum == cblk->lcolidx );
+
+                /* Solve the diagonal block */
+                cblas_ztrsm(
+                    CblasColMajor, CblasLeft, CblasLower,
+                    CblasNoTrans, (enum CBLAS_DIAG)diag,
+                    tempn, nrhs,
+                    CBLAS_SADDR(zone), A, lda,
+                                       b + cblk->lcolidx, ldb );
+
+                /* Apply the update */
+                for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
+                    fcbk  = datacode->cblktab + blok->fcblknm;
+                    tempm = blok->lrownum - blok->frownum + 1;
+
+                    assert( blok->frownum >= fcbk->fcolnum );
+                    assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
+
+                    lda = (cblk->cblktype & CBLK_SPLIT) ? tempm : cblk->stride;
+
+                    cblas_zgemm(
+                        CblasColMajor, CblasNoTrans, CblasNoTrans,
+                        tempm, nrhs, tempn,
+                        CBLAS_SADDR(mzone), A + blok->coefind, lda,
+                                            b + cblk->lcolidx, ldb,
+                        CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
+                }
+            }
+            /*
+             *  Left / Lower / [Conj]Trans
+             */
+            else {
+                /* Solve the diagonal block */
+                cblas_ztrsm(
+                    CblasColMajor, CblasLeft, CblasLower,
+                    (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                    tempn, nrhs,
+                    CBLAS_SADDR(zone), A, lda,
+                                       b + cblk->lcolidx, ldb );
+
+                /* Apply the update */
+                for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
+                    blok = datacode->bloktab + datacode->browtab[j];
+                    fcbk = datacode->cblktab + blok->lcblknm;
+                    tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
+                    tempn = blok->lrownum - blok->frownum + 1;
+                    A   = (pastix_complex64_t*)(fcbk->lcoeftab);
+                    lda = (fcbk->cblktype & CBLK_SPLIT) ? tempn : fcbk->stride;
+
+                    cblas_zgemm(
+                        CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                        tempm, nrhs, tempn,
+                        CBLAS_SADDR(mzone), A + blok->coefind, lda,
+                                            b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                        CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                }
+            }
+        }
+    }
+    /**
+     * Right
+     */
+    else {
+    }
+}
+
 
