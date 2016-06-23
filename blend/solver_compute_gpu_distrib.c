@@ -116,6 +116,7 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                 blok  = bloktab + solvmtx->browtab[j];
                 lcblk = cblktab + blok->lcblknm;
 
+                /* TODO: Incorrect in 2D !!!!! */
                 m = lcblk->stride - blok->coefind;
                 k = cblk_colnbr( lcblk );
                 n = blok_rownbr( blok );
@@ -127,6 +128,7 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                 blok  = bloktab + solvmtx->browtab[j];
                 lcblk = cblktab + blok->lcblknm;
 
+                /* TODO: Incorrect in 2D !!!!! */
                 m = lcblk->stride - blok->coefind;
                 k = cblk_colnbr( lcblk );
                 n = blok_rownbr( blok );
