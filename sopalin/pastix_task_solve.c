@@ -140,7 +140,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
     (void)procnum;
-    
+
     /*
      * Check parameters
      */
