@@ -235,8 +235,8 @@ int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
-    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
+    ncols  = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = (cblk->cblktype & CBLK_SPLIT) ? ncols : cblk->stride;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
@@ -278,8 +278,8 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
     pastix_int_t  ncols, stride;
     SolverBlok   *lblk;
 
-    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
+    ncols  = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = cblk->stride;
     blok = cblk->fblokptr;   /* this diagonal block */
     lblk = cblk[1].fblokptr; /* the next diagonal block */
 

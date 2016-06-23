@@ -231,7 +231,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     pastix_int_t nbpivot = 0;
 
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
-    stride = cblk->stride;
+    stride = (cblk->cblktype & CBLK_SPLIT) ? ncols : cblk->stride;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
