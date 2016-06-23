@@ -187,9 +187,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
             {
                 pastix_int_t brownbr;
 
-                if ( split ) {
-                    fprintf(stderr, "Split cblk %ld (%ld x %ld)\n", i, stride, nbcols );
-                }
                 /* Init the cblk */
                 solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
                 solvcblk->ctrbcnt  = -1;
