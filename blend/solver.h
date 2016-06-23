@@ -436,34 +436,6 @@ pastix_int_t cblk_rownbr( const SolverCblk * cblk ) {
     return rownbr;
 }
 
-
-static inline
-pastix_int_t cblk_save( SolverCblk * cblk,
-                        char * name,
-                        pastix_complex64_t * coef)
-{
-    (void)name;
-    (void)coef;
-    (void)cblk;
-#ifdef PASTIX_DUMP_CBLK
-    pastix_int_t i,j;
-    SolverBlok *b;
-    FILE * file = fopen(name, "w");
-    for ( b = cblk->fblokptr; b < cblk[1].fblokptr; b++) {
-        fprintf(file, "%ld %ld\n", b->frownum, b->lrownum);
-    }
-    for (j = 0; j < cblk->stride; j++) {
-        for (i = 0; i < cblk_colnbr(cblk); i++) {
-            fprintf(file, "(%10.5lg %10.5lg)",
-                    creal(coef[j+i*cblk->stride]),
-                    cimag(coef[j+i*cblk->stride]));
-        }
-        fprintf(file, "\n");
-    }
-    fclose(file);
-#endif
-    return PASTIX_SUCCESS;
-}
 /**
  * Indicate if a blok is included inside an other block.
  * i.e. indicate if the row range of the first block is included in the
