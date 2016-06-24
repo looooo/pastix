@@ -138,7 +138,7 @@ gpu_zgemmsp( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        stridef = (cblk->cblktype  & CBLK_SPLIT) ? blok_rownbr( fblok ) : stridef;
+        stridef = (fcblk->cblktype  & CBLK_SPLIT) ? blok_rownbr( fblok ) : stridef;
         params.p[i].M    = blok_rownbr( iterblok );
         params.p[i].Aptr = A + iterblok->coefind;
         params.p[i].lda  = (cblk->cblktype  & CBLK_SPLIT) ? params.p[i].M : stride;

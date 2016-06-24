@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cublas_v2.h>
-#include "pastix/api.h"
+#include "pastix.h"
 #include "pastix/datatypes.h"
 #include "kernels/pastix_cuda.h"
 //#include "kernels/pastix_zcores.h"

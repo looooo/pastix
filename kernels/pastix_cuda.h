@@ -15,13 +15,12 @@ extern "C" {
 #define MAX_BATCH_COUNT 32
 
 typedef struct gemm_param_s{
+    const void *Aptr;
+    void *Cptr;
     pastix_int_t M;
     pastix_int_t lda;
     pastix_int_t ldc;
-    const void *Aptr;
-    void *Cptr;
 } gemm_param_t;
-
 
 typedef struct gemm_params_s {
     gemm_param_t p[MAX_BATCH_COUNT];
