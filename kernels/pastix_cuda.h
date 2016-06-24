@@ -27,7 +27,6 @@ typedef struct gemm_params_s {
     gemm_param_t p[MAX_BATCH_COUNT];
 } gemm_params_t;
 
-
 void
 pastix_zgemm_vbatched_nt(
     pastix_trans_t transB,
@@ -36,7 +35,7 @@ pastix_zgemm_vbatched_nt(
     const cuDoubleComplex * dB, pastix_int_t lddb,
     cuDoubleComplex beta,
     pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream,
-    gemm_param_t params[MAX_BATCH_COUNT] );
+    gemm_params_t params );
 
 void
 pastix_cgemm_vbatched_nt(
@@ -46,7 +45,7 @@ pastix_cgemm_vbatched_nt(
     const cuFloatComplex * dB, pastix_int_t lddb,
     cuFloatComplex beta,
     pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream,
-    gemm_param_t params[MAX_BATCH_COUNT] );
+    gemm_params_t params );
 
 void
 pastix_dgemm_vbatched_nt(
@@ -56,7 +55,7 @@ pastix_dgemm_vbatched_nt(
     const double * dB, pastix_int_t lddb,
     double beta,
     pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream,
-    gemm_param_t params[MAX_BATCH_COUNT] );
+    gemm_params_t params );
 
 void
 pastix_sgemm_vbatched_nt(
@@ -66,7 +65,7 @@ pastix_sgemm_vbatched_nt(
     const float * dB, pastix_int_t lddb,
     float beta,
     pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream,
-    gemm_param_t params[MAX_BATCH_COUNT] );
+    gemm_params_t params );
 
 #ifdef __cplusplus
 }

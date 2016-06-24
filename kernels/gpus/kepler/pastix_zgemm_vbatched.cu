@@ -158,7 +158,7 @@ pastix_zgemm_vbatched_nt(
     const cuDoubleComplex * dB, pastix_int_t lddb,
     cuDoubleComplex beta,
     pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream,
-    gemm_param_t params[MAX_BATCH_COUNT] )
+    gemm_params_t params )
 {
     assert( transB != PastixNoTrans );
 

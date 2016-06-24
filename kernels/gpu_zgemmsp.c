@@ -99,7 +99,7 @@ gpu_zgemmsp( int uplo, int trans,
     double mzone = -1.;
     double zone  =  1.;
 #endif
-    gemm_param_t params[MAX_BATCH_COUNT];
+    gemm_params_t params;
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
     const SolverBlok *lblok;
@@ -138,16 +138,16 @@ gpu_zgemmsp( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        stridef = (fcblk->cblktype  & CBLK_SPLIT) ? blok_rownbr( fblok ) : stridef;
-        params[i].M    = blok_rownbr( iterblok );
-        params[i].Aptr = A + iterblok->coefind;
-        params[i].lda  = (cblk->cblktype  & CBLK_SPLIT) ? params[i].M : stride;
-        params[i].Cptr = C +
+        stridef = (cblk->cblktype  & CBLK_SPLIT) ? blok_rownbr( fblok ) : stridef;
+        params.p[i].M    = blok_rownbr( iterblok );
+        params.p[i].Aptr = A + iterblok->coefind;
+        params.p[i].lda  = (cblk->cblktype  & CBLK_SPLIT) ? params.p[i].M : stride;
+        params.p[i].Cptr = C +
             fblok->coefind + iterblok->frownum - fblok->frownum +
             (blok->frownum - fcblk->fcolnum) * stridef;
-        params[i].ldc  = stridef;
+        params.p[i].ldc  = stridef;
 
-        max_m = pastix_imax( max_m, params[i].M);
+        max_m = pastix_imax( max_m, params.p[i].M);
 
         if (i+1 == MAX_BATCH_COUNT) {
             pastix_zgemm_vbatched_nt(
