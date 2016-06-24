@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#define MAX_BATCH_COUNT 32
+#define MAX_BATCH_COUNT 16
 
 typedef struct gemm_param_s{
     const void *Aptr;
