@@ -1,7 +1,7 @@
-/*
- * Copyright (c) 2010      The University of Tennessee and The University
- *                         of Tennessee Research Foundation.  All rights
- *                         reserved.
+/**
+ * @file pastix_zcores.h
+ *
+ * Copyright (c) 2016      Inria. All rights reserved.
  *
  * @precisions normal z -> s d c
  */
@@ -149,31 +149,14 @@ int core_zsytrfsp1d( SolverMatrix       *solvmtx,
 #include <cuda.h>
 #include <cuComplex.h>
 
-typedef struct gemm_params_s{
-    int M[32];
-    int Acoefind[32];
-    void *Carray[32];
-} gemm_params_t;
-
-void pastix_zgemm_vbatched_nt(
-    gemm_params_t params,
-    pastix_trans_t transB,
-    pastix_int_t n, pastix_int_t k,
-    cuDoubleComplex alpha,
-    cuDoubleComplex const * dA, pastix_int_t ldda,
-    cuDoubleComplex const * dB, pastix_int_t lddb,
-    cuDoubleComplex beta,
-    pastix_int_t lddc,
-    pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream );
-
 void gpu_zgemmsp( int uplo, int trans,
-                  SolverCblk      *cblk,
-                  SolverBlok      *blok,
-                  SolverCblk      *fcblk,
-                  cuDoubleComplex *A,
-                  cuDoubleComplex *B,
-                  cuDoubleComplex *C,
-                  cudaStream_t stream );
+                  const SolverCblk      *cblk,
+                  const SolverBlok      *blok,
+                        SolverCblk      *fcblk,
+                  const cuDoubleComplex *A,
+                  const cuDoubleComplex *B,
+                        cuDoubleComplex *C,
+                        cudaStream_t stream );
 #endif
 
 void solve_ztrsmsp( int side, int uplo, int trans, int diag,

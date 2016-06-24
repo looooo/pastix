@@ -241,12 +241,6 @@ void gemm_template_vbatched_tt(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Pastix kernel NT, NC
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef struct gemm_params_s{
-    int M[32];
-    int Acoefind[32];
-    void *Carray[32];
-} gemm_params_t;
-
 template <class T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
 	 const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
 	 const int CONJA, const int CONJB>
@@ -259,42 +253,41 @@ static __global__
 //     const pastix_int_t Acoefind[32],
 //     T alpha, T beta)
 void pastix_gemm_template_vbatched_nt_kernel(
-    gemm_params_t params,
     int N, int K,
-    T const *A,      int LDA,
-    T const *B,      int LDB,
-    int LDC,
-    T alpha, T beta)
+    const T * B, int LDB,
+    T alpha, T beta,
+    gemm_param_t params[MAX_BATCH_COUNT] )
 {
     const int batchid = blockIdx.z;
-    const int my_M = params.M[batchid];
+    const int my_M = params[batchid].M;
     if(my_M <= 0 || N <= 0 || K <= 0) return;
     if( blockIdx.x >= (my_M+BLK_M-1)/BLK_M ) return;
     if( blockIdx.y >= (   N+BLK_N-1)/BLK_N ) return;
 
     gemm_template_device_nt<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
-	( my_M, N, K, A + params.Acoefind[batchid], LDA, B, LDB, (T*)(params.Carray[batchid]), LDC, alpha, beta );
+	( my_M, N, K,
+	  (T*)(params[batchid].Aptr), params[batchid].lda,
+	  B, LDB,
+	  (T*)(params[batchid].Cptr), params[batchid].ldc,
+	  alpha, beta );
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Pastix NT, NC
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <class T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
-	 const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
-	 const int CONJA, const int CONJB>
-void pastix_gemm_template_vbatched_nt(
-    gemm_params_t params,
-    pastix_int_t n, pastix_int_t k,
-    T const * dA,       pastix_int_t ldda,
-    T const * dB,       pastix_int_t lddb,
-    pastix_int_t lddc,
-    T alpha, T beta,
-    pastix_int_t batchCount,
-    cudaStream_t stream, pastix_int_t max_m)
+	  const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
+	  const int CONJA, const int CONJB>
+void pastix_gemm_template_vbatched_nt(pastix_int_t n, pastix_int_t k,
+				      const T * dB, pastix_int_t lddb,
+				      T alpha, T beta,
+				      pastix_int_t batchCount,
+				      cudaStream_t stream, pastix_int_t max_m,
+				      gemm_param_t params[MAX_BATCH_COUNT] )
 {
     dim3 dimBlock(DIM_X, DIM_Y);
     dim3 dimGrid( pastix_ceildiv( max_m, BLK_M ), pastix_ceildiv( n, BLK_N ), batchCount );
     pastix_gemm_template_vbatched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-	<<<dimGrid, dimBlock, 0, stream>>>(params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta);
+	<<<dimGrid, dimBlock, 0, stream>>>(n, k, dB, lddb, alpha, beta, params );
 }
 
 #endif //GEMM_TEMPLATE_KERNEL_VBATCHED_CUH

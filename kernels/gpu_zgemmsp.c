@@ -17,14 +17,16 @@
 #include "common.h"
 #include <cblas.h>
 #include "blend/solver.h"
-#include "pastix_zcores.h"
+#include "kernels/pastix_zcores.h"
+#include "kernels/pastix_cuda.h"
 
 /**
  *******************************************************************************
  *
  * @ingroup pastix_kernel
  *
- * gpu_zgemmsp - Computes the updates associated to one off-diagonal block.
+ * gpu_zgemmsp_1d1d - Computes the updates associated to one off-diagonal block
+ * between two cblk stored as 1D block columns.
  *
  *******************************************************************************
  *
@@ -80,14 +82,15 @@
  *          block.
  *
  *******************************************************************************/
-void gpu_zgemmsp( int uplo, int trans,
-                  SolverCblk      *cblk,
-                  SolverBlok      *blok,
-                  SolverCblk      *fcblk,
-                  cuDoubleComplex *A,
-                  cuDoubleComplex *B,
-                  cuDoubleComplex *C,
-                  cudaStream_t stream )
+void
+gpu_zgemmsp( int uplo, int trans,
+             const SolverCblk      *cblk,
+             const SolverBlok      *blok,
+                   SolverCblk      *fcblk,
+             const cuDoubleComplex *A,
+             const cuDoubleComplex *B,
+                   cuDoubleComplex *C,
+                   cudaStream_t stream )
 {
 #if defined(PRECISION_z) || defined(PRECISION_c)
     cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
@@ -96,14 +99,14 @@ void gpu_zgemmsp( int uplo, int trans,
     double mzone = -1.;
     double zone  =  1.;
 #endif
-    gemm_params_t params;
-    SolverBlok *iterblok;
-    SolverBlok *fblok;
-    SolverBlok *lblok;
+    gemm_param_t params[MAX_BATCH_COUNT];
+    const SolverBlok *iterblok;
+    const SolverBlok *fblok;
+    const SolverBlok *lblok;
 
     pastix_int_t stride, stridef, indblok;
     pastix_int_t N, K, max_m = 0;
-    int i, shift, count;
+    int i, shift, count, ldb;
 
     shift = (uplo == PastixUpper) ? 1 : 0;
 
@@ -118,9 +121,7 @@ void gpu_zgemmsp( int uplo, int trans,
 
     /* Move B to the right pointer */
     B = B + indblok;
-
-    /* Move the pointer to the top of the right column */
-    C = C + (blok->frownum - fcblk->fcolnum) * stridef;
+    ldb = (cblk->cblktype & CBLK_SPLIT) ? N : stride;
 
     /* Get the first block of the distant panel */
     fblok = fcblk->fblokptr;
@@ -137,40 +138,41 @@ void gpu_zgemmsp( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        params.M[i]        = blok_rownbr( iterblok );
-        params.Acoefind[i] = iterblok->coefind;
-        params.Carray[i]   = C + fblok->coefind + iterblok->frownum - fblok->frownum;
+        stridef = (fcblk->cblktype  & CBLK_SPLIT) ? blok_rownbr( fblok ) : stridef;
+        params[i].M    = blok_rownbr( iterblok );
+        params[i].Aptr = A + iterblok->coefind;
+        params[i].lda  = (cblk->cblktype  & CBLK_SPLIT) ? params[i].M : stride;
+        params[i].Cptr = C +
+            fblok->coefind + iterblok->frownum - fblok->frownum +
+            (blok->frownum - fcblk->fcolnum) * stridef;
+        params[i].ldc  = stridef;
 
-        max_m = pastix_imax( max_m, params.M[i] );
+        max_m = pastix_imax( max_m, params[i].M);
 
-        if (i == 31) {
+        if (i+1 == MAX_BATCH_COUNT) {
             pastix_zgemm_vbatched_nt(
-                params, trans, N, K,
+                trans, N, K,
                 /* alpha  */  mzone,
-                /* A      */  A, stride,
-                /* B      */  B, stride,
+                /* B      */  B, ldb,
                 /* beta   */  zone,
-                /* C      */     stridef,
-                max_m, 32,
-                stream );
+                max_m, MAX_BATCH_COUNT,
+                stream, params );
 
             /* Restart the loop */
             i = -1;
-            count -= 32;
+            count -= MAX_BATCH_COUNT;
             max_m = 0;
         }
     }
 
     if (count > 0) {
         pastix_zgemm_vbatched_nt(
-            params, trans, N, K,
+            trans, N, K,
             /* alpha  */  mzone,
-            /* A      */  A, stride,
-            /* B      */  B, stride,
+            /* B      */  B, ldb,
             /* beta   */  zone,
-            /* C      */     stridef,
             max_m, count,
-            stream );
+            stream, params );
     }
 }
 

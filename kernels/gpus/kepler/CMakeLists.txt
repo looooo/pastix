@@ -27,6 +27,11 @@ foreach( _cudafile ${cuda_generated_files} )
   endif( _IsInBinaryDir )
 endforeach()
 
+set_source_files_properties(
+  ${cuda_generated_files}
+  PROPERTIES DEPENDS kernels_headers
+  )
+
 # For Fermi
 set(CUDA_NVCC_FLAGS_20 -arch sm_20 -DCUDA_SM_VERSION=20)
 # For Kepler

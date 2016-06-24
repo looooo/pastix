@@ -21,6 +21,8 @@
 #include <cublas_v2.h>
 #include "pastix/api.h"
 #include "pastix/datatypes.h"
+#include "kernels/pastix_cuda.h"
+//#include "kernels/pastix_zcores.h"
 
 #define PastixComplex64_PRECISION
 
@@ -150,15 +152,13 @@ void
 /*     cuDoubleComplex       * dC_array[32], pastix_int_t lddc, */
 /*     pastix_int_t max_m, pastix_int_t batchCount, const pastix_int_t Acoefind[32], cudaStream_t stream ) */
 pastix_zgemm_vbatched_nt(
-    gemm_params_t params,
     pastix_trans_t transB,
     pastix_int_t n, pastix_int_t k,
     cuDoubleComplex alpha,
-    cuDoubleComplex const * dA, pastix_int_t ldda,
-    cuDoubleComplex const * dB, pastix_int_t lddb,
+    const cuDoubleComplex * dB, pastix_int_t lddb,
     cuDoubleComplex beta,
-    pastix_int_t lddc,
-    pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream )
+    pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream,
+    gemm_param_t params[MAX_BATCH_COUNT] )
 {
     assert( transB != PastixNoTrans );
 
@@ -174,13 +174,13 @@ pastix_zgemm_vbatched_nt(
             // version 58
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,58), 0, 0>
                 //(m, n, k, dA, ldda, dB, lddb, dC_array, lddc, alpha, beta, batchCount, Acoefind, stream, max_m);
-                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
+                (n, k, dB, lddb, alpha, beta, batchCount, stream, max_m, params);
         }
         else
         {
             // version 29
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,29), 0, 0>
-                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
+                (n, k, dB, lddb, alpha, beta, batchCount, stream, max_m, params);
         }
     }
     else if (transB == PastixConjTrans)
@@ -189,13 +189,13 @@ pastix_zgemm_vbatched_nt(
         {
             // version 58
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,58), 0, 1>
-                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
+                (n, k, dB, lddb, alpha, beta, batchCount, stream, max_m, params);
         }
         else
         {
             // version 29
             pastix_gemm_template_vbatched_nt<cuDoubleComplex, version(NT,29), 0, 1>
-                (params, n, k, dA, ldda, dB, lddb, lddc, alpha, beta, batchCount, stream, max_m);
+                (n, k, dB, lddb, alpha, beta, batchCount, stream, max_m, params);
         }
     }
 }
