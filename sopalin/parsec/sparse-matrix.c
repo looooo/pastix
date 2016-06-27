@@ -23,7 +23,7 @@ static inline uint32_t
 spm_data_key( const SolverMatrix *solvmtx,
               int cblknum, int uplo )
 {
-    return  uplo * solvmtx->cblknbr + cblknum;
+    return  2 * cblknum + uplo;
 }
 
 
