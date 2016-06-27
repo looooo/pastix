@@ -19,27 +19,74 @@
 
 #include "common.h"
 
-static inline uint32_t
-spm_data_key( const SolverMatrix *solvmtx,
-              int cblknum, int uplo )
+static inline pastix_int_t
+spm_data_key( int ratio, int uplo,
+              pastix_int_t cblknum,
+              pastix_int_t bloknum )
 {
-    return  2 * cblknum + uplo;
+    /**
+     * Key is strictly negative for a cblk, postive or null for a blok, so
+     * either blokum == 0, or cblknum == cblknbr toa ply a shift in the postive
+     * range
+     */
+    return  ratio * (cblknum + bloknum) + uplo;
 }
 
+static inline void
+spm_data_key_to_value( dague_data_key_t key,
+                       int ratio, const SolverMatrix *solvmtx,
+                       int *uplo,
+                       pastix_int_t *cblknum,
+                       pastix_int_t *bloknum)
+{
+    dague_data_key_t key2;
+    const SolverBlok *blok;
+
+    /* Refers to a block */
+    key2 = ratio * solvmtx->cblknbr;
+    if ( key >= key2 ) {
+        key2 = key - key2;
+
+        *uplo    = key2 % ratio;
+        *bloknum = key2 / ratio;
+        blok     = solvmtx->bloktab + (*bloknum);
+        *cblknum = blok->lcblknm;
+    }
+    else {
+        *uplo    = key % ratio;
+        *cblknum = key / ratio;
+        *bloknum = -1;
+    }
+}
 
 static uint32_t
 sparse_matrix_data_key(dague_ddesc_t *mat, ... )
 {
     va_list ap;
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
-    int uplo, cblknum;
+    int uplo, ratio;
+    pastix_int_t cblknum, bloknum, fbloknum;
+    SolverCblk *cblk;
 
     va_start(ap, mat);
     uplo    = va_arg(ap, int);
     cblknum = va_arg(ap, int);
+    bloknum = va_arg(ap, int);
     va_end(ap);
 
-    return spm_data_key( spmtx->solvmtx, cblknum, uplo );
+    ratio = spmtx->mtxtype == PastixGeneral ? 2 : 1;
+    uplo = uplo ? 1 : 0;
+    assert( ratio == 2 || uplo == 0 );
+
+    cblk = spmtx->solvmtx->cblktab + cblknum;
+    fbloknum = cblk->fblokptr - spmtx->solvmtx->bloktab;
+
+    if ( (cblk->cblktype & CBLK_SPLIT) && (bloknum != -1) ) {
+        return spm_data_key( ratio, uplo, spmtx->solvmtx->cblknbr, fbloknum + bloknum );
+    }
+    else {
+        return spm_data_key( ratio, uplo, cblknum, 0 );
+    }
 }
 
 static uint32_t
@@ -75,10 +122,13 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
 {
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     SolverCblk *cblk;
+    char *ptr;
     va_list ap;
-    int uplo, cblknum, bloknum, pos;
+    int uplo, ratio;
+    pastix_int_t cblknum, bloknum, fbloknum;
     dague_data_key_t key;
-    size_t size;
+    size_t size, offset, pos;
+    dague_data_t **dataptr;
 
     va_start(ap, mat);
     uplo    = va_arg(ap, int);
@@ -86,15 +136,41 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     bloknum = va_arg(ap, int) - 1;
     va_end(ap);
 
-    cblk = spmtx->solvmtx->cblktab + cblknum;
-    key  = spm_data_key( spmtx->solvmtx, cblknum, (uplo ? 1 : 0) );
-    pos  = key;
-    size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+    ratio = spmtx->mtxtype == PastixGeneral ? 2 : 1;
+    uplo = uplo ? 1 : 0;
+    assert( ratio == 2 || uplo == 0 );
 
-    assert(bloknum == -1);
-    return dague_data_create( spmtx->data_map + pos, mat, key,
-                              (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
-                              size );
+    pos  = ratio * cblknum + uplo;
+    cblk = spmtx->solvmtx->cblktab + cblknum;
+    dataptr = spmtx->data_map + pos;
+    ptr  = uplo ? cblk->ucoeftab : cblk->lcoeftab;
+
+    if ( cblk->cblktype & CBLK_SPLIT ) {
+        /* Return the data for all the cblk to process as 1d */
+        if ( bloknum == -1 ) {
+            key  = spm_data_key( ratio, uplo, cblknum, 0 );
+            size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+            offset = 0;
+        }
+        else {
+            fbloknum = cblk->fblokptr - spmtx->solvmtx->bloktab;
+
+            /* Return the data for one of the block in the cblk to process as 2d */
+            key  = spm_data_key( ratio, uplo, spmtx->solvmtx->cblknbr, fbloknum + bloknum );
+            size = blok_rownbr( cblk->fblokptr + bloknum ) * cblk_colnbr( cblk )  * (size_t)spmtx->typesze;
+            offset = (cblk->fblokptr + bloknum)->coefind * (size_t)spmtx->typesze;
+        }
+
+        /* Extra level of indirection */
+        dataptr = ((dague_data_t**)(*dataptr)) + bloknum + 1;
+    }
+    else {
+        /* Return the data for all the cblk to process as 1d */
+        key = spm_data_key( ratio, uplo, cblknum, 0 );
+        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+        offset = 0;
+    }
+    return dague_data_create( dataptr, mat, key, ptr + offset, size );
 }
 
 static dague_data_t *
@@ -103,41 +179,61 @@ sparse_matrix_data_of_key(dague_ddesc_t *mat, dague_data_key_t key )
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     SolverMatrix *solvmtx = spmtx->solvmtx;
     SolverCblk *cblk;
-    int cblknbr = solvmtx->cblknbr;
-    int uplo, cblknum, pos;
-    size_t size;
+    int uplo, ratio;
+    pastix_int_t cblknum, bloknum;
+    size_t size, pos, offset;
+    dague_data_t **dataptr;
+    char *ptr;
 
-    uplo = ( key >= (dague_data_key_t)cblknbr ) ? PastixUpper : PastixLower;
-    cblknum = key % cblknbr;
+    ratio = (spmtx->mtxtype == PastixGeneral) ? 2 : 1;
+    spm_data_key_to_value( key, ratio, solvmtx,
+                           &uplo, &cblknum, &bloknum );
 
     cblk = solvmtx->cblktab + cblknum;
+    pos  = ratio * cblknum + uplo;
+    ptr  = uplo ? cblk->ucoeftab : cblk->lcoeftab;
+    dataptr = spmtx->data_map + pos;
 
-    pos  = key;
-    size = cblk->stride * (cblk->lcolnum - cblk->fcolnum + 1) * spmtx->typesze;
-
-    return dague_data_create( spmtx->data_map + pos, mat, key,
-                              (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
-                              size );
+    if ( cblk->cblktype & CBLK_SPLIT ) {
+        /* Return the data for all the cblk to process as 1d */
+        if ( bloknum == -1 ) {
+            size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+            offset = 0;
+        }
+        else {
+            /* Return the data for one of the block in the cblk to process as 2d */
+            size = blok_rownbr( cblk->fblokptr + bloknum ) * cblk_colnbr( cblk )  * (size_t)spmtx->typesze;
+            offset = (cblk->fblokptr + bloknum)->coefind * (size_t)spmtx->typesze;
+        }
+        /* Extra level of indirection */
+        dataptr = ((dague_data_t**)(*dataptr)) + bloknum + 1;
+    }
+    else {
+        /* Return the data for all the cblk to process as 1d */
+        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+        offset = 0;
+    }
+    return dague_data_create( dataptr, mat, key,
+                              ptr + offset, size );
 }
 
 #ifdef DAGUE_PROF_TRACE
 static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, char *buffer, uint32_t buffer_size)
 {
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
-    pastix_int_t uplo, cblknum, cblknbr;
+    int uplo;
+    pastix_int_t cblknum, bloknum;
     int res;
 
-    cblknbr = spmtx->solvmtx->cblknbr;
-    cblknum = (pastix_int_t)datakey % cblknbr;
-    uplo    = (pastix_int_t)datakey / cblknbr;
+    spm_data_key_to_value( datakey, ratio, spm->solvmtx,
+                           &uplo, &cblknum, &bloknum );
 
-    res = snprintf(buffer, buffer_size, "(%ld, %ld)",
-                   (long int)uplo,
-                   (long int)cblknum);
+    res = snprintf(buffer, buffer_size, "(%d, %ld, %ld)",
+                   uplo, (long int)cblknum, (long int)bloknum);
     if (res < 0)
     {
-        printf("error in key_to_string for tile (%ld, %ld) key: %u\n",
-               (long int)uplo, (long int)cblknum, datakey);
+        printf("error in key_to_string for tile (%d, %ld, %ld) key: %u\n",
+               uplo, (long int)cblknum, (long int)bloknum, datakey);
     }
     return res;
 }
