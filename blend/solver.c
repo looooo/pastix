@@ -27,6 +27,16 @@ solverExit(SolverMatrix *solvmtx)
 {
     pastix_int_t i;
 
+#if defined(PASTIX_WITH_PARSEC)
+    {
+        if ( solvmtx->parsec_desc != NULL ) {
+            sparse_matrix_destroy( solvmtx->parsec_desc );
+            free( solvmtx->parsec_desc );
+        }
+        solvmtx->parsec_desc = NULL;
+    }
+#endif
+
     /** Free arrays of solvmtx **/
     if(solvmtx->cblktab)
     {
@@ -59,15 +69,6 @@ solverExit(SolverMatrix *solvmtx)
     memFree_null(solvmtx->ttsktab);
     memFree_null(solvmtx->proc2clust);
 
-
-#if defined(PASTIX_WITH_PARSEC)
-    {
-        if ( solvmtx->parsec_desc != NULL ) {
-            sparse_matrix_destroy( solvmtx->parsec_desc );
-        }
-        solvmtx->parsec_desc = NULL;
-    }
-#endif
 
     /*memFree_null(solvmtx);*/
 #if defined(PASTIX_WITH_STARPU)

@@ -244,7 +244,10 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
                          int typesize, int mtxtype,
                          int nodes, int myrank)
 {
-    dague_ddesc_t *o = (dague_ddesc_t*)desc;
+    dague_ddesc_t *o    = (dague_ddesc_t*)desc;
+    SolverCblk    *cblk = solvmtx->cblktab;
+    dague_data_t **data;
+    pastix_int_t   cblknum, cblknbr;
     int ratio = ( mtxtype == PastixGeneral ) ? 2 : 1;
 
     dague_ddesc_init( o, nodes, myrank );
@@ -265,20 +268,51 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     desc->mtxtype   = mtxtype;
     desc->solvmtx   = solvmtx;
     desc->data_map  = (dague_data_t**)calloc( ratio * solvmtx->cblknbr, sizeof(dague_data_t*) );
+
+    cblknbr = solvmtx->cblknbr;
+    data = desc->data_map;
+    for(cblknum=0; cblknum<cblknbr; cblknum++, cblk++, data += ratio)
+    {
+        if ( cblk->cblktype & CBLK_SPLIT ) {
+            data[0] = calloc( (cblk[1].fblokptr - cblk[0].fblokptr + 1), sizeof(dague_data_t*) );
+            if (ratio == 2) {
+                data[1] = calloc( (cblk[1].fblokptr - cblk[0].fblokptr + 1), sizeof(dague_data_t*) );
+            }
+        }
+    }
 }
 
 void sparse_matrix_destroy( sparse_matrix_desc_t *desc )
 {
     if ( desc->data_map != NULL ) {
         dague_data_t **data = desc->data_map;
+        dague_data_t **dataptrL;
+        dague_data_t **dataptrU;
+        SolverCblk    *cblk = desc->solvmtx->cblktab;
         int ratio = ( desc->mtxtype == PastixGeneral ) ? 2 : 1;
-        int i;
+        pastix_int_t i, j;
 
-        for(i=0; i<ratio*desc->solvmtx->cblknbr; i++, data++)
+        for(i=0; i < desc->solvmtx->cblknbr; i++, cblk++, data+=ratio)
         {
-            dague_data_destroy( *data );
+            if ( cblk->cblktype & CBLK_SPLIT ) {
+                dataptrL = (dague_data_t**)data[0];
+                dataptrU = (dague_data_t**)data[1];
+                for( j=0; j<(cblk[1].fblokptr - cblk[0].fblokptr + 1); j++, dataptrL++, dataptrU++ )
+                {
+                    dague_data_destroy( *dataptrL );
+                    if (ratio == 2)
+                        dague_data_destroy( *dataptrU );
+                }
+                free( data[0] );
+                if (ratio == 2)
+                    free( data[1] );
+            }
+            else {
+                dague_data_destroy( *data );
+                if (ratio == 2)
+                    dague_data_destroy( data[1] );
+            }
         }
-
         free( desc->data_map );
         desc->data_map = NULL;
     }
