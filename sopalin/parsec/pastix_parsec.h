@@ -14,10 +14,11 @@
 #include <dague/data_distribution.h>
 
 typedef struct sparse_matrix_desc_s {
-    dague_ddesc_t         super;
-    dague_data_t        **data_map;
-    int                   typesze; /* Type size                           */
-    SolverMatrix         *solvmtx;
+    dague_ddesc_t   super;
+    dague_data_t  **data_map;
+    int             typesze;   /*< Type size                                                            */
+    int             mtxtype;   /*< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian. */
+    SolverMatrix   *solvmtx;
 } sparse_matrix_desc_t;
 
 typedef struct sparse_vector_desc_t {
@@ -28,7 +29,8 @@ typedef struct sparse_vector_desc_t {
 
 void sparse_matrix_init( sparse_matrix_desc_t *desc,
                          SolverMatrix *solvmtx,
-                         int typesize, int nodes, int myrank );
+                         int typesize, int mtxtype,
+                         int nodes, int myrank );
 void sparse_matrix_destroy( sparse_matrix_desc_t *desc );
 
 void sparse_vector_init( sparse_vector_desc_t *desc,

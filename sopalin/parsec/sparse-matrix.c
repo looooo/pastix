@@ -35,8 +35,8 @@ sparse_matrix_data_key(dague_ddesc_t *mat, ... )
     int uplo, cblknum;
 
     va_start(ap, mat);
-    uplo    = va_arg(ap, unsigned int);
-    cblknum = va_arg(ap, unsigned int);
+    uplo    = va_arg(ap, int);
+    cblknum = va_arg(ap, int);
     va_end(ap);
 
     return spm_data_key( spmtx->solvmtx, cblknum, uplo );
@@ -76,13 +76,14 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     SolverCblk *cblk;
     va_list ap;
-    int uplo, cblknum, pos;
+    int uplo, cblknum, bloknum, pos;
     dague_data_key_t key;
     size_t size;
 
     va_start(ap, mat);
-    uplo    = va_arg(ap, unsigned int);
-    cblknum = va_arg(ap, unsigned int);
+    uplo    = va_arg(ap, int);
+    cblknum = va_arg(ap, int);
+    bloknum = va_arg(ap, int) - 1;
     va_end(ap);
 
     cblk = spmtx->solvmtx->cblktab + cblknum;
@@ -90,6 +91,7 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     pos  = key;
     size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
+    assert(bloknum == -1);
     return dague_data_create( spmtx->data_map + pos, mat, key,
                               (uplo == 1) ? cblk->ucoeftab : cblk->lcoeftab,
                               size );
@@ -142,10 +144,12 @@ static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, cha
 #endif
 
 void sparse_matrix_init( sparse_matrix_desc_t *desc,
-                         SolverMatrix *solvmtx, int typesize,
+                         SolverMatrix *solvmtx,
+                         int typesize, int mtxtype,
                          int nodes, int myrank)
 {
     dague_ddesc_t *o = (dague_ddesc_t*)desc;
+    int ratio = ( mtxtype == PastixGeneral ) ? 2 : 1;
 
     dague_ddesc_init( o, nodes, myrank );
 
@@ -162,17 +166,19 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     o->data_of_key = sparse_matrix_data_of_key;
 
     desc->typesze   = typesize;
+    desc->mtxtype   = mtxtype;
     desc->solvmtx   = solvmtx;
-    desc->data_map  = (dague_data_t**)calloc( 2 * solvmtx->cblknbr, sizeof(dague_data_t*) );
+    desc->data_map  = (dague_data_t**)calloc( ratio * solvmtx->cblknbr, sizeof(dague_data_t*) );
 }
 
 void sparse_matrix_destroy( sparse_matrix_desc_t *desc )
 {
     if ( desc->data_map != NULL ) {
         dague_data_t **data = desc->data_map;
+        int ratio = ( desc->mtxtype == PastixGeneral ) ? 2 : 1;
         int i;
 
-        for(i=0; i<2*desc->solvmtx->cblknbr; i++, data++)
+        for(i=0; i<ratio*desc->solvmtx->cblknbr; i++, data++)
         {
             dague_data_destroy( *data );
         }

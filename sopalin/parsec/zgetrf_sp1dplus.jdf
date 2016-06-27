@@ -44,19 +44,19 @@ lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cbl
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
-:dataA(0, k)
+:dataA(0, k, 0)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k) : Cl GEMM_L( lastbrow )
+RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : Cl GEMM_L( lastbrow )
      -> Al GEMM_L(firstblok .. lastblok)
      -> Al GEMM_U(firstblok .. lastblok)
-     -> dataA(0, k)
+     -> dataA(0, k, 0)
 
-RW U <- ( browk0 == browk1 ) ? dataA(1, k) : Cu GEMM_U( lastbrow )
+RW U <- ( browk0 == browk1 ) ? dataA(1, k, 0) : Cu GEMM_U( lastbrow )
      -> Au GEMM_L(firstblok .. lastblok)
      -> Au GEMM_U(firstblok .. lastblok)
-     -> dataA(1, k)
+     -> dataA(1, k, 0)
 
 //; inline_c %{ return - TASK_PRIONUM(k); %}
 
@@ -114,14 +114,14 @@ next    = inline_c %{
     %}
 
 // Parallel partitioning
-:dataA(0, fcblknm)
+:dataA(0, fcblknm, 0)
 
 // Parameters
 READ  Al <- (brownum != -1) ? L GETRF( lcblknm ) : NULL
 READ  Au <- (brownum != -1) ? U GETRF( lcblknm ) : NULL
 
 RW    Cl <- (brownum == -1) ? NULL
-         <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm )
+         <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm, 0 )
          <- (brownum != -1) && (brownum != first) ? Cl GEMM_L( prev )
 
          -> (brownum != -1) && (brownum == last) ? L GETRF( fcblknm )
@@ -213,14 +213,14 @@ next    = inline_c %{
     %}
 
 // Parallel partitioning
-:dataA(1, fcblknm)
+:dataA(1, fcblknm, 0)
 
 // Parameters
 READ  Al <- (brownum != -1) ? L GETRF( lcblknm ) : NULL
 READ  Au <- (brownum != -1) ? U GETRF( lcblknm ) : NULL
 
 RW    Cu <- (brownum == -1) ? NULL
-         <- (brownum != -1) && (brownum == first) ? dataA( 1, fcblknm )
+         <- (brownum != -1) && (brownum == first) ? dataA( 1, fcblknm, 0 )
          <- (brownum != -1) && (brownum != first) ? Cu GEMM_U( prev )
 
          -> (brownum != -1) && (brownum == last) ? U GETRF( fcblknm )

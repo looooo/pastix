@@ -49,13 +49,13 @@ lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cbl
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
-:dataA(0, k) // Should match SOLV_COEFTAB(k)
+:dataA(0, k, 0) // Should match SOLV_COEFTAB(k)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k) : C GEMM( lastbrow )
+RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM( lastbrow )
      -> A GEMM(firstblok .. lastblok)
-     -> dataA(0, k)
+     -> dataA(0, k, 0)
 
      //; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
@@ -92,12 +92,12 @@ prev    = inline_c %{ if ((brownum == -1) || (brownum <= first)) return 0; else 
 next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else return datacode->browtab[brownum+1]; %}
 
 // Parallel partitioning
-:dataA(0, fcblknm)
+:dataA(0, fcblknm, 0)
 
 // Parameters
-READ  A  <- ( brownum != -1) ? L SYTRF_TRSM( lcblknm ) : dataA( 0, fcblknm )
+READ  A  <- ( brownum != -1) ? L SYTRF_TRSM( lcblknm ) : dataA( 0, fcblknm, 0 )
 
-RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm )
+RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm, 0 )
          <- ( brownum != -1 ) && (first != brownum ) ? C GEMM( prev )
 
          -> ( brownum != -1 ) && (last == brownum ) ? L SYTRF_TRSM( fcblknm )

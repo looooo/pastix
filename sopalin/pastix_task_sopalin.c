@@ -108,6 +108,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
 #if defined(PASTIX_WITH_PARSEC)
     {
         sparse_matrix_desc_t *sdesc = pastix_data->solvmatr->parsec_desc;
+        int mtxtype = ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) ? PastixGeneral : PastixHermitian;
         if ( sdesc != NULL ) {
             sparse_matrix_destroy( sdesc );
         }
@@ -117,7 +118,8 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
 
         /* Create the matrix descriptor */
         sparse_matrix_init( sdesc, pastix_data->solvmatr,
-                            pastix_size_of( spm->flttype ), 1, 0 );
+                            pastix_size_of( spm->flttype ), mtxtype,
+                            1, 0 );
         pastix_data->solvmatr->parsec_desc = sdesc;
     }
 #endif

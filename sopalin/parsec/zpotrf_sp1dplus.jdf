@@ -44,13 +44,13 @@ lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cbl
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
-:dataA(0, k)
+:dataA(0, k, 0)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k) : C GEMM( lastbrow )
+RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM( lastbrow )
      -> A GEMM(firstblok .. lastblok)
-     -> dataA(0, k)
+     -> dataA(0, k, 0)
 
 //; inline_c %{ return - TASK_PRIONUM(k); %}
 
@@ -115,13 +115,13 @@ next = inline_c %{
     %}
 
 // Parallel partitioning
-:dataA(0, fcblknm)
+:dataA(0, fcblknm, 0)
 
 // Parameters
 READ  A  <- (brownum != -1) ? L POTRF_TRSM( lcblknm ) : NULL
 
 RW    C  <- (brownum == -1) ? NULL
-         <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm )
+         <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm, 0 )
          <- (brownum != -1) && (brownum != first) ? C GEMM( prev )
 
          -> (brownum != -1) && (brownum == last)  ? L POTRF_TRSM( fcblknm )
