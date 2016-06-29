@@ -50,10 +50,26 @@ void core_zgemmsp( int diag, int trans,
                          pastix_complex64_t *C,
                          pastix_complex64_t *work );
 
+void
+core_zgemmsp_2d2dsub( int trans,
+                      pastix_int_t cblk_m,
+                      pastix_int_t cblk_n,
+                      const SolverCblk         *cblk,
+                            SolverCblk         *fcblk,
+                      const pastix_complex64_t *A,
+                      const pastix_complex64_t *B,
+                            pastix_complex64_t *C );
+
 void core_ztrsmsp( int side, int uplo, int trans, int diag,
                          SolverCblk         *cblk,
                    const pastix_complex64_t *A,
                          pastix_complex64_t *C );
+
+int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
+                              SolverCblk         *cblk,
+                              pastix_int_t        fcblknum,
+                        const pastix_complex64_t *A,
+                              pastix_complex64_t *C );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,

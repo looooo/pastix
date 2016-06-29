@@ -442,6 +442,98 @@ core_zgemmsp_2d2d( int uplo, int trans,
     }
 }
 
+void
+core_zgemmsp_2d2dsub( int trans,
+                      pastix_int_t cblk_m,
+                      pastix_int_t cblk_n,
+                      const SolverCblk         *cblk,
+                            SolverCblk         *fcblk,
+                      const pastix_complex64_t *A,
+                      const pastix_complex64_t *B,
+                            pastix_complex64_t *C )
+{
+    const SolverBlok *blokA, *blokB, *blokC;
+    const SolverBlok *bA, *bB, *bC;
+    const SolverBlok *fblokK, *lblokK;
+    const SolverBlok *fblokN, *lblokN;
+
+    const pastix_complex64_t *Aptr, *Bptr;
+    pastix_complex64_t *Cptr;
+    pastix_int_t M, N, K, lda, ldb, ldc;
+    size_t offsetA, offsetB, offsetC;
+
+    /* cblk is stored in 1D and fcblk in 2D */
+    assert( cblk->cblktype  & CBLK_SPLIT );
+    assert( fcblk->cblktype & CBLK_SPLIT );
+
+    /**
+     * Blocs on column K
+     */
+    fblokK = cblk[0].fblokptr;
+    lblokK = cblk[1].fblokptr;
+
+    blokB = fblokK+1;
+    while( (blokB->fcblknm < cblk_n) &&
+           (blokB < lblokK) )
+    {
+        blokB++;
+    }
+    offsetB = blokB->coefind;
+
+    blokA = blokB;
+    while( (blokA->fcblknm < cblk_m) &&
+           (blokA < lblokK) )
+    {
+        blokA++;
+    }
+    offsetA = blokA->coefind;
+
+    /**
+     * Blocs on column N
+     */
+    fblokN = fcblk[0].fblokptr;
+    lblokN = fcblk[1].fblokptr;
+
+    blokC = fblokN;
+    while( (blokC->fcblknm < cblk_m) &&
+           (blokC < lblokN) )
+    {
+        blokC++;
+    }
+    offsetC = blokC->coefind;
+
+    K = cblk_colnbr( cblk );
+
+    bC = blokC;
+    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
+        M = blok_rownbr(bA);
+        Aptr = A + bA->coefind - offsetA;
+        lda = M;
+
+        /* Find facing C blok */
+        while (!is_block_inside_fblock( bA, bC )) {
+            bC++;
+            assert( bC < lblokN );
+        }
+
+        Cptr = C + bC->coefind - offsetC;
+        ldc = blok_rownbr(bC);
+
+        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
+            N = blok_rownbr( bB );
+            Bptr = B + bB->coefind - offsetB;
+            ldb = N;
+
+            cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+                         M, N, K,
+                         CBLAS_SADDR(mzone), Aptr, lda,
+                         Bptr, ldb,
+                         CBLAS_SADDR(zone),  Cptr + (bA->frownum - bC->frownum)
+                                                  + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
+        }
+    }
+}
+
 /**
  *******************************************************************************
  *

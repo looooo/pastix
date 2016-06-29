@@ -216,6 +216,50 @@ core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
     return PASTIX_SUCCESS;
 }
 
+
+int
+core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
+                          SolverCblk         *cblk,
+                          pastix_int_t        fcblknum,
+                    const pastix_complex64_t *A,
+                          pastix_complex64_t *C )
+{
+    const SolverBlok *fblok, *lblok, *blok;
+    pastix_int_t M, N, lda, ldc, offset;
+    pastix_complex64_t *Cptr;
+
+    N     = cblk->lcolnum - cblk->fcolnum + 1;
+    fblok = cblk[0].fblokptr;  /* The diagonal block */
+    lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
+    lda   = blok_rownbr( fblok );
+
+    assert( blok_rownbr(fblok) == N );
+    assert( cblk->cblktype & CBLK_SPLIT );
+
+    blok = fblok+1;
+    while( (blok->fcblknm < fcblknum) &&
+           (blok < lblok) )
+    {
+        blok++;
+    }
+
+    offset = blok->coefind;
+    for (; (blok < lblok) && (blok->fcblknm == fcblknum); blok++) {
+
+        Cptr = C + blok->coefind - offset;
+        M   = blok_rownbr(blok);
+        ldc = M;
+
+        cblas_ztrsm(CblasColMajor,
+                    side, uplo, trans, diag,
+                    M, N,
+                    CBLAS_SADDR(zone), A, lda,
+                                       Cptr, ldc);
+    }
+
+    return PASTIX_SUCCESS;
+}
+
 /**
  *******************************************************************************
  *
