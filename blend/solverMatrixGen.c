@@ -146,6 +146,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
         Cand       *candcblk = ctrl->candtab;
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
 
+        solvmtx->cblkmin2d = solvmtx->cblknbr;
         cblknum = 0;
         brownum = 0;
         nodenbr = 0;
@@ -187,6 +188,10 @@ solverMatrixGen(const pastix_int_t  clustnum,
             {
                 pastix_int_t brownbr;
 
+                if (split & (cblknum < solvmtx->cblkmin2d) ) {
+                    solvmtx->cblkmin2d = cblknum;
+                }
+
                 /* Init the cblk */
                 solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
                 solvcblk->ctrbcnt  = -1;
@@ -209,8 +214,8 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 memcpy( solvmtx->browtab + brownum,
                         symbmtx->browtab + symbmtx->cblktab[i].brownum,
                         brownbr * sizeof(pastix_int_t) );
-                brownum += brownbr;
 
+                brownum += brownbr;
                 assert( brownum <= solvmtx->brownbr );
 
                 /* Extra statistic informations */

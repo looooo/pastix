@@ -107,6 +107,7 @@ struct SolverMatrix_ {
     pastix_int_t            coefnbr; /*< Number of coefficients (node after dof extension) */
     pastix_int_t            gcblknbr;/*< Global number of column blocks                    */
     pastix_int_t            cblknbr; /*< Number of column blocks                   */
+    pastix_int_t            cblkmin2d;/*< Rank of the first cblk beeing enabled for 2D computations        */
     pastix_int_t            bloknbr; /*< Number of blocks                          */
     pastix_int_t            brownbr; /*< Size of the browtab array                 */
     SolverCblk   * restrict cblktab; /*< Array of solver column blocks             */

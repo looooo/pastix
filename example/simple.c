@@ -46,6 +46,7 @@ int main (int argc, char **argv)
     spm = malloc( sizeof( pastix_spm_t ) );
     cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
+
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
