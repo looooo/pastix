@@ -20,10 +20,11 @@ extern "C" %{
 dataA        [type = "dague_ddesc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
-datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
-cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
-bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+descA     [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
+datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
 
 p_work   [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
 
@@ -39,17 +40,17 @@ k = 0 .. cblknbr
 
 browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
 browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
+lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
 lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
-lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
 :dataA(0, k, 0)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM( lastbrow )
-     -> A GEMM(firstblok .. lastblok)
+RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM1D( lastbrow )
+     -> A GEMM1D(firstblok .. lastblok)
      -> dataA(0, k, 0)
 
 //; inline_c %{ return - TASK_PRIONUM(k); %}
@@ -75,7 +76,7 @@ END
  * k-th block updating corresponding.
  *
  */
-GEMM(bloknum)
+GEMM1D(bloknum)
 
 // Execution space
 bloknum = 1 .. bloknbr
@@ -122,10 +123,10 @@ READ  A  <- (brownum != -1) ? L POTRF_TRSM( lcblknm ) : NULL
 
 RW    C  <- (brownum == -1) ? NULL
          <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm, 0 )
-         <- (brownum != -1) && (brownum != first) ? C GEMM( prev )
+         <- (brownum != -1) && (brownum != first) ? C GEMM1D( prev )
 
          -> (brownum != -1) && (brownum == last)  ? L POTRF_TRSM( fcblknm )
-         -> (brownum != -1) && (brownum != last)  ? C GEMM( next )
+         -> (brownum != -1) && (brownum != last)  ? C GEMM1D( next )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 

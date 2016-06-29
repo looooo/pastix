@@ -29,7 +29,7 @@ spm_data_key( int ratio, int uplo,
      * either blokum == 0, or cblknum == cblknbr toa ply a shift in the postive
      * range
      */
-    return  ratio * (cblknum + bloknum) + uplo;
+    return  ratio * cblknum + bloknum + uplo;
 }
 
 static inline void
@@ -40,17 +40,24 @@ spm_data_key_to_value( dague_data_key_t key,
                        pastix_int_t *bloknum)
 {
     dague_data_key_t key2;
-    const SolverBlok *blok;
+    pastix_int_t cblkmin2d, cblknbr;
 
     /* Refers to a block */
+    cblknbr   = solvmtx->cblknbr;
+    cblkmin2d = solvmtx->cblkmin2d;
     key2 = ratio * solvmtx->cblknbr;
     if ( key >= key2 ) {
-        key2 = key - key2;
+        pastix_int_t m, n, ld;
 
-        *uplo    = key2 % ratio;
-        *bloknum = key2 / ratio;
-        blok     = solvmtx->bloktab + (*bloknum);
-        *cblknum = blok->lcblknm;
+        key2 = key - key2;
+        ld   = cblknbr - cblkmin2d;
+
+        m = key2 % ld;
+        n = key2 / ld;
+
+        *uplo    = (m >= n) ? 0 : 1;
+        *bloknum = cblkmin2d + m;
+        *cblknum = cblkmin2d + n;
     }
     else {
         *uplo    = key % ratio;
@@ -65,27 +72,33 @@ sparse_matrix_data_key(dague_ddesc_t *mat, ... )
     va_list ap;
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     int uplo, ratio;
-    pastix_int_t cblknum, bloknum, fbloknum;
-    SolverCblk *cblk;
+    pastix_int_t cblknum, bloknum;
 
     va_start(ap, mat);
     uplo    = va_arg(ap, int);
     cblknum = va_arg(ap, int);
-    bloknum = va_arg(ap, int);
+    bloknum = va_arg(ap, int) - 1;
     va_end(ap);
 
     ratio = spmtx->mtxtype == PastixGeneral ? 2 : 1;
     uplo = uplo ? 1 : 0;
     assert( ratio == 2 || uplo == 0 );
 
-    cblk = spmtx->solvmtx->cblktab + cblknum;
-    fbloknum = cblk->fblokptr - spmtx->solvmtx->bloktab;
-
-    if ( (cblk->cblktype & CBLK_SPLIT) && (bloknum != -1) ) {
-        return spm_data_key( ratio, uplo, spmtx->solvmtx->cblknbr, fbloknum + bloknum );
+    if ( bloknum == -1 ) {
+        return cblknum * ratio + uplo;
     }
     else {
-        return spm_data_key( ratio, uplo, cblknum, 0 );
+        pastix_int_t offset, ld, cblknbr;
+        pastix_int_t cblkmin2d, m, n;
+
+        cblknbr   = spmtx->solvmtx->cblknbr;
+        cblkmin2d = spmtx->solvmtx->cblkmin2d;
+        offset    = cblknbr * ratio;
+        ld        = cblknbr - cblkmin2d;
+        m         = bloknum - cblkmin2d;
+        n         = cblknum - cblkmin2d;
+
+        return offset + n * ld + m;
     }
 }
 
@@ -125,10 +138,9 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     char *ptr;
     va_list ap;
     int uplo, ratio;
-    pastix_int_t cblknum, bloknum, fbloknum;
-    dague_data_key_t key;
-    size_t size, offset, pos;
-    dague_data_t **dataptr;
+    pastix_int_t cblknum, bloknum;
+    dague_data_key_t key1, key2;
+    size_t size;
 
     va_start(ap, mat);
     uplo    = va_arg(ap, int);
@@ -140,37 +152,30 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
     uplo = uplo ? 1 : 0;
     assert( ratio == 2 || uplo == 0 );
 
-    pos  = ratio * cblknum + uplo;
     cblk = spmtx->solvmtx->cblktab + cblknum;
-    dataptr = spmtx->data_map + pos;
     ptr  = uplo ? cblk->ucoeftab : cblk->lcoeftab;
 
-    if ( cblk->cblktype & CBLK_SPLIT ) {
-        /* Return the data for all the cblk to process as 1d */
-        if ( bloknum == -1 ) {
-            key  = spm_data_key( ratio, uplo, cblknum, 0 );
-            size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-            offset = 0;
-        }
-        else {
-            fbloknum = cblk->fblokptr - spmtx->solvmtx->bloktab;
-
-            /* Return the data for one of the block in the cblk to process as 2d */
-            key  = spm_data_key( ratio, uplo, spmtx->solvmtx->cblknbr, fbloknum + bloknum );
-            size = blok_rownbr( cblk->fblokptr + bloknum ) * cblk_colnbr( cblk )  * (size_t)spmtx->typesze;
-            offset = (cblk->fblokptr + bloknum)->coefind * (size_t)spmtx->typesze;
-        }
-
-        /* Extra level of indirection */
-        dataptr = ((dague_data_t**)(*dataptr)) + bloknum + 1;
+    if ( bloknum == -1 ) {
+        key1 = ratio * cblknum + uplo;
+        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+        return dague_data_create( spmtx->datamap_cblk + key1,
+                                  mat, key1, ptr, size );
     }
     else {
-        /* Return the data for all the cblk to process as 1d */
-        key = spm_data_key( ratio, uplo, cblknum, 0 );
-        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-        offset = 0;
+        pastix_int_t m, n, cblkmin2d, cblknbr, ld;
+
+        cblknbr   = spmtx->solvmtx->cblknbr;
+        cblkmin2d = spmtx->solvmtx->cblkmin2d;
+        ld        = cblknbr - cblkmin2d;
+        m         = bloknum - cblkmin2d;
+        n         = cblknum - cblkmin2d;
+
+        key1 = ratio * cblknbr;
+        key2 = n * ld + m;
+
+        assert( spmtx->datamap_cblk[key2] != NULL );
+        return dague_data_create( spmtx->datamap_cblk + key2, mat, key1+key2, NULL, 0 );
     }
-    return dague_data_create( dataptr, mat, key, ptr + offset, size );
 }
 
 static dague_data_t *
@@ -181,8 +186,7 @@ sparse_matrix_data_of_key(dague_ddesc_t *mat, dague_data_key_t key )
     SolverCblk *cblk;
     int uplo, ratio;
     pastix_int_t cblknum, bloknum;
-    size_t size, pos, offset;
-    dague_data_t **dataptr;
+    size_t size;
     char *ptr;
 
     ratio = (spmtx->mtxtype == PastixGeneral) ? 2 : 1;
@@ -190,31 +194,27 @@ sparse_matrix_data_of_key(dague_ddesc_t *mat, dague_data_key_t key )
                            &uplo, &cblknum, &bloknum );
 
     cblk = solvmtx->cblktab + cblknum;
-    pos  = ratio * cblknum + uplo;
     ptr  = uplo ? cblk->ucoeftab : cblk->lcoeftab;
-    dataptr = spmtx->data_map + pos;
 
-    if ( cblk->cblktype & CBLK_SPLIT ) {
-        /* Return the data for all the cblk to process as 1d */
-        if ( bloknum == -1 ) {
-            size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-            offset = 0;
-        }
-        else {
-            /* Return the data for one of the block in the cblk to process as 2d */
-            size = blok_rownbr( cblk->fblokptr + bloknum ) * cblk_colnbr( cblk )  * (size_t)spmtx->typesze;
-            offset = (cblk->fblokptr + bloknum)->coefind * (size_t)spmtx->typesze;
-        }
-        /* Extra level of indirection */
-        dataptr = ((dague_data_t**)(*dataptr)) + bloknum + 1;
+    if ( bloknum == -1 ) {
+        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+        return dague_data_create( spmtx->datamap_cblk + key,
+                                  mat, key, ptr, size );
     }
     else {
-        /* Return the data for all the cblk to process as 1d */
-        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-        offset = 0;
+        dague_data_key_t key2;
+        pastix_int_t m, n, cblkmin2d, cblknbr, ld;
+
+        cblknbr   = spmtx->solvmtx->cblknbr;
+        cblkmin2d = spmtx->solvmtx->cblkmin2d;
+        ld        = cblknbr - cblkmin2d;
+        m         = bloknum - cblkmin2d;
+        n         = cblknum - cblkmin2d;
+        key2 = n * ld + m;
+
+        assert( spmtx->datamap_cblk[key2] != NULL );
+        return dague_data_create( spmtx->datamap_cblk + key2, mat, key, NULL, 0 );
     }
-    return dague_data_create( dataptr, mat, key,
-                              ptr + offset, size );
 }
 
 #ifdef DAGUE_PROF_TRACE
@@ -239,15 +239,15 @@ static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, cha
 }
 #endif
 
-void sparse_matrix_init( sparse_matrix_desc_t *desc,
+void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                          SolverMatrix *solvmtx,
                          int typesize, int mtxtype,
                          int nodes, int myrank)
 {
-    dague_ddesc_t *o    = (dague_ddesc_t*)desc;
-    SolverCblk    *cblk = solvmtx->cblktab;
-    dague_data_t **data;
-    pastix_int_t   cblknum, cblknbr;
+    dague_ddesc_t *o    = (dague_ddesc_t*)spmtx;
+    dague_data_t **datamap;
+    pastix_int_t   cblknbr, cblkmin2d, ld;
+    dague_data_key_t offkey, key2;
     int ratio = ( mtxtype == PastixGeneral ) ? 2 : 1;
 
     dague_ddesc_init( o, nodes, myrank );
@@ -264,57 +264,125 @@ void sparse_matrix_init( sparse_matrix_desc_t *desc,
     o->data_of     = sparse_matrix_data_of;
     o->data_of_key = sparse_matrix_data_of_key;
 
-    desc->typesze   = typesize;
-    desc->mtxtype   = mtxtype;
-    desc->solvmtx   = solvmtx;
-    desc->data_map  = (dague_data_t**)calloc( ratio * solvmtx->cblknbr, sizeof(dague_data_t*) );
+    spmtx->typesze   = typesize;
+    spmtx->mtxtype   = mtxtype;
+    spmtx->solvmtx   = solvmtx;
 
-    cblknbr = solvmtx->cblknbr;
-    data = desc->data_map;
-    for(cblknum=0; cblknum<cblknbr; cblknum++, cblk++, data += ratio)
-    {
-        if ( cblk->cblktype & CBLK_SPLIT ) {
-            data[0] = calloc( (cblk[1].fblokptr - cblk[0].fblokptr + 1), sizeof(dague_data_t*) );
-            if (ratio == 2) {
-                data[1] = calloc( (cblk[1].fblokptr - cblk[0].fblokptr + 1), sizeof(dague_data_t*) );
+    cblknbr   = solvmtx->cblknbr;
+    cblkmin2d = solvmtx->cblkmin2d;
+    offkey    = ratio * cblknbr;
+    ld        = cblknbr - cblkmin2d;
+
+    spmtx->datamap_cblk = (dague_data_t**)calloc( ratio * cblknbr, sizeof(dague_data_t*) );
+    if ( cblkmin2d < cblknbr ) {
+        SolverCblk *cblkN, *cblkM;
+        SolverBlok *blok, *lblok;
+        pastix_int_t m, n, cblknumN, cblknumM;
+        size_t size, offset;
+        char *ptr;
+
+        spmtx->datamap_blok = (dague_data_t**)calloc( ld *  ld, sizeof(dague_data_t*) );
+        datamap = spmtx->datamap_blok;
+
+        cblkN = spmtx->solvmtx->cblktab + cblkmin2d;
+        for(cblknumN = cblkmin2d, n = 0;
+            cblknumN < cblknbr;
+            cblknumN++, n++, cblkN++ )
+        {
+            if ( !(cblkN->cblktype & CBLK_SPLIT) )
+                continue;
+
+            /**
+             * Upper Part
+             */
+            /* if ( ratio == 2 ) { */
+            /*     cblkM = spmtx->solvmtx->cblktab + cblkmin2d; */
+            /*     for(cblknumM = cblkmin2d, m = 0; */
+            /*         cblknumM < cblknumN; */
+            /*         cblknumM++, m++, cblkM++ ) */
+            /*     { */
+            /*     } */
+            /* } */
+
+            /**
+             * Diagonal block
+             */
+            ptr    = cblkN->lcoeftab;
+            blok   = cblkN->fblokptr;
+            size   = blok_rownbr( blok ) * cblk_colnbr( cblkN ) * (size_t)spmtx->typesze;
+            offset = blok->coefind * (size_t)spmtx->typesze;
+            key2   = n * ld + n;
+
+            dague_data_create( datamap + key2, &spmtx->super, offkey + key2,
+                               ptr + offset, size );
+
+
+            /**
+             * Lower Part
+             */
+            blok++;
+            cblkM = spmtx->solvmtx->cblktab + cblknumN + 1;
+            lblok = cblkM->fblokptr;
+            for(cblknumM = cblknumN+1, m = n+1;
+                (cblknumM < cblknbr) && (blok < lblok);
+                cblknumM++, m++, cblkM++ )
+            {
+                if ( cblkM->lcolnum < blok->frownum )
+                    continue;
+
+                assert( (cblkM->fcolnum <= blok->frownum) & (blok->lrownum <= cblkM->lcolnum) );
+                size   = 0;
+                offset = blok->coefind * (size_t)spmtx->typesze;
+
+                while( (cblkM->fcolnum <= blok->frownum) & (blok->lrownum <= cblkM->lcolnum) ) {
+                    size += blok_rownbr( blok );
+                    blok++;
+                }
+
+                size *= cblk_colnbr( cblkN ) * (size_t)spmtx->typesze;
+                key2  = n * ld + m;
+                dague_data_create( datamap + key2, &spmtx->super, offkey + key2,
+                                   ptr + offset, size );
             }
         }
+    }
+    else {
+        spmtx->datamap_blok = NULL;
     }
 }
 
-void sparse_matrix_destroy( sparse_matrix_desc_t *desc )
+void sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
 {
-    if ( desc->data_map != NULL ) {
-        dague_data_t **data = desc->data_map;
-        dague_data_t **dataptrL;
-        dague_data_t **dataptrU;
-        SolverCblk    *cblk = desc->solvmtx->cblktab;
-        int ratio = ( desc->mtxtype == PastixGeneral ) ? 2 : 1;
-        pastix_int_t i, j;
+    pastix_int_t i;
+    dague_data_t **data;
+    int ratio = ( spmtx->mtxtype == PastixGeneral ) ? 2 : 1;
 
-        for(i=0; i < desc->solvmtx->cblknbr; i++, cblk++, data+=ratio)
+    if ( spmtx->datamap_cblk != NULL ) {
+        data = spmtx->datamap_cblk;
+
+        for(i=0; i < spmtx->solvmtx->cblknbr; i++, data+=ratio)
         {
-            if ( cblk->cblktype & CBLK_SPLIT ) {
-                dataptrL = (dague_data_t**)data[0];
-                dataptrU = (dague_data_t**)data[1];
-                for( j=0; j<(cblk[1].fblokptr - cblk[0].fblokptr + 1); j++, dataptrL++, dataptrU++ )
-                {
-                    dague_data_destroy( *dataptrL );
-                    if (ratio == 2)
-                        dague_data_destroy( *dataptrU );
-                }
-                free( data[0] );
-                if (ratio == 2)
-                    free( data[1] );
-            }
-            else {
-                dague_data_destroy( *data );
-                if (ratio == 2)
-                    dague_data_destroy( data[1] );
-            }
+            dague_data_destroy( data[0] );
+            if (ratio == 2)
+                dague_data_destroy( data[1] );
         }
-        free( desc->data_map );
-        desc->data_map = NULL;
+        free( spmtx->datamap_cblk );
+        spmtx->datamap_cblk = NULL;
     }
-    dague_ddesc_destroy( (dague_ddesc_t*)desc );
+
+    if ( spmtx->datamap_blok != NULL ) {
+        pastix_int_t nbblock2d = (spmtx->solvmtx->cblknbr - spmtx->solvmtx->cblkmin2d);
+
+        nbblock2d = nbblock2d * nbblock2d;
+        data = spmtx->datamap_blok;
+
+        for(i=0; i < nbblock2d; i++, data++)
+        {
+            dague_data_destroy( *data );
+        }
+        free( spmtx->datamap_blok );
+        spmtx->datamap_blok = NULL;
+    }
+
+    dague_ddesc_destroy( (dague_ddesc_t*)spmtx );
 }
