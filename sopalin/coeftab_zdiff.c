@@ -17,7 +17,7 @@
  **/
 #include "common.h"
 #include "solver.h"
-#include <lapacke.h>
+#include "lapacke.h"
 #include "coeftab.h"
 #include "pastix_zcores.h"
 

@@ -19,7 +19,7 @@
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
-#include <lapacke.h>
+#include "lapacke.h"
 #include "coeftab.h"
 #include "pastix_zcores.h"
 
