@@ -19,6 +19,8 @@
 
 #include "common.h"
 
+static dague_data_t *datanull = NULL;
+
 static inline pastix_int_t
 spm_data_key( int ratio, int uplo,
               pastix_int_t cblknum,
@@ -173,8 +175,8 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
         key1 = ratio * cblknbr;
         key2 = n * ld + m;
 
-        assert( spmtx->datamap_cblk[key2] != NULL );
-        return dague_data_create( spmtx->datamap_cblk + key2, mat, key1+key2, NULL, 0 );
+        assert( spmtx->datamap_blok[key2] != NULL );
+        return dague_data_create( spmtx->datamap_blok + key2, mat, key1+key2, NULL, 0 );
     }
 }
 
@@ -212,8 +214,8 @@ sparse_matrix_data_of_key(dague_ddesc_t *mat, dague_data_key_t key )
         n         = cblknum - cblkmin2d;
         key2 = n * ld + m;
 
-        assert( spmtx->datamap_cblk[key2] != NULL );
-        return dague_data_create( spmtx->datamap_cblk + key2, mat, key, NULL, 0 );
+        assert( spmtx->datamap_blok[key2] != NULL );
+        return dague_data_create( spmtx->datamap_blok + key2, mat, key, NULL, 0 );
     }
 }
 
@@ -320,15 +322,24 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
             /**
              * Lower Part
              */
-            blok++;
+            blok++; key2++;
             cblkM = spmtx->solvmtx->cblktab + cblknumN + 1;
             lblok = cblkM->fblokptr;
             for(cblknumM = cblknumN+1, m = n+1;
-                (cblknumM < cblknbr) && (blok < lblok);
-                cblknumM++, m++, cblkM++ )
+                cblknumM < cblknbr;
+                cblknumM++, m++, cblkM++, key2++ )
             {
-                if ( cblkM->lcolnum < blok->frownum )
+                if ( cblkM->lcolnum < blok->frownum ) {
+                    dague_data_create( datamap + key2, NULL,
+                                       offkey + key2, NULL, 0 );
                     continue;
+                }
+
+                if (!(blok < lblok)) {
+                    dague_data_create( datamap + key2, NULL,
+                                       offkey + key2, NULL, 0 );
+                    continue;
+                }
 
                 assert( (cblkM->fcolnum <= blok->frownum) & (blok->lrownum <= cblkM->lcolnum) );
                 size   = 0;
@@ -340,7 +351,6 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                 }
 
                 size *= cblk_colnbr( cblkN ) * (size_t)spmtx->typesze;
-                key2  = n * ld + m;
                 dague_data_create( datamap + key2, &spmtx->super, offkey + key2,
                                    ptr + offset, size );
             }
