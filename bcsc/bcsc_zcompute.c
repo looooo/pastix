@@ -18,7 +18,7 @@
  **/
 #include "common.h"
 #include <math.h>
-#include <lapacke.h>
+#include "lapacke.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
 #include "frobeniusupdate.h"

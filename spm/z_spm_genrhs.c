@@ -13,7 +13,7 @@
  *
  * @precisions normal z -> c s d
  **/
-#include <lapacke.h>
+#include "lapacke.h"
 #include "common.h"
 #include "solver.h"
 #include "spm.h"

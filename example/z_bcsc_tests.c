@@ -22,7 +22,7 @@
 #include <common.h>
 #include <spm.h>
 #include <bcsc.h>
-#include <lapacke.h>
+#include "lapacke.h"
 #include <z_spm.h>
 #include <z_bcsc.h>
 #include <bcsc.h>

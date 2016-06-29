@@ -21,8 +21,8 @@
 #include <pastix.h>
 #include <common.h>
 #include <spm.h>
-#include <cblas.h>
-#include <lapacke.h>
+#include "cblas.h"
+#include "lapacke.h"
 #include <z_spm.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
