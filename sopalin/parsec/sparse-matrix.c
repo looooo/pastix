@@ -226,8 +226,9 @@ static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, cha
     int uplo;
     pastix_int_t cblknum, bloknum;
     int res;
+    int ratio = ( spmtx->mtxtype == PastixGeneral ) ? 2 : 1;
 
-    spm_data_key_to_value( datakey, ratio, spm->solvmtx,
+    spm_data_key_to_value( datakey, ratio, spmtx->solvmtx,
                            &uplo, &cblknum, &bloknum );
 
     res = snprintf(buffer, buffer_size, "(%d, %ld, %ld)",
@@ -282,6 +283,7 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         pastix_int_t m, n, cblknumN, cblknumM;
         size_t size, offset;
         char *ptr;
+
 
         spmtx->datamap_blok = (dague_data_t**)calloc( ld *  ld, sizeof(dague_data_t*) );
         datamap = spmtx->datamap_blok;
