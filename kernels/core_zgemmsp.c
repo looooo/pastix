@@ -613,6 +613,5 @@ void core_zgemmsp( int uplo, int trans,
                            cblk, blok, fcblk,
                            A, B, C, work );
     }
-    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
 }
 
