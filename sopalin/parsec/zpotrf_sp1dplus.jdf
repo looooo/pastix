@@ -41,6 +41,7 @@ k = 0 .. cblknbr
 browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
 browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
+isTwoD    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
 firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
 lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 
@@ -50,15 +51,19 @@ lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cbl
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
 RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM1D( lastbrow )
-     -> A GEMM1D(firstblok .. lastblok)
+     -> !isTwoD ? A GEMM1D(firstblok .. lastblok)
      -> dataA(0, k, 0)
+
+CTL ctl -> isTwoD ? ctl OneToTwoD(k, 0 .. (lastblok-firstblok+1))
 
 //; inline_c %{ return - TASK_PRIONUM(k); %}
 
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
+    if (!isTwoD) {
+        core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
+    }
 }
 END
 
@@ -85,6 +90,7 @@ lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return
 fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
 first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + lcblknm;     return cblk->cblktype & CBLK_SPLIT; %}
 
 brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
 prev = inline_c %{
@@ -119,7 +125,7 @@ next = inline_c %{
 :dataA(0, fcblknm, 0)
 
 // Parameters
-READ  A  <- (brownum != -1) ? L POTRF_TRSM( lcblknm ) : NULL
+READ  A  <- (brownum != -1 && !isTwoD) ? L POTRF_TRSM( lcblknm ) : NULL
 
 RW    C  <- (brownum == -1) ? NULL
          <- (brownum != -1) && (brownum == first) ? dataA( 0, fcblknm, 0 )
@@ -130,11 +136,11 @@ RW    C  <- (brownum == -1) ? NULL
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-BODY [type=CUDA device=inline_c %{ if (brownum == -1) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
+BODY [type=CUDA device=%{ if (brownum == -1 || isTwoD) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
       /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
 {
     /* Compute only if non diagonal block */
-    if (brownum != -1) {
+    if ((brownum != -1) && !isTwoD) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
@@ -150,7 +156,7 @@ END
 BODY
 {
     /* If diagonal block, we skip */
-    if (brownum != -1) {
+    if ((brownum != -1) && !isTwoD) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
@@ -160,8 +166,286 @@ BODY
 
         core_zgemmsp( PastixLower, PastixConjTrans, lcblk, blok, fcblk,
                       A, A, C, work );
-
         dague_private_memory_push( p_work, (void *)work );
+    }
+}
+END
+
+OneToTwoD(k, m)
+
+// Execution space
+k    = cblkmin2d .. cblknbr
+
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+m       = 0 .. (isTwoD ? (lblokk-fblokk) : -1 )
+
+noskip  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
+
+first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; } else { return 0; }%}
+last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; } else { return 0; }%}
+
+// Parallel partitioning
+:dataA(0, k, noskip)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+READ A <- isTwoD && noskip ? dataA(0, k, noskip) : NULL
+       -> isTwoD && (first == last) && (m == 0) ? A POTRF2D( k )
+       -> isTwoD && (first == last) && (m != 0) && noskip ? C TRSM2D( k, m )
+
+       -> isTwoD && (first <  last) && noskip ? C GEMM2D( first, m, k )
+
+CTL  ctl <- (isTwoD) ? ctl POTRF_TRSM(k)
+
+   //; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+    fprintf(stderr, "k=%d, m=%d, isTwoD=%d, noskip=%d\n",
+            k, m, isTwoD, noskip );
+}
+END
+
+POTRF2D(k)
+
+// Execution space
+k       = cblkmin2d .. cblknbr
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+
+first   = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; %}
+last    = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
+
+// Parallel partitioning
+:dataA(0, k, 1)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+READ  A   <-  isTwoD & (first == last) ? A OneToTwoD( k, k )
+          <-  isTwoD & (first <  last) ? C GEMM2D( last-1, 0, k )
+          <- !isTwoD ? NULL
+
+          ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk) )
+          ->  isTwoD ? dataA(0, k, 1)
+
+//; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+    if (isTwoD) {
+        SolverCblk *cblk = datacode->cblktab + k;
+        /* pastix_int_t  nbpivot = */
+        core_zpotrfsp1d_potrf( cblk, A, sopalin_data->diagthreshold );
+    }
+}
+END
+
+TRSM2D(k, m)
+
+     /* On all the 2D cblk */
+k       = cblkmin2d .. cblknbr-1
+
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+m       = 1 .. (isTwoD ? (lblokk-fblokk) : 0 )
+
+noskip  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
+
+first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; } else { return 0; }%}
+last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; } else { return 0; }%}
+
+fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->fcblknm; %}
+browkb  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m;
+                      return blok->browind; %}
+fblokn  = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->fblokptr - datacode->bloktab; %}
+lblokn  = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->fblokptr - datacode->bloktab-1; %}
+
+
+// Parallel partitioning
+:dataA(0, k, noskip)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+READ  A   <-  isTwoD ? A POTRF2D( k ) : NULL
+
+RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
+          <-  isTwoD & noskip & (first <  last) ? C GEMM2D( last-1, m, k )
+          <-(!isTwoD) | (!noskip) ? NULL
+          ->  isTwoD & noskip ? A FWDTOGEMM2D(k, m, 1 .. m)
+          ->  isTwoD & noskip ? B GEMM2D(browkb, 0 .. (lblokn-fblokn), fcblknm)
+          ->  isTwoD & noskip ? dataA(0, k, noskip)
+
+//; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+    if (isTwoD && noskip) {
+        SolverCblk *cblk = datacode->cblktab + k;
+        core_ztrsmsp_2dsub( PastixRight, PastixLower, PastixConjTrans, PastixNonUnit,
+                            cblk, m, A, C );
+   }
+}
+END
+
+FWDTOGEMM2D(k, m, n)
+
+// Execution space
+k       = cblkmin2d .. cblknbr-1
+isTwoD  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+m       = 1 .. (isTwoD ? (lblokk-fblokk) : 0 )
+n       = 1 .. m
+
+noskipM = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
+
+noskipN = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + n - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+n; %}
+
+cblk_n  = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;  return blok->fcblknm; %}
+blok_mn = %{
+      SolverBlok *blokA = datacode->bloktab + fblokk + m;
+      SolverCblk *cblkC = datacode->cblktab + cblk_n;
+      SolverBlok *blokC = cblkC->fblokptr;
+      pastix_int_t i = 0;
+
+      while( !is_block_inside_fblock( blokA, blokC ) )
+      {
+         blokC++; i++;
+      }
+      return i;
+%}
+browkb = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;
+            return blok->browind; %}
+
+// Parallel partitioning
+:dataA(0, k, noskipM)
+
+// Parameters
+READ  A  <- noskipM ? C TRSM2D( k, m ) : NULL
+         -> noskipM & noskipN ? A GEMM2D( browkb, blok_mn, cblk_n )
+
+BODY
+{
+}
+END
+
+
+/**
+ *       GEMM
+ *
+ * To have a contiguous range of GEMM to release in the potrf, they are numbered
+ * with the indexes of the off-diagonal blocks, diagonal block included.
+ * Thus, the diagonal block tasks which doesn't perfom computations are used as
+ * DATA_IN tasks. This is mandatory when using the GPU, due to the versioning
+ * bumped by the cpu version of the diagonal block that coccurs when computing
+ * the diagonal blocks.
+ *
+ * For all off-diagonal blocks, it updates the trailing matrix with the panel
+ * k-th block updating corresponding.
+ *
+ */
+GEMM2D(k, blok_mn, cblk_n)
+
+// Execution space
+cblk_n  = cblkmin2d+1 .. cblknbr
+
+is2dC   = %{ SolverCblk *cblk = datacode->cblktab + cblk_n; return (cblk->cblktype & CBLK_SPLIT); %}
+fblokn  = %{ SolverCblk *cblk = datacode->cblktab + cblk_n;     return cblk->fblokptr - datacode->bloktab; %}
+lblokn  = %{ SolverCblk *cblk = datacode->cblktab + cblk_n + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+blok_mn = 0 .. (is2dC ? (lblokn-fblokn) : -1)
+
+noskipC = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokn + blok_mn - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+blok_mn; %}
+
+first   = %{ if (noskipC) { SolverCblk *cblk = datacode->cblktab + cblk_n;     return cblk->brown2d;     }
+             else { return 1; }%}
+last    = %{ if (noskipC) { SolverCblk *cblk = datacode->cblktab + cblk_n + 1; return cblk->brownum - 1; }
+             else { return 0; }%}
+k       = first .. last
+
+blok_nk = %{ pastix_int_t nk = datacode->browtab[ k ];
+             SolverBlok *blok = datacode->bloktab + nk - 1;
+             return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                      (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : nk; %}
+
+cblk_k  = %{ SolverBlok *blok = datacode->bloktab + blok_nk; return blok->lcblknm; %}
+fblokk  = %{ SolverCblk *cblk = datacode->cblktab + cblk_k;  return cblk->fblokptr - datacode->bloktab; %}
+
+is2dA   = %{ SolverCblk *cblk = datacode->cblktab + cblk_k; return (cblk->cblktype & CBLK_SPLIT); %}
+
+blok_mk = %{
+    if ( blok_nk == 0 ) {
+       return 0;
+    }
+    else {
+      SolverBlok *blokA = datacode->bloktab + blok_nk;
+      SolverBlok *blokC = datacode->bloktab + fblokn + blok_mn;
+      pastix_int_t i = (blokA - datacode->bloktab) - fblokk;
+
+      while( (blokC->frownum > blokA->lrownum) && (blokA[0].lcblknm == blokA[1].lcblknm) )
+      {
+         blokA++; i++;
+      }
+      return is_block_inside_fblock( blokA, blokC ) ? i : 0;
+    }
+%}
+
+// Parallel partitioning
+:dataA(0, cblk_n, noskipC)
+
+// Parameters
+READ  A  <-  is2dA & (blok_mk > 0) ? A FWDTOGEMM2D( cblk_k, blok_mk, blok_nk-fblokk ) : NULL
+READ  B  <-  is2dA & (blok_nk > 0) ? C TRSM2D( cblk_k, blok_nk-fblokk ) : NULL
+
+RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
+         <- (k != first) ? C GEMM2D( k-1, blok_mn, cblk_n )
+
+         -> (last == k) & (blok_mn == 0) ? A POTRF2D( cblk_n )
+         -> (last == k) & (blok_mn != 0) ? C TRSM2D( cblk_n, blok_mn )
+         -> (last != k) ? C GEMM2D( k+1, blok_mn, cblk_n )
+
+//; inline_c %{ return - TASK_PRIONUM(fcblk); %}
+
+BODY [type=CUDA] // device=inline_c %{ if (brownum == -1 || isTwoD) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
+      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
+{
+    /* /\* Compute only if non diagonal block *\/ */
+    /* if (brownum != -1) { */
+    /*     SolverCblk *lcblk = datacode->cblktab + lcblknm; */
+    /*     SolverCblk *fcblk = datacode->cblktab + fcblknm; */
+    /*     SolverBlok *blok  = datacode->bloktab + bloknum; */
+
+    /*     gpu_zgemmsp( PastixLower, PastixConjTrans, */
+    /*                  lcblk, blok, fcblk, */
+    /*                  A, A, C, */
+    /*                  dague_body.stream ); */
+    /* } */
+}
+END
+
+BODY
+{
+    if (is2dA && is2dC && noskipC && blok_nk && blok_mk) {
+        /* Don't do anything is one is null */
+        if (A && B && C) {
+            SolverCblk *cblk  = datacode->cblktab + cblk_k;
+            SolverCblk *fcblk = datacode->cblktab + cblk_n;
+
+            core_zgemmsp_2d2dsub( PastixConjTrans,
+                                  blok_mk, blok_nk-fblokk, blok_mn,
+                                  cblk, fcblk,
+                                  A, B, C );
+        }
     }
 }
 END
