@@ -52,8 +52,9 @@ void core_zgemmsp( int diag, int trans,
 
 void
 core_zgemmsp_2d2dsub( int trans,
-                      pastix_int_t cblk_m,
-                      pastix_int_t cblk_n,
+                      pastix_int_t blok_mk,
+                      pastix_int_t blok_kn,
+                      pastix_int_t blok_mn,
                       const SolverCblk         *cblk,
                             SolverCblk         *fcblk,
                       const pastix_complex64_t *A,
