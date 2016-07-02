@@ -508,7 +508,7 @@ core_zgemmsp_2d2dsub( int trans,
         Cptr = C + bC->coefind - offsetC;
         ldc = blok_rownbr(bC);
 
-        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
+        for (bB = blokB; (bB <= bA) && (bB->fcblknm == cblk_n); bB++) {
             N = blok_rownbr( bB );
             Bptr = B + bB->coefind - offsetB;
             ldb = N;

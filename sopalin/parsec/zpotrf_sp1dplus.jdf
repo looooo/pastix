@@ -180,10 +180,14 @@ isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk-
 fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
 lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 m       = 0 .. (isTwoD ? (lblokk-fblokk) : -1 )
-
-noskip  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
-                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
-                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
+noskip  = %{ if (m == 0) {
+               return 1;
+             }
+             else {
+               SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
+               return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                        (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m;
+             } %}
 
 first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; } else { return 0; }%}
 last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; } else { return 0; }%}
@@ -204,8 +208,8 @@ CTL  ctl <- (isTwoD) ? ctl POTRF_TRSM(k)
    //; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
 {
-    fprintf(stderr, "k=%d, m=%d, isTwoD=%d, noskip=%d\n",
-            k, m, isTwoD, noskip );
+    /* fprintf(stderr, "k=%d, m=%d, isTwoD=%d, noskip=%d\n", */
+    /*         k, m, isTwoD, noskip ); */
 }
 END
 
@@ -261,11 +265,9 @@ first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;     return 
 last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; } else { return 0; }%}
 
 fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->fcblknm; %}
-browkb  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m;
-                      return blok->browind; %}
+browkb  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->browind; %}
 fblokn  = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->fblokptr - datacode->bloktab; %}
 lblokn  = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->fblokptr - datacode->bloktab-1; %}
-
 
 // Parallel partitioning
 :dataA(0, k, noskip)
@@ -312,22 +314,40 @@ noskipN = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + n - 1;
 
 cblk_n  = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;  return blok->fcblknm; %}
 blok_mn = %{
+    if( noskipM ) {
       SolverBlok *blokA = datacode->bloktab + fblokk + m;
       SolverCblk *cblkC = datacode->cblktab + cblk_n;
       SolverBlok *blokC = cblkC->fblokptr;
-      pastix_int_t i = 0;
+      pastix_int_t frownum = blokC->frownum;
+      pastix_int_t lrownum = blokC->lrownum;
+      pastix_int_t i = 0, j = 0;
 
-      while( !is_block_inside_fblock( blokA, blokC ) )
-      {
-         blokC++; i++;
+      do {
+          frownum = blokC->frownum;
+          lrownum = blokC->lrownum;
+          i += j;
+          j = 1;
+
+          while( (blokC[0].fcblknm == blokC[1].fcblknm) &&
+                 (blokC[0].lcblknm == blokC[1].lcblknm) )
+          {
+              blokC++; j++;
+              lrownum = blokC->lrownum;
+          }
+          blokC++;
       }
+      while( !((blokA->frownum >= frownum) &&
+               (blokA->lrownum <= lrownum)) );
       return i;
+    }
+    else
+        return 0;
 %}
 browkb = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;
             return blok->browind; %}
 
 // Parallel partitioning
-:dataA(0, k, noskipM)
+:dataA(0, cblk_n, blok_mn)
 
 // Parameters
 READ  A  <- noskipM ? C TRSM2D( k, m ) : NULL
@@ -392,9 +412,17 @@ blok_mk = %{
       SolverBlok *blokC = datacode->bloktab + fblokn + blok_mn;
       pastix_int_t i = (blokA - datacode->bloktab) - fblokk;
 
+      /* Look for the first blokA that starts after the first blokC */
       while( (blokC->frownum > blokA->lrownum) && (blokA[0].lcblknm == blokA[1].lcblknm) )
       {
          blokA++; i++;
+      }
+      /* Check if blokA is matching any of the blokC considered together */
+      while( (blokA->frownum > blokC->lrownum) &&
+             (blokC[0].fcblknm == blokC[1].fcblknm) &&
+             (blokC[0].lcblknm == blokC[1].lcblknm))
+      {
+         blokC++;
       }
       return is_block_inside_fblock( blokA, blokC ) ? i : 0;
     }
