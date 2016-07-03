@@ -174,6 +174,17 @@ void gpu_zgemmsp( int uplo, int trans,
                   const cuDoubleComplex *B,
                         cuDoubleComplex *C,
                         cudaStream_t stream );
+void
+gpu_zgemmsp_2d2dsub( int trans,
+                     pastix_int_t blok_mk,
+                     pastix_int_t blok_kn,
+                     pastix_int_t blok_mn,
+                     const SolverCblk      *cblk,
+                           SolverCblk      *fcblk,
+                     const cuDoubleComplex *A,
+                     const cuDoubleComplex *B,
+                           cuDoubleComplex *C,
+                           cudaStream_t stream );
 #endif
 
 void solve_ztrsmsp( int side, int uplo, int trans, int diag,

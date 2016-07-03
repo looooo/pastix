@@ -19,6 +19,7 @@
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
 #include "kernels/pastix_cuda.h"
+#include <cublas.h>
 
 /**
  *******************************************************************************
@@ -173,6 +174,97 @@ gpu_zgemmsp( int uplo, int trans,
             /* beta   */  zone,
             max_m, count,
             stream, params );
+    }
+}
+
+static char transstr[3] = { 'N', 'T', 'C' };
+
+void
+gpu_zgemmsp_2d2dsub( int trans,
+                     pastix_int_t blok_mk,
+                     pastix_int_t blok_kn,
+                     pastix_int_t blok_mn,
+                     const SolverCblk      *cblk,
+                           SolverCblk      *fcblk,
+                     const cuDoubleComplex *A,
+                     const cuDoubleComplex *B,
+                           cuDoubleComplex *C,
+                           cudaStream_t stream )
+{
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+#else
+    double mzone = -1.;
+    double zone  =  1.;
+#endif
+    const SolverBlok *blokA, *blokB, *blokC;
+    const SolverBlok *bA, *bB, *bC;
+    const SolverBlok *fblokK, *lblokK;
+    const SolverBlok *fblokN, *lblokN;
+
+    const cuDoubleComplex *Aptr, *Bptr;
+    cuDoubleComplex *Cptr;
+    pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
+    size_t offsetA, offsetB, offsetC;
+
+    /* cblk is stored in 1D and fcblk in 2D */
+    assert( cblk->cblktype  & CBLK_SPLIT );
+    assert( fcblk->cblktype & CBLK_SPLIT );
+
+    /**
+     * Blocs on column K
+     */
+    fblokK = cblk[0].fblokptr;
+    lblokK = cblk[1].fblokptr;
+
+    blokB = fblokK + blok_kn;
+    offsetB = blokB->coefind;
+    cblk_n = blokB->fcblknm;
+
+    blokA = fblokK + blok_mk;
+    offsetA = blokA->coefind;
+    cblk_m = blokA->fcblknm;
+
+    /**
+     * Blocs on column N
+     */
+    fblokN = fcblk[0].fblokptr;
+    lblokN = fcblk[1].fblokptr;
+
+    blokC = fblokN + blok_mn;
+    offsetC = blokC->coefind;
+    assert( blokC->fcblknm == cblk_m );
+
+    K = cblk_colnbr( cblk );
+
+    cublasSetKernelStream( stream );
+    bC = blokC;
+    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
+        M = blok_rownbr(bA);
+        Aptr = A + bA->coefind - offsetA;
+        lda = M;
+
+        /* Find facing C blok */
+        while (!is_block_inside_fblock( bA, bC )) {
+            bC++;
+            assert( bC < lblokN );
+        }
+
+        Cptr = C + bC->coefind - offsetC;
+        ldc = blok_rownbr(bC);
+
+        for (bB = blokB; (bB <= bA) && (bB->fcblknm == cblk_n); bB++) {
+            N = blok_rownbr( bB );
+            Bptr = B + bB->coefind - offsetB;
+            ldb = N;
+
+            cublasZgemm( 'N', transstr[trans - PastixNoTrans],
+                         M, N, K,
+                         mzone, (cuDoubleComplex*)Aptr, lda,
+                                (cuDoubleComplex*)Bptr, ldb,
+                          zone, (cuDoubleComplex*)Cptr, ldc );
+        }
     }
 }
 
