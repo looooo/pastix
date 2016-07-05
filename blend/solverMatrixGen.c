@@ -181,6 +181,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
                     solvblok->coefind = split ? stride * nbcols : stride;
                     solvblok->browind = -1;
+                    solvblok->gpuid = -2;
 
                     stride += nbrows;
                     solvblok++;

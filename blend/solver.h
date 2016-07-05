@@ -70,6 +70,7 @@ typedef struct SolverBlok_ {
     pastix_int_t coefind;  /*< Index in coeftab           */
     pastix_int_t frownum;  /*< First row index            */
     pastix_int_t lrownum;  /*< Last row index (inclusive) */
+    int8_t       gpuid;
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
