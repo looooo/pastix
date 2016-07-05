@@ -261,9 +261,10 @@ gpu_zgemmsp_2d2dsub( int trans,
 
             cublasZgemm( 'N', transstr[trans - PastixNoTrans],
                          M, N, K,
-                         mzone, (cuDoubleComplex*)Aptr, lda,
-                                (cuDoubleComplex*)Bptr, ldb,
-                          zone, (cuDoubleComplex*)Cptr, ldc );
+                         mzone, Aptr, lda,
+                                Bptr, ldb,
+                          zone, Cptr + (bA->frownum - bC->frownum)
+                                     + (bB->frownum - fcblk->fcolnum) * ldc, ldc );
         }
     }
 }
