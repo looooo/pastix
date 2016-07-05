@@ -328,7 +328,10 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                 size   = blok_rownbr( blok );
                 offset = blok->coefind * (size_t)spmtx->typesze;
 
-                while( (blok < lblok) && (blok[0].fcblknm == blok[1].fcblknm) ) {
+                while( (blok < lblok) &&
+                       (blok[0].fcblknm == blok[1].fcblknm) &&
+                       (blok[0].lcblknm == blok[1].lcblknm) )
+                {
                     blok++; m++;
                     size += blok_rownbr( blok );
                 }
