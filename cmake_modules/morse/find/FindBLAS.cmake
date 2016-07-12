@@ -44,7 +44,7 @@
 ### List of vendors (BLA_VENDOR) valid in this module
 ########## List of vendors (BLA_VENDOR) valid in this module
 ##  Open (for OpenBlas), Eigen (for EigenBlas), Goto, ATLAS PhiPACK,
-##  CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL,
+##  CXML, DXML, SunPerf, SCSL, SGIMATH, IBMESSL, IBMESSLMT
 ##  Intel10_32 (intel mkl v10 32 bit), Intel10_64lp (intel mkl v10 64 bit,lp thread model, lp64 model),
 ##  Intel10_64lp_seq (intel mkl v10 64 bit,sequential code, lp64 model),
 ##  Intel( older versions of mkl 32 and 64 bit),
@@ -279,6 +279,7 @@ macro(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list _thread)
             find_library(${_prefix}_${_library}_LIBRARY
                 NAMES ${_library}
                 HINTS ${_libdir}
+                NO_DEFAULT_PATH
               )
             mark_as_advanced(${_prefix}_${_library}_LIBRARY)
             # Print status if not found
@@ -293,6 +294,10 @@ macro(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list _thread)
 
     if(_libraries_work)
         # Test this combination of libraries.
+        if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND BLA_STATIC)
+            list(INSERT ${LIBRARIES} 0 "-Wl,--start-group")
+            list(APPEND ${LIBRARIES} "-Wl,--end-group")
+        endif()
         set(CMAKE_REQUIRED_LIBRARIES "${_flags};${${LIBRARIES}};${_thread}")
         set(CMAKE_REQUIRED_FLAGS "${BLAS_COMPILER_FLAGS}")
         if (BLAS_VERBOSE)
@@ -325,10 +330,8 @@ macro(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list _thread)
     if(_libraries_work)
       set(${LIBRARIES} ${${LIBRARIES}} ${_thread})
     else(_libraries_work)
-        set(${LIBRARIES} FALSE)
+      set(${LIBRARIES} FALSE)
     endif(_libraries_work)
-
-# message("DEBUG: ${LIBRARIES} = ${${LIBRARIES}}")
 
 endmacro(Check_Fortran_Libraries)
 
@@ -347,360 +350,373 @@ endif ()
 #BLAS in intel mkl 10 library? (em64t 64bit)
 if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
 
-    # Looking for include
-    # -------------------
+    if(NOT BLAS_LIBRARIES OR BLA_VENDOR MATCHES "Intel*")
+        # Looking for include
+        # -------------------
 
-    # Add system include paths to search include
-    # ------------------------------------------
-    unset(_inc_env)
-    set(ENV_MKLROOT "$ENV{MKLROOT}")
-    set(ENV_BLAS_DIR "$ENV{BLAS_DIR}")
-    set(ENV_BLAS_INCDIR "$ENV{BLAS_INCDIR}")
-    if(ENV_BLAS_INCDIR)
-        list(APPEND _inc_env "${ENV_BLAS_INCDIR}")
-    elseif(ENV_BLAS_DIR)
-        list(APPEND _inc_env "${ENV_BLAS_DIR}")
-        list(APPEND _inc_env "${ENV_BLAS_DIR}/include")
-    else()
-        if (ENV_MKLROOT)
-            list(APPEND _inc_env "${ENV_MKLROOT}/include")
-        endif()
-        # system variables
-        if(WIN32)
-            string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-            list(APPEND _inc_env "${_path_env}")
+        # Add system include paths to search include
+        # ------------------------------------------
+        unset(_inc_env)
+        set(ENV_MKLROOT "$ENV{MKLROOT}")
+        set(ENV_BLAS_DIR "$ENV{BLAS_DIR}")
+        set(ENV_BLAS_INCDIR "$ENV{BLAS_INCDIR}")
+        if(ENV_BLAS_INCDIR)
+            list(APPEND _inc_env "${ENV_BLAS_INCDIR}")
+        elseif(ENV_BLAS_DIR)
+            list(APPEND _inc_env "${ENV_BLAS_DIR}")
+            list(APPEND _inc_env "${ENV_BLAS_DIR}/include")
         else()
-            string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
-            list(APPEND _inc_env "${_path_env}")
-            string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
-            list(APPEND _inc_env "${_path_env}")
-            string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
-            list(APPEND _inc_env "${_path_env}")
-            string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
-            list(APPEND _inc_env "${_path_env}")
+            if (ENV_MKLROOT)
+                list(APPEND _inc_env "${ENV_MKLROOT}/include")
+            endif()
+            # system variables
+            if(WIN32)
+                string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+                list(APPEND _inc_env "${_path_env}")
+            else()
+                string(REPLACE ":" ";" _path_env "$ENV{INCLUDE}")
+                list(APPEND _inc_env "${_path_env}")
+                string(REPLACE ":" ";" _path_env "$ENV{C_INCLUDE_PATH}")
+                list(APPEND _inc_env "${_path_env}")
+                string(REPLACE ":" ";" _path_env "$ENV{CPATH}")
+                list(APPEND _inc_env "${_path_env}")
+                string(REPLACE ":" ";" _path_env "$ENV{INCLUDE_PATH}")
+                list(APPEND _inc_env "${_path_env}")
+            endif()
         endif()
-    endif()
-    list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
-    list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
-    list(REMOVE_DUPLICATES _inc_env)
+        list(APPEND _inc_env "${CMAKE_PLATFORM_IMPLICIT_INCLUDE_DIRECTORIES}")
+        list(APPEND _inc_env "${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
+        list(REMOVE_DUPLICATES _inc_env)
 
-    # set paths where to look for
-    set(PATH_TO_LOOK_FOR "${_inc_env}")
+        # set paths where to look for
+        set(PATH_TO_LOOK_FOR "${_inc_env}")
 
-    # Try to find the fftw header in the given paths
-    # -------------------------------------------------
-    # call cmake macro to find the header path
-    if(BLAS_INCDIR)
-        set(BLAS_mkl.h_DIRS "BLAS_mkl.h_DIRS-NOTFOUND")
-        find_path(BLAS_mkl.h_DIRS
-          NAMES mkl.h
-          HINTS ${BLAS_INCDIR})
-    else()
-        if(BLAS_DIR)
+        # Try to find the fftw header in the given paths
+        # -------------------------------------------------
+        # call cmake macro to find the header path
+        if(BLAS_INCDIR)
             set(BLAS_mkl.h_DIRS "BLAS_mkl.h_DIRS-NOTFOUND")
             find_path(BLAS_mkl.h_DIRS
               NAMES mkl.h
-              HINTS ${BLAS_DIR}
-              PATH_SUFFIXES "include")
+              HINTS ${BLAS_INCDIR})
         else()
-            set(BLAS_mkl.h_DIRS "BLAS_mkl.h_DIRS-NOTFOUND")
-            find_path(BLAS_mkl.h_DIRS
-                      NAMES mkl.h
-                      HINTS ${PATH_TO_LOOK_FOR})
-        endif()
-    endif()
-    mark_as_advanced(BLAS_mkl.h_DIRS)
-
-    # If found, add path to cmake variable
-    # ------------------------------------
-    if (BLAS_mkl.h_DIRS)
-        set(BLAS_INCLUDE_DIRS "${BLAS_mkl.h_DIRS}")
-    else ()
-        set(BLAS_INCLUDE_DIRS "BLAS_INCLUDE_DIRS-NOTFOUND")
-        if(NOT BLAS_FIND_QUIETLY)
-            message(STATUS "Looking for BLAS -- mkl.h not found")
-        endif()
-    endif()
-
-    if (WIN32)
-        string(REPLACE ":" ";" _libdir "$ENV{LIB}")
-    elseif (APPLE)
-        string(REPLACE ":" ";" _libdir "$ENV{DYLD_LIBRARY_PATH}")
-    else ()
-        string(REPLACE ":" ";" _libdir "$ENV{LD_LIBRARY_PATH}")
-    endif ()
-    list(APPEND _libdir "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
-    list(APPEND _libdir "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
-    # libiomp5
-    # --------
-    set(OMP_iomp5_LIBRARY "OMP_iomp5_LIBRARY-NOTFOUND")
-    find_library(OMP_iomp5_LIBRARY
-        NAMES iomp5
-        HINTS ${_libdir}
-      )
-    mark_as_advanced(OMP_iomp5_LIBRARY)
-    set(OMP_LIB "")
-    # libgomp
-    # -------
-    set(OMP_gomp_LIBRARY "OMP_gomp_LIBRARY-NOTFOUND")
-    find_library(OMP_gomp_LIBRARY
-        NAMES gomp
-        HINTS ${_libdir}
-      )
-    mark_as_advanced(OMP_gomp_LIBRARY)
-    # choose one or another depending on the compilo
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        if (OMP_gomp_LIBRARY)
-            set(OMP_LIB "${OMP_gomp_LIBRARY}")
-        endif()
-    else(CMAKE_C_COMPILER_ID STREQUAL "Intel")
-        if (OMP_iomp5_LIBRARY)
-            set(OMP_LIB "${OMP_iomp5_LIBRARY}")
-        endif()
-    endif()
-
-    if (UNIX AND NOT WIN32)
-        # m
-        find_library(M_LIBRARY
-            NAMES m
-            HINTS ${_libdir})
-        if(M_LIBRARY)
-            set(LM "-lm")
-        else()
-            set(LM "")
-        endif()
-        # Fortran
-        set(LGFORTRAN "")
-        if (CMAKE_C_COMPILER_ID MATCHES "GNU")
-            find_library(
-                FORTRAN_gfortran_LIBRARY
-                NAMES gfortran
-                HINTS ${_libdir}
-                )
-            mark_as_advanced(FORTRAN_gfortran_LIBRARY)
-            if (FORTRAN_gfortran_LIBRARY)
-                set(LGFORTRAN "${FORTRAN_gfortran_LIBRARY}")
-            endif()
-        elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
-            find_library(
-                FORTRAN_ifcore_LIBRARY
-                NAMES ifcore
-                HINTS ${_libdir}
-                )
-            mark_as_advanced(FORTRAN_ifcore_LIBRARY)
-            if (FORTRAN_ifcore_LIBRARY)
-                set(LGFORTRAN "{FORTRAN_ifcore_LIBRARY}")
+            if(BLAS_DIR)
+                set(BLAS_mkl.h_DIRS "BLAS_mkl.h_DIRS-NOTFOUND")
+                find_path(BLAS_mkl.h_DIRS
+                  NAMES mkl.h
+                  HINTS ${BLAS_DIR}
+                  PATH_SUFFIXES "include")
+            else()
+                set(BLAS_mkl.h_DIRS "BLAS_mkl.h_DIRS-NOTFOUND")
+                find_path(BLAS_mkl.h_DIRS
+                          NAMES mkl.h
+                          HINTS ${PATH_TO_LOOK_FOR})
             endif()
         endif()
-        set(BLAS_COMPILER_FLAGS "")
-        if (NOT BLA_VENDOR STREQUAL "Intel10_64lp_seq")
-            if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-                list(APPEND BLAS_COMPILER_FLAGS "-openmp")
+        mark_as_advanced(BLAS_mkl.h_DIRS)
+
+        # If found, add path to cmake variable
+        # ------------------------------------
+        if (BLAS_mkl.h_DIRS)
+            set(BLAS_INCLUDE_DIRS "${BLAS_mkl.h_DIRS}")
+        else ()
+            set(BLAS_INCLUDE_DIRS "BLAS_INCLUDE_DIRS-NOTFOUND")
+            if(NOT BLAS_FIND_QUIETLY)
+                message(STATUS "Looking for BLAS -- mkl.h not found")
+            endif()
+        endif()
+
+        if (WIN32)
+            string(REPLACE ":" ";" _libdir "$ENV{LIB}")
+        elseif (APPLE)
+            string(REPLACE ":" ";" _libdir "$ENV{DYLD_LIBRARY_PATH}")
+        else ()
+            string(REPLACE ":" ";" _libdir "$ENV{LD_LIBRARY_PATH}")
+        endif ()
+        list(APPEND _libdir "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES}")
+        list(APPEND _libdir "${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")
+        # libiomp5
+        # --------
+        set(OMP_iomp5_LIBRARY "OMP_iomp5_LIBRARY-NOTFOUND")
+        find_library(OMP_iomp5_LIBRARY
+            NAMES iomp5
+            HINTS ${_libdir}
+          )
+        mark_as_advanced(OMP_iomp5_LIBRARY)
+        set(OMP_LIB "")
+        # libgomp
+        # -------
+        set(OMP_gomp_LIBRARY "OMP_gomp_LIBRARY-NOTFOUND")
+        find_library(OMP_gomp_LIBRARY
+            NAMES gomp
+            HINTS ${_libdir}
+          )
+        mark_as_advanced(OMP_gomp_LIBRARY)
+        # choose one or another depending on the compilo
+        if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+            if (OMP_gomp_LIBRARY)
+                set(OMP_LIB "${OMP_gomp_LIBRARY}")
+            endif()
+        else(CMAKE_C_COMPILER_ID STREQUAL "Intel")
+            if (OMP_iomp5_LIBRARY)
+                set(OMP_LIB "${OMP_iomp5_LIBRARY}")
+            endif()
+        endif()
+
+        if (UNIX AND NOT WIN32)
+            # m
+            find_library(M_LIBRARY
+                NAMES m
+                HINTS ${_libdir})
+            if(M_LIBRARY)
+                set(LM "-lm")
+            else()
+                set(LM "")
+            endif()
+            # Fortran
+            set(LGFORTRAN "")
+            if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+                find_library(
+                    FORTRAN_gfortran_LIBRARY
+                    NAMES gfortran
+                    HINTS ${_libdir}
+                    )
+                mark_as_advanced(FORTRAN_gfortran_LIBRARY)
+                if (FORTRAN_gfortran_LIBRARY)
+                    set(LGFORTRAN "${FORTRAN_gfortran_LIBRARY}")
+                endif()
+            elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
+                find_library(
+                    FORTRAN_ifcore_LIBRARY
+                    NAMES ifcore
+                    HINTS ${_libdir}
+                    )
+                mark_as_advanced(FORTRAN_ifcore_LIBRARY)
+                if (FORTRAN_ifcore_LIBRARY)
+                    set(LGFORTRAN "{FORTRAN_ifcore_LIBRARY}")
+                endif()
+            endif()
+            set(BLAS_COMPILER_FLAGS "")
+            if (NOT BLA_VENDOR STREQUAL "Intel10_64lp_seq")
+                if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+                    list(APPEND BLAS_COMPILER_FLAGS "-openmp")
+                endif()
+                if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+                    list(APPEND BLAS_COMPILER_FLAGS "-fopenmp")
+                endif()
             endif()
             if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-                list(APPEND BLAS_COMPILER_FLAGS "-fopenmp")
+                if (BLA_VENDOR STREQUAL "Intel10_32")
+                    list(APPEND BLAS_COMPILER_FLAGS "-m32")
+                else()
+                    list(APPEND BLAS_COMPILER_FLAGS "-m64")
+                endif()
+                if (NOT BLA_VENDOR STREQUAL "Intel10_64lp_seq")
+                    list(APPEND OMP_LIB "-ldl")
+                endif()
+              if (ENV_MKLROOT)
+                list(APPEND BLAS_COMPILER_FLAGS "-I${ENV_MKLROOT}/include")
+              endif()
             endif()
-        endif()
-        if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-            if (BLA_VENDOR STREQUAL "Intel10_32")
-                #list(APPEND BLAS_COMPILER_FLAGS "-m32")
+
+            set(additional_flags "")
+            if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+                set(additional_flags "-Wl,--no-as-needed")
+            endif()
+        endif ()
+
+        if (_LANGUAGES_ MATCHES C OR _LANGUAGES_ MATCHES CXX)
+            if(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
+                find_package(Threads)
             else()
-                #list(APPEND BLAS_COMPILER_FLAGS "-m64")
+                find_package(Threads REQUIRED)
             endif()
-            if (NOT BLA_VENDOR STREQUAL "Intel10_64lp_seq")
-                list(APPEND OMP_LIB "-ldl")
-            endif()
-        endif()
 
-        set(additional_flags "")
-        if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-            set(additional_flags "-Wl,--no-as-needed")
-        endif()
-    endif ()
+            set(BLAS_SEARCH_LIBS "")
 
-    if (_LANGUAGES_ MATCHES C OR _LANGUAGES_ MATCHES CXX)
-        if(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
-            find_package(Threads)
+            if(BLA_F95)
+
+                set(BLAS_mkl_SEARCH_SYMBOL SGEMM)
+                set(_LIBRARIES BLAS95_LIBRARIES)
+                if (WIN32)
+                    if (BLA_STATIC)
+                        set(BLAS_mkl_DLL_SUFFIX "")
+                    else()
+                        set(BLAS_mkl_DLL_SUFFIX "_dll")
+                    endif()
+
+                    # Find the main file (32-bit or 64-bit)
+                    set(BLAS_SEARCH_LIBS_WIN_MAIN "")
+                    if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
+                        "mkl_blas95${BLAS_mkl_DLL_SUFFIX} mkl_intel_c${BLAS_mkl_DLL_SUFFIX}")
+                    endif()
+                    if (BLA_VENDOR STREQUAL "Intel10_64lp*" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
+                        "mkl_blas95_lp64${BLAS_mkl_DLL_SUFFIX} mkl_intel_lp64${BLAS_mkl_DLL_SUFFIX}")
+                    endif ()
+
+                    # Add threading/sequential libs
+                    set(BLAS_SEARCH_LIBS_WIN_THREAD "")
+                    if (BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
+                        "mkl_sequential${BLAS_mkl_DLL_SUFFIX}")
+                    endif()
+                    if (NOT BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
+                        # old version
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
+                        "libguide40 mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
+                        # mkl >= 10.3
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
+                        "libiomp5md mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
+                    endif()
+
+                    # Cartesian product of the above
+                    foreach (MAIN ${BLAS_SEARCH_LIBS_WIN_MAIN})
+                        foreach (THREAD ${BLAS_SEARCH_LIBS_WIN_THREAD})
+                            list(APPEND BLAS_SEARCH_LIBS
+                            "${MAIN} ${THREAD} mkl_core${BLAS_mkl_DLL_SUFFIX}")
+                        endforeach()
+                    endforeach()
+                else (WIN32)
+                    if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_blas95 mkl_intel mkl_intel_thread mkl_core guide")
+                    endif ()
+                    if (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
+                        # old version
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_blas95 mkl_intel_lp64 mkl_intel_thread mkl_core guide")
+                        # mkl >= 10.3
+                        if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+                            list(APPEND BLAS_SEARCH_LIBS
+                            "mkl_blas95_lp64 mkl_intel_lp64 mkl_intel_thread mkl_core")
+                        endif()
+                        if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+                            list(APPEND BLAS_SEARCH_LIBS
+                            "mkl_blas95_lp64 mkl_intel_lp64 mkl_gnu_thread mkl_core")
+                        endif()
+                    endif ()
+                    if (BLA_VENDOR STREQUAL "Intel10_64lp_seq" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_intel_lp64 mkl_sequential mkl_core")
+                        if (BLA_VENDOR STREQUAL "Intel10_64lp_seq")
+                            set(OMP_LIB "")
+                        endif()
+                    endif ()
+                endif (WIN32)
+
+            else (BLA_F95)
+
+                set(BLAS_mkl_SEARCH_SYMBOL sgemm)
+                set(_LIBRARIES BLAS_LIBRARIES)
+                if (WIN32)
+                    if (BLA_STATIC)
+                        set(BLAS_mkl_DLL_SUFFIX "")
+                    else()
+                        set(BLAS_mkl_DLL_SUFFIX "_dll")
+                    endif()
+
+                    # Find the main file (32-bit or 64-bit)
+                    set(BLAS_SEARCH_LIBS_WIN_MAIN "")
+                    if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
+                        "mkl_intel_c${BLAS_mkl_DLL_SUFFIX}")
+                    endif()
+                    if (BLA_VENDOR STREQUAL "Intel10_64lp*" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
+                        "mkl_intel_lp64${BLAS_mkl_DLL_SUFFIX}")
+                    endif ()
+
+                    # Add threading/sequential libs
+                    set(BLAS_SEARCH_LIBS_WIN_THREAD "")
+                    if (NOT BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
+                        # old version
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
+                        "libguide40 mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
+                        # mkl >= 10.3
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
+                        "libiomp5md mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
+                    endif()
+                    if (BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
+                        "mkl_sequential${BLAS_mkl_DLL_SUFFIX}")
+                    endif()
+
+                    # Cartesian product of the above
+                    foreach (MAIN ${BLAS_SEARCH_LIBS_WIN_MAIN})
+                        foreach (THREAD ${BLAS_SEARCH_LIBS_WIN_THREAD})
+                            list(APPEND BLAS_SEARCH_LIBS
+                            "${MAIN} ${THREAD} mkl_core${BLAS_mkl_DLL_SUFFIX}")
+                        endforeach()
+                    endforeach()
+                else (WIN32)
+                    if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_intel mkl_intel_thread mkl_core guide")
+                    endif ()
+                    if (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
+                        # old version
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_intel_lp64 mkl_intel_thread mkl_core guide")
+                        # mkl >= 10.3
+                        if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+                            list(APPEND BLAS_SEARCH_LIBS
+                            "mkl_intel_lp64 mkl_intel_thread mkl_core")
+                        endif()
+                        if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+                            list(APPEND BLAS_SEARCH_LIBS
+                            "mkl_intel_lp64 mkl_gnu_thread mkl_core")
+                        endif()
+                    endif ()
+                    if (BLA_VENDOR STREQUAL "Intel10_64lp_seq" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_intel_lp64 mkl_sequential mkl_core")
+                        if (BLA_VENDOR STREQUAL "Intel10_64lp_seq")
+                            set(OMP_LIB "")
+                        endif()
+                    endif ()
+                    #older vesions of intel mkl libs
+                    if (BLA_VENDOR STREQUAL "Intel" OR BLA_VENDOR STREQUAL "All")
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl")
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_ia32")
+                        list(APPEND BLAS_SEARCH_LIBS
+                        "mkl_em64t")
+                    endif ()
+                endif (WIN32)
+
+            endif (BLA_F95)
+
+            foreach (IT ${BLAS_SEARCH_LIBS})
+                string(REPLACE " " ";" SEARCH_LIBS ${IT})
+                if (${_LIBRARIES})
+                else ()
+                    check_fortran_libraries(
+                    ${_LIBRARIES}
+                    BLAS
+                    ${BLAS_mkl_SEARCH_SYMBOL}
+                    "${additional_flags}"
+                    "${SEARCH_LIBS}"
+                    "${OMP_LIB};${CMAKE_THREAD_LIBS_INIT};${LM}"
+                    )
+                    if(_LIBRARIES)
+                        set(BLAS_LINKER_FLAGS "${additional_flags}")
+                    endif()
+                endif()
+            endforeach ()
+
+        endif (_LANGUAGES_ MATCHES C OR _LANGUAGES_ MATCHES CXX)
+    endif(NOT BLAS_LIBRARIES OR BLA_VENDOR MATCHES "Intel*")
+
+    if(NOT BLAS_FIND_QUIETLY)
+        if(${_LIBRARIES})
+            message(STATUS "Looking for MKL BLAS: found")
         else()
-            find_package(Threads REQUIRED)
+            message(STATUS "Looking for MKL BLAS: not found")
         endif()
-
-        set(BLAS_SEARCH_LIBS "")
-
-        if(BLA_F95)
-
-            set(BLAS_mkl_SEARCH_SYMBOL SGEMM)
-            set(_LIBRARIES BLAS95_LIBRARIES)
-            if (WIN32)
-                if (BLA_STATIC)
-                    set(BLAS_mkl_DLL_SUFFIX "")
-                else()
-                    set(BLAS_mkl_DLL_SUFFIX "_dll")
-                endif()
-
-                # Find the main file (32-bit or 64-bit)
-                set(BLAS_SEARCH_LIBS_WIN_MAIN "")
-                if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
-                    "mkl_blas95${BLAS_mkl_DLL_SUFFIX} mkl_intel_c${BLAS_mkl_DLL_SUFFIX}")
-                endif()
-                if (BLA_VENDOR STREQUAL "Intel10_64lp*" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
-                    "mkl_blas95_lp64${BLAS_mkl_DLL_SUFFIX} mkl_intel_lp64${BLAS_mkl_DLL_SUFFIX}")
-                endif ()
-
-                # Add threading/sequential libs
-                set(BLAS_SEARCH_LIBS_WIN_THREAD "")
-                if (BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
-                    "mkl_sequential${BLAS_mkl_DLL_SUFFIX}")
-                endif()
-                if (NOT BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
-                    # old version
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
-                    "libguide40 mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
-                    # mkl >= 10.3
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
-                    "libiomp5md mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
-                endif()
-
-                # Cartesian product of the above
-                foreach (MAIN ${BLAS_SEARCH_LIBS_WIN_MAIN})
-                    foreach (THREAD ${BLAS_SEARCH_LIBS_WIN_THREAD})
-                        list(APPEND BLAS_SEARCH_LIBS
-                        "${MAIN} ${THREAD} mkl_core${BLAS_mkl_DLL_SUFFIX}")
-                    endforeach()
-                endforeach()
-            else (WIN32)
-                if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_blas95 mkl_intel mkl_intel_thread mkl_core guide")
-                endif ()
-                if (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
-                    # old version
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_blas95 mkl_intel_lp64 mkl_intel_thread mkl_core guide")
-                    # mkl >= 10.3
-                    if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-                        list(APPEND BLAS_SEARCH_LIBS
-                        "mkl_blas95_lp64 mkl_intel_lp64 mkl_intel_thread mkl_core")
-                    endif()
-                    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-                        list(APPEND BLAS_SEARCH_LIBS
-                        "mkl_blas95_lp64 mkl_intel_lp64 mkl_gnu_thread mkl_core")
-                    endif()
-                endif ()
-                if (BLA_VENDOR STREQUAL "Intel10_64lp_seq" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_intel_lp64 mkl_sequential mkl_core")
-                    if (BLA_VENDOR STREQUAL "Intel10_64lp_seq")
-                        set(OMP_LIB "")
-                    endif()
-                endif ()
-            endif (WIN32)
-
-        else (BLA_F95)
-
-            set(BLAS_mkl_SEARCH_SYMBOL sgemm)
-            set(_LIBRARIES BLAS_LIBRARIES)
-            if (WIN32)
-                if (BLA_STATIC)
-                    set(BLAS_mkl_DLL_SUFFIX "")
-                else()
-                    set(BLAS_mkl_DLL_SUFFIX "_dll")
-                endif()
-
-                # Find the main file (32-bit or 64-bit)
-                set(BLAS_SEARCH_LIBS_WIN_MAIN "")
-                if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
-                    "mkl_intel_c${BLAS_mkl_DLL_SUFFIX}")
-                endif()
-                if (BLA_VENDOR STREQUAL "Intel10_64lp*" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_MAIN
-                    "mkl_intel_lp64${BLAS_mkl_DLL_SUFFIX}")
-                endif ()
-
-                # Add threading/sequential libs
-                set(BLAS_SEARCH_LIBS_WIN_THREAD "")
-                if (NOT BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
-                    # old version
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
-                    "libguide40 mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
-                    # mkl >= 10.3
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
-                    "libiomp5md mkl_intel_thread${BLAS_mkl_DLL_SUFFIX}")
-                endif()
-                if (BLA_VENDOR STREQUAL "*_seq" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS_WIN_THREAD
-                    "mkl_sequential${BLAS_mkl_DLL_SUFFIX}")
-                endif()
-
-                # Cartesian product of the above
-                foreach (MAIN ${BLAS_SEARCH_LIBS_WIN_MAIN})
-                    foreach (THREAD ${BLAS_SEARCH_LIBS_WIN_THREAD})
-                        list(APPEND BLAS_SEARCH_LIBS
-                        "${MAIN} ${THREAD} mkl_core${BLAS_mkl_DLL_SUFFIX}")
-                    endforeach()
-                endforeach()
-            else (WIN32)
-                if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_intel mkl_intel_thread mkl_core guide")
-                endif ()
-                if (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
-                    # old version
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_intel_lp64 mkl_intel_thread mkl_core guide")
-                    # mkl >= 10.3
-                    if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-                        list(APPEND BLAS_SEARCH_LIBS
-                        "mkl_intel_lp64 mkl_intel_thread mkl_core")
-                    endif()
-                    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-                        list(APPEND BLAS_SEARCH_LIBS
-                        "mkl_intel_lp64 mkl_gnu_thread mkl_core")
-                    endif()
-                endif ()
-                if (BLA_VENDOR STREQUAL "Intel10_64lp_seq" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_intel_lp64 mkl_sequential mkl_core")
-                    if (BLA_VENDOR STREQUAL "Intel10_64lp_seq")
-                        set(OMP_LIB "")
-                    endif()
-                endif ()
-                #older vesions of intel mkl libs
-                if (BLA_VENDOR STREQUAL "Intel" OR BLA_VENDOR STREQUAL "All")
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl")
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_ia32")
-                    list(APPEND BLAS_SEARCH_LIBS
-                    "mkl_em64t")
-                endif ()
-            endif (WIN32)
-
-        endif (BLA_F95)
-
-        foreach (IT ${BLAS_SEARCH_LIBS})
-            string(REPLACE " " ";" SEARCH_LIBS ${IT})
-            if (${_LIBRARIES})
-            else ()
-                check_fortran_libraries(
-                ${_LIBRARIES}
-                BLAS
-                ${BLAS_mkl_SEARCH_SYMBOL}
-                "${additional_flags}"
-                "${SEARCH_LIBS}"
-                "${OMP_LIB};${CMAKE_THREAD_LIBS_INIT};${LM}"
-                )
-                if(_LIBRARIES)
-                    set(BLAS_LINKER_FLAGS "${additional_flags}")
-                endif()
-            endif()
-        endforeach ()
-
-    endif (_LANGUAGES_ MATCHES C OR _LANGUAGES_ MATCHES CXX)
+    endif()
 
 endif (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
 
@@ -717,6 +733,13 @@ if (BLA_VENDOR STREQUAL "Goto" OR BLA_VENDOR STREQUAL "All")
         "goto2"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for Goto BLAS: found")
+            else()
+                message(STATUS "Looking for Goto BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "Goto" OR BLA_VENDOR STREQUAL "All")
@@ -735,6 +758,13 @@ if (BLA_VENDOR STREQUAL "Open" OR BLA_VENDOR STREQUAL "All")
         "openblas"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for Open BLAS: found")
+            else()
+                message(STATUS "Looking for Open BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "Open" OR BLA_VENDOR STREQUAL "All")
@@ -753,6 +783,13 @@ if (BLA_VENDOR STREQUAL "Eigen" OR BLA_VENDOR STREQUAL "All")
         "eigen_blas"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for Eigen BLAS: found")
+            else()
+                message(STATUS "Looking for Eigen BLAS: not found")
+            endif()
+        endif()
     endif()
 
     if(NOT BLAS_LIBRARIES)
@@ -765,6 +802,13 @@ if (BLA_VENDOR STREQUAL "Eigen" OR BLA_VENDOR STREQUAL "All")
         "eigen_blas_static"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for Eigen BLAS: found")
+            else()
+                message(STATUS "Looking for Eigen BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "Eigen" OR BLA_VENDOR STREQUAL "All")
@@ -782,6 +826,13 @@ if (BLA_VENDOR STREQUAL "ATLAS" OR BLA_VENDOR STREQUAL "All")
         "f77blas;atlas"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for Atlas BLAS: found")
+            else()
+                message(STATUS "Looking for Atlas BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "ATLAS" OR BLA_VENDOR STREQUAL "All")
@@ -799,6 +850,13 @@ if (BLA_VENDOR STREQUAL "PhiPACK" OR BLA_VENDOR STREQUAL "All")
         "sgemm;dgemm;blas"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for PhiPACK BLAS: found")
+            else()
+                message(STATUS "Looking for PhiPACK BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "PhiPACK" OR BLA_VENDOR STREQUAL "All")
@@ -816,6 +874,13 @@ if (BLA_VENDOR STREQUAL "CXML" OR BLA_VENDOR STREQUAL "All")
         "cxml"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for CXML BLAS: found")
+            else()
+                message(STATUS "Looking for CXML BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "CXML" OR BLA_VENDOR STREQUAL "All")
@@ -833,6 +898,13 @@ if (BLA_VENDOR STREQUAL "DXML" OR BLA_VENDOR STREQUAL "All")
         "dxml"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for DXML BLAS: found")
+            else()
+                message(STATUS "Looking for DXML BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "DXML" OR BLA_VENDOR STREQUAL "All")
@@ -853,6 +925,13 @@ if (BLA_VENDOR STREQUAL "SunPerf" OR BLA_VENDOR STREQUAL "All")
         if(BLAS_LIBRARIES)
             set(BLAS_LINKER_FLAGS "-xlic_lib=sunperf")
         endif()
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for SunPerf BLAS: found")
+            else()
+                message(STATUS "Looking for SunPerf BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif ()
@@ -870,6 +949,13 @@ if (BLA_VENDOR STREQUAL "SCSL" OR BLA_VENDOR STREQUAL "All")
         "scsl"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for SCSL BLAS: found")
+            else()
+                message(STATUS "Looking for SCSL BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif ()
@@ -887,23 +973,60 @@ if (BLA_VENDOR STREQUAL "SGIMATH" OR BLA_VENDOR STREQUAL "All")
         "complib.sgimath"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for SGIMATH BLAS: found")
+            else()
+                message(STATUS "Looking for SGIMATH BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif ()
 
 
-# BLAS in IBM ESSL library? (requires generic BLAS lib, too)
+# BLAS in IBM ESSL library (requires generic BLAS lib, too)
 if (BLA_VENDOR STREQUAL "IBMESSL" OR BLA_VENDOR STREQUAL "All")
 
-    if(NOT BLAS_LIBRARIES)
+    if(NOT BLAS_LIBRARIES OR BLA_VENDOR STREQUAL "IBMESSL")
         check_fortran_libraries(
         BLAS_LIBRARIES
         BLAS
         sgemm
         ""
-        "essl;blas"
+        "essl;xlfmath;xlf90_r;blas"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for IBM ESSL BLAS: found")
+            else()
+                message(STATUS "Looking for IBM ESSL BLAS: not found")
+            endif()
+        endif()
+    endif()
+
+endif ()
+
+# BLAS in IBM ESSL_MT library (requires generic BLAS lib, too)
+if (BLA_VENDOR STREQUAL "IBMESSLMT" OR BLA_VENDOR STREQUAL "All")
+
+    if(NOT BLAS_LIBRARIES OR BLA_VENDOR STREQUAL "IBMESSLMT")
+        check_fortran_libraries(
+        BLAS_LIBRARIES
+        BLAS
+        sgemm
+        ""
+        "esslsmp;xlsmp;xlfmath;xlf90_r;blas"
+        ""
+        )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for IBM ESSL MT BLAS: found")
+            else()
+                message(STATUS "Looking for IBM ESSL MT BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif ()
@@ -1030,6 +1153,13 @@ if (BLA_VENDOR MATCHES "ACML.*" OR BLA_VENDOR STREQUAL "All")
         "acml;acml_mv"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for ACML BLAS: found")
+            else()
+                message(STATUS "Looking for ACML BLAS: not found")
+            endif()
+        endif()
     endif()
 
     if(NOT BLAS_LIBRARIES)
@@ -1041,6 +1171,13 @@ if (BLA_VENDOR MATCHES "ACML.*" OR BLA_VENDOR STREQUAL "All")
         "acml_mp;acml_mv"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for ACML BLAS: found")
+            else()
+                message(STATUS "Looking for ACML BLAS: not found")
+            endif()
+        endif()
     endif()
 
     if(NOT BLAS_LIBRARIES)
@@ -1052,6 +1189,13 @@ if (BLA_VENDOR MATCHES "ACML.*" OR BLA_VENDOR STREQUAL "All")
         "acml;acml_mv;CALBLAS"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for ACML BLAS: found")
+            else()
+                message(STATUS "Looking for ACML BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR MATCHES "ACML.*" OR BLA_VENDOR STREQUAL "All") # ACML
@@ -1069,6 +1213,13 @@ if (BLA_VENDOR STREQUAL "Apple" OR BLA_VENDOR STREQUAL "All")
         "Accelerate"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for Apple BLAS: found")
+            else()
+                message(STATUS "Looking for Apple BLAS: not found")
+            endif()
+        endif()
     endif()
 
 endif (BLA_VENDOR STREQUAL "Apple" OR BLA_VENDOR STREQUAL "All")
@@ -1085,7 +1236,15 @@ if (BLA_VENDOR STREQUAL "NAS" OR BLA_VENDOR STREQUAL "All")
         "vecLib"
         ""
         )
+        if(NOT BLAS_FIND_QUIETLY)
+            if(BLAS_LIBRARIES)
+                message(STATUS "Looking for NAS BLAS: found")
+            else()
+                message(STATUS "Looking for NAS BLAS: not found")
+            endif()
+        endif()
     endif ()
+
 
 endif (BLA_VENDOR STREQUAL "NAS" OR BLA_VENDOR STREQUAL "All")
 
@@ -1093,7 +1252,7 @@ endif (BLA_VENDOR STREQUAL "NAS" OR BLA_VENDOR STREQUAL "All")
 # Generic BLAS library?
 if (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
 
-    set(BLAS_SEARCH_LIBS "blas;blas_LINUX;blas_MAC;blas_WINDOWS")
+    set(BLAS_SEARCH_LIBS "blas;blas_LINUX;blas_MAC;blas_WINDOWS;refblas")
     foreach (SEARCH_LIB ${BLAS_SEARCH_LIBS})
         if (BLAS_LIBRARIES)
         else ()
@@ -1105,6 +1264,13 @@ if (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
             "${SEARCH_LIB}"
             "${LGFORTRAN}"
             )
+            if(NOT BLAS_FIND_QUIETLY)
+                if(BLAS_LIBRARIES)
+                    message(STATUS "Looking for Generic BLAS: found")
+                else()
+                    message(STATUS "Looking for Generic BLAS: not found")
+                endif()
+            endif()
         endif()
     endforeach ()
 
