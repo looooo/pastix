@@ -27,17 +27,25 @@
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
 
+
+
 pastix_complex64_t *
 z_spm2dense( const pastix_spm_t *spm )
 {
     pastix_int_t i, j, lda, baseval;
     pastix_complex64_t *A, *valptr;
     pastix_int_t *colptr, *rowptr;
+    int c,r;
+    int cpt=0;
+    int nb_elt_col,nb_elt_row;
+
+    //    pastix_int_t tab[]={0,1,3,6};//
+    pastix_int_t* tab = compute_correspond_index(spm);
 
     assert( spm->fmttype == PastixCSC );
     assert( spm->flttype == PastixComplex64 );
 
-    lda = spm->gN;
+    lda = spm->gNexp;
     A = (pastix_complex64_t*)malloc(lda * lda * sizeof(pastix_complex64_t));
     memset( A, 0, lda * lda * sizeof(pastix_complex64_t));
 
@@ -61,26 +69,84 @@ z_spm2dense( const pastix_spm_t *spm )
         }
         break;
 #endif
-    case PastixSymmetric:
-        for(i=0; i<spm->n; i++, colptr++)
+    case PastixSymmetric: //
+        cpt=0;
+        for(i=0; i<spm->n; i++)
         {
-            for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
+            for(j=colptr[i]-baseval; j<colptr[i+1]-baseval; j++)
+            {
+                if(spm->dof <= 0)
+                {
+                    nb_elt_col = spm->dofs[i];
+                    nb_elt_row = spm->dofs[spm->rowptr[j]-baseval];
+                }
+                else
+                {
+                    nb_elt_col = spm->dof;
+                    nb_elt_row = spm->dof;
+                }
+                for( c=0; c < nb_elt_col; c++)
+                    for( r=0; r < nb_elt_row; r++)
+                    {
+                        {
+                            A[ tab[i] * lda + tab[rowptr[j] - baseval] + r + c*lda ] = valptr[cpt];
+                            A[ tab[i] + lda * tab[rowptr[j] - baseval] + r*lda + c ] = valptr[cpt];
+                            cpt++;
+                        }
+                    }
+            }
+        }
+        break;
+    case PastixGeneral: //
+    default:
+        cpt=0;
+        for( i=0; i < spm->n; i++)
+        {
+            for(j=colptr[i]-baseval; j < colptr[i+1]-baseval; j++)
+            {
+
+                if(spm->dof <= 0)
+                {
+                    nb_elt_col = spm->dofs[i];
+                    nb_elt_row = spm->dofs[spm->rowptr[j]-baseval];
+                }
+                else
+                {
+                    nb_elt_col = spm->dof;
+                    nb_elt_row = spm->dof;
+                }
+                for( c=0; c < nb_elt_col; c++)
+                    for( r=0; r < nb_elt_row; r++)
+                    {
+                        {
+                            A[ tab[i] * lda + tab[rowptr[j] - baseval] + r + c*lda ] = valptr[cpt];
+                            cpt++;
+                        }
+                    }
+            }
+        }
+    }
+
+
+    /**
+     case PastixSymmetric: //
+        for(i=0; i<spm->n; i++, colptr++)
+     {
+           for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
             {
                 A[ i * lda + (*rowptr - baseval) ] = *valptr;
                 A[ (*rowptr - baseval) * lda + i ] = *valptr;
             }
         }
         break;
-    case PastixGeneral:
+     case PastixGeneral: //
     default:
         for(i=0; i<spm->n; i++, colptr++)
         {
             for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
             {
-                A[ i * lda + (*rowptr - baseval) ] = *valptr;
-            }
-        }
-    }
+     A[ i * lda + (*rowptr - baseval) ] = *valptr;
+     **/
 
     return A;
 }
@@ -167,6 +233,13 @@ z_spm_matvec_check( int trans, const pastix_spm_t *spm )
 int
 z_spm_norm_check( const pastix_spm_t *spm )
 {
+    pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
+    int i;
+    for(i=0;i<spm->nnzexp;i++)
+    {
+        printf("%f ",valptr[i]);
+    }
+    
     pastix_complex64_t *A;
     double norms, normd;
     double eps, result;
@@ -182,7 +255,7 @@ z_spm_norm_check( const pastix_spm_t *spm )
      */
     printf(" -- Test norm Max :");
     norms = spmNorm( PastixMaxNorm, spm );
-    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gN, spm->gN,  A, spm->gN );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gNexp, spm->gNexp,  A, spm->gNexp );
     result = fabs(norms - normd) / (normd * eps);
 
     if ( (result >= 0.) && (result < 1.) ) {
@@ -200,7 +273,7 @@ z_spm_norm_check( const pastix_spm_t *spm )
      */
     printf(" -- Test norm Inf :");
     norms = spmNorm( PastixInfNorm, spm );
-    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, spm->gNexp,  A, spm->gNexp );
     result = fabs(norms - normd) / (normd * eps);
     result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
 
@@ -219,7 +292,7 @@ z_spm_norm_check( const pastix_spm_t *spm )
      */
     printf(" -- Test norm One :");
     norms = spmNorm( PastixOneNorm, spm );
-    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'O', spm->gN, spm->gN,  A, spm->gN );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'O', spm->gNexp, spm->gNexp,  A, spm->gNexp );
     result = fabs(norms - normd) / (normd * eps);
     result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
 
