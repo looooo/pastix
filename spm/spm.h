@@ -26,10 +26,17 @@ struct pastix_spm_s {
     int           flttype;   /*< avals datatype: PastixPattern, PastixFloat, PastixDouble,
                                  PastixComplex32 or PastixComplex64                          */
     int           fmttype;   /*< Matrix storage format: PastixCSC, PastixCSR, PastixIJV      */
+
     pastix_int_t  gN;        /*< Global number of vertices in the compressed graph           */
     pastix_int_t  n;         /*< Local number of vertices in the compressed graph            */
     pastix_int_t  gnnz;      /*< Global number of non zeroes in the compressed graph         */
     pastix_int_t  nnz;       /*< Local number of non zeroes in the compressed graph          */
+
+    pastix_int_t  gNexp;     /*< Global number of vertices in the compressed graph           */
+    pastix_int_t  nexp;      /*< Local number of vertices in the compressed graph            */
+    pastix_int_t  gnnzexp;   /*< Global number of non zeroes in the compressed graph         */
+    pastix_int_t  nnzexp;    /*< Local number of non zeroes in the compressed graph          */
+
     pastix_int_t  dof;       /*< Number of degrees of freedom per unknown,
                                  if > 0, constant degree of freedom
                                  otherwise, irregular degree of freedom (refer to dofs)      */
