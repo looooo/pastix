@@ -68,6 +68,45 @@ static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
 };
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * spmInit - Init the spm structure given as parameter
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to init.
+ *
+ *******************************************************************************/
+void
+spmInit( pastix_spm_t *spm )
+{
+    spm->mtxtype = PastixGeneral;
+    spm->flttype = PastixComplex64;
+    spm->fmttype = PastixCSC;
+
+    spm->gN   = 0;
+    spm->n    = 0;
+    spm->gnnz = 0;
+    spm->nnz  = 0;
+
+    spm->gNexp   = 0;
+    spm->nexp    = 0;
+    spm->gnnzexp = 0;
+    spm->nnzexp  = 0;
+
+    spm->dof     = 1;
+    spm->dofs    = NULL;
+
+    spm->colptr   = NULL;
+    spm->rowptr   = NULL;
+    spm->loc2glob = NULL;
+    spm->values   = NULL;
+}
+
 
 /**
  *******************************************************************************

@@ -22,6 +22,7 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
+#include "expand.c"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \
@@ -105,6 +106,7 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    dofVar(&spm);//
     free(filename);
 
     printf(" -- SPM Conversion Test --\n");

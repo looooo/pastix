@@ -473,6 +473,7 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
+  example/expand.c
   spm/z_spm.c
   spm/z_spm_convert_to_csc.c
   spm/z_spm_convert_to_csr.c

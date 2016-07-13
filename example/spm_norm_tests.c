@@ -21,6 +21,7 @@
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
 #include <spm.h>
+#include "expand.h"
 
 int z_spm_norm_check( const pastix_spm_t *spm );
 int c_spm_norm_check( const pastix_spm_t *spm );
@@ -48,6 +49,7 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
+    spmInit(&spm);
     /**
      * Get options from command line
      */
@@ -56,7 +58,9 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    dofVar(&spm);//Test dofs
     free(filename);
+
 
     spmtype = spm.mtxtype;
     printf(" -- SPM Norms Test --\n");
@@ -65,7 +69,10 @@ int main (int argc, char **argv)
     for( baseval=0; baseval<2; baseval++ )
     {
         printf(" Baseval : %d\n", baseval );
+
+
         spmBase( &spm, baseval );
+
 
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
@@ -79,6 +86,7 @@ int main (int argc, char **argv)
             {
                 continue;
             }
+
             spm.mtxtype = mtxtype;
 
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );

@@ -99,13 +99,13 @@ z_spm2dense( const pastix_spm_t *spm )
             for(i=0; i<spm->n; i++, colptr++)
             {
                 dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-                col = dofs[i] - baseval;
+                col = dofs[i];
 
                 for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
                 {
                     j = (*rowptr - baseval);
                     dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                    row = dofs[j] - baseval;
+                    row = dofs[j];
 
                     for(ii=0; ii<dofi; ii++)
                     {
@@ -123,13 +123,13 @@ z_spm2dense( const pastix_spm_t *spm )
             for(i=0; i<spm->n; i++, colptr++)
             {
                 dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-                col = dofs[i] - baseval;
+                col = dofs[i];
 
                 for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
                 {
                     j = (*rowptr - baseval);
                     dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                    row = dofs[j] - baseval;
+                    row = dofs[j];
 
                     for(ii=0; ii<dofi; ii++)
                     {
@@ -147,13 +147,13 @@ z_spm2dense( const pastix_spm_t *spm )
             for(i=0; i<spm->n; i++, colptr++)
             {
                 dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-                col = dofs[i] - baseval;
+                col = dofs[i];
 
                 for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
                 {
                     j = (*rowptr - baseval);
                     dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                    row = dofs[j] - baseval;
+                    row = dofs[j];
 
                     for(ii=0; ii<dofi; ii++)
                     {

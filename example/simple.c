@@ -9,6 +9,7 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
+#include "expand.h"
 
 int main (int argc, char **argv)
 {
@@ -45,6 +46,7 @@ int main (int argc, char **argv)
      */
     spm = malloc( sizeof( pastix_spm_t ) );
     cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
+    dofVar(spm);
     free(filename);
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {

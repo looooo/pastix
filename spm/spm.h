@@ -41,6 +41,7 @@ struct pastix_spm_s {
                                  if > 0, constant degree of freedom
                                  otherwise, irregular degree of freedom (refer to dofs)      */
     pastix_int_t *dofs;      /*< Number of degrees of freedom per unknown (NULL, if dof > 0) */
+
     pastix_int_t *colptr;    /*< List of indirections to rows for each vertex                */
     pastix_int_t *rowptr;    /*< List of edges for each vertex                               */
     pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global                */
