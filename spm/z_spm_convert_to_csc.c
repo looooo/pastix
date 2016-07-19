@@ -204,6 +204,7 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
         assert( val_csc );
 #endif
 
+
         /* Count the number of elements per column */
         for (j=0; j<nnz; j++) {
             col = spm->colptr[j] - baseval;

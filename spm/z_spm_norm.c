@@ -50,7 +50,7 @@ z_spmFrobeniusNorm( const pastix_spm_t *spm )
     double sumsq = 0.;
 
     if (spm->mtxtype == PastixGeneral) {
-        for(i=0; i <spm->nnz; i++, valptr++) {
+        for(i=0; i <spm->nnzexp; i++, valptr++) {
             frobenius_update( 1, &scale, &sumsq, valptr );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -62,20 +62,31 @@ z_spmFrobeniusNorm( const pastix_spm_t *spm )
     else {
         pastix_int_t *colptr = spm->colptr;
         pastix_int_t *rowptr = spm->rowptr;
-        int nb;
+        int nb, dofi, dofj, ii, jj;
+        pastix_int_t *dofs=spm->dofs;
         baseval = spmFindBase( spm );
 
         switch( spm->fmttype ){
         case PastixCSC:
-            for(i=0; i<spm->n; i++, colptr++) {
-                for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++) {
-                    nb = ( i == (*rowptr-baseval) ) ? 1 : 2;
-                    frobenius_update( nb, &scale, &sumsq, valptr );
+            for(i=0; i<spm->n; i++, colptr++)
+            {
+                dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
+                for(j=colptr[0]; j<colptr[1]; j++, rowptr++)
+                {
+                    dofj = ( spm->dof > 0 ) ? spm->dof : dofs[(*rowptr-baseval)+1] - dofs[(*rowptr-baseval)];
+                    for(ii=0 ; ii < dofi; ii++)
+                    {
+                        for(jj=0; jj < dofj ;jj++,valptr++)
+                        {
+                            nb = ( i == (*rowptr-baseval) ) ? 1 : 2;
+                            frobenius_update( nb, &scale, &sumsq, valptr );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                    valptr++;
-                    frobenius_update( nb, &scale, &sumsq, valptr );
+                            valptr++;
+                            frobenius_update( nb, &scale, &sumsq, valptr );
 #endif
+                        }
+                    }
                 }
             }
             break;
@@ -211,7 +222,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
          */
 
         /* Dofs */
-        for( i=0; i < spm->n; i++ )
+        for( i=0; i < spm->n; i++)
         {
             dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
             for(k=spm->colptr[i]; k < spm->colptr[i+1]; k++)
@@ -230,7 +241,6 @@ z_spmInfNorm( const pastix_spm_t *spm )
                 }
             }
         }
-
         /* Add the symmetric/hermitian part */
         if ( (spm->mtxtype == PastixHermitian) ||
              (spm->mtxtype == PastixSymmetric) )
@@ -244,16 +254,20 @@ z_spmInfNorm( const pastix_spm_t *spm )
                 {
                     j = spm->rowptr[k - baseval] - baseval;
                     dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
-                    for(ii=0; ii < dofi; ii++)
-                        for(jj=0; jj < dofj; jj++,valptr++)
+                    if(i != j)
+                    {
+                        for(ii=0; ii < dofi; ii++)
                         {
+                            for(jj=0; jj < dofj; jj++, valptr++)
                             {
-                                if(i != j)
-                                {
-                                    sumcol[col + ii] += cabs( *valptr );
-                                }
+                                sumcol[col + ii] += cabs( *valptr );
                             }
                         }
+                    }
+                    else
+                    {
+                        valptr += dofi * dofj;
+                    }
                 }
             }
         }
@@ -368,18 +382,20 @@ z_spmOneNorm( const pastix_spm_t *spm )
         for(i=0; i < spm->n; i++)
         {
             col = dofs[i];
-            dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - spm->dofs[i];
+            dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
             for(k=spm->colptr[i]; k < spm->colptr[i+1]; k++)
             {
                 j = spm->rowptr[k - baseval] - baseval;
-                dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - spm->dofs[j];
+                dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
                 for(ii=0; ii < dofi; ii++)
+                {
                     for(jj=0; jj < dofj; jj++, valptr++)
                     {
                         {
                             sumrow[col + ii] += cabs( *valptr );
                         }
                     }
+                }
             }
         }
         /* Add the symmetric/hermitian part */
@@ -389,22 +405,27 @@ z_spmOneNorm( const pastix_spm_t *spm )
             valptr = (pastix_complex64_t*)spm->values;
             for(i=0; i < spm->n; i++)
             {
-                dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - spm->dofs[i];
+                dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
                 for(k=spm->colptr[i]; k < spm->colptr[i+1]; k++)
                 {
                     j = spm->rowptr[k - baseval] - baseval;
                     row = dofs[j];
-                    dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - spm->dofs[j];
-                    for(ii=0; ii < dofi; ii++)
-                        for(jj=0; jj < dofj; jj++, valptr++)
+                    dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
+                    if(i != j)
+                    {
+                        for(ii=0; ii < dofi; ii++)
                         {
+                            for(jj=0; jj < dofj; jj++, valptr++)
                             {
-                                if(i != j)
-                                {
-                                    sumrow[row + jj] += cabs( *valptr );
-                                }
+
+                                sumrow[row + jj] += cabs( *valptr );
                             }
                         }
+                    }
+                    else
+                    {
+                        valptr += dofi * dofj;
+                    }
                 }
             }
         }

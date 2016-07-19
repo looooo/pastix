@@ -21,6 +21,8 @@ set(SOURCES
   z_spm_genrhs.c
   z_spm_matrixvector.c
   z_spm_norm.c
+  z_spm_2dense.c
+  z_spm_print.c
   )
 
 set(spm_headers

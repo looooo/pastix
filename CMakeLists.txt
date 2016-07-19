@@ -481,6 +481,8 @@ set(SOURCES
   spm/z_spm_genrhs.c
   spm/z_spm_matrixvector.c
   spm/z_spm_norm.c
+  spm/z_spm_2dense.c
+  spm/z_spm_print.c
   #
   matrix_drivers/z_spm_laplacian.c
   #
