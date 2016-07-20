@@ -229,7 +229,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
             {
                 j = spm->rowptr[k - baseval] - baseval;
                 dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
-                row = dofs[j];
+                row  = ( spm->dof > 0 ) ? j        : dofs[j];
                 for(ii=0; ii < dofi; ii++)
                 {
                     for(jj=0; jj < dofj; jj++, valptr++)
@@ -248,7 +248,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
             valptr = (pastix_complex64_t*)spm->values;
             for(i=0; i < spm->n; i++)
             {
-                col = dofs[i];
+                col  = ( spm->dof > 0 ) ? i        : dofs[i];
                 dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
                 for(k=spm->colptr[i]; k < spm->colptr[i+1]; k++)
                 {
@@ -381,7 +381,7 @@ z_spmOneNorm( const pastix_spm_t *spm )
 
         for(i=0; i < spm->n; i++)
         {
-            col = dofs[i];
+            col  = ( spm->dof > 0 ) ? i        : dofs[i];
             dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
             for(k=spm->colptr[i]; k < spm->colptr[i+1]; k++)
             {
@@ -409,7 +409,7 @@ z_spmOneNorm( const pastix_spm_t *spm )
                 for(k=spm->colptr[i]; k < spm->colptr[i+1]; k++)
                 {
                     j = spm->rowptr[k - baseval] - baseval;
-                    row = dofs[j];
+                    row  = ( spm->dof > 0 ) ? j        : dofs[j];
                     dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
                     if(i != j)
                     {
@@ -417,7 +417,6 @@ z_spmOneNorm( const pastix_spm_t *spm )
                         {
                             for(jj=0; jj < dofj; jj++, valptr++)
                             {
-
                                 sumrow[row + jj] += cabs( *valptr );
                             }
                         }

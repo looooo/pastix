@@ -109,12 +109,12 @@ z_spmGeCSCv(      int                 trans,
             for( i=0; i < csc->gN; i++ )
             {
                 dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
-                col=dofs[i];
+                col  = ( csc->dof > 0 ) ? i        : dofs[i];
                 for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
                 {
                     j = csc->rowptr[k-baseval]-baseval;
                     dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
-                    row=dofs[j];
+                    row  = ( csc->dof > 0 ) ? j        : dofs[j];
                     for(ii=0; ii<dofi; ii++)
                     {
                         for(jj=0; jj<dofj; jj++, valptr++)
@@ -133,12 +133,12 @@ z_spmGeCSCv(      int                 trans,
             for( i=0; i < csc->gN; i++ )
             {
                 dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
-                col=dofs[i];
+                col  = ( csc->dof > 0 ) ? i        : dofs[i];
                 for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
                 {
                     j = csc->rowptr[k-baseval]-baseval;
                     dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
-                    row=dofs[j];
+                    row  = ( csc->dof > 0 ) ? j        : dofs[j];
                     for(ii=0; ii<dofi; ii++)
                     {
                         for(jj=0; jj<dofj; jj++, valptr++)
@@ -250,12 +250,12 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
         for( i=0; i < csc->gN; i++ )
         {
             dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
-            col = dofs[i];
+            col  = ( csc->dof > 0 )  ? i        : dofs[i];
             for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
             {
                 j = csc->rowptr[k-baseval]-baseval;
                 dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
-                row = dofs[j];
+                row  = ( csc->dof > 0 ) ? j        : dofs[j];
                 for(ii=0; ii<dofi; ii++)
                 {
                     for(jj=0; jj<dofj; jj++, valptr++)
@@ -351,12 +351,12 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
         for( i=0; i < csc->gN; i++ )
         {
             dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
-            col = dofs[i];
+            col  = ( csc->dof > 0 ) ? i        : dofs[i];
             for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
             {
                 j = csc->rowptr[k-baseval]-baseval;
                 dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
-                row = dofs[j];
+                row  = ( csc->dof > 0 ) ? j        : dofs[j];
                 for(ii=0; ii<dofi; ii++)
                 {
                     for(jj=0; jj<dofj; jj++, valptr++)
