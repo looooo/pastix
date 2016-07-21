@@ -98,8 +98,9 @@ spmInit( pastix_spm_t *spm )
     spm->gnnzexp = 0;
     spm->nnzexp  = 0;
 
-    spm->dof     = 1;
-    spm->dofs    = NULL;
+    spm->dof       = 1;
+    spm->dofs      = NULL;
+    spm->colmajor  = 1;
 
     spm->colptr   = NULL;
     spm->rowptr   = NULL;

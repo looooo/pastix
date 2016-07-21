@@ -483,6 +483,7 @@ set(SOURCES
   spm/z_spm_norm.c
   spm/z_spm_2dense.c
   spm/z_spm_print.c
+  spm/z_spm_dofs2flat.c
   #
   matrix_drivers/z_spm_laplacian.c
   #

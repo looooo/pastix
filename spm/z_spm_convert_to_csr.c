@@ -123,15 +123,56 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
 #endif
     pastix_int_t       *spmptx, *otmp;
     pastix_int_t i, j, tmp, baseval, total;
-    pastix_spm_t oldspm;
+    pastix_int_t row, col, dofi, dofj;
 
-    /* Backup the input */
-    memcpy( &oldspm, spm, sizeof(pastix_spm_t) );
+    pastix_int_t *node     = calloc(spm->nnz+1,sizeof(pastix_int_t));
+    pastix_int_t *old_node = calloc(spm->nnz+1,sizeof(pastix_int_t));
+    pastix_int_t *dofs     =spm->dofs;
+
+    pastix_spm_t oldspm;
 
     /*
      * Check the baseval, we consider that arrays are sorted by columns or rows
      */
     baseval = spmFindBase( spm );
+
+
+#if !defined(PRECISION_p)
+    pastix_int_t ii, jj;
+    /* Transpose values in row major format */
+    if( spm->colmajor ) //A test
+    {
+        int k;
+        int cpt=0;
+        oavals = (pastix_complex64_t*)spm->values;
+        navals = malloc(sizeof(pastix_complex64_t)*spm->nnzexp);
+        pastix_int_t* dofs=spm->dofs;
+
+        for(k=0; k<spm->nnz; k++)
+        {
+            j = spm->rowptr[k]-baseval;
+            i = spm->colptr[k]-baseval;
+            dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
+            dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
+            for(ii=0; ii<dofi; ii++)
+            {
+                for(jj=0; jj<dofj; jj++)
+                {
+                    navals[cpt+jj*dofi+ii]=*oavals;
+                    oavals++;
+                }
+            }
+            cpt += dofi*dofj;
+        }
+        spm->values=navals;
+    }
+#endif
+
+
+
+    /* Backup the input */
+    memcpy( &oldspm, spm, sizeof(pastix_spm_t) );
+
 
     /* Compute the new rowptr */
     spm->rowptr = (pastix_int_t *) calloc(spm->n+1,sizeof(pastix_int_t));
@@ -158,10 +199,39 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
     /* Sort the colptr and avals arrays by rows */
     spm->colptr  = malloc(spm->nnz * sizeof(pastix_int_t));
 
+    for(i=0; i<spm->nnz; i++)
+    {
+        row = oldspm.rowptr[i]-baseval;
+        col = oldspm.colptr[i]-baseval;
+        dofi = ( spm->dof > 0 ) ? spm->dof : dofs[col+1] - dofs[col];
+        dofj = ( spm->dof > 0 ) ? spm->dof : dofs[row+1] - dofs[row];
+        old_node[i+1] = dofi * dofj;
+        node[spm->rowptr[row]+1] += dofi * dofj;
+        spm->rowptr[row]++;
+    }
+
+    for(i=0;i<spm->nnz;i++)
+    {
+        node[i+1]+=node[i];
+        old_node[i+1]+=old_node[i];
+    }
+
+    /* Restore the rowptr indexes */
+    {
+        pastix_int_t tmp, tmp2;
+        tmp = spm->rowptr[0];
+        spm->rowptr[0] = 0;
+        for (j=0; j<spm->n; j++) {
+            tmp2 = spm->rowptr[j+1];
+            spm->rowptr[j+1] = tmp;
+            tmp = tmp2;
+        }
+    }
+
 #if defined(PRECISION_p)
     spm->values = NULL;
 #else
-    spm->values = malloc(spm->nnz * sizeof(pastix_complex64_t));
+    spm->values = malloc(spm->nnzexp * sizeof(pastix_complex64_t));
     navals = (pastix_complex64_t*)(spm->values);
     oavals = (pastix_complex64_t*)(oldspm.values);
 #endif
@@ -173,7 +243,17 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
         spm->colptr[ spm->rowptr[i] ] = oldspm.colptr[j];
 
 #if !defined(PRECISION_p)
-        navals[ spm->rowptr[i] ] = oavals[j];
+        dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
+        dofj = ( spm->dof > 0 ) ? spm->dof : dofs[oldspm.colptr[j]-baseval+1] - dofs[oldspm.colptr[j]-baseval];
+        for(ii=0; ii<dofi; ii++)
+        {
+            for(jj=0; jj<dofj; jj++)
+            {
+                navals[node[spm->rowptr[i]]] = oavals[ old_node[j]];
+                old_node[j]++;
+                node[spm->rowptr[i]]++;
+            }
+        }
 #endif
         (spm->rowptr[i])++;
 
@@ -196,6 +276,7 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
     spmExit( &oldspm );
 
     spm->fmttype = PastixCSR;
+
 
     return PASTIX_SUCCESS;
 }

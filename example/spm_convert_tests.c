@@ -105,8 +105,10 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
+    spmInit(&spm);
     cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
     dofVar(&spm);//
+
     free(filename);
 
     printf(" -- SPM Conversion Test --\n");
