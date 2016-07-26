@@ -9,7 +9,6 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
-#include "expand.h"
 
 int main (int argc, char **argv)
 {

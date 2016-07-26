@@ -75,7 +75,7 @@ z_spmGeCSCv(      int                 trans,
     pastix_complex64_t *yptr = y;
     pastix_int_t col, row, i, j, baseval;
     pastix_int_t ii, jj, k, dofi, dofj;
-    pastix_int_t *dofs=csc->dofs;
+    pastix_int_t *dofs = csc->dofs;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
     {
@@ -168,7 +168,6 @@ z_spmGeCSCv(      int                 trans,
             return PASTIX_ERR_BADPARAMETER;
         }
     }
-
     return PASTIX_SUCCESS;
 }
 
@@ -219,8 +218,7 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
     pastix_complex64_t *yptr = y;
     pastix_int_t col, row, i, j, baseval;
     pastix_int_t ii, jj, k, dofi, dofj;
-    pastix_int_t *dofs=csc->dofs;
-
+    pastix_int_t *dofs = csc->dofs;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
     {
@@ -321,8 +319,7 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
     pastix_complex64_t *yptr = y;
     pastix_int_t col, row, i, j, baseval;
     pastix_int_t ii, jj, k, dofi, dofj;
-    pastix_int_t *dofs=csc->dofs;
-
+    pastix_int_t *dofs = csc->dofs;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
     {
@@ -371,22 +368,6 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
             }
         }
     }
-
-    /*
-    if( alpha != 0. ) {
-        for( col=0; col < csc->gN; col++ )
-        {
-            for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
-            {
-                row=csc->rowptr[i-baseval]-baseval;
-                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-                if( col != row )
-                    yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
-            }
-        }
-    }
-     */
-
     return PASTIX_SUCCESS;
 }
 #endif

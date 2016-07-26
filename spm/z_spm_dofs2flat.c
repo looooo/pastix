@@ -1,8 +1,10 @@
 /**
  *
- * @file z_spm_2dense.c
+ * @file z_spm_dofs2flat.c
  *
- * Convert a sparse matrix into a dense matrix.
+ *  PaStiX spm routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
  * @version 5.1.0
  * @author Mathieu Faverge
@@ -24,31 +26,24 @@
 #include "spm.h"
 #include "z_spm.h"
 
-
-pastix_spm_t *
-dofs2flat(pastix_spm_t *spm)
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_internal
+ *
+ * z_spmDofs2Flat - Convert a sparse matrix with dofs into a sparse matrix without dofs.
+ *
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The sparse matrix which needs to be converted
+ *
+ *******************************************************************************
+ **/
+void
+z_spmDofs2Flat(pastix_spm_t *spm)
 {
-    pastix_spm_t* new_spm=malloc(sizeof(pastix_spm_t));
-    spmInit(new_spm);
-
-    new_spm->mtxtype = spm->mtxtype;
-    new_spm->flttype = spm->flttype;
-    new_spm->fmttype = spm->fmttype;
-
-    new_spm->gN   = spm->gNexp;
-    new_spm->n    = spm->nexp;
-    new_spm->gnnz = spm->gnnzexp;
-    new_spm->nnz  = spm->nnzexp;
-
-    new_spm->gNexp   = spm->gNexp;
-    new_spm->nexp    = spm->nexp;
-    new_spm->gnnzexp = spm->gnnzexp;
-    new_spm->nnzexp  = spm->nnzexp;
-
-    new_spm->dof       = 1;
-    new_spm->dofs      = NULL;
-    new_spm->colmajor  = 1;
-
     pastix_int_t i, j, k, ii, jj, dofi, dofj, col, row, baseval;
     baseval = spmFindBase( spm );
 
@@ -115,10 +110,17 @@ dofs2flat(pastix_spm_t *spm)
         new_col[i] += baseval;
     }
 
-    new_spm->colptr   = new_col;
-    new_spm->rowptr   = new_row;
-    new_spm->loc2glob = NULL; // ?
-    new_spm->values   = new_vals;
+    spm->gN   = spm->gNexp;
+    spm->n    = spm->nexp;
+    spm->gnnz = spm->gnnzexp;
+    spm->nnz  = spm->nnzexp;
 
-    return new_spm;
+    spm->dof       = 1;
+    spm->dofs      = NULL;
+    spm->colmajor  = 1;
+
+    spm->colptr   = new_col;
+    spm->rowptr   = new_row;
+    spm->loc2glob = NULL; // ?
+    spm->values   = new_vals;
 }

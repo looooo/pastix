@@ -21,7 +21,6 @@
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
 #include "spm.h"
-#include "expand.h"
 
 int z_spm_matvec_check( int trans, const pastix_spm_t *spm );
 int c_spm_matvec_check( int trans, const pastix_spm_t *spm );

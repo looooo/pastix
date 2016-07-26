@@ -22,7 +22,6 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
-#include "expand.c"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \

@@ -89,4 +89,6 @@ pastix_int_t  spmSymmetrize( pastix_spm_t *spm );
 
 pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
 
+void dofVar(pastix_spm_t* spm);//tmp
+
 #endif /* _SPM_H_ */

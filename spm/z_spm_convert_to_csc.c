@@ -9,6 +9,7 @@
  * @version 5.1.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
+ * @author Alban Bellot
  * @date 2015-01-01
  *
  * @precisions normal z -> c d s p
@@ -80,11 +81,10 @@ z_spmConvertIJV2CSC( pastix_spm_t *spm )
 
     /* Sort the rows and avals arrays by column */
     spm->rowptr = malloc(spm->nnz * sizeof(pastix_int_t));
-    pastix_int_t* node = calloc(spm->nnz+1,sizeof(pastix_int_t));
-    pastix_int_t* old_node = calloc(spm->nnz+1,sizeof(pastix_int_t));
+    pastix_int_t *node     = calloc(spm->nnz+1,sizeof(pastix_int_t));
+    pastix_int_t *old_node = calloc(spm->nnz+1,sizeof(pastix_int_t));
+    pastix_int_t *dofs     = spm->dofs;
     pastix_int_t row, col, dofi, dofj;
-    pastix_int_t *dofs=spm->dofs;
-
 
     for(i=0; i<spm->nnz; i++)
     {
@@ -127,13 +127,11 @@ z_spmConvertIJV2CSC( pastix_spm_t *spm )
     for (j=0; j<spm->nnz; j++)
     {
         i = oldspm.colptr[j] - baseval;
-
         spm->rowptr[ spm->colptr[i] ] = oldspm.rowptr[j];
 
 #if !defined(PRECISION_p)
         dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
         dofj = ( spm->dof > 0 ) ? spm->dof : dofs[oldspm.rowptr[j]-baseval+1] - dofs[oldspm.rowptr[j]-baseval];
-
         for(ii=0; ii<dofi; ii++)
         {
             for(jj=0; jj<dofj; jj++)
@@ -152,7 +150,6 @@ z_spmConvertIJV2CSC( pastix_spm_t *spm )
     /* Rebuild the colptr with the correct baseval */
     tmp = spm->colptr[0];
     spm->colptr[0] = baseval;
-
     spmptx = spm->colptr + 1;
     for (i=1; i<(spm->n+1); i++, spmptx++)
     {
@@ -198,6 +195,10 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
 
     spm->fmttype = PastixCSC;
 
+    pastix_int_t type = spm->mtxtype;
+    if(spm->dof != 1)
+        spm->mtxtype = PastixGeneral;
+
     switch( spm->mtxtype ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
     case PastixHermitian:
@@ -242,7 +243,6 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
         pastix_int_t  i, j, k, col, row, nnz, baseval;
         pastix_int_t dofi, dofj;
 
-
         baseval = spmFindBase( spm );
         nnz = spm->nnz;
 
@@ -257,12 +257,10 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
         assert( ( (dofs) && !(spm->dof > 0) ) ||
                 ( !(dofs) && (spm->dof > 0) ) ); // (dofs) xor (spm->dof > 0)
 
-
 #if !defined(PRECISION_p)
         val_csc = malloc(spm->nnzexp*sizeof(pastix_complex64_t));
         assert( val_csc );
 #endif
-
         /* Count the number of elements per column */
         for (j=0; j<nnz; j++) {
             col = spm->colptr[j] - baseval;
@@ -318,12 +316,11 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
 #if !defined(PRECISION_p)
                 dofi = ( spm->dof > 0 ) ? spm->dof : dofs[col+1] - dofs[col];
                 dofj = ( spm->dof > 0 ) ? spm->dof : dofs[row+1] - dofs[row];
-                //printf("dof dof %d %d\n",dofi,dofj);
                 for(jj=0; jj < dofj ; jj++)
                 {
                     for(ii=0; ii < dofi ; ii++)
                     {
-                        val_csc[node[j]+ii*dofj+jj] = valptr[cpt];
+                        val_csc[node[j] + ii * dofj + jj] = valptr[cpt];
                         cpt++;
                     }
                 }
@@ -354,6 +351,9 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
 #endif
     }
     }
+
+    if(spm-> dof != 1)
+        spm->mtxtype = type;
 
     return PASTIX_SUCCESS;
 }

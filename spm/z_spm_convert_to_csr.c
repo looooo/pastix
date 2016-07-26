@@ -9,6 +9,7 @@
  * @version 5.1.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
+ * @authot Alban Bellot
  * @date 2015-01-01
  *
  * @precisions normal z -> c d s p
@@ -43,6 +44,10 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
 {
     pastix_int_t *tmp;
     pastix_int_t  result;
+    pastix_int_t  type = spm->mtxtype;
+
+    if(spm->dof != 1)
+        spm->mtxtype = PastixGeneral;
 
     switch( spm->mtxtype ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -66,7 +71,6 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
         spm->rowptr  = spm->colptr;
         spm->colptr  = tmp;
         spm->fmttype = PastixCSR;
-
         return PASTIX_SUCCESS;
     }
     break;
@@ -90,6 +94,9 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
         spm->fmttype = PastixCSR;
     }
     }
+
+    if(spm-> dof != 1)
+        spm->mtxtype = type;
 
     return result;
 }
@@ -127,7 +134,7 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
 
     pastix_int_t *node     = calloc(spm->nnz+1,sizeof(pastix_int_t));
     pastix_int_t *old_node = calloc(spm->nnz+1,sizeof(pastix_int_t));
-    pastix_int_t *dofs     =spm->dofs;
+    pastix_int_t *dofs     = spm->dofs;
 
     pastix_spm_t oldspm;
 
@@ -136,17 +143,16 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
      */
     baseval = spmFindBase( spm );
 
-
 #if !defined(PRECISION_p)
-    pastix_int_t ii, jj;
     /* Transpose values in row major format */
-    if( spm->colmajor ) //A test
+    if( spm->colmajor )
     {
-        int k;
-        int cpt=0;
+        pastix_int_t ii, jj, k;
+        pastix_int_t cpt=0;
+        pastix_int_t* dofs = spm->dofs;
+
         oavals = (pastix_complex64_t*)spm->values;
         navals = malloc(sizeof(pastix_complex64_t)*spm->nnzexp);
-        pastix_int_t* dofs=spm->dofs;
 
         for(k=0; k<spm->nnz; k++)
         {
@@ -158,21 +164,18 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
             {
                 for(jj=0; jj<dofj; jj++)
                 {
-                    navals[cpt+jj*dofi+ii]=*oavals;
+                    navals[cpt + jj * dofi + ii] = *oavals;
                     oavals++;
                 }
             }
-            cpt += dofi*dofj;
+            cpt += dofi * dofj;
         }
-        spm->values=navals;
+        spm->values = navals;
     }
 #endif
 
-
-
     /* Backup the input */
     memcpy( &oldspm, spm, sizeof(pastix_spm_t) );
-
 
     /* Compute the new rowptr */
     spm->rowptr = (pastix_int_t *) calloc(spm->n+1,sizeof(pastix_int_t));
@@ -277,6 +280,6 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
 
     spm->fmttype = PastixCSR;
 
-
     return PASTIX_SUCCESS;
 }
+

@@ -9,6 +9,7 @@
  * @version 5.1.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
+ * @author Alban Bellot
  * @date 2015-01-01
  *
  * @precisions normal z -> c d s p
@@ -65,11 +66,12 @@ z_spmConvertCSC2IJV( pastix_spm_t *spm )
     /* Transpose values in row major format */
     if( !spm->colmajor ) //A test
     {
-        int k,ii,jj,dofi,dofj;
-        int cpt=0;
+        int k, ii, jj, dofi, dofj;
+        int cpt = 0;
         pastix_complex64_t* oavals = (pastix_complex64_t*)spm->values;
         pastix_complex64_t* navals = malloc(sizeof(pastix_complex64_t)*spm->nnzexp);
         pastix_int_t* dofs=spm->dofs;
+
         for(k=0; k<spm->nnz; k++)
         {
             j = spm->rowptr[k]-baseval;
@@ -80,13 +82,13 @@ z_spmConvertCSC2IJV( pastix_spm_t *spm )
             {
                 for(jj=0; jj<dofj; jj++)
                 {
-                    navals[cpt+jj*dofi+ii]=*oavals;
+                    navals[cpt + jj * dofi + ii] = *oavals;
                     oavals++;
                 }
             }
-            cpt+=dofi*dofj;
+            cpt + = dofi * dofj;
         }
-        spm->values=navals;
+        spm->values = navals;
     }
 
     memFree_null(spm->colptr);
@@ -143,8 +145,8 @@ z_spmConvertCSR2IJV( pastix_spm_t *spm )
     /* Transpose values in column major format */
     if( spm->colmajor )
     {
-        int k,ii,jj,dofi,dofj;
-        int cpt=0;
+        pastix_int_t k, ii, jj, dofi, dofj;
+        pastix_int_t cpt=0;
         pastix_complex64_t* oavals = (pastix_complex64_t*)spm->values;
         pastix_complex64_t* navals = malloc(sizeof(pastix_complex64_t)*spm->nnzexp);
         pastix_int_t* dofs=spm->dofs;
@@ -158,13 +160,13 @@ z_spmConvertCSR2IJV( pastix_spm_t *spm )
             {
                 for(ii=0; ii<dofi; ii++)
                 {
-                    navals[cpt+ii*dofj+jj]=*oavals;
+                    navals[cpt + ii * dofj + jj] = *oavals;
                     oavals++;
                 }
             }
-            cpt+=dofi*dofj;
+            cpt += dofi * dofj;
         }
-        spm->values=navals;
+        spm->values = navals;
     }
 
     memFree_null(spm->rowptr);

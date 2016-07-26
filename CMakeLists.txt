@@ -473,7 +473,6 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
-  example/expand.c
   spm/z_spm.c
   spm/z_spm_convert_to_csc.c
   spm/z_spm_convert_to_csr.c
@@ -484,6 +483,7 @@ set(SOURCES
   spm/z_spm_2dense.c
   spm/z_spm_print.c
   spm/z_spm_dofs2flat.c
+  spm/z_spm_expand.c
   #
   matrix_drivers/z_spm_laplacian.c
   #

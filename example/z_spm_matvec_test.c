@@ -119,9 +119,6 @@ z_spm_norm_check( const pastix_spm_t *spm )
     /* Create a dense backup of spm */
     A = z_spm2dense( spm );
 
-    //z_spmPrint( spm );
-    //z_spmDensePrint( spm->nexp, spm->nexp, A, spm->nexp );
-
     /**
      * Test Norm Max
      */
