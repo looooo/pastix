@@ -97,6 +97,7 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
 
     if(spm-> dof != 1)
         spm->mtxtype = type;
+    spm->colmajor = -1;
 
     return result;
 }
@@ -144,10 +145,10 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
     baseval = spmFindBase( spm );
 
 #if !defined(PRECISION_p)
+    pastix_int_t ii, jj, k;
     /* Transpose values in row major format */
     if( spm->colmajor )
     {
-        pastix_int_t ii, jj, k;
         pastix_int_t cpt=0;
         pastix_int_t* dofs = spm->dofs;
 
@@ -278,6 +279,7 @@ z_spmConvertIJV2CSR( pastix_spm_t *spm )
 
     spmExit( &oldspm );
 
+    spm->colmajor = -1;
     spm->fmttype = PastixCSR;
 
     return PASTIX_SUCCESS;

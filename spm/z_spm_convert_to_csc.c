@@ -162,7 +162,7 @@ z_spmConvertIJV2CSC( pastix_spm_t *spm )
     spmExit( &oldspm );
 
     spm->fmttype = PastixCSC;
-
+    spm->colmajor = 1;
     return PASTIX_SUCCESS;
 }
 
@@ -354,6 +354,6 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
 
     if(spm-> dof != 1)
         spm->mtxtype = type;
-
+    spm->colmajor = 1;
     return PASTIX_SUCCESS;
 }

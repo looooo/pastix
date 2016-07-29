@@ -41,4 +41,11 @@ pastix_complex64_t *z_spm2dense( const pastix_spm_t *spm );
 void z_spmDensePrint( pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda );
 void z_spmPrint( const pastix_spm_t *spm );
 
+void z_spmConvertColMaj2RowMaj(pastix_spm_t *spm);
+void z_spmConvertRowMaj2ColMaj(pastix_spm_t *spm);
+
+void z_extandCSC(pastix_spm_t *spm);
+
+void z_spmDofs2Flat(pastix_spm_t *spm);
+
 #endif /* _z_spm_H_ */

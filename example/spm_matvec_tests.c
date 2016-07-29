@@ -54,7 +54,7 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
-    dofVar(&spm);//Test dofs
+    //dofVar(&spm); //Test dofs
     free(filename);
 
     spmtype = spm.mtxtype;

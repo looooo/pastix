@@ -64,7 +64,8 @@ z_spmConvertCSC2IJV( pastix_spm_t *spm )
     }
 
     /* Transpose values in row major format */
-    if( !spm->colmajor ) //A test
+    /*
+    if( spm->colmajor < 1 ) //A test
     {
         int k, ii, jj, dofi, dofj;
         int cpt = 0;
@@ -86,10 +87,12 @@ z_spmConvertCSC2IJV( pastix_spm_t *spm )
                     oavals++;
                 }
             }
-            cpt + = dofi * dofj;
+            cpt += dofi * dofj;
         }
         spm->values = navals;
     }
+
+    */
 
     memFree_null(spm->colptr);
     spm->colptr = col_ijv;
@@ -143,7 +146,8 @@ z_spmConvertCSR2IJV( pastix_spm_t *spm )
     }
 
     /* Transpose values in column major format */
-    if( spm->colmajor )
+    /*
+    if( spm->colmajor > 1 )
     {
         pastix_int_t k, ii, jj, dofi, dofj;
         pastix_int_t cpt=0;
@@ -168,6 +172,7 @@ z_spmConvertCSR2IJV( pastix_spm_t *spm )
         }
         spm->values = navals;
     }
+     */
 
     memFree_null(spm->rowptr);
     spm->rowptr = row_ijv;

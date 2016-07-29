@@ -44,8 +44,8 @@ int main (int argc, char **argv)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
+    spmInit(spm);
     cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
-    dofVar(spm);
     free(filename);
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
@@ -53,6 +53,9 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
+
+    //dofVar(spm); //Test dofs
+    //d_spmDofs2Flat(spm);
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
@@ -83,7 +86,7 @@ int main (int argc, char **argv)
         } else {
             x0 = NULL;
         }
-        spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+        spmGenRHS( PastixRhsI, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
@@ -100,7 +103,15 @@ int main (int argc, char **argv)
     pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
 
     pastix_task_raff(pastix_data, x, nrhs, b);
-
+    
+    int i;
+    printf("\nx : ");
+    for(i=0; i<spm->n;i++)
+    {
+        printf("%f ",((double*)(x))[i]);
+    }
+    printf("\n");
+    
     if ( check )
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );

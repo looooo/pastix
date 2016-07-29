@@ -41,7 +41,7 @@ struct pastix_spm_s {
                                  if > 0, constant degree of freedom
                                  otherwise, irregular degree of freedom (refer to dofs)      */
     pastix_int_t *dofs;      /*< Number of degrees of freedom per unknown (NULL, if dof > 0) */
-    int           colmajor;  /*< If > 0, column major when PastixIJV with dofs
+    int           colmajor;  /*< If > 0, column major with dofs
                                  otherwise, row major                                        */
 
     pastix_int_t *colptr;    /*< List of indirections to rows for each vertex                */

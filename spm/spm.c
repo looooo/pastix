@@ -813,3 +813,5 @@ spmCheckAxb( int nrhs,
         return ptrfunc[id](nrhs, spm, x0, ldx0, b, ldb, x, ldx );
     }
 }
+
+

@@ -484,6 +484,7 @@ set(SOURCES
   spm/z_spm_print.c
   spm/z_spm_dofs2flat.c
   spm/z_spm_expand.c
+  spm/z_spm_convert_col_row_major.c
   #
   matrix_drivers/z_spm_laplacian.c
   #
@@ -610,7 +611,8 @@ set(PASTIX_LIB_SRCS
   sopalin/coeftab.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
-#
+  #
+  spm/spm_expand.c
   spm/spm.c
 #
   refinement/pastix_task_raff.c
