@@ -16,7 +16,7 @@
  * @precisions normal z -> s d c
  *
  **/
-#include <cblas.h>
+#include "cblas.h"
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"

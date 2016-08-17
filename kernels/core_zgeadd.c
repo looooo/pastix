@@ -16,7 +16,7 @@
 #include "common.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
-#include <cblas.h>
+#include "cblas.h"
 
 /**
  ******************************************************************************
