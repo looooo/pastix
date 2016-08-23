@@ -38,10 +38,12 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
     SolverBlok *solvblok;
     SolverBlok *solvblok2 = (solvcblk+1)->fblokptr;
     pastix_complex64_t *lcoeftab = solvcblk->lcoeftab;
+    //pastix_complex64_t *dcoeftab = solvcblk->dcoeftab;
     pastix_complex64_t *ucoeftab = solvcblk->ucoeftab;
     pastix_complex64_t *Lvalues = bcsc->Lvalues;
     pastix_complex64_t *Uvalues = bcsc->Uvalues;
     pastix_int_t itercoltab, iterval, coefindx;
+    //    pastix_int_t ncols = solvcblk->lcolnum - solvcblk->fcolnum + 1;
 
     for (itercoltab=0; itercoltab<csccblk->colnbr; itercoltab++)
     {
@@ -86,6 +88,31 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
 #endif
                             ucoeftab[coefindx] = Uvalues[iterval];
                     }
+/*                     pastix_int_t i, j; */
+/*                     i = solvblok->coefind + rownum - solvblok->frownum; */
+/*                     j = itercoltab; */
+
+/*                     if (i < ncols){ */
+/*                         dcoeftab[i*ncols + j] = Uvalues[iterval]; */
+/*                         dcoeftab[j*ncols + i] = Lvalues[iterval]; */
+/*                     } */
+/*                     else{ */
+/*                         coefindx  = solvblok->coefind; */
+/*                         coefindx += rownum - solvblok->frownum; */
+/*                         coefindx += solvcblk->stride * itercoltab; */
+/*                         lcoeftab[coefindx] = Lvalues[iterval]; */
+
+/*                         if ( (ucoeftab != NULL) && */
+/*                              (rownum > (solvcblk->fcolnum + itercoltab)) ) */
+/*                         { */
+/* #if defined(PRECISION_z) || defined(PRECISION_c) */
+/*                             if (bcsc->mtxtype == PastixHermitian) */
+/*                                 ucoeftab[coefindx] = conj(Uvalues[iterval]); */
+/*                             else */
+/* #endif */
+/*                                 ucoeftab[coefindx] = Uvalues[iterval]; */
+/*                         } */
+/*                     } */
                 }
                 else {
                     /* printf("ILU: csc2solv drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n", */
@@ -127,6 +154,9 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 {
     SolverCblk *cblk = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
+
+    pastix_int_t compress_size = solvmtx->compress_size;
+    double tol                 = solvmtx->tolerance;
     pastix_int_t j;
 
     /* If not NULL, allocated to store the shur complement for exemple */
@@ -136,10 +166,13 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
 
     if ( factoLU ) {
+        /* Extra diagonal block for low-rank updates */
         MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
         memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
+
     }
     else {
+        cblk->dcoeftab = NULL;
         cblk->ucoeftab = NULL;
     }
 
@@ -196,6 +229,19 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         }
     }
 #endif /* defined(PASTIX_DUMP_COEFTAB) */
+
+    /**
+     * Try to compress the cblk if needs to be compressed
+     * TODO: change the criteria based on the level in the tree
+     */
+    {
+        if ( (cblk->cblktype & CBLK_SPLIT) &&
+             (cblk_colnbr( cblk ) >= compress_size) )
+        {
+            fprintf(stderr, "Try to compress a block\n");
+            coeftab_zcompress_one( cblk, tol );
+        }
+    }
 }
 
 /*

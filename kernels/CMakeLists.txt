@@ -28,6 +28,7 @@ set(SOURCES
   core_zhetrfsp.c
   core_zpotrfsp.c
   core_zgetrfsp.c
+  core_zgelrops.c
 )
 
 precisions_rules_py(generated_files
@@ -54,6 +55,11 @@ endif(PASTIX_WITH_CUDA)
 
 add_library(pastix_kernels ${generated_files} )
 add_dependencies(pastix_kernels kernels_headers)
+
+# link_directories(
+#   ${CBLAS_LIBRARY_DIRS}
+#   ${BLAS_LIBRARY_DIRS}
+# )
 
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}

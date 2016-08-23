@@ -149,6 +149,9 @@ target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
 add_executable(simple simple.c)
 target_link_libraries(simple ${PASTIX_EXAMPLES_LIBRARIES})
 
+add_executable(compare_tolerance compare_tolerance.c)
+target_link_libraries(compare_tolerance ${PASTIX_EXAMPLES_LIBRARIES})
+
 add_executable(spm_convert_tests spm_convert_tests.c)
 target_link_libraries(spm_convert_tests ${PASTIX_EXAMPLES_LIBRARIES})
 
@@ -163,6 +166,12 @@ target_link_libraries(bcsc_norm_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
 add_executable(bcsc_matvec_tests bcsc_matvec_tests.c)
 target_link_libraries(bcsc_matvec_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
+
+add_executable(compress_bfacto_test compress_bfacto_test.c)
+target_link_libraries(compress_bfacto_test ${PASTIX_EXAMPLES_LIBRARIES})
+
+add_executable(compress_afacto_test compress_afacto_test.c)
+target_link_libraries(compress_afacto_test ${PASTIX_EXAMPLES_LIBRARIES})
 
 #
 #-- CTests

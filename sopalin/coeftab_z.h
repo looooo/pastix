@@ -19,6 +19,12 @@
 #ifndef _coeftab_z_h_
 #define _coeftab_z_h_
 
+pastix_int_t coeftab_zcompress_one( SolverCblk *cblk, double tol);
+void coeftab_zcompress( SolverMatrix *solvmtx );
+
+pastix_int_t coeftab_zuncompress_one( SolverCblk *cblk, int factoLU );
+void coeftab_zuncompress( SolverMatrix *solvmtx );
+
 void coeftab_zffbcsc( const SolverMatrix  *solvmtx,
                       const pastix_bcsc_t *bcsc,
                       pastix_int_t         itercblk );

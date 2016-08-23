@@ -15,7 +15,7 @@
  *
  **/
 #include "common.h"
-#include "cblas.h"
+#include <cblas.h>
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
@@ -237,6 +237,14 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
+    if ( !(cblk->cblktype & CBLK_DENSE) ) {
+        assert( cblk->fblokptr->LRblock[0].rk == -1 &&
+                cblk->fblokptr->LRblock[1].rk == -1 );
+        L = cblk->fblokptr->LRblock[0].u;
+        U = cblk->fblokptr->LRblock[1].u;
+        stride = ncols;
+    }
+
     core_zgeadd( CblasTrans, ncols, ncols,
                  1.0, U, stride,
                  1.0, L, stride );
@@ -248,6 +256,75 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
     core_zgetro(ncols, ncols, L, stride, U, stride);
 
     return nbpivot;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgetrfsp1d_trsm - Apply all the trsm updates on one panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[in,out] L
+ *          The pointer to the lower matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] U
+ *          The pointer to the upper matrix storing the coefficients of the
+ *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ *******************************************************************************
+ *
+ * @return
+ *         \retval PASTIX_SUCCESS on successful exit.
+ *
+ *******************************************************************************/
+int core_zgetrfsp1d_trsm( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *U)
+{
+    SolverBlok *fblok, *lblok;
+    pastix_int_t dima, dimb, stride;
+
+    dima   = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = cblk->stride;
+    fblok  = cblk->fblokptr;   /* this diagonal block */
+    lblok  = cblk[1].fblokptr; /* the next diagonal block */
+
+    /* vertical dimension */
+    dimb = stride - dima;
+
+    /* if there is an extra-diagonal bloc in column block */
+    if ( fblok+1 < lblok )
+    {
+        pastix_complex64_t *fL, *fU;
+
+        /* first extra-diagonal bloc in column block address */
+        fL = L + fblok[1].coefind;
+        fU = U + fblok[1].coefind;
+
+        cblas_ztrsm(CblasColMajor,
+                    CblasRight, CblasUpper,
+                    CblasNoTrans, CblasNonUnit,
+                    dimb, dima,
+                    CBLAS_SADDR(zone), L,  stride,
+                    fL, stride);
+
+        cblas_ztrsm(CblasColMajor,
+                    CblasRight, CblasUpper,
+                    CblasNoTrans, CblasUnit,
+                    dimb, dima,
+                    CBLAS_SADDR(zone), U,  stride,
+                    fU, stride);
+    }
+
+    return PASTIX_SUCCESS;
 }
 
 /**
@@ -297,8 +374,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
      * column, and by transposition the L part of the diagonal block is
      * similarly stored in the U panel
      */
-    core_ztrsmsp(PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L);
-    core_ztrsmsp(PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U);
+    core_ztrsmsp(PastixLCoef, PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L);
+    core_ztrsmsp(PastixUCoef, PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U);
     return nbpivot;
 }
 
@@ -322,6 +399,9 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
  *******************************************************************************
  *
  * @return
@@ -332,7 +412,8 @@ int
 core_zgetrfsp1d( SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
                  double              criteria,
-                 pastix_complex64_t *work)
+                 pastix_complex64_t *work,
+                 double              tol )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     pastix_complex64_t *U = cblk->ucoeftab;
@@ -352,12 +433,14 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
 
         /* Update on L */
         core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
-                      L, U, fcblk->lcoeftab, work );
+                      L, U, fcblk->lcoeftab, work,
+                      tol );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
             core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
-                          U, L, fcblk->ucoeftab, work );
+                          U, L, fcblk->ucoeftab, work,
+                          tol );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }

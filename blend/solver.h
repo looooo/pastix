@@ -62,6 +62,12 @@ typedef struct Task_ {
 #endif
 } Task;
 
+/*+ Rank-k matrix structure +*/
+typedef struct pastix_lrblock_s {
+    int rk, rkmax;
+    void *u;
+    void *v;
+} pastix_lrblock_t;
 
 /*+ Solver block structure. +*/
 typedef struct SolverBlok_ {
@@ -71,6 +77,9 @@ typedef struct SolverBlok_ {
     pastix_int_t fcblknm;  /*< Facing column block        */
     pastix_int_t coefind;  /*< Index in coeftab           */
     pastix_int_t browind;  /*< Index in browtab           */
+
+    /* LR structures */
+    pastix_lrblock_t *LRblock;
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
@@ -91,7 +100,13 @@ typedef struct SolverCblk_  {
     void                *ucoeftab; /*< Coefficients access vector              */
 
     /* Check if really required */
+    void           *dcoeftab; /*< Coefficients access vector              */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
+
+    /* Splitting parts to build hierarchical format */
+    pastix_int_t *split;
+    pastix_int_t  split_size;
+
 } SolverCblk;
 
 /*+ Solver matrix structure. +*/
@@ -164,6 +179,9 @@ struct SolverMatrix_ {
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
+
+    pastix_int_t              compress_size;
+    double                    tolerance;
 };
 
 /**

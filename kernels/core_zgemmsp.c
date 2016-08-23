@@ -15,11 +15,11 @@
  *
  **/
 #include "common.h"
-#include "cblas.h"
+#include <cblas.h>
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
-static pastix_complex64_t mzone =  -1.;
+static pastix_complex64_t mzone = -1.;
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
 
@@ -539,6 +539,289 @@ core_zgemmsp_2d2dsub( int trans,
  *
  * @ingroup pastix_kernel
  *
+ * core_zgemmsp_fulllr - Computes the updates associated to one off-diagonal block.
+ *
+ *******************************************************************************
+ *
+ * @param[in] uplo
+ *          If uplo == PastixLower, the contribution of:
+ *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
+ *          C, otherwise the contribution:
+ *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
+ *          to C.
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the B matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and B pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The block from which we compute the contributions.
+ *
+ * @param[in] fcblk
+ *          The pointer to the data structure that describes the panel on which
+ *          we compute the contributions. The C pointer must be one of the
+ *          oceftab from this fcblk. Next column blok must be accessible through
+ *          fcblk[1].
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
+ *          the coefficients of the panel, if Symmetric/Hermitian cases or if
+ *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
+ *          cblk.stride -by- cblk.width
+ *
+ * @param[in,out] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+static inline void
+core_zgemmsp_fulllr( int uplo, int trans,
+                     const SolverCblk         *cblk,
+                     const SolverBlok         *blok,
+                           SolverCblk         *fcblk,
+                     const pastix_complex64_t *A,
+                     const pastix_complex64_t *B,
+                           pastix_complex64_t *work,
+                           double              tol)
+{
+    const SolverBlok *iterblok;
+    const SolverBlok *fblok;
+    const SolverBlok *lblok;
+    pastix_lrblock_t lrA, lrB, *lrC;
+
+    pastix_int_t stride;
+    pastix_int_t M, N, K;
+    int shift;
+
+    assert(cblk->cblktype  & CBLK_DENSE);
+    assert(!(fcblk->cblktype & CBLK_DENSE));
+    assert(fcblk->cblktype & CBLK_SPLIT);
+
+    shift = (uplo == PastixUpper) ? 1 : 0;
+    stride  = cblk->stride;
+
+    K = cblk_colnbr( cblk );
+    N = blok_rownbr( blok );
+
+    /* Get the B block and its dimensions */
+    lrB.rk = -1;
+    lrB.rkmax = (cblk->cblktype & CBLK_SPLIT) ? N : stride;
+    lrB.u = (pastix_complex64_t*)B + blok->coefind; /* lrB is const, we can cast the B pointer */
+    lrB.v = NULL;
+
+    /**
+     * Add contribution to C in fcblk:
+     *    Get the first facing block of the distant panel, and the last block of
+     *    the current cblk
+     */
+    fblok = fcblk->fblokptr;
+    lblok = cblk[1].fblokptr;
+
+    for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
+
+        /* Find facing blok */
+        while (!is_block_inside_fblock( iterblok, fblok ))
+        {
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
+        }
+
+        /* Get the A block and its dimensions */
+        M = blok_rownbr( iterblok );
+        lrA.rk = -1;
+        lrA.rkmax = (cblk->cblktype & CBLK_SPLIT) ? M : stride;
+        lrA.u = (pastix_complex64_t*)A + iterblok->coefind; /* Same as for B */
+        lrA.v = NULL;
+
+        lrC = fblok->LRblock + shift;
+
+        /* pastix_cblk_lock( fcblk ); */
+        core_zlrmm( tol, PastixNoTrans, trans,
+                    M, N, K,
+                    blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                    iterblok->frownum - fblok->frownum,
+                    (blok->frownum - fcblk->fcolnum),
+                    -1., &lrA, &lrB,
+                     1., lrC,
+                    work, -1,
+                    fcblk );
+        /* pastix_cblk_unlock( fcblk ); */
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgemmsp - Computes the updates associated to one off-diagonal block.
+ *
+ *******************************************************************************
+ *
+ * @param[in] uplo
+ *          If uplo == PastixLower, the contribution of:
+ *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
+ *          C, otherwise the contribution:
+ *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
+ *          to C.
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the B matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and B pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The block from which we compute the contributions.
+ *
+ * @param[in] fcblk
+ *          The pointer to the data structure that describes the panel on which
+ *          we compute the contributions. The C pointer must be one of the
+ *          oceftab from this fcblk. Next column blok must be accessible through
+ *          fcblk[1].
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
+ *          the coefficients of the panel, if Symmetric/Hermitian cases or if
+ *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
+ *          cblk.stride -by- cblk.width
+ *
+ * @param[in,out] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] tol
+ *          Tolerance for low-rank compression kernels
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+static inline void
+core_zgemmsp_lr( int uplo, int trans,
+                 const SolverCblk         *cblk,
+                 const SolverBlok         *blok,
+                       SolverCblk         *fcblk,
+                       pastix_complex64_t *work,
+                       double              tol )
+{
+    const SolverBlok *iterblok;
+    const SolverBlok *fblok;
+    const SolverBlok *lblok;
+
+    pastix_complex64_t *C, *Cfull;
+    pastix_int_t M, N, K, stridef;
+    int shift;
+
+    pastix_lrblock_t *lrA, *lrB;
+
+    assert( !(cblk->cblktype & CBLK_DENSE) );
+    assert( !(fcblk->cblktype & CBLK_DENSE) );
+    assert( cblk->cblktype & CBLK_SPLIT );
+    assert( fcblk->cblktype & CBLK_SPLIT );
+
+    shift = (uplo == PastixUpper) ? 1 : 0;
+
+    /* Move the Cfull pointer to the top of the right column */
+    stridef = fcblk->stride;
+    Cfull = (uplo == PastixUpper) ? fcblk->ucoeftab : fcblk->lcoeftab;
+    Cfull = Cfull + (blok->frownum - fcblk->fcolnum) * stridef;
+
+    /* Get the B block and its dimensions */
+    lrB = (uplo == PastixUpper) ? blok->LRblock : blok->LRblock+1;
+    K = cblk_colnbr( cblk );
+    N = blok_rownbr( blok );
+
+    /**
+     * Add contribution to C in fcblk:
+     *    Get the first facing block of the distant panel, and the last block of
+     *    the current cblk
+     */
+    fblok = fcblk->fblokptr;
+    lblok = cblk[1].fblokptr;
+
+    /* for all following blocks in block column */
+    for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
+
+        /* Find facing blok */
+        while (!is_block_inside_fblock( iterblok, fblok ))
+        {
+            fblok++;
+            assert( fblok < fcblk[1].fblokptr );
+        }
+
+        lrA = iterblok->LRblock + shift;
+        M = blok_rownbr( iterblok );
+
+        /* pastix_cblk_lock( fcblk ); */
+        if ( fcblk->cblktype & CBLK_DENSE ) {
+            C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
+            core_zlrmge( tol, PastixNoTrans, trans,
+                         M, N, K,
+                         -1., lrA, lrB, 1., C, stridef,
+                         work, -1,
+                         fcblk );
+        }
+        else {
+            core_zlrmm( tol, PastixNoTrans, trans,
+                        M, N, K,
+                        blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                        iterblok->frownum - fblok->frownum,
+                        (blok->frownum - fcblk->fcolnum),
+                        -1., lrA, lrB,
+                         1., fblok->LRblock + shift,
+                        work, -1,
+                        fcblk );
+        }
+        /* pastix_cblk_unlock( fcblk ); */
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
  * core_zgemmsp - Computes the updates associated to one off-diagonal block.
  *
  *******************************************************************************
@@ -604,10 +887,21 @@ void core_zgemmsp( int uplo, int trans,
                          SolverCblk         *fcblk,
                    const pastix_complex64_t *A,
                    const pastix_complex64_t *B,
-                   pastix_complex64_t *C,
-                   pastix_complex64_t *work )
+                         pastix_complex64_t *C,
+                         pastix_complex64_t *work,
+                         double              tol )
 {
-    if ( fcblk->cblktype & CBLK_SPLIT ) {
+    if ( !(fcblk->cblktype & CBLK_DENSE ) ) {
+        if ( !(cblk->cblktype & CBLK_DENSE) ) {
+            core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work, tol );
+        }
+        else {
+            core_zgemmsp_fulllr( uplo, trans,
+                                 cblk, blok, fcblk,
+                                 A, B, C, tol );
+        }
+    }
+    else if ( fcblk->cblktype & CBLK_SPLIT ) {
         if ( cblk->cblktype & CBLK_SPLIT ) {
             core_zgemmsp_2d2d( uplo, trans,
                                cblk, blok, fcblk,
