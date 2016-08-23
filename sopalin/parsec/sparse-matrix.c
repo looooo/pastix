@@ -19,8 +19,6 @@
 
 #include "common.h"
 
-static dague_data_t *datanull = NULL;
-
 static inline pastix_int_t
 spm_data_key( int ratio, int uplo,
               pastix_int_t cblknum,
@@ -47,18 +45,18 @@ spm_data_key_to_value( dague_data_key_t key,
     /* Refers to a block */
     cblknbr   = solvmtx->cblknbr;
     cblkmin2d = solvmtx->cblkmin2d;
-    key2 = ratio * solvmtx->cblknbr;
+    key2 = ratio * cblknbr;
     if ( key >= key2 ) {
         pastix_int_t m, n, ld;
 
         key2 = key - key2;
-        ld   = cblknbr - cblkmin2d;
+        ld   = solvmtx->cblkmaxblk * ratio;
 
         m = key2 % ld;
         n = key2 / ld;
 
-        *uplo    = (m >= n) ? 0 : 1;
-        *bloknum = cblkmin2d + m;
+        *uplo    = m % ratio;
+        *bloknum = m / ratio;
         *cblknum = cblkmin2d + n;
     }
     else {
@@ -91,16 +89,15 @@ sparse_matrix_data_key(dague_ddesc_t *mat, ... )
     }
     else {
         pastix_int_t offset, ld, cblknbr;
-        pastix_int_t cblkmin2d, m, n;
+        pastix_int_t cblkmin2d, n;
 
         cblknbr   = spmtx->solvmtx->cblknbr;
         cblkmin2d = spmtx->solvmtx->cblkmin2d;
+        ld        = spmtx->solvmtx->cblkmaxblk * ratio;
         offset    = cblknbr * ratio;
-        ld        = cblknbr - cblkmin2d;
-        m         = bloknum - cblkmin2d;
         n         = cblknum - cblkmin2d;
 
-        return offset + n * ld + m;
+        return offset + n * ld + bloknum * ratio + uplo;
     }
 }
 
@@ -164,16 +161,15 @@ sparse_matrix_data_of(dague_ddesc_t *mat, ... )
                                   mat, key1, ptr, size );
     }
     else {
-        pastix_int_t m, n, cblkmin2d, cblknbr, ld;
+        pastix_int_t n, cblkmin2d, cblknbr, ld;
 
         cblknbr   = spmtx->solvmtx->cblknbr;
         cblkmin2d = spmtx->solvmtx->cblkmin2d;
-        ld        = cblknbr - cblkmin2d;
-        m         = bloknum - cblkmin2d;
+        ld        = spmtx->solvmtx->cblkmaxblk * ratio;
         n         = cblknum - cblkmin2d;
 
         key1 = ratio * cblknbr;
-        key2 = n * ld + m;
+        key2 = n * ld + bloknum * ratio + uplo;
 
         assert( spmtx->datamap_blok[key2] != NULL );
         return dague_data_create( spmtx->datamap_blok + key2, mat, key1+key2, NULL, 0 );
@@ -205,14 +201,12 @@ sparse_matrix_data_of_key(dague_ddesc_t *mat, dague_data_key_t key )
     }
     else {
         dague_data_key_t key2;
-        pastix_int_t m, n, cblkmin2d, cblknbr, ld;
+        pastix_int_t n, cblkmin2d, ld;
 
-        cblknbr   = spmtx->solvmtx->cblknbr;
         cblkmin2d = spmtx->solvmtx->cblkmin2d;
-        ld        = cblknbr - cblkmin2d;
-        m         = bloknum - cblkmin2d;
+        ld        = spmtx->solvmtx->cblkmin2d * ratio;
         n         = cblknum - cblkmin2d;
-        key2 = n * ld + m;
+        key2 = n * ld + bloknum * ratio + uplo;
 
         assert( spmtx->datamap_blok[key2] != NULL );
         return dague_data_create( spmtx->datamap_blok + key2, mat, key, NULL, 0 );
@@ -225,9 +219,9 @@ static int sparse_matrix_key_to_string(dague_ddesc_t *mat, uint32_t datakey, cha
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     int uplo;
     pastix_int_t cblknum, bloknum;
-    int res;
-    int ratio = ( spmtx->mtxtype == PastixGeneral ) ? 2 : 1;
+    int res, ratio;
 
+    ratio = (spmtx->mtxtype == PastixGeneral) ? 2 : 1;
     spm_data_key_to_value( datakey, ratio, spmtx->solvmtx,
                            &uplo, &cblknum, &bloknum );
 
@@ -273,19 +267,20 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
 
     cblknbr   = solvmtx->cblknbr;
     cblkmin2d = solvmtx->cblkmin2d;
+    ld        = solvmtx->cblkmaxblk * ratio;
     offkey    = ratio * cblknbr;
-    ld        = cblknbr - cblkmin2d;
 
-    spmtx->datamap_cblk = (dague_data_t**)calloc( ratio * cblknbr, sizeof(dague_data_t*) );
+    spmtx->datamap_cblk = (dague_data_t**)calloc( ratio * cblknbr,
+                                                  sizeof(dague_data_t*) );
     if ( cblkmin2d < cblknbr ) {
-        SolverCblk *cblkN, *cblkM;
+        SolverCblk *cblkN;
         SolverBlok *blok, *lblok;
-        pastix_int_t m, n, cblknumN, cblknumM;
+        pastix_int_t m, n, cblknumN;
         size_t size, offset;
         char *ptr;
 
-
-        spmtx->datamap_blok = (dague_data_t**)calloc( ld *  ld, sizeof(dague_data_t*) );
+        spmtx->datamap_blok = (dague_data_t**)calloc( ld * (cblknbr - cblkmin2d),
+                                                      sizeof(dague_data_t*) );
         datamap = spmtx->datamap_blok;
 
         cblkN = spmtx->solvmtx->cblktab + cblkmin2d;
@@ -315,8 +310,9 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
             blok   = cblkN->fblokptr;
             size   = blok_rownbr( blok ) * cblk_colnbr( cblkN ) * (size_t)spmtx->typesze;
             offset = blok->coefind * (size_t)spmtx->typesze;
-            key2   = n * ld + n;
+            key2   = n * ld;
 
+            assert(offset == 0);
             dague_data_create( datamap + key2, &spmtx->super, offkey + key2,
                                ptr + offset, size );
 
@@ -324,37 +320,28 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
             /**
              * Lower Part
              */
-            blok++; key2++;
-            cblkM = spmtx->solvmtx->cblktab + cblknumN + 1;
-            lblok = cblkM->fblokptr;
-            for(cblknumM = cblknumN+1, m = n+1;
-                cblknumM < cblknbr;
-                cblknumM++, m++, cblkM++, key2++ )
+            blok++; key2+=ratio;
+            lblok = cblkN[1].fblokptr;
+            for( ; blok < lblok; blok++, key2+=ratio )
             {
-                if ( cblkM->lcolnum < blok->frownum ) {
-                    dague_data_create( datamap + key2, NULL,
-                                       offkey + key2, NULL, 0 );
-                    continue;
-                }
-
-                if (!(blok < lblok)) {
-                    dague_data_create( datamap + key2, NULL,
-                                       offkey + key2, NULL, 0 );
-                    continue;
-                }
-
-                assert( (cblkM->fcolnum <= blok->frownum) & (blok->lrownum <= cblkM->lcolnum) );
-                size   = 0;
+                m = 0;
+                size   = blok_rownbr( blok );
                 offset = blok->coefind * (size_t)spmtx->typesze;
 
-                while( (cblkM->fcolnum <= blok->frownum) & (blok->lrownum <= cblkM->lcolnum) ) {
+                while( (blok < lblok) &&
+                       (blok[0].fcblknm == blok[1].fcblknm) &&
+                       (blok[0].lcblknm == blok[1].lcblknm) )
+                {
+                    blok++; m++;
                     size += blok_rownbr( blok );
-                    blok++;
                 }
+                size *= cblk_colnbr( cblkN )
+                    *  (size_t)spmtx->typesze;
 
-                size *= cblk_colnbr( cblkN ) * (size_t)spmtx->typesze;
-                dague_data_create( datamap + key2, &spmtx->super, offkey + key2,
+                dague_data_create( datamap + key2, &spmtx->super,
+                                   offkey + key2,
                                    ptr + offset, size );
+                key2 += m * ratio;
             }
         }
     }
@@ -383,15 +370,15 @@ void sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
     }
 
     if ( spmtx->datamap_blok != NULL ) {
-        pastix_int_t nbblock2d = (spmtx->solvmtx->cblknbr - spmtx->solvmtx->cblkmin2d);
+        /* pastix_int_t nbblock2d = (spmtx->solvmtx->cblknbr - spmtx->solvmtx->cblkmin2d); */
 
-        nbblock2d = nbblock2d * nbblock2d;
-        data = spmtx->datamap_blok;
+        /* nbblock2d = nbblock2d * nbblock2d; */
+        /* data = spmtx->datamap_blok; */
 
-        for(i=0; i < nbblock2d; i++, data++)
-        {
-            dague_data_destroy( *data );
-        }
+        /* for(i=0; i < nbblock2d; i++, data++) */
+        /* { */
+        /*     dague_data_destroy( *data ); */
+        /* } */
         free( spmtx->datamap_blok );
         spmtx->datamap_blok = NULL;
     }

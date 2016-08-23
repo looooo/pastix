@@ -62,15 +62,15 @@ typedef struct Task_ {
 #endif
 } Task;
 
-
 /*+ Solver block structure. +*/
 typedef struct SolverBlok_ {
-    pastix_int_t frownum;  /*< First row index            */
-    pastix_int_t lrownum;  /*< Last row index (inclusive) */
     pastix_int_t lcblknm;  /*< Local column block         */
     pastix_int_t fcblknm;  /*< Facing column block        */
-    pastix_int_t coefind;  /*< Index in coeftab           */
     pastix_int_t browind;  /*< Index in browtab           */
+    pastix_int_t coefind;  /*< Index in coeftab           */
+    pastix_int_t frownum;  /*< First row index            */
+    pastix_int_t lrownum;  /*< Last row index (inclusive) */
+    int8_t       gpuid;
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
@@ -86,6 +86,7 @@ typedef struct SolverCblk_  {
     pastix_int_t         stride;   /*< Column block stride                     */
     pastix_int_t         lcolidx;  /*< Local first column index to the location in the rhs vector       */
     pastix_int_t         brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t         brown2d;  /*< First 2D-block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         gcblknum; /*< Global column block index               */
     void                *lcoeftab; /*< Coefficients access vector              */
     void                *ucoeftab; /*< Coefficients access vector              */
@@ -103,16 +104,18 @@ struct SolverMatrix_ {
                      2:After Factorization +*/
     pastix_int_t            baseval; /*+ Base value for numberings                         +*/
 
-    pastix_int_t            nodenbr; /*< Number of nodes before dof extension              */
-    pastix_int_t            coefnbr; /*< Number of coefficients (node after dof extension) */
-    pastix_int_t            gcblknbr;/*< Global number of column blocks                    */
-    pastix_int_t            cblknbr; /*< Number of column blocks                   */
-    pastix_int_t            cblkmin2d;/*< Rank of the first cblk beeing enabled for 2D computations        */
-    pastix_int_t            bloknbr; /*< Number of blocks                          */
-    pastix_int_t            brownbr; /*< Size of the browtab array                 */
-    SolverCblk   * restrict cblktab; /*< Array of solver column blocks             */
-    SolverBlok   * restrict bloktab; /*< Array of solver blocks                    */
-    pastix_int_t * restrict browtab; /*< Array of blocks                           */
+    pastix_int_t            nodenbr;   /*< Number of nodes before dof extension              */
+    pastix_int_t            coefnbr;   /*< Number of coefficients (node after dof extension) */
+    pastix_int_t            gcblknbr;  /*< Global number of column blocks                    */
+    pastix_int_t            cblknbr;   /*< Number of column blocks                   */
+    pastix_int_t            cblkmin2d; /*< Rank of the first cblk beeing enabled for 2D computations        */
+    pastix_int_t            cblkmaxblk;/*< Maximum number of blocks per cblk         */
+    pastix_int_t            bloknbr;   /*< Number of blocks                          */
+    pastix_int_t            brownbr;   /*< Size of the browtab array                 */
+    SolverCblk   * restrict cblktab;   /*< Array of solver column blocks             */
+    SolverBlok   * restrict bloktab;   /*< Array of solver blocks                    */
+    pastix_int_t * restrict browtab;   /*< Array of blocks                           */
+    pastix_int_t * restrict browcblk;  /*< Array of blocks                           */
 
 #if defined(PASTIX_WITH_PARSEC)
     sparse_matrix_desc_t   *parsec_desc;

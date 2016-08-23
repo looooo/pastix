@@ -145,8 +145,10 @@ solverMatrixGen(const pastix_int_t  clustnum,
         SimuBlok   *simublok = simuctrl->bloktab;
         Cand       *candcblk = ctrl->candtab;
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
+        pastix_int_t nbcblk2d = 0; /* Maximum area of a block in the global matrix */
 
-        solvmtx->cblkmin2d = solvmtx->cblknbr;
+        solvmtx->cblkmin2d  = solvmtx->cblknbr;
+        solvmtx->cblkmaxblk = solvmtx->cblknbr;
         cblknum = 0;
         brownum = 0;
         nodenbr = 0;
@@ -154,10 +156,10 @@ solverMatrixGen(const pastix_int_t  clustnum,
         for(i=0; i<symbmtx->cblknbr; i++, symbcblk++, candcblk++)
         {
             SolverBlok  *fblokptr = solvblok;
-            pastix_int_t fbloknum  = symbcblk[0].bloknum;
-            pastix_int_t lbloknum  = symbcblk[1].bloknum;
-            pastix_int_t stride    = 0;
-            pastix_int_t nbcols = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
+            pastix_int_t fbloknum = symbcblk[0].bloknum;
+            pastix_int_t lbloknum = symbcblk[1].bloknum;
+            pastix_int_t stride   = 0;
+            pastix_int_t nbcols   = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
             pastix_int_t nbrows;
             pastix_int_t split = candcblk->cblktype & CBLK_SPLIT;
 
@@ -179,6 +181,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
                     solvblok->coefind = split ? stride * nbcols : stride;
                     solvblok->browind = -1;
+                    solvblok->gpuid = -2;
 
                     stride += nbrows;
                     solvblok++;
@@ -191,6 +194,15 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 if (split & (cblknum < solvmtx->cblkmin2d) ) {
                     solvmtx->cblkmin2d = cblknum;
                 }
+                if (split) {
+                    nbcblk2d++;
+                }
+
+                if ((cblknum >= solvmtx->cblkmin2d) &&
+                    ((solvblok - fblokptr) > solvmtx->cblkmaxblk) )
+                {
+                    solvmtx->cblkmaxblk = solvblok - fblokptr;
+                }
 
                 /* Init the cblk */
                 solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
@@ -202,6 +214,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 solvcblk->stride   = stride;
                 solvcblk->lcolidx  = nodenbr;
                 solvcblk->brownum  = brownum;
+                solvcblk->brown2d  = brownum;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
@@ -211,10 +224,48 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 /* Copy browtab information */
                 brownbr = symbmtx->cblktab[i+1].brownum
                     -     symbmtx->cblktab[i].brownum;
-                memcpy( solvmtx->browtab + brownum,
-                        symbmtx->browtab + symbmtx->cblktab[i].brownum,
-                        brownbr * sizeof(pastix_int_t) );
+                if (brownbr)
+                {
+                    solvcblk->brown2d += brownbr;
+                    if (split) {
+                        SolverBlok *blok;
+                        SolverCblk *cblk;
+                        pastix_int_t j2d, j1d, j, *b;
 
+                        j2d = -1;
+                        for( j=0, j1d=0; j<brownbr; j++ ) {
+                            b = symbmtx->browtab + symbmtx->cblktab[i].brownum + j;
+                            blok = solvmtx->bloktab + (*b);
+                            cblk = solvmtx->cblktab + blok->lcblknm;
+                            if (! (cblk->cblktype & CBLK_SPLIT) ) {
+                                solvmtx->browtab[brownum + j1d] = (*b);
+                                *b = -1;
+                                j1d++;
+                            }
+                            else {
+                                if (j2d == -1) {
+                                    j2d = j;
+                                }
+                            }
+                        }
+                        if (j2d != -1) {
+                            for( j=j2d; j<brownbr; j++ ) {
+                                b = symbmtx->browtab + symbmtx->cblktab[i].brownum + j;
+                                if (*b != -1) {
+                                    solvmtx->browtab[brownum + j1d] = *b;
+                                    j1d++;
+                                }
+                            }
+                            solvcblk->brown2d = brownum + j2d;
+                        }
+                        assert(j1d == brownbr);
+                    }
+                    else {
+                        memcpy( solvmtx->browtab + brownum,
+                                symbmtx->browtab + symbmtx->cblktab[i].brownum,
+                                brownbr * sizeof(pastix_int_t) );
+                    }
+                }
                 brownum += brownbr;
                 assert( brownum <= solvmtx->brownbr );
 
@@ -250,6 +301,19 @@ solverMatrixGen(const pastix_int_t  clustnum,
 
         assert( solvmtx->cblknbr == cblknum );
         assert( solvmtx->bloknbr == solvblok - solvmtx->bloktab );
+        fprintf(stderr,
+                "========================================\n"
+                "         cblknbr   = %ld\n"
+                "         cblkmin2d = %ld\n"
+                "         real / total = %ld, %ld \n"
+                "         frownum=%ld\n"
+                "         lrownum=%ld\n"
+                "         average=%ld\n",
+                solvmtx->cblknbr, solvmtx->cblkmin2d,
+                nbcblk2d, solvmtx->cblknbr - solvmtx->cblkmin2d,
+                (solvmtx->cblktab + solvmtx->cblkmin2d)->fcolnum,
+                (solvmtx->cblktab + solvmtx->cblknbr - 1 )->lcolnum,
+                ((solvmtx->cblktab + solvmtx->cblknbr - 1 )->lcolnum - (solvmtx->cblktab + solvmtx->cblkmin2d)->fcolnum) / (solvmtx->cblknbr - solvmtx->cblkmin2d + 1) );
     }
 
     /***************************************************************************

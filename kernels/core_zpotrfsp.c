@@ -328,9 +328,8 @@ core_zpotrfsp1d( SolverMatrix       *solvmtx,
 
         core_zgemmsp( PastixLower, PastixConjTrans, cblk, blok, fcblk,
                       L, L, fcblk->lcoeftab, work );
-
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
-    }
+   }
 
     return nbpivot;
 }

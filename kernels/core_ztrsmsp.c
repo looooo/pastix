@@ -220,12 +220,12 @@ core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
 int
 core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
                           SolverCblk         *cblk,
-                          pastix_int_t        fcblknum,
+                          pastix_int_t        blok_m,
                     const pastix_complex64_t *A,
                           pastix_complex64_t *C )
 {
     const SolverBlok *fblok, *lblok, *blok;
-    pastix_int_t M, N, lda, ldc, offset;
+    pastix_int_t M, N, lda, ldc, offset, cblk_m;
     pastix_complex64_t *Cptr;
 
     N     = cblk->lcolnum - cblk->fcolnum + 1;
@@ -236,15 +236,11 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
     assert( blok_rownbr(fblok) == N );
     assert( cblk->cblktype & CBLK_SPLIT );
 
-    blok = fblok+1;
-    while( (blok->fcblknm < fcblknum) &&
-           (blok < lblok) )
-    {
-        blok++;
-    }
-
+    blok   = fblok + blok_m;
     offset = blok->coefind;
-    for (; (blok < lblok) && (blok->fcblknm == fcblknum); blok++) {
+    cblk_m = blok->fcblknm;
+
+    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
 
         Cptr = C + blok->coefind - offset;
         M   = blok_rownbr(blok);
