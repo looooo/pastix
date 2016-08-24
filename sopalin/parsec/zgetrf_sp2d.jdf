@@ -1,0 +1,648 @@
+extern "C" %{
+  /**
+   * PLASMA include for defined and constants.
+   *
+   * @precisions normal z -> s d c
+   *
+   */
+#include <dague.h>
+#include <dague/data_distribution.h>
+#include <dague/private_mempool.h>
+#include "common.h"
+#include "common/flops.h"
+#include "solver.h"
+#include "pastix_zcores.h"
+#include "sopalin_data.h"
+
+static volatile uint32_t zpotrf_nbtask_on_gpu[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+/* #define CPU_COST( _m, _n, _k ) (0.05180292 * (_m) * (_n) * (_k) + \ */
+/*                                 4.03012081 * (_m) * (_n) + \ */
+/*                                 1.44620666 * (_m) * (_k)) */
+/* #define GPU_COST( _m, _n, _k ) (8.80590074e-03 * (_m) * (_n) * (_k) + \ */
+/*                                 9.88765865e-01 * (_m) * (_n) + \ */
+/*                                 1.59974518e-01 * (_m) * (_k) + \ */
+/*                                 1.20372639e+00 * (_n) * (_k) + \ */
+/*                                 1.96498675e+02 * (_m) + \ */
+/*                                 2.30745307e+01 * (_n) + \ */
+/*                                 2.37074116e+02 * (_k) + \ */
+/*                                 2.40195149e+04) */
+
+#define CPU_COST( _m, _n, _k ) (5.36851049e-02 * (_m) * (_n) * (_k) + \
+                                1.15606138e+00 * (_m) * (_n) + \
+                                1.28618089e+00 * (_m) * (_k) + \
+                                3.22638580e-01 * (_n) * (_k) + \
+                                4.40671803e+02 * (_k))
+
+#define GPU_COST( _m, _n, _k ) (8.01473662e-03 * (_m) * (_n) * (_k) + \
+                                1.15221660e+00 * (_m) * (_n) + \
+                                1.53817334e-01 * (_m) * (_k) + \
+                                9.91496485e-01 * (_n) * (_k) + \
+                                1.64212617e+02 * (_m) + \
+                                4.05991868e+01 * (_n) + \
+                                3.26765316e+02 * (_k) + \
+                                2.67968306e+04)
+%}
+
+/* Globals
+ */
+dataA        [type = "dague_ddesc_t *" ]
+sopalin_data [type = "sopalin_data_t *" ]
+
+descA     [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
+datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
+
+p_work   [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
+
+/**************************************************
+ *                POTRF_TRSM                      *
+ * panel factorization: do trf of diagonal and    *
+ *                    : trsm on off-diagonal      *
+ **************************************************/
+GETRF_TRSM(k) [high_priority = on]
+
+// Execution space
+k = 0 .. cblknbr
+
+browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
+browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
+lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
+isTwoD    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
+lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+
+// Parallel partitioning
+:dataA(0, k, 0)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM1D( lastbrow, 0 )
+     -> !isTwoD ? Al GEMM1D(firstblok .. lastblok, 0 .. 1)
+     -> dataA(0, k, 0)
+
+RW U <- ( browk0 == browk1 ) ? dataA(1, k, 0) : C GEMM1D( lastbrow, 1 )
+     -> !isTwoD ? Au GEMM1D(firstblok .. lastblok, 0 .. 1)
+     -> dataA(1, k, 0)
+
+CTL ctl -> isTwoD ? ctl OneToTwoD(k, 0 .. (lastblok-firstblok+1), 0 .. 1)
+
+//; inline_c %{ return - TASK_PRIONUM(k); %}
+
+BODY
+{
+    if (!isTwoD) {
+        SolverCblk *cblk = datacode->cblktab + k;
+        core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold );
+    }
+}
+END
+
+/**
+ *       GEMM
+ *
+ * To have a contiguous range of GEMM to release in the potrf, they are numbered
+ * with the indexes of the off-diagonal blocks, diagonal block included.
+ * Thus, the diagonal block tasks which doesn't perfom computations are used as
+ * DATA_IN tasks. This is mandatory when using the GPU, due to the versioning
+ * bumped by the cpu version of the diagonal block that coccurs when computing
+ * the diagonal blocks.
+ *
+ * For all off-diagonal blocks, it updates the trailing matrix with the panel
+ * k-th block updating corresponding.
+ *
+ */
+GEMM1D(bloknum, s)
+
+// Execution space
+bloknum = 1 .. bloknbr
+s       = 0 .. 1
+lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->lcblknm; %}
+fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
+first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
+last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + lcblknm;     return cblk->cblktype & CBLK_SPLIT; %}
+
+brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
+prev = inline_c %{
+    assert( first >= 0 );
+    /**
+     * If bloknum is a diagonal block, or if it is the first one applied on C,
+     * there is no previous
+     */
+    if ((brownum == -1) || (brownum == first) ) {
+        return 0;
+    }
+    /**
+     * Otherwise we return the previous block in the list of blocks facing fcblk
+     */
+    else {
+        assert( brownum > first );
+        return datacode->browtab[brownum-1];
+    }
+    %}
+next = inline_c %{
+    /**
+     * If we are on a diagonal blok, or if we are the last one, there is no next
+     */
+    if ((brownum == -1) || (brownum >= last) ){
+        return 0;
+    } else {
+        return datacode->browtab[brownum+1];
+    }
+    %}
+n  = %{ return blok_rownbr(datacode->bloktab + bloknum); %}
+k  = %{ return cblk_colnbr(datacode->cblktab + lcblknm); %}
+m  = %{ if ((datacode->cblktab + lcblknm)->cblktype & CBLK_SPLIT) {
+          return datacode->cblktab[lcblknm].stride - (datacode->bloktab[bloknum].coefind / k);
+        } else {
+          return datacode->cblktab[lcblknm].stride - datacode->bloktab[bloknum].coefind;
+    } %}
+    //nb = %{ return (datacode->cblktab[lcblknm+1].fblokptr - datacode->bloktab - bloknum); %}
+
+// Parallel partitioning
+:dataA(s, fcblknm, 0)
+
+// Parameters
+READ  Al <- (brownum != -1 && !isTwoD) ? L GETRF_TRSM( lcblknm ) : NULL
+READ  Au <- (brownum != -1 && !isTwoD) ? U GETRF_TRSM( lcblknm ) : NULL
+
+RW    C  <- (brownum == -1) ? NULL
+         <- (brownum != -1) && (brownum == first) ? dataA( s, fcblknm, 0 )
+         <- (brownum != -1) && (brownum != first) ? C GEMM1D( prev, s )
+         -> (brownum != -1) && (brownum == last) && (s == 0) ? L GETRF_TRSM( fcblknm )
+         -> (brownum != -1) && (brownum == last) && (s == 1) ? U GETRF_TRSM( fcblknm )
+         -> (brownum != -1) && (brownum != last)  ? C GEMM1D( next, s )
+
+//; inline_c %{ return - TASK_PRIONUM(fcblk); %}
+
+BODY [type=CUDA
+      device=inline_c %{
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        if (brownum == -1 || !isTwoD)
+            return -2;
+        else {
+            if ( (fcblk->gpuid == -2) && (!isTwoD) ) {
+                int dev_index, nbdevices;
+                SolverCblk *cblk = datacode->cblktab + lcblknm;
+                double mintime = 9e64;
+
+                nbdevices = dague_devices_enabled()-2;
+                for( dev_index = 0; dev_index < nbdevices; dev_index++ ) {
+                    double gpu_cost = ((1+zpotrf_nbtask_on_gpu[dev_index]) * GPU_COST( m, n, k ) +
+                                       2. /* Double */ *  2. /* Aller+retour */ *
+                                       (fcblk->stride * cblk_colnbr( fcblk ) +  cblk->stride * cblk_colnbr( cblk )) / 15.754 );
+                    if ( (CPU_COST( m, n, k ) > gpu_cost) &&
+                          (mintime > gpu_cost) )
+                    {
+                        fcblk->gpuid = dev_index;
+                        mintime = gpu_cost;
+                    }
+                }
+            }
+            if ( fcblk->gpuid != -2 ) {
+                dague_atomic_inc_32b( &zpotrf_nbtask_on_gpu[fcblk->gpuid] );
+            }
+            return fcblk->gpuid;
+        } %}
+      ]
+//device=%{ if (brownum == -1 || isTwoD) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
+      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
+{
+    /* Compute only if non diagonal block */
+    if ((brownum != -1) && !isTwoD) {
+        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        SolverBlok *blok  = datacode->bloktab + bloknum;
+
+        if ( s == 0 ) {
+            gpu_zgemmsp( PastixLower, PastixTrans,
+                         lcblk, blok, fcblk,
+                         Al, Au, C,
+                         dague_body.stream );
+            dague_atomic_dec_32b( &zpotrf_nbtask_on_gpu[dague_body.index] );
+        }
+        else {
+            if (  blok+1 < lcblk[1].fblokptr ) {
+                gpu_zgemmsp( PastixUpper, PastixTrans,
+                             lcblk, blok, fcblk,
+                             Au, Al, C,
+                             dague_body.stream );
+                dague_atomic_dec_32b( &zpotrf_nbtask_on_gpu[dague_body.index] );
+            }
+        }
+    }
+}
+END
+
+BODY
+{
+    /* If diagonal block, we skip */
+    if ((brownum != -1) && !isTwoD) {
+        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        SolverBlok *blok  = datacode->bloktab + bloknum;
+        pastix_complex64_t *work;
+
+        if ( s == 0 ) {
+            work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
+            core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
+                          Al, Au, C, work );
+            dague_private_memory_push( p_work, (void *)work );
+        }
+        else {
+            if (  blok+1 < lcblk[1].fblokptr ) {
+                work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
+                core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
+                              Au, Al, C, work );
+                dague_private_memory_push( p_work, (void *)work );
+            }
+        }
+    }
+}
+END
+
+OneToTwoD(k, m, s)
+
+// Execution space
+k    = cblkmin2d .. cblknbr
+
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+m       = 0 .. (isTwoD ? (lblokk-fblokk) : -1 )
+noskip  = %{ if (m == 0) {
+               return 1;
+             }
+             else {
+               SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
+               return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                        (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m;
+             } %}
+
+first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; } else { return 0; }%}
+last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; } else { return 0; }%}
+s = 0 .. 1
+
+// Parallel partitioning
+:dataA(s, k, noskip)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+READ A <- isTwoD && noskip ? dataA(s, k, noskip) : NULL
+       -> isTwoD && (first == last) && (m == 0) && (s == 0) ? Al GETRF2D( k )
+       -> isTwoD && (first == last) && (m == 0) && (s == 1) ? Au GETRF2D( k )
+       -> isTwoD && (first == last) && (m != 0) && noskip ? C TRSM2D( k, m, s )
+
+       -> isTwoD && (first <  last) && noskip && (s == 0) ? C GEMM2D( first, m, k, s )
+
+CTL  ctl <- (isTwoD) ? ctl GETRF_TRSM(k)
+
+   //; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+    /* fprintf(stderr, "k=%d, m=%d, isTwoD=%d, noskip=%d\n", */
+    /*         k, m, isTwoD, noskip ); */
+}
+END
+
+GETRF2D(k)
+
+// Execution space
+k       = cblkmin2d .. cblknbr
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+
+first   = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; %}
+last    = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
+
+// Parallel partitioning
+:dataA(0, k, 1)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+READ  Al  <-  isTwoD & (first == last) ? A OneToTwoD( k, k, 0 )
+          <-  isTwoD & (first <  last) ? C GEMM2D( last-1, 0, k, 0 )
+          <- !isTwoD ? NULL
+
+          ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk), 0 )
+          ->  isTwoD ? dataA(0, k, 1)
+
+READ  Au  <-  isTwoD & (first == last) ? A OneToTwoD( k, k, 1 )
+          <-  isTwoD & (first <  last) ? C GEMM2D( last-1, 0, k, 1 )
+          <- !isTwoD ? NULL
+
+          ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk), 1 )
+          ->  isTwoD ? dataA(1, k, 1)
+
+//; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+    if (isTwoD) {
+        SolverCblk *cblk = datacode->cblktab + k;
+        /* pastix_int_t  nbpivot = */
+        core_zgetrfsp1d_getrf( cblk, Al, Au, sopalin_data->diagthreshold );
+    }
+    /* fprintf(stderr, "Counter is %d\n", */
+    /*         zpotrf_nbtask_on_gpu[0]); */
+
+}
+END
+
+TRSM2D(k, m, s)
+
+     /* On all the 2D cblk */
+k       = cblkmin2d .. cblknbr-1
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+m       = 1 .. (isTwoD ? (lblokk-fblokk) : 0 )
+
+noskip  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
+
+first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;           return cblk->brown2d;                        } else { return 0; } %}
+last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1;       return cblk->brownum;                        } else { return 0; } %}
+fcblknm = %{ if (noskip) { SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->fcblknm;                        } else { return 0; } %}
+browkb  = %{ if (noskip) { SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->browind;                        } else { return 0; } %}
+fblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->fblokptr - datacode->bloktab;   } else { return 0; } %}
+lblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->fblokptr - datacode->bloktab-1; } else { return 0; } %}
+
+s       = 0 .. 1
+
+// Parallel partitioning
+:dataA(s, k, noskip)
+
+// Parameters
+/* C is A(k) if it's a leaf or get the cblk from the last update */
+READ  A   <-  isTwoD && (s == 0) ? Al GETRF2D( k )
+          <-  isTwoD && (s == 1) ? Au GETRF2D( k )
+          <-  NULL
+
+RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m, s )
+          <-  isTwoD & noskip & (first <  last) ? C GEMM2D( last-1, m, k, s )
+          <-(!isTwoD) | (!noskip) ? NULL
+          ->  isTwoD & noskip ? A FWDTOGEMM2D(k, m, 1 .. m, s)
+          ->  isTwoD & noskip ? B GEMM2D(browkb, 0 .. (lblokn-fblokn), fcblknm, 1-s)
+          ->  isTwoD & noskip ? dataA(s, k, noskip)
+
+//; inline_c %{ return - TASK_PRIONUM(k); %}
+BODY
+{
+    if (isTwoD && noskip) {
+        SolverCblk *cblk = datacode->cblktab + k;
+        if (s == 0) {
+            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit,
+                                cblk, m, A, C );
+        } else {
+            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixUnit,
+                                cblk, m, A, C );
+        }
+   }
+}
+END
+
+FWDTOGEMM2D(k, m, n, s)
+
+// Execution space
+k       = cblkmin2d .. cblknbr-1
+isTwoD  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+fblokk  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
+lblokk  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+m       = 1 .. (isTwoD ? (lblokk-fblokk) : 0 )
+n       = 1 .. m
+noskipM = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
+
+noskipN = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + n - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+n; %}
+
+cblk_n  = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;  return blok->fcblknm; %}
+blok_mn = %{
+    if( noskipM ) {
+      SolverBlok *blokA = datacode->bloktab + fblokk + m;
+      SolverCblk *cblkC = datacode->cblktab + cblk_n;
+      SolverBlok *blokC = cblkC->fblokptr;
+      pastix_int_t frownum = blokC->frownum;
+      pastix_int_t lrownum = blokC->lrownum;
+      pastix_int_t i = 0, j = 0;
+
+      do {
+          frownum = blokC->frownum;
+          lrownum = blokC->lrownum;
+          i += j;
+          j = 1;
+
+          while( (blokC[0].fcblknm == blokC[1].fcblknm) &&
+                 (blokC[0].lcblknm == blokC[1].lcblknm) )
+          {
+              blokC++; j++;
+              lrownum = blokC->lrownum;
+          }
+          blokC++;
+      }
+      while( !((blokA->frownum >= frownum) &&
+               (blokA->lrownum <= lrownum)) );
+      return i;
+    }
+    else
+        return 0;
+%}
+browkb = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;
+            return blok->browind; %}
+
+s       = 0 .. 1
+
+// Parallel partitioning
+:dataA(s, cblk_n, blok_mn)
+
+// Parameters
+READ  A  <- noskipM ? C TRSM2D( k, m, s ) : NULL
+         -> noskipM & noskipN ? A GEMM2D( browkb, blok_mn, cblk_n, s )
+
+BODY
+{
+}
+END
+
+
+/**
+ *       GEMM
+ *
+ * To have a contiguous range of GEMM to release in the potrf, they are numbered
+ * with the indexes of the off-diagonal blocks, diagonal block included.
+ * Thus, the diagonal block tasks which doesn't perfom computations are used as
+ * DATA_IN tasks. This is mandatory when using the GPU, due to the versioning
+ * bumped by the cpu version of the diagonal block that coccurs when computing
+ * the diagonal blocks.
+ *
+ * For all off-diagonal blocks, it updates the trailing matrix with the panel
+ * k-th block updating corresponding.
+ *
+ */
+GEMM2D(k, blok_mn, cblk_n, s)
+
+// Execution space
+cblk_n  = cblkmin2d+1 .. cblknbr
+
+is2dC   = %{ SolverCblk *cblk = datacode->cblktab + cblk_n; return (cblk->cblktype & CBLK_SPLIT); %}
+fblokn  = %{ SolverCblk *cblk = datacode->cblktab + cblk_n;     return cblk->fblokptr - datacode->bloktab; %}
+lblokn  = %{ SolverCblk *cblk = datacode->cblktab + cblk_n + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
+blok_mn = 0 .. (is2dC ? (lblokn-fblokn) : -1)
+
+noskipC = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokn + blok_mn - 1;
+                      return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                               (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+blok_mn; %}
+
+first   = %{ if (noskipC) { SolverCblk *cblk = datacode->cblktab + cblk_n;     return cblk->brown2d;     }
+             else { return 1; }%}
+last    = %{ if (noskipC) { SolverCblk *cblk = datacode->cblktab + cblk_n + 1; return cblk->brownum - 1; }
+             else { return 0; }%}
+k       = first .. last
+
+blok_nk = %{ pastix_int_t nk = datacode->browtab[ k ];
+             SolverBlok *blok = datacode->bloktab + nk - 1;
+             return ( (blok[0].lcblknm == blok[1].lcblknm) &&
+                      (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : nk; %}
+
+cblk_k  = %{ SolverBlok *blok = datacode->bloktab + blok_nk; return blok->lcblknm; %}
+fblokk  = %{ SolverCblk *cblk = datacode->cblktab + cblk_k;  return cblk->fblokptr - datacode->bloktab; %}
+
+is2dA   = %{ SolverCblk *cblk = datacode->cblktab + cblk_k; return (cblk->cblktype & CBLK_SPLIT); %}
+
+blok_mk = %{
+    if ( blok_nk == 0 ) {
+       return 0;
+    }
+    else {
+      SolverBlok *blokA = datacode->bloktab + blok_nk;
+      SolverBlok *blokC = datacode->bloktab + fblokn + blok_mn;
+      pastix_int_t i = (blokA - datacode->bloktab) - fblokk;
+
+      /* Look for the first blokA that starts after the first blokC */
+      while( (blokC->frownum > blokA->lrownum) && (blokA[0].lcblknm == blokA[1].lcblknm) )
+      {
+         blokA++; i++;
+      }
+      /* Check if blokA is matching any of the blokC considered together */
+      while( (blokA->frownum > blokC->lrownum) &&
+             (blokC[0].fcblknm == blokC[1].fcblknm) &&
+             (blokC[0].lcblknm == blokC[1].lcblknm))
+      {
+         blokC++;
+      }
+      return is_block_inside_fblock( blokA, blokC ) ? i : 0;
+    }
+%}
+
+s       = 0 .. 1
+
+// Parallel partitioning
+:dataA(s, cblk_n, noskipC)
+
+// Parameters
+READ  A  <-  is2dA & (blok_mk > 0) ? A FWDTOGEMM2D( cblk_k, blok_mk, blok_nk-fblokk, s ) : NULL
+READ  B  <-  is2dA & (blok_nk > 0) ? C TRSM2D( cblk_k, blok_nk-fblokk, 1-s ) : NULL
+
+RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn, s )
+         <- (k != first) ? C GEMM2D( k-1, blok_mn, cblk_n, s )
+
+         -> (last == k) & (blok_mn == 0) && (s == 0) ? Al GETRF2D( cblk_n )
+         -> (last == k) & (blok_mn == 0) && (s == 1) ? Au GETRF2D( cblk_n )
+         -> (last == k) & (blok_mn != 0) ? C TRSM2D( cblk_n, blok_mn, s )
+         -> (last != k) ? C GEMM2D( k+1, blok_mn, cblk_n, s )
+
+//; inline_c %{ return - TASK_PRIONUM(fcblk); %}
+
+BODY [type=CUDA
+      //weight=(last+1-k)
+      device=inline_c %{
+        SolverCblk *fcblk = datacode->cblktab + cblk_n;
+        SolverBlok *blok  = fcblk->fblokptr + blok_mn;
+        double weight = (last+1-k);
+        if ( (blok->gpuid == -2) && is2dA && blok_nk && blok_mk ) {
+            int dev_index, nbdevices;
+            SolverCblk *cblk = datacode->cblktab + cblk_k;
+            double mintime = 9e64;
+            int m = blok_rownbr(blok);
+            int n = cblk_colnbr(fcblk);
+            int k = cblk_colnbr(cblk);
+
+            /* double gpu_cost = GPU_COST( m, n, k ) * weight; */
+            /* double cpu_cost = CPU_COST( m, n, k ) * weight; */
+            double gpu_cost = FLOPS_ZGEMM( m, n, k );
+            double cpu_cost = FLOPS_ZGEMM( m, n, k ) * dague_device_dweight[0];
+            double transfer = 2. *  (2. * m * n + n * k + m * k) / 15.754;
+
+            nbdevices = dague_devices_enabled()-2;
+            for( dev_index = 0; dev_index < nbdevices; dev_index++ ) {
+                double cost = (1 + zpotrf_nbtask_on_gpu[dev_index]) * gpu_cost * dague_device_dweight[dev_index+2] + transfer * 1.e-9;
+
+                /* fprintf(stderr, "I' here with gpu_cost=%e, cpu_cost=%e, transfer=%e, cpu_weight=%e, gpu_weight=%e, cost=%e [%d]\n", */
+                /*         gpu_cost, cpu_cost, transfer, */
+                /*         dague_device_dweight[0], */
+                /*         dague_device_dweight[dev_index+2], cost, */
+                /*         zpotrf_nbtask_on_gpu[dev_index]); */
+
+                if ( (cpu_cost > cost) &&
+                     (mintime > cost) )
+                {
+                    blok->gpuid = dev_index;
+                    mintime = cost;
+                }
+            }
+        }
+        if ( blok->gpuid != -2 ) {
+            dague_atomic_inc_32b( &zpotrf_nbtask_on_gpu[blok->gpuid] );
+        }
+        return blok->gpuid;
+        %}
+      ]
+{
+    if (is2dA && is2dC && noskipC && blok_nk && blok_mk) {
+
+        /* Skip the update on diagonal block if upper part */
+        if ( (s == 0) || (blok_mk != blok_nk) ) {
+
+            SolverCblk *cblk  = datacode->cblktab + cblk_k;
+            SolverCblk *fcblk = datacode->cblktab + cblk_n;
+
+            assert(A && B && C);
+
+            gpu_zgemmsp_2d2dsub( PastixConjTrans,
+                                 blok_mk, blok_nk-fblokk, blok_mn,
+                                 cblk, fcblk,
+                                 A, B, C,
+                                 dague_body.stream );
+        }
+    }
+    dague_atomic_dec_32b( &zpotrf_nbtask_on_gpu[dague_body.index] );
+}
+END
+
+BODY
+{
+    if (is2dA && is2dC && noskipC && blok_nk && blok_mk) {
+
+        /* Skip the update on diagonal block if upper part */
+        if ( (s == 0) || (blok_mk != blok_nk) ) {
+
+            SolverCblk *cblk  = datacode->cblktab + cblk_k;
+            SolverCblk *fcblk = datacode->cblktab + cblk_n;
+
+            assert(A && B && C);
+
+            core_zgemmsp_2d2dsub( PastixConjTrans,
+                                  blok_mk, blok_nk-fblokk, blok_mn,
+                                  cblk, fcblk,
+                                  A, B, C );
+        }
+    }
+}
+END
