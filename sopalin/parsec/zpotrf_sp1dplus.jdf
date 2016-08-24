@@ -87,7 +87,7 @@ first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
 
 brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
-prev = inline_c %{
+prev    = inline_c %{
     assert( first >= 0 );
     /**
      * If bloknum is a diagonal block, or if it is the first one applied on C,

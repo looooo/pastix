@@ -20,10 +20,11 @@ extern "C" %{
 dataA        [type = "dague_ddesc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
-datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
-cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
-bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+descA     [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
+datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
 
 p_work   [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
 
@@ -39,9 +40,9 @@ k = 0 .. cblknbr
 
 browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
 browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
+lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
 lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
-lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
 :dataA(0, k, 0)
@@ -94,18 +95,25 @@ last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return
 brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
 prev    = inline_c %{
     assert( first >= 0 );
-    /* If bloknum is a diagonal block, or if it is the first one applied on C, there is no previous */
+    /**
+     * If bloknum is a diagonal block, or if it is the first one applied on C,
+     * there is no previous
+     */
     if ((brownum == -1) || (brownum == first) ) {
         return 0;
     }
-    /* Otherwise we return the previous block in the list of blocks facing fcblk */
+    /**
+     * Otherwise we return the previous block in the list of blocks facing fcblk
+     */
     else {
         assert( brownum > first );
         return datacode->browtab[brownum-1];
     }
     %}
 next    = inline_c %{
-    /* If we are on a diagonal blok, or if we are the last one, there is no next */
+    /**
+     * If we are on a diagonal blok, or if we are the last one, there is no next
+     */
     if ((brownum == -1) || (brownum >= last) ){
         return 0;
     } else {
@@ -256,15 +264,15 @@ BODY
         SolverBlok *blok  = datacode->bloktab + bloknum;
         pastix_complex64_t *work;
 
-        work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
-
         /* Update on U */
         if ( blok+1 < lcblk[1].fblokptr ) {
+            work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
+
             core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
                           Au, Al, Cu, work );
-        }
 
-        dague_private_memory_push( p_work, (void *)work );
+            dague_private_memory_push( p_work, (void *)work );
+        }
     }
 }
 END
