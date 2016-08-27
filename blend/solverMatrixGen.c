@@ -148,7 +148,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
         pastix_int_t nbcblk2d = 0; /* Maximum area of a block in the global matrix */
 
         solvmtx->cblkmin2d  = solvmtx->cblknbr;
-        solvmtx->cblkmaxblk = solvmtx->cblknbr;
+        solvmtx->cblkmaxblk = 1;
         cblknum = 0;
         brownum = 0;
         nodenbr = 0;
