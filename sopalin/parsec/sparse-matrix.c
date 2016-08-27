@@ -277,7 +277,7 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         SolverBlok *blok, *lblok;
         pastix_int_t m, n, cblknumN;
         size_t size, offset;
-        char *ptr;
+        char *ptrL, *ptrU;
 
         spmtx->datamap_blok = (dague_data_t**)calloc( ld * (cblknbr - cblkmin2d),
                                                       sizeof(dague_data_t*) );
@@ -292,21 +292,10 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                 continue;
 
             /**
-             * Upper Part
-             */
-            /* if ( ratio == 2 ) { */
-            /*     cblkM = spmtx->solvmtx->cblktab + cblkmin2d; */
-            /*     for(cblknumM = cblkmin2d, m = 0; */
-            /*         cblknumM < cblknumN; */
-            /*         cblknumM++, m++, cblkM++ ) */
-            /*     { */
-            /*     } */
-            /* } */
-
-            /**
              * Diagonal block
              */
-            ptr    = cblkN->lcoeftab;
+            ptrL   = cblkN->lcoeftab;
+            ptrU   = cblkN->ucoeftab;
             blok   = cblkN->fblokptr;
             size   = blok_rownbr( blok ) * cblk_colnbr( cblkN ) * (size_t)spmtx->typesze;
             offset = blok->coefind * (size_t)spmtx->typesze;
@@ -314,8 +303,12 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
 
             assert(offset == 0);
             dague_data_create( datamap + key2, &spmtx->super, offkey + key2,
-                               ptr + offset, size );
+                               ptrL + offset, size );
 
+            if ( ratio == 2 ) {
+                dague_data_create( datamap + key2 + 1, &spmtx->super, offkey + key2 + 1,
+                                   ptrU + offset, size );
+            }
 
             /**
              * Lower Part
@@ -340,7 +333,14 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
 
                 dague_data_create( datamap + key2, &spmtx->super,
                                    offkey + key2,
-                                   ptr + offset, size );
+                                   ptrL + offset, size );
+
+                if ( ratio == 2 ) {
+                    dague_data_create( datamap + key2 + 1, &spmtx->super,
+                                       offkey + key2 + 1,
+                                       ptrU + offset, size );
+                }
+
                 key2 += m * ratio;
             }
         }
