@@ -296,7 +296,7 @@ READ A <- isTwoD && noskip ? dataA(s, k, noskip) : NULL
        -> isTwoD && (first == last) && (m == 0) && (s == 1) ? Au GETRF2D( k )
        -> isTwoD && (first == last) && (m != 0) && noskip ? C TRSM2D( k, m, s )
 
-       -> isTwoD && (first <  last) && noskip && (s == 0) ? C GEMM2D( first, m, k, s )
+       -> isTwoD && (first <  last) && noskip ? C GEMM2D( first, m, k, s )
 
 CTL  ctl <- (isTwoD) ? ctl GETRF_TRSM(k)
 
@@ -324,16 +324,16 @@ last    = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum;
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-READ  Al  <-  isTwoD & (first == last) ? A OneToTwoD( k, k, 0 )
+READ  Al  <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 0 )
           <-  isTwoD & (first <  last) ? C GEMM2D( last-1, 0, k, 0 )
-          <- !isTwoD ? NULL
+          <-  !isTwoD ? NULL
 
           ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk), 0 )
           ->  isTwoD ? dataA(0, k, 1)
 
-READ  Au  <-  isTwoD & (first == last) ? A OneToTwoD( k, k, 1 )
+READ  Au  <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 1 )
           <-  isTwoD & (first <  last) ? C GEMM2D( last-1, 0, k, 1 )
-          <- !isTwoD ? NULL
+          <-  !isTwoD ? NULL
 
           ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk), 1 )
           ->  isTwoD ? dataA(1, k, 1)
@@ -356,6 +356,7 @@ TRSM2D(k, m, s)
 
      /* On all the 2D cblk */
 k       = cblkmin2d .. cblknbr-1
+
 isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
 fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
 lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
@@ -381,7 +382,7 @@ s       = 0 .. 1
 /* C is A(k) if it's a leaf or get the cblk from the last update */
 READ  A   <-  isTwoD && (s == 0) ? Al GETRF2D( k )
           <-  isTwoD && (s == 1) ? Au GETRF2D( k )
-          <-  NULL
+          <-  !isTwoD ? NULL
 
 RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m, s )
           <-  isTwoD & noskip & (first <  last) ? C GEMM2D( last-1, m, k, s )
@@ -415,6 +416,7 @@ fblokk  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr
 lblokk  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 m       = 1 .. (isTwoD ? (lblokk-fblokk) : 0 )
 n       = 1 .. m
+
 noskipM = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
                       return ( (blok[0].lcblknm == blok[1].lcblknm) &&
                                (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
@@ -439,7 +441,8 @@ blok_mn = %{
           i += j;
           j = 1;
 
-          while( (blokC[0].fcblknm == blokC[1].fcblknm) &&
+          while( (cblk_n < cblknbr) &&
+                 (blokC[0].fcblknm == blokC[1].fcblknm) &&
                  (blokC[0].lcblknm == blokC[1].lcblknm) )
           {
               blokC++; j++;

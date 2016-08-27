@@ -89,8 +89,8 @@ CTL ctl -> isTwoD ? ctl OneToTwoD(k, 0 .. (lastblok-firstblok+1))
 
 BODY
 {
-    SolverCblk *cblk = datacode->cblktab + k;
     if (!isTwoD) {
+        SolverCblk *cblk = datacode->cblktab + k;
         core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
     }
 }
@@ -297,7 +297,7 @@ last    = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum;
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-READ  A   <-  isTwoD & (first == last) ? A OneToTwoD( k, k )
+READ  A   <-  isTwoD & (first == last) ? A OneToTwoD( k, 0 )
           <-  isTwoD & (first <  last) ? C GEMM2D( last-1, 0, k )
           <- !isTwoD ? NULL
 
@@ -332,13 +332,12 @@ noskip  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m - 1;
                       return ( (blok[0].lcblknm == blok[1].lcblknm) &&
                                (blok[0].fcblknm == blok[1].fcblknm) ) ? 0 : 1+m; %}
 
-first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; } else { return 0; }%}
-last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; } else { return 0; }%}
-
-fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->fcblknm; %}
-browkb  = inline_c %{ SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->browind; %}
-fblokn  = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->fblokptr - datacode->bloktab; %}
-lblokn  = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->fblokptr - datacode->bloktab-1; %}
+first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;           return cblk->brown2d;                        } else { return 0; } %}
+last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1;       return cblk->brownum;                        } else { return 0; } %}
+fcblknm = %{ if (noskip) { SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->fcblknm;                        } else { return 0; } %}
+browkb  = %{ if (noskip) { SolverBlok *blok = datacode->bloktab + fblokk + m;  return blok->browind;                        } else { return 0; } %}
+fblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->fblokptr - datacode->bloktab;   } else { return 0; } %}
+lblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->fblokptr - datacode->bloktab-1; } else { return 0; } %}
 
 // Parallel partitioning
 :dataA(0, k, noskip)
@@ -399,7 +398,8 @@ blok_mn = %{
           i += j;
           j = 1;
 
-          while( (blokC[0].fcblknm == blokC[1].fcblknm) &&
+          while( (cblk_n < cblknbr) &&
+                 (blokC[0].fcblknm == blokC[1].fcblknm) &&
                  (blokC[0].lcblknm == blokC[1].lcblknm) )
           {
               blokC++; j++;
