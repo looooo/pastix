@@ -51,7 +51,7 @@ void core_zgemmsp( int diag, int trans,
                          pastix_complex64_t *work );
 
 void
-core_zgemmsp_2d2dsub( int trans,
+core_zgemmsp_2d2dsub( int uplo, int trans,
                       pastix_int_t blok_mk,
                       pastix_int_t blok_kn,
                       pastix_int_t blok_mn,

@@ -586,7 +586,7 @@ BODY
             SolverCblk *cblk  = datacode->cblktab + cblk_k;
             SolverCblk *fcblk = datacode->cblktab + cblk_n;
 
-            core_zgemmsp_2d2dsub( PastixConjTrans,
+            core_zgemmsp_2d2dsub( PastixLower, PastixConjTrans,
                                   blok_mk, blok_nk-fblokk, blok_mn,
                                   cblk, fcblk,
                                   A, B, C );

@@ -443,7 +443,7 @@ core_zgemmsp_2d2d( int uplo, int trans,
 }
 
 void
-core_zgemmsp_2d2dsub( int trans,
+core_zgemmsp_2d2dsub( int uplo, int trans,
                       pastix_int_t blok_mk,
                       pastix_int_t blok_kn,
                       pastix_int_t blok_mn,
@@ -508,17 +508,49 @@ core_zgemmsp_2d2dsub( int trans,
         Cptr = C + bC->coefind - offsetC;
         ldc = blok_rownbr(bC);
 
-        for (bB = blokB; (bB <= bA) && (bB->fcblknm == cblk_n); bB++) {
-            N = blok_rownbr( bB );
-            Bptr = B + bB->coefind - offsetB;
-            ldb = N;
+        switch (uplo) {
+        case PastixLower:
+            for (bB = blokB; (bB <= bA) && (bB->fcblknm == cblk_n); bB++) {
+                N = blok_rownbr( bB );
+                Bptr = B + bB->coefind - offsetB;
+                ldb = N;
 
-            cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
-                         M, N, K,
-                         CBLAS_SADDR(mzone), Aptr, lda,
-                         Bptr, ldb,
-                         CBLAS_SADDR(zone),  Cptr + (bA->frownum - bC->frownum)
-                                                  + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+                             M, N, K,
+                             CBLAS_SADDR(mzone), Aptr, lda,
+                             Bptr, ldb,
+                             CBLAS_SADDR(zone),  Cptr + (bA->frownum - bC->frownum)
+                             + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
+            }
+            break;
+        case PastixUpper:
+            for (bB = blokB; (bB < bA) && (bB->fcblknm == cblk_n); bB++) {
+                N = blok_rownbr( bB );
+                Bptr = B + bB->coefind - offsetB;
+                ldb = N;
+
+                cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+                             M, N, K,
+                             CBLAS_SADDR(mzone), Aptr, lda,
+                             Bptr, ldb,
+                             CBLAS_SADDR(zone),  Cptr + (bA->frownum - bC->frownum)
+                             + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
+            }
+            break;
+        case PastixUpperLower:
+        default:
+            for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
+                N = blok_rownbr( bB );
+                Bptr = B + bB->coefind - offsetB;
+                ldb = N;
+
+                cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+                             M, N, K,
+                             CBLAS_SADDR(mzone), Aptr, lda,
+                             Bptr, ldb,
+                             CBLAS_SADDR(zone),  Cptr + (bA->frownum - bC->frownum)
+                             + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
+            }
         }
     }
 

@@ -633,15 +633,20 @@ BODY
 {
     if (is2dA && is2dC && noskipC && blok_nk && blok_mk) {
 
+        SolverCblk *cblk  = datacode->cblktab + cblk_k;
+        SolverCblk *fcblk = datacode->cblktab + cblk_n;
+
         /* Skip the update on diagonal block if upper part */
-        if ( (s == 0) || (blok_mk != blok_nk) ) {
-
-            SolverCblk *cblk  = datacode->cblktab + cblk_k;
-            SolverCblk *fcblk = datacode->cblktab + cblk_n;
-
+        if ( s == 0 ) {
             assert(A && B && C);
-
-            core_zgemmsp_2d2dsub( PastixConjTrans,
+            core_zgemmsp_2d2dsub( PastixUpperLower, PastixConjTrans,
+                                  blok_mk, blok_nk-fblokk, blok_mn,
+                                  cblk, fcblk,
+                                  A, B, C );
+        }
+        else if ( (s == 1) &&  (blok_mk != blok_nk) ) {
+            assert(A && B && C);
+            core_zgemmsp_2d2dsub( PastixUpper, PastixConjTrans,
                                   blok_mk, blok_nk-fblokk, blok_mn,
                                   cblk, fcblk,
                                   A, B, C );
