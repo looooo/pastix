@@ -64,13 +64,13 @@ typedef struct Task_ {
 
 /*+ Solver block structure. +*/
 typedef struct SolverBlok_ {
-    pastix_int_t lcblknm;  /*< Local column block         */
-    pastix_int_t fcblknm;  /*< Facing column block        */
-    pastix_int_t browind;  /*< Index in browtab           */
-    pastix_int_t coefind;  /*< Index in coeftab           */
-    pastix_int_t frownum;  /*< First row index            */
-    pastix_int_t lrownum;  /*< Last row index (inclusive) */
-    int8_t       gpuid;
+    pastix_int_t lcblknm;  /*< Local column block                       */
+    pastix_int_t fcblknm;  /*< Facing column block                      */
+    pastix_int_t browind;  /*< Index in browtab                         */
+    pastix_int_t coefind;  /*< Index in coeftab                         */
+    pastix_int_t frownum;  /*< First row index                          */
+    pastix_int_t lrownum;  /*< Last row index (inclusive)               */
+    int8_t       gpuid;    /*< Store on which GPU the block is computed */
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
@@ -79,7 +79,7 @@ typedef struct SolverCblk_  {
     pastix_atomic_lock_t lock;     /*< Lock to protect computation on the cblk */
     volatile int32_t     ctrbcnt;  /*< Number of contribution to receive       */
     int8_t               cblktype; /*< Type of cblk                            */
-    int8_t               gpuid;
+    int8_t               gpuid;    /*< Store on which GPU the cblk is computed */
     pastix_int_t         fcolnum;  /*< First column index                      */
     pastix_int_t         lcolnum;  /*< Last column index (inclusive)           */
     SolverBlok          *fblokptr; /*< First block in column (diagonal)        */

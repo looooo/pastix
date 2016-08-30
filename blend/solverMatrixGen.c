@@ -181,7 +181,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
                     solvblok->coefind = split ? stride * nbcols : stride;
                     solvblok->browind = -1;
-                    solvblok->gpuid = -2;
+                    solvblok->gpuid   = -2;
 
                     stride += nbrows;
                     solvblok++;
@@ -191,6 +191,9 @@ solverMatrixGen(const pastix_int_t  clustnum,
             {
                 pastix_int_t brownbr;
 
+                /**
+                 * 2D tasks: Compute the number of cblk split, and the smallest id
+                 */
                 if (split & (cblknum < solvmtx->cblkmin2d) ) {
                     solvmtx->cblkmin2d = cblknum;
                 }
@@ -198,6 +201,10 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     nbcblk2d++;
                 }
 
+                /**
+                 * Compute the maximum number of block per cblk for data
+                 * structure in PaRSEC/StarPU
+                 */
                 if ((cblknum >= solvmtx->cblkmin2d) &&
                     ((solvblok - fblokptr) > solvmtx->cblkmaxblk) )
                 {
@@ -221,7 +228,14 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 solvcblk->gcblknum = i;
                 solvcblk->gpuid    = -1;
 
-                /* Copy browtab information */
+                /**
+                 * Copy browtab information
+                 * In case of 2D tasks, we reorder the browtab to first store
+                 * the 1D contributions, and then the 2D updates.
+                 * This might also be used for low rank compression, to first
+                 * accumulate small dense contributions, and then, switch to a
+                 * low rank - low rank update scheme.
+                 */
                 brownbr = symbmtx->cblktab[i+1].brownum
                     -     symbmtx->cblktab[i].brownum;
                 if (brownbr)
@@ -301,19 +315,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
 
         assert( solvmtx->cblknbr == cblknum );
         assert( solvmtx->bloknbr == solvblok - solvmtx->bloktab );
-        fprintf(stderr,
-                "========================================\n"
-                "         cblknbr   = %ld\n"
-                "         cblkmin2d = %ld\n"
-                "         real / total = %ld, %ld \n"
-                "         frownum=%ld\n"
-                "         lrownum=%ld\n"
-                "         average=%ld\n",
-                solvmtx->cblknbr, solvmtx->cblkmin2d,
-                nbcblk2d, solvmtx->cblknbr - solvmtx->cblkmin2d,
-                (solvmtx->cblktab + solvmtx->cblkmin2d)->fcolnum,
-                (solvmtx->cblktab + solvmtx->cblknbr - 1 )->lcolnum,
-                ((solvmtx->cblktab + solvmtx->cblknbr - 1 )->lcolnum - (solvmtx->cblktab + solvmtx->cblkmin2d)->fcolnum) / (solvmtx->cblknbr - solvmtx->cblkmin2d + 1) );
     }
 
     /***************************************************************************
