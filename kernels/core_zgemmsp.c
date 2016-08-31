@@ -19,7 +19,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
-static pastix_complex64_t mzone =  -1.;
+static pastix_complex64_t mzone = -1.;
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
 
@@ -84,12 +84,6 @@ static pastix_complex64_t zzero =  0.;
  *          Temporary memory buffer that is at least equal to the height of the
  *          block B by the sum of the height of all the blocks below the block
  *          B.
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
  *
  *******************************************************************************
  *
@@ -244,12 +238,6 @@ core_zgemmsp_1d1d( int uplo, int trans,
  *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
- *******************************************************************************
- *
  * @sa core_zgemmsp_1d1d
  * @sa core_zgemmsp_2d2d
  *
@@ -382,12 +370,6 @@ core_zgemmsp_1d2d( int uplo, int trans,
  * @param[in,out] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
  *
  *******************************************************************************
  *
@@ -532,12 +514,6 @@ core_zgemmsp_2d2d( int uplo, int trans,
  * @param[in,out] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
  *
  *******************************************************************************
  *
@@ -716,12 +692,6 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
  *
  * @param[in] tol
  *          Tolerance for low-rank compression kernels
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
  *
  *******************************************************************************/
 void core_zgemmsp( int uplo, int trans,
