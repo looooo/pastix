@@ -160,14 +160,7 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                 ecblk->criterium = - (double)(ecblk->flops);
                 break;
             default :
-            {
-                //ecblk->criterium = (double)cblkid;
-                double gpu_cost = ecblk->flops / 60e3 + 2. /* Double */ *  2. /* Aller+retour */ * (ecblk->cblk_size * eltsize) / 15.754e9; /* PCI Express 3. 16x */
-                double cpu_cost = ecblk->flops / 20e3;
-
-                ecblk->criterium = (double)(gpu_cost / cpu_cost);
-                fprintf(stderr, "Ratio of %e for cblk %ld\n", ecblk->criterium, cblkid );
-            }
+                ecblk->criterium = (double)cblkid;
             }
             pqueuePush1(&cblkQueue, cblkid, ecblk->criterium);
         }
@@ -243,11 +236,10 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
          * If it doesn't match the minima, or if the GPU cannot handle it, we
          * force it to the CPU
          */
-        /* if( (egpu->avail_pages < ecblk->cblk_size)      || */
-        /*     (ecblk->updates   < PASTIX_GPU_MIN_UPDATES) || */
-        /*     (ecblk->cblk_size < PASTIX_GPU_MIN_NBPAGES) || */
-        /*     (ecblk->flops     < PASTIX_GPU_MIN_FLOP)    || */
-        /*     (ecblk->criterium > 0.6) ) */
+        if( (egpu->avail_pages < ecblk->cblk_size)      ||
+            (ecblk->updates   < PASTIX_GPU_MIN_UPDATES) ||
+            (ecblk->cblk_size < PASTIX_GPU_MIN_NBPAGES) ||
+            (ecblk->flops     < PASTIX_GPU_MIN_FLOP) )
         {
             ecblk->cblk->gpuid = -2;
             devices_cblk[0] += 1;
@@ -257,9 +249,7 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                 devices_gemm[0] += ecblk->updates;
             }
         }
-        /* else */
-        /*     ecblk->cblk->gpuid = -1; */
-        if(0)//else
+        else
         {
             /**
              * Let's link this cblk and gpu together, and add this GPU as the
