@@ -9,39 +9,10 @@ extern "C" %{
 #include <dague/data_distribution.h>
 #include <dague/private_mempool.h>
 #include "common.h"
-#include "common/flops.h"
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
 
-static volatile uint32_t zpotrf_nbtask_on_gpu[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-/* #define CPU_COST( _m, _n, _k ) (0.05180292 * (_m) * (_n) * (_k) + \ */
-/*                                 4.03012081 * (_m) * (_n) + \ */
-/*                                 1.44620666 * (_m) * (_k)) */
-/* #define GPU_COST( _m, _n, _k ) (8.80590074e-03 * (_m) * (_n) * (_k) + \ */
-/*                                 9.88765865e-01 * (_m) * (_n) + \ */
-/*                                 1.59974518e-01 * (_m) * (_k) + \ */
-/*                                 1.20372639e+00 * (_n) * (_k) + \ */
-/*                                 1.96498675e+02 * (_m) + \ */
-/*                                 2.30745307e+01 * (_n) + \ */
-/*                                 2.37074116e+02 * (_k) + \ */
-/*                                 2.40195149e+04) */
-
-#define CPU_COST( _m, _n, _k ) (5.36851049e-02 * (_m) * (_n) * (_k) + \
-                                1.15606138e+00 * (_m) * (_n) + \
-                                1.28618089e+00 * (_m) * (_k) + \
-                                3.22638580e-01 * (_n) * (_k) + \
-                                4.40671803e+02 * (_k))
-
-#define GPU_COST( _m, _n, _k ) (8.01473662e-03 * (_m) * (_n) * (_k) + \
-                                1.15221660e+00 * (_m) * (_n) + \
-                                1.53817334e-01 * (_m) * (_k) + \
-                                9.91496485e-01 * (_n) * (_k) + \
-                                1.64212617e+02 * (_m) + \
-                                4.05991868e+01 * (_n) + \
-                                3.26765316e+02 * (_k) + \
-                                2.67968306e+04)
 %}
 
 /* Globals
@@ -55,7 +26,7 @@ cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblk
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
 
-p_work   [type = "dague_memory_pool_t *"]
+p_work    [type = "dague_memory_pool_t *"]
 
 /**************************************************
  *                POTRF_TRSM                      *
@@ -149,14 +120,6 @@ next = inline_c %{
         return datacode->browtab[brownum+1];
     }
     %}
-n  = %{ return blok_rownbr(datacode->bloktab + bloknum); %}
-k  = %{ return cblk_colnbr(datacode->cblktab + lcblknm); %}
-m  = %{ if ((datacode->cblktab + lcblknm)->cblktype & CBLK_SPLIT) {
-          return datacode->cblktab[lcblknm].stride - (datacode->bloktab[bloknum].coefind / k);
-        } else {
-          return datacode->cblktab[lcblknm].stride - datacode->bloktab[bloknum].coefind;
-    } %}
-    //nb = %{ return (datacode->cblktab[lcblknm+1].fblokptr - datacode->bloktab - bloknum); %}
 
 // Parallel partitioning
 :dataA(0, fcblknm, 0)
@@ -172,54 +135,6 @@ RW    C  <- (brownum == -1) ? NULL
          -> (brownum != -1) && (brownum != last)  ? C GEMM1D( next )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
-
-BODY [type=CUDA
-      device=inline_c %{
-        SolverCblk *fcblk = datacode->cblktab + fcblknm;
-        if (brownum == -1 || !isTwoD)
-            return -2;
-        else {
-            if ( (fcblk->gpuid == -2) && (!isTwoD) ) {
-                int dev_index, nbdevices;
-                SolverCblk *cblk = datacode->cblktab + lcblknm;
-                double mintime = 9e64;
-
-                nbdevices = dague_devices_enabled()-2;
-                for( dev_index = 0; dev_index < nbdevices; dev_index++ ) {
-                    double gpu_cost = ((1+zpotrf_nbtask_on_gpu[dev_index]) * GPU_COST( m, n, k ) +
-                                       2. /* Double */ *  2. /* Aller+retour */ *
-                                       (fcblk->stride * cblk_colnbr( fcblk ) +  cblk->stride * cblk_colnbr( cblk )) / 15.754 );
-                    if ( (CPU_COST( m, n, k ) > gpu_cost) &&
-                          (mintime > gpu_cost) )
-                    {
-                        fcblk->gpuid = dev_index;
-                        mintime = gpu_cost;
-                    }
-                }
-            }
-            if ( fcblk->gpuid != -2 ) {
-                dague_atomic_inc_32b( &zpotrf_nbtask_on_gpu[fcblk->gpuid] );
-            }
-            return fcblk->gpuid;
-        } %}
-      ]
-//device=%{ if (brownum == -1 || isTwoD) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
-      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
-{
-    /* Compute only if non diagonal block */
-    if ((brownum != -1) && !isTwoD) {
-        SolverCblk *lcblk = datacode->cblktab + lcblknm;
-        SolverCblk *fcblk = datacode->cblktab + fcblknm;
-        SolverBlok *blok  = datacode->bloktab + bloknum;
-
-        gpu_zgemmsp( PastixLower, PastixConjTrans,
-                     lcblk, blok, fcblk,
-                     A, A, C,
-                     dague_body.stream );
-        dague_atomic_dec_32b( &zpotrf_nbtask_on_gpu[dague_body.index] );
-    }
-}
-END
 
 BODY
 {
@@ -276,8 +191,6 @@ CTL  ctl <- (isTwoD) ? ctl POTRF_TRSM(k)
    //; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
 {
-    /* fprintf(stderr, "k=%d, m=%d, isTwoD=%d, noskip=%d\n", */
-    /*         k, m, isTwoD, noskip ); */
 }
 END
 
@@ -312,9 +225,6 @@ BODY
         /* pastix_int_t  nbpivot = */
         core_zpotrfsp1d_potrf( cblk, A, sopalin_data->diagthreshold );
     }
-    /* fprintf(stderr, "Counter is %d\n", */
-    /*         zpotrf_nbtask_on_gpu[0]); */
-
 }
 END
 
@@ -514,69 +424,6 @@ RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
          -> (last != k) ? C GEMM2D( k+1, blok_mn, cblk_n )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
-
-BODY [type=CUDA
-      //weight=(last+1-k)
-      device=inline_c %{
-        SolverCblk *fcblk = datacode->cblktab + cblk_n;
-        SolverBlok *blok  = fcblk->fblokptr + blok_mn;
-        double weight = (last+1-k);
-        if ( (blok->gpuid == -2) && is2dA && blok_nk && blok_mk ) {
-            int dev_index, nbdevices;
-            SolverCblk *cblk = datacode->cblktab + cblk_k;
-            double mintime = 9e64;
-            int m = blok_rownbr(blok);
-            int n = cblk_colnbr(fcblk);
-            int k = cblk_colnbr(cblk);
-
-            /* double gpu_cost = GPU_COST( m, n, k ) * weight; */
-            /* double cpu_cost = CPU_COST( m, n, k ) * weight; */
-            double gpu_cost = FLOPS_ZGEMM( m, n, k );
-            double cpu_cost = FLOPS_ZGEMM( m, n, k ) * dague_device_dweight[0];
-            double transfer = 2. *  (2. * m * n + n * k + m * k) / 15.754;
-
-            nbdevices = dague_devices_enabled()-2;
-            for( dev_index = 0; dev_index < nbdevices; dev_index++ ) {
-                double cost = (1 + zpotrf_nbtask_on_gpu[dev_index]) * gpu_cost * dague_device_dweight[dev_index+2] + transfer * 1.e-9;
-
-                /* fprintf(stderr, "I' here with gpu_cost=%e, cpu_cost=%e, transfer=%e, cpu_weight=%e, gpu_weight=%e, cost=%e [%d]\n", */
-                /*         gpu_cost, cpu_cost, transfer, */
-                /*         dague_device_dweight[0], */
-                /*         dague_device_dweight[dev_index+2], cost, */
-                /*         zpotrf_nbtask_on_gpu[dev_index]); */
-
-                if ( (cpu_cost > cost) &&
-                     (mintime > cost) )
-                {
-                    blok->gpuid = dev_index;
-                    mintime = cost;
-                }
-            }
-        }
-        if ( blok->gpuid != -2 ) {
-            dague_atomic_inc_32b( &zpotrf_nbtask_on_gpu[blok->gpuid] );
-        }
-        return blok->gpuid;
-        %}
-      ]
-{
-    if (is2dA && is2dC && noskipC && blok_nk && blok_mk) {
-        assert(A && B && C);
-        /* Don't do anything if one is null */
-        {
-            SolverCblk *cblk  = datacode->cblktab + cblk_k;
-            SolverCblk *fcblk = datacode->cblktab + cblk_n;
-
-            gpu_zgemmsp_2d2dsub( PastixConjTrans,
-                                 blok_mk, blok_nk-fblokk, blok_mn,
-                                 cblk, fcblk,
-                                 A, B, C,
-                                 dague_body.stream );
-        }
-    }
-    dague_atomic_dec_32b( &zpotrf_nbtask_on_gpu[dague_body.index] );
-}
-END
 
 BODY
 {

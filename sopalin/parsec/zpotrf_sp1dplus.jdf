@@ -130,23 +130,6 @@ RW    C  <- (brownum == -1) ? NULL
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-BODY [type=CUDA device=inline_c %{ if (brownum == -1) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
-      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
-{
-    /* Compute only if non diagonal block */
-    if (brownum != -1) {
-        SolverCblk *lcblk = datacode->cblktab + lcblknm;
-        SolverCblk *fcblk = datacode->cblktab + fcblknm;
-        SolverBlok *blok  = datacode->bloktab + bloknum;
-
-        gpu_zgemmsp( PastixLower, PastixConjTrans,
-                     lcblk, blok, fcblk,
-                     A, A, C,
-                     dague_body.stream );
-    }
-}
-END
-
 BODY
 {
     /* If diagonal block, we skip */
