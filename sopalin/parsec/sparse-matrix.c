@@ -370,15 +370,18 @@ void sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
     }
 
     if ( spmtx->datamap_blok != NULL ) {
-        /* pastix_int_t nbblock2d = (spmtx->solvmtx->cblknbr - spmtx->solvmtx->cblkmin2d); */
+        pastix_int_t nbblock2d;
 
-        /* nbblock2d = nbblock2d * nbblock2d; */
-        /* data = spmtx->datamap_blok; */
+        nbblock2d = spmtx->solvmtx->cblknbr - spmtx->solvmtx->cblkmin2d;
+        nbblock2d = nbblock2d * (spmtx->solvmtx->cblkmaxblk * ratio);
 
-        /* for(i=0; i < nbblock2d; i++, data++) */
-        /* { */
-        /*     dague_data_destroy( *data ); */
-        /* } */
+        data = spmtx->datamap_blok;
+        for(i=0; i < nbblock2d; i++, data++)
+        {
+            if (*data != NULL) {
+                dague_data_destroy( *data );
+            }
+        }
         free( spmtx->datamap_blok );
         spmtx->datamap_blok = NULL;
     }
