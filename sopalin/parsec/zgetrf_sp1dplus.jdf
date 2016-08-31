@@ -26,7 +26,7 @@ cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblk
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
 
-p_work   [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
+p_work    [type = "dague_memory_pool_t *"]
 
 /**************************************************
  *                GETRF                      *
