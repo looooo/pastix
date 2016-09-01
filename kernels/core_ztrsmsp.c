@@ -33,50 +33,27 @@ static pastix_complex64_t mzone = -1.;
  *
  *******************************************************************************
  *
+ * @param[in] side
+ *
  * @param[in] uplo
- *          If uplo == PastixLower, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
  *
  * @param[in] trans
- *          Specify the transposition used for the B matrix. It has to be either
- *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
  *
  * @param[in] cblk
- *          The cblk structure to which block belongs to. The A and B pointers
+ *          The cblk structure to which block belongs to. The A and C pointers
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
- *
- * @param[in] blok
- *          The block from which we compute the contributions.
- *
- * @param[in] fcblk
- *          The pointer to the data structure that describes the panel on which
- *          we compute the contributions. The C pointer must be one of the
- *          oceftab from this fcblk. Next column blok must be accessible through
- *          fcblk[1].
  *
  * @param[in] A
  *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
  *          coefficients of the panel when the Lower part is computed,
  *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
- *
  * @param[in,out] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
- *
- * @param[in] work
- *          Temporary memory buffer.
  *
  *******************************************************************************
  *
@@ -128,53 +105,27 @@ core_ztrsmsp_1d( int side, int uplo, int trans, int diag,
  *
  *******************************************************************************
  *
+ * @param[in] side
+ *
  * @param[in] uplo
- *          If uplo == PastixLower, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
  *
  * @param[in] trans
- *          Specify the transposition used for the B matrix. It has to be either
- *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
  *
  * @param[in] cblk
- *          The cblk structure to which block belongs to. The A and B pointers
+ *          The cblk structure to which block belongs to. The A and C pointers
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
- *
- * @param[in] blok
- *          The block from which we compute the contributions.
- *
- * @param[in] fcblk
- *          The pointer to the data structure that describes the panel on which
- *          we compute the contributions. The C pointer must be one of the
- *          oceftab from this fcblk. Next column blok must be accessible through
- *          fcblk[1].
  *
  * @param[in] A
  *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
  *          coefficients of the panel when the Lower part is computed,
  *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
- *
  * @param[in,out] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
- *
- * @param[in] work
- *          Temporary memory buffer.
- *
- * @param[in] tol
- *          Tolerance for low-rank compression kernels
  *
  *******************************************************************************
  *
@@ -217,15 +168,60 @@ core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
     return PASTIX_SUCCESS;
 }
 
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_ztrsmsp_2d - Computes the updates associated to one off-diagonal block
+ * between two cblk stored in 2D.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *
+ * @param[in] uplo
+ *
+ * @param[in] trans
+ *
+ * @param[in] diag
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and C pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok_m
+ *          Index of the first off-diagonal block in cblk that is solved. The
+ *          TRSM is also applied to all the folowing blocks which are facing the
+ *          same diagonal block
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in,out] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
 int
 core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
                           SolverCblk         *cblk,
-                          pastix_int_t        fcblknum,
+                          pastix_int_t        blok_m,
                     const pastix_complex64_t *A,
                           pastix_complex64_t *C )
 {
     const SolverBlok *fblok, *lblok, *blok;
-    pastix_int_t M, N, lda, ldc, offset;
+    pastix_int_t M, N, lda, ldc, offset, cblk_m;
     pastix_complex64_t *Cptr;
 
     N     = cblk->lcolnum - cblk->fcolnum + 1;
@@ -236,15 +232,11 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
     assert( blok_rownbr(fblok) == N );
     assert( cblk->cblktype & CBLK_SPLIT );
 
-    blok = fblok+1;
-    while( (blok->fcblknm < fcblknum) &&
-           (blok < lblok) )
-    {
-        blok++;
-    }
-
+    blok   = fblok + blok_m;
     offset = blok->coefind;
-    for (; (blok < lblok) && (blok->fcblknm == fcblknum); blok++) {
+    cblk_m = blok->fcblknm;
+
+    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
 
         Cptr = C + blok->coefind - offset;
         M   = blok_rownbr(blok);
@@ -373,53 +365,27 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
  *
  *******************************************************************************
  *
+ * @param[in] side
+ *
  * @param[in] uplo
- *          If uplo == PastixLower, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
  *
  * @param[in] trans
- *          Specify the transposition used for the B matrix. It has to be either
- *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and B pointers
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] blok
- *          The block from which we compute the contributions.
- *
- * @param[in] fcblk
- *          The pointer to the data structure that describes the panel on which
- *          we compute the contributions. The C pointer must be one of the
- *          oceftab from this fcblk. Next column blok must be accessible through
- *          fcblk[1].
- *
  * @param[in] A
  *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
  *          coefficients of the panel when the Lower part is computed,
  *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
- *
  * @param[in,out] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
- *
- * @param[in] work
- *          Temporary memory buffer.
- *
- * @param[in] tol
- *          Tolerance for low-rank compression kernels
  *
  *******************************************************************************
  *
@@ -456,63 +422,37 @@ void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
  *
  * @ingroup pastix_kernel
  *
- * core_ztrsmsp - Computes the updates associated to one off-diagonal block.
+ * solve_ztrsmsp - Apply the solve related to one cblk to all the right hand side.
  *
  *******************************************************************************
  *
+ * @param[in] side
+ *
  * @param[in] uplo
- *          If uplo == PastixLower, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
  *
  * @param[in] trans
- *          Specify the transposition used for the B matrix. It has to be either
- *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *
+ * @param[in] datacode
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and B pointers
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] blok
- *          The block from which we compute the contributions.
+ * @param[in] nrhs
+ *          The number of right hand side.
  *
- * @param[in] fcblk
- *          The pointer to the data structure that describes the panel on which
- *          we compute the contributions. The C pointer must be one of the
- *          oceftab from this fcblk. Next column blok must be accessible through
- *          fcblk[1].
+ * @param[in,out] b
+ *          The pointer to vectors of the right hand side
  *
- * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
- *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
- *
- * @param[in,out] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
- *
- * @param[in] work
- *          Temporary memory buffer.
- *
- * @param[in] tol
- *          Tolerance for low-rank compression kernels
+ * @param[in] ldb
+ *          The leading dimension of b
  *
  *******************************************************************************
  *
  * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
  *
  *******************************************************************************/
 void solve_ztrsmsp( int side, int uplo, int trans, int diag,
@@ -607,6 +547,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
              *  Left / Upper / [Conj]Trans
              */
             else {
+                assert(0 /* Not implemented */);
             }
         }
         else {
@@ -741,6 +682,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
      * Right
      */
     else {
+        assert(0 /* Not implemented */);
     }
 }
 

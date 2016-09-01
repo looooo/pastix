@@ -344,7 +344,7 @@ coeftab_zdump( const SolverMatrix *solvmtx,
     {
         coeftab_zdumpcblk( cblk, cblk->lcoeftab, stream );
         if ( NULL != cblk->ucoeftab )
-            coeftab_zdumpcblk( cblk, cblk->lcoeftab, stream );
+            coeftab_zdumpcblk( cblk, cblk->ucoeftab, stream );
     }
 
     fclose( stream );

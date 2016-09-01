@@ -19,6 +19,7 @@
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
 #include "kernels/pastix_cuda.h"
+#include <cublas.h>
 
 /**
  *******************************************************************************
@@ -175,4 +176,3 @@ gpu_zgemmsp( int uplo, int trans,
             stream, params );
     }
 }
-
