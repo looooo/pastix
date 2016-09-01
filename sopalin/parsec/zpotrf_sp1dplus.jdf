@@ -26,7 +26,7 @@ cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblk
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
 
-p_work   [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
+p_work    [type = "dague_memory_pool_t *"]
 
 /**************************************************
  *                POTRF_TRSM                      *
@@ -87,7 +87,7 @@ first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
 
 brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
-prev = inline_c %{
+prev    = inline_c %{
     assert( first >= 0 );
     /**
      * If bloknum is a diagonal block, or if it is the first one applied on C,
@@ -129,23 +129,6 @@ RW    C  <- (brownum == -1) ? NULL
          -> (brownum != -1) && (brownum != last)  ? C GEMM1D( next )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
-
-BODY [type=CUDA device=inline_c %{ if (brownum == -1) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
-      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
-{
-    /* Compute only if non diagonal block */
-    if (brownum != -1) {
-        SolverCblk *lcblk = datacode->cblktab + lcblknm;
-        SolverCblk *fcblk = datacode->cblktab + fcblknm;
-        SolverBlok *blok  = datacode->bloktab + bloknum;
-
-        gpu_zgemmsp( PastixLower, PastixConjTrans,
-                     lcblk, blok, fcblk,
-                     A, A, C,
-                     dague_body.stream );
-    }
-}
-END
 
 BODY
 {

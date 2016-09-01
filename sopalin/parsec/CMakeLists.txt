@@ -24,6 +24,9 @@ set(JDF
   zgetrf_sp1dplus.jdf
   zhetrf_sp1dplus.jdf
   zsytrf_sp1dplus.jdf
+  #
+  zpotrf_sp2d.jdf
+  zgetrf_sp2d.jdf
   # # Solvers
   # zpotrs_sp1dplus.jdf
 )
