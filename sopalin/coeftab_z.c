@@ -235,8 +235,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      * TODO: change the criteria based on the level in the tree
      */
     {
-        if ( (cblk->cblktype & CBLK_SPLIT) &&
-             (cblk_colnbr( cblk ) >= compress_size) )
+        if ( cblk->cblktype & CBLK_SPLIT )
         {
             fprintf(stderr, "Try to compress a block\n");
             coeftab_zcompress_one( cblk, tol );
@@ -264,6 +263,10 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
     pastix_int_t itercol;
     pastix_int_t iterrow;
     pastix_int_t coefindx;
+
+    /* We don't know how to dump the compressed block for now */
+    if ( !(cblk->cblktype & CBLK_DENSE) )
+        return;
 
     for (itercol  = cblk->fcolnum;
          itercol <= cblk->lcolnum;
