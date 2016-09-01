@@ -15,7 +15,8 @@
 
 typedef struct sparse_matrix_desc_s {
     dague_ddesc_t   super;
-    dague_data_t  **data_map;
+    dague_data_t  **datamap_cblk;
+    dague_data_t  **datamap_blok;
     int             typesze;   /*< Type size                                                            */
     int             mtxtype;   /*< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian. */
     SolverMatrix   *solvmtx;

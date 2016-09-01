@@ -47,6 +47,7 @@ int main (int argc, char **argv)
     spmInit(spm);
     cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
+
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );

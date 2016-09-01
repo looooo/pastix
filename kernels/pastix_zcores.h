@@ -50,10 +50,27 @@ void core_zgemmsp( int diag, int trans,
                          pastix_complex64_t *C,
                          pastix_complex64_t *work );
 
+void
+core_zgemmsp_2d2dsub( int uplo, int trans,
+                      pastix_int_t blok_mk,
+                      pastix_int_t blok_kn,
+                      pastix_int_t blok_mn,
+                      const SolverCblk         *cblk,
+                            SolverCblk         *fcblk,
+                      const pastix_complex64_t *A,
+                      const pastix_complex64_t *B,
+                            pastix_complex64_t *C );
+
 void core_ztrsmsp( int side, int uplo, int trans, int diag,
                          SolverCblk         *cblk,
                    const pastix_complex64_t *A,
                          pastix_complex64_t *C );
+
+int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
+                              SolverCblk         *cblk,
+                              pastix_int_t        fcblknum,
+                        const pastix_complex64_t *A,
+                              pastix_complex64_t *C );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -157,6 +174,17 @@ void gpu_zgemmsp( int uplo, int trans,
                   const cuDoubleComplex *B,
                         cuDoubleComplex *C,
                         cudaStream_t stream );
+void
+gpu_zgemmsp_2d2dsub( int trans,
+                     pastix_int_t blok_mk,
+                     pastix_int_t blok_kn,
+                     pastix_int_t blok_mn,
+                     const SolverCblk      *cblk,
+                           SolverCblk      *fcblk,
+                     const cuDoubleComplex *A,
+                     const cuDoubleComplex *B,
+                           cuDoubleComplex *C,
+                           cudaStream_t stream );
 #endif
 
 void solve_ztrsmsp( int side, int uplo, int trans, int diag,

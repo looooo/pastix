@@ -73,7 +73,9 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
         spmExit( spm );
     }
 
-    /* Invalidate following step, and add current step to the ones performed */
+    /**
+     * Invalidate following step, and add current step to the ones performed
+     */
     pastix_data->steps &= ~STEP_BCSC2CTAB;
     pastix_data->steps |= STEP_CSC2BCSC;
 

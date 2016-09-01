@@ -19,7 +19,7 @@
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
-#include <lapacke.h>
+#include "lapacke.h"
 #include "coeftab.h"
 #include "pastix_zcores.h"
 
@@ -298,7 +298,7 @@ coeftab_zdump( const SolverMatrix *solvmtx,
     {
         coeftab_zdumpcblk( cblk, cblk->lcoeftab, stream );
         if ( NULL != cblk->ucoeftab )
-            coeftab_zdumpcblk( cblk, cblk->lcoeftab, stream );
+            coeftab_zdumpcblk( cblk, cblk->ucoeftab, stream );
     }
 
     fclose( stream );

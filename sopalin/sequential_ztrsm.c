@@ -16,7 +16,7 @@
  * @precisions normal z -> s d c
  *
  **/
-#include <cblas.h>
+#include "cblas.h"
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
@@ -33,12 +33,11 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     pastix_int_t i;
     (void)pastix_data;
 
-    /*
-     *  Left / Upper / NoTrans
-     */
     if (side == PastixLeft) {
         if (uplo == PastixUpper) {
-            /*  We store U^t, so we swap uplo and trans */
+            /*
+             *  Left / Upper / NoTrans
+             */
             if (trans == PastixNoTrans) {
                 cblk = datacode->cblktab + datacode->cblknbr - 1;
                 for (i=0; i<datacode->cblknbr; i++, cblk--){
@@ -46,6 +45,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                                    datacode, cblk, nrhs, b, ldb );
                 }
             }
+            /*  We store U^t, so we swap uplo and trans */
         }
         else {
             /*

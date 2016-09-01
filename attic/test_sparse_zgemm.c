@@ -22,7 +22,7 @@
 #include <float.h>
 
 #include "common.h"
-#include <cblas.h>
+#include "cblas.h"
 #include "pastix_zcores.h"
 #include "timing.h"
 /* #include "sparse_zgemm.h" */
