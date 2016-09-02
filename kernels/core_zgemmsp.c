@@ -554,6 +554,7 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
 
     blokB = fblokK + blok_kn;
     offsetB = blokB->coefind;
+    cblk_n = blokB->fcblknm;
 
     blokA = fblokK + blok_mk;
     offsetA = blokA->coefind;
