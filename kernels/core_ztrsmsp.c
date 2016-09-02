@@ -302,11 +302,11 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
 
 int
 core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
-                          SolverCblk         *cblk,
-                          pastix_int_t        fcblknum )
+                      SolverCblk   *cblk,
+                      pastix_int_t  blok_m )
 {
     const SolverBlok *fblok, *lblok, *blok;
-    pastix_int_t M, N, lda;
+    pastix_int_t M, N, lda, cblk_m;
     pastix_complex64_t *A;
     pastix_lrblock_t *lrA, *lrC;
 
@@ -318,19 +318,15 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
     A     = lrA->u;
     lda   = lrA->rkmax;
 
-    assert( lrA->rk == -1 );
     assert( blok_rownbr(fblok) == N );
     assert( cblk->cblktype & CBLK_SPLIT );
+    assert( lrA->rk == -1 );
     assert( !(cblk->cblktype & CBLK_DENSE) );
 
-    blok = fblok+1;
-    while( (blok->fcblknm < fcblknum) &&
-           (blok < lblok) )
-    {
-        blok++;
-    }
+    blok   = fblok + blok_m;
+    cblk_m = blok->fcblknm;
 
-    for (; (blok < lblok) && (blok->fcblknm == fcblknum); blok++) {
+    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
 
         lrC = blok->LRblock + coef;
 
