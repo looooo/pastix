@@ -238,9 +238,9 @@ solverMatrixGen(const pastix_int_t  clustnum,
                  */
                 brownbr = symbmtx->cblktab[i+1].brownum
                     -     symbmtx->cblktab[i].brownum;
+                solvcblk->brown2d = solvcblk->brownum + brownbr;
                 if (brownbr)
                 {
-                    solvcblk->brown2d += brownbr;
                     if (split) {
                         SolverBlok *blok;
                         SolverCblk *cblk;
@@ -270,7 +270,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                                     j1d++;
                                 }
                             }
-                            solvcblk->brown2d = brownum + j2d;
+                            solvcblk->brown2d = solvcblk->brownum + j2d;
                         }
                         assert(j1d == brownbr);
                     }
@@ -283,6 +283,9 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 brownum += brownbr;
                 assert( brownum <= solvmtx->brownbr );
 
+                assert(solvcblk->brown2d >= solvcblk->brownum);
+                assert(solvcblk->brown2d <= solvcblk->brownum + brownbr);
+
                 /* Extra statistic informations */
                 nodenbr += nbcols;
                 coefnbr += stride * nbcols;
@@ -294,9 +297,10 @@ solverMatrixGen(const pastix_int_t  clustnum,
         /*  Add a virtual cblk to avoid side effect in the loops on cblk bloks */
         if (cblknum > 0)
         {
-            solvcblk->fblokptr = solvblok;
+            solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
             solvcblk->ctrbcnt  = -1;
             solvcblk->cblktype = CBLK_DENSE;
+            solvcblk->fblokptr = solvblok;
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
             solvcblk->stride   = 0;
@@ -307,6 +311,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
             solvcblk->gpuid    = -2;
+            solvcblk->split    = NULL;
         }
 
         solvmtx->nodenbr = nodenbr;
