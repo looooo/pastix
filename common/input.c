@@ -168,6 +168,10 @@ int iparm_to_int( char * string)
     {
         return IPARM_REORDERING_STOP;
     }
+    if(0 == strcmp("iparm_optimal_ordering", string))
+    {
+        return IPARM_OPTIMAL_ORDERING;
+    }
     if(0 == strcmp("iparm_baseval", string))
     {
         return IPARM_BASEVAL;
@@ -179,6 +183,10 @@ int iparm_to_int( char * string)
     if(0 == strcmp("iparm_max_blocksize", string))
     {
         return IPARM_MAX_BLOCKSIZE;
+    }
+    if(0 == strcmp("iparm_compress_size", string))
+    {
+        return IPARM_COMPRESS_SIZE;
     }
     if(0 == strcmp("iparm_schur", string))
     {
@@ -362,6 +370,10 @@ int dparm_to_int( char * string)
     if(0 == strcmp("DPARM_EPSILON_MAGN_CTRL", string))
     {
         return DPARM_EPSILON_MAGN_CTRL;
+    }
+    if(0 == strcmp("dparm_compress_tolerance", string))
+    {
+        return DPARM_COMPRESS_TOLERANCE;
     }
     return -1;
 }

@@ -9,6 +9,9 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
+#include "../order/order.h"
+#include "../common/common.h"
+#include "../blend/solver.h"
 
 int main (int argc, char **argv)
 {
@@ -40,6 +43,11 @@ int main (int argc, char **argv)
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
+    printf("\tH-PaStiX parameters are\n");
+    printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
+    printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
+    printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
+
     /**
      * Read the sparse matrix with the driver
      */
@@ -59,8 +67,40 @@ int main (int argc, char **argv)
      */
     pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
+
     pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
+
+
+    /* Run another symbolic factorization to eliminate zero blocks created by splitting */
+    {
+        pastix_int_t new_cblknbr = pastix_data->symbmtx->cblknbr;
+        pastix_int_t i;
+
+        pastix_data->ordemesh->cblknbr = new_cblknbr;
+        pastix_data->ordemesh->rangtab = malloc((new_cblknbr+1) * sizeof(pastix_int_t));
+        pastix_data->ordemesh->treetab = malloc((new_cblknbr+1) * sizeof(pastix_int_t));
+
+        SymbolCblk *cblk = pastix_data->symbmtx->cblktab;
+        for (i=0; i<new_cblknbr; i++, cblk++){
+            pastix_data->ordemesh->rangtab[i] = cblk->fcolnum;
+            pastix_data->ordemesh->treetab[i] = i+1;
+        }
+        pastix_data->ordemesh->rangtab[new_cblknbr] = spm->n;
+        pastix_data->ordemesh->treetab[new_cblknbr-1] = -1;
+
+        symbolExit(pastix_data->symbmtx);
+        memFree_null(pastix_data->symbmtx);
+        pastix_data->symbmtx = NULL;
+
+        /* The symbolic structure was already split, avoid another splitting */
+        iparm[IPARM_MIN_BLOCKSIZE] = 100000000000;
+        iparm[IPARM_MAX_BLOCKSIZE] = 100000000000;
+
+        pastix_task_symbfact( pastix_data, NULL, NULL );
+        pastix_task_reordering( pastix_data );
+        pastix_task_blend( pastix_data );
+    }
 
     /**
      * Perform the numerical factorization

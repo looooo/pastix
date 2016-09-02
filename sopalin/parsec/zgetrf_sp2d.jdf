@@ -153,14 +153,14 @@ BODY
         if ( s == 0 ) {
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
             core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                          Al, Au, C, work );
+                          Al, Au, C, work, 0. );
             dague_private_memory_push( p_work, (void *)work );
         }
         else {
             if (  blok+1 < lcblk[1].fblokptr ) {
                 work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
                 core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                              Au, Al, C, work );
+                              Au, Al, C, work, 0. );
                 dague_private_memory_push( p_work, (void *)work );
             }
         }

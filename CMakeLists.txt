@@ -484,6 +484,7 @@ set(SOURCES
   matrix_drivers/z_spm_laplacian.c
   #
   sopalin/coeftab_z.c
+  sopalin/coeftab_zcompress.c
   sopalin/coeftab_zdiff.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
@@ -525,6 +526,8 @@ set(PASTIX_LIB_SRCS
   order/order_apply_level_order.c
   order/order_io.c
   order/pastix_task_order.c
+  order/order_compute_clif.c
+  order/order_regular_graphs.c
   #
   fax/amalgamate.c
   fax/symbol_fax_graph.c
@@ -575,6 +578,7 @@ set(PASTIX_LIB_SRCS
   blend/solver.c
   blend/solver_backup.c
   blend/pastix_task_analyze.c
+  blend/solver_draw.c
 
   common/api.c
   common/errors.c
@@ -743,6 +747,7 @@ install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
 add_subdirectory(example)
+add_subdirectory(testing)
 
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)

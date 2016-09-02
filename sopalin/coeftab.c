@@ -24,11 +24,23 @@ int (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*) =
     coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
 };
 
+void (*coeftabUncompress[4])(SolverMatrix*) =
+{
+    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
+};
+
+void (*coeftabCompress[4])(SolverMatrix*) =
+{
+    coeftab_scompress, coeftab_dcompress, coeftab_ccompress, coeftab_zcompress
+};
+
 struct coeftabinit_s {
     const SolverMatrix  *datacode;
     const pastix_bcsc_t *bcsc;
     int fakefillin;
     int factoLU;
+    int compress_size;
+    double tol;
 };
 
 /*
