@@ -311,7 +311,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
             solvcblk->ucoeftab = NULL;
             solvcblk->gcblknum = -1;
             solvcblk->gpuid    = -2;
-            solvcblk->split    = NULL;
         }
 
         solvmtx->nodenbr = nodenbr;
