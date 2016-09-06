@@ -73,6 +73,7 @@ int main (int argc, char **argv)
 
 
     /* Run another symbolic factorization to eliminate zero blocks created by splitting */
+    if (0)
     {
         pastix_int_t new_cblknbr = pastix_data->symbmtx->cblknbr;
         pastix_int_t i;
