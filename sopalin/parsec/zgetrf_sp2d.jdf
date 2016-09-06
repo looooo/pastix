@@ -25,6 +25,7 @@ datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
+tolerance [type = "double"                hidden = on default = "(datacode->tolerance)"         ]
 
 p_work    [type = "dague_memory_pool_t *"]
 
@@ -153,14 +154,14 @@ BODY
         if ( s == 0 ) {
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
             core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                          Al, Au, C, work, 0. );
+                          Al, Au, C, work, tolerance );
             dague_private_memory_push( p_work, (void *)work );
         }
         else {
             if (  blok+1 < lcblk[1].fblokptr ) {
                 work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
                 core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                              Au, Al, C, work, 0. );
+                              Au, Al, C, work, tolerance );
                 dague_private_memory_push( p_work, (void *)work );
             }
         }
@@ -295,12 +296,25 @@ BODY
 {
     if (isTwoD && noskip) {
         SolverCblk *cblk = datacode->cblktab + k;
-        if (s == 0) {
-            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit,
-                                cblk, m, A, C );
-        } else {
-            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixUnit,
-                                cblk, m, A, C );
+        if (cblk->cblktype & CBLK_DENSE){
+	        if (s == 0) {
+	            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit,
+	                                cblk, m, A, C );
+	        } else {
+	            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixUnit,
+	                                cblk, m, A, C );
+	        }
+        }
+        else{
+	        if (s == 0) {
+	            core_ztrsmsp_2dlrsub( PastixLCoef, PastixRight, PastixUpper,
+                                          PastixNoTrans, PastixNonUnit,
+	                                  cblk, m );
+	        } else {
+	            core_ztrsmsp_2dlrsub( PastixUCoef, PastixRight, PastixUpper,
+                                          PastixNoTrans, PastixUnit,
+	                                  cblk, m );
+	        }
         }
    }
 }
@@ -470,19 +484,40 @@ BODY
         SolverCblk *fcblk = datacode->cblktab + cblk_n;
 
         /* Skip the update on diagonal block if upper part */
-        if ( s == 0 ) {
-            assert(A && B && C);
-            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
-                                  blok_mk, blok_nk-fblokk, blok_mn,
-                                  cblk, fcblk,
-                                  A, B, C );
+        if ((cblk->cblktype & CBLK_DENSE) && (fcblk->cblktype & CBLK_DENSE)){
+	        if ( s == 0 ) {
+	            assert(A && B && C);
+	            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  A, B, C );
+	        }
+	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
+	            assert(A && B && C);
+	            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  A, B, C );
+	        }
         }
-        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
-            assert(A && B && C);
-            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
-                                  blok_mk, blok_nk-fblokk, blok_mn,
-                                  cblk, fcblk,
-                                  A, B, C );
+        else if (!(cblk->cblktype & CBLK_DENSE) && !(fcblk->cblktype & CBLK_DENSE)){
+	        if ( s == 0 ) {
+	            //; assert(A && B && C);
+	            core_zgemmsp_2dlrsub( PastixLCoef, PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  tolerance );
+	        }
+	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
+	            //; assert(A && B && C);
+	            core_zgemmsp_2dlrsub( PastixUCoef, PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  tolerance );
+                }
+        }
+        else{
+                assert(0);
         }
     }
 }

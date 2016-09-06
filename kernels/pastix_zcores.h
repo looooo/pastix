@@ -168,16 +168,29 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
                       const pastix_complex64_t *B,
                             pastix_complex64_t *C );
 
+void core_zgemmsp_2dlrsub( int coef,
+                           int uplo, int trans,
+                           pastix_int_t blok_mk,
+                           pastix_int_t blok_kn,
+                           pastix_int_t blok_mn,
+                     const SolverCblk         *cblk,
+                           SolverCblk         *fcblk,
+                           double tolerance );
+
 void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
-                         SolverCblk         *cblk,
-                   const pastix_complex64_t *A,
-                         pastix_complex64_t *C );
+                   SolverCblk         *cblk,
+             const pastix_complex64_t *A,
+                   pastix_complex64_t *C );
 
 int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
                               SolverCblk         *cblk,
                               pastix_int_t        fcblknum,
                         const pastix_complex64_t *A,
                               pastix_complex64_t *C );
+
+int core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
+                          SolverCblk   *cblk,
+                          pastix_int_t  blok_m );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,

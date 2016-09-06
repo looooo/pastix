@@ -636,6 +636,124 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
     (void)lblokN;
 }
 
+
+void
+core_zgemmsp_2dlrsub( int coef,
+                      int uplo, int trans,
+                      pastix_int_t blok_mk,
+                      pastix_int_t blok_kn,
+                      pastix_int_t blok_mn,
+                const SolverCblk  *cblk,
+                      SolverCblk  *fcblk,
+                      double       tolerance )
+{
+    const SolverBlok *blokA, *blokB, *blokC;
+    const SolverBlok *bA, *bB, *bC;
+    const SolverBlok *fblokK, *lblokK;
+    const SolverBlok *fblokN, *lblokN;
+
+    const pastix_lrblock_t *lrA, *lrB;
+    pastix_lrblock_t *lrC;
+
+    pastix_int_t M, N, K, cblk_n, cblk_m;
+
+    /* cblk is stored in 2D and fcblk in 2D */
+    assert( cblk->cblktype  & CBLK_SPLIT );
+    assert( fcblk->cblktype & CBLK_SPLIT );
+    assert( ! (cblk->cblktype  & CBLK_DENSE) );
+    assert( ! (fcblk->cblktype & CBLK_DENSE) );
+
+    /**
+     * Blocs on column K
+     */
+    fblokK = cblk[0].fblokptr;
+    lblokK = cblk[1].fblokptr;
+
+    blokB = fblokK + blok_kn;
+    cblk_n = blokB->fcblknm;
+
+    blokA = fblokK + blok_mk;
+    cblk_m = blokA->fcblknm;
+
+    /**
+     * Blocs on column N
+     */
+    fblokN = fcblk[0].fblokptr;
+    lblokN = fcblk[1].fblokptr;
+
+    blokC = fblokN + blok_mn;
+    assert( blokC->fcblknm == cblk_m );
+
+    K = cblk_colnbr( cblk );
+
+    bC = blokC;
+    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
+        M = blok_rownbr(bA);
+        lrA  = bA->LRblock + coef;
+
+        /* Find facing C blok */
+        while (!is_block_inside_fblock( bA, bC )) {
+            bC++;
+            assert( bC < lblokN );
+        }
+
+        lrC  = bC->LRblock + coef;
+
+        switch (uplo) {
+        case PastixLower:
+            for (bB = blokB; (bB <= bA) && (bB->fcblknm == cblk_n); bB++) {
+                N    = blok_rownbr( bB );
+                lrB  = bB->LRblock + 1;
+
+                core_zlrmm( tolerance, PastixNoTrans, trans,
+                            M, N, K,
+                            blok_rownbr( bC ), cblk_colnbr( fcblk ),
+                            bA->frownum - bC->frownum,
+                            bB->frownum - fcblk->fcolnum,
+                            -1., lrA, lrB,
+                            1., lrC,
+                            NULL, -1,
+                            fcblk );
+            }
+            break;
+        case PastixUpper:
+            for (bB = blokB; (bB < bA) && (bB->fcblknm == cblk_n); bB++) {
+                N    = blok_rownbr( bB );
+                lrB  = bB->LRblock + 1;
+
+                core_zlrmm( tolerance, PastixNoTrans, trans,
+                            M, N, K,
+                            blok_rownbr( bC ), cblk_colnbr( fcblk ),
+                            bA->frownum - bC->frownum,
+                            bB->frownum - fcblk->fcolnum,
+                            -1., lrA, lrB,
+                            1., lrC,
+                            NULL, -1,
+                            fcblk );
+            }
+            break;
+        case PastixUpperLower:
+        default:
+            for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
+                N    = blok_rownbr( bB );
+                lrB  = bB->LRblock + 1 - coef;
+
+                core_zlrmm( tolerance, PastixNoTrans, trans,
+                            M, N, K,
+                            blok_rownbr( bC ), cblk_colnbr( fcblk ),
+                            bA->frownum - bC->frownum,
+                            bB->frownum - fcblk->fcolnum,
+                            -1., lrA, lrB,
+                            1., lrC,
+                            NULL, -1,
+                            fcblk );
+            }
+        }
+    }
+
+    (void)lblokN;
+}
+
 /**
  *******************************************************************************
  *
