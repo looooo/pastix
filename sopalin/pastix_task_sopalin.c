@@ -298,7 +298,7 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     pastix_data->solvmatr->restore = 2;
     {
         void (*factofct)( pastix_data_t *, sopalin_data_t *);
-        double timer;
+        double timer, flops;
 
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][spm->flttype-2];
         assert(factofct);
@@ -306,7 +306,11 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         clockStart(timer);
         factofct( pastix_data, &sopalin_data );
         clockStop(timer);
-        pastix_print( 0, 0, OUT_TIME_FACT, clockVal(timer) );
+
+        flops = pastix_data->dparm[DPARM_FACT_FLOPS] / clockVal(timer);
+        pastix_print( 0, 0, OUT_TIME_FACT,
+                      clockVal(timer),
+                      PRINT_FLOPS( flops ), PRINT_FLOPS_UNIT( flops ) );
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
