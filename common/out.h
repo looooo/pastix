@@ -144,7 +144,7 @@
 #define OUT_INERTIA           "   Inertia                                      %ld\n"
 #define OUT_INERTIA_PIVOT     "   Inertia (NB: with pivoting)                  %ld\n"
 #define OUT_ESP_NBTASKS       "   Number of tasks added by esp                 %ld\n"
-#define OUT_TIME_FACT         "   Time to factorize                            %.3g s\n"
+#define OUT_TIME_FACT         "   Time to factorize                            %.3g s  (%.3g %s)\n"
 #define OUT_FLOPS_FACT        "   FLOPS during factorization                   %.5g %s\n"
 #define OUT_TIME_SOLV         "   Time to solve                                %.3g s\n"
 #define OUT_RAFF_ITER_NORM    "   Refinement                                   %ld iterations, norm=%.3g\n"
@@ -182,12 +182,12 @@
                                  ( (double)(flops)/(double)(1<<20) ) :  \
                                  ( (double)(flops)/(double)(1<<30) ))))
 #define PRINT_FLOPS_UNIT(flops) ( ((flops) < 1<<10) ?                   \
-                                  ( "FLOPS" ) :                         \
+                                  ( "Flop/s" ) :                        \
                                   ( ( (flops) < 1<<20 ) ?               \
-                                    ( "KFLOPS" ) :                      \
+                                    ( "KFlop/s" ) :                     \
                                     ( ((flops) < 1<<30 ) ?              \
-                                      ( "MFLOPS" ) :                    \
-                                      ( "GFLOPS" ))))
+                                      ( "MFlop/s" ) :                   \
+                                      ( "GFlop/s" ))))
 
 static inline double
 printflopsv( double flops )
