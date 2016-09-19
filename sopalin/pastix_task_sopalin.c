@@ -51,6 +51,15 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     }
 
     /**
+     * Compute the norm of A, to scale the epsilon parameter for pivoting
+     */
+    {
+        pastix_print( 0, 0, "-- ||A||_2  =                                   " );
+        pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( PastixFrobeniusNorm, spm );
+        pastix_print( 0, 0, "%lg\n", pastix_data->dparm[ DPARM_A_NORM ] );
+    }
+
+    /**
      * Fill in the internal blocked CSC. We consider that if this step is called
      * the spm values have changed so we need to update the blocked csc.
      */
@@ -101,6 +110,16 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
         errorPrint("pastix_subtask_bcsc2ctab: All steps from pastix_task_init() to pastix_stask_blend() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /**
+     * Fill in the internal coeftab structure. We consider that if this step is
+     * called the bcsc values have changed, or a factorization have already been
+     * performed, so we need to update the coeftab arrays.
+     */
+    if (pastix_data->bcsc != NULL)
+    {
+        coeftabExit( pastix_data->solvmatr );
     }
 
     coeftabInit( pastix_data,
@@ -217,20 +236,17 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         }
     }
 
-    /* Compute the norm of A, to scale the epsilon parameter for pivoting */
-    {
-        pastix_print( 0, 0, "-- ||A||_2  =                                   " );
-        pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( PastixFrobeniusNorm, spm );
-        pastix_print( 0, 0, "%lg\n", pastix_data->dparm[ DPARM_A_NORM ] );
+    if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
+        rc = pastix_subtask_spm2bcsc( pastix_data, spm );
+        if (rc != PASTIX_SUCCESS)
+            return rc;
     }
 
-    rc = pastix_subtask_spm2bcsc( pastix_data, spm );
-    if (rc != PASTIX_SUCCESS)
-        return rc;
-
-    rc = pastix_subtask_bcsc2ctab( pastix_data, spm );
-    if (rc != PASTIX_SUCCESS)
-        return rc;
+    if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
+        rc = pastix_subtask_bcsc2ctab( pastix_data, spm );
+        if (rc != PASTIX_SUCCESS)
+            return rc;
+    }
 
     /* Prepare the sopalin_data structure */
     {
@@ -269,7 +285,8 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     solverBackupExit( sbackup );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
-    pastix_data->steps &= ~( STEP_SOLVE  |
+    pastix_data->steps &= ~( STEP_BCSC2CTAB |
+                             STEP_SOLVE     |
                              STEP_REFINE );
     pastix_data->steps |= STEP_NUMFACT;
 

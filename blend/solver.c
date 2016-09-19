@@ -27,44 +27,33 @@ solverExit(SolverMatrix *solvmtx)
 {
     pastix_int_t i;
 
-#if defined(PASTIX_WITH_PARSEC)
-    {
-        if ( solvmtx->parsec_desc != NULL ) {
-            sparse_matrix_destroy( solvmtx->parsec_desc );
-            free( solvmtx->parsec_desc );
-        }
-        solvmtx->parsec_desc = NULL;
-    }
-#endif
+    coeftabExit( solvmtx );
 
-    /** Free arrays of solvmtx **/
-    if(solvmtx->cblktab)
-    {
-        for (i = 0; i < solvmtx->cblknbr; i++)
-        {
-            if (solvmtx->cblktab[i].lcoeftab)
-                memFree_null(solvmtx->cblktab[i].lcoeftab);
-
-            if (solvmtx->cblktab[i].ucoeftab)
-                memFree_null(solvmtx->cblktab[i].ucoeftab);
-        }
+    /* Free arrays of solvmtx */
+    if(solvmtx->cblktab) {
         memFree_null(solvmtx->cblktab);
     }
-    if(solvmtx->bloktab)
+    if(solvmtx->bloktab) {
         memFree_null(solvmtx->bloktab);
-    if(solvmtx->browtab)
+    }
+    if(solvmtx->browtab) {
         memFree_null(solvmtx->browtab);
-    if(solvmtx->ftgttab)
+    }
+    if(solvmtx->ftgttab) {
         memFree_null(solvmtx->ftgttab);
-    if(solvmtx->tasktab)
+    }
+    if(solvmtx->tasktab) {
         memFree_null(solvmtx->tasktab);
-    if(solvmtx->indtab)
+    }
+    if(solvmtx->indtab) {
         memFree_null(solvmtx->indtab);
+    }
     memFree_null(solvmtx->ttsknbr);
     for (i=0;i<solvmtx->bublnbr;i++)
     {
-        if (solvmtx->ttsktab[i] != NULL)
+        if (solvmtx->ttsktab[i] != NULL) {
             memFree_null(solvmtx->ttsktab[i]);
+        }
     }
     memFree_null(solvmtx->ttsktab);
     memFree_null(solvmtx->proc2clust);

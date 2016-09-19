@@ -26,6 +26,9 @@ void
 coeftabInit( const pastix_data_t *pastix_data,
              int fakefillin, int factoLU );
 
+void
+coeftabExit( SolverMatrix *solvmtx );
+
 int  (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*);
 
 #endif /* _COEFTAB_H_ */

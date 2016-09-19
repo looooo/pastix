@@ -149,6 +149,9 @@ target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
 add_executable(simple simple.c)
 target_link_libraries(simple ${PASTIX_EXAMPLES_LIBRARIES})
 
+add_executable(bench_facto bench_facto.c)
+target_link_libraries(bench_facto ${PASTIX_EXAMPLES_LIBRARIES})
+
 add_executable(spm_convert_tests spm_convert_tests.c)
 target_link_libraries(spm_convert_tests ${PASTIX_EXAMPLES_LIBRARIES})
 
