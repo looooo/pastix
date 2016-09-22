@@ -742,7 +742,14 @@ set(PASTIX_HDRS
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
+## Executable and tests
+enable_testing()
+include(CTest)
+# Examples executables
 add_subdirectory(example)
+# Testing executables
+add_subdirectory(test)
+
 
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)
