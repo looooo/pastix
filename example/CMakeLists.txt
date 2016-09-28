@@ -1,6 +1,7 @@
 set (EXAMPLES
   analyze.c
   simple.c
+  reentrant.c
   bench_facto.c)
 
 foreach (_file ${EXAMPLES})
