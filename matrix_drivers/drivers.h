@@ -46,7 +46,7 @@ void convertArrayToComplex32( pastix_int_t n, const double *A, void **B );
 void convertArrayToDouble(    pastix_int_t n, const double *A, void **B );
 void convertArrayToFloat(     pastix_int_t n, const double *A, void **B );
 
-int cscReadFromFile( pastix_driver_t  driver,
+int spmReadDriver( pastix_driver_t  driver,
                      char            *filename,
                      pastix_spm_t    *spm,
                      MPI_Comm         pastix_comm );

@@ -40,7 +40,7 @@ int main (int argc, char **argv)
      * Read the sparse matrix with the driver
      */
     csc = malloc( sizeof( pastix_csc_t ) );
-    cscReadFromFile( driver, filename, csc, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, csc, MPI_COMM_WORLD );
     free(filename);
     csc2 = spmCheckAndCorrect( csc );
     if ( csc2 != csc ) {

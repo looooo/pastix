@@ -110,7 +110,7 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     spmInit(&spm);
-    cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     //dofVar(&spm); //Test dofs
 
     free(filename);

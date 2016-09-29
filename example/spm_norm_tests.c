@@ -56,7 +56,7 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     //dofVar(&spm); //Test dofs
     free(filename);
 
@@ -68,6 +68,7 @@ int main (int argc, char **argv)
     {
         printf(" Baseval : %d\n", baseval );
         spmBase( &spm, baseval );
+
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
@@ -81,6 +82,7 @@ int main (int argc, char **argv)
                 continue;
             }
             spm.mtxtype = mtxtype;
+
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
 
             switch( spm.flttype ){
