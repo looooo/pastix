@@ -73,7 +73,7 @@ static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
  *
  * @ingroup pastix_spm
  *
- * spmInit - Init the spm structure given as parameter
+ * @brief Init the spm structure given as parameter
  *
  *******************************************************************************
  *
@@ -145,10 +145,6 @@ spmExit( pastix_spm_t *spm )
  * original base, then nothing is performed.
  *
  *******************************************************************************
- *
- * @param[in] ofmttype
- *          The output format of the sparse matrix. It might be PastixCSC,
- *          PastixCSR, or PastixIJV.
  *
  * @param[in,out] spm
  *          The sparse matrix to rebase.
