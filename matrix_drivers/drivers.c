@@ -17,26 +17,62 @@
 #include <scotch.h>
 #endif
 
-int cscReadFromFile( pastix_driver_t  driver,
-                     char            *filename,
-                     pastix_csc_t    *csc,
-                     MPI_Comm         pastix_comm )
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Import a matrix file into a spm structure
+ *
+ * This function read or generate a sparse matrix from a file to store it into a
+ * spm structure. The different formats accepted by this driver are described by
+ * the driver field.
+ *
+ *******************************************************************************
+ *
+ * @param[in] driver
+ *          This defines the driver to use to create the spm structure.
+ *          = PastixDriverRSA
+ *          = PastixDriverHB
+ *          = PastixDriverIJV
+ *          = PastixDriverMM
+ *          = PastixDriverLaplacian
+ *          = PastixDriverXLaplacian
+ *
+ * @param[in] filename
+ *          The name of the file that stores the matrix (see driver)
+ *
+ * @param[in,out] spm
+ *          On entry, an allocated sparse matrix structure.
+ *          On exit, the filled sparse matrix structure with the matrix from the
+ *          file.
+ *
+ * @param[in] pastix_comm
+ *          The MPI communicator on which to distribute the sparse matrix. This
+ *          is also used in case of distributed formats.
+ *
+ *******************************************************************************/
+int
+spmReadDriver( pastix_driver_t  driver,
+               char            *filename,
+               pastix_spm_t    *spm,
+               MPI_Comm         pastix_comm )
 {
     int mpirank = 0;
     int mpiinit;
 
-    csc->mtxtype  = PastixGeneral;
-    csc->flttype  = PastixDouble;
-    csc->fmttype  = PastixCSC;
-    csc->gN       = 0;
-    csc->n        = 0;
-    csc->gnnz     = 0;
-    csc->nnz      = 0;
-    csc->dof      = 1;
-    csc->colptr   = NULL;
-    csc->rowptr   = NULL;
-    csc->values   = NULL;
-    csc->loc2glob = NULL;
+    spm->mtxtype  = PastixGeneral;
+    spm->flttype  = PastixDouble;
+    spm->fmttype  = PastixCSC;
+    spm->gN       = 0;
+    spm->n        = 0;
+    spm->gnnz     = 0;
+    spm->nnz      = 0;
+    spm->dof      = 1;
+    spm->colptr   = NULL;
+    spm->rowptr   = NULL;
+    spm->values   = NULL;
+    spm->loc2glob = NULL;
 
     MPI_Initialized( &mpiinit );
     if (mpiinit) {
@@ -61,48 +97,48 @@ int cscReadFromFile( pastix_driver_t  driver,
         case PastixDriverHB:
             /* TODO: Possible to read the RHS, the solution or a guess of the solution */
             printf("driver: HB file: %s\n", filename);
-            readHB( filename, csc );
+            readHB( filename, spm );
             break;
 
         case PastixDriverIJV:
             printf("driver: 3files file: %s\n", filename);
-            readIJV( filename, csc );
+            readIJV( filename, spm );
             break;
 
         case PastixDriverMM:
             printf("driver: MatrixMarket file: %s\n", filename);
-            readMM( filename, csc );
+            readMM( filename, spm );
             break;
 
         case PastixDriverDMM:
             printf("driver: DistributedMatrixMarket file: %s\n", filename);
-            //readMMD( filename, csc );
+            //readMMD( filename, spm );
             break;
 
         case PastixDriverPetscS:
         case PastixDriverPetscU:
         case PastixDriverPetscH:
             printf("driver: PETSc file: %s\n", filename);
-            //readPETSC( filename, csc );
-            if (driver == PastixDriverPetscS) csc->mtxtype = PastixSymmetric;
-            if (driver == PastixDriverPetscH) csc->mtxtype = PastixHermitian;
+            //readPETSC( filename, spm );
+            if (driver == PastixDriverPetscS) spm->mtxtype = PastixSymmetric;
+            if (driver == PastixDriverPetscH) spm->mtxtype = PastixHermitian;
             break;
 
         case PastixDriverCSCD:
             printf("driver CSCd file: %s\n", filename);
-            //readCSCD( filename, csc, rhs, pastix_comm );
+            //readCSCD( filename, spm, rhs, pastix_comm );
             break;
 
         case PastixDriverLaplacian:
             if (mpirank == 0)
                 printf("driver Laplacian: %s\n", filename);
-            genLaplacian( filename, csc );
+            genLaplacian( filename, spm );
             break;
 
         case PastixDriverXLaplacian:
             if (mpirank == 0)
                 printf("driver Extended Laplacian: %s\n", filename);
-            genExtendedLaplacian( filename, csc );
+            genExtendedLaplacian( filename, spm );
             break;
 
         case PastixDriverGraph:
@@ -119,13 +155,13 @@ int cscReadFromFile( pastix_driver_t  driver,
             }
 
             SCOTCH_graphLoad( &sgraph, file, 1, 0 );
-            SCOTCH_graphData( &sgraph, NULL, &(csc->n), &(csc->colptr), NULL, NULL, NULL, NULL, &(csc->rowptr), NULL );
+            SCOTCH_graphData( &sgraph, NULL, &(spm->n), &(spm->colptr), NULL, NULL, NULL, NULL, &(spm->rowptr), NULL );
             fclose(file);
 
-            csc->flttype = PastixPattern;
-            csc->gN   = csc->n;
-            csc->gnnz = csc->colptr[ csc->n ];
-            csc->nnz  = csc->gnnz;
+            spm->flttype = PastixPattern;
+            spm->gN   = spm->n;
+            spm->gnnz = spm->colptr[ spm->n ];
+            spm->nnz  = spm->gnnz;
         }
 #else
         {
@@ -138,10 +174,10 @@ int cscReadFromFile( pastix_driver_t  driver,
 
         case PastixDriverRSA:
         default:
-            readRSA( filename, csc );
+            readRSA( filename, spm );
         }
 
-        spmConvert( PastixCSC, csc );
+        spmConvert( PastixCSC, spm );
     }
 
     /* #ifndef TYPE_COMPLEX */
@@ -263,29 +299,29 @@ int cscReadFromFile( pastix_driver_t  driver,
         pastix_int_t nnz;
 
         if (mpirank == 0) {
-            nnz = csc->colptr[csc->gN] - csc->colptr[0];
+            nnz = spm->colptr[spm->gN] - spm->colptr[0];
         }
 
-        MPI_Bcast( csc, 2*sizeof(int)+3*sizeof(pastix_int_t), MPI_CHAR, 0, pastix_comm );
+        MPI_Bcast( spm, 2*sizeof(int)+3*sizeof(pastix_int_t), MPI_CHAR, 0, pastix_comm );
         MPI_Bcast( &nnz, 1, PASTIX_MPI_INT, 0, pastix_comm );
 
         fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n",
-                mpirank, csc->mtxtype, csc->flttype, (long)nnz, (long)csc->gN );
+                mpirank, spm->mtxtype, spm->flttype, (long)nnz, (long)spm->gN );
 
         if ( mpirank != 0 )
         {
-            csc->colptr = (pastix_int_t *) malloc((csc->gN+1) * sizeof(pastix_int_t));
-            csc->rowptr = (pastix_int_t *) malloc(nnz * sizeof(pastix_int_t));
-            csc->values = (void *)         malloc(nnz * pastix_size_of( csc->flttype ));
-            csc->loc2glob = NULL;
-            csc->loc2glob = NULL;
-            /* csc->rhs    = (void *) malloc((*ncol)*sizeof(pastix_complex64_t)); */
-            /* csc->type   = (char *) malloc(4*sizeof(char)); */
+            spm->colptr = (pastix_int_t *) malloc((spm->gN+1) * sizeof(pastix_int_t));
+            spm->rowptr = (pastix_int_t *) malloc(nnz * sizeof(pastix_int_t));
+            spm->values = (void *)         malloc(nnz * pastix_size_of( spm->flttype ));
+            spm->loc2glob = NULL;
+            spm->loc2glob = NULL;
+            /* spm->rhs    = (void *) malloc((*ncol)*sizeof(pastix_complex64_t)); */
+            /* spm->type   = (char *) malloc(4*sizeof(char)); */
         }
 
-        MPI_Bcast( csc->colptr, csc->gN+1, PASTIX_MPI_INT, 0, pastix_comm );
-        MPI_Bcast( csc->rowptr, nnz,       PASTIX_MPI_INT, 0, pastix_comm );
-        MPI_Bcast( csc->values, nnz * pastix_size_of( csc->flttype ), MPI_CHAR, 0, pastix_comm );
+        MPI_Bcast( spm->colptr, spm->gN+1, PASTIX_MPI_INT, 0, pastix_comm );
+        MPI_Bcast( spm->rowptr, nnz,       PASTIX_MPI_INT, 0, pastix_comm );
+        MPI_Bcast( spm->values, nnz * pastix_size_of( spm->flttype ), MPI_CHAR, 0, pastix_comm );
         /* MPI_Bcast(*rhs,    *ncol,   PASTIX_MPI_FLOAT, 0, pastix_comm); */
         /* MPI_Bcast(*type,    4,      MPI_CHAR,         0, pastix_comm); */
     }

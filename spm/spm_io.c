@@ -417,6 +417,26 @@ csc_load( pastix_int_t  *n,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Load the spm structure from a file (internal format)
+ *
+ * Load the spm data structure from a file store in an internal format. For now
+ * this function only load a simple csc matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          On entry, an allocated spm data structure.
+ *          On exit, the spm filled with the information read in the file
+ *
+ * @param[in] infile
+ *          The opened file in which the spm is stored.
+ *
+ *******************************************************************************/
 int
 spmLoad( pastix_spm_t  *spm,
          FILE          *infile )
@@ -487,6 +507,25 @@ csc_save( pastix_int_t  n,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Save the spm structure into a file (internal format)
+ *
+ * Save the spm data structure into a file and stored in an internal format. For
+ * now this function only save a simple csc matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to write into the file.
+ *
+ * @param[in] outfile
+ *          The opened file in which to store the spm.
+ *
+ *******************************************************************************/
 int
 spmSave( pastix_spm_t *spm,
          FILE         *outfile )

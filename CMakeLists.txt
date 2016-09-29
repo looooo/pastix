@@ -720,6 +720,7 @@ set(PASTIX_ALL_SRCS
   spm/spm_io.c  # Not finished
   spm/spm.h
   spm/spm.c
+  matrix_drivers/drivers.c
   #
   graph/graph.c
   graph/graph_isolate.c
