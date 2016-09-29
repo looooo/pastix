@@ -68,40 +68,30 @@ static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
 };
 
 
-
 /**
  *******************************************************************************
  *
  * @ingroup pastix_spm
  *
- * spmConvert - Convert the storage format of the given sparse matrix from any
- * of the following format: PastixCSC, PastixCSR, or PastixIJV to one of these.
+ * @brief Free the spm structure
  *
  *******************************************************************************
  *
- * @param[in] ofmttype
- *          The output format of the sparse matrix. It might be PastixCSC,
- *          PastixCSR, or PastixIJV.
- *
  * @param[in,out] spm
- *          The sparse matrix structure to convert.
- *
- ********************************************************************************
- *
- * @return
- *        \retval PASTIX_SUCCESS if the conversion happened successfuly
- *        \retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
+ *          The sparse matrix to free.
  *
  *******************************************************************************/
-int
-spmConvert( int ofmttype, pastix_spm_t *ospm )
+void
+spmExit( pastix_spm_t *spm )
 {
-    if ( conversionTable[ospm->fmttype][ofmttype][ospm->flttype] ) {
-        return conversionTable[ospm->fmttype][ofmttype][ospm->flttype]( ospm );
-    }
-    else {
-        return PASTIX_SUCCESS;
-    }
+    if(spm->colptr != NULL)
+        memFree_null(spm->colptr);
+    if(spm->rowptr != NULL)
+        memFree_null(spm->rowptr);
+    if(spm->loc2glob != NULL)
+        memFree_null(spm->loc2glob);
+    if(spm->values != NULL)
+        memFree_null(spm->values);
 }
 
 /**
@@ -109,7 +99,73 @@ spmConvert( int ofmttype, pastix_spm_t *ospm )
  *
  * @ingroup pastix_spm
  *
- * spmFindBase - Search the base used in the spm structure given as parameter.
+ * @brief Rebase the spm
+ *
+ * Rebase the arrays of the spm to the given value. If the value is equal to the
+ * original base, then nothing is performed.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to rebase.
+ *
+ * @param[in] baseval
+ *          The base value to use in the graph (0 or 1).
+ *
+ *******************************************************************************/
+void
+spmBase( pastix_spm_t *spm,
+         int           baseval )
+{
+    pastix_int_t baseadj;
+    pastix_int_t i, n, nnz;
+
+    /* Parameter checks */
+    if ( spm == NULL ) {
+        errorPrint("spmBase: spm pointer is NULL");
+        return;
+    }
+    if ( (spm->colptr == NULL) ||
+         (spm->rowptr == NULL) )
+    {
+        errorPrint("spmBase: spm pointer is not correctly initialized");
+        return;
+    }
+    if ( (baseval != 0) &&
+         (baseval != 1) )
+    {
+        errorPrint("spmBase: baseval is incorrect, must be 0 or 1");
+        return;
+    }
+
+    baseadj = baseval - spmFindBase( spm );
+    if (baseadj == 0)
+	return;
+
+    n   = spm->n;
+    nnz = spm->colptr[n] - spm->colptr[0];
+
+    for (i = 0; i <= n; i++) {
+        spm->colptr[i] += baseadj;
+    }
+    for (i = 0; i < nnz; i++) {
+        spm->rowptr[i] += baseadj;
+    }
+
+    if (spm->loc2glob != NULL) {
+        for (i = 0; i < n; i++) {
+            spm->loc2glob[i] += baseadj;
+        }
+    }
+    return;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Search the base used in the spm structure.
  *
  *******************************************************************************
  *
@@ -152,7 +208,46 @@ spmFindBase( const pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * spmNorm - Return the ntype norm of the sparse matrix spm.
+ * @brief  Convert the storage format of the spm to ofmttype.
+ *
+ * Convert the storage format of the given sparse matrix from any of the
+ * following format: PastixCSC, PastixCSR, or PastixIJV to one of these.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ofmttype
+ *          The output format of the sparse matrix. It might be PastixCSC,
+ *          PastixCSR, or PastixIJV.
+ *
+ * @param[in,out] spm
+ *          The sparse matrix structure to convert.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *        \retval PASTIX_SUCCESS if the conversion happened successfuly
+ *        \retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+spmConvert( int ofmttype, pastix_spm_t *spm )
+{
+    if ( conversionTable[spm->fmttype][ofmttype][spm->flttype] ) {
+        return conversionTable[spm->fmttype][ofmttype][spm->flttype]( spm );
+    }
+    else {
+        return PASTIX_SUCCESS;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Compute the norm of the spm.
+ *
+ * Return the ntype norm of the sparse matrix spm.
  *
  *     spmNorm = ( max(abs(spm(i,j))), NORM = PastixMaxNorm
  *               (
@@ -221,7 +316,9 @@ spmNorm( int ntype,
  *
  * @ingroup pastix_spm
  *
- * spmSort - This routine sorts the subarray of edges of each vertex in a
+ * @brief Sort the subarray of edges of each vertex in a CSC or CSR spm
+ *
+ * This routine sorts the subarray of edges of each vertex in a
  * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
  * format is used.
  *
@@ -271,7 +368,9 @@ spmSort( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * spmMergeDuplicate - This routine merge the multiple entries in a sparse
+ * @brief Merge mulitple entries in a spm by summing them.
+ *
+ * This routine merge the multiple entries in a sparse
  * matrix by suming their values together. The sparse matrix needs to be sorted
  * first (see spmSort()).
  *
@@ -320,9 +419,11 @@ spmMergeDuplicate( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * spmSymmetrize - This routine merge the multiple entries in a sparse
- * matrix by suming their values together. The sparse matrix needs to be sorted
- * first (see spmSort()).
+ * @brief Symmetrize the pattern of the spm
+ *
+ * Symmetrize the pattern of the input spm by edges when A(i,j) exists, but
+ * A(j,i) does not. When values are associated to the edge, zeroes are added to
+ * the values array.
  *
  * WARNING: Not implemented for CSR and IJV format.
  *
@@ -369,11 +470,13 @@ spmSymmetrize( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * spmCheckAndCorrect - This routine initializes the sparse matrix to fit the
- * PaStiX requirements. If needed, the format is changed to CSC, the duplicated
- * vertices are merged together by summing their values; the graph is made
- * symmetric for matrices with unsymmetric pattern, new values are set to 0.;
- * Only the lower part is kept for the symmetric matrices.
+ * @brief Check the correctness of a spm.
+ *
+ * This routine initializes the sparse matrix to fit the PaStiX requirements. If
+ * needed, the format is changed to CSC, the duplicated vertices are merged
+ * together by summing their values; the graph is made symmetric for matrices
+ * with unsymmetric pattern, new values are set to 0.; Only the lower part is
+ * kept for the symmetric matrices.
  *
  * On exit, if no changes have been made, the initial sparse matrix is returned,
  * otherwise a copy of the sparse matrix structured fixed to meet the PaStiX
@@ -453,33 +556,11 @@ spmCheckAndCorrect( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * spmExit - Free the spm structure given as parameter
+ * @brief Create a copy of the spm
  *
- *******************************************************************************
- *
- * @param[in,out] spm
- *          The sparse matrix to free.
- *
- *******************************************************************************/
-void
-spmExit( pastix_spm_t *spm )
-{
-    if(spm->colptr != NULL)
-        memFree_null(spm->colptr);
-    if(spm->rowptr != NULL)
-        memFree_null(spm->rowptr);
-    if(spm->loc2glob != NULL)
-        memFree_null(spm->loc2glob);
-    if(spm->values != NULL)
-        memFree_null(spm->values);
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm
- *
- * spmCopy - Duplicate the spm data structure given as parameter.
+ * Duplicate the spm data structure given as parameter. All new arrays are
+ * allocated and copied from the original matrix. Both matrices need to be
+ * freed.
  *
  *******************************************************************************
  *
@@ -524,64 +605,47 @@ spmCopy( const pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * spmBase - Rebase the spm to the given value.
+ * @brief Compute a matrix-vector product
+ *
+ * Compute the matrix vector product:
+ *
+ *    y = alpha * op(A) * x + beta * y, where op(A) is one of
+ *
+ *    op( A ) = A  or op( A ) = A' or op( A ) = conjg( A' )
+ *
+ *  alpha and beta are scalars, and x and y are vectors.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
- *          The sparse matrix to rebase.
+ * @param[in] trans
+ *          Specifies whether the matrix spm is transposed, not transposed or
+ *          conjugate transposed:
+ *          = PastixNoTrans:   A is not transposed;
+ *          = PastixTrans:     A is transposed;
+ *          = PastixConjTrans: A is conjugate transposed.
  *
- * @param[in] baseval
- *          The base value to use in the graph (0 or 1).
+ * @param[in] alpha
+ *          alpha specifies the scalar alpha.
+ *
+ * @param[in] spm
+ *          The PastixGeneral spm.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] beta
+ *          beta specifies the scalar beta.
+ *
+ * @param[in,out] y
+ *          The vector y.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
-void spmBase( pastix_spm_t *spm,
-              int           baseval )
-{
-    pastix_int_t baseadj;
-    pastix_int_t i, n, nnz;
-
-    /* Parameter checks */
-    if ( spm == NULL ) {
-        errorPrint("spmBase: spm pointer is NULL");
-        return;
-    }
-    if ( (spm->colptr == NULL) ||
-         (spm->rowptr == NULL) )
-    {
-        errorPrint("spmBase: spm pointer is not correctly initialized");
-        return;
-    }
-    if ( (baseval != 0) &&
-         (baseval != 1) )
-    {
-        errorPrint("spmBase: baseval is incorrect, must be 0 or 1");
-        return;
-    }
-
-    baseadj = baseval - spmFindBase( spm );
-    if (baseadj == 0)
-	return;
-
-    n   = spm->n;
-    nnz = spm->colptr[n] - spm->colptr[0];
-
-    for (i = 0; i <= n; i++) {
-        spm->colptr[i] += baseadj;
-    }
-    for (i = 0; i < nnz; i++) {
-        spm->rowptr[i] += baseadj;
-    }
-
-    if (spm->loc2glob != NULL) {
-        for (i = 0; i < n; i++) {
-            spm->loc2glob[i] += baseadj;
-        }
-    }
-    return;
-}
-
-
 /**
  * TODO: Maybe we should move down the cast of the parameters to the lowest
  * functions, and simplify this one to have identical calls to all subfunction
@@ -640,8 +704,11 @@ spmMatVec(      int           trans,
  *
  * @ingroup pastix_spm
  *
- * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
- * matrix to test a problem with a solver.
+ * @brief Generate right hand sides.
+ *
+ * Generate nrhs right hand side vectors associated to a given matrix to test a
+ * problem with a solver. The vectors can be initialized randomly, or to get a
+ * specific solution.
  *
  *******************************************************************************
  *
@@ -710,8 +777,9 @@ spmGenRHS( int type, int nrhs,
  *
  * @ingroup pastix_spm
  *
- * spmCheckAxb - Check the backward error, and the forward error if x0 is
- * provided.
+ * @brief Check backward and forward errors
+ *
+ * Check the backward error, and the forward error if x0 is provided.
  *
  *******************************************************************************
  *

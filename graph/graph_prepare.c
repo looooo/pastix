@@ -125,26 +125,10 @@ graphSort( pastix_graph_t *graph )
  *          The pointer to the solver instance. On exit, the fields n, cols,
  *          rows and loc2glob are initialized for future steps of the solver.
  *
- * @param[in] n
- *          The number of vertices.
- *
- * @param[in] colptr
- *          Array of size n+1
- *          The array of indirection to the rows array for each vertex.
- *          rows[ colptr[i] ] to rows[ colptr[i+1] are the edges of the
- *          ith vertex.
- *          Can be equal to NULL if graph load is asked.
- *
- * @param[in] rows
- *          Array of size nnz = colptr[n] - colptr[0]. The array of edges.
- *          rows[ colptr[i]   - colptr[0] ] to
- *          rows[ colptr[i+1] - colptr[0] ] are the edges of the ith vertex.
- *          Can be equal to NULL if graph load is asked.
- *
- * @param[in] loc2glob
- *          Array of size n
- *          Global numbering of each local vertex.
- *          Can be equal to NULL if graph load is asked.
+ * @param[in] spm
+ *          The initial user spm that needs to be transformed in a
+ *          correct graph for future call in ordering and symbol factorization
+ *          routines.
  *
  * @param[out] graph
  *          On exit, the pointer to the allocated graph structure is returned.
@@ -162,16 +146,16 @@ graphSort( pastix_graph_t *graph )
  *******************************************************************************/
 int
 graphPrepare(      pastix_data_t   *pastix_data,
-             const pastix_csc_t    *csc,
+             const pastix_spm_t    *spm,
                    pastix_graph_t **graph )
 {
     pastix_graph_t *tmpgraph  = NULL;
     pastix_int_t *iparm   = pastix_data->iparm;
     pastix_int_t  procnum = pastix_data->procnum;
-    pastix_int_t  n       = csc->gN;
-    pastix_int_t *colptr  = csc->colptr;
-    pastix_int_t *rows    = csc->rowptr;
-    pastix_int_t *loc2glob= csc->loc2glob;
+    pastix_int_t  n       = spm->gN;
+    pastix_int_t *colptr  = spm->colptr;
+    pastix_int_t *rows    = spm->rowptr;
+    pastix_int_t *loc2glob= spm->loc2glob;
     int io_strategy = iparm[IPARM_IO_STRATEGY];
 
     MALLOC_INTERN( tmpgraph, 1, pastix_graph_t );
@@ -188,14 +172,14 @@ graphPrepare(      pastix_data_t   *pastix_data,
          */
         if (loc2glob == NULL)
         {
-            tmpgraph->gN = csc->gN;
+            tmpgraph->gN = spm->gN;
 
             /*
              * TODO: change test for requirement from the user to correct his
              * mistakes
              */
-            if ( (csc->mtxtype == PastixSymmetric) ||
-                 (csc->mtxtype == PastixHermitian) )
+            if ( (spm->mtxtype == PastixSymmetric) ||
+                 (spm->mtxtype == PastixHermitian) )
             {
                 graphSymmetrize( n, colptr, rows, loc2glob, tmpgraph );
                 assert( n == tmpgraph->n );
@@ -236,8 +220,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
             assert( colptr[0] == 1 );
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
-            if ( (csc->mtxtype == PastixSymmetric) ||
-                 (csc->mtxtype == PastixHermitian) )
+            if ( (spm->mtxtype == PastixSymmetric) ||
+                 (spm->mtxtype == PastixHermitian) )
             {
                 cscd_symgraph_int(n, colptr, rows, NULL,
                                   &(tmpgraph->n),
@@ -339,7 +323,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
 
     graphBase( tmpgraph, 1 );
 
-    // TODO: take it from the csc or from a parameter
+    // TODO: take it from the spm or from a parameter
     tmpgraph->dof = 1;
     *graph = tmpgraph;
     return PASTIX_SUCCESS;

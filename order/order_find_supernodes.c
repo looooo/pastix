@@ -322,18 +322,11 @@ compute_elimination_tree(      pastix_int_t n,
  *
  *******************************************************************************
  *
- * @param[in] n
- *          The number of vertices in the given CSC
+ * @param[in] graph
+ *          The graph associated with the order structuree on which we need to
+ *          find the supernodes.
  *
- * @param[in] ia
- *          Array of size n+1.
- *          The column pointer tabular for the given CSC. (In C numbering)
- *
- * @param[in] ja
- *          Array of size ia[n].
- *          The list of edges in the given CSC (In C numbering)
- *
- * @param[out] ordeptr
+ * @param[in, out] ordeptr
  *          Pointer to a Order structure, that will be initialized by the routine.
  *          On entry:
  *            orderptr->permtab: the original permutation vector for the the
@@ -350,13 +343,8 @@ compute_elimination_tree(      pastix_int_t n,
  *                postorder of the nodes in the elimination tree.
  *            orderptr->permtab: the inverse permutation vector for the
  *                postorder of the nodes in the elimination tree.
- *
- * @param[in,out] treetab
- *          Array of size n.
- *          On entry, an allocated array if the father indexes of each supernode
- *          is required, NULL otherwise.
- *          On exit, treetab[s] is the number of the father of supernode i on
- *          the supernodal elimination tree.
+ *            orderptr->treetab: treetab[i] is the number of the father of
+ *                supernode i in the supernodal elimination tree.
  *
  *******************************************************************************/
 void

@@ -23,7 +23,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup spm_internal
+ * @ingroup pastix_spm_internal
  *
  * z_spmFrobeniusNorm - Compute the Frobenius norm of the non distributed given
  * spm structure.
@@ -114,7 +114,7 @@ z_spmFrobeniusNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup spm_internal
+ * @ingroup pastix_spm_internal
  *
  * z_spmMaxNorm - Compute the Max norm of the non distributed given spm
  * structure.
@@ -150,7 +150,7 @@ z_spmMaxNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup spm_internal
+ * @ingroup pastix_spm_internal
  *
  * z_spmInfNorm - Compute the Infinity norm of the non distributed given spm
  * structure given by the maximum column sum.
@@ -265,7 +265,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup spm_internal
+ * @ingroup pastix_spm_internal
  *
  * z_spmOneNorm - Compute the Oneinity norm of the non distributed given spm
  * structure fiven by the maximum row sum
@@ -380,7 +380,7 @@ z_spmOneNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmNorm - Compute the norm of an spm matrix
  *
