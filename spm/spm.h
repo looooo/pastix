@@ -36,14 +36,24 @@ struct pastix_spm_s {
     int           flttype;   /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
                                   PastixComplex32 or PastixComplex64                          */
     int           fmttype;   /**< Matrix storage format: PastixCSC, PastixCSR, PastixIJV      */
+
     pastix_int_t  gN;        /**< Global number of vertices in the compressed graph           */
     pastix_int_t  n;         /**< Local number of vertices in the compressed graph            */
     pastix_int_t  gnnz;      /**< Global number of non zeroes in the compressed graph         */
     pastix_int_t  nnz;       /**< Local number of non zeroes in the compressed graph          */
+
+    pastix_int_t  gNexp;     /**< Global number of vertices in the compressed graph           */
+    pastix_int_t  nexp;      /**< Local number of vertices in the compressed graph            */
+    pastix_int_t  gnnzexp;   /**< Global number of non zeroes in the compressed graph         */
+    pastix_int_t  nnzexp;    /**< Local number of non zeroes in the compressed graph          */
+
     pastix_int_t  dof;       /**< Number of degrees of freedom per unknown,
                                   if > 0, constant degree of freedom
                                   otherwise, irregular degree of freedom (refer to dofs)      */
     pastix_int_t *dofs;      /**< Number of degrees of freedom per unknown (NULL, if dof > 0) */
+    int           colmajor;  /**< If > 0, column major with dofs
+                                  otherwise, row major                                        */
+
     pastix_int_t *colptr;    /**< List of indirections to rows for each vertex                */
     pastix_int_t *rowptr;    /**< List of edges for each vertex                               */
     pastix_int_t *loc2glob;  /**< Corresponding numbering from local to global                */
@@ -88,5 +98,7 @@ pastix_int_t  spmMergeDuplicate( pastix_spm_t *spm );
 pastix_int_t  spmSymmetrize( pastix_spm_t *spm );
 
 pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
+
+void dofVar(pastix_spm_t* spm);//tmp
 
 #endif /* _SPM_H_ */

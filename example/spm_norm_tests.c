@@ -48,6 +48,7 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
+    spmInit(&spm);
     /**
      * Get options from command line
      */
@@ -56,6 +57,7 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    //dofVar(&spm); //Test dofs
     free(filename);
 
     spmtype = spm.mtxtype;
@@ -66,7 +68,6 @@ int main (int argc, char **argv)
     {
         printf(" Baseval : %d\n", baseval );
         spmBase( &spm, baseval );
-
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
@@ -80,7 +81,6 @@ int main (int argc, char **argv)
                 continue;
             }
             spm.mtxtype = mtxtype;
-
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
 
             switch( spm.flttype ){

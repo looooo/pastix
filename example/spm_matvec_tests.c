@@ -20,7 +20,7 @@
 #include <time.h>
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
-#include <spm.h>
+#include "spm.h"
 
 int z_spm_matvec_check( int trans, const pastix_spm_t *spm );
 int c_spm_matvec_check( int trans, const pastix_spm_t *spm );
@@ -48,11 +48,13 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
+    spmInit(&spm);
     pastix_ex_getoptions( argc, argv,
                           NULL, NULL,
                           &driver, &filename );
 
     cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    //dofVar(&spm); //Test dofs
     free(filename);
 
     spmtype = spm.mtxtype;
