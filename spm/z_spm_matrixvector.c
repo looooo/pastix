@@ -73,7 +73,9 @@ z_spmGeCSCv(      int                 trans,
     const pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
     const pastix_complex64_t *xptr   = x;
     pastix_complex64_t *yptr = y;
-    pastix_int_t col, row, i, baseval;
+    pastix_int_t col, row, i, j, baseval;
+    pastix_int_t ii, jj, k, dofi, dofj;
+    pastix_int_t *dofs = csc->dofs;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
     {
@@ -89,10 +91,10 @@ z_spmGeCSCv(      int                 trans,
 
     /* first, y = beta*y */
     if( beta == 0. ) {
-        memset( yptr, 0, csc->gN * sizeof(pastix_complex64_t) );
+        memset( yptr, 0, csc->gNexp * sizeof(pastix_complex64_t) );
     }
     else {
-        for( i=0; i<csc->gN; i++, yptr++ ) {
+        for( i=0; i<csc->gNexp; i++, yptr++ ) {
             (*yptr) *= beta;
         }
         yptr = y;
@@ -104,12 +106,22 @@ z_spmGeCSCv(      int                 trans,
          */
         if( trans == PastixNoTrans )
         {
-            for( col=0; col < csc->gN; col++ )
+            for( i=0; i < csc->gN; i++ )
             {
-                for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+                dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
+                col  = ( csc->dof > 0 ) ? i        : dofs[i];
+                for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
                 {
-                    row = csc->rowptr[i-baseval]-baseval;
-                    yptr[row] += alpha * valptr[i-baseval] * xptr[col];
+                    j = csc->rowptr[k-baseval]-baseval;
+                    dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
+                    row  = ( csc->dof > 0 ) ? j        : dofs[j];
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            yptr[row+jj] += alpha * (*valptr) * xptr[col+ii];
+                        }
+                    }
                 }
             }
         }
@@ -118,15 +130,26 @@ z_spmGeCSCv(      int                 trans,
          */
         else if( trans == PastixTrans )
         {
-            for( col=0; col < csc->gN; col++ )
+            for( i=0; i < csc->gN; i++ )
             {
-                for( i=csc->colptr[col]; i<csc->colptr[col+1]; i++ )
+                dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
+                col  = ( csc->dof > 0 ) ? i        : dofs[i];
+                for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
                 {
-                    row = csc->rowptr[i-baseval]-baseval;
-                    yptr[col] += alpha * valptr[i-baseval] * xptr[row];
+                    j = csc->rowptr[k-baseval]-baseval;
+                    dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
+                    row  = ( csc->dof > 0 ) ? j        : dofs[j];
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            yptr[col+ii] += alpha * (*valptr) * xptr[row+jj];
+                        }
+                    }
                 }
             }
         }
+
 #if defined(PRECISION_c) || defined(PRECISION_z)
         else if( trans == PastixConjTrans )
         {
@@ -145,7 +168,6 @@ z_spmGeCSCv(      int                 trans,
             return PASTIX_ERR_BADPARAMETER;
         }
     }
-
     return PASTIX_SUCCESS;
 }
 
@@ -194,7 +216,9 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
     const pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
     const pastix_complex64_t *xptr   = x;
     pastix_complex64_t *yptr = y;
-    pastix_int_t col, row, i, baseval;
+    pastix_int_t col, row, i, j, baseval;
+    pastix_int_t ii, jj, k, dofi, dofj;
+    pastix_int_t *dofs = csc->dofs;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
     {
@@ -210,30 +234,40 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
 
     /* First, y = beta*y */
     if( beta == 0. ) {
-        memset( yptr, 0, csc->gN * sizeof(pastix_complex64_t) );
+        memset( yptr, 0, csc->gNexp * sizeof(pastix_complex64_t) );
     }
     else {
-        for( i=0; i<csc->gN; i++, yptr++ ) {
+        for( i=0; i<csc->gNexp; i++, yptr++ ) {
             (*yptr) *= beta;
         }
         yptr = y;
     }
 
-    if( alpha != 0. ) {
-        for( col=0; col < csc->gN; col++ )
+    if(alpha != 0.)
+    {
+        for( i=0; i < csc->gN; i++ )
         {
-            for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
+            dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
+            col  = ( csc->dof > 0 )  ? i        : dofs[i];
+            for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
             {
-                row = csc->rowptr[i-baseval]-baseval;
-                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-                if( col != row )
+                j = csc->rowptr[k-baseval]-baseval;
+                dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
+                row  = ( csc->dof > 0 ) ? j        : dofs[j];
+                for(ii=0; ii<dofi; ii++)
                 {
-                    yptr[col] += alpha * valptr[i-baseval] * xptr[row];
+                    for(jj=0; jj<dofj; jj++, valptr++)
+                    {
+                        yptr[row+jj] += alpha * (*valptr) * xptr[col+ii];
+                        if( i != j )
+                        {
+                            yptr[col+ii] += alpha * (*valptr) * xptr[row+jj];
+                        }
+                    }
                 }
             }
         }
     }
-
     return PASTIX_SUCCESS;
 }
 
@@ -283,7 +317,9 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
     const pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
     const pastix_complex64_t *xptr   = x;
     pastix_complex64_t *yptr = y;
-    pastix_int_t col, row, i, baseval;
+    pastix_int_t col, row, i, j, baseval;
+    pastix_int_t ii, jj, k, dofi, dofj;
+    pastix_int_t *dofs = csc->dofs;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
     {
@@ -297,30 +333,41 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
 
     /* First, y = beta*y */
     if( beta == 0. ) {
-        memset( yptr, 0, csc->gN * sizeof(pastix_complex64_t) );
+        memset( yptr, 0, csc->gNexp * sizeof(pastix_complex64_t) );
     }
     else {
-        for( i=0; i<csc->gN; i++, yptr++ ) {
+        for( i=0; i<csc->gNexp; i++, yptr++ ) {
             (*yptr) *= beta;
         }
         yptr = y;
     }
 
     baseval = spmFindBase( csc );
-
-    if( alpha != 0. ) {
-        for( col=0; col < csc->gN; col++ )
+    if( alpha != 0.)
+    {
+        for( i=0; i < csc->gN; i++ )
         {
-            for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
+            dofi = ( csc->dof > 0 ) ? csc->dof : dofs[i+1] - dofs[i];
+            col  = ( csc->dof > 0 ) ? i        : dofs[i];
+            for( k=csc->colptr[i]; k<csc->colptr[i+1]; k++ )
             {
-                row=csc->rowptr[i-baseval]-baseval;
-                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-                if( col != row )
-                    yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+                j = csc->rowptr[k-baseval]-baseval;
+                dofj = ( csc->dof > 0 ) ? csc->dof : dofs[j+1] - dofs[j];
+                row  = ( csc->dof > 0 ) ? j        : dofs[j];
+                for(ii=0; ii<dofi; ii++)
+                {
+                    for(jj=0; jj<dofj; jj++, valptr++)
+                    {
+                        yptr[row+jj] += alpha * (*valptr) * xptr[col+ii];
+                        if( i != j )
+                        {
+                            yptr[col+ii] += alpha * conj( *valptr ) * xptr[row+jj];
+                        }
+                    }
+                }
             }
         }
     }
-
     return PASTIX_SUCCESS;
 }
 #endif

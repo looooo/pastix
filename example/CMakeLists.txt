@@ -146,19 +146,19 @@ add_custom_target(examples_headers DEPENDS ${generated_headers} )
 add_executable(analyze analyze.c)
 target_link_libraries(analyze ${PASTIX_EXAMPLES_LIBRARIES})
 
-add_executable(simple simple.c)
+add_executable(simple simple.c ../spm/z_spm_expand.c)
 target_link_libraries(simple ${PASTIX_EXAMPLES_LIBRARIES})
 
-add_executable(bench_facto bench_facto.c)
+add_executable(bench_facto bench_facto.c ../spm/z_spm_expand.c)
 target_link_libraries(bench_facto ${PASTIX_EXAMPLES_LIBRARIES})
 
-add_executable(spm_convert_tests spm_convert_tests.c)
+add_executable(spm_convert_tests spm_convert_tests.c ../spm/z_spm_expand.c)
 target_link_libraries(spm_convert_tests ${PASTIX_EXAMPLES_LIBRARIES})
 
-add_executable(spm_matvec_tests spm_matvec_tests.c)
+add_executable(spm_matvec_tests spm_matvec_tests.c ../spm/z_spm_expand.c)
 target_link_libraries(spm_matvec_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
-add_executable(spm_norm_tests spm_norm_tests.c)
+add_executable(spm_norm_tests spm_norm_tests.c ../spm/z_spm_expand.c)
 target_link_libraries(spm_norm_tests spm_test ${PASTIX_EXAMPLES_LIBRARIES})
 
 add_executable(bcsc_norm_tests bcsc_norm_tests.c)
