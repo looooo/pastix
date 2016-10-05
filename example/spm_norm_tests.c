@@ -57,7 +57,6 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
-    //dofVar(&spm); //Test dofs
     free(filename);
 
     spmtype = spm.mtxtype;

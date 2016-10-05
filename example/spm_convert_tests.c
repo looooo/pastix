@@ -111,8 +111,6 @@ int main (int argc, char **argv)
 
     spmInit(&spm);
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
-    //dofVar(&spm); //Test dofs
-
     free(filename);
 
     printf(" -- SPM Conversion Test --\n");
