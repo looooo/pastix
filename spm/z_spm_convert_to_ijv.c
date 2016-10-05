@@ -9,6 +9,7 @@
  * @version 5.1.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
+ * @author Alban Bellot
  * @date 2015-01-01
  *
  * @precisions normal z -> c d s p
@@ -62,6 +63,37 @@ z_spmConvertCSC2IJV( pastix_spm_t *spm )
         }
     }
 
+    /* Transpose values in row major format */
+    /*
+    if( spm->colmajor < 1 ) //A test
+    {
+        int k, ii, jj, dofi, dofj;
+        int cpt = 0;
+        pastix_complex64_t* oavals = (pastix_complex64_t*)spm->values;
+        pastix_complex64_t* navals = malloc(sizeof(pastix_complex64_t)*spm->nnzexp);
+        pastix_int_t* dofs=spm->dofs;
+
+        for(k=0; k<spm->nnz; k++)
+        {
+            j = spm->rowptr[k]-baseval;
+            i = col_ijv[k]-baseval;
+            dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
+            dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
+            for(ii=0; ii<dofi; ii++)
+            {
+                for(jj=0; jj<dofj; jj++)
+                {
+                    navals[cpt + jj * dofi + ii] = *oavals;
+                    oavals++;
+                }
+            }
+            cpt += dofi * dofj;
+        }
+        spm->values = navals;
+    }
+
+    */
+
     memFree_null(spm->colptr);
     spm->colptr = col_ijv;
 
@@ -112,6 +144,35 @@ z_spmConvertCSR2IJV( pastix_spm_t *spm )
             *rowptr = i+baseval; rowptr++;
         }
     }
+
+    /* Transpose values in column major format */
+    /*
+    if( spm->colmajor > 1 )
+    {
+        pastix_int_t k, ii, jj, dofi, dofj;
+        pastix_int_t cpt=0;
+        pastix_complex64_t* oavals = (pastix_complex64_t*)spm->values;
+        pastix_complex64_t* navals = malloc(sizeof(pastix_complex64_t)*spm->nnzexp);
+        pastix_int_t* dofs=spm->dofs;
+        for(k=0; k<spm->nnz; k++)
+        {
+            i = spm->colptr[k]-baseval;
+            j = row_ijv[k]-baseval;
+            dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
+            dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
+            for(jj=0; jj<dofj; jj++)
+            {
+                for(ii=0; ii<dofi; ii++)
+                {
+                    navals[cpt + ii * dofj + jj] = *oavals;
+                    oavals++;
+                }
+            }
+            cpt += dofi * dofj;
+        }
+        spm->values = navals;
+    }
+     */
 
     memFree_null(spm->rowptr);
     spm->rowptr = row_ijv;
