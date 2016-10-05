@@ -104,7 +104,7 @@ int main (int argc, char **argv)
     pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
 
     pastix_task_raff(pastix_data, x, nrhs, b);
-    
+
     int i;
     printf("\nx : ");
     for(i=0; i<spm->n;i++)
@@ -112,7 +112,7 @@ int main (int argc, char **argv)
         printf("%f ",((double*)(x))[i]);
     }
     printf("\n");
-    
+
     if ( check )
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
