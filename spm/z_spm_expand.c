@@ -8,7 +8,6 @@
  *
  * @version 5.1.0
  * @author Mathieu Faverge
- * @author Theophile Terraz
  * @author Alban Bellot
  * @date 2015-01-01
  *
@@ -18,29 +17,49 @@
 #include "spm.h"
 #include "z_spm.h"
 
-
-void z_extandCSC(pastix_spm_t* spm)
+/**
+ * TODO: This function is incorrect
+ */
+int
+z_spmExpand(pastix_spm_t* spm)
 {
-  pastix_int_t col, row, i, cpt, dofj, dofi, baseval;
-  cpt=0;
+    pastix_int_t i, col, row, cpt, dofj, dofi, baseval;
+    pastix_complex64_t *oldvalptr;
+    pastix_complex64_t *newvalptr;
 
-  pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
-  pastix_complex64_t *newval = calloc(spm->nnzexp,sizeof(pastix_complex64_t));
+    if (1) {
+        return PASTIX_ERR_NOTIMPLEMENTED;
+    }
 
-  baseval=spmFindBase( spm );
+    baseval = spmFindBase( spm );
 
-  for( col=0; col<spm->n; col++)
-  {
-      for( row=spm->colptr[col]-baseval; row<spm->colptr[col+1]-baseval; row++)
-      {
-          dofi = ( spm->dof > 0 ) ? spm->dof : spm->dofs[col+1] - spm->dofs[col];
-          dofj = ( spm->dof > 0 ) ? spm->dof : spm->dofs[spm->rowptr[row]-baseval+1] - spm->dofs[spm->rowptr[row]-baseval];
-	  for( i=0; i<dofi*dofj; i++)
-          {
-              newval[cpt] = valptr[row] / ((i/dofj) + (i%dofj) + 2); // Col major
-	      cpt++;
-          }
-      }
-  }
-  spm->values=newval;
+    oldvalptr = (pastix_complex64_t*)spm->values;
+    spm->values = malloc( spm->nnzexp * sizeof(pastix_complex64_t) );
+    newvalptr = (pastix_complex64_t*)spm->values;
+
+    cpt = 0;
+    dofi = spm->dof;
+    dofj = spm->dof;
+
+    for( col=0; col<spm->n; col++)
+    {
+        if ( spm->dof <= 0 ) {
+            dofi = spm->dofs[col+1] - spm->dofs[col];
+        }
+
+        for( row=spm->colptr[col]-baseval; row<spm->colptr[col+1]-baseval; row++)
+        {
+            if ( spm->dof <= 0 ) {
+                dofj = spm->dofs[spm->rowptr[row]-baseval+1] - spm->dofs[spm->rowptr[row]-baseval];
+            }
+
+            for( i=0; i<dofi*dofj; i++)
+            {
+                newvalptr[cpt] = oldvalptr[row] / ((i/dofj) + (i%dofj) + 2); // Col major
+                cpt++;
+            }
+        }
+    }
+
+    free( oldvalptr );
 }

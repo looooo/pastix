@@ -15,25 +15,30 @@
  **/
 #include "common.h"
 #include "spm.h"
+
 #include "z_spm.h"
+#include "c_spm.h"
+#include "d_spm.h"
+#include "s_spm.h"
+#include "p_spm.h"
 
 void
-spmExpandCSC(pastix_spm_t* spm)
+spmExpand(pastix_spm_t* spm)
 {
     switch(spm->flttype)
     {
     case PastixFloat:
-        s_extandCSC(spm);
+        s_spmExpand(spm);
         break;
     case PastixComplex32:
-        c_extandCSC(spm);
+        c_spmExpand(spm);
         break;
     case PastixComplex64:
-        z_extandCSC(spm);
+        z_spmExpand(spm);
         break;
     case PastixDouble:
     default:
-        d_extandCSC(spm);
+        d_spmExpand(spm);
         break;
     }
 }
@@ -141,7 +146,7 @@ dofCst(pastix_spm_t* spm,pastix_int_t dof)
     for(i=0;i<spm->n+1;i++)
         dofs[i]=dof*i;
 
-    spmExpandCSC(spm);
+    spmExpand(spm);
 }
 
 
@@ -194,7 +199,7 @@ dofVar(pastix_spm_t* spm)
     pastix_int_t* tab = computeCorrespondIndex(dofs,spm->n);
 
     spm->dofs   = tab;
-    spmExpandCSC(spm);
+    spmExpand(spm);
 
     /*
     print_tab_int(spm->colptr,spm->n);
