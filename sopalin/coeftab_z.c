@@ -237,7 +237,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     {
         if ( cblk->cblktype & CBLK_SPLIT )
         {
-            fprintf(stderr, "Try to compress a block\n");
+            /* fprintf(stderr, "Try to compress a block\n"); */
 
             if ( compress_when == COMPRESS_BEGIN ){
                 coeftab_zcompress_one( cblk, tol );

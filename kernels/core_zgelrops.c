@@ -61,9 +61,9 @@ static pastix_complex64_t zzero =  0.;
 
 
 int
-core_zge2lr_QR( double tol, pastix_int_t m, pastix_int_t n,
-                const pastix_complex64_t *A, pastix_int_t lda,
-                pastix_lrblock_t *Alr )
+core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  pastix_lrblock_t *Alr )
 {
     int ret;
     pastix_int_t i, j;
@@ -729,9 +729,9 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************/
 int
-core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
-             const pastix_complex64_t *A, pastix_int_t lda,
-             pastix_lrblock_t *Alr )
+core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
+                 const pastix_complex64_t *A, pastix_int_t lda,
+                 pastix_lrblock_t *Alr )
 {
     int ret;
     /**
@@ -1891,4 +1891,15 @@ core_zlrmge( double tol, int transA, int transB,
                 fcblk );
 
     return 0;
+}
+
+int core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+                 const pastix_complex64_t *A, pastix_int_t lda,
+                 void *Alr ){
+    if ( compress_method == SVD ){
+        return core_zge2lr_SVD(tol, m, n, A, lda, Alr);
+    }
+    else{
+        return core_zge2lr_RRQR(tol, m, n, A, lda, Alr);
+    }
 }

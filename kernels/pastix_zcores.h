@@ -46,9 +46,9 @@ int core_zlrsze( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, 
  *
  *******************************************************************************/
 int
-core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
-             const pastix_complex64_t *A, pastix_int_t lda,
-             pastix_lrblock_t *Alr );
+core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
+                 const pastix_complex64_t *A, pastix_int_t lda,
+                 pastix_lrblock_t *Alr );
 
 /**
  *******************************************************************************
@@ -321,8 +321,12 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             double tol, pastix_int_t nb, pastix_int_t maxrank );
 
 int
-core_zge2lr_QR( double tol, pastix_int_t m, pastix_int_t n,
-                const pastix_complex64_t *A, pastix_int_t lda,
-                pastix_lrblock_t *Alr );
+core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  pastix_lrblock_t *Alr );
+
+int core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+                     const pastix_complex64_t *A, pastix_int_t lda,
+                     void *Alr );
 
 #endif /* _CORE_Z_H_ */

@@ -48,8 +48,13 @@ int main (int argc, char **argv)
     printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
     printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
 
+    printf("\tCOMPRESS_WHEN %ld COMPRESS_METHOD %ld\n",
+           iparm[IPARM_COMPRESS_WHEN],
+           iparm[IPARM_COMPRESS_METHOD]);
+
     /* TO BE CLEAN !!! */
     compress_when      = iparm[IPARM_COMPRESS_WHEN];
+    compress_method    = iparm[IPARM_COMPRESS_METHOD];
     compress_tolerance = dparm[DPARM_COMPRESS_TOLERANCE];
 
     /**

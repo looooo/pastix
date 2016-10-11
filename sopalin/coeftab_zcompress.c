@@ -70,9 +70,9 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         blok->LRblock = LRblocks;
 
-        ret = core_zge2lr_QR( tol, nrows, ncols,
-                              lcoeftab + blok->coefind, nrows,
-                              blok->LRblock );
+        ret = core_zge2lr( tol, nrows, ncols,
+                           lcoeftab + blok->coefind, nrows,
+                           blok->LRblock );
         assert( ret == 0 );
         gainL -= (LRblocks->rk == -1) ? nrows * ncols
             : ((nrows+ncols) * LRblocks->rk);
@@ -81,9 +81,9 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         if (factoLU) {
 
-            ret = core_zge2lr_QR( tol, nrows, ncols,
-                                  ucoeftab + blok->coefind, nrows,
-                                  blok->LRblock+1 );
+            ret = core_zge2lr( tol, nrows, ncols,
+                               ucoeftab + blok->coefind, nrows,
+                               blok->LRblock+1 );
             assert( ret == 0 );
             gainU -= (LRblocks->rk == -1) ? nrows * ncols
                 : ((nrows+ncols) * LRblocks->rk);

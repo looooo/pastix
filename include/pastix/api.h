@@ -70,6 +70,7 @@
    IPARM_MAX_BLOCKSIZE         - Maximum block size                                       Default: 120                 IN
    IPARM_COMPRESS_SIZE         - Minimum size to compress a supernode                     Default: 120                 IN
    IPARM_COMPRESS_WHEN         - When to compress a supernode                             Default: 0                 IN
+   IPARM_COMPRESS_METHOD       - Compression method (SVD/RRQR)                            Default: 0                 IN
    IPARM_SCHUR                 - Schur mode                                               Default: API_NO              IN
    IPARM_ISOLATE_ZEROS         - Isolate null diagonal terms at the end of the matrix     Default: API_NO              IN
    IPARM_RHSD_CHECK            - Set to API_NO to avoid RHS redistribution                Default: API_YES             IN
@@ -176,6 +177,7 @@ enum IPARM_ACCESS {
   IPARM_MAX_BLOCKSIZE,
   IPARM_COMPRESS_SIZE,
   IPARM_COMPRESS_WHEN,
+  IPARM_COMPRESS_METHOD,
   IPARM_SCHUR,
   IPARM_ISOLATE_ZEROS,
   IPARM_RHSD_CHECK,

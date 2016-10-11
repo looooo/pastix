@@ -284,9 +284,9 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
             M = blok_rownbr(blok);
             pastix_lrblock_t *C = malloc(sizeof(pastix_lrblock_t));
 
-            int ret = core_zge2lr_QR(compress_tolerance, M, N,
-                                     lrC->u, M,
-                                     C);
+            int ret = core_zge2lr(compress_tolerance, M, N,
+                                  lrC->u, M,
+                                  C);
 
             lrC->u = C->u;
             lrC->v = C->v;
@@ -352,9 +352,9 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
             M = blok_rownbr(blok);
             pastix_lrblock_t *C = malloc(sizeof(pastix_lrblock_t));
 
-            int ret = core_zge2lr_QR(compress_tolerance, M, N,
-                                     lrC->u, M,
-                                     C);
+            int ret = core_zge2lr(compress_tolerance, M, N,
+                                  lrC->u, M,
+                                  C);
 
             lrC->u = C->u;
             lrC->v = C->v;

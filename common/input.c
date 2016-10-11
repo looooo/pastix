@@ -192,6 +192,10 @@ int iparm_to_int( char * string)
     {
         return IPARM_COMPRESS_WHEN;
     }
+    if(0 == strcmp("iparm_compress_method", string))
+    {
+        return IPARM_COMPRESS_METHOD;
+    }
     if(0 == strcmp("iparm_schur", string))
     {
         return IPARM_SCHUR;
