@@ -69,23 +69,25 @@ coeftab_zcompress_one( SolverCblk *cblk,
         pastix_int_t nrows = blok_rownbr( blok );
 
         blok->LRblock = LRblocks;
-        ret = core_zge2lr( tol, nrows, ncols,
-                           lcoeftab + blok->coefind, nrows,
-                           blok->LRblock );
-        assert( ret == 0 );
 
+        ret = core_zge2lr_QR( tol, nrows, ncols,
+                              lcoeftab + blok->coefind, nrows,
+                              blok->LRblock );
+        assert( ret == 0 );
         gainL -= (LRblocks->rk == -1) ? nrows * ncols
             : ((nrows+ncols) * LRblocks->rk);
+
         LRblocks++;
 
         if (factoLU) {
-            ret = core_zge2lr( tol, nrows, ncols,
-                               ucoeftab + blok->coefind, nrows,
-                               blok->LRblock+1 );
-            assert( ret == 0 );
 
+            ret = core_zge2lr_QR( tol, nrows, ncols,
+                                  ucoeftab + blok->coefind, nrows,
+                                  blok->LRblock+1 );
+            assert( ret == 0 );
             gainU -= (LRblocks->rk == -1) ? nrows * ncols
                 : ((nrows+ncols) * LRblocks->rk);
+
             LRblocks++;
         }
     }
@@ -102,8 +104,74 @@ coeftab_zcompress_one( SolverCblk *cblk,
     return gainL + gainU;
 }
 
+void
+coeftab_zalloc_one( SolverCblk *cblk )
+{
+    pastix_lrblock_t   *LRblocks;
+    SolverBlok         *blok     = cblk[0].fblokptr;
+    SolverBlok         *lblok    = cblk[1].fblokptr;
+    pastix_complex64_t *lcoeftab = cblk->lcoeftab;
+    pastix_complex64_t *ucoeftab = cblk->ucoeftab;
+    pastix_int_t        ncols    = cblk_colnbr( cblk );
+    int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
+
+    /* One allocation per cblk */
+    LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
+
+    /* H then split */
+    assert( cblk->cblktype & CBLK_SPLIT );
+
+    /**
+     * Diagonal block (Not compressed)
+     */
+    core_zlralloc( ncols, ncols, -1, LRblocks );
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
+                         lcoeftab,    ncols,
+                         LRblocks->u, LRblocks->rkmax );
+    blok->LRblock = LRblocks; LRblocks++;
+
+    if (factoLU) {
+        core_zlralloc( ncols, ncols, -1, LRblocks );
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
+                             ucoeftab,    ncols,
+                             LRblocks->u, LRblocks->rkmax );
+        LRblocks++;
+    }
+
+    for (blok++; blok<lblok; blok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+
+        blok->LRblock = LRblocks;
+
+        core_zlralloc( nrows, ncols, -1, LRblocks );
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
+                             lcoeftab + blok->coefind, nrows,
+                             LRblocks->u, LRblocks->rkmax );
+        LRblocks++;
+
+        if (factoLU) {
+
+            core_zlralloc( nrows, ncols, -1, LRblocks );
+            LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
+                                 ucoeftab + blok->coefind, nrows,
+                                 LRblocks->u, LRblocks->rkmax );
+            LRblocks++;
+        }
+    }
+
+    cblk->cblktype &= ~(CBLK_DENSE);
+    /**
+     * Free the dense version
+     */
+    free(cblk->lcoeftab); cblk->lcoeftab = NULL;
+    if (cblk->ucoeftab) {
+        free(cblk->ucoeftab); cblk->ucoeftab = NULL;
+    }
+}
+
 pastix_int_t
-coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
+coeftab_zmemory_one( SolverCblk *cblk, int factoLU )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -111,44 +179,61 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     pastix_int_t ncols = cblk_colnbr( cblk );
     pastix_int_t        gainL    = 0;
     pastix_int_t        gainU    = 0;
-    pastix_complex64_t *lcoeftab = NULL;
-    pastix_complex64_t *ucoeftab = NULL;
-    int ret;
-
-    /* One allocation per cblk */
-    /* assert( cblk->lcoeftab == NULL ); */
-    /* lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) ); */
-
-    /* if ( factoLU ) { */
-    /*     assert( cblk->ucoeftab == NULL ); */
-    /*     ucoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) ); */
-    /* } */
 
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
-        /* printf("Uncompress with ranks %d %d (size %ld %ld)\n", */
-        /*        blok->LRblock[0].rk, blok->LRblock[1].rk, */
-        /*        nrows, ncols); */
 
         if (blok->LRblock[0].rk >= 0){
             gainL += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[0].rkmax));
         }
-        /* ret = core_zlr2ge( nrows, ncols, */
-        /*                    blok->LRblock, */
-        /*                    lcoeftab + blok->coefind, nrows ); */
-        /* assert( ret == 0 ); */
-        /* core_zlrfree( blok->LRblock ); */
 
         if (factoLU) {
             if (blok->LRblock[1].rk >= 0){
                 gainU += ((nrows * ncols) - ((nrows+ncols) * blok->LRblock[1].rkmax));
             }
-            /* ret = core_zlr2ge( nrows, ncols, */
-            /*                    blok->LRblock+1, */
-            /*                    ucoeftab + blok->coefind, nrows ); */
-            /* assert( ret == 0 ); */
-            /* core_zlrfree( blok->LRblock+1 ); */
+        }
+    }
+
+    return gainL + gainU;
+}
+
+pastix_int_t
+coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
+{
+    SolverBlok *blok  = cblk[0].fblokptr;
+    SolverBlok *lblok = cblk[1].fblokptr;
+
+    pastix_int_t ncols = cblk_colnbr( cblk );
+    pastix_complex64_t *lcoeftab = NULL;
+    pastix_complex64_t *ucoeftab = NULL;
+    int ret;
+
+    /* One allocation per cblk */
+    assert( cblk->lcoeftab == NULL );
+    lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
+
+    if ( factoLU ) {
+        assert( cblk->ucoeftab == NULL );
+        ucoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
+    }
+
+    for (; blok<lblok; blok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+
+        ret = core_zlr2ge( nrows, ncols,
+                           blok->LRblock,
+                           lcoeftab + blok->coefind, nrows );
+        assert( ret == 0 );
+        core_zlrfree( blok->LRblock );
+
+        if (factoLU) {
+            ret = core_zlr2ge( nrows, ncols,
+                               blok->LRblock+1,
+                               ucoeftab + blok->coefind, nrows );
+            assert( ret == 0 );
+            core_zlrfree( blok->LRblock+1 );
         }
     }
 
@@ -160,12 +245,12 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
      */
     /* cblk->cblktype |= CBLK_DENSE; */
     /* free(cblk->fblokptr->LRblock); */
-    return gainL + gainU;
+    return 0;
 }
 
 
 void
-coeftab_zuncompress( SolverMatrix *solvmtx )
+coeftab_zmemory( SolverMatrix *solvmtx )
 {
     SolverCblk *cblk  = solvmtx->cblktab;
     pastix_int_t cblknum;
@@ -178,7 +263,7 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         original += cblk_colnbr( cblk ) * cblk->stride;
         if (!(cblk->cblktype & CBLK_DENSE)) {
-            gain += coeftab_zuncompress_one( cblk, 1 );
+            gain += coeftab_zmemory_one( cblk, 1 );
         }
     }
 
@@ -195,6 +280,20 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
              tol, gain, original,
              MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
              MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
+}
+
+void
+coeftab_zuncompress( SolverMatrix *solvmtx )
+{
+    SolverCblk *cblk  = solvmtx->cblktab;
+    pastix_int_t cblknum;
+    int factoLU = 1;
+
+    for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
+        if (!(cblk->cblktype & CBLK_DENSE)) {
+            coeftab_zuncompress_one( cblk, factoLU );
+        }
+    }
 }
 
 void

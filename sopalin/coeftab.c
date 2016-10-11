@@ -24,6 +24,11 @@ int (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*) =
     coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
 };
 
+void (*coeftabMemory[4])(SolverMatrix*) =
+{
+    coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
+};
+
 void (*coeftabUncompress[4])(SolverMatrix*) =
 {
     coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
