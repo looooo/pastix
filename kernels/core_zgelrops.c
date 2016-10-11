@@ -18,8 +18,11 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
-static pastix_complex64_t zzero = 0.;
-static pastix_complex64_t zone  = 1.;
+static pastix_complex64_t mzone = -1.;
+static pastix_complex64_t zone  =  1.;
+static pastix_complex64_t zzero =  0.;
+
+#define PASTIX_DEBUG_LR
 
 //#define PASTIX_LR_CHECKNAN
 #if defined(PASTIX_LR_CHECKNAN)
@@ -56,6 +59,382 @@ static pastix_complex64_t zone  = 1.;
 
 #endif /* defined(PASTIX_LR_CHECKNAN) */
 
+
+int
+core_zge2lr_QR( double tol, pastix_int_t m, pastix_int_t n,
+                const pastix_complex64_t *A, pastix_int_t lda,
+                pastix_lrblock_t *Alr )
+{
+    int ret;
+    pastix_int_t i, j;
+
+    pastix_int_t nb          = 32;
+    pastix_int_t ldwork      = pastix_imax(m, n);
+    pastix_complex64_t *work = malloc((2 * nb + 1) * ldwork * sizeof(pastix_complex64_t));;
+    double *rwork            = malloc(2 * n * sizeof(double));
+    pastix_int_t *jpvt       = malloc(n * sizeof(pastix_int_t));
+    pastix_complex64_t *tau  = malloc(n * sizeof(pastix_complex64_t));
+    pastix_complex64_t *Acpy = malloc(m * n * sizeof(pastix_complex64_t));
+
+    /**
+     * Allocate a temorary Low rank matrix
+     */
+    core_zlralloc( m, n, pastix_imin( m, n ), Alr );
+
+    ret = LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
+                              A, lda, Acpy, m );
+    assert(ret == 0);
+
+    ret = core_zrrqr(m, n,
+                     Acpy, m,
+                     jpvt, tau,
+                     work, ldwork,
+                     rwork,
+                     tol, nb, pastix_imin(m,n)/3);
+
+    /**
+     * Resize the space used by the low rank matrix
+     */
+    /* if (ret * 2 > pastix_imin(m, n) || ret == -1){ */
+    /*     printf("NOT SUPPORTED YET\n"); */
+    /*     exit(1); */
+    /* } */
+    ret = core_zlrsze( 0, m, n, Alr, ret, -1 );
+
+    /**
+     * It was not interesting to compress, so we store the dense version in Alr
+     */
+    if (Alr->rk == -1 || Alr->rk == pastix_imin(m,n)/3) {
+        Alr->u  = malloc( m * n * sizeof(pastix_complex64_t) );
+        Alr->rk = -1;
+        Alr->rkmax = m;
+
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                                   A, lda, Alr->u, Alr->rkmax );
+        assert(ret == 0);
+    }
+    /**
+     * We compute Q/R obtained thanks to core_zrrqr
+     */
+    else if (Alr->rk != 0) {
+
+        /* Temporary space to permute Alr->v */
+        pastix_complex64_t *work3;
+        pastix_complex64_t *U = Alr->u;
+        pastix_complex64_t *V = Alr->v;
+
+        work3 = malloc(n * Alr->rk * sizeof(pastix_complex64_t));
+        memset(work3, 0, n * Alr->rk * sizeof(pastix_complex64_t));
+
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'U', Alr->rk, n,
+                                   Acpy, m,
+                                   work3, Alr->rk );
+        assert(ret == 0);
+
+        /* Permute V */
+        for (i=0; i<n; i++){
+            memcpy(V + jpvt[i] * Alr->rk,
+                   work3 + i * Alr->rk,
+                   Alr->rk * sizeof(pastix_complex64_t));
+        }
+
+        /* Compute Q factor on u */
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, Alr->rk,
+                                   Acpy, m, U, m );
+        assert(ret == 0);
+
+        ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, m, Alr->rk, Alr->rk,
+                              U , m, tau );
+        assert(ret == 0);
+
+        /* To check the resulting solution */
+        if (0){
+            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                        m, n, Alr->rk,
+                        CBLAS_SADDR(zone),  Alr->u, m,
+                        Alr->v, Alr->rkmax,
+                        CBLAS_SADDR(zzero), Acpy, m);
+
+            int stop = 0;
+            for (i=0; i<m; i++){
+                for (j=0; j<n; j++){
+                    pastix_complex64_t v1 = A[lda*j+i];
+                    pastix_complex64_t v2 = Acpy[m*j+i];
+                    if (fabs(v1-v2) > 1e-15){
+                        printf("A_orig %f A_comp %f INDEX %ld %ld PIV %ld %ld\n",
+                               v1, v2, i, j, jpvt[i], jpvt[j]);
+                        stop = 1;
+                    }
+                }
+            }
+
+            double norm_A_orig = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                                      A, lda, NULL );
+            double norm_A_comp = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                                      Acpy, m, NULL );
+
+            core_zgeadd( PastixNoTrans, m, n,
+                         -1., A, lda,
+                         1., Acpy, m );
+
+            double norm_diff = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                                    Acpy, m, NULL );
+
+            printf("NORMS: ORIG %.10g COMP %.10g DIFF %.20g\n\n",
+                   norm_A_orig, norm_A_comp, norm_diff);
+
+            if (stop){
+                exit(1);
+
+                ret = LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
+                                          A, lda, Acpy, m );
+                assert(ret == 0);
+                Alr->u  = Acpy;
+                Alr->rk = -1;
+                Alr->rkmax = m;
+            }
+        }
+    }
+
+    free(work);
+    free(rwork);
+    free(jpvt);
+    free(tau);
+    free(Acpy);
+
+    return Alr->rk;
+}
+
+int
+core_zrrqr( pastix_int_t m, pastix_int_t n,
+            pastix_complex64_t *A, pastix_int_t lda,
+            pastix_int_t *jpvt, pastix_complex64_t *tau,
+            pastix_complex64_t *work, pastix_int_t ldwork,
+            double *rwork,
+            double tol, pastix_int_t nb, pastix_int_t maxrank){
+
+    pastix_int_t minMN = pastix_imin(m, n);
+    pastix_int_t ldf   = ldwork;
+    pastix_int_t j, k, jb, itemp, lsticc, pvt;
+    double temp, temp2;
+    double machine_prec = sqrt(LAPACKE_dlamch('e'));
+    pastix_complex64_t akk;
+
+    pastix_complex64_t *auxv, *f;
+
+    /* Partial (VN1) and exact (VN2) column norms */
+    double *VN1, *VN2;
+
+    /* Number or rows of A that have been factorized */
+    pastix_int_t offset = 0;
+
+    /* Rank */
+    pastix_int_t rk = 0;
+
+
+    if (m < 0)
+        return -1;
+    if (n < 0)
+        return -2;
+    if (lda < pastix_imax(1, m))
+        return -4;
+    if( ldwork < n)
+        return -8;
+
+    VN1 = rwork;
+    VN2 = rwork + n;
+
+    auxv = work;
+    f    = work + ldwork;
+
+    /* Initialize partial column norms. The first N elements of work */
+    /* store the exact column norms. */
+    /* TODO: call PLASMA/internal kernel */
+    for (j=0; j<n; j++){
+        VN1[j]  = cblas_dznrm2(m, A + j*lda, 1);
+        VN2[j]  = VN1[j];
+        jpvt[j] = j;
+    }
+
+    while(rk < maxrank){
+        /* jb equivalent to kb in LAPACK xLAQPS: number of columns actually factorized */
+        jb     = pastix_imin(nb, minMN-offset);
+        lsticc = 0;
+
+        /* column being factorized among jb */
+        k = 0;
+
+        while(k < jb && lsticc == 0){
+
+            rk = offset+k;
+
+            pvt = rk + cblas_izamax(n-rk, VN1 + rk, 1);
+
+            if (VN1[pvt] < tol){
+                return rk;
+            }
+
+            /* Rank is too large for compression */
+            if (rk > maxrank){
+                return rk;
+            }
+
+            /* Pivot is not within the current column: we swap */
+            if (pvt != rk){
+                assert( (pvt < n) && (rk < n) );
+                cblas_zswap(m, A + pvt * lda, 1, A + rk * lda, 1);
+                cblas_zswap(k, f + (pvt-offset), ldf, f + k, ldf);
+
+                itemp     = jpvt[pvt];
+                jpvt[pvt] = jpvt[rk];
+                jpvt[rk]  = itemp;
+                VN1[pvt]  = VN1[rk];
+                VN2[pvt]  = VN2[rk];
+            }
+
+            /* Apply previous Householder reflectors to column K */
+            /* A(RK:M,RK) := A(RK:M,RK) - A(RK:M,OFFSET+1:RK-1)*F(K,1:K-1)**H */
+            if (k > 0){
+#if defined(PRECISION_c) || defined(PRECISION_z)
+                for (j=0; j<k; j++){
+                    f[j * ldf + k] = conj(f[j * ldf + k]);
+                }
+#endif
+
+                assert( (offset+1) < n );
+                assert( (rk < n) && (rk < m) );
+                cblas_zgemv(CblasColMajor, CblasNoTrans, m-rk, k, CBLAS_SADDR(mzone),
+                            A + (offset) * lda + rk, lda,
+                            f + k, ldf,
+                            CBLAS_SADDR(zone), A + rk * lda + rk, 1);
+
+#if defined(PRECISION_c) || defined(PRECISION_z)
+                for (j=0; j<k; j++){
+                    f[j * ldf + k] = conj(f[j * ldf + k]);
+                }
+#endif
+            }
+
+            /* Generate elementary reflector H(k). */
+            if (rk < (m-1)){
+                LAPACKE_zlarfg(m-rk, A + rk * lda + rk, A + rk * lda + (rk+1), 1, tau + rk);
+            }
+            else{
+                LAPACKE_zlarfg(1, A + rk * lda + rk, A + rk * lda + rk, 1, tau + rk);
+            }
+
+            akk = A[rk * lda + rk];
+            A[rk * lda + rk] = zone;
+
+            /* Compute Kth column of F: */
+            /* F(K+1:N,K) := tau(K)*A(RK:M,K+1:N)**H*A(RK:M,K). */
+            if (rk < (n-1)){
+                pastix_complex64_t alpha = tau[rk];
+                cblas_zgemv(CblasColMajor, CblasConjTrans, m-rk, n-rk-1, CBLAS_SADDR(alpha),
+                            A + (rk+1) * lda + rk, lda,
+                            A + rk * lda + rk, 1,
+                            CBLAS_SADDR(zzero), f + k * ldf + k + 1, 1);
+            }
+
+            /* Padding F(1:K,K) with zeros. */
+            for (j=0; j<k; j++){
+                f[k * ldf + j] = zzero;
+            }
+
+            /* Incremental updating of F: */
+            /* F(1:N,K) := F(1:N-OFFSET,K) - tau(RK)*F(1:N,1:K-1)*A(RK:M,OFFSET+1:RK-1)**H*A(RK:M,RK). */
+            if (k > 0){
+                pastix_complex64_t alpha = -tau[rk];
+                cblas_zgemv(CblasColMajor, CblasConjTrans, m-rk, k, CBLAS_SADDR(alpha),
+                            A + (offset) * lda + rk, lda,
+                            A + rk * lda + rk, 1,
+                            CBLAS_SADDR(zzero), auxv, 1);
+
+                cblas_zgemv(CblasColMajor, CblasNoTrans, n-offset, k, CBLAS_SADDR(zone),
+                            f, ldf,
+                            auxv, 1,
+                            CBLAS_SADDR(zone), f + k * ldf, 1);
+            }
+
+            /* Update the current row of A: */
+            /* A(RK,RK+1:N) := A(RK,RK+1:N) - A(RK,OFFSET+1:RK)*F(K+1:N,1:K)**H. */
+            if (rk < (n-1)){
+
+#if defined(PRECISION_c) || defined(PRECISION_z)
+
+#else
+                cblas_zgemv(CblasColMajor, CblasNoTrans, n-rk-1, k+1, CBLAS_SADDR(mzone),
+                            f + (k+1), ldf,
+                            A + (offset) * lda + rk, lda,
+                            CBLAS_SADDR(zone), A + (rk+1) * lda + rk, lda);
+#endif
+            }
+
+            /* Update partial column norms. */
+            if (rk < (minMN-1)){
+                for (j=rk+1; j<n; j++){
+                    if (VN1[j] != 0.0){
+                        /* NOTE: The following 4 lines follow from the analysis in */
+                        /* Lapack Working Note 176. */
+                        temp  = fabs( A[j * lda + rk] ) / VN1[j];
+                        double temp3 = (1.0 + temp) * (1.0 - temp);
+                        if (temp3 > 0.0){
+                            temp = temp3;
+                        }
+                        else{
+                            temp = 0.;
+                        }
+                        temp2 = temp * ( VN1[j] / VN2[j]) * ( VN1[j] / VN2[j]);
+                        if (temp2 < machine_prec){
+                            /* printf("LSTICC %ld\n", j); */
+                            VN2[j] = lsticc;
+                            lsticc = j;
+                        }
+                        else{
+                            VN1[j] = VN1[j] * sqrt(temp);
+                        }
+
+                    }
+                }
+            }
+
+            A[rk * lda + rk] = akk;
+
+            k++;
+        }
+
+        /* Apply the block reflector to the rest of the matrix: */
+        /* A(RK+1:M,RK+1:N) := A(RK+1:M,RK+1:N) - */
+        /* A(RK+1:M,OFFSET+1:RK)*F(K+1:N-OFFSET,1:K)**H. */
+        if (rk < (minMN-1)){
+            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasConjTrans,
+                        m-rk-1, n-rk-1, k,
+                        CBLAS_SADDR(mzone), A + (offset) * lda + rk + 1, lda,
+                        f + k, ldf,
+                        CBLAS_SADDR(zone), A + (rk+1) * lda + rk + 1, lda);
+        }
+
+        /* Recomputation of difficult columns. */
+        while (lsticc > 0){
+            itemp = (pastix_int_t) (VN2[lsticc]);
+            assert(lsticc < n);
+            VN1[lsticc] = cblas_dznrm2(m-rk-1, A + (lsticc) * lda + rk + 1, 1);
+
+            /* NOTE: The computation of VN1( LSTICC ) relies on the fact that  */
+            /* SNRM2 does not fail on vectors with norm below the value of */
+            /* SQRT(DLAMCH('S'))  */
+            VN2[lsticc] = VN1[lsticc];
+            lsticc = itemp;
+        }
+
+        lsticc = 0;
+        offset = rk+1;
+    }
+
+    return rk;
+}
+
+
 int
 core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
                pastix_lrblock_t *A )
@@ -64,21 +443,28 @@ core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
 
     if ( rkmax == -1 ) {
         u = malloc( M * N * sizeof(pastix_complex64_t) );
-
+        memset(u, 0, M * N * sizeof(pastix_complex64_t) );
         A->rk = -1;
         A->rkmax = M;
         A->u = u;
         A->v = NULL;
     }
     else {
-        /* u = malloc( M * rkmax * sizeof(pastix_complex64_t) ); */
-        /* v = malloc( N * rkmax * sizeof(pastix_complex64_t) ); */
+#if defined(PASTIX_DEBUG_LR)
+        u = malloc( M * rkmax * sizeof(pastix_complex64_t) );
+        v = malloc( N * rkmax * sizeof(pastix_complex64_t) );
+
+        /* To avoid uninitialised values in valgrind. Lapacke doc (xgesvd) is not correct */
+        memset(u, 0, M * rkmax * sizeof(pastix_complex64_t));
+        memset(v, 0, N * rkmax * sizeof(pastix_complex64_t));
+#else
         u = malloc( (M+N) * rkmax * sizeof(pastix_complex64_t));
 
         /* To avoid uninitialised values in valgrind. Lapacke doc (xgesvd) is not correct */
         memset(u, 0, (M+N) * rkmax * sizeof(pastix_complex64_t));
 
         v = u + M * rkmax;
+#endif
 
         A->rk = 0;
         A->rkmax = rkmax;
@@ -98,7 +484,9 @@ core_zlrfree( pastix_lrblock_t *A )
     }
     else {
         free(A->u);
-        /* free(Alr->v); */
+#if defined(PASTIX_DEBUG_LR)
+        free(A->v);
+#endif
         A->u = NULL;
         A->v = NULL;
     }
@@ -122,7 +510,9 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
     if ( (newrk * 2) > minmn )
     {
         A->u = realloc( A->u, M * N * sizeof(pastix_complex64_t) );
-        /* free(A->v); */
+#if defined(PASTIX_DEBUG_LR)
+        free(A->v);
+#endif
         A->v = NULL;
         A->rk = -1;
         A->rkmax = M;
@@ -137,7 +527,9 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
          * The rank is nul, we free everything
          */
         free(A->u);
-        /* free(A->v); */
+#if defined(PASTIX_DEBUG_LR)
+        free(A->v);
+#endif
         A->u = NULL;
         A->v = NULL;
         A->rkmax = newrkmax;
@@ -152,11 +544,13 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
         int ret;
 
         if ( newrkmax != A->rkmax ) {
-            /* u = malloc( M * newrkmax * sizeof(pastix_complex64_t) ); */
-            /* v = malloc( N * newrkmax * sizeof(pastix_complex64_t) ); */
+#if defined(PASTIX_DEBUG_LR)
+            u = malloc( M * newrkmax * sizeof(pastix_complex64_t) );
+            v = malloc( N * newrkmax * sizeof(pastix_complex64_t) );
+#else
             u = malloc( (M+N) * newrkmax * sizeof(pastix_complex64_t) );
             v = u + M * newrkmax;
-
+#endif
             if ( copy ) {
                 ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, newrk,
                                            A->u, M, u, M );
@@ -166,7 +560,9 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
                 assert(ret == 0);
             }
             free(A->u);
-            /* free(A->v); */
+#if defined(PASTIX_DEBUG_LR)
+            free(A->v);
+#endif
             A->u = u;
             A->v = v;
         }

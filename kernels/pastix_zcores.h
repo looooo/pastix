@@ -312,4 +312,12 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
 
+int
+core_zrrqr( pastix_int_t m, pastix_int_t n,
+            pastix_complex64_t *A, pastix_int_t lda,
+            pastix_int_t *jpvt, pastix_complex64_t *tau,
+            pastix_complex64_t *work, pastix_int_t ldwork,
+            double *rwork,
+            double tol, pastix_int_t nb, pastix_int_t maxrank );
+
 #endif /* _CORE_Z_H_ */
