@@ -278,6 +278,22 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
 
         lrC = blok->LRblock + coef;
 
+        /* Try to compress the block: compress_end version */
+        if ( compress_when == COMPRESS_END )
+        {
+            M = blok_rownbr(blok);
+            pastix_lrblock_t *C = malloc(sizeof(pastix_lrblock_t));
+
+            int ret = core_zge2lr_QR(compress_tolerance, M, N,
+                                     lrC->u, M,
+                                     C);
+
+            lrC->u = C->u;
+            lrC->v = C->v;
+            lrC->rk = C->rk;
+            lrC->rkmax = C->rkmax;
+        }
+
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {
                 cblas_ztrsm(CblasColMajor,
@@ -329,6 +345,22 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
     for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
 
         lrC = blok->LRblock + coef;
+
+        /* Try to compress the block: compress_end version */
+        if ( compress_when == COMPRESS_END )
+        {
+            M = blok_rownbr(blok);
+            pastix_lrblock_t *C = malloc(sizeof(pastix_lrblock_t));
+
+            int ret = core_zge2lr_QR(compress_tolerance, M, N,
+                                     lrC->u, M,
+                                     C);
+
+            lrC->u = C->u;
+            lrC->v = C->v;
+            lrC->rk = C->rk;
+            lrC->rkmax = C->rkmax;
+        }
 
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {

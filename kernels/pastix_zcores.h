@@ -320,4 +320,9 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             double *rwork,
             double tol, pastix_int_t nb, pastix_int_t maxrank );
 
+int
+core_zge2lr_QR( double tol, pastix_int_t m, pastix_int_t n,
+                const pastix_complex64_t *A, pastix_int_t lda,
+                pastix_lrblock_t *Alr );
+
 #endif /* _CORE_Z_H_ */
