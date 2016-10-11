@@ -48,6 +48,10 @@ int main (int argc, char **argv)
     printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
     printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
 
+    /* TO BE CLEAN !!! */
+    compress_when      = iparm[IPARM_COMPRESS_WHEN];
+    compress_tolerance = dparm[DPARM_COMPRESS_TOLERANCE];
+
     /**
      * Read the sparse matrix with the driver
      */

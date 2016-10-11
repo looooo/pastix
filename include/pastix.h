@@ -606,10 +606,11 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                       pastix_int_t   rhsnbr,
                       void          *b);
 
-/* Used to perform reordering after splitting */
-/* pastix_int_t *rangtab_new; */
-/* pastix_int_t *permtab_saved; */
-/* pastix_int_t *peritab_saved; */
-/* pastix_int_t  rangtab_current; */
+/* Temporary variable before proper merge */
+#define COMPRESS_BEGIN  0
+#define COMPRESS_END    1
+#define COMPRESS_DURING 2
 
+pastix_int_t compress_when;
+double compress_tolerance;
 #endif /* _PASTIX_H_ */
