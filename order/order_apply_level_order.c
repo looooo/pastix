@@ -322,7 +322,7 @@ orderApplyLevelOrder_2D( Order *order, pastix_int_t distribution_level )
                 for(s=0; s<sonsnbr; s++) {
                     pastix_int_t son = eTreeSonI(etree, node, s);
                     size = oldorder.rangtab[ son+1 ] - oldorder.rangtab[ son ];
-                    if (size > distribution_level){
+                    if (size >= distribution_level){
                         is_2D[son] = 1;
                         tot_nb_2D++;
                     }
