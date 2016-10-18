@@ -370,7 +370,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
         orderFindSupernodes( &subgraph, ordemesh );
     }
 
-    orderApplyLevelOrder( ordemesh );
+    /* orderApplyLevelOrder( ordemesh ); */
+    orderApplyLevelOrder_2D( ordemesh, iparm[IPARM_DISTRIBUTION_LEVEL] );
 
     /*
      * Add the isolated elements to the ordering structure
