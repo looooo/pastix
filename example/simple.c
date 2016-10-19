@@ -73,6 +73,11 @@ int main (int argc, char **argv)
     compress_method    = iparm[IPARM_COMPRESS_METHOD];
     compress_tolerance = dparm[DPARM_COMPRESS_TOLERANCE];
 
+    if (iparm[IPARM_SCHEDULER] != 2 && iparm[IPARM_COMPRESS_WHEN] == COMPRESS_DURING){
+        printf("COMPRESS DURING AVAILABLE ONLY WITH PARSEC !!! \n");
+        exit(1);
+    }
+
     /**
      * Read the sparse matrix with the driver
      */

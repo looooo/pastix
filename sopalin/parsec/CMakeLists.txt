@@ -43,6 +43,10 @@ set(SOURCES
   zhetrf_sp1dplus_wrapper.c
   zpotrf_sp1dplus_wrapper.c
   zgetrf_sp1dplus_wrapper.c
+  zsytrf_sp2d_wrapper.c
+  zhetrf_sp2d_wrapper.c
+  zpotrf_sp2d_wrapper.c
+  zgetrf_sp2d_wrapper.c
   #zpotrs_sp1dplus_wrapper.c
 )
 
