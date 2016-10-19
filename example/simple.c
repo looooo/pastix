@@ -48,10 +48,26 @@ int main (int argc, char **argv)
     printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
     printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
 
-    printf("\tCOMPRESS_WHEN %ld COMPRESS_METHOD %ld\n",
-           iparm[IPARM_COMPRESS_WHEN],
-           iparm[IPARM_COMPRESS_METHOD]);
+    switch (iparm[IPARM_COMPRESS_WHEN]){
+    case COMPRESS_BEGIN:
+        printf("\tCOMPRESS BEGIN\n");
+        break;
+    case COMPRESS_END:
+        printf("\tCOMPRESS END\n");
+        break;
+    case COMPRESS_DURING:
+        printf("\tCOMPRESS DURING\n");
+        break;
+    }
 
+    switch (iparm[IPARM_COMPRESS_METHOD]){
+    case SVD:
+        printf("\tCOMPRESS_METHOD SVD\n");
+        break;
+    case RRQR:
+        printf("\tCOMPRESS_METHOD RRQR\n");
+        break;
+    }
     /* TO BE CLEAN !!! */
     compress_when      = iparm[IPARM_COMPRESS_WHEN];
     compress_method    = iparm[IPARM_COMPRESS_METHOD];
@@ -162,6 +178,10 @@ int main (int argc, char **argv)
     spmExit( spm );
     free( spm );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    char command[512];
+    sprintf(command, "cat /proc/%u/status | grep VmPeak", getpid());
+    system(command);
 
     return EXIT_SUCCESS;
 }
