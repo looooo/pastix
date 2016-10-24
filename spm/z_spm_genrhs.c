@@ -13,6 +13,7 @@
  *
  * @precisions normal z -> c s d
  **/
+#include "cblas.h"
 #include "lapacke.h"
 #include "common.h"
 #include "solver.h"
@@ -373,10 +374,19 @@ z_spmCheckAxb( int nrhs,
      * Compute r = x0 - x
      */
     if ( x0 != NULL ) {
+        const pastix_complex64_t *zx  = (const pastix_complex64_t *)x;
+        pastix_complex64_t *zx0 = (pastix_complex64_t *)x0;;
+        pastix_int_t i;
+
         normX0 = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
-        core_zgeadd( PastixNoTrans, spm->n, nrhs,
-                     -1., x,  ldx,
-                      1., x0, ldx0 );
+
+        for( i=0; i<nrhs; i++) {
+            cblas_zaxpy(
+                spm->n, CBLAS_SADDR(mzone),
+                zx  + ldx  * i, 1,
+                zx0 + ldx0 * i, 1);
+        }
+
         normR = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
 
         forward = normR / normX0;

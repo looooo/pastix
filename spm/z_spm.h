@@ -19,6 +19,11 @@
 #define _z_spm_H_
 
 /**
+ * Integer routines
+ */
+int z_spmIntSortAsc(void ** const pbase, const pastix_int_t n);
+
+/**
  * Conversion routines
  */
 int z_spmConvertCSC2CSR( pastix_spm_t *spm );
@@ -58,7 +63,7 @@ void z_spmDensePrint( pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pas
 void z_spmPrint( const pastix_spm_t *spm );
 
 
-void z_spmExpand(pastix_spm_t *spm);
+int  z_spmExpand(pastix_spm_t *spm);
 void z_spmDofs2Flat(pastix_spm_t *spm);
 
 #endif /* _z_spm_H_ */

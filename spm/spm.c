@@ -162,19 +162,19 @@ spmBase( pastix_spm_t *spm,
 
     /* Parameter checks */
     if ( spm == NULL ) {
-        errorPrint("spmBase: spm pointer is NULL");
+        pastix_error_print("spmBase: spm pointer is NULL");
         return;
     }
     if ( (spm->colptr == NULL) ||
          (spm->rowptr == NULL) )
     {
-        errorPrint("spmBase: spm pointer is not correctly initialized");
+        pastix_error_print("spmBase: spm pointer is not correctly initialized");
         return;
     }
     if ( (baseval != 0) &&
          (baseval != 1) )
     {
-        errorPrint("spmBase: baseval is incorrect, must be 0 or 1");
+        pastix_error_print("spmBase: baseval is incorrect, must be 0 or 1");
         return;
     }
 

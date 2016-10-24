@@ -12,8 +12,8 @@
  **/
 #include <stdio.h>
 #include "common.h"
-#include "drivers.h"
-#include "iohb.h"
+#include "spm_drivers.h"
+#include "drivers/iohb.h"
 
 /**
  * ******************************************************************************
@@ -119,8 +119,8 @@ readHB( const char   *filename,
         }
 
         /* Move the colptr/rowind from int to pastix_int_t if different sizes */
-        csc->colptr = pastix_int_convert(csc->n+1, colptr);
-        csc->rowptr = pastix_int_convert(csc->nnz, rowind);
+        csc->colptr = spmIntConvert(csc->n+1, colptr);
+        csc->rowptr = spmIntConvert(csc->nnz, rowind);
     }
     return PASTIX_SUCCESS;
 }

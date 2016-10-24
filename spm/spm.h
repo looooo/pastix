@@ -18,6 +18,35 @@
 /**
  * @ingroup pastix_spm
  *
+ * @enum pastix_driver_e
+ *
+ * @brief The list of matrix driver reader and generators
+ *
+ */
+typedef enum pastix_driver_e {
+    PastixDriverRSA, /* ok */
+    PastixDriverCCC,//
+    PastixDriverRCC,//
+    PastixDriverOlaf,//
+    PastixDriverPeer,//
+    PastixDriverHB, /* ok */
+    PastixDriverIJV, /* ok */
+    PastixDriverMM, /* ok */
+    PastixDriverDMM, /* ok */
+    PastixDriverPetscS, /* ok */
+    PastixDriverPetscU, /* ok */
+    PastixDriverPetscH, /* ok */
+    PastixDriverCSCD,//
+    PastixDriverLaplacian, /* ok */
+    PastixDriverXLaplacian, /* ok */
+    PastixDriverBRGM,//
+    PastixDriverBRGMD,//
+    PastixDriverGraph
+} pastix_driver_t;
+
+/**
+ * @ingroup pastix_spm
+ *
  * @struct pastix_spm_s
  *
  * @brief The sparse matrix data structure
@@ -77,6 +106,14 @@ csc_save( pastix_int_t  n,
           void         *values,
           int           dof,
           FILE         *outfile );
+/**
+ * Integer arrays subroutines
+ */
+pastix_int_t *spmIntConvert( pastix_int_t n, int *input );
+void          spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
+void          spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
+void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
+
 
 int spmLoad( pastix_spm_t *spm, FILE *infile );
 int spmSave( pastix_spm_t *spm, FILE *outfile );
@@ -101,5 +138,10 @@ pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
 
 void spmExpand(pastix_spm_t* spm);
 void dofVar(pastix_spm_t* spm);//tmp
+
+int spmReadDriver( pastix_driver_t  driver,
+                   char            *filename,
+                   pastix_spm_t    *spm,
+                   MPI_Comm         pastix_comm );
 
 #endif /* _SPM_H_ */
