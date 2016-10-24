@@ -48,6 +48,7 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
+    spmInit(&spm);
     /**
      * Get options from command line
      */

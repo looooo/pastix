@@ -17,8 +17,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "common.h"
-#include "drivers.h"
-#include "laplacian.h"
+#include "spm_drivers.h"
+#include "drivers/laplacian.h"
 
 /**
  *******************************************************************************

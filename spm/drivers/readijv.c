@@ -13,8 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
-#include "drivers.h"
-#include "pastix.h"
+#include "spm_drivers.h"
 
 /**
  *******************************************************************************

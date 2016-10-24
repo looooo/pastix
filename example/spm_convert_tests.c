@@ -55,7 +55,12 @@ int spmComp( const pastix_spm_t *spm1,
         (spm1->n       != spm2->n      ) ||
         (spm1->gnnz    != spm2->gnnz   ) ||
         (spm1->nnz     != spm2->nnz    ) ||
-        (spm1->dof     != spm2->dof    ) )
+        (spm1->dof     != spm2->dof    ) ||
+        (spm1->gNexp   != spm2->gNexp  ) ||
+        (spm1->nexp    != spm2->nexp   ) ||
+        (spm1->gnnzexp != spm2->gnnzexp) ||
+        (spm1->nnzexp  != spm2->nnzexp ) ||
+        (spm1->colmajor != spm2->colmajor))
     {
         return 1;
     }
@@ -78,7 +83,7 @@ int spmComp( const pastix_spm_t *spm1,
 
     /* Check values */
     if (spm1->values != NULL) {
-        pastix_int_t size = spm1->nnz * (pastix_size_of( spm1->flttype ) / sizeof(int));
+        pastix_int_t size = spm1->nnzexp * (pastix_size_of( spm1->flttype ) / sizeof(int));
         valptr1 = (int*)(spm1->values);
         valptr2 = (int*)(spm2->values);
         for (i=0; i<size; i++, valptr1++, valptr2++) {
@@ -104,6 +109,7 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
+    spmInit(&spm);
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
 
@@ -114,7 +120,7 @@ int main (int argc, char **argv)
     spm2.colptr = malloc((spm.n+1)*sizeof(pastix_int_t));
     spm2.rowptr = malloc( spm.nnz *sizeof(pastix_int_t));
     if (spm.values != NULL)
-        spm2.values = malloc(spm.nnz * pastix_size_of( spm.flttype ));
+        spm2.values = malloc(spm.nnzexp * pastix_size_of( spm.flttype ));
 
     printf(" Datatype: %s\n", fltnames[spm.flttype] );
     for( baseval=0; baseval<2; baseval++ )
@@ -128,7 +134,7 @@ int main (int argc, char **argv)
         memcpy(spm2.colptr, spm.colptr, (spm.n+1)*sizeof(pastix_int_t));
         memcpy(spm2.rowptr, spm.rowptr,  spm.nnz * sizeof(pastix_int_t));
         if (spm.values != NULL) {
-            memcpy(spm2.values, spm.values, spm.nnz * pastix_size_of( spm.flttype ));
+            memcpy(spm2.values, spm.values, spm.nnzexp * pastix_size_of( spm.flttype ));
         }
 
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
