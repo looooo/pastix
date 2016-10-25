@@ -73,10 +73,10 @@ z_spm_matvec_check( int trans, const pastix_spm_t *spm )
                  CBLAS_SADDR(beta), yd, spm->gNexp );
 
     Anorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, spm->gNexp,  A, spm->gNexp );
-    Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,        x, spm->gNexp );
-    Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,       y0, spm->gNexp );
-    Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,       ys, spm->gNexp );
-    Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,       yd, spm->gNexp );
+    Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,           x, spm->gNexp );
+    Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,          y0, spm->gNexp );
+    Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,          ys, spm->gNexp );
+    Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1,          yd, spm->gNexp );
 
     core_zgeadd(PastixNoTrans, spm->gNexp, 1,
                 -1., ys, spm->gNexp,
