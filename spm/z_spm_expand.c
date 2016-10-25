@@ -21,7 +21,7 @@
  * TODO: This function is incorrect
  */
 int
-z_spmExpand(pastix_spm_t* spm)
+z_spmExpand(pastix_spm_t *spm)
 {
     pastix_int_t i, col, row, cpt, dofj, dofi, baseval;
     pastix_complex64_t *oldvalptr;

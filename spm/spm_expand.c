@@ -22,27 +22,6 @@
 #include "s_spm.h"
 #include "p_spm.h"
 
-void
-spmExpand(pastix_spm_t* spm)
-{
-    switch(spm->flttype)
-    {
-    case PastixFloat:
-        s_spmExpand(spm);
-        break;
-    case PastixComplex32:
-        c_spmExpand(spm);
-        break;
-    case PastixComplex64:
-        z_spmExpand(spm);
-        break;
-    case PastixDouble:
-    default:
-        d_spmExpand(spm);
-        break;
-    }
-}
-
 void print_tab_int(pastix_int_t* tab, pastix_int_t size)
 {
     int i;
