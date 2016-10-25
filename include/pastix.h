@@ -31,16 +31,6 @@
 #endif
 #include "pastix/old_api.h"
 
-/** ****************************************************************************
- * Sparse matrix format
- **/
-typedef enum pastix_fmttype_e {
-    PastixCSC = 0,
-    PastixCSR = 1,
-    PastixIJV = 2
-} pastix_fmttype_t;
-
-
 #define PASTIX_SUCESS  0
 
 /**
