@@ -60,7 +60,7 @@ int spmComp( const pastix_spm_t *spm1,
         (spm1->nexp    != spm2->nexp   ) ||
         (spm1->gnnzexp != spm2->gnnzexp) ||
         (spm1->nnzexp  != spm2->nnzexp ) ||
-        (spm1->colmajor != spm2->colmajor))
+        (spm1->layout  != spm2->layout ))
     {
         return 1;
     }

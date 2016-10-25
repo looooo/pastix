@@ -18,7 +18,6 @@ precisions_rules_py(generated_headers
 set(SOURCES
   z_spm.c
   z_spm_2dense.c
-  z_spm_convert_col_row_major.c
   z_spm_convert_to_csc.c
   z_spm_convert_to_csr.c
   z_spm_convert_to_ijv.c

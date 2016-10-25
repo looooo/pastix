@@ -20,46 +20,60 @@
 /**
  * TODO: This function is incorrect
  */
-int
-z_spmExpand(pastix_spm_t *spm)
+pastix_spm_t *
+z_spmExpand(const pastix_spm_t *spm)
 {
+    pastix_spm_t *newspm;
     pastix_int_t i, col, row, cpt, dofj, dofi, baseval;
+#if !defined(PRECISION_p)
     pastix_complex64_t *oldvalptr;
     pastix_complex64_t *newvalptr;
+#endif
+
+    if (spm->dof == 1) {
+        return spm;
+    }
 
     if (1) {
-        return PASTIX_ERR_NOTIMPLEMENTED;
+        return NULL;
     }
 
-    baseval = spmFindBase( spm );
+    
+/*     baseval = spmFindBase( spm ); */
 
-    oldvalptr = (pastix_complex64_t*)spm->values;
-    spm->values = malloc( spm->nnzexp * sizeof(pastix_complex64_t) );
-    newvalptr = (pastix_complex64_t*)spm->values;
+/* #if !defined(PRECISION_p) */
+/*     oldvalptr = (pastix_complex64_t*)spm->values; */
+/*     spm->values = malloc( spm->nnzexp * sizeof(pastix_complex64_t) ); */
+/*     newvalptr = (pastix_complex64_t*)spm->values; */
+/* #endif */
 
-    cpt = 0;
-    dofi = spm->dof;
-    dofj = spm->dof;
+/*     cpt = 0; */
+/*     dofi = spm->dof; */
+/*     dofj = spm->dof; */
 
-    for( col=0; col<spm->n; col++)
-    {
-        if ( spm->dof <= 0 ) {
-            dofi = spm->dofs[col+1] - spm->dofs[col];
-        }
+/*     for( col=0; col<spm->n; col++) */
+/*     { */
+/*         if ( spm->dof <= 0 ) { */
+/*             dofi = spm->dofs[col+1] - spm->dofs[col]; */
+/*         } */
 
-        for( row=spm->colptr[col]-baseval; row<spm->colptr[col+1]-baseval; row++)
-        {
-            if ( spm->dof <= 0 ) {
-                dofj = spm->dofs[spm->rowptr[row]-baseval+1] - spm->dofs[spm->rowptr[row]-baseval];
-            }
+/*         for( row=spm->colptr[col]-baseval; row<spm->colptr[col+1]-baseval; row++) */
+/*         { */
+/*             if ( spm->dof <= 0 ) { */
+/*                 dofj = spm->dofs[spm->rowptr[row]-baseval+1] - spm->dofs[spm->rowptr[row]-baseval]; */
+/*             } */
 
-            for( i=0; i<dofi*dofj; i++)
-            {
-                newvalptr[cpt] = oldvalptr[row] / ((i/dofj) + (i%dofj) + 2); // Col major
-                cpt++;
-            }
-        }
-    }
+/*             for( i=0; i<dofi*dofj; i++) */
+/*             { */
+/* #if !defined(PRECISION_p) */
+/*                 newvalptr[cpt] = oldvalptr[row] / ((i/dofj) + (i%dofj) + 2); // Col major */
+/*                 cpt++; */
+/* #endif */
+/*             } */
+/*         } */
+/*     } */
 
-    free( oldvalptr );
+/* #if !defined(PRECISION_p) */
+/*     free( oldvalptr ); */
+/* #endif */
 }

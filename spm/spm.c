@@ -98,9 +98,9 @@ spmInit( pastix_spm_t *spm )
     spm->gnnzexp = 0;
     spm->nnzexp  = 0;
 
-    spm->dof       = 1;
-    spm->dofs      = NULL;
-    spm->colmajor  = 1;
+    spm->dof      = 1;
+    spm->dofs     = NULL;
+    spm->layout   = PastixColMajor;
 
     spm->colptr   = NULL;
     spm->rowptr   = NULL;
@@ -334,30 +334,36 @@ double
 spmNorm( int ntype,
          const pastix_spm_t *spm )
 {
-    double tmp;
+    pastix_spm_t *spmtmp;
+    double norm = -1.;
 
     if ( spm->dof != 1 ) {
         fprintf(stderr, "WARNING: spm expanded due to non implemented norm for non-expanded spm\n");
-        spm = spmExpand( spm );
+        spmtmp = spmExpand( spm );
     }
     switch (spm->flttype) {
     case PastixFloat:
-        tmp = (double)s_spmNorm( ntype, spm );
-        return tmp;
+        norm = (double)s_spmNorm( ntype, spmtmp );
+        break;
 
     case PastixDouble:
-        return d_spmNorm( ntype, spm );
+        norm = d_spmNorm( ntype, spmtmp );
+        break;
 
     case PastixComplex32:
-        tmp = (double)c_spmNorm( ntype, spm );
-        return tmp;
+        norm = (double)c_spmNorm( ntype, spmtmp );
+        break;
 
     case PastixComplex64:
-        return z_spmNorm( ntype, spm );
+        norm = z_spmNorm( ntype, spmtmp );
+        break;
 
+    case PastixPattern:
     default:
-        return -1.;
+        ;
     }
+
+    return norm;
 }
 
 /**
@@ -688,24 +694,26 @@ spmCopy( const pastix_spm_t *spm )
  *          The copy of the sparse matrix.
  *
  *******************************************************************************/
-void
-spmExpand(pastix_spm_t* spm)
+pastix_spm_t *
+spmExpand(const pastix_spm_t* spm)
 {
     switch(spm->flttype)
     {
+    case PastixPattern:
+        return p_spmExpand(spm);
+        break;
     case PastixFloat:
-        s_spmExpand(spm);
+        return s_spmExpand(spm);
         break;
     case PastixComplex32:
-        c_spmExpand(spm);
+        return c_spmExpand(spm);
         break;
     case PastixComplex64:
-        z_spmExpand(spm);
+        return z_spmExpand(spm);
         break;
     case PastixDouble:
     default:
-        d_spmExpand(spm);
-        break;
+        return d_spmExpand(spm);
     }
 }
 

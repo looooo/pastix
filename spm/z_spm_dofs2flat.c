@@ -119,9 +119,9 @@ z_spmDofs2Flat(pastix_spm_t *spm)
         spm->gnnz = spm->gnnzexp;
         spm->nnz  = spm->nnzexp;
 
-        spm->dof       = 1;
-        spm->dofs      = NULL;
-        spm->colmajor  = 1;
+        spm->dof      = 1;
+        spm->dofs     = NULL;
+        spm->layout   = PastixColMajor;
 
         spm->colptr   = new_col;
         spm->rowptr   = new_row;
@@ -218,9 +218,9 @@ z_spmDofs2Flat(pastix_spm_t *spm)
         spm->gnnzexp = nnz;
         spm->nnzexp  = nnz;
 
-        spm->dof       = 1;
-        spm->dofs      = NULL;
-        spm->colmajor  = 1;
+        spm->dof      = 1;
+        spm->dofs     = NULL;
+        spm->layout   = PastixColMajor;
 
         spm->colptr   = new_col;
         spm->rowptr   = new_row;
