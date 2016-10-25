@@ -108,6 +108,10 @@ orderBuildEtree( const Order *order,
  * @param[in] ordeptr
  *          The ordering structure to check.
  *
+ * @param[in] distribution_level
+ *          Define the minimal size of the supernodes that are considered as 2D
+ *          blocks. Set to 0, for no 2D blocks.
+ *
  *******************************************************************************
  *
  * @return
@@ -116,7 +120,8 @@ orderBuildEtree( const Order *order,
  *
  *******************************************************************************/
 int
-orderApplyLevelOrder( Order *order )
+orderApplyLevelOrder( Order *order,
+                      pastix_int_t distribution_level )
 {
     Order               oldorder;
     EliminTree         *etree;
@@ -162,7 +167,8 @@ orderApplyLevelOrder( Order *order )
                oldorder.cblknbr );
 
     /**
-     * Build the elimination tree from top to bottom, and store the roots in the permatb array
+     * Build the elimination tree from top to bottom, and store the roots in the
+     * permatb array
      */
     etree = orderBuildEtree( &oldorder,
                              &nbroots,
@@ -171,131 +177,7 @@ orderApplyLevelOrder( Order *order )
     /**
      * Build the sorted array per level
      */
-    {
-        pastix_int_t  pos = nbroots;
-        pastix_int_t *sorted = order->permtab;
-
-        for(i=0; i<order->cblknbr; i++) {
-            node = sorted[i];
-            sonsnbr = etree->nodetab[node].sonsnbr;
-            /**
-             * We put the sons in reverse order to keep the original order
-             * betwen the brothers. This matters for the Minimum Degree part of
-             * the ordering algorithm.
-             */
-            for(s=0; s<sonsnbr; s++) {
-                pastix_int_t son = eTreeSonI(etree, node, s);
-                sorted[ pos + sonsnbr-1-s ] = son;
-                etree->nodetab[ son ].fathnum = order->cblknbr - i - 1;
-            }
-            pos += sonsnbr;
-        }
-        assert(pos == order->cblknbr);
-    }
-
-    /* Let's rebuild peritab, treetab, and rangtab */
-    order->rangtab[0] = 0;
-
-    for(i=0; i<order->cblknbr; i++ ) {
-        node = order->permtab[order->cblknbr - i - 1];
-        size = oldorder.rangtab[ node+1 ] - oldorder.rangtab[ node ];
-
-        ofcol = oldorder.rangtab[ node ];
-        nfcol = order->rangtab[ i ];
-        order->rangtab[ i+1 ] = nfcol + size;
-        order->treetab[ i ] = etree->nodetab[ node ].fathnum;
-
-        memcpy( order->peritab + nfcol, oldorder.peritab + ofcol,
-                size * sizeof( pastix_int_t ) );
-    }
-
-    /* Update the permutation */
-    for (i=0; i<order->vertnbr; i++) {
-        order->permtab[ order->peritab[i] ] = i;
-    }
-
-    orderExit( &oldorder );
-    eTreeExit( etree );
-
-    return PASTIX_SUCESS;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_ordering
- *
- * orderApplyLevelOrder_2D - This routine reorders the elimination tree nodes per
- * level, starting by 2D nodes.
- *
- *******************************************************************************
- *
- * @param[in] ordeptr
- *          The ordering structure to check.
- *
- *******************************************************************************
- *
- * @return
- *          \retval PASTIX_SUCESS on successful exit.
- *          \retval PASTIX_ERR_BADPARAMETER if the ordering structure is incorrect.
- *
- *******************************************************************************/
-int
-orderApplyLevelOrder_2D( Order *order, pastix_int_t distribution_level )
-{
-    Order               oldorder;
-    EliminTree         *etree;
-    pastix_int_t        baseval;                  /* Node base value            */
-    pastix_int_t        i, s, nbroots, node, sonsnbr;
-    pastix_int_t        nfcol, ofcol, size;
-
-    /* Parameter checks */
-    if ( order == NULL ) {
-        errorPrint ("orderCheck: invalid order pointer");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    if ( order->permtab == NULL ) {
-        errorPrint ("orderCheck: invalid order->permtab pointer");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    if ( order->rangtab == NULL ) {
-        errorPrint ("orderCheck: invalid order->rangtab pointer");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    if ( order->treetab == NULL ) {
-        errorPrint ("orderCheck: invalid order->treetab pointer");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    if (order->cblknbr < 0) {
-        errorPrint ("orderCheck: invalid nunber of column blocks");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    baseval = order->baseval;
-    if (baseval < 0) {
-        errorPrint ("orderCheck: invalid vertex node base number");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    assert(baseval == order->rangtab[0]);
-
-    memcpy( &oldorder, order, sizeof( Order ) );
-    orderInit( order,
-               oldorder.vertnbr,
-               oldorder.cblknbr );
-
-    /**
-     * Build the elimination tree from top to bottom, and store the roots in the permatb array
-     */
-    etree = orderBuildEtree( &oldorder,
-                             &nbroots,
-                             order->permtab );
-
-    /**
-     * Build the sorted array by size for 2D
-     */
+    if ( distribution_level >= 0 )
     {
         pastix_int_t  pos_2D;
         pastix_int_t  pos_non_2D;
@@ -373,6 +255,28 @@ orderApplyLevelOrder_2D( Order *order, pastix_int_t distribution_level )
             pos_non_2D += sonsnbr-sons2D;
         }
         memFree_null(is_2D);
+    }
+    else
+    {
+        pastix_int_t  pos = nbroots;
+        pastix_int_t *sorted = order->permtab;
+
+        for(i=0; i<order->cblknbr; i++) {
+            node = sorted[i];
+            sonsnbr = etree->nodetab[node].sonsnbr;
+            /**
+             * We put the sons in reverse order to keep the original order
+             * betwen the brothers. This matters for the Minimum Degree part of
+             * the ordering algorithm.
+             */
+            for(s=0; s<sonsnbr; s++) {
+                pastix_int_t son = eTreeSonI(etree, node, s);
+                sorted[ pos + sonsnbr-1-s ] = son;
+                etree->nodetab[ son ].fathnum = order->cblknbr - i - 1;
+            }
+            pos += sonsnbr;
+        }
+        assert(pos == order->cblknbr);
     }
 
     /* Let's rebuild peritab, treetab, and rangtab */
