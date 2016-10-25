@@ -48,7 +48,6 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
-    spmInit(&spm);
     pastix_ex_getoptions( argc, argv,
                           NULL, NULL,
                           &driver, &filename );

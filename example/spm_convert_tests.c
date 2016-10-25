@@ -109,7 +109,6 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    spmInit(&spm);
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
 

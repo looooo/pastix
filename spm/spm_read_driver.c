@@ -62,18 +62,7 @@ spmReadDriver( pastix_driver_t  driver,
     int mpirank = 0;
     int mpiinit;
 
-    spm->mtxtype  = PastixGeneral;
-    spm->flttype  = PastixDouble;
-    spm->fmttype  = PastixCSC;
-    spm->gN       = 0;
-    spm->n        = 0;
-    spm->gnnz     = 0;
-    spm->nnz      = 0;
-    spm->dof      = 1;
-    spm->colptr   = NULL;
-    spm->rowptr   = NULL;
-    spm->values   = NULL;
-    spm->loc2glob = NULL;
+    spmInit(spm);
 
     MPI_Initialized( &mpiinit );
     if (mpiinit) {
@@ -326,6 +315,11 @@ spmReadDriver( pastix_driver_t  driver,
         /* MPI_Bcast(*rhs,    *ncol,   PASTIX_MPI_FLOAT, 0, comm); */
         /* MPI_Bcast(*type,    4,      MPI_CHAR,         0, comm); */
     }
+
+    spm->gNexp   = spm->gN;
+    spm->nexp    = spm->n;
+    spm->gnnzexp = spm->gnnz;
+    spm->nnzexp  = spm->nnz;
 
     return PASTIX_SUCCESS;
 }
