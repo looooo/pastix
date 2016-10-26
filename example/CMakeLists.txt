@@ -2,7 +2,8 @@ set (EXAMPLES
   analyze.c
   simple.c
   reentrant.c
-  bench_facto.c)
+  bench_facto.c
+  )
 
 foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
