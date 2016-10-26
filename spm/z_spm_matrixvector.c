@@ -314,9 +314,13 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
             for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
             {
                 row=csc->rowptr[i-baseval]-baseval;
-                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-                if( col != row )
+                if( col != row ) {
+                    yptr[row] += alpha * valptr[i-baseval] * xptr[col];
                     yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+                }
+                else {
+                    yptr[row] += alpha * creal(valptr[i-baseval]) * xptr[col];
+                }
             }
         }
     }

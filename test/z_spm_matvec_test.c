@@ -55,8 +55,14 @@ z_spm2dense( const pastix_spm_t *spm )
         {
             for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
             {
-                A[ i * lda + (*rowptr - baseval) ] = *valptr;
-                A[ (*rowptr - baseval) * lda + i ] = conj(*valptr);
+                if( i == (*rowptr-baseval) ) {
+                    /* Make sure the matrix is hermitian */
+                    A[ i * lda + (*rowptr - baseval) ] = creal(*valptr) + I * 0.;
+                }
+                else {
+                    A[ i * lda + (*rowptr - baseval) ] = *valptr;
+                    A[ (*rowptr - baseval) * lda + i ] = conj(*valptr);
+                }
             }
         }
         break;
@@ -105,7 +111,7 @@ z_spm_matvec_check( int trans, const pastix_spm_t *spm )
     core_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
 
     x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    core_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
+    core_zplrnt( spm->gN, 1, x,  spm->gN, 1, start, 0, seed ); start += spm->gN;
 
     y0 = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
     core_zplrnt( spm->gN, 1, y0, spm->gN, 1, start, 0, seed ); start += spm->gN;

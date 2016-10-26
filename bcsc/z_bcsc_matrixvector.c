@@ -187,7 +187,7 @@ z_bcscGemv(pastix_trans_t      trans,
             {
                 for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
                 {
-                    *yptr += alpha * conj( valptr[i] ) * xptr[ bcsc->rowtab[i] ];
+                    *yptr += alpha * valptr[i] * xptr[ bcsc->rowtab[i] ];
                 }
             }
         }

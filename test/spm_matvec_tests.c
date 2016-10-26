@@ -67,7 +67,8 @@ int main (int argc, char **argv)
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
-                 ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)) )
+                 ( ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)) ||
+                   (spmtype != PastixHermitian) ) )
             {
                 continue;
             }

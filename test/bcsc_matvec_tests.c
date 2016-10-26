@@ -103,7 +103,8 @@ int main (int argc, char **argv)
     for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
     {
         if ( (t == PastixConjTrans) &&
-             ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) )
+             ((spm->mtxtype != PastixHermitian) ||
+              ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32))) )
         {
             continue;
         }

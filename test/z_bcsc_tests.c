@@ -68,19 +68,18 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
 
     /* Compute the bcsc matrix-vector product */
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
-    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
+    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
 
     bcscMatVec( trans, &alpha, pastix_data->bcsc, x, &beta, yd );
 
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
-    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
+    z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
 
-    // Anorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
     Anorm  = spmNorm( PastixInfNorm, spm );
-    Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,        x, spm->gN );
-    Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       y0, spm->gN );
-    Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       ys, spm->gN );
-    Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,       yd, spm->gN );
+    Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,  x, spm->gN );
+    Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, y0, spm->gN );
+    Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, ys, spm->gN );
+    Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, yd, spm->gN );
 
     core_zgeadd(PastixNoTrans, spm->gN, 1,
                 -1., ys, spm->gN,
