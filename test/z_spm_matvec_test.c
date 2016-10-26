@@ -87,7 +87,6 @@ z_spm2dense( const pastix_spm_t *spm )
             }
         }
     }
-
     return A;
 }
 
@@ -208,7 +207,7 @@ z_spm_norm_check( const pastix_spm_t *spm )
     norms = spmNorm( PastixInfNorm, spm );
     normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, spm->gN,  A, spm->gN );
     result = fabs(norms - normd) / (normd * eps);
-    result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
+    result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
 
     if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
@@ -227,7 +226,7 @@ z_spm_norm_check( const pastix_spm_t *spm )
     norms = spmNorm( PastixOneNorm, spm );
     normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'O', spm->gN, spm->gN,  A, spm->gN );
     result = fabs(norms - normd) / (normd * eps);
-    result = result * ((double)(spm->gnnz)) / ((double)(spm->gN));
+    result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
 
     if ( (result >= 0.) && (result < 1.) ) {
         printf("SUCCESS !\n");
