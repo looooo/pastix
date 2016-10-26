@@ -43,7 +43,7 @@ typedef struct BlendCtrl_ {
     /* 2D */
     pastix_int_t    autolevel;       /*+ Level to shift 1D to 2D is automaticaly computed                  +*/
     pastix_int_t    level2D;         /*+ number of levels to treat with a 2D distribution                  +*/
-    double          ratiolimit;
+    pastix_int_t    ratiolimit;
     pastix_int_t    blblokmin ;      /*+ Minimum blocking size in 2D distribution                          +*/
     pastix_int_t    blblokmax;       /*+ Maximum blocking size in 2D distribution                          +*/
 

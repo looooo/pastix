@@ -171,8 +171,8 @@ blendCtrlInit( BlendCtrl    *ctrl,
     ctrl->autolevel  = 1;
     ctrl->level2D    = 100000000;
     ctrl->level2D    = iparm[IPARM_DISTRIBUTION_LEVEL];
-    ctrl->ratiolimit = 0.0;
-    ctrl->ratiolimit = (double)(iparm[IPARM_DISTRIBUTION_LEVEL]);
+    ctrl->ratiolimit = 0;
+    ctrl->ratiolimit = iparm[IPARM_DISTRIBUTION_LEVEL];
     ctrl->blblokmin  = 90;
     ctrl->blblokmax  = 140;
     ctrl->blblokmin  = iparm[IPARM_MIN_BLOCKSIZE];
@@ -186,9 +186,9 @@ blendCtrlInit( BlendCtrl    *ctrl,
 
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX) {
         if (ctrl->autolevel)
-            printf("ratiolimit=%lf\n", ctrl->ratiolimit );
+            printf("ratiolimit=%ld\n", (long) (ctrl->ratiolimit) );
         else
-            printf("level2D=%ld\n", (long) ctrl->level2D );
+            printf("level2D=%ld\n", (long)(ctrl->level2D) );
     }
     /* Save iparm for other options */
     ctrl->iparm = iparm;

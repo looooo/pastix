@@ -20,10 +20,10 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmGeCSCv - compute the matrix-vector product:
- *          y = alpha * op( A ) + beta * y
+ *          y = alpha * op( A ) * x + beta * y
  *
  * A is a PastixGeneral csc, where op( X ) is one of
  *
@@ -152,7 +152,7 @@ z_spmGeCSCv(      int                 trans,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm_internal
  *
  * z_spmSYCSCv - compute the matrix-vector product:
  *          y = alpha * A + beta * y
@@ -241,7 +241,7 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm_internal
  *
  * z_spmHeCSCv - compute the matrix-vector product:
  *          y = alpha * A + beta * y

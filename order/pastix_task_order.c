@@ -24,7 +24,6 @@
  *******************************************************************************
  *
  * @ingroup pastix_ordering
- * @ingroup pastix
  *
  * pastix_task_order - Computes the ordering of the given graph in parameters.
  *
@@ -65,24 +64,9 @@
  *          file if set to APÏ_IO_LOAD without going through an ordering
  *          library.
  *
- * @param[in] n
- *          The number of vertices.
- *
- * @param[in] colptr
- *          Array of size n+1
- *          The array of indirection to the rows array for each vertex.
- *          rows[ colptr[i] ] to rows[ colptr[i+1] are the edges of the
- *          ith vertex.
- *
- * @param[in] rows
- *          Array of size nnz = colptr[n] - colptr[0]. The array of edges.
- *          rows[ colptr[i]   - colptr[0] ] to
- *          rows[ colptr[i+1] - colptr[0] ] are the edges of the ith vertex.
- *
- * @param[in] loc2glob
- *          Array of size n
- *          Global numbering of each local vertex.
- *          NULL if centralized interface is used or if graph load is asked.
+ * @param[in] spm
+ *          The sparse matrix given by the user on which the ordering will be
+ *          computed.
  *
  * @param[in,out] perm
  *          Array of size n.
@@ -113,7 +97,7 @@
  *******************************************************************************/
 int
 pastix_task_order(      pastix_data_t *pastix_data,
-                  const pastix_csc_t  *csc,
+                  const pastix_spm_t  *spm,
                         pastix_int_t  *perm,
                         pastix_int_t  *invp)
 {
@@ -144,12 +128,12 @@ pastix_task_order(      pastix_data_t *pastix_data,
         errorPrint("pastix_task_order: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (csc == NULL) {
-        errorPrint("pastix_task_order: wrong csc parameter");
+    if (spm == NULL) {
+        errorPrint("pastix_task_order: wrong spm parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm = pastix_data->iparm;
-    n = csc->n;
+    n = spm->n;
 
     if ( !(pastix_data->steps & STEP_INIT) ) {
         errorPrint("pastix_task_order: pastix_task_init() has to be called before calling this function");
@@ -204,12 +188,12 @@ pastix_task_order(      pastix_data_t *pastix_data,
         pastix_print(procnum, 0, "%s", OUT_STEP_ORDER);
 
     /*
-     * Prepare a copy of user's CSC
-     * Copy the given csc in pastix_data structure and performs basic required
+     * Prepare a copy of user's SPM
+     * Copy the given spm in pastix_data structure and performs basic required
      * operations as symmetrizing the graph and removing the diagonal
      * coefficients
      */
-    graphPrepare( pastix_data, csc, &(pastix_data->graph) );
+    graphPrepare( pastix_data, spm, &(pastix_data->graph) );
     graph = pastix_data->graph;
 
     /*
@@ -319,7 +303,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
     case API_ORDER_PERSONAL:
         {
             pastix_int_t i, n;
-            n = csc->gN;
+            n = spm->gN;
             orderInit(ordemesh, n, 0);
             if (perm == NULL) {
                 if (invp == NULL) {
@@ -386,7 +370,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         orderFindSupernodes( &subgraph, ordemesh );
     }
 
-    orderApplyLevelOrder( ordemesh );
+    orderApplyLevelOrder( ordemesh, iparm[IPARM_DISTRIBUTION_LEVEL] );
 
     /*
      * Add the isolated elements to the ordering structure
@@ -437,7 +421,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
      * Remark: No need to copy back for personal
      */
     if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
-        if (csc->loc2glob == NULL) {
+        if (spm->loc2glob == NULL) {
             if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
             if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
         }
@@ -449,7 +433,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
                 pastix_int_t i;
 
                 for(i=0; i<n; i++) {
-                    perm[i] = permtab[csc->loc2glob[i]];
+                    perm[i] = permtab[spm->loc2glob[i]];
                 }
             }
             if (invp != NULL) {
@@ -457,7 +441,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
                 pastix_int_t i;
 
                 for(i=0; i<n; i++) {
-                    invp[i] = peritab[csc->loc2glob[i]];
+                    invp[i] = peritab[spm->loc2glob[i]];
                 }
             }
         }
@@ -467,8 +451,8 @@ pastix_task_order(      pastix_data_t *pastix_data,
     orderCheck( ordemesh );
 #endif
 
-    /* Backup the csc pointer for further information */
-    pastix_data->csc = csc;
+    /* Backup the spm pointer for further information */
+    pastix_data->csc = spm;
 
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_SYMBFACT |

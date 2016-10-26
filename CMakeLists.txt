@@ -638,44 +638,6 @@ set_source_files_properties(
   PROPERTIES DEPENDS sopalin_headers
   )
 
-set(PASTIX_ALL_SRCS
-  ${generated_files}
-  #
-  graph/graph.c
-  graph/graph_isolate.c
-  graph/graph_prepare.c
-  graph/graph_symmetrize.c
-  #
-  order/order.c
-  order/order_add_isolate.c
-  order/order_check.c
-  order/order_find_supernodes.c
-  order/order_io.c
-  order/pastix_task_order.c
-  #
-  fax/amalgamate.c
-  fax/symbol_fax_graph.c
-  fax/symbol_kass.c
-  fax/symbol_kass_build.c
-  fax/symbol_kass_csr.c
-  fax/symbol_kass_direct.c
-  fax/symbol_kass_level.c
-  fax/pastix_task_symbfact.c
-  #
-#  ${PASTIX_LIB_SRCS}
-  order/order_compute_scotch.c
-  #order/order_compute_ptscotch.c
-  order/order_compute_metis.c
-
-  matrix_drivers/laplacian.c
-  matrix_drivers/readhb.c
-  matrix_drivers/readijv.c
-  matrix_drivers/readmm.c
-  matrix_drivers/readrsa.c
-  #
-#   refinement/pastix_task_raff.c
-)
-
 if(PASTIX_WITH_STARPU)
  list(APPEND PASTIX_LIB_SRCS ${PASTIX_STARPU_SRCS})
 endif(PASTIX_WITH_STARPU)
@@ -751,6 +713,60 @@ add_subdirectory(example)
 add_subdirectory(test)
 
 
+#############################################################
+#
+#      Build documentation
+#
+#############################################################
+set(PASTIX_ALL_SRCS
+  #${generated_files}
+  #
+  #
+  include/pastix.h
+  #
+  spm/spm.h
+  spm/spm.c
+  spm/spm_io.c  # Not finished
+  matrix_drivers/drivers.c
+  #
+  graph/graph.c
+  graph/graph_isolate.c
+  graph/graph_prepare.c
+  graph/graph_symmetrize.c
+  #
+  order/order.c
+  order/order_add_isolate.c
+  order/order_check.c
+  order/order_find_supernodes.c
+  order/order_io.c
+  order/order_compute_metis.c
+  order/order_compute_ptscotch.c
+  order/order_compute_scotch.c
+  order/pastix_task_order.c
+  #
+  fax/amalgamate.c
+  fax/symbol_fax_graph.c
+  fax/symbol_kass.c
+  fax/symbol_kass_build.c
+  fax/symbol_kass_csr.c
+  fax/symbol_kass_direct.c
+  fax/symbol_kass_level.c
+  fax/pastix_task_symbfact.c
+  #
+#  ${PASTIX_LIB_SRCS}
+  order/order_compute_scotch.c
+  #order/order_compute_ptscotch.c
+  order/order_compute_metis.c
+
+  matrix_drivers/laplacian.c
+  matrix_drivers/readhb.c
+  matrix_drivers/readijv.c
+  matrix_drivers/readmm.c
+  matrix_drivers/readrsa.c
+  #
+#   refinement/pastix_task_raff.c
+)
+
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)
   option(BUILD_DOCUMENTATION "Use Doxygen to create the HTML based API documentation" ON)
@@ -764,7 +780,7 @@ if(BUILD_DOCUMENTATION)
       "Doxygen is needed to build the documentation. Please install it correctly")
   endif()
 
-  set(PASTIX_DOX_SRCS )
+  set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox )
   foreach( _file ${PASTIX_ALL_SRCS} )
     set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
   endforeach()

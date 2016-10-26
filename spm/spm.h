@@ -18,26 +18,36 @@
 /**
  * @ingroup pastix_spm
  *
- * @struct pastix_spm_s - Sparse matrix data structure
+ * @struct pastix_spm_s
+ *
+ * @brief The sparse matrix data structure
+ *
+ * This structure describes matrices with different characteristics that can be useful to any solver:
+ *     - the storage format (PastixCSC, PastixCSR or PastixIJV)
+ *     - the properties (PastixGeneral, PastixHermitian, PastixSymmetric)
+ *     - the base value (0 in C, 1 in Fortran for examples)
+ *
+ * It is also possible to describe a matrix with constant or varaibel degrees of freedom.
+ *
  */
 struct pastix_spm_s {
-    int           mtxtype;   /*< Matrix structure: PastixGeneral, PastixSymmetric
-                                 or PastixHermitian.                                         */
-    int           flttype;   /*< avals datatype: PastixPattern, PastixFloat, PastixDouble,
-                                 PastixComplex32 or PastixComplex64                          */
-    int           fmttype;   /*< Matrix storage format: PastixCSC, PastixCSR, PastixIJV      */
-    pastix_int_t  gN;        /*< Global number of vertices in the compressed graph           */
-    pastix_int_t  n;         /*< Local number of vertices in the compressed graph            */
-    pastix_int_t  gnnz;      /*< Global number of non zeroes in the compressed graph         */
-    pastix_int_t  nnz;       /*< Local number of non zeroes in the compressed graph          */
-    pastix_int_t  dof;       /*< Number of degrees of freedom per unknown,
-                                 if > 0, constant degree of freedom
-                                 otherwise, irregular degree of freedom (refer to dofs)      */
-    pastix_int_t *dofs;      /*< Number of degrees of freedom per unknown (NULL, if dof > 0) */
-    pastix_int_t *colptr;    /*< List of indirections to rows for each vertex                */
-    pastix_int_t *rowptr;    /*< List of edges for each vertex                               */
-    pastix_int_t *loc2glob;  /*< Corresponding numbering from local to global                */
-    void         *values;    /*< Values stored in the matrix                                 */
+    int           mtxtype;   /**< Matrix structure: PastixGeneral, PastixSymmetric
+                                  or PastixHermitian.                                         */
+    int           flttype;   /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
+                                  PastixComplex32 or PastixComplex64                          */
+    int           fmttype;   /**< Matrix storage format: PastixCSC, PastixCSR, PastixIJV      */
+    pastix_int_t  gN;        /**< Global number of vertices in the compressed graph           */
+    pastix_int_t  n;         /**< Local number of vertices in the compressed graph            */
+    pastix_int_t  gnnz;      /**< Global number of non zeroes in the compressed graph         */
+    pastix_int_t  nnz;       /**< Local number of non zeroes in the compressed graph          */
+    pastix_int_t  dof;       /**< Number of degrees of freedom per unknown,
+                                  if > 0, constant degree of freedom
+                                  otherwise, irregular degree of freedom (refer to dofs)      */
+    pastix_int_t *dofs;      /**< Number of degrees of freedom per unknown (NULL, if dof > 0) */
+    pastix_int_t *colptr;    /**< List of indirections to rows for each vertex                */
+    pastix_int_t *rowptr;    /**< List of edges for each vertex                               */
+    pastix_int_t *loc2glob;  /**< Corresponding numbering from local to global                */
+    void         *values;    /**< Values stored in the matrix                                 */
 };
 
 int

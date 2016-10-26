@@ -300,14 +300,14 @@ genLaplacian( const char    *filename,
  * @param[in] filename
  *          Configuration string of the Laplacian.
  *          [<type>:]<dim1>[:<dim2>[:<dim3>]]
- *             <type> p = pattern only\n"
- *                    s = real simple\n"
- *                    d = real double [default]\n"
- *                    c = complex simple\n"
- *                    z = complex double\n"
- *             <dim1> size of the first dimension of the 1D|2D|3D laplacian\n"
- *             <dim2> size of the second dimension of the 2D|3D laplacian\n"
- *             <dim3> size of the third dimension of the 3D laplacian\n"
+ *             <type> p = pattern only
+ *                    s = real simple
+ *                    d = real double [default]
+ *                    c = complex simple
+ *                    z = complex double
+ *             <dim1> size of the first dimension of the 1D|2D|3D laplacian
+ *             <dim2> size of the second dimension of the 2D|3D laplacian
+ *             <dim3> size of the third dimension of the 3D laplacian
  *
  * @param[in,out] csc
  *          At start, an allocated csc structure.

@@ -108,6 +108,10 @@ orderBuildEtree( const Order *order,
  * @param[in] ordeptr
  *          The ordering structure to check.
  *
+ * @param[in] distribution_level
+ *          Define the minimal size of the supernodes that are considered as 2D
+ *          blocks. Set to 0, for no 2D blocks.
+ *
  *******************************************************************************
  *
  * @return
@@ -116,7 +120,8 @@ orderBuildEtree( const Order *order,
  *
  *******************************************************************************/
 int
-orderApplyLevelOrder( Order *order )
+orderApplyLevelOrder( Order *order,
+                      pastix_int_t distribution_level )
 {
     Order               oldorder;
     EliminTree         *etree;
@@ -162,7 +167,8 @@ orderApplyLevelOrder( Order *order )
                oldorder.cblknbr );
 
     /**
-     * Build the elimination tree from top to bottom, and store the roots in the permatb array
+     * Build the elimination tree from top to bottom, and store the roots in the
+     * permatb array
      */
     etree = orderBuildEtree( &oldorder,
                              &nbroots,
@@ -171,6 +177,86 @@ orderApplyLevelOrder( Order *order )
     /**
      * Build the sorted array per level
      */
+    if ( distribution_level >= 0 )
+    {
+        pastix_int_t  pos_2D;
+        pastix_int_t  pos_non_2D;
+        pastix_int_t  sons2D;
+        pastix_int_t  tot_nb_2D = 0;
+
+        pastix_int_t *sorted = order->permtab;
+        pastix_int_t *is_2D;
+        MALLOC_INTERN(is_2D, order->cblknbr, pastix_int_t);
+        memset(is_2D, 0, order->cblknbr * sizeof(pastix_int_t));
+        is_2D[order->cblknbr-1] = 1;
+
+        /* First pass to choose which nodes are 2D */
+        for(i=0; i<order->cblknbr; i++) {
+            node = order->cblknbr-i-1;
+
+            while(is_2D[node] == 0 && i < (order->cblknbr-1)){
+                i++;
+                node = order->cblknbr-i-1;
+            }
+
+            sonsnbr = etree->nodetab[node].sonsnbr;
+            if (i != order->cblknbr && sonsnbr == 2){
+                for(s=0; s<sonsnbr; s++) {
+                    pastix_int_t son = eTreeSonI(etree, node, s);
+                    size = oldorder.rangtab[ son+1 ] - oldorder.rangtab[ son ];
+                    if (size >= distribution_level){
+                        is_2D[son] = 1;
+                        tot_nb_2D++;
+                    }
+                    else
+                        is_2D[son] = 0;
+                }
+            }
+        }
+
+        pos_2D     = 1;
+        pos_non_2D = tot_nb_2D+1;
+
+        /* Second pass to sort nodes: firstly by type (1D/2D) and then by levels */
+        for(i=0; i<order->cblknbr; i++) {
+            pastix_int_t current_2D     = 0;
+            pastix_int_t current_non_2D = 0;
+
+            node = sorted[i];
+            sonsnbr  = etree->nodetab[node].sonsnbr;
+            sons2D = 0;
+
+            size = oldorder.rangtab[ node+1 ] - oldorder.rangtab[ node ];
+
+            for(s=0; s<sonsnbr; s++) {
+                pastix_int_t son = eTreeSonI(etree, node, s);
+                if (is_2D[son] == 1)
+                    sons2D++;
+            }
+
+            /**
+             * We put the sons in reverse order to keep the original order
+             * betwen the brothers. This matters for the Minimum Degree part of
+             * the ordering algorithm.
+             */
+            for(s=0; s<sonsnbr; s++) {
+                pastix_int_t son = eTreeSonI(etree, node, s);
+                if (is_2D[son] == 1){
+                    sorted[pos_2D + sons2D - current_2D - 1] = son;
+                    current_2D++;
+                }
+                else{
+                    sorted[pos_non_2D + sonsnbr-sons2D - current_non_2D - 1] = son;
+                    current_non_2D++;
+                }
+                etree->nodetab[ son ].fathnum = order->cblknbr - i - 1;
+            }
+            pos_2D     += sons2D;
+            pos_non_2D += sonsnbr-sons2D;
+        }
+        memFree_null(is_2D);
+    }
+    else
     {
         pastix_int_t  pos = nbroots;
         pastix_int_t *sorted = order->permtab;

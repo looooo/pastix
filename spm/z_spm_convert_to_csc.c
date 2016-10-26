@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmConvertIJV2CSC - convert a matrix in IJV format to a matrix in CSC
  * format.
@@ -126,7 +126,7 @@ z_spmConvertIJV2CSC( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmConvertCSR2CSC - convert a matrix in CSR format to a matrix in CSC
  * format. If the matrix is PastixSymmetric or PastixHermitian, then the
