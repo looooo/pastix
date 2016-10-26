@@ -53,3 +53,8 @@ endforeach()
 foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests)
   add_test(hb_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua)
 endforeach()
+
+# Matrix Market - Hermitian
+foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests)
+  add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
+endforeach()
