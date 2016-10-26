@@ -73,6 +73,46 @@ static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
  *
  * @ingroup pastix_spm
  *
+ * @brief Init the spm structure given as parameter
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to init.
+ *
+ *******************************************************************************/
+void
+spmInit( pastix_spm_t *spm )
+{
+    spm->mtxtype = PastixGeneral;
+    spm->flttype = PastixDouble;
+    spm->fmttype = PastixCSC;
+
+    spm->gN   = 0;
+    spm->n    = 0;
+    spm->gnnz = 0;
+    spm->nnz  = 0;
+
+    spm->gNexp   = 0;
+    spm->nexp    = 0;
+    spm->gnnzexp = 0;
+    spm->nnzexp  = 0;
+
+    spm->dof      = 1;
+    spm->dofs     = NULL;
+    spm->layout   = PastixColMajor;
+
+    spm->colptr   = NULL;
+    spm->rowptr   = NULL;
+    spm->loc2glob = NULL;
+    spm->values   = NULL;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
  * @brief Free the spm structure
  *
  *******************************************************************************
@@ -122,19 +162,19 @@ spmBase( pastix_spm_t *spm,
 
     /* Parameter checks */
     if ( spm == NULL ) {
-        errorPrint("spmBase: spm pointer is NULL");
+        pastix_error_print("spmBase: spm pointer is NULL");
         return;
     }
     if ( (spm->colptr == NULL) ||
          (spm->rowptr == NULL) )
     {
-        errorPrint("spmBase: spm pointer is not correctly initialized");
+        pastix_error_print("spmBase: spm pointer is not correctly initialized");
         return;
     }
     if ( (baseval != 0) &&
          (baseval != 1) )
     {
-        errorPrint("spmBase: baseval is incorrect, must be 0 or 1");
+        pastix_error_print("spmBase: baseval is incorrect, must be 0 or 1");
         return;
     }
 
@@ -143,7 +183,9 @@ spmBase( pastix_spm_t *spm,
 	return;
 
     n   = spm->n;
-    nnz = spm->colptr[n] - spm->colptr[0];
+    nnz = spm->nnz;
+
+    assert( nnz == (spm->colptr[n] - spm->colptr[0]) );
 
     for (i = 0; i <= n; i++) {
         spm->colptr[i] += baseadj;
@@ -232,6 +274,9 @@ spmFindBase( const pastix_spm_t *spm )
 int
 spmConvert( int ofmttype, pastix_spm_t *spm )
 {
+    if ( spm->dof != 1 ) {
+        spm = spmExpand( spm );
+    }
     if ( conversionTable[spm->fmttype][ofmttype][spm->flttype] ) {
         return conversionTable[spm->fmttype][ofmttype][spm->flttype]( spm );
     }
@@ -289,26 +334,36 @@ double
 spmNorm( int ntype,
          const pastix_spm_t *spm )
 {
-    double tmp;
+    pastix_spm_t *spmtmp;
+    double norm = -1.;
 
+    if ( spm->dof != 1 ) {
+        fprintf(stderr, "WARNING: spm expanded due to non implemented norm for non-expanded spm\n");
+        spmtmp = spmExpand( spm );
+    }
     switch (spm->flttype) {
     case PastixFloat:
-        tmp = (double)s_spmNorm( ntype, spm );
-        return tmp;
+        norm = (double)s_spmNorm( ntype, spmtmp );
+        break;
 
     case PastixDouble:
-        return d_spmNorm( ntype, spm );
+        norm = d_spmNorm( ntype, spmtmp );
+        break;
 
     case PastixComplex32:
-        tmp = (double)c_spmNorm( ntype, spm );
-        return tmp;
+        norm = (double)c_spmNorm( ntype, spmtmp );
+        break;
 
     case PastixComplex64:
-        return z_spmNorm( ntype, spm );
+        norm = z_spmNorm( ntype, spmtmp );
+        break;
 
+    case PastixPattern:
     default:
-        return -1.;
+        ;
     }
+
+    return norm;
 }
 
 /**
@@ -341,6 +396,10 @@ spmNorm( int ntype,
 int
 spmSort( pastix_spm_t *spm )
 {
+    if ( spm->dof != 1 ) {
+        fprintf(stderr, "WARNING: spm expanded due to non implemented sort for non-expanded spm\n");
+        spm = spmExpand( spm );
+    }
     switch (spm->flttype) {
     case PastixPattern:
         p_spmSort( spm );
@@ -393,6 +452,10 @@ spmSort( pastix_spm_t *spm )
 pastix_int_t
 spmMergeDuplicate( pastix_spm_t *spm )
 {
+    if ( spm->dof != 1 ) {
+        fprintf(stderr, "WARNING: spm expanded due to non implemented merge for non-expanded spm\n");
+        spm = spmExpand( spm );
+    }
     switch (spm->flttype) {
     case PastixPattern:
         return p_spmMergeDuplicate( spm );
@@ -444,6 +507,10 @@ spmMergeDuplicate( pastix_spm_t *spm )
 pastix_int_t
 spmSymmetrize( pastix_spm_t *spm )
 {
+    if ( spm->dof != 1 ) {
+        fprintf(stderr, "WARNING: spm expanded due to non implemented symmetrize for non-expanded spm\n");
+        spm = spmExpand( spm );
+    }
     switch (spm->flttype) {
     case PastixPattern:
         return p_spmSymmetrize( spm );
@@ -511,6 +578,11 @@ spmCheckAndCorrect( pastix_spm_t *spm )
     /* PaStiX works on CSC matrices */
     spmConvert( PastixCSC, newspm );
 
+    if ( newspm->dof != 1 ) {
+        fprintf(stderr, "WARNING: newspm expanded due to missing check functions implementations\n");
+        newspm = spmExpand( newspm );
+    }
+
     /* Sort the rowptr for each column */
     spmSort( newspm );
 
@@ -540,7 +612,7 @@ spmCheckAndCorrect( pastix_spm_t *spm )
      * have been made
      */
     if (( spm->fmttype != newspm->fmttype ) ||
-        ( spm->nnz     != newspm->nnz     ) )
+        ( spm->nnzexp  != newspm->nnzexp  ) )
     {
         return newspm;
     }
@@ -593,11 +665,56 @@ spmCopy( const pastix_spm_t *spm )
         memcpy( newspm->loc2glob, spm->loc2glob, spm->n * sizeof(pastix_int_t));
     }
     if(spm->values != NULL) {
-        size_t valsize = spm->nnz * pastix_size_of( spm->flttype );
+        size_t valsize = spm->nnzexp * pastix_size_of( spm->flttype );
         newspm->values = malloc(valsize);
         memcpy( newspm->values, spm->values, valsize);
     }
     return newspm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Expand a multi-dof spm matrix into an spm with constant dof to 1.
+ *
+ * Duplicate the spm data structure given as parameter. All new arrays are
+ * allocated and copied from the original matrix. Both matrices need to be
+ * freed.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix to copy.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The copy of the sparse matrix.
+ *
+ *******************************************************************************/
+pastix_spm_t *
+spmExpand(const pastix_spm_t* spm)
+{
+    switch(spm->flttype)
+    {
+    case PastixPattern:
+        return p_spmExpand(spm);
+        break;
+    case PastixFloat:
+        return s_spmExpand(spm);
+        break;
+    case PastixComplex32:
+        return c_spmExpand(spm);
+        break;
+    case PastixComplex64:
+        return z_spmExpand(spm);
+        break;
+    case PastixDouble:
+    default:
+        return d_spmExpand(spm);
+    }
 }
 
 /**

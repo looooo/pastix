@@ -12,8 +12,8 @@
  *
  **/
 #include "common.h"
-#include "drivers.h"
-#include "mmio.h"
+#include "spm_drivers.h"
+#include "drivers/mmio.h"
 
 /**
  *******************************************************************************

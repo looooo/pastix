@@ -421,6 +421,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
+add_subdirectory(spm)
+
 # Sub modules
 set(modules bcsc kernels refinement) #csc kernels sopalin matrix_drivers common)
 foreach (module ${modules})
@@ -433,22 +435,6 @@ if (PASTIX_WITH_PARSEC)
 endif()
 
 include(RulesPrecisions)
-
-##
-# Headers from spm directory
-##
-set(generated_headers "")
-set(HEADERS
-  spm/z_spm.h
-)
-
-precisions_rules_py(generated_headers
-  "${HEADERS}"
-  TARGETDIR  "spm"
-  PRECISIONS "p;s;d;c;z")
-
-add_custom_target( spm_headers
-  DEPENDS ${generated_headers} )
 
 ##
 # Headers from sopalin directory
@@ -472,16 +458,6 @@ add_custom_target( sopalin_headers
 set(generated_files "")
 set(SOURCES
   common/z_integer.c
-  #
-  spm/z_spm.c
-  spm/z_spm_convert_to_csc.c
-  spm/z_spm_convert_to_csr.c
-  spm/z_spm_convert_to_ijv.c
-  spm/z_spm_genrhs.c
-  spm/z_spm_matrixvector.c
-  spm/z_spm_norm.c
-  #
-  matrix_drivers/z_spm_laplacian.c
   #
   sopalin/coeftab_z.c
   sopalin/coeftab_zdiff.c
@@ -516,7 +492,6 @@ set(PASTIX_LIB_SRCS
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   graph/graph_io.c  # Not finished
-  spm/spm_io.c  # Not finished
   #
   order/order.c
   order/order_add_isolate.c
@@ -535,15 +510,6 @@ set(PASTIX_LIB_SRCS
   fax/symbol_kass_level.c
   fax/pastix_task_symbfact.c
   fax/pastix_task_reordering.c
-  #
-  matrix_drivers/skitf.f
-  matrix_drivers/iohb.c
-  matrix_drivers/mmio.c
-  matrix_drivers/laplacian.c
-  matrix_drivers/readhb.c
-  matrix_drivers/readijv.c
-  matrix_drivers/readmm.c
-  matrix_drivers/readrsa.c
 
   # Files that still require some changes
   blend/cand.c
@@ -599,18 +565,13 @@ set(PASTIX_LIB_SRCS
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
-  #matrix_drivers/readmmd.c
-  #matrix_drivers/readpetsc.c
-  #matrix_drivers/readcscd.c
-#
+  #
   sopalin/coeftab.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
-#
-  spm/spm.c
-#
+  #
   refinement/pastix_task_raff.c
-#
+  #
   ${generated_files}
   )
 
@@ -627,11 +588,6 @@ if(PASTIX_WITH_CUDA)
     blend/solver_compute_gpu_distrib.c
     )
 endif()
-
-set_source_files_properties(
-  spm/spm.c
-  PROPERTIES DEPENDS spm_headers
-  )
 
 set_source_files_properties(
   sopalin/coeftab.h
@@ -673,14 +629,20 @@ add_library(pastix
   ${PASTIX_LIB_SRCS}
   )
 
+# GenRHS requires geadd
+add_dependencies(pastix_spm
+  kernels_headers
+)
+
 add_dependencies(pastix
-  spm_headers
+  spm_headers_tgt
   kernels_headers
   bcsc_headers
   refinement_headers
   sopalin_headers
 )
 target_link_libraries(pastix
+  pastix_spm
   pastix_bcsc
   pastix_kernels
 )
@@ -768,12 +730,6 @@ set(PASTIX_ALL_SRCS
   #order/order_compute_ptscotch.c
   order/order_compute_metis.c
 
-  matrix_drivers/laplacian.c
-  matrix_drivers/readhb.c
-  matrix_drivers/readijv.c
-  matrix_drivers/readmm.c
-  matrix_drivers/readrsa.c
-  #
 #   refinement/pastix_task_raff.c
 )
 

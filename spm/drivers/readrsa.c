@@ -11,7 +11,7 @@
  *
  **/
 #include "common.h"
-#include "drivers.h"
+#include "spm_drivers.h"
 
 /**
  * Function: FORTRAN_CALL(wreadmtc)
@@ -224,8 +224,8 @@ readRSA( const char   *filename,
 
     assert( (tmpcolptr[N]-tmpcolptr[0]) == Nnz );
 
-    csc->colptr  = pastix_int_convert( N+1, tmpcolptr );
-    csc->rowptr  = pastix_int_convert( Nnz, tmprows );
+    csc->colptr  = spmIntConvert( N+1, tmpcolptr );
+    csc->rowptr  = spmIntConvert( Nnz, tmprows );
 
     RhsType[0] = '\0';
     if(ierr != 0) {
