@@ -685,6 +685,16 @@ target_link_libraries(pastix
   pastix_kernels
 )
 
+if(PASTIX_WITH_PARSEC)
+  target_link_libraries(pastix
+    pastix_parsec
+    ${PARSEC_LIBRARIES}
+    dague_distribution
+    dague_distribution_matrix
+    ${PARSEC_EXTRA_LIBRARIES}
+    )
+endif()
+
 # foreach (module2 ${modules})
 #   add_dependencies(pastix ${module2}_headers)
 # endforeach()
