@@ -192,6 +192,9 @@ z_spmGenRHS( int type, int nrhs,
     if( (nrhs > 1) && (ldb < spm->n) )
         return PASTIX_ERR_BADPARAMETER;
 
+    if( spm->dof != 1 )
+        return PASTIX_ERR_BADPARAMETER;
+
     if (nrhs == 1) {
         ldb = spm->n;
         ldx = spm->n;
@@ -341,6 +344,9 @@ z_spmCheckAxb( int nrhs,
     double normA, normB, normX, normX0, normR;
     double backward, forward, eps;
     int failure = 0;
+
+    assert( spm->nexp == spm->n );
+    assert( spm->dof == 1 );
 
     eps = LAPACKE_dlamch('e');
 
