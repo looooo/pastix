@@ -59,6 +59,22 @@ static pastix_complex64_t zzero =  0.;
 
 #endif /* defined(PASTIX_LR_CHECKNAN) */
 
+double
+core_ztolerance(double tol, double norm)
+{
+    return tol * sqrt(norm);
+}
+
+double
+core_ztolerance_init(double tol, double norm)
+{
+    if ( compress_when == COMPRESS_BEGIN || compress_when == COMPRESS_DURING ){
+        return tol;
+    }
+    else{
+        return tol * norm;
+    }
+}
 
 int
 core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
@@ -74,7 +90,10 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
     double *rwork            = malloc(2 * n * sizeof(double));
     pastix_int_t *jpvt       = malloc(n * sizeof(pastix_int_t));
     pastix_complex64_t *tau  = malloc(n * sizeof(pastix_complex64_t));
-    pastix_complex64_t *Acpy = malloc(m * n * sizeof(pastix_complex64_t));
+    pastix_complex64_t *Acpy = malloc(m * n * sizeof(pastix_complex64_t))
+;
+    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                       A, lda, NULL );
 
     /**
      * Allocate a temorary Low rank matrix
@@ -90,7 +109,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                      jpvt, tau,
                      work, ldwork,
                      rwork,
-                     tol*tol, nb, pastix_imin(m,n)-1);
+                     core_ztolerance_init(tol, norm), nb, pastix_imin(m,n)-1);
 
     /**
      * Resize the space used by the low rank matrix
@@ -146,54 +165,6 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, m, Alr->rk, Alr->rk,
                               U , m, tau );
         assert(ret == 0);
-
-        /* To check the resulting solution */
-        if (0){
-            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                        m, n, Alr->rk,
-                        CBLAS_SADDR(zone),  Alr->u, m,
-                        Alr->v, Alr->rkmax,
-                        CBLAS_SADDR(zzero), Acpy, m);
-
-            int stop = 0;
-            for (i=0; i<m; i++){
-                for (j=0; j<n; j++){
-                    pastix_complex64_t v1 = A[lda*j+i];
-                    pastix_complex64_t v2 = Acpy[m*j+i];
-                    if (fabs(v1-v2) > 1e-15){
-                        printf("A_orig %f A_comp %f INDEX %ld %ld PIV %ld %ld\n",
-                               v1, v2, i, j, jpvt[i], jpvt[j]);
-                        stop = 1;
-                    }
-                }
-            }
-
-            double norm_A_orig = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                                      A, lda, NULL );
-            double norm_A_comp = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                                      Acpy, m, NULL );
-
-            core_zgeadd( PastixNoTrans, m, n,
-                         -1., A, lda,
-                         1., Acpy, m );
-
-            double norm_diff = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                                    Acpy, m, NULL );
-
-            printf("NORMS: ORIG %.10g COMP %.10g DIFF %.20g\n\n",
-                   norm_A_orig, norm_A_comp, norm_diff);
-
-            if (stop){
-                exit(1);
-
-                ret = LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
-                                          A, lda, Acpy, m );
-                assert(ret == 0);
-                Alr->u  = Acpy;
-                Alr->rk = -1;
-                Alr->rkmax = m;
-            }
-        }
     }
 
     free(work);
@@ -431,7 +402,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
         offset = rk+1;
     }
 
-    return rk;
+    return rk+1;
 }
 
 
@@ -610,7 +581,8 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
              pastix_lrblock_t *Alr )
 {
     pastix_complex64_t *u, *v, *zwork, *Acpy, ws;
-    double             *rwork, *s, tolabs, tolrel;
+    double             *rwork, *s;
+    /* double              tolabs, tolrel; */
     pastix_int_t        i, ret, ldu, ldv;
     pastix_int_t        minMN = pastix_imin( m, n );
     pastix_int_t        lwork = -1;
@@ -665,6 +637,9 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Backup the original matrix before to overwrite it with the SVD
      */
+    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                       A, lda, NULL );
+
     ret = LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
                               A, lda, Acpy, m );
     assert( ret == 0 );
@@ -679,12 +654,12 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
     }
 
-    tolrel = tol * s[0];
-    tolabs = tol * tol;
+    /* tolrel = tol * s[0]; */
+    /* tolabs = tol * tol; */
     for (i=0; i<minMN; i++, v+=1){
-        if ( (s[i] >= tolabs) &&
-             (s[i] >= tolrel) )
-        /* if (s[i] > tol) */
+        /* if ( (s[i] >= tolabs) && */
+        /*      (s[i] >= tolrel) ) */
+        if (s[i] > core_ztolerance_init(tol, norm))
         {
             cblas_zdscal(n, s[i], v, ldv);
         }
@@ -891,7 +866,8 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
     pastix_complex64_t *u1u2, *v1v2, *R, *u, *v;
     pastix_complex64_t *tmp, *zbuf, *tauU, *tauV;
     pastix_complex64_t  querysize;
-    double *s, tolabs, tolrel;
+    double *s;
+    /* double tolabs, tolrel; */
     size_t wzsize, wdsize;
 
     rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
@@ -1177,6 +1153,9 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
                                u1u2, M, R, rank );
     assert(ret == 0);
 
+    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
+                                       R, rank, NULL );
+
     cblas_ztrmm(CblasColMajor,
                 CblasRight, CblasLower,
                 CblasNoTrans, CblasNonUnit,
@@ -1200,12 +1179,12 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
      * Let's compute the new rank of the result
      */
     tmp = v;
-    tolrel = tol * s[0];
-    tolabs = tol * tol;
+    /* tolrel = tol * s[0]; */
+    /* tolabs = tol * tol; */
     for (i=0; i<rank; i++, tmp+=1){
-        if ( (s[i] >= tolabs) &&
-             (s[i] >= tolrel) )
-        /* if (s[i] > tol) */
+        /* if ( (s[i] >= tolabs) && */
+        /*      (s[i] >= tolrel) ) */
+        if (s[i] > core_ztolerance(tol, norm))
         {
             cblas_zdscal(rank, s[i], tmp, rank);
         }
@@ -1327,7 +1306,8 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
     pastix_complex64_t *u1u2, *v1v2, *R, *u, *v;
     pastix_complex64_t *tmp, *zbuf, *tauU, *tauV;
     pastix_complex64_t  querysize;
-    double *s, tolabs, tolrel;
+    double *s;
+    /* double tolabs, tolrel; */
     size_t wzsize, wdsize;
 
     rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
@@ -1644,15 +1624,17 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
         }
     }
 
+    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
+                                       v1v2, rank, NULL );
 
     new_rank = core_zrrqr(rank, N,
                           v1v2, rank,
                           jpvt, tauV,
                           twork, ldwork,
                           rwork,
-                          tol*tol, nb, rank-1);
-    if (new_rank == rank-1)
-        new_rank++;
+                          core_ztolerance(tol, norm), nb, rank-1);
+    /* if (new_rank == rank-1) */
+    /*     new_rank++; */
 
 
     free(rwork);
@@ -2200,8 +2182,12 @@ core_zlrmm( double tol, int transA, int transB,
         transV = core_zlrm3( tol, transA, transB, M, N, K,
                              A, B, &AB );
 
-        if (AB.rk == 0)
+        if (AB.rk == 0){
+            if ( allocated ) {
+                free(tmp);
+            }
             return 0;
+        }
     }
     else{
         transV = core_zlrm2( transA, transB, M, N, K,
@@ -2284,6 +2270,24 @@ core_zlrmm( double tol, int transA, int transB,
         }
     }
     pastix_cblk_unlock( fcblk );
+
+    /* Free memory from zlrm3 */
+    if (A->rk != -1 && B->rk != -1){
+        if (AB.rk == A->rk || AB.rk == B->rk){
+            if ( A->rk < B->rk ) {
+                free(AB.v);
+            }
+            else{
+                free(AB.u);
+            }
+        }
+        else if (AB.rk == 0 || A->rk == 0 || B->rk == 0){
+
+        }
+        else {
+            free(AB.u);
+        }
+    }
 
     if ( allocated ) {
         free(tmp);
