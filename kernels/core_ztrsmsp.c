@@ -282,16 +282,16 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
         if ( compress_when == COMPRESS_END )
         {
             M = blok_rownbr(blok);
-            pastix_lrblock_t *C = malloc(sizeof(pastix_lrblock_t));
-
+            pastix_lrblock_t C;
             int ret = core_zge2lr(compress_tolerance, M, N,
                                   lrC->u, M,
-                                  C);
+                                  &C);
 
-            lrC->u = C->u;
-            lrC->v = C->v;
-            lrC->rk = C->rk;
-            lrC->rkmax = C->rkmax;
+            core_zlrfree(lrC);
+            lrC->u = C.u;
+            lrC->v = C.v;
+            lrC->rk = C.rk;
+            lrC->rkmax = C.rkmax;
         }
 
         if ( lrC->rk != 0 ) {
@@ -350,16 +350,16 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
         if ( compress_when == COMPRESS_END )
         {
             M = blok_rownbr(blok);
-            pastix_lrblock_t *C = malloc(sizeof(pastix_lrblock_t));
-
+            pastix_lrblock_t C;
             int ret = core_zge2lr(compress_tolerance, M, N,
                                   lrC->u, M,
-                                  C);
+                                  &C);
 
-            lrC->u = C->u;
-            lrC->v = C->v;
-            lrC->rk = C->rk;
-            lrC->rkmax = C->rkmax;
+            core_zlrfree(lrC);
+            lrC->u = C.u;
+            lrC->v = C.v;
+            lrC->rk = C.rk;
+            lrC->rkmax = C.rkmax;
         }
 
         if ( lrC->rk != 0 ) {
