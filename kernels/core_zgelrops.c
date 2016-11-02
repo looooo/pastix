@@ -69,10 +69,13 @@ double
 core_ztolerance_init(double tol, double norm)
 {
     if ( compress_when == COMPRESS_BEGIN || compress_when == COMPRESS_DURING ){
-        return tol;
+        if (norm != 0.0)
+            return tol * sqrt(norm);
+        else
+            return tol;
     }
     else{
-        return tol * norm;
+        return tol * sqrt(norm);
     }
 }
 
@@ -227,9 +230,9 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
         jpvt[j] = j;
     }
 
-    while(rk < maxrank){
+    while(rk <= maxrank){
         /* jb equivalent to kb in LAPACK xLAQPS: number of columns actually factorized */
-        jb     = pastix_imin(nb, minMN-offset);
+        jb     = pastix_imin(nb, minMN-offset+1);
         lsticc = 0;
 
         /* column being factorized among jb */
@@ -1589,8 +1592,8 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
         pastix_int_t rB = B->rk;
         if (A->rk == -1 && M1 >= N1)
             rA = N1;
-        else
-            rA = 0;
+        if (A->rk == -1 && M1 < N1)
+            rA = M1;
 
         /* We do not care is A was integrated into v1v2 */
         if (rA != 0){
@@ -1598,11 +1601,28 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
 
             /* Form u2Tu1 */
             pastix_complex64_t *tmpU = u1u2 + offx;
-            cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans,
-                        rB, rA, N1,
-                        CBLAS_SADDR(zone), tmpU, ldbu,
-                        A->u, ldau,
-                        CBLAS_SADDR(zzero), u2Tu1, rB );
+            if (rA == N1){
+                cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+                            rB, rA, N1,
+                            CBLAS_SADDR(zone), tmpU, ldbu,
+                            A->u, ldau,
+                            CBLAS_SADDR(zzero), u2Tu1, rB );
+            }
+            else if (rA == M1){
+                pastix_int_t i, j;
+                for (i=0; i<rA; i++){
+                    for (j=0; j<rB; j++){
+                        u2Tu1[rB * i + j] = tmpU[ldbu * j + i];
+                    }
+                }
+            }
+            else {
+                cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+                            rB, rA, rA,
+                            CBLAS_SADDR(zone), tmpU, ldbu,
+                            A->u, ldau,
+                            CBLAS_SADDR(zzero), u2Tu1, rB );
+            }
 
             /* Orthogonalize u1u2 */
             tmpU = u1u2 + B->rk * M;
@@ -1619,6 +1639,35 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                         CBLAS_SADDR(zone), u2Tu1, rB,
                         tmpV, rank,
                         CBLAS_SADDR(zone), v1v2, rank );
+
+            /* Orthonormalize u1u2 */
+            {
+                pastix_int_t i, j;
+                for (i=0; i<rank; i++){
+                    pastix_complex64_t *tmp = u1u2 + M * i;
+                    pastix_complex64_t *tmpV = v1v2 + i;
+                    double norm = cblas_dznrm2(M, tmp, 1);
+                    /* double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', M, 1, */
+                    /*                      tmp, 1, NULL ); */
+
+                    if (norm > LAPACKE_dlamch('e')){
+                        for (j=0; j<M; j++){
+                            tmp[j] /= (norm);
+                        }
+                        for (j=0; j<N; j++){
+                            tmpV[rank * j] *= norm;
+                        }
+                    }
+                    else{
+                        for (j=0; j<M; j++){
+                            tmp[j] = 0.;
+                        }
+                        for (j=0; j<N; j++){
+                            tmpV[rank * j] = 0.;
+                        }
+                    }
+                }
+            }
 
             free(u2Tu1);
         }
