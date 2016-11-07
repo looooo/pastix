@@ -63,16 +63,16 @@
  *
  *******************************************************************************/
 int
-z_spmGeCSCv(      int                 trans,
+z_spmGeCSCv(const pastix_trans_t      trans,
                   pastix_complex64_t  alpha,
             const pastix_spm_t       *csc,
             const pastix_complex64_t *x,
                   pastix_complex64_t  beta,
                   pastix_complex64_t *y )
 {
-    const pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
-    const pastix_complex64_t *xptr   = x;
-    pastix_complex64_t *yptr = y;
+    const pastix_complex64_t *valptr = (pastix_complex64_t*)(csc->values);
+    const pastix_complex64_t *xptr   = (const pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
     pastix_int_t col, row, i, baseval;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
@@ -328,3 +328,32 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
     return PASTIX_SUCCESS;
 }
 #endif
+
+
+int
+z_spmCSCMatVec(const pastix_trans_t  trans,
+               const void           *alphaptr,
+               const pastix_spm_t   *csc,
+               const void           *xptr,
+               const void           *betaptr,
+                     void           *yptr )
+{
+    const pastix_complex64_t *x = (const pastix_complex64_t*)xptr;
+    pastix_complex64_t *y       = (pastix_complex64_t*)yptr;
+    pastix_complex64_t alpha, beta;
+
+    alpha = *((const pastix_complex64_t *)alphaptr);
+    beta  = *((const pastix_complex64_t *)betaptr);
+
+    switch (csc->mtxtype) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+        return z_spmHeCSCv( alpha, csc, x, beta, y );
+#endif
+    case PastixSymmetric:
+        return z_spmSyCSCv( alpha, csc, x, beta, y );
+    case PastixGeneral:
+    default:
+        return z_spmGeCSCv( trans, alpha, csc, x, beta, y );
+    }
+}

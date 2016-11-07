@@ -26,6 +26,10 @@
 #define RndF_Mul 5.4210108624275222e-20f
 #define RndD_Mul 5.4210108624275222e-20
 
+static pastix_complex64_t mzone = (pastix_complex64_t)-1.;
+static pastix_complex64_t zone  = (pastix_complex64_t) 1.;
+static pastix_complex64_t zzero = (pastix_complex64_t) 0.;
+
 static inline unsigned long long int
 Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
   unsigned long long int a_k, c_k, ran;
@@ -260,19 +264,7 @@ z_spmGenRHS( int type, int nrhs,
                           spm->gN, 0, 0, 24356 );
         }
 
-        switch ( spm->mtxtype ) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-        case PastixHermitian:
-            rc = z_spmHeCSCv( 1., spm, xptr, 0., bptr );
-            break;
-#endif
-        case PastixSymmetric:
-            rc = z_spmSyCSCv( 1., spm, xptr, 0., bptr );
-            break;
-        case PastixGeneral:
-        default:
-            rc = z_spmGeCSCv( PastixNoTrans, 1., spm, xptr, 0., bptr );
-        }
+        rc = z_spmCSCMatVec( PastixNoTrans, &zone, spm, xptr, &zzero, bptr );
 
         if ( x == NULL ) {
             memFree_null(xptr);
@@ -339,8 +331,6 @@ z_spmCheckAxb( int nrhs,
                      void *b,  int ldb,
                const void *x,  int ldx )
 {
-    static pastix_complex64_t mzone = (pastix_complex64_t)-1.;
-    static pastix_complex64_t zone  = (pastix_complex64_t) 1.;
     double normA, normB, normX, normX0, normR;
     double backward, forward, eps;
     int failure = 0;

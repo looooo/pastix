@@ -41,9 +41,11 @@ pastix_complex64_t *z_spm2dense( const pastix_spm_t *spm );
 /**
  * Matrix-Vector product routines
  */
-int    z_spmGeCSCv(int trans, pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
-int    z_spmSyCSCv(           pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
-int    z_spmHeCSCv(           pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
+int z_spmGeCSCv(const pastix_trans_t trans, pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
+int z_spmSyCSCv(                            pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
+int z_spmHeCSCv(                            pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
+
+int z_spmCSCMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *csc, const void *x, const void *beta, void *y);
 
 /**
  * Extra routines
