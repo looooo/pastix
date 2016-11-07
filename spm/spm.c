@@ -763,10 +763,6 @@ spmExpand(const pastix_spm_t* spm)
  *      \retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
-/**
- * TODO: Maybe we should move down the cast of the parameters to the lowest
- * functions, and simplify this one to have identical calls to all subfunction
- */
 int
 spmMatVec(const pastix_trans_t trans,
           const void          *alpha,
