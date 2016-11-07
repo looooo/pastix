@@ -334,7 +334,7 @@ double
 spmNorm( int ntype,
          const pastix_spm_t *spm )
 {
-    pastix_spm_t *spmtmp;
+    pastix_spm_t *spmtmp = (pastix_spm_t*)spm;
     double norm = -1.;
 
     if ( spm->dof != 1 ) {
