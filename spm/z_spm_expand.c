@@ -24,7 +24,7 @@ pastix_spm_t *
 z_spmExpand(const pastix_spm_t *spm)
 {
     pastix_spm_t       *newspm;
-    pastix_int_t        i, j, k, ii, jj, dofi, dofj, col, row, baseval, cpt;
+    pastix_int_t        i, j, k, ii, jj, dof, dofi, dofj, col, row, baseval, cpt;
     pastix_int_t       *newcol, *newrow, *oldcol, *oldrow, *dofs;
 #if !defined(PRECISION_p)
     pastix_complex64_t *newval, *oldval;
@@ -64,54 +64,79 @@ z_spmExpand(const pastix_spm_t *spm)
         /**
          * Loop on col
          */
-        for(i=0; i<spm->n; i++)
-        {
-            if ( spm->dof > 0 ) {
-                col  = spm->dof * i;
-                dofi = spm->dof;
-            }
-            else {
-                col  = dofs[i];
-                dofi = dofs[i+1] - dofs[i];
-            }
+        if ( spm->dof > 0 ) {
+            col = 0;
+            dof = spm->dof;
 
-            for(ii=0; ii<dofi; ii++, newcol++)
+            for(i=0; i<spm->n; i++, col+=dof)
             {
-                /**
-                 * Loop on rows
-                 */
-                for(k=oldcol[i]; k<oldcol[i+1]; k++)
+                for(ii=0; ii<dof; ii++, newcol++)
                 {
-                    j = oldrow[k-baseval]-baseval;
-                    if ( spm->dof > 0 ) {
-                        row  = spm->dof * j;
-                        dofj = spm->dof;
-                    }
-                    else {
-                        row  = dofs[j];
-                        dofj = dofs[j+1] - dofs[j];
-                    }
-
-                    for(jj=0; jj<dofj; jj++, newrow++)
+                    /**
+                     * Loop on rows
+                     */
+                    for(k=oldcol[i]; k<oldcol[i+1]; k++, row+=dof)
                     {
-                        (*newcol)++;
-                        (*newrow) = row + jj + baseval;
+                        j = oldrow[k-baseval]-baseval;
+
+                        for(jj=0; jj<dof; jj++, newrow++)
+                        {
+                            (*newcol)++;
+                            (*newrow) = row + jj + baseval;
 
 #if !defined(PRECISION_p)
-                        if ( (spm->mtxtype != PastixGeneral) &&
-                             (row + jj < col + ii) )
-                        {
-                            (*newval) = oldval[ cpt ];
-                            newval++;
-                        }
-                        cpt++;
+                            if ( (spm->mtxtype != PastixGeneral) &&
+                                 (row + jj < col + ii) )
+                            {
+                                (*newval) = oldval[ cpt ];
+                                newval++;
+                            }
+                            cpt++;
 #endif
+                        }
                     }
+                    (*newcol) += baseval;
                 }
-                (*newcol) += baseval;
             }
         }
-        break;
+        else {
+            for(i=0; i<spm->n; i++)
+            {
+                col  = dofs[i];
+                dofi = dofs[i+1] - dofs[i];
+
+                for(ii=0; ii<dofi; ii++, newcol++)
+                {
+                    /**
+                     * Loop on rows
+                     */
+                    for(k=oldcol[i]; k<oldcol[i+1]; k++)
+                    {
+                        j = oldrow[k-baseval]-baseval;
+                        row  = dofs[j];
+                        dofj = dofs[j+1] - dofs[j];
+
+                        for(jj=0; jj<dofj; jj++, newrow++)
+                        {
+                            (*newcol)++;
+                            (*newrow) = row + jj + baseval;
+
+#if !defined(PRECISION_p)
+                            if ( (spm->mtxtype != PastixGeneral) &&
+                                 (row + jj < col + ii) )
+                            {
+                                (*newval) = oldval[ cpt ];
+                                newval++;
+                            }
+                            cpt++;
+#endif
+                        }
+                    }
+                    (*newcol) += baseval;
+                }
+            }
+        }
+    break;
     case PastixCSR:
     case PastixIJV:
         free( newspm );
