@@ -185,13 +185,33 @@ spmBase( pastix_spm_t *spm,
     n   = spm->n;
     nnz = spm->nnz;
 
-    assert( nnz == (spm->colptr[n] - spm->colptr[0]) );
+    switch(spm->fmttype)
+    {
+    case PastixCSC:
+        assert( nnz == (spm->colptr[n] - spm->colptr[0]) );
 
-    for (i = 0; i <= n; i++) {
-        spm->colptr[i] += baseadj;
-    }
-    for (i = 0; i < nnz; i++) {
-        spm->rowptr[i] += baseadj;
+        for (i = 0; i <= n; i++) {
+            spm->colptr[i] += baseadj;
+        }
+        for (i = 0; i < nnz; i++) {
+            spm->rowptr[i] += baseadj;
+        }
+        break;
+
+    case PastixCSR:
+        assert( nnz == (spm->rowptr[n] - spm->rowptr[0]) );
+        for (i = 0; i <= n; i++) {
+            spm->rowptr[i] += baseadj;
+        }
+        for (i = 0; i < nnz; i++) {
+            spm->colptr[i] += baseadj;
+        }
+        break;
+    case PastixIJV:
+        for (i = 0; i < nnz; i++) {
+            spm->rowptr[i] += baseadj;
+            spm->colptr[i] += baseadj;
+        }
     }
 
     if (spm->loc2glob != NULL) {
