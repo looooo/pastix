@@ -25,7 +25,7 @@
 #include "z_spm.h"
 
 pastix_complex64_t *
-z_spm2dense( const pastix_spm_t *spm )
+z_spmCSC2dense( const pastix_spm_t *spm )
 {
     pastix_int_t i, j, lda, baseval;
     pastix_complex64_t *A, *valptr;
@@ -170,6 +170,320 @@ z_spm2dense( const pastix_spm_t *spm )
         }
     }
     return A;
+}
+
+pastix_complex64_t *
+z_spmCSR2dense( const pastix_spm_t *spm )
+{
+    pastix_int_t i, j, lda, baseval;
+    pastix_complex64_t *A, *valptr;
+    pastix_int_t *colptr, *rowptr;
+
+    assert( spm->fmttype == PastixCSR );
+    assert( spm->flttype == PastixComplex64 );
+
+    lda = spm->gNexp;
+    A = (pastix_complex64_t*)malloc(lda * lda * sizeof(pastix_complex64_t));
+    memset( A, 0, lda * lda * sizeof(pastix_complex64_t));
+
+    baseval = spmFindBase( spm );
+    i = 0; j = 0;
+
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
+
+    /**
+     * Constant degree of fredom of 1
+     */
+    if ( spm->dof == 1 ) {
+        switch( spm->mtxtype ){
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+            for(i=0; i<spm->n; i++, rowptr++)
+            {
+                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++)
+                {
+                    if( i == (*colptr-baseval) ) {
+                        /* Make sure the matrix is hermitian */
+                        A[ i * lda + i ] = creal(*valptr) + I * 0.;
+                    }
+                    else {
+                        A[ i * lda + (*colptr - baseval) ] = conj(*valptr);
+                        A[ (*colptr - baseval) * lda + i ] = *valptr;
+                    }
+                }
+            }
+            break;
+#endif
+        case PastixSymmetric:
+            for(i=0; i<spm->n; i++, rowptr++)
+            {
+                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++)
+                {
+                    A[ i * lda + (*colptr - baseval) ] = *valptr;
+                    A[ (*colptr - baseval) * lda + i ] = *valptr;
+                }
+            }
+            break;
+        case PastixGeneral:
+        default:
+            for(i=0; i<spm->n; i++, rowptr++)
+            {
+                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++)
+                {
+                    A[ i * lda + (*colptr - baseval) ] = *valptr;
+                }
+            }
+        }
+    }
+    /**
+     * General degree of freedom (constant or variable)
+     */
+    else {
+        pastix_int_t  k, ii, jj, dofi, dofj, col, row;
+        pastix_int_t *dofs = spm->dofs;
+
+        switch( spm->mtxtype ){
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+            for(i=0; i<spm->n; i++, rowptr++)
+            {
+                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                row = dofs[i];
+
+                for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
+                {
+                    j = (*colptr - baseval);
+                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                    col = dofs[j];
+
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
+                            A[ (row + jj) * lda + (col + ii) ] = conj(*valptr);
+                        }
+                    }
+                }
+            }
+            break;
+#endif
+        case PastixSymmetric:
+            for(i=0; i<spm->n; i++, rowptr++)
+            {
+                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                row = dofs[i];
+
+                for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
+                {
+                    j = (*colptr - baseval);
+                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                    col = dofs[j];
+
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
+                            A[ (row + jj) * lda + (col + ii) ] = *valptr;
+                        }
+                    }
+                }
+            }
+            break;
+        case PastixGeneral:
+        default:
+            for(i=0; i<spm->n; i++, rowptr++)
+            {
+                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                row = dofs[i];
+
+                for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
+                {
+                    j = (*colptr - baseval);
+                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                    col = dofs[j];
+
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return A;
+}
+
+pastix_complex64_t *
+z_spmIJV2dense( const pastix_spm_t *spm )
+{
+    pastix_int_t i, j, k, lda, baseval;
+    pastix_complex64_t *A, *valptr;
+    pastix_int_t *colptr, *rowptr;
+
+    assert( spm->fmttype == PastixIJV );
+    assert( spm->flttype == PastixComplex64 );
+
+    lda = spm->gNexp;
+    A = (pastix_complex64_t*)malloc(lda * lda * sizeof(pastix_complex64_t));
+    memset( A, 0, lda * lda * sizeof(pastix_complex64_t));
+
+    baseval = spmFindBase( spm );
+    i = 0; j = 0;
+
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
+
+    /**
+     * Constant degree of fredom of 1
+     */
+    if ( spm->dof == 1 ) {
+        switch( spm->mtxtype ){
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+            for(k=0; k<spm->nnz; k++, rowptr++, colptr++, valptr++)
+            {
+                i = *rowptr - baseval;
+                j = *colptr - baseval;
+
+                if( i == j ) {
+                    /* Make sure the matrix is hermitian */
+                    A[ i * lda + i ] = creal(*valptr) + I * 0.;
+                }
+                else {
+                    A[ j * lda + i ] = *valptr;
+                    A[ i * lda + j ] = conj(*valptr);
+                }
+            }
+            break;
+#endif
+        case PastixSymmetric:
+            for(k=0; k<spm->nnz; k++, rowptr++, colptr++, valptr++)
+            {
+                i = *rowptr - baseval;
+                j = *colptr - baseval;
+
+                A[ j * lda + i ] = *valptr;
+                A[ i * lda + j ] = *valptr;
+            }
+            break;
+        case PastixGeneral:
+        default:
+            for(k=0; k<spm->nnz; k++, rowptr++, colptr++, valptr++)
+            {
+                i = *rowptr - baseval;
+                j = *colptr - baseval;
+
+                A[ j * lda + i ] = *valptr;
+            }
+        }
+    }
+    /**
+     * General degree of freedom (constant or variable)
+     */
+    else {
+        pastix_int_t  k, ii, jj, dofi, dofj, col, row;
+        pastix_int_t *dofs = spm->dofs;
+
+        switch( spm->mtxtype ){
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        case PastixHermitian:
+            for(k=0; k<spm->nnz; k++, rowptr++, colptr++)
+            {
+                i = *rowptr - baseval;
+                j = *colptr - baseval;
+
+                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                row = dofs[i];
+
+                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                col = dofs[j];
+
+                for(jj=0; jj<dofj; jj++)
+                {
+                    for(ii=0; ii<dofi; ii++, valptr++)
+                    {
+                        if( col+jj == row+ii ) {
+                            /* Make sure the matrix is hermitian */
+                            A[ (col+jj) * lda + (row+ii) ] = creal(*valptr) + I * 0.;
+                        }
+                        else {
+                            A[ (col+jj) * lda + (row+ii) ] = *valptr;
+                            A[ (row+ii) * lda + (col+jj) ] = conj(*valptr);
+                        }
+                    }
+                }
+            }
+            break;
+#endif
+        case PastixSymmetric:
+            for(k=0; k<spm->nnz; k++, rowptr++, colptr++)
+            {
+                i = *rowptr - baseval;
+                j = *colptr - baseval;
+
+                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                row = dofs[i];
+
+                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                col = dofs[j];
+
+                for(jj=0; jj<dofj; jj++)
+                {
+                    for(ii=0; ii<dofi; ii++, valptr++)
+                    {
+                        A[ (col+jj) * lda + (row+ii) ] = *valptr;
+                        A[ (row+ii) * lda + (col+jj) ] = *valptr;
+                    }
+                }
+            }
+            break;
+
+        case PastixGeneral:
+        default:
+            for(k=0; k<spm->nnz; k++, rowptr++, colptr++)
+            {
+                i = *rowptr - baseval;
+                j = *colptr - baseval;
+
+                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                row = dofs[i];
+
+                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                col = dofs[j];
+
+                for(jj=0; jj<dofj; jj++)
+                {
+                    for(ii=0; ii<dofi; ii++, valptr++)
+                    {
+                        A[ (col+jj) * lda + (row+ii) ] = *valptr;
+                    }
+                }
+            }
+        }
+    }
+    return A;
+}
+
+pastix_complex64_t *
+z_spm2dense( const pastix_spm_t *spm )
+{
+    switch (spm->fmttype) {
+    case PastixCSC:
+        return z_spmCSC2dense( spm );
+    case PastixCSR:
+        return z_spmCSR2dense( spm );
+    case PastixIJV:
+        return z_spmIJV2dense( spm );
+    }
+    return NULL;
 }
 
 void
