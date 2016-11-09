@@ -23,6 +23,7 @@ set(SOURCES
   z_spm_convert_to_ijv.c
   z_spm_dofs2flat.c
   z_spm_expand.c
+  z_spm_dof_extend.c
   z_spm_genrhs.c
   z_spm_integer.c
   z_spm_laplacian.c
@@ -47,7 +48,7 @@ set(spm_sources
   spm.c
   spm_io.c
   spm_integers.c
-  spm_expand.c
+  spm_dofs.c
   spm_read_driver.c
   drivers/skitf.f
   drivers/iohb.c

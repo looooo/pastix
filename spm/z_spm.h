@@ -66,6 +66,6 @@ void z_spmPrint( const pastix_spm_t *spm );
 
 
 pastix_spm_t *z_spmExpand(const pastix_spm_t *spm);
-void          z_spmDofs2Flat(pastix_spm_t *spm);
+void          z_spmDofExtend(pastix_spm_t *spm);
 
 #endif /* _z_spm_H_ */

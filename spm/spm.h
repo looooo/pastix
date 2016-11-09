@@ -79,12 +79,13 @@ struct pastix_spm_s {
     pastix_int_t      dof;     /**< Number of degrees of freedom per unknown,
                                     if > 0, constant degree of freedom
                                     otherwise, irregular degree of freedom (refer to dofs)      */
-    pastix_int_t     *dofs;    /**< Number of degrees of freedom per unknown (NULL, if dof > 0) */
+    pastix_int_t     *dofs;    /**< Array of the first column of each element in the
+                                    expanded matrix [+baseval]                                  */
     pastix_order_t    layout;  /**< PastixColMajor, or PastixRowMajor                           */
 
-    pastix_int_t     *colptr;  /**< List of indirections to rows for each vertex                */
-    pastix_int_t     *rowptr;  /**< List of edges for each vertex                               */
-    pastix_int_t     *loc2glob;/**< Corresponding numbering from local to global                */
+    pastix_int_t     *colptr;  /**< List of indirections to rows for each vertex [+baseval]     */
+    pastix_int_t     *rowptr;  /**< List of edges for each vertex [+baseval]                    */
+    pastix_int_t     *loc2glob;/**< Corresponding numbering from local to global [+baseval]     */
     void             *values;  /**< Values stored in the matrix                                 */
 };
 
