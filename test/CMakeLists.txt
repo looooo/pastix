@@ -5,7 +5,7 @@ set(generated_files "")
 
 ## Generate the dsparse wrappers for all required precisions
 set(SOURCES
-  z_spm_matvec_test.c
+  z_spm_tests.c
   z_bcsc_tests.c
 )
 
