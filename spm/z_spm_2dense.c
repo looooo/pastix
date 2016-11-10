@@ -27,7 +27,7 @@
 pastix_complex64_t *
 z_spmCSC2dense( const pastix_spm_t *spm )
 {
-    pastix_int_t i, j, lda, baseval;
+    pastix_int_t i, j, k, lda, baseval;
     pastix_complex64_t *A, *valptr;
     pastix_int_t *colptr, *rowptr;
 
@@ -52,39 +52,42 @@ z_spmCSC2dense( const pastix_spm_t *spm )
         switch( spm->mtxtype ){
 #if defined(PRECISION_z) || defined(PRECISION_c)
         case PastixHermitian:
-            for(i=0; i<spm->n; i++, colptr++)
+            for(j=0; j<spm->n; j++, colptr++)
             {
-                for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
+                for(k=colptr[0]; k<colptr[1]; k++, rowptr++, valptr++)
                 {
-                    if( i == (*rowptr-baseval) ) {
+                    i = (*rowptr-baseval);
+                    if( i == j ) {
                         /* Make sure the matrix is hermitian */
-                        A[ i * lda + (*rowptr - baseval) ] = creal(*valptr) + I * 0.;
+                        A[ j * lda + i ] = creal(*valptr) + I * 0.;
                     }
                     else {
-                        A[ i * lda + (*rowptr - baseval) ] = *valptr;
-                        A[ (*rowptr - baseval) * lda + i ] = conj(*valptr);
+                        A[ j * lda + i ] = *valptr;
+                        A[ i * lda + j ] = conj(*valptr);
                     }
                 }
             }
             break;
 #endif
         case PastixSymmetric:
-            for(i=0; i<spm->n; i++, colptr++)
+            for(j=0; j<spm->n; j++, colptr++)
             {
-                for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
+                for(k=colptr[0]; k<colptr[1]; k++, rowptr++, valptr++)
                 {
-                    A[ i * lda + (*rowptr - baseval) ] = *valptr;
-                    A[ (*rowptr - baseval) * lda + i ] = *valptr;
+                    i = (*rowptr-baseval);
+                    A[ j * lda + i ] = *valptr;
+                    A[ i * lda + j ] = *valptr;
                 }
             }
             break;
         case PastixGeneral:
         default:
-            for(i=0; i<spm->n; i++, colptr++)
+            for(j=0; j<spm->n; j++, colptr++)
             {
-                for(j=colptr[0]; j<colptr[1]; j++, rowptr++, valptr++)
+                for(k=colptr[0]; k<colptr[1]; k++, rowptr++, valptr++)
                 {
-                    A[ i * lda + (*rowptr - baseval) ] = *valptr;
+                    i = (*rowptr-baseval);
+                    A[ j * lda + i ] = *valptr;
                 }
             }
         }
@@ -99,23 +102,23 @@ z_spmCSC2dense( const pastix_spm_t *spm )
         switch( spm->mtxtype ){
 #if defined(PRECISION_z) || defined(PRECISION_c)
         case PastixHermitian:
-            for(i=0; i<spm->n; i++, colptr++)
+            for(j=0; j<spm->n; j++, colptr++)
             {
-                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-                col = dofs[i];
+                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                col = dofs[j];
 
                 for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
                 {
-                    j = (*rowptr - baseval);
-                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                    row = dofs[j];
+                    i = (*rowptr - baseval);
+                    dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                    row = dofs[i];
 
-                    for(ii=0; ii<dofi; ii++)
+                    for(jj=0; jj<dofj; jj++)
                     {
-                        for(jj=0; jj<dofj; jj++, valptr++)
+                        for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
-                            A[ (row + jj) * lda + (col + ii) ] = conj(*valptr);
+                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
+                            A[ (row + ii) * lda + (col + jj) ] = conj(*valptr);
                         }
                     }
                 }
@@ -123,23 +126,23 @@ z_spmCSC2dense( const pastix_spm_t *spm )
             break;
 #endif
         case PastixSymmetric:
-            for(i=0; i<spm->n; i++, colptr++)
+            for(j=0; j<spm->n; j++, colptr++)
             {
-                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-                col = dofs[i];
+                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                col = dofs[j];
 
                 for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
                 {
-                    j = (*rowptr - baseval);
-                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                    row = dofs[j];
+                    i = (*rowptr - baseval);
+                    dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                    row = dofs[i];
 
-                    for(ii=0; ii<dofi; ii++)
+                    for(jj=0; jj<dofj; jj++)
                     {
-                        for(jj=0; jj<dofj; jj++, valptr++)
+                        for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
-                            A[ (row + jj) * lda + (col + ii) ] = *valptr;
+                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
+                            A[ (row + ii) * lda + (col + jj) ] = *valptr;
                         }
                     }
                 }
@@ -147,22 +150,22 @@ z_spmCSC2dense( const pastix_spm_t *spm )
             break;
         case PastixGeneral:
         default:
-            for(i=0; i<spm->n; i++, colptr++)
+            for(j=0; j<spm->n; j++, colptr++)
             {
-                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-                col = dofs[i];
+                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                col = dofs[j];
 
                 for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
                 {
-                    j = (*rowptr - baseval);
-                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                    row = dofs[j];
+                    i = (*rowptr - baseval);
+                    dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                    row = dofs[i];
 
-                    for(ii=0; ii<dofi; ii++)
+                    for(jj=0; jj<dofj; jj++)
                     {
-                        for(jj=0; jj<dofj; jj++, valptr++)
+                        for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
+                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
                         }
                     }
                 }
@@ -175,7 +178,7 @@ z_spmCSC2dense( const pastix_spm_t *spm )
 pastix_complex64_t *
 z_spmCSR2dense( const pastix_spm_t *spm )
 {
-    pastix_int_t i, j, lda, baseval;
+    pastix_int_t i, j, k, lda, baseval;
     pastix_complex64_t *A, *valptr;
     pastix_int_t *colptr, *rowptr;
 
@@ -202,15 +205,16 @@ z_spmCSR2dense( const pastix_spm_t *spm )
         case PastixHermitian:
             for(i=0; i<spm->n; i++, rowptr++)
             {
-                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++)
+                for(k=rowptr[0]; k<rowptr[1]; k++, colptr++, valptr++)
                 {
-                    if( i == (*colptr-baseval) ) {
+                    j = (*colptr-baseval);
+                    if( i == j ) {
                         /* Make sure the matrix is hermitian */
-                        A[ i * lda + i ] = creal(*valptr) + I * 0.;
+                        A[ j * lda + i ] = creal(*valptr) + I * 0.;
                     }
                     else {
-                        A[ i * lda + (*colptr - baseval) ] = conj(*valptr);
-                        A[ (*colptr - baseval) * lda + i ] = *valptr;
+                        A[ j * lda + i ] = *valptr;
+                        A[ i * lda + j ] = conj(*valptr);
                     }
                 }
             }
@@ -219,10 +223,11 @@ z_spmCSR2dense( const pastix_spm_t *spm )
         case PastixSymmetric:
             for(i=0; i<spm->n; i++, rowptr++)
             {
-                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++)
+                for(k=rowptr[0]; k<rowptr[1]; k++, colptr++, valptr++)
                 {
-                    A[ i * lda + (*colptr - baseval) ] = *valptr;
-                    A[ (*colptr - baseval) * lda + i ] = *valptr;
+                    j = (*colptr-baseval);
+                    A[ j * lda + i ] = *valptr;
+                    A[ i * lda + j ] = *valptr;
                 }
             }
             break;
@@ -230,9 +235,10 @@ z_spmCSR2dense( const pastix_spm_t *spm )
         default:
             for(i=0; i<spm->n; i++, rowptr++)
             {
-                for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++)
+                for(k=rowptr[0]; k<rowptr[1]; k++, colptr++, valptr++)
                 {
-                    A[ i * lda + (*colptr - baseval) ] = *valptr;
+                    j = (*colptr-baseval);
+                    A[ j * lda + i ] = *valptr;
                 }
             }
         }
@@ -258,12 +264,12 @@ z_spmCSR2dense( const pastix_spm_t *spm )
                     dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
                     col = dofs[j];
 
-                    for(ii=0; ii<dofi; ii++)
+                    for(jj=0; jj<dofj; jj++)
                     {
-                        for(jj=0; jj<dofj; jj++, valptr++)
+                        for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
-                            A[ (row + jj) * lda + (col + ii) ] = conj(*valptr);
+                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
+                            A[ (row + ii) * lda + (col + jj) ] = conj(*valptr);
                         }
                     }
                 }
@@ -282,12 +288,12 @@ z_spmCSR2dense( const pastix_spm_t *spm )
                     dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
                     col = dofs[j];
 
-                    for(ii=0; ii<dofi; ii++)
+                    for(jj=0; jj<dofj; jj++)
                     {
-                        for(jj=0; jj<dofj; jj++, valptr++)
+                        for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
-                            A[ (row + jj) * lda + (col + ii) ] = *valptr;
+                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
+                            A[ (row + ii) * lda + (col + jj) ] = *valptr;
                         }
                     }
                 }
@@ -306,11 +312,11 @@ z_spmCSR2dense( const pastix_spm_t *spm )
                     dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
                     col = dofs[j];
 
-                    for(ii=0; ii<dofi; ii++)
+                    for(jj=0; jj<dofj; jj++)
                     {
-                        for(jj=0; jj<dofj; jj++, valptr++)
+                        for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + ii) * lda + (row + jj) ] = *valptr;
+                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
                         }
                     }
                 }
@@ -491,11 +497,11 @@ z_spmDensePrint( pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_i
 {
     pastix_int_t i, j;
 
-    for(i=0; i<m; i++)
+    for(j=0; j<n; j++)
     {
-        for(j=0; j<n; j++)
+        for(i=0; i<m; i++)
         {
-            if ( cabs( A[ lda *j + i] ) != 0. ) {
+            if ( cabs( A[ j * lda + i ] ) != 0. ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
                 fprintf( stderr, "%ld %ld (%e, %e)\n",
                          i, j, creal(A[lda * j + i]), cimag(A[lda * j + i]) );
@@ -508,4 +514,3 @@ z_spmDensePrint( pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_i
     }
     return;
 }
-
