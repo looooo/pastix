@@ -62,15 +62,12 @@ int main (int argc, char **argv)
     spmtype = spm.mtxtype;
     printf(" -- SPM Norms Test --\n");
 
-    printf(" Datatype: %s\n", fltnames[spm.flttype] );
     for( fmttype=0; fmttype<3; fmttype++ ) {
 
         spmConvert( fmttype, &spm );
-        printf(" Storage Format: %s\n", fmtnames[spm.fmttype] );
 
         for( baseval=0; baseval<2; baseval++ )
         {
-            printf(" Baseval : %d\n", baseval );
             spmBase( &spm, baseval );
 
             for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
@@ -88,7 +85,10 @@ int main (int argc, char **argv)
                 }
                 spm.mtxtype = mtxtype;
 
-                printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
+                printf(" Case: %s / %s / %d / %s\n",
+                       fltnames[spm.flttype],
+                       fmtnames[spm.fmttype], baseval,
+                       mtxnames[mtxtype - PastixGeneral] );
 
                 switch( spm.flttype ){
                 case PastixComplex64:
