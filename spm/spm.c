@@ -310,6 +310,43 @@ spmConvert( int ofmttype, pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
+ * @brief Convert the spm matrix into a dense matrix for test purpose. DO NOT
+ * USE with large matrices.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix structure to convert.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *        The pointer to the allocated array storing the dense version of the
+ *        matrix.
+ *
+ *******************************************************************************/
+void *
+spm2Dense( const pastix_spm_t *spm )
+{
+    switch (spm->flttype) {
+    case PastixFloat:
+        return s_spm2dense( spm );
+    case PastixComplex32:
+        return c_spm2dense( spm );
+    case PastixComplex64:
+        return z_spm2dense( spm );
+    case PastixDouble:
+        return d_spm2dense( spm );
+    default:
+        return NULL;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
  * @brief Compute the norm of the spm.
  *
  * Return the ntype norm of the sparse matrix spm.

@@ -126,6 +126,7 @@ void          spmExit( pastix_spm_t *spm );
 pastix_spm_t *spmCopy( const pastix_spm_t *spm );
 void          spmBase( pastix_spm_t *spm, int baseval );
 int           spmConvert( int ofmttype, pastix_spm_t *ospm );
+void *        spm2Dense( const pastix_spm_t *spm );
 pastix_int_t  spmFindBase( const pastix_spm_t *spm );
 double        spmNorm( int ntype, const pastix_spm_t *spm );
 int           spmMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
