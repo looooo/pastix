@@ -174,6 +174,127 @@ z_spmInfNorm( const pastix_spm_t *spm )
     pastix_int_t col, row, i, baseval;
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
     double norm = 0.;
+    double *sumrow;
+
+    MALLOC_INTERN( sumrow, spm->gN, double );
+    memset( sumrow, 0, spm->gN * sizeof(double) );
+    baseval = spmFindBase( spm );
+
+    switch( spm->fmttype ){
+    case PastixCSC:
+        for( col=0; col < spm->gN; col++ )
+        {
+            for( i=spm->colptr[col]-baseval; i<spm->colptr[col+1]-baseval; i++ )
+            {
+                row = spm->rowptr[i] - baseval;
+                sumrow[row] += cabs( valptr[i] );
+            }
+        }
+
+        /* Add the symmetric/hermitian part */
+        if ( (spm->mtxtype == PastixHermitian) ||
+             (spm->mtxtype == PastixSymmetric) )
+        {
+            for( col=0; col < spm->gN; col++ )
+            {
+                for( i=spm->colptr[col]-baseval+1; i<spm->colptr[col+1]-baseval; i++ )
+                {
+                    sumrow[col] += cabs( valptr[i] );
+                }
+            }
+        }
+        break;
+
+    case PastixCSR:
+        for( row=0; row < spm->gN; row++ )
+        {
+            for( i=spm->rowptr[row]-baseval; i<spm->rowptr[row+1]-baseval; i++ )
+            {
+                sumrow[row] += cabs( valptr[i] );
+            }
+        }
+
+        /* Add the symmetric/hermitian part */
+        if ( (spm->mtxtype == PastixHermitian) ||
+             (spm->mtxtype == PastixSymmetric) )
+        {
+            for( row=0; row < spm->gN; row++ )
+            {
+                for( i=spm->rowptr[row]-baseval+1; i<spm->rowptr[row+1]-baseval; i++ )
+                {
+                    col = spm->colptr[i] - baseval;
+                    sumrow[col] += cabs( valptr[i] );
+                }
+            }
+        }
+        break;
+
+    case PastixIJV:
+        for(i=0; i < spm->nnz; i++)
+        {
+            row = spm->rowptr[i]-baseval;
+            sumrow[row] += cabs( valptr[i] );
+        }
+
+        /* Add the symmetric/hermitian part */
+        if ( (spm->mtxtype == PastixHermitian) ||
+             (spm->mtxtype == PastixSymmetric) )
+        {
+            for(i=0; i < spm->nnz; i++)
+            {
+                row = spm->rowptr[i]-baseval;
+                col = spm->colptr[i]-baseval;
+                if( row != col ) {
+                    sumrow[col] += cabs( valptr[i] );
+                }
+            }
+        }
+        break;
+
+    default:
+        memFree_null( sumrow );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    for( i=0; i<spm->gN; i++)
+    {
+        if(norm < sumrow[i])
+        {
+            norm = sumrow[i];
+        }
+    }
+    memFree_null( sumrow );
+
+    return norm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_internal
+ *
+ * z_spmOneNorm - Compute the Oneinity norm of the non distributed given spm
+ * structure fiven by the maximum row sum
+ *
+ *  ||A|| = max_j( sum_i(|a_ij|) )
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The spm from which the norm need to be computed.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *           The computed norm
+ *
+ *******************************************************************************/
+double
+z_spmOneNorm( const pastix_spm_t *spm )
+{
+    pastix_int_t col, row, i, baseval;
+    pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
+    double norm = 0.;
     double *sumcol;
 
     MALLOC_INTERN( sumcol, spm->gN, double );
@@ -186,7 +307,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
         {
             for( i=spm->colptr[col]-baseval; i<spm->colptr[col+1]-baseval; i++ )
             {
-                sumcol[spm->rowptr[i]-baseval] += cabs( valptr[i] );
+                sumcol[col] += cabs( valptr[i] );
             }
         }
 
@@ -198,7 +319,8 @@ z_spmInfNorm( const pastix_spm_t *spm )
             {
                 for( i=spm->colptr[col]-baseval+1; i<spm->colptr[col+1]-baseval; i++ )
                 {
-                    sumcol[col] += cabs( valptr[i] );
+                    row = spm->rowptr[i] - baseval;
+                    sumcol[row] += cabs( valptr[i] );
                 }
             }
         }
@@ -209,7 +331,8 @@ z_spmInfNorm( const pastix_spm_t *spm )
         {
             for( i=spm->rowptr[row]-baseval; i<spm->rowptr[row+1]-baseval; i++ )
             {
-                sumcol[spm->colptr[i]-baseval] += cabs( valptr[i] );
+                col = spm->colptr[i] - baseval;
+                sumcol[col] += cabs( valptr[i] );
             }
         }
 
@@ -258,121 +381,6 @@ z_spmInfNorm( const pastix_spm_t *spm )
         }
     }
     memFree_null( sumcol );
-
-    return norm;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm_internal
- *
- * z_spmOneNorm - Compute the Oneinity norm of the non distributed given spm
- * structure fiven by the maximum row sum
- *
- *  ||A|| = max_j( sum_i(|a_ij|) )
- *
- *******************************************************************************
- *
- * @param[in] spm
- *           The spm from which the norm need to be computed.
- *
- *******************************************************************************
- *
- * @return
- *           The computed norm
- *
- *******************************************************************************/
-double
-z_spmOneNorm( const pastix_spm_t *spm )
-{
-    pastix_int_t col, row, i, baseval;
-    pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
-    double norm = 0.;
-    double *sumrow;
-
-    MALLOC_INTERN( sumrow, spm->gN, double );
-    memset( sumrow, 0, spm->gN * sizeof(double) );
-    baseval = spmFindBase( spm );
-
-    switch( spm->fmttype ){
-    case PastixCSC:
-        for( col=0; col < spm->gN; col++ )
-        {
-            for( i=spm->colptr[col]-baseval; i<spm->colptr[col+1]-baseval; i++ )
-            {
-                sumrow[col] += cabs( valptr[i] );
-            }
-        }
-
-        /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
-        {
-            for( col=0; col < spm->gN; col++ )
-            {
-                for( i=spm->colptr[col]-baseval+1; i<spm->colptr[col+1]-baseval; i++ )
-                {
-                    sumrow[spm->rowptr[i]-baseval] += cabs( valptr[i] );
-                }
-            }
-        }
-        break;
-
-    case PastixCSR:
-        for( row=0; row < spm->gN; row++ )
-        {
-            for( i=spm->rowptr[row]-baseval; i<spm->rowptr[row+1]-baseval; i++ )
-            {
-                sumrow[row] += cabs( valptr[i] );
-            }
-        }
-
-        /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
-        {
-            for( row=0; row < spm->gN; row++ )
-            {
-                for( i=spm->rowptr[row]-baseval+1; i<spm->rowptr[row+1]-baseval; i++ )
-                {
-                    sumrow[spm->colptr[i]-baseval] += cabs( valptr[i] );
-                }
-            }
-        }
-        break;
-
-    case PastixIJV:
-        for(i=0; i < spm->nnz; i++)
-        {
-            sumrow[spm->rowptr[i]-baseval] += cabs( valptr[i] );
-        }
-
-        /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
-        {
-            for(i=0; i < spm->nnz; i++)
-            {
-                if(spm->rowptr[i] != spm->colptr[i])
-                    sumrow[spm->colptr[i]-baseval] += cabs( valptr[i] );
-            }
-        }
-        break;
-
-    default:
-        memFree_null( sumrow );
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    for( i=0; i<spm->gN; i++)
-    {
-        if(norm < sumrow[i])
-        {
-            norm = sumrow[i];
-        }
-    }
-    memFree_null( sumrow );
 
     return norm;
 }
