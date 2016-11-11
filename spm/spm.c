@@ -294,10 +294,10 @@ spmFindBase( const pastix_spm_t *spm )
 int
 spmConvert( int ofmttype, pastix_spm_t *spm )
 {
-    if ( spm->dof != 1 ) {
-        spm = spmExpand( spm );
-    }
     if ( conversionTable[spm->fmttype][ofmttype][spm->flttype] ) {
+        if ( spm->dof != 1 ) {
+            return PASTIX_ERR_NOTIMPLEMENTED;
+        }
         return conversionTable[spm->fmttype][ofmttype][spm->flttype]( spm );
     }
     else {
@@ -420,6 +420,10 @@ spmNorm( int ntype,
         ;
     }
 
+    if ( spmtmp != spm ) {
+        spmExit( spmtmp );
+        free(spmtmp);
+    }
     return norm;
 }
 
