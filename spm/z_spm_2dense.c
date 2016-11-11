@@ -279,13 +279,13 @@ z_spmCSR2dense( const pastix_spm_t *spm )
         case PastixSymmetric:
             for(i=0; i<spm->n; i++, rowptr++)
             {
-                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                dofi = ( spm->dof > 1 ) ?  spm->dof      : dofs[i+1] - dofs[i];
                 row  = ( spm->dof > 1 ) ? (spm->dof * i) : dofs[i];
 
                 for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
                 {
                     j = (*colptr - baseval);
-                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                    dofj = ( spm->dof > 1 ) ?  spm->dof      : dofs[j+1] - dofs[j];
                     col  = ( spm->dof > 1 ) ? (spm->dof * j) : dofs[j];
 
                     for(jj=0; jj<dofj; jj++)
@@ -303,13 +303,13 @@ z_spmCSR2dense( const pastix_spm_t *spm )
         default:
             for(i=0; i<spm->n; i++, rowptr++)
             {
-                dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
+                dofi = ( spm->dof > 1 ) ?  spm->dof      : dofs[i+1] - dofs[i];
                 row  = ( spm->dof > 1 ) ? (spm->dof * i) : dofs[i];
 
                 for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
                 {
                     j = (*colptr - baseval);
-                    dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
+                    dofj = ( spm->dof > 1 ) ?  spm->dof      : dofs[j+1] - dofs[j];
                     col  = ( spm->dof > 1 ) ? (spm->dof * j) : dofs[j];
 
                     for(jj=0; jj<dofj; jj++)
@@ -514,7 +514,7 @@ z_spm2dense( const pastix_spm_t *spm )
 }
 
 void
-z_spmDensePrint( pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda )
+z_spmDensePrint( FILE *f, pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda )
 {
     pastix_int_t i, j;
 
@@ -524,10 +524,10 @@ z_spmDensePrint( pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_i
         {
             if ( cabs( A[ j * lda + i ] ) != 0. ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                fprintf( stderr, "%ld %ld (%e, %e)\n",
+                fprintf( f, "%ld %ld (%e, %e)\n",
                          i, j, creal(A[lda * j + i]), cimag(A[lda * j + i]) );
 #else
-                fprintf( stderr, "%ld %ld %e\n",
+                fprintf( f, "%ld %ld %e\n",
                          i, j, A[lda * j + i] );
 #endif
             }
