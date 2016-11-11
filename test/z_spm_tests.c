@@ -161,7 +161,7 @@ z_spm_norm_check( const pastix_spm_t *spm )
      */
     printf(" -- Test norm One :");
     norms = spmNorm( PastixOneNorm, spm );
-    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'O', spm->gN, spm->gN,  A, spm->gN );
+    normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'O', spm->gNexp, spm->gNexp, A, spm->gNexp );
     result = fabs(norms - normd) / (normd * eps);
     result = result * ((double)(spm->gNexp)) / ((double)(spm->gnnzexp));
 
