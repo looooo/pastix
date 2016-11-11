@@ -22,9 +22,9 @@ z_spmDofExtend(pastix_spm_t *spm)
 {
     pastix_int_t        i, j, k, ii, jj, dofi, dofj, baseval;
     pastix_int_t       *colptr, *rowptr, *dofs;
-    pastix_complex64_t *newval, *oldval;
+    pastix_complex64_t *newval, *oldval, *oldvalptr;
 
-    oldval = (pastix_complex64_t*)(spm->values);
+    oldval = oldvalptr = (pastix_complex64_t*)(spm->values);
     newval = spm->values = malloc( spm->nnzexp * sizeof(pastix_complex64_t) );
 
     baseval = spmFindBase( spm );
@@ -107,5 +107,7 @@ z_spmDofExtend(pastix_spm_t *spm)
         }
         break;
     }
+
+    free(oldvalptr);
     return;
 }
