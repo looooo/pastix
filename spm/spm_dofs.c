@@ -22,7 +22,6 @@
 #include "s_spm.h"
 #include "p_spm.h"
 
-
 pastix_spm_t *
 spmDofExtend( const int type,
               const int dof,
