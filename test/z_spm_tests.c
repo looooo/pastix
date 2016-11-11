@@ -12,6 +12,7 @@
  * @precisions normal z -> c d s
  *
  **/
+#define _GNU_SOURCE
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,6 +27,54 @@
 #include <z_spm.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
+
+/*------------------------------------------------------------------------
+ *  Check the accuracy of the solution
+ */
+void
+z_spm_print_check( char *filename, const pastix_spm_t *spm )
+{
+    pastix_complex64_t *A;
+    char *file;
+    FILE *f;
+
+    asprintf( &file, "%s_sparse_cp.dat", filename );
+    f = fopen(file, "w");
+    z_spmPrint( f, spm );
+    fclose(f);
+    free(file);
+
+    A = z_spm2dense( spm );
+    asprintf( &file, "%s_dense_cp.dat", filename );
+    f = fopen(file, "w");
+    z_spmDensePrint( f, spm->nexp, spm->nexp, A, spm->nexp );
+    fclose(f);
+    free(file);
+    free(A);
+
+    if ( spm->dof != 1 ) {
+        pastix_spm_t *espm = z_spmExpand( spm );
+
+        asprintf( &file, "%s_sparse_ucp.dat", filename );
+        f = fopen(file, "w");
+        z_spmPrint( f, espm );
+        fclose(f);
+        free(file);
+
+        A = z_spm2dense( espm );
+        asprintf( &file, "%s_dense_ucp.dat", filename );
+        f = fopen(file, "w");
+        z_spmDensePrint( f, espm->nexp, espm->nexp, A, espm->nexp );
+        fclose(f);
+        free(file);
+        free(A);
+
+        spmExit( espm );
+        free(espm);
+    }
+
+    return;
+}
 
 /*------------------------------------------------------------------------
  *  Check the accuracy of the solution

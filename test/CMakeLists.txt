@@ -22,6 +22,8 @@ target_link_libraries(spm_convert_tests pastix)
 set (TESTS
   spm_matvec_tests.c
   spm_norm_tests.c
+  spm_norm_dof_tests.c
+  spm_dof_expand_tests.c
   bcsc_norm_tests.c
   bcsc_matvec_tests.c
   )
@@ -35,7 +37,7 @@ endforeach()
 
 ## CTest execution
 # Laplacian
-foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests)
+foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests spm_norm_dof_tests)
   add_test(lap_${example} ./${example} -lap 1000)
 endforeach()
 
