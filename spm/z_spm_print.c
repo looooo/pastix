@@ -25,7 +25,7 @@
 #include "z_spm.h"
 
 void
-z_spmPrint( const pastix_spm_t *spm )
+z_spmPrint( FILE *f, const pastix_spm_t *spm )
 {
     pastix_int_t i, j, baseval;
     pastix_int_t k, ii, jj, dofi, dofj, col, row;
@@ -46,41 +46,45 @@ z_spmPrint( const pastix_spm_t *spm )
     switch( spm->mtxtype ){
 #if defined(PRECISION_z) || defined(PRECISION_c)
     case PastixHermitian:
-        for(i=0; i<spm->n; i++, colptr++)
+        for(j=0; j<spm->n; j++, colptr++)
         {
-            dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-            col = dofs[i];
+            dofj = ( spm->dof > 0 ) ? spm->dof     : dofs[j+1] - dofs[j];
+            col  = ( spm->dof > 0 ) ? spm->dof * j : dofs[j];
 
             for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
             {
-                j = (*rowptr - baseval);
-                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                row = dofs[j];
+                i = (*rowptr - baseval);
+                dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
+                row  = ( spm->dof > 0 ) ? spm->dof * i : dofs[i];
 
                 if ( spm->layout == PastixColMajor ) {
-                    for(ii=0; ii<dofi; ii++)
+                    for(jj=0; jj<dofj; jj++)
                     {
-                        for(jj=0; jj<dofj; jj++, valptr++)
+                        for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                     row + jj, col + ii, creal(*valptr), cimag(*valptr) );
-                            if (i != j) {
-                                fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                         col + ii, row + jj, creal(conj(*valptr)), cimag(conj(*valptr)) );
+                            if (row+ii >= col+jj) {
+                                fprintf( f, "%ld %ld (%e, %e)\n",
+                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                if (row+ii > col+jj) {
+                                    fprintf( f, "%ld %ld (%e, %e)\n",
+                                             col + jj, row + ii, creal(conj(*valptr)), cimag(conj(*valptr)) );
+                                }
                             }
                         }
                     }
                 }
                 else {
-                    for(jj=0; jj<dofj; jj++)
+                    for(ii=0; ii<dofi; ii++)
                     {
-                        for(ii=0; ii<dofi; ii++, valptr++)
+                        for(jj=0; jj<dofj; jj++, valptr++)
                         {
-                            fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                     row + jj, col + ii, creal(*valptr), cimag(*valptr) );
-                            if (i != j) {
-                                fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                         col + ii, row + jj, creal(conj(*valptr)), cimag(conj(*valptr)) );
+                            if (row+ii >= col+jj) {
+                                fprintf( f, "%ld %ld (%e, %e)\n",
+                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                if (row+ii > col+jj) {
+                                    fprintf( f, "%ld %ld (%e, %e)\n",
+                                             col + jj, row + ii, creal(conj(*valptr)), cimag(conj(*valptr)) );
+                                }
                             }
                         }
                     }
@@ -90,60 +94,64 @@ z_spmPrint( const pastix_spm_t *spm )
         break;
 #endif
     case PastixSymmetric:
-        for(i=0; i<spm->n; i++, colptr++)
+        for(j=0; j<spm->n; j++, colptr++)
         {
-            dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-            col = dofs[i];
+            dofj = ( spm->dof > 0 ) ? spm->dof     : dofs[j+1] - dofs[j];
+            col  = ( spm->dof > 0 ) ? spm->dof * j : dofs[j];
 
             for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
             {
-                j = (*rowptr - baseval);
-                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                row = dofs[j];
+                i = (*rowptr - baseval);
+                dofi = ( spm->dof > 0 ) ? spm->dof     : dofs[i+1] - dofs[i];
+                row  = ( spm->dof > 0 ) ? spm->dof * i : dofs[i];
 
                 if ( spm->layout == PastixColMajor ) {
-                    for(ii=0; ii<dofi; ii++)
-                    {
-                        for(jj=0; jj<dofj; jj++, valptr++)
-                        {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                            fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                     row + jj, col + ii, creal(*valptr), cimag(*valptr) );
-                            if (i != j) {
-                                fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                         col + ii, row + jj, creal(*valptr), cimag(*valptr) );
-                            }
-#else
-                            fprintf( stderr, "%ld %ld %e\n",
-                                     row + jj, col + ii, *valptr );
-                            if (i != j) {
-                                fprintf( stderr, "%ld %ld %e\n",
-                                         col + ii, row + jj, *valptr );
-                            }
-#endif
-                        }
-                    }
-                }
-                else {
                     for(jj=0; jj<dofj; jj++)
                     {
                         for(ii=0; ii<dofi; ii++, valptr++)
                         {
+                            if (row+ii >= col+jj) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                            fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                     row + jj, col + ii, creal(*valptr), cimag(*valptr) );
-                            if (i != j) {
-                                fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                         col + ii, row + jj, creal(*valptr), cimag(*valptr) );
-                            }
+                                fprintf( f, "%ld %ld (%e, %e)\n",
+                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                if (row+ii > col+jj) {
+                                    fprintf( f, "%ld %ld (%e, %e)\n",
+                                             col + jj, row + ii, creal(*valptr), cimag(*valptr) );
+                                }
 #else
-                            fprintf( stderr, "%ld %ld %e\n",
-                                     row + jj, col + ii, *valptr );
-                            if (i != j) {
-                                fprintf( stderr, "%ld %ld %e\n",
-                                         col + ii, row + jj, *valptr );
-                            }
+                                fprintf( f, "%ld %ld %e\n",
+                                         row + ii, col + jj, *valptr );
+                                if (row+ii > col+jj) {
+                                    fprintf( f, "%ld %ld %e\n",
+                                             col + jj, row + ii, *valptr );
+                                }
 #endif
+                            }
+                        }
+                    }
+                }
+                else {
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            if (row+ii >= col+jj) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                                fprintf( f, "%ld %ld (%e, %e)\n",
+                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                if (row+ii > col+jj) {
+                                    fprintf( f, "%ld %ld (%e, %e)\n",
+                                             col + jj, row + ii, creal(*valptr), cimag(*valptr) );
+                                }
+#else
+                                fprintf( f, "%ld %ld %e\n",
+                                         row + ii, col + jj, *valptr );
+                                if (row+ii > col+jj) {
+                                    fprintf( f, "%ld %ld %e\n",
+                                             col + jj, row + ii, *valptr );
+                                }
+#endif
+                            }
                         }
                     }
                 }
@@ -152,43 +160,43 @@ z_spmPrint( const pastix_spm_t *spm )
         break;
     case PastixGeneral:
     default:
-        for(i=0; i<spm->n; i++, colptr++)
+        for(j=0; j<spm->n; j++, colptr++)
         {
-            dofi = ( spm->dof > 1 ) ? spm->dof : dofs[i+1] - dofs[i];
-            col = dofs[i];
+            dofj = ( spm->dof > 0 ) ? spm->dof     : dofs[j+1] - dofs[j];
+            col  = ( spm->dof > 0 ) ? spm->dof * j : dofs[j];
 
             for(k=colptr[0]; k<colptr[1]; k++, rowptr++)
             {
-                j = (*rowptr - baseval);
-                dofj = ( spm->dof > 1 ) ? spm->dof : dofs[j+1] - dofs[j];
-                row = dofs[j];
+                i = (*rowptr - baseval);
+                dofi = ( spm->dof > 0 ) ? spm->dof     : dofs[i+1] - dofs[i];
+                row  = ( spm->dof > 0 ) ? spm->dof * i : dofs[i];
 
                 if ( spm->layout == PastixColMajor ) {
-                    for(ii=0; ii<dofi; ii++)
-                    {
-                        for(jj=0; jj<dofj; jj++, valptr++)
-                        {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                            fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                     row + jj, col + ii, creal(*valptr), cimag(*valptr) );
-#else
-                            fprintf( stderr, "%ld %ld %e\n",
-                                     row + jj, col + ii, *valptr );
-#endif
-                        }
-                    }
-                }
-                else {
                     for(jj=0; jj<dofj; jj++)
                     {
                         for(ii=0; ii<dofi; ii++, valptr++)
                         {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                            fprintf( stderr, "%ld %ld (%e, %e)\n",
-                                     row + jj, col + ii, creal(*valptr), cimag(*valptr) );
+                            fprintf( f, "%ld %ld (%e, %e)\n",
+                                     row + ii, col + jj, creal(*valptr), cimag(*valptr) );
 #else
-                            fprintf( stderr, "%ld %ld %e\n",
-                                     row + jj, col + ii, *valptr );
+                            fprintf( f, "%ld %ld %e\n",
+                                     row + ii, col + jj, *valptr );
+#endif
+                        }
+                    }
+                }
+                else {
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                            fprintf( f, "%ld %ld (%e, %e)\n",
+                                     row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+#else
+                            fprintf( f, "%ld %ld %e\n",
+                                     row + ii, col + jj, *valptr );
 #endif
                         }
                     }
