@@ -50,7 +50,7 @@ z_spmFrobeniusNorm( const pastix_spm_t *spm )
     double sumsq = 0.;
 
     if (spm->mtxtype == PastixGeneral) {
-        for(i=0; i <spm->nnz; i++, valptr++) {
+        for(i=0; i <spm->nnzexp; i++, valptr++) {
             frobenius_update( 1, &scale, &sumsq, valptr );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -139,7 +139,7 @@ z_spmMaxNorm( const pastix_spm_t *spm )
     pastix_complex64_t *valptr = (pastix_complex64_t*)spm->values;
     double tmp, norm = 0.;
 
-    for(i=0; i <spm->nnz; i++, valptr++) {
+    for(i=0; i <spm->nnzexp; i++, valptr++) {
         tmp = cabs( *valptr );
         norm = norm > tmp ? norm : tmp;
     }
