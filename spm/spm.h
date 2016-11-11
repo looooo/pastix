@@ -138,6 +138,7 @@ pastix_int_t  spmSymmetrize( pastix_spm_t *spm );
 pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
 
 pastix_spm_t *spmExpand(const pastix_spm_t* spm);
+pastix_spm_t *spmDofExtend( const int type, const int dof, const pastix_spm_t *spm );
 
 int spmReadDriver( pastix_driver_t  driver,
                    char            *filename,
