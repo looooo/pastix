@@ -18,17 +18,17 @@ precisions_rules_py(generated_headers
 set(SOURCES
   z_spm.c
   z_spm_2dense.c
+  z_spm_dof_extend.c
+  z_spm_norm.c
+
   z_spm_convert_to_csc.c
   z_spm_convert_to_csr.c
   z_spm_convert_to_ijv.c
-  z_spm_dofs2flat.c
   z_spm_expand.c
-  z_spm_dof_extend.c
   z_spm_genrhs.c
   z_spm_integer.c
   z_spm_laplacian.c
   z_spm_matrixvector.c
-  z_spm_norm.c
   z_spm_print.c
   )
 
