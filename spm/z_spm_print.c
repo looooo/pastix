@@ -25,7 +25,7 @@
 #include "z_spm.h"
 
 void
-z_spmPrint( FILE *f, const pastix_spm_t *spm )
+z_spmCSCPrint( FILE *f, const pastix_spm_t *spm )
 {
     pastix_int_t i, j, baseval;
     pastix_int_t k, ii, jj, dofi, dofj, col, row;
@@ -63,11 +63,9 @@ z_spmPrint( FILE *f, const pastix_spm_t *spm )
                         for(ii=0; ii<dofi; ii++, valptr++)
                         {
                             if (row+ii >= col+jj) {
-                                fprintf( f, "%ld %ld (%e, %e)\n",
-                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
                                 if (row+ii > col+jj) {
-                                    fprintf( f, "%ld %ld (%e, %e)\n",
-                                             col + jj, row + ii, creal(conj(*valptr)), cimag(conj(*valptr)) );
+                                    z_spmPrintElt( f, col + jj, row + ii, conj(*valptr) );
                                 }
                             }
                         }
@@ -79,11 +77,9 @@ z_spmPrint( FILE *f, const pastix_spm_t *spm )
                         for(jj=0; jj<dofj; jj++, valptr++)
                         {
                             if (row+ii >= col+jj) {
-                                fprintf( f, "%ld %ld (%e, %e)\n",
-                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
                                 if (row+ii > col+jj) {
-                                    fprintf( f, "%ld %ld (%e, %e)\n",
-                                             col + jj, row + ii, creal(conj(*valptr)), cimag(conj(*valptr)) );
+                                    z_spmPrintElt( f, col + jj, row + ii, conj(*valptr) );
                                 }
                             }
                         }
@@ -111,21 +107,10 @@ z_spmPrint( FILE *f, const pastix_spm_t *spm )
                         for(ii=0; ii<dofi; ii++, valptr++)
                         {
                             if (row+ii >= col+jj) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                                fprintf( f, "%ld %ld (%e, %e)\n",
-                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
                                 if (row+ii > col+jj) {
-                                    fprintf( f, "%ld %ld (%e, %e)\n",
-                                             col + jj, row + ii, creal(*valptr), cimag(*valptr) );
+                                    z_spmPrintElt( f, col + jj, row + ii, *valptr );
                                 }
-#else
-                                fprintf( f, "%ld %ld %e\n",
-                                         row + ii, col + jj, *valptr );
-                                if (row+ii > col+jj) {
-                                    fprintf( f, "%ld %ld %e\n",
-                                             col + jj, row + ii, *valptr );
-                                }
-#endif
                             }
                         }
                     }
@@ -136,21 +121,10 @@ z_spmPrint( FILE *f, const pastix_spm_t *spm )
                         for(jj=0; jj<dofj; jj++, valptr++)
                         {
                             if (row+ii >= col+jj) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                                fprintf( f, "%ld %ld (%e, %e)\n",
-                                         row + ii, col + jj, creal(*valptr), cimag(*valptr) );
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
                                 if (row+ii > col+jj) {
-                                    fprintf( f, "%ld %ld (%e, %e)\n",
-                                             col + jj, row + ii, creal(*valptr), cimag(*valptr) );
+                                    z_spmPrintElt( f, col + jj, row + ii, *valptr );
                                 }
-#else
-                                fprintf( f, "%ld %ld %e\n",
-                                         row + ii, col + jj, *valptr );
-                                if (row+ii > col+jj) {
-                                    fprintf( f, "%ld %ld %e\n",
-                                             col + jj, row + ii, *valptr );
-                                }
-#endif
                             }
                         }
                     }
@@ -176,13 +150,7 @@ z_spmPrint( FILE *f, const pastix_spm_t *spm )
                     {
                         for(ii=0; ii<dofi; ii++, valptr++)
                         {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                            fprintf( f, "%ld %ld (%e, %e)\n",
-                                     row + ii, col + jj, creal(*valptr), cimag(*valptr) );
-#else
-                            fprintf( f, "%ld %ld %e\n",
-                                     row + ii, col + jj, *valptr );
-#endif
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
                         }
                     }
                 }
@@ -191,13 +159,7 @@ z_spmPrint( FILE *f, const pastix_spm_t *spm )
                     {
                         for(jj=0; jj<dofj; jj++, valptr++)
                         {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                            fprintf( f, "%ld %ld (%e, %e)\n",
-                                     row + ii, col + jj, creal(*valptr), cimag(*valptr) );
-#else
-                            fprintf( f, "%ld %ld %e\n",
-                                     row + ii, col + jj, *valptr );
-#endif
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
                         }
                     }
                 }
@@ -207,3 +169,326 @@ z_spmPrint( FILE *f, const pastix_spm_t *spm )
     return;
 }
 
+void
+z_spmCSRPrint( FILE *f, const pastix_spm_t *spm )
+{
+    pastix_int_t i, j, baseval;
+    pastix_int_t k, ii, jj, dofi, dofj, col, row;
+    pastix_complex64_t *valptr;
+    pastix_int_t *colptr, *rowptr, *dofs;
+
+    assert( spm->fmttype == PastixCSR );
+    assert( spm->flttype == PastixComplex64 );
+
+    baseval = spmFindBase( spm );
+    i = 0; j = 0;
+
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
+    dofs   = spm->dofs;
+
+    switch( spm->mtxtype ){
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+        for(i=0; i<spm->n; i++, rowptr++)
+        {
+            dofi = ( spm->dof > 0 ) ? spm->dof     : dofs[i+1] - dofs[i];
+            row  = ( spm->dof > 0 ) ? spm->dof * i : dofs[i];
+
+            for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
+            {
+                j = (*colptr - baseval);
+                dofj = ( spm->dof > 0 ) ? spm->dof     : dofs[j+1] - dofs[j];
+                col  = ( spm->dof > 0 ) ? spm->dof * j : dofs[j];
+
+                if ( spm->layout == PastixColMajor ) {
+                    for(jj=0; jj<dofj; jj++)
+                    {
+                        for(ii=0; ii<dofi; ii++, valptr++)
+                        {
+                            if (row+ii <= col+jj) {
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                                if (row+ii < col+jj) {
+                                    z_spmPrintElt( f, col + jj, row + ii, conj(*valptr) );
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            if (row+ii <= col+jj) {
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                                if (row+ii < col+jj) {
+                                    z_spmPrintElt( f, col + jj, row + ii, conj(*valptr) );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        break;
+#endif
+    case PastixSymmetric:
+        for(i=0; i<spm->n; i++, rowptr++)
+        {
+            dofi = ( spm->dof > 0 ) ? spm->dof     : dofs[i+1] - dofs[i];
+            row  = ( spm->dof > 0 ) ? spm->dof * i : dofs[i];
+
+            for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
+            {
+                j = (*colptr - baseval);
+                dofj = ( spm->dof > 0 ) ? spm->dof     : dofs[j+1] - dofs[j];
+                col  = ( spm->dof > 0 ) ? spm->dof * j : dofs[j];
+
+                if ( spm->layout == PastixColMajor ) {
+                    for(jj=0; jj<dofj; jj++)
+                    {
+                        for(ii=0; ii<dofi; ii++, valptr++)
+                        {
+                            if (row+ii <= col+jj) {
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                                if (row+ii < col+jj) {
+                                    z_spmPrintElt( f, col + jj, row + ii, *valptr );
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            if (row+ii <= col+jj) {
+                                z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                                if (row+ii < col+jj) {
+                                    z_spmPrintElt( f, col + jj, row + ii, *valptr );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        break;
+    case PastixGeneral:
+    default:
+        for(i=0; i<spm->n; i++, rowptr++)
+        {
+            dofi = ( spm->dof > 0 ) ? spm->dof     : dofs[i+1] - dofs[i];
+            row  = ( spm->dof > 0 ) ? spm->dof * i : dofs[i];
+
+            for(k=rowptr[0]; k<rowptr[1]; k++, colptr++)
+            {
+                j = (*colptr - baseval);
+                dofj = ( spm->dof > 0 ) ? spm->dof     : dofs[j+1] - dofs[j];
+                col  = ( spm->dof > 0 ) ? spm->dof * j : dofs[j];
+
+                if ( spm->layout == PastixColMajor ) {
+                    for(jj=0; jj<dofj; jj++)
+                    {
+                        for(ii=0; ii<dofi; ii++, valptr++)
+                        {
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                        }
+                    }
+                }
+                else {
+                    for(ii=0; ii<dofi; ii++)
+                    {
+                        for(jj=0; jj<dofj; jj++, valptr++)
+                        {
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
+
+void
+z_spmIJVPrint( FILE *f, const pastix_spm_t *spm )
+{
+    pastix_int_t i, j, baseval;
+    pastix_int_t k, ii, jj, dofi, dofj, col, row;
+    pastix_complex64_t *valptr;
+    pastix_int_t *colptr, *rowptr, *dofs;
+
+    assert( spm->fmttype == PastixIJV );
+    assert( spm->flttype == PastixComplex64 );
+
+    baseval = spmFindBase( spm );
+    i = 0; j = 0;
+
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
+    dofs   = spm->dofs;
+
+    switch( spm->mtxtype ){
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+        for(k=0; k<spm->nnz; k++, rowptr++, colptr++)
+        {
+            i = *rowptr - baseval;
+            j = *colptr - baseval;
+
+            if ( spm->dof > 0 ) {
+                dofi = spm->dof;
+                row  = spm->dof * i;
+                dofj = spm->dof;
+                col  = spm->dof * j;
+            }
+            else {
+                dofi = dofs[i+1] - dofs[i];
+                row  = dofs[i];
+                dofj = dofs[j+1] - dofs[j];
+                col  = dofs[j];
+            }
+
+            if ( spm->layout == PastixColMajor ) {
+                for(jj=0; jj<dofj; jj++)
+                {
+                    for(ii=0; ii<dofi; ii++, valptr++)
+                    {
+                        if (row+ii >= col+jj) {
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                            if (row+ii > col+jj) {
+                                z_spmPrintElt( f, col + jj, row + ii, conj(*valptr) );
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for(ii=0; ii<dofi; ii++)
+                {
+                    for(jj=0; jj<dofj; jj++, valptr++)
+                    {
+                        if (row+ii >= col+jj) {
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                            if (row+ii > col+jj) {
+                                z_spmPrintElt( f, col + jj, row + ii, conj(*valptr) );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        break;
+#endif
+    case PastixSymmetric:
+        for(k=0; k<spm->nnz; k++, rowptr++, colptr++)
+        {
+            i = *rowptr - baseval;
+            j = *colptr - baseval;
+
+            if ( spm->dof > 0 ) {
+                dofi = spm->dof;
+                row  = spm->dof * i;
+                dofj = spm->dof;
+                col  = spm->dof * j;
+            }
+            else {
+                dofi = dofs[i+1] - dofs[i];
+                row  = dofs[i];
+                dofj = dofs[j+1] - dofs[j];
+                col  = dofs[j];
+            }
+
+            if ( spm->layout == PastixColMajor ) {
+                for(jj=0; jj<dofj; jj++)
+                {
+                    for(ii=0; ii<dofi; ii++, valptr++)
+                    {
+                        if (row+ii >= col+jj) {
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                            if (row+ii > col+jj) {
+                                z_spmPrintElt( f, col + jj, row + ii, *valptr );
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for(ii=0; ii<dofi; ii++)
+                {
+                    for(jj=0; jj<dofj; jj++, valptr++)
+                    {
+                        if (row+ii >= col+jj) {
+                            z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                            if (row+ii > col+jj) {
+                                z_spmPrintElt( f, col + jj, row + ii, *valptr );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        break;
+    case PastixGeneral:
+    default:
+        for(k=0; k<spm->nnz; k++, rowptr++, colptr++)
+        {
+            i = *rowptr - baseval;
+            j = *colptr - baseval;
+
+            if ( spm->dof > 0 ) {
+                dofi = spm->dof;
+                row  = spm->dof * i;
+                dofj = spm->dof;
+                col  = spm->dof * j;
+            }
+            else {
+                dofi = dofs[i+1] - dofs[i];
+                row  = dofs[i];
+                dofj = dofs[j+1] - dofs[j];
+                col  = dofs[j];
+            }
+
+            if ( spm->layout == PastixColMajor ) {
+                for(jj=0; jj<dofj; jj++)
+                {
+                    for(ii=0; ii<dofi; ii++, valptr++)
+                    {
+                        z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                    }
+                }
+            }
+            else {
+                for(ii=0; ii<dofi; ii++)
+                {
+                    for(jj=0; jj<dofj; jj++, valptr++)
+                    {
+                        z_spmPrintElt( f, row + ii, col + jj, *valptr );
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
+
+void
+z_spmPrint( FILE *f, const pastix_spm_t *spm )
+{
+    switch (spm->fmttype) {
+    case PastixCSC:
+        z_spmCSCPrint( f, spm );
+        break;
+    case PastixCSR:
+        z_spmCSRPrint( f, spm );
+        break;
+    case PastixIJV:
+        z_spmIJVPrint( f, spm );
+    }
+    return;
+}
