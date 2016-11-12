@@ -196,7 +196,7 @@ z_spmCSRExpand(const pastix_spm_t *spm)
     }
 
     newspm = malloc( sizeof(pastix_spm_t) );
-    spmInit( newspm );
+    memcpy( newspm, spm, sizeof(pastix_spm_t) );
 
     baseval = spmFindBase( spm );
     oldcol = spm->colptr;
@@ -352,7 +352,7 @@ z_spmIJVExpand(const pastix_spm_t *spm)
     }
 
     newspm = malloc( sizeof(pastix_spm_t) );
-    spmInit( newspm );
+    memcpy( newspm, spm, sizeof(pastix_spm_t) );
 
     baseval = spmFindBase( spm );
     oldcol = spm->colptr;
