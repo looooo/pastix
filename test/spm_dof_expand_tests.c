@@ -76,7 +76,7 @@ int main (int argc, char **argv)
         {
             spmConvert( fmttype, spm );
 
-            for( baseval=0; baseval<1; baseval++ )
+            for( baseval=0; baseval<2; baseval++ )
             {
                 spmBase( spm, baseval );
 
@@ -100,6 +100,7 @@ int main (int argc, char **argv)
                               mtxnames[mtxtype - PastixGeneral],
                               fltnames[spm->flttype] );
 
+                    printf( "-- %s --\n", filename );
                     switch( spm->flttype ){
                     case PastixComplex64:
                         z_spm_print_check( filename, spm );
