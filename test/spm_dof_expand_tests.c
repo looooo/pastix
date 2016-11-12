@@ -53,7 +53,7 @@ int main (int argc, char **argv)
     int spmtype, mtxtype, fmttype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
-    int i, dofmax = 3;
+    int i, dofmax = 6;
 
     /**
      * Get options from command line
