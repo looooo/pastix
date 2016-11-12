@@ -64,14 +64,14 @@ spmDofExtend( const int type,
          * Initialize the dofs array where the degree of freedom of vertex i is
          * dof[i+1] - dof[i]
          */
-        *dofptr = 0;
+        *dofptr = baseval;
         for(i=0; i<spm->n; i++, dofptr++) {
             dofi = 1 + ( rand() % dof );
             dofptr[1] = dofptr[0] + dofi;
         }
 
-        newspm->nexp  = *dofptr;
-        newspm->gNexp = *dofptr;
+        newspm->nexp  = *dofptr - baseval;
+        newspm->gNexp = newspm->nexp;
 
         /**
          * Count the number of non zeroes
