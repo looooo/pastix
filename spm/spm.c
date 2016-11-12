@@ -219,6 +219,11 @@ spmBase( pastix_spm_t *spm,
             spm->loc2glob[i] += baseadj;
         }
     }
+    if (spm->dofs != NULL) {
+        for (i = 0; i < n; i++) {
+            spm->dofs[i] += baseadj;
+        }
+    }
     return;
 }
 

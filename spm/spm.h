@@ -114,7 +114,25 @@ void          spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
 void          spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
 void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
 
+/**
+ * Subroutines to print elements of spm structures
+ */
+static inline void z_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex64_t A ){
+    fprintf( f, "%ld %ld %e %e\n", i, j, creal(A), cimag(A) );
+}
+static inline void c_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex32_t A ){
+    fprintf( f, "%ld %ld %e %e\n", i, j, crealf(A), cimagf(A) );
+}
+static inline void d_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, double A ){
+    fprintf( f, "%ld %ld %e\n", i, j, A );
+}
+static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float A ){
+    fprintf( f, "%ld %ld %e\n", i, j, A );
+}
 
+/**
+ * SPM subroutines
+ */
 int spmLoad( pastix_spm_t *spm, FILE *infile );
 int spmSave( pastix_spm_t *spm, FILE *outfile );
 
@@ -137,9 +155,15 @@ pastix_int_t  spmSymmetrize( pastix_spm_t *spm );
 
 pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
 
+/**
+ * SPM multi-dof subroutines
+ */
 pastix_spm_t *spmExpand(const pastix_spm_t* spm);
 pastix_spm_t *spmDofExtend( const int type, const int dof, const pastix_spm_t *spm );
 
+/**
+ * SPM read driver access
+ */
 int spmReadDriver( pastix_driver_t  driver,
                    char            *filename,
                    pastix_spm_t    *spm,
