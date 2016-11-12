@@ -132,6 +132,8 @@ spmExit( pastix_spm_t *spm )
         memFree_null(spm->loc2glob);
     if(spm->values != NULL)
         memFree_null(spm->values);
+    if(spm->dofs != NULL)
+        memFree_null(spm->dofs);
 }
 
 /**
@@ -220,7 +222,7 @@ spmBase( pastix_spm_t *spm,
         }
     }
     if (spm->dofs != NULL) {
-        for (i = 0; i < n; i++) {
+        for (i = 0; i <= n; i++) {
             spm->dofs[i] += baseadj;
         }
     }
@@ -715,23 +717,48 @@ pastix_spm_t *
 spmCopy( const pastix_spm_t *spm )
 {
     pastix_spm_t *newspm = (pastix_spm_t*)malloc(sizeof(pastix_spm_t));
+    pastix_int_t colsize, rowsize, valsize, dofsize;
 
     memcpy( newspm, spm, sizeof(pastix_spm_t));
 
+    switch(spm->fmttype){
+    case PastixCSC:
+        colsize = spm->n + 1;
+        rowsize = spm->nnz;
+        valsize = spm->nnzexp;
+        dofsize = spm->n + 1;
+        break;
+    case PastixCSR:
+        colsize = spm->nnz;
+        rowsize = spm->n + 1;
+        valsize = spm->nnzexp;
+        dofsize = spm->n + 1;
+        break;
+    case PastixIJV:
+        colsize = spm->nnz;
+        rowsize = spm->nnz;
+        valsize = spm->nnzexp;
+        dofsize = spm->n + 1;
+    }
+
     if(spm->colptr != NULL) {
-        newspm->colptr = (pastix_int_t*)malloc((spm->n+1) * sizeof(pastix_int_t));
-        memcpy( newspm->colptr, spm->colptr, (spm->n+1) * sizeof(pastix_int_t));
+        newspm->colptr = (pastix_int_t*)malloc( colsize * sizeof(pastix_int_t));
+        memcpy( newspm->colptr, spm->colptr, colsize * sizeof(pastix_int_t));
     }
     if(spm->rowptr != NULL) {
-        newspm->rowptr = (pastix_int_t*)malloc(spm->nnz * sizeof(pastix_int_t));
-        memcpy( newspm->rowptr, spm->rowptr, spm->nnz * sizeof(pastix_int_t));
+        newspm->rowptr = (pastix_int_t*)malloc(rowsize * sizeof(pastix_int_t));
+        memcpy( newspm->rowptr, spm->rowptr, rowsize * sizeof(pastix_int_t));
     }
     if(spm->loc2glob != NULL) {
-        newspm->loc2glob = (pastix_int_t*)malloc(spm->n * sizeof(pastix_int_t));
-        memcpy( newspm->loc2glob, spm->loc2glob, spm->n * sizeof(pastix_int_t));
+        newspm->loc2glob = (pastix_int_t*)malloc(dofsize * sizeof(pastix_int_t));
+        memcpy( newspm->loc2glob, spm->loc2glob, dofsize * sizeof(pastix_int_t));
+    }
+    if(spm->dofs != NULL) {
+        newspm->dofs = (pastix_int_t*)malloc(dofsize * sizeof(pastix_int_t));
+        memcpy( newspm->dofs, spm->dofs, dofsize * sizeof(pastix_int_t));
     }
     if(spm->values != NULL) {
-        size_t valsize = spm->nnzexp * pastix_size_of( spm->flttype );
+        valsize = valsize * pastix_size_of( spm->flttype );
         newspm->values = malloc(valsize);
         memcpy( newspm->values, spm->values, valsize);
     }
