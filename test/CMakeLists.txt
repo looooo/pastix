@@ -20,10 +20,11 @@ add_executable(spm_convert_tests spm_convert_tests.c)
 target_link_libraries(spm_convert_tests pastix)
 
 set (TESTS
-  spm_matvec_tests.c
   spm_norm_tests.c
-  spm_norm_dof_tests.c
+  spm_matvec_tests.c
   spm_dof_expand_tests.c
+  spm_dof_norm_tests.c
+  spm_dof_matvec_tests.c
   bcsc_norm_tests.c
   bcsc_matvec_tests.c
   )

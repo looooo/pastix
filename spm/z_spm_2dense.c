@@ -523,13 +523,7 @@ z_spmDensePrint( FILE *f, pastix_int_t m, pastix_int_t n, pastix_complex64_t *A,
         for(i=0; i<m; i++)
         {
             if ( cabs( A[ j * lda + i ] ) != 0. ) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                fprintf( f, "%ld %ld (%e, %e)\n",
-                         i, j, creal(A[lda * j + i]), cimag(A[lda * j + i]) );
-#else
-                fprintf( f, "%ld %ld %e\n",
-                         i, j, A[lda * j + i] );
-#endif
+                z_spmPrintElt( f, i, j, A[lda * j + i] );
             }
         }
     }

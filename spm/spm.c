@@ -303,6 +303,7 @@ spmConvert( int ofmttype, pastix_spm_t *spm )
 {
     if ( conversionTable[spm->fmttype][ofmttype][spm->flttype] ) {
         if ( spm->dof != 1 ) {
+            //pastix_error_print( "spmConvert: Conversion of non unique dof not yet implemented\n");
             return PASTIX_ERR_NOTIMPLEMENTED;
         }
         return conversionTable[spm->fmttype][ofmttype][spm->flttype]( spm );

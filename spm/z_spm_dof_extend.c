@@ -34,6 +34,11 @@ z_spmDofExtend(pastix_spm_t *spm)
 
     switch(spm->fmttype)
     {
+    case PastixCSR:
+        /* Swap pointers to call CSC */
+        colptr = spm->rowptr;
+        rowptr = spm->colptr;
+
     case PastixCSC:
         /**
          * Loop on col
@@ -60,32 +65,32 @@ z_spmDofExtend(pastix_spm_t *spm)
             }
         }
         break;
-    case PastixCSR:
-        /**
-         * Loop on row
-         */
-        for(i=0; i<spm->n; i++, rowptr++)
-        {
-            dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
+    /* case PastixCSR: */
+    /*     /\** */
+    /*      * Loop on row */
+    /*      *\/ */
+    /*     for(i=0; i<spm->n; i++, rowptr++) */
+    /*     { */
+    /*         dofi = ( spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i]; */
 
-            /**
-             * Loop on cols
-             */
-            for(k=rowptr[0]; k<rowptr[1]; k++, colptr++, oldval++)
-            {
-                j = *colptr - baseval;
-                dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j];
+    /*         /\** */
+    /*          * Loop on cols */
+    /*          *\/ */
+    /*         for(k=rowptr[0]; k<rowptr[1]; k++, colptr++, oldval++) */
+    /*         { */
+    /*             j = *colptr - baseval; */
+    /*             dofj = ( spm->dof > 0 ) ? spm->dof : dofs[j+1] - dofs[j]; */
 
-                for(jj=0; jj<dofj; jj++)
-                {
-                    for(ii=0; ii<dofi; ii++, newval++)
-                    {
-                        *newval = *oldval;
-                    }
-                }
-            }
-        }
-        break;
+    /*             for(jj=0; jj<dofj; jj++) */
+    /*             { */
+    /*                 for(ii=0; ii<dofi; ii++, newval++) */
+    /*                 { */
+    /*                     *newval = *oldval; */
+    /*                 } */
+    /*             } */
+    /*         } */
+    /*     } */
+    /*     break; */
     case PastixIJV:
         /**
          * Loop on coordinates

@@ -60,7 +60,7 @@ typedef enum pastix_driver_e {
  *
  */
 struct pastix_spm_s {
-    int                mtxtype;/**< Matrix structure: PastixGeneral, PastixSymmetric
+    int               mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
                                     or PastixHermitian.                                         */
     pastix_coeftype_t flttype; /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
                                     PastixComplex32 or PastixComplex64                          */

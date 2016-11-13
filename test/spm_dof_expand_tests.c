@@ -53,7 +53,7 @@ int main (int argc, char **argv)
     int spmtype, mtxtype, fmttype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
-    int i, dofmax = 6;
+    int i, dofmax = 4;
 
     /**
      * Get options from command line
@@ -70,11 +70,10 @@ int main (int argc, char **argv)
 
     for( i=0; i<2; i++ )
     {
-        spm = spmDofExtend( i, dofmax, &original );
-
         for( fmttype=0; fmttype<3; fmttype++ )
         {
-            spmConvert( fmttype, spm );
+            spmConvert( fmttype, &original );
+            spm = spmDofExtend( i, dofmax, &original );
 
             for( baseval=0; baseval<2; baseval++ )
             {
@@ -121,9 +120,9 @@ int main (int argc, char **argv)
                     free(filename);
                 }
             }
+            spmExit( spm );
+            free(spm);
         }
-        spmExit( spm );
-        free(spm);
     }
     spmExit( &original );
 
