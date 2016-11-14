@@ -38,15 +38,8 @@ z_spmCSCPrint( FILE *f, const pastix_spm_t *spm )
     baseval = spmFindBase( spm );
     i = 0; j = 0;
 
-    if ( spm->fmttype == PastixCSC ) {
-        colptr = spm->colptr;
-        rowptr = spm->rowptr;
-    }
-    else {
-        colptr = spm->rowptr;
-        rowptr = spm->colptr;
-    }
-
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
     valptr = (pastix_complex64_t*)(spm->values);
     dofs   = spm->dofs;
 
