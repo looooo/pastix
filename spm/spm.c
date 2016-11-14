@@ -771,6 +771,45 @@ spmCopy( const pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
+ * @brief Print an spm matrix into into a given file.
+ *
+ *******************************************************************************
+ *
+ * @param[in] f
+ *          File to print the spm matrix
+ *
+ * @param[in] spm
+ *          The sparse matrix to copy.
+ *
+ *******************************************************************************/
+void
+spmPrint(FILE *f, const pastix_spm_t* spm)
+{
+    switch(spm->flttype)
+    {
+    case PastixPattern:
+        //return p_f, spmPrint(f, spm);
+        break;
+    case PastixFloat:
+        s_spmPrint(f, spm);
+        break;
+    case PastixComplex32:
+        c_spmPrint(f, spm);
+        break;
+    case PastixComplex64:
+        z_spmPrint(f, spm);
+        break;
+    case PastixDouble:
+    default:
+        d_spmPrint(f, spm);
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
  * @brief Expand a multi-dof spm matrix into an spm with constant dof to 1.
  *
  * Duplicate the spm data structure given as parameter. All new arrays are

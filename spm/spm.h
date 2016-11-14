@@ -136,6 +136,8 @@ static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float
 int spmLoad( pastix_spm_t *spm, FILE *infile );
 int spmSave( pastix_spm_t *spm, FILE *outfile );
 
+void spmPrint( FILE *f, const pastix_spm_t *spm );
+
 int spmGenRHS(int type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
 int spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
 

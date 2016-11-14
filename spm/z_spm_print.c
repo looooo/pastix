@@ -32,7 +32,7 @@ z_spmCSCPrint( FILE *f, const pastix_spm_t *spm )
     pastix_complex64_t *valptr;
     pastix_int_t *colptr, *rowptr, *dofs;
 
-    assert( (spm->fmttype == PastixCSC) || (spm->fmttype == PastixCSR) );
+    assert( spm->fmttype == PastixCSC );
     assert( spm->flttype == PastixComplex64 );
 
     baseval = spmFindBase( spm );
