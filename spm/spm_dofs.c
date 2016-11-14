@@ -83,6 +83,11 @@ spmDofExtend( const int type,
 
         switch(spm->fmttype)
         {
+        case PastixCSR:
+            /* Swap pointers to call CSC */
+            colptr = newspm->rowptr;
+            rowptr = newspm->colptr;
+
         case PastixCSC:
             for(j=0; j<newspm->n; j++, colptr++) {
                 dofj = dofptr[j+1] - dofptr[j];
@@ -90,18 +95,6 @@ spmDofExtend( const int type,
                 for(k=colptr[0]; k<colptr[1]; k++, rowptr++) {
                     i = *rowptr - baseval;
                     dofi = dofptr[i+1] - dofptr[i];
-
-                    newspm->nnzexp += dofi * dofj;
-                }
-            }
-            break;
-        case PastixCSR:
-            for(i=0; i<newspm->n; i++, rowptr++) {
-                dofi = dofptr[i+1] - dofptr[i];
-
-                for(k=rowptr[0]; k<rowptr[1]; k++, rowptr++) {
-                    j = *colptr - baseval;
-                    dofj = dofptr[j+1] - dofptr[j];
 
                     newspm->nnzexp += dofi * dofj;
                 }
