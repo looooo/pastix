@@ -26,6 +26,9 @@ z_spmCSCExpand(const pastix_spm_t *spm)
     pastix_int_t       *newcol, *newrow, *oldcol, *oldrow, *dofs;
     pastix_complex64_t *newval, *oldval, *oldval2;
 
+    assert( spm->fmttype == PastixCSC );
+    assert( spm->flttype == PastixComplex64 );
+
     if ( spm->dof == 1 ) {
         return (pastix_spm_t*)spm;
     }
@@ -39,22 +42,15 @@ z_spmCSCExpand(const pastix_spm_t *spm)
     memcpy( newspm, spm, sizeof(pastix_spm_t) );
 
     baseval = spmFindBase( spm );
-    newspm->n = spm->nexp;
+    oldcol = spm->colptr;
+    oldrow = spm->rowptr;
     dofs   = spm->dofs;
 #if !defined(PRECISION_p)
     oldval = oldval2 = (pastix_complex64_t*)(spm->values);
 #endif
 
-    if ( spm->fmttype == PastixCSC ) {
-        oldcol = spm->colptr;
-        oldrow = spm->rowptr;
-        newspm->colptr = newcol = malloc(sizeof(pastix_int_t)*(spm->nexp+1));
-    }
-    else {
-        oldcol = spm->rowptr;
-        oldrow = spm->colptr;
-        newspm->rowptr = newcol = malloc(sizeof(pastix_int_t)*(spm->nexp+1));
-    }
+    newspm->n = spm->nexp;
+    newspm->colptr = newcol = malloc(sizeof(pastix_int_t)*(spm->nexp+1));
 
     /**
      * First loop to compute the new colptr
@@ -94,26 +90,17 @@ z_spmCSCExpand(const pastix_spm_t *spm)
             ((spm->mtxtype != PastixGeneral) && ((newcol[0]-baseval) <= spm->nnzexp)) );
 
     newspm->nnz = newcol[0] - baseval;
+    newspm->rowptr = newrow = malloc(sizeof(pastix_int_t)*newspm->nnz);
 #if !defined(PRECISION_p)
     newspm->values = newval = malloc(sizeof(pastix_complex64_t)*newspm->nnz);
 #endif
 
-    if (spm->fmttype == PastixCSC) {
-        newspm->rowptr = newrow = malloc(sizeof(pastix_int_t)*newspm->nnz);
-        oldcol = spm->colptr;
-        oldrow = spm->rowptr;
-        newcol = newspm->colptr;
-    }
-    else {
-        newspm->colptr = newrow = malloc(sizeof(pastix_int_t)*newspm->nnz);
-        oldcol = spm->rowptr;
-        oldrow = spm->colptr;
-        newcol = newspm->rowptr;
-    }
-
     /**
      * Second loop to compute the new rowptr and valptr
      */
+    oldcol = spm->colptr;
+    oldrow = spm->rowptr;
+    newcol = newspm->colptr;
     for(j=0, col=0; j<spm->n; j++, oldcol++)
     {
         /**
@@ -137,7 +124,7 @@ z_spmCSCExpand(const pastix_spm_t *spm)
             assert( ((spm->mtxtype == PastixGeneral) && (lda == (newcol[1] - newcol[0]))) ||
                     ((spm->mtxtype != PastixGeneral) && (lda >= (newcol[1] - newcol[0]))) );
 
-            /* Move to the top of the column jj in element (oldcol[j],j) */
+            /* Move to the top of the column jj in coming element (i,j) */
             oldval = oldval2;
 
             for(k=oldcol[0]; k<oldcol[1]; k++)
@@ -202,6 +189,9 @@ z_spmCSRExpand(const pastix_spm_t *spm)
     pastix_int_t       *newcol, *newrow, *oldcol, *oldrow, *dofs;
     pastix_complex64_t *newval, *oldval, *oldval2;
 
+    assert( spm->fmttype == PastixCSR );
+    assert( spm->flttype == PastixComplex64 );
+
     if ( spm->dof == 1 ) {
         return (pastix_spm_t*)spm;
     }
@@ -234,7 +224,7 @@ z_spmCSRExpand(const pastix_spm_t *spm)
         diag = 0;
         dofi = (spm->dof > 0 ) ? spm->dof : dofs[i+1] - dofs[i];
 
-        /* Sum the heights of the elements in the rowumn */
+        /* Sum the width of the elements in the row */
         newrow[1] = newrow[0];
         for(k=oldrow[0]; k<oldrow[1]; k++)
         {
@@ -249,7 +239,7 @@ z_spmCSRExpand(const pastix_spm_t *spm)
         height = newrow[1] - newrow[0];
         newrow++;
 
-        /* Add extra rownumns */
+        /* Add extra rows */
         for(ii=1; ii<dofi; ii++, newrow++)
         {
             newrow[1] = newrow[0] + height;
@@ -297,7 +287,7 @@ z_spmCSRExpand(const pastix_spm_t *spm)
             assert( ((spm->mtxtype == PastixGeneral) && (lda == (newrow[1] - newrow[0]))) ||
                     ((spm->mtxtype != PastixGeneral) && (lda >= (newrow[1] - newrow[0]))) );
 
-            /* Move to the top of the rowumn ii in element (oldrow[j],j) */
+            /* Move to the beginning of the row ii in coming element (i,j) */
             oldval = oldval2 + ii;
 
             for(k=oldrow[0]; k<oldrow[1]; k++)
@@ -324,11 +314,12 @@ z_spmCSRExpand(const pastix_spm_t *spm)
                         (*newval) = *oldval; newval++;
 #endif
                     }
+                    /* Move to next value in row ii */
                     oldval += dofi;
                 }
             }
         }
-        /* Move to the top of the next row of elements */
+        /* Move to the begining of the next row of elements */
         oldval -= (dofi-1);
     }
 
@@ -358,13 +349,11 @@ z_spmIJVExpand(const pastix_spm_t *spm)
     pastix_int_t       *newcol, *newrow, *oldcol, *oldrow, *dofs;
     pastix_complex64_t *newval, *oldval;
 
+    assert( spm->fmttype == PastixIJV );
+    assert( spm->flttype == PastixComplex64 );
+
     if ( spm->dof == 1 ) {
         return (pastix_spm_t*)spm;
-    }
-
-    if ( spm->layout != PastixColMajor ) {
-        pastix_error_print( "Unsupported layout\n" );
-        return NULL;
     }
 
     newspm = malloc( sizeof(pastix_spm_t) );
@@ -419,7 +408,7 @@ z_spmIJVExpand(const pastix_spm_t *spm)
 #endif
 
     /**
-     * Second loop to compute the new colptr and valptr
+     * Second loop to compute the new rowptr, colptr and valptr
      */
     oldrow = spm->rowptr;
     oldcol = spm->colptr;
@@ -442,18 +431,18 @@ z_spmIJVExpand(const pastix_spm_t *spm)
         }
 
         if ( spm->layout == PastixColMajor ) {
-            for(jj=0; jj<dofj; jj++, col++)
+            for(jj=0; jj<dofj; jj++)
             {
                 for(ii=0; ii<dofi; ii++, oldval++)
                 {
                     if ( (spm->mtxtype == PastixGeneral) ||
                          (i != j) ||
-                         ((i == j) && (row + ii >= col)) )
+                         ((i == j) && (row+ii >= col+jj)) )
                     {
-                        assert( col      < newspm->n );
                         assert( row + ii < newspm->n );
-                        (*newcol) = col + baseval; newcol++;
+                        assert( col + jj < newspm->n );
                         (*newrow) = row + ii + baseval; newrow++;
+                        (*newcol) = col + jj + baseval; newcol++;
 #if !defined(PRECISION_p)
                         (*newval) = *oldval; newval++;
 #endif
@@ -462,18 +451,18 @@ z_spmIJVExpand(const pastix_spm_t *spm)
             }
         }
         else {
-            for(ii=0; ii<dofi; ii++, row++)
+            for(ii=0; ii<dofi; ii++)
             {
                 for(jj=0; jj<dofj; jj++, oldval++)
                 {
                     if ( (spm->mtxtype == PastixGeneral) ||
                          (i != j) ||
-                         ((i == j) && (row >= col + jj)) )
+                         ((i == j) && (row+ii >= col+jj)) )
                     {
+                        assert( row + ii < newspm->n );
                         assert( col + jj < newspm->n );
-                        assert( row < newspm->n );
+                        (*newrow) = row + ii + baseval; newrow++;
                         (*newcol) = col + jj + baseval; newcol++;
-                        (*newrow) = row + baseval; newrow++;
 #if !defined(PRECISION_p)
                         (*newval) = *oldval; newval++;
 #endif
