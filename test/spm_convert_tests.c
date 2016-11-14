@@ -25,7 +25,10 @@
 #include "../matrix_drivers/drivers.h"
 
 #define PRINT_RES(_ret_)                        \
-    if(_ret_) {                                 \
+    if(_ret_ == -1) {                           \
+        printf("UNDEFINED\n");                  \
+    }                                           \
+    else if(_ret_ > 0) {                        \
         printf("FAILED(%d)\n", _ret_);          \
         err++;                                  \
     }                                           \
@@ -45,7 +48,7 @@ int spmComp( const pastix_spm_t *spm1,
     pastix_int_t  i;
 
     if ( spm1->fmttype != PastixCSC ) {
-        fprintf(stderr, "Function made to compare only two SPM matrices\n");
+        fprintf(stderr, "Function made to compare only two SPM matrices in CSC format\n");
         return -1;
     }
 
@@ -100,7 +103,7 @@ int spmComp( const pastix_spm_t *spm1,
 int main (int argc, char **argv)
 {
     char *filename;
-    pastix_spm_t  spm, spm2;
+    pastix_spm_t  spm, *spm2;
     pastix_driver_t driver;
     int mtxtype, baseval;
     int ret = PASTIX_SUCCESS;
@@ -115,13 +118,7 @@ int main (int argc, char **argv)
     free(filename);
 
     printf(" -- SPM Conversion Test --\n");
-
-    /* Allocate backup */
-    memcpy( &spm2, &spm, sizeof(pastix_spm_t) );
-    spm2.colptr = malloc((spm.n+1)*sizeof(pastix_int_t));
-    spm2.rowptr = malloc( spm.nnz *sizeof(pastix_int_t));
-    if (spm.values != NULL)
-        spm2.values = malloc(spm.nnzexp * pastix_size_of( spm.flttype ));
+    spmConvert(PastixCSC, &spm);
 
     printf(" Datatype: %s\n", fltnames[spm.flttype] );
     for( baseval=0; baseval<2; baseval++ )
@@ -132,11 +129,7 @@ int main (int argc, char **argv)
         /**
          * Backup the spm
          */
-        memcpy(spm2.colptr, spm.colptr, (spm.n+1)*sizeof(pastix_int_t));
-        memcpy(spm2.rowptr, spm.rowptr,  spm.nnz * sizeof(pastix_int_t));
-        if (spm.values != NULL) {
-            memcpy(spm2.values, spm.values, spm.nnzexp * pastix_size_of( spm.flttype ));
-        }
+        spm2 = spmCopy( &spm );
 
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
@@ -146,7 +139,7 @@ int main (int argc, char **argv)
                 continue;
             }
             spm.mtxtype  = mtxtype;
-            spm2.mtxtype = mtxtype;
+            spm2->mtxtype = mtxtype;
 
             printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
 
@@ -193,7 +186,7 @@ int main (int argc, char **argv)
              */
             if (mtxtype == PastixGeneral) {
                 printf("   -- Check the spm after cycle : ");
-                ret = spmComp( &spm2, &spm );
+                ret = spmComp( spm2, &spm );
                 PRINT_RES(ret);
             }
 
@@ -241,13 +234,13 @@ int main (int argc, char **argv)
 
             /* Check that we came back to the initial state */
             printf("   -- Check the spm after cycle : ");
-            ret = spmComp( &spm2, &spm );
+            ret = spmComp( spm2, &spm );
             PRINT_RES(ret);
         }
         printf("\n");
+        spmExit( spm2 );
     }
     spmExit( &spm  );
-    spmExit( &spm2 );
 
     if( err == 0 ) {
         printf(" -- All tests PASSED --\n");

@@ -117,8 +117,14 @@ z_spmCSC2dense( const pastix_spm_t *spm )
                     {
                         for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
-                            A[ (row + ii) * lda + (col + jj) ] = conj(*valptr);
+                            if( col+jj == row+ii ) {
+                                /* Make sure the matrix is hermitian */
+                                A[ (col + jj) * lda + (row + ii) ] = creal(*valptr) + I * 0.;
+                            }
+                            else {
+                                A[ (col + jj) * lda + (row + ii) ] = *valptr;
+                                A[ (row + ii) * lda + (col + jj) ] = conj(*valptr);
+                            }
                         }
                     }
                 }
@@ -268,8 +274,14 @@ z_spmCSR2dense( const pastix_spm_t *spm )
                     {
                         for(ii=0; ii<dofi; ii++, valptr++)
                         {
-                            A[ (col + jj) * lda + (row + ii) ] = *valptr;
-                            A[ (row + ii) * lda + (col + jj) ] = conj(*valptr);
+                            if( col+jj == row+ii ) {
+                                /* Make sure the matrix is hermitian */
+                                A[ (col + jj) * lda + (row + ii) ] = creal(*valptr) + I * 0.;
+                            }
+                            else {
+                                A[ (col + jj) * lda + (row + ii) ] = *valptr;
+                                A[ (row + ii) * lda + (col + jj) ] = conj(*valptr);
+                            }
                         }
                     }
                 }

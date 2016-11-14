@@ -161,7 +161,9 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
         pastix_int_t i;
 
         for(i=0; i<spm->nnz; i++, valptr++){
-            *valptr = conj( *valptr );
+            if (spm->rowptr[i] != spm->colptr[i]) {
+                *valptr = conj( *valptr );
+            }
         }
     }
 #endif
