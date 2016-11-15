@@ -43,14 +43,13 @@ do
     do
         for fmttype in CSC CSR IJV
         do
-            basefile=expand_${i}_${fmttype}_0_${mtxtype}_${fltname}_sparse_cp.dat.sort
+            for baseval in 0 1
+            do
+                basefile=expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_sparse_cp.dat.sort
 
-            if [ -f $basefile ]
-            then
-                echo "-- Dof=$i, $mtxtype -- "
-
-                for baseval in 0 1
-                do
+                if [ -f $basefile ]
+                then
+                    echo "-- Dof=$i, $mtxtype -- "
                     for storage in sparse dense
                     do
                         for comp in cp ucp
@@ -59,8 +58,8 @@ do
                             diff $basefile expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_${storage}_${comp}.dat.sort | wc -l
                         done
                     done
-                done
-            fi
+                fi
+            done
         done
     done
 done

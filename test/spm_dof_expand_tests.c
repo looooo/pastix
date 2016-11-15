@@ -53,7 +53,7 @@ int main (int argc, char **argv)
     int spmtype, mtxtype, fmttype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
-    int i, dofmax = 4;
+    int i, dofmax = 3;
 
     /**
      * Get options from command line
@@ -70,29 +70,29 @@ int main (int argc, char **argv)
 
     for( i=0; i<2; i++ )
     {
-        for( fmttype=0; fmttype<3; fmttype++ )
+        for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
-            spmConvert( fmttype, &original );
-            spm = spmDofExtend( i, dofmax, &original );
+            if ( (mtxtype == PastixHermitian) &&
+                 ( ((original.flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) ||
+                   (spmtype != PastixHermitian) ) )
+            {
+                continue;
+            }
+            if ( (mtxtype != PastixGeneral) &&
+                 (spmtype == PastixGeneral) )
+            {
+                continue;
+            }
+            original.mtxtype = mtxtype;
 
             for( baseval=0; baseval<2; baseval++ )
             {
-                spmBase( spm, baseval );
+                spmBase( &original, baseval );
 
-                for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
+                for( fmttype=0; fmttype<3; fmttype++ )
                 {
-                    if ( (mtxtype == PastixHermitian) &&
-                         ( ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) ||
-                           (spmtype != PastixHermitian) ) )
-                    {
-                        continue;
-                    }
-                    if ( (mtxtype != PastixGeneral) &&
-                         (spmtype == PastixGeneral) )
-                    {
-                        continue;
-                    }
-                    spm->mtxtype = mtxtype;
+                    spmConvert( fmttype, &original );
+                    spm = spmDofExtend( i, dofmax, &original );
 
                     asprintf( &filename, "%d_%s_%d_%s_%s",
                               i, fmtnames[fmttype], baseval,
@@ -118,10 +118,12 @@ int main (int argc, char **argv)
                         d_spm_print_check( filename, spm );
                     }
                     free(filename);
+
+                    spmExit( spm );
+                    free(spm);
+                    spm = NULL;
                 }
             }
-            spmExit( spm );
-            free(spm);
         }
     }
     spmExit( &original );
