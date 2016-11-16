@@ -15,11 +15,9 @@ precisions_rules_py(generated_files
 
 add_library(spm_test ${generated_files} )
 
-## Generte all test executable
-add_executable(spm_convert_tests spm_convert_tests.c)
-target_link_libraries(spm_convert_tests pastix)
-
+## Generate all test executables
 set (TESTS
+  spm_convert_tests.c
   spm_norm_tests.c
   spm_matvec_tests.c
   spm_dof_expand_tests.c
@@ -38,7 +36,7 @@ endforeach()
 
 ## CTest execution
 # Laplacian
-foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests spm_norm_dof_tests)
+foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests spm_dof_expand_tests spm_dof_norm_tests spm_dof_matvec_tests)
   add_test(lap_${example} ./${example} -lap 1000)
 endforeach()
 
