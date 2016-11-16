@@ -69,7 +69,7 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     spm = malloc( sizeof( pastix_spm_t ) );
-    cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
@@ -103,7 +103,8 @@ int main (int argc, char **argv)
     for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
     {
         if ( (t == PastixConjTrans) &&
-             ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) )
+             ((spm->mtxtype != PastixHermitian) ||
+              ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32))) )
         {
             continue;
         }

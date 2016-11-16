@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmConvertCSC2CSR - convert a matrix in CSC format to a matrix in CSR
  * format. If the matrix is PastixSymmetric or PastixHermitian, then the
@@ -53,7 +53,9 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
         pastix_int_t i;
 
         for(i=0; i<spm->nnz; i++, valptr++){
-            *valptr = conj( *valptr );
+            if (spm->rowptr[i] != spm->colptr[i]) {
+                *valptr = conj( *valptr );
+            }
         }
     }
 #endif
@@ -97,7 +99,7 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmConvertIJV2CSR - convert a matrix in IJV format to a matrix in CSR
  * format.

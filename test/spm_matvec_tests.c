@@ -20,7 +20,7 @@
 #include <time.h>
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
-#include <spm.h>
+#include "spm.h"
 
 int z_spm_matvec_check( int trans, const pastix_spm_t *spm );
 int c_spm_matvec_check( int trans, const pastix_spm_t *spm );
@@ -52,8 +52,13 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
+
+    /**
+     * Only CSC is supported for now
+     */
+    spmConvert( PastixCSC, &spm );
 
     spmtype = spm.mtxtype;
     printf(" -- SPM Matrix-Vector Test --\n");
@@ -67,7 +72,8 @@ int main (int argc, char **argv)
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
-                 ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)) )
+                 ( ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)) ||
+                   (spmtype != PastixHermitian) ) )
             {
                 continue;
             }

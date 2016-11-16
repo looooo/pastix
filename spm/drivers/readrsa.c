@@ -11,7 +11,7 @@
  *
  **/
 #include "common.h"
-#include "drivers.h"
+#include "spm_drivers.h"
 
 /**
  * Function: FORTRAN_CALL(wreadmtc)
@@ -184,14 +184,14 @@ readRSA( const char   *filename,
          * We should not arrive here, since the fortran driver is not able to
          * read complex matrices
          */
-        assert(0);
-        break;
+        fprintf(stderr,"readrsa: Unsupported Complex.\n");
+        return PASTIX_ERR_BADPARAMETER;
     case 'U':
     case 'u':
         csc->mtxtype = PastixGeneral;
         break;
     default:
-        fprintf(stderr,"readmm: Unsupported type of matrix.\n");
+        fprintf(stderr,"readrsa: Unsupported type of matrix.\n");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -224,8 +224,8 @@ readRSA( const char   *filename,
 
     assert( (tmpcolptr[N]-tmpcolptr[0]) == Nnz );
 
-    csc->colptr  = pastix_int_convert( N+1, tmpcolptr );
-    csc->rowptr  = pastix_int_convert( Nnz, tmprows );
+    csc->colptr  = spmIntConvert( N+1, tmpcolptr );
+    csc->rowptr  = spmIntConvert( Nnz, tmprows );
 
     RhsType[0] = '\0';
     if(ierr != 0) {

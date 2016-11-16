@@ -174,7 +174,7 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
     if(cblktype & CBLK_SPLIT) {
         pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
 
-        if(width >= ratiolimit)
+        if((ratiolimit >= 0) && (width >= ratiolimit))
             candtab[ rootnum ].cblktype = cblktype;
         else
             candtab[ rootnum ].cblktype = cblktype & (~CBLK_SPLIT);
@@ -207,7 +207,7 @@ candDistribWithDepth( pastix_int_t depth,
 }
 
 void
-candBuild( pastix_int_t autolevel, pastix_int_t level2D, double ratiolimit,
+candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit,
            Cand               *candtab,
            EliminTree         *etree,
            const SymbolMatrix *symbmtx,
@@ -226,7 +226,7 @@ candBuild( pastix_int_t autolevel, pastix_int_t level2D, double ratiolimit,
     {
         candSubTreeDistribWithSize( eTreeRoot(etree),
                                     CBLK_DENSE | CBLK_SPLIT,
-                                    (pastix_int_t)ratiolimit,
+                                    ratiolimit,
                                     candtab, etree, symbmtx );
     }
     else

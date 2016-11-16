@@ -1,0 +1,17 @@
+/**
+ *
+ ****
+ *
+ * @defgroup pastix_spm SPM: SParse Matrix package
+ * @brief This group describes all the routines of the Sparse Matrix
+ *        package of the PaStiX library that allows one to easily
+ *        manipulate sparse matrices with basic operations
+ *
+ ****
+ *
+ * @namespace pastix_spm SPM: SParse Matrix package
+ * @brief This group describes all the routines of the Sparse Matrix
+ *        package of the PaStiX library that allows one to easily
+ *        manipulate sparse matrices with basic operations
+ *
+ **/

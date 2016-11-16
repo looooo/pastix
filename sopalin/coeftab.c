@@ -129,3 +129,43 @@ coeftabInit( const pastix_data_t *pastix_data,
 
     //dumpfunc( datacode, "lcoeftab.txt" );
 }
+
+void
+coeftabExit( SolverMatrix *solvmtx )
+{
+    pastix_int_t i;
+
+#if defined(PASTIX_WITH_PARSEC)
+    {
+        if ( solvmtx->parsec_desc != NULL ) {
+            sparse_matrix_destroy( solvmtx->parsec_desc );
+            free( solvmtx->parsec_desc );
+        }
+        solvmtx->parsec_desc = NULL;
+    }
+#endif
+
+    /** Free arrays of solvmtx **/
+    if(solvmtx->cblktab)
+    {
+        for (i = 0; i < solvmtx->cblknbr; i++)
+        {
+            if (solvmtx->cblktab[i].lcoeftab)
+                memFree_null(solvmtx->cblktab[i].lcoeftab);
+
+            if (solvmtx->cblktab[i].ucoeftab)
+                memFree_null(solvmtx->cblktab[i].ucoeftab);
+
+            if (! (solvmtx->cblktab[i].cblktype & CBLK_DENSE)) {
+                SolverBlok *blok  = solvmtx->cblktab[i].fblokptr;
+                SolverBlok *lblok = solvmtx->cblktab[i+1].fblokptr;
+
+                for (; blok<lblok; blok++) {
+                    core_zlrfree(blok->LRblock);
+                    core_zlrfree(blok->LRblock+1);
+                }
+                free(solvmtx->cblktab[i].fblokptr->LRblock);
+            }
+        }
+    }
+}

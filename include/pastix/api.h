@@ -460,6 +460,11 @@ typedef enum pastix_coefside_e {
  *    3) Plasma (http://icl.cs.utk.edu/plasma/index.html)
  *
  **/
+typedef enum pastix_order_e {
+    PastixRowMajor  = 101,
+    PastixColMajor  = 102
+} pastix_order_t;
+
 typedef enum pastix_trans_e {
     PastixNoTrans   = 111,
     PastixTrans     = 112,
@@ -488,6 +493,16 @@ typedef enum pastix_normtype_e {
     PastixInfNorm       = 175,
     PastixMaxNorm       = 177
 } pastix_normtype_t;
+
+/** ****************************************************************************
+ * Sparse matrix format
+ **/
+typedef enum pastix_fmttype_e {
+    PastixCSC = 0,
+    PastixCSR = 1,
+    PastixIJV = 2
+} pastix_fmttype_t;
+
 
 /** Supressing user CSC(D) when not usefull anymore */
 /*

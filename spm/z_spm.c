@@ -15,11 +15,12 @@
  **/
 #include "common.h"
 #include "spm.h"
+#include "z_spm.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmSort - This routine sorts the subarray of edges of each vertex in a
  * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
@@ -58,11 +59,11 @@ z_spmSort( pastix_spm_t *spm )
             size = colptr[1] - colptr[0];
 
 #if defined(PRECISION_p)
-            intSort1asc1( rowptr, size );
+            spmIntSort1Asc1( rowptr, size );
 #else
             sortptr[0] = rowptr;
             sortptr[1] = values;
-            z_qsortIntFloatAsc( sortptr, size );
+            z_spmIntSortAsc( sortptr, size );
 #endif
             rowptr += size;
             values += size;
@@ -74,11 +75,11 @@ z_spmSort( pastix_spm_t *spm )
             size = rowptr[1] - rowptr[0];
 
 #if defined(PRECISION_p)
-            intSort1asc1( colptr, size );
+            spmIntSort1Asc1( rowptr, size );
 #else
             sortptr[0] = colptr;
             sortptr[1] = values;
-            z_qsortIntFloatAsc( sortptr, size );
+            z_spmIntSortAsc( sortptr, size );
 #endif
             colptr += size;
             values += size;
@@ -89,8 +90,7 @@ z_spmSort( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- * @ingroup pastix_internal
+ * @ingroup pastix_spm_internal
  *
  * z_spmMergeDuplicate - This routine merge the multiple entries in a sparse
  * matrix by suming their values together. The sparse matrix needs to be sorted
@@ -184,8 +184,7 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- * @ingroup pastix_internal
+ * @ingroup pastix_spm_internal
  *
  * z_spmSymmetrize - This routine corrects the sparse matrix structure if it's
  * pattern is not symmetric. It returns the new symmetric pattern with zeores on
@@ -293,7 +292,7 @@ z_spmSymmetrize( pastix_spm_t *spm )
             pastix_int_t newsize, oldsize;
 
             /* Sort the array per column */
-            intSort2asc1(toaddtab, toaddcnt);
+            spmIntSort2Asc1(toaddtab, toaddcnt);
 
             spm->nnz = spm->nnz + toaddcnt;
             spm->gnnz = spm->nnz;

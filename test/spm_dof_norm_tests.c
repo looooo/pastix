@@ -1,8 +1,8 @@
 /**
  *
- * @file spm_norm_test.c
+ * @file spm_norm_dof_test.c
  *
- * Tests and validate the spm_norm routines.
+ * Tests and validate the spm_norm routines when the spm hold constant and/or variadic dofs.
  *
  * @version 5.1.0
  * @author Mathieu Faverge
@@ -37,16 +37,18 @@ int s_spm_norm_check( const pastix_spm_t *spm );
     }
 
 char* fltnames[] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
+char* fmtnames[] = { "CSC", "CSR", "IJV" };
 char* mtxnames[] = { "General", "Symmetric", "Hermitian" };
 
 int main (int argc, char **argv)
 {
-    pastix_spm_t    spm;
+    pastix_spm_t    original, *spm;
     pastix_driver_t driver;
     char *filename;
-    int spmtype, mtxtype, baseval;
+    int spmtype, mtxtype, fmttype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
+    int i, dofmax = 4;
 
     /**
      * Get options from command line
@@ -55,22 +57,19 @@ int main (int argc, char **argv)
                           NULL, NULL,
                           &driver, &filename );
 
-    cscReadFromFile( driver, filename, &spm, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, &original, MPI_COMM_WORLD );
     free(filename);
 
-    spmtype = spm.mtxtype;
-    printf(" -- SPM Norms Test --\n");
+    spmtype = original.mtxtype;
+    printf(" -- SPM Norms Dof Test --\n");
 
-    printf(" Datatype: %s\n", fltnames[spm.flttype] );
-    for( baseval=0; baseval<2; baseval++ )
+    for( i=0; i<2; i++ )
     {
-        printf(" Baseval : %d\n", baseval );
-        spmBase( &spm, baseval );
-
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
-                 ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)) )
+                 ( ((original.flttype != PastixComplex64) && (original.flttype != PastixComplex32)) ||
+                   (spmtype != PastixHermitian) ) )
             {
                 continue;
             }
@@ -79,31 +78,49 @@ int main (int argc, char **argv)
             {
                 continue;
             }
-            spm.mtxtype = mtxtype;
+            original.mtxtype = mtxtype;
 
-            printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
+            for( baseval=0; baseval<2; baseval++ )
+            {
+                spmBase( &original, baseval );
 
-            switch( spm.flttype ){
-            case PastixComplex64:
-                ret = z_spm_norm_check( &spm );
-                break;
+                for( fmttype=0; fmttype<3; fmttype++ )
+                {
+                    spmConvert( fmttype, &original );
+                    spm = spmDofExtend( i, dofmax, &original );
 
-            case PastixComplex32:
-                ret = c_spm_norm_check( &spm );
-                break;
+                    printf(" Case: %d / %s / %s / %d / %s\n",
+                           i, fltnames[spm->flttype],
+                           fmtnames[spm->fmttype], baseval,
+                           mtxnames[mtxtype - PastixGeneral] );
 
-            case PastixFloat:
-                ret = s_spm_norm_check( &spm );
-                break;
+                    switch( spm->flttype ){
+                    case PastixComplex64:
+                        ret = z_spm_norm_check( spm );
+                        break;
 
-            case PastixDouble:
-            default:
-                ret = d_spm_norm_check( &spm );
+                    case PastixComplex32:
+                        ret = c_spm_norm_check( spm );
+                        break;
+
+                    case PastixFloat:
+                        ret = s_spm_norm_check( spm );
+                        break;
+
+                    case PastixDouble:
+                    default:
+                        ret = d_spm_norm_check( spm );
+                    }
+                    PRINT_RES(ret);
+
+                    spmExit( spm );
+                    free(spm);
+                    spm = NULL;
+                }
             }
-            PRINT_RES(ret);
         }
     }
-    spmExit( &spm  );
+    spmExit( &original );
 
     if( err == 0 ) {
         printf(" -- All tests PASSED --\n");

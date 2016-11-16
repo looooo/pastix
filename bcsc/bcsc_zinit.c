@@ -17,6 +17,7 @@
 #include "order.h"
 #include "spm.h"
 #include "solver.h"
+#include "spm/z_spm.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
 
@@ -311,7 +312,7 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
                 assert( rowtab[ blockcol->coltab[itercol] + i ] != -1);
             }
 
-            z_qsortIntFloatAsc( sortptr, size );
+            z_spmIntSortAsc( sortptr, size );
         }
     }
 }

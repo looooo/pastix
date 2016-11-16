@@ -155,7 +155,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     SolverCblk *cblk = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
 
-    pastix_int_t compress_size = solvmtx->compress_size;
     double tol                 = solvmtx->tolerance;
     pastix_int_t j;
 

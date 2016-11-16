@@ -50,6 +50,15 @@ void errorProg  (const char * const);
 void errorPrint (const char * const, ...);
 void errorPrintW(const char * const, ...);
 
+static inline void pastix_error_print( char *fmt, ... )
+{
+    va_list arglist;
+    va_start(arglist, fmt);
+    fprintf(stderr, fmt, arglist);
+    va_end(arglist);
+    assert(0);
+}
+
 /*
   Macro: EXIT
 

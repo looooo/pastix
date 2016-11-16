@@ -9,11 +9,10 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
-
-// TODO: will need some header cleanup
-#include "common.h"
-#include "blend/solver.h"
-#include "sopalin/coeftab.h"
+#include "../order/order.h"
+#include "../common/common.h"
+#include "../blend/solver.h"
+#include "../sopalin/coeftab.h"
 
 int main (int argc, char **argv)
 {
@@ -62,8 +61,9 @@ int main (int argc, char **argv)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
-    cscReadFromFile( driver, filename, spm, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
+
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );

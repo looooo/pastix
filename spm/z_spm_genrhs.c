@@ -13,6 +13,7 @@
  *
  * @precisions normal z -> c s d
  **/
+#include "cblas.h"
 #include "lapacke.h"
 #include "common.h"
 #include "solver.h"
@@ -24,6 +25,10 @@
 #define Rnd64_C  1ULL
 #define RndF_Mul 5.4210108624275222e-20f
 #define RndD_Mul 5.4210108624275222e-20
+
+static pastix_complex64_t mzone = (pastix_complex64_t)-1.;
+static pastix_complex64_t zone  = (pastix_complex64_t) 1.;
+static pastix_complex64_t zzero = (pastix_complex64_t) 0.;
 
 static inline unsigned long long int
 Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
@@ -53,7 +58,7 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  *  z_spmRndVect generates a random vector for testing purpose.
  *
@@ -114,7 +119,7 @@ void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
  * matrix to test a problem with a solver.
@@ -191,6 +196,9 @@ z_spmGenRHS( int type, int nrhs,
     if( (nrhs > 1) && (ldb < spm->n) )
         return PASTIX_ERR_BADPARAMETER;
 
+    if( spm->dof != 1 )
+        return PASTIX_ERR_BADPARAMETER;
+
     if (nrhs == 1) {
         ldb = spm->n;
         ldx = spm->n;
@@ -256,19 +264,7 @@ z_spmGenRHS( int type, int nrhs,
                           spm->gN, 0, 0, 24356 );
         }
 
-        switch ( spm->mtxtype ) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-        case PastixHermitian:
-            rc = z_spmHeCSCv( 1., spm, xptr, 0., bptr );
-            break;
-#endif
-        case PastixSymmetric:
-            rc = z_spmSyCSCv( 1., spm, xptr, 0., bptr );
-            break;
-        case PastixGeneral:
-        default:
-            rc = z_spmGeCSCv( PastixNoTrans, 1., spm, xptr, 0., bptr );
-        }
+        rc = z_spmCSCMatVec( PastixNoTrans, &zone, spm, xptr, &zzero, bptr );
 
         if ( x == NULL ) {
             memFree_null(xptr);
@@ -284,7 +280,7 @@ z_spmGenRHS( int type, int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmCheckAxb - Check the backward error, and the forward error if x0 is
  * provided.
@@ -335,11 +331,12 @@ z_spmCheckAxb( int nrhs,
                      void *b,  int ldb,
                const void *x,  int ldx )
 {
-    static pastix_complex64_t mzone = (pastix_complex64_t)-1.;
-    static pastix_complex64_t zone  = (pastix_complex64_t) 1.;
     double normA, normB, normX, normX0, normR;
     double backward, forward, eps;
     int failure = 0;
+
+    assert( spm->nexp == spm->n );
+    assert( spm->dof == 1 );
 
     eps = LAPACKE_dlamch('e');
 
@@ -373,10 +370,19 @@ z_spmCheckAxb( int nrhs,
      * Compute r = x0 - x
      */
     if ( x0 != NULL ) {
+        const pastix_complex64_t *zx  = (const pastix_complex64_t *)x;
+        pastix_complex64_t *zx0 = (pastix_complex64_t *)x0;;
+        pastix_int_t i;
+
         normX0 = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
-        core_zgeadd( PastixNoTrans, spm->n, nrhs,
-                     -1., x,  ldx,
-                      1., x0, ldx0 );
+
+        for( i=0; i<nrhs; i++) {
+            cblas_zaxpy(
+                spm->n, CBLAS_SADDR(mzone),
+                zx  + ldx  * i, 1,
+                zx0 + ldx0 * i, 1);
+        }
+
         normR = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
 
         forward = normR / normX0;

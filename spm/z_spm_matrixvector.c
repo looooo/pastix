@@ -20,10 +20,10 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_internal
  *
  * z_spmGeCSCv - compute the matrix-vector product:
- *          y = alpha * op( A ) + beta * y
+ *          y = alpha * op( A ) * x + beta * y
  *
  * A is a PastixGeneral csc, where op( X ) is one of
  *
@@ -63,16 +63,16 @@
  *
  *******************************************************************************/
 int
-z_spmGeCSCv(      int                 trans,
+z_spmGeCSCv(const pastix_trans_t      trans,
                   pastix_complex64_t  alpha,
             const pastix_spm_t       *csc,
             const pastix_complex64_t *x,
                   pastix_complex64_t  beta,
                   pastix_complex64_t *y )
 {
-    const pastix_complex64_t *valptr = (pastix_complex64_t*)csc->values;
-    const pastix_complex64_t *xptr   = x;
-    pastix_complex64_t *yptr = y;
+    const pastix_complex64_t *valptr = (pastix_complex64_t*)(csc->values);
+    const pastix_complex64_t *xptr   = (const pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
     pastix_int_t col, row, i, baseval;
 
     if ( (csc == NULL) || (x == NULL) || (y == NULL ) )
@@ -152,7 +152,7 @@ z_spmGeCSCv(      int                 trans,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm_internal
  *
  * z_spmSYCSCv - compute the matrix-vector product:
  *          y = alpha * A + beta * y
@@ -241,7 +241,7 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc
+ * @ingroup pastix_spm_internal
  *
  * z_spmHeCSCv - compute the matrix-vector product:
  *          y = alpha * A + beta * y
@@ -314,9 +314,13 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
             for( i=csc->colptr[col]; i < csc->colptr[col+1]; i++ )
             {
                 row=csc->rowptr[i-baseval]-baseval;
-                yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-                if( col != row )
+                if( col != row ) {
+                    yptr[row] += alpha * valptr[i-baseval] * xptr[col];
                     yptr[col] += alpha * conj( valptr[i-baseval] ) * xptr[row];
+                }
+                else {
+                    yptr[row] += alpha * creal(valptr[i-baseval]) * xptr[col];
+                }
             }
         }
     }
@@ -324,3 +328,32 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
     return PASTIX_SUCCESS;
 }
 #endif
+
+
+int
+z_spmCSCMatVec(const pastix_trans_t  trans,
+               const void           *alphaptr,
+               const pastix_spm_t   *csc,
+               const void           *xptr,
+               const void           *betaptr,
+                     void           *yptr )
+{
+    const pastix_complex64_t *x = (const pastix_complex64_t*)xptr;
+    pastix_complex64_t *y       = (pastix_complex64_t*)yptr;
+    pastix_complex64_t alpha, beta;
+
+    alpha = *((const pastix_complex64_t *)alphaptr);
+    beta  = *((const pastix_complex64_t *)betaptr);
+
+    switch (csc->mtxtype) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    case PastixHermitian:
+        return z_spmHeCSCv( alpha, csc, x, beta, y );
+#endif
+    case PastixSymmetric:
+        return z_spmSyCSCv( alpha, csc, x, beta, y );
+    case PastixGeneral:
+    default:
+        return z_spmGeCSCv( trans, alpha, csc, x, beta, y );
+    }
+}

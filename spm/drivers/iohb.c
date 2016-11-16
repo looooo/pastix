@@ -217,10 +217,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "pastix.h"
-// #include "z_read_matrix.h"
-#include "common_drivers.h"
-#include "iohb.h"
+#include "common.h"
+#include "spm_drivers.h"
+#include "drivers/iohb.h"
+
+#define STR_SIZE 256
+#define FGETS(line, BUFSIZ, infile)                                     \
+    {                                                                   \
+        if (NULL == fgets(line, BUFSIZ, infile))                        \
+        {                                                               \
+            fprintf(stderr, "ERROR: %s:%d fgets\n", __FILE__, __LINE__); \
+            exit(1);                                                    \
+        }                                                               \
+    }
 
 char* substr(const char* S, const int pos, const int len);
 void upcase(char* S);

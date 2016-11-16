@@ -421,6 +421,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
+add_subdirectory(spm)
+
 # Sub modules
 set(modules bcsc kernels refinement) #csc kernels sopalin matrix_drivers common)
 foreach (module ${modules})
@@ -433,22 +435,6 @@ if (PASTIX_WITH_PARSEC)
 endif()
 
 include(RulesPrecisions)
-
-##
-# Headers from spm directory
-##
-set(generated_headers "")
-set(HEADERS
-  spm/z_spm.h
-)
-
-precisions_rules_py(generated_headers
-  "${HEADERS}"
-  TARGETDIR  "spm"
-  PRECISIONS "p;s;d;c;z")
-
-add_custom_target( spm_headers
-  DEPENDS ${generated_headers} )
 
 ##
 # Headers from sopalin directory
@@ -472,16 +458,6 @@ add_custom_target( sopalin_headers
 set(generated_files "")
 set(SOURCES
   common/z_integer.c
-  #
-  spm/z_spm.c
-  spm/z_spm_convert_to_csc.c
-  spm/z_spm_convert_to_csr.c
-  spm/z_spm_convert_to_ijv.c
-  spm/z_spm_genrhs.c
-  spm/z_spm_matrixvector.c
-  spm/z_spm_norm.c
-  #
-  matrix_drivers/z_spm_laplacian.c
   #
   sopalin/coeftab_z.c
   sopalin/coeftab_zcompress.c
@@ -517,7 +493,6 @@ set(PASTIX_LIB_SRCS
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   graph/graph_io.c  # Not finished
-  spm/spm_io.c  # Not finished
   #
   order/order.c
   order/order_add_isolate.c
@@ -538,15 +513,6 @@ set(PASTIX_LIB_SRCS
   fax/symbol_kass_level.c
   fax/pastix_task_symbfact.c
   fax/pastix_task_reordering.c
-  #
-  matrix_drivers/skitf.f
-  matrix_drivers/iohb.c
-  matrix_drivers/mmio.c
-  matrix_drivers/laplacian.c
-  matrix_drivers/readhb.c
-  matrix_drivers/readijv.c
-  matrix_drivers/readmm.c
-  matrix_drivers/readrsa.c
 
   # Files that still require some changes
   blend/cand.c
@@ -603,18 +569,13 @@ set(PASTIX_LIB_SRCS
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
-  #matrix_drivers/readmmd.c
-  #matrix_drivers/readpetsc.c
-  #matrix_drivers/readcscd.c
-#
+  #
   sopalin/coeftab.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
-#
-  spm/spm.c
-#
+  #
   refinement/pastix_task_raff.c
-#
+  #
   ${generated_files}
   )
 
@@ -633,52 +594,9 @@ if(PASTIX_WITH_CUDA)
 endif()
 
 set_source_files_properties(
-  spm/spm.c
-  PROPERTIES DEPENDS spm_headers
-  )
-
-set_source_files_properties(
   sopalin/coeftab.h
   PROPERTIES DEPENDS sopalin_headers
   )
-
-set(PASTIX_ALL_SRCS
-  ${generated_files}
-  #
-  graph/graph.c
-  graph/graph_isolate.c
-  graph/graph_prepare.c
-  graph/graph_symmetrize.c
-  #
-  order/order.c
-  order/order_add_isolate.c
-  order/order_check.c
-  order/order_find_supernodes.c
-  order/order_io.c
-  order/pastix_task_order.c
-  #
-  fax/amalgamate.c
-  fax/symbol_fax_graph.c
-  fax/symbol_kass.c
-  fax/symbol_kass_build.c
-  fax/symbol_kass_csr.c
-  fax/symbol_kass_direct.c
-  fax/symbol_kass_level.c
-  fax/pastix_task_symbfact.c
-  #
-#  ${PASTIX_LIB_SRCS}
-  order/order_compute_scotch.c
-  #order/order_compute_ptscotch.c
-  order/order_compute_metis.c
-
-  matrix_drivers/laplacian.c
-  matrix_drivers/readhb.c
-  matrix_drivers/readijv.c
-  matrix_drivers/readmm.c
-  matrix_drivers/readrsa.c
-  #
-#   refinement/pastix_task_raff.c
-)
 
 if(PASTIX_WITH_STARPU)
  list(APPEND PASTIX_LIB_SRCS ${PASTIX_STARPU_SRCS})
@@ -715,17 +633,33 @@ add_library(pastix
   ${PASTIX_LIB_SRCS}
   )
 
+# GenRHS requires geadd
+add_dependencies(pastix_spm
+  kernels_headers
+)
+
 add_dependencies(pastix
-  spm_headers
+  spm_headers_tgt
   kernels_headers
   bcsc_headers
   refinement_headers
   sopalin_headers
 )
 target_link_libraries(pastix
+  pastix_spm
   pastix_bcsc
   pastix_kernels
 )
+
+if(PASTIX_WITH_PARSEC)
+  target_link_libraries(pastix
+    pastix_parsec
+    ${PARSEC_LIBRARIES}
+    dague_distribution
+    dague_distribution_matrix
+    ${PARSEC_EXTRA_LIBRARIES}
+    )
+endif()
 
 # foreach (module2 ${modules})
 #   add_dependencies(pastix ${module2}_headers)
@@ -746,8 +680,62 @@ set(PASTIX_HDRS
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
+## Executable and tests
+enable_testing()
+include(CTest)
+# Examples executables
 add_subdirectory(example)
+# Testing executables
+add_subdirectory(test)
 add_subdirectory(testing)
+
+#############################################################
+#
+#      Build documentation
+#
+#############################################################
+set(PASTIX_ALL_SRCS
+  #${generated_files}
+  #
+  #
+  include/pastix.h
+  #
+  spm/spm.h
+  spm/spm.c
+  spm/spm_io.c  # Not finished
+  matrix_drivers/drivers.c
+  #
+  graph/graph.c
+  graph/graph_isolate.c
+  graph/graph_prepare.c
+  graph/graph_symmetrize.c
+  #
+  order/order.c
+  order/order_add_isolate.c
+  order/order_check.c
+  order/order_find_supernodes.c
+  order/order_io.c
+  order/order_compute_metis.c
+  order/order_compute_ptscotch.c
+  order/order_compute_scotch.c
+  order/pastix_task_order.c
+  #
+  fax/amalgamate.c
+  fax/symbol_fax_graph.c
+  fax/symbol_kass.c
+  fax/symbol_kass_build.c
+  fax/symbol_kass_csr.c
+  fax/symbol_kass_direct.c
+  fax/symbol_kass_level.c
+  fax/pastix_task_symbfact.c
+  #
+#  ${PASTIX_LIB_SRCS}
+  order/order_compute_scotch.c
+  #order/order_compute_ptscotch.c
+  order/order_compute_metis.c
+
+#   refinement/pastix_task_raff.c
+)
 
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)
@@ -762,7 +750,7 @@ if(BUILD_DOCUMENTATION)
       "Doxygen is needed to build the documentation. Please install it correctly")
   endif()
 
-  set(PASTIX_DOX_SRCS )
+  set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox )
   foreach( _file ${PASTIX_ALL_SRCS} )
     set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
   endforeach()
