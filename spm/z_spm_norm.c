@@ -188,16 +188,11 @@ z_spmInfNorm( const pastix_spm_t *spm )
             {
                 row = spm->rowptr[i] - baseval;
                 sumrow[row] += cabs( valptr[i] );
-            }
-        }
 
-        /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
-        {
-            for( col=0; col < spm->gN; col++ )
-            {
-                for( i=spm->colptr[col]-baseval+1; i<spm->colptr[col+1]-baseval; i++ )
+                /* Add the symmetric/hermitian part */
+                if ( ((spm->mtxtype == PastixHermitian) ||
+                      (spm->mtxtype == PastixSymmetric)) &&
+                     ( row != col ) )
                 {
                     sumrow[col] += cabs( valptr[i] );
                 }
@@ -220,10 +215,12 @@ z_spmInfNorm( const pastix_spm_t *spm )
         {
             for( row=0; row < spm->gN; row++ )
             {
-                for( i=spm->rowptr[row]-baseval+1; i<spm->rowptr[row+1]-baseval; i++ )
+                for( i=spm->rowptr[row]-baseval; i<spm->rowptr[row+1]-baseval; i++ )
                 {
                     col = spm->colptr[i] - baseval;
-                    sumrow[col] += cabs( valptr[i] );
+                    if ( row != col ) {
+                        sumrow[col] += cabs( valptr[i] );
+                    }
                 }
             }
         }
@@ -303,7 +300,7 @@ z_spmOneNorm( const pastix_spm_t *spm )
 
     switch( spm->fmttype ){
     case PastixCSC:
-        for( col=0; col < spm->gN; col++ )
+        for( col=0; col<spm->gN; col++ )
         {
             for( i=spm->colptr[col]-baseval; i<spm->colptr[col+1]-baseval; i++ )
             {
@@ -317,10 +314,12 @@ z_spmOneNorm( const pastix_spm_t *spm )
         {
             for( col=0; col < spm->gN; col++ )
             {
-                for( i=spm->colptr[col]-baseval+1; i<spm->colptr[col+1]-baseval; i++ )
+                for( i=spm->colptr[col]-baseval; i<spm->colptr[col+1]-baseval; i++ )
                 {
                     row = spm->rowptr[i] - baseval;
-                    sumcol[row] += cabs( valptr[i] );
+                    if (row != col) {
+                        sumcol[row] += cabs( valptr[i] );
+                    }
                 }
             }
         }
@@ -333,16 +332,11 @@ z_spmOneNorm( const pastix_spm_t *spm )
             {
                 col = spm->colptr[i] - baseval;
                 sumcol[col] += cabs( valptr[i] );
-            }
-        }
 
-        /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
-        {
-            for( row=0; row < spm->gN; row++ )
-            {
-                for( i=spm->rowptr[row]-baseval+1; i<spm->rowptr[row+1]-baseval; i++ )
+                /* Add the symmetric/hermitian part */
+                if ( ((spm->mtxtype == PastixHermitian) ||
+                      (spm->mtxtype == PastixSymmetric)) &&
+                     ( row != col ) )
                 {
                     sumcol[row] += cabs( valptr[i] );
                 }
