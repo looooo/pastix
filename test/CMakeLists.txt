@@ -35,27 +35,34 @@ endforeach()
 
 
 ## CTest execution
+set( SPM_TESTS
+  spm_convert_tests spm_norm_tests spm_matvec_tests )
+set( SPM_DOF_TESTS
+  spm_dof_expand_tests spm_dof_norm_tests spm_dof_matvec_tests)
+set( BCSC_TESTS
+  bcsc_norm_tests bcsc_matvec_tests )
+
 # Laplacian
-foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests spm_dof_expand_tests spm_dof_norm_tests spm_dof_matvec_tests)
-  add_test(lap_${example} ./${example} -lap 1000)
+foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
+  add_test(lap_${example} ./${example} -lap 10:10:10)
 endforeach()
 
 # RSA
-foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests)
+foreach(example ${SPM_TESTS} ${BCSC_TESTS} )
   add_test(rsa_${example} ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa)
 endforeach()
 
 # Matrix Market
-foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests)
+foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
   add_test(mm_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx)
 endforeach()
 
 # Harwell Boeing
-foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests)
+foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
   add_test(hb_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua)
 endforeach()
 
 # Matrix Market - Hermitian
-foreach(example spm_convert_tests spm_matvec_tests spm_norm_tests bcsc_norm_tests bcsc_matvec_tests)
+foreach(example ${SPM_TESTS})
   add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
 endforeach()
