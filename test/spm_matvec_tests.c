@@ -55,6 +55,11 @@ int main (int argc, char **argv)
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
 
+    /**
+     * Only CSC is supported for now
+     */
+    spmConvert( PastixCSC, &spm );
+
     spmtype = spm.mtxtype;
     printf(" -- SPM Matrix-Vector Test --\n");
 

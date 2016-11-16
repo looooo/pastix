@@ -736,6 +736,7 @@ spmCopy( const pastix_spm_t *spm )
         dofsize = spm->n + 1;
         break;
     case PastixIJV:
+    default:
         colsize = spm->nnz;
         rowsize = spm->nnz;
         valsize = spm->nnzexp;
@@ -904,21 +905,36 @@ spmMatVec(const pastix_trans_t trans,
           const void          *beta,
                 void          *y )
 {
+    pastix_spm_t *espm = (pastix_spm_t*)spm;
+    int rc = PASTIX_SUCCESS;
+
     if ( spm->fmttype != PastixCSC ) {
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    if ( spm->dof != 1 ) {
+        espm = spmExpand( spm );
+    }
     switch (spm->flttype) {
     case PastixFloat:
-        return s_spmCSCMatVec( trans, alpha, spm, x, beta, y );
+        rc = s_spmCSCMatVec( trans, alpha, espm, x, beta, y );
+        break;
     case PastixComplex32:
-        return c_spmCSCMatVec( trans, alpha, spm, x, beta, y );
+        rc = c_spmCSCMatVec( trans, alpha, espm, x, beta, y );
+        break;
     case PastixComplex64:
-        return z_spmCSCMatVec( trans, alpha, spm, x, beta, y );
+        rc = z_spmCSCMatVec( trans, alpha, espm, x, beta, y );
+        break;
     case PastixDouble:
     default:
-        return d_spmCSCMatVec( trans, alpha, spm, x, beta, y );
+        rc = d_spmCSCMatVec( trans, alpha, espm, x, beta, y );
     }
+
+    if ( spm != espm ) {
+        spmExit( espm );
+        free(espm);
+    }
+    return rc;
 }
 
 /**

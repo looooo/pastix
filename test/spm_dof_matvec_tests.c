@@ -64,7 +64,7 @@ int main (int argc, char **argv)
     printf(" -- SPM Matrix-Vector Test --\n");
 
     printf(" Datatype: %s\n", fltnames[original.flttype] );
-    for( i=0; i<2; i++ )
+    for( i=0; i<1; i++ )
     {
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
@@ -88,7 +88,8 @@ int main (int argc, char **argv)
                 printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
                 printf("   -- Test Matrix * Vector : ");
 
-                for( fmttype=0; fmttype<3; fmttype++ )
+                /* For now only CSC is working */
+                for( fmttype=0; fmttype<1; fmttype++ )
                 {
                     spmConvert( fmttype, &original );
                     spm = spmDofExtend( i, dofmax, &original );
