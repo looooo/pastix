@@ -1,8 +1,8 @@
 /**
  *
- * @file spm_norm_dof_test.c
+ * @file spm_dof_expand_test.c
  *
- * Tests and validate the spm_norm routines when the spm hold constant and/or variadic dofs.
+ * Tests and validate the spmNorm routines when the spm hold constant and/or variadic dofs.
  *
  * @version 5.1.0
  * @author Mathieu Faverge
@@ -20,7 +20,7 @@
 #include <time.h>
 #include <pastix.h>
 #include "../matrix_drivers/drivers.h"
-#include <spm.h>
+#include "spm.h"
 
 int z_spm_norm_check( const pastix_spm_t *spm );
 int c_spm_norm_check( const pastix_spm_t *spm );
@@ -51,8 +51,6 @@ int main (int argc, char **argv)
     pastix_driver_t driver;
     char *filename;
     int spmtype, mtxtype, fmttype, baseval;
-    int ret = PASTIX_SUCCESS;
-    int err = 0;
     int i, dofmax = 3;
 
     /**
@@ -73,7 +71,7 @@ int main (int argc, char **argv)
         for( mtxtype=PastixGeneral; mtxtype<=PastixHermitian; mtxtype++ )
         {
             if ( (mtxtype == PastixHermitian) &&
-                 ( ((original.flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) ||
+                 ( ((original.flttype != PastixComplex64) && (original.flttype != PastixComplex32)) ||
                    (spmtype != PastixHermitian) ) )
             {
                 continue;
