@@ -102,12 +102,7 @@ typedef struct SolverCblk_  {
     void                *ucoeftab; /*< Coefficients access vector              */
 
     /* Check if really required */
-    void           *dcoeftab; /*< Coefficients access vector              */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
-
-    /* Splitting parts to build hierarchical format */
-    pastix_int_t *split;
-    pastix_int_t  split_size;
 
 } SolverCblk;
 

@@ -125,22 +125,6 @@ pastix_task_blend(pastix_data_t *pastix_data)
 
     solverBlend( &ctrl, solvptr, symbptr );
 
-    /* pastix_int_t cblknum; */
-    /* SolverMatrix *solvmtx = pastix_data->solvmatr; */
-    /* SymbolMatrix *symbmtx = pastix_data->symbmtx; */
-
-    /* for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++) { */
-    /*     if (symbmtx->cblktab[cblknum].split == NULL){ */
-    /*     } */
-    /*     else{ */
-    /*         printf("Cblknm %ld\n", cblknum); */
-    /*         pastix_int_t *split = symbmtx->cblktab[cblknum].split; */
-    /*         /\* printf("SPLIT 1 %ld 2 %ld\n", split[0], split[1]); *\/ */
-    /*         solvmtx->cblktab[cblknum].split = split; */
-    /*     } */
-    /* } */
-
-
     blendCtrlExit(&ctrl);
 
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)

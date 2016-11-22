@@ -38,7 +38,6 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
     SolverBlok *solvblok;
     SolverBlok *solvblok2 = (solvcblk+1)->fblokptr;
     pastix_complex64_t *lcoeftab = solvcblk->lcoeftab;
-    //pastix_complex64_t *dcoeftab = solvcblk->dcoeftab;
     pastix_complex64_t *ucoeftab = solvcblk->ucoeftab;
     pastix_complex64_t *Lvalues = bcsc->Lvalues;
     pastix_complex64_t *Uvalues = bcsc->Uvalues;
@@ -88,31 +87,6 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
 #endif
                             ucoeftab[coefindx] = Uvalues[iterval];
                     }
-/*                     pastix_int_t i, j; */
-/*                     i = solvblok->coefind + rownum - solvblok->frownum; */
-/*                     j = itercoltab; */
-
-/*                     if (i < ncols){ */
-/*                         dcoeftab[i*ncols + j] = Uvalues[iterval]; */
-/*                         dcoeftab[j*ncols + i] = Lvalues[iterval]; */
-/*                     } */
-/*                     else{ */
-/*                         coefindx  = solvblok->coefind; */
-/*                         coefindx += rownum - solvblok->frownum; */
-/*                         coefindx += solvcblk->stride * itercoltab; */
-/*                         lcoeftab[coefindx] = Lvalues[iterval]; */
-
-/*                         if ( (ucoeftab != NULL) && */
-/*                              (rownum > (solvcblk->fcolnum + itercoltab)) ) */
-/*                         { */
-/* #if defined(PRECISION_z) || defined(PRECISION_c) */
-/*                             if (bcsc->mtxtype == PastixHermitian) */
-/*                                 ucoeftab[coefindx] = conj(Uvalues[iterval]); */
-/*                             else */
-/* #endif */
-/*                                 ucoeftab[coefindx] = Uvalues[iterval]; */
-/*                         } */
-/*                     } */
                 }
                 else {
                     /* printf("ILU: csc2solv drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n", */
@@ -171,7 +145,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 
     }
     else {
-        cblk->dcoeftab = NULL;
         cblk->ucoeftab = NULL;
     }
 

@@ -62,21 +62,7 @@ static pastix_complex64_t zzero =  0.;
 double
 core_ztolerance(double tol, double norm)
 {
-    return tol * sqrt(norm);
-}
-
-double
-core_ztolerance_init(double tol, double norm)
-{
-    if ( compress_when == COMPRESS_BEGIN || compress_when == COMPRESS_DURING ){
-        if (norm != 0.0)
-            return tol * sqrt(norm);
-        else
-            return tol;
-    }
-    else{
-        return tol * sqrt(norm);
-    }
+    return tol * norm;
 }
 
 int
@@ -112,7 +98,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                      jpvt, tau,
                      work, ldwork,
                      rwork,
-                     core_ztolerance_init(tol, norm), nb, pastix_imin(m,n)-1);
+                     core_ztolerance(tol, norm), nb, pastix_imin(m,n)-1);
 
     /**
      * Resize the space used by the low rank matrix
@@ -662,7 +648,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     for (i=0; i<minMN; i++, v+=1){
         /* if ( (s[i] >= tolabs) && */
         /*      (s[i] >= tolrel) ) */
-        if (s[i] > core_ztolerance_init(tol, norm))
+        if (s[i] > core_ztolerance(tol, norm))
         {
             cblas_zdscal(n, s[i], v, ldv);
         }
