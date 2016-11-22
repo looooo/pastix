@@ -103,7 +103,6 @@ typedef struct SolverCblk_  {
 
     /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
-
 } SolverCblk;
 
 /*+ Solver matrix structure. +*/

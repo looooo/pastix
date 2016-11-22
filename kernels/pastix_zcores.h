@@ -11,73 +11,24 @@
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
-int core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_lrblock_t *A );
-int core_zlrfree( pastix_lrblock_t *A );
-int core_zlrsze( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax );
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_kernel
- *
- * core_zge2lr - Convert a full rank matrix in a low rank matrix.
- *
- *******************************************************************************
- *
- * @param[in] tol
- *          The tolerance used as a criterai to eliminate information from the
- *          full rank matrix
- *
- * @param[in] m
- *          Number of rows of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] n
- *          Number of columns of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] A
- *          The matrix of dimension lda-by-n that need to be compressed
- *
- * @param[in] lda
- *          The leading dimension of the matrix A. lda >= max(1, m)
- *
- * @param[out] Alr
- *          The low rank matrix structure that will store the low rank
- *          representation of A. U and v matrices are internally allocated.
- *
- *******************************************************************************/
 int
-core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
+core_zlralloc( pastix_int_t M, pastix_int_t N,
+               pastix_int_t rkmax, pastix_lrblock_t *A );
+
+int
+core_zlrfree( pastix_lrblock_t *A );
+
+int
+core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
+             pastix_lrblock_t *A, int newrk, int newrkmax );
+
+int
+core_zge2lr_SVD( double tol, pastix_int_t M, pastix_int_t N,
                  const pastix_complex64_t *A, pastix_int_t lda,
                  pastix_lrblock_t *Alr );
 
-/**
- *******************************************************************************
- *
- * @ingroup pastix_kernel
- *
- * core_zlr2ge - Convert a low rank matrix into a dense matrix.
- *
- *******************************************************************************
- *
- * @param[in] m
- *          Number of rows of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] n
- *          Number of columns of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] Alr
- *          The low rank matrix to be converted into a dense matrix
- *
- * @param[out] A
- *          The matrix of dimension lda-by-n in which to store the uncompressed
- *          version of Alr.
- *
- * @param[in] lda
- *          The leading dimension of the matrix A. lda >= max(1, m)
- *
- *******************************************************************************/
 int
-core_zlr2ge( pastix_int_t m, pastix_int_t n,
+core_zlr2ge( pastix_int_t M, pastix_int_t N,
              const pastix_lrblock_t *Alr,
              pastix_complex64_t *A, pastix_int_t lda );
 
@@ -85,13 +36,13 @@ int
 core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
              pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-             pastix_int_t offx, pastix_int_t offy);
+             pastix_int_t offx, pastix_int_t offy );
 
 int
 core_zgradd( double tol, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t   *B,
-             pastix_int_t offx, pastix_int_t offy);
+             pastix_int_t offx, pastix_int_t offy );
 
 int
 core_zlrmm( double tol, int transA, int transB,

@@ -258,18 +258,5 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
                                      (ordemesh->cblknbr)*sizeof (pastix_int_t));
 #endif
 
-    /* pastix_int_t i; */
-
-    /* ordemesh->cblknbr = n; */
-    /* ordemesh->rangtab = */
-    /*     (pastix_int_t *) memRealloc (ordemesh->rangtab, */
-    /*                                  (ordemesh->cblknbr + 1)*sizeof (pastix_int_t)); */
-
-    /* for (i=0; i<n; i++){ */
-    /*     ordemesh->permtab[i] = i; */
-    /*     ordemesh->peritab[i] = i; */
-    /*     ordemesh->rangtab[i] = i; */
-    /* } */
-
     return PASTIX_SUCCESS;
 }
