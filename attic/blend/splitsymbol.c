@@ -144,7 +144,16 @@ void splitOnProcs2( const BlendCtrl    *ctrl,
 
         nseq = computeNbSplit( ctrl, candnbr, width );
 
-        if (nseq < 4)
+        /* Regular splitting is imposed right now */
+        pastix_int_t splitsize = ctrl->iparm[IPARM_MAX_BLOCKSIZE];
+
+        if (nseq == 1 && width > (splitsize * 1.5))
+            nseq = 2;
+
+        if (nseq > 1)
+            printf("Split cblk %ld size %ld into %ld parts\n", cblknum, width, nseq);
+
+        if (nseq < 2)
             continue;
 
         /* Adapt the step to the segments number */
