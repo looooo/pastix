@@ -110,15 +110,15 @@ orderCheck (const Order * const  ordeptr)
     cblkmax = ordeptr->cblknbr - baseval;
     for (rangnum = 0; rangnum < ordeptr->cblknbr-1; rangnum ++)
     {
-        if ((ordeptr->treetab[rangnum] <  baseval) ||
-            (ordeptr->treetab[rangnum] >  cblkmax) ||
-            (ordeptr->treetab[rangnum] <  rangnum+baseval) )
+        if ((ordeptr->treetab[rangnum] > cblkmax    ) ||
+            ((ordeptr->treetab[rangnum] != (baseval-1))       &&
+             (ordeptr->treetab[rangnum]  < (baseval+rangnum)) ) )
         {
             errorPrint ("orderCheck: invalid range array in treetab");
             return PASTIX_ERR_BADPARAMETER;
         }
     }
-    if (ordeptr->treetab[rangnum] != -1)
+    if (ordeptr->treetab[rangnum] != (baseval-1))
     {
         errorPrint ("orderCheck: invalid father for cblknbr-1 node");
         return PASTIX_ERR_BADPARAMETER;
