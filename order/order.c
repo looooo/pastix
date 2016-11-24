@@ -76,7 +76,7 @@ orderAlloc( Order * const ordeptr,
         MALLOC_INTERN(ordeptr->peritab, vertnbr, pastix_int_t);
     }
 
-     if (cblknbr != 0) {
+    if (cblknbr != 0) {
         MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
         MALLOC_INTERN(ordeptr->treetab, cblknbr,   pastix_int_t);
     }
