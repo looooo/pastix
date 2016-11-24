@@ -113,7 +113,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
     }
 #endif
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
-    orderInit(ordemesh, n, n);
+    orderAlloc(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");

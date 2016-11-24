@@ -106,7 +106,7 @@ orderBuildEtree( const Order *order,
  *******************************************************************************
  *
  * @param[in] ordeptr
- *          The ordering structure to check.
+ *          The ordering structure to reorder.
  *
  * @param[in] distribution_level
  *          Define the minimal size of the supernodes that are considered as 2D
@@ -162,9 +162,9 @@ orderApplyLevelOrder( Order *order,
     assert(baseval == order->rangtab[0]);
 
     memcpy( &oldorder, order, sizeof( Order ) );
-    orderInit( order,
-               oldorder.vertnbr,
-               oldorder.cblknbr );
+    orderAlloc( order,
+                oldorder.vertnbr,
+                oldorder.cblknbr );
 
     /**
      * Build the elimination tree from top to bottom, and store the roots in the

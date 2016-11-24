@@ -65,7 +65,7 @@ ordering_load(Order * ordeptr,
         return PASTIX_ERR_FILE;
     }
 
-    orderInit(ordeptr, vertnbr, cblknbr);
+    orderAlloc(ordeptr, vertnbr, cblknbr);
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
 

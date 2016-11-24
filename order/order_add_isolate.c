@@ -85,12 +85,11 @@ orderAddIsolate(       Order        *ordemesh,
     assert( n <= new_n );
 
     memcpy( &ordesave, ordemesh, sizeof(Order) );
-    rc = orderInit( ordemesh, new_n, cblknbr + 1 );
+    rc = orderAlloc( ordemesh, new_n, cblknbr + 1 );
     if (rc != PASTIX_SUCCESS)
         return rc;
 
     ordemesh->baseval = baseval;
-
     for(i=0; i< new_n; i++) {
         ip = perm[i];
         if (ip < n-baseval)

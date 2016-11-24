@@ -34,7 +34,9 @@ struct Order_ {
 /*
  * The function prototypes.
  */
-int  orderInit (      Order * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
+int  orderInit (      Order * const ordeptr, pastix_int_t baseval, pastix_int_t cblknbr, pastix_int_t vertnbr,
+                      pastix_int_t *perm, pastix_int_t *peri, pastix_int_t *rang, pastix_int_t *tree );
+int  orderAlloc(      Order * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
 void orderExit (      Order * const ordeptr);
 void orderBase (      Order * const ordeptr, pastix_int_t baseval);
 int  orderCheck(const Order * const ordeptr);
