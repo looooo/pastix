@@ -83,10 +83,10 @@ pastix_task_blend(pastix_data_t *pastix_data)
     /*
      * Free graph structure
      */
-    /* if (pastix_data->graph != NULL) { */
-    /*     graphExit( pastix_data->graph ); */
-    /*     memFree_null( pastix_data->graph ); */
-    /* } */
+    if (pastix_data->graph != NULL) {
+        graphExit( pastix_data->graph );
+        memFree_null( pastix_data->graph );
+    }
 
 
     iparm   = pastix_data->iparm;
@@ -138,10 +138,9 @@ pastix_task_blend(pastix_data_t *pastix_data)
     fclose(stream);
 #endif
 
-    /* TODO: free somewhere */
     /* Symbol is not used anymore */
-    /* symbolExit(pastix_data->symbmtx); */
-    /* memFree_null(pastix_data->symbmtx); */
+    symbolExit(pastix_data->symbmtx);
+    memFree_null(pastix_data->symbmtx);
 
     /* Computes and print statistics */
     {
