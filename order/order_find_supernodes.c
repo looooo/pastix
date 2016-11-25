@@ -327,9 +327,10 @@ compute_elimination_tree(      pastix_int_t n,
  *          find the supernodes.
  *
  * @param[in, out] ordeptr
- *          Pointer to a Order structure, that will be initialized by the routine.
+ *          Pointer to an Order structure, that will be further initialized by
+ *          the routine.
  *          On entry:
- *            orderptr->permtab: the original permutation vector for the the
+ *            orderptr->permtab: the original permutation vector for the
  *                elimination tree.
  *            orderptr->permtab: the original inverse permutation vector for the
  *                elimination tree.
