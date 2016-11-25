@@ -153,7 +153,8 @@ void core_zgemmsp_2dlrsub( int coef,
 void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
                    SolverCblk         *cblk,
              const pastix_complex64_t *A,
-                   pastix_complex64_t *C );
+                   pastix_complex64_t *C,
+                   LR_params lowrank_p );
 
 int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
                               SolverCblk         *cblk,
@@ -163,7 +164,8 @@ int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
 
 int core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
                           SolverCblk   *cblk,
-                          pastix_int_t  blok_m );
+                          pastix_int_t  blok_m,
+                          LR_params     lowrank_p );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -178,7 +180,8 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
-                           double              criteria);
+                           double              criteria,
+                           LR_params           lowrank_p );
 
 int core_zgetrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,

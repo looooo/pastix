@@ -130,6 +130,8 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     double tol           = solvmtx->lowrank.tolerance;
     pastix_int_t j;
 
+    pastix_int_t compress_when = solvmtx->lowrank.compress_when;
+
     /* If not NULL, allocated to store the shur complement for exemple */
     assert( cblk->lcoeftab == NULL );
 

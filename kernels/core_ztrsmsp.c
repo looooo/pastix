@@ -254,7 +254,7 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
 
 static inline int
 core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
-                   SolverCblk *cblk )
+                   SolverCblk *cblk, LR_params lowrank_p )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda;
@@ -279,11 +279,11 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
-        if ( compress_when == COMPRESS_END )
+        if ( lowrank_p.compress_when == COMPRESS_END )
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;
-            core_zge2lr( compress_tolerance, M, N,
+            core_zge2lr( lowrank_p.tolerance, M, N,
                          lrC->u, M,
                          &C );
 
@@ -319,7 +319,8 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
 int
 core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
                       SolverCblk   *cblk,
-                      pastix_int_t  blok_m )
+                      pastix_int_t  blok_m,
+                      LR_params lowrank_p )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, cblk_m;
@@ -347,11 +348,11 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
-        if ( compress_when == COMPRESS_END )
+        if ( lowrank_p.compress_when == COMPRESS_END )
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;
-            core_zge2lr( compress_tolerance, M, N,
+            core_zge2lr( lowrank_p.tolerance, M, N,
                          lrC->u, M,
                          &C );
 
@@ -425,12 +426,13 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
 void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
                          SolverCblk         *cblk,
                    const pastix_complex64_t *A,
-                         pastix_complex64_t *C )
+                         pastix_complex64_t *C,
+                   LR_params lowrank_p )
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
         if ( !(cblk->cblktype & CBLK_DENSE) ) {
             core_ztrsmsp_2dlr( coef, side, uplo, trans, diag,
-                               cblk );
+                               cblk, lowrank_p );
         }
         else {
             if ( cblk->cblktype & CBLK_SPLIT ) {

@@ -270,7 +270,8 @@ int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            double              criteria )
 {
     pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
-    core_ztrsmsp(PastixLCoef, PastixRight, PastixLower, PastixConjTrans, PastixNonUnit, cblk, L, L);
+    LR_params null;
+    core_ztrsmsp(PastixLCoef, PastixRight, PastixLower, PastixConjTrans, PastixNonUnit, cblk, L, L, null);
     return nbpivot;
 }
 

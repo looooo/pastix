@@ -603,16 +603,14 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                       pastix_int_t   rhsnbr,
                       void          *b);
 
-/* Temporary variable before proper merge */
+/* Transform with an enum !!! */
 #define COMPRESS_BEGIN  0
 #define COMPRESS_END    1
 #define COMPRESS_DURING 2
 
-pastix_int_t compress_when;
-
 #define SVD  0
 #define RRQR 1
+
 pastix_int_t compress_method;
-double compress_tolerance;
 
 #endif /* _PASTIX_H_ */

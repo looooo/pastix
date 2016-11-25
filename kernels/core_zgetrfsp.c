@@ -298,7 +298,8 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
-                           double              criteria)
+                           double              criteria,
+                           LR_params lowrank_p )
 {
     pastix_int_t nbpivot;
 
@@ -308,8 +309,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
      * column, and by transposition the L part of the diagonal block is
      * similarly stored in the U panel
      */
-    core_ztrsmsp(PastixLCoef, PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L);
-    core_ztrsmsp(PastixUCoef, PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U);
+    core_ztrsmsp(PastixLCoef, PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L, lowrank_p);
+    core_ztrsmsp(PastixUCoef, PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U, lowrank_p);
     return nbpivot;
 }
 
@@ -355,7 +356,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria);
+    nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria, solvmtx->lowrank);
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
