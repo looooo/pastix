@@ -6,7 +6,7 @@
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -49,11 +49,11 @@ int  orderComputeParMetis( pastix_data_t *pastix_data, const pastix_graph_t *gra
 int  orderLoad(       Order * const ordeptr, char *filename );
 int  orderSave( const Order * const ordeptr, char *filename );
 
-int  orderPrepareCSC(pastix_data_t *pastix_data,
-                     pastix_int_t   n,
-                     const pastix_int_t  *colptr,
-                     const pastix_int_t  *rows,
-                     const pastix_int_t  *loc2glob);
+int  orderPrepareCSC(pastix_data_t      *pastix_data,
+                     pastix_int_t        n,
+                     const pastix_int_t *colptr,
+                     const pastix_int_t *rows,
+                     const pastix_int_t *loc2glob);
 
 void orderFindSupernodes( const pastix_graph_t *graph,
                           Order * const ordeptr );

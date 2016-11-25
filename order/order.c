@@ -8,7 +8,7 @@
  *
  * Contains basic functions to manipulate the order structure.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -132,9 +132,9 @@ orderAlloc( Order * const ordeptr,
  *          supernodes. This array must be defined as follow:
  *              - of size cblknbr;
  *              - based on baseval value;
- *              - each treetab[i] > i
+ *              - each treetab[i] > i, unless i is a root and treetab[i] == -1
  *              - all roots of the tree must have -1 as father
- *          If NULL, the rangtab field is not initialized.
+ *          If NULL, the treetab field is not initialized.
  *
  *******************************************************************************
  *
