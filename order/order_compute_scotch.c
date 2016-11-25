@@ -44,9 +44,9 @@
  *          On exit, the field oerdemesh is initialize with the result of the
  *          ordering realized by Scotch.
  *
- * @param[in] graph
+ * @param[in,out] graph
  *          The graph prepared by graphPrepare function on which wwe want to
- *          perform the ordering.
+ *          perform the ordering. On exit, the graph might be rebased.
  *
  *******************************************************************************
  *
@@ -60,8 +60,8 @@
  *
  *******************************************************************************/
 int
-orderComputeScotch(       pastix_data_t  *pastix_data,
-                    const pastix_graph_t *graph )
+orderComputeScotch( pastix_data_t  *pastix_data,
+                    pastix_graph_t *graph )
 {
     Order        *ordemesh = pastix_data->ordemesh;
     SCOTCH_Graph  scotchgraph;

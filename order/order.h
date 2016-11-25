@@ -41,19 +41,13 @@ void orderExit (      Order * const ordeptr);
 void orderBase (      Order * const ordeptr, pastix_int_t baseval);
 int  orderCheck(const Order * const ordeptr);
 
-int  orderComputeScotch(   pastix_data_t *pastix_data, const pastix_graph_t *graph );
-int  orderComputePTScotch( pastix_data_t *pastix_data, const pastix_graph_t *graph );
-int  orderComputeMetis(    pastix_data_t *pastix_data, const pastix_graph_t *graph );
-int  orderComputeParMetis( pastix_data_t *pastix_data, const pastix_graph_t *graph );
+int  orderComputeScotch(   pastix_data_t *pastix_data, pastix_graph_t *graph );
+int  orderComputePTScotch( pastix_data_t *pastix_data, pastix_graph_t *graph );
+int  orderComputeMetis(    pastix_data_t *pastix_data, pastix_graph_t *graph );
+int  orderComputeParMetis( pastix_data_t *pastix_data, pastix_graph_t *graph );
 
 int  orderLoad(       Order * const ordeptr, char *filename );
 int  orderSave( const Order * const ordeptr, char *filename );
-
-int  orderPrepareCSC(pastix_data_t      *pastix_data,
-                     pastix_int_t        n,
-                     const pastix_int_t *colptr,
-                     const pastix_int_t *rows,
-                     const pastix_int_t *loc2glob);
 
 void orderFindSupernodes( const pastix_graph_t *graph,
                           Order * const ordeptr );
