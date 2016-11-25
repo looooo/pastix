@@ -8,8 +8,9 @@
  *
  * Contains function to check correctness of a ordering structure.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
+ * @author Mathieu Faverge
  * @date 2013-06-24
  *
  **/
@@ -47,7 +48,7 @@ orderCheck (const Order * const  ordeptr)
     const pastix_int_t * permtax;                  /* Based access to permtab    */
 
     /* Parameter checks */
-    if ( ordeptr == NULL ) {
+    if (ordeptr == NULL) {
         errorPrint ("orderCheck: invalid ordeptr pointer");
         return PASTIX_ERR_BADPARAMETER;
     }
@@ -60,6 +61,23 @@ orderCheck (const Order * const  ordeptr)
     baseval = ordeptr->baseval;
     if (baseval < 0) {
         errorPrint ("orderCheck: invalid vertex node base number");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if (ordeptr->permtab == NULL) {
+        errorPrint ("orderCheck: permtab array is missing");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (ordeptr->peritab == NULL) {
+        errorPrint ("orderCheck: peritab array is missing");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (ordeptr->rangtab == NULL) {
+        errorPrint ("orderCheck: rangtab array is missing");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (ordeptr->treetab == NULL) {
+        errorPrint ("orderCheck: treetab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -111,7 +129,7 @@ orderCheck (const Order * const  ordeptr)
     for (rangnum = 0; rangnum < ordeptr->cblknbr-1; rangnum ++)
     {
         if ((ordeptr->treetab[rangnum] > cblkmax    ) ||
-            ((ordeptr->treetab[rangnum] != (baseval-1))       &&
+            ((ordeptr->treetab[rangnum] != -1)       &&
              (ordeptr->treetab[rangnum]  < (baseval+rangnum)) ) )
         {
             errorPrint ("orderCheck: invalid range array in treetab");
