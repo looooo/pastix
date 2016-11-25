@@ -18,6 +18,7 @@
 #include "isched.h"
 #include "solver.h"
 #include "coeftab.h"
+#include "pastix_zcores.h"
 
 int (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*) =
 {

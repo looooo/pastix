@@ -68,13 +68,13 @@ core_ztolerance(double tol, double norm)
     return tol;
 }
 
-int
+void
 core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                   const pastix_complex64_t *A, pastix_int_t lda,
                   pastix_lrblock_t *Alr )
 {
     int ret;
-    pastix_int_t i, j;
+    pastix_int_t i;
 
     pastix_int_t nb          = 32;
     pastix_int_t ldwork      = pastix_imax(m, n);
@@ -163,8 +163,6 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
     free(jpvt);
     free(tau);
     free(Acpy);
-
-    return 0;
 }
 
 int
@@ -707,7 +705,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
  *          representation of A
  *
  *******************************************************************************/
-int
+void
 core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
                  const pastix_complex64_t *A, pastix_int_t lda,
                  pastix_lrblock_t *Alr )
@@ -725,7 +723,6 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
 
     if ( ret < 0 ) {
         core_zlrfree( Alr );
-        return ret;
     }
 
     /**
@@ -741,8 +738,6 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
                                    A, lda, Alr->u, Alr->rkmax );
         assert(ret == 0);
     }
-
-    return 0;
 }
 
 /**
@@ -1309,10 +1304,9 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
     pastix_int_t rank, M, N, minU, minV;
     pastix_int_t i, ret, lwork, new_rank;
     pastix_int_t ldau, ldav, ldbu, ldbv;
-    pastix_complex64_t *u1u2, *v1v2, *R, *u, *v;
+    pastix_complex64_t *u1u2, *v1v2, *u, *v;
     pastix_complex64_t *tmp, *zbuf, *tauU, *tauV;
     pastix_complex64_t  querysize;
-    double *s;
     /* double tolabs, tolrel; */
     size_t wzsize, wdsize;
 
@@ -1441,8 +1435,8 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
     wdsize += 5 * rank;
 #endif
 
+    /* TODO: remove useless tauU / R allocation */
     zbuf = malloc( wzsize * sizeof(pastix_complex64_t) + wdsize * sizeof(double) );
-    s    = (double*)(zbuf + wzsize);
 
     /* TODO: remove !!! */
     memset(zbuf, 0, wzsize * sizeof(pastix_complex64_t) + wdsize * sizeof(double) );
@@ -1451,7 +1445,6 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
     tauU = u1u2 + M * rank;
     v1v2 = tauU + minU;
     tauV = v1v2 + N * rank;
-    R    = tauV + minV;
 
     /**
      * Concatenate U2 and U1 in u1u2
@@ -2382,14 +2375,14 @@ core_zlrmge( double tol, int transA, int transB,
     return 0;
 }
 
-int core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
                  const pastix_complex64_t *A, pastix_int_t lda,
                  void *Alr ){
     if ( compress_method == SVD ){
-        return core_zge2lr_SVD(tol, m, n, A, lda, Alr);
+        core_zge2lr_SVD(tol, m, n, A, lda, Alr);
     }
     else{
-        return core_zge2lr_RRQR(tol, m, n, A, lda, Alr);
+        core_zge2lr_RRQR(tol, m, n, A, lda, Alr);
     }
 }
 

@@ -22,10 +22,20 @@ int
 core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
              pastix_lrblock_t *A, int newrk, int newrkmax );
 
-int
+void
 core_zge2lr_SVD( double tol, pastix_int_t M, pastix_int_t N,
                  const pastix_complex64_t *A, pastix_int_t lda,
                  pastix_lrblock_t *Alr );
+
+void
+core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  pastix_lrblock_t *Alr );
+
+void
+core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
+             const pastix_complex64_t *A, pastix_int_t lda,
+             void *Alr );
 
 int
 core_zlr2ge( pastix_int_t M, pastix_int_t N,
@@ -282,14 +292,5 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             pastix_complex64_t *work, pastix_int_t ldwork,
             double *rwork,
             double tol, pastix_int_t nb, pastix_int_t maxrank );
-
-int
-core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
-                  const pastix_complex64_t *A, pastix_int_t lda,
-                  pastix_lrblock_t *Alr );
-
-int core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
-                     const pastix_complex64_t *A, pastix_int_t lda,
-                     void *Alr );
 
 #endif /* _CORE_Z_H_ */

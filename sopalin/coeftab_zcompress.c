@@ -35,7 +35,6 @@ coeftab_zcompress_one( SolverCblk *cblk,
     pastix_int_t        gainL    = ncols * cblk->stride;
     pastix_int_t        gainU    = ncols * cblk->stride;
     int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
-    int ret;
 
     /* One allocation per cblk */
     LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
@@ -70,10 +69,9 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         blok->LRblock = LRblocks;
 
-        ret = core_zge2lr( tol, nrows, ncols,
-                           lcoeftab + blok->coefind, nrows,
-                           blok->LRblock );
-        assert( ret == 0 );
+        core_zge2lr( tol, nrows, ncols,
+                     lcoeftab + blok->coefind, nrows,
+                     blok->LRblock );
         gainL -= (LRblocks->rk == -1) ? nrows * ncols
             : ((nrows+ncols) * LRblocks->rk);
 
@@ -81,10 +79,9 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         if (factoLU) {
 
-            ret = core_zge2lr( tol, nrows, ncols,
-                               ucoeftab + blok->coefind, nrows,
-                               blok->LRblock+1 );
-            assert( ret == 0 );
+            core_zge2lr( tol, nrows, ncols,
+                         ucoeftab + blok->coefind, nrows,
+                         blok->LRblock+1 );
             gainU -= (LRblocks->rk == -1) ? nrows * ncols
                 : ((nrows+ncols) * LRblocks->rk);
 

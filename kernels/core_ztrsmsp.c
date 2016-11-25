@@ -283,9 +283,9 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;
-            int ret = core_zge2lr(compress_tolerance, M, N,
-                                  lrC->u, M,
-                                  &C);
+            core_zge2lr( compress_tolerance, M, N,
+                         lrC->u, M,
+                         &C );
 
             core_zlrfree(lrC);
             lrC->u = C.u;
@@ -351,9 +351,9 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;
-            int ret = core_zge2lr(compress_tolerance, M, N,
-                                  lrC->u, M,
-                                  &C);
+            core_zge2lr( compress_tolerance, M, N,
+                         lrC->u, M,
+                         &C );
 
             core_zlrfree(lrC);
             lrC->u = C.u;

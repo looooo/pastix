@@ -49,7 +49,7 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     pastix_lrblock_t    LR_A, LR_B;
 
     double norm_dense_A, norm_dense_B;
-    double norm_diff_RRQR, norm_diff_SVD;
+    double norm_diff_SVD;
     double res_SVD, res_RRQR;
 
     pastix_int_t minMN_A = pastix_imin(mA, nA);
@@ -175,6 +175,8 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
 
 int main (int argc, char **argv)
 {
+    (void) argc;
+    (void) argv;
     int err = 0;
     int ret;
     pastix_int_t m, r;

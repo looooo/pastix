@@ -150,6 +150,8 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
 
 int main (int argc, char **argv)
 {
+    (void) argc;
+    (void) argv;
     int err = 0;
     int ret;
     pastix_int_t m, r;

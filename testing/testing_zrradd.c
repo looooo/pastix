@@ -33,13 +33,19 @@ int testing_zrradd(int argc, char **argv)
     pastix_int_t offx = atoi(argv[7]);
     pastix_int_t offy = atoi(argv[8]);
 
+    if (MA != MB || NA != NB){
+        printf("INVALID PARAMETERS\n");
+        return -1;
+    }
+
     int RA = atoi(argv[3]);
     int RB = atoi(argv[6]);
 
     double eps, res;
-    pastix_complex64_t *uA, *vA, *uB, *vB;
     pastix_complex64_t *A, *B, *C;
     pastix_lrblock_t    LR_A, LR_B;
+
+    double *SA, *SB;
 
     pastix_int_t LDA = MA;
     pastix_int_t LDB = MB;
@@ -49,22 +55,27 @@ int testing_zrradd(int argc, char **argv)
 
     double norm_LR, norm_dense, norm_diff;
 
+    int mode     = 0;
+    double rcond = (double) (pastix_imin(MA, NA));
+    double dmax  = 1.0;
+
+    pastix_int_t minMN = pastix_imin(MA, NA);
+
     if (MA + offx > MB || NA + offy > NB){
         printf("B receives a contribution from A\n");
         printf("MA + offx <= MB AND NA + offy <= NB\n");
         return -3;
     }
 
-    MALLOC_INTERN(uA, MA * MA, pastix_complex64_t);
-    MALLOC_INTERN(vA, NA * NA, pastix_complex64_t);
-    MALLOC_INTERN(uB, MB * MB, pastix_complex64_t);
-    MALLOC_INTERN(vB, NB * NB, pastix_complex64_t);
-
     MALLOC_INTERN(A, MA * NA, pastix_complex64_t);
     MALLOC_INTERN(B, MB * NB, pastix_complex64_t);
     MALLOC_INTERN(C, MB * NB, pastix_complex64_t);
 
-    if ((!uA)||(!vA)||(!uB)||(!vB)||(!A)||(!B)||(!C)){
+    MALLOC_INTERN(SA, pastix_imin(MA, NA), double);
+    MALLOC_INTERN(SB, pastix_imin(MB, NB), double);
+
+
+    if ((!A)||(!B)||(!C)){
         printf("Out of Memory \n ");
         return -2;
     }
@@ -76,7 +87,7 @@ int testing_zrradd(int argc, char **argv)
     printf("            Size of the Matrix A %8ld by %8ld. Rank is %8d\n", MA, NA, RA);
     printf("            Size of the Matrix B %8ld by %8ld. Rank is %8d\n", MB, NB, RB);
     printf("\n");
-    printf(" The matrix A and B are randomly generated for each test.\n");
+    printf(" The matrix A and B are generated through zlatms routine, with singular values depending on rank and precision.\n");
     printf("============\n");
     printf(" The relative machine precision (eps) is to be %e \n", eps);
     printf(" Low-rank tolerance is set to %e\n", tolerance);
@@ -86,42 +97,62 @@ int testing_zrradd(int argc, char **argv)
      *  TESTING ZRRADD
      */
 
+    double alphaA = exp(log(tolerance) / RA);
+    double alphaB = exp(log(tolerance) / RB);
+
     /* Initialize A, B */
-    LAPACKE_zlarnv_work(IONE, ISEED, MA*RA, uA);
-    LAPACKE_zlarnv_work(IONE, ISEED, NA*RA, vA);
-    LAPACKE_zlarnv_work(IONE, ISEED, MB*RB, uB);
-    LAPACKE_zlarnv_work(IONE, ISEED, NB*RB, vB);
+    if (mode == 0){
+        pastix_int_t i;
+        SA[0] = 1.;
+        SB[0] = 1.;
+        for (i=1; i<minMN; i++){
+            SA[i] = SA[i-1] * alphaA;
+            SB[i] = SB[i-1] * alphaB;
+        }
 
-    LR_A.rk    = RA;
-    LR_A.rkmax = RA;
-    LR_A.u     = uA;
-    LR_A.v     = vA;
-    LR_B.rk    = RB;
-    LR_B.rkmax = RB;
-    LR_B.u     = uB;
-    LR_B.v     = vB;
+        /* printf("Singular values:\n"); */
+        /* for (i=0; i<minMN; i++){ */
+        /*     printf("INDEX %5ld: %.3g %.3g\n", i, SA[i], SB[i]); */
+        /* } */
+        /* printf("\n"); */
+    }
 
-    /* Build uncompressed matrices */
-    core_zlr2ge( MA, NA,
-                 &LR_A,
-                 A, LDA );
+    /* printf("SA_%ld = %.3g\n", RA, SA[RA]); */
+    /* printf("SB_%ld = %.3g\n", RB, SB[RB]); */
 
-    core_zlr2ge( MB, NB,
-                 &LR_B,
-                 B, LDB );
+    /* Initialize A */
+    pastix_complex64_t *work;
+    MALLOC_INTERN(work, 3*pastix_imax(MA, NA), pastix_complex64_t);
 
-    core_zge2lr( tolerance,
-                 MA, NA,
-                 A, LDA,
-                 &LR_A );
+    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, MA, NA,
+                         'U', ISEED,
+                         'N', SA, mode, rcond,
+                         dmax, MA, NA,
+                         'N', A, LDA, work );
+
+    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, MA, NA,
+                         'U', ISEED,
+                         'N', SB, mode, rcond,
+                         dmax, MB, NB,
+                         'N', B, LDB, work );
+
+    core_zge2lr_RRQR( tolerance,
+                      MA, NA,
+                      A, LDA,
+                      &LR_A );
+
+    core_zge2lr_RRQR( tolerance,
+                      MB, NB,
+                      B, LDB,
+                      &LR_B );
 
     printf(" The rank of A is %d B is %d\n", LR_A.rk, LR_B.rk);
 
     /* Add A and B in their LR format */
-    core_zrradd(tolerance, CblasNoTrans, alpha,
-                MA, NA, &LR_A,
-                MB, NB, &LR_B,
-                offx, offy);
+    core_zrradd_RRQR(tolerance, CblasNoTrans, alpha,
+                     MA, NA, &LR_A,
+                     MB, NB, &LR_B,
+                     offx, offy);
 
     /* Build uncompressed LR+LR matrix */
     core_zlr2ge( MB, NB,
@@ -146,10 +177,10 @@ int testing_zrradd(int argc, char **argv)
                  -1., B, LDB,
                   1., C, LDB );
 
-    norm_diff    = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'm', MB, NB,
+    norm_diff    = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', MB, NB,
                                         C, LDB, NULL );
 
-    res = norm_diff / ( eps * norm_dense );
+    res = norm_diff / ( tolerance * norm_dense );
 
     printf(" ||full(A)+full(B)|| = %e, ||comp(A)+comp(B)|| = %e\n", norm_dense, norm_LR);
     printf(" ||(full(A)+full(B)) - (comp(A)+comp(B))|| = %e\n", norm_diff);
@@ -166,10 +197,6 @@ int testing_zrradd(int argc, char **argv)
         printf("***************************************************\n");
     }
 
-    memFree_null(LR_A.u);
-    memFree_null(LR_A.v);
-    memFree_null(LR_B.u);
-    memFree_null(LR_B.v);
     memFree_null(A);
     memFree_null(B);
     memFree_null(C);
