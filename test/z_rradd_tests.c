@@ -18,9 +18,13 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
-#include "cblas.h"
-#include "lapacke.h"
-#include <common.h>
+#include <time.h>
+#include <pastix.h>
+#include "../common/common.h"
+#include <lapacke.h>
+#include <cblas.h>
+#include "../blend/solver.h"
+#include "../kernels/pastix_zcores.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \
@@ -35,21 +39,157 @@
     }
 
 int
-z_rradd_test(){
-    return 0;
+z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
+              pastix_int_t mA, pastix_int_t nA,
+              pastix_int_t mB, pastix_int_t nB,
+              pastix_int_t offx, pastix_int_t offy )
+{
+    pastix_complex64_t *A, *B, *B_tmp;
+    pastix_complex64_t *C, *C_RRQR, *C_SVD;
+    pastix_lrblock_t    LR_A, LR_B;
+
+    double norm_dense_A, norm_dense_B;
+    double norm_diff_RRQR, norm_diff_SVD;
+    double res_SVD, res_RRQR;
+
+    pastix_int_t minMN_A = pastix_imin(mA, nA);
+    pastix_int_t minMN_B = pastix_imin(mB, nB);
+
+    int mode     = 0;
+    double rcond = (double) minMN_A;
+    double dmax  = 1.0;
+    int ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
+
+    pastix_complex64_t *work;
+    double *SA, *SB;
+    double alphaA, alphaB;
+
+    MALLOC_INTERN(A,      mA * nA, pastix_complex64_t);
+    MALLOC_INTERN(B,      mB * nB, pastix_complex64_t);
+    MALLOC_INTERN(C,      mA * nA, pastix_complex64_t);
+    MALLOC_INTERN(C_RRQR, mA * nA, pastix_complex64_t);
+    MALLOC_INTERN(C_SVD,  mA * nA, pastix_complex64_t);
+
+    MALLOC_INTERN(SA, minMN_A, double);
+    MALLOC_INTERN(SB, minMN_B, double);
+    MALLOC_INTERN(work, 3*pastix_imax(pastix_imax(mA, nA), pastix_imax(mB, nB)), pastix_complex64_t);
+
+    if ((!A)||(!B)||(!C)||(!C_SVD)||(!C_RRQR)||(!SA)||(!SB)||(!work)){
+        printf("Out of Memory \n ");
+        return -2;
+    }
+
+    /* Chose alpha such that alpha^rank = tolerance */
+    alphaA = exp(log(tolerance) / rankA);
+    alphaB = exp(log(tolerance) / rankB);
+
+    if (mode == 0){
+        pastix_int_t i;
+        SA[0] = 1;
+        SB[0] = 1;
+        for (i=1; i<minMN_A; i++){
+            SA[i] = SA[i-1] * alphaA;
+        }
+        for (i=1; i<minMN_B; i++){
+            SB[i] = SB[i-1] * alphaB;
+        }
+    }
+
+    /* Initialize A and B */
+    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, mA, nA,
+                         'U', ISEED,
+                         'N', SA, mode, rcond,
+                         dmax, mA, nA,
+                         'N', A, mA, work );
+
+    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, mB, nB,
+                         'U', ISEED,
+                         'N', SB, mode, rcond,
+                         dmax, mB, nB,
+                         'N', B, mB, work );
+
+    norm_dense_A = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mA, nA,
+                                        A, mA, NULL );
+
+    norm_dense_B = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
+                                        B, mB, NULL );
+
+
+    core_zge2lr_SVD( tolerance,
+                      mA, nA,
+                      A, mA,
+                      &LR_A );
+
+    core_zge2lr_SVD( tolerance,
+                      mB, nB,
+                      B, mB,
+                      &LR_B );
+
+    printf(" The rank of A is %d B is %d\n", LR_A.rk, LR_B.rk);
+
+    /* Add A and B in their LR format */
+    core_zrradd_SVD( tolerance, CblasNoTrans, -1.0,
+                      mA, nA, &LR_A,
+                      mB, nB, &LR_B,
+                      offx, offy );
+
+    printf(" The rank of A+B is %d\n", LR_B.rk);
+
+    /* Build uncompressed LR+LR matrix */
+    core_zlr2ge( mB, nB,
+                 &LR_B,
+                 C, mB );
+
+    /* Compute A+B in dense */
+    B_tmp = B + offx + mB * offy;
+    core_zgeadd( CblasNoTrans, mA, nA,
+                 -1.0, A, mA,
+                 1.0, B_tmp, mB );
+
+    /* Compute norm of dense and LR matrices */
+    core_zgeadd( PastixNoTrans, mB, nB,
+                 -1., B, mB,
+                  1., C, mB );
+
+    norm_diff_SVD = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
+                                         C, mB, NULL );
+
+    res_RRQR = 0;
+    res_SVD  = norm_diff_SVD / ( tolerance * (norm_dense_A + norm_dense_B) );
+
+    printf("RES %.3g\n", res_SVD);
+
+    memFree_null(A);
+    memFree_null(B);
+    memFree_null(C);
+    memFree_null(C_SVD);
+    memFree_null(C_RRQR);
+    memFree_null(SA);
+    memFree_null(SB);
+    memFree_null(work);
+
+    if ((res_RRQR < 10) && (res_SVD < 10))
+        return 0;
+    return 1;
 }
 
 int main (int argc, char **argv)
 {
     int err = 0;
     int ret;
-    pastix_int_t i;
+    pastix_int_t m, r;
+    double tolerance = 0.01;
 
-    for (i=0; i<10; i++){
-        printf("   -- Test RRADD M=%ld ", i);
+    for (m=200; m<=1000; m+=100){
+        for (r=10; r<=100; r+=10){
+            printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", m, m, r, r/2);
 
-        ret = z_rradd_test();
-        PRINT_RES(ret);
+            ret = z_rradd_test(tolerance, r, r/2,
+                               m, m,
+                               m, m,
+                               0, 0);
+            PRINT_RES(ret);
+        }
     }
 
 

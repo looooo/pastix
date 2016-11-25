@@ -46,7 +46,7 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
     pastix_complex64_t *A, *A_RRQR, *A_SVD;
     pastix_lrblock_t    LR_RRQR, LR_SVD;
 
-    double norm_dense, norm_LR_RRQR, norm_LR_SVD;
+    double norm_dense;
     double norm_diff_RRQR, norm_diff_SVD;
     double res_SVD, res_RRQR;
 
@@ -120,12 +120,6 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
 
     printf(" The rank of A is: RRQR %d SVD %d\n", LR_RRQR.rk, LR_SVD.rk);
 
-    /* Compute norm of dense and LR matrices */
-    norm_LR_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                        A_RRQR, lda, NULL );
-    norm_LR_SVD  = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                        A_SVD, lda, NULL );
-
     core_zgeadd( PastixNoTrans, m, n,
                  -1., A, lda,
                   1., A_RRQR, lda );
@@ -149,7 +143,7 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
     memFree_null(S);
     memFree_null(work);
 
-    if ((res_RRQR < 10) && (res_SVD < 10) && (LR_RRQR.rk >= LR_SVD.rk))
+    if ((res_RRQR < 10) && (res_SVD < 10) && (LR_RRQR.rk >= LR_SVD.rk || LR_RRQR.rk == -1))
         return 0;
     return 1;
 }
@@ -161,12 +155,13 @@ int main (int argc, char **argv)
     pastix_int_t m, r;
     double tolerance = 0.001;
 
-    m = 500;
-    for (r=10; r<50; r+=10){
-        printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", m, r);
+    for (m=100; m<1500; m+=100){
+        for (r=10; r<100; r+=10){
+            printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", m, r);
 
-        ret = z_ge2lr_test(tolerance, r, m, m, m);
-        PRINT_RES(ret);
+            ret = z_ge2lr_test(tolerance, r, m, m, m);
+            PRINT_RES(ret);
+        }
     }
 
 
