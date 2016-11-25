@@ -97,18 +97,22 @@ int main (int argc, char **argv)
               pastix_data->bcsc );
 
     printf(" -- BCSC MatVec Test --\n");
-    printf("   Datatype    : %s\n", fltnames[spm->flttype] );
-    printf("   Matrix type : %s\n", mtxnames[spm->mtxtype - PastixGeneral] );
-
     for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
     {
         if ( (t == PastixConjTrans) &&
-             ((spm->mtxtype != PastixHermitian) ||
-              ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32))) )
+             ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) )
         {
             continue;
         }
-        printf("   trans = %s\n", transnames[t - PastixNoTrans] );
+        if ( (spm->mtxtype != PastixGeneral) && (t != PastixNoTrans) )
+        {
+            continue;
+        }
+        printf("   Case %s - %s - %s:\n",
+               fltnames[spm->flttype],
+               mtxnames[spm->mtxtype - PastixGeneral],
+               transnames[t - PastixNoTrans] );
+
         switch( spm->flttype ){
         case PastixComplex64:
             ret = z_bcsc_matvec_check( t, spm, pastix_data );
