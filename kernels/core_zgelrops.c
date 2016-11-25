@@ -62,7 +62,10 @@ static pastix_complex64_t zzero =  0.;
 double
 core_ztolerance(double tol, double norm)
 {
-    return tol * norm;
+    /* There is maybe an issue with rank-0 matrices */
+    if (norm != 0.0)
+        return tol * norm;
+    return tol;
 }
 
 int
@@ -79,8 +82,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
     double *rwork            = malloc(2 * n * sizeof(double));
     pastix_int_t *jpvt       = malloc(n * sizeof(pastix_int_t));
     pastix_complex64_t *tau  = malloc(n * sizeof(pastix_complex64_t));
-    pastix_complex64_t *Acpy = malloc(m * n * sizeof(pastix_complex64_t))
-;
+    pastix_complex64_t *Acpy = malloc(m * n * sizeof(pastix_complex64_t));
     double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                        A, lda, NULL );
 
@@ -236,7 +238,13 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             pvt = rk + cblas_izamax(n-rk, VN1 + rk, 1);
 
             if (VN1[pvt] < tol){
-                return rk;
+                double residual = 0.;
+                pastix_int_t i;
+                for (i=rk; i<n; i++){
+                    residual += VN1[i]*VN1[i];
+                }
+                if (sqrt(residual) < tol)
+                    return rk;
             }
 
             /* Pivot is not within the current column: we swap */
@@ -321,7 +329,11 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             if (rk < (n-1)){
 
 #if defined(PRECISION_c) || defined(PRECISION_z)
-
+                cblas_zgemm(CblasColMajor, CblasNoTrans, CblasConjTrans,
+                            1, n-rk-1, k+1,
+                            CBLAS_SADDR(mzone), A + (offset) * lda + rk, lda,
+                            f + (k+1), ldf,
+                            CBLAS_SADDR(zone), A + (rk+1) * lda + rk, lda);
 #else
                 cblas_zgemv(CblasColMajor, CblasNoTrans, n-rk-1, k+1, CBLAS_SADDR(mzone),
                             f + (k+1), ldf,
@@ -336,7 +348,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
                     if (VN1[j] != 0.0){
                         /* NOTE: The following 4 lines follow from the analysis in */
                         /* Lapack Working Note 176. */
-                        temp  = fabs( A[j * lda + rk] ) / VN1[j];
+                        temp  = cabs( A[j * lda + rk] ) / VN1[j];
                         double temp3 = (1.0 + temp) * (1.0 - temp);
                         if (temp3 > 0.0){
                             temp = temp3;
@@ -642,6 +654,9 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
         errorPrint("SVD Failed\n");
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
     }
+
+
+    /* TODO: remove function call from loop */
 
     /* tolrel = tol * s[0]; */
     /* tolabs = tol * tol; */
@@ -1168,6 +1183,8 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
      * Let's compute the new rank of the result
      */
     tmp = v;
+    /* TODO: remove function call from loop */
+
     /* tolrel = tol * s[0]; */
     /* tolabs = tol * tol; */
     for (i=0; i<rank; i++, tmp+=1){
