@@ -429,7 +429,6 @@ pastix_task_order(      pastix_data_t *pastix_data,
      */
     if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
         if (spm->loc2glob == NULL) {
-            printf("HERE WE ARE %p %p\n", perm, invp);
             if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
             if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
         }
@@ -471,6 +470,5 @@ pastix_task_order(      pastix_data_t *pastix_data,
     pastix_data->steps |= STEP_ORDERING;
 
     iparm[IPARM_START_TASK]++;
-
     return PASTIX_SUCCESS;
 }

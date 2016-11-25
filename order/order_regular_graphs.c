@@ -18,81 +18,6 @@
 #include "graph.h"
 #include "order.h"
 
-int
-orderComputeOptimal( pastix_data_t *pastix_data,
-                     pastix_int_t n )
-{
-    pastix_int_t *iparm    = pastix_data->iparm;
-    Order        *ordemesh = pastix_data->ordemesh;
-
-    orderInit(ordemesh, n, n);
-
-    pastix_int_t *rangtab = ordemesh->rangtab;
-    pastix_int_t *permtab = ordemesh->permtab;
-    pastix_int_t *peritab = ordemesh->peritab;
-    pastix_int_t *treetab = ordemesh->treetab;
-
-    pastix_int_t sep = iparm[IPARM_OPTIMAL_ORDERING];
-    pastix_int_t i = 2;
-
-    /* Graphs for using classical separators */
-    while (i != sep && i < sep+1){
-        i = 2*i+1;
-    }
-    if (i != sep){
-        printf("\n\nThe given graph size is not correct for optimal manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n\n", i, 2*i+1);
-        /* exit(1); */
-    }
-
-    ordemesh->cblknbr = 0;
-    pastix_int_t current_rangtab = 0;
-
-    if (sep * sep == n){
-        order_grid2D_wide(rangtab, permtab, &ordemesh->cblknbr,
-                          0, sep, 0, sep, n-1, sep, &current_rangtab);
-    }
-    else{
-        pastix_int_t current_number = n-1;
-        order_grid3D_wide(rangtab, permtab, &ordemesh->cblknbr,
-                          0, sep, 0, sep, 0, sep, &current_number, sep, &current_rangtab,
-                          treetab, 1);
-    }
-
-    for (i=0; i<n; i++){
-        peritab[permtab[i]] = i;
-    }
-
-    pastix_int_t *saved_rangtab = malloc(n*sizeof(pastix_int_t));
-    memcpy(saved_rangtab, rangtab, n*sizeof(pastix_int_t));
-    pastix_int_t *saved_treetab = malloc(n*sizeof(pastix_int_t));
-    memcpy(saved_treetab, treetab, n*sizeof(pastix_int_t));
-
-    rangtab[0] = 0;
-    for (i=0; i<ordemesh->cblknbr; i++){
-        rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
-        treetab[i]   = saved_treetab[ordemesh->cblknbr - i - 1];
-    }
-    for (i=0; i<ordemesh->cblknbr-1; i++){
-        pastix_int_t j;
-        for (j=i+1; j<ordemesh->cblknbr; j++){
-            if (treetab[j] < treetab[i]){
-                treetab[i] = j;
-                break;
-            }
-        }
-    }
-    treetab[ordemesh->cblknbr-1] = -1;
-
-    rangtab =
-        (pastix_int_t *) memRealloc (rangtab,
-                                     (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
-    treetab =
-        (pastix_int_t *) memRealloc (treetab,
-                                     (ordemesh->cblknbr)*sizeof (pastix_int_t));
-
-    return PASTIX_SUCCESS;
-}
-
 void order_grid2D_wide(pastix_int_t *rangtab,
                        pastix_int_t *peritab,
                        pastix_int_t *cblknbr,
@@ -562,3 +487,79 @@ void order_grid3D_classic(pastix_int_t *rangtab,
                              treetab, current_treetab+1);
     }
 }
+
+int
+orderComputeOptimal( pastix_data_t *pastix_data,
+                     pastix_int_t n )
+{
+    pastix_int_t *iparm    = pastix_data->iparm;
+    Order        *ordemesh = pastix_data->ordemesh;
+
+    orderInit(ordemesh, n, n);
+
+    pastix_int_t *rangtab = ordemesh->rangtab;
+    pastix_int_t *permtab = ordemesh->permtab;
+    pastix_int_t *peritab = ordemesh->peritab;
+    pastix_int_t *treetab = ordemesh->treetab;
+
+    pastix_int_t sep = iparm[IPARM_OPTIMAL_ORDERING];
+    pastix_int_t i = 2;
+
+    /* Graphs for using classical separators */
+    while (i != sep && i < sep+1){
+        i = 2*i+1;
+    }
+    if (i != sep){
+        printf("\n\nThe given graph size is not correct for optimal manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n\n", i, 2*i+1);
+        /* exit(1); */
+    }
+
+    ordemesh->cblknbr = 0;
+    pastix_int_t current_rangtab = 0;
+
+    if (sep * sep == n){
+        order_grid2D_wide(rangtab, permtab, &ordemesh->cblknbr,
+                          0, sep, 0, sep, n-1, sep, &current_rangtab);
+    }
+    else{
+        pastix_int_t current_number = n-1;
+        order_grid3D_wide(rangtab, permtab, &ordemesh->cblknbr,
+                          0, sep, 0, sep, 0, sep, &current_number, sep, &current_rangtab,
+                          treetab, 1);
+    }
+
+    for (i=0; i<n; i++){
+        peritab[permtab[i]] = i;
+    }
+
+    pastix_int_t *saved_rangtab = malloc(n*sizeof(pastix_int_t));
+    memcpy(saved_rangtab, rangtab, n*sizeof(pastix_int_t));
+    pastix_int_t *saved_treetab = malloc(n*sizeof(pastix_int_t));
+    memcpy(saved_treetab, treetab, n*sizeof(pastix_int_t));
+
+    rangtab[0] = 0;
+    for (i=0; i<ordemesh->cblknbr; i++){
+        rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
+        treetab[i]   = saved_treetab[ordemesh->cblknbr - i - 1];
+    }
+    for (i=0; i<ordemesh->cblknbr-1; i++){
+        pastix_int_t j;
+        for (j=i+1; j<ordemesh->cblknbr; j++){
+            if (treetab[j] < treetab[i]){
+                treetab[i] = j;
+                break;
+            }
+        }
+    }
+    treetab[ordemesh->cblknbr-1] = -1;
+
+    rangtab =
+        (pastix_int_t *) memRealloc (rangtab,
+                                     (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
+    treetab =
+        (pastix_int_t *) memRealloc (treetab,
+                                     (ordemesh->cblknbr)*sizeof (pastix_int_t));
+
+    return PASTIX_SUCCESS;
+}
+

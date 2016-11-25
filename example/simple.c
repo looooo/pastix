@@ -9,9 +9,6 @@
 #include <pastix.h>
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
-#include "../order/order.h"
-#include "../common/common.h"
-#include "../blend/solver.h"
 
 int main (int argc, char **argv)
 {
@@ -97,7 +94,6 @@ int main (int argc, char **argv)
      */
     pastix_task_order( pastix_data, spm, NULL, NULL );
     pastix_task_symbfact( pastix_data, NULL, NULL );
-
     pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
 
@@ -152,9 +148,9 @@ int main (int argc, char **argv)
     free( spm );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
-    char command[512];
-    sprintf(command, "cat /proc/%u/status | grep VmPeak", getpid());
-    system(command);
+    /* char command[512]; */
+    /* sprintf(command, "cat /proc/%u/status | grep VmPeak", getpid()); */
+    /* system(command); */
 
     return EXIT_SUCCESS;
 }

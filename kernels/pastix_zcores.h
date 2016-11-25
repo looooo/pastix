@@ -33,6 +33,18 @@ core_zlr2ge( pastix_int_t M, pastix_int_t N,
              pastix_complex64_t *A, pastix_int_t lda );
 
 int
+core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
+                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                 pastix_int_t offx, pastix_int_t offy );
+
+int
+core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
+                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                  pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                  pastix_int_t offx, pastix_int_t offy );
+
+int
 core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
              pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,

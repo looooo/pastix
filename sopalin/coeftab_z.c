@@ -42,7 +42,6 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
     pastix_complex64_t *Lvalues = bcsc->Lvalues;
     pastix_complex64_t *Uvalues = bcsc->Uvalues;
     pastix_int_t itercoltab, iterval, coefindx;
-    //    pastix_int_t ncols = solvcblk->lcolnum - solvcblk->fcolnum + 1;
 
     for (itercoltab=0; itercoltab<csccblk->colnbr; itercoltab++)
     {
@@ -126,10 +125,9 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
                    pastix_int_t itercblk,
                    int fakefillin, int factoLU )
 {
-    SolverCblk *cblk = solvmtx->cblktab + itercblk;
+    SolverCblk *cblk     = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
-
-    double tol                 = solvmtx->tolerance;
+    double tol           = solvmtx->tolerance;
     pastix_int_t j;
 
     /* If not NULL, allocated to store the shur complement for exemple */
@@ -142,7 +140,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         /* Extra diagonal block for low-rank updates */
         MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
         memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
-
     }
     else {
         cblk->ucoeftab = NULL;
