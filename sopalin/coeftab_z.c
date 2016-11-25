@@ -127,7 +127,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 {
     SolverCblk *cblk     = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
-    double tol           = solvmtx->tolerance;
+    double tol           = solvmtx->lowrank.tolerance;
     pastix_int_t j;
 
     /* If not NULL, allocated to store the shur complement for exemple */

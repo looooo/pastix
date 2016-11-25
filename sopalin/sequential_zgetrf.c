@@ -43,7 +43,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
     SolverCblk         *cblk;
     double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work;
-    double              tol = datacode->tolerance;
+    double              tol = datacode->lowrank.tolerance;
     pastix_int_t  i;
     (void)pastix_data;
 
@@ -70,7 +70,7 @@ thread_pzgetrf( int rank, void *args )
     SolverCblk         *cblk;
     Task               *t;
     pastix_complex64_t *work;
-    double              tol = datacode->tolerance;
+    double              tol = datacode->lowrank.tolerance;
     pastix_int_t  i, ii;
     pastix_int_t  tasknbr, *tasktab;
 

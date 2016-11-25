@@ -8,7 +8,6 @@
  */
 #include "testing_zmain.h"
 
-static pastix_complex64_t mzone = -1.;
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
 

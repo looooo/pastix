@@ -10,6 +10,40 @@
 #include <spm.h>
 #include "../matrix_drivers/drivers.h"
 
+void print_LR_arguments(pastix_int_t *iparm, double *dparm)
+{
+    printf("\tH-PaStiX parameters are\n");
+    printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
+    printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
+    printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
+
+    switch (iparm[IPARM_COMPRESS_WHEN]){
+    case COMPRESS_BEGIN:
+        printf("\tCOMPRESS BEGIN\n");
+        break;
+    case COMPRESS_END:
+        printf("\tCOMPRESS END\n");
+        break;
+    case COMPRESS_DURING:
+        printf("\tCOMPRESS DURING\n");
+        break;
+    }
+
+    switch (iparm[IPARM_COMPRESS_METHOD]){
+    case SVD:
+        printf("\tCOMPRESS_METHOD SVD\n");
+        break;
+    case RRQR:
+        printf("\tCOMPRESS_METHOD RRQR\n");
+        break;
+    }
+
+    if (iparm[IPARM_SCHEDULER] != 2 && iparm[IPARM_COMPRESS_WHEN] == COMPRESS_DURING){
+        printf("COMPRESS DURING AVAILABLE ONLY WITH PARSEC !!! \n");
+        exit(1);
+    }
+}
+
 int main (int argc, char **argv)
 {
     pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
@@ -40,40 +74,12 @@ int main (int argc, char **argv)
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
-    printf("\tH-PaStiX parameters are\n");
-    printf("\tSPLITSYMBOL %ld %ld\n", iparm[IPARM_MIN_BLOCKSIZE], iparm[IPARM_MAX_BLOCKSIZE]);
-    printf("\tCOMPRESS_SIZE %ld\n", iparm[IPARM_COMPRESS_SIZE]);
-    printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
-
-    switch (iparm[IPARM_COMPRESS_WHEN]){
-    case COMPRESS_BEGIN:
-        printf("\tCOMPRESS BEGIN\n");
-        break;
-    case COMPRESS_END:
-        printf("\tCOMPRESS END\n");
-        break;
-    case COMPRESS_DURING:
-        printf("\tCOMPRESS DURING\n");
-        break;
-    }
-
-    switch (iparm[IPARM_COMPRESS_METHOD]){
-    case SVD:
-        printf("\tCOMPRESS_METHOD SVD\n");
-        break;
-    case RRQR:
-        printf("\tCOMPRESS_METHOD RRQR\n");
-        break;
-    }
     /* TO BE CLEAN !!! */
     compress_when      = iparm[IPARM_COMPRESS_WHEN];
     compress_method    = iparm[IPARM_COMPRESS_METHOD];
     compress_tolerance = dparm[DPARM_COMPRESS_TOLERANCE];
 
-    if (iparm[IPARM_SCHEDULER] != 2 && iparm[IPARM_COMPRESS_WHEN] == COMPRESS_DURING){
-        printf("COMPRESS DURING AVAILABLE ONLY WITH PARSEC !!! \n");
-        exit(1);
-    }
+    print_LR_arguments(iparm, dparm);
 
     /**
      * Read the sparse matrix with the driver

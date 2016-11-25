@@ -113,8 +113,10 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
     }
 
     /* Copy the compress_size parameter into the SolverMatrix structure */
-    pastix_data->solvmatr->compress_size = pastix_data->iparm[IPARM_COMPRESS_SIZE];
-    pastix_data->solvmatr->tolerance     = pastix_data->dparm[DPARM_COMPRESS_TOLERANCE];
+    pastix_data->solvmatr->lowrank.compress_when   = pastix_data->iparm[IPARM_COMPRESS_WHEN];
+    pastix_data->solvmatr->lowrank.compress_method = pastix_data->iparm[IPARM_COMPRESS_METHOD];
+    pastix_data->solvmatr->lowrank.compress_size   = pastix_data->iparm[IPARM_COMPRESS_SIZE];
+    pastix_data->solvmatr->lowrank.tolerance       = pastix_data->dparm[DPARM_COMPRESS_TOLERANCE];
 
     /**
      * Fill in the internal coeftab structure. We consider that if this step is

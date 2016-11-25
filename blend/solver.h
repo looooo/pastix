@@ -62,6 +62,14 @@ typedef struct Task_ {
 #endif
 } Task;
 
+/*+ Compression parameters +*/
+typedef struct LR_params_ {
+    pastix_int_t compress_when;
+    pastix_int_t compress_method;
+    pastix_int_t compress_size;
+    double       tolerance;
+} LR_params;
+
 /*+ Rank-k matrix structure +*/
 typedef struct pastix_lrblock_s {
     int rk, rkmax;
@@ -177,8 +185,7 @@ struct SolverMatrix_ {
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
 
-    pastix_int_t              compress_size;
-    double                    tolerance;
+    LR_params                 lowrank;              /*+ Low-rank parameters                       +*/
 };
 
 /**

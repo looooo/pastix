@@ -251,7 +251,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 {
     SolverCblk *cblk  = solvmtx->cblktab;
     pastix_int_t cblknum;
-    double tol = solvmtx->tolerance;
+    double tol = solvmtx->lowrank.tolerance;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
     double memgain, memoriginal;
@@ -298,7 +298,7 @@ coeftab_zcompress( SolverMatrix *solvmtx )
 {
     SolverCblk *cblk  = solvmtx->cblktab;
     pastix_int_t cblknum;
-    double tol = solvmtx->tolerance;
+    double tol = solvmtx->lowrank.tolerance;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
     double memgain, memoriginal;
