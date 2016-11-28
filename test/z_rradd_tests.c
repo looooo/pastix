@@ -141,9 +141,11 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     if (LR_A_RRQR.rk == -1 || LR_B_RRQR.rk == -1 || (LR_A_RRQR.rk + LR_B_RRQR.rk) > pastix_imin(mA, nA)){
         printf("Operation non supported\n");
         return 0;
+    }
     if (LR_A_SVD.rk == -1 || LR_B_SVD.rk == -1 || (LR_A_SVD.rk + LR_B_SVD.rk) > pastix_imin(mA, nA)){
         printf("Operation non supported\n");
         return 0;
+    }
 
     /* Add A and B in their LR format */
     core_zrradd_SVD( tolerance, CblasNoTrans, -1.0,
@@ -236,5 +238,4 @@ int main (int argc, char **argv)
         printf(" -- %d tests FAILED --\n", err);
         return EXIT_FAILURE;
     }
-
 }

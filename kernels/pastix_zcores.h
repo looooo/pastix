@@ -14,11 +14,11 @@
 double
 core_ztolerance( double tol, double norm );
 
-int
+void
 core_zlralloc( pastix_int_t M, pastix_int_t N,
                pastix_int_t rkmax, pastix_lrblock_t *A );
 
-int
+void
 core_zlrfree( pastix_lrblock_t *A );
 
 int

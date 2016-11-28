@@ -58,6 +58,27 @@ static pastix_complex64_t zzero =  0.;
 
 #endif /* defined(PASTIX_LR_CHECKNAN) */
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_ztolerance - Compute the relative tolerance
+ *
+ *******************************************************************************
+ *
+ * @param[in] tol
+ *          Absolute tolerance.
+ *
+ * @param[in] norm
+ *          Norm of the matrix.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will return the relative tolerance.
+ *
+ *******************************************************************************/
 double
 core_ztolerance(double tol, double norm)
 {
@@ -67,7 +88,30 @@ core_ztolerance(double tol, double norm)
     return tol;
 }
 
-int
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zlralloc - Allocate a low-rank matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          Number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          Number of columns of the matrix A.
+ *
+ * @param[in] rkmax
+ *         @arg -1   : the matrix is full
+ *         @arg k>0  : the matrix is low-rank of rank rkmax
+ *
+ * @param[out] A
+ *          The allocated low-rank matrix
+ *
+ *******************************************************************************/
+void
 core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
                pastix_lrblock_t *A )
 {
@@ -103,11 +147,21 @@ core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
         A->u = u;
         A->v = v;
     }
-
-    return 0;
 }
 
-int
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zlrfree - Destroy a low-rank matrix.
+ *
+ *******************************************************************************
+ * @param[in, out] A
+ *          The low-rank matrix that will be desallocated.
+ *
+ *******************************************************************************/
+void
 core_zlrfree( pastix_lrblock_t *A )
 {
     if ( A->rk == -1 ) {
@@ -124,10 +178,43 @@ core_zlrfree( pastix_lrblock_t *A )
     }
     A->rk = 0;
     A->rkmax = 0;
-
-    return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zlrsze - Resizes a low-rank matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] copy
+ *          Copy the data contained in A->u and A->v in the new low-rank representation
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix A.
+ *
+ * @param[in, out] A
+ *          The low-rank representation of the matrix. At exit, this structure is modified
+ *          with the new low-rank representation of A, is the rank is small enough
+ *
+ * @param[in] newrk
+ *          The new rank of the matrix A.
+ *
+ * @param[in] newrkmax
+ *          The new maximum rank of the matrix A. Useful if the low-rank structure was
+ *          allocated with more data than the rank.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The new rank of A
+ *
+ *******************************************************************************/
 int
 core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
              pastix_lrblock_t *A, int newrk, int newrkmax )
@@ -286,6 +373,54 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zgradd - Adds the dense matrix A to the low-rank matrix B.
+ *
+ *******************************************************************************
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
+ * @param[in] alpha
+ *          alpha * A is add to B
+ *
+ * @param[in] M1
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N1
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The matrix A (dense)
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A.
+ *
+ * @param[in] M2
+ *          The number of rows of the matrix B.
+ *
+ * @param[in] N2
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] offx
+ *          The horizontal offset of A with respect to B.
+ *
+ * @param[in] offy
+ *          The vertical offset of A with respect to B.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The new rank of B or -1 if ranks are too large for recompression
+ *
+ *******************************************************************************/
 int
 core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
