@@ -493,7 +493,45 @@ core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrm2 - Computes the product of two low rank matrices and returns the result in AB
+ * core_zlrm2 - Computes the product of two possible low-rank matrices and returns the result in AB
+ *
+ *******************************************************************************
+ * @param[in] transA
+ *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
+ *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *
+ * @param[in] transB
+ *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
+ *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] K
+ *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[out] AB
+ *          The low-rank representation of the matrix AB.
+ *
+ * @param[in] work
+ *          The workspace used to store temporary data
+ *
+ * @param[in] ldwork
+ *          The leading dimension of work
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The transposition (CblasTrans or CblasNoTrans) of the product AB
  *
  *******************************************************************************/
 int core_zlrm2( int transA, int transB,
@@ -670,7 +708,43 @@ int core_zlrm2( int transA, int transB,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrm3 - A * B with two Low rank matrices
+ * core_zlrm3 - Computes the product of two low-rank matrices (rank != -1) and
+ * returns the result in AB
+ *
+ *******************************************************************************
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
+ * @param[in] transA
+ *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
+ *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *
+ * @param[in] transB
+ *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
+ *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] K
+ *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[out] AB
+ *          The low-rank representation of the matrix AB.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The transposition (CblasTrans or CblasNoTrans) of the product AB
  *
  *******************************************************************************/
 int core_zlrm3( pastix_lr_t lowrank,
@@ -809,10 +883,64 @@ int core_zlrm3( pastix_lr_t lowrank,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrmm - A * B + C with three Low rank matrices
+ * core_zlrmm - A * B + C with three low-rank matrices
+ *
+ *******************************************************************************
+ * @param[in] transA
+ *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
+ *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *
+ * @param[in] transB
+ *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
+ *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] K
+ *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *
+ * @param[in] Cm
+ *          The number of rows of the matrix C.
+ *
+ * @param[in] Cn
+ *          The number of columns of the matrix C.
+ *
+ * @param[in] offx
+ *          The horizontal offset of A with respect to B.
+ *
+ * @param[in] offy
+ *          The vertical offset of A with respect to B.
+ *
+ * @param[in] alpha
+ *          The multiplier parameter: C = beta * C + alpha * AB
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] beta
+ *          The addition parameter: C = beta * C + alpha * AB
+ *
+ * @param[out] C
+ *          The low-rank representation of the matrix C
+ *
+ * @param[in] work
+ *          The workspace used to store temporary data
+ *
+ * @param[in] ldwork
+ *          The leading dimension of work
+ *
+ * @param[in] fcblk
+ *          The facing supernode
  *
  *******************************************************************************/
-int
+void
 core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
@@ -839,7 +967,7 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
 
     /* Quick return if multiplication by 0 */
     if ( A->rk == 0 || B->rk == 0 ) {
-        return 0;
+        return;
     }
 
     if ( A->rk != -1 ) {
@@ -879,7 +1007,6 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
             if ( allocated ) {
                 free(tmp);
             }
-            return 0;
         }
     }
     else{
@@ -987,7 +1114,6 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
     }
 
     assert( C->rk <= C->rkmax);
-    return 0;
 }
 
 /**
@@ -995,10 +1121,55 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrmge - A * B + C with A, and B Low rank matrices, and C full rank
+ * core_zlrmge - A * B + C with A, and B low-rank matrices, and C full rank
+ *
+ *******************************************************************************
+ * @param[in] transA
+ *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
+ *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *
+ * @param[in] transB
+ *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
+ *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] K
+ *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *
+ * @param[in] alpha
+ *          The multiplier parameter: C = beta * C + alpha * AB
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] beta
+ *          The addition parameter: C = beta * C + alpha * AB
+ *
+ * @param[out] C
+ *          The matrix C (full).
+ *
+ * @param[in] ldc
+ *          The leading dimension of the matrix C.
+ *
+ * @param[in] work
+ *          The workspace used to store temporary data
+ *
+ * @param[in] ldwork
+ *          The leading dimension of work
+ *
+ * @param[in] fcblk
+ *          The facing supernode
  *
  *******************************************************************************/
-int
+void
 core_zlrmge( pastix_lr_t lowrank, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
@@ -1019,6 +1190,4 @@ core_zlrmge( pastix_lr_t lowrank, int transA, int transB,
                 alpha, A, B, beta, &lrC,
                 work, ldwork,
                 fcblk );
-
-    return 0;
 }

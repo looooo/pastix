@@ -58,7 +58,7 @@ core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t   *B,
              pastix_int_t offx, pastix_int_t offy );
 
-int
+void
 core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
@@ -69,7 +69,7 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
             pastix_complex64_t *work, pastix_int_t ldwork,
             SolverCblk *fcblk );
 
-int
+void
 core_zlrmge( pastix_lr_t lowrank, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
