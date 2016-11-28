@@ -68,6 +68,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     pastix_int_t        minMN = pastix_imin( m, n );
     pastix_int_t        lwork = -1;
     pastix_int_t        zsize, rsize;
+    double              norm, relative_tolerance;
 
 #if !defined(NDEBUG)
     if ( m < 0 ) {
@@ -88,6 +89,10 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     v = Alr->v;
     ldu = m;
     ldv = Alr->rkmax;
+
+    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                A, lda, NULL );
+    relative_tolerance = core_ztolerance(tol, norm);
 
     /**
      * Query the workspace needed for the gesvd
@@ -118,9 +123,6 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Backup the original matrix before to overwrite it with the SVD
      */
-    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                       A, lda, NULL );
-
     ret = LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
                               A, lda, Acpy, m );
     assert( ret == 0 );
@@ -135,15 +137,8 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
     }
 
-
-    /* TODO: remove function call from loop */
-
-    /* tolrel = tol * s[0]; */
-    /* tolabs = tol * tol; */
     for (i=0; i<minMN; i++, v+=1){
-        /* if ( (s[i] >= tolabs) && */
-        /*      (s[i] >= tolrel) ) */
-        if (s[i] > core_ztolerance(tol, norm))
+        if (s[i] > relative_tolerance)
         {
             cblas_zdscal(n, s[i], v, ldv);
         }
@@ -153,7 +148,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     }
     Alr->rk = i;
 
-    free(zwork);
+    memFree_null(zwork);
     return i;
 }
 
@@ -290,7 +285,7 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
     pastix_complex64_t *tmp, *zbuf, *tauU, *tauV;
     pastix_complex64_t  querysize;
     double *s;
-    /* double tolabs, tolrel; */
+    double norm, relative_tolerance;
     size_t wzsize, wdsize;
 
     rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
@@ -337,7 +332,7 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
              * copying it into B, however the criteria to keep A compressed or
              * not must be based on B dimension, and not on A ones
              */
-            u = malloc( M * N * sizeof(pastix_complex64_t) );
+            MALLOC_INTERN( u, M * N, pastix_complex64_t );
 
             if ( M1 != M || N1 != N ) {
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, N,
@@ -349,7 +344,7 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
             assert(ret == 0);
 
             core_zge2lr_SVD( tol, M, N, u, M, B );
-            free(u);
+            memFree_null(u);
         }
         else {
             core_zlralloc( M, N, A->rkmax, B );
@@ -433,7 +428,6 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
      *  [ u2  u1 ]
      *  [ u2  0  ]
      */
-    //u1u2 = malloc( M * rank * sizeof(pastix_complex64_t));
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
                          B->u, ldbu, u1u2, M );
 
@@ -487,7 +481,6 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
     /**
      * Perform QR factorization on u1u2 = (Q1 R1)
      */
-    //tauU = malloc( minU * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, rank,
                                u1u2, M, tauU, zbuf, lwork );
     assert( ret == 0 );
@@ -497,7 +490,6 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
      *  [ v2^h v2^h v2^h ]
      *  [ 0    v1^h 0    ]
      */
-    //v1v2 = malloc( N * rank * sizeof(pastix_complex64_t));
     ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
                                B->v, ldbv, v1v2, rank );
     assert(ret == 0);
@@ -559,14 +551,12 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
     /**
      * Perform LQ factorization on v1v2 = (L2 Q2)
      */
-    //tauV = malloc( minV * sizeof(pastix_complex64_t));
     ret = LAPACKE_zgelqf_work( LAPACK_COL_MAJOR, rank, N,
                                v1v2, rank, tauV, zbuf, lwork );
     assert(ret == 0);
     /**
      * Compute R = alpha R1 L2
      */
-    //R = malloc( 3 * rank * rank * sizeof(pastix_complex64_t));
     u = R + rank * rank;
     v = u + rank * rank;
 
@@ -576,8 +566,9 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
                                u1u2, M, R, rank );
     assert(ret == 0);
 
-    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
-                                       R, rank, NULL );
+    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
+                                R, rank, NULL );
+    relative_tolerance = core_ztolerance(tol, norm);
 
     cblas_ztrmm(CblasColMajor,
                 CblasRight, CblasLower,
@@ -602,14 +593,9 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
      * Let's compute the new rank of the result
      */
     tmp = v;
-    /* TODO: remove function call from loop */
 
-    /* tolrel = tol * s[0]; */
-    /* tolabs = tol * tol; */
     for (i=0; i<rank; i++, tmp+=1){
-        /* if ( (s[i] >= tolabs) && */
-        /*      (s[i] >= tolrel) ) */
-        if (s[i] > core_ztolerance(tol, norm))
+        if (s[i] > relative_tolerance)
         {
             cblas_zdscal(rank, s[i], tmp, rank);
         }
@@ -649,12 +635,12 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
                         CBLAS_SADDR(zone), u + offy * M + offx, M);
         }
         core_zlrfree(&Bbackup);
-        free(zbuf);
+        memFree_null(zbuf);
         return 0;
     }
     else if ( new_rank == 0 ) {
         core_zlrfree(B);
-        free(zbuf);
+        memFree_null(zbuf);
         return 0;
     }
 
@@ -714,11 +700,11 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
                               zbuf, lwork);
     assert( ret == 0 );
 
-    free(zbuf);
-    //free(R);
+    memFree_null(zbuf);
     return new_rank;
 }
 
+/* Interfaces to transform pastix_complex64_t into void */
 void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
                                 void *A, pastix_int_t lda,
                                 void *Alr ){

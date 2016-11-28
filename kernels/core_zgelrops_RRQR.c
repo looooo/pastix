@@ -390,15 +390,30 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
     pastix_complex64_t *work, *Acpy, *tau;
     double             *rwork;
     pastix_int_t       *jpvt;
+    pastix_int_t        zsize, rsize;
+    pastix_complex64_t *zwork;
 
     double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                        A, lda, NULL );
 
-    MALLOC_INTERN( work,  (2 * nb + 1) * ldwork, pastix_complex64_t );
-    MALLOC_INTERN( Acpy,  m * n                , pastix_complex64_t );
-    MALLOC_INTERN( tau,   n                    , pastix_complex64_t );
-    MALLOC_INTERN( rwork, 2 * n                , double );
-    MALLOC_INTERN( jpvt,  n                    , pastix_int_t );
+    /* work */
+    zsize = (2 * nb + 1) * ldwork;
+    /* Acpy */
+    zsize += m * n;
+    /* tau */
+    zsize += n;
+
+    /* rwork */
+    rsize = 2* n;
+
+    zwork = malloc( zsize * sizeof(pastix_complex64_t) + rsize * sizeof(double) );
+    rwork = (double*)(zwork + zsize);
+
+    work = zwork;
+    Acpy = zwork + (2 * nb + 1) * ldwork;
+    tau  = Acpy + m * n;
+
+    MALLOC_INTERN( jpvt, n, pastix_int_t );
 
     /**
      * Allocate a temorary Low rank matrix
@@ -425,8 +440,8 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
      * It was not interesting to compress, so we store the dense version in Alr
      */
     if ( ( Alr->rk == -1 ) ) {
-        free(Alr->u);
-        free(Alr->v);
+        memFree_null(Alr->u);
+        memFree_null(Alr->v);
         Alr->u     = malloc( m * n * sizeof(pastix_complex64_t) );
         Alr->rk    = -1;
         Alr->rkmax = m;
@@ -473,11 +488,8 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
         assert(ret == 0);
     }
 
-    memFree_null( work );
-    memFree_null( rwork );
+    memFree_null( zwork );
     memFree_null( jpvt );
-    memFree_null( tau );
-    memFree_null( Acpy );
 }
 
 /**
@@ -506,19 +518,28 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
  *          alpha * A is add to B
  *
  * @param[in] M1
- *          The absolute tolerance criteria
+ *          The number of rows of the matrix A.
  *
  * @param[in] N1
- *          The absolute tolerance criteria
+ *          The number of columns of the matrix A.
  *
  * @param[in] A
- *          The absolute tolerance criteria
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] M2
+ *          The number of rows of the matrix B.
+ *
+ * @param[in] N2
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
  *
  * @param[in] offx
- *          The absolute tolerance criteria
+ *          The horizontal offset of A with respect to B.
  *
  * @param[in] offy
- *          The absolute tolerance criteria
+ *          The vertical offset of A with respect to B.
  *
  *******************************************************************************
  *
@@ -532,20 +553,26 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                   pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                   pastix_int_t offx, pastix_int_t offy)
 {
-    pastix_int_t rank, M, N, minU, minV;
-    pastix_int_t i, ret, lwork, new_rank;
+    pastix_int_t rank, M, N, minV;
+    pastix_int_t i, ret, new_rank;
     pastix_int_t ldau, ldav, ldbu, ldbv;
     pastix_complex64_t *u1u2, *v1v2, *u, *v;
-    pastix_complex64_t *tmp, *zbuf, *tauU, *tauV;
-    pastix_complex64_t  querysize;
-    /* double tolabs, tolrel; */
-    size_t wzsize, wdsize;
+    pastix_complex64_t *tmp, *zbuf, *tauV;
+    size_t wzsize;
+    double norm;
+
+    /* RRQR parameters / workspace */
+    pastix_int_t        nb = 32;
+    pastix_int_t        ldwork;
+    pastix_int_t       *jpvt;
+    pastix_complex64_t *zwork;
+    double             *rwork;
 
     rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
     rank += B->rk;
     M = pastix_imax(M2, M1);
     N = pastix_imax(N2, N1);
-    minU = pastix_imin(M, rank);
+
     minV = pastix_imin(N, rank);
 
     assert(M2 == M && N2 == N);
@@ -597,7 +624,7 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
             assert(ret == 0);
 
             core_zge2lr_RRQR( tol, M, N, u, M, B );
-            free(u);
+            memFree_null(u);
         }
         else {
             core_zlralloc( M, N, A->rkmax, B );
@@ -640,42 +667,23 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
      */
     /* u1u2 and v1v2 */
     wzsize = (M+N) * rank;
-    /* tauU and tauV */
-    wzsize += minU + minV;
+    /* tauV */
+    wzsize += minV;
 
-    /* Storage of R, u and v */
-    wzsize += 3 * rank * rank;
+    /* RRQR workspaces */
+    ldwork = pastix_imax(rank, N);
+    wzsize += (2 * nb + 1) * ldwork;
 
-    /* QR/LQ workspace */
-    lwork = pastix_imax( M, N ) * 32;
+    zbuf = malloc( wzsize * sizeof(pastix_complex64_t) + 2 * pastix_imax(rank, N) * sizeof(double) );
 
-    /* Workspace needed for the gesvd */
-#if defined(PASTIX_LR_CHECKNAN)
-    querysize = rank;
-#else
-    ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
-                                 rank, rank, NULL, rank,
-                                 NULL, NULL, rank, NULL, rank,
-                                 &querysize, -1, NULL);
-#endif
-    lwork = pastix_imax( lwork, querysize );
-    wzsize += lwork;
+    u1u2  = zbuf;
+    v1v2  = u1u2 + M * rank;
+    tauV  = v1v2 + N * rank;
+    zwork = tauV + rank;
 
-    wdsize = rank;
-#if defined(PRECISION_z) || defined(PRECISION_c)
-    wdsize += 5 * rank;
-#endif
+    rwork = (double*)(zbuf + wzsize);
 
-    /* TODO: remove useless tauU / R allocation */
-    zbuf = malloc( wzsize * sizeof(pastix_complex64_t) + wdsize * sizeof(double) );
-
-    /* TODO: remove !!! */
-    memset(zbuf, 0, wzsize * sizeof(pastix_complex64_t) + wdsize * sizeof(double) );
-
-    u1u2 = zbuf + lwork;
-    tauU = u1u2 + M * rank;
-    v1v2 = tauU + minU;
-    tauV = v1v2 + N * rank;
+    MALLOC_INTERN( jpvt, pastix_imax(rank, N), pastix_int_t );
 
     /**
      * Concatenate U2 and U1 in u1u2
@@ -683,7 +691,6 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
      *  [ u2  u1 ]
      *  [ u2  0  ]
      */
-    //u1u2 = malloc( M * rank * sizeof(pastix_complex64_t));
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
                          B->u, ldbu, u1u2, M );
 
@@ -739,7 +746,6 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
      *  [ v2^h v2^h v2^h ]
      *  [ 0    v1^h 0    ]
      */
-    //v1v2 = malloc( N * rank * sizeof(pastix_complex64_t));
     ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
                                B->v, ldbv, v1v2, rank );
     assert(ret == 0);
@@ -799,13 +805,6 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
     }
 
 
-    pastix_int_t nb    = 32;
-    double *rwork      = malloc(2 * pastix_imax(rank, N) * sizeof(double));
-    pastix_int_t *jpvt = malloc(pastix_imax(rank, N) * sizeof(pastix_int_t));
-
-    pastix_int_t ldwork       = pastix_imax(rank, N);
-    pastix_complex64_t *twork = malloc((2 * nb + 1) * ldwork * sizeof(pastix_complex64_t));;
-
     /**
      * Perform RRQR factorization on v1v2 = (Q2 R2)
      */
@@ -813,7 +812,6 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
     /* Orthogonalize [u2, u1] */
     /* [u2, u1] = [u2, u1 - u2(u2Tu1)] * (I u2Tu1)*/
     /*                                   (0   I  ) */
-    /* if (0) */
     {
         pastix_int_t rA = A->rk;
         pastix_int_t rB = B->rk;
@@ -825,9 +823,10 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
         /* We do not care is A was integrated into v1v2 */
         if (rA != 0){
             pastix_complex64_t *u2Tu1 = malloc(rA * rB * sizeof(pastix_complex64_t));
+            pastix_complex64_t *tmpU = u1u2 + offx;
+            pastix_complex64_t *tmpV = v1v2 + rB;
 
             /* Form u2Tu1 */
-            pastix_complex64_t *tmpU = u1u2 + offx;
             if (rA == N1){
                 cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans,
                             rB, rA, N1,
@@ -860,7 +859,6 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                         CBLAS_SADDR(zone), tmpU, M );
 
             /* Update v1v2 */
-            pastix_complex64_t *tmpV = v1v2 + rB;
             cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                         rB, N, rA,
                         CBLAS_SADDR(zone), u2Tu1, rB,
@@ -871,15 +869,13 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
             {
                 pastix_int_t i, j;
                 for (i=0; i<rank; i++){
-                    pastix_complex64_t *tmp = u1u2 + M * i;
+                    pastix_complex64_t *tmpU = u1u2 + M * i;
                     pastix_complex64_t *tmpV = v1v2 + i;
-                    double norm = cblas_dznrm2(M, tmp, 1);
-                    /* double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', M, 1, */
-                    /*                      tmp, 1, NULL ); */
+                    double norm = cblas_dznrm2(M, tmpU, 1);
 
                     if (norm > LAPACKE_dlamch('e')){
                         for (j=0; j<M; j++){
-                            tmp[j] /= (norm);
+                            tmpU[j] /= (norm);
                         }
                         for (j=0; j<N; j++){
                             tmpV[rank * j] *= norm;
@@ -887,7 +883,7 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                     }
                     else{
                         for (j=0; j<M; j++){
-                            tmp[j] = 0.;
+                            tmpU[j] = 0.;
                         }
                         for (j=0; j<N; j++){
                             tmpV[rank * j] = 0.;
@@ -896,25 +892,19 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                 }
             }
 
-            free(u2Tu1);
+            memFree_null(u2Tu1);
         }
     }
 
-    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
-                                       v1v2, rank, NULL );
+    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
+                                v1v2, rank, NULL );
 
     new_rank = core_zrrqr(rank, N,
                           v1v2, rank,
                           jpvt, tauV,
-                          twork, ldwork,
+                          zwork, ldwork,
                           rwork,
                           core_ztolerance(tol, norm), nb, rank-1);
-    /* if (new_rank == rank-1) */
-    /*     new_rank++; */
-
-
-    free(rwork);
-    free(twork);
 
     /**
      * First case: The rank is too big, so we decide to uncompress the result
@@ -946,14 +936,14 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                         CBLAS_SADDR(zone), u + offy * M + offx, M);
         }
         core_zlrfree(&Bbackup);
-        free(zbuf);
-        free(jpvt);
+        memFree_null(zbuf);
+        memFree_null(jpvt);
         return 0;
     }
     else if ( new_rank == 0 ) {
         core_zlrfree(B);
-        free(zbuf);
-        free(jpvt);
+        memFree_null(zbuf);
+        memFree_null(jpvt);
         return 0;
     }
 
@@ -998,14 +988,15 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
 
     memcpy(B->v, work2, new_rank * N * sizeof(pastix_complex64_t));
 
-    free(zbuf);
-    free(jpvt);
-    free(work);
-    free(work2);
+    memFree_null(zbuf);
+    memFree_null(jpvt);
+    memFree_null(work);
+    memFree_null(work2);
 
     return new_rank;
 }
 
+/* Interfaces to transform pastix_complex64_t into void */
 void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
                                  void *A, pastix_int_t lda,
                                  void *Alr ){
@@ -1014,9 +1005,9 @@ void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
 }
 
 int core_zrradd_RRQR_interface( double tol, int transA1, void *alpha,
-                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                               pastix_int_t offx, pastix_int_t offy){
+                                pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                                pastix_int_t offx, pastix_int_t offy){
     pastix_complex64_t *alpha2 = (pastix_complex64_t *) alpha;
     return core_zrradd_RRQR(tol, transA1, alpha2[0],
                             M1, N1, A,
