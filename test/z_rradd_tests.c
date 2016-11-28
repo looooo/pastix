@@ -45,11 +45,12 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
               pastix_int_t offx, pastix_int_t offy )
 {
     pastix_complex64_t *A, *B, *B_tmp;
-    pastix_complex64_t *C, *C_RRQR, *C_SVD;
-    pastix_lrblock_t    LR_A, LR_B;
+    pastix_complex64_t *C_RRQR, *C_SVD;
+    pastix_lrblock_t    LR_A_SVD, LR_B_SVD;
+    pastix_lrblock_t    LR_A_RRQR, LR_B_RRQR;
 
     double norm_dense_A, norm_dense_B;
-    double norm_diff_SVD;
+    double norm_diff_SVD, norm_diff_RRQR;
     double res_SVD, res_RRQR;
 
     pastix_int_t minMN_A = pastix_imin(mA, nA);
@@ -66,7 +67,6 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
 
     MALLOC_INTERN(A,      mA * nA, pastix_complex64_t);
     MALLOC_INTERN(B,      mB * nB, pastix_complex64_t);
-    MALLOC_INTERN(C,      mA * nA, pastix_complex64_t);
     MALLOC_INTERN(C_RRQR, mA * nA, pastix_complex64_t);
     MALLOC_INTERN(C_SVD,  mA * nA, pastix_complex64_t);
 
@@ -74,7 +74,7 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     MALLOC_INTERN(SB, minMN_B, double);
     MALLOC_INTERN(work, 3*pastix_imax(pastix_imax(mA, nA), pastix_imax(mB, nB)), pastix_complex64_t);
 
-    if ((!A)||(!B)||(!C)||(!C_SVD)||(!C_RRQR)||(!SA)||(!SB)||(!work)){
+    if ((!A)||(!B)||(!C_SVD)||(!C_RRQR)||(!SA)||(!SB)||(!work)){
         printf("Out of Memory \n ");
         return -2;
     }
@@ -118,27 +118,54 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     core_zge2lr_SVD( tolerance,
                       mA, nA,
                       A, mA,
-                      &LR_A );
+                      &LR_A_SVD );
 
     core_zge2lr_SVD( tolerance,
                       mB, nB,
                       B, mB,
-                      &LR_B );
+                      &LR_B_SVD );
 
-    printf(" The rank of A is %d B is %d\n", LR_A.rk, LR_B.rk);
+    core_zge2lr_RRQR( tolerance,
+                      mA, nA,
+                      A, mA,
+                      &LR_A_RRQR );
+
+    core_zge2lr_RRQR( tolerance,
+                      mB, nB,
+                      B, mB,
+                      &LR_B_RRQR );
+
+    printf(" The rank of A is: RRQR %d SVD %d\n", LR_A_RRQR.rk, LR_A_SVD.rk);
+    printf(" The rank of B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
+
+    if (LR_A_RRQR.rk == -1 || LR_B_RRQR.rk == -1 || (LR_A_RRQR.rk + LR_B_RRQR.rk) > pastix_imin(mA, nA)){
+        printf("Operation non supported\n");
+        return 0;
+    if (LR_A_SVD.rk == -1 || LR_B_SVD.rk == -1 || (LR_A_SVD.rk + LR_B_SVD.rk) > pastix_imin(mA, nA)){
+        printf("Operation non supported\n");
+        return 0;
 
     /* Add A and B in their LR format */
     core_zrradd_SVD( tolerance, CblasNoTrans, -1.0,
-                      mA, nA, &LR_A,
-                      mB, nB, &LR_B,
+                     mA, nA, &LR_A_SVD,
+                     mB, nB, &LR_B_SVD,
+                     offx, offy );
+
+    core_zrradd_RRQR( tolerance, CblasNoTrans, -1.0,
+                      mA, nA, &LR_A_RRQR,
+                      mB, nB, &LR_B_RRQR,
                       offx, offy );
 
-    printf(" The rank of A+B is %d\n", LR_B.rk);
+    printf(" The rank of A+B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
 
     /* Build uncompressed LR+LR matrix */
     core_zlr2ge( mB, nB,
-                 &LR_B,
-                 C, mB );
+                 &LR_B_SVD,
+                 C_SVD, mB );
+
+    core_zlr2ge( mB, nB,
+                 &LR_B_RRQR,
+                 C_RRQR, mB );
 
     /* Compute A+B in dense */
     B_tmp = B + offx + mB * offy;
@@ -149,19 +176,24 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     /* Compute norm of dense and LR matrices */
     core_zgeadd( PastixNoTrans, mB, nB,
                  -1., B, mB,
-                  1., C, mB );
+                  1., C_SVD, mB );
+
+    core_zgeadd( PastixNoTrans, mB, nB,
+                 -1., B, mB,
+                 1., C_RRQR, mB );
 
     norm_diff_SVD = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
-                                         C, mB, NULL );
+                                         C_SVD, mB, NULL );
+    norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
+                                          C_RRQR, mB, NULL );
 
-    res_RRQR = 0;
-    res_SVD  = norm_diff_SVD / ( tolerance * (norm_dense_A + norm_dense_B) );
+    res_RRQR = norm_diff_RRQR / ( tolerance * (norm_dense_A + norm_dense_B) );
+    res_SVD  = norm_diff_SVD  / ( tolerance * (norm_dense_A + norm_dense_B) );
 
-    printf("RES %.3g\n", res_SVD);
+    printf("RES SVD=%.3g RRQR=%.3g\n", res_SVD, res_RRQR);
 
     memFree_null(A);
     memFree_null(B);
-    memFree_null(C);
     memFree_null(C_SVD);
     memFree_null(C_RRQR);
     memFree_null(SA);
