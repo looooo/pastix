@@ -687,7 +687,6 @@ include(CTest)
 add_subdirectory(example)
 # Testing executables
 add_subdirectory(test)
-add_subdirectory(testing)
 
 #############################################################
 #

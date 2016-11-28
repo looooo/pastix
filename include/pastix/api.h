@@ -722,4 +722,32 @@ enum pastix_error_e {
   PASTIX_ERR_MPI            = 16
 };
 
+/*
+  Enum: API_COMPRESS_WHEN
+
+  Compression strategy (index IPARM_COMPRESS_WHEN)
+
+  API_COMPRESS_WHEN_BEGIN  - Compress A
+  API_COMPRESS_WHEN_END    - Compress L
+  API_COMRPESS_WHEN_DURING - Compress after elimination of dense supernodes
+ */
+enum API_COMPRESS_WHEN {
+  API_COMPRESS_WHEN_BEGIN  = 0,
+  API_COMPRESS_WHEN_END    = 1,
+  API_COMPRESS_WHEN_DURING = 2
+};
+
+/*
+  Enum: API_COMPRESS_METHOD
+
+  Compression method (index IPARM_COMPRESS_METHOD)
+
+  API_COMPRESS_METHOD_SVD  - Use SVD
+  API_COMPRESS_METHOD_RRQR - Use RRQR
+ */
+enum API_COMPRESS_METHOD {
+  API_COMPRESS_METHOD_SVD  = 0,
+  API_COMPRESS_METHOD_RRQR = 1
+};
+
 #endif /* _PASTIX_API_H_ */
