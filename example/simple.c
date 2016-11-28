@@ -74,9 +74,6 @@ int main (int argc, char **argv)
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
-    /* TO BE CLEAN !!! */
-    compress_method = iparm[IPARM_COMPRESS_METHOD];
-
     print_LR_arguments(iparm, dparm);
 
     /**

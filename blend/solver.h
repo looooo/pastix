@@ -62,20 +62,28 @@ typedef struct Task_ {
 #endif
 } Task;
 
-/*+ Compression parameters +*/
-typedef struct LR_params_ {
-    pastix_int_t compress_when;
-    pastix_int_t compress_method;
-    pastix_int_t compress_size;
-    double       tolerance;
-} LR_params;
-
 /*+ Rank-k matrix structure +*/
 typedef struct pastix_lrblock_s {
     int rk, rkmax;
     void *u;
     void *v;
 } pastix_lrblock_t;
+
+
+/*+ Compression parameters +*/
+typedef struct pastix_lr_s {
+    pastix_int_t compress_when;
+    pastix_int_t compress_method;
+    pastix_int_t compress_size;
+    double       tolerance;
+    int (* core_rradd)( double tol, int transA1, void *alpha,
+                        pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                        pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                        pastix_int_t offx, pastix_int_t offy );
+    void (* core_ge2lr)( double tol, pastix_int_t m, pastix_int_t n,
+                         void *A, pastix_int_t lda,
+                         void *Alr );
+} pastix_lr_t;
 
 /*+ Solver block structure. +*/
 typedef struct SolverBlok_ {
@@ -185,7 +193,7 @@ struct SolverMatrix_ {
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
 
-    LR_params                 lowrank;              /*+ Low-rank parameters                       +*/
+    pastix_lr_t                 lowrank;              /*+ Low-rank parameters                       +*/
 };
 
 /**

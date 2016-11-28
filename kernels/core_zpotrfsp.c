@@ -270,7 +270,7 @@ int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            double              criteria )
 {
     pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
-    LR_params null;
+    pastix_lr_t null;
     core_ztrsmsp(PastixLCoef, PastixRight, PastixLower, PastixConjTrans, PastixNonUnit, cblk, L, L, null);
     return nbpivot;
 }
@@ -328,7 +328,7 @@ core_zpotrfsp1d( SolverMatrix       *solvmtx,
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         core_zgemmsp( PastixLower, PastixConjTrans, cblk, blok, fcblk,
-                      L, L, fcblk->lcoeftab, work, 0 );
+                      L, L, fcblk->lcoeftab, work, solvmtx->lowrank );
 
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
    }

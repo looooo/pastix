@@ -127,7 +127,6 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 {
     SolverCblk *cblk     = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
-    double tol           = solvmtx->lowrank.tolerance;
     pastix_int_t j;
 
     pastix_int_t compress_when = solvmtx->lowrank.compress_when;
@@ -211,7 +210,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
             /* fprintf(stderr, "Try to compress a block\n"); */
 
             if ( compress_when == COMPRESS_BEGIN ){
-                coeftab_zcompress_one( cblk, tol );
+                coeftab_zcompress_one( cblk, solvmtx->lowrank );
             }
             else if ( compress_when == COMPRESS_END ){
                 coeftab_zalloc_one( cblk );

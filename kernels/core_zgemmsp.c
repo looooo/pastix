@@ -645,7 +645,7 @@ core_zgemmsp_2dlrsub( int coef,
                       pastix_int_t blok_mn,
                 const SolverCblk  *cblk,
                       SolverCblk  *fcblk,
-                      double       tolerance )
+                      pastix_lr_t  lowrank )
 {
     const SolverBlok *blokA, *blokB, *blokC;
     const SolverBlok *bA, *bB, *bC;
@@ -705,7 +705,7 @@ core_zgemmsp_2dlrsub( int coef,
                 N    = blok_rownbr( bB );
                 lrB  = bB->LRblock + 1;
 
-                core_zlrmm( tolerance, PastixNoTrans, trans,
+                core_zlrmm( lowrank, PastixNoTrans, trans,
                             M, N, K,
                             blok_rownbr( bC ), cblk_colnbr( fcblk ),
                             bA->frownum - bC->frownum,
@@ -721,7 +721,7 @@ core_zgemmsp_2dlrsub( int coef,
                 N    = blok_rownbr( bB );
                 lrB  = bB->LRblock + 1;
 
-                core_zlrmm( tolerance, PastixNoTrans, trans,
+                core_zlrmm( lowrank, PastixNoTrans, trans,
                             M, N, K,
                             blok_rownbr( bC ), cblk_colnbr( fcblk ),
                             bA->frownum - bC->frownum,
@@ -738,7 +738,7 @@ core_zgemmsp_2dlrsub( int coef,
                 N    = blok_rownbr( bB );
                 lrB  = bB->LRblock + 1 - coef;
 
-                core_zlrmm( tolerance, PastixNoTrans, trans,
+                core_zlrmm( lowrank, PastixNoTrans, trans,
                             M, N, K,
                             blok_rownbr( bC ), cblk_colnbr( fcblk ),
                             bA->frownum - bC->frownum,
@@ -826,7 +826,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
                      const pastix_complex64_t *A,
                      const pastix_complex64_t *B,
                            pastix_complex64_t *work,
-                           double              tol)
+                           pastix_lr_t         lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -880,7 +880,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
         lrC = fblok->LRblock + shift;
 
         /* pastix_cblk_lock( fcblk ); */
-        core_zlrmm( tol, PastixNoTrans, trans,
+        core_zlrmm( lowrank, PastixNoTrans, trans,
                     M, N, K,
                     blok_rownbr( fblok ), cblk_colnbr( fcblk ),
                     iterblok->frownum - fblok->frownum,
@@ -963,7 +963,7 @@ core_zgemmsp_lr( int uplo, int trans,
                  const SolverBlok         *blok,
                        SolverCblk         *fcblk,
                        pastix_complex64_t *work,
-                       double              tol )
+                       pastix_lr_t         lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -1016,14 +1016,14 @@ core_zgemmsp_lr( int uplo, int trans,
         /* pastix_cblk_lock( fcblk ); */
         if ( fcblk->cblktype & CBLK_DENSE ) {
             C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zlrmge( tol, PastixNoTrans, trans,
+            core_zlrmge( lowrank, PastixNoTrans, trans,
                          M, N, K,
                          -1., lrA, lrB, 1., C, stridef,
                          work, -1,
                          fcblk );
         }
         else {
-            core_zlrmm( tol, PastixNoTrans, trans,
+            core_zlrmm( lowrank, PastixNoTrans, trans,
                         M, N, K,
                         blok_rownbr( fblok ), cblk_colnbr( fcblk ),
                         iterblok->frownum - fblok->frownum,
@@ -1109,16 +1109,16 @@ void core_zgemmsp( int uplo, int trans,
                    const pastix_complex64_t *B,
                          pastix_complex64_t *C,
                          pastix_complex64_t *work,
-                         double              tol )
+                         pastix_lr_t         lowrank )
 {
     if ( !(fcblk->cblktype & CBLK_DENSE ) ) {
         if ( !(cblk->cblktype & CBLK_DENSE) ) {
-            core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work, tol );
+            core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work, lowrank );
         }
         else {
             core_zgemmsp_fulllr( uplo, trans,
                                  cblk, blok, fcblk,
-                                 A, B, C, tol );
+                                 A, B, C, lowrank );
         }
     }
     else if ( fcblk->cblktype & CBLK_SPLIT ) {

@@ -924,7 +924,7 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
                                0., u + M * offy + offx, M );
             assert(ret == 0);
 
-            core_zge2lr( tol, M, N, u, M, B );
+            core_zge2lr_SVD( tol, M, N, u, M, B );
             free(u);
         }
         else {
@@ -1365,7 +1365,7 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                                0., u + M * offy + offx, M );
             assert(ret == 0);
 
-            core_zge2lr( tol, M, N, u, M, B );
+            core_zge2lr_RRQR( tol, M, N, u, M, B );
             free(u);
         }
         else {
@@ -1776,7 +1776,7 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
 }
 
 int
-core_zgradd( double tol, pastix_complex64_t alpha,
+core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,
              pastix_int_t offx, pastix_int_t offy)
@@ -1784,6 +1784,7 @@ core_zgradd( double tol, pastix_complex64_t alpha,
     pastix_lrblock_t lrA;
     pastix_int_t rmax = pastix_imin( M2, N2 );
     pastix_int_t rank, ldub;
+    double tol = lowrank.tolerance;
 
     assert( B->rk <= B->rkmax);
 
@@ -1819,7 +1820,7 @@ core_zgradd( double tol, pastix_complex64_t alpha,
                      1.,    work + M2 * offy + offx, M2 );
 
         core_zlrfree(B);
-        core_zge2lr( tol, M2, N2, work, M2, B );
+        lowrank.core_ge2lr( tol, M2, N2, work, M2, B );
         rank = B->rk;
         free(work);
     }
@@ -1831,10 +1832,10 @@ core_zgradd( double tol, pastix_complex64_t alpha,
         lrA.rkmax = lda;
         lrA.u = A;
         lrA.v = NULL;
-        rank = core_zrradd( tol, PastixNoTrans, alpha,
-                            M1, N1, &lrA,
-                            M2, N2, B,
-                            offx, offy );
+        rank = lowrank.core_rradd( tol, PastixNoTrans, &alpha,
+                                   M1, N1, &lrA,
+                                   M2, N2, B,
+                                   offx, offy );
     }
 
     assert( B->rk <= B->rkmax);
@@ -2026,7 +2027,7 @@ int core_zlrm2( int transA, int transB,
  * core_zlrm3 - A * B with two Low rank matrices
  *
  *******************************************************************************/
-int core_zlrm3( double tol,
+int core_zlrm3( pastix_lr_t lowrank,
                 int transA, int transB,
                 pastix_int_t M, pastix_int_t N, pastix_int_t K,
                 const pastix_lrblock_t *A,
@@ -2072,7 +2073,7 @@ int core_zlrm3( double tol,
     /**
      * Try to compress (Av^h Bv^h')
      */
-    core_zge2lr( tol, A->rk, B->rk, work2, A->rk, &rArB );
+    lowrank.core_ge2lr( lowrank.tolerance, A->rk, B->rk, work2, A->rk, &rArB );
 
     /**
      * The rank of AB is not smaller than min(rankA, rankB)
@@ -2166,7 +2167,7 @@ int core_zlrm3( double tol,
  *
  *******************************************************************************/
 int
-core_zlrmm( double tol, int transA, int transB,
+core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
             pastix_int_t offx, pastix_int_t offy,
@@ -2182,6 +2183,7 @@ core_zlrmm( double tol, int transA, int transB,
     pastix_int_t required = 0;
     int transV;
     int allocated = 0;
+    double tol = lowrank.tolerance;
 
     assert(transA == PastixNoTrans);
     assert(transB != PastixNoTrans);
@@ -2224,7 +2226,7 @@ core_zlrmm( double tol, int transA, int transB,
     if (A->rk != -1 && B->rk != -1){
         /* Note that in this case tmp is not used anymore */
         /* For instance, AB.rk != -1 */
-        transV = core_zlrm3( tol, transA, transB, M, N, K,
+        transV = core_zlrm3( lowrank, transA, transB, M, N, K,
                              A, B, &AB );
 
         if (AB.rk == 0){
@@ -2272,7 +2274,7 @@ core_zlrmm( double tol, int transA, int transB,
     else {
         if ( AB.rk == -1 ) {
             assert(beta == 1.);
-            core_zgradd( tol, alpha,
+            core_zgradd( lowrank, alpha,
                          M, N, tmp, AB.rkmax,
                          Cm, Cn, C,
                          offx, offy );
@@ -2302,15 +2304,15 @@ core_zlrmm( double tol, int transA, int transB,
                              CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
 
                 core_zlrfree(C);
-                core_zge2lr( tol, Cm, Cn, work, Cm, C );
+                lowrank.core_ge2lr( tol, Cm, Cn, work, Cm, C );
                 free(work);
             }
             else {
                 /* Need to handle correctly this case */
-                core_zrradd( tol, transV, alpha,
-                             M, N, &AB,
-                             Cm, Cn, C,
-                             offx, offy );
+                lowrank.core_rradd( tol, transV, &alpha,
+                                    M, N, &AB,
+                                    Cm, Cn, C,
+                                    offx, offy );
             }
         }
     }
@@ -2351,7 +2353,7 @@ core_zlrmm( double tol, int transA, int transB,
  *
  *******************************************************************************/
 int
-core_zlrmge( double tol, int transA, int transB,
+core_zlrmge( pastix_lr_t lowrank, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                        const pastix_lrblock_t *B,
@@ -2366,7 +2368,7 @@ core_zlrmge( double tol, int transA, int transB,
     lrC.u = C;
     lrC.v = NULL;
 
-    core_zlrmm( tol, transA, transB, M, N, K,
+    core_zlrmm( lowrank, transA, transB, M, N, K,
                 M, N, 0, 0,
                 alpha, A, B, beta, &lrC,
                 work, ldwork,
@@ -2375,32 +2377,38 @@ core_zlrmge( double tol, int transA, int transB,
     return 0;
 }
 
-void core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
-                 const pastix_complex64_t *A, pastix_int_t lda,
-                 void *Alr ){
-    if ( compress_method == SVD ){
-        core_zge2lr_SVD(tol, m, n, A, lda, Alr);
-    }
-    else{
-        core_zge2lr_RRQR(tol, m, n, A, lda, Alr);
-    }
+void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
+                                void *A, pastix_int_t lda,
+                                void *Alr ){
+    pastix_complex64_t *A2 = (pastix_complex64_t *) A;
+    core_zge2lr_SVD(tol, m, n, A2, lda, Alr);
 }
 
-int core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
-                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                 pastix_int_t offx, pastix_int_t offy){
+void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
+                                 void *A, pastix_int_t lda,
+                                 void *Alr ){
+    pastix_complex64_t *A2 = (pastix_complex64_t *) A;
+    core_zge2lr_RRQR(tol, m, n, A2, lda, Alr);
+}
 
-    if ( compress_method == SVD ){
-        return core_zrradd_SVD(tol, transA1, alpha,
-                               M1, N1, A,
-                               M2, N2, B,
-                               offx, offy);
-    }
-    else{
-        return core_zrradd_RRQR(tol, transA1, alpha,
-                                M1, N1, A,
-                                M2, N2, B,
-                                offx, offy);
-    }
+int core_zrradd_SVD_interface( double tol, int transA1, void *alpha,
+                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                               pastix_int_t offx, pastix_int_t offy){
+    pastix_complex64_t *alpha2 = (pastix_complex64_t *) alpha;
+    return core_zrradd_SVD(tol, transA1, alpha2[0],
+                           M1, N1, A,
+                           M2, N2, B,
+                           offx, offy);
+}
+
+int core_zrradd_RRQR_interface( double tol, int transA1, void *alpha,
+                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                               pastix_int_t offx, pastix_int_t offy){
+    pastix_complex64_t *alpha2 = (pastix_complex64_t *) alpha;
+    return core_zrradd_RRQR(tol, transA1, alpha2[0],
+                            M1, N1, A,
+                            M2, N2, B,
+                            offx, offy);
 }

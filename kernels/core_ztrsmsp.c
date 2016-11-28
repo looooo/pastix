@@ -254,7 +254,7 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
 
 static inline int
 core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
-                   SolverCblk *cblk, LR_params lowrank_p )
+                   SolverCblk *cblk, pastix_lr_t lowrank )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda;
@@ -279,13 +279,13 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
-        if ( lowrank_p.compress_when == COMPRESS_END )
+        if ( lowrank.compress_when == COMPRESS_END )
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;
-            core_zge2lr( lowrank_p.tolerance, M, N,
-                         lrC->u, M,
-                         &C );
+            lowrank.core_ge2lr( lowrank.tolerance, M, N,
+                                lrC->u, M,
+                                &C );
 
             core_zlrfree(lrC);
             lrC->u = C.u;
@@ -320,7 +320,7 @@ int
 core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
                       SolverCblk   *cblk,
                       pastix_int_t  blok_m,
-                      LR_params lowrank_p )
+                      pastix_lr_t   lowrank )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, cblk_m;
@@ -348,13 +348,13 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
-        if ( lowrank_p.compress_when == COMPRESS_END )
+        if ( lowrank.compress_when == COMPRESS_END )
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;
-            core_zge2lr( lowrank_p.tolerance, M, N,
-                         lrC->u, M,
-                         &C );
+            lowrank.core_ge2lr( lowrank.tolerance, M, N,
+                                lrC->u, M,
+                                &C );
 
             core_zlrfree(lrC);
             lrC->u = C.u;
@@ -427,7 +427,7 @@ void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
                          SolverCblk         *cblk,
                    const pastix_complex64_t *A,
                          pastix_complex64_t *C,
-                   LR_params lowrank_p )
+                   pastix_lr_t lowrank_p )
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
         if ( !(cblk->cblktype & CBLK_DENSE) ) {

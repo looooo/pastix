@@ -299,7 +299,7 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria,
-                           LR_params lowrank_p )
+                           pastix_lr_t lowrank_p )
 {
     pastix_int_t nbpivot;
 
@@ -347,8 +347,7 @@ int
 core_zgetrfsp1d( SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
                  double              criteria,
-                 pastix_complex64_t *work,
-                 double              tol )
+                 pastix_complex64_t *work )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     pastix_complex64_t *U = cblk->ucoeftab;
@@ -368,12 +367,12 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
 
         /* Update on L */
         core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
-                      L, U, fcblk->lcoeftab, work, tol );
+                      L, U, fcblk->lcoeftab, work, solvmtx->lowrank );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
             core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
-                          U, L, fcblk->ucoeftab, work, tol );
+                          U, L, fcblk->ucoeftab, work, solvmtx->lowrank );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }

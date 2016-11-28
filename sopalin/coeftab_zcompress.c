@@ -24,7 +24,7 @@
 /* Section: Functions */
 pastix_int_t
 coeftab_zcompress_one( SolverCblk *cblk,
-                       double      tol )
+                       pastix_lr_t lowrank )
 {
     pastix_lrblock_t   *LRblocks;
     SolverBlok         *blok     = cblk[0].fblokptr;
@@ -69,9 +69,9 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         blok->LRblock = LRblocks;
 
-        core_zge2lr( tol, nrows, ncols,
-                     lcoeftab + blok->coefind, nrows,
-                     blok->LRblock );
+        lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
+                            lcoeftab + blok->coefind, nrows,
+                            blok->LRblock );
         gainL -= (LRblocks->rk == -1) ? nrows * ncols
             : ((nrows+ncols) * LRblocks->rk);
 
@@ -79,9 +79,9 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         if (factoLU) {
 
-            core_zge2lr( tol, nrows, ncols,
-                         ucoeftab + blok->coefind, nrows,
-                         blok->LRblock+1 );
+            lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
+                                ucoeftab + blok->coefind, nrows,
+                                blok->LRblock+1 );
             gainU -= (LRblocks->rk == -1) ? nrows * ncols
                 : ((nrows+ncols) * LRblocks->rk);
 
@@ -311,7 +311,7 @@ coeftab_zcompress( SolverMatrix *solvmtx )
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         original += cblk_colnbr( cblk ) * cblk->stride;
         if (cblk->cblktype & CBLK_DENSE) {
-            gain += coeftab_zcompress_one( cblk, tol );
+            gain += coeftab_zcompress_one( cblk, solvmtx->lowrank );
         }
     }
 

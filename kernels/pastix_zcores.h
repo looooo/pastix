@@ -32,11 +32,6 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                   const pastix_complex64_t *A, pastix_int_t lda,
                   pastix_lrblock_t *Alr );
 
-void
-core_zge2lr( double tol, pastix_int_t m, pastix_int_t n,
-             const pastix_complex64_t *A, pastix_int_t lda,
-             void *Alr );
-
 int
 core_zlr2ge( pastix_int_t M, pastix_int_t N,
              const pastix_lrblock_t *Alr,
@@ -55,19 +50,13 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                   pastix_int_t offx, pastix_int_t offy );
 
 int
-core_zrradd( double tol, int transA1, pastix_complex64_t alpha,
-             pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-             pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-             pastix_int_t offx, pastix_int_t offy );
-
-int
-core_zgradd( double tol, pastix_complex64_t alpha,
+core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t   *B,
              pastix_int_t offx, pastix_int_t offy );
 
 int
-core_zlrmm( double tol, int transA, int transB,
+core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
             pastix_int_t offx, pastix_int_t offy,
@@ -78,7 +67,7 @@ core_zlrmm( double tol, int transA, int transB,
             SolverCblk *fcblk );
 
 int
-core_zlrmge( double tol, int transA, int transB,
+core_zlrmge( pastix_lr_t lowrank, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                        const pastix_lrblock_t *B,
@@ -128,7 +117,7 @@ void core_zgemmsp( int uplo, int trans,
                    const pastix_complex64_t *B,
                          pastix_complex64_t *C,
                          pastix_complex64_t *work,
-                         double              tol  );
+                         pastix_lr_t         lowrank );
 
 void
 core_zgemmsp_2d2dsub( int uplo, int trans,
@@ -148,13 +137,13 @@ void core_zgemmsp_2dlrsub( int coef,
                            pastix_int_t blok_mn,
                      const SolverCblk         *cblk,
                            SolverCblk         *fcblk,
-                           double tolerance );
+                           pastix_lr_t lowrank );
 
 void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
                    SolverCblk         *cblk,
              const pastix_complex64_t *A,
                    pastix_complex64_t *C,
-                   LR_params lowrank_p );
+                   pastix_lr_t lowrank_p );
 
 int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
                               SolverCblk         *cblk,
@@ -165,7 +154,7 @@ int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
 int core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
                           SolverCblk   *cblk,
                           pastix_int_t  blok_m,
-                          LR_params     lowrank_p );
+                          pastix_lr_t     lowrank_p );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -181,13 +170,12 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria,
-                           LR_params           lowrank_p );
+                           pastix_lr_t         lowrank_p );
 
 int core_zgetrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
                      double              criteria,
-                     pastix_complex64_t *work,
-                     double              tol );
+                     pastix_complex64_t *work );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 int core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
