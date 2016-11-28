@@ -11,6 +11,9 @@
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
+double
+core_ztolerance( double tol, double norm );
+
 int
 core_zlralloc( pastix_int_t M, pastix_int_t N,
                pastix_int_t rkmax, pastix_lrblock_t *A );
@@ -275,13 +278,5 @@ gpu_zgemmsp_2d2dsub( int trans,
 void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
-
-int
-core_zrrqr( pastix_int_t m, pastix_int_t n,
-            pastix_complex64_t *A, pastix_int_t lda,
-            pastix_int_t *jpvt, pastix_complex64_t *tau,
-            pastix_complex64_t *work, pastix_int_t ldwork,
-            double *rwork,
-            double tol, pastix_int_t nb, pastix_int_t maxrank );
 
 #endif /* _CORE_Z_H_ */
