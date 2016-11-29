@@ -24,26 +24,27 @@
  *
  * @ingroup pastix_spm_internal
  *
- * z_spmScal - Scal the matrix with ||A||_2
+ * z_spmScal - Scal the spm: A = alpha * A
  *
  *******************************************************************************
+ *
+ * @param[in] alpha
+ *           The scaling parameter.
  *
  * @param[in,out] spm
  *           The spm which needs to be scaled.
  *
  *******************************************************************************/
 void
-z_spmScal( pastix_spm_t *spm )
+z_spmScal( const pastix_complex64_t alpha, pastix_spm_t *spm )
 {
-    double              norm;
     pastix_int_t        nnz, i;
     pastix_complex64_t *values;
 
     nnz    = spm->nnz;
     values = spm->values;
-    norm   = z_spmNorm( PastixFrobeniusNorm, spm );
 
     for (i=0; i<nnz; i++){
-        values[i] /= norm;
+        values[i] *= alpha;
     }
 }

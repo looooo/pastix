@@ -66,7 +66,7 @@ void z_spmPrint( FILE *f, const pastix_spm_t *spm );
 
 pastix_spm_t *z_spmExpand(const pastix_spm_t *spm);
 void          z_spmDofExtend(pastix_spm_t *spm);
-void          z_spmScal( pastix_spm_t *spm );
+void          z_spmScal( const pastix_complex64_t alpha, pastix_spm_t *spm );
 
 
 #endif /* _z_spm_H_ */
