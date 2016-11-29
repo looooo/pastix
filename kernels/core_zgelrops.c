@@ -1013,6 +1013,7 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
             if ( allocated ) {
                 free(tmp);
             }
+            return;
         }
     }
     else{
