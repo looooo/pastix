@@ -195,7 +195,7 @@ coeftab_zmemory_one( SolverCblk *cblk, int factoLU )
     return gainL + gainU;
 }
 
-pastix_int_t
+void
 coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
@@ -240,9 +240,8 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     /**
      * Free all the LRblock structures associated to the cblk
      */
-    /* cblk->cblktype |= CBLK_DENSE; */
-    /* free(cblk->fblokptr->LRblock); */
-    return 0;
+    cblk->cblktype |= CBLK_DENSE;
+    free(cblk->fblokptr->LRblock);
 }
 
 

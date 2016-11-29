@@ -56,6 +56,41 @@ static pastix_complex64_t zzero =  0.;
 
 #endif /* defined(PASTIX_LR_CHECKNAN) */
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_zge2lrx - Computes a SVD with truncation.
+ *
+ *******************************************************************************
+ *
+ * @param[in] tol
+ *          The tolerance used as a criteria to eliminate information from the
+ *          full rank matrix
+ *
+ * @param[in] m
+ *          Number of rows of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] n
+ *          Number of columns of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] A
+ *          The matrix of dimension lda-by-n that need to be compressed
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A. lda >= max(1, m)
+ *
+ * @param[out] Alr
+ *          The low rank matrix structure that will store the low rank
+ *          representation of A
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          This routine will return the rank of A
+ *
+ *******************************************************************************/
 int
 core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
              const pastix_complex64_t *A, pastix_int_t lda,
@@ -162,7 +197,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
  *******************************************************************************
  *
  * @param[in] tol
- *          The tolerance used as a criterai to eliminate information from the
+ *          The tolerance used as a criteria to eliminate information from the
  *          full rank matrix
  *
  * @param[in] m

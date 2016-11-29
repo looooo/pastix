@@ -96,7 +96,12 @@ int                         verbose )
 
   fprintf (stream, "0 0\n");                      /* Output fake column block */
   for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {
-    float               coloval[3];               /* Color of diagonal block and previous color */
+    float        coloval[3];               /* Color of diagonal block and previous color */
+    SolverCblk  *cblk   = &solvptr->cblktab[cblknum];
+    pastix_int_t ncols  = cblk_colnbr( cblk );
+    SolverBlok  *blok   = cblk[0].fblokptr+1;
+    SolverBlok  *lblok  = cblk[1].fblokptr;
+
 
     coloval[0] = 0.5;
     coloval[1] = 0.5;
@@ -109,20 +114,15 @@ int                         verbose )
       fprintf (stream, "%.2g %.2g %.2g r \n",
                (float) coloval[0], (float) coloval[1], (float) coloval[2]);
 
-    SolverCblk *cblk   = &solvptr->cblktab[cblknum];
-
     fprintf (stream, "%ld\t%ld\tc\n",             /* Begin new column block */
              (long) (cblk->fcolnum - solvptr->baseval),
              (long) (cblk->lcolnum - solvptr->baseval + 1));
 
-    pastix_int_t ncols = cblk_colnbr( cblk );
-    SolverBlok *blok   = cblk[0].fblokptr+1;
-    SolverBlok *lblok  = cblk[1].fblokptr;
 
     for (; blok<lblok; blok++)
     {
-      float               colbval[3];             /* Color of off-diagonal block */
-      coloval[0] = colbval[0];                /* Save new color data */
+      float colbval[3]; /* Color of off-diagonal block */
+      coloval[0] = colbval[0]; /* Save new color data */
       coloval[1] = colbval[1];
       coloval[2] = colbval[2];
 
@@ -132,10 +132,11 @@ int                         verbose )
                    0.5, 0.5, 0.5);
       }
       else{
-          pastix_int_t nrows = blok_rownbr( blok );
-
+          pastix_int_t nrows       = blok_rownbr( blok );
           pastix_int_t conso_dense = 2*nrows*ncols;
           pastix_int_t conso_LR    = 0;
+          double       gain;
+
           if (blok->LRblock[0].rk != -1){
               conso_LR += (((nrows+ncols) * blok->LRblock[0].rk));
           }
@@ -149,7 +150,7 @@ int                         verbose )
               conso_LR += nrows*ncols;
           }
 
-          double gain = 1.0 * conso_dense / conso_LR;
+          gain = 1.0 * conso_dense / conso_LR;
           /* printf("Conso LR %ld Dense %ld Gain %f Blok %p\n", conso_LR, conso_dense, gain, blok); */
 
           /* There is no compression */
@@ -186,14 +187,17 @@ int                         verbose )
     FILE *fd2 = fopen( "contribcblk.txt", "r" );
     FILE *fd3 = fopen( "stats.txt", "w" );
     int original_cblk = 1;
-    double color = 0.2;
+    double color      = 0.2;
 
     fprintf(fd3, "%ld\n", solvptr->bloknbr-solvptr->cblknbr);
 
     fprintf (stream, "0 0\n");                      /* Output fake column block */
     for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {
-      SolverCblk *cblk   = &solvptr->cblktab[cblknum];
       int unused, nb_contrib;
+      SolverCblk *cblk   = &solvptr->cblktab[cblknum];
+      pastix_int_t ncols = cblk_colnbr( cblk );
+      SolverBlok *blok   = cblk[0].fblokptr+1;
+      SolverBlok *lblok  = cblk[1].fblokptr;
       fscanf(fd2, "%d %d %d\n", &unused, &nb_contrib, &original_cblk);
 
       fprintf (stream, "%.2g g %ld\t%ld\tc\n",             /* Begin new column block */
@@ -207,9 +211,6 @@ int                         verbose )
                    nb_contrib);
       }
 
-      pastix_int_t ncols = cblk_colnbr( cblk );
-      SolverBlok *blok   = cblk[0].fblokptr+1;
-      SolverBlok *lblok  = cblk[1].fblokptr;
 
       for (; blok<lblok; blok++)
       {
@@ -221,14 +222,14 @@ int                         verbose )
                  (long) (blok->frownum - solvptr->baseval),
                  (long) (blok->lrownum - solvptr->baseval + 1));
         if ( ! (cblk->cblktype & CBLK_DENSE) ) {
+            pastix_int_t nrows       = blok_rownbr( blok );
+            pastix_int_t conso_dense = 2*nrows*ncols;
+            pastix_int_t conso_LR    = 0;
             fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 1.0 1.0 1.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",
                      (long) (blok->frownum - solvptr->baseval),
                      (long) (blok->lrownum - solvptr->baseval + 1),
                      nb_contrib);
 
-            pastix_int_t nrows = blok_rownbr( blok );
-            pastix_int_t conso_dense = 2*nrows*ncols;
-            pastix_int_t conso_LR    = 0;
             if (blok->LRblock[0].rk != -1){
                 conso_LR += (((nrows+ncols) * blok->LRblock[0].rk));
             }
@@ -262,7 +263,7 @@ int                         verbose )
     fclose(fd3);
   }
 
-  fprintf (stream, "pop pop\n");                  /* Purge last column block indices */
+  fprintf (stream, "pop pop\n");        /* Purge last column block indices */
   o = fprintf (stream, "showpage\n");   /* Restore context                 */
 
 

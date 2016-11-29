@@ -82,7 +82,8 @@ static pastix_complex64_t zzero =  0.;
  *          The array that describes the permutation of A
  *
  * @param[out] tau
- *          Contains scalar factors of the elementary reflectors for the matrix Q
+ *          Contains scalar factors of the elementary reflectors for the matrix
+ *          Q
  *
  * @param[in] work
  *          Workspace array
@@ -94,14 +95,15 @@ static pastix_complex64_t zzero =  0.;
  *          Workspace array used to store partial and exact column norms
  *
  * @param[in] tol
- *          The relative tolerance criteria. Computations are stopped when the norm of the
- *          residual matrix is lower than tol.
+ *          The relative tolerance criteria. Computations are stopped when the
+ *          norm of the residual matrix is lower than tol.
  *
  * @param[in] nb
  *          Blocking size for GEMM
  *
  * @param[in] maxrank
- *         Maximum rank of A. Computations are stopped when the rank exceeds maxrank
+ *         Maximum rank of A. Computations are stopped when the rank exceeds
+ *         maxrank
  *
  *******************************************************************************
  *
@@ -354,7 +356,8 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
  *
  * @ingroup pastix_kernel
  *
- * core_zge2lr_RRQR - Convert a full rank matrix in a low rank matrix, using RRQR.
+ * core_zge2lr_RRQR - Convert a full rank matrix in a low rank matrix, using
+ * RRQR.
  *
  *******************************************************************************
  *
@@ -497,7 +500,8 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
  *
  * @ingroup pastix_kernel
  *
- * core_zrradd_RRQR - Adds two LR structures A=(-u1) v1^T and B=u2 v2^T into u2 v2^T
+ * core_zrradd_RRQR - Adds two LR structures A=(-u1) v1^T and B=u2 v2^T into u2
+ * v2^T
  *
  *    u2v2^T - u1v1^T = (u2 u1) (v2 v1)^T
  *    Orthogonalize (u2 u1) = (u2, u1 - u2(u2^T u1)) * (I u2^T u1)
@@ -544,7 +548,8 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
  *******************************************************************************
  *
  * @return
- *          The new rank of u2 v2^T or -1 if ranks are too large for recompression
+ *          The new rank of u2 v2^T or -1 if ranks are too large for
+ *          recompression
  *
  *******************************************************************************/
 int

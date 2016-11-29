@@ -252,6 +252,41 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_ztrsmsp_2dlr - Computes the updates associated to one off-diagonal block
+ * between two cblk stored in low-rank format.
+ *
+ *******************************************************************************
+ *
+ * @param[in] coef
+ *
+ * @param[in] side
+ *
+ * @param[in] uplo
+ *
+ * @param[in] trans
+ *
+ * @param[in] diag
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and C pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
 static inline int
 core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
                    SolverCblk *cblk, pastix_lr_t lowrank )
@@ -316,6 +351,46 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_ztrsmsp_2dlrsub - Computes the updates associated to one off-diagonal
+ * block between two cblk stored in low-rank format.
+ *
+ *******************************************************************************
+ *
+ * @param[in] coef
+ *
+ * @param[in] side
+ *
+ * @param[in] uplo
+ *
+ * @param[in] trans
+ *
+ * @param[in] diag
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and C pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok_m
+ *          Index of the first off-diagonal block in cblk that is solved. The
+ *          TRSM is also applied to all the folowing blocks which are facing the
+ *          same diagonal block
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
 int
 core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
                       SolverCblk   *cblk,

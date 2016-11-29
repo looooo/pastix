@@ -190,7 +190,8 @@ core_zlrfree( pastix_lrblock_t *A )
  *******************************************************************************
  *
  * @param[in] copy
- *          Copy the data contained in A->u and A->v in the new low-rank representation
+ *          Copy the data contained in A->u and A->v in the new low-rank
+ *          representation
  *
  * @param[in] M
  *          The number of rows of the matrix A.
@@ -199,15 +200,16 @@ core_zlrfree( pastix_lrblock_t *A )
  *          The number of columns of the matrix A.
  *
  * @param[in, out] A
- *          The low-rank representation of the matrix. At exit, this structure is modified
- *          with the new low-rank representation of A, is the rank is small enough
+ *          The low-rank representation of the matrix. At exit, this structure
+ *          is modified with the new low-rank representation of A, is the rank
+ *          is small enough
  *
  * @param[in] newrk
  *          The new rank of the matrix A.
  *
  * @param[in] newrkmax
- *          The new maximum rank of the matrix A. Useful if the low-rank structure was
- *          allocated with more data than the rank.
+ *          The new maximum rank of the matrix A. Useful if the low-rank
+ *          structure was allocated with more data than the rank.
  *
  *******************************************************************************
  *
@@ -493,7 +495,8 @@ core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrm2 - Computes the product of two possible low-rank matrices and returns the result in AB
+ * core_zlrm2 - Computes the product of two possible low-rank matrices and
+ * returns the result in AB
  *
  *******************************************************************************
  * @param[in] transA
@@ -511,7 +514,8 @@ core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
  *          The number of columns of the matrix B.
  *
  * @param[in] K
- *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *          The number of columns of the matrix A and the number of rows of the
+ *          matrix B.
  *
  * @param[in] A
  *          The low-rank representation of the matrix A.
@@ -730,7 +734,8 @@ int core_zlrm2( int transA, int transB,
  *          The number of columns of the matrix B.
  *
  * @param[in] K
- *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *          The number of columns of the matrix A and the number of rows of the
+ *          matrix B.
  *
  * @param[in] A
  *          The low-rank representation of the matrix A.
@@ -901,7 +906,8 @@ int core_zlrm3( pastix_lr_t lowrank,
  *          The number of columns of the matrix B.
  *
  * @param[in] K
- *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *          The number of columns of the matrix A and the number of rows of the
+ *          matrix B.
  *
  * @param[in] Cm
  *          The number of rows of the matrix C.
@@ -1139,7 +1145,8 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
  *          The number of columns of the matrix B.
  *
  * @param[in] K
- *          The number of columns of the matrix A and the number of rows of the matrix B.
+ *          The number of columns of the matrix A and the number of rows of the
+ *          matrix B.
  *
  * @param[in] alpha
  *          The multiplier parameter: C = beta * C + alpha * AB
