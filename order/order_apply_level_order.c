@@ -106,7 +106,7 @@ orderBuildEtree( const Order *order,
  *******************************************************************************
  *
  * @param[in] ordeptr
- *          The ordering structure to check.
+ *          The ordering structure to reorder.
  *
  * @param[in] distribution_level
  *          Define the minimal size of the supernodes that are considered as 2D
@@ -162,9 +162,9 @@ orderApplyLevelOrder( Order *order,
     assert(baseval == order->rangtab[0]);
 
     memcpy( &oldorder, order, sizeof( Order ) );
-    orderInit( order,
-               oldorder.vertnbr,
-               oldorder.cblknbr );
+    orderAlloc( order,
+                oldorder.vertnbr,
+                oldorder.cblknbr );
 
     /**
      * Build the elimination tree from top to bottom, and store the roots in the
@@ -188,19 +188,25 @@ orderApplyLevelOrder( Order *order,
         pastix_int_t *is_2D;
         MALLOC_INTERN(is_2D, order->cblknbr, pastix_int_t);
         memset(is_2D, 0, order->cblknbr * sizeof(pastix_int_t));
-        is_2D[order->cblknbr-1] = 1;
 
-        /* First pass to choose which nodes are 2D */
-        for(i=0; i<order->cblknbr; i++) {
-            node = order->cblknbr-i-1;
+        for(i=0; i<nbroots; i++) {
+            is_2D[order->cblknbr-1-i] = 1;
+        }
 
-            while(is_2D[node] == 0 && i < (order->cblknbr-1)){
-                i++;
-                node = order->cblknbr-i-1;
+        /* First pass to choose which nodes are 2D from the top to bottom */
+        for(node=order->cblknbr-1; node>-1; node--) {
+
+            /* Skip all nodes already set to 0 */
+            while(is_2D[node] == 0 && node > 0){
+                node--;
             }
 
             sonsnbr = etree->nodetab[node].sonsnbr;
-            if (i != order->cblknbr && sonsnbr == 2){
+            /**
+             * If sonsnbr != 2, it is not a nested dissection node, and we
+             * should not reorder them
+             */
+            if (sonsnbr == 2) {
                 for(s=0; s<sonsnbr; s++) {
                     pastix_int_t son = eTreeSonI(etree, node, s);
                     size = oldorder.rangtab[ son+1 ] - oldorder.rangtab[ son ];
@@ -214,17 +220,17 @@ orderApplyLevelOrder( Order *order,
             }
         }
 
-        pos_2D     = 1;
-        pos_non_2D = tot_nb_2D+1;
+        pos_2D     = nbroots;
+        pos_non_2D = tot_nb_2D+nbroots;
 
         /* Second pass to sort nodes: firstly by type (1D/2D) and then by levels */
         for(i=0; i<order->cblknbr; i++) {
             pastix_int_t current_2D     = 0;
             pastix_int_t current_non_2D = 0;
 
-            node = sorted[i];
-            sonsnbr  = etree->nodetab[node].sonsnbr;
-            sons2D = 0;
+            node    = sorted[i];
+            sonsnbr = etree->nodetab[node].sonsnbr;
+            sons2D  = 0;
 
             size = oldorder.rangtab[ node+1 ] - oldorder.rangtab[ node ];
 

@@ -97,6 +97,6 @@ foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
 endforeach()
 
 # Matrix Market - Hermitian
-foreach(example ${SPM_TESTS})
+foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
   add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
 endforeach()

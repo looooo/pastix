@@ -49,25 +49,25 @@
  *          Index of first element of each column in rows array for the new GRAPH
  *          matrix.
  *          If new_colptr == NULL, nothing is returned, otherwise the pointer to
- *          the allocated structure.
+ *          the allocated structure based as the input colptr.
  *
  * @param[out] new_rows
  *          Array of size new_nnz = (*new_colptr)[n] - (*new_colptr)[0].
  *          Rows of each non zero entries for the new GRAPH matrix.
  *          If new_rows == NULL, nothing is returned, otherwise the pointer to
- *          the allocated structure.
+ *          the allocated structure based as the input rows.
  *
  * @param[out] new_perm
  *          Array of size n-isolate_n.
  *          Contains permutation generated to isolate the columns at the end of
- *          the GRAPH.
+ *          the GRAPH that is 0-based.
  *          If new_perm == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure.
  *
  * @param[out] new_invp
  *          Array of size n-isolate_n.
  *          Contains the inverse permutation generated to isolate the columns
- *          at the end of the GRAPH.
+ *          at the end of the GRAPH that is 0-based.
  *          If new_invp == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure.
  *
@@ -184,26 +184,27 @@ int graphIsolate(       pastix_int_t   n,
         tmpcolptr[i+1] += tmpcolptr[i];
 
     new_nnz = tmpcolptr[new_n] - tmpcolptr[0];
-    /* TODO: be careful, allocation will fail if matrix is diagonal and no off-diagonal elements are found */
 
     /* Create the new rows array */
-    MALLOC_INTERN(tmprows, new_nnz, pastix_int_t);
-    for (i = 0; i <n; i++)
-    {
-        ip = tmpperm[i];
-        if (ip < new_n)
+    if ( new_nnz != 0 ) {
+        MALLOC_INTERN(tmprows, new_nnz, pastix_int_t);
+        for (i = 0; i <n; i++)
         {
-            k = tmpcolptr[ip]-baseval;
-            for (j = colptr[i]-baseval; j < colptr[i+1]-baseval; j ++)
+            ip = tmpperm[i];
+            if (ip < new_n)
             {
-                /* Count edges in each column of the new graph */
-                if (tmpperm[rows[j]-baseval] < new_n)
+                k = tmpcolptr[ip]-baseval;
+                for (j = colptr[i]-baseval; j < colptr[i+1]-baseval; j ++)
                 {
-                    tmprows[k] = tmpperm[rows[j]-baseval] + baseval;
-                    k++;
+                    /* Count edges in each column of the new graph */
+                    if (tmpperm[rows[j]-baseval] < new_n)
+                    {
+                        tmprows[k] = tmpperm[rows[j]-baseval] + baseval;
+                        k++;
+                    }
                 }
+                assert( k == tmpcolptr[ip+1]-baseval );
             }
-            assert( k == tmpcolptr[ip+1]-baseval );
         }
     }
 

@@ -146,7 +146,7 @@ z_spmLaplacian2D( pastix_spm_t  *spm,
     pastix_int_t i, j, k;
     pastix_int_t nnz = (2*(dim1)-1)*dim2 + (dim2-1)*dim1;
 
-    spm->mtxtype  = PastixSymmetric;
+    spm->mtxtype  = PastixHermitian;
     spm->flttype  = PastixComplex64;
     spm->fmttype  = PastixCSC;
     spm->gnnz     = nnz;
@@ -262,7 +262,7 @@ z_spmLaplacian3D( pastix_spm_t  *spm,
     pastix_int_t i, j, k, l;
     pastix_int_t nnz = (2*(dim1)-1)*dim2*dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1);
 
-    spm->mtxtype  = PastixSymmetric;
+    spm->mtxtype  = PastixHermitian;
     spm->flttype  = PastixComplex64;
     spm->fmttype  = PastixCSC;
     spm->gnnz     = nnz;

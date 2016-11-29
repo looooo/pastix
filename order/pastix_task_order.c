@@ -182,7 +182,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
 
     ordemesh = pastix_data->ordemesh;
     procnum  = pastix_data->procnum;
-    orderInit( ordemesh, 0, 0 );
+    orderAlloc( ordemesh, 0, 0 );
 
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print(procnum, 0, "%s", OUT_STEP_ORDER);
@@ -311,7 +311,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         {
             pastix_int_t i, n;
             n = spm->gN;
-            orderInit(ordemesh, n, 0);
+            orderAlloc(ordemesh, n, 0);
             if (perm == NULL) {
                 if (invp == NULL) {
                     pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (identity)" );

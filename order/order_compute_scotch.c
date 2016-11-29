@@ -50,9 +50,9 @@ orderComputeClif(const pastix_graph_t *graph,
  *          On exit, the field oerdemesh is initialize with the result of the
  *          ordering realized by Scotch.
  *
- * @param[in] graph
+ * @param[in,out] graph
  *          The graph prepared by graphPrepare function on which wwe want to
- *          perform the ordering.
+ *          perform the ordering. On exit, the graph might be rebased.
  *
  *******************************************************************************
  *
@@ -66,8 +66,8 @@ orderComputeClif(const pastix_graph_t *graph,
  *
  *******************************************************************************/
 int
-orderComputeScotch(       pastix_data_t  *pastix_data,
-                    const pastix_graph_t *graph )
+orderComputeScotch( pastix_data_t  *pastix_data,
+                    pastix_graph_t *graph )
 {
     Order        *ordemesh = pastix_data->ordemesh;
     SCOTCH_Graph  scotchgraph;
@@ -119,7 +119,7 @@ orderComputeScotch(       pastix_data_t  *pastix_data,
     }
 #endif
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
-    orderInit(ordemesh, n, n);
+    orderAlloc(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");

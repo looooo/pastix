@@ -6,7 +6,7 @@
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -34,25 +34,21 @@ struct Order_ {
 /*
  * The function prototypes.
  */
-int  orderInit (      Order * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
+int  orderInit (      Order * const ordeptr, pastix_int_t baseval, pastix_int_t cblknbr, pastix_int_t vertnbr,
+                      pastix_int_t *perm, pastix_int_t *peri, pastix_int_t *rang, pastix_int_t *tree );
+int  orderAlloc(      Order * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
 void orderExit (      Order * const ordeptr);
 void orderBase (      Order * const ordeptr, pastix_int_t baseval);
 int  orderCheck(const Order * const ordeptr);
 
-int  orderComputeScotch(   pastix_data_t *pastix_data, const pastix_graph_t *graph );
-int  orderComputePTScotch( pastix_data_t *pastix_data, const pastix_graph_t *graph );
-int  orderComputeMetis(    pastix_data_t *pastix_data, const pastix_graph_t *graph );
-int  orderComputeParMetis( pastix_data_t *pastix_data, const pastix_graph_t *graph );
+int  orderComputeScotch(   pastix_data_t *pastix_data, pastix_graph_t *graph );
+int  orderComputePTScotch( pastix_data_t *pastix_data, pastix_graph_t *graph );
+int  orderComputeMetis(    pastix_data_t *pastix_data, pastix_graph_t *graph );
+int  orderComputeParMetis( pastix_data_t *pastix_data, pastix_graph_t *graph );
 int  orderComputeOptimal(  pastix_data_t *pastix_data, pastix_int_t n );
 
 int  orderLoad(       Order * const ordeptr, char *filename );
 int  orderSave( const Order * const ordeptr, char *filename );
-
-int  orderPrepareCSC(pastix_data_t *pastix_data,
-                     pastix_int_t   n,
-                     const pastix_int_t  *colptr,
-                     const pastix_int_t  *rows,
-                     const pastix_int_t  *loc2glob);
 
 void orderFindSupernodes( const pastix_graph_t *graph,
                           Order * const ordeptr );

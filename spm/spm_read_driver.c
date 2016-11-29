@@ -287,7 +287,7 @@ spmReadDriver( pastix_driver_t  driver,
         pastix_int_t nnz;
 
         if (mpirank == 0) {
-            nnz = spm->colptr[spm->gN] - spm->colptr[0];
+            nnz = spm->nnz;
         }
 
         MPI_Bcast( spm, 2*sizeof(int)+3*sizeof(pastix_int_t), MPI_CHAR, 0, comm );

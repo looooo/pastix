@@ -41,15 +41,9 @@ z_spmScal( pastix_spm_t *spm )
 
     nnz    = spm->nnz;
     values = spm->values;
-
     norm   = z_spmNorm( PastixFrobeniusNorm, spm );
-    printf("NORM IN %.3g\n", norm);
 
     for (i=0; i<nnz; i++){
         values[i] /= norm;
     }
-
-    norm = z_spmNorm( PastixFrobeniusNorm, spm );
-
-    printf("NORM OUT %.3g\n", norm);
 }

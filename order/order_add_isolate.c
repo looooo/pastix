@@ -35,7 +35,7 @@
  *          The total number of vertices in the combined graph
  *
  * @param[in] perm
- *          Array of size new_n
+ *          Array of size new_n that must be 0-based.
  *          The permutation array that isolated the extra vertices at the end of
  *          the graph. this permutation will be combined with the one stored in
  *          ordemesh to generate a permutation array for the full graph.
@@ -85,12 +85,11 @@ orderAddIsolate(       Order        *ordemesh,
     assert( n <= new_n );
 
     memcpy( &ordesave, ordemesh, sizeof(Order) );
-    rc = orderInit( ordemesh, new_n, cblknbr + 1 );
+    rc = orderAlloc( ordemesh, new_n, cblknbr + 1 );
     if (rc != PASTIX_SUCCESS)
         return rc;
 
     ordemesh->baseval = baseval;
-
     for(i=0; i< new_n; i++) {
         ip = perm[i];
         if (ip < n-baseval)

@@ -37,6 +37,7 @@ int s_spm_matvec_check( int trans, const pastix_spm_t *spm );
     }
 
 char* fltnames[] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
+char* transnames[] = { "NoTrans", "Trans", "ConjTrans" };
 char* mtxnames[] = { "General", "Symmetric", "Hermitian" };
 
 int main (int argc, char **argv)
@@ -44,7 +45,7 @@ int main (int argc, char **argv)
     pastix_spm_t    spm;
     pastix_driver_t driver;
     char *filename;
-    int spmtype, mtxtype, baseval;
+    int t,spmtype, mtxtype, baseval;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
@@ -84,27 +85,41 @@ int main (int argc, char **argv)
             }
             spm.mtxtype = mtxtype;
 
-            printf("   Matrix type : %s\n", mtxnames[mtxtype - PastixGeneral] );
-            printf("   -- Test Matrix * Vector : ");
+            for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
+            {
+                if ( (t == PastixConjTrans) &&
+                     ((spm.flttype != PastixComplex64) && (spm.flttype != PastixComplex32)))
+                {
+                    continue;
+                }
+                if ( (spm.mtxtype != PastixGeneral) && (t != PastixNoTrans) )
+                {
+                    continue;
+                }
 
-            switch( spm.flttype ){
-            case PastixComplex64:
-                ret = z_spm_matvec_check( PastixNoTrans, &spm );
+                printf("   Case %s - %d - %s:\n",
+                       mtxnames[mtxtype - PastixGeneral], baseval,
+                       transnames[t - PastixNoTrans] );
+
+                switch( spm.flttype ){
+                case PastixComplex64:
+                    ret = z_spm_matvec_check( t, &spm );
+                    break;
+
+                case PastixComplex32:
+                    ret = c_spm_matvec_check( t, &spm );
                 break;
 
-            case PastixComplex32:
-                ret = c_spm_matvec_check( PastixNoTrans, &spm );
-                break;
+                case PastixFloat:
+                    ret = s_spm_matvec_check( t, &spm );
+                    break;
 
-            case PastixFloat:
-                ret = s_spm_matvec_check( PastixNoTrans, &spm );
-                break;
-
-            case PastixDouble:
-            default:
-                ret = d_spm_matvec_check( PastixNoTrans, &spm );
+                case PastixDouble:
+                default:
+                    ret = d_spm_matvec_check( t, &spm );
+                }
+                PRINT_RES(ret);
             }
-            PRINT_RES(ret);
         }
     }
     spmExit( &spm  );

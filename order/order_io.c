@@ -58,22 +58,34 @@ ordering_load(Order * ordeptr,
 
     if ((intLoad (stream, &versval) +
          intLoad (stream, &cblknbr) +
-         intLoad (stream, &vertnbr) != 3) ||
-        (versval != 0)                    ||
+         intLoad (stream, &vertnbr) != 3)  ||
+        ((versval != 0) && (versval != 1)) ||
         (cblknbr > vertnbr)) {
         errorPrint ("orderLoad: bad input (1)");
         return PASTIX_ERR_FILE;
     }
 
-    orderInit(ordeptr, vertnbr, cblknbr);
+    orderAlloc(ordeptr, vertnbr, cblknbr);
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
 
-    for (cblknum = 0, i = 1; (i == 1) && (cblknum <= cblknbr); cblknum ++) /* Read column-block data */
+    /* Read column-block data */
+    for (cblknum = 0, i = 1; (i == 1) && (cblknum <= cblknbr); cblknum ++)
         i = intLoad (stream, &ordeptr->rangtab[cblknum]);
 
-    for (vertnum = 0; (i == 1) && (vertnum < vertnbr); vertnum ++) /* Read direct permutation */
+    /* Read direct permutation */
+    for (vertnum = 0; (i == 1) && (vertnum < vertnbr); vertnum ++)
         i = intLoad (stream, &ordeptr->permtab[vertnum]);
+
+    /* Read treetab data */
+    if ( versval == 1 ) {
+        for (cblknum = 0, i = 1; (i == 1) && (cblknum < cblknbr); cblknum ++)
+            i = intLoad (stream, &ordeptr->treetab[cblknum]);
+    }
+    else {
+        free( ordeptr->treetab );
+        ordeptr->treetab = NULL;
+    }
 
     if (i != 1) {
         errorPrint ("orderLoad: bad input (2)");
@@ -81,11 +93,14 @@ ordering_load(Order * ordeptr,
         return PASTIX_ERR_FILE;
     }
 
+    /* Build inverse permutation */
     permtax = ordeptr->permtab - ordeptr->rangtab[0];
     peritax = ordeptr->peritab - ordeptr->rangtab[0];
-    for (vertnum = ordeptr->rangtab[0], vertnnd = vertnum + vertnbr; /* Build inverse permutation */
+    for (vertnum = ordeptr->rangtab[0], vertnnd = vertnum + vertnbr;
          vertnum < vertnnd; vertnum ++)
         peritax[permtax[vertnum]] = vertnum;
+
+    ordeptr->baseval = ordeptr->rangtab[0];
 
     return PASTIX_SUCCESS;
 }
@@ -103,10 +118,10 @@ ordering_load(Order * ordeptr,
  *          The initialized ordering structure to fill in.
  *
  * @param[in] filename
- *          The filename where to find the ordering.  If filename == NULL, we
- *          look for the environment variable PASTIX_FILE_ORDER.  If
- *          PASTIX_FILE_ORDER is not defined, we read in the default file
- *          "ordername".
+ *          The filename where to read the ordering. If filename == NULL, the
+ *          environment variable PASTIX_FILE_ORDER is used, and if
+ *          PASTIX_FILE_ORDER is not defined, the default filename "ordername" in
+ *          the current directory is used.
  *
  *******************************************************************************
  *
@@ -140,9 +155,8 @@ int orderLoad( Order *ordemesh,
      * Get the default name as third option
      */
     if ( filename == NULL ) {
-        pastix_cleanenv( filename );
-        env = 0;
         filename = "ordername";
+        env = 0;
     }
 
     PASTIX_FOPEN(stream, filename, "r");
@@ -193,12 +207,16 @@ ordering_save(const Order * const ordeptr,
     pastix_int_t cblknum;
     int          o;
 
+    if (ordeptr->permtab == NULL) {
+        errorPrint ("orderSave: cannot save ordering without direct permutation data");
+        return PASTIX_ERR_BADPARAMETER;
+    }
     if (ordeptr->rangtab == NULL) {
         errorPrint ("orderSave: cannot save ordering without rangtab array");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (ordeptr->permtab == NULL) {
-        errorPrint ("orderSave: cannot save ordering without direct permutation data");
+    if (ordeptr->treetab == NULL) {
+        errorPrint ("orderSave: cannot save ordering without treetab array");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -208,25 +226,35 @@ ordering_save(const Order * const ordeptr,
     assert( vertnbr == ordeptr->vertnbr );
     assert( ordeptr->rangtab[0] == ordeptr->baseval );
 
-    if (fprintf (stream, "0\n%ld\t%ld\n",
+    if (fprintf (stream, "1\n%ld\t%ld\n",
                  (long) ordeptr->cblknbr,
                  (long) vertnbr) == EOF) {
         errorPrint ("orderSave: bad output (1)");
         return PASTIX_ERR_FILE;
     }
 
-    for (cblknum = 0, o = 1; (o == 1) && (cblknum < ordeptr->cblknbr); cblknum ++) { /* Save column-block range array */
+    /* Save column-block range array */
+    for (cblknum = 0, o = 1; (o == 1) && (cblknum < ordeptr->cblknbr); cblknum ++) {
         o = intSave (stream, ordeptr->rangtab[cblknum]);
         putc (((cblknum & 7) == 7) ? '\n' : '\t', stream);
     }
     o = intSave (stream, ordeptr->rangtab[cblknum]);
     putc ('\n', stream);
 
-    for (vertnum = 0; (o == 1) && (vertnum < (vertnbr - 1)); vertnum ++) { /* Save direct permutation */
+    /* Save direct permutation */
+    for (vertnum = 0; (o == 1) && (vertnum < (vertnbr - 1)); vertnum ++) {
         o = intSave (stream, ordeptr->permtab[vertnum]);
         putc (((vertnum & 7) == 7) ? '\n' : '\t', stream);
     }
     o = intSave (stream, ordeptr->permtab[vertnum]);
+    putc ('\n', stream);
+
+    /* Save treetab */
+    for (cblknum = 0, o = 1; (o == 1) && (cblknum < ordeptr->cblknbr - 1); cblknum ++) {
+        o = intSave (stream, ordeptr->treetab[cblknum]);
+        putc (((cblknum & 7) == 7) ? '\n' : '\t', stream);
+    }
+    o = intSave (stream, ordeptr->treetab[cblknum]);
     putc ('\n', stream);
 
     if (o != 1) {
@@ -242,7 +270,7 @@ ordering_save(const Order * const ordeptr,
  *
  * @ingroup pastix_ordering
  *
- * orderSave - This routine save an ordering to a file.
+ * orderSave - This routine saves an ordering structure into the file filename.
  *
  *******************************************************************************
  *
@@ -250,17 +278,17 @@ ordering_save(const Order * const ordeptr,
  *          The initialized ordering structure to save.
  *
  * @param[in] filename
- *          The filename where to save the ordering.  If filename == NULL, we
- *          look for the environment variable PASTIX_FILE_ORDER.  If
- *          PASTIX_FILE_ORDER is not defined, we read in the default file
- *          "ordergen".
+ *          The filename where to save the ordering. If filename == NULL, the
+ *          environment variable PASTIX_FILE_ORDER is used, and if
+ *          PASTIX_FILE_ORDER is not defined, the default filename "ordergen" in
+ *          the current directory is used.
  *
  *******************************************************************************
  *
  * @return
  *          \retval PASTIX_SUCESS on successful exit.
  *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_FILE if a problem occurs during the read.
+ *          \retval PASTIX_ERR_FILE if a problem occurs during the write.
  *
  *******************************************************************************/
 int orderSave( const Order * const ordemesh,
@@ -287,9 +315,8 @@ int orderSave( const Order * const ordemesh,
      * Get the default name as third option
      */
     if ( filename == NULL ) {
-        pastix_cleanenv( filename );
-        env = 0;
         filename = "ordergen";
+        env = 0;
     }
 
     PASTIX_FOPEN(stream, filename, "w");
