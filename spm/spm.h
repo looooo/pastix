@@ -150,6 +150,7 @@ void *        spm2Dense( const pastix_spm_t *spm );
 pastix_int_t  spmFindBase( const pastix_spm_t *spm );
 double        spmNorm( int ntype, const pastix_spm_t *spm );
 int           spmMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
+void          spmScal( pastix_spm_t* spm );
 
 int           spmSort( pastix_spm_t *spm );
 pastix_int_t  spmMergeDuplicate( pastix_spm_t *spm );
@@ -170,5 +171,6 @@ int spmReadDriver( pastix_driver_t  driver,
                    char            *filename,
                    pastix_spm_t    *spm,
                    MPI_Comm         pastix_comm );
+
 
 #endif /* _SPM_H_ */

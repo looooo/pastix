@@ -20,6 +20,7 @@ set(SOURCES
   z_spm_2dense.c
   z_spm_dof_extend.c
   z_spm_norm.c
+  z_spm_scal.c
 
   z_spm_convert_to_csc.c
   z_spm_convert_to_csr.c

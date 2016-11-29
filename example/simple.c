@@ -91,6 +91,11 @@ int main (int argc, char **argv)
     }
 
     /**
+     * Scal the matrix to avoid unexpected rouding errors
+     */
+    spmScal( spm );
+
+    /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_task_order( pastix_data, spm, NULL, NULL );
