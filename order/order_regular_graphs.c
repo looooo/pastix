@@ -496,7 +496,7 @@ orderComputeOptimal( pastix_data_t *pastix_data,
     pastix_int_t *iparm    = pastix_data->iparm;
     Order        *ordemesh = pastix_data->ordemesh;
 
-    orderInit(ordemesh, n, n);
+    orderAlloc(ordemesh, n, n);
 
     pastix_int_t *rangtab = ordemesh->rangtab;
     pastix_int_t *permtab = ordemesh->permtab;

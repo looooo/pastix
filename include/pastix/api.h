@@ -729,7 +729,7 @@ enum pastix_error_e {
 
   API_COMPRESS_WHEN_BEGIN  - Compress A
   API_COMPRESS_WHEN_END    - Compress L
-  API_COMRPESS_WHEN_DURING - Compress after elimination of dense supernodes
+  API_COMPRESS_WHEN_DURING - Compress after elimination of dense supernodes
  */
 enum API_COMPRESS_WHEN {
   API_COMPRESS_WHEN_BEGIN  = 0,
