@@ -27,8 +27,7 @@ datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
-tolerance [type = "double"                hidden = on default = "(datacode->tolerance)"         ]
-compress_w [type = "pastix_int_t"      hidden = on default = "(compress_when)"         ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work    [type = "dague_memory_pool_t *"]
 
@@ -70,12 +69,12 @@ BODY
 {
     if (!isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
-        core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold );
+        core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold, lowrank );
     }
 //; FOR COMPRESSING DURING
-    else if ( compress_w == COMPRESS_DURING ){
+    else if ( lowrank.compress_when == API_COMPRESS_WHEN_DURING ){
         SolverCblk *cblk = datacode->cblktab + k;
-        coeftab_zcompress_one( cblk, tolerance );
+        coeftab_zcompress_one( cblk, lowrank );
     }
 }
 END
@@ -162,14 +161,14 @@ BODY
         if ( s == 0 ) {
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
             core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                          Al, Au, C, work, tolerance );
+                          Al, Au, C, work, lowrank );
             dague_private_memory_push( p_work, (void *)work );
         }
         else {
             if (  blok+1 < lcblk[1].fblokptr ) {
                 work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
                 core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                              Au, Al, C, work, tolerance );
+                              Au, Al, C, work, lowrank );
                 dague_private_memory_push( p_work, (void *)work );
             }
         }
@@ -317,11 +316,11 @@ BODY
 	        if (s == 0) {
 	            core_ztrsmsp_2dlrsub( PastixLCoef, PastixRight, PastixUpper,
                                           PastixNoTrans, PastixNonUnit,
-	                                  cblk, m );
+	                                  cblk, m, lowrank );
 	        } else {
 	            core_ztrsmsp_2dlrsub( PastixUCoef, PastixRight, PastixUpper,
                                           PastixNoTrans, PastixUnit,
-	                                  cblk, m );
+	                                  cblk, m, lowrank );
 	        }
         }
    }
@@ -514,14 +513,14 @@ BODY
 	            core_zgemmsp_2dlrsub( PastixLCoef, PastixUpperLower, PastixTrans,
 	                                  blok_mk, blok_nk-fblokk, blok_mn,
 	                                  cblk, fcblk,
-	                                  tolerance );
+	                                  lowrank );
 	        }
 	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
 	            //; assert(A && B && C);
 	            core_zgemmsp_2dlrsub( PastixUCoef, PastixUpperLower, PastixTrans,
 	                                  blok_mk, blok_nk-fblokk, blok_mn,
 	                                  cblk, fcblk,
-	                                  tolerance );
+	                                  lowrank );
                 }
         }
         else{

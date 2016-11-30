@@ -27,7 +27,7 @@ datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
-tolerance [type = "double"                hidden = on default = "(datacode->tolerance)"         ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work    [type = "dague_memory_pool_t *"]
 
@@ -67,7 +67,7 @@ RW U <- ( browk0 == browk1 ) ? dataA(1, k, 0) : Cu GEMM_U( lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    core_zgetrfsp1d_panel(cblk, L, U, sopalin_data->diagthreshold );
+    core_zgetrfsp1d_panel(cblk, L, U, sopalin_data->diagthreshold, lowrank );
 }
 END
 
@@ -170,7 +170,7 @@ BODY
 
         /* Update on L */
         core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                      Al, Au, Cl, work, tolerance );
+                      Al, Au, Cl, work, lowrank );
 
         dague_private_memory_push( p_work, (void *)work );
     }
@@ -253,7 +253,7 @@ BODY
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
 
             core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                          Au, Al, Cu, work, tolerance );
+                          Au, Al, Cu, work, lowrank );
 
             dague_private_memory_push( p_work, (void *)work );
         }
