@@ -82,7 +82,7 @@ typedef struct pastix_lr_s {
                         pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                         pastix_int_t offx, pastix_int_t offy );
     void (* core_ge2lr)( double tol, pastix_int_t m, pastix_int_t n,
-                         void *A, pastix_int_t lda,
+                         const void *A, pastix_int_t lda,
                          void *Alr );
 } pastix_lr_t;
 

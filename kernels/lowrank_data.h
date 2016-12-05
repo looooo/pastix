@@ -13,28 +13,28 @@
 #define _LOWRANK_DATA_H_
 
 void core_sge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                void *A, pastix_int_t lda,
+                                const void *A, pastix_int_t lda,
                                 void *Alr );
 void core_dge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                void *A, pastix_int_t lda,
+                                const void *A, pastix_int_t lda,
                                 void *Alr );
 void core_cge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                void *A, pastix_int_t lda,
+                                const void *A, pastix_int_t lda,
                                 void *Alr );
 void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                void *A, pastix_int_t lda,
+                                const void *A, pastix_int_t lda,
                                 void *Alr );
 void core_sge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                 void *A, pastix_int_t lda,
+                                 const void *A, pastix_int_t lda,
                                  void *Alr );
 void core_dge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                 void *A, pastix_int_t lda,
+                                 const void *A, pastix_int_t lda,
                                  void *Alr );
 void core_cge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                 void *A, pastix_int_t lda,
+                                 const void *A, pastix_int_t lda,
                                  void *Alr );
 void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                 void *A, pastix_int_t lda,
+                                 const void *A, pastix_int_t lda,
                                  void *Alr );
 
 int core_srradd_SVD_interface( double tol, int transA1, void *alpha,

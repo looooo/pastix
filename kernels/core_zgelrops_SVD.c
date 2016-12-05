@@ -741,7 +741,7 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
 
 /* Interfaces to transform pastix_complex64_t into void */
 void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                void *A, pastix_int_t lda,
+                                const void *A, pastix_int_t lda,
                                 void *Alr ){
     pastix_complex64_t *A2 = (pastix_complex64_t *) A;
     core_zge2lr_SVD(tol, m, n, A2, lda, Alr);

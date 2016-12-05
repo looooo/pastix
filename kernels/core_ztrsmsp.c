@@ -280,14 +280,8 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
  *******************************************************************************/
-static inline int
+static inline void
 core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
                    SolverCblk *cblk, pastix_lr_t lowrank )
 {
@@ -347,8 +341,6 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
             }
         }
     }
-
-    return PASTIX_SUCCESS;
 }
 
 /**

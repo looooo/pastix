@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgelrops.c
+ * @file core_zgelrops_RRQR.c
  *
  *  PaStiX kernel routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -63,6 +63,8 @@ static pastix_complex64_t zzero =  0.;
  * @ingroup pastix_kernel
  *
  * core_zrrqr - Compute a rank-reavealing QR factorization.
+ * This routine is originated from the LAPACK kernels zgeqp3/zlaqps and was
+ * modified by A. Buttari for MUMPS-BLR.
  *
  *******************************************************************************
  *
@@ -1003,7 +1005,7 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
 
 /* Interfaces to transform pastix_complex64_t into void */
 void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                 void *A, pastix_int_t lda,
+                                 const void *A, pastix_int_t lda,
                                  void *Alr ){
     pastix_complex64_t *A2 = (pastix_complex64_t *) A;
     core_zge2lr_RRQR(tol, m, n, A2, lda, Alr);

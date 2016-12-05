@@ -425,7 +425,7 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
  *******************************************************************************/
 int
 core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
-             pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
+             pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,
              pastix_int_t offx, pastix_int_t offy)
 {

@@ -32,7 +32,7 @@ static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 };
 
 static void (*compressMethod[2][4])(double , pastix_int_t , pastix_int_t ,
-                                    void *, pastix_int_t ,
+                                    const void *, pastix_int_t ,
                                     void * ) =
 {
     { &core_sge2lr_SVD_interface , &core_dge2lr_SVD_interface , &core_cge2lr_SVD_interface , &core_zge2lr_SVD_interface  },
