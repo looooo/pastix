@@ -706,7 +706,7 @@ core_zgemmsp_2dlrsub( int coef,
                       pastix_int_t blok_mn,
                 const SolverCblk  *cblk,
                       SolverCblk  *fcblk,
-                      pastix_lr_t  lowrank )
+                      pastix_lr_t *lowrank )
 {
     const SolverBlok *blokA, *blokB, *blokC;
     const SolverBlok *bA, *bB, *bC;
@@ -881,7 +881,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
                      const pastix_complex64_t *A,
                      const pastix_complex64_t *B,
                            pastix_complex64_t *work,
-                           pastix_lr_t         lowrank )
+                           pastix_lr_t        *lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -1012,7 +1012,7 @@ core_zgemmsp_lr( int uplo, int trans,
                  const SolverBlok         *blok,
                        SolverCblk         *fcblk,
                        pastix_complex64_t *work,
-                       pastix_lr_t         lowrank )
+                       pastix_lr_t        *lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -1158,7 +1158,7 @@ void core_zgemmsp( int uplo, int trans,
                    const pastix_complex64_t *B,
                          pastix_complex64_t *C,
                          pastix_complex64_t *work,
-                         pastix_lr_t         lowrank )
+                         pastix_lr_t        *lowrank )
 {
     if ( !(fcblk->cblktype & CBLK_DENSE ) ) {
         if ( !(cblk->cblktype & CBLK_DENSE) ) {

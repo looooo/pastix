@@ -384,7 +384,7 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************
  *
- * @param[in] lowrank
+ * @param[in] *lowrank
  *          The structure with low-rank parameters.
  *
  * @param[in] alpha
@@ -424,7 +424,7 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************/
 int
-core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
+core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,
              pastix_int_t offx, pastix_int_t offy)
@@ -432,7 +432,7 @@ core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
     pastix_lrblock_t lrA;
     pastix_int_t rmax = pastix_imin( M2, N2 );
     pastix_int_t rank, ldub;
-    double tol = lowrank.tolerance;
+    double tol = lowrank->tolerance;
 
     assert( B->rk <= B->rkmax);
 
@@ -468,7 +468,7 @@ core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
                      1.,    work + M2 * offy + offx, M2 );
 
         core_zlrfree(B);
-        lowrank.core_ge2lr( tol, M2, N2, work, M2, B );
+        lowrank->core_ge2lr( tol, M2, N2, work, M2, B );
         rank = B->rk;
         free(work);
     }
@@ -480,10 +480,10 @@ core_zgradd( pastix_lr_t lowrank, pastix_complex64_t alpha,
         lrA.rkmax = lda;
         lrA.u = A;
         lrA.v = NULL;
-        rank = lowrank.core_rradd( tol, PastixNoTrans, &alpha,
-                                   M1, N1, &lrA,
-                                   M2, N2, B,
-                                   offx, offy );
+        rank = lowrank->core_rradd( tol, PastixNoTrans, &alpha,
+                                    M1, N1, &lrA,
+                                    M2, N2, B,
+                                    offx, offy );
     }
 
     assert( B->rk <= B->rkmax);
@@ -716,7 +716,7 @@ int core_zlrm2( int transA, int transB,
  * returns the result in AB
  *
  *******************************************************************************
- * @param[in] lowrank
+ * @param[in] *lowrank
  *          The structure with low-rank parameters.
  *
  * @param[in] transA
@@ -752,7 +752,7 @@ int core_zlrm2( int transA, int transB,
  *          The transposition (CblasTrans or CblasNoTrans) of the product AB
  *
  *******************************************************************************/
-int core_zlrm3( pastix_lr_t lowrank,
+int core_zlrm3( pastix_lr_t *lowrank,
                 int transA, int transB,
                 pastix_int_t M, pastix_int_t N, pastix_int_t K,
                 const pastix_lrblock_t *A,
@@ -798,7 +798,7 @@ int core_zlrm3( pastix_lr_t lowrank,
     /**
      * Try to compress (Av^h Bv^h')
      */
-    lowrank.core_ge2lr( lowrank.tolerance, A->rk, B->rk, work2, A->rk, &rArB );
+    lowrank->core_ge2lr( lowrank->tolerance, A->rk, B->rk, work2, A->rk, &rArB );
 
     /**
      * The rank of AB is not smaller than min(rankA, rankB)
@@ -947,7 +947,7 @@ int core_zlrm3( pastix_lr_t lowrank,
  *
  *******************************************************************************/
 void
-core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
+core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
             pastix_int_t offx, pastix_int_t offy,
@@ -963,7 +963,7 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
     pastix_int_t required = 0;
     int transV;
     int allocated = 0;
-    double tol = lowrank.tolerance;
+    double tol = lowrank->tolerance;
 
     assert(transA == PastixNoTrans);
     assert(transB != PastixNoTrans);
@@ -1084,15 +1084,15 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
                              CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
 
                 core_zlrfree(C);
-                lowrank.core_ge2lr( tol, Cm, Cn, work, Cm, C );
+                lowrank->core_ge2lr( tol, Cm, Cn, work, Cm, C );
                 free(work);
             }
             else {
                 /* Need to handle correctly this case */
-                lowrank.core_rradd( tol, transV, &alpha,
-                                    M, N, &AB,
-                                    Cm, Cn, C,
-                                    offx, offy );
+                lowrank->core_rradd( tol, transV, &alpha,
+                                     M, N, &AB,
+                                     Cm, Cn, C,
+                                     offx, offy );
             }
         }
     }
@@ -1178,7 +1178,7 @@ core_zlrmm( pastix_lr_t lowrank, int transA, int transB,
  *
  *******************************************************************************/
 void
-core_zlrmge( pastix_lr_t lowrank, int transA, int transB,
+core_zlrmge( pastix_lr_t *lowrank, int transA, int transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                        const pastix_lrblock_t *B,

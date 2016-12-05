@@ -299,7 +299,7 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria,
-                           pastix_lr_t lowrank_p )
+                           pastix_lr_t        *lowrank )
 {
     pastix_int_t nbpivot;
 
@@ -309,8 +309,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
      * column, and by transposition the L part of the diagonal block is
      * similarly stored in the U panel
      */
-    core_ztrsmsp(PastixLCoef, PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L, lowrank_p);
-    core_ztrsmsp(PastixUCoef, PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U, lowrank_p);
+    core_ztrsmsp(PastixLCoef, PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L, lowrank);
+    core_ztrsmsp(PastixUCoef, PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U, lowrank);
     return nbpivot;
 }
 
@@ -355,7 +355,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria, solvmtx->lowrank);
+    nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria, &solvmtx->lowrank);
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
@@ -367,12 +367,12 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
 
         /* Update on L */
         core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
-                      L, U, fcblk->lcoeftab, work, solvmtx->lowrank );
+                      L, U, fcblk->lcoeftab, work, &solvmtx->lowrank );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
             core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
-                          U, L, fcblk->ucoeftab, work, solvmtx->lowrank );
+                          U, L, fcblk->ucoeftab, work, &solvmtx->lowrank );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
