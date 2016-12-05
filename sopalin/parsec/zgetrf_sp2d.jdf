@@ -69,10 +69,10 @@ BODY
 {
     if (!isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
-        core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold, lowrank );
+        core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold, &lowrank );
     }
 //; FOR COMPRESSING DURING
-    else if ( lowrank.compress_when == API_COMPRESS_WHEN_DURING ){
+    else if ( lowrank.compress_when == PastixCompressWhenDuring ){
         SolverCblk *cblk = datacode->cblktab + k;
         coeftab_zcompress_one( cblk, lowrank );
     }
@@ -161,14 +161,14 @@ BODY
         if ( s == 0 ) {
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
             core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                          Al, Au, C, work, lowrank );
+                          Al, Au, C, work, &lowrank );
             dague_private_memory_push( p_work, (void *)work );
         }
         else {
             if (  blok+1 < lcblk[1].fblokptr ) {
                 work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
                 core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                              Au, Al, C, work, lowrank );
+                              Au, Al, C, work, &lowrank );
                 dague_private_memory_push( p_work, (void *)work );
             }
         }
@@ -316,11 +316,11 @@ BODY
 	        if (s == 0) {
 	            core_ztrsmsp_2dlrsub( PastixLCoef, PastixRight, PastixUpper,
                                           PastixNoTrans, PastixNonUnit,
-	                                  cblk, m, lowrank );
+	                                  cblk, m, &lowrank );
 	        } else {
 	            core_ztrsmsp_2dlrsub( PastixUCoef, PastixRight, PastixUpper,
                                           PastixNoTrans, PastixUnit,
-	                                  cblk, m, lowrank );
+	                                  cblk, m, &lowrank );
 	        }
         }
    }
@@ -513,14 +513,14 @@ BODY
 	            core_zgemmsp_2dlrsub( PastixLCoef, PastixUpperLower, PastixTrans,
 	                                  blok_mk, blok_nk-fblokk, blok_mn,
 	                                  cblk, fcblk,
-	                                  lowrank );
+	                                  &lowrank );
 	        }
 	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
 	            //; assert(A && B && C);
 	            core_zgemmsp_2dlrsub( PastixUCoef, PastixUpperLower, PastixTrans,
 	                                  blok_mk, blok_nk-fblokk, blok_mn,
 	                                  cblk, fcblk,
-	                                  lowrank );
+	                                  &lowrank );
                 }
         }
         else{

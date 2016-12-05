@@ -18,27 +18,27 @@ void print_LR_arguments(pastix_int_t *iparm, double *dparm)
     printf("\tTOLERANCE %.3g\n", dparm[DPARM_COMPRESS_TOLERANCE]);
 
     switch (iparm[IPARM_COMPRESS_WHEN]){
-    case API_COMPRESS_WHEN_BEGIN:
+    case PastixCompressWhenBegin:
         printf("\tCOMPRESS BEGIN\n");
         break;
-    case API_COMPRESS_WHEN_END:
+    case PastixCompressWhenEnd:
         printf("\tCOMPRESS END\n");
         break;
-    case API_COMPRESS_WHEN_DURING:
+    case PastixCompressWhenDuring:
         printf("\tCOMPRESS DURING\n");
         break;
     }
 
     switch (iparm[IPARM_COMPRESS_METHOD]){
-    case API_COMPRESS_METHOD_SVD:
+    case PastixCompressMethodSVD:
         printf("\tCOMPRESS_METHOD SVD\n");
         break;
-    case API_COMPRESS_METHOD_RRQR:
+    case PastixCompressMethodRRQR:
         printf("\tCOMPRESS_METHOD RRQR\n");
         break;
     }
 
-    if (iparm[IPARM_SCHEDULER] != 2 && iparm[IPARM_COMPRESS_WHEN] == API_COMPRESS_WHEN_DURING){
+    if (iparm[IPARM_SCHEDULER] != 2 && iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenDuring){
         printf("COMPRESS DURING AVAILABLE ONLY WITH PARSEC !!! \n");
         exit(1);
     }

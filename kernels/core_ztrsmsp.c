@@ -308,7 +308,7 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
-        if ( lowrank->compress_when == API_COMPRESS_WHEN_END )
+        if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;
@@ -415,7 +415,7 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
-        if ( lowrank->compress_when == API_COMPRESS_WHEN_END )
+        if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
             M = blok_rownbr(blok);
             pastix_lrblock_t C;

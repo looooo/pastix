@@ -67,7 +67,7 @@ RW U <- ( browk0 == browk1 ) ? dataA(1, k, 0) : Cu GEMM_U( lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    core_zgetrfsp1d_panel(cblk, L, U, sopalin_data->diagthreshold, lowrank );
+    core_zgetrfsp1d_panel(cblk, L, U, sopalin_data->diagthreshold, &lowrank );
 }
 END
 
@@ -170,7 +170,7 @@ BODY
 
         /* Update on L */
         core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                      Al, Au, Cl, work, lowrank );
+                      Al, Au, Cl, work, &lowrank );
 
         dague_private_memory_push( p_work, (void *)work );
     }
@@ -253,7 +253,7 @@ BODY
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
 
             core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                          Au, Al, Cu, work, lowrank );
+                          Au, Al, Cu, work, &lowrank );
 
             dague_private_memory_push( p_work, (void *)work );
         }

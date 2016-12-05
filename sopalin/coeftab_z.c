@@ -207,12 +207,10 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     {
         if ( cblk->cblktype & CBLK_SPLIT )
         {
-            /* fprintf(stderr, "Try to compress a block\n"); */
-
-            if ( compress_when == API_COMPRESS_WHEN_BEGIN ){
+            if ( compress_when == PastixCompressWhenBegin ){
                 coeftab_zcompress_one( cblk, solvmtx->lowrank );
             }
-            else if ( compress_when == API_COMPRESS_WHEN_END ){
+            else if ( compress_when == PastixCompressWhenEnd ){
                 coeftab_zalloc_one( cblk );
             }
         }

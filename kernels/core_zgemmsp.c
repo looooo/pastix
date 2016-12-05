@@ -60,7 +60,7 @@ static pastix_complex64_t zzero =  0.;
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
@@ -216,7 +216,7 @@ core_zgemmsp_1d1d( int uplo, int trans,
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
@@ -351,7 +351,7 @@ core_zgemmsp_1d2d( int uplo, int trans,
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
@@ -495,7 +495,7 @@ core_zgemmsp_2d2d( int uplo, int trans,
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
@@ -688,7 +688,7 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
@@ -846,7 +846,7 @@ core_zgemmsp_2dlrsub( int coef,
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
@@ -979,7 +979,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
@@ -1117,7 +1117,7 @@ core_zgemmsp_lr( int uplo, int trans,
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[in,out] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
