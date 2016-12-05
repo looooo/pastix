@@ -34,12 +34,20 @@ static pastix_complex64_t mzone = -1.;
  *******************************************************************************
  *
  * @param[in] side
+ *          Specify whether the A matrix appears on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
+ *          Specify whether the A matrix is upper or lower triangular. It has to
+ *          be either PastixUpper or PastixLower.
  *
  * @param[in] trans
+ *          Specify the transposition used for the A matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
+ *          Specify if the A matrix is unit triangular. It has to be either
+ *          PastixUnit or PastixNonUnit.
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and C pointers
@@ -106,12 +114,20 @@ core_ztrsmsp_1d( int side, int uplo, int trans, int diag,
  *******************************************************************************
  *
  * @param[in] side
+ *          Specify whether the A matrix appears on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
+ *          Specify whether the A matrix is upper or lower triangular. It has to
+ *          be either PastixUpper or PastixLower.
  *
  * @param[in] trans
+ *          Specify the transposition used for the A matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
+ *          Specify if the A matrix is unit triangular. It has to be either
+ *          PastixUnit or PastixNonUnit.
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and C pointers
@@ -180,12 +196,20 @@ core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
  *******************************************************************************
  *
  * @param[in] side
+ *          Specify whether the A matrix appears on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
+ *          Specify whether the A matrix is upper or lower triangular. It has to
+ *          be either PastixUpper or PastixLower.
  *
  * @param[in] trans
+ *          Specify the transposition used for the A matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
+ *          Specify if the A matrix is unit triangular. It has to be either
+ *          PastixUnit or PastixNonUnit.
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and C pointers
@@ -263,14 +287,24 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
  *******************************************************************************
  *
  * @param[in] coef
+ *          - PastixLCoef, use the lower part of the off-diagonal blocks.
+ *          - PastixUCoef, use the upper part of the off-diagonal blocks
  *
  * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
  *
  * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and C pointers
@@ -354,14 +388,24 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
  *******************************************************************************
  *
  * @param[in] coef
+ *          - PastixLCoef, use the lower part of the off-diagonal blocks.
+ *          - PastixUCoef, use the upper part of the off-diagonal blocks
  *
  * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
  *
  * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and C pointers
@@ -462,12 +506,20 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
  *******************************************************************************
  *
  * @param[in] side
+ *          Specify whether the A matrix appears on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
+ *          Specify whether the A matrix is upper or lower triangular. It has to
+ *          be either PastixUpper or PastixLower.
  *
  * @param[in] trans
+ *          Specify the transposition used for the A matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
+ *          Specify if the A matrix is unit triangular. It has to be either
+ *          PastixUnit or PastixNonUnit.
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and B pointers
@@ -524,14 +576,23 @@ void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
  *******************************************************************************
  *
  * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
  *
  * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] datacode
+ *          The SolverMatrix structure from PaStiX.
  *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and B pointers
