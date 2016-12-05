@@ -79,7 +79,7 @@ static pastix_complex64_t zzero =  0.;
  *          This routine will return the relative tolerance.
  *
  *******************************************************************************/
-double
+inline double
 core_ztolerance(double tol, double norm)
 {
     /* There is maybe an issue with rank-0 matrices */

@@ -64,9 +64,10 @@ typedef struct Task_ {
 
 /*+ Rank-k matrix structure +*/
 typedef struct pastix_lrblock_s {
-    int rk, rkmax;
-    void *u;
-    void *v;
+    int rk;     /*< Rank of the low-rank matrix: -1 is dense, otherwise rank-rk matrix           */
+    int rkmax;  /*< Leading dimension of the matrix u                                            */
+    void *u;    /*< Contains the dense matrix if rk=-1, or the u factor from u vT representation */
+    void *v;    /*< Not referenced if rk=-1, otherwise, the v factor                             */
 } pastix_lrblock_t;
 
 
@@ -100,7 +101,6 @@ typedef struct SolverBlok_ {
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
-
 typedef struct SolverCblk_  {
     pastix_atomic_lock_t lock;     /*< Lock to protect computation on the cblk */
     volatile int32_t     ctrbcnt;  /*< Number of contribution to receive       */

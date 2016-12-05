@@ -58,11 +58,6 @@ endif(PASTIX_WITH_CUDA)
 add_library(pastix_kernels ${generated_files} )
 add_dependencies(pastix_kernels kernels_headers)
 
-# link_directories(
-#   ${CBLAS_LIBRARY_DIRS}
-#   ${BLAS_LIBRARY_DIRS}
-# )
-
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
