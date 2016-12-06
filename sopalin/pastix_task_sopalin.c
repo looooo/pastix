@@ -21,7 +21,10 @@
 #include "blend/solver.h"
 #include "coeftab.h"
 #include "sopalin_data.h"
-#include "lowrank_data.h"
+#include "kernels/pastix_zcores.h"
+#include "kernels/pastix_ccores.h"
+#include "kernels/pastix_dcores.h"
+#include "kernels/pastix_scores.h"
 
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 {

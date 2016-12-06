@@ -277,4 +277,21 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
 
+
+void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
+                                const void *A, pastix_int_t lda,
+                                void *Alr );
+void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
+                                 const void *A, pastix_int_t lda,
+                                 void *Alr );
+
+int core_zrradd_SVD_interface( double tol, int transA1, void *alpha,
+                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                               pastix_int_t offx, pastix_int_t offy );
+int core_zrradd_RRQR_interface( double tol, int transA1, void *alpha,
+                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                               pastix_int_t offx, pastix_int_t offy );
+
 #endif /* _CORE_Z_H_ */
