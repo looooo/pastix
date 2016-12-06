@@ -65,7 +65,6 @@ int main (int argc, char **argv)
     pastix_task_reordering( pastix_data );
     pastix_task_blend( pastix_data );
 
-
     /**
      * Perform the numerical factorization
      */

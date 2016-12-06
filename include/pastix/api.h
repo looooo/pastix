@@ -60,6 +60,7 @@
 
    IPARM_REORDERING_SPLIT      - Reordering split level                                   Default: 0                   IN
    IPARM_REORDERING_STOP       - Reordering stop criteria                                 Default: INT_MAX             IN
+
    IPARM_STATIC_PIVOTING       - Static pivoting                                          Default: -                   OUT
    IPARM_NNZEROS               - Number of nonzero entries in the factorized matrix       Default: -                   OUT
    IPARM_ALLOCATED_TERMS       - Maximum memory allocated for matrix terms                Default: -                   OUT
@@ -442,6 +443,9 @@ typedef enum pastix_factotype_e {
 #define PastixSymmetric     112
 #define PastixHermitian     113
 
+/**
+ * Data blocks used in gemmsp
+ */
 typedef enum pastix_coefside_e {
     PastixLCoef      = 0,
     PastixUCoef      = 1

@@ -22,11 +22,6 @@
 #include "sopalin/coeftab_d.h"
 #include "sopalin/coeftab_s.h"
 
-#include "kernels/pastix_zcores.h"
-#include "kernels/pastix_ccores.h"
-#include "kernels/pastix_dcores.h"
-#include "kernels/pastix_scores.h"
-
 void
 coeftabInit( const pastix_data_t *pastix_data,
              int fakefillin, int factoLU );
