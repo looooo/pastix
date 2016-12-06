@@ -172,5 +172,4 @@ int spmReadDriver( pastix_driver_t  driver,
                    pastix_spm_t    *spm,
                    MPI_Comm         pastix_comm );
 
-
 #endif /* _SPM_H_ */
