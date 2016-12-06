@@ -45,7 +45,6 @@ int  orderComputeScotch(   pastix_data_t *pastix_data, pastix_graph_t *graph );
 int  orderComputePTScotch( pastix_data_t *pastix_data, pastix_graph_t *graph );
 int  orderComputeMetis(    pastix_data_t *pastix_data, pastix_graph_t *graph );
 int  orderComputeParMetis( pastix_data_t *pastix_data, pastix_graph_t *graph );
-int  orderComputeOptimal(  pastix_data_t *pastix_data, pastix_int_t n );
 
 int  orderLoad(       Order * const ordeptr, char *filename );
 int  orderSave( const Order * const ordeptr, char *filename );

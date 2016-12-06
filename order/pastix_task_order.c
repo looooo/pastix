@@ -256,12 +256,6 @@ pastix_task_order(      pastix_data_t *pastix_data,
     subgraph.loc2glob = graph->loc2glob;
 
 
-    /* Manual ordering for regular grids */
-    if (iparm[IPARM_OPTIMAL_ORDERING] != 0){
-        retval = orderComputeOptimal( pastix_data, graph->gN );
-        graphBase( &subgraph, 0 );
-    }
-    else{
     /* Select the ordering method chosen by the user */
     switch (iparm[IPARM_ORDERING]) {
         /*
@@ -359,7 +353,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
                     iparm[IPARM_ORDERING] );
         retval = PASTIX_ERR_BADPARAMETER;
         break;
-    }}
+    }
 
     if (retval != PASTIX_SUCCESS )
         return retval;
