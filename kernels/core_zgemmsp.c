@@ -1041,8 +1041,8 @@ core_zgemmsp_lr( int uplo, int trans,
     /**
      * TODO: set lrB = blok->LRblock for zpotrfsp
      */
-    lrB = blok->LRblock;
-    /* lrB = (uplo == PastixUpper) ? blok->LRblock : blok->LRblock+1; */
+    /* lrB = blok->LRblock; */
+    lrB = (uplo == PastixUpper) ? blok->LRblock : blok->LRblock+1;
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 

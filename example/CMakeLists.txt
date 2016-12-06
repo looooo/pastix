@@ -3,7 +3,6 @@ set (EXAMPLES
   simple.c
   reentrant.c
   bench_facto.c
-  compare_tolerance.c
   )
 
 foreach (_file ${EXAMPLES})
