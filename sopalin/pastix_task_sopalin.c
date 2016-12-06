@@ -139,6 +139,13 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
     pastix_data->solvmatr->lowrank.core_ge2lr = compressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
     pastix_data->solvmatr->lowrank.core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
 
+    if (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU){
+        pastix_data->solvmatr->factoLU = 1;
+    }
+    else{
+        pastix_data->solvmatr->factoLU = 0;
+    }
+
     /**
      * Fill in the internal coeftab structure. We consider that if this step is
      * called the bcsc values have changed, or a factorization have already been
@@ -312,15 +319,17 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     solverBackupExit( sbackup );
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
-    FILE *stream;
-    PASTIX_FOPEN(stream, "symbol.eps", "w");
-    solverDraw(pastix_data->solvmatr,
-               stream,
-               iparm[IPARM_VERBOSE]);
-    fclose(stream);
+    {
+        FILE *stream;
+        PASTIX_FOPEN(stream, "symbol.eps", "w");
+        /* solverDraw(pastix_data->solvmatr, */
+        /*            stream, */
+        /*            iparm[IPARM_VERBOSE]); */
+        fclose(stream);
+    }
 #endif
 
-    /* Let's uncompress the cblk because the solve doesn't know how to deal with compressed information */
+    /* Compute the memory gain */
     coeftabMemory[spm->flttype-2]( pastix_data->solvmatr );
 
     /* Invalidate following steps, and add factorization step to the ones performed */

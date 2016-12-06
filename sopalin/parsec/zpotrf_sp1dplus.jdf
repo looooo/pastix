@@ -59,7 +59,7 @@ RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM1D( lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
+    core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
 }
 END
 

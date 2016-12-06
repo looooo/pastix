@@ -174,8 +174,8 @@ coeftab_zmemory_one( SolverCblk *cblk, int factoLU )
     SolverBlok *lblok = cblk[1].fblokptr;
 
     pastix_int_t ncols = cblk_colnbr( cblk );
-    pastix_int_t        gainL    = 0;
-    pastix_int_t        gainU    = 0;
+    pastix_int_t gainL = 0;
+    pastix_int_t gainU = 0;
 
     for (; blok<lblok; blok++)
     {
@@ -248,18 +248,18 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
 void
 coeftab_zmemory( SolverMatrix *solvmtx )
 {
-    SolverCblk *cblk  = solvmtx->cblktab;
+    SolverCblk  *cblk   = solvmtx->cblktab;
     pastix_int_t cblknum;
-    double tol = solvmtx->lowrank.tolerance;
+    int          factoLU = solvmtx->factoLU;
+    double       tol = solvmtx->lowrank.tolerance;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
-    double memgain, memoriginal;
-    int factoLU = 1;
+    double       memgain, memoriginal;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         original += cblk_colnbr( cblk ) * cblk->stride;
         if (!(cblk->cblktype & CBLK_DENSE)) {
-            gain += coeftab_zmemory_one( cblk, 1 );
+            gain += coeftab_zmemory_one( cblk, factoLU );
         }
     }
 
@@ -281,9 +281,9 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 void
 coeftab_zuncompress( SolverMatrix *solvmtx )
 {
-    SolverCblk *cblk  = solvmtx->cblktab;
+    SolverCblk  *cblk   = solvmtx->cblktab;
     pastix_int_t cblknum;
-    int factoLU = 1;
+    int          factoLU = solvmtx->factoLU;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         if (!(cblk->cblktype & CBLK_DENSE)) {
@@ -301,7 +301,7 @@ coeftab_zcompress( SolverMatrix *solvmtx )
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
     double memgain, memoriginal;
-    int factoLU = 1;
+    int factoLU = 0;
 
     if ( solvmtx->cblktab[0].ucoeftab ) {
         factoLU = 1;

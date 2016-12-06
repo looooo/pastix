@@ -63,7 +63,7 @@ BODY
 {
     if (!isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
-        core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
+        core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
     }
 }
 END

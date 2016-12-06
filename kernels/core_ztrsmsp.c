@@ -806,7 +806,13 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
              *  Left / Lower / [Conj]Trans
              */
             else {
-                assert( cblk->cblktype & CBLK_DENSE );
+
+                if ( cblk->cblktype & CBLK_DENSE ) {
+                    A = (pastix_complex64_t*)(cblk->lcoeftab);
+                } else {
+                    A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0].u);
+                    assert( cblk->fblokptr->LRblock[0].rkmax == lda );
+                }
 
                 /* Solve the diagonal block */
                 cblas_ztrsm(
@@ -814,7 +820,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                     tempn, nrhs,
                     CBLAS_SADDR(zone), A, lda,
-                                       b + cblk->lcolidx, ldb );
+                    b + cblk->lcolidx, ldb );
 
                 /* Apply the update */
                 for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
@@ -824,14 +830,48 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     tempn = blok->lrownum - blok->frownum + 1;
                     A   = (pastix_complex64_t*)(fcbk->lcoeftab);
                     lda = (fcbk->cblktype & CBLK_SPLIT) ? tempn : fcbk->stride;
-                    assert( fcbk->cblktype & CBLK_DENSE );
 
-                    cblas_zgemm(
-                        CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
-                        tempm, nrhs, tempn,
-                        CBLAS_SADDR(mzone), A + blok->coefind, lda,
-                                            b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
-                        CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                    if ( ! (fcbk->cblktype & CBLK_DENSE)) {
+                        lrA = blok->LRblock;
+
+                        switch (lrA->rk){
+                        case 0:
+                            break;
+                        case -1:
+                            cblas_zgemm(
+                                CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                                tempm, nrhs, tempn,
+                                CBLAS_SADDR(mzone), lrA->u, tempn,
+                                b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                                CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                            break;
+                        default:
+                            MALLOC_INTERN( tmp, lrA->rk * nrhs, pastix_complex64_t);
+                            cblas_zgemm(
+                                CblasColMajor, CblasTrans, CblasNoTrans,
+                                lrA->rk, nrhs, tempn,
+                                CBLAS_SADDR(zone),  lrA->u, tempn,
+                                b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                                CBLAS_SADDR(zzero), tmp,  lrA->rk );
+
+                            cblas_zgemm(
+                                CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                                tempm, nrhs, lrA->rk,
+                                CBLAS_SADDR(mzone), lrA->v, lrA->rkmax,
+                                tmp, lrA->rk,
+                                CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                            memFree_null(tmp);
+                            break;
+                        }
+                    }
+                    else{
+                        cblas_zgemm(
+                            CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                            tempm, nrhs, tempn,
+                            CBLAS_SADDR(mzone), A + blok->coefind, lda,
+                            b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                            CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
+                    }
                 }
             }
         }

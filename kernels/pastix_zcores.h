@@ -216,7 +216,8 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
 
 int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
-                           double              criteria);
+                           double              criteria,
+                           pastix_lr_t        *lowrank );
 
 int core_zpotrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,

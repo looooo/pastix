@@ -142,6 +142,9 @@ struct SolverMatrix_ {
     SolverBlok   * restrict bloktab;   /*< Array of solver blocks                    */
     pastix_int_t * restrict browtab;   /*< Array of blocks                           */
 
+    pastix_lr_t             lowrank;   /*< Low-rank parameters                       */
+    int                     factoLU;   /*< General or symmetric factorization?       */
+
 #if defined(PASTIX_WITH_PARSEC)
     sparse_matrix_desc_t   *parsec_desc;
 #endif
@@ -192,8 +195,6 @@ struct SolverMatrix_ {
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
-
-    pastix_lr_t               lowrank;              /*+ Low-rank parameters                       +*/
 };
 
 /**
