@@ -322,9 +322,9 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     {
         FILE *stream;
         PASTIX_FOPEN(stream, "symbol.eps", "w");
-        /* solverDraw(pastix_data->solvmatr, */
-        /*            stream, */
-        /*            iparm[IPARM_VERBOSE]); */
+        solverDraw(pastix_data->solvmatr,
+                   stream,
+                   iparm[IPARM_VERBOSE]);
         fclose(stream);
     }
 #endif

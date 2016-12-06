@@ -226,11 +226,13 @@ solverDraw ( const SolverMatrix * const  solvptr,
                     else{
                         conso_LR += nrows*ncols;
                     }
-                    if (blok->LRblock[1].rk != -1){
-                        conso_LR += (((nrows+ncols) * blok->LRblock[1].rk));
-                    }
-                    else{
-                        conso_LR += nrows*ncols;
+                    if (solvptr->factoLU){
+                        if (blok->LRblock[1].rk != -1){
+                            conso_LR += (((nrows+ncols) * blok->LRblock[1].rk));
+                        }
+                        else{
+                            conso_LR += nrows*ncols;
+                        }
                     }
 
                     gain = 1.0 * conso_dense / conso_LR;
