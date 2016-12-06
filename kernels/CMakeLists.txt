@@ -5,6 +5,7 @@ set(generated_headers "")
 
 set(HEADERS
   pastix_zcores.h
+  z_nan_check.h
 )
 
 ### generate the dsparse_cores headers for all possible precisions
