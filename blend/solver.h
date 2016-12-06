@@ -73,17 +73,18 @@ typedef struct pastix_lrblock_s {
 
 /*+ Compression parameters +*/
 typedef struct pastix_lr_s {
-    pastix_int_t compress_when;
-    pastix_int_t compress_method;
-    pastix_int_t compress_size;
-    double       tolerance;
+    pastix_int_t compress_when;   /*< When to compress in the full solver        */
+    pastix_int_t compress_method; /*< Compression method                         */
+    pastix_int_t compress_size;   /*< Minimum size to compress. UNUSED RIGHT NOW */
+    double       tolerance;       /*< Absolute compression tolerance             */
+
     int (* core_rradd)( double tol, int transA1, void *alpha,
                         pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                         pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                        pastix_int_t offx, pastix_int_t offy );
+                        pastix_int_t offx, pastix_int_t offy ); /*< Recompression function */
     void (* core_ge2lr)( double tol, pastix_int_t m, pastix_int_t n,
                          const void *A, pastix_int_t lda,
-                         void *Alr );
+                         void *Alr );                           /*< Compression function */
 } pastix_lr_t;
 
 /*+ Solver block structure. +*/
@@ -97,7 +98,7 @@ typedef struct SolverBlok_ {
     int8_t       gpuid;    /*< Store on which GPU the block is computed */
 
     /* LR structures */
-    pastix_lrblock_t *LRblock;
+    pastix_lrblock_t *LRblock; /*< Store the blok (L/U) in LR format. Allocated for the cblk. */
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
