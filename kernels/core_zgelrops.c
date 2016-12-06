@@ -63,36 +63,6 @@ static pastix_complex64_t zzero =  0.;
  *
  * @ingroup pastix_kernel
  *
- * core_ztolerance - Compute the relative tolerance
- *
- *******************************************************************************
- *
- * @param[in] tol
- *          Absolute tolerance.
- *
- * @param[in] norm
- *          Norm of the matrix.
- *
- *******************************************************************************
- *
- * @return
- *          This routine will return the relative tolerance.
- *
- *******************************************************************************/
-inline double
-core_ztolerance(double tol, double norm)
-{
-    /* There is maybe an issue with rank-0 matrices */
-    if (norm != 0.0)
-        return tol * norm;
-    return tol;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_kernel
- *
  * core_zlralloc - Allocate a low-rank matrix.
  *
  *******************************************************************************

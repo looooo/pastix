@@ -127,7 +127,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
 
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                 A, lda, NULL );
-    relative_tolerance = core_ztolerance(tol, norm);
+    relative_tolerance = tol * norm;
 
     /**
      * Query the workspace needed for the gesvd
@@ -603,7 +603,7 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
 
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
                                 R, rank, NULL );
-    relative_tolerance = core_ztolerance(tol, norm);
+    relative_tolerance = tol * norm;
 
     cblas_ztrmm(CblasColMajor,
                 CblasRight, CblasLower,

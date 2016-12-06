@@ -11,9 +11,6 @@
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
-inline double
-core_ztolerance( double tol, double norm );
-
 void
 core_zlralloc( pastix_int_t M, pastix_int_t N,
                pastix_int_t rkmax, pastix_lrblock_t *A );

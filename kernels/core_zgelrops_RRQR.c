@@ -434,7 +434,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                       jpvt, tau,
                       work, ldwork,
                       rwork,
-                      core_ztolerance(tol, norm), nb, pastix_imin(m,n) - 1 );
+                      tol * norm, nb, pastix_imin(m,n) - 1 );
 
     /**
      * Resize the space used by the low rank matrix
@@ -911,7 +911,7 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
                           jpvt, tauV,
                           zwork, ldwork,
                           rwork,
-                          core_ztolerance(tol, norm), nb, rank-1);
+                          tol * norm, nb, rank-1);
 
     /**
      * First case: The rank is too big, so we decide to uncompress the result
