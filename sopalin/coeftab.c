@@ -161,7 +161,7 @@ coeftabExit( SolverMatrix *solvmtx )
 
                 for (; blok<lblok; blok++) {
                     core_zlrfree(blok->LRblock);
-                    if (solvmtx->factoLU)
+                    if (solvmtx->factotype == PastixFactLU)
                         core_zlrfree(blok->LRblock+1);
                 }
                 free(solvmtx->cblktab[i].fblokptr->LRblock);

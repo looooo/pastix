@@ -176,8 +176,9 @@ solverDraw ( const SolverMatrix * const  solvptr,
         FILE *fd1 = fopen( "contribblok.txt", "r" );
         FILE *fd2 = fopen( "contribcblk.txt", "r" );
         FILE *fd3 = fopen( "stats.txt", "w" );
-        int original_cblk = 1;
-        double color      = 0.2;
+        int    original_cblk = 1;
+        double color         = 0.2;
+        int    factoLU = (solvptr->factotype == PastixFactLU) ? 1 : 0;
 
         fprintf(fd3, "%ld\n", solvptr->bloknbr-solvptr->cblknbr);
 
@@ -226,7 +227,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
                     else{
                         conso_LR += nrows*ncols;
                     }
-                    if (solvptr->factoLU){
+                    if (factoLU){
                         if (blok->LRblock[1].rk != -1){
                             conso_LR += (((nrows+ncols) * blok->LRblock[1].rk));
                         }

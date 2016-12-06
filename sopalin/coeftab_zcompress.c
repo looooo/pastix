@@ -250,7 +250,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 {
     SolverCblk  *cblk   = solvmtx->cblktab;
     pastix_int_t cblknum;
-    int          factoLU = solvmtx->factoLU;
+    int          factoLU = (solvmtx->factotype == PastixFactLU) ? 1 : 0;
     double       tol = solvmtx->lowrank.tolerance;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
@@ -283,7 +283,7 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
 {
     SolverCblk  *cblk   = solvmtx->cblktab;
     pastix_int_t cblknum;
-    int          factoLU = solvmtx->factoLU;
+    int          factoLU = (solvmtx->factotype == PastixFactLU) ? 1 : 0;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         if (!(cblk->cblktype & CBLK_DENSE)) {

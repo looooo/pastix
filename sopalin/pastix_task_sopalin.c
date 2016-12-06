@@ -142,12 +142,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
     pastix_data->solvmatr->lowrank.core_ge2lr = compressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
     pastix_data->solvmatr->lowrank.core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
 
-    if (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU){
-        pastix_data->solvmatr->factoLU = 1;
-    }
-    else{
-        pastix_data->solvmatr->factoLU = 0;
-    }
+    pastix_data->solvmatr->factotype = pastix_data->iparm[IPARM_FACTORIZATION];
 
     /**
      * Fill in the internal coeftab structure. We consider that if this step is

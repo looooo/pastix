@@ -143,7 +143,7 @@ struct SolverMatrix_ {
     pastix_int_t * restrict browtab;   /*< Array of blocks                           */
 
     pastix_lr_t             lowrank;   /*< Low-rank parameters                       */
-    int                     factoLU;   /*< General or symmetric factorization?       */
+    pastix_factotype_t      factotype; /*< General or symmetric factorization?       */
 
 #if defined(PASTIX_WITH_PARSEC)
     sparse_matrix_desc_t   *parsec_desc;
