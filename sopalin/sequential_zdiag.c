@@ -22,6 +22,17 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
+#if defined(PASTIX_WITH_PARSEC)
+#include <dague.h>
+#include <dague/data.h>
+#include <dague/data_distribution.h>
+
+int dsparse_zdiag_sp( dague_context_t *dague,
+                      sparse_matrix_desc_t *A,
+                      sopalin_data_t *sopalin_data,
+                      int nrhs, pastix_complex64_t *b, int ldb);
+#endif
+
 void
 sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
                   int nrhs, pastix_complex64_t *b, int ldb )
@@ -58,4 +69,82 @@ sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
             }
         }
     }
+}
+
+struct args_zdiag_t
+{
+    sopalin_data_t *sopalin_data;
+    int nrhs;
+    pastix_complex64_t *b;
+    int ldb;
+};
+
+void
+thread_pzdiag( int rank, void *args )
+{
+    struct args_zdiag_t *arg = (struct args_zdiag_t*)args;
+    sopalin_data_t     *sopalin_data = arg->sopalin_data;
+    SolverMatrix       *datacode = sopalin_data->solvmtx;
+    pastix_complex64_t *b = arg->b;
+    int nrhs  = arg->nrhs;
+    int ldb   = arg->ldb;
+    SolverCblk *cblk;
+    pastix_int_t i;
+
+    /* try in sequential */
+    if (!rank)
+        sequential_zdiag(NULL, sopalin_data, nrhs, b, ldb);
+}
+
+void
+thread_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
+              int nrhs, pastix_complex64_t *b, int ldb )
+{
+    struct args_zdiag_t args_zdiag = {sopalin_data, nrhs, b, ldb};
+    isched_parallel_call( pastix_data->isched, thread_pzdiag, &args_zdiag );
+}
+
+#if defined(PASTIX_WITH_PARSEC)
+void
+parsec_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
+              int nrhs, pastix_complex64_t *b, int ldb )
+{
+    dague_context_t *ctx;
+
+    /* Start PaRSEC */
+    if (pastix_data->parsec == NULL) {
+        int argc = 0;
+        pastix_parsec_init( pastix_data, &argc, NULL );
+    }
+    ctx = pastix_data->parsec;
+
+    /* Run the diag */
+    exit(0); /* not yet implemented */
+    dsparse_zdiag_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data, nrhs, b, ldb);
+}
+#endif
+
+static void (*zdiag_table[4])(pastix_data_t *, sopalin_data_t *,
+                              int, pastix_complex64_t *, int) = {
+    sequential_zdiag,
+    thread_zdiag,
+#if defined(PASTIX_WITH_PARSEC)
+    NULL, /* parsec_zdiag not yet implemented */
+#else
+    NULL,
+#endif
+    NULL
+};
+
+void
+sopalin_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
+               int nrhs, pastix_complex64_t *b, int ldb )
+{
+    int sched = pastix_data->iparm[IPARM_SCHEDULER];
+    void (*zdiag)(pastix_data_t *, sopalin_data_t *, int, pastix_complex64_t *, int) = zdiag_table[ sched ];
+
+    if (zdiag == NULL) {
+        zdiag = thread_zdiag;
+    }
+    zdiag( pastix_data, sopalin_data, nrhs, b, ldb );
 }

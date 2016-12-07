@@ -210,6 +210,7 @@ subs = {
     ('', 'isamax',         'idamax',         'isamax',         'idamax'          ),
     ('', 'saxpy',          'daxpy',          'caxpy',          'zaxpy'           ),
     ('', 'scopy',          'dcopy',          'ccopy',          'zcopy'           ),
+    ('', 'sdiag',          'ddiag',          'cdiag',          'zdiag'           ),
     ('', 'sgecfi',         'dgecfi',         'cgecfi',         'zgecfi'          ),
     ('', 'sgemm',          'dgemm',          'cgemm',          'zgemm'           ),
     ('', 'sgemdm',         'dgemdm',         'cgemdm',         'zgemdm'          ),

@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_task_sopalin.c
+ * @file sequential_ztrsm.c
  *
  *  PaStiX factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -22,6 +22,18 @@
 #include "bcsc.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
+
+#if defined(PASTIX_WITH_PARSEC)
+#include <dague.h>
+#include <dague/data.h>
+#include <dague/data_distribution.h>
+
+int dsparse_ztrsm_sp( dague_context_t *dague,
+                      sparse_matrix_desc_t *A,
+                      int side, int uplo, int trans, int diag,
+                      sopalin_data_t *sopalin_data,
+                      int nrhs, pastix_complex64_t *b, int ldb);
+#endif
 
 void
 sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
@@ -75,4 +87,92 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
      */
     else {
     }
+}
+
+struct args_ztrsm_t
+{
+    int side, uplo, trans, diag;
+    sopalin_data_t *sopalin_data;
+    int nrhs;
+    pastix_complex64_t *b;
+    int ldb;
+};
+
+void
+thread_pztrsm( int rank, void *args )
+{
+    struct args_ztrsm_t *arg = (struct args_ztrsm_t*)args;
+    sopalin_data_t     *sopalin_data = arg->sopalin_data;
+    SolverMatrix       *datacode = sopalin_data->solvmtx;
+    pastix_complex64_t *b = arg->b;
+    int side  = arg->side;
+    int uplo  = arg->uplo;
+    int trans = arg->trans;
+    int diag  = arg->diag;
+    int nrhs  = arg->nrhs;
+    int ldb   = arg->ldb;
+    SolverCblk *cblk;
+    pastix_int_t i;
+
+    /* try in sequential */
+    if (!rank)
+        sequential_ztrsm(NULL, side, uplo, trans, diag, sopalin_data, nrhs, b, ldb);
+}
+
+void
+thread_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+              sopalin_data_t *sopalin_data,
+              int nrhs, pastix_complex64_t *b, int ldb )
+{
+    struct args_ztrsm_t args_ztrsm = {side, uplo, trans, diag, sopalin_data, nrhs, b, ldb};
+    isched_parallel_call( pastix_data->isched, thread_pztrsm, &args_ztrsm );
+}
+
+#if defined(PASTIX_WITH_PARSEC)
+void
+parsec_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+              sopalin_data_t *sopalin_data,
+              int nrhs, pastix_complex64_t *b, int ldb )
+{
+    dague_context_t *ctx;
+
+    /* Start PaRSEC */
+    if (pastix_data->parsec == NULL) {
+        int argc = 0;
+        pastix_parsec_init( pastix_data, &argc, NULL );
+    }
+    ctx = pastix_data->parsec;
+
+    /* Run the trsm */
+    exit(0); /* not yet implemented */
+    dsparse_ztrsm_sp( ctx, sopalin_data->solvmtx->parsec_desc, side, uplo, trans, diag, sopalin_data,
+                      nrhs, b, ldb);
+}
+#endif
+
+static void (*ztrsm_table[4])(pastix_data_t *, int, int, int, int, sopalin_data_t *,
+                              int, pastix_complex64_t *, int) = {
+    sequential_ztrsm,
+    thread_ztrsm,
+#if defined(PASTIX_WITH_PARSEC)
+    NULL, /* parsec_ztrsm not yet implemented */
+#else
+    NULL,
+#endif
+    NULL
+};
+
+void
+sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+               sopalin_data_t *sopalin_data,
+               int nrhs, pastix_complex64_t *b, int ldb )
+{
+    int sched = pastix_data->iparm[IPARM_SCHEDULER];
+    void (*ztrsm)(pastix_data_t *, int, int, int, int, sopalin_data_t *,
+                  int, pastix_complex64_t *, int) = ztrsm_table[ sched ];
+
+    if (ztrsm == NULL) {
+        ztrsm = thread_ztrsm;
+    }
+    ztrsm( pastix_data, side, uplo, trans, diag, sopalin_data, nrhs, b, ldb );
 }
