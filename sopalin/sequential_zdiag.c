@@ -89,11 +89,43 @@ thread_pzdiag( int rank, void *args )
     int nrhs  = arg->nrhs;
     int ldb   = arg->ldb;
     SolverCblk *cblk;
-    pastix_int_t i;
+    Task       *t;
+    pastix_int_t i,ii,j,k;
+    pastix_int_t tasknbr, *tasktab;
 
-    /* try in sequential */
-    if (!rank)
-        sequential_zdiag(NULL, sopalin_data, nrhs, b, ldb);
+    tasknbr = datacode->ttsknbr[rank];
+    tasktab = datacode->ttsktab[rank];
+
+    for (ii=0; ii<tasknbr; ii++) {
+        i = tasktab[ii];
+        t = datacode->tasktab + i;
+        cblk = datacode->cblktab + t->cblknum;
+
+        pastix_complex64_t *coeftab = cblk->lcoeftab;
+        pastix_complex64_t *tmp, *lb;
+        pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
+
+        lb = b + cblk->lcolidx;
+
+        if( nrhs == 1 ) {
+            MALLOC_INTERN( tmp, size, pastix_complex64_t );
+            cblas_zcopy( size, coeftab, cblk->stride+1, tmp, 1 );
+
+            /* Compute */
+            for (k=0; k<nrhs; k++, lb+=ldb)
+            {
+                for (j=0; j<size; j++) {
+                    lb[j] /= tmp[j];
+                }
+            }
+            memFree_null(tmp);
+        }
+        else {
+            for (j=0; j<size; j++, lb++, coeftab+=(cblk->stride+1)) {
+                *lb = (*lb) / (*coeftab);
+            }
+        }
+    }
 }
 
 void
