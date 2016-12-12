@@ -67,6 +67,9 @@
    IPARM_BASEVAL               - Baseval used for the matrix                              Default: 0                   IN
    IPARM_MIN_BLOCKSIZE         - Minimum block size                                       Default: 60                  IN
    IPARM_MAX_BLOCKSIZE         - Maximum block size                                       Default: 120                 IN
+   IPARM_COMPRESS_SIZE         - Minimum size to compress a supernode                     Default: 120                 IN
+   IPARM_COMPRESS_WHEN         - When to compress a supernode                             Default: 0                 IN
+   IPARM_COMPRESS_METHOD       - Compression method (SVD/RRQR)                            Default: 0                 IN
    IPARM_SCHUR                 - Schur mode                                               Default: API_NO              IN
    IPARM_ISOLATE_ZEROS         - Isolate null diagonal terms at the end of the matrix     Default: API_NO              IN
    IPARM_RHSD_CHECK            - Set to API_NO to avoid RHS redistribution                Default: API_YES             IN
@@ -170,6 +173,9 @@ enum IPARM_ACCESS {
   IPARM_BASEVAL,
   IPARM_MIN_BLOCKSIZE,
   IPARM_MAX_BLOCKSIZE,
+  IPARM_COMPRESS_SIZE,
+  IPARM_COMPRESS_WHEN,
+  IPARM_COMPRESS_METHOD,
   IPARM_SCHUR,
   IPARM_ISOLATE_ZEROS,
   IPARM_RHSD_CHECK,
@@ -256,6 +262,7 @@ enum IPARM_ACCESS_DEPRECATED {
    DPARM_SOLV_FLOPS         - Solve flops (rate!)                               Default: -                OUT
    DPARM_RAFF_TIME          - Time for Refinement step (wallclock)              Default: -                OUT
    DPARM_SIZE               - Dparm Size         IGNORE                         Default: -                IN
+   DPARM_COMPRESS_TOLERANCE - Tolerance for low-rank kernels                    Default: 0.01             IN
  */
 enum DPARM_ACCESS {
   DPARM_FILL_IN                 = 1,
@@ -273,6 +280,7 @@ enum DPARM_ACCESS {
   DPARM_SOLV_FLOPS              = 23,
   DPARM_RAFF_TIME               = 24,
   DPARM_A_NORM                  = 25,
+  DPARM_COMPRESS_TOLERANCE      = 26,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
 };
 
@@ -434,6 +442,14 @@ typedef enum pastix_factotype_e {
 #define PastixGeneral       111
 #define PastixSymmetric     112
 #define PastixHermitian     113
+
+/**
+ * Data blocks used in gemmsp
+ */
+typedef enum pastix_coefside_e {
+    PastixLCoef      = 0,
+    PastixUCoef      = 1
+} pastix_coefside_t;
 
 /** ****************************************************************************
  *
@@ -706,5 +722,23 @@ enum pastix_error_e {
   PASTIX_ERR_STEP_ORDER     = 15,
   PASTIX_ERR_MPI            = 16
 };
+
+
+/**
+ * Compression strategy available for IPARM_COMPRESS_WHEN parameter
+ */
+typedef enum pastix_compress_when_e {
+  PastixCompressWhenBegin  = 0,
+  PastixCompressWhenEnd    = 1,
+  PastixCompressWhenDuring = 2
+} pastix_compress_when_t;
+
+/**
+ * Compression method available for IPARM_COMPRESS_METHOD parameter
+ */
+typedef enum pastix_compress_method_e {
+  PastixCompressMethodSVD  = 0,
+  PastixCompressMethodRRQR = 1
+} pastix_compress_method_t;
 
 #endif /* _PASTIX_API_H_ */

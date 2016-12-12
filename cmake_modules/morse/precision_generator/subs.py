@@ -67,6 +67,7 @@ subs = {
     ('', 'cblas_snrm2',    'cblas_dnrm2',    'cblas_scnrm2',   'cblas_dznrm2'    ),
     ('', '',               '',               'CBLAS_SADDR',    'CBLAS_SADDR'     ),
     ('', 'cblas_ssyr',     'cblas_dsyr',     'cblas_cher',     'cblas_zher'      ),
+    ('', 'cblas_sscal',    'cblas_dscal',    'cblas_csscal',   'cblas_zdscal'    ),
 
     # ----- Core BLAS
     ('', 'CORE_sasum',     'CORE_dasum',     'CORE_scasum',    'CORE_dzasum'     ),
@@ -685,6 +686,7 @@ subs = {
     ('', 'starpu_s',       'starpu_d',       'starpu_c',       'starpu_z'        ),
     ('', 'STARPU_S',       'STARPU_D',       'STARPU_C',       'STARPU_Z'        ),
     ('', 'pastix_s',       'pastix_d',       'pastix_c',       'pastix_z'        ),
+    ('', 'PASTIX_S',       'PASTIX_D',       'PASTIX_C',       'PASTIX_Z'        ),
     ('', 's_',             'd_',             'c_',             'z_'              ),
     ('', 'S_',             'D_',             'C_',             'Z_'              ),
     ('', 'FLT_EPSILON',    'DBL_EPSILON',    'FLT_EPSILON',    'DBL_EPSILON'     ),

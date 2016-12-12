@@ -230,6 +230,14 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
+    if ( !(cblk->cblktype & CBLK_DENSE) ) {
+        assert( cblk->fblokptr->LRblock[0].rk == -1 );
+        L = cblk->fblokptr->LRblock[0].u;
+        stride = ncols;
+
+        assert( stride == cblk->fblokptr->LRblock[0].rkmax );
+    }
+
     /* Factorize diagonal block */
     core_zpotrfsp(ncols, L, stride, &nbpivot, criteria );
 
@@ -259,6 +267,9 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
+ * @param[in] *lowrank
+ *          The structure with low-rank parameters.
+ *
  *******************************************************************************
  *
  * @return
@@ -267,10 +278,11 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *******************************************************************************/
 int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
-                           double              criteria )
+                           double              criteria,
+                           pastix_lr_t        *lowrank )
 {
     pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
-    core_ztrsmsp(PastixRight, PastixLower, PastixConjTrans, PastixNonUnit, cblk, L, L);
+    core_ztrsmsp(PastixLCoef, PastixRight, PastixLower, PastixConjTrans, PastixNonUnit, cblk, L, L, lowrank);
     return nbpivot;
 }
 
@@ -316,7 +328,7 @@ core_zpotrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = core_zpotrfsp1d_panel(cblk, L, criteria);
+    nbpivot = core_zpotrfsp1d_panel(cblk, L, criteria, &solvmtx->lowrank);
 
     blok = cblk->fblokptr + 1; /* First off-diagonal block */
     lblk = cblk[1].fblokptr;   /* Next diagonal block      */
@@ -327,7 +339,8 @@ core_zpotrfsp1d( SolverMatrix       *solvmtx,
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         core_zgemmsp( PastixLower, PastixConjTrans, cblk, blok, fcblk,
-                      L, L, fcblk->lcoeftab, work );
+                      L, L, fcblk->lcoeftab, work, &solvmtx->lowrank );
+
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
    }
 

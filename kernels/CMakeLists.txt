@@ -5,6 +5,7 @@ set(generated_headers "")
 
 set(HEADERS
   pastix_zcores.h
+  z_nan_check.h
 )
 
 ### generate the dsparse_cores headers for all possible precisions
@@ -28,6 +29,9 @@ set(SOURCES
   core_zhetrfsp.c
   core_zpotrfsp.c
   core_zgetrfsp.c
+  core_zgelrops.c
+  core_zgelrops_SVD.c
+  core_zgelrops_RRQR.c
 )
 
 precisions_rules_py(generated_files

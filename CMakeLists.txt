@@ -460,6 +460,7 @@ set(SOURCES
   common/z_integer.c
   #
   sopalin/coeftab_z.c
+  sopalin/coeftab_zcompress.c
   sopalin/coeftab_zdiff.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
@@ -495,9 +496,9 @@ set(PASTIX_LIB_SRCS
   #
   order/order.c
   order/order_add_isolate.c
+  order/order_apply_level_order.c
   order/order_check.c
   order/order_find_supernodes.c
-  order/order_apply_level_order.c
   order/order_io.c
   order/pastix_task_order.c
   #
@@ -541,6 +542,7 @@ set(PASTIX_LIB_SRCS
   blend/solver.c
   blend/solver_backup.c
   blend/pastix_task_analyze.c
+  blend/solver_draw.c
 
   common/api.c
   common/errors.c

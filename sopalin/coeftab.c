@@ -18,10 +18,26 @@
 #include "isched.h"
 #include "solver.h"
 #include "coeftab.h"
+#include "pastix_zcores.h"
 
 int (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*) =
 {
     coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
+};
+
+void (*coeftabMemory[4])(SolverMatrix*) =
+{
+    coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
+};
+
+void (*coeftabUncompress[4])(SolverMatrix*) =
+{
+    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
+};
+
+void (*coeftabCompress[4])(SolverMatrix*) =
+{
+    coeftab_scompress, coeftab_dcompress, coeftab_ccompress, coeftab_zcompress
 };
 
 struct coeftabinit_s {
@@ -138,6 +154,18 @@ coeftabExit( SolverMatrix *solvmtx )
 
             if (solvmtx->cblktab[i].ucoeftab)
                 memFree_null(solvmtx->cblktab[i].ucoeftab);
+
+            if (! (solvmtx->cblktab[i].cblktype & CBLK_DENSE)) {
+                SolverBlok *blok  = solvmtx->cblktab[i].fblokptr;
+                SolverBlok *lblok = solvmtx->cblktab[i+1].fblokptr;
+
+                for (; blok<lblok; blok++) {
+                    core_zlrfree(blok->LRblock);
+                    if (solvmtx->factotype == PastixFactLU)
+                        core_zlrfree(blok->LRblock+1);
+                }
+                free(solvmtx->cblktab[i].fblokptr->LRblock);
+            }
         }
     }
 }

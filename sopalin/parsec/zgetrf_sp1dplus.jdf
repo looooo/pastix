@@ -12,6 +12,8 @@ extern "C" %{
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
+#include "coeftab_z.h"
+#include "pastix.h"
 
 %}
 
@@ -25,6 +27,7 @@ datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work    [type = "dague_memory_pool_t *"]
 
@@ -64,7 +67,7 @@ RW U <- ( browk0 == browk1 ) ? dataA(1, k, 0) : Cu GEMM_U( lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    core_zgetrfsp1d_panel(cblk, L, U, sopalin_data->diagthreshold );
+    core_zgetrfsp1d_panel(cblk, L, U, sopalin_data->diagthreshold, &lowrank );
 }
 END
 
@@ -137,22 +140,22 @@ RW    Cl <- (brownum == -1) ? NULL
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-BODY [type=CUDA device=inline_c %{ if (brownum == -1) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
-      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
-{
-    /* Compute only if non diagonal block */
-    if (brownum != -1) {
-        SolverCblk *lcblk = datacode->cblktab + lcblknm;
-        SolverCblk *fcblk = datacode->cblktab + fcblknm;
-        SolverBlok *blok  = datacode->bloktab + bloknum;
-
-        gpu_zgemmsp( PastixLower, PastixTrans,
-                     lcblk, blok, fcblk,
-                     Al, Au, Cl,
-                     dague_body.stream );
-    }
-}
-END
+//BODY [type=CUDA device=inline_c %{ if (brownum == -1) return -2; else { SolverCblk *cblk = datacode->cblktab + fcblknm; return cblk->gpuid; } %} ]
+//      /* dyld=pastix_zgemm_vbatched_nt dyldtype=pastix_zgemm_vbatched_nt_t ] */
+//{
+//    /* Compute only if non diagonal block */
+//    if (brownum != -1) {
+//        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+//        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+//        SolverBlok *blok  = datacode->bloktab + bloknum;
+//
+//        gpu_zgemmsp( PastixLower, PastixTrans,
+//                     lcblk, blok, fcblk,
+//                     Al, Au, Cl,
+//                     dague_body.stream );
+//    }
+//}
+//END
 
 BODY
 {
@@ -167,7 +170,7 @@ BODY
 
         /* Update on L */
         core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                      Al, Au, Cl, work );
+                      Al, Au, Cl, work, &lowrank );
 
         dague_private_memory_push( p_work, (void *)work );
     }
@@ -250,7 +253,7 @@ BODY
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
 
             core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                          Au, Al, Cu, work );
+                          Au, Al, Cu, work, &lowrank );
 
             dague_private_memory_push( p_work, (void *)work );
         }

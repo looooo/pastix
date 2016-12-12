@@ -1079,3 +1079,41 @@ spmCheckAxb( int nrhs,
         return ptrfunc[id](nrhs, spm, x0, ldx0, b, ldb, x, ldx );
     }
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Scal the spm: A = alpha * A
+ *
+ *******************************************************************************
+ *
+ * @param[in] alpha
+ *           The scaling parameter.
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to scal.
+ *
+ *******************************************************************************/
+void
+spmScal(const pastix_complex64_t alpha, pastix_spm_t* spm)
+{
+    switch(spm->flttype)
+    {
+    case PastixPattern:
+        break;
+    case PastixFloat:
+        s_spmScal(alpha, spm);
+        break;
+    case PastixComplex32:
+        c_spmScal(alpha, spm);
+        break;
+    case PastixComplex64:
+        z_spmScal(alpha, spm);
+        break;
+    case PastixDouble:
+    default:
+        d_spmScal(alpha, spm);
+    }
+}

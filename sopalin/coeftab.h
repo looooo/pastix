@@ -30,5 +30,8 @@ void
 coeftabExit( SolverMatrix *solvmtx );
 
 int  (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*);
+void (*coeftabMemory[4])(SolverMatrix*);
+void (*coeftabCompress[4])(SolverMatrix*);
+void (*coeftabUncompress[4])(SolverMatrix*);
 
 #endif /* _COEFTAB_H_ */

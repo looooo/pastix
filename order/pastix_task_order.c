@@ -255,6 +255,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
     subgraph.rows     = zeros_rows;
     subgraph.loc2glob = graph->loc2glob;
 
+
     /* Select the ordering method chosen by the user */
     switch (iparm[IPARM_ORDERING]) {
         /*

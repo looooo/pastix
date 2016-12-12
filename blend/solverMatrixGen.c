@@ -182,6 +182,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->coefind = split ? stride * nbcols : stride;
                     solvblok->browind = -1;
                     solvblok->gpuid   = -2;
+                    solvblok->LRblock = NULL;
 
                     stride += nbrows;
                     solvblok++;
@@ -221,7 +222,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 solvcblk->stride   = stride;
                 solvcblk->lcolidx  = nodenbr;
                 solvcblk->brownum  = brownum;
-                solvcblk->brown2d  = brownum;
                 solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;

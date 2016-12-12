@@ -125,6 +125,9 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ALLOCATED_TERMS]       = 0;                   /* number of non zero in factorized sparse matrix       */
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;                 /* min blocksize                                        */
     iparm[IPARM_MAX_BLOCKSIZE]         = 320;                 /* max blocksize (at least 2*min_blocksize)             */
+    iparm[IPARM_COMPRESS_SIZE]         = 120;                 /* minimum size to compress a supernode */
+    iparm[IPARM_COMPRESS_WHEN]         = PastixCompressWhenEnd;    /* when to compress */
+    iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR; /* compression technique */
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */
     iparm[IPARM_ISOLATE_ZEROS]         = API_NO;              /* Isolate null diagonal terms at the end of the matrix */
     iparm[IPARM_FACTORIZATION]         = API_FACT_LU;         /* LU by default     */
@@ -212,6 +215,8 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_FACT_FLOPS]         =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
     dparm[DPARM_A_NORM]             = -1.;
+
+    dparm[DPARM_COMPRESS_TOLERANCE] = 0.01;
 }
 
 /**

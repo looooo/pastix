@@ -11,12 +11,80 @@
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 
+void
+core_zlralloc( pastix_int_t M, pastix_int_t N,
+               pastix_int_t rkmax, pastix_lrblock_t *A );
+
+void
+core_zlrfree( pastix_lrblock_t *A );
+
+int
+core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
+             pastix_lrblock_t *A, int newrk, int newrkmax );
+
+void
+core_zge2lr_SVD( double tol, pastix_int_t M, pastix_int_t N,
+                 const pastix_complex64_t *A, pastix_int_t lda,
+                 pastix_lrblock_t *Alr );
+
+void
+core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  pastix_lrblock_t *Alr );
+
+int
+core_zlr2ge( pastix_int_t M, pastix_int_t N,
+             const pastix_lrblock_t *Alr,
+             pastix_complex64_t *A, pastix_int_t lda );
+
+int
+core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
+                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                 pastix_int_t offx, pastix_int_t offy );
+
+int
+core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
+                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                  pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                  pastix_int_t offx, pastix_int_t offy );
+
+int
+core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
+             pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
+             pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t   *B,
+             pastix_int_t offx, pastix_int_t offy );
+
+void
+core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
+            pastix_int_t M, pastix_int_t N, pastix_int_t K,
+            pastix_int_t Cm, pastix_int_t Cn,
+            pastix_int_t offx, pastix_int_t offy,
+            pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                      const pastix_lrblock_t *B,
+            pastix_complex64_t beta,  pastix_lrblock_t *C,
+            pastix_complex64_t *work, pastix_int_t ldwork,
+            SolverCblk *fcblk );
+
+void
+core_zlrmge( pastix_lr_t *lowrank, int transA, int transB,
+             pastix_int_t M, pastix_int_t N, pastix_int_t K,
+             pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                       const pastix_lrblock_t *B,
+             pastix_complex64_t beta,  pastix_complex64_t *C, int ldc,
+             pastix_complex64_t *work, pastix_int_t ldwork,
+             SolverCblk *fcblk );
+
 void core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
                   int gM, int m0, int n0, unsigned long long int seed );
 
 void core_zgetro(int m, int n,
                  const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
+
+void core_zgetrox(pastix_complex64_t alpha, int m, int n,
+                  const pastix_complex64_t *A, int lda,
+                  pastix_complex64_t *B, int ldb);
 
 int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
                        pastix_complex64_t  alpha,
@@ -41,14 +109,15 @@ int core_zgeaddsp1d( SolverCblk * cblk1,
                      pastix_complex64_t * U1,
                      pastix_complex64_t * U2 );
 
-void core_zgemmsp( int diag, int trans,
+void core_zgemmsp( int uplo, int trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
                          SolverCblk         *fcblk,
                    const pastix_complex64_t *A,
                    const pastix_complex64_t *B,
                          pastix_complex64_t *C,
-                         pastix_complex64_t *work );
+                         pastix_complex64_t *work,
+                         pastix_lr_t        *lowrank);
 
 void
 core_zgemmsp_2d2dsub( int uplo, int trans,
@@ -61,16 +130,31 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
                       const pastix_complex64_t *B,
                             pastix_complex64_t *C );
 
-void core_ztrsmsp( int side, int uplo, int trans, int diag,
-                         SolverCblk         *cblk,
-                   const pastix_complex64_t *A,
-                         pastix_complex64_t *C );
+void core_zgemmsp_2dlrsub( int coef,
+                           int uplo, int trans,
+                           pastix_int_t blok_mk,
+                           pastix_int_t blok_kn,
+                           pastix_int_t blok_mn,
+                     const SolverCblk         *cblk,
+                           SolverCblk         *fcblk,
+                           pastix_lr_t *lowrank );
+
+void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
+                   SolverCblk         *cblk,
+             const pastix_complex64_t *A,
+                   pastix_complex64_t *C,
+                   pastix_lr_t *lowrank );
 
 int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
                               SolverCblk         *cblk,
                               pastix_int_t        fcblknum,
                         const pastix_complex64_t *A,
                               pastix_complex64_t *C );
+
+int core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
+                          SolverCblk   *cblk,
+                          pastix_int_t  blok_m,
+                          pastix_lr_t  *lowrank );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -85,7 +169,8 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
-                           double              criteria);
+                           double              criteria,
+                           pastix_lr_t        *lowrank );
 
 int core_zgetrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
@@ -128,7 +213,8 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
 
 int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
-                           double              criteria);
+                           double              criteria,
+                           pastix_lr_t        *lowrank );
 
 int core_zpotrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
@@ -190,5 +276,22 @@ gpu_zgemmsp_2d2dsub( int trans,
 void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
+
+
+void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
+                                const void *A, pastix_int_t lda,
+                                void *Alr );
+void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
+                                 const void *A, pastix_int_t lda,
+                                 void *Alr );
+
+int core_zrradd_SVD_interface( double tol, int transA1, void *alpha,
+                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                               pastix_int_t offx, pastix_int_t offy );
+int core_zrradd_RRQR_interface( double tol, int transA1, void *alpha,
+                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                               pastix_int_t offx, pastix_int_t offy );
 
 #endif /* _CORE_Z_H_ */

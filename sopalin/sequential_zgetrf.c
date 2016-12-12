@@ -27,9 +27,12 @@
 #include <dague/data.h>
 #include <dague/data_distribution.h>
 
-int dsparse_zgetrf_sp( dague_context_t *dague,
-                       sparse_matrix_desc_t *A,
-                       sopalin_data_t *sopalin_data );
+int dsparse_zgetrf_1dplus_sp( dague_context_t *dague,
+                              sparse_matrix_desc_t *A,
+                              sopalin_data_t *sopalin_data );
+int dsparse_zgetrf_2d_sp( dague_context_t *dague,
+                          sparse_matrix_desc_t *A,
+                          sopalin_data_t *sopalin_data );
 #endif
 
 void
@@ -106,8 +109,8 @@ thread_zgetrf( pastix_data_t  *pastix_data,
 
 #if defined(PASTIX_WITH_PARSEC)
 void
-parsec_zgetrf( pastix_data_t  *pastix_data,
-               sopalin_data_t *sopalin_data )
+parsec_zgetrf_1dplus( pastix_data_t  *pastix_data,
+                      sopalin_data_t *sopalin_data )
 {
     dague_context_t *ctx;
 
@@ -119,7 +122,29 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
     ctx = pastix_data->parsec;
 
     /* Run the facto */
-    dsparse_zgetrf_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
+    dsparse_zgetrf_1dplus_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
+
+#if defined(PASTIX_DEBUG_FACTO)
+    coeftab_zdump( sopalin_data->solvmtx, "getrf.txt" );
+#endif
+
+}
+
+void
+parsec_zgetrf_2d( pastix_data_t  *pastix_data,
+                  sopalin_data_t *sopalin_data )
+{
+    dague_context_t *ctx;
+
+    /* Start PaRSEC */
+    if (pastix_data->parsec == NULL) {
+        int argc = 0;
+        pastix_parsec_init( pastix_data, &argc, NULL );
+    }
+    ctx = pastix_data->parsec;
+
+    /* Run the facto */
+    dsparse_zgetrf_2d_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( sopalin_data->solvmtx, "getrf.txt" );
@@ -132,11 +157,12 @@ static void (*zgetrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zgetrf,
     thread_zgetrf,
 #if defined(PASTIX_WITH_PARSEC)
-    parsec_zgetrf,
+    parsec_zgetrf_2d,
+    parsec_zgetrf_1dplus,
 #else
     NULL,
-#endif
     NULL
+#endif
 };
 
 void

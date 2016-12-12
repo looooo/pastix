@@ -21,6 +21,10 @@
 #include "blend/solver.h"
 #include "coeftab.h"
 #include "sopalin_data.h"
+#include "kernels/pastix_zcores.h"
+#include "kernels/pastix_ccores.h"
+#include "kernels/pastix_dcores.h"
+#include "kernels/pastix_scores.h"
 
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 {
@@ -28,6 +32,23 @@ static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_csytrf, sopalin_zsytrf },
     { sopalin_sgetrf, sopalin_dgetrf, sopalin_cgetrf, sopalin_zgetrf },
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
+};
+
+static void (*compressMethod[2][4])(double , pastix_int_t , pastix_int_t ,
+                                    const void *, pastix_int_t ,
+                                    void * ) =
+{
+    { &core_sge2lr_SVD_interface , &core_dge2lr_SVD_interface , &core_cge2lr_SVD_interface , &core_zge2lr_SVD_interface  },
+    { &core_sge2lr_RRQR_interface, &core_dge2lr_RRQR_interface, &core_cge2lr_RRQR_interface, &core_zge2lr_RRQR_interface }
+};
+
+static int (*recompressMethod[2][4])(double , int, void *,
+                                      pastix_int_t, pastix_int_t, const pastix_lrblock_t *,
+                                      pastix_int_t, pastix_int_t,       pastix_lrblock_t *,
+                                      pastix_int_t, pastix_int_t ) =
+{
+    { &core_srradd_SVD_interface , &core_drradd_SVD_interface , &core_crradd_SVD_interface , &core_zrradd_SVD_interface  },
+    { &core_srradd_RRQR_interface, &core_drradd_RRQR_interface, &core_crradd_RRQR_interface, &core_zrradd_RRQR_interface }
 };
 
 int
@@ -111,6 +132,17 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
         errorPrint("pastix_subtask_bcsc2ctab: All steps from pastix_task_init() to pastix_stask_blend() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    /* Initialize low-rank parameters */
+    pastix_data->solvmatr->lowrank.compress_when   = pastix_data->iparm[IPARM_COMPRESS_WHEN];
+    pastix_data->solvmatr->lowrank.compress_method = pastix_data->iparm[IPARM_COMPRESS_METHOD];
+    pastix_data->solvmatr->lowrank.compress_size   = pastix_data->iparm[IPARM_COMPRESS_SIZE];
+    pastix_data->solvmatr->lowrank.tolerance       = pastix_data->dparm[DPARM_COMPRESS_TOLERANCE];
+
+    pastix_data->solvmatr->lowrank.core_ge2lr = compressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
+    pastix_data->solvmatr->lowrank.core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
+
+    pastix_data->solvmatr->factotype = pastix_data->iparm[IPARM_FACTORIZATION];
 
     /**
      * Fill in the internal coeftab structure. We consider that if this step is
@@ -283,6 +315,20 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
+
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    {
+        FILE *stream;
+        PASTIX_FOPEN(stream, "symbol.eps", "w");
+        solverDraw(pastix_data->solvmatr,
+                   stream,
+                   iparm[IPARM_VERBOSE]);
+        fclose(stream);
+    }
+#endif
+
+    /* Compute the memory gain */
+    coeftabMemory[spm->flttype-2]( pastix_data->solvmatr );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_BCSC2CTAB |

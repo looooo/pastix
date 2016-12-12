@@ -62,6 +62,31 @@ typedef struct Task_ {
 #endif
 } Task;
 
+/*+ Rank-k matrix structure +*/
+typedef struct pastix_lrblock_s {
+    int   rk;    /*< Rank of the low-rank matrix: -1 is dense, otherwise rank-rk matrix           */
+    int   rkmax; /*< Leading dimension of the matrix u                                            */
+    void *u;     /*< Contains the dense matrix if rk=-1, or the u factor from u vT representation */
+    void *v;     /*< Not referenced if rk=-1, otherwise, the v factor                             */
+} pastix_lrblock_t;
+
+
+/*+ Compression parameters +*/
+typedef struct pastix_lr_s {
+    pastix_int_t compress_when;   /*< When to compress in the full solver        */
+    pastix_int_t compress_method; /*< Compression method                         */
+    pastix_int_t compress_size;   /*< Minimum size to compress. UNUSED RIGHT NOW */
+    double       tolerance;       /*< Absolute compression tolerance             */
+
+    int (* core_rradd)( double tol, int transA1, void *alpha,
+                        pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                        pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                        pastix_int_t offx, pastix_int_t offy ); /*< Recompression function */
+    void (* core_ge2lr)( double tol, pastix_int_t m, pastix_int_t n,
+                         const void *A, pastix_int_t lda,
+                         void *Alr );                           /*< Compression function */
+} pastix_lr_t;
+
 /*+ Solver block structure. +*/
 typedef struct SolverBlok_ {
     pastix_int_t lcblknm;  /*< Local column block                       */
@@ -71,10 +96,12 @@ typedef struct SolverBlok_ {
     pastix_int_t frownum;  /*< First row index                          */
     pastix_int_t lrownum;  /*< Last row index (inclusive)               */
     int8_t       gpuid;    /*< Store on which GPU the block is computed */
+
+    /* LR structures */
+    pastix_lrblock_t *LRblock; /*< Store the blok (L/U) in LR format. Allocated for the cblk. */
 } SolverBlok;
 
 /*+ Solver column block structure. +*/
-
 typedef struct SolverCblk_  {
     pastix_atomic_lock_t lock;     /*< Lock to protect computation on the cblk */
     volatile int32_t     ctrbcnt;  /*< Number of contribution to receive       */
@@ -115,7 +142,9 @@ struct SolverMatrix_ {
     SolverCblk   * restrict cblktab;   /*< Array of solver column blocks             */
     SolverBlok   * restrict bloktab;   /*< Array of solver blocks                    */
     pastix_int_t * restrict browtab;   /*< Array of blocks                           */
-    pastix_int_t * restrict browcblk;  /*< Array of blocks                           */
+
+    pastix_lr_t             lowrank;   /*< Low-rank parameters                       */
+    pastix_factotype_t      factotype; /*< General or symmetric factorization?       */
 
 #if defined(PASTIX_WITH_PARSEC)
     sparse_matrix_desc_t   *parsec_desc;

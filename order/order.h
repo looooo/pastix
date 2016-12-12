@@ -58,5 +58,6 @@ int  orderAddIsolate( Order              *ordeptr,
                       pastix_int_t        new_n,
                       const pastix_int_t *perm );
 
+
 #endif /* _ORDER_H_ */
 

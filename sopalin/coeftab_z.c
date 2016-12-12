@@ -125,9 +125,11 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
                    pastix_int_t itercblk,
                    int fakefillin, int factoLU )
 {
-    SolverCblk *cblk = solvmtx->cblktab + itercblk;
+    SolverCblk *cblk     = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
     pastix_int_t j;
+
+    pastix_int_t compress_when = solvmtx->lowrank.compress_when;
 
     /* If not NULL, allocated to store the shur complement for exemple */
     assert( cblk->lcoeftab == NULL );
@@ -136,6 +138,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
 
     if ( factoLU ) {
+        /* Extra diagonal block for low-rank updates */
         MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
         memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
     }
@@ -196,6 +199,22 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         }
     }
 #endif /* defined(PASTIX_DUMP_COEFTAB) */
+
+    /**
+     * Try to compress the cblk if needs to be compressed
+     * TODO: change the criteria based on the level in the tree
+     */
+    {
+        if ( cblk->cblktype & CBLK_SPLIT )
+        {
+            if ( compress_when == PastixCompressWhenBegin ){
+                coeftab_zcompress_one( cblk, solvmtx->lowrank );
+            }
+            else if ( compress_when == PastixCompressWhenEnd ){
+                coeftab_zalloc_one( cblk );
+            }
+        }
+    }
 }
 
 /*
@@ -218,6 +237,10 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
     pastix_int_t itercol;
     pastix_int_t iterrow;
     pastix_int_t coefindx;
+
+    /* We don't know how to dump the compressed block for now */
+    if ( !(cblk->cblktype & CBLK_DENSE) )
+        return;
 
     for (itercol  = cblk->fcolnum;
          itercol <= cblk->lcolnum;

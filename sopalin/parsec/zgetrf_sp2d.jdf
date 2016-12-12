@@ -12,6 +12,8 @@ extern "C" %{
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
+#include "coeftab_z.h"
+#include "pastix.h"
 
 %}
 
@@ -25,6 +27,7 @@ datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work    [type = "dague_memory_pool_t *"]
 
@@ -66,7 +69,12 @@ BODY
 {
     if (!isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
-        core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold );
+        core_zgetrfsp1d_panel( cblk, L, U, sopalin_data->diagthreshold, &lowrank );
+    }
+//; FOR COMPRESSING DURING
+    else if ( lowrank.compress_when == PastixCompressWhenDuring ){
+        SolverCblk *cblk = datacode->cblktab + k;
+        coeftab_zcompress_one( cblk, lowrank );
     }
 }
 END
@@ -153,14 +161,14 @@ BODY
         if ( s == 0 ) {
             work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
             core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                          Al, Au, C, work );
+                          Al, Au, C, work, &lowrank );
             dague_private_memory_push( p_work, (void *)work );
         }
         else {
             if (  blok+1 < lcblk[1].fblokptr ) {
                 work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
                 core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                              Au, Al, C, work );
+                              Au, Al, C, work, &lowrank );
                 dague_private_memory_push( p_work, (void *)work );
             }
         }
@@ -295,12 +303,25 @@ BODY
 {
     if (isTwoD && noskip) {
         SolverCblk *cblk = datacode->cblktab + k;
-        if (s == 0) {
-            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit,
-                                cblk, m, A, C );
-        } else {
-            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixUnit,
-                                cblk, m, A, C );
+        if (cblk->cblktype & CBLK_DENSE){
+	        if (s == 0) {
+	            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit,
+	                                cblk, m, A, C );
+	        } else {
+	            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixUnit,
+	                                cblk, m, A, C );
+	        }
+        }
+        else{
+	        if (s == 0) {
+	            core_ztrsmsp_2dlrsub( PastixLCoef, PastixRight, PastixUpper,
+                                          PastixNoTrans, PastixNonUnit,
+	                                  cblk, m, &lowrank );
+	        } else {
+	            core_ztrsmsp_2dlrsub( PastixUCoef, PastixRight, PastixUpper,
+                                          PastixNoTrans, PastixUnit,
+	                                  cblk, m, &lowrank );
+	        }
         }
    }
 }
@@ -470,19 +491,40 @@ BODY
         SolverCblk *fcblk = datacode->cblktab + cblk_n;
 
         /* Skip the update on diagonal block if upper part */
-        if ( s == 0 ) {
-            assert(A && B && C);
-            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
-                                  blok_mk, blok_nk-fblokk, blok_mn,
-                                  cblk, fcblk,
-                                  A, B, C );
+        if ((cblk->cblktype & CBLK_DENSE) && (fcblk->cblktype & CBLK_DENSE)){
+	        if ( s == 0 ) {
+	            assert(A && B && C);
+	            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  A, B, C );
+	        }
+	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
+	            assert(A && B && C);
+	            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  A, B, C );
+	        }
         }
-        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
-            assert(A && B && C);
-            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
-                                  blok_mk, blok_nk-fblokk, blok_mn,
-                                  cblk, fcblk,
-                                  A, B, C );
+        else if (!(cblk->cblktype & CBLK_DENSE) && !(fcblk->cblktype & CBLK_DENSE)){
+	        if ( s == 0 ) {
+	            //; assert(A && B && C);
+	            core_zgemmsp_2dlrsub( PastixLCoef, PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  &lowrank );
+	        }
+	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
+	            //; assert(A && B && C);
+	            core_zgemmsp_2dlrsub( PastixUCoef, PastixUpperLower, PastixTrans,
+	                                  blok_mk, blok_nk-fblokk, blok_mn,
+	                                  cblk, fcblk,
+	                                  &lowrank );
+                }
+        }
+        else{
+                assert(0);
         }
     }
 }

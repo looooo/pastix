@@ -25,6 +25,7 @@ datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work    [type = "dague_memory_pool_t *"]
 
@@ -62,7 +63,7 @@ BODY
 {
     if (!isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
-        core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold );
+        core_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
     }
 }
 END
@@ -148,7 +149,7 @@ BODY
         work = (pastix_complex64_t *)dague_private_memory_pop( p_work );
 
         core_zgemmsp( PastixLower, PastixConjTrans, lcblk, blok, fcblk,
-                      A, A, C, work );
+                      A, A, C, work, &lowrank );
         dague_private_memory_push( p_work, (void *)work );
     }
 }

@@ -7,6 +7,8 @@ set(generated_files "")
 set(SOURCES
   z_spm_tests.c
   z_bcsc_tests.c
+  z_ge2lr_tests.c
+  z_rradd_tests.c
 )
 
 precisions_rules_py(generated_files
@@ -33,6 +35,23 @@ foreach (_file ${TESTS})
   target_link_libraries(${_name_we} spm_test pastix)
 endforeach()
 
+set (TESTS_LR
+  s_ge2lr_tests.c
+  d_ge2lr_tests.c
+  c_ge2lr_tests.c
+  z_ge2lr_tests.c
+  s_rradd_tests.c
+  d_rradd_tests.c
+  c_rradd_tests.c
+  z_rradd_tests.c
+  )
+
+foreach (_file ${TESTS_LR})
+  get_filename_component(_name_we ${_file} NAME_WE)
+  add_executable(${_name_we} ${_file})
+  target_link_libraries(${_name_we} pastix_kernels pastix ${LAPACKE_LIBRARIES} ${LAPACK_SEQ_LIBRARIES} ${BLAS_SEQ_LIBRARIES} ${EXTRA_LIBS} m)
+endforeach()
+
 
 ## CTest execution
 set( SPM_TESTS
@@ -41,6 +60,21 @@ set( SPM_DOF_TESTS
   spm_dof_expand_tests spm_dof_norm_tests spm_dof_matvec_tests)
 set( BCSC_TESTS
   bcsc_norm_tests bcsc_matvec_tests )
+
+set( GE2LR_TESTS
+  s_ge2lr_tests d_ge2lr_tests c_ge2lr_tests z_ge2lr_tests )
+set( RRADD_TESTS
+  s_rradd_tests d_rradd_tests c_rradd_tests z_rradd_tests )
+
+# GE2LR
+foreach(example ${GE2LR_TESTS} )
+  add_test(${example} ./${example})
+endforeach()
+
+# RRADD
+foreach(example ${RRADD_TESTS} )
+  add_test(${example} ./${example})
+endforeach()
 
 # Laplacian
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )

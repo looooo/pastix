@@ -14,6 +14,7 @@
 
 #include "common.h"
 #include "solver.h"
+#include "coeftab.h"
 
 void
 solverInit(SolverMatrix *solvmtx)

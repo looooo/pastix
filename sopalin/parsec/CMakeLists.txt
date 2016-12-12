@@ -43,6 +43,10 @@ set(SOURCES
   zhetrf_sp1dplus_wrapper.c
   zpotrf_sp1dplus_wrapper.c
   zgetrf_sp1dplus_wrapper.c
+  #zsytrf_sp2d_wrapper.c
+  #zhetrf_sp2d_wrapper.c
+  #zpotrf_sp2d_wrapper.c
+  zgetrf_sp2d_wrapper.c
   #zpotrs_sp1dplus_wrapper.c
 )
 
@@ -56,6 +60,10 @@ add_library(pastix_parsec
   ${EXTRA_SOURCES})
 
 target_link_libraries(pastix_parsec pastix_kernels)
+
+add_dependencies(pastix_parsec
+  sopalin_headers
+)
 
 ### Generate the lib
 if (MPI_FOUND)

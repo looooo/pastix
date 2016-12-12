@@ -130,6 +130,16 @@ pastix_task_blend(pastix_data_t *pastix_data)
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         symbolPrintStats( pastix_data->symbmtx );
 
+#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+    {
+        FILE *stream;
+        PASTIX_FOPEN(stream, "symbol.eps", "w");
+        symbolDraw(pastix_data->symbmtx,
+                   stream);
+        fclose(stream);
+    }
+#endif
+
     /* Symbol is not used anymore */
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);

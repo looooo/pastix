@@ -180,6 +180,18 @@ int iparm_to_int( char * string)
     {
         return IPARM_MAX_BLOCKSIZE;
     }
+    if(0 == strcmp("iparm_compress_size", string))
+    {
+        return IPARM_COMPRESS_SIZE;
+    }
+    if(0 == strcmp("iparm_compress_when", string))
+    {
+        return IPARM_COMPRESS_WHEN;
+    }
+    if(0 == strcmp("iparm_compress_method", string))
+    {
+        return IPARM_COMPRESS_METHOD;
+    }
     if(0 == strcmp("iparm_schur", string))
     {
         return IPARM_SCHUR;
@@ -362,6 +374,10 @@ int dparm_to_int( char * string)
     if(0 == strcmp("DPARM_EPSILON_MAGN_CTRL", string))
     {
         return DPARM_EPSILON_MAGN_CTRL;
+    }
+    if(0 == strcmp("dparm_compress_tolerance", string))
+    {
+        return DPARM_COMPRESS_TOLERANCE;
     }
     return -1;
 }
