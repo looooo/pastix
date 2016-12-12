@@ -112,7 +112,12 @@ thread_pztrsm( int rank, void *args )
     int nrhs  = arg->nrhs;
     int ldb   = arg->ldb;
     SolverCblk *cblk;
-    pastix_int_t i;
+    Task       *t;
+    pastix_int_t i,ii;
+    pastix_int_t tasknbr, *tasktab;
+
+    tasknbr = datacode->ttsknbr[rank];
+    tasktab = datacode->ttsktab[rank];
 
     /* try in sequential */
     if (!rank)
