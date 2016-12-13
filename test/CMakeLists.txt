@@ -2,20 +2,29 @@ include(RulesPrecisions)
 
 ## reset variables
 set(generated_files "")
+set(generated_files2 "")
 
 ## Generate the dsparse wrappers for all required precisions
-set(SOURCES
+set(LIB_SOURCES
   z_spm_tests.c
   z_bcsc_tests.c
+)
+
+set(TESTS_SOURCES
   z_ge2lr_tests.c
   z_rradd_tests.c
 )
 
-precisions_rules_py(generated_files
-   "${SOURCES}"
+precisions_rules_py(generated_libfiles
+   "${LIB_SOURCES}"
    PRECISIONS "p;s;d;c;z")
 
-add_library(spm_test ${generated_files} )
+precisions_rules_py(generated_exfiles
+   "${TESTS_SOURCES}"
+   PRECISIONS "p;s;d;c;z")
+
+
+add_library(spm_test ${generated_libfiles} )
 
 ## Generate all test executables
 set (TESTS
@@ -32,21 +41,10 @@ set (TESTS
 foreach (_file ${TESTS})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
-  target_link_libraries(${_name_we} spm_test pastix)
+  target_link_libraries(${_name_we} pastix spm_test)
 endforeach()
 
-set (TESTS_LR
-  s_ge2lr_tests.c
-  d_ge2lr_tests.c
-  c_ge2lr_tests.c
-  z_ge2lr_tests.c
-  s_rradd_tests.c
-  d_rradd_tests.c
-  c_rradd_tests.c
-  z_rradd_tests.c
-  )
-
-foreach (_file ${TESTS_LR})
+foreach (_file ${generated_exfiles})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
   target_link_libraries(${_name_we} pastix_kernels pastix ${LAPACKE_LIBRARIES} ${LAPACK_SEQ_LIBRARIES} ${BLAS_SEQ_LIBRARIES} ${EXTRA_LIBS} m)
