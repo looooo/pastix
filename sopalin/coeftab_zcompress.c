@@ -242,6 +242,8 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
      */
     cblk->cblktype |= CBLK_DENSE;
     free(cblk->fblokptr->LRblock);
+
+    (void)ret;
 }
 
 
