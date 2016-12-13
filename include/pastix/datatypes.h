@@ -57,6 +57,11 @@ typedef unsigned int pastix_uint_t;
 #endif
 
 /** ****************************************************************************
+ * Double that are not converted through precision generator functions
+ **/
+typedef double pastix_fixdbl_t;
+
+/** ****************************************************************************
  * Complex numbers (Extracted from PaRSEC project)
  **/
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

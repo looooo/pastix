@@ -79,7 +79,7 @@ coeftab_zdiffcblk( const SolverCblk *cblkA,
     /*             normfAL, normcAL, normL, resL ); */
     /* } */
 
-    if ( resU > 10 ) {
+    if ( factoLU && (resU > 10) ) {
         fprintf(stderr, "KO on U: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
                 normfAU, normcAU, normU, resU );
         rc++;

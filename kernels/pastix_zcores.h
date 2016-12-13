@@ -51,7 +51,7 @@ core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
 
 int
 core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
-             pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
+             pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t   *B,
              pastix_int_t offx, pastix_int_t offy );
 
@@ -278,20 +278,26 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     int nrhs, pastix_complex64_t *b, int ldb );
 
 
-void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                const void *A, pastix_int_t lda,
-                                void *Alr );
-void core_zge2lr_RRQR_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                 const void *A, pastix_int_t lda,
-                                 void *Alr );
+void
+core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+                           const void *Aptr, pastix_int_t lda,
+                           void *Alr );
 
-int core_zrradd_SVD_interface( double tol, int transA1, void *alpha,
-                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                               pastix_int_t offx, pastix_int_t offy );
-int core_zrradd_RRQR_interface( double tol, int transA1, void *alpha,
-                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                               pastix_int_t offx, pastix_int_t offy );
+void
+core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+                            const void *Aptr, pastix_int_t lda,
+                            void *Alr );
+
+int
+core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
+                           pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                           pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                           pastix_int_t offx, pastix_int_t offy );
+
+int
+core_zrradd_RRQR_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
+                            pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                            pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                            pastix_int_t offx, pastix_int_t offy );
 
 #endif /* _CORE_Z_H_ */

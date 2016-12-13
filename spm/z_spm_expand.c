@@ -176,7 +176,7 @@ z_spmCSCExpand(const pastix_spm_t *spm)
 
     assert(spm->loc2glob == NULL);//to do
 
-    (void)newval;
+    (void)newval; (void)lda;
     return newspm;
 }
 
@@ -337,7 +337,7 @@ z_spmCSRExpand(const pastix_spm_t *spm)
 
     assert(spm->loc2glob == NULL);//to do
 
-    (void)newval;
+    (void)newval; (void)lda;
     return newspm;
 }
 
