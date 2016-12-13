@@ -139,7 +139,7 @@ spmReadDriver( pastix_driver_t  driver,
 
             /* Check integer compatibility */
             if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
-                errorPrint("Inconsistent integer type\n");
+                pastix_error_print("Inconsistent integer type\n");
                 fclose(file);
                 return PASTIX_ERR_INTEGER_TYPE;
             }
