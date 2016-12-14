@@ -28,15 +28,15 @@ void coeftab_cdump( const SolverMatrix *solvmtx, const char *filename );
 void coeftab_ddump( const SolverMatrix *solvmtx, const char *filename );
 void coeftab_sdump( const SolverMatrix *solvmtx, const char *filename );
 
-void sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex64_t *b, int ldb );
-void sequential_ctrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex32_t *b, int ldb );
-void sequential_dtrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, double *b, int ldb );
-void sequential_strsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, float *b, int ldb );
+void sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex64_t *b, int ldb );
+void sopalin_ctrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex32_t *b, int ldb );
+void sopalin_dtrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, double *b, int ldb );
+void sopalin_strsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, float *b, int ldb );
 
-void sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, pastix_complex64_t *b, int ldb );
-void sequential_cdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, pastix_complex32_t *b, int ldb );
-void sequential_ddiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, double *b, int ldb );
-void sequential_sdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, float *b, int ldb );
+void sopalin_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, pastix_complex64_t *b, int ldb );
+void sopalin_cdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, pastix_complex32_t *b, int ldb );
+void sopalin_ddiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, double *b, int ldb );
+void sopalin_sdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, float *b, int ldb );
 
 void sopalin_zgetrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sopalin_cgetrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );

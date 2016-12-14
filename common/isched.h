@@ -58,7 +58,7 @@ struct isched_s {
     pthread_t       *tids;
     isched_thread_t *master;
 
-    void           (*pfunc)(int, void*);
+    void           (*pfunc)(isched_thread_t*, void*);
     void            *pargs;
 };
 
