@@ -61,32 +61,32 @@ typedef enum pastix_driver_e {
  */
 struct pastix_spm_s {
     int               mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
-                                    or PastixHermitian.                                         */
+                                    or PastixHermitian.                                            */
     pastix_coeftype_t flttype; /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
-                                    PastixComplex32 or PastixComplex64                          */
-    pastix_fmttype_t  fmttype; /**< Matrix storage format: PastixCSC, PastixCSR, PastixIJV      */
+                                    PastixComplex32 or PastixComplex64                             */
+    pastix_fmttype_t  fmttype; /**< Matrix storage format: PastixCSC, PastixCSR, PastixIJV         */
 
-    pastix_int_t      gN;      /**< Global number of vertices in the compressed graph           */
-    pastix_int_t      n;       /**< Local number of vertices in the compressed graph            */
-    pastix_int_t      gnnz;    /**< Global number of non zeroes in the compressed graph         */
-    pastix_int_t      nnz;     /**< Local number of non zeroes in the compressed graph          */
+    pastix_int_t      gN;      /**< Global number of vertices in the compressed graph (Computed)   */
+    pastix_int_t      n;       /**< Local number of vertices in the compressed graph               */
+    pastix_int_t      gnnz;    /**< Global number of non zeroes in the compressed graph (Computed) */
+    pastix_int_t      nnz;     /**< Local number of non zeroes in the compressed graph             */
 
-    pastix_int_t      gNexp;   /**< Global number of vertices in the compressed graph           */
-    pastix_int_t      nexp;    /**< Local number of vertices in the compressed graph            */
-    pastix_int_t      gnnzexp; /**< Global number of non zeroes in the compressed graph         */
-    pastix_int_t      nnzexp;  /**< Local number of non zeroes in the compressed graph          */
+    pastix_int_t      gNexp;   /**< Global number of vertices in the compressed graph (Computed)   */
+    pastix_int_t      nexp;    /**< Local number of vertices in the compressed graph (Computed)    */
+    pastix_int_t      gnnzexp; /**< Global number of non zeroes in the compressed graph (Computed) */
+    pastix_int_t      nnzexp;  /**< Local number of non zeroes in the compressed graph (Computed)  */
 
     pastix_int_t      dof;     /**< Number of degrees of freedom per unknown,
                                     if > 0, constant degree of freedom
-                                    otherwise, irregular degree of freedom (refer to dofs)      */
+                                    otherwise, irregular degree of freedom (refer to dofs)         */
     pastix_int_t     *dofs;    /**< Array of the first column of each element in the
-                                    expanded matrix [+baseval]                                  */
-    pastix_order_t    layout;  /**< PastixColMajor, or PastixRowMajor                           */
+                                    expanded matrix [+baseval]                                     */
+    pastix_order_t    layout;  /**< PastixColMajor, or PastixRowMajor                              */
 
-    pastix_int_t     *colptr;  /**< List of indirections to rows for each vertex [+baseval]     */
-    pastix_int_t     *rowptr;  /**< List of edges for each vertex [+baseval]                    */
-    pastix_int_t     *loc2glob;/**< Corresponding numbering from local to global [+baseval]     */
-    void             *values;  /**< Values stored in the matrix                                 */
+    pastix_int_t     *colptr;  /**< List of indirections to rows for each vertex [+baseval]        */
+    pastix_int_t     *rowptr;  /**< List of edges for each vertex [+baseval]                       */
+    pastix_int_t     *loc2glob;/**< Corresponding numbering from local to global [+baseval]        */
+    void             *values;  /**< Values stored in the matrix                                    */
 };
 
 int
@@ -145,6 +145,7 @@ void          spmInit( pastix_spm_t *spm );
 void          spmExit( pastix_spm_t *spm );
 pastix_spm_t *spmCopy( const pastix_spm_t *spm );
 void          spmBase( pastix_spm_t *spm, int baseval );
+void          spmUpdateFields( pastix_spm_t *spm );
 int           spmConvert( int ofmttype, pastix_spm_t *ospm );
 void *        spm2Dense( const pastix_spm_t *spm );
 pastix_int_t  spmFindBase( const pastix_spm_t *spm );
