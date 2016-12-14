@@ -314,10 +314,7 @@ spmReadDriver( pastix_driver_t  driver,
         /* MPI_Bcast(*type,    4,      MPI_CHAR,         0, comm); */
     }
 
-    spm->gNexp   = spm->gN;
-    spm->nexp    = spm->n;
-    spm->gnnzexp = spm->gnnz;
-    spm->nnzexp  = spm->nnz;
+    spmUpdateComputedFields( spm );
 
     return PASTIX_SUCCESS;
 }

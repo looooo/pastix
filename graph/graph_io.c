@@ -37,42 +37,25 @@
 void graphLoad( const pastix_data_t  *pastix_data,
                       pastix_graph_t *graph )
 {
-    pastix_int_t  procnum  = pastix_data->procnum;
-    pastix_int_t  ncol = 0;
-    pastix_int_t *colptr, *rows;
-    int dof = 1;
+    pastix_spm_t spm;
+    FILE *stream;
 
-    if (procnum == 0) {
-        FILE *stream;
-        //TODO
-        PASTIX_FOPEN(stream, "graphname","r");
-        csc_load( &ncol, &colptr, &rows, NULL, NULL, &dof, stream);
-        fclose(stream);
-    }
+    assert( pastix_data->procnbr == 1 );
 
-    /* Number of columns */
-    MPI_Bcast(&ncol, 1, PASTIX_MPI_INT, 0, pastix_data->pastix_comm);
+    PASTIX_FOPEN(stream, "graphname","r");
+    spmLoad( &spm, stream );
+    fclose(stream);
 
-        /* Colptr */
-    if (procnum != 0) {
-        MALLOC_INTERN(colptr, ncol+1, pastix_int_t);
-    }
-    MPI_Bcast(colptr, ncol+1, PASTIX_MPI_INT,
-              0, pastix_data->pastix_comm);
+    spmConvert( PastixCSC, &spm );
+    graph->gN       = spm.gN;
+    graph->n        = spm.n;
+    graph->dof      = spm.dof;
+    assert( spm.dof == 1 );
+    graph->colptr   = spm.colptr;
+    graph->rows     = spm.rowptr;
+    graph->loc2glob = spm.loc2glob;
 
-    /* Rows */
-    if  (procnum != 0) {
-        MALLOC_INTERN(rows, colptr[ncol]-colptr[0], pastix_int_t);
-    }
-    MPI_Bcast(rows, colptr[ncol]-colptr[0], PASTIX_MPI_INT,
-              0, pastix_data->pastix_comm);
-
-    graph->gN       = ncol;
-    graph->n        = ncol;
-    graph->dof      = dof;
-    graph->colptr   = colptr;
-    graph->rows     = rows;
-    graph->loc2glob = NULL;
+    (void)pastix_data;
 }
 
 /**
@@ -95,18 +78,24 @@ void graphLoad( const pastix_data_t  *pastix_data,
 void graphSave( const pastix_data_t  *pastix_data,
                 const pastix_graph_t *graph )
 {
-    pastix_int_t procnum = pastix_data->procnum;
+    pastix_spm_t spm;
     FILE *stream;
 
-    if (procnum == 0)
-    {
-        PASTIX_FOPEN(stream, "cscgen", "w");
-        // TODO
-        csc_save( graph->n,
-                  graph->colptr,
-                  graph->rows,
-                  0, NULL,
-                  graph->dof, stream );
-        fclose(stream);
-    }
+    assert( pastix_data->procnbr == 1 );
+    spm.n   = graph->n;
+    spm.nnz = graph->colptr[ graph->n ] - graph->colptr[ 0 ];
+    spm.dof = graph->dof;
+    assert( spm.dof == 1 );
+    spm.colptr   = graph->colptr;
+    spm.rowptr   = graph->rows;
+    spm.loc2glob = graph->loc2glob;
+    spm.dofs     = NULL;
+
+    spmUpdateComputedFields( &spm );
+
+    PASTIX_FOPEN(stream, "graphgen","r");
+    spmSave( &spm, stream );
+    fclose(stream);
+
+    (void)pastix_data;
 }
