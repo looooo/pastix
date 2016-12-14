@@ -113,6 +113,82 @@ spmInit( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
+ * @brief Update all the computed fields based on the static values stored
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix to init.
+ *
+ *******************************************************************************/
+void
+spmUpdateFields( pastix_spm_t *spm )
+{
+
+    /**
+     * Compute the local expended field for multi-dofs
+     */
+    if ( spm->dof > 0 ) {
+        spm->nexp   = spm->n   * spm->dof;
+        spm->nnzexp = spm->nnz * spm->dof * spm->dof;
+    }
+    else {
+        pastix_int_t i, j, k, dofi, dofj, baseval;
+        pastix_int_t *dofptr, *colptr, *rowptr;
+
+        baseval = spmFindBase( spm );
+
+        colptr = spm->colptr;
+        rowptr = spm->rowptr;
+        dofptr = spm->dofs;
+
+        spm->nexp = dofptr[ spm->n ] - baseval;
+
+        spm->nnzexp = 0;
+        switch(spm->fmttype)
+        {
+        case PastixCSR:
+            /* Swap pointers to call CSC */
+            colptr = spm->rowptr;
+            rowptr = spm->colptr;
+
+        case PastixCSC:
+            for(j=0; j<spm->n; j++, colptr++) {
+                dofj = dofptr[j+1] - dofptr[j];
+
+                for(k=colptr[0]; k<colptr[1]; k++, rowptr++) {
+                    i = *rowptr - baseval;
+                    dofi = dofptr[i+1] - dofptr[i];
+
+                    spm->nnzexp += dofi * dofj;
+                }
+            }
+            break;
+        case PastixIJV:
+            for(k=0; k<spm->nnz; k++, rowptr++, colptr++)
+            {
+                i = *rowptr - baseval;
+                j = *colptr - baseval;
+                dofi = dofptr[i+1] - dofptr[i];
+                dofj = dofptr[j+1] - dofptr[j];
+
+                spm->nnzexp += dofi * dofj;
+            }
+        }
+    }
+
+    /* TODO: add communicator */
+    spm->gN      = spm->n;
+    spm->gnnz    = spm->nnz;
+    spm->gNexp   = spm->nexp;
+    spm->gnnzexp = spm->nnzexp;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
  * @brief Free the spm structure
  *
  *******************************************************************************

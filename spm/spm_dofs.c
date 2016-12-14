@@ -44,15 +44,11 @@ spmDofExtend( const int type,
      * Generate constant dof
      */
     if (type == 0) {
-        newspm->dof     = dof;
-        newspm->nexp    = spm->n  * dof;
-        newspm->gNexp   = spm->gN * dof;
-        newspm->nnzexp  = spm->nnz  * dof * dof;
-        newspm->gnnzexp = spm->gnnz * dof * dof;
+        newspm->dof = dof;
     }
     else {
-        pastix_int_t i, j, k, dofi, dofj, baseval;
-        pastix_int_t *dofptr, *colptr, *rowptr;
+        pastix_int_t i, dofi, baseval;
+        pastix_int_t *dofptr;
 
         baseval = spmFindBase( spm );
 
@@ -69,50 +65,9 @@ spmDofExtend( const int type,
             dofi = 1 + ( rand() % dof );
             dofptr[1] = dofptr[0] + dofi;
         }
-
-        newspm->nexp  = *dofptr - baseval;
-        newspm->gNexp = newspm->nexp;
-
-        /**
-         * Count the number of non zeroes
-         */
-        newspm->nnzexp = 0;
-        colptr = newspm->colptr;
-        rowptr = newspm->rowptr;
-        dofptr = newspm->dofs;
-
-        switch(spm->fmttype)
-        {
-        case PastixCSR:
-            /* Swap pointers to call CSC */
-            colptr = newspm->rowptr;
-            rowptr = newspm->colptr;
-
-        case PastixCSC:
-            for(j=0; j<newspm->n; j++, colptr++) {
-                dofj = dofptr[j+1] - dofptr[j];
-
-                for(k=colptr[0]; k<colptr[1]; k++, rowptr++) {
-                    i = *rowptr - baseval;
-                    dofi = dofptr[i+1] - dofptr[i];
-
-                    newspm->nnzexp += dofi * dofj;
-                }
-            }
-            break;
-        case PastixIJV:
-            for(k=0; k<newspm->nnz; k++, rowptr++, colptr++)
-            {
-                i = *rowptr - baseval;
-                j = *colptr - baseval;
-                dofi = dofptr[i+1] - dofptr[i];
-                dofj = dofptr[j+1] - dofptr[j];
-
-                newspm->nnzexp += dofi * dofj;
-            }
-        }
-        newspm->gnnzexp = newspm->nnzexp;
     }
+
+    spmUpdateFields( newspm );
 
     switch (spm->flttype) {
     case PastixFloat:
