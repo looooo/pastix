@@ -67,7 +67,7 @@ spmDofExtend( const int type,
         }
     }
 
-    spmUpdateFields( newspm );
+    spmUpdateComputedFields( newspm );
 
     switch (spm->flttype) {
     case PastixFloat:

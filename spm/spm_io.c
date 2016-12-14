@@ -380,7 +380,7 @@ spmLoad( pastix_spm_t  *spm,
         spm->dof     = dof;
         spm->layout  = layout;
 
-        spmUpdateFields( spm );
+        spmUpdateComputedFields( spm );
 
         assert( nnzexp == spm->nnzexp );
         assert( spm->gN == gN );

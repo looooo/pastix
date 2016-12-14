@@ -145,7 +145,7 @@ void          spmInit( pastix_spm_t *spm );
 void          spmExit( pastix_spm_t *spm );
 pastix_spm_t *spmCopy( const pastix_spm_t *spm );
 void          spmBase( pastix_spm_t *spm, int baseval );
-void          spmUpdateFields( pastix_spm_t *spm );
+void          spmUpdateComputedFields( pastix_spm_t *spm );
 int           spmConvert( int ofmttype, pastix_spm_t *ospm );
 void *        spm2Dense( const pastix_spm_t *spm );
 pastix_int_t  spmFindBase( const pastix_spm_t *spm );

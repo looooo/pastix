@@ -122,7 +122,7 @@ spmInit( pastix_spm_t *spm )
  *
  *******************************************************************************/
 void
-spmUpdateFields( pastix_spm_t *spm )
+spmUpdateComputedFields( pastix_spm_t *spm )
 {
 
     /**

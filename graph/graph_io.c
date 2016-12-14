@@ -91,7 +91,7 @@ void graphSave( const pastix_data_t  *pastix_data,
     spm.loc2glob = graph->loc2glob;
     spm.dofs     = NULL;
 
-    spmUpdateFields( &spm );
+    spmUpdateComputedFields( &spm );
 
     PASTIX_FOPEN(stream, "graphgen","r");
     spmSave( &spm, stream );
