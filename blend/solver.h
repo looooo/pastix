@@ -71,20 +71,22 @@ typedef struct pastix_lrblock_s {
 } pastix_lrblock_t;
 
 
+typedef void (*fct_ge2lr_t)( pastix_fixdbl_t, pastix_int_t, pastix_int_t,
+                             const void *, pastix_int_t, void * );
+
+typedef int  (*fct_rradd_t)( pastix_fixdbl_t, pastix_trans_t, const void *,
+                             pastix_int_t, pastix_int_t, const pastix_lrblock_t *,
+                             pastix_int_t, pastix_int_t,       pastix_lrblock_t *,
+                             pastix_int_t, pastix_int_t );
+
 /*+ Compression parameters +*/
 typedef struct pastix_lr_s {
     pastix_int_t compress_when;   /*< When to compress in the full solver        */
     pastix_int_t compress_method; /*< Compression method                         */
     pastix_int_t compress_size;   /*< Minimum size to compress. UNUSED RIGHT NOW */
     double       tolerance;       /*< Absolute compression tolerance             */
-
-    int (* core_rradd)( double tol, int transA1, void *alpha,
-                        pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                        pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                        pastix_int_t offx, pastix_int_t offy ); /*< Recompression function */
-    void (* core_ge2lr)( double tol, pastix_int_t m, pastix_int_t n,
-                         const void *A, pastix_int_t lda,
-                         void *Alr );                           /*< Compression function */
+    fct_rradd_t  core_rradd;      /*< Recompression function                     */
+    fct_ge2lr_t  core_ge2lr;      /*< Compression function                       */
 } pastix_lr_t;
 
 /*+ Solver block structure. +*/

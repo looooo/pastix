@@ -261,7 +261,7 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
              const pastix_lrblock_t *Alr,
              pastix_complex64_t *A, pastix_int_t lda )
 {
-    int ret;
+    int ret = 0;
 
 #if !defined(NDEBUG)
     if ( m < 0 ) {
@@ -306,7 +306,7 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
                     CBLAS_SADDR(zzero), A, lda);
     }
 
-    return 0;
+    return ret;
 }
 
 /**
@@ -359,11 +359,10 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
  *******************************************************************************/
 int
 core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
-             pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
+             pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,
              pastix_int_t offx, pastix_int_t offy)
 {
-    pastix_lrblock_t lrA;
     pastix_int_t rmax = pastix_imin( M2, N2 );
     pastix_int_t rank, ldub;
     double tol = lowrank->tolerance;
@@ -410,6 +409,7 @@ core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
      * We consider the A matrix as Id * A or A *Id
      */
     else {
+        pastix_lrblock_t lrA;
         lrA.rk = -1;
         lrA.rkmax = lda;
         lrA.u = A;
@@ -464,7 +464,7 @@ core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
  *          The workspace used to store temporary data
  *
  * @param[in] ldwork
- *          The leading dimension of work
+ *          Dimension of the workspace work
  *
  *******************************************************************************
  *
@@ -638,6 +638,11 @@ int core_zlrm2( int transA, int transB,
         }
     }
     assert( AB->rk <= AB->rkmax);
+
+    /* Not used for now */
+    (void)transA; (void)transB;
+    (void)ldwork;
+
     return transV;
 }
 
@@ -814,6 +819,10 @@ int core_zlrm3( pastix_lr_t *lowrank,
     }
     core_zlrfree(&rArB);
     free(work2);
+
+    /* Not used for now */
+    (void)transA;
+
     return transV;
 }
 

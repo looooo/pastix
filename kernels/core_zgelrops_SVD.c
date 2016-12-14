@@ -706,20 +706,22 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
 }
 
 /* Interfaces to transform pastix_complex64_t into void */
-void core_zge2lr_SVD_interface( double tol, pastix_int_t m, pastix_int_t n,
-                                const void *A, pastix_int_t lda,
-                                void *Alr ){
-    pastix_complex64_t *A2 = (pastix_complex64_t *) A;
-    core_zge2lr_SVD(tol, m, n, A2, lda, Alr);
+void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+                                const void *Aptr, pastix_int_t lda,
+                                void *Alr )
+{
+    const pastix_complex64_t *A = (const pastix_complex64_t *) Aptr;
+    core_zge2lr_SVD( tol, m, n, A, lda, Alr );
 }
 
-int core_zrradd_SVD_interface( double tol, int transA1, void *alpha,
+int core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
                                pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                                pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                               pastix_int_t offx, pastix_int_t offy){
-    pastix_complex64_t *alpha2 = (pastix_complex64_t *) alpha;
-    return core_zrradd_SVD(tol, transA1, alpha2[0],
-                           M1, N1, A,
-                           M2, N2, B,
-                           offx, offy);
+                               pastix_int_t offx, pastix_int_t offy)
+{
+    const pastix_complex64_t *alpha = (const pastix_complex64_t *) alphaptr;
+    return core_zrradd_SVD( tol, transA1, *alpha,
+                            M1, N1, A,
+                            M2, N2, B,
+                            offx, offy );
 }

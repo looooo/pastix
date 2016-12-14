@@ -34,21 +34,16 @@ static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
 };
 
-static void (*compressMethod[2][4])(double , pastix_int_t , pastix_int_t ,
-                                    const void *, pastix_int_t ,
-                                    void * ) =
+static fct_ge2lr_t compressMethod[2][4] =
 {
-    { &core_sge2lr_SVD_interface , &core_dge2lr_SVD_interface , &core_cge2lr_SVD_interface , &core_zge2lr_SVD_interface  },
-    { &core_sge2lr_RRQR_interface, &core_dge2lr_RRQR_interface, &core_cge2lr_RRQR_interface, &core_zge2lr_RRQR_interface }
+    { core_sge2lr_SVD_interface , core_dge2lr_SVD_interface , core_cge2lr_SVD_interface , core_zge2lr_SVD_interface  },
+    { core_sge2lr_RRQR_interface, core_dge2lr_RRQR_interface, core_cge2lr_RRQR_interface, core_zge2lr_RRQR_interface }
 };
 
-static int (*recompressMethod[2][4])(double , int, void *,
-                                      pastix_int_t, pastix_int_t, const pastix_lrblock_t *,
-                                      pastix_int_t, pastix_int_t,       pastix_lrblock_t *,
-                                      pastix_int_t, pastix_int_t ) =
+static fct_rradd_t recompressMethod[2][4] =
 {
-    { &core_srradd_SVD_interface , &core_drradd_SVD_interface , &core_crradd_SVD_interface , &core_zrradd_SVD_interface  },
-    { &core_srradd_RRQR_interface, &core_drradd_RRQR_interface, &core_crradd_RRQR_interface, &core_zrradd_RRQR_interface }
+    { core_srradd_SVD_interface , core_drradd_SVD_interface , core_crradd_SVD_interface , core_zrradd_SVD_interface  },
+    { core_srradd_RRQR_interface, core_drradd_RRQR_interface, core_crradd_RRQR_interface, core_zrradd_RRQR_interface }
 };
 
 int
