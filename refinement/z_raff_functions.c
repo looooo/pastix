@@ -244,26 +244,26 @@ void z_Pastix_Precond(pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_
 
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLT:
-            sequential_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, bptr, n );
-            sequential_ztrsm( pastix_data, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
         case PastixFactLDLT:
-            sequential_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
-            sequential_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
-            sequential_ztrsm( pastix_data, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
+            sopalin_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower, PastixTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
         case PastixFactLDLH:
-            sequential_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
-            sequential_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
-            sequential_ztrsm( pastix_data, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
+            sopalin_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
         case PastixFactLU:
         default:
-            sequential_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, bptr, n );
-            sequential_ztrsm( pastix_data, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, bptr, n );
+            sopalin_ztrsm( pastix_data, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
             break;
         }
     }
