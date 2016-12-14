@@ -65,7 +65,7 @@ struct coeftabinit_s {
  *     assigned to each thread.)
  */
 void
-pcoeftabInit( int rank, void *args )
+pcoeftabInit( isched_thread_t *ctx, void *args )
 {
     struct coeftabinit_s *ciargs = (struct coeftabinit_s*)args;
     const SolverMatrix  *datacode = ciargs->datacode;
@@ -74,6 +74,7 @@ pcoeftabInit( int rank, void *args )
     int factoLU    = ciargs->factoLU;
     pastix_int_t i, itercblk;
     pastix_int_t task;
+    int rank = ctx->rank;
     void (*initfunc)(const SolverMatrix*,
                      const pastix_bcsc_t*,
                      pastix_int_t,

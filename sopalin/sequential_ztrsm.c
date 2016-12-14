@@ -45,47 +45,30 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     pastix_int_t i;
     (void)pastix_data;
 
-    if (side == PastixLeft) {
-        if (uplo == PastixUpper) {
-            /*
-             *  Left / Upper / NoTrans
-             */
-            if (trans == PastixNoTrans) {
-                cblk = datacode->cblktab + datacode->cblknbr - 1;
-                for (i=0; i<datacode->cblknbr; i++, cblk--){
-                    solve_ztrsmsp( side, uplo, trans, diag,
-                                   datacode, cblk, nrhs, b, ldb );
-                }
-            }
-            /*  We store U^t, so we swap uplo and trans */
-        }
-        else {
-            /*
-             *  Left / Lower / NoTrans
-             */
-            if (trans == PastixNoTrans) {
-                cblk = datacode->cblktab;
-                for (i=0; i<datacode->cblknbr; i++, cblk++){
-                    solve_ztrsmsp( side, uplo, trans, diag,
-                                   datacode, cblk, nrhs, b, ldb );
-                }
-            }
-            /*
-             *  Left / Lower / [Conj]Trans
-             */
-            else {
-                cblk = datacode->cblktab + datacode->cblknbr - 1;
-                for (i=0; i<datacode->cblknbr; i++, cblk--){
-                    solve_ztrsmsp( side, uplo, trans, diag,
-                                   datacode, cblk, nrhs, b, ldb );
-                }
-            }
+    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
+    {
+        cblk = datacode->cblktab + datacode->cblknbr - 1;
+        for (i=0; i<datacode->cblknbr; i++, cblk--){
+            solve_ztrsmsp( side, uplo, trans, diag,
+                           datacode, cblk, nrhs, b, ldb );
         }
     }
-    /**
-     * Right
-     */
-    else {
+    else
+        /**
+         * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+         * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+         * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+         * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
+         */
+    {
+        cblk = datacode->cblktab;
+        for (i=0; i<datacode->cblknbr; i++, cblk++){
+            solve_ztrsmsp( side, uplo, trans, diag,
+                           datacode, cblk, nrhs, b, ldb );
+        }
     }
 }
 
@@ -99,7 +82,7 @@ struct args_ztrsm_t
 };
 
 void
-thread_pztrsm( int rank, void *args )
+thread_pztrsm( isched_thread_t *ctx, void *args )
 {
     struct args_ztrsm_t *arg = (struct args_ztrsm_t*)args;
     sopalin_data_t     *sopalin_data = arg->sopalin_data;
@@ -115,13 +98,68 @@ thread_pztrsm( int rank, void *args )
     Task       *t;
     pastix_int_t i,ii;
     pastix_int_t tasknbr, *tasktab;
+    int rank = ctx->rank;
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
 
-    /* try in sequential */
-    if (!rank)
-        sequential_ztrsm(NULL, side, uplo, trans, diag, sopalin_data, nrhs, b, ldb);
+    /* Backward like */
+    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
+    {
+        /* Init ctrbcnt in parallel */
+        for (ii=0; ii<tasknbr; ii++) {
+            i = tasktab[ii];
+            t = datacode->tasktab + i;
+            cblk = datacode->cblktab + t->cblknum;
+            cblk->ctrbcnt = (cblk[1].fblokptr-cblk[0].fblokptr)-1;
+        }
+        isched_barrier_wait( &(ctx->global_ctx->barrier) );
+
+        for (ii=tasknbr-1; ii>=0; ii--) {
+            i = tasktab[ii];
+            t = datacode->tasktab + i;
+            cblk = datacode->cblktab + t->cblknum;
+
+            /* Wait */
+            do {} while( cblk->ctrbcnt );
+
+            solve_ztrsmsp( side, uplo, trans, diag,
+                           datacode, cblk, nrhs, b, ldb );
+        }
+    }
+    /* Forward like */
+    else
+        /**
+         * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+         * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+         * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+         * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
+         */
+    {
+        /* Init ctrbcnt in parallel */
+        for (ii=0; ii<tasknbr; ii++) {
+            i = tasktab[ii];
+            t = datacode->tasktab + i;
+            cblk = datacode->cblktab + t->cblknum;
+            cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
+        }
+        isched_barrier_wait( &(ctx->global_ctx->barrier) );
+
+        for (ii=0; ii<tasknbr; ii++) {
+            i = tasktab[ii];
+            t = datacode->tasktab + i;
+            cblk = datacode->cblktab + t->cblknum;
+
+            /* Wait */
+            do {} while( cblk->ctrbcnt );
+
+            solve_ztrsmsp( side, uplo, trans, diag,
+                           datacode, cblk, nrhs, b, ldb );
+        }
+    }
 }
 
 void

@@ -59,7 +59,7 @@ sequential_zpotrf( pastix_data_t  *pastix_data,
 }
 
 void
-thread_pzpotrf( int rank, void *args )
+thread_pzpotrf( isched_thread_t *ctx, void *args )
 {
     sopalin_data_t     *sopalin_data = (sopalin_data_t*)args;
     SolverMatrix       *datacode = sopalin_data->solvmtx;
@@ -68,6 +68,7 @@ thread_pzpotrf( int rank, void *args )
     pastix_complex64_t *work;
     pastix_int_t  i, ii;
     pastix_int_t  tasknbr, *tasktab;
+    int rank = ctx->rank;
 
     MALLOC_INTERN( work, datacode->gemmmax, pastix_complex64_t );
 
@@ -87,11 +88,11 @@ thread_pzpotrf( int rank, void *args )
     }
 
 #if defined(PASTIX_DEBUG_FACTO) && 0
-    isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
+    isched_barrier_wait( &(ctx->global_ctx->barrier) );
     if (rank == 0) {
         coeftab_zdump( datacode, "potrf_L.txt" );
     }
-    isched_barrier_wait( &(((isched_t*)(sopalin_data->sched))->barrier) );
+    isched_barrier_wait( &(ctx->global_ctx->barrier) );
 #endif
 
     memFree_null( work );

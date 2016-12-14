@@ -179,7 +179,7 @@ isched_parallel_section(isched_thread_t *ctx)
 
         switch (action) {
             case ISCHED_ACT_PARALLEL:
-                isched->pfunc( ctx->rank, isched->pargs );
+                isched->pfunc( ctx, isched->pargs );
                 break;
             case ISCHED_ACT_FINALIZE:
                 return isched_thread_destroy( ctx );

@@ -658,7 +658,8 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     A   = (pastix_complex64_t*)(fcbk->ucoeftab);
                     lda = (fcbk->cblktype & CBLK_SPLIT) ? tempn : fcbk->stride;
 
-                    if ( ! (fcbk->cblktype & CBLK_DENSE)) {
+                    pastix_cblk_lock( fcbk );
+                    if ( !(fcbk->cblktype & CBLK_DENSE) ) {
                         lrA = blok->LRblock + 1;
 
                         switch (lrA->rk){
@@ -699,6 +700,8 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                                                 b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
                             CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                     }
+                    pastix_cblk_unlock( fcbk );
+                    pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
                 }
             }
             /*
@@ -739,12 +742,16 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
 
                         lda = (cblk->cblktype & CBLK_SPLIT) ? tempm : cblk->stride;
 
+                        pastix_cblk_lock( fcbk );
                         cblas_zgemm(
                             CblasColMajor, CblasNoTrans, CblasNoTrans,
                             tempm, nrhs, tempn,
                             CBLAS_SADDR(mzone), A + blok->coefind, lda,
                                                 b + cblk->lcolidx, ldb,
                             CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
+
+                        pastix_cblk_unlock( fcbk );
+                        pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
                     }
 
                 } else {
@@ -767,7 +774,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                         assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
-
+                        pastix_cblk_lock( fcbk );
                         switch (lrA->rk){
                         case 0:
                             break;
@@ -799,6 +806,8 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
 
                             memFree_null(tmp);
                         }
+                        pastix_cblk_unlock( fcbk );
+                        pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
                     }
                 }
             }
@@ -831,6 +840,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     A   = (pastix_complex64_t*)(fcbk->lcoeftab);
                     lda = (fcbk->cblktype & CBLK_SPLIT) ? tempn : fcbk->stride;
 
+                    pastix_cblk_lock( fcbk );
                     if ( ! (fcbk->cblktype & CBLK_DENSE)) {
                         lrA = blok->LRblock;
 
@@ -872,6 +882,8 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                             b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
                             CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                     }
+                    pastix_cblk_unlock( fcbk );
+                    pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
                 }
             }
         }

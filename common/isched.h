@@ -83,7 +83,7 @@ int  isched_topo_unbind();
 int  isched_topo_world_size();
 
 static inline void
-isched_parallel_call( isched_t *isched, void (*func)(int, void*), void *args )
+isched_parallel_call( isched_t *isched, void (*func)(isched_thread_t*, void*), void *args )
 {
     pthread_mutex_lock(&isched->statuslock);
     isched->pfunc  = func;
@@ -93,7 +93,7 @@ isched_parallel_call( isched_t *isched, void (*func)(int, void*), void *args )
     pthread_cond_broadcast(&isched->statuscond);
     isched_barrier_wait( &(isched->barrier) );
     isched->status = ISCHED_ACT_STAND_BY;
-    func( isched->master->rank, args );
+    func( isched->master, args );
     isched_barrier_wait( &(isched->barrier) );
 }
 
