@@ -328,6 +328,9 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
         }
 
+        /* Set the beginning of the Schur complement */
+        pastix_data->symbmtx->schurfcol = nfax - pastix_data->schur_n + pastix_data->symbmtx->baseval;
+
         if ( graph->loc2glob != NULL )
         {
             memFree_null(colptrfax);
