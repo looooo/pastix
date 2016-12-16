@@ -37,8 +37,9 @@
  * @param[in] perm
  *          Array of size new_n that must be 0-based.
  *          The permutation array that isolated the extra vertices at the end of
- *          the graph. this permutation will be combined with the one stored in
+ *          the graph. This permutation will be combined with the one stored in
  *          ordemesh to generate a permutation array for the full graph.
+ *          This permutation must be 0-based.
  *
  *******************************************************************************
  *
@@ -92,7 +93,8 @@ orderAddIsolate(       Order        *ordemesh,
     ordemesh->baseval = baseval;
     for(i=0; i< new_n; i++) {
         ip = perm[i];
-        if (ip < n-baseval)
+        assert(ip < new_n);
+        if (ip < n)
             ordemesh->permtab[i] = ordesave.permtab[ ip ];
         else
             ordemesh->permtab[i] = ip+baseval;
