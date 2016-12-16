@@ -131,7 +131,8 @@ int graphIsolate(       pastix_int_t   n,
     /* Init invp array */
     MALLOC_INTERN(tmpinvp, n, pastix_int_t);
     for (i = 0; i <n; i++) {
-        if (i == isolate_list[iter_isolate]-baseval)
+        if ((iter_isolate < isolate_n) &&
+            (i == isolate_list[iter_isolate]-baseval))
         {
             tmpinvp[new_n+iter_isolate] = i;
             iter_isolate++;

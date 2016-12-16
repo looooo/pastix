@@ -107,12 +107,12 @@ orderAddIsolate(       Order        *ordemesh,
 
     /* Copy the cblknbr+1 first element of old rangtab and add last element */
     assert( ordesave.rangtab != NULL );
-    memcpy( &(ordemesh->rangtab), &(ordesave.rangtab), ordemesh->cblknbr * sizeof(pastix_int_t) );
+    memcpy( ordemesh->rangtab, ordesave.rangtab, ordemesh->cblknbr * sizeof(pastix_int_t) );
     ordemesh->rangtab[ ordemesh->cblknbr ] = new_n + baseval;
 
     /* We connect each roots of the elimination forest to the new cblk (shur or isolated terms) */
     assert( ordesave.treetab != NULL );
-    memcpy( &(ordemesh->treetab), &(ordesave.treetab), ordesave.cblknbr * sizeof(pastix_int_t) );
+    memcpy( ordemesh->treetab, ordesave.treetab, ordesave.cblknbr * sizeof(pastix_int_t) );
     for(i=0; i < ordesave.cblknbr; i++)  {
         assert( ordemesh->treetab[i] != i );
         /* This was a root, we connect it to the last one */
