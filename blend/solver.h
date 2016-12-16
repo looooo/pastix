@@ -23,14 +23,18 @@
 
 /**
  *  The type and structure definitions.
- *  Define the mask for th cblks:
- *   - 1st bit: The cblk will always be treated as one task, or can generate dynamic smaller update
- *   - 2nd bit: The cblk is dense, or is compressed
- *   - 3rd bit: Part of the Schur complement or not (Will not be factorized if yes)
+ *  Define the mask for the cblks in the cblktype field:
+ *   - 1st bit: The cblk is a fake local cblk corresponding to a fanin that will be sent to someone else
+ *   - 2nd bit: The cblk is stored in a 2D layout fashion as in a tiled matrix, otherwise the standard 1D lapack layout is used
+ *   - 3rd bit: The cblk generates 2D granularity tasks, instead of a single 1D tasks that perform factorization, solves and updates
+ *   - 4th bit: The cblk is compressed in Low-Rank (implies CBLK_LAYOUT_2D), otherwise it is stored in dense
+ *   - 5th bit: The cblk is part of the Schur complement if set
  */
-#define CBLK_SPLIT (1 << 0)
-#define CBLK_DENSE (1 << 1)
-#define CBLK_SCHUR (1 << 2)
+#define CBLK_FANIN      (1 << 0)
+#define CBLK_LAYOUT_2D  (1 << 1)
+#define CBLK_TASKS_2D   (1 << 2)
+#define CBLK_COMPRESSED (1 << 3)
+#define CBLK_IN_SCHUR   (1 << 4)
 
 /*
  **  The type and structure definitions.

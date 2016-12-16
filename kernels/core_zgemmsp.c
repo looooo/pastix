@@ -112,8 +112,8 @@ core_zgemmsp_1d1d( int uplo, int trans,
     int shift;
 
     /* Both cblk and fcblk are stored in 1D */
-    assert(!(cblk->cblktype  & CBLK_SPLIT));
-    assert(!(fcblk->cblktype & CBLK_SPLIT));
+    assert(!(cblk->cblktype  & CBLK_LAYOUT_2D));
+    assert(!(fcblk->cblktype & CBLK_LAYOUT_2D));
 
     shift = (uplo == PastixUpper) ? 1 : 0;
 
@@ -263,8 +263,8 @@ core_zgemmsp_1d2d( int uplo, int trans,
     int shift;
 
     /* cblk is stored in 1D and fcblk in 2D */
-    assert(!(cblk->cblktype & CBLK_SPLIT));
-    assert( fcblk->cblktype & CBLK_SPLIT );
+    assert(!(cblk->cblktype & CBLK_LAYOUT_2D));
+    assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
     stride  = cblk->stride;
@@ -396,9 +396,9 @@ core_zgemmsp_2d2d( int uplo, int trans,
     pastix_int_t M, N, K, lda, ldb, ldc;
     int shift;
 
-    /* cblk is stored in 1D and fcblk in 2D */
-    assert( cblk->cblktype  & CBLK_SPLIT );
-    assert( fcblk->cblktype & CBLK_SPLIT );
+    /* Both cblk and fcblk must be stored in 2D */
+    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
+    assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
 
@@ -542,9 +542,9 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
     pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
     size_t offsetA, offsetB, offsetC;
 
-    /* cblk is stored in 1D and fcblk in 2D */
-    assert( cblk->cblktype  & CBLK_SPLIT );
-    assert( fcblk->cblktype & CBLK_SPLIT );
+    /* Both cblk and fcblk must be stored in 2D */
+    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
+    assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     /**
      * Blocs on column K
@@ -718,11 +718,13 @@ core_zgemmsp_2dlrsub( int coef,
 
     pastix_int_t M, N, K, cblk_n, cblk_m;
 
-    /* cblk is stored in 2D and fcblk in 2D */
-    assert( cblk->cblktype  & CBLK_SPLIT );
-    assert( fcblk->cblktype & CBLK_SPLIT );
-    assert( ! (cblk->cblktype  & CBLK_DENSE) );
-    assert( ! (fcblk->cblktype & CBLK_DENSE) );
+    /* Both cblk and fcblk must be stored in 2D */
+    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
+    assert( fcblk->cblktype & CBLK_LAYOUT_2D );
+
+    /* Both cblk and fcblk must be compressed */
+    assert( cblk->cblktype  & CBLK_COMPRESSED );
+    assert( fcblk->cblktype & CBLK_COMPRESSED );
 
     /**
      * Blocs on column K
@@ -892,9 +894,10 @@ core_zgemmsp_fulllr( int uplo, int trans,
     pastix_int_t M, N, K;
     int shift;
 
-    assert(cblk->cblktype  & CBLK_DENSE);
-    assert(!(fcblk->cblktype & CBLK_DENSE));
-    assert(fcblk->cblktype & CBLK_SPLIT);
+    /* Update from a dense block to a low rank block */
+    assert(!(cblk->cblktype  & CBLK_COMPRESSED));
+    assert(  fcblk->cblktype & CBLK_COMPRESSED );
+    assert(  fcblk->cblktype & CBLK_LAYOUT_2D  );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
     stride  = cblk->stride;
@@ -904,7 +907,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
 
     /* Get the B block and its dimensions */
     lrB.rk = -1;
-    lrB.rkmax = (cblk->cblktype & CBLK_SPLIT) ? N : stride;
+    lrB.rkmax = (cblk->cblktype & CBLK_LAYOUT_2D) ? N : stride;
     lrB.u = (pastix_complex64_t*)B + blok->coefind; /* lrB is const, we can cast the B pointer */
     lrB.v = NULL;
 
@@ -928,7 +931,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
         /* Get the A block and its dimensions */
         M = blok_rownbr( iterblok );
         lrA.rk = -1;
-        lrA.rkmax = (cblk->cblktype & CBLK_SPLIT) ? M : stride;
+        lrA.rkmax = (cblk->cblktype & CBLK_LAYOUT_2D) ? M : stride;
         lrA.u = (pastix_complex64_t*)A + iterblok->coefind; /* Same as for B */
         lrA.v = NULL;
 
@@ -1024,10 +1027,11 @@ core_zgemmsp_lr( int uplo, int trans,
 
     pastix_lrblock_t *lrA, *lrB;
 
-    assert( !(cblk->cblktype & CBLK_DENSE) );
-    assert( !(fcblk->cblktype & CBLK_DENSE) );
-    assert( cblk->cblktype & CBLK_SPLIT );
-    assert( fcblk->cblktype & CBLK_SPLIT );
+    /* Update from a low-rank cblk to a low-rank cblk */
+    assert( cblk->cblktype  & CBLK_COMPRESSED );
+    assert( fcblk->cblktype & CBLK_COMPRESSED );
+    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
+    assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     shift = (uplo == PastixUpper) ? 1 : 0;
 
@@ -1068,15 +1072,7 @@ core_zgemmsp_lr( int uplo, int trans,
         M = blok_rownbr( iterblok );
 
         /* pastix_cblk_lock( fcblk ); */
-        if ( fcblk->cblktype & CBLK_DENSE ) {
-            C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zlrmge( lowrank, PastixNoTrans, trans,
-                         M, N, K,
-                         -1., lrA, lrB, 1., C, stridef,
-                         work, -1,
-                         fcblk );
-        }
-        else {
+        if ( fcblk->cblktype & CBLK_COMPRESSED ) {
             core_zlrmm( lowrank, PastixNoTrans, trans,
                         M, N, K,
                         blok_rownbr( fblok ), cblk_colnbr( fcblk ),
@@ -1086,6 +1082,16 @@ core_zgemmsp_lr( int uplo, int trans,
                          1., fblok->LRblock + shift,
                         work, -1,
                         fcblk );
+        }
+        else {
+            /* Should not arrive here */
+            assert(0);
+            C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
+            core_zlrmge( lowrank, PastixNoTrans, trans,
+                         M, N, K,
+                         -1., lrA, lrB, 1., C, stridef,
+                         work, -1,
+                         fcblk );
         }
         /* pastix_cblk_unlock( fcblk ); */
     }
@@ -1165,8 +1171,8 @@ void core_zgemmsp( int uplo, int trans,
                          pastix_complex64_t *work,
                          pastix_lr_t        *lowrank )
 {
-    if ( !(fcblk->cblktype & CBLK_DENSE ) ) {
-        if ( !(cblk->cblktype & CBLK_DENSE) ) {
+    if ( fcblk->cblktype & CBLK_COMPRESSED ) {
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
             core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work, lowrank );
         }
         else {
@@ -1175,8 +1181,8 @@ void core_zgemmsp( int uplo, int trans,
                                  A, B, C, lowrank );
         }
     }
-    else if ( fcblk->cblktype & CBLK_SPLIT ) {
-        if ( cblk->cblktype & CBLK_SPLIT ) {
+    else if ( fcblk->cblktype & CBLK_LAYOUT_2D ) {
+        if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
             core_zgemmsp_2d2d( uplo, trans,
                                cblk, blok, fcblk,
                                A, B, C );

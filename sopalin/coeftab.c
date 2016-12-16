@@ -156,7 +156,7 @@ coeftabExit( SolverMatrix *solvmtx )
             if (solvmtx->cblktab[i].ucoeftab)
                 memFree_null(solvmtx->cblktab[i].ucoeftab);
 
-            if (! (solvmtx->cblktab[i].cblktype & CBLK_DENSE)) {
+            if (solvmtx->cblktab[i].cblktype & CBLK_COMPRESSED) {
                 SolverBlok *blok  = solvmtx->cblktab[i].fblokptr;
                 SolverBlok *lblok = solvmtx->cblktab[i+1].fblokptr;
 

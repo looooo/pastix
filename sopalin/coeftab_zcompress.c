@@ -40,7 +40,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
     LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
 
     /* H then split */
-    assert( cblk->cblktype & CBLK_SPLIT );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
     /**
      * Diagonal block (Not compressed)
@@ -89,7 +89,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
         }
     }
 
-    cblk->cblktype &= ~(CBLK_DENSE);
+    cblk->cblktype |= CBLK_COMPRESSED;
     /**
      * Free the dense version
      */
@@ -116,7 +116,7 @@ coeftab_zalloc_one( SolverCblk *cblk )
     LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
 
     /* H then split */
-    assert( cblk->cblktype & CBLK_SPLIT );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
     /**
      * Diagonal block (Not compressed)
@@ -157,7 +157,7 @@ coeftab_zalloc_one( SolverCblk *cblk )
         }
     }
 
-    cblk->cblktype &= ~(CBLK_DENSE);
+    cblk->cblktype |= CBLK_COMPRESSED;
     /**
      * Free the dense version
      */
@@ -240,7 +240,7 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     /**
      * Free all the LRblock structures associated to the cblk
      */
-    cblk->cblktype |= CBLK_DENSE;
+    cblk->cblktype &= ~(CBLK_COMPRESSED);
     free(cblk->fblokptr->LRblock);
 
     (void)ret;
@@ -260,7 +260,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         original += cblk_colnbr( cblk ) * cblk->stride;
-        if (!(cblk->cblktype & CBLK_DENSE)) {
+        if (cblk->cblktype & CBLK_COMPRESSED) {
             gain += coeftab_zmemory_one( cblk, factoLU );
         }
     }
@@ -288,7 +288,7 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
     int          factoLU = (solvmtx->factotype == PastixFactLU) ? 1 : 0;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
-        if (!(cblk->cblktype & CBLK_DENSE)) {
+        if (cblk->cblktype & CBLK_COMPRESSED) {
             coeftab_zuncompress_one( cblk, factoLU );
         }
     }
@@ -311,7 +311,7 @@ coeftab_zcompress( SolverMatrix *solvmtx )
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         original += cblk_colnbr( cblk ) * cblk->stride;
-        if (cblk->cblktype & CBLK_DENSE) {
+        if (!(cblk->cblktype & CBLK_COMPRESSED)) {
             gain += coeftab_zcompress_one( cblk, solvmtx->lowrank );
         }
     }

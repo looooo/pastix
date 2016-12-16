@@ -166,7 +166,6 @@ int main (int argc, char **argv)
         }
     }
 
-
     if( err == 0 ) {
         printf(" -- All tests PASSED --\n");
         return EXIT_SUCCESS;

@@ -728,9 +728,10 @@ enum pastix_error_e {
  * Compression strategy available for IPARM_COMPRESS_WHEN parameter
  */
 typedef enum pastix_compress_when_e {
-  PastixCompressWhenBegin  = 0,
-  PastixCompressWhenEnd    = 1,
-  PastixCompressWhenDuring = 2
+  PastixCompressNever      = 0,
+  PastixCompressWhenBegin  = 1,
+  PastixCompressWhenEnd    = 2,
+  PastixCompressWhenDuring = 3
 } pastix_compress_when_t;
 
 /**

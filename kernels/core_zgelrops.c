@@ -965,7 +965,6 @@ core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
     }
 
     pastix_cblk_lock( fcblk );
-
     ldabu = (AB.rk == -1) ? AB.rkmax : M;
     ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
     ldcu = (C->rk == -1) ? C->rkmax : Cm;

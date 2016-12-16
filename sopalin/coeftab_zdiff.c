@@ -37,7 +37,7 @@ coeftab_zdiffcblk( const SolverCblk *cblkA,
 
     assert( ncols  == cblk_colnbr( cblkB ) );
     assert( stride == cblkB->stride );
-    assert( !(cblkA->cblktype & CBLK_SPLIT) ); /* Not yet implemented */
+    assert( !(cblkA->cblktype & CBLK_LAYOUT_2D) ); /* Not yet implemented */
 
     eps = LAPACKE_dlamch_work( 'e' );
 

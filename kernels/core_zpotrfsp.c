@@ -224,13 +224,13 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
     pastix_int_t  nbpivot = 0;
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = (cblk->cblktype & CBLK_SPLIT) ? ncols : cblk->stride;
+    stride  = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
-    if ( !(cblk->cblktype & CBLK_DENSE) ) {
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
         assert( cblk->fblokptr->LRblock[0].rk == -1 );
         L = cblk->fblokptr->LRblock[0].u;
         stride = ncols;

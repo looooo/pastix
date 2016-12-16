@@ -15,7 +15,6 @@
 #include "ftgt.h"
 #include "solver.h"
 #include "simu.h"
-#include "smart_cblk_split.h"
 
 #include "extracblk.h"
 

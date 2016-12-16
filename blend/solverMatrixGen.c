@@ -161,7 +161,8 @@ solverMatrixGen(const pastix_int_t  clustnum,
             pastix_int_t stride   = 0;
             pastix_int_t nbcols   = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
             pastix_int_t nbrows;
-            pastix_int_t split = candcblk->cblktype & CBLK_SPLIT;
+            pastix_int_t layout2D = candcblk->cblktype & CBLK_LAYOUT_2D;
+            pastix_int_t tasks2D  = candcblk->cblktype & CBLK_TASKS_2D;
 
             flaglocal = 0;
 
@@ -179,7 +180,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->fcblknm = cblklocalnum[symbblok->fcblknm];
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
-                    solvblok->coefind = split ? stride * nbcols : stride;
+                    solvblok->coefind = layout2D ? stride * nbcols : stride;
                     solvblok->browind = -1;
                     solvblok->gpuid   = -2;
                     solvblok->LRblock = NULL;
@@ -193,12 +194,12 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 pastix_int_t brownbr;
 
                 /**
-                 * 2D tasks: Compute the number of cblk split, and the smallest id
+                 * 2D tasks: Compute the number of cblk split in 2D tasks, and the smallest id
                  */
-                if (split & (cblknum < solvmtx->cblkmin2d) ) {
-                    solvmtx->cblkmin2d = cblknum;
-                }
-                if (split) {
+                if (tasks2D) {
+                    if (cblknum < solvmtx->cblkmin2d) {
+                        solvmtx->cblkmin2d = cblknum;
+                    }
                     nbcblk2d++;
                 }
 
@@ -241,7 +242,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 solvcblk->brown2d = solvcblk->brownum + brownbr;
                 if (brownbr)
                 {
-                    if (split) {
+                    if ( tasks2D ) {
                         SolverBlok *blok;
                         SolverCblk *cblk;
                         pastix_int_t j2d, j1d, j, *b;
@@ -251,7 +252,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                             b = symbmtx->browtab + symbmtx->cblktab[i].brownum + j;
                             blok = solvmtx->bloktab + (*b);
                             cblk = solvmtx->cblktab + blok->lcblknm;
-                            if (! (cblk->cblktype & CBLK_SPLIT) ) {
+                            if (! (cblk->cblktype & CBLK_TASKS_2D) ) {
                                 solvmtx->browtab[brownum + j1d] = (*b);
                                 *b = -1;
                                 j1d++;
@@ -299,7 +300,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
         {
             solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
             solvcblk->ctrbcnt  = -1;
-            solvcblk->cblktype = CBLK_DENSE;
+            solvcblk->cblktype = 0;
             solvcblk->fblokptr = solvblok;
             solvcblk->fcolnum  = solvcblk->lcolnum + 1;
             solvcblk->lcolnum  = solvcblk->lcolnum + 1;
