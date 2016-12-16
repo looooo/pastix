@@ -123,6 +123,18 @@ int graphIsolate(       pastix_int_t   n,
             MALLOC_INTERN(*new_rows, nnz, pastix_int_t);
             memcpy( *new_rows, rows, nnz*sizeof(pastix_int_t) );
         }
+        if (new_perm != NULL) {
+            MALLOC_INTERN(*new_perm, n, pastix_int_t);
+            for (i = 0; i < n; i++) {
+                (*new_perm)[i] = i;
+            }
+        }
+        if (new_invp != NULL) {
+            MALLOC_INTERN(*new_invp, n, pastix_int_t);
+            for (i = 0; i < n; i++) {
+                (*new_invp)[i] = i;
+            }
+        }
         return PASTIX_SUCCESS;
     }
 
