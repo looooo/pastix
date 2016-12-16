@@ -168,7 +168,7 @@ orderApplyLevelOrder( Order *order,
 
     /**
      * Build the elimination tree from top to bottom, and store the roots in the
-     * permatb array
+     * permtab array
      */
     etree = orderBuildEtree( &oldorder,
                              &nbroots,
