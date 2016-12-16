@@ -734,7 +734,7 @@ spmCheckAndCorrect( pastix_spm_t *spm )
     /* Merge the duplicated entries by summing the values */
     count = spmMergeDuplicate( newspm );
     if ( count > 0 ) {
-        fprintf(stderr, "spmCheckAndCorrect: %ld entries have been merged\n", (int64_t)count );
+        fprintf(stderr, "spmCheckAndCorrect: %ld entries have been merged\n", (long)count );
     }
 
     /**
@@ -745,7 +745,7 @@ spmCheckAndCorrect( pastix_spm_t *spm )
     if ( newspm->mtxtype == PastixGeneral ) {
         count = spmSymmetrize( newspm );
         if ( count > 0 ) {
-            fprintf(stderr, "spmCheckAndCorrect: %ld entries have been added for symmetry\n", (int64_t)count );
+            fprintf(stderr, "spmCheckAndCorrect: %ld entries have been added for symmetry\n", (long)count );
         }
     }
     else {

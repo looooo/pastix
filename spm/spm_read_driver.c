@@ -316,5 +316,6 @@ spmReadDriver( pastix_driver_t  driver,
 
     spmUpdateComputedFields( spm );
 
+    (void)comm;
     return PASTIX_SUCCESS;
 }
