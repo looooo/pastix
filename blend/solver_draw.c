@@ -189,8 +189,9 @@ solverDraw ( const SolverMatrix * const  solvptr,
             pastix_int_t ncols = cblk_colnbr( cblk );
             SolverBlok *blok   = cblk[0].fblokptr+1;
             SolverBlok *lblok  = cblk[1].fblokptr;
-            fscanf(fd2, "%d %d %d\n", &unused, &nb_contrib, &original_cblk);
-
+            if ( 3 != fscanf(fd2, "%d %d %d\n", &unused, &nb_contrib, &original_cblk) ) {
+                return PASTIX_ERR_FILE;
+            }
             fprintf (stream, "%.2g g %ld\t%ld\tc\n",             /* Begin new column block */
                      color,
                      (long) (cblk->fcolnum - solvptr->baseval),
@@ -208,7 +209,9 @@ solverDraw ( const SolverMatrix * const  solvptr,
                 int unused, nb_contrib;
                 double gain = 0;
 
-                fscanf(fd1, "%d %d\n", &unused, &nb_contrib);
+                if ( 2 != fscanf(fd1, "%d %d\n", &unused, &nb_contrib) ) {
+                    return PASTIX_ERR_FILE;
+                }
                 fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
                          (long) (blok->frownum - solvptr->baseval),
                          (long) (blok->lrownum - solvptr->baseval + 1));
