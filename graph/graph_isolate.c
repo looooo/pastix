@@ -43,6 +43,7 @@
  *          Array of size isolate_n.
  *          List of columns to isolate. On exit, the list is sorted by ascending
  *          indexes.
+ *          Must be based as the graph.
  *
  * @param[out] new_colptr
  *          Array of size n-isolate_n+1
