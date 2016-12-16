@@ -47,7 +47,15 @@ endforeach()
 foreach (_file ${generated_exfiles})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
-  target_link_libraries(${_name_we} pastix_kernels pastix ${LAPACKE_LIBRARIES} ${LAPACK_SEQ_LIBRARIES} ${BLAS_SEQ_LIBRARIES} ${EXTRA_LIBS} m)
+  target_link_libraries(${_name_we}
+    pastix_kernels
+    pastix
+    ${LAPACKE_LIBRARIES}
+    ${TMG_LIBRARIES}
+    ${LAPACK_SEQ_LIBRARIES}
+    ${BLAS_SEQ_LIBRARIES}
+    ${EXTRA_LIBS}
+    m)
 endforeach()
 
 

@@ -131,6 +131,7 @@ endif()
 
 find_package(LAPACKE REQUIRED)
 find_package(LAPACKEXT REQUIRED)
+find_package(TMG REQUIRED)
 if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
