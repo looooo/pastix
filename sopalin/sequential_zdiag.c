@@ -48,6 +48,9 @@ sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
         pastix_complex64_t *tmp, *lb;
         pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
 
+        if ( cblk->cblktype & CBLK_IN_SCHUR )
+            break;
+
         lb = b + cblk->lcolidx;
 
         if( nrhs == 1 ) {
@@ -101,6 +104,9 @@ thread_pzdiag( isched_thread_t *ctx, void *args )
         i = tasktab[ii];
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
+
+        if ( cblk->cblktype & CBLK_IN_SCHUR )
+            continue;
 
         pastix_complex64_t *coeftab = cblk->lcoeftab;
         pastix_complex64_t *tmp, *lb;

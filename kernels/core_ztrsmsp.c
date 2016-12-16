@@ -628,7 +628,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
     lda = (cblk->cblktype & CBLK_LAYOUT_2D) ? blok_rownbr( cblk->fblokptr ) : cblk->stride;
 
     /*
-     *  Left / Upper / NoTrans
+     *  Left / Upper / NoTrans (Backward)
      */
     if (side == PastixLeft) {
         if (uplo == PastixUpper) {
@@ -707,7 +707,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                 }
             }
             /*
-             *  Left / Upper / [Conj]Trans
+             *  Left / Upper / [Conj]Trans (Forward)
              */
             else {
                 assert(0 /* Not implemented */);
@@ -717,7 +717,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
             A = (pastix_complex64_t*)(cblk->lcoeftab);
 
             /*
-             *  Left / Lower / NoTrans
+             *  Left / Lower / NoTrans (Forward)
              */
             if (trans == PastixNoTrans) {
 
@@ -741,6 +741,10 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                         tempm = blok->lrownum - blok->frownum + 1;
                         lrA   = blok->LRblock;
 
+                        /* Do not solve the schur */
+                        if (fcbk->cblktype & CBLK_IN_SCHUR ) {
+                            break;
+                        }
                         assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
@@ -794,6 +798,11 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                         fcbk  = datacode->cblktab + blok->fcblknm;
                         tempm = blok->lrownum - blok->frownum + 1;
 
+                        /* Do not solve the schur */
+                        if (fcbk->cblktype & CBLK_IN_SCHUR ) {
+                            break;
+                        }
+
                         assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
@@ -814,7 +823,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                 }
             }
             /*
-             *  Left / Lower / [Conj]Trans
+             *  Left / Lower / [Conj]Trans (Backward)
              */
             else {
 
@@ -897,5 +906,3 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
         assert(0 /* Not implemented */);
     }
 }
-
-

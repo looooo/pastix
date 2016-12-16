@@ -47,6 +47,10 @@ sequential_zpotrf( pastix_data_t  *pastix_data,
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
+
+        if ( cblk->cblktype & CBLK_IN_SCHUR )
+            break;
+
         /* Compute */
         core_zpotrfsp1d( datacode, cblk, threshold, work );
     }
@@ -79,6 +83,9 @@ thread_pzpotrf( isched_thread_t *ctx, void *args )
         i = tasktab[ii];
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
+
+        if ( cblk->cblktype & CBLK_IN_SCHUR )
+            continue;
 
         /* Wait */
         do {} while( cblk->ctrbcnt );

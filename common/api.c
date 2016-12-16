@@ -155,7 +155,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_MURGE_REFINEMENT]      = API_YES;
     iparm[IPARM_TRANSPOSE_SOLVE]       = API_NO;
 
-
     /**
      * Communication modes
      */
@@ -187,7 +186,6 @@ pastixInitParam( pastix_int_t *iparm,
         }
     }
 #endif /* defined(PASTIX_WITH_MPI) */
-
 
     iparm[IPARM_NB_THREAD_COMM]     = 1;                   /* Nb thread quand iparm[IPARM_THREAD_COMM_MODE] == API_THCOMM_DEFINED */
     iparm[IPARM_FILL_MATRIX]        = API_NO;              /* fill matrix */
