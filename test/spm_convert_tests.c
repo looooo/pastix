@@ -109,6 +109,7 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
     FILE *f;
+    int rc;
 
     pastix_ex_getoptions( argc, argv,
                           NULL, NULL,
@@ -146,8 +147,8 @@ int main (int argc, char **argv)
             /**
              * Test cycle CSC -> CSR -> IJV -> CSC
              */
-            asprintf( &filename, "convert_b%d_%s_CSC_cycle1.dat",
-                      baseval, mtxnames[mtxtype - PastixGeneral] );
+            rc = asprintf( &filename, "convert_b%d_%s_CSC_cycle1.dat",
+                           baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
             spmPrint( f, &spm );
             fclose(f); free(filename);
@@ -157,8 +158,8 @@ int main (int argc, char **argv)
             ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixCSR );
             PRINT_RES(ret);
 
-            asprintf( &filename, "convert_b%d_%s_CSR_cycle1.dat",
-                      baseval, mtxnames[mtxtype - PastixGeneral] );
+            rc = asprintf( &filename, "convert_b%d_%s_CSR_cycle1.dat",
+                           baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
             spmPrint( f, &spm );
             fclose(f); free(filename);
@@ -168,8 +169,8 @@ int main (int argc, char **argv)
             ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixIJV );
             PRINT_RES(ret);
 
-            asprintf( &filename, "convert_b%d_%s_IJV_cycle1.dat",
-                      baseval, mtxnames[mtxtype - PastixGeneral] );
+            rc = asprintf( &filename, "convert_b%d_%s_IJV_cycle1.dat",
+                           baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
             spmPrint( f, &spm );
             fclose(f); free(filename);
@@ -190,8 +191,8 @@ int main (int argc, char **argv)
                 PRINT_RES(ret);
             }
 
-            asprintf( &filename, "convert_b%d_%s_CSC_cycle2.dat",
-                      baseval, mtxnames[mtxtype - PastixGeneral] );
+            rc = asprintf( &filename, "convert_b%d_%s_CSC_cycle2.dat",
+                           baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
             spmPrint( f, &spm );
             fclose(f); free(filename);
@@ -204,8 +205,8 @@ int main (int argc, char **argv)
             ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixIJV );
             PRINT_RES(ret);
 
-            asprintf( &filename, "convert_b%d_%s_IJV_cycle2.dat",
-                      baseval, mtxnames[mtxtype - PastixGeneral] );
+            rc = asprintf( &filename, "convert_b%d_%s_IJV_cycle2.dat",
+                           baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
             spmPrint( f, &spm );
             fclose(f); free(filename);
@@ -215,8 +216,8 @@ int main (int argc, char **argv)
             ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixCSR );
             PRINT_RES(ret);
 
-            asprintf( &filename, "convert_b%d_%s_CSR_cycle2.dat",
-                      baseval, mtxnames[mtxtype - PastixGeneral] );
+            rc = asprintf( &filename, "convert_b%d_%s_CSR_cycle2.dat",
+                           baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
             spmPrint( f, &spm );
             fclose(f); free(filename);
@@ -226,8 +227,8 @@ int main (int argc, char **argv)
             ret = (ret != PASTIX_SUCCESS) || (spm.fmttype != PastixCSC );
             PRINT_RES(ret);
 
-            asprintf( &filename, "convert_b%d_%s_CSC_end.dat",
-                      baseval, mtxnames[mtxtype - PastixGeneral] );
+            rc = asprintf( &filename, "convert_b%d_%s_CSC_end.dat",
+                           baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
             spmPrint( f, &spm );
             fclose(f); free(filename);
@@ -251,4 +252,6 @@ int main (int argc, char **argv)
         printf(" -- %d tests FAILED --\n", err);
         return EXIT_FAILURE;
     }
+
+    (void)rc;
 }

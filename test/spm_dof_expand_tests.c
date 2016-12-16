@@ -51,7 +51,7 @@ int main (int argc, char **argv)
     pastix_driver_t driver;
     char *filename;
     int spmtype, mtxtype, fmttype, baseval;
-    int i, dofmax = 3;
+    int i, rc, dofmax = 3;
 
     /**
      * Get options from command line
@@ -92,10 +92,10 @@ int main (int argc, char **argv)
                     spmConvert( fmttype, &original );
                     spm = spmDofExtend( i, dofmax, &original );
 
-                    asprintf( &filename, "%d_%s_%d_%s_%s",
-                              i, fmtnames[fmttype], baseval,
-                              mtxnames[mtxtype - PastixGeneral],
-                              fltnames[spm->flttype] );
+                    rc = asprintf( &filename, "%d_%s_%d_%s_%s",
+                                   i, fmtnames[fmttype], baseval,
+                                   mtxnames[mtxtype - PastixGeneral],
+                                   fltnames[spm->flttype] );
 
                     printf( "-- %s --\n", filename );
                     switch( spm->flttype ){
@@ -126,5 +126,6 @@ int main (int argc, char **argv)
     }
     spmExit( &original );
 
+    (void)rc;
     return EXIT_SUCCESS;
 }
