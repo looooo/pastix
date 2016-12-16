@@ -118,16 +118,16 @@ void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
  * Subroutines to print elements of spm structures
  */
 static inline void z_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex64_t A ){
-    fprintf( f, "%ld %ld %e %e\n", i, j, creal(A), cimag(A) );
+    fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, creal(A), cimag(A) );
 }
 static inline void c_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex32_t A ){
-    fprintf( f, "%ld %ld %e %e\n", i, j, crealf(A), cimagf(A) );
+    fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, crealf(A), cimagf(A) );
 }
 static inline void d_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, double A ){
-    fprintf( f, "%ld %ld %e\n", i, j, A );
+    fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
 }
 static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float A ){
-    fprintf( f, "%ld %ld %e\n", i, j, A );
+    fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
 }
 
 /**
