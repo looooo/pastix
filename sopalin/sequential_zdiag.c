@@ -80,7 +80,7 @@ struct args_zdiag_t
 };
 
 void
-thread_pzdiag( int rank, void *args )
+thread_pzdiag( isched_thread_t *ctx, void *args )
 {
     struct args_zdiag_t *arg = (struct args_zdiag_t*)args;
     sopalin_data_t     *sopalin_data = arg->sopalin_data;
@@ -92,6 +92,7 @@ thread_pzdiag( int rank, void *args )
     Task       *t;
     pastix_int_t i,ii,j,k;
     pastix_int_t tasknbr, *tasktab;
+    int rank = ctx->rank;
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
