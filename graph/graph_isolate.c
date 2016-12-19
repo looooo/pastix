@@ -43,6 +43,7 @@
  *          Array of size isolate_n.
  *          List of columns to isolate. On exit, the list is sorted by ascending
  *          indexes.
+ *          Must be based as the graph.
  *
  * @param[out] new_colptr
  *          Array of size n-isolate_n+1
@@ -122,6 +123,18 @@ int graphIsolate(       pastix_int_t   n,
             MALLOC_INTERN(*new_rows, nnz, pastix_int_t);
             memcpy( *new_rows, rows, nnz*sizeof(pastix_int_t) );
         }
+        if (new_perm != NULL) {
+            MALLOC_INTERN(*new_perm, n, pastix_int_t);
+            for (i = 0; i < n; i++) {
+                (*new_perm)[i] = i;
+            }
+        }
+        if (new_invp != NULL) {
+            MALLOC_INTERN(*new_invp, n, pastix_int_t);
+            for (i = 0; i < n; i++) {
+                (*new_invp)[i] = i;
+            }
+        }
         return PASTIX_SUCCESS;
     }
 
@@ -131,7 +144,8 @@ int graphIsolate(       pastix_int_t   n,
     /* Init invp array */
     MALLOC_INTERN(tmpinvp, n, pastix_int_t);
     for (i = 0; i <n; i++) {
-        if (i == isolate_list[iter_isolate]-baseval)
+        if ((iter_isolate < isolate_n) &&
+            (i == isolate_list[iter_isolate]-baseval))
         {
             tmpinvp[new_n+iter_isolate] = i;
             iter_isolate++;

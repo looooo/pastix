@@ -118,7 +118,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
             coloval[2] = colbval[2];
 
 
-            if ( cblk->cblktype & CBLK_DENSE ) {
+            if ( !(cblk->cblktype & CBLK_COMPRESSED) ) {
                 fprintf (stream, "%.2g %.2g %.2g r \n",
                          0.5, 0.5, 0.5);
             }
@@ -196,7 +196,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
                      color,
                      (long) (cblk->fcolnum - solvptr->baseval),
                      (long) (cblk->lcolnum - solvptr->baseval + 1));
-            if ( ! (cblk->cblktype & CBLK_DENSE) ) {
+            if ( cblk->cblktype & CBLK_COMPRESSED ) {
                 fprintf (stream, "%ld\t%ld\t4 copy 3 index exch moveto [ 1 0 0 -1 0 0 ] concat 0.0 0.0 0.0 setrgbcolor (%d) show [ 1 0 0 -1 0 0 ] concat pop\n",
                          (long) (cblk->fcolnum - solvptr->baseval),
                          (long) (cblk->lcolnum - solvptr->baseval + 1),
@@ -215,7 +215,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
                 fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */
                          (long) (blok->frownum - solvptr->baseval),
                          (long) (blok->lrownum - solvptr->baseval + 1));
-                if ( ! (cblk->cblktype & CBLK_DENSE) ) {
+                if ( cblk->cblktype & CBLK_COMPRESSED ) {
                     pastix_int_t nrows       = blok_rownbr( blok );
                     pastix_int_t conso_dense = 2*nrows*ncols;
                     pastix_int_t conso_LR    = 0;

@@ -105,7 +105,7 @@ orderBuildEtree( const Order *order,
  *
  *******************************************************************************
  *
- * @param[in] ordeptr
+ * @param[in] order
  *          The ordering structure to reorder.
  *
  * @param[in] distribution_level
@@ -131,32 +131,36 @@ orderApplyLevelOrder( Order *order,
 
     /* Parameter checks */
     if ( order == NULL ) {
-        errorPrint ("orderCheck: invalid order pointer");
+        errorPrint ("orderApplyLevelOrder: invalid order pointer");
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if ( order->permtab == NULL ) {
-        errorPrint ("orderCheck: invalid order->permtab pointer");
+    if ( (order->permtab == NULL) && (order->vertnbr > 0) ) {
+        errorPrint ("orderApplyLevelOrder: invalid order->permtab pointer");
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( order->rangtab == NULL ) {
-        errorPrint ("orderCheck: invalid order->rangtab pointer");
+        errorPrint ("orderApplyLevelOrder: invalid order->rangtab pointer");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if ( order->treetab == NULL ) {
-        errorPrint ("orderCheck: invalid order->treetab pointer");
+    if ( (order->treetab == NULL) && (order->cblknbr > 0) ) {
+        errorPrint ("orderApplyLevelOrder: invalid order->treetab pointer");
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if (order->cblknbr < 0) {
-        errorPrint ("orderCheck: invalid nunber of column blocks");
+        errorPrint ("orderApplyLevelOrder: invalid nunber of column blocks");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    baseval = order->baseval;
+    if (baseval < 0) {
+        errorPrint ("orderApplyLevelOrder: invalid vertex node base number");
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    baseval = order->baseval;
-    if (baseval < 0) {
-        errorPrint ("orderCheck: invalid vertex node base number");
-        return PASTIX_ERR_BADPARAMETER;
+    /* Quick return */
+    if (order->cblknbr == 0) {
+        return PASTIX_SUCESS;
     }
 
     assert(baseval == order->rangtab[0]);
@@ -168,7 +172,7 @@ orderApplyLevelOrder( Order *order,
 
     /**
      * Build the elimination tree from top to bottom, and store the roots in the
-     * permatb array
+     * permtab array
      */
     etree = orderBuildEtree( &oldorder,
                              &nbroots,

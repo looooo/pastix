@@ -35,6 +35,7 @@ int
 symbolInit ( SymbolMatrix *symbptr )
 {
     memset (symbptr, 0, sizeof (SymbolMatrix));
+    symbptr->schurfcol = -1;
 #ifdef STARPU_GET_TASK_CTX
     symbptr->starpu_subtree_nbr=1;
 #endif

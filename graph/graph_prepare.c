@@ -321,8 +321,6 @@ graphPrepare(      pastix_data_t   *pastix_data,
 #endif
     }
 
-    graphBase( tmpgraph, 1 );
-
     // TODO: take it from the spm or from a parameter
     tmpgraph->dof = 1;
     *graph = tmpgraph;

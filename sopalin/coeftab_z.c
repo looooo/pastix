@@ -67,7 +67,7 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
                 {
                     coefindx  = solvblok->coefind;
                     coefindx += rownum - solvblok->frownum;
-                    if (solvcblk->cblktype & CBLK_SPLIT) {
+                    if (solvcblk->cblktype & CBLK_LAYOUT_2D) {
                         coefindx += itercoltab * blok_rownbr( solvblok );
                     }
                     else {
@@ -205,7 +205,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      * TODO: change the criteria based on the level in the tree
      */
     {
-        if ( cblk->cblktype & CBLK_SPLIT )
+        if ( cblk->cblktype & CBLK_LAYOUT_2D )
         {
             if ( compress_when == PastixCompressWhenBegin ){
                 coeftab_zcompress_one( cblk, solvmtx->lowrank );
@@ -239,7 +239,7 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
     pastix_int_t coefindx;
 
     /* We don't know how to dump the compressed block for now */
-    if ( !(cblk->cblktype & CBLK_DENSE) )
+    if ( cblk->cblktype & CBLK_COMPRESSED )
         return;
 
     for (itercol  = cblk->fcolnum;
@@ -249,7 +249,7 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
         /* Diagonal Block */
         blok     = cblk->fblokptr;
         coefindx = blok->coefind;
-        if (cblk->cblktype & CBLK_SPLIT) {
+        if (cblk->cblktype & CBLK_LAYOUT_2D) {
             coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
         }
         else {
@@ -280,7 +280,7 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
         while( blok < (cblk+1)->fblokptr )
         {
             coefindx  = blok->coefind;
-            if (cblk->cblktype & CBLK_SPLIT) {
+            if (cblk->cblktype & CBLK_LAYOUT_2D) {
                 coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
             }
             else {

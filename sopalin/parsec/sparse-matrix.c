@@ -288,7 +288,7 @@ void sparse_matrix_init( sparse_matrix_desc_t *spmtx,
             cblknumN < cblknbr;
             cblknumN++, n++, cblkN++ )
         {
-            if ( !(cblkN->cblktype & CBLK_SPLIT) )
+            if ( !(cblkN->cblktype & CBLK_LAYOUT_2D) )
                 continue;
 
             /**

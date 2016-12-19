@@ -72,7 +72,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     {
         pastix_print( 0, 0, "-- ||A||_2  =                                   " );
         pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( PastixFrobeniusNorm, spm );
-        pastix_print( 0, 0, "%lg\n", pastix_data->dparm[ DPARM_A_NORM ] );
+        pastix_print( 0, 0, "%e\n", pastix_data->dparm[ DPARM_A_NORM ] );
     }
 
     /**

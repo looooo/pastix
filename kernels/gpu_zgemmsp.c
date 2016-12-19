@@ -122,7 +122,7 @@ gpu_zgemmsp( int uplo, int trans,
 
     /* Move B to the right pointer */
     B = B + indblok;
-    ldb = (cblk->cblktype & CBLK_SPLIT) ? N : stride;
+    ldb = (cblk->cblktype & CBLK_LAYOUT_2D) ? N : stride;
 
     /* Get the first block of the distant panel */
     fblok = fcblk->fblokptr;
@@ -139,10 +139,10 @@ gpu_zgemmsp( int uplo, int trans,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        stridef = (fcblk->cblktype  & CBLK_SPLIT) ? blok_rownbr( fblok ) : stridef;
+        stridef = (fcblk->cblktype  & CBLK_LAYOUT_2D) ? blok_rownbr( fblok ) : stridef;
         params.p[i].M    = blok_rownbr( iterblok );
         params.p[i].Aptr = A + iterblok->coefind;
-        params.p[i].lda  = (cblk->cblktype  & CBLK_SPLIT) ? params.p[i].M : stride;
+        params.p[i].lda  = (cblk->cblktype  & CBLK_LAYOUT_2D) ? params.p[i].M : stride;
         params.p[i].Cptr = C +
             fblok->coefind + iterblok->frownum - fblok->frownum +
             (blok->frownum - fcblk->fcolnum) * stridef;

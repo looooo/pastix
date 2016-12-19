@@ -54,6 +54,7 @@ typedef struct SymbolMatrix_ {
     pastix_int_t            cblknbr;  /*< Number of column blocks                 */
     pastix_int_t            bloknbr;  /*< Number of blocks                        */
     pastix_int_t            nodenbr;  /*< Number of node in the compressed symbol */
+    pastix_int_t            schurfcol;/*< First column of the schur complement    */
     SymbolCblk   * restrict cblktab;  /*< Array of column blocks [+1,based]       */
     SymbolBlok   * restrict bloktab;  /*< Array of blocks [based]                 */
     pastix_int_t * restrict browtab;  /*< Array of blocks [based]                 */

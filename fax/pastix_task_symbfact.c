@@ -162,6 +162,10 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     }
     n = ordemesh->vertnbr;
 
+    /* Make sure they are both 0-based */
+    orderBase( ordemesh, 0 );
+    graphBase( graph, 0 );
+
     print_debug(DBG_STEP, "-> pastix_task_symbfact\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print(procnum, 0, OUT_STEP_FAX );
@@ -323,6 +327,9 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
             if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
         }
+
+        /* Set the beginning of the Schur complement */
+        pastix_data->symbmtx->schurfcol = nfax - pastix_data->schur_n + pastix_data->symbmtx->baseval;
 
         if ( graph->loc2glob != NULL )
         {

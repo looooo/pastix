@@ -44,7 +44,7 @@ k = 0 .. cblknbr
 browk0    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brownum; %}
 browk1    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
-isTwoD    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+isTwoD    = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_TASKS_2D; %}
 firstblok = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab + 1; %}
 lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 
@@ -102,7 +102,7 @@ lcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return
 fcblknm = inline_c %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
 first   = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->brownum; %}
 last    = inline_c %{ SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->brownum - 1; %}
-isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + lcblknm;     return cblk->cblktype & CBLK_SPLIT; %}
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + lcblknm;     return cblk->cblktype & CBLK_TASKS_2D; %}
 
 brownum = inline_c %{ return datacode->bloktab[bloknum].browind; %} /* -1 if diagonal block */
 prev = inline_c %{
@@ -181,7 +181,7 @@ OneToTwoD(k, m, s)
 // Execution space
 k    = cblkmin2d .. cblknbr
 
-isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_TASKS_2D; %}
 fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
 lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 m       = 0 .. (isTwoD ? (lblokk-fblokk) : -1 )
@@ -222,7 +222,7 @@ GETRF2D(k)
 
 // Execution space
 k       = cblkmin2d .. cblknbr
-isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_TASKS_2D; %}
 fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
 lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 
@@ -264,7 +264,7 @@ TRSM2D(k, m, s)
      /* On all the 2D cblk */
 k       = cblkmin2d .. cblknbr-1
 
-isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+isTwoD  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_TASKS_2D; %}
 fblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
 lblokk  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 m       = 1 .. (isTwoD ? (lblokk-fblokk) : 0 )
@@ -303,27 +303,27 @@ BODY
 {
     if (isTwoD && noskip) {
         SolverCblk *cblk = datacode->cblktab + k;
-        if (cblk->cblktype & CBLK_DENSE){
-	        if (s == 0) {
-	            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit,
-	                                cblk, m, A, C );
-	        } else {
-	            core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixUnit,
-	                                cblk, m, A, C );
-	        }
+        if (cblk->cblktype & CBLK_COMPRESSED){
+            if (s == 0) {
+                core_ztrsmsp_2dlrsub( PastixLCoef, PastixRight, PastixUpper,
+                                      PastixNoTrans, PastixNonUnit,
+                                      cblk, m, &lowrank );
+            } else {
+                core_ztrsmsp_2dlrsub( PastixUCoef, PastixRight, PastixUpper,
+                                      PastixNoTrans, PastixUnit,
+                                      cblk, m, &lowrank );
+            }
         }
         else{
-	        if (s == 0) {
-	            core_ztrsmsp_2dlrsub( PastixLCoef, PastixRight, PastixUpper,
-                                          PastixNoTrans, PastixNonUnit,
-	                                  cblk, m, &lowrank );
-	        } else {
-	            core_ztrsmsp_2dlrsub( PastixUCoef, PastixRight, PastixUpper,
-                                          PastixNoTrans, PastixUnit,
-	                                  cblk, m, &lowrank );
-	        }
+            if (s == 0) {
+                core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit,
+                                    cblk, m, A, C );
+            } else {
+                core_ztrsmsp_2dsub( PastixRight, PastixUpper, PastixNoTrans, PastixUnit,
+                                    cblk, m, A, C );
+            }
         }
-   }
+    }
 }
 END
 
@@ -331,7 +331,7 @@ FWDTOGEMM2D(k, m, n, s)
 
 // Execution space
 k       = cblkmin2d .. cblknbr-1
-isTwoD  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_SPLIT; %}
+isTwoD  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->cblktype & CBLK_TASKS_2D; %}
 fblokk  = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokptr - datacode->bloktab; %}
 lblokk  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 m       = 1 .. (isTwoD ? (lblokk-fblokk) : 0 )
@@ -414,7 +414,7 @@ GEMM2D(k, blok_mn, cblk_n, s)
 // Execution space
 cblk_n  = cblkmin2d+1 .. cblknbr
 
-is2dC   = %{ SolverCblk *cblk = datacode->cblktab + cblk_n; return (cblk->cblktype & CBLK_SPLIT); %}
+is2dC   = %{ SolverCblk *cblk = datacode->cblktab + cblk_n; return (cblk->cblktype & CBLK_TASKS_2D); %}
 fblokn  = %{ SolverCblk *cblk = datacode->cblktab + cblk_n;     return cblk->fblokptr - datacode->bloktab; %}
 lblokn  = %{ SolverCblk *cblk = datacode->cblktab + cblk_n + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 blok_mn = 0 .. (is2dC ? (lblokn-fblokn) : -1)
@@ -437,7 +437,7 @@ blok_nk = %{ pastix_int_t nk = datacode->browtab[ k ];
 cblk_k  = %{ SolverBlok *blok = datacode->bloktab + blok_nk; return blok->lcblknm; %}
 fblokk  = %{ SolverCblk *cblk = datacode->cblktab + cblk_k;  return cblk->fblokptr - datacode->bloktab; %}
 
-is2dA   = %{ SolverCblk *cblk = datacode->cblktab + cblk_k; return (cblk->cblktype & CBLK_SPLIT); %}
+is2dA   = %{ SolverCblk *cblk = datacode->cblktab + cblk_k; return (cblk->cblktype & CBLK_TASKS_2D); %}
 
 blok_mk = %{
     if ( blok_nk == 0 ) {
@@ -491,40 +491,44 @@ BODY
         SolverCblk *fcblk = datacode->cblktab + cblk_n;
 
         /* Skip the update on diagonal block if upper part */
-        if ((cblk->cblktype & CBLK_DENSE) && (fcblk->cblktype & CBLK_DENSE)){
-	        if ( s == 0 ) {
-	            assert(A && B && C);
-	            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
-	                                  blok_mk, blok_nk-fblokk, blok_mn,
-	                                  cblk, fcblk,
-	                                  A, B, C );
-	        }
-	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
-	            assert(A && B && C);
-	            core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
-	                                  blok_mk, blok_nk-fblokk, blok_mn,
-	                                  cblk, fcblk,
-	                                  A, B, C );
-	        }
+        if ((cblk->cblktype  & CBLK_COMPRESSED) &&
+            (fcblk->cblktype & CBLK_COMPRESSED))
+        {
+            if ( s == 0 ) {
+                //; assert(A && B && C);
+                core_zgemmsp_2dlrsub( PastixLCoef, PastixUpperLower, PastixTrans,
+                                      blok_mk, blok_nk-fblokk, blok_mn,
+                                      cblk, fcblk,
+                                      &lowrank );
+            }
+            else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
+                //; assert(A && B && C);
+                core_zgemmsp_2dlrsub( PastixUCoef, PastixUpperLower, PastixTrans,
+                                      blok_mk, blok_nk-fblokk, blok_mn,
+                                      cblk, fcblk,
+                                      &lowrank );
+            }
         }
-        else if (!(cblk->cblktype & CBLK_DENSE) && !(fcblk->cblktype & CBLK_DENSE)){
-	        if ( s == 0 ) {
-	            //; assert(A && B && C);
-	            core_zgemmsp_2dlrsub( PastixLCoef, PastixUpperLower, PastixTrans,
-	                                  blok_mk, blok_nk-fblokk, blok_mn,
-	                                  cblk, fcblk,
-	                                  &lowrank );
-	        }
-	        else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
-	            //; assert(A && B && C);
-	            core_zgemmsp_2dlrsub( PastixUCoef, PastixUpperLower, PastixTrans,
-	                                  blok_mk, blok_nk-fblokk, blok_mn,
-	                                  cblk, fcblk,
-	                                  &lowrank );
-                }
+        else if (!(cblk->cblktype  & CBLK_COMPRESSED) &&
+                 !(fcblk->cblktype & CBLK_COMPRESSED))
+        {
+            if ( s == 0 ) {
+                assert(A && B && C);
+                core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
+                                      blok_mk, blok_nk-fblokk, blok_mn,
+                                      cblk, fcblk,
+                                      A, B, C );
+            }
+            else if ( (s == 1) && (blok_mk != (blok_nk-fblokk)) ) {
+                assert(A && B && C);
+                core_zgemmsp_2d2dsub( PastixUpperLower, PastixTrans,
+                                      blok_mk, blok_nk-fblokk, blok_mn,
+                                      cblk, fcblk,
+                                      A, B, C );
+            }
         }
         else{
-                assert(0);
+            assert(0);
         }
     }
 }

@@ -52,6 +52,10 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     {
         cblk = datacode->cblktab + datacode->cblknbr - 1;
         for (i=0; i<datacode->cblknbr; i++, cblk--){
+
+            if ( cblk->cblktype & CBLK_IN_SCHUR )
+                continue;
+
             solve_ztrsmsp( side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
@@ -66,6 +70,10 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     {
         cblk = datacode->cblktab;
         for (i=0; i<datacode->cblknbr; i++, cblk++){
+
+            if ( cblk->cblktype & CBLK_IN_SCHUR )
+                break;
+
             solve_ztrsmsp( side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
@@ -95,6 +103,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
     int nrhs  = arg->nrhs;
     int ldb   = arg->ldb;
     SolverCblk *cblk;
+    SolverBlok *blok;
     Task       *t;
     pastix_int_t i,ii;
     pastix_int_t tasknbr, *tasktab;
@@ -114,7 +123,16 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             i = tasktab[ii];
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
-            cblk->ctrbcnt = (cblk[1].fblokptr-cblk[0].fblokptr)-1;
+
+            /* Start with the last block of the column */
+            blok = (cblk[1].fblokptr) - 1;
+            while( (blok > cblk[0].fblokptr) &&
+                   (datacode->cblktab + blok->fcblknm)->cblktype & CBLK_IN_SCHUR )
+            {
+                /* Move up as long as facing Schur */
+                blok--;
+            }
+            cblk->ctrbcnt = (blok - cblk[0].fblokptr);
         }
         isched_barrier_wait( &(ctx->global_ctx->barrier) );
 
@@ -122,6 +140,9 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             i = tasktab[ii];
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
+
+            if ( cblk->cblktype & CBLK_IN_SCHUR )
+                continue;
 
             /* Wait */
             do {} while( cblk->ctrbcnt );
@@ -152,6 +173,9 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             i = tasktab[ii];
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
+
+            if ( cblk->cblktype & CBLK_IN_SCHUR )
+                continue;
 
             /* Wait */
             do {} while( cblk->ctrbcnt );

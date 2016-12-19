@@ -64,11 +64,11 @@ orderCheck (const Order * const  ordeptr)
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if (ordeptr->permtab == NULL) {
+    if ( (ordeptr->permtab == NULL) && (ordeptr->vertnbr > 0) ) {
         errorPrint ("orderCheck: permtab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (ordeptr->peritab == NULL) {
+    if ( (ordeptr->peritab == NULL) && (ordeptr->vertnbr > 0) ) {
         errorPrint ("orderCheck: peritab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
@@ -76,7 +76,7 @@ orderCheck (const Order * const  ordeptr)
         errorPrint ("orderCheck: rangtab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (ordeptr->treetab == NULL) {
+    if ( (ordeptr->treetab == NULL) && (ordeptr->cblknbr > 0) ) {
         errorPrint ("orderCheck: treetab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
@@ -136,7 +136,7 @@ orderCheck (const Order * const  ordeptr)
             return PASTIX_ERR_BADPARAMETER;
         }
     }
-    if (ordeptr->treetab[rangnum] != (baseval-1))
+    if ((rangnum > 0) && (ordeptr->treetab[rangnum] != (baseval-1)))
     {
         errorPrint ("orderCheck: invalid father for cblknbr-1 node");
         return PASTIX_ERR_BADPARAMETER;

@@ -126,7 +126,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;                 /* min blocksize                                        */
     iparm[IPARM_MAX_BLOCKSIZE]         = 320;                 /* max blocksize (at least 2*min_blocksize)             */
     iparm[IPARM_COMPRESS_SIZE]         = 120;                 /* minimum size to compress a supernode */
-    iparm[IPARM_COMPRESS_WHEN]         = PastixCompressWhenEnd;    /* when to compress */
+    iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;    /* when to compress */
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR; /* compression technique */
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */
     iparm[IPARM_ISOLATE_ZEROS]         = API_NO;              /* Isolate null diagonal terms at the end of the matrix */
@@ -154,7 +154,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_NB_SMP_NODE_USED]      = 0;                   /* Nb SMP node used (0 for 1 per MPI process) */
     iparm[IPARM_MURGE_REFINEMENT]      = API_YES;
     iparm[IPARM_TRANSPOSE_SOLVE]       = API_NO;
-
 
     /**
      * Communication modes
@@ -187,7 +186,6 @@ pastixInitParam( pastix_int_t *iparm,
         }
     }
 #endif /* defined(PASTIX_WITH_MPI) */
-
 
     iparm[IPARM_NB_THREAD_COMM]     = 1;                   /* Nb thread quand iparm[IPARM_THREAD_COMM_MODE] == API_THCOMM_DEFINED */
     iparm[IPARM_FILL_MATRIX]        = API_NO;              /* fill matrix */

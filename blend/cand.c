@@ -35,7 +35,7 @@ candInit( Cand *candtab,
         candtab[i].fccandnum = -1;
         candtab[i].lccandnum = -1;
         candtab[i].cluster   = -1;
-        candtab[i].cblktype  = CBLK_DENSE | CBLK_SPLIT;
+        candtab[i].cblktype  = CBLK_LAYOUT_2D | CBLK_TASKS_2D;
     }
 }
 
@@ -171,13 +171,19 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
 {
     pastix_int_t i, son;
 
-    if(cblktype & CBLK_SPLIT) {
+    if ( (cblktype & CBLK_IN_SCHUR) &&
+         (symbmtx->cblktab[ rootnum ].lcolnum < symbmtx->schurfcol) )
+    {
+        cblktype &= ~(CBLK_IN_SCHUR);
+    }
+
+    if(cblktype & CBLK_TASKS_2D) {
         pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
 
         if((ratiolimit >= 0) && (width >= ratiolimit))
             candtab[ rootnum ].cblktype = cblktype;
         else
-            candtab[ rootnum ].cblktype = cblktype & (~CBLK_SPLIT);
+            candtab[ rootnum ].cblktype = cblktype & (~CBLK_TASKS_2D);
     }
     else {
         candtab[ rootnum ].cblktype = cblktype;
@@ -191,18 +197,25 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
 }
 
 static inline void
-candDistribWithDepth( pastix_int_t depth,
-                      pastix_int_t cblknbr,
-                      Cand        *candtab )
+candDistribWithDepth( pastix_int_t        depth,
+                      const SymbolMatrix *symbmtx,
+                      Cand               *candtab )
 {
-    pastix_int_t i;
+    pastix_int_t i, cblknbr, schurfcol;
+
+    cblknbr   = symbmtx->cblknbr;
+    schurfcol = symbmtx->schurfcol;
 
     for(i=0;i<cblknbr;i++)
     {
         if( candtab[i].treelevel > depth )
-            candtab[i].cblktype = CBLK_DENSE | CBLK_SPLIT;
+            candtab[i].cblktype = CBLK_LAYOUT_2D | CBLK_TASKS_2D;
         else
-            candtab[i].cblktype = CBLK_DENSE;
+            candtab[i].cblktype = CBLK_LAYOUT_2D;
+
+        if ( symbmtx->cblktab[ i ].fcolnum >= schurfcol ) {
+            candtab[i].cblktype &= CBLK_IN_SCHUR;
+        }
     }
 }
 
@@ -225,12 +238,12 @@ candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit
     if(autolevel)
     {
         candSubTreeDistribWithSize( eTreeRoot(etree),
-                                    CBLK_DENSE | CBLK_SPLIT,
+                                    CBLK_LAYOUT_2D | CBLK_TASKS_2D | CBLK_IN_SCHUR,
                                     ratiolimit,
                                     candtab, etree, symbmtx );
     }
     else
     {
-        candDistribWithDepth( -level2D, symbmtx->cblknbr, candtab );
+        candDistribWithDepth( -level2D, symbmtx, candtab );
     }
 }

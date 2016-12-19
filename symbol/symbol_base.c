@@ -50,6 +50,8 @@ symbolBase ( SymbolMatrix * const symbptr,
 
     symbptr->baseval = baseval;           /* Set graph base */
 
+    symbptr->schurfcol += baseadj;
+
     cblk = symbptr->cblktab;
     for (cblknum = 0; cblknum <= symbptr->cblknbr; cblknum ++, cblk++) {
         cblk->fcolnum += baseadj;

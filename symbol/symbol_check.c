@@ -100,6 +100,13 @@ symbolCheck(const SymbolMatrix * const  symbptr)
 
     assert( (cblktax[cblknum].brownum == -1) ||
             (cblktax[cblknum].brownum == (symbptr->bloknbr - symbptr->cblknbr)) );
+
+    /* Check that schur starts within the symbol */
+    if ( (symbptr->schurfcol < 0) || (symbptr->schurfcol > (symbptr->nodenbr + 1)) ) {
+        errorPrint ("symbolCheck: invalid schurfcol");
+        assert(0);
+        return     (1);
+    }
     return (0);
 }
 

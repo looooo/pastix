@@ -37,8 +37,9 @@
  * @param[in] perm
  *          Array of size new_n that must be 0-based.
  *          The permutation array that isolated the extra vertices at the end of
- *          the graph. this permutation will be combined with the one stored in
+ *          the graph. This permutation will be combined with the one stored in
  *          ordemesh to generate a permutation array for the full graph.
+ *          This permutation must be 0-based.
  *
  *******************************************************************************
  *
@@ -92,7 +93,8 @@ orderAddIsolate(       Order        *ordemesh,
     ordemesh->baseval = baseval;
     for(i=0; i< new_n; i++) {
         ip = perm[i];
-        if (ip < n-baseval)
+        assert(ip < new_n);
+        if (ip < n)
             ordemesh->permtab[i] = ordesave.permtab[ ip ];
         else
             ordemesh->permtab[i] = ip+baseval;
@@ -105,12 +107,12 @@ orderAddIsolate(       Order        *ordemesh,
 
     /* Copy the cblknbr+1 first element of old rangtab and add last element */
     assert( ordesave.rangtab != NULL );
-    memcpy( &(ordemesh->rangtab), &(ordesave.rangtab), ordemesh->cblknbr * sizeof(pastix_int_t) );
+    memcpy( ordemesh->rangtab, ordesave.rangtab, (ordesave.cblknbr+1) * sizeof(pastix_int_t) );
     ordemesh->rangtab[ ordemesh->cblknbr ] = new_n + baseval;
 
     /* We connect each roots of the elimination forest to the new cblk (shur or isolated terms) */
     assert( ordesave.treetab != NULL );
-    memcpy( &(ordemesh->treetab), &(ordesave.treetab), ordesave.cblknbr * sizeof(pastix_int_t) );
+    memcpy( ordemesh->treetab, ordesave.treetab, ordesave.cblknbr * sizeof(pastix_int_t) );
     for(i=0; i < ordesave.cblknbr; i++)  {
         assert( ordemesh->treetab[i] != i );
         /* This was a root, we connect it to the last one */

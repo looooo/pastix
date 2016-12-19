@@ -214,13 +214,19 @@ orderComputeScotch( pastix_data_t  *pastix_data,
     if (ordemesh->rangtab != NULL) memFree_null(ordemesh->rangtab);
     if (ordemesh->treetab != NULL) memFree_null(ordemesh->treetab);
 #else
-    /* Redimensionnement de rangtab a cblknbr */
+    /**
+     * Adapt size of rangtab and treetab to the new cblknbr
+     * WARNING: If no nodes in the graph, nothing has been initialized.
+     */
     ordemesh->rangtab =
         (pastix_int_t *) memRealloc (ordemesh->rangtab,
                                      (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
     ordemesh->treetab =
         (pastix_int_t *) memRealloc (ordemesh->treetab,
                                      (ordemesh->cblknbr)*sizeof (pastix_int_t));
+    if (ordemesh->cblknbr == 0) {
+        ordemesh->rangtab[0] = 0;
+    }
 #endif
 
     return PASTIX_SUCCESS;

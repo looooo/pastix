@@ -359,7 +359,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
         return retval;
 
     /* Rebase the ordering to 0 (for orderFindSupernodes) */
-    orderBase(ordemesh, 0);
+    orderBase( ordemesh, 0 );
 
     /*
      * If the rangtab or the treetab are not initialized, let's find it ourself

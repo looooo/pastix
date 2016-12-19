@@ -89,7 +89,7 @@ core_ztrsmsp_1d( int side, int uplo, int trans, int diag,
     /* if there is an extra-diagonal bloc in column block */
     assert( fblok + 1 < cblk[1].fblokptr );
     assert( blok_rownbr( fblok) == N );
-    assert(!(cblk->cblktype & CBLK_SPLIT));
+    assert(!(cblk->cblktype & CBLK_LAYOUT_2D));
 
     /* first extra-diagonal bloc in column block address */
     C = C + fblok[1].coefind;
@@ -166,7 +166,7 @@ core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
     lda   = blok_rownbr( fblok );
 
     assert( blok_rownbr(fblok) == N );
-    assert( cblk->cblktype & CBLK_SPLIT );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
     for (blok=fblok+1; blok<lblok; blok++) {
 
@@ -254,7 +254,7 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
     lda   = blok_rownbr( fblok );
 
     assert( blok_rownbr(fblok) == N );
-    assert( cblk->cblktype & CBLK_SPLIT );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
     blok   = fblok + blok_m;
     offset = blok->coefind;
@@ -334,8 +334,8 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
 
     assert( lrA->rk == -1 );
     assert( blok_rownbr(fblok) == N );
-    assert( cblk->cblktype & CBLK_SPLIT );
-    assert( !(cblk->cblktype & CBLK_DENSE) );
+    assert( cblk->cblktype & CBLK_COMPRESSED );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D  );
 
     for (blok=fblok+1; blok<lblok; blok++) {
 
@@ -446,10 +446,11 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
     A     = lrA->u;
     lda   = lrA->rkmax;
 
+    assert( cblk->cblktype & CBLK_COMPRESSED );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D  );
+
     assert( blok_rownbr(fblok) == N );
-    assert( cblk->cblktype & CBLK_SPLIT );
     assert( lrA->rk == -1 );
-    assert( !(cblk->cblktype & CBLK_DENSE) );
 
     blok   = fblok + blok_m;
     cblk_m = blok->fcblknm;
@@ -549,12 +550,12 @@ void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
                    pastix_lr_t *lowrank )
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
-        if ( !(cblk->cblktype & CBLK_DENSE) ) {
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
             core_ztrsmsp_2dlr( coef, side, uplo, trans, diag,
                                cblk, lowrank );
         }
         else {
-            if ( cblk->cblktype & CBLK_SPLIT ) {
+            if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
                 core_ztrsmsp_2d( side, uplo, trans, diag,
                                  cblk, A, C );
             }
@@ -624,18 +625,19 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
     pastix_lrblock_t *lrA;
 
     tempn = cblk->lcolnum - cblk->fcolnum + 1;
-    lda = (cblk->cblktype & CBLK_SPLIT) ? blok_rownbr( cblk->fblokptr ) : cblk->stride;
+    lda = (cblk->cblktype & CBLK_LAYOUT_2D) ? blok_rownbr( cblk->fblokptr ) : cblk->stride;
 
     /*
-     *  Left / Upper / NoTrans
+     *  Left / Upper / NoTrans (Backward)
      */
     if (side == PastixLeft) {
         if (uplo == PastixUpper) {
-            if ( cblk->cblktype & CBLK_DENSE ) {
-                A = (pastix_complex64_t*)(cblk->ucoeftab);
-            } else {
+            if ( cblk->cblktype & CBLK_COMPRESSED ) {
                 A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[1].u);
                 assert( cblk->fblokptr->LRblock[1].rkmax == lda );
+            }
+            else {
+                A = (pastix_complex64_t*)(cblk->ucoeftab);
             }
 
             /*  We store U^t, so we swap uplo and trans */
@@ -656,10 +658,10 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                     tempn = blok->lrownum - blok->frownum + 1;
                     A   = (pastix_complex64_t*)(fcbk->ucoeftab);
-                    lda = (fcbk->cblktype & CBLK_SPLIT) ? tempn : fcbk->stride;
+                    lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
 
                     pastix_cblk_lock( fcbk );
-                    if ( !(fcbk->cblktype & CBLK_DENSE) ) {
+                    if ( fcbk->cblktype & CBLK_COMPRESSED ) {
                         lrA = blok->LRblock + 1;
 
                         switch (lrA->rk){
@@ -705,7 +707,7 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                 }
             }
             /*
-             *  Left / Upper / [Conj]Trans
+             *  Left / Upper / [Conj]Trans (Forward)
              */
             else {
                 assert(0 /* Not implemented */);
@@ -715,46 +717,14 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
             A = (pastix_complex64_t*)(cblk->lcoeftab);
 
             /*
-             *  Left / Lower / NoTrans
+             *  Left / Lower / NoTrans (Forward)
              */
             if (trans == PastixNoTrans) {
 
                 /* In sequential */
                 assert( cblk->fcolnum == cblk->lcolidx );
 
-                if ( cblk->cblktype & CBLK_DENSE ) {
-
-                    /* Solve the diagonal block */
-                    cblas_ztrsm(
-                        CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
-                        tempn, nrhs,
-                        CBLAS_SADDR(zone), A, lda,
-                                           b + cblk->lcolidx, ldb );
-
-                    /* Apply the update */
-                    for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
-                        fcbk  = datacode->cblktab + blok->fcblknm;
-                        tempm = blok->lrownum - blok->frownum + 1;
-
-                        assert( blok->frownum >= fcbk->fcolnum );
-                        assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
-
-                        lda = (cblk->cblktype & CBLK_SPLIT) ? tempm : cblk->stride;
-
-                        pastix_cblk_lock( fcbk );
-                        cblas_zgemm(
-                            CblasColMajor, CblasNoTrans, CblasNoTrans,
-                            tempm, nrhs, tempn,
-                            CBLAS_SADDR(mzone), A + blok->coefind, lda,
-                                                b + cblk->lcolidx, ldb,
-                            CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
-
-                        pastix_cblk_unlock( fcbk );
-                        pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
-                    }
-
-                } else {
+                if ( cblk->cblktype & CBLK_COMPRESSED ) {
 
                     /* Solve the diagonal block */
                     lrA = cblk->fblokptr->LRblock;
@@ -771,6 +741,10 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                         tempm = blok->lrownum - blok->frownum + 1;
                         lrA   = blok->LRblock;
 
+                        /* Do not solve the schur */
+                        if (fcbk->cblktype & CBLK_IN_SCHUR ) {
+                            break;
+                        }
                         assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
@@ -810,17 +784,54 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                         pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
                     }
                 }
+                else {
+                    /* Solve the diagonal block */
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        CblasNoTrans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs,
+                        CBLAS_SADDR(zone), A, lda,
+                                           b + cblk->lcolidx, ldb );
+
+                    /* Apply the update */
+                    for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
+                        fcbk  = datacode->cblktab + blok->fcblknm;
+                        tempm = blok->lrownum - blok->frownum + 1;
+
+                        /* Do not solve the schur */
+                        if (fcbk->cblktype & CBLK_IN_SCHUR ) {
+                            break;
+                        }
+
+                        assert( blok->frownum >= fcbk->fcolnum );
+                        assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
+
+                        lda = (cblk->cblktype & CBLK_LAYOUT_2D) ? tempm : cblk->stride;
+
+                        pastix_cblk_lock( fcbk );
+                        cblas_zgemm(
+                            CblasColMajor, CblasNoTrans, CblasNoTrans,
+                            tempm, nrhs, tempn,
+                            CBLAS_SADDR(mzone), A + blok->coefind, lda,
+                                                b + cblk->lcolidx, ldb,
+                            CBLAS_SADDR(zone),  b + fcbk->lcolidx + blok->frownum - fcbk->fcolnum, ldb );
+
+                        pastix_cblk_unlock( fcbk );
+                        pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
+                    }
+
+                }
             }
             /*
-             *  Left / Lower / [Conj]Trans
+             *  Left / Lower / [Conj]Trans (Backward)
              */
             else {
 
-                if ( cblk->cblktype & CBLK_DENSE ) {
-                    A = (pastix_complex64_t*)(cblk->lcoeftab);
-                } else {
+                if ( cblk->cblktype & CBLK_COMPRESSED ) {
                     A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0].u);
                     assert( cblk->fblokptr->LRblock[0].rkmax == lda );
+                } else {
+                    A = (pastix_complex64_t*)(cblk->lcoeftab);
                 }
 
                 /* Solve the diagonal block */
@@ -838,10 +849,10 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
                     tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                     tempn = blok->lrownum - blok->frownum + 1;
                     A   = (pastix_complex64_t*)(fcbk->lcoeftab);
-                    lda = (fcbk->cblktype & CBLK_SPLIT) ? tempn : fcbk->stride;
+                    lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
 
                     pastix_cblk_lock( fcbk );
-                    if ( ! (fcbk->cblktype & CBLK_DENSE)) {
+                    if ( fcbk->cblktype & CBLK_COMPRESSED ) {
                         lrA = blok->LRblock;
 
                         switch (lrA->rk){
@@ -895,5 +906,3 @@ void solve_ztrsmsp( int side, int uplo, int trans, int diag,
         assert(0 /* Not implemented */);
     }
 }
-
-

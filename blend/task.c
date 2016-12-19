@@ -30,7 +30,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
     /* Count number of task */
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        if ( candtab[i].cblktype & (~CBLK_SCHUR) ) {
+        if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
             tasknbr++;
         }
     }
@@ -45,7 +45,7 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
     tasknbr = 0;
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        if ( candtab[i].cblktype & (~CBLK_SCHUR) ) {
+        if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
             task->taskid   = COMP_1D;
             task->prionum  = -1;
             task->cblknum  = i;
