@@ -567,15 +567,15 @@ core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
                                u1u2, M, R, rank );
     assert(ret == 0);
 
-    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
-                                R, rank, NULL );
-    relative_tolerance = tol * norm;
-
     cblas_ztrmm(CblasColMajor,
                 CblasRight, CblasLower,
                 CblasNoTrans, CblasNonUnit,
                 rank, rank, CBLAS_SADDR(zone),
                 v1v2, rank, R, rank);
+
+    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
+                               R, rank, NULL );
+    relative_tolerance = tol * norm;
 
     /**
      * Compute svd(R) = u \sigma v^t

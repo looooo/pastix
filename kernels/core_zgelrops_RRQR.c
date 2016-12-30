@@ -150,13 +150,13 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
 
             pvt = rk + cblas_izamax(n-rk, VN1 + rk, 1);
 
-            if (VN1[pvt] < tol){
+            if (VN1[pvt] <= tol){
                 double residual = 0.;
                 pastix_int_t i;
                 for (i=rk; i<n; i++){
                     residual += VN1[i]*VN1[i];
                 }
-                if (sqrt(residual) < tol)
+                if (sqrt(residual) <= tol)
                     return rk;
             }
 
