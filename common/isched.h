@@ -73,6 +73,7 @@ struct isched_s {
 #define isched_topo_init               isched_nohwloc_init
 #define isched_topo_destroy            isched_nohwloc_destroy
 #define isched_topo_bind_on_core_index isched_nohwloc_bind_on_core_index
+#define isched_topo_unbind             isched_nohwloc_unbind
 #define isched_topo_world_size         isched_nohwloc_world_size
 #endif
 

@@ -23,17 +23,17 @@
 #include "common.h"
 #include "isched.h"
 
-#if defined(ARCH_COMPAQ)
+#if defined(PASTIX_ARCH_COMPAQ)
 #  include <sys/types.h>
 #  include <sys/resource.h>
 #  include <sys/processor.h>
 #  include <sys/sysinfo.h>
 #  include <machine/hal_sysinfo.h>
 #  define X_INCLUDE_CXML
-#elif defined(HAVE_SCHED_SETAFFINITY)
+#elif defined(PASTIX_HAVE_SCHED_SETAFFINITY)
 #  include <linux/unistd.h>
 #  include <sched.h>
-#elif defined(MAC_OS_X)
+#elif defined(PASTIX_OS_MACOS)
 #  include <mach/mach_init.h>
 #  include <mach/thread_policy.h>
 /**
@@ -53,11 +53,11 @@ static volatile int topo_initialized = 0;
 int isched_nohwloc_init() {
     pthread_mutex_lock(&mutextopo);
     if ( !topo_initialized ) {
-#if (defined PLASMA_OS_LINUX) || (defined PLASMA_OS_FREEBSD) || (defined PLASMA_OS_AIX)
+#if defined(PASTIX_OS_LINUX) || defined(PASTIX_OS_FREEBSD) || defined(PASTIX_OS_AIX)
 
         sys_corenbr = sysconf(_SC_NPROCESSORS_ONLN);
 
-#elif (defined PLASMA_OS_MACOS)
+#elif defined(PASTIX_OS_MACOS)
 
         int mib[4];
         int cpu;
@@ -77,13 +77,15 @@ int isched_nohwloc_init() {
             cpu = 1;
         }
         sys_corenbr = cpu;
-#elif (defined PLASMA_OS_WINDOWS)
+#elif defined(PASTIX_OS_WINDOWS)
         SYSTEM_INFO sysinfo;
         GetSystemInfo(&sysinfo);
         sys_corenbr = sysinfo.dwNumberOfProcessors;
 #endif
     }
     pthread_mutex_unlock(&mutextopo);
+
+    return 0;
 }
 
 int isched_nohwloc_destroy(){
@@ -99,45 +101,47 @@ int isched_nohwloc_world_size()
 
 int isched_nohwloc_bind_on_core_index(int cpu)
 {
+    if( -1 == cpu )  /* Don't try binding if not required */
+        return -1;
+
     if ( !topo_initialized )
         isched_nohwloc_init();
 
-#if defined(HAVE_SCHED_SETAFFINITY)
+#if defined(PASTIX_HAVE_SCHED_SETAFFINITY)
     {
         cpu_set_t mask;
         CPU_ZERO(&mask);
         CPU_SET(cpu, &mask);
 
-#if defined(HAVE_OLD_SCHED_SETAFFINITY)
+#if defined(PASTIX_HAVE_OLD_SCHED_SETAFFINITY)
         if(sched_setaffinity(0,&mask) < 0)
-#else /* HAVE_OLD_SCHED_SETAFFINITY */
+#else /* PASTIX_HAVE_OLD_SCHED_SETAFFINITY */
         if(sched_setaffinity(0,sizeof(mask),&mask) < 0)
-#endif /* HAVE_OLD_SCHED_SETAFFINITY */
+#endif /* PASTIX_HAVE_OLD_SCHED_SETAFFINITY */
         {
             return -1;
         }
     }
-#elif defined(ARCH_PPC)
+#elif defined(PASTIX_ARCH_PPC)
     {
         tid_t self_ktid = thread_self();
         bindprocessor(BINDTHREAD, self_ktid, cpu*2);
     }
-#elif defined(ARCH_COMPAQ)
+#elif defined(PASTIX_ARCH_COMPAQ)
     {
         bind_to_cpu_id(getpid(), cpu, 0);
     }
-#elif defined(MAC_OS_X)
+#elif defined(PASTIX_OS_MACOS)
     {
         thread_affinity_policy_data_t ap;
         int                           ret;
 
         ap.affinity_tag = 1; /* non-null affinity tag */
         ret = thread_policy_set(
-                                mach_thread_self(),
-                                THREAD_AFFINITY_POLICY,
-                                (integer_t*) &ap,
-                                THREAD_AFFINITY_POLICY_COUNT
-                                );
+            mach_thread_self(),
+            THREAD_AFFINITY_POLICY,
+            (integer_t*) &ap,
+            THREAD_AFFINITY_POLICY_COUNT );
         if(ret != 0) {
             return -1;
         }
@@ -152,13 +156,13 @@ int isched_nohwloc_unbind()
     if ( !topo_initialized )
         isched_nohwloc_init();
 
-#ifndef PLASMA_AFFINITY_DISABLE
-#if (defined PLASMA_OS_LINUX) || (defined PLASMA_OS_FREEBSD)
+#if !defined(PASTIX_AFFINITY_DISABLE)
+#if defined(PASTIX_OS_LINUX) || defined(PASTIX_OS_FREEBSD)
     {
         int i;
-#if (defined PLASMA_OS_LINUX)
+#if defined(PASTIX_OS_LINUX)
         cpu_set_t set;
-#elif (defined PLASMA_OS_FREEBSD)
+#elif defined(PASTIX_OS_FREEBSD)
         cpuset_t set;
 #endif
         CPU_ZERO( &set );
@@ -166,23 +170,23 @@ int isched_nohwloc_unbind()
         for(i=0; i<sys_corenbr; i++)
             CPU_SET( i, &set );
 
-#if (defined HAVE_OLD_SCHED_SETAFFINITY)
+#if defined(HAVE_OLD_SCHED_SETAFFINITY)
         if( sched_setaffinity( 0, &set ) < 0 )
 #else /* HAVE_OLD_SCHED_SETAFFINITY */
-#if (defined PLASMA_OS_LINUX)
+#if defined(PASTIX_OS_LINUX)
         if( sched_setaffinity( 0, sizeof(set), &set) < 0 )
-#elif (defined PLASMA_OS_FREEBSD)
+#elif defined(PASTIX_OS_FREEBSD)
         if( cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, 0, sizeof(set), &set) < 0 )
 #endif
 #endif /* HAVE_OLD_SCHED_SETAFFINITY */
             {
-                plasma_warning("plasma_unsetaffinity", "Could not unbind thread");
-                return PLASMA_ERR_UNEXPECTED;
+                pastix_warning("pastix_unsetaffinity", "Could not unbind thread");
+                return -1;
             }
 
-        return PLASMA_SUCCESS;
+        return 0;
     }
-#elif (defined PLASMA_OS_MACOS)
+#elif defined(PASTIX_OS_MACOS)
     {
         /* TODO: check how to unbind the main thread if necessary for OpenMP */
         /* thread_affinity_policy_data_t ap; */
@@ -195,13 +199,13 @@ int isched_nohwloc_unbind()
         /*                          THREAD_AFFINITY_POLICY_COUNT */
         /*     ); */
         /* if(ret != 0) { */
-        /*     plasma_warning("plasma_unsetaffinity", "Could not unbind thread"); */
-        /*     return PLASMA_ERR_UNEXPECTED; */
+        /*     pastix_warning("pastix_unsetaffinity", "Could not unbind thread"); */
+        /*     return PASTIX_ERR_UNEXPECTED; */
         /* } */
 
-        return PLASMA_SUCCESS;
+        return 0;
     }
-#elif (defined PLASMA_OS_WINDOWS)
+#elif defined(PASTIX_OS_WINDOWS)
     {
         int i;
         DWORD mask = 0;
@@ -210,20 +214,22 @@ int isched_nohwloc_unbind()
             mask |= 1 << i;
 
         if( SetThreadAffinityMask(GetCurrentThread(), mask) == 0) {
-            plasma_warning("plasma_unsetaffinity", "Could not unbind thread");
-            return PLASMA_ERR_UNEXPECTED;
+            pastix_warning("pastix_unsetaffinity", "Could not unbind thread");
+            return -1;
         }
-        return PLASMA_SUCCESS;
+        return 0;
     }
-#elif (defined PLASMA_OS_AIX)
+#elif defined(PASTIX_OS_AIX)
     {
         /* TODO: check how to unbind the main thread if necessary for OpenMP */
         /* tid_t self_ktid = thread_self (); */
         /* bindprocessor(BINDTHREAD, self_ktid, rank); */
-        return PLASMA_SUCCESS;
+        return 0;
     }
 #else
-    return PLASMA_ERR_NOT_SUPPORTED;
+    return -1;
 #endif
-#endif /* PLASMA_AFFINITY_DISABLE */
+#endif /* !defined(PASTIX_AFFINITY_DISABLE) */
+
+    return 0;
 }

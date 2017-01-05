@@ -41,10 +41,10 @@
 #cmakedefine HAVE_COMPLEX_H
 
 /* Architecture */
-#cmakedefine ARCH_X86
-#cmakedefine ARCH_X86_64
-#cmakedefine ARCH_PPC
-#cmakedefine MAC_OS_X
+#cmakedefine PASTIX_ARCH_X86
+#cmakedefine PASTIX_ARCH_X86_64
+#cmakedefine PASTIX_ARCH_PPC
+#cmakedefine PASTIX_OS_MACOS
 
 /* Optional packages */
 #cmakedefine HAVE_HWLOC

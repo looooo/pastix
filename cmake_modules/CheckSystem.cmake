@@ -16,19 +16,19 @@ message(STATUS "Building for target ${CMAKE_SYSTEM_PROCESSOR}")
 string(REGEX MATCH "(i.86-*)|(athlon-*)|(pentium-*)" _mach_x86 ${CMAKE_SYSTEM_PROCESSOR})
 if (_mach_x86)
     message(STATUS "Found target for X86")
-    set(ARCH_X86 1)
+    set(PASTIX_ARCH_X86 1)
 endif (_mach_x86)
 
 string(REGEX MATCH "(x86_64-*)|(X86_64-*)|(AMD64-*)|(amd64-*)" _mach_x86_64 ${CMAKE_SYSTEM_PROCESSOR})
 if (_mach_x86_64)
     message(STATUS "Found target X86_64")
-    set(ARCH_X86_64 1)
+    set(PASTIX_ARCH_X86_64 1)
 endif (_mach_x86_64)
 
 string(REGEX MATCH "(ppc-*)|(powerpc-*)" _mach_ppc ${CMAKE_SYSTEM_PROCESSOR})
 if (_mach_ppc)
     message(STATUS "Found target for PPC")
-    set(ARCH_PPC 1)
+    set(PASTIX_ARCH_PPC 1)
 endif (_mach_ppc)
 
 #
@@ -113,7 +113,7 @@ endif( HAVE_G3 )
 # threads and atomics
 include (CheckAtomicIntrinsic)
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  set( MAC_OS_X 1 CACHE INTERNAL "Compile on MAC OS X")
+  set( PASTIX_OS_MACOS 1 CACHE INTERNAL "Compile on MAC OS X")
 endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
 #
