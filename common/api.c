@@ -121,6 +121,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
     iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
     iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
+    iparm[IPARM_MTX_TYPE]              = -1;                  /* Used with old interface to force matrix type */
 
     /**
      * Ordering parameters
@@ -587,6 +588,10 @@ pastixFinalize( pastix_data_t **pastix_data,
         memFree_null( pastix->bcsc );
     }
 
+    if (pastix->schur_list != NULL )
+    {
+        memFree_null( pastix->schur_list );
+    }
 #if defined(PASTIX_WITH_PARSEC)
     if (pastix->parsec != NULL) {
         pastix_parsec_finalize( pastix );
