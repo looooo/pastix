@@ -1,5 +1,5 @@
-PaStiX: A sparse direct linear algebra
-======================================
+PaStiX: A sparse direct solver
+==============================
 
 PaStiX (Parallel Sparse matriX package) is a scientific library that provides a
 high performance parallel solver for very large sparse linear systems based on 
