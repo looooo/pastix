@@ -701,8 +701,10 @@ set(PASTIX_ALL_SRCS
   #
   spm/spm.h
   spm/spm.c
-  spm/spm_io.c  # Not finished
-  matrix_drivers/drivers.c
+  spm/spm_io.c
+  spm/spm_integers.c
+  spm/spm_dofs.c
+  spm/spm_read_driver.c
   #
   graph/graph.c
   graph/graph_isolate.c
