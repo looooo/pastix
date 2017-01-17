@@ -113,9 +113,9 @@
  *
  *******************************************************************************/
 int
-pastix_task_symbfact(pastix_data_t *pastix_data,
-                     pastix_int_t  *perm,
-                     pastix_int_t  *invp )
+pastix_task_symbfact( pastix_data_t *pastix_data,
+                      pastix_int_t  *perm,
+                      pastix_int_t  *invp )
 {
     pastix_int_t   *iparm;
     double         *dparm;
@@ -428,8 +428,6 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                              STEP_SOLVE   |
                              STEP_REFINE  );
     pastix_data->steps |= STEP_SYMBFACT;
-
-    iparm[IPARM_START_TASK]++;
 
     return PASTIX_SUCCESS;
 }
