@@ -1,5 +1,5 @@
 /**
- *  @file: simple.c
+ *  @file simple.c
  *
  *  A simple example :
  *  read the matrix, check it is correct and correct it if needed,
@@ -113,11 +113,10 @@ int main (int argc, char **argv)
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if (x0) free(x0);
-
-        free(x); free(b);
     }
     spmExit( spm );
     free( spm );
+    free(b); free(x);
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     return EXIT_SUCCESS;

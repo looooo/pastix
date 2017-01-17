@@ -1,5 +1,5 @@
 /**
- *  @file: reentrant.c
+ *  @file reentrant.c
  *
  *  A simple example :
  *  run two threads then run two instances of PaStiX in each.
