@@ -580,6 +580,7 @@ set(PASTIX_LIB_SRCS
   sopalin/coeftab.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
+  sopalin/pastix.c
   #
   refinement/pastix_task_raff.c
   #
@@ -693,6 +694,7 @@ enable_testing()
 include(CTest)
 # Examples executables
 add_subdirectory(example)
+
 # Testing executables
 add_subdirectory(test)
 
