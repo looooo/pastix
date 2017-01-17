@@ -42,11 +42,14 @@
 #define OUT_OPT_FLOAT         "        FLOAT TYPE          :                   %s %s\n"
 #define OUT_OPT_END           " +--------------------------------------------------------------------+\n"
 
-#define OUT_STEP_ORDER        " Ordering :                                    \n"
-#define OUT_SYMGRAPH          "   Symmetrizing graph                          \n"
-#define OUT_NODIAG            "   Removing diag                               \n"
-#define OUT_ORDERINIT         "   Initiating ordering                         \n"
-#define OUT_ORDER_METHOD      "   Algorithm used: %s\n"
+#define OUT_STEP_ORDER        " Ordering step :                               \n"
+#define OUT_SUBSTEP_GRAPH     "   Prepare graph structure:                    \n"
+#define OUT_ORDER_SYMGRAPH    "     Symmetrizing graph                        \n"
+#define OUT_ORDER_NODIAG      "     Removing diagonal elements                \n"
+#define OUT_ORDER_SORT        "     Sort row indices in each column           \n"
+#define OUT_ORDER_INIT        "   Compute ordering                            \n"
+#define OUT_ORDER_METHOD      "   Ordering method is: %s\n"
+#define OUT_ORDER_TIME        "   Time to compute ordering                     %.3g s\n"
 
 #define OUT_STEP_REORDER      " Reordering :                                 \n"\
                               "   Split level                             %ld\n"\
@@ -72,7 +75,6 @@
 #define OUT_STEP_NUMFACT_LDLH " Numerical Factorization (LDLh) :\n"
 #define OUT_STEP_SOLVE        " Solve :                                      \n"
 #define OUT_STEP_REFF         " Reffinement :                                \n"
-#define TIME_COMPUTE_ORDERING "   Time to compute ordering                     %.3g s\n"
 #define OUT_CLUSTNBR          "   Number of cluster                            %ld\n"
 #define OUT_PROCNBR           "   Number of processor per cluster              %ld\n"
 #define OUT_THRDNBR           "   Number of thread number per MPI process      %ld\n"

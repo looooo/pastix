@@ -245,7 +245,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
     }
 
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-        pastix_print(procnum, 0, "%s", OUT_ORDERINIT);
+        pastix_print(procnum, 0, "%s", OUT_ORDER_INIT);
 
     clockStart(timer);
 
@@ -405,7 +405,7 @@ pastix_task_order(      pastix_data_t *pastix_data,
 
     clockStop(timer);
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-        pastix_print(procnum, 0, TIME_COMPUTE_ORDERING, clockVal(timer));
+        pastix_print(procnum, 0, OUT_ORDER_TIME, clockVal(timer));
 
     /* Save i/o strategy */
     if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE)) {
