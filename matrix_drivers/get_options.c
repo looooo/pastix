@@ -823,6 +823,11 @@ void pastix_ex_getoptions(int argc, char **argv,
             getfilename( filename, optarg, "d:1000" );
             break;
 
+        case 'x':
+            *driver = PastixDriverXLaplacian;
+            getfilename( filename, optarg, "d:1000" );
+            break;
+
         case 'A':
             *driver = PastixDriverDMM;
             getfilename( filename, optarg, "dmmname" );
@@ -939,11 +944,6 @@ void pastix_ex_getoptions(int argc, char **argv,
         case 'v':
             if(optarg)  iparam[IPARM_VERBOSE] = atoi(optarg);
             else        iparam[IPARM_VERBOSE] = 2;
-            break;
-
-        case 'x':
-            *driver = PastixDriverXLaplacian;
-            getfilename( filename, optarg, "d:1000" );
             break;
 
         case 'h': pastix_ex_usage(); exit(0);
