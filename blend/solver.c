@@ -167,3 +167,10 @@ sizeofsolver(const SolverMatrix *solvptr,
 
   return result;
 }
+
+
+void
+solverPrintStats( const SolverMatrix *solvptr )
+{
+
+}

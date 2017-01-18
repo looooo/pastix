@@ -81,28 +81,33 @@ void solverBlend(BlendCtrl    *ctrl,
     /* Verify the coherence of the initial symbol matrix */
     if(ctrl->debug)
     {
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
             pastix_print( clustnum, 0, OUT_BLEND_CHKSMBMTX );
+        }
         symbolCheck(symbmtx);
     }
 
     /* Build the elimination tree from the symbolic partition */
     {
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES) {
             pastix_print( clustnum, 0, OUT_BLEND_ELIMTREE );
+        }
         clockStart(timer_current);
 
         ctrl->etree = eTreeBuild(symbmtx);
 
         clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "--Tree build at time: %g --\n", clockVal(timer_current));
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_ELIMTREE_TIME,
+                          clockVal(timer_current) );
+        }
     }
 
     /* Build the cost matrix from the symbolic partition */
     {
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
             pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX );
+        }
         clockStart(timer_current);
 
         ctrl->costmtx = costMatrixBuild( symbmtx,
@@ -110,9 +115,10 @@ void solverBlend(BlendCtrl    *ctrl,
                                          ctrl->iparm[IPARM_FACTORIZATION] );
 
         clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "-- Cost Matrix build at time:          %g\n",
-                          clockVal(timer_current));
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_COSTMATRIX_TIME,
+                          clockVal(timer_current) );
+        }
     }
 
     /* Build the candtab array to store candidate information on each cblk */
@@ -128,16 +134,18 @@ void solverBlend(BlendCtrl    *ctrl,
                    ctrl->etree,
                    symbmtx,
                    ctrl->costmtx );
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "-- Total cost of the elimination tree: %g\n",
-                          ctrl->etree->nodetab[ eTreeRoot(ctrl->etree) ].subtree);
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_ELIMTREE_TOTAL_COST,
+                          ctrl->etree->nodetab[ eTreeRoot(ctrl->etree) ].subtree );
+        }
     }
 
     /* Proportional mapping step that distributes the candidates over the tree */
     {
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+            pastix_print( clustnum, 0, OUT_BLEND_PROPMAP );
+        }
         clockStart(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "-- Start proportionnal mapping step\n" );
 
         propMappTree( ctrl->candtab,
                       ctrl->etree,
@@ -149,14 +157,17 @@ void solverBlend(BlendCtrl    *ctrl,
         candSetClusterCand( ctrl->candtab, symbmtx->cblknbr,
                             ctrl->core2clust, ctrl->total_nbcores );
 
-        /* Let's check the result if ask */
-        if (ctrl->debug) {
-            assert( candCheck( ctrl->candtab, symbmtx ) );
+        clockStop(timer_current);
+
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_PROPMAP_TIME,
+                          clockVal(timer_current) );
         }
 
-        clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "-- Proportionnal mapping time:      %g\n", clockVal(timer_current));
+        /* Let's check the result if ask */
+        if ( ctrl->debug ) {
+            assert( candCheck( ctrl->candtab, symbmtx ) );
+        }
     }
 
     /*
@@ -167,15 +178,18 @@ void solverBlend(BlendCtrl    *ctrl,
      * the tree.
      */
     {
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+            pastix_print( clustnum, 0, OUT_BLEND_SPLITSYMB );
+        }
         clockStart(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "-- Spliting initial partition Version 2\n" );
 
         splitSymbol(ctrl, symbmtx);
 
         clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "-- Split build at time: %g --\n", clockVal(timer_current));
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_SPLITSYMB_TIME,
+                          clockVal(timer_current) );
+        }
     }
 
     if(ctrl->count_ops && (ctrl->leader == clustnum)) {
@@ -207,8 +221,9 @@ void solverBlend(BlendCtrl    *ctrl,
 
     /* Simulation step to perform the data distribution over the nodes and compute the priorities of each task */
     {
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "   Building simulation structure\n" );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+            pastix_print( clustnum, 0, OUT_BLEND_BUILDSIMU );
+        }
         clockStart(timer_current);
 
         /* Initialize simulation structure */
@@ -221,24 +236,31 @@ void solverBlend(BlendCtrl    *ctrl,
         taskBuild(simuctrl, symbmtx, ctrl->candtab);
         clockStop(timer_current);
 
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
-            pastix_print( clustnum, 0, OUT_BLEND_NBTASK, (long)simuctrl->tasknbr );
-            printf("  -- Simulation structure build at time: %g --\n", clockVal(timer_current));
-            pastix_print( clustnum, 0, OUT_BLEND_DISTPART );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_BUILDSIMU_TIME,
+                          clockVal(timer_current),
+                          (long)simuctrl->tasknbr );
+        }
+
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+            pastix_print( clustnum, 0, OUT_BLEND_SIMU );
         }
         clockStart(timer_current);
 
         simuRun( simuctrl, ctrl, symbmtx );
 
         clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "  -- Data distribution computed at time: %g --\n", clockVal(timer_current) );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_SIMU_TIME,
+                          clockVal(timer_current) );
+        }
     }
 
     /* Build the elimination graph from the new symbolic partition */
     {
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH2 );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
+        }
         clockStart(timer_current);
 
         MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
@@ -246,12 +268,14 @@ void solverBlend(BlendCtrl    *ctrl,
         eGraphBuild(ctrl->egraph, symbmtx);
 
         clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "--Graph build at time: %g --\n", clockVal(timer_current) );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH_TIME,
+                          clockVal(timer_current) );
+        }
     }
 
 #ifdef PASTIX_DYNSCHED
-    /*
+    /**
      * If dynamic scheduling is asked, let's perform a second proportionnal
      * mapping step:
      *    - this is made only on local data
@@ -268,69 +292,64 @@ void solverBlend(BlendCtrl    *ctrl,
     }
 #endif
 
-    /* CostMatrix and Elimination Tree which are no further used */
-    costMatrixExit(ctrl->costmtx);
+    /* CostMatrix and Elimination Tree are no further used */
+    costMatrixExit( ctrl->costmtx );
     memFree_null( ctrl->costmtx );
-    eTreeExit(ctrl->etree);
+    eTreeExit( ctrl->etree );
 
-    /*
+    /**
      * Generate the final solver structure that collects data from the different
      * simulation structures and convert to local numbering
      */
     {
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, " -- Generate the final SolverMatrix\n" );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+            pastix_print( clustnum, 0, OUT_BLEND_SOLVER );
+        }
         clockStart(timer_current);
 
         bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl);
 
         clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            pastix_print( clustnum, 0, "  -- Solver Matrix structure computed at time: %g --\n", clockVal(timer_current) );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_SOLVER_TIME,
+                          clockVal(timer_current) );
+            if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+                solverPrintStats( solvmtx );
+            }
+        }
     }
 
-    /*if(ctrl->count_ops)
-     {
-     printSolverInfo(stderr, solvmtx, dofptr);
-     }*/
-
-    if( ctrl->leader == clustnum &&
-        ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-        fprintf(stdout, "** End of Partition & Distribution phase ** \n");
-
-    /** Time end **/
-    if(ctrl->timer)
-    {
-        clockStop(timer_all);
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            printf("---- Total execution at time: %lg ----\n",clockVal(timer_all));
-        set_dparm(ctrl->dparm, DPARM_ANALYZE_TIME, clockVal(timer_all));
-    }
-
-    /** Free allocated memory **/
+    /* Free allocated memory */
     simuExit(simuctrl, ctrl->clustnbr, ctrl->total_nbcores, ctrl->local_nbctxts);
     eGraphExit(ctrl->egraph);
 
-    /***************************************
-     * Realloc Memory in a contiguous way  *
-     ***************************************/
-    if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_CHATTERBOX)
-        printf("Contiguous reallocation of the solverMatrix ...\n");
-    solverRealloc(solvmtx);
-    if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_CHATTERBOX)
-        printf("Done \n");
+    /* Realloc solver memory in a contiguous way  */
+    {
+        solverRealloc(solvmtx);
 
-#ifdef DEBUG_BLEND
-    if (leader == clustnum)
-        if( ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-            fprintf(stdout, OUT_BLEND_CHKSOLVER);
-    if (ctrl->ricar) {
-        if (leader == clustnum)
-            errorPrintW("No solverMatrix checking in incomplete factorisation.");
-    }else {
-        solverCheck(solvmtx);
-    }
+#if defined(PASTIX_DEBUG_BLEND)
+        if (!ctrl->ricar) {
+            if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+                pastix_print( clustnum, 0, OUT_BLEND_CHKSOLVER );
+            }
+            solverCheck(solvmtx);
+        }
 #endif
+    }
+
     if (bcofind != NULL)
         memFree_null(bcofind);
+
+    /* End timing */
+    {
+        double time;
+        clockStop(timer_all);
+        time = clockVal(timer_all);
+
+        set_dparm(ctrl->dparm, DPARM_ANALYZE_TIME, time );
+        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( clustnum, 0, OUT_BLEND_TIME,
+                          time );
+        }
+    }
 }
