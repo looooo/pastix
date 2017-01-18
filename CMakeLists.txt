@@ -529,7 +529,7 @@ set(PASTIX_LIB_SRCS
   blend/simu_run.c
 # blend/distribPart.c
   blend/extendVector.c
-  blend/fanboth2.c
+#  blend/fanboth2.c
   blend/queue.c
   blend/simu.c
 # blend/partbuild.c
