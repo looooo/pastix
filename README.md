@@ -76,6 +76,7 @@ The following people contribute or contributed to the development of PaStiX:
   * David Goudin
   * Mathias Hastaran
   * Pascal Henon
+  * Xavier Lacoste
   * François Pellegrini
   * Grégoire Pichon, Low-rank solver
   * Florent Pruvost, CMake and Spack
