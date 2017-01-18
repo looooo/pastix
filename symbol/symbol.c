@@ -294,18 +294,17 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     blokavg2 = sqrt( ((blokavg2 * (double)dof * (double)dof) / (double)bloknbr) - blokavg1 * blokavg1 );
 
     fprintf(stdout,
-            "------ Stats Symbol Matrix ----------\n"
-            " Number of cblk    : %ld\n"
-            " Number of blok    : %ld\n"
-            " Cblk width min    : %ld\n"
-            " Cblk width max    : %ld\n"
-            " Cblk width avg    : %lf\n"
-            " Cblk width stdev  : %lf\n"
-            " Blok height min   : %ld\n"
-            " Blok height max   : %ld\n"
-            " Blok height avg   : %lf\n"
-            " Blok height stdev : %lf\n"
-            "-------------------------------------\n",
+            "   Symbol Matrix Statistics:\n"
+            "     Number of cblk                    %8ld\n"
+            "     Number of blok                    %8ld\n"
+            "     Cblk width min                    %8ld\n"
+            "     Cblk width max                    %8ld\n"
+            "     Cblk width avg                   %8lf\n"
+            "     Cblk width stdev                 %8lf\n"
+            "     Blok height min                   %8ld\n"
+            "     Blok height max                   %8ld\n"
+            "     Blok height avg                  %8lf\n"
+            "     Blok height stdev                %8lf\n",
             cblknbr, bloknbr,
             cblkmin, cblkmax, cblkavg1, cblkavg2,
             blokmin, blokmax, blokavg1, blokavg2 );
