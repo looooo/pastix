@@ -15,15 +15,15 @@
     "+-------------------------------------------------+\n"     \
     "+     PaStiX : Parallel Sparse matriX package     +\n"     \
     "+-------------------------------------------------+\n"     \
-    "  Version:                                   %d.%d.%d\n"  \
-    "  Schedulers:\n"                                          \
-    "    sequential:                           %8s\n"          \
-    "    thread static:                        %8s\n"          \
-    "    thread dynamic:                       %8s\n"          \
-    "    parsec:                               %8s\n"          \
-    "    starpu:                               %8s\n"          \
-    "  Number of MPI processes:                %8d\n"          \
-    "  Number of threads per process:          %8d\n"          \
+    "  Version:                                   %d.%d.%d\n"   \
+    "  Schedulers:\n"                                           \
+    "    sequential:                           %8s\n"           \
+    "    thread static:                        %8s\n"           \
+    "    thread dynamic:                       %8s\n"           \
+    "    parsec:                               %8s\n"           \
+    "    starpu:                               %8s\n"           \
+    "  Number of MPI processes:                %8d\n"           \
+    "  Number of threads per process:          %8d\n"           \
     "  MPI communication support:              %8s\n"
 
 #define OUT_STEP_ORDER                                          \
@@ -41,7 +41,7 @@
     "    Compute ordering\n"
 #define OUT_ORDER_METHOD                        \
     "    Ordering method is: %s\n"
-#define OUT_ORDER_TIME                                          \
+#define OUT_ORDER_TIME                                  \
     "    Time to compute ordering              %e s\n"
 
 #define OUT_STEP_FAX                                            \
@@ -54,17 +54,17 @@
 #define OUT_STEP_REORDER                                        \
     "+-------------------------------------------------+\n"     \
     "  Reordering step:\n"                                      \
-    "    Split level                           %8ld\n"         \
+    "    Split level                           %8ld\n"          \
     "    Stoping criteria                      %8ld\n"
-#define OUT_REORDERING_TIME                                     \
+#define OUT_REORDERING_TIME                             \
     "    Time for reordering                   %e s\n"
 
 #define OUT_STEP_BLEND                                          \
     "+-------------------------------------------------+\n"     \
     "  Analyse step:\n"
 #define OUT_BLEND_CONF                                  \
-    "    Number of cluster                     %8ld\n"    \
-    "    Number of processor per cluster       %8ld\n"    \
+    "    Number of cluster                     %8ld\n"  \
+    "    Number of processor per cluster       %8ld\n"  \
     "    Number of thread per MPI process      %8ld\n"
 
 #define OUT_BLEND_CHKSMBMTX                     \
@@ -107,44 +107,17 @@
 #define OUT_BLEND_TIME                                  \
     "    Time for analyze                      %e s\n"
 
-#define OUT_BLEND_CHKSOLVER                     \
-    "    Check the solver structure\n"
 
 #define OUT_STARPU_TP         " StarPU : Thread policy : %s\n"
 #define OUT_STARPU_STP        " StarPU : No thread policy, setting thread policy to : %s\n"
 #define OUT_MATRIX_SIZE       "  Matrix size                                   %ld x %ld\n"
 #define OUT_NNZ               "  Number of nonzeros in A                       %ld\n"
-#define OUT_OPT_HEAD1         " +--------------------------------------------------------------------+\n"
-#define OUT_OPT_HEAD2         " +  Options                                                           +\n"
-#define OUT_OPT_HEAD3         " +--------------------------------------------------------------------+\n"
-#define OUT_OPT_VERS          "        Version             :                   %s\n"
-#define OUT_OPT_SMP           "        SMP_SOPALIN         :                   %s\n"
-#define OUT_OPT_MPI           "        VERSION MPI         :                   %s\n"
-#define OUT_OPT_DSCD          "        PASTIX_DYNSCHED     :                   %s\n"
-#define OUT_OPT_STATS         "        STATS_SOPALIN       :                   %s\n"
-#define OUT_OPT_NAPA          "        NAPA_SOPALIN        :                   %s\n"
-#define OUT_OPT_IRECV         "        TEST_IRECV          :                   %s\n"
-#define OUT_OPT_ISEND         "        TEST_ISEND          :                   %s\n"
-#define OUT_OPT_THCOM         "        THREAD_COMM         :                   %s\n"
-#define OUT_OPT_FUN           "        THREAD_FUNNELED     :                   %s\n"
-#define OUT_OPT_TAG           "        TAG                 :                   %s\n"
-#define OUT_OPT_OOC           "        OUT_OF_CORE         :                   %s\n"
-#define OUT_OPT_DIST          "        PASTIX_DISTRIBUTED  :                   %s\n"
-#define OUT_OPT_FORCE         "        FORCE_CONSO         :                   %s\n"
-#define OUT_OPT_RFOB          "        RECV_FANIN_OR_BLOCK :                   %s\n"
-#define OUT_OPT_METIS         "        METIS               :                   %s\n"
-#define OUT_OPT_SCOTCH        "        WITH_SCOTCH         :                   %s\n"
-#define OUT_OPT_INT           "        INTEGER TYPE        :                   %s\n"
-#define OUT_OPT_FLOAT         "        FLOAT TYPE          :                   %s %s\n"
-#define OUT_OPT_END           " +--------------------------------------------------------------------+\n"
-
 
 #define OUT_GLOBAL_NNZL       "   Number of nonzeroes in L structure      %ld\n"
 #define OUT_GLOBAL_FILLIN     "   Fill-in                                 %lf\n"
 #define OUT_GLOBAL_THFLOPCNT  "   Number of theoretical flop            %.5g %cflops\n"
 #define OUT_GLOBAL_RLFLOPCNT  "   Number of performed flop              %.5g %cflops\n"
 
-#define OUT_STEP_KASS         " Kass :\n"
 #define OUT_STEP_NUMFACT_LU   " Numerical Factorization (LU) :\n"
 #ifdef TYPE_COMPLEX
 #  define OUT_STEP_NUMFACT_LLT  " Numerical Factorization (LLh) :\n"
@@ -224,10 +197,24 @@
 #define OUT_END               " +--------------------------------------------------------------------+\n"
 
 /*
- * Macro to decide who prints information
+ * Printing function to redirect to the correct file
  */
-#define pastix_print(mpirank, thrdrank, fmt, ...) do { if((mpirank == 0) && (thrdrank == 0)) fprintf(stdout, fmt, ##__VA_ARGS__); } while(0)
+#if defined(__GNUC__)
+static inline void pastix_print( int mpirank, int thrdrank, const char *fmt, ...) __attribute__((format(printf,3,4)));
+#endif
 
+static inline void
+pastix_print( int mpirank, int thrdrank, const char *fmt, ...)
+{
+    va_list ap;
+
+    if( (mpirank == 0) && (thrdrank == 0) )
+    {
+        va_start(ap, fmt);
+        vfprintf(stdout, fmt, ap );
+        va_end(ap);
+    }
+}
 
 #define MEMORY_WRITE(mem) ( ((mem) < 1<<10) ?                           \
                             ( (double)(mem) ) :                         \
