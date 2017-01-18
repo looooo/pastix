@@ -109,68 +109,109 @@ solverExit(SolverMatrix *solvmtx)
  *  Returns:
  *    SolverMatrix size.
  */
-pastix_int_t
-sizeofsolver(const SolverMatrix *solvptr,
-                   pastix_int_t *iparm )
+static inline size_t
+solver_size( const SolverMatrix *solvptr )
 {
-  pastix_int_t result=sizeof(SolverMatrix);
-  pastix_int_t iter;
-  (void)iparm;
+    size_t mem = sizeof(SolverMatrix);
 
-  /* cblk and blocks arrays */
-  result += solvptr->cblknbr*sizeof(SolverCblk);
-  result += solvptr->bloknbr*sizeof(SolverBlok);
+    /* cblk and blocks arrays */
+    if ( solvptr->cblktab ) {
+        mem += solvptr->cblknbr * sizeof( SolverCblk );
+    }
+    if ( solvptr->bloktab ) {
+        mem += solvptr->bloknbr * sizeof( SolverBlok );
+    }
+    if ( solvptr->browtab ) {
+        mem += solvptr->brownbr * sizeof( pastix_int_t );
+    }
+#if defined(PASTIX_WITH_PARSEC)
+    if ( solvptr->parsec_desc ) {
+        mem += sizeof( sparse_matrix_desc_t );
+    }
+#endif
 
-  /* fanin target */
-  result += solvptr->ftgtnbr*sizeof(FanInTarget);
-  result += solvptr->indnbr *sizeof(pastix_int_t);
-
-  /* TODO: Check that it is not bubbletree + bubblnbr * bubblenode */
-  result += solvptr->bublnbr*sizeof(BubbleTree);
-
-  /* task */
-  result += solvptr->tasknbr*sizeof(Task);
-
-  /* ttsktab */
-  result += solvptr->thrdnbr*sizeof(pastix_int_t);
-  result += solvptr->thrdnbr*sizeof(pastix_int_t*);
-  for (iter=0; iter<solvptr->thrdnbr; iter++)
-    {
-      result += solvptr->ttsknbr[iter]*sizeof(pastix_int_t);
+    /* Fanins */
+    if ( solvptr->ftgttab ) {
+        mem += solvptr->ftgtnbr * sizeof( FanInTarget );
+    }
+    if ( solvptr->indtab ) {
+        mem += solvptr->indnbr  * sizeof( pastix_int_t );
     }
 
-  /* proc2clust */
-  result += solvptr->procnbr*sizeof(pastix_int_t);
+    /* BubbleTree */
+    if ( solvptr->btree ) {
+        mem += solvptr->bublnbr * sizeof( BubbleTree );
+        mem += solvptr->btree->nodemax * sizeof( BubbleTreeNode );
+        mem += solvptr->btree->nodemax * sizeof( int );
+    }
 
-  /* UpDownVector */
-  /* TODO: 2D    */
-  /* if (iparm[IPARM_DISTRIBUTION_LEVEL] == 0) */
-  /*   { */
-  /*     /\* UpDownCblk *\/ */
-  /*     result += solvptr->cblknbr      *sizeof(UpDownCblk); */
-  /*     for (iter=0; iter<solvptr->cblknbr; iter++) */
-  /*       { */
-  /*         /\* browproctab / browcblktab *\/ */
-  /*         result += 2*solvptr->updovct.cblktab[iter].browprocnbr*sizeof(pastix_int_t); */
-  /*       } */
-  /*     /\* gcblk2list *\/ */
-  /*     result += solvptr->updovct.gcblk2listnbr*sizeof(pastix_int_t); */
-  /*     /\* listptr *\/ */
-  /*     result += solvptr->updovct.listptrnbr   *sizeof(pastix_int_t); */
-  /*     /\* listcblk / listblok *\/ */
-  /*     result += 2*solvptr->updovct.listnbr    *sizeof(pastix_int_t); */
-  /*     /\* loc2glob *\/ */
-  /*     result += solvptr->updovct.loc2globnbr  *sizeof(pastix_int_t); */
-  /*     /\* lblk2gcblk *\/ */
-  /*     result += solvptr->bloknbr              *sizeof(pastix_int_t); */
-  /*   } */
+    /* Tasks */
+    if ( solvptr->tasktab ) {
+        mem += solvptr->tasknbr * sizeof(Task);
+    }
+    if ( solvptr->ttsknbr ) {
+        int i;
+        mem += solvptr->thrdnbr * sizeof(pastix_int_t);
+        mem += solvptr->thrdnbr * sizeof(pastix_int_t*);
 
-  return result;
+        for( i=0; i<solvptr->thrdnbr; i++ ) {
+            mem += solvptr->ttsknbr[i] * sizeof(pastix_int_t);
+        }
+    }
+
+    /* proc2clust */
+    if ( solvptr->proc2clust ) {
+        mem += solvptr->procnbr * sizeof(pastix_int_t);
+    }
+
+    return mem;
 }
 
 
 void
 solverPrintStats( const SolverMatrix *solvptr )
 {
+    SolverCblk *cblk;
+    size_t memstruct, memcoef;
+    pastix_int_t fcol2d, lcol2d;
+    pastix_int_t itercblk, cblknbr;
+    double avg2d;
 
+    fcol2d = (solvptr->cblktab + solvptr->cblkmin2d )->fcolnum;
+    lcol2d = (solvptr->cblktab + solvptr->cblknbr   )->fcolnum;
+    avg2d  = 0.;
+    if ( (lcol2d - fcol2d) > 0 ) {
+        avg2d  = (double)(lcol2d - fcol2d) / (double)( solvptr->cblknbr - solvptr->cblkmin2d);
+    }
+    cblknbr = solvptr->cblknbr;
+    cblk    = solvptr->cblktab;
+    memcoef = 0;
+    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+    {
+        pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
+        pastix_int_t rownbr = cblk->stride;
+
+        memcoef += colnbr * rownbr;
+    }
+
+    memstruct = solver_size( solvptr );
+
+    fprintf( stdout,
+             "    Solver Matrix statistics:\n"
+             "      Number of cblk                    %10ld\n"
+             "      Number of cblks in 2D             %10ld\n"
+             "      Number of blocks in 2D            %10ld\n"
+             "      First cblk in 2D                  %10ld\n"
+             "      First row handled in 2D           %10ld\n"
+             "      Average 2D cblk size             %11.2lf\n"
+             "      Structure memory space           %11.2lf %s\n"
+             "      Number of coeficients stored      %10ld\n",
+             solvptr->cblknbr,
+             solvptr->nb2dcblk,
+             solvptr->nb2dblok,
+             solvptr->cblkmin2d,
+             fcol2d,
+             avg2d,
+             MEMORY_WRITE( memstruct ), MEMORY_UNIT_WRITE( memstruct ),
+             memcoef );
 }
