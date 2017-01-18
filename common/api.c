@@ -31,6 +31,52 @@
  * @ingroup pastix_common
  * @ingroup pastix_internal
  *
+ * pastixWelcome - Print information about the PaStiX configuration.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] iparm
+ *          The integer array of parameters to initialize.
+ *
+ * @param[in,out] dparm
+ *          The floating point array of parameters to initialize.
+ *
+ *******************************************************************************/
+void
+pastixWelcome( pastix_data_t *pastix,
+               pastix_int_t *iparm )
+{
+
+    pastix_print( pastix->procnum, 0, OUT_ENTETE,
+                  /* Version    */ PASTIX_VERSION_MAJOR, PASTIX_VERSION_MINOR, PASTIX_VERSION_MICRO,
+                  /* Sched. seq */ "Enabled",
+                  /* Sched. sta */ (pastix->isched ? "Started" : "Disabled"),
+                  /* Sched. dyn */ "Disabled",
+                  /* Sched. PaR */
+#if defined(PASTIX_WITH_PARSEC)
+                  (pastix->parsec ? "Started" : "Enabled"),
+#else
+                  "Disabled",
+#endif
+                  /* Sched. SPU */
+#if defined(PASTIX_WITH_STARPU)
+                  (pastix->starpu ? "Started" : "Enabled"),
+#else
+                  "Disabled",
+#endif
+                  /* MPI nbr   */ pastix->procnbr,
+                  /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
+                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled")
+                  );
+
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_common
+ * @ingroup pastix_internal
+ *
  * pastix_init_param - Initialize the iparm and dparm arrays to their default
  * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
  * API_NO.
@@ -362,7 +408,10 @@ pastixInit( pastix_data_t **pastix_data,
 
     pastix->isched = NULL;
 #if defined(PASTIX_WITH_PARSEC)
-    pastix->parsec = 0;
+    pastix->parsec = NULL;
+#endif
+#if defined(PASTIX_WITH_STARPU)
+    pastix->starpu = NULL;
 #endif
 
     apiInitMPI( pastix, pastix_comm, iparm[IPARM_AUTOSPLIT_COMM] );
@@ -460,8 +509,8 @@ pastixInit( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    // TODO
-    //z_pastix_welcome_print(*pastix_data, colptr, n);
+    /**/
+    pastixWelcome( pastix, iparm );
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;

@@ -11,11 +11,66 @@
 #ifndef _OUT_H_
 #define _OUT_H_
 
+#define OUT_ENTETE                                              \
+    "+----------------------------------------------+\n"        \
+    "+   PaStiX : Parallel Sparse matriX package    +\n"        \
+    "+----------------------------------------------+\n"        \
+    " Version:                                 %d.%d.%d\n"      \
+    " Schedulers:\n"                                            \
+    "   sequential:                         %8s\n"              \
+    "   thread static:                      %8s\n"              \
+    "   thread dynamic:                     %8s\n"              \
+    "   parsec:                             %8s\n"              \
+    "   starpu:                             %8s\n"              \
+    " Number of MPI processes:              %8d\n"              \
+    " Number of threads per process:        %8d\n"              \
+    " MPI communication support:            %8s\n"
+
+#define OUT_STEP_ORDER                                          \
+    "+----------------------------------------------+\n"        \
+    " Ordering step :\n"
+#define OUT_SUBSTEP_GRAPH                       \
+    "   Prepare graph structure:\n"
+#define OUT_ORDER_SYMGRAPH                      \
+    "     Symmetrizing graph\n"
+#define OUT_ORDER_NODIAG                        \
+    "     Removing diagonal elements\n"
+#define OUT_ORDER_SORT                          \
+    "     Sort row indices in each column\n"
+#define OUT_ORDER_INIT                          \
+    "   Compute ordering\n"
+#define OUT_ORDER_METHOD                        \
+    "   Ordering method is: %s\n"
+#define OUT_ORDER_TIME                                  \
+    "   Time to compute ordering             %.3g s\n"
+
+#define OUT_STEP_FAX                                            \
+    "+----------------------------------------------+\n"        \
+    " Symbolic Factorization :\n"
+#define OUT_FAX_METHOD                                  \
+    "   Symbol factorization using:         %8s\n"
+
+
+#define OUT_STEP_REORDER                                        \
+    "+----------------------------------------------+\n"        \
+    " Reordering step:\n"                                       \
+    "   Split level                         %8ld\n"             \
+    "   Stoping criteria                    %8ld\n"
+#define OUT_REORDERING_TIME                             \
+    "   Time for reordering                  %.3g s\n"
+
+#define OUT_STEP_BLEND                                          \
+    "+----------------------------------------------+\n"        \
+    " Analyse step:\n"
+#define OUT_BLEND_CONF                                  \
+    "   Number of cluster                   %8ld\n"     \
+    "   Number of processor per cluster     %8ld\n"     \
+    "   Number of thread per MPI process    %8ld\n"
+
+
+
 #define OUT_STARPU_TP         " StarPU : Thread policy : %s\n"
 #define OUT_STARPU_STP        " StarPU : No thread policy, setting thread policy to : %s\n"
-#define OUT_ENTETE_LINE1      " +--------------------------------------------------------------------+\n"
-#define OUT_ENTETE_LINE2      " +              PaStiX : Parallel Sparse matriX package               +\n"
-#define OUT_ENTETE_LINE3      " +--------------------------------------------------------------------+\n"
 #define OUT_MATRIX_SIZE       "  Matrix size                                   %ld x %ld\n"
 #define OUT_NNZ               "  Number of nonzeros in A                       %ld\n"
 #define OUT_OPT_HEAD1         " +--------------------------------------------------------------------+\n"
@@ -42,29 +97,13 @@
 #define OUT_OPT_FLOAT         "        FLOAT TYPE          :                   %s %s\n"
 #define OUT_OPT_END           " +--------------------------------------------------------------------+\n"
 
-#define OUT_STEP_ORDER        " Ordering step :                               \n"
-#define OUT_SUBSTEP_GRAPH     "   Prepare graph structure:                    \n"
-#define OUT_ORDER_SYMGRAPH    "     Symmetrizing graph                        \n"
-#define OUT_ORDER_NODIAG      "     Removing diagonal elements                \n"
-#define OUT_ORDER_SORT        "     Sort row indices in each column           \n"
-#define OUT_ORDER_INIT        "   Compute ordering                            \n"
-#define OUT_ORDER_METHOD      "   Ordering method is: %s\n"
-#define OUT_ORDER_TIME        "   Time to compute ordering                     %.3g s\n"
 
-#define OUT_STEP_REORDER      " Reordering :                                 \n"\
-                              "   Split level                             %ld\n"\
-                              "   Stoping criteria                        %ld\n"
-#define OUT_REORDERING_TIME   "   Time for reordering                     %.3g s\n"
-
-#define OUT_STEP_FAX          " Symbolic Factorization :                     \n"
-#define OUT_FAX_METHOD        "   Algorithm used: %4s                       \n"
 #define OUT_GLOBAL_NNZL       "   Number of nonzeroes in L structure      %ld\n"
 #define OUT_GLOBAL_FILLIN     "   Fill-in                                 %lf\n"
 #define OUT_GLOBAL_THFLOPCNT  "   Number of theoretical flop            %.5g %cflops\n"
 #define OUT_GLOBAL_RLFLOPCNT  "   Number of performed flop              %.5g %cflops\n"
 
 #define OUT_STEP_KASS         " Kass :                                       \n"
-#define OUT_STEP_BLEND        " Analyse :                                    \n"
 #define OUT_STEP_NUMFACT_LU   " Numerical Factorization (LU) :\n"
 #ifdef TYPE_COMPLEX
 #  define OUT_STEP_NUMFACT_LLT  " Numerical Factorization (LLh) :\n"
@@ -75,9 +114,6 @@
 #define OUT_STEP_NUMFACT_LDLH " Numerical Factorization (LDLh) :\n"
 #define OUT_STEP_SOLVE        " Solve :                                      \n"
 #define OUT_STEP_REFF         " Reffinement :                                \n"
-#define OUT_CLUSTNBR          "   Number of cluster                            %ld\n"
-#define OUT_PROCNBR           "   Number of processor per cluster              %ld\n"
-#define OUT_THRDNBR           "   Number of thread number per MPI process      %ld\n"
 #define OUT_BLEND_CHKSMBMTX   "   Check the symbol matrix                      \n"
 #define OUT_BLEND_CHKSOLVER   "   Check the solver structure                   \n"
 #define OUT_BLEND_ELIMGRAPH   "   Building elimination graph                   \n"

@@ -75,8 +75,7 @@ void solverBlend(BlendCtrl    *ctrl,
     clockStart(timer_all);
 
     if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-        pastix_print( clustnum, 0,
-                      OUT_CLUSTNBR "" OUT_PROCNBR "" OUT_THRDNBR,
+        pastix_print( clustnum, 0, OUT_BLEND_CONF,
                       (long)clustnbr, (long)ctrl->local_nbcores, (long)ctrl->local_nbthrds);
 
     /* Verify the coherence of the initial symbol matrix */
