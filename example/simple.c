@@ -80,11 +80,10 @@ int main (int argc, char **argv)
      */
     size = pastix_size_of( spm->flttype ) * spm->n;
     x = malloc( size );
+    b = malloc( size );
 
     if ( check )
     {
-        b = malloc( size );
-
         if ( check > 1 ) {
             x0 = malloc( size );
         } else {

@@ -76,11 +76,10 @@ int main (int argc, char **argv)
      */
     size = pastix_size_of( spm->flttype ) * spm->n;
     x = malloc( size );
+    b = malloc( size );
 
     if ( check )
     {
-        b = malloc( size );
-
         if ( check > 1 ) {
             x0 = malloc( size );
         } else {
@@ -118,10 +117,11 @@ int main (int argc, char **argv)
 
         if (x0) free(x0);
 
-        free(x); free(b);
     }
     spmExit( spm );
     free( spm );
+    free(x);
+    free(b);
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     return EXIT_SUCCESS;
