@@ -37,11 +37,6 @@ int main (int argc, char **argv)
                           &driver, &filename );
 
     /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-
-    /**
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
@@ -60,6 +55,11 @@ int main (int argc, char **argv)
      */
     normA = spmNorm( PastixFrobeniusNorm, spm );
     spmScal( 1./normA, spm );
+
+    /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps

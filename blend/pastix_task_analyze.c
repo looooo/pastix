@@ -176,10 +176,6 @@ pastix_task_blend(pastix_data_t *pastix_data)
         }
         if ((iparm[IPARM_VERBOSE] > API_VERBOSE_NO))
         {
-            pastix_int_t solversize = sizeofsolver(solvptr, iparm);
-
-            fprintf(stdout,SOLVMTX_WITHOUT_CO,  (int)procnum, (double)MEMORY_WRITE(solversize),
-                    MEMORY_UNIT_WRITE(solversize));
             fprintf(stdout, NNZERO_WITH_FILLIN, (int)procnum, (long)iparm[IPARM_NNZEROS_BLOCK_LOCAL]);
         }
         if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)

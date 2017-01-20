@@ -243,6 +243,7 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     pastix_int_t blokmin, blokmax;
     double cblkavg1, blokavg1;
     double cblkavg2, blokavg2;
+    size_t mem = 0;
 
     cblknbr  = symbptr->cblknbr;
     bloknbr  = symbptr->bloknbr - cblknbr;
@@ -293,26 +294,28 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     cblkavg2 = sqrt( ((cblkavg2 * (double)dof * (double)dof) / (double)cblknbr) - cblkavg1 * cblkavg1 );
     blokavg2 = sqrt( ((blokavg2 * (double)dof * (double)dof) / (double)bloknbr) - blokavg1 * blokavg1 );
 
+    /* Compute symbol matrix space */
+    mem = sizeof( SymbolMatrix );
+    mem += sizeof( SymbolCblk )   * (cblknbr + 1);
+    mem += sizeof( SymbolBlok )   * symbptr->bloknbr;
+    mem += sizeof( pastix_int_t ) * bloknbr;
+
     fprintf(stdout,
-            "------ Stats Symbol Matrix ----------\n"
-            " Number of cblk    : %ld\n"
-            " Number of blok    : %ld\n"
-            " Cblk width min    : %ld\n"
-            " Cblk width max    : %ld\n"
-            " Cblk width avg    : %lf\n"
-            " Cblk width stdev  : %lf\n"
-            " Blok height min   : %ld\n"
-            " Blok height max   : %ld\n"
-            " Blok height avg   : %lf\n"
-            " Blok height stdev : %lf\n"
-            "-------------------------------------\n",
+            "    Symbol Matrix statistics:\n"
+            "      Number of cblk                    %10ld\n"
+            "      Number of blok                    %10ld\n"
+            "      Cblk width min                    %10ld\n"
+            "      Cblk width max                    %10ld\n"
+            "      Cblk width avg                   %11.2lf\n"
+            "      Cblk width stdev                 %11.2lf\n"
+            "      Blok height min                   %10ld\n"
+            "      Blok height max                   %10ld\n"
+            "      Blok height avg                  %11.2lf\n"
+            "      Blok height stdev                %11.2lf\n"
+            "      Memory space                     %11.2lf %s\n",
             cblknbr, bloknbr,
             cblkmin, cblkmax, cblkavg1, cblkavg2,
-            blokmin, blokmax, blokavg1, blokavg2 );
-
-    /* fprintf(stdout, */
-    /*         "& %ld & %ld & %ld & %lf & %ld & %ld & %ld & %lf\n", */
-    /*         cblknbr, cblkmin, cblkmax, cblkavg1, */
-    /*         bloknbr, blokmin, blokmax, blokavg1 ); */
+            blokmin, blokmax, blokavg1, blokavg2,
+            MEMORY_WRITE( mem ), MEMORY_UNIT_WRITE( mem ) );
 }
 

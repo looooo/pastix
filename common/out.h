@@ -11,57 +11,113 @@
 #ifndef _OUT_H_
 #define _OUT_H_
 
+#define OUT_ENTETE                                              \
+    "+-------------------------------------------------+\n"     \
+    "+     PaStiX : Parallel Sparse matriX package     +\n"     \
+    "+-------------------------------------------------+\n"     \
+    "  Version:                                   %d.%d.%d\n"   \
+    "  Schedulers:\n"                                           \
+    "    sequential:                           %8s\n"           \
+    "    thread static:                        %8s\n"           \
+    "    thread dynamic:                       %8s\n"           \
+    "    parsec:                               %8s\n"           \
+    "    starpu:                               %8s\n"           \
+    "  Number of MPI processes:                %8d\n"           \
+    "  Number of threads per process:          %8d\n"           \
+    "  MPI communication support:              %8s\n"
+
+#define OUT_STEP_ORDER                                          \
+    "+-------------------------------------------------+\n"     \
+    "  Ordering step :\n"
+#define OUT_SUBSTEP_GRAPH                       \
+    "    Prepare graph structure:\n"
+#define OUT_ORDER_SYMGRAPH                      \
+    "      Symmetrizing graph\n"
+#define OUT_ORDER_NODIAG                        \
+    "      Removing diagonal elements\n"
+#define OUT_ORDER_SORT                          \
+    "      Sort row indices in each column\n"
+#define OUT_ORDER_INIT                          \
+    "    Compute ordering\n"
+#define OUT_ORDER_METHOD                        \
+    "    Ordering method is: %s\n"
+#define OUT_ORDER_TIME                                  \
+    "    Time to compute ordering              %e s\n"
+
+#define OUT_STEP_FAX                                            \
+    "+-------------------------------------------------+\n"     \
+    "  Symbolic Factorization :\n"
+#define OUT_FAX_METHOD                          \
+    "    Symbol factorization using: %s\n"
+
+
+#define OUT_STEP_REORDER                                        \
+    "+-------------------------------------------------+\n"     \
+    "  Reordering step:\n"                                      \
+    "    Split level                           %8ld\n"          \
+    "    Stoping criteria                      %8ld\n"
+#define OUT_REORDERING_TIME                             \
+    "    Time for reordering                   %e s\n"
+
+#define OUT_STEP_BLEND                                          \
+    "+-------------------------------------------------+\n"     \
+    "  Analyse step:\n"
+#define OUT_BLEND_CONF                                  \
+    "    Number of cluster                     %8ld\n"  \
+    "    Number of processor per cluster       %8ld\n"  \
+    "    Number of thread per MPI process      %8ld\n"
+
+#define OUT_BLEND_CHKSMBMTX                     \
+    "    Check the symbol matrix\n"
+#define OUT_BLEND_ELIMTREE                      \
+    "    Building elimination tree\n"
+#define OUT_BLEND_ELIMTREE_TIME                         \
+    "    Elimination tree built in             %e s\n"
+#define OUT_BLEND_COSTMATRIX                    \
+    "    Building cost matrix\n"
+#define OUT_BLEND_COSTMATRIX_TIME                       \
+    "    Cost matrix built in                  %e s\n"
+#define OUT_BLEND_ELIMTREE_TOTAL_COST                   \
+    "    Total estimated cost of the etree     %e s\n"
+#define OUT_BLEND_PROPMAP                       \
+    "    Perform proportional mapping\n"
+#define OUT_BLEND_PROPMAP_TIME                          \
+    "    Proportional mapping done in          %e s\n"
+#define OUT_BLEND_SPLITSYMB                     \
+    "    Split large symbolic blocks\n"
+#define OUT_BLEND_SPLITSYMB_TIME                        \
+    "    Symbol split done in                  %e s\n"
+#define OUT_BLEND_BUILDSIMU                     \
+    "    Build simulation structures\n"
+#define OUT_BLEND_BUILDSIMU_TIME                        \
+    "    Simulation structures built in        %e s\n"  \
+    "    Number of tasks found                 %8ld\n"
+#define OUT_BLEND_SIMU                                  \
+    "    Start simulation (Data distribution)\n"
+#define OUT_BLEND_SIMU_TIME                             \
+    "    Simulation done in                    %e s\n"
+#define OUT_BLEND_ELIMGRAPH                     \
+    "    Building elimination graph\n"
+#define OUT_BLEND_ELIMGRAPH_TIME                        \
+    "    Elimination graph built in            %e s\n"
+#define OUT_BLEND_SOLVER                        \
+    "    Building solver structure\n"
+#define OUT_BLEND_SOLVER_TIME                           \
+    "    Solver built in                       %e s\n"
+#define OUT_BLEND_TIME                                  \
+    "    Time for analyze                      %e s\n"
+
+
 #define OUT_STARPU_TP         " StarPU : Thread policy : %s\n"
 #define OUT_STARPU_STP        " StarPU : No thread policy, setting thread policy to : %s\n"
-#define OUT_ENTETE_LINE1      " +--------------------------------------------------------------------+\n"
-#define OUT_ENTETE_LINE2      " +              PaStiX : Parallel Sparse matriX package               +\n"
-#define OUT_ENTETE_LINE3      " +--------------------------------------------------------------------+\n"
 #define OUT_MATRIX_SIZE       "  Matrix size                                   %ld x %ld\n"
 #define OUT_NNZ               "  Number of nonzeros in A                       %ld\n"
-#define OUT_OPT_HEAD1         " +--------------------------------------------------------------------+\n"
-#define OUT_OPT_HEAD2         " +  Options                                                           +\n"
-#define OUT_OPT_HEAD3         " +--------------------------------------------------------------------+\n"
-#define OUT_OPT_VERS          "        Version             :                   %s\n"
-#define OUT_OPT_SMP           "        SMP_SOPALIN         :                   %s\n"
-#define OUT_OPT_MPI           "        VERSION MPI         :                   %s\n"
-#define OUT_OPT_DSCD          "        PASTIX_DYNSCHED     :                   %s\n"
-#define OUT_OPT_STATS         "        STATS_SOPALIN       :                   %s\n"
-#define OUT_OPT_NAPA          "        NAPA_SOPALIN        :                   %s\n"
-#define OUT_OPT_IRECV         "        TEST_IRECV          :                   %s\n"
-#define OUT_OPT_ISEND         "        TEST_ISEND          :                   %s\n"
-#define OUT_OPT_THCOM         "        THREAD_COMM         :                   %s\n"
-#define OUT_OPT_FUN           "        THREAD_FUNNELED     :                   %s\n"
-#define OUT_OPT_TAG           "        TAG                 :                   %s\n"
-#define OUT_OPT_OOC           "        OUT_OF_CORE         :                   %s\n"
-#define OUT_OPT_DIST          "        PASTIX_DISTRIBUTED  :                   %s\n"
-#define OUT_OPT_FORCE         "        FORCE_CONSO         :                   %s\n"
-#define OUT_OPT_RFOB          "        RECV_FANIN_OR_BLOCK :                   %s\n"
-#define OUT_OPT_METIS         "        METIS               :                   %s\n"
-#define OUT_OPT_SCOTCH        "        WITH_SCOTCH         :                   %s\n"
-#define OUT_OPT_INT           "        INTEGER TYPE        :                   %s\n"
-#define OUT_OPT_FLOAT         "        FLOAT TYPE          :                   %s %s\n"
-#define OUT_OPT_END           " +--------------------------------------------------------------------+\n"
 
-#define OUT_STEP_ORDER        " Ordering :                                    \n"
-#define OUT_SYMGRAPH          "   Symmetrizing graph                          \n"
-#define OUT_NODIAG            "   Removing diag                               \n"
-#define OUT_ORDERINIT         "   Initiating ordering                         \n"
-#define OUT_ORDER_METHOD      "   Algorithm used: %s\n"
-
-#define OUT_STEP_REORDER      " Reordering :                                 \n"\
-                              "   Split level                             %ld\n"\
-                              "   Stoping criteria                        %ld\n"
-#define OUT_REORDERING_TIME   "   Time for reordering                     %.3g s\n"
-
-#define OUT_STEP_FAX          " Symbolic Factorization :                     \n"
-#define OUT_FAX_METHOD        "   Algorithm used: %4s                       \n"
 #define OUT_GLOBAL_NNZL       "   Number of nonzeroes in L structure      %ld\n"
 #define OUT_GLOBAL_FILLIN     "   Fill-in                                 %lf\n"
 #define OUT_GLOBAL_THFLOPCNT  "   Number of theoretical flop            %.5g %cflops\n"
 #define OUT_GLOBAL_RLFLOPCNT  "   Number of performed flop              %.5g %cflops\n"
 
-#define OUT_STEP_KASS         " Kass :                                       \n"
-#define OUT_STEP_BLEND        " Analyse :                                    \n"
 #define OUT_STEP_NUMFACT_LU   " Numerical Factorization (LU) :\n"
 #ifdef TYPE_COMPLEX
 #  define OUT_STEP_NUMFACT_LLT  " Numerical Factorization (LLh) :\n"
@@ -70,21 +126,8 @@
 #endif
 #define OUT_STEP_NUMFACT_LDLT " Numerical Factorization (LDLt) :\n"
 #define OUT_STEP_NUMFACT_LDLH " Numerical Factorization (LDLh) :\n"
-#define OUT_STEP_SOLVE        " Solve :                                      \n"
-#define OUT_STEP_REFF         " Reffinement :                                \n"
-#define TIME_COMPUTE_ORDERING "   Time to compute ordering                     %.3g s\n"
-#define OUT_CLUSTNBR          "   Number of cluster                            %ld\n"
-#define OUT_PROCNBR           "   Number of processor per cluster              %ld\n"
-#define OUT_THRDNBR           "   Number of thread number per MPI process      %ld\n"
-#define OUT_BLEND_CHKSMBMTX   "   Check the symbol matrix                      \n"
-#define OUT_BLEND_CHKSOLVER   "   Check the solver structure                   \n"
-#define OUT_BLEND_ELIMGRAPH   "   Building elimination graph                   \n"
-#define OUT_BLEND_ELIMGRAPH2  "   Re-Building elimination graph                \n"
-#define OUT_BLEND_COSTMATRIX  "   Building cost matrix                         \n"
-#define OUT_BLEND_ELIMTREE    "   Building elimination tree                    \n"
-#define OUT_BLEND_TASKGRAPH   "   Building task graph                          \n"
-#define OUT_BLEND_NBTASK      "   Number of tasks                              %ld  \n"
-#define OUT_BLEND_DISTPART    "   Distributing partition \n"
+#define OUT_STEP_SOLVE        " Solve :\n"
+#define OUT_STEP_REFF         " Reffinement :\n"
 #define TIME_TO_ANALYSE       "   Time to analyze                              %.3g s\n"
 #define NNZERO_WITH_FILLIN_TH "   Number of nonzeros in factorized matrix      %ld\n"
 #define NNZERO_WITH_FILLIN    "%d : Number of nonzeros (local block structure) %ld\n"
@@ -106,9 +149,9 @@
 #define OUT2_FUN_STATS        "     - %3ld : Envois %5ld - Receptions %5ld          -\n"
 #define OUT2_SOP_BSOP         "   --- Sopalin Begin                                ---\n"
 #define OUT2_SOP_ESOP         "   --- Sopalin End                                  ---\n"
-#define OUT4_UPDO_TIME_INIT   " [%d][%d] Solve initialization time : %lg s \n"
-#define OUT4_UPDO_COMM_TIME   " [%d][%d] Solve communication time : %lg s \n"
-#define OUT4_FACT_COMM_TIME   " [%d][%d] Factorization communication time : %lg s \n"
+#define OUT4_UPDO_TIME_INIT   " [%d][%d] Solve initialization time : %lg s\n"
+#define OUT4_UPDO_COMM_TIME   " [%d][%d] Solve communication time : %lg s\n"
+#define OUT4_FACT_COMM_TIME   " [%d][%d] Factorization communication time : %lg s\n"
 #define OUT2_SOP_DOWN         "   --- Down Step                                    ---\n"
 #define OUT2_SOP_DIAG         "   --- Diag Step                                    ---\n"
 #define OUT2_SOP_UP           "   --- Up Step                                      ---\n"
@@ -129,11 +172,11 @@
 #define OUT_ITERRAFF_ITER     "    - iteration %d :\n"
 #define OUT_ITERRAFF_TTS      "         time to solve                          %.3g s\n"
 #define OUT_ITERRAFF_TTT      "         total iteration time                   %.3g s\n"
-#define OUT_ITERRAFF_ERR      "         error                                  %.5g  \n"
-#define OUT_ITERRAFF_NORMA    "         ||A||                                  %.5g  \n"
-#define OUT_ITERRAFF_NORMR    "         ||r||                                  %.5g  \n"
-#define OUT_ITERRAFF_NORMB    "         ||b||                                  %.5g  \n"
-#define OUT_ITERRAFF_BDIVR    "         ||r||/||b||                            %.5g  \n"
+#define OUT_ITERRAFF_ERR      "         error                                  %.5g\n"
+#define OUT_ITERRAFF_NORMA    "         ||A||                                  %.5g\n"
+#define OUT_ITERRAFF_NORMR    "         ||r||                                  %.5g\n"
+#define OUT_ITERRAFF_NORMB    "         ||b||                                  %.5g\n"
+#define OUT_ITERRAFF_BDIVR    "         ||r||/||b||                            %.5g\n"
 #define OUT_REDISCSCDTIME     "   Time to redistribute cscd                    %.3g s\n"
 #define OUT_FILLCSCTIME       "   Time to fill internal csc                    %.3g s\n"
 #define OUT_MAX_MEM_AF_SOP    "   Max memory used after factorization          %.3g %s\n"
@@ -154,10 +197,24 @@
 #define OUT_END               " +--------------------------------------------------------------------+\n"
 
 /*
- * Macro to decide who prints information
+ * Printing function to redirect to the correct file
  */
-#define pastix_print(mpirank, thrdrank, fmt, ...) do { if((mpirank == 0) && (thrdrank == 0)) fprintf(stdout, fmt, ##__VA_ARGS__); } while(0)
+#if defined(__GNUC__)
+static inline void pastix_print( int mpirank, int thrdrank, const char *fmt, ...) __attribute__((format(printf,3,4)));
+#endif
 
+static inline void
+pastix_print( int mpirank, int thrdrank, const char *fmt, ...)
+{
+    va_list ap;
+
+    if( (mpirank == 0) && (thrdrank == 0) )
+    {
+        va_start(ap, fmt);
+        vfprintf(stdout, fmt, ap );
+        va_end(ap);
+    }
+}
 
 #define MEMORY_WRITE(mem) ( ((mem) < 1<<10) ?                           \
                             ( (double)(mem) ) :                         \

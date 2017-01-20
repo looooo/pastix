@@ -405,15 +405,11 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             symbolPrintStats( pastix_data->symbmtx );
 
         if ( iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
-            double fillin = (double)iparm[ IPARM_NNZEROS ]
+            double fillin = (double)(iparm[IPARM_NNZEROS])
                 / (double)( (pastix_data->csc)->gnnz );
 
             fprintf(stdout, OUT_GLOBAL_NNZL,   iparm[ IPARM_NNZEROS ] );
             fprintf(stdout, OUT_GLOBAL_FILLIN, fillin );
-            if ( iparm[IPARM_VERBOSE] > API_VERBOSE_CHATTERBOX ) {
-                fprintf(stdout, OUT_GLOBAL_FILLIN, fillin );
-                fprintf(stdout, OUT_GLOBAL_FILLIN, fillin );
-            }
         }
     }
 

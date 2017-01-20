@@ -97,6 +97,9 @@ struct pastix_data_s {
 #if defined(PASTIX_WITH_PARSEC)
     dague_context_t *parsec;             /*< PaRSEC Context if available                                         */
 #endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_ctxt_t   *starpu;             /*< StarPU Context if available                                         */
+#endif
 
     const pastix_csc_t *csc;             /*< Pointer to the user csc structure used as input                     */
 

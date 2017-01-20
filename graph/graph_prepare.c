@@ -161,6 +161,9 @@ graphPrepare(      pastix_data_t   *pastix_data,
     MALLOC_INTERN( tmpgraph, 1, pastix_graph_t );
     memset( tmpgraph, 0, sizeof(pastix_graph_t) );
 
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        pastix_print(procnum, 0, "%s", OUT_SUBSTEP_GRAPH);
+
     if (PASTIX_MASK_ISTRUE(io_strategy, API_IO_LOAD_GRAPH))
     {
         graphLoad( pastix_data, tmpgraph );
@@ -181,11 +184,11 @@ graphPrepare(      pastix_data_t   *pastix_data,
             if ( (spm->mtxtype == PastixSymmetric) ||
                  (spm->mtxtype == PastixHermitian) )
             {
+                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+                    pastix_print(procnum, 0, "%s", OUT_ORDER_SYMGRAPH);
+
                 graphSymmetrize( n, colptr, rows, loc2glob, tmpgraph );
                 assert( n == tmpgraph->n );
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
-                    fprintf(stdout, "SY - N=%ld, NNZ=%ld\n", n, tmpgraph->colptr[n] - tmpgraph->colptr[0]);
-                }
             }
             else
             {
@@ -195,16 +198,20 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 MALLOC_INTERN(tmpgraph->rows,   nnz,   pastix_int_t);
                 memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
                 memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-                    fprintf(stdout, "GE - N=%ld, NNZ=%ld\n", n, nnz);
 
+                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+                    pastix_print(procnum, 0, "%s", OUT_ORDER_SORT);
+                }
                 graphSort( tmpgraph );
             }
 
-            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-                pastix_print(procnum, 0, "%s", OUT_NODIAG);
+            {
+                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+                    pastix_print(procnum, 0, "%s", OUT_ORDER_NODIAG);
+                }
 
-            graphNoDiag( tmpgraph );
+                graphNoDiag( tmpgraph );
+            }
         }
 #if defined(PASTIX_DISTRIBUTED)
         /*
