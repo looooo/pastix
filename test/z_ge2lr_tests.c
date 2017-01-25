@@ -157,7 +157,7 @@ int main (int argc, char **argv)
     pastix_int_t m, r;
     double tolerance = 0.001;
 
-    for (m=100; m<1500; m+=100){
+    for (m=100; m<300; m+=100){
         for (r=10; r<100; r+=10){
             printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", m, r);
 

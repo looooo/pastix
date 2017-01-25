@@ -216,7 +216,7 @@ int main (int argc, char **argv)
     pastix_int_t m, r;
     double tolerance = 0.01;
 
-    for (m=200; m<=1000; m+=100){
+    for (m=200; m<=400; m+=100){
         for (r=10; r<=100; r+=10){
             printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", m, m, r, r/2);
 
