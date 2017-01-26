@@ -26,6 +26,15 @@
     "  Number of threads per process:          %8d\n"           \
     "  MPI communication support:              %8s\n"
 
+#define OUT_ENTETE_LR                                           \
+    "+-------------------------------------------------+\n"     \
+    "  Low rank parameters:                             \n"     \
+    "    Tolerance                             %8.0e    \n"     \
+    "    Compress size                         %8ld     \n"     \
+    "    Compress width                        %8ld     \n"     \
+    "    Strategy                      %16s             \n"     \
+    "    Compress method                       %8s      \n"
+
 #define OUT_STEP_ORDER                                          \
     "+-------------------------------------------------+\n"     \
     "  Ordering step :\n"

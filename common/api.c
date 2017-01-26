@@ -35,16 +35,20 @@
  *
  *******************************************************************************
  *
- * @param[in,out] iparm
- *          The integer array of parameters to initialize.
+ * @param[in] pastix
+ *          The main data structure.
  *
- * @param[in,out] dparm
- *          The floating point array of parameters to initialize.
+ * @param[in] iparm
+ *          The integer array of parameters.
+ *
+ * @param[in] dparm
+ *          The floating point array of parameters.
  *
  *******************************************************************************/
 void
 pastixWelcome( pastix_data_t *pastix,
-               pastix_int_t *iparm )
+               pastix_int_t  *iparm,
+               double        *dparm )
 {
 
     pastix_print( pastix->procnum, 0, OUT_ENTETE,
@@ -67,6 +71,14 @@ pastixWelcome( pastix_data_t *pastix,
                   /* MPI nbr   */ pastix->procnbr,
                   /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
                   /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled")
+                  );
+
+    pastix_print( pastix->procnum, 0, OUT_ENTETE_LR,
+                  /* Tolerance       */ dparm[DPARM_COMPRESS_TOLERANCE],
+                  /* Compress size   */ iparm[IPARM_COMPRESS_SIZE],
+                  /* Compress width  */ iparm[IPARM_COMPRESS_WIDTH],
+                  /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time"),
+                  /* Compress method */ ((iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR")
                   );
 
 }
@@ -510,7 +522,7 @@ pastixInit( pastix_data_t **pastix_data,
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
     /**/
-    pastixWelcome( pastix, iparm );
+    pastixWelcome( pastix, iparm, dparm );
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
