@@ -184,6 +184,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;                 /* min blocksize                                        */
     iparm[IPARM_MAX_BLOCKSIZE]         = 320;                 /* max blocksize (at least 2*min_blocksize)             */
     iparm[IPARM_COMPRESS_SIZE]         = 120;                 /* minimum size to compress a supernode */
+    iparm[IPARM_COMPRESS_WIDTH]        = 20;                  /* minimum width to compress a supernode */
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;    /* when to compress */
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR; /* compression technique */
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */

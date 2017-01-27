@@ -345,16 +345,18 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
             M = blok_rownbr(blok);
-            pastix_lrblock_t C;
-            lowrank->core_ge2lr( lowrank->tolerance, M, N,
-                                 lrC->u, M,
-                                 &C );
+            if ( N > lowrank->compress_size && M > lowrank->compress_width ){
+                pastix_lrblock_t C;
+                lowrank->core_ge2lr( lowrank->tolerance, M, N,
+                                     lrC->u, M,
+                                     &C );
 
-            core_zlrfree(lrC);
-            lrC->u = C.u;
-            lrC->v = C.v;
-            lrC->rk = C.rk;
-            lrC->rkmax = C.rkmax;
+                core_zlrfree(lrC);
+                lrC->u = C.u;
+                lrC->v = C.v;
+                lrC->rk = C.rk;
+                lrC->rkmax = C.rkmax;
+            }
         }
 
         if ( lrC->rk != 0 ) {
@@ -463,16 +465,18 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
             M = blok_rownbr(blok);
-            pastix_lrblock_t C;
-            lowrank->core_ge2lr( lowrank->tolerance, M, N,
-                                 lrC->u, M,
-                                 &C );
+            if ( N > lowrank->compress_size && M > lowrank->compress_width ){
+                pastix_lrblock_t C;
+                lowrank->core_ge2lr( lowrank->tolerance, M, N,
+                                     lrC->u, M,
+                                     &C );
 
-            core_zlrfree(lrC);
-            lrC->u = C.u;
-            lrC->v = C.v;
-            lrC->rk = C.rk;
-            lrC->rkmax = C.rkmax;
+                core_zlrfree(lrC);
+                lrC->u = C.u;
+                lrC->v = C.v;
+                lrC->rk = C.rk;
+                lrC->rkmax = C.rkmax;
+            }
         }
 
         if ( lrC->rk != 0 ) {

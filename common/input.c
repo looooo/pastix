@@ -184,6 +184,10 @@ int iparm_to_int( char * string)
     {
         return IPARM_COMPRESS_SIZE;
     }
+    if(0 == strcmp("iparm_compress_width", string))
+    {
+        return IPARM_COMPRESS_WIDTH;
+    }
     if(0 == strcmp("iparm_compress_when", string))
     {
         return IPARM_COMPRESS_WHEN;

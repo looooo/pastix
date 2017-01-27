@@ -87,7 +87,8 @@ typedef int  (*fct_rradd_t)( pastix_fixdbl_t, pastix_trans_t, const void *,
 typedef struct pastix_lr_s {
     pastix_int_t compress_when;   /*< When to compress in the full solver        */
     pastix_int_t compress_method; /*< Compression method                         */
-    pastix_int_t compress_size;   /*< Minimum size to compress. UNUSED RIGHT NOW */
+    pastix_int_t compress_size;   /*< Minimum size to compress                   */
+    pastix_int_t compress_width;  /*< Minimum width to compress                  */
     double       tolerance;       /*< Absolute compression tolerance             */
     fct_rradd_t  core_rradd;      /*< Recompression function                     */
     fct_ge2lr_t  core_ge2lr;      /*< Compression function                       */
