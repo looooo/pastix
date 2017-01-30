@@ -345,7 +345,7 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
             M = blok_rownbr(blok);
-            if ( N > lowrank->compress_size && M > lowrank->compress_width ){
+            if ( ( N > lowrank->compress_min_width ) && ( M > lowrank->compress_min_height ) ){
                 pastix_lrblock_t C;
                 lowrank->core_ge2lr( lowrank->tolerance, M, N,
                                      lrC->u, M,
@@ -465,7 +465,7 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
             M = blok_rownbr(blok);
-            if ( N > lowrank->compress_size && M > lowrank->compress_width ){
+            if ( ( N > lowrank->compress_min_width ) && ( M > lowrank->compress_min_height ) ){
                 pastix_lrblock_t C;
                 lowrank->core_ge2lr( lowrank->tolerance, M, N,
                                      lrC->u, M,

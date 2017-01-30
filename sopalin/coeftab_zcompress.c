@@ -69,7 +69,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         blok->LRblock = LRblocks;
 
-        if ( ncols > lowrank.compress_size && nrows > lowrank.compress_width ){
+        if ( ( ncols > lowrank.compress_min_width ) && ( nrows > lowrank.compress_min_height ) ){
             lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
                                 lcoeftab + blok->coefind, nrows,
                                 blok->LRblock );
@@ -87,7 +87,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         if (factoLU) {
 
-            if ( ncols > lowrank.compress_size && nrows > lowrank.compress_width ){
+        if ( ( ncols > lowrank.compress_min_width ) && ( nrows > lowrank.compress_min_height ) ){
                 lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
                                     ucoeftab + blok->coefind, nrows,
                                     blok->LRblock+1 );
