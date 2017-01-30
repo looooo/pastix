@@ -67,8 +67,8 @@
    IPARM_BASEVAL               - Baseval used for the matrix                              Default: 0                   IN
    IPARM_MIN_BLOCKSIZE         - Minimum block size                                       Default: 60                  IN
    IPARM_MAX_BLOCKSIZE         - Maximum block size                                       Default: 120                 IN
-   IPARM_COMPRESS_SIZE         - Minimum size to compress a supernode                     Default: 120                 IN
-   IPARM_COMPRESS_WIDTH        - Minimum width to compress a supernode                    Default: 20                  IN
+   IPARM_COMPRESS_MIN_WIDTH    - Minimum width to compress a supernode                    Default: 120                 IN
+   IPARM_COMPRESS_MIN_HEIGHT   - Minimum height to compress an off-diagonal block         Default: 20                  IN
    IPARM_COMPRESS_WHEN         - When to compress a supernode                             Default: 0                   IN
    IPARM_COMPRESS_METHOD       - Compression method (SVD/RRQR)                            Default: 0                   IN
    IPARM_SCHUR                 - Schur mode                                               Default: API_NO              IN
@@ -174,8 +174,8 @@ enum IPARM_ACCESS {
   IPARM_BASEVAL,
   IPARM_MIN_BLOCKSIZE,
   IPARM_MAX_BLOCKSIZE,
-  IPARM_COMPRESS_SIZE,
-  IPARM_COMPRESS_WIDTH,
+  IPARM_COMPRESS_MIN_WIDTH,
+  IPARM_COMPRESS_MIN_HEIGHT,
   IPARM_COMPRESS_WHEN,
   IPARM_COMPRESS_METHOD,
   IPARM_SCHUR,

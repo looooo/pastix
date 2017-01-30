@@ -51,7 +51,7 @@ pastixWelcome( pastix_data_t *pastix,
                double        *dparm )
 {
 
-    pastix_print( pastix->procnum, 0, OUT_ENTETE,
+    pastix_print( pastix->procnum, 0, OUT_HEADER,
                   /* Version    */ PASTIX_VERSION_MAJOR, PASTIX_VERSION_MINOR, PASTIX_VERSION_MICRO,
                   /* Sched. seq */ "Enabled",
                   /* Sched. sta */ (pastix->isched ? "Started" : "Disabled"),
@@ -73,10 +73,10 @@ pastixWelcome( pastix_data_t *pastix,
                   /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled")
                   );
 
-    pastix_print( pastix->procnum, 0, OUT_ENTETE_LR,
+    pastix_print( pastix->procnum, 0, OUT_HEADER_LR,
                   /* Tolerance       */ dparm[DPARM_COMPRESS_TOLERANCE],
-                  /* Compress size   */ iparm[IPARM_COMPRESS_SIZE],
-                  /* Compress width  */ iparm[IPARM_COMPRESS_WIDTH],
+                  /* Compress size   */ iparm[IPARM_COMPRESS_MIN_WIDTH],
+                  /* Compress width  */ iparm[IPARM_COMPRESS_MIN_HEIGHT],
                   /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time"),
                   /* Compress method */ ((iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR")
                   );
@@ -183,8 +183,8 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ALLOCATED_TERMS]       = 0;                   /* number of non zero in factorized sparse matrix       */
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;                 /* min blocksize                                        */
     iparm[IPARM_MAX_BLOCKSIZE]         = 320;                 /* max blocksize (at least 2*min_blocksize)             */
-    iparm[IPARM_COMPRESS_SIZE]         = 120;                 /* minimum size to compress a supernode */
-    iparm[IPARM_COMPRESS_WIDTH]        = 20;                  /* minimum width to compress a supernode */
+    iparm[IPARM_COMPRESS_MIN_WIDTH]    = 120;                 /* minimum width to compress a supernode                */
+    iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;                  /* minimum height to compress an off-diagonal block     */
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;    /* when to compress */
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR; /* compression technique */
     iparm[IPARM_SCHUR]                 = API_NO;              /* Schur mode */

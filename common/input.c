@@ -180,13 +180,13 @@ int iparm_to_int( char * string)
     {
         return IPARM_MAX_BLOCKSIZE;
     }
-    if(0 == strcmp("iparm_compress_size", string))
+    if(0 == strcmp("iparm_compress_min_width", string))
     {
-        return IPARM_COMPRESS_SIZE;
+        return IPARM_COMPRESS_MIN_WIDTH;
     }
-    if(0 == strcmp("iparm_compress_width", string))
+    if(0 == strcmp("iparm_compress_min_height", string))
     {
-        return IPARM_COMPRESS_WIDTH;
+        return IPARM_COMPRESS_MIN_HEIGHT;
     }
     if(0 == strcmp("iparm_compress_when", string))
     {

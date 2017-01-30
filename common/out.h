@@ -11,7 +11,7 @@
 #ifndef _OUT_H_
 #define _OUT_H_
 
-#define OUT_ENTETE                                              \
+#define OUT_HEADER                                              \
     "+-------------------------------------------------+\n"     \
     "+     PaStiX : Parallel Sparse matriX package     +\n"     \
     "+-------------------------------------------------+\n"     \
@@ -26,7 +26,7 @@
     "  Number of threads per process:          %8d\n"           \
     "  MPI communication support:              %8s\n"
 
-#define OUT_ENTETE_LR                                           \
+#define OUT_HEADER_LR                                           \
     "+-------------------------------------------------+\n"     \
     "  Low rank parameters:                             \n"     \
     "    Tolerance                             %8.0e    \n"     \
