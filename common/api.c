@@ -70,10 +70,7 @@ pastixWelcome( pastix_data_t *pastix,
 #endif
                   /* MPI nbr   */ pastix->procnbr,
                   /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
-                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled")
-                  );
-
-    pastix_print( pastix->procnum, 0, OUT_HEADER_LR,
+                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled"),
                   /* Tolerance       */ dparm[DPARM_COMPRESS_TOLERANCE],
                   /* Compress size   */ iparm[IPARM_COMPRESS_MIN_WIDTH],
                   /* Compress width  */ iparm[IPARM_COMPRESS_MIN_HEIGHT],

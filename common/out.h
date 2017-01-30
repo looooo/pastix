@@ -24,10 +24,7 @@
     "    starpu:                               %8s\n"           \
     "  Number of MPI processes:                %8d\n"           \
     "  Number of threads per process:          %8d\n"           \
-    "  MPI communication support:              %8s\n"
-
-#define OUT_HEADER_LR                                           \
-    "+-------------------------------------------------+\n"     \
+    "  MPI communication support:              %8s\n"           \
     "  Low rank parameters:                             \n"     \
     "    Tolerance                             %8.0e    \n"     \
     "    Compress size                         %8ld     \n"     \
