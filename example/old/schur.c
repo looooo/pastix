@@ -109,11 +109,7 @@ int main (int argc, char **argv)
     /**
      * Initialize the schur
      */
-    baseval=spmFindBase(spm);
-    pastix_data->schur_n = spm->gN/3;
-    pastix_data->schur_list = (pastix_int_t*)malloc(pastix_data->schur_n*sizeof(pastix_int_t));
-    for (i=0; i<pastix_data->schur_n; i++)
-        pastix_data->schur_list[i]=i+baseval;
+    pastix_setSchurUnknownList(&pastix_data, spm);
     iparm[IPARM_SCHUR]=API_YES;
 
 

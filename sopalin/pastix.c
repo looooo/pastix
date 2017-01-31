@@ -9,6 +9,30 @@
 
 /**
  *
+ *  Function: pastix_setSchurUnknownList
+ *
+ *  Initialize the schur
+ *
+ *  pastix_data - Data used for a step by step execution.
+ *  spm         - The sparse matrix to init.
+ *
+ */
+
+void pastix_setSchurUnknownList(pastix_data_t **pastix_data_ptr, pastix_spm_t *spm)
+{
+    pastix_data_t *pastix_data;
+    int            baseval;
+
+    pastix_data = *pastix_data_ptr;
+    baseval=spmFindBase(spm);
+    pastix_data->schur_n = spm->gN/3;
+    pastix_data->schur_list = (pastix_int_t*)malloc(pastix_data->schur_n*sizeof(pastix_int_t));
+    for (int i=0; i<pastix_data->schur_n; i++)
+        pastix_data->schur_list[i]=i+baseval;
+}
+
+/**
+ *
  *  Function: pastix
  *
  *  Computes one to all steps of the resolution of Ax=b linear system, using direct methods.
