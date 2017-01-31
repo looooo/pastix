@@ -109,7 +109,7 @@ int core_zgeaddsp1d( SolverCblk * cblk1,
                      pastix_complex64_t * U1,
                      pastix_complex64_t * U2 );
 
-void core_zgemmsp( int uplo, int trans,
+void core_zgemmsp( pastix_coefside_t sideB, pastix_uplo_t uplo, pastix_trans_t trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
                          SolverCblk         *fcblk,
@@ -120,7 +120,7 @@ void core_zgemmsp( int uplo, int trans,
                          pastix_lr_t        *lowrank);
 
 void
-core_zgemmsp_2d2dsub( int uplo, int trans,
+core_zgemmsp_2d2dsub( pastix_uplo_t uplo, pastix_trans_t trans,
                       pastix_int_t blok_mk,
                       pastix_int_t blok_kn,
                       pastix_int_t blok_mn,
@@ -130,8 +130,8 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
                       const pastix_complex64_t *B,
                             pastix_complex64_t *C );
 
-void core_zgemmsp_2dlrsub( int coef,
-                           int uplo, int trans,
+void core_zgemmsp_2dlrsub( pastix_coefside_t sideA,
+                           pastix_uplo_t uplo, pastix_trans_t trans,
                            pastix_int_t blok_mk,
                            pastix_int_t blok_kn,
                            pastix_int_t blok_mn,

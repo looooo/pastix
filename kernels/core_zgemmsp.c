@@ -92,7 +92,7 @@ static pastix_complex64_t zzero =  0.;
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_1d1d( int uplo, int trans,
+core_zgemmsp_1d1d( pastix_uplo_t uplo, pastix_trans_t trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
                          SolverCblk         *fcblk,
@@ -243,7 +243,7 @@ core_zgemmsp_1d1d( int uplo, int trans,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_1d2d( int uplo, int trans,
+core_zgemmsp_1d2d( pastix_uplo_t uplo, pastix_trans_t trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
                          SolverCblk         *fcblk,
@@ -378,7 +378,7 @@ core_zgemmsp_1d2d( int uplo, int trans,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_2d2d( int uplo, int trans,
+core_zgemmsp_2d2d( pastix_uplo_t uplo, pastix_trans_t trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
                          SolverCblk         *fcblk,
@@ -522,7 +522,7 @@ core_zgemmsp_2d2d( int uplo, int trans,
  *
  *******************************************************************************/
 void
-core_zgemmsp_2d2dsub( int uplo, int trans,
+core_zgemmsp_2d2dsub( pastix_uplo_t uplo, pastix_trans_t trans,
                       pastix_int_t blok_mk,
                       pastix_int_t blok_kn,
                       pastix_int_t blok_mn,
@@ -699,8 +699,7 @@ core_zgemmsp_2d2dsub( int uplo, int trans,
  *
  *******************************************************************************/
 void
-core_zgemmsp_2dlrsub( int coef,
-                      int uplo, int trans,
+core_zgemmsp_2dlrsub( pastix_coefside_t sideA, pastix_uplo_t uplo, pastix_trans_t trans,
                       pastix_int_t blok_mk,
                       pastix_int_t blok_kn,
                       pastix_int_t blok_mn,
@@ -751,8 +750,8 @@ core_zgemmsp_2dlrsub( int coef,
 
     bC = blokC;
     for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
-        M = blok_rownbr(bA);
-        lrA  = bA->LRblock + coef;
+        M   = blok_rownbr(bA);
+        lrA = bA->LRblock + sideA;
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
@@ -760,7 +759,7 @@ core_zgemmsp_2dlrsub( int coef,
             assert( bC < lblokN );
         }
 
-        lrC  = bC->LRblock + coef;
+        lrC  = bC->LRblock + sideA;
 
         switch (uplo) {
         case PastixLower:
@@ -799,7 +798,7 @@ core_zgemmsp_2dlrsub( int coef,
         default:
             for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
                 N    = blok_rownbr( bB );
-                lrB  = bB->LRblock + 1 - coef;
+                lrB  = bB->LRblock + 1 - sideA;
 
                 core_zlrmm( lowrank, PastixNoTrans, trans,
                             M, N, K,
@@ -876,7 +875,7 @@ core_zgemmsp_2dlrsub( int coef,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_fulllr( int uplo, int trans,
+core_zgemmsp_fulllr( pastix_uplo_t uplo, pastix_trans_t trans,
                      const SolverCblk         *cblk,
                      const SolverBlok         *blok,
                            SolverCblk         *fcblk,
@@ -1010,7 +1009,7 @@ core_zgemmsp_fulllr( int uplo, int trans,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_lr( int uplo, int trans,
+core_zgemmsp_lr( pastix_coefside_t sideB, pastix_uplo_t uplo, pastix_trans_t trans,
                  const SolverCblk         *cblk,
                  const SolverBlok         *blok,
                        SolverCblk         *fcblk,
@@ -1041,12 +1040,7 @@ core_zgemmsp_lr( int uplo, int trans,
     Cfull = Cfull + (blok->frownum - fcblk->fcolnum) * stridef;
 
     /* Get the B block and its dimensions */
-
-    /**
-     * TODO: set lrB = blok->LRblock for zpotrfsp
-     */
-    /* lrB = blok->LRblock; */
-    lrB = (uplo == PastixUpper) ? blok->LRblock : blok->LRblock+1;
+    lrB = (sideB == PastixLCoef) ? blok->LRblock : blok->LRblock+1;
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -1106,6 +1100,12 @@ core_zgemmsp_lr( int uplo, int trans,
  *
  *******************************************************************************
  *
+ * @param[in] sideB
+ *          Specify if B belongs to the L part, or to the U part. this is used
+ *          internally in the kernel to select the correct data pointer.
+ *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          U part.
+ *
  * @param[in] uplo
  *          If uplo == PastixLower, the contribution of:
  *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
@@ -1161,19 +1161,20 @@ core_zgemmsp_lr( int uplo, int trans,
  *          block.
  *
  *******************************************************************************/
-void core_zgemmsp( int uplo, int trans,
-                   const SolverCblk         *cblk,
-                   const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
-                   const pastix_complex64_t *A,
-                   const pastix_complex64_t *B,
-                         pastix_complex64_t *C,
-                         pastix_complex64_t *work,
-                         pastix_lr_t        *lowrank )
+void
+core_zgemmsp( pastix_coefside_t sideB, pastix_uplo_t uplo, pastix_trans_t trans,
+              const SolverCblk         *cblk,
+              const SolverBlok         *blok,
+                    SolverCblk         *fcblk,
+              const pastix_complex64_t *A,
+              const pastix_complex64_t *B,
+                    pastix_complex64_t *C,
+                    pastix_complex64_t *work,
+                    pastix_lr_t        *lowrank )
 {
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            core_zgemmsp_lr( uplo, trans, cblk, blok, fcblk, work, lowrank );
+            core_zgemmsp_lr( sideB, uplo, trans, cblk, blok, fcblk, work, lowrank );
         }
         else {
             core_zgemmsp_fulllr( uplo, trans,

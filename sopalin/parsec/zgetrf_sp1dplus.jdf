@@ -160,12 +160,12 @@ BODY
             work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
 
             if (s == 0) {
-              core_zgemmsp( PastixLower, PastixTrans, lcblk, blok, fcblk,
-                            Al, Au, C, work, &lowrank );
+                core_zgemmsp( PastixUCoef, PastixLower, PastixTrans, lcblk, blok, fcblk,
+                              Al, Au, C, work, &lowrank );
             }
             else {
-              core_zgemmsp( PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                            Au, Al, C, work, &lowrank );
+                core_zgemmsp( PastixLCoef, PastixUpper, PastixTrans, lcblk, blok, fcblk,
+                              Au, Al, C, work, &lowrank );
             }
             parsec_private_memory_push( p_work, (void *)work );
         }
