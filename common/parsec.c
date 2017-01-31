@@ -19,8 +19,8 @@
 #error "This file should not be compiled if PaRSEC is not enabled"
 #endif
 #include <stdio.h>
-#include <dague.h>
-#include "dague/utils/mca_param.h"
+#include <parsec.h>
+#include "parsec/utils/mca_param.h"
 
 void pastix_parsec_init( pastix_data_t *pastix,
                          int *argc, char **argv[] )
@@ -32,22 +32,22 @@ void pastix_parsec_init( pastix_data_t *pastix,
 
     if (iparm[IPARM_GPU_NBR] > 0) {
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_NBR]));
-        dague_setenv_mca_param( "device_cuda_enabled", value, &environ );
+        parsec_setenv_mca_param( "device_cuda_enabled", value, &environ );
 
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_MEMORY_BLOCK_SIZE]));
-        dague_setenv_mca_param( "device_cuda_memory_block_size", value, &environ );
+        parsec_setenv_mca_param( "device_cuda_memory_block_size", value, &environ );
 
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_MEMORY_PERCENTAGE]));
-        dague_setenv_mca_param( "device_cuda_memory_use", value, &environ );
+        parsec_setenv_mca_param( "device_cuda_memory_use", value, &environ );
 
         if (iparm[IPARM_VERBOSE] > 2) {
-            dague_setenv_mca_param( "device_show_statistics", "1", &environ );
+            parsec_setenv_mca_param( "device_show_statistics", "1", &environ );
         }
         if (iparm[IPARM_VERBOSE] > 3) {
-            dague_setenv_mca_param( "device_show_capabilities", "1", &environ );
+            parsec_setenv_mca_param( "device_show_capabilities", "1", &environ );
         }
     }
-    pastix->parsec = dague_init( pastix->iparm[IPARM_THREAD_NBR],
+    pastix->parsec = parsec_init( pastix->iparm[IPARM_THREAD_NBR],
                                  argc, argv );
 
     (void)rc;
@@ -57,6 +57,6 @@ void pastix_parsec_init( pastix_data_t *pastix,
 void pastix_parsec_finalize( pastix_data_t *pastix )
 {
     if (pastix->parsec != NULL) {
-        dague_fini( &(pastix->parsec) );
+        parsec_fini( &(pastix->parsec) );
     }
 }

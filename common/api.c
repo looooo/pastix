@@ -18,7 +18,7 @@
 #include <metis.h>
 #endif
 #if defined(PASTIX_WITH_PARSEC)
-#include <dague.h>
+#include <parsec.h>
 #endif
 #include "order.h"
 #include "solver.h"
