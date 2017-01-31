@@ -1,5 +1,5 @@
 #
-# Internal module for DAGuE.
+# Internal module for PaRSEC.
 # Setup the minimal environment to compile and generate .JDF files.
 #
 
@@ -14,7 +14,7 @@ macro(jdf_rules jdf_rules_OUTPUTLIST jdf_rules_SOURCES)
     string(REGEX REPLACE ".jdf" "" jdf_rules_SRC ${jdf_rules_SOURCE})
     string(REGEX REPLACE "^(.*/)*(.+)\\.*.*" "\\2" jdf_rules_BSRC ${jdf_rules_SRC})
     set(jdf_rules_OSRC "${jdf_rules_BSRC}")
-    GET_PROPERTY(ADDITIONAL_DAGUEPP_CFLAGS SOURCE ${jdf_rules_SOURCE} PROPERTY ADDITIONAL_DAGUEPP_CFLAGS)
+    GET_PROPERTY(ADDITIONAL_PARSECPP_CFLAGS SOURCE ${jdf_rules_SOURCE} PROPERTY ADDITIONAL_PARSECPP_CFLAGS)
 
     get_source_file_property(jdf_rules_IsInBinaryDir ${jdf_rules_SOURCE} IS_IN_BINARY_DIR )
 
@@ -25,21 +25,21 @@ macro(jdf_rules jdf_rules_OUTPUTLIST jdf_rules_SOURCES)
 
       add_custom_command(
         OUTPUT ${jdf_rules_OSRC}.h ${jdf_rules_OSRC}.c
-        COMMAND ${PARSEC_DAGUEPP} ${DAGUEPP_CFLAGS} ${ADDITIONAL_DAGUEPP_CFLAGS} -E -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
+        COMMAND ${PARSEC_PARSECPP} ${PARSECPP_CFLAGS} ${ADDITIONAL_PARSECPP_CFLAGS} -E -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
         MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_SRC}.jdf
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_SRC}.jdf ${PARSEC_DAGUEPP})
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_SRC}.jdf ${PARSEC_PARSECPP})
 
     else( jdf_rules_IsInBinaryDir )
 
       add_custom_command(
         OUTPUT ${jdf_rules_OSRC}.h ${jdf_rules_OSRC}.c
-        COMMAND ${PARSEC_DAGUEPP} ${DAGUEPP_CFLAGS} ${ADDITIONAL_DAGUEPP_CFLAGS} -E -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
+        COMMAND ${PARSEC_PARSECPP} ${PARSECPP_CFLAGS} ${ADDITIONAL_PARSECPP_CFLAGS} -E -i ${jdf_rules_SRC}.jdf -o ${jdf_rules_OSRC} -f ${jdf_rules_BSRC}
         MAIN_DEPENDENCY ${jdf_rules_SRC}.jdf
-        DEPENDS ${jdf_rules_SRC}.jdf ${PARSEC_DAGUEPP})
+        DEPENDS ${jdf_rules_SRC}.jdf ${PARSEC_PARSECPP})
 
     endif( jdf_rules_IsInBinaryDir )
 
-    set_source_files_properties(${jdf_rules_OSRC}.c PROPERTIES COMPILE_FLAGS "-I${PARSEC_DIR_FOUND}/include/daguepp")
+    set_source_files_properties(${jdf_rules_OSRC}.c PROPERTIES COMPILE_FLAGS "-I${PARSEC_DIR_FOUND}/include/parsecpp")
     list(APPEND ${jdf_rules_OUTPUTLIST} "${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.h;${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.c")
     get_source_file_property(jdf_rules_CompileFlags ${jdf_rules_SOURCE} COMPILE_FLAGS )
     if( jdf_rules_CompileFlags )
