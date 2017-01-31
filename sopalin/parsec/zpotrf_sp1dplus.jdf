@@ -150,7 +150,7 @@ BODY
 
         work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
 
-        core_zgemmsp( PastixLower, PastixConjTrans, lcblk, blok, fcblk,
+        core_zgemmsp( PastixLCoef, PastixLower, PastixConjTrans, lcblk, blok, fcblk,
                       A, A, C, work, &lowrank );
 
         parsec_private_memory_push( p_work, (void *)work );

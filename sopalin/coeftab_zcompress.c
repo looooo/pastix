@@ -69,14 +69,17 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         blok->LRblock = LRblocks;
 
-        if ( ( ncols > lowrank.compress_min_width ) && ( nrows > lowrank.compress_min_height ) ){
+        if ( (ncols > lowrank.compress_min_width ) &&
+             (nrows > lowrank.compress_min_height) )
+        {
             lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
                                 lcoeftab + blok->coefind, nrows,
                                 blok->LRblock );
             gainL -= (LRblocks->rk == -1) ? nrows * ncols
                 : ((nrows+ncols) * LRblocks->rk);
         }
-        else{
+        else
+        {
             core_zlralloc( nrows, ncols, -1, LRblocks );
             LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
                                  lcoeftab + blok->coefind, nrows,
@@ -86,15 +89,17 @@ coeftab_zcompress_one( SolverCblk *cblk,
         LRblocks++;
 
         if (factoLU) {
-
-        if ( ( ncols > lowrank.compress_min_width ) && ( nrows > lowrank.compress_min_height ) ){
+            if ( (ncols > lowrank.compress_min_width ) &&
+                 (nrows > lowrank.compress_min_height) )
+            {
                 lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
                                     ucoeftab + blok->coefind, nrows,
                                     blok->LRblock+1 );
                 gainU -= (LRblocks->rk == -1) ? nrows * ncols
                     : ((nrows+ncols) * LRblocks->rk);
             }
-            else{
+            else
+            {
                 core_zlralloc( nrows, ncols, -1, LRblocks );
                 LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
                                      ucoeftab + blok->coefind, nrows,
@@ -150,7 +155,6 @@ coeftab_zalloc_one( SolverCblk *cblk )
                              LRblocks->u, LRblocks->rkmax );
         LRblocks++;
     }
-
     for (blok++; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );

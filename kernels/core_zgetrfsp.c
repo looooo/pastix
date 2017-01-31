@@ -369,12 +369,12 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         /* Update on L */
-        core_zgemmsp( PastixLower, PastixTrans, cblk, blok, fcblk,
+        core_zgemmsp( PastixUCoef, PastixLower, PastixTrans, cblk, blok, fcblk,
                       L, U, fcblk->lcoeftab, work, &solvmtx->lowrank );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
-            core_zgemmsp( PastixUpper, PastixTrans, cblk, blok, fcblk,
+            core_zgemmsp( PastixLCoef, PastixUpper, PastixTrans, cblk, blok, fcblk,
                           U, L, fcblk->ucoeftab, work, &solvmtx->lowrank );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
