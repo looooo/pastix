@@ -17,13 +17,13 @@ extern "C" %{
 
 /* Globals
  */
-dataA        [type = "parsec_ddesc_t *" ]
+descA        [type = "sparse_matrix_desc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
-datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
-cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
-bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work1  [type = "parsec_memory_pool_t *" size = "pastix_imax(datacode->gemmmax, datacode->diagmax) * sizeof(pastix_complex64_t)"]
 p_work2  [type = "parsec_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
@@ -45,13 +45,13 @@ lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cbl
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
-:dataA(0, k, 0) // Should match SOLV_COEFTAB(k)
+:descA(0, k, 0) // Should match SOLV_COEFTAB(k)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM( lastbrow )
+RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM( lastbrow )
      -> A GEMM(firstblok .. lastblok)
-     -> dataA(0, k, 0)
+     -> descA(0, k, 0)
 
      //; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
@@ -88,12 +88,12 @@ prev    = inline_c %{ if ((brownum == -1) || (brownum <= first)) return 0; else 
 next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else return datacode->browtab[brownum+1]; %}
 
 // Parallel partitioning
-:dataA(0, fcblknm, 0)
+:descA(0, fcblknm, 0)
 
 // Parameters
-READ  A  <- ( brownum != -1) ? L SYTRF_TRSM( lcblknm ) : dataA( 0, fcblknm, 0 )
+READ  A  <- ( brownum != -1) ? L SYTRF_TRSM( lcblknm ) : descA( 0, fcblknm, 0 )
 
-RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm, 0 )
+RW    C  <- ( brownum == -1 ) || (first == brownum ) ? descA( 0, fcblknm, 0 )
          <- ( brownum != -1 ) && (first != brownum ) ? C GEMM( prev )
 
          -> ( brownum != -1 ) && (last == brownum ) ? L SYTRF_TRSM( fcblknm )

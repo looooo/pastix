@@ -17,13 +17,13 @@ extern "C" %{
 
 /* Globals
  */
-dataA        [type = "parsec_ddesc_t *" ]
+descA        [type = "sparse_matrix_desc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
-datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
-cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
-bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work1  [type = "parsec_memory_pool_t *" size = "pastix_imax(datacode->gemmmax, datacode->diagmax) * sizeof(pastix_complex64_t)"]
 p_work2  [type = "parsec_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]

@@ -2,7 +2,7 @@ extern "C" %{
   /**
    * PLASMA include for defined and constants.
    *
-   * @precisions normal z -> s d c
+   * @precisions normal z -> c d s
    *
    */
 #include <parsec.h>
@@ -17,10 +17,9 @@ extern "C" %{
 
 /* Globals
  */
-dataA        [type = "parsec_ddesc_t *" ]
+descA        [type = "sparse_matrix_desc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA     [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
 datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
