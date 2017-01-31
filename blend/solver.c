@@ -207,8 +207,8 @@ solverPrintStats( const SolverMatrix *solvptr )
              "      Structure memory space           %11.2lf %s\n"
              "      Number of coeficients stored      %10ld\n",
              solvptr->cblknbr,
-             0, /* solvptr->nb2dcblk, */
-             0, /* solvptr->nb2dblok, */
+             solvptr->nb2dcblk,
+             solvptr->nb2dblok,
              solvptr->cblkmin2d,
              fcol2d,
              avg2d,

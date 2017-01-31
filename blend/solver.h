@@ -94,15 +94,19 @@ typedef struct pastix_lr_s {
     fct_ge2lr_t  core_ge2lr;           /*< Compression function                             */
 } pastix_lr_t;
 
+#define GPUID_UNDEFINED -2 /*< GPU still undefined       */
+#define GPUID_NONE      -1 /*< Block not computed on GPU */
+
 /*+ Solver block structure. +*/
 typedef struct SolverBlok_ {
-    pastix_int_t lcblknm;  /*< Local column block                       */
-    pastix_int_t fcblknm;  /*< Facing column block                      */
-    pastix_int_t browind;  /*< Index in browtab                         */
-    pastix_int_t coefind;  /*< Index in coeftab                         */
-    pastix_int_t frownum;  /*< First row index                          */
-    pastix_int_t lrownum;  /*< Last row index (inclusive)               */
-    int8_t       gpuid;    /*< Store on which GPU the block is computed */
+    void        *handler[2]; /*< Runtime data handler                     */
+    pastix_int_t lcblknm;    /*< Local column block                       */
+    pastix_int_t fcblknm;    /*< Facing column block                      */
+    pastix_int_t frownum;    /*< First row index                          */
+    pastix_int_t lrownum;    /*< Last row index (inclusive)               */
+    pastix_int_t coefind;    /*< Index in coeftab                         */
+    pastix_int_t browind;    /*< Index in browtab                         */
+    int8_t       gpuid;      /*< Store on which GPU the block is computed */
 
     /* LR structures */
     pastix_lrblock_t *LRblock; /*< Store the blok (L/U) in LR format. Allocated for the cblk. */
@@ -110,21 +114,21 @@ typedef struct SolverBlok_ {
 
 /*+ Solver column block structure. +*/
 typedef struct SolverCblk_  {
-    pastix_atomic_lock_t lock;     /*< Lock to protect computation on the cblk */
-    volatile uint32_t    ctrbcnt;  /*< Number of contribution to receive       */
-    int8_t               cblktype; /*< Type of cblk                            */
-    int8_t               gpuid;    /*< Store on which GPU the cblk is computed */
-    pastix_int_t         fcolnum;  /*< First column index                      */
-    pastix_int_t         lcolnum;  /*< Last column index (inclusive)           */
-    SolverBlok          *fblokptr; /*< First block in column (diagonal)        */
-    pastix_int_t         stride;   /*< Column block stride                     */
-    pastix_int_t         lcolidx;  /*< Local first column index to the location in the rhs vector       */
-    pastix_int_t         brownum;  /*< First block in row facing the diagonal block in browtab, 0-based */
-    pastix_int_t         brown2d;  /*< First 2D-block in row facing the diagonal block in browtab, 0-based */
-    pastix_int_t         gcblknum; /*< Global column block index               */
-    void                *lcoeftab; /*< Coefficients access vector              */
-    void                *ucoeftab; /*< Coefficients access vector              */
-
+    pastix_atomic_lock_t lock;       /*< Lock to protect computation on the cblk */
+    volatile uint32_t    ctrbcnt;    /*< Number of contribution to receive       */
+    int8_t               cblktype;   /*< Type of cblk                            */
+    int8_t               gpuid;      /*< Store on which GPU the cblk is computed */
+    pastix_int_t         fcolnum;    /*< First column index                      */
+    pastix_int_t         lcolnum;    /*< Last column index (inclusive)           */
+    SolverBlok          *fblokptr;   /*< First block in column (diagonal)        */
+    pastix_int_t         stride;     /*< Column block stride                     */
+    pastix_int_t         lcolidx;    /*< Local first column index to the location in the rhs vector       */
+    pastix_int_t         brownum;    /*< First block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t         brown2d;    /*< First 2D-block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t         gcblknum;   /*< Global column block index               */
+    void                *lcoeftab;   /*< Coefficients access vector              */
+    void                *ucoeftab;   /*< Coefficients access vector              */
+    void                *handler[2]; /*< Runtime data handler                    */
     /* Check if really required */
     pastix_int_t    procdiag; /*+ Cluster owner of diagonal block        +*/
 } SolverCblk;
@@ -157,7 +161,7 @@ struct SolverMatrix_ {
     sparse_matrix_desc_t   *parsec_desc;
 #endif
 
-#ifdef PASTIX_WITH_STARPU
+#if defined(PASTIX_WITH_STARPU)
     /* All this part concern halo of the local matrix
      * ie: column blocks which will:
      *  - be updated by local column blocks
