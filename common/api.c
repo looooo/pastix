@@ -121,7 +121,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
     iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
     iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
-    iparm[IPARM_MTX_TYPE]              = -1;                  /* Used with old interface to force matrix type */
+
 
     /**
      * Ordering parameters
@@ -213,7 +213,8 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_NB_SMP_NODE_USED]      = 0;                   /* Nb SMP node used (0 for 1 per MPI process) */
     iparm[IPARM_MURGE_REFINEMENT]      = API_YES;
     iparm[IPARM_TRANSPOSE_SOLVE]       = API_NO;
-
+    iparm[IPARM_MTX_TYPE]              = -1;              /* Used with old interface to force matrix type */
+    
     /**
      * Communication modes
      */

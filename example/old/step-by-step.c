@@ -5,17 +5,10 @@
 
  */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <complex.h>
-
 /* to access functions from the libpastix, respect this order */
 #include <pastix.h>
 #include <spm.h>
-#include "../matrix_drivers/drivers.h"
+#include "drivers.h"
 
 
 
@@ -87,7 +80,6 @@ int main (int argc, char **argv)
             -1, NULL, NULL, NULL,
             NULL, NULL, NULL, 1, iparm, dparm );
 
-
     /**
      * Step 1 - Ordering / Scotch
      * Perform it only when the pattern of matrix change.
@@ -121,7 +113,6 @@ int main (int argc, char **argv)
     iparm[IPARM_END_TASK]   = API_TASK_ANALYSE;
     pastix(&pastix_data, MPI_COMM_WORLD, spm->n, spm->colptr, spm->rowptr, spm->values,
            NULL, NULL, NULL, nrhs, iparm, dparm );
-
 
     size = pastix_size_of( spm->flttype ) * spm->n;
     x = malloc( size );
@@ -174,7 +165,6 @@ int main (int argc, char **argv)
              */
             iparm[IPARM_START_TASK] = API_TASK_SOLVE;
             iparm[IPARM_END_TASK]   = API_TASK_SOLVE;
-
 
             fprintf(stdout, "\t>> Solve step number %ld  <<\n", (long)(j+1));
             pastix(&pastix_data, MPI_COMM_WORLD,

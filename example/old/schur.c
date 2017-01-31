@@ -1,14 +1,22 @@
-/* File: schur.c
-
- Construct the schur complement of the matrix.
-
- */
+/**
+ *
+ * @file schur.c
+ *
+ * PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ * LaBRI, University of Bordeaux 1 and IPB.
+ * Construct the schur complement of the matrix.
+ *
+ * @version 5.1.0
+ * @author Hastaran Matias
+ * @date 23/01/17
+ *
+ **/
 
 #include <pastix.h>
 #include <spm.h>
-#include "../matrix_drivers/drivers.h"
-#include "../common/pastixdata.h"
-#include "../order/order.h"
+#include "drivers.h"
+#include "pastixdata.h"
+
 
 int main (int argc, char **argv)
 {
@@ -23,7 +31,7 @@ int main (int argc, char **argv)
     void            *x, *x0, *b;
     size_t           size;
     int              check       = 2;
-    int              ret         = PASTIX_SUCCESS;
+    int              baseval;
 
     /**
      * Initialize parameters to default values
@@ -100,7 +108,7 @@ int main (int argc, char **argv)
     /**
      * Initialize the schur
      */
-    int baseval=spmFindBase(spm);
+    baseval=spmFindBase(spm);
     pastix_data->schur_n = spm->gN/3;
     pastix_data->schur_list = (pastix_int_t*)malloc(pastix_data->schur_n*sizeof(pastix_int_t));
     for (int i=0; i<pastix_data->schur_n; i++)
