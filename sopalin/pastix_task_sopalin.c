@@ -129,10 +129,11 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
     }
 
     /* Initialize low-rank parameters */
-    pastix_data->solvmatr->lowrank.compress_when   = pastix_data->iparm[IPARM_COMPRESS_WHEN];
-    pastix_data->solvmatr->lowrank.compress_method = pastix_data->iparm[IPARM_COMPRESS_METHOD];
-    pastix_data->solvmatr->lowrank.compress_size   = pastix_data->iparm[IPARM_COMPRESS_SIZE];
-    pastix_data->solvmatr->lowrank.tolerance       = pastix_data->dparm[DPARM_COMPRESS_TOLERANCE];
+    pastix_data->solvmatr->lowrank.compress_when       = pastix_data->iparm[IPARM_COMPRESS_WHEN];
+    pastix_data->solvmatr->lowrank.compress_method     = pastix_data->iparm[IPARM_COMPRESS_METHOD];
+    pastix_data->solvmatr->lowrank.compress_min_width  = pastix_data->iparm[IPARM_COMPRESS_MIN_WIDTH];
+    pastix_data->solvmatr->lowrank.compress_min_height = pastix_data->iparm[IPARM_COMPRESS_MIN_HEIGHT];
+    pastix_data->solvmatr->lowrank.tolerance           = sqrt(pastix_data->dparm[DPARM_COMPRESS_TOLERANCE]);
 
     pastix_data->solvmatr->lowrank.core_ge2lr = compressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
     pastix_data->solvmatr->lowrank.core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];

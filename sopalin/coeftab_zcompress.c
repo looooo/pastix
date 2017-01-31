@@ -69,21 +69,37 @@ coeftab_zcompress_one( SolverCblk *cblk,
 
         blok->LRblock = LRblocks;
 
-        lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
-                            lcoeftab + blok->coefind, nrows,
-                            blok->LRblock );
-        gainL -= (LRblocks->rk == -1) ? nrows * ncols
-            : ((nrows+ncols) * LRblocks->rk);
+        if ( ( ncols > lowrank.compress_min_width ) && ( nrows > lowrank.compress_min_height ) ){
+            lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
+                                lcoeftab + blok->coefind, nrows,
+                                blok->LRblock );
+            gainL -= (LRblocks->rk == -1) ? nrows * ncols
+                : ((nrows+ncols) * LRblocks->rk);
+        }
+        else{
+            core_zlralloc( nrows, ncols, -1, LRblocks );
+            LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
+                                 lcoeftab + blok->coefind, nrows,
+                                 LRblocks->u, LRblocks->rkmax );
+        }
 
         LRblocks++;
 
         if (factoLU) {
 
-            lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
-                                ucoeftab + blok->coefind, nrows,
-                                blok->LRblock+1 );
-            gainU -= (LRblocks->rk == -1) ? nrows * ncols
-                : ((nrows+ncols) * LRblocks->rk);
+        if ( ( ncols > lowrank.compress_min_width ) && ( nrows > lowrank.compress_min_height ) ){
+                lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
+                                    ucoeftab + blok->coefind, nrows,
+                                    blok->LRblock+1 );
+                gainU -= (LRblocks->rk == -1) ? nrows * ncols
+                    : ((nrows+ncols) * LRblocks->rk);
+            }
+            else{
+                core_zlralloc( nrows, ncols, -1, LRblocks );
+                LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
+                                     ucoeftab + blok->coefind, nrows,
+                                     LRblocks->u, LRblocks->rkmax );
+            }
 
             LRblocks++;
         }
@@ -275,7 +291,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
              "  Compression : Tolerance         %e\n"
              "                Elements removed  %ld / %ld\n"
              "                Memory saved      %.3g %s / %.3g %s\n",
-             tol, gain, original,
+             tol*tol, gain, original,
              MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
              MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
 }

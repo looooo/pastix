@@ -11,7 +11,7 @@
 #ifndef _OUT_H_
 #define _OUT_H_
 
-#define OUT_ENTETE                                              \
+#define OUT_HEADER                                              \
     "+-------------------------------------------------+\n"     \
     "+     PaStiX : Parallel Sparse matriX package     +\n"     \
     "+-------------------------------------------------+\n"     \
@@ -24,7 +24,13 @@
     "    starpu:                               %8s\n"           \
     "  Number of MPI processes:                %8d\n"           \
     "  Number of threads per process:          %8d\n"           \
-    "  MPI communication support:              %8s\n"
+    "  MPI communication support:              %8s\n"           \
+    "  Low rank parameters:                             \n"     \
+    "    Tolerance                             %8.0e    \n"     \
+    "    Compress size                         %8ld     \n"     \
+    "    Compress width                        %8ld     \n"     \
+    "    Strategy                      %16s             \n"     \
+    "    Compress method                       %8s      \n"
 
 #define OUT_STEP_ORDER                                          \
     "+-------------------------------------------------+\n"     \
