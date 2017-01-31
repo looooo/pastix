@@ -18,8 +18,7 @@ dsparse_zpotrs_sp_New(sparse_matrix_desc_t *A, sparse_vector_desc_t *B)
 {
     parsec_zpotrs_sp1dplus_object_t *parsec_zpotrs_sp = NULL;
 
-    parsec_zpotrs_sp = parsec_zpotrs_sp1dplus_new(A, (parsec_ddesc_t *)A,
-                                                B, (parsec_ddesc_t *)B, NULL );
+    parsec_zpotrs_sp = parsec_zpotrs_sp1dplus_new(A, B, NULL );
 
     parsec_zpotrs_sp->p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
     parsec_private_memory_init( parsec_zpotrs_sp->p_work, (A->pastix_data->solvmatr).coefmax * sizeof(parsec_complex64_t) );

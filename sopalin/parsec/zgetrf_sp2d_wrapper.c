@@ -22,7 +22,7 @@ dsparse_zgetrf_2d_sp_New( sparse_matrix_desc_t *A,
 {
     parsec_zgetrf_sp2d_handle_t *parsec_zgetrf_2d_sp = NULL;
 
-    parsec_zgetrf_2d_sp = parsec_zgetrf_sp2d_new( (parsec_ddesc_t*)A, sopalin_data, NULL );
+    parsec_zgetrf_2d_sp = parsec_zgetrf_sp2d_new( A, sopalin_data, NULL );
 
     parsec_zgetrf_2d_sp->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
     parsec_private_memory_init( parsec_zgetrf_2d_sp->_g_p_work, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );

@@ -44,17 +44,17 @@ firstblok = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokp
 lastblok  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 
 // Parallel partitioning
-:dataA(0, k, 0)
+:descA(0, k, 0)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM1D( lastbrow, 0 )
+RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow, 0 )
      -> Al GEMM1D(firstblok .. lastblok, 0 .. 1)
-     -> dataA(0, k, 0)
+     -> descA(0, k, 0)
 
-RW U <- ( browk0 == browk1 ) ? dataA(1, k, 0) : C GEMM1D( lastbrow, 1 )
+RW U <- ( browk0 == browk1 ) ? descA(1, k, 0) : C GEMM1D( lastbrow, 1 )
      -> Au GEMM1D(firstblok .. lastblok, 0 .. 1)
-     -> dataA(1, k, 0)
+     -> descA(1, k, 0)
 
 ; %{ return cblknbr - k; %}
 
@@ -130,14 +130,14 @@ m  = %{ if (brownum == -1) return 0; else {
     }%}
 
 // Parallel partitioning
-:dataA(s, fcblknm, 0)
+:descA(s, fcblknm, 0)
 
 // Parameters
 READ  Al <- (brownum != -1) ? L GETRF( lcblknm ) : NULL
 READ  Au <- (brownum != -1) ? U GETRF( lcblknm ) : NULL
 
 RW    C  <- (brownum == -1) ? NULL
-         <- (brownum != -1) && (brownum == first) ? dataA( s, fcblknm, 0 )
+         <- (brownum != -1) && (brownum == first) ? descA( s, fcblknm, 0 )
          <- (brownum != -1) && (brownum != first) ? C GEMM1D( prev, s )
 
          -> (brownum != -1) && (brownum == last) && (s == 0) ? L GETRF( fcblknm )

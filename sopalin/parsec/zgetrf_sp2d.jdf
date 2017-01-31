@@ -46,17 +46,17 @@ firstblok = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->fblokp
 lastblok  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokptr - datacode->bloktab - 1; %}
 
 // Parallel partitioning
-:dataA(0, k, 0)
+:descA(0, k, 0)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM1D( lastbrow, 0 )
+RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow, 0 )
      -> !isTwoD ? Al GEMM1D(firstblok .. lastblok, 0 .. 1)
-     -> dataA(0, k, 0)
+     -> descA(0, k, 0)
 
-RW U <- ( browk0 == browk1 ) ? dataA(1, k, 0) : C GEMM1D( lastbrow, 1 )
+RW U <- ( browk0 == browk1 ) ? descA(1, k, 0) : C GEMM1D( lastbrow, 1 )
      -> !isTwoD ? Au GEMM1D(firstblok .. lastblok, 0 .. 1)
-     -> dataA(1, k, 0)
+     -> descA(1, k, 0)
 
 CTL ctl -> isTwoD ? ctl OneToTwoD(k, 0 .. (lastblok-firstblok+1), 0 .. 1)
 
@@ -143,14 +143,14 @@ m  = %{ if (brownum == -1) return 0; else {
     }%}
 
 // Parallel partitioning
-:dataA(s, fcblknm, 0)
+:descA(s, fcblknm, 0)
 
 // Parameters
 READ  Al <- (brownum != -1 && !isTwoD) ? L GETRF( lcblknm ) : NULL
 READ  Au <- (brownum != -1 && !isTwoD) ? U GETRF( lcblknm ) : NULL
 
 RW    C  <- (brownum == -1) ? NULL
-         <- (brownum != -1) && (brownum == first) ? dataA( s, fcblknm, 0 )
+         <- (brownum != -1) && (brownum == first) ? descA( s, fcblknm, 0 )
          <- (brownum != -1) && (brownum != first) ? C GEMM1D( prev, s )
          -> (brownum != -1) && (brownum == last) && (s == 0) ? L GETRF( fcblknm )
          -> (brownum != -1) && (brownum == last) && (s == 1) ? U GETRF( fcblknm )
@@ -208,11 +208,11 @@ last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return 
 s = 0 .. 1
 
 // Parallel partitioning
-:dataA(s, k, noskip)
+:descA(s, k, noskip)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-READ A <- isTwoD && noskip ? dataA(s, k, noskip) : NULL
+READ A <- isTwoD && noskip ? descA(s, k, noskip) : NULL
        -> isTwoD && (first == last) && (m == 0) && (s == 0) ? Al GETRF2D( k )
        -> isTwoD && (first == last) && (m == 0) && (s == 1) ? Au GETRF2D( k )
        -> isTwoD && (first == last) && (m != 0) && noskip ? C TRSM2D( k, m, s )
@@ -241,7 +241,7 @@ first   = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d;
 last    = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
 
 // Parallel partitioning
-:dataA(0, k, 1)
+:descA(0, k, 1)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
@@ -250,14 +250,14 @@ READ  Al  <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 0 )
           <-  !isTwoD ? NULL
 
           ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk), 0 )
-          ->  isTwoD ? dataA(0, k, 1)
+          ->  isTwoD ? descA(0, k, 1)
 
 READ  Au  <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 1 )
           <-  isTwoD & (first <  last) ? C GEMM2D( last-1, 0, k, 1 )
           <-  !isTwoD ? NULL
 
           ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk), 1 )
-          ->  isTwoD ? dataA(1, k, 1)
+          ->  isTwoD ? descA(1, k, 1)
 
 //; %{ return - TASK_PRIONUM(k); %}
 BODY
@@ -294,7 +294,7 @@ lblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm + 1; r
 s       = 0 .. 1
 
 // Parallel partitioning
-:dataA(s, k, noskip)
+:descA(s, k, noskip)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
@@ -307,7 +307,7 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m, s )
           <-(!isTwoD) | (!noskip) ? NULL
           ->  isTwoD & noskip ? A FWDTOGEMM2D(k, m, 1 .. m, s)
           ->  isTwoD & noskip ? B GEMM2D(browkb, 0 .. (lblokn-fblokn), fcblknm, 1-s)
-          ->  isTwoD & noskip ? dataA(s, k, noskip)
+          ->  isTwoD & noskip ? descA(s, k, noskip)
 
 //; %{ return - TASK_PRIONUM(k); %}
 BODY
@@ -394,7 +394,7 @@ browkb = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;
 s       = 0 .. 1
 
 // Parallel partitioning
-:dataA(s, cblk_n, blok_mn)
+:descA(s, cblk_n, blok_mn)
 
 // Parameters
 READ  A  <- noskipM ? C TRSM2D( k, m, s ) : NULL
@@ -479,7 +479,7 @@ s    = 0 .. 1
 todo = (is2dA && is2dC && noskipC && blok_nk && blok_mk)
 
 // Parallel partitioning
-:dataA(s, cblk_n, noskipC)
+:descA(s, cblk_n, noskipC)
 
 // Parameters
 READ  A  <-  is2dA & (blok_mk > 0) ? A FWDTOGEMM2D( cblk_k, blok_mk, blok_nk-fblokk, s ) : NULL

@@ -134,28 +134,6 @@ parsec_zgetrf_1dplus( pastix_data_t  *pastix_data,
 #endif
 
 }
-
-void
-parsec_zgetrf_2d( pastix_data_t  *pastix_data,
-                  sopalin_data_t *sopalin_data )
-{
-    parsec_context_t *ctx;
-
-    /* Start PaRSEC */
-    if (pastix_data->parsec == NULL) {
-        int argc = 0;
-        pastix_parsec_init( pastix_data, &argc, NULL );
-    }
-    ctx = pastix_data->parsec;
-
-    /* Run the facto */
-    dsparse_zgetrf_2d_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
-
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( sopalin_data->solvmtx, "getrf.txt" );
-#endif
-
-}
 #endif
 
 static void (*zgetrf_table[4])(pastix_data_t *, sopalin_data_t *) = {

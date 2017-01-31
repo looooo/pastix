@@ -20,7 +20,7 @@ dsparse_zsytrf_sp_New( sparse_matrix_desc_t *A,
 {
     parsec_zsytrf_sp1dplus_handle_t *parsec_zsytrf_sp = NULL;
 
-    parsec_zsytrf_sp = parsec_zsytrf_sp1dplus_new( (parsec_ddesc_t*)A, sopalin_data, NULL, NULL );
+    parsec_zsytrf_sp = parsec_zsytrf_sp1dplus_new( A, sopalin_data, NULL, NULL );
 
     parsec_zsytrf_sp->_g_p_work1 = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
     parsec_private_memory_init( parsec_zsytrf_sp->_g_p_work1,

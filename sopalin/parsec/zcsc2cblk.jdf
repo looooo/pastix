@@ -18,10 +18,10 @@ void sparse_matrix_zcsc2cblk(const SolverMatrix *solvmatr,
 
 /* Globals
  */
-dataA        [type = "parsec_ddesc_t *" ]
+descA        [type = "parsec_ddesc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
+descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)descA)"]
 datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 
