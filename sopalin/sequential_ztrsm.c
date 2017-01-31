@@ -24,11 +24,11 @@
 #include "pastix_zcores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
-#include <dague.h>
-#include <dague/data.h>
-#include <dague/data_distribution.h>
+#include <parsec.h>
+#include <parsec/data.h>
+#include <parsec/data_distribution.h>
 
-int dsparse_ztrsm_sp( dague_context_t *dague,
+int dsparse_ztrsm_sp( parsec_context_t *parsec,
                       sparse_matrix_desc_t *A,
                       int side, int uplo, int trans, int diag,
                       sopalin_data_t *sopalin_data,
@@ -201,7 +201,7 @@ parsec_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int dia
               sopalin_data_t *sopalin_data,
               int nrhs, pastix_complex64_t *b, int ldb )
 {
-    dague_context_t *ctx;
+    parsec_context_t *ctx;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {

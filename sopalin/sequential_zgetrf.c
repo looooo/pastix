@@ -23,16 +23,13 @@
 #include "pastix_zcores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
-#include <dague.h>
-#include <dague/data.h>
-#include <dague/data_distribution.h>
+#include <parsec.h>
+#include <parsec/data.h>
+#include <parsec/data_distribution.h>
 
-int dsparse_zgetrf_1dplus_sp( dague_context_t *dague,
+int dsparse_zgetrf_1dplus_sp( parsec_context_t *parsec,
                               sparse_matrix_desc_t *A,
                               sopalin_data_t *sopalin_data );
-int dsparse_zgetrf_2d_sp( dague_context_t *dague,
-                          sparse_matrix_desc_t *A,
-                          sopalin_data_t *sopalin_data );
 #endif
 
 void
@@ -120,7 +117,7 @@ void
 parsec_zgetrf_1dplus( pastix_data_t  *pastix_data,
                       sopalin_data_t *sopalin_data )
 {
-    dague_context_t *ctx;
+    parsec_context_t *ctx;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {
@@ -142,7 +139,7 @@ void
 parsec_zgetrf_2d( pastix_data_t  *pastix_data,
                   sopalin_data_t *sopalin_data )
 {
-    dague_context_t *ctx;
+    parsec_context_t *ctx;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {
@@ -165,12 +162,11 @@ static void (*zgetrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zgetrf,
     thread_zgetrf,
 #if defined(PASTIX_WITH_PARSEC)
-    parsec_zgetrf_2d,
     parsec_zgetrf_1dplus,
 #else
     NULL,
-    NULL
 #endif
+    NULL
 };
 
 void
