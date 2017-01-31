@@ -14,9 +14,7 @@
 #include <parsec/data_distribution.h>
 
 typedef struct sparse_matrix_desc_s {
-    parsec_ddesc_t   super;
-    parsec_data_t  **datamap_cblk;
-    parsec_data_t  **datamap_blok;
+    parsec_ddesc_t  super;
     int             typesze;   /*< Type size                                                            */
     int             mtxtype;   /*< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian. */
     SolverMatrix   *solvmtx;

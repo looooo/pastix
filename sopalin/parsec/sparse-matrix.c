@@ -123,12 +123,9 @@ sparse_matrix_data_of(parsec_ddesc_t *mat, ... )
 {
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     SolverCblk *cblk;
-    char *ptr;
     va_list ap;
-    int uplo, ratio;
+    int uplo;
     pastix_int_t cblknum, bloknum;
-    parsec_data_key_t key1, key2;
-    size_t size;
 
     va_start(ap, mat);
     uplo    = va_arg(ap, int);
@@ -136,36 +133,21 @@ sparse_matrix_data_of(parsec_ddesc_t *mat, ... )
     bloknum = va_arg(ap, int) - 1;
     va_end(ap);
 
-    ratio = spmtx->mtxtype == PastixGeneral ? 2 : 1;
     uplo = uplo ? 1 : 0;
-    assert( ratio == 2 || uplo == 0 );
 
     cblk = spmtx->solvmtx->cblktab + cblknum;
-    ptr  = uplo ? cblk->ucoeftab : cblk->lcoeftab;
 
     /* This is a cblk */
     if ( bloknum == -1 ) {
-        key1 = ratio * cblknum + uplo;
-        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-        return parsec_data_create( (parsec_data_t**)(&(cblk->handler[uplo])),
-                                   mat, key1, ptr, size );
+        assert( cblk->handler[uplo] );
+        return (parsec_data_t*)(cblk->handler[uplo]);
     }
     /* This is a blok */
     else {
-        pastix_int_t n, cblkmin2d, cblknbr, ld;
         SolverBlok *blok = cblk->fblokptr + bloknum;
 
-        cblknbr   = spmtx->solvmtx->cblknbr;
-        cblkmin2d = spmtx->solvmtx->cblkmin2d;
-        ld        = spmtx->solvmtx->cblkmaxblk * ratio;
-        n         = cblknum - cblkmin2d;
-
-        key1 = ratio * cblknbr;
-        key2 = n * ld + bloknum * ratio + uplo;
-
-        assert( spmtx->datamap_blok[key2] != NULL );
-        return parsec_data_create( (parsec_data_t**)(&(blok->handler[uplo])),
-                                   mat, key1+key2, NULL, 0 );
+        assert( blok->handler[uplo] );
+        return (parsec_data_t*)(blok->handler[uplo]);
     }
 }
 
@@ -177,28 +159,24 @@ sparse_matrix_data_of_key(parsec_ddesc_t *mat, parsec_data_key_t key )
     SolverCblk *cblk;
     int uplo, ratio;
     pastix_int_t cblknum, bloknum;
-    size_t size;
-    char *ptr;
 
     ratio = (spmtx->mtxtype == PastixGeneral) ? 2 : 1;
     spm_data_key_to_value( key, ratio, solvmtx,
                            &uplo, &cblknum, &bloknum );
 
     cblk = solvmtx->cblktab + cblknum;
-    ptr  = uplo ? cblk->ucoeftab : cblk->lcoeftab;
 
     /* This is a cblk */
     if ( bloknum == -1 ) {
-        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-        return parsec_data_create( (parsec_data_t**)(&(cblk->handler[uplo])),
-                                   mat, key, ptr, size );
+        assert( cblk->handler[uplo] );
+        return (parsec_data_t*)(cblk->handler[uplo]);
     }
     /* This is a blok */
     else {
         SolverBlok *blok = cblk->fblokptr + bloknum;
 
-        return parsec_data_create( (parsec_data_t**)(&(blok->handler[uplo])),
-                                   mat, key, NULL, 0 );
+        assert( blok->handler[uplo] );
+        return (parsec_data_t*)(blok->handler[uplo]);
     }
 }
 
@@ -237,6 +215,11 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     parsec_ddesc_t *o = (parsec_ddesc_t*)spmtx;
     pastix_int_t   cblknbr, cblkmin2d, ld;
     parsec_data_key_t key1, key2;
+    SolverCblk *cblk;
+    SolverBlok *blok, *lblok;
+    pastix_int_t m, n, cblknum;
+    size_t size, offset;
+    char *ptrL, *ptrU;
     int ratio = ( mtxtype == PastixGeneral ) ? 2 : 1;
 
     parsec_ddesc_init( o, nodes, myrank );
@@ -262,35 +245,89 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     ld        = solvmtx->cblkmaxblk * ratio;
     key1      = ratio * cblknbr;
 
-    spmtx->datamap_cblk = NULL;
-    spmtx->datamap_blok = NULL;
+    /* Initialize 1D cblk handlers */
+    cblk = spmtx->solvmtx->cblktab;
+    for(cblknum = 0;
+        cblknum < cblkmin2d;
+        cblknum++, n++, cblk++ )
+    {
+        parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
+        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
-    if ( cblkmin2d < cblknbr ) {
-        SolverCblk *cblkN;
-        SolverBlok *blok, *lblok;
-        pastix_int_t m, n, cblknumN;
-        size_t size, offset;
-        char *ptrL, *ptrU;
+        parsec_data_create( handler,
+                            o, cblknum * ratio, cblk->lcoeftab, size );
 
-        cblkN = spmtx->solvmtx->cblktab + cblkmin2d;
-        for(cblknumN = cblkmin2d, n = 0;
-            cblknumN < cblknbr;
-            cblknumN++, n++, cblkN++ )
+        if ( ratio == 2 ) {
+            parsec_data_create( handler+1,
+                                o, cblknum * ratio + 1, cblk->ucoeftab, size );
+        }
+    }
+
+    /* Initialize 2D cblk handlers */
+    cblk = spmtx->solvmtx->cblktab + cblkmin2d;
+    for(cblknum = cblkmin2d, n = 0;
+        cblknum < cblknbr;
+        cblknum++, n++, cblk++ )
+    {
+        parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
+        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+
+        parsec_data_create( handler,
+                            o, cblknum * ratio, cblk->lcoeftab, size );
+
+        if ( ratio == 2 ) {
+            parsec_data_create( handler+1,
+                                o, cblknum * ratio + 1, cblk->ucoeftab, size );
+        }
+
+        if ( !(cblk->cblktype & CBLK_LAYOUT_2D) )
+            continue;
+
+        /**
+         * Diagonal block
+         */
+        ptrL   = cblk->lcoeftab;
+        ptrU   = cblk->ucoeftab;
+        blok   = cblk->fblokptr;
+        size   = blok_rownbr( blok ) * cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+        offset = blok->coefind * (size_t)spmtx->typesze;
+        key2   = n * ld;
+
+        assert(offset == 0);
+        parsec_data_create( (parsec_data_t**)&(blok->handler[0]),
+                            o, key1 + key2,
+                            ptrL + offset, size );
+
+        if ( ratio == 2 ) {
+            parsec_data_create( (parsec_data_t**)&(blok->handler[1]),
+                                o, key1 + key2 + 1,
+                                ptrU + offset, size );
+        }
+        else {
+            blok->handler[1] = NULL;
+        }
+
+        /**
+         * Lower Part
+         */
+        blok++; key2 += ratio;
+        lblok = cblk[1].fblokptr;
+        for( ; blok < lblok; blok++, key2+=ratio )
         {
-            if ( !(cblkN->cblktype & CBLK_LAYOUT_2D) )
-                continue;
-
-            /**
-             * Diagonal block
-             */
-            ptrL   = cblkN->lcoeftab;
-            ptrU   = cblkN->ucoeftab;
-            blok   = cblkN->fblokptr;
-            size   = blok_rownbr( blok ) * cblk_colnbr( cblkN ) * (size_t)spmtx->typesze;
+            m = 0;
+            size   = blok_rownbr( blok );
             offset = blok->coefind * (size_t)spmtx->typesze;
-            key2   = n * ld;
 
-            assert(offset == 0);
+            while( (blok < lblok) &&
+                   (blok[0].fcblknm == blok[1].fcblknm) &&
+                   (blok[0].lcblknm == blok[1].lcblknm) )
+            {
+                blok++; m++;
+                size += blok_rownbr( blok );
+            }
+            size *= cblk_colnbr( cblk )
+                *  (size_t)spmtx->typesze;
+
             parsec_data_create( (parsec_data_t**)&(blok->handler[0]),
                                 &spmtx->super, key1 + key2,
                                 ptrL + offset, size );
@@ -304,42 +341,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                 blok->handler[1] = NULL;
             }
 
-            /**
-             * Lower Part
-             */
-            blok++; key2+=ratio;
-            lblok = cblkN[1].fblokptr;
-            for( ; blok < lblok; blok++, key2+=ratio )
-            {
-                m = 0;
-                size   = blok_rownbr( blok );
-                offset = blok->coefind * (size_t)spmtx->typesze;
-
-                while( (blok < lblok) &&
-                       (blok[0].fcblknm == blok[1].fcblknm) &&
-                       (blok[0].lcblknm == blok[1].lcblknm) )
-                {
-                    blok++; m++;
-                    size += blok_rownbr( blok );
-                }
-                size *= cblk_colnbr( cblkN )
-                    *  (size_t)spmtx->typesze;
-
-                parsec_data_create( (parsec_data_t**)&(blok->handler[0]),
-                                    &spmtx->super, key1 + key2,
-                                    ptrL + offset, size );
-
-                if ( ratio == 2 ) {
-                    parsec_data_create( (parsec_data_t**)&(blok->handler[1]),
-                                        &spmtx->super, key1 + key2 + 1,
-                                        ptrU + offset, size );
-                }
-                else {
-                    blok->handler[1] = NULL;
-                }
-
-                key2 += m * ratio;
-            }
+            key2 += m * ratio;
         }
     }
 }
