@@ -32,6 +32,7 @@ int main (int argc, char **argv)
     size_t           size;
     int              check       = 2;
     int              baseval;
+    int              i;
 
     /**
      * Initialize parameters to default values
@@ -111,7 +112,7 @@ int main (int argc, char **argv)
     baseval=spmFindBase(spm);
     pastix_data->schur_n = spm->gN/3;
     pastix_data->schur_list = (pastix_int_t*)malloc(pastix_data->schur_n*sizeof(pastix_int_t));
-    for (int i=0; i<pastix_data->schur_n; i++)
+    for (i=0; i<pastix_data->schur_n; i++)
         pastix_data->schur_list[i]=i+baseval;
     iparm[IPARM_SCHUR]=API_YES;
 
