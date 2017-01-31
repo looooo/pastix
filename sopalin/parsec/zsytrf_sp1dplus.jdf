@@ -5,23 +5,19 @@ extern "C" %{
    * @precisions normal z -> c d s
    *
    */
-#include <dague.h>
-#include <dague/data_distribution.h>
-#include <dague/private_mempool.h>
+#include <parsec.h>
+#include <parsec/data_distribution.h>
+#include <parsec/private_mempool.h>
 #include "common.h"
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
 
-/* #if defined(HAVE_CUDA) */
-/* #include <dague/devices/cuda/dev_cuda.h> */
-/* #include "parsec/cuda_zgemmsp.h" */
-/* #endif  /\* defined(HAVE_CUDA) *\/ */
 %}
 
 /* Globals
  */
-dataA        [type = "dague_ddesc_t *" ]
+dataA        [type = "parsec_ddesc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
 descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
@@ -29,8 +25,8 @@ datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->s
 cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 
-p_work1  [type = "dague_memory_pool_t *" size = "pastix_imax(datacode->gemmmax, datacode->diagmax) * sizeof(pastix_complex64_t)"]
-p_work2  [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
+p_work1  [type = "parsec_memory_pool_t *" size = "pastix_imax(datacode->gemmmax, datacode->diagmax) * sizeof(pastix_complex64_t)"]
+p_work2  [type = "parsec_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
 
 /**************************************************
  *                SYTRF_TRSM                      *
@@ -63,11 +59,11 @@ BODY
     SolverCblk *cblk = datacode->cblktab + k;
     pastix_complex64_t *work1;
 
-    work1 = (pastix_complex64_t *)dague_private_memory_pop( p_work1 );
+    work1 = (pastix_complex64_t *)parsec_private_memory_pop( p_work1 );
 
     core_zsytrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, work1 );
 
-    dague_private_memory_push( p_work1, (void *)work1 );
+    parsec_private_memory_push( p_work1, (void *)work1 );
 }
 END
 
@@ -105,27 +101,6 @@ RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm, 0 )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
 
-/* BODY [type=CUDA] */
-/* { */
-/*     int rc = 0; */
-/*     /\* If diagonal block, we skip *\/ */
-/*     if (brownum == -1) { */
-/*         goto end; */
-/*     } */
-
-/*     SolverCblk *lcblk = datacode->cblktab + lcblknm; */
-/*     SolverCblk *fcblk = datacode->cblktab + fcblknm; */
-/*     SolverBlok *blok  = datacode->bloktab + bloknum; */
-/*     pastix_complex64_t *work; */
-
-/*     rc = gpu_zsytrfsp_gemm( context, this_task, (last == brownum ), */
-/*                             lcblk, blok, fcblk, A, C ); */
-
-/*   end: */
-/*     return rc; */
-/* } */
-/* END */
-
 BODY
 {
     /* If diagonal block, we skip */
@@ -138,13 +113,13 @@ BODY
     SolverBlok *blok  = datacode->bloktab + bloknum;
     pastix_complex64_t *work1, *work2;
 
-    work1 = (pastix_complex64_t *)dague_private_memory_pop( p_work1 );
-    work2 = (pastix_complex64_t *)dague_private_memory_pop( p_work2 );
+    work1 = (pastix_complex64_t *)parsec_private_memory_pop( p_work1 );
+    work2 = (pastix_complex64_t *)parsec_private_memory_pop( p_work2 );
 
     core_zsytrfsp1d_gemm( lcblk, blok, fcblk, A, C, work1, work2 );
 
-    dague_private_memory_push( p_work1, (void *)work1 );
-    dague_private_memory_push( p_work2, (void *)work2 );
+    parsec_private_memory_push( p_work1, (void *)work1 );
+    parsec_private_memory_push( p_work2, (void *)work2 );
   end:
     ;
 }

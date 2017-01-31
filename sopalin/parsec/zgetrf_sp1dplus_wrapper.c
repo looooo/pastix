@@ -6,62 +6,62 @@
  * @precisions normal z -> s d c
  *
  */
-#include <dague.h>
-#include <dague/data_distribution.h>
-#include <dague/private_mempool.h>
-#include <dague/arena.h>
+#include <parsec.h>
+#include <parsec/data_distribution.h>
+#include <parsec/private_mempool.h>
+#include <parsec/arena.h>
 #include <data_dist/matrix/matrix.h>
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"
 #include "parsec/zgetrf_sp1dplus.h"
 
-dague_handle_t*
+parsec_handle_t*
 dsparse_zgetrf_1dplus_sp_New( sparse_matrix_desc_t *A,
                               sopalin_data_t *sopalin_data )
 {
-    dague_zgetrf_sp1dplus_handle_t *dague_zgetrf_1dplus_sp = NULL;
+    parsec_zgetrf_sp1dplus_handle_t *parsec_zgetrf_1dplus_sp = NULL;
 
-    dague_zgetrf_1dplus_sp = dague_zgetrf_sp1dplus_new( (dague_ddesc_t*)A, sopalin_data, NULL );
+    parsec_zgetrf_1dplus_sp = parsec_zgetrf_sp1dplus_new( (parsec_ddesc_t*)A, sopalin_data, NULL );
 
-    dague_zgetrf_1dplus_sp->p_work = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
-    dague_private_memory_init( dague_zgetrf_1dplus_sp->p_work, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
+    parsec_zgetrf_1dplus_sp->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
+    parsec_private_memory_init( parsec_zgetrf_1dplus_sp->_g_p_work, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
 
-    dague_matrix_add2arena_rect( dague_zgetrf_1dplus_sp->arenas[DAGUE_zgetrf_sp1dplus_DEFAULT_ARENA],
-                                 dague_datatype_double_complex_t,
-                                 /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
+    parsec_matrix_add2arena_rect( parsec_zgetrf_1dplus_sp->arenas[PARSEC_zgetrf_sp1dplus_DEFAULT_ARENA],
+                                  parsec_datatype_double_complex_t,
+                                  /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
 
-    return (dague_handle_t*)dague_zgetrf_1dplus_sp;
+    return (parsec_handle_t*)parsec_zgetrf_1dplus_sp;
 }
 
 void
-dsparse_zgetrf_1dplus_sp_Destruct( dague_handle_t *handle )
+dsparse_zgetrf_1dplus_sp_Destruct( parsec_handle_t *handle )
 {
-    dague_zgetrf_sp1dplus_handle_t *dague_zgetrf_1dplus_sp = NULL;
-    dague_zgetrf_1dplus_sp = (dague_zgetrf_sp1dplus_handle_t *)handle;
+    parsec_zgetrf_sp1dplus_handle_t *parsec_zgetrf_1dplus_sp = NULL;
+    parsec_zgetrf_1dplus_sp = (parsec_zgetrf_sp1dplus_handle_t *)handle;
 
-    dague_matrix_del2arena( dague_zgetrf_1dplus_sp->arenas[DAGUE_zgetrf_sp1dplus_DEFAULT_ARENA] );
+    parsec_matrix_del2arena( parsec_zgetrf_1dplus_sp->arenas[PARSEC_zgetrf_sp1dplus_DEFAULT_ARENA] );
 
-    dague_private_memory_fini( dague_zgetrf_1dplus_sp->p_work );
-    free( dague_zgetrf_1dplus_sp->p_work );
+    parsec_private_memory_fini( parsec_zgetrf_1dplus_sp->_g_p_work );
+    free( parsec_zgetrf_1dplus_sp->_g_p_work );
 
-    dague_handle_free( handle );
+    parsec_handle_free( handle );
 }
 
-int dsparse_zgetrf_1dplus_sp( dague_context_t *dague,
+int dsparse_zgetrf_1dplus_sp( parsec_context_t *parsec,
                               sparse_matrix_desc_t *A,
                               sopalin_data_t *sopalin_data )
 {
-    dague_handle_t *dague_zgetrf_1dplus_sp = NULL;
+    parsec_handle_t *parsec_zgetrf_1dplus_sp = NULL;
     int info = 0;
 
-    dague_zgetrf_1dplus_sp = dsparse_zgetrf_1dplus_sp_New( A, sopalin_data );
+    parsec_zgetrf_1dplus_sp = dsparse_zgetrf_1dplus_sp_New( A, sopalin_data );
 
-    if ( dague_zgetrf_1dplus_sp != NULL )
+    if ( parsec_zgetrf_1dplus_sp != NULL )
     {
-        dague_enqueue( dague, (dague_handle_t*)dague_zgetrf_1dplus_sp);
-        dague_context_wait( dague );
-        dsparse_zgetrf_1dplus_sp_Destruct( dague_zgetrf_1dplus_sp );
+        parsec_enqueue( parsec, (parsec_handle_t*)parsec_zgetrf_1dplus_sp);
+        parsec_context_wait( parsec );
+        dsparse_zgetrf_1dplus_sp_Destruct( parsec_zgetrf_1dplus_sp );
     }
     return info;
 }

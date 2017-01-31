@@ -11,19 +11,20 @@
 #ifndef _SPARSE_MATRIX_H_
 #define _SPARSE_MATRIX_H_
 
-#include <dague/data_distribution.h>
+#include <parsec/data_distribution.h>
 
 typedef struct sparse_matrix_desc_s {
-    dague_ddesc_t   super;
-    dague_data_t  **datamap_cblk;
-    dague_data_t  **datamap_blok;
+    parsec_ddesc_t   super;
+    parsec_data_t  **datamap_cblk;
+    parsec_data_t  **datamap_blok;
     int             typesze;   /*< Type size                                                            */
     int             mtxtype;   /*< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian. */
     SolverMatrix   *solvmtx;
+    void          **d_blocktab;
 } sparse_matrix_desc_t;
 
 typedef struct sparse_vector_desc_t {
-    dague_ddesc_t         super;
+    parsec_ddesc_t         super;
     int                   typesze; /* Type size                           */
     SolverMatrix         *solvmtx;
 } sparse_vector_desc_t;

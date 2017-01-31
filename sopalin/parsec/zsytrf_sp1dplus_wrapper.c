@@ -6,70 +6,70 @@
  * @precisions normal z -> s d c
  *
  */
-#include <dague.h>
-#include <dague/data_distribution.h>
-#include <dague/private_mempool.h>
+#include <parsec.h>
+#include <parsec/data_distribution.h>
+#include <parsec/private_mempool.h>
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"
 #include "parsec/zsytrf_sp1dplus.h"
 
-dague_handle_t*
+parsec_handle_t*
 dsparse_zsytrf_sp_New( sparse_matrix_desc_t *A,
                        sopalin_data_t *sopalin_data )
 {
-    dague_zsytrf_sp1dplus_handle_t *dague_zsytrf_sp = NULL;
+    parsec_zsytrf_sp1dplus_handle_t *parsec_zsytrf_sp = NULL;
 
-    dague_zsytrf_sp = dague_zsytrf_sp1dplus_new( (dague_ddesc_t*)A, sopalin_data, NULL, NULL );
+    parsec_zsytrf_sp = parsec_zsytrf_sp1dplus_new( (parsec_ddesc_t*)A, sopalin_data, NULL, NULL );
 
-    dague_zsytrf_sp->p_work1 = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
-    dague_private_memory_init( dague_zsytrf_sp->p_work1,
+    parsec_zsytrf_sp->_g_p_work1 = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
+    parsec_private_memory_init( parsec_zsytrf_sp->_g_p_work1,
                                pastix_imax(sopalin_data->solvmtx->gemmmax,
                                            sopalin_data->solvmtx->diagmax) * sizeof(pastix_complex64_t) );
 
-    dague_zsytrf_sp->p_work2 = (dague_memory_pool_t*)malloc(sizeof(dague_memory_pool_t));
-    dague_private_memory_init( dague_zsytrf_sp->p_work2, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
+    parsec_zsytrf_sp->_g_p_work2 = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
+    parsec_private_memory_init( parsec_zsytrf_sp->_g_p_work2, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
 
-    /* dague_matrix_add2arena_rect( dague_zsytrf_sp->arenas[DAGUE_zsytrf_sp1dplus_DEFAULT_ARENA], */
-    /*                              dague_datatype_double_complex_t, */
+    /* parsec_matrix_add2arena_rect( parsec_zsytrf_sp->arenas[PARSEC_zsytrf_sp1dplus_DEFAULT_ARENA], */
+    /*                              parsec_datatype_double_complex_t, */
     /*                              sopalin_data->solvmtx->gemmmax, 1, 1 ); */
 
-    return (dague_handle_t*)dague_zsytrf_sp;
+    return (parsec_handle_t*)parsec_zsytrf_sp;
 }
 
 void
-dsparse_zsytrf_sp_Destruct( dague_handle_t *o )
+dsparse_zsytrf_sp_Destruct( parsec_handle_t *o )
 {
     (void)o;
-    dague_zsytrf_sp1dplus_handle_t *dague_zsytrf_sp = NULL;
-    dague_zsytrf_sp = (dague_zsytrf_sp1dplus_handle_t *)o;
+    parsec_zsytrf_sp1dplus_handle_t *parsec_zsytrf_sp = NULL;
+    parsec_zsytrf_sp = (parsec_zsytrf_sp1dplus_handle_t *)o;
 
-    /*dague_matrix_del2arena( dague_zsytrf_sp->arenas[DAGUE_zsytrf_sp1dplus_DEFAULT_ARENA] );*/
+    /*parsec_matrix_del2arena( parsec_zsytrf_sp->arenas[PARSEC_zsytrf_sp1dplus_DEFAULT_ARENA] );*/
 
-    dague_private_memory_fini( dague_zsytrf_sp->p_work1 );
-    free( dague_zsytrf_sp->p_work1 );
+    parsec_private_memory_fini( parsec_zsytrf_sp->_g_p_work1 );
+    free( parsec_zsytrf_sp->_g_p_work1 );
 
-    dague_private_memory_fini( dague_zsytrf_sp->p_work2 );
-    free( dague_zsytrf_sp->p_work2 );
+    parsec_private_memory_fini( parsec_zsytrf_sp->_g_p_work2 );
+    free( parsec_zsytrf_sp->_g_p_work2 );
 
     /* o->destructor(o); */
     /* o = NULL; */
 }
 
-int dsparse_zsytrf_sp( dague_context_t *dague,
+int dsparse_zsytrf_sp( parsec_context_t *parsec,
                        sparse_matrix_desc_t *A,
                        sopalin_data_t *sopalin_data )
 {
-    dague_handle_t *dague_zsytrf_sp = NULL;
+    parsec_handle_t *parsec_zsytrf_sp = NULL;
     int info = 0;
 
-    dague_zsytrf_sp = dsparse_zsytrf_sp_New( A, sopalin_data );
+    parsec_zsytrf_sp = dsparse_zsytrf_sp_New( A, sopalin_data );
 
-    if ( dague_zsytrf_sp != NULL )
+    if ( parsec_zsytrf_sp != NULL )
     {
-        dague_enqueue( dague, (dague_handle_t*)dague_zsytrf_sp);
-        dague_context_wait( dague );
-        dsparse_zsytrf_sp_Destruct( dague_zsytrf_sp );
+        parsec_enqueue( parsec, (parsec_handle_t*)parsec_zsytrf_sp);
+        parsec_context_wait( parsec );
+        dsparse_zsytrf_sp_Destruct( parsec_zsytrf_sp );
     }
     return info;
 }
