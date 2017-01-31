@@ -7,8 +7,6 @@
 
 #cmakedefine PASTIX_WITH_MPI
 #cmakedefine PASTIX_WITH_CUDA
-#cmakedefine PASTIX_WITH_STARPU
-#cmakedefine PASTIX_WITH_STARPU_PROFILING
 
 #cmakedefine PASTIX_DUMP_CBLK
 
@@ -70,6 +68,8 @@
 /* Scheduling options */
 #cmakedefine PASTIX_WITH_PARSEC
 #cmakedefine PASTIX_WITH_STARPU
+#cmakedefine PASTIX_WITH_STARPU
+#cmakedefine PASTIX_WITH_STARPU_PROFILING
 
 #cmakedefine PASTIX_FUNNELED
 #cmakedefine PASTIX_DISTRIBUTED

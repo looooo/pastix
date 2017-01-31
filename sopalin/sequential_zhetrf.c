@@ -23,9 +23,9 @@
 #include "pastix_zcores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
-#include <dague.h>
-#include <dague/data.h>
-#include <dague/data_distribution.h>
+#include <parsec.h>
+#include <parsec/data.h>
+#include <parsec/data_distribution.h>
 #endif
 
 void
@@ -121,7 +121,7 @@ void
 parsec_zhetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
-    dague_context_t *ctx;
+    parsec_context_t *ctx;
 
     /* Start PaRSEC */
     if (pastix_data->parsec == NULL) {

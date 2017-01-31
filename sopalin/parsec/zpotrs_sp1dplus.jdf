@@ -8,7 +8,7 @@ extern "C" %{
 #include <plasma.h>
 #include <core_blas.h>
 
-#include "dague.h"
+#include "parsec.h"
 #include "data_distribution.h"
 #include "memory_pool.h"
 #include "dplasma/lib/dplasmajdf.h"
@@ -24,17 +24,15 @@ extern "C" %{
 /* Globals
  */
 descA    [type = "sparse_matrix_desc_t *"]
-A        [type = "dague_ddesc_t *"]
 descB    [type = "sparse_vector_desc_t *"]
-B        [type = "dague_ddesc_t *" aligned=A]
 datacode [type = "SolverMatrix*" default="&(descA->pastix_data->solvmatr)" hidden=on]
 /* Number of column blocks */
-cblknbr  [type = "dague_int_t"   default="descA->pastix_data->solvmatr.cblknbr - 1" hidden=on]
+cblknbr  [type = "parsec_int_t"   default="descA->pastix_data->solvmatr.cblknbr - 1" hidden=on]
 /* Number of blocks minus the last diagonal block */
-bloknbr  [type = "dague_int_t"   default="descA->pastix_data->solvmatr.bloknbr - 2" hidden=on]
+bloknbr  [type = "parsec_int_t"   default="descA->pastix_data->solvmatr.bloknbr - 2" hidden=on]
 /* Number of extra diagonal blocks */
-browsize [type = "dague_int_t"   default="descA->pastix_data->solvmatr.bloknbr - descA->pastix_data->solvmatr.cblknbr - 1" hidden=on]
-p_work   [type = "dague_memory_pool_t *" size = "datacode->coefmax * sizeof(dague_complex64_t)"]
+browsize [type = "parsec_int_t"   default="descA->pastix_data->solvmatr.bloknbr - descA->pastix_data->solvmatr.cblknbr - 1" hidden=on]
+p_work   [type = "parsec_memory_pool_t *" size = "datacode->coefmax * sizeof(parsec_complex64_t)"]
 
 /**************************************************
  *                TRSM_FORWARD                    *
@@ -50,14 +48,14 @@ browk1    = inline_c %{ if ( gcblk2list != -1 ) return UPDOWN_LISTPTR( gcblk2lis
 lastbrow  = inline_c %{ if (browk1 > 0) return UPDOWN_LISTBLOK(browk1-1); else return 0; %}
 
 // Parallel partitioning
-:B(k) // Should match SOLV_COEFTAB(k)
+:descB(k) // Should match SOLV_COEFTAB(k)
 
 // Parameters
-/* C is A(k) if it's a leaf or get the cblk from the last update */
-READ A <- A(0, k)
-RW   B <- ( gcblk2list < 0 ) ? B(k) : C GEMM_FORWARD( lastbrow )
+/* C is descA(k) if it's a leaf or get the cblk from the last update */
+READ A <- descA(0, k)
+RW   B <- ( gcblk2list < 0 ) ? descB(k) : C GEMM_FORWARD( lastbrow )
        -> B GEMM_FORWARD(firstblok+1..lastblok)
-       -> (firstblok == lastblok) ? B TRSM_BACKWARD(k) : B(k)
+       -> (firstblok == lastblok) ? B TRSM_BACKWARD(k) : descB(k)
 
 BODY
       DRYRUN(
@@ -87,19 +85,19 @@ GEMM_FORWARD(k)
 // Execution space
 k = 0..bloknbr
 fcblk  = inline_c %{ return SYMB_CBLKNUM(k); %}
-cblk   = inline_c %{ return sparse_matrix_get_lcblknum( descA, (dague_int_t)k ); %}// TODO: store cblknum in symbblok
+cblk   = inline_c %{ return sparse_matrix_get_lcblknum( descA, (parsec_int_t)k ); %}// TODO: store cblknum in symbblok
 phony  = inline_c %{ return k == SYMB_BLOKNUM( cblk ); %}
-prev   = inline_c %{ if (phony) return 0; else return sparse_matrix_get_listptr_prev( descA, (dague_int_t)k, (dague_int_t)fcblk ); %}
-next   = inline_c %{ if (phony) return 0; else return sparse_matrix_get_listptr_next( descA, (dague_int_t)k, (dague_int_t)fcblk ); %}
+prev   = inline_c %{ if (phony) return 0; else return sparse_matrix_get_listptr_prev( descA, (parsec_int_t)k, (parsec_int_t)fcblk ); %}
+next   = inline_c %{ if (phony) return 0; else return sparse_matrix_get_listptr_next( descA, (parsec_int_t)k, (parsec_int_t)fcblk ); %}
 
 // Parallel partitioning: empty if SYMB_LROWNUM(k)==SYMB_FCOLNUM(fcblk)
-:B(fcblk)
+:descB(fcblk)
 
 // Parameters
-READ  A <- A(0, cblk)
-READ  B <- phony ? B(fcblk) : B TRSM_FORWARD(cblk) // B never comes from memory but we keep it for correctness of the code
-RW    C <- ( prev == 0 ) ? B(fcblk) : C GEMM_FORWARD( prev )
-        -> phony ? B(fcblk)                        // B never go back to memory but we keep it for correctness of the code
+READ  A <- descA(0, cblk)
+READ  B <- phony ? descB(fcblk) : B TRSM_FORWARD(cblk) // B never comes from memory but we keep it for correctness of the code
+RW    C <- ( prev == 0 ) ? descB(fcblk) : C GEMM_FORWARD( prev )
+        -> phony ? descB(fcblk)                        // B never go back to memory but we keep it for correctness of the code
         -> ((!phony) && (next == 0)) ? B TRSM_FORWARD( fcblk )
         -> ((!phony) && (next != 0)) ? C GEMM_FORWARD( next )
 
@@ -108,9 +106,9 @@ BODY
 
           DRYRUN(
                  /* shifting to a off-diagonal block within this column */
-                 dague_complex64_t *Aik = ((dague_complex64_t*)A) + SOLV_COEFIND(k);
+                 parsec_complex64_t *Aik = ((parsec_complex64_t*)A) + SOLV_COEFIND(k);
                  /* shifting to a sub-block within the block */
-                 dague_complex64_t *Cik = ((dague_complex64_t*)C) + (SYMB_FROWNUM( k ) - SYMB_FCOLNUM(fcblk));
+                 parsec_complex64_t *Cik = ((parsec_complex64_t*)C) + (SYMB_FROWNUM( k ) - SYMB_FCOLNUM(fcblk));
 
                  int tempm = SYMB_LROWNUM(k)-SYMB_FROWNUM(k)+1;
                  int tempn = UPDOWN_SM2XNBR;
@@ -151,10 +149,10 @@ browk = inline_c %{
     {
         if (firstblok == lastblok) return -1;
 
-        dague_int_t fcblk       = SYMB_CBLKNUM( firstblok );
-        dague_int_t gfcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( fcblk ));
-        dague_int_t browfirst   = UPDOWN_LISTPTR( gfcblk2list );
-        dague_int_t browlast    = UPDOWN_LISTPTR( gfcblk2list + 1 );
+        parsec_int_t fcblk       = SYMB_CBLKNUM( firstblok );
+        parsec_int_t gfcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( fcblk ));
+        parsec_int_t browfirst   = UPDOWN_LISTPTR( gfcblk2list );
+        parsec_int_t browlast    = UPDOWN_LISTPTR( gfcblk2list + 1 );
         int count;
 
         for (count=browlast-1; count>=browfirst; count--)
@@ -166,14 +164,14 @@ browk = inline_c %{
 %}
 
 // Parallel partitioning
-:B(k) // Should match SOLV_COEFTAB(k)
+:descB(k) // Should match SOLV_COEFTAB(k)
 
 // Parameters
-// C is A(k) if it's a leaf or get the cblk from the last update
-READ A <- A(0, k)
+// C is descA(k) if it's a leaf or get the cblk from the last update
+READ A <- descA(0, k)
 RW   B <- ( lastblok == firstblok ) ? B TRSM_FORWARD( k ) : C GEMM_BACKWARD( browk )
        -> ( gcblk2list >= 0 ) ? B GEMM_BACKWARD( firstbrow..lastbrow )
-       -> B(k)
+       -> descB(k)
 
 BODY
 
@@ -204,7 +202,7 @@ GEMM_BACKWARD(k)
 k = 0..browsize
 bloknum= inline_c %{ return UPDOWN_LISTBLOK(k); %}
 fcblk  = inline_c %{ return SYMB_CBLKNUM(bloknum); %}
-cblk   = inline_c %{ return sparse_matrix_get_lcblknum( descA, (dague_int_t)bloknum ); %}
+cblk   = inline_c %{ return sparse_matrix_get_lcblknum( descA, (parsec_int_t)bloknum ); %}
 firstblok = inline_c %{ return SYMB_BLOKNUM(cblk)+1; %}
 lastblok  = inline_c %{ return SYMB_BLOKNUM(cblk+1); %}
 
@@ -215,10 +213,10 @@ prev = inline_c %{
     {
         if( bloknum == lastblok-1 ) return -1;
 
-        dague_int_t fcblk       = SYMB_CBLKNUM( bloknum+1 );
-        dague_int_t gfcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( fcblk ));
-        dague_int_t browfirst   = UPDOWN_LISTPTR( gfcblk2list );
-        dague_int_t browlast    = UPDOWN_LISTPTR( gfcblk2list + 1 );
+        parsec_int_t fcblk       = SYMB_CBLKNUM( bloknum+1 );
+        parsec_int_t gfcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( fcblk ));
+        parsec_int_t browfirst   = UPDOWN_LISTPTR( gfcblk2list );
+        parsec_int_t browlast    = UPDOWN_LISTPTR( gfcblk2list + 1 );
         int count;
 
         for (count=browfirst; count<browlast; count++)
@@ -233,10 +231,10 @@ next = inline_c %{
     {
         if( bloknum == firstblok ) return -1;
 
-        dague_int_t fcblk       = SYMB_CBLKNUM( bloknum-1 );
-        dague_int_t gfcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( fcblk ));
-        dague_int_t browfirst   = UPDOWN_LISTPTR( gfcblk2list );
-        dague_int_t browlast    = UPDOWN_LISTPTR( gfcblk2list + 1 );
+        parsec_int_t fcblk       = SYMB_CBLKNUM( bloknum-1 );
+        parsec_int_t gfcblk2list = UPDOWN_GCBLK2LIST(UPDOWN_LOC2GLOB( fcblk ));
+        parsec_int_t browfirst   = UPDOWN_LISTPTR( gfcblk2list );
+        parsec_int_t browlast    = UPDOWN_LISTPTR( gfcblk2list + 1 );
         int count;
 
         for (count=browfirst; count<browlast; count++)
@@ -248,20 +246,20 @@ next = inline_c %{
 %}
 
 // Parallel partitioning
-:B(cblk)
+:descB(cblk)
 
 // Parameters
-READ  A <- A(0, cblk)
+READ  A <- descA(0, cblk)
 READ  B <- B TRSM_BACKWARD(fcblk)
 
-RW    C <- ( bloknum == lastblok-1 ) ?  B( cblk )               : C GEMM_BACKWARD( prev )
+RW    C <- ( bloknum == lastblok-1 ) ?  descB( cblk )               : C GEMM_BACKWARD( prev )
         -> ( bloknum == firstblok  ) ?  B TRSM_BACKWARD( cblk ) : C GEMM_BACKWARD( next )
 
 BODY
 
     DRYRUN(
-           dague_complex64_t *Aik = ((dague_complex64_t*)A) + SOLV_COEFIND(bloknum);
-           dague_complex64_t *Bik = ((dague_complex64_t*)B) + (SYMB_FROWNUM( bloknum ) - SYMB_FCOLNUM(fcblk));
+           parsec_complex64_t *Aik = ((parsec_complex64_t*)A) + SOLV_COEFIND(bloknum);
+           parsec_complex64_t *Bik = ((parsec_complex64_t*)B) + (SYMB_FROWNUM( bloknum ) - SYMB_FCOLNUM(fcblk));
 
            int tempm = SYMB_LCOLNUM(cblk)-SYMB_FCOLNUM(cblk)+1;
            int tempn = UPDOWN_SM2XNBR;

@@ -5,32 +5,28 @@ extern "C" %{
      * @precisions normal z -> c
      *
      */
-#include <dague.h>
-#include <dague/data_distribution.h>
-#include <dague/private_mempool.h>
+#include <parsec.h>
+#include <parsec/data_distribution.h>
+#include <parsec/private_mempool.h>
 #include "common.h"
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
 
-/* #if defined(HAVE_CUDA) */
-/* #include <dague/devices/cuda/dev_cuda.h> */
-/* #include "parsec/cuda_zgemmsp.h" */
-/* #endif  /\* defined(HAVE_CUDA) *\/ */
 %}
 
 /* Globals
  */
-dataA        [type = "dague_ddesc_t *" ]
+descA        [type = "sparse_matrix_desc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
-datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
-cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
-bloknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
+lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
-p_work1  [type = "dague_memory_pool_t *" size = "pastix_imax(datacode->gemmmax, datacode->diagmax) * sizeof(pastix_complex64_t)"]
-p_work2  [type = "dague_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
+p_work1  [type = "parsec_memory_pool_t *" size = "pastix_imax(datacode->gemmmax, datacode->diagmax) * sizeof(pastix_complex64_t)"]
+p_work2  [type = "parsec_memory_pool_t *" size = "datacode->gemmmax * sizeof(pastix_complex64_t)"]
 
 /**************************************************
  *                HETRF_TRSM                      *
@@ -49,13 +45,13 @@ lastblok  = inline_c %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cbl
 lastbrow  = inline_c %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ browk1 - 1 ]; %}
 
 // Parallel partitioning
-:dataA(0, k, 0) // Should match SOLV_COEFTAB(k)
+:descA(0, k, 0) // Should match SOLV_COEFTAB(k)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? dataA(0, k, 0) : C GEMM( lastbrow )
+RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM( lastbrow )
      -> A GEMM(firstblok .. lastblok)
-     -> dataA(0, k, 0)
+     -> descA(0, k, 0)
 
      //; inline_c %{ return - TASK_PRIONUM(k); %}
 BODY
@@ -63,11 +59,11 @@ BODY
     SolverCblk *cblk = datacode->cblktab + k;
     pastix_complex64_t *work1;
 
-    work1 = (pastix_complex64_t *)dague_private_memory_pop( p_work1 );
+    work1 = (pastix_complex64_t *)parsec_private_memory_pop( p_work1 );
 
     core_zhetrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, work1 );
 
-    dague_private_memory_push( p_work1, (void *)work1 );
+    parsec_private_memory_push( p_work1, (void *)work1 );
 }
 END
 
@@ -92,39 +88,18 @@ prev    = inline_c %{ if ((brownum == -1) || (brownum <= first)) return 0; else 
 next    = inline_c %{ if ((brownum == -1) || (brownum >= last )) return 0; else return datacode->browtab[brownum+1]; %}
 
 // Parallel partitioning
-:dataA(0, fcblknm, 0)
+:descA(0, fcblknm, 0)
 
 // Parameters
-READ  A  <- ( brownum != -1) ? L HETRF_TRSM( lcblknm ) : dataA( 0, fcblknm, 0 )
+READ  A  <- ( brownum != -1) ? L HETRF_TRSM( lcblknm ) : descA( 0, fcblknm, 0 )
 
-RW    C  <- ( brownum == -1 ) || (first == brownum ) ? dataA( 0, fcblknm, 0 )
+RW    C  <- ( brownum == -1 ) || (first == brownum ) ? descA( 0, fcblknm, 0 )
          <- ( brownum != -1 ) && (first != brownum ) ? C GEMM( prev )
 
          -> ( brownum != -1 ) && (last == brownum ) ? L HETRF_TRSM( fcblknm )
          -> ( brownum != -1 ) && (last != brownum ) ? C GEMM( next )
 
 //; inline_c %{ return - TASK_PRIONUM(fcblk); %}
-
-/* BODY [type=CUDA] */
-/* { */
-/*     int rc = 0; */
-/*     /\* If diagonal block, we skip *\/ */
-/*     if (brownum == -1) { */
-/*         goto end; */
-/*     } */
-
-/*     SolverCblk *lcblk = datacode->cblktab + lcblknm; */
-/*     SolverCblk *fcblk = datacode->cblktab + fcblknm; */
-/*     SolverBlok *blok  = datacode->bloktab + bloknum; */
-/*     pastix_complex64_t *work; */
-
-/*     rc = gpu_zhetrfsp_gemm( context, this_task, (last == brownum ), */
-/*                             lcblk, blok, fcblk, A, C ); */
-
-/*   end: */
-/*     return rc; */
-/* } */
-/* END */
 
 BODY
 {
@@ -138,13 +113,13 @@ BODY
     SolverBlok *blok  = datacode->bloktab + bloknum;
     pastix_complex64_t *work1, *work2;
 
-    work1 = (pastix_complex64_t *)dague_private_memory_pop( p_work1 );
-    work2 = (pastix_complex64_t *)dague_private_memory_pop( p_work2 );
+    work1 = (pastix_complex64_t *)parsec_private_memory_pop( p_work1 );
+    work2 = (pastix_complex64_t *)parsec_private_memory_pop( p_work2 );
 
     core_zhetrfsp1d_gemm( lcblk, blok, fcblk, A, C, work1, work2 );
 
-    dague_private_memory_push( p_work1, (void *)work1 );
-    dague_private_memory_push( p_work2, (void *)work2 );
+    parsec_private_memory_push( p_work1, (void *)work1 );
+    parsec_private_memory_push( p_work2, (void *)work2 );
   end:
     ;
 }

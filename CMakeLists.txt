@@ -654,9 +654,10 @@ if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
     ${PARSEC_LIBRARIES}
-    dague_distribution
-    dague_distribution_matrix
+    parsec_distribution
+    parsec_distribution_matrix
     ${PARSEC_EXTRA_LIBRARIES}
+    ${PARSEC_LIBRARIES}
     )
 endif()
 

@@ -145,7 +145,8 @@ solverMatrixGen(const pastix_int_t  clustnum,
         SimuBlok   *simublok = simuctrl->bloktab;
         Cand       *candcblk = ctrl->candtab;
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
-        pastix_int_t nbcblk2d = 0; /* Maximum area of a block in the global matrix */
+        pastix_int_t nbcblk2d = 0;
+        pastix_int_t nbblok2d = 0;
 
         solvmtx->cblkmin2d  = solvmtx->cblknbr;
         solvmtx->cblkmaxblk = 1;
@@ -176,13 +177,15 @@ solverMatrixGen(const pastix_int_t  clustnum,
                     flaglocal = 1;
 
                     /* Init the blok */
-                    solvblok->frownum = symbblok->frownum * dof;
-                    solvblok->lrownum = solvblok->frownum + nbrows - 1;
+                    solvblok->handler[0] = NULL;
+                    solvblok->handler[1] = NULL;
                     solvblok->fcblknm = cblklocalnum[symbblok->fcblknm];
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
+                    solvblok->frownum = symbblok->frownum * dof;
+                    solvblok->lrownum = solvblok->frownum + nbrows - 1;
                     solvblok->coefind = layout2D ? stride * nbcols : stride;
                     solvblok->browind = -1;
-                    solvblok->gpuid   = -2;
+                    solvblok->gpuid   = GPUID_UNDEFINED;
                     solvblok->LRblock = NULL;
 
                     stride += nbrows;
@@ -201,6 +204,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
                         solvmtx->cblkmin2d = cblknum;
                     }
                     nbcblk2d++;
+                    nbblok2d += solvblok - fblokptr;
                 }
 
                 /**
@@ -217,17 +221,20 @@ solverMatrixGen(const pastix_int_t  clustnum,
                 solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
                 solvcblk->ctrbcnt  = -1;
                 solvcblk->cblktype = candcblk->cblktype;
-                solvcblk->fblokptr = fblokptr;
+                solvcblk->gpuid    = GPUID_UNDEFINED;
                 solvcblk->fcolnum  = symbcblk->fcolnum * dof;
                 solvcblk->lcolnum  = solvcblk->fcolnum + nbcols - 1;
+                solvcblk->fblokptr = fblokptr;
                 solvcblk->stride   = stride;
                 solvcblk->lcolidx  = nodenbr;
                 solvcblk->brownum  = brownum;
-                solvcblk->procdiag = solvmtx->clustnum;
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
-                solvcblk->gpuid    = -1;
+                solvcblk->handler[0] = NULL;
+                solvcblk->handler[1] = NULL;
+
+                solvcblk->procdiag = solvmtx->clustnum;
 
                 /**
                  * Copy browtab information
@@ -301,17 +308,21 @@ solverMatrixGen(const pastix_int_t  clustnum,
             solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
             solvcblk->ctrbcnt  = -1;
             solvcblk->cblktype = 0;
+            solvcblk->gpuid    = GPUID_NONE;
+            solvcblk->fcolnum  = solvcblk[-1].lcolnum + 1;
+            solvcblk->lcolnum  = solvcblk[-1].lcolnum + 1;
             solvcblk->fblokptr = solvblok;
-            solvcblk->fcolnum  = solvcblk->lcolnum + 1;
-            solvcblk->lcolnum  = solvcblk->lcolnum + 1;
             solvcblk->stride   = 0;
             solvcblk->lcolidx  = nodenbr;
             solvcblk->brownum  = symbcblk->brownum;
-            solvcblk->procdiag = -1;
+            solvcblk->brown2d  = symbcblk->brownum;
+            solvcblk->gcblknum = -1;
             solvcblk->lcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
-            solvcblk->gcblknum = -1;
-            solvcblk->gpuid    = -2;
+            solvcblk->handler[0] = NULL;
+            solvcblk->handler[1] = NULL;
+
+            solvcblk->procdiag = -1;
         }
 
         solvmtx->nodenbr = nodenbr;

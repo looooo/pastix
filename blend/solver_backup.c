@@ -199,6 +199,13 @@ solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b )
     }
     solvmtx->nodenbr = b->symbol_nodenbr;
 
+    if (solvmtx->cblknbr) {
+        SolverCblk *cblk = solvmtx->cblktab;
+
+        for (i=0; i<solvmtx->cblknbr; i++, cblk++) {
+            cblk->gpuid = GPUID_UNDEFINED;
+        }
+    }
     return PASTIX_SUCCESS;
 }
 

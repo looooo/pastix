@@ -15,7 +15,7 @@
 
 #include "isched.h"
 #if defined(PASTIX_WITH_PARSEC)
-#include <dague.h>
+#include <parsec.h>
 #endif
 
 #include "ftgt.h"
@@ -95,7 +95,7 @@ struct pastix_data_s {
 
     isched_t        *isched;             /*< Internal scheduler structure that is always available               */
 #if defined(PASTIX_WITH_PARSEC)
-    dague_context_t *parsec;             /*< PaRSEC Context if available                                         */
+    parsec_context_t *parsec;             /*< PaRSEC Context if available                                         */
 #endif
 #if defined(PASTIX_WITH_STARPU)
     starpu_ctxt_t   *starpu;             /*< StarPU Context if available                                         */

@@ -11,17 +11,17 @@ extern "C" %{
 
 void sparse_matrix_zcsc2cblk(const SolverMatrix *solvmatr,
                              const CscMatrix    *cscmtx,
-                             dague_complex64_t  *transcsc,
-                             dague_int_t         itercblk);
+                             parsec_complex64_t  *transcsc,
+                             parsec_int_t         itercblk);
 
 %}
 
 /* Globals
  */
-dataA        [type = "dague_ddesc_t *" ]
+descA        [type = "parsec_ddesc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
-descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)dataA)"]
+descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)descA)"]
 datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 
@@ -44,7 +44,7 @@ BODY
 {
     sparse_matrix_zcsc2cblk( datacode,
         &(descA->pastix_data->cscmtx),
-        (dague_complex64_t*)(descA->pastix_data->sopar.transcsc), k);
+        (parsec_complex64_t*)(descA->pastix_data->sopar.transcsc), k);
 }
 END
 
