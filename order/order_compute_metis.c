@@ -63,7 +63,6 @@ orderComputeMetis( pastix_data_t  *pastix_data,
 {
     pastix_int_t *iparm    = pastix_data->iparm;
     Order        *ordemesh = pastix_data->ordemesh;
-    pastix_int_t  procnum  = pastix_data->procnum;
     pastix_int_t  n;
     pastix_int_t  baseval = graph->colptr[0];
     idx_t opt[METIS_NOPTIONS];
@@ -73,9 +72,6 @@ orderComputeMetis( pastix_data_t  *pastix_data,
         errorPrint("Inconsistent integer type between PaStiX and Metis\n");
         return PASTIX_ERR_INTEGER_TYPE;
     }
-
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
-        pastix_print(procnum, 0, "%s", "Ordering: calling metis...\n");
 
     /* Set of valid options for METIS_NodeND */
     METIS_SetDefaultOptions(opt);

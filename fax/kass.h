@@ -58,7 +58,8 @@ void amalgamate(double rat_cblk, double rat_blas,
                 pastix_int_t  *nodetab,
                 MPI_Comm pastix_comm );
 
-int symbolKass(int             ilu,
+int symbolKass(int             verbose,
+               int             ilu,
                int             levelk,
                int             rat_cblk,
                int             rat_blas,

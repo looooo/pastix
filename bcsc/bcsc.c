@@ -236,7 +236,7 @@ bcscInitCentralized( const pastix_csc_t  *csc,
     memFree_null(col2cblk);
 }
 
-void
+double
 bcscInit( const pastix_csc_t  *csc,
           const Order         *ord,
           const SolverMatrix  *solvmtx,
@@ -255,7 +255,7 @@ bcscInit( const pastix_csc_t  *csc,
         fprintf(stderr, "bcscInit: Distributed CSC not yet supported");
 
     clockStop(time);
-    fprintf(stdout, "CscdOrdistrib: %.3g s\n", clockVal(time));
+    return time;
 }
 
 /******************************************************************************

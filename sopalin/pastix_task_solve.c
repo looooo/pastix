@@ -226,7 +226,9 @@ pastix_task_solve( pastix_data_t *pastix_data,
         }
         clockStop(timer);
 
-        pastix_print( 0, 0, OUT_TIME_SOLV, clockVal(timer) );
+        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+            pastix_print( 0, 0, OUT_TIME_SOLV, clockVal(timer) );
+        }
     }
 
     switch( pastix_data->bcsc->flttype ) {

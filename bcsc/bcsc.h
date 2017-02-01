@@ -52,11 +52,11 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
 void
 bcsc_restore_coltab( pastix_bcsc_t *bcsc );
 
-void bcscInit( const pastix_csc_t  *csc,
-               const Order         *ord,
-               const SolverMatrix  *solvmtx,
-               pastix_int_t   initAt,
-               pastix_bcsc_t *bcsc );
+double bcscInit( const pastix_csc_t  *csc,
+                 const Order         *ord,
+                 const SolverMatrix  *solvmtx,
+                 pastix_int_t   initAt,
+                 pastix_bcsc_t *bcsc );
 
 void bcscExit( pastix_bcsc_t *bcsc );
 

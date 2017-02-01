@@ -109,7 +109,7 @@ pastix_task_blend(pastix_data_t *pastix_data)
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
         pastix_print( procnum, 0, OUT_STEP_BLEND );
 
     /* Cleanup the solver structure if we already computed it */
@@ -127,7 +127,7 @@ pastix_task_blend(pastix_data_t *pastix_data)
 
     blendCtrlExit(&ctrl);
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
         symbolPrintStats( pastix_data->symbmtx );
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
@@ -146,9 +146,6 @@ pastix_task_blend(pastix_data_t *pastix_data)
 
     /* Computes and print statistics */
     {
-#ifdef PASTIX_WITH_MPI
-        MPI_Comm pastix_comm = pastix_data->inter_node_comm;
-#endif
         if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
         {
             iparm[IPARM_NNZEROS]        *= 2;
@@ -160,39 +157,43 @@ pastix_task_blend(pastix_data_t *pastix_data)
 
         /* Affichage */
         dparm[DPARM_FILL_IN] = dparm[DPARM_FILL_IN]
-            * (double)(iparm[IPARM_NNZEROS]/(iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
+            * (double)(iparm[IPARM_NNZEROS] / (iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
 
-        if ((procnum==0) && (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT))
-        {
-            fprintf(stdout, TIME_TO_ANALYSE,       (double)dparm[DPARM_ANALYZE_TIME]);
-            fprintf(stdout, NNZERO_WITH_FILLIN_TH, (long)iparm[IPARM_NNZEROS]);
-            fprintf(stdout, OUT_FILLIN_TH,         (double)dparm[DPARM_FILL_IN]);
-            if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
-                fprintf(stdout,NUMBER_OP_LU,     (double)dparm[DPARM_FACT_FLOPS]);
-            else
-                fprintf(stdout, NUMBER_OP_LLT,    (double)dparm[DPARM_FACT_FLOPS]);
-            fprintf(stdout,TIME_FACT_PRED,PERF_MODEL,     (double)dparm[DPARM_PRED_FACT_TIME]);
+        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+            pastix_print( 0, 0, OUT_BLEND_SUMMARY,
+                          (long)iparm[IPARM_NNZEROS],
+                          (double)dparm[DPARM_FILL_IN],
+                          pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ),
+                          printflopsv( dparm[DPARM_FACT_FLOPS] ), printflopsu( dparm[DPARM_FACT_FLOPS] ),
+                          PERF_MODEL, dparm[DPARM_PRED_FACT_TIME],
+                          dparm[DPARM_ANALYZE_TIME] );
 
-        }
-        if ((iparm[IPARM_VERBOSE] > API_VERBOSE_NO))
-        {
-            fprintf(stdout, NNZERO_WITH_FILLIN, (int)procnum, (long)iparm[IPARM_NNZEROS_BLOCK_LOCAL]);
-        }
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
-        {
-            pastix_int_t sizeL = solvptr->coefnbr;
-            pastix_int_t sizeG = 0;
-
-            MPI_Reduce(&sizeL, &sizeG, 1, PASTIX_MPI_INT, MPI_MAX, 0, pastix_comm);
-
-            if (procnum == 0)
+            if (0) /* TODO: consider that when movig to distributed */
             {
-                sizeG *= sizeof(pastix_complex64_t);
-                if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
-                    sizeG *= 2;
+                if ((iparm[IPARM_VERBOSE] > API_VERBOSE_NO))
+                {
+                    fprintf(stdout, NNZERO_WITH_FILLIN, (int)procnum, (long)iparm[IPARM_NNZEROS_BLOCK_LOCAL]);
+                }
+                if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+                {
+#ifdef PASTIX_WITH_MPI
+                    MPI_Comm pastix_comm = pastix_data->inter_node_comm;
+#endif
+                    pastix_int_t sizeL = solvptr->coefnbr;
+                    pastix_int_t sizeG = 0;
 
-                fprintf(stdout, OUT_COEFSIZE, (double)MEMORY_WRITE(sizeG),
-                        MEMORY_UNIT_WRITE(sizeG));
+                    MPI_Reduce(&sizeL, &sizeG, 1, PASTIX_MPI_INT, MPI_MAX, 0, pastix_comm);
+
+                    if (procnum == 0)
+                    {
+                        sizeG *= sizeof(pastix_complex64_t);
+                        if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
+                            sizeG *= 2;
+
+                        fprintf(stdout, OUT_COEFSIZE, (double)MEMORY_WRITE(sizeG),
+                                MEMORY_UNIT_WRITE(sizeG));
+                    }
+                }
             }
         }
     }

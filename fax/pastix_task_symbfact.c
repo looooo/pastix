@@ -123,6 +123,7 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     Order          *ordemesh;
     pastix_int_t    n;
     int             procnum;
+    Clock           timer;
 
 #if defined(PASTIX_DISTRIBUTED)
     pastix_int_t           * PTS_perm     = pastix_data->PTS_permtab;
@@ -162,12 +163,14 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
     }
     n = ordemesh->vertnbr;
 
+    clockStart(timer);
+
     /* Make sure they are both 0-based */
     orderBase( ordemesh, 0 );
     graphBase( graph, 0 );
 
     print_debug(DBG_STEP, "-> pastix_task_symbfact\n");
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
         pastix_print(procnum, 0, OUT_STEP_FAX );
 
     /* Allocate the symbol matrix structure */
@@ -255,7 +258,8 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
          */
         if (fax)
         {
-            pastix_print(procnum, 0, OUT_FAX_METHOD, "Fax " );
+            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                pastix_print(procnum, 0, OUT_FAX_METHOD, "Fax " );
             symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
                            nfax,                 /* Number of nodes */
                            colptrfax,            /* Nodes list      */
@@ -278,8 +282,10 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
             tmpgraph.rows   = rowfax;
             tmpgraph.loc2glob = NULL;
 
-            pastix_print(procnum, 0, OUT_FAX_METHOD, "Kass" );
-            symbolKass(iparm[IPARM_INCOMPLETE],
+            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                pastix_print(procnum, 0, OUT_FAX_METHOD, "Kass" );
+            symbolKass(iparm[IPARM_VERBOSE],
+                       iparm[IPARM_INCOMPLETE],
                        iparm[IPARM_LEVEL_OF_FILL],
                        iparm[IPARM_AMALGAMATION_LVLCBLK],
                        iparm[IPARM_AMALGAMATION_LVLBLAS],
@@ -400,16 +406,19 @@ pastix_task_symbfact(pastix_data_t *pastix_data,
                     &(dparm[DPARM_FACT_THFLOPS]),
                     &(dparm[DPARM_FACT_RLFLOPS]) );
 
+    clockStop(timer);
+
     if ( procnum == 0 ) {
         if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
             symbolPrintStats( pastix_data->symbmtx );
 
-        if ( iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
+        if ( iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
             double fillin = (double)(iparm[IPARM_NNZEROS])
                 / (double)( (pastix_data->csc)->gnnz );
 
-            fprintf(stdout, OUT_GLOBAL_NNZL,   iparm[ IPARM_NNZEROS ] );
-            fprintf(stdout, OUT_GLOBAL_FILLIN, fillin );
+            pastix_print( procnum, 0, OUT_FAX_SUMMARY,
+                          iparm[ IPARM_NNZEROS ],
+                          fillin, clockVal(timer) );
         }
     }
 

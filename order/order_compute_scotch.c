@@ -142,7 +142,8 @@ orderComputeScotch( pastix_data_t  *pastix_data,
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
         clockStop(timer);
-        pastix_print( procnum, 0, "SCOTCH_graphCheck done in %lf second\n", clockVal(timer) );
+        if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+            pastix_print( procnum, 0, "SCOTCH_graphCheck done in %lf second\n", clockVal(timer) );
     }
 #endif
     SCOTCH_graphBase(&scotchgraph, 0);
