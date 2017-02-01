@@ -40,7 +40,7 @@ static void *solve_smp(void *arg)
     void                *x;
     void                *b;
     size_t              size;
-    int                 check = 2;
+    int                 check = 1;
     int                 nrhs = 1;
     solve_param_t       param = *(solve_param_t *)arg;
     param.iparm[IPARM_THREAD_NBR] = 1;

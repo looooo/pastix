@@ -20,7 +20,7 @@ int main (int argc, char **argv)
     pastix_spm_t   *spm, *spm2;
     void           *x0, *x, *b;
     size_t          size;
-    int             check = 2;
+    int             check = 1;
     int             nrhs = 1;
     int             i, nbruns = 3;
 

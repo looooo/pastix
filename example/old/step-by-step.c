@@ -37,7 +37,7 @@ int main (int argc, char **argv)
     void            *x           = NULL;
     void            *x0          = NULL;
     size_t           size;
-    int              check       = 2;
+    int              check       = 1;
 
     /**
      * Initialize parameters to default values

@@ -30,8 +30,8 @@ int main (int argc, char **argv)
     pastix_driver_t  driver;
     void            *x, *x0;
     size_t           size;
-    int              check       = 2;
-    int              ret         = PASTIX_SUCCESS;
+    int              check = 1;
+    int              ret   = PASTIX_SUCCESS;
 
     /**
      * Initialize parameters to default values

@@ -27,7 +27,7 @@ int main (int argc, char **argv)
     pastix_driver_t  driver;
     void            *x, *x0, *b;
     size_t           size;
-    int              check = 2;
+    int              check = 1;
 
     /**
      * Initialize parameters to default values
