@@ -25,12 +25,14 @@
     "  Number of MPI processes:                %8d\n"           \
     "  Number of threads per process:          %8d\n"           \
     "  MPI communication support:              %8s\n"           \
-    "  Low rank parameters:                             \n"     \
-    "    Tolerance                             %8.0e    \n"     \
-    "    Compress size                         %8ld     \n"     \
-    "    Compress width                        %8ld     \n"     \
-    "    Strategy                      %16s             \n"     \
-    "    Compress method                       %8s      \n"
+    "  Low rank parameters:\n"                                  \
+    "    Strategy                      %16s\n"
+
+#define OUT_HEADER_LR                                           \
+    "    Tolerance                             %8.0e\n"         \
+    "    Compress method                       %8s\n"           \
+    "    Compress minimal width                %8ld\n"          \
+    "    Compress minimal height               %8ld\n"
 
 #define OUT_STEP_ORDER                                          \
     "+-------------------------------------------------+\n"     \
@@ -55,6 +57,10 @@
     "  Symbolic Factorization :\n"
 #define OUT_FAX_METHOD                          \
     "    Symbol factorization using: %s\n"
+#define OUT_FAX_SUMMARY                                                 \
+    "    Number of nonzeroes in L structure    %8ld\n"                  \
+    "    Fill-in of L                          %8lf\n"                  \
+    "    Time to compute symbol matrix         %e s\n"
 
 
 #define OUT_STEP_REORDER                                        \
@@ -113,6 +119,34 @@
 #define OUT_BLEND_TIME                                  \
     "    Time for analyze                      %e s\n"
 
+#define OUT_BLEND_SUMMARY                                               \
+    "    Number of non-zeroes in blocked L     %8ld\n"                  \
+    "    Fill-in                               %8lf\n"                  \
+    "    Number of operations: %-5s              %5.2lf %cFlops\n"      \
+    "    Prediction:\n"                                                 \
+    "      Model                       %20s\n"                          \
+    "      Time to factorize                   %e s\n"                  \
+    "    Time for analyze                      %e s\n"
+
+#define OUT_STEP_SOPALIN                                          \
+    "+-------------------------------------------------+\n"     \
+    "  Factorization step:\n"                                   \
+    "    Factorization used: %s\n"
+
+#define OUT_BCSC_TIME                                   \
+    "    Time to initialize internal csc       %e s\n"
+
+#define OUT_COEFTAB_TIME                                \
+    "    Time to initialize coeftab            %e s\n"
+
+#define OUT_SOPALIN_TIME                                                \
+    "    Time to factorize                     %e s (%5.2lf %cFlop/s)\n"
+
+
+#define OUT_LOWRANK_SUMMARY                                     \
+    "    Compression:\n"                                        \
+    "      Elements removed             %8ld / %8ld\n"          \
+    "      Memory saved              %.3g %s / %.3g %s\n"
 
 #define OUT_STARPU_TP         " StarPU : Thread policy : %s\n"
 #define OUT_STARPU_STP        " StarPU : No thread policy, setting thread policy to : %s\n"
@@ -195,11 +229,11 @@
 #define OUT_ESP_NBTASKS       "   Number of tasks added by esp                 %ld\n"
 #define OUT_TIME_FACT         "   Time to factorize                            %.3g s  (%.3g %s)\n"
 #define OUT_FLOPS_FACT        "   FLOPS during factorization                   %.5g %s\n"
-#define OUT_TIME_SOLV         "   Time to solve                                %.3g s\n"
-#define OUT_RAFF_ITER_NORM    "   Refinement                                   %ld iterations, norm=%.3g\n"
-#define OUT_PREC1             "   ||b-Ax||/||b||                               %.3g\n"
-#define OUT_PREC2             "   max_i(|b-Ax|_i/(|b| + |A||x|)_i              %.3g\n"
-#define OUT_TIME_RAFF         "   Time for refinement                          %.3g s\n"
+#define OUT_TIME_SOLV         "    Time to solve                         %e s\n"
+#define OUT_RAFF_ITER_NORM    "    Refinement                            %ld iterations, norm=%e\n"
+#define OUT_PREC1             "    ||b-Ax||/||b||                        %e\n"
+#define OUT_PREC2             "    max_i(|b-Ax|_i/(|b| + |A||x|)_i       %e\n"
+#define OUT_TIME_RAFF         "    Time for refinement                   %e s\n"
 #define OUT_END               " +--------------------------------------------------------------------+\n"
 
 /*
@@ -268,7 +302,7 @@ printflopsv( double flops )
 static inline char
 printflopsu( double flops )
 {
-    static char units[9] = { ' ', 'k', 'm', 'g', 't', 'p', 'e', 'z', 'y' };
+    static char units[9] = { ' ', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
     static double ratio = (double)(1<<10);
     int unit = 0;
 
@@ -277,6 +311,22 @@ printflopsu( double flops )
         unit++;
     }
     return units[unit];
+}
+
+static inline char *
+pastixFactotypeStr( pastix_factotype_t ft ) {
+    switch( ft ) {
+    case PastixFactLLT:
+        return "LL^t";
+    case PastixFactLDLT:
+        return "LDL^t";
+    case PastixFactLU:
+        return "LU";
+    case PastixFactLDLH:
+       return "LDL^h";
+     default:
+        return "None";
+    }
 }
 
 #endif /* _OUT_H_ */

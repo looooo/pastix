@@ -50,6 +50,8 @@ int
 pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
                          pastix_spm_t  *spm )
 {
+    double time;
+
     /**
      * Check parameters
      */
@@ -70,9 +72,12 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      * Compute the norm of A, to scale the epsilon parameter for pivoting
      */
     {
-        pastix_print( 0, 0, "-- ||A||_2  =                                   " );
         pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( PastixFrobeniusNorm, spm );
-        pastix_print( 0, 0, "%e\n", pastix_data->dparm[ DPARM_A_NORM ] );
+        if (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+            pastix_print( 0, 0,
+                          "    ||A||_2  =                            %e\n",
+                          pastix_data->dparm[ DPARM_A_NORM ] );
+        }
     }
 
     /**
@@ -87,12 +92,16 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
 
     MALLOC_INTERN( pastix_data->bcsc, 1, pastix_bcsc_t );
 
-    bcscInit( spm,
-              pastix_data->ordemesh,
-              pastix_data->solvmatr,
-              ( (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU)
-                && (! pastix_data->iparm[IPARM_ONLY_RAFF]) ),
-              pastix_data->bcsc );
+    time = bcscInit( spm,
+                     pastix_data->ordemesh,
+                     pastix_data->solvmatr,
+                     ( (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU)
+                       && (! pastix_data->iparm[IPARM_ONLY_RAFF]) ),
+                     pastix_data->bcsc );
+
+    if ( pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
+        pastix_print( 0, 0, OUT_BCSC_TIME, time );
+    }
 
     if ( pastix_data->iparm[IPARM_FREE_CSCUSER] ) {
         spmExit( spm );
@@ -112,6 +121,8 @@ int
 pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
                           pastix_spm_t  *spm )
 {
+    Clock timer;
+
     /**
      * Check parameters
      */
@@ -127,6 +138,8 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
         errorPrint("pastix_subtask_bcsc2ctab: All steps from pastix_task_init() to pastix_stask_blend() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    clockStart(timer);
 
     /* Initialize low-rank parameters */
     pastix_data->solvmatr->lowrank.compress_when       = pastix_data->iparm[IPARM_COMPRESS_WHEN];
@@ -172,6 +185,12 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
         pastix_data->solvmatr->parsec_desc = sdesc;
     }
 #endif
+
+    clockStop(timer);
+    if (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+        pastix_print( 0, 0, OUT_COEFTAB_TIME,
+                      clockVal(timer) );
+    }
 
     /* Invalidate following step, and add current step to the ones performed */
     pastix_data->steps &= ~STEP_NUMFACT;
@@ -245,23 +264,9 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
-    {
-        switch(iparm[IPARM_FACTORIZATION])
-        {
-        case API_FACT_LU:
-            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LU);
-            break;
-        case API_FACT_LLT:
-            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LLT);
-            break;
-        case API_FACT_LDLH:
-            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LDLH);
-            break;
-        case API_FACT_LDLT:
-        default:
-            pastix_print(procnum, 0, "%s", OUT_STEP_NUMFACT_LDLT);
-        }
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+        pastix_print(procnum, 0, OUT_STEP_SOPALIN,
+                     pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
     }
 
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
@@ -309,9 +314,11 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
         clockStop(timer);
 
         flops = pastix_data->dparm[DPARM_FACT_FLOPS] / clockVal(timer);
-        pastix_print( 0, 0, OUT_TIME_FACT,
-                      clockVal(timer),
-                      PRINT_FLOPS( flops ), PRINT_FLOPS_UNIT( flops ) );
+        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+            pastix_print( 0, 0, OUT_SOPALIN_TIME,
+                          clockVal(timer),
+                          printflopsv( flops ), printflopsu( flops ) );
+        }
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
@@ -327,8 +334,12 @@ pastix_task_sopalin( pastix_data_t *pastix_data,
     }
 #endif
 
-    /* Compute the memory gain */
-    coeftabMemory[spm->flttype-2]( pastix_data->solvmatr );
+    if ( (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NO) &&
+         (pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever) )
+    {
+        /* Compute the memory gain */
+        coeftabMemory[spm->flttype-2]( pastix_data->solvmatr );
+    }
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_BCSC2CTAB |

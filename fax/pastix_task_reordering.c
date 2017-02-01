@@ -47,6 +47,7 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     pastix_int_t *iparm;
     Order        *ordemesh;
     pastix_int_t  procnum;
+    int verbose;
 
     /**
      * Check parameters
@@ -63,7 +64,7 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     assert(ordemesh->treetab);
 
     /* Start the step */
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
         pastix_print(procnum, 0, OUT_STEP_REORDER,
                      iparm[IPARM_REORDERING_SPLIT],
                      iparm[IPARM_REORDERING_STOP]);
@@ -97,9 +98,12 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     /* Re-build the symbolic structure */
     /* TODO: Create a function to update the symbolic factorization, instead of computing it from scratch,
      this can be easily made in // per column, as opposed to the symbolic factorization itself */
+    verbose = iparm[IPARM_VERBOSE];
+    iparm[IPARM_VERBOSE] = pastix_imax( 0, verbose-2 );
+
     pastix_task_symbfact( pastix_data, NULL, NULL );
 
-    clockStop(timer);
+    iparm[IPARM_VERBOSE] = verbose;
 
 #if !defined(NDEBUG)
     if ( orderCheck( ordemesh ) != 0) {
@@ -112,7 +116,8 @@ pastix_task_reordering(pastix_data_t *pastix_data)
     }
 #endif
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+    clockStop(timer);
+    if ( iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
         pastix_print(procnum, 0, OUT_REORDERING_TIME,
                      (double)clockVal(timer));
     }

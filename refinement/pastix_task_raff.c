@@ -124,7 +124,9 @@ void pastix_task_raff(pastix_data_t *pastix_data,
     clockStart(timer);
     sopalinRaff[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2](pastix_data, x, b);
     clockStop(timer);
-    pastix_print( 0, 0, OUT_TIME_RAFF, clockVal(timer) );
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+        pastix_print( 0, 0, OUT_TIME_RAFF, clockVal(timer) );
+    }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
                                          1,

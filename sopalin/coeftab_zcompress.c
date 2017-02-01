@@ -273,7 +273,6 @@ coeftab_zmemory( SolverMatrix *solvmtx )
     SolverCblk  *cblk   = solvmtx->cblktab;
     pastix_int_t cblknum;
     int          factoLU = (solvmtx->factotype == PastixFactLU) ? 1 : 0;
-    double       tol = solvmtx->lowrank.tolerance;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
     double       memgain, memoriginal;
@@ -291,13 +290,11 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 
     memgain     = gain     * pastix_size_of( PastixComplex64 );
     memoriginal = original * pastix_size_of( PastixComplex64 );
-    fprintf( stdout,
-             "  Compression : Tolerance         %e\n"
-             "                Elements removed  %ld / %ld\n"
-             "                Memory saved      %.3g %s / %.3g %s\n",
-             tol*tol, gain, original,
-             MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
-             MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
+    pastix_print(0, 0,
+                 OUT_LOWRANK_SUMMARY,
+                 gain, original,
+                 MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
+                 MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
 }
 
 void
@@ -319,35 +316,10 @@ coeftab_zcompress( SolverMatrix *solvmtx )
 {
     SolverCblk *cblk  = solvmtx->cblktab;
     pastix_int_t cblknum;
-    double tol = solvmtx->lowrank.tolerance;
-    pastix_int_t gain = 0;
-    pastix_int_t original = 0;
-    double memgain, memoriginal;
-    int factoLU = 0;
-
-    if ( solvmtx->cblktab[0].ucoeftab ) {
-        factoLU = 1;
-    }
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
-        original += cblk_colnbr( cblk ) * cblk->stride;
         if (!(cblk->cblktype & CBLK_COMPRESSED)) {
-            gain += coeftab_zcompress_one( cblk, solvmtx->lowrank );
+            coeftab_zcompress_one( cblk, solvmtx->lowrank );
         }
     }
-
-    if ( factoLU ) {
-        original *= 2;
-    }
-
-    memgain     = gain     * pastix_size_of( PastixComplex64 );
-    memoriginal = original * pastix_size_of( PastixComplex64 );
-    fprintf( stdout,
-             "  Compression : Tolerance         %e\n"
-             "                Elements removed  %ld / %ld\n"
-             "                Memory saved      %.3g %s / %.3g %s\n",
-             tol, gain, original,
-             MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
-             MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
 }
-

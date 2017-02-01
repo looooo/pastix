@@ -50,7 +50,6 @@ pastixWelcome( pastix_data_t *pastix,
                pastix_int_t  *iparm,
                double        *dparm )
 {
-
     pastix_print( pastix->procnum, 0, OUT_HEADER,
                   /* Version    */ PASTIX_VERSION_MAJOR, PASTIX_VERSION_MINOR, PASTIX_VERSION_MICRO,
                   /* Sched. seq */ "Enabled",
@@ -71,13 +70,16 @@ pastixWelcome( pastix_data_t *pastix,
                   /* MPI nbr   */ pastix->procnbr,
                   /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
                   /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled"),
-                  /* Tolerance       */ dparm[DPARM_COMPRESS_TOLERANCE],
-                  /* Compress size   */ iparm[IPARM_COMPRESS_MIN_WIDTH],
-                  /* Compress width  */ iparm[IPARM_COMPRESS_MIN_HEIGHT],
-                  /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time"),
-                  /* Compress method */ ((iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR")
-                  );
+                  /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 
+
+    if ( iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
+        pastix_print( pastix->procnum, 0, OUT_HEADER_LR,
+                      /* Tolerance       */ dparm[DPARM_COMPRESS_TOLERANCE],
+                      /* Compress method */ ((iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR"),
+                      /* Compress width  */ iparm[IPARM_COMPRESS_MIN_WIDTH],
+                      /* Compress height */ iparm[IPARM_COMPRESS_MIN_HEIGHT] );
+    }
 }
 
 /**
@@ -519,8 +521,8 @@ pastixInit( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    /**/
-    pastixWelcome( pastix, iparm, dparm );
+    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+        pastixWelcome( pastix, iparm, dparm );
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;

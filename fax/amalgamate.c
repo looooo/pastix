@@ -636,9 +636,10 @@ amalgamate(double rat_cblk, double rat_blas,
             }
         }
     }
-
-    pastix_print(procnum, 0, "Number of cblk after amalgamation initialization = %ld (reduced by %ld)\n",
-                 (long)(n-nbcblk_merged), (long)nbcblk_merged);
+    if (0) {
+        pastix_print(procnum, 0, "Number of cblk after amalgamation initialization = %ld (reduced by %ld)\n",
+                     (long)(n-nbcblk_merged), (long)nbcblk_merged);
+    }
 
     /* Initialize the first round with column sorted by nnzadd */
     queueInit(&heap, (n-nbcblk_merged));
@@ -722,9 +723,10 @@ amalgamate(double rat_cblk, double rat_blas,
         }
     }
 
-    pastix_print(procnum, 0, "Number of cblk after amalgamation phase = %ld (reduced by %ld)\n",
-                 (long)(n-nbcblk_merged), (long)nbcblk_merged);
-
+    if (0) {
+        pastix_print(procnum, 0, "Number of cblk after amalgamation phase = %ld (reduced by %ld)\n",
+                     (long)(n-nbcblk_merged), (long)nbcblk_merged);
+    }
     queueExit(&heap);
     if(fillwhile < fillblas)
     {

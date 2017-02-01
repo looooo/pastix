@@ -76,7 +76,7 @@
  *
  *******************************************************************************/
 int
-symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
+symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
            SymbolMatrix   *symbmtx,
            pastix_graph_t *csc,
            Order          *orderptr,
@@ -135,10 +135,11 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     kass_csrInit( n, &graphPA );
     kass_csrGenPA( csc, perm, &graphPA );
 
-    pastix_print(procnum, 0,
-                 "Level of fill = %ld\n"
-                 "Amalgamation ratio: cblk = %d, blas = %d\n",
-                 (long)levelk, rat_cblk, rat_blas);
+    if (verbose > API_VERBOSE_YES)
+        pastix_print(procnum, 0,
+                     "Level of fill = %ld\n"
+                     "Amalgamation ratio: cblk = %d, blas = %d\n",
+                     (long)levelk, rat_cblk, rat_blas);
 
     /*
      * Compute the graph of the factorized matrix L
@@ -154,9 +155,10 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
         clockStart(timer);
         nnzL = kassFactDirect( &graphPA, snodenbr, snodetab, streetab, &graphL );
         clockStop(timer);
-        pastix_print(procnum, 0,
-                     "Time to compute scalar symbolic direct factorization  %.3g s\n",
-                     clockVal(timer));
+        if (verbose > API_VERBOSE_YES)
+            pastix_print(procnum, 0,
+                         "Time to compute scalar symbolic direct factorization  %.3g s\n",
+                         clockVal(timer));
     }
     /* ILU(k) Factorization */
     else
@@ -164,9 +166,10 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
         clockStart(timer);
         nnzL = kassFactLevel( &graphPA, levelk, &graphL );
         clockStop(timer);
-        pastix_print(procnum, 0,
-                     "Time to compute scalar symbolic factorization of ILU(%ld) %.3g s\n",
-                     (long)levelk, clockVal(timer));
+        if (verbose > API_VERBOSE_YES)
+            pastix_print(procnum, 0,
+                         "Time to compute scalar symbolic factorization of ILU(%ld) %.3g s\n",
+                         (long)levelk, clockVal(timer));
 
         /*
          * Compute the treetab array for amalgamation step
@@ -203,9 +206,10 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     nnzA = ( kass_csrGetNNZ( &graphPA ) + n ) / 2;
     kass_csrClean( &graphPA );
 
-    pastix_print( procnum, 0,
-                  "Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
-                  (long)nnzA, (long)nnzL, (double)nnzL / (double)nnzA );
+    if (verbose > API_VERBOSE_YES)
+        pastix_print( procnum, 0,
+                      "Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
+                      (long)nnzA, (long)nnzL, (double)nnzL / (double)nnzA );
 
     /*
      * Amalgamate the blocks
@@ -251,11 +255,12 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     if (levelk != -1) {
         nnzS = symbolGetNNZ( symbmtx );
 
-        pastix_print(procnum, 0, "Number of blocks in the non patched symbol matrix = %ld \n",
-                     (long)symbmtx->bloknbr);
-        pastix_print(procnum, 0, "Number of non zeroes in the non patched symbol matrix = %g, fillrate1 %.3g \n",
-                     nnzS+n, (nnzS+n)/(ia[n]/2.0 +n) );
-
+        if (verbose > API_VERBOSE_YES) {
+            pastix_print(procnum, 0, "Number of blocks in the non patched symbol matrix = %ld \n",
+                         (long)symbmtx->bloknbr);
+            pastix_print(procnum, 0, "Number of non zeroes in the non patched symbol matrix = %g, fillrate1 %.3g \n",
+                         nnzS+n, (nnzS+n)/(ia[n]/2.0 +n) );
+        }
         if(symbolCheck(symbmtx) != 0) {
             errorPrint("SymbolCheck on symbol matrix before patch failed !!!");
             assert(0);
@@ -268,12 +273,13 @@ symbolKass(int ilu, int levelk, int rat_cblk, int rat_blas,
     nnzS = symbolGetNNZ( symbmtx );
 
     clockStop(timer);
-    pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
-    pastix_print(procnum, 0, "Number of cblk in the amalgamated symbol matrix = %ld \n", (long)newcblknbr);
-    pastix_print(procnum, 0, "Number of block in final symbol matrix = %ld \n",
-                 (long)symbmtx->bloknbr);
-    pastix_print(procnum, 0, "Number of non zero in final symbol matrix = %g, fillrate2 %.3g \n",
-                 nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
-
+    if (verbose > API_VERBOSE_YES) {
+        pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
+        pastix_print(procnum, 0, "Number of cblk in the amalgamated symbol matrix = %ld \n", (long)newcblknbr);
+        pastix_print(procnum, 0, "Number of block in final symbol matrix = %ld \n",
+                     (long)symbmtx->bloknbr);
+        pastix_print(procnum, 0, "Number of non zero in final symbol matrix = %g, fillrate2 %.3g \n",
+                     nnzS+n, (nnzS+n)/(ia[n]/2.0 +n));
+    }
     return PASTIX_SUCCESS;
 }

@@ -341,15 +341,6 @@ void solverBlend(BlendCtrl    *ctrl,
         memFree_null(bcofind);
 
     /* End timing */
-    {
-        double time;
-        clockStop(timer_all);
-        time = clockVal(timer_all);
-
-        set_dparm(ctrl->dparm, DPARM_ANALYZE_TIME, time );
-        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
-            pastix_print( clustnum, 0, OUT_BLEND_TIME,
-                          time );
-        }
-    }
+    clockStop(timer_all);
+    set_dparm(ctrl->dparm, DPARM_ANALYZE_TIME, clockVal(timer_all) );
 }
