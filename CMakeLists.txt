@@ -694,7 +694,6 @@ enable_testing()
 include(CTest)
 # Examples executables
 add_subdirectory(example)
-
 # Testing executables
 add_subdirectory(test)
 
