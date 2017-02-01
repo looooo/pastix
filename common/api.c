@@ -112,6 +112,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_START_TASK]            = API_TASK_ORDERING;   /* Indicate the first step to execute (see PaStiX steps)*/
     iparm[IPARM_END_TASK]              = API_TASK_CLEAN;      /* Indicate the last step to execute (see PaStiX steps) */
     iparm[IPARM_VERBOSE]               = API_VERBOSE_NO;      /* Verbose mode (see Verbose modes)                     */
+    iparm[IPARM_MTX_TYPE]              = -1;                  /* Used with old interface to force matrix type */
     iparm[IPARM_DOF_NBR]               = 1;                   /* Degree of freedom per node                           */
     iparm[IPARM_DOF_COST]              = 0;                   /* Degree of freedom for cost computation
                                                                (If different from IPARM_DOF_NBR) */
@@ -121,7 +122,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
     iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
     iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
-
 
     /**
      * Ordering parameters
@@ -213,8 +213,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_NB_SMP_NODE_USED]      = 0;                   /* Nb SMP node used (0 for 1 per MPI process) */
     iparm[IPARM_MURGE_REFINEMENT]      = API_YES;
     iparm[IPARM_TRANSPOSE_SOLVE]       = API_NO;
-    iparm[IPARM_MTX_TYPE]              = -1;              /* Used with old interface to force matrix type */
-    
+
     /**
      * Communication modes
      */
