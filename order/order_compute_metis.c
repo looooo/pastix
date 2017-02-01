@@ -95,7 +95,7 @@ orderComputeMetis( pastix_data_t  *pastix_data,
     opt[METIS_OPTION_DBGLVL   ] = iparm[IPARM_METIS_DBGLVL];
 
     n = graph->n;
-    rc = orderInit( ordemesh, graph->n, 0 );
+    rc = orderAlloc( ordemesh, graph->n, 0 );
     if (rc != PASTIX_SUCCESS )
     {
         errorPrint("orderComputeMetis: Error during odering initialization\n");
