@@ -580,6 +580,7 @@ set(PASTIX_LIB_SRCS
   sopalin/coeftab.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
+  sopalin/pastix.c
   #
   refinement/pastix_task_raff.c
   #

@@ -263,7 +263,5 @@ pastix_task_solve( pastix_data_t *pastix_data,
                              STEP_REFINE );
     pastix_data->steps |= STEP_NUMFACT;
 
-    iparm[IPARM_START_TASK]++;
-
     return EXIT_SUCCESS;
 }

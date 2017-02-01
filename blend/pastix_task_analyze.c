@@ -212,7 +212,5 @@ pastix_task_blend(pastix_data_t *pastix_data)
                              STEP_REFINE  );
     pastix_data->steps |= STEP_ANALYSE;
 
-    iparm[IPARM_START_TASK]++;
-
     return PASTIX_SUCCESS;
 }

@@ -19,37 +19,45 @@
 
 int main (int argc, char **argv)
 {
-    pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
-    pastix_int_t    iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
-    double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    pastix_driver_t driver;
-    char           *filename;
-    pastix_spm_t   *spm, *spm2;
-    void           *x0, *x, *b;
-    size_t          size;
-    int             check = 1;
-    int             nrhs = 1;
-    double          normA;
+    pastix_data_t   *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+    pastix_float_t  *b           = NULL; /* right hand side                                           */
+    pastix_int_t     iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
+    double           dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
+    char            *filename;  /* Filename(s) given by user                                 */
+    int              nrhs        = 1;
+    pastix_spm_t    *spm, *spm2;
+    double           normA;
+    pastix_driver_t  driver;
+    void            *x, *x0;
+    size_t           size;
+    int              check = 1;
+    int              ret   = PASTIX_SUCCESS;
 
     /**
      * Initialize parameters to default values
      */
-    pastixInitParam( iparm, dparm );
+    iparm[IPARM_MODIFY_PARAMETER] = API_NO;
+    pastix( &pastix_data, MPI_COMM_WORLD,
+            -1, NULL, NULL, NULL,
+            NULL, NULL, NULL, 1, iparm, dparm );
 
     /**
-     * Get options from command line
+     * Update options from command line, and get the matrix filename
      */
     pastix_ex_getoptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 
     /**
-     * Read the sparse matrix with the driver
+     * Read Matrice
      */
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
 
+    /**
+     * Check Matrix format
+     */
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
@@ -58,28 +66,10 @@ int main (int argc, char **argv)
     }
 
     /**
-     * Scal the matrix to avoid unexpected rouding errors
+     * Scale the matrix to avoid unexpected rouding errors
      */
     normA = spmNorm( PastixFrobeniusNorm, spm );
     spmScal( 1./normA, spm );
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-
-    /**
-     * Perform ordering, symbolic factorization, and analyze steps
-     */
-    pastix_task_order( pastix_data, spm, NULL, NULL );
-    pastix_task_symbfact( pastix_data, NULL, NULL );
-    pastix_task_reordering( pastix_data );
-    pastix_task_blend( pastix_data );
-
-    /**
-     * Perform the numerical factorization
-     */
-    pastix_task_sopalin( pastix_data, spm );
 
     /**
      * Generates the b and x vector such that A * x = b
@@ -103,26 +93,31 @@ int main (int argc, char **argv)
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
-        b = malloc( size );
         memcpy( b, x, size );
     }
 
     /**
-     * Solve the linear system
+     * Call pastix
      */
-    pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
-    pastix_task_raff( pastix_data, x, nrhs, b );
+    iparm[IPARM_START_TASK] = API_TASK_INIT;
+    iparm[IPARM_END_TASK]   = API_TASK_CLEAN;
+    pastix( &pastix_data, MPI_COMM_WORLD,
+            spm->n, spm->colptr, spm->rowptr, spm->values,
+            NULL, NULL, x, nrhs, iparm, dparm );
+    if (iparm[IPARM_ERROR_NUMBER] != PASTIX_SUCCESS)
+        return ret;
 
+    /**
+     * Check the solution
+     */
     if ( check )
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
-
         if (x0) free(x0);
     }
-    spmExit( spm );
-    free( spm );
-    free(b); free(x);
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
+    spmExit( spm );
+    free(b);
+    free(x);
     return EXIT_SUCCESS;
 }

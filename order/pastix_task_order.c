@@ -471,6 +471,5 @@ pastix_task_order(      pastix_data_t *pastix_data,
                              STEP_REFINE   );
     pastix_data->steps |= STEP_ORDERING;
 
-    iparm[IPARM_START_TASK]++;
     return PASTIX_SUCCESS;
 }

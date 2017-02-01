@@ -1,5 +1,5 @@
 /**
- *  @file: reentrant.c
+ *  @file reentrant.c
  *
  *  A simple example :
  *  run two threads then run two instances of PaStiX in each.
@@ -40,7 +40,7 @@ static void *solve_smp(void *arg)
     void                *x;
     void                *b;
     size_t              size;
-    int                 check = 2;
+    int                 check = 1;
     int                 nrhs = 1;
     solve_param_t       param = *(solve_param_t *)arg;
     param.iparm[IPARM_THREAD_NBR] = 1;
@@ -82,9 +82,9 @@ static void *solve_smp(void *arg)
      */
     size = pastix_size_of( spm->flttype ) * spm->n;
     x = malloc( size );
+    b = malloc( size );
     if ( check )
     {
-        b = malloc( size );
         if ( check > 1 ) {
             x0 = malloc( size );
         } else {
@@ -109,10 +109,10 @@ static void *solve_smp(void *arg)
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
         if (x0) free(x0);
-        free(x);
-        free(b);
     }
     spmExit( spm );
+    free(x);
+    free(b);
     free( spm );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, param.iparm, param.dparm );
     return NULL;
@@ -157,15 +157,15 @@ int main (int argc, char **argv)
         solve_param[i].driver           = driver;
         solve_param[i].filename         = filename;
 
-      /**
-       *   Launch instance of solver
-       */
-      pthread_create(&threads[i], NULL, solve_smp, (void *)&solve_param[i]);
+        /**
+         *   Launch instance of solver
+         */
+        pthread_create(&threads[i], NULL, solve_smp, (void *)&solve_param[i]);
     }
 
-  /**
-   *     Wait for the end of thread
-   */
+    /**
+     *     Wait for the end of thread
+     */
     for (i = 0; i < nbcallingthreads; i++)
         pthread_join(threads[i],(void**)NULL);
 

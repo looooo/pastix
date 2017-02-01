@@ -165,7 +165,6 @@ void pastix_task_raff(pastix_data_t *pastix_data,
     //
     //         fprintf(stdout, OUT_TIME_RAFF, rrafftime);
     //     }
-    iparm[IPARM_START_TASK]++;
 
     return;
 }

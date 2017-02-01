@@ -116,6 +116,10 @@ struct pastix_data_s {
     pastix_bcsc_t   *bcsc;               /*< Csc after reordering grouped by cblk                                */
     SolverMatrix    *solvmatr;           /*< Solver informations associted to the matrix problem                 */
 
+    /* Backup for old pastix interface */
+    void            *b;
+    void            *x0;
+
     /**
      * Former fields that are no longer used for now
      */

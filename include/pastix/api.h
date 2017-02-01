@@ -22,10 +22,13 @@
    Integer parameters tabular accessors
 
    IPARM_MODIFY_PARAMETER      - Indicate if parameters have been set by user             Default: API_YES             IN
+
    IPARM_START_TASK            - Indicate the first step to execute (see PaStiX steps)    Default: API_TASK_ORDERING   IN
    IPARM_END_TASK              - Indicate the last step to execute (see PaStiX steps)     Default: API_TASK_CLEAN      IN
    IPARM_VERBOSE               - Verbose mode (see Verbose modes)                         Default: API_VERBOSE_NO      IN
    IPARM_DOF_NBR               - Degree of freedom per node                               Default: 1                   IN
+   IPARM_FLOAT                 - Indicate the floating point type  IGNORE                 Default: -                   INOUT
+
    IPARM_ITERMAX               - Maximum iteration number for refinement                  Default: 250                 IN
    IPARM_MATRIX_VERIFICATION   - Check the input matrix                                   Default: API_NO              IN
    IPARM_MC64                  - MC64 operation <pastix.h> IGNORE                         Default: 0                   IN
@@ -107,7 +110,6 @@
    IPARM_MURGE_REFINEMENT      - Enable refinement in MURGE                               Default: API_YES             IN
    IPARM_STARPU                - Use StarPU runtime                                       Default: API_NO              IN
    IPARM_AUTOSPLIT_COMM        - Automaticaly split communicator to have one MPI task by node             Default: API_NO               IN
-   IPARM_FLOAT                 - Indicate the floating point type  IGNORE                 Default: -                   INOUT
    IPARM_PID                   - Pid of the first process (used for naming the log directory) Default: -1                  OUT
    IPARM_ERROR_NUMBER          - Return value                                             Default: -                   OUT
    IPARM_CUDA_NBR              - Number of cuda devices                                   Default: 0                   IN
@@ -121,8 +123,6 @@
 */
 enum IPARM_ACCESS {
   IPARM_MODIFY_PARAMETER,
-  IPARM_START_TASK,
-  IPARM_END_TASK,
   IPARM_VERBOSE,
   IPARM_DOF_NBR,
   IPARM_ITERMAX,
@@ -219,7 +219,6 @@ enum IPARM_ACCESS {
   IPARM_MURGE_REFINEMENT,
   IPARM_STARPU,
   IPARM_AUTOSPLIT_COMM,
-  IPARM_FLOAT,
   IPARM_PID,
   IPARM_ERROR_NUMBER,
   IPARM_TRANSPOSE_SOLVE,
@@ -228,6 +227,12 @@ enum IPARM_ACCESS {
   IPARM_PRODUCE_STATS,
   IPARM_MURGE_MAY_REFINE,
 
+  /* Subset for old pastix interface*/
+  IPARM_MTX_TYPE,
+  IPARM_FLOAT,
+  IPARM_START_TASK,
+  IPARM_END_TASK,
+  
   IPARM_SIZE
 };
 

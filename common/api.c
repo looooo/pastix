@@ -108,13 +108,21 @@ pastixInitParam( pastix_int_t *iparm,
     memset( iparm, 0, IPARM_SIZE * sizeof(pastix_int_t) );
     memset( dparm, 0, DPARM_SIZE * sizeof(double) );
 
-    iparm[IPARM_MODIFY_PARAMETER]      = API_YES;             /* Indicate if parameters have been set by user         */
-    iparm[IPARM_START_TASK]            = API_TASK_ORDERING;   /* Indicate the first step to execute (see PaStiX steps)*/
-    iparm[IPARM_END_TASK]              = API_TASK_CLEAN;      /* Indicate the last step to execute (see PaStiX steps) */
+    iparm[IPARM_MODIFY_PARAMETER] = API_YES; /* Indicate if parameters have been set by user         */
+
+    /**
+     * Parameters used by the old pastix interface
+     */
+    iparm[IPARM_START_TASK] = API_TASK_ORDERING;   /* Indicate the first step to execute (see PaStiX steps)*/
+    iparm[IPARM_END_TASK]   = API_TASK_CLEAN;      /* Indicate the last step to execute (see PaStiX steps) */
+    iparm[IPARM_FLOAT]      = PastixDouble;
+    iparm[IPARM_MTX_TYPE]   = -1;                  /* Used with old interface to force matrix type */
+    iparm[IPARM_DOF_NBR]    = 1;                   /* Degree of freedom per node                           */
+
+    /**
+     * Common parameters
+     */
     iparm[IPARM_VERBOSE]               = API_VERBOSE_NO;      /* Verbose mode (see Verbose modes)                     */
-    iparm[IPARM_DOF_NBR]               = 1;                   /* Degree of freedom per node                           */
-    iparm[IPARM_DOF_COST]              = 0;                   /* Degree of freedom for cost computation
-                                                               (If different from IPARM_DOF_NBR) */
     iparm[IPARM_ITERMAX]               = 250;                 /* Maximum iteration number for refinement              */
     iparm[IPARM_MATRIX_VERIFICATION]   = API_YES;             /* Check the input matrix                               */
     iparm[IPARM_MC64]                  = 0;                   /* MC64 operation <z_pastix.h> IGNORE                     */
@@ -250,11 +258,12 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_INERTIA]            = -1;
     iparm[IPARM_ESP_NBTASKS]        = -1;
     iparm[IPARM_ESP_THRESHOLD]      = 16384;               /* Taille de bloc minimale pour passer en esp (2**14) = 128 * 128 */
+    iparm[IPARM_DOF_COST]           = 0;                   /* Degree of freedom for cost computation
+                                                               (If different from IPARM_DOF_NBR) */
     iparm[IPARM_ERROR_NUMBER]       = PASTIX_SUCCESS;
     iparm[IPARM_RHSD_CHECK]         = API_YES;
     iparm[IPARM_STARPU]             = API_NO;
     iparm[IPARM_AUTOSPLIT_COMM]     = API_NO;
-    iparm[IPARM_FLOAT]              = PastixDouble;
     iparm[IPARM_STARPU_CTX_DEPTH]   = 3;
     iparm[IPARM_STARPU_CTX_NBR]     = -1;
     iparm[IPARM_PRODUCE_STATS]      = API_NO;
@@ -587,6 +596,10 @@ pastixFinalize( pastix_data_t **pastix_data,
         memFree_null( pastix->bcsc );
     }
 
+    if (pastix->schur_list != NULL )
+    {
+        memFree_null( pastix->schur_list );
+    }
 #if defined(PASTIX_WITH_PARSEC)
     if (pastix->parsec != NULL) {
         pastix_parsec_finalize( pastix );

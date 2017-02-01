@@ -348,6 +348,10 @@ int iparm_to_int( char * string)
     {
         return IPARM_MURGE_MAY_REFINE;
     }
+    if(0 == strcmp("iparm_mtx_type", string))
+    {
+        return IPARM_MTX_TYPE;
+    }
     return -1;
 }
 
@@ -653,6 +657,18 @@ int api_to_int( char * string )
     if(0 == strcmp("pastixfactldlh", string))
     {
         return PastixFactLDLH;
+    }
+    if(0 == strcmp("pastixgeneral", string))
+    {
+        return PastixGeneral;
+    }
+    if(0 == strcmp("pastixhermitian", string))
+    {
+        return PastixHermitian;
+    }
+    if(0 == strcmp("pastixsymmetric", string))
+    {
+        return PastixSymmetric;
     }
     if(atoi(string) == 0)
     {
