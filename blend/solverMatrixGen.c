@@ -62,12 +62,6 @@ solverMatrixGen(const pastix_int_t  clustnum,
     solvmtx->bublnbr  = ctrl->local_nbctxts;
     solvmtx->ftgtcnt  = simuctrl->ftgtcnt;
 
-    if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO)
-    {
-        fprintf(stdout, "NUMBER of THREAD %ld \n", (long) solvmtx->thrdnbr );
-        fprintf(stdout, "NUMBER of BUBBLE %ld \n", (long) solvmtx->bublnbr );
-    }
-
     /* Copy the vector used to get a cluster number from a processor number */
     MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
     memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
@@ -658,7 +652,7 @@ solverMatrixGen(const pastix_int_t  clustnum,
 
         solvmtx->diagmax = diagmax;
         solvmtx->gemmmax = gemmmax;
-        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO) {
+        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO && 0) {
             pastix_print(clustnum, 0,
                          "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
                          "         update   %ld (%ld x %ld)\n",

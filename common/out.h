@@ -119,22 +119,28 @@
 #define OUT_BLEND_TIME                                  \
     "    Time for analyze                      %e s\n"
 
-#define OUT_BLEND_SUMMARY                                       \
-    "    Number of non-zeroes in blocked L     %8ld\n"          \
-    "    Fill-in                               %8lf\n"          \
-    "    Number of operations (%-5s)           %e %cFlops\n"      \
-    "    Prediction:\n"                                         \
-    "      Model                     %20s\n"                    \
-    "      Time to factorize                   %e s\n"          \
+#define OUT_BLEND_SUMMARY                                               \
+    "    Number of non-zeroes in blocked L     %8ld\n"                  \
+    "    Fill-in                               %8lf\n"                  \
+    "    Number of operations: %-5s              %5.2lf %cFlops\n"      \
+    "    Prediction:\n"                                                 \
+    "      Model                       %20s\n"                          \
+    "      Time to factorize                   %e s\n"                  \
     "    Time for analyze                      %e s\n"
 
-#define NUMBER_OP_LU          "   Number of operations (LU)                    %g\n"
-#define NUMBER_OP_LLT         "   Number of operations (LLt)                   %g\n"
-#define TIME_FACT_PRED        "   Prediction Time to factorize (%s) %.3g s\n"
+#define OUT_STEP_SOPALIN                                          \
+    "+-------------------------------------------------+\n"     \
+    "  Factorization step:\n"                                   \
+    "    Factorization used: %s\n"
 
-
-#define OUT_BCSC_TIME                                  \
+#define OUT_BCSC_TIME                                   \
     "    Time to initialize internal csc       %e s\n"
+
+#define OUT_COEFTAB_TIME                                \
+    "    Time to initialize coeftab            %e s\n"
+
+#define OUT_SOPALIN_TIME                                                \
+    "    Time to factorize                     %e s (%5.2lf %cFlop/s)\n"
 
 
 #define OUT_LOWRANK_SUMMARY                                     \
@@ -223,11 +229,11 @@
 #define OUT_ESP_NBTASKS       "   Number of tasks added by esp                 %ld\n"
 #define OUT_TIME_FACT         "   Time to factorize                            %.3g s  (%.3g %s)\n"
 #define OUT_FLOPS_FACT        "   FLOPS during factorization                   %.5g %s\n"
-#define OUT_TIME_SOLV         "   Time to solve                                %.3g s\n"
-#define OUT_RAFF_ITER_NORM    "   Refinement                                   %ld iterations, norm=%.3g\n"
-#define OUT_PREC1             "   ||b-Ax||/||b||                               %.3g\n"
-#define OUT_PREC2             "   max_i(|b-Ax|_i/(|b| + |A||x|)_i              %.3g\n"
-#define OUT_TIME_RAFF         "   Time for refinement                          %.3g s\n"
+#define OUT_TIME_SOLV         "    Time to solve                         %e s\n"
+#define OUT_RAFF_ITER_NORM    "    Refinement                            %ld iterations, norm=%e\n"
+#define OUT_PREC1             "    ||b-Ax||/||b||                        %e\n"
+#define OUT_PREC2             "    max_i(|b-Ax|_i/(|b| + |A||x|)_i       %e\n"
+#define OUT_TIME_RAFF         "    Time for refinement                   %e s\n"
 #define OUT_END               " +--------------------------------------------------------------------+\n"
 
 /*
