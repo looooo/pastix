@@ -347,6 +347,14 @@ if (PASTIX_ORDERING_METIS)
   else()
     message(ERROR "Metis is required but was not found. Please provide a Metis library in your environment or configure with -DPASTIX_ORDERING_METIS=OFF")
   endif()
+
+  # Check coherency for integer size
+  if(PASTIX_INT64 AND NOT METIS_Idx_8)
+    message(ERROR "PASTIX_INT64 is enabled and provided Metis is not compiled with int64 support.")
+  endif()
+  if(NOT PASTIX_INT64 AND NOT METIS_Idx_4)
+    message(ERROR "PASTIX_INT64 is disabled and provided Metis is not compiled with int32 support.")
+  endif()
 endif()
 
 # PaStiX might depend on GTG
