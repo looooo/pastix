@@ -8,4 +8,8 @@ foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable("old_${_name_we}" ${_file})
   target_link_libraries("old_${_name_we}" pastix)
+
+  install(TARGETS ${_name_we} RUNTIME DESTINATION old/examples )
+  install(FILES   ${_file}            DESTINATION old/examples )
+
 endforeach()
