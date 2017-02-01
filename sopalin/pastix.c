@@ -18,17 +18,14 @@
  *
  */
 
-void pastix_setSchurUnknownList(pastix_data_t **pastix_data_ptr, pastix_spm_t *spm)
+void
+pastix_setSchurUnknownList(pastix_data_t *pastix_data,
+                           pastix_int_t   n,
+                           pastix_int_t  *list)
 {
-    pastix_data_t *pastix_data;
-    int            baseval;
-
-    pastix_data = *pastix_data_ptr;
-    baseval=spmFindBase(spm);
-    pastix_data->schur_n = spm->gN/3;
-    pastix_data->schur_list = (pastix_int_t*)malloc(pastix_data->schur_n*sizeof(pastix_int_t));
-    for (int i=0; i<pastix_data->schur_n; i++)
-        pastix_data->schur_list[i]=i+baseval;
+    pastix_data->schur_n    = n;
+    pastix_data->schur_list = (pastix_int_t*)malloc(n * sizeof(pastix_int_t));
+    memcpy( pastix_data->schur_list, list, n * sizeof(pastix_int_t) );
 }
 
 /**

@@ -15,8 +15,6 @@
 #include <pastix.h>
 #include <spm.h>
 #include "drivers.h"
-#include "pastixdata.h"
-
 
 int main (int argc, char **argv)
 {
@@ -24,15 +22,13 @@ int main (int argc, char **argv)
     pastix_int_t     iparm[IPARM_SIZE]; /*< Integer in/out parameters for pastix                */
     double           dparm[DPARM_SIZE]; /*< Floating in/out parameters for pastix               */
     char            *filename;
-    int              nrhs        = 1;
+    int              nrhs = 1;
     pastix_spm_t    *spm, *spm2;
     double           normA;
     pastix_driver_t  driver;
     void            *x, *x0, *b;
     size_t           size;
-    int              check       = 2;
-    int              baseval;
-    int              i;
+    int              check = 2;
 
     /**
      * Initialize parameters to default values
@@ -107,11 +103,25 @@ int main (int argc, char **argv)
             NULL, NULL, NULL, 1, iparm, dparm );
 
     /**
-     * Initialize the schur
+     * Initialize the schur list with the first third of the unknowns
      */
-    pastix_setSchurUnknownList(&pastix_data, spm);
-    iparm[IPARM_SCHUR]=API_YES;
+    {
+        pastix_int_t n = spm->gN / 3;
 
+        if ( n > 0 ) {
+            pastix_int_t i;
+            pastix_int_t baseval = spmFindBase(spm);
+            pastix_int_t *list = (pastix_int_t*)malloc(n * sizeof(pastix_int_t));
+
+            for (i=0; i<n; i++) {
+                list[i] = i+baseval;
+            }
+            pastix_setSchurUnknownList( pastix_data, n, list );
+            free( list );
+
+            iparm[IPARM_SCHUR] = API_YES;
+        }
+    }
 
     /**
      * Call pastix

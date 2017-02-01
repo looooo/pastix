@@ -8,7 +8,7 @@
  */
 #include <pastix.h>
 #include <spm.h>
-#include "../matrix_drivers/drivers.h"
+#include "drivers.h"
 
 int main (int argc, char **argv)
 {
@@ -109,13 +109,12 @@ int main (int argc, char **argv)
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if (x0) free(x0);
-
     }
 
     spmExit( spm );
     free( spm );
-    free(x);
-    free(b);
+    free( x );
+    free( b );
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     return EXIT_SUCCESS;

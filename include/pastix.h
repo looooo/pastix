@@ -212,4 +212,9 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                       pastix_int_t   rhsnbr,
                       void          *b);
 
+void
+pastix_setSchurUnknownList(pastix_data_t *pastix_data,
+                           pastix_int_t   n,
+                           pastix_int_t  *list);
+
 #endif /* _PASTIX_H_ */
