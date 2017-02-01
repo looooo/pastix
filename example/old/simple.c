@@ -1,23 +1,21 @@
-/* File: simple.c
+/**
+ *  @file simple.c
  *
- *  A simple example :
- *  read the matrix, check it is correct and correct it if needed,
- *  then run pastix in one call.
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
- */
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <complex.h>
-#include <assert.h>
-
-/* to access functions from the libpastix, respect this order */
+ *  This is a simple example that:
+ *  reads the matrix, checks if it is correct and corrects it if needed,
+ *  and then runs pastix in one call.
+ *
+ * @version 5.1.0
+ * @author  Hastaran Matias
+ * @date    2017-01-17
+ *
+ **/
 #include <pastix.h>
 #include <spm.h>
-#include "../matrix_drivers/drivers.h"
+#include "drivers.h"
 
 int main (int argc, char **argv)
 {

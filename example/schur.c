@@ -7,8 +7,8 @@
  * Construct the schur complement of the matrix.
  *
  * @version 5.1.0
- * @author Hastaran Matias
- * @date 23/01/17
+ * @author  Hastaran Matias
+ * @date    2017-01-17
  *
  **/
 #include <pastix.h>

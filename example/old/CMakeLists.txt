@@ -9,7 +9,7 @@ foreach (_file ${EXAMPLES})
   add_executable("old_${_name_we}" ${_file})
   target_link_libraries("old_${_name_we}" pastix)
 
-  install(TARGETS ${_name_we} RUNTIME DESTINATION old/examples )
-  install(FILES   ${_file}            DESTINATION old/examples )
+  install(TARGETS old_${_name_we} RUNTIME DESTINATION examples/old )
+  install(FILES   ${_file}            DESTINATION examples/old )
 
 endforeach()

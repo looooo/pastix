@@ -1,13 +1,21 @@
 /**
  *  @file step-by-step.c
  *
- *  Simple example calling PaStiX in step-by-step mode.
- *  Runs first step then 2 factorizations with 2 solves each.
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
- */
+ *  This an example calling PaStiX in step-by-step mode.
+ *  If runs one full analyze (ordering, symbolic factorization, analyze), then
+ *  it loops over 2 factorizations that are both used for 2 solves each.
+ *
+ * @version 5.1.0
+ * @author  Hastaran Matias
+ * @date    2017-01-17
+ *
+ **/
 #include <pastix.h>
 #include <spm.h>
-#include "../matrix_drivers/drivers.h"
+#include "drivers.h"
 
 int main (int argc, char **argv)
 {
@@ -116,12 +124,14 @@ int main (int argc, char **argv)
             }
         }
     }
+
+    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    spmExit( spm );
+    free(spm);
+    free(b);
+    free(x);
     if (x0)
         free(x0);
-    free(x);
-    free(b);
-    spmExit( spm );
-    free( spm );
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
     return EXIT_SUCCESS;
 }
