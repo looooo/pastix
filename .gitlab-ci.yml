@@ -7,3 +7,10 @@ pastix:
     - cmake ..
     - make -j2
     - ctest
+    
+pages:
+  script:
+  - echo "J'ai reussi" > index.html
+  artifacts:
+    paths:
+    - public
