@@ -227,9 +227,10 @@ int isched_hwloc_numa_id(int core_id )
     }
 }
 
-unsigned int isched_hwloc_nb_cores_per_obj( int level, int index )
+unsigned int isched_hwloc_nb_cores_per_obj( hwloc_obj_type_t type, int index )
 {
-    hwloc_obj_t obj = hwloc_get_obj_by_depth(topology, level, index);
+    hwloc_obj_t obj = hwloc_get_obj_by_type(topology, type, index);
+    fprintf(stderr, "TYPE: %s %d\n", hwloc_obj_type_string( obj->type ), obj->depth );
     assert( obj != NULL );
     return hwloc_get_nbobjs_inside_cpuset_by_type(topology, obj->cpuset, HWLOC_OBJ_CORE);
 }
