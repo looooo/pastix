@@ -124,7 +124,7 @@ int isched_hwloc_get_nb_objects(int level);
  * Find the number of core under the object number index at the topology depth
  * level.
  */
-unsigned int isched_hwloc_nb_cores_per_obj( int level, int index );
+unsigned int isched_hwloc_nb_cores_per_obj( hwloc_obj_type_t level, int index );
 
 /**
  * Return the number of thread on the machine.
