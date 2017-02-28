@@ -22,6 +22,8 @@
 #include "s_spm.h"
 #include "p_spm.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
     /* From CSC */
     {{ NULL, NULL, NULL, NULL, NULL, NULL },
@@ -67,6 +69,7 @@ static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
      { NULL, NULL, NULL, NULL, NULL, NULL }}
 };
 
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************

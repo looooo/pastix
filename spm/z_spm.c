@@ -20,11 +20,12 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmSort - This routine sorts the subarray of edges of each vertex in a
- * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
- * format is used.
+ * @brief This routine sorts the subarray of edges of each vertex in a
+ * centralized spm stored in CSC or CSR format.
+ *
+ * Nothing is performed if IJV  format is used.
  *
  * WARNING: This function should NOT be called if dof is greater than 1.
  *
@@ -90,11 +91,12 @@ z_spmSort( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmMergeDuplicate - This routine merge the multiple entries in a sparse
- * matrix by suming their values together. The sparse matrix needs to be sorted
- * first (see z_spmSort()).
+ * @brief This routine merge the multiple entries in a sparse
+ * matrix by suming their values together.
+ *
+ * The sparse matrix needs to be sorted  first (see z_spmSort()).
  *
  * WARNING: This function should NOT be called if dof is greater than 1.
  *
@@ -184,10 +186,12 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmSymmetrize - This routine corrects the sparse matrix structure if it's
- * pattern is not symmetric. It returns the new symmetric pattern with zeores on
+ * @brief This routine corrects the sparse matrix structure if it's
+ * pattern is not symmetric.
+ *
+ * It returns the new symmetric pattern with zeores on
  * the new entries.
  *
  *******************************************************************************

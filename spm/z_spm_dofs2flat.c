@@ -29,9 +29,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmDofs2Flat - Convert a sparse matrix with dofs into a sparse matrix without dofs.
+ * @brief Convert a sparse matrix with dofs into a sparse matrix without dofs.
  *
  *
  *******************************************************************************
@@ -40,7 +40,11 @@
  *           The sparse matrix which needs to be converted
  *
  *******************************************************************************
- **/
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 void
 z_spmDofs2Flat(pastix_spm_t *spm)
 {

@@ -20,10 +20,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmConvertCSC2IJV - convert a matrix in CSC format to a matrix in IJV
- * format.
+ * @brief convert a matrix in CSC format to a matrix in IJV format.
  *
  *******************************************************************************
  *
@@ -71,10 +70,9 @@ z_spmConvertCSC2IJV( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmConvertCSR2IJV - convert a matrix in CSR format to a matrix in IJV
- * format.
+ * @brief convert a matrix in CSR format to a matrix in IJV format.
  *
  *******************************************************************************
  *

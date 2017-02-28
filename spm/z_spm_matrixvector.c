@@ -20,9 +20,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmGeCSCv - compute the matrix-vector product:
+ * @brief compute the matrix-vector product:
  *          y = alpha * op( A ) * x + beta * y
  *
  * A is a PastixGeneral csc, where op( X ) is one of
@@ -152,9 +152,9 @@ z_spmGeCSCv(const pastix_trans_t      trans,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmSYCSCv - compute the matrix-vector product:
+ * @brief compute the matrix-vector product:
  *          y = alpha * A + beta * y
  *
  * A is a PastixSymmetric csc, alpha and beta are scalars, and x and y are
@@ -241,9 +241,9 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmHeCSCv - compute the matrix-vector product:
+ * @brief compute the matrix-vector product:
  *          y = alpha * A + beta * y
  *
  * A is a PastixHermitian csc, alpha and beta are scalars, and x and y are
@@ -329,7 +329,44 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
 }
 #endif
 
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief compute the matrix-vector product:
+ *          y = alpha * A + beta * y
+ *
+ * A is a PastixHermitian csc, alpha and beta are scalars, and x and y are
+ * vectors, and A a symm.
+ *
+ *******************************************************************************
+ *
+ * @param[in] trans
+ *          TODO
+ *
+ * @param[in] alphaptr
+ *          alpha specifies the scalar alpha
+ *
+ * @param[in] csc
+ *          The PastixHermitian csc.
+ *
+ * @param[in] xptr
+ *          The vector x.
+ *
+ * @param[in] betaptr
+ *          beta specifies the scalar beta
+ *
+ * @param[in,out] yptr
+ *          The vector y.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
 int
 z_spmCSCMatVec(const pastix_trans_t  trans,
                const void           *alphaptr,

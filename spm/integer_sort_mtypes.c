@@ -32,6 +32,10 @@
 
 
 /**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
  * @file integer_sort_mtypes.c
  *
  * File to include to create a multi-types sort function using qsort based
@@ -39,7 +43,8 @@
  *
  * @author François Pellegrini
  *
- */
+ *******************************************************************************/
+
 #ifndef MAX_THRESH_2
 
 #define MAX_THRESH_2 6

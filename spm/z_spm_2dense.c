@@ -24,6 +24,25 @@
 #include "spm.h"
 #include "z_spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief Convert a CSC matrix into a dense matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval A TODO
+ *
+ *******************************************************************************/
 pastix_complex64_t *
 z_spmCSC2dense( const pastix_spm_t *spm )
 {
@@ -181,6 +200,25 @@ z_spmCSC2dense( const pastix_spm_t *spm )
     return A;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief Convert a CSR matrix into a dense matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval A TODO
+ *
+ *******************************************************************************/
 pastix_complex64_t *
 z_spmCSR2dense( const pastix_spm_t *spm )
 {
@@ -338,6 +376,25 @@ z_spmCSR2dense( const pastix_spm_t *spm )
     return A;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief Convert a IJV matrix into a dense matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval A TODO
+ *
+ *******************************************************************************/
 pastix_complex64_t *
 z_spmIJV2dense( const pastix_spm_t *spm )
 {
@@ -511,6 +568,25 @@ z_spmIJV2dense( const pastix_spm_t *spm )
     return A;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief Convert a sparse matrix into a dense matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval A TODO
+ *
+ *******************************************************************************/
 pastix_complex64_t *
 z_spm2dense( const pastix_spm_t *spm )
 {
@@ -525,6 +601,26 @@ z_spm2dense( const pastix_spm_t *spm )
     return NULL;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] f
+ *
+ * @param[in] m
+ *
+ * @param[in] n
+ *
+ * @param[in] A
+ *
+ * @param[in] lda
+ *
+ *******************************************************************************/
 void
 z_spmDensePrint( FILE *f, pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda )
 {

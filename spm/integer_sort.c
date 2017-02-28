@@ -30,16 +30,19 @@
    Engineering a sort function; Jon Bentley and M. Douglas McIlroy;
    Software - Practice and Experience; Vol. 23 (11), 1249-1265, 1993.  */
 
-
 /**
+ *******************************************************************************
+ *
  * @file integer_sort.c
+ *
+ * @ingroup pastix_spm_dev
  *
  * File to include to create integer sort function using qsort based
  * algorithm. DO NOT compile directly.
  *
  * @author François Pellegrini
  *
-*/
+ *******************************************************************************/
 
 #ifndef MAX_THRESH
 #define MAX_THRESH 6
@@ -257,3 +260,4 @@ const pastix_int_t          total_elems)          /*+ Number of entries to sort 
       }
   }
 }
+

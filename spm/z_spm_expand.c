@@ -17,6 +17,25 @@
 #include "spm.h"
 #include "z_spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief TODO
+ *
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The sparse matrix which needs to be converted
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval newspm
+ *
+ *******************************************************************************/
 pastix_spm_t *
 z_spmCSCExpand(const pastix_spm_t *spm)
 {
@@ -180,6 +199,24 @@ z_spmCSCExpand(const pastix_spm_t *spm)
     return newspm;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The sparse matrix which needs to be converted
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval newspm TODO
+ *
+ *******************************************************************************/
 pastix_spm_t *
 z_spmCSRExpand(const pastix_spm_t *spm)
 {
@@ -341,6 +378,24 @@ z_spmCSRExpand(const pastix_spm_t *spm)
     return newspm;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The sparse matrix which needs to be converted
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval newspm TODO
+ *
+ *******************************************************************************/
 pastix_spm_t *
 z_spmIJVExpand(const pastix_spm_t *spm)
 {
@@ -492,6 +547,24 @@ z_spmIJVExpand(const pastix_spm_t *spm)
     return newspm;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *           The sparse matrix which needs to be converted
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 pastix_spm_t *
 z_spmExpand( const pastix_spm_t *spm )
 {

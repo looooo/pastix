@@ -20,10 +20,11 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmConvertCSC2CSR - convert a matrix in CSC format to a matrix in CSR
- * format. If the matrix is PastixSymmetric or PastixHermitian, then the
+ * @brief convert a matrix in CSC format to a matrix in CSR format.
+ *
+ * If the matrix is PastixSymmetric or PastixHermitian, then the
  * transpose or respectively the conjugate is returned.
  *
  *******************************************************************************
@@ -99,9 +100,9 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmConvertIJV2CSR - convert a matrix in IJV format to a matrix in CSR
+ * @brief convert a matrix in IJV format to a matrix in CSR
  * format.
  *
  *******************************************************************************

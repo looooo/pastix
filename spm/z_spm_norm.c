@@ -23,9 +23,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmFrobeniusNorm - Compute the Frobenius norm of the non distributed given
+ * @brief Compute the Frobenius norm of the non distributed given
  * spm structure.
  *
  *  ||A|| = sqrt( sum( a_ij ^ 2 ) )
@@ -114,9 +114,9 @@ z_spmFrobeniusNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmMaxNorm - Compute the Max norm of the non distributed given spm
+ * @brief Compute the Max norm of the non distributed given spm
  * structure.
  *
  *  ||A|| = max( abs(a_ij) )
@@ -150,9 +150,9 @@ z_spmMaxNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmInfNorm - Compute the Infinity norm of the non distributed given spm
+ * @brief Compute the Infinity norm of the non distributed given spm
  * structure given by the maximum column sum.
  *
  *  ||A|| = max_i( sum_j(|a_ij|) )
@@ -268,9 +268,9 @@ z_spmInfNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmOneNorm - Compute the Oneinity norm of the non distributed given spm
+ * @brief  Compute the Oneinity norm of the non distributed given spm
  * structure fiven by the maximum row sum
  *
  *  ||A|| = max_j( sum_i(|a_ij|) )
@@ -382,13 +382,13 @@ z_spmOneNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmNorm - Compute the norm of an spm matrix
+ * @brief Compute the norm of an spm matrix
  *
  *******************************************************************************
  *
- * @param[in] type
+ * @param[in] ntype
  *          = PastixMaxNorm: Max norm
  *          = PastixOneNorm: One norm
  *          = PastixInfNorm: Infinity norm

@@ -17,6 +17,25 @@
 #include "spm.h"
 #include "z_spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief convert a matrix in CSR format to a matrix in IJV format.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] spm
+ *          The sparse matrix uses to generate the right hand side, and the
+ *          solution of the full problem.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 void
 z_spmDofExtend(pastix_spm_t *spm)
 {

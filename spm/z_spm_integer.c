@@ -24,7 +24,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_dev
  *
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as key for sorting.  The second array is an array of

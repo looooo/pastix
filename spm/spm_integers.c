@@ -67,7 +67,7 @@ spmIntConvert( pastix_int_t n, int *input )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_dev
  *
  * @brief Sorts in ascending order array of element composed of one single
  * pastix_int_t with a single key value.
@@ -75,6 +75,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  */
 #define INTSORTNAME                 spmIntSort1Asc1
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTSIZE                 (sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {			\
         pastix_int_t t;						\
@@ -88,11 +89,12 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_dev
  *
  * @brief Sorts in ascending order array of element composed of two
  * pastix_int_t by ascending order. The first value is used as key.
@@ -100,6 +102,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  */
 #define INTSORTNAME                 spmIntSort2Asc1
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTSIZE                 (2 * sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {				\
         pastix_int_t t, u;						\
@@ -116,11 +119,12 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_dev
  *
  * @brief Sorts in ascending order array of element composed of three
  * pastix_int_t by ascending order. The first value is used as key.
@@ -128,6 +132,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  */
 #define INTSORTNAME                 spmInt_intSort3Asc1
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTSIZE                 (3 * sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {				\
         pastix_int_t t, u, v;						\
@@ -147,11 +152,12 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_dev
  *
  * @brief Sorts in ascending order array of element composed of two
  * pastix_int_t by ascending order. Both values are used as key.
@@ -159,6 +165,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  */
 #define INTSORTNAME                 spmIntSort2Asc2
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTSIZE                 (2 * sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {				\
         pastix_int_t t, u;						\
@@ -175,11 +182,12 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_dev
  *
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as primary key for sorting.  The second array is an
@@ -188,6 +196,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  */
 #define INTSORTNAME            spmIntMSortIntAsc
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTSIZE(x)         (sizeof (pastix_int_t))
 #define INTSORTNTAB            2
 #define INTSORTSWAP(p,q)       do {                                     \
@@ -214,11 +223,12 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSWAP
 #undef INTSORTCMP
 #undef INTSORTNTAB
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @ingroup pastix_spm_dev
  *
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as primary key for sorting.  The second array is an
@@ -227,6 +237,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  */
 #define INTSORTNAME            spmIntMSortSmallIntAsc
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTSIZE(x)         (sizeof (int))
 #define INTSORTNTAB            2
 #define INTSORTSWAP(p,q)       do {                             \
@@ -253,4 +264,4 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSWAP
 #undef INTSORTCMP
 #undef INTSORTNTAB
-
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */

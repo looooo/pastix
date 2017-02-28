@@ -21,15 +21,37 @@
 #include "z_spm.h"
 #include "kernels/pastix_zcores.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define Rnd64_A  6364136223846793005ULL
 #define Rnd64_C  1ULL
 #define RndF_Mul 5.4210108624275222e-20f
 #define RndD_Mul 5.4210108624275222e-20
 
+
 static pastix_complex64_t mzone = (pastix_complex64_t)-1.;
 static pastix_complex64_t zone  = (pastix_complex64_t) 1.;
 static pastix_complex64_t zzero = (pastix_complex64_t) 0.;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *
+ * @param[in] seed
+ *
+ *******************************************************************************
+ *
+ * @return
+ *      \retval ran
+ *
+ *******************************************************************************/
 static inline unsigned long long int
 Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
   unsigned long long int a_k, c_k, ran;
@@ -49,20 +71,25 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
   return ran;
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PRECISION_z) || defined(PRECISION_c)
 #define NBELEM   2
 #else
 #define NBELEM   1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
  *  z_spmRndVect generates a random vector for testing purpose.
  *
  *******************************************************************************
+ *
+ * @param[in] scale
+ *         TODO
  *
  * @param[in] m
  *         The number of rows of the tile A. m >= 0.
@@ -119,7 +146,7 @@ void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
  * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
  * matrix to test a problem with a solver.
@@ -280,7 +307,7 @@ z_spmGenRHS( int type, int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
  * z_spmCheckAxb - Check the backward error, and the forward error if x0 is
  * provided.

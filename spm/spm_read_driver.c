@@ -48,9 +48,15 @@
  *          On exit, the filled sparse matrix structure with the matrix from the
  *          file.
  *
- * @param[in] pastix_comm
+ * @param[in] comm
  *          The MPI communicator on which to distribute the sparse matrix. This
  *          is also used in case of distributed formats.
+ *
+ ********************************************************************************
+ *
+ * @return
+ *        \retval PASTIX_SUCCESS if the file reading happened successfuly
+ *        \retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
  *
  *******************************************************************************/
 int

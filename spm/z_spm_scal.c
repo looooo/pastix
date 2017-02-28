@@ -22,9 +22,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup pastix_spm_dev
  *
- * z_spmScal - Scal the spm: A = alpha * A
+ * @brief Scal the spm: A = alpha * A
  *
  *******************************************************************************
  *

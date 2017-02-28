@@ -376,6 +376,9 @@ endif()
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
 
+# Ignore doxygen flag
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+
 set(PROJECT_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
 include_directories(BEFORE "${PROJECT_INCLUDE_DIR}")
 
@@ -707,8 +710,6 @@ set(PASTIX_ALL_SRCS
   spm/spm_dofs.c
   spm/spm_read_driver.c
   spm/spm_integers.c
-  spm/integer_sort_mtypes.c
-  spm/integer_sort.c
   spm/z_spm_laplacian.c
   spm/z_spm_integers.c
   spm/z_spm_genrhs.c
