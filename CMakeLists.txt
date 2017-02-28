@@ -704,15 +704,33 @@ set(PASTIX_ALL_SRCS
   spm/spm.h
   spm/spm.c
   spm/spm_io.c
-  spm/spm_integers.c
   spm/spm_dofs.c
   spm/spm_read_driver.c
+  spm/spm_integers.c
+  spm/integer_sort_mtypes.c
+  spm/integer_sort.c
+  spm/z_spm_laplacian.c
+  spm/z_spm_integers.c
+  spm/z_spm_genrhs.c
+  spm/z_spm_expand.c
+  spm/z_spm_dofs2flat.c
+  spm/z_spm_dof_extend.c
+  spm/z_spm_convert_to_ijv.c
+  spm/z_spm_convert_to_csr.c
+  spm/z_spm_convert_to_csc.c
+  spm/z_spm_2dense.c
+  spm/z_spm.c
+  spm/spm_read_driver.c
+  spm/z_spm_matrixvector.c
+  spm/z_spm_norm.c
+  spm/z_spm_print.c
   #
   graph/graph.c
   graph/graph_isolate.c
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   #
+  order/order.h
   order/order.c
   order/order_add_isolate.c
   order/order_check.c
@@ -722,6 +740,7 @@ set(PASTIX_ALL_SRCS
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
   order/pastix_task_order.c
+  order/order_apply_level_order.c
   #
   fax/amalgamate.c
   fax/symbol_fax_graph.c
