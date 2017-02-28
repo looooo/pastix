@@ -376,9 +376,6 @@ endif()
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
 
-# Ignore doxygen flag
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-
 set(PROJECT_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
 include_directories(BEFORE "${PROJECT_INCLUDE_DIR}")
 
