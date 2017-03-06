@@ -2,65 +2,74 @@
  *
  ****
  *
- * @defgroup pastix_user User documentation
- * @brief  Pastix user's documentation
- *
- ****
- *
  * @defgroup pastix_spm SPM: SParse Matrix package
- * @ingroup  pastix_user
- * @brief This group describes all the routines of the Sparse Matrix
- *        package of the PaStiX library that allows one to easily
- *        manipulate sparse matrices with basic operations
+ * @brief    This group describes all the routines of the Sparse Matrix
+ *           package of the PaStiX library that allows one to easily
+ *           manipulate sparse matrices with basic operations
  *
  ****
  *
- * @defgroup pastix_blend Blend
- * @ingroup  pastix_user
- * @brief  This group describes all the routines of the Blend package that allow
- *         to re-split column blocs and distribute them on processors.
+ * @defgroup pastix_user PaStiX
+ * @brief    PaStiX user's documentation
  *
  ****
  *
- * @defgroup pastix_ordering Order
+ * @defgroup pastix_analyze Analyse step
  * @ingroup  pastix_user
- * @brief  This group describes all the routines of the Order package that contains
- *         basic functions to manipulate the order structure.
- *
- ****
- *
- * @defgroup pastix_symbfact SymbFact
- * @ingroup  pastix_user
- * @brief  PaStiX symbolic factorization routines
- *
- ****
- *
- * @defgroup pastix_symbfact_internal Internal SymbFact
- * @ingroup  pastix_user
- * @brief  PaStiX internal symbolic factorization routines
+ * @brief    This group describes all the analyse routines that prepare
+ *           data structures for the factorization and solve steps.
  *
  ****
  *
  * @defgroup pastix_graph Graph
- * @ingroup  pastix_user
- * @brief  Pastix graph routines
+ * @ingroup  pastix_analyze
+ * @brief    PaStiX graph routines that manipulates the graph only for
+ *           the ordering and symbolic factorization subroutrines
  *
  ****
  *
- * @defgroup pastix_dev Developer documentation
- * @brief  Pastix developer's documentation
+ * @defgroup pastix_ordering Order
+ * @ingroup  pastix_analyze
+ * @brief    This group describes all the routines of the Order package
+ *           that contains basic functions to manipulate the order
+ *           structure.
+ *
+ ****
+ *
+ * @defgroup pastix_symbfact SymbFact
+ * @ingroup  pastix_analyze
+ * @brief    PaStiX symbolic factorization routines
+ *
+ ****
+ *
+ * @defgroup pastix_blend Blend
+ * @ingroup  pastix_analyze
+ * @brief    This group describes all the routines of the Blend package
+ *           that allow to re-split column blocs and distribute them
+ *           on processors.
+ *
+ ****
+ *
+ * @defgroup pastix_dev PaStiX Developer
+ * @brief    PaStiX developer's documentation
  *
  ****
  *
  * @defgroup pastix_spm_dev
  * @ingroup  pastix_dev
- * @brief This group describes all the internals routines of the Sparse Matrix
- *        package
+ * @brief    This group describes all the internals routines of the
+ *           Sparse Matrix package
+ *
+ ****
+ *
+ * @defgroup pastix_symbfact_internal Internal SymbFact
+ * @ingroup  pastix_dev
+ * @brief    PaStiX internal symbolic factorization routines
  *
  ****
  *
  * @defgroup pastix_spm_driver
  * @ingroup  pastix_dev
- * @brief TODO
+ * @brief    TODO
  *
  **/
