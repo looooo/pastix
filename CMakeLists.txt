@@ -757,34 +757,10 @@ set(PASTIX_ALL_SRCS
 #   refinement/pastix_task_raff.c
 )
 
-FIND_PACKAGE(Doxygen)
-if (DOXYGEN_FOUND)
-  option(BUILD_DOCUMENTATION "Use Doxygen to create the HTML based API documentation" ON)
-else (DOXYGEN_FOUND)
-  option(BUILD_DOCUMENTATION "Use Doxygen to create the HTML based API documentation" OFF)
-endif(DOXYGEN_FOUND)
-
-if(BUILD_DOCUMENTATION)
-  if (NOT DOXYGEN_FOUND)
-    message(FATAL_ERROR
-      "Doxygen is needed to build the documentation. Please install it correctly")
-  endif()
-
-  set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox )
-  foreach( _file ${PASTIX_ALL_SRCS} )
-    set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
-  endforeach()
-
-  #-- Configure the Template Doxyfile for our specific project
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/Doxyfile.in
-                 ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile @ONLY IMMEDIATE )
-  #-- Add a custom target to run Doxygen when ever the project is built
-  add_custom_target (docs
-    COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile
-    SOURCES ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile )
-
-endif()
-
+#
+# Build documentation
+#
+add_subdirectory(docs)
 
 #-- Add a custom target to run Doxygen when ever the project is built
 add_custom_target (tags
