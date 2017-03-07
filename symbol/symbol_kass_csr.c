@@ -14,7 +14,7 @@
  **/
 #include "common.h"
 #include "graph.h"
-#include "kass.h"
+#include "symbol_kass.h"
 
 /**
  *******************************************************************************

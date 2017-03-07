@@ -1,6 +1,6 @@
 /**
  *
- * @file amalgamate.c
+ * @file symbol_amalgamate.c
  *
  *  PaStiX symbolic factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -15,7 +15,7 @@
  *
  **/
 #include "common.h"
-#include "kass.h"
+#include "symbol_kass.h"
 #include "queue.h"
 #include "perf.h"
 

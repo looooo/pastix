@@ -103,4 +103,20 @@ void         symbolGetTimes( const SymbolMatrix *symbmtx,
                              pastix_coeftype_t flttype, pastix_factotype_t factotype,
                              double *cblkcost, double *blokcost );
 
+int symbolFaxGraph(SymbolMatrix * const symbptr,
+                   const pastix_int_t   vertnbr,
+                   const pastix_int_t * verttab,
+                   const pastix_int_t * edgetab,
+                   const Order  * const ordeptr);
+
+int symbolKass(int             verbose,
+               int             ilu,
+               int             levelk,
+               int             rat_cblk,
+               int             rat_blas,
+               SymbolMatrix   *symbmtx,
+               pastix_graph_t *graph,
+               Order          *orderptr,
+               MPI_Comm        pastix_comm);
+
 #endif /* SYMBOL_H */

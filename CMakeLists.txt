@@ -511,15 +511,26 @@ set(PASTIX_LIB_SRCS
   order/order_io.c
   order/pastix_task_order.c
   #
-  fax/amalgamate.c
-  fax/symbol_fax_graph.c
-  fax/symbol_kass.c
-  fax/symbol_kass_build.c
-  fax/symbol_kass_csr.c
-  fax/symbol_kass_direct.c
-  fax/symbol_kass_level.c
-  fax/pastix_task_symbfact.c
-  fax/pastix_task_reordering.c
+  symbol/symbol.c
+  symbol/symbol_amalgamate.c
+  symbol/symbol_base.c
+  symbol/symbol_check.c
+  symbol/symbol_cost.c
+  symbol/symbol_cost_flops.c
+  symbol/symbol_cost_perfs.c
+  symbol/symbol_draw.c
+  symbol/symbol_fax_graph.c
+  symbol/symbol_io.c
+  symbol/symbol_kass.c
+  symbol/symbol_kass_build.c
+  symbol/symbol_kass_csr.c
+  symbol/symbol_kass_direct.c
+  symbol/symbol_kass_level.c
+  symbol/symbol_reordering.c
+  symbol/symbol_rustine.c
+  #symbol/symbol_tree.c
+  symbol/pastix_task_reordering.c
+  symbol/pastix_task_symbfact.c
 
   # Files that still require some changes
   blend/cand.c
@@ -554,17 +565,6 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
 #
 #
-  symbol/symbol.c
-  symbol/symbol_base.c
-  symbol/symbol_check.c
-  symbol/symbol_draw.c
-  symbol/symbol_io.c
-  symbol/symbol_rustine.c
-  symbol/symbol_cost.c
-  symbol/symbol_cost_flops.c
-  symbol/symbol_cost_perfs.c
-  symbol/symbol_reordering.c
-#  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
@@ -707,6 +707,7 @@ set(PASTIX_ALL_SRCS
   spm/spm_dofs.c
   spm/spm_read_driver.c
   spm/spm_integers.c
+  spm/spm_read_driver.c
   spm/z_spm.h
   spm/z_spm_laplacian.c
   spm/z_spm_integer.c
@@ -719,7 +720,6 @@ set(PASTIX_ALL_SRCS
   spm/z_spm_convert_to_csc.c
   spm/z_spm_2dense.c
   spm/z_spm.c
-  spm/spm_read_driver.c
   spm/z_spm_matrixvector.c
   spm/z_spm_norm.c
   spm/z_spm_print.c
@@ -741,14 +741,26 @@ set(PASTIX_ALL_SRCS
   order/pastix_task_order.c
   order/order_apply_level_order.c
   #
-  fax/amalgamate.c
-  fax/symbol_fax_graph.c
-  fax/symbol_kass.c
-  fax/symbol_kass_build.c
-  fax/symbol_kass_csr.c
-  fax/symbol_kass_direct.c
-  fax/symbol_kass_level.c
-  fax/pastix_task_symbfact.c
+  symbol/symbol.c
+  symbol/symbol_amalgamate.c
+  symbol/symbol_base.c
+  symbol/symbol_check.c
+  symbol/symbol_cost.c
+  symbol/symbol_cost_flops.c
+  symbol/symbol_cost_perfs.c
+  symbol/symbol_draw.c
+  symbol/symbol_fax_graph.c
+  symbol/symbol_io.c
+  symbol/symbol_kass.c
+  symbol/symbol_kass_build.c
+  symbol/symbol_kass_csr.c
+  symbol/symbol_kass_direct.c
+  symbol/symbol_kass_level.c
+  symbol/symbol_reordering.c
+  symbol/symbol_rustine.c
+  #symbol/symbol_tree.c
+  symbol/pastix_task_reordering.c
+  symbol/pastix_task_symbfact.c
   #
 #  ${PASTIX_LIB_SRCS}
   order/order_compute_scotch.c

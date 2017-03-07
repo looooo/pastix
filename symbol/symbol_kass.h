@@ -1,6 +1,6 @@
 /**
  *
- * @file kass.h
+ * @file symbol_kass.h
  *
  *  PaStiX symbol factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
@@ -57,15 +57,5 @@ void amalgamate(double rat_cblk, double rat_blas,
                 pastix_int_t **newtreetab,
                 pastix_int_t  *nodetab,
                 MPI_Comm pastix_comm );
-
-int symbolKass(int             verbose,
-               int             ilu,
-               int             levelk,
-               int             rat_cblk,
-               int             rat_blas,
-               SymbolMatrix   *symbmtx,
-               pastix_graph_t *graph,
-               Order          *orderptr,
-               MPI_Comm        pastix_comm);
 
 #endif

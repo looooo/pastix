@@ -13,10 +13,10 @@
  *
  **/
 #include "common.h"
-#include "symbol.h"
-#include "order.h"
 #include "graph.h"
-#include "kass.h"
+#include "order.h"
+#include "symbol.h"
+#include "symbol_kass.h"
 
 /**
  *******************************************************************************

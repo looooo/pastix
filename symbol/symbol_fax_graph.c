@@ -49,7 +49,6 @@
 #include "common.h"
 #include "symbol.h"
 #include "order.h"
-#include "fax.h"
 #include "symbol_fax.h"
 /**
  *******************************************************************************
