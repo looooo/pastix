@@ -498,10 +498,10 @@ set(PASTIX_LIB_SRCS
   # Files that are fully converted
   #
   graph/graph.c
+  graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
   graph/graph_symmetrize.c
-  graph/graph_io.c  # Not finished
   #
   order/order.c
   order/order_add_isolate.c
@@ -563,8 +563,6 @@ set(PASTIX_LIB_SRCS
   common/memory.c
   common/input.c
 #  common/trace.c
-#
-#
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
@@ -705,7 +703,6 @@ set(PASTIX_ALL_SRCS
   spm/spm.c
   spm/spm_io.c
   spm/spm_dofs.c
-  spm/spm_read_driver.c
   spm/spm_integers.c
   spm/spm_read_driver.c
   spm/z_spm.h
@@ -724,14 +721,18 @@ set(PASTIX_ALL_SRCS
   spm/z_spm_norm.c
   spm/z_spm_print.c
   #
+  graph/graph.h
   graph/graph.c
+  graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   #
   order/order.h
+  #order/order_scotch_strats.h TODO: include in developer version
   order/order.c
   order/order_add_isolate.c
+  order/order_apply_level_order.c
   order/order_check.c
   order/order_find_supernodes.c
   order/order_io.c
@@ -739,8 +740,11 @@ set(PASTIX_ALL_SRCS
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
   order/pastix_task_order.c
-  order/order_apply_level_order.c
   #
+  symbol/symbol.h
+  #symbol/symbol_cost.h  TODO: include in developer version
+  #symbol/symbol_fax.h   TODO: include in developer version
+  #symbol/symbol_kass.h  TODO: include in developer version
   symbol/symbol.c
   symbol/symbol_amalgamate.c
   symbol/symbol_base.c
@@ -749,6 +753,7 @@ set(PASTIX_ALL_SRCS
   symbol/symbol_cost_flops.c
   symbol/symbol_cost_perfs.c
   symbol/symbol_draw.c
+  #symbol/symbol_fax.c Not documented: template file
   symbol/symbol_fax_graph.c
   symbol/symbol_io.c
   symbol/symbol_kass.c
@@ -758,16 +763,54 @@ set(PASTIX_ALL_SRCS
   symbol/symbol_kass_level.c
   symbol/symbol_reordering.c
   symbol/symbol_rustine.c
-  #symbol/symbol_tree.c
+  #symbol/symbol_tree.c Not used
   symbol/pastix_task_reordering.c
   symbol/pastix_task_symbfact.c
   #
-#  ${PASTIX_LIB_SRCS}
-  order/order_compute_scotch.c
-  #order/order_compute_ptscotch.c
-  order/order_compute_metis.c
-
-#   refinement/pastix_task_raff.c
+  blend/blend.h
+  #blend/blendctrl.h
+  #blend/bulles.h
+  #blend/cand.h
+  #blend/cost.h
+  #blend/costfunc.h
+  #blend/elimin.h
+  #blend/extendVector.h
+  #blend/extracblk.h
+  #blend/fanboth2.h
+  #blend/ftgt.h
+  #blend/perf.h
+  #blend/queue.h
+  #blend/simu.h
+  #blend/simu_timer.h
+  #blend/solver.h
+  #blend/solverMatrixGen.h
+  #blend/solver_check.h
+  #blend/solver_io.h
+  #blend/splitpartlocal.h
+  #blend/task.h
+  #blend/blend.c
+  #blend/blendctrl.c
+  #blend/bulles.c
+  #blend/cand.c
+  #blend/cost.c
+  #blend/elimin_graph.c
+  #blend/elimin_tree.c
+  #blend/extendVector.c
+  #blend/extracblk.c
+  #blend/propmap.c
+  #blend/queue.c
+  #blend/simu.c
+  #blend/simu_run.c
+  #blend/solver.c
+  #blend/solverMatrixGen.c
+  #blend/solver_backup.c
+  #blend/solver_check.c
+  #blend/solver_copy.c
+  #blend/solver_draw.c
+  #blend/solver_io.c
+  #blend/splitsymbol.c
+  #blend/task.c
+  blend/pastix_task_analyze.c
 )
 
 #
