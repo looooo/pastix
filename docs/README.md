@@ -34,6 +34,7 @@ To document a function, use the following format:
  * @return Explain what is returned by the function
  *
  * or
+ *
  * @retval value1 explanation of the returned value and in which case it is returned
  * @retval value2 ...
  *
