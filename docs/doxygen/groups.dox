@@ -3,14 +3,33 @@
  ****
  *
  * @defgroup pastix_spm SPM: SParse Matrix package
- * @brief    This group describes all the routines of the Sparse Matrix
- *           package of the PaStiX library that allows one to easily
- *           manipulate sparse matrices with basic operations
+ * @brief    Functions to easily manipulate SPM data structure
+ *
+ * This library provides a set of subroutines to manipulate sparse
+ * matrices in different format such as compressed sparse column
+ * (CSC), compressed sparse row (CSR), or coordinate (IJV) with single
+ * or multiple degrees of freedom per unknown. It provides basic BLAS
+ * 1, and BLAS 2 functions for those matrices, as well as norms
+ * computations and converter tools.
+ *
+ ****
+ *
+ * @defgroup pastix_spm_dev SPM developper documentation
+ * @ingroup  pastix_spm
+ * @brief    Describe all the internals routines of the
+ *           Sparse Matrix package
+ *
+ ****
+ *
+ * @defgroup pastix_spm_driver SPM driver routines
+ * @ingroup  pastix_spm
+ * @brief    Describe the driver routines used to read and/or
+ *           generate the SPM matrices
  *
  ****
  *
  * @defgroup pastix_user PaStiX
- * @brief    PaStiX user's documentation
+ * @brief    PaStiX user documentation
  *
  ****
  *
@@ -55,21 +74,8 @@
  *
  ****
  *
- * @defgroup pastix_spm_dev
- * @ingroup  pastix_dev
- * @brief    This group describes all the internals routines of the
- *           Sparse Matrix package
- *
- ****
- *
  * @defgroup pastix_symbfact_internal Internal SymbFact
  * @ingroup  pastix_dev
  * @brief    PaStiX internal symbolic factorization routines
- *
- ****
- *
- * @defgroup pastix_spm_driver
- * @ingroup  pastix_dev
- * @brief    TODO
  *
  **/

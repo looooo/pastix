@@ -19,7 +19,7 @@ if (BUILD_DOCUMENTATION)
         "Out-of-source build trees with CMake for documentation)")
     else()
 
-      set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/doxygen/groups.dox )
+      set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox )
       foreach( _file ${PASTIX_ALL_SRCS} )
         set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
       endforeach()

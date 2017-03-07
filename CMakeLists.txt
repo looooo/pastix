@@ -707,8 +707,9 @@ set(PASTIX_ALL_SRCS
   spm/spm_dofs.c
   spm/spm_read_driver.c
   spm/spm_integers.c
+  spm/z_spm.h
   spm/z_spm_laplacian.c
-  spm/z_spm_integers.c
+  spm/z_spm_integer.c
   spm/z_spm_genrhs.c
   spm/z_spm_expand.c
   spm/z_spm_dofs2flat.c
