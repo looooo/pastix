@@ -18,28 +18,28 @@
 /**
  * @ingroup pastix_spm
  *
- * @brief The list of matrix driver reader and generators
+ * @brief The list of matrix driver readers and generators
  *
  */
 typedef enum pastix_driver_e {
-    PastixDriverRSA, /* ok */
-    PastixDriverCCC,//
-    PastixDriverRCC,//
-    PastixDriverOlaf,//
-    PastixDriverPeer,//
-    PastixDriverHB, /* ok */
-    PastixDriverIJV, /* ok */
-    PastixDriverMM, /* ok */
-    PastixDriverDMM, /* ok */
-    PastixDriverPetscS, /* ok */
-    PastixDriverPetscU, /* ok */
-    PastixDriverPetscH, /* ok */
-    PastixDriverCSCD,//
-    PastixDriverLaplacian, /* ok */
-    PastixDriverXLaplacian, /* ok */
-    PastixDriverBRGM,//
-    PastixDriverBRGMD,//
-    PastixDriverGraph
+    PastixDriverRSA,        /**< RSA driver                                      */
+    PastixDriverHB,         /**< Harwell Boeing driver                           */
+    PastixDriverIJV,        /**< IJV Coordinate driver                           */
+    PastixDriverMM,         /**< Matrix Market driver                            */
+    PastixDriverLaplacian,  /**< 3, 5, or 7 points Lapalacian stencil generator  */
+    PastixDriverXLaplacian, /**< 15-points Laplacian stencil generator           */
+    PastixDriverGraph,      /**< Scotch Graph driver                             */
+    /* PastixDriverDMM,        /\**< Distributed Matrix Market driver                *\/ */
+    /* PastixDriverCSCD,       /\**< CSC distributed driver                          *\/ */
+    /* PastixDriverPetscS,     /\**< Petsc Symmetric driver                          *\/ */
+    /* PastixDriverPetscU,     /\**< Pestc Unssymmetric driver                       *\/ */
+    /* PastixDriverPetscH,     /\**< Pestc Hermitian driver                          *\/ */
+    /* PastixDriverCCC,        /\**< Not supported yet *\/ */
+    /* PastixDriverRCC,        /\**< Not supported yet *\/ */
+    /* PastixDriverOlaf,       /\**< Not supported yet *\/ */
+    /* PastixDriverPeer,       /\**< Not supported yet *\/ */
+    /* PastixDriverBRGM,       /\**< Not supported yet *\/ */
+    /* PastixDriverBRGMD,      /\**< Not supported yet *\/ */
 } pastix_driver_t;
 
 /**
@@ -55,7 +55,7 @@ typedef enum pastix_driver_e {
  * It is also possible to describe a matrix with constant or varaibel degrees of freedom.
  *
  */
-struct pastix_spm_s {
+typedef struct pastix_spm_s {
     int               mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
                                     or PastixHermitian.                                            */
     pastix_coeftype_t flttype; /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
@@ -83,168 +83,11 @@ struct pastix_spm_s {
     pastix_int_t     *rowptr;  /**< List of edges for each vertex [+baseval]                       */
     pastix_int_t     *loc2glob;/**< Corresponding numbering from local to global [+baseval]        */
     void             *values;  /**< Values stored in the matrix                                    */
-};
-
-/**
- * Integer arrays subroutines
- */
-pastix_int_t *spmIntConvert( pastix_int_t n, int *input );
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm
- *
- * @brief Sorts in ascending order array of element composed of one single
- * pastix_int_t with a single key value.
- *
- *******************************************************************************
- *
- * @param[in,out] pbase TODO
- *
- *
- * @param[in] n
- *          The number of elements in the array.
- *
- *******************************************************************************
- */
-void          spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm
- *
- * @brief Sorts in ascending order array of element composed of two
- * pastix_int_t by ascending order. The first value is used as key.
- *
- *******************************************************************************
- *
- * @param[in,out] pbase TODO
- *
- *
- * @param[in] n
- *          The number of elements in the array.
- *
- *******************************************************************************
- */
-void          spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm
- *
- * @brief Sorts in ascending order array of element composed of two
- * pastix_int_t by ascending order. Both values are used as key.
- *
- *******************************************************************************
- *
- * @param[in,out] pbase TODO
- *
- *
- * @param[in] n
- *          The number of elements in the array.
- *
- *******************************************************************************
- */
-void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm_dev
- *
- * @brief Subroutines to print elements of spm structures
- *
- *******************************************************************************
- * @param[in] f Pointer to the file
- *
- * @param[in] i TODO
- *
- * @param[in] j TODO
- *
- * @param[in] A TODO
- *******************************************************************************
- */
-static inline void z_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex64_t A ){
-    fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, creal(A), cimag(A) );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm_dev
- *
- * @brief Subroutines to print elements of spm structures
- *
- *******************************************************************************
- * @param[in] f Pointer to the file
- *
- * @param[in] i TODO
- *
- * @param[in] j TODO
- *
- * @param[in] A TODO
- *******************************************************************************
- */
-static inline void c_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex32_t A ){
-    fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, crealf(A), cimagf(A) );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm_dev
- *
- * @brief Subroutines to print elements of spm structures
- *
- *******************************************************************************
- * @param[in] f Pointer to the file
- *
- * @param[in] i TODO
- *
- * @param[in] j TODO
- *
- * @param[in] A TODO
- *******************************************************************************
- */
-static inline void d_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, double A ){
-    fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_spm_dev
- *
- * @brief Subroutines to print elements of spm structures
- *
- *******************************************************************************
- * @param[in] f Pointer to the file
- *
- * @param[in] i TODO
- *
- * @param[in] j TODO
- *
- * @param[in] A TODO
- *******************************************************************************
- */
-static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float A ){
-    fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
-}
+} pastix_spm_t;
 
 /**
  * SPM subroutines
  */
-int spmLoad( pastix_spm_t *spm, FILE *infile );
-int spmSave( pastix_spm_t *spm, FILE *outfile );
-
-void spmPrint( FILE *f, const pastix_spm_t *spm );
-
-int spmGenRHS(int type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
-int spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
-
 void          spmInit( pastix_spm_t *spm );
 void          spmExit( pastix_spm_t *spm );
 pastix_spm_t *spmCopy( const pastix_spm_t *spm );
@@ -264,6 +107,23 @@ pastix_int_t  spmSymmetrize( pastix_spm_t *spm );
 pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
 
 /**
+ * SPM IO subroutines
+ */
+int           spmLoad( pastix_spm_t *spm, FILE *infile );
+int           spmSave( pastix_spm_t *spm, FILE *outfile );
+
+/**
+ * SPM subroutines to check factorization/solve
+ */
+int           spmGenRHS( int type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
+int           spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
+
+/**
+ * SPM print output
+ */
+void          spmPrint( FILE *f, const pastix_spm_t *spm );
+
+/**
  * SPM multi-dof subroutines
  */
 pastix_spm_t *spmExpand(const pastix_spm_t* spm);
@@ -272,9 +132,51 @@ pastix_spm_t *spmDofExtend( const int type, const int dof, const pastix_spm_t *s
 /**
  * SPM read driver access
  */
-int spmReadDriver( pastix_driver_t  driver,
-                   char            *filename,
-                   pastix_spm_t    *spm,
-                   MPI_Comm         pastix_comm );
+int           spmReadDriver( pastix_driver_t  driver,
+                             char            *filename,
+                             pastix_spm_t    *spm,
+                             MPI_Comm         pastix_comm );
+
+/**
+ * SPM subroutines to manipulate integers arrays
+ */
+pastix_int_t *spmIntConvert( pastix_int_t n, int *input );
+void          spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
+void          spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
+void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm_dev
+ *
+ * @brief Subroutines to print elements of spm structures
+ *
+ *******************************************************************************
+ * @param[in] f Pointer to the file
+ *
+ * @param[in] i Row index of the element
+ *
+ * @param[in] j Column index of the element
+ *
+ * @param[in] A Value of the element A|i,j]
+ *******************************************************************************
+ * @{
+ */
+static inline void z_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex64_t A ){
+    fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, creal(A), cimag(A) );
+}
+static inline void c_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex32_t A ){
+    fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, crealf(A), cimagf(A) );
+}
+static inline void d_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, double A ){
+    fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
+}
+static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float A ){
+    fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
+}
+/**
+ * @}
+ */
 
 #endif /* _SPM_H_ */

@@ -466,11 +466,11 @@ spm2Dense( const pastix_spm_t *spm )
  ********************************************************************************
  *
  * @return
- *          \retval the norm described above. Note that for simplicity, even if
+ *          \retval norm The norm described above. Note that for simplicity, even if
  *          the norm of single real or single complex matrix is computed with
  *          single precision, the returned norm is stored in double precision
  *          number.
- *          \retval -1., if the floating point of the sparse matrix is
+ *          \retval -1   If the floating point of the sparse matrix is
  *          undefined.
  *
  *******************************************************************************/

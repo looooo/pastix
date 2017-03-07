@@ -21,7 +21,7 @@
 /**
  * Integer routines
  */
-int z_spmIntSortAsc(void ** const pbase, const pastix_int_t n);
+void z_spmIntSortAsc(void ** const pbase, const pastix_int_t n);
 
 /**
  * Conversion routines
