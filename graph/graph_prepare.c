@@ -115,7 +115,7 @@ graphSort( pastix_graph_t *graph )
  *
  * @ingroup pastix_graph
  *
- * graphPrepare - This routine initializes the graph for future call to ordering
+ * This routine initializes the graph for future call to ordering
  * and symbol matrix generation tools: symmetrize the graph, remove duplicates,
  * remove the diagonal elements, and keep only the lower part
  *

@@ -47,13 +47,6 @@ typedef struct pastix_graph_s pastix_graph_t;
 struct Order_;
 typedef struct Order_ Order;
 
-/**
- *
- * @ingroup pastix_spm
- * @typedef pastix_spm_t
- * @brief typedef to the sparse matrix structure
- *
- */
 struct pastix_spm_s;
 typedef struct pastix_spm_s pastix_spm_t;
 typedef struct pastix_spm_s pastix_csc_t;

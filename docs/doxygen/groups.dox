@@ -2,22 +2,10 @@
  *
  ****
  *
- * @defgroup pastix_spm SPM: SParse Matrix package
- * @brief    Functions to easily manipulate SPM data structure
- *
- * This library provides a set of subroutines to manipulate sparse
- * matrices in different format such as compressed sparse column
- * (CSC), compressed sparse row (CSR), or coordinate (IJV) with single
- * or multiple degrees of freedom per unknown. It provides basic BLAS
- * 1, and BLAS 2 functions for those matrices, as well as norms
- * computations and converter tools.
- *
- ****
- *
  * @defgroup pastix_spm_dev SPM developper documentation
  * @ingroup  pastix_spm
  * @brief    Describe all the internals routines of the
- *           Sparse Matrix package
+ *           SParse Matrix package
  *
  ****
  *

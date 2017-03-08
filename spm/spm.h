@@ -11,15 +11,23 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
+ * @defgroup pastix_spm SPM: SParse Matrix package
+ * @brief    Functions to easily manipulate SPM data structure
+ *
+ * This library provides a set of subroutines to manipulate sparse matrices in
+ * different format such as compressed sparse column (CSC), compressed sparse
+ * row (CSR), or coordinate (IJV) with single or multiple degrees of freedom
+ * per unknown. It provides basic BLAS 1 and BLAS 2 functions for those
+ * matrices, as well as norms computations and converter tools.
+ *
+ * @{
+ *
  **/
 #ifndef _SPM_H_
 #define _SPM_H_
 
 /**
- * @ingroup pastix_spm
- *
  * @brief The list of matrix driver readers and generators
- *
  */
 typedef enum pastix_driver_e {
     PastixDriverRSA,        /**< RSA driver                                      */
@@ -43,16 +51,15 @@ typedef enum pastix_driver_e {
 } pastix_driver_t;
 
 /**
- * @ingroup pastix_spm
  *
  * @brief The sparse matrix data structure
  *
  * This structure describes matrices with different characteristics that can be useful to any solver:
  *     - the storage format (PastixCSC, PastixCSR or PastixIJV)
  *     - the properties (PastixGeneral, PastixHermitian, PastixSymmetric)
- *     - the base value (0 in C, 1 in Fortran for examples)
+ *     - the base value (0 in C or 1 in Fortran)
  *
- * It is also possible to describe a matrix with constant or varaibel degrees of freedom.
+ * It is also possible to describe a matrix with constant or variable degrees of freedom.
  *
  */
 typedef struct pastix_spm_s {
@@ -144,12 +151,16 @@ pastix_int_t *spmIntConvert( pastix_int_t n, int *input );
 void          spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
 void          spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
 void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
+/**
+ * @}
+ */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @{
  *
+ * @ingroup pastix_spm_dev
  * @brief Subroutines to print elements of spm structures
  *
  *******************************************************************************
@@ -161,7 +172,6 @@ void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
  *
  * @param[in] A Value of the element A|i,j]
  *******************************************************************************
- * @{
  */
 static inline void z_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex64_t A ){
     fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, creal(A), cimag(A) );

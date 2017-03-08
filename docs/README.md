@@ -26,7 +26,7 @@ To document a function, use the following format:
  * @param[inout] name_of_parameter
  *          Explanation of the parameter
  *
- * @param[in]   name_of_parameter
+ * @param[in]    name_of_parameter
  *          Explanation of the parameter
  *
  *******************************************************************************
@@ -49,7 +49,7 @@ function(int param1, int *param2)
 case*. Otherwise, Doxygen thinks the name of the parameter is `[IN]`.
 
 Blank lines are *important*: there must be a blank line between
-`@brief` and `@details`.
+`@brief` and the `details` section.
 
 ## Structures documentation
 
@@ -57,6 +57,10 @@ Use the following format:
 
 ```
 /**
+ * @ingroup name_of_parent_module
+
+ * @brief Single line explanation of the structure
+ *
  * General description of the structure
  */
 struct name_s {
@@ -74,7 +78,13 @@ structure.
 Use the following format:
 
 ```
-/** @brief document the macro */
+/**
+ * @ingroup name_of_parent_module
+ *
+ * @brief Single line explanation of the macro
+ *
+ * General description of the macro if needed
+ */
 #define macro
 ```
 
@@ -87,7 +97,13 @@ generated documentation.
 Use the following format:
 
 ```
-/** @brief document the variable */
+/**
+ * @ingroup name_of_parent_module
+ *
+ * @brief Single line explanation of the variable
+ *
+ * General description of the variable if needed
+ */
 int var;
 ```
 
@@ -155,6 +171,6 @@ check the generated documentation.
 All functions, macros, variables should belong to a module. **DO**
 look at the documentation to see the structure, and if you document a
 function, be sure that it belongs to the right module. **DO NOT** just
-document a function without enclosing it inside a `@ingroup @{`
-... `@}` group, or without adding a `@addtogroup group_name` before
+document a function without enclosing it inside a `@addtogroup @{`
+... `@}` group, or without adding a `@ingroup group_name` before
 the function definition.

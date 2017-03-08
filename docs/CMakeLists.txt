@@ -24,6 +24,8 @@ if (BUILD_DOCUMENTATION)
         set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
       endforeach()
 
+      string (REPLACE " " ";" PARSEC_DOX_SRCS_DEPS "${PASTIX_DOX_SRCS}")
+
       #-- Configure the Template Doxyfile for our specific project
       configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile.in
                      ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile @ONLY IMMEDIATE )
@@ -31,6 +33,7 @@ if (BUILD_DOCUMENTATION)
       #-- Add a custom command for the documentation output
       add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/doxygen.stamp
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile
+        DEPENDS ${PASTIX_DOX_SRCS_DEPS}
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile
         COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/doxygen/doxygen.stamp
         COMMENT "Generating API documentation with Doxygen"
