@@ -296,7 +296,7 @@ recursive_sum( pastix_int_t a, pastix_int_t b,
     return fval(fptr, symbmtx, a);
 }
 /**
- * @} end of pastix_symbol_dev group
+ * @}
  *
  * @addtogroup pastix_symbol
  * @{
@@ -482,5 +482,5 @@ symbolGetTimes( const SymbolMatrix *symbmtx,
 }
 
 /**
- * @} end of the pastix_symbol group
+ * @}
  */

@@ -16,13 +16,13 @@
  *
  ****
  *
- * @defgroup pastix_user PaStiX
- * @brief    PaStiX user documentation
+ * @defgroup pastix_users PaStiX
+ * @brief    PaStiX users documentation
  *
  ****
  *
  * @defgroup pastix_analyze Analyse step
- * @ingroup  pastix_user
+ * @ingroup  pastix_users
  * @brief    This group describes all the analyse routines that prepare
  *           data structures for the factorization and solve steps.
  *

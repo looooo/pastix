@@ -29,8 +29,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_analyze
- * @ingroup pastix
+ * @ingroup pastix_users
  *
  * pastix_task_blend - Computes the structural information required to factorize
  * and solve the problem. It requires an ordering structure, as well as the

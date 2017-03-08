@@ -32,7 +32,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix
+ * @ingroup pastix_analyze
  *
  * @brief Computes the symbolic factorization step.
  *

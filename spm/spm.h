@@ -177,37 +177,50 @@ pastix_spm_t *spmDofExtend( const int type, const int dof, const pastix_spm_t *s
  */
 
 /**
- *******************************************************************************
- *
+ * @name SPM dev printing subroutines
  * @{
  *
+ */
+
+/**
  * @ingroup pastix_spm_dev
- * @brief Subroutines to print elements of spm structures
+ * @brief Subroutines to print one element of an spm structure
  *
- *******************************************************************************
  * @param[in] f Pointer to the file
- *
  * @param[in] i Row index of the element
- *
  * @param[in] j Column index of the element
- *
  * @param[in] A Value of the element A|i,j]
- *******************************************************************************
+ *
+ * Double complex case
+ *
  */
 static inline void z_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex64_t A ){
     fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, creal(A), cimag(A) );
 }
+
+/**
+ * @copydoc z_spmPrintElt
+ * @details Single complex case
+ */
 static inline void c_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, pastix_complex32_t A ){
     fprintf( f, "%ld %ld %e %e\n", (long)i, (long)j, crealf(A), cimagf(A) );
 }
+/**
+ * @copydoc z_spmPrintElt
+ * @details Double real case
+ */
 static inline void d_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, double A ){
     fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
 }
+/**
+ * @copydoc z_spmPrintElt
+ * @details Single real case
+ */
 static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float A ){
     fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
 }
+
 /**
  * @}
  */
-
 #endif /* _SPM_H_ */

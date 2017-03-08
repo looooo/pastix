@@ -215,7 +215,7 @@ symbolDrawFunc (
 }
 
 /**
- * @} end of pastix_symbol_dev group
+ * @}
  */
 
 /**

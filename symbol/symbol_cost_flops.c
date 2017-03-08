@@ -285,7 +285,7 @@ flops_dsytrf_blkupdate( pastix_int_t M, pastix_int_t N, pastix_int_t K )
 }
 
 /**
- * @} end of subgroup naming
+ * @}
  */
 
 symbol_function_t flopstable[2][4] = {
@@ -304,5 +304,5 @@ symbol_function_t flopstable[2][4] = {
 };
 
 /**
- * @} end of pastix_symbol_dev group
+ * @}
  */

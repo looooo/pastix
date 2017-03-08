@@ -216,5 +216,5 @@ symbolPrint( const SymbolMatrix *symbptr,
 }
 
 /**
- * @} end of pastix_symbol group
+ * @}
  */

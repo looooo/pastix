@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix
+ * @ingroup pastix_analyze
  *
  * @brief Apply the reordering step to compact off-diagonal blocks
  *
