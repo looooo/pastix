@@ -43,12 +43,6 @@
  *
  ****
  *
- * @defgroup pastix_symbfact SymbFact
- * @ingroup  pastix_analyze
- * @brief    PaStiX symbolic factorization routines
- *
- ****
- *
  * @defgroup pastix_blend Blend
  * @ingroup  pastix_analyze
  * @brief    This group describes all the routines of the Blend package
