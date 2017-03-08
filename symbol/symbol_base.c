@@ -4,8 +4,8 @@
  *
  * PaStiX symbol structure base function
  *
- * @copyright (c) 1999-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
- *                          Univ. Bordeaux. All rights reserved.
+ * @copyright 1999-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author Francois Pellegrini

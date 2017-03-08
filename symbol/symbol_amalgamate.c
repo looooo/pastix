@@ -5,8 +5,8 @@
  * This file contains the routines to amalgamate a given graph with a fill-in
  * ratio used in the Kass symbolic factorization algorithm.
  *
- * @copyright (c) 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
- *                          Univ. Bordeaux. All rights reserved.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author Pascal Henon
