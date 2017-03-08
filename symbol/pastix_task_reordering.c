@@ -1,21 +1,39 @@
+/**
+ *
+ * @file pastix_task_reordering.c
+ *
+ * PaStiX reordering task
+ *
+ * @copyright (c) 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Gregoire Pichon
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @date 2015-04
+ *
+ */
 #include "common.h"
 #include "order.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_reordering
  * @ingroup pastix
  *
- * pastix_task_reordering - Apply the reordering step, to reorder unknowns
- * within each supernode. It takes as input the ordering provided by
+ * @brief Apply the reordering step to compact off-diagonal blocks
+ *
+ * During this step, unknowns are reordered within each supernode to compact
+ * off-diagonal blocks.  It takes as input the ordering provided by
  * pastix_task_order(), and the symbolic factorization computed by
  * pastix_task_symbfact(). It returns boths structures Order and Symbol updated.
  *
  * This function reorders the unknowns of the problem based on traveller
  * salesman problem to gather together the contibutions facing each supernodes.
  *
- * See reordering paper (TODO: Put link to the paper when published)
+ * See reordering paper
+ * @todo Put link to the paper when published
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_IO_STRATEGY, IPARM_REORDERING_SPLIT,
@@ -23,7 +41,7 @@
  *
  *******************************************************************************
  *
- * @param[in,out] pastix_data
+ * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.  On
  *          exit, the field symbmtx is updated with the new symbol matrix, and
  *          the field ordemesh is updated with the new ordering.
@@ -34,14 +52,12 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on successful exit
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ * @retval PASTIX_SUCCESS on successful exit
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
  *
  *******************************************************************************/
-
 int
-pastix_task_reordering(pastix_data_t *pastix_data)
+pastix_task_reordering( pastix_data_t *pastix_data )
 {
     Clock         timer;
     pastix_int_t *iparm;

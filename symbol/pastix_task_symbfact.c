@@ -2,10 +2,7 @@
  *
  * @file pastix_task_symbfact.c
  *
- *  PaStiX symbolic factorizations routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
- *
+ * PaStiX symbolic factorizations task.
  * Contains wrappers to the symbolic factorization step.
  * Affetcted by the compilation time options:
  *    - PASTIX_SYMBOL_FORCELOAD: Force to load the symbol matrix from file
@@ -13,7 +10,10 @@
  *    - COMPACT_SMX: Optimization for solve step (TODO: check if not obsolete)
  *    - FORGET_PARTITION: Force to forget the precomputed partition
  *
- * @version 5.1.0
+ * @copyright (c) 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -32,11 +32,12 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
  * @ingroup pastix
  *
- * pastix_task_symbfact - Computes the the symbolic factorization of the matrix
- * and if required the amalgamated supernode partition.
+ * @brief Computes the symbolic factorization step.
+ *
+ * Computes the symbolic matrix structure and if required the amalgamated
+ * supernode partition.
  *
  * The function is a *centralized* algorithm to generate the symbol matrix
  * structure associated to the problem. It takes as input the ordemesh structure
@@ -71,7 +72,7 @@
  *
  *******************************************************************************
  *
- * @param[in,out] pastix_data
+ * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *          On exit, the field symbmtx is initialized with the symbol matrix,
  *          and the field ordemesh is updated if the supernode partition is
@@ -90,25 +91,24 @@
  *          dump to file.
  *          If set to APÏ_IO_LOAD, the symbmtx (only) is loaded from the files.
  *
- * @param[in,out] perm
+ * @param[inout] perm
  *          Array of size n.
  *          On entry, unused.
  *          On exit, if perm != NULL, contains the permutation array generated.
  *
- * @param[in,out] invp
+ * @param[inout] invp
  *          Array of size n.
  *          On entry, unused.
  *          On exit, if invp != NULL, contains the inverse permutation array generated.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on successful exit
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
- *          \retval PASTIX_ERR_INTEGER_TYPE if Scotch integer type is not the
- *                  same size as PaStiX ones.
- *          \retval PASTIX_ERR_INTERNAL if an error occurs internally to Scotch.
+ * @retval PASTIX_SUCCESS on successful exit
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ * @retval PASTIX_ERR_INTEGER_TYPE if Scotch integer type is not the
+ *         same size as PaStiX ones.
+ * @retval PASTIX_ERR_INTERNAL if an error occurs internally to Scotch.
  *
  *******************************************************************************/
 int

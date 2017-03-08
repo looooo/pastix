@@ -2,14 +2,13 @@
  *
  * @file symbol_kass_direct.c
  *
- *  PaStiX symbolic factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
- *
  * This file contains routines to create the graph of the direct
  * factorization of a graph A.
  *
- * @version 5.1.0
+ * @copyright (c) 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -21,10 +20,10 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup pastix_symbol_kass
  *
- * kassFactDirect - This function computes the non zero pattern of the direct
- * factorization of a matrix A, given the supernode partition associated.
+ * @brief Compute the non zero pattern of the direct factorization of a matrix
+ * A, given the supernode partition associated.
  *
  *******************************************************************************
  *
@@ -50,18 +49,16 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval If >=0, the number of non zero entries in the generated graph.
- *          \retval -i, if the i^th parameter is incorrect
+ * @retval >=0, the number of non zero entries in the generated graph.
+ * @retval -i, if the i^th parameter is incorrect
  *
  *******************************************************************************/
-
 pastix_int_t
-kassFactDirect(const kass_csr_t   *graphA,
-                     pastix_int_t  cblknbr,
-               const pastix_int_t *rangtab,
-                     pastix_int_t *treetab,
-                     kass_csr_t   *graphL)
+kassFactDirect( const kass_csr_t   *graphA,
+                      pastix_int_t  cblknbr,
+                const pastix_int_t *rangtab,
+                      pastix_int_t *treetab,
+                      kass_csr_t   *graphL )
 {
     pastix_int_t i, j, k, nnz;
     pastix_int_t nnznbr, father;

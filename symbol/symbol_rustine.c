@@ -1,18 +1,44 @@
+/**
+ *
+ * @file symbol_rustine.c
+ *
+ * PaStiX symbol structure functions.
+ *
+ * @copyright (c) 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author David Goudin
+ * @author Pascal Henon
+ * @author Francois Pellegrini
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ */
 #include "common.h"
 #include "symbol.h"
 
-/*
-  Function: symbolRustine
-
-  DESCRIPTION TO FILL
-
-  Parameters:
-    matrsymb  - Symbol matrix
-    matrsymb2 - Symbol matrix
- */
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_symbol
+ *
+ * @brief Patch the symbolic structure to make sure there is a tree, and not a
+ * forest.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] matrsymb
+ *          The symbolic matrix structure with the patch.
+ *
+ * @param[in]    matrsymb2
+ *          The imput symolic matrix that may require a patch
+ *
+ *******************************************************************************/
 void
-symbolRustine (SymbolMatrix *       matrsymb,
-               SymbolMatrix * const matrsymb2)
+symbolRustine( SymbolMatrix *       matrsymb,
+               SymbolMatrix * const matrsymb2 )
 {
     pastix_int_t i,iter,add,cblknum,bloknum,bloknum2;
     SymbolBlok *bloktmp = NULL;

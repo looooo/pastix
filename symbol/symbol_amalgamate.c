@@ -2,29 +2,64 @@
  *
  * @file symbol_amalgamate.c
  *
- *  PaStiX symbolic factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * This file contains the routines to amalgamate a given graph with a fill-in
+ * ratio used in the Kass symbolic factorization algorithm.
  *
- * This file contains routines to amalgamate a given graph with a fillin ratio.
+ * @copyright (c) 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
+ * @addtogroup pastix_symbol_kass
+ * @{
  **/
 #include "common.h"
 #include "symbol_kass.h"
 #include "queue.h"
 #include "perf.h"
 
-/** 2 percents **/
+/**
+ * @brief Minimal memory increase accepted by the amalgamation algorithm (2%)
+ */
 #define RAT_CBLK 0.02
+
+/**
+ * @brief Define an infinite time
+ */
 #define INFINI 1e9
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute a time estimation cost of the factorization
+ *
+ * This function is used during the amalgamation algorithm to decide whether it
+ * is more interesting to amalgamate the blocks or to keep them separated in
+ * terms of performance cost
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The number of rows in the column-block
+ *
+ * @param[in] ja
+ *          Array of size n that holds the indexes of the rows in the given
+ *          column block
+ *
+ * @param[in] colnbr
+ *          The number of columns in the column-block
+ *
+ *******************************************************************************
+ *
+ * @return The estimated time in second to factorize the column-block and apply
+ *         the resulting updates.
+ *
+ *******************************************************************************/
 static inline double
-cblk_time_fact(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
+cblk_time_fact(pastix_int_t n, const pastix_int_t *ja, pastix_int_t colnbr)
 {
     /*******************************************/
     /* Compute the time to compute a cblk      */
@@ -37,13 +72,13 @@ cblk_time_fact(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
     L = colnbr; /* Size of diagonal block        */
     G = n-L;    /* Number of extra-diagonal rows */
 
-#define CHOLESKY
-#ifndef CHOLESKY
-    cost = PERF_SYTRF(L) + PERF_TRSM(L, G) +
-        (double)L * ( PERF_COPY(L) + PERF_SCAL(G) + PERF_COPY(G) );
-#else
+/* #define CHOLESKY */
+/* #ifndef CHOLESKY */
+/*     cost = PERF_SYTRF(L) + PERF_TRSM(L, G) + */
+/*         (double)L * ( PERF_COPY(L) + PERF_SCAL(G) + PERF_COPY(G) ); */
+/* #else */
     cost = PERF_POTRF(L) + PERF_TRSM(L, G);
-#endif
+/* #endif */
 
     /** Contributions **/
     i = colnbr;
@@ -62,8 +97,35 @@ cblk_time_fact(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
     return cost;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute a time estimation cost of the solve step
+ *
+ * This function is used during the amalgamation algorithm to decide whether it
+ * is more interesting to amalgamate the blocks or to keep them separated in
+ * terms of performance cost when doing incomplete factorization.
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The number of rows in the column-block
+ *
+ * @param[in] ja
+ *          Array of size n that holds the indexes of the rows in the given
+ *          column block
+ *
+ * @param[in] colnbr
+ *          The number of columns in the column-block
+ *
+ *******************************************************************************
+ *
+ * @return The estimated time in second to apply the solve step issued from this
+ *         column-block
+ *
+ *******************************************************************************/
 static inline double
-cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
+cblk_time_solve(pastix_int_t n, const pastix_int_t *ja, pastix_int_t colnbr)
 {
     double cost;
     pastix_int_t L;
@@ -78,10 +140,7 @@ cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact_internal
- *
- * amalgamate_get_sonslist - This function returns the list of sons of a given
- * node.
+ * @brief Return the list of sons of a given node.
  *
  *******************************************************************************
  *
@@ -89,7 +148,8 @@ cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
  *          Node from which the list is wanted.
  *
  * @param[in] sonindex
- *          Integer array of the indexes of the first son of each node in sontab array.
+ *          Integer array of the indexes of the first son of each node in sontab
+ *          array.
  *
  * @param[in] sontab
  *          Integer array which contains the list of sons for each node.
@@ -104,8 +164,7 @@ cblk_time_solve(pastix_int_t n, pastix_int_t *ja, pastix_int_t colnbr)
  *
  *******************************************************************************
  *
- * @return
- *          \retval The number of sons of node.
+ * @return  The number of sons of node.
  *
  *******************************************************************************/
 static inline pastix_int_t
@@ -134,10 +193,8 @@ amalgamate_get_sonslist(       pastix_int_t  node,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact_internal
- *
- * amalgamate_merge_cost - This function computes the cost of merging two nodes
- * a and b together. The additional cost is returned.
+ * @brief Compute the cost of merging two nodes a and b together. The additional
+ * cost is returned.
  *
  *******************************************************************************
  *
@@ -155,9 +212,8 @@ amalgamate_get_sonslist(       pastix_int_t  node,
  *
  *******************************************************************************
  *
- * @return
- *          \retval The additional non zero entries required if both nodes are
- *          merged together.
+ * @return The additional non zero entries required if both nodes are merged
+ *         together.
  *
  *******************************************************************************/
 static inline pastix_int_t
@@ -214,11 +270,10 @@ amalgamate_merge_cost(       pastix_int_t  a,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact_internal
+ * @brief Computes the computational gain of merging two nodes a and b together.
  *
- * amalgamate_merge_gain - This function computes the computational gain of
- * merging two nodes a and b together according to the cost function
- * cblktime. The cost variation is returned.
+ * It uses the given cost function cblktime to estimate the cost with and
+ * without merge and returns the cost variation.
  *
  *******************************************************************************
  *
@@ -234,7 +289,7 @@ amalgamate_merge_cost(       pastix_int_t  a,
  * @param[in] colweight
  *          Integer array of size P->n with the weight of each node.
  *
- * @param[in,out] tmp
+ * @param[inout] tmp
  *          Workspace array to compute the union of the rows associated to both nodes.
  *
  * @param[in] cblktime
@@ -242,8 +297,7 @@ amalgamate_merge_cost(       pastix_int_t  a,
  *
  *******************************************************************************
  *
- * @return
- *          \retval The cost variation between merging the two nodes together vs
+ * @return  The cost variation between merging the two nodes together vs
  *          keeping them separated according to the cblktime function.
  *
  *******************************************************************************/
@@ -253,7 +307,7 @@ amalgamate_merge_gain(       pastix_int_t  a,
                        const kass_csr_t   *P,
                        const pastix_int_t *colweight,
                              pastix_int_t *tmp,
-                      double (*cblktime)(pastix_int_t, pastix_int_t *, pastix_int_t))
+                      double (*cblktime)(pastix_int_t, const pastix_int_t *, pastix_int_t))
 {
     double costa, costb, costm;
     pastix_int_t nm;
@@ -273,10 +327,7 @@ amalgamate_merge_gain(       pastix_int_t  a,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact_internal
- *
- * amalgamate_merge_col - This function merge two nodes together withing the
- * given graph.
+ * @brief Merge two nodes together withing the given graph.
  *
  *******************************************************************************
  *
@@ -286,11 +337,11 @@ amalgamate_merge_gain(       pastix_int_t  a,
  * @param[in] b
  *          Second node to merge. b >= 0.
  *
- * @param[in,out] P
+ * @param[inout] P
  *          The graph that contains a and b nodes with their associated rows.
  *          On exit, a is merged into b node.
  *
- * @param[in,out] tmp
+ * @param[inout] tmp
  *          Workspace array to compute the union of the rows associated to both
  *          nodes.
  *
@@ -326,19 +377,20 @@ amalgamate_merge_col(pastix_int_t  a,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @brief Amalgamate the given graph up to a given tolerance.
  *
- * amalgamate - This function takes a supernode graph and performs amalgamation
+ * This function takes a supernode graph and performs amalgamation
  * of the columns until a fill tolerance is reached. Two level of fill tolerance
  * are available, the first one, rat_cblk, defines a fill tolerance based on the
- * graph structure only, and the second one, rat_blas, allows to keep amalgmate
+ * graph structure only, and the second one, rat_blas, allows to keep amalgamate
  * the structure until the higher ratio while it improves the BLAS performance
  * based on the internal cost model.
  *
  *******************************************************************************
  *
  * @param[in] rat_cblk
- *          Percentage of fill-in allowed using structure only amalgamation. Must be >= 0.
+ *          Percentage of fill-in allowed using structure only
+ *          amalgamation. Must be >= 0.
  *
  * @param[in] rat_blas
  *          Percentage of fill-in allowed using structure BLAS performance
@@ -347,7 +399,7 @@ amalgamate_merge_col(pastix_int_t  a,
  *          pattern, but the criteria to merge columns is based only on reducing
  *          the cost of computations. The cost function used is a model for
  *          Cholesky factorization or solve in double precision, other
- *          factorizations and/or precisions are not implemented. They are
+ *          factorization and/or precision are not implemented. They are
  *          considered to be similar up to a factor, and so doesn't affect the
  *          amalgamation.
  *          The solve cost is used for ILU(k) factorization and the
@@ -357,7 +409,7 @@ amalgamate_merge_col(pastix_int_t  a,
  *          The number of non zero entries in the matrix described by graphL,
  *          usually computed through kassFactLevel() or kassFactDirect().
  *
- * @param[in,out] graphL
+ * @param[inout] graphL
  *          The graph of the matrix L to amalgamate. On exit, the compressed
  *          graph is returned (not the quotient graph !!)
  *
@@ -369,7 +421,7 @@ amalgamate_merge_col(pastix_int_t  a,
  *          Integer array of size snodenbr+1, that contains the initial
  *          supernode partition, NULL otherwise.
  *
- * @param[in,out] treetab
+ * @param[inout] treetab
  *          Integer array of size: snodenbr if snodetab is provided, graphL->n otherwise.
  *          This array contains the father of each supernode/node in the given graph.
  *          On exit, the array is updated to reflect the new amalgamated graph.
@@ -409,7 +461,7 @@ amalgamate(double rat_cblk, double rat_blas,
                  pastix_int_t  *nodetab,
                  MPI_Comm       pastix_comm )
 {
-    double (*cblktime)(pastix_int_t, pastix_int_t *, pastix_int_t);
+    double (*cblktime)(pastix_int_t, const pastix_int_t *, pastix_int_t);
 
     pastix_int_t *nnzadd    = NULL;
     pastix_int_t *sonindex  = NULL;
@@ -868,3 +920,6 @@ amalgamate(double rat_cblk, double rat_blas,
     memFree(colweight);
 }
 
+/**
+ * @}
+ */

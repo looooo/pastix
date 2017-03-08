@@ -1,48 +1,27 @@
-/* Copyright INRIA 2004
-**
-** This file is part of the Scotch distribution.
-**
-** The Scotch distribution is libre/free software; you can
-** redistribute it and/or modify it under the terms of the
-** GNU Lesser General Public License as published by the
-** Free Software Foundation; either version 2.1 of the
-** License, or (at your option) any later version.
-**
-** The Scotch distribution is distributed in the hope that
-** it will be useful, but WITHOUT ANY WARRANTY; without even
-** the implied warranty of MERCHANTABILITY or FITNESS FOR A
-** PARTICULAR PURPOSE. See the GNU Lesser General Public
-** License for more details.
-**
-** You should have received a copy of the GNU Lesser General
-** Public License along with the Scotch distribution; if not,
-** write to the Free Software Foundation, Inc.,
-** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-**
-** $Id: symbol_fax.c 316 2005-06-06 16:17:44Z ramet $
-*/
-/*
-  File: symbol_fax.c
-
-  Part of a parallel direct block solver.
-  This is the generic block symbolic factorization routine.
-
-
-  Authors:
-    - Francois Pellegrini
-    - Jean Roman (v0.0)
-
-
-  Dates:
-    Version 0.0 - from 22 jul 1998 to 29 sep 1998
-    Version 0.1 - from 04 apr 1999 to 21 apr 1999
-    Version 0.2 - from 08 may 2000 to 09 may 2000
-    Version 1.0 - from 13 mar 2002 to 08 jun 2002
-    Version 1.2 - from 23 aug 2002 to 23 aug 2002
-    Version 2.0 - from 21 mar 2003 to 21 mar 2003
-
-*/
-
+/**
+ *
+ * @file symbol_fax.c
+ *
+ * PaStiX fax symbol structure routines issued from Scotch esmumps library.
+ * This is the generic block symbolic factorization routine.
+ *
+ * @copyright (c) 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Francois Pellegrini
+ * @date 2016-11
+ *
+ *   Dates:
+ *     Version 0.0 - from 22 jul 1998 to 29 sep 1998
+ *     Version 0.1 - from 04 apr 1999 to 21 apr 1999
+ *     Version 0.2 - from 08 may 2000 to 09 may 2000
+ *     Version 1.0 - from 13 mar 2002 to 08 jun 2002
+ *     Version 1.2 - from 23 aug 2002 to 23 aug 2002
+ *     Version 2.0 - from 21 mar 2003 to 21 mar 2003
+ *
+ */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 /*
 **  The defines and includes.
 */
@@ -514,3 +493,4 @@ symbolFax (SymbolMatrix * const   symbptr,
 
     return PASTIX_SUCCESS;
 }
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */

@@ -2,14 +2,13 @@
  *
  * @file symbol_check.c
  *
- *  Copyright Inria 1999-2015
+ * PaStiX routines to check the correctness of the symbol structure.
  *
- *  PaStiX symbol structure routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright (c) 1999-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
- * @author Francois Pelegrin
+ * @version 6.0.0
+ * @author Francois Pellegrini
  * @author David Goudin
  * @author Pascal Henon
  * @author Francois Pellegrini
@@ -26,11 +25,12 @@
  *
  * @ingroup pastix_symbol
  *
- * symbolCheck - Checks the consistency of the given symbolic block matrix.
+ * @brief Checks the consistency of the given symbolic block matrix.
+ *
  * Because of incomplete factorization, from version 1.0, no check is performed
  * regarding the existence of facing blocks in facing columns.
  *
- * TODO: Complete test set to check the brow informations.
+ * @todo Complete test set to check the brow information
  *
  *******************************************************************************
  *
@@ -39,9 +39,8 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval 0 if the symbol matrix is correct
- *          \retval 1 if incorrect
+ * @retval 0 if the symbol matrix is correct
+ * @retval 1 if incorrect
  *
  *******************************************************************************/
 int

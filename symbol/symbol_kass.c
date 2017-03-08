@@ -2,11 +2,12 @@
  *
  * @file symbol_kass.c
  *
- *  PaStiX symbolic factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX Kass symbolic factorization routines
  *
- * @version 5.1.0
+ * @copyright (c) 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                          Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -21,23 +22,27 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup pastix_symbol
+
+ * @brief Generate the symbol matrix whith an amalgamation algorithm.
  *
- * symbolKass - This function generates the symbol matrix whith an amalgamation
- * algorithm to gather together small blocks in larger one.
- * The symbol matrix and the associated supernode partition are returned.
- * See after for the different parameters.
+ * This version of the symbolic factorization almagamate small blocks together
+ * in larger ones. The symbol matrix and the associated supernode partition are
+ * returned.  See after for the different parameters.
  *
  *******************************************************************************
  *
+ * @param[in] verbose
+ *          Adjust the level of verbosity of the function
+ *
  * @param[in] ilu
- *          = API_YES: incomplete factorization will be performed.
- *          = API_NO : direct factorization will be performed.
+ *          - API_YES: incomplete factorization will be performed.
+ *          - API_NO : direct factorization will be performed.
  *
  * @param[in] levelk
  *          Unused if ilu == API_NO.
- *          = k >= 0: symbol matrix for ILU(k) factorization will be generated.
- *          = < 0: symbol matrix for direct factorization will be generated.
+ *          - k >= 0: symbol matrix for ILU(k) factorization will be generated.
+ *          - < 0: symbol matrix for direct factorization will be generated.
  *
  * @param[in] rat_cblk
  *          Must be >= 0. Fill ratio that limits the amalgamation process based
@@ -48,16 +53,16 @@
  *          that merges blocks in order to reduce the BLAS computational time
  *          (see amalgamate() for further informations).
  *
- * @param[in,out] symbmtx
+ * @param[inout] symbmtx
  *          The symbol matrix structure to construct. On entry, the initialized
  *          structure (see symbolInit()). On exit, the symbol matrix generated
  *          after the amalgamation process.
  *
- * @param[in,out] csc
+ * @param[inout] csc
  *          The original csc for which the symbol matrix needs to be generated.
  *          Rebase to C numbering on exit.
  *
- * @param[in,out] orderptr
+ * @param[inout] orderptr
  *          The oder structure that contains the perm and invp array generated
  *          by the ordering step. The supernode partition might be initialized
  *          or not.
