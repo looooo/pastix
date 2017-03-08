@@ -6,7 +6,7 @@
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -25,8 +25,7 @@
  *
  * @ingroup pastix_spm
  *
- * @brief Convert integer array to the pastix_int_t format if it is not already
- * the case.
+ * @brief Convert integer array to pastix_int_t format.
  *
  *******************************************************************************
  *
@@ -34,13 +33,13 @@
  *          The number of elements in the array.
  *
  * @param[in,out] input
- *          The input array. If the type size is not the same, the array is
+ *          The input array. If the types are not the same, the array is
  *          freed on exit.
  *
  *******************************************************************************
  *
- * @return The pointer to the new allocated array if size has changed, or to
- *         input if sizes are identical.
+ * @return The pointer to the new allocated array if the type has changed,
+ *         or the original array if the types are identical.
  *
  *******************************************************************************/
 pastix_int_t *

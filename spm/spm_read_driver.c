@@ -25,7 +25,7 @@
  *
  * @ingroup pastix_spm
  *
- * @brief Import a matrix file into a spm structure
+ * @brief Import a matrix file into a spm structure.
  *
  * This function read or generate a sparse matrix from a file to store it into a
  * spm structure. The different formats accepted by this driver are described by
@@ -34,17 +34,17 @@
  *******************************************************************************
  *
  * @param[in] driver
- *          This defines the driver to use to create the spm structure.
- *          = PastixDriverRSA
- *          = PastixDriverHB
- *          = PastixDriverIJV
- *          = PastixDriverMM
- *          = PastixDriverLaplacian
- *          = PastixDriverXLaplacian
- *          = PastixDriverGraph
+ *          This defines the driver to use to create the spm structure:
+ *          - PastixDriverRSA
+ *          - PastixDriverHB
+ *          - PastixDriverIJV
+ *          - PastixDriverMM
+ *          - PastixDriverLaplacian
+ *          - PastixDriverXLaplacian
+ *          - PastixDriverGraph
  *
  * @param[in] filename
- *          The name of the file that stores the matrix (see driver)
+ *          The name of the file that stores the matrix (see driver).
  *
  * @param[in,out] spm
  *          On entry, an allocated sparse matrix structure.
@@ -57,9 +57,8 @@
  *
  ********************************************************************************
  *
- * @return
- *        \retval PASTIX_SUCCESS if the file reading happened successfuly
- *        \retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
+ * @retval PASTIX_SUCCESS if the file reading happened successfully,
+ * @retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
  *
  *******************************************************************************/
 int

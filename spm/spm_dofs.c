@@ -6,7 +6,7 @@
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Alban Bellot
@@ -27,21 +27,24 @@
  *
  * @ingroup pastix_spm
  *
- * @brief SPM multi-dof subroutines
- *
- * TODO
+ * @brief Generate a random multidof spm from a given spm (with dof=1).
  *
  *******************************************************************************
  *
- * @param[in] type TODO
+ * @param[in] type
+ *          Defines how to generate dofs.
+ *          - 0: Generate a constant dof vector,
+ *          - else: Generate a variable dof vector.
  *
- * @param[in] dof TODO
+ * @param[in] dof 
+ *          The maximum value for dofs.
  *
- * @param[in] spm TODO
+ * @param[in] spm
+ *          The sparse matrix used to generate the new multidof spm.
  *
  ********************************************************************************
  *
- * @return  TODO
+ * @return the new multidof spm.
  *
  *******************************************************************************/
 pastix_spm_t *
@@ -62,7 +65,7 @@ spmDofExtend( const int type,
 
     newspm = spmCopy( spm );
 
-    /**
+    /*
      * Generate constant dof
      */
     if (type == 0) {
@@ -78,7 +81,7 @@ spmDofExtend( const int type,
         newspm->dofs = malloc( (spm->n+1) * sizeof(pastix_int_t) );
         dofptr = newspm->dofs;
 
-        /**
+        /*
          * Initialize the dofs array where the degree of freedom of vertex i is
          * dof[i+1] - dof[i]
          */

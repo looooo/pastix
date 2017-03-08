@@ -6,7 +6,7 @@
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -76,11 +76,11 @@ static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
  *
  * @ingroup pastix_spm
  *
- * @brief Init the spm structure given as parameter
+ * @brief Init the spm structure.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix to init.
  *
  *******************************************************************************/
@@ -116,19 +116,19 @@ spmInit( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief Update all the computed fields based on the static values stored
+ * @brief Update all the computed fields based on the static values stored.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
- *          The sparse matrix to init.
+ * @param[inout] spm
+ *          The sparse matrix to update.
  *
  *******************************************************************************/
 void
 spmUpdateComputedFields( pastix_spm_t *spm )
 {
 
-    /**
+    /*
      * Compute the local expended field for multi-dofs
      */
     if ( spm->dof > 0 ) {
@@ -192,11 +192,11 @@ spmUpdateComputedFields( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief Free the spm structure
+ * @brief Free the spm structure.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix to free.
  *
  *******************************************************************************/
@@ -220,14 +220,13 @@ spmExit( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief Rebase the spm
+ * @brief Rebase the arrays of the spm to the given value.
  *
- * Rebase the arrays of the spm to the given value. If the value is equal to the
- * original base, then nothing is performed.
+ * If the value is equal to the original base, then nothing is performed.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix to rebase.
  *
  * @param[in] baseval
@@ -356,24 +355,23 @@ spmFindBase( const pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief  Convert the storage format of the spm to ofmttype.
+ * @brief  Convert the storage format of the spm.
  *
- * Convert the storage format of the given sparse matrix from any of the
- * following format: PastixCSC, PastixCSR, or PastixIJV to one of these.
- *
- *******************************************************************************
+  *******************************************************************************
  *
  * @param[in] ofmttype
- *          The output format of the sparse matrix. It might be PastixCSC,
- *          PastixCSR, or PastixIJV.
+ *          The output format of the sparse matrix. It must be:
+ *          - PastixCSC
+ *          - PastixCSR
+ *          - PastixIJV
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix structure to convert.
  *
  ********************************************************************************
  *
  * @return
- *        \retval PASTIX_SUCCESS if the conversion happened successfuly
+ *        \retval PASTIX_SUCCESS if the conversion happened successfully.
  *        \retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
  *
  *******************************************************************************/
@@ -397,12 +395,13 @@ spmConvert( int ofmttype, pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief Convert the spm matrix into a dense matrix for test purpose. DO NOT
- * USE with large matrices.
+ * @brief Convert the spm matrix into a dense matrix for test purpose.
+ *
+ * DO NOT USE with large matrices.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix structure to convert.
  *
  ********************************************************************************
@@ -455,23 +454,20 @@ spm2Dense( const pastix_spm_t *spm )
  *******************************************************************************
  *
  * @param[in] ntype
- *          = PastixMaxNorm: Max norm
- *          = PastixOneNorm: One norm
- *          = PastixInfNorm: Infinity norm
- *          = PastixFrobeniusNorm: Frobenius norm
+ *          - PastixMaxNorm
+ *          - PastixOneNorm
+ *          - PastixInfNorm
+ *          - PastixFrobeniusNorm
  *
  * @param[in] spm
  *          The sparse matrix structure.
  *
  ********************************************************************************
  *
- * @return
- *          \retval norm The norm described above. Note that for simplicity, even if
- *          the norm of single real or single complex matrix is computed with
- *          single precision, the returned norm is stored in double precision
- *          number.
- *          \retval -1   If the floating point of the sparse matrix is
- *          undefined.
+ * @retval norm The norm described above. Note that for simplicity, even if
+ * the norm of single real or single complex matrix is computed with
+ * single precision, the returned norm is stored in double precision.
+ * @retval -1   If the floating point of the sparse matrix is undefined.
  *
  *******************************************************************************/
 double
@@ -519,26 +515,23 @@ spmNorm( int ntype,
  *
  * @ingroup pastix_spm
  *
- * @brief Sort the subarray of edges of each vertex in a CSC or CSR spm
+ * @brief Sort the subarray of edges of each vertex in a CSC or CSR format.
  *
- * This routine sorts the subarray of edges of each vertex in a
- * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
- * format is used.
+ * Nothing is performed if IJV format is used.
  *
  * WARNING: This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
  *          On exit, the same sparse matrix with subarrays of edges sorted by
  *          ascending order.
  *
  ********************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS if the sort was called
- *          \retval PASTIX_ERR_BADPARAMETER, if the given spm was incorrect.
+ * @retval PASTIX_SUCCESS if the sort was called
+ * @retval PASTIX_ERR_BADPARAMETER if the given spm was incorrect.
  *
  *******************************************************************************/
 int
@@ -575,26 +568,23 @@ spmSort( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief Merge mulitple entries in a spm by summing them.
+ * @brief Merge multiple entries in a spm by summing their values together.
  *
- * This routine merge the multiple entries in a sparse
- * matrix by suming their values together. The sparse matrix needs to be sorted
- * first (see spmSort()).
+ * The sparse matrix needs to be sorted first (see spmSort()).
  *
  * WARNING: Not implemented for CSR and IJV format.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
  *          On exit, the reduced sparse matrix of multiple entries were present
  *          in it. The multiple values for a same vertex are sum up together.
  *
  ********************************************************************************
  *
- * @return
- *          \retval If >=0, the number of vertices that were merged
- *          \retval PASTIX_ERR_BADPARAMETER, if the given spm was incorrect.
+ * @retval >=0 the number of vertices that were merged,
+ * @retval PASTIX_ERR_BADPARAMETER if the given spm was incorrect.
  *
  *******************************************************************************/
 pastix_int_t
@@ -630,26 +620,23 @@ spmMergeDuplicate( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief Symmetrize the pattern of the spm
+ * @brief Symmetrize the pattern of the spm.
  *
- * Symmetrize the pattern of the input spm by edges when A(i,j) exists, but
- * A(j,i) does not. When values are associated to the edge, zeroes are added to
- * the values array.
- *
- * WARNING: Not implemented for CSR and IJV format.
+ * This routine corrects the sparse matrix structure if it's pattern is not
+ * symmetric. It returns the new symmetric pattern with zeroes on the new
+ * entries.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
- *          On exit, the reduced sparse matrix of multiple entries were present
- *          in it. The multiple values for a same vertex are sum up together.
+ *          On exit, the same sparse matrix with extra entries that makes it
+ *          pattern symmetric.
  *
  ********************************************************************************
  *
- * @return
- *          \retval If >=0, the number of vertices that were merged
- *          \retval PASTIX_ERR_BADPARAMETER, if the given spm was incorrect.
+ * @retval >=0 the number of entries added to the matrix,
+ * @retval PASTIX_ERR_BADPARAMETER if the given spm was incorrect.
  *
  *******************************************************************************/
 pastix_int_t
@@ -690,28 +677,21 @@ spmSymmetrize( pastix_spm_t *spm )
  * This routine initializes the sparse matrix to fit the PaStiX requirements. If
  * needed, the format is changed to CSC, the duplicated vertices are merged
  * together by summing their values; the graph is made symmetric for matrices
- * with unsymmetric pattern, new values are set to 0.; Only the lower part is
- * kept for the symmetric matrices.
+ * with unsymmetric pattern, new values are set to 0. Only the lower part is
+ * kept for symmetric matrices.
  *
- * On exit, if no changes have been made, the initial sparse matrix is returned,
- * otherwise a copy of the sparse matrix structured fixed to meet the PaStiX
- * requirements is returned.
+  *******************************************************************************
  *
- *******************************************************************************
- *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The pointer to the sparse matrix structure to check, and correct.
  *          On exit, the subarrays related to each column might have been sorted
  *          by ascending order.
  *
  *******************************************************************************
  *
- * @return
- *          \retval If no modifications were made to the initial matrix
- *                  structure, the one given as parameter is returned
- *          \retval Otherwise, the news sparse matrix structure is returned. It
- *                  must be destroyed with spmExit() and a free of the returned
- *                  pointer.
+ * @return if no changes have been made, the initial sparse matrix is returned,
+ * otherwise a copy of the sparse matrix, fixed to meet the PaStiX requirements,
+ * is returned.
  *
  *******************************************************************************/
 pastix_spm_t *
@@ -740,7 +720,7 @@ spmCheckAndCorrect( pastix_spm_t *spm )
         fprintf(stderr, "spmCheckAndCorrect: %ld entries have been merged\n", (long)count );
     }
 
-    /**
+    /*
      * If the matrix is symmetric or hermitian, we keep only the upper or lower
      * part, otherwise, we symmetrize the graph to get A+A^t, new values are set
      * to 0.
@@ -755,7 +735,7 @@ spmCheckAndCorrect( pastix_spm_t *spm )
         //spmToLower( newspm );
     }
 
-    /**
+    /*
      * Check if we return the new one, or the original one because no changes
      * have been made
      */
@@ -776,7 +756,7 @@ spmCheckAndCorrect( pastix_spm_t *spm )
  *
  * @ingroup pastix_spm
  *
- * @brief Create a copy of the spm
+ * @brief Create a copy of the spm.
  *
  * Duplicate the spm data structure given as parameter. All new arrays are
  * allocated and copied from the original matrix. Both matrices need to be
@@ -856,10 +836,10 @@ spmCopy( const pastix_spm_t *spm )
  *******************************************************************************
  *
  * @param[in] f
- *          File to print the spm matrix
+ *          File to print the spm matrix.
  *
  * @param[in] spm
- *          The sparse matrix to copy.
+ *          The sparse matrix to print.
  *
  *******************************************************************************/
 void
@@ -890,7 +870,7 @@ spmPrint(FILE *f, const pastix_spm_t* spm)
  *
  * @ingroup pastix_spm
  *
- * @brief Expand a multi-dof spm matrix into an spm with constant dof to 1.
+ * @brief Expand a multi-dof spm matrix into an spm with constant dof set to 1.
  *
  * Duplicate the spm data structure given as parameter. All new arrays are
  * allocated and copied from the original matrix. Both matrices need to be
@@ -935,9 +915,7 @@ spmExpand(const pastix_spm_t* spm)
  *
  * @ingroup pastix_spm
  *
- * @brief Compute a matrix-vector product
- *
- * Compute the matrix vector product:
+ * @brief Compute a matrix-vector product.
  *
  *    y = alpha * op(A) * x + beta * y, where op(A) is one of
  *
@@ -948,11 +926,10 @@ spmExpand(const pastix_spm_t* spm)
  *******************************************************************************
  *
  * @param[in] trans
- *          Specifies whether the matrix spm is transposed, not transposed or
- *          conjugate transposed:
- *          = PastixNoTrans:   A is not transposed;
- *          = PastixTrans:     A is transposed;
- *          = PastixConjTrans: A is conjugate transposed.
+ *          Specifies whether the matrix spm is transposed, not transposed or conjugate transposed:
+ *          - PastixTrans
+ *          - PastixNoTrans
+ *          - PastixConjTrans
  *
  * @param[in] alpha
  *          alpha specifies the scalar alpha.
@@ -966,14 +943,13 @@ spmExpand(const pastix_spm_t* spm)
  * @param[in] beta
  *          beta specifies the scalar beta.
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The vector y.
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed successfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -1021,11 +997,9 @@ spmMatVec(const pastix_trans_t trans,
  *
  * @ingroup pastix_spm
  *
- * @brief Generate right hand sides.
+ * @brief Generate right hand side vectors associated to a given matrix.
  *
- * Generate nrhs right hand side vectors associated to a given matrix to test a
- * problem with a solver. The vectors can be initialized randomly, or to get a
- * specific solution.
+ * The vectors can be initialized randomly or to get a specific solution.
  *
  *******************************************************************************
  *
@@ -1052,7 +1026,7 @@ spmMatVec(const pastix_trans_t trans,
  *          Defines the leading dimension of x when multiple right hand sides
  *          are available. ldx >= spm->n.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          b must be an allocated matrix of size at least ldb * nrhs.
  *          On exit, b is initialized as defined by the type parameter.
  *
@@ -1062,9 +1036,8 @@ spmMatVec(const pastix_trans_t trans,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the b vector has been computed successfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -1094,9 +1067,7 @@ spmGenRHS( int type, int nrhs,
  *
  * @ingroup pastix_spm
  *
- * @brief Check backward and forward errors
- *
- * Check the backward error, and the forward error if x0 is provided.
+ * @brief Check the backward error, and the forward error if x0 is provided.
  *
  *******************************************************************************
  *
@@ -1104,18 +1075,18 @@ spmGenRHS( int type, int nrhs,
  *          Defines the number of right hand side that must be generated.
  *
  * @param[in] spm
- *          The sparse matrix uses to generate the right hand side, and the
+ *          The sparse matrix used to generate the right hand side, and the
  *          solution of the full problem.
  *
- * @param[in,out] x0
+ * @param[inout] x0
  *          If x0 != NULL, the forward error is computed.
- *          On exit, x0 stores (x0-x)
+ *          On exit, x0 stores x0-x
  *
  * @param[in] ldx0
  *          Defines the leading dimension of x0 when multiple right hand sides
  *          are available. ldx0 >= spm->n.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          b is a matrix of size at least ldb * nrhs.
  *          On exit, b stores Ax-b.
  *
@@ -1132,9 +1103,8 @@ spmGenRHS( int type, int nrhs,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the b vector has been computed successfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -1164,14 +1134,16 @@ spmCheckAxb( int nrhs,
  *
  * @ingroup pastix_spm
  *
- * @brief Scal the spm: A = alpha * A
+ * @brief Scale the spm.
+ *
+ * A = alpha * A
  *
  *******************************************************************************
  *
  * @param[in] alpha
  *           The scaling parameter.
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix to scal.
  *
  *******************************************************************************/

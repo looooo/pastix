@@ -191,20 +191,20 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
  * @brief This routine corrects the sparse matrix structure if it's
  * pattern is not symmetric.
  *
- * It returns the new symmetric pattern with zeores on
+ * It returns the new symmetric pattern with zeroes on
  * the new entries.
  *
  *******************************************************************************
  *
  * @param[in,out] spm
  *          On entry, the pointer to the sparse matrix structure.
- *          On exit, the same sparse matrix with extra entires that makes it
+ *          On exit, the same sparse matrix with extra entries that makes it
  *          pattern symmetric.
  *
  *******************************************************************************
  *
  * @return
- *          \retval Returns the number of elements added to the matrix.
+ *          \retval Returns the number of entries added to the matrix.
  *
  *******************************************************************************/
 pastix_int_t
