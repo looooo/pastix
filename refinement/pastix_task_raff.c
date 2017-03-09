@@ -4,10 +4,10 @@
  *
  * PaStiX refinement functions implementations.
  *
- * PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- * LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -61,7 +61,13 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
  *
  * @ingroup pastix_raff
  *
- * pastix_task_raff - Reffinement task.
+ * @brief Perform iterative refinement.
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_REFINEMENT, DPARM_EPSILON_REFINEMENT
+ *
+ * On exit, the following parameters are set:
+ *   IPARM_ERROR_NUMBER
  *
  *******************************************************************************
  *
@@ -91,7 +97,7 @@ void pastix_task_raff(pastix_data_t *pastix_data,
 
     if (rhsnbr > 1)
     {
-        //         errorPrintW("Reffinement works only with 1 rhs, please call them one after the other.");
+        errorPrintW("Refinement works only with 1 rhs, please call them one after the other.");
         rhsnbr = 1;
     }
 
@@ -150,24 +156,6 @@ void pastix_task_raff(pastix_data_t *pastix_data,
         iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
         return;
     }
-
-    /* Fin du reordering */
-
-    //     srafftime = (double)dparm[DPARM_RAFF_TIME];
-    //     MPI_Reduce(&srafftime,&rrafftime,1,MPI_DOUBLE,MPI_MAX,0,pastix_comm);
-
-    //     if ((procnum == 0) && (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT))
-    //     {
-    //         fprintf(stdout, OUT_RAFF_ITER_NORM, (long)iparm[IPARM_NBITER], (double)dparm[DPARM_RELATIVE_ERROR]);
-    //         if (iparm[IPARM_PRODUCE_STATS] == API_YES) {
-    //             if (dparm[DPARM_RELATIVE_ERROR] > 0)
-    //                 print_onempi(OUT_PREC1, dparm[DPARM_RELATIVE_ERROR]);
-    //             if (dparm[DPARM_SCALED_RESIDUAL] > 0)
-    //                 print_onempi(OUT_PREC2, dparm[DPARM_SCALED_RESIDUAL]);
-    //         }
-    //
-    //         fprintf(stdout, OUT_TIME_RAFF, rrafftime);
-    //     }
 
     return;
 }
