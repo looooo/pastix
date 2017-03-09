@@ -19,6 +19,9 @@
 #include "common.h"
 #include "bcsc.h"
 #include "z_raff_functions.h"
+#include "c_raff_functions.h"
+#include "d_raff_functions.h"
+#include "s_raff_functions.h"
 #include "order.h"
 
 static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
