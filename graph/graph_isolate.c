@@ -2,11 +2,11 @@
  *
  * @file graph_isolate.c
  *
- *  PaStiX graph routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX graph isolate routine
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -20,8 +20,9 @@
  *
  * @ingroup pastix_graph
  *
- * graphIsolate - This routine isolate a subset of vertices from a given graph,
- * and return a new GRAPH cleaned from those vertices.
+ * @brief Isolate a subset of vertices from a given graph.
+ *
+ * Return a new graph cleaned from those vertices.
  *
  *******************************************************************************
  *
@@ -29,7 +30,7 @@
  *          The number of columns of the original GRAPH matrix.
  *
  * @param[in] colptr
- *          Array of size n+1
+ *          Array of size n+1.
  *          Index of first element of each column in rows array.
  *
  * @param[in] rows
@@ -37,47 +38,44 @@
  *          Rows of each non zero entries.
  *
  * @param[in] isolate_n
- *          The number of columns to isolate from the original GRAPH matrix.
+ *          The number of columns to isolate from the original graph.
  *
- * @param[in,out] isolate_list
+ * @param[inout] isolate_list
  *          Array of size isolate_n.
  *          List of columns to isolate. On exit, the list is sorted by ascending
- *          indexes.
- *          Must be based as the graph.
+ *          indexes. Must be based as the graph.
  *
  * @param[out] new_colptr
- *          Array of size n-isolate_n+1
- *          Index of first element of each column in rows array for the new GRAPH
- *          matrix.
+ *          Array of size n-isolate_n+1.
+ *          Index of first element of each column in rows array for the new graph.
  *          If new_colptr == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure based as the input colptr.
  *
  * @param[out] new_rows
  *          Array of size new_nnz = (*new_colptr)[n] - (*new_colptr)[0].
- *          Rows of each non zero entries for the new GRAPH matrix.
+ *          Rows of each non zero entries for the new graph.
  *          If new_rows == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure based as the input rows.
  *
  * @param[out] new_perm
  *          Array of size n-isolate_n.
  *          Contains permutation generated to isolate the columns at the end of
- *          the GRAPH that is 0-based.
+ *          the graph that is 0-based.
  *          If new_perm == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure.
  *
  * @param[out] new_invp
  *          Array of size n-isolate_n.
  *          Contains the inverse permutation generated to isolate the columns
- *          at the end of the GRAPH that is 0-based.
+ *          at the end of the graph that is 0-based.
  *          If new_invp == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on success.
- *          \retval PASTIX_ERR_ALLOC if allocation went wrong.
- *          \retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
+ * @retval PASTIX_SUCCESS on success,
+ * @retval PASTIX_ERR_ALLOC if allocation went wrong,
+ * @retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
  *
  *******************************************************************************/
 int graphIsolate(       pastix_int_t   n,

@@ -2,11 +2,12 @@
  *
  * @file graph_prepare.c
  *
- *  PaStiX graph routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX graph construction routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -23,14 +24,13 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
+ * @ingroup pastix_graph_dev
  *
- * graphNoDiag - This routine removes the diagonal edges from a centralized
- * graph.
+ * @brief This routine removes the diagonal edges from a centralized graph.
  *
  *******************************************************************************
  *
- * @param[in,out] graph
+ * @param[inout] graph
  *          On entry, the pointer to the graph structure with possible diagonal
  *          edges (i,i).
  *          On exit, all entries of type (i,i) are removed from the graph.
@@ -77,15 +77,16 @@ graphNoDiag( pastix_graph_t *graph )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
+ * @ingroup pastix_graph_dev
  *
- * graphSort - This routine sortes the subarray of edges of each vertex in a
- * centralized graph. WARNING: the sort is always performed, so be carefull to
- * not call this routine when it is not required.
+ * @brief This routine sortes the subarray of edges of each vertex.
+ *
+ * WARNING: The sort is always performed, do not call this routine
+ * when it is not required.
  *
  *******************************************************************************
  *
- * @param[in,out] graph
+ * @param[inout] graph
  *          On entry, the pointer to the graph structure.
  *          On exit, the same graph with subarrays of edges sorted by ascending
  *          order.
@@ -115,19 +116,20 @@ graphSort( pastix_graph_t *graph )
  *
  * @ingroup pastix_graph
  *
- * This routine initializes the graph for future call to ordering
- * and symbol matrix generation tools: symmetrize the graph, remove duplicates,
- * remove the diagonal elements, and keep only the lower part
+ * @brief This routine initializes the graph.
+ *
+ * This routine will also symmetrize the graph, remove duplicates,
+ * remove the diagonal elements, and keep only the lower part.
  *
  *******************************************************************************
  *
- * @param[in,out] pastix_data
+ * @param[inout] pastix_data
  *          The pointer to the solver instance. On exit, the fields n, cols,
  *          rows and loc2glob are initialized for future steps of the solver.
  *
  * @param[in] spm
  *          The initial user spm that needs to be transformed in a
- *          correct graph for future call in ordering and symbol factorization
+ *          correct graph for future call in ordering and symbolic factorization
  *          routines.
  *
  * @param[out] graph
@@ -139,9 +141,8 @@ graphSort( pastix_graph_t *graph )
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on success.
- *          \retval !0 on failure.
+ * @retval PASTIX_SUCCESS on success,
+ * @retval !0 on failure.
  *
  *******************************************************************************/
 int

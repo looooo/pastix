@@ -2,11 +2,12 @@
  *
  * @file graph_symmetrize.c
  *
- *  PaStiX graph routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX graph symmetrize routine
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -21,7 +22,7 @@
  *
  * @ingroup pastix_graph
  *
- * graphSymmetrize - Symmetrize a given graph
+ * @brief Symmetrize a given graph
  *
  *******************************************************************************
  *
@@ -29,7 +30,7 @@
  *          The number of vertex of the original graph.
  *
  * @param[in] ia
- *          Array of size n+1
+ *          Array of size n+1. 
  *          Index of first edge for each vertex in ja array.
  *
  * @param[in] ja
@@ -37,20 +38,18 @@
  *          Edges for each vertex.
  *
  * @param[in] loc2glob
- *          Array of size n
+ *          Array of size n.
  *          Global numbering of each local vertex.
  *
- * @param[in,out] newgraph
+ * @param[inout] newgraph
  *          The initialized graph structure where the symmetrized graph will be
- *          stored.
- *          The allocated data must be freed with graphClean.
+ *          stored. The allocated data must be freed with graphClean.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on success.
- *          \retval PASTIX_ERR_ALLOC if allocation went wrong.
- *          \retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
+ * @retval PASTIX_SUCCESS on success,
+ * @retval PASTIX_ERR_ALLOC if allocation went wrong,
+ * @retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
  *
  *******************************************************************************/
 int graphSymmetrize(       pastix_int_t    n,

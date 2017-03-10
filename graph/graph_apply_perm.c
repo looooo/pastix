@@ -2,11 +2,11 @@
  *
  * @file graph_apply_perm.c
  *
- *  PaStiX graph routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX graph apply permutation routine
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -20,37 +20,28 @@
  *
  * @ingroup pastix_graph
  *
- * graphApplyPerm - Generate the graph of P*A from the graph of A and the
- * permutation vector (see kass_csrGenPA()).
+ * @brief Generate the graph of P*A from the graph of A and the
+ * permutation vector P.
  *
  *******************************************************************************
  *
- * @param[in] n
- *          The number of vertex of the original graph.
+ * @param[in] graphA
+ *          The original graph.
  *
- * @param[in] ia
- *          Array of size n+1
- *          Index of first edge for each vertex in ja array.
+ * @param[in] perm
+ *          Array of size n.
+ *          The permutation to apply.
  *
- * @param[in] ja
- *          Array of size nnz = ia[n] - ia[0].
- *          Edges for each vertex.
- *
- * @param[in] loc2glob
- *          Array of size n
- *          Global numbering of each local vertex.
- *
- * @param[in,out] newgraph
- *          The initialized graph structure where the symmetrized graph will be
+ * @param[inout] graphPA
+ *          The initialized graph structure where the permuted graph will be
  *          stored.
  *          The allocated data must be freed with graphClean.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on success.
- *          \retval PASTIX_ERR_ALLOC if allocation went wrong.
- *          \retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
+ * @retval PASTIX_SUCCESS on success,
+ * @retval PASTIX_ERR_ALLOC if allocation went wrong,
+ * @retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
  *
  *******************************************************************************/
 int

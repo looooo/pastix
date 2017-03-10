@@ -2,15 +2,19 @@
  *
  * @file graph.c
  *
- *  PaStiX graph routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX graph structure routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @date 2013-06-24
+ *
+ * @addtogroup pastix_graph
+ * @{
  *
  **/
 #include "common.h"
@@ -19,14 +23,12 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
- *
- * graphExit - Free the graph structure given in parameter.
+ * @brief Free the content of the graph structure.
  *
  *******************************************************************************
  *
- * @param[in,out] graph
- *          The graph structure to free.
+ * @param[inout] graph
+ *          The pointer graph structure to free.
  *
  *******************************************************************************/
 void graphExit( pastix_graph_t *graph )
@@ -56,13 +58,11 @@ void graphExit( pastix_graph_t *graph )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph
- *
- * graphBase - Rebase the graph to the given value.
+ * @brief Rebase the graph to the given value.
  *
  *******************************************************************************
  *
- * @param[in,out] graph
+ * @param[inout] graph
  *          The graph to rebase.
  *
  * @param[in] baseval
@@ -114,3 +114,7 @@ void graphBase( pastix_graph_t *graph,
     }
     return;
 }
+
+/**
+ * @}
+ */
