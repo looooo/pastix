@@ -19,16 +19,16 @@ if (BUILD_DOCUMENTATION)
         "Out-of-source build trees with CMake for documentation)")
     else()
 
-      set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox )
-      foreach( _file ${PASTIX_ALL_SRCS} )
-        set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
-      endforeach()
+      #set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox )
 
-      string (REPLACE " " ";" PARSEC_DOX_SRCS_DEPS "${PASTIX_DOX_SRCS}")
+      get_property(SRCS GLOBAL PROPERTY PASTIX_DOX_SRCS)
+
+      set(PASTIX_DOX_SRCS_DEPS "${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox;${SRCS}")
+      string (REPLACE ";" " " PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS_DEPS}")
 
       #-- Configure the Template Doxyfile for our specific project
       configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile.in
-                     ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile @ONLY IMMEDIATE )
+        ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile @ONLY IMMEDIATE )
 
       #-- Add a custom command for the documentation output
       add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/doxygen.stamp

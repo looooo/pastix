@@ -14,6 +14,7 @@ set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VE
 # Add extra cmake module path and initialize morse cmake modules
 # --------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
+include(AddSourceFiles)
 
 set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse )
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
@@ -396,17 +397,6 @@ install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pasti
 #   "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc")
 # install(FILES "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc" DESTINATION lib/pkgconfig)
 
-add_definitions(-DX_ARCHi686_pc_linux)
-
-execute_process(COMMAND "./myversion.sh" OUTPUT_VARIABLE PASTIX_VERSION)
-set(TOTO "-DVERSION=\"toto\"" )
-add_definitions(${TOTO})
-
-# Build matrix drivers library
-#
-#add_subdirectory(tools)
-#add_subdirectory(matrix_drivers)
-
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -424,7 +414,6 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/refinement")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
@@ -639,7 +628,7 @@ add_dependencies(pastix_spm
 add_dependencies(pastix
   spm_headers_tgt
   kernels_headers
-  bcsc_headers
+  bcsc_headers_tgt
   refinement_headers
   sopalin_headers
 )
@@ -693,33 +682,9 @@ add_subdirectory(test)
 #      Build documentation
 #
 #############################################################
-set(PASTIX_ALL_SRCS
-  #${generated_files}
-  #
+add_documented_files(
   #
   include/pastix.h
-  #
-  spm/spm.h
-  spm/spm.c
-  spm/spm_io.c
-  spm/spm_dofs.c
-  spm/spm_integers.c
-  spm/spm_read_driver.c
-  spm/z_spm.h
-  spm/z_spm_laplacian.c
-  spm/z_spm_integer.c
-  spm/z_spm_genrhs.c
-  spm/z_spm_expand.c
-  spm/z_spm_dofs2flat.c
-  spm/z_spm_dof_extend.c
-  spm/z_spm_convert_to_ijv.c
-  spm/z_spm_convert_to_csr.c
-  spm/z_spm_convert_to_csc.c
-  spm/z_spm_2dense.c
-  spm/z_spm.c
-  spm/z_spm_matrixvector.c
-  spm/z_spm_norm.c
-  spm/z_spm_print.c
   #
   graph/graph.h
   graph/graph.c
@@ -743,9 +708,9 @@ set(PASTIX_ALL_SRCS
   order/pastix_task_order.c
   #
   symbol/symbol.h
-  #symbol/symbol_cost.h  TODO: include in developer version
-  #symbol/symbol_fax.h   TODO: include in developer version
-  #symbol/symbol_kass.h  TODO: include in developer version
+  symbol/symbol_cost.h  #TODO: include in developer version
+  symbol/symbol_fax.h   #TODO: include in developer version
+  symbol/symbol_kass.h  #TODO: include in developer version
   symbol/symbol.c
   symbol/symbol_amalgamate.c
   symbol/symbol_base.c
@@ -764,7 +729,6 @@ set(PASTIX_ALL_SRCS
   symbol/symbol_kass_level.c
   symbol/symbol_reordering.c
   symbol/symbol_rustine.c
-  #symbol/symbol_tree.c Not used
   symbol/pastix_task_reordering.c
   symbol/pastix_task_symbfact.c
   #
@@ -812,6 +776,31 @@ set(PASTIX_ALL_SRCS
   #blend/splitsymbol.c
   #blend/task.c
   blend/pastix_task_analyze.c
+
+  kernels/pastix_zcores.h
+  # CPU extra kernel
+  kernels/core_zgemdm.c
+  kernels/core_zgetro.c
+  kernels/core_zgeadd.c
+  kernels/core_zplrnt.c
+  kernels/core_zgemmsp.c
+  kernels/core_ztrsmsp.c
+  # Kernels
+  kernels/core_zsytrfsp.c
+  kernels/core_zhetrfsp.c
+  kernels/core_zpotrfsp.c
+  kernels/core_zgetrfsp.c
+  kernels/core_zgelrops.c
+  kernels/core_zgelrops_SVD.c
+  kernels/core_zgelrops_RRQR.c
+
+  refinement/z_raff_bicgstab.c
+  refinement/z_raff_functions.c
+  refinement/z_raff_functions.h
+  refinement/z_raff_gmres.c
+  refinement/z_raff_grad.c
+  refinement/z_raff_pivot.c
+  refinement/pastix_task_raff.c
 )
 
 #
