@@ -1,5 +1,5 @@
 /**
- * @file drivers.h
+ * @file spm_drivers.h
  *
  *  $COPYRIGHTS$
  *

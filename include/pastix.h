@@ -44,8 +44,8 @@ typedef struct pastix_data_s pastix_data_t;
 struct pastix_graph_s;
 typedef struct pastix_graph_s pastix_graph_t;
 
-struct Order_;
-typedef struct Order_ Order;
+struct pastix_order_s;
+typedef struct pastix_order_s Order;
 
 struct pastix_spm_s;
 typedef struct pastix_spm_s pastix_spm_t;

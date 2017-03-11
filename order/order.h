@@ -21,7 +21,7 @@
  * @ingroup pastix_ordering
  * @struct Order - Ordering structure.
  */
-struct Order_ {
+typedef struct pastix_order_s {
     pastix_int_t  baseval;   /*< base value used for numbering       */
     pastix_int_t  vertnbr;   /*< Number of vertices                  */
     pastix_int_t  cblknbr;   /*< Number of column blocks             */
@@ -29,7 +29,7 @@ struct Order_ {
     pastix_int_t *peritab;   /*< Inverse permutation array [based]   */
     pastix_int_t *rangtab;   /*< Column block range array [based,+1] */
     pastix_int_t *treetab;   /*< Partitioning tree [based]           */
-};
+} Order;
 
 /*
  * The function prototypes.
