@@ -14,8 +14,8 @@ set(HEADERS
 )
 
 precisions_rules_py(generated_headers
-                    "${HEADERS}"
-                    PRECISIONS "p;s;d;c;z")
+  "${HEADERS}"
+  PRECISIONS "p;s;d;c;z")
 
 set(spm_headers
   ${generated_headers}
@@ -46,8 +46,8 @@ set(SOURCES
   )
 
 precisions_rules_py(generated_sources
-                    "${SOURCES}"
-                    PRECISIONS "p;s;d;c;z")
+  "${SOURCES}"
+  PRECISIONS "p;s;d;c;z")
 
 set(spm_sources
   ${generated_sources}

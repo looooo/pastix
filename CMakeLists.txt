@@ -622,14 +622,14 @@ add_library(pastix
 
 # GenRHS requires geadd
 add_dependencies(pastix_spm
-  kernels_headers
+  kernels_headers_tgt
 )
 
 add_dependencies(pastix
   spm_headers_tgt
-  kernels_headers
+  kernels_headers_tgt
   bcsc_headers_tgt
-  refinement_headers
+  refinement_headers_tgt
   sopalin_headers
 )
 target_link_libraries(pastix
@@ -776,31 +776,6 @@ add_documented_files(
   #blend/splitsymbol.c
   #blend/task.c
   blend/pastix_task_analyze.c
-
-  kernels/pastix_zcores.h
-  # CPU extra kernel
-  kernels/core_zgemdm.c
-  kernels/core_zgetro.c
-  kernels/core_zgeadd.c
-  kernels/core_zplrnt.c
-  kernels/core_zgemmsp.c
-  kernels/core_ztrsmsp.c
-  # Kernels
-  kernels/core_zsytrfsp.c
-  kernels/core_zhetrfsp.c
-  kernels/core_zpotrfsp.c
-  kernels/core_zgetrfsp.c
-  kernels/core_zgelrops.c
-  kernels/core_zgelrops_SVD.c
-  kernels/core_zgelrops_RRQR.c
-
-  refinement/z_raff_bicgstab.c
-  refinement/z_raff_functions.c
-  refinement/z_raff_functions.h
-  refinement/z_raff_gmres.c
-  refinement/z_raff_grad.c
-  refinement/z_raff_pivot.c
-  refinement/pastix_task_raff.c
 )
 
 #
