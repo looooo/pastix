@@ -12,17 +12,14 @@
  * @date 2013-06-24
  *
  *
- * @defgroup pastix_order Ordering
- * @ingroup pastix_analyze
- * @brief Functions to generate and manipulate the order structure.
- *
- * This module provides the set of function to prepare the order
- * structure associated to a given sparse matrix.
- * It is possible to call Scotch, PT-Scotch, Metis and ParMetis to
- * build a new ordering that minimize the fill-in and maximize the
- * level of parallelism.
- *
+ * @addtogroup pastix_order
  * @{
+ *   @brief Functions to generate and manipulate the order structure.
+ *
+ *   This module provides the set of function to prepare the order structure
+ *   associated to a given sparse matrix. It is possible to call Scotch,
+ *   PT-Scotch, Metis and ParMetis to build a new ordering that minimize the
+ *   fill-in and maximize the level of parallelism.
  *
  **/
 #ifndef _ORDER_H_

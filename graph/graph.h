@@ -14,16 +14,14 @@
  * @date 2013-06-24
  *
  *
- * @defgroup pastix_graph Graph
- * @ingroup pastix_analyze
- * @brief Functions to generate and manipulate the graph structure.
- *
- * This module provides the set of function to prepare the graph
- * structure associated to a given sparse matrix.
- * It is possible to symmetrize a graph, to extract a subgraph and
- * to apply a new permutation.
- *
+ * @addtogroup pastix_graph
  * @{
+ *   @brief Functions to generate and manipulate the graph structure.
+ *
+ *   This module provides the set of function to prepare the graph structure
+ *   associated to a given sparse matrix.
+ *   It is possible to symmetrize a graph, to extract a subgraph and to apply a
+ *   new permutation.
  *
  **/
 #ifndef _GRAPH_H_

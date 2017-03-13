@@ -15,21 +15,19 @@
  * @author Pierre Ramet
  * @date 2013-06-24
  *
- * @defgroup pastix_symbol Symbolic Factorization
- * @ingroup  pastix_analyze
- * @brief Functions to generate and manipulate the symbolic factorization
- * structure
- *
- * This module provides the set of function to generate the symbolic
- * factorization structure based on a given graph, and an associated
- * ordering. The symbolic structure is described in the SymbolMatrix structure,
- * and it can be generated through two different algorithms: Fax or Kass. The
- * first one is used when no amalgamation is required. This is the case when the
- * ordering comes from Scotch for example. The second one, is used when the
- * elementary elimination tree has been rediscovered, and amalgamation needs to
- * be performed to improve solver efficiency.
- *
+ * @addtogroup pastix_symbol
  * @{
+ *   @brief Functions to generate and manipulate the symbolic factorization
+ *   structure
+ *
+ *   This module provides the set of function to generate the symbolic
+ *   factorization structure based on a given graph, and an associated
+ *   ordering. The symbolic structure is described in the SymbolMatrix
+ *   structure, and it can be generated through two different algorithms: Fax or
+ *   Kass. The first one is used when no amalgamation is required. This is the
+ *   case when the ordering comes from Scotch for example. The second one, is
+ *   used when the elementary elimination tree has been rediscovered, and
+ *   amalgamation needs to be performed to improve solver efficiency.
  *
  **/
 #ifndef _SYMBOL_H_
