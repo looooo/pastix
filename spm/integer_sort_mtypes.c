@@ -34,7 +34,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  *
  * @file integer_sort_mtypes.c
  *

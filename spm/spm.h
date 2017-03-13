@@ -185,7 +185,7 @@ pastix_spm_t *spmDofExtend( const int type, const int dof, const pastix_spm_t *s
  */
 
 /**
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_print
  * @brief Subroutines to print one element of an spm structure
  *
  * @param[in] f Pointer to the file

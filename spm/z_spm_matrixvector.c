@@ -21,7 +21,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_matvec
  *
  * @brief compute the matrix-vector product:
  *          y = alpha * op( A ) * x + beta * y
@@ -152,7 +152,7 @@ z_spmGeCSCv(const pastix_trans_t      trans,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_matvec
  *
  * @brief compute the matrix-vector product:
  *          y = alpha * A + beta * y
@@ -240,7 +240,7 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_matvec
  *
  * @brief compute the matrix-vector product:
  *          y = alpha * A + beta * y
@@ -330,7 +330,7 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_matvec
  *
  * @brief compute the matrix-vector product:
  *          y = alpha * A + beta * y

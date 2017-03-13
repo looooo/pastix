@@ -22,7 +22,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_scal
  *
  * @brief Scal the spm: A = alpha * A
  *

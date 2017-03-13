@@ -14,6 +14,9 @@
  * @date 2015-06-01
  * @precisions normal z -> c d s
  *
+ * @addtogroup spm_dev_norm
+ * @{
+ *
  **/
 #include "common.h"
 #include "spm.h"
@@ -423,3 +426,6 @@ z_spmNorm( int ntype,
 
     return norm;
 }
+/**
+ * @}
+ */

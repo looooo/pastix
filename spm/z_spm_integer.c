@@ -26,7 +26,7 @@
  *******************************************************************************
  *
  * @fn      void z_spmIntSortAsc(void ** const pbase, const pastix_int_t n)
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as key for sorting.  The second array is an array of
  * pastix_complex64_t.

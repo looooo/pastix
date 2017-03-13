@@ -68,7 +68,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  *
  * @fn      void spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  *
  * Sorts in ascending order array of element composed of one single
  * pastix_int_t with a single key value.
@@ -104,7 +104,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  *
  * @fn      void spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  *
  * Sorts in ascending order array of element composed of two
  * pastix_int_t by ascending order. The first value is used as key.
@@ -143,7 +143,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *******************************************************************************
  *
  * @fn      void spmIntSort3Asc1(void * const pbase, const pastix_int_t n);
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  *
  * @brief Sorts in ascending order array of element composed of three
  * pastix_int_t by ascending order. The first value is used as key.
@@ -188,7 +188,7 @@ void spmIntSort3Asc1(void *const pbase, const pastix_int_t n);
  *******************************************************************************
  *
  * @fn      void spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  * @brief Sorts in ascending order array of element composed of two
  * pastix_int_t by ascending order. Both values are used as key.
  *
@@ -226,7 +226,7 @@ void spmIntSort3Asc1(void *const pbase, const pastix_int_t n);
  *******************************************************************************
  *
  * @fn      void spmIntMSortIntAsc(void ** const pbase, const pastix_int_t n);
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  *
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as primary key for sorting.  The second array is an
@@ -279,7 +279,7 @@ void spmIntMSortIntAsc(void ** const pbase, const pastix_int_t n);
  *******************************************************************************
  *
  * @fn      void spmIntMSortSmallIntAsc(void **const pbase, const pastix_int_t n);
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as primary key for sorting.  The second array is an
  * other array of pastix_int_t used as secondary key.

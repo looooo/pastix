@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief Read an array of integer.
  *
@@ -101,7 +101,7 @@ readArrayOfInteger( FILE         *stream,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief  Read an array of 64bits complex.
  *
@@ -187,7 +187,7 @@ readArrayOfComplex64( FILE               *stream,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief  Read an array of 32bits complex.
  *
@@ -273,7 +273,7 @@ readArrayOfComplex32( FILE               *stream,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief  Read an array of double.
  *
@@ -357,7 +357,7 @@ readArrayOfDouble( FILE         *stream,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief  Read an array of float.
  *
@@ -605,7 +605,7 @@ spmLoad( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief write an array of 64bits complex.
  *
@@ -646,7 +646,7 @@ writeArrayOfComplex64( FILE               *outfile,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief write an array of 32bits complex.
  *
@@ -687,7 +687,7 @@ writeArrayOfComplex32( FILE               *outfile,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief write an array of double.
  *
@@ -728,7 +728,7 @@ writeArrayOfDouble( FILE         *outfile,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_io
  *
  * @brief write an array of float.
  *

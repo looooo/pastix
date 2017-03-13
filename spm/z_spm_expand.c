@@ -21,7 +21,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_dof
  *
  * @brief Expand a single dof CSC to a multi-dofs CSC.
  *
@@ -206,7 +206,7 @@ z_spmCSCExpand(const pastix_spm_t *spm)
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_dof
  *
  * @brief Expand a single dof CSR to a multi-dofs CSR.
  *
@@ -389,7 +389,7 @@ z_spmCSRExpand(const pastix_spm_t *spm)
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_dof
  *
  * @brief Expand a single dof IJV to a multi-dofs IJV.
  *
@@ -562,7 +562,7 @@ z_spmIJVExpand(const pastix_spm_t *spm)
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_dof
  *
  * @brief Expand a single dof sparse matrix to a multi-dofs sparse matrix.
  *

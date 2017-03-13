@@ -21,7 +21,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_dof
  *
  * @brief Extend a multi-dof sparse matrix to a single dof sparse matrix.
  *

@@ -30,7 +30,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_print
  *
  * @brief Write CSC matrix in a file
  *
@@ -215,7 +215,7 @@ z_spmCSCPrint( FILE *f, const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_print
  *
  * @brief Write CSR matrix in a file
  *
@@ -400,7 +400,7 @@ z_spmCSRPrint( FILE *f, const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_print
  *
  * @brief Write IJV matrix in a file
  *
@@ -603,7 +603,7 @@ z_spmIJVPrint( FILE *f, const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_print
  *
  * @brief Write a spm matrix in a file
  *

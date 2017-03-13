@@ -37,7 +37,7 @@ static pastix_complex64_t zzero = (pastix_complex64_t) 0.;
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_rhs
  *
  * @brief Random generator from the HPL library
  *
@@ -83,7 +83,7 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_rhs
  *
  * @brief Generate a vector of random values.
  *
@@ -148,7 +148,7 @@ z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_rhs
  *
  * @brief Generate nrhs right hand side vectors associated to a given
  * matrix to test a problem with a solver.
@@ -308,7 +308,7 @@ z_spmGenRHS( int type, int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_rhs
  *
  * @brief Check the backward error, and the forward error if x0 is provided.
  *

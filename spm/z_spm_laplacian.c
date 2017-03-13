@@ -22,7 +22,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmLaplacian1D - Generate a 1D laplacian matrix.
  *
@@ -113,7 +113,7 @@ z_spmLaplacian1D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmLaplacian2D - Generate a 2D laplacian matrix.
  *
@@ -222,7 +222,7 @@ z_spmLaplacian2D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmLaplacian3D - Generate a 3D laplacian matrix.
  *
@@ -353,7 +353,7 @@ z_spmLaplacian3D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmExtendedLaplacian2D - Generate a 2D extended laplacian matrix.
  *
@@ -476,7 +476,7 @@ z_spmExtendedLaplacian2D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmExtendedLaplacian3D - Generate a 3D extended laplacian matrix.
  *

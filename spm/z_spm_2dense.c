@@ -30,7 +30,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_convert
  *
  * @brief Convert a CSC matrix into a dense matrix.
  *
@@ -208,7 +208,7 @@ z_spmCSC2dense( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_convert
  *
  * @brief Convert a CSR matrix into a dense matrix.
  *
@@ -386,7 +386,7 @@ z_spmCSR2dense( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_convert
  *
  * @brief Convert a IJV matrix into a dense matrix.
  *
@@ -580,7 +580,7 @@ z_spmIJV2dense( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_convert
  *
  * @brief Convert a sparse matrix into a dense matrix.
  *
@@ -615,7 +615,7 @@ z_spm2dense( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_convert
  *
  * @brief Print a dense matrix to the given file
  *

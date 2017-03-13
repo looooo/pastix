@@ -97,7 +97,7 @@ add_documented_files(
   # Source files
   spm.c
   spm_io.c
-  spm_integers.c
-  spm_dofs.c
   spm_read_driver.c
+  spm_dof_extend.c
+  spm_integers.c
   )

@@ -21,7 +21,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_check
  *
  * @brief This routine sorts the subarray of edges of each vertex in a
  * centralized spm stored in CSC or CSR format.
@@ -92,7 +92,7 @@ z_spmSort( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_check
  *
  * @brief This routine merge the multiple entries in a sparse
  * matrix by suming their values together.
@@ -186,7 +186,7 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_check
  *
  * @brief This routine corrects the sparse matrix structure if it's
  * pattern is not symmetric.

@@ -22,7 +22,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_convert
  *
  * @brief convert a matrix in IJV format to a matrix in CSC
  * format.
@@ -127,7 +127,7 @@ z_spmConvertIJV2CSC( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_convert
  *
  * @brief  convert a matrix in CSR format to a matrix in CSC
  * format.

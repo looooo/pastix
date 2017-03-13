@@ -35,7 +35,7 @@
  *
  * @file integer_sort.c
  *
- * @ingroup pastix_spm_dev
+ * @ingroup spm_dev_integer
  *
  * File to include to create integer sort function using qsort based
  * algorithm. DO NOT compile directly.
