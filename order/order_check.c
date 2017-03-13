@@ -2,9 +2,10 @@
  *
  * @file order_check.c
  *
- *  PaStiX order routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX order check routines
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * Contains function to check correctness of a ordering structure.
  *
@@ -20,9 +21,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderCheck - This routine checks the correctness of the ordering stucture.
+ * @brief This routine checks the correctness of the ordering structure.
  *
  *******************************************************************************
  *
@@ -31,9 +32,8 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCESS on successful exit.
- *          \retval PASTIX_ERR_BADPARAMETER if the ordering structure is incorrect.
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if the ordering structure is incorrect.
  *
  *******************************************************************************/
 int
@@ -88,7 +88,7 @@ orderCheck (const Order * const  ordeptr)
 
     assert((ordeptr->rangtab[ordeptr->cblknbr] - baseval) == ordeptr->vertnbr);
 
-    /**
+    /*
      * Check the values in rangtab
      */
     for (rangnum = 0; rangnum < ordeptr->cblknbr; rangnum ++)
@@ -104,7 +104,7 @@ orderCheck (const Order * const  ordeptr)
 
     permtax = ordeptr->permtab - baseval;
 
-    /**
+    /*
      * Check perm and invp, as well as the symmetry between the two
      */
     for (vnodnum = baseval;
@@ -122,7 +122,7 @@ orderCheck (const Order * const  ordeptr)
         }
     }
 
-    /**
+    /*
      * Check the treetab
      */
     cblkmax = ordeptr->cblknbr - baseval;

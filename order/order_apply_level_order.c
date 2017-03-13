@@ -3,13 +3,14 @@
  * @file order_apply_level_order.c
  *
  *  PaStiX order routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * Contains the function that apply reverse level ordering to the elimination
  * tree.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
  * @date 2013-06-24
  *
@@ -98,10 +99,9 @@ orderBuildEtree( const Order *order,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderApplyLevelOrder - This routine reorder the elimination tree nodes per
- * level.
+ * @brief This routine reorder the elimination tree nodes per level.
  *
  *******************************************************************************
  *
@@ -114,9 +114,8 @@ orderBuildEtree( const Order *order,
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCESS on successful exit.
- *          \retval PASTIX_ERR_BADPARAMETER if the ordering structure is incorrect.
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if the ordering structure is incorrect.
  *
  *******************************************************************************/
 int
@@ -170,7 +169,7 @@ orderApplyLevelOrder( Order *order,
                 oldorder.vertnbr,
                 oldorder.cblknbr );
 
-    /**
+    /*
      * Build the elimination tree from top to bottom, and store the roots in the
      * permtab array
      */
@@ -178,7 +177,7 @@ orderApplyLevelOrder( Order *order,
                              &nbroots,
                              order->permtab );
 
-    /**
+    /*
      * Build the sorted array per level
      */
     if ( distribution_level >= 0 )
@@ -206,7 +205,7 @@ orderApplyLevelOrder( Order *order,
             }
 
             sonsnbr = etree->nodetab[node].sonsnbr;
-            /**
+            /*
              * If sonsnbr != 2, it is not a nested dissection node, and we
              * should not reorder them
              */
@@ -244,7 +243,7 @@ orderApplyLevelOrder( Order *order,
                     sons2D++;
             }
 
-            /**
+            /*
              * We put the sons in reverse order to keep the original order
              * betwen the brothers. This matters for the Minimum Degree part of
              * the ordering algorithm.
@@ -274,7 +273,7 @@ orderApplyLevelOrder( Order *order,
         for(i=0; i<order->cblknbr; i++) {
             node = sorted[i];
             sonsnbr = etree->nodetab[node].sonsnbr;
-            /**
+            /*
              * We put the sons in reverse order to keep the original order
              * betwen the brothers. This matters for the Minimum Degree part of
              * the ordering algorithm.

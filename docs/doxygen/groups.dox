@@ -28,14 +28,6 @@
  *
  ****
  *
- * @defgroup pastix_ordering Order
- * @ingroup  pastix_analyze
- * @brief    This group describes all the routines of the Order package
- *           that contains basic functions to manipulate the order
- *           structure.
- *
- ****
- *
  * @defgroup pastix_blend Blend
  * @ingroup  pastix_analyze
  * @brief    This group describes all the routines of the Blend package

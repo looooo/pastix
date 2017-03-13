@@ -2,13 +2,14 @@
  *
  * @file order_io.c
  *
- *  PaStiX order routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX order IO routines
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * Contains functions to read/write the order structure from/to the disk.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -24,12 +25,11 @@
  *
  * @ingroup pastix_ordering_internal
  *
- * ordering_load - This routine reads the given ordering structure from the given
- * stream.
+ * @brief Load an ordering from a file.
  *
  *******************************************************************************
  *
- * @param[in,out] ordeptr
+ * @param[inout] ordeptr
  *          The ordering structure to fill in.
  *
  * @param[in] stream
@@ -37,9 +37,8 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCESS on successful exit.
- *          \retval PASTIX_ERR_FILE if a problem occurs during the read.
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
 static inline int
@@ -108,13 +107,13 @@ ordering_load(Order * ordeptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderLoad - This routine load an ordering from a file.
+ * @brief Load an ordering from a file.
  *
  *******************************************************************************
  *
- * @param[in,out] ordemesh
+ * @param[inout] ordemesh
  *          The initialized ordering structure to fill in.
  *
  * @param[in] filename
@@ -125,10 +124,9 @@ ordering_load(Order * ordeptr,
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCESS on successful exit.
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_FILE if a problem occurs during the read.
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
 int orderLoad( Order *ordemesh,
@@ -179,12 +177,11 @@ int orderLoad( Order *ordemesh,
  *
  * @ingroup pastix_ordering_internal
  *
- * ordering_save - This routine writes the given ordering structure to the given
- * stream.
+ * @brief Save an ordering to a file.
  *
  *******************************************************************************
  *
- * @param[in,out] ordeptr
+ * @param[inout] ordeptr
  *          The ordering structure to dump to disk.
  *
  * @param[in] stream
@@ -192,10 +189,9 @@ int orderLoad( Order *ordemesh,
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCESS on successful exit.
- *          \retval PASTIX_ERR_BADPARAMETER if the ordeptr structure is incorrect.
- *          \retval PASTIX_ERR_FILE if a problem occurs during the write.
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if the ordeptr structure is incorrect,
+ * @retval PASTIX_ERR_FILE if a problem occurs during the write.
  *
  *******************************************************************************/
 static inline int
@@ -268,9 +264,9 @@ ordering_save(const Order * const ordeptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderSave - This routine saves an ordering structure into the file filename.
+ * @brief Save an ordering to a file.
  *
  *******************************************************************************
  *
@@ -285,10 +281,9 @@ ordering_save(const Order * const ordeptr,
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCESS on successful exit.
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_FILE if a problem occurs during the write.
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ * @retval PASTIX_ERR_FILE if a problem occurs during the write.
  *
  *******************************************************************************/
 int orderSave( const Order * const ordemesh,

@@ -3,12 +3,13 @@
  * @file order_find_supernodes.c
  *
  *  PaStiX order routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * Contains function to find supernodes out of a given permutation.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -22,7 +23,7 @@
  *
  * @ingroup pastix_ordering_internal
  *
- * compute_subtree_size - Computes the size of each subtree.
+ * @brief Computes the size of each subtree.
  *
  *******************************************************************************
  *
@@ -53,8 +54,8 @@ compute_subtree_size(      pastix_int_t  n,
     /********************************************/
     pastix_int_t k, i;
 
-    /*** OIMBE pas la peine d'utiliser un tas; il suffit de parcourir iperm pour assurer
-     de toujours traiter un fils avant son pere ***/
+    /* TODO pas la peine d'utiliser un tas; il suffit de parcourir iperm pour assurer
+     de toujours traiter un fils avant son pere */
 
     bzero(T, sizeof(pastix_int_t)*n);
 
@@ -86,7 +87,7 @@ compute_subtree_size(      pastix_int_t  n,
  *
  * @ingroup pastix_ordering_internal
  *
- * compute_post_order - Computes the post order of the elimination tree given on
+ * @brief Computes the post order of the elimination tree given on
  * entry.
  *
  *******************************************************************************
@@ -98,15 +99,15 @@ compute_subtree_size(      pastix_int_t  n,
  *          Array of size n.
  *          List of father to each node. If node i is a root then father[i] = i.
  *
- * @param[in,out] perm
+ * @param[inout] perm
  *          Array of size n. The permutation vector.
  *          On exit, the postorder permutation vector.
  *
- * @param[in,out] invp
+ * @param[inout] invp
  *          Array of size n. The inverse permutation vector.
  *          On exit, the postorder inverse permutation vector.
  *
- * @param[in,out] T
+ * @param[inout] T
  *          Workspace of size n.
  *
  *******************************************************************************/
@@ -133,7 +134,7 @@ compute_post_order(      pastix_int_t n,
     for(k=0;k<n;k++) {
         i = invp[k];
         if(father[i] == i) {
-            /** This is a root **/
+            /* This is a root */
             j = T[i];
             T[i] += t;
             t += j;
@@ -148,7 +149,7 @@ compute_post_order(      pastix_int_t n,
     for(k=n-1;k>=0;k--)
     {
         i = invp[k];
-        perm[i] = T[father[i]]; /** We MUST HAVE father[i] == i for a root ! **/
+        perm[i] = T[father[i]]; /* We MUST HAVE father[i] == i for a root ! */
         T[father[i]] -= T[i];
         T[i] = perm[i]-1;
         assert(perm[father[i]] >= perm[i]);
@@ -161,7 +162,7 @@ compute_post_order(      pastix_int_t n,
         perm[i]--;
 
 #if defined(PASTIX_DEBUG_ORDERING)
-    /** Check the permutation vector **/
+    /* Check the permutation vector */
     for(i=0;i<n;i++)
     {
         assert(perm[i] >= 0);
@@ -193,7 +194,7 @@ compute_post_order(      pastix_int_t n,
  *
  * @ingroup pastix_ordering_internal
  *
- * compute_elimination_tree - Compute the elimination tree of a matrix A
+ * @brief Compute the elimination tree of a matrix A
  * (without computing the symbolic factorization) associated with a reordering
  * of the matrix.
  *
@@ -216,7 +217,7 @@ compute_post_order(      pastix_int_t n,
  * @param[in] invp
  *          Array of size n. The inverse permutation vector.
  *
- * @param[in,out] father
+ * @param[inout] father
  *          Array of size n.
  *          On entry, an allocated array of size n.
  *          On exit, father[i] = father of ith node on the eliminination
@@ -235,7 +236,7 @@ compute_elimination_tree(      pastix_int_t n,
     pastix_int_t node;
     pastix_int_t vroot;
 
-    /** Optim **/
+    /* Optim */
     pastix_int_t flag, ind;
     pastix_int_t *jrev = NULL;
     pastix_int_t *jf   = NULL;
@@ -279,7 +280,7 @@ compute_elimination_tree(      pastix_int_t n,
                     father[vroot] = node;
             }
         }
-        /** reinit jrev **/
+        /* reinit jrev */
         for(j=0;j<ind;j++)
             jrev[jf[j]]=-1;
     }
@@ -292,7 +293,7 @@ compute_elimination_tree(      pastix_int_t n,
             father[i] = i;
 
 #if defined(PASTIX_DEBUG_ORDERING)
-    /*** Check to see if a father has a lower rank in the permutation array than one of its sons ***/
+    /* Check to see if a father has a lower rank in the permutation array than one of its sons */
     for(i=0;i<n;i++)
     {
         if(perm[i] > perm[father[i]])
@@ -309,16 +310,18 @@ compute_elimination_tree(      pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderFindSupernodes - Computes the set of supernodes for a given permutation.
+ * @brief Computes the set of supernodes for a given permutation.
+ *
  * The permutation of the matrix given on entry is modified to obtain a
  * postorder of the elimination tree: this does not affect the fill-in properties
  * of the initial ordering.
  *
  * WARNING: The matrix pattern is assumed to be symmetric.
+ * 
  * NOTE: This function can take on entry the lower triangular part or the whole
- * matrix A (This does not change the results)
+ * matrix A.
  *
  *******************************************************************************
  *
@@ -326,25 +329,26 @@ compute_elimination_tree(      pastix_int_t n,
  *          The graph associated with the order structuree on which we need to
  *          find the supernodes.
  *
- * @param[in, out] ordeptr
+ * @param[inout] ordeptr
  *          Pointer to an Order structure, that will be further initialized by
  *          the routine.
+ *
  *          On entry:
- *            orderptr->permtab: the original permutation vector for the
+ *            - orderptr->permtab: the original permutation vector for the
  *                elimination tree.
- *            orderptr->permtab: the original inverse permutation vector for the
+ *            - orderptr->permtab: the original inverse permutation vector for the
  *                elimination tree.
  *
  *          On exit:
- *            orderptr->cblknbr: The number of supernodes found
- *            orderptr->rangtab: Contains the first element of each
+ *            - orderptr->cblknbr: The number of supernodes found.
+ *            - orderptr->rangtab: Contains the first element of each
  *                supernode. rangtab[i] is the first element of the ith
  *                supernode.
- *            orderptr->permtab: the permutation vector for the
+ *            - orderptr->permtab: the permutation vector for the
  *                postorder of the nodes in the elimination tree.
- *            orderptr->permtab: the inverse permutation vector for the
+ *            - orderptr->permtab: the inverse permutation vector for the
  *                postorder of the nodes in the elimination tree.
- *            orderptr->treetab: treetab[i] is the number of the father of
+ *            - orderptr->treetab: treetab[i] is the number of the father of
  *                supernode i in the supernodal elimination tree.
  *
  *******************************************************************************/
@@ -352,10 +356,10 @@ void
 orderFindSupernodes( const pastix_graph_t *graph,
                      Order * const ordeptr )
 {
-    pastix_int_t *father     = NULL; /** father[i] is the father of node i in he elimination tree of A **/
-    pastix_int_t *T;                 /** T[j] is the number of node in the subtree rooted in node j in
-                                      the elimination tree of A **/
-    pastix_int_t *S          = NULL; /** S[i] is the number of sons for node i in the elimination tree **/
+    pastix_int_t *father     = NULL; /* father[i] is the father of node i in he elimination tree of A */
+    pastix_int_t *T;                 /* T[j] is the number of node in the subtree rooted in node j in
+                                      the elimination tree of A */
+    pastix_int_t *S          = NULL; /* S[i] is the number of sons for node i in the elimination tree */
     pastix_int_t *isleaf     = NULL;
     pastix_int_t *prev_rownz = NULL;
     pastix_int_t *treetab    = NULL;
@@ -383,7 +387,7 @@ orderFindSupernodes( const pastix_graph_t *graph,
     MALLOC_INTERN(father, n, pastix_int_t);
 
 #if defined(PASTIX_DEBUG_ORDERING)
-    /** Check that the permutation vector is 0 based **/
+    /* Check that the permutation vector is 0 based */
     for(i=0;i<n;i++) {
         assert(perm[i] >= 0);
         assert(perm[i] < n);
@@ -476,12 +480,12 @@ orderFindSupernodes( const pastix_graph_t *graph,
     {
         pastix_int_t dad;
 
-        /*** Node to supernode conversion vector ***/
+        /* Node to supernode conversion vector */
         for(i=0;i<snodenbr;i++)
             for(j=T[i];j<T[i+1];j++)
                 S[j] = i;
 
-        /*** Fill the treetab info ***/
+        /* Fill the treetab info */
         for(i=0;i<snodenbr;i++)
         {
             k=snodenbr;
@@ -494,7 +498,7 @@ orderFindSupernodes( const pastix_graph_t *graph,
             treetab[i] = k;
             if(k == snodenbr)
             {
-                treetab[i] = -1; /** This is a root **/
+                treetab[i] = -1; /* This is a root */
             }
             assert((treetab[i] == -1) || (treetab[i] >= i));
         }
