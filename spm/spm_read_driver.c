@@ -47,7 +47,7 @@
  * @param[in] filename
  *          The name of the file that stores the matrix (see driver).
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, an allocated sparse matrix structure.
  *          On exit, the filled sparse matrix structure with the matrix from the
  *          file.

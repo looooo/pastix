@@ -34,7 +34,7 @@
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -127,7 +127,7 @@ z_spmLaplacian1D( pastix_spm_t  *spm,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -238,7 +238,7 @@ z_spmLaplacian2D( pastix_spm_t  *spm,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -359,7 +359,7 @@ z_spmLaplacian3D( pastix_spm_t  *spm,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -482,7 +482,7 @@ z_spmExtendedLaplacian2D( pastix_spm_t  *spm,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.

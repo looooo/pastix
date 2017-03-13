@@ -98,7 +98,7 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
  * @param[in] n
  *         The number of columns of the tile A. n >= 0.
  *
- * @param[in,out] A
+ * @param[inout] A
  *         On entry, the m-by-n tile to be initialized.
  *         On exit, the tile initialized in the mtxtype format.
  *
@@ -178,7 +178,7 @@ z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
  *          Defines the leading dimension of x when multiple right hand sides
  *          are available. ldx >= spm->n.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          b must be an allocated matrix of size at least ldb * nrhs.
  *          On exit, b is initialized as defined by the type parameter.
  *
@@ -321,7 +321,7 @@ z_spmGenRHS( int type, int nrhs,
  *          The sparse matrix uses to generate the right hand side, and the
  *          solution of the full problem.
  *
- * @param[in,out] x0
+ * @param[inout] x0
  *          If x0 != NULL, the forward error is computed.
  *          On exit, x0 stores (x0-x)
  *
@@ -329,7 +329,7 @@ z_spmGenRHS( int type, int nrhs,
  *          Defines the leading dimension of x0 when multiple right hand sides
  *          are available. ldx0 >= spm->n.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          b is a matrix of size at least ldb * nrhs.
  *          On exit, b stores Ax-b.
  *

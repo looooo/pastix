@@ -28,11 +28,11 @@
  *
  * Nothing is performed if IJV  format is used.
  *
- * @WARNING This function should NOT be called if dof is greater than 1.
+ * @warning This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
  *          On exit, the same sparse matrix with subarrays of edges sorted by
  *          ascending order.
@@ -99,11 +99,11 @@ z_spmSort( pastix_spm_t *spm )
  *
  * The sparse matrix needs to be sorted  first (see z_spmSort()).
  *
- * @WARNING This function should NOT be called if dof is greater than 1.
+ * @warning This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
  *          On exit, the reduced sparse matrix of multiple entries were present
  *          in it. The multiple values for a same vertex are sum up together.
@@ -196,7 +196,7 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
  *          On exit, the same sparse matrix with extra entries that makes it
  *          pattern symmetric.

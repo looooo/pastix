@@ -33,7 +33,7 @@
  * @param[in] n
  *          The number of elements in the array.
  *
- * @param[in,out] input
+ * @param[inout] input
  *          The input array. If the types are not the same, the array is
  *          freed on exit.
  *
@@ -75,7 +75,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *
  *******************************************************************************
  *
- * @param[in,out] pbase
+ * @param[inout] pbase
  *          Pointer to the array of integers to sort.
  *
  * @param[in] n
@@ -111,7 +111,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *
  *******************************************************************************
  *
- * @param[in,out] pbase
+ * @param[inout] pbase
  *          Pointer to the array of couple of integers to sort.
  *
  * @param[in] n
@@ -150,7 +150,7 @@ spmIntConvert( pastix_int_t n, int *input )
  *
  *******************************************************************************
  *
- * @param[in,out] pbase
+ * @param[inout] pbase
  *          Pointer to the array of triplet of integers to sort.
  *
  * @param[in] n
@@ -194,7 +194,7 @@ void spmIntSort3Asc1(void *const pbase, const pastix_int_t n);
  *
  *******************************************************************************
  *
- * @param[in,out] pbase
+ * @param[inout] pbase
  *          Pointer to the array of couple of integers to sort.
  *
  * @param[in] n
@@ -234,7 +234,7 @@ void spmIntSort3Asc1(void *const pbase, const pastix_int_t n);
  *
  *******************************************************************************
  *
- * @param[in,out] pbase
+ * @param[inout] pbase
  *          Array of pointers to the arrays of integers to sort.
  *
  * @param[in] n
@@ -286,7 +286,7 @@ void spmIntMSortIntAsc(void ** const pbase, const pastix_int_t n);
  *
  *******************************************************************************
  *
- * @param[in,out] pbase
+ * @param[inout] pbase
  *          Array of pointers to the arrays of integers to sort.
  *
  * @param[in] n

@@ -33,7 +33,7 @@
  *
  *******************************************************************************
  *
- * @param[in,out] pbase
+ * @param[inout] pbase
  *          Couple of pointers to an array of integers and to an array of
  *          pastix_complex64_t to sort.
  *

@@ -30,7 +30,7 @@
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The csc matrix at enter,
  *          the csr matrix at exit.
  *
@@ -107,7 +107,7 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The ijv matrix at enter,
  *          the csr matrix at exit.
  *

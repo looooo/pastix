@@ -505,7 +505,7 @@ spmNorm( int ntype,
  *
  * Nothing is performed if IJV format is used.
  *
- * WARNING: This function should NOT be called if dof is greater than 1.
+ * @warning This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
@@ -556,7 +556,7 @@ spmSort( pastix_spm_t *spm )
  *
  * The sparse matrix needs to be sorted first (see spmSort()).
  *
- * WARNING: Not implemented for CSR and IJV format.
+ * @warning Not implemented for CSR and IJV format.
  *
  *******************************************************************************
  *

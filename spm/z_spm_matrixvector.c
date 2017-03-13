@@ -53,7 +53,7 @@
  * @param[in] beta
  *          beta specifies the scalar beta
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The vector y.
  *
  *******************************************************************************
@@ -174,7 +174,7 @@ z_spmGeCSCv(const pastix_trans_t      trans,
  * @param[in] beta
  *          beta specifies the scalar beta
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The vector y.
  *
  *******************************************************************************
@@ -262,7 +262,7 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
  * @param[in] beta
  *          beta specifies the scalar beta
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The vector y.
  *
  *******************************************************************************
@@ -355,7 +355,7 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
  * @param[in] betaptr
  *          beta specifies the scalar beta
  *
- * @param[in,out] yptr
+ * @param[inout] yptr
  *          The vector y.
  *
  *******************************************************************************

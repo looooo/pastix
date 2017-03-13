@@ -446,7 +446,7 @@ readArrayOfFloat( FILE         *stream,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, an allocated spm data structure.
  *          On exit, the spm filled with the information read in the file.
  *
@@ -777,7 +777,7 @@ writeArrayOfFloat( FILE         *outfile,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix to write into the file.
  *
  * @param[in] outfile
