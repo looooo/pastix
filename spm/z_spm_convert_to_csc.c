@@ -2,16 +2,18 @@
  *
  * @file z_spm_convert_to_csc.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package conversion routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01
  *
  * @precisions normal z -> c d s p
+ *
  **/
 #include "common.h"
 #include "spm.h"
@@ -33,8 +35,7 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 int
@@ -142,8 +143,7 @@ z_spmConvertIJV2CSC( pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 int

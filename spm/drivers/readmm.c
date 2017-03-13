@@ -29,7 +29,7 @@
  *          The file opened in readMM which contains the matrix stored in Matrix
  *          Market format.
  *
- * @param[in,out] csc
+ * @param[inout] csc
  *          At exit, the data of the matrix are stored in the csc structure.
  *
  *******************************************************************************
@@ -86,7 +86,7 @@ z_readMM( FILE *file,
  *          The file opened in readMM which contains the matrix stored in Matrix
  *          Market format.
  *
- * @param[in,out] csc
+ * @param[inout] csc
  *          At exit, the data of the matrix are stored in the csc structure.
  *
  *******************************************************************************
@@ -143,7 +143,7 @@ d_readMM( FILE *file,
  *          The file opened in readMM which contains the matrix stored in Matrix
  *          Market format.
  *
- * @param[in,out] csc
+ * @param[inout] csc
  *          At exit, the data of the matrix are stored in the csc structure.
  *
  *******************************************************************************

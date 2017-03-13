@@ -2,16 +2,19 @@
  *
  * @file spm.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package main routines.
  *
- * @version 6.0.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
+ * @addtogroup pastix_spm
+ * @{
  **/
 #include "common.h"
 #include "spm.h"
@@ -22,7 +25,7 @@
 #include "s_spm.h"
 #include "p_spm.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#if !defined(DOXYGEN_SHOULD_SKIP_THIS)
 
 static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
     /* From CSC */
@@ -69,12 +72,10 @@ static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
      { NULL, NULL, NULL, NULL, NULL, NULL }}
 };
 
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif /* !defined(DOXYGEN_SHOULD_SKIP_THIS) */
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_spm
  *
  * @brief Init the spm structure.
  *
@@ -113,8 +114,6 @@ spmInit( pastix_spm_t *spm )
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_spm
  *
  * @brief Update all the computed fields based on the static values stored.
  *
@@ -190,8 +189,6 @@ spmUpdateComputedFields( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Free the spm structure.
  *
  *******************************************************************************
@@ -217,8 +214,6 @@ spmExit( pastix_spm_t *spm )
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_spm
  *
  * @brief Rebase the arrays of the spm to the given value.
  *
@@ -310,8 +305,6 @@ spmBase( pastix_spm_t *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Search the base used in the spm structure.
  *
  *******************************************************************************
@@ -353,8 +346,6 @@ spmFindBase( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief  Convert the storage format of the spm.
  *
   *******************************************************************************
@@ -370,9 +361,9 @@ spmFindBase( const pastix_spm_t *spm )
  *
  ********************************************************************************
  *
- * @return
- *        \retval PASTIX_SUCCESS if the conversion happened successfully.
- *        \retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
+ * @retval PASTIX_SUCCESS if the conversion happened successfully.
+ * @retval PASTIX_ERR_BADPARAMETER if one the parameter is incorrect.
+ * @retval PASTIX_ERR_NOTIMPLEMENTED if the case is not yet implemented.
  *
  *******************************************************************************/
 int
@@ -393,11 +384,9 @@ spmConvert( int ofmttype, pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Convert the spm matrix into a dense matrix for test purpose.
  *
- * DO NOT USE with large matrices.
+ * @remark DO NOT USE with large matrices.
  *
  *******************************************************************************
  *
@@ -431,8 +420,6 @@ spm2Dense( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Compute the norm of the spm.
  *
  * Return the ntype norm of the sparse matrix spm.
@@ -464,9 +451,10 @@ spm2Dense( const pastix_spm_t *spm )
  *
  ********************************************************************************
  *
- * @retval norm The norm described above. Note that for simplicity, even if
- * the norm of single real or single complex matrix is computed with
- * single precision, the returned norm is stored in double precision.
+ * @retval norm The norm described above. Note that for simplicity, even if the
+ *              norm of single real or single complex matrix is computed with
+ *              single precision, the returned norm is stored in double
+ *              precision.
  * @retval -1   If the floating point of the sparse matrix is undefined.
  *
  *******************************************************************************/
@@ -512,8 +500,6 @@ spmNorm( int ntype,
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_spm
  *
  * @brief Sort the subarray of edges of each vertex in a CSC or CSR format.
  *
@@ -566,8 +552,6 @@ spmSort( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Merge multiple entries in a spm by summing their values together.
  *
  * The sparse matrix needs to be sorted first (see spmSort()).
@@ -618,8 +602,6 @@ spmMergeDuplicate( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Symmetrize the pattern of the spm.
  *
  * This routine corrects the sparse matrix structure if it's pattern is not
@@ -669,8 +651,6 @@ spmSymmetrize( pastix_spm_t *spm )
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_spm
  *
  * @brief Check the correctness of a spm.
  *
@@ -754,8 +734,6 @@ spmCheckAndCorrect( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Create a copy of the spm.
  *
  * Duplicate the spm data structure given as parameter. All new arrays are
@@ -829,8 +807,6 @@ spmCopy( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Print an spm matrix into into a given file.
  *
  *******************************************************************************
@@ -867,8 +843,6 @@ spmPrint(FILE *f, const pastix_spm_t* spm)
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_spm
  *
  * @brief Expand a multi-dof spm matrix into an spm with constant dof set to 1.
  *
@@ -912,8 +886,6 @@ spmExpand(const pastix_spm_t* spm)
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_spm
  *
  * @brief Compute a matrix-vector product.
  *
@@ -995,8 +967,6 @@ spmMatVec(const pastix_trans_t trans,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Generate right hand side vectors associated to a given matrix.
  *
  * The vectors can be initialized randomly or to get a specific solution.
@@ -1065,8 +1035,6 @@ spmGenRHS( int type, int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Check the backward error, and the forward error if x0 is provided.
  *
  *******************************************************************************
@@ -1132,8 +1100,6 @@ spmCheckAxb( int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
  * @brief Scale the spm.
  *
  * A = alpha * A
@@ -1168,3 +1134,7 @@ spmScal(const pastix_complex64_t alpha, pastix_spm_t* spm)
         d_spmScal(alpha, spm);
     }
 }
+
+/**
+ * @}
+ */

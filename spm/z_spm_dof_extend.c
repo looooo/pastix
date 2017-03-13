@@ -2,11 +2,12 @@
  *
  * @file z_spm_dof_extend.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package multi-dof matrix expanser.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Alban Bellot
  * @date 2015-01-01
@@ -22,18 +23,12 @@
  *
  * @ingroup pastix_spm_dev
  *
- * @brief convert a matrix in CSR format to a matrix in IJV format.
+ * @brief Extend a multi-dof sparse matrix to a single dof sparse matrix.
  *
  *******************************************************************************
  *
  * @param[in,out] spm
- *          The sparse matrix uses to generate the right hand side, and the
- *          solution of the full problem.
- *
- *******************************************************************************
- *
- * @return
- *      \retval PASTIX_SUCCESS
+ *          The sparse matrix to extend.
  *
  *******************************************************************************/
 void

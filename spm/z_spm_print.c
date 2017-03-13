@@ -2,9 +2,12 @@
  *
  * @file z_spm_print.c
  *
- * Convert a sparse matrix into a dense matrix.
+ * SParse Matrix package printing routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Alban Bellot

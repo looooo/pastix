@@ -2,11 +2,12 @@
  *
  * @file z_spm.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package precision dependent routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
@@ -27,7 +28,7 @@
  *
  * Nothing is performed if IJV  format is used.
  *
- * WARNING: This function should NOT be called if dof is greater than 1.
+ * @WARNING This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
@@ -98,7 +99,7 @@ z_spmSort( pastix_spm_t *spm )
  *
  * The sparse matrix needs to be sorted  first (see z_spmSort()).
  *
- * WARNING: This function should NOT be called if dof is greater than 1.
+ * @WARNING This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
@@ -109,8 +110,7 @@ z_spmSort( pastix_spm_t *spm )
  *
  ********************************************************************************
  *
- * @return
- *          \retval The number of vertices that were merged
+ * @return The number of vertices that were merged
  *
  *******************************************************************************/
 pastix_int_t
@@ -203,8 +203,7 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @return
- *          \retval Returns the number of entries added to the matrix.
+ * @retval Return the number of entries added to the matrix.
  *
  *******************************************************************************/
 pastix_int_t

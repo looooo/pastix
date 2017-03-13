@@ -1,10 +1,10 @@
 /**
  * @file z_spm_norm.c
  *
- *  PaStiX spm computational routines.
+ * SParse Matrix package norm routine.
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 1.0.0
  * @author Mathieu Faverge
@@ -23,8 +23,6 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
- *
  * @brief Compute the Frobenius norm of the non distributed given
  * spm structure.
  *
@@ -37,8 +35,7 @@
  *
  *******************************************************************************
  *
- * @return
- *           The computed norm
+ * @return The computed frobenius norm
  *
  *******************************************************************************/
 double
@@ -114,8 +111,6 @@ z_spmFrobeniusNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
- *
  * @brief Compute the Max norm of the non distributed given spm
  * structure.
  *
@@ -128,8 +123,7 @@ z_spmFrobeniusNorm( const pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @return
- *           The computed norm
+ * @return The computed max norm
  *
  *******************************************************************************/
 double
@@ -150,8 +144,6 @@ z_spmMaxNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
- *
  * @brief Compute the Infinity norm of the non distributed given spm
  * structure given by the maximum column sum.
  *
@@ -164,8 +156,7 @@ z_spmMaxNorm( const pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @return
- *           The computed norm
+ * @return The computed infinity norm
  *
  *******************************************************************************/
 double
@@ -268,9 +259,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
- *
- * @brief  Compute the Oneinity norm of the non distributed given spm
+ * @brief  Compute the one norm of the non distributed given spm
  * structure fiven by the maximum row sum
  *
  *  ||A|| = max_j( sum_i(|a_ij|) )
@@ -282,8 +271,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @return
- *           The computed norm
+ * @return The computed one norm
  *
  *******************************************************************************/
 double
@@ -382,8 +370,6 @@ z_spmOneNorm( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_dev
- *
  * @brief Compute the norm of an spm matrix
  *
  *******************************************************************************
@@ -399,13 +385,12 @@ z_spmOneNorm( const pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix spm
+ * @return The norm of the spm matrix
  *
  *******************************************************************************/
 double
 z_spmNorm( int ntype,
-           const pastix_spm_t *spm)
+           const pastix_spm_t *spm )
 {
     double norm = 0.;
 

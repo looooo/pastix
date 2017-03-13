@@ -2,10 +2,12 @@
  *
  * @file z_spm.h
  *
- *  PaStiX sparse matrix routines to handle different format of sparse matrices.
- *  $COPYRIGHTS$
+ * SParse Matrix package precision dependent header.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Pierre Ramet
@@ -41,19 +43,19 @@ pastix_complex64_t *z_spm2dense( const pastix_spm_t *spm );
 /**
  * Matrix-Vector product routines
  */
-int z_spmGeCSCv(const pastix_trans_t trans, pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
-int z_spmSyCSCv(                            pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
-int z_spmHeCSCv(                            pastix_complex64_t alpha, const pastix_spm_t *csc, const pastix_complex64_t *x, pastix_complex64_t beta, pastix_complex64_t *y);
+int z_spmCSCMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y);
 
-int z_spmCSCMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *csc, const void *x, const void *beta, void *y);
+/**
+ * Norm computation routines
+ */
+double z_spmNorm( int ntype, const pastix_spm_t *spm );
 
 /**
  * Extra routines
  */
-double       z_spmNorm( int ntype, const pastix_spm_t *csc );
-void         z_spmSort( pastix_spm_t *csc );
-pastix_int_t z_spmMergeDuplicate( pastix_spm_t *csc );
-pastix_int_t z_spmSymmetrize( pastix_spm_t *csc );
+void         z_spmSort( pastix_spm_t *spm );
+pastix_int_t z_spmMergeDuplicate( pastix_spm_t *spm );
+pastix_int_t z_spmSymmetrize( pastix_spm_t *spm );
 
 int z_spmGenRHS(int type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
 int z_spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );

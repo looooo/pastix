@@ -54,7 +54,7 @@ set(spm_sources
   spm.c
   spm_io.c
   spm_integers.c
-  spm_dofs.c
+  spm_dof_extend.c
   spm_read_driver.c
   drivers/skitf.f
   drivers/iohb.c
@@ -93,7 +93,7 @@ add_documented_files(
 add_documented_files(
   # Headers
   spm.h
-  spm_drivers.h
+  #spm_drivers.h
   # Source files
   spm.c
   spm_io.c

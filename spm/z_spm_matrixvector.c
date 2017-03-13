@@ -2,11 +2,12 @@
  *
  * @file z_spm_matrixvector.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package matrix-vector multiplication routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01
@@ -57,9 +58,8 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -179,9 +179,8 @@ z_spmGeCSCv(const pastix_trans_t      trans,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -268,9 +267,8 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -362,9 +360,8 @@ z_spmHeCSCv(      pastix_complex64_t  alpha,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int

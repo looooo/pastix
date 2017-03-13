@@ -2,9 +2,12 @@
  *
  * @file z_spm_2dense.c
  *
- * Convert a sparse matrix into a dense matrix.
+ * SParse Matrix package conversion to dense routine.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Alban Bellot
@@ -31,16 +34,18 @@
  *
  * @brief Convert a CSC matrix into a dense matrix.
  *
+ * The denses matrix is initialized with zeroes and filled with the spm matrix
+ * values. When the matrix is hermitian or symmetric, both sides (upper and
+ * lower) of the dense matrix are initialized.
+ *
  *******************************************************************************
  *
  * @param[in] spm
- *          The sparse matrix uses to generate the right hand side, and the
- *          solution of the full problem.
+ *          The sparse matrix in the CSC format.
  *
  *******************************************************************************
  *
- * @return
- *      \retval A TODO
+ * @return A dense matrix in Lapack layout format
  *
  *******************************************************************************/
 pastix_complex64_t *
@@ -207,16 +212,18 @@ z_spmCSC2dense( const pastix_spm_t *spm )
  *
  * @brief Convert a CSR matrix into a dense matrix.
  *
+ * The denses matrix is initialized with zeroes and filled with the spm matrix
+ * values. When the matrix is hermitian or symmetric, both sides (upper and
+ * lower) of the dense matrix are initialized.
+ *
  *******************************************************************************
  *
  * @param[in] spm
- *          The sparse matrix uses to generate the right hand side, and the
- *          solution of the full problem.
+ *          The sparse matrix in the CSR format.
  *
  *******************************************************************************
  *
- * @return
- *      \retval A TODO
+ * @return A dense matrix in Lapack layout format
  *
  *******************************************************************************/
 pastix_complex64_t *
@@ -383,16 +390,18 @@ z_spmCSR2dense( const pastix_spm_t *spm )
  *
  * @brief Convert a IJV matrix into a dense matrix.
  *
+ * The denses matrix is initialized with zeroes and filled with the spm matrix
+ * values. When the matrix is hermitian or symmetric, both sides (upper and
+ * lower) of the dense matrix are initialized.
+ *
  *******************************************************************************
  *
  * @param[in] spm
- *          The sparse matrix uses to generate the right hand side, and the
- *          solution of the full problem.
+ *          The sparse matrix in the IJV format.
  *
  *******************************************************************************
  *
- * @return
- *      \retval A TODO
+ * @return A dense matrix in Lapack layout format
  *
  *******************************************************************************/
 pastix_complex64_t *
@@ -575,16 +584,18 @@ z_spmIJV2dense( const pastix_spm_t *spm )
  *
  * @brief Convert a sparse matrix into a dense matrix.
  *
+ * The denses matrix is initialized with zeroes and filled with the spm matrix
+ * values. When the matrix is hermitian or symmetric, both sides (upper and
+ * lower) of the dense matrix are initialized.
+ *
  *******************************************************************************
  *
  * @param[in] spm
- *          The sparse matrix uses to generate the right hand side, and the
- *          solution of the full problem.
+ *          The sparse matrix to convert in any format.
  *
  *******************************************************************************
  *
- * @return
- *      \retval A TODO
+ * @return A dense matrix in Lapack layout format
  *
  *******************************************************************************/
 pastix_complex64_t *
@@ -606,19 +617,25 @@ z_spm2dense( const pastix_spm_t *spm )
  *
  * @ingroup pastix_spm_dev
  *
- * @brief TODO
+ * @brief Print a dense matrix to the given file
  *
  *******************************************************************************
  *
  * @param[in] f
+ *          Open file descriptor on which to write the matrix.
  *
  * @param[in] m
+ *          Number of rows of the matrix A.
  *
  * @param[in] n
+ *          Number of columns of the matrix A.
+ *
  *
  * @param[in] A
+ *          The matrix to print of size lda -by- n
  *
  * @param[in] lda
+ *          the leading dimension of the matrix A. lda >= m
  *
  *******************************************************************************/
 void

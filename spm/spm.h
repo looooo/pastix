@@ -2,10 +2,12 @@
  *
  * @file spm.h
  *
- *  PaStiX sparse matrix routines to handle different format of sparse matrices.
- *  $COPYRIGHTS$
+ * SParse Matrix package header.
  *
- * @version 6.0.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge

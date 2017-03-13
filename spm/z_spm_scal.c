@@ -1,10 +1,10 @@
 /**
  * @file z_spm_scal.c
  *
- *  PaStiX spm computational routines.
+ * SParse Matrix package scaling routine.
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 1.0.0
  * @author Mathieu Faverge
@@ -31,7 +31,7 @@
  * @param[in] alpha
  *           The scaling parameter.
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *           The spm which needs to be scaled.
  *
  *******************************************************************************/
