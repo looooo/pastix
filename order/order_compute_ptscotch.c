@@ -2,12 +2,10 @@
  *
  * @file order_compute_ptscotch.c
  *
- *  PaStiX order PT-Scotch routines
+ * PaStiX order driver to perform ordering with PT-Scotch library.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
- *
- * Contains functions to perform ordering with PT-Scotch library.
  *
  * @version 6.0.0
  * @author Xavier Lacoste

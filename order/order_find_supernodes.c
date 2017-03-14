@@ -2,12 +2,10 @@
  *
  * @file order_find_supernodes.c
  *
- *  PaStiX order routines
+ * PaStiX order function to find supernodes out of a given permutation.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
- *
- * Contains function to find supernodes out of a given permutation.
  *
  * @version 6.0.0
  * @author Pascal Henon
@@ -21,7 +19,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering_internal
+ * @ingroup order_dev
  *
  * @brief Computes the size of each subtree.
  *
@@ -85,7 +83,7 @@ compute_subtree_size(      pastix_int_t  n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering_internal
+ * @ingroup order_dev
  *
  * @brief Computes the post order of the elimination tree given on
  * entry.
@@ -192,7 +190,7 @@ compute_post_order(      pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering_internal
+ * @ingroup order_dev
  *
  * @brief Compute the elimination tree of a matrix A
  * (without computing the symbolic factorization) associated with a reordering

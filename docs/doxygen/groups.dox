@@ -65,6 +65,11 @@
  * @defgroup pastix_order Ordering
  * @ingroup  pastix_analyze
  *
+ ********
+ *
+ * @defgroup order_dev Ordering internal function
+ * @ingroup  pastix_order
+ *
  ******
  *
  * @defgroup pastix_symbol Symbolic Factorization

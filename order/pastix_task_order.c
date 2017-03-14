@@ -3,7 +3,7 @@
  * @file pastix_task_order.c
  *
  * PaStiX ordering task.
- * Contains wrappers to the build a good ordering for sparse direct solvers.
+ * Contains wrappers to build a good ordering for sparse direct solvers.
  * Affected by the compilation time options:
  *    - HAVE_SCOTCH: Enable Scotch graph partitioning library.
  *    - HAVE_PTSCOTCH: Enable PT-Scotch graph partitioning library.

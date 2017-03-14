@@ -2,12 +2,10 @@
  *
  * @file order_check.c
  *
- *  PaStiX order check routines
+ * PaStiX order function to check correctness of a ordering structure.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
- *
- * Contains function to check correctness of a ordering structure.
  *
  * @version 6.0.0
  * @author Francois Pellegrini

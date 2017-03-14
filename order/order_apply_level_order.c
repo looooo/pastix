@@ -2,16 +2,15 @@
  *
  * @file order_apply_level_order.c
  *
- *  PaStiX order routines
+ * PaStiX order function that apply reverse level ordering to the elimination
+ * tree.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * Contains the function that apply reverse level ordering to the elimination
- * tree.
- *
  * @version 6.0.0
- * @author Francois Pellegrini
+ * @author Gregoire Pichon
+ * @author Mathieu Faverge
  * @date 2013-06-24
  *
  **/

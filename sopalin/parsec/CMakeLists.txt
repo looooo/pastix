@@ -1,3 +1,13 @@
+###
+#
+#  @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.0
+#  @author Mathieu Faverge
+#  @date 2013-06-24
+#
+###
 include(RulesPrecisions)
 include(RulesJDF)
 # reset variables
@@ -59,7 +69,14 @@ add_library(pastix_parsec
   ${generated_files}
   ${EXTRA_SOURCES})
 
-target_link_libraries(pastix_parsec pastix_kernels)
+target_link_libraries(pastix_parsec
+  pastix_kernels
+  ${PARSEC_LIBRARIES}
+  parsec_distribution
+  parsec_distribution_matrix
+  ${PARSEC_EXTRA_LIBRARIES}
+  ${PARSEC_LIBRARIES}
+  )
 
 add_dependencies(pastix_parsec
   sopalin_headers

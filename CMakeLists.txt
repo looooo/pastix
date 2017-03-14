@@ -1,3 +1,13 @@
+###
+#
+#  @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.0
+#  @author Mathieu Faverge
+#  @date 2013-06-24
+#
+###
 cmake_minimum_required (VERSION 2.8)
 project (PASTIX C CXX Fortran)
 
@@ -641,12 +651,7 @@ target_link_libraries(pastix
 if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
-    ${PARSEC_LIBRARIES}
-    parsec_distribution
-    parsec_distribution_matrix
-    ${PARSEC_EXTRA_LIBRARIES}
-    ${PARSEC_LIBRARIES}
-    )
+  )
 endif()
 
 # foreach (module2 ${modules})

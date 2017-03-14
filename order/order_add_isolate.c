@@ -2,12 +2,10 @@
  *
  * @file order_add_isolate.c
  *
- *  PaStiX order routines
+ * PaStiX order routines to add subset of isolated vertices.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
- *
- * Contains function to add subset of isolated vertices.
  *
  * @version 6.0.0
  * @author Xavier Lacoste

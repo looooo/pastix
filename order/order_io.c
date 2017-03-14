@@ -2,12 +2,10 @@
  *
  * @file order_io.c
  *
- * PaStiX order IO routines
+ * PaStiX order functions to read/write the order structure from/to the disk.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
- *
- * Contains functions to read/write the order structure from/to the disk.
  *
  * @version 6.0.0
  * @author Francois Pellegrini
@@ -23,7 +21,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering_internal
+ * @ingroup order_dev
  *
  * @brief Load an ordering from a file.
  *
@@ -175,7 +173,7 @@ int orderLoad( Order *ordemesh,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering_internal
+ * @ingroup order_dev
  *
  * @brief Save an ordering to a file.
  *
