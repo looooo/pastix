@@ -46,34 +46,36 @@ struct pastix_graph_s {
  * @name Graph basic subroutines
  * @{
  */
-int  graphPrepare(          pastix_data_t   *pastix_data,
-                      const pastix_csc_t    *csc,
-                            pastix_graph_t  **graph );
-void graphBase(             pastix_graph_t  *graph, int baseval );
-void graphExit(             pastix_graph_t  *graph );
+int  graphPrepare(       pastix_data_t   *pastix_data,
+                   const pastix_spm_t    *spm,
+                         pastix_graph_t  **graph );
+void graphBase   (       pastix_graph_t  *graph, int baseval );
+void graphExit   (       pastix_graph_t  *graph );
 
 /**
  * @}
  * @name Graph IO subroutines
  * @{
  */
-void graphLoad(       const pastix_data_t  *pastix_data,
+void graphLoad( const pastix_data_t  *pastix_data,
                       pastix_graph_t *graph );
-void graphSave(       const pastix_data_t  *pastix_data,
-                      const pastix_graph_t *graph );
+void graphSave( const pastix_data_t  *pastix_data,
+                const pastix_graph_t *graph );
 
 /**
  * @}
  * @name Graph manipulation subroutines
  * @{
  */
+void graphSort      ( pastix_graph_t *graph );
+void graphNoDiag    ( pastix_graph_t *graph );
 int  graphSymmetrize(       pastix_int_t    n,
                       const pastix_int_t   *ia,
                       const pastix_int_t   *ja,
                       const pastix_int_t   *loc2glob,
                             pastix_graph_t *newgraph );
 
-int  graphIsolate(          pastix_int_t    n,
+int  graphIsolate   (       pastix_int_t    n,
                       const pastix_int_t   *colptr,
                       const pastix_int_t   *rows,
                             pastix_int_t    isolate_n,
@@ -83,7 +85,7 @@ int  graphIsolate(          pastix_int_t    n,
                             pastix_int_t   **new_perm,
                             pastix_int_t   **new_invp );
 
-int  graphApplyPerm(  const pastix_graph_t *graphA,
+int  graphApplyPerm ( const pastix_graph_t *graphA,
                       const pastix_int_t   *perm,
                             pastix_graph_t *graphPA );
 

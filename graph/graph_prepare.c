@@ -2,7 +2,7 @@
  *
  * @file graph_prepare.c
  *
- *  PaStiX graph construction routines
+ * PaStiX graph construction routines
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -17,14 +17,14 @@
 #include "common.h"
 #include "spm.h"
 #include "graph.h"
-#if defined(PASTIX_DISTRIBUTED)
+#if defined(PASTIX_DISTRIBUTED) && 0
 #include "cscd_utils_intern.h"
 #endif
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph_dev
+ * @ingroup pastix_graph
  *
  * @brief This routine removes the diagonal edges from a centralized graph.
  *
@@ -77,7 +77,7 @@ graphNoDiag( pastix_graph_t *graph )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_graph_dev
+ * @ingroup pastix_graph
  *
  * @brief This routine sortes the subarray of edges of each vertex.
  *
@@ -214,7 +214,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 graphNoDiag( tmpgraph );
             }
         }
-#if defined(PASTIX_DISTRIBUTED)
+#if defined(PASTIX_DISTRIBUTED) && 0
         /*
          * Distributed graph
          */

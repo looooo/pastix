@@ -2,10 +2,10 @@
  *
  * @file graph_symmetrize.c
  *
- *  PaStiX graph symmetrize routine
+ * PaStiX graph symmetrize routine
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
- *
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author Xavier Lacoste
@@ -30,7 +30,7 @@
  *          The number of vertex of the original graph.
  *
  * @param[in] ia
- *          Array of size n+1. 
+ *          Array of size n+1.
  *          Index of first edge for each vertex in ja array.
  *
  * @param[in] ja

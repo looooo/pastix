@@ -2,7 +2,7 @@
  *
  * @file graph_io.c
  *
- *  PaStiX graph IO routines
+ * PaStiX graph IO routines
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
