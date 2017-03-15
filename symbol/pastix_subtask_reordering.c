@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_task_reordering.c
+ * @file pastix_subtask_reordering.c
  *
  * PaStiX reordering task
  *
@@ -26,8 +26,8 @@
  *
  * During this step, unknowns are reordered within each supernode to compact
  * off-diagonal blocks.  It takes as input the ordering provided by
- * pastix_task_order(), and the symbolic factorization computed by
- * pastix_task_symbfact(). It returns boths structures Order and Symbol updated.
+ * pastix_subtask_order(), and the symbolic factorization computed by
+ * pastix_subtask_symbfact(). It returns boths structures Order and Symbol updated.
  *
  * This function reorders the unknowns of the problem based on traveller
  * salesman problem to gather together the contibutions facing each supernodes.
@@ -57,7 +57,7 @@
  *
  *******************************************************************************/
 int
-pastix_task_reordering( pastix_data_t *pastix_data )
+pastix_subtask_reordering( pastix_data_t *pastix_data )
 {
     Clock         timer;
     pastix_int_t *iparm;
@@ -69,7 +69,7 @@ pastix_task_reordering( pastix_data_t *pastix_data )
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_reordering: wrong pastix_data parameter");
+        errorPrint("pastix_subtask_reordering: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm    = pastix_data->iparm;
@@ -117,17 +117,17 @@ pastix_task_reordering( pastix_data_t *pastix_data )
     verbose = iparm[IPARM_VERBOSE];
     iparm[IPARM_VERBOSE] = pastix_imax( 0, verbose-2 );
 
-    pastix_task_symbfact( pastix_data, NULL, NULL );
+    pastix_subtask_symbfact( pastix_data, NULL, NULL );
 
     iparm[IPARM_VERBOSE] = verbose;
 
 #if !defined(NDEBUG)
     if ( orderCheck( ordemesh ) != 0) {
-        errorPrint("pastix_task_reordering: orderCheck on final ordering failed !!!");
+        errorPrint("pastix_subtask_reordering: orderCheck on final ordering failed !!!");
         assert(0);
     }
     if( symbolCheck(pastix_data->symbmtx) != 0 ) {
-        errorPrint("pastix_task_reordering: symbolCheck on final symbol matrix failed !!!");
+        errorPrint("pastix_subtask_reordering: symbolCheck on final symbol matrix failed !!!");
         assert(0);
     }
 #endif

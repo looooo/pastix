@@ -84,10 +84,11 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
  *          The right hand side member.
  *
  *******************************************************************************/
-void pastix_task_raff(pastix_data_t *pastix_data,
-                      void          *x,
-                      pastix_int_t   rhsnbr,
-                      void          *b)
+int
+pastix_task_raff( pastix_data_t *pastix_data,
+                  void          *x,
+                  pastix_int_t   rhsnbr,
+                  void          *b )
 {
     pastix_int_t  *iparm    = pastix_data->iparm;
     Order         *ordemesh = pastix_data->ordemesh;
@@ -116,8 +117,8 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->permtab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-        return;
+        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
+        return PASTIX_ERR_BADPARAMETER;
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
@@ -126,8 +127,8 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->permtab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-        return;
+        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
+        return PASTIX_ERR_BADPARAMETER;
     }
 
     clockStart(timer);
@@ -143,8 +144,8 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->peritab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-        return;
+        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
+        return PASTIX_ERR_BADPARAMETER;
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
@@ -153,9 +154,9 @@ void pastix_task_raff(pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->peritab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = BADPARAMETER_ERR;
-        return;
+        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
+        return PASTIX_ERR_BADPARAMETER;
     }
 
-    return;
+    return PASTIX_SUCCESS;
 }

@@ -105,4 +105,9 @@
  *           that allow to re-split column blocs and distribute them
  *           on processors.
  *
+ **********
+ *
+ * @defgroup blend_dev_cand Candidates
+ * @ingroup  pastix_blend
+ *
  **/

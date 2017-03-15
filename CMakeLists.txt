@@ -508,7 +508,7 @@ set(PASTIX_LIB_SRCS
   order/order_check.c
   order/order_find_supernodes.c
   order/order_io.c
-  order/pastix_task_order.c
+  order/pastix_subtask_order.c
   #
   symbol/symbol.c
   symbol/symbol_amalgamate.c
@@ -528,8 +528,8 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_reordering.c
   symbol/symbol_rustine.c
   #symbol/symbol_tree.c
-  symbol/pastix_task_reordering.c
-  symbol/pastix_task_symbfact.c
+  symbol/pastix_subtask_reordering.c
+  symbol/pastix_subtask_symbfact.c
 
   # Files that still require some changes
   blend/cand.c
@@ -552,8 +552,9 @@ set(PASTIX_LIB_SRCS
   blend/simu_task.c
   blend/solver.c
   blend/solver_backup.c
-  blend/pastix_task_analyze.c
   blend/solver_draw.c
+  blend/pastix_subtask_blend.c
+  blend/pastix_task_analyze.c
 
   common/api.c
   common/errors.c
@@ -710,7 +711,7 @@ add_documented_files(
   order/order_compute_metis.c
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
-  order/pastix_task_order.c
+  order/pastix_subtask_order.c
   #
   symbol/symbol.h
   symbol/symbol_cost.h  #TODO: include in developer version
@@ -734,13 +735,13 @@ add_documented_files(
   symbol/symbol_kass_level.c
   symbol/symbol_reordering.c
   symbol/symbol_rustine.c
-  symbol/pastix_task_reordering.c
-  symbol/pastix_task_symbfact.c
+  symbol/pastix_subtask_reordering.c
+  symbol/pastix_subtask_symbfact.c
   #
   blend/blend.h
+  blend/cand.h
   #blend/blendctrl.h
   #blend/bulles.h
-  #blend/cand.h
   #blend/cost.h
   #blend/costfunc.h
   #blend/elimin.h
@@ -780,6 +781,7 @@ add_documented_files(
   #blend/solver_io.c
   #blend/splitsymbol.c
   #blend/task.c
+  blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
 )
 

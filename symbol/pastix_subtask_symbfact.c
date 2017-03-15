@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_task_symbfact.c
+ * @file pastix_subtask_symbfact.c
  *
  * PaStiX symbolic factorizations task.
  * Contains wrappers to the symbolic factorization step.
@@ -112,9 +112,9 @@
  *
  *******************************************************************************/
 int
-pastix_task_symbfact( pastix_data_t *pastix_data,
-                      pastix_int_t  *perm,
-                      pastix_int_t  *invp )
+pastix_subtask_symbfact( pastix_data_t *pastix_data,
+                         pastix_int_t  *perm,
+                         pastix_int_t  *invp )
 {
     pastix_int_t   *iparm;
     double         *dparm;
@@ -137,14 +137,14 @@ pastix_task_symbfact( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_symbfact: wrong pastix_data parameter");
+        errorPrint("pastix_subtask_symbfact: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm = pastix_data->iparm;
     dparm = pastix_data->dparm;
 
     if ( !(pastix_data->steps & STEP_ORDERING) ) {
-        errorPrint("pastix_task_symbfact: pastix_task_order() has to be called before calling this function");
+        errorPrint("pastix_subtask_symbfact: pastix_subtask_order() has to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -153,11 +153,11 @@ pastix_task_symbfact( pastix_data_t *pastix_data,
     ordemesh = pastix_data->ordemesh;
 
     if (graph == NULL) {
-        errorPrint("pastix_task_symbfact: the pastix_data->graph field has not been initialized, pastix_task_order should be called first");
+        errorPrint("pastix_subtask_symbfact: the pastix_data->graph field has not been initialized, pastix_subtask_order should be called first");
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordemesh == NULL) {
-        errorPrint("pastix_task_symbfact: the pastix_data->ordemesh field has not been initialized, pastix_task_order should be called first");
+        errorPrint("pastix_subtask_symbfact: the pastix_data->ordemesh field has not been initialized, pastix_subtask_order should be called first");
         return PASTIX_ERR_BADPARAMETER;
     }
     n = ordemesh->vertnbr;
@@ -168,7 +168,7 @@ pastix_task_symbfact( pastix_data_t *pastix_data,
     orderBase( ordemesh, 0 );
     graphBase( graph, 0 );
 
-    print_debug(DBG_STEP, "-> pastix_task_symbfact\n");
+    print_debug(DBG_STEP, "-> pastix_subtask_symbfact\n");
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
         pastix_print(procnum, 0, OUT_STEP_FAX );
 
@@ -177,7 +177,7 @@ pastix_task_symbfact( pastix_data_t *pastix_data,
         MALLOC_INTERN( pastix_data->symbmtx, 1, SymbolMatrix );
     }
     else {
-        errorPrint("pastix_task_symbfact: Symbol Matrix already allocated !!!");
+        errorPrint("pastix_subtask_symbfact: Symbol Matrix already allocated !!!");
     }
 
     /* Force Load of symbmtx */
@@ -360,11 +360,11 @@ pastix_task_symbfact( pastix_data_t *pastix_data,
 
 #if !defined(NDEBUG)
     if ( orderCheck( ordemesh ) != 0) {
-        errorPrint("pastix_task_symbfact: orderCheck on final ordering after symbolic factorization failed !!!");
+        errorPrint("pastix_subtask_symbfact: orderCheck on final ordering after symbolic factorization failed !!!");
         assert(0);
     }
     if( symbolCheck(pastix_data->symbmtx) != 0 ) {
-        errorPrint("pastix_task_symbfact: symbolCheck on final symbol matrix failed !!!");
+        errorPrint("pastix_subtask_symbfact: symbolCheck on final symbol matrix failed !!!");
         assert(0);
     }
 #endif

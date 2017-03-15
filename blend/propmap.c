@@ -315,7 +315,7 @@ propMappTree( Cand               *candtab,
 
     if (allcand) {
         propMappSubtreeOn1P( &pmdata, eTreeRoot(etree),
-                             0, candnbr-1, NOCLUSTER );
+                             0, candnbr-1, 0 );
     }
     else {
         double *cost_remain = NULL;
@@ -330,7 +330,7 @@ propMappTree( Cand               *candtab,
 
         propMappSubtree( &pmdata, eTreeRoot(etree),
                          0, candnbr-1,
-                         NOCLUSTER, cost_remain);
+                         0, cost_remain);
 
         memFree_null(cost_remain);
     }

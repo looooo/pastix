@@ -205,7 +205,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      */
     if (iparm[IPARM_START_TASK] == API_TASK_ORDERING)
     {
-        ret = pastix_task_order( pastix_data, spm, perm, invp );
+        ret = pastix_subtask_order( pastix_data, spm, perm, invp );
         if (PASTIX_SUCCESS != ret)
         {
             iparm[IPARM_ERROR_NUMBER] = ret;
@@ -223,7 +223,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT)
     {
-        ret = pastix_task_symbfact( pastix_data, perm, invp );
+        ret = pastix_subtask_symbfact( pastix_data, perm, invp );
         if (PASTIX_SUCCESS != ret)
         {
             iparm[IPARM_ERROR_NUMBER] = ret;
@@ -241,7 +241,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == API_TASK_ANALYSE)
     {
-        ret = pastix_task_blend( pastix_data );
+        ret = pastix_subtask_blend( pastix_data );
         if (PASTIX_SUCCESS != ret)
         {
             iparm[IPARM_ERROR_NUMBER] = ret;

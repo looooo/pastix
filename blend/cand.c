@@ -2,16 +2,22 @@
  *
  * @file cand.c
  *
- *  PaStiX analyse routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX analyse functions to manipulate candidates on the elimination tree
+ * structure.
  *
- * Contains basic functions to manipulate elimination tree structure.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_cand
+ * @{
+ *    This module contains all subroutines to initialize the candidates array
+ *    for each supernode, as well as supernode properties that are defined by
+ *    level such as 2D layouts and 2D tasks.
  *
  **/
 #include "common.h"
@@ -21,6 +27,20 @@
 #include "cand.h"
 #include "solver.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the candtab array with default values.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] candtab
+ *          The array of size cblknbr of Cand structure to initialize.
+ *
+ * @param[in] cblknbr
+ *          The size of the candtab array.
+ *
+ *******************************************************************************/
 void
 candInit( Cand *candtab,
           pastix_int_t cblknbr )
@@ -39,6 +59,20 @@ candInit( Cand *candtab,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Print the candidates array into the candtab.txt file
+ *
+ *******************************************************************************
+ *
+ * @param[in] candtab
+ *          The array of size cblknbr to print in the file.
+ *
+ * @param[in] cblknbr
+ *          The size of the candtab array.
+ *
+ *******************************************************************************/
 void
 candSave( const Cand *candtab,
           pastix_int_t cblknbr )
@@ -61,6 +95,28 @@ candSave( const Cand *candtab,
     fclose(f);
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Set a single candidate recursively to a subtree
+ *
+ *******************************************************************************
+ *
+ * @param[inout] candtab
+ *          On entry, the array of candidates initialized with candInit().
+ *          On exit, each node belonging to the subtree has procnum as a single
+ *          candidate.
+ *
+ * @param[in] etree
+ *          The full elimination tree structure of the problem
+ *
+ * @param[in] rootnum
+ *          The root index of the subtree to initialize
+ *
+ * @param[in] procnum
+ *          The processor index to affect to all nodes in the subtree
+ *
+ *******************************************************************************/
 void
 candSetSubCandidate( Cand *candtab,
                      const EliminTree *etree,
@@ -76,11 +132,35 @@ candSetSubCandidate( Cand *candtab,
         candSetSubCandidate( candtab, etree, eTreeSonI(etree, rootnum, i), procnum );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Set the clusters candidates from the cores canditates
+ *
+ *******************************************************************************
+ *
+ * @param[inout] candtab
+ *          On entry, the array of candidates with the first and last core
+ *          candidates initialized.
+ *          On exit, the array of candidate with te first and last cluster
+ *          candidate information updated.
+ *
+ * @param[in] cblknbr
+ *          The size of the candtab array.
+ *
+ * @param[in] core2clust
+ *          An array that defines the cluster (MPI process) that owns each core
+ *          candidate.
+ *
+ * @param[in] coresnbr
+ *          The size of the core2clust array.
+ *
+ *******************************************************************************/
 void
-candSetClusterCand( Cand *candtab,
-                    pastix_int_t  cblknbr,
-                    pastix_int_t *core2clust,
-                    pastix_int_t  coresnbr )
+candSetClusterCand(       Cand         *candtab,
+                          pastix_int_t  cblknbr,
+                    const pastix_int_t *core2clust,
+                          pastix_int_t  coresnbr )
 {
     pastix_int_t i;
     (void)coresnbr;
@@ -95,8 +175,31 @@ candSetClusterCand( Cand *candtab,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Check the correctness of the computed candidates
+ *
+ * Each node of the elimination tree must have a set of candidates included in
+ * its father's set.
+ *
+ *******************************************************************************
+ *
+ * @param[in] candtab
+ *          On entry, the array of candidates to check.
+ *
+ * @param[in] symbmtx
+ *          The symbol matrix structure associated to the candidate array.
+ *
+ *******************************************************************************
+ *
+ * @retval 0 if bad candidat set appear.
+ * @retval 1 if success.
+ *
+ *******************************************************************************/
 int
-candCheck( Cand *candtab, SymbolMatrix *symbmtx )
+candCheck( const Cand         *candtab,
+           const SymbolMatrix *symbmtx )
 {
     pastix_int_t i, j;
     pastix_int_t facecblknum;
@@ -122,7 +225,29 @@ candCheck( Cand *candtab, SymbolMatrix *symbmtx )
     return 1;
 }
 
-
+/**
+ *******************************************************************************
+ *
+ * @brief Recursive function to update the cost fields of the both the candtab
+ *        array, and the elimination tree structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in]    rootnum
+ *
+ * @param[inout] candtab
+ *
+ * @param[inout] etree
+ *
+ * @param[in]    symbmtx
+ *
+ * @param[in]    costmtx
+ *
+ *******************************************************************************
+ *
+ * @return The cost of the subtree.
+ *
+ *******************************************************************************/
 static inline double
 candSubTreeBuild( pastix_int_t        rootnum,
                   Cand               *candtab,
@@ -247,3 +372,8 @@ candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit
         candDistribWithDepth( -level2D, symbmtx, candtab );
     }
 }
+
+/**
+ *@}
+ */
+
