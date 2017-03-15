@@ -21,7 +21,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_reordering
  *
  * @brief Compute the level of supernode cblknum, with Scotch treetab.
  *
@@ -66,7 +66,7 @@ compute_cblklevel( const pastix_int_t *treetab,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_reordering
  *
  * @brief Compute the distance between two rows of a same supernode.
  *
@@ -163,7 +163,7 @@ hamming_distance( pastix_int_t **vectors,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_reordering
  *
  * @brief Reorder rows of a supernode with the nearest insertion TSP heuristic.
  *
@@ -406,7 +406,7 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_reordering
  *
  * @brief Reorder a supernode
  *

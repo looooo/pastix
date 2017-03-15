@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Compute the non zero pattern of the direct factorization of a matrix
  * A, given the supernode partition associated.

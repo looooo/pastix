@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Create the symbol matrix from the graph of the non zero pattern of the
  * factorized matrix and the supernode partition.
@@ -177,7 +177,7 @@ kassBuildSymbol(      kass_csr_t   *P,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Patch the symbol matrix to add blocks in order to get a
  * real elimination tree.

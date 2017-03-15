@@ -10,6 +10,9 @@
  *
  ******
  *
+ * @defgroup spm_dev_driver Drivers and generators
+ * @ingroup  pastix_spm_dev
+ *
  * @defgroup spm_dev_convert Format conversion
  * @ingroup  pastix_spm_dev
  *
@@ -40,9 +43,6 @@
  * @defgroup spm_dev_rhs Solver checking
  * @ingroup  pastix_spm_dev
  *
- * @defgroup spm_dev_driver Drivers and generators
- * @ingroup  pastix_spm_dev
- *
  **
  *
  * @defgroup pastix_users PaStiX
@@ -67,7 +67,7 @@
  *
  ********
  *
- * @defgroup order_dev Ordering internal function
+ * @defgroup order_dev Ordering internal function documentation
  * @ingroup  pastix_order
  *
  ******
@@ -77,11 +77,25 @@
  *
  ********
  *
- * @defgroup pastix_symbol_dev Symbolic structure internal function documentation
+ * @defgroup symbol_dev Symbolic internal function documentation
  * @ingroup  pastix_symbol
  *
- * @defgroup pastix_symbol_kass KASS symbolic factorization internal function documentation
- * @ingroup  pastix_symbol
+ **********
+ *
+ * @defgroup symbol_dev_draw        Drawing
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_fax         FAX symbolic factorization
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_kass        KASS symbolic factorization
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_reordering  Reordering
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_cost        Time/Flops costs
+ * @ingroup  symbol_dev
  *
  ******
  *

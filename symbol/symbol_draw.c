@@ -18,7 +18,7 @@
 #include "symbol.h"
 
 /**
- * @addtogroup pastix_symbol_dev
+ * @addtogroup symbol_dev_draw
  * @{
  *
  */

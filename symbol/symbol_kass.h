@@ -12,7 +12,7 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
- * @addtogroup pastix_symbol_dev
+ * @addtogroup symbol_dev_kass
  * @{
  *
  **/

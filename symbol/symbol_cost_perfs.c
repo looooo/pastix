@@ -2,8 +2,8 @@
  *
  * @file symbol_cost_perfs.c
  *
- *  PaStiX symbol functions to compute the computational time induced by the chosen
- *  symbolic structure with a given performance model.
+ * PaStiX symbol functions to compute the computational time induced by the chosen
+ * symbolic structure with a given performance model.
  *
  * @copyright 1999-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -16,7 +16,7 @@
  * @author Pierre Ramet
  * @date 2013-06-24
  *
- * @addtogroup pastix_symbol_dev
+ * @addtogroup symbol_dev_cost
  * @{
  *
  **/

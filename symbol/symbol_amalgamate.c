@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
- * @addtogroup pastix_symbol_kass
+ * @addtogroup symbol_dev_kass
  * @{
  **/
 #include "common.h"

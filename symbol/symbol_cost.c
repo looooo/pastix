@@ -26,7 +26,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_cost
  *
  * @brief Template function to compute cost on a column-block based approach
  *        with a single update per column block
@@ -90,7 +90,7 @@ sum1d( const symbol_function_t *fptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_cost
  *
  * @brief Template function to compute cost on block based approach.
  *
@@ -168,7 +168,7 @@ sum2d( const symbol_function_t *fptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_cost
  *
  * @brief Template function to compute cost on block based approach which keeps
  * the cost per block.
@@ -253,7 +253,7 @@ sum2dext( const symbol_function_t *fptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_dev
+ * @ingroup symbol_dev_cost
  *
  * @brief Recursive function to compute the cost of the full symbolic structure
  * with either sum1d(), sum2d(), or sum2dext().

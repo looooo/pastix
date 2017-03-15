@@ -12,7 +12,7 @@
  * @author Mathieu Faverge
  * @date 2016-11
  *
- * @addtogroup pastix_symbol_dev
+ * @addtogroup symbol_dev_fax
  * @{
  *
  */

@@ -15,7 +15,7 @@
  * @author Pierre Ramet
  * @date 2013-06-24
  *
- * @addtogroup pastix_symbol_dev
+ * @addtogroup symbol_dev_cost
  * @{
  **/
 #ifndef _SYMBOL_COST_H_
@@ -44,6 +44,6 @@ extern symbol_function_t flopstable[2][4];
 extern symbol_function_t perfstable[2][4];
 
 /**
- * @} End of pastix_symbol_dev group
+ * @}
  */
 #endif /* _SYMBOL_COST_H_ */

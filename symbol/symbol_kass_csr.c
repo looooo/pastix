@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Initialize the data structure by doing the first allocations within
  * the structure and initializing the fields.
@@ -49,7 +49,7 @@ kass_csrInit( pastix_int_t n, kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Free the data store in the structure.
  *
@@ -75,7 +75,7 @@ kass_csrClean( kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Computes the number of non zero entries in the graph.
  *
@@ -107,7 +107,7 @@ kass_csrGetNNZ( const kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Compact a compressed graph.
  *
@@ -153,7 +153,7 @@ kass_csrCompact( kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Generate the graph of P*A from the graph of A and the
  * permutation vector.

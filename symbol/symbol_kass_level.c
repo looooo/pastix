@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol_kass
+ * @ingroup symbol_dev_kass
  *
  * @brief Compute the non zero pattern of the levelized
  * incomplete factor for a sparse lower triangular matrix in CSC format. This
