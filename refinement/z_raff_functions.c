@@ -19,7 +19,6 @@
 #include "common.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
-#include "sopalin_thread.h"
 #include "sopalin_data.h"
 #include "z_raff_functions.h"
 
@@ -588,8 +587,8 @@ void z_Pastix_AXPY( pastix_int_t n, double coeff,
  *******************************************************************************/
 pastix_int_t z_Pastix_me( void *arg )
 {
-    sopthread_data_t *argument = (sopthread_data_t *)arg;
-    pastix_int_t        me       = argument->me;
+    //sopthread_data_t *argument = (sopthread_data_t *)arg;
+    pastix_int_t        me       = 0; //argument->me;
     return me;
 }
 
