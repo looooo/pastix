@@ -62,7 +62,7 @@ typedef struct BlendCtrl_ {
     pastix_int_t   *iparm;           /*+ In/Out Integer parameters +*/
     double         *dparm;           /*+ In/Out Float parameters   +*/
 
-    BubbleTree        *btree;         /*+ arbre de bulles +*/
+    //BubbleTree        *btree;         /*+ arbre de bulles +*/
     EliminTree        *etree;         /*+ the elimination tree                   +*/
     CostMatrix        *costmtx;       /*+ the cost bounded to each cblk and blok +*/
     Cand              *candtab;       /*+ processor candidate tab                +*/
