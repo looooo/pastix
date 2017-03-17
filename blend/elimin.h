@@ -1,38 +1,41 @@
-/************************************************************/
-/**                                                        **/
-/**   NAME       : elimin.h                                **/
-/**                                                        **/
-/**   AUTHORS    : Pascal HENON                            **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                These lines are the data declarations   **/
-/**                for the elimination tree.               **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to     27 jul 1998     **/
-/**                                                        **/
-/************************************************************/
+/**
+ *
+ * @file elimin.h
+ *
+ * PaStiX analyse elimin tree and graph header
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_elim
+ * @{
+ *
+ **/
 
-/*
- **  The type and structure definitions.
+/**
+ * @brief Node of the elimination tree.
  */
-
-/*+ The node structure. +*/
 typedef struct eTreeNode_s {
-    double         total;   /* Cost of the treenode only (compute + send) */
-    double         subtree; /* Cost of the subtree (includes total)       */
-    pastix_int_t   sonsnbr; /* Number of sons                             */
-    pastix_int_t   fathnum; /* index of the father node                   */
-    pastix_int_t   fsonnum; /* index of first son                         */
+    double         total;   /**< Cost of the treenode only (compute + send) */
+    double         subtree; /**< Cost of the subtree (includes total)       */
+    pastix_int_t   sonsnbr; /**< Number of sons                             */
+    pastix_int_t   fathnum; /**< index of the father node                   */
+    pastix_int_t   fsonnum; /**< index of first son                         */
 } eTreeNode_t;
 
-/*+ The elimination tree. +*/
-
+/**
+ * @brief Elimination tree.
+ */
 typedef struct EliminTree_ {
-    pastix_int_t   baseval;              /*+ Base value for numberings         +*/
-    pastix_int_t   nodenbr;              /*+ Number of nodes                   +*/
-    eTreeNode_t  * nodetab;              /*+ Array of node          [+1,based] +*/
-    pastix_int_t * sonstab;              /*+ Sons index of nodes               +*/
+    pastix_int_t   baseval; /**< Base value for numberings         */
+    pastix_int_t   nodenbr; /**< Number of nodes                   */
+    eTreeNode_t  * nodetab; /**< Array of node          [+1,based] */
+    pastix_int_t * sonstab; /**< Sons index of nodes               */
 } EliminTree;
 
 pastix_int_t  eTreeInit      (      EliminTree *);

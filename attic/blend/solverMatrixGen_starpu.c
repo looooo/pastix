@@ -463,4 +463,7 @@
         solvmtx->updovct.glistnbr = cursor;
     }
 #endif /* defined(PASTIX_WITH_STARPU) */
+<<<<<<< a2d955e581fa3d7302669fbe075293a8e4c895d0
 
+=======
+>>>>>>> Further cleanup on blend

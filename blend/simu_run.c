@@ -15,6 +15,7 @@
 #include "cost.h"
 #include "cand.h"
 #include "blendctrl.h"
+#include "simu.h"
 #include "solver.h"
 #include "simu.h"
 #include "perf.h"

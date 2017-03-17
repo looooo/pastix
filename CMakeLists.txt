@@ -532,6 +532,9 @@ set(PASTIX_LIB_SRCS
   symbol/pastix_subtask_symbfact.c
 
   # Files that still require some changes
+  blend/pastix_subtask_blend.c
+  blend/pastix_task_analyze.c
+
   blend/cand.c
   blend/elimin_tree.c
   blend/propmap.c
@@ -539,7 +542,6 @@ set(PASTIX_LIB_SRCS
   blend/splitsymbol.c
   blend/blendctrl.c
 
-  blend/blend.c
   blend/cost.c
   blend/simu_run.c
   blend/extendVector.c
@@ -553,8 +555,6 @@ set(PASTIX_LIB_SRCS
   blend/solver.c
   blend/solver_backup.c
   blend/solver_draw.c
-  blend/pastix_subtask_blend.c
-  blend/pastix_task_analyze.c
 
   common/api.c
   common/errors.c
@@ -759,7 +759,6 @@ add_documented_files(
   #blend/solver_io.h
   #blend/splitpartlocal.h
   #blend/task.h
-  #blend/blend.c
   #blend/blendctrl.c
   #blend/bulles.c
   #blend/cand.c

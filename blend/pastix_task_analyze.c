@@ -2,11 +2,12 @@
  *
  * @file pastix_task_analyze.c
  *
- *  PaStiX analyse routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX analyse task function
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
