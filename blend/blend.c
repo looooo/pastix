@@ -33,7 +33,6 @@
 /* #include "dof.h" */
 /* #include "costfunc.h" */
 /* #include "splitpartlocal.h" */
-#include "solverMatrixGen.h"
 #include "solver_check.h"
 #include "task.h"
 #include "solver_check.h"
@@ -68,7 +67,6 @@ void solverBlend(BlendCtrl    *ctrl,
     SimuCtrl     *simuctrl;
     double        timer_all     = 0.;
     double        timer_current = 0.;
-    pastix_int_t *bcofind       = NULL;
     pastix_int_t  clustnum = ctrl->clustnum;
     pastix_int_t  clustnbr = ctrl->clustnbr;
 
@@ -307,7 +305,7 @@ void solverBlend(BlendCtrl    *ctrl,
         }
         clockStart(timer_current);
 
-        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl);
+        solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl);
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
@@ -336,9 +334,6 @@ void solverBlend(BlendCtrl    *ctrl,
         }
 #endif
     }
-
-    if (bcofind != NULL)
-        memFree_null(bcofind);
 
     /* End timing */
     clockStop(timer_all);
