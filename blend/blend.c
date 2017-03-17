@@ -30,7 +30,6 @@
 #include "blendctrl.h"
 #include "simu.h"
 #include "solver_check.h"
-#include "task.h"
 #include "solver_check.h"
 #include "blend.h"
 #include "order.h"
@@ -226,7 +225,7 @@ void solverBlend(BlendCtrl    *ctrl,
                   ctrl->total_nbcores );
 
         /* Create task array */
-        taskBuild(simuctrl, symbmtx, ctrl->candtab);
+        simuTaskBuild(simuctrl, symbmtx, ctrl->candtab);
         clockStop(timer_current);
 
         if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {

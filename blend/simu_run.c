@@ -17,7 +17,6 @@
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "task.h"
 #include "solver.h"
 #include "perf.h"
 

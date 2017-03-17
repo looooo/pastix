@@ -539,7 +539,7 @@ set(PASTIX_LIB_SRCS
   blend/solver_copy.c
   blend/solver_check.c
   blend/solver_io.c
-  blend/task.c
+  blend/simu_task.c
   blend/solver.c
   blend/solver_backup.c
   blend/pastix_task_analyze.c

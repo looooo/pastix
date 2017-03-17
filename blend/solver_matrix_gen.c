@@ -17,7 +17,6 @@
 #include "blendctrl.h"
 #include "simu.h"
 #include "solver_check.h"
-#include "task.h"
 #include "solver_io.h"
 
 int

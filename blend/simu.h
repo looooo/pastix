@@ -98,10 +98,12 @@ typedef struct simuctrl_s {
 /*
  **  The function prototypes.
  */
-pastix_int_t simuInit   ( SimuCtrl *, const SymbolMatrix *, const Cand *, pastix_int_t, pastix_int_t );
-pastix_int_t simuRealloc( SimuCtrl *, pastix_int_t, pastix_int_t );
-void         simuExit   ( SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t );
-void         simuRun    ( SimuCtrl *, const BlendCtrl *, const SymbolMatrix * );
+pastix_int_t simuInit     ( SimuCtrl *, const SymbolMatrix *, const Cand *, pastix_int_t, pastix_int_t );
+pastix_int_t simuRealloc  ( SimuCtrl *, pastix_int_t, pastix_int_t );
+void         simuExit     ( SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t );
+void         simuRun      ( SimuCtrl *, const BlendCtrl *, const SymbolMatrix * );
+void         simuTaskBuild( SimuCtrl *, const SymbolMatrix *, const Cand *);
+double       simuTaskSendCost(SimuTask *, const pastix_int_t, const pastix_int_t, BlendCtrl *);
 
 #define CLUST2INDEX(n,c) ((c) + simuctrl->bloktab[n].ftgtnum - simuctrl->bloktab[n].fccandnum)
 #define INDEX2CLUST(r,s) ((r) - simuctrl->bloktab[s].ftgtnum + simuctrl->bloktab[s].fccandnum)
