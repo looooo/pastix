@@ -1,5 +1,4 @@
 #include "common.h"
-#include "blend/ftgt.h"
 #include "blend/queue.h"
 #include "blend/solver.h"
 
@@ -144,13 +143,13 @@ void solver_copy(const SolverMatrix *solvin,
     /** Copy ftgttab **/
     if (solvout->ftgtnbr != 0)
     {
-        MALLOC_INTERN(solvout->ftgttab, solvout->ftgtnbr, FanInTarget);
+        MALLOC_INTERN(solvout->ftgttab, solvout->ftgtnbr, solver_ftgt_t);
         memcpy(solvout->ftgttab, solvin->ftgttab,
-               solvout->ftgtnbr*sizeof(FanInTarget));
+               solvout->ftgtnbr*sizeof(solver_ftgt_t));
     }
     /** copy infotab of fan intarget **/
     /*for(i=0;i<solvin->ftgtnbr;i++)
-     memcpy(solvout->ftgttab[i].infotab, solvin->ftgttab[i].infotab, MAXINFO*sizeof(pastix_int_t));*/
+     memcpy(solvout->ftgttab[i].infotab, solvin->ftgttab[i].infotab, FTGT_MAXINFO*sizeof(pastix_int_t));*/
 
     /** Copy indtab **/
     MALLOC_INTERN(solvout->indtab, solvout->indnbr, pastix_int_t);

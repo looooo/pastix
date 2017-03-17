@@ -11,13 +11,12 @@
 #include "symbol.h"
 #include "extendVector.h"
 #include "queue.h"
-#include "ftgt.h"
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
 #include "blendctrl.h"
-#include "simu.h"
 #include "solver.h"
+#include "simu.h"
 #include "perf.h"
 
 #if defined(PASTIX_BLEND_GENTRACE)
@@ -26,7 +25,7 @@
 
 static inline void
 simu_computeFtgtCosts( const BlendCtrl   *ctrl,
-                       const FanInTarget *ftgt,
+                       const solver_ftgt_t *ftgt,
                        pastix_int_t dof,
                        pastix_int_t clustsrc,
                        pastix_int_t sync_comm_nbr,
@@ -51,7 +50,7 @@ simu_computeFtgtCosts( const BlendCtrl   *ctrl,
 
     getCommunicationCosts( ctrl, clustsrc, clustdst, sync_comm_nbr, &startup, &bandwidth );
 
-    *send = (startup + bandwidth * (M * N * sizeof(double) + MAXINFO * sizeof(pastix_int_t)));
+    *send = (startup + bandwidth * (M * N * sizeof(double) + FTGT_MAXINFO * sizeof(pastix_int_t)));
     addcost = PERF_GEAM( M, N );
     *add = addcost > 0. ? addcost : 0.0;
     return;
@@ -421,7 +420,7 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
                  pastix_int_t        bloknum,
                  pastix_int_t        fbloknum )
 {
-    FanInTarget  *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
+    solver_ftgt_t  *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
     pastix_int_t *infotab  = ftgt->infotab;
     SymbolBlok   *blokptr  = (symbptr->bloktab) + bloknum;
     SymbolBlok   *fblokptr = (symbptr->bloktab) + fbloknum;

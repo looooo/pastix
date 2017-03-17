@@ -2,7 +2,6 @@
 #include <assert.h>
 
 #include "common.h"
-#include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"
 #include "solver.h"

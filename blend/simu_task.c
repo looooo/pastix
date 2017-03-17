@@ -3,15 +3,14 @@
 
 #include "common.h"
 #include "symbol.h"
-#include "ftgt.h"
 #include "queue.h"
 #include "extendVector.h"
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
 #include "blendctrl.h"
-#include "simu.h"
 #include "solver.h"
+#include "simu.h"
 
 void simuTaskBuild( SimuCtrl *simuctrl,
                     const SymbolMatrix *symbptr,

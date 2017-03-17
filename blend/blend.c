@@ -19,7 +19,6 @@
 
 #include "common.h"
 #include "out.h"
-#include "ftgt.h"
 #include "cost.h"
 #include "symbol.h"
 #include "queue.h"

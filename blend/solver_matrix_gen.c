@@ -7,7 +7,6 @@
 
 #include "common.h"
 #include "cost.h"
-#include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"
 #include "solver.h"
@@ -463,10 +462,10 @@ solverMatrixGen( pastix_int_t        clustnum,
 
         if(solvmtx->ftgtnbr > 0) {
             SimuCluster *simuclust = &(simuctrl->clustab[clustnum]);
-            FanInTarget *solvftgt;
+            solver_ftgt_t *solvftgt;
             pastix_int_t ftgtnbr;
 
-            MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, FanInTarget);
+            MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, solver_ftgt_t);
 
             /* Allocate array to store local indices */
             ftgtnbr = simuctrl->bloktab[symbmtx->bloknbr].ftgtnum;
@@ -485,7 +484,7 @@ solverMatrixGen( pastix_int_t        clustnum,
                     ftgtlocalnum[ftgtnum] = cursor;
 
                     /* Copy information computed during simulation */
-                    memcpy(solvftgt->infotab, simuctrl->ftgttab[ftgtnum].ftgt.infotab, MAXINFO*sizeof(pastix_int_t));
+                    memcpy(solvftgt->infotab, simuctrl->ftgttab[ftgtnum].ftgt.infotab, FTGT_MAXINFO*sizeof(pastix_int_t));
 
                     /* Update with Degre of freedoms */
                     solvftgt->infotab[FTGT_FCOLNUM] *= dof;

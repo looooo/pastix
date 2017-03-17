@@ -42,7 +42,7 @@ typedef struct simuctrl_s SimuCtrl;
 #define CBLK_IN_SCHUR   (1 << 4)
 
 /*
-cd **  The type and structure definitions.
+ **  The type and structure definitions.
  */
 #define COMP_1D                     0
 #define DIAG                        1
@@ -98,6 +98,42 @@ typedef struct pastix_lr_s {
     fct_rradd_t  core_rradd;           /*< Recompression function                           */
     fct_ge2lr_t  core_ge2lr;           /*< Compression function                             */
 } pastix_lr_t;
+
+
+/*
+ ** WARNING : All structures should have a odd number of integer for memory alignment
+ */
+
+/**
+ * @brief Fan-in target information field
+ * @warning The number of field must be odd for memory alignment purpose
+ */
+typedef enum {
+    FTGT_CTRBNBR = 0,           /*+ Number of contributions           +*/
+    FTGT_CTRBCNT,               /*+ Number of contributions remaining +*/
+    FTGT_PROCDST,               /*+ Destination for fanintarget       +*/
+    FTGT_TASKDST,               /*+ Task  destination                 +*/
+    FTGT_BLOKDST,               /*+ Block destination (->COMP_1D)     +*/
+    FTGT_PRIONUM,               /*+ Fanintarget priority              +*/
+    FTGT_FCOLNUM,               /*+ Fanintarget first column          +*/
+    FTGT_LCOLNUM,               /*+ Fanintarget last column           +*/
+    FTGT_FROWNUM,               /*+ Fanintarget first row             +*/
+    FTGT_LROWNUM,               /*+ Fanintarget last row              +*/
+#if (defined OOC) || (defined TRACE_SOPALIN) || (defined PASTIX_WITH_STARPU)
+    FTGT_GCBKDST,               /*+ Global Cblk destination(->COMP_1D)+*/
+    FTGT_IDTRACE,               /*+ To have 12 integer in FanInTarget +*/
+#endif
+    FTGT_MAXINFO
+} solver_ftgt_e;
+
+/**
+ * @brief Fan-in target structure for data exchange
+ */
+typedef struct solver_ftgt_s {
+    pastix_int_t   infotab[FTGT_MAXINFO]; /**< Fan-in target header holding all information enumerated in solver_ftgt_e */
+    void          *coeftab;               /**< Fan-in target coeficient array                                           */
+} solver_ftgt_t;
+
 
 #define GPUID_UNDEFINED -2 /*< GPU still undefined       */
 #define GPUID_NONE      -1 /*< Block not computed on GPU */
@@ -168,7 +204,7 @@ struct SolverMatrix_ {
 
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
-    FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
+    solver_ftgt_t * restrict  ftgttab;              /*+ Fanintarget access vector                 +*/
 
     pastix_int_t              diagmax;              /*+ Maximum size required during diagonal block factorization (hetrf/sytrf) +*/
     pastix_int_t              gemmmax;              /*+ Maximum size required during GEMM computation                           +*/

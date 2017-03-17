@@ -84,7 +84,7 @@ solverBackupInit( const SolverMatrix *solvmtx )
 
     if (solvmtx->ftgtnbr)
     {
-        FanInTarget *ftgt = solvmtx->ftgttab;
+        solver_ftgt_t *ftgt = solvmtx->ftgttab;
 
         MALLOC_INTERN(b->fanin_ctrbnbr, solvmtx->ftgtnbr, pastix_int_t);
         MALLOC_INTERN(b->fanin_prionum, solvmtx->ftgtnbr, pastix_int_t);
@@ -180,7 +180,7 @@ solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b )
 
     if (solvmtx->ftgtnbr)
     {
-        FanInTarget *ftgt = solvmtx->ftgttab;
+        solver_ftgt_t *ftgt = solvmtx->ftgttab;
 
         for (i=0; i<solvmtx->ftgtnbr; i++, ftgt++)
         {

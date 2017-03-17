@@ -132,7 +132,7 @@ solver_size( const SolverMatrix *solvptr )
 
     /* Fanins */
     if ( solvptr->ftgttab ) {
-        mem += solvptr->ftgtnbr * sizeof( FanInTarget );
+        mem += solvptr->ftgtnbr * sizeof( solver_ftgt_t );
     }
     if ( solvptr->indtab ) {
         mem += solvptr->indnbr  * sizeof( pastix_int_t );

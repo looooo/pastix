@@ -7,7 +7,6 @@
 
 #include "common.h"
 #include "symbol.h"
-#include "ftgt.h"
 #include "queue.h"
 #include "solver.h"
 #include "solver_io.h"
@@ -37,8 +36,8 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     SolverCblk   *cblktnd;
     SolverBlok   *blokptr;
     SolverBlok   *bloktnd;
-    FanInTarget  *ftgtptr;
-    FanInTarget  *ftgttnd;
+    solver_ftgt_t  *ftgtptr;
+    solver_ftgt_t  *ftgttnd;
     Task         *taskptr;
     Task         *tasknd;
 
@@ -144,7 +143,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
 
     if (((solvptr->cblktab = (SolverCblk *) memAlloc ((solvptr->cblknbr + 1) * sizeof (SolverCblk)))  == NULL) ||
         ((solvptr->bloktab = (SolverBlok *) memAlloc (solvptr->bloknbr       * sizeof (SolverBlok)))  == NULL) ||
-        ((solvptr->ftgttab = (FanInTarget *)memAlloc (solvptr->ftgtnbr               * sizeof (FanInTarget))) == NULL) ||
+        ((solvptr->ftgttab = (solver_ftgt_t *)memAlloc (solvptr->ftgtnbr               * sizeof (solver_ftgt_t))) == NULL) ||
         ((solvptr->indtab  = (pastix_int_t *)        memAlloc (solvptr->indnbr                * sizeof (pastix_int_t)))         == NULL) ||
         ((solvptr->tasktab = (Task *)       memAlloc ((solvptr->tasknbr+1)           * sizeof (Task)))        == NULL) ||
         ((solvptr->ttsknbr = (pastix_int_t *)        memAlloc ((solvptr->thrdnbr)             * sizeof (pastix_int_t)))         == NULL) ||
@@ -192,7 +191,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
              ftgttnd = ftgtptr + solvptr->ftgtnbr;
          ftgtptr < ftgttnd; ftgtptr ++)
     {
-        for(i=0;i<MAXINFO;i++)
+        for(i=0;i<FTGT_MAXINFO;i++)
             intLoad (stream, &(ftgtptr->infotab[i]));
         ftgtptr->coeftab = NULL;
     }
@@ -331,8 +330,8 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
     SolverCblk   *cblktnd;
     SolverBlok   *blokptr;
     SolverBlok   *bloktnd;
-    FanInTarget  *ftgtptr;
-    FanInTarget  *ftgttnd;
+    solver_ftgt_t  *ftgtptr;
+    solver_ftgt_t  *ftgttnd;
     Task         *taskptr;
 
     pastix_int_t          o;
@@ -408,7 +407,7 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
     for (ftgtptr = solvptr->ftgttab,                /* Write fan in target data */
              ftgttnd = ftgtptr + solvptr->ftgtnbr;
          (ftgtptr < ftgttnd) && (o==0); ftgtptr ++) {
-        for(i=0;i<MAXINFO;i++)
+        for(i=0;i<FTGT_MAXINFO;i++)
             o = (fprintf(stream, "%ld\t", (long)ftgtptr->infotab[i]) == EOF);
         fprintf(stream, "\n");
         fprintf(stream, "\n");

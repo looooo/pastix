@@ -35,11 +35,11 @@ typedef struct SimuProc_ {
 } SimuProc;
 
 typedef struct SimuFtgt_ {
-    FanInTarget  ftgt;       /*> Fan-in informations                            */
-    pastix_int_t clustnum;   /*> Cluster sending the contribution               */
-    SimuTimer    timerecv;   /*> Simulated clock of the reception time          */
-    double       costsend;   /*> Cost to send the contribution                  */
-    double       costadd;    /*> Cost to add the contribution to its final cblk */
+    solver_ftgt_t ftgt;       /*> Fan-in informations                            */
+    pastix_int_t  clustnum;   /*> Cluster sending the contribution               */
+    SimuTimer     timerecv;   /*> Simulated clock of the reception time          */
+    double        costsend;   /*> Cost to send the contribution                  */
+    double        costadd;    /*> Cost to add the contribution to its final cblk */
 } SimuFtgt;
 
 typedef struct SimuCblk_ {

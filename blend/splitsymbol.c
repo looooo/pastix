@@ -11,7 +11,6 @@
 #include "cand.h"
 #include "queue.h"
 #include "blendctrl.h"
-#include "ftgt.h"
 #include "solver.h"
 #include "simu.h"
 

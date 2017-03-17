@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include "common.h"
-#include "ftgt.h"
 #include "symbol.h"
 #include "elimin.h"
 #include "cost.h"
@@ -11,6 +10,7 @@
 #include "queue.h"
 #include "extendVector.h"
 #include "blendctrl.h"
+#include "solver.h"
 #include "simu.h"
 
 pastix_int_t
@@ -105,7 +105,7 @@ simuInit( SimuCtrl     *simuctrl,
             timerSet(&(simuctrl->ftgttab[i].timerecv), 0.0);
             simuctrl->ftgttab[i].costsend = 0.0;
             simuctrl->ftgttab[i].costadd  = 0.0;
-            bzero(simuctrl->ftgttab[i].ftgt.infotab,MAXINFO*sizeof(pastix_int_t));
+            bzero(simuctrl->ftgttab[i].ftgt.infotab,FTGT_MAXINFO*sizeof(pastix_int_t));
             simuctrl->ftgttab[i].ftgt.infotab[FTGT_FCOLNUM] = INTVALMAX;
             simuctrl->ftgttab[i].ftgt.infotab[FTGT_FROWNUM] = INTVALMAX;
             simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR] = 0;

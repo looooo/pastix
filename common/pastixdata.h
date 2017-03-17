@@ -18,7 +18,6 @@
 #include <parsec.h>
 #endif
 
-#include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"
 
@@ -37,6 +36,9 @@
 
 struct pastix_bcsc_s;
 typedef struct pastix_bcsc_s pastix_bcsc_t;
+
+struct SolverMatrix_;
+typedef struct SolverMatrix_ SolverMatrix;
 
 /* /\* */
 /*   struct: SopalinParam_ */
