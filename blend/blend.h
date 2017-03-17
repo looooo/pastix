@@ -54,10 +54,4 @@ void propMappTree( Cand               *candtab,
                    pastix_int_t        candnbr,
                    int nocrossproc, int allcand );
 
-int  solverMatrixGen( const pastix_int_t,
-                      SolverMatrix *,
-                      const SymbolMatrix *,
-                      const SimuCtrl *,
-                      const BlendCtrl * );
-
 #endif /* BLEND_H */

@@ -23,20 +23,15 @@
 #include "cost.h"
 #include "symbol.h"
 #include "queue.h"
-#include "bulles.h"
 #include "solver.h"
 #include "elimin.h"
 #include "extendVector.h"
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"
-/* #include "dof.h" */
-/* #include "costfunc.h" */
-/* #include "splitpartlocal.h" */
 #include "solver_check.h"
 #include "task.h"
 #include "solver_check.h"
-#include "fanboth2.h"
 #include "blend.h"
 #include "order.h"
 

@@ -17,10 +17,14 @@
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
 
-#include "ftgt.h"
-
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
+
+struct blendctrl_s;
+typedef struct blendctrl_s BlendCtrl;
+
+struct simuctrl_s;
+typedef struct simuctrl_s SimuCtrl;
 
 /**
  *  The type and structure definitions.
@@ -38,7 +42,7 @@
 #define CBLK_IN_SCHUR   (1 << 4)
 
 /*
- **  The type and structure definitions.
+cd **  The type and structure definitions.
  */
 #define COMP_1D                     0
 #define DIAG                        1
@@ -275,18 +279,33 @@ static inline int is_block_inside_fblock( const SolverBlok *blok,
 
 #  endif /* defined(NAPA_SOPALIN) */
 
-pastix_int_t sizeofsolver(const SolverMatrix *solvptr,
-                          pastix_int_t *iparm );
+void solverInit( SolverMatrix *solvmtx );
+void solverExit( SolverMatrix *solvmtx );
 
-void solverInit(SolverMatrix *);
-void solverExit(SolverMatrix *);
+int  solverMatrixGen( pastix_int_t        clustnum,
+                      SolverMatrix       *solvmtx,
+                      const SymbolMatrix *symbmtx,
+                      const SimuCtrl     *simuctl,
+                      const BlendCtrl    *ctrl );
 
-pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
-pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
+pastix_int_t  solverLoad( SolverMatrix       *solvptr,
+                          FILE               *stream );
+pastix_int_t  solverSave( const SolverMatrix *solvptr,
+                          FILE               *stream );
 
-void          solverRealloc(SolverMatrix *solvptr);
-SolverMatrix *solverCopy(const SolverMatrix *solvptr, int flttype);
+void          solverRealloc( SolverMatrix       *solvptr);
+SolverMatrix *solverCopy   ( const SolverMatrix *solvptr,
+                             int                 flttype );
 
+
+int           solverDraw      ( const SolverMatrix *solvptr,
+                                FILE               *stream,
+                                int                 verbose );
+void          solverPrintStats( const SolverMatrix *solvptr );
+
+/*
+ * To be removed in 2D branch
+ */
 int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           ngpus,
                              double        memory_percentage,
@@ -294,14 +313,14 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           criterium,
                              int           factotype );
 
+/*
+ * Solver backup
+ */
 struct SolverBackup_s;
 typedef struct SolverBackup_s SolverBackup_t;
 
 SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
 int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
 void            solverBackupExit( SolverBackup_t *b );
-
-int             solverDraw( const SolverMatrix *solvptr, FILE *stream, int verbose );
-void            solverPrintStats( const SolverMatrix *solvptr );
 
 #endif /* _SOLVER_H_*/

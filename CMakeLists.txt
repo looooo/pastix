@@ -530,22 +530,15 @@ set(PASTIX_LIB_SRCS
   blend/blendctrl.c
 
   blend/blend.c
-  blend/bulles.c
   blend/cost.c
-#  blend/costfunc.c
   blend/simu_run.c
-# blend/distribPart.c
   blend/extendVector.c
-#  blend/fanboth2.c
   blend/queue.c
   blend/simu.c
-# blend/partbuild.c
-# blend/smart_cblk_split.c
-  blend/solverMatrixGen.c
+  blend/solver_matrix_gen.c
   blend/solver_copy.c
   blend/solver_check.c
   blend/solver_io.c
-# blend/splitpartlocal.c
   blend/task.c
   blend/solver.c
   blend/solver_backup.c

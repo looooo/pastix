@@ -79,7 +79,7 @@ typedef struct SimuTask_ {
 #define E2         3
 #endif
 
-typedef struct SimuCtrl_ {
+typedef struct simuctrl_s {
     pastix_int_t  cblknbr;     /*+ Number of cblk                                          +*/
     pastix_int_t  ftgtprio;    /*+ Priority to assign to current ftgts                     +*/
     pastix_int_t  tasknbr;     /*+ Number of tasks                                         +*/

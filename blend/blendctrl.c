@@ -9,7 +9,6 @@
 #include "extendVector.h"
 #include "cand.h"
 #include "queue.h"
-#include "bulles.h"
 #include "blendctrl.h"
 #include "perf.h"
 

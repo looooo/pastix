@@ -10,7 +10,6 @@
 #include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"
-#include "bulles.h"
 #include "solver.h"
 #include "extendVector.h"
 #include "elimin.h"
@@ -19,15 +18,14 @@
 #include "simu.h"
 #include "solver_check.h"
 #include "task.h"
-#include "fanboth2.h"
 #include "solver_io.h"
 
 int
-solverMatrixGen(const pastix_int_t  clustnum,
-                SolverMatrix       *solvmtx,
-                const SymbolMatrix *symbmtx,
-                const SimuCtrl     *simuctrl,
-                const BlendCtrl    *ctrl)
+solverMatrixGen( pastix_int_t        clustnum,
+                 SolverMatrix       *solvmtx,
+                 const SymbolMatrix *symbmtx,
+                 const SimuCtrl     *simuctrl,
+                 const BlendCtrl    *ctrl )
 {
     pastix_int_t  p, c;
     pastix_int_t  cursor;

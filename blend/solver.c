@@ -138,12 +138,12 @@ solver_size( const SolverMatrix *solvptr )
         mem += solvptr->indnbr  * sizeof( pastix_int_t );
     }
 
-    /* BubbleTree */
-    if ( solvptr->btree ) {
-        mem += solvptr->bublnbr * sizeof( BubbleTree );
-        mem += solvptr->btree->nodemax * sizeof( BubbleTreeNode );
-        mem += solvptr->btree->nodemax * sizeof( int );
-    }
+    /* /\* BubbleTree *\/ */
+    /* if ( solvptr->btree ) { */
+    /*     mem += solvptr->bublnbr * sizeof( BubbleTree ); */
+    /*     mem += solvptr->btree->nodemax * sizeof( BubbleTreeNode ); */
+    /*     mem += solvptr->btree->nodemax * sizeof( int ); */
+    /* } */
 
     /* Tasks */
     if ( solvptr->tasktab ) {

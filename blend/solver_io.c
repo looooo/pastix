@@ -9,7 +9,6 @@
 #include "symbol.h"
 #include "ftgt.h"
 #include "queue.h"
-#include "bulles.h"
 #include "solver.h"
 #include "solver_io.h"
 
