@@ -523,7 +523,6 @@ set(PASTIX_LIB_SRCS
 
   # Files that still require some changes
   blend/cand.c
-  blend/elimin_graph.c
   blend/elimin_tree.c
   blend/propmap.c
   blend/extracblk.c

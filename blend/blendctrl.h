@@ -63,7 +63,6 @@ typedef struct BlendCtrl_ {
     double         *dparm;           /*+ In/Out Float parameters   +*/
 
     BubbleTree        *btree;         /*+ arbre de bulles +*/
-    EliminGraph       *egraph;        /*+ the elimination graph (only in vertex) +*/
     EliminTree        *etree;         /*+ the elimination tree                   +*/
     CostMatrix        *costmtx;       /*+ the cost bounded to each cblk and blok +*/
     Cand              *candtab;       /*+ processor candidate tab                +*/

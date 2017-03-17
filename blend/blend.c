@@ -254,24 +254,6 @@ void solverBlend(BlendCtrl    *ctrl,
         }
     }
 
-    /* Build the elimination graph from the new symbolic partition */
-    {
-        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
-            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
-        }
-        clockStart(timer_current);
-
-        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
-        eGraphInit(ctrl->egraph);
-        eGraphBuild(ctrl->egraph, symbmtx);
-
-        clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
-            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH_TIME,
-                          clockVal(timer_current) );
-        }
-    }
-
 #ifdef PASTIX_DYNSCHED
     /**
      * If dynamic scheduling is asked, let's perform a second proportionnal
@@ -319,7 +301,6 @@ void solverBlend(BlendCtrl    *ctrl,
 
     /* Free allocated memory */
     simuExit(simuctrl, ctrl->clustnbr, ctrl->total_nbcores, ctrl->local_nbctxts);
-    eGraphExit(ctrl->egraph);
 
     /* Realloc solver memory in a contiguous way  */
     {
