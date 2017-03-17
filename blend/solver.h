@@ -18,6 +18,7 @@
 #define _SOLVER_H_
 
 #include "ftgt.h"
+
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
 
@@ -161,26 +162,6 @@ struct SolverMatrix_ {
     sparse_matrix_desc_t   *parsec_desc;
 #endif
 
-#if defined(PASTIX_WITH_STARPU)
-    /* All this part concern halo of the local matrix
-     * ie: column blocks which will:
-     *  - be updated by local column blocks
-     *  - update local column blocks
-     */
-    pastix_int_t              hcblknbr;             /*+ Number of column block in the halo        +*/
-    pastix_int_t *            gcblk2halo;           /*+ Indicate the local number corresponding
-                                                     *  global column block.
-                                                     *  gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
-                                                     *                    >  0 : local cblk number + 1
-                                                     *                    <  0 : - (halo cblk number + 1)
-                                                     *                                            +*/
-    SolverCblk   * restrict hcblktab;             /*+ Array of halo column blocks               +*/
-    SolverBlok   * restrict hbloktab;             /*+ Array of halo blocks                      +*/
-    pastix_int_t *          fcblknbr;               /*+ Number of fanin buffer to send or recv    +*/
-    SolverCblk  ** restrict fcblktab;               /*+ Fanin column block array                  +*/
-    SolverBlok  ** restrict fbloktab;               /*+ Fanin block array                         +*/
-#endif
-
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
     FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
@@ -195,7 +176,7 @@ struct SolverMatrix_ {
     pastix_int_t              procnbr;              /*+ Number of physical processor used         +*/
     pastix_int_t              thrdnbr;              /*+ Number of local computation threads       +*/
     pastix_int_t              bublnbr;              /*+ Number of local computation threads       +*/
-    BubbleTree   * restrict   btree;                /*+ Bubbles tree                              +*/
+    /* BubbleTree   * restrict   btree;                /\*+ Bubbles tree                              +*\/ */
 
     pastix_int_t              indnbr;
     pastix_int_t * restrict   indtab;
