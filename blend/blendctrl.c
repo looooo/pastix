@@ -9,7 +9,6 @@
 #include "extendVector.h"
 #include "cand.h"
 #include "queue.h"
-#include "bulles.h"
 #include "blendctrl.h"
 #include "perf.h"
 
@@ -224,7 +223,6 @@ blendCtrlInit( BlendCtrl    *ctrl,
     for(i=0; i < ctrl->total_nbcores; i++)
         ctrl->core2clust[i] = i / ctrl->local_nbcores;
 
-    ctrl->egraph  = NULL;
     ctrl->etree   = NULL;
     ctrl->costmtx = NULL;
     ctrl->candtab = NULL;

@@ -15,10 +15,8 @@
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
-#include "bulles.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "task.h"
 #include "solver.h"
 #include "perf.h"
 

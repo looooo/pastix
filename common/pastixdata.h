@@ -21,7 +21,6 @@
 #include "ftgt.h"
 #include "symbol.h"
 #include "queue.h"
-#include "bulles.h"
 
 /*
  * Steps of the pastix solver

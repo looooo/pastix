@@ -12,12 +12,15 @@
 /**                                                        **/
 /************************************************************/
 
+#ifndef _BLEND_CTRL_H_
+#define _BLEND_CTRL_H_
+
 /*
 **  The type and structure definitions.
 */
 
 /*+ Structure containing the structure passed through the blend primitives +*/
-typedef struct BlendCtrl_ {
+typedef struct blendctrl_s {
     pastix_int_t    count_ops ;      /*+ Print costs in term of number of elementary operations            +*/
     pastix_int_t    debug ;          /*+ Make additional checks after each step                            +*/
     pastix_int_t    timer;           /*+ Print execution times                                             +*/
@@ -62,8 +65,7 @@ typedef struct BlendCtrl_ {
     pastix_int_t   *iparm;           /*+ In/Out Integer parameters +*/
     double         *dparm;           /*+ In/Out Float parameters   +*/
 
-    BubbleTree        *btree;         /*+ arbre de bulles +*/
-    EliminGraph       *egraph;        /*+ the elimination graph (only in vertex) +*/
+    //BubbleTree        *btree;         /*+ arbre de bulles +*/
     EliminTree        *etree;         /*+ the elimination tree                   +*/
     CostMatrix        *costmtx;       /*+ the cost bounded to each cblk and blok +*/
     Cand              *candtab;       /*+ processor candidate tab                +*/
@@ -90,3 +92,4 @@ void getCommunicationCosts( const BlendCtrl *ctrl,
                             double *startup,
                             double *bandwidth);
 
+#endif /* _BLEND_CTRL_H_ */

@@ -22,6 +22,7 @@
 #include "cand.h"
 #include "extendVector.h"
 #include "blendctrl.h"
+#include "simu.h"
 #include "blend.h"
 #include "solver.h"
 

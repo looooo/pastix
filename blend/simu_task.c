@@ -9,19 +9,13 @@
 #include "elimin.h"
 #include "cost.h"
 #include "cand.h"
-/* #include "dof.h" */
-#include "bulles.h"
 #include "blendctrl.h"
 #include "simu.h"
 #include "solver.h"
-#include "costfunc.h"
-/* #include "extrastruct.h" */
-/* #include "param_comm.h" */
-/* #include "perf.h" */
-/* #include "assert.h" */
-#include "task.h"
 
-void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
+void simuTaskBuild( SimuCtrl *simuctrl,
+                    const SymbolMatrix *symbptr,
+                    const Cand *candtab )
 {
     pastix_int_t i, j;
     pastix_int_t tasknbr = 0;
@@ -78,7 +72,8 @@ void taskBuild(SimuCtrl *simuctrl, SymbolMatrix *symbptr, Cand *candtab)
     ;
 }
 
-double taskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)
+double
+simuTaskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)
 {
     double startup, bandwidth;
 

@@ -1,7 +1,6 @@
 #include "common.h"
 #include "blend/ftgt.h"
 #include "blend/queue.h"
-#include "blend/bulles.h"
 #include "blend/solver.h"
 
 /*+ Realloc the solver matrix in a contiguous way +*/

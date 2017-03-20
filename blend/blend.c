@@ -23,21 +23,14 @@
 #include "cost.h"
 #include "symbol.h"
 #include "queue.h"
-#include "bulles.h"
 #include "solver.h"
 #include "elimin.h"
 #include "extendVector.h"
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"
-/* #include "dof.h" */
-/* #include "costfunc.h" */
-/* #include "splitpartlocal.h" */
-#include "solverMatrixGen.h"
 #include "solver_check.h"
-#include "task.h"
 #include "solver_check.h"
-#include "fanboth2.h"
 #include "blend.h"
 #include "order.h"
 
@@ -68,7 +61,6 @@ void solverBlend(BlendCtrl    *ctrl,
     SimuCtrl     *simuctrl;
     double        timer_all     = 0.;
     double        timer_current = 0.;
-    pastix_int_t *bcofind       = NULL;
     pastix_int_t  clustnum = ctrl->clustnum;
     pastix_int_t  clustnbr = ctrl->clustnbr;
 
@@ -233,7 +225,7 @@ void solverBlend(BlendCtrl    *ctrl,
                   ctrl->total_nbcores );
 
         /* Create task array */
-        taskBuild(simuctrl, symbmtx, ctrl->candtab);
+        simuTaskBuild(simuctrl, symbmtx, ctrl->candtab);
         clockStop(timer_current);
 
         if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
@@ -252,24 +244,6 @@ void solverBlend(BlendCtrl    *ctrl,
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
             pastix_print( clustnum, 0, OUT_BLEND_SIMU_TIME,
-                          clockVal(timer_current) );
-        }
-    }
-
-    /* Build the elimination graph from the new symbolic partition */
-    {
-        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_YES ) {
-            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH );
-        }
-        clockStart(timer_current);
-
-        MALLOC_INTERN(ctrl->egraph, 1, EliminGraph);
-        eGraphInit(ctrl->egraph);
-        eGraphBuild(ctrl->egraph, symbmtx);
-
-        clockStop(timer_current);
-        if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
-            pastix_print( clustnum, 0, OUT_BLEND_ELIMGRAPH_TIME,
                           clockVal(timer_current) );
         }
     }
@@ -307,7 +281,7 @@ void solverBlend(BlendCtrl    *ctrl,
         }
         clockStart(timer_current);
 
-        bcofind = solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl);
+        solverMatrixGen(ctrl->clustnum, solvmtx, symbmtx, simuctrl, ctrl);
 
         clockStop(timer_current);
         if( ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
@@ -321,7 +295,6 @@ void solverBlend(BlendCtrl    *ctrl,
 
     /* Free allocated memory */
     simuExit(simuctrl, ctrl->clustnbr, ctrl->total_nbcores, ctrl->local_nbctxts);
-    eGraphExit(ctrl->egraph);
 
     /* Realloc solver memory in a contiguous way  */
     {
@@ -336,9 +309,6 @@ void solverBlend(BlendCtrl    *ctrl,
         }
 #endif
     }
-
-    if (bcofind != NULL)
-        memFree_null(bcofind);
 
     /* End timing */
     clockStop(timer_all);

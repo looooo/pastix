@@ -17,9 +17,14 @@
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
 
-#include "ftgt.h"
 #ifndef SOLVER_TASKS_TYPES
 #define SOLVER_TASKS_TYPES
+
+struct blendctrl_s;
+typedef struct blendctrl_s BlendCtrl;
+
+struct simuctrl_s;
+typedef struct simuctrl_s SimuCtrl;
 
 /**
  *  The type and structure definitions.
@@ -37,7 +42,7 @@
 #define CBLK_IN_SCHUR   (1 << 4)
 
 /*
- **  The type and structure definitions.
+cd **  The type and structure definitions.
  */
 #define COMP_1D                     0
 #define DIAG                        1
@@ -161,26 +166,6 @@ struct SolverMatrix_ {
     sparse_matrix_desc_t   *parsec_desc;
 #endif
 
-#if defined(PASTIX_WITH_STARPU)
-    /* All this part concern halo of the local matrix
-     * ie: column blocks which will:
-     *  - be updated by local column blocks
-     *  - update local column blocks
-     */
-    pastix_int_t              hcblknbr;             /*+ Number of column block in the halo        +*/
-    pastix_int_t *            gcblk2halo;           /*+ Indicate the local number corresponding
-                                                     *  global column block.
-                                                     *  gcblk2halo[gcblk] == 0 : gcblk not local nor in halo
-                                                     *                    >  0 : local cblk number + 1
-                                                     *                    <  0 : - (halo cblk number + 1)
-                                                     *                                            +*/
-    SolverCblk   * restrict hcblktab;             /*+ Array of halo column blocks               +*/
-    SolverBlok   * restrict hbloktab;             /*+ Array of halo blocks                      +*/
-    pastix_int_t *          fcblknbr;               /*+ Number of fanin buffer to send or recv    +*/
-    SolverCblk  ** restrict fcblktab;               /*+ Fanin column block array                  +*/
-    SolverBlok  ** restrict fbloktab;               /*+ Fanin block array                         +*/
-#endif
-
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
     FanInTarget * restrict    ftgttab;              /*+ Fanintarget access vector                 +*/
@@ -195,7 +180,7 @@ struct SolverMatrix_ {
     pastix_int_t              procnbr;              /*+ Number of physical processor used         +*/
     pastix_int_t              thrdnbr;              /*+ Number of local computation threads       +*/
     pastix_int_t              bublnbr;              /*+ Number of local computation threads       +*/
-    BubbleTree   * restrict   btree;                /*+ Bubbles tree                              +*/
+    /* BubbleTree   * restrict   btree;                /\*+ Bubbles tree                              +*\/ */
 
     pastix_int_t              indnbr;
     pastix_int_t * restrict   indtab;
@@ -209,225 +194,6 @@ struct SolverMatrix_ {
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
 };
 
-/**
- * Indicates whether a column block is in halo.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverCblk structure to test.
- *
- * @retval API_YES if the column block is in halo.
- * @retval API_NO  if the column block is not in halo.
- */
-static inline
-int cblk_ishalo( SolverMatrix * datacode,
-                 SolverCblk   * cblk )
-{
-    (void)datacode;
-    (void)cblk;
-#ifdef PASTIX_WITH_STARPU
-    if ((size_t)cblk >= (size_t)datacode->hcblktab &&
-        (size_t)cblk < (size_t)(datacode->hcblktab+datacode->hcblknbr)) {
-        return API_YES;
-    }
-#endif
-    return API_NO;
-}
-
-/**
- * Indicates whether a column block is a fanin column block.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverCblk structure to test.
- *
- * @retval API_YES if the column block is a fanin column block.
- * @retval API_NO  if the column block is not a fanin column block.
- */
-static inline
-int cblk_isfanin( SolverMatrix * datacode,
-                  SolverCblk   * cblk )
-{
-    (void)datacode;
-    (void)cblk;
-#ifdef PASTIX_WITH_STARPU
-    pastix_int_t clustnum;
-    for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
-        if ((size_t)cblk >= (size_t)datacode->fcblktab[clustnum] &&
-            (size_t)cblk < (size_t)(datacode->fcblktab[clustnum] +
-                                    datacode->fcblknbr[clustnum])) {
-            return API_YES;
-        }
-    }
-#endif
-    return API_NO;
-}
-
-
-/**
- * Indicates whether a column block is a local column block.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverCblk structure to test.
- *
- * @retval API_YES if the column block is a local column block.
- * @retval API_NO  if the column block is not a local column block.
- */
-static inline
-int cblk_islocal( SolverMatrix * datacode,
-                  SolverCblk   * cblk ) {
-    if ((size_t)cblk >= (size_t)datacode->cblktab &&
-        (size_t)cblk < (size_t)(datacode->cblktab+datacode->cblknbr)) {
-        return API_YES;
-    }
-    return API_NO;
-}
-
-
-/**
- * Get the index of a local column block.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverCblk structure to test.
- *
- * @returns the index of the column block.
- */
-static inline
-pastix_int_t cblk_getnum( SolverMatrix * datacode,
-                          SolverCblk   * cblk ) {
-    assert(cblk_islocal(datacode, cblk) == API_YES);
-    return cblk - datacode->cblktab;
-}
-
-
-/**
- * Get the index of a halo column block.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverCblk structure to test.
- *
- * @returns the index of the column block.
- */
-static inline
-pastix_int_t hcblk_getnum( SolverMatrix * datacode,
-                           SolverCblk   * cblk )
-{
-    (void)datacode;
-    (void)cblk;
-#ifdef PASTIX_WITH_STARPU
-    assert(cblk_ishalo(datacode, cblk) == API_YES);
-    return cblk - datacode->hcblktab;
-#else
-    return -1;
-#endif
-}
-
-
-/**
- * Get the index of a fanin block.
- *
- * @param datacode SolverMatrix structure.
- * @param block SolverBlok structure to test.
- *
- * @returns the index of the column block.
- */
-static inline
-pastix_int_t fblok_getnum( SolverMatrix * datacode,
-                           SolverBlok   * blok,
-                           pastix_int_t   procnum )
-{
-    (void)datacode;
-    (void)blok;
-    (void)procnum;
-#ifdef PASTIX_WITH_STARPU
-    return blok - datacode->fbloktab[procnum];
-
-#else
-    return -1;
-#endif
-}
-
-/**
- * Get the index of a local block.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverBlok structure to test.
- *
- * @returns the index of the column block.
- */
-static inline
-pastix_int_t blok_getnum( SolverMatrix * datacode,
-                          SolverBlok   * blok )
-{
-    (void)datacode;
-    (void)blok;
-    return blok - datacode->bloktab;
-}
-
-
-/**
- * Get the index of a halo column block.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverBlok structure to test.
- *
- * @returns the index of the column block.
- */
-static inline
-pastix_int_t hblok_getnum( SolverMatrix * datacode,
-                           SolverBlok   * blok )
-{
-    (void)datacode;
-    (void)blok;
-#ifdef PASTIX_WITH_STARPU
-    return blok - datacode->hbloktab;
-#else
-    return -1;
-#endif
-}
-
-
-/**
- * Get the index of a fanin column block.
- *
- * @param datacode SolverMatrix structure.
- * @param column block SolverCblk structure to test.
- *
- * @returns the index of the column block.
- */
-static inline
-pastix_int_t fcblk_getnum( SolverMatrix * datacode,
-                           SolverCblk   * cblk,
-                           pastix_int_t   procnum )
-{
-    (void)datacode;
-    (void)cblk;
-    (void)procnum;
-#ifdef PASTIX_WITH_STARPU
-    assert(cblk_isfanin(datacode, cblk) == API_YES);
-    return cblk - datacode->fcblktab[procnum];
-
-#else
-    return -1;
-#endif
-}
-
-static inline
-pastix_int_t fcblk_getorigin( SolverMatrix * datacode,
-                              SolverMatrix * cblk )
-{
-    (void)datacode;
-    (void)cblk;
-#ifdef PASTIX_WITH_STARPU
-    pastix_int_t clustnum;
-    for (clustnum = 0; clustnum < datacode->clustnbr; clustnum++) {
-        if ((size_t)cblk >= (size_t)datacode->fcblktab[clustnum] &&
-            (size_t)cblk < (size_t)(datacode->fcblktab[clustnum] +
-                                    datacode->fcblknbr[clustnum])) {
-            return clustnum;
-        }
-    }
-#endif
-    return -1;
-}
 /**
  * Get the number of columns of a column block.
  *
@@ -513,18 +279,33 @@ static inline int is_block_inside_fblock( const SolverBlok *blok,
 
 #  endif /* defined(NAPA_SOPALIN) */
 
-pastix_int_t sizeofsolver(const SolverMatrix *solvptr,
-                          pastix_int_t *iparm );
+void solverInit( SolverMatrix *solvmtx );
+void solverExit( SolverMatrix *solvmtx );
 
-void solverInit(SolverMatrix *);
-void solverExit(SolverMatrix *);
+int  solverMatrixGen( pastix_int_t        clustnum,
+                      SolverMatrix       *solvmtx,
+                      const SymbolMatrix *symbmtx,
+                      const SimuCtrl     *simuctl,
+                      const BlendCtrl    *ctrl );
 
-pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream);
-pastix_int_t solverSave(const SolverMatrix *solvptr, FILE *stream);
+pastix_int_t  solverLoad( SolverMatrix       *solvptr,
+                          FILE               *stream );
+pastix_int_t  solverSave( const SolverMatrix *solvptr,
+                          FILE               *stream );
 
-void          solverRealloc(SolverMatrix *solvptr);
-SolverMatrix *solverCopy(const SolverMatrix *solvptr, int flttype);
+void          solverRealloc( SolverMatrix       *solvptr);
+SolverMatrix *solverCopy   ( const SolverMatrix *solvptr,
+                             int                 flttype );
 
+
+int           solverDraw      ( const SolverMatrix *solvptr,
+                                FILE               *stream,
+                                int                 verbose );
+void          solverPrintStats( const SolverMatrix *solvptr );
+
+/*
+ * To be removed in 2D branch
+ */
 int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           ngpus,
                              double        memory_percentage,
@@ -532,14 +313,14 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                              int           criterium,
                              int           factotype );
 
+/*
+ * Solver backup
+ */
 struct SolverBackup_s;
 typedef struct SolverBackup_s SolverBackup_t;
 
 SolverBackup_t *solverBackupInit( const SolverMatrix *solvmtx );
 int             solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b );
 void            solverBackupExit( SolverBackup_t *b );
-
-int             solverDraw( const SolverMatrix *solvptr, FILE *stream, int verbose );
-void            solverPrintStats( const SolverMatrix *solvptr );
 
 #endif /* _SOLVER_H_*/
