@@ -18,7 +18,7 @@
 //#include "common.h"
 #include <stdio.h>
 #include <assert.h>
-#include <cublas_v2.h>
+#include <cublas.h>
 #include "pastix.h"
 #include "pastix/datatypes.h"
 #include "kernels/pastix_cuda.h"

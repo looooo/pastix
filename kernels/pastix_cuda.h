@@ -66,6 +66,43 @@ pastix_sgemm_vbatched_nt(
     pastix_int_t max_m, pastix_int_t batchCount, cudaStream_t stream,
     gemm_params_t params );
 
+
+void
+pastix_fermi_zgemmsp(
+    char TRANSA, char TRANSB, int m , int n , int k ,
+    cuDoubleComplex alpha, const cuDoubleComplex *d_A, int lda,
+                           const cuDoubleComplex *d_B, int ldb,
+    cuDoubleComplex beta,        cuDoubleComplex *d_C, int ldc,
+    int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
+    cudaStream_t stream );
+
+void
+pastix_fermi_cgemmsp(
+    char TRANSA, char TRANSB, int m , int n , int k ,
+    cuFloatComplex alpha, const cuFloatComplex *d_A, int lda,
+                          const cuFloatComplex *d_B, int ldb,
+    cuFloatComplex beta,        cuFloatComplex *d_C, int ldc,
+    int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
+    cudaStream_t stream );
+
+void
+pastix_fermi_dgemmsp(
+    char TRANSA, char TRANSB, int m , int n , int k ,
+    double alpha, const double *d_A, int lda,
+                  const double *d_B, int ldb,
+    double beta,        double *d_C, int ldc,
+    int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
+    cudaStream_t stream );
+
+void
+pastix_fermi_sgemmsp(
+    char TRANSA, char TRANSB, int m , int n , int k ,
+    float alpha, const float *d_A, int lda,
+                 const float *d_B, int ldb,
+    float beta,        float *d_C, int ldc,
+    int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
+    cudaStream_t stream );
+
 #ifdef __cplusplus
 }
 #endif

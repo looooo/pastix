@@ -35,7 +35,7 @@
  * @param[in] n
  *         Number of columns of tile A
  *
- * @param[in,out] A
+ * @param[inout] A
  *         Tile of size m-by-n
  *         On exit, A = trans(A)
  *

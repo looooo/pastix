@@ -75,7 +75,7 @@ if(PASTIX_WITH_CUDA)
        ${kernels_sources}
        ${CUDA_generated_files})
 
-   add_subdirectory(gpus/kepler)
+   add_subdirectory(gpus)
 
 endif(PASTIX_WITH_CUDA)
 
@@ -96,9 +96,13 @@ target_link_libraries( pastix_kernels
 )
 
 if(PASTIX_WITH_CUDA)
-  target_link_libraries( pastix_kernels
-    pastix_cucores_sm35
-    )
+    if(PASTIX_CUDA_FERMI)
+      target_link_libraries( pastix_kernels
+                             pastix_cucores_sm20 )
+    else()
+      target_link_libraries( pastix_kernels
+                             pastix_cucores_sm35 )
+    endif()
 endif()
 
 

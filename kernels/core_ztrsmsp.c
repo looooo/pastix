@@ -28,7 +28,7 @@ static pastix_complex64_t mzone = -1.;
  *
  * @ingroup pastix_kernel
  *
- * core_ztrsmsp_1d1d - Apply all the trsm updates on a panel stored in 1D
+ * core_ztrsmsp_1d - Apply all the trsm updates on a panel stored in 1D
  * layout.
  *
  *******************************************************************************
@@ -59,7 +59,7 @@ static pastix_complex64_t mzone = -1.;
  *          coefficients of the panel when the Lower part is computed,
  *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] C
+ * @param[inout] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
@@ -71,7 +71,8 @@ static pastix_complex64_t mzone = -1.;
  *
  *******************************************************************************/
 static inline int
-core_ztrsmsp_1d( int side, int uplo, int trans, int diag,
+core_ztrsmsp_1d( pastix_side_t side, pastix_uplo_t uplo,
+                 pastix_trans_t trans, pastix_diag_t diag,
                        SolverCblk         *cblk,
                  const pastix_complex64_t *A,
                        pastix_complex64_t *C )
@@ -139,7 +140,7 @@ core_ztrsmsp_1d( int side, int uplo, int trans, int diag,
  *          coefficients of the panel when the Lower part is computed,
  *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] C
+ * @param[inout] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
@@ -151,7 +152,8 @@ core_ztrsmsp_1d( int side, int uplo, int trans, int diag,
  *
  *******************************************************************************/
 static inline int
-core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
+core_ztrsmsp_2d( pastix_side_t side, pastix_uplo_t uplo,
+                 pastix_trans_t trans, pastix_diag_t diag,
                        SolverCblk         *cblk,
                  const pastix_complex64_t *A,
                        pastix_complex64_t *C )
@@ -184,104 +186,12 @@ core_ztrsmsp_2d( int side, int uplo, int trans, int diag,
     return PASTIX_SUCCESS;
 }
 
-
 /**
  *******************************************************************************
  *
  * @ingroup pastix_kernel
  *
- * core_ztrsmsp_2d - Computes the updates associated to one off-diagonal block
- * between two cblk stored in 2D.
- *
- *******************************************************************************
- *
- * @param[in] side
- *          Specify whether the A matrix appears on the left or right in the
- *          equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the A matrix is upper or lower triangular. It has to
- *          be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the A matrix. It has to be either
- *          PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the A matrix is unit triangular. It has to be either
- *          PastixUnit or PastixNonUnit.
- *
- * @param[in] cblk
- *          The cblk structure to which block belongs to. The A and C pointers
- *          must be the coeftab of this column block.
- *          Next column blok must be accessible through cblk[1].
- *
- * @param[in] blok_m
- *          Index of the first off-diagonal block in cblk that is solved. The
- *          TRSM is also applied to all the folowing blocks which are facing the
- *          same diagonal block
- *
- * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
- *
- * @param[in,out] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
- *******************************************************************************/
-int
-core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
-                          SolverCblk         *cblk,
-                          pastix_int_t        blok_m,
-                    const pastix_complex64_t *A,
-                          pastix_complex64_t *C )
-{
-    const SolverBlok *fblok, *lblok, *blok;
-    pastix_int_t M, N, lda, ldc, offset, cblk_m;
-    pastix_complex64_t *Cptr;
-
-    N     = cblk->lcolnum - cblk->fcolnum + 1;
-    fblok = cblk[0].fblokptr;  /* The diagonal block */
-    lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
-    lda   = blok_rownbr( fblok );
-
-    assert( blok_rownbr(fblok) == N );
-    assert( cblk->cblktype & CBLK_LAYOUT_2D );
-
-    blok   = fblok + blok_m;
-    offset = blok->coefind;
-    cblk_m = blok->fcblknm;
-
-    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
-
-        Cptr = C + blok->coefind - offset;
-        M   = blok_rownbr(blok);
-        ldc = M;
-
-        cblas_ztrsm(CblasColMajor,
-                    side, uplo, trans, diag,
-                    M, N,
-                    CBLAS_SADDR(zone), A, lda,
-                                       Cptr, ldc);
-    }
-
-    return PASTIX_SUCCESS;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_kernel
- *
- * core_ztrsmsp_2dlr - Computes the updates associated to one off-diagonal block
+ * core_ztrsmsp_lr - Computes the updates associated to one off-diagonal block
  * between two cblk stored in low-rank format.
  *
  *******************************************************************************
@@ -316,8 +226,9 @@ core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
  *
  *******************************************************************************/
 static inline void
-core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
-                   SolverCblk *cblk, pastix_lr_t *lowrank )
+core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
+                 pastix_trans_t trans, pastix_diag_t diag,
+                 SolverCblk *cblk, const pastix_lr_t *lowrank )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda;
@@ -384,7 +295,175 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
  *
  * @ingroup pastix_kernel
  *
- * core_ztrsmsp_2dlrsub - Computes the updates associated to one off-diagonal
+ * cpucblk_ztrsmsp - Computes the updates associated to a column of off-diagonal
+ * blocks.
+ *
+ *******************************************************************************
+ *
+ * @param[in] coef
+ *          Specify whether we work with the lower matrix, or the upper matrix.
+ *
+ * @param[in] side
+ *          Specify whether the A matrix appears on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the A matrix is upper or lower triangular. It has to
+ *          be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the A matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *          Specify if the A matrix is unit triangular. It has to be either
+ *          PastixUnit or PastixNonUnit.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and B pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[inout] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+void
+cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
+                 pastix_trans_t trans, pastix_diag_t diag,
+                       SolverCblk         *cblk,
+                 const pastix_complex64_t *A,
+                       pastix_complex64_t *C,
+                 const pastix_lr_t        *lowrank )
+{
+    if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            core_ztrsmsp_lr( coef, side, uplo, trans, diag,
+                             cblk, lowrank );
+        }
+        else {
+            if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
+                core_ztrsmsp_2d( side, uplo, trans, diag,
+                                 cblk, A, C );
+            }
+            else {
+                core_ztrsmsp_1d( side, uplo, trans, diag,
+                                 cblk, A, C );
+            }
+        }
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_ztrsmsp_2dsub - Computes the updates associated to one off-diagonal block
+ * between two cblk stored in 2D.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Specify whether the A matrix appears on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the A matrix is upper or lower triangular. It has to
+ *          be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the A matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *          Specify if the A matrix is unit triangular. It has to be either
+ *          PastixUnit or PastixNonUnit.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and C pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok_m
+ *          Index of the first off-diagonal block in cblk that is solved. The
+ *          TRSM is also applied to all the folowing blocks which are facing the
+ *          same diagonal block
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[inout] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+static inline int
+core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
+                    pastix_trans_t trans, pastix_diag_t diag,
+                          SolverCblk         *cblk,
+                          pastix_int_t        blok_m,
+                    const pastix_complex64_t *A,
+                          pastix_complex64_t *C )
+{
+    const SolverBlok *fblok, *lblok, *blok;
+    pastix_int_t M, N, lda, ldc, offset, cblk_m;
+    pastix_complex64_t *Cptr;
+
+    N     = cblk->lcolnum - cblk->fcolnum + 1;
+    fblok = cblk[0].fblokptr;  /* The diagonal block */
+    lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
+    lda   = blok_rownbr( fblok );
+
+    assert( blok_rownbr(fblok) == N );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
+    blok   = fblok + blok_m;
+    offset = blok->coefind;
+    cblk_m = blok->fcblknm;
+
+    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
+
+        Cptr = C + blok->coefind - offset;
+        M   = blok_rownbr(blok);
+        ldc = M;
+
+        cblas_ztrsm( CblasColMajor,
+                     side, uplo, trans, diag,
+                     M, N,
+                     CBLAS_SADDR(zone), A, lda,
+                                        Cptr, ldc );
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * core_ztrsmsp_lrsub - Computes the updates associated to one off-diagonal
  * block between two cblk stored in low-rank format.
  *
  *******************************************************************************
@@ -429,11 +508,12 @@ core_ztrsmsp_2dlr( int coef, int side, int uplo, int trans, int diag,
  *          block.
  *
  *******************************************************************************/
-int
-core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
-                      SolverCblk   *cblk,
-                      pastix_int_t  blok_m,
-                      pastix_lr_t  *lowrank )
+static inline int
+core_ztrsmsp_lrsub( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
+                    pastix_trans_t trans, pastix_diag_t diag,
+                          SolverCblk   *cblk,
+                          pastix_int_t  blok_m,
+                    const pastix_lr_t  *lowrank )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, cblk_m;
@@ -506,7 +586,7 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
  *
  * @ingroup pastix_kernel
  *
- * core_ztrsmsp - Computes the updates associated to one off-diagonal block.
+ * cpublok_ztrsmsp - Computes the updates associated to one off-diagonal block.
  *
  *******************************************************************************
  *
@@ -531,14 +611,22 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
+ * @param[in] blok_m
+ *          Index of the first off-diagonal block in cblk that is solved. The
+ *          TRSM is also applied to all the folowing blocks which are facing the
+ *          same diagonal block
+ *
  * @param[in] A
  *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
  *          coefficients of the panel when the Lower part is computed,
  *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] C
+ * @param[inout] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************
  *
@@ -547,27 +635,22 @@ core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
  *          block.
  *
  *******************************************************************************/
-void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
-                         SolverCblk         *cblk,
-                   const pastix_complex64_t *A,
-                         pastix_complex64_t *C,
-                   pastix_lr_t *lowrank )
+void
+cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
+                 pastix_trans_t trans, pastix_diag_t diag,
+                       SolverCblk         *cblk,
+                       pastix_int_t        blok_m,
+                 const pastix_complex64_t *A,
+                       pastix_complex64_t *C,
+                 const pastix_lr_t        *lowrank )
 {
-    if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
-        if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            core_ztrsmsp_2dlr( coef, side, uplo, trans, diag,
-                               cblk, lowrank );
-        }
-        else {
-            if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
-                core_ztrsmsp_2d( side, uplo, trans, diag,
-                                 cblk, A, C );
-            }
-            else {
-                core_ztrsmsp_1d( side, uplo, trans, diag,
-                                 cblk, A, C );
-            }
-        }
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        core_ztrsmsp_lrsub( coef, side, uplo, trans, diag,
+                            cblk, blok_m, lowrank );
+    }
+    else {
+        core_ztrsmsp_2dsub( side, uplo, trans, diag,
+                            cblk, blok_m, A, C );
     }
 }
 
@@ -607,7 +690,7 @@ void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
  * @param[in] nrhs
  *          The number of right hand side.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          The pointer to vectors of the right hand side
  *
  * @param[in] ldb

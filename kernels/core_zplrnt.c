@@ -60,7 +60,7 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
  * @param[in] n
  *         The number of columns of the tile A. n >= 0.
  *
- * @param[in,out] A
+ * @param[inout] A
  *         On entry, the m-by-n tile to be initialized.
  *         On exit, the tile initialized in the mtxtype format.
  *

@@ -35,14 +35,14 @@ static pastix_complex64_t mzone = -1.;
  * @param[in] n
  *          The number of rows and columns of the matrix A.
  *
- * @param[in,out] A
+ * @param[inout] A
  *          The matrix A to factorize with Cholesky factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[in,out] nbpivot
+ * @param[inout] nbpivot
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -115,14 +115,14 @@ static void core_zsytf2sp(pastix_int_t        n,
  * @param[in] n
  *          The number of rows and columns of the matrix A.
  *
- * @param[in,out] A
+ * @param[inout] A
  *          The matrix A to factorize with Cholesky factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[in,out] nbpivot
+ * @param[inout] nbpivot
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -215,7 +215,7 @@ static void core_zsytrfsp(pastix_int_t        n,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -224,7 +224,7 @@ static void core_zsytrfsp(pastix_int_t        n,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in,out] work
+ * @param[inout] work
  *          Temporary buffer used in core_zsytrfsp().
  *
  *******************************************************************************
@@ -267,7 +267,7 @@ int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -344,14 +344,14 @@ int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
  *          which we compute the contributions. Next column blok must be
  *          accessible through fcblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] work1
+ * @param[inout] work1
  *          Temporary buffer used in core_zgemdm().
  *
- * @param[in,out] work2
+ * @param[inout] work2
  *          Temporary buffer used in core_zgemdm().
  *
  *******************************************************************************
@@ -457,7 +457,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -499,7 +499,7 @@ int core_zsytrfsp1d_panel( SolverCblk         *cblk,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *

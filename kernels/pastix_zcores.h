@@ -38,25 +38,26 @@ core_zlr2ge( pastix_int_t M, pastix_int_t N,
              pastix_complex64_t *A, pastix_int_t lda );
 
 int
-core_zrradd_SVD( double tol, int transA1, pastix_complex64_t alpha,
+core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                  pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                  pastix_int_t offx, pastix_int_t offy );
 
 int
-core_zrradd_RRQR( double tol, int transA1, pastix_complex64_t alpha,
+core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                   pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                   pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                   pastix_int_t offx, pastix_int_t offy );
 
 int
-core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
-             pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
+core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
+             pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t   *B,
              pastix_int_t offx, pastix_int_t offy );
 
 void
-core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
+core_zlrmm( const pastix_lr_t *lowrank,
+            pastix_trans_t transA, pastix_trans_t transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
             pastix_int_t offx, pastix_int_t offy,
@@ -67,7 +68,8 @@ core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
             SolverCblk *fcblk );
 
 void
-core_zlrmge( pastix_lr_t *lowrank, int transA, int transB,
+core_zlrmge( const pastix_lr_t *lowrank,
+             pastix_trans_t transA, pastix_trans_t transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                        const pastix_lrblock_t *B,
@@ -86,21 +88,21 @@ void core_zgetrox(pastix_complex64_t alpha, int m, int n,
                   const pastix_complex64_t *A, int lda,
                   pastix_complex64_t *B, int ldb);
 
-int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
+int core_zgeadd( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
                        pastix_complex64_t  alpha,
                  const pastix_complex64_t *A, pastix_int_t LDA,
                        pastix_complex64_t  beta,
                        pastix_complex64_t *B, pastix_int_t LDB);
 
-int core_zgemdm(int transA, int transB,
-                int M, int N, int K,
-                      pastix_complex64_t  alpha,
-                const pastix_complex64_t *A,    int LDA,
-                const pastix_complex64_t *B,    int LDB,
-                      pastix_complex64_t  beta,
-                      pastix_complex64_t *C,    int LDC,
-                const pastix_complex64_t *D,    int incD,
-                      pastix_complex64_t *WORK, int LWORK);
+int core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
+                 int M, int N, int K,
+                       pastix_complex64_t  alpha,
+                 const pastix_complex64_t *A,    int LDA,
+                 const pastix_complex64_t *B,    int LDB,
+                       pastix_complex64_t  beta,
+                       pastix_complex64_t *C,    int LDC,
+                 const pastix_complex64_t *D,    int incD,
+                       pastix_complex64_t *WORK, int LWORK);
 
 int core_zgeaddsp1d( SolverCblk * cblk1,
                      SolverCblk * cblk2,
@@ -108,53 +110,6 @@ int core_zgeaddsp1d( SolverCblk * cblk1,
                      pastix_complex64_t * L2,
                      pastix_complex64_t * U1,
                      pastix_complex64_t * U2 );
-
-void core_zgemmsp( pastix_coefside_t sideB, pastix_uplo_t uplo, pastix_trans_t trans,
-                   const SolverCblk         *cblk,
-                   const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
-                   const pastix_complex64_t *A,
-                   const pastix_complex64_t *B,
-                         pastix_complex64_t *C,
-                         pastix_complex64_t *work,
-                         pastix_lr_t        *lowrank);
-
-void
-core_zgemmsp_2d2dsub( pastix_uplo_t uplo, pastix_trans_t trans,
-                      pastix_int_t blok_mk,
-                      pastix_int_t blok_kn,
-                      pastix_int_t blok_mn,
-                      const SolverCblk         *cblk,
-                            SolverCblk         *fcblk,
-                      const pastix_complex64_t *A,
-                      const pastix_complex64_t *B,
-                            pastix_complex64_t *C );
-
-void core_zgemmsp_2dlrsub( pastix_coefside_t sideA,
-                           pastix_uplo_t uplo, pastix_trans_t trans,
-                           pastix_int_t blok_mk,
-                           pastix_int_t blok_kn,
-                           pastix_int_t blok_mn,
-                     const SolverCblk         *cblk,
-                           SolverCblk         *fcblk,
-                           pastix_lr_t *lowrank );
-
-void core_ztrsmsp( int coef, int side, int uplo, int trans, int diag,
-                   SolverCblk         *cblk,
-             const pastix_complex64_t *A,
-                   pastix_complex64_t *C,
-                   pastix_lr_t *lowrank );
-
-int core_ztrsmsp_2dsub( int side, int uplo, int trans, int diag,
-                              SolverCblk         *cblk,
-                              pastix_int_t        fcblknum,
-                        const pastix_complex64_t *A,
-                              pastix_complex64_t *C );
-
-int core_ztrsmsp_2dlrsub( int coef, int side, int uplo, int trans, int diag,
-                          SolverCblk   *cblk,
-                          pastix_int_t  blok_m,
-                          pastix_lr_t  *lowrank );
 
 int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
                            pastix_complex64_t *L,
@@ -170,7 +125,7 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria,
-                           pastix_lr_t        *lowrank );
+                           const pastix_lr_t  *lowrank );
 
 int core_zgetrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
@@ -214,7 +169,7 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
 int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
-                           pastix_lr_t        *lowrank );
+                           const pastix_lr_t  *lowrank );
 
 int core_zpotrfsp1d( SolverMatrix       *solvmtx,
                      SolverCblk         *cblk,
@@ -248,29 +203,109 @@ int core_zsytrfsp1d( SolverMatrix       *solvmtx,
                      pastix_complex64_t *work1,
                      pastix_complex64_t *work2 );
 
+void
+cpucblk_zgemmsp(       pastix_coefside_t   sideA,
+                       pastix_coefside_t   sideB,
+                       pastix_trans_t      trans,
+                 const SolverCblk         *cblk,
+                 const SolverBlok         *blok,
+                       SolverCblk         *fcblk,
+                 const pastix_complex64_t *A,
+                 const pastix_complex64_t *B,
+                       pastix_complex64_t *C,
+                       pastix_complex64_t *work,
+                 const pastix_lr_t        *lowrank );
+
+void
+cpucblk_ztrsmsp( pastix_coefside_t coef,
+                 pastix_side_t     side,
+                 pastix_uplo_t     uplo,
+                 pastix_trans_t    trans,
+                 pastix_diag_t     diag,
+                       SolverCblk         *cblk,
+                 const pastix_complex64_t *A,
+                       pastix_complex64_t *C,
+                 const pastix_lr_t        *lowrank );
+
+void
+cpublok_zgemmsp(       pastix_coefside_t   sideA,
+                       pastix_coefside_t   sideB,
+                       pastix_trans_t      trans,
+                 const SolverCblk         *cblk,
+                       SolverCblk         *fcblk,
+                       pastix_int_t        blok_mk,
+                       pastix_int_t        blok_nk,
+                       pastix_int_t        blok_mn,
+                 const pastix_complex64_t *A,
+                 const pastix_complex64_t *B,
+                       pastix_complex64_t *C,
+                 const pastix_lr_t        *lowrank );
+
+void
+cpublok_ztrsmsp( pastix_coefside_t coef,
+                 pastix_side_t     side,
+                 pastix_uplo_t     uplo,
+                 pastix_trans_t    trans,
+                 pastix_diag_t     diag,
+                       SolverCblk         *cblk,
+                       pastix_int_t        blok_m,
+                 const pastix_complex64_t *A,
+                       pastix_complex64_t *C,
+                 const pastix_lr_t        *lowrank );
+
 #if defined(PASTIX_WITH_CUDA)
 #include <cuda.h>
 #include <cuComplex.h>
 
-void gpu_zgemmsp( int uplo, int trans,
-                  const SolverCblk      *cblk,
-                  const SolverBlok      *blok,
-                        SolverCblk      *fcblk,
-                  const cuDoubleComplex *A,
-                  const cuDoubleComplex *B,
-                        cuDoubleComplex *C,
-                        cudaStream_t stream );
 void
-gpu_zgemmsp_2d2dsub( int trans,
-                     pastix_int_t blok_mk,
-                     pastix_int_t blok_kn,
-                     pastix_int_t blok_mn,
-                     const SolverCblk      *cblk,
-                           SolverCblk      *fcblk,
-                     const cuDoubleComplex *A,
-                     const cuDoubleComplex *B,
-                           cuDoubleComplex *C,
-                           cudaStream_t stream );
+gpucblk_zgemmsp(       pastix_coefside_t  sideA,
+                       pastix_coefside_t  sideB,
+                       pastix_trans_t     trans,
+                 const SolverCblk        *cblk,
+                 const SolverBlok        *blok,
+                       SolverCblk        *fcblk,
+                 const cuDoubleComplex   *A,
+                 const cuDoubleComplex   *B,
+                       cuDoubleComplex   *C,
+                 const pastix_lr_t       *lowrank,
+                       cudaStream_t       stream );
+
+void
+gpublok_zgemmsp(       pastix_coefside_t  sideA,
+                       pastix_coefside_t  sideB,
+                       pastix_trans_t     trans,
+                 const SolverCblk        *cblk,
+                       SolverCblk        *fcblk,
+                       pastix_int_t       blok_mk,
+                       pastix_int_t       blok_nk,
+                       pastix_int_t       blok_mn,
+                 const cuDoubleComplex   *A,
+                 const cuDoubleComplex   *B,
+                       cuDoubleComplex   *C,
+                 const pastix_lr_t       *lowrank,
+                       cudaStream_t       stream );
+
+void
+gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
+                 pastix_trans_t trans, pastix_diag_t diag,
+                       SolverCblk      *cblk,
+                       pastix_int_t     blok_m,
+                 const cuDoubleComplex *A,
+                       cuDoubleComplex *C,
+                 const pastix_lr_t     *lowrank,
+                       cudaStream_t     stream );
+
+void
+gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
+                   pastix_uplo_t uplo, pastix_trans_t trans,
+                   int *blocktab,
+                   const SolverCblk      *cblk,
+                   const SolverBlok      *blok,
+                         SolverCblk      *fcblk,
+                   const cuDoubleComplex *A,
+                   const cuDoubleComplex *B,
+                         cuDoubleComplex *C,
+                         cudaStream_t stream );
 #endif
 
 void solve_ztrsmsp( int side, int uplo, int trans, int diag,
