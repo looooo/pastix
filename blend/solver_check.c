@@ -11,7 +11,6 @@
 #include "extendVector.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "solver_check.h"
 
 /*#define DEBUG_PRIO*/
 

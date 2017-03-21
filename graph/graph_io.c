@@ -2,11 +2,12 @@
  *
  * @file graph_io.c
  *
- *  PaStiX graph routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX graph IO routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -22,7 +23,9 @@
  *
  * @ingroup pastix_graph
  *
- * graphLoad - Load a graph from a file
+ * @brief Load a graph from a file
+ *
+ * The file is named 'graphname' in the current directory.
  *
  *******************************************************************************
  *
@@ -30,7 +33,7 @@
  *          The pointer to the solver instance to get options as rank,
  *          communicators, ...
  *
- * @param[in,out] graph
+ * @param[inout] graph
  *          The graph structure to store the loaded graph.
  *
  *******************************************************************************/
@@ -63,7 +66,9 @@ void graphLoad( const pastix_data_t  *pastix_data,
  *
  * @ingroup pastix_graph
  *
- * graphSave - Save a graph to file
+ * @brief Save a graph to file.
+ *
+ * The file is named 'graphgen' in the current directory.
  *
  *******************************************************************************
  *

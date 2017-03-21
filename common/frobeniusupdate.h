@@ -2,7 +2,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup spm_internal
+ * @ingroup pastix_internal
  *
  * frobenius_update - Update the couple (scale, sumsq) with one element when
  * computing the Froebnius norm.

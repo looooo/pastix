@@ -44,16 +44,9 @@ typedef struct pastix_data_s pastix_data_t;
 struct pastix_graph_s;
 typedef struct pastix_graph_s pastix_graph_t;
 
-struct Order_;
-typedef struct Order_ Order;
+struct pastix_order_s;
+typedef struct pastix_order_s Order;
 
-/**
- *
- * @ingroup pastix_spm
- * @typedef pastix_spm_t
- * @brief typedef to the sparse matrix structure
- *
- */
 struct pastix_spm_s;
 typedef struct pastix_spm_s pastix_spm_t;
 typedef struct pastix_spm_s pastix_csc_t;
@@ -183,34 +176,43 @@ void pastixFinalize( pastix_data_t **pastix_data,
                      pastix_int_t   *iparm,
                      double         *dparm );
 
-int pastix_task_order(pastix_data_t *pastix_data,
-                      const pastix_csc_t *csc,
-                      pastix_int_t  *perm,
-                      pastix_int_t  *invp);
+/**
+ * Main steps of the solver
+ */
+int pastix_task_analyze( pastix_data_t      *pastix_data,
+                         pastix_spm_t       *spm );
+int pastix_task_sopalin( pastix_data_t      *pastix_data,
+                         pastix_spm_t       *spm );
+int pastix_task_solve  ( pastix_data_t      *pastix_data,
+                         const pastix_spm_t *spm,
+                         int                 nrhs,
+                         void               *b,
+                         int                 ldb );
+int pastix_task_raff   ( pastix_data_t *pastix_data,
+                         void          *x,
+                         pastix_int_t   rhsnbr,
+                         void          *b);
 
-int pastix_task_symbfact(pastix_data_t *pastix_data,
-                         pastix_int_t  *perm,
-                         pastix_int_t  *invp);
+/**
+ * Analyze subtasks
+ */
+int pastix_subtask_order     ( pastix_data_t      *pastix_data,
+                               const pastix_spm_t *spm,
+                               pastix_int_t       *perm,
+                               pastix_int_t       *invp );
+int pastix_subtask_symbfact  ( pastix_data_t      *pastix_data,
+                               pastix_int_t       *perm,
+                               pastix_int_t       *invp );
+int pastix_subtask_reordering( pastix_data_t      *pastix_data );
+int pastix_subtask_blend     ( pastix_data_t      *pastix_data );
 
-int pastix_task_reordering(pastix_data_t *pastix_data);
-
-int pastix_task_blend( pastix_data_t *pastix_data );
-
-int pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
-                             pastix_spm_t  *spm );
-int pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
-                              pastix_spm_t  *spm );
-int pastix_task_sopalin( pastix_data_t *pastix_data,
-                          pastix_csc_t  *csc );
-
-int pastix_task_solve( pastix_data_t *pastix_data,
-                       const pastix_csc_t  *csc,
-                       int nrhs, void *b, int ldb );
-
-void pastix_task_raff(pastix_data_t *pastix_data,
-                      void          *x,
-                      pastix_int_t   rhsnbr,
-                      void          *b);
+/**
+ * Numerical factorization subtasks
+ */
+int pastix_subtask_spm2bcsc  ( pastix_data_t      *pastix_data,
+                               pastix_spm_t       *spm );
+int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data,
+                               const pastix_spm_t *spm );
 
 void
 pastix_setSchurUnknownList(pastix_data_t *pastix_data,

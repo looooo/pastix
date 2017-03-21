@@ -1,9 +1,13 @@
 /**
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @file z_raff_pivot.c
  *
- * @version 1.0.0
+ * PaStiX refinement functions implementations.
+ *
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -15,7 +19,6 @@
 #include "bcsc.h"
 #include "z_bcsc.h"
 #include "z_raff_functions.h"
-#include "solver.h"
 
 /**
  *******************************************************************************
@@ -28,21 +31,19 @@
  *
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
- * 
- * @param[in] x
+ *
+ * @param[out] x
  *          The solution vector.
- * 
+ *
  * @param[in] b
  *          The right hand side member (only one).
  *
  *******************************************************************************/
 void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 {
-  /* Choix du solveur */
   struct z_solver solveur = {NULL};
   z_Pastix_Solveur(&solveur);
 
-  /* Variables */
   pastix_bcsc_t      * bcsc           = pastix_data->bcsc;
   pastix_int_t         n              = bcsc->gN;
   Clock                raff_clk;

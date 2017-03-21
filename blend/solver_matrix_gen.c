@@ -15,7 +15,6 @@
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "solver_check.h"
 #include "solver_io.h"
 
 int

@@ -2,13 +2,12 @@
  *
  * @file order_compute_metis.c
  *
- *  PaStiX order routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX order driver to perform ordering with Metis library
  *
- * Contains functions to perform ordering with Metis library
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -23,9 +22,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderComputeMetis - Compute the ordering of the graph given as parameter
+ * @brief Compute the ordering of the graph given as parameter
  * with Metis library.
  *
  * This routine is affected by the following parameters:
@@ -37,24 +36,23 @@
  *
  *******************************************************************************
  *
- * @param[in,out] pastix_data
+ * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *          On exit, the field oerdemesh is initialize with the result of the
  *          ordering realized by Scotch.
  *
- * @param[in, out] graph
+ * @param[inout] graph
  *          The graph prepared by graphPrepare function on which wwe want to
  *          perform the ordering. On exit, the graph might be rebased.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on successful exit
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
- *          \retval PASTIX_ERR_INTEGER_TYPE if Metis integer type is not the
- *                  same size as PaStiX ones.
- *          \retval PASTIX_ERR_INTERNAL if an error occurs internally to Scotch.
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed,
+ * @retval PASTIX_ERR_INTEGER_TYPE if Metis integer type is not the
+ *         same size as PaStiX ones,
+ * @retval PASTIX_ERR_INTERNAL if an error occurs internally to Metis.
  *
  *******************************************************************************/
 int

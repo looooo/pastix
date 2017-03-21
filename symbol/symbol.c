@@ -2,18 +2,21 @@
  *
  * @file symbol.c
  *
- *  PaStiX symbol structure routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX symbol structure routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author David Goudin
- * @author Francois Pelegrin
+ * @author Francois Pellegrini
  * @author Mathieu Faverge
  * @author Pascal Henon
  * @author Pierre Ramet
  * @date 2013-06-24
  *
+ * @addtogroup pastix_symbol
+ * @{
  **/
 #include "common.h"
 #include "symbol.h"
@@ -21,38 +24,35 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
- *
- * symbolInit - Initialize the symbol structure.
+ * @brief Initialize the symbol structure.
  *
  *******************************************************************************
  *
- * @param[in,out] symbptr
+ * @param[inout] symbptr
  *          The symbol structure to initialize.
  *
  *******************************************************************************/
-int
+void
 symbolInit ( SymbolMatrix *symbptr )
 {
     memset (symbptr, 0, sizeof (SymbolMatrix));
     symbptr->schurfcol = -1;
-#ifdef STARPU_GET_TASK_CTX
-    symbptr->starpu_subtree_nbr=1;
-#endif
-    return (0);
+    return;
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @brief Free the content of symbolic matrix.
  *
- * symbolExit - Frees the contents of the given symbolic block matrix.Clean up
- * the symbol structure.
+ * All the arrays from the structure are freed and the structure is memset to 0
+ * at exit, but the symbol itself is not freed. It will require a new call to
+ * symbolInit if the memory space area needs to be reused for a new symbol
+ * matrix.
  *
  *******************************************************************************
  *
- * @param[in,out] symbptr
+ * @param[inout] symbptr
  *          The pointer to the structure to free.
  *
  *******************************************************************************/
@@ -71,14 +71,15 @@ symbolExit( SymbolMatrix *symbptr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @brief Reallocate the data structure to optimize the memory alignment.
  *
- * symbolRealloc - Reallocates the data structure to optimize the memory
- * alignment.
+ * This function is used when the symbol need to be shrinked to a smaller or
+ * larger set of blocks and column blocks. The original data is copied in the
+ * new arrays.
  *
  *******************************************************************************
  *
- * @param[in,out] symbptr
+ * @param[inout] symbptr
  *          The pointer to the structure that needs to be reallocated.
  *
  *******************************************************************************/
@@ -101,13 +102,55 @@ symbolRealloc( SymbolMatrix *symbptr )
     symbptr->bloktab = bloktab;
 }
 
-/** Get face block for task E2 **/
+/**
+ *******************************************************************************
+ *
+ * @brief Search the targeted block C for a couple of blocks A and B.
+ *
+ * When executing the simulation run to map the data on the cores, it requires
+ * to compute dependencies of each block. In that case for each couple of blocks
+ * A (defined by bloknum), and B (defined by bloksrc), we need to find the block
+ * that will receive the contribution for the matrix-matrix product. To speedup
+ * the search, the startsearch parameter can be given to specify that the index
+ * of the block searched is larger than this parameter. It returns the index of
+ * the C block when found, or -1 if no block is facing the update. This happens,
+ * only if ILU(k) factorization is applied and ricar is set to true. Otherwise,
+ * returning -1 is an error.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The pointer to the structure that needs to be reallocated.
+ *
+ * @param[in] bloksrc
+ *          Index of the block used as A in teh matrix-matrix product.
+ *
+ * @param[in] bloknum
+ *          Index of the block used as B in teh matrix-matrix product.
+ *
+ * @param[in] startsearch
+ *          Index of a block belonging to the facing cblk of B used as a
+ *          starting point to find the index of C.
+ *
+ * @param[in] ricar
+ *          Booleen to enable ILU(k) factorization or not
+ *
+ *******************************************************************************
+ *
+ * @retval -1 No block where found. This is an error if ricar is disabled,
+ *            otherwise it means that the path is longer than the k parameter in
+ *            the ILU(k) factorization.
+ *
+ * @retval i The index of the block C that will receive the contribution from
+ *           A * B^t
+ *
+ *******************************************************************************/
 pastix_int_t
-symbolGetFacingBloknum(const SymbolMatrix *symbptr,
-                       pastix_int_t bloksrc,
-                       pastix_int_t bloknum,
-                       pastix_int_t startsearch,
-                       int ricar)
+symbolGetFacingBloknum( const SymbolMatrix *symbptr,
+                        pastix_int_t bloksrc,
+                        pastix_int_t bloknum,
+                        pastix_int_t startsearch,
+                        int ricar )
 {
     SymbolBlok *bsrc;
     SymbolBlok *bdst;
@@ -158,8 +201,22 @@ symbolGetFacingBloknum(const SymbolMatrix *symbptr,
     return -1;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Construct the browtab array that stores the blocks in a CSR way.
+ *
+ * The browtab is an equivalent of the columns array in a CSR for the symbolic
+ * structure in terms of block indexes.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] symbptr
+ *          The pointer to the symbolic structure to update.
+ *
+ *******************************************************************************/
 void
-symbolBuildRowtab(SymbolMatrix *symbptr)
+symbolBuildRowtab( SymbolMatrix *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
@@ -232,6 +289,17 @@ symbolBuildRowtab(SymbolMatrix *symbptr)
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Print statistical information about the symbolic matrix structure
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbolic structure.
+ *
+ *******************************************************************************/
 void
 symbolPrintStats( const SymbolMatrix *symbptr )
 {
@@ -319,3 +387,6 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             MEMORY_WRITE( mem ), MEMORY_UNIT_WRITE( mem ) );
 }
 
+/**
+ * @}
+ */

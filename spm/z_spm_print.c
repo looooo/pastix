@@ -2,9 +2,12 @@
  *
  * @file z_spm_print.c
  *
- * Convert a sparse matrix into a dense matrix.
+ * SParse Matrix package printing routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Alban Bellot
@@ -24,6 +27,22 @@
 #include "spm.h"
 #include "z_spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_print
+ *
+ * @brief Write CSC matrix in a file
+ *
+ *******************************************************************************
+ *
+ * @param[in] f
+ *          Output file
+ *
+ * @param[in] spm
+ *          The spm structure describing the matrix.
+ *
+ *******************************************************************************/
 void
 z_spmCSCPrint( FILE *f, const pastix_spm_t *spm )
 {
@@ -193,6 +212,22 @@ z_spmCSCPrint( FILE *f, const pastix_spm_t *spm )
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_print
+ *
+ * @brief Write CSR matrix in a file
+ *
+ *******************************************************************************
+ *
+ * @param[in] f
+ *          Output file
+ *
+ * @param[in] spm
+ *          The spm structure describing the matrix.
+ *
+ *******************************************************************************/
 void
 z_spmCSRPrint( FILE *f, const pastix_spm_t *spm )
 {
@@ -362,6 +397,22 @@ z_spmCSRPrint( FILE *f, const pastix_spm_t *spm )
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_print
+ *
+ * @brief Write IJV matrix in a file
+ *
+ *******************************************************************************
+ *
+ * @param[in] f
+ *          Output file
+ *
+ * @param[in] spm
+ *          The spm structure describing the matrix.
+ *
+ *******************************************************************************/
 void
 z_spmIJVPrint( FILE *f, const pastix_spm_t *spm )
 {
@@ -549,6 +600,22 @@ z_spmIJVPrint( FILE *f, const pastix_spm_t *spm )
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_print
+ *
+ * @brief Write a spm matrix in a file
+ *
+ *******************************************************************************
+ *
+ * @param[in] f
+ *          Output file
+ *
+ * @param[in] spm
+ *          The spm structure describing the matrix.
+ *
+ *******************************************************************************/
 void
 z_spmPrint( FILE *f, const pastix_spm_t *spm )
 {

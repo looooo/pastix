@@ -2,11 +2,12 @@
  *
  * @file spm_io.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package I/O routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -16,6 +17,30 @@
 #include "common.h"
 #include "spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief Read an array of integer.
+ *
+ *******************************************************************************
+ *
+ * @param[in] stream
+ *          The opened file in which the spm is stored.
+ *
+ * @param[in] n
+ *          Number of elements.
+ *
+ * @param[out] array
+ *          Array of results.
+ *
+ ********************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the read happened successfully,
+ * @retval PASTIX_ERR_FILE if the input format is incorrect.
+ *
+ *******************************************************************************/
 static inline int
 readArrayOfInteger( FILE         *stream,
                     pastix_int_t  n,
@@ -73,6 +98,30 @@ readArrayOfInteger( FILE         *stream,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief  Read an array of 64bits complex.
+ *
+ *******************************************************************************
+ *
+ * @param[in] stream
+ *          The opened file in which the spm is stored.
+ *
+ * @param[in] n
+ *          Number of elements.
+ *
+ * @param[out] array
+ *          Array of results.
+ *
+ ********************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the read happened successfully,
+ * @retval PASTIX_ERR_FILE if the input format is incorrect.
+ *
+ *******************************************************************************/
 static inline int
 readArrayOfComplex64( FILE               *stream,
                       pastix_int_t        n,
@@ -135,6 +184,30 @@ readArrayOfComplex64( FILE               *stream,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief  Read an array of 32bits complex.
+ *
+ *******************************************************************************
+ *
+ * @param[in] stream
+ *          The opened file in which the spm is stored.
+ *
+ * @param[in] n
+ *          Number of elements.
+ *
+ * @param[out] array
+ *          Array of results.
+ *
+ ********************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the read happened successfully,
+ * @retval PASTIX_ERR_FILE if the input format is incorrect.
+ *
+ *******************************************************************************/
 static inline int
 readArrayOfComplex32( FILE               *stream,
                       pastix_int_t        n,
@@ -197,6 +270,30 @@ readArrayOfComplex32( FILE               *stream,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief  Read an array of double.
+ *
+ *******************************************************************************
+ *
+ * @param[in] stream
+ *          The opened file in which the spm is stored.
+ *
+ * @param[in] n
+ *          Number of elements.
+ *
+ * @param[out] array
+ *          Array of results.
+ *
+ ********************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the read happened successfully,
+ * @retval PASTIX_ERR_FILE if the input format is incorrect.
+ *
+ *******************************************************************************/
 static inline int
 readArrayOfDouble( FILE         *stream,
                    pastix_int_t  n,
@@ -256,6 +353,31 @@ readArrayOfDouble( FILE         *stream,
     return PASTIX_SUCCESS;
 }
 
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief  Read an array of float.
+ *
+ *******************************************************************************
+ *
+ * @param[in] stream
+ *          The opened file in which the spm is stored.
+ *
+ * @param[in] n
+ *          Number of elements.
+ *
+ * @param[out] array
+ *          Array of results.
+ *
+ ********************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the read happened successfully,
+ * @retval PASTIX_ERR_FILE if the input format is incorrect.
+ *
+ *******************************************************************************/
 static inline int
 readArrayOfFloat( FILE         *stream,
                   pastix_int_t  n,
@@ -319,19 +441,22 @@ readArrayOfFloat( FILE         *stream,
  *
  * @ingroup pastix_spm
  *
- * @brief Load the spm structure from a file (internal format)
+ * @brief Load the spm structure from a file (internal format).
  *
- * Load the spm data structure from a file store in an internal format. For now
- * this function only load a simple csc matrix.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, an allocated spm data structure.
- *          On exit, the spm filled with the information read in the file
+ *          On exit, the spm filled with the information read in the file.
  *
  * @param[in] infile
  *          The opened file in which the spm is stored.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the load happened successfully,
+ * @retval PASTIX_ERR_FILE if the input format is incorrect.
  *
  *******************************************************************************/
 int
@@ -342,7 +467,7 @@ spmLoad( pastix_spm_t  *spm,
     char line[256], *test;
     int rc = PASTIX_SUCCESS;
 
-    /**
+    /*
      * Skip comments
      */
     do {
@@ -353,7 +478,7 @@ spmLoad( pastix_spm_t  *spm,
     }
     while( line[0] == '#' );
 
-    /**
+    /*
      * Read header
      */
     {
@@ -401,7 +526,7 @@ spmLoad( pastix_spm_t  *spm,
         break;
     }
 
-    /**
+    /*
      * Read colptr
      */
     spm->colptr = malloc( colsize * sizeof(pastix_int_t) );
@@ -410,7 +535,7 @@ spmLoad( pastix_spm_t  *spm,
         return rc;
     }
 
-    /**
+    /*
      * Read rowptr
      */
     spm->rowptr = malloc( rowsize * sizeof(pastix_int_t) );
@@ -419,7 +544,7 @@ spmLoad( pastix_spm_t  *spm,
         return rc;
     }
 
-    /**
+    /*
      * Read dofs
      */
     if ( spm->dof > 0 ) {
@@ -433,7 +558,7 @@ spmLoad( pastix_spm_t  *spm,
         }
     }
 
-    /**
+    /*
      * Read dofs
      */
     if ( spm->gN == spm->n ) {
@@ -447,7 +572,7 @@ spmLoad( pastix_spm_t  *spm,
         }
     }
 
-    /**
+    /*
      * Read values
      */
     if (spm->flttype == PastixPattern ) {
@@ -477,7 +602,29 @@ spmLoad( pastix_spm_t  *spm,
     return rc;
 }
 
-
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief write an array of 64bits complex.
+ *
+ *******************************************************************************
+ *
+ * @param[in] outfile
+ *          TODO
+ *
+ * @param[in] n
+ *          numbers of elements.
+ *
+ * @param[in] array
+ *          array to write.
+ *
+ *******************************************************************************
+ *
+ * @return   PASTIX_SUCCESS if the write happened successfully.
+ *
+ *******************************************************************************/
 static inline int
 writeArrayOfComplex64( FILE               *outfile,
                        pastix_int_t        n,
@@ -496,6 +643,29 @@ writeArrayOfComplex64( FILE               *outfile,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief write an array of 32bits complex.
+ *
+ *******************************************************************************
+ *
+ * @param[in] outfile
+ *          TODO
+ *
+ * @param[in] n
+ *          numbers of elements.
+ *
+ * @param[in] array
+ *          array to write.
+ *
+ *******************************************************************************
+ *
+ * @return   PASTIX_SUCCESS if the write happened successfully.
+ *
+ *******************************************************************************/
 static inline int
 writeArrayOfComplex32( FILE               *outfile,
                        pastix_int_t        n,
@@ -514,6 +684,29 @@ writeArrayOfComplex32( FILE               *outfile,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief write an array of double.
+ *
+ *******************************************************************************
+ *
+ * @param[in] outfile
+ *          TODO
+ *
+ * @param[in] n
+ *          numbers of elements.
+ *
+ * @param[in] array
+ *          array to write.
+ *
+ *******************************************************************************
+ *
+ * @return   PASTIX_SUCCESS if the write happened successfully.
+ *
+ *******************************************************************************/
 static inline int
 writeArrayOfDouble( FILE         *outfile,
                     pastix_int_t  n,
@@ -532,6 +725,30 @@ writeArrayOfDouble( FILE         *outfile,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_io
+ *
+ * @brief write an array of float.
+ *
+ *******************************************************************************
+ *
+ * @param[in] outfile
+ *          TODO
+ *
+ * @param[in] n
+ *          numbers of elements.
+ *
+ * @param[in] array
+ *          array to write.
+ *
+ *******************************************************************************
+ *
+ * @return   PASTIX_SUCCESS if the write happened successfully.
+ *
+ *
+ *******************************************************************************/
 static inline int
 writeArrayOfFloat( FILE         *outfile,
                    pastix_int_t  n,
@@ -555,18 +772,20 @@ writeArrayOfFloat( FILE         *outfile,
  *
  * @ingroup pastix_spm
  *
- * @brief Save the spm structure into a file (internal format)
+ * @brief Save the spm structure into a file (internal format).
  *
- * Save the spm data structure into a file and stored in an internal format. For
- * now this function only save a simple csc matrix.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The sparse matrix to write into the file.
  *
  * @param[in] outfile
  *          The opened file in which to store the spm.
+ *
+ ********************************************************************************
+ *
+ * @return  PASTIX_SUCCESS if the save happened successfully.
  *
  *******************************************************************************/
 int
@@ -575,7 +794,7 @@ spmSave( pastix_spm_t *spm,
 {
     pastix_int_t i, colsize, rowsize;
 
-    /**
+    /*
      * Write header
      */
     fprintf( outfile,
@@ -603,7 +822,7 @@ spmSave( pastix_spm_t *spm,
         rowsize = 0;
     }
 
-    /**
+    /*
      * Write colptr
      */
     for (i=0; i<colsize; i++)
@@ -613,7 +832,7 @@ spmSave( pastix_spm_t *spm,
     }
     if ((i-1)%4 !=3) fprintf(outfile, "\n");
 
-    /**
+    /*
      * Write rowptr
      */
     for (i=0; i<rowsize; i++)
@@ -623,7 +842,7 @@ spmSave( pastix_spm_t *spm,
     }
     if ((i-1)%4 !=3) fprintf(outfile, "\n");
 
-    /**
+    /*
      * Write dofs
      */
     if ( spm->dof <= 0 ) {
@@ -635,7 +854,7 @@ spmSave( pastix_spm_t *spm,
         if ((i-1)%4 !=3) fprintf(outfile, "\n");
     }
 
-    /**
+    /*
      * Write loc2glob
      */
     if ( spm->n != spm->gN ) {
@@ -647,7 +866,7 @@ spmSave( pastix_spm_t *spm,
         if ((i-1)%4 !=3) fprintf(outfile, "\n");
     }
 
-    /**
+    /*
      * Write values
      */
     switch( spm->flttype ) {

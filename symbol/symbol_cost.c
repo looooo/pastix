@@ -1,3 +1,19 @@
+/**
+ *
+ * @file symbol_cost.c
+ *
+ * PaStiX symbol structure cost functions
+ *
+ * @copyright 1999-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -7,10 +23,36 @@
 #include "symbol.h"
 #include "symbol_cost.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_cost
+ *
+ * @brief Template function to compute cost on a column-block based approach
+ *        with a single update per column block
+ *
+ *******************************************************************************
+ *
+ * @param[in] fptr
+ *          The structure that contains the cost functions (diag, trsm and
+ *          update are used)
+ *
+ * @param[in] symbmtx
+ *          The symbolic matrix structure on which to compute the costs.
+ *
+ * @param[in] cblknum
+ *          The index of the column-block for which the cost will be computed
+ *
+ *******************************************************************************
+ *
+ * @return The cost associated to the cblk of index cblknum and evaluated with
+ * the set of given functions
+ *
+ *******************************************************************************/
 static double
-sum1d(const symbol_function_t *fptr,
-      const SymbolMatrix     *symbmtx,
-            pastix_int_t      cblknum)
+sum1d( const symbol_function_t *fptr,
+       const SymbolMatrix      *symbmtx,
+             pastix_int_t       cblknum )
 {
     SymbolCblk *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, k;
@@ -45,10 +87,40 @@ sum1d(const symbol_function_t *fptr,
     return nbops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_cost
+ *
+ * @brief Template function to compute cost on block based approach.
+ *
+ * As opposed to sum1d(), the updates are split in one per off-diagonal block
+ * making it more precise to evaluate the performance cost of the GEMMs, for
+ * example, as it exactly follow the 1D scheme used in the static scheduler of
+ * PaStiX.
+ *
+ *******************************************************************************
+ *
+ * @param[in] fptr
+ *          The structure that contains the cost functions (diag, trsm and
+ *          blkupdate are used)
+ *
+ * @param[in] symbmtx
+ *          The symbolic matrix structure on which to compute the costs.
+ *
+ * @param[in] cblknum
+ *          The index of the column-block for which the cost will be computed
+ *
+ *******************************************************************************
+ *
+ * @return The cost associated to the cblk of index cblknum and evaluated with
+ * the set of given functions
+ *
+ *******************************************************************************/
 static double
-sum2d(const symbol_function_t *fptr,
-      const SymbolMatrix     *symbmtx,
-            pastix_int_t      cblknum)
+sum2d( const symbol_function_t *fptr,
+       const SymbolMatrix      *symbmtx,
+             pastix_int_t       cblknum )
 {
     SymbolCblk *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, K, l;
@@ -93,11 +165,44 @@ sum2d(const symbol_function_t *fptr,
     return nbops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_cost
+ *
+ * @brief Template function to compute cost on block based approach which keeps
+ * the cost per block.
+ *
+ * As opposed to sum2d(), the cost of each update per block is stored in the
+ * blokcost array. Despite this storage, the function is completely identical.
+ *
+ *******************************************************************************
+ *
+ * @param[in] fptr
+ *          The structure that contains the cost functions (diag, trsm and
+ *          blkupdate are used)
+ *
+ * @param[in] symbmtx
+ *          The symbolic matrix structure on which to compute the costs.
+ *
+ * @param[in] cblknum
+ *          The index of the column-block for which the cost will be computed
+ *
+ * @param[inout] blokcost
+ *          An array of size the number of blocks in the cblknum column-block in
+ *          which to store the cost per block of each updates.
+ *
+ *******************************************************************************
+ *
+ * @return The cost associated to the cblk of index cblknum and evaluated with
+ * the set of given functions
+ *
+ *******************************************************************************/
 static double
-sum2dext(const symbol_function_t *fptr,
-         const SymbolMatrix     *symbmtx,
-               pastix_int_t      cblknum,
-               double           *blokcost)
+sum2dext( const symbol_function_t *fptr,
+          const SymbolMatrix     *symbmtx,
+                pastix_int_t      cblknum,
+                double           *blokcost )
 {
     SymbolCblk *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, K, l;
@@ -145,10 +250,44 @@ sum2dext(const symbol_function_t *fptr,
     return nbops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_cost
+ *
+ * @brief Recursive function to compute the cost of the full symbolic structure
+ * with either sum1d(), sum2d(), or sum2dext().
+ *
+ *******************************************************************************
+ *
+ * @param[in] a
+ *          The first column-block index of the range to address
+ *
+ * @param[in] b
+ *          The last column-block index of the range to address (inclusive)
+ *
+ * @param[in] fval
+ *          The function to use to compute the cost. This can be sum1d(),
+ *          sum2d(), or sum2dext()
+ *
+ * @param[in] fptr
+ *          The set of functions that will be applied. It can be size function,
+ *          floating point operation, performance models, ...
+ *
+ * @param[in] symbmtx
+ *          The symbol matrix on which to compute the wanted information.
+ *
+ *******************************************************************************
+ *
+ * @return The cost associated to the integral of the symbol matrix structure
+ *         and evaluated with the set of given functions
+ *
+ *******************************************************************************/
 static double
-recursive_sum(pastix_int_t a, pastix_int_t b,
-              double (*fval)(const symbol_function_t *, const SymbolMatrix *, pastix_int_t),
-              symbol_function_t *fptr, const SymbolMatrix * symbmtx)
+recursive_sum( pastix_int_t a, pastix_int_t b,
+               double (*fval)(const symbol_function_t *, const SymbolMatrix *, pastix_int_t),
+               const symbol_function_t *fptr,
+               const SymbolMatrix      *symbmtx )
 {
     if(a != b)
         return recursive_sum(        a, (a+b)/2, fval, fptr, symbmtx)
@@ -156,15 +295,22 @@ recursive_sum(pastix_int_t a, pastix_int_t b,
 
     return fval(fptr, symbmtx, a);
 }
+/**
+ * @}
+ *
+ * @addtogroup pastix_symbol
+ * @{
+ */
+
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @brief Computes the number of non-zero elements in L.
  *
- * symbolGetNNZ - Computes the number of non-zero elements stored in the
- * symbol matrix in order to compute the fill-in. This routines returns the
- * number of non-zero of the strictly lower part of the matrix.
+ * This computes the number of non-zero elements stored in the symbol matrix in
+ * order to compute the fill-in. This routines returns the number of non-zero of
+ * the strictly lower part of the matrix.
  *
  *******************************************************************************
  *
@@ -173,13 +319,12 @@ recursive_sum(pastix_int_t a, pastix_int_t b,
  *
  *******************************************************************************
  *
- * @return
- *          The number of non zero elements in the strictly lower part of the
+ * @return  The number of non zero elements in the strictly lower part of the
  *          full symbol matrix.
  *
  *******************************************************************************/
 pastix_int_t
-symbolGetNNZ(const SymbolMatrix *symbptr)
+symbolGetNNZ( const SymbolMatrix *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
@@ -218,15 +363,16 @@ symbolGetNNZ(const SymbolMatrix *symbptr)
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @brief Computes the number of theoretical and real flops.
  *
- * symbolGetFlops - Computes the number of theoritical and real flops to
- * factorized the given symbolic matrix with the specified type of factorization
- * and floating type.
+ * Given a symbolic factorization structure, the type of factorization: Cholesky
+ * or LU, and the arithmetic, this function will return the total number of
+ * floating point operation that will be performed during the numerical
+ * factorization.
  *
  *******************************************************************************
  *
- * @param[in] symbptr
+ * @param[in] symbmtx
  *          The symbol structure to study.
  *
  * @param[in] flttype
@@ -250,9 +396,11 @@ symbolGetNNZ(const SymbolMatrix *symbptr)
  *
  *******************************************************************************/
 void
-symbolGetFlops(const SymbolMatrix *symbmtx,
-               pastix_coeftype_t flttype, pastix_factotype_t factotype,
-               double *thflops, double *rlflops )
+symbolGetFlops( const SymbolMatrix *symbmtx,
+                pastix_coeftype_t   flttype,
+                pastix_factotype_t  factotype,
+                double             *thflops,
+                double             *rlflops )
 {
     int iscomplex = ((flttype == PastixComplex32) || (flttype == PastixComplex64)) ? 1 : 0;
 
@@ -274,15 +422,16 @@ symbolGetFlops(const SymbolMatrix *symbmtx,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @brief Computes the cost of structure for the costMatrixBuild() function.
  *
- * symbolGetFlops - Computes the number of theoritical and real flops to
- * factorized the given symbolic matrix with the specified type of factorization
- * and floating type.
+ * This function iterates on the column-blocks and blocks to compute the cost of
+ * the operation performed on each of those elements for the costMatrixBuild()
+ * function that is used in the simulation for the data mapping. It returns an
+ * array of cost for each type of element.
  *
  *******************************************************************************
  *
- * @param[in] symbptr
+ * @param[in] symbmtx
  *          The symbol structure to study.
  *
  * @param[in] flttype
@@ -295,20 +444,21 @@ symbolGetFlops(const SymbolMatrix *symbmtx,
  *          The factorization algorithm to perform: PastixFactLLT,
  *          PastixFactLDLT, PastixFactLDLH or PastixFactLU.
  *
- * @param[out] thflops
- *          Returns the number of theoretical flops to perform.
- *          NULL if not asked.
+ * @param[inout] cblkcost
+ *          An allocated array of size cblknbr that will holds the cost per cblk
+ *          on exit.
  *
- * @param[out] rlflops
- *          Returns the number of real flops to perform, taking into account
- *          copies and scatter operations.
- *          NULL if not asked.
+ * @param[inout] blokcost
+ *          An allocated array of size bloknbr that will holds the cost per blok
+ *          on exit.
  *
  *******************************************************************************/
 void
-symbolGetTimes(const SymbolMatrix *symbmtx,
-               pastix_coeftype_t flttype, pastix_factotype_t factotype,
-               double *cblkcost, double *blokcost )
+symbolGetTimes( const SymbolMatrix *symbmtx,
+                pastix_coeftype_t   flttype,
+                pastix_factotype_t  factotype,
+                double             *cblkcost,
+                double             *blokcost )
 {
     symbol_function_t *f;
     double *cblkptr, *blokptr;
@@ -330,3 +480,7 @@ symbolGetTimes(const SymbolMatrix *symbmtx,
     assert( ( cblkptr - cblkcost ) == symbmtx->cblknbr );
     assert( ( blokptr - blokcost ) == symbmtx->bloknbr );
 }
+
+/**
+ * @}
+ */

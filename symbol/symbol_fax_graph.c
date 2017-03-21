@@ -1,62 +1,39 @@
-/* Copyright INRIA 2004
-**
-** This file is part of the Scotch distribution.
-**
-** The Scotch distribution is libre/free software; you can
-** redistribute it and/or modify it under the terms of the
-** GNU Lesser General Public License as published by the
-** Free Software Foundation; either version 2.1 of the
-** License, or (at your option) any later version.
-**
-** The Scotch distribution is distributed in the hope that
-** it will be useful, but WITHOUT ANY WARRANTY; without even
-** the implied warranty of MERCHANTABILITY or FITNESS FOR A
-** PARTICULAR PURPOSE. See the GNU Lesser General Public
-** License for more details.
-**
-** You should have received a copy of the GNU Lesser General
-** Public License along with the Scotch distribution; if not,
-** write to the Free Software Foundation, Inc.,
-** 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-**
-** $Id: symbol_fax_graph.c 285 2005-03-10 10:25:31Z pelegrin $
-*/
 /**
  *
  * @file symbol_fax_graph.c
  *
- *  PaStiX symbolic factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX fax symbolic factorization routines fro Scotch esmumps library Part of
+ * a parallel direct block solver. This is the block symbolic factorization
+ * routine for graphs.
  *
- * Part of a parallel direct block solver.  This is the block symbolic
- * factorization routine for graphs.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Francois Pellegrini
  * @date 2013-06-24
  *
-
-   Dates:
-    Version 0.0 - from 22 jul 1998 to 29 sep 1998
-    Version 0.2 - from 08 may 2000 to 09 may 2000
-    Version 1.0 - from 01 jun 2002 to 03 jun 2002
-    Version 1.1 - from 26 jun 2002 to 26 jun 2002
-    Version 2.0 - from 21 mar 2003 to 21 mar 2003
-    Version 3.0 - from 02 mar 2004 to 02 mar 2004
-
+ *
+ *  Dates:
+ *   Version 0.0 - from 22 jul 1998 to 29 sep 1998
+ *   Version 0.2 - from 08 may 2000 to 09 may 2000
+ *   Version 1.0 - from 01 jun 2002 to 03 jun 2002
+ *   Version 1.1 - from 26 jun 2002 to 26 jun 2002
+ *   Version 2.0 - from 21 mar 2003 to 21 mar 2003
+ *   Version 3.0 - from 02 mar 2004 to 02 mar 2004
+ *
  **/
 #include "common.h"
 #include "symbol.h"
 #include "order.h"
-#include "fax.h"
 #include "symbol_fax.h"
+
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup pastix_symbol
  *
- * symbolFaxGraph - This routine computes the block symbolic factorization of
+ * @brief Compute the block symbolic factorization of
  * the given matrix graph according to the given vertex ordering.
  *
  * symbolFaxGraph() could have called symbolFax() in the regular way, as do all
@@ -65,7 +42,7 @@
  *
  *******************************************************************************
  *
- * @param[in,out] symbptr
+ * @param[inout] symbptr
  *          The symbolic matrix structure to fill in.
  *
  * @param[in] vertnbr
@@ -89,9 +66,8 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval 0 on success.
- *          \retval !0 on failure.
+ * @retval 0  on success.
+ * @retval !0 on failure.
  *
  *******************************************************************************/
 int
@@ -101,6 +77,7 @@ symbolFaxGraph(       SymbolMatrix * const symbptr,
                 const pastix_int_t *       edgetab,
                 const Order        * const ordeptr)
 {
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
     pastix_int_t baseval = verttab[0];
     pastix_int_t edgenbr = verttab[vertnbr] - baseval;
     const pastix_int_t * verttax;
@@ -123,4 +100,5 @@ symbolFaxGraph(       SymbolMatrix * const symbptr,
 #define SYMBOL_FAX_INCLUDED
 #include "symbol_fax.c"
     }
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 }

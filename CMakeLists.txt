@@ -1,3 +1,13 @@
+###
+#
+#  @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.0
+#  @author Mathieu Faverge
+#  @date 2013-06-24
+#
+###
 cmake_minimum_required (VERSION 2.8)
 project (PASTIX C CXX Fortran)
 
@@ -14,6 +24,7 @@ set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VE
 # Add extra cmake module path and initialize morse cmake modules
 # --------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
+include(AddSourceFiles)
 
 set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse )
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
@@ -396,17 +407,6 @@ install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pasti
 #   "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc")
 # install(FILES "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc" DESTINATION lib/pkgconfig)
 
-add_definitions(-DX_ARCHi686_pc_linux)
-
-execute_process(COMMAND "./myversion.sh" OUTPUT_VARIABLE PASTIX_VERSION)
-set(TOTO "-DVERSION=\"toto\"" )
-add_definitions(${TOTO})
-
-# Build matrix drivers library
-#
-#add_subdirectory(tools)
-#add_subdirectory(matrix_drivers)
-
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -424,7 +424,6 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/refinement")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/fax")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
@@ -498,10 +497,10 @@ set(PASTIX_LIB_SRCS
   # Files that are fully converted
   #
   graph/graph.c
+  graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
   graph/graph_symmetrize.c
-  graph/graph_io.c  # Not finished
   #
   order/order.c
   order/order_add_isolate.c
@@ -509,19 +508,33 @@ set(PASTIX_LIB_SRCS
   order/order_check.c
   order/order_find_supernodes.c
   order/order_io.c
-  order/pastix_task_order.c
+  order/pastix_subtask_order.c
   #
-  fax/amalgamate.c
-  fax/symbol_fax_graph.c
-  fax/symbol_kass.c
-  fax/symbol_kass_build.c
-  fax/symbol_kass_csr.c
-  fax/symbol_kass_direct.c
-  fax/symbol_kass_level.c
-  fax/pastix_task_symbfact.c
-  fax/pastix_task_reordering.c
+  symbol/symbol.c
+  symbol/symbol_amalgamate.c
+  symbol/symbol_base.c
+  symbol/symbol_check.c
+  symbol/symbol_cost.c
+  symbol/symbol_cost_flops.c
+  symbol/symbol_cost_perfs.c
+  symbol/symbol_draw.c
+  symbol/symbol_fax_graph.c
+  symbol/symbol_io.c
+  symbol/symbol_kass.c
+  symbol/symbol_kass_build.c
+  symbol/symbol_kass_csr.c
+  symbol/symbol_kass_direct.c
+  symbol/symbol_kass_level.c
+  symbol/symbol_reordering.c
+  symbol/symbol_rustine.c
+  #symbol/symbol_tree.c
+  symbol/pastix_subtask_reordering.c
+  symbol/pastix_subtask_symbfact.c
 
   # Files that still require some changes
+  blend/pastix_subtask_blend.c
+  blend/pastix_task_analyze.c
+
   blend/cand.c
   blend/elimin_tree.c
   blend/propmap.c
@@ -529,7 +542,6 @@ set(PASTIX_LIB_SRCS
   blend/splitsymbol.c
   blend/blendctrl.c
 
-  blend/blend.c
   blend/cost.c
   blend/simu_run.c
   blend/extendVector.c
@@ -542,7 +554,6 @@ set(PASTIX_LIB_SRCS
   blend/simu_task.c
   blend/solver.c
   blend/solver_backup.c
-  blend/pastix_task_analyze.c
   blend/solver_draw.c
 
   common/api.c
@@ -552,19 +563,6 @@ set(PASTIX_LIB_SRCS
   common/memory.c
   common/input.c
 #  common/trace.c
-#
-#
-  symbol/symbol.c
-  symbol/symbol_base.c
-  symbol/symbol_check.c
-  symbol/symbol_draw.c
-  symbol/symbol_io.c
-  symbol/symbol_rustine.c
-  symbol/symbol_cost.c
-  symbol/symbol_cost_flops.c
-  symbol/symbol_cost_perfs.c
-  symbol/symbol_reordering.c
-#  symbol/symbol_tree.c
 #
   matrix_drivers/get_options.c
   matrix_drivers/drivers.c
@@ -635,14 +633,14 @@ add_library(pastix
 
 # GenRHS requires geadd
 add_dependencies(pastix_spm
-  kernels_headers
+  kernels_headers_tgt
 )
 
 add_dependencies(pastix
   spm_headers_tgt
-  kernels_headers
-  bcsc_headers
-  refinement_headers
+  kernels_headers_tgt
+  bcsc_headers_tgt
+  refinement_headers_tgt
   sopalin_headers
 )
 target_link_libraries(pastix
@@ -654,12 +652,7 @@ target_link_libraries(pastix
 if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
-    ${PARSEC_LIBRARIES}
-    parsec_distribution
-    parsec_distribution_matrix
-    ${PARSEC_EXTRA_LIBRARIES}
-    ${PARSEC_LIBRARIES}
-    )
+  )
 endif()
 
 # foreach (module2 ${modules})
@@ -695,79 +688,106 @@ add_subdirectory(test)
 #      Build documentation
 #
 #############################################################
-set(PASTIX_ALL_SRCS
-  #${generated_files}
-  #
+add_documented_files(
   #
   include/pastix.h
   #
-  spm/spm.h
-  spm/spm.c
-  spm/spm_io.c
-  spm/spm_integers.c
-  spm/spm_dofs.c
-  spm/spm_read_driver.c
-  #
+  graph/graph.h
   graph/graph.c
+  graph/graph_io.c
+  graph/graph_apply_perm.c
   graph/graph_isolate.c
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   #
+  order/order.h
+  #order/order_scotch_strats.h TODO: include in developer version
   order/order.c
   order/order_add_isolate.c
+  order/order_apply_level_order.c
   order/order_check.c
   order/order_find_supernodes.c
   order/order_io.c
   order/order_compute_metis.c
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
-  order/pastix_task_order.c
+  order/pastix_subtask_order.c
   #
-  fax/amalgamate.c
-  fax/symbol_fax_graph.c
-  fax/symbol_kass.c
-  fax/symbol_kass_build.c
-  fax/symbol_kass_csr.c
-  fax/symbol_kass_direct.c
-  fax/symbol_kass_level.c
-  fax/pastix_task_symbfact.c
+  symbol/symbol.h
+  symbol/symbol_cost.h  #TODO: include in developer version
+  symbol/symbol_fax.h   #TODO: include in developer version
+  symbol/symbol_kass.h  #TODO: include in developer version
+  symbol/symbol.c
+  symbol/symbol_amalgamate.c
+  symbol/symbol_base.c
+  symbol/symbol_check.c
+  symbol/symbol_cost.c
+  symbol/symbol_cost_flops.c
+  symbol/symbol_cost_perfs.c
+  symbol/symbol_draw.c
+  #symbol/symbol_fax.c Not documented: template file
+  symbol/symbol_fax_graph.c
+  symbol/symbol_io.c
+  symbol/symbol_kass.c
+  symbol/symbol_kass_build.c
+  symbol/symbol_kass_csr.c
+  symbol/symbol_kass_direct.c
+  symbol/symbol_kass_level.c
+  symbol/symbol_reordering.c
+  symbol/symbol_rustine.c
+  symbol/pastix_subtask_reordering.c
+  symbol/pastix_subtask_symbfact.c
   #
-#  ${PASTIX_LIB_SRCS}
-  order/order_compute_scotch.c
-  #order/order_compute_ptscotch.c
-  order/order_compute_metis.c
-
-#   refinement/pastix_task_raff.c
+  blend/blend.h
+  blend/cand.h
+  #blend/blendctrl.h
+  #blend/bulles.h
+  #blend/cost.h
+  #blend/costfunc.h
+  #blend/elimin.h
+  #blend/extendVector.h
+  #blend/extracblk.h
+  #blend/fanboth2.h
+  #blend/ftgt.h
+  #blend/perf.h
+  #blend/queue.h
+  #blend/simu.h
+  #blend/simu_timer.h
+  #blend/solver.h
+  #blend/solverMatrixGen.h
+  #blend/solver_check.h
+  #blend/solver_io.h
+  #blend/splitpartlocal.h
+  #blend/task.h
+  #blend/blendctrl.c
+  #blend/bulles.c
+  #blend/cand.c
+  #blend/cost.c
+  #blend/elimin_graph.c
+  #blend/elimin_tree.c
+  #blend/extendVector.c
+  #blend/extracblk.c
+  #blend/propmap.c
+  #blend/queue.c
+  #blend/simu.c
+  #blend/simu_run.c
+  #blend/solver.c
+  #blend/solverMatrixGen.c
+  #blend/solver_backup.c
+  #blend/solver_check.c
+  #blend/solver_copy.c
+  #blend/solver_draw.c
+  #blend/solver_io.c
+  #blend/splitsymbol.c
+  #blend/task.c
+  blend/pastix_subtask_blend.c
+  blend/pastix_task_analyze.c
 )
 
-FIND_PACKAGE(Doxygen)
-if (DOXYGEN_FOUND)
-  option(BUILD_DOCUMENTATION "Use Doxygen to create the HTML based API documentation" ON)
-else (DOXYGEN_FOUND)
-  option(BUILD_DOCUMENTATION "Use Doxygen to create the HTML based API documentation" OFF)
-endif(DOXYGEN_FOUND)
-
-if(BUILD_DOCUMENTATION)
-  if (NOT DOXYGEN_FOUND)
-    message(FATAL_ERROR
-      "Doxygen is needed to build the documentation. Please install it correctly")
-  endif()
-
-  set(PASTIX_DOX_SRCS ${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox )
-  foreach( _file ${PASTIX_ALL_SRCS} )
-    set(PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS} ${PROJECT_SOURCE_DIR}/${_file}" )
-  endforeach()
-
-  #-- Configure the Template Doxyfile for our specific project
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/Doxyfile.in
-                 ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile @ONLY IMMEDIATE )
-  #-- Add a custom target to run Doxygen when ever the project is built
-  add_custom_target (docs
-    COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile
-    SOURCES ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen/Doxyfile )
-
-endif()
-
+#
+# Build documentation
+#
+add_subdirectory(docs)
 
 #-- Add a custom target to run Doxygen when ever the project is built
 add_custom_target (tags

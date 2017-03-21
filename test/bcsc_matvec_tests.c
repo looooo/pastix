@@ -82,9 +82,7 @@ int main (int argc, char **argv)
     /**
      * Run preprocessing steps required to generate the blocked csc
      */
-    pastix_task_order( pastix_data, spm, NULL, NULL );
-    pastix_task_symbfact( pastix_data, NULL, NULL );
-    pastix_task_blend( pastix_data );
+    pastix_task_analyze( pastix_data, spm );
 
     /**
      * Generate the blocked csc

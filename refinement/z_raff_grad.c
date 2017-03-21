@@ -1,9 +1,13 @@
 /**
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @file z_raff_grad.c
  *
- * @version 1.0.0
+ * PaStiX refinement functions implementations.
+ *
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -15,7 +19,6 @@
 #include "common.h"
 #include "bcsc.h"
 #include "z_raff_functions.h"
-#include "solver.h"
 
 /**
  *******************************************************************************
@@ -28,21 +31,19 @@
  *
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
- * 
- * @param[in] x
+ *
+ * @param[out] x
  *          The solution vector.
- * 
+ *
  * @param[in] b
  *          The right hand side member (only one).
  *
  *******************************************************************************/
 void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 {
-  /* Choix du solveur */
   struct z_solver solveur = {NULL};
   z_Pastix_Solveur(&solveur);
 
-  /* Variables */
   pastix_bcsc_t     * bcsc      = pastix_data->bcsc;
   pastix_int_t        n         = bcsc->gN;
   Clock               raff_clk;
@@ -64,7 +65,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
   pastix_complex64_t *beta  = NULL;
   pastix_complex64_t *gradx = NULL;
 
-  /* Initialisation des vecteurs */
+  /* Initialize vectors */
   gradb = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
   gradr = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
   gradp = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
@@ -88,7 +89,6 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
   /* z = M-1 r */
   solveur.Precond(pastix_data, gradr, gradz);
 
-//   solveur.Copy(arg, gradz, gradp, 1);
   memcpy(gradp, gradz, n * sizeof( pastix_complex64_t ));
 
   while (((double)tmp > (double)epsilon) && (nb_iter < itermax))
@@ -103,7 +103,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
       /* alpha = <r, z> / <Ap, p> */
       solveur.Dotc(n, gradr, gradz, beta);
       solveur.Dotc(n, grad2, gradp, alpha);
-//       solveur.Div(arg, beta, alpha, alpha, 1);
+      // solveur.Div(arg, beta, alpha, alpha, 1);
       alpha[0] = beta[0] / alpha[0];
 
       /* x = x + alpha * p */
@@ -117,7 +117,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 
       /* beta = <r', z> / <r, z> */
       solveur.Dotc(n, gradr, gradz, alpha);
-//       solveur.Div(arg, alpha, beta, beta, 1);
+      // solveur.Div(arg, alpha, beta, beta, 1);
       beta[0] = alpha[0] / beta[0];
 
       /* p = z + beta * p */

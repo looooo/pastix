@@ -693,7 +693,7 @@ pastix_ex_usage(void)
             );
 }
 
-#define GETOPT_STRING "0:1:2:3:4:5:6:7:8:9:G:t:g:o:i:d:f:s:v::h"
+#define GETOPT_STRING "0:1:2:3:9:x:G:t:g:o:i:d:f:s:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 static struct option long_options[] =
@@ -703,26 +703,13 @@ static struct option long_options[] =
     {"1",           required_argument,  0, '1'},
     {"hb",          required_argument,  0, '1'},
     {"2",           required_argument,  0, '2'},
-    {"ccc",         required_argument,  0, '2'},
+    {"ijv",         required_argument,  0, '2'},
     {"3",           required_argument,  0, '3'},
-    {"rcc",         required_argument,  0, '3'},
-    {"4",           required_argument,  0, '4'},
-    {"olaf",        required_argument,  0, '4'},
-    {"5",           required_argument,  0, '5'},
-    {"peer",        required_argument,  0, '5'},
-    {"7",           required_argument,  0, '7'},
-    {"ijv",         required_argument,  0, '7'},
-    {"8",           required_argument,  0, '8'},
-    {"mm",          required_argument,  0, '8'},
+    {"mm",          required_argument,  0, '3'},
     {"9",           required_argument,  0, '9'},
     {"lap",         required_argument,  0, '9'},
+    {"x",           required_argument,  0, 'x'},
     {"xlap",        required_argument,  0, 'x'},
-    {"dmm",         required_argument,  0, 'A'},
-    {"fdup",        required_argument,  0, 'B'},
-    {"fdupd",       required_argument,  0, 'C'},
-    {"petsc_s",     required_argument,  0, 'D'},
-    {"petsc_h",     required_argument,  0, 'E'},
-    {"petsc_u",     required_argument,  0, 'F'},
     {"G",           required_argument,  0, 'G'},
     {"graph",       required_argument,  0, 'G'},
 
@@ -789,31 +776,11 @@ void pastix_ex_getoptions(int argc, char **argv,
             break;
 
         case '2':
-            *driver = PastixDriverCCC;
-            getfilename( filename, optarg, "cccname" );
-            break;
-
-        case '3':
-            *driver = PastixDriverRCC;
-            getfilename( filename, optarg, "rccname" );
-            break;
-
-        case '4':
-            *driver = PastixDriverOlaf;
-            getfilename( filename, optarg, "olafname" );
-            break;
-
-        case '5':
-            *driver = PastixDriverPeer;
-            getfilename( filename, optarg, "peername" );
-            break;
-
-        case '7':
             *driver = PastixDriverIJV;
             getfilename( filename, optarg, "ijvname" );
             break;
 
-        case '8':
+        case '3':
             *driver = PastixDriverMM;
             getfilename( filename, optarg, "mmname" );
             break;
@@ -826,36 +793,6 @@ void pastix_ex_getoptions(int argc, char **argv,
         case 'x':
             *driver = PastixDriverXLaplacian;
             getfilename( filename, optarg, "d:1000" );
-            break;
-
-        case 'A':
-            *driver = PastixDriverDMM;
-            getfilename( filename, optarg, "dmmname" );
-            break;
-
-        case 'B':
-            *driver = PastixDriverBRGM;
-            getfilename( filename, optarg, "brgmname" );
-            break;
-
-        case 'C':
-            *driver = PastixDriverBRGMD;
-            getfilename( filename, optarg, "brgmdname" );
-            break;
-
-        case 'D':
-            *driver = PastixDriverPetscS;
-            getfilename( filename, optarg, "petscname" );
-            break;
-
-        case 'E':
-            *driver = PastixDriverPetscH;
-            getfilename( filename, optarg, "petscname" );
-            break;
-
-        case 'F':
-            *driver = PastixDriverPetscU;
-            getfilename( filename, optarg, "petscname" );
             break;
 
         case 'G':

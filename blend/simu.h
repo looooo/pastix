@@ -95,6 +95,10 @@ typedef struct simuctrl_s {
     SimuTimer    *ftgttimetab; /*+ Vector containing a timer for each cluster on each ftgt  +*/
 } SimuCtrl;
 
+
+void         taskBuild          (SimuCtrl *, SymbolMatrix *, Cand *);
+double       taskSendCost       (SimuTask *, const pastix_int_t, const pastix_int_t, BlendCtrl *);
+
 /*
  **  The function prototypes.
  */

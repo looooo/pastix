@@ -2,14 +2,13 @@
  *
  * @file symbol_base.c
  *
- *  Copyright Inria 1999-2015
+ * PaStiX symbol structure base function
  *
- *  PaStiX symbol structure routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 1999-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
- * @author Francois Pelegrin
+ * @version 6.0.0
+ * @author Francois Pellegrini
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
@@ -22,12 +21,12 @@
  *
  * @ingroup pastix_symbol
  *
- * symbolBase - Sets the base of the given symbol matrix structure to the given
+ * @brief Sets the base of the given symbol matrix structure to the given
  * base value.
  *
  *******************************************************************************
  *
- * @param[in,out] symbptr
+ * @param[inout] symbptr
  *          The symbol structure to initialize.
  *
  * @param[in] baseval

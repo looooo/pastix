@@ -1,12 +1,13 @@
 /**
  *
- * @file spm_dofs.c
+ * @file spm_dof_extend.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package random multi-dofs generator.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Alban Bellot
@@ -22,6 +23,31 @@
 #include "s_spm.h"
 #include "p_spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_spm
+ *
+ * @brief Generate a random multidof spm from a given spm (with dof=1).
+ *
+ *******************************************************************************
+ *
+ * @param[in] type
+ *          Defines how to generate dofs.
+ *          - 0: Generate a constant dof vector,
+ *          - else: Generate a variable dof vector.
+ *
+ * @param[in] dof
+ *          The maximum value for dofs.
+ *
+ * @param[in] spm
+ *          The sparse matrix used to generate the new multidof spm.
+ *
+ ********************************************************************************
+ *
+ * @return the new multidof spm.
+ *
+ *******************************************************************************/
 pastix_spm_t *
 spmDofExtend( const int type,
               const int dof,
@@ -40,7 +66,7 @@ spmDofExtend( const int type,
 
     newspm = spmCopy( spm );
 
-    /**
+    /*
      * Generate constant dof
      */
     if (type == 0) {
@@ -56,7 +82,7 @@ spmDofExtend( const int type,
         newspm->dofs = malloc( (spm->n+1) * sizeof(pastix_int_t) );
         dofptr = newspm->dofs;
 
-        /**
+        /*
          * Initialize the dofs array where the degree of freedom of vertex i is
          * dof[i+1] - dof[i]
          */

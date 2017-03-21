@@ -2,11 +2,10 @@
  *
  * @file order.c
  *
- *  PaStiX order routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX order structure routines
  *
- * Contains basic functions to manipulate the order structure.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author Francois Pellegrini
@@ -20,14 +19,15 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderAlloc - Allocate the order structure. The base value is set to 0 by
- * default.
+ * @brief Allocate the order structure.
+ *
+ * The base value is set to 0 by default.
  *
  *******************************************************************************
  *
- * @param[in,out] ordeptr
+ * @param[inout] ordeptr
  *          The data structure is set to 0 and then initialize.
  *          Need to call orderExit to release the memory first if required to
  *          prevent memory leak.
@@ -44,10 +44,9 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on successful exit
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
  *
  *******************************************************************************/
 int
@@ -87,15 +86,16 @@ orderAlloc( Order * const ordeptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderInit - Initialize the order structure with the given values. The base
- * value is set to 0 by default. This is useful to give a personal ordering to
- * the pastix_task_order() function.
+ * @brief Initialize the order structure with the given values.
+ *
+ * The base value is set to 0 by default. This is useful to give a personal
+ * ordering to the pastix_task_order() function.
  *
  *******************************************************************************
  *
- * @param[in,out] ordeptr
+ * @param[inout] ordeptr
  *          The data structure is set to 0 and then initialize.
  *          Need to call orderExit to release the memory first if required to
  *          prevent memory leak.
@@ -138,10 +138,9 @@ orderAlloc( Order * const ordeptr,
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on successful exit
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ * @retval PASTIX_SUCCESS on successful exit
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
  *
  *******************************************************************************/
 int
@@ -190,13 +189,13 @@ orderInit ( Order * const ordeptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderExit - Free the arrays initialized in the order structure.
+ * @brief Free the arrays initialized in the order structure.
  *
  *******************************************************************************
  *
- * @param[in,out] ordeptr
+ * @param[inout] ordeptr
  *          The data structure to clean. All arrays of the structure are freed
  *          and the structure is set to 0.
  *
@@ -224,14 +223,14 @@ orderExit (Order * const ordeptr)
 /**
  *******************************************************************************
  *
- * @ingroup pastix_ordering
+ * @ingroup pastix_order
  *
- * orderBase - This routine sets the base of the given ordering structure to the
+ * @brief This routine sets the base of the given ordering structure to the
  * given base value.
  *
  *******************************************************************************
  *
- * @param[in,out] ordeptr
+ * @param[inout] ordeptr
  *          The ordering to rebase.
  *
  * @param[in] baseval

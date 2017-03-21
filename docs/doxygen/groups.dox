@@ -1,17 +1,113 @@
 /**
  *
- ****
- *
  * @defgroup pastix_spm SPM: SParse Matrix package
- * @brief This group describes all the routines of the Sparse Matrix
- *        package of the PaStiX library that allows one to easily
- *        manipulate sparse matrices with basic operations
+ * @brief    Functions to easily manipulate SPM data structure
  *
  ****
  *
- * @namespace pastix_spm SPM: SParse Matrix package
- * @brief This group describes all the routines of the Sparse Matrix
- *        package of the PaStiX library that allows one to easily
- *        manipulate sparse matrices with basic operations
+ * @defgroup pastix_spm_dev SPM internal function documentation
+ * @ingroup  pastix_spm
+ *
+ ******
+ *
+ * @defgroup spm_dev_driver Drivers and generators
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_convert Format conversion
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_io I/O functions
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_integer Integer array manipulation
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_matvec Matrix-vector product
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_dof Multi-dof extension
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_norm Norms
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_print Printing structure
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_scal Scaling
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_check Structure checking
+ * @ingroup  pastix_spm_dev
+ *
+ * @defgroup spm_dev_rhs Solver checking
+ * @ingroup  pastix_spm_dev
+ *
+ **
+ *
+ * @defgroup pastix_users PaStiX
+ * @brief    PaStiX users documentation
+ *
+ ****
+ *
+ * @defgroup pastix_analyze Analyse step
+ * @ingroup  pastix_users
+ * @brief    This group describes all the analyse routines that prepare
+ *           data structures for the factorization and solve steps.
+ *
+ ******
+ *
+ * @defgroup pastix_graph Graph
+ * @ingroup  pastix_analyze
+ *
+ ******
+ *
+ * @defgroup pastix_order Ordering
+ * @ingroup  pastix_analyze
+ *
+ ********
+ *
+ * @defgroup order_dev Ordering internal function documentation
+ * @ingroup  pastix_order
+ *
+ ******
+ *
+ * @defgroup pastix_symbol Symbolic Factorization
+ * @ingroup  pastix_analyze
+ *
+ ********
+ *
+ * @defgroup symbol_dev Symbolic internal function documentation
+ * @ingroup  pastix_symbol
+ *
+ **********
+ *
+ * @defgroup symbol_dev_draw        Drawing
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_fax         FAX symbolic factorization
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_kass        KASS symbolic factorization
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_reordering  Reordering
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_cost        Time/Flops costs
+ * @ingroup  symbol_dev
+ *
+ ******
+ *
+ * @defgroup pastix_blend Blend
+ * @ingroup  pastix_analyze
+ * @brief    This group describes all the routines of the Blend package
+ *           that allow to re-split column blocs and distribute them
+ *           on processors.
+ *
+ **********
+ *
+ * @defgroup blend_dev_cand Candidates
+ * @ingroup  pastix_blend
  *
  **/

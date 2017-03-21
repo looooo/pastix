@@ -2,11 +2,12 @@
  *
  * @file z_spm_convert_to_csr.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package conversion routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01
@@ -20,22 +21,22 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_convert
  *
- * z_spmConvertCSC2CSR - convert a matrix in CSC format to a matrix in CSR
- * format. If the matrix is PastixSymmetric or PastixHermitian, then the
+ * @brief convert a matrix in CSC format to a matrix in CSR format.
+ *
+ * If the matrix is PastixSymmetric or PastixHermitian, then the
  * transpose or respectively the conjugate is returned.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The csc matrix at enter,
  *          the csr matrix at exit.
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 int
@@ -99,21 +100,20 @@ z_spmConvertCSC2CSR( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_convert
  *
- * z_spmConvertIJV2CSR - convert a matrix in IJV format to a matrix in CSR
+ * @brief convert a matrix in IJV format to a matrix in CSR
  * format.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          The ijv matrix at enter,
  *          the csr matrix at exit.
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 int

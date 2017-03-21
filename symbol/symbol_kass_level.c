@@ -2,32 +2,31 @@
  *
  * @file symbol_kass_level.c
  *
- *  PaStiX symbolic factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
- *
  * This file contains croutines to create the graph of the incomplete
  * factorization of a graph A.
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
  **/
 #include "common.h"
-#include "kass.h"
+#include "symbol_kass.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kassFactLevel - This function computes the non zero pattern of the levelized
+ * @brief Compute the non zero pattern of the levelized
  * incomplete factor for a sparse lower triangular matrix in CSC format. This
  * pattern is exact iff the matrix has a SYMMETRIC non zero structure.
  *
- * Remark: This algorithm has been implemented according to the paper of David
+ * @remark This algorithm has been implemented according to the paper of David
  *     Hysom and Alex Pothen : Level-based Incomplete LU factorization: Graph
  *     Model and Algorithm
  *
@@ -39,22 +38,21 @@
  * @param[in] level
  *          It is the level desired for the ilu(k) factorization. (level >= 0)
  *
- * @param[out] graphL
+ * @param[inout] graphL
  *          The graph the structure of the non zero pattern of the factorized matrix.
  *          On entry, a pointer to a graph structure. No need for initialization.
  *          On exit, the structure contains the computed graph.
  *
  *******************************************************************************
  *
- * @return
- *          \retval If >=0, the number of non zero entries in the generated graph.
- *          \retval -i, if the i^th parameter is incorrect
+ * @retval >=0, the number of non zero entries in the generated graph.
+ * @retval -i, if the i^th parameter is incorrect
  *
  *******************************************************************************/
 pastix_int_t
 kassFactLevel( const kass_csr_t   *graphA,
                      pastix_int_t  level,
-                     kass_csr_t   *graphL)
+                     kass_csr_t   *graphL )
 {
     pastix_int_t *visited = NULL;
     pastix_int_t *length  = NULL;

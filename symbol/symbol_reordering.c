@@ -2,11 +2,12 @@
  *
  * @file symbol_reordering.c
  *
- *  PaStiX symbol structure routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX symbol structure reordering routines
  *
- * @version 5.1.0
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Pierre Ramet
@@ -20,10 +21,9 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @ingroup symbol_dev_reordering
  *
- * compute_cblklevel - Computes the level of supernode cblknum, with Scotch
- * treetab.
+ * @brief Compute the level of supernode cblknum, with Scotch treetab.
  *
  *******************************************************************************
  *
@@ -39,8 +39,7 @@
  *
  *******************************************************************************
  *
- * @return
- *          This routine will return the level of cblknum.
+ * @return the level of cblknum.
  *
  *******************************************************************************/
 static inline pastix_int_t
@@ -67,10 +66,9 @@ compute_cblklevel( const pastix_int_t *treetab,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @ingroup symbol_dev_reordering
  *
- * hamming_distance - Computes the distance between two rows of a same
- * supernode.
+ * @brief Compute the distance between two rows of a same supernode.
  *
  *******************************************************************************
  *
@@ -94,8 +92,7 @@ compute_cblklevel( const pastix_int_t *treetab,
  *
  *******************************************************************************
  *
- * @return
- *          This routine will return the distance between rows xi and xj.
+ * @return The distance between rows xi and xj.
  *
  *******************************************************************************/
 static inline pastix_int_t
@@ -166,12 +163,12 @@ hamming_distance( pastix_int_t **vectors,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @ingroup symbol_dev_reordering
  *
- * symbol_reorder_tsp - reorder rows of a supernode with the nearest insertion
- * TSP heuristic.
+ * @brief Reorder rows of a supernode with the nearest insertion TSP heuristic.
  *
- * See reordering paper (TODO: Put link to the paper when published)
+ * See reordering paper
+ * @todo Put link to the paper when published
  *
  *******************************************************************************
  *
@@ -409,11 +406,12 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbol
+ * @ingroup symbol_dev_reordering
  *
- * symbol_reorder_cblk - reorders a supernode, but computing the set of
- * contributing supernodes for each row, before calling a TSP heuristic to
- * minimize the Hamilonian Path.
+ * @brief Reorder a supernode
+ *
+ * This function computes the set of contributing supernodes for each row, and
+ * then call a TSP heuristic to minimize the Hamilonian Path.
  *
  *******************************************************************************
  *
@@ -610,7 +608,7 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
  *
  * @ingroup pastix_symbol
  *
- * symbolReordering - Computes the reordering on the complete matrix.
+ * @brief Compute the reordering on the complete matrix.
  *
  *******************************************************************************
  *
@@ -686,8 +684,10 @@ symbolReordering( const SymbolMatrix *symbptr,
  *
  * @ingroup pastix_symbol
  *
- * symbolReorderingPrintComplexity - Computes the number of operations required
- * to compute the reordering on the complete matrix.
+ * @brief Compute the number of operations required to compute the reordering on
+ * the complete matrix.
+ *
+ * The number of operation is compuyted and then printed on the standard output.
  *
  *******************************************************************************
  *
@@ -707,7 +707,7 @@ symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
     cblknbr = symbptr->cblknbr;
     nbflops = 0;
 
-    /**
+    /*
      * nbcblk is the number of non zeroes intersection between indivudal rows
      * and block columns.
      */

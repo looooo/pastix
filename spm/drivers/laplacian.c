@@ -61,7 +61,7 @@ laplacian_usage(void)
  *          Configuration string of the Laplacian. See laplacian_usage() for
  *          more information.
  *
- * @param[in,out] csc
+ * @param[inout] csc
  *          At start, an allocated csc structure that will store the Lapalcian
  *          matrix.
  *          At exit, the fields of the csc are initialized and especially the
@@ -253,7 +253,7 @@ static void (*extended_laplacian_table3D[6])(pastix_csc_t*, pastix_int_t, pastix
  *             <dim2> size of the second dimension of the 2D|3D laplacian\n"
  *             <dim3> size of the third dimension of the 3D laplacian\n"
  *
- * @param[in,out] csc
+ * @param[inout] csc
  *          At start, an allocated csc structure.
  *          At exit, contains a laplacian matrix in the csc format.
  *
@@ -309,7 +309,7 @@ genLaplacian( const char    *filename,
  *             <dim2> size of the second dimension of the 2D|3D laplacian
  *             <dim3> size of the third dimension of the 3D laplacian
  *
- * @param[in,out] csc
+ * @param[inout] csc
  *          At start, an allocated csc structure.
  *          At exit, contains a laplacian matrix in the csc format.
  *

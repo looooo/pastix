@@ -2,17 +2,18 @@
  *
  * @file propmap.c
  *
- *  PaStiX analyse routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX analyse proportionnal mapping functions.
  *
- * Contains routines to perform proportional mapping algorithm.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
+ * @addtogroup blend_dev_propmap
+ * @{
  **/
 #include "common.h"
 #include "symbol.h"
@@ -23,21 +24,33 @@
 #include "blendctrl.h"
 #include "queue.h"
 
+/**
+ * @brief Minimal work ratio to accept the contribution from one additional candidate
+ */
 #define CROSS_TOLERANCE 0.1
 
+/**
+ * @brief Proportional mapping structure to forward the arguments throught the
+ *        recursive calls.
+ */
 typedef struct propmap_s {
-    const EliminTree   *etree;
-    Cand               *candtab;
-    pastix_int_t        candnbr;
-    int                 nocrossproc;
+    const EliminTree *etree;       /**< Elimination tree to map                    */
+    Cand             *candtab;     /**< Candidate array for each node of the etree */
+    pastix_int_t      candnbr;     /**< Number of candidates available             */
+    int               nocrossproc; /**< Enable/disable the distribution of one candidate on multiple branches */
 } propmap_t;
 
+
+/**
+ * @brief Proportional mapping structure to forward the arguments throught the
+ *        recursive calls.
+ */
 static inline void
-propMappSubtreeOn1P( propmap_t   *pmptr,
-                     pastix_int_t rootnum,
-                     pastix_int_t fcandnum,
-                     pastix_int_t lcandnum,
-                     pastix_int_t cluster )
+propMappSubtreeOn1P( const propmap_t *pmptr,
+                     pastix_int_t     rootnum,
+                     pastix_int_t     fcandnum,
+                     pastix_int_t     lcandnum,
+                     pastix_int_t     cluster )
 {
     pastix_int_t i;
     pastix_int_t sonsnbr;
@@ -56,12 +69,12 @@ propMappSubtreeOn1P( propmap_t   *pmptr,
 }
 
 static inline void
-propMappSubtree( propmap_t    *pmptr,
-                 pastix_int_t  rootnum,
-                 pastix_int_t  fcandnum,
-                 pastix_int_t  lcandnum,
-                 pastix_int_t  cluster,
-                 double       *cost_remain)
+propMappSubtree( const propmap_t *pmptr,
+                 pastix_int_t     rootnum,
+                 pastix_int_t     fcandnum,
+                 pastix_int_t     lcandnum,
+                 pastix_int_t     cluster,
+                 double          *cost_remain )
 {
     Queue *queue_tree;
     pastix_int_t p;
@@ -315,7 +328,7 @@ propMappTree( Cand               *candtab,
 
     if (allcand) {
         propMappSubtreeOn1P( &pmdata, eTreeRoot(etree),
-                             0, candnbr-1, NOCLUSTER );
+                             0, candnbr-1, 0 );
     }
     else {
         double *cost_remain = NULL;
@@ -330,7 +343,7 @@ propMappTree( Cand               *candtab,
 
         propMappSubtree( &pmdata, eTreeRoot(etree),
                          0, candnbr-1,
-                         NOCLUSTER, cost_remain);
+                         0, cost_remain);
 
         memFree_null(cost_remain);
     }

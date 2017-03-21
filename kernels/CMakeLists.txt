@@ -1,21 +1,40 @@
+###
+#
+#  @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.0
+#  @author Mathieu Faverge
+#  @date 2013-06-24
+#
+###
 include(RulesPrecisions)
+include(AddSourceFiles)
+
 # reset variables
-set(generated_files "")
+set(generated_sources "")
 set(generated_headers "")
 
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
+### Generate the headers in all precisions
 set(HEADERS
   pastix_zcores.h
   z_nan_check.h
 )
 
-### generate the dsparse_cores headers for all possible precisions
 precisions_rules_py(generated_headers
-                    "${HEADERS}"
-                    PRECISIONS "s;d;c;z")
+  "${HEADERS}"
+  PRECISIONS "s;d;c;z")
 
-add_custom_target(kernels_headers DEPENDS ${generated_headers} )
+set(kernels_headers
+  ${generated_headers}
+  )
 
-### Generate the CPU kernels for all required precisions
+add_custom_target(kernels_headers_tgt
+  DEPENDS ${kernels_headers} )
+
+### Generate the sources in all precisions
 set(SOURCES
   # CPU extra kernel
   core_zgemdm.c
@@ -34,9 +53,13 @@ set(SOURCES
   core_zgelrops_RRQR.c
 )
 
-precisions_rules_py(generated_files
-   "${SOURCES}"
-   PRECISIONS "s;d;c;z")
+precisions_rules_py(generated_sources
+  "${SOURCES}"
+  PRECISIONS "s;d;c;z")
+
+set(kernels_sources
+  ${generated_sources}
+  )
 
 if(PASTIX_WITH_CUDA)
    set( CUDA_SOURCES
@@ -48,16 +71,21 @@ if(PASTIX_WITH_CUDA)
         "${CUDA_SOURCES}"
         PRECISIONS "s;d;c;z")
 
-   set(generated_files
-       ${generated_files}
+   set(kernels_sources
+       ${kernels_sources}
        ${CUDA_generated_files})
 
    add_subdirectory(gpus/kepler)
 
 endif(PASTIX_WITH_CUDA)
 
-add_library(pastix_kernels ${generated_files} )
-add_dependencies(pastix_kernels kernels_headers)
+add_library(pastix_kernels
+  ${kernels_sources}
+  )
+
+add_dependencies(pastix_kernels
+  kernels_headers_tgt
+)
 
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}
@@ -72,3 +100,16 @@ if(PASTIX_WITH_CUDA)
     pastix_cucores_sm35
     )
 endif()
+
+
+### Add documented files to the global property
+add_documented_files(
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  ${generated_headers}
+  ${generated_sources}
+  )
+
+# add_documented_files(
+#   # Headers
+#   # Source files
+#   )

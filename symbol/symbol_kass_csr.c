@@ -2,11 +2,12 @@
  *
  * @file symbol_kass_csr.c
  *
- *  PaStiX symbolic factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX symbolic factorization routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -14,15 +15,15 @@
  **/
 #include "common.h"
 #include "graph.h"
-#include "kass.h"
+#include "symbol_kass.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kass_csrInit - Initialize the data structure by doing the first allocations
- * within the structure and initializing the fields.
+ * @brief Initialize the data structure by doing the first allocations within
+ * the structure and initializing the fields.
  *
  *******************************************************************************
  *
@@ -48,13 +49,13 @@ kass_csrInit( pastix_int_t n, kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kass_csrClean - Free the data store in the structure.
+ * @brief Free the data store in the structure.
  *
  *******************************************************************************
  *
- * @param[in,out] csr
+ * @param[inout] csr
  *          The graph to clean.
  *
  *******************************************************************************/
@@ -74,10 +75,11 @@ kass_csrClean( kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kass_csrGetNNZ - Computes the number of non zero entries in the graph with
- * the following formula: nnz = sum( i=0..n, nnz[n] )
+ * @brief Computes the number of non zero entries in the graph.
+ *
+ * It is using the following formula: nnz = sum( i=0..n, nnz[n] )
  * The formula must be post computed to adapt to presence of diagonal elements
  * or not, and to the symmetry of the graph.
  *
@@ -88,8 +90,7 @@ kass_csrClean( kass_csr_t *csr )
  *
  *******************************************************************************
  *
- * @return
- *          \retval The number of non zero entries.
+ * @retval The number of non zero entries.
  *
  *******************************************************************************/
 pastix_int_t
@@ -106,14 +107,16 @@ kass_csrGetNNZ( const kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kass_csrCompact - Compact a acompressed graph. All nodes with no non zero
- * entries are removed from the graph, the allocated space is not adjusted.
+ * @brief Compact a compressed graph.
+ *
+ * All nodes with no non zero entries are removed from the graph, the allocated
+ * space is not adjusted.
  *
  *******************************************************************************
  *
- * @param[in,out] csr
+ * @param[inout] csr
  *          The graph to compact.
  *          On entry, graph which might contain nodes with no non zero entries.
  *          On exit, all those nodes are suppressed and the compressed graph is
@@ -150,9 +153,9 @@ kass_csrCompact( kass_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kass_csrGenPA - Generate the graph of P*A from the graph of A and the
+ * @brief Generate the graph of P*A from the graph of A and the
  * permutation vector.
  *
  *******************************************************************************
@@ -163,16 +166,15 @@ kass_csrCompact( kass_csr_t *csr )
  * @param[in] perm
  *          Integer array of size graphA->n. Contains the permutation to apply to A.
  *
- * @param[in,out] graphPA
+ * @param[inout] graphPA
  *          On entry, the initialized graph with size graphA->n.
  *          On exit, contains the graph of P A.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on success.
- *          \retval PASTIX_ERR_ALLOC if allocation went wrong.
- *          \retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
+ * @retval PASTIX_SUCCESS on success.
+ * @retval PASTIX_ERR_ALLOC if allocation went wrong.
+ * @retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
  *
  *******************************************************************************/
 int

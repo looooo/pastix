@@ -118,8 +118,8 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
 
 
 int
-pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data,
-                          pastix_spm_t  *spm )
+pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
+                          const pastix_spm_t *spm )
 {
     Clock timer;
 

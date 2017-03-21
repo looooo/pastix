@@ -2,11 +2,12 @@
  *
  * @file spm_integers.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package integers array management routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Francois Pellegrini
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -25,22 +26,21 @@
  *
  * @ingroup pastix_spm
  *
- * @brief Convert integer array to the pastix_int_t format if it is not already
- * the case.
+ * @brief Convert integer array to pastix_int_t format.
  *
  *******************************************************************************
  *
  * @param[in] n
  *          The number of elements in the array.
  *
- * @param[in,out] input
- *          The input array. If the type size is not the same, the array is
+ * @param[inout] input
+ *          The input array. If the types are not the same, the array is
  *          freed on exit.
  *
  *******************************************************************************
  *
- * @return The pointer to the new allocated array if size has changed, or to
- *         input if sizes are identical.
+ * @return The pointer to the new allocated array if the type has changed,
+ *         or the original array if the types are identical.
  *
  *******************************************************************************/
 pastix_int_t *
@@ -67,13 +67,23 @@ spmIntConvert( pastix_int_t n, int *input )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @fn      void spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
+ * @ingroup spm_dev_integer
  *
- * @brief Sorts in ascending order array of element composed of one single
+ * Sorts in ascending order array of element composed of one single
  * pastix_int_t with a single key value.
  *
  *******************************************************************************
+ *
+ * @param[inout] pbase
+ *          Pointer to the array of integers to sort.
+ *
+ * @param[in] n
+ *          The number of elements in the array.
+ *
+ *******************************************************************************
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTNAME                 spmIntSort1Asc1
 #define INTSORTSIZE                 (sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {			\
@@ -88,17 +98,28 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @fn      void spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
+ * @ingroup spm_dev_integer
  *
- * @brief Sorts in ascending order array of element composed of two
+ * Sorts in ascending order array of element composed of two
  * pastix_int_t by ascending order. The first value is used as key.
  *
  *******************************************************************************
+ *
+ * @param[inout] pbase
+ *          Pointer to the array of couple of integers to sort.
+ *
+ * @param[in] n
+ *          The number of elements in the array.
+ *
+ *******************************************************************************
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTNAME                 spmIntSort2Asc1
 #define INTSORTSIZE                 (2 * sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {				\
@@ -116,18 +137,32 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @fn      void spmIntSort3Asc1(void * const pbase, const pastix_int_t n);
+ * @ingroup spm_dev_integer
  *
  * @brief Sorts in ascending order array of element composed of three
  * pastix_int_t by ascending order. The first value is used as key.
  *
  *******************************************************************************
+ *
+ * @param[inout] pbase
+ *          Pointer to the array of triplet of integers to sort.
+ *
+ * @param[in] n
+ *          The number of elements in the array.
+ *
+ *******************************************************************************
  */
-#define INTSORTNAME                 spmInt_intSort3Asc1
+/* Declare here for now, because unused */
+void spmIntSort3Asc1(void *const pbase, const pastix_int_t n);
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define INTSORTNAME                 spmIntSort3Asc1
 #define INTSORTSIZE                 (3 * sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {				\
         pastix_int_t t, u, v;						\
@@ -147,17 +182,27 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
+ * @fn      void spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
+ * @ingroup spm_dev_integer
  * @brief Sorts in ascending order array of element composed of two
  * pastix_int_t by ascending order. Both values are used as key.
  *
  *******************************************************************************
+ *
+ * @param[inout] pbase
+ *          Pointer to the array of couple of integers to sort.
+ *
+ * @param[in] n
+ *          The number of elements in the array.
+ *
+ *******************************************************************************
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTNAME                 spmIntSort2Asc2
 #define INTSORTSIZE                 (2 * sizeof (pastix_int_t))
 #define INTSORTSWAP(p,q)            do {				\
@@ -175,18 +220,32 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
+ * @fn      void spmIntMSortIntAsc(void ** const pbase, const pastix_int_t n);
+ * @ingroup spm_dev_integer
  *
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as primary key for sorting.  The second array is an
  * other array of pastix_int_t used as secondary key.
  *
  *******************************************************************************
+ *
+ * @param[inout] pbase
+ *          Array of pointers to the arrays of integers to sort.
+ *
+ * @param[in] n
+ *          The number of elements in the array.
+ *
+ *******************************************************************************
  */
+/* Declare here for now, because unused */
+void spmIntMSortIntAsc(void ** const pbase, const pastix_int_t n);
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTNAME            spmIntMSortIntAsc
 #define INTSORTSIZE(x)         (sizeof (pastix_int_t))
 #define INTSORTNTAB            2
@@ -199,7 +258,7 @@ spmIntConvert( pastix_int_t n, int *input )
         t = *((pastix_int_t *) (p));                                    \
         *((pastix_int_t *) (p)) = *((pastix_int_t *) (q));              \
         *((pastix_int_t *) (q)) = t;                                    \
-        /* swap on secont integer array */                              \
+        /* swap on second integer array */                              \
         t = int2ptr[disp_p];                                            \
         int2ptr[disp_p] = int2ptr[disp_q];                              \
         int2ptr[disp_q] = t;                                            \
@@ -214,18 +273,31 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSWAP
 #undef INTSORTCMP
 #undef INTSORTNTAB
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm
- *
+ * @fn      void spmIntMSortSmallIntAsc(void **const pbase, const pastix_int_t n);
+ * @ingroup spm_dev_integer
  * @brief Sort 2 arrays simultaneously, the first array is an array of
  * pastix_int_t and used as primary key for sorting.  The second array is an
  * other array of pastix_int_t used as secondary key.
  *
  *******************************************************************************
+ *
+ * @param[inout] pbase
+ *          Array of pointers to the arrays of integers to sort.
+ *
+ * @param[in] n
+ *          The number of elements in the array.
+ *
+ *******************************************************************************
  */
+/* Declare here for now, because unused */
+void spmIntMSortSmallIntAsc(void ** const pbase, const pastix_int_t n);
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define INTSORTNAME            spmIntMSortSmallIntAsc
 #define INTSORTSIZE(x)         (sizeof (int))
 #define INTSORTNTAB            2
@@ -253,4 +325,4 @@ spmIntConvert( pastix_int_t n, int *input )
 #undef INTSORTSWAP
 #undef INTSORTCMP
 #undef INTSORTNTAB
-
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */

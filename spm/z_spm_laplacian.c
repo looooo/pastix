@@ -1,7 +1,10 @@
 /**
  * @file z_spm_laplacian.c
  *
- * $COPYRIGHTS$
+ * SParse Matrix package laplacian generator routines.
+ *
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 1.0.0
  * @author Mathieu Faverge
@@ -19,7 +22,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmLaplacian1D - Generate a 1D laplacian matrix.
  *
@@ -31,7 +34,7 @@
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -110,7 +113,7 @@ z_spmLaplacian1D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmLaplacian2D - Generate a 2D laplacian matrix.
  *
@@ -124,7 +127,7 @@ z_spmLaplacian1D( pastix_spm_t  *spm,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -219,7 +222,7 @@ z_spmLaplacian2D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmLaplacian3D - Generate a 3D laplacian matrix.
  *
@@ -235,7 +238,7 @@ z_spmLaplacian2D( pastix_spm_t  *spm,
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -350,13 +353,13 @@ z_spmLaplacian3D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmExtendedLaplacian2D - Generate a 2D extended laplacian matrix.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.
@@ -473,13 +476,13 @@ z_spmExtendedLaplacian2D( pastix_spm_t  *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_driver
+ * @ingroup spm_dev_driver
  *
  * z_spmExtendedLaplacian3D - Generate a 3D extended laplacian matrix.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          At start, an allocated spm structure.
  *          Contains the size of the laplacian in spm->n.
  *          At exit, contains the matrix in csc format.

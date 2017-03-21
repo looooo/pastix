@@ -2,11 +2,12 @@
  *
  * @file z_spm_genrhs.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package right hand side generators.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01
@@ -21,15 +22,37 @@
 #include "z_spm.h"
 #include "kernels/pastix_zcores.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define Rnd64_A  6364136223846793005ULL
 #define Rnd64_C  1ULL
 #define RndF_Mul 5.4210108624275222e-20f
 #define RndD_Mul 5.4210108624275222e-20
 
+
 static pastix_complex64_t mzone = (pastix_complex64_t)-1.;
 static pastix_complex64_t zone  = (pastix_complex64_t) 1.;
 static pastix_complex64_t zzero = (pastix_complex64_t) 0.;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_rhs
+ *
+ * @brief Random generator from the HPL library
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *         Number of element to jump over in the generator cycle.
+ *
+ * @param[in] seed
+ *
+ *******************************************************************************
+ *
+ * @retval a random integer value
+ *
+ *******************************************************************************/
 static inline unsigned long long int
 Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
   unsigned long long int a_k, c_k, ran;
@@ -49,20 +72,25 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
   return ran;
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PRECISION_z) || defined(PRECISION_c)
 #define NBELEM   2
 #else
 #define NBELEM   1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_rhs
  *
- *  z_spmRndVect generates a random vector for testing purpose.
+ * @brief Generate a vector of random values.
  *
  *******************************************************************************
+ *
+ * @param[in] scale
+ *         Scaling factor for each randomized values.
  *
  * @param[in] m
  *         The number of rows of the tile A. m >= 0.
@@ -70,7 +98,7 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
  * @param[in] n
  *         The number of columns of the tile A. n >= 0.
  *
- * @param[in,out] A
+ * @param[inout] A
  *         On entry, the m-by-n tile to be initialized.
  *         On exit, the tile initialized in the mtxtype format.
  *
@@ -91,8 +119,9 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
  *         all tiles initialized with this routine.
  *
  ******************************************************************************/
-void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
-                   int gM, int m0, int n0, unsigned long long int seed )
+void
+z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
+              int gM, int m0, int n0, unsigned long long int seed )
 {
     pastix_complex64_t *tmp = A;
     int64_t i, j;
@@ -119,9 +148,9 @@ void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_rhs
  *
- * z_spmGenRHS - Generate nrhs right hand side vectors associated to a given
+ * @brief Generate nrhs right hand side vectors associated to a given
  * matrix to test a problem with a solver.
  *
  *******************************************************************************
@@ -149,7 +178,7 @@ void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
  *          Defines the leading dimension of x when multiple right hand sides
  *          are available. ldx >= spm->n.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          b must be an allocated matrix of size at least ldb * nrhs.
  *          On exit, b is initialized as defined by the type parameter.
  *
@@ -159,9 +188,8 @@ void z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the b vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -280,10 +308,9 @@ z_spmGenRHS( int type, int nrhs,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_rhs
  *
- * z_spmCheckAxb - Check the backward error, and the forward error if x0 is
- * provided.
+ * @brief Check the backward error, and the forward error if x0 is provided.
  *
  *******************************************************************************
  *
@@ -294,7 +321,7 @@ z_spmGenRHS( int type, int nrhs,
  *          The sparse matrix uses to generate the right hand side, and the
  *          solution of the full problem.
  *
- * @param[in,out] x0
+ * @param[inout] x0
  *          If x0 != NULL, the forward error is computed.
  *          On exit, x0 stores (x0-x)
  *
@@ -302,7 +329,7 @@ z_spmGenRHS( int type, int nrhs,
  *          Defines the leading dimension of x0 when multiple right hand sides
  *          are available. ldx0 >= spm->n.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          b is a matrix of size at least ldb * nrhs.
  *          On exit, b stores Ax-b.
  *
@@ -319,9 +346,8 @@ z_spmGenRHS( int type, int nrhs,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the b vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the b vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int

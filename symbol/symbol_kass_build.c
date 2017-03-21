@@ -2,11 +2,12 @@
  *
  * @file symbol_kass_build.c
  *
- *  PaStiX symbolic factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX symbolic factorization routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @date 2013-06-24
@@ -14,19 +15,19 @@
  **/
 #include "common.h"
 #include "symbol.h"
-#include "kass.h"
+#include "symbol_kass.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kassBuildSymbol - Create the symbol matrix from the graph of the non zero
- * pattern of the factorized matrix and the supernode partition.
+ * @brief Create the symbol matrix from the graph of the non zero pattern of the
+ * factorized matrix and the supernode partition.
  *
  *******************************************************************************
  *
- * @param[in,out] P
+ * @param[inout] P
  *          The non zero pattern of the factorized matrix. WARNING: on exit, the
  *          graph is destroyed.
  *
@@ -176,16 +177,18 @@ kassBuildSymbol(      kass_csr_t   *P,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_symbfact
+ * @ingroup symbol_dev_kass
  *
- * kassPatchSymbol - Patch the symbol matrix to add blocks in order to get a
- * real elimination tree. This function is called when ILU(k) factorization is
+ * @brief Patch the symbol matrix to add blocks in order to get a
+ * real elimination tree.
+ *
+ * This function is called when ILU(k) factorization is
  * performed and the kassBuildSymbol() function might have returned a symbol
  * matrix that doesn't provide a real elimination tree.
  *
  *******************************************************************************
  *
- * @param[in,out] symbmtx
+ * @param[inout] symbmtx
  *          On entry, a generated symbol matrix with kassBuildSymbol() for example.
  *          On exit, the patched symbol matrix with extra blocks to have a real
  *          elimination tree.

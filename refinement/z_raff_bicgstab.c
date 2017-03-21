@@ -1,9 +1,13 @@
 /**
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @file z_raff_bicgstab.c
  *
- * @version 1.0.0
+ * PaStiX refinement functions implementations.
+ *
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -15,7 +19,6 @@
 #include "common.h"
 #include "bcsc.h"
 #include "z_raff_functions.h"
-#include "solver.h"
 
 /**
  *******************************************************************************
@@ -29,7 +32,7 @@
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[in] x
+ * @param[out] x
  *          The solution vector.
  *
  * @param[in] b
@@ -38,7 +41,6 @@
  *******************************************************************************/
 void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 {
-    /* Choix du solveur */
     struct z_solver solveur;
     z_Pastix_Solveur(&solveur);
 
@@ -54,19 +56,19 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     pastix_int_t         itermax = solveur.Itermax(pastix_data);
     pastix_complex64_t   tmp     = 0.0;
 
-    pastix_complex64_t * gradb  = NULL; /* Second membre b */
-    pastix_complex64_t * gradr  = NULL; /* Solution actuelle */
-    pastix_complex64_t * gradr2 = NULL; /* Condition initiale bis r^ */
+    pastix_complex64_t * gradb  = NULL; /* RHS b */
+    pastix_complex64_t * gradr  = NULL; /* Current solution */
+    pastix_complex64_t * gradr2 = NULL;
     pastix_complex64_t * gradp  = NULL;
     pastix_complex64_t * grady  = NULL;
     pastix_complex64_t * gradv  = NULL;
     pastix_complex64_t * grads  = NULL;
     pastix_complex64_t * gradz  = NULL;
     pastix_complex64_t * gradt  = NULL;
-    pastix_complex64_t * grad2  = NULL; /* Vecteurs de transition */
+    pastix_complex64_t * grad2  = NULL;
     pastix_complex64_t * grad3  = NULL;
 
-    /* Alpha et Beta ne sont utilisés que par le thread 0 */
+    /* alpha and beta are only used by thread 0 */
     pastix_complex64_t * alpha = NULL;
     pastix_complex64_t * beta  = NULL;
     pastix_complex64_t * v1    = NULL;
@@ -129,7 +131,7 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         solveur.Dotc(n, gradr, gradr2, beta);
 
         /* alpha = beta / alpha : alpha = (r, r2) / (v, r2) */
-        //       solveur.Div(arg, beta, alpha, alpha, 0);
+        // solveur.Div(arg, beta, alpha, alpha, 0);
         alpha[0] = beta[0] / alpha[0];
 
         /* s = r - alpha * v */
@@ -151,7 +153,7 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         solveur.Dotc(n, gradz, grad2, v1);
         solveur.Dotc(n, grad2, grad2, v2);
 
-        //       solveur.Div(arg, v1, v2, w, 1);
+        // solveur.Div(arg, v1, v2, w, 1);
         w[0] = v1[0] / v2[0];
 
         /* x = x + alpha * y + w * z */
@@ -170,15 +172,15 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         solveur.Dotc(n, gradr, gradr2, v1);
 
         /* v2 = alpha / w */
-        //       solveur.Div(arg, alpha, w, v2, 0);
+        // solveur.Div(arg, alpha, w, v2, 0);
         v2[0] = alpha[0] / w[0];
 
         /* beta = v1 / beta */
-        //       solveur.Div(arg, v1, beta, beta, 0);
+        // solveur.Div(arg, v1, beta, beta, 0);
         beta[0] = v1[0] / beta[0];
 
         /* beta = beta * v2 */
-        //       solveur.Mult(arg, beta, v2, beta, 1);
+        // solveur.Mult(arg, beta, v2, beta, 1);
         beta[0] = beta[0] * v2[0];
 
         /* p = r + beta * (p - w * v) */

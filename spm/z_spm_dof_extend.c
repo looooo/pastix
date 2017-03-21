@@ -2,11 +2,12 @@
  *
  * @file z_spm_dof_extend.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package multi-dof matrix expanser.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @author Alban Bellot
  * @date 2015-01-01
@@ -17,6 +18,19 @@
 #include "spm.h"
 #include "z_spm.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup spm_dev_dof
+ *
+ * @brief Extend a multi-dof sparse matrix to a single dof sparse matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] spm
+ *          The sparse matrix to extend.
+ *
+ *******************************************************************************/
 void
 z_spmDofExtend(pastix_spm_t *spm)
 {

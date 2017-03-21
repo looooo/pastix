@@ -1,22 +1,28 @@
-/************************************************************/
-/**                                                        **/
-/**                                                        **/
-/**   AUTHORS    : Pascal HENON                            **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                These lines are the data declarations   **/
-/**                for the blend control structure.        **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to     08 sep 1998     **/
-/**                                                        **/
-/************************************************************/
+/**
+ *
+ * @file cand.c
+ *
+ * PaStiX analyse headers for candidate array functions.
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_ctrl
+ * @{
+ *    This module handles all option to parameterize the final analyze step that
+ *    performs proportional mapping and the generation of the final solver
+ *    matrix structure per MPI process.
+ *
+ **/
+#ifndef _BLENDCTRL_H_
+#define _BLENDCTRL_H_
 
-#ifndef _BLEND_CTRL_H_
-#define _BLEND_CTRL_H_
-
-/*
-**  The type and structure definitions.
+/**
+ * @brief The type and structure definitions.
 */
 
 /*+ Structure containing the structure passed through the blend primitives +*/
@@ -92,4 +98,4 @@ void getCommunicationCosts( const BlendCtrl *ctrl,
                             double *startup,
                             double *bandwidth);
 
-#endif /* _BLEND_CTRL_H_ */
+#endif /* _BLENDCTRL_H_ */

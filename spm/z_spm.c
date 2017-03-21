@@ -2,11 +2,12 @@
  *
  * @file z_spm.c
  *
- *  PaStiX spm routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * SParse Matrix package precision dependent routines.
  *
- * @version 5.1.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
@@ -20,17 +21,18 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_check
  *
- * z_spmSort - This routine sorts the subarray of edges of each vertex in a
- * centralized spm stored in CSC or CSR format. Nothing is performed if IJV
- * format is used.
+ * @brief This routine sorts the subarray of edges of each vertex in a
+ * centralized spm stored in CSC or CSR format.
  *
- * WARNING: This function should NOT be called if dof is greater than 1.
+ * Nothing is performed if IJV  format is used.
+ *
+ * @warning This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
  *          On exit, the same sparse matrix with subarrays of edges sorted by
  *          ascending order.
@@ -90,25 +92,25 @@ z_spmSort( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_check
  *
- * z_spmMergeDuplicate - This routine merge the multiple entries in a sparse
- * matrix by suming their values together. The sparse matrix needs to be sorted
- * first (see z_spmSort()).
+ * @brief This routine merge the multiple entries in a sparse
+ * matrix by suming their values together.
  *
- * WARNING: This function should NOT be called if dof is greater than 1.
+ * The sparse matrix needs to be sorted  first (see z_spmSort()).
+ *
+ * @warning This function should NOT be called if dof is greater than 1.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
  *          On exit, the reduced sparse matrix of multiple entries were present
  *          in it. The multiple values for a same vertex are sum up together.
  *
  ********************************************************************************
  *
- * @return
- *          \retval The number of vertices that were merged
+ * @return The number of vertices that were merged
  *
  *******************************************************************************/
 pastix_int_t
@@ -184,23 +186,24 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_spm_internal
+ * @ingroup spm_dev_check
  *
- * z_spmSymmetrize - This routine corrects the sparse matrix structure if it's
- * pattern is not symmetric. It returns the new symmetric pattern with zeores on
+ * @brief This routine corrects the sparse matrix structure if it's
+ * pattern is not symmetric.
+ *
+ * It returns the new symmetric pattern with zeroes on
  * the new entries.
  *
  *******************************************************************************
  *
- * @param[in,out] spm
+ * @param[inout] spm
  *          On entry, the pointer to the sparse matrix structure.
- *          On exit, the same sparse matrix with extra entires that makes it
+ *          On exit, the same sparse matrix with extra entries that makes it
  *          pattern symmetric.
  *
  *******************************************************************************
  *
- * @return
- *          \retval Returns the number of elements added to the matrix.
+ * @retval Return the number of entries added to the matrix.
  *
  *******************************************************************************/
 pastix_int_t
